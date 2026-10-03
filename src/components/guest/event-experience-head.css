@@ -1,0 +1,161 @@
+/* THE EVENT'S HEAD, ITS OWN SHEET (`event-experience-head.tsx`): the cover's
+   photographs dissolving one into the next, the scrim the words stand on, and
+   the house light an album with nothing to show yet wears.
+
+   ★ THE REST STATE IS THE DEFAULT (bible 5). Every moving thing here sits
+   behind `no-preference`, and its resting style is the still frame it settles
+   on: reduced motion stands the cover on its first photograph, the light in
+   place, nothing rising.
+
+   ★ EVERY KEYFRAME CARRIES THE `head-` PREFIX: names are document-global
+   (`keyframe-uniqueness.test.ts`). */
+
+/* THE ALBUM COVER'S HEIGHT, its one home: most of a phone's first screen, a
+   band at a desk. The door draws the cover through its opening at this same
+   height (`door/doorway.css`'s `.door-way-view`), so the walk through lands
+   the doorway's picture on the cover to the pixel. */
+:root {
+  --cover-h: clamp(26rem, 74svh, 34rem);
+}
+
+/* ══ THE COVER'S PHOTOGRAPHS ═══════════════════════════════════════════════
+
+   The reel's own stills, six slots of one keyframe, each phase-shifted into its
+   own sixth of the cycle by a negative delay (an album of two cycles its two
+   three times round), so the dissolve runs in CSS from the first byte of HTML,
+   before any script, and off the main thread after it. A still holds about
+   four and a half seconds and dissolves over about a second and a half: ambient
+   media motion, calm on purpose (`living-stills.tsx`'s numbers). */
+
+.head-still {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+}
+/* One photograph stands; so does the first of several, until motion is welcome. */
+.head-still[data-rest] {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .head-still[data-cycle] {
+    animation-name: head-crossfade;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-duration: calc(var(--head-hold) * 6 * 1s);
+    animation-delay: calc(var(--head-delay) * 1s);
+  }
+  /* The cover settles from a step closer as it arrives, once. */
+  .head-stills {
+    animation: head-settle 1200ms var(--ease-emphasis) both;
+  }
+}
+
+/* A slot is on screen for its sixth of the cycle: in over the first quarter of
+   it, out over the same past its end, so two stills always cross. */
+@keyframes head-crossfade {
+  0% {
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  16.6667% {
+    opacity: 1;
+  }
+  21.6667% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes head-settle {
+  from {
+    opacity: 0;
+    transform: scale(1.06);
+  }
+}
+
+/* The scrim: a breath at the top for the header's words, and the weight at the
+   foot where the name and the actions stand, so they read over the brightest
+   photograph a guest could take. Measured on the bootstrap stills' brightest (a
+   white dress at noon): the byline's 85% white clears 4.5:1 over the foot. */
+.head-scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, rgb(0 0 0 / 0.42) 0, rgb(0 0 0 / 0) 7.5rem),
+    linear-gradient(
+      to bottom,
+      rgb(0 0 0 / 0) 30%,
+      rgb(0 0 0 / 0.4) 56%,
+      rgb(0 0 0 / 0.8) 100%
+    );
+}
+
+/* ══ THE HOUSE LIGHT: the room before anyone's photograph is in it ═══════════
+
+   The house's own warmth (`door-light.ts`'s first, the coral, and a step
+   toward amber: on the dark ground the amber itself reads olive), deep on the
+   cover's dark ground so it reads as a lit room rather than a stain: an empty
+   album, one still sealed until it develops, and the beat before the first
+   photograph arrives all stand on it.
+
+   ★ GRADIENTS, NEVER BLURRED BLOBS. Three radial pools composed on one layer
+   light the room evenly at any width (blurred shapes left a dark hole between
+   them at a desk) and cost a phone nothing per frame: no filter, and the one
+   movement is the layer's own slow drift. */
+
+.head-light {
+  --head-l: 0.72;
+  --head-c: 0.15;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.head-light::before {
+  content: "";
+  position: absolute;
+  inset: -15%;
+  opacity: 0.55;
+  /* Each pool falls off through a half-strength stop, so its edge is a fade,
+     never a rim, and the room's light reaches down toward the words. */
+  background:
+    radial-gradient(
+      50% 75% at 28% 8%,
+      oklch(var(--head-l) var(--head-c) var(--head-h1, 25)) 0%,
+      oklch(var(--head-l) var(--head-c) var(--head-h1, 25) / 0.45) 38%,
+      transparent 76%
+    ),
+    radial-gradient(
+      46% 70% at 72% 4%,
+      oklch(var(--head-l) var(--head-c) calc(var(--head-h1, 25) + 30)) 0%,
+      oklch(var(--head-l) var(--head-c) calc(var(--head-h1, 25) + 30) / 0.45)
+        38%,
+      transparent 76%
+    ),
+    radial-gradient(
+      90% 80% at 50% 0%,
+      oklch(var(--head-l) calc(var(--head-c) * 0.8) var(--head-h1, 25) / 0.7) 0%,
+      transparent 82%
+    );
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .head-light::before {
+    animation: head-drift 24s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes head-drift {
+  to {
+    transform: translate(4%, 3%) scale(1.06);
+  }
+}

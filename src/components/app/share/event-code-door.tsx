@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { EyeOff, Lock, Pause, type LucideIcon } from "lucide-react";
 
 import { StyledQr } from "@/components/app/styled-qr";
+import { CodeMat } from "@/components/ui/code-mat";
 import {
   Tooltip,
   TooltipContent,
@@ -89,32 +90,24 @@ export function EventCodeDoor({
     <>
       <span ref={sentinelRef} aria-hidden className="sr-only" />
       <span data-code-door="" className="relative shrink-0">
-        <button
-          type="button"
+        {/* The code on its white mat (`ui/code-mat.tsx`): the mat owns the press and the dim, this
+            door owns what a press opens and the morph's name while the code is the one on screen. */}
+        <CodeMat
           onClick={openCode}
           aria-label={`Show the code for ${eventName}`}
+          dimmed={dimmed}
           style={{ viewTransitionName: morphNameFor("header") }}
-          className={cn(
-            "group relative block rounded-lg bg-white p-2 transition-transform duration-150 ease-emphasis outline-none",
-            "hover:scale-[1.02] focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.98]",
-            "motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
-          )}
           {...trackAttrs("cta_click", { cta: "event-code", location: "hub" })}
         >
-          <span
-            data-code-dim={dimmed ? "" : undefined}
-            className={cn(
-              "block transition-opacity duration-200 motion-reduce:transition-none",
-              dimmed && "opacity-25",
-            )}
-          >
+          {/* The code's own box, held before its script draws it, so the head never moves. */}
+          <span className="block" style={{ width: CODE_PX, height: CODE_PX }}>
             <StyledQr
               value={joinUrl}
               size={CODE_PX}
               style={resolveQrPreset(qrStyle)}
             />
           </span>
-        </button>
+        </CodeMat>
         {mark ? <CornerMark mark={mark} /> : null}
       </span>
     </>

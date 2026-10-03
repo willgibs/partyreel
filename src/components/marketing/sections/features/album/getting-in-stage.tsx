@@ -18,7 +18,7 @@ import { ENTRY_SCREENS, EntryPhone, type EntryScreen } from "./entry-phone";
  * the phone are the three screens it cycles, so they are one ruled list whose
  * active row follows the phone (an ink gutter bar), and pointing at a row pins
  * that screen. The clock is a chained timeout on useAmbientPause (halts
- * off-screen, never bursts); reduced motion pins the welcome screen, the one
+ * off-screen, never bursts); reduced motion pins the welcome, the one screen
  * that carries the words. Hover-gated so a touch tap never strands the phone.
  */
 

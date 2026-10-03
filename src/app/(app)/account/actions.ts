@@ -3,11 +3,15 @@
 import { revalidatePath } from "next/cache";
 
 import {
+  countMyUploadsElsewhere,
   removeMyNewsletterSignup,
   requestAccountDeletion,
+  type UploadsElsewhere,
 } from "@/lib/db/mutations/account";
 import { setNotificationPrefs } from "@/lib/db/mutations/social";
 import { verifyCurrentPassword } from "@/lib/db/queries/account";
+import { nextPurgeWindow } from "@/lib/lifecycle/purge-time";
+import { captureError } from "@/lib/observability/sentry";
 import type { NotificationPrefs } from "@/lib/social/notification-prefs";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -128,12 +132,53 @@ export type DeletionProof =
   | { method: "code"; code: string };
 
 export type DeleteAccountResult =
-  | { ok: true }
+  | {
+      ok: true;
+      /** When the purge has run (ISO), from the stamp: the done state's "start fresh after". */
+      purgeBy: string;
+    }
   | {
       ok: false;
-      code: "unauthorized" | "verification" | "subscription" | "error";
+      code:
+        | "unauthorized"
+        | "verification"
+        | "uploads"
+        | "subscription"
+        | "error";
       message: string;
     };
+
+/** What the dialog asks the server for as it opens. */
+export type DeletionFactsResult =
+  | {
+      ok: true;
+      /** Her uploads still in other people's albums: the choice's number (0 hides it). */
+      uploadsElsewhere: UploadsElsewhere;
+      /** When the purge would have run for a request made now (ISO), on the server's clock. */
+      purgeBy: string;
+    }
+  | { ok: false; message: string };
+
+/**
+ * The facts the deletion dialog names that the page does not carry: how many photos and videos
+ * she added to other people's albums (counted on the server, never trusted back from the client:
+ * the removal re-reads its own set), and the purge's time on the server's clock, which a phone's
+ * own clock can be wrong about. Read as the dialog opens, so it costs the /account page nothing.
+ */
+export async function getDeletionFactsAction(): Promise<DeletionFactsResult> {
+  const me = await myEmail();
+  if (!me) return { ok: false, message: "Sign in and try again." };
+  try {
+    return {
+      ok: true,
+      uploadsElsewhere: await countMyUploadsElsewhere(),
+      purgeBy: nextPurgeWindow(Date.now()).end.toISOString(),
+    };
+  } catch (error) {
+    captureError("account", error, { step: "deletion_facts" });
+    return { ok: false, message: "Couldn't load this. Try again." };
+  }
+}
 
 /** The caller's own verified address, or null. Never trust one from the client. */
 async function myEmail(): Promise<{ userId: string; email: string } | null> {
@@ -171,6 +216,12 @@ export async function sendDeletionCodeAction(): Promise<ActionResult> {
   return { ok: true };
 }
 
+/** Her choices in the dialog, beside the proof. */
+export type DeletionChoices = {
+  /** Take every upload she added to other people's albums out first (off unless she turns it on). */
+  removeUploadsElsewhere?: boolean;
+};
+
 /**
  * Delete the signed-in account: verify the proof, run the request, sign out.
  *
@@ -180,6 +231,7 @@ export async function sendDeletionCodeAction(): Promise<ActionResult> {
  */
 export async function deleteMyAccountAction(
   proof: DeletionProof,
+  choices: DeletionChoices = {},
 ): Promise<DeleteAccountResult> {
   const me = await myEmail();
   if (!me) {
@@ -225,11 +277,17 @@ export async function deleteMyAccountAction(
   const result = await requestAccountDeletion({
     userId: me.userId,
     actor: "self",
+    // A plain boolean from the request, whatever else rode it: the set it removes is read on the
+    // server, keyed on the verified caller.
+    removeUploadsElsewhere: choices?.removeUploadsElsewhere === true,
   });
   if (!result.ok) {
     return {
       ok: false,
-      code: result.code === "subscription" ? "subscription" : "error",
+      code:
+        result.code === "subscription" || result.code === "uploads"
+          ? result.code
+          : "error",
       message: result.message,
     };
   }
@@ -242,7 +300,10 @@ export async function deleteMyAccountAction(
   // captured, never fatal), and when it failed this global scope is what
   // revokes the account's other devices.
   await supabase.auth.signOut({ scope: "global" });
-  return { ok: true };
+  return {
+    ok: true,
+    purgeBy: nextPurgeWindow(Date.parse(result.requestedAt)).end.toISOString(),
+  };
 }
 
 // ── Email preferences (the /account notification card) ──────────────────────

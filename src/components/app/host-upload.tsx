@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import {
   AlertCircle,
   CheckCircle2,
@@ -21,10 +20,16 @@ import { uploadFile } from "@/lib/upload/uploader";
 // uploadFile orchestrator pointed at the authenticated /api/host/r2/* routes. This is
 // the simpler twin of the guest GuestUpload — the host is already signed in, so there's
 // no just-in-time join, no demo mode, and no email capture. Host uploads are always
-// auto-approved (create_media_as_host), so a finished item posts straight to the album;
-// we router.refresh() once the batch drains to pull the new rows into the server-rendered
-// grid above. The queue runs one file at a time (robust on flaky connections), same as
-// the guest flow.
+// auto-approved (create_media_as_host), so a finished item posts straight to the album.
+// The queue runs one file at a time (robust on flaky connections), same as the guest flow.
+//
+// ★ THE ALBUM'S OWN STORE BRINGS THE BATCH, NEVER A PAGE REFRESH. The hub's album is a live
+// store (`host-album.tsx`): an approved upload rings the doorbell and the store answers with the
+// delta, so the grid, its count and the Reel card move without the hub re-running its reads and
+// presigns (a `router.refresh()` re-runs all of them). A drained batch tells the page
+// (`onBatchLanded`), whose album asks its store once, which makes the arrival immediate when the
+// doorbell's socket is down (the fallback poll would otherwise take up to 12s) and costs a 304
+// when the doorbell already brought it.
 
 type ItemStatus = "queued" | "uploading" | "done" | "error";
 type Item = {
@@ -38,11 +43,13 @@ type Item = {
 export function HostUpload({
   eventId,
   videosAllowed,
+  onBatchLanded,
 }: {
   eventId: string;
   videosAllowed: boolean;
+  /** A drained batch landed at least one file: the album's store is asked what arrived. */
+  onBatchLanded?: () => void;
 }) {
-  const router = useRouter();
   // The provider holds this panel's box for the reel card's Add photos (`openAdd`).
   const add = useHostAdd();
   const [items, setItems] = useState<Item[]>([]);
@@ -62,9 +69,8 @@ export function HostUpload({
     [sync],
   );
 
-  // One file at a time. When the queue fully drains, refresh the route so the new
-  // (auto-approved) items appear in the host grid — route handlers don't revalidate
-  // like server actions, so the client triggers it. Once per drain, not per file.
+  // One file at a time. When the queue fully drains, the page's album is told once (the head
+  // note), so the new (auto-approved) items appear in the grid. Once per drain, not per file.
   const runQueue = useCallback(async () => {
     if (processingRef.current) return;
     processingRef.current = true;
@@ -95,8 +101,8 @@ export function HostUpload({
     } finally {
       processingRef.current = false;
     }
-    if (anySucceeded) router.refresh();
-  }, [patch, eventId, router]);
+    if (anySucceeded) onBatchLanded?.();
+  }, [patch, eventId, onBatchLanded]);
 
   const addFiles = useCallback(
     (files: File[]) => {

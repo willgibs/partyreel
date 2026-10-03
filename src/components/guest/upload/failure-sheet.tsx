@@ -46,6 +46,13 @@ import {
 import { UPLOAD_FAILED_HELP_HREF } from "@/lib/content/help-links";
 import { formatCount } from "@/lib/format/count";
 import { retryCanPass } from "@/lib/guest/upload-refusal";
+import {
+  developTimeWords,
+  NOTHING_WAITS,
+  TRACKER_SEALED_WORDS,
+  TRACKER_WORDS,
+  type UploadsWait,
+} from "@/lib/guest/upload-tracker";
 
 /** One file that did not go: the queue's id, its file, the server's words and their code. */
 export type UploadFailure = {
@@ -66,6 +73,27 @@ export function uploadFailureHeading(failed: number, sent: number): string {
   // Quoted verbatim by /features/album's cap mock (`how-much-fits.tsx`);
   // mock-parity.test.ts is the proof.
   return `${formatCount(failed)} of ${formatCount(sent)} didn't upload`;
+}
+
+/**
+ * ★ WHAT THE SHEET SAYS OF EVERYTHING ELSE, TRUE WHERE IT IS SAID (red-team 44's LOW, and 43's before it): the rest is
+ * in the host's album where what she adds shows at once; where it waits (`waits`, the page's `addsWaitFor`), nothing
+ * of hers is in the album yet, so it says what her uploads say of each one (`TRACKER_SEALED_WORDS`, or
+ * `TRACKER_WORDS.waiting`), the develop's time in the one format the keep and her tracker say it in.
+ */
+export function uploadFailureElsewhere(input: {
+  hostName: string;
+  waits?: UploadsWait;
+}): string {
+  const { hostName, waits = NOTHING_WAITS } = input;
+  if (waits.developsAt) {
+    const when = developTimeWords(waits.developsAt);
+    return `Everything else is ${TRACKER_SEALED_WORDS.toLowerCase()}${when ? `, ${when}` : ""}.`;
+  }
+  if (waits.waits) {
+    return `Everything else is ${TRACKER_WORDS.waiting.toLowerCase()}.`;
+  }
+  return `Everything else is in ${hostName}’s album.`;
 }
 
 /** The list's one retry-everything button, in one place (`UploadFailureList` below). */
@@ -170,6 +198,7 @@ export function UploadFailureSheet({
   failures,
   sent,
   hostName,
+  waits,
   onRetry,
 }: {
   open: boolean;
@@ -178,6 +207,8 @@ export function UploadFailureSheet({
   /** The whole run's count (failed + landed), for the exact heading's denominator. */
   sent: number;
   hostName: string;
+  /** What her adds wait for (the page's `addsWaitFor`): what the sheet says of the rest (`uploadFailureElsewhere`). */
+  waits?: UploadsWait;
   /** Re-queues one file (the queue's own `retry`). */
   onRetry: (id: string) => void;
 }) {
@@ -215,7 +246,7 @@ export function UploadFailureSheet({
             {uploadFailureHeading(shown.failures.length, shown.sent)}
           </SheetTitle>
           <SheetDescription>
-            Everything else is in {hostName}&rsquo;s album.
+            {uploadFailureElsewhere({ hostName, waits })}
           </SheetDescription>
         </SheetHeader>
 

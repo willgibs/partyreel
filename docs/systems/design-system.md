@@ -5,6 +5,7 @@ Open this before you:
 - add, move or retune light: a lamp, the Aurora, a beam, a glow;
 - touch type, a corner, a shadow, the bright edge or glass;
 - build motion, a floating panel (a menu, dialog, sheet or tooltip), a toast or an album tile;
+- build or restyle an atom that stands on a photograph (the event heads' contract);
 - pace a marketing page's chapters;
 - add an error path, an error boundary or a crash screen;
 - work in the `/design` lab.
@@ -26,7 +27,8 @@ and composition. A button made different on its own is not an identity, and atom
 as generic however custom the layout above them. The direction is a camera's own instruments (identity r1 picked
 `viewfinder`; its atoms are refined in the lab one group at a time before they wire at the source), pitched at a modern
 consumer app for the crowd that actually comes, about 18 at a party to about 50 at a wedding or a conference: it reads
-as bespoke and current to them and never as a developer's tool (no bench readouts for their own sake), and it is never
+as bespoke and current to them and never as a developer's tool (no bench readouts for their own sake; the viewfinder's
+corner marks survive only as a focus mark, never as a style), and it is never
 flattened into a lowest-common-denominator app, since the core path (scan, add, view) is plain to anyone already.
 
 - **Four grounds, four classes**: the page `:root, .surface-paper` (the card is the page's own white), the room
@@ -145,9 +147,10 @@ is near it; **beam** marks the object that is the live subject. Ink tends to tak
 - ★ **A band resting mid-travel shows a reduced-motion visitor the comet forever**: the animation lives under
   `no-preference`, so the declared position is what they see. It rests where its animation starts (`150% 0` on the
   mask drive, `glw-drift-x`'s from-keyframe on the transform drive), never `50% 0`.
-- **`GlowFilter` mounts once, in the root layout** (the root 404, `not-found.site.tsx`, renders the footer outside
-  `(marketing)`); SVG ids are document-global, so never a second. ★ **A missing filter host drops the whole filter
-  chain**, `blur()` included, and the five ellipses render as hard blobs, silently; `Glow` has a dev-only console guard.
+- **`GlowFilter` mounts once per document**: in the root layout (the root 404, `not-found.site.tsx`, renders the footer
+  outside `(marketing)`) and in each portalled lab frame (`FrameWindow`); SVG ids are document-global, so never a
+  second in one document. ★ **A missing filter host drops the whole filter chain**, `blur()` included, and the five
+  ellipses render as hard blobs, silently; `Glow` has a dev-only console guard.
 - **One clock**: lamps read `--spill-cadence`, never a literal; the Aurora's field reads `--aurora-cadence`, a slower
   sibling (a chapter-sized field on a lamp's clock reads as a screensaver). ★ The sibling stays declared in
   globals.css: an inline `vars` value outranks `--glw-dur`, so an undeclared cadence voids the `animation` shorthand and
@@ -327,6 +330,35 @@ and `lib/glass.ts` names the classes the product wears. `PosterCardChip` (the st
   full-bleed photograph needs a darker brightness and tint to clear 4.5:1); retune them by measuring.
 - **A phone pays nothing measurable for the ground**: the viewer's swipe holds 16.7ms frames blurred or flat, even at
   twice the radius under a 6x CPU throttle.
+
+## The event's head: the atoms on a photograph
+
+The album's cover and the hub's head (`event-header` r1; [guest-flow.md](guest-flow.md),
+[host-app.md](host-app.md)) stand their controls on a photograph, which no paper atom was made for. Their atoms live
+in `src/components/ui/` under ONE contract, the hooks identity r2 styles in the lab while production draws them, so a
+name here never moves without both:
+
+| Hook | The atom |
+| --- | --- |
+| `data-slot="shutter"`, `data-state` `idle` / `sending` / `done`, `--progress` (0 to 1) | `ui/shutter.tsx`: the round Add at an album's foot, its ring the album's light |
+| `data-surface="photo"` | any container standing on a photograph (`EventHead`, the guest header on the cover) |
+| Button `data-variant="on-photo"` | the white primary on a photograph |
+| Button `data-variant="glass"` (with `size="icon-cta"`, the 44px round) | the glass round beside it |
+| `data-slot="code-mat"` | `ui/code-mat.tsx`: a scannable code on its white mat, always a button |
+| `data-slot="code-chip"` | `ui/code-chip.tsx`: the code's glyph on white in a sticky bar, never a shrunken code |
+| `data-slot="glyph-count"`, its number's `data-n` | `ui/glyph-count.tsx`: an icon and a number, its words on hover, focus and a tap |
+| Badge `data-variant="live"` | the live mark: a still dot and the word, never a pulse |
+
+- ★ **A photograph is the room**: a head wears `dark` with `data-surface="photo"`, in both themes, so every token its
+  words and atoms read is the room's; white ink over paper tokens (a `text-white` beside paper's muted ink and
+  rings) is the half-painted subtree this doc's identity section warns of.
+- ★ **The shutter's `--progress` is the caller's plain number**; its sheet glides a registered copy (`--shutter-p`,
+  `@property`), so the contract's name never becomes a registered property every sheet on the page would inherit.
+  Its ring's band and its sweep are two nested masks (the two-masks gotcha below).
+- ★ **An atom a server page draws takes its glyph as an element** (`GlyphCount`'s `icon={<Images />}`): a component
+  is a function, and a function cannot cross from a server page into a client atom.
+- A head's motion is its own sheet's (`event-experience-head.css`, every keyframe `head-`): the cover's stills
+  dissolve in CSS (six slots of one keyframe, so it runs from the first byte), and reduced motion stands it still.
 
 ## The album tile
 
@@ -644,10 +676,18 @@ board, its own sheet and scenes), found by the registry and the board route and 
   padded board's 6,722 elements restyled, and 5 without it (Chrome 154, UpdateLayoutTree counts on fresh loads). A
   `:has()` in a rule's subject re-matches that element alone and hands its children the answer as an inherited custom
   property, which costs nothing until it changes (`--lab-wide-toc`); `design-css.test.ts` holds the sheet to it.
-- **A portalled `Frame` is its own world**: a link or a form pressed in it goes nowhere, a layer opens inside it (the
-  floating-layer contract's container), and it follows the lab's theme class while open. A `loading="lazy"` image in
-  it loads once it is in the frame's own view; one below the frame's own fold waits for that frame's scroll, as on
-  any page.
+- **A portalled `Frame` is a window of its own** (`frame-window.tsx`): a link or a form pressed in it goes nowhere; it
+  follows the lab's theme class while open; its scene mounts once the frame's copied sheets have loaded (a menu drawn
+  open into the unstyled page kept `z-index: auto` and painted under it); the media hooks read the frame's window
+  (`MediaWindowProvider`, provided nowhere in the product), so a frame at 375 draws the phone's branch; a layer opens
+  inside it, its scroll lock and focus guards on the frame's body; and it carries its own `GlowFilter`. ★ Radix writes
+  every lock and guard onto the realm's body, the lab's, so the lab's body keeps them only for a layer of its own, and a
+  cancelling wheel or touch listener on the lab's document runs only while the lab holds a lock. Still the lab's: a
+  direct `window.matchMedia` in production, radix's focus trap, and history (a place popup drawn open at a hand's
+  width costs the tab's Back one press, as a routed frame's does); and a frame's elements wear the frame's own
+  prototypes, so production's `instanceof HTMLElement` answers false there (the popup's open focus skips its panel). A
+  `loading="lazy"` image in it loads once it is in the frame's own view; one below the frame's own fold waits for that
+  frame's scroll, as on any page.
 
 ## Gotchas / don't-revert
 

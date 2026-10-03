@@ -1,7 +1,7 @@
 /**
  * Account deletion: the anonymisation shape, and the sweep that finishes the job.
  *
- * THE TWO HALVES (immediate, no undo, an active plan
+ * THE TWO HALVES (immediate, no undo for the person, an active plan
  * auto-cancelled at the request):
  *
  *   1. THE REQUEST (src/lib/db/mutations/account.ts, driven by the /account card
@@ -9,13 +9,19 @@
  *      stamps `profiles.deletion_requested_at`, soft-deletes every hosted event
  *      into the existing 30-day bin, removes the address from the newsletter,
  *      scrubs the account's guest rows in other hosts' events, anonymises the
- *      profile, and bans the auth user from signing in. All of it is immediate
- *      and none of it is reversible.
+ *      profile, and bans the auth user from signing in. All of it is immediate.
+ *      The one way back is the operator's Cancel deletion before the purge
+ *      (`cancelAccountDeletion`, beside the request), never offered to the
+ *      person: it reverses the ban and the stamp, and nothing else comes back
+ *      (the binned events wait out their own 30 days in Deleted).
  *
  *   2. THE SWEEP (here, called once from the daily purge cron) hard-deletes what
  *      the request only marked: R2 objects FIRST, then the media rows through
  *      `purge_media_rows` (both through `reclaimMedia`), then the event rows, and
- *      finally the auth.users row once the account has ZERO events left.
+ *      finally the auth.users row once the account has ZERO events left. It
+ *      purges only an account still stamped when its turn comes (`purgeAccount`
+ *      reads the stamp again, first), so a Cancel deletion that lands after the
+ *      run read its queue leaves the account whole.
  *
  * ★ THE AUTH USER GOES LAST, AND ONLY AT ZERO EVENTS. Deleting auth.users
  * cascades profiles -> events -> media (every FK on that chain is ON DELETE
@@ -166,6 +172,11 @@ export type AccountDeletionSweepResult = {
   accounts_held: number;
   /** Accounts the deadline caught mid-purge: they finish on a later run. */
   accounts_unfinished: number;
+  /**
+   * Accounts the queue named whose stamp was gone by their turn: brought back by the operator's
+   * Cancel deletion after the run read its queue (or taken by another run), left exactly as they are.
+   */
+  accounts_skipped: number;
   /** Guest rows in other hosts' events that lost an account's address or typed name this run. */
   guest_rows_scrubbed: number;
   events: number;
@@ -185,7 +196,7 @@ export type AccountPurgeResult = {
    * "deleted" once the auth.users row is gone; "held" while a hold blocks it; "unfinished" when the
    * deadline stopped the purge before its event rows could go.
    */
-  outcome: "deleted" | "held" | "unfinished";
+  outcome: "deleted" | "held" | "unfinished" | "skipped";
   /** The account's guest rows the re-anonymise scrubbed (0 once an earlier pass cleared them). */
   guest_rows_scrubbed: number;
   events: number;
@@ -202,6 +213,7 @@ function emptyResult(): AccountDeletionSweepResult {
     accounts_deleted: 0,
     accounts_held: 0,
     accounts_unfinished: 0,
+    accounts_skipped: 0,
     guest_rows_scrubbed: 0,
     events: 0,
     hold_blocked_events: 0,
@@ -270,8 +282,14 @@ export async function readHostedEventIds(
  * Everything the deletion owes ONE account: R2 objects first, then the media
  * rows, then the event rows, and the auth.users row last of all if nothing is
  * left standing. Exported as its own seam because it is the whole destructive
- * half, and it depends on nothing but a user id, so it can be exercised against
- * a disposable account without the queue marker above it.
+ * half, and it depends on nothing but a user id and that account's own stamp.
+ *
+ * ★ THE STAMP IS READ AGAIN, FIRST, BEFORE ANYTHING IS TOUCHED. The run read its
+ * queue at its start, and the operator's Cancel deletion clears the stamp to bring
+ * an account back (it refuses while a run is under way, but a run can start
+ * between its check and its write). An account whose stamp is gone by its turn is
+ * `skipped`: not re-anonymised, no object, row or sign-in deleted. A restored
+ * account erased would be a whole account lost.
  *
  * `handled` is ADD-ONLY. We deliberately do not FILTER by it: a row an earlier
  * sweep purged is already gone from our select, whereas a row it deleted the
@@ -294,6 +312,21 @@ export async function purgeAccount(
     r2_errored: 0,
     freed_bytes: 0,
   };
+
+  // A failed read THROWS (mustQuery): never "no stamp", which would skip, and never "stamped",
+  // which would purge an account that might just have been restored.
+  const stamped = await mustQuery(
+    admin
+      .from("profiles")
+      .select("deletion_requested_at")
+      .eq("id", userId)
+      .maybeSingle(),
+    "purgeAccount: the stamp",
+  );
+  if (!stamped?.deletion_requested_at) {
+    result.outcome = "skipped";
+    return result;
+  }
 
   result.guest_rows_scrubbed = await reanonymise(admin, userId);
 
@@ -531,6 +564,7 @@ export async function sweepDeletedAccounts(
         result.freed_bytes += one.freed_bytes;
         if (one.outcome === "deleted") result.accounts_deleted += 1;
         else if (one.outcome === "held") result.accounts_held += 1;
+        else if (one.outcome === "skipped") result.accounts_skipped += 1;
         else result.accounts_unfinished += 1;
       },
       {

@@ -1,9 +1,10 @@
 /**
- * THE BLOG TAG REGISTRY: the six tags a post may carry, with the label the UI prints and
+ * THE BLOG TAG REGISTRY: the seven tags a post may carry, with the label the UI prints and
  * the one-line description the filtered library shows under its heading.
  *
- * Three AUDIENCES (who the post is for) and three PURPOSES (what kind of piece it is).
- * A post carries one or two tags total, at most one audience: one of each, or two purposes,
+ * Four AUDIENCES (who the post is for: the event types, in the nav's order, so a reader who
+ * came from /events/trips finds the posts about trips) and three PURPOSES (what kind of piece it
+ * is). A post carries one or two tags total, at most one audience: one of each, or two purposes,
  * are both legal, but never two audiences. The frontmatter schema (blog.ts) enforces
  * membership so a typo fails the BUILD, the same contract `cover` and `author` already have. The
  * registry order is the RAIL order (audiences, then purposes), deliberately fixed: a
@@ -35,7 +36,7 @@ export const BLOG_TAGS = [
     kind: "audience",
     label: "Parties",
     description:
-      "Birthdays, showers, graduations, reunions and holidays, before anyone leaves.",
+      "Birthdays, showers, graduations and holidays, before anyone leaves.",
   },
   {
     id: "corporate",
@@ -43,6 +44,15 @@ export const BLOG_TAGS = [
     label: "Corporate",
     description:
       "Conferences, offsites and team events, curated before they are reshared.",
+  },
+  {
+    // The event type's own scope (`events.ts`: group vacations, reunions, retreats, bachelor trips),
+    // so a reunion post is filed where /events/trips files reunions, not under Parties.
+    id: "trips",
+    kind: "audience",
+    label: "Trips",
+    description:
+      "Group vacations, reunions and bachelor trips: the whole crew in one album.",
   },
   {
     id: "how-to",

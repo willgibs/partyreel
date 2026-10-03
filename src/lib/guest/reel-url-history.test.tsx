@@ -18,10 +18,15 @@
  * this is the hook, against `@/lib/test-utils/next-history`, the stand-in that is Next's patch (a fresh state
  * gets Next's `__NA`, a state that carries it applies no URL, a refresh drops the entry's custom state).
  */
+import { useEffect, useInsertionEffect, type ReactNode } from "react";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { useReelParam } from "@/lib/guest/reel-url";
+import {
+  reelOfAddress,
+  useReelParam,
+  type ReelMode,
+} from "@/lib/guest/reel-url";
 import {
   installNextHistory,
   NextRouterStandIn,
@@ -279,5 +284,67 @@ describe("a close asked twice", () => {
       back.mockRestore();
     }
     expect(window.location.pathname).toBe("/e/tok");
+  });
+});
+
+/**
+ * ★ A PAGE THAT ARRIVES BY A SOFT NAVIGATION RENDERS AGAINST THE ADDRESS IT LEFT (crumbs-52; red-team 43's hub Reel
+ * card). Next writes the new address from an insertion effect of the commit that mounts the page (`HistoryUpdater`,
+ * `app-router.js`), so the render that mounts it reads the old one and every effect of that commit reads the new one.
+ * `useReelParam().mode` is right a pass late there (React's re-check after the commit), which is why anything told to
+ * another component or acted on for good reads `reelOfAddress()` when it acts: the album's word to the page's curtain
+ * was a copy of the render's `mode`, and took the curtain away for good (`event-experience.curtain.test.tsx`).
+ */
+describe("a page that arrives by a soft navigation", () => {
+  function NavigationCommit({
+    to,
+    children,
+  }: {
+    to: string;
+    children: ReactNode;
+  }) {
+    useInsertionEffect(() => {
+      window.history.pushState({ __NA: true }, "", to);
+    }, [to]);
+    return children;
+  }
+
+  it("★ renders against the address it left, and an effect of the same commit reads the new one", async () => {
+    const seen = {
+      render: [] as (ReelMode | null)[],
+      effect: [] as (ReelMode | null)[],
+    };
+    function Probe() {
+      const { mode } = useReelParam();
+      seen.render.push(mode);
+      useEffect(() => {
+        seen.effect.push(reelOfAddress());
+      }, [mode]);
+      return <p data-testid="mode">{mode ?? "none"}</p>;
+    }
+    // The hub the owner pressed the Reel card on.
+    next.land("/dashboard/evt-1");
+    await act(async () => {
+      render(
+        <NavigationCommit to="/e/tok?reel">
+          <Probe />
+        </NavigationCommit>,
+      );
+    });
+    expect(window.location.search).toBe("?reel");
+    // The mounting render read the hub's address; the commit's own effect read the album's.
+    expect(seen.render[0]).toBeNull();
+    expect(seen.effect[0]).toBe("hand");
+    // And React's re-check then caught the render up with the address.
+    expect(mode()).toBe("hand");
+  });
+
+  it("reads the address as it stands when asked, whatever a render saw", () => {
+    next.land("/e/tok");
+    expect(reelOfAddress()).toBeNull();
+    window.history.replaceState({ __NA: true }, "", "/e/tok?reel=screen");
+    expect(reelOfAddress()).toBe("screen");
+    window.history.replaceState({ __NA: true }, "", "/e/tok");
+    expect(reelOfAddress()).toBeNull();
   });
 });

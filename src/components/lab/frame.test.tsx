@@ -20,11 +20,21 @@ import { act, render } from "@testing-library/react";
 import { useEffect, useRef } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { Glow } from "@/components/shared/glow";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Popup, PopupContent, PopupHeader } from "@/components/ui/popup";
+import { DESK_QUERY } from "@/components/ui/popup-kinds";
+import { useMediaQuery } from "@/lib/use-media-query";
 
 import { Frame } from "./frame";
 
@@ -255,5 +265,265 @@ describe("Frame: a portalled scene's own world", () => {
       </Popover>,
     );
     expect(document.body.textContent).toContain("the layer");
+  });
+});
+
+/**
+ * A PORTALLED FRAME IS A WINDOW OF ITS OWN (lab-frame, from ROADMAP's five lines on the frame). The scene
+ * is the lab's React tree in the frame's document, so whatever production reads through a global read the
+ * LAB: a frame 375 wide answered `(min-width: 640px)` with the lab's width and drew Settings as a desk's
+ * panel; radix wrote a layer's scroll lock and focus guards onto the lab's body (the lab's page locked, its
+ * wheel cancelled, the frame's page scrolling under its own dialog) and looked for a dialog's title in the
+ * lab's document (a false error per dialog); a menu drawn open before the frame's sheets arrived kept the
+ * `auto` it measured and painted under the page; and `#glw-warp` lived only in the lab's document, so a
+ * frame's light dropped its whole filter chain. Each test here is red on the frame before `FrameWindow`.
+ */
+describe("Frame: a portalled scene's own window", () => {
+  let committed: Document;
+  /** The frame's window: its width answers its media queries. */
+  let frameWidth: number;
+  beforeEach(() => {
+    vi.stubGlobal(
+      "IntersectionObserver",
+      class {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      },
+    );
+    committed = document.implementation.createHTMLDocument("committed");
+    Object.defineProperty(committed, "URL", { value: "about:srcdoc" });
+    vi.spyOn(
+      HTMLIFrameElement.prototype,
+      "contentDocument",
+      "get",
+    ).mockReturnValue(committed);
+    frameWidth = 375;
+    const frameWindow = {
+      document: committed,
+      matchMedia: (query: string) => {
+        const min = query.match(/\(min-width:\s*([\d.]+)px\)/);
+        return {
+          matches: min ? frameWidth >= parseFloat(min[1]) : false,
+          media: query,
+          addEventListener: () => {},
+          removeEventListener: () => {},
+        };
+      },
+      dispatchEvent: () => true,
+    };
+    vi.spyOn(
+      HTMLIFrameElement.prototype,
+      "contentWindow",
+      "get",
+    ).mockReturnValue(frameWindow as unknown as Window);
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+    document.head
+      .querySelectorAll("[data-test-link]")
+      .forEach((n) => n.remove());
+  });
+
+  function Reading() {
+    return <p data-reading>{useMediaQuery(DESK_QUERY) ? "desk" : "hand"}</p>;
+  }
+
+  it("★ answers a phone's media query in a frame 375 wide, and draws Settings as a phone's screen", async () => {
+    // The lab's own window is a desk's (vitest.setup.ts: 1024).
+    expect(window.matchMedia(DESK_QUERY).matches).toBe(true);
+    render(
+      <Frame id="scene" w={375} h={700} title="Scene">
+        <Reading />
+        <Popup open modal={false}>
+          <PopupContent kind="settings">
+            <PopupHeader title="Settings" />
+          </PopupContent>
+        </Popup>
+      </Frame>,
+    );
+    await act(async () => {});
+    expect(committed.querySelector("[data-reading]")!.textContent).toBe("hand");
+    expect(
+      committed
+        .querySelector("[data-slot=popup-content]")!
+        .getAttribute("data-shape"),
+    ).toBe("screen");
+  });
+
+  it("★ mounts its scene once the frame's copied sheets have loaded, so a menu drawn open stands at its content's z-index", async () => {
+    // A sheet of the lab's that the frame copies as a <link>: it loads a beat after it is appended.
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = "/lab-frame-test.css";
+    link.dataset.testLink = "";
+    document.head.appendChild(link);
+    // jsdom styles no document without a window, so the sheet's one rule is stood in: the menu's content
+    // reads `z-index: 50` once the sheet has loaded and `auto` before, as it does in the browser.
+    let loaded = false;
+    const real = window.getComputedStyle.bind(window);
+    vi.spyOn(window, "getComputedStyle").mockImplementation((el, pseudo) => {
+      const style = real(el, pseudo);
+      if (!el.matches('[data-slot="dropdown-menu-content"]')) return style;
+      return new Proxy(style, {
+        get: (target, key) => {
+          if (key === "zIndex") return loaded ? "50" : "auto";
+          const value = Reflect.get(target, key, target);
+          return typeof value === "function" ? value.bind(target) : value;
+        },
+      });
+    });
+    render(
+      <Frame id="scene" w={600} h={400} title="Scene">
+        <DropdownMenu open modal={false}>
+          <DropdownMenuTrigger>Open</DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem>A row</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </Frame>,
+    );
+    await act(async () => {});
+    // Nothing is drawn into a page still waiting for its sheets.
+    expect(
+      committed.querySelector("[data-radix-popper-content-wrapper]"),
+    ).toBeNull();
+    const copied = committed.head.querySelector<HTMLLinkElement>(
+      "link[data-lab-copied]",
+    )!;
+    await act(async () => {
+      loaded = true;
+      copied.dispatchEvent(new Event("load"));
+    });
+    const wrapper = committed.querySelector<HTMLElement>(
+      "[data-radix-popper-content-wrapper]",
+    )!;
+    expect(wrapper.style.zIndex).toBe("50");
+  });
+
+  it("★ keeps a layer's scroll lock and focus guards in the frame, and the lab's page scrolling", async () => {
+    const { rerender } = render(
+      <Frame id="scene" w={600} h={400} title="Scene">
+        <Popup open>
+          <PopupContent kind="confirm">
+            <PopupHeader title="Delete?" description="It goes for good." />
+          </PopupContent>
+        </Popup>
+      </Frame>,
+    );
+    await act(async () => {});
+    // The lab's body is untouched: no lock, no guards, and its wheel is its own.
+    expect(document.body.hasAttribute("data-scroll-locked")).toBe(false);
+    expect(
+      document.body.querySelectorAll(":scope > [data-radix-focus-guard]"),
+    ).toHaveLength(0);
+    const wheel = new WheelEvent("wheel", {
+      bubbles: true,
+      cancelable: true,
+      deltaY: 120,
+    });
+    document.body.dispatchEvent(wheel);
+    expect(wheel.defaultPrevented).toBe(false);
+    // The frame's page is the one locked, its guards at its body's two edges.
+    expect(committed.body.getAttribute("data-scroll-locked")).toBe("1");
+    expect(
+      committed.body.firstElementChild!.hasAttribute("data-radix-focus-guard"),
+    ).toBe(true);
+    expect(
+      committed.body.lastElementChild!.hasAttribute("data-radix-focus-guard"),
+    ).toBe(true);
+
+    // Closed, the frame's page is let go as the page would be.
+    rerender(
+      <Frame id="scene" w={600} h={400} title="Scene">
+        <Popup open={false}>
+          <PopupContent kind="confirm">
+            <PopupHeader title="Delete?" description="It goes for good." />
+          </PopupContent>
+        </Popup>
+      </Frame>,
+    );
+    await act(async () => {});
+    expect(committed.body.hasAttribute("data-scroll-locked")).toBe(false);
+    expect(
+      committed.body.querySelectorAll("[data-radix-focus-guard]"),
+    ).toHaveLength(0);
+  });
+
+  it("keeps the lab's own layer's lock and guards on the lab, beside a frame's", async () => {
+    const lab = (open: boolean) => (
+      <Popup open={open}>
+        <PopupContent kind="confirm">
+          <PopupHeader title="The lab's own" description="Its palette, say." />
+        </PopupContent>
+      </Popup>
+    );
+    const frame = (
+      <Frame id="scene" w={600} h={400} title="Scene">
+        <Popup open>
+          <PopupContent kind="confirm">
+            <PopupHeader title="The frame's" description="A drawing." />
+          </PopupContent>
+        </Popup>
+      </Frame>
+    );
+    const { rerender } = render(
+      <>
+        {frame}
+        {lab(true)}
+      </>,
+    );
+    await act(async () => {});
+    expect(document.body.hasAttribute("data-scroll-locked")).toBe(true);
+    expect(
+      document.body.querySelectorAll(":scope > [data-radix-focus-guard]"),
+    ).toHaveLength(2);
+    expect(committed.body.getAttribute("data-scroll-locked")).toBe("1");
+
+    rerender(
+      <>
+        {frame}
+        {lab(false)}
+      </>,
+    );
+    await act(async () => {});
+    expect(document.body.hasAttribute("data-scroll-locked")).toBe(false);
+    expect(
+      document.body.querySelectorAll(":scope > [data-radix-focus-guard]"),
+    ).toHaveLength(0);
+    expect(committed.body.getAttribute("data-scroll-locked")).toBe("1");
+  });
+
+  it("★ finds a dialog's own title in the frame (no false accessibility error)", async () => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    render(
+      <Frame id="scene" w={600} h={400} title="Scene">
+        <Popup open>
+          <PopupContent kind="confirm">
+            <PopupHeader title="Delete?" description="It goes for good." />
+          </PopupContent>
+        </Popup>
+      </Frame>,
+    );
+    await act(async () => {});
+    const said = [...error.mock.calls, ...warn.mock.calls].map((c) =>
+      String(c[0]),
+    );
+    expect(said.filter((s) => /DialogTitle|Description/.test(s))).toEqual([]);
+  });
+
+  it("★ carries its own glow filter host, so a Glow in it finds #glw-warp in its own document", async () => {
+    render(
+      <Frame id="scene" w={600} h={400} title="Scene">
+        <div className="relative h-40">
+          <Glow shape="throw" />
+        </div>
+      </Frame>,
+    );
+    await act(async () => {});
+    expect(committed.querySelector("[data-glw]")).not.toBeNull();
+    expect(committed.getElementById("glw-warp")).not.toBeNull();
   });
 });

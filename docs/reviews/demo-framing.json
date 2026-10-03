@@ -76,6 +76,22 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 4,
+      "opened": "2026-10-03",
+      "answers": [
+        {
+          "ask": "stage",
+          "choice": null,
+          "note": "I'm jokingly mad at you for making this decision so hard. Let's run another round on these so we can pick from an even more polished group of options. I truly cannot wait to see them.",
+          "by": "Will",
+          "at": "2026-10-03T07:37:09Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }

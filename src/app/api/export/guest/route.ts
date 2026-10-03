@@ -22,6 +22,7 @@ import { z } from "zod";
 
 import { mustQuery } from "@/lib/db/must-query";
 import { getEventByQrToken } from "@/lib/db/queries/guest-events";
+import { readOwnSealedMedia } from "@/lib/db/queries/guest-events-admin";
 import {
   doorCallerFor,
   isShut,
@@ -152,11 +153,25 @@ export async function POST(request: Request) {
       ? await ownMediaIds({ eventId: event.id, userId, sessionToken })
       : new Set<string>();
 
+  // ★ HER OWN SEALED SHOTS ARE HERS TO TAKE (the develop): a sealed shot is in no album yet, hers included, so it is
+  // no row of `gallery.rows`; but it is hers to see (her waiting room), so Yours adds exactly those of hers, found by
+  // the server from the ids it already knows are hers. Only at full access, and never in the album's own zip.
+  const inAlbum = new Set(gallery.rows.map((r) => r.id));
+  const ownSealed =
+    wantsOwn && access === "full" && own.size > 0
+      ? (await readOwnSealedMedia(event.id, [...own])).filter(
+          // Two reads, two clocks: a shot that developed between them is the album's, never twice.
+          (r) => !inAlbum.has(r.id),
+        )
+      : [];
+  const ownSealedIds = new Set(ownSealed.map((r) => r.id));
+
   // WHAT THIS REQUEST IS ABOUT, narrowed from what she can see and never past it. The summary
   // always measures the whole album (Yours is counted inside it); a mint takes its set, then its ids.
-  let visible = gallery.rows;
+  let visible =
+    step === "summary" ? [...gallery.rows, ...ownSealed] : gallery.rows;
   if (step === "mint" && set === "yours") {
-    visible = visible.filter((r) => own.has(r.id));
+    visible = [...visible.filter((r) => own.has(r.id)), ...ownSealed];
   }
   if (step === "mint" && ids) {
     const asked = new Set(ids);
@@ -205,11 +220,12 @@ export async function POST(request: Request) {
   });
 
   if (step === "summary") {
-    // Yours' own counts, or null when she has nothing here to take (no row is drawn then).
+    // Yours' own counts (her sealed shots inside them), or null when she has nothing here to take (no row is drawn
+    // then). The album's own summary is the album: her sealed shots are none of it.
     const mine = rows.filter((r) => own.has(r.id));
     return NextResponse.json({
       ok: true,
-      summary: exportSummary(rows),
+      summary: exportSummary(rows.filter((r) => !ownSealedIds.has(r.id))),
       yours: mine.length > 0 ? exportSummary(mine) : null,
     });
   }

@@ -27,6 +27,15 @@ let fake: FakePostgrest;
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => asSupabase(fake),
 }));
+// ★ The open album is read with NO session (20261002200000: the guest's page is the guests' view, its host's
+// included, so the RPC's owner exemption from the seal never applies here); the same fake answers it.
+const anonAsked = vi.fn();
+vi.mock("@/lib/supabase/anon", () => ({
+  createAnonClient: () => {
+    anonAsked();
+    return asSupabase(fake);
+  },
+}));
 
 const { getEventByQrToken, getEventMediaByQrToken, olderThan } =
   await import("@/lib/db/queries/guest-events");
@@ -234,6 +243,16 @@ describe("getEventMediaByQrToken: the open album, read whole", () => {
     ).toBe(true);
   });
 
+  it("★ asks as nobody: the album's host reads the guests' view here, the seal and all (20261002200000)", async () => {
+    const { handler } = albumRpc(album(3));
+    fake = createFakePostgrest({
+      rpc: { get_event_media_by_qr_token: handler },
+    });
+    anonAsked.mockClear();
+    await getEventMediaByQrToken(OPEN_QR);
+    expect(anonAsked).toHaveBeenCalledTimes(1);
+  });
+
   it("an album the RPC will not show (not open, deleted, a wrong token) is empty, in one request", async () => {
     const { handler } = albumRpc(album(30));
     fake = createFakePostgrest({
@@ -327,6 +346,37 @@ describe("getEventByQrToken: the live reel's event facts", () => {
     answer(eventRow());
     const before = await getEventByQrToken(OPEN_QR);
     expect(before.ok && before.data.max_upload_bytes).toBeNull();
+  });
+
+  // THE DEVELOP AND THE CAMERA (20261002200000): the read's last four columns, through the seam's one parser.
+  it("carries whether a develop is due, the develop time, the capture and the roll's size; a read before them reads as free uploads", async () => {
+    answer(
+      eventRow({
+        develop_due: true,
+        develops_at: "2026-10-03T09:00:00+00:00",
+        capture: "camera",
+        roll_size: 24,
+      }),
+    );
+    const camera = await getEventByQrToken(OPEN_QR);
+    expect(camera.ok && camera.data).toMatchObject({
+      develop_due: true,
+      develops_at: "2026-10-03T09:00:00+00:00",
+      capture: "camera",
+      roll_size: 24,
+    });
+    answer(eventRow());
+    const before = await getEventByQrToken(OPEN_QR);
+    expect(before.ok && before.data).toMatchObject({
+      develop_due: false,
+      develops_at: null,
+      capture: "upload",
+      roll_size: null,
+    });
+    // A value the code does not know is never trusted: an unknown capture reads as free uploads, its roll as none.
+    answer(eventRow({ capture: "film", roll_size: 99 }));
+    const odd = await getEventByQrToken(OPEN_QR);
+    expect(odd.ok && odd.data).toMatchObject({ capture: "upload", roll_size: null });
   });
 
   // ★ RESHAPED ON PURPOSE (crumbs-17, crumbs-15's dead seam; scar kept: the reel's switch reads as the host

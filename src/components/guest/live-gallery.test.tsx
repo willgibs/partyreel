@@ -808,6 +808,43 @@ describe("LiveGallery: what this device draws at the album's head", () => {
     expect(rowsSpy).not.toHaveBeenCalled();
     expect(screen.getByText("The album starts with you")).toBeInTheDocument();
   });
+
+  /* ★ WHERE WHAT SHE ADDS WAITS, NOTHING OF HERS IN THE AIR STANDS IN THE ALBUM (red-team 44's MEDIUM): on an album
+     with a develop time ahead, or one whose host approves each, a pick in flight drew the stack at the album's head
+     from the press until it landed and then vanished, so a video stood in the album for its whole upload. Hers live in
+     her tracker from the press (sending, then waiting), and the album draws only what is in it. */
+  it("★ where what she adds waits, nothing in the air takes a head slot, and an empty album stays its empty state", async () => {
+    rowsSpy.mockClear();
+    await mount(
+      {
+        addsWait: true,
+        pendingUploads: [queued("q1", "uploading"), queued("q2", "queued")],
+      },
+      fullSeed({ entries: [] }),
+    );
+    expect(rowsSpy).not.toHaveBeenCalled();
+    expect(screen.getByText("The album starts with you")).toBeInTheDocument();
+  });
+
+  it("★ and an album with photographs in it draws exactly them while hers go", async () => {
+    await mount({
+      addsWait: true,
+      pendingUploads: [queued("q1", "uploading"), queued("q2", "queued")],
+    });
+    expect(lastRows().pending).toEqual([]);
+    expect(shownIds()).toEqual(["m1", "m2"]);
+  });
+
+  it("an album that shows what is added at once keeps today's stack from the press, on an empty album too", async () => {
+    rowsSpy.mockClear();
+    await mount(
+      { addsWait: false, pendingUploads: [queued("q1", "uploading")] },
+      fullSeed({ entries: [] }),
+    );
+    expect(lastRows().pending?.map((p) => [p.queueId, p.status])).toEqual([
+      ["q1", "uploading"],
+    ]);
+  });
 });
 
 describe("LiveGallery: the header's guest count comes from the server", () => {

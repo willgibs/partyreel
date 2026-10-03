@@ -155,7 +155,7 @@ export function LiveDemo() {
           <div className="flex gap-4 sm:gap-6">
             {/* The phone: where everything launches from. */}
             <div className="w-32 shrink-0 sm:w-40">
-              <div className="rounded-[14px] border bg-card p-3 ring-1 ring-foreground/5">
+              <div className="rounded-lg border bg-card p-3 ring-1 ring-foreground/5">
                 <p className="text-center text-caption font-medium">
                   Scan to join
                 </p>

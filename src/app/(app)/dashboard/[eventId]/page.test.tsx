@@ -54,10 +54,29 @@ describe("the hub's ready wiring", () => {
     ).toBe(true);
   });
 
+  it("★ hands the Reel card the album's develop time, so it never says live for guests over an album no guest can see yet", () => {
+    // Red-team 43's NIT: until a develop time ahead every guest's album is empty, so the card says it goes live then
+    // (`reel-card.tsx`'s `developsAt`); a page that left the field off would read as it did before.
+    expect(/reel = \{[\s\S]*?developsAt: event\.develops_at,/.test(PAGE)).toBe(
+      true,
+    );
+  });
+
   it("dresses the code in its door and who waits at it", () => {
-    const door = PAGE.slice(PAGE.indexOf("<EventCodeDoor"));
-    const props = door.slice(0, door.indexOf("/>"));
-    expect(props).toContain("door={event.door}");
-    expect(props).toContain("waiting={doorCounts.waiting}");
+    // ★ Reshaped on purpose (`event-header` r1, `host=shared`): the code stands on the head's cover
+    // (`HubCover`), so the page hands the door and its waiting count to the head, and the head hands
+    // them to the code, unchanged.
+    const head = PAGE.slice(PAGE.indexOf("<HubCover"));
+    const props = head.slice(0, head.indexOf("/>"));
+    expect(props).toContain("door: event.door");
+    expect(props).toContain("waiting: doorCounts.waiting");
+    const cover = readFileSync(
+      join(process.cwd(), "src/components/app/event-feed/event-hub-head.tsx"),
+      "utf8",
+    );
+    const door = cover.slice(cover.indexOf("<EventCodeDoor"));
+    const handed = door.slice(0, door.indexOf("/>"));
+    expect(handed).toContain("door={code.door}");
+    expect(handed).toContain("waiting={code.waiting}");
   });
 });

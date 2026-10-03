@@ -36,6 +36,12 @@ const badgeVariants = cva(
         warning:
           "bg-warning/15 text-warning-foreground focus-visible:ring-warning/30 dark:bg-warning/20 dark:text-warning [a]:hover:bg-warning/25",
         info: "bg-info/10 text-info focus-visible:ring-info/20 dark:bg-info/20 [a]:hover:bg-info/20",
+        // ★ THE LIVE MARK (`event-header` r1, the atom contract with identity r2): the album is open
+        // and the socket that carries its arrivals is up. A dot in the success hue and the word, on
+        // the success wash; the dot is the badge's own (a pseudo-element), so every caller draws the
+        // same mark from "Live" alone. Still, never a pulse: a host keeps the hub open all night, and
+        // a light that beat for hours would pull her eye off the album it sits over.
+        live: "bg-success/12 text-success before:size-1.5 before:shrink-0 before:rounded-full before:bg-current before:content-[''] dark:bg-success/20",
         outline:
           "border-border text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground",
         ghost:

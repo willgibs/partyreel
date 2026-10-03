@@ -38,6 +38,11 @@ import {
   RESERVED_SLUGS,
   RESERVED_WORD_MESSAGE,
 } from "@/lib/constants/reserved-slugs";
+import { CAPTURES } from "@/lib/disposable/facts";
+import {
+  DEVELOP_MAX_AHEAD_DAYS,
+  developTimeWithinReach,
+} from "@/lib/disposable/reveal";
 import { MAX_UPLOAD_BYTES, MIN_UPLOAD_CAP_BYTES } from "@/lib/media/limits";
 import { isHoldStep, isReelMoodId } from "@/lib/reel/defaults";
 
@@ -138,6 +143,26 @@ const videoFields = {
   allow_videos: z.boolean(),
 };
 
+// HOW GUESTS ADD AND WHEN THE ALBUM DEVELOPS (lane `disposable-foundation`, 20261002200000), update-only like the
+// reel's and the Videos switch (a new event takes the column defaults: free uploads, no develop), so the create
+// wizard's later wiring adds them to the create with no migration (the columns hold an INSERT grant too). The third,
+// `moderation_mode`, is the event's own field above: the three-way "when everyone sees" writes it beside `develops_at`.
+//  - `capture`: free uploads or the album's camera. The database fills in the roll (24) and stamps its period
+//    (`events.sealed_from`, never written here); `roll_size` is the wizard's to name later, never this form's.
+//  - `develops_at`: the develop time, or null for none. Any real time up to a year and a day ahead; one at or before
+//    now (Develop now writes the browser's now) is stored as the database's own now. The column holds only a
+//    finite-time envelope (`events_develops_at_finite`), so this bound is the write's.
+const developFields = {
+  capture: z.enum(CAPTURES),
+  develops_at: z.iso
+    .datetime({ offset: true })
+    .refine(
+      (iso) => developTimeWithinReach(iso),
+      `Pick a develop time within ${DEVELOP_MAX_AHEAD_DAYS} days.`,
+    )
+    .nullable(),
+};
+
 /**
  * AN UPDATE: exactly the keys a caller sent, and nothing else. `updateEvent` patches every
  * defined key, so a default here would be a WRITE (the header's defect): a one-field save
@@ -145,7 +170,7 @@ const videoFields = {
  * that one field.
  */
 export const updateEventSchema = z
-  .object({ ...eventFields, ...reelFields, ...videoFields })
+  .object({ ...eventFields, ...reelFields, ...videoFields, ...developFields })
   .partial();
 
 /**

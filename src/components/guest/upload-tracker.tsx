@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import {
   Check,
   Clock,
@@ -10,6 +16,7 @@ import {
   XCircle,
 } from "lucide-react";
 
+import { removeMyUploadGuestAction } from "@/app/(guest)/e/[token]/actions";
 import { useGalleryLive } from "@/components/guest/gallery-live";
 import { PickPreview } from "@/components/guest/upload/pick-preview";
 import { Button } from "@/components/ui/button";
@@ -20,10 +27,12 @@ import {
   PopupHeader,
 } from "@/components/ui/popup";
 import { NOT_APPROVED_HELP_HREF } from "@/lib/content/help-links";
+import { developTimeWords } from "@/lib/disposable/develop-words";
 import { formatCount } from "@/lib/format/count";
 import {
   buildTrackerRows,
   newlyInAlbum,
+  TRACKER_SEALED_WORDS,
   TRACKER_WORDS,
   trackerShows,
   waitingCount,
@@ -61,6 +70,14 @@ import { cn } from "@/lib/utils";
  * "Album", the phone's own Back closing it. A list is a place she moves through, not a question: no
  * 85 percent cap and no album peeking over her rows.
  *
+ * ★ WHAT WAITS FOR THE HOST IS STILL HERS TO TAKE BACK (Will's live walk, 2026-10-02: "Definitely need a
+ * way to delete pending uploads ... where something may have been a mistake"). Every one of her own that is
+ * not yet in the album (held for the host, and sealed until a disposable album develops) wears a Remove, on
+ * the paths the album's own Delete uses (`remove_my_upload` for an account, `remove_my_upload_by_session`
+ * for a guest's ticket, both of which take any of her rows not already removed), so a removed held upload
+ * never reaches the host's Review. No confirm: nothing else in this list asks one. It says so the moment it
+ * is pressed (Removing), leaves her list when the server agrees, and stays with a Try again when it does not.
+ *
  * ★ HER READS CARRY HER NEWS (crumbs-38, the approval toast's server half): each asks `tell`, and the
  * server answers which of hers a decision let into the album since she was last told, marking them told
  * as it answers (`readOwnUploads`). The tracker hands the ids to the album's approval toast through the
@@ -68,9 +85,10 @@ import { cn } from "@/lib/utils";
  * once, and the page's shell never re-renders for it.
  */
 
-type TrackerSnapshot = { show: boolean; waiting: number };
+/** Whether it shows, how many of hers wait, and how many of those wait for the album to develop. */
+type TrackerSnapshot = { show: boolean; waiting: number; sealed: number };
 
-const HIDDEN: TrackerSnapshot = { show: false, waiting: 0 };
+const HIDDEN: TrackerSnapshot = { show: false, waiting: 0, sealed: 0 };
 
 const NO_NEWS: readonly string[] = [];
 
@@ -103,7 +121,11 @@ export function createUploadTrackerStore(): UploadTrackerStore {
       };
     },
     set(next) {
-      if (next.show === snapshot.show && next.waiting === snapshot.waiting) {
+      if (
+        next.show === snapshot.show &&
+        next.waiting === snapshot.waiting &&
+        next.sealed === snapshot.sealed
+      ) {
         return;
       }
       snapshot = next;
@@ -177,9 +199,11 @@ export function UploadTracker({
   sessionToken,
   isAuthed,
   moderated,
+  developsAt = null,
   isDemo,
   isOwner,
   removedIds,
+  onOwnRemoved,
   open,
   onOpenChange,
 }: {
@@ -191,12 +215,19 @@ export function UploadTracker({
   sessionToken: string | null;
   /** Signed in: the account speaks for its own rows (the route asks `getUser()`). */
   isAuthed: boolean;
-  /** The event holds uploads for the host. */
+  /** What she adds waits (`uploadsWait`'s `waits`): for the host's approval, or for a develop time ahead. */
   moderated: boolean;
+  /** The album's develop time while it is ahead (`uploadsWait`'s `developsAt`): what she adds is sealed until then. */
+  developsAt?: string | null;
   isDemo: boolean;
   isOwner: boolean;
   /** What she removed herself this visit: hers to forget, never listed. */
   removedIds: ReadonlySet<string>;
+  /**
+   * One of hers was removed from her list (the page's own-removal handler: it forgets the row, and on a
+   * require-an-upload album with nothing of hers left, the server decides whether the door stands again).
+   */
+  onOwnRemoved?: (mediaId: string, remaining: number) => void;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
@@ -250,6 +281,9 @@ export function UploadTracker({
     };
   }, [canAsk, arrivals, qrToken, sessionToken, store]);
 
+  const sealing = developsAt !== null;
+  // Said only in the open list, which draws after hydration: her own zone, never the server's.
+  const developWhen = open && sealing ? developTimeWords(developsAt) : null;
   const rows = useMemo(
     () =>
       buildTrackerRows({
@@ -258,14 +292,16 @@ export function UploadTracker({
         album,
         approvedOnce,
         removed: removedIds,
+        sealing,
       }),
-    [queue, own, album, approvedOnce, removedIds],
+    [queue, own, album, approvedOnce, removedIds, sealing],
   );
   const waiting = waitingCount(rows);
+  const sealed = rows.filter((row) => row.sealed).length;
   const show = trackerShows({ moderated, isDemo, isOwner, rows });
   useEffect(() => {
-    store.set({ show, waiting });
-  }, [store, show, waiting]);
+    store.set({ show, waiting, sealed });
+  }, [store, show, waiting, sealed]);
   // Gone with the album (an access flip remounts it): the button goes with it rather than lingering.
   useEffect(() => () => store.set(HIDDEN), [store]);
 
@@ -288,13 +324,67 @@ export function UploadTracker({
     [queue],
   );
 
+  /* ── taking one of hers back (the head note): its state while it works, and if it fails ───────── */
+  const [removing, setRemoving] = useState<
+    ReadonlyMap<string, "working" | "failed">
+  >(() => new Map());
+  const mark = useCallback(
+    (mediaId: string, state: "working" | "failed" | null) =>
+      setRemoving((prev) => {
+        const next = new Map(prev);
+        if (state) next.set(mediaId, state);
+        else next.delete(mediaId);
+        return next;
+      }),
+    [],
+  );
+  const liveOwnCount = live?.liveOwnCount;
+  const remove = useCallback(
+    async (mediaId: string) => {
+      mark(mediaId, "working");
+      let ok = false;
+      try {
+        if (isAuthed) {
+          ok = (await removeMyUploadGuestAction(mediaId)).ok;
+        } else if (sessionToken) {
+          const res = await fetch("/api/guests/remove", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            // The ticket in the BODY, never a URL (the read's own rule).
+            body: JSON.stringify({
+              qr_token: qrToken,
+              session_token: sessionToken,
+              media_id: mediaId,
+            }),
+          });
+          ok = res.ok;
+        }
+      } catch {
+        ok = false;
+      }
+      if (!ok) {
+        mark(mediaId, "failed");
+        return;
+      }
+      // Gone from her list through the page's own record of what she removed (`removedIds`).
+      mark(mediaId, null);
+      onOwnRemoved?.(mediaId, liveOwnCount ? liveOwnCount(mediaId) : 0);
+    },
+    [isAuthed, sessionToken, qrToken, onOwnRemoved, liveOwnCount, mark],
+  );
+
   return (
     <Popup open={open && show} onOpenChange={onOpenChange}>
       <PopupContent kind="list" data-upload-tracker-sheet>
-        {/* The album's own sentence for this event's rule, so one rule has one wording. */}
+        {/* The album's own sentence for this event's rule, so one rule has one wording: the host's review, or the
+            develop (the album's time ahead, said in her own zone). */}
         <PopupHeader
           title="Your uploads"
-          description="The host reviews uploads before they appear in the album."
+          description={
+            sealing
+              ? `Uploads appear in the album when it develops${developWhen ? `, ${developWhen}` : ""}.`
+              : "The host reviews uploads before they appear in the album."
+          }
           back="Album"
         />
         <PopupBody>
@@ -310,6 +400,14 @@ export function UploadTracker({
                 <TrackerRowView
                   key={row.key}
                   row={row}
+                  removing={
+                    row.mediaId ? (removing.get(row.mediaId) ?? null) : null
+                  }
+                  onRemove={
+                    removable(row) && row.mediaId
+                      ? () => void remove(row.mediaId as string)
+                      : undefined
+                  }
                   picture={
                     queued && localUrl ? (
                       <PickPreview file={queued.file} url={localUrl} />
@@ -346,19 +444,38 @@ const TONE: Record<TrackerStatus, string> = {
   refused: "text-muted-foreground",
 };
 
+/**
+ * Whether she may take one of hers back here: it is on the server (it has its row) and not in the album
+ * yet, where the album's own Delete would be its door. Held for the host today; a disposable album's
+ * sealed ones read as waiting too until it develops.
+ */
+function removable(row: TrackerRow): boolean {
+  return row.status === "waiting" && Boolean(row.mediaId);
+}
+
 /** One of hers: the picture (or a plain tile where none can be shown), and where it stands. */
 function TrackerRowView({
   row,
   picture,
+  removing = null,
+  onRemove,
 }: {
   row: TrackerRow;
   picture: React.ReactNode;
+  /** Its removal, while it works or once it failed. */
+  removing?: "working" | "failed" | null;
+  /** Hers to take back (`removable`): its Remove. */
+  onRemove?: () => void;
 }) {
   const Icon = ICON[row.status];
   return (
     <li
       data-upload-tracker-row={row.status}
-      className="flex items-center gap-3 py-2.5"
+      data-removing={removing ?? undefined}
+      className={cn(
+        "flex items-center gap-3 py-2.5 transition-opacity duration-150 motion-reduce:transition-none",
+        removing === "working" && "opacity-60",
+      )}
     >
       <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-tile bg-muted">
         {/* A held or refused photograph from an earlier visit has no picture here: nothing that
@@ -381,9 +498,41 @@ function TrackerRowView({
           aria-hidden
         />
         <span className="truncate text-foreground">
-          {TRACKER_WORDS[row.status]}
+          {removing === "failed"
+            ? "Couldn't remove it"
+            : row.sealed
+              ? TRACKER_SEALED_WORDS
+              : TRACKER_WORDS[row.status]}
         </span>
       </p>
+      {onRemove && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={onRemove}
+          disabled={removing === "working"}
+          data-upload-tracker-remove=""
+          // Its name says which of her list it takes back where its word alone cannot.
+          aria-label={
+            removing === "failed"
+              ? "Try removing this upload again"
+              : "Remove this upload"
+          }
+          className="shrink-0 text-muted-foreground hover:text-destructive"
+        >
+          {removing === "working" ? (
+            <>
+              <Loader2 className="motion-safe:animate-spin" aria-hidden />
+              Removing
+            </>
+          ) : removing === "failed" ? (
+            "Try again"
+          ) : (
+            "Remove"
+          )}
+        </Button>
+      )}
       {/* THE LINK AT THE MOMENT OF TROUBLE (help-center r1 `from-product=contextual`): the host
           gives no reason, so the article's own section says what "Not approved" means and what
           she can do about it, in a new tab so her list and the album stay where they are. */}
@@ -406,36 +555,52 @@ function TrackerRowView({
 }
 
 /**
- * THE ROUND BUTTON BESIDE ADD PHOTOS, with its count: the number of hers waiting for approval, the
- * number only, like a notification badge; a screen reader hears the list's own words for it.
+ * THE ROUND BUTTON BESIDE ADD PHOTOS, with its count: the number of hers waiting (for approval, or for the album to
+ * develop), the number only, like a notification badge; a screen reader hears the list's own words for it.
  * Nothing to count, no badge; nothing of hers sent at a moderated event, no button at all.
+ *
+ * ★ IT WEARS WHERE IT STANDS (`event-header` r1): the glass round beside the cover's Add, on the
+ * photograph (`glass`), and the page's own round beside the shutter at the foot (`round`), both at
+ * the 44px of the controls beside them. `row` is the 36px outline round a row of words holds.
  */
 export function UploadTrackerButton({
   store,
   onOpen,
+  look = "row",
 }: {
   store: UploadTrackerStore;
   onOpen: () => void;
+  look?: "row" | "glass" | "round";
 }) {
-  const { show, waiting } = useSyncExternalStore(
+  const { show, waiting, sealed } = useSyncExternalStore(
     store.subscribe,
     store.getSnapshot,
     () => HIDDEN,
   );
   if (!show) return null;
+  // What hers wait for, in her rows' own words: the host's approval, the develop, or both at once.
+  const waitsFor =
+    sealed === 0
+      ? ` ${TRACKER_WORDS.waiting.toLowerCase()}`
+      : sealed === waiting
+        ? ` ${TRACKER_SEALED_WORDS.toLowerCase()}`
+        : " waiting";
   return (
     <Button
       type="button"
-      variant="outline"
-      size="icon-lg"
+      variant={look === "glass" ? "glass" : "outline"}
+      size={look === "row" ? "icon-lg" : "icon-cta"}
       onClick={onOpen}
       data-upload-tracker
       aria-label={
         waiting > 0
-          ? `Your uploads, ${formatCount(waiting)} waiting for approval`
+          ? `Your uploads, ${formatCount(waiting)}${waitsFor}`
           : "Your uploads"
       }
-      className="relative shrink-0 rounded-full"
+      className={cn(
+        "relative shrink-0 rounded-full",
+        look === "round" && "bg-background shadow-layer",
+      )}
     >
       <ListChecks />
       {waiting > 0 && (

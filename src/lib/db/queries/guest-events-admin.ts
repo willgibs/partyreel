@@ -30,11 +30,12 @@ import {
   type GuestMediaRow,
 } from "@/lib/db/queries/guest-events";
 import { getEventGuests } from "@/lib/db/queries/social";
-import { readAllPages } from "@/lib/db/read-all";
+import { inChunks, readAllPages } from "@/lib/db/read-all";
 import { guestCount } from "@/lib/events/event-guests";
 import { holdsDoorPass } from "@/lib/event/door/pass.server";
 import { isRequestOwner } from "@/lib/events/gallery-access-owner.server";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
+import { nowIso, unsealedFilter } from "@/lib/disposable/seal";
 import { captureWarning } from "@/lib/observability/sentry";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getAvatarUrl } from "@/lib/supabase/avatar-storage";
@@ -65,6 +66,9 @@ export async function getApprovedMediaForUnlock(
     return [];
 
   const admin = createAdminClient();
+  // ★ THE SEAL (the develop): a sealed shot is no guest's until it develops (`lib/disposable/seal.ts`). One clock
+  // for the whole walk, so a page boundary never straddles a develop time.
+  const now = nowIso();
   const { rows } = await readAllPages(
     "unlocked album: media",
     (after: AlbumCursor | null, limit) => {
@@ -75,6 +79,7 @@ export async function getApprovedMediaForUnlock(
         )
         .eq("event_id", eventId)
         .eq("status", "approved")
+        .or(unsealedFilter(now))
         .order("created_at", { ascending: false })
         .order("id", { ascending: false })
         .limit(limit);
@@ -128,6 +133,8 @@ export async function getApprovedPhotoTeaser(
     .eq("event_id", event.id)
     .eq("status", "approved")
     .eq("type", "photo")
+    // ★ The seal: the teaser is a strict subset of the album, so no sealed shot either.
+    .or(unsealedFilter(nowIso()))
     // The album's own order, id as the tiebreak: two photographs sharing a timestamp must not
     // trade places between polls, or the ETag (which hashes the ids in order) would roll for
     // nothing and hand the teaser a full payload it already holds.
@@ -174,11 +181,14 @@ export async function countApprovedMedia(
 const approvedCount = cache(async function approvedCount(
   eventId: string,
 ): Promise<number> {
+  // ★ THE SEAL: the album's size is what a guest may see, the count `album_changes_since` answers in its snapshot
+  // (waiting rows are said apart, as a number, by the sync's `waiting`), or every poll would heal forever.
   const { count, error } = await createAdminClient()
     .from("media")
     .select("id", { count: "exact", head: true })
     .eq("event_id", eventId)
-    .eq("status", "approved");
+    .eq("status", "approved")
+    .or(unsealedFilter(nowIso()));
   if (error) throw new QueryFailedError("guest album: approved count", error);
   return count ?? 0;
 });
@@ -314,7 +324,9 @@ export async function getUploaderIdentities(
   }
 
   // Every media row for the event with the uploader's guest + linked profile, read whole. A page
-  // shorter than it asked for is the last one (read-all.ts owns why that holds).
+  // shorter than it asked for is the last one (read-all.ts owns why that holds). ★ A sealed shot's uploader is credited
+  // at develop, not before (the develop): its row is left out like every guest-path read leaves it out.
+  const now = nowIso();
   const { rows } = await readAllPages(
     "attribution: media uploaders",
     (after: string | null, limit) => {
@@ -327,6 +339,7 @@ export async function getUploaderIdentities(
           "id, guest_id, guests!media_guest_id_fkey(user_id, email, display_name, verified_at, profiles!guests_user_id_fkey(display_name))",
         )
         .eq("event_id", eventId)
+        .or(unsealedFilter(now))
         .order("id", { ascending: true })
         .limit(limit);
       if (after !== null) page = page.gt("id", after);
@@ -445,12 +458,57 @@ export function resetLiveReelServerFactsCache(): void {
 }
 
 /**
+ * ★ HER OWN SEALED SHOTS, FOR HER OWN DOWNLOAD (the develop: "her own sealed shots are in her own download", the
+ * lane's call, Will's to overrule). The guest export's Yours set is what she can see narrowed to what is hers; her own
+ * sealed shots are hers to see (her waiting room draws them), so the export adds exactly these: of the ids the SERVER
+ * found hers (`ownMediaIds`, never a request's list), the approved ones still sealed. Never anybody else's, and never in
+ * the album's own zip, which is what the album shows. Read in chunks (`inChunks`, the 1,000-row round).
+ */
+export async function readOwnSealedMedia(
+  eventId: string,
+  ownIds: readonly string[],
+): Promise<GuestMediaRow[]> {
+  if (ownIds.length === 0) return [];
+  const admin = createAdminClient();
+  const now = nowIso();
+  const rows = await inChunks(
+    "guest export: her own sealed shots",
+    ownIds,
+    async (chunk) =>
+      (await mustQuery(
+        admin
+          .from("media")
+          .select(
+            "id, type, original_key, preview_key, width, height, duration_seconds, reel_eligible, created_at",
+          )
+          .eq("event_id", eventId)
+          .eq("status", "approved")
+          // The predicate's other half: sealed now (the filter column is the seam's until the types regenerate).
+          .filter("sealed_until", "gt", now)
+          .in("id", chunk),
+        "guest export: her own sealed shots",
+      )) ?? [],
+  );
+  return rows.map((m) => ({
+    id: m.id,
+    type: m.type,
+    original_key: m.original_key,
+    preview_key: m.preview_key,
+    width: m.width,
+    height: m.height,
+    duration_seconds: m.duration_seconds,
+    reel_eligible: m.reel_eligible,
+    created_at: m.created_at,
+  }));
+}
+
+/**
  * ONE PHOTOGRAPH, FOR ITS OWN LINK CARD: `/e/<token>?photo=<id>` pasted into a chat unfurls as that
  * photograph, on an album anyone with the link may open whole.
  *
  * SELF-GUARDED like every read here: an OPEN event only (a password or private event's media never
- * leaves through a card), and the row must be APPROVED and belong to THIS event, so an unknown,
- * held, hidden or foreign id answers null and the caller keeps the event's own card, with no sign
+ * leaves through a card), and the row must be APPROVED, UNSEALED and belong to THIS event, so an unknown,
+ * held, hidden, sealed or foreign id answers null and the caller keeps the event's own card, with no sign
  * the item exists. The caller also requires that an anonymous viewer would see the whole album (no
  * email or upload gate), which this cannot know. Keys stay here; only the caller's presign leaves.
  */
@@ -465,12 +523,14 @@ export async function getOpenAlbumItemForCard(
   height: number | null;
 } | null> {
   if (event.visibility !== "open") return null;
+  // ★ The seal: a sealed shot unfurls as nothing, the event's own card, exactly as an unknown id does.
   const { data, error } = await createAdminClient()
     .from("media")
     .select("type, original_key, preview_key, width, height")
     .eq("id", mediaId)
     .eq("event_id", event.id)
     .eq("status", "approved")
+    .or(unsealedFilter(nowIso()))
     .maybeSingle();
   // A failed read degrades to the event's own card (a link preview is cosmetic), reported.
   if (error) {

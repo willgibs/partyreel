@@ -147,7 +147,9 @@ function ItemLink({ link }: { link: NavLink }) {
           {link.label}
         </span>
         {link.description && (
-          <span className="text-xs leading-snug text-muted-foreground">
+          // `text-pretty`: the Events rows say their type's teaser (57 to 64 characters), so one
+          // can wrap, and a wrapped row should not strand its last word on a line of its own.
+          <span className="text-xs leading-snug text-pretty text-muted-foreground">
             {link.description}
           </span>
         )}

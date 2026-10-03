@@ -5,7 +5,7 @@ import {
 import { StorageList } from "@/components/app/storage/storage-list";
 
 /**
- * THE OVER-CAP GRACE BANNER: the dashboard's own red alert, never inside the meter (host-app.md), because
+ * THE OVER-CAP GRACE BANNER: the dashboard's own red alert, never inside the ring (dashboard.md), because
  * its deadline costs her media. It names two ways out, and each is a door: Upgrade (the plans, opened on how
  * full she is) and remove media.
  *

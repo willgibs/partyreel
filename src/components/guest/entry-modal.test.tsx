@@ -22,12 +22,8 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  publishDoorView,
-  resetDoorViewForTests,
-} from "@/components/guest/door/album-view";
 import { askCopy } from "@/components/guest/door/ask-step";
 import { waitingCopy } from "@/components/guest/door/waiting-step";
 import {
@@ -155,7 +151,15 @@ function renderModal(
 }
 
 const closeButton = () => screen.queryByRole("button", { name: "Close" });
-const seeWelcome = () => localStorage.setItem(`pr_welcome_${QR}`, "1");
+/** The welcome's flag is a cookie (the page's server reads it): this device has met the welcome. */
+const seeWelcome = () => {
+  document.cookie = `pr_welcome_${QR}=1; path=/`;
+};
+const welcomeCookie = () =>
+  document.cookie
+    .split(";")
+    .map((part) => part.trim())
+    .includes(`pr_welcome_${QR}=1`);
 const pick = (name: "Continue as guest" | "Create account" | "Log in") =>
   fireEvent.click(screen.getByRole("button", { name }));
 /** A welcomed guest at a name-only event, past the chooser on the guest path. */
@@ -175,6 +179,7 @@ let stopBeats: () => void = () => {};
 beforeEach(() => {
   vi.clearAllMocks();
   localStorage.clear();
+  document.cookie = `pr_welcome_${QR}=; path=/; max-age=0`;
   profileName.value = null;
   sent.gates.length = 0;
   global.fetch = vi.fn();
@@ -296,7 +301,7 @@ describe("the chooser: how a guest comes in on a name-only event", () => {
     expect(
       screen.getByRole("button", { name: "Continue as guest" }),
     ).toBeInTheDocument();
-    expect(localStorage.getItem(`pr_welcome_${QR}`)).toBe("1");
+    expect(welcomeCookie()).toBe(true);
   });
 
   it("offers his three ways in, in his order, Continue as guest first", () => {
@@ -435,14 +440,20 @@ describe("the chooser: how a guest comes in on a name-only event", () => {
   });
 });
 
-describe("a verification event: one path, identify", () => {
-  it("the welcome hands straight to identify, with no chooser", () => {
+/**
+ * ★ WHERE VERIFICATION IS REQUIRED, THE EMAIL COMES FIRST AND THE NAME AFTER (Will, 2026-10-02, on his live
+ * walk, where "Will Test Mobile" typed at the door was credited "Will Gibson" with no word: "where verification
+ * is required i think it makes more sense to handle name after so we aren't handling two different versions for
+ * every new event on that account"). Reshaped on purpose: these pins held a name and an email on one screen.
+ */
+describe("a verification event: one path, identify, the email first", () => {
+  it("the welcome hands straight to identify, with no chooser: the email alone", () => {
     renderModal(VERIFY_EVENT);
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
     expect(
       screen.queryByRole("button", { name: "Continue as guest" }),
     ).toBeNull();
-    expect(screen.getByLabelText("Your name")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Your name")).toBeNull();
     expect(screen.getByTestId("email-sign-in")).toBeInTheDocument();
   });
 
@@ -462,23 +473,65 @@ describe("a verification event: one path, identify", () => {
     expect(screen.queryByRole("button", { name: /google/i })).toBeNull();
   });
 
-  it("says whose name wins before they confirm, and goes back to the welcome", () => {
+  it("asks no name before the code (nothing for an account's own name to overrule), and goes back to the welcome", () => {
     seeWelcome();
     renderModal(VERIFY_EVENT);
     expect(
-      screen.getByText(
+      screen.queryByText(
         "If you already have a Partyreel account, its name is the one that shows.",
       ),
-    ).toBeInTheDocument();
+    ).toBeNull();
+    // The code request carries no name either.
+    fireEvent.click(screen.getByTestId("stub-send"));
+    expect(sent.gates).toEqual([{}]);
     fireEvent.click(
       screen.getByRole("button", { name: "Back to the welcome" }),
     );
     expect(screen.getByText("You’re invited to")).toBeInTheDocument();
   });
 
-  it("refuses a bad name in place, and sends nothing", () => {
+  it("★ a confirmed account with no name is asked its name next, as its own (the name after the email)", () => {
     seeWelcome();
-    renderModal(VERIFY_EVENT);
+    renderModal({ isVerified: true, hasProfileName: false });
+    expect(screen.getByLabelText("Your name")).toBeInTheDocument();
+    expect(
+      screen.getAllByText(
+        "Your name goes on the photos you add. It becomes your Partyreel name too.",
+      )[0],
+    ).toBeInTheDocument();
+  });
+
+  it("★ a confirmed account with a name is never asked one, whatever this device typed at an earlier door", () => {
+    seeWelcome();
+    renderModal({
+      isVerified: true,
+      hasProfileName: true,
+      storedName: "Will Test Mobile",
+      uploadsOpen: false,
+    });
+    expect(screen.queryByLabelText("Your name")).toBeNull();
+    expect(document.querySelector("[data-door-stage]")).toBeNull();
+  });
+
+  it("★ a name this device typed at an earlier door never stands in for a nameless account's own", () => {
+    seeWelcome();
+    renderModal({
+      isVerified: true,
+      hasProfileName: false,
+      storedName: "Old Guest Name",
+    });
+    expect(screen.getByLabelText("Your name")).toBeInTheDocument();
+  });
+
+  it("Create account on a name-only event still carries the name, and refuses a bad one in place", () => {
+    seeWelcome();
+    renderModal();
+    pick("Create account");
+    expect(
+      screen.getByText(
+        "If you already have a Partyreel account, its name is the one that shows.",
+      ),
+    ).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("Your name"), {
       target: { value: "admin" },
     });
@@ -546,7 +599,7 @@ describe("the demo", () => {
     // The skip must never call markSeen() for the demo: that flag is exactly the "returning"
     // state a demo must never reach.
     fireEvent.click(screen.getByRole("button", { name: "Look around" }));
-    expect(localStorage.getItem(`pr_welcome_${QR}`)).toBeNull();
+    expect(welcomeCookie()).toBe(false);
 
     // The first instance already advanced past its own role step (Continue, then Look around);
     // the fresh instance shows it again. ★ Read inside the fresh one alone: the first's stage, the
@@ -949,11 +1002,35 @@ describe("the confirmation sequence (identify and Log in share it)", () => {
       }),
     } as Response);
 
-  it("the four writes: claims, then joins nameless, then writes the typed name, then refreshes", async () => {
+  it("★ an email-first event's writes: claims, then joins nameless, and writes no name (one is asked after, where the account has none)", async () => {
     verifiedJoin();
     seeWelcome();
     const onNamed = vi.fn();
     renderModal({ ...VERIFY_EVENT, onNamed });
+    fireEvent.click(screen.getByTestId("stub-send"));
+    expect(sent.gates).toEqual([{}]);
+    fireEvent.click(screen.getByTestId("stub-verify"));
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    expect(claimAnonymousUploads).toHaveBeenCalled();
+    const joinCall = vi
+      .mocked(global.fetch)
+      .mock.calls.find((c) => c[0] === "/api/guests");
+    expect(
+      JSON.parse((joinCall![1] as RequestInit).body as string).display_name,
+    ).toBeUndefined();
+    // Nothing was typed, so nothing is written; the door asks the name next where the account has none.
+    expect(updateDisplayNameAction).not.toHaveBeenCalled();
+    expect(onNamed).toHaveBeenCalledWith(
+      expect.objectContaining({ source: "verified" }),
+    );
+  });
+
+  it("the four writes on Create account: claims, then joins nameless, then writes the typed name, then refreshes", async () => {
+    verifiedJoin();
+    seeWelcome();
+    const onNamed = vi.fn();
+    renderModal({ onNamed });
+    pick("Create account");
     fireEvent.change(screen.getByLabelText("Your name"), {
       target: { value: "Priya" },
     });
@@ -992,7 +1069,8 @@ describe("the confirmation sequence (identify and Log in share it)", () => {
     profileName.value = "Priyanka";
     verifiedJoin();
     seeWelcome();
-    renderModal(VERIFY_EVENT);
+    renderModal();
+    pick("Create account");
     fireEvent.change(screen.getByLabelText("Your name"), {
       target: { value: "Priya" },
     });
@@ -1128,6 +1206,24 @@ describe("the keep: the door's last screen", () => {
       screen.getByText("Your photo is waiting for approval."),
     ).toBeInTheDocument();
     expect(screen.getAllByText("Keep this event").length).toBeGreaterThan(0);
+  });
+
+  // ★ Red-team 44's NIT: "Your 5 photos" with a video among them. The page says what went; the door hands it to the
+  // offer it draws and to the words it names the sheet with, so the eye and the ear say the same.
+  it("names what she sent, on the Sent line and in the sheet's own name alike", () => {
+    atKeep({
+      keepCount: 2,
+      keepSent: { kinds: ["photo", "video"], camera: false },
+    });
+    expect(
+      screen.getByText("Your 2 uploads joined Maya’s album."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByText(
+        "Confirm your email and Test Wedding stays in your account with your 2 uploads, to come back to anytime.",
+      ).length,
+    ).toBeGreaterThan(0);
+    expect(screen.queryAllByText(/with your 2 photos/)).toHaveLength(0);
   });
 
   it("is HELD like every step: no X, Escape inert, and no chevron back into a finished upload", () => {
@@ -1279,10 +1375,11 @@ describe("the confirmation's one beat", () => {
       }),
     } as Response);
 
-  it("identify with a typed name: the name her photos now carry is reported", async () => {
+  it("Create account with a typed name: the name her photos now carry is reported", async () => {
     verifiedJoin();
     seeWelcome();
-    renderModal(VERIFY_EVENT);
+    renderModal();
+    pick("Create account");
     fireEvent.change(screen.getByLabelText("Your name"), {
       target: { value: "Priya" },
     });
@@ -1296,7 +1393,8 @@ describe("the confirmation's one beat", () => {
     profileName.value = "Priyanka";
     verifiedJoin();
     seeWelcome();
-    renderModal(VERIFY_EVENT);
+    renderModal();
+    pick("Create account");
     fireEvent.change(screen.getByLabelText("Your name"), {
       target: { value: "Priya" },
     });
@@ -1304,6 +1402,19 @@ describe("the confirmation's one beat", () => {
     fireEvent.click(screen.getByTestId("stub-verify"));
     await waitFor(() => expect(refresh).toHaveBeenCalled());
     expect(beats).toEqual([{ album: QR, name: "Priyanka", elsewhere: 0 }]);
+  });
+
+  it("★ an email-first event types no name and tells none: nothing was typed for the account's to overrule", async () => {
+    profileName.value = "Will Gibson";
+    verifiedJoin();
+    seeWelcome();
+    renderModal(VERIFY_EVENT);
+    fireEvent.click(screen.getByTestId("stub-send"));
+    fireEvent.click(screen.getByTestId("stub-verify"));
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    expect(beats).toEqual([]);
+    // The account's name is the device's name for this album now.
+    expect(localStorage.getItem(`pr_guest_name_${QR}`)).toBe("Will Gibson");
   });
 
   it("Log in types no name and tells none; the other events it carried are still said once", async () => {
@@ -1411,34 +1522,37 @@ describe("the door's light", () => {
 
   /* ★ THE LIGHT IS THE DOOR'S NOW (`locked-door` r2's doorway, which drew the welcome's promises as its
      own lines, retiring `icons=lit`'s pools on the welcome): an open door wears the album's own hues and
-     shows the album through its opening, where she may see the album; a gate's door is shut, in the
-     house five, and shows nothing of it (Will, 2026-10-02: the door shows only what is shown today). */
-  it("an open door wears the album's light and shows the album through it; a gate's shows nothing", () => {
+     shows the album's own cover through its opening (r3's `reveal=through`, the page's `CoverPicture`),
+     where she may see the album; a gate's door is shut, in the house five, and shows nothing of it, even
+     handed the cover (Will, 2026-10-02: the door shows only what is shown today). */
+  it("an open door wears the album's light and shows the album's cover through it; a gate's shows nothing", () => {
     publishDoorHues([12, 140, 222]);
-    publishDoorView(["https://r2.test/p/1.webp", "https://r2.test/p/2.webp"]);
+    const cover = <p data-testid="cover">the cover</p>;
     try {
-      const open = renderModal({ mediaTotal: 48 });
+      const open = renderModal({ mediaTotal: 48, view: cover });
       const way = open.container.querySelector("[data-door-way]");
       expect(way?.getAttribute("data-door-way")).toBe("open");
       expect(way?.getAttribute("data-door-hues")).toBe("12,140,222");
       expect(
-        [...(way?.querySelectorAll("img") ?? [])].map((img) =>
-          img.getAttribute("src"),
-        ),
-      ).toEqual(["https://r2.test/p/1.webp", "https://r2.test/p/2.webp"]);
+        way?.querySelector('[data-door-view="cover"] [data-testid="cover"]'),
+      ).not.toBeNull();
       expect(open.container.querySelector("[data-door-pool]")).toBeNull();
       cleanup();
 
-      const gate = renderModal({ access: "none", gate: "password" });
+      const gate = renderModal({
+        access: "none",
+        gate: "password",
+        view: cover,
+      });
       const shut = gate.container.querySelector("[data-door-way]");
       expect(shut?.getAttribute("data-door-way")).toBe("shut");
       expect(shut?.getAttribute("data-door-hues")).toBe(
         HOUSE_HUES.slice(0, 3).join(","),
       );
-      expect(shut?.querySelector("img")).toBeNull();
+      expect(shut?.querySelector('[data-testid="cover"]')).toBeNull();
+      expect(shut?.querySelector("[data-door-view]")).toBeNull();
     } finally {
       resetDoorLightForTests();
-      resetDoorViewForTests();
     }
   });
 });
@@ -1553,6 +1667,97 @@ describe("the door as the page", () => {
     expect(
       screen.getByRole("button", { name: "Continue as guest" }),
     ).toBeInTheDocument();
+  });
+
+  /* ★ THE WALK THROUGH (locked-door r3's `reveal=through`, `door/stage-walk.ts`), run here on a recorded
+     stand-in for the browser's animations (jsdom has none): her Continue is the walk, the stage holds her
+     (taking no press, no sheet over it) until she has arrived on the album's cover, then goes, and the step
+     the door still owes rises once the album has stood a moment. */
+  describe("the walk through the open door", () => {
+    let finish: () => void = () => {};
+    let restore: () => void = () => {};
+    afterEach(() => restore());
+    beforeEach(() => {
+      const arrive = Promise.withResolvers<void>();
+      finish = () => arrive.resolve();
+      const proto = HTMLElement.prototype as Partial<HTMLElement>;
+      const width = Object.getOwnPropertyDescriptor(
+        HTMLElement.prototype,
+        "offsetWidth",
+      );
+      proto.animate = function () {
+        return {
+          ready: Promise.resolve(),
+          finished: arrive.promise,
+          startTime: null,
+          currentTime: null,
+          cancel: vi.fn(),
+        } as unknown as Animation;
+      };
+      // The doorway's picture is laid out at the cover's own width (jsdom lays out nothing).
+      Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
+        configurable: true,
+        get: () => 375,
+      });
+      const cover = document.createElement("section");
+      cover.setAttribute("data-event-head", "album");
+      document.body.appendChild(cover);
+      vi.useFakeTimers();
+      restore = () => {
+        vi.useRealTimers();
+        cover.remove();
+        delete proto.animate;
+        if (width) {
+          Object.defineProperty(HTMLElement.prototype, "offsetWidth", width);
+        }
+      };
+    });
+    const afterFrames = (ms: number) =>
+      act(async () => {
+        await vi.advanceTimersByTimeAsync(ms);
+      });
+    const view = <div data-cover-picture="" />;
+
+    it("★ her Continue walks her through: the stage holds until she arrives, then goes, and the sheet rises after a moment", async () => {
+      renderModal({ view });
+      fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+      // The walk is the compositor's from her press, before the page does any work of its own.
+      expect(stage()?.hasAttribute("data-door-walking")).toBe(true);
+      expect(welcomeCookie()).toBe(false);
+      // A second press before her first stride is the same press.
+      fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+      expect(welcomeCookie()).toBe(false);
+      await afterFrames(40);
+      // Its first frame drawn, the page's own work: the welcome is seen, and the stage holds her.
+      expect(welcomeCookie()).toBe(true);
+      expect(stage()?.getAttribute("data-state")).toBe("open");
+      expect(stage()?.hasAttribute("inert")).toBe(true);
+      expect(sheet()).toBeNull();
+
+      await act(async () => finish());
+      expect(stage()?.getAttribute("data-state")).toBe("closed");
+      expect(stage()?.hasAttribute("data-door-walked")).toBe(true);
+      expect(
+        screen.queryByRole("button", { name: "Continue as guest" }),
+      ).toBeNull();
+      await afterFrames(500);
+      expect(
+        screen.getByRole("button", { name: "Continue as guest" }),
+      ).toBeInTheDocument();
+    });
+
+    it("★ a walk that arrives before its first frame is drawn (a tab put away mid-walk) never leaves the door standing", async () => {
+      renderModal({ view });
+      fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+      await act(async () => finish());
+      await afterFrames(40);
+      expect(welcomeCookie()).toBe(true);
+      expect(stage()?.getAttribute("data-state")).toBe("closed");
+      await afterFrames(500);
+      expect(
+        screen.getByRole("button", { name: "Continue as guest" }),
+      ).toBeInTheDocument();
+    });
   });
 
   it("a stage that has left is gone once its fade has played", () => {

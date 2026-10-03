@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { CalendarPlus } from "lucide-react";
 
 import {
   isPageInviteDismissed,
@@ -16,41 +14,57 @@ import {
 } from "@/app/(app)/dashboard/claims-actions";
 import { MarkWelcomedOnMount } from "@/app/(app)/welcome/mark-welcomed";
 import { ClaimsReview } from "@/components/app/dashboard/claims-review";
-import { EventsSection } from "@/components/app/dashboard/events-section";
-import { JustArrived } from "@/components/app/dashboard/just-arrived";
-import { NextStepBand } from "@/components/app/dashboard/next-step-band";
-import { PageInviteCard } from "@/components/app/dashboard/page-invite-card";
 import { GraceBanner } from "@/components/app/dashboard/grace-banner";
+import { DashboardHome } from "@/components/app/dashboard/home";
+import { PageInviteCard } from "@/components/app/dashboard/page-invite-card";
 import { StorageMeter } from "@/components/app/dashboard/storage-meter";
-import { PricingSheet } from "@/components/app/pricing/pricing-sheet";
 import { WELCOME_VALUE } from "@/components/app/pricing/return-path";
 import { WelcomeToPro } from "@/components/app/pricing/welcome-to-pro";
-import { Button } from "@/components/ui/button";
-import { trackAttrs } from "@/lib/analytics/events";
 import { seedFor } from "@/lib/avatar/seed";
 import {
   DEFAULT_TIER,
-  MAX_EVENTS,
   TIER_NAMES,
   effectiveStorageCap,
-  formatLimit,
   toBillingTier,
-  withinLimit,
 } from "@/lib/constants/tiers";
+import { weekEvents } from "@/lib/dashboard/attention";
 import {
   EVENTS_VIEW_COOKIE,
   resolveEventsView,
-  type EventListRow,
 } from "@/lib/dashboard/events-view";
-import { resolveNextSteps } from "@/lib/dashboard/next-step";
-import { getHostDoorWaiting } from "@/lib/db/queries/event-doors";
+import type { HomeContext } from "@/lib/dashboard/home-event";
+import {
+  buildHomeView,
+  type DeletedEvent,
+  type HostedEvent,
+} from "@/lib/dashboard/home-view";
+import { momentEvent } from "@/lib/dashboard/moment";
+import { type StagePhoto, WALL_PHOTOS } from "@/lib/dashboard/stage";
 import {
   calendarDayInZone,
+  dayInZone,
   resolveViewerZone,
   serverZone,
   VIEWER_ZONE_HEADER,
 } from "@/lib/dashboard/viewer-day";
+import {
+  daysFrom,
+  isEvening,
+  longDate,
+  type Phase,
+  phaseOfEvent,
+} from "@/lib/dashboard/when";
 import { getMyClaimableGuestRows } from "@/lib/db/queries/claims";
+import {
+  countArrivalsSince,
+  getLastArrivals,
+  getOpenedCounts,
+  getStagePhotos,
+} from "@/lib/db/queries/dashboard";
+import {
+  getDoorCounts,
+  getHostDoorWaiting,
+} from "@/lib/db/queries/event-doors";
 import {
   countActiveEvents,
   getEventCardStats,
@@ -61,76 +75,80 @@ import {
   listRecentlyDeletedEvents,
 } from "@/lib/db/queries/events";
 import { getLiveReelServerFacts } from "@/lib/db/queries/guest-events-admin";
-import { getPulse } from "@/lib/db/queries/pulse";
 import { getProfile } from "@/lib/db/queries/profile";
 import {
+  getEventGuests,
   getMyAttendedEvents,
   getMyGuestEventCards,
 } from "@/lib/db/queries/social";
 import { getHostStorageSummary } from "@/lib/db/queries/storage";
-import { captureError } from "@/lib/observability/sentry";
+import { guestCount } from "@/lib/events/event-guests";
 import { uploadsLabel } from "@/lib/events/visibility-labels";
+import { formatCount } from "@/lib/format/count";
 import { formatDateInZone } from "@/lib/format/date-in-zone";
-import { binCountdownLabel } from "@/lib/lifecycle/recently-deleted";
-import { overStandbyBudget } from "@/lib/lifecycle/recently-deleted";
+import {
+  binCountdownLabel,
+  overStandbyBudget,
+} from "@/lib/lifecycle/recently-deleted";
+import { captureError } from "@/lib/observability/sentry";
 import { getSiteUrl } from "@/lib/site-url";
 import { formatEventDate } from "@/lib/utils";
 import { resolveDashboardEntry } from "@/lib/welcome";
-import { PageHeading } from "@/components/shared/page-heading";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
+const HOUR_MS = 60 * 60 * 1000;
+
 /**
- * THE HOST'S HOME, AS A PULSE (`home=pulse`, Will 2026-09-20; the band order
- * by `busy=collapsed`'s note, app-shape round two, 2026-09-20).
+ * At most this many events get readiness's own reads (the code's opens, a closed door's count) on one
+ * visit: the stage's and the week's before their day, nearest first. A week holds a handful; the bound
+ * keeps a planner with a wall of parties in one week from paying a read per party.
+ */
+const READY_READS = 12;
+
+/** At most this many events on their day are counted for the busier rule and the pulse. */
+const DAY_READS = 6;
+
+/** A read never worth the page: its failure costs its own piece for one render, and says so. */
+function quietly<T>(seam: string, fallback: T) {
+  return (error: unknown): T => {
+    captureError("db", error, { seam });
+    return fallback;
+  };
+}
+
+/**
+ * THE HOST'S HOME (host-dashboard r1, Will 2026-10-02: `purpose=stage`, `needs=week`,
+ * `events=seasons`, `arrivals=live`, and the board's four carried calls taken: `head`, `tile`,
+ * `finished`, `busier`). The page is today's: headed by the viewer's own day, led by the party of the
+ * moment on a stage of its own photographs, then this week's parties each saying its one step, then
+ * everything else grouped by when. The composition is `components/app/dashboard/home.tsx` and every
+ * rule under it is pure and pinned (`lib/dashboard/`); this page reads, in rounds that each ask only
+ * what the one before showed the page will say.
  *
- * "What needs you, then what just arrived": the steps first, then the storage
- * line, then your events, then what just arrived — beneath them, not above.
- * His words ruling the order: "I like 'just arrived' underneath the events.
- * Notices & storage are more helpful above, more global and immediately
- * helpful." The five-chip inbox is gone and so are the personal feeds — your
- * uploads, your likes and the people you follow now live in the profile's
- * owner mode, where everything else about the PERSON rather than the PARTY
- * already lives (`you=?`, his own answer in the note).
- *
- * ★ THE BAND ORDER IS ANSWERING A WORRY, NOT A TASTE. He approved the pulse
- * while warning that the old inbox existed to stop the app feeling "limited
- * and empty... until more things start to happen (which creates a very boring
- * and bland initial host experience sometimes)". So band one is a RULE over
- * real state that always has something to say (past three steps, folded
- * behind an "N more" chip — `busy=collapsed`, `NextStepBand`'s own fold), the
- * arrivals band WIDENS its window rather than going blank, and the storage
- * line and the create door are unconditional. Nothing on this page is allowed
- * to render as a void. `home-states` (app-shape round two) drew the three host
- * states on this composition: the zero-event and one-event pages hold
- * unchanged, and a busy host's band now actually folds.
+ * ★ THE REASON, IN HIS WORDS: "in 1 event dashboards (which every user will experience creating their
+ * first and only event, until adding more), the experience feels much more alive that expecting many
+ * more events to populate. For example, if I'm getting Partyreel for my wedding, I'm likely to only
+ * have that one event for a while (maybe ever)". At one event the page is that party; at forty, time
+ * picks the one that leads, and a party long over speaks only when someone waits.
  */
 export default async function DashboardPage({
   searchParams,
 }: {
-  // `welcome=pro` is where Stripe Checkout lands a buyer with nothing to go back
-  // and finish (`back=finish`, Will 2026-09-20). It replaces the old `upgraded=1`
-  // receipt toast. The legacy ?tab= / ?filter= deep links are gone with the chips
-  // they drove; an old bookmark simply lands on the pulse, which is the page they
-  // wanted.
+  // `welcome=pro` is where Stripe Checkout lands a buyer with nothing to go back and finish
+  // (`back=finish`, Will 2026-09-20). The legacy ?tab= / ?filter= deep links are gone with the chips
+  // they drove; an old bookmark simply lands here, which is the page they wanted.
   searchParams: Promise<{ welcome?: string }>;
 }) {
   const { welcome } = await searchParams;
-  // Exactly the one value the checkout route sends: a hand-typed ?welcome=x must
-  // never manufacture a payment confirmation, and the modal's own claim is
-  // decided by the SERVER's tier below, never by this marker.
+  // Exactly the one value the checkout route sends: a hand-typed ?welcome=x must never manufacture a
+  // payment confirmation, and the modal's own claim is decided by the SERVER's tier below.
   const justBought = welcome === WELCOME_VALUE;
 
-  // All reads are RLS-scoped to the signed-in host; the (app) layout already
-  // gated on getUser(), so an unauthenticated request never reaches here. Kept
-  // BLOCKING (no Suspense) - dashboard streaming is deferred post-launch (S1).
-  // `guestCards` are THE EVENTS YOU ADDED TO (guest by upload, Will
-  // 2026-09-22: "uploading to an event is now effectively saving"): every event
-  // where this account holds a live upload and does not host, read from the
-  // uploads themselves, so a card leaves when its last live upload does.
-  // `eventCount` is COUNTED, never `events.length` (the 1,000-row round,
-  // 2026-09-23): the "X of N used" line and the cap are the same head count the
-  // create route's `enforce_event_limit` compares, whatever the list holds.
+  // All reads are RLS-scoped to the signed-in host; the (app) layout already gated on getUser(), so an
+  // unauthenticated request never reaches here. `guestCards` are THE EVENTS YOU ADDED TO (guest by
+  // upload, Will 2026-09-22), read from the uploads themselves. `eventCount` is COUNTED, never a list's
+  // length (the 1,000-row round): the head's number is the head count the create route compares.
   const [
     events,
     eventCount,
@@ -153,12 +171,9 @@ export default async function DashboardPage({
     headers(),
   ]);
 
-  // Onboarding gate: every account must set a public display name (Phase 1) before reaching the
-  // dashboard, and a brand-new one (welcomed_at null) gets the one-time intro, UNLESS it is a
-  // guest's: an account that hosts nothing and already holds a Guest card (the capture's "this
-  // event came with it") lands here on its first visit, and that visit is marked as its welcome
-  // (`resolveDashboardEntry`, lib/welcome.ts). Runs BEFORE the presign batch + any JSX, so a
-  // redirected account sees zero content flash.
+  // Onboarding gate: a public display name before the dashboard, and a brand-new account's one-time
+  // intro, UNLESS it is a guest's (`resolveDashboardEntry`). Before any further read or any JSX, so a
+  // redirected account sees zero content flash and pays for nothing it will not render.
   const entry = resolveDashboardEntry({
     displayName: profile?.display_name,
     welcomedAt: profile?.welcomed_at,
@@ -167,76 +182,245 @@ export default async function DashboardPage({
   });
   if (entry === "welcome") redirect("/welcome");
 
-  // ONE clock reading for the whole render, taken HERE rather than inside any
-  // component: a Date read during render is impure (react-hooks purity), and
-  // two readings could straddle midnight and disagree about what "today" is.
-  //
-  // ★ "TODAY" IS THE VIEWER'S OWN CALENDAR DAY, NEVER THE SERVER'S (the
-  // 1,000-row round's follow-on, 2026-09-24). The server's clock is UTC on
-  // Vercel, so from evening on in any zone west of UTC the server's "today"
-  // is already tomorrow: the pulse's "N today" undercounted a live evening,
-  // and "Print the code" (next-step.ts, an event dated tomorrow) disappeared
-  // the one evening before the event that it matters most. The viewer's own
-  // IANA zone comes from the request Vercel already carries
-  // (`x-vercel-ip-timezone`; validated, falling back to the server's own zone
-  // on a missing or bad value — never a guess), and `calendarDayInZone` reads
-  // that zone's calendar day DST-safely (`lib/dashboard/viewer-day.ts`). The
-  // zone is used only to render and is never stored or logged (host-app.md).
+  // ★ ONE CLOCK READING, AND "TODAY" IS THE VIEWER'S OWN CALENDAR DAY, NEVER THE SERVER'S: Vercel runs
+  // on UTC, so from evening on west of it the server's today is already tomorrow. The zone comes from
+  // the request (`x-vercel-ip-timezone`, validated, else the server's own), is used only to render,
+  // and is never stored or logged (dashboard.md). Read once, here: a Date read during render is impure.
   const viewerZone = resolveViewerZone(
     headerList.get(VIEWER_ZONE_HEADER),
     serverZone(),
   );
   const now = new Date().getTime();
-  const { today, startOfTodayMs: startOfToday } = calendarDayInZone(
-    now,
-    viewerZone,
-  );
+  const { today, startOfTodayMs, hour } = calendarDayInZone(now, viewerZone);
 
   const eventIds = events.map((e) => e.id);
-  // The hosted cards' covers and the stills they dissolve through in turn, the
-  // binned cards' covers, per-event stats, how far each event's live reel is,
-  // the pulse's own strips, and the claims review's events with their
-  // previews: fetched HERE, after the nameless-profile redirect above, so a
-  // profile that is about to bounce to /welcome never pays for a query it will
-  // not render. Keys never reach the browser — everything is presigned
-  // server-side. In parallel.
+  // The covers and the stills each tile dissolves through, the bin's covers, the counts, how far each
+  // reel is, who waits at each door, when each album last took a photograph, the claims review's rows
+  // and the reel's platform lever: after the welcome gate, in parallel. Keys never reach the browser.
   const [
     cardStills,
     binCovers,
     eventStats,
     reelProgress,
-    pulse,
     claimableRows,
     liveReelFacts,
     doorWaiting,
+    lastArrivals,
   ] = await Promise.all([
     getEventCardStills(eventIds),
     getEventCoverUrls(deletedEvents.map((e) => e.id)),
     getEventCardStats(eventIds),
     getReelProgress(eventIds),
-    getPulse(eventIds, now, startOfToday),
     getMyClaimableGuestRows({ previews: true }),
-    // reel-teardown: the platform lever (`ops_flags.live_reel_enabled`) is ONE global fact, not a
-    // per-event one — the function takes an eventId only because the guest-facing read it mirrors
-    // also derives that event's host tier (unused here), so any of the host's own events answers
-    // the same lever. `true` (fail open, matching the lever's own default) when the host has none.
+    // The platform lever (`ops_flags.live_reel_enabled`) is ONE global fact; any of the host's events
+    // answers it. `true` (the lever's own default) when the host has none.
     eventIds.length > 0
       ? getLiveReelServerFacts(eventIds[0])
       : Promise.resolve({ liveReelEnabled: true, tier: null }),
-    // Who waits at each event's door (the doors, event-settings r1), for the pulse's first band. A
-    // failed read costs the step for one render, never the page, and says so where failures are read.
     profile?.id && eventIds.length > 0
-      ? getHostDoorWaiting(profile.id).catch((error: unknown) => {
-          captureError("db", error, { seam: "pulse_door_waiting" });
-          return new Map<string, number>();
-        })
-      : Promise.resolve(new Map<string, number>()),
+      ? getHostDoorWaiting(profile.id).catch(
+          quietly<ReadonlyMap<string, number>>("pulse_door_waiting", new Map()),
+        )
+      : Promise.resolve<ReadonlyMap<string, number>>(new Map()),
+    getLastArrivals(eventIds).catch(
+      quietly("dashboard_last_arrivals", new Map<string, string>()),
+    ),
   ]);
 
-  // THE PAGE SETUP'S INVITATION (`identity-profile` r1, `prompt=claim`), decided here from server
-  // facts alone (account/profile/invite.ts). The read of what her page could show runs only when
-  // it could still change the answer: an account with a page, a claim waiting or a Not now pays
-  // nothing for it.
+  const tier = toBillingTier(profile?.tier ?? DEFAULT_TIER);
+  const planName = TIER_NAMES[tier];
+  // Storage (the storage-cap model): ACTIVE bytes against the effective cap, what the cap is enforced
+  // against, so deleting visibly frees room. The ring draws it; the rules read its percent.
+  const storageCap = effectiveStorageCap(
+    tier,
+    profile?.storage_cap_bytes ?? null,
+  );
+  const storageUsed = storage.activeBytes;
+  const storagePct =
+    storageCap && storageCap > 0
+      ? Math.min(100, Math.round((storageUsed / storageCap) * 100))
+      : 0;
+  const hasBilling = Boolean(profile?.stripe_customer_id);
+  const passExpiry =
+    tier === "event_pass" && profile?.tier_expires_at
+      ? formatDateInZone(profile.tier_expires_at, viewerZone)
+      : null;
+  // Over-capacity grace: its deadline costs the host data, so it stays a top-level red banner, never
+  // inside the ring, and it reads in the viewer's own zone (a day she has to act by).
+  const graceDeadline = profile?.storage_grace_until
+    ? formatDateInZone(profile.storage_grace_until, viewerZone)
+    : null;
+
+  const ctx: HomeContext = {
+    today,
+    evening: isEvening(hour),
+    liveReelEnabled: liveReelFacts.liveReelEnabled,
+    storagePct,
+  };
+
+  let hosted: HostedEvent[] = events.map((event) => {
+    const stats = eventStats.get(event.id);
+    const lastAt = lastArrivals.get(event.id) ?? null;
+    return {
+      id: event.id,
+      name: event.name,
+      date: event.event_date,
+      lastArrival: lastAt
+        ? { at: lastAt, day: dayInZone(Date.parse(lastAt), viewerZone) }
+        : null,
+      createdAt: event.created_at,
+      door: event.door,
+      hasPassword: event.has_password,
+      acceptingUploads: event.accepting_uploads,
+      showReel: event.show_reel,
+      description: event.description,
+      approved: stats?.approved ?? 0,
+      pending: stats?.pending ?? 0,
+      waiting: doorWaiting.get(event.id) ?? 0,
+      playable: reelProgress.get(event.id) ?? 0,
+      ready: null,
+      arrivals: { today: 0, lastHour: 0 },
+      qrToken: event.qr_token,
+      qrStyle: event.qr_style,
+      stills: cardStills.get(event.id) ?? [],
+      // Paused, the hub code's word, never Closed, the door's (`uploadsLabel` says why).
+      uploadsLabel: uploadsLabel(event.accepting_uploads),
+      dateLabel: event.event_date
+        ? formatEventDate(event.event_date)
+        : "No date set",
+    };
+  });
+
+  // ★ THE ROUNDS THAT FOLLOW ASK ONLY WHAT THE PAGE WILL SAY. The events on their day are counted (the
+  // busier rule, the pulse); readiness's own reads go to the week's parties before their day and to a
+  // stage before its own; the stage alone reads its wall and its guests.
+  const onTheirDay = hosted
+    .filter((e) => phaseOfEvent(e, today) === "live")
+    .slice(0, DAY_READS);
+  // With nothing on its day, the moment needs no count, so it is known now.
+  const settled = onTheirDay.length === 0 ? momentEvent(hosted, today) : null;
+  const readyIds = [
+    ...(settled?.phase === "before" ? [settled.event] : []),
+    ...weekEvents(hosted, today).filter((e) => daysFrom(today, e.date!) > 0),
+  ]
+    .map((e) => e.id)
+    .filter((id, i, all) => all.indexOf(id) === i)
+    .slice(0, READY_READS);
+  const closedIds = readyIds.filter(
+    (id) => hosted.find((e) => e.id === id)?.door === "closed",
+  );
+  // The stage is known now unless two or more events share today: one on its day is the stage.
+  const knownStage =
+    settled?.event ?? (onTheirDay.length === 1 ? onTheirDay[0]! : null);
+  const since = {
+    today: new Date(startOfTodayMs).toISOString(),
+    hour: new Date(now - HOUR_MS).toISOString(),
+  };
+
+  // The stage's own reads, by its phase: its wall on its day, and who came once it has had a day (before
+  // it, the stage shows its ticks, and nobody has come).
+  const stageReads = (id: string, phase: Phase) =>
+    Promise.all([
+      phase === "live"
+        ? getStagePhotos(id, WALL_PHOTOS).catch(
+            quietly<StagePhoto[] | null>("dashboard_stage_photos", null),
+          )
+        : Promise.resolve(null),
+      phase === "before"
+        ? Promise.resolve(null)
+        : getEventGuests(id)
+            .then(guestCount)
+            .catch(quietly<number | null>("dashboard_stage_guests", null)),
+    ]).then(([photos, guests]) => ({ id, photos, guests }));
+
+  const [dayCounts, opened, closedDoors, earlyStage] = await Promise.all([
+    Promise.all(
+      onTheirDay.map((e) =>
+        Promise.all([
+          countArrivalsSince(e.id, since.today),
+          countArrivalsSince(e.id, since.hour),
+        ])
+          .then(
+            ([inToday, lastHour]) =>
+              [e.id, { today: inToday, lastHour }] as const,
+          )
+          .catch(
+            quietly("dashboard_day_counts", [
+              e.id,
+              { today: 0, lastHour: 0 },
+            ] as const),
+          ),
+      ),
+    ),
+    getOpenedCounts(readyIds).catch(
+      quietly("dashboard_opened", new Map<string, number>()),
+    ),
+    Promise.all(
+      closedIds.map((id) =>
+        getDoorCounts(id)
+          .then((c) => [id, c.in] as const)
+          .catch(
+            quietly<readonly [string, number | null]>("dashboard_door_counts", [
+              id,
+              null,
+            ]),
+          ),
+      ),
+    ),
+    knownStage
+      ? stageReads(knownStage.id, phaseOfEvent(knownStage, today))
+      : Promise.resolve(null),
+  ]);
+
+  const counts = new Map(dayCounts);
+  const guestsIn = new Map(closedDoors);
+  hosted = hosted.map((e) => {
+    const opens = opened.get(e.id);
+    // Readiness is said only where its reads came back; a door that is not closed needs no count.
+    const inside = e.door === "closed" ? guestsIn.get(e.id) : 0;
+    return {
+      ...e,
+      arrivals: counts.get(e.id) ?? e.arrivals,
+      ready:
+        opens !== undefined && inside !== undefined && inside !== null
+          ? { opened: opens, guestsIn: inside }
+          : null,
+    };
+  });
+
+  // Two or more on one night: the busier leads (the counts above decide), and only then is its stage read.
+  const lead = momentEvent(hosted, today)?.event ?? null;
+  const stageFacts =
+    earlyStage && lead && earlyStage.id === lead.id
+      ? earlyStage
+      : lead && phaseOfEvent(lead, today) === "live"
+        ? await stageReads(lead.id, "live")
+        : earlyStage;
+
+  const deleted: DeletedEvent[] = deletedEvents.map((event) => ({
+    id: event.id,
+    name: event.name,
+    date: event.event_date,
+    dateLabel: event.event_date
+      ? formatEventDate(event.event_date)
+      : "No date set",
+    coverUrl: binCovers.get(event.id) ?? null,
+    deletedAt: event.deleted_at ?? event.created_at,
+    countdown: binCountdownLabel(event.countdownDays),
+  }));
+
+  const view = buildHomeView({
+    ctx,
+    hosted,
+    guests: guestCards,
+    deleted,
+    siteUrl,
+    stageReads: stageFacts,
+  });
+
+  // THE PAGE SETUP'S INVITATION (`identity-profile` r1, `prompt=claim`), decided from server facts alone
+  // (account/profile/invite.ts). The read of what her page could show runs only when it could still
+  // change the answer.
   const hasHandle = Boolean(profile?.slug);
   const inviteDismissed = profile
     ? isPageInviteDismissed(
@@ -248,9 +432,8 @@ export default async function DashboardPage({
     !hasHandle && claimableRows.length === 0 && !inviteDismissed
       ? await getMyAttendedEvents().then(
           (attended) => attended.length,
+          // An invitation is never worth the page: a failed read withholds it (the quiet direction).
           (error: unknown) => {
-            // An invitation is never worth the page: a failed read withholds it (the quiet
-            // direction) and says so where failures are read.
             captureError("account", error, { seam: "page_invite" });
             return 0;
           },
@@ -263,286 +446,77 @@ export default async function DashboardPage({
     dismissed: inviteDismissed,
   });
 
-  const tier = toBillingTier(profile?.tier ?? DEFAULT_TIER);
-  // Stacked Event Passes (billing-caps.md): event_slots is the webhook-derived concurrent-pass
-  // count and overrides the static tier limit, exactly as enforce_event_limit does in SQL.
-  const maxEvents = profile?.event_slots ?? MAX_EVENTS[tier];
-  const used = eventCount;
-  // withinLimit(current, limit) answers "can I add one more?" — so its negation
-  // is "already at the cap." `null` maxEvents (Pro = unlimited) is never at cap.
-  const atCap = !withinLimit(used, maxEvents);
-  const planName = TIER_NAMES[tier];
-
-  // Storage gauge (storage-cap model): ACTIVE bytes vs the effective cap (explicit override else
-  // the tier default). Active bytes = non-removed media in non-deleted events — what the cap is
-  // enforced against, so deleting visibly frees room. The StorageMeter owns the display.
-  const storageCap = effectiveStorageCap(
-    tier,
-    profile?.storage_cap_bytes ?? null,
-  );
-  const storageUsed = storage.activeBytes;
-  const standbyBytes = storage.standbyBytes;
-  const overBudget = overStandbyBudget(standbyBytes, storageCap);
-  const storagePct =
-    storageCap && storageCap > 0
-      ? Math.min(100, Math.round((storageUsed / storageCap) * 100))
-      : 0;
-  const hasBilling = Boolean(profile?.stripe_customer_id);
-  const passExpiry =
-    tier === "event_pass" && profile?.tier_expires_at
-      ? formatDateInZone(profile.tier_expires_at, viewerZone)
-      : null;
-  // Over-capacity grace (set by the lifecycle cron when a lapsed account is over cap). High-urgency
-  // (its deadline costs the user data), so it stays a top-level red banner, NEVER inside the meter.
-  // Rendered in the VIEWER's own zone (above): a deadline is a day the host has to act by, and the
-  // server's UTC day can read as the wrong one from evening on anywhere west of it.
-  const graceDeadline = profile?.storage_grace_until
-    ? formatDateInZone(profile.storage_grace_until, viewerZone)
-    : null;
-
-  // Band one: the rule, over the state above.
-  const steps = resolveNextSteps({
-    events: events.map((e) => ({
-      id: e.id,
-      name: e.name,
-      waiting: doorWaiting.get(e.id) ?? 0,
-      pending: eventStats.get(e.id)?.pending ?? 0,
-      acceptingUploads: e.accepting_uploads,
-      showReel: e.show_reel,
-      liveReelEnabled: liveReelFacts.liveReelEnabled,
-      reelItems: reelProgress.get(e.id) ?? 0,
-      eventDate: e.event_date,
-    })),
-    storagePct,
-    today,
-  });
-  // The same rule phrases the row view's trailing column, so the home never
-  // tells a host two different things about one event.
-  const needsByEvent = new Map(
-    steps
-      .filter((s) => s.eventId)
-      .map((s) => [s.eventId as string, s.short] as const),
-  );
-
-  // One list, three kinds; the section's lens decides which are shown.
-  const rows: EventListRow[] = [
-    ...events.map((event): EventListRow => {
-      const stats = eventStats.get(event.id);
-      return {
-        id: event.id,
-        kind: "hosted",
-        name: event.name,
-        href: `/dashboard/${event.id}`,
-        // The cover the card paints first IS the first of its stills.
-        coverUrl: cardStills.get(event.id)?.[0] ?? null,
-        stills: cardStills.get(event.id) ?? [],
-        dateLabel: event.event_date
-          ? formatEventDate(event.event_date)
-          : "No date set",
-        sortDate: event.created_at,
-        items: stats?.approved ?? 0,
-        guests: null,
-        pending: stats?.pending ?? 0,
-        // Paused, the hub code's word, never Closed, the door's (`uploadsLabel` says why).
-        statusLabel: uploadsLabel(event.accepting_uploads),
-        byline: null,
-        needs: needsByEvent.get(event.id) ?? null,
-        qr: { token: event.qr_token, style: event.qr_style },
-      };
-    }),
-    ...guestCards.map(
-      (card): EventListRow => ({
-        id: card.eventId,
-        kind: "guest",
-        name: card.name,
-        href: card.href,
-        coverUrl: card.coverUrl,
-        stills: [],
-        dateLabel: card.dateLabel,
-        sortDate: card.lastUploadAt,
-        items: 0,
-        guests: null,
-        pending: 0,
-        statusLabel:
-          card.accessible && card.passwordProtected ? "Password" : null,
-        byline: card.byline,
-        needs: null,
-        qr: null,
-      }),
-    ),
-    ...deletedEvents.map(
-      (event): EventListRow => ({
-        id: event.id,
-        kind: "deleted",
-        name: event.name,
-        href: null,
-        coverUrl: binCovers.get(event.id) ?? null,
-        stills: [],
-        dateLabel: event.event_date
-          ? formatEventDate(event.event_date)
-          : "No date set",
-        sortDate: event.deleted_at ?? event.created_at,
-        items: 0,
-        guests: null,
-        pending: 0,
-        statusLabel: binCountdownLabel(event.countdownDays),
-        byline: null,
-        needs: null,
-        qr: null,
-      }),
-    ),
-  ];
+  const counted =
+    eventCount > 0
+      ? `${formatCount(eventCount)} ${eventCount === 1 ? "event" : "events"}`
+      : "No events yet";
 
   return (
-    // ★ WIDE, LIKE THE ALBUM (his `album-columns` note: "it feels weird that
-    // the host dash is width constrained but the event album is wide. Host
-    // dash should go wide the same way"). `data-app-wide` drops the shell's
-    // 1280 cap and takes the album's gutter (app-shell.tsx); the event cards
-    // fill more columns as the window grows (`EVENT_CARD_GRID`).
-    <div data-app-wide className="space-y-6">
-      {/* A guest's first visit is its welcome: marked once, from the client,
-          since this server component cannot write with the visitor's cookies
-          after it renders. It draws nothing; the Guest card below leads. */}
-      {entry === "guest-first-visit" && <MarkWelcomedOnMount />}
-
-      {justBought && (
-        <WelcomeToPro
-          // The webhook is the only writer of profiles.tier, and Stripe can land the
-          // buyer here before it fires, so the claim is scoped to what this render can
-          // actually see. `tier` is read fresh above on every dashboard render.
-          applied={tier !== "free"}
-          planName={planName}
-          capBytes={storageCap}
-          nextUrl="/dashboard"
-          // Nobody was in the middle of anything: this is the purchase that
-          // started somewhere with no control to return to (his own words), so
-          // the door simply puts them on the home they are already looking at.
-          door={{ label: "Go to your dashboard" }}
-        />
-      )}
-
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <PageHeading>Dashboard</PageHeading>
-          <p className="text-sm text-muted-foreground">
-            {used} of {formatLimit(maxEvents)} event
-            {maxEvents === 1 ? "" : "s"} used
-          </p>
-        </div>
-        {/* The create door is UNCONDITIONAL on this page (never absent): it is
-            half of what stops a quiet home reading as an empty one.
-            ★ AND IT IS LIVE AT THE CAP NOW (`limit=door`, Will 2026-09-21).
-            Disabling it made the refusal unreachable and unexplained: a host at
-            their one event met a dead button and a paragraph further down the
-            page. The route itself is the refusal now — it names the plan's
-            number, names the event holding the slot, and offers both ways
-            forward — so the door has to open for that to be reachable at all. */}
-        <Button asChild>
-          <Link
-            href="/dashboard/new"
-            {...trackAttrs("cta_click", {
-              cta: "new-event",
-              location: "dashboard",
-            })}
-          >
-            <CalendarPlus /> New event
-          </Link>
-        </Button>
-      </div>
-
-      {graceDeadline && (
-        <GraceBanner
-          deadline={graceDeadline}
+    <DashboardHome
+      head={{ day: longDate(today), line: `${counted} · ${planName}` }}
+      view={view}
+      ctx={ctx}
+      initialView={resolveEventsView(jar.get(EVENTS_VIEW_COOKIE)?.value)}
+      storage={
+        <StorageMeter
           storageUsed={storageUsed}
           storageCap={storageCap}
-          plan={{ tier, hasBilling }}
+          storagePct={storagePct}
+          standbyBytes={storage.standbyBytes}
+          overBudget={overStandbyBudget(storage.standbyBytes, storageCap)}
+          passExpiry={passExpiry}
+          planName={planName}
+          hasBilling={hasBilling}
+          isEventPass={tier === "event_pass"}
+          tier={tier}
         />
-      )}
-
-      {/* BAND 1 — what needs you. Never empty: it says so calmly instead.
-          `plans` is the storage step's door: the same server-derived facts
-          and bytes the storage meter's "Need more?" opens its sheet on. */}
-      {used > 0 && (
-        <NextStepBand
-          steps={steps}
-          plans={{
-            plan: { tier, hasBilling, passExpiry },
-            needed: storageUsed,
-          }}
-        />
-      )}
-
-      {/* BAND 2 — the storage line, always. It was gated on having an event;
-          the pulse promises it unconditionally, and a host with no events
-          still has a plan and a shelf. */}
-      <StorageMeter
-        storageUsed={storageUsed}
-        storageCap={storageCap}
-        storagePct={storagePct}
-        standbyBytes={standbyBytes}
-        overBudget={overBudget}
-        passExpiry={passExpiry}
-        planName={planName}
-        hasBilling={hasBilling}
-        isEventPass={tier === "event_pass"}
-        tier={tier}
-      />
-
-      {atCap && (
-        <p className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
-          You&rsquo;ve used every event on the {planName} plan. Delete one to
-          free a slot, or{" "}
-          <PricingSheet
-            trigger={{ kind: "room" }}
+      }
+      top={
+        <>
+          {/* A guest's first visit is its welcome: marked once, from the client, since this server
+              component cannot write with the visitor's cookies after it renders. */}
+          {entry === "guest-first-visit" && <MarkWelcomedOnMount />}
+          {justBought && (
+            <WelcomeToPro
+              // The webhook is the only writer of profiles.tier, and Stripe can land the buyer here
+              // before it fires, so the claim is scoped to what this render can actually see.
+              applied={tier !== "free"}
+              planName={planName}
+              capBytes={storageCap}
+              nextUrl="/dashboard"
+              door={{ label: "Go to your dashboard" }}
+            />
+          )}
+        </>
+      }
+      alert={
+        graceDeadline && (
+          <GraceBanner
+            deadline={graceDeadline}
+            storageUsed={storageUsed}
+            storageCap={storageCap}
             plan={{ tier, hasBilling }}
-            returnTo="/dashboard"
-          >
-            <button
-              type="button"
-              className="font-medium text-foreground underline underline-offset-4"
-            >
-              upgrade for more
-            </button>
-          </PricingSheet>
-          .
-        </p>
-      )}
-
-      {/* THE CLAIMS REVIEW'S BANNER — one slim line above the events feed
-          (`ticket=banner`), rendered only while events wait or its review is
-          open (ClaimsReview returns null otherwise), and ALWAYS mounted, so a
-          refresh behind an open review never unmounts it; above the
-          create-first teaser too, since EventsSection decides that swap on
-          its own `rows` prop independently of this one. Its closing toast
-          points at the page (`after=profile`), the setup before one exists
-          and its choices after, unless the invitation below is about to take
-          the banner's place (one pointer a beat). */}
-      <ClaimsReview
-        rows={claimableRows}
-        pageHref={pageChoicesHref(hasHandle)}
-        invitesOnceSorted={!hasHandle && !inviteDismissed}
-        claim={claimEventAction}
-        disown={disownEventAction}
-      />
-
-      {/* THE PAGE SETUP'S INVITATION, in the banner's own place: it waits
-          for no claim to be pending, so it arrives the moment the last
-          decision lands and the page refreshes behind the review
-          (`prompt=claim`). */}
-      {invitePage && <PageInviteCard />}
-
-      {/* BAND 3 — your events, cover cards or rows, the choice remembered. */}
-      <EventsSection
-        rows={rows}
-        newestByEvent={pulse.newestByEvent}
-        initialView={resolveEventsView(jar.get(EVENTS_VIEW_COOKIE)?.value)}
-        siteUrl={siteUrl}
-      />
-
-      {/* BAND 4 — what just arrived, beneath your events (his `busy` note:
-          notices and storage are the more global, immediately helpful ones,
-          above), in whichever window holds twelve. */}
-      <JustArrived tiles={pulse.arrivals} caption={pulse.caption} />
-    </div>
+          />
+        )
+      }
+      notes={
+        <>
+          {/* THE CLAIMS REVIEW'S BANNER: one slim line above the events (`ticket=banner`), drawn only
+              while events wait or its review is open, and ALWAYS mounted, so a refresh behind an open
+              review never unmounts it. Its closing toast points at the page (`after=profile`) unless
+              the invitation below is about to take the banner's place (one pointer a beat). */}
+          <ClaimsReview
+            rows={claimableRows}
+            pageHref={pageChoicesHref(hasHandle)}
+            invitesOnceSorted={!hasHandle && !inviteDismissed}
+            claim={claimEventAction}
+            disown={disownEventAction}
+          />
+          {/* THE PAGE SETUP'S INVITATION, in the banner's own place: it arrives the moment the last
+              decision lands and the page refreshes behind the review (`prompt=claim`). */}
+          {invitePage && <PageInviteCard />}
+        </>
+      }
+    />
   );
 }

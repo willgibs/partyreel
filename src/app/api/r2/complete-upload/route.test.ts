@@ -291,3 +291,42 @@ describe("the clip-add limiter (reel_clip_add)", () => {
     expect(recordAbuseEvent).not.toHaveBeenCalled();
   });
 });
+
+// THE CAMERA (20261002200000): a shot the roll refuses at the moment it lands (two phones of one guest, the 25th's
+// race lost at create_media) answers 409 in the server's own sentence, as a full album does; a cookie is never set.
+describe("the roll's refusal at the complete", () => {
+  it("answers 409 with the roll's own sentence", async () => {
+    createMedia.mockResolvedValue({
+      ok: false,
+      code: "roll_spent",
+      message: "You've taken all 24 shots on your roll.",
+    });
+    const { status, body } = await complete();
+    expect(status).toBe(409);
+    expect(body.code).toBe("roll_spent");
+  });
+});
+
+// ★ A ROW SEALED UNTIL ITS ALBUM DEVELOPS (build 43's red-team, the upload half): the complete says `sealed` as the
+// write did, so the guest's queue draws no album tile for a shot nobody may see yet. Said only when true: every other
+// answer is byte for byte the one it was.
+describe("a sealed landing", () => {
+  it("answers `sealed` beside its status", async () => {
+    createMedia.mockResolvedValue({
+      ok: true,
+      data: { media_id: MEDIA, status: "approved", sealed: true },
+    });
+    const { status, body } = await complete();
+    expect(status).toBe(200);
+    expect(body).toEqual({ ok: true, status: "approved", sealed: true });
+  });
+
+  it("says nothing of a seal where the write made none", async () => {
+    createMedia.mockResolvedValue({
+      ok: true,
+      data: { media_id: MEDIA, status: "approved", sealed: false },
+    });
+    const { body } = await complete();
+    expect(body).toEqual({ ok: true, status: "approved" });
+  });
+});

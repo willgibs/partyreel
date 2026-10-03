@@ -105,26 +105,34 @@ export const PRIMARY_NAV: NavItem[] = [
   {
     label: "Events",
     href: "/events",
+    // ★ EACH ROW SAYS ITS TYPE'S OWN `teaser`, WORD FOR WORD (`events.ts`, which this module cannot
+    // import: the client bundle). There is one line per event type; the panel once wrote a second,
+    // and two lines about one page drift. `marketing-nav.test.ts` holds the strings to the registry,
+    // as it holds the Features rows' to theirs, so a retuned teaser fails here until it is copied.
     children: [
       {
         label: "Weddings",
         href: "/events/weddings",
-        description: "Every angle of the day, one album.",
+        description:
+          "Every guest's angle of the day, not just the photographer's.",
       },
       {
         label: "Parties",
         href: "/events/parties",
-        description: "The dance floor, from every phone.",
+        description:
+          "The candids from every corner of the room, before anyone leaves.",
       },
       {
         label: "Conferences",
         href: "/events/conferences",
-        description: "Sessions and hallways, collected.",
+        description:
+          "Talks, booths, and hallway moments, gathered in one feed.",
       },
       {
         label: "Trips",
         href: "/events/trips",
-        description: "The whole trip, one shared roll.",
+        description:
+          "Everyone's photos from the whole trip, without the chasing.",
       },
     ],
   },

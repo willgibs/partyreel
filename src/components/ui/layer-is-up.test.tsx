@@ -158,6 +158,8 @@ describe("the layer roles have one home", () => {
     return lines;
   }
 
+  // A whole-`src` parse in the jsdom project: about 1.6 s alone, 9.2 s inside the full suite on a loaded machine
+  // (gate 166, load near 12), past vitest's default 5 s. Its own ceiling, so the gate reads a selector, never the load.
   it("finds no dialog selector outside the home", () => {
     const sources = filesUnder("src");
     expect(sources.length, "the scan found no files").toBeGreaterThan(500);
@@ -173,7 +175,7 @@ describe("the layer roles have one home", () => {
       `A selector for a dialog was written by hand again: ask \`layerIsUp()\` ("@/components/ui/layer-is-up"), ` +
         `which knows a confirm is an alertdialog:\n${offenders.join("\n")}`,
     ).toEqual([]);
-  });
+  }, 30_000);
 
   it("sees the shapes it exists for", () => {
     for (const [name, code] of [

@@ -39,9 +39,12 @@ type Client = SupabaseClient<Database>;
  * A column leaves this list before a migration drops it, never with it: a select naming a dropped
  * column answers 42703 on every host read (the reel's three dormant columns went this way, the list
  * first, the drop, 20260929170000, once the milestone that stopped naming them was live).
+ *
+ * `sealed_until` (the develop, 20261002200000) joined the grant and this list together: the host is exempt from
+ * the seal, and her own INVOKER reads (the cards' covers, stills and counts) name it.
  */
 export const MEDIA_HOST_COLUMNS =
-  "id, event_id, guest_id, type, original_key, preview_key, file_size_bytes, duration_seconds, width, height, status, created_at, updated_at, removed_at, purge_at, removed_by_uploader, reel_eligible";
+  "id, event_id, guest_id, type, original_key, preview_key, file_size_bytes, duration_seconds, width, height, status, created_at, updated_at, removed_at, purge_at, removed_by_uploader, reel_eligible, sealed_until";
 
 // Strips every column the authenticated grant WITHHOLDS, keeping this type equal to what the
 // queries above can actually return. `removed_by_system` (QA #2) joins the hold columns here: a

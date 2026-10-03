@@ -272,3 +272,73 @@ describe("the ladder around it", () => {
     expect(rowRead).not.toHaveBeenCalled();
   });
 });
+
+/**
+ * THE ALBUM'S CAMERA AT THE PRESIGN (20261002200000): the shot past the roll, or past its ceiling, and a camera
+ * video past its bounds are refused before their bytes move, in the server's own words; free uploads are untouched,
+ * and nothing is presigned for a refused shot. `create_media` holds the same lines (its own pins: roll.test.ts).
+ */
+describe("the album's camera", () => {
+  async function presignVideo(seconds: number, bytes: number) {
+    const res = await POST(
+      new Request("https://partyreel.com/api/r2/presign-upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_token: TOKEN,
+          content_type: "video/mp4",
+          size_bytes: bytes,
+          duration_seconds: seconds,
+        }),
+      }),
+    );
+    return { status: res.status, body: (await res.json()) as { code?: string; message?: string } };
+  }
+  const ROLL = { used: 3, cap: 24, taken: 3, ceiling: 72 };
+
+  it("★ refuses the shot past her roll, at the roll's own size, with nothing presigned", async () => {
+    getUploadContext.mockResolvedValue(
+      context({ capture: "camera", roll: { ...ROLL, used: 24, taken: 30 } }),
+    );
+    const { status, body } = await presign();
+    expect(status).toBe(409);
+    expect(body).toMatchObject({
+      code: "roll_spent",
+      message: "You've taken all 24 shots on your roll.",
+    });
+    expect(presignUpload).not.toHaveBeenCalled();
+  });
+
+  it("refuses the shot past the ceiling, a frame free or not", async () => {
+    getUploadContext.mockResolvedValue(
+      context({ capture: "camera", roll: { ...ROLL, used: 10, taken: 72 } }),
+    );
+    const { status, body } = await presign();
+    expect(status).toBe(409);
+    expect(body.message).toBe("You've used every retake this roll allows.");
+    expect(presignUpload).not.toHaveBeenCalled();
+  });
+
+  it("a frame left presigns as ever; free uploads never meet a roll", async () => {
+    getUploadContext.mockResolvedValue(context({ capture: "camera", roll: ROLL }));
+    expect((await presign()).status).toBe(200);
+    getUploadContext.mockResolvedValue(
+      context({ capture: "upload", roll: { ...ROLL, used: 24 } }),
+    );
+    expect((await presign()).status).toBe(200);
+  });
+
+  it("a camera video: ten seconds and 128 MB, each in its own words, before the roll", async () => {
+    getUploadContext.mockResolvedValue(
+      context({ capture: "camera", roll: { ...ROLL, used: 24 } }),
+    );
+    const long = await presignVideo(30, 1024);
+    expect(long.status).toBe(422);
+    expect(long.body.code).toBe("too_long");
+    getUploadContext.mockResolvedValue(context({ capture: "camera", roll: ROLL }));
+    const large = await presignVideo(8, 129 * 1024 ** 2);
+    expect(large.status).toBe(422);
+    expect(large.body.code).toBe("too_large");
+    expect(presignUpload).not.toHaveBeenCalled();
+  });
+});

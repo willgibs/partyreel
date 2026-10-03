@@ -1,56 +1,32 @@
 /**
- * THE NEXT BEST STEP, PER EVENT — the pulse's first band, and the whole answer
- * to Will's one worry about it.
+ * AN EVENT'S QUEUES, IN HIS ORDER: people at the door, then the review queue, then paused uploads, a
+ * reel one photo short, the code the day before (home-wiring, 2026-09-20, `home=pulse`; the doors,
+ * event-settings r1). The pulse's first band read it as a row of chips; since host-dashboard r1
+ * (2026-10-02) it is the queue half of each event's one item (`attention.ts`), which decides which of
+ * these an event says and WHEN (a party long over speaks only when someone waits), and the band is
+ * gone with Just arrived.
  *
- * He approved the front page (`home=pulse`, 2026-09-20) with a caveat worth
- * keeping verbatim, because it is the spec: the inbox existed "to make the full
- * app feel more available & ready to action than a more limited and empty
- * surface that doesn't feel actionable until more things start to happen (which
- * creates a very boring and bland initial host experience sometimes)".
- *
- * So band one is NEVER "the review queue", which is empty most of the time and
- * empty for every new host. It is the next thing each event wants, resolved by
- * this function in a fixed precedence, over state the app already knows. An
- * event that wants nothing contributes nothing and the band says so in one calm
- * line rather than rendering a void. `home-states` (app-shape round two) is
- * where the three host states get drawn properly; it inherits these rules
- * rather than re-inventing them.
- *
- * PURE AND NODE-SAFE. No Date.now() lives in here and none may: the caller
- * passes `today`, because a date read during render is impure (react-hooks
- * purity) and because a pure function is the only kind this order can be
- * TESTED in. The existing `listRecentlyDeletedEvents` sets the same precedent.
+ * PURE AND NODE-SAFE. No Date.now() lives in here and none may: the caller passes `today`, because a
+ * date read during render is impure (react-hooks purity) and because a pure function is the only kind
+ * this order can be TESTED in.
  */
 
 import { peopleWaiting } from "@/lib/event/door/words";
 import { photosToGo, reelState } from "@/lib/event/reel-progress";
 import { formatCount } from "@/lib/format/count";
 
-export type NextStepKind =
-  | "door"
-  | "review"
-  | "paused"
-  | "reel"
-  | "print"
-  | "storage";
+export type NextStepKind = "door" | "review" | "paused" | "reel" | "print";
 
 export type NextStep = {
   kind: NextStepKind;
-  /** null for the account-level step (storage), which belongs to no event. */
-  eventId: string | null;
-  /** The band's phrasing: the event named, because a host has several. */
+  eventId: string;
+  /** The step with its event named, because a host has several. */
   label: string;
-  /** The row view's phrasing: the same step with the name already in the row. */
+  /** The same step where its event is already named around it. */
   short: string;
-  /**
-   * Where the chip goes: a path inside the app, or null for the storage step,
-   * which has no route because its door is the plan sheet, opened where the
-   * host stands (`NextStepBand`). Every pricing door in the host app opens
-   * that sheet rather than leaving for the marketing page, whose fuller
-   * comparison is the sheet's own quiet foot (`gated-sites.test.ts`).
-   */
-  href: string | null;
-  tone: "waiting" | "quiet" | "warning";
+  /** Where the step is taken: a path inside the event. */
+  href: string;
+  tone: "waiting" | "quiet";
 };
 
 export type NextStepEvent = {
@@ -74,7 +50,10 @@ export type NextStepEvent = {
   eventDate: string | null;
 };
 
-/** Over this, the storage line stops being ambient and becomes a step. */
+/**
+ * Over this, the account's storage stops being ambient: the dashboard's ring turns amber, and readiness
+ * lists room among what an event needs (`lib/events/readiness.ts`).
+ */
 export const STORAGE_STEP_PCT = 85;
 
 /**
@@ -94,9 +73,9 @@ export const STORAGE_STEP_PCT = 85;
  * is gone the moment it plays, and it never shows with the reel off, by the
  * host's own switch or the platform lever (`reel-teardown`; either way, an off
  * reel is not waiting for anything). At none it stays
- * quiet: an event with no photographs has its launch list on its own page, and
- * a step at none would push an event's "Print the code" out of the band the
- * evening before it matters.
+ * quiet: an event with no photographs has its checklist on its own page
+ * (`EventChecklist`, the hub's head), and a step at none would push an event's
+ * "Print the code" out the evening before it matters.
  */
 export function nextStepForEvent(
   event: NextStepEvent,
@@ -167,85 +146,6 @@ export function nextStepForEvent(
   }
 
   return null;
-}
-
-/**
- * The whole band. Events in the order they were given (newest first), each
- * contributing at most one step, then the account-level storage step last —
- * last because it is about the shelf, not about a party, and a host mid-event
- * should read what their guests are doing before what their plan is doing.
- */
-export function resolveNextSteps(input: {
-  events: NextStepEvent[];
-  storagePct: number;
-  today: string;
-}): NextStep[] {
-  const steps: NextStep[] = [];
-  for (const event of input.events) {
-    const step = nextStepForEvent(event, input.today);
-    if (step) steps.push(step);
-  }
-  if (input.storagePct > STORAGE_STEP_PCT) {
-    steps.push({
-      kind: "storage",
-      eventId: null,
-      label: `${input.storagePct}% of your storage used`,
-      short: "Storage is nearly full",
-      // No route: the band opens the plan sheet in place (see `href`).
-      href: null,
-      tone: "warning",
-    });
-  }
-  return steps;
-}
-
-/**
- * THE BAND'S FOLD (`busy=collapsed`, app-shape round two, 2026-09-20).
- *
- * A genuinely busy host — several queues waiting, a shelf nearly full, a few
- * quiet suggestions — hits six steps in the one band by Thursday, and six
- * chips wrapping three lines deep stops answering "what needs you" at a
- * glance. So PAST THE LIMIT, the band shows the top steps BY TONE (a queue
- * waiting outranks a shelf nearly full outranks a quiet suggestion) and folds
- * the rest behind one count.
- *
- * ★ A BAND THAT ALREADY FITS IS NEVER RE-RANKED. Tone order only enters once
- * folding is real; at or under the limit `resolveNextSteps`'s own order
- * (newest event first) passes through untouched, so a host with one or two
- * events sees exactly today's order — the same guarantee that keeps `empty`
- * and `first` unchanged. A STABLE sort past the limit: two steps of the same
- * tone keep their own relative order rather than being re-ranked against each
- * other, so the fold never invents an opinion about which of two waiting
- * queues matters more.
- */
-export const NEXT_STEP_BAND_LIMIT = 3;
-
-const TONE_RANK: Record<NextStep["tone"], number> = {
-  waiting: 0,
-  warning: 1,
-  quiet: 2,
-};
-
-export type FoldedNextSteps = {
-  /** The band's default view: the top steps. */
-  head: NextStep[];
-  /** Behind the "N more" chip; empty when the band already fits. */
-  rest: NextStep[];
-};
-
-export function foldNextSteps(
-  steps: NextStep[],
-  limit: number = NEXT_STEP_BAND_LIMIT,
-): FoldedNextSteps {
-  if (steps.length <= limit) return { head: steps, rest: [] };
-  const ranked = steps
-    .map((step, index) => ({ step, index }))
-    .sort((a, b) => {
-      const byTone = TONE_RANK[a.step.tone] - TONE_RANK[b.step.tone];
-      return byTone !== 0 ? byTone : a.index - b.index;
-    })
-    .map(({ step }) => step);
-  return { head: ranked.slice(0, limit), rest: ranked.slice(limit) };
 }
 
 /**

@@ -14,7 +14,6 @@ import {
   EyeOff,
   Flag,
   Link2,
-  Loader2,
   Share2,
   Trash2,
   Undo2,
@@ -47,11 +46,16 @@ import {
   saveToPhotos,
   shareFile,
   shareMedia,
+  type FetchProgress,
   type NavigatorLike,
   type Platform,
+  type SaveOutcome,
+  type ShareOutcome,
 } from "@/lib/media/share-save";
+import { PROGRESS_EVERY_MS } from "@/lib/media/share-save-held";
 import { cn } from "@/lib/utils";
 
+import { heldFraction, useHeld, useHeldStore } from "./held";
 import { PurgeConfirmContent } from "./purge-confirm";
 
 /**
@@ -64,9 +68,16 @@ import { PurgeConfirmContent } from "./purge-confirm";
  *
  * ★ SHARE SENDS THE PICTURE, COPY LINK SENDS THE PLACE, SAVE FOLLOWS THE
  * PLATFORM (`link=file` and his notes; the decision tree is
- * `lib/media/share-save.ts`, tested over mocked navigators). The file is
- * fetched on the tap and never before; a fetch that outlives the tap's
- * activation turns the button into a one-tap "Ready" instead of failing.
+ * `lib/media/share-save.ts`, tested over mocked navigators).
+ *
+ * ★ A PHOTOGRAPH'S SAVE AND SHARE SEND THE BYTES ON SCREEN, INSIDE THE TAP
+ * (save-speed, Will's 30 s on his iPhone). The viewer holds the original it
+ * draws (`held.tsx`), so a tap meets a file in hand and the sheet opens in the
+ * same event. A tap that comes while those bytes are still on their way waits on
+ * THAT download (never a second one) and a clip, which is never held, fetches
+ * its own: either way the button draws how far it has come, a ring with a stop
+ * in it, and a tap on it stops the wait. A file that lands after the tap's
+ * activation lapsed turns the button into a one-tap "Ready" instead of failing.
  *
  * ★ A CONTROL THAT SENDS THE PHOTOGRAPH WAITS FOR ITS LINK, IN PLACE. The paged
  * album hands the viewer items whose links are not minted yet (`url` is "").
@@ -116,9 +127,22 @@ function HostRemovalWords() {
   );
 }
 
+type Act = "share" | "photos";
+
+/**
+ * A tap that is waiting for its file, and where the wait's bytes come from:
+ * `held`, the download the viewer is already making for the photograph on
+ * screen, or `own`, the tap's own (a clip, or a photograph nothing holds).
+ */
 type Prep =
-  | { kind: "share" | "photos"; state: "loading" }
-  | { kind: "share" | "photos"; state: "ready"; file: File };
+  | {
+      kind: Act;
+      state: "pending";
+      via: "held" | "own";
+      received: number;
+      total: number | null;
+    }
+  | { kind: Act; state: "ready"; file: File };
 
 /** The "Ready" word a lapsed tap leaves on its button: tap once more to send. */
 function ReadyWord() {
@@ -129,19 +153,92 @@ function ReadyWord() {
   );
 }
 
+const RING_R = 8.25;
+const RING_C = 2 * Math.PI * RING_R;
+
+/**
+ * HOW FAR A WAIT HAS COME, AND THAT A TAP STOPS IT: a ring that fills with the
+ * bytes and a stop square in it, the download button every phone already knows.
+ * Before the answer has said how big the file is (`fraction` null), a quarter of
+ * the ring turns, still around the stop; under reduced motion it holds still.
+ */
+export function ProgressGlyph({ fraction }: { fraction: number | null }) {
+  const known = fraction !== null;
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      aria-hidden
+      data-lightbox-progress={known ? Math.round(fraction * 100) : "unknown"}
+      className="size-5"
+    >
+      <circle
+        cx="10"
+        cy="10"
+        r={RING_R}
+        fill="none"
+        stroke="currentColor"
+        strokeOpacity={0.28}
+        strokeWidth={1.75}
+      />
+      <g
+        className={cn(
+          "origin-center",
+          !known && "animate-spin motion-reduce:animate-none",
+        )}
+      >
+        <circle
+          cx="10"
+          cy="10"
+          r={RING_R}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.75}
+          strokeLinecap="round"
+          strokeDasharray={RING_C}
+          strokeDashoffset={known ? RING_C * (1 - fraction) : RING_C * 0.75}
+          transform="rotate(-90 10 10)"
+          className="transition-[stroke-dashoffset] duration-150 ease-emphasis motion-reduce:transition-none"
+        />
+      </g>
+      <rect x="7" y="7" width="6" height="6" rx="1.25" fill="currentColor" />
+    </svg>
+  );
+}
+
 /** The live navigator, as the pure helpers read it (tests replace its fields). */
 function currentNav(): NavigatorLike {
   return typeof navigator === "undefined" ? {} : (navigator as NavigatorLike);
 }
 
 /** A hidden anchor click: the plain download, from a place that is not a link. */
-function download(url: string) {
+function download(url: string, name?: string) {
   const a = document.createElement("a");
   a.href = url;
   a.rel = "noopener";
+  if (name) a.download = name;
   document.body.appendChild(a);
   a.click();
   a.remove();
+}
+
+/**
+ * THE DESK'S AND ANDROID'S SAVE, FROM THE BYTES ON SCREEN: a held original is
+ * saved from memory under the server's own name, so the download is instant and
+ * nothing is fetched twice. Its object URL is its own (the store revokes the one
+ * it draws with on its own clock) and outlives the click by a minute, which a
+ * download that has started no longer needs.
+ */
+function saveHeld(file: File) {
+  const href = URL.createObjectURL(file);
+  download(href, file.name);
+  setTimeout(() => URL.revokeObjectURL(href), 60_000);
+}
+
+/** The held file under the name Save gives it (the store may have named it first). */
+function named(file: File, name: string): File {
+  return file.name === name
+    ? file
+    : new File([file], name, { type: file.type });
 }
 
 /**
@@ -187,6 +284,11 @@ export const ActionCapsule = memo(function ActionCapsule({
   const abortRef = useRef<AbortController | null>(null);
   // A report form listens only on the guest's album (report-door.ts): anywhere else, no Report is drawn.
   const reportDoor = useReportDoorOpen();
+  // The original the viewer holds for this photograph (`held.tsx`), if it does.
+  const store = useHeldStore();
+  const held = useHeld(store, item.id);
+  const heldFile = held?.kind === "held" ? held.file : null;
+  const heldComing = held?.kind === "waiting" || held?.kind === "loading";
 
   // The capsule is keyed by item, so leaving a photograph (or closing the
   // viewer) aborts a fetch nobody is waiting for any more.
@@ -206,17 +308,58 @@ export const ActionCapsule = memo(function ActionCapsule({
   const linked = !!item.url;
   const fileUrl = item.downloadUrl ?? item.url;
 
-  const begin = (kind: Prep["kind"]) => {
+  /** The wait starts: on the viewer's own download when it is making one, else the tap's. */
+  const begin = (kind: Act) => {
     abortRef.current?.abort();
     const ctl = new AbortController();
     abortRef.current = ctl;
-    setPrep({ kind, state: "loading" });
+    setPrep({
+      kind,
+      state: "pending",
+      via: heldComing ? "held" : "own",
+      received: 0,
+      total: null,
+    });
     return ctl;
+  };
+
+  /** A tap on a wait stops it: the tap's own download goes; the viewer's own carries on drawing. */
+  const stop = () => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    setPrep(null);
+  };
+
+  /** The tap's own download, drawn on its button at most every `PROGRESS_EVERY_MS`. */
+  const progressOf = (kind: Act, ctl: AbortController): FetchProgress => {
+    let painted = 0;
+    return (received, total) => {
+      if (ctl.signal.aborted) return;
+      const t = performance.now();
+      if (t - painted < PROGRESS_EVERY_MS && received !== total) return;
+      painted = t;
+      setPrep({ kind, state: "pending", via: "own", received, total });
+    };
+  };
+
+  /**
+   * The file a waiting tap will send: the viewer's own download when it is
+   * making one (never a second), else nothing, and the tap fetches its own.
+   */
+  const heldForTap = async (kind: Act, ctl: AbortController) => {
+    if (!store || !heldComing) return undefined;
+    const file = await store.whenHeld(item.id, ctl.signal);
+    if (ctl.signal.aborted) return undefined;
+    // The viewer's download went plain (too big, stalled, refused): the tap
+    // fetches its own, from a fresh request, and draws that one instead.
+    if (!file)
+      setPrep({ kind, state: "pending", via: "own", received: 0, total: null });
+    return file ? named(file, name) : undefined;
   };
 
   /** A second tap on "Ready": the file is in hand and the tap is fresh. */
   const sendReady = useCallback(
-    async (file: File, kind: Prep["kind"]) => {
+    async (file: File, kind: Act) => {
       setPrep(null);
       const out = await shareFile(file, currentNav());
       if (out.kind === "needs-tap") setPrep({ kind, state: "ready", file });
@@ -228,19 +371,7 @@ export const ActionCapsule = memo(function ActionCapsule({
     [item.downloadUrl],
   );
 
-  const onShare = async () => {
-    // Belt to the disabled button's braces: an empty file url would fetch the
-    // PAGE (it resolves against the page's own address).
-    if (!linked) return;
-    if (prep?.state === "ready" && prep.kind === "share")
-      return sendReady(prep.file, "share");
-    if (prep?.state === "loading") return;
-    const ctl = begin("share");
-    const out = await shareMedia(
-      { fileUrl, name, link },
-      { nav: currentNav(), signal: ctl.signal },
-    );
-    if (ctl.signal.aborted) return;
+  const settleShare = (out: ShareOutcome) => {
     if (out.kind === "needs-tap") {
       setPrep({ kind: "share", state: "ready", file: out.file });
       return;
@@ -250,23 +381,80 @@ export const ActionCapsule = memo(function ActionCapsule({
     else if (out.kind === "failed") toast.error("Couldn't share this one.");
   };
 
-  const onSaveToPhotos = async () => {
-    if (!item.downloadUrl) return;
-    if (prep?.state === "ready" && prep.kind === "photos")
-      return sendReady(prep.file, "photos");
-    if (prep?.state === "loading") return;
-    const ctl = begin("photos");
-    const out = await saveToPhotos(
-      { fileUrl: item.downloadUrl, name },
-      { nav: currentNav(), signal: ctl.signal },
+  const onShare = async () => {
+    // Belt to the disabled button's braces: an empty file url would fetch the
+    // PAGE (it resolves against the page's own address).
+    if (!linked) return;
+    if (prep?.state === "ready" && prep.kind === "share")
+      return sendReady(prep.file, "share");
+    // A tap on its own wait stops it; a tap on the other act takes over from it.
+    if (prep?.state === "pending" && prep.kind === "share") return stop();
+    if (heldFile) {
+      stop();
+      // ★ In hand: into the sheet inside this tap (no await before `share()`).
+      settleShare(
+        await shareMedia(
+          { file: named(heldFile, name), name, link },
+          { nav: currentNav() },
+        ),
+      );
+      return;
+    }
+    const ctl = begin("share");
+    const file = await heldForTap("share", ctl);
+    if (ctl.signal.aborted) return;
+    const out = await shareMedia(
+      { file, fileUrl, name, link },
+      {
+        nav: currentNav(),
+        signal: ctl.signal,
+        onProgress: progressOf("share", ctl),
+      },
     );
     if (ctl.signal.aborted) return;
+    settleShare(out);
+  };
+
+  const settleSave = (out: SaveOutcome, url: string) => {
     if (out.kind === "needs-tap") {
       setPrep({ kind: "photos", state: "ready", file: out.file });
       return;
     }
     setPrep(null);
-    if (out.kind === "download") download(item.downloadUrl);
+    if (out.kind === "download") download(url);
+  };
+
+  const onSaveToPhotos = async () => {
+    const url = item.downloadUrl;
+    if (!url) return;
+    if (prep?.state === "ready" && prep.kind === "photos")
+      return sendReady(prep.file, "photos");
+    if (prep?.state === "pending" && prep.kind === "photos") return stop();
+    if (heldFile) {
+      stop();
+      // ★ In hand: into the sheet inside this tap (no await before `share()`).
+      settleSave(
+        await saveToPhotos(
+          { file: named(heldFile, name), fileUrl: url, name },
+          { nav: currentNav() },
+        ),
+        url,
+      );
+      return;
+    }
+    const ctl = begin("photos");
+    const file = await heldForTap("photos", ctl);
+    if (ctl.signal.aborted) return;
+    const out = await saveToPhotos(
+      { file, fileUrl: url, name },
+      {
+        nav: currentNav(),
+        signal: ctl.signal,
+        onProgress: progressOf("photos", ctl),
+      },
+    );
+    if (ctl.signal.aborted) return;
+    settleSave(out, url);
   };
 
   const onCopyLink = async () => {
@@ -275,10 +463,20 @@ export const ActionCapsule = memo(function ActionCapsule({
     else toast.error("Couldn't copy the link.");
   };
 
-  const loading = (kind: Prep["kind"]) =>
-    prep?.kind === kind && prep.state === "loading";
-  const ready = (kind: Prep["kind"]) =>
-    prep?.kind === kind && prep.state === "ready";
+  const pending = (kind: Act) =>
+    prep?.kind === kind && prep.state === "pending";
+  const ready = (kind: Act) => prep?.kind === kind && prep.state === "ready";
+  /** How far the wait has come: the viewer's download, or the tap's own. */
+  const fraction =
+    prep?.state !== "pending"
+      ? null
+      : prep.via === "held"
+        ? held?.kind === "held"
+          ? 1
+          : heldFraction(held)
+        : prep.total
+          ? Math.min(1, prep.received / prep.total)
+          : null;
 
   // ★ THE BIN NEVER SAVES (its items carry no download link, by design), so its
   // capsule holds no place for a Save that would never come: a waiting glyph
@@ -303,13 +501,20 @@ export const ActionCapsule = memo(function ActionCapsule({
   } else if (item.downloadUrl) {
     if (platform !== "ios") {
       // Android's download lands in the gallery and a desk downloads: the
-      // plain signed link IS the native way, so it stays a link.
+      // plain signed link IS the native way, so it stays a link. A held
+      // original is saved from memory instead (`saveHeld`): the same file under
+      // the same name, at once, and never fetched twice.
       save = (
         <ActionTooltip label="Save">
           <a
             href={item.downloadUrl}
             download
             aria-label="Save"
+            onClick={(e) => {
+              if (!heldFile) return;
+              e.preventDefault();
+              saveHeld(named(heldFile, name));
+            }}
             className={cn(LIGHTBOX_ACTION, "hover:text-save")}
           >
             <Download className="size-5" />
@@ -323,20 +528,20 @@ export const ActionCapsule = memo(function ActionCapsule({
       // second, plain-download choice left to offer, and no menu to open first.
       const label = ready("photos")
         ? "Ready to save. Tap to save."
-        : loading("photos")
-          ? "Preparing to save"
+        : pending("photos")
+          ? "Preparing to save. Tap to stop."
           : "Save";
       save = (
         <ActionTooltip label={label}>
           <button
             type="button"
             aria-label={label}
-            aria-busy={loading("photos") || undefined}
-            onClick={onSaveToPhotos}
+            aria-busy={pending("photos") || undefined}
+            onClick={() => void onSaveToPhotos()}
             className={cn(LIGHTBOX_ACTION, "hover:text-save")}
           >
-            {loading("photos") ? (
-              <Loader2 className="size-5 animate-spin" />
+            {pending("photos") ? (
+              <ProgressGlyph fraction={fraction} />
             ) : (
               <Download className="size-5" />
             )}
@@ -349,8 +554,8 @@ export const ActionCapsule = memo(function ActionCapsule({
 
   const shareLabel = ready("share")
     ? "Ready to share. Tap to share."
-    : loading("share")
-      ? "Preparing to share"
+    : pending("share")
+      ? "Preparing to share. Tap to stop."
       : "Share";
 
   return (
@@ -397,11 +602,11 @@ export const ActionCapsule = memo(function ActionCapsule({
             disabled={!linked}
             onClick={() => void onShare()}
             aria-label={shareLabel}
-            aria-busy={loading("share") || undefined}
+            aria-busy={pending("share") || undefined}
             className={cn(LIGHTBOX_ACTION, "hover:text-save")}
           >
-            {loading("share") ? (
-              <Loader2 className="size-5 animate-spin" />
+            {pending("share") ? (
+              <ProgressGlyph fraction={fraction} />
             ) : (
               <Share2 className="size-5" />
             )}

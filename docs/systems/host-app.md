@@ -138,8 +138,8 @@ drift is linear and motion-gated, a breath rather than feedback, so the 300ms ce
 
 ## The event page
 
-`/dashboard/[eventId]` is a hub: a live code beside the title, a row of cards into the event's rooms, and the album
-beneath, newest first.
+`/dashboard/[eventId]` is a hub under the album's own head: the cover with the event's name, its facts and link and
+the live code on its white mat, a row of cards into the event's rooms, and the album beneath, newest first.
 
 - ★ **An event that is gone, never this host's, or no id at all draws the group's not-found itself**, on the hub and
   each room (Review, Guests, the reel's old room; Settings redirects to the hub) and on the print sheet (in the shell's
@@ -153,10 +153,21 @@ beneath, newest first.
 
 - ★ **The hub and the dashboard home are the wide pages**: each marks its root `data-app-wide` and `AppShell` answers in
   `:has()` (a page cannot hand a prop up to its layout), dropping the 1280 cap and taking the album's gutter (12px, 20px
-  from `sm`), so the logo, the code, the cards and the album share one left line. Their skeletons mark it too, or the
-  page paints at 1280 and jumps; the cards row's sticky band bleeds by exactly that gutter.
-- **The header is one object**: a scannable `StyledQr` in a button BESIDE the h1, never inside it (an h1 holding a
-  control stops being the page's accessible name). ★ It carries no status chips: the code wears the door on its corner
+  from `sm`), so the logo, the name, the cards and the album share one left line. Their skeletons mark it too, or the
+  page paints at 1280 and jumps; the head and the cards row's sticky band bleed by exactly that gutter.
+- **The head is the guests' cover, hers** (`event-header` r1, `host=shared`: `event-feed/event-hub-head.tsx`'s
+  `HubCover` in the album's own frame, `EventHead`, [guest-flow.md](guest-flow.md)): the album's photographs dissolving
+  edge to edge under the name, the facts and the link on them, and the code on its white mat (`ui/code-mat.tsx`) in the
+  cover's corner, scannable from across a table, so she sees her party as her guests do. It bleeds to the window's
+  edges and reaches up to the app's bar (the main's 32px taken back), unless Checkout's receipt stands above it. ★ Its
+  photographs are the guests' cover's rule (`event-hub-head-stills.ts`, pure, read on both sides): the reel's opening
+  stills while it plays (`readHubReel`'s), else the newest a guest can see (approved, never hidden, held or a clip), from
+  the links the first window already minted; live, a still she hides, removes or sends back leaves it the moment the
+  album's store has it, and an empty cover fills from the newest as their links land. The house light stands under
+  it, the week before. The facts under the title are today's words as glyphs (`ui/glyph-count.tsx`: the album's count
+  live off the store, guests, views, the live mark as `Badge`'s `live`); `event-header` r2 redraws them and the rooms.
+- **The code stands BESIDE the h1**, never inside it (an h1 holding a control stops being the page's accessible name).
+  ★ It carries no status chips: the code wears the door on its corner
   (`share/event-code-door.tsx`, its words `codeMark` in `visibility-labels.ts`): a lock for a gate, a closed eye for
   Only me, a pause for paused uploads, the waiting count in the needs-action tone, nothing for Public taking uploads;
   paused and Only me dim the code, since a guest who scans either cannot add. The mark is its own button beside the
@@ -170,12 +181,14 @@ beneath, newest first.
 - **The cards row** (Highlight reel, Guests, Review, Settings) is a group of links, never tabs, since nothing switches
   a panel in place. ★ The Guests card and the header read THE ONE COUNT (`getEventGuests`, the album header's own
   function), so the hub, the Guests room and the album say one number. The row is sticky and condenses in place,
-  because a remount would drop the QR pill's `view-transition-name` mid-morph. ★ It condenses inside a footprint that
+  because a remount would drop the code chip's `view-transition-name` mid-morph. ★ It condenses inside a footprint that
   holds the resting row's height (`useStuckBand`): a condense that moved the album let scroll anchoring carry a jump
   into the stick band (the viewer's close runs one) across the threshold and back for ever; and stuck is its top at
-  the bar, the observer's root grown past the fold, so a short screen never reads the resting row as stuck. ★ Share's
-  place in the row is a QR pill that exists only while the header's code is off screen, carrying the morph's name
-  while it is the code on screen. On a phone at rest the row is a 2x2 grid of two-line cards
+  the bar, the observer's root grown past the fold, so a short screen never reads the resting row as stuck. ★ Stuck,
+  it carries the head it came from (his note: "Love how they're captured into a sticky menu on scroll for page-wide
+  access"): the cover's first photograph and the name lead it, and the code closes it as a chip (`ui/code-chip.tsx`,
+  the glyph on white, never a shrunken code), which exists only while the head's code is off screen and carries the
+  morph's name while it is the code on screen. On a phone at rest the row is a 2x2 grid of two-line cards
   (`event-feed/room-card.ts`), so all four doors show at 375.
 - **Review and Guests are rooms (routes with a crumb); Settings and the share kit are places in the settings kind (a panel at a desk, the whole screen in a hand); the Highlight reel is a door.**
   ★ The crumb trail lands at hydration (a page cannot hand a prop up, and CSS cannot carry an event's name); the bar's
@@ -215,7 +228,7 @@ beneath, newest first.
 - **The code card is every share's first surface** (`share/code-card.tsx`: the code on white filling a phone, a 384
   card at a desk, Copy link, the device's own Share where it has one, and Everything into the kit,
   `share/event-share-sheet.tsx`, which holds the downloads, the designer and the custom link). Every door to it reads
-  Invite: the header's code, the sticky row's pill, the checklist's code row (`share/invite-button.tsx`), Settings'
+  Invite: the head's code, the sticky band's chip, the checklist's code row (`share/invite-button.tsx`), Settings'
   fifth step (which closes Settings first) and the dashboard card's QR chip, which opens the card in place. ★ Never draw the code in a second sharing surface, or a fix lands in only one
   of them.
 - **Settings is five steps** (`event-settings/`): Who can get in, What guests can add, The highlight reel and The
@@ -233,10 +246,13 @@ beneath, newest first.
   drawn switch inside one button: the plans), live on paid plans. `/settings` survives as a redirect: it is a published
   URL.
 - **The QR mini-modal** (`share/event-code-modal.tsx`) takes no URL: a look at the code is a beat, not a destination. It
-  grows out of the header's code on the native View Transitions API, name-scoped in `share/share.css`, and exactly one
-  of the header, the pill and the modal carries the name at a time (a duplicate makes the browser skip the transition).
-  ★ Its entrance is the one sanctioned hole in the floating-layer contract: `floatingTransitionEntrance` declares no
-  animation, because the transition is the entrance, and falls back to the standard clock under reduced motion.
+  grows out of the head's code on the native View Transitions API, name-scoped in `share/share.css`, and exactly one
+  of the head's code, the band's chip and the modal carries the name at a time (a duplicate makes the browser skip the
+  transition). ★ Its entrance is the one sanctioned hole in the floating-layer contract: `floatingTransitionEntrance`
+  declares no animation, because the transition is the entrance, and falls back to the standard clock under reduced
+  motion. ★ A hidden document never starts one (`withMorph`): it cannot snapshot, so the browser aborts the transition
+  and every promise it hands back rejects (`InvalidStateError`); the change simply lands, and an abort mid-transition
+  is let go while any other failure still surfaces.
 - **The checklist stands at the head of the hub until the event is done** (`event-feed/checklist.tsx`, under the cards):
   the whole list while the album is empty, one line with a ring once it has photos (Show unfolds it), gone once
   everything is done. ★ Ready is one pure function (`lib/events/readiness.ts`) the checklist, Settings' steps, the
@@ -281,8 +297,8 @@ beneath, newest first.
   repaint after hydration), Sort (Newest or Oldest first: the manifest reversed and laid from its start, so an arrival
   lands at the end; it resets each visit) and Filter (All, Deleted).
 - **SSR'd surfaces paint native `title` only**, never a radix Tooltip in the server's paint (the hydration regression
-  in [architecture.md](architecture.md)): one mounts there only after hydration (`useHydrated`, the bulk bar and the
-  code's mark); rich client UI is safe inside its islands.
+  in [architecture.md](architecture.md)): one mounts there only after hydration (`useHydrated`, the bulk bar, the
+  code's mark and the head's glyph counts); rich client UI is safe inside its islands.
 
 ## The door, the host's side
 
@@ -300,8 +316,8 @@ visitor-facing "Private" never collides.
   waiting in but an ask a block holds (`events_door_opened`; every door act that lets asks in or counts them reads one
   set, `event_door_asks`), so a declined newcomer's ask waits through a Public trip for Let back in rather than walking
   her into an album its host never let her into; a password ends every ask
-  (`events_door_to_password`: nobody waits on the host there), so they leave At the door, the pulse and the bell, and
-  meet the password like anyone new.
+  (`events_door_to_password`: nobody waits on the host there), so they leave At the door, the dashboard and the bell,
+  and meet the password like anyone new.
 - **The Guests room's At the door** heads it (`queue=room`): Let in (`let_in_at_door`) opens her door on every device,
   and her held door opens by itself at its next check-in; ★ Decline is a block (the account where there is one, else
   the row), with Undo on its toast and Let back in under Blocked, so a declined newcomer meets the one shut screen and
@@ -314,8 +330,8 @@ visitor-facing "Private" never collides.
   the host opens it; and a newcomer whose ask stands at Only me, which keeps its asks, hears she is back at the door
   and that letting her in there meets that closed album, `door_only_me`). The door is read once for everyone in the Blocked list, since it decides every landing. A
   waiting newcomer counts on
-  the hub's Guests card, the pulse (its first step, opening `#at-the-door`) and the bell (a row per event), and sends
-  no mail.
+  the hub's Guests card, the dashboard (the stage's or the week's step, opening `#at-the-door`, else a mark on the
+  event's tile) and the bell (a row per event), and sends no mail.
 - **Invited** (`editor=both`): one field takes a typed address or a pasted list (`readAddresses`: the readable saved at
   once and counted by the database, the unreadable kept as flagged chips), capped at `INVITE_LIST_CAP`; each address
   reads Joined or Not yet, since it matches only once its guest confirms it, so removing one never puts out someone it
@@ -420,7 +436,9 @@ visitor-facing "Private" never collides.
 - **Host upload**: the album header's Add photos toggles a dropzone panel (`host-upload.tsx`) under it, straight into
   the album, and the reel card's opens the same panel and brings it into view with the least movement
   (`HostAddProvider.openAdd` scrolls to the box `HostUpload` registers, clear of the app bar and the stuck cards band),
-  never the top of the page; its pipeline is [uploads-and-r2.md](uploads-and-r2.md)'s.
+  never the top of the page; its pipeline is [uploads-and-r2.md](uploads-and-r2.md)'s. ★ A drained batch asks the
+  album's store once (`onBatchLanded`), never refreshes the router: the store brings the batch as a delta (the doorbell
+  already rings for it), where a refresh re-ran every read and presign on the hub.
 - ★ **Block puts one person out of one event, with their uploads** (`block_from_event` on the host's own client, free
   on every plan). It is the quiet last line of every person's look (a name in the Guests room, the uploader's credit in
   the host's viewer and on Review's peek, `event-blocks/`), opening one confirm whose count is the act's own preview
@@ -437,4 +455,6 @@ The Reel card, the band's reel step, the old route's redirect and Settings' High
 [reel.md](reel.md)'s, with the rest of the reel and the clip. What the hub owes it: the card rides the cards row
 (the Highlight reel is a door, never a room), the card's threshold reads the album's manifest (`isPlayableEntry`) and
 its stills are the reel's take, planned on the server (`readHubReel`) and asked again when its state moves, and
-nothing about review shows anywhere a room could watch.
+nothing about review shows anywhere a room could watch. ★ The card's door is the guests' album at `?reel`, and the
+owner arriving there meets the reel's black from the first byte, never her album flashing under a view still loading
+(the guest page's server knows the owner asked: [guest-flow.md](guest-flow.md)'s curtain).

@@ -15,8 +15,11 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  landedAs,
+  runProgressOf,
   useLiveQueue,
   useQueueProgress,
+  useRunProgress,
   useUploadQueue,
   type QueueItem,
   type QueueProgress,
@@ -633,6 +636,108 @@ describe("the clip's seam (addClipToAlbum)", () => {
   });
 });
 
+/* ── A ROW SEALED UNTIL ITS ALBUM DEVELOPS (build 43's red-team, the upload half; disposable-camera): the
+   completion says `sealed` as the write did, and the queue tells that landing as `sealed`, which nothing draws,
+   where it used to land `approved` and stand in the album for her alone until a reload. ── */
+
+function sealedLanding(mediaId: string, kind: "photo" | "video" = "photo") {
+  return { ok: true as const, status: "approved", mediaId, kind, sealed: true };
+}
+
+describe("a row sealed until its album develops", () => {
+  it("is told by the server's own answer (landedAs)", () => {
+    expect(landedAs("approved", true)).toBe("sealed");
+    expect(landedAs("approved", false)).toBe("approved");
+    expect(landedAs("approved", undefined)).toBe("approved");
+    // A held row is the host's to decide first, sealed or not.
+    expect(landedAs("pending", true)).toBe("pending");
+  });
+
+  it("★ lands `sealed`, never `approved`: the album draws no tile for it and her tracker keeps it", async () => {
+    mockUploadFile.mockResolvedValue(sealedLanding("shot-1"));
+    const q = mountQueue({ sessionToken: STALE, isVerified: false });
+    act(() => q.result.current.addFiles([makeFile("shot.jpg")]));
+    await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(1));
+    expect(q.onUploaded).toHaveBeenCalledWith(
+      expect.objectContaining({ mediaId: "shot-1", status: "sealed" }),
+    );
+    expect(q.items()[0]).toEqual(
+      expect.objectContaining({ status: "done", mediaStatus: "sealed" }),
+    );
+  });
+
+  it("an unsealed landing is told as the server said it, as ever", async () => {
+    mockUploadFile.mockResolvedValue(landed("shot-2"));
+    const q = mountQueue({ sessionToken: STALE, isVerified: false });
+    act(() => q.result.current.addFiles([makeFile("shot.jpg")]));
+    await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(1));
+    expect(q.onUploaded).toHaveBeenCalledWith(
+      expect.objectContaining({ status: "approved" }),
+    );
+  });
+});
+
+describe("the camera's shots", () => {
+  it("a camera video carries its first frame as its poster, and stays the reel's", async () => {
+    mockUploadFile.mockResolvedValue(sealedLanding("vid-1", "video"));
+    const video = new File([new Uint8Array([1])], "shot.mp4", {
+      type: "video/mp4",
+    });
+    const poster = new Blob([new Uint8Array([2])], { type: "image/jpeg" });
+    const q = mountQueue({ sessionToken: STALE, isVerified: false });
+    act(() => q.result.current.addFiles([video], { poster }));
+    await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(1));
+    expect(mockUploadFile.mock.calls[0][0].poster).toBe(poster);
+    expect(mockUploadFile.mock.calls[0][0].reelEligible).toBeUndefined();
+  });
+
+  it("★ shots taken while the first one's silent join is out ride that one join, in order, none lost", async () => {
+    localStorage.clear();
+    let joined: (value: Response) => void = () => {};
+    global.fetch = vi.fn(
+      () =>
+        new Promise<Response>((resolve) => {
+          joined = resolve;
+        }),
+    );
+    mockUploadFile
+      .mockResolvedValueOnce(sealedLanding("s1"))
+      .mockResolvedValueOnce(sealedLanding("s2"))
+      .mockResolvedValueOnce(landed("s3"));
+    const q = mountQueue({ sessionToken: null, isVerified: true });
+    const first = makeFile("shot-1.jpg");
+    const second = makeFile("shot-2.jpg");
+    const third = makeFile("shot-3.jpg");
+    const poster = new Blob([new Uint8Array([2])], { type: "image/jpeg" });
+    act(() => q.result.current.addFiles([first]));
+    act(() => q.result.current.addFiles([second], { poster }));
+    act(() => q.result.current.addFiles([third]));
+    // One join for the three of them.
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      joined({
+        ok: true,
+        json: async () => ({ ok: true, session_token: "fresh-token" }),
+      } as Response);
+    });
+    await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(3));
+    expect(mockUploadFile.mock.calls.map((c) => c[0].file)).toEqual([
+      first,
+      second,
+      third,
+    ]);
+    // What each was handed rides with it through the stash.
+    expect(mockUploadFile.mock.calls[1][0].poster).toBe(poster);
+    expect(sentOn(0)).toBe("fresh-token");
+    expect(sentOn(2)).toBe("fresh-token");
+    expect(q.items().map((it) => it.mediaStatus)).toEqual([
+      "sealed",
+      "sealed",
+      "approved",
+    ]);
+  });
+});
+
 /* ── A PROGRESS TICK IS NOT A QUEUE CHANGE (album-guest-wiring): a tick lives in the queue's own
    progress store, so what reads `items` (the page's whole shell) never re-renders for one; the bar
    that draws it subscribes to its own item. ── */
@@ -698,6 +803,114 @@ describe("useLiveQueue", () => {
     expect(result.current.map((it) => it.progress)).toEqual([40, 100]);
     act(() => progress.tick("q1", 90));
     expect(result.current[0].progress).toBe(90);
+  });
+});
+
+/**
+ * THE RUN, AS ONE NUMBER (`event-header` r1, `stays=shutter`: the shutter's ring is the progress of hers on their
+ * way). A derived selector over the queue the page already holds: the queue's own API does not move.
+ */
+describe("runProgressOf", () => {
+  const NONE: ReadonlySet<string> = new Set();
+
+  it("counts a landed or refused file whole, a going one its own share, a queued one nothing", () => {
+    const progress = fakeProgress({ q2: 50 });
+    const items = [
+      flying("q1", { status: "done", progress: 100 }),
+      flying("q2"),
+      flying("q3", { status: "queued" }),
+      flying("q4", { status: "error" }),
+    ];
+    expect(runProgressOf(items, progress, NONE)).toEqual({
+      sending: 2,
+      progress: 0.625,
+      landed: 1,
+      failed: 1,
+    });
+  });
+
+  it("★ leaves out what finished before the run began, but not a file going again", () => {
+    const progress = fakeProgress({});
+    const items = [
+      flying("old", { status: "done", progress: 100 }),
+      flying("retry", { status: "queued" }),
+      flying("new", { status: "done", progress: 100 }),
+    ];
+    const run = runProgressOf(items, progress, new Set(["old", "retry"]));
+    expect(run.sending).toBe(1);
+    expect(run.landed).toBe(1);
+    expect(run.progress).toBe(0.5);
+  });
+
+  it("is nothing at all with nothing in the run", () => {
+    expect(runProgressOf([], fakeProgress(), NONE)).toEqual({
+      sending: 0,
+      progress: 0,
+      landed: 0,
+      failed: 0,
+    });
+  });
+});
+
+describe("useRunProgress", () => {
+  it("★ starts a run when something goes where nothing was, and follows its ticks", () => {
+    const progress = fakeProgress({});
+    const before = [flying("old", { status: "done", progress: 100 })];
+    const { result, rerender } = renderHook(
+      ({ items }) => useRunProgress(items, progress),
+      { initialProps: { items: before } },
+    );
+    expect(result.current).toEqual({
+      sending: 0,
+      progress: 0,
+      landed: 0,
+      failed: 0,
+    });
+    const run = [...before, flying("a"), flying("b", { status: "queued" })];
+    rerender({ items: run });
+    expect(result.current.sending).toBe(2);
+    expect(result.current.progress).toBe(0);
+    act(() => progress.tick("a", 50));
+    expect(result.current.progress).toBe(0.25);
+    // `a` lands and `b` goes: the run's whole is still its own two.
+    const later = [
+      before[0]!,
+      flying("a", { status: "done", progress: 100 }),
+      flying("b"),
+    ];
+    rerender({ items: later });
+    act(() => progress.tick("b", 50));
+    expect(result.current).toEqual({
+      sending: 1,
+      progress: 0.75,
+      landed: 1,
+      failed: 0,
+    });
+  });
+
+  it("stands whole once the run ends, until the next begins", () => {
+    const progress = fakeProgress({});
+    const { result, rerender } = renderHook(
+      ({ items }) => useRunProgress(items, progress),
+      { initialProps: { items: [flying("a")] } },
+    );
+    rerender({ items: [flying("a", { status: "done", progress: 100 })] });
+    expect(result.current).toEqual({
+      sending: 0,
+      progress: 1,
+      landed: 1,
+      failed: 0,
+    });
+    // A new pick is a new run: what landed before is not in it.
+    rerender({
+      items: [
+        flying("a", { status: "done", progress: 100 }),
+        flying("c", { status: "queued" }),
+      ],
+    });
+    expect(result.current.sending).toBe(1);
+    expect(result.current.landed).toBe(0);
+    expect(result.current.progress).toBe(0);
   });
 });
 

@@ -12,10 +12,15 @@
  *    security invariant the gallery ETag keeps (a teaser viewer's validator can never 304 a full
  *    album, and a guest whose gate moved from `account` to `upload` never 304s onto the step they
  *    passed);
- *  - `album_max`: every change a guest can see (into or out of `approved`) moves it, and nothing
- *    else does, so a hide in Review or a held upload leaves every guest's 304 standing;
+ *  - `album_max`: every change a guest can see moves it (into or out of what she sees, approved and
+ *    unsealed, or into or out of what waits, held or sealed: its count is hers), and nothing else does,
+ *    so a hide of a hidden row or a moved develop time's rewrite leaves every guest's 304 standing;
  *  - `attr_version`: a rename or a confirmation changes the names the client holds;
  *  - the LIVE REEL's facts: they ride the payload and none of them moves a media row.
+ *  - the album's DEVELOP TIME (`developsAt`, 20261002200000): it rides the payload (`waiting`) and lives on the event
+ *    row, so a host's new develop time reaches an open page on its next poll. Only when there is one: an album without
+ *    a develop time keeps its validator byte for byte, so nothing rolls at the deploy. (What waits needs no slot here:
+ *    every change to it, a held row or a sealed one, moves `album_max`.)
  *
  * ★ NEVER THE PRESIGN BUCKET, AT FULL ACCESS. Links no longer ride the poll: a client re-mints its
  * own by id when they age (`ALBUM_LINK_REMINT_MS`), so the validator no longer has to roll every
@@ -78,6 +83,8 @@ export function guestAlbumEtag(input: {
   reel: ReelFacts;
   /** The teaser only: its links travel inline, so its validator rolls with the presign bucket. */
   bucketId?: string | null;
+  /** The album's develop time (ISO), or null/absent for none, which leaves the validator as it was. */
+  developsAt?: string | null;
 }): string {
   return digest([
     "guest",
@@ -88,6 +95,7 @@ export function guestAlbumEtag(input: {
     input.attrVersion,
     reelParts(input.reel),
     input.access === "teaser" ? (input.bucketId ?? null) : null,
+    ...(input.developsAt ? [["develops", input.developsAt]] : []),
   ]);
 }
 

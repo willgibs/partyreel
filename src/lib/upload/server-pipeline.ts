@@ -261,7 +261,9 @@ type CompleteCommon = {
 type CreateRecordOutcome =
   | {
       ok: true;
-      data: { media_id: string; status: string } | { idempotent: true };
+      data:
+        | { media_id: string; status: string; sealed?: boolean }
+        | { idempotent: true };
       /**
        * ★ COOKIES THE STRATEGY WANTS ON THE SUCCESS RESPONSE. The guest route heals
        * `pr_guest_<eventId>` here, because a completed upload is the LAST moment before the album
@@ -478,7 +480,15 @@ export async function runCompletePipeline<
 
   // {media_id, status} on a fresh insert; {idempotent:true} on a retry.
   const status = "idempotent" in result.data ? "recorded" : result.data.status;
-  const response = NextResponse.json({ ok: true, status });
+  // ★ SEALED, AS THE WRITE SAID IT (disposable-camera, build 43's red-team): a row sealed until its album develops
+  // completes `approved` but is no album content yet, and the uploader's caller must not draw it as such. Said only
+  // when true, so every other answer is the one it always was.
+  const sealed = !("idempotent" in result.data) && result.data.sealed === true;
+  const response = NextResponse.json({
+    ok: true,
+    status,
+    ...(sealed ? { sealed: true } : {}),
+  });
   if (result.setCookies?.length) applyGuestCookies(response, result.setCookies);
   return response;
 }

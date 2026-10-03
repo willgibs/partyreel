@@ -1,42 +1,52 @@
 "use client";
 
 /**
- * THE GUEST'S ACTIONS, DOCKED ONCE THE ROW HAS SCROLLED AWAY: a guest sees the
- * actions high on the page on landing, and they stay in view however far the
- * guest scrolls.
+ * WHAT STAYS ONCE THE COVER HAS SCROLLED AWAY (`event-header` r1, `stays=shutter`): one round Add at
+ * the foot's centre in the album's light, Invite its twin on the left and the Highlight reel on the
+ * right, and nothing else over the photographs. While her files go, the shutter's ring is their
+ * progress, the count on its shoulder.
  *
- * ★ IT IS THE SECOND HALF OF ONE ANSWER, NOT A SECOND PLACE FOR THE ACTIONS.
- * A dock ALONE tucks the actions into the bottom right, one of the last places
- * a guest's eye reaches, especially if they do not know to look for upload in
- * the first place. So the page still lands on the full-width row under the
- * event's name, and this bar takes over the moment that row leaves the screen:
- * a guest never has to discover the dock to find Add — they have already used
- * or read the row it grew out of.
+ * ★ HIS TWO NOTES ARE PART OF THE PICK. "A gradient overlay from the bottom, between the album and
+ * shutter/share controls, when there is more to scroll, both hinting to continue scrolling and
+ * providing more contrast between the gallery and UI": the page's own ground rises from the foot
+ * under the controls while more album lies below (`more`), and is gone at the album's end. "Could
+ * also add another button to the right side of the shutter (similar secondary design as other side)
+ * to visually balance those controls symmetrically": the right flank (`twin`) is Invite's twin, the
+ * same round, so the foot mirrors the cover's three acts (Invite, Add, the reel).
  *
- * ★ AND IT CARRIES BOTH ACTIONS, NOT ADD ALONE. A floating Add by itself leaves
- * Invite unreachable past the first screen of a 200-photograph album, where both
- * should stay within reach however deep into the album a guest gets.
+ * ★ IT IS THE SECOND HALF OF ONE ANSWER, NOT A SECOND PLACE FOR THE ACTIONS. The page lands on the
+ * cover, whose row says Add photos in words, and this takes over the moment that row leaves the
+ * screen: a guest never has to discover the shutter to find Add, she has already read the row it
+ * grew out of. It carries what the row carries and never invents an action the page above does not
+ * offer (no Add where the row has none: uploads closed, a teaser).
  *
- * ★ A GRADIENT, NOT A HAIRLINE. The album runs to the window's edge, so the
- * dock's ground is photographs: a 1px rule across them reads as a crop, where a
- * scrim lets the last row dissolve into the page's own paper under the buttons.
- * No glass either — `lib/glass.ts` is media chrome (a tile's marks, the
- * lightbox), and a surface the page lives behind stays opaque, like the rest
- * of the floating family it belongs to.
+ * ★ HIDDEN IS `inert`, NOT UNMOUNTED, so the cluster travels out the way it travelled in while its
+ * buttons leave the tab order and the accessibility tree entirely at the top of the page. The clock
+ * is the floating layer's own edge beat (`floatingClock.edge`), the fade the baseline and the travel
+ * the extra (reduced motion keeps the fade and drops the 16px).
  *
- * ★ HIDDEN IS `inert`, NOT UNMOUNTED, so the bar can travel out the way it
- * travelled in (an unmount has no exit) while its two buttons leave the tab
- * order and the accessibility tree entirely at the top of the page. The clock
- * is the floating layer's own edge beat — this is a surface crossing an edge,
- * which is exactly what `floatingClock.edge` is for — read off the floating
- * layer's contract rather than typed here, like every surface in that family.
+ * ★ THE BOX TAKES NO POINTER, ITS CONTROLS DO (design-system.md's gotcha: a full-width overlay above a
+ * gesture eats the gesture): the fade and the band are `pointer-events-none`, so a press between the
+ * rounds lands on the photograph under it.
  */
-import { ImageUp } from "lucide-react";
+import { Camera } from "lucide-react";
 import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
 
-import { Button } from "@/components/ui/button";
+import { Shutter, type ShutterState } from "@/components/ui/shutter";
 import { formatCount } from "@/lib/format/count";
+import {
+  type QueueItem,
+  type QueueProgress,
+  useRunProgress,
+} from "@/lib/guest/use-upload-queue";
 import { cn } from "@/lib/utils";
+
+/** How long a landed run stands whole on the ring, its check on the face, before the shutter rests. */
+const DONE_HOLD_MS = 1600;
+
+const NO_ITEMS: readonly QueueItem[] = [];
+const NO_PROGRESS: QueueProgress = { get: () => 0, subscribe: () => () => {} };
 
 export function GuestActionDock({
   hidden,
@@ -44,92 +54,130 @@ export function GuestActionDock({
   onAdd,
   invite,
   tracker,
+  twin,
+  run,
+  hues,
+  more = true,
+  camera = false,
 }: {
-  /** The row is still on screen: the dock waits, inert, off the bottom edge. */
+  /** The cover's row is still on screen: the cluster waits, inert, off the bottom edge. */
   hidden: boolean;
-  /** The live queue count, worn on Add as "N uploading". */
+  /** Files on their way, when no `run` is handed (its count then rides the shutter alone). */
   uploadingCount: number;
   /**
-   * Omitted where the ROW omits Add too — uploads closed, a teaser, or an empty
-   * album whose own centred CTA is the primary. The dock carries what the row
-   * carries and never invents an action the page above it does not offer.
+   * Omitted where the ROW omits Add too: uploads closed, or a teaser. The cluster carries what the
+   * row carries and never invents an action the page above it does not offer.
    */
   onAdd?: () => void;
-  /**
-   * Invite, as a slot. The trigger owns a code card of its own (`GuestShare`,
-   * the `share=card` popup kind), and a dock that imported it would be a
-   * chrome component that knows what a QR code is; this way the bar is
-   * exactly its own layout and its own entrance.
-   */
+  /** Invite, as a slot (`GuestShare`, `look="round"`): the left flank. */
   invite?: ReactNode;
   /**
-   * Her tracker's round button (`guest-capture` r1, `tracker=button`), riding beside Add as it
-   * does in the row, so the dock still carries what the row carries. A slot like Invite, and it
-   * draws nothing where she has nothing to track.
+   * Her tracker's round button (`guest-capture` r1, `tracker=button`), beside the right flank as it
+   * rides beside Add in the row. A slot, and it draws nothing where she has nothing to track.
    */
   tracker?: ReactNode;
+  /** The right flank, Invite's twin: the reel's round, or the way back to the top (the page's). */
+  twin?: ReactNode;
+  /** The page's queue and its progress: the ring's run (`useRunProgress`). */
+  run?: { items: readonly QueueItem[]; progress: QueueProgress } | null;
+  /** The album's light (hue angles), the ring's colour. */
+  hues?: readonly number[];
+  /** More album lies below the screen: the foot's fade stands. */
+  more?: boolean;
+  /**
+   * The album's Add opens its camera (`capture = 'camera'`, the page's `cameraAlbum`): the shutter says Take photos
+   * and wears the camera on its face, as the cover's Add does. The atom's face is already its `children`.
+   */
+  camera?: boolean;
 }) {
-  // Nothing to dock is nothing to draw, scrim included.
+  const progress = useRunProgress(
+    run?.items ?? NO_ITEMS,
+    run?.progress ?? NO_PROGRESS,
+  );
+  const sending = run ? progress.sending : uploadingCount;
+
+  // ★ A RUN THAT LANDS STANDS WHOLE FOR A BEAT, its check on the face, then the shutter rests. Only a
+  // run with nothing refused: a run with failures has its sheet to say so, and a check would be half a
+  // truth. The beat is taken the render the run ends (the adjust-state-during-render pattern), and let
+  // go from a timer's own callback.
+  const [lastSending, setLastSending] = useState(sending);
+  const [done, setDone] = useState(false);
+  if (sending !== lastSending) {
+    setLastSending(sending);
+    if (sending > 0) setDone(false);
+    else if (lastSending > 0 && progress.landed > 0 && progress.failed === 0)
+      setDone(true);
+  }
+  useEffect(() => {
+    if (!done) return;
+    const timer = window.setTimeout(() => setDone(false), DONE_HOLD_MS);
+    return () => window.clearTimeout(timer);
+  }, [done]);
+
+  // Nothing to stand at the foot is nothing to draw, fade included.
   if (!onAdd && !invite) return null;
+
+  const state: ShutterState = sending > 0 ? "sending" : done ? "done" : "idle";
+  const addWords = camera ? "Take photos" : "Add photos";
   return (
     <div
       data-guest-dock=""
       data-hidden={hidden ? "" : undefined}
-      // React 19 renders the boolean `inert` attribute; it takes the buttons out
-      // of the tab order AND the accessibility tree, which `pointer-events-none`
-      // alone never did.
+      // React 19 renders the boolean `inert` attribute; it takes the buttons out of the tab order AND
+      // the accessibility tree, which `pointer-events-none` alone never did.
       inert={hidden}
       className={cn(
         "pointer-events-none fixed inset-x-0 bottom-0 z-40",
         // The edge beat, from the contract: 300ms in, 200ms back out.
         //
-        // ★ `translate`, NOT `transform`. Tailwind v4's translate utilities set
-        // the STANDALONE `translate` property, so a transition naming
-        // `transform` animates nothing at all and the bar teleports: measured
-        // here at 1440 (computed `transform: none`, `translate: 0px 16px`).
+        // ★ `translate`, NOT `transform`. Tailwind v4's translate utilities set the STANDALONE
+        // `translate` property, so a transition naming `transform` animates nothing at all and the
+        // cluster teleports (measured at 1440: computed `transform: none`, `translate: 0px 16px`).
         "transition-[translate,opacity] duration-300 ease-emphasis",
         "data-hidden:opacity-0 data-hidden:duration-200",
-        // ★ THE FADE IS THE BASELINE AND THE TRAVEL IS THE EXTRA (the house
-        // idiom, `floatingCrossSlide`'s own note): `prefers-reduced-motion`
-        // keeps the cross-fade every state already carries and drops the 16px,
-        // rather than leaving a translate at zero distance racing an opacity.
         "motion-safe:data-hidden:translate-y-4",
       )}
     >
-      {/* The album dissolving into the page's paper, so the bar has a ground
-          that is not somebody's photograph. */}
+      {/* THE FOOT'S FADE: the page's own ground rising over the album's last visible row while more
+          album lies below, and gone at the album's end (his note). */}
       <div
         aria-hidden
-        className="h-10 bg-gradient-to-t from-background to-transparent"
+        data-dock-fade=""
+        data-more={more ? "" : undefined}
+        className={cn(
+          "absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-background via-background/70 to-transparent",
+          "opacity-0 transition-opacity duration-300 ease-emphasis data-more:opacity-100 motion-reduce:transition-none",
+        )}
       />
       <div
         role="group"
         aria-label="Album actions"
         className={cn(
-          "pointer-events-auto flex items-center gap-2 bg-background px-5",
-          // The safe area, so the bar clears a notched phone's home indicator.
-          "pb-[calc(0.75rem+env(safe-area-inset-bottom))]",
-          // At a desk the album is the window and the bar is not: the pair sits
-          // where a cursor already is rather than stretching to 1920.
-          "sm:justify-end",
+          "relative flex items-center justify-center gap-5",
+          // Only the controls take a press; the band between them is the photograph's.
+          "[&_button]:pointer-events-auto",
+          // The safe area, so the cluster clears a notched phone's home indicator.
+          "pb-[calc(1.25rem+env(safe-area-inset-bottom))]",
         )}
       >
         {invite}
         {onAdd && (
-          <Button
-            type="button"
-            size="lg"
+          <Shutter
+            state={state}
+            progress={run ? progress.progress : 0}
+            count={sending}
+            hues={hues}
             onClick={onAdd}
-            className="flex-[2] active:scale-[0.98] motion-reduce:active:scale-100 sm:flex-none"
+            aria-label={
+              sending > 0
+                ? `${addWords}, ${formatCount(sending)} uploading`
+                : addWords
+            }
           >
-            <ImageUp /> Add photos
-            {uploadingCount > 0 && (
-              <span className="rounded-full bg-primary-foreground/20 px-2 py-0.5 text-micro tabular-nums">
-                {formatCount(uploadingCount)} uploading
-              </span>
-            )}
-          </Button>
+            {camera ? <Camera className="size-6" /> : undefined}
+          </Shutter>
         )}
+        {twin}
         {tracker}
       </div>
     </div>

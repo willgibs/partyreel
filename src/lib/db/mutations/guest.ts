@@ -12,6 +12,8 @@
 import "server-only";
 
 import type { Database } from "@/lib/db/types";
+import { rollRefusalSentence } from "@/lib/disposable/roll";
+import { FALLBACK_MESSAGES } from "@/lib/errors/codes";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -441,6 +443,12 @@ export type UploadContext =
       // The host CEILING only (never remaining storage — at_storage_cap signals "full"), so
       // a guest can't learn the host's usage. Advisory — create_media re-checks the host cap.
       max_upload_bytes: number;
+      // THE CAMERA (20261002200000): how guests add here, and this ticket's own roll ({used, cap, taken, ceiling},
+      // null for free uploads), so the presign refuses the shot past the roll or its ceiling before its bytes move.
+      // Advisory (create_media counts under its locks); read through `parseRollCount`. Absent from a database before
+      // the migration, which reads as free uploads.
+      capture?: "upload" | "camera";
+      roll?: unknown;
     };
 
 export type UploadContextResult =
@@ -474,7 +482,14 @@ export async function getUploadContext(
 export type CreateMediaResult =
   | {
       ok: true;
-      data: { media_id: string; status: MediaStatus } | { idempotent: true };
+      data:
+        | {
+            media_id: string;
+            status: MediaStatus;
+            /** THE DEVELOP: sealed until the album develops (absent from a database before the migration). */
+            sealed?: boolean;
+          }
+        | { idempotent: true };
     }
   | {
       ok: false;
@@ -488,6 +503,7 @@ export type CreateMediaResult =
         | "too_long"
         | "video_not_allowed"
         | "bad_key"
+        | "roll_spent"
         | "unknown";
       message: string;
     };
@@ -547,7 +563,11 @@ export async function createMedia(input: {
 
   return {
     ok: true,
-    data: data as unknown as { media_id: string; status: MediaStatus },
+    data: data as unknown as {
+      media_id: string;
+      status: MediaStatus;
+      sealed?: boolean;
+    },
   };
 }
 
@@ -576,6 +596,16 @@ function mapCheckViolation(message: string): CreateMediaResult {
       ok: false,
       code: "verification_required",
       message: "Confirm your email to add photos to this event.",
+    };
+  }
+  // ★ THE ROLL (the camera, 20261002200000): the shot past the roll or past its ceiling, in the server's own sentence
+  // (its number is the album's roll), which the upload queue's failure sheet prints as it is. Read by "roll", a word
+  // no other refusal says; a sentence this code does not know reads as the taxonomy's own.
+  if (m.includes("roll")) {
+    return {
+      ok: false,
+      code: "roll_spent",
+      message: rollRefusalSentence(message) ?? FALLBACK_MESSAGES.roll_spent,
     };
   }
   if (m.includes("not accepting") || m.includes("no longer exists")) {

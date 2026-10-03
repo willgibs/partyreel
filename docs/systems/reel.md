@@ -1,21 +1,22 @@
 # The highlight reel and the clip
 
 Open this before you:
-- change the live reel: when it exists, what it plays, its take, the tile, the view or the screen;
+- change the live reel: when it exists, what it plays, its take, the cover's play button, the view or the screen;
 - change the event's reel defaults (the switch, the look, the hold) or the platform lever;
 - change the clip creator, what a clip may do, or how a clip reaches the album;
 - change a word the reel or a clip says anywhere.
 
-Elsewhere: the event page that holds the tile ([guest-flow.md](guest-flow.md)), the host's hub around the Reel card
-([host-app.md](host-app.md)), the upload pipeline a clip rides into the album ([uploads-and-r2.md](uploads-and-r2.md)),
-what a clip costs ([billing-caps.md](billing-caps.md)), the admin portal's switches
-([admin-observability.md](admin-observability.md)), the marketing story ([marketing-content.md](marketing-content.md)).
+Elsewhere: the event page whose cover is the reel's face ([guest-flow.md](guest-flow.md)), the host's hub around the
+Reel card ([host-app.md](host-app.md)), the upload pipeline a clip rides into the album
+([uploads-and-r2.md](uploads-and-r2.md)), what a clip costs ([billing-caps.md](billing-caps.md)), the admin portal's
+switches ([admin-observability.md](admin-observability.md)), the marketing story
+([marketing-content.md](marketing-content.md)).
 
 ## The model
 
 - **The highlight reel belongs to the event.** It is alive from the album's second approved, reel-eligible item: a
-  looping montage of what the album shows, playing in a tile at the album's head and full screen in a view that is also
-  the screen for a party wall. Uploads splice in and hides drop out; it needs no host action and leaves no file, so
+  looping montage of what the album shows. Its face is the album's cover; its full screen is a view that is also the
+  screen for a party wall. Uploads splice in and hides drop out; it needs no host action and leaves no file, so
   nothing downloads it. It obeys the album's gate, and it starts on the event's default mood and hold, which any viewer
   can change on their own device.
 - **A clip is the viewer's own.** Anyone with full album access starts one from the reel with Make your own, picks
@@ -47,12 +48,12 @@ The reel stores nothing, so the server says only WHETHER a viewer's album has on
 - ★ **It exists from the second item, and below it there is nothing** (`LIVE_REEL_MINIMUM`, `liveReelAvailable`, the
   one number the host's side reads too). It counts approved, `reelEligible` items with something to draw; a clip
   (`reel_eligible` false, written once by `create_media*`, outside the ETag like the dimensions) never counts and never
-  plays. Below two, with the switch or the lever off, or behind a door, there is no tile, no view and no `?reel`: the
-  host reaches the reel by adding the album's first two photos, so the view has no empty state of its own (a `?reel`
-  below the minimum is dropped quietly and a phone's view whose album drops under two returns to the album). The
-  owner's reel is exactly a guest's. It plays the SERVER's approved list: the manifest's drawable entries
-  (`reelItems`, no links, never an optimistic blob), a clip's links read by id through the provider's resolver
-  (`clips`) about two windows ahead (`createClipSource`); the demo plays its optimistic tiles too, since its
+  plays. Below two, with the switch or the lever off, or behind a door, there is no play button (the cover's, the
+  shutter's), no view and no `?reel`: the host reaches the reel by adding the album's first two photos, so the view has
+  no empty state of its own (a `?reel` below the minimum is dropped quietly and a phone's view whose album drops under
+  two returns to the album). The owner's reel is exactly a guest's. It plays the SERVER's approved list: the manifest's
+  drawable entries (`reelItems`, no links, never an optimistic blob), a clip's links read by id through the provider's
+  resolver (`clips`) about two windows ahead (`createClipSource`); the demo plays its optimistic tiles too, since its
   uploads never reach a server.
 - ★ **The welcome comes first, everywhere**: a visitor who still owes the door meets it with no reel under it or over
   it, for `?reel` and `?reel=screen` alike, and the moment they are through the reel their link asked for opens
@@ -71,24 +72,15 @@ The reel stores nothing, so the server says only WHETHER a viewer's album has on
   surface.
 - ★ **The take is O(n log n)**: the brain scores the album once a loop (`quickAddScores`) and the passes walk
   that order (6,000 items about 5 ms, down from about 610 ms when it re-scored on every pass). The hub's card
-  still plans over a spread of the album (`TAKE_POOL`), and the tile's six stills are the take's first pass,
-  its head alone (`passes: 1`, [`reel-tile.ts`](../../src/lib/guest/reel-tile.ts)), never the album's newest,
-  which sit right beneath it.
+  still plans over a spread of the album (`TAKE_POOL`), and the cover's six stills, while the album has a reel, are
+  the take's first pass, its head alone (`passes: 1`, `tileStills` in
+  [`reel-tile.ts`](../../src/lib/guest/reel-tile.ts)), never the album's newest, which sit right beneath it.
 
-## The tile, the view and the screen (the guest's side)
+## The cover, the view and the screen (the guest's side)
 
-- **The Highlight reel tile** (`LiveReelTile`, [`reel/live-reel.tsx`](../../src/components/guest/reel/live-reel.tsx))
-  sits in its own slot directly above `aboveAlbum`, never a fourth arm of `pickAboveAlbumState`: a slow crossfade of
-  six stills from the take, previews only, the app's `PosterCard` headed "Highlight reel", with no engine on the
-  album. ★ **IT STANDS FROM THE FIRST PAINT**, its stills or not: their links ride the page's own seed, and a still
-  whose link is still on its way leaves the tile's own ground showing for a beat while the rest fade in over it. Its
-  corner is a glyph (a 24px glass-mark disc holding a 12px clapperboard), and the violet "Make your own clip to
-  share" under the heading renders only once a creator is registered AND the host's plan was read: a control of its
-  own, lifted above the tile's watch layer (a button cannot hold a button), that opens the creator directly.
-  ★ **`className` IS THE CALLER'S BOX, NEVER THE CARD'S**: the page hands the tile its column (the words'
-  measure) and its margins, and the watch layer and the press's scale live on the card inside that box, so a
-  tap in the gutter stays the page's. A tap on the card opens the view (a pointer over it warms the view's
-  chunk); it stays after uploads close.
+- **The reel's face is the album's cover** ([guest-flow.md](guest-flow.md)'s album head; nothing stands above the
+  album): `reel/live-reel.tsx`'s controller publishes the take's opening stills and the reel's door to the head, whose
+  round play button opens it, as the shutter's right-hand round does deep in the album.
 - **The view** ([`reel/live-reel-view.tsx`](../../src/components/guest/reel/live-reel-view.tsx), `React.lazy`, ONE
   import promise shared by the warm-up and the lazy boundary) is a full-bleed Radix dialog over the player in `fill`,
   following the viewport's orientation. ★ **HELD INSIDE THE OVERLAY, THE PAGE'S SCROLL LOCK**: Radix locks the page
@@ -102,7 +94,11 @@ The reel stores nothing, so the server says only WHETHER a viewer's album has on
   deep link REPLACES the address, so closing never leaves the page. Whose entry it is stands on `lib/history-entry.ts`
   (shared with the hub's sheets and a phone's popups): a `router.refresh()` takes the marker off, so the page keeps its
   own word and gives the entry its marker back, and a close after a refresh or a reload still goes Back, once, however
-  many times the X is tapped. Only the `reel` segment is touched, never a re-serialised query.
+  many times the X is tapped. Only the `reel` segment is touched, never a re-serialised query. ★ A page that
+  arrives by a soft navigation (the hub's Reel card is a `<Link>`) RENDERS against the address it is leaving, since Next
+  writes the new one in that commit: `useReelParam().mode` is right a pass late there, so what is told to another
+  component or acted on for good reads `reelOfAddress()` when it acts, never a render's copy (the album's word to the
+  head, `viewAsked`, is the one that matters: the curtain stands on it, the owner's and a returning guest's).
   - **The chrome**: a slim glass bar at rest (play and progress) that pointer movement, or a tap on touch, grows into
     the dock (a `clip-path` morph, [`live-reel.css`](../../src/components/guest/reel/live-reel.css), instant under
     reduced motion); a resting pointer settles it back (2.4 s; 4.2 s after a touch). Every control has a tooltip.
@@ -148,20 +144,24 @@ The reel stores nothing, so the server says only WHETHER a viewer's album has on
 
 A host has no reel to create, only a state to read and a few defaults to set.
 - ★ **One state, three answers** ([`event/reel-progress.ts`](../../src/lib/event/reel-progress.ts)): `off` (the switch
-  or the lever), `counting` (fewer than two items that can play), `live`. The Reel card, the band's step and the old
-  route's redirect all read it, and "can play" is the guest's own `isReelEligible`, so the card flips on the photo that
-  makes the guest's tile appear. The dashboard asks the same in SQL (`getReelProgress`: one row per event, at most two
-  media embedded).
+  or the lever), `counting` (fewer than two items that can play), `live`. The Reel card, the dashboard's item and the
+  old route's redirect all read it, and "can play" is the guest's own `isReelEligible`, so the card flips on the photo
+  that makes the guest's play button appear. The dashboard asks the same in SQL (`getReelProgress`: one row per event,
+  at most two media embedded).
 - **The Reel card counts to two** ([`event-feed/reel-card.tsx`](../../src/components/app/event-feed/reel-card.tsx)):
-  dashed at none ("Starts at 2 photos"), the one photo under an overlay at one, then the living card ("Live for guests")
-  dissolving through the reel's own take. Before two a press opens guidance (what is left, Add photos, and on a
-  moderated event that a guest's photo counts once approved); from two it opens `/e/<token>?reel`, where the owner
-  passes every gate; off, it opens Settings. The band's step says "1 more photo starts the reel" while one short and is
-  gone once it plays; `/dashboard/<id>/reel` is a redirect for old links (into the view once it plays, else the hub).
-- **Settings' Highlight reel section** ([`event-settings/highlight-reel-card.tsx`](../../src/components/app/event-settings/highlight-reel-card.tsx))
-  is an instant-save card: Show the reel, the look every guest starts on (each shown on the event's own photo under that
-  mood's `grade`) and the hold, each saved the moment it changes; optimistic, put back with a sentence when refused, and
-  a slow answer never undoes a newer pick.
+  dashed at none ("Starts at 2 photos"), the one photo under an overlay at one, then the living card ("Live for guests",
+  or "Live at the develop" while the album's develop time is ahead, since no guest sees a photograph before it; the page
+  hands `developsAt`, and the card turns the moment it comes) dissolving through the reel's own take. Before two a
+  press opens guidance (what is left, Add photos, and on a moderated event that a guest's photo counts once approved);
+  from two it opens `/e/<token>?reel`, where the owner passes every gate (a soft navigation, kept one: a plain press
+  asks for the view's lazy chunk at once, so it lands inside the album's server render and the curtain's black is a
+  beat, [guest-flow.md](guest-flow.md)); off, it opens Settings. The dashboard's item for an event on its day says "1
+  more photo starts the reel" while one short and is gone once it plays; `/dashboard/<id>/reel` is a redirect for old
+  links (into the view once it plays, else the hub).
+- **Settings' Highlight reel page** ([`event-settings/reel-page.tsx`](../../src/components/app/event-settings/reel-page.tsx))
+  saves each choice the moment it changes: Show the reel, the look every guest starts on (each shown on the event's own
+  photo under that mood's `grade`) and the hold; optimistic, put back with a sentence when refused, and a slow answer
+  never undoes a newer pick.
 
 ## The defaults and the lever
 
@@ -177,14 +177,14 @@ A host has no reel to create, only a state to read and a few defaults to set.
   nothing refreshes the router after it ([host-app.md](host-app.md)).
   A pick that is the platform's own default (`DEFAULT_HOLD_SEC`, `DEFAULT_STYLE_ID`) is stored as NULL, each column on
   its own, so the event keeps following the default if it ever moves.
-- ★ **The platform lever, `ops_flags.live_reel_enabled`**: off means no tile, no view, no screen and no Make your own
-  anywhere. The guest payload and the host's side read it through the one `getLiveReelServerFacts`, so they cannot
-  disagree: `reelState` lets it outrank the host's own switch silently, and the Reel card, the band's step and the old
-  route's redirect show the same Off either way. It fails OPEN (a flaky read must not take the reel off every album),
-  while an unreadable plan fails to `null` (the creator goes, the reel stays); both are reported. Its switch is the
-  `live-reel` card beside Download all's in `/admin/exports` (the same guarded switch, destructive sheet and audit;
-  the palette jumps there), and the card sends an operator to the view's "live reel: frames failing" reports, so a
-  broken reel and a paused one are not confused.
+- ★ **The platform lever, `ops_flags.live_reel_enabled`**: off means no play button, no view, no screen and no Make
+  your own anywhere. The guest payload and the host's side read it through the one `getLiveReelServerFacts`, so they
+  cannot disagree: `reelState` lets it outrank the host's own switch silently, and the Reel card, the dashboard's item
+  and the old route's redirect read the same Off either way. It fails OPEN (a flaky read must not take the reel off
+  every album), while an unreadable plan fails to `null` (the creator goes, the reel stays); both are reported. Its
+  switch is the `live-reel` card beside Download all's in `/admin/exports` (the same guarded switch, destructive sheet
+  and audit; the palette jumps there), and the card sends an operator to the view's "live reel: frames failing"
+  reports, so a broken reel and a paused one are not confused.
 
 ## The clip
 
@@ -193,8 +193,7 @@ A host has no reel to create, only a state to read and a few defaults to set.
   your own" renders only when a creator is registered AND the host's plan was read, so no build shows a dead end, and
   never in the demo (its photographs are simulated). It is lazy twice: the album carries none of it, the engine
   arrives when someone opens it (a pointer over the door warms it), and the encoder (mediabunny) with the first Make it
-  or an idle warm-up. The view's Make your own opens it as a room of its own; the tile's line opens the view with the
-  creator already asked for. Everything it needs arrives as props.
+  or an idle warm-up. The view's Make your own opens it as a room of its own. Everything it needs arrives as props.
 - **The bench**: at a laptop the head (the event, "Your clip", the clip's line, a violet Make it), the clip at full
   height, a panel of two tabs, one open at a time (Looks first: every look drawn on her own clip; Moments: the pool with
   the fills, the numbers and "Hidden · Show"), and the order strip and the tray (Length, Layout, Opening) beneath. In a

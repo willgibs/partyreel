@@ -58,7 +58,7 @@ const reelEngineer: JobOpening = {
     "Own the reel end to end, from the live composer on every phone to the clip a guest makes and shares.",
     "Design and ship new looks: layout, timing, colour, and typography in motion that flatter whatever mix of photos and videos a real event produces.",
     "Keep the reel fast and dependable on the phones people actually own, not just the ones we test on.",
-    "Shape the experience around it, from the tile at the top of the album to the screen at the front of the room.",
+    "Shape the experience around it, from the album's cover to the screen at the front of the room.",
   ],
   requirements: [
     "Real experience with graphics on the web: canvas or WebGL, animation timing, colour, and type in motion.",

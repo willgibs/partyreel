@@ -390,3 +390,62 @@ describe("the admin host's bare callback, and the page its cookie kept (crumbs-1
     expect(adminReturnSet(res)).toBeUndefined();
   });
 });
+
+/**
+ * ★ A SIGN-IN THAT MEETS A DELETION'S BAN (lp/account-exit). GoTrue refuses a deleted account's
+ * tapped link and its Google sign-in with `user_banned` until the nightly purge, in exactly these
+ * shapes (its source, v2.197: `verifyGet`'s `prepErrorRedirectURL` for a link, `redirectErrors` for
+ * Google, both `error=access_denied&error_code=user_banned&error_description=User is banned` in a
+ * PKCE flow's query). That is no expired link and no failed Google: `/login` says why and when.
+ */
+describe("a deleted account's sign-in, refused until the purge", () => {
+  const BANNED =
+    "error=access_denied&error_code=user_banned&error_description=User+is+banned";
+
+  it("★ a tapped link or Google lands on /login's account_deleting, never on google_failed", async () => {
+    expect(landing(await get(`?${BANNED}`))).toBe(
+      "/login?error=account_deleting",
+    );
+    expect(state.exchange).not.toHaveBeenCalled();
+  });
+
+  it("keeps the page it was going to, so a fresh start later still lands there", async () => {
+    expect(landing(await get(`?next=%2Faccount%2Frenew&${BANNED}`))).toBe(
+      "/login?error=account_deleting&next=%2Faccount%2Frenew",
+    );
+  });
+
+  it("reads the message only when no code came", async () => {
+    expect(
+      landing(
+        await get(`?error=access_denied&error_description=User+is+banned`),
+      ),
+    ).toBe("/login?error=account_deleting");
+    // A code that says otherwise wins over any message.
+    expect(
+      landing(
+        await get(
+          `?error=access_denied&error_code=signup_disabled&error_description=User+is+banned`,
+        ),
+      ),
+    ).toBe("/login?error=google_failed");
+  });
+
+  it("an exchange GoTrue refuses as banned is the same answer", async () => {
+    state.exchange.mockResolvedValue({
+      data: { user: null, session: null },
+      error: { message: "User is banned", code: "user_banned", status: 403 },
+    });
+    expect(landing(await get(`?code=abc`))).toBe(
+      "/login?error=account_deleting",
+    );
+  });
+
+  it("every other refusal keeps its own kind", async () => {
+    expect(
+      landing(await get(`?error=access_denied&error_code=signup_disabled`)),
+    ).toBe("/login?error=google_failed");
+    state.exchange.mockResolvedValue(DEAD);
+    expect(landing(await get(`?code=abc`))).toBe("/login?error=expired_link");
+  });
+});

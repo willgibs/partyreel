@@ -63,6 +63,47 @@ vi.mock("@/components/guest/claim-handle-prompt", () => ({
   ),
 }));
 
+// The album's camera is its own chunk (`guest-upload.tsx`'s `loadCamera`): stood in for by a camera that says whether
+// it is open and hands a shot to the queue as the real one does (the camera's own pins: `components/guest/camera/`).
+// What the camera was last handed of the album (its develop time, which the page's live reading decides).
+const camera = vi.hoisted(() => ({
+  event: null as Record<string, unknown> | null,
+}));
+vi.mock("@/components/guest/camera/album-camera", () => ({
+  AlbumCamera: ({
+    open,
+    onAddFiles,
+    onOpenChange,
+    event,
+  }: {
+    open: boolean;
+    onAddFiles: (files: File[]) => void;
+    onOpenChange: (open: boolean) => void;
+    event: Record<string, unknown>;
+  }) => {
+    camera.event = event;
+    return open ? (
+      <div data-testid="album-camera">
+        <button
+          type="button"
+          onClick={() =>
+            onAddFiles([
+              new File([new Uint8Array([1, 2, 3])], "shot.jpg", {
+                type: "image/jpeg",
+              }),
+            ])
+          }
+        >
+          Shoot
+        </button>
+        <button type="button" onClick={() => onOpenChange(false)}>
+          Close the camera
+        </button>
+      </div>
+    ) : null;
+  },
+}));
+
 const mockUploadFile = vi.mocked(uploadFile);
 
 const EVENT = {
@@ -121,6 +162,7 @@ function Harness({
   moment?: boolean;
   removedIds?: ReadonlySet<string>;
   capBytes?: number | null;
+  uploadsWait?: { waits: boolean; developsAt: string | null };
 }) {
   const pendingRef = useRef<string | null>(null);
   const { items, progress, addFiles, retry, dismiss } = useUploadQueue({
@@ -166,6 +208,7 @@ function Harness({
       moment={rest.moment}
       removedIds={rest.removedIds}
       capBytes={rest.capBytes}
+      uploadsWait={rest.uploadsWait}
     />
   );
 }
@@ -1223,5 +1266,162 @@ describe("GuestUpload: the post-upload card counts what is still in the album", 
 
     rerender(harness(new Set(["med-1", "med-2"])));
     expect(screen.queryByTestId("post-upload-slot")).toBeNull();
+  });
+});
+
+/* ── THE ALBUM'S CAMERA (disposable-camera): on an album whose host chose it, the one Add opens the camera, and its
+   shots come back through the same queue and the same failure sheet. The camera is its own chunk, stood in for here by
+   a camera that says whether it is open and hands a shot to the queue as the real one does. ── */
+
+const CAMERA_EVENT = {
+  ...EVENT,
+  capture: "camera",
+  roll_size: 24,
+  develops_at: null,
+} as unknown as GuestEvent;
+
+/** Add, on a camera album: the camera's chunk resolves inside the press's own act. */
+async function openCamera(
+  handleRef: React.RefObject<GuestUploadHandle | null>,
+) {
+  await act(async () => {
+    handleRef.current!.openAdd();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+}
+
+describe("GuestUpload: the album's camera", () => {
+  it("★ every Add opens the camera on an album whose host chose it, never the add sheet", async () => {
+    const { handleRef } = mount({ event: CAMERA_EVENT });
+    await openCamera(handleRef);
+    expect(await screen.findByTestId("album-camera")).toBeInTheDocument();
+    expect(screen.queryByText("Take a photo")).toBeNull();
+    expect(document.querySelector('input[type="file"]')).toBeNull();
+  });
+
+  it("a shot goes up through the page's one queue, as any upload does", async () => {
+    mockUploadFile.mockResolvedValue({
+      ok: true,
+      status: "approved",
+      mediaId: "shot-1",
+      kind: "photo",
+    });
+    const { handleRef, onUploaded } = mount({ event: CAMERA_EVENT });
+    await openCamera(handleRef);
+    fireEvent.click(await screen.findByRole("button", { name: "Shoot" }));
+    await waitFor(() => expect(onUploaded).toHaveBeenCalledTimes(1));
+    expect(mockUploadFile.mock.calls[0][0].file.name).toBe("shot.jpg");
+  });
+
+  it("★ the failure sheet waits while the camera covers the screen, and opens on what failed once it closes", async () => {
+    mockUploadFile.mockResolvedValue({
+      ok: false,
+      message: "Network error during upload.",
+    });
+    const { handleRef } = mount({ event: CAMERA_EVENT });
+    await openCamera(handleRef);
+    fireEvent.click(await screen.findByRole("button", { name: "Shoot" }));
+    await waitFor(() => expect(mockUploadFile).toHaveBeenCalledTimes(1));
+    await act(async () => {});
+    expect(screen.queryByText(/didn't upload/)).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Close the camera" }));
+    expect(await screen.findByText("1 of 1 didn't upload")).toBeInTheDocument();
+  });
+});
+
+/* ── ★ AN ALBUM THAT DEVELOPS LATER (build 43's red-team, the upload half): "delayed" is approve-each OR a develop
+   time ahead. What she adds there is sealed by the server; it lands `sealed` (no album tile, never "joined"), and the
+   album's slot says so before her first add, where it said nothing (only the review switch was read). ── */
+
+describe("GuestUpload: an album that develops later", () => {
+  const DEVELOP_EVENT = {
+    ...EVENT,
+    moderation_mode: "live",
+    develops_at: new Date(Date.now() + 6 * 3_600_000).toISOString(),
+  } as unknown as GuestEvent;
+
+  it("★ says what she adds waits for the develop, before her first add", () => {
+    mount({ event: DEVELOP_EVENT });
+    expect(
+      screen.getByText(/^Uploads appear in the album when it develops/),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(
+        "The host reviews uploads before they appear in the album.",
+      ),
+    ).toBeNull();
+  });
+
+  /* ★ RED-TEAM 44'S LOW: the line read the event the page rendered with, so it promised a develop over an album that
+     had developed while the page stood open. It is the page's live reading's now (`useLiveUploadsWait`). */
+  it("★ follows the page's live reading: a develop that has come says nothing of a develop, and the camera hears it too", async () => {
+    const { rerender, handleRef } = mount({
+      event: { ...DEVELOP_EVENT, capture: "camera" },
+      uploadsWait: { waits: true, developsAt: DEVELOP_EVENT.develops_at },
+    });
+    expect(screen.getByText(/when it develops/)).toBeInTheDocument();
+    rerender(
+      <Harness
+        handleRef={handleRef}
+        onSession={vi.fn()}
+        onUploaded={vi.fn()}
+        event={{ ...DEVELOP_EVENT, capture: "camera" } as unknown as GuestEvent}
+        uploadsWait={{ waits: false, developsAt: null }}
+      />,
+    );
+    expect(screen.queryByText(/when it develops/)).toBeNull();
+    await openCamera(handleRef);
+    expect(camera.event?.develops_at).toBeNull();
+  });
+
+  it("says nothing of a develop that has already happened (new uploads show at once)", () => {
+    mount({
+      event: {
+        ...DEVELOP_EVENT,
+        develops_at: new Date(Date.now() - 3_600_000).toISOString(),
+      },
+    });
+    expect(screen.queryByText(/when it develops/)).toBeNull();
+  });
+
+  it("★ a run that ends with a refusal says the rest waits for the develop, never that it is in the album (red-team 44)", async () => {
+    mockUploadFile
+      .mockResolvedValueOnce({ ok: false, message: "That upload failed." })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: "approved",
+        mediaId: "sealed-2",
+        kind: "photo",
+        sealed: true,
+      });
+    const { addFiles } = mount({
+      event: DEVELOP_EVENT,
+      // The page's one reading of the album (`useLiveUploadsWait`).
+      uploadsWait: { waits: true, developsAt: DEVELOP_EVENT.develops_at },
+    });
+    addFiles([makeFile("a.jpg"), makeFile("b.jpg")]);
+    await waitFor(() =>
+      expect(screen.getByText("1 of 2 didn't upload")).toBeInTheDocument(),
+    );
+    expect(
+      screen.getByText(/^Everything else is waiting to develop, /),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Everything else is in /)).toBeNull();
+  });
+
+  it("★ tells an upload the server sealed as sealed: nothing draws it in the album", async () => {
+    mockUploadFile.mockResolvedValue({
+      ok: true,
+      status: "approved",
+      mediaId: "sealed-1",
+      kind: "photo",
+      sealed: true,
+    });
+    const { addFiles, onUploaded } = mount({ event: DEVELOP_EVENT });
+    addFiles([makeFile()]);
+    await waitFor(() => expect(onUploaded).toHaveBeenCalledTimes(1));
+    expect(onUploaded).toHaveBeenCalledWith(
+      expect.objectContaining({ mediaId: "sealed-1", status: "sealed" }),
+    );
   });
 });

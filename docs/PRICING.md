@@ -26,6 +26,9 @@ below).
   full-length clips are on every plan; Free keeps 100 MB (about 30 photos at an iPhone's defaults), photos only, one
   event and the mark on clips, so a real event is the reason to pay. Set before launch, so the only-move-up rule
   below starts from 100 MB.
+- **No refunds, on a cancel or an account's deletion** (Will, 2026-10-03): a deletion cancels the plan at once and the
+  rest of the period is not refunded, and the dialog says so; a refund would invite upgrading on the event's day and
+  claiming most of it back days later.
 - **The monthly ingress meter** (bytes uploaded per month; never refunded on delete; unmarketed) is the anti-abuse
   guard, because storage caps alone don't stop delete-and-re-upload bandwidth burn. Every plan's bound is a multiple
   of its effective storage cap (`INGRESS_CAP_MULTIPLIER`, 3; Free's is 300 MB), so the bound scales with the room a

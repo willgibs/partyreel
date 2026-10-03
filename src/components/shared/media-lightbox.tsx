@@ -30,6 +30,12 @@ import { ActionCapsule } from "./media-lightbox-parts/actions";
 import { FaceCredit, type ViewerMedia } from "./media-lightbox-parts/credit";
 import { Filmstrip, FILMSTRIP_REACH } from "./media-lightbox-parts/filmstrip";
 import {
+  holdable,
+  useHeld,
+  useHeldStore,
+  useHoldOriginal,
+} from "./media-lightbox-parts/held";
+import {
   CHROME,
   ZOOM_MAX,
   ZOOM_REST,
@@ -358,6 +364,15 @@ function SharpeningRing() {
  * crumbs-43): `data-lightbox-original` marks the full size, `data-loaded` and
  * `data-failed` say it has finished, and the ring is drawn after it so the sheet
  * can read the one from the other.
+ *
+ * ★ THE ORIGINAL IS DRAWN FROM THE BYTES THE VIEWER HOLDS (save-speed): a
+ * photograph with a preview has its original downloaded once, as a file, and
+ * drawn from that file's object URL, so Save and Share send the very bytes on
+ * screen instead of downloading them again on the tap (`media-lightbox-parts/
+ * held.tsx`). Until they land the slot draws its preview and NO link (a link
+ * mounted first would start the second download this exists to remove), and
+ * `data-lightbox-holding` keeps the ring; anything the store cannot hold comes
+ * back `plain`, and the link is drawn as it always was.
  */
 function ViewerPhoto({
   item,
@@ -372,7 +387,10 @@ function ViewerPhoto({
   frame: Size;
   onSize: (id: string, width: number, height: number) => void;
 }) {
-  const full = item.url || null;
+  const held = useHoldOriginal(useHeldStore(), item, isCenter);
+  const holding = held?.kind === "waiting" || held?.kind === "loading";
+  const full =
+    held?.kind === "held" ? held.src : holding ? null : item.url || null;
   const preview = item.previewUrl || null;
   const hasPicture = full !== null || preview !== null;
   const [waiting, setWaiting] = useState(!hasPicture);
@@ -420,7 +438,10 @@ function ViewerPhoto({
           className={cn(MEDIA_FILL, cover)}
         />
       )}
-      {full !== null && isCenter && <SharpeningRing />}
+      {/* The bytes are on their way and no <img> is mounted yet: the ring
+          reads this marker the way it reads an original still loading. */}
+      {holding && isCenter && <span data-lightbox-holding hidden />}
+      {(full !== null || holding) && isCenter && <SharpeningRing />}
     </>
   );
 }
@@ -608,6 +629,21 @@ export function MediaLightbox({
     current?.type === "photo" &&
     curFit !== null &&
     !!(current.url || current.previewUrl);
+
+  // ★ THE PHOTOGRAPH ON SCREEN FIRST, CLIPS INCLUDED (save-speed). While its
+  // original is still coming, a neighbouring clip asks for nothing
+  // (`preload="none"`), then for its metadata as before: iOS reads a neighbour's
+  // `metadata` as the whole clip (measured: the snowy mountain's neighbour, 2.8 MB,
+  // buffered whole in iOS 26.5 Safari), which on a phone's link is bandwidth the
+  // photograph being looked at, and so its Save, waited behind.
+  const heldStore = useHeldStore();
+  const currentHeld = useHeld(heldStore, current?.id ?? "");
+  const holdingCurrent =
+    current !== null &&
+    heldStore !== null &&
+    holdable(current) &&
+    currentHeld?.kind !== "held" &&
+    currentHeld?.kind !== "plain";
 
   if (open !== trackedOpen) {
     setTrackedOpen(open);
@@ -1586,7 +1622,9 @@ export function MediaLightbox({
         muted={isCenter ? !soundOn : true}
         loop={isCenter}
         playsInline
-        preload={isCenter ? "auto" : "metadata"}
+        // Beside a photograph whose original is still coming, nothing yet
+        // (`holdingCurrent`, above).
+        preload={isCenter ? "auto" : holdingCurrent ? "none" : "metadata"}
         tabIndex={-1}
         aria-hidden={!isCenter}
         onLoadedMetadata={(e) =>

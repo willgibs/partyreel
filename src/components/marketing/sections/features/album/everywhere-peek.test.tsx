@@ -236,7 +236,7 @@ describe("the stage's tiles", () => {
     expect(marked(container)).toHaveLength(1);
   });
 
-  it("stay plain without `peek`, as the hero's grid is: no mark, and a press does nothing", () => {
+  it("stay plain without `peek`: no mark, and a press does nothing", () => {
     const { container } = grid(undefined);
     expect(container.querySelector("svg.lucide-maximize2")).toBeNull();
     expect(() => fireEvent.click(tiles(container)[0])).not.toThrow();

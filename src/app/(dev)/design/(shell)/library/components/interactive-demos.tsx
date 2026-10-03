@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -12,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { ConfirmSwitch } from "@/components/ui/confirm-switch";
 import { ConsequenceLine } from "@/components/ui/consequence-line";
 import { Dormant } from "@/components/ui/dormant";
+import { Shutter, type ShutterState } from "@/components/ui/shutter";
 import { Switch } from "@/components/ui/switch";
 import {
   CommandPalette,
@@ -45,6 +47,8 @@ import {
   type Relation,
   type RelationAct,
 } from "@/components/social/relation-toggle";
+import { marketingImage } from "@/lib/constants/marketing-media";
+import { cn } from "@/lib/utils";
 
 import { Row } from "@/app/(dev)/design/reference/reference-ui";
 
@@ -421,5 +425,121 @@ export function RelationToggleDemo({
       label={label}
       act={refuses ? REFUSES : LANDS}
     />
+  );
+}
+
+/* ── THE EVENT'S HEAD: its atoms (`event-header` r1, the atom contract with identity r2) ───────── */
+
+/**
+ * A PHOTOGRAPH TO STAND AN ATOM ON: one of the bootstrap stills, darkened at its foot the way the
+ * cover's scrim darkens it, marked `data-surface="photo"` and painted as the room, exactly as the
+ * album's cover and the hub's are. An atom made for a photograph is judged on one.
+ */
+export function OnAPhoto({
+  children,
+  still = "wedding-toast",
+  className,
+}: {
+  children: React.ReactNode;
+  still?: string;
+  className?: string;
+}) {
+  return (
+    <div
+      data-surface="photo"
+      className={cn(
+        "dark relative isolate flex min-h-44 items-end overflow-hidden rounded-xl bg-background p-5 text-foreground",
+        className,
+      )}
+    >
+      <Image
+        src={marketingImage(still).src}
+        alt=""
+        fill
+        sizes="640px"
+        className="-z-10 object-cover"
+      />
+      <div
+        aria-hidden
+        className="absolute inset-0 -z-10 bg-linear-to-b from-black/10 via-black/30 to-black/75"
+      />
+      {children}
+    </div>
+  );
+}
+
+/**
+ * THE SHUTTER, PRESSED: the real atom handed a run of the Library's own, three files that go up over
+ * three seconds, the ring filling as they go and the count on its shoulder going down, then the beat
+ * whole with its check, then rest. Only the run is a stand-in; every state is the atom's.
+ */
+export function ShutterDemo({ hues }: { hues?: readonly number[] }) {
+  const [run, setRun] = useState<{ startedAt: number; at: number } | null>(
+    null,
+  );
+  const [done, setDone] = useState(false);
+  const RUN_MS = 3000;
+  const FILES = 3;
+  const press = () => {
+    const startedAt = performance.now();
+    setDone(false);
+    setRun({ startedAt, at: startedAt });
+    const tick = () => {
+      const at = performance.now();
+      if (at - startedAt >= RUN_MS) {
+        setRun(null);
+        setDone(true);
+        window.setTimeout(() => setDone(false), 1600);
+        return;
+      }
+      setRun({ startedAt, at });
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  };
+  const progress = run ? Math.min(1, (run.at - run.startedAt) / RUN_MS) : 0;
+  const sending = run ? Math.max(1, FILES - Math.floor(progress * FILES)) : 0;
+  const state: ShutterState = run ? "sending" : done ? "done" : "idle";
+  return (
+    <Shutter
+      state={state}
+      progress={progress}
+      count={sending}
+      hues={hues}
+      onClick={press}
+      aria-label={
+        sending > 0 ? `Add photos, ${sending} uploading` : "Add photos"
+      }
+    />
+  );
+}
+
+/**
+ * THE FOOT OF AN ALBUM: photographs to the edge, the page's own ground rising from the foot over them
+ * (the shutter's fade while more album lies below), and what stands there. Not the room: at the foot the
+ * shutter stands on the page, over the album, so it wears the page's ink.
+ */
+export function AtTheFoot({
+  children,
+  still = "reception-table",
+}: {
+  children: React.ReactNode;
+  still?: string;
+}) {
+  return (
+    <div className="relative isolate flex min-h-52 items-end justify-center overflow-hidden rounded-xl pb-5">
+      <Image
+        src={marketingImage(still).src}
+        alt=""
+        fill
+        sizes="640px"
+        className="-z-10 object-cover"
+      />
+      <div
+        aria-hidden
+        className="absolute inset-x-0 bottom-0 -z-10 h-36 bg-linear-to-t from-background via-background/70 to-transparent"
+      />
+      {children}
+    </div>
   );
 }

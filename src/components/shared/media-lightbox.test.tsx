@@ -35,8 +35,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { DeleteConsequence } from "@/lib/guest/delete-consequence";
 import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 
+import type { Held, HeldStore } from "@/lib/media/share-save-held";
+
 import { setReducedMotion } from "../../../vitest.setup";
 import { MediaLightbox, type ViewerMedia } from "./media-lightbox";
+import { HeldStoreContext } from "./media-lightbox-parts/held";
 
 const PHOTOS: GridMedia[] = [
   {
@@ -602,8 +605,10 @@ describe("MediaLightbox: its own loading state", () => {
       join(process.cwd(), "src/components/shared/media-lightbox.css"),
       "utf8",
     ).replace(/\s+/g, " ");
+    // The held original's bytes on their way (save-speed) wear the same ring
+    // under the same beat: no <img> is mounted yet, so a marker stands in.
     expect(sheet).toContain(
-      `${DRAWS} { animation: lightbox-loading-in 1ms linear 600ms forwards; }`,
+      `${DRAWS}, [data-lightbox-holding] ~ [data-lightbox-loading] { animation: lightbox-loading-in 1ms linear 600ms forwards; }`,
     );
     expect(sheet).toContain(
       "[data-lightbox-track][data-quiet] [data-lightbox-loading], [data-lightbox-content][data-dismissing] [data-lightbox-loading], [data-lightbox-slot]:not([data-current]) [data-lightbox-loading] { display: none; }",
@@ -1192,6 +1197,405 @@ describe("MediaLightbox: share, copy link and save (r1)", () => {
     const sent = (share.mock.calls[0] as unknown as [ShareData])[0];
     expect(sent.files?.[0]).toBeInstanceOf(File);
     expect(screen.queryByRole("menuitem")).toBeNull();
+  });
+});
+
+/**
+ * THE HELD ORIGINAL (save-speed, Will's 30 s on his iPhone). The store's own life
+ * is share-save-held.test.ts; these pin the WIRING over a store the test drives
+ * by hand: the slot draws the bytes it holds and never the link while they come,
+ * a tap meets the file in hand and reaches the sheet inside the tap, a tap that
+ * comes early waits on that same download with its progress and a stop, and a
+ * neighbouring clip asks for nothing until the photograph on screen has its
+ * bytes.
+ */
+describe("MediaLightbox: the held original (save-speed)", () => {
+  const IPHONE =
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Mobile/15E148 Safari/604.1";
+  const nav = navigator as unknown as Record<string, unknown>;
+  const saved: Record<string, PropertyDescriptor | undefined> = {};
+  const stub = (key: string, value: unknown) => {
+    if (!(key in saved))
+      saved[key] = Object.getOwnPropertyDescriptor(navigator, key);
+    Object.defineProperty(navigator, key, { configurable: true, value });
+  };
+  afterEach(() => {
+    for (const [key, d] of Object.entries(saved)) {
+      if (d) Object.defineProperty(navigator, key, d);
+      else delete nav[key];
+      delete saved[key];
+    }
+    vi.unstubAllGlobals();
+  });
+
+  const HELD_PHOTOS: GridMedia[] = PHOTOS.map((p) => ({
+    ...p,
+    previewUrl: p.url.replace(".jpg", ".webp"),
+  }));
+  // filenameFor's plain name for an item whose save link names nothing.
+  const fileOf = (id: string) =>
+    new File(["jpeg"], `partyreel-${id}.jpg`, { type: "image/jpeg" });
+
+  /** A store the test answers by hand: what each photograph's bytes are doing. */
+  function handStore() {
+    const states = new Map<string, Held>();
+    const listeners = new Set<() => void>();
+    const waits = new Map<string, Set<(f: File | null) => void>>();
+    const wants: { id: string; priority: string }[] = [];
+    const store: HeldStore = {
+      want(id, _url, { priority }) {
+        wants.push({ id, priority });
+        if (!states.has(id))
+          states.set(id, { kind: "loading", received: 0, total: null });
+        return () => {};
+      },
+      get: (id) => states.get(id) ?? null,
+      subscribe(l) {
+        listeners.add(l);
+        return () => {
+          listeners.delete(l);
+        };
+      },
+      whenHeld(id, signal) {
+        const st = states.get(id);
+        if (!st || st.kind === "plain") return Promise.resolve(null);
+        if (st.kind === "held") return Promise.resolve(st.file);
+        return new Promise((resolve) => {
+          const set = waits.get(id) ?? new Set();
+          waits.set(id, set);
+          set.add(resolve);
+          signal?.addEventListener("abort", () => {
+            set.delete(resolve);
+            resolve(null);
+          });
+        });
+      },
+    };
+    const set = (id: string, st: Held) => {
+      states.set(id, st);
+      if (st.kind === "held" || st.kind === "plain") {
+        for (const w of waits.get(id) ?? [])
+          w(st.kind === "held" ? st.file : null);
+        waits.delete(id);
+      }
+      act(() => {
+        for (const l of listeners) l();
+      });
+    };
+    return { store, set, wants };
+  }
+
+  function mountHeld(
+    hand: ReturnType<typeof handStore>,
+    items: GridMedia[] = HELD_PHOTOS,
+    index = 1,
+  ) {
+    return render(
+      <TooltipProvider>
+        <HeldStoreContext.Provider value={hand.store}>
+          <MediaLightbox
+            items={items}
+            index={index}
+            onClose={vi.fn()}
+            onIndexChange={vi.fn()}
+          />
+        </HeldStoreContext.Provider>
+      </TooltipProvider>,
+    );
+  }
+
+  const centre = () =>
+    document.querySelector("[data-lightbox-slot][data-current]")!;
+  const saveButton = () =>
+    within(document.querySelector("[data-lightbox-capsule]") as HTMLElement)
+      .getAllByRole("button")
+      .find((b) => /save/i.test(b.getAttribute("aria-label") ?? ""))!;
+
+  it("★ the slot draws the bytes it holds, and while they come, its preview and the ring but never the link", () => {
+    const hand = handStore();
+    mountHeld(hand);
+    // Asked for at once: the centre high, its neighbours low.
+    expect(hand.wants).toEqual(
+      expect.arrayContaining([
+        { id: "p2", priority: "high" },
+        { id: "p1", priority: "low" },
+        { id: "p3", priority: "low" },
+      ]),
+    );
+    expect(centre().querySelector("img[data-lightbox-original]")).toBeNull();
+    expect(centre().querySelector("[data-lightbox-holding]")).toBeTruthy();
+    expect(
+      centre()
+        .querySelector("[data-lightbox-loading]")!
+        .matches("[data-lightbox-holding] ~ [data-lightbox-loading]"),
+    ).toBe(true);
+    hand.set("p2", { kind: "held", file: fileOf("p2"), src: "blob:held-p2" });
+    expect(
+      centre().querySelector("img[data-lightbox-original]"),
+    ).toHaveAttribute("src", "blob:held-p2");
+    expect(centre().querySelector("[data-lightbox-holding]")).toBeNull();
+  });
+
+  it("anything the store cannot hold is drawn plain, the link as it always was", () => {
+    const hand = handStore();
+    mountHeld(hand);
+    hand.set("p2", { kind: "plain" });
+    expect(
+      centre().querySelector("img[data-lightbox-original]"),
+    ).toHaveAttribute("src", "https://r2.test/p2.jpg");
+  });
+
+  it("★ Save on a held photograph reaches the sheet INSIDE the tap, with the bytes on screen and nothing fetched", () => {
+    stub("userAgent", IPHONE);
+    const share = vi.fn(async () => {});
+    stub("share", share);
+    stub("canShare", () => true);
+    stub("userActivation", { isActive: true });
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const hand = handStore();
+    mountHeld(hand);
+    const file = fileOf("p2");
+    hand.set("p2", { kind: "held", file, src: "blob:held-p2" });
+    act(() => {
+      fireEvent.click(saveButton());
+    });
+    // Synchronously, in the tap's own event: no await stood before the sheet.
+    expect(share).toHaveBeenCalledWith({ files: [file] });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("★ a tap before the bytes land waits on THAT download, draws how far it has come, and a second tap stops it", async () => {
+    stub("userAgent", IPHONE);
+    const share = vi.fn(async () => {});
+    stub("share", share);
+    stub("canShare", () => true);
+    stub("userActivation", { isActive: true });
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const hand = handStore();
+    mountHeld(hand);
+    hand.set("p2", { kind: "loading", received: 25, total: 100 });
+    await act(async () => {
+      fireEvent.click(saveButton());
+    });
+    const waiting = saveButton();
+    expect(waiting).toHaveAttribute(
+      "aria-label",
+      "Preparing to save. Tap to stop.",
+    );
+    expect(waiting).toHaveAttribute("aria-busy", "true");
+    expect(waiting.querySelector("[data-lightbox-progress]")).toHaveAttribute(
+      "data-lightbox-progress",
+      "25",
+    );
+    hand.set("p2", { kind: "loading", received: 60, total: 100 });
+    expect(
+      saveButton().querySelector("[data-lightbox-progress]"),
+    ).toHaveAttribute("data-lightbox-progress", "60");
+    await act(async () => {
+      fireEvent.click(saveButton());
+    });
+    expect(saveButton()).toHaveAttribute("aria-label", "Save");
+    hand.set("p2", { kind: "held", file: fileOf("p2"), src: "blob:held-p2" });
+    await act(async () => {});
+    // Stopped is stopped: the bytes landing later open nothing.
+    expect(share).not.toHaveBeenCalled();
+    // And the wait never was a second download.
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("bytes that land inside the activation open the sheet at once; after it, the button is Ready", async () => {
+    stub("userAgent", IPHONE);
+    const share = vi.fn(async () => {});
+    stub("share", share);
+    stub("canShare", () => true);
+    stub("userActivation", { isActive: true });
+    const hand = handStore();
+    const { unmount } = mountHeld(hand);
+    await act(async () => {
+      fireEvent.click(saveButton());
+    });
+    const file = fileOf("p2");
+    hand.set("p2", { kind: "held", file, src: "blob:held-p2" });
+    await vi.waitFor(() =>
+      expect(share).toHaveBeenCalledWith({ files: [file] }),
+    );
+    unmount();
+
+    share.mockClear();
+    const late = handStore();
+    mountHeld(late);
+    await act(async () => {
+      fireEvent.click(saveButton());
+    });
+    stub("userActivation", { isActive: false });
+    late.set("p2", { kind: "held", file, src: "blob:held-p2" });
+    const ready = await screen.findByRole("button", {
+      name: "Ready to save. Tap to save.",
+    });
+    expect(share).not.toHaveBeenCalled();
+    stub("userActivation", { isActive: true });
+    await act(async () => {
+      fireEvent.click(ready);
+    });
+    expect(share).toHaveBeenCalledWith({ files: [file] });
+  });
+
+  it("a tap on Share while Save waits takes the wait over: one sheet, from Share", async () => {
+    stub("userAgent", IPHONE);
+    const share = vi.fn(async () => {});
+    stub("share", share);
+    stub("canShare", () => true);
+    stub("userActivation", { isActive: true });
+    const hand = handStore();
+    render(
+      <TooltipProvider>
+        <HeldStoreContext.Provider value={hand.store}>
+          <MediaLightbox
+            items={HELD_PHOTOS}
+            index={1}
+            onClose={vi.fn()}
+            onIndexChange={vi.fn()}
+            shareUrl="https://partyreel.com/e/tok"
+          />
+        </HeldStoreContext.Provider>
+      </TooltipProvider>,
+    );
+    await act(async () => {
+      fireEvent.click(saveButton());
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Share" }));
+    });
+    expect(saveButton()).toHaveAttribute("aria-label", "Save");
+    expect(
+      screen.getByRole("button", { name: "Preparing to share. Tap to stop." }),
+    ).toBeInTheDocument();
+    const file = fileOf("p2");
+    hand.set("p2", { kind: "held", file, src: "blob:held-p2" });
+    await vi.waitFor(() => expect(share).toHaveBeenCalledTimes(1));
+    expect(share).toHaveBeenCalledWith({ files: [file] });
+  });
+
+  it("a download that goes plain hands the tap its own fetch, from a fresh request", async () => {
+    stub("userAgent", IPHONE);
+    const share = vi.fn(async () => {});
+    stub("share", share);
+    stub("canShare", () => true);
+    stub("userActivation", { isActive: true });
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      headers: new Headers({ "content-type": "image/jpeg" }),
+      blob: async () => new Blob(["jpeg"], { type: "image/jpeg" }),
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+    const hand = handStore();
+    mountHeld(hand);
+    await act(async () => {
+      fireEvent.click(saveButton());
+    });
+    hand.set("p2", { kind: "plain" });
+    await vi.waitFor(() => expect(share).toHaveBeenCalled());
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://r2.test/d2.jpg",
+      expect.objectContaining({ mode: "cors", cache: "no-store" }),
+    );
+  });
+
+  it("★ a clip's Save fetches its own on the tap and draws its wait, never a bare spinner", async () => {
+    stub("userAgent", IPHONE);
+    stub(
+      "share",
+      vi.fn(async () => {}),
+    );
+    stub("canShare", () => true);
+    stub("userActivation", { isActive: true });
+    let answer: (v: unknown) => void = () => {};
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => new Promise((r) => (answer = r))),
+    );
+    const hand = handStore();
+    mountHeld(hand, WITH_VIDEO, 1);
+    await act(async () => {
+      fireEvent.click(saveButton());
+    });
+    // Before the answer has said how big the clip is, the ring turns round its stop.
+    expect(
+      saveButton().querySelector("[data-lightbox-progress]"),
+    ).toHaveAttribute("data-lightbox-progress", "unknown");
+    // And a tap on it stops the download itself (the tap's own).
+    await act(async () => {
+      fireEvent.click(saveButton());
+    });
+    expect(saveButton()).toHaveAttribute("aria-label", "Save");
+    answer({ ok: false, status: 499, headers: new Headers() });
+  });
+
+  it("★ the desk's Save of a held photograph saves from memory, under the server's name", () => {
+    const hand = handStore();
+    mountHeld(hand);
+    const file = fileOf("p2");
+    hand.set("p2", { kind: "held", file, src: "blob:held-p2" });
+    const create = vi
+      .spyOn(URL, "createObjectURL")
+      .mockReturnValue("blob:saved-p2");
+    const revoke = vi
+      .spyOn(URL, "revokeObjectURL")
+      .mockImplementation(() => {});
+    const saves: { href: string; download: string }[] = [];
+    const click = vi
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(function (this: HTMLAnchorElement) {
+        saves.push({ href: this.href, download: this.download });
+      });
+    try {
+      const link = screen.getByRole("link", { name: "Save" });
+      expect(link).toHaveAttribute("href", "https://r2.test/d2.jpg");
+      // The link's own navigation is prevented: the bytes go from memory.
+      expect(fireEvent.click(link)).toBe(false);
+      expect(create).toHaveBeenCalledWith(file);
+      expect(saves).toEqual([
+        { href: "blob:saved-p2", download: "partyreel-p2.jpg" },
+      ]);
+    } finally {
+      create.mockRestore();
+      revoke.mockRestore();
+      click.mockRestore();
+    }
+  });
+
+  it("the desk's Save of a photograph not held yet is the plain link, untouched", () => {
+    const hand = handStore();
+    mountHeld(hand);
+    const link = screen.getByRole("link", { name: "Save" });
+    // Read after React's own handler (window is the last stop of the bubble),
+    // then stop jsdom's navigation, which it does not implement.
+    let prevented: boolean | null = null;
+    const after = (e: Event) => {
+      prevented = e.defaultPrevented;
+      e.preventDefault();
+    };
+    window.addEventListener("click", after);
+    try {
+      fireEvent.click(link);
+    } finally {
+      window.removeEventListener("click", after);
+    }
+    expect(prevented).toBe(false);
+  });
+
+  it("★ a neighbouring clip asks for nothing until the photograph on screen has its bytes", () => {
+    const hand = handStore();
+    const items: GridMedia[] = [HELD_PHOTOS[0], WITH_VIDEO[1], HELD_PHOTOS[2]];
+    mountHeld(hand, items, 0);
+    const clip = () =>
+      document.querySelector('video[data-media-id="v1"]') as HTMLVideoElement;
+    expect(clip()).toHaveAttribute("preload", "none");
+    hand.set("p1", { kind: "held", file: fileOf("p1"), src: "blob:held-p1" });
+    expect(clip()).toHaveAttribute("preload", "metadata");
   });
 });
 

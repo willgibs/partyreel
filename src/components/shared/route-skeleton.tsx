@@ -1,4 +1,4 @@
-import { EVENT_CARD_GRID } from "@/components/app/dashboard/event-card-grid";
+import { DashboardSkeleton } from "@/components/app/dashboard/dashboard-skeleton";
 import { CrumbsHold } from "@/components/shared/crumbs";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -30,7 +30,8 @@ export function RouteSkeleton({ variant }: { variant: RouteSkeletonVariant }) {
     <>
       <CrumbsHold />
       {variant === "pulse" ? (
-        <PulseSkeleton />
+        // The dashboard's own shape, homed with the dashboard (host-dashboard r1's wiring).
+        <DashboardSkeleton />
       ) : variant === "hub" ? (
         <HubSkeleton />
       ) : variant === "account" ? (
@@ -42,60 +43,6 @@ export function RouteSkeleton({ variant }: { variant: RouteSkeletonVariant }) {
   );
 }
 
-// The dashboard's pulse: header + the next-step band + the arrivals strip +
-// the storage line + the events list. It deliberately mirrors the bands and
-// NOT the old filter chips, which retired with the inbox (home-wiring,
-// 2026-09-20) — a skeleton that promises chips the page will never render is
-// a worse jump than no skeleton at all.
-// The (app) layout's AppShell already supplies <main> + Container chrome, so
-// this returns a BARE root matching the page's own (<div className="space-y-6">).
-function PulseSkeleton() {
-  return (
-    // Wide like the page (`data-app-wide`), or it would paint at 1280 first.
-    <div data-app-wide className="space-y-6" aria-busy>
-      <div className="flex items-center justify-between">
-        <div className="space-y-2">
-          <Skeleton className="h-8 w-44" />
-          <Skeleton className="h-4 w-28" />
-        </div>
-        <Skeleton className="h-8 w-28 rounded-action-sm" />
-      </div>
-      {/* band 1 — what needs you */}
-      <div className="flex flex-wrap gap-2">
-        {Array.from({ length: 3 }, (_, i) => (
-          <Skeleton key={i} className="h-9 w-48 rounded-full" />
-        ))}
-      </div>
-      {/* band 2 — just arrived */}
-      <div className="space-y-2.5">
-        <Skeleton className="h-5 w-36" />
-        <div className="grid grid-cols-4 gap-[var(--gap-gallery)] sm:grid-cols-8 xl:grid-cols-12">
-          {Array.from({ length: 12 }, (_, i) => (
-            <Skeleton
-              key={i}
-              className="aspect-square w-full rounded-[var(--radius-tile)]"
-            />
-          ))}
-        </div>
-      </div>
-      {/* band 3 — the storage line */}
-      <Skeleton className="h-5 w-full" />
-      {/* band 4 — your events, with the heading and its controls */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <Skeleton className="h-6 w-32" />
-          <Skeleton className="h-8 w-40 rounded-lg" />
-        </div>
-        <div className={EVENT_CARD_GRID}>
-          {Array.from({ length: 3 }, (_, i) => (
-            <Skeleton key={i} className="aspect-[16/10] w-full rounded-xl" />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // The hub's streaming fallback. It presigns two URLs per media item before
 // paint, so this holds the shape meanwhile.
 //
@@ -104,7 +51,7 @@ function PulseSkeleton() {
 // that read as the retired strip flashing into existence and then being
 // replaced by a row of cards, which is exactly the kind of flicker a skeleton
 // exists to prevent. The blocks below are the code, the title stack, the cards
-// row and the album, in that order and at those sizes.
+// row and the album, in that order and at those sizes (the head is the cover's room).
 //
 // The (app) layout's AppShell already supplies <main> + Container chrome, so
 // this returns a BARE root matching the page's own.
@@ -114,15 +61,9 @@ function HubSkeleton() {
     // gutter with `data-app-wide`, and a skeleton that did not would paint at
     // 1280 and jump the moment the page streamed in.
     <div data-app-wide className="space-y-6" aria-busy>
-      {/* The code beside the title + metadata + link stack. */}
-      <div className="flex items-center gap-4 sm:gap-5">
-        <Skeleton className="size-28 shrink-0 rounded-lg" />
-        <div className="min-w-0 flex-1 space-y-2">
-          <Skeleton className="h-8 w-64 max-w-full" />
-          <Skeleton className="h-4 w-40" />
-          <Skeleton className="h-4 w-56 max-w-full" />
-        </div>
-      </div>
+      {/* The head (`event-header` r1): the cover's dark room to the window's edges and up to the
+          app's bar, at the head's own height, so the photographs land in the box that held them. */}
+      <div className="dark -mx-3 -mt-8 h-[20.5rem] bg-background sm:-mx-5 sm:h-[25rem]" />
       {/* The cards row at rest: a phone's 2x2 grid, the row of tiles from
           `sm` (event-feed/room-card.ts). */}
       <div className="grid grid-cols-2 gap-2 py-2 sm:flex">

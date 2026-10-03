@@ -1,0 +1,152 @@
+/* THE SHUTTER'S OWN SHEET (`ui/shutter.tsx`): the album's light as a ring round
+   the round Add, and that same ring filling as her photographs go.
+
+   ★ ONE LIGHT, TWO JOBS. At rest the ring is the album's light (its sampled hues,
+   or the house five where it has none), with a soft glow under it; while files
+   go, the same light is the progress: a dim track, and the light filling round
+   from the top as the run moves (`--progress`, 0 to 1, the contract's hook). So
+   "sending" is never a second colour or a spinner beside the button: it is the
+   button's own light, arriving.
+
+   ★ TWO MASKS, TWO ELEMENTS (design-system.md's gotcha: two mask layers on one
+   element never intersect in Chrome). The ring's band is the outer element's
+   radial mask; the fill's sweep is the inner element's conic mask.
+
+   ★ THE PROGRESS GLIDES, FROM A REGISTERED COPY. `--progress` is the caller's
+   plain number (inline, unregistered: a registered `--progress` would claim the
+   name for every sheet on the page); `--shutter-p` is registered as a number, so
+   a change to `--progress` is a change to `--shutter-p` the transition can
+   interpolate. Where `@property` is missing (Safari before 16.4) the ring steps
+   instead of gliding, which is the same information.
+
+   ★ THE REST STATE IS THE DEFAULT (bible 5): nothing here moves unless motion
+   is welcome. Reduced motion keeps the ring, the fill and the count, and drops
+   the glow's breath, the glide and the press's scale. */
+
+@property --shutter-p {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+.shutter {
+  /* The light's register on paper: a lit colour, never a neon. */
+  --shutter-l: 0.8;
+  --shutter-c: 0.13;
+  --shutter-p: var(--progress, 0);
+  --shutter-light: conic-gradient(
+    from 210deg,
+    oklch(var(--shutter-l) var(--shutter-c) var(--shutter-h1, 25)),
+    oklch(var(--shutter-l) var(--shutter-c) var(--shutter-h2, 85)),
+    oklch(var(--shutter-l) var(--shutter-c) var(--shutter-h3, 155)),
+    oklch(var(--shutter-l) var(--shutter-c) var(--shutter-h1, 25))
+  );
+}
+.dark .shutter {
+  --shutter-l: 0.74;
+  --shutter-c: 0.15;
+}
+
+/* The ring's band: 3px, outside the face, which it never covers. */
+.shutter-ring {
+  position: absolute;
+  inset: -5px;
+  border-radius: 9999px;
+  pointer-events: none;
+  -webkit-mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 3px),
+    #000 calc(100% - 2.5px)
+  );
+  mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 3px),
+    #000 calc(100% - 2.5px)
+  );
+}
+.shutter-track,
+.shutter-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--shutter-light);
+}
+/* While a run goes the band thickens by a pixel, so the sweep reads at a
+   glance from arm's length. */
+.shutter[data-state="sending"] .shutter-ring,
+.shutter[data-state="done"] .shutter-ring {
+  -webkit-mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 4px),
+    #000 calc(100% - 3.5px)
+  );
+  mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 4px),
+    #000 calc(100% - 3.5px)
+  );
+}
+/* At rest the track IS the light; while a run goes it dims to the ground the
+   fill sweeps over. */
+.shutter[data-state="sending"] .shutter-track,
+.shutter[data-state="done"] .shutter-track {
+  opacity: 0.28;
+}
+.shutter-fill {
+  opacity: 0;
+  -webkit-mask: conic-gradient(
+    #000 calc(var(--shutter-p) * 1turn),
+    transparent 0
+  );
+  mask: conic-gradient(#000 calc(var(--shutter-p) * 1turn), transparent 0);
+}
+.shutter[data-state="sending"] .shutter-fill,
+.shutter[data-state="done"] .shutter-fill {
+  opacity: 1;
+}
+.shutter[data-state="done"] {
+  --shutter-p: 1;
+}
+
+/* The glow: the same light, blurred, under the face. */
+.shutter-glow {
+  position: absolute;
+  inset: -4px;
+  z-index: -1;
+  border-radius: 9999px;
+  pointer-events: none;
+  background: var(--shutter-light);
+  filter: blur(14px);
+  opacity: 0.6;
+}
+.shutter[data-state="sending"] .shutter-glow {
+  opacity: 0.35;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .shutter {
+    transition: --shutter-p 420ms var(--ease-emphasis);
+  }
+  .shutter-track,
+  .shutter-fill,
+  .shutter-glow {
+    transition: opacity 240ms var(--ease-emphasis);
+  }
+  .shutter[data-state="idle"] .shutter-glow {
+    animation: shutter-breathe 4.8s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes shutter-breathe {
+  to {
+    opacity: 0.32;
+  }
+}
+
+/* Forced colours: the light is decoration; the face and its outline carry it. */
+@media (forced-colors: active) {
+  .shutter-ring,
+  .shutter-glow {
+    display: none;
+  }
+}

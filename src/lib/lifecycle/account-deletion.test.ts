@@ -694,3 +694,110 @@ describe("getAccountDeletionState on the clamping fake", () => {
     });
   });
 });
+
+/**
+ * ★ A RESTORED ACCOUNT IS NEVER ERASED (lp/account-exit). The operator's Cancel deletion
+ * (`cancelAccountDeletion`) lifts the ban and clears the stamp, and it refuses while a run is under
+ * way; the window left is a run that starts between that check and its write, reads the queue with
+ * the stamp still set, and reaches the account after the stamp is gone. So the purge reads the stamp
+ * again, first, before the re-anonymise or any delete, and an account whose stamp is gone is left
+ * exactly as it is: no name or address taken again, no media, no events, no sign-in.
+ */
+describe("a stamp cleared after the queue was read", () => {
+  /** The operator's Cancel deletion, landing the moment the run's first queue read answers. */
+  function cancelAfterQueueRead(w: CronWorld, userId: string): void {
+    const from = w.fake.from.bind(w.fake);
+    let queueRead = false;
+    w.fake.from = ((table: string) => {
+      const query = from(table);
+      if (table !== "profiles" || queueRead) return query;
+      queueRead = true;
+      const select = query.select.bind(query);
+      query.select = ((...args: Parameters<typeof select>) => {
+        const page = select(...args);
+        const then = page.then.bind(page);
+        page.then = ((onFulfilled, onRejected) =>
+          then((response) => {
+            // The page answered with the stamp still set; the cancellation lands right after.
+            const row = w.fake.tables.profiles.find((p) => p.id === userId);
+            if (row) {
+              row.deletion_requested_at = null;
+              row.email = `${userId}@example.com`;
+            }
+            return response;
+          }).then(onFulfilled, onRejected)) as typeof page.then;
+        return page;
+      }) as typeof query.select;
+      return query;
+    }) as typeof w.fake.from;
+  }
+
+  it("★ leaves the restored account whole, and purges the rest of the queue as ever", async () => {
+    const restored = uuidOf("u", 60);
+    const other = uuidOf("u", 61);
+    const kept = eventRow(uuidOf("e", 60), restored, { deleted_at: HELD });
+    const gone = eventRow(uuidOf("e", 61), other, { deleted_at: HELD });
+    const w = world({
+      profiles: [profile(restored, HELD), profile(other, HELD)],
+      events: [kept, gone],
+      media: [mediaRow(uuidOf("m", 60), kept), mediaRow(uuidOf("m", 61), gone)],
+    });
+    cancelAfterQueueRead(w, restored);
+
+    const result = await sweepDeletedAccounts(w.client, NOW, new Set());
+
+    // The restored account: its sign-in, its events, its media and its address all stand.
+    expect(state.deletedUsers).toEqual([other]);
+    expect(w.fake.tables.events.map((e) => e.id)).toEqual([kept.id]);
+    expect(w.fake.tables.media.map((m) => m.id)).toEqual([uuidOf("m", 60)]);
+    expect(w.fake.tables.profiles.find((p) => p.id === restored)).toMatchObject(
+      {
+        deletion_requested_at: null,
+        email: `${restored}@example.com`,
+        display_name: "Someone",
+      },
+    );
+    expect(result).toMatchObject({
+      accounts: 2,
+      accounts_deleted: 1,
+      accounts_skipped: 1,
+      accounts_unfinished: 0,
+      rows_failed: 0,
+    });
+    // Skipping a restored account is no backlog: the run is not "stopped early".
+    expect(result.stopped_early).toBeUndefined();
+  });
+
+  it("purgeAccount touches nothing of an account whose stamp is gone", async () => {
+    const user = uuidOf("u", 62);
+    const e = eventRow(uuidOf("e", 62), user, { deleted_at: HELD });
+    const w = world({
+      profiles: [profile(user, null)],
+      events: [e],
+      media: [mediaRow(uuidOf("m", 62), e)],
+    });
+
+    const result = await purgeAccount(w.client, user);
+
+    expect(result).toMatchObject({ outcome: "skipped", events: 0 });
+    expect(state.deletedUsers).toEqual([]);
+    expect(w.fake.tables.events).toHaveLength(1);
+    expect(w.fake.tables.media).toHaveLength(1);
+    expect(w.fake.tables.profiles[0]).toMatchObject({
+      email: `${user}@example.com`,
+      display_name: "Someone",
+    });
+    expect(w.log).toEqual([]);
+  });
+
+  it("reads the stamp before the re-anonymise and before anything is deleted (source text)", () => {
+    const body = sweepBody();
+    const stampRead = body.indexOf('"purgeAccount: the stamp"');
+    expect(stampRead, "the purge's own stamp read").toBeGreaterThan(-1);
+    expect(stampRead).toBeLessThan(
+      body.indexOf("await reanonymise(admin, userId)"),
+    );
+    expect(stampRead).toBeLessThan(body.indexOf("reclaimMedia("));
+    expect(stampRead).toBeLessThan(body.indexOf("auth.admin.deleteUser("));
+  });
+});

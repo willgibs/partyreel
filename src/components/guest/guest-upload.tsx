@@ -1,21 +1,58 @@
 "use client";
 
-import { useEffect, useImperativeHandle, useRef, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { Ref } from "react";
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
 
 import { ClaimHandlePrompt } from "@/components/guest/claim-handle-prompt";
+import { addsWaitFor } from "@/components/guest/event-experience-wait";
 import type { FollowMomentHost } from "@/components/guest/follow-moment-card";
 import { UploadFailureSheet } from "@/components/guest/upload/failure-sheet";
 import { UploadIntentSheet } from "@/components/guest/upload/intent-sheet";
 import { Button } from "@/components/ui/button";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
-// The queue MACHINE lives in `event-experience.tsx`; only its item type is read
+import {
+  developTimeWords,
+  uploadsWait as uploadsWaitOf,
+  type UploadsWait,
+} from "@/lib/guest/upload-tracker";
+import { useHydrated } from "@/lib/shared/use-hydrated";
+// The queue MACHINE lives in `event-experience.tsx`; only its types are read
 // here.
-import type { QueueItem } from "@/lib/guest/use-upload-queue";
+import type { FileExtra, QueueItem } from "@/lib/guest/use-upload-queue";
 
 export type { UploadedItem } from "@/lib/guest/use-upload-queue";
+
+/**
+ * ★ THE ALBUM'S CAMERA IS ITS OWN CHUNK, fetched only on an album whose host chose it (`capture = 'camera'`), and
+ * fetched as the album mounts rather than at the press, so Add opens it at once (`loadCamera`). A free-upload album
+ * never downloads a byte of it.
+ */
+const loadCamera = () => import("@/components/guest/camera/album-camera");
+
+/**
+ * The develop's own line, before a first add: what she adds waits until the album develops, and when (once the reader's
+ * clock is known). Her tracker's own sentence for the same rule (`upload-tracker.tsx`'s header), so one rule has one
+ * wording on the page.
+ */
+function developNote(developsAt: string | null): string {
+  const when = developTimeWords(developsAt);
+  return `Uploads appear in the album when it develops${when ? `, ${when}` : ""}.`;
+}
+
+const AlbumCamera = lazy(() =>
+  loadCamera().then((m) => ({ default: m.AlbumCamera })),
+);
 
 /**
  * ★ THE FAILURES THE QUEUE ALREADY HELD WHEN THIS SLOT MOUNTED WITH NOTHING RUNNING, which it never saw happen
@@ -41,6 +78,9 @@ export type GuestUploadHandle = {
    * Open the ADD SHEET (the row's Add, the dock's Add, the empty album's CTA),
    * never the phone's own chooser directly: the intent sheet puts our surface
    * in front of it, so every Add affordance opens the same two named acts.
+   * ★ On an album whose host chose the camera (`capture = 'camera'`), every Add
+   * opens the album's own camera instead (`components/guest/camera/`): one Add
+   * entry, so the cover's white Add and the shutter reach it alike.
    */
   openAdd: () => void;
   /** Reset an errored queue item and re-run (the failure sheet's Retry). */
@@ -51,8 +91,9 @@ export type GuestUploadHandle = {
  * The upload ENGINE, and the two SHEETS the act speaks through.
  *
  * The queue machine lives in `useUploadQueue`; the visible upload UI lives in
- * the GALLERY (the stack at the album's head) and, on a held event, in her
- * uploads (the tracker's badge and list). This owns both ends of the act:
+ * the GALLERY (the stack at the album's head) and, wherever what she adds waits
+ * (held for the host, or sealed for a develop), in her uploads from the press
+ * (the tracker's badge and list). This owns both ends of the act:
  *
  * ★ THE FRONT: one tap opens `UploadIntentSheet` — take a photo, or choose
  * from your album — and the picker returns INTO that sheet as a review step, so
@@ -69,6 +110,12 @@ export type GuestUploadHandle = {
  * Joining is just-in-time and SILENT (account-required events are gated at
  * the PAGE level; a signed-in uploader sets a display name first).
  * `onQueueChange` mirrors every queue snapshot upward for the tile subscribers.
+ *
+ * ★ THE ALBUM'S CAMERA (disposable-mode r3, `camera=timeline`): on an album
+ * whose host chose it, the front is the camera instead of the intent sheet,
+ * and every shot reaches `addFiles` the moment it is taken, so the back is the
+ * same: the queue, the album's stack and this failure sheet, which waits while
+ * the camera covers the screen and opens on what failed once it closes.
  */
 export function GuestUpload({
   ref,
@@ -87,6 +134,10 @@ export function GuestUpload({
   onAccountRenamed,
   removedIds,
   capBytes = null,
+  isOwner = false,
+  onOwnRemoved,
+  onCameraOpenChange,
+  uploadsWait,
 }: {
   ref?: Ref<GuestUploadHandle>;
   event: GuestEvent;
@@ -98,7 +149,8 @@ export function GuestUpload({
    * component keeps the album's two sheets and what follows an upload.
    */
   queue: readonly QueueItem[];
-  onAddFiles: (files: File[]) => void;
+  /** The queue's `addFiles`: the camera hands each shot with its `FileExtra` (its poster, its develop time). */
+  onAddFiles: (files: File[], extra?: FileExtra) => void;
   onRetry: (id: string) => void;
   onDismiss: (ids: string[]) => void;
   /** The door is showing this run's failures, or its keep stands in front of the album; one run
@@ -133,13 +185,56 @@ export function GuestUpload({
    * which the cap exempts) and where the host set none. The page decides it, as it decides who is the owner.
    */
   capBytes?: number | null;
+  /**
+   * The album's own host (the page's owner answer): her shots ride the host's pair, which no roll counts, so her camera
+   * keeps no roll. Absent, the camera counts a roll for her as for a guest (her shots never use it up on the server).
+   */
+  isOwner?: boolean;
+  /** One of hers was taken back inside the camera (the page's own-removal handler, as her tracker's Remove calls it). */
+  onOwnRemoved?: (mediaId: string, remaining: number) => void;
+  /**
+   * The camera opened or closed: the page holds what would rise over it while she shoots (the door's keep, which her
+   * first landed shot makes due) until she closes it.
+   */
+  onCameraOpenChange?: (open: boolean) => void;
+  /**
+   * Whether what is added here waits, and for what: the page's live reading of the album (`useLiveUploadsWait`, red-team
+   * 44), so the line below, the camera's develop and the failure sheet's words (as they fall on this viewer,
+   * `addsWaitFor`) all end with the develop, with no reload. Absent (standalone), the event's own reading at render.
+   */
+  uploadsWait?: UploadsWait;
 }) {
   const items = queue;
   const [addOpen, setAddOpen] = useState(false);
+  const camera = event.capture === "camera";
+  // The camera mounts at its first opening and stays (its shots and roll outlive a close); `openedAt` is the press's.
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraOpenedAt, setCameraOpenedAt] = useState<number | null>(null);
   useImperativeHandle(ref, () => ({
-    openAdd: () => setAddOpen(true),
+    openAdd: () => {
+      if (!camera) {
+        setAddOpen(true);
+        return;
+      }
+      setCameraOpenedAt(Date.now());
+      setCameraOpen(true);
+      onCameraOpenChange?.(true);
+    },
     retry: onRetry,
   }));
+  // The camera's code, fetched as a camera album mounts, so its Add opens it with nothing left to download.
+  useEffect(() => {
+    if (camera) void loadCamera();
+  }, [camera]);
+  // A slot that goes with the camera open (a re-gate) closes it for the page too, so nothing is held for it.
+  const cameraOpenNow = useRef({ open: cameraOpen, tell: onCameraOpenChange });
+  useEffect(() => {
+    cameraOpenNow.current = { open: cameraOpen, tell: onCameraOpenChange };
+  });
+  const closeCameraForPage = useCallback(() => {
+    if (cameraOpenNow.current.open) cameraOpenNow.current.tell?.(false);
+  }, []);
+  useEffect(() => closeCameraForPage, [closeCameraForPage]);
 
   /* ────────────────────────────────────────────────────────────────────────
      THE END OF A RUN, which is the only moment the failure sheet opens on.
@@ -199,7 +294,10 @@ export function GuestUpload({
     prevItemsLen.current = items.length;
   }, [items, carried]);
   const sentThisRun = items.length - runBaseline;
-  const sheetOpen = failuresOpen && failures.length > 0 && !suppressFailures;
+  // ★ NEVER OVER THE CAMERA: it says what did not go in its own words while it is open, and the sheet opens on the
+  // same failures the moment it closes (the run's edge already set `failuresOpen`).
+  const sheetOpen =
+    failuresOpen && failures.length > 0 && !suppressFailures && !cameraOpen;
   /**
    * ★ THE SLOT GOING AWAY IS A CLOSE TOO (crumbs-47). A gate takes the slot down (`event-experience.tsx`
    * mounts it only at full access), sheet and all, with no `onOpenChange(false)` for `closeFailures` to
@@ -250,18 +348,66 @@ export function GuestUpload({
       it.status === "done" && !(it.mediaId && removedIds?.has(it.mediaId)),
   ).length;
   const holdForApproval = event.moderation_mode === "hold_for_approval";
+  /* ★ "DELAYED" IS APPROVE-EACH OR A DEVELOP TIME AHEAD (build 43's red-team, the upload half), read off the page's
+     live reading (`uploadsWait`, the foundation's own reading of the develop time behind it), never the review switch
+     alone: on an album that develops later what she adds waits out of sight as a held upload does (the queue tells it
+     `sealed`, her tracker keeps it), and this line says so before her first add, and stops saying it the moment the
+     album develops (red-team 44: it promised a develop over the developed album until a reload). The time is said only
+     once hydrated: "at 9 am" is the reader's own clock, which the server's render cannot know. */
+  const wait = uploadsWait ?? uploadsWaitOf(event);
+  const developsAt = wait.developsAt;
+  // The camera hears the same develop: its words and its reveal end with it (a time reached reads as developed).
+  const cameraEvent = useMemo(
+    () =>
+      event.develops_at === developsAt
+        ? event
+        : { ...event, develops_at: developsAt },
+    [event, developsAt],
+  );
+  const hydrated = useHydrated();
   const hostName = event.host_display_name ?? "the host";
 
   return (
     <div className="space-y-4">
-      <UploadIntentSheet
-        open={addOpen}
-        onOpenChange={setAddOpen}
-        hostName={hostName}
-        onSend={onAddFiles}
-        capBytes={capBytes}
-        acceptsVideo={event.accepts_video}
-      />
+      {camera ? (
+        cameraOpenedAt !== null && (
+          // Its own black stands at once while the camera's code arrives (only ever before the preload has).
+          <Suspense
+            fallback={
+              cameraOpen ? (
+                <div aria-hidden className="fixed inset-0 z-50 bg-black" />
+              ) : null
+            }
+          >
+            <AlbumCamera
+              open={cameraOpen}
+              openedAt={cameraOpenedAt}
+              onOpenChange={(next) => {
+                setCameraOpen(next);
+                onCameraOpenChange?.(next);
+              }}
+              event={cameraEvent}
+              qrToken={qrToken}
+              queue={queue}
+              onAddFiles={onAddFiles}
+              onRetry={onRetry}
+              removedIds={removedIds}
+              isOwner={isOwner}
+              isDemo={isDemo}
+              onOwnRemoved={onOwnRemoved}
+            />
+          </Suspense>
+        )
+      ) : (
+        <UploadIntentSheet
+          open={addOpen}
+          onOpenChange={setAddOpen}
+          hostName={hostName}
+          onSend={onAddFiles}
+          capBytes={capBytes}
+          acceptsVideo={event.accepts_video}
+        />
+      )}
       <UploadFailureSheet
         open={sheetOpen}
         onOpenChange={closeFailures}
@@ -273,16 +419,26 @@ export function GuestUpload({
         }))}
         sent={sentThisRun}
         hostName={hostName}
+        waits={addsWaitFor({ uploadsWait: wait, isOwner, isDemo })}
         onRetry={onRetry}
       />
 
-      {holdForApproval && (
-        // The one place the rule can be read BEFORE a first upload. Her
-        // uploads say what happened to YOURS; this says what happens on this
-        // event at all.
-        <p className="rounded-md bg-muted px-3 py-2 text-center text-reading text-muted-foreground">
-          The host reviews uploads before they appear in the album.
+      {developsAt !== null ? (
+        <p
+          data-develop-note=""
+          className="rounded-md bg-muted px-3 py-2 text-center text-reading text-muted-foreground"
+        >
+          {developNote(hydrated ? developsAt : null)}
         </p>
+      ) : (
+        holdForApproval && (
+          // The one place the rule can be read BEFORE a first upload. Her
+          // uploads say what happened to YOURS; this says what happens on this
+          // event at all.
+          <p className="rounded-md bg-muted px-3 py-2 text-center text-reading text-muted-foreground">
+            The host reviews uploads before they appear in the album.
+          </p>
+        )
       )}
 
       {/* The post-upload slot, one card at a time. ClaimHandlePrompt resolves

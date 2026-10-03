@@ -1,11 +1,14 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
+import { isUserBanned } from "@/app/(auth)/account-deleting";
+import { AccountDeletingNotice } from "@/app/(auth)/account-deleting-notice";
 import { checkExistingAccount } from "@/app/(auth)/actions";
 import {
   FailurePaths,
@@ -35,6 +38,8 @@ import {
   retryAfterSeconds,
   type DoorFailureKind,
 } from "@/lib/auth/door-failure";
+import { nextPurgeWindow } from "@/lib/lifecycle/purge-time";
+import { useHydrated } from "@/lib/shared/use-hydrated";
 import { createClient } from "@/lib/supabase/client";
 import { isTextField } from "@/lib/use-keyboard-inset";
 import { cn } from "@/lib/utils";
@@ -88,6 +93,26 @@ export function codeSentLine(email: string): ReactNode {
       We sent a {CODE_LENGTH}-digit code to{" "}
       <span className="font-medium break-words text-foreground">{email}</span>.
     </>
+  );
+}
+
+/**
+ * THE SPINNER A BUTTON WEARS WHILE ITS PAGE IS STILL LOADING. In the button's corner, so the label never
+ * moves when it goes, and it arrives after half a second (`fade-in` held back by its delay, which every
+ * `animate-in` reads from `--tw-animation-delay`, never `delay-*`, which would also slow the button's own
+ * press transition): a page that hydrates inside the half second, which is nearly every desktop load,
+ * never shows it, with reduced motion too (the global guard shortens the fade, never the delay). A press
+ * shows it at once (`group-active`), because the press is what asked.
+ */
+function WaitingCue() {
+  return (
+    <span
+      aria-hidden
+      data-waiting-cue=""
+      className="absolute inset-y-0 left-4 flex animate-in items-center duration-300 fill-mode-backwards [--tw-animation-delay:500ms] fade-in group-active/button:animate-none"
+    >
+      <Loader2 className="size-4 animate-spin motion-reduce:animate-none" />
+    </span>
   );
 }
 
@@ -173,6 +198,7 @@ export function EmailSignIn({
 }) {
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [code, setCode] = useState("");
+  const hydrated = useHydrated();
   const [verifying, setVerifying] = useState(false);
   const [resending, setResending] = useState(false);
   const [resendIn, setResendIn] = useState(0);
@@ -182,6 +208,15 @@ export function EmailSignIn({
   const [failure, setFailure] = useState<{
     kind: DoorFailureKind;
     seconds?: number;
+  } | null>(null);
+  // ★ AN ADDRESS WHOSE ACCOUNT IS STILL BEING ERASED (lp/account-exit). GoTrue refuses a deleted
+  // account's address at the verify, whatever code was typed, until the nightly purge: no wrong
+  // code, and no resend or retry passes it. So the door goes back to the email step with the reason
+  // and the time it can start fresh (`account-deleting.ts`), and the field is the way on.
+  const [deleting, setDeleting] = useState<{
+    email: string;
+    endsAt: number;
+    at: number;
   } | null>(null);
   const otpRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
@@ -281,7 +316,10 @@ export function EmailSignIn({
     if (await sendCode(values.email)) {
       const handOver = fieldAtSubmit.current || codeFocus === "always";
       swapScreen(
-        () => openCodeScreen(values.email),
+        () => {
+          setDeleting(null);
+          openCodeScreen(values.email);
+        },
         () => otpRef.current,
         handOver,
       );
@@ -302,6 +340,25 @@ export function EmailSignIn({
     if (error) {
       setVerifying(false);
       setCode("");
+      if (isUserBanned(error)) {
+        const refused = sentTo;
+        const at = Date.now();
+        swapScreen(
+          () => {
+            setSentTo(null);
+            sentAt?.(null);
+            setDeleting({
+              email: refused,
+              endsAt: nextPurgeWindow(at).end.getTime(),
+              at,
+            });
+            form.reset({ email: "" });
+          },
+          () => emailRef.current,
+          isTextField(document.activeElement),
+        );
+        return;
+      }
       setFailure({ kind: "wrong_code" });
       return;
     }
@@ -483,6 +540,13 @@ export function EmailSignIn({
             suppress={NOT_MINE}
           />
         )}
+        {deleting && (
+          <AccountDeletingNotice
+            email={deleting.email}
+            endsAt={deleting.endsAt}
+            now={deleting.at}
+          />
+        )}
         {leading}
         <FormField
           control={form.control}
@@ -518,12 +582,20 @@ export function EmailSignIn({
           <Button
             type="submit"
             size={buttonSize}
+            // ★ WAITING FOR THE PAGE (`ClientForm`): until React has attached its handler a press sends
+            // nothing anywhere, so the button says it is not ready (`aria-disabled`, a progress cursor
+            // and, after half a second, a spinner in its corner) rather than taking the press in silence.
+            // The cue is `!hydrated`, which the server and the hydrating render both answer, so it is in
+            // the HTML a cold phone paints and gone the moment the handler exists.
+            aria-disabled={hydrated ? undefined : true}
             className={cn(
-              "w-full active:scale-[0.99] motion-reduce:active:scale-100",
+              "relative w-full active:scale-[0.99] motion-reduce:active:scale-100",
+              !hydrated && "cursor-progress",
               buttonClassName,
             )}
             disabled={form.formState.isSubmitting}
           >
+            {!hydrated && <WaitingCue />}
             {form.formState.isSubmitting ? "Sending…" : "Email me a code"}
           </Button>
         </div>

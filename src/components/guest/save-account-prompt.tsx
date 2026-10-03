@@ -9,7 +9,12 @@ import { DoorCheck } from "@/components/guest/door/lit";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { formatCount } from "@/lib/format/count";
+import { formatCount, formatKindCount } from "@/lib/format/count";
+import {
+  developTimeWords,
+  TRACKER_SEALED_WORDS,
+  TRACKER_WORDS,
+} from "@/lib/guest/upload-tracker";
 
 /**
  * THE KEEP: THE DOOR'S LAST SCREEN (`guest-capture` r1, Will's `moment=first` and
@@ -45,44 +50,83 @@ import { formatCount } from "@/lib/format/count";
 export const KEEP_TITLE = "Keep this event";
 
 /**
- * The offer's two sentences: the event first, and the future ("to come back to anytime"), with her
- * photographs counted inside it, one of them said in the singular. The event by name where it has
- * one; "this event" otherwise, so the sentence never reads with a hole in it.
+ * What landed this visit, as the keep names it: each one's kind, and whether the album's camera took them (the page's
+ * `keepSent`, its count the keep's own `count`).
+ */
+export type KeepSent = {
+  kinds: readonly ("photo" | "video")[];
+  camera: boolean;
+};
+
+/**
+ * ★ WHAT SHE SENT, NAMED (red-team 44's NIT: "Your 5 photos are waiting to develop" with a video among them): a camera
+ * album's are shots, as the camera calls every frame of the roll; elsewhere they are named by kind, and a mix takes
+ * `formatKindCount`'s own word for one, uploads (her tracker is "Your uploads"). One of them is said in the singular,
+ * with no number. Told nothing of what went (a caller that only counts), they are photos, as they always were.
+ */
+function yours(count: number, sent: KeepSent | null | undefined): string {
+  if (sent?.camera) {
+    return count === 1
+      ? "your shot"
+      : count > 1
+        ? `your ${formatCount(count)} shots`
+        : "your shots";
+  }
+  const kinds = sent?.kinds ?? [];
+  if (count === 1) return `your ${kinds.length === 1 ? kinds[0] : "photo"}`;
+  if (count > 1 && kinds.length === count) {
+    return `your ${formatKindCount(
+      kinds.map((type) => ({ type })),
+      "upload",
+    )}`;
+  }
+  return count > 1 ? `your ${formatCount(count)} photos` : "your photos";
+}
+
+/**
+ * The offer's two sentences: the event first, and the future ("to come back to anytime"), with what
+ * she sent counted inside it (`yours`: her photos, videos, uploads or shots), one of them said in the
+ * singular. The event by name where it has one; "this event" otherwise, so the sentence never reads
+ * with a hole in it.
  */
 export function keepCopy(
   count: number,
   eventName?: string | null,
+  sent?: KeepSent | null,
 ): { title: string; reason: string } {
   const event = eventName?.trim() || "this event";
-  const photos =
-    count === 1
-      ? "your photo"
-      : count > 1
-        ? `your ${formatCount(count)} photos`
-        : "your photos";
   return {
     title: KEEP_TITLE,
-    reason: `Confirm your email and ${event} stays in your account with ${photos}, to come back to anytime.`,
+    reason: `Confirm your email and ${event} stays in your account with ${yours(count, sent)}, to come back to anytime.`,
   };
 }
 
 /**
- * Where what she sent went: into the album (the host's, by name, when the host has one), or, on an
- * event that holds uploads for the host, waiting for approval, in her uploads' own words for it
- * (`TRACKER_WORDS.waiting`: one state, one name). Never "joined the album" for a photograph the
- * album does not show yet.
+ * Where what she sent went: into the album (the host's, by name, when the host has one), or, where what she adds
+ * waits, waiting in her uploads' own words for it (one state, one name): for the album to develop, with its time,
+ * on an album with a develop time ahead (`TRACKER_SEALED_WORDS`, red-team 43), else for approval
+ * (`TRACKER_WORDS.waiting`). Never "joined the album" for a photograph the album does not show yet.
  */
 export function keepSentLine(input: {
   count: number;
   held: boolean;
+  /** The album's develop time while it is ahead (`uploadsWait`'s `developsAt`): what she sent is sealed until then. */
+  developsAt?: string | null;
   hostName?: string | null;
+  /** What she sent (`yours`): her photos, videos, uploads or shots. */
+  sent?: KeepSent | null;
 }): string {
   const { count, held } = input;
   const host = input.hostName?.trim();
-  const subject =
-    count === 1 ? "Your photo" : `Your ${formatCount(count)} photos`;
+  const named = yours(count, input.sent);
+  const subject = named.charAt(0).toUpperCase() + named.slice(1);
+  const verb = count === 1 ? "is" : "are";
+  if (input.developsAt) {
+    const when = developTimeWords(input.developsAt);
+    return `${subject} ${verb} ${TRACKER_SEALED_WORDS.toLowerCase()}${when ? `, ${when}` : ""}.`;
+  }
   if (held) {
-    return `${subject} ${count === 1 ? "is" : "are"} waiting for approval.`;
+    return `${subject} ${verb} ${TRACKER_WORDS.waiting.toLowerCase()}.`;
   }
   return `${subject} joined ${host ? `${host}’s album` : "the album"}.`;
 }
@@ -100,6 +144,8 @@ export function keepSentLine(input: {
 export function KeepOffer({
   count,
   held,
+  developsAt = null,
+  sent = null,
   hostName,
   eventName,
   onConfirm,
@@ -107,15 +153,19 @@ export function KeepOffer({
 }: {
   /** The photographs of hers that landed this visit (live: it grows as the rest land). */
   count: number;
-  /** The event holds uploads for the host. */
+  /** What they are (`KeepSent`): her photos, videos, uploads or shots, on the Sent line and in the offer. */
+  sent?: KeepSent | null;
+  /** What she adds waits (`uploadsWait`'s `waits`): for the host's approval, or for a develop time ahead. */
   held: boolean;
+  /** The album's develop time while it is ahead: what she sent waits for it. */
+  developsAt?: string | null;
   hostName?: string | null;
   /** The event she is keeping, by name (`keepCopy`'s "this event" without one). */
   eventName?: string | null;
   onConfirm: () => void;
   onLater: () => void;
 }) {
-  const copy = keepCopy(count, eventName);
+  const copy = keepCopy(count, eventName, sent);
   return (
     <div data-keep-step="offer" className="flex flex-col gap-5">
       {/* WHAT WENT: the beat of her first photo sent. A check in the album's light blooms beside
@@ -127,7 +177,7 @@ export function KeepOffer({
         <div className="flex min-w-0 flex-col gap-0.5">
           <p className="font-heading text-card-title text-foreground">Sent</p>
           <p className="text-working text-muted-foreground">
-            {keepSentLine({ count, held, hostName })}
+            {keepSentLine({ count, held, developsAt, hostName, sent })}
           </p>
         </div>
       </div>

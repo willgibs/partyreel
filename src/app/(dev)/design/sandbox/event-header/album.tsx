@@ -1,27 +1,34 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { Download, SlidersHorizontal } from "lucide-react";
+import {
+  Download,
+  ImageUp,
+  Images,
+  ListChecks,
+  SlidersHorizontal,
+} from "lucide-react";
 
-import { GalleryEmptyState } from "@/components/guest/gallery-empty-state";
-import { formatMediaCount } from "@/lib/format/count";
+import { FeedSectionEmpty } from "@/components/app/event-feed/feed-section-empty";
+import { FeedSectionHeader } from "@/components/app/event-feed/feed-section-header";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-import { ALBUM, type Still } from "./fixtures";
+import { ALBUM, type HostFacts, type Still } from "./fixtures";
 import type { ScreenId } from "./scene";
 
 /**
  * THE ALBUM UNDER EVERY HEAD, AT REST: its photographs in justified rows (the
- * shape `MasonryColumns` `layout="rows"` draws: two a row at a phone, five at
- * a desk, the default step), quoted with flex so a frame needs no engine, no
- * window and no network. Every option of every question draws the same album,
- * so the only thing that differs between two frames is the head above it.
+ * shape the rows engine draws: two a row at a phone, five at a desk, the
+ * default step), quoted with flex so a frame needs no engine, no window and
+ * no network. Every option of every decision draws the same album, so two
+ * frames differ only in what the decision redraws.
  *
  * ★ EACH TILE IS MARKED `data-eh-tile`, so a caption reads where the album's
  * first photograph lands on the first screen off the frame itself.
  */
 
-/** Photographs a row at the default step (`ROW_CLASSES`): two at a phone, five at a desk. */
+/** Photographs a row at the default step: two at a phone, five at a desk. */
 const PER_ROW: Record<ScreenId, number> = { "375": 2, "1440": 5 };
 
 /** The album, repeated to a real album's depth, so a scrolled frame has somewhere to go. */
@@ -33,7 +40,7 @@ function photos(n: number): Still[] {
  * ★ A ROW IS ITS PHOTOGRAPHS' RATIOS: each tile grows by its own width over
  * height from a zero basis and keeps its aspect, so every tile in a row comes
  * out one height and the row fills the width exactly, the way the rows engine
- * justifies a row (without its band, its cap or its landscape lead).
+ * justifies a row.
  */
 export function AlbumRows({
   screen,
@@ -84,38 +91,52 @@ export function AlbumRows({
 }
 
 /**
- * THE ALBUM'S OWN COUNT, with its quiet Download all and View (production's
- * `live-gallery.tsx` row, quoted: the real ones open the export and the view
- * stores). Today's head says the same number twice, here and in its stats
- * line; a head that counts in glyphs keeps this one as the album's own label.
+ * THE HUB'S ALBUM: production's section header (`FeedSectionHeader`: the
+ * label, its count, Add photos, Download, Select and View) over the rows, or
+ * the album's own empty place the week before (`FeedSectionEmpty`, the words
+ * `EventUploads` says).
  */
-export function AlbumCount({ count }: { count: number }) {
+export function HubAlbum({ f, screen }: { f: HostFacts; screen: ScreenId }) {
+  const has = f.photos > 0;
   return (
-    <div className="mb-3 flex flex-wrap items-center justify-between gap-1.5">
-      <p className="px-0.5 text-working text-muted-foreground tabular-nums">
-        {formatMediaCount(count)}
-      </p>
-      <div className="ml-auto flex items-center gap-1.5">
-        <span className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-muted-foreground">
-          <Download className="size-4" /> Download all
-        </span>
-        <span className="flex size-8 items-center justify-center rounded-md text-muted-foreground">
-          <SlidersHorizontal className="size-4" />
-        </span>
-      </div>
-    </div>
-  );
-}
-
-/**
- * AN EMPTY ALBUM, AS PRODUCTION DRAWS IT: the ghosted river under "The album
- * starts with you" and Add the first photo (`gallery-empty-state.tsx`, the
- * real component). It keeps the words' column, as production keeps it.
- */
-export function EmptyAlbum({ className }: { className?: string }) {
-  return (
-    <div data-eh-empty="" className={className}>
-      <GalleryEmptyState onAddFirst={() => {}} />
-    </div>
+    <section aria-label="Album" className="space-y-2.5">
+      <FeedSectionHeader
+        label="Album"
+        count={has ? f.photos : undefined}
+        action={
+          <div className="flex flex-wrap items-center justify-end gap-1.5">
+            <Button variant="outline" size="sm">
+              <ImageUp /> Add photos
+            </Button>
+            {has && screen === "1440" ? (
+              <Button variant="outline" size="sm">
+                <Download /> Download
+              </Button>
+            ) : null}
+            {has ? (
+              <Button variant="outline" size="sm">
+                <ListChecks /> Select
+              </Button>
+            ) : null}
+            <Button variant="ghost" size="icon-sm" aria-label="View">
+              <SlidersHorizontal />
+            </Button>
+          </div>
+        }
+      />
+      {has ? (
+        <div className="-mx-1">
+          <AlbumRows screen={screen} />
+        </div>
+      ) : (
+        <div data-eh-empty="">
+          <FeedSectionEmpty
+            icon={Images}
+            title="No photos yet"
+            desc="The album fills here as you and your guests add photos."
+          />
+        </div>
+      )}
+    </section>
   );
 }

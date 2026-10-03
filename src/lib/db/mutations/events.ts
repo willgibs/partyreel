@@ -175,6 +175,12 @@ export async function updateEvent(
   // narrows (the upload's gate reads the plan).
   if (values.allow_videos !== undefined)
     patch.allow_videos = values.allow_videos;
+  // HOW GUESTS ADD AND WHEN THE ALBUM DEVELOPS (20261002200000): bare granted-column writes. The database does the
+  // rest in this same save: `events_reveal_stamp` fills in the camera's roll and stamps its period, and a new develop
+  // time rewrites the album's rows (`events_develops_rewrite`: Develop now, right away and a moved time land with the
+  // save, ringing the album once).
+  if (values.capture !== undefined) patch.capture = values.capture;
+  if (values.develops_at !== undefined) patch.develops_at = values.develops_at;
 
   const { data, error } = await supabase
     .from("events")

@@ -29,8 +29,8 @@ import {
 } from "@/lib/db/queries/guest-events";
 import {
   readAlbumAttribution,
-  readAlbumChanges,
   readAlbumVersions,
+  readGuestAlbumChanges,
   type AlbumVersions,
 } from "@/lib/db/queries/album-state";
 import { inChunks, readAllPages } from "@/lib/db/read-all";
@@ -46,6 +46,8 @@ import {
   toManifestEntry,
   type AlbumCursor,
 } from "@/lib/events/album-wire";
+import { NOTHING_WAITING, type WaitingFacts } from "@/lib/disposable/facts";
+import { nowIso, unsealedFilter } from "@/lib/disposable/seal";
 import { holdsDoorPass } from "@/lib/event/door/pass.server";
 import { isRequestOwner } from "@/lib/events/gallery-access-owner.server";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
@@ -94,6 +96,9 @@ export async function readGuestAlbumVersions(
   return readAlbumVersions(event.id);
 }
 
+/** A guest plan, and what waits (held and sealed rows, as numbers) read in its snapshot. */
+export type GuestPlan = Plan & { waiting: WaitingFacts };
+
 /**
  * THE GUEST ALBUM'S PLAN (`album-sync.ts`): what a client holding `since` is sent, a manifest or a
  * delta, with the snapshot it was read from. Null past the gate. The sync route and the page's seed
@@ -102,18 +107,27 @@ export async function readGuestAlbumVersions(
  * ★ ONE GATE FOR THE WHOLE PLAN, asked before its first read: the plan's reads (the snapshot, then a
  * manifest's first page) are one answer, and a gate asked between them could refuse the second after
  * letting the first through, with nothing left to answer but an exception.
+ *
+ * ★ WHAT WAITS RIDES THE SNAPSHOT (the develop, 20261002200000): the plan reads `album_changes_since` exactly once, and
+ * its `waiting` facts come back from that read, so the count a waiting room says is the album at the version beside it.
  */
 export async function planGuestAlbumSync(
   event: AlbumEvent,
   since: number | null,
-): Promise<Plan | null> {
+): Promise<GuestPlan | null> {
   if (!(await albumReadable(event))) return null;
-  return planAlbumSync({
+  let waiting: WaitingFacts = NOTHING_WAITING;
+  const plan = await planAlbumSync({
     scope: "album",
     since,
-    read: (after, limit) => readAlbumChanges(event.id, "album", after, limit),
+    read: async (after, limit) => {
+      const answer = await readGuestAlbumChanges(event.id, after, limit);
+      waiting = answer.waiting;
+      return answer.read;
+    },
     page: (after, budget) => manifestPage(event.id, after, budget),
   });
+  return { ...plan, waiting };
 }
 
 /**
@@ -137,6 +151,10 @@ async function manifestPage(
   budget: number,
 ): Promise<ManifestPage> {
   const admin = createAdminClient();
+  // ★ THE SEAL (the develop, 20261002200000): what a guest may see, by the one predicate's app half (`lib/disposable/seal.ts`),
+  // on one clock for the whole page so its keyset never straddles a develop time. The cursor's own `.or()` is a second
+  // logic tree beside it, which PostgREST ANDs.
+  const now = nowIso();
   const page = await readAllPages(
     "album: guest manifest",
     (cursor: RowCursor | null, limit) => {
@@ -147,6 +165,7 @@ async function manifestPage(
         )
         .eq("event_id", eventId)
         .eq("status", "approved")
+        .or(unsealedFilter(now))
         .order("created_at", { ascending: false })
         .order("id", { ascending: false })
         .limit(limit);
@@ -184,7 +203,7 @@ async function manifestPage(
 }
 
 /**
- * The rows behind a window's links: each asked id that is APPROVED and in THIS album, with its keys,
+ * The rows behind a window's links: each asked id that is APPROVED, UNSEALED and in THIS album, with its keys,
  * and who uploaded it (by the one precedence rule, with no address: the guest path never reads one),
  * with the face a guest may see beside the name (`uploader-faces.ts`: the album's own Guests-list face
  * and a door to a published page, never a blocked person's). An id that is unknown, gone, held, hidden
@@ -201,6 +220,7 @@ export async function readGuestAlbumMedia(
 } | null> {
   if (!(await albumReadable(event))) return null;
   const admin = createAdminClient();
+  const now = nowIso();
   const [rows, identities] = await Promise.all([
     inChunks(
       "album: guest links",
@@ -212,6 +232,8 @@ export async function readGuestAlbumMedia(
             .select("id, type, original_key, preview_key")
             .eq("event_id", event.id)
             .eq("status", "approved")
+            // ★ The seal: a sealed id is `missing`, exactly as an unknown one is (the links route never says which).
+            .or(unsealedFilter(now))
             .in("id", chunk),
           "album: guest links",
         )) ?? [],

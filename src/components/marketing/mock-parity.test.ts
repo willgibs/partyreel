@@ -225,11 +225,14 @@ const ENTRIES: ParityEntry[] = [
     appFile: "src/components/app/event-feed/review-actions.tsx",
     literal: "Reject",
   },
+  // ★ Reshaped by disposable-foundation (20261002200000): the Review switch became "Once you approve each", one of
+  // the three answers to "When everyone sees what's added" (`camera-settings.tsx`), and its line went with it, word
+  // for word; the pin follows the line to its new file.
   {
     label: "curation modes, the review switch's line",
     marketingFile:
       "src/components/marketing/sections/features/curation/review-modes.tsx",
-    appFile: "src/components/app/event-settings/adds-page.tsx",
+    appFile: "src/components/app/event-settings/camera-settings.tsx",
     literal: "Hold new photos until you approve or reject them, instead of",
   },
   // Zip export demo (/features/sharing) <-> the real download dialog.
@@ -300,19 +303,17 @@ const ENTRIES: ParityEntry[] = [
     literal: "confirming an email",
   },
   // The live reel (`reel-sweep`, 2026-09-25): every surface that draws the reel
-  // quotes the reel's own words, so a rename in the tile, the view or the hub
-  // card strands no marketing picture of it.
+  // quotes the reel's own words, so a rename in the view or the hub card
+  // strands no marketing picture of it. ★ Reshaped on purpose (`event-header`
+  // r1, the album's head is the cover): the album's reel tile went, so the
+  // reel's name is read from its one home (`EVENT_ROOMS`, which the hub's card
+  // and its room wear), and the tile's own clip line went with the tile (the
+  // creator's door is the view's "Make your own", pinned below).
   {
     label: "reel page live tile heading",
     marketingFile: "src/components/marketing/sections/reel/live-tile.tsx",
-    appFile: "src/components/guest/reel/live-reel.tsx",
+    appFile: "src/lib/event/sections.ts",
     literal: "Highlight reel",
-  },
-  {
-    label: "reel page live tile clip line",
-    marketingFile: "src/components/marketing/sections/reel/live-tile.tsx",
-    appFile: "src/components/guest/reel/live-reel.tsx",
-    literal: "Make your own clip to share",
   },
   {
     label: "reel page screen corner code line",
@@ -351,7 +352,7 @@ const ENTRIES: ParityEntry[] = [
   {
     label: "home live demo payoff card, the reel's own heading",
     marketingFile: "src/components/marketing/sections/home/live-demo.tsx",
-    appFile: "src/components/guest/reel/live-reel.tsx",
+    appFile: "src/lib/event/sections.ts",
     literal: "Highlight reel",
   },
   // The select mode's bar lost its reel action with the stored reel; the
