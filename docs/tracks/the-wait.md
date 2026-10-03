@@ -1,6 +1,6 @@
 ---
 track: the-wait
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "d57d4486"            # the launch-prep SHA the branch was cut from
 board: the-wait
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -42,25 +42,77 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **The room's screen link (his to decide).** Should the room's screen get a link of its own that opens without
+  signing in as Maya? Today the live slideshow plays only for her own signed-in session, which keeps it private but
+  puts her whole account on a venue's laptop. **Recommended: yes, guarded**: the link plays the slideshow and nothing
+  else (no album, no Save, no Download all), Maya turns it off in one press from her hub, and it ends at the develop.
+  **Its privacy cost, plainly:** whoever holds the link (the DJ's laptop, a forwarded text) watches every photo as it
+  lands, from anywhere, a developing album's sealed roll included before 9 am; a photo she hides or removes is the
+  only recall. Drawn on the board as the carried call `screen`; nothing is built.
+- **Does taking one of hers back ask first?** Recommended: no, one press, her uploads list's own path (it says
+  Removing, and on a roll the shot comes back at once). Overrule: it asks first, since a camera shot she takes back is
+  purged that night. The board's carried call `remove`.
+- **Does her uploads' round stay beside Add once the wait shows hers?** Recommended: yes, as production has it on both
+  albums since door-reveal (a sealed one reads "Waiting to develop"): the list stays her one place for all of hers.
+  Overrule: it goes, one place for hers, not two. The board's carried call `round`.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none: the board is lab-only; what it decides lands in `disposable-mode.md` and `guest-flow.md` with its wiring.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: on a developing album, Add reads "Add the first photo" again the moment her first sealed shot lands this
+  visit: `inFlightUploads` keeps a held file (`mediaStatus === "pending"`) but not a sealed one
+  (`event-experience.tsx`, `galleryEmpty`), and `waitingOnArrival` answers only on the next paint; the-wait's wiring
+  retires the empty state under a wait entirely, or one clause there sooner.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed on `lp/the-wait`:** work `c994bf60` (the board, 14 files in its folder) and `3b638f88` (the
+  model's question in plain words, frame titles that fit the stage); sync `1022067f` (origin/launch-prep `219cec81`:
+  door-reveal had merged into this lane's reads, `guest-flow.md` and `event-experience.tsx`, and into the cover and
+  her uploads' round the drawings mount); work `0014b95b` (her round on both albums with production's "Waiting to
+  develop", the as-built model in production's two words, the board's account of today true after the sync). Since,
+  launch-prep took only crumbs-51 (help, `host-app.md`, admin, marketing) and records: nothing this lane reads or
+  mounts (`git diff --name-only 219cec81 origin/launch-prep`), so no second sync. The head is in the chat line.
+- **Gates on `0014b95b`, the synced tree, each on its own exit code** (logs `../partyreel-wt/_scratch/the-wait/gate-*.log`):
+  `pnpm typecheck` 0; `pnpm lint` 0; `pnpm test` 0 (789 files, 9,345 tests); `zsh scripts/build-lock.sh pnpm build` 0;
+  `pnpm lab:smoke --base http://localhost:3132` 0 (22 checks; the-wait reads 853 words of 1,200); `pnpm lab:demo
+  --board the-wait --base http://localhost:3132` 0 and the same `--state screen=1440` 0 (6 steps each, 0 failing,
+  every option drawn and moving, every stage above half the first screen, every frame whole above the dock at 1440
+  and 375). Every frame at both knobs, reduced motion, is saved in `../partyreel-wt/_scratch/the-wait/final/{p,w}/`;
+  on the synced head the board page and every step log no console error or warning (a fresh headless Chrome each;
+  every step at 375, and the model, the wait and the cover at 1440 too).
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = the 14 files under
+  `src/app/(dev)/design/sandbox/the-wait/` + this manifest. No exceptions.
+- **The board, `the-wait` round 1 [desk 35, surface shared], lab only:** every guest frame is production's album
+  (the real `AlbumCover`, Add, her uploads' round with its real store, `GuestActionDock` when scrolled) with only the
+  wait drawn in; the as-built Settings is the real `CaptureAndReveal`; Maya's hub is the real `HubCover` on the
+  rooms' own shell; 375 first, 1440 on the Screen knob; a held album (38 waiting, none let in) and a developing one
+  (142 sealed, 9 am) throughout; motion only where it shows state, none under reduced motion.
+  - `model` (first, his to find): two questions as built · album styles · one question of time · approval apart, each
+    end to end (Settings, held and developing at 10:40 pm, 11:20 pm as 24 arrive). **Recommended: one question of time.**
+  - `wait` (after `model`): the contact sheet (his anchor) · uploads stacking · the night's reel · the cover carries
+    it, each held as her photo lands, developing scrolled to the shutter, one of hers opened to take back.
+    **Recommended: the contact sheet.**
+  - `arrival` (after `wait`): into place · it develops in place · the premiere first, as Maya's 24 arrive and as the
+    roll develops at 9 am. **Recommended: it develops in place.**
+  - `cover` (after `model`): the card polished · what her guests see · frosted, hold to peek, each covered, lifted and
+    on a held album. **Recommended: what her guests see.**
+  - `name` (after `model`): Disposable · Film · Darkroom, each in Create, on the cover and the morning after.
+    **Recommended: Disposable.**
+  - `both` (after `model`): never, the cover is her check · a switch under the develop · approval a switch of its own.
+    **Recommended: never.**
+- **Assets requested from Will:** none (the stills are the marketing set every board reuses).
+- **Board ideas:** the night on a dial as a host's view of her party's rhythm (his disposable-mode r3 note; event-header
+  r2 now recommends it for the hub's facts, so its wiring can carry it into the album's area too); a frame of the
+  wait on the room's screen once `screen` is answered (what the slideshow shows of a held album, which today is
+  nothing until Maya approves).
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none. (A screen link, if he says yes, is a
+  capability on the event: its own lane, a migration and its revoke.)
+- **Calls his to overrule** (the board's carried calls, each under Questions above): `screen` a link of its own,
+  guarded; `remove` one press, no confirm; `round` her uploads' round stays on both albums.
+- **Look at first:** `/design/lab/the-wait?session=the-wait.model` (the model, which every later step wears), then the
+  `wait` step's first two frames; and the Deferred line above, a real production bug a one-clause fix closes
+  before the wait's wiring.
