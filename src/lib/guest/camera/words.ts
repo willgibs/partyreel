@@ -8,12 +8,15 @@
  * the pair the way `lib/disposable/reveal.ts` does (a develop time ahead is the stronger promise), and every line
  * below says the album she is in.
  *
- * ★ THE DEVELOP TIME IS SAID FROM NOW, IN HER OWN CLOCK: "at 9 am" inside a day (a party's night needs no date),
- * "Saturday at 9 am" inside a week, then the date. The browser's own zone is hers, and a guest's zone is the party's.
+ * ★ THE DEVELOP TIME IS SAID FROM NOW, IN HER OWN CLOCK, BY THE CALENDAR'S DAYS: "at 9 am" only for today (a party's
+ * night needs no date), "tomorrow at 9 am" for the next day however few hours it is away (red-team 46's NIT: a Sunday
+ * 9 am develop said "at 9 am" three hours after Saturday's), "Saturday at 9 am" inside a week, then the date. The
+ * browser's own zone is hers, and a guest's zone is the party's.
  *
  * Pure, so every line is a unit test.
  */
 
+import { daysBetween } from "@/lib/events/dates";
 import {
   TRACKER_SEALED_WORDS,
   TRACKER_WORDS,
@@ -30,8 +33,6 @@ export function revealFor(
   if (Number.isFinite(at) && at > nowMs) return "develop";
   return event.moderation_mode === "hold_for_approval" ? "approve" : "live";
 }
-
-const DAY_MS = 86_400_000;
 
 const WEEKDAY = new Intl.DateTimeFormat("en-US", { weekday: "long" });
 const DATE = new Intl.DateTimeFormat("en-US", {
@@ -50,13 +51,31 @@ export function clockWords(d: Date): string {
     : `${hour}:${String(m).padStart(2, "0")} ${half}`;
 }
 
-/** When the roll develops, from now: "at 9 am", "Saturday at 9 am", "Oct 14 at 9 am". */
+/** A date's day in the reader's own clock, as the calendar prints it (`YYYY-MM-DD`). */
+const localDay = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+/**
+ * How many calendar days `to`'s day is past `from`'s, in the reader's own clock: 0 the same day, 1 the next, negative
+ * before. ★ A DAY IS THE CALENDAR'S, NEVER 24 HOURS: each instant is read off its own year, month and day (`daysBetween`,
+ * the events' one day counter), so the midnight is hers and a day that holds 23 or 25 hours across the clocks' change
+ * is still one day.
+ */
+export function calendarDaysBetween(from: Date, to: Date): number {
+  return daysBetween(localDay(from), localDay(to));
+}
+
+/**
+ * When the roll develops, from now: "at 9 am" today, "tomorrow at 9 am", "Saturday at 9 am" inside the week, "Oct 14
+ * at 9 am" beyond it. The week ends at six days on: a seventh would say today's own weekday.
+ */
 export function developsWhen(iso: string, nowMs: number = Date.now()): string {
   const at = new Date(iso);
-  const ahead = at.getTime() - nowMs;
   const clock = clockWords(at);
-  if (ahead < DAY_MS) return `at ${clock}`;
-  if (ahead < 7 * DAY_MS) return `${WEEKDAY.format(at)} at ${clock}`;
+  const days = calendarDaysBetween(new Date(nowMs), at);
+  if (days <= 0) return `at ${clock}`;
+  if (days === 1) return `tomorrow at ${clock}`;
+  if (days < 7) return `${WEEKDAY.format(at)} at ${clock}`;
   return `${DATE.format(at)} at ${clock}`;
 }
 
