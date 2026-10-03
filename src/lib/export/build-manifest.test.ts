@@ -43,10 +43,119 @@ describe("summarizeMedia", () => {
       row({ type: "video", status: "pending", file_size_bytes: 70 }),
       row({ type: "photo", status: "removed", file_size_bytes: 9999 }), // ignored
     ]);
-    expect(s.shown.photo).toEqual({ count: 2, bytes: 300 });
-    expect(s.shown.video).toEqual({ count: 1, bytes: 900 });
-    expect(s.hidden.photo).toEqual({ count: 1, bytes: 50 });
-    expect(s.hidden.video).toEqual({ count: 1, bytes: 70 });
+    // ★ Reshaped by take-home-wiring (2026-10-03): every bucket says its size at phone size too (`phone`), which
+    // is a photograph's own bytes where it has no copy and a clip's as taken.
+    expect(s.shown.photo).toEqual({ count: 2, bytes: 300, phone: 300 });
+    expect(s.shown.video).toEqual({ count: 1, bytes: 900, phone: 900 });
+    expect(s.hidden.photo).toEqual({ count: 1, bytes: 50, phone: 50 });
+    expect(s.hidden.video).toEqual({ count: 1, bytes: 70, phone: 70 });
+  });
+
+  it("says each set's size at phone size: a photograph's copy where it has one, its original where not, a clip as taken", () => {
+    const s = summarizeMedia([
+      row({
+        type: "photo",
+        file_size_bytes: 3000,
+        phone_key: "k1",
+        phone_bytes: 600,
+      }),
+      row({
+        type: "photo",
+        file_size_bytes: 2900,
+        phone_key: "k2",
+        phone_bytes: 550,
+      }),
+      row({
+        type: "photo",
+        file_size_bytes: 400,
+        phone_key: null,
+        phone_bytes: null,
+      }),
+      row({ type: "video", file_size_bytes: 22_000 }),
+      row({
+        type: "photo",
+        status: "hidden",
+        file_size_bytes: 3000,
+        phone_key: "k3",
+        phone_bytes: 700,
+      }),
+    ]);
+    expect(s.shown.photo).toEqual({ count: 3, bytes: 6300, phone: 1550 });
+    expect(s.shown.video).toEqual({ count: 1, bytes: 22_000, phone: 22_000 });
+    expect(s.hidden.photo).toEqual({ count: 1, bytes: 3000, phone: 700 });
+  });
+});
+
+describe("buildExportManifest: the phone-size zip (a host's Phone size, take-home r1)", () => {
+  const base = {
+    eventName: "Maya & Jay",
+    types: "photo" as const,
+    includeHidden: false,
+    size: "phone" as const,
+  };
+  const phoneKey = (r: ExportMediaRow) =>
+    r.original_key.replace(/original\.[a-z0-9]+$/, "phone.jpg");
+
+  it("zips each photograph's copy, under its own name with the copy's extension, and its original where it has none", () => {
+    const withCopy = row({
+      file_size_bytes: 3000,
+      original_key: key(uuid(9001), "heic"),
+    });
+    withCopy.phone_key = phoneKey(withCopy);
+    withCopy.phone_bytes = 600;
+    const without = row({ file_size_bytes: 500 });
+    const r = buildExportManifest({ ...base, rows: [withCopy, without] });
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.items.map((i) => i.key)).toEqual([
+      withCopy.phone_key,
+      without.original_key,
+    ]);
+    expect(r.items[0].name).toMatch(/^maya-jay-[0-9a-f]{8}\.jpg$/);
+    expect(r.totalBytes).toBe(600 + 500);
+    expect(r.zipName).toBe("maya-jay-phone-size.zip");
+  });
+
+  it("measures its ceilings and its parts by the copies' bytes, not the originals'", () => {
+    const GB = 1024 ** 3;
+    const rows = Array.from({ length: 3 }, () => {
+      const r = row({ file_size_bytes: 9 * GB });
+      r.phone_key = phoneKey(r);
+      r.phone_bytes = 3 * 1024 * 1024;
+      return r;
+    });
+    // As originals, 27 GB is two parts; at phone size, 9 MB is one zip.
+    const original = buildExportManifest({
+      ...base,
+      size: "original",
+      rows,
+      walk: { part: 1, after: null },
+    });
+    const phone = buildExportManifest({
+      ...base,
+      rows,
+      walk: { part: 1, after: null },
+    });
+    expect(original.ok && original.parts).toBe(2);
+    expect(phone.ok && phone.parts).toBe(1);
+  });
+
+  it("names a Yours zip's phone size too", () => {
+    const r = buildExportManifest({
+      ...base,
+      rows: [row()],
+      zipLabel: "yours",
+    });
+    expect(r.ok && r.zipName).toBe("maya-jay-yours-phone-size.zip");
+  });
+
+  it("leaves an originals zip exactly as it was", () => {
+    const a = row({ file_size_bytes: 3000 });
+    a.phone_key = phoneKey(a);
+    a.phone_bytes = 600;
+    const r = buildExportManifest({ ...base, size: "original", rows: [a] });
+    expect(r.ok && r.items.map((i) => i.key)).toEqual([a.original_key]);
+    expect(r.ok && r.zipName).toBe("maya-jay.zip");
   });
 });
 

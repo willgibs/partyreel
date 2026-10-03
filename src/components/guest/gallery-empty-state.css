@@ -1,0 +1,192 @@
+/* THE ALBUM'S WAIT, ITS OWN SHEET (`gallery-empty-state-wait.tsx`): the contact sheet a guest meets wherever an album
+   holds photos back (the-wait r1, Will's `wait=sheet`), and the same sheet Maya's hub draws as her cover
+   (`event-gallery.tsx`).
+
+   ★ EVERYONE'S IS IN THE DARK, HERS IS LIT (bible 6: colour comes from the photographs and from light). The well is
+   the media surface (`--gallery*`, dark in both themes); everyone's squares are darker still; hers carry her own
+   photographs inside a white rim; the one other light is the house's coral from above (the cover's own `HouseLight`,
+   hue 25), and the newest squares' warmth.
+
+   ★ MOTION ONLY WHERE IT SHOWS STATE, NONE UNDER REDUCED MOTION (bible 5): her photo landing (one pass of light), the
+   count ticking on, a square she is sending breathing. Every square stands complete at rest.
+
+   ★ EVERY KEYFRAME CARRIES THE `wait-` PREFIX (`keyframe-uniqueness.test.ts`). Nothing here sets `position` on an
+   element a caller positions with a utility, and no rule here styles anything but the wait's own classes. */
+
+.wait-well {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: calc(var(--radius-tile) * 3);
+  background: var(--gallery);
+  color: var(--gallery-foreground);
+  box-shadow: inset 0 0 0 1px var(--gallery-border);
+}
+/* The well's one light: the house's coral from above, a lamp over a sheet. */
+.wait-well::before {
+  content: "";
+  position: absolute;
+  inset: -60% -10% auto;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    closest-side,
+    oklch(0.72 0.12 25 / 0.16),
+    oklch(0.72 0.12 25 / 0.04) 60%,
+    transparent
+  );
+}
+.wait-muted {
+  color: var(--gallery-muted);
+}
+
+/* ── the sheet ────────────────────────────────────────────────────────── */
+
+.wait-sheet {
+  display: grid;
+  gap: 3px;
+}
+.wait-cell {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 3px;
+  background: color-mix(in oklab, var(--gallery-foreground) 9%, var(--gallery));
+  box-shadow: inset 0 0 0 1px
+    color-mix(in oklab, var(--gallery-foreground) 5%, transparent);
+}
+/* The newest squares are still warm with being added, cooling over a quarter of an hour (`--warm`, 0 to 1). */
+.wait-cell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: oklch(0.93 0.04 60 / calc(var(--warm, 0) * 0.2));
+}
+/* Hers, lit: her own photograph inside a white rim. */
+.wait-cell[data-hers] {
+  z-index: 1;
+  background: color-mix(
+    in oklab,
+    var(--gallery-foreground) 22%,
+    var(--gallery)
+  );
+  box-shadow:
+    0 0 0 1.5px #fff,
+    0 0 12px rgb(255 255 255 / 0.3);
+}
+.wait-cell[data-hers]::after {
+  display: none;
+}
+.wait-cell > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* One she is still sending: her picture, dimmed, until it lands. */
+.wait-cell[data-sending] {
+  box-shadow: 0 0 0 1.5px rgb(255 255 255 / 0.45);
+}
+.wait-cell[data-sending] > img {
+  opacity: 0.45;
+}
+/* The one pass of light her own landing takes (the album's `data-landed`, in the dark). */
+.wait-cell[data-landing]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 2px rgb(255 255 255 / 0.9);
+  opacity: 0;
+}
+/* The key beside "Yours": a square of her own light. */
+.wait-key {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  border-radius: 2px;
+  background: linear-gradient(135deg, #e9b27a, #6c7fd8);
+  box-shadow: 0 0 0 1.5px #fff;
+}
+/* What a new arrival says, beside the count: "+1 just now". */
+.wait-pill {
+  display: inline-flex;
+  height: 1.5rem;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0 0.625rem;
+  background: rgb(255 255 255 / 0.1);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .wait-cell[data-landing]::before {
+    animation: wait-land 2400ms var(--ease-emphasis, ease-out) both;
+  }
+  .wait-cell[data-landing] {
+    animation: wait-arrive 700ms var(--ease-emphasis, ease-out) both;
+  }
+  .wait-cell[data-sending] > img {
+    animation: wait-breathe 1800ms ease-in-out infinite;
+  }
+  .wait-pill {
+    animation: wait-tick 420ms var(--ease-emphasis, ease-out) both;
+  }
+}
+/* Reduced motion: the landing's light stands for its moment and goes, no movement. */
+@media (prefers-reduced-motion: reduce) {
+  .wait-cell[data-landing]::before {
+    opacity: 1;
+  }
+}
+
+@keyframes wait-arrive {
+  from {
+    transform: scale(0.82);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@keyframes wait-land {
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes wait-breathe {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+@keyframes wait-tick {
+  from {
+    transform: translateY(4px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}

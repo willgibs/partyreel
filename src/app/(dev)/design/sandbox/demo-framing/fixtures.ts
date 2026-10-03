@@ -2,14 +2,17 @@ import {
   OBJECT_EVENT,
   STREAM_FRAMES,
 } from "@/components/marketing/sections/home/hero-stream";
-import { slugify } from "@/lib/slug";
 
 /**
- * THE DEMO, ROUND FOUR: the demo's own address and the hosts' addresses the
- * hero types, each party with what its event card says (its cover, its day,
- * how many came), the hues its light is drawn in, and the photographs its
- * stream pours with the guest who added each one (the credit in the
- * photograph's corner).
+ * THE DEMO, ROUND FIVE: the demo's own address and the hosts' addresses the
+ * hero types, each party with what its event card says (its cover, how many
+ * came and how many photographs they added), the hues its light is drawn in,
+ * and the photographs its stream pours with the guest who added each one (the
+ * credit in the photograph's corner).
+ *
+ * ★ NOTHING HERE IS A DATE (round thirteen's direction: nothing depends on a
+ * timeline). A party is its name, its people and its album, so an undated
+ * party, a morning's and a weekend's read alike on every object.
  *
  * ★ EVERY PHOTOGRAPH IS A STAND-IN, AND WHICH ONE DOES NOT MATTER (his round
  * one note: the whole media kit is replaced before launch). The band's twelve
@@ -44,10 +47,10 @@ export type Party = {
   readonly slug: string;
   /** The card's cover: a `marketing-media.ts` id. */
   readonly cover: string;
-  /** The card's day, as a host would print it. */
-  readonly when: string;
   /** How many guests the card counts. */
   readonly guests: number;
+  /** How many photographs its album holds, as the card counts them. */
+  readonly photos: number;
   /**
    * Its light's three hues (OKLCH degrees), read by eye off its cover: the
    * door's room and the lamp take them, as production's door samples an
@@ -117,8 +120,8 @@ const pours = (
 export const OWN: Party = {
   slug: DEMO_SLUG,
   cover: "wedding-toast",
-  when: "Sat, Oct 17",
   guests: OBJECT_EVENT.guests,
+  photos: 268,
   hues: [70, 30, 300],
   pours: pours(STREAM_FRAMES, OWN_GUESTS),
 };
@@ -133,8 +136,8 @@ export const HOSTS: readonly Party[] = [
   {
     slug: "our-wedding",
     cover: "wedding-petals",
-    when: "Sat, Jun 13",
     guests: 86,
+    photos: 412,
     hues: [60, 20, 350],
     pours: pours(
       [
@@ -152,8 +155,8 @@ export const HOSTS: readonly Party[] = [
   {
     slug: "my-30th",
     cover: "party-balloons",
-    when: "Fri, Sep 4",
     guests: 41,
+    photos: 236,
     hues: [340, 250, 300],
     pours: pours(
       [
@@ -170,8 +173,8 @@ export const HOSTS: readonly Party[] = [
   {
     slug: "lake-weekend",
     cover: "festival-crowd",
-    when: "Fri, Aug 21",
     guests: 12,
+    photos: 318,
     hues: [55, 35, 230],
     pours: pours(
       [
@@ -187,8 +190,8 @@ export const HOSTS: readonly Party[] = [
   {
     slug: "our-reunion",
     cover: "reception-table",
-    when: "Sat, Jul 11",
     guests: 57,
+    photos: 174,
     hues: [45, 140, 20],
     pours: pours(
       [
@@ -205,8 +208,8 @@ export const HOSTS: readonly Party[] = [
   {
     slug: "team-party",
     cover: "party-dj",
-    when: "Thu, Dec 10",
     guests: 64,
+    photos: 189,
     hues: [270, 230, 320],
     pours: pours(
       [
@@ -234,25 +237,6 @@ export const DOMAIN = OBJECT_EVENT.domain;
  * always the address they are reading (on a preview too).
  */
 export const linkOf = (slug: string) => `https://${DOMAIN}${slug}`;
-
-/**
- * The longest address a visitor may type into the field: every code is one
- * fixed grid (`qr.ts`), which holds the link to a slug of this length. The
- * product takes custom links to 50 characters, so the field carries what
- * they typed into the real flow, where the full rule applies.
- */
-export const TYPED_MAX = 22;
-
-/**
- * A visitor's keystrokes as a slug, through the product's own `slugify`
- * (apostrophes dropped, the rest to hyphens), keeping one trailing hyphen so
- * a separator can be typed before the word after it.
- */
-export function typedSlugOf(raw: string): string {
-  const tail = /[\s_-]$/.test(raw) ? "-" : "";
-  const body = slugify(raw, TYPED_MAX);
-  return (body ? body + tail : "").slice(0, TYPED_MAX);
-}
 
 /**
  * A card's name, read off its address the way a host's own words read:

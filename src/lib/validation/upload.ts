@@ -173,6 +173,9 @@ export const presignUploadSchema = z.object({
   // original). Optional + un-capped here; the engine skips the preview presign when it exceeds
   // MAX_PREVIEW_BYTES (the original still uploads), so an over-size never rejects the whole request.
   preview_size_bytes: z.number().int().positive().optional(),
+  // The phone-size copy's size (take-home r1): a photograph's 2048 px JPEG. The same posture: the engine
+  // presigns it only within both caps (`phoneCopyFits`), and never refuses the original over it.
+  phone_size_bytes: z.number().int().positive().optional(),
 });
 
 // ─── POST /api/r2/complete-upload ────────────────────────────────────────────
@@ -195,6 +198,8 @@ export const completeUploadSchema = z.object({
   // The preview R2 key the presign route issued, set ONLY when the client uploaded a preview. The
   // server records it as media.preview_key; tiles then serve it.
   preview_key: z.string().trim().min(1).optional(),
+  // The phone-size copy's key, set ONLY on a confirmed PUT; recorded as media.phone_key with its HEAD size.
+  phone_key: z.string().trim().min(1).optional(),
   // null for single-PUT uploads; the R2 uploadId for multipart.
   upload_id: z.string().min(1).nullable(),
   parts: z.array(partSchema).default([]),
@@ -215,6 +220,7 @@ export const hostPresignUploadSchema = z.object({
   size_bytes: z.number().int().positive().max(MAX_UPLOAD_BYTES),
   duration_seconds: z.number().positive().optional(),
   preview_size_bytes: z.number().int().positive().optional(),
+  phone_size_bytes: z.number().int().positive().optional(),
 });
 
 export const hostCompleteUploadSchema = z.object({
@@ -227,6 +233,7 @@ export const hostCompleteUploadSchema = z.object({
   width: z.number().int().positive().max(MAX_DECLARED_DIMENSION).optional(),
   height: z.number().int().positive().max(MAX_DECLARED_DIMENSION).optional(),
   preview_key: z.string().trim().min(1).optional(),
+  phone_key: z.string().trim().min(1).optional(),
   upload_id: z.string().min(1).nullable(),
   parts: z.array(partSchema).default([]),
   // Capture-only device UUID (see completeUploadSchema).

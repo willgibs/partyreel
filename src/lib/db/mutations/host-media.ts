@@ -98,6 +98,9 @@ export async function createMediaAsHost(input: {
   originalKey: string;
   fileSizeBytes: number;
   previewKey?: string | null;
+  /** The phone-size copy (take-home r1): its key and its HEAD size, both or neither. */
+  phoneKey?: string | null;
+  phoneBytes?: number | null;
   durationSeconds?: number | null;
   width?: number | null;
   height?: number | null;
@@ -111,7 +114,9 @@ export async function createMediaAsHost(input: {
   // PostgREST with a spoofed size. The admin client has no auth.uid(), so we pass the route's
   // getUser()-verified host id as the trusted p_host_id (the RPC's ownership join uses it).
   const supabase = createAdminClient();
-  const { data, error } = await supabase.rpc("create_media_as_host", {
+  // ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE (`createMedia`'s, in guest.ts): the phone copy's two arguments
+  // arrive with migration 20261003110000; left out of the body when there is no copy.
+  const args = {
     p_host_id: input.hostId,
     p_event_id: input.eventId,
     p_media_id: input.mediaId,
@@ -123,7 +128,10 @@ export async function createMediaAsHost(input: {
     p_width: input.width ?? undefined,
     p_height: input.height ?? undefined,
     p_reel_eligible: input.reelEligible ?? undefined,
-  });
+    p_phone_key: input.phoneKey ?? undefined,
+    p_phone_bytes: input.phoneBytes ?? undefined,
+  };
+  const { data, error } = await supabase.rpc("create_media_as_host", args);
 
   if (error) {
     // Retry idempotency: a duplicate media_id means create_media_as_host already ran

@@ -40,6 +40,11 @@ export function useLiveUploadsWait({
   reading: UploadsWait;
   /** A full sync's word on the develop time (ahead or reached, or none): the album's live source calls it. */
   onSynced: (developsAt: string | null) => void;
+  /**
+   * The album's develop time as the page last heard it, ahead OR reached (null for none): the cover's word over the
+   * event's name says "develops" or "developed" by it (`coverEyebrow`), where `reading` keeps only a time still ahead.
+   */
+  developsAt: string | null;
 } {
   const [develop, setDevelop] = useState<Develop>(() => ({
     at: initial.developsAt,
@@ -91,7 +96,7 @@ export function useLiveUploadsWait({
           : NOTHING_WAITS,
     [develop.ahead, develop.at, held],
   );
-  return { reading, onSynced };
+  return { reading, onSynced, developsAt: develop.at };
 }
 
 /**

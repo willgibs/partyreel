@@ -35,6 +35,7 @@ import {
   MasonryColumns,
   type AlbumHandle,
   type TileAction,
+  type TileSelection,
 } from "@/components/shared/masonry";
 import { useArrivalGate } from "@/components/shared/use-arrival-gate";
 import {
@@ -97,6 +98,7 @@ export function GalleryRows({
   arrivals,
   onNeedLinks,
   landedIds,
+  selection,
 }: {
   items: GridMedia[];
   /** This device's files in flight, drawn FIRST, at the head. */
@@ -132,6 +134,8 @@ export function GalleryRows({
   onNeedLinks?: (ids: readonly string[]) => void;
   /** The one arrival mark this device's own landing takes: a single pass of light. */
   landedIds?: ReadonlySet<string>;
+  /** Select mode (take-home r1, `guest=select`): every tile a toggle wearing the selection's marks. */
+  selection?: TileSelection;
 }) {
   const likeAction = useLikeAction();
   // ★ AN ARRIVAL LANDS COMPLETE OR NOT UNTIL IT CAN (crumbs-23): the rows lay what is in the album, less
@@ -180,6 +184,7 @@ export function GalleryRows({
       canDelete={canDelete}
       arrivedIds={gate.glow}
       landedIds={landedIds}
+      selection={selection}
       tileActions={tileActions}
       prefix={
         <>

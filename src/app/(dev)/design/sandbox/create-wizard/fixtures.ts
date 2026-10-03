@@ -1,12 +1,5 @@
 import { marketingImage } from "@/lib/constants/marketing-media";
-import { SETTINGS_GROUP_TITLES } from "@/lib/events/guest-experience-summary";
-import {
-  newEventFacts,
-  type Readiness,
-  readiness,
-  readyHead,
-} from "@/lib/events/readiness";
-import { eventUrl, previewJoinUrl } from "@/lib/events/share-urls";
+import { previewJoinUrl } from "@/lib/events/share-urls";
 
 /**
  * ONE WEDDING, THE SITE'S OWN: Maya & Jay's (hosted by Maya), the one
@@ -14,58 +7,114 @@ import { eventUrl, previewJoinUrl } from "@/lib/events/share-urls";
  *
  * ★ A SEPARATE FILE, NOT AN IMPORT, ON PURPOSE (every board's rule). A
  * board's folder is deleted the moment the board retires, so importing
- * `disposable-mode`'s fixtures would tie this board's life to a folder it does
- * not own. The camera's numbers below are that board's settled ones, retyped,
- * and its pictures are drawn in its round-three picks (the camera on a
- * timeline, the contact sheet while it develops).
+ * another board's fixtures would tie this board's life to a folder it does
+ * not own. The camera's numbers are `disposable-mode`'s settled ones, retyped.
  *
- * ★ WHAT IS LEFT IS PRODUCTION'S OWN FUNCTION, never a list typed here: the
- * beat reads `readiness(...)` over `newEventFacts(...)`, the very call the
- * wizard makes after Create, so a word ready-wiring changes is a word every
- * frame here changes with it. The one fact this round adds is the account's
- * storage (the ROADMAP's Host line: `/dashboard/new` reads none today), drawn
- * as the route would pass it.
+ * ★ THE ALBUM STYLES' WORDS ARE `wait-wiring`'s, RETYPED (`lib/disposable/
+ * album-style.ts` on its branch, not yet on `launch-prep`): the three names
+ * Settings' cards carry and the line under each, which that file says Create's
+ * card reads "when the create wizard asks how guests add". The wiring that
+ * follows this board imports them from there and drops these copies; a word
+ * changed there is the word, and these follow it.
  *
  * ★ THE STILLS ARE THE MARKETING IMAGES EVERY BOARD REUSES (bible 9: no new
- * asset, nothing to track the rights of), standing in for a guest's photos and
- * for the camera's live picture until the slot's own photographs are made.
+ * asset, nothing to track the rights of), standing in for a guest's photos.
+ * A style's own small picture is drawn from the guest ghost pack Settings'
+ * cards draw from, so the two pictures are one picture.
  */
 
 export const EVENT = {
   name: "Maya & Jay's Wedding",
   short: "Maya & Jay",
   host: "Maya",
-  seed: "cw-maya",
 } as const;
 
-const SITE = "https://partyreel.com";
+export const SITE = "https://partyreel.com";
 
-/** What the style step's samples encode: production's stand-in, which opens no album. */
+/** What every sample code encodes: production's stand-in, which opens no album. */
 export const SAMPLE_LINK = previewJoinUrl(SITE);
 
-/** The event's own link once Create has made it (a 32-hex token, as the DB writes one). */
-export const REAL_LINK = eventUrl(SITE, "7f3a9c2e5b8d4f1a9e6c3b7d2a5f8e1c");
-
-/** The disposable camera's settled numbers (disposable-mode r1 to r3): a roll each, developed next morning. */
+/** The disposable's settled numbers (disposable-mode r1 to r3): a roll each, developed the next morning. */
 export const ROLL = { shots: 24, develops: "9 am" } as const;
 
-/** The night the add step's pictures run through: arriving, the party, the morning after. */
-export const HOURS = [
-  { id: "arrive", at: "8 pm", label: "Arriving", photos: 0 },
-  { id: "party", at: "10:40 pm", label: "The party", photos: 142 },
-  { id: "morning", at: "9 am", label: "Next morning", photos: 214 },
+/* ── the album styles ─────────────────────────────────────────────────── */
+
+/** Settings' three styles, in its order (`ALBUM_STYLES`): Live, Reviewed, Disposable. */
+export const STYLES = ["live", "approval", "disposable"] as const;
+export type StyleId = (typeof STYLES)[number];
+
+/** The two a compare of experiences draws: Reviewed is a live album its host lets in. */
+export const TWO: readonly StyleId[] = ["live", "disposable"];
+
+export const STYLE_NAMES: Record<StyleId, string> = {
+  live: "Live",
+  approval: "Reviewed",
+  disposable: "Disposable",
+};
+
+/** The one line under each name, Settings' own (`styleLine`). */
+export const STYLE_LINES: Record<StyleId, string> = {
+  live: "Every photo shows the moment it's added.",
+  approval: "You let each photo in before anyone sees it.",
+  disposable: `The album's camera, ${ROLL.shots} shots each. Everyone's develop at once.`,
+};
+
+/* ── the night ────────────────────────────────────────────────────────── */
+
+/**
+ * THE NIGHT'S THREE MOMENTS, NAMED BY WHAT HAPPENS, NEVER BY A CLOCK (the
+ * round's direction: nothing depends on a timeline, so a morning-only or a
+ * two-day event reads as well as an evening's). The disposable's develop time
+ * defaults to 9 am the day after the party (`defaultDevelopAt`), so the third
+ * moment is the morning after whatever the event is.
+ */
+export const MOMENTS = [
+  { id: "arrive", label: "Arriving" },
+  { id: "party", label: "The party" },
+  { id: "morning", label: "Next morning" },
 ] as const;
 
-export type HourId = (typeof HOURS)[number]["id"];
+export type MomentId = (typeof MOMENTS)[number]["id"];
+export const MOMENT_IDS: readonly MomentId[] = MOMENTS.map((m) => m.id);
 
-export const hourOf = (id: HourId) => HOURS.find((h) => h.id === id)!;
+/**
+ * EACH STYLE'S LINE AT EACH MOMENT, for the compositions that draw a phone a
+ * style (a phone's column is too narrow for Settings' whole line): what a
+ * guest meets then, and with it what the host gives up by picking it. The
+ * disposable's says it plainly at the party: only their own until 9 am.
+ */
+export const LINE_AT: Record<MomentId, Record<StyleId, string>> = {
+  arrive: {
+    live: "Any photo from their phones",
+    approval: "Any photo, once you let it in",
+    disposable: `${ROLL.shots} shots each, in the album's camera`,
+  },
+  party: {
+    live: "Everyone sees each as it lands",
+    approval: "Seen once you let each one in",
+    disposable: `Only their own until ${ROLL.develops}`,
+  },
+  morning: {
+    live: "All of it, and the highlight reel",
+    approval: "All you let in, and the reel",
+    disposable: "Everyone's at once, with a premiere",
+  },
+};
 
-export const HOUR_IDS: readonly HourId[] = HOURS.map((h) => h.id);
+/** What the night holds: the party's numbers, as a guest's album would count them. */
+export const NIGHT = {
+  guests: 12,
+  /** Everyone's by 10:40 pm, and by the morning. */
+  party: 142,
+  morning: 214,
+  /** On a reviewed album at the party: let in so far, and still waiting for Maya. */
+  letIn: 104,
+  waiting: 38,
+  /** Priya's own shots on her roll by the party. */
+  hers: 6,
+} as const;
 
-/** Guests at the party, and the shots Priya has spent by 10:40 pm. */
-export const PARTY = { guests: 12, hers: 6 } as const;
-
-/* ── the stills ──────────────────────────────────────────────────────────── */
+/* ── the stills ───────────────────────────────────────────────────────── */
 
 export type Still = { id: string; src: string };
 
@@ -84,16 +133,19 @@ export const ALBUM_STILLS: readonly Still[] = [
   "reception-hall",
   "party-balloons",
   "festival-lights",
-  "wedding-toast",
+  "festival-crowd",
 ].map(still);
 
-/** The camera's live picture at 8 pm: the arch, before anyone has shot. */
+/** The camera's live picture as guests arrive: the arch, before anyone has shot. */
 export const ARRIVING = still("wedding-arch");
 
-/** The roll's premiere at 9 am: the toast under the string lights. */
+/** The roll's premiere the morning after: the toast under the string lights. */
 export const PREMIERE = still("wedding-toast");
 
-/** Priya's own six shots, the only ones a contact sheet may show her before 9 am. */
+/** The album's own highlight reel the morning after. */
+export const REEL = still("wedding-golden");
+
+/** Priya's own six, the only pictures the contact sheet may show her before the develop. */
 export const HERS: readonly Still[] = [
   "wedding-golden",
   "wedding-petals",
@@ -102,50 +154,3 @@ export const HERS: readonly Still[] = [
   "reception-table",
   "wedding-toast",
 ].map(still);
-
-/** The room's screen behind the slideshow's code (the look step's `places`). */
-export const SLIDESHOW = still("party-dj");
-
-/* ── what is left, read from production ──────────────────────────────────── */
-
-/** What the new wedding holds the moment Create returns it: the schema's defaults. */
-const CREATED = { visibility: "open", accepting_uploads: true } as const;
-
-/** The beat's readiness as it lands: nobody has opened the code yet. */
-export const NEW_EVENT: Readiness = readiness(newEventFacts(CREATED));
-
-/**
- * The same beat for a host whose account is 92% full: the route passes the
- * account's storage (as the hub's checklist reads it), so room joins what is
- * left. Past 85% it is worth doing; at 100% a guest needs it.
- */
-export const ROOM_LOW_PCT = 92;
-export const ROOM_LOW: Readiness = readiness({
-  ...newEventFacts(CREATED),
-  storagePct: ROOM_LOW_PCT,
-});
-
-export const headOf = readyHead;
-
-/**
- * SETTINGS' FIVE STEPS, IN ITS RAIL'S ORDER, each ticked off the same readiness
- * the beat reads: the four groups (their titles from production's one home),
- * then the code. Room is the plan's, never a step (`settingsReadiness`), so
- * the beat says it beside the rail rather than on it.
- */
-export type RailStep = { n: number; title: string; done: boolean };
-
-export function railOf(r: Readiness): RailStep[] {
-  const done = (id: string) => r.items.find((i) => i.id === id)?.done ?? false;
-  return [
-    { n: 1, title: SETTINGS_GROUP_TITLES.door, done: done("door") },
-    { n: 2, title: SETTINGS_GROUP_TITLES.adds, done: done("adds") },
-    { n: 3, title: SETTINGS_GROUP_TITLES.reel, done: done("photos") },
-    { n: 4, title: SETTINGS_GROUP_TITLES.event, done: done("welcome") },
-    { n: 5, title: "The code", done: done("code") },
-  ];
-}
-
-/** Room, when the account is running short: the readiness item itself, or null. */
-export const roomOf = (r: Readiness) =>
-  r.items.find((i) => i.id === "room") ?? null;

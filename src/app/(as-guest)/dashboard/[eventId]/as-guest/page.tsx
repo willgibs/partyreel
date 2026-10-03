@@ -70,6 +70,8 @@ export default async function AsGuestPage({ params, searchParams }: PageProps) {
         accepting_uploads: event.accepting_uploads,
         show_reel: event.show_reel,
         capture: event.capture,
+        moderation_mode: event.moderation_mode,
+        develops_at: event.develops_at,
       }}
       joinUrl={read.joinUrl}
       galleryPromise={read.galleryPromise}

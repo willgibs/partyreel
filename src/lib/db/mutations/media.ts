@@ -29,6 +29,7 @@ import "server-only";
 import { mustQuery } from "@/lib/db/must-query";
 import { type MutationResult } from "@/lib/db/mutations/events";
 import { inChunks } from "@/lib/db/read-all";
+import { mediaKeysOf, readPhoneKeys } from "@/lib/lifecycle/reclaim";
 import { deleteR2Objects } from "@/lib/r2/delete";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -594,11 +595,25 @@ export async function purgeMediaNow(
     owned = owned.filter((r) => !keptIds.has(r.id));
   }
   if (owned.length > 0) {
-    const keys: string[] = [];
-    for (const row of owned) {
-      keys.push(row.original_key);
-      if (row.preview_key) keys.push(row.preview_key);
+    // ★ EVERY STORED COPY (take-home-wiring): her read cannot see `phone_key` (no client role holds it), so the
+    // service role reads the phone-size copies of exactly the rows her read proved hers, and `mediaKeysOf` names
+    // all three objects a row owns. A read that fails deletes nothing.
+    let phones: Map<string, string>;
+    try {
+      phones = await readPhoneKeys(
+        createAdminClient(),
+        owned.map((r) => r.id),
+      );
+    } catch {
+      return {
+        ok: false,
+        code: "unknown",
+        message: "Couldn't delete those items. Please try again.",
+      };
     }
+    const keys = mediaKeysOf(
+      owned.map((r) => ({ ...r, phone_key: phones.get(r.id) ?? null })),
+    );
     const r2 = await deleteR2Objects(keys);
     if (r2.errored.length > 0) {
       return {

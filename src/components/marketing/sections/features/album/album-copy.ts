@@ -63,7 +63,7 @@ export const YOUR_CALL = {
     live: "Uploads appear the moment they land. Hide any with a tap.",
     // Her uploads' own words for a held photograph (pinned by mock-parity).
     review:
-      "Every upload waits for you. The guest who sent it sees Waiting for approval.",
+      "Every upload waits for you. The guest who sent it sees it Developing.",
   },
   settings: [
     {

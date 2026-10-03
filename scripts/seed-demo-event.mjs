@@ -568,7 +568,7 @@ async function wipeExistingMedia(eventId) {
     (after) => {
       let q = supabase
         .from("media")
-        .select("id, original_key, preview_key, legal_hold_at")
+        .select("id, original_key, preview_key, phone_key, legal_hold_at")
         .eq("event_id", eventId)
         .order("id", { ascending: true })
         .limit(PAGE);
@@ -596,7 +596,9 @@ async function wipeExistingMedia(eventId) {
   if (DRY_RUN) return;
 
   const keepKeys = new Set(
-    held.flatMap((r) => [r.original_key, r.preview_key].filter(Boolean)),
+    held.flatMap((r) =>
+      [r.original_key, r.preview_key, r.phone_key].filter(Boolean),
+    ),
   );
   // Sweep the whole event namespace, not just the enumerated row keys: a half-finished earlier run
   // can leave objects with no row, and those would linger forever under a reused event.

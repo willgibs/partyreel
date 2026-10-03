@@ -22,6 +22,7 @@
  * ★ A PHOTOGRAPH SHE REMOVED HERSELF IS NOT LISTED: it is hers to forget.
  */
 
+import type { HerShot } from "@/lib/disposable/contact-sheet";
 import { developState } from "@/lib/disposable/reveal";
 
 export type TrackerStatus = "sending" | "waiting" | "approved" | "refused";
@@ -36,28 +37,30 @@ export type TrackerStatus = "sending" | "waiting" | "approved" | "refused";
 export const TRACKER_TELLS_REFUSAL = true;
 
 /**
- * The words each status wears (`voice-guest` r2, Will's `status=approval`: "A bit more clear, I
- * don't think anyone's feelings will be hurt by direct wording here since it offers clarity").
- * Both name the review she read about when she sent them ("The host reviews uploads before they
- * appear in the album."), so the why is the event's rule rather than a person's choice.
+ * The words each status wears. ★ EVERY WAIT IS "DEVELOPING" (the-wait r1, Will's `model=time`: "one question of time
+ * where there's only a small distinction between disposable and reviewed"): one held for the host and one sealed for a
+ * develop time wear the same word, and only the album's clock says which (`lib/disposable/wait-words.ts`, her list's
+ * head). A refusal keeps its own plain word (`voice-guest` r2, Will's `status=approval`: "A bit more clear, I don't
+ * think anyone's feelings will be hurt by direct wording here since it offers clarity"), since approval reading as
+ * developing must never make a photo turned down read as one still developing.
  *
- * ★ ONE STATE, ONE NAME, EVERYWHERE IT IS SAID: the badge's spoken count, the keep's Sent line on
- * a held event (`save-account-prompt.tsx`), the help and the album feature page's mock
- * (`review-switch.tsx`, pinned by `mock-parity.test.ts`) all say "waiting for approval".
+ * ★ ONE STATE, ONE NAME, EVERYWHERE IT IS SAID: her rows, the badge's spoken count, the album's contact sheet
+ * (`WAIT_TITLE`), the camera's own list of her shots (`SHOT_WORDS`) and the album feature page's mock (`review-switch.tsx`,
+ * pinned by `mock-parity.test.ts`) all say "Developing".
  */
 export const TRACKER_WORDS: Record<TrackerStatus, string> = {
   sending: "Sending…",
-  waiting: "Waiting for approval",
+  waiting: "Developing",
   approved: "In the album",
   refused: "Not approved",
 };
 
 /**
- * The words a SEALED one wears (red-team 43): on an album with a develop time ahead, what she adds is in nobody's album
- * until it develops, so hers wait for that, never for a host. One state, one name: her row, the badge's spoken count
- * and the keep's Sent line (`save-account-prompt.tsx`) all say it.
+ * The word a SEALED one wears (red-team 43: on an album with a develop time ahead, what she adds is in nobody's album
+ * until it develops): the same "Developing" as a held one (`model=time`), kept as its own name because the camera's
+ * list reads it (`SHOT_WORDS.sealed`).
  */
-export const TRACKER_SEALED_WORDS = "Waiting to develop";
+export const TRACKER_SEALED_WORDS = TRACKER_WORDS.waiting;
 
 /**
  * ★ WHETHER WHAT SHE ADDS WAITS, AND FOR WHAT (red-team 43's MEDIUM: on an album with a develop time ahead, her
@@ -85,17 +88,47 @@ export function uploadsWait(
 /** Nothing she adds waits: it is in the album the moment it lands. */
 export const NOTHING_WAITS: UploadsWait = { waits: false, developsAt: null };
 
-// The develop time as a guest reads it ("Sat, Oct 3, 9:00 AM", in her own zone) is the host's Settings' too: one
-// formatter, in `lib/disposable/develop-words.ts`, handed on from here to the tracker's other readers.
-export { developTimeWords } from "@/lib/disposable/develop-words";
-
 /** Where one of her rows stands on the server (the wire of `/api/guests/mine`'s `statuses`). */
 export type OwnUploadWire = {
   id: string;
   status: "pending" | "approved" | "refused";
   /** Approved and sealed until the album develops: in nobody's album yet, hers included. */
   sealed?: boolean;
+  /**
+   * Her own picture of one the album cannot show her yet (held or sealed), presigned for her alone, and when she took it
+   * (epoch ms): her list draws it, and the album's contact sheet lights her square at its minute.
+   */
+  picture?: { type: "photo" | "video"; at: number; tile: string };
 };
+
+/** One of her rows off the wire, read defensively (it crosses a process boundary): a malformed picture is dropped. */
+export function ownUploadOf(value: unknown): OwnUploadWire | null {
+  if (!value || typeof value !== "object") return null;
+  const o = value as Record<string, unknown>;
+  if (typeof o.id !== "string") return null;
+  if (
+    o.status !== "pending" &&
+    o.status !== "approved" &&
+    o.status !== "refused"
+  )
+    return null;
+  const p =
+    o.picture && typeof o.picture === "object"
+      ? (o.picture as Record<string, unknown>)
+      : null;
+  const type: "photo" | "video" | null =
+    p?.type === "photo" ? "photo" : p?.type === "video" ? "video" : null;
+  const picture =
+    p && type && typeof p.tile === "string" && typeof p.at === "number"
+      ? { type, at: p.at, tile: p.tile }
+      : null;
+  return {
+    id: o.id,
+    status: o.status,
+    ...(o.sealed === true ? { sealed: true } : {}),
+    ...(picture ? { picture } : {}),
+  };
+}
 
 /** The slice of a queue item the tracker reads. */
 export type TrackerQueueItem = {
@@ -266,4 +299,33 @@ export function trackerShows(input: {
   return (
     input.moderated && !input.isDemo && !input.isOwner && input.rows.length > 0
   );
+}
+
+/**
+ * HER WAITING SHOTS, FOR THE ALBUM'S CONTACT SHEET (the-wait r1, `wait=sheet`): each of hers that waits or is on its way,
+ * with its picture (this device's own file while it has one, else the tile her rows' read presigned for her alone) and
+ * when she took it (her rows' read; null for this visit's landing until they are read again). Never another guest's:
+ * these are her own rows and her own queue.
+ */
+export function herShotsOf(input: {
+  rows: readonly TrackerRow[];
+  own: readonly OwnUploadWire[] | null;
+  /** This device's own picture of a queue item, while the page holds it. */
+  localUrl: (queueId: string) => string | undefined;
+}): HerShot[] {
+  const ownById = new Map((input.own ?? []).map((o) => [o.id, o]));
+  const out: HerShot[] = [];
+  for (const row of input.rows) {
+    if (row.status !== "waiting" && row.status !== "sending") continue;
+    const wire = row.mediaId ? ownById.get(row.mediaId) : undefined;
+    const local = row.queueId ? input.localUrl(row.queueId) : undefined;
+    out.push({
+      key: row.mediaId ?? row.key,
+      at: wire?.picture?.at ?? null,
+      src: local ?? wire?.picture?.tile ?? null,
+      video: row.kind === "video" || wire?.picture?.type === "video",
+      sending: row.status === "sending",
+    });
+  }
+  return out;
 }

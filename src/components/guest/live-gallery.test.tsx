@@ -10,6 +10,7 @@ import {
   type GalleryPayload,
   type LiveGalleryHandle,
 } from "@/components/guest/live-gallery";
+import { guestSelect } from "@/components/guest/live-gallery-select";
 import type { ViewMenuGroup } from "@/components/shared/view-menu";
 import type {
   AlbumLinkTuple,
@@ -1172,5 +1173,80 @@ describe("an album its source could not read (crumbs-30, from crumbs-28)", () =>
     await poll();
     expect(screen.queryByRole("alert")).toBeNull();
     expect(shownIds()).toEqual(["m1"]);
+  });
+});
+
+/**
+ * SELECT, THEN SAVE (take-home r1, `guest=select`, Will's note: "drop the direct 'download all' in favor of hitting
+ * select then selecting all, then save"): Select takes Download all's place in the album's row; in select mode the
+ * bar (Cancel, what she has, Yours and All) stands in that row's place and the rows are handed a selection, every
+ * tile a toggle. The foot's Save is the dock's (its own tests); what it does is `live-gallery-save.tsx`'s.
+ */
+describe("Select, then Save", () => {
+  afterEach(() => act(() => guestSelect.exit()));
+
+  type Selection = {
+    selected: ReadonlySet<string>;
+    onToggle: (id: string) => void;
+  };
+  const selectionOf = () =>
+    (lastRows() as RowsProps & { selection?: Selection }).selection;
+
+  it("offers Select where Download all stood, and no Download all at all", async () => {
+    await mount();
+    expect(screen.getByRole("button", { name: "Select" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Download all/ })).toBeNull();
+    expect(selectionOf()).toBeUndefined();
+  });
+
+  it("turns the row into her selection's bar and every tile into a toggle", async () => {
+    await mount();
+    fireEvent.click(screen.getByRole("button", { name: "Select" }));
+    expect(document.querySelector("[data-select-bar]")).not.toBeNull();
+    expect(screen.getByText("Select photos")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Cancel" })).toBeInTheDocument();
+    act(() => selectionOf()!.onToggle("m2"));
+    expect(screen.getByText("1 selected")).toBeInTheDocument();
+    expect([...selectionOf()!.selected]).toEqual(["m2"]);
+    act(() => selectionOf()!.onToggle("m2"));
+    expect(selectionOf()!.selected.size).toBe(0);
+  });
+
+  it("All picks the whole album shown, and pressed again lets it all go", async () => {
+    await mount();
+    fireEvent.click(screen.getByRole("button", { name: "Select" }));
+    const all = screen.getByRole("button", { name: "All" });
+    fireEvent.click(all);
+    expect([...selectionOf()!.selected].sort()).toEqual(["m1", "m2"]);
+    expect(screen.getByRole("button", { name: "All" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    fireEvent.click(screen.getByRole("button", { name: "All" }));
+    expect(selectionOf()!.selected.size).toBe(0);
+  });
+
+  it("Yours shows only when something here is hers, and picks hers", async () => {
+    await mount({ canDeleteIds: ["m1"] });
+    fireEvent.click(screen.getByRole("button", { name: "Select" }));
+    fireEvent.click(screen.getByRole("button", { name: "Yours" }));
+    expect([...selectionOf()!.selected]).toEqual(["m1"]);
+  });
+
+  it("Cancel and Escape leave it, every pick let go", async () => {
+    await mount();
+    fireEvent.click(screen.getByRole("button", { name: "Select" }));
+    act(() => selectionOf()!.onToggle("m1"));
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(document.querySelector("[data-select-bar]")).toBeNull();
+    expect(guestSelect.get()).toMatchObject({ active: false, picks: [] });
+    fireEvent.click(screen.getByRole("button", { name: "Select" }));
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(guestSelect.get().active).toBe(false);
+  });
+
+  it("the demo offers none of it", async () => {
+    await mount({ isDemo: true });
+    expect(screen.queryByRole("button", { name: "Select" })).toBeNull();
   });
 });

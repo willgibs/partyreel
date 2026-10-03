@@ -2,7 +2,6 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { UploadFailureSheet } from "@/components/guest/upload/failure-sheet";
-import { developTimeWords } from "@/lib/disposable/develop-words";
 
 /**
  * WHAT A GUEST READS WHEN SOMETHING WILL NOT GO. A guest should never have to
@@ -197,20 +196,20 @@ describe("what it says of everything else", () => {
     ).toBeInTheDocument();
   });
 
-  it("★ says the rest is waiting to develop, and when, on an album with a develop time ahead", () => {
+  // RESHAPED (the-wait r1, `model=time`): the rest said "is waiting to develop" and "is waiting for approval"; every
+  // wait develops now, the clock telling them apart. The scar kept: never "in Maya's album" for what waits.
+  it("★ says the rest develops with everyone's, and when, on an album with a develop time ahead", () => {
     sheet({ waits: true, developsAt: AT });
     expect(
-      screen.getByText(
-        `Everything else is waiting to develop, ${developTimeWords(AT)}.`,
-      ),
+      screen.getByText(/^Everything else develops with everyone's/),
     ).toBeInTheDocument();
     expect(screen.queryByText(/album\.$/)).toBeNull();
   });
 
-  it("★ says the rest is waiting for approval where the host approves each", () => {
+  it("★ says the rest develops as the host lets it in, where she approves each", () => {
     sheet({ waits: true, developsAt: null });
     expect(
-      screen.getByText("Everything else is waiting for approval."),
+      screen.getByText("Everything else develops as Maya lets it in."),
     ).toBeInTheDocument();
     expect(screen.queryByText(/in Maya’s album/)).toBeNull();
   });

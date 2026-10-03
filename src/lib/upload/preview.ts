@@ -4,19 +4,32 @@
  * and scales with the client, never an external transform fee. Tiles then serve this small preview while
  * the lightbox + Save keep the full-res original.
  *
+ * ★ AND EVERY NEW PHOTOGRAPH'S PHONE-SIZE COPY (take-home r1, `generatePhoneCopy`): the same downscale to
+ * 2048 px on the long side, as a JPEG, PUT as the `phone` variant. It is what a guest's Save puts into Photos
+ * and a host's Phone size takes home, made where the preview is made, for the same reason: no fee, no new
+ * service, and a cost that scales with the phones that took the photographs. Videos stay as taken.
+ *
  * Best-effort by construction: generatePreview NEVER throws and returns null on ANY skip/failure
  * (already-small original, decode error, OOM, an undecodable video codec, no `seeked`, a non-WebP encode
  * fallback). A null just means "no preview" — the tile serves the original (graceful), and a future
  * server-side backfill could fill the gap.
  */
 import {
+  PHONE_FORMAT,
+  PHONE_QUALITY,
   PREVIEW_FORMAT,
   PREVIEW_QUALITY,
+  phoneCopyFits,
+  phoneTargetSize,
   previewTargetSize,
+  shouldSkipPhoneCopy,
   shouldSkipPreview,
 } from "@/lib/media/preview-size";
 
 export type GeneratedPreview = { blob: Blob; ext: "webp" };
+
+/** A photograph's phone-size copy, ready to PUT at its `phone.jpg` key. */
+export type GeneratedPhoneCopy = { blob: Blob; ext: "jpg" };
 
 // Resolve true on the success event, false on "error" or a timeout (so a stuck decode/seek can never
 // hang the upload). Listeners are one-shot + cleaned up.
@@ -42,57 +55,68 @@ function waitEvent(
   });
 }
 
-// Draw a decoded source (ImageBitmap / <img> / <video>) onto a target-sized canvas and encode WebP.
-// Prefers OffscreenCanvas (no DOM attach); returns null if the encode didn't actually produce WebP (a
-// browser without canvas WebP support falls back to PNG → we'd be mislabeling, so we skip instead).
-async function sourceToWebpBlob(
+// Draw a decoded source (ImageBitmap / <img> / <video>) onto a target-sized canvas and encode it as `type`.
+// Prefers OffscreenCanvas (no DOM attach); returns null if the encode didn't actually produce `type` (a
+// browser without canvas WebP support falls back to PNG → we'd be mislabeling, so we skip instead). A JPEG
+// has no alpha, so its canvas is laid on white first: a transparent PNG's clear pixels would otherwise be black.
+async function sourceToBlob(
   source: CanvasImageSource,
   tw: number,
   th: number,
+  type: string = PREVIEW_FORMAT,
+  quality: number = PREVIEW_QUALITY,
 ): Promise<Blob | null> {
+  const opaque = type === "image/jpeg";
   let blob: Blob | null = null;
   if (typeof OffscreenCanvas !== "undefined") {
     const c = new OffscreenCanvas(tw, th);
     const ctx = c.getContext("2d");
     if (!ctx) return null;
+    if (opaque) {
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, tw, th);
+    }
     ctx.drawImage(source, 0, 0, tw, th);
-    blob = await c.convertToBlob({
-      type: PREVIEW_FORMAT,
-      quality: PREVIEW_QUALITY,
-    });
+    blob = await c.convertToBlob({ type, quality });
   } else {
     const c = document.createElement("canvas");
     c.width = tw;
     c.height = th;
     const ctx = c.getContext("2d");
     if (!ctx) return null;
+    if (opaque) {
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, tw, th);
+    }
     ctx.drawImage(source, 0, 0, tw, th);
     blob = await new Promise<Blob | null>((res) =>
-      c.toBlob(res, PREVIEW_FORMAT, PREVIEW_QUALITY),
+      c.toBlob(res, type, quality),
     );
   }
-  if (!blob || blob.type !== PREVIEW_FORMAT || blob.size === 0) return null;
+  if (!blob || blob.type !== type || blob.size === 0) return null;
   return blob;
 }
 
-async function generatePhotoPreview(
+/**
+ * A photograph drawn at `tw` x `th` and encoded as `type`. Preferred: decode + downscale in one step (avoids
+ * decoding a 50MP photo into a full-res canvas → the main OOM risk). If a browser can't decode a File via
+ * createImageBitmap (older Safari) or ignores the resize options, we fall back to an <img> + canvas
+ * (drawImage still downsizes to tw x th).
+ */
+async function drawPhoto(
   file: File,
-  width: number,
-  height: number,
+  tw: number,
+  th: number,
+  type?: string,
+  quality?: number,
 ): Promise<Blob | null> {
-  if (shouldSkipPreview(width, height)) return null; // already small enough
-  const { width: tw, height: th } = previewTargetSize(width, height);
-
-  // Preferred: decode + downscale in one step (avoids decoding a 50MP photo into a full-res canvas →
-  // the main OOM risk). If a browser can't decode a File via createImageBitmap (older Safari) or ignores
-  // the resize options, we fall back to an <img> + canvas (drawImage still downsizes to tw x th).
   try {
     const bmp = await createImageBitmap(file, {
       resizeWidth: tw,
       resizeHeight: th,
       resizeQuality: "high",
     });
-    const blob = await sourceToWebpBlob(bmp, tw, th);
+    const blob = await sourceToBlob(bmp, tw, th, type, quality);
     bmp.close();
     return blob;
   } catch {
@@ -102,10 +126,49 @@ async function generatePhotoPreview(
       img.src = url;
       const ok = await waitEvent(img, "load", 5000);
       if (!ok) return null;
-      return await sourceToWebpBlob(img, tw, th);
+      return await sourceToBlob(img, tw, th, type, quality);
     } finally {
       URL.revokeObjectURL(url);
     }
+  }
+}
+
+async function generatePhotoPreview(
+  file: File,
+  width: number,
+  height: number,
+): Promise<Blob | null> {
+  if (shouldSkipPreview(width, height)) return null; // already small enough
+  const { width: tw, height: th } = previewTargetSize(width, height);
+  return drawPhoto(file, tw, th);
+}
+
+/**
+ * THE PHONE-SIZE COPY (take-home r1): a photograph's long side at 2048 px as a JPEG, from the STRIPPED file (a
+ * canvas carries no metadata, so the copy is clean twice over). Never throws; null whenever it should not or
+ * cannot be made, each a case where the original simply serves instead:
+ *  - the photograph is already phone size (its original IS a phone-size photograph);
+ *  - this browser cannot decode it (an iPhone's HEIC outside Safari) or encode a JPEG;
+ *  - the copy came out past either cap (`phoneCopyFits`: 4 MB, or half the original, which a small, already
+ *    compressed original can be), so the server would refuse it anyway.
+ * Videos never get one: a clip stays as taken.
+ */
+export async function generatePhoneCopy(
+  file: File,
+  kind: "photo" | "video",
+  measured: { width?: number; height?: number },
+): Promise<GeneratedPhoneCopy | null> {
+  if (kind !== "photo") return null;
+  try {
+    const width = measured.width ?? 0;
+    const height = measured.height ?? 0;
+    if (shouldSkipPhoneCopy(width, height)) return null;
+    const { width: tw, height: th } = phoneTargetSize(width, height);
+    const blob = await drawPhoto(file, tw, th, PHONE_FORMAT, PHONE_QUALITY);
+    if (!blob || !phoneCopyFits(blob.size, file.size)) return null;
+    return { blob, ext: "jpg" };
+  } catch {
+    return null;
   }
 }
 
@@ -127,12 +190,15 @@ async function generateVideoPreview(
     if (!vw || !vh) return null;
 
     // Seek a touch in (~0.1s) — the first frame is often black (same rationale as videoPosterSrc's #t=0.1).
-    const dur = Number.isFinite(video.duration) && video.duration > 0 ? video.duration : 1;
+    const dur =
+      Number.isFinite(video.duration) && video.duration > 0
+        ? video.duration
+        : 1;
     video.currentTime = Math.min(0.1, dur * 0.1);
     if (!(await waitEvent(video, "seeked", 3000))) return null;
 
     const { width: tw, height: th } = previewTargetSize(vw, vh);
-    return await sourceToWebpBlob(video, tw, th);
+    return await sourceToBlob(video, tw, th);
   } finally {
     URL.revokeObjectURL(url);
   }
@@ -152,8 +218,11 @@ export async function posterPreview(
   try {
     const bmp = await createImageBitmap(poster);
     try {
-      const { width: tw, height: th } = previewTargetSize(bmp.width, bmp.height);
-      const blob = await sourceToWebpBlob(bmp, tw, th);
+      const { width: tw, height: th } = previewTargetSize(
+        bmp.width,
+        bmp.height,
+      );
+      const blob = await sourceToBlob(bmp, tw, th);
       return blob ? { blob, ext: "webp" } : null;
     } finally {
       bmp.close();
@@ -175,7 +244,11 @@ export async function generatePreview(
   try {
     const blob =
       kind === "photo"
-        ? await generatePhotoPreview(file, measured.width ?? 0, measured.height ?? 0)
+        ? await generatePhotoPreview(
+            file,
+            measured.width ?? 0,
+            measured.height ?? 0,
+          )
         : await generateVideoPreview(file, measured);
     return blob ? { blob, ext: "webp" } : null;
   } catch {

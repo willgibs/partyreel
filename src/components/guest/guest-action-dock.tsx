@@ -28,11 +28,24 @@
  * ★ THE BOX TAKES NO POINTER, ITS CONTROLS DO (design-system.md's gotcha: a full-width overlay above a
  * gesture eats the gesture): the fade and the band are `pointer-events-none`, so a press between the
  * rounds lands on the photograph under it.
+ *
+ * ★ IN SELECT MODE THE SHUTTER TURNS TO SAVE (take-home r1, `guest=select`): the album's one round act at the
+ * foot's centre, the download on its face, the count she has picked on its shoulder, its ring the album's light.
+ * Pressed, the same ring fills as her photographs arrive (the atom's own `sending`), one control and one light in
+ * both directions, and a press then stops it; once they are in hand and the tap that asked has lapsed, it says
+ * Ready, and the next press opens the phone's sheet. It stands whether or not the cover's row is on screen (her
+ * Save must be in reach the moment she picks), alone: the flanks are the album's acts, not her selection's.
+ * Select mode is the album's (`live-gallery-select.ts`), which this reads and presses.
  */
-import { Camera } from "lucide-react";
+import { Camera, Download, ImageDown } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 
+import {
+  guestSelect,
+  useGuestSelect,
+  type GuestSelect,
+} from "@/components/guest/live-gallery-select";
 import { Shutter, type ShutterState } from "@/components/ui/shutter";
 import { formatCount } from "@/lib/format/count";
 import {
@@ -90,6 +103,7 @@ export function GuestActionDock({
    */
   camera?: boolean;
 }) {
+  const select = useGuestSelect();
   const progress = useRunProgress(
     run?.items ?? NO_ITEMS,
     run?.progress ?? NO_PROGRESS,
@@ -113,6 +127,9 @@ export function GuestActionDock({
     const timer = window.setTimeout(() => setDone(false), DONE_HOLD_MS);
     return () => window.clearTimeout(timer);
   }, [done]);
+
+  if (select.active)
+    return <SaveDock select={select} hues={hues} more={more} />;
 
   // Nothing to stand at the foot is nothing to draw, fade included.
   if (!onAdd && !invite) return null;
@@ -179,6 +196,94 @@ export function GuestActionDock({
         )}
         {twin}
         {tracker}
+      </div>
+    </div>
+  );
+}
+
+/** The foot's fade and band, as the dock draws them, for the Save that stands alone in select mode. */
+function SaveDock({
+  select,
+  hues,
+  more,
+}: {
+  select: GuestSelect;
+  hues?: readonly number[];
+  more: boolean;
+}) {
+  const count = select.picks.length;
+  const run = select.run;
+  const getting = run.kind === "getting";
+  const ready = run.kind === "ready";
+  const state: ShutterState = getting
+    ? "sending"
+    : run.kind === "done"
+      ? "done"
+      : "idle";
+  const what = count === 1 ? "1 photo" : `${formatCount(count)} photos`;
+  const label = getting
+    ? `Saving ${what}. Tap to stop.`
+    : ready
+      ? `Save ${what}: ready`
+      : count === 0
+        ? "Pick photos to save"
+        : `Save ${what}`;
+  return (
+    <div
+      data-guest-dock=""
+      data-select=""
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-40"
+    >
+      <div
+        aria-hidden
+        data-dock-fade=""
+        data-more={more ? "" : undefined}
+        className={cn(
+          "absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-background via-background/70 to-transparent",
+          "opacity-0 transition-opacity duration-300 ease-emphasis data-more:opacity-100 motion-reduce:transition-none",
+        )}
+      />
+      <div
+        role="group"
+        aria-label="Save your picks"
+        className="relative flex items-center justify-center pb-[calc(1.25rem+env(safe-area-inset-bottom))] [&_button]:pointer-events-auto"
+      >
+        <span className="relative">
+          <Shutter
+            data-save-shutter=""
+            state={state}
+            progress={getting ? run.progress : 0}
+            hues={hues}
+            disabled={count === 0 && run.kind === "idle"}
+            onClick={() => guestSelect.press()}
+            aria-label={label}
+          >
+            {getting ? (
+              // The stop a tap is, while her photographs arrive (the viewer's own ring-and-stop grammar).
+              <span aria-hidden className="size-4 rounded-[3px] bg-current" />
+            ) : ready ? (
+              <ImageDown className="size-6" />
+            ) : (
+              <Download className="size-6" />
+            )}
+          </Shutter>
+          {/* At rest the atom wears no shoulder (its count is a run's): the selection's, in the atom's own badge,
+              so the round says how many it will save; "Ready" once they are in hand. */}
+          {(count > 0 && run.kind === "idle") || ready ? (
+            <span
+              aria-hidden
+              data-save-count=""
+              className={cn(
+                "absolute -top-1 -right-1 z-10 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-micro font-semibold tabular-nums ring-2 ring-background",
+                ready
+                  ? "bg-save px-1.5 text-save-foreground"
+                  : "bg-foreground text-background",
+              )}
+            >
+              {ready ? "Ready" : formatCount(count)}
+            </span>
+          ) : null}
+        </span>
       </div>
     </div>
   );

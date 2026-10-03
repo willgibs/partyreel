@@ -28,7 +28,11 @@ export type ExportManifestPayload = {
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/** Strict layout gate: `events/<uuid>/<photo|video>/<uuid>/<original|preview>.<ext>`. Mirrors the app. */
+/**
+ * Strict layout gate: `events/<uuid>/<photo|video>/<uuid>/<original|preview|phone>.<ext>`. Mirrors the app. The
+ * `phone` variant (take-home r1) is a photograph's phone-size copy, which a host's Phone size zips; an older
+ * deployment refuses such a token whole, so this Worker deploys before the app that signs one.
+ */
 export function isValidExportKey(key: string): boolean {
   const s = key.split("/");
   if (s.length !== 5) return false;
@@ -36,7 +40,7 @@ export function isValidExportKey(key: string): boolean {
   if (!UUID_RE.test(s[1])) return false;
   if (s[2] !== "photo" && s[2] !== "video") return false;
   if (!UUID_RE.test(s[3])) return false;
-  return /^(original|preview)\.[a-z0-9]+$/.test(s[4]);
+  return /^(original|preview|phone)\.[a-z0-9]+$/.test(s[4]);
 }
 
 function hexToBytes(hex: string): Uint8Array | null {

@@ -14,8 +14,14 @@
 
 import type { MediaKind } from "@/lib/media/limits";
 
-/** `original` = the uploaded file; `preview` = transcoded/thumbnailed derivative. */
-export type MediaVariant = "original" | "preview";
+/**
+ * `original` = the uploaded file; `preview` = the tile's small WebP; `phone` = a photograph's 2048 px
+ * JPEG (take-home r1, `preview-size.ts`: what Save puts into Photos and a host's Phone size takes home).
+ * ★ EVERY READER OF THE STORED COPIES KNOWS ALL THREE: a purge that deletes a row's objects deletes
+ * `phone_key` beside `original_key` and `preview_key` (`lifecycle/reclaim.ts`' `mediaKeysOf`), and
+ * `stored-copies-policy.test.ts` refuses a reader of `preview_key` that never names `phone_key`.
+ */
+export type MediaVariant = "original" | "preview" | "phone";
 
 export function mediaObjectKey(params: {
   eventId: string;
@@ -30,8 +36,26 @@ export function mediaObjectKey(params: {
 }
 
 /**
+ * THE PHONE-SIZE COPY'S KEY: always a photograph's, always a JPEG, beside its original and preview, so
+ * presign mints it, complete pins it and `create_media*` re-derives it from the row's own ids (a copy
+ * at any other key would name an object this upload never minted, which a purge would then delete).
+ */
+export function phoneKeyFor(params: {
+  eventId: string;
+  mediaId: string;
+}): string {
+  return mediaObjectKey({
+    eventId: params.eventId,
+    mediaId: params.mediaId,
+    kind: "photo",
+    variant: "phone",
+    ext: "jpg",
+  });
+}
+
+/**
  * Does an R2 media key belong to `eventId`'s namespace? The single validator for the QA-review
- * Pattern A: any client-supplied key stored on the media path (original_key, preview_key) MUST be
+ * Pattern A: any client-supplied key stored on the media path (original_key, preview_key, phone_key) MUST be
  * bound to the event, or a host can register a victim's key and destroy the victim's object on
  * permanent-delete (both purge paths enumerate these keys into deleteR2Objects). The authoritative
  * gate is the SQL prefix check inside create_media(_as_host) (a client can't reach PostgREST); this
@@ -50,7 +74,7 @@ export function isValidMediaKey(key: string, eventId: string): boolean {
  * ★ DELIBERATELY outside `events/` — that placement is load-bearing for every delete path:
  *   - the orphan sweep lists ONLY the `events/` prefix, so preservation objects are never even
  *     scanned (and parseMediaIdFromKey returns null for them — "not ours → never delete");
- *   - event-deletion purges R2 by ENUMERATED media keys (original_key/preview_key), which never
+ *   - event-deletion purges R2 by ENUMERATED media keys (original_key/preview_key/phone_key), which never
  *     include these;
  *   - the backup Worker replicates them like any object (extra durability, fine), and its prune's
  *     dual-gate (primary object absent AND media row gone) can only reclaim the backup copy after
@@ -145,9 +169,10 @@ export function parseKindFromKey(key: string): MediaKind | null {
 
 /**
  * Pull the <variant> out of a media object key's last segment (`<variant>.<ext>`). The complete
- * seam uses it to pin `key` to `original` and `preview_key` to `preview` (QA #6): without the pin,
- * swapping the two would meter the ~2 MB preview as file_size_bytes while the full-size original
- * sat uncounted. Null for a non-media shape or an unknown variant (refuse, never repair).
+ * seam uses it to pin `key` to `original`, `preview_key` to `preview` and `phone_key` to `phone`
+ * (QA #6): without the pin, swapping them would meter a small derivative as file_size_bytes while
+ * the full-size original sat uncounted. Null for a non-media shape or an unknown variant (refuse,
+ * never repair).
  */
 export function parseVariantFromKey(key: string): MediaVariant | null {
   const segments = key.split("/");
@@ -156,5 +181,28 @@ export function parseVariantFromKey(key: string): MediaVariant | null {
   const dot = lastSegment.indexOf(".");
   if (dot < 1) return null; // no dot, or a dotfile with no name
   const variant = lastSegment.slice(0, dot);
-  return variant === "original" || variant === "preview" ? variant : null;
+  return variant === "original" || variant === "preview" || variant === "phone"
+    ? variant
+    : null;
 }
+
+/**
+ * A DERIVED COPY: a tile's preview or a photograph's phone-size copy, each made from its original in the
+ * uploader's browser, so either can be remade from the original it sits beside. Read from the key alone (the
+ * variant is the last segment's name, `preview.webp`, `phone.jpg`), so a filter needs no row: the backup's
+ * "originals only" lever (docs/PRICING.md, Will's to pull) is the one line `DERIVED_COPY_RE` tests.
+ */
+export function isDerivedCopyKey(key: string): boolean {
+  const variant = parseVariantFromKey(key);
+  return (
+    parseKindFromKey(key) !== null &&
+    (variant === "preview" || variant === "phone")
+  );
+}
+
+/**
+ * The same question as a pattern a Worker can carry without this module (`workers/backup` builds apart from the
+ * app): exactly the keys `isDerivedCopyKey` answers true for, pinned by keys.test.ts.
+ */
+export const DERIVED_COPY_RE =
+  /^events\/[^/]+\/(?:photo|video)\/[^/]+\/(?:preview|phone)\.[a-z0-9]+$/;

@@ -450,6 +450,7 @@ export default async function EventDetailPage({
               waiting: doorCounts.waiting,
             }}
             stills={coverStills}
+            develop={event}
             toBar={!welcomed}
           />
 
@@ -479,6 +480,7 @@ export default async function EventDetailPage({
                   videosAllowed={videosAllowedForTier(tier)}
                   initialStep={rowStep}
                   tier={tier}
+                  develop={event}
                 >
                   <EventUploads
                     eventId={event.id}

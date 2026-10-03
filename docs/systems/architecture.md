@@ -23,6 +23,13 @@ handlers.
 - **The `(app)` layout's `getUser()` is routing, not security** (the boundary is RLS and the re-check in every Server
   Function and route: [database-security.md](database-security.md)). Anything that needs a signed-in host lives under `(app)`, every
   signed-out entry point stays outside it, and a new group inherits no gate: `(print)` declares its own.
+- **Every response carries one set of security headers** (`src/lib/security-headers.ts`, returned by `next.config.ts`'s
+  `headers()`; both Vercel projects build it, so the portal sends what the app does, and the proxy's redirects and 404
+  rewrites carry it too). ★ No other site may frame the app: `frame-ancestors 'self'` and `X-Frame-Options:
+  SAMEORIGIN`. It is `'self'`, never `'none'`, because the app frames its own pages (See it as a guest's phone over the
+  hub, the lab's boards), and such a frame's `src` stays root-relative: an absolute one is another origin on a preview
+  alias and is refused. That is the one CSP directive that ships; a full policy (its nonce, its inventory) is its own
+  project and must carry it too. An embed of the app on another site is a decision to widen one path, never to drop these.
 
 ## Two stores of truth, and how data moves
 

@@ -25,6 +25,7 @@
  * so the integrity model and the tests drive it against a simulated server.
  */
 import { createClipResolver, type ClipResolver } from "@/lib/album/resolver";
+import type { GuestWaiting } from "@/lib/disposable/facts";
 import { createLinkStore, type LinkStore } from "@/lib/album/links";
 import { mergeEntries } from "@/lib/album/manifest";
 import type { GalleryAccess, GalleryGate } from "@/lib/events/gallery-access";
@@ -76,6 +77,14 @@ export type AlbumSnapshot = {
   guestCount: number | null;
   /** The host's two numbers. */
   counts: HostAlbumCounts | null;
+  /**
+   * ★ WHAT WAITS, AS A GUEST MAY KNOW IT (`GuestFullSync.waiting`: held and sealed rows counted together, the count and
+   * its minutes, and the develop time; never an id), off the last full answer that carried it: the album's contact
+   * sheet draws everyone's from it (the-wait r1, Will's `wait=sheet`). Absent where the answer said none (nothing waits
+   * and no develop time is set), at a teaser or a lock, and in the host's scope, so a snapshot built elsewhere (the
+   * page's seed, `seedSnapshot`) reads the same as the store's for an album that uses neither.
+   */
+  waiting?: GuestWaiting;
 };
 
 export type AlbumStoreStats = {
@@ -209,6 +218,8 @@ export function createAlbumStore<Who>(
       reel: isHost ? null : body.reel,
       guestCount: isHost ? null : (body.guestCount ?? null),
       counts: isHost ? body.counts : null,
+      // Every full answer says what waits, or (absent) that nothing does: the newest word stands, a 304's silence keeps it.
+      waiting: isHost ? undefined : body.waiting,
     };
 
     if (body.kind === "manifest") {

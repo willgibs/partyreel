@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { roomHref, roomOfHref } from "@/lib/event/sections";
+
 import { nextStepForEvent, type NextStepEvent } from "./next-step";
 
 /**
@@ -127,9 +129,17 @@ describe("people at the door (the doors, event-settings r1)", () => {
     expect(step?.tone).toBe("waiting");
   });
 
-  it("open the Guests room at its At the door", () => {
+  it("open the Guests room on the hub's own address, with no hop through the retired route", () => {
     const step = nextStepForEvent({ ...base, waiting: 1 }, TODAY);
-    expect(step?.href).toBe("/dashboard/e1/guests#at-the-door");
+    // `roomHref` is the one spelling of a room's address; `/dashboard/<id>/guests` only redirects to it
+    // (`guests/page.tsx`), so a link there costs a request for nothing. At the door heads the room, so
+    // the room's address is also where the old `#at-the-door` pointed.
+    expect(step?.href).toBe(roomHref("e1", "guests"));
+    expect(step?.href).not.toContain("/guests");
+    // And the hub reads it as the room it names, as it reads every way into one (`roomOfHref`).
+    expect(roomOfHref(step?.href ?? "", "e1", "https://partyreel.test")).toBe(
+      "guests",
+    );
     expect(step?.label).toContain(base.name);
   });
 

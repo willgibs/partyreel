@@ -426,3 +426,38 @@ describe("today's app, reaching an older Worker (the deploy may come after the a
     });
   });
 });
+
+describe("a phone-size zip (take-home r1): the Worker deploys before the app asks for one", () => {
+  const PHONE = KEYS[0].replace(/original\.jpg$/, "phone.jpg");
+  /** A host's Phone size: her photographs' phone-size copies, a key layout no older Worker knows. */
+  const phoneSize = () =>
+    signToken(SECRET, {
+      ...payloadOf(M29_TOKEN),
+      zipName: "garden-party-phone-size.zip",
+      items: [{ key: PHONE, name: "garden-party-11111111.jpg" }],
+    });
+
+  it("today's Worker streams it", async () => {
+    const res = await (today as Worker).fetch(
+      m29FormPost(await phoneSize())(),
+      {
+        PRIMARY: createFakeBucket({ [PHONE]: "a phone-size jpeg" }),
+        EXPORT_SIGNING_SECRET: SECRET,
+      } as never,
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-disposition")).toContain(
+      "garden-party-phone-size.zip",
+    );
+  });
+
+  it("an older Worker refuses it whole (the key layout it pins), which is why it deploys first", async () => {
+    for (const old of [m29, m31] as Worker[]) {
+      const res = await old.fetch(m29FormPost(await phoneSize())(), {
+        PRIMARY: createFakeBucket({ [PHONE]: "a phone-size jpeg" }),
+        EXPORT_SIGNING_SECRET: SECRET,
+      } as never);
+      expect(res.status).not.toBe(200);
+    }
+  });
+});

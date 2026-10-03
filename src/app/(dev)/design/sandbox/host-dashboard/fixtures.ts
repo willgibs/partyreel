@@ -11,36 +11,44 @@ import { formatEventDate } from "@/lib/utils";
 import { type CropId, photo } from "./crops";
 
 /**
- * THREE HOSTS ON ONE QUIET TUESDAY, IN PRODUCTION'S OWN SHAPES.
+ * SIX HOSTS ON ONE QUIET TUESDAY, IN PRODUCTION'S OWN SHAPES, from one event
+ * to two hundred (his r2 note: "design for users with 1 to maybe 10 events in
+ * mind as the primary expectation, but ensure it scales up to dozens or
+ * hundreds").
  *
  * Every event is a `HostedEvent` (`lib/dashboard/home-view.ts`), made through
  * production's own test factory (`lib/dashboard/testing/home.ts`), so the page
  * every frame draws is composed by production's `buildHomeView` from the facts
- * production's page would have read, and nothing about what shows is decided a
- * second time here.
+ * production's page would have read.
  *
- *  - MAYA has one event, her 30th on Saturday 31 October, ten days ago, on an
- *    Event Pass, and a friend's wedding she added photos to.
- *  - NIA has three and dated none (Create asks no date, so this is every new
- *    host's case): a wedding she made last night, still empty, and two older
- *    albums, an engagement party and the one she made to try Partyreel out.
- *  - JO plans parties for a living, on Pro: forty events since New Year's Day
- *    2025, in a November lull (her last party was 7 October, her next is the
- *    Harbour & Co Holiday Party on 12 December, 32 days out), and a launch she
- *    made on Sunday without a date. She is saving the photographs of three 2025
- *    weddings for their couples' anniversaries.
+ *  - MAYA has one event, her 30th ten days ago, and a friend's wedding she
+ *    added photos to.
+ *  - NIA has three and dated none: a wedding she made last night, still empty,
+ *    and two older albums. NIA A WEEK ON is the same wedding dated (a weekend,
+ *    Saturday to Sunday), its code opened and its door set: the week before.
+ *  - ARI has ten, a family's two years: birthdays, a lake weekend, a book club
+ *    nobody dated, a housewarming she made last night.
+ *  - JO plans parties for a living: forty since New Year's Day 2025, saving
+ *    three 2025 weddings for their couples' anniversaries.
+ *  - RAE runs a venue: two hundred events since January 2023, made by a seeded
+ *    generator so the count is real and every name reads like an event's.
+ *
+ * ★ RANGES AND THE NEWEST LEAD ARE DRAWN AS SETTLED (`event-dates` wires them
+ * this round): an event may carry a last day (`end`, a range of days, no
+ * times), and on a quiet day the newest event leads the stage. Production's
+ * types hold no end date yet, so a range lives here (`Host.ends`) and the
+ * board's own words say it (`model.ts`, `rangeWords`).
  *
  * ★ THE DAY IS TUESDAY 10 NOVEMBER 2026, MID-MORNING, AND NO PARTY IS ON ITS
- * DAY: a live stage listens to its album's doorbell (a Realtime socket) and asks
- * a Server Function for its wall, and a frame must never reach either. ★ NOTHING
- * HERE IS A REAL PERSON, and every photograph is a crop of a bootstrap still
- * (`crops.ts`). ★ Copy is placeholder judged for size and wrapping: names run
- * to a real event's length.
+ * DAY: a live stage listens to its album's doorbell (a Realtime socket) and a
+ * frame must never reach it. ★ NOTHING HERE IS A REAL PERSON, and every
+ * photograph is a crop of a bootstrap still (`crops.ts`). ★ Copy is placeholder
+ * judged for size and wrapping: names run to a real event's length.
  */
 
 export const TODAY = "2026-11-10";
 
-export type HostId = "maya" | "nia" | "jo";
+export type HostId = "maya" | "nia" | "nia-week" | "ari" | "jo" | "rae";
 
 export type Host = {
   id: HostId;
@@ -58,10 +66,10 @@ export type Host = {
   people: Record<string, number>;
   /** Each event's album, newest first: the stand-in event page draws it. */
   albums: Record<string, string[]>;
-  /** Her opens, newest first, as Try it opens the page: where `left` and Recent start. */
+  /** A ranged event's last day, `YYYY-MM-DD` (`event-dates`, drawn as settled). */
+  ends: Record<string, string>;
+  /** Her opens, newest first, as Try it opens the page: Recent and Last opened read them. */
   trail: string[];
-  /** The event she has featured, when the stage takes her pick (`pick=kept`). */
-  featured: string | null;
 };
 
 /* ── the albums ───────────────────────────────────────────────────────── */
@@ -128,6 +136,8 @@ type Spec = {
   name: string;
   /** The host's date, `YYYY-MM-DD`, or none. */
   date: string | null;
+  /** A range's last day (`event-dates`, drawn as settled). */
+  end?: string;
   /** The day she made it. */
   made: string;
   /** Its album's look and where in it the cover falls; none is an empty album. */
@@ -135,7 +145,7 @@ type Spec = {
   approved?: number;
   pending?: number;
   waiting?: number;
-  /** The day its photographs last landed: the day after its date unless said. */
+  /** The day its photographs last landed: the day after its last day unless said. */
   last?: string;
   door?: Door;
   paused?: boolean;
@@ -157,7 +167,7 @@ function event(s: Spec): HostedEvent {
   const filled = (s.approved ?? 0) > 0;
   const stills = s.look && filled ? album(s.look[0], s.look[1], 4) : [];
   const lastDay = filled
-    ? (s.last ?? (s.date ? dayAfter(s.date) : null))
+    ? (s.last ?? (s.date ? dayAfter(s.end ?? s.date) : null))
     : null;
   // Before its day: a date still to come, or no day at all (an undated album with nothing in it).
   const before = s.date ? s.date > TODAY : !lastDay;
@@ -216,7 +226,7 @@ function guest(
 }
 
 function host(
-  base: Omit<Host, "hosted" | "albums" | "ctx" | "people"> & {
+  base: Omit<Host, "hosted" | "albums" | "ctx" | "people" | "ends"> & {
     specs: Spec[];
     storagePct: number;
   },
@@ -231,6 +241,9 @@ function host(
     albums: Object.fromEntries(specs.map((s) => [s.id, albumOf(s)])),
     people: Object.fromEntries(
       specs.map((s) => [s.id, Math.round((s.approved ?? 0) / 7)]),
+    ),
+    ends: Object.fromEntries(
+      specs.filter((s) => s.end).map((s) => [s.id, s.end!]),
     ),
   };
 }
@@ -271,55 +284,202 @@ const MAYA = host({
   ],
   deleted: [],
   trail: ["maya-30th"],
-  featured: null,
 });
 
-/* ── Nia: three events, none dated ────────────────────────────────────── */
+/* ── Nia: three events, none dated; and the same three a week on ──────── */
 
-const NIA = host({
-  id: "nia",
+const NIA_OLDER: Spec[] = [
+  {
+    id: "nia-engagement",
+    name: "Our Engagement Party",
+    date: null,
+    made: "2026-09-20",
+    look: ["wedding", 4],
+    approved: 64,
+    last: "2026-09-26",
+  },
+  {
+    id: "nia-trying",
+    name: "Trying it out",
+    date: null,
+    made: "2026-09-12",
+    look: ["party", 5],
+    approved: 4,
+    last: "2026-09-12",
+  },
+];
+
+const NIA_BASE = {
   name: "Nia",
   email: "nia@example.com",
   seed: "hd-nia",
   plan: {
     name: "Pro",
-    tier: "pro",
+    tier: "pro" as const,
     capBytes: 100 * GIGABYTE,
     usedBytes: 0.4 * GIGABYTE,
   },
   storagePct: 1,
+  guests: [],
+  deleted: [],
+  // She made the wedding last night, so it is the last thing she opened.
+  trail: ["nia-wedding", "nia-engagement", "nia-trying"],
+};
+
+const NIA = host({
+  ...NIA_BASE,
+  id: "nia",
   specs: [
+    // Just made: Create's own defaults, nothing set, the code never opened.
     {
       id: "nia-wedding",
       name: "Nia & Alex's Wedding",
       date: null,
       made: "2026-11-09",
       description: null,
+      qrStyle: "rounded",
+    },
+    ...NIA_OLDER,
+  ],
+});
+
+/**
+ * THE WEEK BEFORE: the same wedding dated (a weekend, Saturday to Sunday, so a
+ * range is drawn as settled), its door an invite list, its welcome written and
+ * its code opened twelve times; still not one photograph.
+ */
+const NIA_WEEK = host({
+  ...NIA_BASE,
+  id: "nia-week",
+  specs: [
+    {
+      id: "nia-wedding",
+      name: "Nia & Alex's Wedding",
+      date: "2026-11-14",
+      end: "2026-11-15",
+      made: "2026-11-09",
+      door: "invite",
+      opened: 12,
+      qrStyle: "rounded",
+      description:
+        "Welcome! Add every photo you take this weekend, from the ceremony to Sunday's brunch.",
+    },
+    ...NIA_OLDER,
+  ],
+});
+
+/* ── Ari: ten events ──────────────────────────────────────────────────── */
+
+const ARI = host({
+  id: "ari",
+  name: "Ari",
+  email: "ari@example.com",
+  seed: "hd-ari",
+  plan: {
+    name: "Pro",
+    tier: "pro",
+    capBytes: 100 * GIGABYTE,
+    usedBytes: 9.6 * GIGABYTE,
+  },
+  storagePct: 10,
+  specs: [
+    {
+      id: "ari-housewarming",
+      name: "Ari & Lou's Housewarming",
+      date: "2026-11-28",
+      made: "2026-11-09",
+      opened: 2,
+      qrStyle: "dots",
     },
     {
-      id: "nia-engagement",
-      name: "Our Engagement Party",
-      date: null,
+      id: "ari-dad70",
+      name: "Dad's 70th",
+      date: "2026-10-17",
       made: "2026-09-20",
-      look: ["wedding", 4],
-      approved: 64,
-      last: "2026-09-26",
+      look: ["evening", 2],
+      approved: 186,
+      pending: 3,
     },
     {
-      id: "nia-trying",
+      id: "ari-mila6",
+      name: "Mila Turns Six",
+      date: "2026-09-05",
+      made: "2026-08-10",
+      look: ["party", 3],
+      approved: 94,
+    },
+    {
+      id: "ari-lake",
+      name: "Lake Weekend",
+      date: "2026-08-14",
+      end: "2026-08-16",
+      made: "2026-07-02",
+      look: ["evening", 7],
+      approved: 241,
+    },
+    {
+      id: "ari-office",
+      name: "Office Summer Social",
+      date: "2026-07-24",
+      made: "2026-07-01",
+      look: ["party", 9],
+      approved: 133,
+    },
+    {
+      id: "ari-engagement",
+      name: "Ari & Lou's Engagement",
+      date: "2026-06-20",
+      made: "2026-05-11",
+      look: ["wedding", 3],
+      approved: 312,
+      door: "invite",
+    },
+    {
+      id: "ari-bookclub",
+      name: "Book Club Supper",
+      date: null,
+      made: "2026-05-02",
+      look: ["evening", 4],
+      approved: 18,
+      last: "2026-05-02",
+    },
+    {
+      id: "ari-nye",
+      name: "New Year's at Ours",
+      date: "2025-12-31",
+      made: "2025-12-01",
+      look: ["party", 6],
+      approved: 207,
+    },
+    {
+      id: "ari-garden",
+      name: "Grandma's Garden Party",
+      date: "2025-07-12",
+      made: "2025-06-20",
+      look: ["wedding", 10],
+      approved: 76,
+    },
+    {
+      id: "ari-trying",
       name: "Trying it out",
       date: null,
-      made: "2026-09-12",
-      look: ["party", 5],
-      approved: 4,
-      last: "2026-09-12",
+      made: "2025-06-01",
+      look: ["party", 1],
+      approved: 3,
+      last: "2025-06-01",
     },
   ],
-  guests: [],
+  guests: [
+    guest(
+      "ari-guest-jess",
+      "Jess & Tom's Wedding",
+      "2026-09-19",
+      "Jess",
+      "goldenLight",
+    ),
+  ],
   deleted: [],
-  // She made the wedding last night, so it is the last thing she opened.
-  trail: ["nia-wedding", "nia-engagement", "nia-trying"],
-  featured: null,
+  trail: ["ari-dad70", "ari-mila6", "ari-lake", "ari-bookclub"],
 });
 
 /* ── Jo: forty events ─────────────────────────────────────────────────── */
@@ -348,11 +508,12 @@ const JO_SPECS: Spec[] = [
     opened: 4,
     qrStyle: "rounded",
   },
-  // 2026, the lull's far side: the last party five weeks ago.
+  // 2026, the lull's far side: the last party five weeks ago, a two-day offsite.
   {
     id: "jo-offsite",
     name: "Brightwater Offsite",
-    date: "2026-10-07",
+    date: "2026-10-06",
+    end: "2026-10-07",
     made: "2026-08-30",
     look: ["evening", 6],
     approved: 88,
@@ -483,7 +644,8 @@ const JO_SPECS: Spec[] = [
   {
     id: "jo-hen",
     name: "Priya's Hen Weekend",
-    date: "2026-05-02",
+    date: "2026-05-01",
+    end: "2026-05-03",
     made: "2026-03-29",
     look: ["party", 6],
     approved: 210,
@@ -711,28 +873,306 @@ const JO = host({
       countdown: binCountdownLabel(25),
     },
   ],
-  // Her week as Try it opens the page: the first 2025 wedding she saved, the
-  // October wedding whose album she sent, and the two she is setting up.
-  trail: ["jo-theo-ana", "jo-ines-tom", "jo-holiday-26", "jo-spring-launch"],
-  // What she featured, where the stage takes her pick: the October wedding
-  // whose album she is still sending round.
-  featured: "jo-ines-tom",
+  // The morning after she saved all three: the weddings at the head of her
+  // opens, then the October wedding whose album she sent and the two she is
+  // setting up.
+  trail: [
+    ...[...JO_THREE].reverse(),
+    "jo-ines-tom",
+    "jo-holiday-26",
+    "jo-spring-launch",
+  ],
 });
 
-export const HOSTS: Record<HostId, Host> = { maya: MAYA, nia: NIA, jo: JO };
+/* ── Rae: two hundred events ──────────────────────────────────────────── */
 
-/**
- * Jo the morning after she saved all three: her opens newest first, the three
- * weddings at the head of them.
- */
-export const JO_AFTER_THREE: readonly string[] = [
-  ...[...JO_THREE].reverse(),
-  "jo-ines-tom",
-  "jo-holiday-26",
-  "jo-spring-launch",
+/** A small seeded generator (mulberry32): the same two hundred on every load. */
+function seeded(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const COUPLES = [
+  "Grace & Femi",
+  "Hana & Joel",
+  "Ines & Tom",
+  "Ruth & Ade",
+  "Sofia & Dev",
+  "Priya & Sam",
+  "Lena & Marco",
+  "Zara & Kwame",
+  "Ellie & Finn",
+  "Noor & Idris",
+  "Bea & Callum",
+  "Maya & Jay",
+  "Ola & Kenji",
+  "Iris & Mateo",
+  "Ama & Luke",
+];
+const COMPANIES = [
+  "Harbour & Co",
+  "Kestrel Labs",
+  "Brightwater",
+  "Northwind",
+  "Juniper & Co",
+  "Fieldhouse",
+  "Saltmarsh Studio",
+  "Orchard Bank",
+];
+const COMPANY_NIGHTS = [
+  "Holiday Party",
+  "Summer Social",
+  "Launch Night",
+  "Awards Dinner",
+  "Offsite",
+];
+const PEOPLE = [
+  "Leo",
+  "Mila",
+  "Dani",
+  "Oliver",
+  "Rosa",
+  "Kai",
+  "Elena",
+  "Sam",
+  "Ava",
+  "Mara",
+  "Callum",
+  "Nadia",
+  "Hugo",
+  "Tess",
+];
+const BIRTHDAYS = ["30th", "40th", "50th", "21st", "Sweet 16", "60th"];
+const HOUSE_NIGHTS = [
+  "Winter Ball",
+  "Spring Gala",
+  "Supper Club",
+  "Midsummer on the Roof",
+  "Jazz on the Terrace",
+  "Harvest Long Table",
+  "Charity Auction",
+  "Quiz Night",
 ];
 
-/** An event's day as the page places it (`dayOf`), or a guest album's: what grouping by year reads. */
+const THEME_OF = {
+  wedding: "wedding",
+  company: "evening",
+  birthday: "party",
+  house: "evening",
+} as const;
+
+const DAY_MS = 86_400_000;
+const iso = (t: number): string => new Date(t).toISOString().slice(0, 10);
+
+/** The old wedding the board sends Rae back to: a 2023 album, screens down any list. */
+export const RAE_TARGET = "rae-theo-ana-2023";
+
+function raeSpecs(): Spec[] {
+  const rand = seeded(2023);
+  const pick = <T>(list: readonly T[]) =>
+    list[Math.floor(rand() * list.length)]!;
+  const out: Spec[] = [];
+  const start = Date.UTC(2023, 0, 7);
+  const last = Date.UTC(2026, 10, 2);
+  const step = (last - start) / 186;
+  const seen = new Set<string>();
+  for (let i = 0; i < 187; i++) {
+    const at = start + i * step + Math.floor(rand() * 2) * DAY_MS;
+    const date = iso(at);
+    const kind = pick(["wedding", "company", "birthday", "house"] as const);
+    const year = date.slice(0, 4);
+    let name =
+      kind === "wedding"
+        ? `${pick(COUPLES)}'s Wedding`
+        : kind === "company"
+          ? `${pick(COMPANIES)} ${pick(COMPANY_NIGHTS)}`
+          : kind === "birthday"
+            ? `${pick(PEOPLE)}'s ${pick(BIRTHDAYS)}`
+            : pick(HOUSE_NIGHTS);
+    // A name a venue runs every year carries its year, as planners name them.
+    if (seen.has(name)) name = `${name} ${year}`;
+    if (seen.has(name)) name = `${name} (${Number(date.slice(5, 7))})`;
+    seen.add(name);
+    const multi = kind === "company" && name.includes("Offsite");
+    out.push({
+      id: `rae-${i}`,
+      name,
+      date,
+      end: multi ? iso(at + DAY_MS) : undefined,
+      made: iso(at - (21 + Math.floor(rand() * 70)) * DAY_MS),
+      look: [THEME_OF[kind], Math.floor(rand() * 13)],
+      approved: 40 + Math.floor(rand() * 860),
+      pending: rand() < 0.05 ? 1 + Math.floor(rand() * 20) : 0,
+      door: pick(["open", "approve", "invite", "open"] as const),
+    });
+  }
+  // The wedding the frames go back for, among its year's.
+  out.push({
+    id: RAE_TARGET,
+    name: "Theo & Ana's Wedding",
+    date: "2023-11-18",
+    made: "2023-05-02",
+    look: ["wedding", 2],
+    approved: 688,
+    door: "invite",
+  });
+  // What is coming, and what nobody dated yet.
+  out.push(
+    {
+      id: "rae-winter-gala",
+      name: "Harbourview Winter Gala",
+      date: "2026-11-21",
+      made: "2026-09-14",
+      door: "approve",
+      opened: 31,
+    },
+    {
+      id: "rae-nye",
+      name: "New Year's Eve on the Terrace",
+      date: "2026-12-31",
+      made: "2026-10-01",
+    },
+    {
+      id: "rae-holiday",
+      name: "Orchard Bank Holiday Party 2026",
+      date: "2026-12-11",
+      made: "2026-10-12",
+      door: "invite",
+    },
+    {
+      id: "rae-tasting",
+      name: "Winter Menu Tasting",
+      date: null,
+      made: "2026-11-06",
+      description: null,
+    },
+    {
+      id: "rae-spring-27",
+      name: "Spring Gala 2027",
+      date: null,
+      made: "2026-10-28",
+    },
+    {
+      id: "rae-staff",
+      name: "Staff Party",
+      date: null,
+      made: "2026-10-30",
+      look: ["party", 4],
+      approved: 41,
+      last: "2026-10-31",
+    },
+    {
+      id: "rae-walkthrough",
+      name: "Venue Walkthrough Photos",
+      date: null,
+      made: "2026-03-02",
+      look: ["evening", 5],
+      approved: 58,
+      last: "2026-03-04",
+    },
+    {
+      id: "rae-terrace-test",
+      name: "Terrace Lights Test",
+      date: null,
+      made: "2025-05-19",
+      look: ["evening", 10],
+      approved: 12,
+      last: "2025-05-19",
+    },
+    {
+      id: "rae-trying",
+      name: "Trying it out",
+      date: null,
+      made: "2023-01-03",
+      look: ["party", 2],
+      approved: 6,
+      last: "2023-01-03",
+    },
+    {
+      id: "rae-sample",
+      name: "Sample Album for Couples",
+      date: null,
+      made: "2024-02-11",
+      look: ["wedding", 7],
+      approved: 36,
+      last: "2024-02-12",
+    },
+    {
+      id: "rae-open-day",
+      name: "Wedding Open Day",
+      date: "2026-01-18",
+      made: "2025-12-02",
+      look: ["wedding", 12],
+      approved: 144,
+    },
+    {
+      id: "rae-roof-27",
+      name: "Midsummer on the Roof 2027",
+      date: null,
+      made: "2026-11-02",
+    },
+  );
+  return out;
+}
+
+const RAE_SPECS = raeSpecs();
+
+/** Two hundred, by construction. */
+export const RAE_EVENT_COUNT = RAE_SPECS.length;
+
+const RAE = host({
+  id: "rae",
+  name: "Rae",
+  email: "rae@example.com",
+  seed: "hd-rae",
+  plan: {
+    name: "Pro",
+    tier: "pro",
+    capBytes: 2000 * GIGABYTE,
+    usedBytes: 1240 * GIGABYTE,
+  },
+  storagePct: 62,
+  specs: RAE_SPECS,
+  guests: [
+    guest(
+      "rae-guest-awards",
+      "Venue of the Year Awards",
+      "2025-03-20",
+      "Hospitality Guild",
+      "stageGlow",
+    ),
+    guest("rae-guest-gina", "Gina's Leaving Do", "2024-08-30", "Gina", "toast"),
+  ],
+  deleted: [
+    {
+      id: "rae-deleted-test",
+      name: "Test (delete me)",
+      date: null,
+      dateLabel: "No date set",
+      coverUrl: null,
+      deletedAt: "2026-11-01T12:00:00.000Z",
+      countdown: binCountdownLabel(21),
+    },
+  ],
+  trail: ["rae-winter-gala", "rae-tasting", "rae-holiday", "rae-staff"],
+});
+
+export const HOSTS: Record<HostId, Host> = {
+  maya: MAYA,
+  nia: NIA,
+  "nia-week": NIA_WEEK,
+  ari: ARI,
+  jo: JO,
+  rae: RAE,
+};
+
+/** An event's day as the page places it (`dayOf`), or a guest album's: what a sort by date reads. */
 export function dayById(h: Host): ReadonlyMap<string, string | null> {
   const out = new Map<string, string | null>();
   for (const e of h.hosted) out.set(e.id, e.date ?? e.lastArrival?.day ?? null);

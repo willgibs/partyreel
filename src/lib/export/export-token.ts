@@ -72,7 +72,8 @@ const UUID_RE =
 
 /**
  * Strict canonical-layout check for an R2 key we're willing to stream:
- * `events/<uuid>/<photo|video>/<uuid>/<original|preview>.<ext>`. The Worker runs the SAME check
+ * `events/<uuid>/<photo|video>/<uuid>/<original|preview|phone>.<ext>` (`phone`, take-home r1: a photograph's
+ * phone-size copy, which a host's Phone size zips; `workers/export` must know it before a token names one). The Worker runs the SAME check
  * so that even a (signature-requiring, therefore practically-impossible) forged manifest can never
  * point a read at `avatars/…`, a traversal, or any non-event object. Mirrors `r2/keys.ts` layout.
  */
@@ -83,7 +84,7 @@ export function isValidExportKey(key: string): boolean {
   if (!UUID_RE.test(segments[1])) return false;
   if (segments[2] !== "photo" && segments[2] !== "video") return false;
   if (!UUID_RE.test(segments[3])) return false;
-  return /^(original|preview)\.[a-z0-9]+$/.test(segments[4]);
+  return /^(original|preview|phone)\.[a-z0-9]+$/.test(segments[4]);
 }
 
 function hmacHex(secret: string, body: string): string {
