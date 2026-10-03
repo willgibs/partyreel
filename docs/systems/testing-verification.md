@@ -48,8 +48,10 @@ like the tool rather than the product, are [CLAUDE.md](../../CLAUDE.md)'s.
 ## Test accounts and fixtures
 
 Live testing uses disposable test data only.
-- **Accounts:** `willg97@gmail.com` the host on Pro, `hi@willgibs.com` a host on Free, `partyr33l@gmail.com` the
-  operator (TOTP MFA). Google through the account chooser is authorized; typing a password or a code never is.
+- **Accounts:** `willg97@gmail.com` the host on Pro, `partyr33l@gmail.com` the operator (TOTP MFA).
+  `hi@willgibs.com` was the host on Free until Will deleted it on 2026-10-03 for the two-Checkout-tabs check (its
+  deletion pending the purge; signups are off, so a new Free host is Will's to make). Google through the account
+  chooser is authorized; typing a password or a code never is.
   ★ Red-team dismissals are strikes against the instant hide (three bar an address, each lapsing 180 days after its
   dismissal: [admin-observability.md](admin-observability.md)). willg97's address holds two and partyr33l's five, all
   dismissed 2026-09-29, so willg97's still hides and partyr33l's is barred until 2027-03-28; hi@willgibs.com's holds

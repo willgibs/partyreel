@@ -145,11 +145,11 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team brie
 
 ## Waiting on Will
 
-- **His walks** (2026-10-02): the phone measurement, the real upload and the Save check are DONE (their findings are
-  wave 2's above). Owed: the two-Checkout-tabs check, ON HOLD while he is out (the card entry is his, on Stripe's hosted
-  page; any test host, my call; the account's deletion is fine, "we'll wipe on launch"; a step-by-step chat guide in
-  order of what needs him, ready for his desk), and Record Video's 1080p size on his iPhone. After build 44: the walk-through when let in (a visible tab), a password door, reduced motion over
-  the door states and the new hub, a hidden-then-shown hub tab.
+- **His walks** (2026-10-02): the phone measurement, the real upload, the Save check and the two-Checkout-tabs check
+  are DONE (the last passed whole on 2026-10-03 01:15Z: two live test subscriptions, the newer followed; the followed
+  one cancelled, the survivor followed with Pro kept; the account deleted, nothing left billing; hi@willgibs.com is
+  gone as a test host). Owed: Record Video's 1080p size on his iPhone; after build 44, the walk-through when let in,
+  a password door, reduced motion over the door states and the new hub, the camera on his phone.
 - **The calls file** (90 calls, `../partyreel-wt/_scratch/calls/relay-calls.md`): he reviews it today.
 - **His next desk** on build 44.
 - **Asks that come due later**: Libraries.dev access for a lane (when the help chat is cut), any F1 frames he loves
