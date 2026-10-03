@@ -177,6 +177,39 @@ describe("on a phone: two ways, each with its size", () => {
   });
 });
 
+describe("past one Save's 2,000", () => {
+  it("Photos waits with its limit, the note says where they all go, and Files still takes them", async () => {
+    phone();
+    // All of an album bigger than one Save: asked as the album, its sizes the album's own.
+    global.fetch = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({ ok: true, summary: summaryOf(2345, 0) }),
+          { status: 200 },
+        ),
+    ) as unknown as typeof fetch;
+    mountWith(ITEMS.map((i) => i.id));
+    act(() => guestSelect.press());
+    const photos = await screen.findByRole("menuitem", {
+      name: /Save to Photos/,
+    });
+    await waitFor(() => expect(photos).toBeDisabled());
+    expect(photos).toHaveTextContent("Up to 2,000");
+    expect(
+      screen.getByText(
+        "Photos takes up to 2,000 at a time: the originals take them all.",
+      ),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("menuitem", { name: /Save to Files/ }));
+    expect(start).not.toHaveBeenCalled();
+    expect(startDownload).toHaveBeenCalledWith("guest", {
+      qr_token: "qr-1",
+      set: "album",
+      types: "all",
+    });
+  });
+});
+
 describe("the press, by where the Save stands", () => {
   it("at a desk, Save is the originals' zip, no question asked", () => {
     onNavigator({ userAgent: DESK, maxTouchPoints: 0 });

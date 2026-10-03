@@ -42,10 +42,12 @@ import {
 import { BULK_LIMIT_MESSAGE, MAX_BULK_ITEMS } from "@/lib/event/bulk-selection";
 import type { ExportSummary } from "@/lib/export/build-manifest";
 import {
+  fitsOneSave,
   saveHints,
   setNoun,
   sheetCanSave,
   takeHomeSizes,
+  TOO_MANY_FOR_PHOTOS,
   type TakeHomeSizes,
 } from "@/lib/export/take-home";
 import { downloadPlaceFor } from "@/lib/export/walk";
@@ -222,6 +224,8 @@ export function GuestSaveChoice({
   const clips = picks.length - photos;
   const noun = setNoun(photos, clips);
   const hints = sizes ? saveHints(sizes) : null;
+  // A set past one Save: Photos waits (all or none), and the originals take every one.
+  const tooMany = !!sizes && !fitsOneSave(sizes);
 
   return (
     <ResponsiveMenu
@@ -235,6 +239,7 @@ export function GuestSaveChoice({
       <ResponsiveMenuItem
         icon={<ImageDown />}
         hint={hints?.photos ?? "·"}
+        disabled={tooMany}
         onSelect={() => {
           const set = setOf(guestSelect.get().picks);
           // Inside the tap: the engine's reads start now, and a sheet that is ready in time opens in it.
@@ -253,9 +258,11 @@ export function GuestSaveChoice({
       <ResponsiveMenuNote>
         {failed
           ? "Couldn't add up the sizes. Either way still saves."
-          : sizes
-            ? "Photos takes phone size, sharp in any post. The originals keep every pixel."
-            : "Adding up the sizes"}
+          : tooMany
+            ? TOO_MANY_FOR_PHOTOS
+            : sizes
+              ? "Photos takes phone size, sharp in any post. The originals keep every pixel."
+              : "Adding up the sizes"}
       </ResponsiveMenuNote>
     </ResponsiveMenu>
   );

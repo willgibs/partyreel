@@ -39,6 +39,13 @@ export type SaveItem = {
 /** The most one Save asks for: one zip's own ceiling, so a set that fits a zip fits a Save. */
 export const SAVE_MAX_ITEMS = MAX_EXPORT_ITEMS;
 
+/**
+ * Why a set past one Save goes to the originals instead: a Save takes all of a set or none of it, since saving the
+ * first 2,000 of 2,345 would say "Saved 2,000 photos" and leave the rest behind with nothing to show which. The
+ * originals' zip takes any size, in parts.
+ */
+export const TOO_MANY_FOR_PHOTOS = `Photos takes up to ${formatCount(SAVE_MAX_ITEMS)} at a time: the originals take them all.`;
+
 /** What one share sheet carries at most (the board's carried `sheet`). */
 export const SHEET_BYTES = SHARE_FILE_MAX_BYTES;
 
@@ -123,16 +130,24 @@ export function setNoun(photos: number, clips: number): string {
   return photos === 1 ? "1 photo" : `${formatCount(photos)} photos`;
 }
 
+/** Whether one Save can carry the whole set: its photographs and clips together, at most `SAVE_MAX_ITEMS`. */
+export function fitsOneSave(sizes: TakeHomeSizes): boolean {
+  return sizes.photos + sizes.clips <= SAVE_MAX_ITEMS;
+}
+
 /**
  * THE TWO CHOICES' HINTS, SIZES BESIDE THEM (his `save=light` note): what goes into Photos ("24 photos · 15 MB")
- * and what the originals' zip weighs ("Originals · 72 MB"), so the heavier one reads as the full-quality path.
+ * and what the originals' zip weighs ("Originals · 72 MB"), so the heavier one reads as the full-quality path. A set
+ * past one Save shows Photos' limit where its size would promise what it cannot carry.
  */
 export function saveHints(sizes: TakeHomeSizes): {
   photos: string;
   originals: string;
 } {
   return {
-    photos: `${setNoun(sizes.photos, sizes.clips)} · ${formatBytes(sizes.phone)}`,
+    photos: fitsOneSave(sizes)
+      ? `${setNoun(sizes.photos, sizes.clips)} · ${formatBytes(sizes.phone)}`
+      : `Up to ${formatCount(SAVE_MAX_ITEMS)}`,
     originals: `Originals · ${formatBytes(sizes.original)}`,
   };
 }

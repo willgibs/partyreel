@@ -284,6 +284,26 @@ describe("what cannot come", () => {
     });
     expect(last(w.states)).toEqual({ kind: "idle" });
   });
+
+  it("a set past one Save's 2,000 is refused whole, never saved in part, with no Try again", async () => {
+    // The route hands back its first 2,000 and says there were more: saving those would leave the rest behind
+    // while the toast said "Saved 2,000 photos", so the engine reads nothing and says where all of them go.
+    const w = world({
+      answer: { status: 200, body: { ok: true, items: items(3), more: true } },
+    });
+    await w.saver.start("guest", { qr_token: "q", set: "album" });
+    expect(w.fileReads).toHaveLength(0);
+    expect(w.share).not.toHaveBeenCalled();
+    expect(last(w.toasts)).toMatchObject({
+      tone: "refused",
+      title: "Photos takes up to 2,000 at a time: the originals take them all.",
+    });
+    const said = last(w.toasts);
+    expect(
+      said.tone === "refused" ? said.action : "not refused",
+    ).toBeUndefined();
+    expect(last(w.states)).toEqual({ kind: "idle" });
+  });
 });
 
 describe("the x", () => {

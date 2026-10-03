@@ -203,7 +203,8 @@ check, and the foot's shutter turns to Save (`live-gallery-select.ts`, the store
   13.8 MB" beside "Originals · 84 MB", the server's `summary` of her `ids`), so Files reads as the full-quality path. A
   desk, or a phone whose sheet takes no file, gets the originals' zip and no question.
 - ★ **Photos goes through one engine** (`take-home-save.ts`, the host's Phone size in a hand too): the links are minted
-  only when she saves (`step: "save"`: phone copy, else original, a clip as taken, at most 2,000), the files fetched
+  only when she saves (`step: "save"`: phone copy, else original, a clip as taken; at most 2,000 and all or none, so
+  past it Photos waits and the originals' zip takes them all, never a partial Save), the files fetched
   three at a time (`fetchMediaFile`, `no-store`) into sheets of at most 100 MB (`packSheets`; a clip heavier than a
   sheet downloads plainly), the shutter's ring and the toast counting the bytes. The sheet opens inside the tap while
   its activation holds; past it (WebKit's five seconds) the toast and the shutter say Ready and the next press opens it

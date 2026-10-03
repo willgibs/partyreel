@@ -22,7 +22,7 @@ import { presignDownload } from "@/lib/r2/presign";
 /**
  * A Save's files, oldest first (the export's own order), each at its size: phone size takes a photograph's copy
  * where it has one and its original where not, and a clip as taken. At most `SAVE_MAX_ITEMS`; `more` says the set
- * ran past it (the caller offers the zip instead).
+ * ran past it, and the engine then saves none of it (all or none: `TOO_MANY_FOR_PHOTOS`).
  */
 export async function saveItemsFor(params: {
   rows: readonly ExportMediaRow[];

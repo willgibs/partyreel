@@ -29,6 +29,7 @@ import {
   type SaveItem,
   SHEET_BYTES,
   setNoun,
+  TOO_MANY_FOR_PHOTOS,
 } from "@/lib/export/take-home";
 import { DONE_MS } from "@/lib/export/walk";
 import { fetchMediaFile, type NavigatorLike } from "@/lib/media/share-save";
@@ -148,9 +149,15 @@ export function createTakeHomeSaver(deps: SaveDeps) {
         const data = (await res.json().catch(() => null)) as {
           ok?: boolean;
           items?: SaveItem[];
+          more?: boolean;
           message?: string;
         } | null;
-        if (res.ok && data?.ok && Array.isArray(data.items)) return data.items;
+        if (res.ok && data?.ok && Array.isArray(data.items)) {
+          // The set ran past one Save (the album grew, or she pressed before its sizes came): all or none, and
+          // another try would answer the same.
+          if (data.more) return { refused: TOO_MANY_FOR_PHOTOS, final: true };
+          return data.items;
+        }
         if (res.status < 500) return { refused: data?.message ?? null };
       } catch {
         if (signal.aborted) return null;
@@ -354,13 +361,16 @@ export function createTakeHomeSaver(deps: SaveDeps) {
       deps.toast.show(r.id, {
         tone: "refused",
         title: answer.refused ?? SAVE_COPY.refused,
-        action: {
-          label: SAVE_COPY.tryAgain,
-          run: () => {
-            deps.toast.dismiss(r.id);
-            void start(scope, body);
-          },
-        },
+        action:
+          "final" in answer
+            ? undefined
+            : {
+                label: SAVE_COPY.tryAgain,
+                run: () => {
+                  deps.toast.dismiss(r.id);
+                  void start(scope, body);
+                },
+              },
         close: {
           label: SAVE_COPY.dismiss,
           run: () => deps.toast.dismiss(r.id),

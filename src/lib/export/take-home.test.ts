@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { ExportSummary } from "@/lib/export/build-manifest";
 import {
+  fitsOneSave,
   packSheets,
   SAVE_MAX_ITEMS,
   saveHints,
@@ -9,6 +10,7 @@ import {
   sheetCanSave,
   SHEET_BYTES,
   takeHomeSizes,
+  TOO_MANY_FOR_PHOTOS,
 } from "@/lib/export/take-home";
 
 const MB = 1024 * 1024;
@@ -137,5 +139,30 @@ describe("sheetCanSave: where a Save can go into Photos", () => {
       }),
     ).toBe(false);
     expect(sheetCanSave({ userAgent: IPHONE, maxTouchPoints: 5 })).toBe(false);
+  });
+});
+
+describe("fitsOneSave: one Save carries at most 2,000 files, photos and clips together", () => {
+  const sized = (photos: number, clips: number) => ({
+    photos,
+    clips,
+    original: (photos + clips) * 3 * 1024 * 1024,
+    phone: photos * 600_000 + clips * 20 * 1024 * 1024,
+    photosPhone: photos * 600_000,
+    clipBytes: clips * 20 * 1024 * 1024,
+  });
+
+  it("fits up to the zip's own ceiling", () => {
+    expect(fitsOneSave(sized(1990, 10))).toBe(true);
+    expect(fitsOneSave(sized(1991, 10))).toBe(false);
+  });
+
+  it("past it, Photos' hint says its limit where a size would mislead, and the originals keep theirs", () => {
+    const hints = saveHints(sized(2345, 0));
+    expect(hints.photos).toBe("Up to 2,000");
+    expect(hints.originals).toBe("Originals · 6.9 GB");
+    expect(TOO_MANY_FOR_PHOTOS).toBe(
+      "Photos takes up to 2,000 at a time: the originals take them all.",
+    );
   });
 });
