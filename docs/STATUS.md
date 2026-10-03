@@ -38,7 +38,8 @@ two asks one decision and tuned the-wait's drawings to production.
   read-only walk PASS (the pages, a German browser's dates, /press to /about#press, the demo's door, a dead link's soft
   404, the dashboard and a hub's checklist head signed in); the admin portal waits on partyr33l's session.
 - **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 45 (`dc74034c`, 2026-10-03 04:30Z):
-  round 12 whole, red-team 44's findings fixed, the deletion made clear, and the seven boards; red-team 45 walks it.
+  round 12 whole, red-team 44's findings fixed, the deletion made clear, and the seven boards; red-team 45 found no
+  MEDIUM (a LOW and two NITs on the ROADMAP).
   Vercel installs with pnpm 9.14.4, `package.json`'s `packageManager`.
 - **The shared database** runs every migration through 2026-10-03: `disposable_foundation` (20261002223236: the
   develop and the camera's roll, applied by protocol after the Advisor's Q10), then a column comment on
