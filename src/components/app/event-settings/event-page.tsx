@@ -174,9 +174,10 @@ type Side = "start" | "end";
 
 /**
  * A PICKER'S CHOICE SAVES A BEAT AFTER THE LAST ONE, in ms (crumbs-59). A calendar's pick is one whole change, but a
- * phone's wheel reports every notch it turns as a date, and a date it passes is not one she chose: each would be a save,
- * and an end that follows the start would follow every stop. The beat lets the wheel rest, so the date it rests on is the
- * one saved (and the end is measured from what was last SAVED, never from a notch).
+ * phone's wheel may report every notch it turns as a date (iOS Safari is said to; no device was at hand), and a date it
+ * passes is not one she chose: each would be a save, and an end that follows the start would follow every stop. The beat
+ * lets the wheel rest, so the date it rests on is the one saved (and the end is measured from what was last SAVED, never
+ * from a notch).
  */
 export const PICK_SETTLE_MS = 350;
 

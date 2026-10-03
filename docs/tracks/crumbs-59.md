@@ -111,6 +111,10 @@ working.
   a screen-reader-only description, as the rows' head says it (from `crumbs-59`).
 - Testing: a real iPhone's date wheel (does it report each notch as `input`?) would settle `PICK_SETTLE_MS` in
   `event-page.tsx` (from `crumbs-59`).
+- Host: Settings' develop time (`camera-settings.tsx`'s `DevelopTimeControl`) saves on leaving the field, like the date now
+  does, but accepts any time in the past, which the database stores as now (`events_reveal_stamp`) and whose save opens every
+  sealed row (`events_develops_rewrite`): Develop now with no question asked, so a year left half typed (0002, 0202) and left
+  would develop the album. A window like the date's, or the Develop now question for a past time, closes it (from `crumbs-59`).
 
 ## Handoff (replaces the chat report)
 

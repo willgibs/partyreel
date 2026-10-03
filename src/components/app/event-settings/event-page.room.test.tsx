@@ -1,7 +1,8 @@
 /**
  * THE ROOM THE EVENT PAGE OPENS IN NEVER POINTS A SCREEN READER AT A DESCRIPTION IT HAS NOT GOT (crumbs-59, red-team 47's
  * NIT: every hub room load logged Radix's "Missing `Description` or `aria-describedby={undefined}` for {DialogContent}",
- * partyreel.com's too).
+ * partyreel.com's too). Found by the warning itself: Review and Guests (`RoomPanel`) say the event's name as their
+ * description at a desk and in a hand, so they never warned; Settings' panel did, at a page.
  *
  * Settings' panel is one dialog whose head changes as a page opens: its rows' head says the event's name under "Settings"
  * (the dialog's description), and a page's head (This event, the door, what guests can add, the reel) says only its title
@@ -12,6 +13,8 @@
  */
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { setViewportWidth } from "../../../../vitest.setup";
 
 const { refresh, toast, updateEventAction, setEventDoorAction } = vi.hoisted(
   () => ({
@@ -41,6 +44,7 @@ vi.mock("@/components/app/pricing/pricing-sheet", () => ({
 }));
 
 const { EventSettingsSheet } = await import("./event-settings-sheet");
+const { RoomPanel } = await import("@/components/app/share/room-panel");
 const { hostEvent, NO_COUNTS, readyFacts } =
   await import("./testing/host-event");
 
@@ -83,18 +87,23 @@ function describedByResolves() {
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+  setViewportWidth(1024);
 });
 
 describe("Settings' panel, at the rows and at each page", () => {
-  it("★ opens at the rows with its description, and at any page with none to point at, warning nothing", async () => {
-    for (const page of [null, "door", "adds", "reel", "event"] as const) {
-      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-      render(sheet(page));
-      await new Promise((r) => setTimeout(r, 30));
-      expect(missingDescription(warn.mock.calls), String(page)).toEqual([]);
-      expect(describedByResolves(), String(page)).toBe(true);
-      warn.mockRestore();
-      cleanup();
+  it("★ opens at the rows with its description, and at any page with none to point at, warning nothing, at a desk and in a hand", async () => {
+    for (const width of [1024, 375]) {
+      setViewportWidth(width);
+      for (const page of [null, "door", "adds", "reel", "event"] as const) {
+        const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+        render(sheet(page));
+        await new Promise((r) => setTimeout(r, 30));
+        const where = `${page} at ${width}`;
+        expect(missingDescription(warn.mock.calls), where).toEqual([]);
+        expect(describedByResolves(), where).toBe(true);
+        warn.mockRestore();
+        cleanup();
+      }
     }
   });
 
@@ -111,5 +120,39 @@ describe("Settings' panel, at the rows and at each page", () => {
     view.rerender(sheet(null));
     expect(dialog.getAttribute("aria-describedby")).not.toBeNull();
     expect(describedByResolves()).toBe(true);
+  });
+});
+
+describe("Review's and the Guests room's panel (`RoomPanel`)", () => {
+  it("★ says the event's name as its description, so it warns nothing, at a desk and in a hand", async () => {
+    for (const width of [1024, 375]) {
+      setViewportWidth(width);
+      for (const room of ["review", "guests"] as const) {
+        const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+        render(
+          <RoomPanel
+            room={room}
+            open
+            onOpenChange={() => {}}
+            title={room === "review" ? "Review" : "Guests"}
+            eventName="Maya & Jay"
+          >
+            <p>the room</p>
+          </RoomPanel>,
+        );
+        await new Promise((r) => setTimeout(r, 30));
+        const where = `${room} at ${width}`;
+        expect(missingDescription(warn.mock.calls), where).toEqual([]);
+        expect(describedByResolves(), where).toBe(true);
+        expect(
+          document
+            .querySelector('[role="dialog"]')
+            ?.getAttribute("aria-describedby"),
+          where,
+        ).not.toBeNull();
+        warn.mockRestore();
+        cleanup();
+      }
+    }
   });
 });
