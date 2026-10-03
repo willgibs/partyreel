@@ -49,11 +49,11 @@ like the tool rather than the product, are [CLAUDE.md](../../CLAUDE.md)'s.
 
 Live testing uses disposable test data only.
 - **Accounts:** `willg97@gmail.com` the host on Pro, `partyr33l@gmail.com` the operator (TOTP MFA).
-  `hi@willgibs.com` the host on Free, nameless since its deletion for the two-Checkout-tabs check on 2026-10-03 and
-  its restore before the purge (the name step asks again; its one event sits in Deleted). A deletion walk ends the
-  same way: Cancel deletion on its `/admin/accounts/<id>` before the nightly purge (it fires between 04:00 and 05:00
-  UTC: Vercel Hobby runs a daily cron anywhere inside its hour), or it is gone (signups are off). Google through the
-  account chooser is authorized; typing a password or a code never is.
+  `hi@willgibs.com` the host on Free (deleted for the two-Checkout-tabs check on 2026-10-03, restored before the
+  purge; its one event sits in Deleted). A deletion walk ends the same way: Cancel deletion on its
+  `/admin/accounts/<id>` before the nightly purge (it fires between 04:00 and 05:00 UTC: Vercel Hobby runs a daily
+  cron anywhere inside its hour), or it is gone (signups are off). Google through the account chooser is authorized;
+  typing a password or a code never is.
   ★ Red-team dismissals are strikes against the instant hide (three bar an address, each lapsing 180 days after its
   dismissal: [admin-observability.md](admin-observability.md)). willg97's address holds two and partyr33l's five, all
   dismissed 2026-09-29, so willg97's still hides and partyr33l's is barred until 2027-03-28; hi@willgibs.com's holds
