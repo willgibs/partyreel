@@ -17,6 +17,9 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Host: the Reel card could wear the head's own filter (only the stills her guests can see while a develop time is ahead) rather than none, if the hub page hands `HubDevelopFacts` to `EventCardsRow` and on to `ReelCard` (from `crumbs-59`).
+- Accessibility: Settings' page-level head names no description (`event-settings-sheet.tsx`, `aria-describedby={undefined}`); `PopupHeader` could draw the event's name there as a screen-reader-only description (from `crumbs-59`).
+- Testing: a real iPhone's date wheel would settle two guesses in `event-page.tsx`: does it report each notch as `input` (`PICK_SETTLE_MS`), and does its Clear reach React's `onChange` (facebook/react#12313); `finish` could read the field's own value on leaving (from `crumbs-59`).
 - Lifecycle: a one-time lifecycle notice (a grace's start, an inactivity removal, a reduce) is lost on a night its send fails, since its sweep never meets the state again: a Resend outage drops it for good (from `spend-watch`).
 - Admin: the palette could name the spend watch's two switches (`lib/admin/palette.ts`), jumping to `/admin/jobs#switch-uploads_enabled` and `#switch-lifecycle_mail_enabled` (from `spend-watch`).
 - The lab: a Library specimen of the spend watch's card (healthy, tripped, a reading missing), so `lab:smoke` renders it; the card is presentation-only (`spend-watch-card.tsx`) for exactly that (from `spend-watch`).
