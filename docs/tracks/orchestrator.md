@@ -82,8 +82,11 @@ commits, what remains, its predecessor's transcript at
 account. Connectors follow the account: Claude in Chrome (every red-team needs it), the Supabase MCP on
 `ddafaemglzmuekbtjwzn`, the Vercel MCP on his personal team (deploys ride `$VERCEL_TOKEN`; only runtime logs need P3).
 
-Relays that live only in an agent: none (red-team 43's two MEDIUMs are merged: the develop album's tracker in
-`door-reveal` and `disposable-camera`, the hub's Reel card in `crumbs-52`).
+Relays that live only in an agent (2026-10-03 03:25Z, to `crumbs-54`): red-team 44's LOW at about line 76 of its
+ledger: after a develop, a guest's open page keeps "Uploads appear in the album when it develops" until a reload
+(`uploadsWait` read once by the page's server, never from the poll's `waiting.developsAt`); the delayed reading made
+live (it ends when the develop the poll carries has passed), the slot line, the in-flight routing and her tracker
+following it, red first, since the MEDIUM's fix routes uploads by that reading.
 
 **Q9 is answered** (the Advisor, 21:05Z) and acted on above. The waiting experience itself goes to a design board (below).
 
