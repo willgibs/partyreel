@@ -118,5 +118,8 @@ Each is built as recommended and listed under "Calls his to overrule".
 
 ## Where I am
 
-- Booted at `e9b006e4`; the plan is the Questions above. Next: the migration (`20261003220000_deleted_counts.sql`)
-  and its rolled-back proof, then the lifecycle and storage code, the chart, the docs.
+- Booted at `e9b006e4`; the plan is the Questions above.
+- The migration `supabase/migrations/20261003220000_deleted_counts.sql` is written and proved on the live schema,
+  rolled back: RED 13/15 failing on what each lacks, GREEN 15/15 (its foot). Next: the lifecycle and storage code
+  (the summary's figures, the over-capacity grace, the standby sweep retired), the chart and its setting, the size
+  list, the routes, the docs.
