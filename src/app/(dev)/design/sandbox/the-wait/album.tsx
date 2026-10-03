@@ -3,6 +3,7 @@
 import { type CSSProperties, type ReactNode, useState } from "react";
 import {
   ArrowUp,
+  Camera,
   Clock,
   Download,
   ImageUp,
@@ -36,10 +37,11 @@ import { ScrolledTo } from "./scene";
  *
  * The page is production's two boxes (`event-experience.tsx`): the cover
  * (`AlbumCover`, the real component, on the house light while nothing is
- * hers to see) reaching up under the guest's header, its actions (Add photos
- * white on the light, her uploads' round, Invite in glass), then the album in
- * `BLEED`, the window's width less its gutter. Past the cover's row, the
- * shutter (`GuestActionDock`, the real component) stands at the foot.
+ * hers to see) reaching up under the guest's header, its actions (Add photos,
+ * or Take photos on an album's camera, white on the light, her uploads' round,
+ * Invite in glass), then the album in `BLEED`, the window's width less its
+ * gutter. Past the cover's row, the shutter (`GuestActionDock`, the real
+ * component) stands at the foot, wearing the camera on a camera's album.
  *
  * ★ THE ONLY NEW THING ON A FRAME IS WHAT THE OPTION DRAWS UNDER THE COVER (or,
  * for the cover's own option, in it). Every other pixel is production's, so a
@@ -123,6 +125,7 @@ export function GuestPage({
   guestCount = 0,
   waitingHers = 0,
   sealed = false,
+  camera = false,
   reel = false,
   eyebrow,
   line,
@@ -138,6 +141,12 @@ export function GuestPage({
   waitingHers?: number;
   /** Hers wait for the develop rather than the host (the round's spoken words). */
   sealed?: boolean;
+  /**
+   * The album's Add opens its camera (`capture = 'camera'`, production's `cameraAlbum`): the cover's Add says Take photos
+   * with the camera's glyph, and the shutter at the foot says and wears the same (the dock's own `camera`). A frame
+   * is never an empty album, so "Take the first photo" (an empty camera album's) is never drawn here.
+   */
+  camera?: boolean;
   /** The album has a reel to play (the cover's round and the shutter's twin), or its premiere waits. */
   reel?: boolean | "premiere";
   /** A word over the event's name (a style's). */
@@ -161,7 +170,8 @@ export function GuestPage({
         tabIndex={-1}
         className="min-w-0 flex-1 md:flex-none"
       >
-        <ImageUp /> Add photos
+        {camera ? <Camera /> : <ImageUp />}{" "}
+        {camera ? "Take photos" : "Add photos"}
       </Button>
       {waitingHers > 0 && (
         <Tracker waiting={waitingHers} sealed={sealed} look="glass" />
@@ -237,6 +247,7 @@ export function GuestPage({
             hidden={false}
             uploadingCount={0}
             onAdd={() => {}}
+            camera={camera}
             more
             invite={
               <Button

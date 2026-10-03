@@ -60,7 +60,7 @@ export const THE_WAIT = defineExploration({
       "A new board from your live walk, where an upload landed and then vanished back to an empty album: the model for every album that holds photos back, then her wait, the arrival, the host's cover and the words.",
   },
   context:
-    "Maya & Jay's wedding, Saturday 10 October, on two albums that hold photos back: one held for Maya's approval (10:40 pm, 38 waiting, none let in yet) and one developing at 9 am on the album's camera (142 shots, Priya six into her 24). Every guest frame is production's album as it ships (the cover, Add photos, her uploads' round, the shutter) with only the wait drawn in; Maya's frames are her Settings and her hub. The Screen knob draws 1440. Each caption is read off its frame.",
+    "Maya & Jay's wedding, Saturday 10 October, on two albums that hold photos back: one held for Maya's approval (10:40 pm, 38 waiting, none let in yet) and one developing at 9 am on the album's camera (142 shots, Priya six into her 24). Every guest frame is production's album as it ships (the cover and its Add, Take photos on the camera's album, her uploads' round, the shutter) with only the wait drawn in; Maya's frames are her Settings and her hub. The Screen knob draws 1440. Each caption is read off its frame.",
   opening: {
     about:
       "One waiting experience for every album that holds photos back, for approval or until a develop time: the model first, then her wait, the arrival, the words.",
@@ -399,7 +399,7 @@ export const THE_WAIT = defineExploration({
           id: "disposable",
           label: "Disposable",
           means:
-            "As built: the wedding-table camera everyone knows, and the word the disposable-camera apps made familiar.",
+            "The wedding-table camera everyone knows, and the word the disposable-camera apps made familiar.",
           gains: "Understood at a glance, by a guest of 18 and of 50.",
           costs: "It also means throwaway, beside photos people keep.",
         },

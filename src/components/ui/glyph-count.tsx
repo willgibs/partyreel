@@ -31,6 +31,11 @@ import { cn } from "@/lib/utils"
  * surface left the host page unhydrated in production): the server's paint carries the browser's
  * own `title`, and the swap is an ordinary later render.
  *
+ * ★ ITS NUMBER IS A HOOK, `data-n` (an attribute and no style: the atom looks the same without it). The
+ * voice's sheets (identity r2) style `[data-slot="glyph-count"] [data-n]` for the readout's face, size and
+ * ink; a rule that names a hook the atom does not draw reaches nothing, and says nothing. The glyph has
+ * none of its own: it is the button's `svg`. Listed with the head's other hooks in `design-system.md`.
+ *
  * It takes its ink from where it stands (`currentColor`), so the same atom reads on paper, in the
  * room and on a photograph (`data-surface="photo"`).
  */
@@ -100,7 +105,7 @@ function GlyphCount({
       >
         {icon}
       </span>
-      <span aria-hidden>{formatCount(count)}</span>
+      <span aria-hidden data-n="">{formatCount(count)}</span>
     </button>
   )
 

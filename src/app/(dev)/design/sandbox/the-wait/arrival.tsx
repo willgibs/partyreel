@@ -419,6 +419,9 @@ function Develop({
   const perRow = wide ? 6 : 2;
   const ground = { kind: "stills" as const, stills: albumStills(6, 3) };
   const chip = m.chip ? `${m.chip.developing} · developed` : undefined;
+  // ★ THE ROLL IS THE ALBUM'S CAMERA (fixtures.ts), and the develop does not change how the album takes photos: at 9 am
+  // its cover's Add and its shutter still say Take photos with the camera's glyph (production's `cameraAlbum`), so every
+  // page below is a camera's.
 
   if (arrival === "premiere")
     return <Premiere wide={wide} what={chip ?? `Developed at ${DEVELOP.at}`} />;
@@ -433,6 +436,7 @@ function Develop({
           wide={wide}
           ground={ground}
           mediaCount={MORNING.shots}
+          camera
           eyebrow={chip}
           reel="premiere"
         >
@@ -481,6 +485,7 @@ function Develop({
         wide={wide}
         ground={ground}
         mediaCount={MORNING.shots}
+        camera
         eyebrow={chip}
         reel="premiere"
       >
@@ -498,6 +503,7 @@ function Develop({
       wide={wide}
       ground={ground}
       mediaCount={MORNING.shots}
+      camera
       eyebrow={chip}
       reel="premiere"
     >
