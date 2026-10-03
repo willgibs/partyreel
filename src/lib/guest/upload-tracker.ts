@@ -88,10 +88,6 @@ export function uploadsWait(
 /** Nothing she adds waits: it is in the album the moment it lands. */
 export const NOTHING_WAITS: UploadsWait = { waits: false, developsAt: null };
 
-// The develop time as a guest reads it ("Sat, Oct 3, 9:00 AM", in her own zone) is the host's Settings' too: one
-// formatter, in `lib/disposable/develop-words.ts`, handed on from here to the tracker's other readers.
-export { developTimeWords } from "@/lib/disposable/develop-words";
-
 /** Where one of her rows stands on the server (the wire of `/api/guests/mine`'s `statuses`). */
 export type OwnUploadWire = {
   id: string;

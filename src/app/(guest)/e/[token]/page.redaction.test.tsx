@@ -126,8 +126,8 @@ vi.mock("@/lib/guest/event-card", () => ({
 vi.mock("@/lib/guest/session-cookie", () => ({
   readGuestSessionCookie: async () => null,
 }));
-vi.mock("@/lib/guest/waiting-on-arrival.server", () => ({
-  hasWaitingUploads: async () => false,
+vi.mock("@/lib/disposable/waiting.server", () => ({
+  albumWaits: async () => false,
 }));
 vi.mock("@/lib/media/share-save", () => ({
   PHOTO_PARAM: "photo",

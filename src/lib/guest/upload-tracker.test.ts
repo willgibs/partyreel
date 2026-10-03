@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildTrackerRows,
-  developTimeWords,
   herShotsOf,
   newlyInAlbum,
   ownUploadOf,
@@ -224,13 +223,9 @@ describe("uploadsWait: whether what she adds waits, and for what", () => {
     });
   });
 
-  it("says the develop time in a guest's words, or nothing for a time it cannot read", () => {
-    expect(developTimeWords(AHEAD)).toMatch(
-      /^\w{3}, \w{3} \d{1,2}, \d{1,2}:\d{2}\s?[AP]M$/,
-    );
-    expect(developTimeWords("not a time")).toBeNull();
-    expect(developTimeWords(null)).toBeNull();
-  });
+  // RETIRED (the-wait r1, `model=time`): this module handed the host's formatter on to the guest's readers ("Sat, Oct 3,
+  // 9:00 AM"); every guest screen says the wait in its own words now (`wait-words.ts`, "at 9 am", tested there), and
+  // the formatter is the host's Settings' alone (`develop-words.test.ts`). Nothing was left here to pin.
 });
 
 describe("waitingCount", () => {

@@ -32,10 +32,10 @@ import { cn } from "@/lib/utils";
 /**
  * THE CONTACT SHEET, DRAWN (the-wait r1, Will's `wait=sheet`; the layout is `lib/disposable/contact-sheet.ts`). One
  * drawing for both sides: the album's wait a guest meets (`gallery-empty-state-wait.tsx`), and the very same sheet
- * Maya's hub draws as her cover (`event-gallery.tsx`, the-wait's `cover=guests`). It reads no album and no session:
- * it is handed the numbers, her own shots and the clock, so neither side's live source rides into the other's page.
+ * Maya's hub draws as her cover (`event-hub-head-cover.tsx`, the-wait's `cover=guests`). It reads no album and no
+ * session: it is handed the numbers, her own shots and the clock, so neither side's live source rides into the other's
+ * page.
  */
-/* ── the drawing, shared with Maya's hub ─────────────────────────────────── */
 
 /** The well's width at which the count stands beside the sheet rather than over it. */
 const SIDE_BY_SIDE_PX = 1024;
@@ -216,10 +216,13 @@ export function ContactSheet({
             {WAIT_TITLE}
           </p>
         </div>
-        {!wide && <span aria-live="polite">{pill}</span>}
+        {/* The pill is for the eye: at a busy party it would speak every arrival, and the sentence above has the count. */}
+        {!wide && <span aria-hidden>{pill}</span>}
         {wide && (
           <div className="space-y-2 text-xs">
-            <span aria-live="polite">{pill}</span>
+            <span aria-hidden className="block">
+              {pill}
+            </span>
             {yours}
             <p className="wait-muted" data-wait-clock="">
               {clockText}

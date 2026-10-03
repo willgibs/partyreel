@@ -275,8 +275,8 @@ export function EventExperience({
    */
   albumFull?: boolean;
   /**
-   * Something of hers from an earlier visit waits for the host on an album still empty (the page's server read,
-   * `waiting-on-arrival.server.ts`): the row's Add is hers from the first paint, never the empty state's.
+   * Something waits on an album still empty to the eye, hers or anyone's (the page's server read,
+   * `lib/disposable/waiting.server.ts`): the cover's Add never says "the first photo" over it, from the first paint.
    */
   waitingOnArrival?: boolean;
   /**

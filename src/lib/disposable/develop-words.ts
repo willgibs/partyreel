@@ -1,11 +1,11 @@
 /**
- * THE DEVELOP TIME, SAID IN ONE FORMAT. The host's Settings ("Develops Sat, Oct 3, 9:00 AM.") and the guest's
- * tracker and keep prompt ("when it develops, Sat, Oct 3, 9:00 AM") each carried a copy of this formatter, so a
- * change to one was a change the other never heard. It lives here, beside the develop it words.
+ * THE DEVELOP TIME, SAID IN THE HOST'S FORMAT: her Settings says it in this one function ("Develops Sat, Oct 3, 9:00
+ * AM."), where she picks the exact time. Every guest screen says the wait in its own words (`wait-words.ts`: "All at
+ * once at 9 am", from now, as the album's camera always said it), so each side reads one home and none builds a
+ * formatter of its own (`develop-words.test.ts` holds both).
  *
  * ★ THE VIEWER'S OWN ZONE, IN THE PRODUCT'S PINNED LANGUAGE: a caller draws it after hydration (a server render has
- * no idea what "9 am" means to her), and `en-US` is fixed, so a guest's phone locale never rewords a host's sentence.
- * The sentence around the time is each side's own; only the time is shared.
+ * no idea what "9 am" means to her), and `en-US` is fixed, so a phone's locale never rewords the sentence.
  *
  * Pure and isomorphic, like its neighbours.
  */

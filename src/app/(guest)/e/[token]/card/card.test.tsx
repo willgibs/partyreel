@@ -39,9 +39,9 @@ const { getEventCardName, getEventByQrToken, pageDoor, requestIdentity } =
   }));
 
 vi.mock("server-only", () => ({}));
-// Her waiting uploads on an empty held album: the page's one read for it (crumbs-43), stood in for here.
-vi.mock("@/lib/guest/waiting-on-arrival.server", () => ({
-  hasWaitingUploads: async () => false,
+// Whether anything waits in an album empty to the eye: the page's one read for it (crumbs-43, the wait's wiring), stood in for here.
+vi.mock("@/lib/disposable/waiting.server", () => ({
+  albumWaits: async () => false,
 }));
 
 /** The drawing, captured: the element tree and the response options it was handed. */
