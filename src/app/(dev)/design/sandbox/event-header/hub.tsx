@@ -9,7 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { ExternalLink, X } from "lucide-react";
+import { ChevronLeft, ExternalLink, X } from "lucide-react";
 
 import { EventChecklist } from "@/components/app/event-feed/checklist";
 import { HostAddProvider } from "@/components/app/host-add-provider";
@@ -136,8 +136,11 @@ function RoomBody({ room, c }: { room: RoomId; c: Case }) {
 }
 
 /**
- * THE ONE PANEL (`share/room-panel.tsx`): a panel at a desk, the whole screen
- * in a hand, its scrim a close.
+ * THE ONE PANEL (`share/room-panel.tsx`, drawn here rather than mounted: the
+ * real one rides the lab page's own address): a panel at a desk, its close
+ * standing just outside its edge over the dimmed hub it returns to, so the
+ * room's own heading keeps the panel's whole width; in a hand the whole
+ * screen, under a bar whose arrow names the event. Its scrim is a close.
  */
 function PanelLayer({
   room,
@@ -148,38 +151,50 @@ function PanelLayer({
   d: HubDraw;
   onClose?: () => void;
 }) {
-  const desk = d.screen === "1440";
+  if (d.screen === "1440")
+    return (
+      <div className="eh-layer fixed inset-0 z-50">
+        <div
+          aria-hidden
+          className="eh-scrim absolute inset-0 bg-black/50"
+          onClick={onClose}
+        />
+        <aside
+          data-eh-room={ROOM_LABEL[room]}
+          className="eh-panel absolute inset-y-0 right-0 flex w-3/4 max-w-lg flex-col border-l bg-popover text-popover-foreground shadow-layer"
+        >
+          <button
+            type="button"
+            aria-label="Close"
+            onClick={onClose}
+            className="absolute top-4 -left-14 flex size-10 items-center justify-center rounded-full bg-popover text-popover-foreground shadow-layer ring-1 ring-border hover:bg-muted"
+          >
+            <X className="size-4" />
+          </button>
+          <div className="flex-1 overflow-y-auto px-6 pt-6 pb-8">
+            <RoomBody room={room} c={d.c} />
+          </div>
+        </aside>
+      </div>
+    );
   return (
-    <div className="eh-layer fixed inset-0 z-50">
-      <div
-        aria-hidden
-        className="eh-scrim absolute inset-0 bg-black/50"
-        onClick={onClose}
-      />
-      <aside
-        data-eh-room={ROOM_LABEL[room]}
-        className={cn(
-          "eh-panel absolute flex flex-col bg-popover text-popover-foreground shadow-layer",
-          desk ? "inset-y-0 right-0 w-3/4 max-w-lg border-l" : "inset-0",
-        )}
-      >
+    <div
+      data-eh-room={ROOM_LABEL[room]}
+      className="eh-panel fixed inset-0 z-50 flex flex-col bg-background"
+    >
+      <div className="flex h-13 shrink-0 items-center border-b px-2">
         <button
           type="button"
-          aria-label="Close"
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 flex size-9 items-center justify-center rounded-full bg-muted text-foreground hover:bg-accent"
+          className="flex h-9 items-center gap-0.5 rounded-md px-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
         >
-          <X className="size-4" />
+          <ChevronLeft className="size-5" aria-hidden />
+          {d.c.name}
         </button>
-        <div
-          className={cn(
-            "flex-1 overflow-y-auto pb-8",
-            desk ? "px-6 pt-6" : "px-3 pt-5",
-          )}
-        >
-          <RoomBody room={room} c={d.c} />
-        </div>
-      </aside>
+      </div>
+      <div className="flex-1 overflow-y-auto px-3 pt-5 pb-8">
+        <RoomBody room={room} c={d.c} />
+      </div>
     </div>
   );
 }

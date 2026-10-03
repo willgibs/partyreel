@@ -601,6 +601,10 @@ const MONTH = new Intl.DateTimeFormat("en-US", {
   month: "long",
   timeZone: "UTC",
 });
+const MON = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  timeZone: "UTC",
+});
 const parse = (d: string) => {
   const [y, m, day] = d.split("-").map(Number);
   return { y, m, day, at: new Date(Date.UTC(y, m - 1, day)) };
@@ -609,17 +613,22 @@ const parse = (d: string) => {
 /**
  * THE EVENT'S DAYS AS THE HEAD SAYS THEM: "September 12, 2026" (production's
  * `formatEventDate`), a range in one line ("October 2–4, 2026", an en dash,
- * the month said once), and nothing at all where no date is set. A stand-in
+ * the month said once), and nothing at all where no date is set; in a hand,
+ * the month short, so the line keeps to one line beside the code. A stand-in
  * for the formatter `event-dates` wires with the end date.
  */
-export function whenOf(c: Pick<Case, "date" | "end">): string | null {
+export function whenOf(
+  c: Pick<Case, "date" | "end">,
+  short = false,
+): string | null {
   if (!c.date) return null;
+  const month = (d: Date) => (short ? MON : MONTH).format(d);
   const a = parse(c.date);
-  const month = MONTH.format(a.at);
-  if (!c.end || c.end === c.date) return `${month} ${a.day}, ${a.y}`;
+  if (!c.end || c.end === c.date) return `${month(a.at)} ${a.day}, ${a.y}`;
   const b = parse(c.end);
-  if (b.y === a.y && b.m === a.m) return `${month} ${a.day}–${b.day}, ${a.y}`;
-  return `${month} ${a.day} – ${MONTH.format(b.at)} ${b.day}, ${b.y}`;
+  if (b.y === a.y && b.m === a.m)
+    return `${month(a.at)} ${a.day}–${b.day}, ${a.y}`;
+  return `${month(a.at)} ${a.day} – ${month(b.at)} ${b.day}, ${b.y}`;
 }
 
 /* ── what waits in the rooms ──────────────────────────────────────────────── */

@@ -56,8 +56,8 @@ function Name({ name, desk }: { name: string; desk: boolean }) {
 }
 
 /** The one quiet line over the name: when, and where it stands in its days. */
-function When({ c }: { c: Case }) {
-  const when = whenOf(c);
+function When({ c, desk }: { c: Case; desk: boolean }) {
+  const when = whenOf(c, !desk);
   if (!when) return null;
   const note =
     c.photos === 0 && c.daysToGo > 0
@@ -162,7 +162,7 @@ export function HubHead({
       >
         <div className={cn("flex items-end", desk ? "gap-8" : "gap-4")}>
           <div className="min-w-0 flex-1">
-            <When c={c} />
+            <When c={c} desk={desk} />
             <Name name={c.name} desk={desk} />
             {base ? null : <div className="mt-3.5">{fact}</div>}
           </div>

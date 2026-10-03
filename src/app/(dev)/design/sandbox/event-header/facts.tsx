@@ -148,9 +148,23 @@ function EndCount({ c }: { c: Case }) {
   );
 }
 
+/**
+ * HOW MANY MARKS THE STRIP DRAWS: one a photograph, spread across the whole
+ * foot, up to as many as fit (160 at a desk, 52 in a hand) and then a run of
+ * neighbours a mark; and never fewer than a quiet line's worth (54, 19), so a
+ * very small album gathers at the newest end rather than standing three marks
+ * a room apart. Only that small album shows the quiet points it will fill: an
+ * album of any size spans the card, never a bar filling towards a number.
+ */
+function slotsFor(photos: number, narrow: boolean): number {
+  const most = narrow ? 52 : 160;
+  const least = narrow ? 19 : 54;
+  return Math.min(most, Math.max(least, photos));
+}
+
 export function FactsStrip({ c, narrow }: { c: Case; narrow: boolean }) {
   const height = narrow ? 22 : 30;
-  const slots = narrow ? 52 : 160;
+  const slots = slotsFor(c.photos, narrow);
   const marks = stripMarks(c.arrivals, slots);
   const filled = marks.filter((m) => !m.waiting).length;
   return (
