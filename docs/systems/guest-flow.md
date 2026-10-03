@@ -1095,7 +1095,9 @@ had" holds only when this device holds a guest ticket a claim would move.
   listener; supabase-js closes the emptied socket 50 s later), syncs nothing on a ping, and joins again on its return
   once any leave of its topic has landed (supabase-js hands back a channel still leaving by its topic, which never
   subscribes again: a blink of the tab or a `key={access}` remount would sit deaf); its Live word holds up to 3 s
-  while it rejoins (`REJOIN_GRACE_MS`), so the host's pip never blinks on a return.
+  while it rejoins (`REJOIN_GRACE_MS`), so the host's pip never blinks on a return. A rejoin after the socket closed
+  shows two sockets and two joins on the wire: supabase-js's own, and harmless (the server closes the first join, and
+  the tab still hears each ping once, measured).
 - **The conditional poll** (the shared [`use-live-poll.ts`](../../src/lib/shared/use-live-poll.ts)): the
   fallback cadence keys solely off the channel state — **60 s** while `SUBSCRIBED` (a safety net), **12 s**
   when the socket is down; it stops when the tab goes hidden (and never starts in a tab that opens hidden) and polls
