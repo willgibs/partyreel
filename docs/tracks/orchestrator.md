@@ -107,12 +107,9 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team brie
    - the Download panel's "photos & videos" when there's no video;
    - whatever W4 to W8 add.
    It rides build 47 if it hands off in time, else build 48.
-2. **Build 47 `[preview]`** once crumbs-56, event-dates (migration applied, types regenerated) and the-wait-r2 merge
-   and red-team 46 closes. Then:
-   - the desk pass (`board-card.mjs --desk`, PREMISE re-reads);
-   - `lab:demo` on the alias at 1440 and 375;
-   - his desk-ready message by push, with the calls file. The draft is
-     `../partyreel-wt/_scratch/morning-2026-10-03.md`; bring it current first.
+2. **Build 47 (`e5be373c`) serves the alias** (17:00Z; deployments pruned); the desk pass green (`board-card.mjs
+   --desk`: no two asks repeat; `lab:demo` on the alias, 11 steps at 1440 and at 375, 0 failing); his desk-ready
+   message sent 17:20Z (the draft `../partyreel-wt/_scratch/morning-2026-10-03.md`, the calls file through 129).
 3. **Red-team 47 on the delta** while he is at his desk:
    - event-dates' range everywhere;
    - both MEDIUMs re-walked;
