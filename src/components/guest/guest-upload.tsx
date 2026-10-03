@@ -6,6 +6,7 @@ import {
   useCallback,
   useEffect,
   useImperativeHandle,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -14,14 +15,17 @@ import Link from "next/link";
 import { Sparkles } from "lucide-react";
 
 import { ClaimHandlePrompt } from "@/components/guest/claim-handle-prompt";
+import { addsWaitFor } from "@/components/guest/event-experience-wait";
 import type { FollowMomentHost } from "@/components/guest/follow-moment-card";
 import { UploadFailureSheet } from "@/components/guest/upload/failure-sheet";
 import { UploadIntentSheet } from "@/components/guest/upload/intent-sheet";
 import { Button } from "@/components/ui/button";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
-import { developFactsOf } from "@/lib/disposable/facts";
-import { developState } from "@/lib/disposable/reveal";
-import { developTimeWords } from "@/lib/guest/upload-tracker";
+import {
+  developTimeWords,
+  uploadsWait as uploadsWaitOf,
+  type UploadsWait,
+} from "@/lib/guest/upload-tracker";
 import { useHydrated } from "@/lib/shared/use-hydrated";
 // The queue MACHINE lives in `event-experience.tsx`; only its types are read
 // here.
@@ -87,8 +91,9 @@ export type GuestUploadHandle = {
  * The upload ENGINE, and the two SHEETS the act speaks through.
  *
  * The queue machine lives in `useUploadQueue`; the visible upload UI lives in
- * the GALLERY (the stack at the album's head) and, on a held event, in her
- * uploads (the tracker's badge and list). This owns both ends of the act:
+ * the GALLERY (the stack at the album's head) and, wherever what she adds waits
+ * (held for the host, or sealed for a develop), in her uploads from the press
+ * (the tracker's badge and list). This owns both ends of the act:
  *
  * ★ THE FRONT: one tap opens `UploadIntentSheet` — take a photo, or choose
  * from your album — and the picker returns INTO that sheet as a review step, so
@@ -132,6 +137,7 @@ export function GuestUpload({
   isOwner = false,
   onOwnRemoved,
   onCameraOpenChange,
+  uploadsWait,
 }: {
   ref?: Ref<GuestUploadHandle>;
   event: GuestEvent;
@@ -191,6 +197,12 @@ export function GuestUpload({
    * first landed shot makes due) until she closes it.
    */
   onCameraOpenChange?: (open: boolean) => void;
+  /**
+   * Whether what is added here waits, and for what: the page's live reading of the album (`useLiveUploadsWait`, red-team
+   * 44), so the line below, the camera's develop and the failure sheet's words (as they fall on this viewer,
+   * `addsWaitFor`) all end with the develop, with no reload. Absent (standalone), the event's own reading at render.
+   */
+  uploadsWait?: UploadsWait;
 }) {
   const items = queue;
   const [addOpen, setAddOpen] = useState(false);
@@ -336,12 +348,22 @@ export function GuestUpload({
       it.status === "done" && !(it.mediaId && removedIds?.has(it.mediaId)),
   ).length;
   const holdForApproval = event.moderation_mode === "hold_for_approval";
-  /* ★ "DELAYED" IS APPROVE-EACH OR A DEVELOP TIME AHEAD (build 43's red-team, the upload half). Read through the
-     foundation's own reading (`reveal.ts`'s `developState` over `developFactsOf`'s develop time), never the review
-     switch alone: on an album that develops later what she adds waits out of sight as a held upload does (the queue
-     tells it `sealed`, her tracker keeps it), and this line says so before her first add. The time is said only once
-     hydrated: "at 9 am" is the reader's own clock, which the server's render cannot know. */
-  const develop = developState(developFactsOf(event).developsAt);
+  /* ★ "DELAYED" IS APPROVE-EACH OR A DEVELOP TIME AHEAD (build 43's red-team, the upload half), read off the page's
+     live reading (`uploadsWait`, the foundation's own reading of the develop time behind it), never the review switch
+     alone: on an album that develops later what she adds waits out of sight as a held upload does (the queue tells it
+     `sealed`, her tracker keeps it), and this line says so before her first add, and stops saying it the moment the
+     album develops (red-team 44: it promised a develop over the developed album until a reload). The time is said only
+     once hydrated: "at 9 am" is the reader's own clock, which the server's render cannot know. */
+  const wait = uploadsWait ?? uploadsWaitOf(event);
+  const developsAt = wait.developsAt;
+  // The camera hears the same develop: its words and its reveal end with it (a time reached reads as developed).
+  const cameraEvent = useMemo(
+    () =>
+      event.develops_at === developsAt
+        ? event
+        : { ...event, develops_at: developsAt },
+    [event, developsAt],
+  );
   const hydrated = useHydrated();
   const hostName = event.host_display_name ?? "the host";
 
@@ -364,7 +386,7 @@ export function GuestUpload({
                 setCameraOpen(next);
                 onCameraOpenChange?.(next);
               }}
-              event={event}
+              event={cameraEvent}
               qrToken={qrToken}
               queue={queue}
               onAddFiles={onAddFiles}
@@ -397,15 +419,16 @@ export function GuestUpload({
         }))}
         sent={sentThisRun}
         hostName={hostName}
+        waits={addsWaitFor({ uploadsWait: wait, isOwner, isDemo })}
         onRetry={onRetry}
       />
 
-      {develop.kind === "waiting" ? (
+      {developsAt !== null ? (
         <p
           data-develop-note=""
           className="rounded-md bg-muted px-3 py-2 text-center text-reading text-muted-foreground"
         >
-          {developNote(hydrated ? develop.developsAt : null)}
+          {developNote(hydrated ? developsAt : null)}
         </p>
       ) : (
         holdForApproval && (

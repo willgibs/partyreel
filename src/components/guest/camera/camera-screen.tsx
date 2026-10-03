@@ -306,7 +306,6 @@ export function CameraScreen({
     track,
     still,
     frame,
-    host,
   });
   useEffect(() => {
     latest.current = {
@@ -317,7 +316,6 @@ export function CameraScreen({
       track,
       still,
       frame,
-      host,
     };
   });
   const lighting = useRef(false);
@@ -361,7 +359,7 @@ export function CameraScreen({
     // ★ THE MOMENT: registered, flashed and said in the press's own frame; only the JPEG waits.
     onShot({ key, kind: "photo", takenAt, frozen: frozenFrame });
     setFlashes((n) => n + 1);
-    say(afterShotHint(now.frame, now.host));
+    say(afterShotHint(now.frame));
     encoding.current += 1;
     try {
       const fromFrame = canvasJpeg(canvas);
@@ -607,7 +605,7 @@ export function CameraScreen({
     const takenAt = Date.now();
     onShot({ key, kind: "photo", takenAt, frozen: null, thumb: file });
     onShotFile(key, file, {});
-    say(afterShotHint(frame, host));
+    say(afterShotHint(frame));
   };
 
   /* ── what the camera says ────────────────────────────────────────────────────────────────── */

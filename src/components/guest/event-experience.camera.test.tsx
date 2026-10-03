@@ -21,6 +21,11 @@ import { uploadsWait } from "@/lib/guest/upload-tracker";
  *    its door when her last one goes;
  *  - the Add says Take photos, with the camera glyph, where it opens the camera: the cover's white Add, and the
  *    shutter's face (the dock's `camera`).
+ *
+ * ★ AND WHAT HER ADDS WAIT FOR, AS IT FALLS ON THIS VIEWER (red-team 44): the album is told whether anything of hers in
+ * the air may stand at its head (`addsWait`: never where what she adds waits, which drew a pick in flight in the album
+ * for her alone), the slot the same reading for the failure sheet's words, and the door what she sent, by kind, for
+ * the keep's noun.
  */
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: seen.refresh }),
@@ -46,6 +51,9 @@ const seen = vi.hoisted(() => ({
   pending: [] as unknown[],
   dock: null as Record<string, unknown> | null,
   door: null as Record<string, unknown> | null,
+  gallery: null as Record<string, unknown> | null,
+  tracker: null as Record<string, unknown> | null,
+  developsAtChange: null as ((developsAt: string | null) => void) | null,
 }));
 
 vi.mock("@/components/guest/gallery-live", () => ({
@@ -53,24 +61,38 @@ vi.mock("@/components/guest/gallery-live", () => ({
   GalleryLiveProvider: ({
     galleryPromise,
     pendingUploads,
+    onDevelopsAtChange,
     children,
   }: {
     galleryPromise: Promise<unknown>;
     pendingUploads?: unknown[];
+    onDevelopsAtChange?: (developsAt: string | null) => void;
     children: ReactNode;
   }) => {
     use(galleryPromise);
     seen.pending = pendingUploads ?? [];
+    // The album's sync, as the source tells the page what it carries about the develop.
+    seen.developsAtChange = onDevelopsAtChange ?? null;
     return <div data-testid="album">{children}</div>;
   },
 }));
-vi.mock("@/components/guest/live-gallery", () => ({ LiveGallery: part }));
+// The album's view, as a recorder of what the page hands it (whether hers in the air may stand at its head).
+vi.mock("@/components/guest/live-gallery", () => ({
+  LiveGallery: (props: Record<string, unknown>) => {
+    seen.gallery = props;
+    return null;
+  },
+}));
 vi.mock("@/components/guest/reel/live-reel", () => ({
   LiveReel: ({ children }: { children?: ReactNode }) => children ?? null,
 }));
 vi.mock("@/components/guest/upload-tracker", () => ({
   createUploadTrackerStore: () => ({}),
-  UploadTracker: part,
+  // Her tracker, as a recorder of the words the page hands it.
+  UploadTracker: (props: Record<string, unknown>) => {
+    seen.tracker = props;
+    return null;
+  },
   UploadTrackerButton: part,
 }));
 // The one Add entry, as a recorder of the props the page hands it.
@@ -158,6 +180,7 @@ vi.mock("@/lib/guest/join", () => ({
 }));
 
 const { EventExperience } = await import("./event-experience");
+const { addsWaitFor } = await import("./event-experience-wait");
 
 const EVENT = {
   id: "11111111-2222-4333-8444-555555555555",
@@ -257,6 +280,9 @@ beforeEach(() => {
   seen.pending = [];
   seen.dock = null;
   seen.door = null;
+  seen.gallery = null;
+  seen.tracker = null;
+  seen.developsAtChange = null;
 });
 
 const keepDue = () => seen.door?.keepDue;
@@ -397,5 +423,174 @@ describe("Add on an album whose Add opens the camera", () => {
     expect(cover().querySelector("svg.lucide-image-up")).not.toBeNull();
     expect(cover().querySelector("svg.lucide-camera")).toBeNull();
     expect(seen.dock?.camera).toBeFalsy();
+  });
+});
+
+/** An album whose host approves each upload, with nothing to develop. */
+const APPROVES = {
+  ...EVENT,
+  moderation_mode: "hold_for_approval",
+} as unknown as GuestEvent;
+
+describe("addsWaitFor: what this viewer's own adds wait for", () => {
+  it("is the album's reading for a guest: the host's approval, or a develop time ahead", () => {
+    const develops = uploadsWait(DEVELOPS);
+    expect(
+      addsWaitFor({ uploadsWait: develops, isOwner: false, isDemo: false }),
+    ).toEqual(develops);
+    expect(
+      addsWaitFor({
+        uploadsWait: uploadsWait(APPROVES),
+        isOwner: false,
+        isDemo: false,
+      }),
+    ).toEqual({ waits: true, developsAt: null });
+    expect(
+      addsWaitFor({
+        uploadsWait: uploadsWait(EVENT),
+        isOwner: false,
+        isDemo: false,
+      }),
+    ).toEqual({ waits: false, developsAt: null });
+  });
+
+  it("★ is the develop alone for the host: her own pair approves hers, and seals them with everyone's", () => {
+    expect(
+      addsWaitFor({
+        uploadsWait: uploadsWait(APPROVES),
+        isOwner: true,
+        isDemo: false,
+      }),
+    ).toEqual({ waits: false, developsAt: null });
+    const develops = uploadsWait(DEVELOPS);
+    expect(
+      addsWaitFor({ uploadsWait: develops, isOwner: true, isDemo: false }),
+    ).toEqual(develops);
+  });
+
+  it("is nothing in the demo, whose uploads are simulated and land at once", () => {
+    expect(
+      addsWaitFor({
+        uploadsWait: uploadsWait(DEVELOPS),
+        isOwner: false,
+        isDemo: true,
+      }),
+    ).toEqual({ waits: false, developsAt: null });
+  });
+});
+
+describe("what her adds wait for, handed to the album, the slot and the door (red-team 44)", () => {
+  it("★ tells the album that nothing of hers in the air stands at its head where what she adds waits", async () => {
+    await page({ event: DEVELOPS });
+    expect(seen.gallery?.addsWait).toBe(true);
+    cleanup();
+    await page({ event: APPROVES });
+    expect(seen.gallery?.addsWait).toBe(true);
+    cleanup();
+    await page({ event: CAMERA });
+    expect(seen.gallery?.addsWait).toBe(true);
+  });
+
+  it("keeps today's stack where what she adds shows at once, and for the host's own Add on an album she approves", async () => {
+    await page({ event: EVENT });
+    expect(seen.gallery?.addsWait).toBe(false);
+    cleanup();
+    await page({ event: APPROVES, isOwner: true });
+    expect(seen.gallery?.addsWait).toBe(false);
+    cleanup();
+    await page({ event: DEVELOPS, isOwner: true });
+    expect(seen.gallery?.addsWait).toBe(true);
+  });
+
+  it("hands the slot the album's reading, for its line, the camera and the failure sheet's words", async () => {
+    await page({ event: DEVELOPS });
+    expect(seen.upload?.uploadsWait).toEqual(uploadsWait(DEVELOPS));
+    cleanup();
+    await page({ event: APPROVES, isOwner: true });
+    expect(seen.upload?.uploadsWait).toEqual({
+      waits: true,
+      developsAt: null,
+    });
+  });
+
+  it("★ hands the door what she sent, by kind, and whether the album's camera took it, for the keep's noun", async () => {
+    queueState.items = [
+      sealedShot("m1"),
+      {
+        ...sealedShot("m2"),
+        file: new File(["x"], "m2.mp4", { type: "video/mp4" }),
+        kind: "video",
+      },
+      // Still in the air: not sent yet, so not the keep's.
+      { ...sealedShot("m3"), status: "uploading", mediaStatus: undefined },
+    ];
+    await page({ event: CAMERA });
+    expect(seen.door?.keepCount).toBe(2);
+    expect(seen.door?.keepSent).toEqual({
+      kinds: ["photo", "video"],
+      camera: true,
+    });
+    cleanup();
+    await page({ event: DEVELOPS });
+    expect(seen.door?.keepSent).toEqual({
+      kinds: ["photo", "video"],
+      camera: false,
+    });
+  });
+});
+
+/* ★ RED-TEAM 44'S LOW: the page read whether what she adds waits once, at render, so an open page kept a develop's
+   promise over an album that had developed (Develop now, or the time passing), and the album's head, routed by it, would
+   have kept her next upload out of an album that now shows it at once. The reading is live: everything that speaks of
+   the wait follows it, with no reload. */
+describe("a page whose develop comes while it is open", () => {
+  it("★ follows the develop time as it comes: the slot's line, the album's head, her tracker and the keep", async () => {
+    const SOON = {
+      ...EVENT,
+      develops_at: new Date(Date.now() + 400).toISOString(),
+    } as unknown as GuestEvent;
+    queueState.items = [sealedShot("m1")];
+    await page({ event: SOON });
+    expect(seen.upload?.uploadsWait).toMatchObject({ waits: true });
+    expect(seen.gallery?.addsWait).toBe(true);
+    expect(seen.tracker?.moderated).toBe(true);
+    expect(seen.door?.keepHeld).toBe(true);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 700));
+    });
+    expect(seen.upload?.uploadsWait).toEqual({
+      waits: false,
+      developsAt: null,
+    });
+    // An upload sent now goes straight into the album, its stack at the head from the press.
+    expect(seen.gallery?.addsWait).toBe(false);
+    expect(seen.tracker?.moderated).toBe(false);
+    expect(seen.tracker?.developsAt).toBeNull();
+    expect(seen.door?.keepHeld).toBe(false);
+    expect(seen.door?.keepDevelopsAt).toBeNull();
+  });
+
+  it("★ follows a Develop now the album's sync carries, at once", async () => {
+    await page({ event: DEVELOPS });
+    expect(seen.gallery?.addsWait).toBe(true);
+    expect(typeof seen.developsAtChange).toBe("function");
+    act(() => {
+      seen.developsAtChange?.(new Date(Date.now() - 1_000).toISOString());
+    });
+    expect(seen.upload?.uploadsWait).toEqual({
+      waits: false,
+      developsAt: null,
+    });
+    expect(seen.gallery?.addsWait).toBe(false);
+    expect(seen.tracker?.moderated).toBe(false);
+  });
+
+  it("keeps an approve-each album's uploads waiting for the host, whatever the develop says", async () => {
+    await page({ event: APPROVES });
+    act(() => {
+      seen.developsAtChange?.(null);
+    });
+    expect(seen.gallery?.addsWait).toBe(true);
+    expect(seen.tracker?.moderated).toBe(true);
   });
 });

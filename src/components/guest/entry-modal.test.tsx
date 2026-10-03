@@ -1208,6 +1208,24 @@ describe("the keep: the door's last screen", () => {
     expect(screen.getAllByText("Keep this event").length).toBeGreaterThan(0);
   });
 
+  // ★ Red-team 44's NIT: "Your 5 photos" with a video among them. The page says what went; the door hands it to the
+  // offer it draws and to the words it names the sheet with, so the eye and the ear say the same.
+  it("names what she sent, on the Sent line and in the sheet's own name alike", () => {
+    atKeep({
+      keepCount: 2,
+      keepSent: { kinds: ["photo", "video"], camera: false },
+    });
+    expect(
+      screen.getByText("Your 2 uploads joined Maya’s album."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByText(
+        "Confirm your email and Test Wedding stays in your account with your 2 uploads, to come back to anytime.",
+      ).length,
+    ).toBeGreaterThan(0);
+    expect(screen.queryAllByText(/with your 2 photos/)).toHaveLength(0);
+  });
+
   it("is HELD like every step: no X, Escape inert, and no chevron back into a finished upload", () => {
     atKeep();
     expect(closeButton()).not.toBeInTheDocument();

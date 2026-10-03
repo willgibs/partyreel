@@ -185,6 +185,108 @@ describe("KeepOffer", () => {
   });
 });
 
+/**
+ * ★ IT NAMES WHAT SHE SENT (red-team 44's NIT: "Your 5 photos are waiting to develop" with a video among them). A
+ * camera album's are shots, as the camera calls them; elsewhere they are named by kind, a mix in `formatKindCount`'s
+ * own word for one, uploads; the Sent line and the offer alike. Handed nothing about what went, the words are today's.
+ */
+describe("what she sent, named", () => {
+  const AT = "2026-10-03T13:00:00.000Z";
+  const photo = "photo" as const;
+  const video = "video" as const;
+
+  it("★ calls a camera album's shots, whatever each one is", () => {
+    const sent = { kinds: [photo, photo, photo, photo, video], camera: true };
+    expect(keepSentLine({ count: 5, held: true, developsAt: AT, sent })).toBe(
+      `Your 5 shots are waiting to develop, ${developTimeWords(AT)}.`,
+    );
+    expect(keepCopy(5, "Maya & Jay", sent).reason).toMatch(
+      /with your 5 shots,/,
+    );
+    expect(
+      keepSentLine({
+        count: 1,
+        held: true,
+        developsAt: AT,
+        sent: { kinds: [video], camera: true },
+      }),
+    ).toBe(`Your shot is waiting to develop, ${developTimeWords(AT)}.`);
+  });
+
+  it("★ names a mix as uploads, never photos", () => {
+    const sent = { kinds: [photo, photo, video], camera: false };
+    expect(keepSentLine({ count: 3, held: true, developsAt: AT, sent })).toBe(
+      `Your 3 uploads are waiting to develop, ${developTimeWords(AT)}.`,
+    );
+    expect(
+      keepSentLine({ count: 3, held: false, hostName: "Maya", sent }),
+    ).toBe("Your 3 uploads joined Maya\u2019s album.");
+    expect(keepCopy(3, "Maya & Jay", sent).reason).toMatch(
+      /with your 3 uploads,/,
+    );
+  });
+
+  it("names videos as videos, one or many", () => {
+    expect(
+      keepSentLine({
+        count: 1,
+        held: true,
+        sent: { kinds: [video], camera: false },
+      }),
+    ).toBe("Your video is waiting for approval.");
+    expect(
+      keepSentLine({
+        count: 2,
+        held: false,
+        hostName: "Maya",
+        sent: { kinds: [video, video], camera: false },
+      }),
+    ).toBe("Your 2 videos joined Maya\u2019s album.");
+    expect(
+      keepCopy(1, "Maya & Jay", { kinds: [video], camera: false }).reason,
+    ).toMatch(/with your video,/);
+  });
+
+  it("keeps photos for photos, and today's words when nothing says what went", () => {
+    expect(
+      keepSentLine({
+        count: 2,
+        held: false,
+        hostName: "Maya",
+        sent: { kinds: [photo, photo], camera: false },
+      }),
+    ).toBe("Your 2 photos joined Maya\u2019s album.");
+    expect(keepSentLine({ count: 2, held: false, hostName: "Maya" })).toBe(
+      "Your 2 photos joined Maya\u2019s album.",
+    );
+    expect(keepCopy(2, "Maya & Jay").reason).toMatch(/with your 2 photos,/);
+  });
+
+  it("★ the offer says it on its Sent line and in its reason", () => {
+    render(
+      <KeepOffer
+        count={2}
+        held
+        developsAt={AT}
+        sent={{ kinds: [photo, video], camera: true }}
+        eventName="Maya & Jay"
+        onConfirm={vi.fn()}
+        onLater={vi.fn()}
+      />,
+    );
+    expect(
+      screen.getByText(
+        `Your 2 shots are waiting to develop, ${developTimeWords(AT)}.`,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Confirm your email and Maya & Jay stays in your account with your 2 shots, to come back to anytime.",
+      ),
+    ).toBeInTheDocument();
+  });
+});
+
 describe("KeepConfirm", () => {
   /* ★ THE ADDRESS TYPED AT THE DOOR ARRIVES IN THE FIELD: typing the same address twice in one
      visit is the friction the optional field was meant to remove. */

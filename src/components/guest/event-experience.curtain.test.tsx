@@ -262,9 +262,12 @@ function lateSeed() {
 function Page({
   seed,
   reelAsked,
+  isOwner = true,
 }: {
   seed: Promise<never>;
   reelAsked: boolean;
+  /** The album's host (her hub's Reel card), or a returning guest on a shared reel link. */
+  isOwner?: boolean;
 }) {
   return (
     <TooltipProvider>
@@ -280,7 +283,7 @@ function Page({
           gate={null}
           needsName={false}
           hostAvatarUrl={null}
-          isOwner
+          isOwner={isOwner}
           canDeleteIds={[]}
           isAuthed
           reelAsked={reelAsked}
@@ -463,6 +466,41 @@ describe("the same page on a hard load (the control)", () => {
     expect(view()).not.toBeNull();
     expect(curtain()).not.toBeNull();
     expect(watch.read().removed).toBe(0);
+  });
+});
+
+/* ★ A RETURNING GUEST ON A SHARED REEL LINK (red-team 44's LOW): the page says the reel was asked for a viewer who owes
+   no door (`reelAsked`, the page's own pins), and the black is hers as it is the owner's, from the first commit of a
+   soft navigation to the view. Her Close is a guest's: the address drops `?reel` in place (she came by a link, not
+   from a page of hers to go back to), and the album she is let into is what she has. */
+describe("a returning guest arriving on ?reel from a shared link (a soft navigation)", () => {
+  it("★ meets the reel's black from the first commit, until the view stands, and her album once she closes it", async () => {
+    const REEL_FROM = "/help";
+    window.history.replaceState(null, "", REEL_FROM);
+    await act(async () => {
+      render(
+        <NavigationCommit to={REEL}>
+          <Page seed={resolvedSeed()} reelAsked isOwner={false} />
+        </NavigationCommit>,
+      );
+    });
+    expect(curtain()).not.toBeNull();
+    await settle();
+    expect(view()).not.toBeNull();
+    expect(curtain()).not.toBeNull();
+    expect(watch.read()).toEqual({ drawn: 1, removed: 0 });
+    await act(async () => {
+      within(view() as HTMLElement)
+        .getByRole("button", { name: "Close the view" })
+        .click();
+      await new Promise((resolve) => setTimeout(resolve, 80));
+    });
+    // Closed in place: still the album's own address, with no `?reel`.
+    expect(window.location.pathname).toBe(`/e/${EVENT.qr_token}`);
+    expect(window.location.search).toBe("");
+    expect(view()).toBeNull();
+    expect(curtain()).toBeNull();
+    expect(watch.read().removed).toBe(1);
   });
 });
 

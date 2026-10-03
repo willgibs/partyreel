@@ -175,10 +175,12 @@ async function mount(
     first = seed(),
     access = "full",
     onCountChange,
+    onDevelopsAtChange,
   }: {
     first?: GallerySeed | PromiseLike<GallerySeed>;
     access?: "full" | "teaser";
     onCountChange?: (count: number) => void;
+    onDevelopsAtChange?: (developsAt: string | null) => void;
   } = {},
 ) {
   const promise = (
@@ -196,6 +198,7 @@ async function mount(
             access={access}
             isDemo={isDemo}
             onCountChange={onCountChange}
+            onDevelopsAtChange={onDevelopsAtChange}
           >
             <Probe />
           </GalleryLiveProvider>
@@ -573,5 +576,59 @@ describe("a seed that failed (crumbs-30, from crumbs-28)", () => {
       "NEXT_HTTP_ERROR_FALLBACK;404",
     );
     expect(captureError).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * ★ WHEN THE ALBUM DEVELOPS, AS ITS SYNC SAYS IT (red-team 44's LOW): the page read whether what she adds waits once, at
+ * render, so after a develop (Develop now, or the time passing) an open page kept promising one ("Uploads appear in the
+ * album when it develops, ...") over the developed album, and would have kept her next upload out of it. Every full
+ * sync carries the album's develop time (`waiting.developsAt`, ahead or reached, or no `waiting` where the album has none
+ * and nothing waits): the source tells the page each new word of it, and only a new one.
+ */
+describe("when the album develops, told to the page", () => {
+  const AHEAD = "2026-10-04T02:00:00.000Z";
+  const NOW = "2026-10-03T03:17:46.000Z";
+  const developing = (developsAt: string | null) => {
+    const full = seed() as Extract<GallerySeed, { kind: "full" }>;
+    return {
+      ...full,
+      sync: { ...full.sync, waiting: { count: 2, minutes: [], developsAt } },
+    } as GallerySeed;
+  };
+
+  it("★ tells the develop time the seed carries, then a Develop now's, and nothing for a 304", async () => {
+    const told = vi.fn();
+    await mount(false, { first: developing(AHEAD), onDevelopsAtChange: told });
+    expect(told.mock.calls).toEqual([[AHEAD]]);
+    await ring();
+    expect(told.mock.calls).toEqual([[AHEAD]]);
+    answer(delta({ waiting: { count: 0, minutes: [], developsAt: NOW } }));
+    await ring();
+    expect(told.mock.calls).toEqual([[AHEAD], [NOW]]);
+    // The same word again is no news.
+    answer(
+      delta({ v: 13, waiting: { count: 0, minutes: [], developsAt: NOW } }),
+    );
+    await ring();
+    expect(told.mock.calls).toEqual([[AHEAD], [NOW]]);
+  });
+
+  it("tells none once a full sync carries no develop time (Right away, nothing waiting)", async () => {
+    const told = vi.fn();
+    await mount(false, { first: developing(AHEAD), onDevelopsAtChange: told });
+    answer(delta());
+    await ring();
+    expect(told).toHaveBeenLastCalledWith(null);
+  });
+
+  it("says nothing from a teaser's answer, which is no album's word on its develop", async () => {
+    const told = vi.fn();
+    await mount(false, {
+      first: teaserSeed(),
+      access: "teaser",
+      onDevelopsAtChange: told,
+    });
+    expect(told).not.toHaveBeenCalled();
   });
 });

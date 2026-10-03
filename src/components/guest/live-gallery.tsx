@@ -149,6 +149,11 @@ type LiveGalleryProps = {
    * what is in flight draws at the head; a held one lives in her uploads (`upload-tracker.tsx`).
    */
   pendingUploads?: QueueItem[];
+  /**
+   * What this viewer adds waits (the page's `addsWaitFor`: for the host's approval, or for a develop time ahead), so
+   * nothing of hers in the air draws at the head either: it lives in her uploads from the press (red-team 44).
+   */
+  addsWait?: boolean;
   /** Present only when the viewer can upload — the empty state's CTA opens the ADD SHEET. */
   onAddFirst?: () => void;
   /** The event JOIN url for the viewer's Share button. */
@@ -227,6 +232,7 @@ function LiveGalleryView({
   firstPaintWidth = null,
   rhythmSeed = 0,
   closesOnLastRemoval = false,
+  addsWait = false,
 }: Omit<LiveGalleryProps, "ref"> & { live: GalleryLive }) {
   const {
     qrToken,
@@ -282,10 +288,17 @@ function LiveGalleryView({
      within the media cards"): it shows only in her uploads, the badge beside
      the Add she just pressed counting it, until the host lets it in and the
      manifest brings it as any other photograph.
+     ★ AND WHERE WHAT SHE ADDS WAITS, NOTHING IN THE AIR DRAWS EITHER (red-team
+     44's MEDIUM): the stack stood in the album from the press until the file
+     landed held or sealed and vanished (a video for its whole upload), a tile
+     in the album for her alone. Hers is her tracker's from the press there
+     (sending, then waiting), and the album draws only what is in it; an album
+     that shows what is added at once keeps the stack.
      ──────────────────────────────────────────────────────────────────────── */
   const pendingTiles: PendingTile[] = pendingUploads.flatMap((q) => {
     const url = pendingUrls.get(q.id);
-    if (!url || (q.status !== "queued" && q.status !== "uploading")) return [];
+    if (addsWait || !url) return [];
+    if (q.status !== "queued" && q.status !== "uploading") return [];
     return [
       {
         queueId: q.id,

@@ -85,15 +85,21 @@ export const CAMERA_HINT = {
   letGo: "Let go to stop.",
   letGoSilent: "Filming without sound. Let go to stop.",
   askMic: "Allow the microphone to film with sound.",
-  afterVideo: "Your video is on the roll.",
+  // Taken, never "on the roll": said in the press's own frame, before the server has counted it (`afterShotHint`).
+  afterVideo: "Video taken.",
   shotFailed: "That shot didn’t take. Try again.",
   videoFailed: "That video didn’t take. Try again.",
   retry: "Retry",
 } as const;
 
-/** "Shot 7 is on the roll." (the frame just spent); the host's own camera has no roll: "Shot 3 taken." */
-export function afterShotHint(frame: number, host = false): string {
-  return host ? `Shot ${frame} taken.` : `Shot ${frame} is on the roll.`;
+/**
+ * "Shot 7 taken." (the frame just spent), the host's and a guest's alike. ★ NEVER "ON THE ROLL" (red-team 44's NIT): it is
+ * said in the press's own frame, before the server has the shot, and a guest's "Shot 6 is on the roll." stood beside the
+ * server's refusal of it (the album closed to uploads, a roll spent from another tab). The roll's count and a refusal's
+ * own words say the rest.
+ */
+export function afterShotHint(frame: number): string {
+  return `Shot ${frame} taken.`;
 }
 
 /** The camera's own controls, by name. */
