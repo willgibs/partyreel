@@ -1,12 +1,14 @@
 # Partyreel — Pricing & tiers
 
-> ROLE: the plans: their prices, limits and model, Pro's case, the unit economics, and the Stripe and email setup a
-> human runs, the test-to-live cutover included. · NOT HERE: the product why (→ [`PRD.md`](PRD.md) "Monetization and
+> ROLE: the plans: their prices, limits and model, Pro's case, what running it costs us (vendor prices, the code's
+> request patterns, a party and a month at scale, the levers), and the Stripe and email setup a human runs, the
+> test-to-live cutover included. · NOT HERE: the product why (→ [`PRD.md`](PRD.md) "Monetization and
 > anti-abuse (the why behind the schema)" and "Data retention and lifecycle"), the engineering (cap enforcement, the
 > webhook and provisioning: → [`systems/billing-caps.md`](systems/billing-caps.md)), the lifecycle sweeps
 > (→ [`systems/lifecycle-recovery.md`](systems/lifecycle-recovery.md)).
 > GROWS BY: refined in place; [`src/lib/constants/tiers.ts`](../src/lib/constants/tiers.ts) is the source of every
-> number, and where this doc and the code disagree, the code wins.
+> plan number, and where this doc and the code disagree, the code wins; a vendor price is re-read from its page and
+> dated.
 
 Stripe runs in TEST mode (account `acct_1TcStrPtjqmVkBwk`); going live is a launch switch ("Test to live cutover"
 below).
@@ -60,14 +62,14 @@ derivation and the sources are the constants' comment). `ESTIMATE_BASIS` is the 
 working.
 
 - **Annual Pro is exactly ×10 the monthly, marketed as "two months free"** (a Vitest pin holds each yearly label at
-  10× its sibling). Why not deeper: a full 2 TB plan costs about $369 a year in storage, about what a 20% discount
-  would charge ($374), so ×10 (16.7% off) is the deepest uniform discount the catalog carries without the top plan
-  going underwater, and starting conservative leaves deepening as a later gift. The yearly Stripe prices live on the
-  SAME products as the monthly ones (one product per size, so the size reads the same in Checkout and on Stripe's
-  confirm page); env keys `STRIPE_PRICE_PRO_{100,500,2TB}_YR`. A Pro host moves between sizes and cadences from the
-  app's plan sheet (her three sizes under one Monthly / Yearly toggle, the saving tagged beside Yearly and computed
-  from these labels; `/api/stripe/change-plan`, `proration_behavior: always_invoice`), and a pass holder's prorated
-  credit lands as customer balance, which pays the NEXT invoice: on yearly, that is a year out (never lost).
+  10× its sibling). Why not deeper: the top plan's margin is the limit, and a full 2 TB plan already costs more than
+  it earns at either cadence once its backup is counted ("What it costs us": a plan, full), so starting conservative
+  leaves deepening as a later gift. The yearly Stripe prices live on the SAME products as the monthly ones (one
+  product per size, so the size reads the same in Checkout and on Stripe's confirm page); env keys
+  `STRIPE_PRICE_PRO_{100,500,2TB}_YR`. A Pro host moves between sizes and cadences from the app's plan sheet (her
+  three sizes under one Monthly / Yearly toggle, the saving tagged beside Yearly and computed from these labels;
+  `/api/stripe/change-plan`, `proration_behavior: always_invoice`), and a pass holder's prorated credit lands as
+  customer balance, which pays the NEXT invoice: on yearly, that is a year out (never lost).
 - **A plan change never leaves a host storing more than the new cap** (Will, 2026-09-22). Any Pro purchase or Pro
   size change must hold what the host already stores (active bytes against the plan's plain cap); a smaller one
   is refused with the numbers ("You're storing 140 GB. Pro 100 GB holds 100 GB, so remove 40 GB first, or choose
@@ -113,18 +115,140 @@ ID to its plan (the newest is the public offer), and Price IDs stay out of the c
 `planForPriceId` maps one Price ID per plan, and the build lands with the first real price change
 ([`ROADMAP.md`](ROADMAP.md) "Billing follow-ons").
 
-## Unit economics
+## What it costs us
 
-R2 storage is **$0.015 a GB-month with zero egress**. Full-use storage cost a month: $1.50 (100 GB), $7.50 (500 GB),
-about $31 (2 TB), about $1.13 (the 75 GB Event Pass). Healthy except **Pro 2 TB at $39, which is thin if fully
-used**: most hosts won't fill it, but the top plan is priced as if someone does (the levers if margins matter: $49,
-or a 1 TB top plan).
+Each action the code takes (file and line), priced at the vendor's own page, read 2026-10-03; ≈ marks an assumption,
+ours to change, and each total is its count times its price.
 
-**No cold storage.** R2 Infrequent Access is only a third cheaper ($0.01 against $0.015 a GB-month) and adds a
-$0.01/GB retrieval fee and a 30-day minimum storage charge, so on a 30-day recovery tail the saving is small and a
-single restore costs more than it saved; true archival (S3 Glacier) is a separate cross-cloud project with slow, paid
-retrieval. The lever if tail cost grows: an R2 lifecycle rule moving tail objects to Infrequent Access, with next to
-no app code.
+| Line | Price |
+| --- | --- |
+| [R2](https://developers.cloudflare.com/r2/pricing/), `partyreel` | $0.015 a GB-month; Class A (PUT, List, multipart) $4.50 and Class B (GET, HEAD) $0.36 a million; egress, deletes and aborts free; 10 GB, 1M A and 10M B free a month |
+| R2 Infrequent Access, `partyreel-backup` | $0.01 a GB-month; A $9.00 and B $0.90 a million; $0.01 a GB read back; 30 days minimum |
+| [Workers](https://developers.cloudflare.com/workers/platform/pricing/), [Queues](https://developers.cloudflare.com/queues/platform/pricing/) | $5 a month for 10M requests and 30M CPU-ms, then $0.30 and $0.02 a million; 1M Queue operations, then $0.40 a million, three a message |
+| [Vercel](https://vercel.com/pricing) | Hobby is [non-commercial](https://vercel.com/docs/limits/fair-use-guidelines); Pro $20 a month with a $20 credit. [Functions](https://vercel.com/docs/functions/usage-and-pricing) (iad1, 2 GB): $0.60 a million invocations, $0.128 a CPU-hour (I/O waits free), $0.0106 a GB-hour while a request is in flight. CDN: Pro's default [Flat Rate](https://vercel.com/docs/pricing/flat-rate-cdn) holds 1M requests and 1 TB, then $20 (10M), $100 (50M), $300 (150M) a month; [on demand](https://vercel.com/docs/pricing/regional-pricing/iad1), $2 a million requests and $0.15 a GB delivered; origin transfer $0.06 a GB |
+| [Supabase](https://supabase.com/pricing) | Pro $25 a month with Micro; 100,000 MAU, then $0.00325 each; 250 GB egress, then $0.09 a GB; Realtime 500 peak connections, then $10 a thousand, and 5M messages, then $2.50 a million, a broadcast counting [one plus one a listener](https://supabase.com/docs/guides/platform/manage-your-usage/realtime-messages); compute Large $110 to 8XL $1,870 a month |
+| [Resend](https://resend.com/pricing), [Sentry](https://sentry.io/pricing/) | email free to 3,000 a month (100 a day), $20 for 50,000, $1,150 for 2.5M; errors free to 5,000, Team $26 a month billed yearly for 50,000 |
+
+**What an action does to them** (paths under `src/lib` unless named):
+
+- **An upload** is two function calls (`upload/uploader.ts:300,382`) with about seven database round trips
+  (`src/app/api/r2/presign-upload/route.ts:24,89`, `src/app/api/r2/complete-upload/route.ts:49,74,95`,
+  `forensics/capture.ts:50,62`) and an R2 HEAD (`upload/server-pipeline.ts:439`), beside the browser's PUTs straight
+  to R2: the original (16 MB parts from 100 MB, with Create, ListParts and Complete: `media/limits.ts:83-85`,
+  `upload/server-pipeline.ts:202-220,404-423`), the ~60 KB preview (`:158-173`) and each photo's ≈1 MB phone copy.
+  The backup adds three Queue operations, an IA HEAD, a GET and an IA PUT an object
+  (`workers/backup/src/index.ts:96-107`). A photo: ~$0.00005 once, $0.00011 a month kept.
+- **An open album** hears one Realtime ping per media row a guest would see change (the trigger,
+  `supabase/migrations/20260611220000_gallery_doorbell.sql:70-72`; the send,
+  `20261002200000_disposable_foundation.sql:477`) and syncs within ~2.4 s (`guest/refresh-coalescer.ts:38-39`), a
+  hidden tab whose socket lives too (`guest/use-gallery-doorbell.ts:19-21,46-51`); under it, a poll every 60 s, or
+  12 s with no socket, stopped while hidden (`shared/use-live-poll.ts:19-21,52-58`). A sync resolves its viewer
+  (`events/album-viewer.server.ts:65-115`), then answers 304 off one row or a delta
+  (`src/app/api/album/guest/sync/route.ts:107-201`); the client then asks links for the new ids, a second call signing
+  three URLs an id (`src/app/api/album/guest/media/route.ts:57-82`), at most 200 ids, re-minted hourly for up to 600
+  recent ones (`events/album-wire.ts:208,215`, `album/links.ts:124`). ★ The proxy runs before every API call
+  (`src/proxy.ts:133`), asking Supabase Auth about a signed-in caller (`supabase/middleware.ts:48`), so each is two
+  invocations. Whole (both, the CDN request, transfer, egress): ≈$4 a million 304s, $5 a million deltas, $11 a million
+  links calls, each ~3 to 5 ms of database (`pg_stat_statements`); a ping is $2.50 a million times one plus its
+  listeners.
+- **A view** is one GET of the tile's preview (`src/components/app/media-grid.tsx:18`); the viewer reads its original
+  once, `no-store` (`media/share-save-held.ts:9`), and the live reel, past its 48 decoded stills
+  (`reel/engine/asset-cache.ts:25`), re-reads each still and every clip window `no-store` a play
+  (`reel/engine/assets.ts:86`, `reel/engine/video/window-reader.ts:114`). A re-mint is a new URL, so a browser keeps a
+  tile about an hour (`r2/presign-bucket.ts:15,24`); the SDK signs one in ~170 µs of CPU (measured; a 200-id batch,
+  ~100 ms).
+- **A zip** HEADs or lists, then GETs each object once (`workers/export/src/check.ts:43,72,98`, `index.ts:174`), 2,000
+  items or 20 GB a part at most (`export/build-manifest.ts:17-18`): ~$0.0007 of R2 a full part.
+- **The jobs** cost ~$0: a cron function of at most 60 s a day (`vercel.json:5`, `src/app/api/cron/purge/route.ts:85`)
+  listing at most 20 R2 pages (`lifecycle/sweeps/orphans.ts:44`); a daily reconcile checking the primary's first 5,000
+  objects against the backup (`workers/backup/src/index.ts:156-171`); a weekly prune scanning 5,000 backup objects and
+  deleting at most 500 media (`workers/backup/src/prune-strategy.ts:20,27`).
+- **A confirmed guest** is a Supabase Auth code over Resend (`src/components/auth/email-sign-in.tsx:290`): an email and
+  an MAU. Lifecycle mail goes once a state (`email/send.ts:85`).
+
+**One party**, the reference: 200 guests over five hours, 2,000 photos and 100 clips (≈30 s); ≈20 clients with the
+album's socket up on average (open albums and two wall screens), ≈100 guests confirming, ≈400 visits the week after.
+
+| | Amount | Cost |
+| --- | --- | --- |
+| Storage | 12.1 GB: originals 10.0, phone copies 2.0, previews 0.1 | $0.30 a month kept, $0.12 of it the backup |
+| Upload and backup operations | 6,200 objects | $0.10 |
+| Vercel | ~68,000 calls (37,400 syncs, 22,600 links calls), each run twice with the proxy; 0.8 GB delivered | $0.56 |
+| Supabase | 44,100 Realtime messages (2,100 pings to 21); 0.65 GB egress | $0.17 |
+| R2 reads | ~142,000 GETs | $0.05 |
+| Confirmed guests | 100 MAU, 110 emails | $0.42 past 100,000 MAU |
+| **Total** | | **$1.30 once and $0.30 a month: ~$4.90 the first year, against a $24 pass** |
+
+The live album is $0.55 of it: about one Realtime message and 1.2 function calls for every upload times every album
+open when it lands, so a party twice the size costs four times as much to keep live.
+
+**A month at scale.** ≈ Each active host holds one event: one in five the reference party, the rest a Free event at
+its cap (29 photos, 20 guests, 10 confirming); parties kept a year, Free events six months (the inactivity sweep).
+
+| A month | 1,000 hosts | 100,000 hosts |
+| --- | --- | --- |
+| Vercel | $127 (Pro, $57 of functions and $71 of CDN on demand, less the $20 credit) | $12,700 |
+| Supabase | $36 (Pro, 9M Realtime messages) | $15,000 (MAU $9,100, Realtime $2,600, an 8XL $1,860, egress $1,200) |
+| R2 operations, Workers, Resend, Sentry | $75 | $4,700 |
+| Storage after a year, with the backup | $740 (29 TB) | $74,000 (2,900 TB) |
+| **Total** | **~$240 before storage: ~$270 the first month, ~$980 a year in** | **~$32,500 before storage, ~$106,500 a year in** |
+
+What breaks first: ★ **Supabase's spend cap**, on by default
+([billing FAQ](https://supabase.com/docs/guides/platform/billing-faq)), stops an item past its quota until the next
+cycle ([cost control](https://supabase.com/docs/guides/platform/cost-control)): at 1,000 hosts the 5M Realtime messages
+run out mid-month and albums fall back to their poll, and past 100,000 MAU (about 1,000 parties a month) new
+sign-ins stop; it must be off before launch traffic, with a budget alert. Then **Realtime's ceiling**, 500
+connections and 500 messages a second with the cap, 10,000 and 2,500 without
+([limits](https://supabase.com/docs/guides/realtime/limits)), against 100,000 hosts' Saturday peak of ≈37,000 open
+albums (a refused socket falls back to the 12 s poll: graceful, and dearer). Then **the database**: ~4 ms a sync or
+links call, so that peak (~3,900 calls a second) keeps ~16 vCPUs busy.
+
+**The levers, by saving:**
+
+1. **The live album's fan-out.** (a) Widen the coalescer to 15 s and keep hidden tabs from syncing on a ping: about
+   half the doorbell's syncs and links calls, ~$0.20 a party, ~$4,800 a month at 100,000 hosts with a smaller database;
+   a few lines, and others' photos land up to 15 s later (hers at once). (b) Take the proxy off the API routes, which
+   verify for themselves: half the invocations and an Auth round trip a call, ~$0.10 a party; auth-adjacent, so
+   reviewed as such. (c) Let a delta carry its new items' links: one call where there were two, ~$0.08 a party.
+   (d) Before ~10,000 concurrent viewers, one push per album instead of one sync per viewer: a Durable Object per live
+   album sending the delta over WebSockets
+   ([outgoing messages free](https://developers.cloudflare.com/durable-objects/platform/pricing/)), ~$0.50 a party and
+   ~$12,000 a month at 100,000, clear of both ceilings; weeks, and a new moving part. (e) Bill Vercel's CDN on
+   demand while the app is request-heavy and byte-light: $71 against Flat Rate's $100 tier at 1,000 hosts.
+2. **The backup**, 40% of storage and accrue-only. (a) Back up originals alone (previews and phone copies are remade,
+   or fall back to the original): a sixth of its bytes and two thirds of its writes, ~$6,000 a month at 100,000 hosts,
+   ~$60 at 1,000; a line in the Worker. (b) Let the prune keep up: it runs dry until the launch switch, deletes at most
+   500 media a week and rescans from the head, so a deleted byte otherwise stays at $0.01 a GB-month; it needs a cursor
+   and caps sized to the deletions. (c) Past ~100 TB (~$1,000 a month), a cheaper home:
+   [B2](https://www.backblaze.com/cloud-storage/pricing) at $6.95 a TB with free API calls and
+   [Object Lock](https://www.backblaze.com/docs/cloud-storage-object-lock), ~$9,000 a month at 100,000, or
+   [S3 Glacier Deep Archive](https://aws.amazon.com/s3/storage-classes/glacier/) at $0.00099 a GB-month, read back
+   asynchronously.
+3. **Confirmed guests**, ~$0.0043 each past 100,000 MAU (~$10,600 a month at 100,000 hosts). The lever, confirming a
+   guest without an Auth user, is auth work: revisit near 70,000 MAU.
+4. **A media domain on Cloudflare**, with the DNS move: an R2 custom domain behind Cache Rules and a WAF HMAC token
+   ([Pro](https://blog.cloudflare.com/adjusting-pricing-introducing-annual-plans-and-accelerating-innovation/), $25 a
+   month, [unlocks it](https://developers.cloudflare.com/waf/custom-rules/use-cases/configure-token-authentication/);
+   the WAF [runs before the cache](https://developers.cloudflare.com/ruleset-engine/reference/phases-list/)) serves
+   tiles from the edge with no Class B on a hit (~$800 a month at 100,000 hosts), over HTTP/2 and 3 instead of R2's six
+   HTTP/1.1 connections, with a CORS answer a browser may keep, so the `no-store` re-reads end. Small in dollars, large
+   in speed. A Worker checking the signature instead bills every request, a cache hit too, at $0.30 a million: nearly
+   the $0.36 of the Class B read it saves.
+5. **A lean presigner:** SigV4 by hand (`node:crypto`, the day's key cached) signs in ~4 µs against the SDK's ~170 µs
+   (measured): ~$100 to $200 a month at 100,000 hosts, and a 200-id batch ~100 ms sooner.
+6. **The site's own images:** 33 local files, each transformation kept 31 days in two formats
+   ([the cache key](https://vercel.com/docs/image-optimization)): under $5 a month, so build-time pre-optimization
+   waits; user media stays off `next/image`, with no remote image host in `next.config.ts`.
+
+**A plan, full.** Storage with its backup is $0.025 a GB-month, and a photo's phone copy adds ~30% the cap never
+counts. Full, 100 GB costs $2.50 to $3.20 a month, 500 GB $12.50 to $16, 2 TB $51 to $66 (against $39, or $32.50
+yearly), and the 75 GB pass $1.90 to $2.40 ($23 to $29 a year against $24): the top plan loses money full, and 500 GB
+and the pass run thin.
+
+**No cold storage for the recoverable tail.** Infrequent Access is a third cheaper but adds a $0.01 a GB retrieval fee
+and a 30-day minimum, so on a 30-day tail the saving is small and one restore costs more than it saved. The lever if
+the tail grows: an R2 lifecycle rule moving tail objects to Infrequent Access (a Class A transition each), next to no
+app code.
 
 ## `tiers.ts`, the live source
 
