@@ -102,3 +102,20 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am
+
+- Done, pushed: the phone-size copy end to end (browser generation, presign/complete caps, migration
+  `20261003110000_phone_copy.sql` proved rolled back red 8/8 green 9/9), every purge reading `phone_key`, the
+  stored-copies and media-cost guards, the export's two sizes and `save` step (guest and host), the Worker's
+  `phone` key, the Save engine (`take-home-save.ts`), guest Select then Save (`live-gallery*`, the dock), the host's
+  two-set panel (`take-home-panel.tsx`). Commits 794b1cb6 (server) and 00c12452 (client); full `pnpm test` green
+  on 794b1cb6 (9,687), typecheck and lint green on 00c12452.
+- Measured on :3133 in a headless Chrome of the lane's own (scratch `/Users/gibby/local/ai/partyreel-wt/_scratch/
+  take-home-wiring/`): a 12 MP photo's phone copy 601,592 B of 3,671,488 B, 282 to 299 ms at 375 with 4x CPU
+  (`measure-phone.json`); her Save of 24 picks with the sheet stubbed: 24 phone-size JPEGs (14,438,208 B) handed
+  over inside the tap, and on a slow network the Ready tap (`measure-save*.json`, `save-*.png`).
+- Remains: the real uploader's phone copy through the guest Add with the network stood in (`measure-upload.mjs`,
+  the picked file not yet reaching the presign), the host panel captured at 1440 and 375, `uploads-and-r2.md` edited
+  in place, the full gate (build, lab:smoke, lab:demo --board take-home at 1440 and 375), then the Handoff.
+- Running: the dev server on :3133 (`pnpm dev -p 3133` in the worktree; kill by port before a build).
