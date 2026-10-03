@@ -57,6 +57,7 @@ plan's whole text (lane splits, the Advisor's Q11 corrections, Will's answers) i
 | `event-dates` | an optional end date read everywhere (Settings' range, the dashboard's week, live today and stage, the formatter's ranges, the develop default after the last day; never the lifecycle); lead=made; its migration for the Orchestrator | running (cut at `9af92e54`); WIP pushes each milestone | Opus, 3132 | `a4f91d827093a1238` |
 | `the-wait-r2` | board the-wait r2 [desk 35]: the arrival, his first choice drawn properly (the develop as the album's first load, two or three takes), the premiere first and into place refined | running (cut at `9af92e54`); WIP pushes each milestone | Opus, 3133 | `a0a9f95e641174de4` |
 | `redteam-46` | build 46's red-team (`9af92e54`): the waiting room and the develop, the pair refused, taking photos home (the phone copy, the host's two sets), the rooms and See it as a guest, Create, identity across the app, the frame headers, regressions | running (from 11:35Z); brief and ledger `../partyreel-wt/_scratch/redteam-46/` (its ledger is its handoff) | Opus, Will's Chrome | `a8acc8ebda6e32988` |
+| `crumbs-56` | red-team 46's MEDIUM: the waiting contact sheet draws her own video as a broken image; a video draws its first frame | running (cut at `15259241`); WIP pushes each milestone | Sonnet, 3131 | `aa29965c66e3771f2` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Q8
 (round 12's plan) answered with 21 corrections, all folded into the briefs; the next consult is the foundation's
@@ -92,9 +93,8 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team brie
 
 0. **Red-team 46's MEDIUM (11:30Z, its ledger):** the waiting contact sheet draws her own VIDEO as a broken image
    (`src/components/guest/gallery-empty-state-sheet.tsx`: every lit `[data-hers] .wait-cell` is an `<img src={cell.src}>`,
-   `HerShot.video` ignored; a camera album's hold-to-film shot is `video/mp4`). The fix: draw a video's first frame (its
-   poster, or a muted `<video>` paused at its first frame), red first: cut `crumbs-56` (Sonnet) for it, plus whatever
-   else red-team 46 ledgers, once it reports.
+   `HerShot.video` ignored; a camera album's hold-to-film shot is `video/mp4`). Its fix is `crumbs-56` (running); relay to it
+   whatever else red-team 46 ledgers.
 0. **Now (11:20Z):** every wave-1 lane is merged and both migrations are applied (types regenerated at `e0cbda7d`;
    take-home's typed seams one ROADMAP line), and the export Worker is deployed (version 955ce073). Build 46 (`9af92e54`)
    serves the alias; red-team 46 walks it from `../partyreel-wt/_scratch/redteam-46/brief.md`. Running: `event-dates` (its migration for the Advisor,
