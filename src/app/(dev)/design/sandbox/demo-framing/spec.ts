@@ -175,7 +175,7 @@ export const DEMO_FRAMING = defineExploration({
       id: "card-line",
       question: "What does the card say under its name?",
       taken:
-        "Its first faces, its guests and its photographs, never a date: nothing depends on a timeline, so a weekend and an undated party read alike.",
+        "Its first faces, the rest of its guests counted in, its photographs, never a date: nothing depends on a timeline, so a weekend and an undated party read alike.",
       overrule:
         "Its day as a host prints it (an undated party shows none), or the faces alone.",
     },

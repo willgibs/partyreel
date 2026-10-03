@@ -274,8 +274,8 @@ function Photographs({
 /* ── card: the event card over its link ───────────────────────────────── */
 
 const CARD = {
-  w: { base: 192, lg: 248 },
-  h: { base: 240, lg: 310 },
+  w: { base: 192, lg: 232 },
+  h: { base: 240, lg: 290 },
   r: { base: 22, lg: 28 },
   padX: { base: 12, lg: 17 },
   padB: { base: 12, lg: 16 },
@@ -286,7 +286,7 @@ const CARD = {
   rowGap: { base: 6, lg: 8 },
   face: { base: 18, lg: 22 },
   /** The code's white mat in the cover's corner: a picture at this size. */
-  chip: { base: 40, lg: 52 },
+  chip: { base: 40, lg: 48 },
   chipPad: { base: 4, lg: 5 },
   chipInset: { base: 10, lg: 12 },
   chipR: { base: 10, lg: 13 },
@@ -294,7 +294,7 @@ const CARD = {
   linkGap: { base: 14, lg: 18 },
 } as const;
 
-/** How many faces the card shows before its counts. */
+/** How many faces the card shows before the rest are counted in. */
 const FACES = 3;
 
 /**
@@ -318,8 +318,9 @@ function lightOf(p: Party): string {
  * THE CARD (his second direction, nailed). The product's own event card at a
  * hero's size, portrait like an invitation: the party's photograph fills it,
  * its name sits on the photograph's own dark foot in the loud face (the
- * dashboard card's grammar, `event-card.tsx`), its first faces and its counts
- * under the name, its code on a white mat in the cover's corner. Under it, on
+ * dashboard card's grammar, `event-card.tsx`), its first faces, the rest of
+ * its guests counted in and its photographs under the name, its code on a
+ * white mat in the cover's corner. Under it, on
  * the night, the link in white at the settled size: minimal, the card above
  * it the thing to look at. Never a date (round thirteen: nothing depends on a
  * timeline), so an undated party and a weekend read alike.
@@ -466,6 +467,8 @@ function CardObject({
                   </Avatar>
                 ))}
               </span>
+              {/* The rest of its guests counted in after the faces, as the
+                  guest list's own chip counts them, then its album. */}
               <span
                 className="truncate font-medium text-white/80 tabular-nums"
                 style={{
@@ -473,7 +476,7 @@ function CardObject({
                   lineHeight: at(CARD.metaLine),
                 }}
               >
-                {party.guests} guests · {party.photos} photos
+                +{party.guests - faces.length} · {party.photos} photos
               </span>
             </span>
           </span>

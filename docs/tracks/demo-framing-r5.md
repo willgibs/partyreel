@@ -75,12 +75,12 @@ working.
 
 ## Where I am
 
-- WIP 1 (pushed): the board restructured for round five. `stage` asks between three heroes, each taken further:
-  `card` (recommended; the product's event card, photograph-forward, its name typed on the photograph's foot, its
-  light while the next name types, the photograph developing in on landing), `plate` (the pane lit by its party's
-  photograph, the code always whole and rewritten in a ripple from its heart, the address one line under it), `door`
-  (ajar in the arriving party's light while its address types, open on its cover). The field and the wall are retired
-  (`tiles.tsx` deleted; `waveAt`, `TYPED_MAX`, `typedSlugOf` gone). Typecheck, lint and the board's tests green.
-- Next: verify the typing states (the card's light, the door ajar) and each hero at the tablet and 375; tune the
-  card's height against the header, the pane's light; the close frames; then the gate and the Handoff.
-- Captures and the capture harness: `_scratch/demo-framing-r5/` (`tour.mjs <prefix> <opts> <frames> <times>`).
+- WIP 2 (pushed): round five drawn and checked by eye at 1440, the tablet, 375 and close
+  (`_scratch/demo-framing-r5/shots/r5c-*`, `t5-*`): `stage` between `card` (recommended), `plate` and `door`, each
+  taken further; the field and the wall retired. The card at a desk is a size down (232 by 290) for air under the
+  header; its line is faces, the rest counted in and its photographs (never a date). The door stands ajar at 42 degrees
+  in the arriving party's light. Typecheck, lint and the board's tests green at WIP 1.
+- Next: reduced motion and the captions (the barcode reads), then the gate (typecheck, lint, test, build, lab:smoke,
+  lab:demo at 1440 and 375) and the Handoff.
+- Captures and the capture harness: `_scratch/demo-framing-r5/` (`tour.mjs <prefix> <opts> <frames> <times>`,
+  `turn.mjs <prefix> <opts> <frame>` for one turn by the typed text).

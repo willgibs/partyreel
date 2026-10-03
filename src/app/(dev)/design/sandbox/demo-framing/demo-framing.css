@@ -162,7 +162,7 @@
    past the pane's edges so the blur has none of its own. */
 [data-df-pane-light] {
   inset: -18%;
-  filter: blur(20px) saturate(1.5);
+  filter: blur(20px) saturate(1.25) brightness(1.3);
 }
 [data-df-pane-light] img {
   opacity: 0;
@@ -208,6 +208,13 @@
   --way-w: var(--df-way-w);
   --way-h: var(--df-way-h);
   --way-r: var(--df-way-r);
+}
+/* Ajar wider than the doorway's own resting state (a guest's door waits on
+   its host; the hero's on its next address): enough of the room shows that
+   the arriving party's light, never the dark leaf, is what the eye meets. */
+[data-df-doorway] .door-way[data-door-way="ajar"] {
+  --way-turn: 42deg;
+  --way-floor: 0.8;
 }
 /* Under a pointer an open door opens a little wider: the welcome it is for. */
 [data-df-object="door"][data-df-lifted] .door-way[data-door-way="open"] {
