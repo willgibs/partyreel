@@ -12,13 +12,22 @@ import {
 import { formatBytes } from "@/lib/utils";
 import { presignUploadSchema } from "@/lib/validation/upload";
 
+/**
+ * THE ALBUM'S CAP SENTENCES, one home for the context's early answer and the meter's exact one. A guest's words name
+ * the album, never the plan: she must not learn the host's plan.
+ */
+const ALBUM_FULL =
+  "This album is full right now. The host needs to free up space.";
+const ALBUM_MONTH_SPENT = "This album has hit its upload limit for the month.";
+
 // Issues presigned URLs for a guest's browser → R2 DIRECT upload. The pipeline
 // engine (lib/upload/server-pipeline.ts) owns the shared spine; this strategy
 // owns the GUEST gates: the capability session, whose ticket it is (an
 // account's row uploads only for that signed-in account), event state, video
 // gating, caps, and the host-configurable per-event size cap (which binds
 // GUESTS ONLY — the host route has no equivalent check). create_media (at
-// complete) remains authoritative for everything re-checked here.
+// complete) remains authoritative for everything re-checked here, but for the
+// month, which the engine's meter counts and decides here at the presign.
 const guestPresignStrategy: PresignStrategy<typeof presignUploadSchema> = {
   schema: presignUploadSchema,
   async resolveEvent(parsed, kind) {
@@ -151,9 +160,7 @@ const guestPresignStrategy: PresignStrategy<typeof presignUploadSchema> = {
         refusal: {
           status: 409,
           code: "cap_reached",
-          message: ctx.data.at_storage_cap
-            ? "This album is full right now. The host needs to free up space."
-            : "This album has hit its upload limit for the month.",
+          message: ctx.data.at_storage_cap ? ALBUM_FULL : ALBUM_MONTH_SPENT,
         },
       };
     }
@@ -181,6 +188,31 @@ const guestPresignStrategy: PresignStrategy<typeof presignUploadSchema> = {
     );
     if (shot) return { ok: false, refusal: shot };
     return { ok: true, eventId: ctx.data.event_id };
+  },
+  // ★ THE METER'S REFUSALS, IN THE ALBUM'S WORDS (upload-meter): the meter judges THIS file (the context above only
+  // knew whether the album was already full), so a file the room or the month cannot take is refused here, before its
+  // bytes move and before it spends the month. `cap_reached` keeps the refresh ladder the guest queue already reads
+  // (`upload-refusal.ts`); the breaker's is a retry, the hour's end in `Retry-After`.
+  meterRefusal(refusal) {
+    switch (refusal.reason) {
+      case "storage":
+        return { status: 409, code: "cap_reached", message: ALBUM_FULL };
+      case "monthly":
+        return { status: 409, code: "cap_reached", message: ALBUM_MONTH_SPENT };
+      case "hourly":
+        return {
+          status: 429,
+          code: "rate_limited",
+          message:
+            "This album has taken a lot of uploads this hour. Try again in a little while.",
+        };
+      case "event_gone":
+        return {
+          status: 409,
+          code: "event_gone",
+          message: "This event is no longer available.",
+        };
+    }
   },
 };
 

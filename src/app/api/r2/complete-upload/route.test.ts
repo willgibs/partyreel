@@ -15,8 +15,13 @@ const rowRead = vi.fn();
 const getUser = vi.fn();
 const checkAbuseRate = vi.fn();
 const recordAbuseEvent = vi.fn();
+const meterUpload = vi.fn();
 
 vi.mock("server-only", () => ({}));
+// The presign's meter (upload-meter): stubbed only so the complete can be shown never to ask it.
+vi.mock("@/lib/upload/server-pipeline-meter", () => ({
+  meterUpload: (...args: unknown[]) => meterUpload(...args),
+}));
 vi.mock("next/headers", () => ({
   cookies: async () => ({ get: () => undefined, getAll: () => [] }),
 }));
@@ -34,14 +39,28 @@ vi.mock("@/lib/observability/sentry", () => ({
 vi.mock("@/lib/forensics/capture", () => ({
   captureUploadForensics: vi.fn(),
 }));
+// The staging landing (upload-meter): a staged single PUT's HEAD, its copy into events/, and the copies a refused
+// record takes back out. `headObject` answers null by default (nothing staged), the path a presign made before staging
+// takes, so every older case below runs as it always did.
+const headObject = vi.fn();
+const copyObject = vi.fn();
+const sumMultipartParts = vi.fn();
+const completeMultipartUpload = vi.fn();
+const deleteR2Objects = vi.fn();
 vi.mock("@/lib/r2/presign", () => ({
   presignUpload: vi.fn(),
   presignUploadPart: vi.fn(),
   createMultipartUpload: vi.fn(),
-  completeMultipartUpload: vi.fn(),
-  sumMultipartParts: vi.fn(),
+  completeMultipartUpload: (...args: unknown[]) =>
+    completeMultipartUpload(...args),
+  sumMultipartParts: (...args: unknown[]) => sumMultipartParts(...args),
   abortMultipartUpload: vi.fn(),
   headObjectSize: (...args: unknown[]) => headObjectSize(...args),
+  headObject: (...args: unknown[]) => headObject(...args),
+  copyObject: (...args: unknown[]) => copyObject(...args),
+}));
+vi.mock("@/lib/r2/delete", () => ({
+  deleteR2Objects: (...args: unknown[]) => deleteR2Objects(...args),
 }));
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => ({
@@ -147,6 +166,9 @@ beforeEach(() => {
   callerIs(null);
   checkAbuseRate.mockResolvedValue({ allowed: true });
   claimRpc.mockResolvedValue({ data: 0, error: null });
+  headObject.mockResolvedValue(null);
+  copyObject.mockResolvedValue(undefined);
+  deleteR2Objects.mockResolvedValue({ deleted: 1, errored: [] });
 });
 
 describe("an account's ticket completes only for that account", () => {
@@ -219,6 +241,18 @@ describe("an account's ticket completes only for that account", () => {
     expect(status).toBe(403);
     expect(body.code).toBe("session_other_account");
     expect(createMedia).not.toHaveBeenCalled();
+  });
+});
+
+describe("the month was counted at the presign (upload-meter)", () => {
+  it("★ a completion never asks the meter: the file counted once, when its URL was minted", async () => {
+    const { status } = await complete();
+    expect(status).toBe(200);
+    expect(createMedia).toHaveBeenCalledTimes(1);
+    // The size the row records is still R2's HEAD, never the declaration the presign counted.
+    expect(createMedia.mock.calls[0][0].fileSizeBytes).toBe(1000);
+    await complete({ reel_eligible: false });
+    expect(meterUpload).not.toHaveBeenCalled();
   });
 });
 
@@ -328,5 +362,121 @@ describe("a sealed landing", () => {
     });
     const { body } = await complete();
     expect(body).toEqual({ ok: true, status: "approved" });
+  });
+});
+
+/**
+ * ★ THE STAGING LANDING (upload-meter, the Advisor's Q19): a single PUT landed at its key's `staging/` twin, so the
+ * complete HEADs it there (the authoritative size), copies it into its `events/` key before any row names it, and only
+ * then records it, where `create_media` counts the month on that size, once. A refused or failed record takes the
+ * copies back out of `events/`; a multipart, assembled by the complete at its key, and a single PUT presigned before
+ * staging, found at its key, land as they always did.
+ */
+describe("the staging landing", () => {
+  const ORIGINAL = `events/${EVENT}/photo/${MEDIA}/original.jpg`;
+  const STAGED = `staging/${EVENT}/photo/${MEDIA}/original.jpg`;
+  const PREVIEW = `events/${EVENT}/photo/${MEDIA}/preview.webp`;
+  const STAGED_PREVIEW = `staging/${EVENT}/photo/${MEDIA}/preview.webp`;
+
+  it("★ copies a staged single PUT into its key, then records it on the staged HEAD's size", async () => {
+    headObject.mockImplementation(async ({ key }: { key: string }) =>
+      key === STAGED ? { size: 123_456, lastModified: null } : null,
+    );
+    const { status, body } = await complete({ size_bytes: 999 });
+    expect(status).toBe(200);
+    expect(body).toEqual({ ok: true, status: "approved" });
+    expect(copyObject).toHaveBeenCalledWith({
+      sourceKey: STAGED,
+      destinationKey: ORIGINAL,
+    });
+    expect(copyObject.mock.invocationCallOrder[0]).toBeLessThan(
+      createMedia.mock.invocationCallOrder[0]!,
+    );
+    expect(createMedia.mock.calls[0][0]).toMatchObject({
+      originalKey: ORIGINAL,
+      fileSizeBytes: 123_456,
+    });
+    expect(headObjectSize).not.toHaveBeenCalled();
+    expect(deleteR2Objects).not.toHaveBeenCalled();
+  });
+
+  it("a single PUT presigned before staging is found at its key, uncopied, as before", async () => {
+    headObjectSize.mockResolvedValue(4242);
+    const { status } = await complete();
+    expect(status).toBe(200);
+    expect(headObject).toHaveBeenCalledWith({ key: STAGED });
+    expect(headObjectSize).toHaveBeenCalledWith({ key: ORIGINAL });
+    expect(copyObject).not.toHaveBeenCalled();
+    expect(createMedia.mock.calls[0][0].fileSizeBytes).toBe(4242);
+  });
+
+  it("an upload that landed nowhere is refused, and nothing is recorded", async () => {
+    headObjectSize.mockRejectedValue(new Error("NotFound"));
+    const { status, body } = await complete();
+    expect(status).toBe(400);
+    expect(body.code).toBe("bad_key");
+    expect(createMedia).not.toHaveBeenCalled();
+  });
+
+  it("a copy R2 will not make refuses the completion (a retry may pass), and records nothing", async () => {
+    headObject.mockResolvedValue({ size: 1000, lastModified: null });
+    copyObject.mockRejectedValue(new Error("InternalError"));
+    const { status, body } = await complete();
+    expect(status).toBe(502);
+    expect(body.code).toBe("complete_failed");
+    expect(createMedia).not.toHaveBeenCalled();
+  });
+
+  it("★ a refused record takes its copies back out of events/: no object without a row", async () => {
+    headObject.mockImplementation(async ({ key }: { key: string }) =>
+      key === STAGED ? { size: 1000, lastModified: null } : null,
+    );
+    createMedia.mockResolvedValue({
+      ok: false,
+      code: "cap_reached",
+      message: "Storage capacity exceeded for this plan.",
+    });
+    const { status } = await complete({ preview_key: PREVIEW });
+    expect(status).toBe(409);
+    expect(copyObject).toHaveBeenCalledWith({
+      sourceKey: STAGED_PREVIEW,
+      destinationKey: PREVIEW,
+    });
+    expect(deleteR2Objects).toHaveBeenCalledWith([ORIGINAL, PREVIEW]);
+  });
+
+  it("a record that throws takes them back out too, and the throw still surfaces", async () => {
+    headObject.mockResolvedValue({ size: 1000, lastModified: null });
+    createMedia.mockRejectedValue(new Error("database down"));
+    await expect(complete()).rejects.toThrow("database down");
+    expect(deleteR2Objects).toHaveBeenCalledWith([ORIGINAL]);
+  });
+
+  it("a preview that never landed is recorded as none, so its tile serves the original", async () => {
+    headObject.mockImplementation(async ({ key }: { key: string }) =>
+      key === STAGED ? { size: 1000, lastModified: null } : null,
+    );
+    copyObject.mockImplementation(
+      async ({ sourceKey }: { sourceKey: string }) => {
+        if (sourceKey === STAGED_PREVIEW) throw new Error("NoSuchKey");
+      },
+    );
+    const { status } = await complete({ preview_key: PREVIEW });
+    expect(status).toBe(200);
+    expect(createMedia.mock.calls[0][0].previewKey).toBeNull();
+  });
+
+  it("a multipart is assembled at its key and recorded on its HEAD there, never looked for in staging", async () => {
+    sumMultipartParts.mockResolvedValue(200 * 1024 * 1024);
+    completeMultipartUpload.mockResolvedValue(undefined);
+    headObjectSize.mockResolvedValue(200 * 1024 * 1024);
+    const { status } = await complete({
+      upload_id: "upload-1",
+      parts: [{ partNumber: 1, eTag: "e1" }],
+    });
+    expect(status).toBe(200);
+    expect(headObject).not.toHaveBeenCalledWith({ key: STAGED });
+    expect(copyObject).not.toHaveBeenCalled();
+    expect(headObjectSize).toHaveBeenCalledWith({ key: ORIGINAL });
   });
 });

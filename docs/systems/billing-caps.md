@@ -19,13 +19,34 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   defining it and throws on anything it cannot read. A limit only TypeScript knows is a suggestion: the clip's length
   cap is mirrored in SQL and reaches the creator only as the server's tier-derived `ClipFacts`, never the client's.
   Changing the function's return columns is DROP + CREATE (grants: [database-security.md](database-security.md)).
-- **`create_media` enforces two bounds.** ACTIVE bytes (`host_active_bytes()`: non-removed media in non-deleted
-  events) against the cap plus a 10% write headroom (`capWithWriteHeadroom` mirrors it, so the over-cap sweep engages
-  at the same line), and a monthly INGRESS meter (`storage_ledger.cumulative_bytes`) against
-  `monthly_ingress_cap()`: a multiple of the effective cap on every tier, Free included (the static
+- **`create_media*` enforce two bounds,** on the HEAD's size, at complete. ACTIVE bytes (`host_active_bytes()`:
+  non-removed media in non-deleted events) against the cap plus a 10% write headroom (`capWithWriteHeadroom` mirrors it,
+  so the over-cap sweep engages at the same line), and a monthly INGRESS meter (`storage_ledger.cumulative_bytes`)
+  against `monthly_ingress_cap()`: a multiple of the effective cap on every tier, Free included (the static
   `monthly_ingress_bytes` column stays, null everywhere, for a tier that takes one back), so the abuse bound scales
   with the room. The ingress bound is a backstop, never marketed (`content-policy.test.ts` fails content that names
   it). `host_active_bytes()` is the one SQL definition every cap check reads.
+- ★ **The month counts what landed, once, at complete; staging makes "landed" exact** (upload-meter, the Advisor's
+  Q19). Every single PUT (an original under the multipart threshold, every preview, every phone copy) is minted at its
+  key's `staging/` twin (`stagingKeyFor`, `r2/keys.ts`), and the complete copies it into `events/` before its row is
+  written (a refused or failed record deletes the copies again); a multipart becomes an object only at the complete's
+  own assembly. So an unsent byte never counts, a phantom presign stores nothing, a dropped and retried PUT counts
+  once, and an abandoned upload never reaches `events/`: the backup's subscription and reconcile and the orphan sweep
+  read `events/` alone, and one R2 lifecycle rule deletes `staging/` a day on. Staging is the app's alone, so a
+  grief needs real bytes: declaring a size spends nothing.
+- **The presign's meter refuses early, and counts no month** (`meter_upload`, 20261003210500, through
+  `upload/server-pipeline-meter.ts`): after every gate of its route and before any URL exists, it refuses past the
+  hour's breaker, past the month (the complete's own line, read early) or past the room, each in the route's own words
+  (a guest's name the album, never the plan: `meterRefusal`), and tallies the hour for an upload it admits. No profiles
+  lock: its reads are advisory and the tally is one atomic upsert. It fails OPEN, as the limiters do, since the
+  complete's count and caps stand behind it.
+- **Two breakers far past any party, unpublished, refused in words,** so "no guest limit" and "unlimited events" stay
+  true. An account's uploads a clock hour, 20,000 (`c_uploads_an_hour`), every guest's and her own into all her events,
+  tallied on the month's row (`hour_started_at`, `hour_uploads`) by `meter_upload` and refused at presign (429 with
+  `Retry-After` to the hour's end). An account's events created in any 24 hours, 100 (`c_events_a_day`), a deleted one
+  included, in `enforce_event_limit` on a creation alone (its undelete trigger is a restore) and after the plan's own
+  limit; the create action prints its sentence, never the plan limit's, since a Pro host has no event limit to upgrade
+  past (`mutations/events.ts`). Each constant's WHY sits beside it in 20261003210500.
 - **Three counters, deliberately different; never reconcile them.** The cap reads active bytes, so a delete frees
   room at once; the monthly ledger never decrements (it is also the delete-and-re-upload churn defense);
   `storage_used_bytes` is the PHYSICAL meter only (up on create, down only in `purge_media_rows`) and gates nothing.

@@ -6,19 +6,30 @@
  *
  * The spine (presign): parse -> zod -> classify/derive ext server-side ->
  * universal validateUpload -> strategy.resolveEvent (ALL per-strategy gates)
- * -> server-built key -> single-PUT or multipart presign.
+ * -> THE METER (refused in the strategy's words, or the hour tallied)
+ * -> server-built key -> a single PUT at its STAGING twin, or a multipart at its key.
  * The spine (complete): parse -> zod -> classify -> multipart sum/abort guard
- * + assemble -> R2-HEAD authoritative size (database-security.md) -> strategy.createRecord
- * -> per-strategy error-status mapping.
+ * + assemble -> R2-HEAD authoritative size (database-security.md) -> a staged
+ * single PUT copied into events/ -> strategy.createRecord (which counts the
+ * month) -> per-strategy error-status mapping.
  *
  * INVARIANTS THIS FILE OWNS (must survive any edit — docs/systems/
  * uploads-and-r2.md):
  * - The client NEVER influences the key (server-built via mediaObjectKey).
- * - file_size_bytes comes from headObjectSize, never the client; so does the phone copy's phone_bytes.
+ * - file_size_bytes comes from a HEAD, never the client; so does the phone copy's phone_bytes.
  * - The phone copy (take-home r1) is never metered, so it is capped twice (`phoneCopyFits`): its PUT is
  *   minted only within 4 MB and half the declared original, and complete records it only within both on
- *   the HEAD sizes, else drops it (deleting its object) and lands the photograph without one.
+ *   the HEAD sizes, else drops it and lands the photograph without one.
  * - An over-stuffed multipart is ABORTED, never assembled.
+ * - ★ A BYTE REACHES `events/` ONLY THROUGH A COMPLETE (upload-meter, the Advisor's Q19): every single PUT is minted
+ *   at its key's `staging/` twin (`stagingKeyFor`), which the backup and the orphan sweep never read and a lifecycle
+ *   rule empties a day on, and the complete copies it in before the row is written; a multipart becomes an object only
+ *   at this file's CompleteMultipartUpload. So the month (`create_media*`, on the HEAD) counts what landed, once: an
+ *   unsent byte never counts, an abandoned one never persists nor is backed up, and a retried PUT counts once.
+ * - The presign's meter (`meterUpload`) refuses what the hour, the month or the room cannot take, before a byte moves,
+ *   and counts no month itself; it fails OPEN, as the limiters do, since the complete is the count.
+ * - A preview is never heavier than its original: past it (or past 2 MB) its PUT is refused, in words, and the
+ *   original still presigns (its tile serves the original, which is the smaller anyway).
  * - Response JSON shapes/key order are the uploadFile() client contract.
  *   Do not reorder fields.
  * - The auth boundary stays in the ROUTES: the host routes gate on getUser()
@@ -53,11 +64,13 @@ import {
   parseEventIdFromKey,
   parseMediaIdFromKey,
   phoneKeyFor,
+  stagingKeyFor,
 } from "@/lib/r2/keys";
 import { checkCompleteKeyConsistency } from "@/lib/upload/complete-key-check";
 import {
   abortMultipartUpload,
   completeMultipartUpload,
+  copyObject,
   createMultipartUpload,
   headObject,
   headObjectSize,
@@ -66,6 +79,11 @@ import {
   sumMultipartParts,
 } from "@/lib/r2/presign";
 import { planParts, uploadStrategyFor } from "@/lib/upload/part-plan";
+import {
+  meterUpload,
+  type MeterRefusal,
+} from "@/lib/upload/server-pipeline-meter";
+import { formatBytes } from "@/lib/utils";
 
 /** A refusal the strategy fully specifies (status + the exact code/message copy). */
 export type PipelineRefusal = {
@@ -74,11 +92,48 @@ export type PipelineRefusal = {
   message: string;
 };
 
-function refuse(r: PipelineRefusal) {
+/** `retryAfterSec` rides as `Retry-After` (the hourly breaker's refusal says when the hour ends). */
+function refuse(r: PipelineRefusal, retryAfterSec?: number) {
   return NextResponse.json(
     { ok: false, code: r.code, message: r.message },
-    { status: r.status },
+    {
+      status: r.status,
+      ...(retryAfterSec
+        ? { headers: { "Retry-After": String(retryAfterSec) } }
+        : {}),
+    },
   );
+}
+
+/**
+ * THE STAGING TWIN OF A KEY THIS ENGINE MINTED. Our own keys are always media-shaped, so a null here is a broken
+ * invariant, never an input to handle: it throws, and the request fails rather than PUT anywhere unstaged.
+ */
+function staged(key: string): string {
+  const twin = stagingKeyFor(key);
+  if (!twin) throw new Error(`stagingKeyFor: not a media key: ${key}`);
+  return twin;
+}
+
+/** The two sentences a refused preview carries in the presign's answer (`preview_refused`). */
+export const PREVIEW_HEAVIER_THAN_ORIGINAL =
+  "A preview can't be larger than the file it shows, so this upload's tile shows the file itself.";
+export const PREVIEW_PAST_ITS_CAP = `A preview can be at most ${formatBytes(MAX_PREVIEW_BYTES)}, so this upload's tile shows the file itself.`;
+
+/**
+ * ★ A PREVIEW IS NEVER HEAVIER THAN ITS ORIGINAL (upload-meter). The preview is never metered, so a PUT at its key is
+ * bounded twice on the declared sizes: 2 MB, and its original's bytes (which the meter counts). Past either, the
+ * preview alone is refused, in the answer's words, and the original presigns as ever: the browser's 640 px WebP can
+ * outweigh a small, heavily compressed photograph, and a guest's upload must never fail over its tile, which then
+ * serves the original (the smaller of the two anyway). Null when the preview may go.
+ */
+export function previewRefusal(
+  previewBytes: number,
+  originalBytes: number,
+): string | null {
+  if (previewBytes > MAX_PREVIEW_BYTES) return PREVIEW_PAST_ITS_CAP;
+  if (previewBytes > originalBytes) return PREVIEW_HEAVIER_THAN_ORIGINAL;
+  return null;
 }
 
 // ─── Presign ─────────────────────────────────────────────────────────────────
@@ -106,6 +161,12 @@ export type PresignStrategy<Schema extends z.ZodType<PresignCommon>> = {
   ): Promise<
     { ok: true; eventId: string } | { ok: false; refusal: PipelineRefusal }
   >;
+  /**
+   * THE METER'S REFUSALS IN THIS ROUTE'S WORDS (upload-meter): a file the month or the room cannot take, the hour's
+   * breaker, an event deleted since its gates. A guest's words name the album and never the plan (a guest must not
+   * learn the host's plan); a host's name her plan. The engine adds `Retry-After` to the breaker's.
+   */
+  meterRefusal(refusal: MeterRefusal): PipelineRefusal;
 };
 
 export async function runPresignPipeline<
@@ -152,6 +213,22 @@ export async function runPresignPipeline<
   const resolved = await strategy.resolveEvent(parsed.data, kind);
   if (!resolved.ok) return refuse(resolved.refusal);
 
+  // ★ THE METER (upload-meter, 20261003210500): after every gate and before any URL exists, a file the hour's breaker,
+  // the month or the room cannot take is refused here, before a byte moves, in the strategy's words; an admitted one
+  // tallies the hour and counts nothing of the month (the complete counts what landed, on its HEAD, once). It fails
+  // OPEN, as the limiters do (`meterUpload` reports it): the complete's count and caps stand behind it.
+  const metered = await meterUpload({
+    eventId: resolved.eventId,
+    kind,
+    bytes: size_bytes,
+  });
+  if (!metered.ok && metered.reason !== "unavailable") {
+    return refuse(
+      strategy.meterRefusal(metered),
+      metered.reason === "hourly" ? metered.retryAfterSec : undefined,
+    );
+  }
+
   // Server-built key: the resolved event + a server-generated id + classified
   // kind/ext. The client never influences the key.
   const mediaId = crypto.randomUUID();
@@ -163,9 +240,15 @@ export async function runPresignPipeline<
     ext,
   });
 
+  // ★ EVERY SINGLE PUT BELOW IS MINTED AT ITS KEY'S STAGING TWIN (`staged`), never at the key itself, which the answer
+  // still names: the client echoes the `events/` keys at complete (the key IS the issuance record), and the complete
+  // copies each staged object in. Only a multipart original targets its key directly, since nothing becomes an object
+  // there until the complete assembles it.
+  //
   // The OPTIONAL preview PUT (a small client-generated WebP, served on tiles). Server-built key, same
-  // event/media/kind. Bind its content-length (skip if the declared size exceeds the cap — the original
-  // still uploads; a missing preview falls back to the original tile). webp is always single-PUT (tiny).
+  // event/media/kind. Bind its content-length, within 2 MB and its original's bytes (`previewRefusal`): past either,
+  // the preview alone is refused and the answer says why in `preview_refused`, in the preview's own slot, while the
+  // original still uploads and its tile serves the original. webp is always single-PUT (tiny).
   const previewKey = mediaObjectKey({
     eventId: resolved.eventId,
     mediaId,
@@ -174,10 +257,12 @@ export async function runPresignPipeline<
     ext: "webp",
   });
   const previewSize = parsed.data.preview_size_bytes;
+  const previewRefused =
+    previewSize === undefined ? null : previewRefusal(previewSize, size_bytes);
   const preview =
-    previewSize && previewSize <= MAX_PREVIEW_BYTES
+    previewSize !== undefined && previewRefused === null
       ? await presignUpload({
-          key: previewKey,
+          key: staged(previewKey),
           contentType: "image/webp",
           contentLength: previewSize,
         })
@@ -190,11 +275,14 @@ export async function runPresignPipeline<
           headers: preview.headers,
         },
       }
-    : {};
+    : previewRefused
+      ? { preview_refused: previewRefused }
+      : {};
 
   // ★ THE PHONE-SIZE COPY (take-home r1): a photograph's 2048 px JPEG, best-effort like the preview. Its PUT is
   // minted only within both caps on the declared sizes (`phoneCopyFits`: 4 MB, and half the original), bound to
-  // its exact length, at the photograph's own key; past either, the original simply uploads without one. A clip
+  // its exact length, at the staging twin of the photograph's own key; past either, the original simply uploads
+  // without one. A clip
   // never asks (videos stay as taken), and an old client never sends the size, so its answer is unchanged.
   const phoneSize = parsed.data.phone_size_bytes;
   const phoneKey = phoneKeyFor({ eventId: resolved.eventId, mediaId });
@@ -203,7 +291,7 @@ export async function runPresignPipeline<
     phoneSize !== undefined &&
     phoneCopyFits(phoneSize, size_bytes)
       ? await presignUpload({
-          key: phoneKey,
+          key: staged(phoneKey),
           contentType: PHONE_FORMAT,
           contentLength: phoneSize,
         })
@@ -215,7 +303,7 @@ export async function runPresignPipeline<
 
   if (uploadStrategyFor(size_bytes) === "single") {
     const { url, headers } = await presignUpload({
-      key,
+      key: staged(key),
       contentType: content_type,
       contentLength: size_bytes,
     });
@@ -500,31 +588,38 @@ export async function runCompletePipeline<
 
   // AUTHORITATIVE size: read the real stored bytes from R2 — never trust the
   // client's size_bytes (a spoofed-low size would evade the storage cap, whose
-  // meter is SUM(media.file_size_bytes)). database-security.md.
-  let realSize: number;
+  // meter is SUM(media.file_size_bytes)). database-security.md. ★ And a staged
+  // single PUT is copied into its key here, before any row names it (`landOriginal`).
+  const landing = await landOriginal({ key, upload_id, media_id });
+  if (!landing.ok) return refuse(landing.refusal);
+  const { realSize, copied } = landing;
+
+  // The derivatives land the same way, each best-effort: a preview that did not land is recorded as none (its tile
+  // serves the original), and a phone copy past its caps is never copied in at all.
+  const landedPreview = previewKey
+    ? await landPreview({ previewKey, media_id, copied })
+    : null;
+  const phone = phoneKey
+    ? await verifyPhoneCopy({ phoneKey, realSize, media_id, copied })
+    : null;
+  const record =
+    previewKey && !landedPreview
+      ? { ...parsed.data, preview_key: undefined }
+      : parsed.data;
+
+  // ★ A REFUSED OR FAILED RECORD TAKES ITS COPIES BACK OUT: the objects this complete wrote into `events/` have no row
+  // to name them, so they are deleted at once rather than left for the orphan sweep (the backup would copy them
+  // meanwhile). The staged objects stay where they are, for the lifecycle rule.
+  let result: CreateRecordOutcome;
   try {
-    realSize = await headObjectSize({ key });
-  } catch {
-    captureWarning("upload", "head_object_failed", { key, media_id });
-    return refuse({
-      status: 400,
-      code: "bad_key",
-      message: "Couldn't verify the uploaded file. Please retry.",
-    });
+    result = await strategy.createRecord(record, kind, realSize, phone);
+  } catch (e) {
+    await unlandCopies(copied, media_id);
+    throw e;
   }
 
-  const phone = phoneKey
-    ? await verifyPhoneCopy({ phoneKey, realSize, media_id })
-    : null;
-
-  const result = await strategy.createRecord(
-    parsed.data,
-    kind,
-    realSize,
-    phone,
-  );
-
   if (!result.ok) {
+    await unlandCopies(copied, media_id);
     // Routine user rejections (cap/limits/closed/session/ownership) are expected;
     // only a key mismatch or an unmapped DB error signals a bug.
     if (result.code === "bad_key" || result.code === "unknown") {
@@ -569,20 +664,123 @@ export async function runCompletePipeline<
   return response;
 }
 
+/** The complete's two refusals of an original it cannot land (a missing object, a copy R2 would not make). */
+const NOT_VERIFIED: PipelineRefusal = {
+  status: 400,
+  code: "bad_key",
+  message: "Couldn't verify the uploaded file. Please retry.",
+};
+const NOT_FINALIZED: PipelineRefusal = {
+  status: 502,
+  code: "complete_failed",
+  message: "Couldn't finalize the upload. Please retry.",
+};
+
+/**
+ * ★ WHERE THE ORIGINAL LANDED, AND ITS AUTHORITATIVE SIZE (upload-meter's staging). A multipart original was
+ * assembled at its key by this complete, so its key's HEAD is the size. A single PUT landed at its key's staging twin:
+ * its HEAD there is the size (the PUT bound its Content-Length, and a copy is byte-identical), and it is copied into
+ * its key now, before any row names it, which is the object-create the backup copies. A single PUT presigned before
+ * staging (a deployment's upload in flight across it) went straight to its key, and is honoured there as ever.
+ * `copied` lists the keys this complete wrote, so a refused record can take them back out.
+ */
+async function landOriginal(args: {
+  key: string;
+  upload_id: string | null;
+  media_id: string;
+}): Promise<
+  | { ok: true; realSize: number; copied: string[] }
+  | { ok: false; refusal: PipelineRefusal }
+> {
+  const { key, upload_id, media_id } = args;
+  if (!upload_id) {
+    const stagedKey = staged(key);
+    const head = await headObject({ key: stagedKey });
+    if (head && head.size > 0) {
+      try {
+        await copyObject({ sourceKey: stagedKey, destinationKey: key });
+      } catch (e) {
+        captureError("upload", e, { key, media_id, phase: "copy_staged" });
+        return { ok: false, refusal: NOT_FINALIZED };
+      }
+      return { ok: true, realSize: head.size, copied: [key] };
+    }
+  }
+  try {
+    return { ok: true, realSize: await headObjectSize({ key }), copied: [] };
+  } catch {
+    captureWarning("upload", "head_object_failed", { key, media_id });
+    return { ok: false, refusal: NOT_VERIFIED };
+  }
+}
+
+/**
+ * The preview, copied in from staging, or (presigned before staging) already at its key; null when none landed, so
+ * the row records none and its tile serves the original rather than a key with no object behind it.
+ */
+async function landPreview(args: {
+  previewKey: string;
+  media_id: string;
+  copied: string[];
+}): Promise<string | null> {
+  const { previewKey, media_id, copied } = args;
+  try {
+    await copyObject({
+      sourceKey: staged(previewKey),
+      destinationKey: previewKey,
+    });
+    copied.push(previewKey);
+    return previewKey;
+  } catch {
+    const direct = await headObject({ key: previewKey });
+    if (direct && direct.size > 0) return previewKey;
+    captureWarning("upload", "preview_missing", { key: previewKey, media_id });
+    return null;
+  }
+}
+
 /**
  * ★ THE PHONE COPY, CHECKED ON THE BYTES R2 HOLDS (take-home r1). The presign bound its PUT to the declared
  * sizes, but a multipart original can land shorter than declared, and the copy is never metered: so it is
- * measured here, beside the original's HEAD, and recorded only within both caps (`phoneCopyFits`). A copy that is
- * not there lands the photograph without one; a copy past either cap is dropped AND its object deleted, since
- * an unrecorded object under a recorded row is one no purge would ever reach. Best-effort throughout: nothing
- * about a phone copy ever refuses the photograph itself.
+ * measured here, beside the original's HEAD, and recorded only within both caps (`phoneCopyFits`). A staged copy
+ * within both is copied into its key; one past either is never copied in at all (the staging rule deletes it). A
+ * copy presigned before staging is measured at its key as before: recorded within both caps, else dropped AND its
+ * object deleted, since an unrecorded object under a recorded row is one no purge would ever reach. A copy that is
+ * not there lands the photograph without one. Best-effort throughout: nothing about a phone copy ever refuses the
+ * photograph itself.
  */
 async function verifyPhoneCopy(args: {
   phoneKey: string;
   realSize: number;
   media_id: string;
+  copied: string[];
 }): Promise<PhoneCopy | null> {
-  const { phoneKey, realSize, media_id } = args;
+  const { phoneKey, realSize, media_id, copied } = args;
+  const stagedKey = staged(phoneKey);
+  const stagedHead = await headObject({ key: stagedKey });
+  if (stagedHead && stagedHead.size > 0) {
+    if (!phoneCopyFits(stagedHead.size, realSize)) {
+      captureWarning("upload", "phone_copy_over_cap", {
+        key: phoneKey,
+        media_id,
+        phoneBytes: stagedHead.size,
+        originalBytes: realSize,
+      });
+      return null;
+    }
+    try {
+      await copyObject({ sourceKey: stagedKey, destinationKey: phoneKey });
+    } catch (e) {
+      captureWarning("upload", "phone_copy_copy_failed", {
+        key: phoneKey,
+        media_id,
+        error: e instanceof Error ? e.message : String(e),
+      });
+      return null;
+    }
+    copied.push(phoneKey);
+    return { key: phoneKey, bytes: stagedHead.size };
+  }
   const head = await headObject({ key: phoneKey });
   if (!head || head.size <= 0) {
     captureWarning("upload", "phone_copy_missing", { key: phoneKey, media_id });
@@ -612,4 +810,24 @@ async function verifyPhoneCopy(args: {
     });
   }
   return null;
+}
+
+/**
+ * Take back out of `events/` what this complete copied in, when no row will name it (a refused or failed record).
+ * Best-effort and said when it fails: what stays is a recognized key with no row, which the orphan sweep reclaims.
+ */
+async function unlandCopies(keys: string[], media_id: string): Promise<void> {
+  if (keys.length === 0) return;
+  try {
+    const { deleteR2Objects } = await import("@/lib/r2/delete");
+    const out = await deleteR2Objects(keys);
+    if (out.errored.length > 0)
+      throw new Error(out.errored[0]?.code ?? "errored");
+  } catch (e) {
+    captureWarning("upload", "unrecorded_copies_left", {
+      keys,
+      media_id,
+      error: e instanceof Error ? e.message : String(e),
+    });
+  }
 }

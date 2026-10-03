@@ -67,6 +67,27 @@ export function isValidMediaKey(key: string, eventId: string): boolean {
 }
 
 /**
+ * ★ THE STAGING PREFIX (upload-meter, the Advisor's Q19): every single PUT (an original under the multipart threshold,
+ * every preview, every phone copy) is minted at its media key's twin here, and the complete copies it into `events/`
+ * before its row is written, so a byte counts (at complete, on its HEAD) only once it has landed and been recorded.
+ * Outside `events/` on purpose, like the preservation prefix below: the backup's event subscription and reconcile and
+ * the orphan sweep read `events/` alone, so a staged object is never backed up nor swept, and one R2 lifecycle rule
+ * deletes `staging/` a day on (an upload never completed never persists; a presign never filled stores nothing). A
+ * multipart original needs none: its parts become an object only at the complete's own CompleteMultipartUpload.
+ */
+export const STAGING_PREFIX = "staging/";
+
+/**
+ * The staging twin of a media key: `events/<eventId>/<kind>/<mediaId>/<variant>.<ext>` becomes
+ * `staging/<eventId>/<kind>/<mediaId>/<variant>.<ext>`. Null for anything that is not exactly our layout, so nothing
+ * else can be staged or copied in from staging.
+ */
+export function stagingKeyFor(mediaKey: string): string | null {
+  if (parseMediaIdFromKey(mediaKey) === null) return null;
+  return `${STAGING_PREFIX}${mediaKey.slice("events/".length)}`;
+}
+
+/**
  * The SEGREGATED evidence-preservation prefix (trust-safety-forensics.md). The /admin preserve action copies a
  * reported upload's ORIGINAL object + a JSON forensics snapshot here, server-side; these keys are
  * NEVER presigned to a host/guest surface (admin export only).
