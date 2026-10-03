@@ -48,7 +48,7 @@ plan's whole text (lane splits, the Advisor's Q11 corrections, Will's answers) i
 | `rooms-wiring` | event-header's rooms=over: Review, Guests and Settings in one panel over the hub, the reel full screen, See it as a guest (a true guest render) | running | Opus, 3134 | `ac7150b41d7dc7ae0` |
 | `wizard-wiring` | Create as the room with flow=carry, look=places, beat=develop; the add step waits for create-wizard r3 | running | Opus, 3135 | `afd8421950f236037` |
 | `identity-r3` | board identity r3 [desk 10]: actions and fields as one system (keys plus wells, all rings, a third idea) in real screens; the room's inverse; the light edge | running | Opus, 3136 | `a4b60128e7777e310` |
-| `cost-model` | research: the per-event and per-month cost model across every vendor, the levers ranked, into PRICING.md | running | Opus, none | `adc26155bbe485569` |
+| `cost-model` | research: the per-event and per-month cost model across every vendor, the levers ranked, into PRICING.md | MERGED at `cdefd776` (light gate: test 9,577; the lane's: test, typecheck, lint; every price read from its vendor's raw page 2026-10-03, one invented WebFetch summary caught); his decisions in the morning message | Opus, none | `adc26155bbe485569` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Q8
 (round 12's plan) answered with 21 corrections, all folded into the briefs; the next consult is the foundation's
