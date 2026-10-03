@@ -12,433 +12,264 @@ import {
   type PreviewsFor,
 } from "@/components/lab";
 
-import { ArrivalFrame, type ArrivalId } from "./arrival";
-import { WaitPage } from "./guest";
-import { HostFrame, type HostCoverId } from "./host";
-import { screenOf } from "./knobs";
-import { type ModelId, modelOf } from "./model";
-import { all, type Reader, Scene, Story, textOf } from "./scene";
-import { ModelSettings } from "./settings";
+import { DEVELOP_MS, type DevelopId, DevelopFrame, TURN_MS } from "./develop";
+import { FIRST_OPEN_MS, SECOND_OPEN_MS } from "./fixtures";
+import { screenOf, type ScreenId } from "./knobs";
+import { held, LIVE, Play } from "./motion";
+import { OPEN_MS, OPEN_TURN_MS, OpenFrame } from "./place";
+import { PREMIERE_MS, PREMIERE_TURN_MS, PremiereFrame } from "./premiere";
+import { opacityOf, type Reader, Scene, Story, textOf } from "./scene";
 import { THE_WAIT } from "./spec";
-import { type WaitId } from "./wait";
-import { BothFrame, type BothId, NameFrame, type NameId } from "./words";
 
 /**
- * THE PREVIEWS, AND NOTHING ELSE: every option drawn whole on the surface it
- * ships on, production's album (and Maya's Settings and hub), a phone first
- * and a laptop on the Screen knob. Every frame is titled with its option's own
- * name, read off the spec, and every caption is read off the frame.
- *
- * ★ A STAGED DECISION IS DRAWN IN THE WORLD IT WAITS ON (`exploration.ts`'s
- * `Preview`): her wait in the model he picked, the arrival in that model and
- * that wait, and so on. Until he answers, each wears its parent's
- * recommendation, the kit's own rule.
+ * THE PREVIEWS, AND NOTHING ELSE: each option drawn whole on production's page
+ * as a guest meets it the morning after, four frames left to right as her week
+ * runs: her first open after the develop, playing; the same held at the moment
+ * the sheet turns into the album; the reduced-motion pass, its own drawing; and
+ * Monday, her second open, the album's regular open. A phone first, a laptop on
+ * the Screen knob. Every frame is titled with its option's own name, read off
+ * the spec, and every caption is read off the frame.
  */
 
-/* ── reading the board's state ────────────────────────────────────────── */
-
-const recommended = (ask: string) =>
-  THE_WAIT.asks.find((a) => a.id === ask)?.recommended ?? "";
-
-const pick = <T extends string>(all: readonly T[], v: unknown, d: T): T =>
-  all.includes(v as T) ? (v as T) : d;
-
-const modelIn = (s: BoardState): ModelId =>
-  modelOf(s.model, recommended("model") as ModelId);
-
-const waitIn = (s: BoardState): WaitId =>
-  pick<WaitId>(
-    ["sheet", "stack", "reel", "cover"],
-    s.wait,
-    recommended("wait") as WaitId,
-  );
-
-const arrivalIn = (s: BoardState): ArrivalId =>
-  pick<ArrivalId>(
-    ["place", "develops", "premiere"],
-    s.arrival,
-    recommended("arrival") as ArrivalId,
-  );
+type ArrivalId = DevelopId | "premiere" | "place";
 
 /** An option's own name, off the spec, so a frame's title and its tab agree. */
-const LABEL = (ask: string, option: string) => {
+const LABEL = (option: string) => {
   const found = THE_WAIT.asks
-    .find((a) => a.id === ask)
+    .find((a) => a.id === "arrival")
     ?.options.find((o) => optionId(o) === option);
   return found ? optionLabel(found) : option;
 };
 
 /* ── what the frames read ─────────────────────────────────────────────── */
 
-/** Settings, read off the page: its title, the questions it asks, and the answers it offers. */
-const settingsSays: Reader = (root) => {
-  const title = textOf(root.querySelector("[data-tw-settings-title]"));
-  if (!title) return null;
-  const groups = [...root.querySelectorAll<HTMLElement>("[role=radiogroup]")];
-  const asks = groups.map((g) => {
-    const named = g.getAttribute("aria-labelledby");
-    const label = named
-      ? textOf(root.ownerDocument.getElementById(named))
-      : (g.getAttribute("aria-label") ?? "one question");
-    const choices = g.querySelectorAll(
-      "[data-choice], .tw-track-stop, [data-state]",
-    ).length;
-    return `${label} (${choices} answers)`;
-  });
-  const switches = root.querySelectorAll("[role=switch]").length;
-  return `"${title}": ${asks.length ? asks.join(", ") : "no choice group"}; ${switches} switches`;
-};
+const s1 = (ms: number) => `${(ms / 1000).toFixed(1)} s`;
 
-/** The wait, read off the page: what it is, its count and words, and how many of hers are lit. */
-const waitSays: Reader = (root, win) => {
-  const wait = root.querySelector<HTMLElement>("[data-tw-wait]");
-  if (!wait) return null;
+/** How much of an element is drawn this instant: its opacity times every one of its boxes' above it. */
+function seenOpacity(el: Element, win: Window): number {
+  let k = 1;
+  for (let node: Element | null = el; node; node = node.parentElement)
+    k *= opacityOf(node, win);
+  return k;
+}
+
+/** How many of these are drawn more than half there this instant. */
+const shown = (els: Iterable<Element>, win: Window) =>
+  [...els].filter((el) => opacityOf(el, win) > 0.5).length;
+
+/**
+ * THE FRAME, READ: the take and how long it runs, what the sheet draws (its
+ * squares, the folded, hers), what grows or drops into the album, the Skip,
+ * what the album and the cover say; and a held frame's state at its moment
+ * (how many squares have come up, how much of the well remains, which of the
+ * reel's frames shows, how many tiles have risen).
+ */
+const frameSays: Reader = (root, win) => {
+  const play = root.querySelector<HTMLElement>(".tw-play");
+  const page = root.querySelector("[data-tw-page]");
+  if (!play || !page) return null;
   const parts: string[] = [];
-  const brow = textOf(root.querySelector("[data-tw-eyebrow]"));
-  if (brow) parts.push(`the cover says "${brow}"`);
-  const count =
-    root.querySelector<HTMLElement>("[data-tw-count]")?.dataset.twCount;
-  const title = textOf(root.querySelector("[data-tw-title]"));
-  const clock = textOf(root.querySelector("[data-tw-clock]"));
+  const reduced = play.dataset.twMotion === "reduced";
+  const heldAt = play.dataset.twHeld;
   parts.push(
-    count
-      ? `${count} waiting, "${title}", "${clock}"`
-      : `no count; "${title}", "${clock}"`,
+    `${play.dataset.twTake}${reduced ? ", opacity only" : ""}${heldAt === undefined ? `, plays ${s1(Number(play.dataset.twMs))}` : `, held at ${s1(Number(heldAt))}`}`,
   );
-  const lit =
-    root.querySelectorAll("[data-mine]").length ||
-    root.querySelectorAll("[data-tw-hers]").length;
-  parts.push(`${lit} of hers lit`);
-  if (root.querySelector("[data-landing], [data-mine][data-new]"))
-    parts.push("her newest landing");
-  const dock = root.querySelector<HTMLElement>("[data-guest-dock]");
-  if (dock && !dock.hasAttribute("data-hidden")) parts.push("the shutter up");
-  if (root.querySelector("[data-tw-remove]")) parts.push("Remove open");
-  const first = root.querySelector("[data-tw-wait]");
-  if (first) {
-    const r = first.getBoundingClientRect();
-    parts.push(`the wait starts ${Math.round(r.top)} px down`);
+
+  const squares = root.querySelectorAll("[data-tw-sq], [data-tw-slot]");
+  const grows = root.querySelectorAll("[data-tw-grow]");
+  if (squares.length) {
+    const hers =
+      root.querySelectorAll("[data-tw-sq][data-hers]").length +
+      root.querySelectorAll("[data-tw-grow][data-hers]").length;
+    const folded = Number(
+      root.querySelector<HTMLElement>("[data-tw-folded]")?.dataset.twFolded ??
+        0,
+    );
+    const where = root.querySelector("[data-tw-darkroom]")
+      ? "full screen"
+      : "over the album";
+    parts.push(
+      `the sheet ${where}: ${squares.length} squares${folded ? ` and +${folded} folded` : ""}, ${hers} of hers lit`,
+    );
+    if (heldAt !== undefined) {
+      const pictures = [
+        ...root.querySelectorAll("[data-tw-sq]:not([data-hers]) img"),
+        ...root.querySelectorAll("[data-tw-grow]:not([data-hers]) img"),
+      ];
+      const lit = root.querySelectorAll(".tw-lit");
+      if (pictures.length)
+        parts.push(`${shown(pictures, win)} of ${pictures.length} come up`);
+      else if (lit.length)
+        parts.push(`${shown(lit, win)} of ${lit.length} turned to light`);
+      const ground = root.querySelector(".wait-well");
+      if (ground)
+        parts.push(
+          `the well ${Math.round(seenOpacity(ground, win) * 100)}% there`,
+        );
+    }
   }
-  void win;
+  if (grows.length)
+    parts.push(`${grows.length} grow into the album's first rows`);
+
+  const premiere = root.querySelector<HTMLElement>("[data-tw-premiere]");
+  if (premiere) {
+    const frames = root.querySelectorAll("[data-tw-frame]");
+    if (premiere.dataset.twPremiere === "paused")
+      parts.push("the reel waits on its first photograph, paused, its dock up");
+    else if (heldAt !== undefined) {
+      const on = [...frames].findIndex((f) => opacityOf(f, win) > 0.5);
+      parts.push(`the reel on frame ${on + 1} of ${frames.length}`);
+    } else
+      parts.push(
+        `the reel plays ${frames.length} photographs, the newest drops into its tile`,
+      );
+  }
+  const skip = textOf(root.querySelector("[data-tw-skip]"));
+  if (skip) parts.push(`Skip: "${skip}"`);
+
+  const tiles = [
+    ...root.querySelectorAll<HTMLElement>("[data-tw-rows] > [data-tw-tile]"),
+  ];
+  if (tiles.length) {
+    const perRow = tiles.filter((t) => t.style.top === "0px").length;
+    const count = textOf(root.querySelector("[data-tw-album-count]"));
+    if (heldAt !== undefined && !squares.length && !premiere)
+      parts.push(`${shown(tiles, win)} of ${tiles.length} tiles risen`);
+    parts.push(`the album "${count}", ${perRow} a row`);
+  }
+  const eyebrow = textOf(root.querySelector("[data-cover-eyebrow]"));
+  if (eyebrow) parts.push(`the cover "${eyebrow}"`);
   return parts.join("; ");
 };
 
-/* ── 1. the model ─────────────────────────────────────────────────────── */
+/* ── the arrival ──────────────────────────────────────────────────────── */
 
-function modelPreview(s: BoardState, model: ModelId): ReactNode {
-  const screen = screenOf(s.screen);
-  const wide = screen === "1440";
-  const name = LABEL("model", model);
-  const wait = waitIn(s);
-  return (
-    <Story screen={screen}>
-      <Scene
-        id={`tw-model-${model}-settings`}
-        screen={screen}
-        title={`${name}: Maya's Settings`}
-        measure={settingsSays}
-      >
-        <ModelSettings model={model} wide={wide} />
-      </Scene>
-      <Scene
-        id={`tw-model-${model}-held-${wait}`}
-        screen={screen}
-        title={`${name}: held, 10:40 pm`}
-        measure={waitSays}
-      >
-        <WaitPage
-          model={model}
-          wait={wait}
-          album="held"
-          wide={wide}
-          moment="landing"
-        />
-      </Scene>
-      <Scene
-        id={`tw-model-${model}-dev-${wait}`}
-        screen={screen}
-        title={`${name}: developing, 10:40 pm`}
-        measure={waitSays}
-      >
-        <WaitPage
-          model={model}
-          wait={wait}
-          album="developing"
-          wide={wide}
-          moment="landing"
-        />
-      </Scene>
-      <Scene
-        id={`tw-model-${model}-trickle-${wait}`}
-        screen={screen}
-        title={`${name}: 11:20 pm, 24 let in`}
-        measure={arrivalSays}
-      >
-        <ArrivalFrame
-          model={model}
-          wait={wait}
-          arrival={arrivalIn(s)}
-          beat="trickle"
-          wide={wide}
-        />
-      </Scene>
-    </Story>
-  );
-}
-
-/* ── 2. her wait ──────────────────────────────────────────────────────── */
-
-function waitPreview(s: BoardState, wait: WaitId): ReactNode {
-  const screen = screenOf(s.screen);
-  const wide = screen === "1440";
-  const name = LABEL("wait", wait);
-  const model = modelIn(s);
-  return (
-    <Story screen={screen}>
-      <Scene
-        id={`tw-wait-${wait}-held-${model}`}
-        screen={screen}
-        title={`${name}: held, her photo lands`}
-        measure={waitSays}
-      >
-        <WaitPage
-          model={model}
-          wait={wait}
-          album="held"
-          wide={wide}
-          moment="landing"
-        />
-      </Scene>
-      <Scene
-        id={`tw-wait-${wait}-dev-${model}`}
-        screen={screen}
-        title={`${name}: developing, scrolled`}
-        measure={waitSays}
-      >
-        <WaitPage
-          model={model}
-          wait={wait}
-          album="developing"
-          wide={wide}
-          moment="scrolled"
-        />
-      </Scene>
-      <Scene
-        id={`tw-wait-${wait}-loupe-${model}`}
-        screen={screen}
-        title={`${name}: taking one back`}
-        measure={waitSays}
-      >
-        <WaitPage
-          model={model}
-          wait={wait}
-          album="developing"
-          wide={wide}
-          moment="loupe"
-        />
-      </Scene>
-    </Story>
-  );
-}
-
-/* ── 3. the arrival ───────────────────────────────────────────────────── */
-
-/** The arrival, read off the page: what arrived, what still waits, and what plays. */
-const arrivalSays: Reader = (root) => {
-  const beat = root.querySelector<HTMLElement>("[data-tw-arrival]");
-  if (!beat) return null;
-  const parts = [`${beat.dataset.twArrival}`];
-  const news = textOf(root.querySelector("[data-tw-news]"));
-  if (news) parts.push(`"${news}"`);
-  const arrived = root.querySelectorAll(
-    "[data-arrived], [data-developed]",
-  ).length;
-  if (arrived) parts.push(`${arrived} lit as arrivals`);
-  const left =
-    root.querySelector<HTMLElement>("[data-tw-count]")?.dataset.twCount;
-  if (left) parts.push(`${left} still waiting`);
-  if (root.querySelector("[data-tw-premiere]")) parts.push("the reel playing");
-  return parts.join("; ");
+/** Each option's drawing of her first open, and how long it runs and where it turns. */
+const TAKES: Record<
+  ArrivalId,
+  {
+    first: (screen: ScreenId) => ReactNode;
+    ms: { full: number; reduced: number };
+    turn: number;
+    /** How long a live frame stands at its first frame: the sheet is worth a look, an empty page is not. */
+    lead: number;
+    /** What the held frame shows, in a few words. */
+    turnWords: string;
+  }
+> = {
+  "in-place": {
+    first: (screen) => <DevelopFrame take="in-place" screen={screen} />,
+    ms: DEVELOP_MS["in-place"],
+    turn: TURN_MS["in-place"],
+    lead: 700,
+    turnWords: "the squares growing into the rows",
+  },
+  darkroom: {
+    first: (screen) => <DevelopFrame take="darkroom" screen={screen} />,
+    ms: DEVELOP_MS.darkroom,
+    turn: TURN_MS.darkroom,
+    lead: 700,
+    turnWords: "the roll developing, full screen",
+  },
+  light: {
+    first: (screen) => <DevelopFrame take="light" screen={screen} />,
+    ms: DEVELOP_MS.light,
+    turn: TURN_MS.light,
+    lead: 700,
+    turnWords: "the album rising out of the light",
+  },
+  premiere: {
+    first: (screen) => <PremiereFrame screen={screen} />,
+    ms: PREMIERE_MS,
+    turn: PREMIERE_TURN_MS,
+    lead: 0,
+    turnWords: "the reel playing, The album in reach",
+  },
+  place: {
+    first: (screen) => <OpenFrame screen={screen} nowMs={FIRST_OPEN_MS} />,
+    ms: OPEN_MS,
+    turn: OPEN_TURN_MS,
+    lead: 0,
+    turnWords: "the album rising into its rows",
+  },
 };
 
-function arrivalPreview(s: BoardState, arrival: ArrivalId): ReactNode {
-  const screen = screenOf(s.screen);
-  const wide = screen === "1440";
-  const name = LABEL("arrival", arrival);
-  const model = modelIn(s);
-  const wait = waitIn(s);
-  const at = `${model}-${wait}`;
-  return (
-    <Story screen={screen}>
-      <Scene
-        id={`tw-arrival-${arrival}-trickle-${at}`}
-        screen={screen}
-        title={`${name}: 11:20 pm, 24 let in`}
-        measure={arrivalSays}
-      >
-        <ArrivalFrame
-          model={model}
-          wait={wait}
-          arrival={arrival}
-          beat="trickle"
-          wide={wide}
-        />
-      </Scene>
-      <Scene
-        id={`tw-arrival-${arrival}-develop-${at}`}
-        screen={screen}
-        title={`${name}: 9 am, the roll develops`}
-        measure={arrivalSays}
-      >
-        <ArrivalFrame
-          model={model}
-          wait={wait}
-          arrival={arrival}
-          beat="develop"
-          wide={wide}
-        />
-      </Scene>
-    </Story>
-  );
-}
-
-/* ── 4. the host's cover ──────────────────────────────────────────────── */
-
-const hostSays: Reader = (root) => {
-  const area = root.querySelector<HTMLElement>("[data-tw-host]");
-  if (!area) return null;
-  const words = textOf(area.querySelector("[data-tw-host-say]"));
-  const acts = [...area.querySelectorAll("[data-tw-act]")].map(textOf);
-  return `${area.dataset.twHost}: "${words}"${acts.length ? `; ${acts.join(", ")}` : ""}`;
+/** What each take is called in its frame's caption. */
+const TAKE_WORDS: Record<ArrivalId, string> = {
+  "in-place": "It develops where it stood",
+  darkroom: "The darkroom first",
+  light: "Out of the light",
+  premiere: "The premiere first",
+  place: "The regular open",
 };
 
-function coverPreview(s: BoardState, cover: HostCoverId): ReactNode {
+function arrivalPreview(s: BoardState, option: ArrivalId): ReactNode {
   const screen = screenOf(s.screen);
-  const wide = screen === "1440";
-  const name = LABEL("cover", cover);
-  const model = modelIn(s);
-  const wait = waitIn(s);
-  const at = `${model}-${wait}`;
+  const name = LABEL(option);
+  const take = TAKES[option];
+  const id = `tw-arrival-${option}`;
   return (
     <Story screen={screen}>
       <Scene
-        id={`tw-cover-${cover}-covered-${at}`}
+        id={`${id}-first`}
         screen={screen}
-        title={`${name}: Maya's hub, 10:40 pm`}
-        measure={hostSays}
+        title={`${name}: Sunday 9:40 am, her first open`}
+        measure={frameSays}
       >
-        <HostFrame
-          cover={cover}
-          model={model}
-          wait={wait}
-          beat="covered"
-          wide={wide}
-        />
-      </Scene>
-      <Scene
-        id={`tw-cover-${cover}-lifted-${at}`}
-        screen={screen}
-        title={`${name}: lifted for a look`}
-        measure={hostSays}
-      >
-        <HostFrame
-          cover={cover}
-          model={model}
-          wait={wait}
-          beat="lifted"
-          wide={wide}
-        />
-      </Scene>
-      <Scene
-        id={`tw-cover-${cover}-held-${at}`}
-        screen={screen}
-        title={`${name}: the held album's hub`}
-        measure={hostSays}
-      >
-        <HostFrame
-          cover={cover}
-          model={model}
-          wait={wait}
-          beat="held"
-          wide={wide}
-        />
-      </Scene>
-    </Story>
-  );
-}
-
-/* ── 5 and 6. the words ───────────────────────────────────────────────── */
-
-const wordsSays: Reader = (root) => {
-  const say = [...root.querySelectorAll("[data-tw-word]")].map(textOf);
-  return say.length ? `It reads: ${say.map((w) => `"${w}"`).join(", ")}` : null;
-};
-
-function namePreview(s: BoardState, id: NameId): ReactNode {
-  const screen = screenOf(s.screen);
-  const wide = screen === "1440";
-  const label = LABEL("name", id);
-  const model = modelIn(s);
-  const beats = ["create", "cover", "morning"] as const;
-  const titles = {
-    create: "Create's card",
-    cover: "the cover, 10:40 pm",
-    morning: "the morning after",
-  } as const;
-  return (
-    <Story screen={screen}>
-      {beats.map((beat) => (
-        <Scene
-          key={beat}
-          id={`tw-name-${id}-${beat}-${model}`}
-          screen={screen}
-          title={`${label}: ${titles[beat]}`}
-          measure={all(wordsSays)}
+        <Play
+          clock={LIVE}
+          length={take.ms.full}
+          lead={take.lead}
+          take={TAKE_WORDS[option]}
         >
-          <NameFrame name={id} model={model} beat={beat} wide={wide} />
-        </Scene>
-      ))}
-    </Story>
-  );
-}
-
-function bothPreview(s: BoardState, id: BothId): ReactNode {
-  const screen = screenOf(s.screen);
-  const wide = screen === "1440";
-  const label = LABEL("both", id);
-  const model = modelIn(s);
-  const wait = waitIn(s);
-  const beats = ["settings", "guest", "host"] as const;
-  const titles = {
-    settings: "Maya's Settings",
-    guest: "Priya's album, 10:40 pm",
-    host: "Maya's hub",
-  } as const;
-  return (
-    <Story screen={screen}>
-      {beats.map((beat) => (
-        <Scene
-          key={beat}
-          id={`tw-both-${id}-${beat}-${model}-${wait}`}
-          screen={screen}
-          title={`${label}: ${titles[beat]}`}
-          measure={
-            beat === "settings"
-              ? all(settingsSays, wordsSays)
-              : beat === "guest"
-                ? waitSays
-                : hostSays
-          }
+          {take.first(screen)}
+        </Play>
+      </Scene>
+      <Scene
+        id={`${id}-turn`}
+        screen={screen}
+        title={`${name}: ${take.turnWords}`}
+        measure={frameSays}
+      >
+        <Play
+          clock={held(take.turn)}
+          length={take.ms.full}
+          take={TAKE_WORDS[option]}
         >
-          <BothFrame
-            both={id}
-            model={model}
-            wait={wait}
-            beat={beat}
-            wide={wide}
-          />
-        </Scene>
-      ))}
+          {take.first(screen)}
+        </Play>
+      </Scene>
+      <Scene
+        id={`${id}-reduced`}
+        screen={screen}
+        title={`${name}: reduced motion`}
+        measure={frameSays}
+      >
+        <Play
+          clock={LIVE}
+          forceReduced
+          length={take.ms.reduced}
+          lead={take.lead}
+          take={TAKE_WORDS[option]}
+        >
+          {take.first(screen)}
+        </Play>
+      </Scene>
+      <Scene
+        id={`${id}-second`}
+        screen={screen}
+        title={`${name}: Monday, her second open`}
+        measure={frameSays}
+      >
+        <Play
+          clock={LIVE}
+          length={OPEN_MS.full}
+          lead={0}
+          take="Her second open"
+        >
+          <OpenFrame screen={screen} nowMs={SECOND_OPEN_MS} />
+        </Play>
+      </Scene>
     </Story>
   );
 }
@@ -446,31 +277,11 @@ function bothPreview(s: BoardState, id: BothId): ReactNode {
 /* ── the map ──────────────────────────────────────────────────────────── */
 
 const PREVIEWS: PreviewsFor<typeof THE_WAIT> = {
-  "model.questions": (s) => modelPreview(s, "questions"),
-  "model.styles": (s) => modelPreview(s, "styles"),
-  "model.time": (s) => modelPreview(s, "time"),
-  "model.apart": (s) => modelPreview(s, "apart"),
-
-  "wait.sheet": (s) => waitPreview(s, "sheet"),
-  "wait.stack": (s) => waitPreview(s, "stack"),
-  "wait.reel": (s) => waitPreview(s, "reel"),
-  "wait.cover": (s) => waitPreview(s, "cover"),
-
-  "arrival.place": (s) => arrivalPreview(s, "place"),
-  "arrival.develops": (s) => arrivalPreview(s, "develops"),
+  "arrival.in-place": (s) => arrivalPreview(s, "in-place"),
+  "arrival.darkroom": (s) => arrivalPreview(s, "darkroom"),
+  "arrival.light": (s) => arrivalPreview(s, "light"),
   "arrival.premiere": (s) => arrivalPreview(s, "premiere"),
-
-  "cover.card": (s) => coverPreview(s, "card"),
-  "cover.guests": (s) => coverPreview(s, "guests"),
-  "cover.frost": (s) => coverPreview(s, "frost"),
-
-  "name.disposable": (s) => namePreview(s, "disposable"),
-  "name.film": (s) => namePreview(s, "film"),
-  "name.darkroom": (s) => namePreview(s, "darkroom"),
-
-  "both.never": (s) => bothPreview(s, "never"),
-  "both.under": (s) => bothPreview(s, "under"),
-  "both.own": (s) => bothPreview(s, "own"),
+  "arrival.place": (s) => arrivalPreview(s, "place"),
 };
 
 export function TheWaitBoard() {
