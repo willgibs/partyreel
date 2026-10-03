@@ -29,10 +29,10 @@ as generic however custom the layout above them. The direction is a camera's own
 the source with r2's three picks: the voice `camera` (words in sentence case, spaced capitals only where a camera prints
 them: a state, a count, live), the layers `display` (every quick layer the camera's own near-black screen) and the
 status `lights` (a state is a light and its word); actions and fields keep their shadcn build until identity r3 picks
-theirs. It is pitched at a modern consumer app for the crowd that actually comes, about 18 at a party to about 50 at a wedding or a conference: it reads
-as bespoke and current to them and never as a developer's tool (no bench readouts for their own sake; the viewfinder's
-corner marks survive only as a focus mark, never as a style), and it is never
-flattened into a lowest-common-denominator app, since the core path (scan, add, view) is plain to anyone already.
+theirs. It is pitched at a modern consumer app for the crowd that actually comes, about 18 at a party to about 50 at a
+wedding or a conference: it reads as bespoke and current to them and never as a developer's tool (no bench readouts for
+their own sake; the viewfinder's corner marks survive only as a focus mark, never as a style), and it is never flattened
+into a lowest-common-denominator app, since the core path (scan, add, view) is plain to anyone already.
 
 - **Five grounds, five classes**: the page `:root, .surface-paper` (a silver body, the card a step whiter), the room
   `.dark` (one near-black room for the app and every cinema chapter, the card a step lighter), the slab `.surface-ink`
@@ -43,9 +43,9 @@ flattened into a lowest-common-denominator app, since the core path (scan, add, 
   a pair left out resolves to the ground beneath (`ui/display.test.ts` holds the display's).
 - **Three text steps**: `--foreground`, `--muted-foreground` and `--faint`, each one grey on every ground where a
   hand-set alpha composites against whatever is behind it. `--faint` reads about 3.6:1 on the body (3.9:1 on a card,
-  3.9:1 in the room, 3.7:1 on a dark card, 4.1:1 on the display): captions and hints only, never body copy, a control's only label, or under
-  a further alpha. A sentence in it moves up to `--muted-foreground` (`faint-copy-policy.test.tsx` reads /pricing and
-  the album page's strip for one).
+  3.9:1 in the room, 3.7:1 on a dark card, 4.1:1 on the display): captions and hints only, never body copy, a control's
+  only label, or under a further alpha. A sentence in it moves up to `--muted-foreground` (`faint-copy-policy.test.tsx`
+  reads /pricing and the album page's strip for one).
 - **Status is light** (status=lights): a badge is an LED and its word (an unlit ring where a state has no colour),
   a meter twelve frames filling in its state's light, a skeleton breathes, a face carries no line and a row of them
   overlaps by a quarter of a face, and "nothing here yet" is ONE atom, `ui/empty.tsx` (a glyph in its lens, a title, a
@@ -539,7 +539,6 @@ opaque until the Glass exploration answers its material.
   `floatingWorkSurface`, no ring, a quarter-rounder corner, over `floatingScrim`. A body panel that is neither (the
   marketing nav's, the code card) keeps `floatingPanel`, the ground's popover and its ring. Whatever a quick layer
   holds reads the screen's tokens and names no colour of its own, which `ui/display.test.ts` holds.
-
 - **The product has ONE responsive `Sheet`** (`ui/sheet.tsx`, opted into with `responsive`): a side panel at a desk, a
   bottom sheet in a hand. It emits `data-side="responsive"`, so none of the fixed-side rules can race it, and its
   posture pair lives in `floating-layer.ts`; the guest's door and its held sheets and the upload failure sheet wear it;
