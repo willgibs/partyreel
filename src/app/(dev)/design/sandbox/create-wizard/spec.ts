@@ -160,7 +160,7 @@ export const CREATE_WIZARD = defineExploration({
       lands:
         "Create's second step: the album style the event is made with, its develop time, and the words Create shares with Settings.",
       context:
-        "In the room as wired: Try it (Create from the add step, the night playing once; every press works), Disposable picked, then slid to the morning. Settings' own cards add Settings on paper, where the pick lands.",
+        "In the room as wired: Try it (Create from the add step, the night playing once; every press works), Disposable picked as guests arrive, then the morning. Settings' own cards add Settings on paper.",
       options: [
         {
           id: "pair",

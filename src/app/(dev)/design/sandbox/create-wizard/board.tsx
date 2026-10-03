@@ -27,11 +27,13 @@ import { CREATE_WIZARD } from "./spec";
  * every caption is read off the frame.
  *
  * Each option opens on Try it (Create running with the add step in its
- * place, opening on the add step as a host meets it), then the frames a
- * reviewer reads still: the disposable picked, its develop time where its
- * control will mount, and the night slid to the morning after. The option
- * that is Settings' own cards adds Settings on paper beside them, where the
- * pick lands. What a drawing is not: the guests' screens are this board's
+ * place, opening on the add step as a host meets it and resting on the
+ * party), then the frames a reviewer reads still, so the three moments of the
+ * night are each drawn once: the disposable picked as guests arrive (its
+ * camera, and its develop time where its control will mount), then slid to
+ * the morning after. The night laid out draws every moment in every frame, so
+ * it needs only the pick. The option that is Settings' own cards adds
+ * Settings on paper beside them, where the pick lands. What a drawing is not: the guests' screens are this board's
  * small redrawings in the-wait's words, the photographs are the marketing
  * stills every board reuses, and nothing is wired.
  */
@@ -65,7 +67,7 @@ function Shot({
   );
 }
 
-const PICKED: AddState = { picked: "disposable", moment: "party" };
+const PICKED: AddState = { picked: "disposable", moment: "arrive" };
 const MORNING: AddState = { picked: "disposable", moment: "morning" };
 
 function addPreview(s: BoardState, way: AddWay) {
@@ -77,7 +79,7 @@ function addPreview(s: BoardState, way: AddWay) {
       <Shot
         id={`${id}-try`}
         screen={screen}
-        title={`${name}: as the step opens`}
+        title={`${name}: Try it, as the step opens`}
         read={readAdd}
       >
         <TryIt way={way} />
@@ -85,7 +87,7 @@ function addPreview(s: BoardState, way: AddWay) {
       <Shot
         id={`${id}-disposable`}
         screen={screen}
-        title={`${name}: Disposable picked`}
+        title={`${name}: Disposable picked${way === "strip" ? "" : ", guests arriving"}`}
         read={readAdd}
       >
         <AddRoom way={way} state={PICKED} />
