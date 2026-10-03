@@ -65,7 +65,7 @@ flat; a lane in its gate, or the milestone's full gate, counts as two. Every pro
 | `desk-premise` | the pre-sitting desk pass's PREMISE re-reads (no two of the 25 asks one decision; host-dashboard and demo-framing unmoved) | DONE: identity, event-header, create-wizard and take-home HOLD; the-wait MOVED (crumbs-52's Take photos on a camera album and the Reel card's "Live at the develop", plus three older slips): `desk-tune-4`; identity's sheets style a `data-n` production's glyph count lacks: the same lane | Opus | `a20a4c46761a0fb61` |
 | `account-exit` | Will's ask (2026-10-03): leaving made clear: the dialog's key points with the purge's time in her zone, the blocked sign-in's why and when (`user_banned`), the operator's Cancel deletion, her own uploads out of others' albums (unchecked); no refund, said; the purge re-reads each stamp so a restored account is never erased | MERGED at `6f4e9995` (gate 166 green after one load timeout: lint, build, lab:smoke 160, lab:demo on five boards; test red once on layer-is-up's whole-src scan, 9.2 s under load, given its own 30 s ceiling and re-run green, 9,550; the lane's gate: test 9,542, build, lab:smoke 161); its column comment applied by protocol (20261003030842, md5 the file's 08a61570; advisors 19/4/35; no types) | Opus, 3134 | `acd7d29709bfbc8a8` |
 | `desk-tune-4` | the-wait's drawings made true to production again (the camera album's Take photos, the Reel card's words, three slips) and `data-n` on production's glyph count for identity's sheets; no ask moved | MERGED at `33ad5bbb` (gate 165 green, light: test 9,467; the lane's gate on its synced head: test 9,469, build, lab:smoke 151, lab:demo the-wait at 1440, 375 and screen=1440, identity, event-header and take-home) | Sonnet, 3132 | `aefd55ce76aafcdec` |
-| `crumbs-54` | red-team 44's MEDIUM (a delayed album's upload stands in the album while it sends, then vanishes), its LOWs (a returning guest's `?reel` meets the album first; the failure sheet's "Everything else is in the album" on a delayed album) and NITs (the camera announcing a refused shot; "photos" with a video among them); later findings relayed | running (cut at `7010ace4`) | Opus, 3131 | `a2d6ba9a3637360d1` |
+| `crumbs-54` | red-team 44's MEDIUM (a delayed album's upload in the album while it sends), its four LOWs (the stale develop line, the failure sheet's words, a returning guest's `?reel`, the door's reduced-motion fade) and two NITs (the camera's announcement, the keep's nouns) | MERGED at `abbf1dac` (gate 167 green: lint, test, build, lab:smoke 161, lab:demo on six boards; the lane's gate: test 9,514, build, lab:smoke 163; measured at 375: 0 album tiles over 471 and 714 frames on a develop and an approve album) | Opus, 3131 | `a2d6ba9a3637360d1` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Q8
 (round 12's plan) answered with 21 corrections, all folded into the briefs; the next consult is the foundation's
@@ -82,27 +82,20 @@ commits, what remains, its predecessor's transcript at
 account. Connectors follow the account: Claude in Chrome (every red-team needs it), the Supabase MCP on
 `ddafaemglzmuekbtjwzn`, the Vercel MCP on his personal team (deploys ride `$VERCEL_TOKEN`; only runtime logs need P3).
 
-Relays that live only in an agent (2026-10-03 03:25Z, to `crumbs-54`): red-team 44's LOW at about line 76 of its
-ledger: after a develop, a guest's open page keeps "Uploads appear in the album when it develops" until a reload
-(`uploadsWait` read once by the page's server, never from the poll's `waiting.developsAt`); the delayed reading made
-live (it ends when the develop the poll carries has passed), the slot line, the in-flight routing and her tracker
-following it, red first, since the MEDIUM's fix routes uploads by that reading. And (03:32Z) the door's reduced-motion
-fade, which `globals.css`'s global `!important` cuts: fixed in `door/doorway.css`'s own reduced-motion block
-(accepted outside its owns; `globals.css` left alone).
+Relays that live only in an agent: none (red-team 44's LOWs relayed to `crumbs-54` are merged with it).
 
 **Q9 is answered** (the Advisor, 21:05Z) and acted on above. The waiting experience itself goes to a design board (below).
 
 If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` holds a merge made after this note (push
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
 staged, uncommitted merge is finished by `usher/kit/merge-lane.sh`'s own steps or reset with `git merge --abort`.
-This session's scratchpad holds the specs (`specs-r12/`) and gate logs (the next gate is 167, the calls file numbers on
-from 114); nothing there is needed that these lines and the manifests do not carry. Everything a successor reads lives
+This session's scratchpad holds the specs (`specs-r12/`) and gate logs (the next gate is 168, the calls file numbers on
+from 115); nothing there is needed that these lines and the manifests do not carry. Everything a successor reads lives
 in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team briefs and ledgers).
 
 ## Next, in order
 
-1. **Running:** `crumbs-54` (red-team 44's MEDIUM and its smaller findings; relay what else the red-team ledgers).
-   Integrate it as it hands off (gate 167); it rides build 45 with `account-exit`, `lab-frame` and `desk-tune-4`.
+1. **Running:** nothing. Every lane of the round is merged (the last, `crumbs-54`, at `abbf1dac`, gate 167).
 2. **Build 45 `[preview]`** at `crumbs-54`'s record: the round's last, for his sitting (the desk pass is DONE: no two
    asks one decision, the-wait's drawings tuned, the rest HOLD). Then red-team 45 from
    `../partyreel-wt/_scratch/redteam-45/brief.md` (its stamp `BUILD45` filled in; it reuses
@@ -110,7 +103,7 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team brie
    of a deletion, regressions. A real deletion and its Cancel deletion wait for his yes and a day's margin before a
    purge (offer him the walk: he deletes hi@willgibs.com after 05:00 UTC, seeing the dialog; the admin's Cancel
    deletion restores it).
-3. **The close:** STATUS rewritten, the calls file sent (91 to 113 tonight), his morning message (his desk on build 45,
+3. **The close:** STATUS rewritten, the calls file sent (91 to 114 tonight), his morning message (his desk on build 45,
    identity first; his walks); then Moltbook one pass an hour.
 
 ## Waiting on Will

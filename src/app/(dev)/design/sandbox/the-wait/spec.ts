@@ -14,11 +14,12 @@ import { SCREEN } from "./knobs";
  * when host approves". He left the model open: "I don't want to suggest the
  * correct solution".
  *
- * ★ WHAT PRODUCTION DOES TODAY, MEASURED IN ITS CODE. Her photo, once its
- * bytes are in, leaves the album for her uploads' round (`stack-tile.tsx`'s
- * `held=uploads`; since door-reveal a sealed one waits there too, "Waiting to
- * develop", `uploadsWait`), so the album she just added to reads as the empty
- * state, everyone's invisible, until something arrives. The sync already
+ * ★ WHAT PRODUCTION DOES TODAY, MEASURED IN ITS CODE. Her photo never enters
+ * the album: from the press it waits in her uploads' round (`stack-tile.tsx`'s
+ * `held=uploads`; a sealed one "Waiting to develop"; crumbs-54 kept the one in
+ * the air out of the album's head too, by the page's live reading of
+ * `uploadsWait`), so the album she just added to reads as the empty state,
+ * everyone's invisible, until something arrives. The sync already
  * carries what a wait needs (`waiting: {count, minutes, developsAt}`, never an
  * id), and her own ride `/api/guests/mine`; nothing of either is drawn yet.
  *
@@ -215,7 +216,7 @@ export const THE_WAIT = defineExploration({
       where: ["Guest", "The album", "While photos wait"],
       when: "Priya has just added her third photo at 10:40 pm; nothing of anyone else's shows yet, held for Maya or developing until 9 am.",
       matters:
-        "Today her photo leaves the album for her uploads list and the album reads empty all night; guests keep coming back.",
+        "Today her photo goes to her uploads list, never the album, and the album reads empty all night; guests keep coming back.",
       lands:
         "What the album draws under its cover while photos wait: hers, everyone's count and minutes, the clock, and her Remove.",
       context:
