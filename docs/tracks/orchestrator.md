@@ -56,6 +56,7 @@ plan's whole text (lane splits, the Advisor's Q11 corrections, Will's answers) i
 | `host-dashboard-r3` | board host-dashboard r3 [desk 25]: events for 1 to 10 scaling to hundreds, the empty featured stage, the feature's rule as a choice | MERGED at `a8b21659` (gate 178 green: lint, test, build, lab:smoke, lab:demo host-dashboard); lab only; on his next desk | Opus, 3135 | `a96b83311939a385c` |
 | `event-dates` | an optional end date read everywhere (Settings' range, the dashboard's week, live today and stage, the formatter's ranges, the develop default after the last day; never the lifecycle); lead=made; its migration for the Orchestrator | running (cut at `9af92e54`); WIP pushes each milestone | Opus, 3132 | `a4f91d827093a1238` |
 | `the-wait-r2` | board the-wait r2 [desk 35]: the arrival, his first choice drawn properly (the develop as the album's first load, two or three takes), the premiere first and into place refined | running (cut at `9af92e54`); WIP pushes each milestone | Opus, 3133 | `a0a9f95e641174de4` |
+| `redteam-46` | build 46's red-team (`9af92e54`): the waiting room and the develop, the pair refused, taking photos home (the phone copy, the host's two sets), the rooms and See it as a guest, Create, identity across the app, the frame headers, regressions | running (from 11:35Z); brief and ledger `../partyreel-wt/_scratch/redteam-46/` (its ledger is its handoff) | Opus, Will's Chrome | `a8acc8ebda6e32988` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Q8
 (round 12's plan) answered with 21 corrections, all folded into the briefs; the next consult is the foundation's
@@ -91,9 +92,8 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team brie
 ## Next, in order
 
 0. **Now (11:20Z):** every wave-1 lane is merged and both migrations are applied (types regenerated at `e0cbda7d`;
-   take-home's typed seams one ROADMAP line), and the export Worker is deployed (version 955ce073). Build 46 `[preview]`
-   is `9af92e54`, deploying to the alias; then red-team 46 from `../partyreel-wt/_scratch/redteam-46/brief.md` (its stamp
-   `BUILD46` filled in). Running: `event-header-r3`, `host-dashboard-r3`, `event-dates` (its migration for the Advisor,
+   take-home's typed seams one ROADMAP line), and the export Worker is deployed (version 955ce073). Build 46 (`9af92e54`)
+   serves the alias; red-team 46 walks it from `../partyreel-wt/_scratch/redteam-46/brief.md`. Running: `event-header-r3`, `event-dates` (its migration for the Advisor,
    then apply by protocol) and `the-wait-r2`. The Advisor's Q13: the backup Worker's originals-only filter is never
    deployed (nothing server-side remakes a preview or a phone copy).
 1. **Running** (the In-flight table; integrate each as it hands off, gates from 173): `wait-wiring` and

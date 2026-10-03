@@ -34,13 +34,13 @@ Empty until round 13's boards land: identity r3 (actions and fields as one syste
 - **Prod:** partyreel.com is `main` at tag `milestone-34` (`2aae7331`, 2026-10-03 07:50Z: round 12 whole), both
   projects READY; the read-only walk PASS (the home, pricing, how it works, help, login, a dead link's soft 404, the
   lab hidden; no console error or exception).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 45 (`dc74034c`, 2026-10-03 04:30Z):
-  round 12 whole, red-team 44's findings fixed, the deletion made clear, and the seven boards; red-team 45 found no
-  MEDIUM (a LOW and two NITs on the ROADMAP).
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 46 (`9af92e54`, 2026-10-03
+  11:30Z): round 13's wirings (identity, the waiting experience, taking photos home with the phone copy, the rooms over
+  the hub, Create as a room, the frame headers); red-team 46 walks it.
   Vercel installs with pnpm 9.14.4, `package.json`'s `packageManager`.
-- **The shared database** runs every migration through 2026-10-03: `disposable_foundation` (20261002223236: the
-  develop and the camera's roll, applied by protocol after the Advisor's Q10), then a column comment on
-  `profiles.deletion_requested_at` (20261003030842); no build of either project reads a dropped thing. The album-log prune runs nightly with the purge,
+- **The shared database** runs every migration through 2026-10-03: `disposable_foundation` (20261002223236),
+  `deletion_requested_at`'s comment (20261003030842), `approval_never_with_a_develop` (20261003103742) and
+  `phone_copy` (20261003104506), each by protocol; no build of either project reads a dropped thing. The album-log prune runs nightly with the purge,
   its first production run green (2026-10-02 04:48Z: one row pruned over 58 albums).
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in
