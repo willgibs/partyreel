@@ -237,7 +237,11 @@ describe("a range of days", () => {
   it("weighs from its last day once it is over: a weekend just ended beats a party two days out", () => {
     const events = [
       homeEvent({ id: "sunday", date: "2026-10-04" }),
-      homeEvent({ id: "conference", date: "2026-09-28", endDate: "2026-10-01" }),
+      homeEvent({
+        id: "conference",
+        date: "2026-09-28",
+        endDate: "2026-10-01",
+      }),
     ];
     // The conference ended yesterday (a day behind weighs 1.5) where its first day was four days back (6).
     expect(momentEvent(events, FRIDAY)).toMatchObject({

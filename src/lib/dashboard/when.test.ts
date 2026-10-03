@@ -129,10 +129,17 @@ describe("the day as a heading and a face say it", () => {
  */
 describe("a range of days", () => {
   // A weekend wedding, Friday 2 October to Sunday 4 October.
-  const WEDDING = { date: "2026-10-02", endDate: "2026-10-04", lastArrival: null };
+  const WEDDING = {
+    date: "2026-10-02",
+    endDate: "2026-10-04",
+    lastArrival: null,
+  };
 
   it("is one span by the host's dates, and one day by the photographs where she dated none", () => {
-    expect(spanOf(WEDDING)).toEqual({ first: "2026-10-02", last: "2026-10-04" });
+    expect(spanOf(WEDDING)).toEqual({
+      first: "2026-10-02",
+      last: "2026-10-04",
+    });
     expect(spanOf({ date: "2026-10-02", lastArrival: null })).toEqual({
       first: "2026-10-02",
       last: "2026-10-02",
@@ -163,24 +170,44 @@ describe("a range of days", () => {
     expect(daysToEvent(WEDDING, "2026-10-03")).toBe(0);
     expect(daysToEvent(WEDDING, "2026-10-04")).toBe(0);
     expect(daysToEvent(WEDDING, "2026-10-07")).toBe(-3);
-    expect(daysToEvent({ date: null, lastArrival: null }, "2026-10-07")).toBeNull();
+    expect(
+      daysToEvent({ date: null, lastArrival: null }, "2026-10-07"),
+    ).toBeNull();
   });
 
   it("says where it stands on its days: Day 2 of 3", () => {
-    expect(whenOf("2026-10-02", "2026-10-02", false, "2026-10-04")).toBe("Day 1 of 3");
-    expect(whenOf("2026-10-02", "2026-10-03", true, "2026-10-04")).toBe("Day 2 of 3");
-    expect(whenOf("2026-10-02", "2026-10-04", false, "2026-10-04")).toBe("Day 3 of 3");
+    expect(whenOf("2026-10-02", "2026-10-02", false, "2026-10-04")).toBe(
+      "Day 1 of 3",
+    );
+    expect(whenOf("2026-10-02", "2026-10-03", true, "2026-10-04")).toBe(
+      "Day 2 of 3",
+    );
+    expect(whenOf("2026-10-02", "2026-10-04", false, "2026-10-04")).toBe(
+      "Day 3 of 3",
+    );
   });
 
   it("says its weekdays inside the week ahead, its dates further off, and its month once a past year has turned", () => {
     // Seen on the Tuesday before.
-    expect(whenOf("2026-10-02", "2026-09-29", false, "2026-10-04")).toBe("Fri to Sun");
+    expect(whenOf("2026-10-02", "2026-09-29", false, "2026-10-04")).toBe(
+      "Fri to Sun",
+    );
     // Starting inside the week but running past it: the dates, since a weekday a week on would read as this one.
-    expect(whenOf("2026-10-02", "2026-09-29", false, "2026-10-09")).toBe("Oct 2 to 9");
-    expect(whenOf("2026-10-30", FRIDAY, false, "2026-11-02")).toBe("Oct 30 to Nov 2");
-    expect(whenOf("2026-09-25", FRIDAY, false, "2026-09-27")).toBe("Sep 25 to 27");
-    expect(whenOf("2027-01-09", FRIDAY, false, "2027-01-11")).toBe("Jan 9 to 11, 2027");
-    expect(whenOf("2026-12-30", "2026-08-01", false, "2027-01-02")).toBe("Dec 30 to Jan 2");
+    expect(whenOf("2026-10-02", "2026-09-29", false, "2026-10-09")).toBe(
+      "Oct 2 to 9",
+    );
+    expect(whenOf("2026-10-30", FRIDAY, false, "2026-11-02")).toBe(
+      "Oct 30 to Nov 2",
+    );
+    expect(whenOf("2026-09-25", FRIDAY, false, "2026-09-27")).toBe(
+      "Sep 25 to 27",
+    );
+    expect(whenOf("2027-01-09", FRIDAY, false, "2027-01-11")).toBe(
+      "Jan 9 to 11, 2027",
+    );
+    expect(whenOf("2026-12-30", "2026-08-01", false, "2027-01-02")).toBe(
+      "Dec 30 to Jan 2",
+    );
     expect(whenOf("2025-06-06", FRIDAY, false, "2025-06-08")).toBe("Jun 2025");
   });
 
@@ -200,6 +227,8 @@ describe("a range of days", () => {
     expect(longDays("2026-12-30", "2027-01-02", FRIDAY)).toBe(
       "Wednesday, December 30, 2026 to Saturday, January 2, 2027",
     );
-    expect(longDays("2026-10-02", "2026-10-02", FRIDAY)).toBe("Friday, October 2");
+    expect(longDays("2026-10-02", "2026-10-02", FRIDAY)).toBe(
+      "Friday, October 2",
+    );
   });
 });

@@ -146,7 +146,9 @@ const endField = () => screen.getByLabelText("End date") as HTMLInputElement;
 describe("the event's dates", () => {
   it("saves a date alone as it always has, and offers no end before there is a date", async () => {
     const { start, updateEvent } = datesPage({ date: null });
-    expect(screen.queryByRole("button", { name: "Add an end date" })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Add an end date" }),
+    ).toBeNull();
     fireEvent.change(start, { target: { value: "2026-10-02" } });
     await vi.waitFor(() =>
       expect(updateEvent).toHaveBeenCalledWith("event-1", {
@@ -190,7 +192,10 @@ describe("the event's dates", () => {
   });
 
   it("refuses an end before the date under the field, and never writes it", async () => {
-    const { updateEvent } = datesPage({ date: "2026-10-02", end: "2026-10-04" });
+    const { updateEvent } = datesPage({
+      date: "2026-10-02",
+      end: "2026-10-04",
+    });
     const end = endField();
     fireEvent.change(end, { target: { value: "2026-09-30" } });
     expect(
@@ -203,7 +208,9 @@ describe("the event's dates", () => {
 
   it("takes the end away on ×, and reads an end on the date itself as the one day it is", async () => {
     const removed = datesPage({ date: "2026-10-02", end: "2026-10-04" });
-    fireEvent.click(screen.getByRole("button", { name: "Remove the end date" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Remove the end date" }),
+    );
     await vi.waitFor(() =>
       expect(removed.updateEvent).toHaveBeenCalledWith("event-1", {
         event_date: "2026-10-02",

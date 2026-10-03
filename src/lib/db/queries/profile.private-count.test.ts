@@ -71,9 +71,11 @@ describe("get_public_profile's private_event_count", () => {
   });
 
   it("reads every gate the attended arm reads, and inverts only the owner's choice", () => {
+    // ★ The arm's line carries a range's last day beside its date (event-dates, 20261003120000): reshaped on purpose,
+    // the anchor only; the gates it reads are unchanged.
     const arm = between(
       sql,
-      "'attended_events', coalesce(( select jsonb_agg(jsonb_build_object( 'id', e.id, 'name', e.name, 'event_date', e.event_date ) order by e.event_date desc nulls last, e.created_at desc) from public.events e where ",
+      "'attended_events', coalesce(( select jsonb_agg(jsonb_build_object( 'id', e.id, 'name', e.name, 'event_date', e.event_date, 'event_end_date', e.event_end_date ) order by e.event_date desc nulls last, e.created_at desc) from public.events e where ",
       "), '[]'::jsonb)",
     );
     const counted = between(

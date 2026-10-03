@@ -92,9 +92,9 @@ describe("the words over a range of days", () => {
       live: true,
       pulse: null,
     });
-    expect(
-      words({ ...weekend, arrivals: { today: 12, lastHour: 3 } }),
-    ).toEqual({ word: "Live today", live: true, pulse: 3 });
+    expect(words({ ...weekend, arrivals: { today: 12, lastHour: 3 } })).toEqual(
+      { word: "Live today", live: true, pulse: 3 },
+    );
   });
 
   it("counts down to its first day, and dates its past from its last", () => {

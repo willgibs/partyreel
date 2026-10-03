@@ -199,10 +199,7 @@ function EventDatesField() {
   }>({ start: () => {}, end: () => {} });
 
   function save(next: Dates) {
-    if (
-      next.eventDate === v.eventDate &&
-      next.eventEndDate === v.eventEndDate
-    )
+    if (next.eventDate === v.eventDate && next.eventEndDate === v.eventEndDate)
       return;
     // The date alone where no range was or is (one column, as it always saved); both together otherwise.
     void s.saveEvent(

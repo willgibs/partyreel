@@ -182,7 +182,11 @@ describe("a range of days on the page", () => {
   const events = [
     hostedEvent({ id: "tonight", date: FRIDAY, approved: 40 }),
     // A conference on its middle day, a weekend wedding ahead in the week, and a trip just past.
-    hostedEvent({ id: "conference", date: "2026-10-01", endDate: "2026-10-03" }),
+    hostedEvent({
+      id: "conference",
+      date: "2026-10-01",
+      endDate: "2026-10-03",
+    }),
     hostedEvent({ id: "wedding", date: "2026-10-04", endDate: "2026-10-06" }),
     hostedEvent({
       id: "trip",

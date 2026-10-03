@@ -232,16 +232,28 @@ export async function readDoorEventDetails(
   eventId: string,
 ): Promise<DoorEventDetails | null> {
   const admin = createAdminClient();
-  // ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: the row learns `event_end_date` (20261003120000) then; drop the
-  // override once it has.
+  // ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: the row learns `event_end_date` (20261003120000) then, and the select
+  // types itself again; drop the override once it has.
   const event = await mustQuery(
     admin
       .from("events")
-      .select("name, description, event_date, event_end_date, custom_slug, host_id")
+      .select(
+        "name, description, event_date, event_end_date, custom_slug, host_id",
+      )
       .eq("id", eventId)
       .is("deleted_at", null)
       .maybeSingle()
-      .overrideTypes<{ event_end_date: string | null }>(),
+      .overrideTypes<
+        {
+          name: string;
+          description: string | null;
+          event_date: string | null;
+          event_end_date: string | null;
+          custom_slug: string | null;
+          host_id: string;
+        },
+        { merge: false }
+      >(),
     "door: the event's details",
   );
   if (!event) return null;

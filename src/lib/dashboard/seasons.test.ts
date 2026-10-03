@@ -100,7 +100,10 @@ describe("seasonsOf, with a range of days", () => {
   });
 
   it("folds a range into the year it began", () => {
-    const seasons = seasonsOf([ranged("new-year", "2024-12-30", "2025-01-02")], FRIDAY);
+    const seasons = seasonsOf(
+      [ranged("new-year", "2024-12-30", "2025-01-02")],
+      FRIDAY,
+    );
     expect(seasons.map((g) => g.id)).toEqual(["year-2024"]);
   });
 });

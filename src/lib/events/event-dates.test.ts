@@ -229,7 +229,9 @@ describe("the migration (20261003120000)", () => {
     const { file, body } = latest("get_public_profile");
     expect(file).toBe(FILE);
     expect(
-      body.match(/'event_date', e\.event_date, 'event_end_date', e\.event_end_date/g),
+      body.match(
+        /'event_date', e\.event_date, 'event_end_date', e\.event_end_date/g,
+      ),
     ).toHaveLength(2);
     expect(sql).toContain(
       "revoke execute on function public.get_public_profile(text) from public; grant execute on function public.get_public_profile(text) to anon, authenticated;",

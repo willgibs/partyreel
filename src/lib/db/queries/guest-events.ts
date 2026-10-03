@@ -140,14 +140,22 @@ async function rehydrateUnlockedDetails(
   if (!(await isUnlocked(event.id))) return event;
 
   const admin = createAdminClient();
-  // ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: the row learns `event_end_date` (20261003120000) then; drop the
-  // override once it has.
+  // ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: the row learns `event_end_date` (20261003120000) then, and the select
+  // types itself again; drop the override once it has.
   const { data, error } = await admin
     .from("events")
     .select("description, event_date, event_end_date, host_id")
     .eq("id", event.id)
     .maybeSingle()
-    .overrideTypes<{ event_end_date: string | null }>();
+    .overrideTypes<
+      {
+        description: string | null;
+        event_date: string | null;
+        event_end_date: string | null;
+        host_id: string;
+      },
+      { merge: false }
+    >();
   if (error || !data) return event; // never fail the page over a cosmetic re-read
 
   let hostDisplayName: string | null = null;
