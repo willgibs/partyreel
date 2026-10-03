@@ -355,6 +355,25 @@
     animation: cw-rise-in 280ms var(--ease-emphasis);
   }
 }
+@media (prefers-reduced-motion: no-preference) {
+  /* A moment of the night comes up like a print: a guest's screen, and each
+     photograph a style's small album gains. */
+  .cw-screen-in {
+    animation: cw-screen-in 340ms var(--ease-emphasis);
+  }
+  .cw-style-cell img {
+    transition: opacity 320ms var(--ease-emphasis);
+    @starting-style {
+      opacity: 0;
+    }
+  }
+}
+@keyframes cw-screen-in {
+  from {
+    opacity: 0.55;
+    filter: blur(3px);
+  }
+}
 @keyframes cw-develop-in {
   from {
     opacity: 0.35;

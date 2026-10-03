@@ -400,7 +400,12 @@ export function GuestScreen({
         className,
       )}
     >
-      <span className="absolute inset-0">
+      {/* Keyed by its moment, so a slide of the night comes up like a print
+          (create-wizard.css: `cw-screen-in`, only where motion is welcome). */}
+      <span
+        key={`${style}-${moment}`}
+        className="cw-screen-in absolute inset-0"
+      >
         {style === "live" ? (
           <LiveAt moment={moment} />
         ) : style === "approval" ? (
