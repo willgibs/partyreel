@@ -56,7 +56,44 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each is built as recommended and listed under "Calls his to overrule".
+
+- **Q1. The setting's default: ON** (the brief's lean, kept). A full Deleted must never refuse a guest's photo at a
+  party, and the switch says what it does: "Make room from Deleted: when an upload needs room, the oldest items in
+  Deleted are deleted for good first." `profiles.make_room_from_deleted`, default true, hers to write.
+- **Q2. Where room is made: at the complete, never the presign.** The complete holds the host's profiles lock and
+  judges the R2 HEAD's real size; a presign's size is the client's word, so a phantom presign (never sent) would
+  otherwise empty a host's Deleted for nothing. The presign's meter refuses only what no eviction could fit (its line
+  is active bytes with the setting on, everything stored with it off), so a guest is never sent to upload a file the
+  complete will refuse. The guest presign's advisories (`get_upload_context`, `get_upload_gate`, the host's
+  `get_host_upload_context`) read the same line, so Require an upload to view still fails open at a truly full album.
+- **Q3. What leaves first:** items, oldest first by when each entered Deleted (a deleted event's photos at the event's
+  deletion, largest first among them so the fewest go), never more than the upload needs; an event the eviction empties
+  leaves Deleted with its last item. Held or reported items leave her count like any permanent delete, their bytes
+  waiting on the keeper (`purge_asked_at`, as `purge_media_now` already does).
+- **Q4. The over-cap grace (the brief's item 6): it reads what she keeps by choice,** everything stored but the
+  system's own removals waiting in Deleted. At the deadline, what she already deleted leaves for good first (oldest
+  first, whatever her setting: nothing she kept is touched while her own Deleted can cover it), then her largest files
+  move to Deleted as today, recoverable for 30 days. Those count like anything in Deleted, so until they purge her
+  uploads are refused (or, with the setting on, take room from them, oldest first); restoring one comes back only while
+  it fits beside what she keeps (today's gate, kept for system removals alone), so a restore-and-reduce cycle cannot
+  keep an over-cap account over for good. Her own deletions always restore. The grace mails say "free up space" for
+  "remove some media", and the reduce mail says what left Deleted.
+- **Q5. A guest's own withdrawal purges that night, every album** (the brief's sentence; today only a camera shot's
+  does, and the rest waited 30 days counted nowhere: storage nobody's plan pays for). A hold or an open report still
+  keeps it, as it keeps any row.
+- **Q6. The size list frees room with Delete for good.** Remove to Deleted frees nothing now, so the list's act on a
+  selection is Delete for good (behind a confirm: there is no Undo), Deleted heads the list with Empty Deleted, and the
+  goal strip counts what those free; Download stays.
+- **Q7. Restore always fits** for her own deletions (already counted); an item or event past its 30 days is no longer
+  restorable even before the night's purge takes it, so what she can restore is exactly what she is counted for.
+- **Q8. Empty Deleted lives beside the chart** (account-wide, behind a confirm), marking every item to leave for good
+  at once (its bytes stop counting; R2 follows in the night's purge, as the eviction does). A Delete forever on a
+  deleted event's own card is Deferred.
+- **Q9. Milestone 34 between the apply and the next milestone:** an expand (see the migration's head): it keeps
+  `standby_hosts` and `host_storage_summary`'s two columns, so its meter, guard and nightly sweeps keep working; what it
+  meets is the new cap on uploads (Deleted counts; with the setting on, the oldest of Deleted makes room), restore
+  without a gate, and a guest withdrawal purging that night.
 
 ## System-doc edits (in place, owned facts only)
 
@@ -78,3 +115,8 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am
+
+- Booted at `e9b006e4`; the plan is the Questions above. Next: the migration (`20261003220000_deleted_counts.sql`)
+  and its rolled-back proof, then the lifecycle and storage code, the chart, the docs.
