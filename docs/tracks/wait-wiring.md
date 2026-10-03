@@ -1,6 +1,6 @@
 ---
 track: wait-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "5dc4dee8"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -76,36 +76,106 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each recommended answer is built; each is Will's to overrule.
+
+- Hub page lines: two, not one (`develop={event}` on `HubCover`, whose stills hide what waits, and on `EventGallery`,
+  whose album is covered). Recommended: accept both; one line would need a provider in rooms' page.
+- Leaving approval for "right away" also releases what is held, in the same save (`events_hold_released` fires on any
+  exit from approval, as Settings' consequence line already says). Recommended: yes.
+- The sheet stands over the album's rows wherever photos wait, photos already showing or not (a reviewed album half
+  let in). Recommended: yes; the-wait r2's arrival may refine it.
+- The cover's word over the name: a camera album with a develop time says "Disposable · develops at 9 am" (the morning
+  after, "developed at 9 am"), free uploads with one say "Develops at 9 am", and a reviewed album says nothing (the
+  small distinction). Recommended: as built.
+- "Developing" is every wait's one word, the marketing album's review mock and six help articles included.
+  Recommended: yes.
+- Look lifts the host's cover for the visit only; a reload covers it again ("provide them the disposable experience a
+  bit too"). Recommended: yes.
+- The host's cover only on an album with a develop time ahead; a reviewed album's hub is unchanged (Review is her
+  check). Recommended: yes.
+- The owner on her own guest page meets the guests' sheet (`albumWaits` asks by the event). Recommended: yes.
+- The album's rule moved from the Add slot into the wait: said before anything waits, then the sheet's clock says it,
+  once (measured on the real page: the slot said it over the sheet, twice). Recommended: yes.
+- See it as a guest gains the wait (a crossing into rooms-wiring's merged view): without it, a waiting album read
+  there as the empty album no guest sees. Recommended: yes.
+- A camera turned on after a develop time was set: her cover's count can under-read the shots between
+  (`host-cover.ts`; the guests' own sheet counts the seal itself). Recommended: accept, it is rare.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `guest-flow.md`: the cover's word over the name; the keep's and the failure sheet's words; the empty state's
+  `albumWaits` and its yield; the album's wait (the contact sheet, its cap, hers lit, the rule's one place); the
+  tracker's "Developing", her pictures and `herShotsOf`.
+- `disposable-mode.md`: the open-this list; Disposable as the preset and the album styles; approval never with a
+  develop (the CHECK, its two triggers under "Develop is a write"); waiting reaching the page as numbers; the camera's
+  "Developing"; "The host's control, and her cover".
+- Crossings: `host-app.md`'s See it as a guest line names the guests' wait (one clause); ROADMAP's crumbs-52 guest
+  line retired (the brief's).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Host: Settings' rail sentence for What guests can add (`guest-experience-summary.ts`) names no album style and keeps
+  two clauses the CHECK makes unreachable ("held for your approval and hidden until the album develops.", "developed;
+  new ones wait for your approval."): name the style (Live, Reviewed, Disposable) and drop them (from `wait-wiring`).
+- Host: the Review room's "Turn on review" on an album with a develop time now meets the refusal's words after the
+  press; it could say why before it, or stand aside there (from `wait-wiring`).
+- Code hygiene: `masonry.tsx`'s tile observer cancels unfinished downloads in its ref cleanup, which StrictMode's extra
+  ref cycle runs at mount, so a tile that mounts with its link already held loses its `src` under `pnpm dev` (the hub's
+  Look draws no photographs locally; production is unaffected): cancel on unmount only (from `wait-wiring`).
+- The lab and the kit: the album-scale lab's host surface could take a develop time (`?develop=1`) and draw the host's
+  cover over a thousand photographs, as this lane's captures did with an uncommitted knob (from `wait-wiring`).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
-
-## Where I am
-
-- Done: the six builds, the rule moved into the album's wait (9256aeea), launch-prep synced at 8c2dce39 (d6cf9893, no
-  conflicts), See it as a guest given the wait (6006851b, a crossing); the migration proved by its rolled-back check
-  (`_scratch/wait-wiring/sql/check-results.txt`); lab:demo the-wait's six steps at 1440 and 375, 0 failing; captures
-  taken before the sync (`_scratch/wait-wiring/cap/out/`), the capture events deleted after.
-- Remains: the gate on the synced tree (test, build, smoke, demo); the captures again after the sync (reseed two
-  events with `scripts/seed-demo-event.mjs`, plans in `_scratch/wait-wiring/cap/`, driver `cap/cdp.mjs`, cleanup
-  `cap/cleanup.mjs` with the new ids); this manifest's Questions, doc edits, Deferred and Handoff.
-- Running: nothing (the dev server on 3132 is stopped).
+- Commits: fc2dfd7a (the six builds), 27f1cf0e (`albumWaits` by the event), 9256aeea (the rule moved into the wait),
+  6006851b (See it as a guest's wait; the eyebrow on the label step's tracking), d4e6ac05 (crumbs-52 retired,
+  host-app.md's clause); syncs d6cf9893 (launch-prep 8c2dce39) and accd5253 (9d3bf168), both without conflicts; WIP
+  notes 693ca4fb, eb06771b. The head is in the chat line (this file alone after d4e6ac05).
+- Gates on d4e6ac05 (launch-prep 9d3bf168 merged in), each its own exit code, logs in `_scratch/wait-wiring/`:
+  typecheck 0 (`typecheck-8.log`), lint 0 (`lint-8.log`), test 0, 833 files and 9,826 tests (`test-8.log`), build 0
+  (`build-3.log`), lab:smoke 0, 166 checks (`lab-smoke-3.log`); lab:demo `--only the-wait.<step>` for model, wait,
+  arrival, cover, name and both at 1440 and at 375, twelve runs, 0 failing (`lab-demo3-*.log`; the board is answered,
+  so the desk lists no open step and each was named); the boards the change reaches, at 1440 and 375: create-wizard's
+  open `add` (4 steps), 0 failing (`lab-demo3-reached-*.log`).
+- Lane check, `git diff --name-only origin/launch-prep...HEAD`: owned paths and this file, with these exceptions:
+  the hub page (two lines, the first question); See it as a guest (`as-guest-view.tsx` and its test, its page's two
+  fields: the crossing); `e/[token]/card/card.test.tsx` (its mock follows `albumWaits`); `entry-modal.test.tsx` (one
+  line, the keep's words); the marketing review mock (`review-switch.tsx`, `album-copy.ts`, `mock-parity.test.ts`:
+  "Developing"); six help articles (the labels moved, `help-ui-labels` pins them); `docs/ROADMAP.md` and
+  `docs/systems/host-app.md` (one line each); `src/lib/guest/waiting-on-arrival.server.ts` and its test deleted
+  (replaced by `lib/disposable/waiting.server.ts`).
+- Items: the guest's one question of time on the cover, the Add slot, the keep, the failure sheet and her tracker
+  ("Developing", told apart by the clock alone); the contact sheet over the album (the sync's numbers through
+  `store.ts` and `GalleryLive`, hers lit from her tracker, capped with the count climbing, the empty album yielding,
+  the owner and a guest with none of her own included); Settings' Album style (three picture cards, then the develop
+  time and the look note, the switches, Customize; `CaptureAndReveal` inside Customize's own mix); the host's cover
+  (her guests' sheet in her album's place, Look into her scrollable album with Cover it inline and as a pill, Develop
+  now asked first, a develop's light on Look, the hub's stills held to what guests see); Disposable named on the cover,
+  the morning after, in Settings and the help, its words in `album-style.ts` for Create's add step (create-wizard r3
+  draws them); approval never with a develop (`updateEvent` refuses in words, the CHECK, a switch into a develop time
+  approving and sealing what is held in the same save, the develop time still movable).
+- Proposed migration: `20261003100000_approval_never_with_a_develop.sql` (apply protocol in its header: the drift
+  read, nine events triggers today, no row holding both; advisors delta none; no types). Its rolled-back MCP check:
+  red 6 of 7 on today's schema (the control true), green 7 of 7 with the file, nothing persisted
+  (`_scratch/wait-wiring/sql/check-results.txt`). No Worker, Vercel, Stripe or env change.
+- Captures after the sync, `_scratch/wait-wiring/cap/out2/` (real page, seeded with real uploads, staged by SQL,
+  deleted after: R2 objects removed, rows purged, events soft-deleted): `guest-disposable-{375,1440}{,-sheet,-full}`
+  (24 sealed, 6 hers lit, "Disposable · develops Sunday at 9 am"), `guest-reviewed-{375,1440}{,-sheet,-full}` (18
+  held, "As Will Gibson lets them in"), `settings-styles-*`, `settings-disposable-*` (and `-look`),
+  `settings-reviewed-to-disposable-1440` (the switch's line: "3 photos under review join the roll", Add them to the
+  roll); `host-cover-{375,1440}-{covered,looked,looked-scrolled,covered-again}` and `host-cover-{375,1440}-n1145-covered`
+  (1,145 counted, +968 and +1,052 folded), from the album-scale lab's host surface with an uncommitted develop knob,
+  "looked" with StrictMode off (the Deferred dev artifact). Before the sync: `cap/out/guest-reviewed-letin-*` (all let
+  in: the rule in the wait's place).
+- PREMISE drift, the-wait: its premise says her photo waits in her round while the album reads as the empty state, a
+  sealed one "Waiting to develop", the sync's waiting drawn nowhere, and Settings' as-built control the real
+  `CaptureAndReveal`; production now draws the sheet, says "Developing" everywhere and leads Settings with Album
+  style. `model.ts` quotes "Waiting for approval" and "Waiting to develop" as production's words; the `both` step's
+  other options are refused by the CHECK now; its cover quote keeps a 0.14em eyebrow production dropped; its tracker
+  (production's) now says "developing". Create-wizard r3's premise (drawn in the-wait's model) matches production.
+- Assets requested from Will: none.
+- Board ideas: the-wait r2 (the arrival) can start from the sheet as wired: the moment the develop turns its dark
+  squares into the album is the one transition the board left open.
+- Calls his to overrule: the eleven under Questions.
+- Look at first: the migration (for the Advisor); `event-gallery.tsx` with `event-hub-head-cover.tsx` (the host's
+  cover); `gallery-empty-state-wait.tsx` (the sheet, the rule, the yield); the as-guest crossing.
