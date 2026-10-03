@@ -13,6 +13,7 @@
 
 import { peopleWaiting } from "@/lib/event/door/words";
 import { photosToGo, reelState } from "@/lib/event/reel-progress";
+import { roomHref } from "@/lib/event/sections";
 import { formatCount } from "@/lib/format/count";
 
 export type NextStepKind = "door" | "review" | "paused" | "reel" | "print";
@@ -64,7 +65,8 @@ export const STORAGE_STEP_PCT = 85;
  * ★ PEOPLE AT THE DOOR LEAD THE QUEUES (the doors, event-settings r1: a waiting newcomer counts
  * "wherever the host is already told about held uploads (the pulse, the bell)"): a guest standing at
  * a held door is waiting on the host right now, where a held photograph can wait for the evening. It
- * opens the Guests room at its At the door section.
+ * opens the Guests room, whose head is At the door, on the hub's own address (`roomHref`): the retired
+ * `/dashboard/<id>/guests` route only redirects there, so a link to it is a hop for nothing.
  *
  * ★ THE REEL STEP TELLS THE TRUTH AND THEN LEAVES (`reel-host`, Will
  * 2026-09-25: `pulse=band`). The live reel makes itself from the second photo,
@@ -90,7 +92,7 @@ export function nextStepForEvent(
       eventId: event.id,
       label: `${peopleWaiting(waiting)} at the door of ${event.name}`,
       short: `${peopleWaiting(waiting)} at the door`,
-      href: `${href}/guests#at-the-door`,
+      href: roomHref(event.id, "guests"),
       tone: "waiting",
     };
   }

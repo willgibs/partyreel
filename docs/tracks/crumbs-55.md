@@ -62,3 +62,9 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am
+
+- Booted in `partyreel-wt/crumbs-55` on `lp/crumbs-55` (cut `ed7b480d`), dev port 3131, scratch `partyreel-wt/_scratch/crumbs-55/`.
+- DONE and green (typecheck, lint, test 826 files / 9742 tests, each its own exit 0): crumb 1's code (`src/lib/security-headers.ts` is the one home of the set, `next.config.ts` imports it; its test reads every page and route handler under `src/app` through Next's own path-to-regexp) and crumb 2 (`next-step.ts` links `roomHref(id, "guests")`).
+- NOT DONE: crumb 1's live proof (`curl -sI` on 3131: home, an API route, the as-guest page, a proxy 404; a cross-origin frame refused and a same-origin one kept, in the Browser pane), the admin project's answer for the Handoff, crumbs 3 and 4 (the brand kit's grounds and tokens; the two `#040405` comments; `CreatePicture` as the room), the docs line (`architecture.md`), `lab:smoke`, `pnpm build`, the Handoff.
