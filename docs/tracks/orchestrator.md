@@ -62,7 +62,9 @@ flat; a lane in its gate, or the milestone's full gate, counts as two. Every pro
 | `lab-frame` | the lab's Frame a faithful window: a frame-scoped window for the media hooks, Radix's layers inside the frame, a glow filter host; nothing under components/ui | running | Opus, 3131 | `ab041e184bfe9d164` |
 | `crumbs-53` | the next words after round 12: the reel's place and the welcome in help and marketing, reel.md, the welcome cookie's tests, one home for the develop time's words, the hero fill's and pulse's names | MERGED at `57825ec2` (gate 162 green, light: test; the lane's gate on its synced head: test 9,430, build, lab:smoke 150); no SQL | Sonnet, 3133 | `a60b9ee6392ade237` |
 | `redteam-44` | build 44's red-team (`ece3f8a1`): the door's first byte and walk-through, the idle, the name after the email, the album's camera, both of red-team 43's MEDIUMs again, regressions | running (from 01:37Z); brief and ledger `../partyreel-wt/_scratch/redteam-44/` | Opus, Will's Chrome | `a186d402e4367102f` |
-| `desk-premise` | the pre-sitting desk pass's PREMISE re-reads (identity, the-wait, event-header, create-wizard, take-home: their lives moved since their merges; host-dashboard and demo-framing unmoved; no two of the 25 asks one decision) | running, read-only | Opus | `a20a4c46761a0fb61` |
+| `desk-premise` | the pre-sitting desk pass's PREMISE re-reads (no two of the 25 asks one decision; host-dashboard and demo-framing unmoved) | DONE: identity, event-header, create-wizard and take-home HOLD; the-wait MOVED (crumbs-52's Take photos on a camera album and the Reel card's "Live at the develop", plus three older slips): `desk-tune-4`; identity's sheets style a `data-n` production's glyph count lacks: the same lane | Opus | `a20a4c46761a0fb61` |
+| `account-exit` | Will's ask (2026-10-03): leaving made clear: the dialog's key points with the purge's time in her zone, the blocked sign-in's why and when (`user_banned`), the operator's Cancel deletion, her own photos out of others' albums (a checkbox, unchecked); refund none and said, his to overrule | running (cut at `891767cc`) | Opus, 3134 | `acd7d29709bfbc8a8` |
+| `desk-tune-4` | the-wait's drawings made true to production again (the camera album's Take photos, the Reel card's words, three slips) and `data-n` on production's glyph count for identity's sheets; no ask moves | running (cut at `8fef7143`) | Sonnet, 3132 | (spawning) |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Q8
 (round 12's plan) answered with 21 corrections, all folded into the briefs; the next consult is the foundation's
@@ -93,7 +95,8 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team brie
 
 ## Next, in order
 
-1. **Running:** `lab-frame` (the Frame a faithful window). Integrate it as it hands off (gate 164); it rides build 45.
+1. **Running:** `lab-frame` (the Frame a faithful window) and `account-exit` (Will's ask, his calls on the refund, the
+   checkbox and the window in its Questions). Integrate each as it hands off (gates from 164); both ride build 45.
 2. **Build 44** (`ece3f8a1`) serves the alias; its red-team walks from
    `../partyreel-wt/_scratch/redteam-44/brief.md` (its stamp `BUILD44` filled in): the door's first byte and
    walk-through, the idle, the name after the email, the camera on a camera album (a fake stream in its own headless

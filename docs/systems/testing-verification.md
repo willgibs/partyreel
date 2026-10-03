@@ -52,7 +52,7 @@ Live testing uses disposable test data only.
   `hi@willgibs.com` the host on Free: deleted for the two-Checkout-tabs check on 2026-10-03 and restored before the
   purge (its ban lifted and `deletion_requested_at` cleared by SQL; the request had anonymised its profile, so the
   name step asks again, and moved its one event to the 30-day bin). A deletion walk ends the same way: restore the
-  account before the next 04:48 UTC purge, or it is gone (signups are off). Google through the account chooser is
+  account before the next nightly purge (it fires between 04:00 and 05:00 UTC: Vercel Hobby runs a daily cron anywhere inside its hour), or it is gone (signups are off). Google through the account chooser is
   authorized; typing a password or a code never is.
   ★ Red-team dismissals are strikes against the instant hide (three bar an address, each lapsing 180 days after its
   dismissal: [admin-observability.md](admin-observability.md)). willg97's address holds two and partyr33l's five, all
