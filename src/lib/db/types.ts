@@ -1207,6 +1207,8 @@ export type Database = {
           created_at: string
           cumulative_bytes: number
           host_id: string
+          hour_started_at: string | null
+          hour_uploads: number
           id: string
           period: string
           photo_count: number
@@ -1217,6 +1219,8 @@ export type Database = {
           created_at?: string
           cumulative_bytes?: number
           host_id: string
+          hour_started_at?: string | null
+          hour_uploads?: number
           id?: string
           period: string
           photo_count?: number
@@ -1227,6 +1231,8 @@ export type Database = {
           created_at?: string
           cumulative_bytes?: number
           host_id?: string
+          hour_started_at?: string | null
+          hour_uploads?: number
           id?: string
           period?: string
           photo_count?: number
@@ -1844,6 +1850,14 @@ export type Database = {
       mark_password_set: { Args: never; Returns: undefined }
       media_like_counts: {
         Args: { p_event_id: string; p_media_ids: string[] }
+        Returns: Json
+      }
+      meter_upload: {
+        Args: {
+          p_bytes: number
+          p_event_id: string
+          p_type: Database["public"]["Enums"]["media_type"]
+        }
         Returns: Json
       }
       monthly_ingress_cap: {

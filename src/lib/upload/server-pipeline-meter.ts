@@ -12,11 +12,8 @@
  */
 import "server-only";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-
 import type { MediaKind } from "@/lib/media/limits";
 import { captureWarning } from "@/lib/observability/sentry";
-import type { createAdminClient } from "@/lib/supabase/admin";
 
 /** Why the meter refused an upload it was able to judge. Each route says it in its own words (`meterRefusal`). */
 export type MeterRefusal =
@@ -34,14 +31,6 @@ export type MeterOutcome =
   | ({ ok: false } & MeterRefusal)
   /** The meter could not answer (an error, an answer it does not know): the presign goes on (it fails OPEN). */
   | { ok: false; reason: "unavailable" };
-
-/**
- * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `meter_upload` arrives with migration 20261003210500, so the call that
- * names it goes through this untyped client (drop the cast then).
- */
-function untyped(admin: ReturnType<typeof createAdminClient>): SupabaseClient {
-  return admin as unknown as SupabaseClient;
-}
 
 /** An hour is the breaker's whole window, so a retry hint past it (or under a second) is not one the meter gave. */
 const HOUR_SECONDS = 3600;
@@ -97,10 +86,11 @@ export async function meterUpload(args: {
     // Loaded here, never at the engine's import: the complete shares the engine and never meters, so its routes
     // never load the service-role client for it.
     const { createAdminClient } = await import("@/lib/supabase/admin");
-    const { data, error } = await untyped(createAdminClient()).rpc(
-      "meter_upload",
-      { p_event_id: eventId, p_type: kind, p_bytes: bytes },
-    );
+    const { data, error } = await createAdminClient().rpc("meter_upload", {
+      p_event_id: eventId,
+      p_type: kind,
+      p_bytes: bytes,
+    });
     if (error) throw new Error(`meter_upload: ${error.code} ${error.message}`);
     const outcome = parseMeterAnswer(data);
     if (!outcome.ok && outcome.reason === "unavailable") {
