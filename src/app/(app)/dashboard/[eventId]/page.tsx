@@ -50,6 +50,8 @@ import {
   getMyProfileSlug,
 } from "@/lib/db/queries/social";
 import { getHostStorageSummary } from "@/lib/db/queries/storage";
+import type { HubDevelopFacts } from "@/lib/disposable/host-cover";
+import { readJoinedIds } from "@/lib/disposable/host-cover.server";
 import { guestCount } from "@/lib/events/event-guests";
 import { formatCount } from "@/lib/format/count";
 import {
@@ -209,6 +211,7 @@ export default async function EventDetailPage({
     doorCounts,
     storage,
     guestsRoom,
+    joined,
   ] = await Promise.all([
     planHubManifest(supabase, event.id),
     getLinkStats(event.id),
@@ -243,6 +246,10 @@ export default async function EventDetailPage({
           return null;
         })
       : Promise.resolve(null),
+    // ★ WHAT WAITS UNDER HER COVER IS READ BY THE SEAL (red-team 46's MEDIUM): her manifest never sees it, so the held
+    // photographs a switch to a develop time put in the roll (created before the period) are read off the rows, only
+    // while a develop time is ahead, and ride with the develop facts. A failed read answers none, captured.
+    readJoinedIds(supabase, event),
   ]);
   // The first window's links and the Reel card, in parallel: both read off the
   // manifest, neither off the other. The card reads the whole album's flags (its
@@ -281,6 +288,13 @@ export default async function EventDetailPage({
   // pending. The bin's items are in neither (a host reading "48 photos" is
   // reading the photographs their guests can see or they have tucked away).
   const { pending: pendingCount } = seed.sync.counts;
+
+  // The develop facts her head and her album's cover read: the event's own, and the roll the switch made.
+  const develop: HubDevelopFacts = {
+    develops_at: event.develops_at,
+    sealed_from: event.sealed_from,
+    joined,
+  };
 
   const isModerationOn = event.moderation_mode === "hold_for_approval";
   const views = linkStats.qrScans + linkStats.albumViews;
@@ -450,7 +464,7 @@ export default async function EventDetailPage({
               waiting: doorCounts.waiting,
             }}
             stills={coverStills}
-            develop={event}
+            develop={develop}
             toBar={!welcomed}
           />
 
@@ -480,7 +494,7 @@ export default async function EventDetailPage({
                   videosAllowed={videosAllowedForTier(tier)}
                   initialStep={rowStep}
                   tier={tier}
-                  develop={event}
+                  develop={develop}
                 >
                   <EventUploads
                     eventId={event.id}

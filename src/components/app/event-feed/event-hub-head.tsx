@@ -13,9 +13,9 @@ import {
 import { PageHeading } from "@/components/shared/page-heading";
 import { GlyphCount } from "@/components/ui/glyph-count";
 import {
-  entryWaits,
   hubCovered,
   type HubDevelopFacts,
+  waitsOf,
 } from "@/lib/disposable/host-cover";
 import { useWaitClock } from "@/lib/disposable/use-wait-clock";
 import type { Door } from "@/lib/event/door/door";
@@ -47,6 +47,7 @@ function publishDevelop(eventId: string, develop: HubDevelopFacts | null) {
   if (
     was?.develops_at === develop?.develops_at &&
     was?.sealed_from === develop?.sealed_from &&
+    was?.joined === develop?.joined &&
     developByEvent.has(eventId)
   ) {
     return;
@@ -96,9 +97,12 @@ export function useHubCoverStills(
   // Before the reader's clock is known (the server's render, the hydrating one), now is the render's own.
   const covered = hubCovered(facts, nowMs ?? undefined);
   const sealedFrom = facts?.sealed_from ?? null;
+  // What waits is read by the seal, as her cover's count reads it (`waitsOf`): the period's rule and the held photographs
+  // a switch put in the roll, which the page hands down with the develop facts (red-team 46's MEDIUM).
+  const joined = facts?.joined;
   return useMemo(() => {
     const waits = covered
-      ? (e: Parameters<typeof entryWaits>[0]) => entryWaits(e, sealedFrom)
+      ? waitsOf({ sealed_from: sealedFrom, joined })
       : undefined;
     if (!album || !entries) return covered ? [] : [...served];
     const visible = new Set<string>();
@@ -109,7 +113,7 @@ export function useHubCoverStills(
     return newestCoverStills(entries, (id) => album.linkOf(id)?.tile, waits);
     // `linksRevision` stands for the links the newest read.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [album, entries, served, linksRevision, covered, sealedFrom]);
+  }, [album, entries, served, linksRevision, covered, sealedFrom, joined]);
 }
 
 const noSubscription = () => () => {};
@@ -249,12 +253,14 @@ function PublishDevelop({ develop }: { develop?: HubDevelopFacts | null }) {
   const eventId = album?.eventId ?? null;
   const developsAt = develop?.develops_at ?? null;
   const sealedFrom = develop?.sealed_from ?? null;
+  const joined = develop?.joined;
   useEffect(() => {
     if (!eventId || develop === undefined) return;
     publishDevelop(eventId, {
       develops_at: developsAt,
       sealed_from: sealedFrom,
+      joined,
     });
-  }, [eventId, develop, developsAt, sealedFrom]);
+  }, [eventId, develop, developsAt, sealedFrom, joined]);
   return null;
 }

@@ -50,7 +50,13 @@ export type SheetCell =
       src: string | null;
       video: boolean;
     }
-  | { kind: "sending"; key: string; minute: number; src: string | null };
+  | {
+      kind: "sending";
+      key: string;
+      minute: number;
+      src: string | null;
+      video: boolean;
+    };
 
 export type Sheet = {
   /** The squares drawn, oldest first (the night's order), at most the cap. */
@@ -172,6 +178,7 @@ export function layoutSheet(input: {
       key: `s:${h.key}`,
       minute: minuteOf(now),
       src: h.src,
+      video: h.video,
     });
   }
 

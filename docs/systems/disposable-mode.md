@@ -186,13 +186,17 @@ develop time the held photos "join the roll" (the release above); nothing else a
 
 **The host's cover** (Will's `cover=guests`; `event-hub-head-cover.tsx`, mounted by `event-gallery.tsx`): while a
 develop time is ahead, her hub's album is the very contact sheet her guests meet, counted from her own manifest
-(`lib/disposable/host-cover.ts`: held, or approved since `sealed_from`), capped while the count climbs, her own lit by
-their links' host mark; Look lifts it for the visit into her album (the album rising out of a wash of light, none under
-reduced motion), a line and, once it scrolls away, a pill keep Cover it one press away, and Develop now asks first.
-Her hub's head and its band wear only what her guests can see meanwhile (`useHubCoverStills`; the head is handed the
-develop facts and publishes them for the band). ★ A camera turned on after a develop time restamps `sealed_from` for
-its roll, so the shots between read as seen on her cover's count (and her head may show one); the guests' own sheet
-counts the seal itself.
+(`lib/disposable/host-cover.ts`: held, approved since `sealed_from`, or in the roll), capped while the count climbs, her
+own lit by their links' host mark; Look lifts it for the visit into her album (the album rising out of a wash of light,
+none under reduced motion), a line and, once it scrolls away, a pill keep Cover it one press away, and Develop now asks
+first. Her hub's head and its band wear only what her guests can see meanwhile (`useHubCoverStills`; the head is handed
+the develop facts and publishes them for the band). ★ **A row waits by its seal, and her manifest never sees it** (the
+host's scope): the period is the floor, and the held photos a switch put in the roll (and a camera's shots between a
+develop time and its restamped period) are sealed yet created BEFORE `sealed_from`, so by the period alone they read as
+seen ("0 developing" over the 195 her guests read, red-team 46). The page reads them off the rows beside the develop
+facts (`host-cover.server.ts`'s `readJoinedIds`: approved, sealed now, created before the period; only while a develop
+time is ahead) and hands them down as `joined`; `waitsOf` is the one test the count and the head share. They ride the
+page, so they are as fresh as its save-and-refresh (nothing can join the roll while a develop time is ahead).
 
 ## Verifying it
 
