@@ -217,11 +217,12 @@ export function ContactSheet({
   const folded = sheet.folded;
   // Everyone's squares are numbers, so the count's noun is only as exact as hers: a video among hers makes "photos" a
   // lie (red-team 46's NIT), said the way the dashboard's claims say a mix of the two ("photo or video", "photos and videos").
+  const one = sheet.count === 1;
   const noun = hers.some((s) => !s.sending && s.video)
-    ? sheet.count === 1
+    ? one
       ? "photo or video"
       : "photos and videos"
-    : sheet.count === 1
+    : one
       ? "photo"
       : "photos";
 
