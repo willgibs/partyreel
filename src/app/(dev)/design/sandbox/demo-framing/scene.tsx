@@ -212,7 +212,7 @@ export function heroSays(addresses: readonly string[]): Reader {
     const card = root.querySelector("[data-df-card]");
     if (card)
       said.push(
-        `The card: "${textOf(card.querySelector("[data-df-title]"))}", ${textOf(card.querySelector("[data-df-meta]"))}`,
+        `The card: "${textOf(card.querySelector("[data-df-title]"))}", ${card.querySelectorAll("[data-df-meta] [data-slot=avatar]").length} faces, ${textOf(card.querySelector("[data-df-counts]"))}`,
       );
     // The stream's photographs: every one carries a credit.
     const credits = root.querySelectorAll("[data-df-credit]").length;
@@ -226,7 +226,7 @@ export function heroSays(addresses: readonly string[]): Reader {
  * THE SETTLED TOUCH, READ OFF THE CLOSE FRAME: the arrow at rest and how far
  * the object and its arrow move under a pointer.
  */
-export const touchSays: Reader = (root) => {
+export const touchSays: Reader = (root, win) => {
   const objects = root.querySelectorAll<HTMLElement>("[data-hero-object]");
   if (objects.length < 2) return null;
   const inCell = (el: HTMLElement) =>
@@ -236,5 +236,29 @@ export const touchSays: Reader = (root) => {
   const ink = arrows[0];
   if (!ink) return null;
   const rise = inCell(objects[0]) - inCell(objects[1]);
-  return `At rest: an arrow after the address, ${px(ink.getBoundingClientRect().width)}. Under the pointer: the object rises ${px(rise)}, its shadow deepens and the arrow nudges toward where it goes`;
+  // What else answers the pointer, read off each object's own drawing: how
+  // far a door's leaf swings, how far a card's photograph leans in.
+  const also: string[] = [];
+  const leaf = (o: HTMLElement) =>
+    Number.parseFloat(
+      win
+        .getComputedStyle(o.querySelector(".door-way") ?? o)
+        .getPropertyValue("--way-turn"),
+    );
+  const lean = (o: HTMLElement) => {
+    const el = o.querySelector("[data-df-covers]");
+    return el ? new win.DOMMatrix(win.getComputedStyle(el).transform).a : 1;
+  };
+  if (objects[0].querySelector(".door-way")) {
+    const [a, b] = [leaf(objects[0]), leaf(objects[1])];
+    if (b > a) also.push(`the door swings from ${a} to ${b} degrees open`);
+  }
+  if (objects[0].querySelector("[data-df-covers]")) {
+    const k = lean(objects[1]) - lean(objects[0]);
+    if (k > 0) also.push(`its photograph leans in ${(k * 100).toFixed(1)}%`);
+  }
+  // A door stands in its own light and casts no paper's shadow.
+  if (!objects[0].querySelector(".door-way")) also.push("its shadow deepens");
+  const last = also.length ? `${also.join(", ")} and ` : "";
+  return `At rest: an arrow after the address, ${px(ink.getBoundingClientRect().width)}. Under the pointer: the object rises ${px(rise)}, ${last}the arrow nudges toward where it goes`;
 };

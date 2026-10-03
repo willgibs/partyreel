@@ -191,7 +191,7 @@ export const DEMO_FRAMING = defineExploration({
       id: "lamp",
       question: "Whose colour is the light behind the object?",
       taken:
-        "The standing party's, read off its cover, crossfading as each address lands (the light takes its colour from what it lights).",
+        "The party's own, read off its cover: the arriving party's as its name types on the card or the door, the standing one's behind the pane.",
       overrule: "The house lamp for every address, as the shipped card has it.",
     },
     {

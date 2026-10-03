@@ -470,6 +470,7 @@ function CardObject({
               {/* The rest of its guests counted in after the faces, as the
                   guest list's own chip counts them, then its album. */}
               <span
+                data-df-counts=""
                 className="truncate font-medium text-white/80 tabular-nums"
                 style={{
                   fontSize: at(CARD.meta),
