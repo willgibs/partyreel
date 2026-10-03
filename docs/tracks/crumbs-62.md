@@ -38,6 +38,13 @@ working.
 
 **Verify on.** The gate on the synced tree, each step on its own exit code; `pnpm lab:smoke --base http://localhost:3133`; red first for all three (logged); for 1, a real upload on localhost recorded, its complete replayed after a gate change, and its files still served (a capture and the R2 listing).
 
+## Where I am
+
+- Item 1 built and green at `0272498c` (unit + live on :3133): reds in `_scratch/crumbs-62/red-item1.log` and
+  `red.json` (today's code deleted a recorded row's files on a byte-for-byte replay after the album closed, and on a
+  stranger's dead-ticket replay); greens in `green-item1.log` and `green.json`. Next: items 2 and 3 (red first), the
+  system doc, the gate.
+
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
 - none yet
