@@ -1,6 +1,6 @@
 ---
 track: crumbs-59
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "979b30a7"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -17,20 +17,6 @@ reads:                  # single-sources you depend on: never duplicate, never e
 ---
 
 # lp/crumbs-59
-
-## Where I am
-
-WIP 1 (items 1 to 6 built, each green in its own files; the whole gate and the 375 capture still to run):
-- Red first, logged: `../partyreel-wt/_scratch/crumbs-59/logs/red-1.log` (29 reds over six files). The year typed keystroke by
-  keystroke saved `0002-10-02`, `0020-10-02`, `0202-10-02`, then `2027-10-02 -> 3851-10-05` (the ledger's own four); the day
-  typed as 12 saved 10-01 then 12 to 15.
-- Built: `EventDatesField` (a date saves once finished: blur, Return, close, or a picker's beat), `isSaneDay` (1900 to 2100)
-  and the `Date.UTC` year-under-100 fix in `dates.ts`, the date's words in `validation/event.ts`, a cleared date taking its end
-  (`mutations/events.ts`), the reel card's cover (`reel-card.tsx`), Settings' page head (`event-settings-sheet.tsx`), and the
-  migration `20261003200000_event_dates_finite.sql` (red then green on the live schema, unapplied: `logs/migration-red.txt`,
-  `logs/migration-green.txt`).
-- To do: the whole gate on the synced tree, the keystroke capture at 375 (a scratch route over a counting write, Chrome's real
-  key events), the docs and the Handoff.
 
 **Goal.** Red-team 47's MEDIUM and its NITs: Settings' date field saves a date once she has finished it, never on each keystroke, so typing a year can never store a range a millennium long; the date's refusals speak a host's words; a range's end is finite by the database's own rule; the hub's reel card respects the cover; the hub's rooms stop warning.
 
@@ -109,8 +95,9 @@ working.
 - Accessibility: Settings' page-level head (This event, the door, what guests can add, the reel) names no description
   (`event-settings-sheet.tsx` says so with `aria-describedby={undefined}`); `PopupHeader` could draw the event's name there as
   a screen-reader-only description, as the rows' head says it (from `crumbs-59`).
-- Testing: a real iPhone's date wheel (does it report each notch as `input`?) would settle `PICK_SETTLE_MS` in
-  `event-page.tsx` (from `crumbs-59`).
+- Testing: a real iPhone's date wheel would settle two guesses in `event-page.tsx`: does it report each notch as `input`
+  (`PICK_SETTLE_MS`), and does its Clear reach React's `onChange` (facebook/react#12313, closed, from 2018), which `finish`
+  could sidestep by reading the field's own value on leaving (from `crumbs-59`).
 - Host: Settings' develop time (`camera-settings.tsx`'s `DevelopTimeControl`) saves on leaving the field, like the date now
   does, but accepts any time in the past, which the database stores as now (`events_reveal_stamp`) and whose save opens every
   sealed row (`events_develops_rewrite`): Develop now with no question asked, so a year left half typed (0002, 0202) and left
@@ -118,13 +105,70 @@ working.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed on `lp/crumbs-59`:** the work `0855cbd8` (items 1 to 6, the migration, the three doc lines) and `057c56a4`
+  (every hub room's panel held to its description at a desk and in a hand, the wheel comment, the develop-time finding), the
+  doc wording `a8d56028`, and the sync `a5e95853` (a merge of `origin/launch-prep` at `c0cfaf53`: album-calm's live album and
+  cost-atlas's pricing docs landed after the cut; album-calm changed `host-album.tsx`, which `reel-card.tsx` imports, and no
+  file overlaps this lane's changes, so the merge was clean), then one docs-only commit after the gates (`host-app.md`'s gotcha
+  without the incident's numbers); this file's own commit is the handoff, the head in the chat line.
+- **Gates on the synced tree `a5e95853`, each on its own exit code** (`../partyreel-wt/_scratch/crumbs-59/logs/gate-sync.summary`,
+  and `gate-sync-{typecheck,lint,test,build}.log`): typecheck 0; lint 0 (0 warnings); test 0 (857 files, 10,189 tests);
+  `zsh scripts/build-lock.sh pnpm build` 0; `pnpm lab:smoke --base http://localhost:3131` 0 (158 checks, 0 failing; `logs/lab-smoke-sync.log`;
+  scope: the seven boards that import a touched file, the Library and the shell; its PREMISE lines say create-wizard's
+  `add`, event-header's `facts` and `doors` and the-wait's `arrival` open asks describe the docs and `reel-card.tsx` this lane
+  touched: re-read them before his next sitting). Before the sync the same gate was green on `057c56a4` (854 files, 10,139
+  tests; `gate-final.summary`; lab:smoke 160 checks, `logs/lab-smoke.log`). Port 3131 freed, no Chrome of mine left running.
+- **Red first, logged** (`logs/red-1.log`, today's code, 29 reds over six files): the year typed keystroke by keystroke made
+  four saves, `0002-10-02`, `0020-10-02`, `0202-10-02`, then `2027-10-02 -> 3851-10-05` (the ledger's own); the day typed as
+  12 made two, `2026-10-01` then `12 -> 15`; an end day typed as 20 closed the range at the 2; the date's words, the cleared
+  date's patch, the reel card's stills and Settings' page head each red in their own test. All green on the work.
+- **The 375 capture** (Chrome 154, my own headless one, real key events by CDP, over the real Settings page and a write that
+  POSTs so the network counts the saves; `captures/capture-log.json` and 18 PNGs, `capture-dates.mjs`): the ledger's walk types
+  2027 into the year of October 2 to 4, four keystrokes and 0 saves, even past the beat, then one POST on leaving,
+  `{"event_date":"2027-10-02","event_end_date":"2027-10-04"}`; the day 12 one POST `12 to 14`; the end day 20 stays open at the
+  2 and saves once on Return with the focus kept; a year left at 0202 sends nothing and says "Pick a year from 1900 to 2100."
+  under the field; a segment cleared and left sends nothing and says "Finish the date, or clear it."; a whole clear is one
+  POST; ArrowUp twice is one POST; a pick no key made saves once a beat after it, and a wheel's three notches once.
+  `captures/10-reel-card-develop-ahead-vs-none.png` is the Reel card on a develop time ahead (plain) beside one with none.
+- **The migration** (`supabase/migrations/20261003200000_event_dates_finite.sql`, unapplied, the Orchestrator's by protocol
+  after the Advisor reads it): the range's CHECK re-said in its own name with `isfinite(event_end_date)`, and
+  `events_event_date_finite` beside it. Its rolled-back check (at its foot; logs `logs/migration-red.txt`,
+  `logs/migration-green.txt`, one `execute_sql` of `begin; ... rollback;` each on the live schema): RED on today's schema, steps
+  1 and 3 fail (the old definition; the owner's raw infinity accepted in the end, both days, the first day, `-infinity`, and
+  an insert of either, the row left at `-infinity`), steps 0 and 2 green; GREEN with the file, 4 of 4, the ADDs validating all
+  119 live rows. Rolled back clean both times (0 fixture rows, 119 events, the old constraint alone). Drift read: the live
+  CHECK is the repo's, no other CHECK on events names either date, 0 non-finite days. Advisors: expected delta none.
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): the owned paths, this file, and these exceptions:
+  - `src/components/app/event-settings/event-settings-sheet.tsx`: item 6's accepted exception (the brief's own), one
+    conditional prop on `PopupContent`, so a Settings panel opened at a page says it has no description.
+  - `src/lib/db/mutations/events.ts` and `events.test.ts`: item 3, where the patch is built: one statement, a cleared date
+    writes its end null too, and a test (and the whole-form save test names the derived key).
+  - `docs/systems/host-app.md`, `disposable-mode.md`, `database-security.md`: one refined passage each (this file's System-doc
+    edits).
+- **The items:**
+  1. MEDIUM: `EventDatesField` (`event-page.tsx`) saves a date once she has finished it (leaving, Return, the panel closing, or
+     a picker's choice a beat after the last), never a keystroke; a year outside 1900 to 2100 (`isSaneDay`, `dates.ts`) and a
+     half-filled date never save, said in words under the field; `dates.ts` also counts a year under 100 as the year it says
+     (`Date.UTC` read 0002 as 1902).
+  2. NIT: a malformed date speaks `DATE_UNREADABLE` and a year outside the window `DATE_OUT_OF_RANGE`, never zod's stock lines
+     (`validation/event.ts`; `event.dates.test.ts`).
+  3. NIT: a cleared date takes its end with it (`updateEvent`), so it never meets the CHECK's words.
+  4. NIT: validation refused `'infinity'` already (`z.iso.date`; pinned now, with the words); the migration makes the database
+     say it too.
+  5. NIT: the hub's Reel card draws no photograph while a develop time is ahead (`ReelCard`), the stills coming in at the
+     develop.
+  6. NIT: Settings' page-level head names no description (`event-settings-sheet.tsx`); Review and Guests (`RoomPanel`) never
+     warned, and `event-page.room.test.tsx` holds every hub room to it at a desk and in a hand.
+- **Assets requested from Will:** none.
+- **Board ideas:** none.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** the one migration above; no Worker, Vercel, Stripe or env.
+- **Not driven live:** the alias runs launch-prep, which carries none of this until it merges, so item 1's live walk (red-team
+  47's W1: the year 2027 typed into the October 2 to 4 range, the day 12, the end day 20) is the Orchestrator's on the alias
+  build; this lane's evidence is the real component in a real Chrome over a counting write.
+- **Calls his to overrule:** the Questions above, each built as its recommended answer: today's moved-first-day rule kept (not
+  a pure shift); the window 1900 to 2100; a picker's choice a beat after the last (350 ms); the Reel card following the
+  develop, not Look; a cleared date taking its end with it; a half-filled date never saved as a clear.
+- **Found beyond the lane (the last of the manifest's Deferred lines):** Settings' develop time saves any past time, which the
+  database stores as now and whose save opens every sealed row, so a year left half typed would develop the album.
+- **Look at first:** `EventDatesField`'s header and the "a date saves once she has finished it" tests, then the migration's
+  apply protocol with its two logs.
