@@ -148,8 +148,8 @@ is near it; **beam** marks the object that is the live subject. Ink tends to tak
   mask drive, `glw-drift-x`'s from-keyframe on the transform drive), never `50% 0`.
 - **`GlowFilter` mounts once per document**: in the root layout (the root 404, `not-found.site.tsx`, renders the footer
   outside `(marketing)`) and in each portalled lab frame (`FrameWindow`); SVG ids are document-global, so never a
-  second in one document. ★ **A missing filter host drops the whole filter
-  chain**, `blur()` included, and the five ellipses render as hard blobs, silently; `Glow` has a dev-only console guard.
+  second in one document. ★ **A missing filter host drops the whole filter chain**, `blur()` included, and the five
+  ellipses render as hard blobs, silently; `Glow` has a dev-only console guard.
 - **One clock**: lamps read `--spill-cadence`, never a literal; the Aurora's field reads `--aurora-cadence`, a slower
   sibling (a chapter-sized field on a lamp's clock reads as a screensaver). ★ The sibling stays declared in
   globals.css: an inline `vars` value outranks `--glw-dur`, so an undeclared cadence voids the `animation` shorthand and
@@ -683,8 +683,10 @@ board, its own sheet and scenes), found by the registry and the board route and 
   every lock and guard onto the realm's body, the lab's, so the lab's body keeps them only for a layer of its own, and a
   cancelling wheel or touch listener on the lab's document runs only while the lab holds a lock. Still the lab's: a
   direct `window.matchMedia` in production, radix's focus trap, and history (a place popup drawn open at a hand's
-  width costs the tab's Back one press, as a routed frame's does). A `loading="lazy"` image in it loads once it is in
-  the frame's own view; one below the frame's own fold waits for that frame's scroll, as on any page.
+  width costs the tab's Back one press, as a routed frame's does); and a frame's elements wear the frame's own
+  prototypes, so production's `instanceof HTMLElement` answers false there (the popup's open focus skips its panel). A
+  `loading="lazy"` image in it loads once it is in the frame's own view; one below the frame's own fold waits for that
+  frame's scroll, as on any page.
 
 ## Gotchas / don't-revert
 
