@@ -14,6 +14,11 @@
  * Pure, so every line is a unit test.
  */
 
+import {
+  TRACKER_SEALED_WORDS,
+  TRACKER_WORDS,
+} from "@/lib/guest/upload-tracker";
+
 export type CameraReveal = "develop" | "approve" | "live";
 
 /** Which album the camera shoots for, now: a develop time ahead, the host's approval, or straight in. */
@@ -155,13 +160,16 @@ export function yourShotsLine(input: {
     : "They’re in the album as you take them.";
 }
 
-/** Where one of her shots stands, in her list. */
+/**
+ * Where one of her shots stands, in her list: her tracker's own words for the same states (`upload-tracker.ts`, one
+ * state, one name), and the camera's for what only the camera says.
+ */
 export const SHOT_WORDS = {
-  taking: "Sending…",
-  sending: "Sending…",
-  in: "In the album",
-  sealed: "Developing",
-  held: "Waiting for approval",
+  taking: TRACKER_WORDS.sending,
+  sending: TRACKER_WORDS.sending,
+  in: TRACKER_WORDS.approved,
+  sealed: TRACKER_SEALED_WORDS,
+  held: TRACKER_WORDS.waiting,
   failed: "Didn’t send",
   removing: "Removing…",
   removeFailed: "Couldn’t remove it",

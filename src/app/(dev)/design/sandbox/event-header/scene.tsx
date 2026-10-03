@@ -11,29 +11,28 @@ import {
 import { type BoardState, Fit, Frame, Measured } from "@/components/lab";
 
 /**
- * THE FRAMES A HEAD IS READ IN, AND WHAT EACH ONE MEASURES.
+ * THE FRAMES THE HUB IS READ IN, AND WHAT EACH ONE MEASURES.
  *
  * ★ A REAL VIEWPORT, NEVER A STYLED DIV (the kit's `vw-in-a-narrow-div`
- * trap): a head is mostly type on the ladder's `vw` clamps, and the guest's
- * column, the hub's wide page and every breakpoint in them read the frame's
- * width only inside a same-origin frame at its true size. 375 by 812 is the
- * phone off a printed code; 1440 by 900 the laptop.
+ * trap): the hub is the app's wide page, a cover on the ladder's `vw` clamps
+ * and a row that changes shape at `sm`, all of which read the frame's width
+ * only inside a same-origin frame at its true size. 1440 by 900 is her
+ * laptop; 375 by 812 the phone in her hand at the party.
  *
- * ★ A HEAD IS JUDGED ON ARRIVAL AND ONCE THE PAGE HAS MOVED ON, so an option is
- * two frames: the first screen as it lands, and the same page scrolled into
- * the album, where what stays (the dock, a stuck row, a bar) is the head's
- * second half. The scroll is the frame's own (`ScrollTo`), so a sticky piece
- * sticks and a fixed one stands where it really does.
+ * ★ A STILL FRAME IS INERT (a picture, never a control); TRY IT IS LIVE. A
+ * rooms option's first frame is the hub running in that option, its doors
+ * pressable and its rooms closable, because what that decision chooses is
+ * how a press feels, and a still can only show where it lands.
  *
- * ★ NOTHING HERE REACHES A SESSION, A SERVER FUNCTION OR THE NETWORK: the
- * hub's head needs a session and the album's a live provider, so each is
- * composed here from production's presentational pieces in its own order and
- * words, and every frame is INERT, a picture and never a control.
+ * ★ NOTHING HERE REACHES A SESSION, A SERVER FUNCTION OR THE NETWORK beyond
+ * the stills and the code's renderer: the hub reads a session and the album's
+ * live store, so it is composed from production's presentational pieces in
+ * its own order, and its state is local.
  *
- * ★ EVERY CAPTION IS READ OFF THE FRAME, NEVER COMPUTED: where the album's
- * first photograph lands, how many words stand above it, where the primary
- * action sits and how big the code is, found by the marks each drawing puts on
- * its own pieces (`data-eh-*`).
+ * ★ EVERY CAPTION IS READ OFF THE FRAME, NEVER COMPUTED: where the album
+ * starts, how many words the cover says, how big the night's instrument and
+ * the doors are, what shape a room opened in, found by the marks each drawing
+ * puts on its own pieces (`data-eh-*`).
  */
 
 export const SCREENS = {
@@ -43,23 +42,19 @@ export const SCREENS = {
 
 export type ScreenId = keyof typeof SCREENS;
 
-/** The guest's screen knob: a phone off the printed code first. */
-export const guestScreenOf = (s: BoardState): ScreenId =>
-  s["guest-screen"] === "1440" ? "1440" : "375";
+/** The Screen knob: her laptop first. */
+export const screenOf = (s: BoardState): ScreenId =>
+  s.screen === "375" ? "375" : "1440";
 
-/** The host's screen knob: her laptop first. */
-export const hostScreenOf = (s: BoardState): ScreenId =>
-  s["host-screen"] === "375" ? "375" : "1440";
-
-/** The gap between two frames of a row, in the lab's own pixels. */
+/** The gap between two phones of a row, in the lab's own pixels. */
 const GAP = 24;
 
 export type Probe = (root: HTMLElement, win: Window) => string | null;
 
 /**
  * SCROLLS THE FRAME'S OWN WINDOW, once its document is there, so a frame that
- * shows the page moved on is the page really scrolled: the sticky pieces
- * stick and the fixed ones stand where they do in production.
+ * shows the page moved on is the page really scrolled: the sticky band sticks
+ * and the fixed pieces stand where they do in production.
  */
 export function ScrollTo({ y }: { y: number }) {
   const ref = useRef<HTMLSpanElement | null>(null);
@@ -76,15 +71,13 @@ export function ScrollTo({ y }: { y: number }) {
   return <span ref={ref} aria-hidden hidden />;
 }
 
-/**
- * ONE FRAME. `bare` drops its own zoom-fit, for a frame standing in a row
- * that is fitted as one canvas.
- */
+/** One frame; `bare` drops its own fit, for a frame in a row fitted as one canvas. */
 export function Scene({
   id,
   screen,
   title,
   measure,
+  live = false,
   bare = false,
   children,
 }: {
@@ -92,6 +85,8 @@ export function Scene({
   screen: ScreenId;
   title: string;
   measure: Probe;
+  /** A frame he presses (Try it); every other frame is a picture. */
+  live?: boolean;
   bare?: boolean;
   children: ReactNode;
 }) {
@@ -109,10 +104,14 @@ export function Scene({
         probe={measure}
         deps={[id, screen]}
         onMeasure={setCaption}
-        timers={[300, 1000, 2000]}
+        timers={[300, 1000, 2200]}
         className="min-h-full"
       >
-        <div inert>{children}</div>
+        {live ? (
+          <div data-eh-live="">{children}</div>
+        ) : (
+          <div inert>{children}</div>
+        )}
       </Measured>
     </Frame>
   );
@@ -123,8 +122,8 @@ export type StripFrame = {
   id: string;
   title: string;
   node: ReactNode;
-  /** What the caption reads; the head's own probe by default. */
-  measure?: Probe;
+  measure: Probe;
+  live?: boolean;
 };
 
 /** The lab's own window at a phone's width: below `sm`, where its column is a phone's. */
@@ -146,9 +145,11 @@ function useOnPhone(): boolean {
 }
 
 /**
- * A STRIP OF FRAMES: phones side by side in one fitted canvas (one scale, one
- * baseline), laptops stacked, and phones stacked too when the lab itself is
- * read on a phone. `lede` is the one line above the row saying what it holds.
+ * AN OPTION'S FRAMES: phones side by side in one fitted canvas (one scale,
+ * one baseline), laptops stacked (the step's stage lays a stack out as the
+ * row that draws it largest), and phones stacked too when the lab itself is
+ * read on a phone. `lede` is the one line above the frames saying what they
+ * hold.
  */
 export function Strip({
   screen,
@@ -175,7 +176,8 @@ export function Strip({
             id={f.id}
             screen={screen}
             title={f.title}
-            measure={f.measure ?? measureHead(SCREENS[screen].h)}
+            measure={f.measure}
+            live={f.live}
           >
             {f.node}
           </Scene>
@@ -195,7 +197,8 @@ export function Strip({
               id={f.id}
               screen="375"
               title={f.title}
-              measure={f.measure ?? measureHead(SCREENS["375"].h)}
+              measure={f.measure}
+              live={f.live}
               bare
             >
               {f.node}
@@ -209,75 +212,129 @@ export function Strip({
 
 /* ── what the frames measure ───────────────────────────────────────────────── */
 
-const clean = (s: string | null | undefined) =>
-  (s ?? "").replace(/\s+/g, " ").trim();
-
-const wordsIn = (el: Element | null) =>
-  clean((el as HTMLElement | null)?.innerText)
-    .split(/\s+/)
-    .filter((w) => /[A-Za-z0-9]/.test(w)).length;
+/**
+ * The words a reader meets in an element: every text node outside a screen
+ * reader's own line (`.sr-only`, laid out but never seen), split on
+ * whitespace, a token counted when it holds a letter or a digit. A glyph
+ * count's number is a word here: it is read.
+ */
+export function wordsIn(el: Element | null): number {
+  if (!el) return 0;
+  const doc = el.ownerDocument;
+  const walk = doc.createTreeWalker(el, 4 /* NodeFilter.SHOW_TEXT */);
+  let n = 0;
+  for (let t = walk.nextNode(); t; t = walk.nextNode()) {
+    if (t.parentElement?.closest(".sr-only, svg")) continue;
+    for (const token of (t.textContent ?? "").split(/\s+/))
+      if (/[\p{L}\p{N}]/u.test(token)) n++;
+  }
+  return n;
+}
 
 const px = (n: number) => `${Math.round(n)}px`;
 
+/** Where the album's first photograph lands on the first screen, or that it is below it. */
+function albumStart(root: HTMLElement, screenH: number): string | null {
+  const tile = root.querySelector("[data-eh-tile]");
+  if (tile) {
+    const top = tile.getBoundingClientRect().top;
+    if (top >= screenH) return "the album starts below the first screen";
+    if (top < 0) return null;
+    return `the album starts ${px(top)} down (${Math.round((top / screenH) * 100)}%)`;
+  }
+  const empty = root.querySelector("[data-eh-empty]");
+  if (empty) {
+    const top = empty.getBoundingClientRect().top;
+    return top >= screenH
+      ? "the empty album starts below the first screen"
+      : `the empty album starts ${px(top)} down`;
+  }
+  return null;
+}
+
 /**
- * THE CAPTION UNDER A HEAD, read off the frame: where the album's first
- * photograph lands on the first screen (or that it is below it), the words the
- * head says, where the primary action sits and how tall it is, how big the
- * code is where the head carries one, and what stays at an edge once the page
- * has moved on. `null` until the album and the head are both laid out.
+ * THE COVER'S CAPTION: the words it says (the code's own glyphs aside), how big
+ * the night's instrument is where it carries one, and where the album starts.
  */
-export const measureHead =
+export const measureFacts =
   (screenH: number): Probe =>
   (root) => {
     const head = root.querySelector("[data-eh-head]");
     if (!head) return null;
-    const parts: string[] = [];
-    const tile = root.querySelector("[data-eh-tile]");
-    if (tile) {
-      const top = tile.getBoundingClientRect().top;
+    const parts: string[] = [`the cover says ${wordsIn(head)} words`];
+    const dial = root.querySelector("[data-eh-dial]");
+    if (dial) {
+      const r = dial.getBoundingClientRect();
       parts.push(
-        top >= screenH
-          ? "the album starts below the first screen"
-          : top < 0
-            ? "the album fills the screen"
-            : `the album starts ${px(top)} down (${Math.round((top / screenH) * 100)}% of the screen)`,
+        `the dial ${px(r.width)} across, ${dial.getAttribute("data-eh-dial")}`,
       );
-    } else {
-      const empty = root.querySelector("[data-eh-empty]");
-      if (empty)
-        parts.push(
-          `the empty album starts ${px(empty.getBoundingClientRect().top)} down`,
-        );
     }
-    const headBox = head.getBoundingClientRect();
-    if (headBox.bottom > 0) parts.push(`the head says ${wordsIn(head)} words`);
-    const primary = root.querySelector("[data-eh-primary]");
-    if (primary) {
-      const r = primary.getBoundingClientRect();
-      if (r.height > 0 && r.bottom > 0 && r.top < screenH)
-        parts.push(
-          `${clean((primary as HTMLElement).innerText) || "the primary"} at ${px(r.top)}, ${px(r.height)} tall`,
-        );
+    const strip = root.querySelector("[data-eh-strip]");
+    if (strip) {
+      const r = strip.getBoundingClientRect();
+      parts.push(
+        `the strip ${px(r.width)} by ${px(r.height)}, ${strip.getAttribute("data-eh-strip")}`,
+      );
     }
-    const code = root.querySelector("[data-eh-code]");
-    if (code) {
-      const r = code.getBoundingClientRect();
-      if (r.width > 0 && r.bottom > 0) parts.push(`the code ${px(r.width)}`);
+    const code = root.querySelector("[data-code-door]");
+    if (code) parts.push(`the code ${px(code.getBoundingClientRect().width)}`);
+    const start = albumStart(root, screenH);
+    if (start) parts.push(start);
+    return `Measured: ${parts.join("; ")}.`;
+  };
+
+/**
+ * THE DOORS' CAPTION: how many, how big, whether they stand on the cover or
+ * under it, where the album starts, and the band's height once it has stuck.
+ */
+export const measureDoors =
+  (screenH: number): Probe =>
+  (root) => {
+    // The doors on the first screen: a cover scrolled away takes its own with it.
+    const doors = [...root.querySelectorAll("[data-eh-door]")].filter((d) => {
+      const r = d.getBoundingClientRect();
+      return r.width > 0 && r.bottom > 56 && r.top < screenH;
+    });
+    if (doors.length === 0) return null;
+    const parts: string[] = [];
+    const first = doors[0].getBoundingClientRect();
+    const where = doors[0].closest("[data-eh-head]")
+      ? "on the cover"
+      : doors[0].closest("[data-eh-band][data-stuck]")
+        ? "in the stuck band"
+        : "under the cover";
+    parts.push(
+      `${doors.length} doors ${where}, the first ${px(first.width)} by ${px(first.height)}`,
+    );
+    const band = root.querySelector("[data-eh-band][data-stuck]");
+    if (band)
+      parts.push(`the band ${px(band.getBoundingClientRect().height)} tall`);
+    const start = albumStart(root, screenH);
+    if (start) parts.push(start);
+    return `Measured: ${parts.join("; ")}.`;
+  };
+
+/**
+ * A ROOM'S CAPTION: what shape it opened in and how much of the screen it
+ * takes, and whether the hub still stands behind it.
+ */
+export const measureRoom =
+  (screenW: number): Probe =>
+  (root) => {
+    const room = root.querySelector("[data-eh-room]");
+    if (!room) {
+      const doors = root.querySelectorAll("[data-eh-door]").length;
+      return doors
+        ? `Measured: the hub at rest, ${doors} doors to press.`
+        : null;
     }
-    const stays = root.querySelector("[data-eh-stays]");
-    if (stays) {
-      // Production's dock is fixed inside its own wrapper, so the wrapper has
-      // no box: what is measured is the bar itself.
-      const bar =
-        stays.getBoundingClientRect().height > 0
-          ? stays
-          : (stays.querySelector('[role="group"]') ?? stays);
-      const r = bar.getBoundingClientRect();
-      if (r.height > 0)
-        parts.push(
-          `what stays: ${stays.getAttribute("data-eh-stays")}, ${px(r.height)} tall`,
-        );
-    }
-    if (parts.length === 0) return null;
+    const r = room.getBoundingClientRect();
+    if (r.width === 0) return null;
+    const shape = room.getAttribute("data-eh-shape") ?? "room";
+    const parts = [
+      `${room.getAttribute("data-eh-room")} opens as ${shape}, ${px(r.width)} wide (${Math.round((r.width / screenW) * 100)}% of the screen)`,
+    ];
+    if (root.querySelector("[data-eh-behind]"))
+      parts.push("the hub stands behind it");
     return `Measured: ${parts.join("; ")}.`;
   };

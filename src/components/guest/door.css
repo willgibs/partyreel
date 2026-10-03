@@ -129,14 +129,29 @@
     }
   }
 
-  /* THE WELCOME'S PRESENCE ("tall ~55svh", the Calm arrival): on a phone the
-     invitation stands toward the screen's centre instead of hugging the bottom
-     edge (Will's "eyes go to center"). The phone half only: the desk panel is
-     full height already. The step container's height transition turns the
-     welcome-to-chooser shrink into the same glide. */
-  @media (width < 40rem) {
-    [data-entry-sheet] [data-welcome-step] {
-      min-height: 55svh;
+  /* ★ THE ALBUM WAITS FOR HER WITH ITS WORDS (door-reveal). While the door
+     stands over an album she may see (the welcome, the moment she is let in)
+     and while a success beat holds, the page's reveal curtain
+     (`[data-reveal-curtain]`, globals.css, `event-experience.tsx`) holds the
+     cover's words and the album's photographs at their entrance; these hold
+     the rest with them: the cover's own name, and everything the page draws
+     below the cover (`[data-door-below]`: the album's count and its menus, its
+     empty river, the guest list, the report line). So the album under the door
+     is the cover's photographs on the page's ground, exactly what the walk
+     through lands, and when the curtain lifts it all rises in: the name first,
+     then the byline and the actions, then the album. Reduced motion never holds
+     anything back (no curtain rules), as the curtain's own rules do not. */
+  @media (prefers-reduced-motion: no-preference) {
+    [data-reveal-curtain] [data-event-head] [data-arrive] {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    [data-door-below] {
+      transition: opacity 280ms var(--ease-emphasis) 160ms;
+    }
+    [data-reveal-curtain] [data-door-below] {
+      opacity: 0;
+      transition: none;
     }
   }
 }

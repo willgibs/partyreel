@@ -4,9 +4,9 @@ import type { CSSProperties } from "react";
 
 import { BreadcrumbJsonLd } from "@/components/marketing/jsonld";
 import {
-  ContactSheet,
+  ProofSheet,
   SelectMark,
-} from "@/components/marketing/sections/careers/contact-sheet";
+} from "@/components/marketing/sections/careers/proof-sheet";
 import {
   CareersStory,
   HERO_SELECTS,
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
 /**
  * THE CAREERS HUB (the photographic rebuild).
  *
- *   CINEMA  the contact sheet + "Join our team"
+ *   CINEMA  the proof sheet + "Join our team"
  *   PAPER   the roll -> the selects -> the reel, how we work, open roles, close
  *   INK     the footer
  *
@@ -103,7 +103,7 @@ export default function CareersPage() {
         backdrop={
           <>
             <div aria-hidden className="pointer-events-none absolute inset-0">
-              <ContactSheet
+              <ProofSheet
                 selects={HERO_SELECTS}
                 columns="grid-cols-5 sm:grid-cols-7 lg:grid-cols-9"
                 repeat={3}

@@ -54,16 +54,17 @@ faq:
 
 ## The tag registry
 
-Six tags, in `src/lib/content/blog-tags.ts`. Three AUDIENCES (who the post is for) and three
-PURPOSES (what kind of piece it is). A post carries one or two tags: at most one audience, and a
-purpose (a second purpose is allowed where the piece is both, e.g. a comparison written as a
-guide). A group-trip guide carries `how-to` alone.
+Seven tags, in `src/lib/content/blog-tags.ts`. Four AUDIENCES (who the post is for: the four event
+types) and three PURPOSES (what kind of piece it is). A post carries one or two tags: at most one
+audience, and a purpose (a second purpose is allowed where the piece is both, e.g. a comparison
+written as a guide). Reunions file under `trips`, as `/events/trips` files them.
 
 | id | kind | label | The library line under the heading |
 | --- | --- | --- | --- |
 | `weddings` | audience | Weddings | Receptions, ceremonies, rehearsal dinners: every guest's angle of the day. |
-| `parties` | audience | Parties | Birthdays, showers, graduations, reunions and holidays, before anyone leaves. |
+| `parties` | audience | Parties | Birthdays, showers, graduations and holidays, before anyone leaves. |
 | `corporate` | audience | Corporate | Conferences, offsites and team events, curated before they are reshared. |
+| `trips` | audience | Trips | Group vacations, reunions and bachelor trips: the whole crew in one album. |
 | `how-to` | purpose | How-to | Practical guides for collecting, curating and sharing event photos. |
 | `compared` | purpose | Compared | How a QR event album stacks up against the ways guests already share. |
 | `product` | purpose | Product | How Partyreel works under the hood, and why it works that way. |

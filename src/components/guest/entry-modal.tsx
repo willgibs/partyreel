@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
@@ -17,13 +18,15 @@ import { updateDisplayNameAction } from "@/app/(app)/account/actions";
 import { DOOR_WEAR } from "@/components/auth/account-door";
 import { AskStep } from "@/components/guest/door/ask-step";
 import { chooserCopy, DoorChooser } from "@/components/guest/door/chooser";
-import { DoorCheck } from "@/components/guest/door/lit";
+import { DOOR_SCRIM, DoorCheck } from "@/components/guest/door/lit";
 import { SigninStep, signinCopy } from "@/components/guest/door/signin-step";
 import {
   DoorStage,
+  RestWords,
   StageBeat,
   type StageDoor,
 } from "@/components/guest/door/stage";
+import { walkThrough, type Walk } from "@/components/guest/door/stage-walk";
 import {
   SendingPicks,
   type WaitPick,
@@ -57,9 +60,12 @@ import {
 import {
   computeDoor,
   doorBack,
+  stageFaceOf,
   stepOpensAlbum,
+  type DoorArrival,
   type DoorPath,
   type EntryStep,
+  type StageFace,
 } from "@/lib/guest/entry-steps";
 import { joinEvent } from "@/lib/guest/join";
 import { putDownKeepAsk } from "@/lib/guest/keep-ask";
@@ -71,6 +77,7 @@ import { useWelcomeSeen } from "@/lib/guest/use-welcome-seen";
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
 import { useHydrated } from "@/lib/shared/use-hydrated";
 import { createClient } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils";
 
 /**
  * The invitation's first promise, in the album's own kinds: its home is the welcome at the doorway
@@ -78,15 +85,17 @@ import { createClient } from "@/lib/supabase/client";
  */
 export { welcomeAddLine } from "@/components/guest/door/welcome";
 
-/**
- * What stands on the stage, the door as its own page (`door/stage.tsx`): the welcome (the demo's role
- * step, `role`), the ask, the wait, the moment the door she waited at opens (`beat`), and at a gate the
- * door at rest under a step of the sheet (`rest`).
- */
-type StageFace = "welcome" | "role" | "ask" | "waiting" | "beat" | "rest";
-
 /** How long a stage that has left stays drawn: its fade (`doorway.css`, 320ms) and a margin. */
 const STAGE_EXIT_MS = 400;
+
+/**
+ * How long the album stands, once she has walked in, before a step the door still owes rises over it: the
+ * arrival lands (the cover's words rising) and then the next ask comes, never on top of it.
+ */
+const SETTLE_AFTER_WALK_MS = 420;
+
+/** A door the page drew nothing for (the tests' default, and a page with no arrival to say). */
+const NO_ARRIVAL: DoorArrival = { face: null, scrim: false };
 
 export type EntryModalHandle = {
   /** The teaser's "See all N" re-asserts the sheet at whatever step it is on. */
@@ -234,8 +243,13 @@ export const EntryModal = forwardRef<
     keepDue?: boolean;
     /** Her photographs that landed this visit, which the ask counts (live). */
     keepCount?: number;
-    /** The event holds uploads for the host, so what she sent is waiting rather than in. */
+    /**
+     * What she adds waits (`uploadsWait`'s `waits`: the host's approval, or a develop time ahead), so what she sent
+     * is waiting rather than in.
+     */
     keepHeld?: boolean;
+    /** The album's develop time while it is ahead: what she sent waits for it, and the keep says when. */
+    keepDevelopsAt?: string | null;
     /**
      * The address typed under her name this visit, in memory only (the page's state), so the keep's
      * account door opens on it rather than asking twice.
@@ -244,9 +258,8 @@ export const EntryModal = forwardRef<
     /** The keep was confirmed here: the page stops asking before the refresh lands. */
     onKeepAnswered?: () => void;
     /**
-     * The door stands as the page (the stage is open), reported before paint and again on every
-     * change, so the page holds the album under it `inert` and draws its own twin of a gate's door only
-     * until the stage arrives.
+     * The door stands as the page (the stage is open, or walking through), reported before paint and
+     * again on every change, so the page holds the album under it `inert` and its words back.
      */
     onStageChange?: (open: boolean) => void;
     /**
@@ -254,6 +267,23 @@ export const EntryModal = forwardRef<
      * (`holdAtDoor`): never sent before.
      */
     onHold?: (files: File[]) => void;
+    /** The page's word on the welcome: whether this request carried its cookie (`use-welcome-seen.ts`). */
+    welcomeSeen?: boolean;
+    /**
+     * ★ WHAT THE PAGE'S FIRST BYTE DREW (`entry-steps.ts`'s `doorArrival`): the door's page standing from the
+     * first byte, or the door's scrim over the album where a sheet step comes first. The door draws exactly
+     * that on the server and in the hydration, and its own machine takes over after.
+     */
+    arrival?: DoorArrival;
+    /** The album's cover for the open door's opening (`CoverPicture`), where she may see it. */
+    view?: ReactNode;
+    /** Where on the wheel the resting light starts its turn (the page draws one per visit). */
+    phase?: number;
+    /**
+     * The page is still finding out who this browser is (its ticket heal, `event-experience.tsx`): the
+     * sheet waits, the door's page stands.
+     */
+    healing?: boolean;
   }
 >(function EntryModal(
   {
@@ -290,17 +320,23 @@ export const EntryModal = forwardRef<
     keepDue = false,
     keepCount = 0,
     keepHeld = false,
+    keepDevelopsAt = null,
     hintEmail = null,
     onKeepAnswered,
     onStageChange,
     onHold,
+    welcomeSeen = false,
+    arrival = NO_ARRIVAL,
+    view,
+    phase,
+    healing = false,
   },
   ref,
 ) {
   const router = useRouter();
   // The demo never persists "seen": every visit is fresh, even a returning one, so the hook
-  // itself is told which visitor this is.
-  const [seen, markSeen] = useWelcomeSeen(qrToken, isDemo);
+  // itself is told which visitor this is; and the page's word stands for the server and the hydration.
+  const [seen, markSeen] = useWelcomeSeen(qrToken, isDemo, welcomeSeen);
   // THE EDIT DOOR's own open state: a SECOND door through the same shell rather than a step, and
   // the only free surface here (see the handle's comment). Its value is the door's mode: a guest's
   // row (`edit`) or a confirmed account's profile (`account`).
@@ -312,24 +348,27 @@ export const EntryModal = forwardRef<
   /* ★ THE WAY IN, picked at the chooser. Modal state for this visit alone: going back to the
      chooser clears it and nothing persists it (entry-steps.ts's own note on `DoorPath`). */
   const [path, setPath] = useState<DoorPath | null>(null);
-  /* ★ THE NAME TYPED ON `identify`, kept for the confirmation's four writes (a profile with no
-     name takes it). It never counts as a name for the machine: the name and the email are one
-     screen now, so there is no held name for a later step to follow. A magic-link round trip that
-     loses it recovers as the `profile` mode, prefilled from `pr_guest_name_last`, or through the
-     `door_name` the code request carried. */
+  /* ★ THE NAME TYPED ON A NAME-ONLY EVENT'S CREATE ACCOUNT (`identify`'s `create`), kept for the
+     confirmation's four writes (a profile with no name takes it). A verification event's `identify`
+     types none: there the email comes first and the name after, asked only of an account that has
+     none (the door's `profile` name step). A magic-link round trip that loses it recovers as the
+     `profile` mode, prefilled from `pr_guest_name_last`, or through the `door_name` the code request
+     carried. */
   const [typedName, setTypedName] = useState<string | null>(null);
   // The OFF state's soft skip, once per pass. ON there is no skip to press, and `computeDoor`
   // ignores this flag entirely in that state so a stale one can never open an album.
   const [skipped, setSkipped] = useState(false);
   const sheetRef = useRef<HTMLDivElement>(null);
-  // Open only AFTER hydration: useWelcomeSeen's server snapshot is `seen=true`, so deciding `open`
-  // during SSR/hydration would flash the wrong step before the real value resolves.
+  // The SHEET opens only AFTER hydration: it is the browser's own (the name this device typed, the way
+  // in it picked), which no server render knows. The door's page is the server's (below).
   const hydrated = useHydrated();
 
-  /* THE NAME THIS BROWSER HAS, from whichever of the two places holds it: the per-event key a
-     join wrote, or a confirmed account's own profile name (which is a fact about the person, not
-     a question for this album). */
-  const hasName = Boolean(storedName) || (isVerified && hasProfileName);
+  /* THE NAME THIS BROWSER HAS: a confirmed account's own profile name (a fact about the person, not a
+     question for this album), else the per-event key a join wrote. ★ A CONFIRMED ACCOUNT'S NAME IS ITS
+     PROFILE'S, NEVER A NAME THIS DEVICE TYPED AT SOME EARLIER DOOR: her photographs carry the profile's
+     name, so an account with none is asked for one (Will, 2026-10-02: the name after the email, asked
+     only of an account that has none), whatever an old ticket's name says. */
+  const hasName = isVerified ? hasProfileName : Boolean(storedName);
 
   const { steps, autoOpen } = computeDoor({
     gate,
@@ -381,10 +420,78 @@ export const EntryModal = forwardRef<
   useEffect(() => {
     onHoldingChange?.(holding);
   }, [holding, onHoldingChange]);
-  // And whether the door is still owed (see the prop's own note). Hydrated only: before it, `seen`
-  // is the server's optimistic `true`, and a first report of "clear" would let a `?reel` open
-  // under a welcome that arrives a frame later.
-  const pending = current !== null || holding;
+  /* ★ THE WALK THROUGH THE DOOR (locked-door r3, `reveal=through`; `door/stage-walk.ts`): where the door is
+     open onto the album (a Public album's welcome, the moment she is let in), she does not watch it fade,
+     she walks through it onto the album's cover. While she walks, the stage holds its last face and the
+     sheet waits; once she has arrived the stage goes in a breath, and a step the door still owes rises
+     only after the album has stood a moment (`SETTLE_AFTER_WALK_MS`). */
+  const [walk, setWalk] = useState<"welcome" | "beat" | null>(null);
+  const [walked, setWalked] = useState(false);
+  const [settling, setSettling] = useState(false);
+  useEffect(() => {
+    if (!settling) return;
+    const id = setTimeout(() => setSettling(false), SETTLE_AFTER_WALK_MS);
+    return () => clearTimeout(id);
+  }, [settling]);
+  const onWalked = useCallback(() => {
+    setWalk(null);
+    setWalked(true);
+    setSettling(true);
+  }, []);
+  // The stage's own box, and the walk running through it (the compositor's from its first frame).
+  const stageEl = useRef<HTMLDivElement>(null);
+  const running = useRef<Walk | null>(null);
+  /** The last walk that arrived: one whose own work comes after it (`Walk.started`) must not walk it again. */
+  const arrived = useRef<Walk | null>(null);
+  /** Walk through the stage's open door now; null where it cannot be walked (the stage then fades). */
+  const startWalk = useCallback((): Walk | null => {
+    const el = stageEl.current;
+    const run = el ? walkThrough(el) : null;
+    if (!run) return null;
+    running.current = run;
+    run.done.then(
+      () => {
+        arrived.current = run;
+        if (running.current === run) onWalked();
+      },
+      () => {},
+    );
+    return run;
+  }, [onWalked]);
+  // ★ A WALK THAT ARRIVED KEEPS ITS LAST FRAME while the stage goes in its breath (`walked`); it lets go of
+  // its frames only when the door opens again (a review of the welcome stands as itself) or goes away.
+  useEffect(
+    () => () => {
+      running.current?.cancel();
+      running.current = null;
+    },
+    [],
+  );
+  const walkedBefore = useRef(walked);
+  useLayoutEffect(() => {
+    if (walkedBefore.current && !walked && running.current) {
+      running.current.cancel();
+      running.current = null;
+    }
+    walkedBefore.current = walked;
+  }, [walked]);
+  // The door she waited at opened (the beat), and the refresh has brought the album under it: she walks
+  // through it the moment the beat lets go, rather than watching the door fade.
+  const beatNow = holding && heldStep === "waiting";
+  const [beatWas, setBeatWas] = useState(beatNow);
+  if (beatNow !== beatWas) {
+    setBeatWas(beatNow);
+    if (!beatNow && access !== "none") setWalk("beat");
+  }
+  useLayoutEffect(() => {
+    if (walk !== "beat" || running.current) return;
+    // A door that cannot be walked through (reduced motion, nothing measured) fades where it stood.
+    if (!startWalk()) void Promise.resolve().then(onWalked);
+  }, [walk, startWalk, onWalked]);
+
+  // And whether the door is still owed (see the prop's own note), walking through it included. Hydrated
+  // only: the page treats the door as owed until it hears, so a `?reel` never opens under a door.
+  const pending = current !== null || holding || walk !== null;
   useEffect(() => {
     if (!hydrated) return;
     onPendingChange?.(pending);
@@ -409,8 +516,14 @@ export const EntryModal = forwardRef<
   const atDoorEmail =
     steps.length === 1 && access === "none" && gate === "account";
 
+  // The door's steps open after hydration and the arrival beat; the ticket heal and an arrival still
+  // settling (`walk`) hold the sheet a moment more. The door's own page does not wait (below).
   const open =
-    (hydrated && current !== null && (!autoOpen || beatReady)) ||
+    (hydrated &&
+      current !== null &&
+      (!autoOpen || beatReady) &&
+      !healing &&
+      !settling) ||
     holding ||
     // The edit door, ORed in: it opens over an album with no step pending at all.
     (hydrated && editOpen !== null);
@@ -471,10 +584,10 @@ export const EntryModal = forwardRef<
   /* ────────────────────────────────────────────────────────────────────────
      WHAT HAPPENS THE INSTANT A CODE CONFIRMS (identify and Log in share it).
 
-     The steps cannot own this: `identify` holds a NAME that has never been sent anywhere, and the
-     order the four writes happen in is the whole difference between a guest who lands named and
-     one whose photographs carry no name. So both steps take a plain callback and the sequence is
-     the modal's:
+     The steps cannot own this: a name-only event's Create account (`identify`'s `create`) holds a NAME
+     that has never been sent anywhere, and the order the four writes happen in is the whole difference
+     between a guest who lands named and one whose photographs carry no name. So both steps take a plain
+     callback and the sequence is the modal's:
 
        1. claim this browser's anonymous uploads onto the freshly confirmed account;
        2. join, VERIFIED and nameless (create_guest nulls a typed name beside a confirmed
@@ -484,8 +597,12 @@ export const EntryModal = forwardRef<
        5. hold the beat (when the album is directly behind), then refresh.
 
      ★ THE ACCOUNT'S NAME WINS. A confirmed viewer whose profile already says "Priya" is credited
-     as Priya even if they typed "P" at the door a minute ago: one person, one name, and the
-     identify step says so under the name field before they confirm.
+     as Priya even if they typed "P" at Create account a minute ago: one person, one name, and the
+     identify step says so under the name field before they confirm. ★ WHERE VERIFICATION IS
+     REQUIRED NOTHING IS TYPED BEFORE THE CODE (Will, 2026-10-02: "handle name after so we aren't
+     handling two different versions for every new event on that account"): the account a code reaches
+     keeps its own name, and an account with none is asked for one by the door's next step, as its own
+     (the name step's `profile` mode), once.
 
      ★ AND THEN SHE IS TOLD (`guest-capture` r1, Will's `name=told`): the name her photographs now
      carry, whenever she typed one at this door, whichever name won. Told once, with whatever the
@@ -645,6 +762,12 @@ export const EntryModal = forwardRef<
 
      ★ ONLY A STAGE THAT HAS OPENED IS DRAWN, and it stays drawn while it leaves (its last words and door
      latched, as the sheet's are), so it fades where it stood and its words rise afresh each time it opens.
+
+     ★ THE DOOR'S PAGE IS THE SERVER'S, SO IT IS THE FIRST BYTE (door-reveal; Will's rule: "the album is
+     never visible before any door/gate that should be encountered first"). A face the machine stands on
+     by itself (the welcome, the ask, the wait, a gate's door at rest) is decided from what the server knows,
+     so it is drawn in the page's own HTML and the hydration, open from the first frame with no beat and no
+     fade (`first`); only the sheet's steps, the browser's own, wait for hydration and the arrival beat.
      ──────────────────────────────────────────────────────────────────────── */
   const face: StageFace | null =
     editOpen !== null
@@ -673,20 +796,29 @@ export const EntryModal = forwardRef<
           : face === "rest" && holding
             ? { state: "open", album: false }
             : { state: "shut", album: false };
-  const stageOpen = open && face !== null;
+  // The machine's own face: the one the server drew, standing with no beat and no hydration to wait for.
+  const machineFace = stageFaceOf({ current, access, isDemo });
+  const stageOpen =
+    walk !== null || (face !== null && (face === machineFace || open));
   const [stage, setStage] = useState<{
     face: StageFace;
     door: StageDoor;
     /** How many times the stage has opened: its words rise afresh each time. */
     opened: number;
-  } | null>(null);
+  } | null>(() =>
+    stageOpen && face !== null ? { face, door: stageDoor, opened: 1 } : null,
+  );
+  // Whether the page's first byte drew the stage: that one arrives with no fade of its own.
+  const [drawnFirst] = useState(() => stageOpen && arrival.face !== null);
   // The sanctioned adjust-state-during-render pattern (the step latch's own): what the stage shows is
-  // latched while it is open, and counted each time it opens.
-  const [stageWasOpen, setStageWasOpen] = useState(false);
+  // latched while it is open (and while she walks through it), and counted each time it opens.
+  const [stageWasOpen, setStageWasOpen] = useState(stageOpen);
   const reopened = stageOpen && !stageWasOpen;
   if (stageOpen !== stageWasOpen) setStageWasOpen(stageOpen);
+  if (reopened && walked) setWalked(false);
   if (
     stageOpen &&
+    walk === null &&
     face !== null &&
     (reopened ||
       stage === null ||
@@ -708,15 +840,42 @@ export const EntryModal = forwardRef<
     const gone = setTimeout(() => setStage(null), STAGE_EXIT_MS);
     return () => clearTimeout(gone);
   }, [stageOpen, stage]);
-  // The sheet rises for every step that is not the stage's alone (a gate's steps over the door at rest).
-  const sheetOpen = open && (face === null || face === "rest");
+  // The sheet rises for every step that is not the stage's alone (a gate's steps over the door at rest),
+  // never while she is walking through the door.
+  const sheetOpen = open && walk === null && (face === null || face === "rest");
+
+  /* ★ THE DOOR'S SCRIM FROM THE FIRST BYTE (`arrival.scrim`): where a sheet step comes first (the email
+     step past the welcome, the name, the first photo), the page drew the album behind the door's own scrim,
+     never bare, and the sheet rises into it: the moment its own scrim stands, this one hands over with no
+     fade of either. Where the browser turns out to owe nothing (the server's guess at a name it could not
+     see), it lifts off the album. */
+  const [firstScrim, setFirstScrim] = useState<"up" | "lifting" | null>(
+    arrival.scrim ? "up" : null,
+  );
+  const scrimOwed =
+    current !== null || holding || (hydrated && editOpen !== null);
+  // In the render that opens the sheet, so the two scrims trade places inside one commit, before paint:
+  // the sheet's own scrim then arrives standing (`arriving`), never fading in over this one's going.
+  const [handedOver, setHandedOver] = useState(false);
+  if (firstScrim === "up") {
+    if (sheetOpen) {
+      setFirstScrim(null);
+      setHandedOver(true);
+    } else if (hydrated && !healing && !scrimOwed) setFirstScrim("lifting");
+  }
+  if (handedOver && !sheetOpen) setHandedOver(false);
+  useEffect(() => {
+    if (firstScrim !== "lifting") return;
+    const gone = setTimeout(() => setFirstScrim(null), STAGE_EXIT_MS);
+    return () => clearTimeout(gone);
+  }, [firstScrim]);
   // The sheet's own exit latch: a sheet leaving for the stage keeps the step it showed until it is gone.
   const [lastSheetKey, setLastSheetKey] = useState(displayKey);
   if (sheetOpen && displayKey !== lastSheetKey) setLastSheetKey(displayKey);
   const sheetKey = sheetOpen ? displayKey : lastSheetKey;
 
-  // Tell the page before it paints: it holds the album `inert` under an open stage, and draws a gate's
-  // door itself only until the stage arrives.
+  // Tell the page before it paints: it holds the album `inert` under an open stage (and its words back
+  // while she walks through), and its header off the cover.
   useLayoutEffect(() => {
     onStageChange?.(stageOpen);
   }, [stageOpen, onStageChange]);
@@ -736,6 +895,32 @@ export const EntryModal = forwardRef<
   }
 
   function continueFromWelcome() {
+    // ★ AT A PUBLIC ALBUM SHE WALKS THROUGH (`reveal=through`): the welcome's door is open onto the
+    // album's cover, so her Continue is the walk, and the stage holds until she has arrived. ★ THE WALK
+    // STARTS IN HER PRESS, BEFORE THE PAGE DOES ANY WORK OF ITS OWN: it is the compositor's from its first
+    // frame, and the page's re-render for the welcome seen (the cookie, the steps after it, the album's own
+    // listeners) waits for that frame, so no render ever stands between her press and the first stride. At a
+    // gate the door is shut, and the next step simply rises over it.
+    // A second press while she walks is the same press (the stage takes none once the walk is the page's).
+    if (running.current && arrived.current !== running.current) return;
+    const run =
+      walk === null &&
+      !running.current &&
+      stage?.door.album &&
+      stage.door.state === "open"
+        ? startWalk()
+        : null;
+    if (run) {
+      void run.started.then(() => {
+        // Still walking, the stage holds until she has arrived; a walk that arrived first (a tab put away
+        // mid-walk runs no frames) is not walked again, and the stage goes.
+        if (running.current === run && arrived.current !== run) {
+          setWalk("welcome");
+        }
+        markSeen();
+      });
+      return;
+    }
     markSeen();
   }
 
@@ -789,10 +974,6 @@ export const EntryModal = forwardRef<
       }}
     />
   );
-
-  // Nothing renders pre-hydration (open is always false there anyway); the
-  // early return keeps the shell client-only.
-  if (!hydrated) return null;
 
   const sheetCopy = entrySheetCopy({
     holding,
@@ -913,9 +1094,12 @@ export const EntryModal = forwardRef<
           />
         );
       case "rest":
-        // The door alone: the sheet over it says everything (the album's name among it), and the
-        // doorway keeps its state above the sheet, shut, or swinging open on the step's own success.
-        return null;
+        // ★ THE DOOR AT REST, AS THE PAGE'S FIRST BYTE DRAWS IT: the album's name and what it holds under
+        // the shut door, until the sheet rises over it and says everything (the album's name among it);
+        // the doorway then keeps its state above the sheet, shut, or swinging open on the step's success.
+        return sheetOpen ? null : (
+          <RestWords eventName={eventName} mediaTotal={mediaTotal} />
+        );
     }
   }
 
@@ -927,6 +1111,14 @@ export const EntryModal = forwardRef<
           at={access === "none" ? "gate" : "album"}
           door={stage.door}
           focusKey={`${stage.face}-${stage.opened}`}
+          first={drawnFirst && stage.opened === 1}
+          view={view}
+          phase={phase}
+          walk={walk !== null}
+          walked={walked}
+          stageRef={(el) => {
+            stageEl.current = el;
+          }}
           // A gate's step of the sheet stands beside the door at a desk.
           aside={stage.face === "rest" && sheetOpen}
           back={
@@ -950,9 +1142,30 @@ export const EntryModal = forwardRef<
           </div>
         </DoorStage>
       )}
+      {firstScrim && (
+        // The door's scrim the page's first byte drew over the album (`arrival.scrim`): the sheet's own
+        // look, so the sheet rises into it and takes its place.
+        <div
+          aria-hidden
+          data-door-first-scrim={firstScrim}
+          className={cn(
+            "fixed inset-0 z-50 transition-opacity duration-300 ease-emphasis",
+            DOOR_SCRIM,
+            firstScrim === "lifting" && "opacity-0",
+          )}
+        />
+      )}
+      {hydrated && renderSheet()}
+    </>
+  );
+
+  /** THE SHEET: the browser's own steps, after hydration (the door's page above is the server's). */
+  function renderSheet() {
+    return (
       <EntryShell
         ref={sheetRef}
         open={sheetOpen}
+        arriving={handedOver}
         dismissMode={dismissMode}
         onDismiss={handleDismiss}
         title={sheetCopy.title}
@@ -1098,6 +1311,7 @@ export const EntryModal = forwardRef<
               <KeepOffer
                 count={keepCount}
                 held={keepHeld}
+                developsAt={keepDevelopsAt}
                 hostName={hostName}
                 eventName={eventName}
                 onConfirm={() => {
@@ -1125,8 +1339,8 @@ export const EntryModal = forwardRef<
           </div>
         </EntryStepTransition>
       </EntryShell>
-    </>
-  );
+    );
+  }
 });
 
 /**

@@ -56,7 +56,10 @@ import {
   eventCardPath,
   privateEventCardPath,
 } from "@/lib/guest/event-card";
+import { doorArrival } from "@/lib/guest/entry-steps";
 import { readGuestSessionCookie } from "@/lib/guest/session-cookie";
+import { uploadsWait } from "@/lib/guest/upload-tracker";
+import { welcomeSeenIn } from "@/lib/guest/use-welcome-seen-cookie";
 import { hasWaitingUploads } from "@/lib/guest/waiting-on-arrival.server";
 import { PHOTO_PARAM, readPhotoParam } from "@/lib/media/share-save";
 import { presignDownload } from "@/lib/r2/presign";
@@ -325,6 +328,10 @@ export default async function GuestEventPage({
   // ask names the host she asks, as it always has.
   const unlistedAsk =
     door.decision.kind === "ask" && door.decision.gate === "invite";
+  // ★ WHERE THE DOOR'S LIGHT STARTS ITS TURN (locked-door r3, `idle=turn`: "rather than being a static
+  // predictable color every time"): a fresh place on the rainbow per visit, drawn here so the first paint and
+  // the hydration agree (`doorway.css`'s `--door-phase`).
+  const doorPhase = randomInt(1000) / 1000;
   if (door.decision.kind === "shut" || unlistedAsk) {
     const { user } = await getRequestAuth();
     return (
@@ -338,6 +345,7 @@ export default async function GuestEventPage({
           <ShutDoor
             previous={door.decision.kind === "shut" && door.decision.previous}
             signedIn={Boolean(user)}
+            phase={doorPhase}
             returnTo={`/e/${event.qr_token}`}
             ask={
               unlistedAsk
@@ -511,6 +519,9 @@ export default async function GuestEventPage({
           host_display_name: doorDecision ? event.host_display_name : null,
           description: null,
           event_date: null,
+          // The develop time is a date like the event's own (9 am the day after the party): nothing at a gate
+          // says it (no waiting room, no camera behind a door she is outside).
+          develops_at: null,
           // The slug is only ever said by the reel's code plate, which a locked page never draws.
           custom_slug: null,
           doorPass: null,
@@ -603,15 +614,21 @@ export default async function GuestEventPage({
     needsName = needsDisplayName(menu.displayName);
   }
 
+  // ★ WHETHER WHAT SHE ADDS WAITS, AND FOR WHAT (`uploadsWait`, red-team 43): the host's approval, or the album's
+  // develop time ahead, read once here on the album's own clock and handed down (her tracker, the keep's words).
+  // Off the shell: a gate's carries no develop time.
+  const waits = uploadsWait(shellEvent);
+
   // ★ HER WAITING UPLOADS ON AN EMPTY HELD ALBUM, KNOWN BEFORE THE FIRST PAINT (crumbs-43): the album's one Add is
-  // the row's while something of hers waits for the host, and her tracker learns an earlier visit's waiting rows
-  // only after mount, so the page asks here, where it decides anything (`waiting-on-arrival.server.ts` says why).
+  // the row's while something of hers waits (for the host, or sealed for the develop), and her tracker learns an
+  // earlier visit's waiting rows only after mount, so the page asks here, where it decides anything
+  // (`waiting-on-arrival.server.ts` says why).
   const waitingOnArrival =
     !isDemo &&
     !isOwner &&
     access === "full" &&
     event.accepting_uploads &&
-    event.moderation_mode === "hold_for_approval" &&
+    waits.waits &&
     stats.approvedTotal === 0
       ? await hasWaitingUploads({
           eventId: event.id,
@@ -629,6 +646,30 @@ export default async function GuestEventPage({
   const reelAsked =
     isOwner && !isDemo && (await searchParams)?.reel !== undefined;
 
+  /* ★ THE FIRST BYTE IS THE DOOR (door-reveal; Will's live walk: "entered the address, full guest album was
+     visible before gate appeared over it (big bug)", and his rule: "the album is never visible before any
+     door/gate that should be encountered first"). The page decides what a newcomer meets before any script
+     runs: the welcome's flag is a cookie now, so a newcomer at a Public album gets the welcome's open door in
+     this very HTML (the album laid out under it, inert, its words held), every gate its door at rest, and a
+     sheet step that comes first the door's scrim over the album; a returning guest who owes nothing gets her
+     album at once (`doorArrival`, `entry-steps.ts`). Never for the owner, who meets no door. */
+  const welcomeSeen = !isDemo && welcomeSeenIn(cookieJar, event.qr_token);
+  const arrival = doorArrival({
+    gate: decision.gate,
+    access,
+    isOwner,
+    isDemo,
+    welcomeSeen,
+    isVerified: isAuthed,
+    needsName,
+    ticketHeld: Boolean(cookieSessionToken),
+    uploadsOpen: event.accepting_uploads,
+    requireUpload: event.require_upload_to_view,
+    hasContributed: event.require_upload_to_view
+      ? decision.gate !== "upload"
+      : false,
+  });
+
   return (
     // `data-guest-page`: while the door stands as the page over the album, the page holds to one screen
     // (`door/doorway.css`'s stage rules), so nothing scrolls past the door.
@@ -640,12 +681,13 @@ export default async function GuestEventPage({
           that was never written, leaving the previous guest's upload
           capability live on a shared phone. ★ Past the door the album's
           cover stands under it, and the header stands on the photograph
-          (`over`); a door that is the page keeps today's paper bar. */}
+          (`over`); a door that is the page keeps today's paper bar, the
+          welcome's included (the album only waits under it). */}
       <GuestHeader
         qrToken={event.qr_token}
         eventId={event.id}
         isDemo={isDemo}
-        over={access !== "none"}
+        over={access !== "none" && arrival.face === null}
       />
       <EventExperience
         event={shellEvent}
@@ -678,6 +720,10 @@ export default async function GuestEventPage({
         albumFull={decision.albumFull}
         waitingOnArrival={waitingOnArrival}
         reelAsked={reelAsked}
+        welcomeSeen={welcomeSeen}
+        arrival={arrival}
+        doorPhase={doorPhase}
+        uploadsWait={waits}
       />
       {/* ★ WHAT THIS PHONE'S CLAIM WOULD NOT TAKE IN SILENCE (shared-claims): a ticket typed under a
           name at odds with the account, asked about once the door and its sheets are down

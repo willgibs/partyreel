@@ -3,35 +3,71 @@
 import { useCallback, useState, useSyncExternalStore } from "react";
 
 import { storedKeysWithPrefixes } from "@/lib/guest/session-tokens";
+import {
+  WELCOME_COOKIE_MAX_AGE,
+  WELCOME_COOKIE_PREFIX,
+  welcomeCookieName,
+} from "@/lib/guest/use-welcome-seen-cookie";
 
-// The entry modal's welcome, once per person at an event. Distinct prefix so collectStoredSessionTokens
-// (pr_session_) never picks it up; no collision with pr_save_prompt_ / pr_pending_like_ either.
-const WELCOME_PREFIX = "pr_welcome_";
-
-function welcomeKey(qrToken: string) {
-  return `${WELCOME_PREFIX}${qrToken}`;
-}
-
-// Same-tab subscribers — the native `storage` event only fires in OTHER tabs. Mirrors
-// save-account-prompt's useDismissed + use-stored-session: a module listener set + an emit() on write.
+/**
+ * THE WELCOME, ONCE PER PERSON AT AN ALBUM, AND THE SERVER KNOWS IT (door-reveal).
+ *
+ * ★ A COOKIE, SO THE FIRST BYTE IS THE DOOR. The flag lived in localStorage, which a server render cannot
+ * read: the page drew the album for everyone and the welcome rose over it after hydration, 1 to 3 s of
+ * album before the door (Will's live walk, his "big bug"). The flag is the `pr_welcome_<qr>` cookie now
+ * (`use-welcome-seen-cookie.ts`), so the page draws the welcome itself for a newcomer, and the album at once
+ * for a returning guest. The page's word is this hook's server snapshot, so the hydration draws exactly what
+ * the server did.
+ *
+ * Same-tab subscribers hear every write (a cookie fires no `storage` event): a module listener set and an
+ * `emit()`, the shape of save-account-prompt's useDismissed and use-stored-session.
+ */
 const listeners = new Set<() => void>();
 function emit() {
   for (const listener of listeners) listener();
 }
 
+/** The legacy localStorage flag (before the cookie): put down beside the cookie, never written. */
+const LEGACY_PREFIX = WELCOME_COOKIE_PREFIX;
+
+function readWelcome(qrToken: string): boolean {
+  try {
+    const seen = `${welcomeCookieName(qrToken)}=1`;
+    return document.cookie.split(";").some((part) => part.trim() === seen);
+  } catch {
+    return false;
+  }
+}
+
+function writeCookie(name: string, value: string, maxAge: number) {
+  try {
+    const secure = window.location.protocol === "https:" ? "; Secure" : "";
+    document.cookie = `${name}=${value}; Path=/; Max-Age=${maxAge}; SameSite=Lax${secure}`;
+  } catch {
+    // Cookies refused (a locked-down browser): the welcome shows once more, which is all it costs.
+  }
+}
+
+/** Every welcome cookie this page can see (path `/`, so every page sees them all). */
+function welcomeCookieNames(): string[] {
+  try {
+    return document.cookie
+      .split(";")
+      .map((part) => part.trim().split("=")[0] ?? "")
+      .filter((name) => name.startsWith(WELCOME_COOKIE_PREFIX));
+  } catch {
+    return [];
+  }
+}
+
 /**
- * The welcome, marked seen on this device from outside the door: the invite list's shut door, where a
- * newcomer the list does not name meets the event and asks (build 23's NIT-1). Her ask refreshes the page
- * onto the held door, and the invitation's welcome in front of it would be one more step for a door she
- * has already stood at and knocked on. Every same-tab reader hears it at once, as `markSeen` does.
+ * The welcome, marked seen on this device: her Continue (`useWelcomeSeen`'s `markSeen`), and the invite
+ * list's shut door, where a newcomer the list does not name meets the event and asks (build 23's NIT-1): her
+ * ask refreshes the page onto the held door, and the invitation in front of it would be one more step for a
+ * door she has already stood at and knocked on. Every same-tab reader hears it at once.
  */
 export function markWelcomeSeen(qrToken: string): void {
-  try {
-    localStorage.setItem(welcomeKey(qrToken), "1");
-  } catch {
-    // Storage refused (a private window): the welcome shows once more, which is all it costs.
-    return;
-  }
+  writeCookie(welcomeCookieName(qrToken), "1", WELCOME_COOKIE_MAX_AGE);
   emit();
 }
 
@@ -43,12 +79,13 @@ export function markWelcomeSeen(qrToken: string): void {
  * puts that ticket down (`dropGuestTicket`: a ticket that was another person's, or one whose row is gone), the
  * album's welcome goes with it; when it puts every ticket down (`forgetGuestTickets`: every sign-out, the door's
  * "Use a different email"), every album's does. So the next person to join on a shared phone meets the welcome,
- * and its consent line, once. Every same-tab reader hears it at once, as `markSeen` does; a door already showing
- * its steps only gains the welcome in front of them.
+ * and its consent line, once. Every same-tab reader hears it at once; a door already showing its steps only gains
+ * the welcome in front of them. The legacy localStorage flag goes with it.
  */
 export function forgetWelcome(qrToken: string): void {
+  writeCookie(welcomeCookieName(qrToken), "", 0);
   try {
-    localStorage.removeItem(welcomeKey(qrToken));
+    localStorage.removeItem(`${LEGACY_PREFIX}${qrToken}`);
   } catch {
     // Storage refused: there was no flag to forget.
   }
@@ -57,8 +94,9 @@ export function forgetWelcome(qrToken: string): void {
 
 /** Every album's welcome on the device (`forgetWelcome`'s note): the sign-out's half. */
 export function forgetAllWelcomes(): void {
+  for (const name of welcomeCookieNames()) writeCookie(name, "", 0);
   try {
-    for (const key of storedKeysWithPrefixes([WELCOME_PREFIX])) {
+    for (const key of storedKeysWithPrefixes([LEGACY_PREFIX])) {
       localStorage.removeItem(key);
     }
   } catch {
@@ -67,15 +105,22 @@ export function forgetAllWelcomes(): void {
   emit();
 }
 
+function subscribe(cb: () => void) {
+  listeners.add(cb);
+  return () => {
+    listeners.delete(cb);
+  };
+}
+
 /**
- * `[seen, markSeen]` for the welcome step. The server snapshot is `true` (assume seen) so the welcome
- * never flashes before hydration; it resolves to the real localStorage value on the client. `markSeen`
- * persists the flag (once per person per event: it goes with the ticket, `forgetWelcome`) and notifies same-tab
- * subscribers.
+ * `[seen, markSeen]` for the welcome step. The server snapshot is the PAGE'S WORD (`serverSeen`, the cookie
+ * as the request carried it), so the hydration draws what the server drew: the welcome for a newcomer, from
+ * the first byte, and nothing for a returning guest. `markSeen` writes the flag (once per person per event:
+ * it goes with the ticket, `forgetWelcome`) and notifies same-tab subscribers.
  *
  * ★ THE DEMO NEVER PERSISTS "SEEN" ACROSS VISITS, BUT STILL ADVANCES WITHIN ONE: a demo treats every
  * visit as a fresh one, even a returning one, so every demo runs end to end. `isDemo` is a plain
- * boolean, never an `isDemoToken` import here: this module stays a dependency-free localStorage
+ * boolean, never an `isDemoToken` import here: this module stays a dependency-free cookie
  * wrapper (unit-testable with no env/`server-only` chain), same reasoning as `entry-steps.ts`'s own
  * note about `entry-modal.tsx`.
  *
@@ -83,28 +128,19 @@ export function forgetAllWelcomes(): void {
  * `markSeen()` (Continue on the role step) would never advance the itinerary past "welcome",
  * because `computeDoor` re-adds the step every time `!welcomeSeen`. What "fresh every visit" needs
  * is EPHEMERAL, per-mount state for the demo — Continue still moves this visit forward exactly
- * once, nothing is ever written to `localStorage`, and a fresh mount (a reload, a second tab, the
- * next visitor) starts this state at `false` again regardless of any earlier visit's own history.
+ * once, nothing is ever written, and a fresh mount (a reload, a second tab, the next visitor) starts
+ * this state at `false` again regardless of any earlier visit's own history.
  */
 export function useWelcomeSeen(
   qrToken: string,
   isDemo: boolean,
+  /** The page's word: whether the request carried this album's welcome cookie. */
+  serverSeen = false,
 ): [boolean, () => void] {
-  const key = welcomeKey(qrToken);
-
-  const subscribe = useCallback((cb: () => void) => {
-    listeners.add(cb);
-    window.addEventListener("storage", cb);
-    return () => {
-      listeners.delete(cb);
-      window.removeEventListener("storage", cb);
-    };
-  }, []);
-
   const persistedSeen = useSyncExternalStore(
     subscribe,
-    () => localStorage.getItem(key) === "1",
-    () => true,
+    () => readWelcome(qrToken),
+    () => serverSeen,
   );
   // Always called (Rules of Hooks) even for a non-demo mount, where it simply goes unread below.
   const [demoSeen, setDemoSeen] = useState(false);

@@ -2,9 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildTrackerRows,
+  developTimeWords,
   newlyInAlbum,
+  TRACKER_SEALED_WORDS,
   TRACKER_WORDS,
   trackerShows,
+  uploadsWait,
   waitingCount,
   type OwnUploadWire,
   type TrackerQueueItem,
@@ -30,6 +33,7 @@ function rows(input: {
   album?: string[];
   approvedOnce?: string[];
   removed?: string[];
+  sealing?: boolean;
 }) {
   return buildTrackerRows({
     queue: input.queue ?? [],
@@ -37,6 +41,7 @@ function rows(input: {
     album: new Set(input.album ?? []),
     approvedOnce: new Set(input.approvedOnce ?? []),
     removed: new Set(input.removed ?? []),
+    sealing: input.sealing,
   });
 }
 
@@ -110,6 +115,114 @@ describe("buildTrackerRows", () => {
       removed: ["m1", "m2"],
     });
     expect(out).toEqual([]);
+  });
+});
+
+/* ★ A SHOT SEALED UNTIL THE ALBUM DEVELOPS WAITS (red-team 43's MEDIUM: on an album with a develop time ahead, her
+   shots read as joined and vanished on a reload, with no tracker). Approved and sealed is in nobody's album yet:
+   it waits, in its own words, counted by the badge and hers to take back like anything waiting. */
+describe("buildTrackerRows: the develop", () => {
+  it("★ her rows' read says sealed: waiting for the develop, never in the album", () => {
+    const out = rows({ own: [{ id: "m1", status: "approved", sealed: true }] });
+    expect(out).toEqual([
+      expect.objectContaining({ key: "m1", status: "waiting", sealed: true }),
+    ]);
+    expect(waitingCount(out)).toBe(1);
+  });
+
+  it("★ this visit's file on an album that seals what is added waits before her rows are read again", () => {
+    const sent = q("q1", "done", { mediaId: "m1", mediaStatus: "approved" });
+    expect(rows({ queue: [sent], sealing: true })[0]).toMatchObject({
+      status: "waiting",
+      sealed: true,
+    });
+    // Where nothing is sealed, an approved file is simply in.
+    expect(rows({ queue: [sent] })[0]).toEqual(
+      expect.objectContaining({ status: "approved" }),
+    );
+    expect(rows({ queue: [sent] })[0].sealed).toBeUndefined();
+  });
+
+  it("her rows' read is the truth for her own: a file the read says is unsealed is in", () => {
+    const out = rows({
+      queue: [q("q1", "done", { mediaId: "m1", mediaStatus: "approved" })],
+      own: [{ id: "m1", status: "approved" }],
+      sealing: true,
+    });
+    expect(out[0].status).toBe("approved");
+  });
+
+  it("once the album develops and shows it, it is in", () => {
+    const out = rows({
+      own: [{ id: "m1", status: "approved", sealed: true }],
+      album: ["m1"],
+    });
+    expect(out[0]).toEqual(expect.objectContaining({ status: "approved" }));
+    expect(out[0].sealed).toBeUndefined();
+  });
+
+  it("a sealed one turning up in the album is an arrival out of waiting", () => {
+    expect(
+      newlyInAlbum({
+        queue: [],
+        own: [{ id: "m1", status: "approved", sealed: true }],
+        album: new Set(["m1"]),
+        approvedOnce: EMPTY,
+      }),
+    ).toEqual({ ids: ["m1"], arrived: true });
+  });
+
+  it("names its wait apart from the host's: the develop is nobody's decision", () => {
+    expect(TRACKER_SEALED_WORDS).toBe("Waiting to develop");
+    expect(TRACKER_SEALED_WORDS).not.toBe(TRACKER_WORDS.waiting);
+  });
+});
+
+describe("uploadsWait: whether what she adds waits, and for what", () => {
+  const NOW = Date.parse("2026-10-02T20:00:00Z");
+  const AHEAD = "2026-10-03T13:00:00Z";
+  const PAST = "2026-10-01T13:00:00Z";
+
+  it("★ a develop time ahead: it waits, for the develop (red on the approve-only reading)", () => {
+    expect(
+      uploadsWait({ moderation_mode: "live", develops_at: AHEAD }, NOW),
+    ).toEqual({ waits: true, developsAt: AHEAD });
+  });
+
+  it("the host's approval: it waits, with no develop to say", () => {
+    expect(
+      uploadsWait(
+        { moderation_mode: "hold_for_approval", develops_at: null },
+        NOW,
+      ),
+    ).toEqual({ waits: true, developsAt: null });
+  });
+
+  it("both: the develop is the promise said (the stronger), and it waits", () => {
+    expect(
+      uploadsWait(
+        { moderation_mode: "hold_for_approval", develops_at: AHEAD },
+        NOW,
+      ),
+    ).toEqual({ waits: true, developsAt: AHEAD });
+  });
+
+  it("a develop time reached has developed: what is added shows at once", () => {
+    expect(
+      uploadsWait({ moderation_mode: "live", develops_at: PAST }, NOW),
+    ).toEqual({ waits: false, developsAt: null });
+    expect(uploadsWait({ moderation_mode: "live" }, NOW)).toEqual({
+      waits: false,
+      developsAt: null,
+    });
+  });
+
+  it("says the develop time in a guest's words, or nothing for a time it cannot read", () => {
+    expect(developTimeWords(AHEAD)).toMatch(
+      /^\w{3}, \w{3} \d{1,2}, \d{1,2}:\d{2}\s?[AP]M$/,
+    );
+    expect(developTimeWords("not a time")).toBeNull();
+    expect(developTimeWords(null)).toBeNull();
   });
 });
 
@@ -274,47 +387,52 @@ describe("the empty sets it is handed", () => {
   });
 });
 
-/* ★ A ROW SEALED UNTIL ITS ALBUM DEVELOPS (build 43's red-team, the upload half): it waits in her tracker as a held one
-   does, listed, counted on the badge and hers to take back, in its own word; never "In the album". */
-describe("a sealed upload", () => {
-  it("waits as Developing, from this visit's landing", () => {
-    const out = rows({
-      queue: [q("q1", "done", { mediaId: "m1", mediaStatus: "sealed" })],
-    });
-    expect(out[0].status).toBe("developing");
-    expect(TRACKER_WORDS[out[0].status]).toBe("Developing");
-  });
-
-  it("★ waits as Developing from her own rows' read, which says it approved and sealed (never In the album)", () => {
-    const out = rows({
-      queue: [q("q1", "done", { mediaId: "m1", mediaStatus: "approved" })],
-      own: [
-        { id: "m1", status: "approved", sealed: true },
-        { id: "m2", status: "approved", sealed: true },
+/* ★ A LANDING THE QUEUE TOLD SEALED (disposable-camera, red-team 43's upload half): the server answered `sealed` and
+   the queue said so, so it waits for the develop from the moment it lands, before her rows' next read, whatever the
+   page read of the album. */
+describe("a landing the queue told sealed", () => {
+  it("waits to develop at once, counted and hers to take back", () => {
+    const out = buildTrackerRows({
+      queue: [
+        {
+          id: "q1",
+          status: "done",
+          kind: "photo",
+          mediaId: "m1",
+          mediaStatus: "sealed",
+        },
       ],
+      own: null,
+      album: new Set(),
+      approvedOnce: new Set(),
+      removed: new Set(),
     });
-    expect(out.map((r) => [r.key, r.status])).toEqual([
-      ["m1", "developing"],
-      ["m2", "developing"],
+    expect(out).toEqual([
+      expect.objectContaining({
+        mediaId: "m1",
+        status: "waiting",
+        sealed: true,
+      }),
     ]);
+    expect(waitingCount(out)).toBe(1);
   });
 
   it("is in the album once it develops (its id turns up in the album's sync)", () => {
-    const out = rows({
-      queue: [q("q1", "done", { mediaId: "m1", mediaStatus: "sealed" })],
+    const out = buildTrackerRows({
+      queue: [
+        {
+          id: "q1",
+          status: "done",
+          kind: "photo",
+          mediaId: "m1",
+          mediaStatus: "sealed",
+        },
+      ],
       own: [{ id: "m1", status: "approved", sealed: true }],
-      album: ["m1"],
+      album: new Set(["m1"]),
+      approvedOnce: new Set(),
+      removed: new Set(),
     });
     expect(out[0].status).toBe("approved");
-  });
-
-  it("counts on the badge beside what waits for the host", () => {
-    const out = rows({
-      queue: [
-        q("q1", "done", { mediaId: "m1", mediaStatus: "sealed" }),
-        q("q2", "done", { mediaId: "m2", mediaStatus: "pending" }),
-      ],
-    });
-    expect(waitingCount(out)).toBe(2);
   });
 });

@@ -67,6 +67,14 @@ describe("marketing nav config", () => {
     expect(group && isNavGroup(group)).toBe(true);
     if (group && isNavGroup(group)) {
       expect(group.children.map((child) => child.href)).toEqual(expected);
+      // The row's name and its one line are the type's own (`navLabel`, `teaser`): the panel wrote a
+      // second description beside the teaser until it was held to it, and two lines about one page
+      // drift. The panel row wraps under `text-pretty`, so a teaser at the registry's length fits.
+      for (const child of group.children) {
+        const type = getEventType(child.href.replace("/events/", ""))!;
+        expect(child.label, child.href).toBe(type.navLabel);
+        expect(child.description, child.href).toBe(type.teaser);
+      }
     }
   });
 

@@ -10,6 +10,11 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { formatCount } from "@/lib/format/count";
+import {
+  developTimeWords,
+  TRACKER_SEALED_WORDS,
+  TRACKER_WORDS,
+} from "@/lib/guest/upload-tracker";
 
 /**
  * THE KEEP: THE DOOR'S LAST SCREEN (`guest-capture` r1, Will's `moment=first` and
@@ -67,22 +72,29 @@ export function keepCopy(
 }
 
 /**
- * Where what she sent went: into the album (the host's, by name, when the host has one), or, on an
- * event that holds uploads for the host, waiting for approval, in her uploads' own words for it
- * (`TRACKER_WORDS.waiting`: one state, one name). Never "joined the album" for a photograph the
- * album does not show yet.
+ * Where what she sent went: into the album (the host's, by name, when the host has one), or, where what she adds
+ * waits, waiting in her uploads' own words for it (one state, one name): for the album to develop, with its time,
+ * on an album with a develop time ahead (`TRACKER_SEALED_WORDS`, red-team 43), else for approval
+ * (`TRACKER_WORDS.waiting`). Never "joined the album" for a photograph the album does not show yet.
  */
 export function keepSentLine(input: {
   count: number;
   held: boolean;
+  /** The album's develop time while it is ahead (`uploadsWait`'s `developsAt`): what she sent is sealed until then. */
+  developsAt?: string | null;
   hostName?: string | null;
 }): string {
   const { count, held } = input;
   const host = input.hostName?.trim();
   const subject =
     count === 1 ? "Your photo" : `Your ${formatCount(count)} photos`;
+  const verb = count === 1 ? "is" : "are";
+  if (input.developsAt) {
+    const when = developTimeWords(input.developsAt);
+    return `${subject} ${verb} ${TRACKER_SEALED_WORDS.toLowerCase()}${when ? `, ${when}` : ""}.`;
+  }
   if (held) {
-    return `${subject} ${count === 1 ? "is" : "are"} waiting for approval.`;
+    return `${subject} ${verb} ${TRACKER_WORDS.waiting.toLowerCase()}.`;
   }
   return `${subject} joined ${host ? `${host}’s album` : "the album"}.`;
 }
@@ -100,6 +112,7 @@ export function keepSentLine(input: {
 export function KeepOffer({
   count,
   held,
+  developsAt = null,
   hostName,
   eventName,
   onConfirm,
@@ -107,8 +120,10 @@ export function KeepOffer({
 }: {
   /** The photographs of hers that landed this visit (live: it grows as the rest land). */
   count: number;
-  /** The event holds uploads for the host. */
+  /** What she adds waits (`uploadsWait`'s `waits`): for the host's approval, or for a develop time ahead. */
   held: boolean;
+  /** The album's develop time while it is ahead: what she sent waits for it. */
+  developsAt?: string | null;
   hostName?: string | null;
   /** The event she is keeping, by name (`keepCopy`'s "this event" without one). */
   eventName?: string | null;
@@ -127,7 +142,7 @@ export function KeepOffer({
         <div className="flex min-w-0 flex-col gap-0.5">
           <p className="font-heading text-card-title text-foreground">Sent</p>
           <p className="text-working text-muted-foreground">
-            {keepSentLine({ count, held, hostName })}
+            {keepSentLine({ count, held, developsAt, hostName })}
           </p>
         </div>
       </div>

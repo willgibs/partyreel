@@ -8,7 +8,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { DoorColumn, DoorWords } from "@/components/guest/door/door-page";
-import { Doorway } from "@/components/guest/door/doorway";
+import { Doorway, nearestHue } from "@/components/guest/door/doorway";
 import { HOUSE_HUES } from "@/lib/guest/door-light";
 
 afterEach(cleanup);
@@ -43,20 +43,63 @@ describe("the doorway", () => {
     expect(way(container)?.getAttribute("data-door-hues")).toBe("12,140,223");
   });
 
-  it("★ shows the album only through an OPEN door, and never more than four of it", () => {
+  it("★ shows the album only through an OPEN door: its own cover, or a picture's one still, never a grid", () => {
+    // The page's cover, live (`CoverPicture`), wins over a picture's stills.
+    const cover = <p data-testid="cover">the cover</p>;
+    const live = render(<Doorway state="open" view={cover} photos={PHOTOS} />);
+    expect(
+      live.container.querySelector(
+        '[data-door-view="cover"] [data-testid="cover"]',
+      ),
+    ).not.toBeNull();
+    expect(live.container.querySelector("img")).toBeNull();
+    cleanup();
+    // A picture with no live album (the help center's) draws its first still where the cover would stand.
     const { container } = render(<Doorway state="open" photos={PHOTOS} />);
     const srcs = [...container.querySelectorAll("img")].map((img) =>
       img.getAttribute("src"),
     );
-    expect(srcs).toEqual(PHOTOS.slice(0, 4));
+    expect(srcs).toEqual(PHOTOS.slice(0, 1));
     cleanup();
     for (const state of ["ajar", "shut", "none"] as const) {
       const { container: c } = render(
-        <Doorway state={state} photos={PHOTOS} />,
+        <Doorway state={state} photos={PHOTOS} view={cover} />,
       );
       expect(c.querySelector("img")).toBeNull();
+      expect(c.querySelector("[data-door-view]")).toBeNull();
       cleanup();
     }
+  });
+
+  it("★ the album's light arrives the short way round the wheel, the same colour it names", () => {
+    // 264 names itself 264, and is drawn as -96 beside the house's 25: one colour, a third of the way round.
+    const { container } = render(
+      <Doorway state="open" hues={[264, 300, 10]} />,
+    );
+    const way = container.querySelector<HTMLElement>("[data-door-way]");
+    expect(way?.getAttribute("data-door-hues")).toBe("264,300,10");
+    expect(way?.style.getPropertyValue("--lit-h1")).toBe("-96");
+    expect(way?.style.getPropertyValue("--lit-h2")).toBe("-60");
+    expect(way?.style.getPropertyValue("--lit-h3")).toBe("10");
+    expect(nearestHue(25, 25)).toBe(25);
+    expect(nearestHue(200, 25)).toBe(200);
+    expect(nearestHue(206, 25)).toBe(-154);
+  });
+
+  it("★ a door at rest turns from the page's place on the wheel; a door with none starts where the house does", () => {
+    const placed = render(<Doorway state="shut" phase={0.42} />);
+    expect(
+      placed.container
+        .querySelector<HTMLElement>("[data-door-way]")
+        ?.style.getPropertyValue("--door-phase"),
+    ).toBe("0.42");
+    cleanup();
+    const plain = render(<Doorway state="shut" />);
+    expect(
+      plain.container
+        .querySelector<HTMLElement>("[data-door-way]")
+        ?.style.getPropertyValue("--door-phase"),
+    ).toBe("");
   });
 
   it("is decoration: hidden from assistive tech, the words beside it say what it shows", () => {

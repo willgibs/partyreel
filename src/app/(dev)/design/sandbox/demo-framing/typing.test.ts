@@ -1,24 +1,30 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  DOWN_MS,
   DRIFT,
   ERASE_MS,
-  FOLD_MS,
-  foldAt,
   GAP_MS,
-  rateAt,
   scoreOf,
   stepAt,
   typedAt,
+  WARP,
+  WARP_IN_MS,
+  WARP_OUT_MS,
+  warpAt,
+  warpSince,
+  WAVE_MS,
+  waveAt,
 } from "./typing";
 
 /**
  * The typewriter's score is what three things read at once (the frames' loop,
- * their captions and the score printed under an option), so its shape is held
+ * their captions and the score printed under a hero), so its shape is held
  * here: the loop visits every address once and closes on the demo's own, the
- * text is always a prefix of the address it is about, a drifting stream is
- * full while an address stands and never stops, and a rewinding album is
- * folded whenever the address is not standing.
+ * text is always a prefix of the address it is about, the stream drifts
+ * (never stops) while an address types and leaves each landing at lightspeed
+ * before settling, and a wall of photographs rests whenever the address is not
+ * standing and fills anew as the next lands.
  */
 const PACE = { hold: 3000, restHold: 4000 };
 const LIST = ["our-party", "our-wedding", "my-30th"];
@@ -88,57 +94,55 @@ describe("the typewriter's score", () => {
     expect(typedAt(score, type.to + 1).standing).toBe(1);
   });
 
-  it("runs the stream full while an address stands and slows it to a drift, never a stop, while it types", () => {
-    expect(rateAt(score, 10)).toBe(1);
-    let least = 1;
+  it("drifts the stream while an address types, never stopping, and runs it full on arrival", () => {
+    expect(warpAt(score, 10)).toBe(1);
     for (let t = 0; t < score.loop * 2; t += 5) {
-      const r = rateAt(score, t);
-      least = Math.min(least, r);
+      const r = warpAt(score, t);
       expect(r).toBeGreaterThanOrEqual(DRIFT);
-      expect(r).toBeLessThanOrEqual(1);
-      const phase = stepAt(score, t).phase;
-      if (phase !== "hold") expect(r).toBe(DRIFT);
+      expect(r).toBeLessThanOrEqual(WARP);
+      if (stepAt(score, t).phase !== "hold") expect(r).toBe(DRIFT);
     }
-    expect(least).toBe(DRIFT);
-    // Mid-hold, clear of both ramps, the stream is at full.
+  });
+
+  it("leaves every landing after the first at lightspeed, then settles to full before slowing for the erase", () => {
     const hold = score.steps.find((s) => s.phase === "hold" && s.party === 1)!;
-    expect(rateAt(score, (hold.from + hold.to) / 2)).toBe(1);
+    // The peak, a breath after the landing.
+    expect(warpAt(score, hold.from + WARP_IN_MS)).toBeCloseTo(WARP, 5);
+    // Settled to full once the warp is spent, and slowing only at the end.
+    const settled = hold.from + WARP_IN_MS + WARP_OUT_MS + 1;
+    expect(warpAt(score, settled)).toBeCloseTo(1, 5);
+    expect(warpAt(score, hold.to - DOWN_MS / 2)).toBeLessThan(1);
+    expect(warpAt(score, hold.to - DOWN_MS / 2)).toBeGreaterThan(DRIFT);
+    // The curve only falls once it has peaked: a jump, never a stutter.
+    let prev = Infinity;
+    for (let ms = WARP_IN_MS; ms <= WARP_IN_MS + WARP_OUT_MS; ms += 10) {
+      const r = warpSince(ms);
+      expect(r).toBeLessThanOrEqual(prev + 1e-9);
+      prev = r;
+    }
+    // On the loop's second pass the demo's own landing warps too.
+    expect(warpAt(score, score.loop + WARP_IN_MS)).toBeCloseTo(WARP, 5);
   });
 
   it("is a still address when there is only the demo's own", () => {
     const one = scoreOf(["our-party"], PACE);
     expect(one.steps).toHaveLength(1);
     expect(typedAt(one, 123_456).text).toBe("our-party");
-    expect(rateAt(one, 99_999)).toBe(1);
-    expect(foldAt(one, 99_999).fold).toBe(0);
+    expect(warpAt(one, 99_999)).toBe(1);
+    expect(waveAt(one, 99_999)).toEqual({ since: WAVE_MS * 4, rest: 0 });
   });
 
-  it("pours an address's album while it stands and folds it before the erase", () => {
+  it("fills a wall anew from each landing and rests it while the next types", () => {
     const hold = score.steps.find((s) => s.phase === "hold" && s.party === 1)!;
-    // Poured from its landing, the burst's clock starting there.
-    expect(foldAt(score, hold.from + 10)).toEqual({ fold: 0, since: 10 });
-    // Folding over the stand's last FOLD_MS, its clock held where it began.
-    const mid = foldAt(score, hold.to - FOLD_MS / 2);
-    expect(mid.fold).toBeGreaterThan(0.4);
-    expect(mid.fold).toBeLessThan(0.6);
-    expect(mid.since).toBe(hold.to - hold.from - FOLD_MS);
-    // Wholly folded by the erase, and held so until the next address lands.
+    expect(waveAt(score, hold.from + 10)).toEqual({ since: 10, rest: 0 });
+    // The arrival's wall is already full.
+    expect(waveAt(score, 10).since).toBeGreaterThan(WAVE_MS);
     for (let t = 0; t < score.loop * 2; t += 11) {
-      const step = stepAt(score, t);
-      const f = foldAt(score, t);
-      expect(f.fold).toBeGreaterThanOrEqual(0);
-      expect(f.fold).toBeLessThanOrEqual(1);
-      if (step.phase !== "hold") expect(f.fold).toBe(1);
+      const w = waveAt(score, t);
+      expect(w.rest).toBeGreaterThanOrEqual(0);
+      expect(w.rest).toBeLessThanOrEqual(1);
+      if (stepAt(score, t).phase !== "hold") expect(w.rest).toBe(1);
     }
-  });
-
-  it("freezes a folded album where the stand before the change began to fold", () => {
-    const erase = score.steps.find(
-      (s) => s.phase === "erase" && s.party === 1,
-    )!;
-    const before = score.steps[score.steps.indexOf(erase) - 1];
-    expect(before.phase).toBe("hold");
-    const f = foldAt(score, erase.from + 5);
-    expect(f.since).toBe(before.to - before.from - FOLD_MS);
+    expect(waveAt(score, hold.to - 1).rest).toBeGreaterThan(0.9);
   });
 });

@@ -1,9 +1,8 @@
 import Image from "next/image";
-import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { FooterQr } from "@/components/marketing/chrome/footer-qr";
-import { trackAttrs } from "@/lib/analytics/events";
+import { DemoDoor } from "@/components/marketing/system/demo-modal/demo-door";
 import type { EventObjectKind } from "@/lib/constants/events";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { SITE_URL } from "@/lib/constants/site";
@@ -32,10 +31,10 @@ import { AttendeeBadge } from "./event-artifacts";
  * ★ "INCORPORATING THE QR" IS LITERAL: THE CODE IS REAL. Every object carries
  * the demo's own scannable code, computed during the server render the way the
  * footer's does (footer-qr.tsx: `qrcode-generator` is DOM-free, so the matrix
- * ships as inert markup and the object costs zero client JS). A reader can lift
- * a phone to the screen on any of these four pages and the demo album opens in
- * their hand while the page stays where it was. That is the product's whole
- * argument standing inside its own hero.
+ * ships as inert markup, and the door round it is the island every page
+ * already carries). A reader can lift a phone to the screen on any of these
+ * four pages and the demo album opens in their hand while the page stays where
+ * it was. That is the product's whole argument standing inside its own hero.
  *
  * ★ IT ENCODES `/demo`, NEVER THE EVENT LINK (Will, river-card `opens=short`):
  * 25 modules against 33, so a plate this size stays well above the scan floor.
@@ -55,7 +54,14 @@ import { AttendeeBadge } from "./event-artifacts";
 
 /* ── the code, the one piece all four share ──────────────────────────────── */
 
-/** The real code on its white plate, as a door. `null` when no demo is set. */
+/**
+ * The real code on its white plate, as a door. `null` when no demo is set.
+ *
+ * ★ A DEMO DOOR (`system/demo-modal/`), like every other pointer to the demo: at a desk a plain
+ * press opens the demo modal, and on a phone it opens the demo in a new tab. It was a same-tab link
+ * to `/demo`, the one door on the site that took a reader off the page. The code it draws still
+ * encodes the short `/demo` (below); the door's own address is the event itself, one hop fewer.
+ */
 function DemoCode({
   size,
   className,
@@ -66,10 +72,10 @@ function DemoCode({
 }) {
   if (!DEMO_EVENT_URL) return null;
   return (
-    <Link
-      href="/demo"
+    <DemoDoor
+      href={DEMO_EVENT_URL}
+      source="events-object"
       aria-label="Open the live demo album"
-      {...trackAttrs("demo_open", { source: "events-object" })}
       className={cn(
         // No plate of its own: FooterQr ships the white plate WITH the quiet
         // zone baked into its viewBox, and a second white box under it is two
@@ -83,7 +89,7 @@ function DemoCode({
       )}
     >
       <FooterQr value={`${SITE_URL}/demo`} size={size} />
-    </Link>
+    </DemoDoor>
   );
 }
 

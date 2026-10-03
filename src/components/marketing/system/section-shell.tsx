@@ -115,7 +115,18 @@ export function SectionShell({
         </Heading>
       )}
       {subhead && (
-        <p {...mark()} className="text-pretty text-muted-foreground">
+        // `copy` is the step for a SECTION's lede (theme.css: 16 at a phone, 18 at a desk). It rode no
+        // step at all and inherited 16 everywhere; PageHero's subhead, one rung up, is on `subhead`.
+        // A centred lede balances and a left-set one stays pretty, as PageHero's does (Will, 2026-09-02:
+        // "a long first line over a short second reads as a broken block"), which the step's two extra
+        // pixels at a desk would otherwise have shown on the sections that now wrap.
+        <p
+          {...mark()}
+          className={cn(
+            "text-copy text-muted-foreground",
+            align === "center" ? "text-balance" : "text-pretty",
+          )}
+        >
           {subhead}
         </p>
       )}

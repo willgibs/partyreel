@@ -34,7 +34,13 @@ export function DoorColumn({
       )}
     >
       {doorway}
-      <div className="mt-10 flex w-full flex-col items-center">{children}</div>
+      {/* The words under the door, one box, so the walk through lets them go together (`stage-walk.ts`). */}
+      <div
+        data-door-words-box=""
+        className="mt-10 flex w-full flex-col items-center"
+      >
+        {children}
+      </div>
     </div>
   );
 }

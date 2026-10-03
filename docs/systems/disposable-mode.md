@@ -123,8 +123,8 @@ mounts) in place of the add sheet; a free-upload album never loads it.
   join, the retry and the failure sheet are any upload's; the sheet waits while the camera is open. ★ **A landing the
   album keeps sealed is told `sealed`** by the server's own word (`create_media` answers `sealed`, the complete passes
   it, the uploader carries it, the queue's `landedAs`), on any album with a develop time ahead, whichever surface sent
-  it: nothing draws it, so no tile stands in the album for her alone, and her tracker lists it as Developing,
-  removable.
+  it: nothing draws it, so no tile stands in the album for her alone, and her tracker lists it as "Waiting to
+  develop" from the moment it lands, counted and removable.
 - **The count is the server's roll** (`roll-view.ts`): `/api/guests/mine` with `statuses` (★ never `tell`, which would
   mark her approval news told), read at the opening, after she takes a shot back and after a roll refusal, ★ and only
   while nothing of hers is in the air, so the shots taken since the read began are added and none is counted twice.

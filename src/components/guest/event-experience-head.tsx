@@ -168,9 +168,9 @@ export function EventHead({
       data-surface="photo"
       className={cn(
         "dark relative isolate flex flex-col justify-end overflow-hidden bg-background text-foreground",
-        side === "album"
-          ? "h-[clamp(26rem,74svh,34rem)]"
-          : "h-[20.5rem] sm:h-[25rem]",
+        // The album's cover is `--cover-h` tall (`event-experience-head.css`), the one height the door's
+        // view of it is drawn at (`CoverPicture`, set small in the doorway).
+        side === "album" ? "h-(--cover-h)" : "h-[20.5rem] sm:h-[25rem]",
         className,
       )}
       {...props}
@@ -520,5 +520,35 @@ export function CoverGround({
     <Suspense fallback={null}>
       <CoverStills seed={seed} bridge={bridge} eventId={eventId} />
     </Suspense>
+  );
+}
+
+/**
+ * THE COVER, SEEN THROUGH THE DOOR (door-reveal, locked-door r3's `reveal=through`: "The album's own
+ * photographs, small and lit, through the door; walking through, the doorway grows past the screen and
+ * they settle into place"). The album's cover drawn a second time without its words: its room, its house
+ * light and its photographs from the same seed and the same live album as the cover itself, filling the
+ * box the doorway sets at the cover's own size and small in its opening (`door/doorway.tsx`'s `view`). So
+ * the photographs dissolving in the doorway are the cover's, in step with it, and the walk
+ * (`door/stage-walk.ts`) carries this very picture onto the cover, where the cover's words then rise.
+ */
+export function CoverPicture({
+  seed,
+  bridge,
+  eventId,
+}: {
+  seed: Promise<GallerySeed>;
+  bridge: HeadBridge;
+  eventId: string;
+}) {
+  return (
+    <div
+      data-cover-picture=""
+      data-surface="photo"
+      className="dark relative isolate size-full overflow-hidden bg-background"
+    >
+      <HouseLight />
+      <CoverGround seed={seed} bridge={bridge} eventId={eventId} />
+    </div>
   );
 }

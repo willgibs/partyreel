@@ -10,7 +10,7 @@ import { SectionShell } from "@/components/marketing/system/section-shell";
 import { CAREERS_STORY } from "@/lib/constants/careers";
 import { marketingImage } from "@/lib/constants/marketing-media";
 
-import { ContactSheet, SHEET_FRAMES } from "./contact-sheet";
+import { ProofSheet, SHEET_FRAMES } from "./proof-sheet";
 
 /**
  * THE ARGUMENT: the roll -> the selects -> the reel.
@@ -23,7 +23,7 @@ import { ContactSheet, SHEET_FRAMES } from "./contact-sheet";
  *
  * Three beats, one composition each, roughly forty words total:
  *
- *  1. THE ROLL - the contact sheet again, but with everything except the
+ *  1. THE ROLL - the proof sheet again, but with everything except the
  *     selects dimmed to almost nothing. The dimming IS the argument: an
  *     unselected frame is one nobody ever sees. Same component as the hero, so
  *     the page has one media vocabulary rather than three.
@@ -99,7 +99,7 @@ export function CareersStory() {
         </Reveal>
         <Reveal className="mt-12">
           <div data-mkt-reveal style={{ "--i": 3 } as CSSProperties}>
-            <ContactSheet
+            <ProofSheet
               variant="roll"
               selects={ROLL_SELECTS}
               columns="grid-cols-4 sm:grid-cols-6"

@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import { developFactsOf } from "@/lib/disposable/facts";
 import { developState } from "@/lib/disposable/reveal";
-import { developsWhen } from "@/lib/guest/camera/words";
+import { developTimeWords } from "@/lib/guest/upload-tracker";
 import { useHydrated } from "@/lib/shared/use-hydrated";
 // The queue MACHINE lives in `event-experience.tsx`; only its types are read
 // here.
@@ -37,18 +37,15 @@ export type { UploadedItem } from "@/lib/guest/use-upload-queue";
 const loadCamera = () => import("@/components/guest/camera/album-camera");
 
 /**
- * The develop's own line, before a first add: what she adds waits until the album develops, and when that is (once
- * the reader's clock is known). "Shots" on an album with its camera on, "Uploads" otherwise.
+ * The develop's own line, before a first add: what she adds waits until the album develops, and when (once the reader's
+ * clock is known). Her tracker's own sentence for the same rule (`upload-tracker.tsx`'s header), so one rule has one
+ * wording on the page.
  */
-export function developNote(
-  camera: boolean,
-  developsAt: string | null,
-): string {
-  const what = camera ? "Shots" : "Uploads";
-  return developsAt
-    ? `${what} appear in the album when it develops ${developsWhen(developsAt)}.`
-    : `${what} appear in the album when it develops.`;
+function developNote(developsAt: string | null): string {
+  const when = developTimeWords(developsAt);
+  return `Uploads appear in the album when it develops${when ? `, ${when}` : ""}.`;
 }
+
 const AlbumCamera = lazy(() =>
   loadCamera().then((m) => ({ default: m.AlbumCamera })),
 );
@@ -408,7 +405,7 @@ export function GuestUpload({
           data-develop-note=""
           className="rounded-md bg-muted px-3 py-2 text-center text-reading text-muted-foreground"
         >
-          {developNote(camera, hydrated ? develop.developsAt : null)}
+          {developNote(hydrated ? develop.developsAt : null)}
         </p>
       ) : (
         holdForApproval && (

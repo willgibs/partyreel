@@ -36,5 +36,8 @@ export async function hasWaitingUploads(input: {
     sessionToken: ticket,
     userId: input.userId,
   });
-  return items.some((item) => item.status === "pending");
+  // Waiting: held for the host, or approved and sealed until the album develops (red-team 43).
+  return items.some(
+    (item) => item.status === "pending" || item.sealed === true,
+  );
 }
