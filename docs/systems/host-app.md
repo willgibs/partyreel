@@ -275,11 +275,11 @@ opens OVER the hub and closes back to it (event-header r2, `rooms=over`).
   itself (no form, no Save): `SettingsProvider` lays an optimistic overlay over the server row, a key dropped once the
   row catches up, with a sequence per key so a late answer never undoes a newer choice; a text field saves when it is
   left. ★ A date field saves once she has FINISHED it, never on its change: Chrome's date input fires a complete date on
-  every keystroke that makes one (a year typed digit by digit passes 0002, 0020 and 0202 on its way to 2027, and a field
-  that saved each stored 2027-10-02 to 3851-10-05), so a keyboard's edit waits to be left or Entered, a picker's choice (a
-  change no key made) saves a beat after the last (a phone's wheel may report every notch), a cleared field only on
-  leaving, and a day outside 1900 to 2100 (`isSaneDay`) or a half-filled date never saves, said under the field in
-  words (`event-page.tsx`'s `EventDatesField`; its tests type keystroke by keystroke in Chrome's own order). ★ A setting
+  every keystroke that makes one (a year typed digit by digit passes 0002, 0020 and 0202 on its way to 2027), so a
+  keyboard's edit waits to be left or Entered, a picker's choice (a change no key made) saves a beat after the last (a
+  phone's wheel may report every notch), a cleared field only on leaving, and a day outside 1900 to 2100 (`isSaneDay`) or
+  a half-filled date never saves, said under the field in words (`event-page.tsx`'s `EventDatesField`; its tests type
+  keystroke by keystroke in Chrome's own order). ★ A setting
   with no effect right now stays in view as one quiet line under the switch that governs it
   (`ui/dormant.tsx`, `inert` while asleep, no movement under reduced motion), and a change that affects people already
   in says so in its own place before it happens (`ui/consequence-line.tsx`). The Videos switch is locked on Free (a
