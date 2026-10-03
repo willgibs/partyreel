@@ -1,442 +1,370 @@
-/* THE WAIT'S OWN SHEET: what this board draws that production has no piece for
-   yet (the four waits, the arrival's develop, the host's covers, the model's
-   Settings). Everything production already draws (the cover, its buttons, the
-   shutter, her uploads' round, the album's rows) wears production's own
-   components and classes.
+/* THE ARRIVAL'S OWN SHEET: the motion this board draws that production has no
+   piece for yet (the develop's takes, the darkroom, the premiere). Everything
+   production already draws (the cover, the sheet's well and squares, the
+   album's tiles) wears production's own components and classes; the album's
+   regular open is production's numbers, mirrored here as keyframes so a frame
+   can hold it at a moment.
 
-   ★ UNLAYERED ON PURPOSE. A lab utility compiles into the `utilities.lab`
-   sub-layer and loses to production's own layer on the same element
-   (`design.css`'s landmine), so every rule a proposal adds lives here, where an
-   unlayered rule wins. No rule here sets `position` on an element a caller
-   positions with a utility.
+   ★ ONE CLOCK (`motion.tsx`). Every moving part is a `.tw-a` with its moment
+   on the take's timeline (`--tw-d`); its delay is that moment, after the live
+   frame's lead (`--tw-lead`), less the clock's reading (`--tw-at`). A held
+   frame pauses every animation at once, so a part stands exactly as far into
+   itself as the clock reads. Fill is `both`: before its moment a part stands
+   at its first frame, after it at its last.
 
-   ★ COLOUR COMES FROM THE PHOTOGRAPHS AND FROM LIGHT (bible 6). Everyone's
-   waiting photos are in the dark (the media well, `--gallery*`, dark in both
-   themes); hers are lit with her own photographs; the only other light is the
-   house's coral (the cover's own `HouseLight`, hue 25) and the album's.
+   ★ COLOUR COMES FROM THE PHOTOGRAPHS AND FROM LIGHT (bible 6). The develop is
+   light: a square flashes, then its photograph comes up from bright and pale
+   to itself, the curve the host's Look already uses (`hub-look-develop`).
 
-   ★ MOTION ONLY WHERE IT SHOWS STATE, AND NONE UNDER REDUCED MOTION (bible 5):
-   the photo just landed, the count ticking on, the develop filling in. Every
-   frame stands complete at rest, which is also what `lab:demo` compares. */
+   ★ REDUCED MOTION IS ITS OWN PASS (bible 5): the components choose its
+   classes, opacity alone, nothing moves. A frame draws it whatever the
+   reader's own setting; the live frame follows hers.
 
-/* ── the well: where everyone's waiting photos are, in the dark ────────── */
+   ★ UNLAYERED ON PURPOSE (a lab utility loses to production's layer), and
+   nothing here sets `position` on an element a caller positions with a
+   utility. EVERY KEYFRAME CARRIES THE `tw-` PREFIX (`keyframe-uniqueness`). */
 
-.tw-well {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  border-radius: calc(var(--radius-tile) * 3);
-  background: var(--gallery);
-  color: var(--gallery-foreground);
-  box-shadow: inset 0 0 0 1px var(--gallery-border);
+/* ── the clock ─────────────────────────────────────────────────────────── */
+
+.tw-play .tw-a {
+  animation-delay: calc(
+    var(--tw-lead, 0ms) + var(--tw-d, 0ms) - var(--tw-at, 0ms)
+  );
+  animation-fill-mode: both;
 }
-/* A well that is a card's picture runs to the card's edges. */
-.tw-well.tw-flush {
-  border-radius: 0;
-  box-shadow: none;
+/* A held frame, and a hidden option, stand still: every animation in the drawing, production's own included. */
+.tw-play[data-tw-held] *,
+.tw-play[data-tw-paused] * {
+  animation-play-state: paused !important;
 }
-/* The well's one light: the house's coral from above, a lamp over a sheet. */
-.tw-well::before {
-  content: "";
+/* Production's cover settles in from a step closer as it arrives (`head-settle`): on this clock, at the cover's own
+   moment (a develop brings it up later than the page's first paint), so a held frame shows it where it stands. */
+.tw-play .head-stills {
+  animation-delay: calc(
+    var(--tw-lead, 0ms) + var(--tw-cover-d, 0ms) - var(--tw-at, 0ms)
+  );
+}
+/* The reduced pass, drawn whatever the reader's setting: production's own reduced cover (its first photograph, still)
+   and words that fade without rising. */
+.tw-play[data-tw-motion="reduced"] .head-stills,
+.tw-play[data-tw-motion="reduced"] .head-still {
+  animation: none !important;
+}
+.tw-play[data-tw-motion="reduced"] [data-arrive],
+.tw-play[data-tw-motion="reduced"] [data-reveal] {
+  transition: opacity 200ms ease-out !important;
+}
+
+/* ── the parts, and what each does ────────────────────────────────────── */
+
+/* A square of the sheet developing: its photograph comes up out of a flash, from blown-out pale to itself. */
+.tw-sq-develop {
+  animation-name: tw-sq-develop;
+  animation-duration: 900ms;
+  animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+/* The flash a square takes as it develops: a warm light up fast, then a long going out. */
+.tw-flash {
   position: absolute;
-  inset: -60% -10% auto;
-  height: 100%;
-  z-index: -1;
+  inset: 0;
+  z-index: 2;
   pointer-events: none;
-  background: radial-gradient(
-    closest-side,
-    oklch(0.72 0.12 25 / 0.16),
-    oklch(0.72 0.12 25 / 0.04) 60%,
-    transparent
-  );
-}
-/* The darkroom's own light, where the preset is named for it: the safelight's red. */
-.tw-well[data-light="safe"]::before {
-  background: radial-gradient(
-    closest-side,
-    oklch(0.6 0.2 28 / 0.42),
-    oklch(0.6 0.2 28 / 0.1) 60%,
-    transparent
-  );
-}
-.tw-muted {
-  color: var(--gallery-muted);
-}
-
-/* ── the contact sheet ─────────────────────────────────────────────────── */
-
-.tw-sheet {
-  display: grid;
-  gap: 3px;
-}
-.tw-cell {
-  position: relative;
-  aspect-ratio: 1;
-  overflow: hidden;
-  border-radius: 3px;
-  background: oklch(0.2 0.006 286);
-  box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.05);
-}
-/* The newest squares are still warm with being shot, cooling as more land. */
-.tw-cell::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: oklch(0.93 0.04 60 / calc(var(--warm, 0) * 0.18));
-}
-.tw-cell[data-mine] {
-  z-index: 1;
-  box-shadow:
-    0 0 0 1.5px #fff,
-    0 0 12px rgb(255 255 255 / 0.3);
-}
-.tw-cell[data-mine]::after {
-  display: none;
-}
-.tw-cell[data-new] {
-  background: oklch(0.32 0.008 286);
-  box-shadow:
-    0 0 0 1.5px rgb(255 255 255 / 0.85),
-    0 0 14px oklch(0.9 0.06 60 / 0.6);
-}
-.tw-cell[data-mine][data-new] {
-  box-shadow:
-    0 0 0 2px #fff,
-    0 0 18px rgb(255 255 255 / 0.55);
-}
-/* A square that has developed: its photograph, lit. */
-.tw-cell > img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.tw-cell[data-developed] {
-  box-shadow: none;
-}
-.tw-cell[data-developed]::after {
-  display: none;
-}
-.tw-key {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
-  background: linear-gradient(135deg, #e9b27a, #6c7fd8);
-  box-shadow: 0 0 0 1.5px #fff;
-}
-
-/* ── the stack: everyone's, one tile that thickens ─────────────────────── */
-
-.tw-stack {
-  position: relative;
-  padding: 7px 7px 0 0;
-}
-/* The edges behind it: production's stack tile's own two (`stack-tile.tsx`, the muted ink at 25 and 40). */
-.tw-stack-edge {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: calc(100% - 7px);
-  height: calc(100% - 7px);
-  border-radius: var(--radius-tile);
-  background: color-mix(in oklab, var(--muted-foreground) 25%, transparent);
-}
-.tw-stack-edge + .tw-stack-edge {
-  top: 3.5px;
-  right: 3.5px;
-  background: color-mix(in oklab, var(--muted-foreground) 40%, transparent);
-}
-.tw-stack-face {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  height: 100%;
-  border-radius: var(--radius-tile);
-  background: var(--gallery);
-  color: var(--gallery-foreground);
-  box-shadow: inset 0 0 0 1px var(--gallery-border);
-}
-.tw-stack-face::before {
-  content: "";
-  position: absolute;
-  inset: -30% -40% auto;
-  height: 90%;
-  z-index: -1;
-  background: radial-gradient(
-    closest-side,
-    oklch(0.72 0.12 25 / 0.22),
-    oklch(0.72 0.12 25 / 0.05) 60%,
-    transparent
-  );
-}
-/* The stack's edge lines: one hairline for every ten photos waiting. */
-.tw-stack-lines {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-top: 10px;
-}
-.tw-stack-lines > span {
-  height: 1px;
-  background: rgb(255 255 255 / 0.14);
-}
-.tw-stack-lines > span:last-child {
-  background: rgb(255 255 255 / 0.32);
-}
-
-/* Her photo, in the album, waiting: lit, with its mark. */
-.tw-hers {
-  position: relative;
-  overflow: hidden;
-  border-radius: var(--radius-tile);
-  background: oklch(0.2 0.006 286);
-}
-.tw-hers > img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-/* The one pass of light her own landing takes (production's `data-landed`, quoted). */
-.tw-hers[data-landing]::after,
-.tw-cell[data-mine][data-new]::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  box-shadow: inset 0 0 0 2px rgb(255 255 255 / 0.9);
   border-radius: inherit;
+  background: oklch(0.97 0.025 78);
+  opacity: 0;
 }
-
-/* ── the night's reel ──────────────────────────────────────────────────── */
-
-.tw-reel {
-  position: relative;
-  height: 112px;
+.tw-flash.tw-a {
+  animation-name: tw-flash;
+  animation-duration: 700ms;
+  animation-timing-function: ease-out;
 }
-.tw-reel-bar {
+/* A square turned to light and left lit (the light take). */
+.tw-flash.tw-lit {
+  animation-name: tw-lit;
+  animation-duration: 760ms;
+  animation-timing-function: ease-out;
+}
+/* The sheet's older squares sinking away, down toward where they stand in the album. */
+.tw-sink {
+  animation-name: tw-sink;
+  animation-duration: 460ms;
+  animation-timing-function: cubic-bezier(0.55, 0, 0.8, 0.2);
+}
+.tw-fade-in {
+  animation-name: tw-fade-in;
+  animation-duration: 400ms;
+  animation-timing-function: ease-out;
+}
+.tw-fade-out {
+  animation-name: tw-fade-out;
+  animation-duration: 420ms;
+  animation-timing-function: ease-out;
+}
+.tw-fade-out-slow {
+  animation-name: tw-fade-out;
+  animation-duration: 640ms;
+  animation-timing-function: ease-in-out;
+}
+.tw-rise-in {
+  animation-name: tw-rise-in;
+  animation-duration: 280ms;
+  animation-timing-function: var(--ease-emphasis);
+}
+/* The album's regular open, production's numbers (`globals.css`, `[data-media-tile]`): 240 ms, from a step below and a
+   hair smaller. */
+.tw-tile-in {
+  animation-name: tw-tile-in;
+  animation-duration: 240ms;
+  animation-timing-function: var(--ease-emphasis);
+}
+/* A square growing into its photograph in the rows: its box from the square's to its own, the picture covering it the
+   whole way (so the square's centre crop opens into the tile's without a jump). Production's push curve. */
+.tw-grow {
+  animation-name: tw-grow;
+  animation-duration: 720ms;
+  animation-timing-function: var(--ease-in-out-strong);
+}
+/* A tile that starts as a square wears the square's dark (`.wait-cell`'s) until its photograph comes up over it. */
+.tw-as-cell {
+  background: color-mix(in oklab, var(--gallery-foreground) 9%, var(--gallery));
+}
+/* Her rim, going as one of hers becomes a photograph like any other. */
+.tw-rim {
   position: absolute;
-  bottom: 30px;
-  width: 3px;
-  border-radius: 2px;
-  background: rgb(255 255 255 / 0.28);
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 0 1.5px #fff,
+    inset 0 0 12px rgb(255 255 255 / 0.3);
 }
-.tw-reel-bar[data-new] {
-  background: oklch(0.9 0.08 60);
-  box-shadow: 0 0 10px oklch(0.9 0.08 60 / 0.7);
+.tw-rim.tw-a {
+  animation-name: tw-fade-out;
+  animation-duration: 500ms;
+  animation-timing-function: ease-out;
 }
-.tw-reel-axis {
+/* The cover's photographs coming up out of the house light: the host's Look, a beat longer. */
+.tw-cover-develop {
+  animation-name: tw-from-light;
+  animation-duration: 1300ms;
+  animation-timing-function: var(--ease-emphasis);
+}
+/* The album rising out of the light (the light take): the same curve. */
+.tw-from-light {
+  animation-name: tw-from-light;
+  animation-duration: 900ms;
+  animation-timing-function: var(--ease-emphasis);
+}
+/* The well filling with light, from its lamp. */
+.tw-wash {
   position: absolute;
-  right: 0;
-  bottom: 24px;
-  left: 0;
-  height: 2px;
-  border-radius: 2px;
-  background: rgb(255 255 255 / 0.12);
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  border-radius: inherit;
+  background: radial-gradient(
+    120% 90% at 50% 0%,
+    oklch(0.98 0.02 80 / 0.98),
+    oklch(0.95 0.03 70 / 0.9) 55%,
+    oklch(0.9 0.04 60 / 0.82)
+  );
 }
-.tw-reel-past {
-  position: absolute;
-  bottom: 24px;
-  left: 0;
-  height: 2px;
-  border-radius: 2px;
-  background: rgb(255 255 255 / 0.55);
+.tw-wash.tw-a {
+  animation-name: tw-fade-in;
+  animation-duration: 650ms;
+  animation-timing-function: ease-in;
 }
+/* The darkroom's walls closing onto the cover, and its sheet fitting there. */
+.tw-shrink {
+  animation-name: tw-shrink;
+  animation-duration: 680ms;
+  animation-timing-function: var(--ease-in-out-strong);
+}
+.tw-fit {
+  animation-name: tw-fit;
+  animation-duration: 680ms;
+  animation-timing-function: var(--ease-in-out-strong);
+}
+/* The premiere's frames: each in, held with the reel's slow push, and out under the next. */
 .tw-reel-frame {
-  position: absolute;
-  bottom: 30px;
-  width: 22px;
-  height: 22px;
-  overflow: hidden;
-  border-radius: 6px;
-  box-shadow:
-    0 0 0 1.5px #fff,
-    0 4px 12px rgb(0 0 0 / 0.5);
+  animation-name: tw-reel-frame;
+  animation-duration: var(--tw-hold, 1800ms);
+  animation-timing-function: linear;
 }
-.tw-reel-frame > img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.tw-reel-last {
+  animation-name: tw-reel-last;
+  animation-duration: var(--tw-hold, 1800ms);
+  animation-timing-function: linear;
 }
-.tw-reel-now {
-  position: absolute;
-  bottom: 19px;
-  width: 12px;
-  height: 12px;
-  border-radius: 999px;
-  background: #fff;
-  box-shadow: 0 0 0 4px rgb(255 255 255 / 0.16);
+.tw-progress {
+  transform-origin: left center;
+  animation-name: tw-progress;
+  animation-duration: var(--tw-run, 9000ms);
+  animation-timing-function: linear;
 }
-.tw-reel-end {
-  position: absolute;
-  right: 0;
-  bottom: 20px;
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  box-shadow: inset 0 0 0 2px rgb(255 255 255 / 0.6);
+/* The premiere's beat: what this is, said once as the pass begins. */
+.tw-beat {
+  animation-name: tw-beat;
+  animation-duration: 2600ms;
+  animation-timing-function: ease-out;
 }
-.tw-reel-label {
-  position: absolute;
-  bottom: 0;
-  font-size: 11px;
-  line-height: 16px;
-  font-variant-numeric: tabular-nums;
-  color: var(--gallery-muted);
-  white-space: nowrap;
-}
-/* Her frames in a row under it, the camera reel's rounded frames. */
-.tw-frame {
-  position: relative;
-  overflow: hidden;
-  border-radius: 10px;
-  aspect-ratio: 1;
-  background: oklch(0.2 0.006 286);
-  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.12);
-}
-.tw-frame > img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+/* The premiere's last photograph dropping into its tile, as a viewer's photograph drops back into the album. */
+.tw-drop {
+  animation-name: tw-drop;
+  animation-duration: 640ms;
+  animation-timing-function: var(--ease-in-out-strong);
 }
 
-/* ── the loupe: one of hers, opened where it stands ────────────────────── */
+/* ── the keyframes ─────────────────────────────────────────────────────── */
 
-.tw-loupe {
-  border-radius: 18px;
-  background: oklch(0.16 0.006 286 / 0.92);
-  color: #f4f4f5;
-  box-shadow:
-    0 0 0 1px rgb(255 255 255 / 0.12),
-    0 24px 60px rgb(0 0 0 / 0.55);
-  backdrop-filter: blur(18px) saturate(1.2);
-}
-
-/* ── the host's frost ──────────────────────────────────────────────────── */
-
-.tw-frost {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  border-radius: calc(var(--radius-tile) * 3);
-}
-.tw-frost-pane {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: oklch(0.12 0.006 286 / 0.38);
-  backdrop-filter: blur(22px) saturate(1.25);
-}
-.tw-frost[data-peek] .tw-frost-pane {
-  background: transparent;
-  backdrop-filter: none;
-}
-
-/* ── the settings' time track ──────────────────────────────────────────── */
-
-.tw-track {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  border-radius: 14px;
-  padding: 4px;
-  background: var(--muted);
-}
-.tw-track-stop {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  border-radius: 10px;
-  padding: 8px 4px;
-  text-align: center;
-}
-.tw-track-stop[data-on] {
-  background: var(--background);
-  box-shadow:
-    0 1px 2px rgb(0 0 0 / 0.08),
-    0 0 0 1px var(--border);
-}
-/* A style card's picture: a small album drawn in light. */
-.tw-style-pic {
-  position: relative;
-  overflow: hidden;
-  border-radius: 10px;
-  background: var(--gallery);
-}
-
-/* ── motion: only with motion allowed ──────────────────────────────────── */
-
-@media (prefers-reduced-motion: no-preference) {
-  .tw-cell[data-new],
-  .tw-hers[data-landing] {
-    animation: tw-land 2.8s var(--ease-emphasis, ease-out) infinite;
-  }
-  .tw-pill-new {
-    animation: tw-tick 2.8s var(--ease-emphasis, ease-out) infinite;
-  }
-  .tw-reel-now {
-    animation: tw-breathe 2.8s ease-in-out infinite;
-  }
-  .tw-develop-cell {
-    animation: tw-develop 1.4s var(--ease-emphasis, ease-out) both;
-    animation-delay: var(--tw-delay, 0ms);
-  }
-}
-
-@keyframes tw-land {
+@keyframes tw-sq-develop {
   0% {
-    transform: scale(0.82);
     opacity: 0;
+    filter: brightness(2.6) saturate(0) contrast(0.55);
   }
-  18% {
-    transform: scale(1.04);
-    opacity: 1;
-  }
-  30%,
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-@keyframes tw-tick {
-  0%,
-  8% {
-    transform: translateY(4px);
-    opacity: 0;
-  }
-  20%,
-  80% {
-    transform: none;
+  22% {
     opacity: 1;
   }
   100% {
-    opacity: 0.85;
-  }
-}
-@keyframes tw-breathe {
-  0%,
-  100% {
-    box-shadow: 0 0 0 4px rgb(255 255 255 / 0.16);
-  }
-  50% {
-    box-shadow: 0 0 0 9px rgb(255 255 255 / 0.04);
-  }
-}
-@keyframes tw-develop {
-  from {
-    opacity: 0;
-    filter: brightness(2.2) saturate(0);
-  }
-  to {
     opacity: 1;
     filter: none;
+  }
+}
+@keyframes tw-flash {
+  0% {
+    opacity: 0;
+  }
+  16% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes tw-lit {
+  0% {
+    opacity: 0;
+  }
+  35% {
+    opacity: 0.96;
+  }
+  100% {
+    opacity: 0.84;
+  }
+}
+@keyframes tw-sink {
+  to {
+    opacity: 0;
+    transform: translateY(16px) scale(0.92);
+  }
+}
+@keyframes tw-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes tw-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes tw-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes tw-tile-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+@keyframes tw-grow {
+  from {
+    left: var(--tw-fx);
+    top: var(--tw-fy);
+    width: var(--tw-fw);
+    height: var(--tw-fh);
+    border-radius: 3px;
+  }
+}
+@keyframes tw-from-light {
+  from {
+    opacity: 0;
+    filter: brightness(1.9) saturate(0.15);
+  }
+}
+@keyframes tw-shrink {
+  to {
+    clip-path: inset(0 0 calc(100% - var(--cover-h)) 0);
+  }
+}
+@keyframes tw-fit {
+  to {
+    transform: translateY(var(--tw-fit-y, 0px)) scale(var(--tw-fit-k, 1));
+  }
+}
+@keyframes tw-reel-frame {
+  0% {
+    opacity: 0;
+    transform: scale(1);
+  }
+  12% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.06);
+  }
+}
+@keyframes tw-reel-last {
+  0% {
+    opacity: 0;
+    transform: scale(1);
+  }
+  12% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+@keyframes tw-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes tw-beat {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  14% {
+    opacity: 1;
+    transform: none;
+  }
+  82% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes tw-drop {
+  to {
+    left: var(--tw-tx);
+    top: var(--tw-ty);
+    width: var(--tw-tw);
+    height: var(--tw-th);
+    border-radius: 2px;
   }
 }

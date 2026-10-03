@@ -89,5 +89,7 @@ answered (the board's `carried`), each his to overrule:
 
 ## Where I am
 
-- Booted on `lp/the-wait-r2` from `9d52a3ba`; the plan is the Questions above. Next: rewrite the board folder as one
-  ask (`arrival`, five options) on production's page as wired, r1's answered asks retired into `opening.settled`.
+- First pass drawn and committed: `spec.ts` (round 2, one ask, five options, r1's picks settled), `board.tsx`, the
+  drawings (`album.tsx` the page, `develop.tsx` the three develops, `premiere.tsx`, `place.tsx`, `motion.tsx` the
+  clock, `geometry.ts` production's sheet and rows arithmetic). Typecheck, lint and the registry tests green on it.
+  Next: refine each take at 375 and 1440 from captures (`_scratch/the-wait-r2/cap.mjs`), then the gate and handoff.
