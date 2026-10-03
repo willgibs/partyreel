@@ -24,8 +24,13 @@ vi.mock("@/lib/r2/delete", () => ({
   listR2Objects: vi.fn(),
 }));
 
-const { mediaKeysOf, purgeMediaRows, readHeldEventIds, reclaimMedia } =
-  await import("@/lib/lifecycle/reclaim");
+const {
+  MEDIA_KEY_COLUMNS,
+  mediaKeysOf,
+  purgeMediaRows,
+  readHeldEventIds,
+  reclaimMedia,
+} = await import("@/lib/lifecycle/reclaim");
 
 function worldWith(mediaCount: number) {
   const events = [eventRow(uuidOf("e", 1), uuidOf("h", 1))];
@@ -74,13 +79,16 @@ describe("reclaimMedia", () => {
       id: String(m.id),
       original_key: String(m.original_key),
       preview_key: m.preview_key as string | null,
+      phone_key: m.phone_key as string | null,
     }));
     const result = await reclaimMedia(world.client, rows, [
       "events/x/reel/reel.mp4",
     ]);
     expect(result).toEqual({
       media_rows: 1_200,
-      r2_deleted: 2_401,
+      // ★ RESHAPED ON PURPOSE (take-home-wiring, 2026-10-03; scar kept: every object before its row): a
+      // photograph's three stored copies each, then the derived key.
+      r2_deleted: 3_601,
       r2_errored: 0,
       freed_bytes: 12_000,
     });
@@ -106,6 +114,46 @@ describe("reclaimMedia", () => {
     );
     expect(result.media_rows).toBe(0);
     expect(world.purgeCallSizes).toEqual([]);
+  });
+});
+
+describe("mediaKeysOf: every stored copy a row owns", () => {
+  const E = "events/e";
+  it("the original always, the preview and the phone-size copy where the row has them", () => {
+    expect(
+      mediaKeysOf([
+        {
+          id: "a",
+          original_key: `${E}/photo/a/original.jpg`,
+          preview_key: `${E}/photo/a/preview.webp`,
+          phone_key: `${E}/photo/a/phone.jpg`,
+        },
+        {
+          id: "b",
+          original_key: `${E}/photo/b/original.png`,
+          preview_key: null,
+          phone_key: `${E}/photo/b/phone.jpg`,
+        },
+        {
+          id: "c",
+          original_key: `${E}/video/c/original.mp4`,
+          preview_key: `${E}/video/c/preview.webp`,
+          phone_key: null,
+        },
+      ]),
+    ).toEqual([
+      `${E}/photo/a/original.jpg`,
+      `${E}/photo/a/preview.webp`,
+      `${E}/photo/a/phone.jpg`,
+      `${E}/photo/b/original.png`,
+      `${E}/photo/b/phone.jpg`,
+      `${E}/video/c/original.mp4`,
+      `${E}/video/c/preview.webp`,
+    ]);
+  });
+
+  it("names its columns in one place, and those are exactly the keys it reads", () => {
+    expect(MEDIA_KEY_COLUMNS).toBe("id, original_key, preview_key, phone_key");
   });
 });
 

@@ -23,8 +23,7 @@ import { withArrayRpc } from "@/lib/lifecycle/testing/cron-fake";
 
 let fake: FakePostgrest;
 /** Functions answered with a uuid[] (as PostgREST answers one), for the admin client alone. */
-let arrayRpc: Record<string, (args: Record<string, unknown>) => unknown[]> =
-  {};
+let arrayRpc: Record<string, (args: Record<string, unknown>) => unknown[]> = {};
 const deleted: string[][] = [];
 
 vi.mock("server-only", () => ({}));
@@ -64,6 +63,8 @@ function row(i: number, fields: FakeRow = {}): FakeRow {
     original_key: `events/ev-1/photo/${uuid(i)}/original.jpg`,
     preview_key:
       i % 2 === 0 ? `events/ev-1/photo/${uuid(i)}/preview.webp` : null,
+    // The phone-size copy (take-home-wiring): most rows carry one, some never made one.
+    phone_key: i % 3 === 0 ? null : `events/ev-1/photo/${uuid(i)}/phone.jpg`,
     legal_hold_at: null,
     ...fields,
   };
@@ -264,7 +265,10 @@ describe("the bin's Delete forever", () => {
     const keys = deleted.flat();
     const expected = fake.tables.media
       .filter((m) => m.status === "removed" && !kept.has(String(m.id)))
-      .flatMap((m) => [m.original_key, m.preview_key].filter(Boolean));
+      .flatMap((m) =>
+        [m.original_key, m.preview_key, m.phone_key].filter(Boolean),
+      );
+    // ★ Every stored copy of every purged row, the phone-size copy too (take-home-wiring), and no other.
     expect(keys.sort()).toEqual((expected as string[]).sort());
     // The RPC re-validates every id itself, in the POST body, where length is no problem.
     expect(purgeCalls).toEqual([{ p_media_ids: ids(2501) }]);

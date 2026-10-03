@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 
 import { extForMime } from "@/lib/media/limits";
 import { classifyMime } from "@/lib/media/validators";
-import { mediaObjectKey } from "@/lib/r2/keys";
+import { mediaObjectKey, phoneKeyFor } from "@/lib/r2/keys";
 import { checkCompleteKeyConsistency } from "@/lib/upload/complete-key-check";
 
 const EVENT_ID = "11111111-2222-3333-4444-555555555555";
@@ -60,7 +60,12 @@ describe("checkCompleteKeyConsistency", () => {
     const { key, previewKey, kind, ext } = mintedPair("image/jpeg");
     // key and preview_key swapped wholesale:
     expect(
-      checkCompleteKeyConsistency({ key: previewKey, previewKey: key, kind, ext }),
+      checkCompleteKeyConsistency({
+        key: previewKey,
+        previewKey: key,
+        kind,
+        ext,
+      }),
     ).toBe("key_not_original");
     // only the preview slot wrong (a second original in it):
     expect(
@@ -146,5 +151,118 @@ describe("checkCompleteKeyConsistency", () => {
         junk,
       ).toBe("key_not_original");
     }
+  });
+});
+
+describe("checkCompleteKeyConsistency: the phone-size copy (take-home r1)", () => {
+  const PHONE = phoneKeyFor({ eventId: EVENT_ID, mediaId: MEDIA_ID });
+
+  it("accepts the phone copy presign minted beside a photograph, with or without its preview", () => {
+    for (const mime of [
+      "image/jpeg",
+      "image/heic",
+      "image/png",
+      "image/webp",
+    ]) {
+      const { key, previewKey, kind, ext } = mintedPair(mime);
+      expect(
+        checkCompleteKeyConsistency({
+          key,
+          previewKey,
+          phoneKey: PHONE,
+          kind,
+          ext,
+        }),
+        mime,
+      ).toBeNull();
+      expect(
+        checkCompleteKeyConsistency({
+          key,
+          previewKey: null,
+          phoneKey: PHONE,
+          kind,
+          ext,
+        }),
+        mime,
+      ).toBeNull();
+    }
+  });
+
+  it("refuses a phone copy on a video: videos stay as taken", () => {
+    const { key, previewKey, kind, ext } = mintedPair("video/mp4");
+    const videoPhone = mediaObjectKey({
+      eventId: EVENT_ID,
+      mediaId: MEDIA_ID,
+      kind: "video",
+      variant: "phone",
+      ext: "jpg",
+    });
+    expect(
+      checkCompleteKeyConsistency({
+        key,
+        previewKey,
+        phoneKey: videoPhone,
+        kind,
+        ext,
+      }),
+    ).toBe("phone_not_photo");
+    expect(
+      checkCompleteKeyConsistency({
+        key,
+        previewKey,
+        phoneKey: PHONE,
+        kind,
+        ext,
+      }),
+    ).toBe("phone_not_photo");
+  });
+
+  it("refuses any other variant in the phone slot: the original or the preview metered as nothing", () => {
+    const { key, previewKey, kind, ext } = mintedPair("image/jpeg");
+    expect(
+      checkCompleteKeyConsistency({
+        key,
+        previewKey,
+        phoneKey: key,
+        kind,
+        ext,
+      }),
+    ).toBe("phone_not_phone");
+    expect(
+      checkCompleteKeyConsistency({
+        key,
+        previewKey,
+        phoneKey: previewKey,
+        kind,
+        ext,
+      }),
+    ).toBe("phone_not_phone");
+  });
+
+  it("refuses a phone copy that is not the JPEG presign mints", () => {
+    const { key, previewKey, kind, ext } = mintedPair("image/jpeg");
+    expect(
+      checkCompleteKeyConsistency({
+        key,
+        previewKey,
+        phoneKey: `events/${EVENT_ID}/photo/${MEDIA_ID}/phone.webp`,
+        kind,
+        ext,
+      }),
+    ).toBe("phone_ext_not_jpg");
+  });
+
+  it("refuses the phone variant in the ORIGINAL slot: a copy never meters as the upload", () => {
+    const { previewKey, kind, ext } = mintedPair("image/jpeg");
+    expect(
+      checkCompleteKeyConsistency({ key: PHONE, previewKey, kind, ext }),
+    ).toBe("key_not_original");
+  });
+
+  it("refuses the phone variant in the PREVIEW slot", () => {
+    const { key, kind, ext } = mintedPair("image/jpeg");
+    expect(
+      checkCompleteKeyConsistency({ key, previewKey: PHONE, kind, ext }),
+    ).toBe("preview_not_preview");
   });
 });

@@ -348,7 +348,7 @@ describe("4. the roll, its ceiling, the fast purge, the camera video, the seal a
     expect(ledger).toBeGreaterThan(insert);
     // Its only writer: no other body names it in a write.
     const writers = everything().match(/(insert into|update|delete from) public\.camera_rolls/g) ?? [];
-    expect(writers).toEqual(["insert into public.camera_rolls"]);
+    expect([...new Set(writers)]).toEqual(["insert into public.camera_rolls"]); // a file replacing create_media restates it
   });
 
   it("★ a camera shot she withdraws purges tonight; every other removal keeps its 30 days, and a hold or a report still keeps it", () => {

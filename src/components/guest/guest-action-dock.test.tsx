@@ -1,7 +1,8 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 
 import { GuestActionDock } from "@/components/guest/guest-action-dock";
+import { guestSelect } from "@/components/guest/live-gallery-select";
 import type { QueueItem, QueueProgress } from "@/lib/guest/use-upload-queue";
 
 /**
@@ -315,5 +316,92 @@ describe("the shutter's ring is her run", () => {
     rerender(dock([file("a", "error"), file("b", "uploading")]));
     rerender(dock([file("a", "error"), file("b", "done")]));
     expect(shutter()).toHaveAttribute("data-state", "done");
+  });
+});
+
+/**
+ * SELECT, THEN SAVE (take-home r1, `guest=select`): in select mode the shutter turns to Save, alone at the foot,
+ * standing whether or not the cover's row is on screen; its ring fills as her photographs arrive and a press then
+ * stops it; Ready asks for the press that opens the phone's sheet. The press is the album's (`onPress`).
+ */
+describe("in select mode the shutter turns to Save", () => {
+  afterEach(() => act(() => guestSelect.exit()));
+
+  const mount = (hidden = true) =>
+    render(
+      <GuestActionDock
+        hidden={hidden}
+        uploadingCount={0}
+        onAdd={() => {}}
+        invite={invite}
+      />,
+    );
+
+  it("stands alone at the foot, even under the cover's row, counting her picks", () => {
+    mount(true);
+    act(() => {
+      guestSelect.enter();
+      guestSelect.pick(["a", "b", "c"]);
+    });
+    const save = screen.getByRole("button", { name: "Save 3 photos" });
+    expect(save).toBeEnabled();
+    expect(dock()).not.toHaveAttribute("data-hidden");
+    expect(dock()).not.toHaveAttribute("inert");
+    expect(document.querySelector("[data-save-count]")?.textContent).toBe("3");
+    // The album's acts are not her selection's.
+    expect(screen.queryByRole("button", { name: "Invite" })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Add photos/ })).toBeNull();
+  });
+
+  it("waits, disabled, until she has picked something", () => {
+    mount(false);
+    act(() => guestSelect.enter());
+    expect(
+      screen.getByRole("button", { name: "Pick photos to save" }),
+    ).toBeDisabled();
+  });
+
+  it("hands her press to the album", () => {
+    const pressed = vi.fn();
+    const release = guestSelect.onPress(pressed);
+    mount(false);
+    act(() => {
+      guestSelect.enter();
+      guestSelect.pick(["a"]);
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save 1 photo" }));
+    expect(pressed).toHaveBeenCalledTimes(1);
+    release();
+  });
+
+  it("fills its ring as her photographs arrive, a stop on its face; then says Ready", () => {
+    mount(false);
+    act(() => {
+      guestSelect.enter();
+      guestSelect.pick(["a", "b"]);
+      guestSelect.setRun({ kind: "getting", progress: 0.4 });
+    });
+    const getting = screen.getByRole("button", {
+      name: "Saving 2 photos. Tap to stop.",
+    });
+    expect(getting).toHaveAttribute("data-state", "sending");
+    expect(getting.style.getPropertyValue("--progress")).toBe("0.4");
+    act(() => guestSelect.setRun({ kind: "ready" }));
+    expect(
+      screen.getByRole("button", { name: "Save 2 photos: ready" }),
+    ).toBeEnabled();
+    expect(document.querySelector("[data-save-count]")?.textContent).toBe(
+      "Ready",
+    );
+  });
+
+  it("goes back to the album's own shutter when select mode ends", () => {
+    mount(false);
+    act(() => guestSelect.enter());
+    act(() => guestSelect.exit());
+    expect(
+      screen.getByRole("button", { name: "Add photos" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Invite" })).toBeInTheDocument();
   });
 });

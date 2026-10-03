@@ -7,6 +7,11 @@
  * sources it from `listEventMedia` (host) or an admin read of the access-resolved ids (guest),
  * never from the client. The ceilings bound the Worker's worst-case CPU (CRC32 over the bytes) for
  * ONE zip; an album past them comes home in parts (`export-flow` r1, `cap=split`), never refused.
+ *
+ * ★ TWO SIZES (take-home r1, `host=two`): the originals, to keep, and phone size, to post tonight. A photograph's
+ * phone size is its phone-size copy (`phone_key`, a 2048 px JPEG) where it has one and its original where it has
+ * none; a clip's is itself, as taken. Every bucket says both sizes, and a phone-size zip takes the copies, its
+ * ceilings and parts measured by the copies' bytes.
  */
 import type { ExportItem } from "@/lib/export/export-token";
 import { buildDownloadFilename } from "@/lib/media/download-filename";
@@ -19,6 +24,9 @@ export const MAX_EXPORT_BYTES = 20 * 1024 * 1024 * 1024; // ~20 GB
 
 /** The media-type filter the menu's rows drive. */
 export type ExportTypeFilter = "all" | "photo" | "video";
+
+/** Which copies a zip takes: the originals, or phone size (a photograph's copy, else its original). */
+export type ExportSize = "original" | "phone";
 
 /** Status as it matters to the export: `approved` is the default ("shown") set; everything else
  *  non-removed is the host-only "Include hidden" expansion. */
@@ -33,9 +41,28 @@ export type ExportMediaRow = {
   status: ExportStatus;
   /** The row's own timestamp, as Postgres returned it: the export's order (oldest first). */
   created_at: string;
+  /** The phone-size copy (take-home r1): its key and its bytes, or null where the photograph has none. */
+  phone_key?: string | null;
+  phone_bytes?: number | null;
 };
 
-type Bucket = { count: number; bytes: number };
+/** How many, what they weigh as taken, and what they weigh at phone size. */
+type Bucket = { count: number; bytes: number; phone: number };
+
+/** A row's key and bytes at a size: phone size is the copy where there is one, the original where not. */
+export function copyOf(
+  row: ExportMediaRow,
+  size: ExportSize,
+): { key: string; bytes: number } {
+  if (
+    size === "phone" &&
+    row.phone_key &&
+    typeof row.phone_bytes === "number"
+  ) {
+    return { key: row.phone_key, bytes: row.phone_bytes };
+  }
+  return { key: row.original_key, bytes: row.file_size_bytes };
+}
 
 /**
  * Per-(visibility-bucket × type) totals. `shown` = approved (what guests see / the host default);
@@ -49,9 +76,10 @@ export type ExportSummary = {
 };
 
 function emptySummary(): ExportSummary {
+  const zero = (): Bucket => ({ count: 0, bytes: 0, phone: 0 });
   return {
-    shown: { photo: { count: 0, bytes: 0 }, video: { count: 0, bytes: 0 } },
-    hidden: { photo: { count: 0, bytes: 0 }, video: { count: 0, bytes: 0 } },
+    shown: { photo: zero(), video: zero() },
+    hidden: { photo: zero(), video: zero() },
   };
 }
 
@@ -63,6 +91,7 @@ export function summarizeMedia(rows: ExportMediaRow[]): ExportSummary {
     const b = group[r.type];
     b.count += 1;
     b.bytes += r.file_size_bytes;
+    b.phone += copyOf(r, "phone").bytes;
   }
   return s;
 }
@@ -88,14 +117,19 @@ export const EXPORT_CURSOR_RE = /^\d{1,16}_[0-9a-f-]{36}$/i;
 /** Which part of a walk a mint asks for: its number (from 1), and where the last one ended. */
 export type ExportWalk = { part: number; after: ExportCursor | null };
 
-type Ordered = { ms: number; id: string; row: ExportMediaRow };
+type Ordered = { ms: number; id: string; row: ExportMediaRow; bytes: number };
 
 /** Milliseconds, then the id: a total order (the id is unique), whatever Postgres's precision. */
-function ordered(rows: ExportMediaRow[]): Ordered[] {
+function ordered(rows: ExportMediaRow[], size: ExportSize): Ordered[] {
   return rows
     .map((row) => {
       const ms = Date.parse(row.created_at);
-      return { ms: Number.isFinite(ms) ? ms : 0, id: row.id, row };
+      return {
+        ms: Number.isFinite(ms) ? ms : 0,
+        id: row.id,
+        row,
+        bytes: copyOf(row, size).bytes,
+      };
     })
     .sort((a, b) => a.ms - b.ms || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
 }
@@ -119,7 +153,7 @@ function splitIntoParts(items: Ordered[]): Ordered[][] {
   let part: Ordered[] = [];
   let bytes = 0;
   for (const o of items) {
-    const size = o.row.file_size_bytes;
+    const size = o.bytes;
     if (
       part.length > 0 &&
       (part.length >= MAX_EXPORT_ITEMS || bytes + size > MAX_EXPORT_BYTES)
@@ -150,16 +184,35 @@ export type ExportManifestResult =
     }
   | { ok: false; reason: "empty" | "over_cap" };
 
-/** `garden-party.zip`, `garden-party-yours.zip`, `garden-party-part-2-of-3.zip`: plain words. */
+/**
+ * `garden-party.zip`, `garden-party-yours.zip`, `garden-party-part-2-of-3.zip`, `garden-party-phone-size.zip`:
+ * plain words.
+ */
 function zipNameFor(
   eventName: string,
   label: string | undefined,
+  size: ExportSize,
   part: number,
   parts: number,
 ): string {
   const base = slugify(eventName) || "partyreel";
-  const named = label ? `${base}-${label}` : base;
+  const labelled = label ? `${base}-${label}` : base;
+  const named = size === "phone" ? `${labelled}-phone-size` : labelled;
   return parts > 1 ? `${named}-part-${part}-of-${parts}.zip` : `${named}.zip`;
+}
+
+/** The rows a set takes: never the bin, the shown ones (or, for a host who asks, the hidden too), of its type. */
+export function chosenRows(
+  rows: readonly ExportMediaRow[],
+  types: ExportTypeFilter,
+  includeHidden: boolean,
+): ExportMediaRow[] {
+  return rows.filter(
+    (r) =>
+      r.status !== "removed" &&
+      (includeHidden || r.status === "approved") &&
+      (types === "all" || r.type === types),
+  );
 }
 
 /**
@@ -181,17 +234,13 @@ export function buildExportManifest(params: {
   walk?: ExportWalk;
   /** A word the zip's name carries after the event's (`yours`). */
   zipLabel?: string;
+  /** Which copies it takes (take-home r1): the originals (the default), or phone size. */
+  size?: ExportSize;
 }): ExportManifestResult {
   const { rows, eventName, types, includeHidden, walk, zipLabel } = params;
+  const size = params.size ?? "original";
 
-  const chosen = ordered(
-    rows.filter(
-      (r) =>
-        r.status !== "removed" &&
-        (includeHidden || r.status === "approved") &&
-        (types === "all" || r.type === types),
-    ),
-  );
+  const chosen = ordered(chosenRows(rows, types, includeHidden), size);
   const after = walk?.after ?? null;
   const remaining = after
     ? chosen.filter((o) => afterCursor(o, after))
@@ -200,7 +249,7 @@ export function buildExportManifest(params: {
 
   if (!walk) {
     // The old contract, exactly: the whole selection within both ceilings, or refused.
-    const bytes = remaining.reduce((sum, o) => sum + o.row.file_size_bytes, 0);
+    const bytes = remaining.reduce((sum, o) => sum + o.bytes, 0);
     if (remaining.length > MAX_EXPORT_ITEMS || bytes > MAX_EXPORT_BYTES) {
       return { ok: false, reason: "over_cap" };
     }
@@ -210,19 +259,19 @@ export function buildExportManifest(params: {
   const part = walk?.part ?? 1;
   const [these] = parts;
   const total = part - 1 + parts.length;
-  const items: ExportItem[] = these.map(({ row }) => ({
-    key: row.original_key,
-    name: buildDownloadFilename({
-      eventName,
-      key: row.original_key,
-      type: row.type,
-    }),
-  }));
+  const items: ExportItem[] = these.map(({ row }) => {
+    // The copy's own key names the file, so a phone-size copy travels as the `.jpg` it is.
+    const { key } = copyOf(row, size);
+    return {
+      key,
+      name: buildDownloadFilename({ eventName, key, type: row.type }),
+    };
+  });
   return {
     ok: true,
     items,
-    zipName: zipNameFor(eventName, zipLabel, part, total),
-    totalBytes: these.reduce((sum, o) => sum + o.row.file_size_bytes, 0),
+    zipName: zipNameFor(eventName, zipLabel, size, part, total),
+    totalBytes: these.reduce((sum, o) => sum + o.bytes, 0),
     itemCount: items.length,
     part,
     parts: total,

@@ -46,6 +46,10 @@ vi.mock("@/lib/security/abuse-rate-limit-store", () => ({
   checkAbuseRate: async () => ({ allowed: true }),
   recordAbuseEvent: async () => {},
 }));
+// The summary pictures the panel's two sets (take-home r1): a link is its key here.
+vi.mock("@/lib/r2/presign", () => ({
+  presignDownload: async (p: { key: string }) => `https://r2.example/${p.key}`,
+}));
 
 const { POST } = await import("./route");
 
@@ -105,10 +109,26 @@ describe("the host export reads the whole album", () => {
   it("summarizes all 2,500 live items, where one read would have counted 1,000", async () => {
     const { status, body } = await post({ step: "summary" });
     expect(status).toBe(200);
-    expect(body.summary.shown.photo).toEqual({ count: 2300, bytes: 2_300_000 });
-    expect(body.summary.hidden.photo).toEqual({ count: 200, bytes: 200_000 });
-    const pages = fake.requests.filter((r) => r.name === "media");
+    // Reshaped by take-home-wiring: every bucket also says its size at phone size (no copies here: the same).
+    expect(body.summary.shown.photo).toEqual({
+      count: 2300,
+      bytes: 2_300_000,
+      phone: 2_300_000,
+    });
+    expect(body.summary.hidden.photo).toEqual({
+      count: 200,
+      bytes: 200_000,
+      phone: 200_000,
+    });
+    // The album's own pages (the phone copies' read by id, take-home-wiring, rides beside them in id chunks).
+    const pages = fake.requests.filter(
+      (r) => r.name === "media" && !r.url.includes("phone_key"),
+    );
     expect(pages.every((r) => !r.failed && r.limit === 1000)).toBe(true);
+    const copies = fake.requests.filter(
+      (r) => r.name === "media" && r.url.includes("phone_key"),
+    );
+    expect(copies.every((r) => !r.failed)).toBe(true);
   });
 
   it("refuses a 2,300-photo album with the cap's 413", async () => {

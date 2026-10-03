@@ -517,7 +517,12 @@ describe("the same page's Download all (the password album's whole read, `getApp
     asViewer(confirmed(HOST));
     const { status, body } = await summary();
     expect(status).toBe(200);
-    expect(body.summary.shown.photo).toEqual({ count: 1, bytes: 1_234_567 });
+    // Reshaped by take-home-wiring: a bucket says its phone size too (no copy here: the original's).
+    expect(body.summary.shown.photo).toEqual({
+      count: 1,
+      bytes: 1_234_567,
+      phone: 1_234_567,
+    });
   });
 
   it.each([

@@ -25,7 +25,7 @@
  *
  * ★ THE AUTH USER GOES LAST, AND ONLY AT ZERO EVENTS. Deleting auth.users
  * cascades profiles -> events -> media (every FK on that chain is ON DELETE
- * CASCADE), which would destroy the original_key / preview_key rows the R2
+ * CASCADE), which would destroy the original_key / preview_key / phone_key rows the R2
  * delete still needs and leave objects nobody can ever reclaim. The zero-events
  * recount before that delete uses `mustCount` on purpose: a FAILED count reads
  * as a confident zero, and a confident zero here is the one bug that silently
@@ -67,6 +67,7 @@ import {
   type IsolatedTally,
 } from "@/lib/jobs/isolate";
 import {
+  MEDIA_KEY_COLUMNS,
   readHeldEventIds,
   reclaimMedia,
   type AdminClient,
@@ -359,13 +360,14 @@ export async function purgeAccount(
             (cursor: string | null, limit) => {
               let query = admin
                 .from("media")
-                .select("id, original_key, preview_key")
+                .select(MEDIA_KEY_COLUMNS)
                 .in("event_id", chunk)
                 .filter("legal_hold_at", "is", null)
                 .order("id", { ascending: true })
                 .limit(limit);
               if (cursor) query = query.gt("id", cursor);
-              return query;
+              // The typed seam (`MEDIA_KEY_COLUMNS`), until the types know `phone_key`.
+              return query.overrideTypes<MediaKeyRow[], { merge: false }>();
             },
             (media) => media.id,
             { budget: MAX_ROWS, after },
