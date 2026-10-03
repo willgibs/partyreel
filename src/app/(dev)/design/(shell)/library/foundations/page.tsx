@@ -13,6 +13,7 @@ import { Column, Swatch } from "@/app/(dev)/design/reference/reference-ui";
 
 import { BrightEdge } from "./bright-edge";
 import { ElevationLegend } from "./elevation-legend";
+import { DisplayTokens, Grounds } from "./grounds";
 import { RadiusLadder } from "./radius-ladder";
 import { TypeLadder } from "./type-ladder";
 
@@ -96,12 +97,27 @@ export default async function FoundationsPage({
               ["Ring", "--ring"],
             ]}
           />
+          <Sub
+            id="grounds"
+            title="Grounds"
+            blurb="Five classes, each a whole token set: it re-declares every pair a part inside it reads, so a card, a line or a muted word is right wherever it stands. Each tile wears its real class and reads that ground's own tokens. The media well, always dark, is Gallery below."
+          >
+            <Grounds />
+          </Sub>
+          <Sub
+            id="display"
+            title="The display"
+            blurb="The camera's screen, one near-black on paper and in the room: a menu, a select, a popover, a tooltip or a toast is made of it. The five tokens are theme-independent and have no utility; a layer wears them through the ground above."
+          >
+            <DisplayTokens />
+          </Sub>
           <SwatchGroup
             id="state"
             caption="State"
-            blurb="Punctuation (a mark, a word, an icon) rather than a filled area, so the media stays the colour."
+            blurb="Punctuation (a mark, a word, an icon) rather than a filled area, so the media stays the colour. Signal is the live mark's red, delete's own, so the palette gains no hue."
             tokens={[
               ["Destructive", "--destructive"],
+              ["Signal", "--signal"],
               ["Success", "--success"],
               ["Warning", "--warning"],
               ["Like", "--like"],
