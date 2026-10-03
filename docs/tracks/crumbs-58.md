@@ -54,3 +54,12 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am
+
+- WIP at `f0794eba` (pushed): the formatters and their tests are done and green (full suite 849 files, typecheck and
+  lint 0): `dashRange` in `lib/utils.ts` is the rule's one home; `formatEventDate`, `rangeWhen` and `longDays` say
+  their range through it; `dashboard.md` refined. Left: the 375 captures through a scratch composition (door, hub head,
+  Settings' sentence, the stage and the week), build and `lab:smoke`, the screen-reader finding and the Questions
+  below, then the Handoff.
+
