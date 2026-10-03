@@ -49,9 +49,11 @@ like the tool rather than the product, are [CLAUDE.md](../../CLAUDE.md)'s.
 
 Live testing uses disposable test data only.
 - **Accounts:** `willg97@gmail.com` the host on Pro, `partyr33l@gmail.com` the operator (TOTP MFA).
-  `hi@willgibs.com` was the host on Free until Will deleted it on 2026-10-03 for the two-Checkout-tabs check (its
-  deletion pending the purge; signups are off, so a new Free host is Will's to make). Google through the account
-  chooser is authorized; typing a password or a code never is.
+  `hi@willgibs.com` the host on Free: deleted for the two-Checkout-tabs check on 2026-10-03 and restored before the
+  purge (its ban lifted and `deletion_requested_at` cleared by SQL; the request had anonymised its profile, so the
+  name step asks again, and moved its one event to the 30-day bin). A deletion walk ends the same way: restore the
+  account before the next 04:48 UTC purge, or it is gone (signups are off). Google through the account chooser is
+  authorized; typing a password or a code never is.
   ★ Red-team dismissals are strikes against the instant hide (three bar an address, each lapsing 180 days after its
   dismissal: [admin-observability.md](admin-observability.md)). willg97's address holds two and partyr33l's five, all
   dismissed 2026-09-29, so willg97's still hides and partyr33l's is barred until 2027-03-28; hi@willgibs.com's holds
