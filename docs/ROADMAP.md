@@ -17,6 +17,7 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Host: the develop time saves on leaving the field or Return only (Escape or Back with a time typed and not left drops it, and a phone's picker may never blur it: unmeasured on a real iPhone); the date's beat and close-save, lifted out of `EventDatesField` into one hook both fields use, would settle it, and a real iPhone is the test (from `crumbs-60`).
 - Host: the Reel card could wear the head's own filter (only the stills her guests can see while a develop time is ahead) rather than none, if the hub page hands `HubDevelopFacts` to `EventCardsRow` and on to `ReelCard` (from `crumbs-59`).
 - Accessibility: Settings' page-level head names no description (`event-settings-sheet.tsx`, `aria-describedby={undefined}`); `PopupHeader` could draw the event's name there as a screen-reader-only description (from `crumbs-59`).
 - Testing: a real iPhone's date wheel would settle two guesses in `event-page.tsx`: does it report each notch as `input` (`PICK_SETTLE_MS`), and does its Clear reach React's `onChange` (facebook/react#12313); `finish` could read the field's own value on leaving (from `crumbs-59`).
