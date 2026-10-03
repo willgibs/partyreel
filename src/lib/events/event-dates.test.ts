@@ -117,11 +117,11 @@ describe("formatEventDate says a range", () => {
   });
 
   it("★ is the en dash itself, on plain spaces: never the word to, a hyphen, an em dash or a thin space", () => {
-    // crumbs-58 (Will: "'X-Y' presents cleaner than 'X to Y'"). `Intl`'s own `formatRange` would print "October 3 – 5,
-    // 2026" on THIN spaces (U+2009, measured on Node 22.21 / ICU 77), spacing a range closed-up never is and one that
-    // is the runtime's ICU to decide, so a server and a browser could print it differently: the dash is `dashRange`'s.
-    // A hyphen or an em dash looks the same in a diff, so the glyph is read off the string: of everything printed
-    // but letters, digits, commas and U+0020, only one U+2013 is left.
+    // crumbs-58 (Will: "'X-Y' presents cleaner than 'X to Y'"). `Intl`'s own `formatRange` prints "October 3 – 5, 2026" on
+    // THIN spaces (U+2009, measured on Node 22.21 / ICU 77): spaces the closed-up "3–5" never has, and the runtime's ICU
+    // decides them, so a server and a browser could print one range two ways. A hyphen or an em dash looks the same in
+    // a diff, so the glyph is read off the string: of everything printed but letters, digits, commas and U+0020, one
+    // U+2013 is left.
     for (const [from, to] of [
       ["2026-10-03", "2026-10-05"],
       ["2026-10-30", "2026-11-02"],
