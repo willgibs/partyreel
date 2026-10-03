@@ -148,7 +148,7 @@ export const THE_WAIT = defineExploration({
       id: "model",
       label: "The model",
       question:
-        "Which model should hosts and guests hold for an album where photos wait, for the host's approval or until a develop time?",
+        "Which one idea should hosts and guests share for an album whose photos wait, for Maya's approval or until a develop time?",
       where: ["Host and guest", "Settings, then the album", "A delayed album"],
       when: "Maya sets how her album shows what's added; at 10:40 pm Priya adds to it while nothing of anyone else's shows yet.",
       matters:

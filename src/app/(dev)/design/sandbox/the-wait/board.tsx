@@ -143,7 +143,7 @@ function modelPreview(s: BoardState, model: ModelId): ReactNode {
       <Scene
         id={`tw-model-${model}-held-${wait}`}
         screen={screen}
-        title={`${name}: held for approval, 10:40 pm`}
+        title={`${name}: held, 10:40 pm`}
         measure={waitSays}
       >
         <WaitPage
@@ -171,7 +171,7 @@ function modelPreview(s: BoardState, model: ModelId): ReactNode {
       <Scene
         id={`tw-model-${model}-trickle-${wait}`}
         screen={screen}
-        title={`${name}: 11:20 pm, Maya lets 24 in`}
+        title={`${name}: 11:20 pm, 24 let in`}
         measure={arrivalSays}
       >
         <ArrivalFrame
@@ -273,7 +273,7 @@ function arrivalPreview(s: BoardState, arrival: ArrivalId): ReactNode {
       <Scene
         id={`tw-arrival-${arrival}-trickle-${at}`}
         screen={screen}
-        title={`${name}: 11:20 pm, Maya lets 24 in`}
+        title={`${name}: 11:20 pm, 24 let in`}
         measure={arrivalSays}
       >
         <ArrivalFrame
