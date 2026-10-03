@@ -63,9 +63,13 @@ import { toast } from "sonner";
 import { removeMyUploadGuestAction } from "@/app/(guest)/e/[token]/actions";
 import type { UploadedItem } from "@/components/guest/guest-upload";
 import type { ClipResolver } from "@/lib/album/resolver";
-import { createAlbumStore, type AlbumSnapshot } from "@/lib/album/store";
+import {
+  createAlbumStore,
+  type AlbumSnapshot,
+  type SyncResult,
+} from "@/lib/album/store";
 import { guestAlbumTransport } from "@/lib/album/transport";
-import { entryId } from "@/lib/events/album-wire";
+import { entryId, type GuestFullSync } from "@/lib/events/album-wire";
 import type { GalleryAccess } from "@/lib/events/gallery-access";
 import type { GalleryItem, GalleryReel } from "@/lib/events/gallery-reel";
 import {
@@ -351,8 +355,26 @@ export type GalleryLiveProviderProps = {
    * moves when a guest's first upload makes them one, which only the server can say.
    */
   onGuestCountChange?: (count: number) => void;
+  /**
+   * When the album develops, as each full sync says it (`developsAtOf`: the time, ahead or reached, or null for none):
+   * the page's live reading of whether what she adds waits follows it (`useLiveUploadsWait`). Told once per new word.
+   */
+  onDevelopsAtChange?: (developsAt: string | null) => void;
   children: ReactNode;
 };
+
+/**
+ * WHAT A SYNC ANSWER SAYS OF THE ALBUM'S DEVELOP (red-team 44's LOW): a full album's answer (a manifest or a delta at
+ * full access) carries its develop time, ahead or reached (`waiting.developsAt`), or no `waiting` at all where the album
+ * has no develop time and nothing waits, which is none. Anything else (a 304, a teaser, a lock) says nothing of it.
+ */
+export function developsAtOf(answer: SyncResult): string | null | undefined {
+  if (answer.status !== 200) return undefined;
+  const body = answer.body as Partial<GuestFullSync>;
+  if (!body.ok || body.access !== "full") return undefined;
+  if (body.kind !== "manifest" && body.kind !== "delta") return undefined;
+  return body.waiting?.developsAt ?? null;
+}
 
 export function GalleryLiveProvider({
   ref,
@@ -371,11 +393,18 @@ export function GalleryLiveProvider({
   approvedTotal,
   onOwnRemoved,
   onGuestCountChange,
+  onDevelopsAtChange,
   children,
 }: GalleryLiveProviderProps) {
   const read = use(readSeed(galleryPromise));
   const seed = read.seed;
   const liveEnabled = !isDemo && access !== "none";
+
+  /* ── when the album develops, as its sync says it (`developsAtOf`): told to the page, each new word once ── */
+  const developsAtTold = useRef(onDevelopsAtChange);
+  useEffect(() => {
+    developsAtTold.current = onDevelopsAtChange;
+  });
 
   /* ── the store: the manifest, its version and the links, one sync for the doorbell and the poll ── */
   const [{ store, transport, unread, seeded }] = useState(() => {
@@ -389,8 +418,25 @@ export function GalleryLiveProvider({
     const primed: PrimedTransport = seed
       ? primeTransport(inner, seed)
       : { ...inner, forget: () => {} };
+    // ★ THE SYNC'S WORD ON THE DEVELOP, TAPPED AS IT ARRIVES (red-team 44's LOW): the store keeps no use for
+    // `waiting.developsAt`, and the page's reading of whether what she adds waits must follow it (a Develop now,
+    // a time set, moved or taken away), so each answer is read for it here, the seed's included, and the page is
+    // told each new word (never one read off a teaser, a lock or a 304, which say nothing of it).
+    let lastTold: string | null | undefined;
+    const tapped: PrimedTransport = {
+      ...primed,
+      async sync(req) {
+        const answer = await primed.sync(req);
+        const developsAt = developsAtOf(answer);
+        if (developsAt !== undefined && developsAt !== lastTold) {
+          lastTold = developsAt;
+          developsAtTold.current?.(developsAt);
+        }
+        return answer;
+      },
+    };
     const store = createAlbumStore({
-      transport: primed,
+      transport: tapped,
       // A delta that left the album a different size than the server counted can only be a lost
       // or doubled change: never silent, and the store heals it with a fresh manifest first.
       onIntegrityMiss: (detail) =>
@@ -401,7 +447,7 @@ export function GalleryLiveProvider({
         ),
     });
     return {
-      transport: primed,
+      transport: tapped,
       store,
       // The store's own answer before it has one: what an unread album draws from.
       unread: store.getSnapshot(),

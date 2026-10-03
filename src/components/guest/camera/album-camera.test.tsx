@@ -250,7 +250,7 @@ describe("the album's camera", () => {
     const [files] = onAdd.mock.calls[0] as [File[], FileExtra | undefined];
     expect(files[0].type).toBe("image/jpeg");
     expect(files[0].name).toMatch(/^shot-\d{8}-\d{6}\.jpg$/);
-    expect(screen.getByText("Shot 7 is on the roll.")).toBeInTheDocument();
+    expect(screen.getByText("Shot 7 taken.")).toBeInTheDocument();
     expect(screen.getByText("17")).toBeInTheDocument();
     expect(screen.getByText("Frame 8 of 24 · sending 1")).toBeInTheDocument();
   });
@@ -327,6 +327,35 @@ describe("the album's camera", () => {
       (document.querySelector("[data-cam-shutter]") as HTMLButtonElement)
         .disabled,
     ).toBe(true);
+  });
+
+  /* ★ RED-TEAM 44'S NIT: the live region said "Shot 6 is on the roll." for a shot the server then refused (the album
+     closed to uploads), both lines inside a second. The press says it was taken; the refusal says why, and nothing the
+     camera said promised the roll a shot it never counted. */
+  it("★ never says a shot is on the roll before the server has it: a refused one was taken, and the refusal says why", async () => {
+    render(<Page />);
+    await opened();
+    const hint = () => document.querySelector("[data-cam-hint]");
+    const said: string[] = [];
+    const listen = new MutationObserver(() =>
+      said.push(hint()?.textContent ?? ""),
+    );
+    listen.observe(hint() as Node, {
+      childList: true,
+      characterData: true,
+      subtree: true,
+    });
+    await act(async () => press());
+    expect(hint()).toHaveTextContent("Shot 7 taken.");
+    fireEvent.click(
+      screen.getByRole("button", { name: "Refuse them", hidden: true }),
+    );
+    expect(
+      await screen.findByText("This event isn't accepting uploads right now."),
+    ).toBeInTheDocument();
+    listen.disconnect();
+    expect(said.length).toBeGreaterThan(0);
+    expect(said.some((line) => /on the roll/.test(line))).toBe(false);
   });
 
   it("★ never reads her roll while a shot of hers is in the air (it would count it twice), and reads it once it lands", async () => {

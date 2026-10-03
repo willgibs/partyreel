@@ -637,15 +637,6 @@ export default async function GuestEventPage({
         })
       : false;
 
-  // ★ THE OWNER ARRIVING FOR HER REEL (`?reel`, the hub's Reel card's door): the page says so before
-  // any script runs, so the album's shell stands the reel's black from the first byte rather than the
-  // album flashing under a view still loading (`event-experience.tsx`'s curtain). The owner alone: she
-  // never owes the door, where a guest's welcome comes first and the reel waits behind it.
-  // The parameter is `reel-url.ts`'s `REEL_PARAM`, spelled here because that module is the client's (a
-  // server import of it would be a client reference, not the string).
-  const reelAsked =
-    isOwner && !isDemo && (await searchParams)?.reel !== undefined;
-
   /* ★ THE FIRST BYTE IS THE DOOR (door-reveal; Will's live walk: "entered the address, full guest album was
      visible before gate appeared over it (big bug)", and his rule: "the album is never visible before any
      door/gate that should be encountered first"). The page decides what a newcomer meets before any script
@@ -669,6 +660,21 @@ export default async function GuestEventPage({
       ? decision.gate !== "upload"
       : false,
   });
+
+  // ★ A VIEWER WHO OWES NO DOOR, ARRIVING FOR THE REEL (`?reel`: the owner from her hub's Reel card, a returning guest
+  // on a shared reel link): the page says so before any script runs, so the album's shell stands the reel's black from
+  // the first byte rather than the album flashing under a view still loading (`event-experience.tsx`'s curtain). Read
+  // off the door's own first byte (`arrival`: no stage, no scrim, at full access), so the black never stands where a
+  // door comes first: a newcomer meets her welcome, a guest owing a step meets it over the album, and the reel after
+  // either (red-team 44: it stood for the owner alone, and a returning guest met her album, then the reel over it).
+  // The parameter is `reel-url.ts`'s `REEL_PARAM`, spelled here because that module is the client's (a
+  // server import of it would be a client reference, not the string).
+  const reelAsked =
+    !isDemo &&
+    access === "full" &&
+    arrival.face === null &&
+    !arrival.scrim &&
+    (await searchParams)?.reel !== undefined;
 
   return (
     // `data-guest-page`: while the door stands as the page over the album, the page holds to one screen

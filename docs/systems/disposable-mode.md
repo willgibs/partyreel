@@ -64,7 +64,9 @@ m.status = 'approved' and (m.sealed_until is null or m.sealed_until <= now() or 
   carries it as `GuestFullSync.waiting` with the develop time (`waitingFor`), only at full access (never the teaser,
   `require_upload_to_view` or a blocked viewer, which answer before it), and only when something waits or a develop
   time is set, so an album using neither answers byte for byte what it did. The validator hashes the develop time
-  (`guestAlbumEtag`'s `developsAt`); every change to what waits moves `album_max`.
+  (`guestAlbumEtag`'s `developsAt`); every change to what waits moves `album_max`. ★ A guest's open page reads its
+  develop time off every full answer (`developsAtOf`) and its own clock (`useLiveUploadsWait`, red-team 44), so a
+  develop reaches the page's words and her next upload's place with no reload.
 - ★ **A held upload moves `album_max` and rings**: what waits is the guest's to count. A hold album's open pages answer
   one 200 carrying no change where they answered a 304; that is the design, not a leak.
 - The doorbell rings on the album's own bits (`album_bits & 6`), so it and the versions never disagree.
@@ -123,8 +125,10 @@ mounts) in place of the add sheet; a free-upload album never loads it.
   join, the retry and the failure sheet are any upload's; the sheet waits while the camera is open. ★ **A landing the
   album keeps sealed is told `sealed`** by the server's own word (`create_media` answers `sealed`, the complete passes
   it, the uploader carries it, the queue's `landedAs`), on any album with a develop time ahead, whichever surface sent
-  it: nothing draws it, so no tile stands in the album for her alone, and her tracker lists it as "Waiting to
-  develop" from the moment it lands, counted and removable.
+  it: nothing draws it, nor anything of hers in the air before it (the album's head draws no stack where what she adds
+  waits, the page's `addsWaitFor`, red-team 44), so no tile stands in the album for her alone at any moment; her
+  tracker lists it from the press, sending, then "Waiting to develop" from the moment it lands, counted and removable.
+  The press says the shot was taken ("Shot 6 taken."), never that it is on the roll: the server may still refuse it.
 - **The count is the server's roll** (`roll-view.ts`): `/api/guests/mine` with `statuses` (★ never `tell`, which would
   mark her approval news told), read at the opening, after she takes a shot back and after a roll refusal, ★ and only
   while nothing of hers is in the air, so the shots taken since the read began are added and none is counted twice.

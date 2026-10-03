@@ -47,6 +47,7 @@ import {
   KeepConfirm,
   keepCopy,
   KeepOffer,
+  type KeepSent,
 } from "@/components/guest/save-account-prompt";
 import { UploadStep, uploadStepReason } from "@/components/guest/upload-step";
 import { Button } from "@/components/ui/button";
@@ -243,6 +244,8 @@ export const EntryModal = forwardRef<
     keepDue?: boolean;
     /** Her photographs that landed this visit, which the ask counts (live). */
     keepCount?: number;
+    /** What they are (the page's `keepSent`), which the ask names: photos, videos, uploads or shots. */
+    keepSent?: KeepSent | null;
     /**
      * What she adds waits (`uploadsWait`'s `waits`: the host's approval, or a develop time ahead), so what she sent
      * is waiting rather than in.
@@ -319,6 +322,7 @@ export const EntryModal = forwardRef<
     onUploadStepActive,
     keepDue = false,
     keepCount = 0,
+    keepSent = null,
     keepHeld = false,
     keepDevelopsAt = null,
     hintEmail = null,
@@ -986,6 +990,7 @@ export const EntryModal = forwardRef<
     doorGate,
     mediaTotal,
     keepCount,
+    keepSent,
     uploadReason: uploadStepReason({
       isDemo,
       requireUpload,
@@ -1310,6 +1315,7 @@ export const EntryModal = forwardRef<
             {sheetKey === "keep" && (
               <KeepOffer
                 count={keepCount}
+                sent={keepSent}
                 held={keepHeld}
                 developsAt={keepDevelopsAt}
                 hostName={hostName}
@@ -1362,8 +1368,9 @@ export function entrySheetCopy(input: {
   /** The gate a newcomer stands at (the email step's and the ask's words). */
   doorGate?: "approve" | "invite" | null;
   mediaTotal?: number;
-  /** Her photographs that landed this visit (the keep's count). */
+  /** Her photographs that landed this visit (the keep's count), and what they are (its noun). */
   keepCount?: number;
+  keepSent?: KeepSent | null;
   uploadReason: string;
 }): { title: string; description: string } {
   const {
@@ -1377,6 +1384,7 @@ export function entrySheetCopy(input: {
     doorGate = null,
     mediaTotal,
     keepCount = 0,
+    keepSent = null,
     uploadReason,
   } = input;
   if (holding) return { title: "You're in", description: "Opening the album." };
@@ -1390,7 +1398,7 @@ export function entrySheetCopy(input: {
     return { title: "Add your photos", description: uploadReason };
   }
   if (displayKey === "keep") {
-    const copy = keepCopy(keepCount, eventName);
+    const copy = keepCopy(keepCount, eventName, keepSent);
     return { title: copy.title, description: copy.reason };
   }
   if (displayKey === "keep-confirm") {

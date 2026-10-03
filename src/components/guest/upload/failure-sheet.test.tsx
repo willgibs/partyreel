@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { UploadFailureSheet } from "@/components/guest/upload/failure-sheet";
+import { developTimeWords } from "@/lib/disposable/develop-words";
 
 /**
  * WHAT A GUEST READS WHEN SOMETHING WILL NOT GO. A guest should never have to
@@ -158,5 +159,59 @@ describe("the link at the moment of trouble", () => {
     expect(link).toHaveAttribute("href", "/help/an-upload-wont-finish");
     expect(link).toHaveAttribute("target", "_blank");
     expect(link).toHaveAttribute("rel", expect.stringContaining("noopener"));
+  });
+});
+
+/**
+ * ★ WHAT IT SAYS OF THE REST IS TRUE WHERE IT IS SAID (red-team 44's LOW, and 43's before it): "Everything else is in
+ * Maya's album." stood over a run on an album whose uploads wait, where nothing of hers is in the album until it
+ * develops or the host lets it in. There it says what is true in her uploads' own words, the develop's time in the one
+ * format the keep and her tracker say it in; an album that shows uploads at once keeps its line byte for byte.
+ */
+describe("what it says of everything else", () => {
+  const AT = "2026-10-04T02:00:00.000Z";
+  const sheet = (waits?: { waits: boolean; developsAt: string | null }) =>
+    render(
+      <UploadFailureSheet
+        open
+        onOpenChange={vi.fn()}
+        failures={[failure("a.jpg", "This event isn't accepting uploads.")]}
+        sent={3}
+        hostName="Maya"
+        onRetry={vi.fn()}
+        waits={waits}
+      />,
+    );
+
+  it("says the rest is in the host's album where what she adds shows at once", () => {
+    sheet({ waits: false, developsAt: null });
+    expect(
+      screen.getByText("Everything else is in Maya’s album."),
+    ).toBeInTheDocument();
+  });
+
+  it("says the same with no reading handed (an album that shows uploads at once)", () => {
+    sheet();
+    expect(
+      screen.getByText("Everything else is in Maya’s album."),
+    ).toBeInTheDocument();
+  });
+
+  it("★ says the rest is waiting to develop, and when, on an album with a develop time ahead", () => {
+    sheet({ waits: true, developsAt: AT });
+    expect(
+      screen.getByText(
+        `Everything else is waiting to develop, ${developTimeWords(AT)}.`,
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/album\.$/)).toBeNull();
+  });
+
+  it("★ says the rest is waiting for approval where the host approves each", () => {
+    sheet({ waits: true, developsAt: null });
+    expect(
+      screen.getByText("Everything else is waiting for approval."),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/in Maya’s album/)).toBeNull();
   });
 });

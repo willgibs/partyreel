@@ -41,6 +41,10 @@ import {
   createHeadBridge,
   useHeadBridge,
 } from "@/components/guest/event-experience-head";
+import {
+  addsWaitFor,
+  useLiveUploadsWait,
+} from "@/components/guest/event-experience-wait";
 import type { FollowMomentHost } from "@/components/guest/follow-moment-card";
 import { GuestActionDock } from "@/components/guest/guest-action-dock";
 import { publishCoverUnderHeader } from "@/components/guest/guest-header-cover";
@@ -270,9 +274,9 @@ export function EventExperience({
    */
   waitingOnArrival?: boolean;
   /**
-   * The album's owner arrived asking for the reel (`?reel`, the hub's Reel card's door): the page's
-   * server knows it before any script runs, so the reel's black stands from the first byte instead of
-   * the album flashing under a view still loading (see the curtain below).
+   * A viewer who owes no door arrived asking for the reel (`?reel`: the hub's Reel card's door for the owner, a
+   * shared reel link for a returning guest): the page's server knows it before any script runs, so the reel's black
+   * stands from the first byte instead of the album flashing under a view still loading (see the curtain below).
    */
   reelAsked?: boolean;
   /** The request carried this album's welcome cookie (the door's word on whether she has met it). */
@@ -289,6 +293,7 @@ export function EventExperience({
    * ★ WHETHER WHAT SHE ADDS WAITS, AND FOR WHAT (`upload-tracker.ts`'s `uploadsWait`, read by the page's server):
    * the host's approval, or the album's develop time ahead. Where it waits, her tracker is where hers show and the
    * keep says they wait, never that they joined (red-team 43: a develop album's shots read as joined, then vanished).
+   * The page's first word only: the page holds it live from here (`useLiveUploadsWait`, red-team 44).
    */
   uploadsWait: UploadsWait;
 }) {
@@ -658,6 +663,19 @@ export function EventExperience({
         it.mediaStatus === "sealed") &&
       !(it.mediaId && removedIds.has(it.mediaId)),
   );
+  /* ★ WHETHER WHAT SHE ADDS WAITS, LIVE (`useLiveUploadsWait`, red-team 44): the server's reading at render, ended by
+     the develop time coming on this device's clock and moved by every word the album's sync carries about the develop
+     (a Develop now, a time set, moved or taken away), so a page left open across a develop never keeps its promise
+     over the developed album, nor keeps her next upload out of it. Everything that speaks of the wait reads this one:
+     the slot's line and the camera, the album's head, her tracker, the keep and the failure sheet. And what hers wait
+     for, as it falls on this viewer (`addsWaitFor`): where they wait, the album draws nothing of hers in the air
+     either (her tracker has it from the press), and the failure sheet says the rest waits. */
+  const { reading: liveWait, onSynced: onDevelopsAtChange } =
+    useLiveUploadsWait({
+      initial: uploadsWait,
+      moderationMode: event.moderation_mode,
+    });
+  const addsWait = addsWaitFor({ uploadsWait: liveWait, isOwner, isDemo });
 
   // The header's own name menu is a SIBLING island and cannot reach the modal's
   // handle; `lib/guest/name-door.ts` is the one channel between them (the same
@@ -705,14 +723,15 @@ export function EventExperience({
     : access === "full" && event.show_reel && mediaCount >= 2;
   const openReel = useCallback(() => head?.reel.open(), [head]);
   const preloadReel = useCallback(() => head?.reel.preload(), [head]);
-  /* ★ AN OWNER ARRIVING FROM HER HUB ON `?reel` MEETS THE REEL, NOT HER ALBUM (`event-header` r1's
+  /* ★ A VIEWER ARRIVING ON `?reel` WITH NO DOOR TO PASS MEETS THE REEL, NOT HER ALBUM (`event-header` r1's
      folded fix, his note: "some (reel) seems to flash a guest album as it loads the slideshow"). The
      view is a lazy chunk that opens after the page hydrates, so the album painted first and flashed
-     under it. The page knows at render that she asked for the reel (`reelAsked`: the owner, who never
-     owes the door, with `?reel` in the address), so the view's own black stands from the first byte and
-     the view opens over it. The curtain goes the moment the address stops asking (the view closed, or
-     the reel turned out not to play and the album dropped `?reel`), and never comes back: a reel she
-     opens later from the cover opens over the album, as it should.
+     under it. The page knows at render that she asked for the reel (`reelAsked`: the owner from her hub,
+     or a returning guest on a shared reel link, red-team 44, either owing the door nothing, with `?reel`
+     in the address), so the view's own black stands from the first byte and the view opens over it; a
+     newcomer meets the door first, and the reel after it. The curtain goes the moment the address stops
+     asking (the view closed, or the reel turned out not to play and the album dropped `?reel`), and never
+     comes back: a reel she opens later from the cover opens over the album, as it should.
      ★ THE HUB'S REEL CARD IS A `<Link>`, A SOFT NAVIGATION, AND THE BLACK STANDS THROUGH IT TOO (crumbs-52,
      red-team 43): the album mounts in the commit that writes `?reel` to the address, so its first render
      reads the address it left. The line below drops the curtain on the album's word alone, so that word is the
@@ -910,9 +929,21 @@ export function EventExperience({
      shot makes it due, and its sheet used to open over the camera mid-shoot; `GuestUpload` says when the camera
      is open (`onCameraOpenChange`), the keep is held until she closes it, and it comes the moment she does. */
   const [cameraOpen, setCameraOpen] = useState(false);
-  const landedCount = queue.filter(
-    (it) => it.status === "done" && !(it.mediaId && removedIds.has(it.mediaId)),
-  ).length;
+  // What landed this visit and is still hers, and what each one is: the keep counts them and names them (red-team
+  // 44's NIT: "Your 5 photos" with a video among them), a camera album's as shots.
+  const keepSent = useMemo(
+    () => ({
+      kinds: queue
+        .filter(
+          (it) =>
+            it.status === "done" && !(it.mediaId && removedIds.has(it.mediaId)),
+        )
+        .map((it) => it.kind),
+      camera: cameraAlbum,
+    }),
+    [queue, removedIds, cameraAlbum],
+  );
+  const landedCount = keepSent.kinds.length;
   const keepDue =
     !isDemo &&
     !isOwner &&
@@ -1245,8 +1276,9 @@ export function EventExperience({
         onUploadStepActive={onUploadStepActive}
         keepDue={keepDue}
         keepCount={landedCount}
-        keepHeld={uploadsWait.waits}
-        keepDevelopsAt={uploadsWait.developsAt}
+        keepSent={keepSent}
+        keepHeld={liveWait.waits}
+        keepDevelopsAt={liveWait.developsAt}
         // The address typed under her name a few minutes ago, so the keep's account door
         // opens on it instead of asking twice.
         hintEmail={attachedEmail}
@@ -1439,6 +1471,8 @@ export function EventExperience({
                       onOwnRemoved={handleOwnRemoved}
                       // The door's keep is held while she shoots (`keepDue`).
                       onCameraOpenChange={setCameraOpen}
+                      // The album's live reading: its line, the camera's develop and the failure sheet's words.
+                      uploadsWait={liveWait}
                     />
                   </div>
                 ) : (
@@ -1512,6 +1546,8 @@ export function EventExperience({
                   approvedTotal={stats.approvedTotal}
                   onOwnRemoved={handleOwnRemoved}
                   onGuestCountChange={setGuestCount}
+                  // The album's sync's word on its develop: the page's live reading follows it.
+                  onDevelopsAtChange={onDevelopsAtChange}
                 >
                   {/* The door's light takes its colour from here, the album's three newest (it draws
                   nothing; `door/album-light.tsx`). */}
@@ -1524,8 +1560,8 @@ export function EventExperience({
                     qrToken={qrToken}
                     sessionToken={sessionToken}
                     isAuthed={isAuthed}
-                    moderated={uploadsWait.waits}
-                    developsAt={uploadsWait.developsAt}
+                    moderated={liveWait.waits}
+                    developsAt={liveWait.developsAt}
                     isDemo={isDemo}
                     isOwner={isOwner}
                     removedIds={removedIds}
@@ -1581,6 +1617,8 @@ export function EventExperience({
                         firstPaintWidth={firstPaintWidth}
                         rhythmSeed={visitSeed}
                         closesOnLastRemoval={closesOnLastRemoval}
+                        // Where hers wait, nothing of hers in the air stands at the album's head (red-team 44).
+                        addsWait={addsWait.waits}
                       />
                     </div>
                   </LiveReel>

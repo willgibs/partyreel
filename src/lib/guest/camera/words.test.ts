@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   afterShotHint,
+  CAMERA_HINT,
   cameraSubLine,
   clockWords,
   developsWhen,
@@ -125,9 +126,18 @@ describe("the lines", () => {
     );
   });
 
-  it("says a shot, a failure and the reel's name", () => {
-    expect(afterShotHint(7)).toBe("Shot 7 is on the roll.");
-    expect(afterShotHint(3, true)).toBe("Shot 3 taken.");
+  /* ★ RESHAPED ON PURPOSE (red-team 44's NIT; scar kept: the press says the shot in its own frame, the host's as a
+     guest's): a guest's said "Shot 6 is on the roll." at the press, and the server then refused it (the album closed to
+     uploads, a roll spent from another tab), both lines inside a second. The press says only what is true at the
+     press, that the shot was taken; the roll's count and a refusal's own words say the rest. */
+  it("★ says a shot as taken, never on the roll the server has not counted it on yet", () => {
+    expect(afterShotHint(7)).toBe("Shot 7 taken.");
+    expect(CAMERA_HINT.afterVideo).toBe("Video taken.");
+    expect(afterShotHint(7)).not.toMatch(/roll/);
+    expect(CAMERA_HINT.afterVideo).not.toMatch(/roll/);
+  });
+
+  it("says a failure and the reel's name", () => {
     expect(unsentLine(1)).toBe("1 shot didn’t send.");
     expect(unsentLine(3)).toBe("3 shots didn’t send.");
     expect(reelLabel(6)).toBe("Your shots, 6 on the roll");

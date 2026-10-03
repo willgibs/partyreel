@@ -761,12 +761,21 @@
       }
     }
   }
-  /* Reduced motion: the stage leaves as a plain fade, never a move. */
+}
+
+/* Reduced motion: the stage leaves as a plain fade, never a move, and never a cut.
+   ★ IN THE GUARD'S OWN LAYER, AND !important (red-team 44): `globals.css`'s reduced-motion
+   guard clamps every transition to 0.01ms with an !important in `@layer base`, and an
+   important declaration reverses the layers' order (one in an earlier layer beats one in a
+   later layer and one outside every layer), so this fade, declared plainly in `components`,
+   lost to it and the door cut out in a frame. Here, beside the guard and !important, its
+   attribute selector out-specifies the guard's `*` (`doorway-reduced-motion.test.ts`). */
+@layer base {
   @media (prefers-reduced-motion: reduce) {
     [data-door-stage][data-state="closed"] {
       transition:
         opacity 200ms ease-out,
-        visibility 0s linear 200ms;
+        visibility 0s linear 200ms !important;
     }
   }
 }
