@@ -83,7 +83,7 @@ commits, what remains, its predecessor's transcript at
 account. Connectors follow the account: Claude in Chrome (every red-team needs it), the Supabase MCP on
 `ddafaemglzmuekbtjwzn`, the Vercel MCP on his personal team (deploys ride `$VERCEL_TOKEN`; only runtime logs need P3).
 
-Relays that live only in an agent (2026-10-03): to `take-home-wiring` (08:30Z), from the cost model: the `phone` key shaped
+Relays that live only in an agent (2026-10-03): to `cost-atlas` (17:25Z), Will's word that a limit worth knowing is published, never hidden: a row in the pricing comparison table with a hover explainer (monthly ingress per plan the first, gracious for nearly everyone; Pro more than Free), so the Advisor's unmarketed ceilings become published limits wherever a host could meet one. Supabase's spend cap verified ON (17:25Z, the Partyreel Team org's billing page, Pro): the pre-launch posture, off only at launch. to `take-home-wiring` (08:30Z), from the cost model: the `phone` key shaped
 so a one-line filter in the `partyreel-backup` Worker could skip it as it could the preview (a variant segment readable
 from the key alone), the exact filter written under its Handoff's Proposed Worker changes; the backup Worker itself
 unchanged ("back up only originals" is Will's to decide). To every running lane (09:20Z): WIP pushed at each milestone
