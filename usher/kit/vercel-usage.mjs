@@ -13,7 +13,7 @@ import { call } from "./vercel-lib.mjs";
 
 const HOBBY_CPU_HOURS = 4;
 // Calibration: Will's dashboard reading against the 30-day calls this script printed at the same hour. null until read.
-const CPU_SECONDS_PER_CALL = null;
+const CPU_SECONDS_PER_CALL = 0.044; // 2026-10-04 15:45Z: the dashboard read 3h 56m (14,160 s) against 320,789 calls
 const WARN = 0.6, REFUSE = 0.85;
 // Without a calibration, a plain count guards: about 330,000 calls in the 30 days that read "almost maxed" (2026-10-04).
 const CALLS_AT_ALMOST_MAXED = 330_000;
