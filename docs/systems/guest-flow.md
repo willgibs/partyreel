@@ -144,7 +144,8 @@ read beside it so its Follow starts on Following; no card means no host row, nev
     test); the picks' object URLs have one owner ([`use-pick-urls.ts`](../../src/components/guest/upload/use-pick-urls.ts)).
   - **The failure sheet** ([`upload/failure-sheet.tsx`](../../src/components/guest/upload/failure-sheet.tsx)): nothing
     interrupts while files go; when the run ends with anything refused it opens once, a line per file (its name, the
-    server's sentence, Retry) over one `Retry all`, under a line on the rest that is true where it is said
+    server's sentence, Retry; a dropped connection's line wears a signal mark, told by the queue's `cause`, never its
+    words) over one `Retry all`, under a line on the rest that is true where it is said
     (`uploadFailureElsewhere`). A refused file draws no tile and nothing toasts, except the join's own failure
     (nothing was queued). Every close drops what it listed from the queue (`dismiss`), not just from the screen, so a
     dismissed failure never comes back at a later run's end. While the door's upload step shows, it owns the run's
@@ -534,7 +535,7 @@ colour, it is the house five. The open doorway registers as a lamp, so its light
   album only where the upload opens it (A photo first); elsewhere the album is already open, and a ghost skip shows
   once per pass, never on the failure view. With A photo first on there is no skip, and `computeDoor` ignores `skipped`
   and `returning`, so a stale flag cannot open an album.
-- **The flip and the drift.** The completion route writes the session cookie on its own response, every completion's
+- **The flip and the drift.** The completion route writes the session cookie on its own response, every landing's
   `notifyUploaded` refetches the poll, and the poll's looser decision refreshes the page onto `full` (`key={access}`
   remounts the gallery). `GalleryLiveProvider` raises `onAccessDrift` once per changed `access`/`gate` from the poll: a
   looser drift refreshes at once; a stricter one (a switch turned on while the guest is inside) never yanks an open
@@ -804,7 +805,10 @@ a Change. The typed name also rides the code request as `DOOR_NAME_KEY`, so a ma
   each). The links route stays for windows, the reel tile's stills and re-mints; a failed carry is reported and costs
   the delta nothing. Her own upload's link rides the delta of the sync it triggered: an id is owed from
   `notifyUploaded` until that sync has answered (`owedLinks`), and an ask for it meanwhile waits for the answer, so her
-  upload costs no links call of its own.
+  upload costs no links call of its own. ★ **A burst asks the album once:** the files a complete records together
+  settle in one tick, each landing keeps its own optimistic tile and its own owed link, and the one sync is asked a
+  microtask after the last of them (a sync asked while one is in the air runs again when it lands, so a sync a file was
+  a delta and then a 304); the links they were asked for meanwhile go together once it has answered.
 - **The doorbell:** the `media_gallery_doorbell` DB trigger sends a contentless `ping` on the PUBLIC
   Realtime broadcast channel `gallery:<qr_token>` whenever what a guest's album shows changes: the visible set
   (uploads, moderation flips, restores, purges) or what waits (a held upload, its approval or refusal, a row sealed
