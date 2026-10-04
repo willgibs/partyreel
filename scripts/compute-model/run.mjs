@@ -22,11 +22,13 @@
  * page still looks right, and only a count can see it.
  *
  * HOW. `server.mjs` serves the build and records each request (calls on Vercel, the CPU Vercel would bill); a headless
- * Chrome of its own (`chrome.mjs`) plays each scenario the way the real client does, against this port only. ★ LOCAL
- * ONLY: the base is always http://localhost:<port>, every device blocks Vercel's and Partyreel's hosts, and nothing
- * here sends a request to Vercel. The guest scenarios run on the test event "Compute model (test)" (willg97's, 1,000
- * photos seeded through the real write path by `scripts/seed-demo-event.mjs`); its token is read with the service key
- * from `.env.local` and never printed. Each run adds one guest row per joining device and ten photos to that event.
+ * Chrome of its own (`chrome.mjs`) plays each scenario the way the real client does, against this port only
+ * (`phones.mjs` keeps what a scenario's phones are owed: all of them closed when it ends, errored or not, and the door
+ * walked by pressing what is on screen). ★ LOCAL ONLY: the base is always http://localhost:<port>, every device blocks
+ * Vercel's and Partyreel's hosts, and nothing here sends a request to Vercel. The guest scenarios run on the test event
+ * "Compute model (test)" (willg97's, 1,000 photos seeded through the real write path by `scripts/seed-demo-event.mjs`);
+ * its token is read with the service key from `.env.local` and never printed. Each run adds one guest row per joining
+ * device and ten photos to that event.
  *
  * THE HOUR, COMPRESSED. A guest's hour plays in 60/K minutes (`--k`, default 20; the 12 s-poll hour at K/2, so a round
  * trip stays well inside its compressed interval): the page's Date runs K times fast and
@@ -47,7 +49,7 @@ import {
   sleep,
 } from "./chrome.mjs";
 import { printProjections, project, scale, summarize } from "./model.mjs";
-import { deviceRegistry, walkToName } from "./phones.mjs";
+import { deviceRegistry, submitName, walkToName } from "./phones.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, "../..");
@@ -174,12 +176,11 @@ function photos(n = 10) {
 
 // ── What a guest does (the real door, the real uploader) ─────────────────────────────────────────
 /**
- * ★ THE JOIN'S WAITS ARE FOR THE SLOWEST MACHINE IT RUNS ON, NOT THE QUIETEST. The first scenario of a full run follows the
- * build and a cold server (a route's first request loads its code and opens its connections), and under that load a wait
- * of twenty seconds at the door's name step timed out where the same join passed alone. The walk to the name field
- * presses what is on screen and repeats a press the screen did not answer (`phones.mjs`); the mint that follows has a
- * minute. A join that still fails says which step it was and keeps what the phone showed, where a bare timeout named
- * nothing but a selector.
+ * ★ THE JOIN PRESSES WHAT IS ON SCREEN, NOT WHAT IT ASSUMES LANDED (`phones.mjs`). The first scenario of a full run follows
+ * the build, on the machine's busiest minute, and a press of the door's (Continue, Continue as guest, the name's Continue)
+ * can do nothing: no mint is sent, the name sheet stays up, and the old twenty-second wait for it to close timed out at
+ * the name step where the same join passed alone. Each press is repeated when the screen did not answer it. A join that
+ * still fails says which step it was and keeps what the phone showed, where a bare timeout named nothing but a selector.
  */
 async function joinAsGuest(page, token, name, { addPhotos = false } = {}) {
   const NAME = `input[placeholder="Your name"]`;
@@ -199,17 +200,12 @@ async function joinAsGuest(page, token, name, { addPhotos = false } = {}) {
       `document.querySelector(${JSON.stringify(NAME)}).value === ${JSON.stringify(name)}`,
       { timeout: 30_000 },
     );
-    // The name's own Continue, in the name's own sheet (the welcome's stays mounted under it). Pressed once: it mints the
-    // guest, and a second press would be a second mint in the count.
-    step = "pressing the name's Continue";
-    await page.clickEl(
-      `[...(document.querySelector(${JSON.stringify(NAME)}).closest("form, [role=dialog]") ?? document).querySelectorAll("button")].find((b) => b.textContent.trim().startsWith("Continue") && !b.disabled)`,
-      { timeout: 30_000 },
-    );
+    // The name's own Continue, in the name's own sheet (the welcome's stays mounted under it), pressed again only when it did
+    // nothing: it is disabled ("Just a second…") while its mint is on its way, so a repeat never mints a second guest.
     // Named (the door mints her ticket: `POST /api/guests`), the door's last step offers the camera and the album's
     // picker; an uploader stays on it (its inputs take the files), anyone else looks around first.
-    step = "waiting for the guest to be minted";
-    await page.waitFor(`!(${shown(NAME)})`, { timeout: 60_000 });
+    step = "pressing the name's Continue, waiting for the guest to be minted";
+    await submitName(page, { nameSelector: NAME });
     step = "waiting for the door's last step";
     await page.waitFor(shown("button"), { timeout: 20_000 });
     if (!addPhotos) {

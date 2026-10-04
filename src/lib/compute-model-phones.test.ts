@@ -4,7 +4,10 @@ import {
   deviceRegistry,
   doorButton,
   doorScreen,
+  nameContinue,
+  nameScreen,
   nextDoorPress,
+  submitName,
   walkToName,
 } from "../../scripts/compute-model/phones.mjs";
 
@@ -15,10 +18,10 @@ import {
  *
  *   1. A SCENARIO'S PHONES ARE CLOSED WHATEVER BECOMES OF IT: an errored scenario's devices were left open, polling under
  *      the next scenarios' labels.
- *   2. THE DOOR'S WALK PRESSES WHAT IS ON SCREEN: a press that did not land (it came before the page hydrated, or while
- *      the sheet was on its way in) is made again, where the old walk pressed once and waited out twenty seconds, which
- *      is how the first scenario of a full run timed out at the door's name step. And it presses two buttons and no
- *      other: it never signs anyone in.
+ *   2. THE DOOR'S WALK PRESSES WHAT IS ON SCREEN: a press that did nothing (measured under a CPU throttle: the name's
+ *      Continue, with no mint sent and the sheet still up) is made again, where the old walk pressed once and waited out
+ *      twenty seconds, which is how the first scenario of a full run timed out at the door's name step. A repeat never
+ *      mints a second guest, and the walk presses the door's three buttons and no other: it never signs anyone in.
  */
 
 describe("a scenario's phones", () => {
@@ -328,5 +331,132 @@ describe("the walk to the door's name field", () => {
       /never showed its name field.*Continue with Google/,
     );
     expect(press).not.toHaveBeenCalled();
+  });
+});
+
+describe("the name sheet's Continue", () => {
+  // The sheet as the submit reads it: up with an enabled Continue. A press that lands starts the mint, and while it is on
+  // its way the button is disabled ("Just a second…"), then the sheet goes; a press that is lost changes nothing at all.
+  function sheet({ lost = 0, mintMs = 0, refused = false } = {}) {
+    let loses = lost;
+    let landedAt: number | null = null;
+    const presses: number[] = [];
+    const read = () => {
+      if (landedAt === null || refused)
+        return { name: true, ready: landedAt === null || refused };
+      const spent = Date.now() - landedAt;
+      return spent < mintMs
+        ? { name: true, ready: false }
+        : { name: false, ready: false };
+    };
+    return {
+      presses,
+      page: { eval: vi.fn(async () => JSON.stringify(read())) },
+      press: vi.fn(async () => {
+        presses.push(Date.now());
+        if (loses > 0) {
+          loses -= 1;
+          return;
+        }
+        landedAt = Date.now();
+      }),
+    };
+  }
+  const submit = (
+    page: unknown,
+    press: () => Promise<void>,
+    over: Record<string, number> = {},
+  ) =>
+    submitName(page, {
+      nameSelector: 'input[placeholder="Your name"]',
+      every: 2,
+      settle: 40,
+      blurWait: 0,
+      timeout: 3_000,
+      press,
+      ...over,
+    });
+
+  it("presses once and returns once the sheet has gone", async () => {
+    const { page, press, presses } = sheet();
+    await submit(page, press);
+    expect(presses).toHaveLength(1);
+  });
+
+  it("★ lets the name field go before it presses: the field's blur moves the sheet's foot, and a press made first releases over the spot the button left", async () => {
+    const { page, press } = sheet();
+    const order: string[] = [];
+    const read = page.eval.getMockImplementation()!;
+    page.eval.mockImplementation(async (expression: string) => {
+      if (expression.includes(".blur()")) order.push("blur");
+      return read(expression);
+    });
+    press.mockImplementation(async () => {
+      order.push("press");
+    });
+    await expect(submit(page, press, { timeout: 60 })).rejects.toThrow();
+    expect(order.slice(0, 2)).toEqual(["blur", "press"]);
+  });
+
+  it("★ presses again a Continue that did nothing, where the old join waited out its twenty seconds on a sheet that stayed", async () => {
+    const { page, press, presses } = sheet({ lost: 1 });
+    await submit(page, press);
+    expect(presses).toHaveLength(2);
+  });
+
+  it("★ never presses while the mint is on its way, however long the server takes: a repeat would mint a second guest", async () => {
+    const { page, press, presses } = sheet({ mintMs: 300 });
+    await submit(page, press, { settle: 20 });
+    // The button is disabled for 300 ms, fifteen times the repeat's wait: one press, never a second.
+    expect(presses).toHaveLength(1);
+  });
+
+  it("★ never hammers a refusal: it stops pressing at the cap, and says the sheet never closed", async () => {
+    const { page, press, presses } = sheet({ refused: true });
+    await expect(submit(page, press, { timeout: 400 })).rejects.toThrow(
+      /name sheet never closed after Continue.*"ready":true/,
+    );
+    expect(presses).toHaveLength(3);
+  });
+
+  it("★ presses the enabled Continue in the sheet that holds the name field, never the welcome's under it, nor a button mid-mint", () => {
+    const button = (text: string, disabled = false) => ({
+      textContent: text,
+      disabled,
+    });
+    const inPage = (expression: string, scope: unknown, anywhere: unknown[]) =>
+      new Function("document", `return (${expression});`)({
+        querySelector: () => ({ closest: () => scope }),
+        querySelectorAll: () => anywhere,
+      });
+    const welcomes = button("Continue");
+    const mine = button("Continue");
+    // The sheet's own buttons first: its Continue, enabled, is the one.
+    const sheetScope = {
+      querySelectorAll: () => [button("Back"), mine],
+    };
+    expect(inPage(nameContinue("input"), sheetScope, [welcomes, mine])).toBe(
+      mine,
+    );
+    // While the mint is on its way the button is disabled and says so: nothing to press.
+    const pending = {
+      querySelectorAll: () => [button("Just a second…", true)],
+    };
+    expect(inPage(nameContinue("input"), pending, [welcomes])).toBeNull();
+    // And the screen says so too.
+    const read = (scope: unknown) =>
+      JSON.parse(
+        new Function("document", `return (${nameScreen("input")});`)({
+          querySelector: () => ({
+            closest: () => scope,
+            getBoundingClientRect: () => ({ height: 52 }),
+          }),
+          querySelectorAll: () => [
+            { getBoundingClientRect: () => ({ height: 52 }) },
+          ],
+        }),
+      );
+    expect(read(sheetScope)).toEqual({ name: true, ready: true });
+    expect(read(pending)).toEqual({ name: true, ready: false });
   });
 });
