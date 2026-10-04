@@ -1,7 +1,7 @@
 ---
 track: brand-r1
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "e8d11584"            # the launch-prep SHA the branch was cut from
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
+cut: "312af72f"            # the launch-prep SHA the branch was cut from
 board: brand
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   - src/app/(dev)/design/sandbox/brand/
@@ -56,25 +56,46 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each is built as its recommended answer and drawn on the board as a carried call (`spec.ts` `carried`), Will's to overrule.
+
+- **Which photographs do the decks draw on?** Recommended and built: the twelve bootstrap stills (`MARKETING_IMAGES`, through `deck/media.tsx`). The brief's fixtures folder (`partyreel-test-media/images`) is six landscapes (mountains, a pier, the space station) outside git, which the alias cannot serve. Overrule: real party fixtures in the repo now, or a redraw once the Higgsfield set lands.
+- **Does Afterglow keep Will's v1 wordmark?** Recommended and built: yes, untouched (its team honoured his drawing and moved the light into the icon); Contact Sheet and Everyone's Color draw their own. Overrule: Afterglow draws its own on the brand-marks board.
+- **May a vision change the loud face?** Recommended and built: yes, as an agency would. Afterglow keeps Urbanist and Inter; Contact Sheet proposes Bricolage Grotesque (and Antonio for its film edge only); Everyone's Color, Fraunces (900, SOFT 100). Everyone's team first chose Bricolage too; the lane moved it so no two visions share a face. Inter reads in all three. Overrule: every vision keeps Urbanist.
+- **The budget's split.** Built: each agency team as two helpers in sequence (a brand designer for slides 1 to 8 and the marks, an application designer for the six touchpoints), as the budget allows ("each may split into its system and its applications"); then one creative director who saw only the brief and the captures; then one refinement, by the lane. Seven helpers in all; no third round.
+- **Which vision does the board recommend?** Afterglow, with the creative director's reason: the one vision that keeps the aurora as the foundation Will named, gives it a source (each photograph's own light) and rules, has the quietest answer to waiting, and makes the icon the product's own Add. Carry, whichever he picks: Afterglow's Standby (a half-lit point, no hue) and the icon as the Add; Contact Sheet's edge credit under each photograph and an event's own home-screen icon; Everyone's Color's seeded full stop and "a person is round, a state is flat".
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none (every fact this round made lives in the board's own folder until a pick is wired)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Design > the lab: the stage pauses a hidden option with `[data-lab-view][data-paused] *`, which cannot reach inside a `Frame`'s own document, so every board with loops or video in frames keeps running when hidden; the brand deck bridges it itself (`deck/deck.tsx`, `data-bd-paused`), and a bridge in `Frame` would cover every board.
+- Design > the lab: `lab-demo.mjs` and `lab-smoke.mjs` pick a DevTools port by pid and never check it is free; on a busy machine a lane can drive another lane's headless Chrome (it happened this round, see the Handoff); refuse a port that already answers, as `_scratch/brand-r1/shoot.mjs` now does.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed on `lp/brand-r1`:** `8b98b01cc` the deck kit and stand-ins; `53986b2cb` the three systems (slides 1 to 8); `1c1714843` the six touchpoints of each; `2858bbfd6` the one refinement from the creative director's pass; then this manifest. launch-prep moved since the cut (small-fixes, crumbs-64 and three pickups), none of it into my `reads` and `git merge-tree` merges cleanly (its only touch near the board, `tiers.ts`, adds functions and removes none), so no sync commit.
+- **Gates on `2858bbfd6`, each on its own exit code** (logs in `../partyreel-wt/_scratch/brand-r1/`): `zsh scripts/build-lock.sh pnpm typecheck` 0 (`gate-typecheck.log`); `pnpm lint` 0 (`gate-lint.log`); `zsh scripts/build-lock.sh pnpm test` 0, 876 files and 10,576 tests (`gate-test.log`); `zsh scripts/build-lock.sh pnpm build` 0 (`gate-build.log`); `pnpm lab:smoke --base http://localhost:3135` 0, 3 checks, the board 445 words of a 1,200 budget (`gate-smoke.log`); `pnpm lab:demo --board brand --base http://localhost:3135` 0 at 1440 and with `--width 375`, "1 steps, 0 failing", three options of 14 frames each, the stage starting 0.30 down at a desk and 0.35 on a phone (`gate-demo.log`, `gate-demo-375.log`, every option's frames saved in `demo-shots/` and `demo-shots-375/`). Reduced motion checked by capture (`review/reduced/`).
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` is 70 files, every one under `src/app/(dev)/design/sandbox/brand/`, plus this manifest. No exceptions.
+- **The board** (`/design/lab/brand`, desk 5): one ask, "Which vision should Partyreel's brand grow from?", three options, each an agency's deck of 14 slides in one order (`deck/contract.ts`: cover, the idea, wordmark and icon, color and status, the signature, without media, type imagery and motion, dark and light, then the home hero, a dark page, a light page, the hub empty, the QR card and the icon on a home screen, the last six captioned "a sketch: to judge the system, not the design" by the deck's own running head). The Read on knob draws every deck at 1440 by 900 or 375 wide. Each slide is a real `Frame`, its caption read off it (photographs drawn, marked pieces, measured contrast).
+- **Afterglow** (`afterglow/`): light is the brand, never paint; every colour is light sampled from the photographs, then the event's seed, then the house five, drawn only as a Ring (round the Add, and the icon), a Seam (where media ends) or a Bloom (behind the one live subject), one per screen, resting still and answering events. Status is a point and its word (Standby half-lit with no hue, Ready, Fault). Pages: the room where photographs play, paper where people read and decide. Will's v1 wordmark kept; the icon is the Add's ring, lit by one warm key from the top-left on a matte disc.
+- **Contact Sheet** (`contact-sheet/`): the print is the brand; no hue of its own, warm paper and deep ink, every event's own film edge (Antonio capitals) under its photographs, a photo alone as a print, status as a photo lab's marks (a graphite open loop for Developing, a green tick, a red cross, all in the border), the hashvatar as the latent image (named its aurora); paper everywhere but the reel. Bricolage Grotesque with cuts at Will's 14 degrees; the icon one square-cornered print on the film's ink, each event its own.
+- **Everyone's Color** (`everyone/`): people are the brand; every guest a seeded orb (production's hashvatar, unchanged), an event the mix of its people (trails and huddles end in a count after six), the house five as the house's own guests; grey chrome; status an outlined tag in sentence case, its hue in the glyph alone; the Add is your own orb. Paper for people, the room for pictures. Fraunces, lowercase "partyreel." whose full stop is whoever is looking; the icon a matte row of three on paper.
+- **The method, as run:** six team helpers in two waves, the creative director's pass (brief: `_scratch/brand-r1/brief/cd-brief.md`; captures `review/p2/`), and the lane's one refinement on all 18 of its items (but one small part: the angle labels on Afterglow's phone 03), the biggest the three icons (Afterglow's keyed ring, Contact Sheet's print, Everyone's matte row), Afterglow's light never going olive and answering its subject, Contact Sheet's marks off the photographs and its develop on the roll, Everyone's counts, tags and credits (captures after: `review/p3/`).
+- **Will's motion references** (the Orchestrator's study, `_scratch/inspiration/2026-10-04-motion.md`) went to the three application designers as optional material and to the creative director: Afterglow's Bloom answers the reel shot by shot (05, 09) and its Ring fills as files send (12); Contact Sheet's code develops by flipping only the modules that differ, finders still (12), and its newest frame develops as the roll grows (09, 10); Everyone's arrival rides the study's rise and settle (0.33 s attack, 0.86 s release). The verbs as a family are left for their later board.
+- **Incident:** about 04:47 local, one Contact Sheet capture connected to another lane's headless Chrome (host-dashboard-r4's, on port 9712) and navigated it to the brand board for about 16 seconds; that lane's captures from then may need re-shooting. The lane's capture script now refuses a port that already answers (Deferred, above).
+- **Assets requested from Will** (the Higgsfield month), `what · spec · replaces`, each with its slot and theme:
+  - One wedding's roll shot by its guests on phones, noon ceremony to dance floor, honest misses included · 36 stills, 3:2 and 4:5, 2400 px long edge, ungraded, JPG · replaces the bootstrap stills (`MARKETING_IMAGES`, 900 px, soft at 1440) on every deck's hero, album wall, roll and share card · light and dark
+  - The keeper: a daylight couple portrait worth printing · 3 options, 2:3, 3000 px, JPG · replaces `wedding-petals` as Contact Sheet's cover and hero print and Afterglow's cover · light
+  - The two hero reels re-rendered with the chosen mark (today's carry the aperture watermark), landscape and a full-frame vertical cut · 1920×1080 and 1080×1920, 12 to 15 s, H.264 plus poster · replaces `hero-candidate-01` and `-02` on every /reel and hero sketch · dark
+  - Phone wallpapers, one daylight event and one evening party · 2 to 3, 1290×2796, JPG · replaces `wedding-petals` and `concert-confetti` on slide 14 of every deck · light and dark
+  - The printed table card in situ on a reception table, and guests scanning it · 3 stills 3000×2000 plus 6 at 4:5, 2400 px · replaces `reception-table` behind slide 13's card · light
+  - A birthday at home and a trip or festival roll · 24 stills each, 3:2, 2400 px, ungraded · replaces the stills on the events and pricing sketches (11) · light and dark
+  - Afterglow: phones held up at a party, their screens the light sources · 4 stills, 3000×2000 · the hero and dark page (09, 10) · dark
+  - Afterglow: the icon as a studio object, a matte dark disc in a warm key-lit ring · 2 angles, 2048×2048 PNG with alpha · the app store and marketing icon hero · dark
+  - Everyone's Color: candid single-guest portraits shot by another guest · 8, 1200×1500 · the credits on the album and signature sketches (05, 10) · light
+- **Board ideas:** (1) a `Frame`-level pause bridge, so hidden options stop their loops and video on every board (Deferred above); (2) the brand applied, already in the round's plan after the pick: brand-marks (outline the picked wordmark and icon, the status set's tokens), the aurora or the picked signature across app and marketing, marketing-themes (each page wholly dark or light, the picked page map), demo-framing r6 in the brand, presence r1; (3) whichever vision wins, a production sampler worth a board of its own: Afterglow's "nothing invented, never louder than its photograph, edges sampled in place" (`afterglow/system.tsx` `SAMPLED`, `INTENSITY`, `EDGE`) was computed offline for the twelve stills only.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none.
+- **Calls his to overrule:** the three carried calls on the board (the photographs, Afterglow's wordmark, the faces); the recommendation (Afterglow); the creative director's changes, each now in its vision (Afterglow's light rests still instead of drifting on a 24 s clock; Contact Sheet's waiting is graphite with no hue; Everyone's icon sits on a paper tile by default and its tags are outlined).
+- **Look at first:** `/design/lab/brand?key=…` at a desk, the stage whole, then `f` to read at 1:1: each deck's 03 (the marks) and 04 (color beside status), Afterglow's 05 and 09, Contact Sheet's 01 and 09, Everyone's 06 and 12; then the Read on knob at 375.
