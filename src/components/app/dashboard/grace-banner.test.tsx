@@ -8,7 +8,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 
 import { GIGABYTE } from "@/lib/constants/tiers";
 
@@ -35,6 +35,14 @@ import {
 } from "@/components/app/storage/storage-source";
 
 const WEDDING = "10000000-0000-4000-8000-000000000001";
+
+// The list's body is a lazy chunk (`storage-list.tsx`), so the first open pays a cold import of its whole module graph:
+// about 300 ms alone, and a loaded machine stretches it past the one second a `waitFor` gives. Awaited here, under the
+// hook's own longer budget, so the waits below are only for the list's own states. (What is left in them is React's:
+// a lazy body shows 300 ms after its skeleton, a fixed floor that never scales with the machine.)
+beforeAll(async () => {
+  await import("@/components/app/storage/storage-list-body");
+});
 
 function source(): StorageSource {
   return {

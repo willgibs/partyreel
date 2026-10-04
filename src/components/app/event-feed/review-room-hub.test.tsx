@@ -210,12 +210,25 @@ describe("★ the room's keys in its own panel (`review-keys.ts`)", () => {
     (document.activeElement?.closest("[data-tile-id]") as HTMLElement | null)
       ?.dataset.tileId ?? null;
 
+  /**
+   * An arrow from the panel itself, pressed until the room answers it. The room's keys are a `document` listener its
+   * mount attaches after paint, and it mounts once its queue is read, outside `render`'s act: a press the instant its
+   * tiles show can find nobody listening yet, and a loaded machine is the one that puts a tick between the two. What
+   * the room answers is each test's pin; this waits only for an answer.
+   */
+  async function arrowFromPanel(panel: HTMLElement) {
+    panel.focus();
+    await waitFor(() => {
+      fireEvent.keyDown(panel, { key: "ArrowRight" });
+      expect(focusedTile()).not.toBeNull();
+    });
+  }
+
   it("reads its panel as its page: an arrow from the panel itself puts the cursor on the first tile", async () => {
     inPanel([entry("a", ENTRY_PENDING, 2), entry("b", ENTRY_PENDING, 1)]);
     await waitFor(() => expect(tileIds()).toEqual(["a", "b"]));
     const panel = screen.getByRole("dialog");
-    panel.focus();
-    fireEvent.keyDown(panel, { key: "ArrowRight" });
+    await arrowFromPanel(panel);
     expect(focusedTile()).toBe("a");
     fireEvent.keyDown(document.activeElement!, { key: "ArrowRight" });
     expect(focusedTile()).toBe("b");
@@ -225,6 +238,8 @@ describe("★ the room's keys in its own panel (`review-keys.ts`)", () => {
     inPanel([entry("a"), entry("b")]);
     await waitFor(() => expect(tileIds()).toEqual(["a", "b"]));
     const panel = screen.getByRole("dialog");
+    // The room hears an arrow first, so the silence below is the confirm's doing, never a room not yet listening.
+    await arrowFromPanel(panel);
     const confirm = document.createElement("div");
     confirm.setAttribute("role", "alertdialog");
     document.body.appendChild(confirm);
