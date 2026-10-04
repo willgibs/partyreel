@@ -92,7 +92,7 @@ export const readStage: Reader = (root) => {
   const word = stage.querySelector<HTMLElement>("[data-stage-phase]");
   const tall = Math.round(stage.getBoundingClientRect().height);
   const parts = [
-    `${stage.getAttribute("aria-label")}, ${(word?.innerText ?? "").trim().toLowerCase()}, ${tall} px tall`,
+    `${stage.getAttribute("aria-label")}, ${(word?.textContent ?? "").trim().toLowerCase()}, ${tall} px tall`,
     stage.dataset.hdEmpty
       ? `no photos: lit by lamp ${stage.dataset.hdLamp}`
       : "its photographs",

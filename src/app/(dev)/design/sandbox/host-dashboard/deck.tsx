@@ -19,12 +19,12 @@ import { cn } from "@/lib/utils";
 
 import { Face, type LeadProps, type Picks } from "./chooser";
 import {
+  factOf,
   lampLight,
   lampOf,
   nextLamp,
   type RuleId,
   RULES,
-  whenFor,
 } from "./model";
 import { StageView } from "./stage-view";
 
@@ -77,23 +77,6 @@ function cardsOf(picks: Picks, front: string): Card[] {
       out.push({ key: r.id, event: e, rules: [r.id], front: e.id === front });
   }
   return out;
-}
-
-/**
- * WHY A RULE LEADS WITH WHAT IT DOES, in its own words, honest about the
- * fallback (Upcoming with no dated party ahead leads with the newest).
- */
-function whyOf(rule: RuleId, e: HostedEvent, today: string): string {
-  if (rule === "upcoming")
-    return e.date && e.date > today
-      ? "Your next party, by its date"
-      : "No party ahead has a date, so your newest";
-  if (rule === "photos")
-    return e.lastArrival
-      ? "Where photos last landed"
-      : "No photos yet, so your newest";
-  if (rule === "opened") return "The event you were in last";
-  return "Your newest, or a party within a month";
 }
 
 const label = (r: RuleId) => RULES.find((x) => x.id === r)!.label;
@@ -154,7 +137,7 @@ function FrontLight({ stage }: { stage: Stage }) {
 /* ── the shapes and the motion ────────────────────────────────────────── */
 
 const CSS = `
-[data-hd-deck]{--deck-h:36px;--deck-tuck:8px;--deck-r:10px;--deck-gap:3px;--deck-x:0px;--deck-pad:7px;--deck-cpad:3px;position:relative;isolation:isolate}
+[data-hd-deck]{--deck-h:36px;--deck-tuck:8px;--deck-r:10px;--deck-gap:3px;--deck-x:0px;--deck-pad:5px;--deck-cpad:2px;position:relative;isolation:isolate}
 @media (min-width:1024px){[data-hd-deck]{--deck-h:32px;--deck-gap:6px;--deck-x:28px;--deck-pad:8px;--deck-cpad:4px}}
 [data-hd-deck] .deck-row{display:flex;align-items:flex-end;gap:16px;height:var(--deck-h);padding-left:var(--deck-x)}
 [data-hd-deck] .deck-tabs{display:flex;align-items:flex-end;gap:var(--deck-gap);height:100%}
@@ -183,14 +166,16 @@ const CSS = `
 
 /* A rule's word: a thumb's 44 px in a hand (the tab and the strip above it). */
 [data-hd-deck] .deck-word{position:relative;z-index:1;display:flex;align-items:center;gap:6px;height:var(--deck-h);padding:0 var(--deck-pad);border-radius:8px;font-size:12px;line-height:16px;font-weight:500;white-space:nowrap;color:var(--gallery-muted);outline:none;transition:color 150ms var(--ease-emphasis)}
-[data-hd-deck] .deck-word[aria-checked="true"]{color:var(--gallery-foreground)}
+[data-hd-deck] .deck-word[aria-checked="true"]{color:var(--gallery-foreground);font-weight:600}
+@media (max-width:1023.98px){[data-hd-deck] .deck-word{font-size:13px}}
 [data-hd-deck] .deck-word:focus-visible{box-shadow:inset 0 0 0 2px rgb(255 255 255 / .75)}
 [data-hd-deck] .deck-word:active{scale:.97}
 @media (hover:hover) and (pointer:fine){[data-hd-deck] .deck-word:hover{color:var(--gallery-foreground)}}
 @media (max-width:1023.98px){[data-hd-deck] .deck-word::before{content:"";position:absolute;inset:-8px 0 0}}
 /* The kept rule is lit: a small light under its word, which takes no room, so no tab ever moves under a thumb. */
 [data-hd-deck] .deck-word[aria-checked="true"]::after{content:"";position:absolute;left:50%;bottom:4px;width:16px;height:2px;margin-left:-8px;border-radius:2px;background:var(--gallery-foreground);box-shadow:0 0 8px 1px rgb(255 255 255 / .45)}
-[data-hd-deck] .deck-sep{margin-top:calc(var(--deck-h) / 2 - 8px);font-size:12px;line-height:16px;color:var(--gallery-muted);opacity:.5;pointer-events:none}
+/* Rules that lead with the same event are tabs of one card that touch: a hairline between them, never a breadcrumb's dot. */
+[data-hd-deck] .deck-sep{align-self:center;width:1px;height:16px;margin-top:calc(var(--deck-tuck) * -1);background:var(--gallery-border);pointer-events:none}
 
 /* At a desk: what the lifted tab would lead with and why, and the party rule. */
 [data-hd-deck] .deck-say{display:flex;align-items:center;gap:8px;height:var(--deck-h);min-width:0;font-size:12px;line-height:16px;color:var(--muted-foreground);opacity:0;translate:-4px 0;transition:opacity 150ms var(--ease-emphasis),translate 150ms var(--ease-emphasis)}
@@ -214,6 +199,16 @@ const CSS = `
 [data-hd-deck] .deck-in{animation:deck-in 260ms var(--ease-emphasis) both}
 /* The stage going back keeps to the box of the one coming forward, so a taller one never hangs over the page below. */
 [data-hd-deck] .deck-ghost{position:absolute;left:0;right:0;top:var(--deck-h);bottom:var(--deck-foot,0px);z-index:1;pointer-events:none;transform-origin:50% 0;clip-path:inset(-16px -16px 0 -16px);animation:deck-out 260ms var(--ease-emphasis) both}
+/* In light, the cards behind are tinted edges on the page, never black tabs: only the stage's own tab is solid stage. */
+:root:not(.dark) [data-hd-deck] .deck-card:not([data-front]){background:color-mix(in oklch,var(--muted) 80%,var(--background));outline-color:var(--border)}
+:root:not(.dark) [data-hd-deck] .deck-card:not([data-front]) .deck-light{opacity:.45}
+:root:not(.dark) [data-hd-deck] .deck-card:not([data-front]) .deck-light::after{background:linear-gradient(to bottom,color-mix(in oklch,var(--background) 72%,transparent),color-mix(in oklch,var(--background) 30%,transparent) 70%)}
+:root:not(.dark) [data-hd-deck] .deck-card:not([data-front]) .deck-word{color:var(--muted-foreground)}
+:root:not(.dark) [data-hd-deck] .deck-card:not([data-front]) .deck-word[aria-checked="true"]{color:var(--foreground)}
+:root:not(.dark) [data-hd-deck] .deck-card:not([data-front]) .deck-sep{background:var(--border)}
+:root:not(.dark) [data-hd-deck] .deck-card[data-lift]:not([data-front]) .deck-light{opacity:.8}
+@media (hover:hover) and (pointer:fine){:root:not(.dark) [data-hd-deck] .deck-card:not([data-front]) .deck-word:hover{color:var(--foreground)}}
+:root:not(.dark) [data-hd-deck] .deck-edge{background:color-mix(in oklch,var(--muted) 80%,var(--background));outline-color:var(--border)}
 @keyframes deck-in{from{clip-path:inset(0 -2px 100% -2px round 14px);translate:0 -10px}to{clip-path:inset(-2px -2px -2px -2px round 14px);translate:0 0}}
 @keyframes deck-out{to{opacity:.3;scale:.97;translate:0 -4px}}
 @keyframes deck-peek-at{from{opacity:0}}
@@ -345,11 +340,7 @@ export function DeckLead(p: LeadProps) {
               const on = r === p.rule;
               return (
                 <span key={r} className="contents">
-                  {i > 0 && (
-                    <span aria-hidden className="deck-sep">
-                      ·
-                    </span>
-                  )}
+                  {i > 0 && <span aria-hidden className="deck-sep" />}
                   <button
                     ref={(el) => {
                       words.current[r] = el;
@@ -383,7 +374,7 @@ export function DeckLead(p: LeadProps) {
                   </button>
                   {/* Read as the radio's description: "Newest, radio, checked, leads with ...". */}
                   <span id={`${noteId}-${r}`} hidden>
-                    {`Leads with ${c.event.name}${c.front ? ", on the stage now" : ""}. ${whyOf(r, c.event, today)}.`}
+                    {`Leads with ${c.event.name}${c.front ? ", on the stage now" : ""}: ${p.leads[r] ? factOf(p.leads[r]!, p.ends, today) : ""}.`}
                   </span>
                 </span>
               );
@@ -394,17 +385,12 @@ export function DeckLead(p: LeadProps) {
       {p.wide && (
         <>
           <p aria-hidden className="deck-say" data-on={peeked ? "" : undefined}>
-            {peeked && peek && (
+            {peeked && peek && p.leads[peek] && (
               <>
                 <Face e={peeked.event} className="size-5 rounded-[5px]" />
                 <b className="truncate">{peeked.event.name}</b>
-                {peeked.event.date && (
-                  <span className="shrink-0">
-                    {whenFor(peeked.event, p.ends, today)}
-                  </span>
-                )}
-                <span className="ml-2 truncate">
-                  {whyOf(peek, peeked.event, today)}
+                <span className="shrink-0">
+                  · {factOf(p.leads[peek]!, p.ends, today)}
                 </span>
               </>
             )}

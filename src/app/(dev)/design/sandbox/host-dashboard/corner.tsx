@@ -16,19 +16,11 @@ import {
   useResponsiveMenuShape,
 } from "@/components/ui/responsive-menu";
 import type { HostedEvent } from "@/lib/dashboard/home-view";
-import { daysFrom } from "@/lib/dashboard/when";
 import { GLASS } from "@/lib/glass";
 import { cn } from "@/lib/utils";
 
 import type { LeadProps } from "./chooser";
-import {
-  lampLight,
-  lampOf,
-  nextLamp,
-  type RuleId,
-  RULES,
-  whenFor,
-} from "./model";
+import { factOf, lampLight, lampOf, nextLamp, type RuleId, RULES } from "./model";
 import { StageView } from "./stage-view";
 
 /**
@@ -54,12 +46,11 @@ import { StageView } from "./stage-view";
  * it would draw today: the event's face (its cover, or its plate in its own
  * lamp's light), its name and its when. A row is the act.
  *
- * ★ A RULE THAT LEADS WITH THE SAME EVENT SAYS SO ONCE (Nia: three of four
- * lead with her wedding today). The first row to reach an event names it; a
- * later row with the same face says "Same as Newest today", and Upcoming with
- * no date ahead says it leads with her newest, which also tells her how to
- * change it. The kept rule's face is ringed as well as checked, so the stage
- * on show now is found among faces that look alike.
+ * ★ EVERY ROW SAYS WHY (Nia: three of four lead with her wedding today):
+ * each names the event its rule leads with and the fact it read ("made
+ * yesterday", "nothing dated ahead", "opened last"), so three rules agreeing
+ * read as three reasons, and a date is how she changes one. The kept rule
+ * wears the house's chosen fill and its check; the outline is the keyboard's.
  *
  * ★ THE STAGE FOLLOWS AT ONCE, AND ARRIVES. The next event's stage rises in
  * (240 ms) while its light comes up a beat slower behind it, and the pill's
@@ -74,33 +65,26 @@ type Row = {
   id: RuleId;
   label: string;
   event: HostedEvent;
-  /** The event's name, or why this rule leads with what it does. */
-  line: string;
-  /** The event's when, beside its name; never cut, so a long name gives way first. */
-  when?: string;
+  /** The fact its rule read ("made yesterday", "nothing dated ahead"), beside the name; never cut. */
+  fact: string;
 };
 
+/**
+ * EVERY ROW ONE SHAPE: the event a rule leads with today and the fact it read
+ * (the fresh-eyes pass, round four), so three rules agreeing on Nia's wedding
+ * say why each does ("made yesterday", "nothing dated ahead", "opened last")
+ * rather than "Same as Newest today".
+ */
 function rowsOf(p: LeadProps): Row[] {
-  const today = p.ctx.today;
   const out: Row[] = [];
   for (const r of RULES) {
-    const e = p.picks[r.id];
-    if (!e) continue;
-    const first = out.find((x) => x.event.id === e.id);
-    // Upcoming falls back to the newest with no date ahead: said, since a date is also how to change it.
-    const ahead = e.date !== null && daysFrom(today, e.date) > 0;
-    const said =
-      r.id === "upcoming" && !ahead
-        ? "Your newest, with no date ahead"
-        : first
-          ? `Same as ${first.label} today`
-          : null;
+    const lead = p.leads[r.id];
+    if (!lead) continue;
     out.push({
       id: r.id,
       label: r.label,
-      event: e,
-      line: said ?? e.name,
-      when: said ? undefined : whenFor(e, p.ends, today),
+      event: lead.event,
+      fact: factOf(lead, p.ends, p.ctx.today),
     });
   }
   return out;
@@ -112,16 +96,7 @@ function rowsOf(p: LeadProps): Row[] {
  * THE STAGE IN SMALL: its cover where it has photographs; else its own lamp's
  * light with its code's plate in the middle of it, as the lit stage stands.
  */
-function StageFace({
-  e,
-  hand,
-  kept,
-}: {
-  e: HostedEvent;
-  hand: boolean;
-  /** The stage on show now: ringed, as a chosen picture is. */
-  kept: boolean;
-}) {
+function StageFace({ e, hand }: { e: HostedEvent; hand: boolean }) {
   const cover = e.stills[0];
   const h = lampOf(e.id);
   return (
@@ -132,8 +107,6 @@ function StageFace({
         // The light comes up on the stage the pointer is on.
         "transition-[filter] duration-150 ease-emphasis group-hover/rule:brightness-125 group-focus-visible/rule:brightness-125 motion-reduce:transition-none",
         hand ? "size-11 rounded-[10px]" : "size-9 rounded-lg",
-        kept &&
-          "shadow-[0_0_0_2px_var(--popover),0_0_0_3.5px_rgb(255_255_255/0.7)]",
       )}
     >
       {cover ? (
@@ -176,28 +149,36 @@ function Rows({
   rows,
   rule,
   onPick,
+  focusKept,
 }: {
   rows: Row[];
   rule: RuleId;
   onPick: (r: RuleId) => void;
+  /** Opened from the keyboard: focus lands on the kept rule (a pointer's open leaves it to the menu). */
+  focusKept: boolean;
 }) {
   const hand = useResponsiveMenuShape() === "rows";
   const group = useRef<HTMLDivElement>(null);
-  // The menu opens on the kept rule: Radix lands focus on the first tabbable,
-  // which is it, but in a lab frame (whose portal Radix's own document cannot
-  // see) it lands on the panel, so it is set a frame later wherever it fell.
+  // Opened from the keyboard, the menu opens on the kept rule: Radix lands
+  // focus on the first tabbable, which is it, but in a lab frame (whose portal
+  // Radix's own document cannot see) it lands on the panel, so it is set a
+  // frame later wherever it fell. Opened by a pointer (or drawn open by a
+  // frame), focus stays in the four without a row's keyboard outline, as a
+  // pointer's open shows it: on the group, where the arrows still reach them.
   useEffect(() => {
     const el = group.current;
     const doc = el?.ownerDocument;
     const win = doc?.defaultView;
     if (!el || !doc || !win) return;
     const id = win.requestAnimationFrame(() => {
-      const kept = el.querySelector<HTMLElement>("[aria-checked='true']");
-      if (kept && !el.contains(doc.activeElement))
-        kept.focus({ preventScroll: true });
+      if (focusKept) {
+        const kept = el.querySelector<HTMLElement>("[aria-checked='true']");
+        if (kept && !el.contains(doc.activeElement))
+          kept.focus({ preventScroll: true });
+      } else if (doc.activeElement !== el) el.focus({ preventScroll: true });
     });
     return () => win.cancelAnimationFrame(id);
-  }, []);
+  }, [focusKept]);
   // Up and Down move between the four, Home and End to either end (the menu's
   // own keys reach `menuitem`s only, and these are `menuitemradio`s). Focus is
   // read off the frame's own document, which a lab frame's portal is not.
@@ -220,7 +201,9 @@ function Rows({
           ? all.length - 1
           : e.key === "ArrowDown"
             ? (at + 1) % all.length
-            : (at - 1 + all.length) % all.length;
+            : at < 0
+              ? all.length - 1
+              : (at - 1 + all.length) % all.length;
     all[next]?.focus();
   };
   return (
@@ -228,7 +211,9 @@ function Rows({
       ref={group}
       role="group"
       aria-label="Lead your dashboard with"
+      tabIndex={-1}
       onKeyDown={onKeyDown}
+      className="outline-none"
     >
       {rows.map((r) => {
         const on = r.id === rule;
@@ -240,7 +225,7 @@ function Rows({
             data-hd-rule-item={r.id}
             // Focus opens on the kept rule; the arrows reach the rest.
             tabIndex={on ? 0 : -1}
-            icon={<StageFace e={r.event} hand={hand} kept={on} />}
+            icon={<StageFace e={r.event} hand={hand} />}
             hint={
               on ? (
                 <Check
@@ -250,7 +235,13 @@ function Rows({
               ) : undefined
             }
             onSelect={() => onPick(r.id)}
-            className={cn("group/rule", hand ? "py-2" : "py-1.5")}
+            // The kept rule wears the house's chosen fill and its check; the
+            // outline is the keyboard's alone.
+            className={cn(
+              "group/rule",
+              hand ? "py-2" : "py-1.5",
+              on && "bg-accent",
+            )}
           >
             <span className="block font-medium">{r.label}</span>
             <span
@@ -259,12 +250,10 @@ function Rows({
                 hand ? "text-sm" : "text-xs",
               )}
             >
-              <span className="truncate">{r.line}</span>
-              {r.when && (
-                <span className="ml-[0.3em] shrink-0 whitespace-nowrap">
-                  · {r.when}
-                </span>
-              )}
+              <span className="truncate">{r.event.name}</span>
+              <span className="ml-[0.3em] shrink-0 whitespace-nowrap">
+                · {r.fact}
+              </span>
             </span>
           </ResponsiveMenuItem>
         );
@@ -372,6 +361,8 @@ const STYLE = `
 
 export function CornerLead(p: LeadProps) {
   const anchor = useRef<HTMLButtonElement>(null);
+  // Whether the menu was opened from the keyboard, so focus goes to the kept rule only then.
+  const [byKeys, setByKeys] = useState(false);
   // A rule chosen here moves the stage: its next event arrives. The page's first drawing never does.
   const [moved, setMoved] = useState(false);
   const rows = rowsOf(p);
@@ -393,6 +384,11 @@ export function CornerLead(p: LeadProps) {
         aria-haspopup="menu"
         aria-expanded={p.open}
         aria-label={`Lead your dashboard with ${label}`}
+        onPointerDown={() => setByKeys(false)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown")
+            setByKeys(true);
+        }}
         onClick={() => p.onOpen(!p.open)}
         className={cn(
           "hd-corner-pill group/corner relative flex items-center rounded-full leading-none whitespace-nowrap text-white outline-none select-none",
@@ -417,7 +413,12 @@ export function CornerLead(p: LeadProps) {
         align="end"
         className="w-[21rem]"
       >
-        <Rows rows={rows} rule={p.rule} onPick={pick} />
+        <Rows
+          rows={rows}
+          rule={p.rule}
+          onPick={pick}
+          focusKept={byKeys}
+        />
         <ResponsiveMenuNote>
           A party on its own day always leads.
         </ResponsiveMenuNote>

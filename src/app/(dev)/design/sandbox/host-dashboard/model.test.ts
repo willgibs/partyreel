@@ -13,16 +13,24 @@ import {
 import {
   arrange,
   changed,
+  COUNT_WORDS,
+  countSaid,
+  factOf,
   factsOf,
+  headLine,
   homeAround,
   homeInput,
+  leadLine,
   leadOf,
+  leadWhyOf,
   lifted,
   PREFS_DEFAULT,
   rangeLabel,
   rangeLine,
   rangeWhen,
   recentRows,
+  RULES,
+  weekWithUndated,
 } from "./model";
 
 /**
@@ -33,7 +41,8 @@ import {
  * lead the board's page is `buildHomeView`'s, and moving the stage to another
  * event changes nothing but the stage, where its event is left out, and a
  * range's words. The second half pins the rules to the frames' words: the four
- * rules, a range's when, and the collection's filter, sort and find.
+ * rules and the fact each read, a range's when, the collection's filter and
+ * sort, and the details H6 draws the other way.
  */
 
 const ALL = Object.values(HOSTS);
@@ -123,6 +132,69 @@ describe("the stage's rule", () => {
   it("leaves a host with one event on that event, whatever the rule", () => {
     for (const rule of ["newest", "upcoming", "opened", "photos"] as const)
       expect(leadOf(maya, rule, maya.trail)?.id).toBe("maya-30th");
+  });
+});
+
+describe("why a rule leads", () => {
+  const { nia, jo, lena } = HOSTS;
+  const say = (host: (typeof HOSTS)[keyof typeof HOSTS]) =>
+    Object.fromEntries(
+      RULES.map((r) => {
+        const lead = leadWhyOf(host, r.id, host.trail)!;
+        return [r.id, leadLine(lead, host.ends, host.ctx.today)];
+      }),
+    );
+
+  it("says the fact each rule read, so three agreeing on Nia's wedding read as three reasons", () => {
+    expect(say(nia)).toEqual({
+      newest: "Nia & Alex's Wedding · made yesterday",
+      upcoming: "Nia & Alex's Wedding · nothing dated ahead",
+      opened: "Nia & Alex's Wedding · opened last",
+      photos: "Our Engagement Party · photos Sep 26",
+    });
+  });
+
+  it("names Newest's party within a month by its day, never as her newest", () => {
+    // Lena's newest made is Sunday's pancakes; Thursday's lunch leads by being near.
+    const lead = leadWhyOf(lena, "newest", lena.trail)!;
+    expect(lead.event.id).toBe("lena-lunch");
+    expect(lead.why).toBe("near");
+    expect(factOf(lead, lena.ends, lena.ctx.today)).toBe("in 2 days");
+  });
+
+  it("agrees with leadOf on every host and rule", () => {
+    for (const host of ALL)
+      for (const r of RULES)
+        expect(leadWhyOf(host, r.id, host.trail)?.event.id).toBe(
+          leadOf(host, r.id, host.trail)?.id,
+        );
+    expect(leadWhyOf(jo, "upcoming", jo.trail)?.why).toBe("next");
+  });
+});
+
+describe("the dashboard's details the other way (H6)", () => {
+  const { maya, lena } = HOSTS;
+
+  it("counts a capped plan's events against its limit only the other way", () => {
+    expect(headLine(maya, false)).toBe("1 event · Event Pass");
+    expect(headLine(maya, true)).toBe("1 of 1 event · Event Pass");
+    // A plan with no cap says the same either way.
+    expect(headLine(lena, true)).toBe(headLine(lena, false));
+  });
+
+  it("holds an undated album in the week by its photos' day only the other way", () => {
+    const built = homeAround(lena, leadOf(lena, "newest", lena.trail)!.id);
+    expect(built.week.map((c) => c.id)).toEqual(["lena-40th"]);
+    const other = weekWithUndated(built, lena);
+    // The nearest first: Sunday's photos before Saturday's party.
+    expect(other.week.map((c) => c.id)).toEqual(["lena-pancakes", "lena-40th"]);
+    expect(other.week[0]!.when).toMatch(/^Photos /);
+  });
+
+  it("says the count's other word wherever the week says it", () => {
+    const built = homeAround(lena, leadOf(lena, "newest", lena.trail)!.id);
+    const said = countSaid(built, COUNT_WORDS.other);
+    expect(said.week[0]!.quiet).toBe("128 photos and videos");
   });
 });
 

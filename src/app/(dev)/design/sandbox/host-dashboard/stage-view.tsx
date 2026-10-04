@@ -17,6 +17,8 @@ import { PhotoStage } from "./photo-stage";
  *  - `eyebrow`: before the phase word, in the stage's first line;
  *  - `overlay`: a layer over the whole band (absolute, placed by its owner);
  *  - `className`: the band's own classes, for a direction's entrance;
+ *  - `plateCaption`: words under an empty stage's plate in place of its opened
+ *    line (a preview naming the event whose code it is);
  *  - `countWord`: the album count's word after its day (`details`, H6).
  */
 
@@ -24,6 +26,7 @@ export type StageSlots = {
   eyebrow?: ReactNode;
   overlay?: ReactNode;
   className?: string;
+  plateCaption?: ReactNode;
   countWord?: string;
 };
 
@@ -53,6 +56,7 @@ export function StageView({
         eyebrow={slots.eyebrow}
         overlay={slots.overlay}
         className={slots.className}
+        plateCaption={slots.plateCaption}
       />
     );
   return (
@@ -63,7 +67,10 @@ export function StageView({
       photos={stage.photos}
       share={stage.share}
       qrToken={event.qrToken}
-      {...slots}
+      eyebrow={slots.eyebrow}
+      overlay={slots.overlay}
+      className={slots.className}
+      countWord={slots.countWord}
     />
   );
 }

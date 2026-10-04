@@ -25,8 +25,9 @@ import { HOST_DASHBOARD } from "./spec";
  *  - `chooser`: Nia choosing over her lit wedding, Ari's ten with Latest
  *    photos kept (the control on a photograph), and Try it on Jo's forty, at
  *    the Screen knob's width.
- *  - `details` (H6): Maya's one event and Lena's week, at a phone, where all
- *    four details show (the ring's place differs only there).
+ *  - `details` (H6): at a phone (the ring's place differs only there), each
+ *    detail as built beside its other way where it shows: Lena's week, and
+ *    Maya's one event for the count, the limit and the ring.
  */
 
 /* ── reading the board's state ────────────────────────────────────────── */
@@ -57,6 +58,8 @@ type Shot = {
   title: string;
   read: Reader;
   start?: Start;
+  /** An answer this frame wears whatever the option is (the details' "as built" beside its other way). */
+  wear?: Partial<Answers>;
 };
 
 function Option({
@@ -74,13 +77,14 @@ function Option({
   screen?: ScreenId;
 }) {
   const screen = fixed ?? screenOf(s.screen);
-  const answers = { ...answersOf(s), [ask]: option } as Answers;
+  const base = { ...answersOf(s), [ask]: option } as Answers;
   const name = LABEL(ask, option);
-  // Every answer the frame wears names it, so a frame is drawn afresh when any of them moves.
-  const worn = `${answers.chooser}-${answers.details}`;
   return (
     <Story screen={screen}>
       {shots.map((shot) => {
+        const answers = { ...base, ...shot.wear };
+        // Every answer the frame wears names it, so a frame is drawn afresh when any of them moves.
+        const worn = `${answers.chooser}-${answers.details}`;
         const id = `hd-${ask}-${shot.key}-${worn}`;
         return (
           <Scene
@@ -130,16 +134,42 @@ const chooserShots: Shot[] = [
 
 /* ── 2. the dashboard's details (H6) ──────────────────────────────────── */
 
-const detailsShots: Shot[] = [
-  { key: "maya", host: "maya", title: "Maya's one event", read: readDetails },
-  {
-    key: "lena",
-    host: "lena",
-    title: "Lena's week",
-    read: readDetails,
-    start: { scroll: "week" },
-  },
-];
+/**
+ * EACH DETAIL AS BUILT BESIDE ITS OTHER WAY, where it shows (the fresh-eyes
+ * pass: a frame its option leaves unchanged reads as a difference missed):
+ * the week on Lena's page, the count, the limit and the ring on Maya's. All
+ * four as built draws both pages.
+ */
+const MAYA = (title: string, wear?: Partial<Answers>): Shot => ({
+  key: `maya${wear ? "-built" : ""}`,
+  host: "maya",
+  title,
+  read: readDetails,
+  wear,
+});
+const LENA = (title: string, wear?: Partial<Answers>): Shot => ({
+  key: `lena${wear ? "-built" : ""}`,
+  host: "lena",
+  title,
+  read: readDetails,
+  start: { scroll: "week" },
+  wear,
+});
+const BUILT = { details: "built" } as const;
+
+function detailsShots(way: DetailsWay): Shot[] {
+  if (way === "built")
+    return [MAYA("Maya's one event"), LENA("Lena's week")];
+  if (way === "week")
+    return [
+      LENA("Lena's week, as built", BUILT),
+      LENA("Lena's week, the other way"),
+    ];
+  return [
+    MAYA("Maya's one event, as built", BUILT),
+    MAYA("Maya's one event, the other way"),
+  ];
+}
 
 /* ── the map ──────────────────────────────────────────────────────────── */
 
@@ -153,7 +183,7 @@ function detailsPreview(s: BoardState, way: DetailsWay) {
       s={s}
       ask="details"
       option={way}
-      shots={detailsShots}
+      shots={detailsShots(way)}
       screen="375"
     />
   );

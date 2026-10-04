@@ -5,7 +5,6 @@ import { CalendarPlus } from "lucide-react";
 import { HomeHead } from "@/components/app/dashboard/home-head";
 import { PageHeading } from "@/components/shared/page-heading";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 /**
  * THE PAGE'S HEAD: production's own (`HomeHead`) as built, or with the storage
@@ -27,24 +26,23 @@ export function Head({
   ringFirst: boolean;
 }) {
   if (!ringFirst) return <HomeHead day={day} line={line} storage={storage} />;
+  // The first row holds the day, the ring and New event whole, so the day's
+  // name is what gives way (the option's cost, drawn as it would ship).
   return (
-    <div
-      data-home-head=""
-      data-hd-ring="first"
-      className="flex flex-wrap items-center gap-x-3 gap-y-0.5 sm:gap-x-4"
-    >
-      <PageHeading className="order-1 min-w-0 flex-auto truncate text-subsection sm:flex-none sm:text-page">
-        {day}
-      </PageHeading>
-      <p className="order-4 w-full text-sm text-muted-foreground sm:order-2 sm:w-auto">
-        {line}
-      </p>
-      <div className={cn("order-2 sm:order-3 sm:ml-auto")}>{storage}</div>
-      <Button asChild className="order-3 sm:order-4">
-        <Link href="/dashboard/new">
-          <CalendarPlus /> New event
-        </Link>
-      </Button>
+    <div data-home-head="" data-hd-ring="first" className="space-y-0.5">
+      <div className="flex items-center gap-x-3 sm:gap-x-4">
+        <PageHeading className="min-w-0 flex-1 truncate text-subsection sm:flex-none sm:text-page">
+          {day}
+        </PageHeading>
+        <p className="text-sm text-muted-foreground max-sm:hidden">{line}</p>
+        <div className="shrink-0 sm:ml-auto">{storage}</div>
+        <Button asChild className="shrink-0">
+          <Link href="/dashboard/new">
+            <CalendarPlus /> New event
+          </Link>
+        </Button>
+      </div>
+      <p className="text-sm text-muted-foreground sm:hidden">{line}</p>
     </div>
   );
 }

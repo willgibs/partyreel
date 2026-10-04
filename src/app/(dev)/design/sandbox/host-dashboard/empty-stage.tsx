@@ -306,6 +306,7 @@ export function LitStage({
   eyebrow,
   overlay,
   className,
+  plateCaption,
 }: {
   event: HostedEvent;
   ctx: HomeContext;
@@ -319,6 +320,8 @@ export function LitStage({
   /** A layer over the whole band, placed by its owner. */
   overlay?: ReactNode;
   className?: string;
+  /** Words under the plate in place of its opened line. */
+  plateCaption?: ReactNode;
 }) {
   const facts = useFacts(event, ctx, end);
   const h = facts.hue;
@@ -365,7 +368,13 @@ export function LitStage({
           style={{ background: lamp(h, 34) }}
         />
         <Plate event={event} share={share} size={176} />
-        <OpenedLine opened={facts.opened} />
+        {plateCaption ? (
+          <p className="relative max-w-[80%] truncate text-xs text-gallery-foreground">
+            {plateCaption}
+          </p>
+        ) : (
+          <OpenedLine opened={facts.opened} />
+        )}
       </div>
       {overlay}
     </section>

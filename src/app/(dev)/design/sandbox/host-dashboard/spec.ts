@@ -128,31 +128,37 @@ export const HOST_DASHBOARD = defineExploration({
           id: "corner",
           label: "The corner, refined",
           means:
-            "The rule on the stage's glass at its top right, opening a menu of the four, each previewing the stage it would draw.",
-          gains: "Your pick, made clearer: set where it shows, one press away.",
-          costs: "A control on the stage's picture.",
+            "The stage's glass at its top right says Lead with Newest; it opens the house's quick choice, each rule with the event it would lead with and why.",
+          gains:
+            "Your pick, made clear: it says what it sets, and every rule says why it would lead.",
+          costs:
+            "A control on the stage's picture, and at a phone the lit stage grows a row to hold it.",
         },
         {
           id: "words",
           label: "The stage's own words",
           means:
-            "The rule is the stage's first words, saying why this event leads; pressing them turns the stage to choose.",
-          gains: "Nothing over the picture, and the stage explains itself.",
-          costs: "A control that reads as words may be missed.",
+            "The stage's first words say why its event leads (Your newest, Latest photos); pressing them turns the stage into the four rules, its picture showing each.",
+          gains:
+            "Nothing on the picture: the stage explains itself, and choosing happens in its own light.",
+          costs:
+            "Words that are a control can be missed, and the turned stage hides its buttons until done.",
         },
         {
           id: "deck",
           label: "A deck she turns",
           means:
-            "The four leads stacked behind the stage, each rule a tab; turning to one brings its event forward and keeps it.",
-          gains: "Every rule in sight, and choosing is seeing.",
-          costs: "Four tabs on every visit, for a choice most never make.",
+            "The four leads stacked behind the stage, each rule a tab on its edge lit by its event; pressing a tab turns the deck and keeps the rule.",
+          gains:
+            "Every rule in sight in its lead's light, and tabs that touch show rules that agree.",
+          costs:
+            "Four tabs over the stage on every visit, for a choice most hosts never make.",
         },
       ],
-      recommended: "corner",
+      recommended: "words",
       because:
-        "Your pick, refined: set where it shows, one press away, quiet at rest and clear when open.",
-      overrule: "If nothing should sit on the picture, the stage's own words.",
+        "The stage says why its event leads, and that reason is the control: nothing on the picture, and choosing happens in the stage's own light.",
+      overrule: "If the control should be seen at a glance, the corner refined.",
       configs: [SCREEN],
     },
 
@@ -169,7 +175,7 @@ export const HOST_DASHBOARD = defineExploration({
       lands:
         "This week's rule, the album count's word, the head's line and where the storage ring stands at a phone.",
       context:
-        "Two phone frames each: Maya's one event (the head, the ring, her stage the week after her party) and Lena's week (her 40th, Thursday's lunch, and Sunday's pancakes, never dated).",
+        "At a phone, each detail as built beside its other way where it shows: Lena's week (her 40th, Thursday's lunch, Sunday's pancakes, never dated), and Maya's one event for the count, the limit and the ring.",
       options: [
         {
           id: "built",
@@ -183,7 +189,7 @@ export const HOST_DASHBOARD = defineExploration({
           id: "week",
           label: "Undated albums join This week",
           means:
-            "An album nobody dated whose photos landed this week joins This week, said by its photos' day.",
+            "An album nobody dated whose photos landed this week joins This week, said by its photos' day: Photos Sun, Nov 8.",
           gains: "This week holds everything that happened this week.",
           costs: "The week dates an album its host never dated.",
         },
@@ -191,7 +197,7 @@ export const HOST_DASHBOARD = defineExploration({
           id: "count",
           label: "The count says photos and videos",
           means:
-            "The stage and the week say 128 photos and videos, where they say 128 in the album.",
+            "The stage and the week say 312 photos and videos where they say 312 in the album.",
           gains: "Names what the number holds.",
           costs: "Three words where two did.",
         },

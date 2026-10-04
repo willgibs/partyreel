@@ -31,10 +31,11 @@ import type { Host } from "./fixtures";
  *
  * The page is production's composition (`buildHomeView`) over production's
  * rules (`momentEvent`, `seasonsOf`, `weekEvents`, `marksOf`); this file adds
- * only what a round-three option changes: which event the stage features by
- * the host's rule, how her events lay out (filtered, sorted, grouped, in a
- * gallery, a table or a list), the Recent row, and the words of a range of
- * days (`event-dates`, drawn as settled). `model.test.ts` holds that the page
+ * only what the board draws that production does not have yet: which event
+ * the stage features by the host's rule and the fact that picked it (round
+ * four's chooser), how her events lay out (round three's Display menu, drawn
+ * as settled), the Recent row, the words of a range of days (`event-dates`),
+ * and the details H6 draws the other way. `model.test.ts` holds that the page
  * around production's own lead is production's to the byte.
  */
 
@@ -84,9 +85,40 @@ const newestMade = (a: HostedEvent, b: HostedEvent) =>
 const AFTER = 30;
 
 /**
- * THE STAGE'S EVENT UNDER A RULE. A party on its own day always leads (a host
- * date first, then an undated album landing today: `momentEvent`'s first
- * step); every other day, the rule:
+ * WHAT A RULE READ TO PICK ITS EVENT: the step of `leadWhyOf` that decided,
+ * kept beside the event so every drawing of the chooser says the same true
+ * thing about why an event leads (the fresh-eyes pass, round four: "one false
+ * reason breaks the idea").
+ */
+export type Why =
+  /** A party on its own day: it leads whatever the rule. */
+  | "live"
+  /** Newest: a party within a month, by its nearest day. */
+  | "near"
+  /** The event she made last: Newest's own, and every rule's fallback. */
+  | "made"
+  /** Upcoming: the soonest dated party ahead. */
+  | "next"
+  /** Last opened: the event she was in last. */
+  | "opened"
+  /** Latest photos: the album photographs last landed in. */
+  | "photos";
+
+export type Lead = {
+  /** The rule that read it. */
+  rule: RuleId;
+  event: HostedEvent;
+  why: Why;
+  /** The rule found nothing of its own kind and led with her newest. */
+  fellBack: boolean;
+  /** The day the fact is about (the party's nearest day, its date, the photos' day), else null. */
+  day: string | null;
+};
+
+/**
+ * THE STAGE'S EVENT UNDER A RULE, AND WHY. A party on its own day always
+ * leads (a host date first, then an undated album landing today:
+ * `momentEvent`'s first step); every other day, the rule:
  *  - `newest`: production's moment within a month (the nearest party either
  *    way), else the newest made (`lead=made`, settled);
  *  - `upcoming`: the soonest dated party ahead, else the newest made;
@@ -94,38 +126,139 @@ const AFTER = 30;
  *    new event counts as opened), else the newest made;
  *  - `photos`: the album photographs last landed in, else the newest made.
  */
-export function leadOf(
+export function leadWhyOf(
   host: Pick<Host, "hosted" | "ctx">,
   rule: RuleId,
   trail: readonly string[],
-): HostedEvent | null {
+): Lead | null {
   const { hosted, ctx } = host;
   if (hosted.length === 0) return null;
   const moment = momentEvent(hosted, ctx.today);
-  if (moment?.phase === "live") return moment.event;
+  if (moment?.phase === "live")
+    return {
+      rule,
+      event: moment.event,
+      why: "live",
+      fellBack: false,
+      day: ctx.today,
+    };
   const newest = [...hosted].sort(newestMade)[0]!;
+  const made: Lead = {
+    rule,
+    event: newest,
+    why: "made",
+    fellBack: rule !== "newest",
+    day: newest.createdAt.slice(0, 10),
+  };
   if (rule === "newest") {
     const day = moment ? dayOf(moment.event) : null;
     const near = day !== null && Math.abs(daysFrom(ctx.today, day)) <= AFTER;
-    return near ? moment!.event : newest;
+    return near
+      ? { rule, event: moment!.event, why: "near", fellBack: false, day }
+      : made;
   }
   if (rule === "upcoming") {
     const next = hosted
       .filter((e) => e.date !== null && daysFrom(ctx.today, e.date) > 0)
       .sort((a, b) => a.date!.localeCompare(b.date!))[0];
-    return next ?? newest;
+    return next
+      ? { rule, event: next, why: "next", fellBack: false, day: next.date }
+      : made;
   }
   if (rule === "opened") {
     const last = trail
       .map((id) => hosted.find((e) => e.id === id))
       .find((e): e is HostedEvent => Boolean(e));
-    return last ?? newest;
+    return last
+      ? { rule, event: last, why: "opened", fellBack: false, day: null }
+      : made;
   }
   const latest = hosted
     .filter((e) => e.lastArrival !== null)
     .sort((a, b) => b.lastArrival!.at.localeCompare(a.lastArrival!.at))[0];
-  return latest ?? newest;
+  return latest
+    ? {
+        rule,
+        event: latest,
+        why: "photos",
+        fellBack: false,
+        day: latest.lastArrival!.day,
+      }
+    : made;
 }
+
+/** The stage's event under a rule (`leadWhyOf`'s event). */
+export function leadOf(
+  host: Pick<Host, "hosted" | "ctx">,
+  rule: RuleId,
+  trail: readonly string[],
+): HostedEvent | null {
+  return leadWhyOf(host, rule, trail)?.event ?? null;
+}
+
+const SHORT = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  timeZone: "UTC",
+});
+const SHORT_YEAR = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  year: "numeric",
+  timeZone: "UTC",
+});
+
+/** A day either side of today in a row's fewest words: today, tomorrow, yesterday, in 18 days, 10 days ago. */
+export function nearWords(day: string, today: string): string {
+  const d = daysFrom(today, day);
+  if (d === 0) return "today";
+  if (d === 1) return "tomorrow";
+  if (d === -1) return "yesterday";
+  return d > 0 ? `in ${d} days` : `${-d} days ago`;
+}
+
+/** A day behind today: today, yesterday, else its date (its year once that has gone). */
+function pastWords(day: string, today: string): string {
+  const d = daysFrom(today, day);
+  if (d === 0) return "today";
+  if (d === -1) return "yesterday";
+  const [y, m, n] = day.split("-").map(Number);
+  const at = new Date(Date.UTC(y!, m! - 1, n!));
+  return day.slice(0, 4) === today.slice(0, 4)
+    ? SHORT.format(at)
+    : SHORT_YEAR.format(at);
+}
+
+/**
+ * THE FACT A RULE READ, in a row's few words after its event's name (the
+ * fresh-eyes pass: "the event plus the fact its rule read"): "made yesterday",
+ * "in 18 days", "Sat, Dec 12", "opened last", "photos Sep 26", and where the
+ * rule found nothing of its own kind, that: "nothing dated ahead".
+ */
+export function factOf(
+  lead: Lead,
+  ends: Record<string, string>,
+  today: string,
+): string {
+  if (lead.fellBack)
+    return lead.rule === "upcoming"
+      ? "nothing dated ahead"
+      : lead.rule === "photos"
+        ? "no photos yet"
+        : "nothing opened yet";
+  if (lead.why === "live") return "on today";
+  if (lead.why === "near") return nearWords(lead.day!, today);
+  if (lead.why === "next") return whenFor(lead.event, ends, today);
+  if (lead.why === "opened") return "opened last";
+  if (lead.why === "photos") return `photos ${pastWords(lead.day!, today)}`;
+  return `made ${pastWords(lead.event.createdAt.slice(0, 10), today)}`;
+}
+
+/** A rule's row under its name: the event it leads with today, and the fact it read. */
+export const leadLine = (
+  lead: Lead,
+  ends: Record<string, string>,
+  today: string,
+): string => `${lead.event.name} · ${factOf(lead, ends, today)}`;
 
 /** Whether a party is on its own day: the one thing no rule overrides. */
 export function partyOnItsDay(host: Pick<Host, "hosted" | "ctx">): boolean {
@@ -333,7 +466,7 @@ export function headLine(
 
 /**
  * THE WEEK THE OTHER WAY: an album nobody dated whose photos landed within the
- * week joins it, said by its photos' day, beside the dated parties production
+ * week joins it, said by its photos' day ("Photos Sun, Nov 8"), beside the dated parties production
  * holds (`weekEvents`: "the week holds dated parties only"), in the week's own
  * order: the nearest first, a day ahead before the same day behind.
  */
@@ -354,7 +487,8 @@ export function weekWithUndated(view: HomeView, host: Host): HomeView {
       id: e.id,
       name: e.name,
       href: `/dashboard/${e.id}`,
-      when: whenOf(e.lastArrival!.day, today),
+      // Said as its photos' day, never as a date she set (its tile says "No date").
+      when: `Photos ${whenOf(e.lastArrival!.day, today)}`,
       coverUrl: e.stills[0] ?? null,
       face: null,
       live: false,

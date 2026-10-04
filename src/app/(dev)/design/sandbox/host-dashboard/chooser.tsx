@@ -6,7 +6,7 @@ import type { HomeContext } from "@/lib/dashboard/home-event";
 import type { HostedEvent, StageView } from "@/lib/dashboard/home-view";
 import { cn } from "@/lib/utils";
 
-import { lampLight, lampOf, nextLamp, type RuleId } from "./model";
+import { type Lead, lampLight, lampOf, nextLamp, type RuleId } from "./model";
 
 /**
  * WHAT EVERY DIRECTION OF THE CHOOSER TAKES, AND THE PIECES THEY SHARE
@@ -22,12 +22,15 @@ import { lampLight, lampOf, nextLamp, type RuleId } from "./model";
  *
  * ★ THE RULES ARE THE SAME FOUR SENTENCES IN EVERY DIRECTION (`RULES`, his r2
  * note: "these could be more like sort options, such as: newest, last opened,
- * upcoming"), each with the event it would lead with today (`picks`), never a
- * list of her events. A party on its own day always leads, so the control
- * only stands when there is something to choose (`hand`).
+ * upcoming"), each with the event it would lead with today and the fact that
+ * picked it (`leads`: "Nia & Alex's Wedding · made yesterday", "· nothing
+ * dated ahead", "· opened last"), never a list of her events. A party on its
+ * own day always leads, so the control only stands when there is something to
+ * choose (`hand`).
  */
 
 export type Picks = Record<RuleId, HostedEvent | null>;
+export type Leads = Record<RuleId, Lead | null>;
 
 export type LeadProps = {
   /** The event on the stage now, as the page composed it around the rule's lead. */
@@ -43,6 +46,11 @@ export type LeadProps = {
   onRule: (r: RuleId) => void;
   /** What each rule would lead with today. */
   picks: Picks;
+  /**
+   * The same, with the fact each rule read to pick it (`leadWhyOf`), so every
+   * direction says the same true reason: `leadLine` and `factOf` word it.
+   */
+  leads: Leads;
   /** More than one event and no party on its own day: a rule has something to choose. */
   hand: boolean;
   /** The control drawn in use as the frame opens (what "in use" draws is the direction's). */

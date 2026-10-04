@@ -15,19 +15,20 @@ import { Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { Face, type LeadProps } from "./chooser";
-import { type RuleId, RULES } from "./model";
+import { leadLine, type RuleId, RULES } from "./model";
 import { StageView } from "./stage-view";
-import { WordsMenuLead } from "./words-menu";
 import { Phrase, reasonOf, rowOf, SAID, stageOf } from "./words-say";
 
 /**
  * THE STAGE'S OWN WORDS (`chooser=words`, round four): nothing over the
- * picture. The stage's first line says why its event leads ("YOUR NEWEST · NO
- * DATE YET"), and that reason is the control: the house's word that is a
- * control (`SettingWord`), in the line's own capitals.
+ * picture. The stage's first line says why its event leads ("YOUR NEWEST",
+ * "LATEST PHOTOS", "IN 18 DAYS"), and that reason is the control: the house's
+ * word that is a control (`SettingWord`), in the line's own capitals, with its
+ * chevron.
  *
- * ★ PRESSING IT TURNS THE STAGE TO CHOOSE (the direction's way (b), picked
- * over the house's quick choice, way (a), `words-menu.tsx`): the words column
+ * ★ PRESSING IT TURNS THE STAGE TO CHOOSE (picked over the house's quick
+ * choice under the words, which put a menu over the stage's own name and read
+ * as the corner's popover moved left): the words column
  * becomes the four rules, in the stage's own type, each with the event it
  * would lead with today, and the picture side shows the one under the pointer
  * or the focus, in its own light. Choosing turns the stage back with its new
@@ -47,13 +48,8 @@ import { Phrase, reasonOf, rowOf, SAID, stageOf } from "./words-say";
  * shared change).
  */
 
-/** Which of the direction's two ways the board draws. */
-const WAYS = { turn: TurnLead, menu: WordsMenuLead } as const;
-const WAY: keyof typeof WAYS = "turn";
-
 export function WordsLead(p: LeadProps) {
-  const Lead = WAYS[WAY];
-  return <Lead {...p} />;
+  return <TurnLead {...p} />;
 }
 
 /**
@@ -66,6 +62,7 @@ export function WordsLead(p: LeadProps) {
  *  - turning back: the band's words rise in 240 ms, the new reason first.
  */
 const SHEET = `
+.hd-reason [data-stage-phase]{display:none}
 @keyframes hd-turn-in{from{opacity:0;transform:translateY(10px)}}
 @keyframes hd-words-in{from{opacity:0;transform:translateY(8px)}}
 @keyframes hd-light-in{from{opacity:0}}
@@ -292,7 +289,7 @@ function TurnLead(p: LeadProps) {
     <Phrase
       ref={phraseRef}
       rule={p.rule}
-      label={reasonOf(p.rule, p.stage.event, today)}
+      label={reasonOf(p.leads[p.rule], today)}
       open={turned}
       controls={chooserId}
       onPress={press}
@@ -324,10 +321,17 @@ function TurnLead(p: LeadProps) {
           countWord={p.countWord}
           eyebrow={eyebrow}
           className={cn(
+            // The reason stands alone in the first line while it is the control.
+            p.hand && "hd-reason",
             turned && "hd-turned",
             arrive && !turned && "hd-arrive",
             moved && "hd-swap",
           )}
+          plateCaption={
+            turned && shown.event.id !== p.stage.event.id && p.leads[shownRule]
+              ? leadLine(p.leads[shownRule]!, p.ends, today)
+              : undefined
+          }
         />
       </div>
       {turned && (
@@ -372,9 +376,8 @@ function TurnLead(p: LeadProps) {
                 // Its line, and a face only where choosing it would put another event on the stage.
                 const row = rowOf(
                   r.id,
-                  p.picks,
+                  p.leads,
                   p.stage.event.id,
-                  p.rule,
                   p.ends,
                   today,
                 );
@@ -412,7 +415,8 @@ function TurnLead(p: LeadProps) {
                       <span
                         className={cn(
                           "block font-heading text-subsection lg:text-page",
-                          on
+                          // The kept rule and the one whose event the picture shows are lit.
+                          on || r.id === preview
                             ? "text-white"
                             : "text-white/60 group-hover:text-white group-focus-visible:text-white",
                         )}

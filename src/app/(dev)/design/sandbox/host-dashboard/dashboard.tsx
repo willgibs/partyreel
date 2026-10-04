@@ -7,7 +7,7 @@ import { WeekRow } from "@/components/app/dashboard/week-row";
 import { effectiveStorageCap } from "@/lib/constants/tiers";
 import { longDate } from "@/lib/dashboard/when";
 
-import type { LeadProps, Picks } from "./chooser";
+import type { LeadProps, Leads, Picks } from "./chooser";
 import { Collection, type CollectionStart } from "./collection";
 import { CornerLead } from "./corner";
 import { DeckLead } from "./deck";
@@ -21,7 +21,7 @@ import {
   factsOf,
   headLine,
   homeAround,
-  leadOf,
+  leadWhyOf,
   partyOnItsDay,
   type RuleId,
   RULES,
@@ -105,7 +105,14 @@ export function Dashboard({
 
   /* ── what leads ──────────────────────────────────────────────────────── */
 
-  const lead = leadOf(host, rule, trail);
+  const leads = useMemo(
+    () =>
+      Object.fromEntries(
+        RULES.map((r) => [r.id, leadWhyOf(host, r.id, trail)]),
+      ) as Leads,
+    [host, trail],
+  );
+  const lead = leads[rule]?.event ?? null;
   const view = useMemo(() => {
     const around = homeAround(host, lead?.id ?? null);
     const week = details === "week" ? weekWithUndated(around, host) : around;
@@ -114,9 +121,9 @@ export function Dashboard({
   const picks = useMemo(
     () =>
       Object.fromEntries(
-        RULES.map((r) => [r.id, leadOf(host, r.id, trail)]),
+        RULES.map((r) => [r.id, leads[r.id]?.event ?? null]),
       ) as Picks,
-    [host, trail],
+    [leads],
   );
   const facts = useMemo(() => factsOf(host, trail), [host, trail]);
   const total = host.hosted.length + host.guests.length;
@@ -250,6 +257,7 @@ export function Dashboard({
                 rule={rule}
                 onRule={setRule}
                 picks={picks}
+                leads={leads}
                 hand={hand}
                 open={ruleOpen}
                 onOpen={setRuleOpen}
