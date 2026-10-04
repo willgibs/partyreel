@@ -1143,13 +1143,155 @@ describe("a reload between parts", () => {
 });
 
 describe("the Worker's check", () => {
-  it("that cannot answer never stops the zip: an older Worker's CORS failure falls through", async () => {
+  // ★ RESHAPED ON PURPOSE (red-team 53's MEDIUM, crumbs-65). The scar kept: a check that ANSWERS an error (R2 down)
+  // never stops the zip (below). The expired reason: "an older Worker's CORS failure falls through", which let every
+  // check that failed on the network post its form anyway. A fetch to the Worker that never answers is the page's
+  // line (the Worker deploys before any app that names `/check`), and the form is posted to that same host: a POST
+  // into a dead line is a failed main-frame navigation, which replaced the page with the browser's error page and
+  // never said "Your connection dropped."
+  it("★ that never reached the Worker is a dropped connection: nothing is posted, and it says so with Try again", async () => {
     const h = harness();
     h.mints.push(minted());
     h.checks.push("network", "network");
     const handed = await h.walker.start("guest", { qr_token: "qr" });
-    expect(handed).toBe(true);
+    expect(handed).toBe(false);
     expect(h.calls.filter((c) => c.url === CHECK)).toHaveLength(2);
+    // The form is never posted: the page stays, with its toast and her selection under it.
+    expect(h.posted).toEqual([]);
+    const failed = h.now();
+    expect(failed).toMatchObject({
+      tone: "refused",
+      title: "Your connection dropped.",
+      detail: "Check your signal, then try again.",
+      action: { label: "Try again" },
+      close: { label: "Dismiss" },
+    });
+
+    // Try again takes the part from a fresh mint (a token lives two minutes), and this time it lands.
+    h.mints.push(minted({ token: "tok-2" }));
+    h.checks.push(counted(148));
+    if (failed?.tone !== "refused" || !failed.action) {
+      throw new Error("no Try again");
+    }
+    failed.action.run();
+    await settle();
+    expect(h.posted).toEqual([[WORKER, "tok-2"]]);
+    expect(h.now()).toMatchObject({ tone: "done" });
+  });
+
+  it("★ the host's download says it the same way: one engine for both", async () => {
+    const h = harness();
+    h.mints.push(minted());
+    h.checks.push("network", "network");
+    await h.walker.start("host", { event_id: "e" });
+    expect(h.posted).toEqual([]);
+    expect(h.now()).toMatchObject({
+      tone: "refused",
+      title: "Your connection dropped.",
+      detail: "Check your signal, then try again.",
+    });
+  });
+
+  it("★ a check that hangs is a line that is not carrying it too: after its ceilings, said, never posted", async () => {
+    vi.useFakeTimers();
+    const h = harness();
+    h.mints.push(minted());
+    h.checks.push("hang", "hang");
+    let resolved: boolean | null = null;
+    void h.walker.start("guest", { qr_token: "qr" }).then((r) => {
+      resolved = r;
+    });
+    let waited = 0;
+    while (resolved === null && waited < 40_000) {
+      await vi.advanceTimersByTimeAsync(1_000);
+      await new Promise((r) => turn(r, 0));
+      waited += 1_000;
+    }
+    expect(resolved).toBe(false);
+    // Two 15 s ceilings and the short pause between them: about 31 s, the x there all along.
+    expect(waited).toBeLessThanOrEqual(32_000);
+    expect(h.posted).toEqual([]);
+    expect(h.now()).toMatchObject({
+      tone: "refused",
+      title: "Your connection dropped.",
+      detail: "Check your signal, then try again.",
+      action: { label: "Try again" },
+    });
+  });
+
+  it("the last try decides, as the mint's does: a line that came back to a Worker that errors is the Worker's, not the line's", async () => {
+    const h = harness();
+    h.mints.push(minted());
+    h.checks.push("network", {
+      status: 502,
+      body: { ok: false, reason: "unavailable" },
+    });
+    await h.walker.start("guest", { qr_token: "qr" });
+    expect(h.posted).toHaveLength(1);
+    expect(h.now()).toMatchObject({ tone: "done" });
+
+    // And the other way round: an error, then a line that is gone.
+    const gone = harness();
+    gone.mints.push(minted());
+    gone.checks.push(
+      { status: 502, body: { ok: false, reason: "unavailable" } },
+      "network",
+    );
+    await gone.walker.start("guest", { qr_token: "qr" });
+    expect(gone.posted).toEqual([]);
+    expect(gone.now()).toMatchObject({
+      tone: "refused",
+      title: "Your connection dropped.",
+    });
+  });
+
+  it("★ offline by the browser's own word, a check that never reached the Worker is said after one try", async () => {
+    const h = harness();
+    h.setOnline(false);
+    h.mints.push(minted());
+    h.checks.push("network");
+    await h.walker.start("guest", { qr_token: "qr" });
+    expect(h.calls.filter((c) => c.url === CHECK)).toHaveLength(1);
+    expect(h.posted).toEqual([]);
+    expect(h.now()).toMatchObject({
+      tone: "refused",
+      title: "Your connection dropped.",
+    });
+  });
+
+  it("★ a line that goes while her question stands is said, never posted into", async () => {
+    const h = harness();
+    h.mints.push(minted());
+    h.checks.push(counted(148));
+    const handed = h.walker.start("guest", { qr_token: "qr" });
+    const wait = h.now();
+    if (wait?.tone !== "wait") throw new Error("not waiting");
+    wait.close.run();
+    await settle();
+    await settle();
+    await settle();
+    // The check answered, the line was up, and the question is still standing...
+    expect(h.posted).toEqual([]);
+    expect(h.now()).toMatchObject({ tone: "confirm" });
+    // ...and then the browser itself says the line is down.
+    h.setOnline(false);
+    answer(h.now(), "Keep going").run();
+    expect(await handed).toBe(false);
+    expect(h.posted).toEqual([]);
+    expect(h.now()).toMatchObject({
+      tone: "refused",
+      title: "Your connection dropped.",
+      detail: "Check your signal, then try again.",
+      action: { label: "Try again" },
+    });
+  });
+
+  it("that cannot read the Worker's answer (a body that is not the check's) never stops the zip", async () => {
+    const h = harness();
+    h.mints.push(minted());
+    h.checks.push({ status: 404, body: null });
+    const handed = await h.walker.start("guest", { qr_token: "qr" });
+    expect(handed).toBe(true);
     expect(h.posted).toHaveLength(1);
     expect(h.now()).toMatchObject({ tone: "done" });
   });
@@ -1575,6 +1717,55 @@ describe("an empty or short zip is said, never sent as if whole (export-ends)", 
     // It answers again: the line is back, and the notice goes with it.
     await until(() => (h.now() as { detail?: string }).detail === undefined);
     expect((h.now() as { detail?: string }).detail).toBeUndefined();
+  });
+
+  // ★ RED-TEAM 53's LOW (crumbs-65). The walk gives up listening when a stream has been silent past its start
+  // (`START_HEARD_MS`), and it used to say "Your download is starting." as it did, on a line that was still down: the
+  // drop it had just said was un-said. Silence is evidence about the Worker only while her own line is up.
+  it("★ a line still down at the mark where silence would give up keeps its words, and the Worker's word is heard the moment it is back", async () => {
+    const h = harness();
+    h.mints.push(reporting());
+    h.checks.push(promised(148));
+    // Every poll fails from the start: her line is down while the zip streams.
+    h.setIdle("network");
+    await h.walker.start("guest", { qr_token: "qr" });
+    // Far past the mark (fifteen polls a second apart), and the drop is still said, never "starting".
+    await until(() => h.polled().length >= 40);
+    expect(h.polled().length).toBeGreaterThanOrEqual(40);
+    expect(h.now()).toMatchObject({
+      tone: "downloading",
+      title: "Downloading…",
+      detail: "Your connection dropped. Check your signal.",
+    });
+    expect(h.shown.some(({ view }) => view.tone === "done")).toBe(false);
+
+    // The line comes back, and with it the Worker's word: the zip was saved all along.
+    h.setIdle(said("saved", []));
+    await until(() => h.now()?.tone === "done");
+    expect(h.now()).toMatchObject({
+      tone: "done",
+      title: "Your download is saved.",
+    });
+  });
+
+  it("a line that comes back to a Worker with nothing to say is believed again: the walk claims nothing, as it did", async () => {
+    const h = harness();
+    h.mints.push(reporting());
+    h.checks.push(promised(148));
+    // Twenty polls under a dead line (past the mark), then a line that answers "nothing heard".
+    for (let i = 0; i < 20; i++) h.statuses.push("network");
+    h.setIdle(said("none"));
+    await h.walker.start("guest", { qr_token: "qr" });
+    await until(() => h.polled().length >= 20);
+    expect(h.now()).toMatchObject({
+      tone: "downloading",
+      detail: "Your connection dropped. Check your signal.",
+    });
+    await until(() => h.now()?.tone === "done");
+    expect(h.now()).toMatchObject({
+      tone: "done",
+      title: "Your download is starting.",
+    });
   });
 
   it("a part that came up short mid-walk says its count between parts, and the walk's last word counts it", async () => {

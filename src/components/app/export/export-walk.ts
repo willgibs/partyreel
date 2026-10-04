@@ -14,12 +14,14 @@
  * AFTER IT. The form's answer can never be read (and a refusal there would replace the page), so the
  * Worker is asked first, in a fetch that can be: an empty zip is refused in one line and never sent, a
  * short one is counted with a Try again for exactly what it missed, and a token the Worker would refuse is
- * said here. A check that cannot answer (a Worker from before it, R2 down) never stops the zip. After the
- * post the Worker reports its stream to the app (`export-ends`), so the walk listens: a zip reads SAVED
- * only once the Worker says its last byte went out, one the album emptied after its check was never sent
- * (the Worker's 204) and is said, and one it could not finish is said with a Try again. Where the Worker's
- * word cannot come (an older Worker, a laptop it cannot reach), the walk says what it knows and claims
- * nothing; it stops listening once the stream has been silent past its start (`START_HEARD_MS`).
+ * said here. A check that ANSWERS an error (R2 down) never stops the zip; one that never reached the Worker is
+ * her line, said with a Try again and never posted (`checkEnded`: a POST into a dead line replaces the page with
+ * the browser's own error page). After the post the Worker reports its stream to the app (`export-ends`), so the
+ * walk listens: a zip reads SAVED only once the Worker says its last byte went out, one the album emptied after
+ * its check was never sent (the Worker's 204) and is said, and one it could not finish is said with a Try again.
+ * Where the Worker's word cannot come (an older Worker, a laptop it cannot reach), the walk says what it knows
+ * and claims nothing; it stops listening once the stream has been silent past its start (`START_HEARD_MS`),
+ * unless her own line is down, which is why the silence is hers.
  *
  * ★ EVERY WAIT CAN BE LEFT (Will: "Interruptibility is a huge win in UX"), AND A CANCEL ASKS FIRST (E6: "a
  * cancel is intentional"). The x on the right, while a part is prepared or between parts, becomes one question
@@ -30,10 +32,12 @@
  * A file already handed to the browser is the browser's to cancel, so the x of a download on its way only puts
  * the toast away.
  *
- * ★ AND A DROPPED CONNECTION NAMES ITSELF (E6). A mint that never reached the app says so and what to do; a zip
- * the Worker saw the client leave (`stopped`: her cancel in the browser's own list, or a dead line, which it cannot
- * tell apart) is read by what the page's own line did while it streamed (`HandedPart.dropped`); a line that stops
- * answering is said under "Downloading…" (`lineLost`), never left reading as if all were well.
+ * ★ AND A DROPPED CONNECTION NAMES ITSELF (E6). A mint that never reached the app says so and what to do, and so
+ * does a check that never reached the Worker (`sayDropped`: the one place it is drawn, with a Try again from a
+ * fresh mint); a zip the Worker saw the client leave (`stopped`: her cancel in the browser's own list, or a dead
+ * line, which it cannot tell apart) is read by what the page's own line did while it streamed
+ * (`HandedPart.dropped`); a line that stops answering is said under "Downloading…" (`lineLost`), never left
+ * reading as if all were well, and never replaced by "starting" while it is still down.
  *
  * ★ A BIG ALBUM IS A WALK, ONE TAP A PART. Each part is minted when it is asked for (a token lives
  * two minutes), and each is a download a person pressed, because a browser holds back a second
@@ -63,6 +67,7 @@ import {
   CHECK_TRIES_MS,
   type CheckAnswer,
   type CheckVerdict,
+  checkEnded,
   checkVerdict,
   DONE_MS,
   type DownloadPlace,
@@ -698,29 +703,34 @@ export function createExportWalker(deps: WalkDeps) {
 
   async function check(w: Walk, answer: MintAnswer): Promise<CheckVerdict> {
     if (!answer.checkUrl) return { kind: "skip" };
+    let last: Attempt | null = null;
     for (let i = 0; i < CHECK_TRIES_MS.length; i++) {
       if (i > 0) {
         await deps.sleep(RETRY_PAUSE_MS[i - 1]);
         if (w.over) return { kind: "cancelled" };
       }
-      const verdict = checkVerdict(
-        await attempt(
-          deps.fetch,
-          answer.checkUrl,
-          {
-            method: "POST",
-            // text/plain keeps it a CORS "simple" request: no preflight (workers/export/src/index.ts).
-            headers: { "content-type": "text/plain;charset=UTF-8" },
-            body: answer.token,
-            credentials: "omit",
-          },
-          CHECK_TRIES_MS[i],
-          w.controller.signal,
-        ),
+      const tried = await attempt(
+        deps.fetch,
+        answer.checkUrl,
+        {
+          method: "POST",
+          // text/plain keeps it a CORS "simple" request: no preflight (workers/export/src/index.ts).
+          headers: { "content-type": "text/plain;charset=UTF-8" },
+          body: answer.token,
+          credentials: "omit",
+        },
+        CHECK_TRIES_MS[i],
+        w.controller.signal,
       );
+      last = tried;
+      const verdict = checkVerdict(tried);
       if (verdict.kind !== "retry") return verdict;
+      // Offline by the browser's own word: another try can only fail the same way, so it is said now (the mint's rule).
+      if (tried.kind === "network" && !online()) return checkEnded(tried);
     }
-    return { kind: "skip" };
+    // ★ THE LAST TRY DECIDES (`checkEnded`): a line that never carried it is her connection's, never a download to
+    // post blind; an answered error is the Worker's, and the zip goes on uncounted.
+    return checkEnded(last);
   }
 
   /* ── listening for the Worker's word on a handed part (`export-ends`) ── */
@@ -765,9 +775,12 @@ export function createExportWalker(deps: WalkDeps) {
       }
       if (state?.state === "streaming") begun = true;
       else if (state && state.state !== "none") return heard(w, p, state);
-      if ((!begun && listened >= START_HEARD_MS) || listened >= WATCH_MAX_MS) {
-        return heard(w, p, null);
-      }
+      // ★ SILENCE SAYS SOMETHING ONLY WHILE HER LINE IS UP (red-team 53's LOW). A stream that never begins within
+      // `START_HEARD_MS` means the Worker's word cannot reach this app; but while her own line is down the silence is
+      // hers, so the walk keeps listening, and keeps saying so (`lineLost`), until a poll is answered. It used to give
+      // up at the mark, and "Your download is starting." replaced "Your connection dropped." on a line still down.
+      const silent = !begun && listened >= START_HEARD_MS && !w.lineLost;
+      if (silent || listened >= WATCH_MAX_MS) return heard(w, p, null);
     }
   }
 
@@ -782,11 +795,13 @@ export function createExportWalker(deps: WalkDeps) {
     else if (w.waiting && !w.asking) showBetween(w);
   }
 
-  /** The Worker's word on one part (null: none will come), said where the walk now stands. */
+  /**
+   * The Worker's word on one part (null: none will come), said where the walk now stands. It never touches `lineLost`:
+   * only a poll that was answered says her line is back (`lineChanged`), and a walk that gave up listening heard
+   * nothing, which is no word about her line.
+   */
   function heard(w: Walk, p: HandedPart, state: StreamState | null) {
     if (w.over) return;
-    // A word came through: her line works.
-    w.lineLost = false;
     if (!state || state.state === "none" || state.state === "streaming") {
       p.word = "unheard";
     } else if (state.state === "saved") {
@@ -1038,6 +1053,22 @@ export function createExportWalker(deps: WalkDeps) {
     return true;
   }
 
+  /**
+   * ★ A DROPPED CONNECTION NAMES ITSELF (E6), at every step before the post: what happened and what to do, with the
+   * Try again that takes this part from a fresh mint (a token lives two minutes). The one place it is drawn, so the
+   * mint's, the check's and the post's say it in one voice.
+   */
+  function sayDropped(w: Walk): false {
+    show(w, {
+      tone: "refused",
+      title: WALK_COPY.dropped,
+      detail: WALK_COPY.droppedDetail,
+      action: { label: WALK_COPY.tryAgain, run: () => void takePart(w) },
+      close: closeAs(w, WALK_COPY.dismiss),
+    });
+    return false;
+  }
+
   /** One part: minted, checked, posted, said. "skip" when it held nothing and the walk goes on. */
   async function takeOne(w: Walk): Promise<boolean | "skip"> {
     if (w.over) return false;
@@ -1055,10 +1086,10 @@ export function createExportWalker(deps: WalkDeps) {
       // ★ A DROPPED CONNECTION NAMES ITSELF (E6): when the tries failed for want of a line it says so and what to
       // do, so she neither tries on a line that cannot carry it nor blames the app; an app that answered an error
       // is "Couldn't start that download", as it was.
+      if (minted.line) return sayDropped(w);
       show(w, {
         tone: "refused",
-        title: minted.line ? WALK_COPY.dropped : WALK_COPY.failed,
-        detail: minted.line ? WALK_COPY.droppedDetail : undefined,
+        title: WALK_COPY.failed,
         action: { label: WALK_COPY.tryAgain, run: () => void takePart(w) },
         close: closeAs(w, WALK_COPY.dismiss),
       });
@@ -1099,6 +1130,9 @@ export function createExportWalker(deps: WalkDeps) {
     w.parts = answer.parts;
     const checked = await check(w, answer);
     if (w.over || checked.kind === "cancelled") return false;
+    // ★ A CHECK THE LINE NEVER CARRIED NEVER POSTS (red-team 53's MEDIUM): the form goes to the host the check could
+    // not reach, and a POST into a dead line replaces the page with the browser's error page. Said, with Try again.
+    if (checked.kind === "dropped") return sayDropped(w);
     if (checked.kind === "refused") {
       // An ending: it replaces her question, there being nothing left to cancel.
       show(w, {
@@ -1117,6 +1151,9 @@ export function createExportWalker(deps: WalkDeps) {
     // Keep going carries on from here; a Cancel (or the x of a later part) abandons this part before a byte moves.
     await holdWhileAsked(w);
     if (w.over || w.cancelled) return false;
+    // The check was answered some time ago, and her question may have stood a long while since: a line the browser
+    // itself says is down would turn the post into the same error page, so it is said now instead of posted into.
+    if (!online()) return sayDropped(w);
 
     // What this part holds: the Worker's count, or (it could not say) the mint's own.
     const counted: CheckAnswer =

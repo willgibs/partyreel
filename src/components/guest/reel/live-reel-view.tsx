@@ -1411,6 +1411,17 @@ function SetForEveryoneFooter({
 
 /* ── the dock ──────────────────────────────────────────────────────────────── */
 
+/**
+ * ★ A KEY'S HOVER IS FOR A KEY AT REST (red-team 53's NIT). The pointer's lift (12%) came later in the sheet than a
+ * pressed or open key's own fill (18%) and won while the pointer rested on the key, so the key a press had just opened
+ * read as any hovered one, and only lit once the pointer moved away. The state wins by construction, not by source
+ * order: a pressed key (`aria-pressed`, a React prop) never carries the hover, and an open menu's key (`aria-expanded`,
+ * set by the menu alone) is excluded from it in the rule itself.
+ */
+const KEY_HOVER = "[@media(hover:hover)_and_(pointer:fine)]:hover:bg-white/12";
+const MENU_KEY_HOVER =
+  "[@media(hover:hover)_and_(pointer:fine)]:not-aria-expanded:hover:bg-white/12";
+
 function ChromeButton({
   label,
   onClick,
@@ -1446,8 +1457,7 @@ function ChromeButton({
             "flex size-10 shrink-0 items-center justify-center rounded-full text-white outline-none",
             "transition-[transform,background-color] duration-150 ease-emphasis active:scale-[0.94] motion-reduce:active:scale-100",
             "focus-visible:ring-2 focus-visible:ring-white/70",
-            "[@media(hover:hover)_and_(pointer:fine)]:hover:bg-white/12",
-            pressed && "bg-white/18",
+            pressed ? "bg-white/18" : KEY_HOVER,
             className ?? GLASS,
           )}
         >
@@ -1497,7 +1507,7 @@ function MenuButton({
                 // OUTER trigger's props after the inner one's own, so `data-state` here is the tooltip's ("closed")
                 // while the menu stands open; `aria-expanded` is set by the menu alone.
                 "focus-visible:ring-2 focus-visible:ring-white/70 aria-expanded:bg-white/18",
-                "[@media(hover:hover)_and_(pointer:fine)]:hover:bg-white/12",
+                MENU_KEY_HOVER,
               )}
             >
               {icon}

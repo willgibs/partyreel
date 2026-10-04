@@ -21,6 +21,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import type { FileExtra, QueueItem } from "@/lib/guest/use-upload-queue";
 
+import { UPLOAD_WORDS } from "@/lib/upload/uploader";
+
 import { AlbumCamera } from "./album-camera";
 
 const media = vi.hoisted(() => {
@@ -174,6 +176,39 @@ function Page({
         }
       >
         Refuse them
+      </button>
+      <button
+        type="button"
+        onClick={() =>
+          setQueue((prev) =>
+            prev.map((it) => ({
+              ...it,
+              status: "error" as const,
+              // The uploader's own sentence for a request that never reached the network, as the queue keeps it
+              // (no `errorCode`: the server never answered).
+              error: UPLOAD_WORDS.dropped,
+              errorCode: undefined,
+            })),
+          )
+        }
+      >
+        Drop them
+      </button>
+      <button
+        type="button"
+        onClick={() =>
+          setQueue((prev) =>
+            prev.map((it) => ({
+              ...it,
+              status: "error" as const,
+              // An answer that was an error: not the line's fault, and no code the camera reads as a refusal.
+              error: UPLOAD_WORDS.refused,
+              errorCode: "storage_error",
+            })),
+          )
+        }
+      >
+        Fail them
       </button>
     </>
   );
@@ -377,6 +412,39 @@ describe("the album's camera", () => {
       );
     });
     await waitFor(() => expect(mine()).toHaveLength(2));
+  });
+
+  // ★ RED-TEAM 53's NIT (crumbs-65): a shot cut mid-PUT said "1 shot didn’t send." and never the E6 sentence the
+  // uploader carries, so a stadium's dropped signal read as a broken camera. It still re-sends by itself when the
+  // line returns (`online`); what it says now is why, in the one sentence the uploads and the downloads say. The press
+  // said "Shot 7 taken." first, which stands for a moment (`SAID_MS`) before the standing line comes back.
+  it("★ says the connection dropped when that is why a shot did not send, with its Retry beside; an answered error is only counted", async () => {
+    render(<Page />);
+    await opened();
+    await screen.findByText("Frame 7 of 24");
+    await act(async () => press());
+    fireEvent.click(
+      screen.getByRole("button", { name: "Drop them", hidden: true }),
+    );
+    const hint = document.querySelector("[data-cam-hint]") as HTMLElement;
+    await waitFor(
+      () =>
+        expect(hint).toHaveTextContent(
+          "Your connection dropped. Check your signal, then try again.",
+        ),
+      { timeout: 4000 },
+    );
+    expect(hint).not.toHaveTextContent("didn’t send");
+    expect(
+      screen.getByRole("button", { name: "Retry", hidden: true }),
+    ).toBeInTheDocument();
+
+    // The same shot, failed by an answer that was an error: not the line's, so it is counted, as it always was.
+    fireEvent.click(
+      screen.getByRole("button", { name: "Fail them", hidden: true }),
+    );
+    await waitFor(() => expect(hint).toHaveTextContent("1 shot didn’t send."));
+    expect(hint).not.toHaveTextContent("connection dropped");
   });
 
   it("★ lets a shot the failure sheet dismissed leave her roll, never sending for ever", async () => {

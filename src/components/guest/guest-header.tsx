@@ -6,6 +6,7 @@ import {
   useEffectEvent,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -23,6 +24,7 @@ import {
   leaveAllGuestSessions,
   useStoredSession,
 } from "@/lib/guest/use-stored-session";
+import { fnv1a } from "@/lib/avatar/gradient";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -36,6 +38,72 @@ type MenuData = {
   /** seedFor(user.id), from /api/me/menu — null in phase 1 (see below). */
   seed: string | null;
 };
+
+/**
+ * ★ HER COLOUR, REMEMBERED PER TICKET (red-team 53's NIT: "her header's disc flashes uncoloured on every load"). The
+ * server's answer is a pure function of her own guest row, so for one ticket it never changes; asked afresh on every
+ * load it arrived after the first paint (0.6 to 1.2 s on a phone) and the disc stood plain until it did. So the answer
+ * is kept in this browser's own storage, one entry an album, and a later load paints it at once.
+ *
+ * It is BOUND TO THE TICKET IT WAS ASKED FOR by a hash of it, and never holds the ticket: the ticket is a capability
+ * (`use-stored-session.ts`) and a sign-out puts it down, while a colour is public by construction (painted on every
+ * album she ever added to, `avatar/gradient.ts`). A phone handed to the next guest, with a new ticket, finds no entry
+ * of its own, so it never wears the last guest's colour; a ticket put down leaves a colour nobody can reach.
+ * `pr_guest_seed_` is no ticket's prefix (`pr_session_`), so a scan for tickets can never pick it up.
+ */
+const SEED_PREFIX = "pr_guest_seed_";
+
+/** What the entry is bound to: a hash of the ticket, which says nothing a reader of the storage could use. */
+const ticketMark = (ticket: string) => fnv1a(ticket).toString(36);
+
+function readSeed(qrToken: string | undefined, ticket: string | null) {
+  if (!qrToken || !ticket) return null;
+  try {
+    const raw = localStorage.getItem(`${SEED_PREFIX}${qrToken}`);
+    const at = raw ? raw.indexOf(".") : -1;
+    if (!raw || at < 1 || raw.length === at + 1 || raw.length > 160)
+      return null;
+    return raw.slice(0, at) === ticketMark(ticket) ? raw.slice(at + 1) : null;
+  } catch {
+    return null;
+  }
+}
+
+function keepSeed(qrToken: string, ticket: string, seed: string | null) {
+  try {
+    if (seed) {
+      localStorage.setItem(
+        `${SEED_PREFIX}${qrToken}`,
+        `${ticketMark(ticket)}.${seed}`,
+      );
+    } else {
+      // The server says this ticket names no row: whatever was kept for it was never hers.
+      localStorage.removeItem(`${SEED_PREFIX}${qrToken}`);
+    }
+  } catch {
+    // Storage unavailable: the colour is asked for again on the next load, as it was before it was kept.
+  }
+}
+
+/** Nothing outside this component writes the entry, so there is nothing to subscribe to. */
+const never = () => () => {};
+
+/**
+ * How long a first load's disc waits for its colour before it shows plain (a courtesy never gates anything: where the
+ * ask is slow or never answers, she wears the plain disc she always wore).
+ */
+const SEED_WAIT_MS = 2000;
+
+/**
+ * ★ THE FIRST LOAD FADES IN, NEVER FLASHES. Until her colour is known the disc is not drawn (its place is held, so
+ * nothing moves), and it comes in once, already coloured (or plain, where none will come), over a short fade. The
+ * rules live on the slot because the disc is the name menu's own; `data-disc` is set only while that menu is the slot's.
+ */
+const DISC_FADE = cn(
+  "data-[disc=waiting]:**:data-[slot=avatar]:opacity-0",
+  "data-[disc]:**:data-[slot=avatar]:transition-opacity data-[disc]:**:data-[slot=avatar]:duration-300 data-[disc]:**:data-[slot=avatar]:ease-emphasis",
+  "motion-reduce:data-[disc]:**:data-[slot=avatar]:transition-none",
+);
 
 // The guest event-page header. Auth-aware: a LOGGED-OUT visitor sees the quiet "Start for free"
 // CTA (the host paid for this — it's their event, not a loud Partyreel page); a LOGGED-IN visitor
@@ -125,16 +193,24 @@ export function GuestHeader({
   /* ★ HER OWN COLOUR (small-fixes, "the name-only guest's hashvatar"): the disc beside a name-only guest's own name
      wears the colour every other surface gives her, the hash of her own guest ROW. The browser holds her ticket and
      never the row's id, and a hash cannot be made here (`node:crypto`, `seed.ts`), so the server answers it
-     (`/api/guests/mine`'s `seed` ask), once a ticket. A courtesy, never a gate: until it lands, or where it never
-     does, she wears the plain disc she wore. Kept by ticket, so a phone handed to the next guest never wears the
-     last one's colour. */
-  const [seeds, setSeeds] = useState<Record<string, string>>({});
+     (`/api/guests/mine`'s `seed` ask), once a ticket, and the answer is kept for the next load (`readSeed`). A
+     courtesy, never a gate: where it never lands she wears the plain disc she wore. Kept by ticket, so a phone handed
+     to the next guest never wears the last one's colour.
+     `seeds` is what this page asked: a colour, or null where the server had none for the ticket. */
+  const [seeds, setSeeds] = useState<Record<string, string | null>>({});
+  const remembered = useSyncExternalStore(
+    never,
+    () => readSeed(qrToken, guestSession),
+    () => null,
+  );
   const asked = useRef(new Set<string>());
   useEffect(() => {
     if (!qrToken || !guestName || !guestSession) return;
-    if (asked.current.has(guestSession)) return;
+    // A colour already kept for this ticket needs no ask.
+    if (remembered || asked.current.has(guestSession)) return;
     asked.current.add(guestSession);
     void (async () => {
+      let seed: string | null = null;
       try {
         const res = await fetch("/api/guests/mine", {
           method: "POST",
@@ -147,16 +223,37 @@ export function GuestHeader({
         });
         const body = (await res.json()) as { ok?: boolean; seed?: unknown };
         if (res.ok && body.ok && typeof body.seed === "string") {
-          const seed = body.seed;
-          setSeeds((known) => ({ ...known, [guestSession]: seed }));
+          seed = body.seed;
         }
+        // The server answered (a colour, or none: a ticket that names no row): what it said is kept.
+        if (res.ok && body.ok) keepSeed(qrToken, guestSession, seed);
       } catch {
         // The plain disc stays; asked again the next time the page opens.
         asked.current.delete(guestSession);
       }
+      setSeeds((known) => ({ ...known, [guestSession]: seed }));
     })();
-  }, [qrToken, guestName, guestSession]);
-  const ownSeed = guestSession ? (seeds[guestSession] ?? null) : null;
+  }, [qrToken, guestName, guestSession, remembered]);
+  const known = guestSession ? seeds[guestSession] : undefined;
+  // What this page was told wins over what was kept (a ticket the server now says names no row has no colour).
+  const ownSeed = (known === undefined ? remembered : known) ?? null;
+  // A first load's disc waits for the colour, up to a deadline: see `DISC_FADE`.
+  const [waitedOut, setWaitedOut] = useState<string | null>(null);
+  const waiting = Boolean(
+    guestName &&
+    guestSession &&
+    known === undefined &&
+    !remembered &&
+    waitedOut !== guestSession,
+  );
+  useEffect(() => {
+    if (!waiting || !guestSession) return;
+    const timer = window.setTimeout(
+      () => setWaitedOut(guestSession),
+      SEED_WAIT_MS,
+    );
+    return () => window.clearTimeout(timer);
+  }, [waiting, guestSession]);
 
   /**
    * LOOK AT WHO THE DEVICE HOLDS and make the slot say so. `verify` asks the server even about the
@@ -345,7 +442,18 @@ export function GuestHeader({
       </Link>
       {/* Fixed-height slot so the CTA↔avatar swap stays height-stable (Button sm = h-7, Avatar =
           size-8); both center within h-8, and justify-between pins the right edge so nothing reflows. */}
-      <div className="flex h-8 items-center">
+      <div
+        className={cn("flex h-8 items-center", DISC_FADE)}
+        data-disc={
+          !menu && qrToken && guestName
+            ? ownSeed
+              ? "colour"
+              : waiting
+                ? "waiting"
+                : "plain"
+            : undefined
+        }
+      >
         {menu ? (
           <GuestAccountMenu
             email={menu.email}

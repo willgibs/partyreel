@@ -14,12 +14,16 @@
  *
  * ★ A CANCEL AND A DROPPED CONNECTION ARE TOLD APART, AND A DROPPED CONNECTION IS NEVER HIDDEN (E6, Will 2026-10-04;
  * the failure sheet and the host's rows print `message` as it is, so the words are said here). A request that never
- * reached the network says "Your connection dropped. Check your signal and try again." (the sentence presign and
+ * reached the network says "Your connection dropped. Check your signal, then try again." (the sentence presign and
  * complete always said, now the byte PUT's too: it used to read "Network error during upload.", which reads as
  * a broken app to the person holding the phone in a crowded stadium), a PUT whose bytes stopped moving is ended and
  * said the same way (`UPLOAD_STALL_MS`: a stalled link would otherwise sit at its percentage for ever, hiding the
  * very thing she needs to know), an answer that is an error says the upload did not go through, and a `signal` she
  * aborts says it was cancelled. `cause` carries which, beside the words, for a surface that draws them apart.
+ *
+ * ★ ONE SENTENCE FOR THE DROP, EVERYWHERE (crumbs-65): the downloads say it as a title and its detail
+ * (`WALK_COPY.dropped` and `droppedDetail`), the camera's hint says this very string, and
+ * `uploader.transport.test.ts` holds the three to one wording.
  */
 import { stripFileMetadata } from "@/lib/media/strip-metadata";
 import { classifyMime, validateUpload } from "@/lib/media/validators";
@@ -100,7 +104,7 @@ export type UploadCause = "dropped" | "cancelled";
  * copy a guest can act on.
  */
 export const UPLOAD_WORDS = {
-  dropped: "Your connection dropped. Check your signal and try again.",
+  dropped: "Your connection dropped. Check your signal, then try again.",
   cancelled: "That upload was cancelled.",
   /** A server's answer that was an error (an expired link, a refused size): not the line's fault, nor hers. */
   refused: "That upload didn't go through. Please try again.",
