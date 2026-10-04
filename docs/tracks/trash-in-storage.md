@@ -126,11 +126,11 @@ Each is built as recommended and listed under "Calls his to overrule".
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- Upkeep: the contract migration after milestone 35 serves this lane's build: drop `standby_hosts` (and its pins in
-  `upkeep-migrations.test.ts`, `deleted-events-index-guards.test.ts`, `reports/migration.test.ts`, the sweeps describe of
-  `db/migration-guards.test.ts`, and ROADMAP's `standby_hosts` performance line), and rename
-  `host_storage_summary.standby_bytes` to `deleted_bytes` (DROP + CREATE) with `readHostStorageSummary`
-  (trash-in-storage).
+- Upkeep: the contract migration once a milestone serves this lane's build (partyreel.com no longer calling it): drop
+  `standby_hosts` (and its pins in `upkeep-migrations.test.ts`, `deleted-events-index-guards.test.ts`,
+  `reports/migration.test.ts`, the sweeps describe of `db/migration-guards.test.ts`, and ROADMAP's `standby_hosts`
+  performance line), and rename `host_storage_summary.standby_bytes` to `deleted_bytes` (DROP + CREATE) with
+  `readHostStorageSummary` (trash-in-storage).
 - Host app: a deleted event's own Delete forever on its Deleted card; today Empty Deleted takes every deleted event at
   once, or one event's items after its restore (trash-in-storage).
 - Admin: the account view shows what an account stores and its Deleted beside its active bytes (`getAccountDetail`)
@@ -147,13 +147,13 @@ Each is built as recommended and listed under "Calls his to overrule".
 - **Commits, pushed on `lp/trash-in-storage`:** `a530a272` the Questions; `a04a1ff9` the migration; `cfb2f850` the code;
   `0bd36746` the sync (a merge of `origin/launch-prep` at `44b2a954`, crumbs-62 and pricing-research in, no conflict);
   `db56a97b` the docs and the over-capacity cases; `2dbaf352` the host's room words and the Library's polish;
-  `58ec63e6` a comment in the migration's head; then this file alone. `launch-prep` had not moved since the sync
-  (`git merge-base --is-ancestor origin/launch-prep HEAD` true after a fetch).
-- **Gates on the synced tree** (logs in `../partyreel-wt/_scratch/trash-in-storage/`, exits in `gate-exits.txt`), on
-  `2dbaf352`: `pnpm typecheck` 0, `pnpm lint` 0, `pnpm test` 0 (877 files, 10,535 tests, `gate-test.log`),
-  `zsh scripts/build-lock.sh pnpm build` 0 (`gate-build.log`), `pnpm lab:smoke --base http://localhost:3131` 0 (154
-  checks, `gate-lab-smoke.log`); `pnpm test` again on `58ec63e6` (a SQL comment alone): 0, the same counts
-  (`gate-test-final.log`). No board, so no `lab:demo`.
+  `58ec63e6` a comment in the migration's head; `36f43004` this file; `e968be9d` the second sync (`0e45140f`, docs
+  only: ROADMAP and the pickup); then this file alone.
+- **Gates on the synced tree, `e968be9d`** (logs in `../partyreel-wt/_scratch/trash-in-storage/`, exits in
+  `gate-exits-synced.txt`): `pnpm typecheck` 0, `pnpm lint` 0, `pnpm test` 0 (877 files, 10,535 tests,
+  `gate-test-synced.log`), `zsh scripts/build-lock.sh pnpm build` 0 (`gate-build-synced.log`),
+  `pnpm lab:smoke --base http://localhost:3131` 0 (154 checks, `gate-lab-smoke-synced.log`). The same five green on
+  `2dbaf352` before it (`gate-exits.txt`). No board, so no `lab:demo`.
 - **Red first, each:** the migration's foot (`supabase/migrations/20261003220000_deleted_counts.sql:1396`, RESULT at
   `:1875`): LIVE RED without its statements 13/15 failing on what each lacks, GREEN with them 15/15, run again on the
   final file (`_scratch/.../green2_min.sql`), nothing persisted (a read afterwards: no column, none of the four
@@ -234,6 +234,8 @@ Each is built as recommended and listed under "Calls his to overrule".
   (`supabase/migrations/20261003220000_deleted_counts.sql:494`) and `leave_deleted` (`:201`); the deadline's order in
   `src/lib/lifecycle/sweeps/over-capacity.ts:345`. And the smoke's PREMISE lines: open asks on `host-dashboard` (3),
   `event-header` (2) and `the-wait` (1) describe files this change touched, to re-read before his next sitting.
+  ROADMAP's "an upload reads the host's active bytes three times" now reads what she stores (`host_room_used` at the
+  context and the meter, the summary at the complete, twice when it makes room): its counter idea still holds.
 
 ## Where I am
 
