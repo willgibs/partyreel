@@ -1,7 +1,11 @@
 import { act, fireEvent, render } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { uploadFile, type UploadOutcome } from "@/lib/upload/uploader";
+import {
+  uploadFile,
+  type BurstFile,
+  type UploadOutcome,
+} from "@/lib/upload/uploader";
 
 /**
  * ★ THE ALBUM'S OWN STORE BRINGS THE HOST'S BATCH, NEVER A PAGE REFRESH (`event-header` r1's fold-in, the
@@ -9,7 +13,32 @@ import { uploadFile, type UploadOutcome } from "@/lib/upload/uploader";
  * presign, though the hub's album is a live store the doorbell already moves. Now a drained batch tells the page
  * once (`onBatchLanded`), whose album asks its store, and nothing refreshes the router.
  */
-vi.mock("@/lib/upload/uploader", () => ({ uploadFile: vi.fn() }));
+vi.mock("@/lib/upload/uploader", () => {
+  const uploadFile = vi.fn();
+  // The burst over the one-file stand-in (compute-uploads; the burst's own engine is `uploader.burst.test.ts`'s):
+  // each file in turn, in the air then told.
+  const uploadBurst = async (args: {
+    files: readonly BurstFile[];
+    endpoints: { presign: string; complete: string };
+    identity: Record<string, string>;
+    onOutcome?: (index: number, outcome: UploadOutcome) => void;
+  }) => {
+    const out: UploadOutcome[] = [];
+    for (const [i, one] of args.files.entries()) {
+      one.onSending?.();
+      const outcome = (await uploadFile({
+        file: one.file,
+        endpoints: args.endpoints,
+        identity: args.identity,
+        onProgress: one.onProgress,
+      })) as UploadOutcome;
+      out.push(outcome);
+      args.onOutcome?.(i, outcome);
+    }
+    return out;
+  };
+  return { uploadFile, uploadBurst };
+});
 const refresh = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh }) }));
 
