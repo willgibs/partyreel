@@ -19,10 +19,10 @@
  *  - `host_storage_summary(p_host_id)`: one row, the active bytes, her Deleted exactly as her two Deleted lists show
  *    it (`host_deleted_media`, 20261003220000: her removals and a deleted event's media, each inside its 30 days by
  *    the world's clock, never a withdrawal, an operator's removal or an asked row) and the system's part of it.
- *  - `leave_deleted(p_host_id, p_bytes, p_system)`: her Deleted, oldest first (a deleted event's items, which
- *    entered together, largest first), each asked until `p_bytes` have left (all of it when null), the system's
- *    removals only with `p_system`; an event it empties leaves its window; answers one row of its OUT parameters,
- *    `{items, freed_bytes}` (20261003220000).
+ *  - `leave_deleted(p_host_id, p_bytes, p_system, p_limit)`: her Deleted, oldest first (a deleted event's items,
+ *    which entered together, largest first), each asked until `p_bytes` have left (all of it when null) or `p_limit`
+ *    items have, the system's removals only with `p_system`; an event it empties leaves its window; answers one row of
+ *    its OUT parameters, `{items, freed_bytes, more}` (20261003220000).
  *
  * The world's clock (`now`, the real one by default) is the SQL's `now()`: a test that moves an
  * operator's removal past its window passes the instant it runs the sweeps at.
@@ -132,7 +132,8 @@ export function createCronWorld(
           Number.isNaN(removed) ? Infinity : removed,
           Number.isNaN(deleted) ? Infinity : deleted,
         ),
-        bySystem: Boolean(m.removed_by_system),
+        // A removed row's own flag alone: a live row in a deleted event is hers, whatever a stale flag says.
+        bySystem: m.status === "removed" && Boolean(m.removed_by_system),
       });
     }
     return out;
@@ -190,8 +191,11 @@ export function createCronWorld(
       leave_deleted: (args) => {
         const host = String(args.p_host_id);
         const want = args.p_bytes == null ? null : Number(args.p_bytes);
+        const limit = args.p_limit == null ? null : Number(args.p_limit);
         const system = Boolean(args.p_system);
-        if (want !== null && want <= 0) return { items: 0, freed_bytes: 0 };
+        if ((want !== null && want <= 0) || (limit !== null && limit <= 0)) {
+          return { items: 0, freed_bytes: 0, more: false };
+        }
         const stamp = new Date(nowMs()).toISOString();
         const queue = deletedMedia(host)
           .filter((d) => system || !d.bySystem)
@@ -214,7 +218,13 @@ export function createCronWorld(
           items += 1;
           freed += d.bytes;
           if (want !== null && freed >= want) break;
+          if (limit !== null && items >= limit) break;
         }
+        // Stopped at the limit with Deleted still holding what this call could take.
+        const more =
+          limit !== null &&
+          items >= limit &&
+          deletedMedia(host).some((d) => system || !d.bySystem);
         // An event it emptied leaves its window with its last item: a minute past the window's start, as the SQL
         // moves it.
         const left = new Set(
@@ -226,7 +236,7 @@ export function createCronWorld(
             e.deleted_at = new Date(nowMs() - WINDOW_MS - 60_000).toISOString();
           }
         }
-        return { items, freed_bytes: freed };
+        return { items, freed_bytes: freed, more };
       },
       defer_kept_due_media: () => {
         let marked = 0;

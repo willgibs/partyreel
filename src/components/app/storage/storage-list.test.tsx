@@ -113,6 +113,7 @@ function fakeSource(over: Partial<StorageSource> = {}): StorageSource {
       items: 4,
       events: 0,
       freedBytes: DELETED,
+      more: false,
     })),
     setMakeRoom: vi.fn(async (on: unknown) => ({
       ok: true as const,
@@ -337,6 +338,38 @@ describe("Deleted, first", () => {
     await waitFor(() => expect(toast.error).toHaveBeenCalled());
     expect(dialog.querySelector("[data-storage-deleted]")).toBeTruthy();
     expect(toast.success).not.toHaveBeenCalled();
+  });
+
+  // The Advisor's Q23: Empty Deleted goes a batch a call, so an action that ran out of time answers what it freed with
+  // more still there; the row keeps what is left, with its Empty to finish.
+  it("keeps what is left, with its Empty, when an Empty answers with more still there", async () => {
+    const source = fakeSource({
+      emptyDeleted: vi.fn(async () => ({
+        ok: true as const,
+        items: 2_000,
+        events: 0,
+        freedBytes: Math.round(0.5 * GIGABYTE),
+        more: true,
+      })),
+    });
+    const dialog = open(source);
+    await waitFor(() => expect(rowIds(dialog)).toHaveLength(3));
+    const deleted = dialog.querySelector(
+      "[data-storage-deleted]",
+    ) as HTMLElement;
+    await userEvent.click(
+      within(deleted).getByRole("button", { name: "Empty" }),
+    );
+    await answerConfirm("Empty Deleted");
+    await waitFor(() =>
+      expect(toast.success).toHaveBeenCalledWith(
+        expect.stringMatching(/still holds more/),
+      ),
+    );
+    const left = dialog.querySelector("[data-storage-deleted]") as HTMLElement;
+    // 850 MB less the 512 MB that left, rounded up.
+    expect(left.textContent).toContain("338 MB");
+    expect(within(left).getByRole("button", { name: "Empty" })).toBeTruthy();
   });
 
   it("counts what emptying it freed toward her own plan's goal", async () => {

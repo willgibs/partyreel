@@ -9,13 +9,16 @@
  * system's removals do not, since they are the overage on its way out, so an account already reduced
  * does not re-trigger while they wait out their window (and restoring one is gated: restore_media).
  * Per account:
- *   under the line        → clear any grace (resolved by an upgrade or by freeing room for good);
+ *   under the line        → clear any grace (resolved by an upgrade or by freeing room for good), unless
+ *                           the grace is due and she is still over the cap itself (a reduce left part
+ *                           way finishes);
  *   over + no grace       → open a 45-day grace + the grace-start email;
  *   over + grace, near    → the reminder (within OVER_CAP_REMINDER_DAYS of the deadline);
- *   over + grace elapsed  → make room: first what she already deleted leaves for good, oldest first
- *                           (`leave_deleted`, never the system's own removals, whatever her setting:
- *                           nothing she kept is touched while her own Deleted can cover it), then
- *                           her largest files move to Deleted as the system's removals (the
+ *   over + grace elapsed  → make room: first what she already deleted leaves for good, oldest first, a
+ *                           batch a call under the deadline (`leave_deleted`, never the system's own
+ *                           removals, and whatever her Make room from Deleted says, since the reduce is
+ *                           not an upload: nothing she kept is touched while her own Deleted can cover
+ *                           it), then her largest files move to Deleted as the system's removals (the
  *                           removed_media sweep reclaims them after the window), + the reduced email.
  * Every email goes through `sendOnce`, so a re-run never re-sends.
  *
@@ -298,12 +301,17 @@ export async function sweepOverCapacity(
         });
       // What she keeps by choice: her albums and her own Deleted, the reduce's own removals left out.
       let kept = activeBytes + deletedBytes - systemBytes;
+      const graceDue =
+        p.storage_grace_until !== null &&
+        now >= new Date(p.storage_grace_until);
 
       // ENGAGE at the write-path line, not the bare cap (QA #26): uploads are accepted up to
       // cap + cap/10, so a host inside that deliberate headroom is exactly where the product put
       // them. Once truly over, the reduce below still targets the REAL cap (hysteresis, so it cannot
-      // flap).
-      if (kept <= capWithWriteHeadroom(cap)) {
+      // flap). ★ And once the grace is due, the reduce finishes to that cap even inside the headroom
+      // (trash-in-storage): a run its deadline stopped part way, leaving her Deleted or moving her
+      // files, is finished by the next, never cleared half done with no mail.
+      if (kept <= capWithWriteHeadroom(cap) && !(graceDue && kept > cap)) {
         if (p.storage_grace_until) {
           await clearGrace(p.id);
           cleared += 1;
@@ -342,13 +350,23 @@ export async function sweepOverCapacity(
 
       const graceUntil = new Date(p.storage_grace_until);
       if (now >= graceUntil) {
-        // 1. What she already deleted leaves for good first, oldest first, as far as it goes.
+        // 1. What she already deleted leaves for good first, oldest first, as far as it goes: a batch a
+        // call (`leaveDeleted`, the Advisor's Q23), asking the deadline before each, so a large Deleted
+        // never runs one statement past its timeout nor the sweep past its window. Out of time part
+        // way, the account is left like a reduce stopped part way: the next run starts at it.
         let emptied = false;
-        if (kept > cap) {
+        let ownDeleted = deletedBytes - systemBytes;
+        while (kept > cap && ownDeleted > 0) {
+          if (deadline.passed()) {
+            unfinished = p.id;
+            return;
+          }
           const left = await leaveDeleted(admin, p.id, kept - cap);
           deletedLeft += left.items;
-          emptied = left.items > 0;
+          if (left.items > 0) emptied = true;
           kept -= left.freedBytes;
+          ownDeleted -= left.freedBytes;
+          if (!left.more) break;
         }
         // 2. Then her largest files move to Deleted, as the system's removals, until what she keeps fits.
         const outcome = await reduceToCap(admin, p.id, {

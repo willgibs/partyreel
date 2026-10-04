@@ -97,7 +97,7 @@ export type ListAction =
   | { type: "leaving"; ids: string[] }
   | { type: "deleted"; items: Picked[] }
   | { type: "put-back"; ids: string[] }
-  /** Deleted was emptied: everything it held, as the overview counted it, freed. */
+  /** Deleted was emptied, or partly: the bytes it freed (all it held, as the overview counted it, once finished). */
   | { type: "emptied"; bytes: number }
   | { type: "busy"; busy: boolean }
   | { type: "rebase"; storedBytes: number };
@@ -238,10 +238,13 @@ export function storedNow(state: ListState): number | null {
   return Math.max(0, before - freedBytes(state));
 }
 
-/** What Deleted holds now, as far as the list knows: the overview's figure, or nothing once she emptied it. */
+/**
+ * What Deleted holds now, as far as the list knows: the overview's figure less what Empty freed this visit (all of it
+ * once an Empty finished, what its batches took when one answered with more still there).
+ */
 export function deletedNow(state: ListState): number {
-  if (!state.overview || state.emptied > 0) return 0;
-  return state.overview.deletedBytes;
+  if (!state.overview) return 0;
+  return Math.max(0, state.overview.deletedBytes - state.emptied);
 }
 
 /** Her events as the filter shows them: each total less what this visit deleted from it. */

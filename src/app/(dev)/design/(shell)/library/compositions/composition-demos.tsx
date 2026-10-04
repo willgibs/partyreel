@@ -311,6 +311,7 @@ const DEMO_STORAGE: StorageSource = {
       items: 14,
       events: 0,
       freedBytes: STORAGE_DELETED,
+      more: false,
     }),
   setMakeRoom: (on) => afterPause({ ok: true as const, on: on === true }),
   // A plain note in place of Stripe's confirm page (`already_on_plan` is the one code the

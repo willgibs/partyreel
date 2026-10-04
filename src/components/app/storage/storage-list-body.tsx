@@ -238,9 +238,18 @@ export function StorageListBody({
       showActionError(answer);
       return;
     }
+    onChanged();
+    if (answer.more) {
+      // Some is left (the action's time ran out between batches): what left is freed, and the row keeps the rest,
+      // its Empty there to finish.
+      dispatch({ type: "emptied", bytes: answer.freedBytes });
+      toast.success(
+        `${formatBytesUp(answer.freedBytes)} freed. Deleted still holds more: empty it again to finish.`,
+      );
+      return;
+    }
     // The overview's figure is what the strip counted from: it is what left.
     dispatch({ type: "emptied", bytes });
-    onChanged();
     toast.success(`Deleted is empty: ${formatBytesUp(bytes)} freed`);
   }
 

@@ -395,6 +395,67 @@ describe("host_storage_summary's figures, read off the migrations", () => {
     }
   });
 
+  it("★ a removed row's own flag alone makes it the system's: a live row's stale flag never does", () => {
+    // The Advisor's Q23: a restored system removal could keep its flag on a live row; Deleted reads the flag only on a
+    // removed row, and the restores clear it (20261003220000).
+    expect(deleted.body).toMatch(
+      /^select m\.id, m\.file_size_bytes, least\(m\.removed_at, e\.deleted_at\), m\.status = 'removed' and m\.removed_by_system from /,
+    );
+    for (const fn of ["restore_media", "let_back_in"]) {
+      expect(newestBody(fn).body, fn).toMatch(
+        /update public\.media set status = v_target, removed_at = null, removed_by_system = false/,
+      );
+    }
+  });
+
+  /** media_host_all's USING as the live DB holds it: the last CREATE or ALTER of it across the set, comments out. */
+  function hostMediaUsing(): string {
+    let using: string | null = null;
+    for (const file of readdirSync(MIGRATIONS)
+      .filter((f) => f.endsWith(".sql"))
+      .sort()) {
+      const sql = readFileSync(join(MIGRATIONS, file), "utf8")
+        .split("\n")
+        .map((line) => line.replace(/--.*$/, ""))
+        .join(" ")
+        .replace(/\s+/g, " ")
+        .toLowerCase();
+      for (const m of sql.matchAll(
+        /(?:create|alter) policy media_host_all on public\.media\b[^;]*?\busing \(/g,
+      )) {
+        const open = m.index! + m[0].length - 1;
+        let depth = 0;
+        for (let i = open; i < sql.length; i++) {
+          if (sql[i] === "(") depth++;
+          else if (sql[i] === ")" && --depth === 0) {
+            using = sql.slice(open + 1, i).trim();
+            break;
+          }
+        }
+      }
+    }
+    if (!using)
+      throw new Error("media_host_all has no USING in any migration.");
+    return using;
+  }
+
+  // The Advisor's Q23: the lists read media through the host's own policy, which drops an operator's removal and an
+  // asked row for them; host_deleted_media is a read inside definer bodies that restates both. A policy that stops
+  // hiding either, or hides something new, fails here until the function (and the figure) agree with the lists again.
+  it("★ host_deleted_media is her two lists only while media_host_all hides an operator's removal and an asked row", () => {
+    const using = conjuncts(hostMediaUsing());
+    expect(using.size).toBe(3);
+    expect(using).toContain(
+      "not (media.status = 'removed' and media.removed_by_admin)",
+    );
+    expect(using).toContain("media.purge_asked_at is null");
+    expect([...using].some((c) => c.startsWith("exists ("))).toBe(true);
+    // ...and the function restates both on its removed arm (a live row is never an operator's removal nor asked).
+    expect(deleted.body).toContain(
+      "m.status = 'removed' and not m.removed_by_uploader and not m.removed_by_admin and m.purge_asked_at is null",
+    );
+  });
+
   it("leaves out exactly the rows the host's restore refuses: a guest's withdrawal and an operator's removal", () => {
     // restore_media's ownership read carries the uploader's marker and it refuses an operator's removal, so the
     // bytes the figure drops are the bytes no Restore could ever bring back: the Deleted figure and the Deleted

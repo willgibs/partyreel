@@ -187,6 +187,20 @@ describe("Deleted, at the head of the list", () => {
     // Her events never held Deleted: their totals stand.
     expect(eventsNow(emptied).map((e) => e.bytes / GIGABYTE)).toEqual([14, 6]);
   });
+
+  it("keeps what an Empty left behind when it answered with more still there", () => {
+    const loaded = run([withDeleted]);
+    const partly = listReducer(loaded, { type: "emptied", bytes: GIGABYTE });
+    expect(deletedNow(partly)).toBe(2 * GIGABYTE);
+    expect(storedNow(partly)).toBe(22 * GIGABYTE);
+    // Finished later, with the rest: nothing is left.
+    const finished = listReducer(partly, {
+      type: "emptied",
+      bytes: 2 * GIGABYTE,
+    });
+    expect(deletedNow(finished)).toBe(0);
+    expect(storedNow(finished)).toBe(20 * GIGABYTE);
+  });
 });
 
 describe("what she stores", () => {

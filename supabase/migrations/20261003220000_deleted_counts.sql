@@ -13,11 +13,14 @@
 --      with when it entered Deleted. `host_storage_summary(uuid)` (DROP + CREATE: it gains `system_bytes`, the part
 --      the over-capacity reduce put there) sums it beside `host_active_bytes`: the one read every figure she sees,
 --      the storage guard and every cap check below make.
---   3. `host_room_used(uuid)`: the line an upload meets, what she keeps less Deleted while her setting lets an upload
---      make room from it. The presign's meter refuses past it; the three upload advisories answer "full" at it.
---   4. `leave_deleted(uuid, bigint, boolean)`: the one way out of Deleted ahead of its 30 days, oldest first, each item
---      asked (`purge_asked_at`) so its bytes stop counting at once and the night's purge deletes it, R2 first; an event
---      it empties leaves with its last item. `empty_deleted()`: the storage chart's Empty Deleted, all of it.
+--   3. `host_room_used(uuid)` (the owner's alone): the line an upload meets, what she keeps less Deleted while her
+--      setting lets an upload make room from it. The presign's meter refuses past it; the three upload advisories
+--      answer "full" at it.
+--   4. `leave_deleted(uuid, bigint, boolean, integer)`: the one way out of Deleted ahead of its 30 days, oldest first,
+--      each item asked (`purge_asked_at`) so its bytes stop counting at once and the night's purge deletes it, R2
+--      first; an event it empties leaves with its last item; bounded by bytes, a count, or both, and saying whether
+--      more remains. `empty_deleted(integer)`: the storage chart's Empty Deleted, a batch a call, the deleted events
+--      leaving with the last batch.
 --   5. `create_media` and `create_media_as_host` (create or replace, signatures unchanged): the cap and its 10% read
 --      everything stored; with the setting on and the file fitting beside what she keeps, `leave_deleted` frees what
 --      the file needs, under the profiles lock they already take, and a refusal rolls any eviction back with it.
@@ -28,7 +31,8 @@
 --   8. `restore_media`, `restore_event`, `let_back_in`: no capacity gate, but for the over-capacity reduce's own
 --      removals (what she keeps by choice plus the item, against the base cap, so an over-cap account cannot restore
 --      its way back over); an item or event past its 30 days, or asked to leave, is no longer hers to bring back; each
---      takes the host's profiles row FIRST, so a restore and an upload's eviction never act on one row at once.
+--      takes the host's profiles row FIRST, so a restore and an upload's eviction never act on one row at once; a row
+--      back in her album loses the reduce's flag (`removed_by_system`), so a later removal of hers reads as hers.
 --      (`let_back_in` also stops trying to restore an asked row, which its CHECK refused with an error.)
 --   9. `set_media_purge_at`: a guest's own withdrawal purges that night in every album (20261002200000 began it for a
 --      camera's shot): it sits in no Deleted and counts in no plan, so nothing waits on it. A hold, an open report and
@@ -101,7 +105,8 @@ grant update (make_room_from_deleted) on public.profiles to authenticated;
 -- (`purge_asked_at`), and nothing past its 30 days or inside an event past its own (the night's purge takes those).
 -- Inside is from the window's start on (`>=`), as both lists read it. A held row counts while it is listed, as any
 -- other, since a figure that skipped it would tell her a hold exists.
--- `binned_at` is the earlier of the item's removal and its event's deletion: the order Deleted empties in.
+-- `binned_at` is the earlier of the item's removal and its event's deletion: the order Deleted empties in. `by_system`
+-- is a removed row's own flag alone: a live row inside a deleted event is hers, whatever a stale flag on it says.
 create function public.host_deleted_media(p_host_id uuid)
 returns table (media_id uuid, file_size_bytes bigint, binned_at timestamptz, by_system boolean)
 language sql
@@ -109,7 +114,7 @@ stable
 security invoker
 set search_path = ''
 as $$
-  select m.id, m.file_size_bytes, least(m.removed_at, e.deleted_at), m.removed_by_system
+  select m.id, m.file_size_bytes, least(m.removed_at, e.deleted_at), m.status = 'removed' and m.removed_by_system
     from public.media m
     join public.events e on e.id = m.event_id
    where e.host_id = p_host_id
@@ -161,12 +166,13 @@ comment on function public.host_storage_summary(uuid) is
 -- What a new upload must fit beside, under the cap and its 10%: everything she keeps, less Deleted while her setting
 -- lets an upload make room from it (create_media* then evict exactly what the file needs). The presign's meter refuses
 -- past it and the three upload advisories answer "full" at it, so none of them sends a guest to upload a file the
--- complete will refuse, nor holds one at Require an upload to view when no upload could land.
+-- complete will refuse, nor holds one at Require an upload to view when no upload could land. Only those four definer
+-- bodies read it and no app code calls it, so it is the owner's alone and runs as its caller (SECURITY INVOKER).
 create function public.host_room_used(p_host_id uuid)
 returns bigint
 language sql
 stable
-security definer
+security invoker
 set search_path = ''
 as $$
   select s.active_bytes + case when coalesce(p.make_room_from_deleted, true) then 0 else s.standby_bytes end
@@ -174,18 +180,21 @@ as $$
     left join public.profiles p on p.id = p_host_id;
 $$;
 
-revoke all on function public.host_room_used(uuid) from public, anon, authenticated;
-grant execute on function public.host_room_used(uuid) to service_role;
+revoke all on function public.host_room_used(uuid) from public, anon, authenticated, service_role;
 
 comment on function public.host_room_used(uuid) is
-  'The line an upload meets under the cap and its 10% (trash-in-storage): active bytes, plus Deleted unless her setting (profiles.make_room_from_deleted) lets an upload make room from it. meter_upload refuses past it; get_upload_context, get_upload_gate and get_host_upload_context answer full at it. Service-role only.';
+  'The line an upload meets under the cap and its 10% (trash-in-storage): active bytes, plus Deleted unless her setting (profiles.make_room_from_deleted) lets an upload make room from it. meter_upload refuses past it; get_upload_context, get_upload_gate and get_host_upload_context answer full at it. The owner''s alone (those definer bodies read it); SECURITY INVOKER.';
 
 -- =============================================================================================
 -- 4. Leaving Deleted for good: the eviction, and Empty Deleted.
 -- =============================================================================================
 -- THE ONE WAY OUT OF DELETED AHEAD OF ITS 30 DAYS. Her Deleted, oldest first (`binned_at`; a deleted event's own items,
 -- which entered together, largest first, so the fewest go), leaves for good until `p_bytes` have left (all of it when
--- null). Each item is ASKED (`purge_asked_at`; a deleted event's live item is removed in the same write, as the asked
+-- null) or `p_limit` items have (none when null), and `more` says whether Deleted still holds what it could take. ★ The
+-- limit is the one bound a call without bytes has: every client role's statement_timeout is 8 s (PostgREST's
+-- `authenticator` carries it for the service role too), and at 0.5 to 1 ms a row an unbounded loop rolls back
+-- somewhere past 8,000 items, so Empty Deleted and the over-capacity deadline take her Deleted a batch a call (an
+-- upload's eviction is bounded by its bytes). Each item is ASKED (`purge_asked_at`; a deleted event's live item is removed in the same write, as the asked
 -- CHECK requires), which takes it out of every host read, every figure and her meter at once (media_host_all,
 -- host_deleted_media, media_release_meter); the removed_media sweep deletes its objects and its row that night, R2
 -- first, or the night its keeper (a hold, an open report) lets go. A deleted event it empties leaves Deleted with its
@@ -202,8 +211,10 @@ create function public.leave_deleted(
   p_host_id uuid,
   p_bytes bigint,
   p_system boolean,
+  p_limit integer default null,
   out items integer,
-  out freed_bytes bigint
+  out freed_bytes bigint,
+  out more boolean
 )
 language plpgsql
 volatile
@@ -216,7 +227,8 @@ declare
 begin
   items := 0;
   freed_bytes := 0;
-  if p_host_id is null or (p_bytes is not null and p_bytes <= 0) then
+  more := false;
+  if p_host_id is null or (p_bytes is not null and p_bytes <= 0) or (p_limit is not null and p_limit <= 0) then
     return;
   end if;
 
@@ -242,8 +254,12 @@ begin
       items := items + 1;
       freed_bytes := freed_bytes + r.file_size_bytes;
     end if;
-    exit when p_bytes is not null and freed_bytes >= p_bytes;
+    exit when (p_bytes is not null and freed_bytes >= p_bytes) or (p_limit is not null and items >= p_limit);
   end loop;
+
+  -- Stopped at the limit with Deleted still holding what this call could take: the caller asks again.
+  more := p_limit is not null and items >= p_limit and exists (
+    select 1 from public.host_deleted_media(p_host_id) d where coalesce(p_system, false) or not d.by_system);
 
   -- A deleted event left with nothing in Deleted leaves it too, with its last item.
   if cardinality(v_events) > 0 then
@@ -260,18 +276,21 @@ begin
 end;
 $$;
 
--- The service role's alone: create_media* and empty_deleted call it as the owner, and the over-capacity sweep calls it
--- on the admin client for a host it has proved over (its reduce's first step). Never a client role: it destroys.
-revoke all on function public.leave_deleted(uuid, bigint, boolean) from public, anon, authenticated;
-grant execute on function public.leave_deleted(uuid, bigint, boolean) to service_role;
+-- The service role's alone: create_media* (bounded by the file's bytes) and empty_deleted (a batch) call it as the
+-- owner, and the over-capacity sweep calls it on the admin client for a host it has proved over, a batch a call under
+-- its deadline (its reduce's first step). Never a client role: it destroys.
+revoke all on function public.leave_deleted(uuid, bigint, boolean, integer) from public, anon, authenticated;
+grant execute on function public.leave_deleted(uuid, bigint, boolean, integer) to service_role;
 
-comment on function public.leave_deleted(uuid, bigint, boolean) is
-  'Her Deleted leaves for good, oldest first, until p_bytes have left (all of it when null), the over-capacity reduce''s own removals only when p_system (trash-in-storage). Each item is asked (purge_asked_at), so its bytes stop counting at once and the removed_media sweep deletes it, R2 first, that night or when its keeper lets go; a deleted event it empties leaves Deleted too. Takes the host''s profiles row first, then the media rows it can lock at once (SKIP LOCKED). Answers how many items left and their bytes. Service-role only.';
+comment on function public.leave_deleted(uuid, bigint, boolean, integer) is
+  'Her Deleted leaves for good, oldest first, until p_bytes have left (all of it when null) or p_limit items have (none when null), the over-capacity reduce''s own removals only when p_system (trash-in-storage). Each item is asked (purge_asked_at), so its bytes stop counting at once and the removed_media sweep deletes it, R2 first, that night or when its keeper lets go; a deleted event it empties leaves Deleted too. Takes the host''s profiles row first, then the media rows it can lock at once (SKIP LOCKED). Answers how many items left, their bytes, and more (the limit stopped it with Deleted still holding what it could take). Service-role only.';
 
--- EMPTY DELETED (the storage chart's button): everything in her Deleted leaves for good at once, the system's own
--- removals included, and every deleted event still inside its 30 days leaves with it (one with nothing in it too).
--- Her own act on her own account: authorized on auth.uid() inside, so it is the one new authenticated definer.
-create function public.empty_deleted()
+-- EMPTY DELETED (the storage chart's button): everything in her Deleted leaves for good, the system's own removals
+-- included, a batch of `p_limit` items a call (at most 5,000; the authenticated role's 8 s statement_timeout would roll
+-- an unbounded one back), and once a call leaves nothing behind (`more` false) every deleted event still inside its 30
+-- days leaves with the last of it (one with nothing in it too). The app calls it until `more` is false. Her own act on
+-- her own account: authorized on auth.uid() inside, so it is the one new authenticated definer.
+create function public.empty_deleted(p_limit integer default 2000)
 returns jsonb
 language plpgsql
 volatile
@@ -282,7 +301,9 @@ declare
   v_uid uuid := (select auth.uid());
   v_items integer;
   v_freed bigint;
-  v_events integer;
+  v_more boolean;
+  v_before integer;
+  v_after integer;
 begin
   if v_uid is null then
     return jsonb_build_object('ok', false, 'reason', 'unauthorized');
@@ -290,25 +311,33 @@ begin
 
   -- The host's profiles row first (leave_deleted takes it again, a no-op), so the events counted are the ones that go.
   perform 1 from public.profiles where id = v_uid for update;
-  select count(*) into v_events from public.events
+  select count(*) into v_before from public.events
    where host_id = v_uid and deleted_at >= now() - interval '30 days';
 
-  select l.items, l.freed_bytes into v_items, v_freed from public.leave_deleted(v_uid, null, true) l;
+  select l.items, l.freed_bytes, l.more into v_items, v_freed, v_more
+    from public.leave_deleted(v_uid, null, true, least(greatest(coalesce(p_limit, 2000), 1), 5000)) l;
 
-  update public.events
-     set deleted_at = now() - interval '30 days 1 minute'
-   where host_id = v_uid
-     and deleted_at >= now() - interval '30 days';
+  -- The deleted events leave with the last batch, never before what is still in them (an event a batch empties
+  -- leaves on its own, inside leave_deleted).
+  if not v_more then
+    update public.events
+       set deleted_at = now() - interval '30 days 1 minute'
+     where host_id = v_uid
+       and deleted_at >= now() - interval '30 days';
+  end if;
+  select count(*) into v_after from public.events
+   where host_id = v_uid and deleted_at >= now() - interval '30 days';
 
-  return jsonb_build_object('ok', true, 'items', v_items, 'events', v_events, 'freed_bytes', v_freed);
+  return jsonb_build_object('ok', true, 'items', v_items, 'events', v_before - v_after, 'freed_bytes', v_freed,
+    'more', v_more);
 end;
 $$;
 
-revoke all on function public.empty_deleted() from public, anon, authenticated;
-grant execute on function public.empty_deleted() to authenticated;
+revoke all on function public.empty_deleted(integer) from public, anon, authenticated;
+grant execute on function public.empty_deleted(integer) to authenticated;
 
-comment on function public.empty_deleted() is
-  'Empty Deleted (trash-in-storage): every item in the caller''s Deleted leaves for good (leave_deleted, the system''s removals included) and every deleted event inside its 30 days leaves with it. Its bytes stop counting at once; the night''s purge deletes the objects. Answers {ok, items, events, freed_bytes}, or {ok:false, reason:"unauthorized"} with no caller. Authenticated: her own act, authorized on auth.uid().';
+comment on function public.empty_deleted(integer) is
+  'Empty Deleted (trash-in-storage): the caller''s Deleted leaves for good a batch of p_limit items a call (at most 5,000; leave_deleted, the system''s removals included), and once a call leaves nothing behind every deleted event inside its 30 days leaves with it. Its bytes stop counting at once; the night''s purge deletes the objects. Answers {ok, items, events, freed_bytes, more} (call again while more), or {ok:false, reason:"unauthorized"} with no caller. Authenticated: her own act, authorized on auth.uid().';
 
 -- =============================================================================================
 -- 5. The writers: the cap holds everything stored, and Deleted makes room when her setting says so.
@@ -1175,8 +1204,10 @@ begin
     v_target := 'approved'::public.media_status;
   end if;
 
-  -- Pure status flip; trigger nulls purge_at; storage_used_bytes unchanged (bytes never left).
-  update public.media set status = v_target, removed_at = null
+  -- Pure status flip; trigger nulls purge_at; storage_used_bytes unchanged (bytes never left). Back in her album the
+  -- row is hers again, so the reduce's flag goes with the removal (20261003220000): left on, a later removal of hers
+  -- would read as the system's (its restore gate, what she keeps, the deadline's order, the reduce mail).
+  update public.media set status = v_target, removed_at = null, removed_by_system = false
     where id = p_media_id and status = 'removed';
 
   return jsonb_build_object('ok', true, 'status', v_target);
@@ -1324,7 +1355,8 @@ begin
       if v_target = 'removed' then
         v_target := 'approved'::public.media_status;
       end if;
-      update public.media set status = v_target, removed_at = null
+      -- Back in her album, the row is hers again: no reduce's flag outlives the removal (as restore_media).
+      update public.media set status = v_target, removed_at = null, removed_by_system = false
        where id = v_media.id and status = 'removed';
       v_restored := v_restored + 1;
     end loop;
@@ -1535,9 +1567,11 @@ comment on column public.media.purge_asked_at is
 --   insert into proof (step, ok, detail) values ('1 the setting: boolean, on by default, hers alone to write', false, sqlerrm);
 -- end $$;
 --
--- -- 2. Deleted, defined once: what her lists show, never a withdrawal, a takedown, an asked or an expired row.
+-- -- 2. Deleted, defined once: what her lists show, never a withdrawal, a takedown, an asked or an expired row; a live row's
+-- --    stale system flag never makes it the system's.
 -- do $$
--- declare h uuid := pg_temp.fx('host'); a uuid := pg_temp.fx('album'); g uuid := pg_temp.fx('gone'); s jsonb; ask uuid; bad text := '';
+-- declare h uuid := pg_temp.fx('host'); a uuid := pg_temp.fx('album'); g uuid := pg_temp.fx('gone'); s jsonb; ask uuid; x uuid;
+--   bad text := '';
 -- begin
 --   perform pg_temp.reset(true);
 --   perform pg_temp.item(a, 600000);               -- in her album
@@ -1550,9 +1584,11 @@ comment on column public.media.purge_asked_at is
 --   perform pg_temp.item(a, 80000, 31);            -- past its 30 days: leaving
 --   ask := pg_temp.item(a, 40000, 1);              -- asked to leave for good
 --   update public.media set purge_asked_at = now() where id = ask;
+--   x := pg_temp.item(g, 5000);                    -- a deleted event's own, a stale system flag on it: hers
+--   update public.media set removed_by_system = true where id = x;
 --   s := pg_temp.sum(h);
 --   if (s->>'active_bytes')::bigint <> 600000 then bad := bad || ' active=' || (s->>'active_bytes'); end if;
---   if (s->>'standby_bytes')::bigint <> 480000 then bad := bad || ' deleted=' || (s->>'standby_bytes'); end if;
+--   if (s->>'standby_bytes')::bigint <> 485000 then bad := bad || ' deleted=' || (s->>'standby_bytes'); end if;
 --   if (s->>'system_bytes') is distinct from '30000' then bad := bad || ' system=' || coalesce(s->>'system_bytes', 'none'); end if;
 --   if public.host_active_bytes(h) <> 600000 then bad := bad || ' host_active_bytes=' || public.host_active_bytes(h); end if;
 --   if bad <> '' then raise exception '%', bad; end if;
@@ -1659,29 +1695,41 @@ comment on column public.media.purge_asked_at is
 --   insert into proof (step, ok, detail) values ('6 past what Deleted could free: refused, nothing leaves', false, sqlerrm);
 -- end $$;
 --
--- -- 7. leave_deleted: oldest first; without p_system it leaves the over-capacity reduce's removals where they are.
+-- -- 7. leave_deleted: oldest first, bounded by bytes or by a count, saying when more remains; without p_system it leaves
+-- --    the over-capacity reduce's removals where they are.
 -- do $$
--- declare h uuid := pg_temp.fx('host'); a uuid := pg_temp.fx('album'); d1 uuid; d2 uuid; s1 uuid; l record; l2 record; bad text := '';
+-- declare h uuid := pg_temp.fx('host'); a uuid := pg_temp.fx('album'); d1 uuid; d2 uuid; s1 uuid; l0 record; l1 record;
+--   l2 record; bad text := '';
 -- begin
 --   perform pg_temp.reset(true);
 --   s1 := pg_temp.item(a, 300000, 4, 'system'); d1 := pg_temp.item(a, 200000, 3); d2 := pg_temp.item(a, 100000, 1);
---   select * into l from public.leave_deleted(h, 250000, false);
---   if l.items <> 2 or l.freed_bytes <> 300000 then bad := bad || format(' first %s/%s', l.items, l.freed_bytes); end if;
---   if (select count(*) from public.media where id in (d1, d2) and purge_asked_at is not null) <> 2 then bad := bad || ' hers-stayed'; end if;
+--   select * into l0 from public.leave_deleted(h, null, false, 1);      -- a count of one: her oldest, and more remains
+--   if l0.items <> 1 or l0.freed_bytes <> 200000 or l0.more is not true then
+--     bad := bad || format(' count %s/%s/%s', l0.items, l0.freed_bytes, l0.more);
+--   end if;
+--   if not exists (select 1 from public.media where id = d1 and purge_asked_at is not null)
+--      or exists (select 1 from public.media where id in (d2, s1) and purge_asked_at is not null) then
+--     bad := bad || ' not-the-oldest';
+--   end if;
+--   select * into l1 from public.leave_deleted(h, 50000, false);        -- by bytes: her next, and no more than needed
+--   if l1.items <> 1 or l1.freed_bytes <> 100000 or l1.more is not false then
+--     bad := bad || format(' bytes %s/%s/%s', l1.items, l1.freed_bytes, l1.more);
+--   end if;
 --   if exists (select 1 from public.media where id = s1 and purge_asked_at is not null) then bad := bad || ' the-system''s-left'; end if;
 --   select * into l2 from public.leave_deleted(h, null, true);
 --   if l2.items <> 1 or not exists (select 1 from public.media where id = s1 and purge_asked_at is not null) then bad := bad || ' all-of-it'; end if;
 --   if bad <> '' then raise exception '%', bad; end if;
---   insert into proof (step, ok, detail) values ('7 leave_deleted: oldest first; the system''s removals only when asked', true,
---     format('her own: %s items, %s bytes (the system''s, older, stayed); then all: %s', l.items, l.freed_bytes, l2.items));
+--   insert into proof (step, ok, detail) values ('7 leave_deleted: oldest first, by bytes or a count with more; the system''s only when asked', true,
+--     format('a count of one: %s item, more %s; 50,000 bytes: %s item, %s bytes; the system''s, older, stayed, then %s', l0.items, l0.more, l1.items, l1.freed_bytes, l2.items));
 -- exception when others then
---   insert into proof (step, ok, detail) values ('7 leave_deleted: oldest first; the system''s removals only when asked', false, sqlerrm);
+--   insert into proof (step, ok, detail) values ('7 leave_deleted: oldest first, by bytes or a count with more; the system''s only when asked', false, sqlerrm);
 -- end $$;
 --
--- -- 8. Empty Deleted: everything leaves at once, the deleted events with it; nobody signed in is refused; anon never.
+-- -- 8. Empty Deleted: a batch a call until nothing is left, the deleted events leaving with the last; nobody signed in is
+-- --    refused; anon never.
 -- do $$
 -- declare h uuid := pg_temp.fx('host'); a uuid := pg_temp.fx('album'); g uuid := pg_temp.fx('gone');
---   j0 jsonb; j jsonb; s jsonb; gone_at timestamptz; bad text := '';
+--   j0 jsonb; j1 jsonb; j2 jsonb; s jsonb; mid_at timestamptz; gone_at timestamptz; bad text := '';
 -- begin
 --   perform pg_temp.reset(true);
 --   perform pg_temp.item(a, 400000); perform pg_temp.item(a, 200000, 3); perform pg_temp.item(g, 100000);
@@ -1689,20 +1737,25 @@ comment on column public.media.purge_asked_at is
 --   if j0 <> '{"ok": false, "reason": "unauthorized"}'::jsonb then bad := bad || ' signed-out ' || j0; end if;
 --   perform pg_temp.as_host();
 --   set local role authenticated;
---   j := public.empty_deleted();
+--   j1 := public.empty_deleted(1);
+--   reset role;
+--   select deleted_at into mid_at from public.events where id = g;
+--   set local role authenticated;
+--   j2 := public.empty_deleted();
 --   reset role;
 --   s := pg_temp.sum(h);
 --   select deleted_at into gone_at from public.events where id = g;
---   if (j->>'ok')::boolean is not true or (j->>'items')::int <> 2 or (j->>'events')::int <> 1 or (j->>'freed_bytes')::bigint <> 300000 then
---     bad := bad || ' answer ' || j;
---   end if;
+--   if j1 <> '{"ok": true, "items": 1, "events": 0, "freed_bytes": 200000, "more": true}'::jsonb then bad := bad || ' first ' || j1; end if;
+--   if mid_at < now() - interval '30 days' then bad := bad || ' the-event-left-before-its-items'; end if;
+--   if j2 <> '{"ok": true, "items": 1, "events": 1, "freed_bytes": 100000, "more": false}'::jsonb then bad := bad || ' last ' || j2; end if;
 --   if (s->>'standby_bytes')::bigint <> 0 or (s->>'active_bytes')::bigint <> 400000 then bad := bad || ' figures ' || s; end if;
---   if gone_at > now() - interval '30 days' then bad := bad || ' the-event-stayed'; end if;
---   if has_function_privilege('anon', 'public.empty_deleted()', 'EXECUTE') then bad := bad || ' anon-executes'; end if;
+--   if gone_at >= now() - interval '30 days' then bad := bad || ' the-event-stayed'; end if;
+--   if has_function_privilege('anon', 'public.empty_deleted(integer)', 'EXECUTE') then bad := bad || ' anon-executes'; end if;
 --   if bad <> '' then raise exception '%', bad; end if;
---   insert into proof (step, ok, detail) values ('8 Empty Deleted: all of it at once, the events too; signed out refused; anon never', true, j::text);
+--   insert into proof (step, ok, detail) values ('8 Empty Deleted: a batch a call, the events with the last; signed out refused; anon never', true,
+--     j1::text || ' | ' || j2::text);
 -- exception when others then
---   insert into proof (step, ok, detail) values ('8 Empty Deleted: all of it at once, the events too; signed out refused; anon never', false, sqlerrm);
+--   insert into proof (step, ok, detail) values ('8 Empty Deleted: a batch a call, the events with the last; signed out refused; anon never', false, sqlerrm);
 -- end $$;
 --
 -- -- 9. Restore always fits; the over-capacity reduce's removals keep the gate; past its 30 days it is not hers.
@@ -1733,6 +1786,33 @@ comment on column public.media.purge_asked_at is
 --     format('%s | %s | %s | %s | %s', j1, j2, j3, j4, j5));
 -- exception when others then
 --   insert into proof (step, ok, detail) values ('9 restore always fits; the system''s removal keeps its gate; past 30 days not hers', false, sqlerrm);
+-- end $$;
+--
+-- -- 9b. A restored system removal is hers again: the reduce's flag goes with its removal, so a later removal of hers reads
+-- --     as hers (what she keeps, the restore gate, the deadline's order, the reduce mail).
+-- do $$
+-- declare h uuid := pg_temp.fx('host'); a uuid := pg_temp.fx('album'); s1 uuid; j jsonb; n int; s jsonb; flag boolean;
+--   bad text := '';
+-- begin
+--   perform pg_temp.reset(true);
+--   perform pg_temp.item(a, 100000);
+--   s1 := pg_temp.item(a, 50000, 1, 'system');                          -- the reduce's, and it fits
+--   perform pg_temp.as_host();
+--   set local role authenticated;
+--   j := public.restore_media(s1);
+--   update public.media set status = 'removed', removed_at = now() where id = s1;   -- later, her own Remove
+--   get diagnostics n = row_count;
+--   reset role;
+--   select removed_by_system into flag from public.media where id = s1;
+--   s := pg_temp.sum(h);
+--   if j <> '{"ok": true, "status": "approved"}'::jsonb then bad := bad || ' restore ' || j; end if;
+--   if n <> 1 then bad := bad || ' her-remove'; end if;
+--   if flag is distinct from false then bad := bad || ' the-flag-stayed'; end if;
+--   if (s->>'system_bytes') is distinct from '0' then bad := bad || ' system=' || coalesce(s->>'system_bytes', 'none'); end if;
+--   if bad <> '' then raise exception '%', bad; end if;
+--   insert into proof (step, ok, detail) values ('9b a restored system removal is hers again: the flag goes with the removal', true, s::text);
+-- exception when others then
+--   insert into proof (step, ok, detail) values ('9b a restored system removal is hers again: the flag goes with the removal', false, sqlerrm);
 -- end $$;
 --
 -- -- 10. The presign's meter: the line follows the setting, and a refusal carries its numbers.
@@ -1802,7 +1882,7 @@ comment on column public.media.purge_asked_at is
 --   insert into proof (step, ok, detail) values ('12 a guest''s withdrawal purges that night (no camera); her removal keeps 30 days', false, sqlerrm);
 -- end $$;
 --
--- -- 13. Let back in: the block's uploads come back with no gate, never one that has left for good.
+-- -- 13. Let back in: the block's uploads come back with no gate and no system flag, never one that has left for good.
 -- do $$
 -- declare a uuid := pg_temp.fx('album'); b1 uuid; b2 uuid; jb jsonb; jl jsonb; bad text := '';
 -- begin
@@ -1814,17 +1894,19 @@ comment on column public.media.purge_asked_at is
 --   jb := public.block_from_event(p_media_id => b1);
 --   reset role;
 --   update public.media set purge_asked_at = now() where id = b2;    -- it left for good while the block stood
+--   update public.media set removed_by_system = true where id = b1;  -- a flag a row may carry (a reduce's, restored before)
 --   set local role authenticated;
 --   jl := public.let_back_in((jb->>'block_id')::uuid, true);
 --   reset role;
 --   if (jb->>'removed')::int <> 2 then bad := bad || ' block ' || jb; end if;
 --   if (jl->>'restored')::int <> 1 or (jl->>'no_room')::int <> 0 then bad := bad || ' let back in ' || jl; end if;
 --   if not exists (select 1 from public.media where id = b1 and status = 'approved') then bad := bad || ' b1-stayed'; end if;
+--   if exists (select 1 from public.media where id = b1 and removed_by_system) then bad := bad || ' b1-flag-stayed'; end if;
 --   if not exists (select 1 from public.media where id = b2 and status = 'removed' and purge_asked_at is not null) then bad := bad || ' b2-came-back'; end if;
 --   if bad <> '' then raise exception '%', bad; end if;
---   insert into proof (step, ok, detail) values ('13 let back in: no gate, never one that left for good', true, jl::text);
+--   insert into proof (step, ok, detail) values ('13 let back in: no gate, no flag, never one that left for good', true, jl::text);
 -- exception when others then
---   insert into proof (step, ok, detail) values ('13 let back in: no gate, never one that left for good', false, sqlerrm);
+--   insert into proof (step, ok, detail) values ('13 let back in: no gate, no flag, never one that left for good', false, sqlerrm);
 -- end $$;
 --
 -- -- 14. Who may call what, and how each runs.
@@ -1841,19 +1923,25 @@ comment on column public.media.purge_asked_at is
 --   loop
 --     if r.config is distinct from 'search_path=""' then bad := bad || ' ' || r.fn || ' path:' || coalesce(r.config, 'none'); end if;
 --     want := case
---          when r.fn = 'host_deleted_media(uuid)' then 'postgres=X/postgres'
---          when r.fn in ('empty_deleted()', 'restore_media(uuid)', 'restore_event(uuid)', 'let_back_in(uuid,boolean)',
+--          when r.fn in ('host_deleted_media(uuid)', 'host_room_used(uuid)') then 'postgres=X/postgres'
+--          when r.fn in ('empty_deleted(integer)', 'restore_media(uuid)', 'restore_event(uuid)', 'let_back_in(uuid,boolean)',
 --                        'get_host_upload_context(uuid,media_type)')
 --            then 'postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres'
 --          when r.fn = 'get_upload_context(text,media_type)' then 'postgres=X/postgres,service_role=X/postgres,anon=X/postgres,authenticated=X/postgres'
 --          else 'postgres=X/postgres,service_role=X/postgres' end;
 --     if r.acl <> want then bad := bad || ' ' || r.fn || ' acl:' || r.acl; end if;
---     if r.definer is distinct from (r.fn not in ('host_deleted_media(uuid)', 'set_media_purge_at()')) then bad := bad || ' ' || r.fn || ' definer:' || r.definer; end if;
+--     if r.definer is distinct from (r.fn not in ('host_deleted_media(uuid)', 'host_room_used(uuid)', 'set_media_purge_at()')) then
+--       bad := bad || ' ' || r.fn || ' definer:' || r.definer;
+--     end if;
 --   end loop;
 --   if (select count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public'
 --         and p.proname in ('host_deleted_media', 'host_room_used', 'leave_deleted', 'empty_deleted')) <> 4 then bad := bad || ' the-four-new'; end if;
 --   if pg_get_function_result('public.host_storage_summary(uuid)'::regprocedure) <> 'TABLE(active_bytes bigint, standby_bytes bigint, system_bytes bigint)' then
 --     bad := bad || ' summary-shape';
+--   end if;
+--   if to_regprocedure('public.leave_deleted(uuid, bigint, boolean, integer)') is null
+--      or to_regprocedure('public.empty_deleted(integer)') is null then
+--     bad := bad || ' the-signatures';
 --   end if;
 --   if bad <> '' then raise exception '%', bad; end if;
 --   insert into proof (step, ok, detail) values ('14 who may call what: each ACL, definer and pinned path', true, '15 functions');
@@ -1872,40 +1960,44 @@ comment on column public.media.purge_asked_at is
 --
 -- select n, step, ok, detail from proof order by n;
 --
--- RESULT, 2026-10-03, nothing persisted by any run (afterwards no `make_room_from_deleted` column and none of the four
--- new functions exist, create_media still hashes e83666cd and host_storage_summary c5d0716b, and no "Deleted counts"
--- event or proof user is left). GREEN ran again on the final file, after every 30-day window was aligned on the lists'
--- own inclusive start (`>=`) and an emptied event moved a minute past it, with the same 15/15:
---   LIVE RED, without this file's statements: 13 of the 15 steps fail on what each lacks. 1 "no make_room_from_deleted
---     column"; 2 " system=none" (today's summary sums the same Deleted, 480,000, but has no third column); 3 "past the
+-- RESULT, 2026-10-03, on this file as amended for the Advisor's Q23 (the batched Empty Deleted, the reduce's flag
+-- cleared on a restore, `host_room_used` the owner's), nothing persisted by either run (afterwards no
+-- `make_room_from_deleted` column and none of the four new functions exist, create_media still hashes e83666cd and
+-- host_storage_summary c5d0716b, and no "Deleted counts" event or proof user is left):
+--   LIVE RED, without this file's statements: 14 of the 16 steps fail on what each lacks. 1 "no make_room_from_deleted
+--     column"; 2 " system=none" (today's summary sums the same Deleted, 485,000, but has no third column); 3 "past the
 --     line beside Deleted: host "recorded", guest "recorded"" (the cap read her albums alone); 4 "the room a delete was
 --     to free: recorded"; 5 " d1-stayed d2-or-x1-stayed the-emptied-event-stayed figures {stored 1550000, active
 --     1100000, Deleted 450000} meter 500000" (admitted past the cap, nothing left Deleted); 7 and 8 "function ... does
 --     not exist"; 9 her restore refused insufficient_space (50,000) at a full account, the 31-day item restored, the
---     deleted event refused, the 31-day event restored; 10 " off: {ok: true} on-past: {ok: false, reason: storage}" (no
---     numbers); 11 "off, full: guest false, gate false, host false"; 12 "the withdrawal waits 30 days"; 13 "new row for
---     relation "media" violates check constraint "media_purge_asked_only_removed"" (today's Let back in errors on an
---     item that left for good, a latent bug this file closes); 14 get_upload_context's ACL in its old order, the four
---     new functions and the summary's shape missing. 6 holds in both runs by design (past everything, refused, nothing
---     leaves), and 15 read today's bodies, the drift hashes above.
---   LIVE GREEN, with them: 15/15. 2: active 600,000, Deleted 480,000 (the system's 30,000 of it), stored 1,080,000;
---     3: host and guest refused at 1,150,000, admitted at the line, nothing taken; 4: stored 1,050,000 before and after
---     her Remove (active 600,000 -> 0) and the room still refused; 5: her 200,000 took d1 (the oldest) alone, the
---     guest's 300,000 took d2 then x1, the emptied deleted event left Deleted, then 1 byte refused, stored 1,100,000,
---     Deleted 0, her meter +50,000 (+500,000 landed, -450,000 left); 6: refused, nothing left; 7: without p_system 2
---     items and 300,000 bytes (the system's older removal stayed), then with it the last; 8: signed out
---     {ok:false, reason:unauthorized}, then {ok, items 2, events 1, freed_bytes 300000}, Deleted 0, the event gone,
---     anon no EXECUTE; 9: {ok, approved} | {not_found} | {insufficient_space, needed_bytes 250000} | {ok,
---     media_still_removed 0} | {not_found}; 10: {storage, needed_bytes 150000, deleted_bytes 450000, makes_room
---     false} | {ok} | {ok} | {storage, needed_bytes 100000, deleted_bytes 450000, makes_room true}; 11: off true true
---     true, on false false false; 12: withdrawal +00:00:00, hers +30 days; 13: {ok, restored 1, no_room 0}; 14: every
---     ACL as restated, every definer and pinned path; 15 (md5 of each whitespace-collapsed prosrc, the file's own,
---     matched locally): create_media 48845304c94e0ce4fac32bac36df5350, create_media_as_host
---     d1f7c8775b0d54d4e8f6d41901efeba1, empty_deleted 7f9daee85ffa3873005f153fb250c2b5, get_host_upload_context
---     47f5299990c5ab234513ac232182bd21, get_upload_context 8d49526db8842f6f8f6432f0f781b9f4, get_upload_gate
---     ca02c6359e707e0494faa9ebe6ba5053, host_deleted_media 6551382586940f1110c50c0a8fa50cfe, host_room_used
---     27a7afbe085aef044ee0946426b86bf4, host_storage_summary 006d5319db9bd06cfebad85a2978abef, leave_deleted
---     d700496c307b2a1d8e9edd697cbdc199, let_back_in 21e12ae4bacc90d66b4702d1d40db722, meter_upload
---     6e160cf34895e482e4ef91bad6672160, restore_event 89a08ed92c61d9b8924e4f1410b89bb9, restore_media
---     eefa15da54e6ba88d22dc626b42028b6, set_media_purge_at f1c27be0a29cee7fea762e665cb3aa81.
+--     deleted event refused, the 31-day event restored; 9b " the-flag-stayed system=none" (today's restore keeps the
+--     reduce's flag); 10 " off: {ok: true} on-past: {ok: false, reason: storage}" (no numbers); 11 "off, full: guest
+--     false, gate false, host false"; 12 "the withdrawal waits 30 days"; 13 "new row for relation "media" violates check
+--     constraint "media_purge_asked_only_removed"" (today's Let back in errors on an item that left for good, a latent
+--     bug this file closes); 14 get_upload_context's ACL in its old order, the four new functions, the summary's shape
+--     and the two signatures missing. 6 holds in both runs by design (past everything, refused, nothing leaves), and 15
+--     read today's bodies, the drift hashes above.
+--   LIVE GREEN, with them: 16/16. 2: active 600,000, Deleted 485,000 (the system's 30,000 of it; a live row's stale
+--     flag counted hers), stored 1,085,000; 3: host and guest refused at 1,150,000, admitted at the line, nothing taken;
+--     4: stored 1,050,000 before and after her Remove (active 600,000 -> 0) and the room still refused; 5: her 200,000
+--     took d1 (the oldest) alone, the guest's 300,000 took d2 then x1, the emptied deleted event left Deleted, then 1
+--     byte refused, stored 1,100,000, Deleted 0, her meter +50,000 (+500,000 landed, -450,000 left); 6: refused,
+--     nothing left; 7: a count of one took her oldest and said more, 50,000 bytes took her next and no more, the
+--     system's older removal stayed until p_system; 8: signed out {ok:false, reason:unauthorized}, then {ok, items 1,
+--     events 0, freed_bytes 200000, more true} with the deleted event still inside its window, then {ok, items 1,
+--     events 1, freed_bytes 100000, more false}, Deleted 0, the event gone, anon no EXECUTE; 9: {ok, approved} |
+--     {not_found} | {insufficient_space, needed_bytes 250000} | {ok, media_still_removed 0} | {not_found}; 9b: the
+--     restored system removal came back without its flag, and her later removal of it counted hers (system 0); 10:
+--     {storage, needed_bytes 150000, deleted_bytes 450000, makes_room false} | {ok} | {ok} | {storage, needed_bytes
+--     100000, deleted_bytes 450000, makes_room true}; 11: off true true true, on false false false; 12: withdrawal
+--     +00:00:00, hers +30 days; 13: {ok, restored 1, no_room 0}, the flag cleared; 14: every ACL as restated, every
+--     definer and pinned path, the two signatures; 15 (md5 of each whitespace-collapsed prosrc, the file's own, matched
+--     locally): create_media 48845304c94e0ce4fac32bac36df5350, create_media_as_host d1f7c8775b0d54d4e8f6d41901efeba1,
+--     empty_deleted e1e8eababafd983efc6d16f945a299e6, get_host_upload_context 47f5299990c5ab234513ac232182bd21,
+--     get_upload_context 8d49526db8842f6f8f6432f0f781b9f4, get_upload_gate ca02c6359e707e0494faa9ebe6ba5053,
+--     host_deleted_media 4cfd11dea1c7fc604a85752c9328d4af, host_room_used 27a7afbe085aef044ee0946426b86bf4,
+--     host_storage_summary 006d5319db9bd06cfebad85a2978abef, leave_deleted e581741f4870f8757816ab4c1894eb40,
+--     let_back_in 03d2bb7cc918207a2be4122bd579e337, meter_upload 6e160cf34895e482e4ef91bad6672160, restore_event
+--     89a08ed92c61d9b8924e4f1410b89bb9, restore_media 48335292a4294c42e2638a2f9430f754, set_media_purge_at
+--     f1c27be0a29cee7fea762e665cb3aa81.
 -- =============================================================================================

@@ -456,6 +456,95 @@ describe("Deleted counts in what she keeps", () => {
     expect(state.sent.map((s) => s.kind)).toEqual(["over_cap_reduced"]);
   });
 
+  // ★ The Advisor's Q23: every PostgREST call runs under an 8 s statement_timeout, so a large Deleted leaves a batch
+  // a call (`LEAVE_DELETED_BATCH`), the deadline asked before each, never in one statement that rolls back.
+  const bigDeleted = (event: FakeRow) => [
+    // 9,000 in her albums and 2,500 removals of 10 bytes: 34,000 against 10,000, so 24,000 must leave (2,400 items).
+    ...Array.from({ length: 9 }, (_, i) =>
+      mediaRow(uuidOf("ma", i), event, { file_size_bytes: 1_000 }),
+    ),
+    ...Array.from({ length: 2_500 }, (_, i) =>
+      mediaRow(uuidOf("md", i), event, {
+        status: "removed",
+        removed_at: new Date(
+          NOW.getTime() - 20 * 86_400_000 + i * 1_000,
+        ).toISOString(),
+        file_size_bytes: 10,
+      }),
+    ),
+  ];
+  const leaveCalls = (world: CronWorld) =>
+    world.fake.requests.filter(
+      (r) => r.target === "rpc" && r.name === "leave_deleted",
+    ).length;
+
+  it("★ leaves a large Deleted a batch a call, oldest first, until the overage is covered", async () => {
+    const world = oneHost(bigDeleted, PAST_GRACE);
+    const tally = await sweepOverCapacity(world.client, NOW);
+    expect(tally).toMatchObject({
+      reduced: 1,
+      deleted_left: 2_400,
+      items_reduced: 0,
+    });
+    expect(leaveCalls(world)).toBe(2);
+    // The oldest 2,400 went; the newest 100 stayed.
+    const asked = new Set(
+      mine(world)
+        .filter((m) => m.purge_asked_at != null)
+        .map((m) => m.id),
+    );
+    expect(asked.size).toBe(2_400);
+    expect(asked.has(uuidOf("md", 0))).toBe(true);
+    expect(asked.has(uuidOf("md", 2_499))).toBe(false);
+    expect(state.sent.map((s) => s.kind)).toEqual(["over_cap_reduced"]);
+  });
+
+  it("★ a deadline between its batches stops there: grace kept, no mail, and the next run finishes", async () => {
+    const world = oneHost(bigDeleted, PAST_GRACE);
+    // Asked before the account, then before each batch: the second batch is refused.
+    const first = await sweepOverCapacity(world.client, NOW, {
+      deadline: passesAfter(2),
+    });
+    expect(first).toMatchObject({
+      reduced: 0,
+      deleted_left: 2_000,
+      stopped_early: true,
+    });
+    expect(world.fake.tables.profiles[0].storage_grace_until).toBe(
+      PAST_GRACE.storage_grace_until,
+    );
+    expect(state.sent).toEqual([]);
+
+    // She still keeps 14,000 (2,000 of her 10-byte removals left): the next run starts at her and finishes.
+    const second = await sweepOverCapacity(world.client, NOW, {
+      resumeAfter: first.resume_after,
+    });
+    expect(second).toMatchObject({ reduced: 1, deleted_left: 400 });
+    expect(world.fake.tables.profiles[0].storage_grace_until).toBeNull();
+    expect(state.sent.map((s) => s.kind)).toEqual(["over_cap_reduced"]);
+  });
+
+  it("★ finishes a due reduce inside the headroom rather than clearing it half done", async () => {
+    // A run stopped part way left her at 10,500: inside the write line (11,000), still over the cap (10,000).
+    const world = oneHost(
+      (event) => [
+        ...Array.from({ length: 10 }, (_, i) =>
+          mediaRow(uuidOf("ma", i), event, { file_size_bytes: 1_000 }),
+        ),
+        mediaRow(uuidOf("md", 0), event, {
+          status: "removed",
+          removed_at: daysAgo(5),
+          file_size_bytes: 500,
+        }),
+      ],
+      PAST_GRACE,
+    );
+    const tally = await sweepOverCapacity(world.client, NOW);
+    expect(tally).toMatchObject({ reduced: 1, cleared: 0, deleted_left: 1 });
+    expect(world.fake.tables.profiles[0].storage_grace_until).toBeNull();
+    expect(state.sent.map((s) => s.kind)).toEqual(["over_cap_reduced"]);
+  });
+
   it("★ when her own Deleted cannot cover it, all of it leaves and then her largest files move", async () => {
     // 12,000 in her albums (one 3,000 file) and 1,000 in her Deleted: 13,000 against 10,000.
     const world = oneHost(

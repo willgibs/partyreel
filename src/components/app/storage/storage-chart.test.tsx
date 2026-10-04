@@ -43,6 +43,7 @@ function fakeSource(over: Partial<StorageSource> = {}): StorageSource {
       items: 9,
       events: 1,
       freedBytes: 30 * GIGABYTE,
+      more: false,
     })),
     setMakeRoom: vi.fn(async (on: unknown) => ({
       ok: true as const,
@@ -194,6 +195,30 @@ describe("Empty Deleted", () => {
     await waitFor(() =>
       expect(toast.success).toHaveBeenCalledWith(
         expect.stringContaining("30 GB"),
+      ),
+    );
+    await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
+  });
+
+  it("says when Deleted still holds more, so she empties it again", async () => {
+    // The Advisor's Q23: the action stops between batches when its time runs out, and says so.
+    const source = fakeSource({
+      emptyDeleted: vi.fn(async () => ({
+        ok: true as const,
+        items: 2_000,
+        events: 0,
+        freedBytes: 6 * GIGABYTE,
+        more: true,
+      })),
+    });
+    const chart = draw(source);
+    await userEvent.click(
+      chart.querySelector("[data-empty-deleted]") as HTMLElement,
+    );
+    await answerConfirm("Empty Deleted");
+    await waitFor(() =>
+      expect(toast.success).toHaveBeenCalledWith(
+        expect.stringMatching(/6 GB freed.*still holds more/),
       ),
     );
     await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));

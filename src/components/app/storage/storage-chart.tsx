@@ -108,9 +108,11 @@ export function StorageChart({
       return;
     }
     toast.success(
-      answer.freedBytes > 0
-        ? `Deleted is empty: ${formatBytesUp(answer.freedBytes)} freed`
-        : "Deleted is empty",
+      answer.more
+        ? `${formatBytesUp(answer.freedBytes)} freed. Deleted still holds more: empty it again to finish.`
+        : answer.freedBytes > 0
+          ? `Deleted is empty: ${formatBytesUp(answer.freedBytes)} freed`
+          : "Deleted is empty",
     );
     startRefresh(() => router.refresh());
   }

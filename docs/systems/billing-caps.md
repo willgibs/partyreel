@@ -33,7 +33,9 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   it). `host_storage_summary` is the one read every cap check makes.
 - **Make room from Deleted** (`profiles.make_room_from_deleted`, on by default, the one profiles column a host
   writes): on, a full plan's upload takes its room from Deleted, oldest first, so a full Deleted never refuses a
-  guest's photo at a party; off, the upload is refused until she empties Deleted or moves up a size. The line an
+  guest's photo at a party; off, the upload is refused until she empties Deleted or moves up a size. It governs
+  uploads alone: at the over-capacity deadline her own Deleted leaves first whatever it says, since the reduce is not
+  an upload ([lifecycle-recovery.md](lifecycle-recovery.md)). The line an
   upload meets before its complete is `host_room_used` (her albums, plus Deleted while the setting is off): the
   presign's meter refuses past it and the three upload advisories answer "full" at it, so nobody is sent to upload a
   file the complete will refuse. The storage chart (`components/app/storage/storage-chart.tsx`, the storage ring's

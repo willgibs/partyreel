@@ -72,8 +72,20 @@ export type DeleteStorageAnswer =
   | (Failure & { deletedEvents: string[] });
 
 export type EmptyDeletedAnswer =
-  | { ok: true; items: number; events: number; freedBytes: number }
+  | {
+      ok: true;
+      items: number;
+      events: number;
+      freedBytes: number;
+      /** Deleted still holds some: the call's time ran out, or a later batch failed after earlier ones left. */
+      more: boolean;
+    }
   | Failure;
+
+/** Items each `empty_deleted` call takes: well inside the authenticated role's 8 s statement_timeout. */
+const EMPTY_DELETED_BATCH = 2_000;
+/** How long one Empty Deleted keeps calling before it answers with what it freed and `more`. */
+const EMPTY_DELETED_BUDGET_MS = 40_000;
 
 export type MakeRoomAnswer = { ok: true; on: boolean } | Failure;
 
@@ -229,36 +241,64 @@ export async function deleteStorageItemsAction(
 }
 
 /**
- * EMPTY DELETED, the storage chart's button: everything in her Deleted leaves for good at once (`empty_deleted`, which
- * asks every item to leave and takes every deleted event with it; the bytes stop counting at once and the night's purge
- * deletes the objects, R2 first). Her own act, authorized inside on `auth.uid()`: the request's client carries her.
+ * EMPTY DELETED, the storage chart's button: everything in her Deleted leaves for good (`empty_deleted`, which asks
+ * each item to leave and, with the last of them, takes every deleted event too; the bytes stop counting at once and the
+ * night's purge deletes the objects, R2 first). Her own act, authorized inside on `auth.uid()`: the request's client
+ * carries her.
+ *
+ * ★ A BATCH A CALL, UNTIL NOTHING IS LEFT (the Advisor's Q23): one unbounded statement under the authenticated role's
+ * 8 s statement_timeout rolls back somewhere past 8,000 items, so a big Deleted could never be emptied. Each call takes
+ * `EMPTY_DELETED_BATCH`, and this calls again while the answer says `more`, within a time budget; past it (or past a
+ * later call's failure) it answers what it freed with `more`, and the chart says Deleted still holds some.
  */
 export async function emptyDeletedAction(): Promise<EmptyDeletedAnswer> {
   const { supabase, user } = await getRequestAuth();
   if (!user) return SIGN_IN;
-  const { data, error } = await untyped(supabase).rpc("empty_deleted");
-  const answer = data as {
-    ok?: unknown;
-    items?: unknown;
-    events?: unknown;
-    freed_bytes?: unknown;
-  } | null;
-  if (error || answer?.ok !== true) {
-    captureError("media", error ?? new Error("empty_deleted refused"), {
-      seam: "empty_deleted",
+  const started = Date.now();
+  let items = 0;
+  let events = 0;
+  let freedBytes = 0;
+  let more = true;
+  let calls = 0;
+  while (more) {
+    const { data, error } = await untyped(supabase).rpc("empty_deleted", {
+      p_limit: EMPTY_DELETED_BATCH,
     });
-    return {
-      ok: false,
-      code: "unknown",
-      message: "Couldn't empty Deleted. Please try again.",
-    };
+    calls += 1;
+    const answer = data as {
+      ok?: unknown;
+      items?: unknown;
+      events?: unknown;
+      freed_bytes?: unknown;
+      more?: unknown;
+    } | null;
+    if (error || answer?.ok !== true) {
+      captureError("media", error ?? new Error("empty_deleted refused"), {
+        seam: "empty_deleted",
+        calls,
+      });
+      // What earlier batches took has left for good already: say so, and that some is left.
+      if (calls > 1) return { ok: true, items, events, freedBytes, more: true };
+      return {
+        ok: false,
+        code: "unknown",
+        message: "Couldn't empty Deleted. Please try again.",
+      };
+    }
+    const took = Number(answer.items ?? 0);
+    items += took;
+    events += Number(answer.events ?? 0);
+    freedBytes += Number(answer.freed_bytes ?? 0);
+    more = answer.more === true;
+    // A batch that took nothing cannot make progress by asking again (rows another purge holds right now).
+    if (
+      more &&
+      (took === 0 || Date.now() - started > EMPTY_DELETED_BUDGET_MS)
+    ) {
+      break;
+    }
   }
-  return {
-    ok: true,
-    items: Number(answer.items ?? 0),
-    events: Number(answer.events ?? 0),
-    freedBytes: Number(answer.freed_bytes ?? 0),
-  };
+  return { ok: true, items, events, freedBytes, more };
 }
 
 /**

@@ -72,7 +72,10 @@ bodies live in `lib/lifecycle/sweeps/` and `account-deletion.ts`, each tested on
   never after, since a figure outliving its list would tell her a hold exists.
 - ★ **Leaving Deleted for good is `leave_deleted`** (service role): her Deleted, oldest first by `binned_at` (a
   deleted event's items, which entered together, largest first, so the fewest go), until the bytes asked for have
-  left; the system's removals only when asked to (`p_system`). Each item is ASKED (`purge_asked_at`; a deleted
+  left or `p_limit` items have, answering `more` when the limit stopped it; the system's removals only when asked to
+  (`p_system`). ★ A call without a byte bound takes a batch (`LEAVE_DELETED_BATCH`, 2,000): PostgREST runs every
+  call under the `authenticator` role's 8 s statement_timeout, the service role's too, and one unbounded statement
+  rolls back somewhere past 8,000 items. Each item is ASKED (`purge_asked_at`; a deleted
   event's live item removed in the same write, as the CHECK requires), which takes it out of every host read, every
   figure and her meter at once (`media_release_meter`), and the `removed_media` sweep's asked pass deletes it that
   night, R2 first, or the night its keeper lets go. A deleted event it empties leaves with its last item: its
@@ -84,8 +87,11 @@ bodies live in `lib/lifecycle/sweeps/` and `account-deletion.ts`, each tested on
   an upload's complete would pass the cap and its 10% and the file fits beside her albums, `create_media*` call
   `leave_deleted` for exactly what the file needs, under the lock they already hold; a refusal rolls the eviction back
   with it. Never at the presign, whose size is the client's word: a phantom presign would empty her Deleted for
-  nothing. **Empty Deleted** (`empty_deleted()`, her own act on `auth.uid()`) takes all of it, the system's removals
-  and every deleted event inside its window included.
+  nothing. **Empty Deleted** (`empty_deleted(p_limit)`, her own act on `auth.uid()`) takes a batch a call, the
+  system's removals included, and the action calls again while `more`, within a time budget (past it the chart says
+  Deleted still holds some); every deleted event inside its window leaves with the last batch, never before what is
+  still in it. A row back in her album (`restore_media`, Let back in) loses the reduce's flag (`removed_by_system`),
+  and Deleted reads that flag on a removed row alone, so a later removal of hers reads as hers.
 - ★ **A guest's own delete is final, for the host too.** Deleting an upload to someone else's event sets
   `media.removed_by_uploader = true`: `listRecentlyDeletedMedia`'s own `removed_by_uploader = false` predicate keeps it
   out of the host's bin (RLS does NOT filter it, so dropping that line shows the host a Restore the RPC always
@@ -134,12 +140,14 @@ bodies live in `lib/lifecycle/sweeps/` and `account-deletion.ts`, each tested on
   a Free host is blocked before it can get there. Her own Deleted counts, so a move to Deleted clears no grace; the
   system's removals do not, so a reduced account never re-triggers while they wait out their window. Over, it sets
   `storage_grace_until` (`OVER_CAP_GRACE_DAYS`, 45) and emails; near the deadline, a reminder; past it, what she
-  already deleted leaves for good first (`leave_deleted` without `p_system`, oldest first, whatever her setting:
-  nothing she kept is touched while her own Deleted covers the overage), then her largest files move to Deleted
-  (`removed_by_system`, recoverable for the window unless an upload needs their room first), with an email saying
-  which happened (`emptiedDeleted`, `movedFiles`); back under, the grace clears. The reduce reads the active set
-  largest first a page at a time under the sweep's deadline (`reduceToCap`), stopping once what is left fits; one the
-  deadline stops part way keeps its grace and sends no mail, counts as left, and is the next run's first account.
+  already deleted leaves for good first (`leave_deleted` without `p_system`, oldest first, a batch a call under the
+  sweep's deadline, and whatever her Make room from Deleted says, since the reduce is not an upload: nothing she kept
+  is touched while her own Deleted covers the overage), then her largest files move to Deleted (`removed_by_system`,
+  recoverable for the window unless an upload needs their room first), with an email saying which happened
+  (`emptiedDeleted`, `movedFiles`); back under, the grace clears. The reduce reads the active set largest first a
+  page at a time under the sweep's deadline (`reduceToCap`), stopping once what is left fits; one the deadline stops
+  part way, leaving or moving, keeps its grace and sends no mail, counts as left, and is the next run's first account,
+  and a due grace finishes to the real cap even inside the headroom, so no reduce is cleared half done.
   ★ Its candidates are every profile past the SMALLEST cap any plan grants, read from `tiers.ts` (Free's 100 MB),
   never a typed floor: a literal left at an old Free cap skips every lapsed host storing between the two, for good.
 - **Renewal:** an Event Pass holder is nudged 14 days before expiry (`RENEWAL_NUDGE_DAYS`, shared with the bell),
@@ -152,7 +160,9 @@ bodies live in `lib/lifecycle/sweeps/` and `account-deletion.ts`, each tested on
   dates and its newest media, so a used or still-collecting event never trips it; `touchHostActive` bumps
   `last_active_at` from the `(app)` layout (throttled to 12 hours), so any host use counts.
 - **A system removal's email** (over-cap reduced, inactivity removed) names the concrete 30-day window and points to
-  the in-app restore, never "reply to this email". A host's own delete is never emailed; the bell covers it.
+  the in-app restore, never "reply to this email". A host's own delete is never emailed; the bell covers it. The
+  grace mails say the deadline's order (what is in Deleted first, then her largest files), which holds whatever her
+  Make room from Deleted says: the setting governs uploads alone.
 
 ## Sending email
 

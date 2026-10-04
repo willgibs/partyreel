@@ -176,6 +176,7 @@ describe("her Deleted, and making room from it", () => {
     await expect(leaveDeleted(w.client, HOST, 1_000_000)).resolves.toEqual({
       items: 20,
       freedBytes: 200,
+      more: false,
     });
     const left = w.fake.tables.media;
     expect(

@@ -89,12 +89,10 @@ beforeEach(() => {
     data: { ok: true, items: 3, events: 1, freed_bytes: 900 },
     error: null,
   });
-  update
-    .mockReset()
-    .mockResolvedValue({
-      data: { make_room_from_deleted: false },
-      error: null,
-    });
+  update.mockReset().mockResolvedValue({
+    data: { make_room_from_deleted: false },
+    error: null,
+  });
   captured.length = 0;
 });
 
@@ -220,14 +218,85 @@ describe("Delete for good", () => {
 });
 
 describe("Empty Deleted", () => {
-  it("asks empty_deleted on her own client and answers what left", async () => {
+  it("asks empty_deleted on her own client, a batch at a time, and answers what left", async () => {
     expect(await emptyDeletedAction()).toEqual({
       ok: true,
       items: 3,
       events: 1,
       freedBytes: 900,
+      more: false,
     });
-    expect(rpc).toHaveBeenCalledWith("empty_deleted");
+    expect(rpc).toHaveBeenCalledWith("empty_deleted", { p_limit: 2000 });
+  });
+
+  // ★ The Advisor's Q23: one unbounded statement under the authenticated role's 8 s statement_timeout rolled back past
+  // about 8,000 items, so a big Deleted could never be emptied. The action asks a batch a call until nothing is left.
+  it("★ calls again while Deleted holds more, and adds up what each batch freed", async () => {
+    rpc
+      .mockResolvedValueOnce({
+        data: {
+          ok: true,
+          items: 2000,
+          events: 0,
+          freed_bytes: 6000,
+          more: true,
+        },
+        error: null,
+      })
+      .mockResolvedValueOnce({
+        data: {
+          ok: true,
+          items: 2000,
+          events: 0,
+          freed_bytes: 5000,
+          more: true,
+        },
+        error: null,
+      })
+      .mockResolvedValueOnce({
+        data: { ok: true, items: 7, events: 2, freed_bytes: 70, more: false },
+        error: null,
+      });
+    expect(await emptyDeletedAction()).toEqual({
+      ok: true,
+      items: 4007,
+      events: 2,
+      freedBytes: 11070,
+      more: false,
+    });
+    expect(rpc).toHaveBeenCalledTimes(3);
+  });
+
+  it("answers what earlier batches freed, with more, when a later one fails", async () => {
+    rpc
+      .mockResolvedValueOnce({
+        data: {
+          ok: true,
+          items: 2000,
+          events: 0,
+          freed_bytes: 6000,
+          more: true,
+        },
+        error: null,
+      })
+      .mockResolvedValueOnce({ data: null, error: { message: "timeout" } });
+    expect(await emptyDeletedAction()).toEqual({
+      ok: true,
+      items: 2000,
+      events: 0,
+      freedBytes: 6000,
+      more: true,
+    });
+    expect(captured).toHaveLength(1);
+  });
+
+  it("stops when a batch takes nothing, rather than asking again for ever", async () => {
+    rpc.mockResolvedValue({
+      data: { ok: true, items: 0, events: 0, freed_bytes: 0, more: true },
+      error: null,
+    });
+    expect(await emptyDeletedAction()).toMatchObject({ ok: true, more: true });
+    expect(rpc).toHaveBeenCalledTimes(1);
   });
 
   it("says a refused or failed call is a failure, and reports it", async () => {

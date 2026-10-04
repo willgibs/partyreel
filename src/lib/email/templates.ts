@@ -277,6 +277,11 @@ export const OPERATOR_TAG = "[Partyreel]";
 
 // ── Host mail: the six lifecycle mails ───────────────────────────────────────────────────────────
 
+/**
+ * The over-cap grace's two mails say the deadline's order: what is in Deleted leaves for good first, then her largest
+ * files move to Deleted. That order holds whatever her Make room from Deleted says, since the setting governs uploads
+ * alone and the reduce is not an upload (trash-in-storage), so the words never mention the setting.
+ */
 export function overCapGraceStartEmail(opts: {
   capLabel: string;
   deadline: string;
