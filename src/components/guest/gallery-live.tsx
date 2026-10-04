@@ -272,8 +272,8 @@ export type LiveGalleryHandle = {
   /**
    * An upload finished: its optimistic tile (approved only) at once, and a sync. ★ The files of a burst settle in one
    * run (`uploadBurst` records them together), so what lands in the same tick asks the album ONCE, a microtask after
-   * the last of them: a sync asked while one is in the air runs again when it lands, so one ask a file cost a burst a
-   * delta and then a 304.
+   * the last of them (a sync asked while one is in the air runs again when it lands: an ask a file would make every
+   * burst a delta and then a 304).
    */
   notifyUploaded: (u: UploadedItem) => void;
   /**

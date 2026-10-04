@@ -807,8 +807,8 @@ a Change. The typed name also rides the code request as `DOOR_NAME_KEY`, so a ma
   `notifyUploaded` until that sync has answered (`owedLinks`), and an ask for it meanwhile waits for the answer, so her
   upload costs no links call of its own. ★ **A burst asks the album once:** the files a complete records together
   settle in one tick, each landing keeps its own optimistic tile and its own owed link, and the one sync is asked a
-  microtask after the last of them (a sync asked while one is in the air runs again when it lands, so a sync a file was
-  a delta and then a 304); the links they were asked for meanwhile go together once it has answered.
+  microtask after the last of them (a sync asked while one is in the air runs again when it lands: an ask a file would
+  make every burst a delta and then a 304); the links they were asked for meanwhile go together once it has answered.
 - **The doorbell:** the `media_gallery_doorbell` DB trigger sends a contentless `ping` on the PUBLIC
   Realtime broadcast channel `gallery:<qr_token>` whenever what a guest's album shows changes: the visible set
   (uploads, moderation flips, restores, purges) or what waits (a held upload, its approval or refusal, a row sealed
