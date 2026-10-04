@@ -48,7 +48,7 @@ the dashboard, the hub's strip, graphite, Create's styles, small fixes, red-team
 | `crumbs-67` | two jsdom tests that flaked under load wait on what they mean | MERGED at `b6cabeb35` (gate 217 green; tests only; 30 runs in a row under a concurrent build); pruned | Sonnet, 3132 | `a07bf3008e5deabd3` |
 | `crumbs-68` | the door's upload bar, the album's one ask a burst, the cause of a drop on the queue | MERGED at `e85312ba4` (gate 218 green; a guest's join and ten photos 20 calls to 18); pruned | Sonnet, 3131 | `ab8e4ad3cf9714ba1` |
 | `compute-presign` | the guest page's next CPU lever: a hand-rolled SigV4 presign behind `src/lib/r2/presign.ts`, byte-identical to the SDK's URLs by a test corpus, measured by `pnpm compute:model`; wiring rigor | RUNNING (cut at `4c1d96892`; may be cut off: resume from its WIP) | Opus, 3132 | `ae54afeec77675ece` |
-| `crumbs-69` | the hub counts as an open (Recent and Last opened from a deep link, the bell, an email); the old reel route sends a live reel to her hub's reel before the develop | RUNNING (cut at `f89590867`; may be cut off: resume from its WIP) | Sonnet, 3131 | `ab9453e19fea9242a` |
+| `crumbs-69` | the hub counts as an open; the old reel route before the develop | MERGED at `c5828d84c` (gate 219 green); pruned | Sonnet, 3131 | `ab9453e19fea9242a` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Its
 model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`. From another session, respawn it from

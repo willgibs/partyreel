@@ -36,8 +36,6 @@ below hold the rest by surface.
 - Design: a Library specimen of the download toast's states (the question, a cancel, a dropped connection, a line lost mid-stream) so `lab:smoke` renders them (`export-toast.tsx`).
 - Billing: a Pro host's switch from `/pricing`'s hop (the checkout button's `already_subscribed` re-post to change-plan) carries no uploads sentence (`uploadsPauseNote`); the change-plan route could answer a notice the hop shows before it redirects.
 - Host: nowhere in the app says a host's uploads this month against her plan's allowance (Free's 300 MB a month is stated nowhere in-app); the storage ring's popover or the Plan card could say it beside the plan's number.
-- Host: the hub counts as an open (`/dashboard/[eventId]` mounts `noteEventOpenedAction` once, as `MarkWelcomedOnMount` does), so a deep link, the bell and an email reach Recent and Last opened.
-- Host: `/dashboard/<id>/reel` (the old route's redirect) sends a live reel to the guests' page, which has none before the develop; send it to the hub's `?reel` while a develop time is ahead (`reel/page.tsx`).
 - Host (clip): the hub's reel view has no Make your own (its seam wants the host's plan and her own Add to event); wire it from the hub so she can make a clip before the develop.
 - Create: tell the dashboard she just made the event (a flag on the landing) so the lit stage's lamp ignites once, as the board drew it.
 - Dashboard: a guest album she opened is in neither Recent nor Last opened (only a host's own event is stamped); stamping one wants a table of its own.
