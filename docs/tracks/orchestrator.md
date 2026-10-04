@@ -41,6 +41,7 @@ the dashboard, the hub's strip, graphite, Create's styles, small fixes, red-team
 | `compute-model` | Phase 1: what Partyreel costs Vercel per user action, projected onto real events, a standing budget | MERGED at `cbcf7a6e4` (gate 212 green); report `../partyreel-wt/_scratch/compute-model/report.md` (a wedding 56,000 to 85,000 calls; the proxy half of every count; six levers, -93% calls and -71% CPU together); Will's calls X4, X5 in the calls lab; pruned | Opus, 3131 | `a097c42685f2fa292` |
 | `crumbs-65` | red-team 53's findings before milestone 36 | MERGED at `3e7e6ec53` (gate 210 green; no migration); his calls in the calls lab (Z); pruned | Sonnet, 3132 | `a986701b02f98a735` |
 | `limits-watch` | every vendor's plan meter against its limit, a "Plan limits" card on /admin/jobs and an email at 60% and 85%, inside the spend watch's daily run | MERGED at `42745a7dd` (gate 211 green); its migration APPLIED (`limits_watch_readings`, 20261004174457, Q33 safe as written, md5 f44a2828, advisors 19/4/36); types and the seam dropped (`8578c1cf0`); his questions X2 (a Vercel token for the cron) and X3 (a read-only Cloudflare analytics token) in the calls lab; pruned | Sonnet, 3138 | `addb8c6edba9adbff` |
+| `compute-levers` | Phase 2's first fixes from the compute model: lever 1 (the proxy only where a session matters; API routes, prefetches and the manifest out; the admin host's surface rule kept) and lever 2 (polls that rest: 5 minutes after 10 lit minutes, stop after 2 idle hours, the 12 s fallback 60 s while nothing changes; Will's X4), proven by `pnpm compute:model` and a rebased budget; local only | RUNNING (cut at `4ec1d5acf`) | Opus, 3131 | `aa924f52363c4607c` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Its
 model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`. From another session, respawn it from
@@ -69,6 +70,9 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls lab, the red-team brief
 Round 15, on Will's desk answers of 2026-10-04 06:00Z and his brand note; the approved plan, whole, is
 `../partyreel-wt/_scratch/desk/round-15-plan.md`.
 
+0a. **Phase 2 of the compute fix:** compute-levers (levers 1 and 2) running; then batched presign and complete (lever
+   4), and the CDN version (lever 3, 3b) only on Will's privacy call X5. An auth red-team of lever 1 runs on the local
+   desk before it ships; the fix reaches partyreel.com only through a milestone on Will's yes.
 0. **★ VERCEL'S HOBBY ACTIVE CPU (Will, 2026-10-04 15:30Z: almost maxed; breaking it again may cost the hosting, since
    Vercel unlocked his account once already).** Hobby allows 4 CPU-hours a rolling 30 days and pauses functions past it.
    Function calls grew from about 3,000 a day (early September) to 57,400 (2026-10-03), nearly all ours: red-team walks
