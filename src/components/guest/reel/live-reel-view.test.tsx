@@ -593,12 +593,17 @@ describe("a view already open follows the event going live (build 10's red-team:
 });
 
 /**
- * A tap on the picture used to pause the reel and open the photograph in the shared viewer, grown out
- * of the frame and carrying a video on from the reel's moment. That was reshaped on purpose: it made
- * the reel's own controls the hardest thing to reach (a tap meant to bring them up opened a second
- * layer, whose X landed on the picture that opened it again). What those four tests pinned (which clip
- * the viewer opened on, the frame it grew from, a video's moment) died with the viewer; their one
- * lasting scar is that a tap must not pause the reel or open anything over it.
+ * RESHAPED ON PURPOSE. A tap on the picture used to pause the reel and open the photograph in the
+ * shared viewer, which made the reel's own controls the hardest thing to reach (a tap meant to bring
+ * them up opened a second layer, whose X landed on the picture that opened it again). Four tests pinned
+ * that; each keeps what still holds and drops the reason that expired:
+ * - "pauses and opens the photograph on screen in the media viewer": the viewer is gone, and its scar
+ *   stays as the second test below (a tap never pauses the reel and never opens anything over it).
+ * - "opens the clip the player says is on screen": expired with the viewer (which clip it opened on);
+ *   nothing asks the player which clip is on screen any more.
+ * - "grows the viewer out of the frame, and a video carries on from the reel's moment": expired (the
+ *   frame's origin and the video's `startAt` left with the viewer).
+ * - "a photograph carries no moment, and a frame with no size fades in": expired with the same two.
  */
 describe("a tap on the picture (the bar's own press, never the photograph's)", () => {
   it("brings the controls up, and the next tap puts them away", () => {
