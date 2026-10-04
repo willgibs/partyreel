@@ -57,6 +57,11 @@ working.
 
 ## Handoff (replaces the chat report)
 
+**WIP (resumable):** the signer, the corpus and the doc lines are committed at `32b1e0c3e` (typecheck, lint and the
+R2 tests green); the live R2 round trip passed (`_scratch/compute-presign/r2-live-check.mts`). Next: `pnpm
+compute:model --port 3132 --scenarios guest-hour-live,guest-join-upload` before (the base, detached) and after, into
+`_scratch/compute-presign/{before,after}`; budget.json if the CPU falls; the whole gate; the Handoff below.
+
 - The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
 - Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
 - Gates on the synced tree, each on its own exit code, and the sha they ran on
