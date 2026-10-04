@@ -9,12 +9,16 @@
  *
  * ★ ITS OWN SWITCH FAILS TO THE MIDDLE: paused, it logs a skipped run; unreadable, it still reads and alerts but
  * pauses nothing, so neither a broken read nor an operator's pause it could not see is overridden.
+ *
+ * THE PLAN LIMITS RIDE THIS RUN (`limits-watch-run.ts`, admin-observability.md, "Plan limits"): Hobby allows two crons
+ * and both exist, so the slow climb toward a vendor's plan limit is read here beside the runaway guard. It never
+ * pauses anything and never stops the readings above: a read of it that FAILED fails the run (the card says which),
+ * and a meter past CRITICAL holds the run at attention (the bell), like a trip.
  */
 import "server-only";
 
 import { jobById, jobHealth } from "@/app/admin/jobs/catalog";
-import { ADMIN_HOST } from "@/lib/auth/admin-host";
-import { SITE_URL, SUPPORT_EMAIL } from "@/lib/constants/site";
+import { SUPPORT_EMAIL } from "@/lib/constants/site";
 import { mustQuery } from "@/lib/db/must-query";
 import {
   finishJobRun,
@@ -27,6 +31,8 @@ import type { Json } from "@/lib/db/types";
 import { sendOnce } from "@/lib/email/send";
 import { spendWatchEmail } from "@/lib/email/templates";
 import { serverEnv } from "@/lib/env";
+import type { MeterId } from "@/lib/jobs/limits-watch-limits";
+import { adminJobsUrl, runLimitsWatch } from "@/lib/jobs/limits-watch-run";
 import {
   BASIS_WORDS,
   LIFECYCLE_MAIL_KINDS,
@@ -188,9 +194,7 @@ async function checkPurgeFreshness(
 
 /** The portal's spend watch card, on the admin host where one is configured. */
 function jobsUrl(): string {
-  return ADMIN_HOST
-    ? `https://${ADMIN_HOST}/admin/jobs#job-spend_watch`
-    : `${SITE_URL}/admin/jobs#job-spend_watch`;
+  return adminJobsUrl("job-spend_watch");
 }
 
 function readingWords(v: Verdict): {
@@ -261,6 +265,8 @@ export type WatchOutcome = {
   paused: SwitchKey[];
   offered: SwitchKey[];
   note: string | null;
+  /** The plan limits this run measured (`limits-watch-run.ts`); absent on a skipped run, which read nothing. */
+  limits?: { warn: MeterId[]; critical: MeterId[]; failed: MeterId[] };
 };
 
 /** The run's one line on the card: what tripped and what was done, then what could not be read. */
@@ -401,6 +407,10 @@ export async function runSpendWatch(opts: {
   // 5. The purge's own silence, which nothing else would page on.
   await checkPurgeFreshness(admin, nowMs, purgeEnabled);
 
+  // 5b. The plan limits: every vendor's meter against its plan's limit, mailing what newly crossed a threshold. Never
+  // throws, never pauses anything, and never touches the spend watch's own verdicts above.
+  const limits = await runLimitsWatch({ admin, now });
+
   // 6. Tell.
   const tripped = verdicts.filter((v) => v.state === "tripped");
   if (tripped.length > 0) {
@@ -417,13 +427,20 @@ export async function runSpendWatch(opts: {
   // be read fails the run: the card must never read healthy over a reading it did not take.
   const missing = verdicts.filter((v) => v.state === "missing");
   const status =
-    missing.length > 0 || failed.length > 0 || !historyRead ? "error" : "ok";
+    missing.length > 0 ||
+    failed.length > 0 ||
+    !historyRead ||
+    limits.failed.length > 0 ||
+    limits.problem
+      ? "error"
+      : "ok";
   const uploadsPaused = switches?.uploads_enabled?.enabled === false;
   if (uploadsPaused) {
     extra.push(
       "Guest uploads are paused: every guest is refused until a person turns them back on.",
     );
   }
+  extra.push(...limits.notes);
   const note = noteFor({
     verdicts,
     paused: pausedNow,
@@ -431,7 +448,7 @@ export async function runSpendWatch(opts: {
     failed,
     extra,
   });
-  const counts = runCounts({
+  const runRecord = runCounts({
     nowMs,
     baseline,
     verdicts,
@@ -442,6 +459,13 @@ export async function runSpendWatch(opts: {
     },
     pausedAt,
   });
+  const counts = {
+    ...runRecord,
+    // The plan limits' record, which the next run reads its told levels and a gauge's climb from.
+    ...(limits.stored ? { limits: limits.stored } : {}),
+    // A meter past CRITICAL waits on a person while nothing failed: the run reads as attention, like a trip.
+    ...(limits.critical.length > 0 ? { breaker_tripped: true } : {}),
+  };
   const done = await finishJobRun(run, {
     status,
     counts: counts as Json,
@@ -456,5 +480,10 @@ export async function runSpendWatch(opts: {
     paused: pausedNow,
     offered: plan.offer,
     note,
+    limits: {
+      warn: limits.warn,
+      critical: limits.critical,
+      failed: limits.failed,
+    },
   };
 }

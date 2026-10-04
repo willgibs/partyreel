@@ -116,6 +116,10 @@ const serverSchema = z.object({
   // request time so the mint route fails closed (never mints an unsigned/destinationless token).
   EXPORT_SIGNING_SECRET: z.string().min(1).optional(),
   EXPORT_WORKER_URL: z.url().optional(),
+  // Vercel usage reads for the plan limits (jobs/limits-watch-vercel.ts): a team-scoped token the spend watch's cron
+  // uses for one GET of /v2/usage. A Vercel token can deploy and delete, so it is its own variable (never the kit's
+  // personal VERCEL_TOKEN) and `.optional()`: unset, the Vercel meters read "No reading" (Not wired) and nothing fails.
+  VERCEL_USAGE_TOKEN: z.string().min(1).optional(),
 });
 
 function formatIssues(error: z.ZodError): string {
@@ -171,6 +175,7 @@ function parseServer() {
     DESIGN_PREVIEW_KEY: process.env.DESIGN_PREVIEW_KEY,
     EXPORT_SIGNING_SECRET: process.env.EXPORT_SIGNING_SECRET,
     EXPORT_WORKER_URL: process.env.EXPORT_WORKER_URL,
+    VERCEL_USAGE_TOKEN: process.env.VERCEL_USAGE_TOKEN,
   });
   if (!parsed.success) {
     throw new Error(

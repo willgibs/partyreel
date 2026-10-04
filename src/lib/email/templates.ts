@@ -263,8 +263,11 @@ function renderText(parts: MailParts): string {
   return `${sections.join("\n\n")}\n\n---\n\n${foot}\n`;
 }
 
-/** Every template ends here: one set of parts, two renderings. */
-function composeMail(parts: MailParts): Mail {
+/**
+ * Every template ends here: one set of parts, two renderings. Exported for the one template that lives beside the job
+ * that sends it (the plan limits' alert, `jobs/limits-watch-mail.ts`), which wears this shell rather than a second one.
+ */
+export function composeMail(parts: MailParts): Mail {
   return {
     subject: parts.subject,
     html: renderHtml(parts),

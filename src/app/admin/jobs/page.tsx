@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Fragment } from "react";
 
 import { AlertTriangle } from "lucide-react";
 
@@ -32,6 +33,7 @@ import {
   type JobSignals,
   type JobState,
 } from "@/lib/db/queries/jobs";
+import { readLatestLimits } from "@/lib/jobs/limits-watch-run";
 import { readLatestWatchRun } from "@/lib/jobs/spend-watch-run";
 import { readSwitches } from "@/lib/jobs/spend-watch-switches";
 import { RESUME_KEY } from "@/lib/jobs/sweep-tally";
@@ -53,6 +55,7 @@ import {
   PruneHoldControl,
   RunJobNowButton,
 } from "./job-controls";
+import { PlanLimitsCard, type LatestLimits } from "./limits-card";
 import { readLastPruneReport, readPruneHoldReleasedAtMs } from "./prune-hold";
 import { pruneHoldView, type PruneHoldView } from "./prune-hold-view";
 import {
@@ -231,6 +234,22 @@ async function loadWatchData(): Promise<{
 }
 
 /**
+ * The plan limits' card reads the newest run that carried them (the spend watch's run takes them; the newest of all may
+ * be a pause's skipped row, or a run from before it learned them). A failed read stays on the card in words, never
+ * blanking the console or drawing a calm card.
+ */
+async function loadLimitsData(): Promise<{
+  latest: LatestLimits | null;
+  error: string | null;
+}> {
+  try {
+    return { latest: await readLatestLimits(), error: null };
+  } catch (e) {
+    return { latest: null, error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+/**
  * The backup prune's hold, for its card: its last report from a run that ran and the last release pressed. A hold
  * read that fails draws no control rather than a wrong one; a stamp that cannot be read reads as none, so a hold
  * still offers its release (pressing again only stamps again).
@@ -254,8 +273,14 @@ export default async function JobsPage() {
   const [
     { flags, states, recent, signals, nowMs, unavailable },
     watch,
+    limits,
     pruneHold,
-  ] = await Promise.all([loadPageData(), loadWatchData(), loadPruneHold()]);
+  ] = await Promise.all([
+    loadPageData(),
+    loadWatchData(),
+    loadLimitsData(),
+    loadPruneHold(),
+  ]);
 
   // Health resolves in TWO passes because a `derived` reading inherits the health of the run that
   // carried it: the Worker's own verdict has to exist before the queue and dead-letter cards can say
@@ -354,189 +379,205 @@ export default async function JobsPage() {
         const readingAgeMin = readDepthAgeMinutes(def, readingSource);
 
         return (
-          // The palette jumps to a job's card rather than throwing its switch
-          // (lib/admin/palette.ts), so the id is part of that contract.
-          <Card key={def.id} id={`job-${def.id}`} className="scroll-mt-20">
-            <CardHeader>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <CardTitle className="flex items-center gap-2">
-                  {def.label}
-                  <Badge variant={healthBadge(health)}>
-                    {healthLabel(def, health)}
-                  </Badge>
-                </CardTitle>
-                {flags && def.flagKey ? (
-                  <JobKillSwitch
-                    jobId={def.id}
-                    label={def.label}
-                    enabled={enabled}
-                  />
-                ) : null}
-              </div>
-              <CardDescription>{def.description}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <dl className="grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2">
-                <div className="flex gap-2">
-                  <dt className="text-muted-foreground">Schedule</dt>
-                  <dd>{def.cadence}</dd>
+          <Fragment key={def.id}>
+            {/* The palette jumps to a job's card rather than throwing its switch
+              (lib/admin/palette.ts), so the id is part of that contract. */}
+            <Card id={`job-${def.id}`} className="scroll-mt-20">
+              <CardHeader>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <CardTitle className="flex items-center gap-2">
+                    {def.label}
+                    <Badge variant={healthBadge(health)}>
+                      {healthLabel(def, health)}
+                    </Badge>
+                  </CardTitle>
+                  {flags && def.flagKey ? (
+                    <JobKillSwitch
+                      jobId={def.id}
+                      label={def.label}
+                      enabled={enabled}
+                    />
+                  ) : null}
                 </div>
-                <div className="flex gap-2">
-                  <dt className="text-muted-foreground">Runs on</dt>
-                  <dd>{HOST_LABEL[def.host] ?? def.host}</dd>
-                </div>
+                <CardDescription>{def.description}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <dl className="grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2">
+                  <div className="flex gap-2">
+                    <dt className="text-muted-foreground">Schedule</dt>
+                    <dd>{def.cadence}</dd>
+                  </div>
+                  <div className="flex gap-2">
+                    <dt className="text-muted-foreground">Runs on</dt>
+                    <dd>{HOST_LABEL[def.host] ?? def.host}</dd>
+                  </div>
 
-                {def.kind === "signal" ? (
-                  <div className="flex gap-2 sm:col-span-2">
-                    <dt className="text-muted-foreground">Last 24 hours</dt>
-                    <dd>
-                      {signal ? (
-                        <>
-                          {signal.ok24h} {signalWords?.ok ?? "ok"},{" "}
-                          <span
-                            className={
-                              signal.failed24h > 0
-                                ? "text-destructive"
-                                : "text-muted-foreground"
-                            }
-                          >
-                            {signal.failed24h} {signalWords?.failed ?? "failed"}
-                          </span>
-                          {/* The failure count is a FLOOR, not a census: the log damps a burst to
+                  {def.kind === "signal" ? (
+                    <div className="flex gap-2 sm:col-span-2">
+                      <dt className="text-muted-foreground">Last 24 hours</dt>
+                      <dd>
+                        {signal ? (
+                          <>
+                            {signal.ok24h} {signalWords?.ok ?? "ok"},{" "}
+                            <span
+                              className={
+                                signal.failed24h > 0
+                                  ? "text-destructive"
+                                  : "text-muted-foreground"
+                              }
+                            >
+                              {signal.failed24h}{" "}
+                              {signalWords?.failed ?? "failed"}
+                            </span>
+                            {/* The failure count is a FLOOR, not a census: the log damps a burst to
                               one row per quarter hour per instance, so "3" means at least three.
                               Said here rather than left to be read as exact. */}
-                          {signal.failed24h > 0 ? (
+                            {signal.failed24h > 0 ? (
+                              <span className="text-muted-foreground">
+                                {" "}
+                                (at least; Sentry has every event)
+                              </span>
+                            ) : null}
+                          </>
+                        ) : (
+                          <span className="text-muted-foreground">
+                            Not read
+                          </span>
+                        )}
+                      </dd>
+                    </div>
+                  ) : null}
+
+                  {def.kind === "derived" ? (
+                    <>
+                      <div className="flex gap-2">
+                        <dt className="text-muted-foreground">Depth</dt>
+                        <dd>
+                          {!reading || reading.value === null ? (
                             <span className="text-muted-foreground">
-                              {" "}
-                              (at least; Sentry has every event)
+                              No reading
                             </span>
-                          ) : null}
-                        </>
-                      ) : (
-                        <span className="text-muted-foreground">Not read</span>
-                      )}
-                    </dd>
-                  </div>
-                ) : null}
-
-                {def.kind === "derived" ? (
-                  <>
-                    <div className="flex gap-2">
-                      <dt className="text-muted-foreground">Depth</dt>
-                      <dd>
-                        {!reading || reading.value === null ? (
-                          <span className="text-muted-foreground">
-                            No reading
-                          </span>
-                        ) : (
-                          <span
-                            className={
-                              health === "failed" || health === "attention"
-                                ? "text-destructive"
-                                : undefined
-                            }
-                          >
-                            {formatCount(reading.value)}{" "}
-                            {readingWords?.unit ?? ""}
-                          </span>
-                        )}
-                      </dd>
-                    </div>
-                    <div className="flex gap-2">
-                      <dt className="text-muted-foreground">Read</dt>
-                      <dd>
-                        {reading?.readAtMs ? (
-                          <span>{formatAdminTimestamp(reading.readAtMs)}</span>
-                        ) : (
-                          <span className="text-muted-foreground">Never</span>
-                        )}
-                      </dd>
-                    </div>
-                    {readingAgeMin !== null ? (
-                      <div className="flex gap-2 sm:col-span-2">
-                        <dt className="text-muted-foreground">
-                          Oldest message
-                        </dt>
-                        <dd>{formatMinutes(readingAgeMin)}</dd>
+                          ) : (
+                            <span
+                              className={
+                                health === "failed" || health === "attention"
+                                  ? "text-destructive"
+                                  : undefined
+                              }
+                            >
+                              {formatCount(reading.value)}{" "}
+                              {readingWords?.unit ?? ""}
+                            </span>
+                          )}
+                        </dd>
                       </div>
-                    ) : null}
-                  </>
-                ) : (
-                  <div className="flex gap-2">
-                    <dt className="text-muted-foreground">
-                      {def.kind === "signal" ? "Last failure" : "Last run"}
-                    </dt>
-                    <dd>
-                      {last ? (
-                        <>
-                          <span>{formatAdminTimestamp(last.started_at)}</span>{" "}
+                      <div className="flex gap-2">
+                        <dt className="text-muted-foreground">Read</dt>
+                        <dd>
+                          {reading?.readAtMs ? (
+                            <span>
+                              {formatAdminTimestamp(reading.readAtMs)}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">Never</span>
+                          )}
+                        </dd>
+                      </div>
+                      {readingAgeMin !== null ? (
+                        <div className="flex gap-2 sm:col-span-2">
+                          <dt className="text-muted-foreground">
+                            Oldest message
+                          </dt>
+                          <dd>{formatMinutes(readingAgeMin)}</dd>
+                        </div>
+                      ) : null}
+                    </>
+                  ) : (
+                    <div className="flex gap-2">
+                      <dt className="text-muted-foreground">
+                        {def.kind === "signal" ? "Last failure" : "Last run"}
+                      </dt>
+                      <dd>
+                        {last ? (
+                          <>
+                            <span>{formatAdminTimestamp(last.started_at)}</span>{" "}
+                            <span className="text-muted-foreground">
+                              {RUN_STATUS_LABEL[last.status] ?? last.status}
+                              {last.duration_ms !== null &&
+                              def.kind !== "signal"
+                                ? `, ${formatDuration(last.duration_ms)}`
+                                : ""}
+                            </span>
+                          </>
+                        ) : (
                           <span className="text-muted-foreground">
-                            {RUN_STATUS_LABEL[last.status] ?? last.status}
-                            {last.duration_ms !== null && def.kind !== "signal"
-                              ? `, ${formatDuration(last.duration_ms)}`
-                              : ""}
+                            {def.kind === "signal" ? "None recorded" : "Never"}
                           </span>
-                        </>
-                      ) : (
-                        <span className="text-muted-foreground">
-                          {def.kind === "signal" ? "None recorded" : "Never"}
-                        </span>
-                      )}
-                    </dd>
-                  </div>
-                )}
+                        )}
+                      </dd>
+                    </div>
+                  )}
 
-                {counts &&
-                def.kind === "scheduled" &&
-                def.id !== "spend_watch" ? (
-                  <div className="flex gap-2 sm:col-span-2">
-                    <dt className="text-muted-foreground">Reported</dt>
-                    <dd className="text-muted-foreground">{counts}</dd>
+                  {counts &&
+                  def.kind === "scheduled" &&
+                  def.id !== "spend_watch" ? (
+                    <div className="flex gap-2 sm:col-span-2">
+                      <dt className="text-muted-foreground">Reported</dt>
+                      <dd className="text-muted-foreground">{counts}</dd>
+                    </div>
+                  ) : null}
+                  {last?.note && def.kind !== "derived" ? (
+                    <div className="flex gap-2 sm:col-span-2">
+                      <dt className="text-muted-foreground">Note</dt>
+                      <dd>{last.note}</dd>
+                    </div>
+                  ) : null}
+                </dl>
+
+                {def.id === "spend_watch" ? (
+                  // The watch's own card: its readings against their ceilings, and what it can stop.
+                  <div className="space-y-5 border-t border-border pt-3">
+                    <SpendWatchReadings
+                      latest={watch.latest}
+                      unreadable={watch.latestError}
+                    />
+                    <SpendWatchSwitches
+                      switches={watch.switches}
+                      latest={watch.latest?.run ?? null}
+                      unreadable={watch.switchesError}
+                    />
                   </div>
                 ) : null}
-                {last?.note && def.kind !== "derived" ? (
-                  <div className="flex gap-2 sm:col-span-2">
-                    <dt className="text-muted-foreground">Note</dt>
-                    <dd>{last.note}</dd>
+
+                {def.id === "backup_prune" && pruneHold ? (
+                  <div className="border-t border-border pt-3">
+                    <PruneHoldControl view={pruneHold} />
                   </div>
                 ) : null}
-              </dl>
 
-              {def.id === "spend_watch" ? (
-                // The watch's own card: its readings against their ceilings, and what it can stop.
-                <div className="space-y-5 border-t border-border pt-3">
-                  <SpendWatchReadings
-                    latest={watch.latest}
-                    unreadable={watch.latestError}
-                  />
-                  <SpendWatchSwitches
-                    switches={watch.switches}
-                    latest={watch.latest?.run ?? null}
-                    unreadable={watch.switchesError}
-                  />
+                <div className="flex flex-wrap items-center gap-3 border-t border-border pt-3">
+                  {def.canRunNow ? (
+                    <RunJobNowButton jobId={def.id} label={def.label} />
+                  ) : null}
+                  <p className="text-xs text-muted-foreground">
+                    {/* The remedy, said where the problem is: a dead letter is not stuck forever. */}
+                    {def.kind === "derived" && health !== "ok" && readingWords
+                      ? readingWords.remedy
+                      : (JOB_RUN_NOW_NOTE[def.host] ??
+                        "Pausing takes effect on the next scheduled run.")}
+                  </p>
                 </div>
-              ) : null}
-
-              {def.id === "backup_prune" && pruneHold ? (
-                <div className="border-t border-border pt-3">
-                  <PruneHoldControl view={pruneHold} />
-                </div>
-              ) : null}
-
-              <div className="flex flex-wrap items-center gap-3 border-t border-border pt-3">
-                {def.canRunNow ? (
-                  <RunJobNowButton jobId={def.id} label={def.label} />
-                ) : null}
-                <p className="text-xs text-muted-foreground">
-                  {/* The remedy, said where the problem is: a dead letter is not stuck forever. */}
-                  {def.kind === "derived" && health !== "ok" && readingWords
-                    ? readingWords.remedy
-                    : (JOB_RUN_NOW_NOTE[def.host] ??
-                      "Pausing takes effect on the next scheduled run.")}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+            {def.id === "spend_watch" ? (
+              // The plan limits ride the spend watch's run: their card sits beside its own.
+              <PlanLimitsCard
+                latest={limits.latest}
+                unreadable={limits.error}
+                nowMs={nowMs}
+              />
+            ) : null}
+          </Fragment>
         );
       })}
 
