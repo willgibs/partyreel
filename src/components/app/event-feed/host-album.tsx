@@ -292,9 +292,10 @@ export function HostAlbumProvider({
 
   // The fallback question, on the guest album's own cadence (`use-live-poll.ts`): a 60s safety net
   // while the socket is up, the tighter 12s when it is down, nothing while hidden, and one question
-  // at once on the way back.
+  // at once on the way back; each resting while nothing moves (the snapshot is the change).
   const poll = useCallback(() => void album.sync(), [album]);
-  useLivePoll({ enabled: true, live, onPoll: poll });
+  const answer = useHubSnapshot(album);
+  useLivePoll({ enabled: true, live, onPoll: poll, changeKey: answer });
 
   return (
     <HostAlbumContext.Provider value={album}>

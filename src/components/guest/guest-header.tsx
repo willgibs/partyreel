@@ -425,8 +425,11 @@ export function GuestHeader({
         isDemo && "sticky top-0",
       )}
     >
+      {/* ★ The way home prefetches only on the demo, whose visitor is a prospective host (compute-levers):
+          on a real album it was three requests a join, for a page a guest seldom opens. */}
       <Link
         href="/"
+        prefetch={isDemo ? undefined : false}
         aria-label="Partyreel home"
         className="flex items-center gap-2.5"
       >
@@ -482,7 +485,9 @@ export function GuestHeader({
           />
         ) : (
           <Button asChild variant="ghost" size="sm">
-            <Link href="/">Start for free</Link>
+            <Link href="/" prefetch={isDemo ? undefined : false}>
+              Start for free
+            </Link>
           </Button>
         )}
       </div>

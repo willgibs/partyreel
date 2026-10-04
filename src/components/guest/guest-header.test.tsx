@@ -6,6 +6,9 @@
  * layout treatment (verified live, `testing-verification.md`'s blind spot),
  * never a class name this file should freeze.
  */
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import {
   act,
   fireEvent,
@@ -73,6 +76,19 @@ vi.mock("@/lib/supabase/client", () => ({
 import { GuestHeader } from "@/components/guest/guest-header";
 import { publishCoverUnderHeader } from "@/components/guest/guest-header-cover";
 import { setStoredName } from "@/lib/guest/use-stored-name";
+
+describe("GuestHeader: the way home", () => {
+  it("★ prefetches the marketing home only on the demo, whose visitor is a prospective host (compute-levers)", () => {
+    const src = readFileSync(
+      join(process.cwd(), "src/components/guest/guest-header.tsx"),
+      "utf8",
+    );
+    const home = src.match(/<Link\b[^>]*href="\/"[^>]*>/g) ?? [];
+    expect(home).toHaveLength(2);
+    for (const link of home)
+      expect(link).toContain("prefetch={isDemo ? undefined : false}");
+  });
+});
 
 describe("GuestHeader: the Demo mark", () => {
   it("never appears for a real event", () => {

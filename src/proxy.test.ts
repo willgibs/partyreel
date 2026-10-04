@@ -9,13 +9,25 @@
  * reason expired on Vercel, which answers a status on a request sent on with its own /404, so the
  * page's screen never rendered (build 30's red-team). The scar kept: the session refresh is handed
  * the request alone, whatever the path, so nothing here can carry a status to the page.
+ *
+ * ★ AND IT RUNS ONLY WHERE A SESSION MATTERS (compute-levers, the compute model's lever 1): the
+ * pages that render a session on every host, and every path on the admin host. Read here the way
+ * the build reads it (a value the build cannot read drops the whole matcher and the proxy runs on
+ * everything again), then asked through Next's own matcher.
  */
+import { AsyncLocalStorage } from "node:async_hooks";
+import { readFileSync } from "node:fs";
+
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { REQUEST_PATH_HEADER, RETURN_PATH_MAX } from "@/lib/auth/return-path";
 
-const mocks = vi.hoisted(() => ({ sent: [] as unknown[][] }));
+const mocks = vi.hoisted(() => ({
+  sent: [] as unknown[][],
+  gateOpen: true,
+  decision: "serve" as "serve" | "not-found",
+}));
 
 // The session refresh hands back the request it was given, so the test reads the headers the
 // gates would read, and records every argument it was handed.
@@ -25,15 +37,28 @@ vi.mock("@/lib/supabase/middleware", () => ({
     return args[0];
   },
 }));
-vi.mock("@/lib/design-gate/server", () => ({ designGateOpen: () => true }));
+vi.mock("@/lib/design-gate/server", () => ({
+  designGateOpen: () => mocks.gateOpen,
+}));
 vi.mock("@/lib/auth/admin-host", () => ({ isAdminHost: () => false }));
 vi.mock("@/lib/surface", () => ({
-  decideBySurface: () => "serve",
+  decideBySurface: () => mocks.decision,
   SURFACE_404_PATH: "/surface/not-served",
   surface: () => undefined,
 }));
 
-const { proxy } = await import("./proxy");
+const { proxy, config } = await import("./proxy");
+
+// Next's matcher utilities reach server modules that expect the runtime's AsyncLocalStorage global
+// (Next's own server installs it; a test runner does not). ★ The docs name the utility
+// `unstable_doesProxyMatch`; 16.2 ships it as `unstable_doesMiddlewareMatch`.
+(globalThis as { AsyncLocalStorage?: unknown }).AsyncLocalStorage ??=
+  AsyncLocalStorage;
+const { unstable_doesMiddlewareMatch } =
+  await import("next/experimental/testing/server");
+const { loadBindings, parse } = await import("next/dist/build/swc/index.js");
+const { extractExportedConstValue } =
+  await import("next/dist/build/analysis/extract-const-value.js");
 
 async function forwarded(url: string, headers: Record<string, string> = {}) {
   const out = (await proxy(new NextRequest(url, { headers }))) as unknown;
@@ -42,6 +67,8 @@ async function forwarded(url: string, headers: Record<string, string> = {}) {
 
 beforeEach(() => {
   mocks.sent.length = 0;
+  mocks.gateOpen = true;
+  mocks.decision = "serve";
 });
 
 describe("the path the gates read", () => {
@@ -97,5 +124,205 @@ describe("a link that names nothing", () => {
         expect(mocks.sent, path).toStrictEqual([[request]]);
       }
     }
+  });
+});
+
+// ── Where the proxy runs ─────────────────────────────────────────────────────────────────────────
+
+/** `config` as the build reads it: swc's parse of this file's source, then Next's own extraction. */
+async function builtConfig() {
+  await loadBindings();
+  const source = readFileSync(new URL("./proxy.ts", import.meta.url), "utf8");
+  const ast = await parse(source, {
+    isModule: "unknown",
+    filename: "proxy.ts",
+  });
+  return extractExportedConstValue(ast, "config");
+}
+
+/** Whether the matcher takes this request: a page load unless `headers` say otherwise. */
+function takes(
+  path: string,
+  host: string,
+  headers: Record<string, string> = {},
+): boolean {
+  return unstable_doesMiddlewareMatch({
+    config,
+    url: path,
+    headers: { host, ...headers },
+  });
+}
+
+/** The two launch-prep aliases, read from the one script that assigns them. */
+const ALIASES = Object.fromEntries(
+  [
+    ...readFileSync(
+      new URL("../usher/kit/alias-ensure.mjs", import.meta.url),
+      "utf8",
+    ).matchAll(/label: "(app|admin)".*?alias: "([^"]+)"/g),
+  ].map((m) => [m[1], m[2]]),
+);
+/** Every host the admin project answers on: its domain, local dev's, its alias and its own deployments. */
+const ADMIN_HOSTS = [
+  "admin.partyreel.com",
+  "admin.localhost",
+  ALIASES.admin,
+  "partyreel-admin-k3x9q2m1a-partyreel.vercel.app",
+  "partyreel-admin.vercel.app",
+];
+/** Every host the app answers on, local dev's included (the compute model measures on it). */
+const APP_HOSTS = [
+  "partyreel.com",
+  "www.partyreel.com",
+  ALIASES.app,
+  "partyreel-k3x9q2m1a-partyreel.vercel.app",
+  "localhost",
+  "127.0.0.1",
+];
+
+/** A page load, a soft navigation's RSC, and a prefetch (each a separate invocation on Vercel). */
+const REQUESTS: Record<string, Record<string, string>> = {
+  "a page load": { "sec-fetch-dest": "document" },
+  "an RSC navigation": { rsc: "1" },
+  "a prefetch": { rsc: "1", "next-router-prefetch": "1" },
+};
+
+/** Pages that render a session (their layouts or pages ask `getUser()`, or a gate the proxy holds). */
+const SESSION_PAGES = [
+  "/dashboard",
+  "/dashboard/3f1c2a4e-0000-4000-8000-000000000000/print",
+  "/dashboard/3f1c2a4e-0000-4000-8000-000000000000/as-guest",
+  "/account",
+  "/account/renew",
+  "/me",
+  "/welcome",
+  "/login",
+  "/auth/callback",
+  "/e/a-guest-token",
+  "/e/a-guest-token/card",
+  "/u/a-handle",
+  "/report/a-guest-token",
+  "/admin",
+  "/admin/jobs",
+  "/design",
+  "/design/lab/kit",
+];
+
+/** What the app's hosts leave to the CDN or to a route's own session read. */
+const NO_PROXY = [
+  "/",
+  "/pricing",
+  "/privacy",
+  "/terms",
+  "/help/how-partyreel-works",
+  "/blog",
+  "/manifest.webmanifest",
+  "/robots.txt",
+  "/sitemap.xml",
+  "/llms.txt",
+  "/opengraph-image",
+  "/demo",
+  "/api/album/guest/sync",
+  "/api/album/host/3f1c2a4e-0000-4000-8000-000000000000/sync",
+  "/api/r2/presign-upload",
+  "/api/guests/door",
+  "/api/me/menu",
+  "/api/stripe/webhook",
+  "/api/cron/purge",
+  "/api/design-gate",
+  "/a-page-nobody-serves",
+  // Prefixes of the session pages that are not their segments.
+  "/events",
+  "/events/weddings",
+  "/media",
+  "/author",
+  "/reports",
+  "/administrators",
+  "/designs",
+];
+
+/** Next's build output, the platform's beacons and static images: no proxy on any host. */
+const STATIC = [
+  "/_next/static/chunks/app.js",
+  "/_next/image?url=%2Fhero.jpg&w=640&q=75",
+  "/_vercel/insights/view",
+  "/favicon.ico",
+  "/icon.svg",
+  "/icons/icon-192.png",
+];
+
+describe("★ where the proxy runs: only where a session matters (compute-levers)", () => {
+  it("is the matcher the build reads, every value a literal it can read", async () => {
+    expect(await builtConfig()).toStrictEqual({ value: config });
+  });
+
+  it("takes every page that renders a session, on every host, its RSC and its prefetch included", () => {
+    for (const host of [...APP_HOSTS, ...ADMIN_HOSTS])
+      for (const path of SESSION_PAGES)
+        for (const [what, headers] of Object.entries(REQUESTS))
+          expect(
+            takes(path, host, headers),
+            `${what} of ${path} on ${host}`,
+          ).toBe(true);
+  });
+
+  it("leaves the marketing site, the metadata routes, the API routes and their prefetches alone on the app's hosts", () => {
+    for (const host of APP_HOSTS)
+      for (const path of NO_PROXY)
+        for (const [what, headers] of Object.entries(REQUESTS))
+          expect(
+            takes(path, host, headers),
+            `${what} of ${path} on ${host}`,
+          ).toBe(false);
+  });
+
+  it("takes every path on the admin project's hosts, so its allow-list refuses what it does not serve", () => {
+    expect(
+      ALIASES.admin,
+      "the admin alias, read from alias-ensure.mjs",
+    ).toMatch(/^partyreel-admin-/);
+    for (const host of ADMIN_HOSTS)
+      for (const path of [...NO_PROXY, ...SESSION_PAGES])
+        expect(takes(path, host), `${path} on ${host}`).toBe(true);
+  });
+
+  it("names none of the app's hosts as the admin's, nor a host that only ends like one", () => {
+    expect(ALIASES.app, "the app alias, read from alias-ensure.mjs").toMatch(
+      /^partyreel-git-/,
+    );
+    for (const host of [...APP_HOSTS, "xadmin.partyreel.com", "admin"])
+      expect(takes("/pricing", host), host).toBe(false);
+  });
+
+  it("leaves Next's build output, the beacons and static images alone on every host", () => {
+    for (const host of [...APP_HOSTS, ...ADMIN_HOSTS])
+      for (const path of STATIC)
+        expect(takes(path, host), `${path} on ${host}`).toBe(false);
+  });
+});
+
+describe("what the proxy does where it runs", () => {
+  it("refuses a path outside the surface with the real 404 before anything else, the refresh included", async () => {
+    mocks.decision = "not-found";
+    const res = await proxy(
+      new NextRequest("https://admin.partyreel.com/pricing"),
+    );
+    expect(res.status).toBe(404);
+    expect(res.headers.get("x-middleware-rewrite")).toBe(
+      "https://admin.partyreel.com/surface/not-served",
+    );
+    expect(mocks.sent).toStrictEqual([]);
+  });
+
+  it("refuses the lab without its key with the real 404, before any lab layout renders", async () => {
+    mocks.gateOpen = false;
+    const res = await proxy(
+      new NextRequest("https://partyreel.com/design/lab/kit"),
+    );
+    expect(res.status).toBe(404);
+    expect(res.headers.get("x-middleware-rewrite")).toBe(
+      "https://partyreel.com/design-gate/closed",
+    );
+    expect(mocks.sent).toStrictEqual([]);
   });
 });

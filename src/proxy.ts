@@ -6,8 +6,10 @@
  *
  * Two gates and a session refresh, in that order: which SURFACE this deployment
  * serves (the admin split), the design lab's key, then the Supabase session
- * cookie on every matched request, with the request's path handed to the
- * layouts' sign-in gates on the way.
+ * cookie, with the request's path handed to the layouts' sign-in gates on the
+ * way. It runs only where one of those matters (the matcher at the foot says
+ * where, and why everything else is left to the CDN or refreshes its own
+ * session).
  *
  * It is NOT an auth gate: route protection lives in the (app) layout via
  * getUser(), and each Server Function must re-verify authz itself. Treating the
@@ -96,8 +98,9 @@ export async function proxy(request: NextRequest) {
   }
   // THE PATH, FOR THE GATES (crumbs-11). A layout cannot read its own URL, and
   // the (app) and (print) gates send a signed-out visitor to /login carrying the
-  // page they asked for (lib/auth/login-redirect.ts). Written on every request,
-  // so a client's own copy never survives, and left off for a path longer than
+  // page they asked for (lib/auth/login-redirect.ts). Written on every request
+  // the matcher takes, and it takes every page whose gate reads it, so a
+  // client's own copy never survives to a gate; left off for a path longer than
   // any page that may be returned to rather than copying a long URL into a
   // header. The gate re-checks it against the allow-list: a reachability hint
   // for one redirect, never an authorization.
@@ -118,19 +121,55 @@ export async function proxy(request: NextRequest) {
   return updateSession(request);
 }
 
+/**
+ * WHERE THE PROXY RUNS: ONLY WHERE A SESSION MATTERS (compute-levers, the compute model's lever 1). On Vercel the
+ * proxy is an invocation of its own, run BEFORE the CDN on every request its matcher takes, so a matcher of
+ * everything made it half of every call count (`pnpm compute:model`): each album poll, presign, prefetch, crawler hit
+ * and `/manifest.webmanifest` paid a run that refreshed a session nothing was rendering.
+ *
+ * 1. THE PAGES THAT RENDER A SESSION, on every host, their RSC requests and prefetches included, because a refresh
+ *    must happen BEFORE such a render: a Server Component cannot write a cookie (`lib/supabase/server.ts` swallows
+ *    the write), so a token refreshed inside a render is spent and lost, and the next request presents the spent
+ *    refresh token. Segment-aware (`/e` is never `/events`):
+ *    - `/dashboard`, `/account`, `/me`, `/welcome`: the (app), (as-guest) and (print) gates, which read the path
+ *      written above (`x-pr-path`, overwritten here so a client's own copy never reaches them);
+ *    - `/login`, `/auth`: sign-in, which sends a signed-in visitor on, and the callback;
+ *    - `/e`, `/u`, `/report`: the guest's link, the profile and the report page, which read the viewer's account;
+ *    - `/admin`: the portal, and the app surface's 404 of it;
+ *    - `/design`: the lab's key gate, before any lab layout renders (`x-design-key`, written only here).
+ *    ★ A session page's PREFETCH keeps its run (`/login`'s, from the marketing bar, is one): it renders the page's
+ *    layout, whose `getUser()` would otherwise refresh inside a render. Prefetches of every other page leave with it.
+ * 2. THE ADMIN HOST, EVERY PATH: the admin deployment is an allow-list (`src/lib/surface`), so a path left to the CDN
+ *    there would be a marketing page or an API route answering on the portal's host. A matcher can only be literals
+ *    read at build, so it cannot see NEXT_PUBLIC_SURFACE; the host is the one fact it can read about which deployment
+ *    is answering. So the pattern names the admin project's hosts: any `admin.<domain>` (admin.partyreel.com,
+ *    admin.localhost) and the partyreel-admin project's own vercel.app hosts (its alias, its deployments). ★ An admin
+ *    domain outside it would serve the app's static pages and API routes unrefused (`proxy.test.ts` holds every
+ *    host the repo names, both ways).
+ *
+ * EVERYTHING ELSE RUNS NO PROXY: the marketing site and the metadata routes (prerendered, the CDN's), the API routes
+ * (each one that reads a session asks `getUser()` through `lib/supabase/server.ts`, whose cookie writes land on a
+ * route handler's response, so an expired token is refreshed there), and Server Functions posted to those pages (the
+ * same writes land on an action's response). What the first matcher always skipped (Next's build output, the Vercel
+ * beacons, static images) stays skipped on BOTH surfaces: the portal's own JS, CSS and icons come out of /_next.
+ *
+ * ★ LITERALS ONLY. Next reads this object statically at build, and one value it cannot read (a variable, an import, a
+ * spread) drops the WHOLE config, so the proxy silently runs on everything again; `proxy.test.ts` reads it the
+ * build's way and holds the two readings equal.
+ */
 export const config = {
-  // Match everything except Next internals, Vercel platform paths (the
-  // /_vercel/insights + /_vercel/speed-insights analytics beacons need no
-  // session, and each hit here costs a Supabase getUser round-trip), and static
-  // image assets, so the auth cookie stays fresh app-wide. The matcher only
-  // skips work that never needs a session; route-level protection is enforced
-  // in the (app) layout.
-  //
-  // The surface rule rides this same matcher, so what is skipped here is served
-  // on BOTH surfaces: Next's build output, the Vercel beacons and static
-  // images. Deliberate, because the portal's own JS, CSS and icons come out of
-  // /_next and none of those paths names a route.
   matcher: [
-    "/((?!_next/static|_next/image|_vercel|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+    "/(dashboard|account|me|welcome|login|auth|e|u|report|admin|design)/:path*",
+    {
+      source:
+        "/((?!_next/static|_next/image|_vercel|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+      has: [
+        {
+          type: "host",
+          value:
+            "(?:admin\\..+|partyreel-admin(?:-[a-z0-9-]+)?\\.vercel\\.app)",
+        },
+      ],
+    },
   ],
 };
