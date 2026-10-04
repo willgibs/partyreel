@@ -195,17 +195,36 @@ async function joinAsGuest(page, token, name, { addPhotos = false } = {}) {
   await page.idle({ quiet: 1_500 });
 }
 
-/** Waits until the server has seen `n` completes from this device in this scenario (the uploads have landed). */
-async function landed(scenario, deviceName, n, { timeout = 180_000 } = {}) {
+/**
+ * The test event's media rows (the service key's count). A burst's files land in one complete (compute-uploads), so
+ * what landed is counted in rows, never in completes.
+ */
+async function mediaRows(eventId) {
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/media?event_id=eq.${eventId}&select=id`,
+    {
+      method: "HEAD",
+      headers: {
+        apikey: SERVICE_KEY,
+        Prefer: "count=exact",
+        ...(SERVICE_KEY.startsWith("sb_")
+          ? {}
+          : { Authorization: `Bearer ${SERVICE_KEY}` }),
+      },
+      signal: AbortSignal.timeout(15_000),
+    },
+  );
+  const rows = Number(res.headers.get("content-range")?.split("/")[1]);
+  if (!res.ok || !Number.isFinite(rows))
+    throw new Error(`the test event's rows: ${res.status}`);
+  return rows;
+}
+
+/** Waits until the test event holds `n` rows more than `before` (the uploads have landed). */
+async function landed(eventId, before, n, { timeout = 180_000 } = {}) {
   const until = Date.now() + timeout;
   while (Date.now() < until) {
-    const recs = await recordsOf(scenario);
-    const done = recs.filter(
-      (r) =>
-        r.device === deviceName &&
-        r.route === "/api/r2/complete-upload" &&
-        r.status < 400,
-    ).length;
+    const done = (await mediaRows(eventId)) - before;
     if (done >= n) return done;
     await sleep(500);
   }
@@ -250,10 +269,11 @@ const SCENARIOS = [
         addPhotos: true,
       });
       // The album's picker input (the camera's carries `capture`), then the review step's Send.
+      const before = await mediaRows(event.id);
       await uploader.setFiles("input[type=file][multiple]", photos(10));
       await sleep(1_000); // the review step's entrance: a press mid-flight lands on nothing
       await uploader.click("button", { text: "Send 10" });
-      await landed(this.name, "uploader", 10);
+      await landed(event.id, before, 10);
       // The album's own answer to the burst: the doorbell's batch tick (15 s) on both phones, then the 60 s net.
       await sleep(20_000);
       await uploader.idle({ quiet: 2_000 });
