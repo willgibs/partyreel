@@ -43,7 +43,7 @@ export type HostedEvent = HomeEvent & {
   stills: string[];
   /** Open or Paused (`uploadsLabel`, the hub code's word): the rows view's state. */
   uploadsLabel: string;
-  /** The rows view's full date: "October 3, 2026", "No date set". */
+  /** The rows view's full date: "October 3, 2026", "October 3–5, 2026", "No date set". */
   dateLabel: string;
 };
 
@@ -52,6 +52,8 @@ export type DeletedEvent = {
   id: string;
   name: string;
   date: string | null;
+  /** The last day of its range, or null (absent reads as one day). */
+  endDate?: string | null;
   dateLabel: string;
   coverUrl: string | null;
   deletedAt: string;
@@ -76,7 +78,7 @@ export type WeekCard = {
   /** "Tomorrow", "Sunday", "Sat, Sep 26". */
   when: string;
   coverUrl: string | null;
-  /** Its date as an invitation sets it, before it has a photograph. */
+  /** Its date (a range's first day) as an invitation sets it, before it has a photograph. */
   face: { weekday: string; month: string; day: string } | null;
   live: boolean;
   item: Item | null;
@@ -149,7 +151,7 @@ export function buildHomeView(input: HomeInput): HomeView {
     id: e.id,
     name: e.name,
     href: `/dashboard/${e.id}`,
-    when: whenOf(e.date, ctx.today, ctx.evening),
+    when: whenOf(e.date, ctx.today, ctx.evening, e.endDate),
     coverUrl: e.stills[0] ?? null,
     face: e.date ? dateFace(e.date) : null,
     live: phaseOfEvent(e, ctx.today) === "live",
@@ -167,7 +169,7 @@ export function buildHomeView(input: HomeInput): HomeView {
     coverUrl: e.stills[0] ?? null,
     stills: e.stills,
     dateLabel: e.dateLabel,
-    when: whenOf(e.date, ctx.today, ctx.evening),
+    when: whenOf(e.date, ctx.today, ctx.evening, e.endDate),
     face: e.date ? dateFace(e.date) : null,
     sortDate: e.createdAt,
     items: e.approved,
@@ -227,7 +229,7 @@ export function buildHomeView(input: HomeInput): HomeView {
     coverUrl: d.coverUrl,
     stills: [],
     dateLabel: d.dateLabel,
-    when: whenOf(d.date, ctx.today),
+    when: whenOf(d.date, ctx.today, false, d.endDate),
     face: d.date ? dateFace(d.date) : null,
     sortDate: d.deletedAt,
     items: 0,

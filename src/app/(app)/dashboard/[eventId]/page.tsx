@@ -50,6 +50,8 @@ import {
   getMyProfileSlug,
 } from "@/lib/db/queries/social";
 import { getHostStorageSummary } from "@/lib/db/queries/storage";
+import type { HubDevelopFacts } from "@/lib/disposable/host-cover";
+import { readJoinedIds } from "@/lib/disposable/host-cover.server";
 import { guestCount } from "@/lib/events/event-guests";
 import { formatCount } from "@/lib/format/count";
 import {
@@ -66,7 +68,7 @@ import {
 } from "@/lib/event/hub-album";
 import { readHostLinksBody } from "@/lib/event/host-links.server";
 import { REEL_MINIMUM } from "@/lib/event/reel-progress";
-import { legacySectionRoom, resolveEventSheet } from "@/lib/event/sections";
+import { legacyRoomAddress, resolveEventSheet } from "@/lib/event/sections";
 import {
   checklistOver,
   type ReadyFacts,
@@ -82,6 +84,8 @@ import { getSiteUrl } from "@/lib/site-url";
 import { getRequestAuth } from "@/lib/supabase/request-auth";
 
 import { doorLabel } from "@/lib/events/visibility-labels";
+import { ENTRY_PENDING, entryId } from "@/lib/events/album-wire";
+import { readGuestsRoom } from "@/app/(app)/dashboard/[eventId]/guests/room.server";
 
 // Presigned gallery URLs (the first window's) are per-request + short-lived, so
 // this page must never be statically cached.
@@ -91,7 +95,7 @@ export const dynamic = "force-dynamic";
 type PageProps = {
   params: Promise<{ eventId: string }>;
   searchParams: Promise<{
-    /** The sheet to open: share | settings. */
+    /** The place to open over the hub: share | settings | review | guests | as-guest. */
     room?: string;
     /** The retired feed filter, kept alive as a redirect into the rooms. */
     section?: string;
@@ -138,11 +142,15 @@ export default async function EventDetailPage({
   const { eventId } = await params;
   const { room, section, eventTab, welcome } = await searchParams;
 
-  // A `?section=` deep link predates the rooms. Send it to the room that holds
-  // that section now, rather than to a filter that no longer exists. Gallery
-  // and "all" ARE this page, so they fall through.
-  const legacyRoom = legacySectionRoom(section, eventTab);
-  if (legacyRoom) redirect(`/dashboard/${eventId}/${legacyRoom}`);
+  // A `?section=` (or older `?eventTab=`) deep link predates the rooms. Send it to the room that holds that section
+  // now, over this very hub (Review, Guests) or through the reel's own door, rather than to a filter that no longer
+  // exists. Gallery and "all" ARE this page, so they fall through.
+  const legacy = legacyRoomAddress(eventId, section, eventTab);
+  if (legacy) redirect(legacy);
+  // ★ THE PLACE THE ADDRESS NAMES (event-header r2, `rooms=over`): every room opens over the hub on its address, so a
+  // link, a reload and every revalidation while one stands render the hub with it open, and the room's own data
+  // comes with them (below).
+  const place = resolveEventSheet(room);
 
   const [event, profile] = await Promise.all([getEvent(eventId), getProfile()]);
   // getEvent is RLS-scoped and filters deleted_at — a missing/foreign/deleted
@@ -202,6 +210,8 @@ export default async function EventDetailPage({
     liveReelFacts,
     doorCounts,
     storage,
+    guestsRoom,
+    joined,
   ] = await Promise.all([
     planHubManifest(supabase, event.id),
     getLinkStats(event.id),
@@ -219,12 +229,45 @@ export default async function EventDetailPage({
       captureError("db", error, { seam: "hub_checklist_storage" });
       return null;
     }),
+    // ★ THE GUESTS ROOM, READ WITH THE HUB WHILE ITS ADDRESS NAMES THE ROOM: a link or a reload opens it with its
+    // rows in hand, and each act in the room (Let in, Decline, Block, an invite), whose action revalidates this
+    // hub, brings the room read afresh. A failed read leaves the room to ask for itself (`guests-panel.tsx`), never
+    // the page.
+    place === "guests"
+      ? (async () =>
+          readGuestsRoom(
+            event.id,
+            resolveViewerZone(
+              (await headers()).get(VIEWER_ZONE_HEADER),
+              serverZone(),
+            ),
+          ))().catch((error: unknown) => {
+          captureError("db", error, { seam: "hub_guests_room" });
+          return null;
+        })
+      : Promise.resolve(null),
+    // ★ WHAT WAITS UNDER HER COVER IS READ BY THE SEAL (red-team 46's MEDIUM): her manifest never sees it, so the held
+    // photographs a switch to a develop time put in the roll (created before the period) are read off the rows, only
+    // while a develop time is ahead, and ride with the develop facts. A failed read answers none, captured.
+    readJoinedIds(supabase, event),
   ]);
   // The first window's links and the Reel card, in parallel: both read off the
   // manifest, neither off the other. The card reads the whole album's flags (its
   // pool spans the album), so an album past one manifest page reads the rest.
+  // ★ REVIEW OPENED BY ITS ADDRESS (the bell, a dashboard act, a reload) FINDS ITS QUEUE'S TILES MINTED WITH THE
+  // FIRST WINDOW: the room seeds its queue from the hub's own album (`review-room.tsx`), so its uploads waiting ride
+  // the first window's links rather than a second round trip after the page has landed.
+  const firstWindow = firstWindowIds(plan.part.entries);
+  if (place === "review") {
+    const have = new Set(firstWindow);
+    for (const e of plan.part.entries)
+      if (e[3] & ENTRY_PENDING && !have.has(entryId(e))) {
+        have.add(entryId(e));
+        firstWindow.push(entryId(e));
+      }
+  }
   const [links, reelFace] = await Promise.all([
-    readHostLinksBody(supabase, event, firstWindowIds(plan.part.entries)),
+    readHostLinksBody(supabase, event, firstWindow),
     readRestOfManifest(supabase, event.id, plan.part).then((entries) =>
       readHubReel(
         supabase,
@@ -245,6 +288,13 @@ export default async function EventDetailPage({
   // pending. The bin's items are in neither (a host reading "48 photos" is
   // reading the photographs their guests can see or they have tucked away).
   const { pending: pendingCount } = seed.sync.counts;
+
+  // The develop facts her head and her album's cover read: the event's own, and the roll the switch made.
+  const develop: HubDevelopFacts = {
+    develops_at: event.develops_at,
+    sealed_from: event.sealed_from,
+    joined,
+  };
 
   const isModerationOn = event.moderation_mode === "hold_for_approval";
   const views = linkStats.qrScans + linkStats.albumViews;
@@ -282,6 +332,8 @@ export default async function EventDetailPage({
     showReel: event.show_reel,
     liveReelEnabled: liveReelFacts.liveReelEnabled,
     eventDate: event.event_date,
+    // A range's last day (20261003120000), null for one day.
+    eventEndDate: event.event_end_date,
     description: event.description,
     opened: views,
     storagePct,
@@ -294,7 +346,7 @@ export default async function EventDetailPage({
     serverZone(),
   );
   const { today } = calendarDayInZone(new Date().getTime(), viewerZone);
-  const over = checklistOver(event.event_date, today);
+  const over = checklistOver(event.event_date, today, event.event_end_date);
   const guestNeeds = over ? 0 : stepsLeft(readyFacts);
 
   const cards = [
@@ -386,7 +438,7 @@ export default async function EventDetailPage({
         ]}
       />
 
-      <EventShareProvider initialSheet={resolveEventSheet(room)}>
+      <EventShareProvider initialSheet={place} eventId={event.id}>
         {/* THE ALBUM'S STORE wraps everything on the page that shows the album
             or a number off it: the header's count and pip, the cards' Review
             and Reel, the checklist and Settings' rail, the album and its header. */}
@@ -400,6 +452,7 @@ export default async function EventDetailPage({
           <HubCover
             name={event.name}
             date={event.event_date}
+            endDate={event.event_end_date}
             counts={{
               album: seed.sync.counts.album,
               guests: guestsCount,
@@ -414,6 +467,7 @@ export default async function EventDetailPage({
               waiting: doorCounts.waiting,
             }}
             stills={coverStills}
+            develop={develop}
             toBar={!welcomed}
           />
 
@@ -443,6 +497,7 @@ export default async function EventDetailPage({
                   videosAllowed={videosAllowedForTier(tier)}
                   initialStep={rowStep}
                   tier={tier}
+                  develop={develop}
                 >
                   <EventUploads
                     eventId={event.id}
@@ -478,6 +533,12 @@ export default async function EventDetailPage({
             // photo the first window already linked.
             reelSample={reelFace.stills[0] ?? newestPreviewUrl(seed)}
             ready={readyFacts}
+            guestsRoom={guestsRoom}
+            doorLine={
+              event.accepting_uploads
+                ? doorLabel(event.door)
+                : `${doorLabel(event.door)} · Uploads paused`
+            }
           />
         </HostAlbumProvider>
       </EventShareProvider>

@@ -179,7 +179,7 @@ export const EVENT_PAGE_TUNER_CONTROLS: TunerControl[] = [
  * with --gap-gallery pinned to the tile) and keep their own knobs; the two
  * action radii are the other half of the surface / action contrast (16px at
  * the 40px button, ~0.4x height; the 44px `cta` corner derives 1.1x from it).
- * Baked: 0.5rem / 0.75rem / 4px / 1rem / 0.8rem; the tuner writes px, the same
+ * Baked: 0.5rem / 1rem / 2px / 1rem / 0.8rem; the tuner writes px, the same
  * computed values. Not --mkt-*, so tunerScope puts these on <html>, where an
  * inline value outranks the :root token, and a soft navigation carries them
  * across pages. The specimen is the Library's radius section
@@ -214,7 +214,7 @@ export const ROUNDING_TUNER_CONTROLS: TunerControl[] = [
     max: 24,
     step: 1,
     unit: "px",
-    default: 12,
+    default: 16,
   },
   {
     kind: "range",
@@ -229,7 +229,7 @@ export const ROUNDING_TUNER_CONTROLS: TunerControl[] = [
     max: 12,
     step: 1,
     unit: "px",
-    default: 4,
+    default: 2,
   },
   {
     kind: "range",

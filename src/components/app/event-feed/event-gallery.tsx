@@ -5,10 +5,13 @@ import { ImageUp, Loader2 } from "lucide-react";
 
 import { setRowStepAction } from "@/app/(app)/dashboard/[eventId]/actions";
 import {
+  HostAlbumCover,
+  LookingEarly,
+} from "@/components/app/event-feed/event-hub-head-cover";
+import {
   HubViewProvider,
   useHostAlbum,
   useHubCounts,
-  useHubLive,
   type HubAlbum,
   type HubView,
 } from "@/components/app/event-feed/host-album";
@@ -17,7 +20,6 @@ import { useHostSelection } from "@/components/app/host-selection-provider";
 import { HostUpload } from "@/components/app/host-upload";
 import { HubBin, useHubBin } from "@/components/app/recently-deleted-grid";
 import { GalleryDownloadAllButton } from "@/components/app/export/download-all-button";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   ViewMenu,
@@ -25,6 +27,8 @@ import {
   type ViewMenuGroup,
 } from "@/components/shared/view-menu";
 import { trackAttrs } from "@/lib/analytics/events";
+import { hubCovered, type HubDevelopFacts } from "@/lib/disposable/host-cover";
+import { useWaitClock } from "@/lib/disposable/use-wait-clock";
 import type { HubSort } from "@/lib/event/hub-album";
 import { ARRIVAL_GLOW_MS } from "@/lib/shared/arrival";
 import { perRowFor, type RowStep } from "@/lib/shared/album-rows";
@@ -76,6 +80,7 @@ export function EventGallery({
   videosAllowed,
   initialStep,
   tier,
+  develop,
   children,
 }: {
   eventId: string;
@@ -85,6 +90,11 @@ export function EventGallery({
   initialStep: RowStep;
   /** Server-derived (`profiles.tier`): the bin's pricing sheet headline. */
   tier?: string;
+  /**
+   * ★ THE ALBUM'S DEVELOP FACTS (the event's row): while a develop time is ahead, her album's place is her guests' wait,
+   * covered until she looks (the-wait r1, Will's `cover=guests`, `event-hub-head-cover.tsx`). Absent, the album is open.
+   */
+  develop?: HubDevelopFacts | null;
   /** The album (`EventUploads`), handed down as an opaque slot. */
   children: React.ReactNode;
 }) {
@@ -107,10 +117,22 @@ export function EventGallery({
   const adding = add?.adding ?? false;
   const selection = useHostSelection();
 
+  /* ★ THE HOST'S COVER (the-wait r1, Will's `cover=guests`): while her album develops, its place is what her guests see
+     until she looks, for this visit ("Expect most hosts to want to look, but also provide them the disposable experience
+     a bit too, more fun that way"). The clock runs only where a develop time is set, so the cover lifts itself the moment
+     the album develops. */
+  const developClock = useWaitClock(Boolean(develop?.develops_at));
+  const covered =
+    develop?.develops_at != null &&
+    // Before the reader's clock is known (the server's render, the hydrating one), now is the render's own.
+    hubCovered(develop, developClock ?? undefined);
+  const [looking, setLooking] = useState(false);
+  const coverShown = covered && !looking && view === "album";
+
   // The album's width, for the slider's words ("5 a row"): read off the box the
-  // rows are laid in, and only while the album is the view.
+  // rows are laid in, and only while the album is the view (and not under her cover).
   const boxRef = useRef<HTMLDivElement | null>(null);
-  const width = useBoxWidth(boxRef, view === "album");
+  const width = useBoxWidth(boxRef, view === "album" && !coverShown);
 
   const showDeleted = () => {
     setView("deleted");
@@ -198,7 +220,8 @@ export function EventGallery({
               >
                 <ImageUp /> Add photos
               </Button>
-              {view === "album" && albumCount > 0 && (
+              {/* Under her cover there is no grid to select from or download yet: Look first. */}
+              {view === "album" && albumCount > 0 && !coverShown && (
                 <>
                   <GalleryDownloadAllButton eventId={eventId} />
                   <GallerySelectButton />
@@ -238,18 +261,36 @@ export function EventGallery({
           ONE constant in lib/shared/arrival.ts, the grid holds an id for exactly
           that long, and the sheet that fades the light reads it from here — so
           the attribute and the animation can never disagree. */}
-      <div
-        ref={boxRef}
-        data-section-swap
-        className={cn(view === "album" ? "" : "hidden")}
-        style={
-          {
-            "--arrival-glow-ms": `${ARRIVAL_GLOW_MS}ms`,
-          } as React.CSSProperties
-        }
-      >
-        <HubViewProvider value={hubView}>{children}</HubViewProvider>
-      </div>
+      {coverShown && develop?.develops_at ? (
+        <HostAlbumCover
+          eventId={eventId}
+          develop={{ ...develop, develops_at: develop.develops_at }}
+          onLook={() => setLooking(true)}
+        />
+      ) : (
+        <>
+          {covered && looking && view === "album" && develop?.develops_at ? (
+            <LookingEarly
+              developsAt={develop.develops_at}
+              onCover={() => setLooking(false)}
+            />
+          ) : null}
+          <div
+            ref={boxRef}
+            data-section-swap
+            // Lifted, the album rises out of a wash of light, as a develop brings a photograph up (`event-hub-head-cover.css`).
+            data-host-looked={covered && looking ? "" : undefined}
+            className={cn(view === "album" ? "" : "hidden")}
+            style={
+              {
+                "--arrival-glow-ms": `${ARRIVAL_GLOW_MS}ms`,
+              } as React.CSSProperties
+            }
+          >
+            <HubViewProvider value={hubView}>{children}</HubViewProvider>
+          </div>
+        </>
+      )}
 
       {view === "deleted" && (
         <div data-section-swap>
@@ -306,24 +347,6 @@ function useBoxWidth(
   return width;
 }
 
-/**
- * THE LIVE PIP (Will, `first=live`, 2026-09-21: "It lands while she is looking.
- * The empty room gives way to the tile, the count moves, a Live pip").
- *
- * ★ THE PIP IS THE PAGE'S ONE LIVE ISLAND IN THE HEADER, AND IT DRAWS NOTHING
- * UNTIL THE DOORBELL'S SOCKET IS ACTUALLY SUBSCRIBED: a pip claiming "Live" over
- * a dead socket is worse than no pip. What keeps the album current is the page's
- * album store (`HostAlbumProvider`: the doorbell, the fallback poll, the tab's
- * return), which never refreshes the page; this reads only whether the socket is
- * up.
- */
-export function EventLive() {
-  const live = useHubLive(useHostAlbum());
-  if (!live) return null;
-  // The live mark (`ui/badge`'s `live`): its dot and its word are the badge's own.
-  return (
-    <Badge variant="live" title="New photos appear here as they arrive">
-      Live
-    </Badge>
-  );
-}
+// The Live pip moved to its own module, so the hub's head reads it without the album's own graph (the cover's
+// actions): `event-gallery-live.tsx`. Named here too, for every importer of this module.
+export { EventLive } from "./event-gallery-live";

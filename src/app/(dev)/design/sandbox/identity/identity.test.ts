@@ -1,33 +1,39 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  ACTIONS_IDS,
-  choiceOf,
-  FIELDS_IDS,
-  LAYERS_IDS,
-  RECOMMENDED,
-  STATUS_IDS,
-  VOICE_IDS,
-} from "./model";
+import { choiceOf, EDGE_IDS, RECOMMENDED, ROOM_IDS, SYSTEM_IDS } from "./model";
 import { sheetFor } from "./sheet";
-import { ACTIONS_CSS } from "./sheet/actions";
-import { FIELDS_CSS } from "./sheet/fields";
-import { LAYERS_CSS } from "./sheet/layers";
-import { STATUS_CSS } from "./sheet/status";
-import { VOICE_CSS } from "./sheet/voice";
+import { EDGE_CSS } from "./sheet/edge";
+import { ROOM_CSS } from "./sheet/room";
+import { SYSTEM_CSS } from "./sheet/system";
 import { IDENTITY } from "./spec";
 
 /**
  * THE BOARD HOLDS TOGETHER: what the spec asks, what the frames draw and what
- * the sheets style are one set of ids, and the sheets style atoms alone.
+ * the sheets style are one set of ids, and the sheets style atoms alone, with
+ * the corners only ever as a focus mark.
  */
 const ASKS = {
-  voice: { ids: VOICE_IDS, css: VOICE_CSS },
-  actions: { ids: ACTIONS_IDS, css: ACTIONS_CSS },
-  fields: { ids: FIELDS_IDS, css: FIELDS_CSS },
-  layers: { ids: LAYERS_IDS, css: LAYERS_CSS },
-  status: { ids: STATUS_IDS, css: STATUS_CSS },
+  system: { ids: SYSTEM_IDS, css: SYSTEM_CSS },
+  room: { ids: ROOM_IDS, css: ROOM_CSS },
+  edge: { ids: EDGE_IDS, css: EDGE_CSS },
 } as const;
+
+/** Every identity the board can draw. */
+const EVERY = SYSTEM_IDS.flatMap((system) =>
+  ROOM_IDS.flatMap((room) =>
+    EDGE_IDS.map((edge) => sheetFor({ system, room, edge })),
+  ),
+);
+
+/** A stylesheet's flat rules, `selector { body }` (a keyframe's steps come along, harmlessly). */
+const rulesOf = (css: string) =>
+  [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map((m) => ({
+    selector: m[1].trim(),
+    body: m[2],
+  }));
+
+/** A rule that answers focus: the real pseudo-class or the specimen's pinned twin. */
+const ANSWERS_FOCUS = /focus-visible|data-demo~="focus"/;
 
 describe("the identity board", () => {
   it("draws every option the spec asks, and recommends what the frames wear", () => {
@@ -43,16 +49,16 @@ describe("the identity board", () => {
     }
   });
 
-  it("stages every atom group behind the voice", () => {
-    for (const a of IDENTITY.asks.filter((x) => x.id !== "voice"))
-      expect(a.after, `${a.id} waits on the voice`).toEqual({ ask: "voice" });
+  it("draws the edge on the room's answer", () => {
+    const edge = IDENTITY.asks.find((a) => a.id === "edge");
+    expect(edge?.after).toEqual({ ask: "room" });
   });
 
   it("reads a choice from anything, a part at a time", () => {
     expect(choiceOf({})).toEqual(RECOMMENDED);
-    expect(choiceOf({ voice: "instrument", fields: "nonsense" })).toEqual({
+    expect(choiceOf({ system: "ink", room: "nonsense" })).toEqual({
       ...RECOMMENDED,
-      voice: "instrument",
+      system: "ink",
     });
   });
 
@@ -63,24 +69,55 @@ describe("the identity board", () => {
    * sheet named three screen parts by their ARIA labels; this keeps them out.
    */
   it("names no screen part, only atoms", () => {
-    const every = VOICE_IDS.flatMap((voice) =>
-      ACTIONS_IDS.flatMap((actions) =>
-        FIELDS_IDS.map((fields) =>
-          sheetFor({ ...RECOMMENDED, voice, actions, fields }),
-        ),
-      ),
-    ).concat(
-      LAYERS_IDS.flatMap((layers) =>
-        STATUS_IDS.map((status) =>
-          sheetFor({ ...RECOMMENDED, layers, status }),
-        ),
-      ),
-    );
-    for (const css of every) {
+    for (const css of EVERY) {
       expect(css).not.toMatch(/aria-label/);
       expect(css).not.toMatch(
         /data-(door|code-door|checklist|review|guest|settings|eh)\b/,
       );
     }
+  });
+
+  /**
+   * ★ THE CORNERS ONLY AS A FOCUS MARK (Will, identity r2: "the corners
+   * options here is what inspired my 'not devtool ish' comment ...
+   * particularly the corners and loading state, so exclude that moving
+   * forward"; "don't mind using the viewfinder corners for focus only"). The
+   * marks are painted in `--m-c` and nothing else (`marks.ts`), so a rule that
+   * inks them must either answer focus or keep them hidden (the lock at rest),
+   * and no loading state moves them.
+   */
+  it("inks the corner marks only for focus, and never to show loading", () => {
+    for (const css of EVERY) {
+      for (const { selector, body } of rulesOf(css)) {
+        const ink = /--m-c:\s*([^;]+);/.exec(body)?.[1].trim();
+        if (!ink || ink === "transparent") continue;
+        const hidden = /opacity:\s*0\s*;/.test(body);
+        expect(
+          ANSWERS_FOCUS.test(selector) || hidden,
+          `"${selector}" draws the corner marks outside focus`,
+        ).toBe(true);
+        expect(selector, "a loading state moves the marks").not.toMatch(
+          /aria-busy/,
+        );
+      }
+      expect(css, "the autofocus hunt is back").not.toMatch(/vf-hunt/);
+    }
+  });
+
+  /**
+   * ★ ONE FOCUS MARK PER SYSTEM (his note: "some focuses rings, some corners,
+   * which is bad"): keys and wells lock with the corners and draw no ring;
+   * rings and ink never draw the corners.
+   */
+  it("gives each system one focus mark across its actions and fields", () => {
+    for (const { selector, body } of rulesOf(SYSTEM_CSS.keys))
+      if (ANSWERS_FOCUS.test(selector))
+        expect(
+          body,
+          `keys' "${selector}" draws a ring where the lock belongs`,
+        ).not.toMatch(/outline-color|outline:\s*[\d.]+px solid/);
+    expect(SYSTEM_CSS.rings).not.toMatch(/--m-c/);
+    expect(SYSTEM_CSS.ink).not.toMatch(/--m-c/);
+    expect(SYSTEM_CSS.ink).not.toMatch(/outline-color/);
   });
 });

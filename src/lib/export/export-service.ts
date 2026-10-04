@@ -22,6 +22,7 @@ import {
   buildExportManifest,
   type ExportCursor,
   type ExportMediaRow,
+  type ExportSize,
   type ExportSummary,
   type ExportTypeFilter,
   type ExportWalk,
@@ -63,6 +64,8 @@ type MintInput = {
   walk?: ExportWalk;
   /** A word the zip's name carries after the event's (`yours`). */
   zipLabel?: string;
+  /** Which copies the zip takes (take-home r1): the originals (the default), or phone size. */
+  size?: ExportSize;
   /**
    * The minting app's own origin (the route's request), where the Worker is asked to report this export
    * (`export-ends`): its check, its stream's start and end. Absent, nothing is asked.
@@ -219,6 +222,7 @@ export async function mintExport(input: MintInput): Promise<MintOutcome> {
     includeHidden: input.includeHidden,
     walk: input.walk,
     zipLabel: input.zipLabel,
+    size: input.size,
   });
   if (!manifest.ok) {
     await recordExport(admin, {

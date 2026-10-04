@@ -1,4 +1,4 @@
-import { AFTER_DAYS, type Dated, daysFrom, dayOf } from "./when";
+import { AFTER_DAYS, type Dated, dayOf, daysToEvent } from "./when";
 
 /**
  * YOUR EVENTS, GROUPED BY WHEN (host-dashboard r1, `events=seasons`, the working events section; his r2
@@ -11,9 +11,11 @@ import { AFTER_DAYS, type Dated, daysFrom, dayOf } from "./when";
  * new, so it draws largest; a party still to come has only its date, which reads as well a size
  * smaller; a party months gone is a thumbnail, and a year gone is a line.
  *
- * An event sits by its day (`dayOf`): the host's date, else the day its photographs last landed. Pure:
- * ids in, groups of ids out, so the server groups once and the client lays the groups out through
- * whatever lens and search the host has on.
+ * An event sits by its days (`daysToEvent`): the host's date, else the day its photographs last landed.
+ * ★ A range of days is coming up while any day of it is still ahead or today, just past for the month
+ * after its LAST day, and folds into the year it began (`dayOf`). Pure: ids in, groups of ids out, so
+ * the server groups once and the client lays the groups out through whatever lens and search the host
+ * has on.
  */
 
 export type SeasonSize = "large" | "medium" | "small" | "folded";
@@ -29,7 +31,7 @@ export type Season = {
 type Placed = Dated & { id: string; createdAt: string };
 
 export function seasonsOf(events: readonly Placed[], today: string): Season[] {
-  const at = (e: Placed) => daysFrom(today, dayOf(e)!);
+  const at = (e: Placed) => daysToEvent(e, today)!;
   const newest = (a: Placed, b: Placed) =>
     Date.parse(b.createdAt) - Date.parse(a.createdAt);
   const year = today.slice(0, 4);

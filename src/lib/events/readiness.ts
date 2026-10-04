@@ -1,6 +1,11 @@
 import { STORAGE_STEP_PCT } from "@/lib/dashboard/next-step";
 import { type Door, doorOf, stepOf } from "@/lib/event/door/door";
 import { photosToGo, reelState } from "@/lib/event/reel-progress";
+import {
+  SETTINGS_GROUP_TITLES,
+  type SettingsGroup,
+} from "@/lib/events/guest-experience-summary";
+import { lastDayOf } from "@/lib/events/dates";
 import { DOOR_STEP_LINES, GATE_LINES } from "@/lib/events/visibility-labels";
 import { formatCount } from "@/lib/format/count";
 import { formatEventDate } from "@/lib/utils";
@@ -49,8 +54,10 @@ export type ReadyFacts = {
   showReel: boolean;
   /** The platform lever (`ops_flags.live_reel_enabled`). */
   liveReelEnabled: boolean;
-  /** `YYYY-MM-DD`, or null. */
+  /** `YYYY-MM-DD`, or null: a range's first day. */
   eventDate: string | null;
+  /** The last day of a range (`YYYY-MM-DD`), or null; absent reads as one day. */
+  eventEndDate?: string | null;
   description: string | null;
   /** Visits to the event's link, the host's own included. */
   opened: number;
@@ -203,7 +210,7 @@ function welcomeItem(f: ReadyFacts): ReadyItem {
   const date = Boolean(f.eventDate);
   const done = note && date;
   const line = done
-    ? `${formatEventDate(f.eventDate!)}, and a note guests read first.`
+    ? `${formatEventDate(f.eventDate!, f.eventEndDate)}, and a note guests read first.`
     : !note && !date
       ? "The date under the name, and a note guests read first."
       : !note
@@ -380,27 +387,38 @@ export function stepWants(
 /**
  * ★ BEFORE GUESTS ARRIVE IS MOOT ONCE THEY HAVE: the checklist steps aside from the day after the event's
  * date, done or not (an album a host pauses once the party is over, as the help advises, is finished, not
- * unready). An undated event keeps it until it is done. `today` is the viewer's calendar day
- * (`viewer-day.ts`), both as `YYYY-MM-DD`, so the comparison is the strings'.
+ * unready), and from the day after a range's LAST day (lane `event-dates`: a weekend's checklist stands
+ * through its Sunday). An undated event keeps it until it is done. `today` is the viewer's calendar day
+ * (`viewer-day.ts`), every day a `YYYY-MM-DD`, so the comparison is the strings'. It only hides a list:
+ * nothing about the event changes on its last day.
  */
 export function checklistOver(
   eventDate: string | null,
   today: string,
+  eventEndDate?: string | null,
 ): boolean {
-  return eventDate !== null && eventDate < today;
+  const last = lastDayOf(eventDate, eventEndDate);
+  return last !== null && last < today;
 }
 
 /**
  * A NEW EVENT'S FACTS, from what Create sent (the create schema's defaults filled): nothing in it yet,
- * nobody in, never opened. Create's hand-off lists what is left from these; the account's storage is the
- * hub's to read, so room is not among them.
+ * nobody in, never opened. Create's hand-off lists what is left from these. ★ The account's storage is
+ * the route's to read and hand over (create-wizard r2's carried `room`, taken): past the dashboard's own
+ * threshold room joins what is left on the beat, as it does on the hub, said beside Settings' steps
+ * because it is the plan's, never a step.
  */
-export function newEventFacts(created: {
-  visibility: string;
-  accepting_uploads: boolean;
-  event_date?: string | null;
-  description?: string | null;
-}): ReadyFacts {
+export function newEventFacts(
+  created: {
+    visibility: string;
+    accepting_uploads: boolean;
+    event_date?: string | null;
+    event_end_date?: string | null;
+    description?: string | null;
+  },
+  /** The account's storage used (`storageUsedPct`), 0 where nobody read it. */
+  storagePct = 0,
+): ReadyFacts {
   return {
     // A new event cannot hold a password (`createEvent` stores a password request as open).
     door: doorOf(
@@ -417,8 +435,62 @@ export function newEventFacts(created: {
     showReel: true,
     liveReelEnabled: true,
     eventDate: created.event_date || null,
+    eventEndDate: created.event_end_date || null,
     description: created.description || null,
     opened: 0,
-    storagePct: 0,
+    storagePct,
   };
+}
+
+/**
+ * THE ACCOUNT'S STORAGE, AS THE WHOLE PERCENT `ReadyFacts.storagePct` READS: active bytes against the
+ * effective cap (what the cap is enforced against, so deleting visibly frees room), rounded, never past
+ * 100, and 0 where there is no cap to run short of. The dashboard meter's own math, in one place for the
+ * route that hands it to a checklist (`/dashboard/new`; the hub and the dashboard still say it inline).
+ */
+export function storageUsedPct(
+  activeBytes: number,
+  capBytes: number | null,
+): number {
+  if (!capBytes || capBytes <= 0) return 0;
+  return Math.min(100, Math.round((activeBytes / capBytes) * 100));
+}
+
+/**
+ * SETTINGS' FIVE STEPS, IN ITS RAIL'S ORDER (event-ready `guide=steps`): each step is the checklist item it
+ * finishes (who can get in, what guests can add, the reel's first photos, the welcome), then the code. A
+ * surface that draws them (Create's beat, under the code: create-wizard r2 `beat=develop`) reads them here,
+ * titled as Settings titles its rows, so the rail a host is shown is the rail Get it ready opens onto.
+ * Room is never a step: it is the plan's, said beside them.
+ */
+export const SETTINGS_STEP_ITEMS = [
+  { item: "door", group: "door" },
+  { item: "adds", group: "adds" },
+  { item: "photos", group: "reel" },
+  { item: "welcome", group: "event" },
+  { item: "code", group: null },
+] as const satisfies readonly {
+  item: Exclude<ReadyItemId, "room">;
+  group: SettingsGroup | null;
+}[];
+
+export type SettingsStep = {
+  /** Its number on the rail, 1 to 5. */
+  n: number;
+  item: Exclude<ReadyItemId, "room">;
+  title: string;
+  done: boolean;
+};
+
+export function settingsSteps(r: Readiness): SettingsStep[] {
+  return SETTINGS_STEP_ITEMS.map(({ item, group }, i) => {
+    const it = r.items.find((x) => x.id === item);
+    return {
+      n: i + 1,
+      item,
+      // The four groups are titled as Settings' rows are; the code is its own item's title.
+      title: group ? SETTINGS_GROUP_TITLES[group] : (it?.title ?? item),
+      done: it?.done ?? false,
+    };
+  });
 }

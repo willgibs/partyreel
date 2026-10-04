@@ -80,7 +80,16 @@ vi.mock("@/components/guest/gallery-skeleton", () => ({
 vi.mock("@/components/guest/gallery-empty-state", () => ({
   GhostRiver: part,
 }));
-vi.mock("@/components/guest/entry-modal", () => ({ EntryModal: part }));
+// The door draws nothing here; what the page tells it is kept, for the door's upload step below.
+const door = vi.hoisted(() => ({
+  props: null as Record<string, unknown> | null,
+}));
+vi.mock("@/components/guest/entry-modal", () => ({
+  EntryModal: (props: Record<string, unknown>) => {
+    door.props = props;
+    return null;
+  },
+}));
 vi.mock("@/components/app/user-menu", () => ({
   initial: (_: unknown, name: string) => name.slice(0, 1),
 }));
@@ -269,5 +278,43 @@ describe("her waiting uploads on an empty album that holds uploads", () => {
     ).toBeEnabled();
     expect(screen.queryByRole("button", { name: /^Add photos/ })).toBeNull();
     expect(await screen.findByTestId("add-first")).toHaveTextContent("no");
+  });
+});
+
+/*
+ * ★ THE DOOR'S UPLOAD STEP OVER A WAITING ALBUM (red-team 49's NIT): a newcomer joining an album whose shots wait for
+ * its develop met "Nothing here yet. Add the first photo." at the door, one screen before the page's own Add said
+ * "Take photos" over the same six shots. The door now hears whether the album is empty from the cover's one source
+ * (`galleryEmpty`, which `addWords` reads: what shows, her own files on their way, and what waits), so it asks for the
+ * first photo only where the cover does.
+ */
+describe("the door's upload step over a waiting album", () => {
+  const DEVELOPS = {
+    ...EVENT,
+    develops_at: new Date(Date.now() + 14 * 3_600_000).toISOString(),
+  } as unknown as GuestEvent;
+  const landed = () => Promise.resolve({ kind: "locked" }) as Promise<never>;
+
+  it("★ is told the album is not empty while shots wait for the develop, as the cover's Add is", async () => {
+    await page(landed(), {
+      event: DEVELOPS,
+      approvedTotal: 0,
+      waitingOnArrival: true,
+    });
+    expect(screen.getByRole("button", { name: /Add photos/ })).toBeEnabled();
+    expect(door.props?.albumEmpty).toBe(false);
+  });
+
+  it("is told it is empty where nothing shows and nothing waits, as the cover asks for the first photo", async () => {
+    await page(landed(), { event: DEVELOPS, approvedTotal: 0 });
+    expect(
+      screen.getByRole("button", { name: /Add the first photo/ }),
+    ).toBeEnabled();
+    expect(door.props?.albumEmpty).toBe(true);
+  });
+
+  it("is told it is not empty once anything shows", async () => {
+    await page(landed(), { approvedTotal: 3 });
+    expect(door.props?.albumEmpty).toBe(false);
   });
 });

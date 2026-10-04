@@ -12,6 +12,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  *
  * `getEvent` is the one read that decides it (RLS-scoped, deleted filtered): everything else a page reads is asked
  * after it and never here.
+ *
+ * ★ RESHAPED ON PURPOSE (event-header r2, `rooms=over`): Review and Guests stand over the hub now, their routes only
+ * doors into it, so they send a gone event to the hub, which draws the not-found (below); See it as a guest is the
+ * event's new page and draws it as the hub does.
  */
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/db/queries/events", () => ({
@@ -56,6 +60,15 @@ vi.mock("@/lib/event/host-album.server", () => ({
   seedFrom: later,
 }));
 vi.mock("@/lib/event/host-links.server", () => ({ readHostLinksBody: later }));
+// The cover's roll (the rows a switch to a develop time sealed), read beside the album once the event is found.
+vi.mock("@/lib/disposable/host-cover.server", () => ({ readJoinedIds: later }));
+// The rooms' and the guests' view's own reads: asked only once the event is found.
+vi.mock("@/app/(app)/dashboard/[eventId]/guests/room.server", () => ({
+  readGuestsRoom: later,
+}));
+vi.mock("@/app/(app)/dashboard/[eventId]/as-guest.server", () => ({
+  readAsGuest: later,
+}));
 vi.mock("@/lib/event/gallery-items", () => ({ toHostGalleryItems: later }));
 vi.mock("@/lib/site-url", () => ({ getSiteUrl: later }));
 vi.mock("@/lib/social/cards", () => ({
@@ -121,6 +134,7 @@ vi.mock("@/components/app/share/event-share-provider", () => ({
   EventShareProvider: part,
 }));
 vi.mock("@/components/app/share/event-sheets", () => ({ EventSheets: part }));
+vi.mock("@/components/app/share/as-guest-view", () => ({ AsGuestView: part }));
 vi.mock("@/components/shared/crumbs", () => ({ SetCrumbs: part }));
 vi.mock("@/components/social/guest-list", () => ({ GuestList: part }));
 vi.mock("@/app/(app)/dashboard/[eventId]/guests/at-the-door", () => ({
@@ -140,6 +154,8 @@ const hub = await import("./page");
 const review = await import("./review/page");
 const guests = await import("./guests/page");
 const reel = await import("./reel/page");
+const asGuest =
+  await import("../../../(as-guest)/dashboard/[eventId]/as-guest/page");
 const { appNotFoundMetadata } = await import("../../not-found.metadata");
 const { metadata: boundaryMetadata } = await import("../../not-found");
 
@@ -151,14 +167,10 @@ const ROOMS = [
       hub.generateMetadata({ params, searchParams: Promise.resolve({}) }),
   },
   {
-    name: "Review",
-    draw: () => review.default({ params }),
-    head: () => review.generateMetadata({ params }),
-  },
-  {
-    name: "Guests",
-    draw: () => guests.default({ params }),
-    head: () => guests.generateMetadata({ params }),
+    name: "See it as a guest",
+    draw: () => asGuest.default({ params, searchParams: Promise.resolve({}) }),
+    head: () =>
+      asGuest.generateMetadata({ params, searchParams: Promise.resolve({}) }),
   },
   {
     name: "the reel's old room",
@@ -196,6 +208,16 @@ describe.each(ROOMS)(
     });
   },
 );
+
+describe.each([
+  ["Review", () => review.default({ params })],
+  ["Guests", () => guests.default({ params })],
+])("%s's old route, for an event that is gone", (_name, draw) => {
+  it("sends it to the hub, which draws the not-found, reading nothing on the way", async () => {
+    await expect(draw()).rejects.toThrow(/^redirect \/dashboard\/0{8}-/);
+    expect(later).not.toHaveBeenCalled();
+  });
+});
 
 describe("the host app's not-found boundary", () => {
   it("heads a thrown notFound() with the same words, one home for both", () => {

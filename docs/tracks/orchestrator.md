@@ -33,46 +33,57 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 ## In flight
 
-Round 12 (Will's desk on build 41, answered 2026-10-02 18:00Z and transcribed at `ab799674`; approving its plan was his
-yes to run continuously to the round's close, tonight included, at the machine's limits; Moltbook's hourly passes only
-after the close). Up to six lanes (ports 3131 to 3136) while `memory_pressure` reads at least 50% free and swap stays
-flat; a lane in its gate, or the milestone's full gate, counts as two. Every production build takes turns through
-`scripts/build-lock.sh`. An agent id lives only in the session that spawned it (another session respawns: the runbook's
-"Resume a lane").
+Round 13 (Will's desk on build 45, answered 2026-10-03 06:30Z and transcribed at `5dc4dee8`; approving its plan was his
+yes to run continuously to the round's close overnight; Moltbook's hourly passes only after it). Milestone 34 is live
+at `2aae7331` (tag `milestone-34`, gate 168 green, the walk PASS). Up to six lanes plus the research lane while
+`memory_pressure` reads at least 50% free; every production build takes turns through `scripts/build-lock.sh`. The
+plan's whole text (lane splits, the Advisor's Q11 corrections, Will's answers) is
+`~/.claude/plans/please-resume-your-role-gentle-crown.md`; the briefs carry it.
 
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
-| `header-wiring` | event-header's picks: the cover, the hub wearing it with its sticky bar, the shutter with his scroll fade and a right-hand reel button; the atom contract built in `components/ui/`; the tracker's Remove | MERGED at `e771e80b` (gate 150 green: lint, test, build, lab:smoke 171, lab:demo on seven boards; the lane's gate on its synced head: test 9,035, build, lab:smoke 168); PREMISE re-reads for identity and create-wizard at the desk pass; no SQL | Opus, 3131 | `a167a5fcddb3a287a` |
-| `dashboard-wiring` | host-dashboard's picks: the stage, this week, the live wall, seasons; the four carried calls | MERGED at `ad70c894` (gate 148 green: test, build, lab:smoke 148, lab:demo on create-wizard, event-header, host-dashboard and identity; the lane's gate: test 8,963, build, lab:smoke 149); no SQL | Opus, 3132 | `abf012b4ed5f4a4d8` |
-| `disposable-foundation` | Q9's two answers, the per-row seal from one predicate, develop as a write, the roll on live shots with its ceiling, her own held and sealed items, Settings' control | MERGED at `e1b2ad2e` (gate 152 green: lint, test, build, lab:smoke 161, lab:demo on five boards; the lane's gate on its synced head: test 9,191, build, lab:smoke 163); its migration applied by protocol after the Advisor's Q10 (disposable_foundation 20261002223236, md5 the file's b2510738; advisors 19/4/35), the types regenerated and its six seams dropped (`2c32edb6`) | Opus, 3133 | `a3c3c52d33e26b082` |
-| `identity-r2` | board identity r2 [desk 10]: voice as a layer, then actions, fields, layers and status in his voice | MERGED at `3af9a608` (gate 149 green: test, build, lab:smoke 22, lab:demo on identity; the lane's gate: test 8,907, build, lab:smoke 7, lab:demo 5 steps at 1440 and 375 with its knobs); lab only; on the desk at build 44 | Opus, 3134 | `a3fb5687c66a613b9` |
-| `create-wizard-r2` | board create-wizard r2 [desk 60]: the room's flow screen by screen in his layout (flow, add, look, beat) | MERGED at `34dba1fa` (gate 147 green, light: test, the merge adding only docs to its gated head; the lane's gate: test 8,902, build, lab:smoke 22, lab:demo 4 steps at 1440 and 375); lab only; on the desk at build 44 | Opus, 3135 | `aaa11532349605aa9` |
-| `demo-r4` | board demo-framing r4 [desk 90]: five heroes (card recommended, plate, field, wall, door), each live at 1440, a tablet and 375 | MERGED at `31b93027` (gate 154 green: test, build, lab:smoke 18, lab:demo on demo-framing; the lane's gate: test 8,905, build, lab:smoke 3, lab:demo 1 step of 5 options); lab only; on the desk at build 44; its photographs asked (ASSETS 39 to 41) | Opus, 3136 | `a557d2f6e3b8e9fd8` |
-| `save-speed` | the viewer's Save immediate: his iPhone's 30 s measured to its cause (a second download on the tap behind R2's HTTP/1.1 connections, WebKit's 5 s activation) and fixed by holding the original the viewer draws | MERGED at `b86572ce` (gate 153 green: lint, test, build, lab:smoke 152, lab:demo on three boards; the lane's gate on its synced head: test 9,083, build, lab:smoke 134); its uploads-and-r2.md and guest-flow.md lines placed | Opus, 3135 | `a4d3efdea8ef3c604` |
-| `host-dashboard-r2` | board host-dashboard r2 [desk 25]: events at forty (Recent on top recommended), what the stage leads with on a quiet day, whether she pins it | MERGED at `63885f15` (gate 151 green: test, build, lab:smoke 21, lab:demo on host-dashboard; the lane's gate: test 8,970, build, lab:smoke 21, lab:demo 3 steps at 1440 and 375); lab only; on the desk at build 44 | Opus, 3132 | `aea1e17a667c43dfd` |
-| `crumbs-50` | fourteen off-round crumbs (the home's prefetch on intent, demo doors, type steps, tokens, dead fixtures, a help line, legal print, inline code, the sign-in cue, the nav's one source, the blog's trips) | MERGED at `318493d5` (gate 155 green: test, build, lab:smoke 154, lab:demo on four boards; the lane's gate: test 9,000, build, lab:smoke 130); no SQL | Sonnet, 3134 | `ad78669c34ed8b55e` |
-| `door-reveal` | locked-door r3's picks (the walk-through onto the cover, the turning breathing idle), the door always the first byte, the name after the email, the chooser's photos across a reload, red-team 43's MEDIUM page half; the board retired | MERGED at `d3d172fd` (gate 158 green: lint, test, build, lab:smoke 157, lab:demo on five boards; the lane's gate: test 9,324, build, lab:smoke 155); PREMISE re-read for take-home at the desk pass; the locked-door ledger retired; no SQL | Opus, 3131 | `aec876b5d6becfb32` |
-| `event-header-r2` | board event-header r2 [desk 50]: the hub head's facts (the night on a dial recommended), its doors, one way every room opens | MERGED at `50e7a359` (gate 156 green: test, build, lab:smoke 19, lab:demo on event-header; the lane's gate: test 9,051, build, lab:smoke 5, lab:demo 3 steps at 1440, 375 and the week before); lab only; on the desk at build 44 | Opus, 3133 | `a65948cf0ee9a18da` |
-| `the-wait` | board the-wait [desk 35], new: the one waiting experience (model first: one question of time recommended; the wait, the arrival, the cover, the name, approve plus develop); the room's screen link his Question | MERGED at `732146d7` (gate 160 green: test, build, lab:smoke 22, lab:demo on the-wait; the lane's gate on its synced head: test 9,345, build, lab:smoke 22, lab:demo 6 steps at 375 and 1440); lab only; on the desk at build 44 | Opus, 3132 | `a9256f068ba6dbfb9` |
-| `disposable-camera` | disposable-mode r3's camera wired (the timeline, hold to film, the server's roll, full size) and red-team 43's upload half; the board retired at the record | MERGED at `c45b69a8` (gate 161 green over the whole lab: lab:smoke 193, lab:demo all; the lane's gate on its synced head); the disposable-mode board and its ledger retired (registry, queue and manifest tests 85, test 9,425); no SQL | Opus, 3135 | `a420bc1f815081dce` |
-| `take-home` | board take-home [desk 70], new: how photographs leave (guest=select, save=light, host=two recommended) | MERGED at `303c6e82` (gate 157 green: test, build, lab:smoke 19, lab:demo on take-home; the lane's gate: test 9,269, build, lab:smoke 5, lab:demo 3 steps at 1440 and 375); lab only; on the desk at build 44 | Opus, 3136 | `af6d50656e540a41c` |
-| `redteam-43` | build 43's red-team (`96c6dcdc`) | DONE 2026-10-03 00:50Z: two MEDIUMs (the develop album's tracker, fixed in door-reveal and the camera; the hub's Reel card flash, `crumbs-52`), a LOW and four NITs; the leak matrix PASS on every route; RT43 events deleted; ledger `../partyreel-wt/_scratch/redteam-43/ledger.txt` | Opus, Will's Chrome | `a7abfa3530cd42e8c` |
-| `crumbs-51` | words made true after round 12's merges: four help articles and the admin switch on the retired reel tile and the welcome screen, careers, two hero comments, host-app.md's pulse | MERGED at `86dfef81` (gate 159 green; the lane's gate: typecheck, lint, test, build, lab:smoke); no SQL | Sonnet, 3133 | `ae456d79d5e6fcd48` |
-| `crumbs-52` | red-team 43's second MEDIUM: the hub's Reel card (a soft navigation) showed the album before the reel; the curtain made to stand from the first frame; the camera's page half and red-team 43's two NITs | MERGED at `1cc96371` (gate 163 green, light: test 9,457; the lane's gate on its synced head: test, build, lab:smoke 148); no SQL | Sonnet, 3134 | `a43b82a5650dc8a64` |
-| `lab-frame` | the lab's Frame a faithful window: a frame-scoped window for the media hooks, Radix's layers inside the frame, a glow filter host | MERGED at `0d69c92b` (gate 164 green, full: test, build, lab:smoke 186, lab:demo all 25 steps; the lane's gate: test 9,347, build, lab:smoke --all 188, lab:demo --all 19 steps); its design-system.md line placed; no SQL | Opus, 3131 | `ab041e184bfe9d164` |
-| `crumbs-53` | the next words after round 12: the reel's place and the welcome in help and marketing, reel.md, the welcome cookie's tests, one home for the develop time's words, the hero fill's and pulse's names | MERGED at `57825ec2` (gate 162 green, light: test; the lane's gate on its synced head: test 9,430, build, lab:smoke 150); no SQL | Sonnet, 3133 | `a60b9ee6392ade237` |
-| `redteam-44` | build 44's red-team (`ece3f8a1`) | DONE 2026-10-03 03:30Z: the door's first byte, the doors, the camera (a roll of 24, no roll-size control to set 3), the Reel card, regressions and the visible-tab steps PASS; one MEDIUM (a develop album's upload stands in the album while it sends) and four LOWs (the stale develop line, the failure sheet's words, a guest's `?reel`, the door's reduced-motion fade cut by globals.css's `!important`), all with `crumbs-54`; NITs (the camera's announcement, the keep's "photos" with `crumbs-54`; two to the ROADMAP); every RT44 event deleted, no report, strikes unchanged; hi's name left "RT44 Hi"; ledger `../partyreel-wt/_scratch/redteam-44/ledger.txt` | Opus, Will's Chrome | `a186d402e4367102f` |
-| `desk-premise` | the pre-sitting desk pass's PREMISE re-reads (no two of the 25 asks one decision; host-dashboard and demo-framing unmoved) | DONE: identity, event-header, create-wizard and take-home HOLD; the-wait MOVED (crumbs-52's Take photos on a camera album and the Reel card's "Live at the develop", plus three older slips): `desk-tune-4`; identity's sheets style a `data-n` production's glyph count lacks: the same lane | Opus | `a20a4c46761a0fb61` |
-| `account-exit` | Will's ask (2026-10-03): leaving made clear: the dialog's key points with the purge's time in her zone, the blocked sign-in's why and when (`user_banned`), the operator's Cancel deletion, her own uploads out of others' albums (unchecked); no refund, said; the purge re-reads each stamp so a restored account is never erased | MERGED at `6f4e9995` (gate 166 green after one load timeout: lint, build, lab:smoke 160, lab:demo on five boards; test red once on layer-is-up's whole-src scan, 9.2 s under load, given its own 30 s ceiling and re-run green, 9,550; the lane's gate: test 9,542, build, lab:smoke 161); its column comment applied by protocol (20261003030842, md5 the file's 08a61570; advisors 19/4/35; no types) | Opus, 3134 | `acd7d29709bfbc8a8` |
-| `desk-tune-4` | the-wait's drawings made true to production again (the camera album's Take photos, the Reel card's words, three slips) and `data-n` on production's glyph count for identity's sheets; no ask moved | MERGED at `33ad5bbb` (gate 165 green, light: test 9,467; the lane's gate on its synced head: test 9,469, build, lab:smoke 151, lab:demo the-wait at 1440, 375 and screen=1440, identity, event-header and take-home) | Sonnet, 3132 | `aefd55ce76aafcdec` |
-| `crumbs-54` | red-team 44's MEDIUM (a delayed album's upload in the album while it sends), its four LOWs (the stale develop line, the failure sheet's words, a returning guest's `?reel`, the door's reduced-motion fade) and two NITs (the camera's announcement, the keep's nouns) | MERGED at `abbf1dac` (gate 167 green: lint, test, build, lab:smoke 161, lab:demo on six boards; the lane's gate: test 9,514, build, lab:smoke 163; measured at 375: 0 album tiles over 471 and 714 frames on a develop and an approve album) | Opus, 3131 | `a2d6ba9a3637360d1` |
-| `redteam-45` | build 45's red-team (`dc74034c`) | DONE 2026-10-03 05:40Z: six walks PASS (red-team 44's MEDIUM: 0 album tiles over 4,488 frames on a develop and an approve album; the develop with her page open; the words; reduced motion; leaving, never pressed; regressions and the desk); `?reel` FAIL on one leg, a LOW (the curtain about 25 KB after the head in the HTML stream: one bare-head frame at 4x CPU on a slow link); two NITs; every RT45 event deleted, no report, strikes unchanged; ledger `../partyreel-wt/_scratch/redteam-45/ledger.txt` | Opus, Will's Chrome | `ae276744dab9ac998` |
+| `identity-wiring` | identity r2's voice=camera, layers=display, status=lights at the source; corners only as focus | MERGED at `3d80670e` (gate 172 green: lint, test, build, lab:smoke, lab:demo all; the lane's: test 9,590, build, lab:smoke 193, all 25 desk steps at 1440 and 375) | Opus, 3131 | `afc6d0be1a26b1f6f` |
+| `wait-wiring` | the-wait's picks: time on the guest screens, Settings' album styles, the contact sheet, the host's cover as guests see it, "Disposable", approval never with a develop (a CHECK migration; held photos join the roll at the switch) | MERGED at `c02893c1` (gate 174 green, light: test; the lane's gate on its synced head); its migration `20261003100000_approval_never_with_a_develop.sql` waits for the Advisor's Q12, then apply by protocol | Opus, 3132 | `af468aba998f4f11a` |
+| `take-home-wiring` | take-home's picks: Select then Save, Save into Photos at phone size with sizes, the host's Originals and Phone size; the phone copy; the media-cost guard | MERGED at `f8f23300` (gate 175 green: lint, test, build, lab:smoke, lab:demo on five boards; the lane's: test 9,862); its migration `phone_copy` APPLIED by protocol after the Advisor's Q13 (20261003104506, md5 the file's f999035b; one `create_media` and one `create_media_as_host`, 12 and 13 args); wait-wiring's `approval_never_with_a_develop` APPLIED after Q12 (20261003103742, md5 86ac4dea); types and seams next, then the export Worker | Opus, 3133 | `aa8ae040fb361d3c6` |
+| `rooms-wiring` | event-header's rooms=over: Review, Guests and Settings in one panel over the hub, the reel full screen, See it as a guest (a true guest render) | MERGED at `d6452566` (gate 171 green: lint, test, build, lab:smoke, lab:demo on four boards; the lane's: test 9,670, build, lab:smoke 163); See it as a guest gated on the host's own event read (`getEvent`, RLS) and drawn inert; wizard-wiring's host-app.md lines placed with it | Opus, 3134 | `ac7150b41d7dc7ae0` |
+| `wizard-wiring` | Create as the room with flow=carry, look=places, beat=develop; the add step waits for create-wizard r3 | MERGED at `feca808e` (gate 169 green, light: test 9,621; the lane's gate: test 9,625, build, lab:smoke 151, lab:demo each step pressed at 1440 and 375; 49 tests red against production first); its host-app.md lines (its manifest, `feca808e^2`, from line 76) placed at rooms-wiring's record, which owns the doc | Opus, 3135 | `afd8421950f236037` |
+| `identity-r3` | board identity r3 [desk 10]: system (keys and wells recommended, all rings, ink), room (graphite recommended), edge (everything that floats recommended) | MERGED at `792dbc05` (gate 170 green: lint, test, build, lab:smoke, lab:demo identity 3 steps; the lane's: test 9,585, lab:demo eight runs at 1440, 375 and its knobs); lab only; on his next desk | Opus, 3136 | `a4b60128e7777e310` |
+| `cost-model` | research: the per-event and per-month cost model across every vendor, the levers ranked, into PRICING.md | MERGED at `cdefd776` (light gate: test 9,577; the lane's: test, typecheck, lint; every price read from its vendor's raw page 2026-10-03, one invented WebFetch summary caught); his decisions in the morning message | Opus, none | `adc26155bbe485569` |
+| `create-wizard-r3` | board create-wizard r3 [desk 60]: the add step's second exploration, four polished options in the wired room (styles recommended: Settings' album-style cards) | MERGED at `97798963` (gate 173 green, light: test; the lane's: test 9,733, build, lab:smoke, lab:demo at 1440 and 375); lab only; on his next desk | Opus, 3135 | `a5c57d3cc25a5c81c` |
+| `demo-framing-r5` | board demo-framing r5 [desk 90]: the hero's stage, a more polished set from r4's five | MERGED at `bf26d730` (gate 177 green: lint, test, build, lab:smoke, lab:demo demo-framing); lab only; on his next desk | Opus, 3136 | `a8f0856b99cc9ed00` |
+| `event-header-r3` | board event-header r3 [desk 50]: facts (the strip free of a timeline, new ideas; the dial banked) and doors (three refined, each with its sticky form) | MERGED at `a2affb3d` (gate 179 green, light: test); lab only; on his next desk | Opus, 3134 | `ac26dc46271773f37` |
+| `crumbs-55` | four crumbs: frame-ancestors and X-Frame-Options against clickjacking (both projects), the next-step chip's room link, the brand kit's fifth ground and tokens, How it works' Create picture | MERGED at `599ede52` (gate 176 green: lint, test, build, lab:smoke, lab:demo all) | Sonnet, 3131 | `af911157a822471ec` |
+| `host-dashboard-r3` | board host-dashboard r3 [desk 25]: events for 1 to 10 scaling to hundreds, the empty featured stage, the feature's rule as a choice | MERGED at `a8b21659` (gate 178 green: lint, test, build, lab:smoke, lab:demo host-dashboard); lab only; on his next desk | Opus, 3135 | `a96b83311939a385c` |
+| `event-dates` | an optional end date read everywhere (Settings' range, the dashboard's week, live today and stage, the formatter's ranges, the develop default after the last day; never the lifecycle); lead=made; its migration for the Orchestrator | MERGED at `6f700751` (gate 182 green, light: test 10,057; the lane's on its synced head: typecheck, lint, test, build, lab:smoke 157, lab:demo at 1440 and 375); its migration APPLIED (20261003154825, Q14 safe as written, md5 8e2422f8), types at `d9d5ff03`, its seams dropped | Opus, 3132 | `a4f91d827093a1238` |
+| `the-wait-r2` | board the-wait r2 [desk 35]: the arrival, his first choice drawn properly (the develop as the album's first load, two or three takes), the premiere first and into place refined | MERGED at `2b9db0d4` (gate 180 green: lint, test, build, lab:smoke, lab:demo the-wait; the lane's: test 9,984, lab:demo at 1440, 375 and the Screen knob); lab only; on his next desk | Opus, 3133 | `a0a9f95e641174de4` |
+| `redteam-46` | build 46's red-team (`9af92e54`): the waiting room and the develop, the pair refused, taking photos home (the phone copy, the host's two sets), the rooms and See it as a guest, Create, identity across the app, the frame headers, regressions | DONE 16:20Z: every walk PASS; 2 MEDIUMs (fixed by crumbs-56, merged), 1 LOW and 6 NITs (one fixed by crumbs-56, the rest crumbs-57's); restored (six RT46 events in Deleted, zips in the Trash, strikes unchanged); its ledger `../partyreel-wt/_scratch/redteam-46/ledger.txt` | Opus, Will's Chrome | `a8acc8ebda6e32988` |
+| `crumbs-56` | red-team 46's two MEDIUMs: her video on the waiting contact sheet draws its first frame (the album tile's mark, a sending video too, the screen-reader noun); the host's cover and head read what waits by its seal (held photos joined at a switch count, never dress the head) | MERGED at `64e90196` (gate 181 green, light: test 10,002; the lane's on its synced head: typecheck, lint, test 10,004, build, lab:smoke 148); the alias walk is red-team 47's | Sonnet, 3131 | `aa29965c66e3771f2` |
+| `crumbs-57` | red-team 46's LOW and five NITs: the clock at the develop, tomorrow's day, the Download panel's noun, See it as a guest's Add, Create's print sample, 'Only me' at 375 | MERGED at `66b656ff` (gate 183 green, light: test 10,097; the lane's on its head: typecheck, lint, test 10,091 and under four time zones, build, lab:smoke 147); rides build 48 | Sonnet, 3131 | `a753fb52265e21a48` |
+| `redteam-47` | build 47's red-team (`e5be373c`): the range on the host's and the guest's sides, what a locked or private album withholds, writes that must not land, never the lifecycle, red-team 46's MEDIUMs re-walked, regressions near the change | DONE 17:50Z: every walk PASS (the password door and lead=made not drivable, said why); red-team 46's two MEDIUMs verified fixed; 1 MEDIUM (Settings' date field saves per keystroke) and 5 NITs, all crumbs-59's; restored (six RT47 events in Deleted, strikes unchanged); ledger `../partyreel-wt/_scratch/redteam-47/ledger.txt` | Opus, Will's Chrome | `aa3af4ec8f0a0ff01` |
+| `album-calm` | Will's yes (2026-10-03): others' arrivals in calm batches about every 15 s (hers at once), a hidden tab neither syncs nor listens and catches up at once with the new-media entry, a delta carrying its links (one call a batch); before/after measured into PRICING's lever 1 | MERGED at `fdd0dc9b` (gate 186 green: lint, test, build, lab:smoke, lab:demo six boards); measured 84 to 26 calls (visible), 81 to 1 (hidden), 100 to 60 messages; the batch's landing a board question (calls 132) | Opus, 3132 | `a6e0909d097507e47` |
+| `crumbs-58` | Will's pick (2026-10-03): ranges as X–Y ("October 2–4, 2026") in `formatEventDate` and the dashboard's range words | MERGED at `3d3e3507` (gate 184 green; the lane's on its synced head: typecheck, lint, test 10,102, build, lab:smoke 160); one rule, `dashRange`; screen readers lose "to" on spaced ranges (calls 131: a spoken twin recommended) | Sonnet, 3133 | `a205a24fd2bb55889` |
+| `cost-atlas` | Will's pricing rethink (2026-10-03): the atlas of every cost a host can drive and the invariant (no plan's worst case above its price), the archetypes to the 2,000-guest wedding, the breakeven and light-per-heavy math, each vendor's guard posture, two or three ladders with one recommended (scratch, for his pick); from the Advisor's Q15 | MERGED at `ec3ee1ae` (gate 185 green); the ladders `../partyreel-wt/_scratch/cost-atlas/ladders.md` (A recommended), the Advisor's Q16: A after three fixes (the fair-use line, 1 TB at $109 and the renewal at $19, the four preconditions as launch blockers); on Will's pick | Opus, none | `a3c565b506baefbf0` |
+| `spend-watch` | Will's guards (2026-10-03): our own spend watch (alerts past 10× the trailing peak, a floor for quiet weeks), the switches that stop a vector (mail, crons, exports auto; uploads alert-only with a one-tap switch), each with its `/admin` card; vendor settings stay human | MERGED at `0dba7c5d` (gate 187 green: lint, test, build, lab:smoke, lab:demo all); its migration APPLIED (20261003184305, Q17 safe as written, md5 c64223c7; advisors 19 / 4 / 35), types and its seam at the next commit; daily 05:00 UTC now, hourly at launch | Opus, 3134 | `a9df5f4a8d4e3701f` |
+| `crumbs-59` | red-team 47's MEDIUM (Settings' date field saves per keystroke: a typed year stored 2027-10-02 to 3851-10-05) and NITs (zod's words, a cleared date's words, an infinite end, the reel card under the cover, the rooms' Radix warning) | MERGED at `2315adad` (gate 188 green: lint, test, build, lab:smoke, lab:demo seven boards); its migration APPLIED (20261003185208, Q18 safe as written, md5 7203a7cf); found the develop time's twin (crumbs-60) | Sonnet, 3131 | `ad455fad68d789e79` |
+| `crumbs-60` | the develop time's twin (crumbs-59's find): a half-typed year or any past time in Settings' develop time saves as now and develops the album with no question; a past time asks Develop now's own question, a finished time saves | MERGED at `61e58ea2` (gate 189 green, light: test; the lane's on its head: typecheck, lint, test 10,335, build, lab:smoke; the bug reproduced live first: 0202 developed an album); rides build 49 | Sonnet, 3131 | `a3db1f89d710d50fd` |
+| `redteam-48` | build 48's red-team (`26f14c6b`): the calm album live with three clients (batches, the hidden tab's silence and catch-up, the delta's links never a held or sealed item), the spend watch's card and the uploads switch, red-team 47's MEDIUM re-walked keystroke by keystroke, the small fixes and the dash, regressions | DONE 20:25Z: no MEDIUM; every walk PASS but the uploads switch (NOT DRIVEN: the classifier refused the press; Will's walk); 3 LOWs and 3 NITs, crumbs-61's; restored (three events in Deleted, the probe among them) | Opus, Will's Chrome | `a54816824a168e17e` |
+| `backup-prune` | the pricing invariant's precondition: the backup's prune keeps up with deletions (a cursor, caps sized to the backlog, fail closed, dry-run until the launch switch) and the orphan sweep's cursor; the Worker deploy and `PRUNE_MODE=live` the Orchestrator's on Will's yes | MERGED at `17e5faba` and `45b7fb7a` (gates 190 and 191 green; the Advisor's Q20 met: a hold never releases itself, Release the hold on `/admin/jobs`, a trip raises); DEPLOYED dry (`partyreel-backup` ef73313c); `PRUNE_MODE=live` the launch's, on Will's yes | Opus, 3132 | `a7c8c37fddaa17749` |
+| `upload-meter` | the pricing invariant's preconditions: abandoned uploads never stored or backed up unmetered, a preview never heavier than its original, an account's uploads an hour (20,000) and events a day (100) as unpublished breakers, the join limiter sized for a 2,000-guest wedding on one Wi-Fi (3,000) | MERGED at `656712bb` (gate 192 green: lint, test, build, lab:smoke, lab:demo four boards); its migration APPLIED (20261003213849, Q21 safe as written, md5 64e799ef), types and its seam after; the R2 rule `staging-expire` set (staging/, a day) | Opus, 3131 | `a84dc730135e7cf76` |
+| `crumbs-61` | red-team 48's LOWs and NITs: one link for a guest's own upload, a range keeping its length when its start moves, Develop now to every guest together, the waiting sheet's footer at 375, the guest page's Add in a newcomer's words, the guest album's noun | MERGED at `e9f56432` (gate 193 green: lint, test, build, lab:smoke, lab:demo seven boards); its migration APPLIED (`doorbell_moment`, 20261003214116, Q22 safe as written, md5 780f930d) | Sonnet, 3133 | `ae9df0b537793d0ea` |
+| `redteam-49` | build 49's red-team (`e795ad07`): uploads through staging (the month counted once at complete, an abandoned upload stored and counted nowhere, no staging key in the backup), Settings' develop time (crumbs-60), Develop now to every guest together, crumbs-61's fixes, `/admin/jobs` read only, regressions | DONE 23:10Z: no MEDIUM; every walk PASS but Develop now's spread (1.25 to 1.43 s from a slow sync or two in the burst, LOW, accepted); a LOW read from the code (a re-sent complete can delete a recorded upload's files) and two NITs, crumbs-62's; restored (four events in Deleted) | Opus, Will's Chrome | `aea8819888948ba5c` |
+| `trash-in-storage` | Will's word (2026-10-03): Deleted counts in storage (the cap holds albums and Deleted together, deleting frees nothing until an item leaves Deleted for good), an account setting freeing the oldest of Deleted first when an upload needs room, the chart used and deleted apart; the standby budget and the re-delete guard retire; its migration for the Orchestrator | HANDED OFF at `c645bfd7`: ready (the Advisor's Q23 and Q24: safe to apply as written; migration md5 75c77cff unchanged since Q24; Empty Deleted's budget 10 s); parked until milestone 35, then apply, integrate and build within minutes; Q1 (the setting on) Will's | Opus, 3131 | `ae451b0bbdbee9503` |
+| `pricing-research` | context for Will's deferred ladder and renewal: the market's prices for event photo sharing, what a host compares us to (cloud storage, photographers' galleries), each ladder for and against with Deleted inside the cap, new ideas; for him in `../partyreel-wt/_scratch/pricing-research/` | MERGED at `b0719ef4` (gate 194 green); its summary in chat 23:40Z: A with 1 TB at $99, the first Pro step yearly-only ($90), the renewal $19 ($15 holds); on his pick | Opus, none | `a2673136580ea64fb` |
+| `crumbs-62` | red-team 49's LOW (a re-sent complete answers its recorded row at once and never deletes its files) and NITs (the door's step on a waiting album, the guest's Save noun); before milestone 35 | MERGED at `3dd2f265` (gate 195 green, light: test; the lane's on its head, the bug reproduced live first: a replay after uploads closed or on a dead ticket deleted the files; green live: both replays 200 recorded, every file kept) | Opus, 3133 | `a33025d25953bbc7d` |
+| `redteam-50` | build 50's red-team (`048016f9`), the last walk before milestone 35: crumbs-62's replay live (a recorded upload's files kept, a real refusal still cleaning up), its two words, a regression pass at 375 and 1440 | DONE 00:35Z: no MEDIUM; every walk PASS (replays 200 recorded with files kept, a held refusal cleaned up whole, the meter to the byte); two NITs as ROADMAP lines; restored (two events in Deleted) | Opus, Will's Chrome | `a956b2c9b3bdf2b01` |
 
-**The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Q8
-(round 12's plan) answered with 21 corrections, all folded into the briefs; the next consult is the foundation's
-migrations before they are applied. From another session, respawn it from `usher/kit/advisor-prompt.txt`.
+**The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Q15
+(pricing and cost bounds, 17:45Z) answered: three rules (one marketed axis, storage; no plan's worst-case month above its
+price; guards as circuit breakers), its model at `../partyreel-wt/_scratch/pricing/q15-advisor.md`; it reads cost-atlas's
+ladders before Will sees them. From another session, respawn it from `usher/kit/advisor-prompt.txt`.
 
-**Handoff across accounts.** The Orchestrator session is `2ba90542-62d6-487c-8c79-3657619f9133` (hi@willgibs.com,
+**Handoff across accounts** (the weekly hit 100% at 11:52Z and killed four agents; Will reset it on this account at
+~15:30Z, and all four resumed by SendMessage at 15:40Z with their transcripts; Will's rule: watch from 96%, refresh
+this block often from 98%). The Orchestrator session is `2ba90542-62d6-487c-8c79-3657619f9133` (hi@willgibs.com,
 seated 2026-10-01 18:08Z; its weekly resets Tuesday 2026-10-06 21:00Z, willg97's Sunday 2026-10-04 13:00Z; Will hands
 off only when one maxes its weekly limit). willg97's `157caa18` stays idle and `b01c012e` stays retired. From another
 session, respawn each running lane per the runbook's "Resume a lane": kill by port any dev server left on 3131 to 3136
@@ -83,36 +94,97 @@ commits, what remains, its predecessor's transcript at
 account. Connectors follow the account: Claude in Chrome (every red-team needs it), the Supabase MCP on
 `ddafaemglzmuekbtjwzn`, the Vercel MCP on his personal team (deploys ride `$VERCEL_TOKEN`; only runtime logs need P3).
 
-Relays that live only in an agent: none (red-team 44's LOWs relayed to `crumbs-54` are merged with it).
+Relays that live only in an agent (2026-10-03): to `cost-atlas` (17:25Z), Will's word that a limit worth knowing is published, never hidden: a row in the pricing comparison table with a hover explainer (monthly ingress per plan the first, gracious for nearly everyone; Pro more than Free), so the Advisor's unmarketed ceilings become published limits wherever a host could meet one. Supabase's spend cap verified ON (17:25Z, the Partyreel Team org's billing page, Pro): the pre-launch posture, off only at launch. to `take-home-wiring` (08:30Z), from the cost model: the `phone` key shaped
+so a one-line filter in the `partyreel-backup` Worker could skip it as it could the preview (a variant segment readable
+from the key alone), the exact filter written under its Handoff's Proposed Worker changes; the backup Worker itself
+unchanged ("back up only originals" is Will's to decide). To every running lane (09:20Z): WIP pushed at each milestone
+with a `## Where I am` note, for the weekly's limit.
 
 **Q9 is answered** (the Advisor, 21:05Z) and acted on above. The waiting experience itself goes to a design board (below).
 
 If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` holds a merge made after this note (push
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
 staged, uncommitted merge is finished by `usher/kit/merge-lane.sh`'s own steps or reset with `git merge --abort`.
-This session's scratchpad holds the specs (`specs-r12/`) and gate logs (the next gate is 168, the calls file numbers on
-from 116); nothing there is needed that these lines and the manifests do not carry. Everything a successor reads lives
+This session's scratchpad holds the specs (`specs-r12/`) and gate logs (the next gate is 180, the calls file numbers on
+from 127); nothing there is needed that these lines and the manifests do not carry. Everything a successor reads lives
 in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team briefs and ledgers).
 
 ## Next, in order
 
-1. **Running:** nothing. Every lane of the round is merged (the last, `crumbs-54`, at `abbf1dac`, gate 167).
-2. **Build 45** (`dc74034c`) serves the alias, the round's last: red-team 45 DONE (no MEDIUM; a LOW and two NITs on the
-   ROADMAP), the desk checked on the alias (`lab:demo` on all seven boards at 1440 and 375: 25 steps, 0 failing). His
-   sitting is under way (2026-10-03 05:00Z, pinged): his paste is transcribed at once (`review-sheet.mjs`, then
-   `pnpm lab:review --dry`, then for real), then round 13's plan; production waits for his paste (no lane moves what
-   the desk describes). A real deletion and its Cancel deletion wait for his yes and a day's margin before a purge.
-3. **The close:** STATUS rewritten, the calls file sent (91 to 115 tonight), his morning message (his desk on build 45,
-   identity first; his walks); then Moltbook one pass an hour.
+Written 2026-10-04 02:55Z for a controlled compaction, on Will's answers of 02:50Z. Nothing runs: every lane is merged or
+parked; the alias serves build 50 (`048016f9`, red-team 50 clean). Do these in order.
+
+0. **First, answer Will's open question in chat:** would a guest limit help our costs or resources anywhere? (His
+   words: "If not, and everything is effectively the same regardless of limit/no limit, let's keep no limit. If there are
+   benefits, let's judge.") The facts, from PRICING.md's atlas:
+   - a guest is a per-request constant: ≈$0.004 a confirmed guest past 100,000 MAU, nothing below it;
+   - the live album grows with viewers × time since `album-calm`, never uploads × viewers: the 2,000-guest wedding is
+     ≈$11 to $5.50 of live cost, inside even a $29 pass;
+   - the runaway guards already stand: the join backstop of 3,000 a quarter-hour per address and event, the hourly
+     uploads breaker, `spend-watch`, Supabase Auth's email limit.
+
+   Recommended: keep no limit. Name the one benefit a limit would buy (Realtime connection slots at a giant event), and
+   why the calm album and the guards already cover it.
+1. **Milestone 35 (his yes, 02:50Z), from `launch-prep`'s tip.** Since build 50 the tip carries records only.
+   - Run the full gate (`FULL=1`).
+   - Merge `launch-prep` into `main` with the tag `milestone-35`, the message naming the round: round 13's wirings,
+     event dates, album-calm, spend-watch, upload-meter's staging, backup-prune's controls, crumbs-55 to 62, red-teamed
+     on builds 46 to 50 with no MEDIUM open.
+   - Wait for production READY, then walk partyreel.com read-only.
+   - Production now runs the spend watch's 05:00 cron (Hobby: two crons).
+   - STATUS gets production's line.
+   - The runbook's "Milestone" section has the steps.
+2. **trash-in-storage, at once after the milestone** (the Advisor's Q23 and Q24: apply minutes before its build):
+   - apply `20261003220000_deleted_counts.sql` by protocol (a helper verbatim; md5 75c77cffc8e335bd3bb2cae72d9a18cb,
+     2,003 lines; the md5 proof, advisors 0029 +1 expected, the foot's 15 hashes);
+   - integrate `c645bfd7` (FULL gate) and regenerate the types;
+   - build 51 `[preview]` and red-team 51: Deleted counted, the setting on and off, Empty Deleted, the chart, restore,
+     the over-cap path, a guest withdrawal purging that night.
+
+   Its Q1, the setting's default ON, is **Will's yes**; its other Questions are calls R1 and R2 in the calls lab.
+3. **pricing-wiring, after trash merges** (both move the cap). Will's Ladder A, his words "send it on pricing tier A
+   with $99":
+   - Free: 100 MB, photos, 300 MB of uploads a month, 1 event.
+   - Event Pass: $29 once, 25 GB, 50 GB of uploads over its year (a new yearly meter), **renewal $19 (his word, 02:50Z)**.
+   - Pro 50 GB: $9 a month or $90 a year, 100 GB of uploads a month.
+   - Pro 200 GB: $29 or $290, 200 GB a month.
+   - Pro 1 TB: $99 or $990, 500 GB a month.
+   - Unlimited events and no guest limit on every paid plan.
+   - The table's published rows, each with a hover line: Storage, Uploads, Events, Guests, Largest file, Deleted, Kept
+     (`ladders.md`'s row table), with Deleted's line rewritten for "counts in your storage".
+   - The fair-use line, in the Advisor's Q16 words.
+   - Cards that lead with the events they hold; "one payment, no subscription" on the pass.
+   - Stripe test prices are the Orchestrator's via the MCP, after `list_available_accounts_or_orgs` shows livemode false.
+   - Every marketed number in `tiers.ts`, `tier_limits()` (a migration by protocol), /pricing, the plan sheet, the help,
+     the blog, llms.txt and the JSON-LD.
+   - PRICING.md's Tiers table.
+4. **Google Drive export (his yes, 02:50Z): plan and review first, the UI in the lab first, then wiring.** His words:
+   "if it's that easy to dump into Google Drive and we can basically swallow WedUploader/WeddingQR/PixBearer's entire
+   feature set at $29/event within a cancellable $9/month unlimited events drive-offload one month subscription, that's a
+   hilariously great win ... let's ensure this is fully planned and reviewed, then do it. lab exploration first to nail
+   UI."
+   - **The research:** `drive.file` only, never full `drive` (no CASA: "Definitely don't want to pay for that security
+     audit"). Brand verification only. A Worker plus Queue streaming R2 to Drive's resumable uploads at ≈$0.0007 a GB.
+     Dropbox via `save_url` next; Google Photos no (10,000 requests a day per project); iCloud impossible.
+   - **Order:**
+     1. a design note and the Advisor's review of the architecture: the OAuth flow, the token store (encrypted,
+        server-only, revoked on disconnect), the transfer job and its `/admin` health signal, the full-Drive and 429
+        paths;
+     2. a lab board for the UI, on his desk: the Send to Drive entry on the host's Download panel, the consent, the
+        progress, done, and the clean exit (delete it here after export);
+     3. the wiring after his pick;
+     4. his one step: a Google Cloud project with an OAuth client, the steps written by the lane.
+5. **The close of the day:** STATUS, this pickup, the calls lab (`../partyreel-wt/_scratch/calls/calls-lab.md`: new calls
+   in its form, a section per batch). Moltbook hourly only on his word.
 
 ## Waiting on Will
 
-- **His walks** (2026-10-02): the phone measurement, the real upload, the Save check and the two-Checkout-tabs check
-  are DONE (the last passed whole on 2026-10-03: two live test subscriptions, the newer followed; the followed
-  one cancelled, the survivor followed with Pro kept; the account deleted, nothing left billing; hi@willgibs.com
-  restored before the purge at his ask). Owed: Record Video's 1080p size on his iPhone; after build 44, the walk-through when let in,
-  a password door, reduced motion over the door states and the new hub, the camera on his phone.
-- **The calls file** (90 calls, `../partyreel-wt/_scratch/calls/relay-calls.md`): he reviews it today.
-- **His next desk** on build 44.
-- **Asks that come due later**: Libraries.dev access for a lane (when the help chat is cut), any F1 frames he loves
-  (when the admin look is cut), asset 38 (the privacy hero's photograph).
+- **His desk tonight** on the alias (six boards: identity r3, host-dashboard r3, the-wait r2, event-header r3,
+  create-wizard r3, demo-framing r5): `https://partyreel-git-launch-prep-partyreel.vercel.app/design/lab?key=fiesta`.
+- **The calls lab** (`../partyreel-wt/_scratch/calls/calls-lab.md`): Q2 to Q6 open (a spoken "to"; how a batch
+  lands; "within seconds"; the room screen's link; a develop time added mid-party), sections A to R. He reviews in
+  batches and asks direct questions in chat; answer in chat, never only in a file.
+- **His walks:** the camera on his iPhone (a held-shutter video on a waiting sheet), Save into Photos, Record Video's
+  size, a deletion and its Cancel deletion on hi@willgibs.com, the spend watch's uploads switch off and on.
+- **Decided 02:50Z** (recorded above): milestone 35 yes; Drive export yes (plan, review, the lab first); Make room from
+  Deleted on by default; the renewal $19. The pricing ladder was decided at 23:58Z: A, with 1 TB at $99.

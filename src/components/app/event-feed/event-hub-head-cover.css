@@ -1,0 +1,21 @@
+/* THE HOST'S COVER, LIFTED (`event-hub-head-cover.tsx`, `event-gallery.tsx`): Look lifts the cover the way a develop
+   brings a photograph up, her album rising out of a wash of light, once, as she lifts it (the-wait r1, Will's
+   `cover=guests`: "can have some delights in here"). The rest state is the album as it is; none of it under reduced
+   motion (bible 5). Its keyframe carries the `hub-look-` prefix (`keyframe-uniqueness.test.ts`). */
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-host-looked] {
+    animation: hub-look-develop 900ms var(--ease-emphasis, ease-out) both;
+  }
+}
+
+@keyframes hub-look-develop {
+  from {
+    opacity: 0;
+    filter: brightness(1.9) saturate(0.15);
+  }
+  to {
+    opacity: 1;
+    filter: none;
+  }
+}

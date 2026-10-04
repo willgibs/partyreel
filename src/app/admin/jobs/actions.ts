@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { type ActionResult } from "@/app/(app)/dashboard/actions";
 import { jobById } from "@/app/admin/jobs/catalog";
+import { stampPruneHoldRelease } from "@/app/admin/jobs/prune-hold";
 import { requireAdminAction } from "@/lib/auth/admin-context";
 import { setJobEnabled } from "@/lib/db/queries/jobs";
 import { assertCronEnv } from "@/lib/env";
@@ -53,10 +54,69 @@ export async function toggleJobAction(
 }
 
 /**
- * Run the purge sweep now. The app calls its OWN cron route with the cron secret and a manual
- * trigger header, which is the only way to run the sweep without duplicating a thousand lines of
- * lifecycle logic; the route re-checks the kill switch and writes its own heartbeat, so a manual run
- * is a real run in every sense.
+ * The switches whose home is the spend watch's card (`ops_flags`, the spend watch): guest uploads and lifecycle
+ * mail. Downloads and the purge sweep keep theirs where they always lived (/admin/exports, the purge's card), so a
+ * switch has one home. Re-checks admin + AAL2 here; anything else named is refused, so a forged key flips nothing.
+ */
+const WATCH_SWITCHES = ["uploads_enabled", "lifecycle_mail_enabled"] as const;
+
+export async function toggleWatchSwitchAction(
+  key: string,
+  enabled: boolean,
+): Promise<ActionResult> {
+  const auth = await requireAdminAction();
+  if (!auth.ok) return auth.result;
+
+  if (!(WATCH_SWITCHES as readonly string[]).includes(key)) {
+    return { ok: false, code: "unknown", message: "Unknown switch." };
+  }
+  const { error } = await setJobEnabled(key, enabled);
+  if (error) {
+    captureError("admin", new Error(error), {
+      action: "toggle_watch_switch",
+      switch: key,
+      enabled,
+    });
+    return {
+      ok: false,
+      code: "unknown",
+      message: "Couldn't update the switch. Please try again.",
+    };
+  }
+
+  revalidatePath("/admin/jobs");
+  return { ok: true };
+}
+
+/**
+ * RELEASE THE BACKUP PRUNE'S HOLD (the Advisor's Q20; `prune-hold.ts`). The hold never lets a backlog through by
+ * itself, so this stamp is the act that does: the Worker's next run reads it from its heartbeat's start answer and
+ * goes ahead only if it was pressed after the hold began. It starts nothing (the app cannot start a Cloudflare job),
+ * and it changes no switch: a paused prune stays paused, and the pause is the brake if the backlog looks wrong.
+ */
+export async function releasePruneHoldAction(): Promise<ActionResult> {
+  const auth = await requireAdminAction();
+  if (!auth.ok) return auth.result;
+
+  const { error } = await stampPruneHoldRelease();
+  if (error) {
+    captureError("admin", new Error(error), { action: "release_prune_hold" });
+    return {
+      ok: false,
+      code: "unknown",
+      message: "Couldn't release it, so it is still held. Please try again.",
+    };
+  }
+
+  revalidatePath("/admin/jobs");
+  return { ok: true };
+}
+
+/**
+ * Run a job the app can start, now: the purge sweep or the spend watch. The app calls its OWN cron route (the
+ * catalog's `runPath`, the one vercel.json schedules) with the cron secret and a manual trigger header, which is
+ * the only way to run a job without duplicating its logic; the route re-checks the kill switch and writes its own
+ * heartbeat, so a manual run is a real run in every sense.
  *
  * The wait is deliberately SHORT. The sweep may take up to its 60s maxDuration, and holding a server
  * action open that long to show a spinner is worse than telling the truth: the heartbeat row is the
@@ -68,7 +128,7 @@ export async function runJobNowAction(jobId: string): Promise<ActionResult> {
   if (!auth.ok) return auth.result;
 
   const def = jobById(jobId);
-  if (!def?.canRunNow) {
+  if (!def?.canRunNow || !def.runPath) {
     return {
       ok: false,
       code: "unknown",
@@ -87,7 +147,7 @@ export async function runJobNowAction(jobId: string): Promise<ActionResult> {
     };
   }
 
-  const url = `${await getSiteUrl()}/api/cron/purge`;
+  const url = `${await getSiteUrl()}${def.runPath}`;
   try {
     const res = await fetch(url, {
       headers: {

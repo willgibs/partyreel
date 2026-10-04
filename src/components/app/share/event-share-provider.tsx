@@ -7,6 +7,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { flushSync } from "react-dom";
@@ -22,6 +23,7 @@ import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion
 import {
   EVENT_SHEET_PARAM,
   resolveEventSheet,
+  roomOfHref,
   type EventSheet,
 } from "@/lib/event/sections";
 
@@ -29,7 +31,16 @@ import {
  * THE HUB'S ONE CLIENT ISLAND — the sheets, the mini-modal, and which element
  * owns the code's morph. Everything on the event page that opens something
  * reads this: the header's code door, the sticky row's QR pill, the cards row's
- * Settings card, the album's empty state, and the event menu.
+ * doors, the album's empty state, and the event menu.
+ *
+ * ★ EVERY ROOM IS A PLACE ON THIS ONE ADDRESS (Will, event-header r2 `rooms=over`, 2026-10-03: "This feels
+ * phenomenally more fluid, natural, and intuitive"). Review, Guests, Settings, the share kit and the guests' view
+ * all ride `?room=`, so each opens over the hub and closes back to it the one way a place does here: its card pushes
+ * an entry, Back or its close goes back over it, and a link or a bookmark onto one closes in place. One room handing
+ * over to another (Settings' door page to Guests) REPLACES the entry, so a close always lands on the hub, never on
+ * the room before. And every old way into a room that a press inside the hub still reaches (Settings' links into
+ * Guests, the reel guidance's Review, a retired room route, the bell's rows) opens that room in place
+ * (`useRoomLinks`, below), never a trip through the room's old address and back.
  *
  * ★ THE SHEETS RIDE THE URL, THE MINI-MODAL DOES NOT. Share and Settings are
  * places (`?room=share`, `?room=settings`): a host sends the settings link to
@@ -78,12 +89,22 @@ function sheetInBar(): string | null {
   return new URL(window.location.href).searchParams.get(EVENT_SHEET_PARAM);
 }
 
-/** The address that opens `sheet` on its first level: a page an earlier visit left in the URL is not this one's. */
-function addressOf(sheet: EventSheet): string {
+/**
+ * The address that opens `sheet` on its first level (a page an earlier visit left in the URL is not this one's), or on
+ * the Settings page a link named.
+ */
+function addressOf(sheet: EventSheet, page?: SettingsPage | null): string {
   const url = new URL(window.location.href);
   url.searchParams.set(EVENT_SHEET_PARAM, sheet);
-  url.searchParams.delete(SETTINGS_PAGE_PARAM);
+  if (sheet === "settings" && page)
+    url.searchParams.set(SETTINGS_PAGE_PARAM, page);
+  else url.searchParams.delete(SETTINGS_PAGE_PARAM);
   return `${url.pathname}${url.search}`;
+}
+
+/** Whether a press is the browser's own (a modified click opens a tab, a middle click is not a click). */
+function modified(e: MouseEvent): boolean {
+  return e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey;
 }
 
 /** Which element currently carries the code's `view-transition-name`. Exactly
@@ -93,10 +114,19 @@ export type CodeMorphOwner = "header" | "pill" | "modal";
 
 export const CODE_MORPH_NAME = "pr-event-code";
 
+/** How a place is opened: the section of a room its link named, or the Settings page. */
+type OpenOptions = { anchor?: string; page?: SettingsPage | null };
+
 type ShareValue = {
   sheet: EventSheet | null;
-  openSheet: (sheet: EventSheet) => void;
+  /**
+   * Open a place. `anchor` names the section of the room its link pointed at (`#invited`), which the room takes
+   * once it has drawn (`takeAnchor`): never an address of its own, so no fragment ever outlives the room.
+   */
+  openSheet: (sheet: EventSheet, opts?: OpenOptions) => void;
   closeSheet: () => void;
+  /** The section the room's opener named, handed over once (null after, or when none was named). */
+  takeAnchor: () => string | null;
   /** The settings page open inside the Settings sheet, or null for its four rows. */
   settingsPage: SettingsPage | null;
   openSettingsPage: (page: SettingsPage) => void;
@@ -124,10 +154,16 @@ export function useEventShare(): ShareValue {
 
 export function EventShareProvider({
   initialSheet,
+  eventId,
   children,
 }: {
   /** Resolved server-side from `?room=`, so a deep link opens with the page. */
   initialSheet: EventSheet | null;
+  /**
+   * The hub's event: a press on a link to one of ITS rooms opens the room in place (`useRoomLinks`). Absent off
+   * the hub (the Library's specimens, a board), where no link is read.
+   */
+  eventId?: string;
   children: React.ReactNode;
 }) {
   const searchParams = useSearchParams();
@@ -184,13 +220,38 @@ export function EventShareProvider({
     entry.keep(sheet !== null);
   });
 
+  // The section a room's opener named (`openSheet`'s `anchor`), until the room takes it.
+  const anchor = useRef<string | null>(null);
+  const takeAnchor = useCallback(() => {
+    const named = anchor.current;
+    anchor.current = null;
+    return named;
+  }, []);
+
   const openSheet = useCallback(
-    (next: EventSheet) => {
-      if (sheetInBar() === next) return;
-      entry.push(addressOf(next));
+    (next: EventSheet, opts?: OpenOptions) => {
+      const open = resolveEventSheet(sheetInBar() ?? undefined);
+      // Already open is open (crumbs-18), unless a link names another of Settings' pages: that page, in place.
+      if (open === next) {
+        if (next === "settings" && opts?.page) {
+          const url = new URL(window.location.href);
+          url.searchParams.set(SETTINGS_PAGE_PARAM, opts.page);
+          entry.replace(`${url.pathname}${url.search}`);
+        }
+        return;
+      }
+      anchor.current = opts?.anchor || null;
+      // ★ ONE ROOM HANDING OVER TO ANOTHER STAYS ONE ENTRY DEEP (rooms=over): the place's entry is moved to the
+      // new room, still ours exactly when it was, so the close (Back, or in place for a deep link) lands on the
+      // hub. Pushed, Settings' "Let them in from Guests" left Settings under Guests, and the X went back to it.
+      const address = addressOf(next, opts?.page);
+      if (open) entry.replace(address);
+      else entry.push(address);
     },
     [entry],
   );
+
+  useRoomLinks(eventId, openSheet);
 
   const closeSheet = useCallback(() => {
     // Back when the entry is ours, so the entry we added leaves with the panel rather than piling up
@@ -201,6 +262,7 @@ export function EventShareProvider({
     const url = new URL(window.location.href);
     url.searchParams.delete(EVENT_SHEET_PARAM);
     url.searchParams.delete(SETTINGS_PAGE_PARAM);
+    anchor.current = null;
     entry.close(`${url.pathname}${url.search}`);
   }, [entry]);
 
@@ -311,6 +373,7 @@ export function EventShareProvider({
       sheet,
       openSheet,
       closeSheet,
+      takeAnchor,
       settingsPage,
       openSettingsPage,
       closeSettingsPage,
@@ -326,6 +389,7 @@ export function EventShareProvider({
       sheet,
       openSheet,
       closeSheet,
+      takeAnchor,
       settingsPage,
       openSettingsPage,
       closeSettingsPage,
@@ -341,4 +405,57 @@ export function EventShareProvider({
   return (
     <ShareContext.Provider value={value}>{children}</ShareContext.Provider>
   );
+}
+
+/**
+ * ★ EVERY OLD WAY INTO A ROOM, PRESSED INSIDE THE HUB, OPENS THE ROOM IN PLACE (rooms=over; the brief's "every old
+ * way in keeps answering"). Settings' door page links into Guests (`#at-the-door`, `#invited`), the reel's guidance
+ * into Review, and the bell's rows into either: each is a real link (a modified click, a new tab and a link with a
+ * target of its own stay the browser's, and the address they hold still answers through its redirect), and a plain
+ * press on one, wherever on the page it stands (a portal included), is read here as the room it names
+ * (`roomOfHref`: this event's retired room routes, or the hub's own address with a room on it) and opened over the
+ * hub. A link anywhere else, another event's room included, is left alone.
+ *
+ * In the CAPTURE phase on the document, so the press is the room's before any handler on the link runs: Next's
+ * `<Link>` reads `defaultPrevented` after its own `onClick` and stands down, and a door that opens its room itself
+ * (the cards) meets an open room and does nothing more (`openSheet`: already open is open).
+ */
+function useRoomLinks(
+  eventId: string | undefined,
+  openSheet: (sheet: EventSheet, opts?: OpenOptions) => void,
+) {
+  useEffect(() => {
+    if (!eventId) return;
+    const onPress = (e: MouseEvent) => {
+      if (e.defaultPrevented || modified(e)) return;
+      const link =
+        e.target instanceof Element ? e.target.closest("a[href]") : null;
+      if (!(link instanceof HTMLAnchorElement)) return;
+      if (
+        (link.target && link.target !== "_self") ||
+        link.hasAttribute("download")
+      )
+        return;
+      const href = link.getAttribute("href") ?? "";
+      const room = roomOfHref(
+        href,
+        eventId,
+        window.location.origin,
+        `${window.location.pathname}${window.location.search}`,
+      );
+      if (!room) return;
+      e.preventDefault();
+      const target = new URL(link.href);
+      openSheet(room, {
+        anchor: target.hash.slice(1),
+        // A Settings page a link names (the Guests room's "Change who can get in", the checklist's steps).
+        page:
+          room === "settings"
+            ? resolveSettingsPage(target.searchParams.get(SETTINGS_PAGE_PARAM))
+            : null,
+      });
+    };
+    document.addEventListener("click", onPress, true);
+    return () => document.removeEventListener("click", onPress, true);
+  }, [eventId, openSheet]);
 }

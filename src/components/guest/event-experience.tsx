@@ -47,7 +47,13 @@ import {
 } from "@/components/guest/event-experience-wait";
 import type { FollowMomentHost } from "@/components/guest/follow-moment-card";
 import { GuestActionDock } from "@/components/guest/guest-action-dock";
+import { createAlbumKinds } from "@/components/guest/guest-action-dock-kinds";
+import { AlbumKindsSource } from "@/components/guest/guest-action-dock-kinds-source";
 import { publishCoverUnderHeader } from "@/components/guest/guest-header-cover";
+import {
+  AlbumWait,
+  AlbumWaitSource,
+} from "@/components/guest/gallery-empty-state-wait";
 import { GallerySkeleton } from "@/components/guest/gallery-skeleton";
 import { GalleryLiveProvider } from "@/components/guest/gallery-live";
 import { GuestShare } from "@/components/guest/guest-share";
@@ -85,6 +91,9 @@ import type { GalleryAccess, GalleryGate } from "@/lib/events/gallery-access";
 import { formatCount } from "@/lib/format/count";
 import { useInViewSentinel } from "@/lib/shared/use-in-view-sentinel";
 import { DEFAULT_ROW_STEP, type RowStep } from "@/lib/shared/album-rows";
+import { useWaitClock } from "@/lib/disposable/use-wait-clock";
+import { coverEyebrow, waitWords } from "@/lib/disposable/wait-words";
+import { addWords } from "@/lib/guest/camera/words";
 import { claimLeftForAnotherAddress } from "@/lib/guest/claim-uploads";
 import {
   confirmBeatToast,
@@ -269,8 +278,8 @@ export function EventExperience({
    */
   albumFull?: boolean;
   /**
-   * Something of hers from an earlier visit waits for the host on an album still empty (the page's server read,
-   * `waiting-on-arrival.server.ts`): the row's Add is hers from the first paint, never the empty state's.
+   * Something waits on an album still empty to the eye, hers or anyone's (the page's server read,
+   * `lib/disposable/waiting.server.ts`): the cover's Add never says "the first photo" over it, from the first paint.
    */
   waitingOnArrival?: boolean;
   /**
@@ -362,6 +371,14 @@ export function EventExperience({
   // guest's own first upload makes them one, and only the server can tell a
   // first upload from a returning contributor's.
   const [mediaCount, setMediaCount] = useState(stats.approvedTotal);
+  // ★ WHAT THAT COUNT SAYS IT HOLDS (`albumCountWords`, crumbs-61): the album's source names the kinds it can see ("12
+  // photos"), told with each count so the cover and the album's own line say one thing. Null until the album has
+  // told it, and the cover then says both nouns, as the server's first paint does (it knows a total, never its kinds).
+  const [mediaWords, setMediaWords] = useState<string | null>(null);
+  // ★ WHETHER ANYTHING WAITS IN THE ALBUM, AS ITS SYNC LAST SAID IT (`onWaitingChange`): the server's read at render
+  // (`waitingOnArrival`) is the first paint's word, and this is the live one, so the cover's Add stops asking for "the
+  // first photo" the moment others' shots begin to wait, as a newcomer's never did.
+  const [waitsLive, setWaitsLive] = useState(false);
   const [guestCount, setGuestCount] = useState(stats.guestCount);
   // A refresh re-renders the page with a fresh server count: adopt it (the sanctioned
   // adjust-state-during-render pattern, as `contributionSeen` below), so the poll's number and
@@ -670,12 +687,30 @@ export function EventExperience({
      the slot's line and the camera, the album's head, her tracker, the keep and the failure sheet. And what hers wait
      for, as it falls on this viewer (`addsWaitFor`): where they wait, the album draws nothing of hers in the air
      either (her tracker has it from the press), and the failure sheet says the rest waits. */
-  const { reading: liveWait, onSynced: onDevelopsAtChange } =
-    useLiveUploadsWait({
-      initial: uploadsWait,
-      moderationMode: event.moderation_mode,
-    });
+  const {
+    reading: liveWait,
+    onSynced: onDevelopsAtChange,
+    developsAt: liveDevelopsAt,
+  } = useLiveUploadsWait({
+    initial: uploadsWait,
+    moderationMode: event.moderation_mode,
+  });
   const addsWait = addsWaitFor({ uploadsWait: liveWait, isOwner, isDemo });
+  /* ★ THE WAIT, ONE QUESTION OF TIME (the-wait r1, Will's `model=time`): the album's live reading as a clock, the host's
+     approval or a develop time ahead, so the album's contact sheet, her tracker and the slot all say one wait,
+     "Developing", told apart by its clock alone ("As Maya lets them in", "All at once at 9 am"). */
+  const waitClock = useMemo(
+    () => waitWords(liveWait, event.host_display_name ?? null),
+    [liveWait, event.host_display_name],
+  );
+  /* ★ THE PRESET NAMED ON THE COVER (Will's `name=disposable`): "Disposable · develops at 9 am" over the event's name on
+     an album with its camera and a develop time, "developed" the morning after; the time in her own clock, so only once
+     it is known (the server's render names the preset alone). */
+  const wallClock = useWaitClock();
+  const eyebrow = coverEyebrow(
+    { capture: event.capture ?? "upload", developsAt: liveDevelopsAt },
+    wallClock,
+  );
 
   // The header's own name menu is a SIBLING island and cannot reach the modal's
   // handle; `lib/guest/name-door.ts` is the one channel between them (the same
@@ -685,24 +720,23 @@ export function EventExperience({
     [],
   );
   /* ★ THE COVER'S ADD IS THE ONE ADD (`event-header` r1, `guest=cover`). The album's empty state draws
-     its river and its words and no button of its own: the cover's white Add says "Add the first photo"
-     on an album with nothing in it yet, in the first screen, and "Add photos" once anything is (her own
+     its river and its words and no button of its own: the cover's white Add asks for the first photo
+     on an album with nothing in it yet, in the first screen, and says its ordinary words once anything is (her own
      files on their way, held for the host, or waiting from an earlier visit count from the first paint,
-     crumbs-43's `waitingOnArrival`), so a guest always has exactly one Add in front of her. */
+     crumbs-43's `waitingOnArrival`; and anyone's shots that begin to wait while she watches, `waitsLive`), so a guest
+     always has exactly one Add in front of her. Its words are `addWords`'. */
   const galleryEmpty =
-    mediaCount === 0 && inFlightUploads.length === 0 && !waitingOnArrival;
-  /* ★ WHERE THE ADD OPENS THE ALBUM'S CAMERA it says so (`disposable-camera`'s Question, taken): "Take photos"
+    mediaCount === 0 &&
+    inFlightUploads.length === 0 &&
+    !waitingOnArrival &&
+    !waitsLive;
+  /* ★ WHERE THE ADD OPENS THE ALBUM'S CAMERA it says so (`disposable-camera`'s Question, taken): Take, not Add,
      with the camera glyph, on the cover's white Add and on the shutter's face (the dock's `camera`), the first
      of them asked for while nothing is on the roll. The one Add is `GuestUpload.openAdd`, which opens the camera
      for any viewer of such an album, the host's included. */
   const cameraAlbum = event.capture === "camera";
-  const addWords = cameraAlbum
-    ? galleryEmpty
-      ? "Take the first photo"
-      : "Take photos"
-    : galleryEmpty
-      ? "Add the first photo"
-      : "Add photos";
+  // ★ THE ADD'S WORDS ARE `addWords`', ONE HOME (crumbs-61): the page and See it as a guest say one thing.
+  const addLabel = addWords({ camera: cameraAlbum, empty: galleryEmpty });
   // Her tracker (`guest-capture` r1, `tracker=button`): the two facts its button needs, kept
   // outside the page's state so a sync re-renders the tracker and never this shell.
   const [trackerStore] = useState(createUploadTrackerStore);
@@ -714,6 +748,9 @@ export function EventExperience({
      its button's two facts through `trackerStore`. Null until the album has mounted. */
   const [headBridge] = useState(createHeadBridge);
   const head = useHeadBridge(headBridge);
+  // ★ WHAT HER PICKS HOLD, FOR THE FOOT'S SAVE (red-team 49's NIT; `guest-action-dock-kinds.ts`): the album's kinds,
+  // said from inside its live source while she selects, so her Save names photos, videos or both.
+  const [albumKinds] = useState(createAlbumKinds);
   /* Whether the album has a reel to play from the cover's round: the album's own word once it has one,
      and until then the page's guess from what it knows at render (the host's switch, and two photos at
      least), so the round stands from the first paint rather than pushing Add over when the album lands.
@@ -1262,7 +1299,10 @@ export function EventExperience({
         returning={returning}
         uploadsOpen={event.accepting_uploads}
         requireUpload={event.require_upload_to_view}
-        albumEmpty={mediaCount === 0}
+        // ★ EMPTY AS THE COVER'S ADD READS IT (red-team 49's NIT): the cover's one source, `galleryEmpty` (what shows,
+        // her files on their way, what waits), so the door's upload step never offers the first photo over shots that
+        // wait for the develop, one screen before the page's own Add (`addWords`) asks for hers among them.
+        albumEmpty={galleryEmpty}
         isOwner={isOwner}
         isDemo={isDemo}
         isVerified={isVerified}
@@ -1291,6 +1331,7 @@ export function EventExperience({
         // itself there - the privacy rule needs no extra guard.
         hostName={event.host_display_name}
         eventDate={event.event_date}
+        eventEndDate={event.event_end_date}
         onHoldingChange={setHoldCurtain}
         onStageChange={setStageUp}
         // Her choice at the held door: the queue holds it until the door lets her in.
@@ -1356,6 +1397,7 @@ export function EventExperience({
           <AlbumCover
             ref={setCoverEl}
             className="-mt-14"
+            eyebrow={eyebrow}
             ground={
               <CoverGround
                 seed={galleryPromise}
@@ -1374,8 +1416,10 @@ export function EventExperience({
                 : null
             }
             date={event.event_date}
+            endDate={event.event_end_date}
             description={event.description}
             mediaCount={mediaCount}
+            mediaWords={mediaWords ?? undefined}
             guestCount={guestCount}
             actionsRef={sentinelRef}
             actions={
@@ -1388,7 +1432,7 @@ export function EventExperience({
                     onClick={openAdd}
                     className="min-w-0 flex-1 md:flex-none"
                   >
-                    {cameraAlbum ? <Camera /> : <ImageUp />} {addWords}
+                    {cameraAlbum ? <Camera /> : <ImageUp />} {addLabel}
                   </Button>
                 )}
                 <UploadTrackerButton
@@ -1537,6 +1581,8 @@ export function EventExperience({
                   isDemo={isDemo}
                   onAccessDrift={handleAccessDrift}
                   onCountChange={setMediaCount}
+                  onCountWordsChange={setMediaWords}
+                  onWaitingChange={setWaitsLive}
                   pendingUploads={inFlightUploads}
                   uploadProgress={uploadProgress}
                   canDeleteIds={canDeleteIds}
@@ -1549,79 +1595,98 @@ export function EventExperience({
                   // The album's sync's word on its develop: the page's live reading follows it.
                   onDevelopsAtChange={onDevelopsAtChange}
                 >
-                  {/* The door's light takes its colour from here, the album's three newest (it draws
-                  nothing; `door/album-light.tsx`). */}
-                  <AlbumLightSampler />
-                  {/* Her tracker's list, inside the one live source it reads (its button sits on the
-                  cover and the shutter, above this provider, reading `trackerStore`). */}
-                  <UploadTracker
-                    store={trackerStore}
-                    queue={queue}
-                    qrToken={qrToken}
-                    sessionToken={sessionToken}
-                    isAuthed={isAuthed}
-                    moderated={liveWait.waits}
-                    developsAt={liveWait.developsAt}
-                    isDemo={isDemo}
-                    isOwner={isOwner}
-                    removedIds={removedIds}
-                    // Her Remove on what waits for the host: the page's own record of what she took back.
-                    onOwnRemoved={handleOwnRemoved}
-                    open={trackerOpen}
-                    onOpenChange={setTrackerOpen}
-                  />
-                  <LiveReel
-                    eventId={event.id}
-                    eventName={event.name}
-                    joinUrl={joinUrl}
-                    displayAddress={displayAddress}
-                    qrStyle={event.qr_style}
-                    isDemo={isDemo}
-                    moderated={event.moderation_mode !== "live"}
-                    onAddYours={canUpload ? openAdd : undefined}
-                    // A clip is a video: with the host's Videos off (`accepts_video`), a guest's clip
-                    // stays hers to save or share, rather than an Add the upload would refuse.
-                    addClipToAlbum={
-                      canUpload && event.accepts_video ? addClipToAlbum : null
-                    }
-                    queue={queue}
-                    // Her tracker's own-rows read carries the server's news (what a decision let in since
-                    // she was last told): the toast says it on her return too (crumbs-38).
-                    approvalNews={trackerStore.news}
-                    welcomePending={welcomePending}
-                    isOwner={isOwner}
-                    // The cover's photographs and the reel's door, told to the head above the album.
-                    headBridge={headBridge}
+                  {/* ★ THE ALBUM'S WAIT READS HERE (the-wait r1, `wait=sheet`): what waits off the album's sync,
+                  hers off her tracker, one reading for the sheet over the rows and the empty album under it. */}
+                  <AlbumWaitSource
+                    clock={waitClock}
+                    hers={trackerStore.hers}
+                    onOpenHers={openTracker}
+                    firstPaintWidth={firstPaintWidth}
+                    rule={canUpload && !isDemo}
                   >
-                    {/* The demo's turn card or the phone pair: one card directly
+                    {/* The door's light takes its colour from here, the album's three newest (it draws
+                  nothing; `door/album-light.tsx`). */}
+                    <AlbumLightSampler />
+                    {/* The album's kinds for the foot's Save, said while she selects (it draws nothing). */}
+                    <AlbumKindsSource store={albumKinds} />
+                    {/* Her tracker's list, inside the one live source it reads (its button sits on the
+                  cover and the shutter, above this provider, reading `trackerStore`). */}
+                    <UploadTracker
+                      store={trackerStore}
+                      queue={queue}
+                      qrToken={qrToken}
+                      sessionToken={sessionToken}
+                      isAuthed={isAuthed}
+                      moderated={liveWait.waits}
+                      developsAt={liveWait.developsAt}
+                      hostName={event.host_display_name ?? null}
+                      isDemo={isDemo}
+                      isOwner={isOwner}
+                      removedIds={removedIds}
+                      // Her Remove on what waits for the host: the page's own record of what she took back.
+                      onOwnRemoved={handleOwnRemoved}
+                      open={trackerOpen}
+                      onOpenChange={setTrackerOpen}
+                    />
+                    <LiveReel
+                      eventId={event.id}
+                      eventName={event.name}
+                      joinUrl={joinUrl}
+                      displayAddress={displayAddress}
+                      qrStyle={event.qr_style}
+                      isDemo={isDemo}
+                      moderated={event.moderation_mode !== "live"}
+                      onAddYours={canUpload ? openAdd : undefined}
+                      // A clip is a video: with the host's Videos off (`accepts_video`), a guest's clip
+                      // stays hers to save or share, rather than an Add the upload would refuse.
+                      addClipToAlbum={
+                        canUpload && event.accepts_video ? addClipToAlbum : null
+                      }
+                      queue={queue}
+                      // Her tracker's own-rows read carries the server's news (what a decision let in since
+                      // she was last told): the toast says it on her return too (crumbs-38).
+                      approvalNews={trackerStore.news}
+                      welcomePending={welcomePending}
+                      isOwner={isOwner}
+                      // The cover's photographs and the reel's door, told to the head above the album.
+                      headBridge={headBridge}
+                    >
+                      {/* The demo's turn card or the phone pair: one card directly
                     above the album's first tile — the photograph a visitor just
                     added IS that tile (the album is newest first), so whatever is
                     said here is said right beside it. It keeps the ALBUM's own box
                     (BLEED), not the words' column, so it lines up with the
                     photographs under it; the album itself is one CSS multi-column
                     box and nothing can be put in the middle of one. */}
-                    {aboveAlbum && (
-                      <div className={cn(BLEED, "mt-5")}>{aboveAlbum}</div>
-                    )}
-                    <div className={cn(BLEED, aboveAlbum ? "mt-4" : "mt-5")}>
-                      <LiveGallery
-                        galleryPromise={galleryPromise}
-                        qrToken={qrToken}
-                        access={access}
-                        isDemo={isDemo}
-                        onOpenGate={() => entryRef.current?.openToGate()}
-                        // ★ No Add of its own: the cover's is the one Add (see `galleryEmpty`).
-                        onAddFirst={undefined}
-                        joinUrl={joinUrl}
-                        initialRowStep={rowStep}
-                        firstPaintWidth={firstPaintWidth}
-                        rhythmSeed={visitSeed}
-                        closesOnLastRemoval={closesOnLastRemoval}
-                        // Where hers wait, nothing of hers in the air stands at the album's head (red-team 44).
-                        addsWait={addsWait.waits}
+                      {aboveAlbum && (
+                        <div className={cn(BLEED, "mt-5")}>{aboveAlbum}</div>
+                      )}
+                      {/* ★ THE WAIT OVER THE ALBUM (the-wait r1, `wait=sheet`): the contact sheet wherever photos wait,
+                      hers lit, everyone's counted; the empty album under it yields to it. */}
+                      <AlbumWait
+                        className={cn(BLEED, "mt-5")}
+                        ruleClassName={cn(COLUMN, "mt-5")}
                       />
-                    </div>
-                  </LiveReel>
+                      <div className={cn(BLEED, aboveAlbum ? "mt-4" : "mt-5")}>
+                        <LiveGallery
+                          galleryPromise={galleryPromise}
+                          qrToken={qrToken}
+                          access={access}
+                          isDemo={isDemo}
+                          onOpenGate={() => entryRef.current?.openToGate()}
+                          // ★ No Add of its own: the cover's is the one Add (see `galleryEmpty`).
+                          onAddFirst={undefined}
+                          joinUrl={joinUrl}
+                          initialRowStep={rowStep}
+                          firstPaintWidth={firstPaintWidth}
+                          rhythmSeed={visitSeed}
+                          closesOnLastRemoval={closesOnLastRemoval}
+                          // Where hers wait, nothing of hers in the air stands at the album's head (red-team 44).
+                          addsWait={addsWait.waits}
+                        />
+                      </div>
+                    </LiveReel>
+                  </AlbumWaitSource>
                 </GalleryLiveProvider>
               </Suspense>
             </AlbumBoundary>
@@ -1649,6 +1714,7 @@ export function EventExperience({
             camera={cameraAlbum}
             run={shutterRun}
             hues={albumHues}
+            kinds={albumKinds}
             more={!albumEndInView}
             invite={
               <GuestShare

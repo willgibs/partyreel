@@ -160,6 +160,23 @@ describe("sweepStandbyBudget", () => {
     expect(count("mx")).toBe(400);
     expect(count("mg")).toBe(100);
 
+    // ★ An evicted row's every stored copy went before it (take-home-wiring): the phone-size copy too.
+    const deleted = new Set(
+      world.log.flatMap((entry) => (entry.kind === "r2" ? entry.keys : [])),
+    );
+    for (const id of expected) {
+      expect(
+        [...deleted].filter((key) => key.includes(`/${id}/`)).sort(),
+        id,
+      ).toEqual(
+        ["original.jpg", "phone.jpg", "preview.webp"].map((name) =>
+          expect.stringMatching(
+            new RegExp(`/${id}/${name.replace(".", "\\.")}$`),
+          ),
+        ),
+      );
+    }
+
     expect(Math.max(...world.purgeCallSizes)).toBeLessThanOrEqual(MAX_ROWS);
     expect(everyRequestFits(world.fake)).toBe(true);
   });

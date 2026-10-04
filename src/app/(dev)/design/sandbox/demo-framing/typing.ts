@@ -25,8 +25,11 @@
  * typing has the stage. Round four's stream rests at a drift (round two's
  * turns, which he loved) and leaves each landing at lightspeed (`warpAt`): the
  * album the address made rushes out of it, then settles to its pace, the
- * tunnel his round three note named. A hero whose album fills in place rather
- * than streaming reads the same steps through `fillAt`.
+ * tunnel his round three note named.
+ *
+ * ★ AND WHOSE LIGHT THE OBJECT WEARS (`comingAt`): from the beat on the bare
+ * domain, the party whose address is being typed, so the card's light and the
+ * door's turn to the next party as its name arrives, never after.
  */
 
 export type Phase = "hold" | "erase" | "gap" | "type";
@@ -95,13 +98,6 @@ export const DOWN_MS = 600;
 export const WARP = 6;
 export const WARP_IN_MS = 180;
 export const WARP_OUT_MS = 1800;
-
-/**
- * How long a new album takes to fill in place, in the heroes whose album is
- * a wall rather than a stream (`waveAt`): its first tile at the landing, its
- * last this long after.
- */
-export const WAVE_MS = 1500;
 
 const mod = (a: number, n: number) => ((a % n) + n) % n;
 
@@ -275,37 +271,12 @@ export function warpSince(ms: number): number {
 /** The loop's length in seconds, as the score prints it. */
 export const secondsOf = (score: Score) => Math.round(score.loop / 100) / 10;
 
-export type Wave = {
-  /** How long ago the address standing landed (the page's arrival for the first), in ms. */
-  readonly since: number;
-  /**
-   * How far the album has stepped back while the typing has the stage: 0
-   * while an address stands, rising over `DOWN_MS` before its erase, 1 until
-   * the next lands.
-   */
-  readonly rest: number;
-};
-
 /**
- * THE ALBUM'S TURN, IN THE HEROES WHOSE ALBUM FILLS IN PLACE: each address
- * that lands fills its own album outward from the link over `WAVE_MS`
- * (`since`), and the album steps back (`rest`) while the next address is
- * erased and typed, so the typing has the stage to itself. The arrival's
- * album is already full; a loop of one address never rests.
+ * WHOSE LIGHT THE OBJECT WEARS at a time into the loop: the address arriving,
+ * from the beat on the bare domain through its last key, and the address
+ * standing while it stands or is erased. Its index is into the score's list.
  */
-export function waveAt(score: Score, t: number): Wave {
+export function comingAt(score: Score, t: number): number {
   const s = stepAt(score, t);
-  const at = mod(t, score.loop);
-  if (score.steps.length === 1) return { since: WAVE_MS * 4, rest: 0 };
-  if (s.phase === "hold") {
-    const into = at - s.from;
-    const left = s.to - s.from - into;
-    const first = s.from === 0 && t < score.loop;
-    return {
-      since: first ? WAVE_MS * 4 + into : into,
-      rest: 1 - smooth(left / DOWN_MS),
-    };
-  }
-  // Between two addresses: the album that stood rests, its wave long done.
-  return { since: WAVE_MS * 4, rest: 1 };
+  return s.phase === "gap" || s.phase === "type" ? s.party : s.standing;
 }

@@ -4,9 +4,9 @@ Real-time, append-only, **immutable** second copy of all event media. Runs entir
 (zero egress, off Vercel). This package is **deployed separately from the Next app** via `wrangler`;
 it is excluded from the app's `tsc`/`eslint`/`vitest` (see root `tsconfig.json` / `eslint.config.mjs`).
 
-> Status: the backup copy is **live + DR-drill-verified** (results below). The deletion-aware prune is
-> the newest addition; it ships in **dry-run** (deletes nothing), needs a redeploy + the step-7 secret,
-> then a human flips `PRUNE_MODE` to live post-launch.
+> Status: the backup copy is **live + DR-drill-verified** (results below). The deletion-aware prune
+> ships in **dry-run** (deletes nothing) and keeps up with deletions (a cursor in a Durable Object, its
+> caps its budget); a human flips `PRUNE_MODE` to live at launch.
 
 ## How it works
 
@@ -88,39 +88,51 @@ Re-run the basics: `wrangler r2 object put partyreel/events/_drill/x --file <f> 
 The backup is **keep-all by design**: when media leaves the primary (host delete -> 30-day recovery ->
 the app's purge cron hard-deletes the primary object + row), the backup copy stays. The prune bounds that
 growth by reclaiming a backup object once its source is gone. It is the INVERSE of reconcile and the
-**single most dangerous job here, the only one that deletes from the last-resort backup**, so it is
-layered defense-in-depth:
+**single most dangerous job here, the only one that deletes from the last-resort backup**. The run is a
+pure engine (`src/prune-run.ts`, its tests `src/prune-run.test.ts`); `src/index.ts` only wires it:
 
 - **Dry-run by default.** `PRUNE_MODE` (a `vars` entry, default `"dryrun"`) gates deletes: the prune runs
-  the full pipeline and logs what it WOULD delete, but deletes nothing until a human sets it to `"live"`
-  and redeploys. Flip to live only post-launch, once the primary is populated.
-- **Dual existence check.** An object is pruned only when BOTH (a) its `media` row is gone (the app's
-  `PRUNE_API_URL` confirm endpoint, the authoritative oracle) AND (b) its primary R2 object is absent (a
-  HEAD against PRIMARY). Either source alone says "keep".
-- **Circuit-breaker (app-side).** If the `media` table is empty while candidates exist, the confirm
-  endpoint trips `media_table_empty`: it deletes nothing and alerts an operator (Sentry + a deduped
-  email). Fails CLOSED, exactly the pre-launch 0-row state, which is why dry-run is also the default.
-- **Age gate + Bucket Lock.** The prune only considers objects older than 36 days (one day past the
-  35-day lock); the lock physically refuses deleting anything younger even if the logic is wrong. (A
-  still-locked delete is a silent no-op, so the age gate is the correctness gate, not the lock.)
-- **Per-run cap.** At most `PRUNE_DELETE_CAP_PER_RUN` (500) deletions per weekly run, so any single run
-  is bounded; a legitimate backlog drains over several runs.
+  the full pipeline and reports what it WOULD delete, but deletes nothing until a human sets it to `"live"`
+  and redeploys.
+- **Primary first, three readings.** A run lists a page of the backup, then the primary over the same key
+  range; only a key the primary does not list becomes a candidate. The app's confirm endpoint
+  (`PRUNE_API_URL`) is asked about candidates only, and a HEAD of the primary right before the delete keeps
+  anything restored since the listing.
+- **A doubt deletes nothing.** Deletes happen once, at the end of the run: a confirm that is down or answers
+  in the wrong shape, the app's breaker (`media_table_empty`, which also emails an operator), an id it was
+  never asked about, or a listing that does not move forward aborts the run with nothing deleted. A HEAD
+  that fails keeps that one item; the run deletes the others it confirmed and closes as an error.
+- **Age gate + Bucket Lock.** Only objects older than 36 days (one day past the 35-day lock) are ever
+  candidates. (A still-locked delete is a silent no-op, so the age gate is the correctness gate.)
+- **It keeps up.** Its ledger (`src/prune-ledger.ts`, stored in the `PruneState` Durable Object,
+  `src/prune-state.ts`) holds the cursor, so each run carries on where the last stopped, until the listing
+  ends or its deadline (12 min), subrequest budget (95,000) or delete cap (30,000 media,
+  `src/prune-strategy.ts`) stops it with a counted `remaining`.
+- **The hold.** A backlog over ten times the usual (the median of the last eight runs, never under 2,000
+  media) deletes nothing, reads "Needs a look" on `/admin/jobs`, and raises a Sentry warning and the ops
+  mail. It never releases itself: a person presses Release the hold on the prune's card, the heartbeat's
+  start answer carries that stamp (`releasedAtMs`), and the next run goes ahead only if the press came after
+  the hold began. Expect one at the launch switch.
 
-**Flip to live (post-launch):** set `"PRUNE_MODE": "live"` in `wrangler.jsonc`, then `wrangler deploy`.
+**The Durable Object needs no setup:** `wrangler.jsonc`'s `migrations` (tag `v1`) creates the class on the
+first deploy that carries it. A later change to the class takes a new tag, never an edit of `v1`.
+
+**Flip to live (the launch switch):** set `"PRUNE_MODE": "live"` in `wrangler.jsonc`, then `wrangler deploy`.
 
 **Verify:**
-- *Now (dry-run):* after deploy, the Monday 06:00 UTC run logs to Cloudflare (`wrangler tail` or the
-  dashboard). While the primary/`media` are empty it logs the empty-skip or trips the breaker (and emails
-  the operator); it never deletes. Force a run immediately with `wrangler dev --test-scheduled` then
-  `curl "http://localhost:8787/cdn-cgi/handler/scheduled?cron=0+6+*+*+1"` (set `PRUNE_API_SECRET` in `.dev.vars`).
-- *Post-launch (destructive drill):* with `media` populated and `PRUNE_MODE=live`, delete a known media's
-  primary object + row, wait past the 36-day window, run the prune, confirm the backup copy is removed and
-  a <36-day object is not (the lock holds).
+- *Before a deploy:* `npm test` drives the engine against fake buckets for every rule above (the engine
+  takes its buckets, confirm route and clock as ports, so the same code also runs outside the Worker).
+- *After a deploy:* the Monday 06:00 UTC run reports on `/admin/jobs` (and `wrangler tail`): in dry run its
+  `would delete keys`, `gone media` and whether the pass completed, the check before the launch switch. Force one with
+  `wrangler dev --test-scheduled`, then
+  `curl "http://localhost:8787/cdn-cgi/handler/scheduled?cron=0+6+*+*+1"` (`PRUNE_API_SECRET` in `.dev.vars`).
+- *Post-launch (destructive drill):* with `PRUNE_MODE=live`, delete a known media's primary object + row,
+  wait past the 36-day window, run the prune, confirm the backup copy is removed and a <36-day object is not.
 
 ## Local checks
 
 ```bash
 npm run typecheck   # tsc against @cloudflare/workers-types
-npm test            # vitest — pure strategy helpers
+npm test            # vitest — the pure helpers and the prune's engine on fakes
 npm run dry-run     # wrangler build (no deploy, no auth)
 ```

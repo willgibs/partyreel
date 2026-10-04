@@ -103,7 +103,8 @@ describe("sweepRemovedMedia", () => {
     // meter the night any other removal's would), and nothing of them is deleted.
     expect(tally).toEqual({
       media_rows: 2_500,
-      r2_deleted: 5_000,
+      // Reshaped by take-home-wiring (2026-10-03): a photograph's three stored copies each.
+      r2_deleted: 7_500,
       r2_errored: 0,
       freed_bytes: 2_500_000,
       deferred: 3,
@@ -195,6 +196,7 @@ describe("sweepRemovedMedia: what an open report keeps", () => {
     // Not one of its objects was deleted, and the batch asked before anything went.
     expect(r2Keys(world)).not.toContain(reported.original_key);
     expect(r2Keys(world)).not.toContain(reported.preview_key);
+    expect(r2Keys(world)).not.toContain(reported.phone_key);
     expect(world.keptCalls.flat()).toContain(reported.id);
     const kept = world.fake.tables.media.find((m) => m.id === reported.id)!;
     expect(kept.purge_asked_at).toEqual(expect.any(String));
@@ -205,6 +207,7 @@ describe("sweepRemovedMedia: what an open report keeps", () => {
     expect(second).toMatchObject({ media_rows: 1, freed_bytes: 0 });
     expect(world.fake.tables.media).toHaveLength(0);
     expect(r2Keys(world)).toContain(reported.original_key);
+    expect(r2Keys(world)).toContain(reported.phone_key);
   });
 
   it("★ an album report keeps every item of its album, and an asked row goes the night it closes, window or not", async () => {

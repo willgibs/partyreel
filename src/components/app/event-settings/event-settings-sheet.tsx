@@ -238,7 +238,15 @@ function SettingsPanel({
 
   return (
     <Popup open={open} onOpenChange={changeOpen}>
-      <PopupContent kind="settings" routed>
+      {/* ★ A PAGE'S HEAD NAMES NO DESCRIPTION (crumbs-59, red-team 47's NIT): the rows' head says the event's name under
+          "Settings", and Radix points the dialog at it whether or not one is drawn, so a panel that mounted at a page
+          (`?room=settings&setting=event`, a link, a reload) warned "Missing `Description`", and one that moved onto a page
+          left its `aria-describedby` on an element that had just gone. A page says so, as every popup without one does. */}
+      <PopupContent
+        kind="settings"
+        routed
+        {...(shown ? { "aria-describedby": undefined } : {})}
+      >
         {shown ? (
           <PopupHeader
             title={PAGE_TITLE[shown]}

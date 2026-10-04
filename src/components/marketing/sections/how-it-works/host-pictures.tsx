@@ -1,16 +1,17 @@
 import {
-  ArrowLeft,
-  ArrowRight,
   Check,
+  ChevronLeft,
   Clapperboard,
   Download,
   Image as ImageIcon,
   Layers,
   ListChecks,
   Video,
+  X,
 } from "lucide-react";
 import Image from "next/image";
 
+import { ctaCorner } from "@/components/ui/button";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { QR_PRESETS, QR_STYLE_KEYS } from "@/lib/constants/qr-presets";
 import { LIVE_REEL_MINIMUM } from "@/lib/events/gallery-reel";
@@ -42,82 +43,142 @@ import {
 
 /* ── 01 · Create the event ──────────────────────────────────────────────── */
 
+/** The photograph the room's screen shows behind the code (the look step's own stand-in). */
+const ROOM_SCREEN = marketingImage("party-dj");
+
+/** The steppers' three hairlines at the commit moment: the name done, the look she is on, the beat to come. */
+const ROOM_STEPS = [true, true, false] as const;
+
 /**
- * create-event-wizard.tsx, the DESIGN step: the step rail with Details done,
- * the QR picker, and the button that actually writes the row. Drawn at the
- * commit moment on purpose, because that is the fact the step's copy corrects:
- * "Create event" is what creates the event, not the name field above it.
+ * THE ROOM CREATE IS, drawn small (`create-event-wizard.tsx`, its parts in `create-event-wizard/`): the whole
+ * screen in his layout, so the picture is the same four places. The subtle steppers on top (the name she gave
+ * over three hairlines, the screens done and the one she is on filled, Back and the close at the sides), the
+ * question just under them, the answer in the centre, one button at the foot.
+ *
+ * ★ DRAWN AT THE COMMIT MOMENT ON PURPOSE, because that is the fact the step's copy corrects: "Create event" is
+ * what creates the event, not the name before it. That is the look screen, and its centre is the one the room
+ * has now (`look-step.tsx`): her code in the two places it goes, her phone held up in front of the room's screen,
+ * and four swatches that re-dress both. Every word is the room's own; the codes are drawn ones (`MiniQr`).
+ *
+ * ★ THE ROOM STANDS ON ITS OWN GROUND, DARK ON EVERY GROUND THE PICTURE STANDS ON, as the room is dark in both
+ * themes. `.surface-ink` is that ground: the paper chapter here, the cinema's night on the home, a help page, the
+ * welcome. Never `.dark`: a `.dark` nested in a `.surface-paper` is a half-dark subtree (globals.css). Every
+ * mark below reads tokens, so it follows the slab's own set, and every size inside the code's two places is in the
+ * place's own `cqw`, so one drawing reads the same at whatever width its column gives it.
  */
 export function CreatePicture() {
   return (
-    <Panel className="p-5">
-      {/* The wizard's own rail: numbered circles, a check on what is done. */}
-      <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
-        <span className="flex size-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
-          <Check className="size-3" />
-        </span>
-        Details
-        <ArrowRight className="size-3 opacity-50" />
-        <span className="flex size-5 items-center justify-center rounded-full border border-foreground/40 text-[10px] text-foreground tabular-nums">
-          2
-        </span>
-        <span className="text-foreground">Design</span>
-        <ArrowRight className="size-3 opacity-50" />
-        <span className="flex size-5 items-center justify-center rounded-full border text-[10px] tabular-nums">
-          3
-        </span>
-        Share
-      </div>
-
-      {/* What step one left behind, read back rather than re-asked. */}
-      <div className="mt-4 flex items-center justify-between gap-3 rounded-md bg-muted/60 px-3 py-2">
-        <span className="text-[11px] text-muted-foreground">Event name</span>
-        <span className="truncate text-xs font-medium">{EVENT_NAME}</span>
-      </div>
-
-      <p className="mt-4 text-xs font-medium">Guest join QR</p>
-      <p className="mt-1 text-[11px] text-muted-foreground">
-        Pick a style for the QR your guests scan. You can change it anytime.
-      </p>
-      {/* The real picker is a 2x2 of bordered cards, the selected one ringed
-          with a brand check badge. Quoted at picture scale. */}
-      <div className="mt-3 grid grid-cols-4 gap-2">
-        {QR_STYLE_KEYS.map((key, i) => (
-          <span
-            key={key}
-            className={cn(
-              "relative flex flex-col items-center gap-1.5 rounded-lg border p-2",
-              i === 0 && "border-brand",
-            )}
-          >
-            <span className="w-full rounded-[3px] bg-white p-1">
-              <MiniQr preset={key} modules={9} />
-            </span>
-            <span
-              className={cn(
-                "text-[10px] font-medium",
-                i === 0 ? "text-foreground" : "text-muted-foreground",
-              )}
-            >
-              {QR_PRESETS[key].label}
-            </span>
-            {i === 0 && (
-              <span className="absolute -top-1.5 -right-1.5 flex size-4 items-center justify-center rounded-full bg-brand text-brand-foreground">
-                <Check className="size-2.5" />
-              </span>
-            )}
+    <div className="surface-ink overflow-hidden rounded-2xl border bg-background text-foreground">
+      {/* The head: Back at the left, her name over the steppers, the close at the right. */}
+      <div className="relative flex h-12 items-center px-3">
+        <ChevronLeft aria-hidden className="size-4 text-muted-foreground" />
+        <span className="absolute left-1/2 flex -translate-x-1/2 flex-col items-center gap-1.5">
+          <span className="block max-w-[11rem] truncate text-[11px] font-medium">
+            {EVENT_NAME}
           </span>
-        ))}
+          <span className="flex w-28 gap-1">
+            {ROOM_STEPS.map((done, i) => (
+              <span
+                key={i}
+                className="relative block h-[3px] flex-1 overflow-hidden rounded-full bg-foreground/15"
+              >
+                {done && (
+                  <span className="absolute inset-0 rounded-full bg-foreground" />
+                )}
+              </span>
+            ))}
+          </span>
+        </span>
+        <X aria-hidden className="ml-auto size-4 text-muted-foreground" />
       </div>
 
-      <div className="mt-4 flex items-center justify-between gap-3 border-t pt-4">
-        <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-          <ArrowLeft className="size-3.5" />
-          Back
-        </span>
-        <MockPrimary className="px-4">Create event</MockPrimary>
+      {/* The question, in its one place under the head, and the line that tells her it can change. */}
+      <div className="px-5 pt-3 text-center">
+        <p className="text-[15px] leading-snug font-medium text-balance">
+          {"Pick the code's look"}
+        </p>
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          Change it any time from Share
+        </p>
       </div>
-    </Panel>
+
+      {/* The answer, in the centre: her code where guests meet it, then the four looks. */}
+      <div className="px-5 pt-4 pb-5">
+        <span
+          aria-hidden
+          className="@container relative mx-auto block aspect-[2/1] w-full max-w-[16rem]"
+        >
+          {/* The room's screen while the party runs: the slideshow, her code on the white plate at the corner. */}
+          <span className="@container absolute top-1/2 right-0 block aspect-video w-[80%] -translate-y-1/2 overflow-hidden rounded-[2cqw] bg-black ring-[0.6cqw] ring-white/15">
+            <Image
+              src={ROOM_SCREEN.src}
+              alt=""
+              fill
+              sizes="210px"
+              className="object-cover"
+            />
+            <span className="absolute inset-0 bg-gradient-to-tl from-black/60 via-transparent to-transparent" />
+            <span className="absolute right-[4cqw] bottom-[4cqw] block w-[17cqw] rounded-[1cqw] bg-white p-[0.7cqw]">
+              <MiniQr modules={9} />
+            </span>
+          </span>
+          {/* Her phone held up in front of it: the code card, the whole screen white. The overlap is real, so it
+              takes the small shadow. */}
+          <span className="@container absolute top-0 left-0 block w-[23.4cqw]">
+            <span className="block aspect-[9/19.2] rounded-[14cqw] bg-black p-[2.6cqw] shadow-lift ring-1 ring-white/20">
+              <span className="relative flex size-full flex-col items-center justify-center gap-[7cqw] rounded-[11.6cqw] bg-white px-[9cqw]">
+                <span className="block w-full">
+                  <MiniQr modules={11} />
+                </span>
+                <span className="h-[4cqw] w-[62cqw] rounded-full bg-neutral-900" />
+                <span className="absolute top-[2.6cqw] left-1/2 h-[7.4cqw] w-[26cqw] -translate-x-1/2 rounded-full bg-black" />
+              </span>
+            </span>
+          </span>
+        </span>
+
+        {/* The four looks, as four corners: the chosen one ringed, its name in the foreground. */}
+        <span aria-hidden className="mt-5 flex justify-center gap-4">
+          {QR_STYLE_KEYS.map((key, i) => (
+            <span key={key} className="flex flex-col items-center gap-1.5">
+              <span
+                className={cn(
+                  "relative block size-9 overflow-hidden rounded-[22%] bg-white ring-1 ring-white/10",
+                  i === 0 &&
+                    "outline-2 outline-offset-[3px] outline-foreground",
+                )}
+              >
+                <span className="absolute -top-[14.85%] -left-[14.85%] block w-[270%]">
+                  <MiniQr preset={key} modules={9} />
+                </span>
+              </span>
+              <span
+                className={cn(
+                  "text-[10px]",
+                  i === 0
+                    ? "font-medium text-foreground"
+                    : "text-muted-foreground",
+                )}
+              >
+                {QR_PRESETS[key].label}
+              </span>
+            </span>
+          ))}
+        </span>
+      </div>
+
+      {/* The foot: the one button, the loudest thing in the room, and the one that writes the row. */}
+      <div className="flex justify-center px-5 pb-5">
+        <span
+          className={cn(
+            "flex h-10 w-full items-center justify-center bg-primary px-6 text-sm font-medium text-primary-foreground sm:w-auto sm:min-w-52",
+            ctaCorner,
+          )}
+        >
+          Create event
+        </span>
+      </div>
+    </div>
   );
 }
 

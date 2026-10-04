@@ -348,7 +348,7 @@ describe("4. the roll, its ceiling, the fast purge, the camera video, the seal a
     expect(ledger).toBeGreaterThan(insert);
     // Its only writer: no other body names it in a write.
     const writers = everything().match(/(insert into|update|delete from) public\.camera_rolls/g) ?? [];
-    expect(writers).toEqual(["insert into public.camera_rolls"]);
+    expect([...new Set(writers)]).toEqual(["insert into public.camera_rolls"]); // a file replacing create_media restates it
   });
 
   it("★ a camera shot she withdraws purges tonight; every other removal keeps its 30 days, and a hold or a report still keeps it", () => {
@@ -393,14 +393,16 @@ describe("4. the roll, its ceiling, the fast purge, the camera video, the seal a
 });
 
 describe("5. the reads, and who may call what", () => {
-  it("get_event_by_qr_token answers develop_due, the develop time, the capture and the roll's size LAST, unredacted", () => {
+  it("get_event_by_qr_token answers develop_due, the develop time, the capture and the roll's size after the cap, unredacted", () => {
+    // ★ Reshaped on purpose by event-dates (20261003120000), which carries this body verbatim and appends a range's
+    // last day after the roll: the four still follow the host's cap, unredacted, and only the end comes after them.
     const { body, file } = latest("get_event_by_qr_token");
-    expect(file).toBe(FILE);
+    expect(file).toBe("20261003120000_event_end_date.sql");
     expect(body).toContain(
-      "max_upload_bytes bigint, develop_due boolean, develops_at timestamptz, capture text, roll_size integer) language sql stable security definer set search_path to ''",
+      "max_upload_bytes bigint, develop_due boolean, develops_at timestamptz, capture text, roll_size integer, event_end_date date) language sql stable security definer set search_path to ''",
     );
     expect(body).toContain(
-      "e.max_upload_bytes, public.seal_disagrees(e), e.develops_at, e.capture, e.roll_size from public.events e",
+      "e.max_upload_bytes, public.seal_disagrees(e), e.develops_at, e.capture, e.roll_size, case when r.hide_meta then null else e.event_end_date end from public.events e",
     );
   });
 

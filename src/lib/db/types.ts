@@ -364,6 +364,7 @@ export type Database = {
           develops_at: string | null
           display_in_profile: boolean
           event_date: string | null
+          event_end_date: string | null
           event_password_hash: string | null
           gate: Database["public"]["Enums"]["event_gate"] | null
           host_id: string
@@ -395,6 +396,7 @@ export type Database = {
           develops_at?: string | null
           display_in_profile?: boolean
           event_date?: string | null
+          event_end_date?: string | null
           event_password_hash?: string | null
           gate?: Database["public"]["Enums"]["event_gate"] | null
           host_id: string
@@ -426,6 +428,7 @@ export type Database = {
           develops_at?: string | null
           display_in_profile?: boolean
           event_date?: string | null
+          event_end_date?: string | null
           event_password_hash?: string | null
           gate?: Database["public"]["Enums"]["event_gate"] | null
           host_id?: string
@@ -746,6 +749,8 @@ export type Database = {
           legal_hold_reason: string | null
           let_in_at: string | null
           original_key: string
+          phone_bytes: number | null
+          phone_key: string | null
           preview_key: string | null
           purge_asked_at: string | null
           purge_at: string | null
@@ -775,6 +780,8 @@ export type Database = {
           legal_hold_reason?: string | null
           let_in_at?: string | null
           original_key: string
+          phone_bytes?: number | null
+          phone_key?: string | null
           preview_key?: string | null
           purge_asked_at?: string | null
           purge_at?: string | null
@@ -804,6 +811,8 @@ export type Database = {
           legal_hold_reason?: string | null
           let_in_at?: string | null
           original_key?: string
+          phone_bytes?: number | null
+          phone_key?: string | null
           preview_key?: string | null
           purge_asked_at?: string | null
           purge_at?: string | null
@@ -1198,6 +1207,8 @@ export type Database = {
           created_at: string
           cumulative_bytes: number
           host_id: string
+          hour_started_at: string | null
+          hour_uploads: number
           id: string
           period: string
           photo_count: number
@@ -1208,6 +1219,8 @@ export type Database = {
           created_at?: string
           cumulative_bytes?: number
           host_id: string
+          hour_started_at?: string | null
+          hour_uploads?: number
           id?: string
           period: string
           photo_count?: number
@@ -1218,6 +1231,8 @@ export type Database = {
           created_at?: string
           cumulative_bytes?: number
           host_id?: string
+          hour_started_at?: string | null
+          hour_uploads?: number
           id?: string
           period?: string
           photo_count?: number
@@ -1515,6 +1530,8 @@ export type Database = {
           p_height?: number
           p_media_id: string
           p_original_key: string
+          p_phone_bytes?: number
+          p_phone_key?: string
           p_preview_key?: string
           p_reel_eligible?: boolean
           p_session_token: string
@@ -1532,6 +1549,8 @@ export type Database = {
           p_host_id: string
           p_media_id: string
           p_original_key: string
+          p_phone_bytes?: number
+          p_phone_key?: string
           p_preview_key?: string
           p_reel_eligible?: boolean
           p_type: Database["public"]["Enums"]["media_type"]
@@ -1673,6 +1692,7 @@ export type Database = {
           develop_due: boolean
           develops_at: string
           event_date: string
+          event_end_date: string
           has_password: boolean
           host_display_name: string
           id: string
@@ -1832,6 +1852,14 @@ export type Database = {
         Args: { p_event_id: string; p_media_ids: string[] }
         Returns: Json
       }
+      meter_upload: {
+        Args: {
+          p_bytes: number
+          p_event_id: string
+          p_type: Database["public"]["Enums"]["media_type"]
+        }
+        Returns: Json
+      }
       monthly_ingress_cap: {
         Args: {
           p_storage_cap_bytes: number
@@ -1894,6 +1922,14 @@ export type Database = {
       set_guest_pending_email: {
         Args: { p_email: string; p_session_token: string }
         Returns: Json
+      }
+      spend_watch_readings: {
+        Args: { p_lifecycle_kinds: string[]; p_now: string }
+        Returns: Json
+      }
+      spend_watch_sign_ins: {
+        Args: { p_now: string; p_since: string }
+        Returns: number
       }
       standby_hosts: {
         Args: { p_after?: string; p_limit?: number }

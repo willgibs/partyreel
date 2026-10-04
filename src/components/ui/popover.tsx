@@ -7,8 +7,8 @@ import { usePortalContainer } from "@/components/ui/portal-container"
 import { cn } from "@/lib/utils"
 import {
   floatingClock,
+  floatingDisplayPanel,
   floatingEntrance,
-  floatingPanel,
 } from "@/components/ui/floating-layer"
 
 function Popover({ ...props }: React.ComponentProps<typeof PopoverPrimitive.Root>) {
@@ -35,7 +35,10 @@ function PopoverContent({
         sideOffset={sideOffset}
         className={cn(
           "z-50 w-64 origin-(--radix-popover-content-transform-origin) p-3",
-          floatingPanel,
+          // The display (layers=display): a popover is a quick layer, what a
+          // press opens and the next press closes, so it is the camera's own
+          // screen; whatever it holds reads the screen's tokens.
+          floatingDisplayPanel,
           floatingEntrance,
           // A popover is asked for, not stumbled into: the storage meter's
           // explanation, the anonymous-upload note. Occasional, so it gets the

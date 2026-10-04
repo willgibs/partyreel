@@ -36,6 +36,7 @@ import {
 import {
   addReclaimed,
   emptyReclaimed,
+  MEDIA_KEY_COLUMNS,
   reclaimMedia,
   type AdminClient,
   type Reclaimed,
@@ -62,13 +63,14 @@ export type BinRow = {
   id: string;
   original_key: string;
   preview_key: string | null;
+  phone_key: string | null;
   file_size_bytes: number;
   removed_at: string | null;
   events: { deleted_at: string | null };
 };
 
-const BIN_SELECT =
-  "id, original_key, preview_key, file_size_bytes, removed_at, events!media_event_id_fkey!inner(host_id, deleted_at)";
+// Every stored copy a row owns (`MEDIA_KEY_COLUMNS`: the phone copy too), then what the bin's order reads.
+const BIN_SELECT = `${MEDIA_KEY_COLUMNS}, file_size_bytes, removed_at, events!media_event_id_fkey!inner(host_id, deleted_at)`;
 
 /** THE READ HALF, discovery: one keyset page of hosts with standby bytes, by host id. */
 export function standbyHostsPage(
@@ -133,7 +135,8 @@ export async function readStandbyBin(
           .order("id", { ascending: true })
           .limit(limit);
         if (after) query = query.gt("id", after);
-        return query;
+        // The typed seam (`MEDIA_KEY_COLUMNS`), until the types know `phone_key`.
+        return query.overrideTypes<BinRow[], { merge: false }>();
       },
       (row) => row.id,
     ),
@@ -150,7 +153,8 @@ export async function readStandbyBin(
           .order("id", { ascending: true })
           .limit(limit);
         if (after) query = query.gt("id", after);
-        return query;
+        // The typed seam (`MEDIA_KEY_COLUMNS`), until the types know `phone_key`.
+        return query.overrideTypes<BinRow[], { merge: false }>();
       },
       (row) => row.id,
     ),

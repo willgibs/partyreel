@@ -1,7 +1,7 @@
 /**
- * THE DEVELOP TIME'S WORDS, ONE FORMAT FOR BOTH SIDES: the host's Settings and the guest's tracker and keep prompt
- * say the time through this one function, so "Develops Sat, Oct 3, 9:00 AM." and "when it develops, Sat, Oct 3,
- * 9:00 AM" can never drift apart.
+ * THE DEVELOP TIME'S WORDS, THE HOST'S FORMAT: her Settings says the time through this one function ("Develops Sat,
+ * Oct 3, 9:00 AM."), and every guest screen through the wait's own words (`wait-words.ts`), so neither side's sentences
+ * can drift from the format it reads.
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -41,22 +41,43 @@ describe("developTimeWords", () => {
   });
 });
 
-describe("one home for the develop time's words", () => {
+/* RESHAPED (the-wait r1, Will's `model=time`): the guest's tracker and keep said the host's own format ("when it
+   develops, Sat, Oct 3, 9:00 AM"); every guest screen now says the wait in one set of words (`wait-words.ts`: "All at
+   once at 9 am"), its time from now as the album's camera always said it (`developsWhen`). The scar kept: each side
+   says the time through ONE home of its own, and no screen builds a formatter: the host's Settings through this file,
+   every guest screen through the wait's words. */
+describe("one home for each side's develop words", () => {
   const read = (rel: string) => readFileSync(join(process.cwd(), rel), "utf8");
-  const SAYERS = [
+  const HOST = [
     // The host's Settings: "Develops ..." and "Developed ...".
     "src/components/app/event-settings/camera-settings.tsx",
-    // The guest's tracker: "when it develops, ...".
+  ];
+  const GUEST = [
+    // Her tracker, the keep, the failure sheet, the album's rule and its sheet: the wait's one set of words.
     "src/components/guest/upload-tracker.tsx",
-    // Where the tracker's readers (the keep prompt among them) take it from.
-    "src/lib/guest/upload-tracker.ts",
+    "src/components/guest/save-account-prompt.tsx",
+    "src/components/guest/upload/failure-sheet.tsx",
+    "src/components/guest/gallery-empty-state-wait.tsx",
+    "src/components/guest/gallery-empty-state-sheet.tsx",
   ];
 
-  it("each side that words it reads it from here, and none builds a formatter of its own", () => {
-    for (const rel of SAYERS) {
+  it("the host's Settings reads its words from here, and builds no formatter of its own", () => {
+    for (const rel of HOST) {
       const source = read(rel);
       expect(source, `${rel} stopped reading develop-words`).toContain(
         "@/lib/disposable/develop-words",
+      );
+      expect(source, `${rel} formats the time itself`).not.toMatch(
+        /Intl\.DateTimeFormat|toLocale(?:Date|Time)?String/,
+      );
+    }
+  });
+
+  it("every guest screen reads the wait's words, and none builds a formatter of its own", () => {
+    for (const rel of GUEST) {
+      const source = read(rel);
+      expect(source, `${rel} stopped reading the wait's words`).toContain(
+        "@/lib/disposable/wait-words",
       );
       expect(source, `${rel} formats the time itself`).not.toMatch(
         /Intl\.DateTimeFormat|toLocale(?:Date|Time)?String/,

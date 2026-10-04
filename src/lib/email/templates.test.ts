@@ -81,6 +81,14 @@ const OPERATOR = {
     objectsScanned: 918,
     mode: "dry-run",
   }),
+  pruneHold: T.pruneHoldEmail({
+    heldMedia: 2_001,
+    heldKeys: 4_002,
+    threshold: 2_000,
+    runNote:
+      "Held: 2,001 items gone against a usual 12 (it holds past 2,000), deleted nothing.",
+    jobsUrl: "https://admin.partyreel.com/admin/jobs#job-backup_prune",
+  }),
 };
 
 // admin-triage r2: the operator told at once of a child-abuse report, both ways it can arrive.
@@ -295,6 +303,26 @@ describe("the foot (foot=commercial, as his note refines it)", () => {
     expect(OPERATOR.prune.text).toContain(
       "---\n\nPartyreel operations alert (backup-prune safety",
     );
+    expect(OPERATOR.pruneHold.text).toContain(
+      "---\n\nPartyreel operations alert (backup-prune hold",
+    );
+  });
+
+  it("★ the prune's hold says what it kept, that nothing was deleted, and where a person releases or pauses it", () => {
+    const { subject, text, html } = OPERATOR.pruneHold;
+    expect(subject).toBe(
+      "[Partyreel] Backup prune held: 2,001 items wait for a person",
+    );
+    expect(text).toContain("Nothing was deleted.");
+    expect(text).toContain("2,001");
+    expect(text).toContain("4,002");
+    expect(text).toMatch(/Release the hold/);
+    expect(text).toMatch(/pause/i);
+    expect(text).toContain(
+      "https://admin.partyreel.com/admin/jobs#job-backup_prune",
+    );
+    // An operator alert's shape: no button.
+    expect(html).not.toContain("display:inline-block;padding:10px 20px");
   });
 
   it("the renewal nudge alone carries an unsubscribe, to its switch", () => {

@@ -8,8 +8,8 @@ import { usePortalContainer } from "@/components/ui/portal-container"
 import { cn } from "@/lib/utils"
 import {
   floatingClock,
+  floatingDisplayPanel,
   floatingEntrance,
-  floatingPanel,
   floatingRow,
 } from "@/components/ui/floating-layer"
 
@@ -82,7 +82,9 @@ function SelectContent({
         data-slot="select-content"
         className={cn(
           "relative z-50 max-h-(--radix-select-content-available-height) min-w-[8rem] origin-(--radix-select-content-transform-origin) overflow-x-hidden overflow-y-auto",
-          floatingPanel,
+          // The display (layers=display): a select's list is a quick choice,
+          // so it opens on the camera's own screen, as a menu does.
+          floatingDisplayPanel,
           floatingEntrance,
           // A form control: opened as often as a menu, and in the middle of a
           // sentence the host is trying to finish.
@@ -136,7 +138,7 @@ function SelectItem({
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        "relative flex w-full cursor-default items-center gap-2 py-1.5 pr-8 pl-2 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
+        "relative flex w-full cursor-default items-center gap-2 py-1.5 pr-8 pl-2 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground focus:ring-[1.5px] focus:ring-foreground/50 focus:ring-inset data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
         floatingRow,
         className
       )}

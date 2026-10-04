@@ -1,16 +1,31 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
+import { X } from "lucide-react";
 
 import {
   SettingsCard,
   SwitchSetting,
 } from "@/components/app/event-settings/settings-furniture";
 import { PROFILE_SETUP_PATH } from "@/app/(app)/account/profile/invite";
-import { useSettings } from "@/components/app/event-settings/settings-state";
+import {
+  type SettingsValues,
+  useSettings,
+} from "@/components/app/event-settings/settings-state";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  EARLIEST_EVENT_DAY,
+  endForNewStart,
+  isSaneDay,
+  LATEST_EVENT_DAY,
+} from "@/lib/events/dates";
+import {
+  DATE_OUT_OF_RANGE,
+  LAST_DAY_BEFORE_FIRST,
+} from "@/lib/validation/event";
 
 /** The update schema's own bounds (validation/event.ts), checked here so the field can say so in place. */
 const NAME_MAX = 80;
@@ -32,7 +47,6 @@ function SavingField({
   optional = false,
   value,
   multiline = false,
-  type,
   line,
   check,
   onSave,
@@ -41,7 +55,6 @@ function SavingField({
   optional?: boolean;
   value: string;
   multiline?: boolean;
-  type?: "date";
   line?: string;
   /** The field's own refusal of what was typed, or null to save it. */
   check: (typed: string) => string | null;
@@ -59,7 +72,7 @@ function SavingField({
 
   async function commit(raw: string) {
     pending.current = null;
-    const next = type === "date" ? raw : raw.trim();
+    const next = raw.trim();
     if (next === value) {
       setTyped(null);
       setError(null);
@@ -127,13 +140,9 @@ function SavingField({
       ) : (
         <Input
           {...common}
-          type={type}
-          onChange={(e) => {
-            onTyped(e.target.value);
-            // A date picker commits a whole value at once, and a phone's may never blur: it saves as
-            // it changes. A typed name saves when it is left, or when Return is pressed.
-            if (type === "date") void commit(e.target.value);
-          }}
+          // A typed name saves when it is left, or when Return is pressed (the date's own field is
+          // `EventDatesField`, which saves a date once she has finished it).
+          onChange={(e) => onTyped(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") (e.target as HTMLInputElement).blur();
           }}
@@ -153,6 +162,302 @@ function SavingField({
         className="text-caption text-pretty text-destructive empty:hidden"
       >
         {error ?? ""}
+      </p>
+    </div>
+  );
+}
+
+type Dates = Pick<SettingsValues, "eventDate" | "eventEndDate">;
+
+/** The two fields of a range. */
+type Side = "start" | "end";
+
+/**
+ * A PICKER'S CHOICE SAVES A BEAT AFTER THE LAST ONE, in ms (crumbs-59). A calendar's pick is one whole change, but a
+ * phone's wheel may report every notch it turns as a date (iOS Safari is said to; no device was at hand), and a date it
+ * passes is not one she chose: each would be a save, and an end that follows the start would follow every stop. The beat
+ * lets the wheel rest, so the date it rests on is the one saved (and the end is measured from what was last SAVED, never
+ * from a notch).
+ */
+export const PICK_SETTLE_MS = 350;
+
+/**
+ * A change this soon after a key went down is the key's own: Chrome fires `input` inside the key press, measured 1 ms
+ * after `keydown` (a year typed digit by digit, an ArrowUp), where a calendar's pick comes with no key down at all.
+ */
+const KEY_CHANGE_MS = 150;
+
+/** Keys that change nothing by themselves: held while she picks with the mouse, they are not typing. */
+const MODIFIER_KEYS = new Set(["Shift", "Control", "Alt", "Meta"]);
+
+/** What a date field says when she leaves it half filled (a segment cleared and not typed again). */
+const DATE_UNFINISHED = "Finish the date, or clear it.";
+
+/** What a date field holds that is not saved yet: its value as the field reads it, and whether it is half filled. */
+type Draft = { value: string; partial: boolean };
+
+/**
+ * THE EVENT'S DATES (lane `event-dates`, Will 2026-10-03: a range of days, no times): the date as it always was, and
+ * for a weekend, a conference or a trip, its end beside it. The end is offered, never asked: "Add an end date" opens
+ * it, × takes it away. The two are written together in one save whenever a range is in play, so the row never holds
+ * half of one (the database's CHECK refuses an end before its date, or without one).
+ *
+ * ★ A DATE SAVES ONCE SHE HAS FINISHED IT, NEVER ON A KEYSTROKE (crumbs-59, red-team 47's MEDIUM). Chrome's date field
+ * fires a COMPLETE date on every keystroke that makes one, so a year typed digit by digit passes 0002, 0020 and 0202 on
+ * its way to 2027: the field once saved each, and the end followed the last stop (2027-10-02 to 3851-10-05 after four
+ * saves); the day typed as 12 saved October 1, then 12 to 15; an end day typed as 20 closed the range at the 2, under
+ * her fingers. So what she types is a draft the field shows and nothing sends, until she has finished it:
+ *   - ON LEAVING the field (blur), or on Return, or as the panel closes (which leaves it too: a field removed from the
+ *     page never blurs, and a closed panel never swallows a date);
+ *   - A PICKER'S CHOICE (a change no key made) a beat after the last one (`PICK_SETTLE_MS`), so a wheel that reports
+ *     every notch saves the date it rests on once.
+ * A change a key made (typing, an arrow) always waits to be left. A CLEARED field is never saved by the beat, only by
+ * leaving: it is the change that takes its end with it, and a keyboard clears a field on its way to the next date.
+ *
+ * ★ A DATE THAT IS NOT A DAY AN EVENT MAY NAME NEVER SAVES (`isSaneDay`: a real day, 1900 to 2100): a year left half typed
+ * (0202), a stray fifth digit, and the field says so under itself, where the eye already is, in the schema's own words.
+ * A date left HALF FILLED (a segment cleared and not typed again) is not a cleared date either: saving it as one would
+ * take her date and its end away for a slip, so it asks her to finish it or clear it. An end before the date is refused
+ * the same way (the picker's own minimum stops a picked one); an end on the date itself is the one day it is.
+ *
+ * The end follows a moved first day as `endForNewStart` says, from what was last SAVED and the date she finished.
+ */
+function EventDatesField() {
+  const s = useSettings();
+  const v = s.values;
+  const id = useId();
+  const lineId = `${id}-line`;
+  const errorId = `${id}-error`;
+  const endRef = useRef<HTMLInputElement>(null);
+  const [adding, setAdding] = useState(false);
+  const [typedStart, setTypedStart] = useState<string | null>(null);
+  const [typedEnd, setTypedEnd] = useState<string | null>(null);
+  const [refusal, setRefusal] = useState<{
+    side: Side;
+    words: string;
+  } | null>(null);
+  const shownStart = typedStart ?? v.eventDate;
+  const shownEnd = typedEnd ?? v.eventEndDate;
+  const open = adding || Boolean(v.eventEndDate);
+
+  // What each field holds that is not saved, the beat a picker's choice is waiting out, and when a key last went down.
+  const pending = useRef<Record<Side, Draft | null>>({
+    start: null,
+    end: null,
+  });
+  const beats = useRef<Record<Side, ReturnType<typeof setTimeout> | undefined>>(
+    { start: undefined, end: undefined },
+  );
+  const keyAt = useRef(Number.NEGATIVE_INFINITY);
+  // The latest commits, for the beat and the close below (their own render's, so each sees the saved days as they are).
+  const latest = useRef<Record<Side, (next: string) => void>>({
+    start: () => {},
+    end: () => {},
+  });
+
+  function save(next: Dates) {
+    if (next.eventDate === v.eventDate && next.eventEndDate === v.eventEndDate)
+      return;
+    // The date alone where no range was or is (one column, as it always saved); both together otherwise.
+    void s.saveEvent(
+      !next.eventEndDate && !v.eventEndDate
+        ? { eventDate: next.eventDate }
+        : next,
+    );
+  }
+
+  function stopBeat(side: Side) {
+    clearTimeout(beats.current[side]);
+    beats.current[side] = undefined;
+  }
+
+  /**
+   * A save is the truth again: the words go, and a field that held only a refused draft shows what is saved (a year left
+   * at 0202 must not stay in the field, unsaved and unmarked, once the other field's save has cleared its words). A draft
+   * still waiting its own beat keeps its place.
+   */
+  function showSaved() {
+    if (!pending.current.start) setTypedStart(null);
+    if (!pending.current.end) setTypedEnd(null);
+    setRefusal(null);
+  }
+
+  /** The day she finished is saved with its end following it, or refused in words where she is. */
+  function commitStart(next: string) {
+    pending.current.start = null;
+    stopBeat("start");
+    if (next && !isSaneDay(next)) {
+      setTypedStart(next);
+      setRefusal({ side: "start", words: DATE_OUT_OF_RANGE });
+      return;
+    }
+    showSaved();
+    const dates: Dates = {
+      eventDate: next,
+      eventEndDate: endForNewStart(next, v.eventDate, v.eventEndDate),
+    };
+    if (!dates.eventEndDate) setAdding(false);
+    save(dates);
+  }
+
+  function commitEnd(next: string) {
+    pending.current.end = null;
+    stopBeat("end");
+    if (next && !isSaneDay(next)) {
+      setTypedEnd(next);
+      setRefusal({ side: "end", words: DATE_OUT_OF_RANGE });
+      return;
+    }
+    if (next && v.eventDate && next < v.eventDate) {
+      setTypedEnd(next);
+      setRefusal({ side: "end", words: LAST_DAY_BEFORE_FIRST });
+      return;
+    }
+    showSaved();
+    // An end on the date itself is the one day it is.
+    const end = next === v.eventDate ? "" : next;
+    if (!end) setAdding(false);
+    save({ eventDate: v.eventDate, eventEndDate: end });
+  }
+
+  useEffect(() => {
+    latest.current = { start: commitStart, end: commitEnd };
+  });
+  useEffect(
+    () => () => {
+      stopBeat("start");
+      stopBeat("end");
+      const { start, end } = pending.current;
+      if (start && !start.partial) latest.current.start(start.value);
+      else if (end && !end.partial) latest.current.end(end.value);
+    },
+    [],
+  );
+
+  /** What she typed or picked becomes the field's draft: shown at once, saved when it is finished (the header). */
+  function draft(side: Side, input: HTMLInputElement) {
+    const value = input.value;
+    (side === "start" ? setTypedStart : setTypedEnd)(value);
+    setRefusal((r) => (r?.side === side ? null : r));
+    pending.current[side] = { value, partial: input.validity.badInput };
+    stopBeat(side);
+    const byAKey = performance.now() - keyAt.current < KEY_CHANGE_MS;
+    if (!byAKey && value) {
+      beats.current[side] = setTimeout(() => {
+        const rested = pending.current[side];
+        if (rested) latest.current[side](rested.value);
+      }, PICK_SETTLE_MS);
+    }
+  }
+
+  /** She has left the field or pressed Return in it: what it holds is finished, unless it is half a date. */
+  function finish(side: Side, input: HTMLInputElement) {
+    const held = pending.current[side];
+    if (!held) return;
+    if (input.validity.badInput) {
+      pending.current[side] = null;
+      stopBeat(side);
+      setRefusal({ side, words: DATE_UNFINISHED });
+      return;
+    }
+    latest.current[side](held.value);
+  }
+
+  function onKeyDown(side: Side, e: KeyboardEvent<HTMLInputElement>) {
+    if (!MODIFIER_KEYS.has(e.key)) keyAt.current = performance.now();
+    if (e.key === "Enter") finish(side, e.currentTarget);
+  }
+
+  // Add an end date opens the field and its picker at once (where the browser lets a page open it).
+  useEffect(() => {
+    if (!adding) return;
+    const field = endRef.current;
+    field?.focus();
+    try {
+      field?.showPicker?.();
+    } catch {
+      // Some browsers open a date picker only from a press on the field itself: focus is the way in then.
+    }
+  }, [adding]);
+
+  const describedBy = (side: Side) =>
+    [lineId, refusal?.side === side ? errorId : null].filter(Boolean).join(" ");
+
+  return (
+    <div className="space-y-1.5 px-4 py-3">
+      <label htmlFor={id} className="text-sm font-medium">
+        Event date
+        <span className="font-normal text-muted-foreground"> (optional)</span>
+      </label>
+      <div className="flex flex-wrap items-center gap-2">
+        <Input
+          id={id}
+          type="date"
+          min={EARLIEST_EVENT_DAY}
+          max={LATEST_EVENT_DAY}
+          value={shownStart}
+          aria-invalid={refusal?.side === "start" ? true : undefined}
+          aria-describedby={describedBy("start")}
+          className="w-auto min-w-36 flex-1"
+          onKeyDown={(e) => onKeyDown("start", e)}
+          onChange={(e) => draft("start", e.target)}
+          onBlur={(e) => finish("start", e.currentTarget)}
+        />
+        {open ? (
+          <div className="flex min-w-48 flex-1 items-center gap-2">
+            <span aria-hidden className="text-sm text-muted-foreground">
+              to
+            </span>
+            <Input
+              ref={endRef}
+              type="date"
+              aria-label="End date"
+              min={v.eventDate || EARLIEST_EVENT_DAY}
+              max={LATEST_EVENT_DAY}
+              value={shownEnd}
+              aria-invalid={refusal?.side === "end" ? true : undefined}
+              aria-describedby={describedBy("end")}
+              className="w-auto min-w-0 flex-1"
+              onKeyDown={(e) => onKeyDown("end", e)}
+              onChange={(e) => draft("end", e.target)}
+              onBlur={(e) => {
+                if (pending.current.end) finish("end", e.currentTarget);
+                else if (adding && !v.eventEndDate && !typedEnd)
+                  setAdding(false);
+              }}
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Remove the end date"
+              onClick={() => {
+                setAdding(false);
+                commitEnd("");
+              }}
+            >
+              <X aria-hidden />
+            </Button>
+          </div>
+        ) : v.eventDate ? (
+          <button
+            type="button"
+            className="text-sm text-muted-foreground underline decoration-muted-foreground/40 underline-offset-4 outline-none hover:text-foreground focus-visible:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+            onClick={() => setAdding(true)}
+          >
+            Add an end date
+          </button>
+        ) : null}
+      </div>
+      <p id={lineId} className="text-caption text-pretty text-muted-foreground">
+        For your reference only: events never expire.
+      </p>
+      <p
+        id={errorId}
+        aria-live="polite"
+        className="text-caption text-pretty text-destructive empty:hidden"
+      >
+        {refusal?.words ?? ""}
       </p>
     </div>
   );
@@ -197,15 +502,7 @@ export function EventPage() {
         }
         onSave={(typed) => s.saveEvent({ description: typed })}
       />
-      <SavingField
-        label="Event date"
-        optional
-        type="date"
-        value={v.eventDate}
-        line="For your reference only: events never expire."
-        check={() => null}
-        onSave={(typed) => s.saveEvent({ eventDate: typed })}
-      />
+      <EventDatesField />
       {v.displayInProfile !== null ? (
         <SwitchSetting
           label="Show on my profile"

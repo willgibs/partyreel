@@ -1,9 +1,10 @@
 /**
  * HOW GUESTS ADD, AND WHEN EVERYONE SEES WHAT'S ADDED (20261002200000): the mountable control's decisions. Each answer
  * is one save of both columns; a change that would show held or waiting photos asks first in its own line, and
- * nothing else asks; Develop now while a time waits; a develop time picked in her own zone, within reach.
+ * nothing else asks; Develop now while a time waits; a develop time picked in her own zone, within reach, and saved only
+ * when it is plainly meant (crumbs-60: the last describe).
  */
-import { fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { developTimeWords } from "@/lib/disposable/develop-words";
@@ -21,7 +22,7 @@ vi.mock("@/app/(app)/dashboard/[eventId]/actions", () => ({
   setEventDoorAction: vi.fn(),
 }));
 
-const { CaptureAndReveal } = await import("./camera-settings");
+const { AlbumStyles, CaptureAndReveal } = await import("./camera-settings");
 
 const NOW = new Date("2026-10-02T20:00:00Z");
 const AHEAD = "2026-10-03T16:00:00.000Z";
@@ -59,7 +60,11 @@ describe("how guests add", () => {
   it("free uploads or the album's camera, the roll said; a choice saves the capture alone", () => {
     const onSave = mount();
     expect(radio("Free uploads")).toHaveAttribute("aria-checked", "true");
-    expect(screen.getByText("A roll of 24 shots each. Removing one frees its frame.")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "A roll of 24 shots each. Removing one frees its frame.",
+      ),
+    ).toBeInTheDocument();
     fireEvent.click(radio("The album's camera"));
     expect(onSave).toHaveBeenCalledWith({ capture: "camera" });
     // Choosing what is already chosen saves nothing.
@@ -71,7 +76,10 @@ describe("how guests add", () => {
 describe("when everyone sees what's added: one choice of three", () => {
   it("reads the two columns as one answer", () => {
     mount({ review: true });
-    expect(radio("Once you approve each")).toHaveAttribute("aria-checked", "true");
+    expect(radio("Once you approve each")).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
   });
 
   it("★ each answer is one save of both columns; nothing held, nothing asks", () => {
@@ -89,15 +97,26 @@ describe("when everyone sees what's added: one choice of three", () => {
     const onSave = mount({ review: true }, 2);
     fireEvent.click(radio("Right away"));
     expect(onSave).not.toHaveBeenCalled();
-    expect(screen.getByText("2 photos under review are approved and show to everyone now.")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "2 photos under review are approved and show to everyone now.",
+      ),
+    ).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Keep it as it is" }));
     expect(onSave).not.toHaveBeenCalled();
 
+    // RESHAPED (the-wait r1, settled with Will the night of build 45): into a develop time the held photos "join the
+    // roll", approved and sealed, developing with everyone's; the line said "approved, and everyone sees them at the
+    // develop" under "Approve them for the develop". The scar kept: it asks first, and says what happens to them.
     fireEvent.click(radio("At a develop time"));
     expect(
-      screen.getByText("2 photos under review are approved, and everyone sees them at the develop."),
+      screen.getByText(
+        "2 photos under review join the roll: approved, they develop with everyone's.",
+      ),
     ).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Approve them for the develop" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Add them to the roll" }),
+    );
     expect(onSave).toHaveBeenCalledWith({
       review: false,
       developsAt: defaultDevelopAt({ eventDate: null }).toISOString(),
@@ -109,7 +128,9 @@ describe("when everyone sees what's added: one choice of three", () => {
     expect(radio("At a develop time")).toHaveAttribute("aria-checked", "true");
     fireEvent.click(radio("Once you approve each"));
     expect(onSave).not.toHaveBeenCalled();
-    expect(screen.getByText("Every photo added so far shows now, to every guest.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Every photo added so far shows now, to every guest."),
+    ).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Show them now" }));
     expect(onSave).toHaveBeenCalledWith({ review: true, developsAt: null });
   });
@@ -118,7 +139,9 @@ describe("when everyone sees what's added: one choice of three", () => {
     const onSave = mount({ developsAt: AHEAD });
     fireEvent.click(screen.getByRole("button", { name: "Develop now" }));
     expect(onSave).not.toHaveBeenCalled();
-    const confirm = screen.getAllByRole("button", { name: "Develop now" }).at(-1)!;
+    const confirm = screen
+      .getAllByRole("button", { name: "Develop now" })
+      .at(-1)!;
     fireEvent.click(confirm);
     expect(onSave).toHaveBeenCalledWith({ developsAt: NOW.toISOString() });
   });
@@ -127,13 +150,17 @@ describe("when everyone sees what's added: one choice of three", () => {
     mount({ developsAt: PAST });
     expect(screen.queryByRole("button", { name: "Develop now" })).toBeNull();
     expect(
-      screen.getByText(`Developed ${developTimeWords(PAST)}. New ones show straight away.`),
+      screen.getByText(
+        `Developed ${developTimeWords(PAST)}. New ones show straight away.`,
+      ),
     ).toBeInTheDocument();
   });
 
   it("says the time as the guest's own tracker does: one formatter (`develop-words`) for both sides", () => {
     mount({ developsAt: AHEAD });
-    expect(screen.getByText(`Develops ${developTimeWords(AHEAD)}.`)).toBeInTheDocument();
+    expect(
+      screen.getByText(`Develops ${developTimeWords(AHEAD)}.`),
+    ).toBeInTheDocument();
   });
 
   it("a develop time picked in her own zone saves when she leaves the field; one out of reach saves nothing", () => {
@@ -141,10 +168,463 @@ describe("when everyone sees what's added: one choice of three", () => {
     const field = screen.getByLabelText("Develop time");
     fireEvent.change(field, { target: { value: "2026-10-05T10:30" } });
     fireEvent.blur(field);
-    expect(onSave).toHaveBeenCalledWith({ developsAt: new Date("2026-10-05T10:30").toISOString() });
+    expect(onSave).toHaveBeenCalledWith({
+      developsAt: new Date("2026-10-05T10:30").toISOString(),
+    });
     fireEvent.change(field, { target: { value: "2028-10-05T10:30" } });
     fireEvent.blur(field);
     expect(onSave).toHaveBeenCalledTimes(1);
     expect(screen.getByText("Pick a time within a year.")).toBeInTheDocument();
+  });
+});
+
+/* ── THE ALBUM STYLES (the-wait r1, Will's pick of option 2's Settings) ───────────────────────────────────────────── */
+
+function mountStyles(
+  value: Partial<Value> = {},
+  heldCount = 0,
+  rollSize: number | null = null,
+) {
+  const onSave = vi.fn();
+  render(
+    <AlbumStyles
+      value={{ capture: "upload", review: false, developsAt: null, ...value }}
+      rollSize={rollSize}
+      eventDate={null}
+      heldCount={heldCount}
+      savingCapture={false}
+      savingReveal={false}
+      onSave={onSave}
+    >
+      <p>the page switches</p>
+    </AlbumStyles>,
+  );
+  return onSave;
+}
+
+const style = (name: RegExp) => screen.getByRole("radio", { name });
+
+describe("album styles: one pick of a named album", () => {
+  it("offers Live, Reviewed and Disposable, each its card and its line, the album's own checked", () => {
+    mountStyles({ capture: "camera", developsAt: AHEAD }, 0, 12);
+    expect(style(/^Live\./)).toHaveAttribute("aria-checked", "false");
+    expect(style(/^Reviewed\./)).toHaveAttribute("aria-checked", "false");
+    expect(style(/^Disposable\./)).toHaveAttribute("aria-checked", "true");
+    expect(
+      screen.getByText(
+        "The album's camera, 12 shots each. Everyone's develop at once.",
+      ),
+    ).toBeInTheDocument();
+    // The page's own switches stand in its card, under the develop time.
+    expect(screen.getByText("the page switches")).toBeInTheDocument();
+    expect(screen.getByLabelText("Develop time")).toBeInTheDocument();
+  });
+
+  it("★ a press is one save of all three columns", () => {
+    const onSave = mountStyles();
+    fireEvent.click(style(/^Disposable\./));
+    expect(onSave).toHaveBeenLastCalledWith({
+      capture: "camera",
+      review: false,
+      developsAt: defaultDevelopAt({ eventDate: null }).toISOString(),
+    });
+    fireEvent.click(style(/^Reviewed\./));
+    expect(onSave).toHaveBeenLastCalledWith({
+      capture: "upload",
+      review: true,
+      developsAt: null,
+    });
+  });
+
+  it("★ never approval with a develop: Disposable writes no approval, and keeps only its develop time", () => {
+    const onSave = mountStyles({ review: true });
+    fireEvent.click(style(/^Disposable\./));
+    const saved = onSave.mock.calls.at(-1)?.[0];
+    expect(saved.review).toBe(false);
+    expect(saved.developsAt).not.toBeNull();
+  });
+
+  it("★ from Reviewed with photos held, the switch to Disposable asks first: they join the roll", () => {
+    const onSave = mountStyles({ review: true }, 3);
+    fireEvent.click(style(/^Disposable\./));
+    expect(onSave).not.toHaveBeenCalled();
+    expect(
+      screen.getByText(
+        /^3 photos under review join the roll: approved, they develop with everyone's/,
+      ),
+    ).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Add them to the roll" }),
+    );
+    expect(onSave).toHaveBeenCalledWith({
+      capture: "camera",
+      review: false,
+      developsAt: defaultDevelopAt({ eventDate: null }).toISOString(),
+    });
+  });
+
+  it("leaving a develop still ahead asks first: every photo added so far shows at once", () => {
+    const onSave = mountStyles({ capture: "camera", developsAt: AHEAD });
+    fireEvent.click(style(/^Live\./));
+    expect(onSave).not.toHaveBeenCalled();
+    expect(
+      screen.getByText("Every photo added so far shows now, to every guest."),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Show them now" }));
+    expect(onSave).toHaveBeenCalledWith({
+      capture: "upload",
+      review: false,
+      developsAt: null,
+    });
+  });
+
+  it("a disposable that waits says how its host checks it: her cover, before it develops", () => {
+    mountStyles({ capture: "camera", developsAt: AHEAD });
+    expect(
+      screen.getByText(
+        /^Before it develops .+, look under the cover on your event page to take anything out\./,
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("no develop time, no develop row and no note", () => {
+    mountStyles();
+    expect(screen.queryByLabelText("Develop time")).toBeNull();
+    expect(screen.queryByText(/look under the cover/)).toBeNull();
+  });
+
+  it("a mix outside the styles checks none, and stands Customize open with the two answers apart", () => {
+    mountStyles({ capture: "camera", developsAt: null });
+    for (const name of [/^Live\./, /^Reviewed\./, /^Disposable\./]) {
+      expect(style(name)).toHaveAttribute("aria-checked", "false");
+    }
+    expect(
+      screen.getByText("Your own mix: how guests add, and when everyone sees"),
+    ).toBeInTheDocument();
+    expect(radio("The album's camera")).toHaveAttribute("aria-checked", "true");
+    expect(radio("Right away")).toHaveAttribute("aria-checked", "true");
+  });
+
+  it("Customize opens the two answers on a press, its develop time standing in the page's own row", () => {
+    mountStyles({ capture: "camera", developsAt: AHEAD });
+    expect(screen.queryByRole("radio", { name: "Free uploads" })).toBeNull();
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Customize how guests add and when everyone sees",
+      }),
+    );
+    expect(radio("At a develop time")).toHaveAttribute("aria-checked", "true");
+    // One develop time on the page: the row's, never a second field inside Customize.
+    expect(screen.getAllByLabelText("Develop time")).toHaveLength(1);
+  });
+});
+
+/* ── THE DEVELOP TIME NEVER DEVELOPS AN ALBUM BY ACCIDENT (crumbs-60, the date field's twin) ───────────────────────── */
+
+/**
+ * A save of a develop time at or before the database's now IS Develop now: `events_reveal_stamp` stores it as its own
+ * now and `events_develops_rewrite` opens every sealed row in the same save, and nothing can take it back. So a time
+ * reaches the write only when it is plainly meant, once she has finished it (leaving the field, or Return): a year left
+ * half typed is no time, a time already past asks Develop now's own question first, and a blank or half filled field
+ * says what is missing.
+ *
+ * What is pinned is the writes, keystroke by keystroke in the order Chrome fires them on a `datetime-local` (measured on
+ * Chrome 152 and 154, on the Library's Settings, with real key presses): `keydown`, then `input` and `change` with the
+ * whole value in the same millisecond, then `keyup`; a year segment typed "0202" reads blank first (year 0 is no year),
+ * then 0002, 0020 and 0202.
+ */
+type Press = [key: string, valueAfter: string];
+
+/** Real key presses into the field: each is the keydown, the value it makes ("" while a segment is only 0s), the keyup. */
+function typeInto(field: HTMLInputElement, presses: Press[]) {
+  for (const [key, value] of presses) {
+    fireEvent.keyDown(field, { key });
+    fireEvent.change(field, { target: { value } });
+    fireEvent.keyUp(field, { key });
+  }
+}
+
+/** A moment as a `datetime-local` holds it: the browser's own zone, so no test reads the machine's. */
+function local(ms: number): string {
+  const d = new Date(ms);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+const DAY = 86_400_000;
+const developField = () =>
+  screen.getByLabelText("Develop time") as HTMLInputElement;
+const leave = (field: HTMLInputElement) => fireEvent.blur(field);
+const pressReturn = (field: HTMLInputElement) =>
+  fireEvent.keyDown(field, { key: "Enter" });
+const DEVELOP_NOW_LINE =
+  /^Every photo added so far shows now, to every guest\. New ones show straight away\.$/;
+
+/** Settings' own arrangement: a disposable whose develop time is a day ahead. */
+function mountWaiting() {
+  return mountStyles({ capture: "camera", developsAt: AHEAD });
+}
+
+describe("★ a year left half typed is no develop time", () => {
+  it.each([
+    ["she leaves the field", leave],
+    ["she presses Return", pressReturn],
+  ] as const)(
+    "0202, typed a digit at a time, never saves when %s, and the field says why",
+    (_how, finish) => {
+      const onSave = mountWaiting();
+      const field = developField();
+      const tail = field.value.slice(4);
+      typeInto(field, [
+        ["0", ""],
+        ["2", `0002${tail}`],
+        ["0", `0020${tail}`],
+        ["2", `0202${tail}`],
+      ]);
+      // Mid-typing nothing is on its way, a keystroke is never a save.
+      expect(onSave).not.toHaveBeenCalled();
+      finish(field);
+      expect(onSave).not.toHaveBeenCalled();
+      expect(
+        screen.getByText("Pick a year from 1900 to 2100."),
+      ).toBeInTheDocument();
+      expect(field).toHaveAttribute("aria-invalid", "true");
+      // The saved time still stands in its line, and nothing asked about developing.
+      expect(
+        screen.getByText(`Develops ${developTimeWords(AHEAD)}.`),
+      ).toBeInTheDocument();
+      expect(screen.queryByText(DEVELOP_NOW_LINE)).toBeNull();
+    },
+  );
+
+  it("a fifth digit past the year is no time either", () => {
+    const onSave = mountWaiting();
+    const field = developField();
+    const tail = field.value.slice(4);
+    typeInto(field, [["7", `20267${tail}`]]);
+    leave(field);
+    expect(onSave).not.toHaveBeenCalled();
+    expect(
+      screen.getByText("Pick a year from 1900 to 2100."),
+    ).toBeInTheDocument();
+  });
+
+  it("finishing the year clears the words, and the saved time typed again saves nothing", () => {
+    const onSave = mountWaiting();
+    const field = developField();
+    const tail = field.value.slice(4);
+    typeInto(field, [
+      ["2", `0002${tail}`],
+      ["0", `0020${tail}`],
+      ["2", `0202${tail}`],
+    ]);
+    leave(field);
+    expect(
+      screen.getByText("Pick a year from 1900 to 2100."),
+    ).toBeInTheDocument();
+    typeInto(field, [["6", `2026${tail}`]]);
+    expect(screen.queryByText("Pick a year from 1900 to 2100.")).toBeNull();
+    // The time she finished is the one the field already had, so there is nothing to save and nothing to say.
+    leave(field);
+    expect(onSave).not.toHaveBeenCalled();
+    expect(field).not.toHaveAttribute("aria-invalid");
+  });
+
+  it("a time typed through a blank stop saves once, when she leaves, and never on the way", () => {
+    const onSave = mountWaiting();
+    const field = developField();
+    // The day typed as 05: the 0 reads blank, the 5 makes October 5.
+    typeInto(field, [
+      ["0", ""],
+      ["5", "2026-10-05T16:00"],
+    ]);
+    expect(onSave).not.toHaveBeenCalled();
+    leave(field);
+    expect(onSave).toHaveBeenCalledTimes(1);
+    expect(onSave).toHaveBeenCalledWith({
+      developsAt: new Date("2026-10-05T16:00").toISOString(),
+    });
+  });
+});
+
+describe("★ a time already past asks Develop now's own question, and writes nothing until she answers", () => {
+  it.each([
+    ["she leaves the field", leave],
+    ["she presses Return", pressReturn],
+  ] as const)("yesterday asks when %s", (_how, finish) => {
+    const onSave = mountWaiting();
+    const field = developField();
+    fireEvent.change(field, { target: { value: local(NOW.getTime() - DAY) } });
+    finish(field);
+    expect(onSave).not.toHaveBeenCalled();
+    expect(screen.getByText(DEVELOP_NOW_LINE)).toBeInTheDocument();
+    // It is the plain Develop now's own question, so its button is the one the question brings.
+    expect(screen.getAllByRole("button", { name: "Develop now" })).toHaveLength(
+      1,
+    );
+    expect(
+      screen.getByRole("button", { name: "Keep it as it is" }),
+    ).toBeInTheDocument();
+  });
+
+  it("Keep it as it is writes nothing and puts the field back to the saved time", () => {
+    const onSave = mountWaiting();
+    const field = developField();
+    const saved = field.value;
+    fireEvent.change(field, { target: { value: local(NOW.getTime() - DAY) } });
+    leave(field);
+    fireEvent.click(screen.getByRole("button", { name: "Keep it as it is" }));
+    expect(onSave).not.toHaveBeenCalled();
+    expect(field.value).toBe(saved);
+    expect(screen.queryByText(DEVELOP_NOW_LINE)).toBeNull();
+    // The plain button is back, and its own question is still its own.
+    fireEvent.click(screen.getByRole("button", { name: "Develop now" }));
+    expect(screen.getByText(DEVELOP_NOW_LINE)).toBeInTheDocument();
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
+  it("Develop now writes now, the database's own word, never the past time she typed", () => {
+    const onSave = mountWaiting();
+    const field = developField();
+    fireEvent.change(field, { target: { value: local(NOW.getTime() - DAY) } });
+    leave(field);
+    fireEvent.click(screen.getByRole("button", { name: "Develop now" }));
+    expect(onSave).toHaveBeenCalledTimes(1);
+    expect(onSave).toHaveBeenCalledWith({ developsAt: NOW.toISOString() });
+  });
+
+  it("asking is a pause, not a state: she can leave the field again while the question stands, and edit it away", () => {
+    const onSave = mountWaiting();
+    const field = developField();
+    fireEvent.change(field, { target: { value: local(NOW.getTime() - DAY) } });
+    leave(field);
+    // Pressing a button in the question leaves the field first: that must not ask a second question or write.
+    leave(field);
+    expect(screen.getAllByText(DEVELOP_NOW_LINE)).toHaveLength(1);
+    expect(onSave).not.toHaveBeenCalled();
+    // A new time is a new question: the old one goes, and a time ahead saves on leaving.
+    fireEvent.change(field, {
+      target: { value: local(NOW.getTime() + 2 * DAY) },
+    });
+    expect(screen.queryByText(DEVELOP_NOW_LINE)).toBeNull();
+    leave(field);
+    expect(onSave).toHaveBeenCalledTimes(1);
+    expect(onSave).toHaveBeenCalledWith({
+      developsAt: new Date(NOW.getTime() + 2 * DAY).toISOString(),
+    });
+  });
+
+  it("the database's own minute: a time under a minute ahead is Develop now too, so it asks", () => {
+    vi.setSystemTime(new Date("2026-10-02T20:00:30Z"));
+    const onSave = mountWaiting();
+    const field = developField();
+    // 20:01 is thirty seconds away: `events_reveal_stamp` stores anything under a minute ahead as its own now.
+    fireEvent.change(field, {
+      target: { value: local(Date.parse("2026-10-02T20:01:00Z")) },
+    });
+    leave(field);
+    expect(onSave).not.toHaveBeenCalled();
+    expect(screen.getByText(DEVELOP_NOW_LINE)).toBeInTheDocument();
+    // A minute and a half ahead is a time ahead, and it saves.
+    fireEvent.change(field, {
+      target: { value: local(Date.parse("2026-10-02T20:02:00Z")) },
+    });
+    leave(field);
+    expect(onSave).toHaveBeenCalledWith({
+      developsAt: "2026-10-02T20:02:00.000Z",
+    });
+  });
+});
+
+describe("★ an album that has already developed is asked nothing: a past time is refused in words", () => {
+  it("never saves, and never asks a question that would say something untrue", () => {
+    const onSave = mountStyles({ capture: "camera", developsAt: PAST });
+    const field = developField();
+    fireEvent.change(field, {
+      target: { value: local(NOW.getTime() - 2 * DAY) },
+    });
+    leave(field);
+    expect(onSave).not.toHaveBeenCalled();
+    expect(
+      screen.getByText("That time has passed. Pick one ahead."),
+    ).toBeInTheDocument();
+    expect(field).toHaveAttribute("aria-invalid", "true");
+    expect(screen.queryByText(DEVELOP_NOW_LINE)).toBeNull();
+  });
+
+  it("a time ahead still saves: a developed album can wait again", () => {
+    const onSave = mountStyles({ capture: "camera", developsAt: PAST });
+    const field = developField();
+    fireEvent.change(field, { target: { value: "2026-10-05T10:30" } });
+    leave(field);
+    expect(onSave).toHaveBeenCalledWith({
+      developsAt: new Date("2026-10-05T10:30").toISOString(),
+    });
+  });
+});
+
+describe("a blank or half filled field is no time", () => {
+  it("never saves, and says to finish it", () => {
+    const onSave = mountWaiting();
+    const field = developField();
+    // A segment cleared and not typed again reads empty (Chrome's `badInput`), as does a field cleared whole.
+    fireEvent.keyDown(field, { key: "Backspace" });
+    fireEvent.change(field, { target: { value: "" } });
+    fireEvent.keyUp(field, { key: "Backspace" });
+    leave(field);
+    expect(onSave).not.toHaveBeenCalled();
+    expect(
+      screen.getByText("Finish the time, or pick another."),
+    ).toBeInTheDocument();
+    expect(field).toHaveAttribute("aria-invalid", "true");
+  });
+
+  it("says nothing, and writes nothing, when a field is left as it was", () => {
+    const onSave = mountWaiting();
+    const field = developField();
+    leave(field);
+    pressReturn(field);
+    expect(onSave).not.toHaveBeenCalled();
+    expect(field).not.toHaveAttribute("aria-invalid");
+  });
+});
+
+describe("closing the panel mid-edit writes nothing", () => {
+  // The date saves a finished day as the panel closes, since a date only says when. A develop time moves what guests see:
+  // a close could not ask, and the field also goes when another control clears the time (a style switch), where a late
+  // write would put a time back over her choice.
+  it("a time typed and not left is dropped with the page, whatever it was", () => {
+    const onSave = mountWaiting();
+    const field = developField();
+    fireEvent.change(field, { target: { value: "2026-10-05T10:30" } });
+    cleanup();
+    expect(onSave).not.toHaveBeenCalled();
+  });
+});
+
+describe("the same guard stands where the control carries its own time (Customize's two answers, apart)", () => {
+  it("a year left half typed saves nothing there either", () => {
+    const onSave = mount({ developsAt: AHEAD });
+    const field = developField();
+    const tail = field.value.slice(4);
+    typeInto(field, [
+      ["2", `0002${tail}`],
+      ["0", `0020${tail}`],
+      ["2", `0202${tail}`],
+    ]);
+    leave(field);
+    expect(onSave).not.toHaveBeenCalled();
+    expect(
+      screen.getByText("Pick a year from 1900 to 2100."),
+    ).toBeInTheDocument();
+  });
+
+  it("a past time asks there too", () => {
+    const onSave = mount({ developsAt: AHEAD });
+    const field = developField();
+    fireEvent.change(field, { target: { value: local(NOW.getTime() - DAY) } });
+    leave(field);
+    expect(onSave).not.toHaveBeenCalled();
+    expect(screen.getByText(DEVELOP_NOW_LINE)).toBeInTheDocument();
   });
 });

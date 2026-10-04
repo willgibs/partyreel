@@ -15,8 +15,13 @@ const rowRead = vi.fn();
 const getUser = vi.fn();
 const checkAbuseRate = vi.fn();
 const recordAbuseEvent = vi.fn();
+const meterUpload = vi.fn();
 
 vi.mock("server-only", () => ({}));
+// The presign's meter (upload-meter): stubbed only so the complete can be shown never to ask it.
+vi.mock("@/lib/upload/server-pipeline-meter", () => ({
+  meterUpload: (...args: unknown[]) => meterUpload(...args),
+}));
 vi.mock("next/headers", () => ({
   cookies: async () => ({ get: () => undefined, getAll: () => [] }),
 }));
@@ -27,21 +32,41 @@ vi.mock("@/lib/db/mutations/guest", () => ({
 vi.mock("@/lib/events/upload-lock", () => ({
   mayUploadPastLock: (...args: unknown[]) => mayUploadPastLock(...args),
 }));
+const captureWarning = vi.fn();
 vi.mock("@/lib/observability/sentry", () => ({
-  captureWarning: vi.fn(),
+  captureWarning: (...args: unknown[]) => captureWarning(...args),
   captureError: vi.fn(),
 }));
 vi.mock("@/lib/forensics/capture", () => ({
   captureUploadForensics: vi.fn(),
 }));
+// The staging landing (upload-meter): a staged single PUT's HEAD, its copy into events/, and the copies a refused
+// record takes back out. `headObject` answers null by default (nothing staged), the path a presign made before staging
+// takes, so every older case below runs as it always did.
+const headObject = vi.fn();
+const copyObject = vi.fn();
+const sumMultipartParts = vi.fn();
+const completeMultipartUpload = vi.fn();
+const deleteR2Objects = vi.fn();
 vi.mock("@/lib/r2/presign", () => ({
   presignUpload: vi.fn(),
   presignUploadPart: vi.fn(),
   createMultipartUpload: vi.fn(),
-  completeMultipartUpload: vi.fn(),
-  sumMultipartParts: vi.fn(),
+  completeMultipartUpload: (...args: unknown[]) =>
+    completeMultipartUpload(...args),
+  sumMultipartParts: (...args: unknown[]) => sumMultipartParts(...args),
   abortMultipartUpload: vi.fn(),
   headObjectSize: (...args: unknown[]) => headObjectSize(...args),
+  headObject: (...args: unknown[]) => headObject(...args),
+  copyObject: (...args: unknown[]) => copyObject(...args),
+}));
+vi.mock("@/lib/r2/delete", () => ({
+  deleteR2Objects: (...args: unknown[]) => deleteR2Objects(...args),
+}));
+// The row a complete may already have (crumbs-62): none by default, so every older case below runs as it always did.
+const readRecordedUpload = vi.fn();
+vi.mock("@/lib/upload/server-pipeline-recorded", () => ({
+  readRecordedUpload: (...args: unknown[]) => readRecordedUpload(...args),
 }));
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => ({
@@ -147,6 +172,10 @@ beforeEach(() => {
   callerIs(null);
   checkAbuseRate.mockResolvedValue({ allowed: true });
   claimRpc.mockResolvedValue({ data: 0, error: null });
+  headObject.mockResolvedValue(null);
+  copyObject.mockResolvedValue(undefined);
+  deleteR2Objects.mockResolvedValue({ deleted: 1, errored: [] });
+  readRecordedUpload.mockResolvedValue(null);
 });
 
 describe("an account's ticket completes only for that account", () => {
@@ -219,6 +248,18 @@ describe("an account's ticket completes only for that account", () => {
     expect(status).toBe(403);
     expect(body.code).toBe("session_other_account");
     expect(createMedia).not.toHaveBeenCalled();
+  });
+});
+
+describe("the month was counted at the presign (upload-meter)", () => {
+  it("★ a completion never asks the meter: the file counted once, when its URL was minted", async () => {
+    const { status } = await complete();
+    expect(status).toBe(200);
+    expect(createMedia).toHaveBeenCalledTimes(1);
+    // The size the row records is still R2's HEAD, never the declaration the presign counted.
+    expect(createMedia.mock.calls[0][0].fileSizeBytes).toBe(1000);
+    await complete({ reel_eligible: false });
+    expect(meterUpload).not.toHaveBeenCalled();
   });
 });
 
@@ -328,5 +369,372 @@ describe("a sealed landing", () => {
     });
     const { body } = await complete();
     expect(body).toEqual({ ok: true, status: "approved" });
+  });
+});
+
+/**
+ * ★ THE STAGING LANDING (upload-meter, the Advisor's Q19): a single PUT landed at its key's `staging/` twin, so the
+ * complete HEADs it there (the authoritative size), copies it into its `events/` key before any row names it, and only
+ * then records it, where `create_media` counts the month on that size, once. A refused or failed record takes the
+ * copies back out of `events/`; a multipart, assembled by the complete at its key, and a single PUT presigned before
+ * staging, found at its key, land as they always did.
+ */
+describe("the staging landing", () => {
+  const ORIGINAL = `events/${EVENT}/photo/${MEDIA}/original.jpg`;
+  const STAGED = `staging/${EVENT}/photo/${MEDIA}/original.jpg`;
+  const PREVIEW = `events/${EVENT}/photo/${MEDIA}/preview.webp`;
+  const STAGED_PREVIEW = `staging/${EVENT}/photo/${MEDIA}/preview.webp`;
+
+  it("★ copies a staged single PUT into its key, then records it on the staged HEAD's size", async () => {
+    headObject.mockImplementation(async ({ key }: { key: string }) =>
+      key === STAGED ? { size: 123_456, lastModified: null } : null,
+    );
+    const { status, body } = await complete({ size_bytes: 999 });
+    expect(status).toBe(200);
+    expect(body).toEqual({ ok: true, status: "approved" });
+    expect(copyObject).toHaveBeenCalledWith({
+      sourceKey: STAGED,
+      destinationKey: ORIGINAL,
+    });
+    expect(copyObject.mock.invocationCallOrder[0]).toBeLessThan(
+      createMedia.mock.invocationCallOrder[0]!,
+    );
+    expect(createMedia.mock.calls[0][0]).toMatchObject({
+      originalKey: ORIGINAL,
+      fileSizeBytes: 123_456,
+    });
+    expect(headObjectSize).not.toHaveBeenCalled();
+    expect(deleteR2Objects).not.toHaveBeenCalled();
+  });
+
+  it("a single PUT presigned before staging is found at its key, uncopied, as before", async () => {
+    headObjectSize.mockResolvedValue(4242);
+    const { status } = await complete();
+    expect(status).toBe(200);
+    expect(headObject).toHaveBeenCalledWith({ key: STAGED });
+    expect(headObjectSize).toHaveBeenCalledWith({ key: ORIGINAL });
+    expect(copyObject).not.toHaveBeenCalled();
+    expect(createMedia.mock.calls[0][0].fileSizeBytes).toBe(4242);
+  });
+
+  it("an upload that landed nowhere is refused, and nothing is recorded", async () => {
+    headObjectSize.mockRejectedValue(new Error("NotFound"));
+    const { status, body } = await complete();
+    expect(status).toBe(400);
+    expect(body.code).toBe("bad_key");
+    expect(createMedia).not.toHaveBeenCalled();
+  });
+
+  it("a copy R2 will not make refuses the completion (a retry may pass), and records nothing", async () => {
+    headObject.mockResolvedValue({ size: 1000, lastModified: null });
+    copyObject.mockRejectedValue(new Error("InternalError"));
+    const { status, body } = await complete();
+    expect(status).toBe(502);
+    expect(body.code).toBe("complete_failed");
+    expect(createMedia).not.toHaveBeenCalled();
+  });
+
+  it("★ a refused record takes its copies back out of events/: no object without a row", async () => {
+    headObject.mockImplementation(async ({ key }: { key: string }) =>
+      key === STAGED ? { size: 1000, lastModified: null } : null,
+    );
+    createMedia.mockResolvedValue({
+      ok: false,
+      code: "cap_reached",
+      message: "Storage capacity exceeded for this plan.",
+    });
+    const { status } = await complete({ preview_key: PREVIEW });
+    expect(status).toBe(409);
+    expect(copyObject).toHaveBeenCalledWith({
+      sourceKey: STAGED_PREVIEW,
+      destinationKey: PREVIEW,
+    });
+    expect(deleteR2Objects).toHaveBeenCalledWith([ORIGINAL, PREVIEW]);
+  });
+
+  it("a record that throws takes them back out too, and the throw still surfaces", async () => {
+    headObject.mockResolvedValue({ size: 1000, lastModified: null });
+    createMedia.mockRejectedValue(new Error("database down"));
+    await expect(complete()).rejects.toThrow("database down");
+    expect(deleteR2Objects).toHaveBeenCalledWith([ORIGINAL]);
+  });
+
+  it("a preview that never landed is recorded as none, so its tile serves the original", async () => {
+    headObject.mockImplementation(async ({ key }: { key: string }) =>
+      key === STAGED ? { size: 1000, lastModified: null } : null,
+    );
+    copyObject.mockImplementation(
+      async ({ sourceKey }: { sourceKey: string }) => {
+        if (sourceKey === STAGED_PREVIEW) throw new Error("NoSuchKey");
+      },
+    );
+    const { status } = await complete({ preview_key: PREVIEW });
+    expect(status).toBe(200);
+    expect(createMedia.mock.calls[0][0].previewKey).toBeNull();
+  });
+
+  it("a multipart is assembled at its key and recorded on its HEAD there, never looked for in staging", async () => {
+    sumMultipartParts.mockResolvedValue(200 * 1024 * 1024);
+    completeMultipartUpload.mockResolvedValue(undefined);
+    headObjectSize.mockResolvedValue(200 * 1024 * 1024);
+    const { status } = await complete({
+      upload_id: "upload-1",
+      parts: [{ partNumber: 1, eTag: "e1" }],
+    });
+    expect(status).toBe(200);
+    expect(headObject).not.toHaveBeenCalledWith({ key: STAGED });
+    expect(copyObject).not.toHaveBeenCalled();
+    expect(headObjectSize).toHaveBeenCalledWith({ key: ORIGINAL });
+  });
+});
+
+/**
+ * ★ A COMPLETE SENT AGAIN FOR AN UPLOAD ALREADY RECORDED (crumbs-62, red-team 49's LOW). A phone retries a request whose
+ * answer it lost, and the camera roll's last shot is the likeliest: its complete lands, the roll is full by that very
+ * shot, and the complete comes again. It used to land the staged files a second time and meet every gate, and the gate
+ * that had moved since (the roll, the album closed, a cap its own bytes reached) refused it and withdrew the `events/`
+ * files the recorded row names; and anyone could send one, on any ticket or a dead one, for an upload whose key a
+ * tile's link shows. The row answers first now, before any gate, copy or withdrawal, as `create_media` answers a
+ * duplicate id, and a refusal takes back out only what no row names.
+ */
+describe("a complete sent again for an upload already recorded", () => {
+  const ORIGINAL = `events/${EVENT}/photo/${MEDIA}/original.jpg`;
+  const PREVIEW = `events/${EVENT}/photo/${MEDIA}/preview.webp`;
+  const PHONE = `events/${EVENT}/photo/${MEDIA}/phone.jpg`;
+  const CLIP = `events/${EVENT}/video/${MEDIA}/original.mp4`;
+  const CLIP_PREVIEW = `events/${EVENT}/video/${MEDIA}/preview.webp`;
+  const staged = (key: string) => key.replace(/^events\//, "staging/");
+  const PHOTO_BODY = {
+    preview_key: PREVIEW,
+    phone_key: PHONE,
+    size_bytes: 3_000_000,
+  };
+  const ROLL_SPENT = {
+    code: "roll_spent",
+    message: "You've taken all 24 shots on your roll.",
+  };
+
+  /** The database as the complete meets it: the rows recorded by id, and the refusal a gate now gives a record. */
+  let rows: Map<string, string>;
+  let refusal: { code: string; message: string } | null;
+
+  beforeEach(() => {
+    rows = new Map();
+    refusal = null;
+    // Every file of the upload sits staged, as it does for a day after its PUTs.
+    const sizes: Record<string, number> = {
+      [staged(ORIGINAL)]: 3_000_000,
+      [staged(PREVIEW)]: 40_000,
+      [staged(PHONE)]: 600_000,
+      [staged(CLIP)]: 4_000_000,
+      [staged(CLIP_PREVIEW)]: 30_000,
+    };
+    headObject.mockImplementation(async ({ key }: { key: string }) =>
+      key in sizes ? { size: sizes[key], lastModified: null } : null,
+    );
+    // `create_media` as the database answers it: its gates first, then the insert, whose duplicate id is idempotent.
+    createMedia.mockImplementation(
+      async (input: { mediaId: string; originalKey: string }) => {
+        if (refusal) return { ok: false, ...refusal };
+        if (rows.has(input.mediaId)) {
+          return { ok: true, data: { idempotent: true } };
+        }
+        rows.set(input.mediaId, input.originalKey);
+        return {
+          ok: true,
+          data: { media_id: input.mediaId, status: "approved" },
+        };
+      },
+    );
+    readRecordedUpload.mockImplementation(async (id: string) =>
+      rows.has(id) ? { originalKey: rows.get(id) } : null,
+    );
+  });
+
+  it("★ the roll full by that very shot: its row answers `recorded`, nothing copied again, nothing withdrawn", async () => {
+    const first = await complete(PHOTO_BODY);
+    expect(first.body).toEqual({ ok: true, status: "approved" });
+    expect(copyObject).toHaveBeenCalledTimes(3);
+    refusal = ROLL_SPENT;
+
+    const again = await complete(PHOTO_BODY);
+    expect(deleteR2Objects).not.toHaveBeenCalled();
+    expect(again.status).toBe(200);
+    expect(again.body).toEqual({ ok: true, status: "recorded" });
+    expect(copyObject).toHaveBeenCalledTimes(3);
+    // Before any gate: the second complete never asked the door, the owner or the record.
+    expect(getUploadContext).toHaveBeenCalledTimes(1);
+    expect(createMedia).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    [
+      "the album closed",
+      () => {
+        refusal = {
+          code: "uploads_closed",
+          message: "This event isn't accepting uploads right now.",
+        };
+      },
+    ],
+    [
+      "a cap its own bytes reached",
+      () => {
+        refusal = {
+          code: "cap_reached",
+          message: "Storage capacity exceeded for this plan.",
+        };
+      },
+    ],
+    [
+      "the album gone private",
+      () =>
+        getUploadContext.mockResolvedValue(context({ visibility: "private" })),
+    ],
+    [
+      "an email asked for",
+      () =>
+        getUploadContext.mockResolvedValue(
+          context({ require_verified_email: true }),
+        ),
+    ],
+  ])(
+    "★ %s since: still its row's answer, and every file stays",
+    async (_gate, moveIt) => {
+      await complete(PHOTO_BODY);
+      moveIt();
+      const again = await complete(PHOTO_BODY);
+      expect(again.body).toEqual({ ok: true, status: "recorded" });
+      expect(deleteR2Objects).not.toHaveBeenCalled();
+    },
+  );
+
+  it("★ a stranger's complete for it, on a dead ticket, answers its row and never deletes a file (the key a tile's link shows is all it takes)", async () => {
+    await complete(PHOTO_BODY);
+    getUploadContext.mockResolvedValue({
+      ok: false,
+      code: "invalid_session",
+      message: "Your upload session has expired. Refresh and rejoin.",
+    });
+    refusal = {
+      code: "invalid_session",
+      message: "Your upload session has expired.",
+    };
+    const forged = await complete({
+      ...PHOTO_BODY,
+      session_token: "not-a-ticket",
+    });
+    expect(deleteR2Objects).not.toHaveBeenCalled();
+    expect(forged.body).toEqual({ ok: true, status: "recorded" });
+    expect(copyObject).toHaveBeenCalledTimes(3);
+    expect(createMedia).toHaveBeenCalledTimes(1);
+  });
+
+  it("★ its row is read before any gate, HEAD or copy", async () => {
+    await complete(PHOTO_BODY);
+    expect(readRecordedUpload).toHaveBeenCalledWith(MEDIA);
+    const read = readRecordedUpload.mock.invocationCallOrder[0]!;
+    expect(read).toBeLessThan(headObject.mock.invocationCallOrder[0]!);
+    expect(read).toBeLessThan(copyObject.mock.invocationCallOrder[0]!);
+    expect(read).toBeLessThan(getUploadContext.mock.invocationCallOrder[0]!);
+  });
+
+  it("a key that is not its row's is refused, and nothing moves", async () => {
+    await complete(PHOTO_BODY);
+    const res = await complete({
+      key: `events/${EVENT}/photo/${MEDIA}/original.png`,
+      content_type: "image/png",
+    });
+    expect(res.status).toBe(400);
+    expect(res.body.code).toBe("bad_key");
+    expect(copyObject).toHaveBeenCalledTimes(3);
+    expect(createMedia).toHaveBeenCalledTimes(1);
+    expect(deleteR2Objects).not.toHaveBeenCalled();
+  });
+
+  it("★ a twin complete that loses the race to its own row is answered by the row, and withdraws nothing", async () => {
+    // Two completes of one upload in flight at once: this one read no row, landed its copies, then met the roll its
+    // twin's insert had just filled.
+    readRecordedUpload
+      .mockResolvedValueOnce(null)
+      .mockResolvedValue({ originalKey: ORIGINAL });
+    refusal = ROLL_SPENT;
+    const res = await complete(PHOTO_BODY);
+    expect(res.body).toEqual({ ok: true, status: "recorded" });
+    expect(copyObject).toHaveBeenCalledTimes(3);
+    expect(deleteR2Objects).not.toHaveBeenCalled();
+  });
+
+  it("a twin that threw still withdraws nothing its row names, and is answered by the row", async () => {
+    readRecordedUpload
+      .mockResolvedValueOnce(null)
+      .mockResolvedValue({ originalKey: ORIGINAL });
+    createMedia.mockRejectedValue(new Error("statement timeout"));
+    const res = await complete(PHOTO_BODY);
+    expect(res.body).toEqual({ ok: true, status: "recorded" });
+    expect(deleteR2Objects).not.toHaveBeenCalled();
+  });
+
+  it("a read that fails takes nothing back out, and says so (the orphan sweep reclaims what no row names)", async () => {
+    readRecordedUpload.mockRejectedValue(new Error("connection reset"));
+    refusal = {
+      code: "cap_reached",
+      message: "Storage capacity exceeded for this plan.",
+    };
+    const res = await complete(PHOTO_BODY);
+    expect(res.status).toBe(409);
+    expect(deleteR2Objects).not.toHaveBeenCalled();
+    expect(captureWarning).toHaveBeenCalledWith(
+      "upload",
+      "unrecorded_copies_left",
+      expect.objectContaining({ keys: [ORIGINAL, PREVIEW, PHONE] }),
+    );
+  });
+
+  it("a read that fails never stops an upload: it lands as it always did", async () => {
+    readRecordedUpload.mockRejectedValue(new Error("connection reset"));
+    const res = await complete(PHOTO_BODY);
+    expect(res.body).toEqual({ ok: true, status: "approved" });
+    expect(copyObject).toHaveBeenCalledTimes(3);
+  });
+
+  it("a multipart's complete sent again answers its row, and never asks R2 to assemble it twice", async () => {
+    sumMultipartParts.mockResolvedValue(200 * 1024 * 1024);
+    // R2 has no such upload once it is assembled: a second CompleteMultipartUpload fails.
+    completeMultipartUpload
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValue(new Error("NoSuchUpload"));
+    headObjectSize.mockResolvedValue(200 * 1024 * 1024);
+    const multipart = {
+      key: CLIP,
+      content_type: "video/mp4",
+      upload_id: "upload-1",
+      parts: [{ partNumber: 1, eTag: "e1" }],
+    };
+    expect((await complete(multipart)).body).toEqual({
+      ok: true,
+      status: "approved",
+    });
+    const again = await complete(multipart);
+    expect(again.body).toEqual({ ok: true, status: "recorded" });
+    expect(completeMultipartUpload).toHaveBeenCalledTimes(1);
+  });
+
+  it("★ a clip added to the album and sent again is its row's to answer, and spends none of the day's budget, a spent one included", async () => {
+    const clip = {
+      key: CLIP,
+      content_type: "video/mp4",
+      preview_key: CLIP_PREVIEW,
+      reel_eligible: false,
+    };
+    expect((await complete(clip)).status).toBe(200);
+    expect(recordAbuseEvent).toHaveBeenCalledTimes(1);
+    checkAbuseRate.mockResolvedValue({ allowed: false, retryAfterSec: 3600 });
+
+    const again = await complete(clip);
+    expect(again.status).toBe(200);
+    expect(again.body).toEqual({ ok: true, status: "recorded" });
+    expect(checkAbuseRate).toHaveBeenCalledTimes(1);
+    expect(recordAbuseEvent).toHaveBeenCalledTimes(1);
   });
 });

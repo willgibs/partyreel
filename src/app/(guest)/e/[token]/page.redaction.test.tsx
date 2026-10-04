@@ -37,6 +37,8 @@ const EVENT = vi.hoisted(() => ({
   name: "Maya & Jay",
   description: "The barn, then the lake.",
   event_date: "2026-09-12",
+  // A range's last day is the date's own (20261003120000): blanked with it at every gate.
+  event_end_date: "2026-09-13",
   // The develop time is a date too (red-team 43's fix rides beside it): never at a gate.
   develops_at: "2026-09-13T13:00:00.000Z",
   custom_slug: "maya-and-jay",
@@ -126,8 +128,8 @@ vi.mock("@/lib/guest/event-card", () => ({
 vi.mock("@/lib/guest/session-cookie", () => ({
   readGuestSessionCookie: async () => null,
 }));
-vi.mock("@/lib/guest/waiting-on-arrival.server", () => ({
-  hasWaitingUploads: async () => false,
+vi.mock("@/lib/disposable/waiting.server", () => ({
+  albumWaits: async () => false,
 }));
 vi.mock("@/lib/media/share-save", () => ({
   PHOTO_PARAM: "photo",
@@ -172,6 +174,7 @@ async function meet(
         name: string;
         host_display_name: string | null;
         event_date: string | null;
+        event_end_date?: string | null;
         develops_at?: string | null;
       }
     | undefined;
@@ -199,6 +202,7 @@ describe("what each kind of door shows of the album", () => {
     expect(handed?.name).toBe(NAME);
     expect(handed?.host_display_name).toBe(HOST);
     expect(handed?.event_date).toBe("2026-09-12");
+    expect(handed?.event_end_date).toBe("2026-09-13");
     expect(handed?.develops_at).toBe(EVENT.develops_at);
   });
 
@@ -212,6 +216,7 @@ describe("what each kind of door shows of the album", () => {
     expect(handed?.name).toBe(NAME);
     expect(handed?.host_display_name).toBeNull();
     expect(handed?.event_date).toBeNull();
+    expect(handed?.event_end_date).toBeNull();
     expect(handed?.develops_at).toBeNull();
     expect(props?.hostSeed).toBeNull();
   });
@@ -228,6 +233,7 @@ describe("what each kind of door shows of the album", () => {
       expect(handed?.name, JSON.stringify(decision)).toBe(NAME);
       expect(handed?.host_display_name, JSON.stringify(decision)).toBe(HOST);
       expect(handed?.event_date, JSON.stringify(decision)).toBeNull();
+      expect(handed?.event_end_date, JSON.stringify(decision)).toBeNull();
       expect(handed?.develops_at, JSON.stringify(decision)).toBeNull();
       expect(props?.uploadsWait, JSON.stringify(decision)).toEqual({
         waits: false,

@@ -9,40 +9,9 @@ import {
   LAB_REDIRECTS,
   TRACED_DOC_GLOBS,
 } from "./src/app/(dev)/design/_data/legacy-routes";
-
-/**
- * Security response headers (QA #42). Applied to EVERY route, app and API alike.
- *
- * What is deliberately NOT here: a Content-Security-Policy. An enforced CSP on a Next app needs a
- * per-request nonce threaded through the streaming render and a real inventory of every inline style
- * and third-party origin, and a half-right one breaks the product silently for a subset of browsers.
- * That is its own round; this set is the part that is unambiguous and costs nothing.
- *
- * HSTS ships WITHOUT `preload` on purpose: submitting the apex to the browsers' preload list is a
- * one-way door for the domain and every future subdomain, so it belongs to the launch checklist, not
- * to a hardening pass. `max-age` is two years, which is the value the list would require anyway.
- *
- * Permissions-Policy denies what the product genuinely does not use (verified: no geolocation, no
- * Payment Request; Stripe is a redirect to its own domain). `camera` and `microphone` are `self`: the
- * album's own camera (`components/guest/camera/`) asks for the camera with getUserMedia, and for the
- * microphone only while a guest holds the shutter to film (an empty `microphone` list refused even the
- * site itself, so every camera video would have been silent). `payment` is `self` so a same-origin
- * feature can never be broken by this file from a distance; the third parties an empty list would
- * block are already blocked by having no iframes.
- */
-const SECURITY_HEADERS = [
-  {
-    key: "Strict-Transport-Security",
-    value: "max-age=63072000; includeSubDomains",
-  },
-  { key: "X-Content-Type-Options", value: "nosniff" },
-  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  {
-    key: "Permissions-Policy",
-    value:
-      "camera=(self), microphone=(self), geolocation=(), payment=(self), usb=(), browsing-topics=()",
-  },
-];
+// The response headers every route sends (QA #42, and the framing refusal): one home, in a module with no
+// `@/` imports so `security-headers.test.ts` can hold it against every route. The only config surface it touches.
+import { SECURITY_HEADER_RULES } from "./src/lib/security-headers";
 
 const nextConfig: NextConfig = {
   // Next's dev indicator sits bottom-left by default, on the lab sidebar's
@@ -56,7 +25,7 @@ const nextConfig: NextConfig = {
   // so the build does not check the same program twice. Vercel and every lane's own build never set it.
   typescript: { ignoreBuildErrors: process.env.GATE_TYPECHECKED === "1" },
   async headers() {
-    return [{ source: "/:path*", headers: SECURITY_HEADERS }];
+    return SECURITY_HEADER_RULES;
   },
   // Retired blog slugs (the placeholder posts the blog launched with) 308 to their successors.
   // The map lives in src/lib/content/blog-redirects.ts so a test can hold it against the live

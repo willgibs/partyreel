@@ -28,12 +28,30 @@
  * ★ THE BOX TAKES NO POINTER, ITS CONTROLS DO (design-system.md's gotcha: a full-width overlay above a
  * gesture eats the gesture): the fade and the band are `pointer-events-none`, so a press between the
  * rounds lands on the photograph under it.
+ *
+ * ★ IN SELECT MODE THE SHUTTER TURNS TO SAVE (take-home r1, `guest=select`): the album's one round act at the
+ * foot's centre, the download on its face, the count she has picked on its shoulder, its ring the album's light.
+ * Pressed, the same ring fills as her photographs arrive (the atom's own `sending`), one control and one light in
+ * both directions, and a press then stops it; once they are in hand and the tap that asked has lapsed, it says
+ * Ready, and the next press opens the phone's sheet. It stands whether or not the cover's row is on screen (her
+ * Save must be in reach the moment she picks), alone: the flanks are the album's acts, not her selection's.
+ * Select mode is the album's (`live-gallery-select.ts`), which this reads and presses.
  */
-import { Camera } from "lucide-react";
+import { Camera, Download, ImageDown } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 
+import {
+  useSaveKinds,
+  type AlbumKinds,
+} from "@/components/guest/guest-action-dock-kinds";
+import {
+  guestSelect,
+  useGuestSelect,
+  type GuestSelect,
+} from "@/components/guest/live-gallery-select";
 import { Shutter, type ShutterState } from "@/components/ui/shutter";
+import { setNoun } from "@/lib/export/take-home";
 import { formatCount } from "@/lib/format/count";
 import {
   type QueueItem,
@@ -59,6 +77,7 @@ export function GuestActionDock({
   hues,
   more = true,
   camera = false,
+  kinds,
 }: {
   /** The cover's row is still on screen: the cluster waits, inert, off the bottom edge. */
   hidden: boolean;
@@ -89,7 +108,13 @@ export function GuestActionDock({
    * and wears the camera on its face, as the cover's Add does. The atom's face is already its `children`.
    */
   camera?: boolean;
+  /**
+   * The album's kinds, as its live source says them (the page's store, `guest-action-dock-kinds.ts`): her Save names
+   * what she picked, photos, videos or both. Without it every pick reads as a photo.
+   */
+  kinds?: AlbumKinds;
 }) {
+  const select = useGuestSelect();
   const progress = useRunProgress(
     run?.items ?? NO_ITEMS,
     run?.progress ?? NO_PROGRESS,
@@ -113,6 +138,9 @@ export function GuestActionDock({
     const timer = window.setTimeout(() => setDone(false), DONE_HOLD_MS);
     return () => window.clearTimeout(timer);
   }, [done]);
+
+  if (select.active)
+    return <SaveDock select={select} hues={hues} more={more} kinds={kinds} />;
 
   // Nothing to stand at the foot is nothing to draw, fade included.
   if (!onAdd && !invite) return null;
@@ -179,6 +207,99 @@ export function GuestActionDock({
         )}
         {twin}
         {tracker}
+      </div>
+    </div>
+  );
+}
+
+/** The foot's fade and band, as the dock draws them, for the Save that stands alone in select mode. */
+function SaveDock({
+  select,
+  hues,
+  more,
+  kinds,
+}: {
+  select: GuestSelect;
+  hues?: readonly number[];
+  more: boolean;
+  kinds?: AlbumKinds;
+}) {
+  const count = select.picks.length;
+  const run = select.run;
+  const getting = run.kind === "getting";
+  const ready = run.kind === "ready";
+  const state: ShutterState = getting
+    ? "sending"
+    : run.kind === "done"
+      ? "done"
+      : "idle";
+  // ★ WHAT HER PICKS HOLD, IN THE ALBUM'S OWN WORDS (red-team 49's NIT): "Save 15 photos" stood over 12 photos and 3
+  // videos; `setNoun` says the set the way the album's line and the Save sheet's title say it.
+  const { photos, clips } = useSaveKinds(kinds, select.picks);
+  const what = setNoun(photos, clips);
+  const label = getting
+    ? `Saving ${what}. Tap to stop.`
+    : ready
+      ? `Save ${what}: ready`
+      : count === 0
+        ? "Pick photos to save"
+        : `Save ${what}`;
+  return (
+    <div
+      data-guest-dock=""
+      data-select=""
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-40"
+    >
+      <div
+        aria-hidden
+        data-dock-fade=""
+        data-more={more ? "" : undefined}
+        className={cn(
+          "absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-background via-background/70 to-transparent",
+          "opacity-0 transition-opacity duration-300 ease-emphasis data-more:opacity-100 motion-reduce:transition-none",
+        )}
+      />
+      <div
+        role="group"
+        aria-label="Save your picks"
+        className="relative flex items-center justify-center pb-[calc(1.25rem+env(safe-area-inset-bottom))] [&_button]:pointer-events-auto"
+      >
+        <span className="relative">
+          <Shutter
+            data-save-shutter=""
+            state={state}
+            progress={getting ? run.progress : 0}
+            hues={hues}
+            disabled={count === 0 && run.kind === "idle"}
+            onClick={() => guestSelect.press()}
+            aria-label={label}
+          >
+            {getting ? (
+              // The stop a tap is, while her photographs arrive (the viewer's own ring-and-stop grammar).
+              <span aria-hidden className="size-4 rounded-[3px] bg-current" />
+            ) : ready ? (
+              <ImageDown className="size-6" />
+            ) : (
+              <Download className="size-6" />
+            )}
+          </Shutter>
+          {/* At rest the atom wears no shoulder (its count is a run's): the selection's, in the atom's own badge,
+              so the round says how many it will save; "Ready" once they are in hand. */}
+          {(count > 0 && run.kind === "idle") || ready ? (
+            <span
+              aria-hidden
+              data-save-count=""
+              className={cn(
+                "absolute -top-1 -right-1 z-10 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-micro font-semibold tabular-nums ring-2 ring-background",
+                ready
+                  ? "bg-save px-1.5 text-save-foreground"
+                  : "bg-foreground text-background",
+              )}
+            >
+              {ready ? "Ready" : formatCount(count)}
+            </span>
+          ) : null}
+        </span>
       </div>
     </div>
   );

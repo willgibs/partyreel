@@ -29,8 +29,17 @@ export type HeartbeatEnv = {
 export type JobRunHandle = { runId: string; startedAtMs: number };
 
 export type JobStartResult =
-  /** The app answered. `paused` true means it already logged the skipped run; do not run. */
-  | { ok: true; paused: boolean; run: JobRunHandle | null }
+  /**
+   * The app answered. `paused` true means it already logged the skipped run; do not run. `releasedAtMs` is the last
+   * "Release the hold" an operator pressed on /admin/jobs (the backup prune's; null for none or for any other job).
+   */
+  | { ok: true; paused: true; run: null }
+  | {
+      ok: true;
+      paused: false;
+      run: JobRunHandle | null;
+      releasedAtMs: number | null;
+    }
   /** The app could not be reached or refused. The CALLER decides whether to run anyway. */
   | { ok: false; error: string };
 
@@ -93,13 +102,20 @@ export async function jobStart(
     paused?: boolean;
     runId?: string | null;
     startedAtMs?: number;
+    releasedAtMs?: unknown;
   };
   if (payload.paused) return { ok: true, paused: true, run: null };
   const run =
     payload.runId && payload.startedAtMs
       ? { runId: payload.runId, startedAtMs: payload.startedAtMs }
       : null;
-  return { ok: true, paused: false, run };
+  // A stamp that is not a time is no release at all: the hold it would have released stays held.
+  const released = payload.releasedAtMs;
+  const releasedAtMs =
+    typeof released === "number" && Number.isFinite(released) && released > 0
+      ? released
+      : null;
+  return { ok: true, paused: false, run, releasedAtMs };
 }
 
 /**

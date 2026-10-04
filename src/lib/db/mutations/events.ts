@@ -11,10 +11,17 @@
 import "server-only";
 
 import type { Tables, TablesInsert, TablesUpdate } from "@/lib/db/types";
+import {
+  APPROVAL_NEVER_WITH_A_DEVELOP,
+  APPROVAL_NEVER_WITH_A_DEVELOP_CHECK,
+  approvalWithADevelop,
+} from "@/lib/disposable/album-style";
+import { endToStore } from "@/lib/events/dates";
 import { createClient } from "@/lib/supabase/server";
-import type {
-  CreateEventValues,
-  UpdateEventValues,
+import {
+  type CreateEventValues,
+  LAST_DAY_BEFORE_FIRST,
+  type UpdateEventValues,
 } from "@/lib/validation/event";
 
 export type EventRow = Tables<"events">;
@@ -49,6 +56,43 @@ const UNAUTHORIZED = {
   message: "Please sign in and try again.",
 };
 
+/**
+ * ★ A RANGE'S LAST DAY NEVER FALLS BEFORE ITS FIRST, NOR STANDS WITHOUT ONE (20261003120000): the schema refuses a
+ * save that would, in words; the database's CHECK (`events_end_date_on_or_after`) refuses one that meets the row's own
+ * days (a first day moved past a stored last one by a page that never saw it), read by its name and said the same way.
+ */
+const RANGE_CHECK = "events_end_date_on_or_after";
+const RANGE_REFUSED = {
+  ok: false as const,
+  code: "unknown" as const,
+  message: LAST_DAY_BEFORE_FIRST,
+};
+
+/** Whether a write's error is the CHECK refusing a range's days: its code and its own name. */
+function rangeRefusal(error: { code?: string; message?: string }): boolean {
+  return (
+    error.code === CHECK_VIOLATION &&
+    typeof error.message === "string" &&
+    error.message.includes(RANGE_CHECK)
+  );
+}
+
+/**
+ * ★ AN ACCOUNT'S EVENTS A DAY (upload-meter, 20261003210500): `enforce_event_limit` refuses the 101st creation in any
+ * 24 hours in its own sentence ("You've created a lot of events today. Try again tomorrow."), which the wizard prints
+ * as it is. Read by its words, as the CHECKs above are read by their names, and ahead of the plan limit's branch, whose
+ * `limit_reached` offers an upgrade: a Pro host has no event limit to upgrade past.
+ */
+const EVENTS_TODAY = "a lot of events today";
+
+function breakerRefusal(error: { code?: string; message?: string }): boolean {
+  return (
+    error.code === CHECK_VIOLATION &&
+    typeof error.message === "string" &&
+    error.message.includes(EVENTS_TODAY)
+  );
+}
+
 export async function createEvent(
   values: CreateEventValues,
 ): Promise<MutationResult<EventRow>> {
@@ -65,6 +109,11 @@ export async function createEvent(
     name: values.name,
     description: values.description || null,
     event_date: values.event_date || null,
+    // A range's last day (20261003120000): none for one day, so a range said twice is the one day it is.
+    event_end_date: endToStore(
+      values.event_date || null,
+      values.event_end_date,
+    ),
     // A brand-new event can't be password-protected (no hash exists yet; the password
     // is set later via set_event_password). Clamp defensively — the wizard sends 'open'.
     visibility: values.visibility === "password" ? "open" : values.visibility,
@@ -85,6 +134,10 @@ export async function createEvent(
     .single();
 
   if (error) {
+    if (rangeRefusal(error)) return RANGE_REFUSED;
+    if (breakerRefusal(error)) {
+      return { ok: false, code: "unknown", message: error.message };
+    }
     if (error.code === CHECK_VIOLATION) {
       return {
         ok: false,
@@ -101,6 +154,28 @@ export async function createEvent(
   return { ok: true, data };
 }
 
+/**
+ * ★ APPROVAL NEVER STANDS WITH A DEVELOP (the-wait r1, Will's `both=never`): when everyone sees is one answer, so a
+ * save asking for approval and a develop time together is refused here, in words, before it is written; one asking for
+ * either while the row holds the other is refused by the database's CHECK (`events_approval_never_develops`,
+ * 20261003100000), read by its name and said in the same words. Settings never asks for both (each answer is one
+ * save of both columns); the review room's "Turn on review" on a develop album is the path that meets it.
+ */
+const APPROVAL_REFUSED = {
+  ok: false as const,
+  code: "unknown" as const,
+  message: APPROVAL_NEVER_WITH_A_DEVELOP,
+};
+
+/** Whether a write's error is the CHECK refusing approval with a develop time: its code and its own name. */
+function approvalRefusal(error: { code?: string; message?: string }): boolean {
+  return (
+    error.code === CHECK_VIOLATION &&
+    typeof error.message === "string" &&
+    error.message.includes(APPROVAL_NEVER_WITH_A_DEVELOP_CHECK)
+  );
+}
+
 export async function updateEvent(
   id: string,
   values: UpdateEventValues,
@@ -111,6 +186,8 @@ export async function updateEvent(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
+  if (approvalWithADevelop(values)) return APPROVAL_REFUSED;
+
   // Only patch keys that were provided: updateEventSchema is partial with NO defaults, so a
   // defined key here is one the caller sent (validation/event.ts owns why). Nullable text columns
   // take null when cleared.
@@ -120,6 +197,16 @@ export async function updateEvent(
     patch.description = values.description || null;
   if (values.event_date !== undefined)
     patch.event_date = values.event_date || null;
+  // A range's last day (20261003120000), written only where the save names it: the schema has made it travel with its
+  // first day, and a range said twice is stored as the one day it is (`endToStore`).
+  if (values.event_end_date !== undefined)
+    patch.event_end_date = endToStore(
+      values.event_date || null,
+      values.event_end_date,
+    );
+  // ★ A CLEARED DATE TAKES ITS END WITH IT: an end never stands alone, and the CHECK would refuse the date alone in words
+  // about an end the host may not even be shown (a stale page, a build before the range, a crafted call; crumbs-59).
+  else if (values.event_date === "") patch.event_end_date = null;
   // open/private patch freely; 'password' is reachable ONLY when a hash already
   // exists (set_event_password is the sole creator). This allows editing an existing
   // password event (which resubmits visibility='password' unchanged) and re-activating
@@ -191,6 +278,8 @@ export async function updateEvent(
     .single();
 
   if (error) {
+    if (approvalRefusal(error)) return APPROVAL_REFUSED;
+    if (rangeRefusal(error)) return RANGE_REFUSED;
     return {
       ok: false,
       code: "unknown",

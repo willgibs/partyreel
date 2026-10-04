@@ -6,8 +6,9 @@ Open this before you:
 - touch `develops_at`, `capture`, `roll_size` or `sealed_from` on `events`, or `sealed_until` on `media`;
 - change the paged album's guest scope, its validator or the doorbell;
 - change how guests add (the roll, its ceiling, a camera video's bounds) or her own withdrawal of a shot;
-- change the album's camera (`components/guest/camera/`, `lib/guest/camera/`), or build the waiting room, the reveal or
-  the host's cover (the design boards after this foundation).
+- change the album's camera (`components/guest/camera/`, `lib/guest/camera/`), or the wait (the album's contact
+  sheet, the host's cover, Settings' album styles, the words a guest reads for it: the-wait r1's wiring, below), or
+  build the reveal (the-wait r2).
 
 Elsewhere: the paged album and the doorbell ([guest-flow.md](guest-flow.md)), the upload pipeline
 ([uploads-and-r2.md](uploads-and-r2.md)), the grants and the RPC inventory ([database-security.md](database-security.md)),
@@ -22,8 +23,16 @@ design record (the lock analysis, the stress numbers, the calls taken).
 - **When everyone sees what's added** is one three-way answer over two columns: right away (`moderation_mode = live`,
   `develops_at` NULL), once the host approves each (`hold_for_approval`, NULL), or at a develop time (`develops_at`
   set; a time ahead waits, a time reached has developed). `lib/disposable/reveal.ts` reads the pair as one answer.
-- "Disposable" is the camera plus a develop time: a preset, never a column. Approve plus develop is legal in the
-  schema (a row shows once approved AND past its time); Settings offers the three answers.
+- "Disposable" (Will's `name=disposable`) is the camera plus a develop time: a preset, never a column; Settings asks
+  it as one of three album styles over the columns (`lib/disposable/album-style.ts`: Live, Reviewed, Disposable; a mix
+  outside them stands under Customize).
+- ★ **Approval never stands with a develop** (the-wait r1, Will's `both=never`: hosts would "enable approval as a
+  safety measure but forget to approve everything prior to the disposables developing"): the CHECK
+  `events_approval_never_develops` (20261003100000) refuses `hold_for_approval` with any `develops_at`, a time
+  reached included (an album that developed takes approval only by clearing it, one save of both columns); the host's
+  write says it in words first (`updateEvent`, `approvalWithADevelop`, and the CHECK's refusal read by its name). A
+  develop's check is the host's cover, lifted before it develops, and the develop time moves whenever she needs
+  longer.
 - `sealed_from` is the current period's start, stamped by `events_reveal_stamp` (a develop time coming ahead, from none
   or from one reached; the camera beginning) and cleared when neither remains. Never a client's to write.
 
@@ -72,6 +81,11 @@ m.status = 'approved' and (m.sealed_until is null or m.sealed_until <= now() or 
 - The doorbell rings on the album's own bits (`album_bits & 6`), so it and the versions never disagree.
 - Her OWN held and sealed rows ride her tracker's read (`/api/guests/mine`: `sealed: true`, and a picture presigned for
   her alone), and her own download (`readOwnSealedMedia`, the ids the server found hers); never the album's reads.
+- ★ **What waits reaches the page as numbers** (the-wait r1, `wait=sheet`): the album store's snapshot carries the
+  last full answer's `waiting` (absent where nothing waits), the live source hands it on (`GalleryLive.waiting`, the
+  seed's from the first paint), and the album's contact sheet draws everyone's from it alone, hers lit from her
+  tracker's read ([guest-flow.md](guest-flow.md), the album's wait). The page's server asks only whether anything waits
+  on an album empty to the eye (`albumWaits`, a yes or a no), so the cover's Add never says "the first photo" over it.
 
 ## Develop is a write
 
@@ -92,6 +106,16 @@ A lazy predicate alone reaches nobody: the guest poll's quiet path reads one row
 - **A straggler heals on the next read.** An upload that read the event an instant before a save committed lands on
   the old answer; `seal_disagrees` sees it and the next read's develop brings it to the event's. The narrow leak: a
   straggler sealed to an earlier time that no read reaches before that time shows then, once.
+- ★ **Leaving approval releases what is held, in the same save** (`events_hold_released`, AFTER UPDATE OF
+  moderation_mode, 20261003100000): every held row the save can lock at once is approved (SKIP LOCKED, the rewrite's
+  own shape: nothing waits on a media row while the save holds the event row), pings held, one ring; into a develop time
+  they join the roll (Will, the night of build 45: "approved and sealed, developing with everyone's, removable before
+  it"), to right away they show. The app's `approveAllPending` after a live save stays and heals a row it skipped.
+- ★ **An approval under a develop time ahead seals the row with it** (`media_seal_on_approval`, BEFORE UPDATE OF
+  status, a row leaving `pending` for `approved` unsealed: it takes its event's `develops_at` while that is ahead),
+  whoever approves it. No guest has seen a held row, so it hides nothing anyone saw; it closes the straggler a save's
+  SKIP LOCKED once left unsealed for the app's `approveAllPending` to show hours early. The one seal written in a
+  trigger, pinned in `approval-never-develops.test.ts` beside the foundation's own guard.
 - **What a develop touches besides the seal.** Every row `develop_rows` moves is stamped by `media_set_updated_at`, so
   a develop reads as activity on every developed row to anything keyed on `media.updated_at`; and a held row sealed by
   a save and then approved while still sealed moves only the host's scope (`album_bits` 1), so the guest's waiting
@@ -127,7 +151,8 @@ mounts) in place of the add sheet; a free-upload album never loads it.
   it, the uploader carries it, the queue's `landedAs`), on any album with a develop time ahead, whichever surface sent
   it: nothing draws it, nor anything of hers in the air before it (the album's head draws no stack where what she adds
   waits, the page's `addsWaitFor`, red-team 44), so no tile stands in the album for her alone at any moment; her
-  tracker lists it from the press, sending, then "Waiting to develop" from the moment it lands, counted and removable.
+  tracker lists it from the press, sending, then "Developing" from the moment it lands, counted and removable, and
+  the album's contact sheet lights it at the end of the night's squares.
   The press says the shot was taken ("Shot 6 taken."), never that it is on the roll: the server may still refuse it.
 - **The count is the server's roll** (`roll-view.ts`): `/api/guests/mine` with `statuses` (★ never `tell`, which would
   mark her approval news told), read at the opening, after she takes a shot back and after a roll refusal, ★ and only
@@ -148,14 +173,59 @@ mounts) in place of the add sheet; a free-upload album never loads it.
   (this visit's from the frames they froze on, an earlier visit's from her read's presigned pictures) open from the reel
   and the roll's end; a shot the album cannot show yet (sealed or held) is hers to remove there, freeing its frame.
 
-## The host's control
+## The host's control, and her cover
 
-`camera-settings.tsx` is one mountable control (`CaptureAndReveal`, bound to Settings by `CameraSettings`) on the
-adds page: how guests add, and the three-way when-everyone-sees (today's Review switch moved into it). Each answer is
-one save of both columns. A change that would show held or waiting photos asks first (`ConsequenceLine`); nothing else
-asks. Leaving "approve each" approves what is held (`updateEventAction` runs `approveAllPending` on a live save); into a
-develop time, the save sealed them first, so they wait for the develop. The waiting experience's words and drawings,
-whether approve plus develop is offered, and the preset's name are the design boards' after this foundation.
+`camera-settings.tsx` asks it as **album styles** (the-wait r1, Will's pick of option 2's Settings: "cleaner
+design/presentation, difference feels more clear"): three picture cards (Live, Reviewed, Disposable; their pictures
+from the guest ghost pack), each one save of all three columns (`patchForStyle`); the develop time in one row with
+Develop now, where the album has one; the page's switches; a note on a disposable that waits ("Before it develops tomorrow
+at 9 am, look under the cover on your event page to take anything out"); and Customize, where the foundation's control
+(`CaptureAndReveal`) asks the two answers apart (`timeElsewhere`: the develop time stays in the page's row). A change
+that would show waiting photos or release held ones asks first (`ConsequenceLine`, `styleSwitchConsequence`); into a
+develop time the held photos "join the roll" (the release above); a develop time that would develop the album asks too
+(below); nothing else asks.
+
+★ **The develop time is sent only when it is plainly meant** (`DevelopTimeControl`, judged by
+`camera-settings-develop-time.ts`): a save of a time at or before the database's now IS Develop now, and a year left
+half typed is such a time (Chrome types 2027 into a year as 0002, 0020, 0202 on the way, each a whole value fired in the
+key's own millisecond, and a leading 0 reads blank, so a field left at 0202 developed the album for every guest). What
+she types is a draft nothing sends, judged once, when she leaves the field or presses Return: never on a keystroke and,
+unlike the date's field (`EventDatesField`), never as the panel closes (a close could not ask, and the field also
+unmounts when another control clears the time, where a late write would put it back over her choice). Refused in words
+under the field, never written: a blank or half filled field, a year outside the date's window (`isSaneDay`, read and
+never forked), a time beyond what a develop may reach, and a past time on an album that has already developed (nothing
+waits, so Develop now's question would be untrue). A time the database would store as now (past, or under the minute
+`events_reveal_stamp` allows: `DEVELOPS_NOW_WITHIN_MS`, pinned to the SQL) on an album that still waits asks Develop
+now's own question, the hub's sentence, and its answer writes now, never the typed time. The question is the app's: the
+schema still accepts a past `develops_at` (Develop now writes the browser's now through it), so an older build or a
+crafted request develops without asking.
+
+**The host's cover** (Will's `cover=guests`; `event-hub-head-cover.tsx`, mounted by `event-gallery.tsx`): while a
+develop time is ahead, her hub's album is the very contact sheet her guests meet, counted from her own manifest
+(`lib/disposable/host-cover.ts`: held, approved since `sealed_from`, or in the roll), capped while the count climbs, her
+own lit by their links' host mark; Look lifts it for the visit into her album (the album rising out of a wash of light,
+none under reduced motion), a line and, once it scrolls away, a pill keep Cover it one press away, and Develop now asks
+first. Her hub's head and its band wear only what her guests can see meanwhile (`useHubCoverStills`; the head is handed
+the develop facts and publishes them for the band), and so does the Reel card: its stills are the reel's take on her own
+scope, sealed shots included, so it draws no photograph while a develop time is ahead (`reel-card.tsx`; it follows the
+develop, as the head does, never Look). ★ **A row waits by its seal, and her manifest never sees it** (the
+host's scope): the period is the floor, and the held photos a switch put in the roll (and a camera's shots between a
+develop time and its restamped period) are sealed yet created BEFORE `sealed_from`, so by the period alone they read as
+seen ("0 developing" over the 195 her guests read, red-team 46). The page reads them off the rows beside the develop
+facts (`host-cover.server.ts`'s `readJoinedIds`: approved, sealed now, created before the period; only while a develop
+time is ahead) and hands them down as `joined`; `waitsOf` is the one test the count and the head share. They ride the
+page, so they are as fresh as its save-and-refresh (nothing can join the roll while a develop time is ahead).
+
+**The wait's words and clock** (`wait-words.ts`, `lib/guest/camera/words.ts`, `lib/disposable/use-wait-clock.ts`): every
+line that says when it develops is said from now, in the reader's own clock and only after hydration, by the calendar's
+days (`developsWhen`: "at 9 am" only for today, "tomorrow at 9 am", the weekday inside the week, then the date;
+`developedWhen` looking back, "yesterday"; a day is the calendar's, never 24 hours). ★ **Every reader decides ahead or
+reached on the one clock, and the clock turns at the develop** (red-team 46's LOW: the cover stood, and a guest's eyebrow
+promised a develop, up to 30 s after Develop now): `useWaitClock` is one shared store whose steps fall on the wall
+clock's half minutes (a develop is picked to the minute, so it meets a step at its own moment) and whose reading a render
+finds older than 250 ms is read again, so a develop moved to now, or arriving, reads reached on the render that brings
+it. A reader that keeps a clock of its own (a `Date.now()` in a render, an interval of its own) brings the stale cover
+back.
 
 ## Verifying it
 

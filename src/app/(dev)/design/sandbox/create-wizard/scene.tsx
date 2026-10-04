@@ -7,22 +7,20 @@ import { Fit, Frame, Measured } from "@/components/lab";
 import { SCREENS, type ScreenId } from "./knobs";
 
 /**
- * THE ONE FRAME EVERY DECISION DRAWS IN.
+ * THE ONE FRAME EVERY OPTION DRAWS IN.
  *
  * ★ A REAL VIEWPORT AT A DEVICE'S OWN SIZE (375 by 812, 1440 by 900): the
  * type ladder is a `vw` clamp and the room is laid out against the screen's
  * height, so only a same-origin frame at the true size shows what a host
  * meets. The lab's front door draws it (`Frame`, fitted by `Fit`, captioned
- * by `Measured`).
- *
- * ★ NOTHING HERE REACHES A SESSION, A SERVER FUNCTION OR THE NETWORK beyond
- * the stills and the code's renderer. The live frames (Try it, a step as it
- * opens) run on local state.
+ * by `Measured`), and the frame's own window carries the Aurora's filter host,
+ * so the room's light is production's field, never a stand-in.
  *
  * ★ EVERY CAPTION IS READ OFF THE FRAME, NEVER ASSERTED: the words a host
- * reads on the screen (the pictures' own type aside), the picture's size,
- * where the one action and Back sit, what is ticked. If a caption and the
- * words above a frame disagree, the caption is the truth.
+ * reads on the screen (the pictures' own type aside), each picture's size,
+ * where the question and the one action sit, what is picked, the night's
+ * moment. If a caption and the words above a frame disagree, the caption is
+ * the truth.
  */
 
 export type Reader = (root: HTMLElement, win: Window) => string | null;
@@ -66,9 +64,9 @@ export function Scene({
 }
 
 /**
- * THE FRAMES OF ONE OPTION, read left to right as Create runs. Phones stand in
- * a row; laptops wrap two to a row, so four of them stand as a square rather
- * than a strip of thumbnails.
+ * THE FRAMES OF ONE OPTION, read left to right. Phones stand in a row;
+ * laptops wrap two to a row, so four of them stand as a square rather than a
+ * strip of thumbnails.
  */
 export function Story({
   screen,
@@ -89,12 +87,14 @@ export function Story({
 
 /* ── what the frames read ──────────────────────────────────────────────── */
 
+/** Text a host never reads: a picture's own type, a flight, a hidden or a reader-only line. */
+const UNREAD =
+  "[data-cw-picture], [data-cw-flight], [data-room-ghost], [data-room-flight], [aria-hidden], .sr-only, [inert]";
+
 /**
  * THE WORDS A HOST READS ON THE SCREEN, the pictures' own type aside: every
- * text node outside a `[data-cw-picture]` (a guest's phone, a code's plate,
- * the keyboard), split on whitespace, counting a token with a letter or a
- * digit in it. A page at rest is one page; a step change draws two, and is
- * read by its arriving page.
+ * text node outside a picture, split on whitespace, counting a token with a
+ * letter or a digit in it, and only what stands on the screen.
  */
 export function wordsIn(root: Element): number {
   const doc = root.ownerDocument;
@@ -103,11 +103,9 @@ export function wordsIn(root: Element): number {
   let n = 0;
   for (let t = walk.nextNode(); t; t = walk.nextNode()) {
     const el = t.parentElement;
-    if (el?.closest("[data-cw-picture], [data-cw-flyer], [aria-hidden]"))
-      continue;
-    // A sheet still under the screen's foot is not read yet.
-    const r = el?.getBoundingClientRect();
-    if (r && (r.top >= height || r.bottom <= 0)) continue;
+    if (!el || el.closest(UNREAD)) continue;
+    const r = el.getBoundingClientRect();
+    if (r.width < 1 || r.top >= height || r.bottom <= 0) continue;
     for (const token of (t.textContent ?? "").split(/\s+/))
       if (/[\p{L}\p{N}]/u.test(token)) n++;
   }
@@ -124,9 +122,20 @@ function sizeOf(el: Element | null): string | null {
   return `${px(r.width)} by ${px(r.height)} px`;
 }
 
-/** Where the screen's one action (`data-cw-go`) sits for a thumb. */
-function reachOf(root: HTMLElement, win: Window): string | null {
-  const go = root.querySelector<HTMLElement>("[data-cw-go]");
+/** The room on the screen: production's own ground. */
+const roomOf = (root: HTMLElement) =>
+  root.ownerDocument.querySelector<HTMLElement>("[data-room]");
+
+/** Where the question stands, from the screen's top: the place it never leaves. */
+function questionAt(room: HTMLElement): string | null {
+  const q = room.querySelector("[data-room-question] h1");
+  if (!q) return null;
+  return `the question ${px(q.getBoundingClientRect().top)} px down`;
+}
+
+/** Where the screen's one action sits for a thumb. */
+function reachOf(room: HTMLElement, win: Window): string | null {
+  const go = room.querySelector<HTMLElement>("[data-cw-go]");
   if (!go) return null;
   const r = go.getBoundingClientRect();
   if (r.height < 2) return null;
@@ -134,140 +143,78 @@ function reachOf(root: HTMLElement, win: Window): string | null {
   return `${(go.innerText || "the action").trim()} ${px(r.height)} px tall, ${down}% down`;
 }
 
-/** Where Back stands, if the step has one. */
-function backOf(root: HTMLElement): string | null {
-  const back = root.querySelector<HTMLElement>("[data-cw-back]");
-  if (!back) return null;
-  return back.dataset.cwBack === "foot"
-    ? "Back beside the button"
-    : "Back at the head's left";
+/** Whether the room's body holds what it is given; said only when it does not. */
+function overflowOf(room: HTMLElement): string | null {
+  const body = room.querySelector<HTMLElement>("[data-room-body]");
+  if (!body) return null;
+  const over = body.scrollHeight - body.clientHeight;
+  return over > 1 ? `THE ROOM SCROLLS by ${px(over)} px` : null;
 }
+
+const NAMES: Record<string, string> = {
+  live: "Live",
+  approval: "Reviewed",
+  disposable: "Disposable",
+};
 
 /**
- * Whether the answer's space holds what it is given: the arriving page's
- * centre against its own box (its content centred, so an overflow spills both
- * ways, under the question and over the foot). Said only when it does.
+ * The add step: which style is picked and how many are offered, the pictures'
+ * sizes, the night's moment, the develop time, the words, and where the
+ * question and Continue stand.
  */
-function overflowOf(root: HTMLElement): string | null {
-  const page = pageOf(root);
-  const centre = page?.querySelector<HTMLElement>("[data-cw-centre]");
-  if (!centre) return null;
-  const over = centre.scrollHeight - centre.clientHeight;
-  return over > 1 ? `THE CENTRE OVERFLOWS by ${px(over)} px` : null;
-}
-
-/** The page a reader should count: the arriving one when two are drawn. */
-function pageOf(root: HTMLElement): HTMLElement | null {
-  const pages = root.querySelectorAll<HTMLElement>("[data-cw-page]");
-  return pages[pages.length - 1] ?? null;
-}
-
-/** The question's top, from the screen's top: the place it never leaves. */
-function questionAt(root: HTMLElement): string | null {
-  const page = pageOf(root);
-  const q = page?.querySelector("[data-cw-question] h1");
-  const screen = root.querySelector("[data-cw-screen]");
-  if (!q || !screen) return null;
-  const top =
-    q.getBoundingClientRect().top - screen.getBoundingClientRect().top;
-  return `the question ${px(top)} px down`;
-}
-
-/** A step at rest, or a change between two: its words, its picture, Back, its action. */
-export const readScreen: Reader = (root, win) => {
-  const screen = root.querySelector<HTMLElement>("[data-cw-screen]");
-  const page = pageOf(root);
-  if (!screen || !page) return null;
-  // A change draws the leaving page too; the words are the arriving step's.
-  const leaving = [...screen.querySelectorAll("[data-cw-page]")].slice(0, -1);
-  const words = wordsIn(screen) - leaving.reduce((n, p) => n + wordsIn(p), 0);
-  const parts = [`${words} words to read`];
-  const q = questionAt(root);
-  if (q) parts.push(q);
-  const name = screen.querySelector<HTMLElement>("[data-cw-name-dst]");
-  if (name?.innerText.trim()) parts.push("the name in the head");
-  const back = backOf(screen);
-  if (back) parts.push(back);
-  const go = reachOf(screen, win);
-  if (go) parts.push(go);
-  const over = overflowOf(root);
-  if (over) parts.push(over);
-  return parts.join("; ");
-};
-
-/** The add step: which is picked, each phone's size, the hour, the camera's setting. */
-export const readAdd: Reader = (root) => {
-  const screen = root.querySelector<HTMLElement>("[data-cw-screen]");
-  const picked = root.querySelector<HTMLElement>(
-    '[data-cw-choice][data-state="on"]',
+export const readAdd: Reader = (root, win) => {
+  const room = roomOf(root);
+  if (!room) return null;
+  const choices = [...room.querySelectorAll<HTMLElement>("[data-cw-choice]")];
+  const picked = choices.find((c) => c.dataset.state === "on");
+  if (!picked) return null;
+  const phones = [...room.querySelectorAll("[data-cw-phone]")].map(sizeOf);
+  const styles = [...room.querySelectorAll("[data-cw-style-picture]")].map(
+    sizeOf,
   );
-  if (!screen || !picked) return null;
-  const phones = [...root.querySelectorAll("[data-cw-phone]")].map((p) =>
-    sizeOf(p),
-  );
-  if (phones.some((p) => !p)) return null;
+  const shots = [...room.querySelectorAll(".cw-strip-shot")].map(sizeOf);
+  if ([...phones, ...styles, ...shots].some((p) => !p)) return null;
   const parts = [
-    `picked: ${picked.dataset.cwChoice === "camera" ? "the camera" : "the album"}`,
-    phones.length === 1
-      ? `one phone, ${phones[0]}`
-      : `${phones.length} phones, ${phones.join(" and ")}`,
+    `${choices.length} styles offered, ${NAMES[picked.dataset.cwChoice ?? ""] ?? "?"} picked`,
   ];
-  const at = root.querySelector<HTMLElement>("[data-cw-hour]");
-  if (at) parts.push(`the night at ${at.dataset.cwHour}`);
-  const reveal = root.querySelector<HTMLElement>("[data-cw-reveal]");
-  if (reveal) parts.push(`develops ${reveal.dataset.cwReveal}`);
-  parts.push(`${wordsIn(screen)} words to read`);
-  const over = overflowOf(root);
-  if (over) parts.push(over);
-  return parts.join("; ");
-};
-
-/** The look step: the code's size, the looks on offer, the words. */
-export const readLook: Reader = (root) => {
-  const screen = root.querySelector<HTMLElement>("[data-cw-screen]");
-  if (!screen) return null;
-  const codes = [
-    ...root.querySelectorAll("[data-cw-code] svg, [data-cw-picture] svg"),
-  ]
-    .map((s) => s.getBoundingClientRect().width)
-    .filter((w) => w > 2);
-  if (!codes.length) return null;
-  const parts = [
-    `the largest code ${px(Math.max(...codes))} px`,
-    `${codes.length} code${codes.length === 1 ? "" : "s"} on screen`,
-  ];
-  const look =
-    root.querySelector<HTMLElement>('[data-cw-style][data-state="on"]')?.dataset
-      .cwStyle ??
-    root.querySelector<HTMLElement>("[data-cw-code]")?.dataset.cwCode;
-  if (look) parts.push(`on ${look}`);
-  parts.push(`${wordsIn(screen)} words to read`);
-  const over = overflowOf(root);
-  if (over) parts.push(over);
-  return parts.join("; ");
-};
-
-/** The beat: the code's size, what is ticked, room, the words and the action. */
-export const readBeat: Reader = (root, win) => {
-  const screen = root.querySelector<HTMLElement>("[data-cw-screen]");
-  const code = sizeOf(root.querySelector("[data-cw-real] svg"));
-  if (!screen || !code) return null;
-  const parts = [`the code ${code}`];
-  const steps = root.querySelectorAll("[data-cw-step]");
-  if (steps.length) {
-    const ticked = root.querySelectorAll('[data-cw-step][data-done="true"]');
+  if (phones.length)
     parts.push(
-      root.querySelector('[data-cw-left="list"]')
-        ? `${steps.length} rows left`
-        : `${ticked.length} of ${steps.length} steps ticked`,
+      phones.length === 1
+        ? `one phone, ${phones[0]}`
+        : `${phones.length} phones, each ${phones[0]}`,
     );
-  }
-  if (root.querySelector("[data-cw-room], [data-cw-step='room']"))
-    parts.push("room said");
-  parts.push(`${wordsIn(screen)} words to read`);
-  const go = reachOf(screen, win);
+  if (styles.length) parts.push(`${styles.length} pictures, each ${styles[0]}`);
+  if (shots.length) parts.push(`${shots.length} moments, each ${shots[0]}`);
+  const night = room.querySelector<HTMLElement>("[data-cw-night]");
+  if (night) parts.push(`the night at ${night.dataset.cwNight}`);
+  const develop = room.querySelector<HTMLElement>("[data-cw-develop]");
+  if (develop) parts.push(`develops ${develop.dataset.cwDevelop}`);
+  parts.push(`${wordsIn(room)} words to read`);
+  const q = questionAt(room);
+  if (q) parts.push(q);
+  const go = reachOf(room, win);
   if (go) parts.push(go);
-  const over = overflowOf(root);
+  const over = overflowOf(room);
   if (over) parts.push(over);
   return parts.join("; ");
+};
+
+/** Settings on paper: the styles it offers, the one ticked, the words. */
+export const readPaper: Reader = (root) => {
+  const doc = root.ownerDocument;
+  const cards = [...doc.querySelectorAll<HTMLElement>("[data-album-style]")];
+  if (!cards.length) return null;
+  const on = cards.find((c) => c.dataset.state === "on");
+  const pictures = [...doc.querySelectorAll("[data-cw-style-picture]")].map(
+    sizeOf,
+  );
+  if (pictures.some((p) => !p)) return null;
+  const body = doc.querySelector("[data-settings-page]");
+  return [
+    `Settings on paper: ${cards.length} album styles, ${NAMES[on?.dataset.albumStyle ?? ""] ?? "none"} ticked`,
+    `each picture ${pictures[0]}`,
+    body ? `${wordsIn(body)} words on the page` : null,
+  ]
+    .filter(Boolean)
+    .join("; ");
 };

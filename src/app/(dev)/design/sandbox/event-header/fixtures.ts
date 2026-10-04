@@ -4,17 +4,29 @@ import type { Door } from "@/lib/event/door/door";
 import type { ReadyFacts } from "@/lib/events/readiness";
 
 /**
- * ONE WEDDING, FROM THE HOST'S SIDE OF ITS CODE: Maya and Jay's, the party
- * every head board stands at, so the hub drawn here is the hub production
- * draws for it (`dashboard/[eventId]/page.tsx`) with its photographs, its
- * door and its night.
+ * SIX ALBUMS, FROM THE HOST'S SIDE OF THEIR CODES: Maya and Jay's wedding
+ * (the party every head board stands at, tonight and the week before) and
+ * the four shapes his note named, where a head that leans on a timeline
+ * breaks: a weekend over three days, a morning ceremony whose photographs all
+ * land before lunch, a party with no date set, and a slow trickle that runs
+ * for months.
  *
- * Two moments, because a hub is judged at both ends of its life:
- *  - TONIGHT the party is live: 214 photos from 31 guests, the code opened 486
- *    times, 8 uploads held in Review and 2 people at the door (Maya lets each
- *    newcomer in herself), the reel playing;
- *  - THE WEEK BEFORE nothing is in the album, the code was never opened, and
- *    the checklist stands at the head of the hub (production's own).
+ *  - TONIGHT the wedding is on: 214 photos from 31 guests, the code opened 486
+ *    times, 8 uploads held in Review and 2 people at the door;
+ *  - THE WEEK BEFORE nothing is in the album and the checklist stands at the
+ *    head of the hub (production's own);
+ *  - A WEEKEND, October 2 to 4 (a range of days, no times: the end date
+ *    `event-dates` wires), its third day on now: 312 photos from 18 people;
+ *  - A MORNING, October 3, 9 to 11:40, and it is now evening: 148 photos, the
+ *    newest nine hours old;
+ *  - NO DATE: a 90th birthday whose host never set one, 64 photos;
+ *  - A TRICKLE, Sunday dinners since June, two or three photos a week: 41.
+ *
+ * ★ EVERY ALBUM'S ARRIVALS ARE DRAWN, NOT DESCRIBED: each photograph has the
+ * minute it landed (`arrivals`), dealt from the album's own busy moments by a
+ * seeded generator, so every frame draws the same album on every render and
+ * an option that reads the album reads a real one. A host's real arrivals are
+ * her manifest's own times (`album-wire.ts`: every entry carries `t`).
  *
  * ★ A SEPARATE FILE, NEVER AN IMPORT FROM ANOTHER BOARD: a board's folder
  * leaves whole when it retires. NOTHING HERE IS A REAL PERSON, and every
@@ -55,8 +67,8 @@ const still = (
 };
 
 /**
- * THE ALBUM, NEWEST FIRST: mostly 3:2, the declared ratios varied as a real
- * party's are, so the rows read as an album rather than a contact sheet.
+ * THE WEDDING'S ALBUM, NEWEST FIRST: mostly 3:2, the declared ratios varied as
+ * a real party's are, so the rows read as an album rather than a contact sheet.
  */
 export const ALBUM: readonly Still[] = [
   still("wedding-toast"),
@@ -79,24 +91,130 @@ export const ALBUM: readonly Still[] = [
   still("wedding-rings"),
 ];
 
+const cover = (ids: readonly string[]): HeadStill[] =>
+  ids.map((id) => ({ id, tile: marketingImage(id).src }));
+
+/** An album of a few stills, their declared ratios varied as a real album's are. */
+const albumOf = (ids: readonly string[]): Still[] => {
+  const ratios: readonly (readonly [number, number] | null)[] = [
+    null,
+    [4, 5],
+    null,
+    [1, 1],
+    [3, 4],
+    null,
+  ];
+  return Array.from({ length: 12 }, (_, i) => {
+    const r = ratios[i % ratios.length];
+    const id = ids[(i * 5 + (i >> 1)) % ids.length] as Parameters<
+      typeof marketingImage
+    >[0];
+    return r ? still(id, r[0], r[1]) : still(id);
+  });
+};
+
 /**
- * THE COVER'S PHOTOGRAPHS: the reel's opening stills, which is the rule the
- * hub's cover reads while the reel plays (`event-hub-head-stills.ts`), in the
- * shape production's head takes them (`HeadStill`).
+ * THE WEDDING'S COVER: the reel's opening stills, which is the rule the hub's
+ * cover reads while the reel plays (`event-hub-head-stills.ts`), in the shape
+ * production's head takes them (`HeadStill`).
  */
-export const COVER: readonly HeadStill[] = [
+export const COVER: readonly HeadStill[] = cover([
   "wedding-toast",
   "reception-hall",
   "wedding-golden",
   "wedding-arch",
-].map((id) => ({ id, tile: marketingImage(id).src }));
+]);
 
 /** The same stills as plain sources, for a picture that dissolves through them. */
 export const REEL: readonly string[] = COVER.map((s) => s.tile);
 
-/* ── the moments ──────────────────────────────────────────────────────────── */
+/* ── the arrivals ─────────────────────────────────────────────────────────── */
 
-export type Moment = "tonight" | "before";
+/** A seeded generator (mulberry32): the same album on every render. */
+function seeded(seed: number) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/**
+ * A busy moment of an album: a minute it centres on (minutes from the album's
+ * own first day, at midnight), how far either side it spreads, and how much
+ * of the album lands in it.
+ */
+type Busy = { at: number; spread: number; weight: number };
+
+/**
+ * EVERY PHOTOGRAPH'S MINUTE, oldest first: drops (the photos one guest adds
+ * with one press of Add, a few seconds apart) dealt into the album's busy
+ * moments until the count is reached, never earlier than `from` or later than
+ * `to`. A drop is one to a dozen photos, most of them small, as a real
+ * album's are.
+ */
+function arrivalsOf(
+  seed: number,
+  count: number,
+  moments: readonly Busy[],
+  from: number,
+  to: number,
+): number[] {
+  const rand = seeded(seed);
+  const total = moments.reduce((s, m) => s + m.weight, 0);
+  const normal = () => {
+    // Box and Muller's pair, one half: a moment's drops gather round its centre.
+    const u = Math.max(rand(), 1e-9);
+    const v = rand();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  };
+  const out: number[] = [];
+  while (out.length < count) {
+    let pick = rand() * total;
+    let m = moments[0];
+    for (const x of moments) {
+      pick -= x.weight;
+      if (pick <= 0) {
+        m = x;
+        break;
+      }
+    }
+    const at = Math.min(to, Math.max(from, m.at + normal() * m.spread));
+    // Most drops are a photo or three; about one in six is a run of up to a dozen.
+    const size = Math.min(
+      count - out.length,
+      rand() < 0.17 ? 6 + Math.floor(rand() * 7) : 1 + Math.floor(rand() * 3),
+    );
+    for (let i = 0; i < size; i++) out.push(Math.min(to, at + i * 0.12));
+  }
+  return out.sort((a, b) => a - b);
+}
+
+const DAY = 24 * 60;
+const hm = (h: number, m = 0) => h * 60 + m;
+
+/* ── the six albums ───────────────────────────────────────────────────────── */
+
+export type CaseId =
+  | "tonight"
+  | "before"
+  | "weekend"
+  | "morning"
+  | "undated"
+  | "trickle";
+
+/** The order the facts' frames stand in: the wedding at both ends of its life, then his four shapes. */
+export const CASE_ORDER: readonly CaseId[] = [
+  "tonight",
+  "before",
+  "weekend",
+  "morning",
+  "undated",
+  "trickle",
+];
 
 export type HostFacts = {
   photos: number;
@@ -111,10 +229,40 @@ export type HostFacts = {
   reel: "live" | "short";
   /** How many photos the reel can play of the two it starts from. */
   reelHave: number;
-  /** The days until the event's date (0 tonight). */
+  /** The days until the event's date (0 once it has come). */
   daysToGo: number;
   /** The checklist's facts (`lib/events/readiness.ts`), as the server reads them. */
   ready: ReadyFacts;
+};
+
+/** Who added photos, newest first: a name and the seed production colours a face by. */
+export type Face = { name: string; seed: string };
+
+export type Case = HostFacts & {
+  id: CaseId;
+  /** The frame's own title: which album, at which moment. */
+  title: string;
+  name: string;
+  /** Her claimed link's last part, read under the code. */
+  slug: string;
+  /** The event's day (or a range's first), or null where the host never set one. */
+  date: string | null;
+  /** A range's last day (`event-dates`, settled with him: days, never times). */
+  end: string | null;
+  /** While a range is on, which of its days today is. */
+  day?: number;
+  /** Photos landing now (the newest within a quarter of an hour): the head's lit state. */
+  live: boolean;
+  /** Every photograph's minute, oldest first (`photos` long). */
+  arrivals: readonly number[];
+  /** The cover's photographs. */
+  stills: readonly HeadStill[];
+  /** The album under the cover, newest first (its colours are its photographs'). */
+  album: readonly Still[];
+  /** Who added, newest first (`guests` of them, the first few named). */
+  faces: readonly Face[];
+  /** The newest drop: who, how many, how long ago, and its first photograph. */
+  latest: { who: string; n: number; ago: string; src: string } | null;
 };
 
 const READY_BASE = {
@@ -123,13 +271,89 @@ const READY_BASE = {
   acceptingUploads: true,
   showReel: true,
   liveReelEnabled: true,
-  eventDate: EVENT.date,
   description: EVENT.description,
   storagePct: 12,
 } as const;
 
-export const MOMENTS: Record<Moment, HostFacts> = {
+const ready = (
+  date: string | null,
+  door: Door,
+  guestsIn: number,
+  approved: number,
+  opened: number,
+): ReadyFacts => ({
+  ...READY_BASE,
+  eventDate: date,
+  door,
+  guestsIn,
+  approved,
+  playable: Math.min(2, approved),
+  opened,
+});
+
+/** A crowd's first names, dealt to whoever is not named: placeholder, judged for size. */
+const NAMES = [
+  "Theo",
+  "Priya",
+  "Noor",
+  "Ade",
+  "Grace",
+  "Jonah",
+  "Mila",
+  "Omar",
+  "Sam",
+  "Lena",
+  "Ines",
+  "Rui",
+  "Jo",
+  "Luca",
+  "Ana",
+  "Kofi",
+  "Hana",
+  "Eli",
+  "Zara",
+  "Ben",
+  "Maren",
+  "Tomas",
+  "Yuki",
+  "Ravi",
+  "Clara",
+  "Felix",
+  "Nia",
+  "Oskar",
+  "Leah",
+  "Dev",
+  "Ruth",
+  "Ivo",
+];
+
+/** `n` faces, newest first, starting from the named ones (each seeded by its album and place). */
+function facesOf(album: string, n: number, first: readonly string[]): Face[] {
+  const pool = [...first, ...NAMES.filter((x) => !first.includes(x))];
+  return Array.from({ length: n }, (_, i) => ({
+    name: pool[i % pool.length],
+    seed: `eh-${album}-${i}`,
+  }));
+}
+
+const WEDDING = cover([
+  "wedding-toast",
+  "reception-hall",
+  "wedding-golden",
+  "wedding-arch",
+  "wedding-petals",
+  "reception-table",
+]);
+
+export const CASES: Record<CaseId, Case> = {
   tonight: {
+    id: "tonight",
+    title: "Tonight, the wedding on",
+    name: EVENT.name,
+    slug: "maya-and-jay",
+    date: EVENT.date,
+    end: null,
+    live: true,
     photos: 214,
     guests: 31,
     views: 486,
@@ -139,18 +363,40 @@ export const MOMENTS: Record<Moment, HostFacts> = {
     reel: "live",
     reelHave: 2,
     daysToGo: 0,
-    ready: {
-      ...READY_BASE,
-      door: "approve",
-      guestsIn: 31,
-      approved: 214,
-      playable: 2,
-      opened: 486,
+    ready: ready(EVENT.date, "approve", 31, 214, 486),
+    // 7:04 pm to 10:40 pm: the drinks, dinner, the toasts, the first dance, the floor.
+    arrivals: arrivalsOf(
+      12,
+      214,
+      [
+        { at: hm(19, 40), spread: 16, weight: 1 },
+        { at: hm(20, 20), spread: 10, weight: 0.5 },
+        { at: hm(20, 55), spread: 6, weight: 1.4 },
+        { at: hm(21, 30), spread: 5, weight: 1.6 },
+        { at: hm(22, 8), spread: 14, weight: 1.3 },
+        { at: hm(22, 34), spread: 4, weight: 0.8 },
+      ],
+      hm(19, 4),
+      hm(22, 40),
+    ),
+    stills: WEDDING,
+    album: ALBUM,
+    faces: facesOf("tonight", 31, ["Theo", "Priya", "Noor", "Ade"]),
+    latest: {
+      who: "Theo",
+      n: 3,
+      ago: "just now",
+      src: marketingImage("party-dj").src,
     },
   },
-  // A Public album the week before: nothing in it, the code never opened, so
-  // the checklist stands at the head (production's `list=head`).
   before: {
+    id: "before",
+    title: "The week before, nothing in it",
+    name: EVENT.name,
+    slug: "maya-and-jay",
+    date: EVENT.date,
+    end: null,
+    live: false,
     photos: 0,
     guests: 0,
     views: 0,
@@ -160,98 +406,229 @@ export const MOMENTS: Record<Moment, HostFacts> = {
     reel: "short",
     reelHave: 0,
     daysToGo: 6,
-    ready: {
-      ...READY_BASE,
-      door: "open",
-      guestsIn: 0,
-      approved: 0,
-      playable: 0,
-      opened: 0,
+    ready: ready(EVENT.date, "open", 0, 0, 0),
+    arrivals: [],
+    stills: [],
+    album: ALBUM,
+    faces: [],
+    latest: null,
+  },
+  weekend: {
+    id: "weekend",
+    title: "A weekend, its third day on",
+    name: "Lakeside weekend",
+    slug: "lakeside-weekend",
+    date: "2026-10-02",
+    end: "2026-10-04",
+    day: 3,
+    live: true,
+    photos: 312,
+    guests: 18,
+    views: 140,
+    waiting: 0,
+    review: 0,
+    door: "open",
+    reel: "live",
+    reelHave: 2,
+    daysToGo: 0,
+    ready: ready("2026-10-02", "open", 18, 312, 140),
+    // Friday night's arrival, Saturday's lake and long night, Sunday's slow morning, on now.
+    arrivals: arrivalsOf(
+      31,
+      312,
+      [
+        { at: hm(19, 30), spread: 50, weight: 0.8 },
+        { at: hm(22, 40), spread: 30, weight: 0.5 },
+        { at: DAY + hm(11, 30), spread: 70, weight: 0.9 },
+        { at: DAY + hm(15, 0), spread: 40, weight: 1.1 },
+        { at: DAY + hm(21, 20), spread: 60, weight: 1.3 },
+        { at: 2 * DAY + hm(11, 0), spread: 60, weight: 0.6 },
+        { at: 2 * DAY + hm(15, 40), spread: 20, weight: 0.5 },
+      ],
+      hm(17, 50),
+      2 * DAY + hm(16, 6),
+    ),
+    stills: cover([
+      "festival-lights",
+      "festival-crowd",
+      "concert-confetti",
+      "party-dj",
+      "party-balloons",
+    ]),
+    album: albumOf(["festival-lights", "festival-crowd", "concert-confetti", "party-dj", "party-balloons"]),
+    faces: facesOf("weekend", 18, ["Jo", "Kofi", "Hana"]),
+    latest: {
+      who: "Jo",
+      n: 8,
+      ago: "4 min ago",
+      src: marketingImage("festival-crowd").src,
+    },
+  },
+  morning: {
+    id: "morning",
+    title: "A morning, its photos all before lunch",
+    name: "Ines & Rui",
+    slug: "ines-and-rui",
+    date: "2026-10-03",
+    end: null,
+    live: false,
+    photos: 148,
+    guests: 22,
+    views: 260,
+    waiting: 0,
+    review: 0,
+    door: "open",
+    reel: "live",
+    reelHave: 2,
+    daysToGo: 0,
+    ready: ready("2026-10-03", "open", 22, 148, 260),
+    // 9 to 11:40 in the morning; it is now a quarter past nine at night.
+    arrivals: arrivalsOf(
+      47,
+      148,
+      [
+        { at: hm(9, 15), spread: 8, weight: 0.6 },
+        { at: hm(10, 5), spread: 6, weight: 1.2 },
+        { at: hm(10, 40), spread: 12, weight: 1 },
+        { at: hm(11, 20), spread: 10, weight: 0.7 },
+      ],
+      hm(9, 0),
+      hm(11, 40),
+    ),
+    stills: cover(["wedding-arch", "wedding-petals", "wedding-rings"]),
+    album: albumOf(["wedding-arch", "wedding-petals", "wedding-rings", "wedding-golden"]),
+    faces: facesOf("morning", 22, ["Ana", "Clara", "Rui"]),
+    latest: {
+      who: "Ana",
+      n: 5,
+      ago: "9 hours ago",
+      src: marketingImage("wedding-petals").src,
+    },
+  },
+  undated: {
+    id: "undated",
+    title: "No date set",
+    name: "Rosa turns 90",
+    slug: "rosa-turns-90",
+    date: null,
+    end: null,
+    live: false,
+    photos: 64,
+    guests: 15,
+    views: 92,
+    waiting: 0,
+    review: 0,
+    door: "open",
+    reel: "live",
+    reelHave: 2,
+    daysToGo: 0,
+    ready: ready(null, "open", 15, 64, 92),
+    // One evening, then a few late arrivals over the week after.
+    arrivals: arrivalsOf(
+      90,
+      64,
+      [
+        { at: hm(19, 30), spread: 50, weight: 1 },
+        { at: 2 * DAY + hm(12, 0), spread: 200, weight: 0.12 },
+        { at: 6 * DAY + hm(20, 0), spread: 100, weight: 0.1 },
+      ],
+      hm(18, 0),
+      7 * DAY,
+    ),
+    stills: cover(["party-balloons", "reception-table", "wedding-toast"]),
+    album: albumOf(["party-balloons", "reception-table", "wedding-toast", "reception-hall"]),
+    faces: facesOf("undated", 15, ["Luca", "Ruth", "Ivo"]),
+    latest: {
+      who: "Luca",
+      n: 4,
+      ago: "2 days ago",
+      src: marketingImage("party-balloons").src,
+    },
+  },
+  trickle: {
+    id: "trickle",
+    title: "A trickle, two or three a week",
+    name: "Sunday dinners",
+    slug: "sunday-dinners",
+    date: "2026-06-07",
+    end: null,
+    live: false,
+    photos: 41,
+    guests: 7,
+    views: 58,
+    waiting: 0,
+    review: 0,
+    door: "open",
+    reel: "live",
+    reelHave: 2,
+    daysToGo: 0,
+    ready: ready("2026-06-07", "open", 7, 41, 58),
+    // A Sunday most weeks since June, a few photos from whoever cooked.
+    arrivals: arrivalsOf(
+      7,
+      41,
+      Array.from({ length: 16 }, (_, w) => ({
+        at: w * 7 * DAY + hm(20, 30),
+        spread: 30,
+        weight: w % 4 === 2 ? 0.3 : 1,
+      })),
+      hm(19, 0),
+      16 * 7 * DAY,
+    ),
+    stills: cover(["reception-table", "wedding-toast", "reception-hall"]),
+    album: albumOf(["reception-table", "wedding-toast", "reception-hall", "wedding-golden"]),
+    faces: facesOf("trickle", 7, ["Sam", "Lena", "Eli"]),
+    latest: {
+      who: "Sam",
+      n: 2,
+      ago: "3 days ago",
+      src: marketingImage("reception-table").src,
     },
   },
 };
 
-/* ── the night ────────────────────────────────────────────────────────────── */
+/** The two moments the doors are drawn at: the wedding tonight, and the week before. */
+export type Moment = "tonight" | "before";
 
-/** Minutes after midnight: the party's first photograph, and the frames' "now". */
-export const NIGHT_FROM = 19 * 60 + 4;
-export const NOW = 22 * 60 + 40;
+export const MOMENTS: Record<Moment, Case> = {
+  tonight: CASES.tonight,
+  before: CASES.before,
+};
 
-/** How busy each minute of the night is: the drinks, dinner, the toasts, the first dance, the floor. */
-function busy(m: number): number {
-  const bump = (c: number, w: number, h: number) =>
-    h * Math.exp(-((m - c) ** 2) / (2 * w * w));
-  return (
-    0.25 +
-    bump(19 * 60 + 40, 14, 1.0) + // the drinks
-    bump(20 * 60 + 20, 10, 0.55) + // dinner
-    bump(20 * 60 + 55, 5, 2.3) + // the toasts
-    bump(21 * 60 + 30, 4, 2.7) + // the first dance
-    bump(22 * 60 + 8, 13, 1.7) + // the floor
-    bump(22 * 60 + 33, 3, 1.5) // the last song before the cake
-  );
-}
+/* ── when the event is ───────────────────────────────────────────────────── */
 
-/**
- * EVERY PHOTOGRAPH OF THE NIGHT AT ITS MINUTE, 214 of them, each placed at the
- * minute where its share of the night's busyness falls, so the same night is
- * drawn on every render and the busiest moments really are the tallest. A
- * host's real night is her album's own upload times, which every manifest
- * entry already carries in its order.
- */
-export const NIGHT: readonly number[] = (() => {
-  const minutes: number[] = [];
-  const weights: number[] = [];
-  let total = 0;
-  for (let m = NIGHT_FROM; m <= NOW; m++) {
-    const w = busy(m);
-    weights.push(w);
-    total += w;
-  }
-  const count = MOMENTS.tonight.photos;
-  let acc = 0;
-  let next = 0;
-  for (let i = 0; i < weights.length && next < count; i++) {
-    acc += weights[i];
-    while (next < count && ((next + 0.5) / count) * total <= acc) {
-      minutes.push(NIGHT_FROM + i);
-      next++;
-    }
-  }
-  return minutes;
-})();
+const MONTH = new Intl.DateTimeFormat("en-US", {
+  month: "long",
+  timeZone: "UTC",
+});
+const MON = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  timeZone: "UTC",
+});
+const parse = (d: string) => {
+  const [y, m, day] = d.split("-").map(Number);
+  return { y, m, day, at: new Date(Date.UTC(y, m - 1, day)) };
+};
 
 /**
- * The night as a line of `columns` heights, each the photographs within
- * `radius` minutes of its moment, weighed by how near (a soft window, so the
- * line reads as one breath of the party rather than a barcode of single
- * minutes, and a quiet stretch is low rather than empty).
+ * THE EVENT'S DAYS AS THE HEAD SAYS THEM: "September 12, 2026" (production's
+ * `formatEventDate`), a range in one line ("October 2–4, 2026", an en dash,
+ * the month said once), and nothing at all where no date is set; in a hand,
+ * the month short, so the line keeps to one line beside the code. A stand-in
+ * for the formatter `event-dates` wires with the end date.
  */
-export function nightDensity(
-  columns: number,
-  radius: number,
-): { at: number; n: number }[] {
-  const span = NOW - NIGHT_FROM;
-  return Array.from({ length: columns }, (_, i) => {
-    const at = NIGHT_FROM + ((i + 0.5) / columns) * span;
-    let n = 0;
-    for (const m of NIGHT) {
-      const d = Math.abs(m - at);
-      if (d < radius) n += 1 - d / radius;
-    }
-    return { at, n };
-  });
-}
-
-/** "7 pm", "10:40 pm": a minute after midnight as the dial and the strip say it. */
-export function clock(minute: number): string {
-  const h = Math.floor(minute / 60) % 24;
-  const m = minute % 60;
-  const h12 = h % 12 === 0 ? 12 : h % 12;
-  const half = h < 12 ? "am" : "pm";
-  return m === 0
-    ? `${h12} ${half}`
-    : `${h12}:${String(m).padStart(2, "0")} ${half}`;
+export function whenOf(
+  c: Pick<Case, "date" | "end">,
+  short = false,
+): string | null {
+  if (!c.date) return null;
+  const month = (d: Date) => (short ? MON : MONTH).format(d);
+  const a = parse(c.date);
+  if (!c.end || c.end === c.date) return `${month(a.at)} ${a.day}, ${a.y}`;
+  const b = parse(c.end);
+  if (b.y === a.y && b.m === a.m)
+    return `${month(a.at)} ${a.day}–${b.day}, ${a.y}`;
+  return `${month(a.at)} ${a.day} – ${month(b.at)} ${b.day}, ${b.y}`;
 }
 
 /* ── what waits in the rooms ──────────────────────────────────────────────── */

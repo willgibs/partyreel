@@ -4,7 +4,7 @@ import { formatCount } from "@/lib/format/count";
 
 import { type HomeContext, type HomeEvent, readyFactsOf } from "./home-event";
 import { nextStepForEvent } from "./next-step";
-import { daysFrom, phaseOfEvent, WEEK_DAYS } from "./when";
+import { daysToEvent, phaseOfEvent, WEEK_DAYS } from "./when";
 
 /**
  * WHAT ASKS FOR A HOST'S ATTENTION, AND WHERE (host-dashboard r1, `needs=week`, Will 2026-10-02: "This
@@ -160,19 +160,19 @@ export function itemFor(e: HomeEvent, ctx: HomeContext): Item | null {
  * THIS WEEK: every party within seven days of its date, either way, nearest first (a day ahead before
  * the day behind it). Only a date the host set counts here: the week is about the parties a host is
  * planning and has just thrown, and an undated album that is busy today leads the stage instead
- * (`moment.ts`).
+ * (`moment.ts`). ★ A range is as near as its nearest day (`daysToEvent`): on any day of it, it is
+ * today's; ahead, by its first day; behind, by its last.
  */
 export function weekEvents<T extends HomeEvent>(
   events: readonly T[],
   today: string,
 ): T[] {
+  const near = (e: T) => daysToEvent(e, today) ?? Infinity;
   return events
-    .filter(
-      (e) => e.date !== null && Math.abs(daysFrom(today, e.date)) <= WEEK_DAYS,
-    )
+    .filter((e) => e.date !== null && Math.abs(near(e)) <= WEEK_DAYS)
     .sort((a, b) => {
-      const da = daysFrom(today, a.date!);
-      const db = daysFrom(today, b.date!);
+      const da = near(a);
+      const db = near(b);
       return Math.abs(da) - Math.abs(db) || db - da;
     });
 }

@@ -13,8 +13,10 @@ import {
   readiness,
   readyHead,
   settingsReadiness,
+  settingsSteps,
   stepsLeft,
   stepWants,
+  storageUsedPct,
 } from "./readiness";
 
 /**
@@ -263,6 +265,44 @@ describe("when the checklist steps aside", () => {
     expect(checklistOver("2025-12-31", "2026-01-01")).toBe(true);
     expect(checklistOver(null, "2026-10-11")).toBe(false);
   });
+
+  it("★ from the day after the LAST day of a range: a weekend's checklist stands through its Sunday", () => {
+    expect(checklistOver("2026-10-09", "2026-10-10", "2026-10-11")).toBe(false);
+    expect(checklistOver("2026-10-09", "2026-10-11", "2026-10-11")).toBe(false);
+    expect(checklistOver("2026-10-09", "2026-10-12", "2026-10-11")).toBe(true);
+    // An end it cannot stand behind is the one day.
+    expect(checklistOver("2026-10-09", "2026-10-10", "2026-10-08")).toBe(true);
+  });
+});
+
+describe("the welcome, with a range of days", () => {
+  it("says the whole range it found", () => {
+    const welcome = readiness({
+      ...FRESH,
+      description: "Add everything you take this weekend.",
+      eventDate: "2026-10-09",
+      eventEndDate: "2026-10-11",
+    }).items.find((i) => i.id === "welcome");
+    expect(welcome).toMatchObject({
+      done: true,
+      line: "October 9–11, 2026, and a note guests read first.",
+    });
+  });
+
+  it("a new event's facts carry an end Create was handed", () => {
+    expect(
+      newEventFacts({
+        visibility: "open",
+        accepting_uploads: true,
+        event_date: "2026-10-09",
+        event_end_date: "2026-10-11",
+      }).eventEndDate,
+    ).toBe("2026-10-11");
+    expect(
+      newEventFacts({ visibility: "open", accepting_uploads: true })
+        .eventEndDate,
+    ).toBeNull();
+  });
 });
 
 describe("a new event, as Create hands it over", () => {
@@ -290,5 +330,85 @@ describe("a new event, as Create hands it over", () => {
     expect(
       newEventFacts({ visibility: "private", accepting_uploads: false }),
     ).toMatchObject({ door: "private", acceptingUploads: false });
+  });
+
+  it("★ says room once the account runs short, as the hub's checklist does (create-wizard r2's carried `room`)", () => {
+    // The route reads the account's storage and hands it over: past the dashboard's own threshold room
+    // joins what is left (worth doing), at 100 a guest needs it; at or under the threshold, nothing.
+    const sent = createEventSchema.parse({ name: "Maya's 30th" });
+    expect(readiness(newEventFacts(sent)).left.map((i) => i.id)).not.toContain(
+      "room",
+    );
+    expect(
+      readiness(newEventFacts(sent, 85)).left.map((i) => i.id),
+    ).not.toContain("room");
+    const short = readiness(newEventFacts(sent, 92));
+    expect(short.left.map((i) => i.id)).toEqual([
+      "code",
+      "room",
+      "photos",
+      "welcome",
+    ]);
+    expect(short.items.find((i) => i.id === "room")?.essential).toBe(false);
+    expect(
+      readiness(newEventFacts(sent, 100)).items.find((i) => i.id === "room")
+        ?.essential,
+    ).toBe(true);
+  });
+});
+
+describe("Settings' five steps, laid out for a surface that draws them", () => {
+  it("stands them in the rail's order, each the checklist item it finishes, titled as Settings titles it", () => {
+    const steps = settingsSteps(readiness(FRESH));
+    expect(steps.map((s) => s.item)).toEqual([
+      "door",
+      "adds",
+      "photos",
+      "welcome",
+      "code",
+    ]);
+    expect(steps.map((s) => s.n)).toEqual([1, 2, 3, 4, 5]);
+    expect(steps.map((s) => s.title)).toEqual([
+      "Who can get in",
+      "What guests can add",
+      "Highlight reel",
+      "This event",
+      "The code",
+    ]);
+  });
+
+  it("ticks a step exactly when its item is done, so the beat and Settings never disagree", () => {
+    const fresh = settingsSteps(readiness(FRESH));
+    expect(fresh.map((s) => s.done)).toEqual([true, true, false, false, false]);
+    const scanned = settingsSteps(
+      readiness({ ...FRESH, opened: 1, door: "private" }),
+    );
+    expect(scanned.map((s) => s.done)).toEqual([
+      false,
+      true,
+      false,
+      false,
+      true,
+    ]);
+  });
+
+  it("never draws room as a step: it is the plan's, said beside them", () => {
+    const steps = settingsSteps(readiness({ ...FRESH, storagePct: 100 }));
+    expect(steps).toHaveLength(5);
+    expect(steps.map((s) => s.item)).not.toContain("room");
+  });
+});
+
+describe("the account's storage, as the whole percent readiness reads", () => {
+  it("is the dashboard meter's own math: active bytes over the cap, rounded, never past 100", () => {
+    expect(storageUsedPct(920, 1000)).toBe(92);
+    expect(storageUsedPct(854, 1000)).toBe(85);
+    expect(storageUsedPct(1200, 1000)).toBe(100);
+    expect(storageUsedPct(0, 1000)).toBe(0);
+  });
+
+  it("reads 0 where there is no cap to run short of", () => {
+    expect(storageUsedPct(5000, null)).toBe(0);
+    expect(storageUsedPct(5000, 0)).toBe(0);
   });
 });

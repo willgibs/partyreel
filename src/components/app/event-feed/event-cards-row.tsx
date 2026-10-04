@@ -1,19 +1,41 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-import { ListChecks, Settings, Users, type LucideIcon } from "lucide-react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type MouseEvent as ReactMouseEvent,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
+import {
+  ListChecks,
+  Settings,
+  Smartphone,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 
 import { useEventShare } from "@/components/app/share/event-share-provider";
+import { prefetchGuestsRoom } from "@/components/app/share/guests-panel";
+import { warmRoom } from "@/components/app/share/room-chunks";
 import type { HeadStill } from "@/components/guest/event-experience-head";
 import { CodeChip } from "@/components/ui/code-chip";
-import { EVENT_ROOMS, type EventRoomId } from "@/lib/event/sections";
+import { ENTRY_PENDING, entryId } from "@/lib/events/album-wire";
+import {
+  AS_GUEST_DOOR,
+  EVENT_ROOMS,
+  roomHref,
+  type EventRoomId,
+  type EventSheet,
+} from "@/lib/event/sections";
 import { trackAttrs } from "@/lib/analytics/events";
 import { cn } from "@/lib/utils";
 
 import {
   useHostAlbum,
   useHubCounts,
+  type HubAlbum,
 } from "@/components/app/event-feed/host-album";
 
 import { EdgeFadeScroller } from "./edge-fade-scroller";
@@ -58,15 +80,17 @@ export type RoomCard = {
  * than the album-heavy page"), going sticky as the album scrolls (his `nav`
  * note: "Could pick up sticky-style from the cards below").
  *
- * ★ LINKS IN A GROUP, NEVER TABS. Two are rooms you GO to, one opens a sheet,
- * and the Highlight reel opens the view the guests watch (or, before it plays,
- * the guidance that says what is left); none of them switch a panel in place,
- * which is the one thing `role="tablist"` promises. This is a row of doors.
+ * ★ LINKS IN A GROUP, NEVER TABS. Every room opens OVER the hub (Will, event-header r2 `rooms=over`: "This feels
+ * phenomenally more fluid, natural, and intuitive"): Guests, Review and Settings in one panel, See it as a guest in a
+ * phone over the dimmed hub, and the Highlight reel opens the view the guests watch (or, before it plays, the
+ * guidance that says what is left); none of them switch a panel in place, which is the one thing `role="tablist"`
+ * promises. This is a row of doors.
  *
- * ★ SETTINGS STAYS AN `<a href="?room=settings">` EVEN THOUGH IT OPENS A SHEET.
- * The URL is real (a reload lands with the sheet open, server-rendered), so
- * middle-click and "open in new tab" do the honest thing; the click handler
- * only intercepts the ordinary left-click to keep the album behind it.
+ * ★ EVERY DOOR STAYS AN `<a href="?room=…">` EVEN THOUGH IT OPENS IN PLACE. The URL is real (a reload lands with the
+ * room open, server-rendered), so middle-click and "open in new tab" do the honest thing; the click handler only
+ * intercepts the ordinary left-click to keep the album behind it. ★ AND A ROOM'S CODE IS ASKED FOR ON INTENT (the
+ * pointer coming over the door, a keyboard's focus on it: `room-chunks.ts`), and what it shows as the press begins
+ * (Review's queue's links, the Guests room's read), so the panel opens on the room, not on a wait.
  *
  * ★ THE STUCK CONDENSATION MUST NOT REMOUNT THE ROW. The same DOM shrinks —
  * one `data-stuck` on the band, everything else a transition — because a
@@ -126,6 +150,7 @@ export function EventCardsRow({
       )
     : served;
   const reel = useLiveReel(eventId, servedReel);
+  const album = useHostAlbum();
   const { openSheet, headerCodeHidden, openCode, morphNameFor } =
     useEventShare();
   const { stuck, footRef, bandRef } = useStuckBand();
@@ -191,29 +216,10 @@ export function EventCardsRow({
               const card = cards.find((c) => c.id === room.id);
               if (!card) return null;
               const Icon = ICONS[card.id];
-              const href = room.segment
-                ? `/dashboard/${eventId}/${room.segment}`
-                : `/dashboard/${eventId}?room=settings`;
               return (
                 <Link
                   key={card.id}
-                  href={href}
-                  onClick={
-                    room.segment
-                      ? undefined
-                      : (e) => {
-                          // Let a modified click be a real navigation.
-                          if (
-                            e.metaKey ||
-                            e.ctrlKey ||
-                            e.shiftKey ||
-                            e.button !== 0
-                          )
-                            return;
-                          e.preventDefault();
-                          openSheet("settings");
-                        }
-                  }
+                  {...roomDoor(eventId, card.id, openSheet, album)}
                   className={cn(
                     ROOM_CARD_BASE,
                     roomCardSize(stuck),
@@ -278,6 +284,45 @@ export function EventCardsRow({
               );
             })}
 
+            {/* ★ SEE IT AS A GUEST, THE PAYOFF AT THE ROW'S END (the carried call `guest-door`): her album as her
+                guests meet it, in a phone over the dimmed hub. A fifth door in today's card, stuck a pill like the
+                rest; on a phone's 2x2 grid it takes the third row's first place, as the board drew it. */}
+            <Link
+              {...roomDoor(eventId, AS_GUEST_DOOR.id, openSheet, album)}
+              className={cn(
+                ROOM_CARD_BASE,
+                roomCardSize(stuck),
+                "border-border hover:border-foreground/25",
+              )}
+              {...trackAttrs("cta_click", {
+                cta: "room-as-guest",
+                location: "hub-cards",
+              })}
+            >
+              <Smartphone
+                className="size-4 shrink-0 text-muted-foreground"
+                aria-hidden
+              />
+              {stuck ? (
+                <span className="text-xs font-medium">
+                  {AS_GUEST_DOOR.label}
+                </span>
+              ) : (
+                <span className="font-heading text-card-title">
+                  {AS_GUEST_DOOR.label}
+                </span>
+              )}
+              <span
+                className={cn(
+                  "truncate text-xs text-muted-foreground",
+                  ROOM_CARD_VALUE,
+                  stuck && "hidden",
+                )}
+              >
+                What they see
+              </span>
+            </Link>
+
             {/* SHARE'S PLACE IN THE STICKY ROW (his `nav` note asked for "a creative way to get share
               in there if it doesn't have a card"): the code as a chip, which exists ONLY while the
               head's code is off screen and the band has stuck, so at rest nothing is duplicated and the
@@ -303,6 +348,54 @@ export function EventCardsRow({
 }
 
 const NO_STILLS: readonly HeadStill[] = [];
+
+/**
+ * A DOOR INTO A ROOM OVER THE HUB: its real address (`roomHref`, so a modified click opens the hub with the room in a
+ * tab of its own), the ordinary press opening the room in place, and the room's intent: its chunk as a pointer comes
+ * over the door or a keyboard lands on it, and what it will show as the press begins.
+ */
+function roomDoor(
+  eventId: string,
+  room: EventSheet,
+  openSheet: (room: EventSheet) => void,
+  album: HubAlbum | null,
+): {
+  href: string;
+  onClick: (e: ReactMouseEvent) => void;
+  onPointerEnter: () => void;
+  onFocus: () => void;
+  onPointerDown: (e: ReactPointerEvent) => void;
+} {
+  return {
+    href: roomHref(eventId, room),
+    onClick: (e) => {
+      // Let a modified click be a real navigation.
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+      e.preventDefault();
+      openSheet(room);
+    },
+    onPointerEnter: () => warmRoom(room),
+    onFocus: () => warmRoom(room),
+    onPointerDown: (e) => {
+      if (e.button !== 0) return;
+      if (room === "guests") prefetchGuestsRoom(eventId);
+      if (room === "review") warmReviewQueue(album);
+    },
+  };
+}
+
+/**
+ * REVIEW'S QUEUE, ASKED FOR AS THE PRESS BEGINS: the links of every upload waiting, from the hub's own album (the
+ * room seeds its queue from them), so the room opens on its tiles rather than on their shimmer.
+ */
+function warmReviewQueue(album: HubAlbum | null) {
+  if (!album) return;
+  const snap = album.store.getSnapshot();
+  const entries =
+    snap.status === "ready" ? snap.entries : album.seedSnapshot.entries;
+  const waiting = entries.filter((e) => e[3] & ENTRY_PENDING).map(entryId);
+  if (waiting.length > 0) void album.store.links.ensure(waiting);
+}
 
 /**
  * STUCK, AND THE FOOTPRINT THAT KEEPS IT HONEST. Stuck is "the row has reached

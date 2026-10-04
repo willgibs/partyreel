@@ -59,14 +59,16 @@ describe("the host's own cap on the album's read (20261001233000)", () => {
   // src/lib/disposable/migration-guards.test.ts): the cap keeps its place, after every column the deployed build
   // reads, and the build that reads the cap reads it where it always has.
   it("returns max_upload_bytes after every column the deployed build reads", () => {
+    // ★ Reshaped on purpose by event-dates (20261003120000), the read's newest file: a range's last day follows the
+    // develop's four, and the cap still follows every column the deployed build reads.
     const { file, text } = create();
-    expect(file).toBe("20261002200000_disposable_foundation.sql");
+    expect(file).toBe("20261003120000_event_end_date.sql");
     expect(text).toContain(
-      "returns table( id uuid, name text, description text, moderation_mode public.moderation_mode, visibility public.event_visibility, has_password boolean, accepting_uploads boolean, require_verified_email boolean, require_upload_to_view boolean, event_date date, qr_style text, qr_token text, custom_slug text, host_display_name text, show_reel boolean, reel_style_id text, reel_hold_sec numeric, accepts_video boolean, max_upload_bytes bigint, develop_due boolean, develops_at timestamptz, capture text, roll_size integer)",
+      "returns table( id uuid, name text, description text, moderation_mode public.moderation_mode, visibility public.event_visibility, has_password boolean, accepting_uploads boolean, require_verified_email boolean, require_upload_to_view boolean, event_date date, qr_style text, qr_token text, custom_slug text, host_display_name text, show_reel boolean, reel_style_id text, reel_hold_sec numeric, accepts_video boolean, max_upload_bytes bigint, develop_due boolean, develops_at timestamptz, capture text, roll_size integer, event_end_date date)",
     );
-    // The value is the event's own column, unredacted (a presentation setting, as the switches are), last.
+    // The value is the event's own column, unredacted (a presentation setting, as the switches are).
     expect(text).toContain(
-      "(e.allow_videos and coalesce(p.tier <> 'free', false)), e.max_upload_bytes, public.seal_disagrees(e), e.develops_at, e.capture, e.roll_size from public.events e",
+      "(e.allow_videos and coalesce(p.tier <> 'free', false)), e.max_upload_bytes, public.seal_disagrees(e), e.develops_at, e.capture, e.roll_size, case when r.hide_meta then null else e.event_end_date end from public.events e",
     );
   });
 

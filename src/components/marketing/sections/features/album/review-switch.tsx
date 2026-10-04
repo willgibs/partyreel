@@ -167,7 +167,7 @@ export function ReviewSwitch() {
               className="mx-auto mt-2 flex w-fit max-w-full items-center gap-1.5 rounded-full border bg-popover/95 px-2 py-1 text-[10px] leading-none font-medium"
             >
               <Clock className="size-3 shrink-0 text-warning" />
-              <span className="truncate">Waiting for approval</span>
+              <span className="truncate">Developing</span>
             </span>
           </Plate>
 

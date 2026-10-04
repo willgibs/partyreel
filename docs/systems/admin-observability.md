@@ -4,6 +4,7 @@ Open this before you:
 - add or change an admin surface, action or page;
 - touch the admin's sign-in, its MFA or the two-deployment perimeter;
 - add a backend job, a kill switch or anything else that must report its health;
+- change a spend guard: a reading, a floor, a ceiling or a switch the spend watch pauses;
 - add a Sentry capture.
 
 Elsewhere: host-side moderation ([host-app.md](host-app.md)), the forensic surface and the CSAM runbook
@@ -112,13 +113,17 @@ three definitions of healthy:
 - **The kill switches fail differently on purpose.** The purge cron and its sub-sweeps fail CLOSED on an unreadable
   switch (they delete, and a skipped day costs nothing); the backup reconcile and the DB-backup Action fail OPEN (a
   missing backup is worse than a missing log line); the prune fails CLOSED (it deletes from the last-resort copy); the
-  live reel's platform lever fails OPEN (a flaky read must not take the reel off every album, [reel.md](reel.md)).
+  live reel's platform lever fails OPEN (a flaky read must not take the reel off every album, [reel.md](reel.md));
+  guest uploads (`uploads_enabled`) fail OPEN (a switch nobody can read never stops a party); lifecycle mail
+  (`lifecycle_mail_enabled`) fails CLOSED for the mail it holds (held mail goes the next night); the spend watch's own
+  switch fails to the middle (unreadable, it reads and alerts but pauses nothing). A row not seeded yet reads as on.
 - ★ **The missed-run signal rides the purge cron,** the only scheduled app-side code: each run checks every job for a
   terminal row within 1.5 times its cadence and raises one `job_missed_run` warning per silent job, judged by
   `jobHealth`. ★ **A freshness rule can page only on SILENCE,** so the kinds that are never silent alert at their
-  source: a depth reading raises `job_dead_letters_pending` or `job_queue_backlog` inside `/api/internal/job-run` as
-  the Worker hands it over, and a signal failure raises where it happens (`jobs/failure-log.ts`). `jobHealth` without
-  its inputs returns `never`, not `missed`, so the scan never pages on a number it did not take.
+  source: a depth reading raises `job_dead_letters_pending` or `job_queue_backlog` inside `/api/internal/job-run` as the
+  Worker hands it over, as does a held backup prune (`backup_prune_held` and the ops mail), and a signal failure raises
+  where it happens (`jobs/failure-log.ts`). `jobHealth` without its inputs returns `never`, not `missed`, so the scan
+  never pages on a number it did not take.
 - **A sub-sweep is a job:** the purge sweeps that loop over accounts (orphans, account deletion, inactivity,
   over-capacity), the album change log's prune (`purge_album_log`, which writes in the album's live core) and the
   develop (`develop_rolls`, which reveals photographs) open and close their own row inside the parent run through
@@ -131,9 +136,9 @@ three definitions of healthy:
   counted `remaining` where it can take one), and `jobHealth` turns a finished `ok` run carrying it into `attention`
   (a failure, a pause or a missed run still outranks it), so the band and the bell show a backlog that outlasts a
   night. The card leads with `remaining` and never prints a rotating sweep's resume cursor.
-- **A tripped orphan breaker reads attention too:** it deletes nothing, fires its Sentry error and the email, and closes
-  its run `ok` carrying `breaker_tripped`, which `jobHealth` reads as `attention` (a failure, a pause or a missed run
-  outranks it).
+- **A tripped breaker reads attention too:** the orphan sweep's deletes nothing, fires its Sentry error and the email,
+  and closes its run `ok` carrying `breaker_tripped`, which `jobHealth` reads as `attention` (a failure, a pause or a
+  missed run outranks it); the spend watch sets the same key while a reading trips or a pause of its own stands.
 - **A signal's failure count is a floor, not a census:** the log damps a burst to one row per quarter hour per
   instance, so a database outage cannot storm the table the console reads; Sentry still gets every event.
 - **Heartbeat writes degrade; health reads do not.** A job must not die because its bookkeeping failed, so writes
@@ -142,13 +147,64 @@ three definitions of healthy:
   failure this surface exists to prevent.
 - **A job that cannot reach the database** (the backup Worker, the GitHub Action) reports through
   `/api/internal/job-run` with the internal-jobs bearer (`PRUNE_API_SECRET`). The endpoint can pause a job but never
-  start one, so those jobs show no Run now (a button that lies is worse than a sentence that explains), and only a
-  `scheduled` job may open a run there, since a start against a signal or a reading would leave a `running` row
-  nothing closes. ★ The export Worker is the exception: its daily heartbeat (the `export` job) rides its own signed
-  report (`/api/export/report`, [uploads-and-r2.md](uploads-and-r2.md)) and is written as one closed row, so a Worker
-  whose export secret drifted from the app's reads Missed, where a second bearer would have let it check in healthy.
+  start one, so those jobs show no Run now (a button that lies is worse than a sentence that explains); its one other
+  answer is the backup prune's release stamp, carried as its run starts (Release the hold, on its card,
+  [durability-backups.md](durability-backups.md)), and only a `scheduled` job may open a run there, since a start
+  against a signal or a reading would leave a `running` row nothing closes. ★ The export Worker is the exception: its
+  daily heartbeat (the `export` job) rides its own signed report (`/api/export/report`,
+  [uploads-and-r2.md](uploads-and-r2.md)) and is written as one closed row, so a Worker whose export secret drifted from
+  the app's reads Missed, where a second bearer would have let it check in healthy.
 - ★ **A missing reading is never a zero:** an unreadable queue contributes no key and the card says "No reading", and
   a stale reading inherits its source's health.
+
+## The spend watch
+
+Supabase has no budget alert and no ceiling but its on/off spend cap, and Cloudflare has no cap at all, so our own
+guard is a circuit breaker, not a budget: `spend_watch` (a scheduled job, its own route `/api/cron/spend-watch` and
+its own cron, never a ride on the purge's, since it must run while the purge is paused and may be the one pausing it)
+reads our own counters, judges each against a ceiling, and pauses the switch that stops its vector where a false alarm
+costs no guest's moment. The rules are pure (`lib/jobs/spend-watch.ts`); the run reads, writes and tells
+(`spend-watch-run.ts`); the card is `app/admin/jobs/spend-watch-card.tsx`.
+- **The readings,** in one call (`spend_watch_readings`, INVOKER, service role only; the auth.users count its one
+  DEFINER helper, `spend_watch_sign_ins`): the ingress meter's platform totals (`storage_ledger`, this period and the
+  last) and every album's change counters (`album_state`), both SNAPSHOTS the run diffs against its last reading at
+  least an hour and at most two days old, as rates an hour (the meter never refunds, so an upload deleted again still
+  counts); and over the last 24 hours the lifecycle mail (`sent_emails`, the kinds of `email/send-kinds.ts`), the
+  accounts signed in (`last_sign_in_at`, a floor of sign-ins), the zips minted (`export_log`) and the purge's working
+  runs (`job_runs`). Beside them, the one vendor reading our tokens can take: Resend's own sent-mail list, every sender
+  (Supabase Auth's sign-in codes ride its SMTP), paged to at most 3,000 and an "at least" past it.
+- ★ **What could not be read:** Supabase's usage (Realtime messages, MAU, egress) needs a Management API personal token,
+  which the app holds none of; R2 and Workers need a Cloudflare API token (the app holds R2's S3 keys only, which read
+  no usage); Vercel and Sentry hold no runtime token either; Resend's quota headers come back only on a send. Each is
+  watched by its own dashboard's alert, which is the Orchestrator's and Will's to set.
+- **The ceiling** is ten times the busiest reading of the trailing week, never under the reading's floor (what a quiet
+  week cannot reach) and never past a vendor's own hard stop (Resend's free day stops at 100, the alerts' mail with it,
+  so its reading caps at 80; `RESEND_DAILY_QUOTA` goes null at the Pro cutover). Strictly past the ceiling trips.
+- ★ **A trip never raises its own ceiling:** the week's busiest leaves out every reading that tripped, so a runaway is
+  never the new normal. ★ **A missing reading is never a zero:** a section the database could not answer is missing
+  alone (each traps its own error), says why on the card, never trips, never feeds a ceiling, and closes the run as an
+  error; a counter with no baseline yet is warming (a first run, or a gap past two days).
+- **What a trip does** (`planActions`): it pauses lifecycle mail, Download all or the purge sweep on its own, but only on
+  a NEW trip, so a person who turns a switch back on mid-trip is not overridden every hour; for uploads it alerts and
+  the card offers the switch, since a false alarm would stop a real party; sign-ins, album changes and Resend's count
+  only alert. Every trip raises one Sentry error a run and the ops mail at most once a day per set of readings
+  (`spendWatchEmail`), which says what it paused and what it left for a person.
+- ★ **The watch never lifts its own pause:** a pause stays its own while the switch is off at the instant it wrote
+  (`ops_flags.updated_at`), and its run carries `breaker_tripped` (Needs a look, the bell, the band) until a person turns
+  it back on or touches it. A switch an operator turned off is never re-stamped. Guest uploads off, whoever paused
+  them, holds it at attention too: every guest is refused while it lasts, so a forgotten pause keeps ringing.
+- **The two switches it introduced:** guest uploads, read first at the guest presign (`uploads_paused`, a 503 in
+  Partyreel's words that says nothing about the album; a file already presigned completes; a host's own uploads are
+  untouched); lifecycle mail, read by `sendOnce` before the claim, holding only the mail a sweep re-sends while its
+  state lasts (the inactivity warning, the over-cap reminder, the renewal nudge): a held mail claims nothing and goes
+  the first night after the switch is back on. A one-time notice (an idle event put in Deleted, a grace opened, a plan
+  reduced) and every operator mail always send, since a held notice would be lost for good. `send-kinds.test.ts` holds
+  every send's kind to exactly one list.
+- **Who watches the watchman:** the purge cron's freshness scan pages on every job's silence but its own; the watch,
+  the other scheduled app-side code, raises the purge's `job_missed_run` in the scan's own words.
+- **Cadence:** daily at 05:00 UTC before launch (Hobby fires it within the hour, after the purge's hour has sent the
+  night's mail); hourly at launch (`0 * * * *` in `vercel.json` and the catalog, Pro), when the rates become true
+  hours. Before its migration applies, every database reading reads missing and the run fails, never a quiet night.
 
 ## Reports
 

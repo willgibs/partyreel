@@ -46,13 +46,9 @@ import {
 import { UPLOAD_FAILED_HELP_HREF } from "@/lib/content/help-links";
 import { formatCount } from "@/lib/format/count";
 import { retryCanPass } from "@/lib/guest/upload-refusal";
-import {
-  developTimeWords,
-  NOTHING_WAITS,
-  TRACKER_SEALED_WORDS,
-  TRACKER_WORDS,
-  type UploadsWait,
-} from "@/lib/guest/upload-tracker";
+import { useWaitClock } from "@/lib/disposable/use-wait-clock";
+import { restWaitLine, waitWords } from "@/lib/disposable/wait-words";
+import { NOTHING_WAITS, type UploadsWait } from "@/lib/guest/upload-tracker";
 
 /** One file that did not go: the queue's id, its file, the server's words and their code. */
 export type UploadFailure = {
@@ -78,21 +74,18 @@ export function uploadFailureHeading(failed: number, sent: number): string {
 /**
  * ★ WHAT THE SHEET SAYS OF EVERYTHING ELSE, TRUE WHERE IT IS SAID (red-team 44's LOW, and 43's before it): the rest is
  * in the host's album where what she adds shows at once; where it waits (`waits`, the page's `addsWaitFor`), nothing
- * of hers is in the album yet, so it says what her uploads say of each one (`TRACKER_SEALED_WORDS`, or
- * `TRACKER_WORDS.waiting`), the develop's time in the one format the keep and her tracker say it in.
+ * of hers is in the album yet, so it says how the rest develops (the-wait r1, `model=time`, `wait-words.ts`: with
+ * everyone's at the develop time, or as the host lets it in), the time in her own clock once it is known.
  */
 export function uploadFailureElsewhere(input: {
   hostName: string;
   waits?: UploadsWait;
+  /** The reader's clock (`useWaitClock`), or null before it is known: then no time is said. */
+  nowMs?: number | null;
 }): string {
-  const { hostName, waits = NOTHING_WAITS } = input;
-  if (waits.developsAt) {
-    const when = developTimeWords(waits.developsAt);
-    return `Everything else is ${TRACKER_SEALED_WORDS.toLowerCase()}${when ? `, ${when}` : ""}.`;
-  }
-  if (waits.waits) {
-    return `Everything else is ${TRACKER_WORDS.waiting.toLowerCase()}.`;
-  }
+  const { hostName, waits = NOTHING_WAITS, nowMs = null } = input;
+  const clock = waitWords(waits, hostName);
+  if (clock) return restWaitLine(clock, nowMs);
   return `Everything else is in ${hostName}’s album.`;
 }
 
@@ -237,6 +230,7 @@ export function UploadFailureSheet({
     setLatched({ failures, sent });
   }
   const shown = open && failures.length > 0 ? { failures, sent } : latched;
+  const nowMs = useWaitClock();
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -246,7 +240,7 @@ export function UploadFailureSheet({
             {uploadFailureHeading(shown.failures.length, shown.sent)}
           </SheetTitle>
           <SheetDescription>
-            {uploadFailureElsewhere({ hostName, waits })}
+            {uploadFailureElsewhere({ hostName, waits, nowMs })}
           </SheetDescription>
         </SheetHeader>
 

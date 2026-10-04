@@ -14,7 +14,9 @@ const EID = "11111111-1111-1111-1111-111111111111";
 const MID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
 const KEY = `events/${EID}/photo/${MID}/original.jpg`;
 
-function payload(over: Partial<ExportManifestPayload> = {}): ExportManifestPayload {
+function payload(
+  over: Partial<ExportManifestPayload> = {},
+): ExportManifestPayload {
   return {
     v: EXPORT_TOKEN_VERSION,
     jti: "abc123",
@@ -30,16 +32,35 @@ function payload(over: Partial<ExportManifestPayload> = {}): ExportManifestPaylo
 describe("isValidExportKey", () => {
   it("accepts a canonical original/preview key", () => {
     expect(isValidExportKey(KEY)).toBe(true);
-    expect(isValidExportKey(`events/${EID}/video/${MID}/preview.webp`)).toBe(true);
+    expect(isValidExportKey(`events/${EID}/video/${MID}/preview.webp`)).toBe(
+      true,
+    );
   });
 
   it("rejects traversal, non-event, wrong-kind, and bad-shape keys", () => {
     expect(isValidExportKey(`avatars/${MID}/x.jpg`)).toBe(false);
-    expect(isValidExportKey(`events/${EID}/photo/${MID}/../secret.jpg`)).toBe(false);
-    expect(isValidExportKey(`events/${EID}/audio/${MID}/original.mp3`)).toBe(false);
-    expect(isValidExportKey(`events/not-a-uuid/photo/${MID}/original.jpg`)).toBe(false);
+    expect(isValidExportKey(`events/${EID}/photo/${MID}/../secret.jpg`)).toBe(
+      false,
+    );
+    expect(isValidExportKey(`events/${EID}/audio/${MID}/original.mp3`)).toBe(
+      false,
+    );
+    expect(
+      isValidExportKey(`events/not-a-uuid/photo/${MID}/original.jpg`),
+    ).toBe(false);
     expect(isValidExportKey(`events/${EID}/photo/${MID}/original`)).toBe(false);
-    expect(isValidExportKey(`events/${EID}/photo/${MID}/hacked.jpg`)).toBe(false);
+    expect(isValidExportKey(`events/${EID}/photo/${MID}/hacked.jpg`)).toBe(
+      false,
+    );
+  });
+
+  it("accepts a photograph's phone-size copy, the third stored copy (take-home r1)", () => {
+    expect(isValidExportKey(`events/${EID}/photo/${MID}/phone.jpg`)).toBe(true);
+    // The one new word, nothing wider.
+    expect(isValidExportKey(`events/${EID}/photo/${MID}/phones.jpg`)).toBe(
+      false,
+    );
+    expect(isValidExportKey(`events/${EID}/photo/${MID}/phone`)).toBe(false);
   });
 });
 

@@ -4,7 +4,7 @@
  * `MAX_ROWS` ids a call; and the one legal-hold question the event-level purges ask.
  *
  * R2 FIRST (load-bearing): deleting a row, or the event row that cascades to it, destroys the
- * `original_key` / `preview_key` the object delete still needs. R2-then-rows also makes a crash
+ * `original_key` / `preview_key` / `phone_key` the object delete still needs. R2-then-rows also makes a crash
  * recoverable: a row whose object is gone is retried (deleting an absent key is a success), and an
  * object whose row is gone is caught by the orphan sweep. A partial R2 failure still purges the rows
  * (the orphan sweep is the backstop for a stranded object) and is counted in `r2_errored`.
@@ -33,12 +33,29 @@ import type { createAdminClient } from "@/lib/supabase/admin";
 
 export type AdminClient = ReturnType<typeof createAdminClient>;
 
-/** A media row as the purge needs it: its id and the two object keys it may own. */
+/**
+ * A media row as the purge needs it: its id and the three object keys it may own, its original, the
+ * tile's preview and the phone-size copy (take-home r1). ★ EVERY PURGE READS ALL THREE, by
+ * `MEDIA_KEY_COLUMNS`: a key the read leaves out is an object no purge ever deletes, under a row that is
+ * gone (the orphan sweep reclaims it only after the row, and never while it stands).
+ * `stored-copies-policy.test.ts` refuses a reader of `preview_key` that never names `phone_key`.
+ */
 export type MediaKeyRow = {
   id: string;
   original_key: string;
   preview_key: string | null;
+  phone_key: string | null;
 };
+
+/**
+ * The columns every purge reads a row's objects by, and exactly the ones `mediaKeysOf` deletes.
+ *
+ * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `media.phone_key` arrives with migration 20261003110000,
+ * so each purge read that names it types its rows itself (`.overrideTypes<MediaKeyRow[], { merge: false
+ * }>()`, or the row type it reads beside them); drop the overrides once `src/lib/db/types.ts` knows the
+ * column (the select's own type is the row again).
+ */
+export const MEDIA_KEY_COLUMNS = "id, original_key, preview_key, phone_key";
 
 /** What a reclaim did, in the shape every sweep's tally reports. */
 export type Reclaimed = {
@@ -60,14 +77,46 @@ export function addReclaimed(into: Reclaimed, more: Reclaimed): void {
   into.freed_bytes += more.freed_bytes;
 }
 
-/** Every object key the rows own: the original always, the preview when there is one. */
+/** Every object key the rows own: the original always, the preview and the phone copy when there are. */
 export function mediaKeysOf(rows: readonly MediaKeyRow[]): string[] {
   const keys: string[] = [];
   for (const row of rows) {
     keys.push(row.original_key);
     if (row.preview_key) keys.push(row.preview_key);
+    if (row.phone_key) keys.push(row.phone_key);
   }
   return keys;
+}
+
+/**
+ * THE PHONE-SIZE COPIES OF ROWS A CALLER ALREADY HOLDS BY ID: a host's own bin is read under her RLS, which
+ * cannot see `phone_key` (no client role holds it, `20261003110000`), so the service role reads the copies of
+ * exactly the rows her read proved hers, `IN_CHUNK` ids a request. A failed read throws: a purge that cannot
+ * know every object a row owns deletes none of them.
+ */
+export async function readPhoneKeys(
+  admin: AdminClient,
+  ids: readonly string[],
+): Promise<Map<string, string>> {
+  const rows = await inChunks("media: phone copies", ids, async (chunk) =>
+    (
+      (await mustQuery(
+        admin
+          .from("media")
+          .select("id, phone_key")
+          .in("id", chunk)
+          // The typed seam (`MEDIA_KEY_COLUMNS`), until the types know `phone_key`.
+          .overrideTypes<
+            { id: string; phone_key: string | null }[],
+            { merge: false }
+          >(),
+        "media: phone copies",
+      )) ?? []
+    ).filter((row): row is { id: string; phone_key: string } =>
+      Boolean(row.phone_key),
+    ),
+  );
+  return new Map(rows.map((row) => [row.id, row.phone_key]));
 }
 
 /**

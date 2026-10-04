@@ -1,10 +1,14 @@
 import { type LucideIcon } from "lucide-react";
 
-// The shared empty / teaser BODY — Will ratified the Reel treatment (centered, card-LESS, the size-12 muted
-// icon circle) over the old bordered Review cards ("I prefer the Reel one", 2026-06-22). It always sits UNDER
-// its section's head (a FeedSectionHeader, or the Review room's own title), never replacing it, so the head
-// keeps a constant top offset whether the section is full or empty (part of the no-bounce contract). `data-arrive` = the existing fade-rise entrance
-// the B=Fade swap re-fires. An optional centered `action` drops under the copy (the Review "Turn on review").
+import { Empty } from "@/components/ui/empty";
+
+// The shared empty / teaser BODY: the one empty place (`ui/empty.tsx`, identity r2's `one-empty`),
+// centred and card-LESS as Will ratified for the Reel ("I prefer the Reel one", 2026-06-22), its glyph in
+// the lens. It always sits UNDER its section's head (a FeedSectionHeader, or the Review room's own title),
+// never replacing it, so the head keeps a constant top offset whether the section is full or empty (part
+// of the no-bounce contract), and its title is a line under that head rather than a second heading.
+// `data-arrive` = the existing fade-rise entrance the B=Fade swap re-fires. An optional centered `action`
+// drops under the copy (the Review "Turn on review").
 export function FeedSectionEmpty({
   icon: Icon,
   title,
@@ -17,18 +21,13 @@ export function FeedSectionEmpty({
   action?: React.ReactNode;
 }) {
   return (
-    <div
+    <Empty
       data-arrive
-      className="flex flex-col items-center gap-3 py-10 text-center"
-    >
-      <span className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
-        <Icon className="size-6" />
-      </span>
-      <div className="space-y-1">
-        <p className="text-sm font-medium">{title}</p>
-        <p className="max-w-sm text-sm text-muted-foreground">{desc}</p>
-      </div>
-      {action ? <div className="pt-1">{action}</div> : null}
-    </div>
+      icon={<Icon />}
+      title={title}
+      titleAs="p"
+      line={desc}
+      action={action}
+    />
   );
 }

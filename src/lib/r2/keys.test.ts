@@ -9,6 +9,9 @@ import {
   parseKindFromKey,
   parseMediaIdFromKey,
   parseVariantFromKey,
+  DERIVED_COPY_RE,
+  isDerivedCopyKey,
+  phoneKeyFor,
   preservedForensicsKey,
   preservedOriginalKey,
 } from "@/lib/r2/keys";
@@ -252,5 +255,92 @@ describe("parseExtFromKey", () => {
     expect(parseExtFromKey("events/e/photo/m/original")).toBeNull(); // no dot
     expect(parseExtFromKey("no-slashes-no-dot")).toBeNull();
     expect(parseExtFromKey("events/e/photo/m/.hidden")).toBeNull(); // dotfile, no name
+  });
+});
+
+describe("the phone-size copy: the third variant (take-home r1)", () => {
+  const EVENT_ID = "11111111-2222-3333-4444-555555555555";
+  const MEDIA_ID = "0a8b3c2d-1e4f-4a6b-8c9d-0e1f2a3b4c5d";
+
+  it("lives beside its photograph's original and preview, a JPEG named phone", () => {
+    expect(phoneKeyFor({ eventId: EVENT_ID, mediaId: MEDIA_ID })).toBe(
+      `events/${EVENT_ID}/photo/${MEDIA_ID}/phone.jpg`,
+    );
+    expect(
+      mediaObjectKey({
+        eventId: EVENT_ID,
+        mediaId: MEDIA_ID,
+        kind: "photo",
+        variant: "phone",
+        ext: "jpg",
+      }),
+    ).toBe(phoneKeyFor({ eventId: EVENT_ID, mediaId: MEDIA_ID }));
+  });
+
+  it("parses back to its variant, its kind, its photograph and its event, so every purge and sweep knows it", () => {
+    const key = phoneKeyFor({ eventId: EVENT_ID, mediaId: MEDIA_ID });
+    expect(parseVariantFromKey(key)).toBe("phone");
+    expect(parseKindFromKey(key)).toBe("photo");
+    expect(parseMediaIdFromKey(key)).toBe(MEDIA_ID);
+    expect(parseEventIdFromKey(key)).toBe(EVENT_ID);
+    expect(parseExtFromKey(key)).toBe("jpg");
+    expect(isValidMediaKey(key, EVENT_ID)).toBe(true);
+  });
+
+  it("is the one new name: any other variant word stays unknown", () => {
+    for (const word of ["phones", "phone-size", "small", "thumb", "Phone"]) {
+      expect(
+        parseVariantFromKey(`events/${EVENT_ID}/photo/${MEDIA_ID}/${word}.jpg`),
+        word,
+      ).toBeNull();
+    }
+  });
+});
+
+describe("a derived copy reads from its key alone (the backup's originals-only lever)", () => {
+  const EVENT_ID = "11111111-2222-3333-4444-555555555555";
+  const MEDIA_ID = "0a8b3c2d-1e4f-4a6b-8c9d-0e1f2a3b4c5d";
+  const key = (
+    kind: "photo" | "video",
+    variant: "original" | "preview" | "phone",
+    ext: string,
+  ) =>
+    mediaObjectKey({
+      eventId: EVENT_ID,
+      mediaId: MEDIA_ID,
+      kind,
+      variant,
+      ext,
+    });
+
+  it("names the preview and the phone copy, never an original", () => {
+    expect(isDerivedCopyKey(key("photo", "preview", "webp"))).toBe(true);
+    expect(isDerivedCopyKey(key("video", "preview", "webp"))).toBe(true);
+    expect(
+      isDerivedCopyKey(phoneKeyFor({ eventId: EVENT_ID, mediaId: MEDIA_ID })),
+    ).toBe(true);
+    for (const ext of ["jpg", "heic", "png", "mov", "mp4"]) {
+      expect(isDerivedCopyKey(key("photo", "original", ext))).toBe(false);
+      expect(isDerivedCopyKey(key("video", "original", ext))).toBe(false);
+    }
+  });
+
+  it("the Worker's one-line pattern answers exactly as the key's own reading does", () => {
+    const keys = [
+      key("photo", "original", "jpg"),
+      key("photo", "original", "heic"),
+      key("video", "original", "mov"),
+      key("photo", "preview", "webp"),
+      key("video", "preview", "webp"),
+      phoneKeyFor({ eventId: EVENT_ID, mediaId: MEDIA_ID }),
+      `events/${EVENT_ID}/reel/${MEDIA_ID}/preview.webp`,
+      `events/${EVENT_ID}/photo/${MEDIA_ID}/phones.jpg`,
+      `events/${EVENT_ID}/photo/${MEDIA_ID}/extra/phone.jpg`,
+      `${PRESERVATION_PREFIX}${EVENT_ID}/${MEDIA_ID}/original.jpg`,
+      "avatars/u/avatar.webp",
+    ];
+    for (const k of keys) {
+      expect(DERIVED_COPY_RE.test(k), k).toBe(isDerivedCopyKey(k));
+    }
   });
 });

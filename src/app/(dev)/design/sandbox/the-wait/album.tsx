@@ -1,12 +1,9 @@
 "use client";
 
-import { type CSSProperties, type ReactNode, useState } from "react";
+import type { CSSProperties, ReactNode, Ref } from "react";
 import {
-  ArrowUp,
   Camera,
-  Clock,
-  Download,
-  ImageUp,
+  ListChecks,
   Play,
   QrCode,
   SlidersHorizontal,
@@ -14,52 +11,48 @@ import {
 
 import {
   AlbumCover,
-  EventHead,
   HeadStills,
 } from "@/components/guest/event-experience-head";
-import { GuestActionDock } from "@/components/guest/guest-action-dock";
-import {
-  createUploadTrackerStore,
-  UploadTrackerButton,
-} from "@/components/guest/upload-tracker";
 import { Logo } from "@/components/shared/logo";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { coverEyebrow } from "@/lib/disposable/wait-words";
 import { formatMediaCount } from "@/lib/format/count";
-import { GLASS_MARK, GLASS_MARK_LIT } from "@/lib/glass";
-import { cn, formatEventDate } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
-import { EVENT, MAYA, PRIYA, type Shot, type Still } from "./fixtures";
-import { ScrolledTo } from "./scene";
+import {
+  COVER_STILLS,
+  DEVELOPS_AT,
+  EVENT,
+  MAYA,
+  type Photo,
+  PRIYA,
+  ROLL_SIZE,
+} from "./fixtures";
+import type { Tile } from "./geometry";
+import { at, usePlay } from "./motion";
 
 /**
- * PRODUCTION'S ALBUM, AS A GUEST MEETS IT, with only the wait drawn in.
+ * PRODUCTION'S PAGE, AS A GUEST MEETS IT THE MORNING AFTER (`event-experience.tsx`):
+ * the guest's header standing on the cover, the cover (the real `AlbumCover`,
+ * its word over the name read by the real `coverEyebrow`), and under it the
+ * album's box, the window's width less its gutter, where the sheet stood all
+ * night and the album now stands. Every press is inert.
  *
- * The page is production's two boxes (`event-experience.tsx`): the cover
- * (`AlbumCover`, the real component, on the house light while nothing is
- * hers to see) reaching up under the guest's header, its actions (Add photos,
- * or Take photos on an album's camera, white on the light, her uploads' round,
- * Invite in glass), then the album in `BLEED`, the window's width less its
- * gutter. Past the cover's row, the shutter (`GuestActionDock`, the real
- * component) stands at the foot, wearing the camera on a camera's album.
- *
- * ★ THE ONLY NEW THING ON A FRAME IS WHAT THE OPTION DRAWS UNDER THE COVER (or,
- * for the cover's own option, in it). Every other pixel is production's, so a
- * flip between options moves the wait and nothing else.
+ * ★ THE ONLY NEW THING ON A FRAME IS WHAT THE OPTION DRAWS (the develop, the
+ * darkroom, the premiere). The cover, its actions and the album's rows are
+ * production's; the album's head row and its tiles are quoted from
+ * `live-gallery.tsx` and `album-tile.tsx` line for line, laid where the rows
+ * engine lays them (`geometry.ts`), because a quoted tile can be moved and a
+ * windowed one cannot.
  */
 
 /** Production's album box: 12px gutter at a phone, 20px from 640. */
 export const BLEED = "px-3 sm:px-5";
 
-/** The cover's height at a phone and a desk (`EventHead`'s clamp, 34rem at both of the board's screens). */
-export const COVER_PX = 544;
-
 /* ── the header on the cover, quoted ───────────────────────────────────── */
 
-/**
- * The guest's header standing on the cover (`guest-header.tsx`, `over`): the
- * wordmark and the name she typed at the door, white, no rule.
- */
+/** The guest's header standing on the cover (`guest-header.tsx`, `over`): the wordmark and her name, white, no rule. */
 function GuestBar() {
   return (
     <header
@@ -79,89 +72,42 @@ function GuestBar() {
   );
 }
 
-/* ── her uploads' round, with its real store ───────────────────────────── */
+/* ── the cover ─────────────────────────────────────────────────────────── */
 
 /**
- * Production's `UploadTrackerButton`, its store holding the facts it reads: whether it shows, how many of
- * hers wait, and how many of those wait for the develop (red-team 43's "Waiting to develop").
+ * THE COVER'S PHOTOGRAPHS (production's `HeadStills`, the reel's opening). A
+ * develop brings them up out of the house light they stood on all night, from
+ * bright and pale to themselves (`tw-cover-develop`, the host's Look's own
+ * curve), at `developAt` on the take's timeline; `null` is the regular open,
+ * where they settle in as production's do.
  */
-function Tracker({
-  waiting,
-  sealed,
-  look,
-}: {
-  waiting: number;
-  sealed: boolean;
-  look: "glass" | "round";
-}) {
-  const [store] = useState(() => {
-    const s = createUploadTrackerStore();
-    s.set({ show: true, waiting, sealed: sealed ? waiting : 0 });
-    return s;
-  });
-  return <UploadTrackerButton store={store} look={look} onOpen={() => {}} />;
+export function CoverGround({ developAt }: { developAt: number | null }) {
+  const stills = COVER_STILLS.map((s, i) => ({
+    id: `${s.id}-${i}`,
+    tile: s.src,
+  }));
+  if (developAt === null)
+    return (
+      <div className="absolute inset-0" data-tw-cover="open">
+        <HeadStills stills={stills} />
+      </div>
+    );
+  return (
+    <div
+      className="tw-a tw-cover-develop absolute inset-0"
+      data-tw-cover="develop"
+      style={at(developAt, {
+        "--tw-cover-d": `${developAt}ms`,
+      } as CSSProperties)}
+    >
+      <HeadStills stills={stills} />
+    </div>
+  );
 }
 
-/* ── the page ──────────────────────────────────────────────────────────── */
-
-export type CoverGround =
-  | { kind: "light" }
-  | { kind: "stills"; stills: readonly Still[] };
-
-/**
- * ONE GUEST PAGE: the header, the cover and the album, and the shutter when
- * the frame is scrolled past the cover (`scrolled`, in px of the frame's own
- * document).
- *
- * ★ THE COVER IS PRODUCTION'S `AlbumCover` UNLESS AN OPTION WRITES ON IT: a
- * style's name over the event's (`eyebrow`) or the wait's own line under the
- * byline (`line`) draw the same cover quoted (`CoverQuote`, its markup line for
- * line), since the component takes no words of an option's.
- */
-export function GuestPage({
-  wide,
-  ground = { kind: "light" },
-  mediaCount,
-  guestCount = 0,
-  waitingHers = 0,
-  sealed = false,
-  camera = false,
-  reel = false,
-  eyebrow,
-  line,
-  scrolled,
-  children,
-}: {
-  wide: boolean;
-  ground?: CoverGround;
-  /** What the album shows her (the cover's count at a desk). */
-  mediaCount: number;
-  guestCount?: number;
-  /** Hers waiting: her uploads' round and its count (production shows it where she has any). */
-  waitingHers?: number;
-  /** Hers wait for the develop rather than the host (the round's spoken words). */
-  sealed?: boolean;
-  /**
-   * The album's Add opens its camera (`capture = 'camera'`, production's `cameraAlbum`): the cover's Add says Take photos
-   * with the camera's glyph, and the shutter at the foot says and wears the same (the dock's own `camera`). A frame
-   * is never an empty album, so "Take the first photo" (an empty camera album's) is never drawn here.
-   */
-  camera?: boolean;
-  /** The album has a reel to play (the cover's round and the shutter's twin), or its premiere waits. */
-  reel?: boolean | "premiere";
-  /** A word over the event's name (a style's). */
-  eyebrow?: ReactNode;
-  /** A line under the byline, in the note's place (the wait's, where an option puts it on the cover). */
-  line?: ReactNode;
-  /** Scroll the frame's own document this far: the cover gone, the shutter up. */
-  scrolled?: number;
-  children: ReactNode;
-}) {
-  const stills =
-    ground.kind === "stills"
-      ? ground.stills.map((s, i) => ({ id: `${s.id}-${i}`, tile: s.src }))
-      : [];
-  const actions = (
+/** The cover's actions on an album's camera after its develop: Take photos, the reel, Invite. */
+function CoverActions() {
+  return (
     <>
       <Button
         type="button"
@@ -170,33 +116,17 @@ export function GuestPage({
         tabIndex={-1}
         className="min-w-0 flex-1 md:flex-none"
       >
-        {camera ? <Camera /> : <ImageUp />}{" "}
-        {camera ? "Take photos" : "Add photos"}
+        <Camera /> Take photos
       </Button>
-      {waitingHers > 0 && (
-        <Tracker waiting={waitingHers} sealed={sealed} look="glass" />
-      )}
-      {reel === "premiere" ? (
-        <Button
-          type="button"
-          variant="glass"
-          size="cta"
-          tabIndex={-1}
-          data-tw-premiere-cta=""
-        >
-          <Play className="fill-current" /> Premiere
-        </Button>
-      ) : reel ? (
-        <Button
-          type="button"
-          variant="glass"
-          size="icon-cta"
-          tabIndex={-1}
-          aria-label="Watch the highlight reel"
-        >
-          <Play className="fill-current" />
-        </Button>
-      ) : null}
+      <Button
+        type="button"
+        variant="glass"
+        size="icon-cta"
+        tabIndex={-1}
+        aria-label="Watch the highlight reel"
+      >
+        <Play className="fill-current" />
+      </Button>
       <Button
         type="button"
         variant="glass"
@@ -208,299 +138,186 @@ export function GuestPage({
       </Button>
     </>
   );
-  const ground_ = stills.length ? <HeadStills stills={stills} /> : undefined;
+}
+
+/* ── the page ──────────────────────────────────────────────────────────── */
+
+/**
+ * ONE GUEST PAGE THE MORNING AFTER: the header, the cover and the album's box.
+ * `nowMs` is the reader's clock, so the cover's word says "developed at 9 am"
+ * the morning of and "developed Sunday" a day later, as production's does.
+ */
+export function GuestPage({
+  nowMs,
+  ground,
+  above,
+  children,
+}: {
+  nowMs: number;
+  ground: ReactNode;
+  /** A layer over the whole page (the darkroom, the premiere). */
+  above?: ReactNode;
+  children: ReactNode;
+}) {
+  const eyebrow = coverEyebrow(
+    { capture: "camera", developsAt: DEVELOPS_AT },
+    nowMs,
+  );
   return (
     <div
       data-tw-page=""
       className="relative min-h-screen bg-background pb-32 text-foreground"
     >
       <GuestBar />
-      {eyebrow || line ? (
-        <CoverQuote
-          ground={ground_}
-          eyebrow={eyebrow}
-          line={line}
-          actions={actions}
-        />
-      ) : (
-        <AlbumCover
-          className="-mt-14"
-          ground={ground_}
-          name={EVENT.name}
-          host={{ name: MAYA.name, avatarUrl: null, seed: MAYA.seed }}
-          date={EVENT.date}
-          description={EVENT.note}
-          mediaCount={mediaCount}
-          guestCount={guestCount}
-          actions={actions}
-        />
-      )}
-      <div className={BLEED}>
-        <section className="mt-3" data-tw-album="">
-          {children}
-        </section>
+      <AlbumCover
+        className="-mt-14"
+        eyebrow={eyebrow}
+        ground={ground}
+        name={EVENT.name}
+        host={{ name: MAYA.name, avatarUrl: null, seed: MAYA.seed }}
+        date={EVENT.date}
+        description={EVENT.note}
+        mediaCount={ROLL_SIZE.shots}
+        guestCount={ROLL_SIZE.guests}
+        actions={<CoverActions />}
+      />
+      {/* The album's box: where the sheet stood over the rows (`AlbumWait`, `mt-5`), and the rows' own box. */}
+      <div className={cn(BLEED, "mt-5")} data-tw-album-box="">
+        {children}
       </div>
-      {scrolled !== undefined && (
-        <>
-          <ScrolledTo y={scrolled} />
-          <GuestActionDock
-            hidden={false}
-            uploadingCount={0}
-            onAdd={() => {}}
-            camera={camera}
-            more
-            invite={
-              <Button
-                type="button"
-                variant="outline"
-                size="icon-cta"
-                tabIndex={-1}
-                aria-label="Invite"
-                className="bg-background shadow-layer"
-              >
-                <QrCode />
-              </Button>
-            }
-            twin={
-              <Button
-                type="button"
-                variant="outline"
-                size="icon-cta"
-                tabIndex={-1}
-                aria-label={
-                  reel ? "Watch the highlight reel" : "Back to the top"
-                }
-                className="bg-background shadow-layer"
-              >
-                {reel ? <Play className="fill-current" /> : <ArrowUp />}
-              </Button>
-            }
-            tracker={
-              waitingHers > 0 ? (
-                <Tracker waiting={waitingHers} sealed={sealed} look="round" />
-              ) : undefined
-            }
-          />
-        </>
-      )}
-      {/* The desk's room: the wider the frame, the more album it shows. */}
-      <span hidden data-wide={wide ? "" : undefined} />
+      {above}
     </div>
   );
 }
 
-/**
- * THE COVER, QUOTED LINE FOR LINE FROM `AlbumCover` (its `EventHead`, the
- * real frame and light, and its words' markup), with the two places an option
- * writes: a word over the name and a line in the note's place.
- */
-function CoverQuote({
-  ground,
-  eyebrow,
-  line,
-  actions,
+/* ── the album, quoted ─────────────────────────────────────────────────── */
+
+/** The album's own head row (`live-gallery.tsx`): its count, Select and the one View menu. */
+export function AlbumHead({
+  className,
+  style,
 }: {
-  ground?: ReactNode;
-  eyebrow?: ReactNode;
-  line?: ReactNode;
-  actions: ReactNode;
+  className?: string;
+  style?: CSSProperties;
 }) {
   return (
-    <EventHead side="album" ground={ground} className="-mt-14">
-      <div className="px-5 pb-6 md:flex md:items-end md:justify-between md:gap-10 md:pb-9">
-        <div className="min-w-0 md:max-w-2xl">
-          {eyebrow && (
-            <p
-              data-tw-eyebrow=""
-              className="mb-2 text-label font-medium tracking-[0.14em] text-white/80 uppercase"
-            >
-              {eyebrow}
-            </p>
-          )}
-          <h1 className="font-heading text-title text-balance">{EVENT.name}</h1>
-          <p className="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-sm text-white/85">
-            <span className="flex items-center gap-2">
-              <Avatar seed={MAYA.seed} size="sm">
-                <AvatarFallback>{MAYA.name.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <span className="font-medium text-white">{MAYA.name}</span>
-            </span>
-            <span aria-hidden className="text-white/45">
-              ·
-            </span>
-            <span>{formatEventDate(EVENT.date)}</span>
-          </p>
-          {line ? (
-            <div data-tw-cover-line="" className="mt-3 max-w-xl">
-              {line}
-            </div>
-          ) : (
-            <p className="mt-3 line-clamp-2 max-w-xl text-working text-pretty text-white/80 md:line-clamp-3">
-              {EVENT.note}
-            </p>
-          )}
-        </div>
-        <div className="mt-5 flex flex-wrap items-center gap-2 md:mt-0 md:shrink-0 md:flex-row-reverse md:flex-nowrap">
-          {actions}
-        </div>
-      </div>
-    </EventHead>
-  );
-}
-
-/* ── the album's own head row, quoted ──────────────────────────────────── */
-
-/** The album's count and its quiet tools (`live-gallery.tsx`), once it has photographs. */
-export function AlbumHead({ count }: { count: number }) {
-  return (
-    <div className="mb-3 flex flex-wrap items-center justify-between gap-1.5">
-      <p className="px-0.5 text-working text-muted-foreground tabular-nums">
-        {formatMediaCount(count)}
+    <div
+      className={cn(
+        "mb-3 flex flex-wrap items-center justify-between gap-1.5",
+        className,
+      )}
+      style={style}
+      data-tw-album-head=""
+    >
+      <p
+        className="px-0.5 text-working text-muted-foreground tabular-nums"
+        data-tw-album-count=""
+      >
+        {formatMediaCount(ROLL_SIZE.shots)}
       </p>
       <div className="ml-auto flex items-center gap-1.5">
         <span className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-muted-foreground">
-          <Download className="size-4" /> Download all
+          <ListChecks className="size-4" /> Select
         </span>
-        <span className="flex size-8 items-center justify-center rounded-md text-muted-foreground">
-          <SlidersHorizontal className="size-4" />
-        </span>
+        <Button type="button" variant="outline" size="sm" tabIndex={-1}>
+          <SlidersHorizontal /> View
+        </Button>
       </div>
     </div>
   );
 }
 
-/* ── the album's rows, quoted ──────────────────────────────────────────── */
-
-/** One tile in a row: a photograph of the album, or something an option stands in the album's place. */
-export type RowItem =
-  | { kind: "photo"; still: Still; arrived?: boolean; key: string }
-  | { kind: "node"; ratio: number; node: ReactNode; key: string };
-
-/**
- * THE ALBUM'S ROWS (the shape `GalleryRows` draws: two a row at a phone, five
- * at a desk), quoted with flex so a frame needs no engine: each tile grows by
- * its own width over height from a zero basis, so a row comes out one height
- * and fills the width, as the rows engine justifies a row.
- */
-export function Rows({
-  items,
-  perRow,
+/** One of the album's photographs (`album-tile.tsx`'s box: a 2px photograph, its picture covering it). */
+export function TileBox({
+  tile,
+  bare = false,
+  className,
+  style,
+  children,
+  ref,
+  ...data
 }: {
-  items: readonly RowItem[];
-  perRow: number;
-}) {
-  const rows = Array.from(
-    { length: Math.ceil(items.length / perRow) },
-    (_, r) => items.slice(r * perRow, r * perRow + perRow),
-  );
+  tile: Tile;
+  /** Its picture is drawn by the caller (a tile that is still a square, developing). */
+  bare?: boolean;
+  className?: string;
+  style?: CSSProperties;
+  children?: ReactNode;
+  ref?: Ref<HTMLDivElement>;
+} & Record<`data-${string}`, string | undefined>) {
   return (
-    <div data-tw-rows="" className="flex flex-col gap-[var(--gap-gallery)]">
-      {rows.map((row, r) => (
-        <div key={r} className="flex gap-[var(--gap-gallery)]">
-          {row.map((item) => {
-            const ratio =
-              item.kind === "photo" ? item.still.w / item.still.h : item.ratio;
-            return (
-              <div
-                key={item.key}
-                className="relative min-w-0"
-                style={
-                  {
-                    flex: `${ratio} 1 0`,
-                    aspectRatio: `${ratio}`,
-                  } as CSSProperties
-                }
-              >
-                {item.kind === "photo" ? (
-                  <span
-                    data-tw-tile=""
-                    data-arrived={item.arrived ? "" : undefined}
-                    className="absolute inset-0 overflow-hidden rounded-tile bg-muted"
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element -- a marketing still, drawn as the album's tile */}
-                    <img
-                      src={item.still.src}
-                      alt=""
-                      draggable={false}
-                      className="absolute inset-0 size-full object-cover"
-                    />
-                    {item.arrived && (
-                      // Production's arrival light (`shared/arrival.css`), held at its peak: a rim and a
-                      // wash drawn inside the photograph, white, a light and never a colour.
-                      <span
-                        aria-hidden
-                        className="absolute inset-0 rounded-[inherit] shadow-[inset_0_0_0_2px_rgb(255_255_255/0.9),inset_0_0_26px_3px_rgb(255_255_255/0.38)]"
-                      />
-                    )}
-                  </span>
-                ) : (
-                  <div className="absolute inset-0">{item.node}</div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      ))}
+    <div
+      ref={ref}
+      {...data}
+      data-tw-tile={tile.photo.id}
+      className={cn(
+        "absolute overflow-hidden rounded-tile bg-muted",
+        className,
+      )}
+      style={{
+        left: tile.x,
+        top: tile.y,
+        width: tile.w,
+        height: tile.h,
+        ...style,
+      }}
+    >
+      {!bare && <Picture photo={tile.photo} />}
+      {children}
     </div>
   );
 }
 
-/* ── one of hers, waiting, where it stands ─────────────────────────────── */
-
-/**
- * HER PHOTO, WAITING, IN THE ALBUM: her own picture (presigned for her alone,
- * `/api/guests/mine`), lit, with one quiet mark that says it waits and for
- * whom ("Only you see it until ..."); the photo she just added carries the one
- * pass of light her own landing takes.
- */
-export function HerTile({
-  shot,
-  mark,
-  landing = false,
-  removing = false,
+/** A photograph's picture, covering its box from its own focus. */
+export function Picture({
+  photo,
   className,
+  style,
 }: {
-  shot: Shot;
-  /** The word the mark carries, or none for a bare glyph. */
-  mark?: string;
-  landing?: boolean;
-  removing?: boolean;
+  photo: Photo;
   className?: string;
+  style?: CSSProperties;
 }) {
   return (
-    <span
-      className={cn(
-        "tw-hers block size-full transition-opacity",
-        removing && "opacity-45",
-        className,
-      )}
-      data-tw-hers={shot.id}
-      data-landing={landing ? "" : undefined}
-      data-removing={removing ? "" : undefined}
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element -- her own photograph, a marketing still standing in */}
-      <img src={shot.still.src} alt="" draggable={false} />
-      <span
-        className={cn(
-          GLASS_MARK,
-          "absolute top-1.5 left-1.5 flex h-6 items-center gap-1 rounded-full px-2 text-micro font-medium text-white",
-        )}
-        data-tw-mark=""
-      >
-        <Clock className={cn(GLASS_MARK_LIT, "size-3")} aria-hidden />
-        {mark && <span className={GLASS_MARK_LIT}>{mark}</span>}
-      </span>
-      {shot.video && (
-        <span
-          className={cn(
-            GLASS_MARK,
-            "absolute right-1.5 bottom-1.5 flex h-6 items-center gap-1 rounded-full px-2 text-micro font-medium text-white tabular-nums",
-          )}
-        >
-          <Play className="size-2.5 fill-current" aria-hidden />
-          {`0:0${shot.video}`}
-        </span>
-      )}
-    </span>
+    // eslint-disable-next-line @next/next/no-img-element -- a stand-in photograph, drawn as the album draws one
+    <img
+      src={photo.picture.src}
+      alt=""
+      draggable={false}
+      decoding="async"
+      className={cn("absolute inset-0 size-full object-cover", className)}
+      style={{ objectPosition: photo.focus, ...style }}
+    />
+  );
+}
+
+/**
+ * THE ALBUM'S REGULAR OPEN (production's, mirrored so a frame can hold it at a
+ * moment): every tile fades up from a step below and a hair smaller, 240 ms on
+ * the house's emphasis curve, 45 ms apart and never more than 540 ms behind the
+ * first (`globals.css`, `[data-media-tile]`); none of it under reduced motion.
+ */
+export function OpenRows({
+  tiles,
+  height,
+  from = 0,
+}: {
+  tiles: readonly Tile[];
+  height: number;
+  /** When the open starts on the take's timeline. */
+  from?: number;
+}) {
+  const { reduced } = usePlay();
+  return (
+    <div className="relative" style={{ height }} data-tw-rows="">
+      {tiles.map((t) => (
+        <TileBox
+          key={t.photo.id}
+          tile={t}
+          className={reduced ? undefined : "tw-a tw-tile-in"}
+          style={reduced ? undefined : at(from + Math.min(t.i * 45, 540))}
+        />
+      ))}
+    </div>
   );
 }

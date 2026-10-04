@@ -14,6 +14,8 @@
  * the only place that knows what "9 am" means to her party.
  */
 
+import { lastDayOf } from "@/lib/events/dates";
+
 /** The furthest ahead a develop time may be set: a year and a day (the zod bound; the column holds a finite time). */
 export const DEVELOP_MAX_AHEAD_DAYS = 366;
 
@@ -21,19 +23,23 @@ export const DEVELOP_MAX_AHEAD_DAYS = 366;
 export const DEFAULT_DEVELOP_HOUR = 9;
 
 /**
- * 9 AM THE DAY AFTER THE PARTY, in the host's own time zone: the day after the event's date when it has one still
- * ahead (or today), else the day after today. A party on Saturday develops on Sunday morning whenever she sets it up.
+ * 9 AM THE MORNING AFTER THE PARTY, in the host's own time zone: the day after the event's LAST day (a range's end,
+ * else its date: lane `event-dates`) when it is still ahead (or today), else the day after today. A party on Saturday
+ * develops on Sunday morning, and a weekend from Friday to Sunday on Monday morning, whenever she sets it up.
  */
 export function defaultDevelopAt(input: {
-  /** `events.event_date` (`YYYY-MM-DD`), or null. */
+  /** `events.event_date` (`YYYY-MM-DD`), or null: a range's first day. */
   eventDate: string | null;
+  /** `events.event_end_date` (`YYYY-MM-DD`), or null for one day; absent reads as one day. */
+  eventEndDate?: string | null;
   now?: Date;
 }): Date {
   const now = input.now ?? new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   let base = today;
-  if (input.eventDate && /^\d{4}-\d{2}-\d{2}$/.test(input.eventDate)) {
-    const [y, m, d] = input.eventDate.split("-").map(Number);
+  const last = lastDayOf(input.eventDate, input.eventEndDate);
+  if (last) {
+    const [y, m, d] = last.split("-").map(Number);
     const party = new Date(y, m - 1, d);
     if (party.getTime() >= today.getTime()) base = party;
   }

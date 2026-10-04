@@ -32,6 +32,11 @@ photograph (`Button`'s `on-photo`), her tracker, the reel's round and **Invite**
 desk the words take the left and the actions the right. Every Add opens the ADD SHEET (`GuestUpload`'s `openAdd`,
 below). `GuestShare` is the Invite trigger onto the event's code card (the code, Copy link, the phone's own Share,
 Download). The cover is the room (`dark`, `data-surface="photo"`), so its words read the same on any photograph.
+- ★ **A word over the name names the preset** (the-wait r1, Will's `name=disposable`; `coverEyebrow`,
+  [`wait-words.ts`](../../src/lib/disposable/wait-words.ts)): "Disposable · develops at 9 am" on an album with its
+  camera and a develop time ahead, "Disposable · developed at 9 am" the morning after, "Develops at 9 am" on free
+  uploads with a develop time; nothing on any other album, and the time only in her own clock (the server's render
+  names the preset alone). The page reads the develop time it last heard (`useLiveUploadsWait`'s `developsAt`).
 - ★ **The ground is always lit.** Under every cover stands the house light (three pools of the house's coral): an
   empty album, one sealed until it develops (disposable mode: its stills never reach a guest's payload before then),
   and the beat before a still's link lands all stand on it, and the photographs dissolve in over it when there are
@@ -84,8 +89,9 @@ nothing until its owner chooses). It is due the instant a signed-out guest's fir
 door's upload step or the album's Add, never in the demo or for the host, and held while the album's camera is open
 (`keepDue` and `onCameraOpenChange`, `event-experience.tsx`: it rises the moment she closes the camera): the door
 reopens on "Sent", beside a check blooming in the album's light, over what went ("Your photo joined Maya's album.",
-or, where what she adds waits, her uploads' own words: "Your photo is waiting for approval." where uploads are held,
-"Your 2 photos are waiting to develop, Sat, Oct 3, 9:00 AM." on an album with a develop time ahead; never "joined";
+or, where what she adds waits, how it develops, in the wait's one set of words (`keepWaitLine`, `wait-words.ts`):
+"Your photo develops as Maya lets it in." where uploads are held, "Your 2 photos develop with everyone's at 9 am." on
+an album with a develop time ahead, its time in her own clock; never "joined";
 what went named as it is, a camera album's shots, elsewhere photos or videos and a mix as uploads: the page's
 `keepSent`), the ask ("Keep this event": the event by name, what she sent counted inside it, `keepCopy`; her name
 menu's card wears the same title, `KEEP_TITLE`), Confirm your email (the account door in the same held sheet, its
@@ -165,8 +171,9 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
   `onGuestCountChange`: a guest's
   own first upload moves M without a reload, and only the server can tell a first upload from a returning
   contributor's. It stays outside the ETag: whatever moves M changes the payload the ETag already hashes.
-  ★ The album carries N as its own quiet label, left of "Download all" and the View menu, worded like the
-  cover's glyph and the teaser CTA, so the page never counts one album two ways.
+  ★ The album carries N as its own quiet label, left of "Download all" and the View menu, worded as the source words
+  it (`albumCountWords`, "One true count" below) and the cover's glyph says the same, so the page never counts one album
+  two ways.
 - **The album, in justified rows** ([`gallery-rows.tsx`](../../src/components/guest/gallery-rows.tsx) over the
   SHARED `MasonryColumns` `layout="rows"` ([`shared/masonry.tsx`](../../src/components/shared/masonry.tsx)),
   windowed by [`album-window.tsx`](../../src/components/shared/album-window.tsx)): `album-columns` r2's picks (an
@@ -222,7 +229,8 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
     [`upload/failure-sheet.tsx`](../../src/components/guest/upload/failure-sheet.tsx) opens once, a line per
     file (name, the SERVER's sentence, Retry) over one `Retry all`, under a line on the rest that is true where it
     is said (`uploadFailureElsewhere` over the page's `addsWaitFor`): in the host's album where what she adds shows
-    at once, else waiting to develop, with its time, or waiting for approval. A refused file draws no tile and nothing
+    at once, else how the rest develops (`restWaitLine`: with everyone's at the develop time, or as the host lets it
+    in). A refused file draws no tile and nothing
     toasts, except the JOIN's own failure (nothing was queued). ★ **A dismissed failure LEAVES THE QUEUE,
     not just the screen**: "Not now" and every close call `useUploadQueue`'s `dismiss(ids)` for the listed
     ids, so a dismissed failure never resurrects on a later run's end; `dismiss` re-checks each id's LIVE
@@ -286,13 +294,46 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
   otherwise, so there is always exactly one Add, in the first screen. ★ A landing the server sealed until a develop
   (`mediaStatus === "sealed"`) is hers waiting like a held one, so one she has shot or sent this visit ends "the first
   photo"; where the Add opens the album's camera it says "Take the first photo" / "Take photos" with the camera glyph,
-  and the shutter's face the same (the dock's `camera`). ★ An earlier visit's waiting uploads count from
-  the first paint: on an empty album where what she adds waits (held for the host, or sealed for a develop ahead) the
-  page's server render asks whether any of hers wait (`waitingOnArrival`,
-  [`waiting-on-arrival.server.ts`](../../src/lib/guest/waiting-on-arrival.server.ts): her ticket as far as it is hers,
-  and her account), since her tracker learns them only after mount and the Add's words would move when it did. ★
+  and the shutter's face the same (the dock's `camera`). ★ Anything waiting counts from the first paint: on an album
+  empty to the eye where what is added waits (held for the host, or sealed for a develop ahead) the page's server
+  render asks whether anything waits at all, hers or anyone's (`waitingOnArrival`,
+  [`waiting.server.ts`](../../src/lib/disposable/waiting.server.ts)'s `albumWaits`: one indexed read, a yes or a no,
+  the host's own view included), so the cover never says "the first photo" over an album others have added to. ★ **And it
+  follows the sync after that** (crumbs-61, red-team 48): a guest who joined an empty album kept "Take the first photo"
+  over her own sheet of developing shots once others' shots waited, the server's read being the first paint's word, so the
+  live source tells the page each flip of whether anything waits (`onWaitingChange`, never each count: `waitsLive`) and the
+  Add says what a newcomer's does. Its words are `addWords`' ([`camera/words.ts`](../../src/lib/guest/camera/words.ts)),
+  the one home See it as a guest shares. ★ **It
+  yields to the wait** (`AlbumWaitYield`, [`gallery-empty-state-yield.tsx`](../../src/components/guest/gallery-empty-state-yield.tsx),
+  a light module so the Library's server pages still draw it): wherever the album's contact sheet stands, the promise
+  steps aside, and an album that waits with nothing in it yet keeps it. ★
   **That wrapper is `GhostRiver`, exported from this file and the ONE home of the depth**: the locked page draws the
   same picture, and two copies of a fade drift apart.
+- ★ **The album's wait: the contact sheet** (the-wait r1, Will's `wait=sheet`;
+  [`gallery-empty-state-wait.tsx`](../../src/components/guest/gallery-empty-state-wait.tsx), the drawing
+  [`gallery-empty-state-sheet.tsx`](../../src/components/guest/gallery-empty-state-sheet.tsx), the layout
+  [`contact-sheet.ts`](../../src/lib/disposable/contact-sheet.ts)): wherever what is added waits (the page's live
+  reading, `waitClock`) and something does, or she is sending to it (`waitStands`), one square a photo stands over the
+  album's rows in the order the night took them, the count and "Developing" over it, the clock under it ("As Maya lets
+  them in", "All at once tomorrow at 9 am · in 10 h 20 min", `wait-words.ts`). ★ **The clock breaks at its phrases, never
+  inside one** (crumbs-61, red-team 48's NIT: "in 17 h 5" over "min" at 375): "Yours · N" never wraps, a phone's foot gives
+  the clock a row of its own when it does not fit beside it (with tomorrow's clock a 375 phone is five pixels short), and
+  the desk's side column stacks its two phrases as two lines (`ClockWords`). ★ Everyone's squares are the sync's numbers
+  alone (`GuestFullSync.waiting`: the count and its minutes, never an id), carried by the album store's snapshot
+  (`waiting`, absent where nothing waits) and the live source (`GalleryLive.waiting`, the seed's from the first paint,
+  and a light context, `AlbumWaitingProvider`, for the wait); hers are lit with her own pictures at their minutes, as
+  her tracker publishes them (`HerShots`: this visit's file, or the tile her rows' read presigned for her alone), what
+  she is sending at the end, breathing, and her landing takes one pass of light. ★ **A video's file is no picture an
+  `<img>` can draw** (red-team 46: the browser's broken glyph from her filming until a reload): it draws as its first
+  frame, a muted, inline, paused `<video>` (`videoPosterSrc`), the poster her rows' read presigns as the still it is,
+  a picture that cannot be drawn leaves its square bare, and every video of hers wears the album tile's play mark.
+  ★ Capped: a few rows of squares at
+  its own columns (twelve at a phone to thirty at a desk, `columnsFor`), the oldest folding into one "+N" while the
+  count climbs. "Yours · N" opens her uploads. "+1 just now" says the count climbing while she looks. ★ The album's
+  one rule is the wait's line: before anything waits, where she can add, it stands in the sheet's place, in the words'
+  column ("Uploads develop all at once at 9 am.", `waitRule`), and the sheet's clock says it from the moment the sheet
+  stands (the Add slot said it beside the sheet, twice). The page mounts its source inside the album's live provider
+  (`AlbumWaitSource`, one reading for the sheet, the rule and the yield).
 - **Lightbox** (the SHARED [`media-lightbox.tsx`](../../src/components/shared/media-lightbox.tsx), its parts in
   `media-lightbox-parts/`): the photograph GROWS out of the tile it was tapped on (`origin`: the tile's rect and a
   `returnTo` that finds the tile of whichever photograph shows at close; the live reel passes its frame's rect and a
@@ -545,7 +586,13 @@ unchanged nine moves nothing else. `GalleryLiveProvider` reports that number plu
 arrived (an approved upload's optimistic tile in, the guest's own removal out: `albumCount`) through
 `onCountChange`, at `teaser` AND `full`; the CTA says the same number, "See all N photos & videos" ("Confirm your
 email to see everything" when nothing more is withheld), and so does the door (its `mediaTotal` is the header's
-live count); one item reads "1 photo or video" (`formatMediaCount`), never a "photo" that may be a video. A payload without `approvedTotal` (an older server mid-deploy) falls back to the shell's
+live count). ★ **The count names what the album holds** (crumbs-61, red-team 48's NIT: "12 photos & videos" over twelve
+photographs, where the host's Download panel said "12 photos"): where the source can see into the album (a full answer, whose
+manifest is the whole album) it is worded by the kinds in it, from the one home every set shares (`albumCountWords` over
+`setNoun`: "12 photos", "1 video", "58 photos & videos"; the provider's `countWords` for the album's line, `onCountWordsChange`
+for the cover's glyph), and always names exactly the number beside it. Where it cannot see in (a teaser's nine, a lock, an
+unread album) it says both, and one such item reads "1 photo or video" (`formatMediaCount`), never a "photo" that may be a
+video. A payload without `approvedTotal` (an older server mid-deploy) falls back to the shell's
 `stats.approvedTotal` at `teaser`, then the photo-only `teaserTotal`. At `none` no gallery mounts and no poll
 runs: the lock line says the render's head count.
 
@@ -1041,19 +1088,48 @@ had" holds only when this device holds a guest ticket a claim would move.
   provider's
   watchdog (`reportPossibleExpiry`) treats any image or reader failure as a possible expired presign (a tab
   asleep past the 90-minute expiry answers a CORS-shaped failure with no status) and re-mints only the ids
-  whose picture failed, at most once a minute each, never in the demo.
+  whose picture failed, at most once a minute each, never in the demo. ★ **A batch is one call** (album-calm): a
+  delta carries its newest upserts' links (at most `ALBUM_DELTA_LINKS_MAX`, 48, the first paint's screenful), minted
+  by the links route's own `mintGuestAlbumLinks` (`events/album-wire-links.server.ts`: the reads' gate, so a held,
+  sealed or removed id gets none), and the provider's transport answers the link store's ask for them itself
+  (`events/album-wire-carry.ts`: dated exactly as the server dated them, never past their re-mint time, once each,
+  dropped with the id, an attribution move, a manifest, a teaser or a lock). The links route stays for windows, the
+  reel tile's stills and re-mints; a failed carry is reported and costs the delta nothing. ★ **Her own upload's link is
+  minted once** (crumbs-61, red-team 48): her approved upload is in the grid the moment it lands (the optimistic tile), so
+  the window asked the links route for its link ~10 ms after her own sync began, while that very sync's delta carries it.
+  An id is OWED from `notifyUploaded` until the sync after it has answered (`owedLinks`; only her own approved upload,
+  never the demo's): an ask for it meanwhile is written down and made once the answer is in, which the carry answers
+  itself, and a sync that fails or carries no link still lets the ask go. Five uploads of one guest, measured in a real
+  browser over a modelled server: five links calls, none now.
 - **The doorbell:** the `media_gallery_doorbell` DB trigger sends a contentless `ping` on the PUBLIC
   Realtime broadcast channel `gallery:<qr_token>` whenever what a guest's album shows changes: the visible set
   (uploads, moderation flips, restores, purges) or what waits (a held upload, its approval or refusal, a row sealed
   for the develop: their count rides the sync, [disposable-mode.md](disposable-mode.md)); hidden-internal
   transitions stay silent. The token IS the channel capability; the ping carries no data, the refetch is
   access-gated server-side.
-  Client: [`use-gallery-doorbell.ts`](../../src/lib/guest/use-gallery-doorbell.ts) + a leading-edge
-  coalescer ([`refresh-coalescer.ts`](../../src/lib/guest/refresh-coalescer.ts): immediate refetch, ~2 s
-  suppression + jitter, one trailing flush for bursts).
+  Client: [`use-gallery-doorbell.ts`](../../src/lib/guest/use-gallery-doorbell.ts), the one doorbell of the guest's
+  album, the host's and the dashboard's stage. ★ **Pings land in calm batches** (album-calm, Will's yes): every ping
+  waits for the device's next tick of the batch clock ([`refresh-coalescer.ts`](../../src/lib/guest/refresh-coalescer.ts),
+  `ALBUM_BATCH_MS`, 15 s, named once), one sync a tick and none for a quiet album, the ticks at a phase each device
+  draws so a venue never asks in one stampede; her own upload, a host's own write, a return and Try again never wait.
+  ★ **A moment rings at once** (crumbs-61, red-team 48's LOW: a Develop now reached each guest on her own beat, +0.38 s to
+  +7.2 s): the ring for a write that moved many rows (`album_doorbell`: a Develop now, a develop time reached, a hold
+  released) says `{"moment": true}` (`20261003211000`) where an arrival's ping is contentless, and the device asks at once
+  (`isMoment`, the coalescer's `moment()`: the sync covers every ping heard before it, so the batch that was waiting is
+  spent). Measured on a real subscribed client: an arrival's ping waited for the tick (11.6 s and 14.2 s), a moment's asked
+  the same millisecond it arrived. A deploy ahead of the migration changes nothing (a ring that says nothing is batched).
+  ★ **A hidden tab is no listener**: it leaves the channel the moment it hides (a broadcast is billed a message a
+  listener; supabase-js closes the emptied socket 50 s later), syncs nothing on a ping, and joins again on its return
+  once any leave of its topic has landed (supabase-js hands back a channel still leaving by its topic, which never
+  subscribes again: a blink of the tab or a `key={access}` remount would sit deaf); its Live word holds up to 3 s
+  while it rejoins (`REJOIN_GRACE_MS`), so the host's pip never blinks on a return. A rejoin after the socket closed
+  shows two sockets and two joins on the wire: supabase-js's own, and harmless (the server closes the first join, and
+  the tab still hears each ping once, measured).
 - **The conditional poll** (the shared [`use-live-poll.ts`](../../src/lib/shared/use-live-poll.ts)): the
   fallback cadence keys solely off the channel state — **60 s** while `SUBSCRIBED` (a safety net), **12 s**
-  when the socket is down; it stops when the tab goes hidden and polls again when it is shown. Every poll sends
+  when the socket is down; it stops when the tab goes hidden (and never starts in a tab that opens hidden) and polls
+  once, at once, when it is shown: the hidden tab's one catch-up, what it missed arriving through the album's
+  new-media entry, its window's aged links re-minted after it, what waits counted anew. Every poll sends
   `If-None-Match`; a quiet album answers a **bare 304** having read one row, its version; a change answers the
   DELTA since the version this device holds, merged by id and checked against the server's count read in the
   same snapshot (a mismatch heals at once with a fresh manifest, never drawn); see the ETag invariant below.
@@ -1111,20 +1187,23 @@ had" holds only when this device holds a guest ticket a claim would move.
     decision let in (`media.let_in_at`, stamped by a trigger) since each row's `guests.let_in_told_at`, the mark
     moved forward as the read answers, so the approval toast plays on a reload, a return or her account's other
     device, once ([reel.md](reel.md)); the store hands the ids on (`news`), never through the page's shell. Its words
-    (`TRACKER_WORDS`, `status=approval`) are "Waiting for approval", "In the album" and "Not approved"
-    (`TRACKER_TELLS_REFUSAL`), the one name each state has wherever it is said (the badge's spoken count, the keep's
-    Sent line, the help, the album feature page's mock); only what is in the album draws its album link, a held file
-    this visit sent its own picture. ★ **It stands wherever what she adds waits** (red-team 43: `uploadsWait`, read by
+    (`TRACKER_WORDS`) are "Developing" for anything of hers that waits (the-wait r1, Will's `model=time`: held for the
+    host or sealed for a develop, one word, the clock telling them apart in the list's head, `waitRule`: "Uploads
+    develop as Maya lets each one in." or "Uploads develop all at once at 9 am."), "In the album" and "Not approved"
+    (`TRACKER_TELLS_REFUSAL`; a refusal keeps its plain word, so a photo turned down never reads as one developing),
+    the one name each state has wherever it is said (the badge's spoken count, "N developing", the camera's list, the
+    help, the album feature page's mock); what is in the album draws its album link, this visit's file its own picture,
+    and an earlier visit's waiting one the picture her rows' read presigned for her alone (`picture`, read whole by
+    `ownUploadOf`). ★ It publishes her waiting shots to the album's contact sheet (`herShotsOf`, the store's `hers`). ★ **It stands wherever what she adds waits** (red-team 43: `uploadsWait`, read by
     the page's server: the host's approval, or the album's develop time ahead through `developState`; read as approval
     alone, a develop album's shots said "joined" and vanished on a reload). ★ The page holds that reading LIVE
     (`useLiveUploadsWait`, red-team 44: read once, a page open across a develop kept its promise over the developed album):
     the develop time coming on the device's clock ends it, and every full sync's word on the develop moves it (the
     provider taps each answer, `developsAtOf`: a Develop now, a time set, moved or taken away), approve-each keeping hers
-    waiting for as long as the page's event says so; the slot's line and the camera, the album's head, the tracker, the
+    waiting for as long as the page's event says so; the album's rule and the camera, the album's head, the tracker, the
     keep and the failure sheet all read it, with no reload. A shot approved and sealed for the develop (her rows' read
-    says `sealed`, or this visit's file on an album that seals what is added, `sealing`) waits in its own words,
-    "Waiting to develop" (`TRACKER_SEALED_WORDS`, under the list's "Uploads appear in the album when it develops,
-    <time>." and the badge's "N waiting to develop"), counted and hers to take back like a held one. ★ What waits for the host is still hers to take back (Will's live walk: "Definitely
+    says `sealed`, or this visit's file on an album that seals what is added, `sealing`) waits as a held one does,
+    "Developing", counted and hers to take back. ★ What waits for the host is still hers to take back (Will's live walk: "Definitely
     need a way to delete pending uploads"): each of hers not yet in the album wears a Remove (`upload-tracker.tsx`),
     on the album Delete's own paths (`remove_my_upload` for an account, `/api/guests/remove` for a ticket, both taking
     any of her rows not already removed), so it never reaches the host's Review; no confirm, since nothing else in the
@@ -1161,8 +1240,9 @@ had" holds only when this device holds a guest ticket a claim would move.
   ★ **An arrival lands COMPLETE, or not until it can** (`shared/use-arrival-gate.ts`, in `GalleryRows`, which takes
   `arrivals` rather than the glow's set and writes the glow itself; the host's album runs the same gate,
   [host-app.md](host-app.md)). A delta brings the manifest's tuple with no
-  link (`url: ""`; only a window asks for links), so an arrival pushed at once drew a shimmer and then faded its
-  photograph in after the wipe was over. The gate holds each arrival the grammar names out of the rows, asks for its
+  link on the item (`url: ""` until the link store is asked; a guest's delta carries the link, so the ask is answered
+  at once, but nothing has fetched or decoded the photograph), so an arrival pushed at once drew a shimmer and then
+  faded its photograph in after the wipe was over. The gate holds each arrival the grammar names out of the rows, asks for its
   link (`onNeedLinks`, `ensureLinks`), fetches and decodes its photograph into the document at the tile's own address
   (`decodeTileImage`, `tileImageSrc`), and lets it in when that is done, so `MediaTile` finds it complete
   (`data-instant`) and the push reveals a photograph. It waits at most `ARRIVAL_DECODE_WAIT_MS` (2s; a failed decode

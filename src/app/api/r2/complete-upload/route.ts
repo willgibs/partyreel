@@ -17,6 +17,7 @@ import {
   runCompletePipeline,
   type CompleteStrategy,
 } from "@/lib/upload/server-pipeline";
+import { readRecordedUpload } from "@/lib/upload/server-pipeline-recorded";
 import { completeUploadSchema } from "@/lib/validation/upload";
 
 /**
@@ -38,7 +39,7 @@ const guestCompleteSchema = completeUploadSchema.extend({
 const guestCompleteStrategy: CompleteStrategy<typeof guestCompleteSchema> = {
   schema: guestCompleteSchema,
   captureLabel: "create_media",
-  async createRecord(parsed, kind, realSize) {
+  async createRecord(parsed, kind, realSize, phone) {
     // The write path inherits the read gate (database-security.md), so the door is re-checked at
     // COMPLETION too: a presigned URL outlives a host's change by up to 2h, and this is the write
     // that counts (the media row + ledger; the bytes an already-issued URL can land become a swept
@@ -102,6 +103,9 @@ const guestCompleteStrategy: CompleteStrategy<typeof guestCompleteSchema> = {
       width: parsed.width ?? null,
       height: parsed.height ?? null,
       previewKey: parsed.preview_key ?? null,
+      // The phone-size copy the engine verified on its HEAD (take-home r1), or none.
+      phoneKey: phone?.key ?? null,
+      phoneBytes: phone?.bytes ?? null,
       // Only a clip says anything here; every other upload leaves the column's default.
       reelEligible: parsed.reel_eligible,
     });
@@ -175,6 +179,20 @@ async function checkClipAddRate(
   }
 }
 
+/**
+ * Whether a clip's completion names an upload already recorded (the engine's own read, `readRecordedUpload`). No id,
+ * or a read that fails, answers no, and the budget is asked as it always was.
+ */
+async function clipRecorded(mediaId: unknown): Promise<boolean> {
+  const id = z.uuid().safeParse(mediaId);
+  if (!id.success) return false;
+  try {
+    return (await readRecordedUpload(id.data)) !== null;
+  } catch {
+    return false;
+  }
+}
+
 async function recordClipAdd(sessionToken: string, ip: string): Promise<void> {
   try {
     const { ipHash, scopeHash } = abuseHashes(
@@ -193,7 +211,11 @@ export async function POST(request: Request) {
   // "the upload whose reel_eligible is false"). Peeking at a CLONE leaves the original stream
   // untouched for the pipeline's own parse; a body that fails to parse here just skips the gate and
   // lets the pipeline produce its normal bad_request refusal.
-  let peek: { reel_eligible?: unknown; session_token?: unknown } = {};
+  let peek: {
+    reel_eligible?: unknown;
+    session_token?: unknown;
+    media_id?: unknown;
+  } = {};
   try {
     peek = (await request.clone().json()) as typeof peek;
   } catch {
@@ -201,6 +223,11 @@ export async function POST(request: Request) {
   }
 
   if (peek.reel_eligible === false && typeof peek.session_token === "string") {
+    // ★ A CLIP ALREADY RECORDED IS ITS ROW'S TO ANSWER, NEVER THE BUDGET'S (crumbs-62): its completion sent again
+    // writes nothing, so it neither meets the limiter (a spent day would refuse a clip that landed) nor spends it.
+    if (await clipRecorded(peek.media_id)) {
+      return runCompletePipeline(request, guestCompleteStrategy);
+    }
     const ip = clientIp(request.headers);
     const gate = await checkClipAddRate(peek.session_token, ip);
     if (!gate.allowed) {

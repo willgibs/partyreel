@@ -12,8 +12,12 @@
  *   - a quiet album answers 304 having read one row (the version) on the server;
  *   - a change answers the DELTA since the version this device holds, merged by id and checked
  *     against the server's count (a mismatch heals with a fresh manifest, never drawn);
- *   - links ride separate asks, per window, re-minted before they age, so no poll ever carries one.
- * The doorbell and the fallback poll both call it; the store coalesces overlapping calls.
+ *   - links ride separate asks, per window, re-minted before they age; only a delta carries its new items'
+ *     own, so a batch arrives in one call (album-calm, `album-wire-carry.ts`).
+ * The doorbell (in calm batches, asking at once for a develop's moment, and silent in a hidden tab:
+ * `use-gallery-doorbell.ts`) and the fallback poll both call it, and the store coalesces overlapping calls; her own
+ * upload syncs at once, never on the clock, and her photograph's link rides that sync's delta, so the window's ask for
+ * it waits for the answer (`owedLinks`).
  *
  * ★ THE FIRST PAINT IS THE SERVER'S ANSWER, NOT A LOADING STATE. The page embeds the manifest and
  * the first window's links (`gallery-seed.ts`); the store adopts them through its own first sync,
@@ -61,6 +65,7 @@ import { unstable_rethrow } from "next/navigation";
 import { toast } from "sonner";
 
 import { removeMyUploadGuestAction } from "@/app/(guest)/e/[token]/actions";
+import { AlbumWaitingProvider } from "@/components/guest/gallery-empty-state-yield";
 import type { UploadedItem } from "@/components/guest/guest-upload";
 import type { ClipResolver } from "@/lib/album/resolver";
 import {
@@ -69,7 +74,9 @@ import {
   type SyncResult,
 } from "@/lib/album/store";
 import { guestAlbumTransport } from "@/lib/album/transport";
+import type { GuestWaiting } from "@/lib/disposable/facts";
 import { entryId, type GuestFullSync } from "@/lib/events/album-wire";
+import { carryingTransport } from "@/lib/events/album-wire-carry";
 import type { GalleryAccess } from "@/lib/events/gallery-access";
 import type { GalleryItem, GalleryReel } from "@/lib/events/gallery-reel";
 import {
@@ -79,6 +86,8 @@ import {
   type GallerySeed,
   type PrimedTransport,
 } from "@/lib/events/gallery-seed";
+import { setNoun } from "@/lib/export/take-home";
+import { formatMediaCount } from "@/lib/format/count";
 import {
   albumOnScreen,
   createAlbumItems,
@@ -170,6 +179,38 @@ export function albumCount({
 }
 
 /**
+ * ★ THE COUNT'S WORDS NAME WHAT THE ALBUM HOLDS (crumbs-61, red-team 48's NIT: "12 photos & videos" over twelve
+ * photographs, where the host's Download panel said "12 photos"). Where the source can see into the album (`kinds`: a
+ * full answer, whose manifest is the whole album) the number is worded by what is in it, from the one home every
+ * surface that counts a set shares (`setNoun`: photos, videos, or both). Where it cannot (a teaser's nine, a lock, an
+ * album not yet read) it says both, as it always has (`formatMediaCount`: a lone "photo" would lie when the one item is
+ * a video). ★ THE WORDS ALWAYS NAME EXACTLY THE NUMBER BESIDE THEM: kinds that do not add up to `count` (a transient
+ * the integrity check heals) say both nouns rather than a number the kinds do not make.
+ */
+export function albumCountWords({
+  count,
+  kinds,
+}: {
+  count: number;
+  /** What the album holds by kind, where all of it can be seen; null where it cannot. */
+  kinds: { photos: number; videos: number } | null;
+}): string {
+  return kinds && count > 0 && kinds.photos + kinds.videos === count
+    ? setNoun(kinds.photos, kinds.videos)
+    : formatMediaCount(count);
+}
+
+/** What a list of items holds, by kind. */
+function kindsOf(items: readonly Pick<GalleryItem, "type">[]): {
+  photos: number;
+  videos: number;
+} {
+  let videos = 0;
+  for (const item of items) if (item.type === "video") videos += 1;
+  return { photos: items.length - videos, videos };
+}
+
+/**
  * HOW OPEN EACH LEVEL IS, FOR THE STRICTER/LOOSER COMPARISON (the stricter-drift guard). `none`
  * never mounts a gallery at all (`event-experience.tsx` renders the locked river instead), but the
  * rank stays total so a password appearing under an existing session compares the same way.
@@ -248,6 +289,12 @@ export type GalleryLive = {
   serverIds: ReadonlySet<string>;
   /** The header's number (`albumCount`). */
   count: number;
+  /**
+   * The number in words (`albumCountWords`): what the album holds, named by its kinds where this source can see into it
+   * (photos, videos or both), both nouns where it cannot. Optional so a stand-in source (a test's, the lab's) need not
+   * name it: absent reads as `formatMediaCount(count)`.
+   */
+  countWords?: string;
   /** The live reel's facts, as the last answer that carried them said. */
   reel: GalleryReel | null;
   /**
@@ -294,6 +341,15 @@ export type GalleryLive = {
   albumRead: AlbumRead;
   /** Read the album again now: the store's own sync (Try again on an album that could not load). */
   retryAlbum: () => Promise<void>;
+  /**
+   * ★ WHAT WAITS, AS A GUEST MAY KNOW IT (the-wait r1, Will's `wait=sheet`): everyone's waiting rows, held for the host
+   * or sealed for the develop, as the last full answer counted them (the count, its minutes and the develop time;
+   * never an id, `GuestFullSync.waiting`), the seed's from the first paint. The album's contact sheet draws everyone's
+   * from it, so a guest with none of her own still reads what waits. Null where nothing waits and no develop time is
+   * set, and at a teaser or a lock (which never carry it). Optional so a stand-in source (a test's, the lab's) need not
+   * name it: absent reads as nothing waiting.
+   */
+  waiting?: GuestWaiting | null;
 };
 
 const GalleryLiveContext = createContext<GalleryLive | null>(null);
@@ -323,6 +379,12 @@ export type GalleryLiveProviderProps = {
   }) => void;
   /** Keeps the shell header's live media count current (incl. optimistic tiles). */
   onCountChange?: (count: number) => void;
+  /**
+   * What that count says it holds (`albumCountWords`: "12 photos", "3 photos & videos"), told with each change of it, so the
+   * cover's glyph and the album's own line name the same set. Separate from the count so a shell that wants only the number
+   * need not read the words.
+   */
+  onCountWordsChange?: (words: string) => void;
   /**
    * What this DEVICE has sent that is not in the album yet: everything still in flight, plus
    * anything a hold-for-approval event is keeping back (a refused file is not among them).
@@ -360,6 +422,14 @@ export type GalleryLiveProviderProps = {
    * the page's live reading of whether what she adds waits follows it (`useLiveUploadsWait`). Told once per new word.
    */
   onDevelopsAtChange?: (developsAt: string | null) => void;
+  /**
+   * ★ WHETHER ANYTHING WAITS IN THE ALBUM, EVERYONE'S (crumbs-61, red-team 48's NIT): told at each change of it, never of
+   * the count (at a busy party the count climbs every beat, and the page re-renders on a flip alone). The cover's Add says
+   * "the first photo" only over an album nothing has been added to, visible or waiting; the page's server read of what
+   * waits is the first paint's word, and a guest who joined an empty album kept "Take the first photo" over her own sheet
+   * of developing shots because nothing carried the sync's word to the page. A teaser or a lock carries none.
+   */
+  onWaitingChange?: (waits: boolean) => void;
   children: ReactNode;
 };
 
@@ -384,6 +454,7 @@ export function GalleryLiveProvider({
   isDemo,
   onAccessDrift,
   onCountChange,
+  onCountWordsChange,
   pendingUploads = [],
   uploadProgress = null,
   canDeleteIds = [],
@@ -394,6 +465,7 @@ export function GalleryLiveProvider({
   onOwnRemoved,
   onGuestCountChange,
   onDevelopsAtChange,
+  onWaitingChange,
   children,
 }: GalleryLiveProviderProps) {
   const read = use(readSeed(galleryPromise));
@@ -435,8 +507,12 @@ export function GalleryLiveProvider({
         return answer;
       },
     };
+    // ★ ONE CALL A BATCH (album-calm): a delta carries its new items' links, and this outermost layer answers the
+    // link store's ask for them itself (`album-wire-carry.ts`), so a batch lands with no second call. Its `forget`
+    // (the watchdog's) lets a carried link go and passes on to the seed's.
+    const carrying = carryingTransport(tapped);
     const store = createAlbumStore({
-      transport: tapped,
+      transport: carrying,
       // A delta that left the album a different size than the server counted can only be a lost
       // or doubled change: never silent, and the store heals it with a fresh manifest first.
       onIntegrityMiss: (detail) =>
@@ -447,15 +523,23 @@ export function GalleryLiveProvider({
         ),
     });
     return {
-      transport: tapped,
+      transport: carrying,
       store,
       // The store's own answer before it has one: what an unread album draws from.
       unread: store.getSnapshot(),
       seeded: seed !== null,
     };
   });
+  // The seed's snapshot, with what waits as the seed's own full answer said it (the store's answer carries it from its
+  // first sync; the seed's stands in before that, so the first paint draws the wait the server read).
   const seedSnap = useMemo(
-    () => (seed ? seedSnapshot(seed) : unread),
+    () =>
+      seed
+        ? {
+            ...seedSnapshot(seed),
+            waiting: seed.kind === "full" ? seed.sync.waiting : undefined,
+          }
+        : unread,
     [seed, unread],
   );
   // The seed's links, dated once on this device's clock, for the renders before the link store has
@@ -585,6 +669,17 @@ export function GalleryLiveProvider({
     };
   }, []);
 
+  /**
+   * ★ A LINK THE ALBUM'S NEXT ANSWER IS ABOUT TO CARRY IS NOT ASKED FOR (crumbs-61, red-team 48's LOW). Her own approved
+   * upload is in the grid the moment it lands (the optimistic tile), so the window asks for its link ~10 ms after her
+   * sync began, while that very sync's delta carries it (album-calm): the links route minted it a second time, for every
+   * photograph she added (twenty photographs, forty links calls). An id is OWED from `notifyUploaded` until the sync
+   * that follows it has answered; an ask for it meanwhile is written down (the value: whether one was made) and made
+   * once the answer is in, which the carrying transport answers itself. Only her own approved upload is ever owed, and a
+   * sync that fails or carries no link still lets the ask go: held back for an answer, never for good.
+   */
+  const owedLinks = useRef(new Map<string, boolean>());
+
   /* ── a guest's own photographs: removable ever, and final for the host too ── */
   const [sessionMine, setSessionMine] = useState<ReadonlySet<string>>(
     () => new Set(),
@@ -663,6 +758,8 @@ export function GalleryLiveProvider({
    */
   const removeOwn = useCallback(
     async (id: string) => {
+      // A photograph she takes back before its sync has answered is owed no link (`owedLinks`).
+      owedLinks.current.delete(id);
       setRemovedLocal((prev) => new Set(prev).add(id));
       setOptimistic((prev) => prev.filter((m) => m.id !== id));
       let ok = false;
@@ -741,7 +838,16 @@ export function GalleryLiveProvider({
         // Removable (and marked) the instant it lands, on either identity.
         if (!isDemo) setAddedMine((prev) => new Set(prev).add(u.mediaId));
       }
-      if (!isDemo) void store.sync();
+      if (isDemo) return;
+      // Her link rides the delta this sync brings (`owedLinks`): an ask for it waits for the answer, then goes.
+      const owed = owedLinks.current;
+      if (u.status === "approved" && !owed.has(u.mediaId))
+        owed.set(u.mediaId, false);
+      void store.sync().then(() => {
+        const asked = owed.get(u.mediaId);
+        owed.delete(u.mediaId);
+        if (asked) void store.links.ensure([u.mediaId]);
+      });
     },
     renameMine(displayName) {
       setRenamed({ name: displayName, ids: ownIds });
@@ -855,8 +961,14 @@ export function GalleryLiveProvider({
 
   const ensureLinks = useCallback(
     (ids: readonly string[]) => {
-      if (ids.length > 0 && shown.status === "ready")
-        void store.links.ensure(ids);
+      if (ids.length === 0 || shown.status !== "ready") return;
+      const owed = owedLinks.current;
+      const ask = ids.filter((id) => {
+        if (!owed.has(id)) return true;
+        owed.set(id, true);
+        return false;
+      });
+      if (ask.length > 0) void store.links.ensure(ask);
     },
     [store, shown.status],
   );
@@ -908,9 +1020,22 @@ export function GalleryLiveProvider({
   // An unread album (its seed failed, and no answer yet) has no count to tell: the header keeps the page's
   // own number rather than a zero that would call it empty.
   const answered = shown.status !== "loading";
+  // ★ ITS WORDS (`albumCountWords`): by the kinds the album holds where this answer is the whole album (a full one), both
+  // nouns where it is not (a teaser's nine, a lock).
+  const countWords = useMemo(
+    () =>
+      albumCountWords({
+        count,
+        kinds: shown.status === "ready" && !teaserItems ? kindsOf(items) : null,
+      }),
+    [count, items, shown.status, teaserItems],
+  );
   useEffect(() => {
     if (answered) onCountChange?.(count);
   }, [answered, count, onCountChange]);
+  useEffect(() => {
+    if (answered) onCountWordsChange?.(countWords);
+  }, [answered, countWords, onCountWordsChange]);
 
   // ★ WHETHER THE ALBUM HAS BEEN READ (the head's note on a seed that failed): unread until an answer is
   // on screen, and while so, trying until the store's own first read is over, then failed until a later
@@ -922,6 +1047,16 @@ export function GalleryLiveProvider({
         ? "failed"
         : "trying";
   const retryAlbum = useCallback(() => store.sync(), [store]);
+  const waiting = shown.waiting ?? null;
+  // Whether anything waits, told to the page at each change of it (the seed's word included: the page's own starts
+  // as "no word", so a seed that says something waits is told at mount).
+  const waits = (waiting?.count ?? 0) > 0;
+  const waitsTold = useRef(false);
+  useEffect(() => {
+    if (waits === waitsTold.current) return;
+    waitsTold.current = waits;
+    onWaitingChange?.(waits);
+  }, [waits, onWaitingChange]);
 
   const value = useMemo<GalleryLive>(
     () => ({
@@ -933,6 +1068,7 @@ export function GalleryLiveProvider({
       items,
       serverIds,
       count,
+      countWords,
       reel: shown.reel,
       reelItems,
       clips: store.clips,
@@ -950,6 +1086,7 @@ export function GalleryLiveProvider({
       reportPossibleExpiry,
       albumRead,
       retryAlbum,
+      waiting,
     }),
     [
       qrToken,
@@ -960,6 +1097,7 @@ export function GalleryLiveProvider({
       items,
       serverIds,
       count,
+      countWords,
       shown.reel,
       reelItems,
       store,
@@ -977,8 +1115,20 @@ export function GalleryLiveProvider({
       reportPossibleExpiry,
       albumRead,
       retryAlbum,
+      waiting,
     ],
   );
 
-  return <GalleryLiveContext value={value}>{children}</GalleryLiveContext>;
+  // What waits, for the album's contact sheet (`gallery-empty-state-wait.tsx`), in its own light context.
+  const albumWaiting = useMemo(
+    () => ({ access: shown.access ?? access, waiting }),
+    [shown.access, access, waiting],
+  );
+  return (
+    <GalleryLiveContext value={value}>
+      <AlbumWaitingProvider value={albumWaiting}>
+        {children}
+      </AlbumWaitingProvider>
+    </GalleryLiveContext>
+  );
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { linkOf, PARTIES, titleOf, TYPED_MAX, typedSlugOf } from "./fixtures";
+import { linkOf, PARTIES, titleOf } from "./fixtures";
 import {
   CELLS_BY_RING,
   CLEAR_R,
@@ -14,12 +14,11 @@ import {
 /**
  * The code's one grid is what lets a new address bloom out of the old one's
  * place (`code.tsx`), so every value the board can ever draw has to fit it:
- * each address the hero types, every prefix of one, the bare domain, and the
- * longest slug a visitor may type into the field. A longer list or a longer
- * domain fails here, not as a crash on the page.
+ * each address the hero types, every prefix of one and the bare domain. A
+ * longer list or a longer domain fails here, not as a crash on the page.
  */
 describe("the code's grid", () => {
-  const values = new Set<string>([linkOf(""), linkOf("a".repeat(TYPED_MAX))]);
+  const values = new Set<string>([linkOf("")]);
   for (const p of PARTIES)
     for (let n = 0; n <= p.slug.length; n++)
       values.add(linkOf(p.slug.slice(0, n)));
@@ -69,14 +68,5 @@ describe("the words the hero reads off an address", () => {
     expect(titleOf("my-30th")).toBe("My 30th");
     expect(titleOf("our-w")).toBe("Our w");
     expect(titleOf("")).toBe("");
-  });
-
-  it("turns a visitor's keys into a slug as the product does, a separator kept while they type", () => {
-    expect(typedSlugOf("Jake's 40th")).toBe("jakes-40th");
-    expect(typedSlugOf("lake ")).toBe("lake-");
-    expect(typedSlugOf("lake-")).toBe("lake-");
-    expect(typedSlugOf("Café Night")).toBe("cafe-night");
-    expect(typedSlugOf(" ")).toBe("");
-    expect(typedSlugOf("x".repeat(40))).toHaveLength(TYPED_MAX);
   });
 });

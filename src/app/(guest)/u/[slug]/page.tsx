@@ -91,7 +91,9 @@ async function PartyGrid({ profile }: { profile: PublicProfile }) {
             name={party.name}
             coverUrl={party.coverUrl}
             dateLabel={
-              party.eventDate ? formatEventDate(party.eventDate) : "No date set"
+              party.eventDate
+                ? formatEventDate(party.eventDate, party.eventEndDate)
+                : "No date set"
             }
             statusLabel={party.statusLabel}
             empty={party.empty}

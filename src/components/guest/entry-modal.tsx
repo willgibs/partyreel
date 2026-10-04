@@ -187,6 +187,8 @@ export const EntryModal = forwardRef<
     /** Welcome byline (null on locked pages: the redacted shellEvent). */
     hostName?: string | null;
     eventDate?: string | null;
+    /** A range's last day, redacted with the date. */
+    eventEndDate?: string | null;
     /** The success-hold signal for the page's REVEAL CURTAIN: the freshly
      *  mounted header/gallery wait at their pre-entrance state while the
      *  beat holds, then rise AS the sheet exits (event-experience). */
@@ -308,6 +310,7 @@ export const EntryModal = forwardRef<
     mediaTotal,
     hostName,
     eventDate,
+    eventEndDate,
     onHoldingChange,
     onPendingChange,
     sessionToken,
@@ -1014,6 +1017,7 @@ export const EntryModal = forwardRef<
             eventName={eventName}
             hostName={hostName}
             eventDate={eventDate}
+            eventEndDate={eventEndDate}
             mediaTotal={mediaTotal}
             acceptsVideo={acceptsVideo}
             onContinue={

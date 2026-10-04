@@ -213,11 +213,14 @@ export type CoverHost = {
 export function AlbumCover({
   ref,
   ground,
+  eyebrow,
   name,
   host,
   date,
+  endDate,
   description,
   mediaCount,
+  mediaWords,
   guestCount,
   actions,
   actionsRef,
@@ -226,12 +229,24 @@ export function AlbumCover({
   /** The cover's own box (the demo's pinned header watches it). */
   ref?: Ref<HTMLElement>;
   ground?: ReactNode;
+  /**
+   * A word over the event's name: the preset named where a guest meets it, with when it develops (the-wait r1's name
+   * ask: "Disposable · develops 9 am", `coverEyebrow`). Nothing for an album that never develops.
+   */
+  eyebrow?: ReactNode;
   name: string;
   /** The byline's host: null where she set no name (no byline name, no face). */
   host: CoverHost | null;
   date: string | null;
+  /** The last day of a range (`events.event_end_date`), or null for one day. */
+  endDate?: string | null;
   description: string | null;
   mediaCount: number;
+  /**
+   * What the count holds, said as the album's source names it ("12 photos": `albumCountWords`); both nouns where it has
+   * not told, since the first paint knows a total and never its kinds.
+   */
+  mediaWords?: string;
   guestCount: number;
   /** The cover's actions (Add photos white on it, the glass rounds beside). */
   actions: ReactNode;
@@ -243,6 +258,16 @@ export function AlbumCover({
     <EventHead ref={ref} side="album" ground={ground} className={className}>
       <div className="px-5 pb-6 md:flex md:items-end md:justify-between md:gap-10 md:pb-9">
         <div className="min-w-0 md:max-w-2xl">
+          {eyebrow ? (
+            <p
+              data-arrive
+              data-cover-eyebrow=""
+              style={{ "--arrive-i": 0 } as CSSProperties}
+              className="mb-2 text-label font-medium text-white/80 uppercase"
+            >
+              {eyebrow}
+            </p>
+          ) : null}
           <h1
             data-arrive
             style={{ "--arrive-i": 0 } as CSSProperties}
@@ -272,7 +297,7 @@ export function AlbumCover({
                   ·
                 </span>
               )}
-              {date && <span>{formatEventDate(date)}</span>}
+              {date && <span>{formatEventDate(date, endDate)}</span>}
               {mediaCount > 0 && (
                 <span className="hidden items-center gap-x-2.5 md:flex">
                   {(host || date) && (
@@ -283,7 +308,7 @@ export function AlbumCover({
                   <GlyphCount
                     icon={<Images />}
                     count={mediaCount}
-                    label={formatMediaCount(mediaCount)}
+                    label={mediaWords ?? formatMediaCount(mediaCount)}
                   />
                   {guestCount > 0 && (
                     <GlyphCount

@@ -8,7 +8,7 @@ import { SceneRoot } from "./scene-root";
 
 /**
  * THE IDENTITY BOARD'S SCENE ROUTE: the document every one of its frames
- * loads, `?voice=&actions=&fields=&layers=&status=&view=&w=&ground=&page=&id=`
+ * loads, `?system=&room=&edge=&view=&w=&ground=&page=&id=`
  * (built by `sceneSrc`, `model.ts`).
  *
  * It renders bare (the design root layout carries no chrome; the lab's lives
@@ -35,11 +35,9 @@ export default async function IdentityScenePage({
   return (
     <SceneRoot
       choice={choiceOf({
-        voice: one("voice"),
-        actions: one("actions"),
-        fields: one("fields"),
-        layers: one("layers"),
-        status: one("status"),
+        system: one("system"),
+        room: one("room"),
+        edge: one("edge"),
       })}
       view={viewOf(one("view"))}
       w={widthOf(one("w"))}

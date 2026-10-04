@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -10,7 +10,8 @@ import { CreateEventWizard } from "@/components/app/create-event-wizard";
 
 /**
  * A HOST'S FIRST EVENT, FROM "CREATE" TO A CODE ON THE TABLE (the `first-event`
- * board, ruled whole by Will 2026-09-21).
+ * board, ruled whole by Will 2026-09-21; drawn as the room by create-wizard r2,
+ * 2026-10-03).
  *
  * Four functions, and every one of them fails SILENTLY if it breaks:
  *
@@ -24,12 +25,15 @@ import { CreateEventWizard } from "@/components/app/create-event-wizard";
  *     with a refusal a half-second after a successful create — no error, no
  *     crash, just the host being told off for succeeding.
  *  3. CREATE ENDS ON THE BEAT, ONCE (`landing=beat`). By construction: only
- *     Create reaches step 3.
+ *     Create reaches the beat.
  *  4. THE PAPER IS REACHABLE AND IS OUTSIDE THE APP SHELL (`venue=sheet`), and
  *     the two sharing surfaces stayed one (`hand=same`).
  *
+ * And the look step (`look=places`, Will 2026-10-03): her code where guests
+ * meet it, on her phone and on the room's screen, four looks re-dressing both.
+ *
  * No class, size, word or duration is pinned, but for the one fact a word
- * carries: the style step's codes are SAMPLES (below).
+ * carries: the look step's codes are SAMPLES (below).
  */
 
 const push = vi.fn();
@@ -41,11 +45,22 @@ const createEventInWizard = vi.hoisted(() => vi.fn());
 vi.mock("@/app/(app)/dashboard/actions", () => ({ createEventInWizard }));
 
 // `qr-code-styling` touches window/document on construction and is loaded
-// inside an effect by StyledQr; the swatches and the beat's plate are pictures
-// of a code, and this contract is about the STEPS.
+// inside an effect by StyledQr; the pictures and the beat's plate are pictures
+// of a code, and this contract is about the STEPS: which link each one
+// encodes, and which look it wears.
 vi.mock("@/components/app/styled-qr", () => ({
-  StyledQr: ({ value }: { value: string }) => (
-    <div data-testid="styled-qr" data-value={value} />
+  StyledQr: ({
+    value,
+    style,
+  }: {
+    value: string;
+    style: { dotsOptions: { type: string } };
+  }) => (
+    <div
+      data-testid="styled-qr"
+      data-value={value}
+      data-dots={style.dotsOptions.type}
+    />
   ),
 }));
 
@@ -54,6 +69,7 @@ vi.mock("@/components/app/styled-qr", () => ({
 vi.mock("@/components/app/pricing/pricing-sheet", () => ({
   PricingSheet: () => null,
 }));
+vi.mock("@/components/shared/glow", () => ({ Glow: () => null }));
 
 const EVENT = {
   id: "evt_1",
@@ -78,6 +94,13 @@ function renderWizard(
   );
 }
 
+async function toTheLook() {
+  renderWizard();
+  await userEvent.type(screen.getByRole("textbox"), EVENT.name);
+  await userEvent.click(screen.getByRole("button", { name: /continue/i }));
+  await screen.findByRole("button", { name: /create event/i });
+}
+
 beforeEach(() => {
   push.mockClear();
   createEventInWizard.mockReset();
@@ -92,7 +115,7 @@ describe("what creating asks for", () => {
     expect(screen.getAllByRole("textbox")).toHaveLength(1);
   });
 
-  it("refuses to advance on an empty name", async () => {
+  it("refuses to advance on an empty name, and says why", async () => {
     renderWizard();
     await userEvent.click(screen.getByRole("button", { name: /continue/i }));
     await waitFor(() =>
@@ -100,51 +123,59 @@ describe("what creating asks for", () => {
         screen.queryByRole("button", { name: /create event/i }),
       ).not.toBeInTheDocument(),
     );
+    // The schema's own sentence, under the field it is about.
+    expect(screen.getByRole("textbox")).toHaveAccessibleDescription(
+      /give your event a name/i,
+    );
+    expect(screen.getByRole("textbox")).toHaveAttribute("aria-invalid", "true");
   });
 
-  it("advances on a name alone", async () => {
+  it("advances on a name alone, Enter as well as Continue", async () => {
     renderWizard();
-    await userEvent.type(screen.getByRole("textbox"), EVENT.name);
-    await userEvent.click(screen.getByRole("button", { name: /continue/i }));
+    await userEvent.type(screen.getByRole("textbox"), `${EVENT.name}{Enter}`);
     expect(
       await screen.findByRole("button", { name: /create event/i }),
     ).toBeInTheDocument();
   });
 });
 
-describe("the style step", () => {
-  it("offers every preset and round-trips the choice", async () => {
-    renderWizard();
-    await userEvent.type(screen.getByRole("textbox"), EVENT.name);
-    await userEvent.click(screen.getByRole("button", { name: /continue/i }));
-    await screen.findByRole("button", { name: /create event/i });
+describe("the look step (look=places)", () => {
+  it("offers every look as one choice, round-tripping the pick", async () => {
+    await toTheLook();
+    // ★ RESHAPED ON PURPOSE (create-wizard r2's `look=places`; scar kept: one per preset, exactly one
+    // chosen at a time): the four looks are a radio group of corners under the two places now, where
+    // they were four aria-pressed cards; a group says "one of four" for itself.
+    const group = screen.getByRole("radiogroup", { name: /look/i });
+    const looks = within(group).getAllByRole("radio");
+    expect(looks).toHaveLength(QR_STYLE_KEYS.length);
+    const checked = () =>
+      looks.filter((b) => b.getAttribute("aria-checked") === "true");
+    expect(checked()).toHaveLength(1);
 
-    // One swatch per preset key, each an aria-pressed toggle, exactly one of
-    // which is pressed at a time.
-    const swatches = screen
-      .getAllByRole("button")
-      .filter((b) => b.getAttribute("aria-pressed") !== null);
-    expect(swatches).toHaveLength(QR_STYLE_KEYS.length);
-    expect(
-      swatches.filter((b) => b.getAttribute("aria-pressed") === "true"),
-    ).toHaveLength(1);
-
-    const last = swatches[swatches.length - 1];
+    const last = looks[looks.length - 1];
     await userEvent.click(last);
-    await waitFor(() => expect(last).toHaveAttribute("aria-pressed", "true"));
-    expect(
-      swatches.filter((b) => b.getAttribute("aria-pressed") === "true"),
-    ).toHaveLength(1);
+    await waitFor(() => expect(last).toHaveAttribute("aria-checked", "true"));
+    expect(checked()).toHaveLength(1);
+  });
+
+  it("★ re-dresses both places she will meet her code in, her phone and the room's screen", async () => {
+    await toTheLook();
+    const places = (pic: string) =>
+      document
+        .querySelector(`[data-look-picture="${pic}"]`)
+        ?.querySelector<HTMLElement>("[data-testid='styled-qr']")?.dataset.dots;
+    expect(places("code-card")).toBe("square");
+    expect(places("room-screen")).toBe("square");
+    await userEvent.click(screen.getByRole("radio", { name: /dots/i }));
+    expect(places("code-card")).toBe("dots");
+    expect(places("room-screen")).toBe("dots");
   });
 
   it("previews against a stand-in the same length as a real token", async () => {
     // The real qr_token does not exist before the insert, and a short
     // placeholder would draw a code at a DIFFERENT module count from the one the
     // host ends up with — the picker would be previewing a different object.
-    renderWizard();
-    await userEvent.type(screen.getByRole("textbox"), EVENT.name);
-    await userEvent.click(screen.getByRole("button", { name: /continue/i }));
-    await screen.findByRole("button", { name: /create event/i });
+    await toTheLook();
     const values = screen
       .getAllByTestId("styled-qr")
       .map((n) => n.getAttribute("data-value") ?? "");
@@ -155,43 +186,40 @@ describe("the style step", () => {
   });
 
   it("★ says its codes are samples, never what the guests will scan (crumbs-42)", async () => {
-    // Every swatch encodes the stand-in link, which opens no event: a host who
-    // test-scanned one met a 404 and nothing on the step had said why. The
-    // event, and so its real link, exists only once Create is pressed (an
-    // abandoned wizard leaves no row), so the step says what she is looking at,
-    // and where the real code comes from: the very next screen.
-    renderWizard();
-    await userEvent.type(screen.getByRole("textbox"), EVENT.name);
-    await userEvent.click(screen.getByRole("button", { name: /continue/i }));
-    await screen.findByRole("button", { name: /create event/i });
-    expect(screen.getByText(/samples/i)).toBeInTheDocument();
+    // Every code on the step encodes the stand-in link, which opens no event: a
+    // host who test-scanned one met a 404 and nothing on the step had said why.
+    // The event, and so its real link, exists only once Create is pressed (an
+    // abandoned wizard leaves no row), so the step says what she is looking at.
+    // ★ RESHAPED ON PURPOSE (create-wizard r1's carried `sample`, kept by r2; scar kept): one word,
+    // Sample, on the pictured code, where a sentence ("These are samples...") stood over the cards.
+    await toTheLook();
+    expect(screen.getByText(/^sample$/i)).toBeInTheDocument();
     expect(screen.queryByText(/what your guests scan/i)).toBeNull();
   });
 });
 
 describe("where Create lands", () => {
-  it("ends on the beat, carrying the real code and both doors", async () => {
-    renderWizard();
-    await userEvent.type(screen.getByRole("textbox"), EVENT.name);
-    await userEvent.click(screen.getByRole("button", { name: /continue/i }));
+  it("ends on the beat, carrying the real code and both ways out", async () => {
+    await toTheLook();
     await userEvent.click(
       await screen.findByRole("button", { name: /create event/i }),
     );
 
     // The beat, and the REAL token rather than the preview stand-in.
     expect(
-      await screen.findByRole("button", { name: /go to your event/i }),
+      await screen.findByRole("button", { name: /get it ready/i }),
     ).toBeInTheDocument();
-    expect(screen.getByTestId("styled-qr")).toHaveAttribute(
-      "data-value",
-      `https://partyreel.com/e/${EVENT.qr_token}`,
-    );
+    expect(
+      screen
+        .getAllByTestId("styled-qr")
+        .map((n) => n.getAttribute("data-value")),
+    ).toContain(`https://partyreel.com/e/${EVENT.qr_token}`);
     expect(screen.getByRole("link", { name: /print/i })).toHaveAttribute(
       "href",
       `/dashboard/${EVENT.id}/print`,
     );
     expect(
-      screen.getByRole("button", { name: /share the link/i }),
+      screen.getByRole("button", { name: /^(share|copy link)$/i }),
     ).toBeInTheDocument();
     // The event is created ONCE, at commit. A second insert here would mean an
     // abandoned row for every host who pressed twice.
@@ -199,17 +227,17 @@ describe("where Create lands", () => {
   });
 
   it("never navigates by itself: the beat has an end the host chooses", async () => {
-    renderWizard();
-    await userEvent.type(screen.getByRole("textbox"), EVENT.name);
-    await userEvent.click(screen.getByRole("button", { name: /continue/i }));
+    await toTheLook();
     await userEvent.click(
       await screen.findByRole("button", { name: /create event/i }),
     );
+    await screen.findByRole("button", { name: /get it ready/i });
     expect(push).not.toHaveBeenCalled();
-    await userEvent.click(
-      screen.getByRole("button", { name: /go to your event/i }),
-    );
-    expect(push).toHaveBeenCalledWith(`/dashboard/${EVENT.id}`);
+    // ★ RESHAPED ON PURPOSE (create-wizard r2's carried `close`; scar kept: the event itself stays one
+    // press away): Go to your event moved from a ghost beside Get it ready into the room's close.
+    expect(
+      screen.getByRole("link", { name: /go to your event/i }),
+    ).toHaveAttribute("href", `/dashboard/${EVENT.id}`);
   });
 });
 
@@ -229,6 +257,34 @@ describe("the door at the cap", () => {
       "/dashboard/evt_0?room=settings",
     );
     expect(screen.getByRole("button", { name: /pro/i })).toBeInTheDocument();
+  });
+
+  it("stands in the room, in his layout: the question up top, See Pro alone at the foot", () => {
+    renderWizard({
+      atCap: true,
+      maxEvents: 1,
+      cappedEvents: [{ id: "evt_0", name: "Theo's 30th" }],
+    });
+    const room = document.querySelector<HTMLElement>("[data-app-room]")!;
+    expect(room.classList.contains("dark")).toBe(true);
+    const page = room.querySelector<HTMLElement>("[data-room-page]")!;
+    expect(
+      (page.firstElementChild as HTMLElement).hasAttribute(
+        "data-room-question",
+      ),
+    ).toBe(true);
+    expect(within(page).getByRole("heading", { level: 1 })).toHaveTextContent(
+      /free holds one event/i,
+    );
+    const foot = room.querySelector<HTMLElement>("[data-room-foot]")!;
+    expect(within(foot).getAllByRole("button")).toHaveLength(1);
+    expect(within(foot).getByRole("button")).toHaveAccessibleName(/pro/i);
+    // A door is not a step: no steppers, and the close goes back to the events.
+    expect(room.querySelector("[data-room-step]")).toBeNull();
+    expect(screen.getByRole("link", { name: /^close$/i })).toHaveAttribute(
+      "href",
+      "/dashboard",
+    );
   });
 
   it("says the NUMBER, so a stacked pass never reads 'one event'", () => {
@@ -256,7 +312,7 @@ describe("the door at the cap", () => {
     await userEvent.click(
       await screen.findByRole("button", { name: /create event/i }),
     );
-    await screen.findByRole("button", { name: /go to your event/i });
+    await screen.findByRole("button", { name: /get it ready/i });
 
     rerender(
       <CreateEventWizard
@@ -269,7 +325,7 @@ describe("the door at the cap", () => {
       />,
     );
     expect(
-      screen.getByRole("button", { name: /go to your event/i }),
+      screen.getByRole("button", { name: /get it ready/i }),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("link", { name: /delete it/i }),

@@ -54,13 +54,18 @@ type Limit = {
 // Generous, abuse-only ceilings (tunable). A venue is ONE event, so breadth never trips it; the per-event
 // backstop sits well above realistic venue join rates.
 export const ABUSE_LIMITS: Record<AbuseKind, Limit> = {
-  // Join is venue-heavy → breadth is the primary guard; the per-(IP,event) backstop is a high runaway-bot cap
-  // (400/15min to ONE event from ONE IP ≈ a very large venue; a scraper hits MANY events → breadth catches it).
+  // Join is venue-heavy → breadth is the primary guard (a scraper hits MANY events); the per-(IP,event) backstop is a
+  // runaway-bot cap only. ★ SIZED FOR THE WEDDING (upload-meter): PRICING.md's largest archetype puts 2,000 guests on
+  // one venue Wi-Fi, and a speech's "scan the code now" can bring every one of them through the door in the same
+  // quarter-hour; the join, the door's ask and a guest's remove ride this one count, and every guest's own-uploads read
+  // (`/api/guests/mine`) checks it, so at the old 400 the wedding's 401st arrival was refused and the whole room's
+  // tracker went quiet with her. 3,000 holds all 2,000 at once with half again for second phones, re-joins, asks and
+  // removes; past it, one address minting one album's tickets without end is still stopped inside the quarter-hour.
   join: {
     breadthWindowMin: 60,
     breadthMax: 25,
     scopeWindowMin: 15,
-    scopeMax: 400,
+    scopeMax: 3_000,
   },
   // The identity reshape's rename door (POST /api/guests/name), scope = (IP, event). TIGHTER than
   // join by design — a guest names themselves once, at the door, and the rename is the "actually,

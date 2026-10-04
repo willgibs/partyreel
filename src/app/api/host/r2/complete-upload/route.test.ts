@@ -34,6 +34,14 @@ vi.mock("@/lib/r2/presign", () => ({
   sumMultipartParts: vi.fn(),
   abortMultipartUpload: vi.fn(),
   headObjectSize: (...args: unknown[]) => headObjectSize(...args),
+  // upload-meter's staging: nothing staged, so these run the path a presign made before staging takes (its staged
+  // landing is `src/lib/upload/server-pipeline.test.ts`'s).
+  headObject: vi.fn(async () => null),
+  copyObject: vi.fn(),
+}));
+// No row recorded yet (crumbs-62's re-sent complete is `src/lib/upload/server-pipeline.test.ts`'s).
+vi.mock("@/lib/upload/server-pipeline-recorded", () => ({
+  readRecordedUpload: vi.fn(async () => null),
 }));
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({ auth: { getUser: () => getUser() } }),

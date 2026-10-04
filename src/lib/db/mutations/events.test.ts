@@ -10,12 +10,14 @@
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { updateEventSchema } from "@/lib/validation/event";
+import { createEventSchema, updateEventSchema } from "@/lib/validation/event";
 
 vi.mock("server-only", () => ({}));
 
 const patches: Record<string, unknown>[] = [];
 const reads: string[] = [];
+/** What the next write answers with: the database's own refusal, where a test hands one. */
+let nextError: { code: string; message: string } | null = null;
 
 function eventsBuilder() {
   const builder = {
@@ -23,13 +25,23 @@ function eventsBuilder() {
       patches.push(patch);
       return builder;
     },
+    // A creation (upload-meter's daily breaker): the row is the test's to ignore, the answer `single`'s.
+    insert: () => builder,
     select(columns: string) {
       reads.push(columns);
       return builder;
     },
     eq: () => builder,
     is: () => builder,
-    single: () => Promise.resolve({ data: { id: "event-1" }, error: null }),
+    single: () => {
+      const error = nextError;
+      nextError = null;
+      return Promise.resolve(
+        error
+          ? { data: null, error }
+          : { data: { id: "event-1" }, error: null },
+      );
+    },
     maybeSingle: () =>
       Promise.resolve({
         data: { event_password_hash: "$2b$hash" },
@@ -50,11 +62,14 @@ vi.mock("@/lib/supabase/server", () => ({
     }),
 }));
 
-const { updateEvent } = await import("@/lib/db/mutations/events");
+const { createEvent, updateEvent } = await import("@/lib/db/mutations/events");
+const { APPROVAL_NEVER_WITH_A_DEVELOP } =
+  await import("@/lib/disposable/album-style");
 
 beforeEach(() => {
   patches.length = 0;
   reads.length = 0;
+  nextError = null;
 });
 
 describe("updateEvent: the patch is the save, nothing more", () => {
@@ -100,6 +115,8 @@ describe("updateEvent: the patch is the save, nothing more", () => {
         name: "Backyard party",
         description: null,
         event_date: null,
+        // The one key that carries another: a cleared date takes its end with it (crumbs-59; the dates' own tests below).
+        event_end_date: null,
         visibility: "private",
         accepting_uploads: false,
         require_verified_email: false,
@@ -145,7 +162,10 @@ describe("updateEvent: the reel's defaults patch as sent", () => {
 // rows' rewrite), so the write is the patch and nothing after it.
 describe("updateEvent: the capture and the develop time", () => {
   it("writes the capture alone, and a develop answer's two columns together", async () => {
-    await updateEvent("event-1", updateEventSchema.parse({ capture: "camera" }));
+    await updateEvent(
+      "event-1",
+      updateEventSchema.parse({ capture: "camera" }),
+    );
     const at = new Date(Date.now() + 86_400_000).toISOString();
     await updateEvent(
       "event-1",
@@ -153,12 +173,178 @@ describe("updateEvent: the capture and the develop time", () => {
     );
     await updateEvent(
       "event-1",
-      updateEventSchema.parse({ moderation_mode: "hold_for_approval", develops_at: null }),
+      updateEventSchema.parse({
+        moderation_mode: "hold_for_approval",
+        develops_at: null,
+      }),
     );
     expect(patches).toEqual([
       { capture: "camera" },
       { moderation_mode: "live", develops_at: at },
       { moderation_mode: "hold_for_approval", develops_at: null },
     ]);
+  });
+});
+
+// APPROVAL NEVER STANDS WITH A DEVELOP (the-wait r1, `both=never`; 20261003100000's CHECK): a save asking for both is
+// refused in words before it is written, and a save that would leave the row holding both (one column sent, the other
+// the row's own) is refused by the database's CHECK, read by its name, in the same words.
+describe("updateEvent: approval never stands with a develop", () => {
+  it("★ refuses a patch asking for both, in words, and writes nothing", async () => {
+    const at = new Date(Date.now() + 86_400_000).toISOString();
+    const result = await updateEvent(
+      "event-1",
+      updateEventSchema.parse({
+        moderation_mode: "hold_for_approval",
+        develops_at: at,
+      }),
+    );
+    expect(result).toEqual({
+      ok: false,
+      code: "unknown",
+      message: APPROVAL_NEVER_WITH_A_DEVELOP,
+    });
+    expect(patches).toEqual([]);
+  });
+
+  it("★ the database's refusal of the pair (the row's own develop time) reads as the same words", async () => {
+    nextError = {
+      code: "23514",
+      message:
+        'new row for relation "events" violates check constraint "events_approval_never_develops"',
+    };
+    const result = await updateEvent(
+      "event-1",
+      updateEventSchema.parse({ moderation_mode: "hold_for_approval" }),
+    );
+    expect(result).toEqual({
+      ok: false,
+      code: "unknown",
+      message: APPROVAL_NEVER_WITH_A_DEVELOP,
+    });
+  });
+
+  it("another CHECK's refusal stays the generic sentence (a refusal is read by its name, never guessed)", async () => {
+    nextError = {
+      code: "23514",
+      message:
+        'new row for relation "events" violates check constraint "events_roll_size_range"',
+    };
+    const result = await updateEvent(
+      "event-1",
+      updateEventSchema.parse({ capture: "camera" }),
+    );
+    expect(result).toEqual({
+      ok: false,
+      code: "unknown",
+      message: "Couldn't save your changes. Please try again.",
+    });
+  });
+});
+
+// AN EVENT'S OPTIONAL END DATE (20261003120000): the last day travels with its first (the schema refuses one alone),
+// a range said twice is stored as the one day it is, and the database's CHECK is read by its name, in words.
+describe("updateEvent: the event's dates", () => {
+  it("writes a range's two days together, and a date alone as the date alone", async () => {
+    await updateEvent(
+      "event-1",
+      updateEventSchema.parse({
+        event_date: "2026-10-03",
+        event_end_date: "2026-10-05",
+      }),
+    );
+    await updateEvent(
+      "event-1",
+      updateEventSchema.parse({ event_date: "2026-10-03" }),
+    );
+    expect(patches).toEqual([
+      { event_date: "2026-10-03", event_end_date: "2026-10-05" },
+      { event_date: "2026-10-03" },
+    ]);
+  });
+
+  it("stores a range said twice as the one day it is, and a cleared pair as none", async () => {
+    await updateEvent(
+      "event-1",
+      updateEventSchema.parse({
+        event_date: "2026-10-03",
+        event_end_date: "2026-10-03",
+      }),
+    );
+    await updateEvent(
+      "event-1",
+      updateEventSchema.parse({ event_date: "", event_end_date: "" }),
+    );
+    expect(patches).toEqual([
+      { event_date: "2026-10-03", event_end_date: null },
+      { event_date: null, event_end_date: null },
+    ]);
+  });
+
+  // red-team 47's NIT: a date cleared alone over a stored end (a stale page that never saw the end, or a crafted call) was
+  // refused as "The end date can't be before the event date.", words about an end the host may not even be shown. An end
+  // never stands alone, so the date's clearing carries it: the same write, never the CHECK's refusal.
+  it("★ takes a cleared date's end with it, so a date cleared alone never meets the CHECK", async () => {
+    await updateEvent("event-1", updateEventSchema.parse({ event_date: "" }));
+    expect(patches).toEqual([{ event_date: null, event_end_date: null }]);
+  });
+
+  it("★ reads the database's refusal of a range by its name, in the schema's own words", async () => {
+    nextError = {
+      code: "23514",
+      message:
+        'new row for relation "events" violates check constraint "events_end_date_on_or_after"',
+    };
+    const result = await updateEvent(
+      "event-1",
+      updateEventSchema.parse({ event_date: "2026-10-09" }),
+    );
+    expect(result).toEqual({
+      ok: false,
+      code: "unknown",
+      message: "The end date can't be before the event date.",
+    });
+  });
+});
+
+/**
+ * THE DAILY BREAKER'S WORDS (upload-meter, 20261003210500): `enforce_event_limit` refuses an account's 101st creation in
+ * any 24 hours with its own sentence, and the create action says that sentence, never the plan limit's (a Pro host has
+ * no event limit, and the wizard offers Upgrade on `limit_reached`). Read by its words, as the CHECKs above are read by
+ * their names; the plan limit's refusal keeps its own code and sentence.
+ */
+describe("createEvent: the daily breaker", () => {
+  const values = createEventSchema.parse({ name: "A party" });
+
+  it("★ says the breaker's own sentence, never the plan limit's, and never offers an upgrade", async () => {
+    nextError = {
+      code: "23514",
+      message: "You've created a lot of events today. Try again tomorrow.",
+    };
+    const result = await createEvent(values);
+    expect(result).toEqual({
+      ok: false,
+      code: "unknown",
+      message: "You've created a lot of events today. Try again tomorrow.",
+    });
+  });
+
+  it("the plan's own limit keeps its code and its sentence", async () => {
+    nextError = {
+      code: "23514",
+      message:
+        "Event limit reached for the free plan (max 1 event(s)). Delete an event or upgrade.",
+    };
+    const result = await createEvent(values);
+    expect(result).toEqual({
+      ok: false,
+      code: "limit_reached",
+      message: "You've reached the event limit for your plan.",
+    });
+  });
+
+  it("a creation the database takes is the row", async () => {
+    const result = await createEvent(values);
+    expect(result).toEqual({ ok: true, data: { id: "event-1" } });
   });
 });

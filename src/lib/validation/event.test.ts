@@ -361,3 +361,62 @@ describe("updateEventSchema: the capture and the develop time", () => {
     expect(created).not.toHaveProperty("develops_at");
   });
 });
+
+/**
+ * ★ AN END TRAVELS WITH ITS START (lane `event-dates`): a range is the first day and an optional last one, so a save
+ * that names a last day names its first beside it, and the last is never before it. The database's CHECK
+ * (`events_end_date_on_or_after`) is the boundary; this is the same refusal in words, before the write.
+ */
+describe("the event's dates: a first day and an optional last", () => {
+  it("takes a range, one day, and a cleared pair, in a save and a create", () => {
+    for (const schema of [updateEventSchema, createEventSchema]) {
+      const name = schema === createEventSchema ? { name: "Weekend" } : {};
+      expect(
+        schema.safeParse({ ...name, event_date: "2026-10-03", event_end_date: "2026-10-05" }).success,
+      ).toBe(true);
+      expect(
+        schema.safeParse({ ...name, event_date: "2026-10-03", event_end_date: "2026-10-03" }).success,
+      ).toBe(true);
+      expect(schema.safeParse({ ...name, event_date: "", event_end_date: "" }).success).toBe(true);
+      expect(schema.safeParse({ ...name, event_date: "2026-10-03" }).success).toBe(true);
+    }
+    // A save of the date alone is exactly its key: it invents no end.
+    expect(updateEventSchema.parse({ event_date: "2026-10-03" })).toEqual({
+      event_date: "2026-10-03",
+    });
+  });
+
+  it("refuses a last day before the first, in words, on the last day", () => {
+    const r = updateEventSchema.safeParse({
+      event_date: "2026-10-05",
+      event_end_date: "2026-10-03",
+    });
+    expect(r.success).toBe(false);
+    if (!r.success) {
+      expect(r.error.issues[0]?.message).toBe(
+        "The end date can't be before the event date.",
+      );
+      expect(r.error.issues[0]?.path).toEqual(["event_end_date"]);
+    }
+  });
+
+  it("refuses a last day sent without its first, or under a first being cleared", () => {
+    for (const input of [
+      { event_end_date: "2026-10-05" },
+      { event_date: "", event_end_date: "2026-10-05" },
+    ]) {
+      const r = updateEventSchema.safeParse(input);
+      expect(r.success, JSON.stringify(input)).toBe(false);
+      if (!r.success)
+        expect(r.error.issues[0]?.message).toBe(
+          "Add the event date first.",
+        );
+    }
+  });
+
+  it("refuses a last day it cannot read", () => {
+    expect(
+      updateEventSchema.safeParse({ event_date: "2026-10-03", event_end_date: "soon" }).success,
+    ).toBe(false);
+  });
+});

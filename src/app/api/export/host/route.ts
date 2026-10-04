@@ -13,6 +13,12 @@
  * cover every one; a request without a walk keeps the old 413 past one zip's 2,000 items. Through
  * one PostgREST request a 2,500-item album would arrive as its newest 1,000: the summary would
  * under-count, and the zip would silently leave out the oldest 1,500.
+ *
+ * ★ TWO SETS (take-home r1, `host=two`): Originals to keep and Phone size to post tonight. The summary says every
+ * bucket at both sizes and carries the album's own pictures for the panel; a mint takes `size` (phone size: each
+ * photograph's 2048 px copy, its original where it has none); and `save` answers the links a phone's share sheets
+ * are filled from, minted only when she saves. The copies are read on the admin client for exactly the rows her
+ * own RLS read returned (`readPhoneCopies`: no client role holds the two columns).
  */
 import { NextResponse } from "next/server";
 
@@ -21,6 +27,7 @@ import { z } from "zod";
 import { listEventMedia } from "@/lib/db/queries/media";
 import { BULK_LIMIT_MESSAGE } from "@/lib/event/bulk-selection";
 import {
+  chosenRows,
   EXPORT_CURSOR_RE,
   type ExportMediaRow,
   MAX_EXPORT_ITEMS,
@@ -30,17 +37,23 @@ import {
   mintExport,
   mintResponse,
 } from "@/lib/export/export-service";
+import { readPhoneCopies } from "@/lib/export/phone-copies.server";
+import { saveItemsFor, setPictures } from "@/lib/export/take-home.server";
 import { clientIp } from "@/lib/security/unlock-rate-limit";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const bodySchema = z.object({
-  step: z.enum(["summary", "mint"]),
+  // `save` (take-home r1): the links a phone's Save fills its share sheets from.
+  step: z.enum(["summary", "mint", "save"]),
   event_id: z.uuid(),
   types: z.enum(["all", "photo", "video"]).default("all"),
   include_hidden: z.boolean().default(false),
+  // Which copies a zip or a Save takes: the originals, or phone size (`host=two`).
+  size: z.enum(["original", "phone"]).default("original"),
   // Present only for bulk "Download selected" — narrows the set to these ids.
   ids: z.array(z.uuid()).min(1).max(MAX_EXPORT_ITEMS).optional(),
   // THE WALK (`cap=split`): which part this mint is, and where the last one ended. Every current
@@ -73,7 +86,7 @@ export async function POST(request: Request) {
   // The bar's other bulk verbs refuse the same selection in the same words (bulk-selection.ts).
   if (!parsed.success)
     return bad(overSelected(body) ? BULK_LIMIT_MESSAGE : undefined);
-  const { step, event_id, types, include_hidden, ids, part, after } =
+  const { step, event_id, types, include_hidden, size, ids, part, after } =
     parsed.data;
   // A position with no part to put it in is no request a client makes.
   if (after && (!part || part < 2)) return bad();
@@ -109,6 +122,11 @@ export async function POST(request: Request) {
     const set = new Set(ids);
     mediaRows = mediaRows.filter((m) => set.has(m.id));
   }
+  // Each photograph's phone-size copy, for exactly the rows her own read returned.
+  const phones = await readPhoneCopies(
+    createAdminClient(),
+    mediaRows.map((m) => m.id),
+  );
   const rows: ExportMediaRow[] = mediaRows.map((m) => ({
     id: m.id,
     type: m.type,
@@ -116,10 +134,26 @@ export async function POST(request: Request) {
     file_size_bytes: m.file_size_bytes,
     status: m.status,
     created_at: m.created_at,
+    phone_key: phones.get(m.id)?.key ?? null,
+    phone_bytes: phones.get(m.id)?.bytes ?? null,
   }));
 
   if (step === "summary") {
-    return NextResponse.json({ ok: true, summary: exportSummary(rows) });
+    return NextResponse.json({
+      ok: true,
+      summary: exportSummary(rows),
+      // The panel's two sets, pictured by the album itself.
+      pictures: await setPictures(mediaRows),
+    });
+  }
+
+  if (step === "save") {
+    const { items, more } = await saveItemsFor({
+      rows: chosenRows(rows, types, include_hidden),
+      eventName: ev.name,
+      size,
+    });
+    return NextResponse.json({ ok: true, items, more });
   }
 
   const result = await mintExport({
@@ -131,6 +165,7 @@ export async function POST(request: Request) {
     includeHidden: include_hidden,
     ip: clientIp(request.headers),
     walk: part ? { part, after: after ?? null } : undefined,
+    size,
     // The Worker reports this export back here (`export-ends`): the deployment that minted it.
     appOrigin: new URL(request.url).origin,
   });

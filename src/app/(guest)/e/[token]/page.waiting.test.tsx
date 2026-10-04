@@ -2,19 +2,20 @@ import { render } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
- * HER WAITING UPLOADS ON AN EMPTY HELD ALBUM, KNOWN BEFORE THE FIRST PAINT (crumbs-43; ROADMAP, from `voice-wiring`:
- * "a returning guest whose only uploads wait on an empty held album meets the empty state's 'Add the first photo'
- * with her badge beside Invite"). The page asks `hasWaitingUploads` where it decides anything (an empty album that
- * holds uploads for the host, open to hers, never the host's own) and hands `EventExperience` the answer as
- * `waitingOnArrival`, so the album's one Add is the row's from the first frame. What is pinned is when it asks, with
- * what, and what it hands on.
+ * ANYTHING WAITING IN AN ALBUM STILL EMPTY TO THE EYE, KNOWN BEFORE THE FIRST PAINT (crumbs-43 for her own uploads;
+ * RESHAPED by wait-wiring, crumbs-52's line: "a guest with none of her own shots on a sealed album still reads 'Add
+ * the first photo' ... while others' shots wait"). The page asks `albumWaits` where it decides anything (an empty
+ * album that waits, open to uploads; the host's own view too, her album being her guests' there) and hands
+ * `EventExperience` the answer as `waitingOnArrival`, so the album's one Add never says "the first photo" over an album
+ * others have added to. The scar kept from crumbs-43: hers count from the first frame (they are among what waits).
+ * What is pinned is when it asks, with what, and what it hands on.
  *
  * Everything else the album page reads is stood in for, as `page.own-delete.test.tsx` does: a found, open album this
  * viewer is through the door of, at full access.
  */
 vi.mock("server-only", () => ({}));
-const hasWaitingUploads = vi.hoisted(() => vi.fn());
-vi.mock("@/lib/guest/waiting-on-arrival.server", () => ({ hasWaitingUploads }));
+const albumWaits = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/disposable/waiting.server", () => ({ albumWaits }));
 vi.mock("next/headers", () => ({
   headers: async () => new Headers({ "user-agent": "test" }),
   cookies: async () => ({ get: () => undefined }),
@@ -150,33 +151,31 @@ beforeEach(() => {
   isRequestOwner.mockResolvedValue(false);
   listAccountMediaIds.mockResolvedValue([]);
   listOwnerMediaIds.mockResolvedValue([]);
-  hasWaitingUploads.mockResolvedValue(true);
+  albumWaits.mockResolvedValue(true);
   EVENT.moderation_mode = "hold_for_approval";
   EVENT.accepting_uploads = true;
   stats.approvedTotal = 0;
 });
 
-describe("her waiting uploads on an empty held album", () => {
-  it("★ are asked of the server on an empty album that holds uploads, with the request's ticket, and handed on", async () => {
+describe("anything waiting in an album empty to the eye", () => {
+  it("★ is asked of the server, by the album's own id, on an empty album that waits, and handed on", async () => {
     expect(await handed()).toBe(true);
-    expect(hasWaitingUploads).toHaveBeenCalledWith({
-      eventId: EVENT.id,
-      userId: null,
-      ticket: TICKET,
-    });
+    expect(albumWaits).toHaveBeenCalledWith(EVENT.id);
   });
 
-  it("a signed-in guest's account rides beside the ticket", async () => {
+  it("a signed-in guest asks the same: what waits is the album's, never the viewer's", async () => {
     user = { id: "guest-1", email_confirmed_at: "2026-09-01T00:00:00Z" };
     expect(await handed()).toBe(true);
-    expect(hasWaitingUploads).toHaveBeenCalledWith({
-      eventId: EVENT.id,
-      userId: "guest-1",
-      ticket: TICKET,
-    });
+    expect(albumWaits).toHaveBeenCalledWith(EVENT.id);
   });
 
-  it("asks nothing where it decides nothing: an album with photographs, one that holds nothing, closed uploads, the host", async () => {
+  it("the host's own view asks too: her album is her guests' here", async () => {
+    user = { id: "host-1", email_confirmed_at: "2026-09-01T00:00:00Z" };
+    isRequestOwner.mockResolvedValue(true);
+    expect(await handed()).toBe(true);
+  });
+
+  it("asks nothing where it decides nothing: an album with photographs, one that holds nothing, closed uploads", async () => {
     stats.approvedTotal = 3;
     expect(await handed()).toBe(false);
     stats.approvedTotal = 0;
@@ -185,10 +184,6 @@ describe("her waiting uploads on an empty held album", () => {
     EVENT.moderation_mode = "hold_for_approval";
     EVENT.accepting_uploads = false;
     expect(await handed()).toBe(false);
-    EVENT.accepting_uploads = true;
-    user = { id: "host-1", email_confirmed_at: "2026-09-01T00:00:00Z" };
-    isRequestOwner.mockResolvedValue(true);
-    expect(await handed()).toBe(false);
-    expect(hasWaitingUploads).not.toHaveBeenCalled();
+    expect(albumWaits).not.toHaveBeenCalled();
   });
 });

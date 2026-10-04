@@ -32,6 +32,8 @@ import {
   type JobSignals,
   type JobState,
 } from "@/lib/db/queries/jobs";
+import { readLatestWatchRun } from "@/lib/jobs/spend-watch-run";
+import { readSwitches } from "@/lib/jobs/spend-watch-switches";
 import { RESUME_KEY } from "@/lib/jobs/sweep-tally";
 
 import {
@@ -46,7 +48,18 @@ import {
   type JobId,
   type JobReading,
 } from "./catalog";
-import { JobKillSwitch, RunJobNowButton } from "./job-controls";
+import {
+  JobKillSwitch,
+  PruneHoldControl,
+  RunJobNowButton,
+} from "./job-controls";
+import { readLastPruneReport, readPruneHoldReleasedAtMs } from "./prune-hold";
+import { pruneHoldView, type PruneHoldView } from "./prune-hold-view";
+import {
+  SpendWatchReadings,
+  SpendWatchSwitches,
+  type LatestWatchRun,
+} from "./spend-watch-card";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Jobs" };
@@ -105,7 +118,6 @@ const READING_LABEL: Partial<Record<JobId, { unit: string; remedy: string }>> =
         "The daily backup reconcile copies anything the live queue missed, so a dead letter clears on its next run.",
     },
   };
-
 
 function formatDuration(ms: number | null): string {
   if (ms === null) return "";
@@ -194,12 +206,56 @@ async function loadPageData(): Promise<PageData> {
   }
 }
 
+/**
+ * The spend watch's card reads two more things: its last run that took readings (the newest of all may be a pause's
+ * skipped row) and the switches it can stop. Each failure stays on the card in words, never blanking the console.
+ */
+async function loadWatchData(): Promise<{
+  latest: LatestWatchRun | null;
+  latestError: string | null;
+  switches: Awaited<ReturnType<typeof readSwitches>> | null;
+  switchesError: string | null;
+}> {
+  const [latest, switches] = await Promise.allSettled([
+    readLatestWatchRun(),
+    readSwitches(),
+  ]);
+  const message = (r: PromiseRejectedResult) =>
+    r.reason instanceof Error ? r.reason.message : String(r.reason);
+  return {
+    latest: latest.status === "fulfilled" ? latest.value : null,
+    latestError: latest.status === "rejected" ? message(latest) : null,
+    switches: switches.status === "fulfilled" ? switches.value : null,
+    switchesError: switches.status === "rejected" ? message(switches) : null,
+  };
+}
+
+/**
+ * The backup prune's hold, for its card: its last report from a run that ran and the last release pressed. A hold
+ * read that fails draws no control rather than a wrong one; a stamp that cannot be read reads as none, so a hold
+ * still offers its release (pressing again only stamps again).
+ */
+async function loadPruneHold(): Promise<PruneHoldView> {
+  const [report, released] = await Promise.allSettled([
+    readLastPruneReport(),
+    readPruneHoldReleasedAtMs(),
+  ]);
+  if (report.status === "rejected") return null;
+  return pruneHoldView({
+    counts: report.value,
+    releasedAtMs: released.status === "fulfilled" ? released.value : null,
+  });
+}
+
 export default async function JobsPage() {
   const ctx = await requireAdmin();
   if (ctx.aal !== "aal2") return null;
 
-  const { flags, states, recent, signals, nowMs, unavailable } =
-    await loadPageData();
+  const [
+    { flags, states, recent, signals, nowMs, unavailable },
+    watch,
+    pruneHold,
+  ] = await Promise.all([loadPageData(), loadWatchData(), loadPruneHold()]);
 
   // Health resolves in TWO passes because a `derived` reading inherits the health of the run that
   // carried it: the Worker's own verdict has to exist before the queue and dead-letter cards can say
@@ -380,7 +436,8 @@ export default async function JobsPage() {
                                 : undefined
                             }
                           >
-                            {formatCount(reading.value)} {readingWords?.unit ?? ""}
+                            {formatCount(reading.value)}{" "}
+                            {readingWords?.unit ?? ""}
                           </span>
                         )}
                       </dd>
@@ -429,7 +486,9 @@ export default async function JobsPage() {
                   </div>
                 )}
 
-                {counts && def.kind === "scheduled" ? (
+                {counts &&
+                def.kind === "scheduled" &&
+                def.id !== "spend_watch" ? (
                   <div className="flex gap-2 sm:col-span-2">
                     <dt className="text-muted-foreground">Reported</dt>
                     <dd className="text-muted-foreground">{counts}</dd>
@@ -442,6 +501,27 @@ export default async function JobsPage() {
                   </div>
                 ) : null}
               </dl>
+
+              {def.id === "spend_watch" ? (
+                // The watch's own card: its readings against their ceilings, and what it can stop.
+                <div className="space-y-5 border-t border-border pt-3">
+                  <SpendWatchReadings
+                    latest={watch.latest}
+                    unreadable={watch.latestError}
+                  />
+                  <SpendWatchSwitches
+                    switches={watch.switches}
+                    latest={watch.latest?.run ?? null}
+                    unreadable={watch.switchesError}
+                  />
+                </div>
+              ) : null}
+
+              {def.id === "backup_prune" && pruneHold ? (
+                <div className="border-t border-border pt-3">
+                  <PruneHoldControl view={pruneHold} />
+                </div>
+              ) : null}
 
               <div className="flex flex-wrap items-center gap-3 border-t border-border pt-3">
                 {def.canRunNow ? (

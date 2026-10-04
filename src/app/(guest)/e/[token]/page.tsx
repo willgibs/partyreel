@@ -58,9 +58,9 @@ import {
 } from "@/lib/guest/event-card";
 import { doorArrival } from "@/lib/guest/entry-steps";
 import { readGuestSessionCookie } from "@/lib/guest/session-cookie";
+import { albumWaits } from "@/lib/disposable/waiting.server";
 import { uploadsWait } from "@/lib/guest/upload-tracker";
 import { welcomeSeenIn } from "@/lib/guest/use-welcome-seen-cookie";
-import { hasWaitingUploads } from "@/lib/guest/waiting-on-arrival.server";
 import { PHOTO_PARAM, readPhotoParam } from "@/lib/media/share-save";
 import { presignDownload } from "@/lib/r2/presign";
 import {
@@ -519,6 +519,8 @@ export default async function GuestEventPage({
           host_display_name: doorDecision ? event.host_display_name : null,
           description: null,
           event_date: null,
+          // A range's last day is the date's own (20261003120000): blanked with it.
+          event_end_date: null,
           // The develop time is a date like the event's own (9 am the day after the party): nothing at a gate
           // says it (no waiting room, no camera behind a door she is outside).
           develops_at: null,
@@ -619,22 +621,18 @@ export default async function GuestEventPage({
   // Off the shell: a gate's carries no develop time.
   const waits = uploadsWait(shellEvent);
 
-  // ★ HER WAITING UPLOADS ON AN EMPTY HELD ALBUM, KNOWN BEFORE THE FIRST PAINT (crumbs-43): the album's one Add is
-  // the row's while something of hers waits (for the host, or sealed for the develop), and her tracker learns an
-  // earlier visit's waiting rows only after mount, so the page asks here, where it decides anything
-  // (`waiting-on-arrival.server.ts` says why).
+  // ★ ANYTHING WAITING IN AN ALBUM STILL EMPTY TO THE EYE, KNOWN BEFORE THE FIRST PAINT (crumbs-43 for her own; the
+  // wait's wiring for everyone's, crumbs-52's line): the album's one Add says "the first photo" only over an album
+  // nothing has been added to, visible or waiting, and what waits (hers among it) is known here before any script
+  // runs, so the first paint is the layout she keeps (`lib/disposable/waiting.server.ts` says why). The host's own
+  // view counts it too: her album is her guests' here.
   const waitingOnArrival =
     !isDemo &&
-    !isOwner &&
     access === "full" &&
     event.accepting_uploads &&
     waits.waits &&
     stats.approvedTotal === 0
-      ? await hasWaitingUploads({
-          eventId: event.id,
-          userId,
-          ticket: cookieSessionToken,
-        })
+      ? await albumWaits(event.id)
       : false;
 
   /* ★ THE FIRST BYTE IS THE DOOR (door-reveal; Will's live walk: "entered the address, full guest album was

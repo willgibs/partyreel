@@ -32,7 +32,7 @@ function hostCompleteStrategy(
   return {
     schema: hostCompleteSchema,
     captureLabel: "create_media_as_host",
-    createRecord(parsed, kind, realSize) {
+    createRecord(parsed, kind, realSize, phone) {
       return createMediaAsHost({
         hostId,
         eventId: parsed.event_id,
@@ -44,6 +44,9 @@ function hostCompleteStrategy(
         width: parsed.width ?? null,
         height: parsed.height ?? null,
         previewKey: parsed.preview_key ?? null,
+        // The phone-size copy the engine verified on its HEAD (take-home r1), or none.
+        phoneKey: phone?.key ?? null,
+        phoneBytes: phone?.bytes ?? null,
         // Only a clip says anything here; every other upload leaves the column's default.
         reelEligible: parsed.reel_eligible,
       });

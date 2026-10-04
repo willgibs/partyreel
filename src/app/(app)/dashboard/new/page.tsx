@@ -1,11 +1,10 @@
-import type { Metadata } from "next";
-import Link from "next/link";
+import type { Metadata, Viewport } from "next";
 import { redirect } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
 
 import { CreateEventWizard } from "@/components/app/create-event-wizard";
 import {
   DEFAULT_TIER,
+  effectiveStorageCap,
   MAX_EVENTS,
   TIER_NAMES,
   toBillingTier,
@@ -13,13 +12,23 @@ import {
 } from "@/lib/constants/tiers";
 import { countActiveEvents, listEvents } from "@/lib/db/queries/events";
 import { getProfile } from "@/lib/db/queries/profile";
+import { getHostStorageSummary } from "@/lib/db/queries/storage";
+import { storageUsedPct } from "@/lib/events/readiness";
+import { captureError } from "@/lib/observability/sentry";
 import { getSiteUrl } from "@/lib/site-url";
 import { needsDisplayName } from "@/lib/welcome";
 
 export const metadata: Metadata = { title: "New event" };
 
-// The create route (the `first-event` board's wiring, 2026-09-21). The (app)
-// layout already gated on getUser(), so reads here are the signed-in host's.
+/**
+ * Create is a room of its own, dark in both themes (create-wizard r1 `shape=screen`), so the browser's
+ * own bar wears the room's ground too, whatever the session's theme: `#040405` is the sRGB of the
+ * room's `--background` (the root layout's dark entry says the same).
+ */
+export const viewport: Viewport = { themeColor: "#040405" };
+
+// The create route (the `first-event` board's wiring, 2026-09-21; the room, create-wizard r2). The
+// (app) layout already gated on getUser(), so reads here are the signed-in host's.
 //
 // ★ STILL NO at-cap REDIRECT HERE — AND NOW A DOOR INSTEAD. Creating an event
 // puts a Free host AT their cap, and a Server Action refreshes the route it was
@@ -31,11 +40,21 @@ export const metadata: Metadata = { title: "New event" };
 // which SNAPSHOTS them at mount so that same post-create refresh cannot swap the
 // beat for the door. The server's `enforce_event_limit` trigger stays the guard
 // behind both (the wizard toasts and returns on `limit_reached`).
+//
+// The page draws nothing of its own around the room: the room is the whole screen, and its close is the
+// way back to the events.
 export default async function NewEventPage() {
-  const [profile, siteUrl, eventCount] = await Promise.all([
+  const [profile, siteUrl, eventCount, storage] = await Promise.all([
     getProfile(),
     getSiteUrl(),
     countActiveEvents(),
+    // The beat's room line (create-wizard r2's carried `room`), the dashboard meter's own read. ★ IT IS
+    // NEVER WORTH THE PAGE: a failed read leaves room out of what is left (the quiet direction; the
+    // dashboard's meter still says it) and says so where failures are read.
+    getHostStorageSummary().catch((error: unknown) => {
+      captureError("db", error, { seam: "create_room_storage" });
+      return null;
+    }),
   ]);
 
   // A host's name shows publicly on their own uploads + the "Hosted by" byline, so require it
@@ -55,25 +74,24 @@ export default async function NewEventPage() {
   const cappedEvents = atCap
     ? (await listEvents()).map((e) => ({ id: e.id, name: e.name }))
     : [];
+  const storagePct = storage
+    ? storageUsedPct(
+        storage.activeBytes,
+        effectiveStorageCap(tier, profile?.storage_cap_bytes ?? null),
+      )
+    : 0;
 
   return (
-    <div className="space-y-6">
-      <Link
-        href="/dashboard"
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="size-4" /> Back to events
-      </Link>
-      <CreateEventWizard
-        siteUrl={siteUrl}
-        planName={TIER_NAMES[tier]}
-        tier={tier}
-        atCap={atCap}
-        maxEvents={maxEvents}
-        // Only what the door says out loud. The row carries the password hash
-        // and every setting; a client island gets a name and an id.
-        cappedEvents={cappedEvents}
-      />
-    </div>
+    <CreateEventWizard
+      siteUrl={siteUrl}
+      planName={TIER_NAMES[tier]}
+      tier={tier}
+      atCap={atCap}
+      maxEvents={maxEvents}
+      // Only what the door says out loud. The row carries the password hash
+      // and every setting; a client island gets a name and an id.
+      cappedEvents={cappedEvents}
+      storagePct={storagePct}
+    />
   );
 }

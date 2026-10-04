@@ -23,6 +23,7 @@ import "server-only";
 import {
   AbortMultipartUploadCommand,
   CompleteMultipartUploadCommand,
+  CopyObjectCommand,
   CreateMultipartUploadCommand,
   GetObjectCommand,
   HeadObjectCommand,
@@ -247,6 +248,34 @@ export async function headObjectSize(params: { key: string }): Promise<number> {
     throw new Error(`HEAD returned no positive ContentLength for ${key}`);
   }
   return size;
+}
+
+/**
+ * ★ A SERVER-SIDE COPY WITHIN THE BUCKET (upload-meter's staging): the complete copies a staged single PUT into its
+ * `events/` key before the row is written. One Class A operation and no byte through a function; a staged object is a
+ * single PUT, so at most the multipart threshold, far under CopyObject's 5 GiB. Content-Type travels with the object
+ * (the default COPY directive). Throws on any R2 error, a source gone included (`NoSuchKey`), so the caller decides.
+ */
+export async function copyObject(params: {
+  sourceKey: string;
+  destinationKey: string;
+}): Promise<void> {
+  const { sourceKey, destinationKey } = params;
+  // Our keys are uuids, kinds, variants and extensions: nothing a CopySource must escape. Anything else is refused
+  // rather than escaped, since no caller has a reason to copy it.
+  if (!/^[A-Za-z0-9._/-]+$/.test(sourceKey)) {
+    throw new Error(
+      `copyObject: refusing an unescaped source key: ${sourceKey}`,
+    );
+  }
+  const { R2_BUCKET } = assertR2Env();
+  await getR2Client().send(
+    new CopyObjectCommand({
+      Bucket: R2_BUCKET,
+      Key: destinationKey,
+      CopySource: `${R2_BUCKET}/${sourceKey}`,
+    }),
+  );
 }
 
 /**

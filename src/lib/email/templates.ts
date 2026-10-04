@@ -548,6 +548,129 @@ export function pruneBreakerEmail(opts: {
 }
 
 /**
+ * THE BACKUP PRUNE HELD ITS BACKLOG (durability-backups.md, "The deletion-aware prune"; the Advisor's Q20): a run
+ * found far more gone than usual, deleted nothing, and waits for a person, because a hold never releases itself. It
+ * says what was held and the two ways on: Release the hold on the prune's card if the clear-out is real, or pause the
+ * prune if it looks like a loss. No button (an operator alert's shape); the jobs console rides the foot. Sent once a
+ * run through sendOnce (`prune_breaker`), so a hold that stands is mailed again each week.
+ */
+export function pruneHoldEmail(opts: {
+  heldMedia: number | null;
+  heldKeys: number | null;
+  threshold: number | null;
+  /** The held run's own line from the jobs console, when it sent one. */
+  runNote: string | null;
+  jobsUrl: string;
+}): Mail {
+  const count = (n: number | null) =>
+    n === null ? "unknown" : n.toLocaleString("en-US");
+  const what =
+    opts.heldMedia === null
+      ? "its backlog waits"
+      : `${count(opts.heldMedia)} items wait`;
+  return composeMail({
+    subject: `${OPERATOR_TAG} Backup prune held: ${what} for a person`,
+    heading: "The backup prune is holding its backlog",
+    blocks: [
+      p(
+        "The weekly prune found far more backup copies to delete than usual: either a real clear-out or rows and objects lost together, which every check it makes would read the same way. ",
+        strong("Nothing was deleted."),
+        " It holds until a person releases it.",
+      ),
+      {
+        kind: "fields",
+        rows: [
+          { label: "Items held", value: count(opts.heldMedia) },
+          { label: "Backup copies held", value: count(opts.heldKeys) },
+          { label: "It holds past", value: count(opts.threshold) },
+          ...(opts.runNote
+            ? [{ label: "The run's note", value: opts.runNote }]
+            : []),
+        ],
+      },
+      p(
+        strong("What to check:"),
+        " that the ",
+        code("media"),
+        " table and the primary bucket are intact (not mid-restore, not a bad migration, not a purge bug). If the clear-out is real, press Release the hold on the backup prune's card and the next run deletes them, each checked again first. If it looks like a loss, pause the prune there and restore from the backup.",
+      ),
+    ],
+    foot: {
+      line: "Partyreel operations alert (backup-prune hold, durability-backups.md). Sent once a run while the hold stands.",
+      link: { href: opts.jobsUrl, label: "Open the backup prune" },
+    },
+  });
+}
+
+/**
+ * THE SPEND WATCH TRIPPED (admin-observability.md, "The spend watch"): a reading went past ten times its busiest of
+ * the week, or past its floor on a quiet one. It says what tripped, what the watch paused on its own and what it
+ * left for a person (guest uploads, since a false alarm there would stop a real party). No button (an operator
+ * alert's shape); the jobs console rides the foot. Sent at most once a day per set of readings through sendOnce.
+ */
+export function spendWatchEmail(opts: {
+  tripped: { label: string; reading: string; ceiling: string }[];
+  /** What it paused on its own, in the console's words. */
+  paused: string[];
+  /** What it left for a person to pause. */
+  offered: string[];
+  /** Pauses it tried and could not write. */
+  failed: string[];
+  jobsUrl: string;
+}): Mail {
+  const names = opts.tripped.map((t) => t.label.toLowerCase()).join(", ");
+  return composeMail({
+    subject: `${OPERATOR_TAG} Spend watch: ${names} past the ceiling`,
+    heading: "The spend watch tripped",
+    blocks: [
+      p(
+        "A reading went past ten times its busiest of the past week, or past its floor on a quiet week: ",
+        strong("the shape of a runaway, not of growth."),
+      ),
+      {
+        kind: "fields",
+        rows: opts.tripped.map((t) => ({
+          label: t.label,
+          value: `${t.reading} (ceiling ${t.ceiling})`,
+        })),
+      },
+      ...(opts.paused.length > 0
+        ? [
+            p(
+              strong("Paused on its own: "),
+              `${opts.paused.join(", ")}. It stays off until you turn it back on.`,
+            ),
+          ]
+        : []),
+      ...(opts.offered.length > 0
+        ? [
+            p(
+              strong("Left for you: "),
+              `${opts.offered.join(", ")}. A false alarm there would stop a real party, so the watch never pauses it; pause it from the spend watch's card if this is a runaway.`,
+            ),
+          ]
+        : []),
+      ...(opts.failed.length > 0
+        ? [
+            p(
+              strong("Could not pause: "),
+              `${opts.failed.join(", ")}. Pause it by hand.`,
+            ),
+          ]
+        : []),
+      p(
+        strong("What to check:"),
+        " each reading's line on the card says where its number comes from and what usually drives it.",
+      ),
+    ],
+    foot: {
+      line: "Partyreel operations alert (the spend watch, admin-observability.md). Sent at most once a day per set of readings.",
+      link: { href: opts.jobsUrl, label: "Open the spend watch" },
+    },
+  });
+}
+
+/**
  * A REPORT THAT CANNOT WAIT FOR THE MORNING (admin-triage r2, his word in chat): a child-abuse report, whether
  * its confirmed reporter's instant hide took the item down or it arrived unconfirmed and is still up. It goes to
  * the ops inbox at once, beside the portal's own count, so a false hide lasts minutes and a real one is acted on.

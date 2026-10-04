@@ -15,6 +15,11 @@
  *  - `part` and `after` (`cap=split`), a walk through an album past one zip's ceilings.
  * ★ THE DOOR IS ASKED FIRST ON EVERY ONE OF THEM, before anything is read (route.test.ts): a door that
  * shuts this viewer out or holds her at it exports nothing.
+ *
+ * ★ AND HER SAVE (take-home r1, `guest=select`, `save=light`): Select, then Save. A summary asked with `ids` (her
+ * selection) adds `selection`, its buckets at both sizes, so her two choices show their sizes; `save` answers the
+ * links her phone's share sheets are filled from, at phone size (a photograph's 2048 px copy, else its original; a
+ * clip as taken), minted only when she saves. Both narrow what she can see by her ids (or her set), never widen it.
  */
 import { NextResponse } from "next/server";
 
@@ -48,6 +53,8 @@ import {
   mintExport,
   mintResponse,
 } from "@/lib/export/export-service";
+import { readPhoneCopies } from "@/lib/export/phone-copies.server";
+import { saveItemsFor } from "@/lib/export/take-home.server";
 import { ownMediaIds } from "@/lib/export/yours.server";
 import { clientIp } from "@/lib/security/unlock-rate-limit";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -57,13 +64,17 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const bodySchema = z.object({
-  step: z.enum(["summary", "mint"]),
+  // `save` (take-home r1): the links her phone's Save fills its share sheets from.
+  step: z.enum(["summary", "mint", "save"]),
   qr_token: z.string().min(1),
   types: z.enum(["all", "photo", "video"]).default("all"),
   // YOURS (`means=mine`): her own uploads, found on the server, never named by the request.
   set: z.enum(["album", "yours"]).default("album"),
-  // A zip's missed ones, asked again: it narrows what she can see and never widens it.
+  // A zip's missed ones asked again, or her selection (Select, then Save): it narrows what she can see and never
+  // widens it.
   ids: z.array(z.uuid()).min(1).max(MAX_EXPORT_ITEMS).optional(),
+  // Which copies a Save takes: her Save into Photos asks for phone size.
+  size: z.enum(["original", "phone"]).default("original"),
   // THE WALK (`cap=split`): which part this mint is, and where the last one ended.
   part: z.number().int().min(1).max(10_000).optional(),
   after: z.string().regex(EXPORT_CURSOR_RE).optional(),
@@ -82,7 +93,7 @@ export async function POST(request: Request) {
   }
   const parsed = bodySchema.safeParse(body);
   if (!parsed.success) return bad();
-  const { step, qr_token, types, set, ids, part, after } = parsed.data;
+  const { step, qr_token, types, set, ids, size, part, after } = parsed.data;
   // A position with no part to put it in is no request a client makes.
   if (after && (!part || part < 2)) return bad();
 
@@ -122,9 +133,7 @@ export async function POST(request: Request) {
       ? admitted || (await isUnlocked(event.id))
       : true;
   // This browser's ticket for the album: the upload gate's identity below, and Yours'.
-  const sessionToken = isDemo
-    ? null
-    : await readGuestSessionCookie(event.id);
+  const sessionToken = isDemo ? null : await readGuestSessionCookie(event.id);
   /* ★ THE UPLOAD GATE REACHES THE ZIP (the door as three steps, 2026-09-21). This route hands a
      viewer the real originals, so it must resolve the SAME decision the album does: a guest held at
      the upload step is `teaser`, and below gets the teaser's rows alone rather than every original
@@ -170,10 +179,10 @@ export async function POST(request: Request) {
   // always measures the whole album (Yours is counted inside it); a mint takes its set, then its ids.
   let visible =
     step === "summary" ? [...gallery.rows, ...ownSealed] : gallery.rows;
-  if (step === "mint" && set === "yours") {
+  if (step !== "summary" && set === "yours") {
     visible = [...visible.filter((r) => own.has(r.id)), ...ownSealed];
   }
-  if (step === "mint" && ids) {
+  if (step !== "summary" && ids) {
     const asked = new Set(ids);
     visible = visible.filter((r) => asked.has(r.id));
   }
@@ -199,6 +208,16 @@ export async function POST(request: Request) {
       )) ?? [],
   );
   const sizeById = new Map(sizes.map((s) => [s.id, s.file_size_bytes]));
+  // ★ EACH PHOTOGRAPH'S PHONE-SIZE COPY, where her Save's sizes or links need it (never for an originals zip):
+  // read for exactly the photographs this request already narrowed to, after their sizes (whose read is the cap
+  // guard and fails first).
+  const phones =
+    step === "mint"
+      ? new Map<string, { key: string; bytes: number }>()
+      : await readPhoneCopies(
+          admin,
+          visible.filter((r) => r.type === "photo").map((r) => r.id),
+        );
   // ★ AN UNMEASURED ROW IS NEVER ZERO BYTES. With every chunk read, an id with no
   // size is a row that stopped existing between the album read and this one (a
   // purge or a deletion racing the request): it leaves the export rather than
@@ -215,6 +234,8 @@ export async function POST(request: Request) {
             file_size_bytes: size,
             status: "approved" as const,
             created_at: r.created_at,
+            phone_key: phones.get(r.id)?.key ?? null,
+            phone_bytes: phones.get(r.id)?.bytes ?? null,
           },
         ];
   });
@@ -223,11 +244,30 @@ export async function POST(request: Request) {
     // Yours' own counts (her sealed shots inside them), or null when she has nothing here to take (no row is drawn
     // then). The album's own summary is the album: her sealed shots are none of it.
     const mine = rows.filter((r) => own.has(r.id));
+    // Her selection (Select, then Save), as far as she can see it: its sizes beside each choice.
+    const asked = ids ? new Set(ids) : null;
     return NextResponse.json({
       ok: true,
       summary: exportSummary(rows.filter((r) => !ownSealedIds.has(r.id))),
       yours: mine.length > 0 ? exportSummary(mine) : null,
+      ...(asked
+        ? {
+            selection: exportSummary(
+              rows.filter((r) => asked.has(r.id) && !ownSealedIds.has(r.id)),
+            ),
+          }
+        : {}),
     });
+  }
+
+  if (step === "save") {
+    // What she picked (her ids), or a set: the whole album she sees (All), or Yours.
+    const { items, more } = await saveItemsFor({
+      rows: rows.filter((r) => types === "all" || r.type === types),
+      eventName: event.name,
+      size,
+    });
+    return NextResponse.json({ ok: true, items, more });
   }
 
   const result = await mintExport({

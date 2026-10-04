@@ -174,9 +174,10 @@ describe("on its day", () => {
     expect(screen.getByText("143")).toBeInTheDocument();
     expect(screen.getByText("· 32 in the last hour")).toBeInTheDocument();
     // Two at the door: the stage's act is now letting them in.
+    // Its Guests room stands over the hub (event-header r2, `rooms=over`), At the door its first section.
     expect(screen.getByRole("link", { name: "Let 2 in" })).toHaveAttribute(
       "href",
-      "/dashboard/e1/guests#at-the-door",
+      "/dashboard/e1?room=guests",
     );
     const first = document.querySelector("[data-stage-wall] li img");
     expect(first?.getAttribute("src")).toBe("https://r2.test/new.webp");

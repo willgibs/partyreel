@@ -135,9 +135,9 @@ const ticket = vi.hoisted(() => ({ value: null as string | null }));
 vi.mock("@/lib/guest/session-cookie", () => ({
   readGuestSessionCookie: async () => ticket.value,
 }));
-const waitingAsk = vi.hoisted(() => vi.fn(async () => false));
-vi.mock("@/lib/guest/waiting-on-arrival.server", () => ({
-  hasWaitingUploads: waitingAsk,
+const waitingAsk = vi.hoisted(() => vi.fn(async (_eventId: string) => false));
+vi.mock("@/lib/disposable/waiting.server", () => ({
+  albumWaits: waitingAsk,
 }));
 vi.mock("@/lib/media/share-save", () => ({
   PHOTO_PARAM: "photo",
@@ -306,10 +306,10 @@ describe("★ the page decides what its first byte draws for the door", () => {
 
 /* ★ RED-TEAM 43'S MEDIUM, THE PAGE'S HALF: an album with a develop time ahead keeps what she adds out of the album as
    surely as one that waits for the host, so the page reads it as waiting (her tracker, the keep's words) and asks
-   after her waiting shots on an empty album as it does for the host's. Its time stays off every gate (beside the
-   date, `page.redaction.test.tsx`). */
+   whether anything waits on an empty album (the-wait's wiring: everyone's, hers among it). Its time stays off every
+   gate (beside the date, `page.redaction.test.tsx`). */
 describe("★ an album with a develop time ahead: what she adds waits", () => {
-  it("hands down that it waits, and for the develop, and asks after hers on an empty album", async () => {
+  it("hands down that it waits, and for the develop, and asks whether anything waits on an empty album", async () => {
     const ahead = new Date(Date.now() + 86_400_000).toISOString();
     EVENT.develops_at = ahead;
     galleryStats.approvedTotal = 0;

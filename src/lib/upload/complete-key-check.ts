@@ -12,6 +12,9 @@
  *   - kind swap: uploading video bytes but completing as `photo` (a photo-typed row) dodges the
  *     free-tier photos-only gate and every video-specific surface;
  *   - ext drift: a content_type whose ext disagrees with the key's names a file R2 never presigned.
+ *   - the phone copy (take-home r1): a photograph's 2048 px JPEG, `phone.jpg` beside its original,
+ *     never a video's (videos stay as taken) and never another variant in its slot (an unmetered copy
+ *     must never be the original or the preview by another name).
  * The client echoes presign's content_type verbatim (uploader.ts), so no legitimate caller changes.
  */
 import type { MediaKind } from "@/lib/media/limits";
@@ -28,17 +31,22 @@ export type CompleteKeyProblem =
   | "key_ext_mismatch"
   | "preview_not_preview"
   | "preview_kind_mismatch"
-  | "preview_ext_not_webp";
+  | "preview_ext_not_webp"
+  | "phone_not_phone"
+  | "phone_not_photo"
+  | "phone_ext_not_jpg";
 
 export function checkCompleteKeyConsistency(args: {
   key: string;
   previewKey: string | null | undefined;
+  /** The phone-size copy's key, set only when the client PUT one (`phoneKeyFor`). */
+  phoneKey?: string | null;
   /** classifyMime(content_type) at complete — already refused as 415 when null. */
   kind: MediaKind;
   /** extForMime(content_type) at complete — null means a mime presign could never have minted. */
   ext: string | null;
 }): CompleteKeyProblem | null {
-  const { key, previewKey, kind, ext } = args;
+  const { key, previewKey, phoneKey, kind, ext } = args;
 
   if (parseVariantFromKey(key) !== "original") return "key_not_original";
   if (parseKindFromKey(key) !== kind) return "key_kind_mismatch";
@@ -52,6 +60,15 @@ export function checkCompleteKeyConsistency(args: {
     if (parseKindFromKey(previewKey) !== kind) return "preview_kind_mismatch";
     // …and previews are always the client-generated WebP (presign mints ext "webp" verbatim).
     if (parseExtFromKey(previewKey) !== "webp") return "preview_ext_not_webp";
+  }
+
+  if (phoneKey) {
+    if (parseVariantFromKey(phoneKey) !== "phone") return "phone_not_phone";
+    // Only a photograph has a phone copy, and presign mints it under the photo kind alone.
+    if (kind !== "photo" || parseKindFromKey(phoneKey) !== "photo") {
+      return "phone_not_photo";
+    }
+    if (parseExtFromKey(phoneKey) !== "jpg") return "phone_ext_not_jpg";
   }
 
   return null;

@@ -57,6 +57,8 @@ export type SettingsValues = {
   name: string;
   description: string;
   eventDate: string;
+  /** A range's last day (20261003120000), "" for one day; saved with `eventDate`, never alone. */
+  eventEndDate: string;
   door: Door;
   hasPassword: boolean;
   requireVerifiedEmail: boolean;
@@ -100,6 +102,7 @@ function valuesOf(
     name: event.name,
     description: event.description ?? "",
     eventDate: event.event_date ?? "",
+    eventEndDate: event.event_end_date ?? "",
     door: event.door,
     hasPassword: event.has_password,
     requireVerifiedEmail: event.require_verified_email,
@@ -187,6 +190,7 @@ function eventPatch(patch: Partial<SettingsValues>) {
   if (patch.name !== undefined) out.name = patch.name;
   if (patch.description !== undefined) out.description = patch.description;
   if (patch.eventDate !== undefined) out.event_date = patch.eventDate;
+  if (patch.eventEndDate !== undefined) out.event_end_date = patch.eventEndDate;
   if (patch.requireVerifiedEmail !== undefined)
     out.require_verified_email = patch.requireVerifiedEmail;
   if (patch.requireUploadToView !== undefined)
@@ -500,7 +504,9 @@ export function SettingsProvider({
     lookLabel: moodLabel(values.reelStyleId),
     holdSec: values.reelHoldSec,
     name: values.name,
-    dateLabel: values.eventDate ? formatEventDate(values.eventDate) : null,
+    dateLabel: values.eventDate
+      ? formatEventDate(values.eventDate, values.eventEndDate)
+      : null,
     onProfile: values.displayInProfile,
     develop: {
       capture: values.capture,

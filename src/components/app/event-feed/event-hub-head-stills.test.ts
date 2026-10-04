@@ -81,3 +81,19 @@ describe("the reel's opening stills", () => {
     ]);
   });
 });
+
+/* ★ THE HOST'S COVER (the-wait r1, Will's `cover=guests`): while her album develops, her hub's head is her guests', so
+   what waits for the develop never dresses it, the newest a guest can see standing in its place (or none: the house
+   light). */
+describe("while her album develops", () => {
+  it("★ leaves out what waits, the newest her guests can see standing in its place", () => {
+    const entries = [entry("sealed", PHOTO, 0), entry("seen", PHOTO, 1)];
+    const tiles = (id: string) => `https://r2.test/p/${id}.webp`;
+    expect(
+      newestCoverStills(entries, tiles, (e) => e[0] === "sealed").map(
+        (s) => s.id,
+      ),
+    ).toEqual(["seen"]);
+    expect(newestCoverStills(entries, tiles, () => true)).toEqual([]);
+  });
+});

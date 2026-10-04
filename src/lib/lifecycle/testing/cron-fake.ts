@@ -327,7 +327,11 @@ export function eventRow(
   };
 }
 
-/** A media row of `event` (its embed IS the event row), live and unheld unless told otherwise. */
+/**
+ * A media row of `event` (its embed IS the event row), live and unheld unless told otherwise. A photograph
+ * carries all three stored copies (take-home r1: the original, the tile's preview and the phone-size copy),
+ * so a sweep that forgets one leaves its key out of the R2 log and the tests that read the log fail.
+ */
 export function mediaRow(
   id: string,
   event: FakeRow,
@@ -341,6 +345,7 @@ export function mediaRow(
     file_size_bytes: 1000,
     original_key: `events/${String(event.id)}/photo/${id}/original.jpg`,
     preview_key: `events/${String(event.id)}/photo/${id}/preview.webp`,
+    phone_key: `events/${String(event.id)}/photo/${id}/phone.jpg`,
     removed_at: null,
     purge_at: null,
     removed_by_system: false,

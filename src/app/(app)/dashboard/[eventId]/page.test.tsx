@@ -38,9 +38,13 @@ describe("the hub's ready wiring", () => {
     expect(/ready=\{readyFacts\}/.test(PAGE)).toBe(true);
   });
 
-  it("lets the checklist and the Settings card step aside together once the event's date is behind", () => {
+  it("lets the checklist and the Settings card step aside together once the event's last day is behind", () => {
+    // Reshaped on purpose (lane `event-dates`): a range's checklist stands through its last day, so the page hands
+    // `checklistOver` the end beside the date.
     expect(
-      /const over = checklistOver\(event\.event_date, today\)/.test(PAGE),
+      /const over = checklistOver\(\s*event\.event_date,\s*today,\s*event\.event_end_date,?\s*\)/.test(
+        PAGE,
+      ),
     ).toBe(true);
     expect(/over=\{over\}/.test(PAGE)).toBe(true);
     expect(
@@ -62,6 +66,20 @@ describe("the hub's ready wiring", () => {
     );
   });
 
+  it("★ reads the roll a switch to a develop time made and hands it, with the develop facts, to the head and the album's cover", () => {
+    // Red-team 46's MEDIUM: her manifest never sees the seal, so the held photographs that joined the roll (created before
+    // the period) read as seen: "0 developing" under the cover and a head wearing them. The page reads them off the
+    // rows (`readJoinedIds`, in the parallel batch, never after the album) and both consumers get the one object.
+    expect(/readJoinedIds\(supabase, event\)/.test(PAGE)).toBe(true);
+    expect(
+      /const develop: HubDevelopFacts = \{[^}]*sealed_from: event\.sealed_from,[^}]*joined,/.test(
+        PAGE,
+      ),
+    ).toBe(true);
+    expect(PAGE.match(/develop=\{develop\}/g)).toHaveLength(2);
+    expect(PAGE).not.toMatch(/develop=\{event\}/);
+  });
+
   it("dresses the code in its door and who waits at it", () => {
     // ★ Reshaped on purpose (`event-header` r1, `host=shared`): the code stands on the head's cover
     // (`HubCover`), so the page hands the door and its waiting count to the head, and the head hands
@@ -78,5 +96,39 @@ describe("the hub's ready wiring", () => {
     const handed = door.slice(0, door.indexOf("/>"));
     expect(handed).toContain("door={code.door}");
     expect(handed).toContain("waiting={code.waiting}");
+  });
+});
+
+/**
+ * EVERY ROOM OVER THE HUB (Will, event-header r2 `rooms=over`): the place the address names is read once on the server,
+ * its room's own data comes with it, and the old deep links land in their rooms. Behaviour is the island's and the
+ * rooms' own tests'; what only the page can say is pinned here.
+ */
+describe("the hub's rooms", () => {
+  it("★ reads the Guests room with the hub while the address names it, and never otherwise", () => {
+    expect(PAGE).toMatch(/const place = resolveEventSheet\(room\)/);
+    expect(PAGE).toMatch(
+      /place === "guests"\s*\?\s*\(async \(\) =>\s*readGuestsRoom\(/,
+    );
+    expect(PAGE).toMatch(/guestsRoom=\{guestsRoom\}/);
+  });
+
+  it("★ mints Review's queue with the first window when the address names Review", () => {
+    expect(PAGE).toMatch(
+      /if \(place === "review"\) \{[\s\S]*?ENTRY_PENDING[\s\S]*?firstWindow\.push/,
+    );
+    expect(PAGE).toMatch(/readHostLinksBody\(supabase, event, firstWindow\)/);
+  });
+
+  it("hands the island the event, so a press on an old way into a room inside the hub opens it in place", () => {
+    expect(PAGE).toMatch(
+      /<EventShareProvider initialSheet=\{place\} eventId=\{event\.id\}>/,
+    );
+  });
+
+  it("sends a retired ?section= or ?eventTab= link to the room that holds it now", () => {
+    expect(PAGE).toMatch(
+      /const legacy = legacyRoomAddress\(eventId, section, eventTab\);\s*if \(legacy\) redirect\(legacy\);/,
+    );
   });
 });

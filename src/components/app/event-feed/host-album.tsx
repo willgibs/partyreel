@@ -8,8 +8,11 @@
  *
  * ★ NOTHING HERE REFRESHES THE PAGE (Will's lag, the album-host-wiring lane). `EventLive` used to
  * call `router.refresh()` on every doorbell ping and on every changed fingerprint, re-running a page
- * that read and presigned the whole album. Now a ping, the fallback timer and the tab's return each
- * call `sync()`: a 304 that read one row when nothing moved, a delta by id when something did.
+ * that read and presigned the whole album. Now a batch of pings, the fallback timer and the tab's
+ * return each call `sync()`: a 304 that read one row when nothing moved, a delta by id when
+ * something did. The doorbell and the timer are the guest album's own machinery (album-calm): a
+ * guest's arrivals land in calm batches on the device's clock, the host's own writes at once, and a
+ * hidden tab neither listens nor asks.
  *
  * ★ THE TWO SIGNALS ARE STILL BOTH NEEDED. The doorbell's trigger fires on the approved-visible set
  * (`20260611220000_gallery_doorbell.sql`), so a guest's upload to a moderated event rings nobody; the
@@ -20,6 +23,7 @@
  */
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useState,
@@ -62,10 +66,7 @@ import { formatCount } from "@/lib/format/count";
 import { useGalleryDoorbell } from "@/lib/guest/use-gallery-doorbell";
 import { captureWarning } from "@/lib/observability/sentry";
 import type { RowStep } from "@/lib/shared/album-rows";
-
-/** The guest album's own hybrid cadence, and for the same reasons. */
-const FAST_POLL_MS = 12_000;
-const SLOW_POLL_MS = 60_000;
+import { useLivePoll } from "@/lib/shared/use-live-poll";
 
 /** A flag something renders (the Live pip), in a store of its own so a flip re-renders nothing else. */
 type Flag = {
@@ -169,7 +170,7 @@ function createHubAlbum(
 
 const HostAlbumContext = createContext<HubAlbum | null>(null);
 
-/** The hub's album, or null off the hub (the Library's grids, the Review room). */
+/** The hub's album, or null off the hub (the Library's grids; the rooms over the hub stand inside it). */
 export function useHostAlbum(): HubAlbum | null {
   return useContext(HostAlbumContext);
 }
@@ -278,8 +279,10 @@ export function HostAlbumProvider({
     void album.sync();
   }, [album]);
 
-  // The doorbell: a contentless Realtime ping per visible-album change, coalesced inside the hook
-  // (a burst of pings is one trailing sync), and the store collapses overlapping syncs besides.
+  // The doorbell: a contentless Realtime ping per visible-album change, answered in calm batches on
+  // the device's clock (a guest's burst is one sync about every fifteen seconds; the host's own
+  // writes sync at once through `sync`), and silent while the tab is hidden; the store collapses
+  // overlapping syncs besides.
   const { live } = useGalleryDoorbell({
     qrToken,
     enabled: doorbell,
@@ -287,35 +290,11 @@ export function HostAlbumProvider({
   });
   useEffect(() => album.live.set(live), [album, live]);
 
-  // The fallback question, paused while the tab is hidden: a 60s safety net while the socket is up,
-  // the tighter 12s cadence when it is down, and a question on the way back from hidden.
-  useEffect(() => {
-    const pollMs = live ? SLOW_POLL_MS : FAST_POLL_MS;
-    let timer: ReturnType<typeof setInterval> | null = null;
-    const start = () => {
-      if (!timer) timer = setInterval(() => void album.sync(), pollMs);
-    };
-    const stop = () => {
-      if (timer) {
-        clearInterval(timer);
-        timer = null;
-      }
-    };
-    const onVisibility = () => {
-      if (document.hidden) {
-        stop();
-      } else {
-        void album.sync();
-        start();
-      }
-    };
-    if (!document.hidden) start();
-    document.addEventListener("visibilitychange", onVisibility);
-    return () => {
-      stop();
-      document.removeEventListener("visibilitychange", onVisibility);
-    };
-  }, [album, live]);
+  // The fallback question, on the guest album's own cadence (`use-live-poll.ts`): a 60s safety net
+  // while the socket is up, the tighter 12s when it is down, nothing while hidden, and one question
+  // at once on the way back.
+  const poll = useCallback(() => void album.sync(), [album]);
+  useLivePoll({ enabled: true, live, onPoll: poll });
 
   return (
     <HostAlbumContext.Provider value={album}>

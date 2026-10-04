@@ -194,7 +194,11 @@ describe("before two, the card is guidance", () => {
     const guidance = await openGuidance();
     expect(guidance).toHaveTextContent(/count once you approve them/i);
     const review = screen.getByRole("link", { name: /3 waiting in review/i });
-    expect(review).toHaveAttribute("href", "/dashboard/e1/review");
+    // Review stands over the hub (event-header r2, `rooms=over`): the link is its real address, and a press opens it
+    // in place.
+    expect(review).toHaveAttribute("href", "/dashboard/e1?room=review");
+    fireEvent.click(review);
+    expect(openSheet).toHaveBeenCalledWith("review");
   });
 
   it("points at no queue that is not there", async () => {
@@ -345,6 +349,112 @@ describe("the live card on an album that develops later", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+/**
+ * ★ THE CARD RESPECTS THE COVER (crumbs-59, red-team 47's NIT: "the hub's Highlight reel card dissolves through the
+ * SEALED shots while the album below is covered and the head is bare, the one picture of what waits that needs no
+ * Look"). The reel's take is planned on the host's own scope, which sees every photograph she has (she is exempt from
+ * the seal), so on an album whose develop time is ahead its stills are exactly what her guests cannot see yet. Her hub
+ * wears her guests' view meanwhile (the head, its band and the album's cover), so the card draws no photograph until
+ * the develop, on the live card and the counting one alike, and the stills dissolve in the moment the time is reached.
+ */
+describe("the card on an album that develops later respects the cover", () => {
+  const ahead = (ms: number) => new Date(Date.now() + ms).toISOString();
+
+  it("★ draws no photograph on the live card while a develop time is ahead, and still says what it waits for", () => {
+    render(
+      <ReelCard
+        eventId="e1"
+        reel={{
+          ...base,
+          state: "live",
+          have: 2,
+          stills: ["s1", "s2", "s3"],
+          developsAt: ahead(3_600_000),
+        }}
+        stuck={false}
+      />,
+    );
+    expect(document.querySelector("[data-living]")).toBeNull();
+    expect(document.querySelector("img")).toBeNull();
+    const link = screen.getByRole("link");
+    expect(link).toHaveTextContent("Live at the develop");
+    expect(link).toHaveAttribute("href", "/e/token123?reel");
+  });
+
+  it("draws none on the counting card either: the one photograph it has is waiting too", () => {
+    render(
+      <ReelCard
+        eventId="e1"
+        reel={{
+          ...base,
+          have: 1,
+          stills: ["sealed-1"],
+          developsAt: ahead(3_600_000),
+        }}
+        stuck={false}
+      />,
+    );
+    expect(document.querySelector("img")).toBeNull();
+    expect(screen.getByRole("button")).toHaveTextContent("1 more photo");
+    expect(document.querySelector("[data-reel-pips='1/2']")).not.toBeNull();
+  });
+
+  it("★ lets the stills in the moment the develop time comes, with the hub left open", () => {
+    vi.useFakeTimers();
+    try {
+      render(
+        <ReelCard
+          eventId="e1"
+          reel={{
+            ...base,
+            state: "live",
+            have: 2,
+            stills: ["s1", "s2"],
+            developsAt: ahead(90_000),
+          }}
+          stuck={false}
+        />,
+      );
+      expect(document.querySelector("[data-living]")).toBeNull();
+      act(() => {
+        vi.advanceTimersByTime(89_000);
+      });
+      expect(document.querySelector("[data-living]")).toBeNull();
+      act(() => {
+        vi.advanceTimersByTime(2_000);
+      });
+      expect(document.querySelector("[data-living='2']")).not.toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("draws its stills as it always has with no develop time, or one already reached", () => {
+    const live = (developsAt?: string | null): ReelCardData => ({
+      ...base,
+      state: "live",
+      have: 2,
+      stills: ["s1", "s2"],
+      developsAt,
+    });
+    for (const developsAt of [null, undefined, ahead(-60_000)]) {
+      const { unmount } = render(
+        <ReelCard eventId="e1" reel={live(developsAt)} stuck={false} />,
+      );
+      expect(document.querySelector("[data-living='2']")).not.toBeNull();
+      unmount();
+    }
+    render(
+      <ReelCard
+        eventId="e1"
+        reel={{ ...base, have: 1, stills: ["s1"], developsAt: ahead(-60_000) }}
+        stuck={false}
+      />,
+    );
+    expect(document.querySelector("img")?.getAttribute("src")).toBe("s1");
   });
 });
 

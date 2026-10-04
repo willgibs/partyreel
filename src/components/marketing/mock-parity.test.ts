@@ -108,22 +108,22 @@ const ENTRIES: ParityEntry[] = [
     appFile: "src/components/guest/door/welcome.tsx",
     literal: "Continue",
   },
-  // voice-guest r2 (`held=uploads`, `status=approval`): the album's waiting tile retired, and a held
-  // photograph shows only in her uploads, so the phone plate quotes her uploads' row and the
-  // switch's hint names it in the same words.
+  // voice-guest r2 (`held=uploads`): a held photograph shows only in her uploads, so the phone plate quotes her
+  // uploads' row and the switch's hint names it in the same words. ★ Reshaped by wait-wiring (the-wait r1,
+  // `model=time`): every wait is "Developing" now, a held one's included; the pin follows the word.
   {
     label: "album review switch guest's uploads row",
     marketingFile:
       "src/components/marketing/sections/features/album/review-switch.tsx",
     appFile: "src/lib/guest/upload-tracker.ts",
-    literal: "Waiting for approval",
+    literal: "Developing",
   },
   {
     label: "album your-call review hint",
     marketingFile:
       "src/components/marketing/sections/features/album/album-copy.ts",
     appFile: "src/lib/guest/upload-tracker.ts",
-    literal: "Waiting for approval",
+    literal: "Developing",
   },
   {
     label: "album review switch bulk-approve button",
@@ -348,6 +348,29 @@ const ENTRIES: ParityEntry[] = [
       "src/components/marketing/sections/how-it-works/host-pictures.tsx",
     appFile: "src/components/app/event-settings/reel-page.tsx",
     literal: "Where every guest starts.",
+  },
+  // crumbs-55: the Create step's picture is the room's look screen now, so its words are the room's own. The
+  // rail it drew before (Details, Design, Share) outlived the wizard that had it, and nothing went red.
+  {
+    label: "how-it-works host create step, the room's question",
+    marketingFile:
+      "src/components/marketing/sections/how-it-works/host-pictures.tsx",
+    appFile: "src/components/app/create-event-wizard.tsx",
+    literal: "Pick the code's look",
+  },
+  {
+    label: "how-it-works host create step, the line under the question",
+    marketingFile:
+      "src/components/marketing/sections/how-it-works/host-pictures.tsx",
+    appFile: "src/components/app/create-event-wizard.tsx",
+    literal: "Change it any time from Share",
+  },
+  {
+    label: "how-it-works host create step, the foot's one button",
+    marketingFile:
+      "src/components/marketing/sections/how-it-works/host-pictures.tsx",
+    appFile: "src/components/app/create-event-wizard.tsx",
+    literal: "Create event",
   },
   {
     label: "home live demo payoff card, the reel's own heading",

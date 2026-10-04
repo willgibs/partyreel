@@ -4,10 +4,13 @@ import {
   dateFace,
   dayOf,
   daysFrom,
+  daysToEvent,
   isEvening,
   longDate,
+  longDays,
   phaseOf,
   phaseOfEvent,
+  spanOf,
   whenOf,
 } from "./when";
 
@@ -115,5 +118,141 @@ describe("the day as a heading and a face say it", () => {
     expect(isEvening(16)).toBe(false);
     expect(isEvening(17)).toBe(true);
     expect(isEvening(23)).toBe(true);
+  });
+});
+
+/**
+ * ★ A RANGE OF DAYS (lane `event-dates`, Will 2026-10-03): an event the host dated over several days is on its day
+ * across the whole range, its month after counts from its last day, and its words say the range in the fewest that
+ * are still exact. A range is a host's date, so it is never inferred: an undated album stays one day by its
+ * photographs.
+ */
+describe("a range of days", () => {
+  // A weekend wedding, Friday 2 October to Sunday 4 October.
+  const WEDDING = {
+    date: "2026-10-02",
+    endDate: "2026-10-04",
+    lastArrival: null,
+  };
+
+  it("is one span by the host's dates, and one day by the photographs where she dated none", () => {
+    expect(spanOf(WEDDING)).toEqual({
+      first: "2026-10-02",
+      last: "2026-10-04",
+    });
+    expect(spanOf({ date: "2026-10-02", lastArrival: null })).toEqual({
+      first: "2026-10-02",
+      last: "2026-10-02",
+    });
+    expect(
+      spanOf({
+        date: null,
+        endDate: "2026-10-04",
+        lastArrival: { at: "2026-10-01T20:00:00Z", day: "2026-10-01" },
+      }),
+    ).toEqual({ first: "2026-10-01", last: "2026-10-01" });
+    expect(spanOf({ date: null, lastArrival: null })).toBeNull();
+  });
+
+  it("★ is live on its first day, its middle and its last, and after from the day after it", () => {
+    expect(phaseOfEvent(WEDDING, "2026-10-01")).toBe("before");
+    expect(phaseOfEvent(WEDDING, "2026-10-02")).toBe("live");
+    expect(phaseOfEvent(WEDDING, "2026-10-03")).toBe("live");
+    expect(phaseOfEvent(WEDDING, "2026-10-04")).toBe("live");
+    expect(phaseOfEvent(WEDDING, "2026-10-05")).toBe("after");
+    // Its month after counts from its LAST day.
+    expect(phaseOfEvent(WEDDING, "2026-11-03")).toBe("after");
+    expect(phaseOfEvent(WEDDING, "2026-11-04")).toBe("past");
+  });
+
+  it("is so many days away: to its first day ahead, none on any day of it, from its last day behind", () => {
+    expect(daysToEvent(WEDDING, "2026-09-30")).toBe(2);
+    expect(daysToEvent(WEDDING, "2026-10-03")).toBe(0);
+    expect(daysToEvent(WEDDING, "2026-10-04")).toBe(0);
+    expect(daysToEvent(WEDDING, "2026-10-07")).toBe(-3);
+    expect(
+      daysToEvent({ date: null, lastArrival: null }, "2026-10-07"),
+    ).toBeNull();
+  });
+
+  it("says where it stands on its days: Day 2 of 3", () => {
+    expect(whenOf("2026-10-02", "2026-10-02", false, "2026-10-04")).toBe(
+      "Day 1 of 3",
+    );
+    expect(whenOf("2026-10-02", "2026-10-03", true, "2026-10-04")).toBe(
+      "Day 2 of 3",
+    );
+    expect(whenOf("2026-10-02", "2026-10-04", false, "2026-10-04")).toBe(
+      "Day 3 of 3",
+    );
+  });
+
+  it("says its weekdays inside the week ahead, its dates further off, and its month once a past year has turned", () => {
+    // Seen on the Tuesday before.
+    expect(whenOf("2026-10-02", "2026-09-29", false, "2026-10-04")).toBe(
+      "Fri–Sun",
+    );
+    // Starting inside the week but running past it: the dates, since a weekday a week on would read as this one.
+    expect(whenOf("2026-10-02", "2026-09-29", false, "2026-10-09")).toBe(
+      "Oct 2–9",
+    );
+    expect(whenOf("2026-10-30", FRIDAY, false, "2026-11-02")).toBe(
+      "Oct 30 – Nov 2",
+    );
+    expect(whenOf("2026-09-25", FRIDAY, false, "2026-09-27")).toBe("Sep 25–27");
+    expect(whenOf("2027-01-09", FRIDAY, false, "2027-01-11")).toBe(
+      "Jan 9–11, 2027",
+    );
+    expect(whenOf("2026-12-30", "2026-08-01", false, "2027-01-02")).toBe(
+      "Dec 30 – Jan 2",
+    );
+    // A range to come in another year than this one, beyond the month: the year once if it keeps to one, else both.
+    expect(whenOf("2027-03-30", FRIDAY, false, "2027-04-02")).toBe(
+      "Mar 30 – Apr 2, 2027",
+    );
+    expect(whenOf("2027-12-30", FRIDAY, false, "2028-01-02")).toBe(
+      "Dec 30, 2027 – Jan 2, 2028",
+    );
+    expect(whenOf("2025-06-06", FRIDAY, false, "2025-06-08")).toBe("Jun 2025");
+  });
+
+  it("is one day when its end is no later than its date, or unreadable", () => {
+    expect(whenOf("2026-10-03", FRIDAY, false, "2026-10-03")).toBe("Tomorrow");
+    expect(whenOf("2026-10-03", FRIDAY, false, "2026-10-01")).toBe("Tomorrow");
+    expect(whenOf("2026-10-03", FRIDAY, false, null)).toBe("Tomorrow");
+  });
+
+  it("heads a stage with the whole range, and the years where they are not this one", () => {
+    expect(longDays("2026-10-02", "2026-10-04", FRIDAY)).toBe(
+      "Friday, October 2 – Sunday, October 4",
+    );
+    expect(longDays("2027-10-01", "2027-10-03", FRIDAY)).toBe(
+      "Friday, October 1 – Sunday, October 3, 2027",
+    );
+    expect(longDays("2026-12-30", "2027-01-02", FRIDAY)).toBe(
+      "Wednesday, December 30, 2026 – Saturday, January 2, 2027",
+    );
+    expect(longDays("2026-10-02", "2026-10-02", FRIDAY)).toBe(
+      "Friday, October 2",
+    );
+  });
+
+  it("★ says every range with the en dash itself, never the word to, a hyphen or an em dash", () => {
+    // crumbs-58: a range's dash is `dashRange`'s (its rule is pinned at `formatEventDate`); this holds that each rung of
+    // the ladder goes through it. A hyphen or an em dash looks the same in a diff, so the glyph is read off the string.
+    const said = [
+      whenOf("2026-10-02", "2026-09-29", false, "2026-10-04"),
+      whenOf("2026-10-02", "2026-09-29", false, "2026-10-09"),
+      whenOf("2026-10-30", FRIDAY, false, "2026-11-02"),
+      whenOf("2027-03-30", FRIDAY, false, "2027-04-02"),
+      whenOf("2027-12-30", FRIDAY, false, "2028-01-02"),
+      longDays("2026-10-02", "2026-10-04", FRIDAY),
+      longDays("2027-10-01", "2027-10-03", FRIDAY),
+      longDays("2026-12-30", "2027-01-02", FRIDAY),
+    ];
+    for (const line of said) {
+      expect(line.replace(/[A-Za-z0-9, ]/g, ""), line).toBe("\u2013");
+      expect(line, line).not.toMatch(/\bto\b/);
+    }
   });
 });

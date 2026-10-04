@@ -35,6 +35,7 @@ import { partitionEventsByHold } from "@/lib/forensics/legal-hold";
 import {
   addReclaimed,
   emptyReclaimed,
+  MEDIA_KEY_COLUMNS,
   readHeldEventIds,
   reclaimMedia,
   type AdminClient,
@@ -179,13 +180,14 @@ async function purgeEventBatch(
           (cursor: string | null, limit) => {
             let query = admin
               .from("media")
-              .select("id, original_key, preview_key")
+              .select(MEDIA_KEY_COLUMNS)
               .in("event_id", chunk)
               .filter("legal_hold_at", "is", null)
               .order("id", { ascending: true })
               .limit(limit);
             if (cursor) query = query.gt("id", cursor);
-            return query;
+            // The typed seam (`MEDIA_KEY_COLUMNS`), until the types know `phone_key`.
+            return query.overrideTypes<MediaKeyRow[], { merge: false }>();
           },
           (media) => media.id,
           { budget: MAX_ROWS, after },
