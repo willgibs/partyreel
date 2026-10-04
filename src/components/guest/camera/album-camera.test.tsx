@@ -184,10 +184,11 @@ function Page({
             prev.map((it) => ({
               ...it,
               status: "error" as const,
-              // The uploader's own sentence for a request that never reached the network, as the queue keeps it
-              // (no `errorCode`: the server never answered).
-              error: UPLOAD_WORDS.dropped,
+              // A request that never reached the network, as the queue keeps it: the transport's cause, and no
+              // `errorCode` (the server never answered). The words are not the camera's to match: they differ here.
+              error: "The line went quiet.",
               errorCode: undefined,
+              cause: "dropped" as const,
             })),
           )
         }
@@ -201,9 +202,10 @@ function Page({
             prev.map((it) => ({
               ...it,
               status: "error" as const,
-              // An answer that was an error: not the line's fault, and no code the camera reads as a refusal.
+              // An answer that was an error: not the line's fault (no cause), and no code the camera reads as a refusal.
               error: UPLOAD_WORDS.refused,
               errorCode: "storage_error",
+              cause: undefined,
             })),
           )
         }
@@ -417,8 +419,9 @@ describe("the album's camera", () => {
   // ★ RED-TEAM 53's NIT (crumbs-65): a shot cut mid-PUT said "1 shot didn’t send." and never the E6 sentence the
   // uploader carries, so a stadium's dropped signal read as a broken camera. It still re-sends by itself when the
   // line returns (`online`); what it says now is why, in the one sentence the uploads and the downloads say. The press
-  // said "Shot 7 taken." first, which stands for a moment (`SAID_MS`) before the standing line comes back.
-  it("★ says the connection dropped when that is why a shot did not send, with its Retry beside; an answered error is only counted", async () => {
+  // said "Shot 7 taken." first, which stands for a moment (`SAID_MS`) before the standing line comes back. The queue's
+  // `cause` says it was the line's, so the camera never matches the words of the failure.
+  it("★ says the connection dropped when the queue's cause says that is why a shot did not send, with its Retry beside; an answered error is only counted", async () => {
     render(<Page />);
     await opened();
     await screen.findByText("Frame 7 of 24");

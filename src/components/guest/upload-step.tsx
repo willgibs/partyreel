@@ -142,6 +142,7 @@ export function UploadStep({
     file: it.file,
     error: it.error,
     code: it.errorCode,
+    cause: it.cause,
   }));
 
   if (sending) {

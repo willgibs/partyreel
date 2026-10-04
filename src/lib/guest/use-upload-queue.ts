@@ -42,7 +42,11 @@ import { SESSION_OTHER_ACCOUNT } from "@/lib/guest/session-owner";
 import { dropGuestTicket } from "@/lib/guest/use-stored-session";
 import { HOST_CLIP_ENDPOINTS } from "@/lib/reel/clip-add";
 import { takeBurst } from "@/lib/upload/burst";
-import { uploadBurst, type UploadOutcome } from "@/lib/upload/uploader";
+import {
+  uploadBurst,
+  type UploadCause,
+  type UploadOutcome,
+} from "@/lib/upload/uploader";
 
 /**
  * The three refusal codes this queue reads by name. Everything else is a file's
@@ -123,6 +127,14 @@ export type QueueItem = {
    * local validation or a transport failure, which `classifyRefusal` reads as "worth another go".
    */
   errorCode?: string;
+  /**
+   * ★ WHY THE TRANSPORT ENDED IT, beside the sentence (`UploadOutcome.cause`): `dropped` is the connection (the same
+   * file goes again once the line is back) and `cancelled` is her own abort (nothing is wrong). Absent for a refusal
+   * (an answer that was an error: the server's own code is `errorCode`) and for a local validation. A surface that draws
+   * a dropped connection apart from a refusal (the failure sheet, the camera) reads this and never the message, whose
+   * words are free to change.
+   */
+  cause?: UploadCause;
   /**
    * A CUT the on-device creator is adding to the album: the row is written `reel_eligible = false`,
    * so the live reel never plays a reel. Absent for every other file. It rides the queue like any
@@ -717,6 +729,7 @@ export function useUploadQueue({
             progress: 0,
             error: outcome.message,
             errorCode: outcome.code,
+            cause: outcome.cause,
           });
         };
         const files = burst.map((it) => ({
@@ -1126,6 +1139,7 @@ export function useUploadQueue({
         progress: 0,
         error: undefined,
         errorCode: undefined,
+        cause: undefined,
       });
       void runQueue();
     },

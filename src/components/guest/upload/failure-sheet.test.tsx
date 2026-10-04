@@ -1,7 +1,10 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import { UploadFailureSheet } from "@/components/guest/upload/failure-sheet";
+import {
+  UploadFailureSheet,
+  type UploadFailure,
+} from "@/components/guest/upload/failure-sheet";
 
 /**
  * WHAT A GUEST READS WHEN SOMETHING WILL NOT GO. A guest should never have to
@@ -19,11 +22,17 @@ import { UploadFailureSheet } from "@/components/guest/upload/failure-sheet";
  * again" offered Retry for "This event accepts photos only", which no retry can pass.
  * A refusal of the file itself now stands with its sentence and no Retry.
  */
-const failure = (name: string, error?: string, code?: string) => ({
+const failure = (
+  name: string,
+  error?: string,
+  code?: string,
+  cause?: UploadFailure["cause"],
+) => ({
   id: name,
   file: new File([new Uint8Array([1])], name, { type: "image/jpeg" }),
   error,
   code,
+  cause,
 });
 
 const mount = (
@@ -146,6 +155,31 @@ describe("a Retry only where a retry could pass (build 23's NIT-2)", () => {
     expect(onRetry.mock.calls.map(([id]) => id)).toEqual(["a.jpg", "b.jpg"]);
     const clipLine = screen.getByText("clip.mp4").closest("li")!;
     expect(clipLine.querySelector("button")).toBeNull();
+  });
+});
+
+describe("★ a dropped connection is drawn apart from a refusal (the queue's cause, never its words)", () => {
+  it("marks the line's row with the signal's mark and no refusal's, whatever words a refusal carries", () => {
+    mount([
+      // The words are not the uploader's: the cause alone says it was the line's.
+      failure("a.jpg", "The line went quiet.", undefined, "dropped"),
+      // A refusal that happens to say the very words of a drop: no cause, so no mark.
+      failure(
+        "b.jpg",
+        "Your connection dropped. Check your signal, then try again.",
+        "storage_error",
+      ),
+      failure("c.mov", "This album is full right now.", "cap_reached"),
+    ]);
+    const row = (name: string) => screen.getByText(name).closest("li")!;
+    expect(row("a.jpg")).toHaveAttribute("data-cause", "dropped");
+    expect(row("a.jpg").querySelector("svg.lucide-wifi-off")).not.toBeNull();
+    for (const refused of ["b.jpg", "c.mov"]) {
+      expect(row(refused)).not.toHaveAttribute("data-cause");
+      expect(row(refused).querySelector("svg.lucide-wifi-off")).toBeNull();
+    }
+    // The mark is a drawing beside the words, never the words: the sentence still reads whole.
+    expect(screen.getByText("The line went quiet.")).toBeInTheDocument();
   });
 });
 
