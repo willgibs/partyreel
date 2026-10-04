@@ -3,6 +3,7 @@
 Open this when you:
 - work across systems and need the map: the route groups, the two stores of truth, the data flows, the daily jobs;
 - add a route group, a scheduled job, or a mutation that revalidates a path;
+- add a poll, a prefetch, a client fetch or a proxy matcher change (each multiplies calls: the compute budget);
 - chase a host page that renders but never hydrates.
 
 The per-system depth is in the index, [`../SYSTEMS.md`](../SYSTEMS.md); the stack and the universal rules are
@@ -65,6 +66,25 @@ The streaming contract: plain `<Suspense>` and `loading.tsx` (the guest gallery,
 Next features are off until the surfaces settle after launch, because `cacheComponents` and `"use cache"` above all
 invert the dynamic-by-default contract app-wide, moving every dynamic read behind `"use cache"` or an explicit
 Suspense on every surface at once.
+
+## Compute budget
+
+Vercel bills every call (an invocation) and its Active CPU, and Hobby stops every function past 4 CPU-hours or 1M
+invocations in a rolling 30 days. ★ We scale by the event, not the user: every poll, prefetch and proxy run is
+multiplied by every lit phone in the room.
+- **What counts as a call:** the proxy, on every request its matcher takes and before the CDN (a static page it
+  matches still costs one); then a dynamic page or its RSC, a route handler or a Server Function, one more. Static
+  files, `/_next/image` and prerendered pages are the CDN's.
+- **The rule:** a change that adds a call per poll, per page load or per photo is a regression even when every page
+  looks right. `pnpm compute:model --port <yours>` (`scripts/compute-model/`, usage in `run.mjs`'s head) plays each
+  guest's, visitor's and crawler's actions on a local production build, counts their calls and CPU, and fails past
+  `budget.json`. Run it at milestones and with any change to the matcher, a poll, a prefetch or a client fetch; a
+  lever that lands lowers its lines.
+- **The headline (2026-10-04, `model.mjs` holds the assumptions):** a 100-guest wedding is ≈56,000 calls, 17 to 28%
+  of Hobby's month of CPU (at 44 ms a call, or calibrated per call); half are lit albums answering other guests'
+  uploads (a burst of ten costs every lit album ≈20 calls), then uploads (≈9 calls a photo) and page loads with their
+  prefetches. A month of 100 events is ≈5.8M calls. The guest page is the dearest call (≈250 to 420 ms of local CPU
+  over a 1,000-photo album); a quiet poll is two calls and ≈17 ms.
 
 ## Host-page hydration
 

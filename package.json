@@ -19,7 +19,8 @@
     "new-board": "node scripts/new-board.mjs",
     "lab:smoke": "node scripts/lab-smoke.mjs",
     "lab:review": "node scripts/lab-review.mjs",
-    "lab:demo": "node scripts/lab-demo.mjs"
+    "lab:demo": "node scripts/lab-demo.mjs",
+    "compute:model": "node scripts/compute-model/run.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1056.0",
