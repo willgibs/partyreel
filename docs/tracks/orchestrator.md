@@ -136,10 +136,13 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team brie
 
 ## Waiting on Will
 
-- **His pricing pick** (deferred 2026-10-03, his word: "Really want to put time into thinking about this one so we aren't
-  flip-flopping later on"): the ladder (A, B or C; `../partyreel-wt/_scratch/cost-atlas/ladders.md`) and the pass's
-  renewal ($15 or $19). Settled: the pass counts its uploads over its year; Deleted counts in storage (`trash-in-storage`);
-  limits published, never hidden. `pricing-research` brings him context; he also reviews PRICING.md's "What it costs us".
+- **His pricing pick: DECIDED 2026-10-03 23:58Z, Ladder A with 1 TB at $99** (his word: "Let's send it on pricing tier
+  A with $99 ... a very cheap entry to pro and nicely scaled storage tiers along the way"): Free 100 MB (photos, 300 MB
+  of uploads a month, 1 event); the Event Pass $29 once, 25 GB, 50 GB of uploads over its year, renewal $15 as A draws it
+  (the research leaned $19: his to overrule); Pro 50 GB $9 a month or $90 a year (100 GB of uploads a month), Pro 200 GB
+  $29 or $290 (200 GB), Pro 1 TB $99 or $990 (500 GB); unlimited events and no guest limit kept; limits published with
+  hover lines, the fair-use line per the Advisor's Q16; Deleted inside storage. `pricing-wiring` is cut once
+  `trash-in-storage` merges (both move the cap). His next ask: an easy export to Google Drive (viability researched).
 - **The calls file** (`../partyreel-wt/_scratch/calls/relay-calls.md`, calls 1 to 133): he reviews in batches, with
   comments where needed. Direct questions go to him in chat, never only in the file.
 - **His desk** tonight on build 49 (six boards).
