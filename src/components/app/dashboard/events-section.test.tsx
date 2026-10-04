@@ -1,30 +1,44 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
+import { toast } from "sonner";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { EventsSection } from "./events-section";
-import type { EventListRow, EventSeason } from "@/lib/dashboard/events-view";
+import { DISPLAY_DEFAULT, type Display } from "@/lib/dashboard/display";
+import type { EventListRow } from "@/lib/dashboard/events-view";
 
 /**
- * THE EVENTS LIST'S CONTRACT (home-wiring, 2026-09-20, `density=cover`: "Let's do both"; grouped by
- * when since host-dashboard r1, `events=seasons`). Functions, never looks:
+ * YOUR EVENTS, SHAPED BY HER (host-dashboard r3, `events=menu`), pinned as function, never as look:
  *
- *   1. THE VIEW THE SERVER CHOSE IS THE VIEW THAT PAINTS, and flipping it persists through the Server
- *      Action, so the cookie is never decorative.
- *   2. THE ROWS' ORDER REORDERS: "Most waiting" is the order a busy host opens the list to get.
- *   3. THE LENS IS ONE ROW OF COUNTS, the bin reachable from the default view, the events you added to
- *      alone under Guest, each with no act of its own.
- *   4. THE GALLERY GROUPS BY WHEN, each group in the server's order, a folded year one press from open.
- *   5. PAST EIGHT EVENTS A SEARCH FINDS ONE BY NAME, across the groups.
+ *   1. HER KEPT CHOICES PAINT FIRST, and what differs from the defaults is counted on the Display button and said
+ *      in a line under the head, with the one press that undoes it.
+ *   2. A CHOICE LAYS THE LIST OUT AT ONCE AND IS KEPT BESIDE IT through the Server Function, never before it, and a
+ *      save that fails says so once.
+ *   3. THE BIN STAYS REACHABLE, with its Restore, at one event as at forty: Restore lives only here.
+ *   4. A SEARCH ARRIVES AT NINE EVENTS and finds one by name across whatever her filters keep.
+ *   5. THE RECENT ROW folds to pills and unfolds, and her fold is kept with her choices.
  */
 
-const setEventsViewAction = vi.hoisted(() => vi.fn());
-vi.mock("@/app/(app)/dashboard/actions", () => ({ setEventsViewAction }));
+const setEventsDisplayAction = vi.hoisted(() =>
+  vi.fn(
+    async (_display: unknown) =>
+      ({ ok: true }) as { ok: boolean; message?: string },
+  ),
+);
+vi.mock("@/app/(app)/dashboard/actions", () => ({ setEventsDisplayAction }));
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
 }));
 vi.mock("@/components/app/restore-event-button", () => ({
   RestoreEventButton: () => <button type="button">Restore</button>,
 }));
+
+const TODAY = "2026-10-02";
 
 const row = (over: Partial<EventListRow>): EventListRow => ({
   id: "e",
@@ -43,130 +57,227 @@ const row = (over: Partial<EventListRow>): EventListRow => ({
   statusLabel: "Open",
   byline: null,
   marks: { live: false, state: null },
-  seasonId: "coming",
+  day: null,
+  dated: false,
+  openedAt: null,
   ...over,
 });
 
 const ROWS = [
-  row({ id: "quiet", name: "Quiet party" }),
+  row({
+    id: "quiet",
+    name: "Quiet party",
+    href: "/dashboard/quiet",
+    day: "2026-10-09",
+    dated: true,
+    dateLabel: "October 9, 2026",
+    items: 10,
+  }),
   row({
     id: "busy",
     name: "Busy party",
+    href: "/dashboard/busy",
+    day: "2026-08-01",
+    dated: true,
+    dateLabel: "August 1, 2026",
+    items: 400,
     pending: 9,
     sortDate: "2026-08-01T00:00:00.000Z",
-    seasonId: "recent",
     marks: { live: false, state: { tone: "waiting", text: "9 to review" } },
-  }),
-  row({
-    id: "bin",
-    name: "Binned party",
-    kind: "deleted",
-    href: null,
-    seasonId: null,
-    statusLabel: "Deletes in 18 days",
   }),
   row({
     id: "friend",
     name: "Friend's wedding",
     kind: "guest",
     href: "/e/qr-friend",
+    day: "2025-07-01",
+    dated: true,
+    dateLabel: "July 1, 2025",
     items: 0,
     statusLabel: null,
     byline: "Hosted by Priya",
     marks: null,
-    seasonId: "guest",
-    sortDate: "2026-07-01T00:00:00.000Z",
+    sortDate: "2025-07-01T00:00:00.000Z",
+  }),
+  row({
+    id: "bin",
+    name: "Binned party",
+    kind: "deleted",
+    href: null,
+    day: "2026-03-01",
+    dated: true,
+    statusLabel: "Deletes in 18 days",
+    marks: null,
+    sortDate: "2026-09-20T00:00:00.000Z",
   }),
 ];
 
-const SEASONS: EventSeason[] = [
-  { id: "coming", label: "Coming up", size: "medium", ids: ["quiet"] },
-  { id: "recent", label: "Just past", size: "large", ids: ["busy"] },
-  { id: "guest", label: "As a guest", size: "medium", ids: ["friend"] },
-];
-
-function draw(
-  initialView: "cards" | "rows" = "cards",
-  rows = ROWS,
-  seasons = SEASONS,
-) {
+function draw(over: Partial<Parameters<typeof EventsSection>[0]> = {}) {
   return render(
     <EventsSection
-      rows={rows}
-      seasons={seasons}
-      initialView={initialView}
-      title="Everything else"
+      rows={ROWS}
+      today={TODAY}
+      initial={DISPLAY_DEFAULT}
+      recent={[]}
+      {...over}
     />,
   );
 }
 
-const view = (name: RegExp) => screen.getByRole("radio", { name });
-const lens = (name: RegExp) =>
-  within(screen.getByRole("group", { name: "Show" })).getByRole("radio", {
-    name,
+const kept = (over: Partial<Display>): Display => ({
+  ...DISPLAY_DEFAULT,
+  ...over,
+});
+const openMenu = () =>
+  fireEvent.click(screen.getByRole("button", { name: /^display/i }));
+const choose = (group: string, name: RegExp | string) =>
+  fireEvent.click(
+    within(
+      within(screen.getByRole("dialog")).getByRole("group", { name: group }),
+    ).getByRole("radio", { name }),
+  );
+const layout = () =>
+  document.querySelector("[data-arranged]")?.getAttribute("data-arranged");
+/** The table's lines, in the order they stand. */
+const lines = () =>
+  [...document.querySelectorAll("[data-event-line]")].map((el) =>
+    el.getAttribute("data-event-line"),
+  );
+const said = () => document.querySelector("[data-display-said]");
+
+beforeEach(() => {
+  setEventsDisplayAction.mockClear();
+  setEventsDisplayAction.mockResolvedValue({ ok: true });
+  vi.mocked(toast.error).mockClear();
+});
+
+describe("her kept choices paint first", () => {
+  it("opens on covers when nothing is kept, with nothing counted and nothing said", () => {
+    draw();
+    expect(layout()).toBe("gallery");
+    expect(screen.getByRole("button", { name: "Display" })).toBeInTheDocument();
+    expect(said()).toBeNull();
+    expect(
+      screen.getByRole("heading", { name: /your events/i }),
+    ).toHaveTextContent("Your events 3");
   });
 
-beforeEach(() => setEventsViewAction.mockClear());
-
-describe("the view the server chose", () => {
-  it("paints the gallery when the cookie said cards", () => {
-    draw("cards");
-    expect(view(/by when/i)).toHaveAttribute("aria-checked", "true");
+  it("paints the layout she kept, counts what differs on the button and says it under the head", () => {
+    draw({ initial: kept({ layout: "table", sort: "date", year: "2026" }) });
+    expect(layout()).toBe("table");
+    expect(
+      screen.getByRole("button", { name: /^display, 3 set$/i }),
+    ).toBeInTheDocument();
+    expect(said()).toHaveTextContent("Table · Event date · 2026");
+    // Her year keeps the two events of 2026 and leaves the guest album of 2025 out, the latest first.
+    expect(lines()).toEqual(["quiet", "busy"]);
   });
 
-  it("paints rows when the cookie said rows, without being told twice", () => {
-    draw("rows");
-    expect(view(/^rows$/i)).toHaveAttribute("aria-checked", "true");
-  });
-
-  it("persists a flip both ways through the Server Action", () => {
-    draw("cards");
-    fireEvent.click(view(/^rows$/i));
-    expect(setEventsViewAction).toHaveBeenCalledWith("rows");
-    fireEvent.click(view(/by when/i));
-    expect(setEventsViewAction).toHaveBeenCalledWith("cards");
+  it("draws the list layout as rows and the gallery as tiles", () => {
+    const { unmount } = draw({ initial: kept({ layout: "list" }) });
+    expect(layout()).toBe("list");
+    expect(document.querySelectorAll("[data-tile]")).toHaveLength(0);
+    unmount();
+    draw();
+    expect(document.querySelectorAll("[data-tile]")).toHaveLength(3);
   });
 });
 
-describe("the rows' order", () => {
-  it("reorders the list by what is waiting", () => {
-    draw("rows");
-    const names = () =>
-      screen
-        .getAllByRole("listitem")
-        .map((li) => li.textContent ?? "")
-        .filter((t) => t.includes("party"));
-    expect(names()[0]).toContain("Quiet party");
-    // Radix menus open on pointerdown, never on a plain click.
-    fireEvent.pointerDown(screen.getByRole("button", { name: /newest/i }), {
-      button: 0,
-      ctrlKey: false,
-    });
-    fireEvent.click(
-      screen.getByRole("menuitemradio", { name: /most waiting/i }),
+describe("a choice lays the list out at once, and is kept beside it", () => {
+  it("lays out a layout she presses and keeps exactly what she chose", () => {
+    draw();
+    openMenu();
+    choose("Layout", /table/i);
+    expect(layout()).toBe("table");
+    expect(setEventsDisplayAction).toHaveBeenCalledTimes(1);
+    expect(setEventsDisplayAction).toHaveBeenCalledWith(
+      kept({ layout: "table" }),
     );
-    expect(names()[0]).toContain("Busy party");
   });
 
-  it("offers no order in the gallery, which keeps its one order, by when", () => {
-    draw("cards");
-    expect(screen.queryByRole("button", { name: /newest/i })).toBeNull();
+  it("orders by what she presses, and turns the order round with its direction", () => {
+    draw({ initial: kept({ layout: "table" }) });
+    openMenu();
+    choose("Sort by", /^name$/i);
+    expect(lines()).toEqual(["busy", "friend", "quiet"]);
+    fireEvent.click(screen.getByRole("button", { name: /a to z/i }));
+    expect(setEventsDisplayAction).toHaveBeenLastCalledWith(
+      kept({ layout: "table", sort: "name", desc: true }),
+    );
+    expect(lines()).toEqual(["quiet", "friend", "busy"]);
+    expect(screen.getByRole("button", { name: /z to a/i })).toBeInTheDocument();
+  });
+
+  it("says what is set, and one Reset undoes all of it", () => {
+    draw({ initial: kept({ layout: "table", lens: "hosting" }) });
+    expect(said()).toHaveTextContent("Table · Hosting");
+    fireEvent.click(
+      within(said() as HTMLElement).getByRole("button", { name: "Reset" }),
+    );
+    expect(layout()).toBe("gallery");
+    expect(said()).toBeNull();
+    expect(setEventsDisplayAction).toHaveBeenLastCalledWith(DISPLAY_DEFAULT);
+  });
+
+  it("presses a table head to sort by it and again to turn it round, keeping each", () => {
+    draw({ initial: kept({ layout: "table" }) });
+    const table = document.querySelector("[data-events-table]") as HTMLElement;
+    fireEvent.click(within(table).getByRole("button", { name: /^date$/i }));
+    expect(setEventsDisplayAction).toHaveBeenLastCalledWith(
+      kept({ layout: "table", sort: "date" }),
+    );
+    expect(lines()).toEqual(["quiet", "busy", "friend"]);
+    fireEvent.click(within(table).getByRole("button", { name: /^date$/i }));
+    expect(setEventsDisplayAction).toHaveBeenLastCalledWith(
+      kept({ layout: "table", sort: "date", desc: false }),
+    );
+    expect(lines()).toEqual(["friend", "busy", "quiet"]);
+  });
+
+  it("groups by year under a head each, in the order her order reaches them", () => {
+    draw({ initial: kept({ group: "year", sort: "date" }) });
+    expect(
+      screen.getAllByRole("region").map((r) => r.getAttribute("aria-label")),
+    ).toEqual(["Your events", "2026", "2025"]);
+    expect(
+      within(screen.getByRole("region", { name: "2025" })).getByText(
+        "Friend's wedding",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("says a save that failed, once, and keeps what she sees", async () => {
+    setEventsDisplayAction.mockResolvedValue({
+      ok: false,
+      message: "Couldn't keep that.",
+    });
+    draw();
+    openMenu();
+    choose("Layout", /list/i);
+    expect(layout()).toBe("list");
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith("Couldn't keep that.", {
+        id: "events-display",
+      }),
+    );
+  });
+
+  it("says a save that never answered the same way", async () => {
+    setEventsDisplayAction.mockRejectedValue(new Error("offline"));
+    draw();
+    openMenu();
+    choose("Layout", /list/i);
+    await waitFor(() => expect(toast.error).toHaveBeenCalled());
+    expect(layout()).toBe("list");
   });
 });
 
-describe("the lens", () => {
-  it("counts every lens at once and keeps the bin out of the live list", () => {
-    draw("cards");
-    expect(lens(/^all, 3$/i)).toHaveAttribute("aria-checked", "true");
-    expect(lens(/^hosting, 2$/i)).toBeInTheDocument();
-    expect(lens(/^guest, 1$/i)).toBeInTheDocument();
-    expect(lens(/^deleted, 1$/i)).toBeInTheDocument();
+describe("the bin and the events she was added to", () => {
+  it("reaches the bin through Show, with its Restore, and leaves it out of All", () => {
+    draw();
     expect(screen.queryByText("Binned party")).toBeNull();
-  });
-
-  it("reaches the bin from the DEFAULT view, with its Restore", () => {
-    draw("cards");
-    fireEvent.click(lens(/^deleted/i));
+    openMenu();
+    choose("Whose", /^deleted 1$/i);
     expect(screen.getByText("Binned party")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /restore/i }),
@@ -174,9 +285,21 @@ describe("the lens", () => {
     expect(screen.queryByText("Quiet party")).toBeNull();
   });
 
-  it("shows the events you added to alone under Guest, with no act of their own", () => {
-    draw("cards");
-    fireEvent.click(lens(/^guest/i));
+  it("restores from the table's line too, the line itself no link", () => {
+    draw({ initial: kept({ layout: "table", lens: "deleted" }) });
+    const line = document.querySelector(
+      "[data-event-line='bin']",
+    ) as HTMLElement;
+    expect(line.querySelector("a")).toBeNull();
+    expect(
+      within(line).getByRole("button", { name: /restore/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows the events she added to alone under Guest, with no act of their own", () => {
+    draw();
+    openMenu();
+    choose("Whose", /^guest 1$/i);
     expect(screen.getByText("Friend's wedding")).toBeInTheDocument();
     expect(screen.queryByText("Quiet party")).toBeNull();
     expect(screen.queryByRole("button", { name: /restore/i })).toBeNull();
@@ -185,71 +308,51 @@ describe("the lens", () => {
     ).toHaveAttribute("href", "/e/qr-friend");
   });
 
-  it("leaves a lens with nothing in it out of the row", () => {
-    draw("cards", [ROWS[0]!], [SEASONS[0]!]);
+  it("leaves a lens with nothing in it out of Show, All always in", () => {
+    draw({ rows: [ROWS[0]!, ROWS[1]!] });
+    openMenu();
+    const whose = within(
+      within(screen.getByRole("dialog")).getByRole("group", { name: "Whose" }),
+    ).getAllByRole("radio");
+    expect(whose.map((r) => r.textContent)).toEqual(["All 2", "Hosting 2"]);
+  });
+
+  it("offers Display from a second event or whenever the bin holds one, never for one alone", () => {
+    const { unmount } = draw({ rows: [ROWS[0]!] });
+    expect(screen.queryByRole("button", { name: /^display/i })).toBeNull();
+    unmount();
+    // One live event and a deleted one: Restore lives only here, so Display must show.
+    draw({ rows: [ROWS[0]!, ROWS[3]!] });
     expect(
-      within(screen.getByRole("group", { name: "Show" })).getAllByRole("radio"),
-    ).toHaveLength(2);
-  });
-});
-
-describe("the gallery by when", () => {
-  it("draws each group in the server's order, its tiles with their marks", () => {
-    draw("cards");
-    const groups = screen
-      .getAllByRole("region")
-      .map((r) => r.getAttribute("aria-label"));
-    expect(groups).toEqual([
-      "Everything else",
-      "Coming up",
-      "Just past",
-      "As a guest",
-    ]);
-    expect(screen.getAllByText("9 to review").length).toBeGreaterThan(0);
+      screen.getByRole("button", { name: /^display/i }),
+    ).toBeInTheDocument();
   });
 
-  it("folds an earlier year into one line whose Show opens it in place", () => {
-    const years = Array.from({ length: 3 }, (_, i) =>
-      row({ id: `y${i}`, name: `Old party ${i}`, seasonId: "year-2025" }),
-    );
-    draw("cards", years, [
-      {
-        id: "year-2025",
-        label: "2025",
-        size: "folded",
-        ids: years.map((r) => r.id),
-      },
-    ]);
-    const show = screen.getByRole("button", { name: /show 3/i });
-    expect(show).toHaveAttribute("aria-expanded", "false");
-    // Folded, each cover is still one press from its event.
-    expect(screen.getByRole("link", { name: "Old party 1" })).toHaveAttribute(
-      "href",
-      "/dashboard/e",
-    );
-    fireEvent.click(show);
-    expect(screen.getByRole("button", { name: /fold/i })).toHaveAttribute(
-      "aria-expanded",
-      "true",
+  it("says what a host with only deleted events meets, and one press to them", () => {
+    draw({ rows: [ROWS[3]!] });
+    expect(screen.getByText(/no events right now/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /show deleted/i }));
+    expect(screen.getByText("Binned party")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /restore/i }),
+    ).toBeInTheDocument();
+    expect(setEventsDisplayAction).toHaveBeenLastCalledWith(
+      kept({ lens: "deleted" }),
     );
   });
 });
 
 describe("the search", () => {
   const many = Array.from({ length: 9 }, (_, i) =>
-    row({ id: `p${i}`, name: i === 4 ? "Ángela's Wedding" : `Party ${i}` }),
+    row({
+      id: `p${i}`,
+      name: i === 4 ? "Ángela's Wedding" : `Party ${i}`,
+      href: `/dashboard/p${i}`,
+    }),
   );
-  const one: EventSeason[] = [
-    {
-      id: "coming",
-      label: "Coming up",
-      size: "medium",
-      ids: many.map((r) => r.id),
-    },
-  ];
 
-  it("arrives past eight events and finds one by name, accents aside", () => {
-    draw("cards", many, one);
+  it("arrives at nine events and finds one by name, accents aside", () => {
+    draw({ rows: many });
     fireEvent.change(screen.getByRole("searchbox"), {
       target: { value: "angela" },
     });
@@ -257,15 +360,62 @@ describe("the search", () => {
     expect(screen.queryByText("Party 1")).toBeNull();
   });
 
+  it("says when nothing holds the words, and one press brings every event back", () => {
+    draw({ rows: many });
+    fireEvent.change(screen.getByRole("searchbox"), {
+      target: { value: "zzz" },
+    });
+    expect(
+      screen.getByText(/no event's name holds “zzz”/i),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /show every event/i }));
+    expect(screen.getByText("Party 1")).toBeInTheDocument();
+    expect(screen.getByRole("searchbox")).toHaveValue("");
+  });
+
   it("is not drawn for a handful", () => {
-    draw("cards");
+    draw();
     expect(screen.queryByRole("searchbox")).toBeNull();
+  });
+});
+
+describe("the Recent row", () => {
+  const recent = [ROWS[0]!, ROWS[1]!];
+
+  it("shows the events she opened lately as tiles, and Hide folds them to pills, kept", () => {
+    draw({ recent });
+    const region = screen.getByRole("region", { name: "Recent" });
+    expect(region.querySelectorAll("[data-tile]")).toHaveLength(2);
+    fireEvent.click(within(region).getByRole("button", { name: /hide/i }));
+    expect(region.querySelectorAll("[data-tile]")).toHaveLength(0);
+    expect(
+      within(region).getByRole("link", { name: /quiet party/i }),
+    ).toHaveAttribute("href", "/dashboard/quiet");
+    expect(setEventsDisplayAction).toHaveBeenLastCalledWith(
+      kept({ recent: "folded" }),
+    );
+    // Folding is her own press, never one of the menu's choices.
+    expect(said()).toBeNull();
+    fireEvent.click(within(region).getByRole("button", { name: /show/i }));
+    expect(region.querySelectorAll("[data-tile]")).toHaveLength(2);
+  });
+
+  it("opens as she left it: folded stays folded", () => {
+    draw({ recent, initial: kept({ recent: "folded" }) });
+    const region = screen.getByRole("region", { name: "Recent" });
+    expect(region.querySelectorAll("[data-tile]")).toHaveLength(0);
+    expect(within(region).getAllByRole("link")).toHaveLength(2);
+  });
+
+  it("is not drawn when nothing is recent", () => {
+    draw();
+    expect(screen.queryByRole("region", { name: "Recent" })).toBeNull();
   });
 });
 
 describe("an empty list", () => {
   it("draws nothing: the page decides what an account with nothing meets", () => {
-    const { container } = draw("cards", [], []);
+    const { container } = draw({ rows: [] });
     expect(container.firstChild).toBeNull();
   });
 });
