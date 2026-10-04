@@ -17,33 +17,14 @@ const HOUR_S = 3_600;
 
 export type VendorId = "vercel" | "supabase" | "cloudflare" | "resend";
 
-/** Each vendor, with the plan we are on today and the page its numbers were read from. */
-export const VENDORS: Record<
-  VendorId,
-  { label: string; plan: string; page: string }
-> = {
-  vercel: {
-    label: "Vercel",
-    plan: "Hobby",
-    page: "vercel.com/docs/plans/hobby",
-  },
+/** Each vendor, with the plan we are on today (the page each limit was read from is cited at `METERS`). */
+export const VENDORS: Record<VendorId, { label: string; plan: string }> = {
+  vercel: { label: "Vercel", plan: "Hobby" },
   // ★ NOT THE FREE PLAN the brief assumed: the org ("Partyreel Team") is on Pro, read through the Supabase MCP's
   // `get_organization` (plan: pro) on 2026-10-04, beside durability-backups.md's "Supabase Pro's daily backup".
-  supabase: {
-    label: "Supabase",
-    plan: "Pro",
-    page: "supabase.com/pricing",
-  },
-  cloudflare: {
-    label: "Cloudflare",
-    plan: "Free",
-    page: "developers.cloudflare.com/r2/pricing",
-  },
-  resend: {
-    label: "Resend",
-    plan: "Free",
-    page: "resend.com/docs/knowledge-base/account-quotas-and-limits",
-  },
+  supabase: { label: "Supabase", plan: "Pro" },
+  cloudflare: { label: "Cloudflare", plan: "Free" },
+  resend: { label: "Resend", plan: "Free" },
 };
 
 export const VENDOR_ORDER: readonly VendorId[] = [
