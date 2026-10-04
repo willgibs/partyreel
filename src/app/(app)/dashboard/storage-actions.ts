@@ -82,10 +82,17 @@ export type EmptyDeletedAnswer =
     }
   | Failure;
 
-/** Items each `empty_deleted` call takes: well inside the authenticated role's 8 s statement_timeout. */
+/**
+ * Items each `empty_deleted` call takes: well inside the authenticated role's 8 s statement_timeout, and under the
+ * function's own 5,000 ceiling, which is tight at the slow end (about 1 ms a row).
+ */
 const EMPTY_DELETED_BATCH = 2_000;
-/** How long one Empty Deleted keeps calling before it answers with what it freed and `more`. */
-const EMPTY_DELETED_BUDGET_MS = 40_000;
+/**
+ * How long one Empty Deleted keeps calling before it answers with what it freed and `more` (the Advisor's Q24): short
+ * enough to answer inside any function limit the dashboard's route runs under (it sets no `maxDuration`), so every
+ * batch commits and she presses again, never a generic error after work that already left.
+ */
+const EMPTY_DELETED_BUDGET_MS = 10_000;
 
 export type MakeRoomAnswer = { ok: true; on: boolean } | Failure;
 

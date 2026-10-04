@@ -290,6 +290,38 @@ describe("Empty Deleted", () => {
     expect(captured).toHaveLength(1);
   });
 
+  // ★ The Advisor's Q24: the dashboard's route sets no `maxDuration`, so the action answers within 10 s, every batch
+  // committed and `more` said, rather than run past a function limit into a generic error after work that left.
+  it("★ answers what it freed with more once 10 seconds have passed, every batch committed", async () => {
+    let clock = 0;
+    const now = vi.spyOn(Date, "now").mockImplementation(() => clock);
+    rpc.mockImplementation(async () => {
+      clock += 6_000; // each batch takes six seconds on a slow night
+      return {
+        data: {
+          ok: true,
+          items: 2000,
+          events: 0,
+          freed_bytes: 100,
+          more: true,
+        },
+        error: null,
+      };
+    });
+    try {
+      expect(await emptyDeletedAction()).toEqual({
+        ok: true,
+        items: 4000,
+        events: 0,
+        freedBytes: 200,
+        more: true,
+      });
+      expect(rpc).toHaveBeenCalledTimes(2);
+    } finally {
+      now.mockRestore();
+    }
+  });
+
   it("stops when a batch takes nothing, rather than asking again for ever", async () => {
     rpc.mockResolvedValue({
       data: { ok: true, items: 0, events: 0, freed_bytes: 0, more: true },
