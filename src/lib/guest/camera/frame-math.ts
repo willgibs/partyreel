@@ -13,8 +13,8 @@
  * Android whose preview runs at 1080p).
  *
  * ★ A VIDEO IS DRAWN AT 1080 ON ITS SHORT SIDE (`videoSize`), never the photo stream's 12 MP: an H.264 encoder's
- * frame-size ceiling sits under 4032x3024, and ten seconds at 1080 is about 10 MB (the camera video's bound is 128 MB,
- * `media/limits.ts`).
+ * frame-size ceiling sits under 4032x3024, and thirty seconds at 1080 is about 19 MB (the camera video's bound is
+ * 384 MB, `media/limits.ts`).
  */
 
 export type Rect = { sx: number; sy: number; sw: number; sh: number };

@@ -49,7 +49,10 @@ function migrations(): { file: string; sql: string }[] {
 function body(name: string): string {
   let found: string | null = null;
   for (const { sql } of migrations()) {
-    const re = new RegExp(`create (?:or replace )?function public\\.${name}\\(`, "g");
+    const re = new RegExp(
+      `create (?:or replace )?function public\\.${name}\\(`,
+      "g",
+    );
     let m: RegExpExecArray | null;
     while ((m = re.exec(sql))) {
       const close = sql.indexOf("$$;", sql.indexOf("as $$", m.index) + 5);
@@ -92,9 +95,8 @@ describe("the roll's one home and its SQL mirrors", () => {
   it("create_media refuses the shot past the roll, and past its ceiling, in the sentences the presign says", () => {
     const sql = body("create_media");
     // RAISE's own format: the roll's size where the sentence says it.
-    const raised = /raise exception '([^']*(?:''[^']*)*)', v_event\.roll_size/.exec(
-      sql,
-    );
+    const raised =
+      /raise exception '([^']*(?:''[^']*)*)', v_event\.roll_size/.exec(sql);
     expect(raised, "the roll's raise").not.toBeNull();
     const sentence = raised![1].replace(/''/g, "'");
     for (const size of [24, 12, 1]) {
@@ -108,17 +110,58 @@ describe("the roll's one home and its SQL mirrors", () => {
     );
   });
 
-  it("the camera video's bytes and seconds (with the grace) are create_media's", () => {
+  // ★ RESHAPED ON PURPOSE (camera-clip, 20261004120000; scar kept: create_media holds the clip's bytes, seconds and grace
+  // at the TypeScript values, and says each refusal in the sentence the presign says; reason dropped: the grace folded
+  // into one literal (10.5) and the number typed again inside each sentence). Each SQL constant is read beside its
+  // TypeScript twin, the check is the sum, and each sentence is a format() of the constant itself, so one literal
+  // drives the check and its words.
+  it("the camera video's bytes, seconds and grace are create_media's, read beside their TypeScript twins", () => {
     const sql = body("create_media");
+    const constant = (name: string, type: string): string => {
+      const m = new RegExp(`${name} constant ${type} := ([^;]+);`).exec(sql);
+      expect(m, `${name} in create_media`).not.toBeNull();
+      return m![1];
+    };
     expect(CAMERA_VIDEO_MAX_BYTES % 1024 ** 2).toBe(0);
-    expect(sql).toContain(
-      `c_camera_video_bytes constant bigint := ${CAMERA_VIDEO_MAX_BYTES / 1024 ** 2}::bigint * 1024 * 1024;`,
+    expect(constant("c_camera_video_bytes", "bigint")).toBe(
+      `${CAMERA_VIDEO_MAX_BYTES / 1024 ** 2}::bigint * 1024 * 1024`,
     );
-    expect(sql).toContain(
-      `c_camera_video_seconds constant double precision := ${CAMERA_VIDEO_SECONDS + CAMERA_VIDEO_GRACE_SECONDS};`,
+    expect(Number(constant("c_camera_video_seconds", "double precision"))).toBe(
+      CAMERA_VIDEO_SECONDS,
     );
-    expect(sql).toContain(`raise exception '${CAMERA_VIDEO_TOO_LARGE_MESSAGE}'`);
-    expect(sql).toContain(`raise exception '${CAMERA_VIDEO_TOO_LONG_MESSAGE}'`);
+    expect(Number(constant("c_camera_video_grace", "double precision"))).toBe(
+      CAMERA_VIDEO_GRACE_SECONDS,
+    );
+    // The checks, as shot.ts writes them: a clip is too long past its seconds plus the grace, too large past its bytes.
+    expect(sql).toContain("p_file_size_bytes > c_camera_video_bytes");
+    expect(sql).toContain(
+      "p_duration_seconds > c_camera_video_seconds + c_camera_video_grace",
+    );
+  });
+
+  it("create_media says the camera video's two refusals as the presign does, each a format() of its constant", () => {
+    const sql = body("create_media");
+    const said = [
+      ...sql.matchAll(
+        /raise exception using message = format\('((?:[^']|'')*)', ([^;]*?)\), errcode = 'check_violation';/g,
+      ),
+    ];
+    // Two, in the order the camera checks them: the bytes, then the length; each argument the constant itself.
+    expect(said.map((m) => m[2])).toEqual([
+      "c_camera_video_bytes / (1024 * 1024)",
+      "c_camera_video_seconds",
+    ]);
+    expect(
+      said[0][1].replace("%s", String(CAMERA_VIDEO_MAX_BYTES / 1024 ** 2)),
+    ).toBe(CAMERA_VIDEO_TOO_LARGE_MESSAGE);
+    expect(said[1][1].replace("%s", String(CAMERA_VIDEO_SECONDS))).toBe(
+      CAMERA_VIDEO_TOO_LONG_MESSAGE,
+    );
+    // No number is typed in either sentence: the constant is the only place it lives.
+    for (const m of said) expect(m[1]).not.toMatch(/\d/);
+    // The words mapCheckViolation routes by stay in them.
+    expect(said[0][1]).toContain("exceeds");
+    expect(said[1][1]).toContain("longer than");
   });
 });
 
@@ -180,7 +223,9 @@ describe("the refusal the next shot meets", () => {
   });
 
   it("reads back the server's two sentences, and nothing else", () => {
-    expect(rollRefusalSentence(rollSpentMessage(24))).toBe(rollSpentMessage(24));
+    expect(rollRefusalSentence(rollSpentMessage(24))).toBe(
+      rollSpentMessage(24),
+    );
     expect(rollRefusalSentence(rollSpentMessage(7))).toBe(rollSpentMessage(7));
     expect(rollRefusalSentence(ROLL_RETAKES_SPENT_MESSAGE)).toBe(
       ROLL_RETAKES_SPENT_MESSAGE,

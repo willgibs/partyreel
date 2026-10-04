@@ -1,8 +1,8 @@
 "use client";
 
 /**
- * THE SHUTTER'S ONE PRESS (Will's `video=hold`: "A press takes a photo; holding films, filling up to 10 seconds, and
- * letting go stops it. One button and no mode").
+ * THE SHUTTER'S ONE PRESS (Will's `video=hold`: a press takes a photo; holding films, filling the ring to the clip's
+ * length (`CAMERA_VIDEO_SECONDS`), and letting go stops it. One button and no mode).
  *
  * ★ A PHOTO FIRES ON THE RELEASE, A VIDEO ON THE HOLD. Where the album takes a video, a press held past `HOLD_MS`
  * starts filming and letting go stops it; anything shorter is a photo, taken as the finger lifts, which is how a phone's
@@ -131,7 +131,7 @@ export function useShutterPress({
       // A long press on a phone opens no menu and selects nothing.
       onContextMenu: (e: { preventDefault: () => void }) => e.preventDefault(),
     },
-    /** The camera ended the video itself (its ten seconds): the press that is still down ends as nothing. */
+    /** The camera ended the video itself (its length): the press that is still down ends as nothing. */
     release: useCallback(() => {
       clear();
       if (phase.current === "filming") phase.current = "spent";
