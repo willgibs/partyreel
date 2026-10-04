@@ -108,11 +108,15 @@ actually running.
 
 ## Local dev vs. live testing
 
-Local first: `pnpm dev` with `.env.local` runs every route, RPC and query against the real Supabase and R2. The
-allow-list-gated flows (sign-in, upload, email round-trips, checkout) cannot run on localhost: for those, and a final
-adversarial pass, drive Chrome against the `launch-prep` alias, allow-listed like prod
-(`https://partyreel-git-launch-prep-partyreel.vercel.app`). Never skip or silently downgrade the live red-team (a
-lab-only round is the one carve-out). Sign in through the Google account CHOOSER (`willg97@gmail.com` host,
+Local first, and Vercel almost never: Hobby allows 4 Active CPU-hours a rolling 30 days and pauses every function past
+it, and our own red-teams, desk checks and open tabs nearly spent it once (2026-10-04). `pnpm dev` with `.env.local` runs
+every route, RPC and query against the real Supabase and R2; sign-in and uploads run on a local production build at
+port 3000 built with `NEXT_PUBLIC_SITE_URL=http://localhost:3000` (Supabase allows its callback; R2's CORS lists
+localhost 3000 and 3131 to 3139). Red-teams, desk checks and Will's desks run there. The `launch-prep` alias
+(`https://partyreel-git-launch-prep-partyreel.vercel.app`) is only for what local cannot prove (a checkout's webhook,
+a real phone off this network, a milestone's last pass), after `node usher/kit/vercel-usage.mjs`; remote `lab:*` runs
+and deploys refuse past its line. Never skip or silently downgrade the red-team (a lab-only round is the one carve-out).
+Sign in through the Google account CHOOSER (`willg97@gmail.com` host,
 `partyr33l@gmail.com` admin); never type a password or an OTP. Live and DB testing is expected, with disposable test
 data only. Will is a targeted instrument for what you cannot drive (a file upload, a password, a logged-out flow):
 stage it, hand him the smallest action, resume; a result that smells non-human gets his 10-second look before more

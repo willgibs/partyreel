@@ -23,9 +23,14 @@ The local-first-then-live policy, the gate's steps, the account chooser and the 
   it is in no Supabase, R2 or Stripe allow-list, so sign-in, upload, email and checkout fail there by design; it builds
   with the unscoped preview env, so `NEXT_PUBLIC_SITE_URL` inlines to the production URL (QR, share and OG links point
   at partyreel.com); and it is a fresh origin with no stored theme.
-- ★ **R2 refuses a script's read from localhost:** its CORS allow-list holds the launch-prep alias and partyreel.com,
-  not `http://localhost:*`, so whatever reads R2 bytes from script (the reel's canvas: the tile, the view, a clip's
-  render) fails locally and is proven on the alias.
+- ★ **R2's CORS lists localhost only on 3000 and 3131 to 3139** (beside partyreel.com, admin and the alias): a script's
+  read of R2 bytes (the reel's canvas, a clip's render) and a browser's presigned PUT work on those ports and fail on
+  any other.
+- **A signed-in walk runs locally** on a production build at port 3000 built with
+  `NEXT_PUBLIC_SITE_URL=http://localhost:3000` (sign-in prefers that variable over the page's origin, and Supabase
+  allows `http://localhost:3000/**`): Google's chooser returns there. Will's desk is the same build in
+  `../partyreel-wt/desk` (a detached worktree at launch-prep; refresh it by checking out, building and restarting
+  `pnpm start -p 3000`).
 - **Confirming a deploy is READY at a SHA:** `GET https://api.vercel.com/v6/deployments?projectId=…&teamId=…&limit=12`
   with `$VERCEL_TOKEN` (the ids are in `usher/kit/vercel-lib.mjs`; `&target=production` for production), match
   `meta.githubCommitSha` and wait for `READY`; `/v3/deployments/<uid>/events` is the build log, the Ignored Build
