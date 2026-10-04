@@ -17,6 +17,10 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Host: the Display quiet line's Reset (`events-section.tsx`) drops the focus to the body as the menu's did; hand it to the Display button on its press.
+- Guests: the camera reads a shot's dropped connection by `UPLOAD_WORDS.dropped` because the queue keeps only the message; read `QueueItem`'s cause once `UploadOutcome.cause` reaches the queue.
+- Host (reel): the hub's reel before the develop says nothing of the develop; its dock could say "Guests get it at the develop." (`live-reel-view.tsx`'s prop, `hub-reel.tsx`'s wiring, the card's `developsAt`).
+- Docs: `profiles-social.md`'s line on her own header's disc gains that the answer is kept per ticket (`pr_guest_seed_<album>`, hash-bound) and a first load holds the disc back and fades it in.
 - Host: the hub develops too (the board's carried `hub`: her cover is the guests' sheet, so her first open after the develop develops it): mount `DevelopSheet` over `event-hub-head-cover.tsx`.
 - Guests: the guest's read carries the period's start (`sealed_from`), so an album turned disposable mid-party develops only its roll (today its photos from before the switch develop on the sheet too: `rollOfEntries`'s note).
 - Create: a Library composition of the whole room (the wizard's `create` stand-in prop already draws it with no row written), so every screen, the add step's night included, can be pressed through with no session.
