@@ -115,8 +115,9 @@ Round 15, on Will's desk answers of 2026-10-04 06:00Z and his brand note; the ap
 
 ## Waiting on Will
 
-- **Desk 2, Drive alone** (nine asks), on the alias (build 53 now):
-  `https://partyreel-git-launch-prep-partyreel.vercel.app/design/lab?key=fiesta`.
+- **Desk 2, Drive alone** (nine asks), on his local desk (Vercel's CPU): `http://localhost:3000/design/lab?key=fiesta`,
+  served from `../partyreel-wt/desk` (launch-prep at `08f6c8cd5`, built with `NEXT_PUBLIC_SITE_URL=http://localhost:3000`,
+  `pnpm start -p 3000`; refresh: checkout, build, restart). Sign-in works there through the chooser.
 - **The calls lab** (`../partyreel-wt/_scratch/calls/calls-lab.md`): one open question (X1, a Disposable's develop time
   when the date comes later), then the text calls built and his to overrule (the night's wirings added S to Y). He asks
   direct questions in chat; answer in chat, never only in a file.
