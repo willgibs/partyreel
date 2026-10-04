@@ -45,7 +45,7 @@ export const ARGUES = [
   "Status leaves light: a lit dot is a person now, so a state is a flat tag",
   "The five lamps become the house mix: five house guests, still never UI paint",
   "The aurora steps back as the signature: people bring the color",
-  "Bricolage Grotesque replaces Urbanist for loud type: warmer, and it says what we are",
+  "Fraunces replaces Urbanist for loud type: a soft black serif, warm and never thin",
 ] as const;
 
 function Ledger({

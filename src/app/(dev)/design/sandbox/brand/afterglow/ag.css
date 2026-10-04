@@ -515,3 +515,225 @@
     display: none;
   }
 }
+
+/* ══ THE APPLIED TOUCHPOINTS (slides 9 to 14) ═════════════════════════════
+   The browser, the buttons, the reel's answering Bloom and the Seam in place
+   under a wall: every selector `.ag-…`, every keyframe `ag-…`, and motion only
+   where it is welcome, the rest state complete. */
+
+/* A browser window with no maker's marks, in the page's ground family. */
+.ag-browser {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: #050506;
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.1),
+    0 40px 90px -36px rgb(0 0 0 / 0.9);
+}
+.ag-browser[data-ground="paper"] {
+  background: #f4f4f6;
+  box-shadow:
+    0 0 0 1px rgb(20 20 22 / 0.1),
+    0 2px 6px rgb(20 20 22 / 0.05),
+    0 34px 80px -34px rgb(20 20 22 / 0.4);
+}
+.ag-browser-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #141417;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.07),
+    inset 0 -1px 0 rgb(255 255 255 / 0.05);
+  color: rgb(245 245 246 / 0.5);
+}
+.ag-browser[data-ground="paper"] .ag-browser-bar {
+  background: #e6e6e9;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.7),
+    inset 0 -1px 0 rgb(20 20 22 / 0.07);
+  color: rgb(20 20 22 / 0.5);
+}
+.ag-browser-dots {
+  position: absolute;
+  top: 50%;
+  display: flex;
+  transform: translateY(-50%);
+}
+.ag-browser-dots > span {
+  border-radius: 9999px;
+  background: rgb(255 255 255 / 0.16);
+}
+.ag-browser[data-ground="paper"] .ag-browser-dots > span {
+  background: rgb(20 20 22 / 0.16);
+}
+.ag-browser-url {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: rgb(255 255 255 / 0.06);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.ag-browser[data-ground="paper"] .ag-browser-url {
+  background: rgb(20 20 22 / 0.05);
+}
+
+/* A pill: the ground's opposite, or a quiet outline. Never a light's fill. */
+.ag-btn {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+.ag-btn[data-ground="room"][data-kind="primary"] {
+  background: #f5f5f6;
+  color: #0b0b0d;
+  box-shadow: inset 0 -1px 0 rgb(0 0 0 / 0.12);
+}
+.ag-btn[data-ground="room"][data-kind="secondary"] {
+  background: rgb(255 255 255 / 0.05);
+  color: #f5f5f6;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.12),
+    inset 0 1px 0 rgb(255 255 255 / 0.08);
+}
+.ag-btn[data-ground="paper"][data-kind="primary"] {
+  background: #17171a;
+  color: #fafafa;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.14),
+    0 1px 2px rgb(0 0 0 / 0.16);
+}
+.ag-btn[data-ground="paper"][data-kind="secondary"] {
+  background: #ffffff;
+  color: #17171a;
+  box-shadow:
+    inset 0 0 0 1px rgb(20 20 22 / 0.13),
+    0 1px 2px rgb(20 20 22 / 0.05);
+}
+
+/* A segmented control in paper's greys: the chosen segment is lifted, never a hue. */
+.ag-seg {
+  display: inline-flex;
+  padding: 4px;
+  border-radius: 11px;
+  background: rgb(20 20 22 / 0.06);
+  box-shadow: inset 0 0 0 1px rgb(20 20 22 / 0.04);
+}
+.ag-seg > span {
+  flex: 1;
+  padding: 7px 16px;
+  border-radius: 8px;
+  color: rgb(20 20 22 / 0.56);
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  white-space: nowrap;
+}
+.ag-seg > span[data-on] {
+  background: #ffffff;
+  color: #141416;
+  box-shadow:
+    0 0 0 1px rgb(20 20 22 / 0.06),
+    0 1px 3px rgb(20 20 22 / 0.1);
+}
+
+/* THE BLOOM THAT ANSWERS: one blurred frame of light per shot, stacked; only
+   the shot on screen is lit, and the light crossfades on the cut. The blur is
+   drawn once and never animated; only opacity moves. */
+.ag-ambient {
+  position: relative;
+  isolation: isolate;
+}
+.ag-ambient-lights {
+  position: absolute;
+  inset: calc(-1 * var(--ag-spread));
+  z-index: -1;
+  pointer-events: none;
+}
+.ag-ambient-light {
+  position: absolute;
+  inset: 0;
+  border-radius: calc(var(--ag-radius) + var(--ag-spread));
+  filter: blur(var(--ag-blur));
+  will-change: opacity;
+}
+
+/* THE SEAM, IN PLACE: each photograph's light pooled under it. */
+.ag-wallseam {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.ag-wallseam-light {
+  position: absolute;
+  inset: 0;
+}
+.ag-wallseam-line {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 1px;
+}
+.ag-wallseam[data-ground="paper"] .ag-wallseam-line {
+  height: 1.5px;
+}
+
+/* THE RING FILLING: its progress registered as a number, so a run's light can
+   arrive round the band rather than step; the Ring's own `--ag-p` is the value
+   it rests at. */
+@property --ag-p {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ag-ambient-lights {
+    animation: ag-wake 1400ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+  /* Once, as the screen appears: the light fills round to where the run is,
+     and rests there. Never a loop. */
+  .ag-ring.ag-ring-fill-in {
+    animation: ag-fill-in 2400ms cubic-bezier(0.22, 1, 0.36, 1) 300ms both;
+  }
+  .ag-ambient-light {
+    transition: opacity 1100ms cubic-bezier(0.45, 0, 0.2, 1);
+  }
+}
+
+@keyframes ag-fill-in {
+  from {
+    --ag-p: 0.04;
+  }
+}
+
+@keyframes ag-wake {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (forced-colors: active) {
+  .ag-ambient-lights,
+  .ag-wallseam {
+    display: none;
+  }
+}

@@ -14,9 +14,9 @@ import { isDesk, Kicker, Pic, SlideGround } from "./kit";
  */
 
 const LADDER = [
-  { role: "Display", spec: "Bricolage 800 · opsz 96 · −4.5%", cls: "ev-display", size: 64, text: "The whole event, in one album." },
-  { role: "Headline", spec: "Bricolage 700 · opsz 48 · −3%", cls: "ev-head", size: 34, text: "Your first album starts here" },
-  { role: "Title", spec: "Bricolage 700 · opsz 18", cls: "ev-title", size: 19, text: "Maya & Jay" },
+  { role: "Display", spec: "Fraunces 900 · soft 100 · opsz 144 · −3%", cls: "ev-display", size: 64, text: "The whole event, in one album." },
+  { role: "Headline", spec: "Fraunces 800 · soft 100 · opsz 72 · −2%", cls: "ev-head", size: 34, text: "Your first album starts here" },
+  { role: "Title", spec: "Fraunces 700 · soft 100 · opsz by size", cls: "ev-title", size: 19, text: "Maya & Jay" },
   { role: "Body", spec: "Inter 400 · 16 on 23", cls: "ev-body", size: 16, text: "Your guests took the best photos and videos at your event." },
   { role: "Readout", spec: "Inter 600 · caps · +8%", cls: "ev-label", size: 11, text: "31 guests · 1,284 photos" },
 ] as const;
@@ -28,8 +28,8 @@ const SHOTS: { id: PhotoId; rule: string; focus?: string }[] = [
 ];
 
 const MOTION = [
-  { what: "A guest arrives", how: "A spring from nothing: 640 ms, damping 0.6, a 9% overshoot." },
-  { what: "The mix makes room", how: "Neighbours settle aside: 900 ms, damping 0.78, 2%." },
+  { what: "A guest arrives", how: "Up in 330 ms, 7% past full, then settles over 860 ms: quick to rise, slow to rest." },
+  { what: "The row makes room", how: "Neighbours step aside on the newcomer's own breath." },
   { what: "The toss", how: "Once, at a moment worth it; 1.1 s, then everyone rests in the row." },
   { what: "Status", how: "Never moves, except waiting's hatch while work truly runs." },
   { what: "Reduced motion", how: "Everyone is already there; nothing loops; the hatch stands still." },
@@ -56,11 +56,11 @@ function Faces() {
           Aa
         </p>
         <p className="ev-title" style={{ fontSize: 15, marginTop: 10 }}>
-          Bricolage Grotesque
+          Fraunces
         </p>
         <p className="ev-body" style={{ fontSize: 13, color: ON.paper.muted, marginTop: 2 }}>
-          To be loud: the wordmark, display, headlines. A bricolage is made from what everyone
-          brought.
+          To be loud: the wordmark, display, headlines and every event&apos;s name. Its heaviest,
+          softest cut: round like the people, never thin.
         </p>
       </div>
       <div>

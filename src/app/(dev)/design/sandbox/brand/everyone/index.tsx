@@ -3,7 +3,12 @@
 import "./ev.css";
 
 import type { Vision } from "../deck/contract";
-import { stubVision } from "../deck/stub";
+import { ShareSlide } from "./applied/card";
+import { Hero } from "./applied/hero";
+import { HomeScreenSlide } from "./applied/home-screen";
+import { EmptyHub } from "./applied/hub";
+import { PricingPage } from "./applied/pricing-page";
+import { ReelPage } from "./applied/reel-page";
 import { EV_FONTS } from "./fonts";
 import { Atmosphere } from "./slides/atmosphere";
 import { Color } from "./slides/color";
@@ -18,15 +23,14 @@ import { Voice } from "./slides/voice";
  * EVERYONE'S COLOR: the people-first vision. Every guest brings a colour (the
  * hashvatar, promoted from avatar to the brand's material), an event's colour
  * is the mix of the people in it, and the chrome stays grey so they are the
- * only colour there is. Slides 1 to 8 are the system; 9 to 14 are the
- * application designer's, stand-ins until they land.
+ * only colour there is. Slides 1 to 8 are the system (`slides/`, on the
+ * primitives in `system.tsx` and `marks.tsx`); 9 to 14 are the system applied
+ * (`applied/`), each a sketch of one touchpoint at a desk and on a phone.
  */
 
 const ID = "everyone";
 const NAME = "Everyone's Color";
 const LINE = "Every guest brings a color.";
-
-const stand = stubVision(ID, NAME, LINE);
 
 export const EVERYONE: Vision = {
   id: ID,
@@ -42,12 +46,12 @@ export const EVERYONE: Vision = {
     atmosphere: Atmosphere,
     voice: Voice,
     pages: Pages,
-    hero: stand.slides.hero,
-    "dark-page": stand.slides["dark-page"],
-    "light-page": stand.slides["light-page"],
-    "empty-hub": stand.slides["empty-hub"],
-    share: stand.slides.share,
-    "home-screen": stand.slides["home-screen"],
+    hero: Hero,
+    "dark-page": ReelPage,
+    "light-page": PricingPage,
+    "empty-hub": EmptyHub,
+    share: ShareSlide,
+    "home-screen": HomeScreenSlide,
   },
   tone: {
     cover: "light",
@@ -58,6 +62,12 @@ export const EVERYONE: Vision = {
     atmosphere: "light",
     voice: "light",
     pages: "light",
+    hero: "light",
+    "dark-page": "dark",
+    "light-page": "light",
+    "empty-hub": "light",
+    share: "light",
+    "home-screen": "light",
   },
   phoneHeight: {
     idea: 1480,
@@ -67,5 +77,11 @@ export const EVERYONE: Vision = {
     atmosphere: 1780,
     voice: 1730,
     pages: 1320,
+    hero: 830,
+    "dark-page": 1150,
+    "light-page": 1790,
+    "empty-hub": 1360,
+    share: 890,
+    "home-screen": 1060,
   },
 };

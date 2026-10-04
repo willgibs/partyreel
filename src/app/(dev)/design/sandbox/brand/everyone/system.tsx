@@ -378,6 +378,15 @@ export const HOUSE_PEOPLE: readonly Person[] = HOUSE.map((h) => ({
   seed: `house:${h.hue}`,
 }));
 
+/**
+ * The house guests as a row seats them: never in lamp order, which is hue
+ * order and reads as a swatch (the system's "never sorted by colour"), but
+ * mixed, the way five people arrive.
+ */
+export const HOUSE_ROW: readonly Person[] = [255, 25, 155, 305, 85].map(
+  (hue) => HOUSE_PEOPLE.find((p) => p.seed === `house:${hue}`)!,
+);
+
 const orbCache = new Map<string, OrbData>();
 
 /**
@@ -517,7 +526,8 @@ export function Orb({
  * THE ROW (production's guest row, promoted): faces in arrival order,
  * overlapping by a quarter and parted by the ground's ring, the newest last.
  * Past `max`, the rest is a count, which is a number, never an orb: a count is
- * not a person. `pop` lets the newest arrive on a loop (motion slides only).
+ * not a person. `pop` lets the newest arrive on a loop (the motion slide, and
+ * a touchpoint whose row is live: the reel's makers, the share card).
  */
 export function GuestRow({
   people,
@@ -568,6 +578,10 @@ export function GuestRow({
             height: size,
             minWidth: size,
             fontSize: Math.round(size * 0.36),
+            // The last face covers the chip's first quarter-face, so the count
+            // starts after it: otherwise the plus sign sits under a person.
+            paddingLeft: Math.round(size * 0.25 + size * 0.36 * 0.5),
+            paddingRight: Math.round(size * 0.36 * 0.6),
             boxShadow: `0 0 0 ${ring}px ${ground}`,
             backgroundColor: ON[tone].step,
             color: ON[tone].ink,

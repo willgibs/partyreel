@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 
 import type { SlideProps } from "../../deck/contract";
 import { PARTY } from "../../deck/media";
-import { Trail, Wordmark } from "../marks";
+import { Trail, Wordmark, WORDMARK_FOOT_SHARE } from "../marks";
 import { BASE, CROWD, Credit, GuestRow, Mix, ON, Orb, Toss } from "../system";
 import { isDesk, Kicker, Pic, SlideGround } from "./kit";
 
@@ -55,7 +55,7 @@ function TrailForm({ h }: { h: number }) {
   return (
     <div className="flex items-end">
       <Wordmark height={h} />
-      <div style={{ marginLeft: 4, marginBottom: h * (15.6 / 85.6) }}>
+      <div style={{ marginLeft: 4, marginBottom: h * WORDMARK_FOOT_SHARE }}>
         <Trail h={h} count={6} arrive={false} />
       </div>
     </div>

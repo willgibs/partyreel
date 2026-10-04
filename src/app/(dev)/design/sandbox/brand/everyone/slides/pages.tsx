@@ -241,7 +241,8 @@ function Strip({ w, today, compact = false }: { w: number; today: boolean; compa
 function TodayNow({ w, stacked = false }: { w: number; stacked?: boolean }) {
   const lw = stacked ? 0 : 78;
   return (
-    <div className="grid" style={{ gap: 10 }}>
+    // The strips' own width bounds the note under them, or it runs to the slide's edge.
+    <div className="grid" style={{ gap: 10, width: w }}>
       <div className={stacked ? "grid" : "flex items-center"} style={{ gap: stacked ? 6 : 14 }}>
         <span className="ev-label" style={{ width: 64, color: ON.paper.muted }}>Today</span>
         <Strip w={w - lw} today compact={stacked} />

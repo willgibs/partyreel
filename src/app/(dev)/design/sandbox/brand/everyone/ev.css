@@ -2,17 +2,22 @@
    keyframe `ev-`, so nothing here reaches the deck's head, another vision or
    the lab around it.
 
-   ★ THE SPRINGS ARE REAL SPRINGS. `--ev-pop` is a damped spring (damping 0.6,
-   a 9 percent overshoot) sampled into `linear()`, for a person arriving;
-   `--ev-settle` (damping 0.78, 2 percent) is the mix making room. A cubic
-   bezier can only overshoot once and reads as a cartoon bounce.
+   ★ A GUEST ARRIVES ON A BREATH: QUICK TO RISE, SLOW TO SETTLE. `--ev-join`
+   is the motion study's envelope (the voice glow Will sent): a 330 ms rise to
+   7 percent past full, then an 860 ms settle with no second bounce, sampled
+   into `linear()` over 1.19 s. The row making room rides the same breath, so
+   the newcomer and the neighbour who steps aside are one gesture. It replaced
+   a 640 ms spring (damping 0.6, 9 percent), whose quick double wobble read as
+   a toy beside a soft black serif; a cubic bezier could not draw either,
+   since it overshoots once and cannot rest slowly.
+   `--ev-settle` (a damped spring, damping 0.78, 2 percent) stays the toss's.
 
    ★ THE DESIGN STANDS COMPLETE AT REST: every motion below lives inside
    `prefers-reduced-motion: no-preference`, and every animated element is
    drawn whole and in place without it. Only transform and opacity move. */
 
 .ev-root {
-  --ev-pop: linear(0, 0.06, 0.204, 0.384, 0.568, 0.734, 0.87, 0.97, 1.038, 1.077, 1.093, 1.093, 1.083, 1.067, 1.049, 1.032, 1.018, 1.007, 0.999, 0.994, 0.992, 0.991, 0.992, 0.993, 0.995, 0.996, 0.998, 0.999, 1, 1, 1.001, 1.001, 1.001);
+  --ev-join: linear(0, 0.306, 0.547, 0.731, 0.866, 0.959, 1.019, 1.052, 1.066, 1.07, 1.07, 1.069, 1.068, 1.066, 1.064, 1.061, 1.058, 1.055, 1.051, 1.047, 1.043, 1.038, 1.034, 1.029, 1.025, 1.021, 1.017, 1.013, 1.01, 1.007, 1.004, 1.003, 1.001, 1, 1);
   --ev-settle: linear(0, 0.07, 0.223, 0.401, 0.569, 0.711, 0.822, 0.902, 0.956, 0.99, 1.009, 1.018, 1.02, 1.019, 1.016, 1.012, 1.009, 1.006, 1.004, 1.002, 1.001, 1, 1, 1, 1);
   position: absolute;
   inset: 0;
@@ -23,28 +28,31 @@
 
 /* ── type ─────────────────────────────────────────────────────────────── */
 
-/* The display voice: Bricolage Grotesque at its tightest optical size. */
+/* The display voice: Fraunces at its heaviest and softest, the 144 cut at any
+   size (`fonts.ts` says why). Its ascenders run tall, so a display line keeps
+   0.94 of leading: at 0.9 an l kisses the y above it. */
 .ev-display {
-  font-family: var(--font-ev-display), var(--font-display), ui-sans-serif, sans-serif;
-  font-weight: 800;
-  font-variation-settings: "opsz" 96;
-  letter-spacing: -0.045em;
-  line-height: 0.9;
-}
-/* A headline: the same face a step more open. */
-.ev-head {
-  font-family: var(--font-ev-display), var(--font-display), ui-sans-serif, sans-serif;
-  font-weight: 700;
-  font-variation-settings: "opsz" 48;
+  font-family: var(--font-ev-display), var(--font-display), ui-serif, Georgia, serif;
+  font-weight: 900;
+  font-variation-settings: "opsz" 144, "SOFT" 100, "WONK" 0;
   letter-spacing: -0.03em;
-  line-height: 1.02;
+  line-height: 0.94;
 }
-/* A small heading: the face at text size, where its ink traps open up. */
+/* A headline: the same face a step lighter, the 72 cut. */
+.ev-head {
+  font-family: var(--font-ev-display), var(--font-display), ui-serif, Georgia, serif;
+  font-weight: 800;
+  font-variation-settings: "opsz" 72, "SOFT" 100, "WONK" 0;
+  letter-spacing: -0.02em;
+  line-height: 1.04;
+}
+/* A small heading (an event's name, a card's title): the browser picks the
+   optical size from the font size, which opens the face up as it shrinks. */
 .ev-title {
-  font-family: var(--font-ev-display), var(--font-display), ui-sans-serif, sans-serif;
+  font-family: var(--font-ev-display), var(--font-display), ui-serif, Georgia, serif;
   font-weight: 700;
-  font-variation-settings: "opsz" 18;
-  letter-spacing: -0.012em;
+  font-variation-settings: "SOFT" 100, "WONK" 0;
+  letter-spacing: -0.004em;
   line-height: 1.15;
 }
 .ev-body {
@@ -226,6 +234,81 @@
   flex: none;
 }
 
+/* ── the touchpoints' furniture (`applied/kit.tsx`) ─────────────────── */
+
+/* A browser window, plain: grey bar, the page under it, a soft lift. */
+.ev-browser {
+  position: relative;
+  flex: none;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #fbfbfc;
+  box-shadow:
+    0 0 0 1px rgb(9 9 11 / 0.07),
+    0 2px 6px rgb(0 0 0 / 0.05),
+    0 34px 70px -30px rgb(0 0 0 / 0.3);
+}
+/* Paper that was printed: a card's own trimmed corner, and its lift off the
+   table (the table card and the share card, drawn as objects). */
+.ev-print {
+  border-radius: 5px;
+}
+.ev-print-lift {
+  border-radius: 5px;
+  box-shadow:
+    0 0 0 1px rgb(9 9 11 / 0.05),
+    0 1px 2px rgb(0 0 0 / 0.08),
+    0 26px 48px -26px rgb(0 0 0 / 0.38);
+}
+/* A home screen, drawn (slide 14): the phone's own red badge (its light, not
+   ours), the labels under the icons, and the light icon's edge on paper. */
+.ev-badge {
+  position: absolute;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.32em;
+  border-radius: 9999px;
+  background: #ff3b30;
+  color: #fff;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.ev-home-label {
+  color: #fff;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 500;
+  line-height: 1.1;
+  white-space: nowrap;
+  text-shadow: 0 1px 3px rgb(0 0 0 / 0.5);
+}
+.ev-home-label-light {
+  text-shadow:
+    0 1px 2px rgb(0 0 0 / 0.55),
+    0 0 8px rgb(0 0 0 / 0.25);
+}
+.ev-icon-on-paper {
+  box-shadow:
+    0 0 0 1px rgb(9 9 11 / 0.08),
+    0 8px 16px -10px rgb(0 0 0 / 0.35);
+}
+/* A round action: the house rule, sharp surfaces and round actions. */
+.ev-action {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 550;
+  letter-spacing: -0.006em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
 /* ── a hairline rule and a swatch chip ───────────────────────────────── */
 
 .ev-rule {
@@ -240,18 +323,18 @@
 /* ── motion: only where it IS the idea ───────────────────────────────── */
 
 @media (prefers-reduced-motion: no-preference) {
-  /* A person arrives: a spring from nothing, once, in order. */
+  /* A person arrives: up in a third of a second, settled by 1.19 s, once, in order. */
   .ev-arrive {
-    animation: ev-pop 640ms var(--ev-pop) both;
+    animation: ev-pop 1190ms var(--ev-join) both;
     animation-delay: calc(var(--ev-i, 0) * var(--ev-stagger, 0ms) + 200ms);
   }
-  /* The newest guest, arriving again and again (a motion demo). */
+  /* The newest guest, arriving again and again (the touchpoints' live rows). */
   .ev-pop-loop {
-    animation: ev-pop-loop 5.2s linear infinite;
+    animation: ev-pop-loop 6s linear infinite;
   }
-  /* The row making room: the count settles aside as the newest arrives. */
+  /* The row making room: the count steps aside on the newcomer's own breath. */
   .ev-make-room {
-    animation: ev-make-room 5.2s linear infinite;
+    animation: ev-make-room 6s linear infinite;
   }
   /* The toss: each person thrown from the moment's origin. */
   .ev-tossed {
@@ -283,14 +366,15 @@
   }
 }
 
+/* 8% to 27.8% of six seconds is the 1.19 s breath; the rest is the row at rest. */
 @keyframes ev-pop-loop {
   0%,
   8% {
     opacity: 0;
     transform: scale(0.3);
-    animation-timing-function: var(--ev-pop);
+    animation-timing-function: var(--ev-join);
   }
-  22%,
+  27.8%,
   92% {
     opacity: 1;
     transform: scale(1);
@@ -306,9 +390,9 @@
   0%,
   8% {
     transform: translateX(calc(var(--ev-shift, 12px) * -1));
-    animation-timing-function: var(--ev-settle);
+    animation-timing-function: var(--ev-join);
   }
-  22%,
+  27.8%,
   92% {
     transform: none;
   }

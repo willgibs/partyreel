@@ -3,7 +3,12 @@
 import "./cs.css";
 
 import type { Vision } from "../deck/contract";
-import { stubVision } from "../deck/stub";
+import { DarkPageSlide } from "./applied/dark-page";
+import { EmptyHubSlide } from "./applied/empty-hub";
+import { HeroSlide } from "./applied/hero";
+import { HomeScreenSlide } from "./applied/home-screen";
+import { LightPageSlide } from "./applied/light-page";
+import { ShareSlide } from "./applied/share";
 import { CS_FONTS } from "./fonts";
 import { AtmosphereSlide } from "./slides/atmosphere";
 import { ColorSlide } from "./slides/color";
@@ -21,14 +26,13 @@ import { VoiceSlide } from "./slides/voice";
  * the photographs and the people in them are the only colour.
  *
  * Slides 1 to 8 are the system (`slides/`), drawn from `system.tsx` and
- * `marks.tsx`; 9 to 14 are the application designer's, stand-ins until then.
+ * `marks.tsx`; 9 to 14 are the system applied (`applied/`), six sketches
+ * composed from those primitives and the applied kit (`applied/kit.tsx`).
  */
 
 const ID = "contact-sheet";
 const NAME = "Contact Sheet";
 const LINE = "Everyone's roll, developed together.";
-
-const stand = stubVision(ID, NAME, LINE);
 
 export const CONTACT_SHEET: Vision = {
   id: ID,
@@ -44,12 +48,12 @@ export const CONTACT_SHEET: Vision = {
     atmosphere: AtmosphereSlide,
     voice: VoiceSlide,
     pages: PagesSlide,
-    hero: stand.slides.hero,
-    "dark-page": stand.slides["dark-page"],
-    "light-page": stand.slides["light-page"],
-    "empty-hub": stand.slides["empty-hub"],
-    share: stand.slides.share,
-    "home-screen": stand.slides["home-screen"],
+    hero: HeroSlide,
+    "dark-page": DarkPageSlide,
+    "light-page": LightPageSlide,
+    "empty-hub": EmptyHubSlide,
+    share: ShareSlide,
+    "home-screen": HomeScreenSlide,
   },
   phoneHeight: {
     idea: 1230,
@@ -59,6 +63,12 @@ export const CONTACT_SHEET: Vision = {
     atmosphere: 1780,
     voice: 1800,
     pages: 1580,
+    hero: 1310,
+    "dark-page": 1130,
+    "light-page": 1480,
+    "empty-hub": 1480,
+    share: 930,
+    "home-screen": 1300,
   },
   tone: {
     cover: "light",
@@ -69,5 +79,11 @@ export const CONTACT_SHEET: Vision = {
     atmosphere: "light",
     voice: "light",
     pages: "light",
+    hero: "light",
+    "dark-page": "dark",
+    "light-page": "light",
+    "empty-hub": "light",
+    share: "light",
+    "home-screen": "light",
   },
 };

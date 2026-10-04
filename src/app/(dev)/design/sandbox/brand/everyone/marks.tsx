@@ -2,26 +2,29 @@
 
 import { type CSSProperties, useId, useMemo } from "react";
 
-import { hex, meshDepths } from "@/lib/avatar/gradient";
+import { fitChroma, hex, meshDepths } from "@/lib/avatar/gradient";
 import { cn } from "@/lib/utils";
 
+import { EV_AXES, EV_FACE } from "./fonts";
 import { BASE, CROWD, ON, Orb, orbOf, type Tone } from "./system";
 
 /**
  * THE MARKS: the wordmark and the app icon, drawn as SVG and sized by props.
  *
  * ★ THE WORDMARK IS A WORD AND A PERSON. "partyreel" in lowercase (no letter
- * stands taller than the rest), set in Bricolage Grotesque ExtraBold, and its
- * full stop is an orb: a guest, the plus one every Partyreel arrives with.
- * The dot is seeded, so it can be whoever is looking (a fresh colour on the
- * marketing site, your own once you sign in, the host's on their event); in
- * print and wherever nobody is, it is a house guest.
+ * stands taller than the rest), set in Fraunces at its heaviest and softest
+ * (900, SOFT 100), and its full stop is an orb: a guest, the plus one every
+ * Partyreel arrives with. The face's own ball terminals (the a, the r, the y)
+ * are drawn with the same round, so the person at the end belongs to the
+ * word. The dot is seeded, so it can be whoever is looking (a fresh colour on
+ * the marketing site, your own once you sign in, the host's on their event);
+ * in print and wherever nobody is, it is a house guest.
  *
  * ★ SET, NOT YET OUTLINED (this round's allowance): the letters are the
- * loaded face, placed glyph by glyph at origins measured off the face itself
- * (the prefix advances below, kerning included, at 100 units), so the orb's
- * place is arithmetic rather than a guess, and a later outline replaces only
- * the `<text>`. The brand-marks board outlines and finishes the drawing.
+ * loaded face, placed glyph by glyph at origins fitted from the face's own
+ * ink (below, at 100 units), so the orb's place is arithmetic rather than a
+ * guess, and a later outline replaces only the `<text>`. The brand-marks
+ * board outlines and finishes the drawing.
  *
  * ★ THE ICON IS A PARTY OF THREE: three house guests, gathered as people stand
  * for a photograph, two behind and one in front, each parted from the next by
@@ -108,26 +111,54 @@ export function OrbSvg({
 /* ── the wordmark ──────────────────────────────────────────────────────── */
 
 /**
- * The face's own geometry at 100 units (Bricolage Grotesque 800, opsz 96),
- * measured in the frame: each glyph's origin with kerning (prefix advances),
- * the x-height, the ascender and the last letter's ink.
+ * The face's own geometry at 100 units (Fraunces 900, SOFT 100, WONK 0, opsz
+ * 144), measured in a lab frame: each glyph's ink from its origin, read off a
+ * 400 px rendering scanned pixel by pixel (to a quarter unit), and the
+ * vertical metrics. The face kerns none of these pairs, so ink is the whole
+ * story of their fit.
  */
 const WORD = "partyreel";
-const PREFIX = [0, 57.4, 111.5, 151.5, 188.9, 242.8, 282.8, 335.3, 389.0];
-const INK_LEFT = 3.6; // the p's left side bearing
-const L_INK_RIGHT = 19.8; // the l's ink, from its origin
-const X_HEIGHT = 52.8;
-const ASCENDER = 70;
-const DESCENDER = 15.6;
+const INK: Record<string, { l: number; r: number }> = {
+  p: { l: 0.5, r: 53.75 },
+  a: { l: 1.5, r: 51.25 },
+  r: { l: 1.5, r: 44.75 },
+  t: { l: -0.5, r: 36.5 },
+  y: { l: -1.5, r: 52 },
+  e: { l: 1.5, r: 46.5 },
+  l: { l: 1.25, r: 28.25 },
+};
+const X_HEIGHT = 44.75; // the x's flat top
+const ASCENDER = 75.5; // the l
+const DESCENDER = 24.5; // the y's ball
 
-/** Tracking per gap, in units (-3.5 = -0.035em): tight, never touching. */
-const TRACK = -3.5;
-/** The orb: 0.57 of the x-height, a letter's gap from the l, on the baseline. */
-const DOT = X_HEIGHT * 0.57;
-const DOT_GAP = 6.5;
+/**
+ * ★ FITTED PAIR BY PAIR, NEVER TRACKED. At its heaviest cut the face's own fit
+ * already makes three pairs collide (the r's ball on the t's bar, the t's bar
+ * on the y's arm, the a's tail nearly on the r's foot), so a uniform negative
+ * track, the usual display move, would clog exactly those first and turn the
+ * word into a blot at 30 px. Each number is the ink-to-ink gap after a glyph,
+ * at 100 units: tight, never touching, the least where two rounds face (they
+ * bring their own air) and the most where two serifs meet at one height.
+ */
+const GAPS = [1.2, 1.7, 1.5, 1.3, 1.7, 1.1, 1.1, 1.6];
 
-const origins = PREFIX.map((x, i) => x + i * TRACK - INK_LEFT);
-const L_RIGHT = origins[8] + L_INK_RIGHT;
+const origins: number[] = [];
+for (let i = 0; i < WORD.length; i++) {
+  const ink = INK[WORD[i]];
+  origins.push(
+    i === 0 ? -ink.l : origins[i - 1] + INK[WORD[i - 1]].r + GAPS[i - 1] - ink.l,
+  );
+}
+const L_RIGHT = origins[8] + INK.l.r;
+
+/**
+ * The orb: 0.6 of the x-height (a full stop that is a person reads a step
+ * larger than the face's own), a letter's breath from the l, sunk below the
+ * baseline by the overshoot a round letter takes, so it sits as the o does.
+ */
+const DOT = X_HEIGHT * 0.6;
+const DOT_GAP = 5.5;
+const SINK = 0.9;
 const DOT_CX = L_RIGHT + DOT_GAP + DOT / 2;
 const WM_W = DOT_CX + DOT / 2;
 const BASELINE = ASCENDER;
@@ -137,6 +168,10 @@ const WM_H = ASCENDER + DESCENDER;
 export const WORDMARK_ASPECT = WM_W / WM_H;
 /** Where the x-height sits, as a share of the wordmark's height. */
 export const WORDMARK_X_SHARE = X_HEIGHT / WM_H;
+/** The full stop's diameter, as a share of the wordmark's height. */
+export const WORDMARK_DOT_SHARE = DOT / WM_H;
+/** From the drawing's foot up to where the full stop sits, as a share of its height. */
+export const WORDMARK_FOOT_SHARE = (DESCENDER - SINK) / WM_H;
 
 export function Wordmark({
   height,
@@ -178,15 +213,16 @@ export function Wordmark({
         y={BASELINE}
         fill={ink}
         style={{
-          fontFamily: "var(--font-ev-display)",
-          fontWeight: 800,
+          fontFamily: EV_FACE,
+          fontWeight: 900,
           fontSize: 100,
-          fontVariationSettings: '"opsz" 96',
+          fontVariationSettings: EV_AXES.display,
           fontKerning: "none",
+          letterSpacing: 0,
         }}
       >
         {WORD.split("").map((ch, i) => (
-          <tspan key={i} x={origins[i]}>
+          <tspan key={i} x={origins[i].toFixed(2)}>
             {ch}
           </tspan>
         ))}
@@ -195,7 +231,7 @@ export function Wordmark({
         <OrbSvg
           seed={dot}
           cx={DOT_CX}
-          cy={BASELINE - DOT / 2}
+          cy={BASELINE + SINK - DOT / 2}
           r={DOT / 2}
           id={`${id}-dot`}
         />
@@ -205,9 +241,6 @@ export function Wordmark({
 }
 
 /* ── the trail: the full stop, then everyone ───────────────────────────── */
-
-/** The wordmark's descender, as a share of its drawn height. */
-const DESC_SHARE = DESCENDER / WM_H;
 
 /** The guests trailing from the wordmark's full stop, at its size. */
 export function Trail({
@@ -227,7 +260,7 @@ export function Trail({
   start?: number;
   arrive?: boolean;
 }) {
-  const d = h * WORDMARK_X_SHARE * 0.57;
+  const d = h * WORDMARK_DOT_SHARE;
   const people = CROWD.slice(start, start + count);
   return (
     <div className="ev-row" style={{ ["--ev-row-overlap" as string]: `${-d * overlap}px` }}>
@@ -265,7 +298,7 @@ export function WordAndEveryone({
   return (
     <div className="flex items-end">
       <Wordmark height={height} tone={tone} read="wordmark" />
-      <div style={{ marginLeft: gap, marginBottom: height * DESC_SHARE }}>
+      <div style={{ marginLeft: gap, marginBottom: height * WORDMARK_FOOT_SHARE }}>
         <Trail h={height} count={count} tone={tone} />
       </div>
     </div>
@@ -291,6 +324,55 @@ function squircle(size: number, n = 5, steps = 72): string {
 
 const TILE = squircle(1024);
 
+/** The home screen's tile outline on a 1024 artboard, for a drawing of the icon's neighbours. */
+export const TILE_PATH = TILE;
+
+/**
+ * One person in a single tint, for the tinted icon (a home screen that tints
+ * every icon one hue): the orb keeps its own lightness, takes the tint's hue,
+ * and is lit from the same upper left as the full-colour orb.
+ */
+function MonoOrbSvg({
+  cx,
+  cy,
+  r,
+  id,
+  l,
+  hue,
+}: {
+  cx: number;
+  cy: number;
+  r: number;
+  id: string;
+  /** The person's own body lightness (oklch L), kept. */
+  l: number;
+  /** The tint's hue. */
+  hue: number;
+}) {
+  const lit = hex(fitChroma({ l: Math.min(0.97, l + 0.16), c: 0.02, h: hue }));
+  const body = hex(fitChroma({ l, c: 0.04, h: hue }));
+  const deep = hex(fitChroma({ l: Math.max(0.22, l - 0.32), c: 0.03, h: hue }));
+  return (
+    <g>
+      <defs>
+        <radialGradient id={`${id}-m`} cx="0.36" cy="0.27" r="0.92">
+          <stop offset="0" stopColor={lit} />
+          <stop offset="0.52" stopColor={body} />
+          <stop offset="1" stopColor={deep} />
+        </radialGradient>
+      </defs>
+      <circle cx={cx} cy={cy} r={r} fill={`url(#${id}-m)`} />
+    </g>
+  );
+}
+
+/** The tile's ground, per variant: the display's near-black, paper, or a deeper black for a tint. */
+const ICON_GROUND = {
+  dark: [0.235, 0.165, 0.125],
+  light: [0.995, 0.968, 0.935],
+  tinted: [0.2, 0.14, 0.1],
+} as const;
+
 /** The icon's party: three house guests, beside, behind and nearest. */
 export const ICON_PARTY = ["house:255", "house:85", "house:25"] as const;
 
@@ -311,6 +393,8 @@ export function AppIcon({
   party = ICON_PARTY,
   small,
   mask = true,
+  variant = "dark",
+  tint = 85,
   className,
   style,
   read,
@@ -323,6 +407,15 @@ export function AppIcon({
   small?: boolean;
   /** Clip to the home screen's corner (false: the square the OS masks). */
   mask?: boolean;
+  /**
+   * The home screen's three looks: `dark` (the icon itself, on the display's
+   * near-black), `light` (a paper tile for a light home screen) and `tinted`
+   * (every icon in one hue the person picked: the party must hold by its
+   * shape and its parts alone).
+   */
+  variant?: "dark" | "light" | "tinted";
+  /** The tint's hue, for `tinted`. */
+  tint?: number;
   className?: string;
   style?: CSSProperties;
   read?: string;
@@ -330,6 +423,7 @@ export function AppIcon({
   const id = svgId(useId());
   const tiny = small ?? size <= 40;
   const ringW = tiny ? 34 : 22;
+  const ground = ICON_GROUND[variant];
   const order = useMemo(
     () =>
       SEATS.map((s, i) => ({ ...s, seed: party[i] ?? party[0], i })).sort(
@@ -350,13 +444,14 @@ export function AppIcon({
     >
       <defs>
         <linearGradient id={`${id}-ground`} x1="0" y1="0" x2="0" y2="1024" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor={hex({ l: 0.235, c: 0.004, h: 286 })} />
-          <stop offset="0.55" stopColor={hex({ l: 0.165, c: 0.004, h: 286 })} />
-          <stop offset="1" stopColor={hex({ l: 0.125, c: 0.004, h: 286 })} />
+          <stop offset="0" stopColor={hex({ l: ground[0], c: 0.004, h: 286 })} />
+          <stop offset="0.55" stopColor={hex({ l: ground[1], c: 0.004, h: 286 })} />
+          <stop offset="1" stopColor={hex({ l: ground[2], c: 0.004, h: 286 })} />
         </linearGradient>
+        {/* The light edge on the top bevel; on paper the bevel is a shade, not a light. */}
         <linearGradient id={`${id}-edge`} x1="0" y1="0" x2="0" y2="1024" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#fff" stopOpacity="0.42" />
-          <stop offset="0.08" stopColor="#fff" stopOpacity="0.08" />
+          <stop offset="0" stopColor={variant === "light" ? "#000" : "#fff"} stopOpacity={variant === "light" ? 0.07 : 0.42} />
+          <stop offset="0.08" stopColor={variant === "light" ? "#000" : "#fff"} stopOpacity={variant === "light" ? 0.03 : 0.08} />
           <stop offset="0.3" stopColor="#fff" stopOpacity="0" />
         </linearGradient>
         <clipPath id={`${id}-clip`}>
@@ -369,14 +464,25 @@ export function AppIcon({
           <g key={s.i}>
             {/* The part: the tile's own colour, so a guest in front parts from one behind. */}
             <circle cx={s.cx} cy={s.cy} r={s.r + ringW} fill={`url(#${id}-ground)`} />
-            <OrbSvg
-              seed={s.seed}
-              cx={s.cx}
-              cy={s.cy}
-              r={s.r}
-              id={`${id}-o${s.i}`}
-              simple={tiny}
-            />
+            {variant === "tinted" ? (
+              <MonoOrbSvg
+                cx={s.cx}
+                cy={s.cy}
+                r={s.r}
+                id={`${id}-o${s.i}`}
+                l={orbOf(s.seed).body.l}
+                hue={tint}
+              />
+            ) : (
+              <OrbSvg
+                seed={s.seed}
+                cx={s.cx}
+                cy={s.cy}
+                r={s.r}
+                id={`${id}-o${s.i}`}
+                simple={tiny}
+              />
+            )}
           </g>
         ))}
         {mask && !tiny && (
@@ -421,7 +527,9 @@ export function Lockup({
       style={{ gap: height * 0.32 }}
     >
       <AppIcon size={height} />
-      <Wordmark height={height * 0.62} tone={tone} dot={dot} />
+      {/* 0.84 of the icon puts the x-height at 0.38 of it, the share a lowercase
+          word needs to hold its own beside a filled tile. */}
+      <Wordmark height={height * 0.84} tone={tone} dot={dot} />
     </div>
   );
 }

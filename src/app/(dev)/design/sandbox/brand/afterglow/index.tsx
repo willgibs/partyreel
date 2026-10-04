@@ -3,7 +3,12 @@
 import "./ag.css";
 
 import type { Vision } from "../deck/contract";
-import { stubVision } from "../deck/stub";
+import { DarkPageSlide } from "./applied/dark-page";
+import { EmptyHubSlide } from "./applied/empty-hub";
+import { HeroSlide } from "./applied/hero";
+import { HomeScreenSlide } from "./applied/home-screen";
+import { LightPageSlide } from "./applied/light-page";
+import { ShareSlide } from "./applied/share";
 import { AtmosphereSlide } from "./atmosphere";
 import { ColorSlide } from "./color";
 import { Cover } from "./cover";
@@ -26,14 +31,13 @@ import { VoiceSlide } from "./voice";
  * StatusLight, SeedCover, CodePlate, LitPhoto, PhoneShell); `marks.tsx` the
  * wordmark (Will's v1, untouched), the icon and the lockup; `ag.css` every
  * style under `.ag-`; `root.tsx` a slide's root. Slides 1 to 8 are the system;
- * 9 to 14 stand in until the touchpoints are drawn from these.
+ * 9 to 14 (`applied/`) are the system applied, six touchpoints composed from
+ * those primitives and two additions (`applied/kit.tsx`).
  */
 
 const ID = "afterglow";
 const NAME = "Afterglow";
 const LINE = "The brand is the light the photographs give off.";
-
-const stand = stubVision(ID, NAME, LINE);
 
 export const AFTERGLOW: Vision = {
   id: ID,
@@ -48,12 +52,12 @@ export const AFTERGLOW: Vision = {
     atmosphere: AtmosphereSlide,
     voice: VoiceSlide,
     pages: PagesSlide,
-    hero: stand.slides.hero,
-    "dark-page": stand.slides["dark-page"],
-    "light-page": stand.slides["light-page"],
-    "empty-hub": stand.slides["empty-hub"],
-    share: stand.slides.share,
-    "home-screen": stand.slides["home-screen"],
+    hero: HeroSlide,
+    "dark-page": DarkPageSlide,
+    "light-page": LightPageSlide,
+    "empty-hub": EmptyHubSlide,
+    share: ShareSlide,
+    "home-screen": HomeScreenSlide,
   },
   phoneHeight: {
     idea: 1780,
@@ -63,10 +67,18 @@ export const AFTERGLOW: Vision = {
     atmosphere: 1600,
     voice: 1760,
     pages: 1640,
+    hero: 1500,
+    "dark-page": 1820,
+    "light-page": 1812,
+    "empty-hub": 1816,
+    share: 1030,
+    "home-screen": 1812,
   },
   tone: {
     idea: "light",
     voice: "light",
     pages: "light",
+    "light-page": "light",
+    share: "light",
   },
 };

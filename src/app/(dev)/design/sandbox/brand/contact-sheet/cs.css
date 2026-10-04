@@ -452,3 +452,264 @@
     display: none;
   }
 }
+
+/* ══ THE SYSTEM APPLIED (slides 9 to 14, `applied/`) ═════════════════════
+   The window and the phone a page is shown in, the site's nav and close,
+   the one action shape, the roll that advances, the code that develops and
+   the projector's spill. Same rules as above: hex in the paint, every
+   motion inside no-preference, and the rest state is the finished one. */
+
+/* A browser window, in paper: a quiet bar a step under the sheet. */
+.cs-browser {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--cs-paper);
+  box-shadow:
+    0 0 0 1px rgb(22 18 15 / 0.1),
+    0 2px 5px rgb(22 18 15 / 0.06),
+    0 34px 70px -30px rgb(22 18 15 / 0.42);
+}
+.cs-browser-bar {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ebe6df;
+  border-bottom: 1px solid rgb(22 18 15 / 0.08);
+}
+.cs-browser-dots {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  display: flex;
+  gap: 7px;
+  transform: translateY(-50%);
+}
+.cs-browser-dots i {
+  width: 10px;
+  height: 10px;
+  border-radius: 10px;
+  background: rgb(22 18 15 / 0.15);
+}
+.cs-browser-url {
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: 12px;
+  line-height: 1;
+  color: var(--cs-ink-2);
+  background: #f6f2ec;
+  padding: 6px 48px;
+  border-radius: 7px;
+}
+.cs-browser-page {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  background: var(--cs-paper);
+  color: var(--cs-ink);
+}
+.cs-browser-page[data-cs-ground="room"] {
+  background: var(--cs-room);
+  color: var(--cs-room-ink);
+}
+
+/* A phone's status bar, over the screen's top 47 px. */
+.cs-statusbar {
+  position: absolute;
+  inset: 0 0 auto 0;
+  z-index: 4;
+  height: 47px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3px 24px 0 36px;
+  color: var(--cs-ink);
+  pointer-events: none;
+}
+.cs-statusbar.cs-on-room {
+  color: var(--cs-room-ink);
+}
+.cs-statusbar-time {
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.cs-statusbar-icons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* The one action shape (`Pill`): never a hue, never a capsule chip. */
+.cs-pill {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+}
+.cs-pill[data-cs-tone="ink"] {
+  background: var(--cs-ink);
+  color: var(--cs-paper);
+}
+.cs-pill[data-cs-tone="paper"] {
+  background: var(--cs-room-ink);
+  color: var(--cs-ink);
+}
+.cs-pill[data-cs-tone="line"] {
+  box-shadow: inset 0 0 0 1.5px rgb(22 18 15 / 0.2);
+  color: var(--cs-ink);
+}
+.cs-pill[data-cs-tone="room-line"] {
+  box-shadow: inset 0 0 0 1.5px rgb(243 240 234 / 0.26);
+  color: var(--cs-room-ink);
+}
+
+/* The site's nav: the words centred on the bar, the action at its end. */
+.cs-nav {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.cs-nav-words {
+  position: absolute;
+  left: 50%;
+  display: flex;
+  gap: 34px;
+  transform: translateX(-50%);
+}
+.cs-nav-words > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--cs-ink-2);
+}
+.cs-nav-words > span[data-cs-current] {
+  color: var(--cs-ink);
+}
+.cs-on-room .cs-nav-words > span {
+  color: var(--cs-room-muted);
+}
+.cs-on-room .cs-nav-words > span[data-cs-current] {
+  color: var(--cs-room-ink);
+}
+.cs-nav-end {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.cs-nav-login {
+  margin-right: 8px;
+  font-size: 15px;
+  font-weight: 500;
+}
+.cs-close {
+  position: relative;
+}
+
+/* At rest the code is hers alone: the sample's cells are gone. */
+.cs-code-out {
+  opacity: 0;
+}
+
+/* The projector's spill: one layer per shot, only one lit at a time. */
+.cs-spill {
+  position: absolute;
+  pointer-events: none;
+}
+.cs-spill > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+}
+.cs-spill > img[data-cs-lit] {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* The roll: eight crisp steps of 180 ms, each frame then held, and round
+     again. It waits for the roll to develop before it moves. */
+  .cs-roll-run {
+    animation: cs-roll 14.4s cubic-bezier(0.2, 0.9, 0.1, 1) 3.4s infinite;
+  }
+  /* The code: each cell turns once, crisply, on its wave. A 90 ms turn,
+     not a 1 ms step: a step ends a hair short of 1 under float timing and
+     would leave the cell unturned. */
+  .cs-code-in {
+    animation: cs-code-in 90ms linear var(--cs-code-delay, 900ms) both;
+  }
+  .cs-code-out {
+    animation: cs-code-out 90ms linear var(--cs-code-delay, 900ms) both;
+  }
+  /* The spill follows the shot on the screen, a beat behind, as light does. */
+  .cs-spill > img {
+    transition: opacity 900ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+@keyframes cs-roll {
+  0%,
+  11.25% {
+    transform: translateX(0);
+  }
+  12.5%,
+  23.75% {
+    transform: translateX(calc(-1 * var(--cs-step)));
+  }
+  25%,
+  36.25% {
+    transform: translateX(calc(-2 * var(--cs-step)));
+  }
+  37.5%,
+  48.75% {
+    transform: translateX(calc(-3 * var(--cs-step)));
+  }
+  50%,
+  61.25% {
+    transform: translateX(calc(-4 * var(--cs-step)));
+  }
+  62.5%,
+  73.75% {
+    transform: translateX(calc(-5 * var(--cs-step)));
+  }
+  75%,
+  86.25% {
+    transform: translateX(calc(-6 * var(--cs-step)));
+  }
+  87.5%,
+  98.75% {
+    transform: translateX(calc(-7 * var(--cs-step)));
+  }
+  100% {
+    transform: translateX(calc(-8 * var(--cs-step)));
+  }
+}
+@keyframes cs-code-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes cs-code-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
