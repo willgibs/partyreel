@@ -1,9 +1,9 @@
 "use client";
 
-import { type CSSProperties, type ReactNode, useMemo } from "react";
+import { type ReactNode, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, ImagePlus, Smartphone } from "lucide-react";
+import { Check } from "lucide-react";
 
 import { ActDoor } from "@/components/app/dashboard/act-door";
 import { settingsPageHref } from "@/components/app/event-settings/settings-pages";
@@ -16,7 +16,6 @@ import type { HostedEvent, ShareFacts } from "@/lib/dashboard/home-view";
 import {
   stageActsOf,
   stageDateLine,
-  stageTicksOf,
   stageWordsOf,
 } from "@/lib/dashboard/stage";
 import { daysFrom, phaseOfEvent, WEEK_DAYS } from "@/lib/dashboard/when";
@@ -29,30 +28,28 @@ import {
 import { formatCount } from "@/lib/format/count";
 import { cn } from "@/lib/utils";
 
-import { lampOf, rangeDays, rangeLine, type StageWay } from "./model";
+import { lampLight, lampOf, nextLamp, rangeDays, rangeLine } from "./model";
 
 /**
- * THE STAGE OF AN EVENT WITH NO PHOTOGRAPHS YET, FOUR WAYS (`stage`, his r2
- * note on `lead=made`: "We should ensure featured events with no uploaded media
- * yet still look beautiful as featured in the dashboard"). With `lead=made`
- * settled, this is the stage every new host meets first: the event she made
- * last night, nothing in it.
+ * THE STAGE OF AN EVENT WITH NO PHOTOGRAPHS YET, LIT BY ITS OWN LAMP
+ * (`stage=lit`, Will 2026-10-04; `dashboard-wiring` builds it in production
+ * now, so it is drawn here as settled): the code on its plate in the event's
+ * own light, Settings' five steps laid flat under the name, Create's last
+ * screen carried to the dashboard.
  *
- * ★ EVERY WAY SAYS THE SAME FACTS, PRODUCTION'S: its words, its date (a range's
- * as `event-dates` will say it), readiness's essentials (`stageTicksOf`, the
- * hub's checklist's own function), its one item and acts (`stageActsOf`), its
- * code (the code card, `CodeCard`, opened by the plate). What a way changes is
- * the picture those facts stand in:
- *  - `lit`: the code on its plate, lit by the event's own lamp, Settings' five
- *    steps laid flat under the name: Create's last screen, carried here;
- *  - `album`: the album's own frames, waiting, the code in the first;
- *  - `card`: the name set like an invitation, lit from above;
- *  - `guest`: the phone her guests will hold, beside the code that opens it.
+ * ★ IT SAYS PRODUCTION'S FACTS: its words, its date (a range's as `event-dates`
+ * says it), readiness's steps (`settingsSteps`, the hub's checklist's own), its
+ * one item and acts (`stageActsOf`), its code (the code card, `CodeCard`,
+ * opened by the plate).
  *
  * ★ THE COLOUR IS LIGHT, NEVER PAINT (bible 6): one of the house's five lamps,
- * the event's own (`lampOf`), only ever as light in a gradient; the
- * interface stays the gallery's dark, and the photographs take the light over
- * the day the first one lands.
+ * the event's own (`lampOf`), only ever as light in a gradient; the interface
+ * stays the gallery's dark, and the photographs take the light over the day
+ * the first one lands.
+ *
+ * ★ ITS SLOTS ARE THE CHOOSER'S (round four): `eyebrow` stands before the
+ * phase word in the stage's first line, `overlay` is a layer over the whole
+ * band, each drawn by the direction that needs it (`stage-view.tsx`).
  */
 
 const BOX =
@@ -60,12 +57,9 @@ const BOX =
 const SPLIT =
   "lg:grid lg:h-[clamp(420px,30vw,560px)] lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]";
 
-/** A lamp as light: a gradient's colour, never a class (the lamp set is not in `@theme`). */
-const lamp = (n: number, alpha: number) =>
-  `color-mix(in oklch, var(--lamp-${n}) ${alpha}%, transparent)`;
-const nextLamp = (n: number) => (n % 5) + 1;
+const lamp = lampLight;
 
-/** What every way reads: production's own words, ticks and acts for the event. */
+/** What the stage reads: production's own words, steps and acts for the event. */
 function useFacts(
   event: HostedEvent,
   ctx: HomeContext,
@@ -83,7 +77,6 @@ function useFacts(
       ? rangeLine(event.date, end)
       : stageDateLine(event, ctx.today);
   const facts = readyFactsOf(event, ctx);
-  const ticks = stageTicksOf(facts);
   const steps = facts ? settingsSteps(settingsReadiness(facts)) : [];
   const head = facts ? readyHead(readiness(facts)) : null;
   const item = itemFor(event, ctx);
@@ -92,7 +85,6 @@ function useFacts(
     phase,
     word,
     dateLine,
-    ticks,
     steps,
     head,
     acts,
@@ -105,33 +97,27 @@ function useFacts(
 
 type Facts = ReturnType<typeof useFacts>;
 
-/* ── the pieces every way shares ──────────────────────────────────────── */
+/* ── its pieces ───────────────────────────────────────────────────────── */
 
 function Words({
   event,
   facts,
-  centred,
-  big,
+  eyebrow,
 }: {
   event: HostedEvent;
   facts: Facts;
-  centred?: boolean;
-  big?: boolean;
+  eyebrow?: ReactNode;
 }) {
   return (
-    <div className={cn(centred && "flex flex-col items-center text-center")}>
+    <div>
       <p
         data-stage-word={facts.phase}
-        className="text-label text-gallery-muted uppercase"
+        className="flex flex-wrap items-center gap-x-2 gap-y-1 text-label text-gallery-muted uppercase"
       >
-        {facts.word}
+        {eyebrow}
+        <span data-stage-phase="">{facts.word}</span>
       </p>
-      <h2
-        className={cn(
-          "mt-2 line-clamp-3 font-heading text-balance text-white lg:mt-4",
-          big ? "text-section lg:text-chapter" : "text-page lg:text-section",
-        )}
-      >
+      <h2 className="mt-2 line-clamp-3 font-heading text-page text-balance text-white lg:mt-4 lg:text-section">
         {event.name}
       </h2>
       {facts.dateLine ? (
@@ -148,61 +134,14 @@ function Words({
   );
 }
 
-/** Readiness's essentials as ticks, the stage's own drawing (`stage.tsx`'s `Ticks`). */
-function Ticks({ facts, centred }: { facts: Facts; centred?: boolean }) {
-  if (!facts.ticks) return null;
-  return (
-    <ul
-      data-stage-ticks=""
-      className={cn(
-        "flex flex-wrap gap-x-5 gap-y-2",
-        centred && "justify-center",
-      )}
-    >
-      {facts.ticks.ticks.map((t) => (
-        <li
-          key={t.id}
-          data-done={t.done ? "" : undefined}
-          className={cn(
-            "flex items-center gap-2 text-sm",
-            t.done ? "text-gallery-foreground" : "text-gallery-muted",
-          )}
-        >
-          {t.done ? (
-            <span className="flex size-4 items-center justify-center rounded-full bg-success">
-              <Check
-                className="size-2.5 text-success-foreground"
-                strokeWidth={3.5}
-                aria-hidden
-              />
-            </span>
-          ) : (
-            <span
-              aria-hidden
-              className="size-4 rounded-full border border-dashed border-gallery-muted"
-            />
-          )}
-          <span className="sr-only">{t.done ? "Done: " : "To do: "}</span>
-          {t.word}
-        </li>
-      ))}
-    </ul>
-  );
-}
-
 function Acts({
   event,
   share,
   facts,
-  centred,
-  quiet,
 }: {
   event: HostedEvent;
   share: ShareFacts;
   facts: Facts;
-  centred?: boolean;
-  /** The rail already says Ready for guests. */
-  quiet?: boolean;
 }) {
   const { primary, secondary } = facts.acts;
   const door = (
@@ -224,19 +163,10 @@ function Acts({
   return (
     <div
       data-stage-acts={facts.item?.kind ?? "none"}
-      className={cn(
-        "flex flex-wrap items-center gap-2",
-        centred && "justify-center",
-      )}
+      className="flex flex-wrap items-center gap-2"
     >
       {door(primary, "default")}
       {secondary && door(secondary, "secondary")}
-      {facts.ticks?.ready && !facts.item && !quiet && (
-        <span className="ml-1 flex items-center gap-1.5 text-sm text-gallery-muted">
-          <Check className="size-3.5 text-success" aria-hidden />
-          Ready for guests
-        </span>
-      )}
     </div>
   );
 }
@@ -295,8 +225,6 @@ function Plate({
     />
   );
 }
-
-/* ── 1. the code, lit by its own lamp ─────────────────────────────────── */
 
 /** Each of Settings' five steps in a word, the stage's own (`stage.ts` says Door, Uploads, Code). */
 const STEP_WORDS: Record<string, string> = {
@@ -367,17 +295,32 @@ function Rail({ facts }: { facts: Facts }) {
   );
 }
 
-function Lit({
+/* ── the stage ────────────────────────────────────────────────────────── */
+
+export function LitStage({
   event,
+  ctx,
   share,
-  facts,
-  fresh,
+  end,
+  fresh = false,
+  eyebrow,
+  overlay,
+  className,
 }: {
   event: HostedEvent;
+  ctx: HomeContext;
   share: ShareFacts;
-  facts: Facts;
-  fresh: boolean;
+  /** A range's last day (`event-dates`, drawn as settled). */
+  end?: string;
+  /** She has just arrived from Create: the lamp ignites once. */
+  fresh?: boolean;
+  /** Before the phase word, in the stage's first line. */
+  eyebrow?: ReactNode;
+  /** A layer over the whole band, placed by its owner. */
+  overlay?: ReactNode;
+  className?: string;
 }) {
+  const facts = useFacts(event, ctx, end);
   const h = facts.hue;
   // The week before, the light is fuller: the day is near.
   const near = facts.days !== null && facts.days < WEEK_DAYS;
@@ -387,7 +330,7 @@ function Lit({
       data-hd-empty="lit"
       data-hd-lamp={h}
       aria-label={event.name}
-      className={cn(BOX, SPLIT)}
+      className={cn(BOX, SPLIT, className)}
     >
       <div
         aria-hidden
@@ -409,10 +352,10 @@ function Lit({
         <div className="absolute inset-0 bg-gradient-to-r from-gallery via-gallery/70 to-transparent max-lg:bg-gradient-to-b max-lg:from-transparent max-lg:via-gallery/60 max-lg:to-gallery" />
       </div>
       <div className="relative flex flex-col gap-6 p-5 sm:p-8 lg:justify-between lg:p-10">
-        <Words event={event} facts={facts} />
+        <Words event={event} facts={facts} eyebrow={eyebrow} />
         <div className="flex flex-col gap-6">
           <Rail facts={facts} />
-          <Acts event={event} share={share} facts={facts} quiet />
+          <Acts event={event} share={share} facts={facts} />
         </div>
       </div>
       <div className="relative order-first flex h-72 flex-col items-center justify-center gap-4 lg:order-none lg:h-auto">
@@ -424,256 +367,7 @@ function Lit({
         <Plate event={event} share={share} size={176} />
         <OpenedLine opened={facts.opened} />
       </div>
+      {overlay}
     </section>
   );
-}
-
-/* ── 2. the album, waiting ────────────────────────────────────────────── */
-
-function Pane({
-  hue,
-  delay,
-  children,
-  className,
-}: {
-  hue: number;
-  delay: number;
-  children?: ReactNode;
-  className?: string;
-}) {
-  return (
-    <div
-      className={cn("relative overflow-hidden bg-white/[0.035]", className)}
-    >
-      <div
-        aria-hidden
-        data-hd-develop=""
-        className="absolute -inset-1/4"
-        style={
-          {
-            background: `radial-gradient(55% 55% at 35% 40%, ${lamp(hue, 40)}, transparent 70%), radial-gradient(45% 50% at 75% 75%, ${lamp(nextLamp(hue), 28)}, transparent 70%)`,
-            animationDelay: `${delay}s`,
-          } as CSSProperties
-        }
-      />
-      {children}
-    </div>
-  );
-}
-
-function Album({
-  event,
-  share,
-  facts,
-}: {
-  event: HostedEvent;
-  share: ShareFacts;
-  facts: Facts;
-}) {
-  const h = facts.hue;
-  return (
-    <section
-      data-stage="before"
-      data-hd-empty="album"
-      data-hd-lamp={h}
-      aria-label={event.name}
-      className={cn(BOX, SPLIT)}
-    >
-      <div className="relative flex flex-col gap-6 p-5 sm:p-8 lg:justify-between lg:p-10">
-        <Words event={event} facts={facts} />
-        <div className="flex flex-col gap-5 lg:gap-7">
-          <Ticks facts={facts} />
-          <Acts event={event} share={share} facts={facts} />
-        </div>
-      </div>
-      <div className="relative order-first aspect-[4/3] min-h-0 lg:order-none lg:aspect-auto">
-        <div className="grid size-full gap-1 lg:grid-cols-[2fr_1fr] lg:grid-rows-2">
-          <Pane
-            hue={h}
-            delay={0}
-            className="flex flex-col items-center justify-center gap-3 lg:row-span-2"
-          >
-            <Plate event={event} share={share} size={128} />
-            <p className="relative text-center text-sm text-white">
-              The first photos land here
-            </p>
-            <OpenedLine opened={facts.opened} />
-          </Pane>
-          <Pane hue={nextLamp(h)} delay={-3} className="max-lg:hidden" />
-          <Pane hue={h} delay={-6} className="max-lg:hidden" />
-        </div>
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-y-0 left-0 hidden w-16 bg-gradient-to-r from-gallery/90 to-transparent lg:block"
-        />
-      </div>
-    </section>
-  );
-}
-
-/* ── 3. set like an invitation ────────────────────────────────────────── */
-
-function Card({
-  event,
-  share,
-  facts,
-}: {
-  event: HostedEvent;
-  share: ShareFacts;
-  facts: Facts;
-}) {
-  const h = facts.hue;
-  return (
-    <section
-      data-stage="before"
-      data-hd-empty="card"
-      data-hd-lamp={h}
-      aria-label={event.name}
-      className={cn(
-        BOX,
-        "items-center justify-center px-5 py-10 sm:px-10 lg:h-[clamp(420px,30vw,560px)]",
-      )}
-    >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10"
-        style={{
-          background: `radial-gradient(70% 55% at 50% -8%, ${lamp(h, 58)}, transparent 70%), radial-gradient(30% 40% at 12% 0%, ${lamp(nextLamp(h), 34)}, transparent 70%), radial-gradient(30% 40% at 88% 0%, ${lamp(nextLamp(nextLamp(h)), 26)}, transparent 70%)`,
-        }}
-      />
-      <div className="flex max-w-3xl flex-col items-center gap-6 lg:gap-8">
-        <Words event={event} facts={facts} centred big />
-        <div className="flex flex-col items-center gap-5 sm:flex-row sm:gap-6">
-          <div className="flex items-center gap-3">
-            <Plate event={event} share={share} size={84} />
-            <div className="flex flex-col items-start gap-1">
-              <p className="text-sm text-white">Your guests&apos; way in</p>
-              <OpenedLine opened={facts.opened} />
-            </div>
-          </div>
-          <span
-            aria-hidden
-            className="hidden h-12 w-px bg-white/15 sm:block"
-          />
-          <Ticks facts={facts} />
-        </div>
-        <Acts event={event} share={share} facts={facts} centred />
-      </div>
-    </section>
-  );
-}
-
-/* ── 4. what her guests will see ──────────────────────────────────────── */
-
-/** Her guests' first screen, drawn small: the name, her welcome, the one button. */
-function GuestPhone({ event }: { event: HostedEvent }) {
-  return (
-    <div
-      data-hd-guest-phone=""
-      className="relative w-[176px] rounded-[2rem] border border-white/15 bg-black p-1.5 shadow-lift lg:w-[184px]"
-    >
-      <div className="flex aspect-[9/17] flex-col justify-between overflow-hidden rounded-[1.6rem] bg-gallery px-4 pt-8 pb-5">
-        <div className="space-y-2">
-          <p className="text-[10px] font-medium tracking-[0.12em] text-gallery-muted uppercase">
-            You&apos;re invited to add
-          </p>
-          <p className="font-heading text-subsection leading-tight text-white">
-            {event.name}
-          </p>
-          {event.description ? (
-            <p className="line-clamp-4 text-xs leading-snug text-gallery-muted">
-              {event.description}
-            </p>
-          ) : (
-            <p className="rounded-md border border-dashed border-white/20 px-2 py-1.5 text-[11px] leading-snug text-gallery-muted">
-              Your welcome note shows here
-            </p>
-          )}
-        </div>
-        <div className="space-y-2">
-          <span className="flex h-9 items-center justify-center gap-1.5 rounded-full bg-white text-xs font-medium text-gallery">
-            <ImagePlus className="size-3.5" aria-hidden /> Add photos
-          </span>
-          <p className="text-center text-[10px] text-gallery-muted">
-            Nothing here yet. Be the first.
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Guest({
-  event,
-  share,
-  facts,
-}: {
-  event: HostedEvent;
-  share: ShareFacts;
-  facts: Facts;
-}) {
-  const h = facts.hue;
-  return (
-    <section
-      data-stage="before"
-      data-hd-empty="guest"
-      data-hd-lamp={h}
-      aria-label={event.name}
-      className={cn(BOX, SPLIT)}
-    >
-      <div className="relative flex flex-col gap-6 p-5 sm:p-8 lg:justify-between lg:p-10">
-        <Words event={event} facts={facts} />
-        <div className="flex flex-col gap-5 lg:gap-7">
-          <Ticks facts={facts} />
-          <Acts event={event} share={share} facts={facts} />
-        </div>
-      </div>
-      <div className="relative order-first flex items-center justify-center gap-6 py-8 lg:order-none lg:py-0">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background: `radial-gradient(45% 60% at 62% 50%, ${lamp(h, 42)}, transparent 72%)`,
-          }}
-        />
-        <div className="relative flex flex-col items-center gap-3 max-sm:hidden">
-          <Plate event={event} share={share} size={112} />
-          <p className="flex items-center gap-1.5 text-xs text-gallery-muted">
-            <Smartphone className="size-3.5" aria-hidden /> Scan it, and a
-            guest sees this
-          </p>
-          <OpenedLine opened={facts.opened} />
-        </div>
-        <GuestPhone event={event} />
-      </div>
-    </section>
-  );
-}
-
-/* ── the stage, one way ───────────────────────────────────────────────── */
-
-export function EmptyStage({
-  way,
-  event,
-  ctx,
-  share,
-  end,
-  fresh = false,
-}: {
-  way: StageWay;
-  event: HostedEvent;
-  ctx: HomeContext;
-  share: ShareFacts;
-  /** A range's last day (`event-dates`, drawn as settled). */
-  end?: string;
-  /** She has just arrived from Create: the lamp ignites once. */
-  fresh?: boolean;
-}) {
-  const facts = useFacts(event, ctx, end);
-  if (way === "album")
-    return <Album event={event} share={share} facts={facts} />;
-  if (way === "card") return <Card event={event} share={share} facts={facts} />;
-  if (way === "guest")
-    return <Guest event={event} share={share} facts={facts} />;
-  return <Lit event={event} share={share} facts={facts} fresh={fresh} />;
 }

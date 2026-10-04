@@ -4,15 +4,25 @@ import {
   filterEventRows,
   searchEventRows,
 } from "@/lib/dashboard/events-view";
+import { itemFor, quietLine } from "@/lib/dashboard/attention";
 import {
   buildHomeView,
   type HomeInput,
   type HomeView,
   type HostedEvent,
+  type WeekCard,
 } from "@/lib/dashboard/home-view";
 import { momentEvent } from "@/lib/dashboard/moment";
-import { dayOf, daysFrom, phaseOfEvent, whenOf } from "@/lib/dashboard/when";
+import {
+  dayOf,
+  daysFrom,
+  phaseOfEvent,
+  WEEK_DAYS,
+  whenOf,
+} from "@/lib/dashboard/when";
+import { MAX_EVENTS } from "@/lib/constants/tiers";
 import { eventUrl } from "@/lib/events/share-urls";
+import { formatCount } from "@/lib/format/count";
 
 import type { Host } from "./fixtures";
 
@@ -32,14 +42,15 @@ export const SITE = "https://partyreel.com";
 
 /* ── the answers a frame is drawn in ──────────────────────────────────── */
 
-/** How her events are customized (`events`). */
-export type EventsWay = "menu" | "bar" | "views" | "find";
-/** How the stage of an event with no photographs is drawn (`stage`). */
-export type StageWay = "lit" | "album" | "card" | "guest";
-/** Where the feature's rule is set (`rule`). */
-export type RuleWay = "corner" | "tabs" | "head" | "settings";
+/**
+ * How a host chooses what leads her stage (`chooser`, round four): the
+ * corner's glass, the stage's own words, or a deck she turns.
+ */
+export type ChooserWay = "corner" | "words" | "deck";
+/** The dashboard's details as built, or one of them the other way (`details`, H6). */
+export type DetailsWay = "built" | "week" | "count" | "limit" | "ring";
 
-export type Answers = { events: EventsWay; stage: StageWay; rule: RuleWay };
+export type Answers = { chooser: ChooserWay; details: DetailsWay };
 
 /* ── the feature's rule ───────────────────────────────────────────────── */
 
@@ -289,6 +300,92 @@ function ranged(view: HomeView, host: Host): HomeView {
   };
 }
 
+/* ── the dashboard's details, as built or one the other way (H6) ────────── */
+
+/**
+ * THE ALBUM COUNT'S WORD: "in the album" as built (`stageNumbersOf`,
+ * `quietLine`), since the count holds videos too; the other way names both.
+ */
+export const COUNT_WORDS = {
+  built: "in the album",
+  other: "photos and videos",
+} as const;
+
+/**
+ * THE HEAD'S LINE: how many events and the plan, as built ("1 event · Event
+ * Pass": the plan's cap is the ring's and Create's to say); the other way
+ * counts against a plan's own limit where it has one ("1 of 1 event").
+ */
+export function headLine(
+  host: Pick<Host, "hosted" | "plan">,
+  limit: boolean,
+): string {
+  const n = host.hosted.length;
+  const max = MAX_EVENTS[host.plan.tier];
+  const events =
+    limit && max !== null
+      ? `${formatCount(n)} of ${formatCount(max)} ${max === 1 ? "event" : "events"}`
+      : n > 0
+        ? `${formatCount(n)} ${n === 1 ? "event" : "events"}`
+        : "No events yet";
+  return `${events} · ${host.plan.name}`;
+}
+
+/**
+ * THE WEEK THE OTHER WAY: an album nobody dated whose photos landed within the
+ * week joins it, said by its photos' day, beside the dated parties production
+ * holds (`weekEvents`: "the week holds dated parties only"), in the week's own
+ * order: the nearest first, a day ahead before the same day behind.
+ */
+export function weekWithUndated(view: HomeView, host: Host): HomeView {
+  const today = host.ctx.today;
+  const lead = view.stage?.event.id;
+  const held = new Set(view.week.map((c) => c.id));
+  const joining: WeekCard[] = host.hosted
+    .filter(
+      (e) =>
+        e.date === null &&
+        e.lastArrival !== null &&
+        e.id !== lead &&
+        !held.has(e.id) &&
+        Math.abs(daysFrom(today, e.lastArrival.day)) <= WEEK_DAYS,
+    )
+    .map((e) => ({
+      id: e.id,
+      name: e.name,
+      href: `/dashboard/${e.id}`,
+      when: whenOf(e.lastArrival!.day, today),
+      coverUrl: e.stills[0] ?? null,
+      face: null,
+      live: false,
+      item: itemFor(e, host.ctx),
+      quiet: quietLine(e, host.ctx),
+      share: { joinUrl: eventUrl(SITE, e.qrToken), qrStyle: e.qrStyle },
+    }));
+  if (joining.length === 0) return view;
+  const dayOfCard = (id: string) => {
+    const e = host.hosted.find((x) => x.id === id);
+    return e ? (e.date ?? e.lastArrival?.day ?? today) : today;
+  };
+  const near = (id: string) => daysFrom(today, dayOfCard(id));
+  const week = [...view.week, ...joining].sort(
+    (a, b) =>
+      Math.abs(near(a.id)) - Math.abs(near(b.id)) || near(b.id) - near(a.id),
+  );
+  return { ...view, week };
+}
+
+/** The count's word the other way, wherever the page says it: the week's quiet lines. */
+export function countSaid(view: HomeView, word: string): HomeView {
+  return {
+    ...view,
+    week: view.week.map((c) => ({
+      ...c,
+      quiet: c.quiet.replace(COUNT_WORDS.built, word),
+    })),
+  };
+}
+
 /* ── the Recent row ───────────────────────────────────────────────────── */
 
 /** How many events the Recent row holds: one row of covers at a desk. */
@@ -522,64 +619,6 @@ export function changed(p: Prefs): string[] {
   return out;
 }
 
-/* ── one field that finds (`find`) ────────────────────────────────────── */
-
-/**
- * WHAT A WORD IN THE FIELD MEANS: a year is a filter, the words upcoming,
- * past, waiting and undated are filters, and every other word is part of a
- * name (production's own folded search, `searchEventRows`).
- */
-export function findIn(
-  rows: readonly EventListRow[],
-  query: string,
-  f: Facts,
-): { rows: EventListRow[]; chips: string[] } {
-  const words = query.toLowerCase().split(/\s+/).filter(Boolean);
-  const chips: string[] = [];
-  let kept = filterEventRows([...rows], "all");
-  const rest: string[] = [];
-  for (const w of words) {
-    if (/^(19|20)\d\d$/.test(w)) {
-      chips.push(w);
-      kept = kept.filter((r) => yearOf(r, f) === w);
-    } else if (w === "upcoming" || w === "past" || w === "undated") {
-      chips.push(w[0]!.toUpperCase() + w.slice(1));
-      kept = kept.filter((r) => passesWhen(r, w as WhenFilter, f));
-    } else if (w === "waiting") {
-      chips.push("Waiting");
-      kept = kept.filter((r) => r.pending + r.waiting > 0);
-    } else rest.push(w);
-  }
-  return { rows: searchEventRows(kept, rest.join(" ")), chips };
-}
-
-/* ── saved views (`views`) ────────────────────────────────────────────── */
-
-export type View = {
-  id: string;
-  label: string;
-  prefs: Prefs;
-  /** A view she made, rather than one every host starts with. */
-  hers?: boolean;
-  /** Words her view finds in a name (a wedding planner's "Weddings"). */
-  query?: string;
-};
-
-/** Every host's views: all of them, what is coming, and what has been. */
-export const STARTER_VIEWS: readonly View[] = [
-  { id: "all", label: "All", prefs: PREFS_DEFAULT },
-  {
-    id: "upcoming",
-    label: "Upcoming",
-    prefs: { ...PREFS_DEFAULT, when: "upcoming", sort: "date", desc: false },
-  },
-  {
-    id: "past",
-    label: "Past",
-    prefs: { ...PREFS_DEFAULT, when: "past", sort: "date", desc: true },
-  },
-];
-
 /* ── an event's own light ─────────────────────────────────────────────── */
 
 /**
@@ -593,3 +632,10 @@ export function lampOf(id: string): 1 | 2 | 3 | 4 | 5 {
   for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0;
   return ((h % 5) + 1) as 1 | 2 | 3 | 4 | 5;
 }
+
+/** A lamp as light: a gradient's colour, never a class (the lamp set is not in `@theme`). */
+export const lampLight = (n: number, alpha: number): string =>
+  `color-mix(in oklch, var(--lamp-${n}) ${alpha}%, transparent)`;
+
+/** The lamp beside a lamp: the second, softer light a stage's corner carries. */
+export const nextLamp = (n: number): number => (n % 5) + 1;

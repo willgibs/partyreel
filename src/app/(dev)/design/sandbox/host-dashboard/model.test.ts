@@ -14,7 +14,6 @@ import {
   arrange,
   changed,
   factsOf,
-  findIn,
   homeAround,
   homeInput,
   leadOf,
@@ -172,13 +171,9 @@ describe("her events, laid out", () => {
     expect(changed(PREFS_DEFAULT)).toEqual([]);
   });
 
-  it("finds Jo's three weddings by event date, and Rae's 2023 wedding by its year", () => {
-    const joView = homeAround(jo, "jo-spring-launch");
-    const joFacts = factsOf(jo, jo.trail);
-    const found = findIn(joView.events.rows, "2025 wedding", joFacts);
-    expect(found.chips).toEqual(["2025"]);
-    expect(found.rows.map((r) => r.id).sort()).toEqual([...JO_THREE].sort());
-
+  // Round three's field that found by a word (`find`) retired with its round;
+  // the Display menu's year is how the planner reaches an old party now.
+  it("finds Rae's 2023 wedding by its year in the Display menu", () => {
     const raeView = homeAround(rae, leadOf(rae, "newest", rae.trail)!.id);
     const raeFacts = factsOf(rae, rae.trail);
     const groups = arrange(
@@ -189,7 +184,6 @@ describe("her events, laid out", () => {
     const ids = groups.flatMap((g) => g.rows.map((r) => r.id));
     expect(ids).toContain(RAE_TARGET);
     expect(ids.length).toBeLessThan(70);
-    expect(findIn(raeView.events.rows, "2023 wedding", raeFacts).rows.map((r) => r.id)).toContain(RAE_TARGET);
   });
 
   it("keeps the undated last when sorted by date, either way", () => {

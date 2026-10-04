@@ -13,14 +13,13 @@ import { SCREENS, type ScreenId } from "./knobs";
  *
  * ★ NOTHING HERE REACHES A SESSION, A SERVER FUNCTION OR THE NETWORK beyond the
  * stills and the code's renderer: the page is production's components fed the
- * fixtures, an event pressed opens a stand-in of its page, the router they ask
- * is the board's (`shell.tsx`), and the two presses in production's events list
- * that would call a Server Function (the view's cookie, a bin's Restore) are
- * caught before they reach it (`dashboard.tsx`).
+ * fixtures, an event pressed opens a stand-in of its page, and the router they
+ * ask is the board's (`shell.tsx`).
  *
- * ★ EVERY CAPTION IS READ OFF THE FRAME, NEVER ASSERTED: how many events its
- * first screen shows, how far her next old event is, what the stage leads with.
- * If a caption and the words above a frame disagree, the caption is the truth.
+ * ★ EVERY CAPTION IS READ OFF THE FRAME, NEVER ASSERTED: what the stage leads
+ * with and by which rule, where the chooser stands, what the head and the week
+ * say. If a caption and the words above a frame disagree, the caption is the
+ * truth.
  */
 
 export type Reader = (root: HTMLElement, win: Window) => string | null;
@@ -86,135 +85,99 @@ export function Story({
 const plural = (n: number, one: string, many = `${one}s`) =>
   `${n} ${n === 1 ? one : many}`;
 
-function seen(el: Element, win: Window): boolean {
-  const r = el.getBoundingClientRect();
-  return (
-    win.getComputedStyle(el).visibility !== "hidden" &&
-    r.width > 0 &&
-    r.height > 0 &&
-    r.bottom > 0 &&
-    r.top < win.innerHeight &&
-    r.right > 0 &&
-    r.left < win.innerWidth
-  );
-}
-
-/**
- * Every event the collection links to, by id: the tiles, the table's lines,
- * the rows, the Recent row. An event's own page is `/dashboard/<id>`; a guest
- * album's is `/e/<token>`, named by its href.
- */
-function eventLinks(root: HTMLElement, within: string): Map<string, HTMLElement[]> {
-  const out = new Map<string, HTMLElement[]>();
-  for (const a of root.querySelectorAll<HTMLAnchorElement>(`${within} a[href]`)) {
-    const href = a.getAttribute("href") ?? "";
-    const id =
-      href.match(/^\/dashboard\/([^/?#]+)/)?.[1] ??
-      (href.startsWith("/e/") ? href : null);
-    if (!id || id === "new") continue;
-    out.set(id, [...(out.get(id) ?? []), a]);
-  }
-  return out;
-}
-
-/**
- * HER EVENTS, AS THE FRAME SHOWS THEM: how many are named on screen of how
- * many she has, the layout and what it is set to, the Recent row, and (where a
- * frame sends her back for an old party) whether that party is on screen.
- */
-export function readEvents(target?: string): Reader {
-  return (root, win) => {
-    if (root.querySelector("[data-hd-stand-in]")) return "an event is open";
-    const all = eventLinks(root, "[data-hd-events]");
-    const arranged = root.querySelector<HTMLElement>("[data-hd-arranged]");
-    if (!arranged && all.size === 0) {
-      return root.querySelector("[data-hd-page]")
-        ? "no events below the stage"
-        : null;
-    }
-    const named = [...all.values()].filter((els) =>
-      els.some((el) => seen(el, win)),
-    ).length;
-    const parts = [
-      `${named} of ${arranged?.dataset.hdCount ?? all.size} events on screen, as ${arranged?.dataset.hdArranged ?? "nothing"}`,
-    ];
-    const recent = root.querySelector<HTMLElement>("[data-hd-recent]");
-    if (recent)
-      parts.push(
-        `Recent ${recent.hasAttribute("data-hd-recent-open") ? "open" : "folded"}, ${recent.dataset.hdRecent}`,
-      );
-    const said = root.querySelector<HTMLElement>("[data-hd-said]");
-    if (said) parts.push(`set to ${said.innerText.replace(/Reset$/, "").trim()}`);
-    const chips = [...root.querySelectorAll<HTMLElement>("[data-hd-chip]")]
-      .map((c) => c.innerText.trim())
-      .filter(Boolean);
-    if (chips.length) parts.push(`chips: ${chips.join(", ")}`);
-    const views = root.querySelector<HTMLElement>("[aria-label='Your views'] [aria-selected='true']");
-    if (views) parts.push(`view: ${views.innerText.replace(/\s+/g, " ").trim()}`);
-    const menu = root.ownerDocument.querySelector("[data-radix-popper-content-wrapper]");
-    if (menu) parts.push("its menu open");
-    if (target) {
-      const els = all.get(target) ?? [];
-      const on = els.some((el) => seen(el, win));
-      const inRecent = (eventLinks(root, "[data-hd-recent]").get(target) ?? []).some(
-        (el) => seen(el, win),
-      );
-      parts.push(
-        on
-          ? "the old wedding on screen"
-          : inRecent
-            ? "the old wedding in Recent"
-            : els.length
-              ? `the old wedding ${(Math.min(...els.map((el) => Math.abs(el.getBoundingClientRect().top))) / win.innerHeight).toFixed(1)} screens away`
-              : "the old wedding not in the list",
-      );
-    }
-    return parts.join("; ");
-  };
-}
-
-/** THE STAGE: its event, its word, the way it is drawn without photographs, and its readiness. */
+/** THE STAGE: its event, its word, how it is drawn, and its readiness. */
 export const readStage: Reader = (root) => {
   const stage = root.querySelector<HTMLElement>("[data-stage]");
   if (!stage) return root.querySelector("[data-hd-page]") ? "no stage" : null;
-  const word = stage.querySelector<HTMLElement>("[data-stage-word]");
+  const word = stage.querySelector<HTMLElement>("[data-stage-phase]");
   const tall = Math.round(stage.getBoundingClientRect().height);
-  const empty = stage.dataset.hdEmpty;
   const parts = [
     `${stage.getAttribute("aria-label")}, ${(word?.innerText ?? "").trim().toLowerCase()}, ${tall} px tall`,
-    empty ? `no photos: ${empty}, lamp ${stage.dataset.hdLamp}` : "its photographs",
+    stage.dataset.hdEmpty
+      ? `no photos: lit by lamp ${stage.dataset.hdLamp}`
+      : "its photographs",
   ];
-  const ticks = stage.querySelectorAll("[data-stage-ticks] li, [data-stage-rail] li");
+  const ticks = stage.querySelectorAll("[data-stage-rail] li");
   if (ticks.length) {
-    const done = stage.querySelectorAll(
-      "[data-stage-ticks] li[data-done], [data-stage-rail] li[data-done]",
-    ).length;
+    const done = stage.querySelectorAll("[data-stage-rail] li[data-done]").length;
     parts.push(`${done} of ${plural(ticks.length, "step")} done`);
   }
-  if (stage.querySelector("[data-stage-plate]")) parts.push("the code on it");
   return parts.join("; ");
 };
 
 /** THE RULE: which one she keeps, what it leads with, and where its control stands. */
-export const readRule: Reader = (root) => {
+export const readRule: Reader = (root, win) => {
   const page = root.querySelector<HTMLElement>("[data-hd-page]");
   if (!page) return null;
+  if (root.querySelector("[data-hd-stand-in]")) return "an event is open";
   const control = root.querySelector<HTMLElement>("[data-hd-rule]");
-  const settings = root.querySelector("[data-hd-settings]");
   const stage = root.querySelector<HTMLElement>("[data-stage]");
   const items = root.ownerDocument.querySelectorAll("[data-hd-rule-item]").length;
   const on = root.ownerDocument.querySelector<HTMLElement>(
     "[data-hd-rule-item][aria-checked='true']",
   );
-  const parts = [
-    settings
-      ? "Settings open"
-      : `leads with ${stage?.getAttribute("aria-label") ?? "nothing"}`,
-  ];
-  if (on) parts.push(`rule: ${on.dataset.hdRuleItem}`);
-  else if (control) parts.push(`rule: ${control.dataset.hdRule}`);
-  if (items) parts.push(`${plural(items, "rule")} to choose`);
-  else if (!control) parts.push("no control on this page");
+  const parts = [`leads with ${stage?.getAttribute("aria-label") ?? "nothing"}`];
+  const kept = on?.dataset.hdRuleItem ?? control?.dataset.hdRule;
+  if (kept) parts.push(`rule: ${kept}`);
+  if (control && stage) {
+    // Where the control stands against the band: on it (its corner or its
+    // words), over it, or under it, read off the two boxes.
+    const c = control.getBoundingClientRect();
+    const b = stage.getBoundingClientRect();
+    const on =
+      c.top >= b.top - 1 && c.bottom <= b.bottom + 1
+        ? c.left > b.left + b.width / 2
+          ? "on the band's right"
+          : "on the band's left"
+        : c.bottom <= b.top + 1
+          ? "over the band"
+          : "under the band";
+    parts.push(`control ${on}, ${Math.round(c.width)} by ${Math.round(c.height)} px`);
+  } else if (!control) parts.push("no control on this page");
+  if (items) parts.push(`${plural(items, "rule")} shown`);
+  const menu = root.ownerDocument.querySelector<HTMLElement>(
+    "[data-radix-popper-content-wrapper], [data-slot='responsive-menu-rows'], [data-hd-choosing]",
+  );
+  if (menu && menu.getBoundingClientRect().width > 0) {
+    const m = menu.getBoundingClientRect();
+    parts.push(
+      `choosing: ${Math.round(m.width)} px wide${m.right > win.innerWidth + 1 || m.left < -1 ? ", past the screen's edge" : ""}`,
+    );
+  }
+  return parts.join("; ");
+};
+
+/**
+ * THE DETAILS (H6): what the head's line says, where the storage ring stands
+ * (beside the day's row or under it), the stage's count word, and the week's
+ * parties with their words.
+ */
+export const readDetails: Reader = (root) => {
+  const head = root.querySelector<HTMLElement>("[data-home-head]");
+  if (!head) return null;
+  const parts: string[] = [];
+  const line = head.querySelector<HTMLElement>("p");
+  if (line) parts.push(`head: "${line.innerText.trim()}"`);
+  const day = head.querySelector<HTMLElement>("h1, h2");
+  const ring = head.querySelector<HTMLElement>("[inert]");
+  if (day && ring) {
+    const d = day.getBoundingClientRect();
+    const r = ring.getBoundingClientRect();
+    parts.push(
+      Math.abs(d.top + d.height / 2 - (r.top + r.height / 2)) < d.height / 2
+        ? "ring in the day's row"
+        : "ring under the day",
+    );
+  }
+  const count = root.querySelector<HTMLElement>("[data-stage-numbers] dt");
+  if (count) parts.push(`count: "${count.innerText.trim()}"`);
+  const week = root.querySelector<HTMLElement>("[data-week]");
+  if (week) {
+    const cards = [...week.querySelectorAll<HTMLElement>("[data-week-card]")];
+    parts.push(
+      `this week: ${cards.length ? cards.map((c) => c.innerText.split("\n").filter(Boolean).slice(0, 2).join(", ")).join("; ") : "nothing"}`,
+    );
+  } else parts.push("no week");
   return parts.join("; ");
 };
 

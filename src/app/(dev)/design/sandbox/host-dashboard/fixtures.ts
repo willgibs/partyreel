@@ -32,6 +32,9 @@ import { type CropId, photo } from "./crops";
  *    three 2025 weddings for their couples' anniversaries.
  *  - RAE runs a venue: two hundred events since January 2023, made by a seeded
  *    generator so the count is real and every name reads like an event's.
+ *  - LENA has five and a full week (`details`, H6): her 40th last Saturday,
+ *    a team lunch on Thursday, and Sunday's pancakes, an album nobody dated
+ *    whose photos landed this week.
  *
  * ★ RANGES AND THE NEWEST LEAD ARE DRAWN AS SETTLED (`event-dates` wires them
  * this round): an event may carry a last day (`end`, a range of days, no
@@ -48,7 +51,14 @@ import { type CropId, photo } from "./crops";
 
 export const TODAY = "2026-11-10";
 
-export type HostId = "maya" | "nia" | "nia-week" | "ari" | "jo" | "rae";
+export type HostId =
+  | "maya"
+  | "nia"
+  | "nia-week"
+  | "ari"
+  | "jo"
+  | "rae"
+  | "lena";
 
 export type Host = {
   id: HostId;
@@ -1163,6 +1173,74 @@ const RAE = host({
   trail: ["rae-winter-gala", "rae-tasting", "rae-holiday", "rae-staff"],
 });
 
+/* ── Lena: five events and a full week (H6) ──────────────────────────── */
+
+/**
+ * THE WEEK'S OWN CASE (`details`, H6): two dated parties either side of
+ * today, and an album she never dated whose photos landed on Sunday, which
+ * the week as built leaves out ("the week holds dated parties only").
+ */
+const LENA = host({
+  id: "lena",
+  name: "Lena",
+  email: "lena@example.com",
+  seed: "hd-lena",
+  plan: {
+    name: "Pro",
+    tier: "pro",
+    capBytes: 100 * GIGABYTE,
+    usedBytes: 3.1 * GIGABYTE,
+  },
+  storagePct: 3,
+  specs: [
+    {
+      id: "lena-lunch",
+      name: "Team Lunch",
+      date: "2026-11-12",
+      made: "2026-10-22",
+      opened: 3,
+      qrStyle: "dots",
+    },
+    {
+      id: "lena-pancakes",
+      name: "Sunday Pancakes",
+      date: null,
+      made: "2026-11-08",
+      look: ["evening", 3],
+      approved: 23,
+      last: "2026-11-08",
+    },
+    {
+      id: "lena-40th",
+      name: "Lena's 40th",
+      date: "2026-11-07",
+      made: "2026-10-10",
+      look: ["party", 2],
+      approved: 128,
+    },
+    {
+      id: "lena-halloween",
+      name: "Halloween at Ours",
+      date: "2026-10-31",
+      made: "2026-10-01",
+      look: ["party", 8],
+      approved: 96,
+    },
+    {
+      id: "lena-book-club",
+      name: "Book Club",
+      date: null,
+      made: "2026-06-02",
+      look: ["evening", 6],
+      approved: 14,
+      last: "2026-06-02",
+    },
+  ],
+  guests: [],
+  deleted: [],
+  trail: ["lena-pancakes", "lena-40th", "lena-lunch"],
+});
+
 export const HOSTS: Record<HostId, Host> = {
   maya: MAYA,
   nia: NIA,
@@ -1170,6 +1248,7 @@ export const HOSTS: Record<HostId, Host> = {
   ari: ARI,
   jo: JO,
   rae: RAE,
+  lena: LENA,
 };
 
 /** An event's day as the page places it (`dayOf`), or a guest album's: what a sort by date reads. */
