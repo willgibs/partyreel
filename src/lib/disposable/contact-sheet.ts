@@ -82,6 +82,9 @@ export function sheetCapFor(columns: number): number {
 /** A phone's cap (twelve columns), the default. */
 export const SHEET_CAP = sheetCapFor(12);
 
+/** The cells the fold's "+N" takes at the head of a capped sheet (its drawing gives them to the chip). */
+export const SHEET_FOLD_CELLS = 3;
+
 /** The sheet's own gap between squares, px (`.wait-sheet`). */
 export const SHEET_GAP_PX = 3;
 

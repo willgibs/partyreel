@@ -53,6 +53,8 @@ import { publishCoverUnderHeader } from "@/components/guest/guest-header-cover";
 import {
   AlbumWait,
   AlbumWaitSource,
+  DevelopGate,
+  primeSeedRoll,
 } from "@/components/guest/gallery-empty-state-wait";
 import { GallerySkeleton } from "@/components/guest/gallery-skeleton";
 import { GalleryLiveProvider } from "@/components/guest/gallery-live";
@@ -91,6 +93,7 @@ import type { GalleryAccess, GalleryGate } from "@/lib/events/gallery-access";
 import { formatCount } from "@/lib/format/count";
 import { useInViewSentinel } from "@/lib/shared/use-in-view-sentinel";
 import { DEFAULT_ROW_STEP, type RowStep } from "@/lib/shared/album-rows";
+import { developMs } from "@/lib/disposable/contact-sheet-develop";
 import { useWaitClock } from "@/lib/disposable/use-wait-clock";
 import { coverEyebrow, waitWords } from "@/lib/disposable/wait-words";
 import { addWords } from "@/lib/guest/camera/words";
@@ -711,6 +714,23 @@ export function EventExperience({
     { capture: event.capture ?? "upload", developsAt: liveDevelopsAt },
     wallClock,
   );
+  /* ★ THE DEVELOP (the-wait r2, Will's `arrival=in-place`): her first open after the roll develops plays the contact
+     sheet developing into the album's first rows (`AlbumDevelop`, over the album below). Whether it is owed is this
+     device's to say (a mark in its storage), so where it may be, the server sends the gate ahead of the cover: before
+     anything paints, it holds the cover on its house light and the album under the sheet (`developGateScript`). The
+     server's own reading decides where the gate goes (a develop time set and no longer ahead at render, the album
+     open to her, no door and no reel first, something in it), so the hydrating render draws the very same script. */
+  primeSeedRoll(galleryPromise);
+  const serverDevelopMs = developMs(event.develops_at);
+  const developGate =
+    serverDevelopMs !== null &&
+    uploadsWait.developsAt === null &&
+    access === "full" &&
+    !isDemo &&
+    arrival.face === null &&
+    !arrival.scrim &&
+    !reelAsked &&
+    stats.approvedTotal > 0;
 
   // The header's own name menu is a SIBLING island and cannot reach the modal's
   // handle; `lib/guest/name-door.ts` is the one channel between them (the same
@@ -1266,6 +1286,9 @@ export function EventExperience({
       )}
       data-reveal-curtain={curtain ? "" : undefined}
     >
+      {developGate && serverDevelopMs !== null && (
+        <DevelopGate eventId={event.id} developsAtMs={serverDevelopMs} />
+      )}
       {/* ★ THE DOOR, IN THE PAGE'S FIRST BYTE: its page (the welcome, the ask, the wait, a gate's door at
           rest) and the scrim of a sheet step that comes first are the server's, drawn here before any
           script, and the hydration draws the same (`arrival`). The heal holds only the sheet (see its own
@@ -1399,11 +1422,15 @@ export function EventExperience({
             className="-mt-14"
             eyebrow={eyebrow}
             ground={
-              <CoverGround
-                seed={galleryPromise}
-                bridge={headBridge}
-                eventId={event.id}
-              />
+              // The cover's photographs, held on the house light while an owed develop stands, and coming up out of
+              // it at the develop's moment (`gallery-empty-state.css`, `[data-develop-cover]`).
+              <div data-develop-cover="" className="absolute inset-0">
+                <CoverGround
+                  seed={galleryPromise}
+                  bridge={headBridge}
+                  eventId={event.id}
+                />
+              </div>
             }
             name={event.name}
             host={
@@ -1668,22 +1695,40 @@ export function EventExperience({
                         ruleClassName={cn(COLUMN, "mt-5")}
                       />
                       <div className={cn(BLEED, aboveAlbum ? "mt-4" : "mt-5")}>
-                        <LiveGallery
-                          galleryPromise={galleryPromise}
-                          qrToken={qrToken}
-                          access={access}
-                          isDemo={isDemo}
-                          onOpenGate={() => entryRef.current?.openToGate()}
-                          // ★ No Add of its own: the cover's is the one Add (see `galleryEmpty`).
-                          onAddFirst={undefined}
-                          joinUrl={joinUrl}
-                          initialRowStep={rowStep}
-                          firstPaintWidth={firstPaintWidth}
-                          rhythmSeed={visitSeed}
-                          closesOnLastRemoval={closesOnLastRemoval}
-                          // Where hers wait, nothing of hers in the air stands at the album's head (red-team 44).
-                          addsWait={addsWait.waits}
-                        />
+                        {/* ★ THE ALBUM'S BOX, AND ITS DEVELOP OVER IT (the-wait r2, `arrival=in-place`): the rows where
+                            they stand, held under the sheet while it develops, and the sheet over their top, where the
+                            wait's sheet stood all night. */}
+                        <div className="relative" data-develop-album="">
+                          <LiveGallery
+                            galleryPromise={galleryPromise}
+                            qrToken={qrToken}
+                            access={access}
+                            isDemo={isDemo}
+                            onOpenGate={() => entryRef.current?.openToGate()}
+                            // ★ No Add of its own: the cover's is the one Add (see `galleryEmpty`).
+                            onAddFirst={undefined}
+                            joinUrl={joinUrl}
+                            initialRowStep={rowStep}
+                            firstPaintWidth={firstPaintWidth}
+                            rhythmSeed={visitSeed}
+                            closesOnLastRemoval={closesOnLastRemoval}
+                            // Where hers wait, nothing of hers in the air stands at the album's head (red-team 44).
+                            addsWait={addsWait.waits}
+                            develop={{
+                              eventId: event.id,
+                              developsAt:
+                                liveDevelopsAt ?? event.develops_at ?? null,
+                              seed: galleryPromise,
+                              arrivedThroughDoor:
+                                arrival.face !== null || arrival.scrim,
+                              reelAsked,
+                              doorStands: stageUp,
+                              doorWaits: welcomePending || curtain,
+                              isDemo,
+                              firstPaintWidth,
+                            }}
+                          />
+                        </div>
                       </div>
                     </LiveReel>
                   </AlbumWaitSource>

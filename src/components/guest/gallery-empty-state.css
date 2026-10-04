@@ -11,7 +11,8 @@
    count ticking on, a square she is sending breathing. Every square stands complete at rest.
 
    ★ EVERY KEYFRAME CARRIES THE `wait-` PREFIX (`keyframe-uniqueness.test.ts`). Nothing here sets `position` on an
-   element a caller positions with a utility, and no rule here styles anything but the wait's own classes. */
+   element a caller positions with a utility, and no rule here styles anything but the wait's own classes, and, for the
+   develop below, the page's parts it names by their `data-develop-*` marks. */
 
 .wait-well {
   position: relative;
@@ -192,5 +193,204 @@
   to {
     transform: none;
     opacity: 1;
+  }
+}
+
+/* ══ THE DEVELOP (the-wait r2, Will's `arrival=in-place`) ═══════════════════
+
+   The album's first open after its roll develops: the sheet she watched all night develops where it stood
+   (`gallery-empty-state-sheet.tsx`'s `DevelopSheet`), the newest squares grow into the album's first rows
+   (`gallery-empty-state-wait.tsx`'s `AlbumDevelop`), the cover comes up out of its house light, and the album's other
+   photographs rise as they always do.
+
+   ★ ONE SWITCH, ON THE DOCUMENT (`html[data-develop]`): `held` from the first byte where the develop is owed (the page's
+   gate script, before the cover paints), `play` while it runs; the cover and the album stand far apart on the page,
+   so both read the one clock there. Every duration and curve is a token written beside it for the play
+   (`contact-sheet-develop.ts`'s `developVars`): this sheet names no number of its own.
+
+   ★ EVERY MOVING PART IS A `.develop-a` WITH ITS MOMENT (`--develop-at`): its delay is its place on the play's
+   timeline, its fill `both`, so before its moment it stands at its first frame and after it at its last.
+
+   ★ REDUCED MOTION IS ITS OWN PASS (bible 5): the drawing chooses its classes, opacity alone, nothing moves (the
+   page's half reads `data-develop-motion`). */
+
+/* Held: the cover on the house light it stood on all night, and the album under the still sheet. The album's box
+   keeps the sheet's height, so nothing under it moves while it stands. */
+:root[data-develop="held"] [data-develop-cover] {
+  opacity: 0;
+}
+:root[data-develop="held"] [data-develop-rows] {
+  visibility: hidden;
+}
+:root[data-develop] [data-develop-album] {
+  min-height: var(--develop-sheet-h, 0px);
+}
+
+/* The play, the page's half: the cover's photographs come up out of the house light (the host's Look, a beat
+   longer); the album's head row rises; its photographs rise as its regular open does, each at its moment (the
+   drawing writes the first screen's, and hides the ones growing out of their squares). */
+:root[data-develop="play"] [data-develop-cover] {
+  animation: wait-develop-cover var(--develop-cover-ms)
+    var(--develop-cover-ease) var(--develop-cover-at) both;
+}
+:root[data-develop="play"][data-develop-motion="full"] [data-develop-head] {
+  animation: wait-develop-rise var(--develop-rise-ms) var(--develop-rise-ease)
+    var(--develop-head-at) both;
+}
+:root[data-develop="play"][data-develop-motion="full"]
+  [data-develop-rows]
+  [data-media-tile] {
+  animation: wait-develop-tile var(--develop-tile-ms) var(--develop-tile-ease)
+    var(--develop-rest-at) both;
+}
+:root[data-develop="play"][data-develop-motion="reduced"] [data-develop-rows] {
+  animation: wait-develop-fade-in var(--develop-fade-in-ms) ease-out
+    var(--develop-open-at) both;
+}
+
+/* The drawing's half: every part at its moment. */
+.develop-a {
+  animation-delay: var(--develop-at);
+  animation-fill-mode: both;
+}
+/* A square's picture while the sheet stands still: loading, unseen until its moment. */
+.wait-develop-picture {
+  opacity: 0;
+}
+/* A square developing: its photograph comes up out of a flash, from blown-out pale to itself. */
+.wait-develop-up {
+  animation-name: wait-develop-up;
+  animation-duration: var(--develop-square-ms);
+  animation-timing-function: var(--develop-square-ease);
+}
+/* The flash a square takes as it develops: a warm light up fast, then a long going out. */
+.wait-develop-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  border-radius: inherit;
+  background: oklch(0.97 0.025 78);
+  opacity: 0;
+}
+.wait-develop-flash.develop-a {
+  animation-name: wait-develop-flash;
+  animation-duration: var(--develop-flash-ms);
+  animation-timing-function: var(--develop-flash-ease);
+}
+/* The sheet's older squares sinking away, down toward where they stand in the album. */
+.wait-develop-sink {
+  animation-name: wait-develop-sink;
+  animation-duration: var(--develop-sink-ms);
+  animation-timing-function: var(--develop-sink-ease);
+}
+.wait-develop-fade-out {
+  animation-name: wait-develop-fade-out;
+  animation-duration: var(--develop-fade-ms);
+  animation-timing-function: var(--develop-fade-ease);
+}
+.wait-develop-fade-in {
+  animation-name: wait-develop-fade-in;
+  animation-duration: var(--develop-fade-in-ms);
+  animation-timing-function: ease-out;
+}
+.wait-develop-rise {
+  animation-name: wait-develop-rise;
+  animation-duration: var(--develop-rise-ms);
+  animation-timing-function: var(--develop-rise-ease);
+}
+/* A square growing into its tile: its box from the square's to the tile's, its picture covering it the whole way, so
+   the square's centre crop opens into the tile's without a jump. */
+.wait-develop-grow {
+  animation-name: wait-develop-grow;
+  animation-duration: var(--develop-grow-ms);
+  animation-timing-function: var(--develop-grow-ease);
+}
+/* A tile that starts as a square wears the square's dark (`.wait-cell`'s) until its photograph comes up over it. */
+.wait-develop-as-cell {
+  background: color-mix(in oklab, var(--gallery-foreground) 9%, var(--gallery));
+}
+/* Her rim, going as one of hers becomes a photograph like any other. */
+.wait-develop-rim {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 0 1.5px #fff,
+    inset 0 0 12px rgb(255 255 255 / 0.3);
+}
+.wait-develop-rim.develop-a {
+  animation-name: wait-develop-fade-out;
+  animation-duration: var(--develop-rim-ms);
+  animation-timing-function: var(--develop-fade-ease);
+}
+
+@keyframes wait-develop-up {
+  0% {
+    opacity: 0;
+    filter: brightness(2.6) saturate(0) contrast(0.55);
+  }
+  22% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    filter: none;
+  }
+}
+@keyframes wait-develop-flash {
+  0% {
+    opacity: 0;
+  }
+  16% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes wait-develop-sink {
+  to {
+    opacity: 0;
+    transform: translateY(16px) scale(0.92);
+  }
+}
+@keyframes wait-develop-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes wait-develop-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes wait-develop-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes wait-develop-tile {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+@keyframes wait-develop-grow {
+  from {
+    left: var(--develop-fx);
+    top: var(--develop-fy);
+    width: var(--develop-fw);
+    height: var(--develop-fh);
+    border-radius: 3px;
+  }
+}
+@keyframes wait-develop-cover {
+  from {
+    opacity: 0;
+    filter: brightness(1.9) saturate(0.15);
   }
 }

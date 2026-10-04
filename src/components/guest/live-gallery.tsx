@@ -39,6 +39,10 @@ import { setRowStepAction } from "@/app/(guest)/e/[token]/actions";
 import type { GridMedia } from "@/components/app/media-grid";
 import { AlbumFailedCard } from "@/components/guest/album-boundary";
 import { GalleryEmptyState } from "@/components/guest/gallery-empty-state";
+import {
+  AlbumDevelop,
+  type AlbumDevelopProps,
+} from "@/components/guest/gallery-empty-state-wait";
 import { GallerySkeleton } from "@/components/guest/gallery-skeleton";
 import {
   GalleryLiveProvider,
@@ -201,6 +205,11 @@ type LiveGalleryProps = {
   onOwnRemoved?: (removedId: string, remaining: number) => void;
   /** The provider's (see gallery-live.tsx); passed through when standalone. */
   onGuestCountChange?: (count: number) => void;
+  /**
+   * The page's word for the album's develop (the-wait r2, `arrival=in-place`): drawn beside the rows, in the album's
+   * box, where it reads this live source. Absent where the album never develops here (the Library, a test).
+   */
+  develop?: AlbumDevelopProps;
 };
 
 export function LiveGallery({ ref, ...props }: LiveGalleryProps) {
@@ -250,6 +259,7 @@ function LiveGalleryView({
   rhythmSeed = 0,
   closesOnLastRemoval = false,
   addsWait = false,
+  develop,
 }: Omit<LiveGalleryProps, "ref"> & { live: GalleryLive }) {
   const {
     qrToken,
@@ -417,124 +427,142 @@ function LiveGalleryView({
     return <AlbumUnread retry={live.retryAlbum} />;
 
   return (
-    <section
-      className="mt-3"
-      // Each mark's life, written once where every tile inherits it, so the sheet's keyframes and
-      // the state that holds `data-arrived` / `data-landed` are ONE pair of numbers.
-      style={
-        {
-          "--arrival-glow-ms": `${ARRIVAL_GLOW_MS}ms`,
-          "--arrival-sweep-ms": `${ARRIVAL_SWEEP_MS}ms`,
-        } as CSSProperties
-      }
-    >
-      {items.length > 0 || pendingTiles.length > 0 ? (
-        // Likes: anonymous guests get the like button -> the create-account flow; signed-in guests
-        // toggle in place; the hearts are seeded for the window (and the viewer's reach) alone.
-        <LikesProvider mediaIds={likeIds as string[]}>
-          {/* THE ALBUM'S OWN COUNT, beside a quiet Select and the ONE View menu (both hidden
+    <>
+      <section
+        className="mt-3"
+        // Each mark's life, written once where every tile inherits it, so the sheet's keyframes and
+        // the state that holds `data-arrived` / `data-landed` are ONE pair of numbers.
+        style={
+          {
+            "--arrival-glow-ms": `${ARRIVAL_GLOW_MS}ms`,
+            "--arrival-sweep-ms": `${ARRIVAL_SWEEP_MS}ms`,
+          } as CSSProperties
+        }
+        // The rows a develop holds and raises (the-wait r2), beside its sheet in the album's box.
+        data-develop-rows=""
+      >
+        {items.length > 0 || pendingTiles.length > 0 ? (
+          // Likes: anonymous guests get the like button -> the create-account flow; signed-in guests
+          // toggle in place; the hearts are seeded for the window (and the viewer's reach) alone.
+          <LikesProvider mediaIds={likeIds as string[]}>
+            {/* THE ALBUM'S OWN COUNT, beside a quiet Select and the ONE View menu (both hidden
               in the demo and on a locked gallery). The count is the header's number, worded as the source
               words it (`albumCountWords`): by what the album holds, both nouns only where it cannot see in. */}
-          {access !== "none" && items.length > 0 && select.active && !isDemo ? (
-            <SelectBar
-              picks={select.picks}
-              items={yours.items}
-              ownIds={ownIds}
-              qrToken={qrToken}
-            />
-          ) : access !== "none" && items.length > 0 ? (
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-1.5">
-              <p className="px-0.5 text-working text-muted-foreground tabular-nums">
-                {countWords ?? formatMediaCount(count)}
-              </p>
-              {!isDemo && (
-                <div className="ml-auto flex items-center gap-1.5">
-                  {/* SELECT, where Download all stood (take-home r1): her way to take photos home. */}
-                  <button
-                    type="button"
-                    data-guest-select=""
-                    onClick={() => guestSelect.enter()}
-                    className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-muted-foreground transition-colors hover:text-save active:scale-[0.98] motion-reduce:active:scale-100"
-                  >
-                    <ListChecks className="size-4" /> Select
-                  </button>
-                  <ViewMenu groups={viewGroups} />
-                </div>
-              )}
-            </div>
-          ) : null}
-          {/* THE YOURS LINE, for the View-menu filter (`mine=none`): a line and not a chip, only
-              while the filter is live, and its only exit. */}
-          {yours.on && (
-            <div className="mb-3 flex items-center gap-2 text-sm">
-              <span className="text-muted-foreground">
-                Showing yours
-                <span className="ml-1.5 text-faint tabular-nums">
-                  {formatCount(yours.count)}
-                </span>
-              </span>
-              <span aria-hidden className="text-faint">
-                ·
-              </span>
-              <button
-                type="button"
-                onClick={() => setShowMine(false)}
-                className="rounded-md font-medium underline-offset-4 transition-colors hover:underline active:scale-[0.98] motion-reduce:active:scale-100"
+            {access !== "none" &&
+            items.length > 0 &&
+            select.active &&
+            !isDemo ? (
+              <SelectBar
+                picks={select.picks}
+                items={yours.items}
+                ownIds={ownIds}
+                qrToken={qrToken}
+              />
+            ) : access !== "none" && items.length > 0 ? (
+              // The develop raises this row with the album's first rows (`data-develop-head`, the-wait r2).
+              <div
+                className="mb-3 flex flex-wrap items-center justify-between gap-1.5"
+                data-develop-head=""
               >
-                Show all
-              </button>
-            </div>
-          )}
-          <DeleteConsequence.Provider value={deleteConsequence}>
-            <GalleryRows
-              items={yours.items}
-              pending={pendingTiles}
-              progress={uploadProgress}
-              step={step}
-              onStepChange={setRowStep}
-              seed={rhythmSeed}
-              firstPaintWidth={firstPaintWidth}
-              onBoxWidth={onBoxWidth}
-              onWindowChange={onWindowChange}
-              onViewerNeedLinks={onViewerNeedLinks}
-              shareUrl={joinUrl}
-              // The two arrival marks on the tile box — the light is shared/arrival.css: the glow of what
-              // arrived by itself (held at the door until it can land complete, `use-arrival-gate.ts`, and
-              // its links asked for there) and the sweep of this device's own landing.
-              arrivals={marks.arrived}
-              onNeedLinks={ensureLinks}
-              landedIds={landedIds}
-              // A guest removes THEIR OWN photograph and no other: omitted where the feature does not
-              // apply (the demo, a locked gallery) rather than passed with an empty set.
-              canDelete={canRemove ? (item) => ownIds.has(item.id) : undefined}
-              onDeleteItem={canRemove ? (id) => void removeOwn(id) : undefined}
-              selection={selection}
+                <p className="px-0.5 text-working text-muted-foreground tabular-nums">
+                  {countWords ?? formatMediaCount(count)}
+                </p>
+                {!isDemo && (
+                  <div className="ml-auto flex items-center gap-1.5">
+                    {/* SELECT, where Download all stood (take-home r1): her way to take photos home. */}
+                    <button
+                      type="button"
+                      data-guest-select=""
+                      onClick={() => guestSelect.enter()}
+                      className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-muted-foreground transition-colors hover:text-save active:scale-[0.98] motion-reduce:active:scale-100"
+                    >
+                      <ListChecks className="size-4" /> Select
+                    </button>
+                    <ViewMenu groups={viewGroups} />
+                  </div>
+                )}
+              </div>
+            ) : null}
+            {/* THE YOURS LINE, for the View-menu filter (`mine=none`): a line and not a chip, only
+              while the filter is live, and its only exit. */}
+            {yours.on && (
+              <div className="mb-3 flex items-center gap-2 text-sm">
+                <span className="text-muted-foreground">
+                  Showing yours
+                  <span className="ml-1.5 text-faint tabular-nums">
+                    {formatCount(yours.count)}
+                  </span>
+                </span>
+                <span aria-hidden className="text-faint">
+                  ·
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowMine(false)}
+                  className="rounded-md font-medium underline-offset-4 transition-colors hover:underline active:scale-[0.98] motion-reduce:active:scale-100"
+                >
+                  Show all
+                </button>
+              </div>
+            )}
+            <DeleteConsequence.Provider value={deleteConsequence}>
+              <GalleryRows
+                items={yours.items}
+                pending={pendingTiles}
+                progress={uploadProgress}
+                step={step}
+                onStepChange={setRowStep}
+                seed={rhythmSeed}
+                firstPaintWidth={firstPaintWidth}
+                onBoxWidth={onBoxWidth}
+                onWindowChange={onWindowChange}
+                onViewerNeedLinks={onViewerNeedLinks}
+                shareUrl={joinUrl}
+                // The two arrival marks on the tile box — the light is shared/arrival.css: the glow of what
+                // arrived by itself (held at the door until it can land complete, `use-arrival-gate.ts`, and
+                // its links asked for there) and the sweep of this device's own landing.
+                arrivals={marks.arrived}
+                onNeedLinks={ensureLinks}
+                landedIds={landedIds}
+                // A guest removes THEIR OWN photograph and no other: omitted where the feature does not
+                // apply (the demo, a locked gallery) rather than passed with an empty set.
+                canDelete={
+                  canRemove ? (item) => ownIds.has(item.id) : undefined
+                }
+                onDeleteItem={
+                  canRemove ? (id) => void removeOwn(id) : undefined
+                }
+                selection={selection}
+              />
+            </DeleteConsequence.Provider>
+          </LikesProvider>
+        ) : (
+          // The photographic-promise empty state (full/teaser with nothing yet). ★ IT KEEPS THE READING
+          // COLUMN while the album around it runs to the window: a square river as wide as the album
+          // would be a page of nothing. Pulled out by the album's gutter and padded back in by the
+          // words' 20, so it is the page's reading column to the pixel.
+          <div className="-mx-3 max-w-2xl px-5 sm:-mx-5">
+            <GalleryEmptyState
+              onAddFirst={access === "full" ? onAddFirst : undefined}
             />
-          </DeleteConsequence.Provider>
-        </LikesProvider>
-      ) : (
-        // The photographic-promise empty state (full/teaser with nothing yet). ★ IT KEEPS THE READING
-        // COLUMN while the album around it runs to the window: a square river as wide as the album
-        // would be a page of nothing. Pulled out by the album's gutter and padded back in by the
-        // words' 20, so it is the page's reading column to the pixel.
-        <div className="-mx-3 max-w-2xl px-5 sm:-mx-5">
-          <GalleryEmptyState
-            onAddFirst={access === "full" ? onAddFirst : undefined}
-          />
-        </div>
-      )}
-      {access === "teaser" && (
-        // The teaser boundary CTA: re-opens the entry modal to its gate step. ★ ITS NUMBER AND NOUN
-        // MATCH THE HEADER: `count` is the same true total the header reads.
-        <div className="mt-5 flex justify-center">
-          <Button onClick={onOpenGate} className="active:scale-[0.99]">
-            {count > rawCount
-              ? `See all ${formatMediaCount(count)}`
-              : "Confirm your email to see everything"}
-          </Button>
-        </div>
-      )}
-    </section>
+          </div>
+        )}
+        {access === "teaser" && (
+          // The teaser boundary CTA: re-opens the entry modal to its gate step. ★ ITS NUMBER AND NOUN
+          // MATCH THE HEADER: `count` is the same true total the header reads.
+          <div className="mt-5 flex justify-center">
+            <Button onClick={onOpenGate} className="active:scale-[0.99]">
+              {count > rawCount
+                ? `See all ${formatMediaCount(count)}`
+                : "Confirm your email to see everything"}
+            </Button>
+          </div>
+        )}
+      </section>
+      {/* ★ THE DEVELOP (the-wait r2, `arrival=in-place`): the contact sheet over these rows' top, developing into them
+        on the first open after the roll develops; nothing at all on every other open. */}
+      {develop && <AlbumDevelop live={live} {...develop} />}
+    </>
   );
 }
 
