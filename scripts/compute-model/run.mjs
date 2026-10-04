@@ -40,8 +40,14 @@ import { cpus, tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { clockShim, device, launchChrome, sleep } from "./chrome.mjs";
+import {
+  clockShim,
+  device as openDevice,
+  launchChrome,
+  sleep,
+} from "./chrome.mjs";
 import { printProjections, project, scale, summarize } from "./model.mjs";
+import { deviceRegistry, walkToName } from "./phones.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, "../..");
@@ -70,6 +76,11 @@ const labBoard = opt("--lab-board", "");
 const hostCookieEnv = opt("--host-cookie-env", "");
 const EVENT_NAME = "Compute model (test)";
 const FIXTURES = "/Users/gibby/local/ai/partyreel-test-media/images";
+
+// ★ EVERY PHONE A SCENARIO OPENS IS CLOSED WHEN IT ENDS, errored or not (`phones.mjs`). A scenario that threw used to leave
+// its devices open, polling under the labels of the scenarios after it; the scenarios open theirs through this one.
+const phones = deviceRegistry(openDevice);
+const device = phones.device;
 
 /** A value from the worktree's `.env.local` (album-perf's pattern), or "". Never printed. */
 function envLocal(name) {
@@ -162,37 +173,61 @@ function photos(n = 10) {
 }
 
 // ── What a guest does (the real door, the real uploader) ─────────────────────────────────────────
+/**
+ * ★ THE JOIN'S WAITS ARE FOR THE SLOWEST MACHINE IT RUNS ON, NOT THE QUIETEST. The first scenario of a full run follows the
+ * build and a cold server (a route's first request loads its code and opens its connections), and under that load a wait
+ * of twenty seconds at the door's name step timed out where the same join passed alone. The walk to the name field
+ * presses what is on screen and repeats a press the screen did not answer (`phones.mjs`); the mint that follows has a
+ * minute. A join that still fails says which step it was and keeps what the phone showed, where a bare timeout named
+ * nothing but a selector.
+ */
 async function joinAsGuest(page, token, name, { addPhotos = false } = {}) {
   const NAME = `input[placeholder="Your name"]`;
   const shown = (sel) =>
     `[...document.querySelectorAll(${JSON.stringify(sel)})].some((e) => e.getBoundingClientRect().height > 0)`;
-  await page.goto(`/e/${token}`);
-  await page.idle({ quiet: 1_000 });
-  await page.click("button", { text: "Continue" });
-  await page.click("button", { text: "Continue as guest" });
-  await page.waitFor(shown(NAME));
-  await sleep(600); // the sheet's own entrance
-  await page.eval(`document.querySelector(${JSON.stringify(NAME)}).focus()`);
-  await page.type(name);
-  await page.waitFor(
-    `document.querySelector(${JSON.stringify(NAME)}).value === ${JSON.stringify(name)}`,
-  );
-  // The name's own Continue, in the name's own sheet (the welcome's stays mounted under it).
-  await page.clickEl(
-    `[...(document.querySelector(${JSON.stringify(NAME)}).closest("form, [role=dialog]") ?? document).querySelectorAll("button")].find((b) => b.textContent.trim().startsWith("Continue") && !b.disabled)`,
-  );
-  // Named (the door mints her ticket: `POST /api/guests`), the door's last step offers the camera and the album's
-  // picker; an uploader stays on it (its inputs take the files), anyone else looks around first.
-  await page.waitFor(`!(${shown(NAME)})`, { timeout: 20_000 });
-  await page.waitFor(shown("button"), { timeout: 5_000 });
-  if (!addPhotos) {
-    await page.click("button", { text: "Skip for now" });
+  let step = "opening the link";
+  try {
+    await page.goto(`/e/${token}`);
+    await page.idle({ quiet: 1_000 });
+    step = "walking to the name field";
+    await walkToName(page, { nameSelector: NAME });
+    step = "typing the name";
+    await sleep(600); // the sheet's own entrance
+    await page.eval(`document.querySelector(${JSON.stringify(NAME)}).focus()`);
+    await page.type(name);
     await page.waitFor(
-      `![...document.querySelectorAll("button")].some((b) => b.textContent.includes("Skip for now") && b.getBoundingClientRect().height > 0)`,
+      `document.querySelector(${JSON.stringify(NAME)}).value === ${JSON.stringify(name)}`,
+      { timeout: 30_000 },
     );
-    await sleep(800); // the sheet's exit: a press under it lands on its backdrop
+    // The name's own Continue, in the name's own sheet (the welcome's stays mounted under it). Pressed once: it mints the
+    // guest, and a second press would be a second mint in the count.
+    step = "pressing the name's Continue";
+    await page.clickEl(
+      `[...(document.querySelector(${JSON.stringify(NAME)}).closest("form, [role=dialog]") ?? document).querySelectorAll("button")].find((b) => b.textContent.trim().startsWith("Continue") && !b.disabled)`,
+      { timeout: 30_000 },
+    );
+    // Named (the door mints her ticket: `POST /api/guests`), the door's last step offers the camera and the album's
+    // picker; an uploader stays on it (its inputs take the files), anyone else looks around first.
+    step = "waiting for the guest to be minted";
+    await page.waitFor(`!(${shown(NAME)})`, { timeout: 60_000 });
+    step = "waiting for the door's last step";
+    await page.waitFor(shown("button"), { timeout: 20_000 });
+    if (!addPhotos) {
+      step = "skipping the camera";
+      await page.click("button", { text: "Skip for now" });
+      await page.waitFor(
+        `![...document.querySelectorAll("button")].some((b) => b.textContent.includes("Skip for now") && b.getBoundingClientRect().height > 0)`,
+      );
+      await sleep(800); // the sheet's exit: a press under it lands on its backdrop
+    }
+    await page.idle({ quiet: 1_500 });
+  } catch (e) {
+    const file = join(out, `join-failed-${name.replace(/\W+/g, "-")}.png`);
+    await page.screenshot(file).catch(() => {});
+    throw new Error(
+      `${name} could not join, ${step} (the phone's screen: ${file}): ${e.message}`,
+    );
   }
-  await page.idle({ quiet: 1_500 });
 }
 
 /** Waits until the server has seen `n` completes from this device in this scenario (the uploads have landed). */
@@ -699,8 +734,10 @@ try {
     try {
       extra = (await s.run({ browser: chrome.browser, event })) ?? {};
     } catch (e) {
-      extra = { error: String(e.message ?? e).slice(0, 300) };
+      extra = { error: String(e.message ?? e).slice(0, 400) };
     }
+    // Its phones go with it, errored or not, before the label moves on: an open one would poll under the next scenario's.
+    await phones.closeAll();
     await label("(between)");
     const recs = await recordsOf(s.name);
     results.scenarios[s.name] = extra.skipped

@@ -183,7 +183,9 @@ A host has no reel to create, only a state to read and a few defaults to set.
   no reel, and stands no curtain for her on `?reel` (`reelAsked`); after it, the card goes on opening that page. There is
   no screen link on the hub's view (`screenLink`: a screen that is not hers cannot open her hub, so a wall plays the
   reel cast from her own device), no Make your own and no Add yours, and a `?reel` that cannot play (the switch or the
-  lever off, under two photographs that can) is dropped quietly, as the guests' page drops one.
+  lever off, under two photographs that can) is dropped quietly, as the guests' page drops one. Its dock carries the one
+  line a guest's never does, "Guests get it at the develop." (`dockNote`, handed in by `hub-reel.tsx` while the develop
+  time the Reel card reads is ahead, on the develop clock every reader shares, so it stops at the develop itself).
 - **Settings' Highlight reel page** ([`event-settings/reel-page.tsx`](../../src/components/app/event-settings/reel-page.tsx))
   saves each choice the moment it changes: Show the reel, the look every guest starts on (each shown on the event's own
   photo under that mood's `grade`) and the hold; optimistic, put back with a sentence when refused, and a slow answer

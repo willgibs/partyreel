@@ -229,7 +229,9 @@ hub and closes back to it.
   read, never stored and never shown to a guest; ready waits only on what a guest needs (a door she can pass, uploads
   open, the code opened once, room once the shelf is full), and the first photos and the welcome are worth doing,
   never a gate. Every fact is one the hub already reads (the code's first open is the header's Views number; the first
-  photos ride the album store's live counts, `useLiveReadyFacts`). It never leaves under her eyes, and from the day
+  photos ride the album store's live counts, `useLiveReadyFacts`; the door's line at a Public or password door is
+  Settings' own sentence, `doorGuestLine`, from the identity step and the photo first the page hands over, so the list
+  never says a guest walks in where Settings says she confirms an email). It never leaves under her eyes, and from the day
   after the event's date it is not drawn (`checklistOver`, on the viewer's day, as [dashboard.md](dashboard.md) reads
   it): an album paused after the party is finished, not unready. A held-only album says "Everything's in Review",
   since it is full, not empty.
