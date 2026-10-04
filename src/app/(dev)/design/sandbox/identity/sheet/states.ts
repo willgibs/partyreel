@@ -129,3 +129,75 @@ export const TOAST = "[data-sonner-toaster] [data-sonner-toast]";
 
 /** A container standing on a photograph (the atom contract's hook). */
 export const PHOTO = '[data-surface="photo"]';
+
+/* ── the toggles and the chosen things, by their hooks ─────────────────── */
+
+export const SWITCH = '[data-slot="switch"]';
+export const SWITCH_ON = ':is([data-state="checked"],[data-checked])';
+export const THUMB = '[data-slot="switch-thumb"]';
+export const CHECK = '[data-slot="checkbox"]';
+export const RADIO = '[data-slot="radio-group-item"]';
+export const CHECKED = '[data-state="checked"]';
+export const SLIDER = '[data-slot="slider"]';
+export const SLIDER_THUMB = '[data-slot="slider-thumb"]';
+export const RADIO_CARD = '[data-slot="radio-card"]';
+/** A radio card that is chosen: the door's gate held, a mood picked. */
+export const CARD_ON = ':is([data-state="on"],[data-state="checked"])';
+export const TABS = '[data-slot="tabs-list"]';
+export const TAB = '[data-slot="tabs-trigger"]';
+export const TAB_ON = '[data-state="active"]';
+/** The head's own atoms (event-header's, wired): the shutter and the code as a chip. */
+export const SHUTTER = '[data-slot="shutter"]';
+export const CODE_CHIP = '[data-slot="code-chip"]';
+
+/**
+ * EVERY ATOM THE TRAITS DRAW ON, as one list: what you press, what holds a
+ * value, what you flip and what you choose. A trait styles these by their
+ * hooks alone (`identity.test.ts` refuses a screen's own selector).
+ */
+export const ATOMS = [
+  BTN,
+  CHIP,
+  SEGMENT,
+  ...FIELDS.split(","),
+  SWITCH,
+  CHECK,
+  RADIO,
+  SLIDER_THUMB,
+  RADIO_CARD,
+  TAB,
+  SHUTTER,
+  CODE_CHIP,
+].join(", ");
+
+/**
+ * ★ THE TRAITS COMPOSE, THEY NEVER OVERWRITE ONE ANOTHER (r4: the mix). Seven
+ * sheets style the same atoms, and a `box-shadow`, a `translate` or a `scale`
+ * is ONE property each would otherwise take whole from the others, so each
+ * trait writes its own layer into a variable and `base.ts` composes them:
+ *
+ *   box-shadow  var(--i-focus), var(--i-sel), var(--i-press), var(--i-body)
+ *   translate   0 calc(var(--i-press-y) + var(--i-focus-y))
+ *   scale       var(--i-press-s)
+ *
+ * The variables are registered `inherits: false`, so a chosen radio card's
+ * layer never reaches the radio inside it. A trait still owns its plain
+ * properties outright (a field its height and fill, a focus mark its
+ * `outline`), and where two traits want one (`background-color`), the sheet's
+ * order decides: body, then toggles, then chosen, then press, then working,
+ * then focus (`index.ts`).
+ *
+ * THE PSEUDO-ELEMENTS, BY TRAIT, so two never fight for one:
+ *   a button, the shutter, the code chip   ::before working (dots, arc)   ::after focus
+ *   a chip, a segment, a radio card        ::before chosen                ::after focus
+ *   a tab        ::before focus    ::after chosen (production's own underline)
+ *   a switch     ::before focus    ::after is production's hit area: never touched
+ *   a check, a radio, a slider's thumb     ::after focus
+ *   a field      none (an <input> takes none): its marks are background layers
+ */
+export const LAYER = {
+  focus: "--i-focus",
+  selected: "--i-sel",
+  press: "--i-press",
+  body: "--i-body",
+} as const;

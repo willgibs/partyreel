@@ -14,12 +14,15 @@ import { DATE, EVENT, NAME } from "../fixtures";
 
 import { STILLS } from "./add";
 import { useInUse } from "./in-use";
+import { busy, byText, pin } from "./pins";
+import type { ScreenProps } from "./screen-props";
 import { typeInto } from "./type-into";
 
 /**
  * THE GUEST'S DOOR, IN USE: Ines scans the code at the wedding, and the
  * album is private, so the door asks for its password; she has typed it and
- * the Unlock waits under her thumb.
+ * the Unlock waits under her thumb, is held down, or works on it (the trait's
+ * moment); for the edge the door's held sheet stands untouched.
  *
  * ★ PRODUCTION'S DOOR: the album's cover behind (`AlbumCover`), the door's own
  * sheet over it (`EntryShell`, held, as a gate holds it) and the password
@@ -28,20 +31,43 @@ import { typeInto } from "./type-into";
  * posts on a submit, and nothing here submits (the scene refuses every form's
  * submit too).
  */
-export function GuestGateScreen() {
-  useInUse([
-    [
-      900,
-      () => {
-        const field = document.querySelector<HTMLInputElement>(
-          'input[aria-label="Event password"]',
-        );
-        if (!field) return;
-        typeInto(field, "maya-and-jay");
-        field.setAttribute("data-demo", "focus");
-      },
-    ],
-  ]);
+/** The password typed, as she types it. */
+const typed = () => {
+  const field = document.querySelector<HTMLInputElement>(
+    'input[aria-label="Event password"]',
+  );
+  if (field) typeInto(field, "maya-and-jay");
+  return field;
+};
+const unlock = () => byText<HTMLButtonElement>("button", "Unlock");
+
+/** Each trait's moment at the door: typed in, held down, working, or at rest typed. */
+function doorScript(
+  moment: ScreenProps["moment"],
+): readonly (readonly [number, () => void])[] {
+  switch (moment) {
+    case "field":
+    case "focus":
+      return [[900, () => pin(typed(), "focus")]];
+    case "press":
+      return [
+        [900, typed],
+        [1150, () => pin(unlock(), "press")],
+      ];
+    case "loading":
+      return [
+        [900, typed],
+        [1150, () => busy(unlock())],
+      ];
+    case "edge":
+      return [];
+    default:
+      return [[900, typed]];
+  }
+}
+
+export function GuestGateScreen({ moment }: ScreenProps) {
+  useInUse(doorScript(moment));
   return (
     <div className="min-h-screen bg-background">
       <AlbumCover

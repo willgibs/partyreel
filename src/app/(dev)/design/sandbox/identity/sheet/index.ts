@@ -1,25 +1,28 @@
-import type { Choice } from "../model";
+import type { AskId, Choice } from "../model";
 
+import { BASE_CSS } from "./base";
+import { BUTTON_CSS } from "./button";
 import { EDGE_CSS } from "./edge";
-import { LAYERS_CSS } from "./layers";
-import { MATERIAL_CSS } from "./material";
+import { FIELD_CSS } from "./field";
+import { FOCUS_CSS } from "./focus";
+import { LOADING_CSS } from "./loading";
+import { PRESS_CSS } from "./press";
 import { ROOM_CSS } from "./room";
+import { SELECTED_CSS } from "./selected";
 import { PHOTO } from "./states";
-import { STATUS_CSS } from "./status";
-import { SYSTEM_CSS } from "./system";
-import { ROLES_CSS, VOICE_CSS } from "./voice";
+import { TOGGLES_CSS } from "./toggles";
 
 /**
- * ONE IDENTITY, ONE STYLESHEET OVER PRODUCTION: viewfinder's material, round
- * two's three picks (the voice, the layers, status), then this round's open
- * parts: one system for actions and fields, the room's pop-out, and how far
- * the light edge reaches. Nothing in `src/components/` is touched: a frame
- * mounts production's own components wearing this, which is what wiring a
- * pick at the source does (`globals.css` and `src/components/ui/`).
+ * ONE MIX, ONE STYLESHEET OVER PRODUCTION: the tokens and the composition the
+ * traits share, then each trait's pick, then the room's pop-out (graphite, as
+ * picked) and the light edge's reach. Nothing in `src/components/` is touched:
+ * a frame mounts production's own components wearing this, which is what
+ * wiring a pick at the source does (`globals.css` and `src/components/ui/`).
  *
- * ★ ROUND TWO'S PICKS ARE DRAWN HERE UNTIL `identity-wiring` WIRES THEM (the
- * voice, `layers.ts`'s display, `status.ts`'s lights): once production wears
- * them, `SETTLED` goes and every frame stands on production's own.
+ * ★ THE ORDER IS THE COMPOSITION'S (`states.ts`): a body (the field, the
+ * button), then toggles, then what is chosen, then a press, then working,
+ * then focus last, so where two traits want one plain property the later,
+ * more transient state wins, as it does under a finger.
  *
  * ★ IT STYLES ATOMS ONLY, BY THE HOOKS THEIR PRIMITIVES WRITE (`data-slot`,
  * `data-variant`, `data-size`, `data-state`, and the atom contract's hooks),
@@ -37,15 +40,31 @@ const ON_PHOTO = `
 ${PHOTO} { color: oklch(1 0 0); --foreground: oklch(1 0 0); --muted-foreground: oklch(1 0 0 / 80%); }
 `;
 
-/** Round two's picks, until production wears them. */
-const SETTLED = [VOICE_CSS, ROLES_CSS, LAYERS_CSS, STATUS_CSS];
+/** Each ask's sheets, by option, in the order they are laid down. */
+export const SHEETS_BY_ASK: {
+  readonly [A in AskId]: Record<Choice[A], string>;
+} = {
+  field: FIELD_CSS,
+  button: BUTTON_CSS,
+  toggles: TOGGLES_CSS,
+  selected: SELECTED_CSS,
+  press: PRESS_CSS,
+  loading: LOADING_CSS,
+  focus: FOCUS_CSS,
+  edge: EDGE_CSS,
+};
 
 export function sheetFor(c: Choice): string {
   return [
-    MATERIAL_CSS,
-    ...SETTLED,
-    SYSTEM_CSS[c.system],
-    ROOM_CSS[c.room],
+    BASE_CSS,
+    FIELD_CSS[c.field],
+    BUTTON_CSS[c.button],
+    TOGGLES_CSS[c.toggles],
+    SELECTED_CSS[c.selected],
+    PRESS_CSS[c.press],
+    LOADING_CSS[c.loading],
+    FOCUS_CSS[c.focus],
+    ROOM_CSS,
     EDGE_CSS[c.edge],
     ON_PHOTO,
   ].join("\n");

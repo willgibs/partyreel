@@ -21,6 +21,8 @@ import { formatBytes } from "@/lib/utils";
 import { ACCOUNT } from "../fixtures";
 
 import { useInUse } from "./in-use";
+import { bring, busy, byText, pin } from "./pins";
+import type { ScreenProps } from "./screen-props";
 import { HostFrame } from "./settings";
 
 /**
@@ -36,6 +38,11 @@ import { HostFrame } from "./settings";
  * composition is drawn here with production's atoms, line for line in its
  * order and its words, and every press goes nowhere. What the frame proves is
  * the atoms on a real page: cards, fields, buttons, switches, a face.
+ *
+ * ★ CAUGHT IN THE TRAIT'S MOMENT: the name typed in (a field, a focus), Save
+ * working on it (loading), Change plan held down (a press), her email
+ * preferences in view (toggles), at rest for the rest; the account menu open
+ * over it is the edge's place (`AccountMenuScreen`).
  */
 
 /** A switch row as `notification-prefs-form.tsx` draws it: the name and its line beside the switch. */
@@ -81,10 +88,38 @@ function openAccountMenu() {
   );
 }
 
-export function AccountScreen({ menu = false }: { menu?: boolean }) {
+/** Each trait's moment on Account. */
+function accountScript(
+  moment: ScreenProps["moment"],
+  menu: boolean,
+): readonly (readonly [number, () => void])[] {
+  if (menu) return [[800, openAccountMenu]];
+  switch (moment) {
+    case "press":
+      return [[700, () => pin(byText("button", "Change plan"), "press")]];
+    case "loading":
+      return [[700, () => busy(byText("button", "Save"))]];
+    case "toggles":
+      return [
+        [700, () => bring(document.getElementById("identity-prefs"), "center")],
+      ];
+    default:
+      return [];
+  }
+}
+
+function AccountPage({
+  moment,
+  menu,
+}: {
+  moment: ScreenProps["moment"];
+  menu: boolean;
+}) {
   const pass = planById("event_pass");
   const [name, setName] = useState("Maya Okafor-Reyes");
-  useInUse(menu ? [[800, openAccountMenu]] : []);
+  useInUse(accountScript(moment, menu));
+  // In use: a field is typed in for a field or a focus; Save works on what was typed.
+  const typing = !menu && (moment === "field" || moment === "focus");
   return (
     <HostFrame>
       <div className="mx-auto max-w-2xl space-y-6">
@@ -166,7 +201,7 @@ export function AccountScreen({ menu = false }: { menu?: boolean }) {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   autoComplete="off"
-                  data-demo={menu ? undefined : "focus"}
+                  data-demo={typing ? "focus" : undefined}
                 />
                 <Button disabled={name === ACCOUNT.displayName}>Save</Button>
               </div>
@@ -184,7 +219,7 @@ export function AccountScreen({ menu = false }: { menu?: boolean }) {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card id="identity-prefs">
           <CardHeader>
             <CardTitle>Email preferences</CardTitle>
             <CardDescription>
@@ -212,4 +247,14 @@ export function AccountScreen({ menu = false }: { menu?: boolean }) {
       </div>
     </HostFrame>
   );
+}
+
+/** Account, caught in the trait being asked. */
+export function AccountScreen({ moment }: ScreenProps) {
+  return <AccountPage moment={moment} menu={false} />;
+}
+
+/** Account with her menu open over it: the edge's place for a host's own pop-out. */
+export function AccountMenuScreen({ moment }: ScreenProps) {
+  return <AccountPage moment={moment} menu />;
 }

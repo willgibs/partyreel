@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { ImageUp, Play, QrCode } from "lucide-react";
 
 import {
@@ -18,10 +18,12 @@ import type { Width } from "../model";
 
 import { MediaTile } from "./atoms";
 import { useInUse } from "./in-use";
+import { byText, pin } from "./pins";
+import type { ScreenProps } from "./screen-props";
 
 /**
  * THE GUEST'S ADD, OVER THE ALBUM: Sam holds the wedding open and presses Add
- * photos.
+ * photos (the edge's moment; a press or a focus pins the key instead).
  *
  * ★ THE COVER AND THE SHEET ARE PRODUCTION'S (`AlbumCover` over `HeadStills`,
  * `event-header`'s wiring; `UploadIntentSheet`, every Add on the guest page):
@@ -67,13 +69,36 @@ function Rows({ w }: { w: Width }) {
   );
 }
 
-export function AddScreen({ w }: { w: Width }) {
+/**
+ * Each trait's moment on the album's cover: the Add pressed for real and its
+ * rows open (the edge, a selection among them), Add photos held down (a press)
+ * or reached by the keyboard (a focus), and the cover at rest for the rest.
+ */
+/** The cover's Add, found the way a test finds it: by its words. */
+const add = () => byText<HTMLButtonElement>("button", "Add photos");
+
+function addScript(
+  moment: ScreenProps["moment"],
+): readonly (readonly [number, () => void])[] {
+  switch (moment) {
+    case "edge":
+    case "selected":
+      // The real press, once the page has settled: the sheet records the button
+      // pressed and opens under it (`usePressedAnchor`), as it does for a guest.
+      return [[450, () => add()?.click()]];
+    case "press":
+      return [[700, () => pin(add(), "press")]];
+    case "focus":
+      return [[700, () => pin(add(), "focus")]];
+    default:
+      return [];
+  }
+}
+
+export function AddScreen({ moment, w }: ScreenProps) {
   const desk = w === 1440;
   const [open, setOpen] = useState(false);
-  const add = useRef<HTMLButtonElement | null>(null);
-  // The real press, once the page has settled: the sheet records the button
-  // pressed and opens under it (`usePressedAnchor`), as it does for a guest.
-  useInUse([[450, () => add.current?.click()]]);
+  useInUse(addScript(moment));
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <header className="flex items-center justify-between gap-2 border-b border-border/60 px-5 py-3">
@@ -93,7 +118,6 @@ export function AddScreen({ w }: { w: Width }) {
         actions={
           <>
             <Button
-              ref={add}
               variant="on-photo"
               size="cta"
               className={cn("min-w-0", desk ? "md:flex-none" : "flex-1")}

@@ -1,29 +1,30 @@
 import { describe, expect, it } from "vitest";
 
-import { choiceOf, EDGE_IDS, RECOMMENDED, ROOM_IDS, SYSTEM_IDS } from "./model";
-import { sheetFor } from "./sheet";
-import { EDGE_CSS } from "./sheet/edge";
+import { optionId } from "@/components/lab";
+
+import { type AskId, choiceOf, OPTIONS, RECOMMENDED } from "./model";
+import { sheetFor, SHEETS_BY_ASK } from "./sheet";
+import { BASE_CSS } from "./sheet/base";
 import { ROOM_CSS } from "./sheet/room";
-import { SYSTEM_CSS } from "./sheet/system";
 import { IDENTITY } from "./spec";
 
 /**
  * THE BOARD HOLDS TOGETHER: what the spec asks, what the frames draw and what
- * the sheets style are one set of ids, and the sheets style atoms alone, with
- * the corners only ever as a focus mark.
+ * the sheets style are one set of ids; the sheets style atoms alone; the
+ * viewfinder's corners appear only as the r3 focus mark; and the seven traits
+ * compose rather than overwrite one another.
  */
-const ASKS = {
-  system: { ids: SYSTEM_IDS, css: SYSTEM_CSS },
-  room: { ids: ROOM_IDS, css: ROOM_CSS },
-  edge: { ids: EDGE_IDS, css: EDGE_CSS },
-} as const;
 
-/** Every identity the board can draw. */
-const EVERY = SYSTEM_IDS.flatMap((system) =>
-  ROOM_IDS.flatMap((room) =>
-    EDGE_IDS.map((edge) => sheetFor({ system, room, edge })),
+/** Every option's sheet, each with its ask and option, plus what every mix shares. */
+const EVERY_SHEET: { name: string; css: string }[] = [
+  { name: "base", css: BASE_CSS },
+  { name: "room", css: ROOM_CSS },
+  ...(Object.keys(SHEETS_BY_ASK) as AskId[]).flatMap((ask) =>
+    Object.entries(SHEETS_BY_ASK[ask] as Record<string, string>).map(
+      ([option, css]) => ({ name: `${ask}.${option}`, css }),
+    ),
   ),
-);
+];
 
 /** A stylesheet's flat rules, `selector { body }` (a keyframe's steps come along, harmlessly). */
 const rulesOf = (css: string) =>
@@ -32,34 +33,67 @@ const rulesOf = (css: string) =>
     body: m[2],
   }));
 
+/** A selector list's parts, split on the commas outside any parentheses. */
+const partsOf = (selector: string) => selector.split(/,(?![^(]*\))/);
+
+/** A part's last compound: the element the rule actually styles. */
+const subjectOf = (part: string) =>
+  part
+    .trim()
+    .split(/\s+(?![^(]*\))|>|~|\+/)
+    .pop() ?? "";
+
 /** A rule that answers focus: the real pseudo-class or the specimen's pinned twin. */
 const ANSWERS_FOCUS = /focus-visible|data-demo~="focus"/;
 
+/** The hooks of the atoms the traits compose on (`states.ts`'s ATOMS). */
+const ATOM_HOOK =
+  /\[data-variant\]\[data-size\]|toggle-group-item|data-slot="(input|textarea|select-trigger|switch|checkbox|radio-group-item|slider-thumb|radio-card|tabs-trigger|shutter|code-chip)"\]/;
+
 describe("the identity board", () => {
   it("draws every option the spec asks, and recommends what the frames wear", () => {
-    for (const [ask, { ids, css }] of Object.entries(ASKS)) {
+    for (const ask of Object.keys(OPTIONS) as AskId[]) {
       const spec = IDENTITY.asks.find((a) => a.id === ask);
       expect(spec, `the spec asks no "${ask}"`).toBeTruthy();
-      expect(
-        spec!.options.map((o) => (typeof o === "string" ? o : o.id)),
-      ).toEqual([...ids]);
-      expect(Object.keys(css).sort()).toEqual([...ids].sort());
+      expect(spec!.options.map(optionId)).toEqual([...OPTIONS[ask]]);
+      expect(Object.keys(SHEETS_BY_ASK[ask]).sort()).toEqual(
+        [...OPTIONS[ask]].sort(),
+      );
       // A frame wears the recommendation for an answer not yet held, so the two agree.
-      expect(spec!.recommended).toBe(RECOMMENDED[ask as keyof typeof ASKS]);
+      expect(spec!.recommended).toBe(RECOMMENDED[ask]);
     }
-  });
-
-  it("draws the edge on the room's answer", () => {
-    const edge = IDENTITY.asks.find((a) => a.id === "edge");
-    expect(edge?.after).toEqual({ ask: "room" });
+    expect(IDENTITY.asks.map((a) => a.id).sort()).toEqual(
+      Object.keys(OPTIONS).sort(),
+    );
   });
 
   it("reads a choice from anything, a part at a time", () => {
     expect(choiceOf({})).toEqual(RECOMMENDED);
-    expect(choiceOf({ system: "ink", room: "nonsense" })).toEqual({
+    expect(choiceOf({ field: "tone", button: "nonsense" })).toEqual({
       ...RECOMMENDED,
-      system: "ink",
+      field: "tone",
     });
+  });
+
+  it("lays every pick into one sheet, in the composition's order", () => {
+    const css = sheetFor(RECOMMENDED);
+    const at = (ask: AskId) =>
+      css.indexOf(SHEETS_BY_ASK[ask][RECOMMENDED[ask] as never]);
+    // Body first, then toggles, chosen, press, working, focus: the later, more
+    // transient state wins a plain property both write (`sheet/index.ts`).
+    const order: AskId[] = [
+      "field",
+      "button",
+      "toggles",
+      "selected",
+      "press",
+      "loading",
+      "focus",
+      "edge",
+    ];
+    const seen = order.map(at);
+    expect(seen.every((i) => i >= 0)).toBe(true);
+    expect([...seen].sort((a, b) => a - b)).toEqual(seen);
   });
 
   /**
@@ -69,34 +103,35 @@ describe("the identity board", () => {
    * sheet named three screen parts by their ARIA labels; this keeps them out.
    */
   it("names no screen part, only atoms", () => {
-    for (const css of EVERY) {
-      expect(css).not.toMatch(/aria-label/);
-      expect(css).not.toMatch(
-        /data-(door|code-door|checklist|review|guest|settings|eh)\b/,
+    for (const { name, css } of EVERY_SHEET) {
+      expect(css, name).not.toMatch(/aria-label/);
+      expect(css, name).not.toMatch(
+        /data-(door|code-door|checklist|review|guest|settings|eh|room)\b/,
       );
     }
   });
 
   /**
-   * ★ THE CORNERS ONLY AS A FOCUS MARK (Will, identity r2: "the corners
-   * options here is what inspired my 'not devtool ish' comment ...
-   * particularly the corners and loading state, so exclude that moving
-   * forward"; "don't mind using the viewfinder corners for focus only"). The
-   * marks are painted in `--m-c` and nothing else (`marks.ts`), so a rule that
-   * inks them must either answer focus or keep them hidden (the lock at rest),
-   * and no loading state moves them.
+   * ★ THE CORNERS ONLY AS A FOCUS MARK, AND ONLY IN THE R3 MARK (Will, r2:
+   * "the corners options here is what inspired my 'not devtool ish' comment
+   * ... particularly the corners and loading state, so exclude that moving
+   * forward"; r3: "far from sold on the viewfinder focus"). The marks are
+   * painted in `--m-c` and nothing else (`marks.ts`), so a rule that inks them
+   * must answer focus or keep them hidden (the lock at rest), no working state
+   * moves them, and no sheet but the r3 mark draws them at all.
    */
-  it("inks the corner marks only for focus, and never to show loading", () => {
-    for (const css of EVERY) {
+  it("inks the corner marks only for focus, only in the r3 mark, never to show working", () => {
+    for (const { name, css } of EVERY_SHEET) {
       for (const { selector, body } of rulesOf(css)) {
         const ink = /--m-c:\s*([^;]+);/.exec(body)?.[1].trim();
         if (!ink || ink === "transparent") continue;
+        expect(name, `${name} draws the corner marks`).toBe("focus.corners");
         const hidden = /opacity:\s*0\s*;/.test(body);
         expect(
           ANSWERS_FOCUS.test(selector) || hidden,
           `"${selector}" draws the corner marks outside focus`,
         ).toBe(true);
-        expect(selector, "a loading state moves the marks").not.toMatch(
+        expect(selector, "a working state moves the marks").not.toMatch(
           /aria-busy/,
         );
       }
@@ -105,19 +140,54 @@ describe("the identity board", () => {
   });
 
   /**
-   * ★ ONE FOCUS MARK PER SYSTEM (his note: "some focuses rings, some corners,
-   * which is bad"): keys and wells lock with the corners and draw no ring;
-   * rings and ink never draw the corners.
+   * ★ ONE FOCUS MARK ON EVERYTHING (his r2 note: "some focuses rings, some
+   * corners, which is bad"): every focus option answers focus on a key, a
+   * field, a switch, a check, a radio, a slider's thumb and a tab, so no
+   * control is left to production's own ring beside the mark he picked.
    */
-  it("gives each system one focus mark across its actions and fields", () => {
-    for (const { selector, body } of rulesOf(SYSTEM_CSS.keys))
-      if (ANSWERS_FOCUS.test(selector))
-        expect(
-          body,
-          `keys' "${selector}" draws a ring where the lock belongs`,
-        ).not.toMatch(/outline-color|outline:\s*[\d.]+px solid/);
-    expect(SYSTEM_CSS.rings).not.toMatch(/--m-c/);
-    expect(SYSTEM_CSS.ink).not.toMatch(/--m-c/);
-    expect(SYSTEM_CSS.ink).not.toMatch(/outline-color/);
+  it("gives every focus option one mark across every control", () => {
+    const kinds = [
+      /\[data-variant\]\[data-size\]/,
+      /data-slot="input"/,
+      /data-slot="switch"/,
+      /data-slot="checkbox"/,
+      /data-slot="radio-group-item"/,
+      /data-slot="slider-thumb"/,
+      /data-slot="tabs-trigger"/,
+    ];
+    for (const [option, css] of Object.entries(SHEETS_BY_ASK.focus)) {
+      const focused = rulesOf(css)
+        .filter((r) => ANSWERS_FOCUS.test(r.selector))
+        .map((r) => r.selector)
+        .join(" ");
+      for (const kind of kinds)
+        expect(focused, `focus.${option} leaves ${kind} unmarked`).toMatch(
+          kind,
+        );
+    }
+  });
+
+  /**
+   * ★ THE TRAITS COMPOSE (`states.ts`): a box-shadow, a translate or a scale on
+   * an atom is one property seven sheets would each take whole, so a trait
+   * writes its own layer into its variable and `base.ts` alone draws the
+   * property. A trait that wrote one outright would wipe every other trait's
+   * layer on that atom (a press would take the focus mark with it).
+   */
+  it("lets only the composition draw an atom's shadow, travel and scale", () => {
+    for (const { name, css } of EVERY_SHEET) {
+      if (name === "base") continue;
+      for (const { selector, body } of rulesOf(css)) {
+        if (!/(^|[;\s])(box-shadow|translate|scale)\s*:/.test(body)) continue;
+        for (const part of partsOf(selector)) {
+          const subject = subjectOf(part);
+          if (/::/.test(subject)) continue;
+          expect(
+            ATOM_HOOK.test(subject),
+            `${name}: "${part.trim()}" draws an atom's shadow, travel or scale outright; write its --i-* layer`,
+          ).toBe(false);
+        }
+      }
+    }
   });
 });

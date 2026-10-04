@@ -2,54 +2,24 @@
 
 import { type ReactNode, useState } from "react";
 import {
-  Camera,
   Columns3,
   Download,
   Globe,
   Heart,
   ImageUp,
-  Images,
-  Info,
   LayoutGrid,
   Lock,
-  MoreHorizontal,
   Play,
   Plus,
   QrCode,
   Rows3,
-  Share,
-  Trash2,
   UserRound,
 } from "lucide-react";
 
-import { StyledQr } from "@/components/app/styled-qr";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardAction,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { CodeChip } from "@/components/ui/code-chip";
-import { CodeMat } from "@/components/ui/code-mat";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -62,26 +32,13 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { resolveQrPreset } from "@/lib/constants/qr-presets";
 import { cn } from "@/lib/utils";
 
-import { JOIN_URL, PHOTO } from "../fixtures";
-import type { GroundId, SheetView, Width } from "../model";
+import { PHOTO } from "../fixtures";
+import type { GroundId, MomentId, SheetView, Width } from "../model";
 
-import {
-  Check,
-  MediaTile,
-  PhotoSurface,
-  Radio,
-  RadioCard,
-  Slider,
-} from "./atoms";
-import { Ground, TOAST_BAND, useHeldToast } from "./ground";
+import { Check, PhotoSurface, Radio, RadioCard, Slider } from "./atoms";
+import { Ground } from "./ground";
 
 /**
  * THE SHEETS: every atom of one part, in every state, on paper and in the
@@ -631,299 +588,18 @@ function FieldsSheet({ w, page }: { w: Width; page: Page }) {
   );
 }
 
-/* ── LAYERS ───────────────────────────────────────────────────────────── */
-
-/** A dialog drawn in place (a real one covers the whole frame), on its overlay. */
-function DialogInPlace() {
-  return (
-    <div className="relative overflow-hidden rounded-[var(--radius-tile)] p-5">
-      <div data-slot="popup-overlay" className="absolute inset-0" />
-      <div
-        data-slot="popup-content"
-        data-shape="dialog"
-        data-kind="confirm"
-        className="relative flex flex-col gap-4 bg-popover p-5 text-sm text-popover-foreground"
-        style={{ position: "relative" }}
-      >
-        <div data-slot="popup-header" className="flex flex-col gap-1.5">
-          <p className="font-heading text-card-title">
-            Stop asking for an email first?
-          </p>
-          <p className="text-muted-foreground">
-            Guests will add photos under a name they type, with no email behind
-            it.
-          </p>
-        </div>
-        <div data-slot="popup-footer" className="flex justify-end gap-2">
-          <Button variant="outline">Keep asking</Button>
-          <Button>Use names only</Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/** The Add's rows as a hand draws them (a menu at a desk, rows at the thumb). */
-function RowsInPlace() {
-  return (
-    <div data-slot="responsive-menu-rows" className="flex flex-col gap-2 p-0">
-      <div className="flex flex-col p-1.5">
-        <h2 className="px-3 pt-2 pb-2 text-center text-xs text-muted-foreground">
-          Add photos
-        </h2>
-        <div
-          data-slot="responsive-menu-item"
-          className="flex h-12 items-center gap-3 px-3 text-base"
-        >
-          <Camera className="size-5 text-muted-foreground" /> Take a photo
-        </div>
-        <div
-          data-slot="responsive-menu-item"
-          data-demo="hover"
-          className="flex h-12 items-center gap-3 px-3 text-base"
-        >
-          <Images className="size-5 text-muted-foreground" /> Choose from your
-          album
-        </div>
-      </div>
-      <div className="flex flex-col p-1.5">
-        <div
-          data-slot="responsive-menu-item"
-          className="flex h-12 items-center justify-center px-3 text-base font-medium"
-        >
-          Cancel
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/**
- * THE LOUPE: a small surface magnified, as a photographer checks an edge,
- * because the light edge is one pixel and a frame drawn at a stage's scale
- * shows it at less than one. Each window holds the very atom hook the sheet
- * styles (a pop-out, a card, a photograph), small enough that its top and
- * the sides it falls away down are in the window, so what it magnifies is
- * the rule, never a picture of it.
- */
-function Loupe({
-  children,
-  name,
-  k,
-}: {
-  children: ReactNode;
-  name: string;
-  k: number;
-}) {
-  return (
-    <figure className="flex min-w-0 flex-1 flex-col gap-1">
-      <div
-        className="relative overflow-hidden rounded-[6px] bg-background"
-        style={{
-          height: Math.round(44 * k),
-          boxShadow: "inset 0 0 0 1px var(--border)",
-        }}
-      >
-        <div className="absolute top-2 left-1/2 -translate-x-1/2">
-          <div style={{ zoom: k }}>{children}</div>
-        </div>
-      </div>
-      <Note>{`${name}, ×${k}`}</Note>
-    </figure>
-  );
-}
-
-function Loupes({ w }: { w: Width }) {
-  const desk = w === 1440;
-  const k = desk ? 2.5 : 1.75;
-  return (
-    <div className={cn("grid gap-2", desk ? "grid-cols-4" : "grid-cols-2")}>
-      <Loupe name="a pop-out" k={k}>
-        <div data-slot="dropdown-menu-content" className="h-16 w-20" />
-      </Loupe>
-      <Loupe name="a card" k={k}>
-        <div data-slot="card" className="h-16 w-20" />
-      </Loupe>
-      <Loupe name="a photograph" k={k}>
-        <MediaTile src={PHOTO.golden} pos="8% 40%" className="h-16 w-20" />
-      </Loupe>
-      <Loupe name="a glass round" k={k}>
-        <PhotoSurface
-          src={PHOTO.golden}
-          pos="30% 40%"
-          className="flex h-16 w-20 items-center justify-center rounded-[var(--radius-tile)]"
-        >
-          <Button variant="glass" size="icon-cta" aria-label="Watch">
-            <Play className="fill-current" />
-          </Button>
-        </PhotoSurface>
-      </Loupe>
-    </div>
-  );
-}
-
-function LayersSheet({ g, w, page }: { g: GroundId; w: Width; page: Page }) {
-  const desk = w === 1440;
-  useHeldToast(g, "Photo hidden from the album", shows(page, 1));
-  return (
-    <div className={cn("grid gap-6", desk ? "grid-cols-2" : "grid-cols-1")}>
-      {shows(page, 1) ? (
-        <div className="flex min-w-0 flex-col gap-4">
-          <div
-            className="flex items-start justify-between gap-3"
-            style={{ height: desk ? 176 : 186 }}
-          >
-            <DropdownMenu open modal={false}>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <MoreHorizontal /> More
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="start"
-                className="w-56"
-                onCloseAutoFocus={(e) => e.preventDefault()}
-              >
-                <DropdownMenuLabel>This photo</DropdownMenuLabel>
-                <DropdownMenuItem>
-                  <Download /> Download the original
-                </DropdownMenuItem>
-                <DropdownMenuItem data-demo="hover">
-                  <Share /> Copy link
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem variant="destructive">
-                  <Trash2 /> Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <Tooltip open>
-              <TooltipTrigger asChild>
-                <Button size="icon" variant="ghost" aria-label="Download">
-                  <Download />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="left">Download</TooltipContent>
-            </Tooltip>
-          </div>
-          <div style={{ height: desk ? 104 : 112 }}>
-            <Popover open>
-              <PopoverTrigger asChild>
-                <Button
-                  size="icon-sm"
-                  variant="ghost"
-                  aria-label="What a password is for"
-                >
-                  <Info />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent
-                side="right"
-                align="start"
-                className="w-60 text-sm"
-                onOpenAutoFocus={(e) => e.preventDefault()}
-              >
-                <p className="font-medium">A password</p>
-                <p className="mt-1 text-muted-foreground">
-                  Guests type it once at the door; the link alone is not enough.
-                </p>
-              </PopoverContent>
-            </Popover>
-          </div>
-          <RowsInPlace />
-        </div>
-      ) : null}
-      {shows(page, 2) ? (
-        <div className="flex min-w-0 flex-col gap-4">
-          <Card size="sm">
-            <CardHeader>
-              <CardTitle>The highlight reel</CardTitle>
-              <CardDescription>Plays every approved photo.</CardDescription>
-              <CardAction>
-                <Badge variant="success">On</Badge>
-              </CardAction>
-            </CardHeader>
-            <CardFooter className="justify-between gap-2">
-              <span className="text-caption text-muted-foreground">
-                2 photos to go
-              </span>
-              <Button size="sm" variant="outline">
-                Watch
-              </Button>
-            </CardFooter>
-          </Card>
-          <DialogInPlace />
-          <div className="flex items-center gap-3">
-            <MediaTile
-              src={PHOTO.toast}
-              className="h-24 flex-[1.5]"
-              pos="50% 40%"
-            />
-            <MediaTile src={PHOTO.rings} className="h-24 flex-1" />
-            <PhotoSurface
-              src={PHOTO.hall}
-              className="flex h-24 flex-[1.5] items-center justify-center gap-2 rounded-[var(--radius-tile)]"
-            >
-              <Button variant="glass" size="icon-cta" aria-label="Like">
-                <Heart />
-              </Button>
-              <Button variant="glass" size="icon-cta" aria-label="Watch">
-                <Play className="fill-current" />
-              </Button>
-            </PhotoSurface>
-            {desk ? (
-              <CodeMat aria-label="The event's code">
-                <StyledQr
-                  value={JOIN_URL}
-                  size={80}
-                  style={resolveQrPreset("classic")}
-                />
-              </CodeMat>
-            ) : null}
-          </div>
-          <Note>
-            photographs (lit as built), a glass round on one, the code on its
-            white mat
-          </Note>
-        </div>
-      ) : null}
-      {shows(page, 2) ? (
-        <div className={desk ? "col-span-2" : undefined}>
-          <Loupes w={w} />
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
 /* ── the sheet, on its grounds ────────────────────────────────────────── */
 
 const TITLE: Record<SheetView, string> = {
   actions: "Actions, every state",
-  fields: "Fields and choices, every state",
-  layers: "Every pop-out and surface",
+  fields: "Fields and toggles, every state",
 };
 
-/** Which sheets hold a toast up, and so keep a band clear for it under their title. */
-const HOLDS_TOAST: readonly SheetView[] = ["layers"];
-
-function SheetOn({
-  view,
-  g,
-  w,
-  page,
-}: {
-  view: SheetView;
-  g: GroundId;
-  w: Width;
-  page: Page;
-}) {
+function SheetOn({ view, w, page }: { view: SheetView; w: Width; page: Page }) {
   return view === "actions" ? (
     <ActionsSheet w={w} page={page} />
-  ) : view === "fields" ? (
-    <FieldsSheet w={w} page={page} />
   ) : (
-    <LayersSheet g={g} w={w} page={page} />
+    <FieldsSheet w={w} page={page} />
   );
 }
 
@@ -941,11 +617,12 @@ export function Sheet({
   w: Width;
   ground: GroundId;
   page: 1 | 2;
+  /** The trait being asked: every state is drawn whatever it is, so the sheet reads it for nothing yet. */
+  moment?: MomentId;
 }) {
   const desk = w === 1440;
   const grounds: GroundId[] = desk ? ["paper", "room"] : [ground];
   const at: Page = desk ? 0 : page;
-  const band = HOLDS_TOAST.includes(view) && shows(at, 1);
   return (
     <main
       className="grid min-h-screen"
@@ -962,7 +639,7 @@ export function Sheet({
         >
           <header
             className="flex items-baseline justify-between gap-3"
-            style={{ marginBottom: band ? TOAST_BAND : 20 }}
+            style={{ marginBottom: 20 }}
           >
             <span className="text-[11px] leading-4 font-medium text-foreground">
               {desk ? TITLE[view] : `${TITLE[view]}, ${page} of 2`}
@@ -971,7 +648,7 @@ export function Sheet({
               {g === "paper" ? "On paper" : "In the room"}
             </span>
           </header>
-          <SheetOn view={view} g={g} w={w} page={at} />
+          <SheetOn view={view} w={w} page={at} />
         </Ground>
       ))}
     </main>
