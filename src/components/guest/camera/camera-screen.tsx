@@ -45,6 +45,7 @@ import {
   frameSize,
   pipelineStill,
 } from "@/lib/guest/camera/capture";
+import { filmingProgress, filmingRead } from "@/lib/guest/camera/clock";
 import { shotName, stillPath } from "@/lib/guest/camera/frame-math";
 import {
   canFilm,
@@ -589,11 +590,10 @@ export function CameraScreen({
   const elapsed =
     filming?.startedAt && now ? Math.max(0, now - filming.startedAt) : 0;
   const progress = filming?.startedAt
-    ? Math.min(1, elapsed / (CAMERA_VIDEO_SECONDS * 1000))
+    ? filmingProgress(elapsed)
     : filming
       ? 0
       : null;
-  const seconds = Math.min(CAMERA_VIDEO_SECONDS, Math.floor(elapsed / 1000));
 
   /* ── the phone's own camera, where this one cannot open ──────────────────────────────────── */
   const phoneCamera = useRef<HTMLInputElement>(null);
@@ -699,7 +699,7 @@ export function CameraScreen({
         {filming && (
           <span className="cam-rec" data-cam-rec="">
             <span className="cam-rec-dot" aria-hidden />
-            {`0:${String(seconds).padStart(2, "0")} of 0:${String(CAMERA_VIDEO_SECONDS).padStart(2, "0")}`}
+            {filmingRead(elapsed)}
           </span>
         )}
         {!live && picture.access !== "live" && (

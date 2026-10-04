@@ -108,7 +108,7 @@
   pointer-events: none;
 }
 
-/* The filming mark: a red dot and the clock against its ten seconds. */
+/* The filming mark: a red dot and the clock against the clip's length. */
 .cam-rec {
   position: absolute;
   top: 12px;
@@ -360,7 +360,7 @@
 }
 
 /* The shutter: a white ring round a white face; held, the face turns the recording red and a red ring fills to the
-   video's ten seconds round it. */
+   video's length round it. */
 .cam-shutter {
   grid-area: shutter;
   justify-self: center;

@@ -66,7 +66,7 @@ export function CameraReel({
   frozen: ReadonlyMap<string, HTMLCanvasElement>;
   /** The shots just taken: each one's frame shows its frozen picture as it seals. */
   just: ReadonlySet<string>;
-  /** A video's share of its ten seconds, while one rolls. */
+  /** A video's share of its length, while one rolls. */
   progress: number | null;
   /** The button's name: "Your shots, 6 on the roll". */
   label: string;

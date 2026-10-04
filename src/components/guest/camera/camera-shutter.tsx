@@ -3,11 +3,12 @@
 /**
  * THE CAMERA'S SHUTTER: white, round, the one thing she presses (the board's `dm-shutter`, kept). A press is a photo,
  * a hold a video where the album takes one (`use-shutter-press.ts`); while a video rolls its face turns the recording
- * red and a red ring fills round it to the ten seconds, so the limit is read at the thumb.
+ * red and a red ring fills round it to the clip's length (`filmingProgress`, `clock.ts`), so the limit is read at the
+ * thumb.
  *
  * ★ ITS RING IS DRAWN FROM THE CLOCK, NEVER AN ANIMATION'S TIMELINE. The ring is information (how long is left), so
- * under reduced motion it still fills, step by step as the clock ticks, where a ten-second CSS animation would be
- * clamped to its end by the global guard and read "full" from the first frame.
+ * under reduced motion it still fills, step by step as the clock ticks, where a CSS animation of the clip's length
+ * would be clamped to its end by the global guard and read "full" from the first frame.
  */
 import type { Ref } from "react";
 
@@ -37,7 +38,7 @@ export function CameraShutter({
   handlers: ShutterHandlers;
   pressed: boolean;
   filming: boolean;
-  /** The video's share of its ten seconds, while one rolls. */
+  /** The video's share of its length, while one rolls. */
   progress: number | null;
   disabled: boolean;
   label: string;

@@ -19,6 +19,12 @@ reads:                  # single-sources you depend on: never duplicate, never e
 
 **Goal.** Will's yes: the album camera's held clip runs to 30 seconds at about 5 Mbps (about 19 MB), the server's bound restated from ladder_a's create_media with the Advisor's hardening (the grace its own constant, the messages formatted from the constants), the ring's 0:30.
 
+## Where I am
+
+- Booted: worktree `camera-clip` on `lp/camera-clip`, cut from `8fa910336` (launch-prep's tip at the boot; the one record commit since, `7575ce528`, touches no code of mine).
+- **The migration is whole and pushed (WIP), for the Advisor: `supabase/migrations/20261004120000_camera_clip.sql`.** `create_media` restated from ladder_a (live md5 `db4049b7…` = the file's, read at 05:52Z and again at 06:54Z), the diff its three hunks only (the constants with the grace its own, the camera block's two refusals `format()`ed from them, a lead comment); the new body hashes `fab801fc…`. Its foot holds the rolled-back proof and its result on the live schema: RED 4 of 8 rows red (steps 1, 2, 3, 7), GREEN 8 of 8, nothing persisted after. Not applied (the Orchestrator's).
+- The TypeScript side rides the same commit (30 s, 384 MB, the clock helper, the parity test reading the SQL constants beside the TypeScript ones). Still to do: the headless-Chrome measurement of a 30 s hold, the local look at the ring, `lab:smoke`, the build, the Handoff.
+
 ## The brief
 
 **Will's yes (2026-10-04) to the camera's longer clip:** "if easily manageable, i think this is a win-win. hosts get longer videos of special moments, we max storage more easily with great performance." The 10 seconds came from the camera board's drawn option (`video=hold`), never a technical limit: a clip is drawn at 1080 on its short side and recorded at about 8 Mbps (`src/lib/guest/camera/recorder.ts`'s `VIDEO_BITS`), about 1 MB a second, sent as one PUT (multipart only from 100 MB).
