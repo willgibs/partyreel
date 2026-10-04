@@ -17,6 +17,8 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Billing: a Pro host's switch from `/pricing`'s hop (the checkout button's `already_subscribed` re-post to change-plan) carries no uploads sentence (`uploadsPauseNote`); the change-plan route could answer a notice the hop shows before it redirects.
+- Host: nowhere in the app says a host's uploads this month against her plan's allowance (Free's 300 MB a month is stated nowhere in-app); the storage ring's popover or the Plan card could say it beside the plan's number.
 - Host: the hub counts as an open (`/dashboard/[eventId]` mounts `noteEventOpenedAction` once, as `MarkWelcomedOnMount` does), so a deep link, the bell and an email reach Recent and Last opened.
 - Host: `/dashboard/<id>/reel` (the old route's redirect) sends a live reel to the guests' page, which has none before the develop; send it to the hub's `?reel` while a develop time is ahead (`reel/page.tsx`).
 - Host (clip): the hub's reel view has no Make your own (its seam wants the host's plan and her own Add to event); wire it from the hub so she can make a clip before the develop.
