@@ -2,28 +2,25 @@
 
 > ROLE: one manifest per open `lp/<track>` branch: its lane, its brief, its questions and its handoff. Read this
 > directory to see what every open lane is doing. BELONGS HERE: `<track>.md` per open or handed-off lane, and
-> `orchestrator.md` (the Orchestrator's pickup: in flight, next, waiting on Will). · NOT HERE: the program's rules (→
+> `orchestrator.md` (the Orchestrator's pickup: in flight, next, waiting on Will). NOT HERE: the program (→
 > [`../PROGRAM.md`](../PROGRAM.md)), what shipped (→ `git log`: each merge commit carries its lane's summary), what
 > is next (→ [`../ROADMAP.md`](../ROADMAP.md)). LIFECYCLE: a manifest is cut with its lane and deleted in the merge
 > commit that integrates it.
 
 ## The lifecycle
 
-`open` → `handed-off` → deleted at the merge. **open**: the Orchestrator cuts the manifest on `launch-prep` from a
-spec (`usher/kit/cut-lane.py`) and the agent adopts it, or an agent spawned from a bare goal writes one at boot from
-the template below, committed alone and pushed before any other work. **handed-off**: the Handoff filled, the
-pre-handoff sync and the lane check done, `status: handed-off`, the manifest committed alone and pushed; the chat
-report is one line naming the head. A second round of the same work is a fresh manifest cut from Will's notes on the
-first, never without them.
+`open` → `handed-off` → deleted at the merge. The Orchestrator cuts a manifest on `launch-prep` from a spec
+(`usher/kit/cut-lane.py`), or an agent from a bare goal writes one from the template below. A lane adopts and hands
+off its manifest by [`../PROGRAM.md`](../PROGRAM.md)'s "Agent boot", started by a prompt from its
+"Starting a session". A second round of the same work is a fresh manifest cut from Will's notes on the first, never
+without them.
 
 ## Claims are path prefixes
 
-`owns` lists repo-relative path PREFIXES (directories end in `/`), never globs; everything outside a lane's prefixes
-is forbidden to it. The record docs are the Orchestrator's: `docs/STATUS.md`, `docs/ROADMAP.md`, `docs/PROGRAM.md`,
-`CLAUDE.md`, `AGENTS.md`, `docs/ASSETS.md`, `docs/reviews/`, this directory and the generated `src/lib/db/types.ts`.
-One is released to a lane only when the lane's whole job is that doc, and returns at its merge.
-`src/lib/track-manifests.test.ts` holds the list and fails `pnpm test` when two live lanes overlap, a lane claims a
-record doc, or a manifest is malformed.
+`owns` lists repo-relative path prefixes (directories end in `/`), never globs; everything outside a lane's prefixes
+is forbidden to it. No lane claims the Orchestrator's records (`NEVER_OWNED` in `src/lib/track-manifests.test.ts`):
+one is released to a lane only when the lane's whole job is that doc, and returns at its merge. That test fails
+`pnpm test` when two live lanes overlap, a lane claims a record, or a manifest is malformed.
 
 ## The commands every agent runs
 
@@ -72,15 +69,15 @@ in this lane.
 ## The brief
 
 Everything the lane cannot find itself: the task's intent, synthesized (Will's exact words only where the wording is
-the point), the calls already made, what to read, the neighbour a new
-board registers after.
+the point), the calls already made, what to read, and a new board's place on the desk.
 
 **Starts from.** CLAUDE.md's working loop, the bible's ten and production as it is; the tests say what has to keep
 working.
 
-**Verify on.** For a board: 1440 and 375 with reduced motion honoured, `pnpm lab:smoke` whole, `pnpm lab:demo --board
-<board>` pressing every step. For a wiring lane: the gate on the synced tree, `pnpm lab:smoke` whole when it changes anything under `src/`
-but tests, and the surfaces the Handoff is judged on, local and live.
+**Verify on.** For a board: 1440 and 375 with reduced motion honoured, `pnpm lab:smoke` on what the change reaches,
+`pnpm lab:demo --board <board>` pressing every step. For a production lane: the gate on the synced tree,
+`pnpm lab:smoke` when it changes anything under `src/` but tests, and the surfaces the Handoff is judged on, local and
+live.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
@@ -96,7 +93,7 @@ but tests, and the surfaces the Handoff is judged on, local and live.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved)
+- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
 - Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
 - Gates on the synced tree, each on its own exit code, and the sha they ran on
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
@@ -107,8 +104,3 @@ but tests, and the surfaces the Handoff is judged on, local and live.
 - Calls his to overrule, one line each
 - Look at first: ...
 ```
-
-## Spawning a lane
-
-The manifest is the init: the prompt is in [`../PROGRAM.md`](../PROGRAM.md) "Starting a session" (the Orchestrator's
-spawns use `usher/kit/spawn-prompt.txt`).

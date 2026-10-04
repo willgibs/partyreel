@@ -59,6 +59,29 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 3,
+      "opened": "2026-10-04",
+      "answers": [
+        {
+          "ask": "facts",
+          "choice": "strip",
+          "note": "I absolutely love the guest row design and feel like it really adds an 'alive' feeling to the event page. More social/community, less 'old album of photos'. Would love an exploration on potential ways to include (anywhere across app, marketing open as well). transitions.dev has a great effect that stacks with it here (https://transitions.dev/detail.html?t=avatar-group-hover), should have the matching skill installed. this even if we go with the strip for this selection.",
+          "by": "Will",
+          "at": "2026-10-04T06:50:49Z"
+        },
+        {
+          "ask": "doors",
+          "choice": null,
+          "note": "This is really difficult. All three are well-designed and stand on their own merits, but I'm currently leaning toward one glass capsule. We'd like to see all three through another round of design to see how they improve, so we can see more of each's potential. for example, a small add to glass capsule (far from exhaustive, you're more creative) is stacking the counts on the icons as badges, also don't love our yellow color, makes the page feel dull. total freedom there too. Cards over seam probably works best on mobile right now. Just trying to add context, but let your best ideas & max creativity fly. We're defining core experience here, if hosts have a bad UX using an event we'll lose them.",
+          "by": "Will",
+          "at": "2026-10-04T06:50:49Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }

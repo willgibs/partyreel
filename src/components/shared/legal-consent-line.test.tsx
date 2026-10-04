@@ -31,6 +31,16 @@ describe("LegalConsentLine", () => {
     }
   });
 
+  it("★ neither link prefetches: the line stands in every guest's door (compute-levers)", () => {
+    const src = readFileSync(
+      join(process.cwd(), "src/components/shared/legal-consent-line.tsx"),
+      "utf8",
+    );
+    const links = src.match(/<Link\b[^>]*>/g) ?? [];
+    expect(links).toHaveLength(2);
+    for (const link of links) expect(link).toContain("prefetch={false}");
+  });
+
   it("both consumers use the component, not a copy", () => {
     for (const rel of [
       "src/components/auth/account-door.tsx",

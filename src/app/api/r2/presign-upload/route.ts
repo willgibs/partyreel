@@ -18,7 +18,8 @@ import { presignUploadSchema } from "@/lib/validation/upload";
  */
 const ALBUM_FULL =
   "This album is full right now. The host needs to free up space.";
-const ALBUM_MONTH_SPENT = "This album has hit its upload limit for the month.";
+// "For now", never "for the month": a pass counts its uploads over its own year (Ladder A, 20261004100000).
+const ALBUM_MONTH_SPENT = "This album has hit its upload limit for now.";
 
 // Issues presigned URLs for a guest's browser → R2 DIRECT upload. The pipeline
 // engine (lib/upload/server-pipeline.ts) owns the shared spine; this strategy
@@ -177,8 +178,8 @@ const guestPresignStrategy: PresignStrategy<typeof presignUploadSchema> = {
         },
       };
     }
-    // ★ THE ALBUM'S CAMERA (20261002200000): a video shot is ten seconds and 128 MB, her roll holds its frames (24),
-    // and a period takes three rolls' worth. Refused here before the bytes move, in the server's own words;
+    // ★ THE ALBUM'S CAMERA (20261002200000): a video shot has a length and a byte bound (`media/limits.ts`), her roll
+    // holds its frames (24), and a period takes three rolls' worth. Refused here before the bytes move, in the server's own words;
     // create_media holds the same lines on the R2-HEAD size and counts the roll under its locks, so this is the
     // friendly half, never the boundary.
     const shot = cameraShotRefusal(

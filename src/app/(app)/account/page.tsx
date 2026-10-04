@@ -210,7 +210,8 @@ export default async function AccountPage({
      would be cheapest and worst. */
   const planName = TIER_NAMES[tier];
   const planCap = effectiveStorageCap(tier, profile.storage_cap_bytes ?? null);
-  const planUsed = storage.activeBytes;
+  // What her plan holds: her albums and her Deleted together (trash-in-storage), the figure every cap check reads.
+  const planUsed = storage.storedBytes;
   // Stacked Event Passes override the static tier limit, exactly as
   // enforce_event_limit does in SQL.
   const planMaxEvents = profile.event_slots ?? MAX_EVENTS[tier];
@@ -344,7 +345,7 @@ export default async function AccountPage({
               <span className="font-medium text-foreground">
                 {planById("event_pass").name}
               </span>{" "}
-              covers one event, paid once:{" "}
+              one event, one payment, no subscription:{" "}
               {planById("event_pass").priceLabel.replace(" one-time", "")} for{" "}
               {formatBytes(planById("event_pass").storageBytes)}.
             </p>

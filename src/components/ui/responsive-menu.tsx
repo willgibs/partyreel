@@ -14,6 +14,7 @@ import {
   floatingEdgeEntrance,
   floatingDisplayPanel,
   floatingEntrance,
+  floatingGutter,
   floatingRow,
 } from "@/components/ui/floating-layer"
 import {
@@ -163,7 +164,7 @@ function ResponsiveMenu({
             aria-label={typeof title === "string" ? title : undefined}
             align={align}
             sideOffset={6}
-            collisionPadding={8}
+            collisionPadding={floatingGutter}
             onCloseAutoFocus={giveBackFocus}
             // The button that asked is outside the menu: pressing it again
             // must not dismiss here and reopen in its own click a beat later.
@@ -269,10 +270,10 @@ function ResponsiveMenu({
 // A chosen row is the display's (layers=display): its light wash and a light
 // outline inside it, on whatever chooses it in each shape.
 const DESK_ROW =
-  "flex min-h-9 w-full items-center gap-2.5 px-2.5 py-1.5 text-left text-sm outline-none select-none hover:bg-accent hover:ring-[1.5px] hover:ring-foreground/50 hover:ring-inset focus-visible:bg-accent focus-visible:ring-[1.5px] focus-visible:ring-foreground/50 focus-visible:ring-inset disabled:pointer-events-none disabled:opacity-50 [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-muted-foreground"
+  "flex min-h-9 w-full items-center gap-2.5 px-2.5 py-1.5 text-left text-sm outline-none select-none hover:bg-accent hover:ring-[1.5px] hover:ring-(color:--display-cursor) hover:ring-inset focus-visible:bg-accent focus-visible:ring-[1.5px] focus-visible:ring-(color:--display-cursor) focus-visible:ring-inset disabled:pointer-events-none disabled:opacity-50 [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-muted-foreground"
 
 const HAND_ROW =
-  "flex min-h-12 w-full items-center gap-3 px-3 py-2 text-left text-base outline-none select-none active:bg-accent active:ring-[1.5px] active:ring-foreground/50 active:ring-inset focus-visible:bg-accent focus-visible:ring-[1.5px] focus-visible:ring-foreground/50 focus-visible:ring-inset disabled:pointer-events-none disabled:opacity-50 [&>svg]:size-5 [&>svg]:shrink-0 [&>svg]:text-muted-foreground"
+  "flex min-h-12 w-full items-center gap-3 px-3 py-2 text-left text-base outline-none select-none active:bg-accent active:ring-[1.5px] active:ring-(color:--display-cursor) active:ring-inset focus-visible:bg-accent focus-visible:ring-[1.5px] focus-visible:ring-(color:--display-cursor) focus-visible:ring-inset disabled:pointer-events-none disabled:opacity-50 [&>svg]:size-5 [&>svg]:shrink-0 [&>svg]:text-muted-foreground"
 
 /**
  * A ROW: an icon, its words, and what it is worth (a count, a size, a check)

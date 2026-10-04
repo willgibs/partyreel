@@ -45,6 +45,7 @@ import {
   frameSize,
   pipelineStill,
 } from "@/lib/guest/camera/capture";
+import { filmingProgress, filmingRead } from "@/lib/guest/camera/clock";
 import { shotName, stillPath } from "@/lib/guest/camera/frame-math";
 import {
   canFilm,
@@ -74,6 +75,7 @@ import {
 } from "@/lib/guest/camera/words";
 import type { FileExtra } from "@/lib/guest/use-upload-queue";
 import { CAMERA_VIDEO_SECONDS } from "@/lib/media/limits";
+import { UPLOAD_WORDS } from "@/lib/upload/uploader";
 import { cn } from "@/lib/utils";
 
 /** How long a said line stands before the camera's standing line comes back. */
@@ -168,8 +170,12 @@ export function CameraScreen({
   just: ReadonlySet<string>;
   /** The album takes a video (a paid plan and the host's Videos on). */
   albumTakesVideo: boolean;
-  /** Her shots that did not send: how many, and whether a Retry could pass. */
-  unsent: { count: number; retryable: boolean };
+  /**
+   * Her shots that did not send: how many, whether a Retry could pass, and whether the connection is why (red-team 53's
+   * NIT: the camera never said a dropped one). The line then says the uploader's own sentence, never a count that
+   * would read as a broken app.
+   */
+  unsent: { count: number; retryable: boolean; dropped?: boolean };
   /** The newest refusal of a shot's own file, in the server's words: said once, as it arrives. */
   latestRefusal: { key: string; sentence: string } | null;
   /** A refusal of the album itself, in the server's words: the shutter stops. */
@@ -589,11 +595,10 @@ export function CameraScreen({
   const elapsed =
     filming?.startedAt && now ? Math.max(0, now - filming.startedAt) : 0;
   const progress = filming?.startedAt
-    ? Math.min(1, elapsed / (CAMERA_VIDEO_SECONDS * 1000))
+    ? filmingProgress(elapsed)
     : filming
       ? 0
       : null;
-  const seconds = Math.min(CAMERA_VIDEO_SECONDS, Math.floor(elapsed / 1000));
 
   /* ── the phone's own camera, where this one cannot open ──────────────────────────────────── */
   const phoneCamera = useRef<HTMLInputElement>(null);
@@ -621,7 +626,9 @@ export function CameraScreen({
       (blocked || done || !live
         ? ""
         : unsent.count > 0
-          ? unsentLine(unsent.count)
+          ? unsent.dropped
+            ? UPLOAD_WORDS.dropped
+            : unsentLine(unsent.count)
           : filmable
             ? CAMERA_HINT.tapOrHold
             : CAMERA_HINT.tap));
@@ -699,7 +706,7 @@ export function CameraScreen({
         {filming && (
           <span className="cam-rec" data-cam-rec="">
             <span className="cam-rec-dot" aria-hidden />
-            {`0:${String(seconds).padStart(2, "0")} of 0:${String(CAMERA_VIDEO_SECONDS).padStart(2, "0")}`}
+            {filmingRead(elapsed)}
           </span>
         )}
         {!live && picture.access !== "live" && (

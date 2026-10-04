@@ -22,6 +22,7 @@ import {
 } from "@/components/app/event-settings/setting-word";
 import { Button } from "@/components/ui/button";
 import { formatCount } from "@/lib/format/count";
+import { RangeText } from "@/lib/format/range-text";
 import { DOORS, stepOf, type Door } from "@/lib/event/door/door";
 import { cameInLine, listedWouldComeInLine } from "@/lib/event/door/words";
 import {
@@ -422,7 +423,12 @@ function SettingsStep({
         <span className="block text-caption leading-5 text-pretty text-muted-foreground">
           <span id={sentenceId} data-settings-sentence="">
             {parts.map((part, i): ReactNode => {
-              if (!part.word) return <span key={i}>{part.text}</span>;
+              if (!part.word)
+                return (
+                  <span key={i}>
+                    {part.range ? <RangeText text={part.text} /> : part.text}
+                  </span>
+                );
               const w = words[part.word];
               return (
                 <SettingWord

@@ -33,6 +33,17 @@ const card = (over: Partial<WeekCard>): WeekCard => ({
 });
 
 describe("WeekRow", () => {
+  it("★ says a range's when with its 'to' at a desk and in a hand (Q2)", () => {
+    const { container } = render(
+      <WeekRow cards={[card({ when: "Fri–Sun" })]} />,
+    );
+    // Once under the name at a desk, once in the line a phone reads: both carry the hidden "to".
+    expect(container.querySelectorAll(".sr-only")).toHaveLength(2);
+    for (const to of container.querySelectorAll(".sr-only")) {
+      expect(to.textContent?.trim()).toBe("to");
+    }
+  });
+
   it("draws nothing for a week with no other party", () => {
     const { container } = render(<WeekRow cards={[]} />);
     expect(container.firstChild).toBeNull();

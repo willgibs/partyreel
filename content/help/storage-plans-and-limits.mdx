@@ -1,9 +1,9 @@
 ---
 title: Storage, plans, and what counts toward your limit
-description: "Your plan is one storage total across all your events, counted on the original files, yours and your guests. Previews and the live reel take none. Deleting frees room at once. No guest limit."
+description: "One storage total across all your events, counted on the original files, Deleted included until it leaves. Previews and the reel take none. Each plan also allows its uploads. No guest limit."
 category: plans-and-billing
 order: 3
-updated: "2026-10-02"
+updated: "2026-10-04"
 keywords:
   - storage
   - storage limit
@@ -13,6 +13,7 @@ keywords:
   - guest limit
   - how many photos
   - storage meter
+  - uploads allowance
 ---
 
 Storage is counted in bytes, not photos: the size of the original files in your albums, added up across everything you host. Guests are never counted; events are a per-plan slot count, in the table below.
@@ -21,23 +22,28 @@ Storage is counted in bytes, not photos: the size of the original files in your 
 
 - **Every original file** in every one of your events: guest uploads and your own, photos and videos, at their uploaded size.
 - **Hidden photos** and photos waiting in Review, since they're stored.
+- **Anything in Deleted**, until it leaves. A removed photo or a deleted event waits <RecoveryDays /> for a possible restore and still counts while it waits; it stops counting the moment it leaves, when you empty Deleted, delete it for good, or its time runs out.
 - **A clip added to the album**, which is an ordinary video once it's there. See [add a clip to the event](/help/add-a-clip-to-the-event).
 
 ## What doesn't
 
 - **The small preview** Partyreel makes for each tile.
+- **The phone-size copy** of each photo, the one guests save to their phones.
 - **The highlight reel.** It plays straight from the album and is never stored as a file, and neither is a clip someone saves to their own phone.
-- **Anything in Deleted.** Removing a photo or deleting an event frees its space as soon as you do it, even though the file waits <RecoveryDays /> for a possible restore.
 
 ## The plans
 
-| Plan | Storage | Events |
-| --- | --- | --- |
-| Free | <FreeStorage /> | <MaxEvents tier="free" capitalized /> |
-| Event Pass | <EventPassStorage /> per pass | One per pass |
-| Pro | <ProPlans /> | <MaxEvents tier="pro" capitalized /> |
+| Plan | Storage | Uploads | Events |
+| --- | --- | --- | --- |
+| Free | <FreeStorage /> | <PlanUploads id="free" /> | <MaxEvents tier="free" capitalized /> |
+| Event Pass | <EventPassStorage /> per pass | <PlanUploads id="event_pass" />, per pass | One per pass |
+| Pro | <ProPlans /> | <ProUploads /> | <MaxEvents tier="pro" capitalized /> |
 
 A rough feel, <EstimateBasis />: <FreeStorage /> is about <CapacityEstimate plan="free" basis="off" />, a small gathering's worth, and a single Event Pass is about <CapacityEstimate plan="event_pass" basis="off" />. The storage meter on your dashboard translates your own plan the same way. See [Pro vs. Event Pass](/help/pro-vs-event-pass).
+
+## Uploads
+
+Each plan also allows a set amount of uploading: everything you and your guests add, deletions included, so deleting something never gives its upload back. Free and Pro count it each calendar month; an Event Pass counts its own year, so its event can use the whole allowance in one night. It's sized so a real event doesn't meet it, which is why it sits in the pricing table beside storage. If an album ever did, its guests would see <UiLabel>This album has hit its upload limit for now.</UiLabel> until the month turns, another pass adds its own, or you move up a size.
 
 ## Per-file limits
 
@@ -47,7 +53,7 @@ Separately from the total, any single file can be up to <UploadSize /> on every 
 
 <Path>Dashboard › storage meter</Path>
 
-The ring beside New event on your dashboard turns amber past 85 percent. Tap it for the exact numbers and what's sitting in Deleted. What happens when it fills is its own guide: [what happens when storage fills up](/help/what-happens-when-storage-fills-up).
+The ring beside New event on your dashboard turns amber past 85 percent. Tap it to see your albums and Deleted drawn apart against your plan, with <UiLabel>Make room from Deleted</UiLabel> and <UiLabel>Empty Deleted</UiLabel> beside them. What happens when it fills is its own guide: [what happens when storage fills up](/help/what-happens-when-storage-fills-up).
 
 <Callout type="info" title="Is there a guest limit?">
 

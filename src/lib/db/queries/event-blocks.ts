@@ -300,7 +300,14 @@ export async function getEventBlocks(
           verified && row.user_id && profile
             ? await getAvatarUrl(row.user_id, profile.avatar_updated_at)
             : null,
-        seed: verified && row.user_id ? seedFor(row.user_id) : null,
+        // A proved person's account colour; a typed name's own guest row's (the colour the Guests list gave her
+        // before the block, which holds the row), never her name.
+        seed:
+          verified && row.user_id
+            ? seedFor(row.user_id)
+            : row.guest_id
+              ? seedFor(row.guest_id)
+              : null,
         since: format.since(row.created_at),
         restorable: standing.length,
         restorableUntil: firstPurge ? format.until(firstPurge) : null,

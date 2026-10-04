@@ -43,6 +43,8 @@ function harness(place: DownloadPlace = "desk", store?: WalkStore) {
   /** The status poll (`export-ends`); once the queue is empty it answers `idle`. */
   const statuses: Scripted[] = [];
   let idle: Scripted = { status: 200, body: { ok: true, state: "none" } };
+  /** The browser's own word on its line (`navigator.onLine`). */
+  let online = true;
   const calls: Call[] = [];
   const posted: [string, string][] = [];
   const shown: { id: string; view: ToastView }[] = [];
@@ -93,6 +95,7 @@ function harness(place: DownloadPlace = "desk", store?: WalkStore) {
       dismiss: (id) => dismissed.push(id),
     },
     place: () => place,
+    online: () => online,
     // A pause yields one turn of the event loop (never real time), so a walk that listens for the Worker's
     // word moves one poll a turn, as a test steps it, instead of spinning through every poll at once. The
     // loader's own timer, so a test that fakes the clock still has its pauses turn.
@@ -125,6 +128,9 @@ function harness(place: DownloadPlace = "desk", store?: WalkStore) {
     statuses,
     setIdle: (answer: Scripted) => {
       idle = answer;
+    },
+    setOnline: (value: boolean) => {
+      online = value;
     },
     calls,
     posted,
@@ -224,7 +230,11 @@ describe("one zip", () => {
 });
 
 describe("a tap with no answer (stuck=retry)", () => {
-  it("re-attempts twice without a word, then says it could not start, with Try again", async () => {
+  // ★ RESHAPED ON PURPOSE (E6; scar kept: two silent re-attempts, one wait the whole time, then Try again takes the
+  // same part and lands). The expired reason: every failure said "Couldn't start that download.", which blamed the
+  // app for a line that dropped. Three requests that never reached the app now say the connection dropped, and what
+  // to do (below); an app that ANSWERED an error keeps the old sentence.
+  it("re-attempts twice without a word, then says the connection dropped, with Try again", async () => {
     const h = harness();
     h.mints.push("network", "network", "network");
 
@@ -237,7 +247,8 @@ describe("a tap with no answer (stuck=retry)", () => {
     const failed = h.now();
     expect(failed).toMatchObject({
       tone: "refused",
-      title: "Couldn't start that download.",
+      title: "Your connection dropped.",
+      detail: "Check your signal, then try again.",
       action: { label: "Try again" },
     });
     expect(h.posted).toEqual([]);
@@ -290,10 +301,50 @@ describe("a tap with no answer (stuck=retry)", () => {
     expect(waited).toBeLessThanOrEqual(47_000);
     expect(h.mintBodies()).toHaveLength(3);
     expect(h.calls.every((c) => c.init.signal?.aborted)).toBe(true);
+    // A request that never comes back is a line that is not carrying it: said as one (E6).
     expect(h.now()).toMatchObject({
+      tone: "refused",
+      title: "Your connection dropped.",
+      detail: "Check your signal, then try again.",
+      action: { label: "Try again" },
+    });
+  });
+
+  it("★ an app that answers an error is not a dropped connection: it keeps its own sentence, with nothing to blame on the line", async () => {
+    const h = harness();
+    const broken = { status: 500, body: { ok: false } };
+    h.mints.push(broken, broken, broken);
+
+    const handed = await h.walker.start("host", { event_id: "e" });
+
+    expect(handed).toBe(false);
+    const failed = h.now();
+    expect(failed).toMatchObject({
       tone: "refused",
       title: "Couldn't start that download.",
       action: { label: "Try again" },
+    });
+    expect((failed as { detail?: unknown }).detail).toBeUndefined();
+  });
+
+  it("★ the last try decides: a line that came back to an app that errors is the app's, not the line's", async () => {
+    const h = harness();
+    h.mints.push("network", "network", { status: 500, body: { ok: false } });
+    await h.walker.start("host", { event_id: "e" });
+    expect(h.now()).toMatchObject({ title: "Couldn't start that download." });
+  });
+
+  it("★ offline by the browser's own word, a dropped request is said at once: a second try can only fail the same way", async () => {
+    const h = harness();
+    h.setOnline(false);
+    h.mints.push("network");
+    const handed = await h.walker.start("host", { event_id: "e" });
+    expect(handed).toBe(false);
+    expect(h.mintBodies()).toHaveLength(1);
+    expect(h.now()).toMatchObject({
+      tone: "refused",
+      title: "Your connection dropped.",
+      detail: "Check your signal, then try again.",
     });
   });
 
@@ -346,8 +397,20 @@ describe("a tap with no answer (stuck=retry)", () => {
   });
 });
 
-describe("the x (his note: interruptibility)", () => {
-  it("cancels a mint in flight: aborted, dismissed, and never posted, whatever arrives late", async () => {
+/** A question's answer, by its label. */
+function answer(view: ToastView | undefined, label: string) {
+  if (view?.tone !== "confirm") throw new Error(`not asking: ${view?.tone}`);
+  const found = view.actions.find((a) => a.label === label);
+  if (!found) throw new Error(`no answer "${label}"`);
+  return found;
+}
+
+// ★ RESHAPED ON PURPOSE (E6, Will 2026-10-04: "a cancel is intentional: it asks to confirm first, then offers Try
+// again"). The scars kept: the x really stops things (the mint's and the check's fetch aborted so the Worker stops
+// reading), nothing is posted afterwards whatever arrives late, and a walk can always be left. The expired reason:
+// the x used to cancel on the press, silently, which a thumb's slip could not take back.
+describe("the x (his note: interruptibility; E6: it asks first)", () => {
+  it("★ asks first: Keep going or Cancel download, and nothing is cancelled by the press alone", async () => {
     const h = harness();
     h.mints.push("hang");
     const handed = h.walker.start("host", { event_id: "e" });
@@ -357,12 +420,54 @@ describe("the x (his note: interruptibility)", () => {
     if (wait?.tone !== "wait") throw new Error("not waiting");
     wait.close.run();
 
+    expect(h.now()).toMatchObject({
+      tone: "confirm",
+      title: "Cancel this download?",
+      actions: [{ label: "Keep going" }, { label: "Cancel download" }],
+    });
+    // Nothing was cancelled: the mint is still in flight, the toast is not dismissed.
+    expect(h.calls[0].init.signal?.aborted).toBe(false);
+    expect(h.dismissed).toEqual([]);
+
+    answer(h.now(), "Keep going").run();
+    expect(h.now()).toMatchObject({
+      tone: "wait",
+      title: "Preparing your download…",
+    });
+    // Still going: leave it by confirming, so the test does not wait on the hang.
+    const again = h.now();
+    if (again?.tone !== "wait") throw new Error("not waiting");
+    again.close.run();
+    answer(h.now(), "Cancel download").run();
+    expect(await handed).toBe(false);
+  });
+
+  it("cancels a mint in flight once she says so: aborted, nothing posted, whatever arrives late, and it says so with Try again", async () => {
+    const h = harness();
+    h.mints.push("hang");
+    const handed = h.walker.start("host", { event_id: "e" });
+    await settle();
+
+    const wait = h.now();
+    if (wait?.tone !== "wait") throw new Error("not waiting");
+    wait.close.run();
+    answer(h.now(), "Cancel download").run();
+
     expect(await handed).toBe(false);
     expect(h.calls[0].init.signal?.aborted).toBe(true);
-    expect(h.dismissed).toEqual(["walk-1"]);
     expect(h.posted).toEqual([]);
-    // Nothing said after the x: the toast it dismissed stays dismissed.
-    expect(h.shown).toHaveLength(1);
+    // Said as hers, neutral (never an error), with the way back and a Dismiss.
+    expect(h.now()).toMatchObject({
+      tone: "cancelled",
+      title: "Download cancelled.",
+      action: { label: "Try again" },
+      close: { label: "Dismiss" },
+      duration: 8000,
+    });
+    // Nothing is said after it by the work it abandoned.
+    const shown = h.shown.length;
+    await settle();
+    expect(h.shown).toHaveLength(shown);
   });
 
   it("cancels the Worker's check in flight: its fetch is aborted, so the Worker stops reading", async () => {
@@ -376,11 +481,100 @@ describe("the x (his note: interruptibility)", () => {
     const wait = h.now();
     if (wait?.tone !== "wait") throw new Error("not waiting");
     wait.close.run();
+    answer(h.now(), "Cancel download").run();
 
     expect(await handed).toBe(false);
     const check = h.calls.find((c) => c.url === CHECK);
     expect(check?.init.signal?.aborted).toBe(true);
     expect(h.posted).toEqual([]);
+  });
+
+  it("★ hands nothing to the browser while the question stands: Keep going then goes on to the download", async () => {
+    const h = harness();
+    h.mints.push(minted());
+    h.checks.push(counted(148));
+    const handed = h.walker.start("guest", { qr_token: "qr" });
+    // The press comes while the mint and the check are still in the air.
+    const wait = h.now();
+    if (wait?.tone !== "wait") throw new Error("not waiting");
+    wait.close.run();
+    await settle();
+    await settle();
+    await settle();
+
+    // Everything it needed has answered, and still nothing is posted: the question has not been answered.
+    expect(h.calls.map((c) => c.url)).toContain(CHECK);
+    expect(h.posted).toEqual([]);
+    expect(h.now()).toMatchObject({ tone: "confirm" });
+
+    answer(h.now(), "Keep going").run();
+    expect(await handed).toBe(true);
+    expect(h.posted).toEqual([[WORKER, "tok-1"]]);
+    expect(h.now()).toMatchObject({ tone: "done" });
+  });
+
+  it("★ a Cancel at the post hands nothing over, and Try again takes the whole download again", async () => {
+    const h = harness();
+    h.mints.push(minted());
+    h.checks.push(counted(148));
+    const handed = h.walker.start("guest", { qr_token: "qr" });
+    const wait = h.now();
+    if (wait?.tone !== "wait") throw new Error("not waiting");
+    wait.close.run();
+    await settle();
+    await settle();
+    await settle();
+
+    answer(h.now(), "Cancel download").run();
+    expect(await handed).toBe(false);
+    expect(h.posted).toEqual([]);
+
+    const cancelled = h.now();
+    if (cancelled?.tone !== "cancelled" || !cancelled.action) {
+      throw new Error("no Try again");
+    }
+    h.mints.push(minted({ token: "tok-2" }));
+    h.checks.push(counted(148));
+    cancelled.action.run();
+    await settle();
+    await settle();
+    expect(h.dismissed).toContain("walk-1");
+    expect(h.posted).toEqual([[WORKER, "tok-2"]]);
+    expect(h.now("walk-2")).toMatchObject({ tone: "done" });
+  });
+
+  it("a Worker that refuses the zip while the question stands replaces it too: nothing is left to cancel or to keep", async () => {
+    const h = harness();
+    h.mints.push(minted());
+    h.checks.push({ status: 200, body: { ok: false, reason: "paused" } });
+    const handed = h.walker.start("guest", { qr_token: "qr" });
+    const wait = h.now();
+    if (wait?.tone !== "wait") throw new Error("not waiting");
+    wait.close.run();
+    expect(h.now()).toMatchObject({ tone: "confirm" });
+    expect(await handed).toBe(false);
+    expect(h.now()).toMatchObject({
+      tone: "refused",
+      title: "Downloads are paused right now. Please try again later.",
+    });
+    expect(h.posted).toEqual([]);
+  });
+
+  it("a failure that arrives while the question stands replaces it: the walk is over, there is nothing to cancel", async () => {
+    const h = harness();
+    h.mints.push("network", "network", "network");
+    const handed = h.walker.start("host", { event_id: "e" });
+    // The x is pressed before the first try has even answered.
+    const wait = h.now();
+    if (wait?.tone !== "wait") throw new Error("not waiting");
+    wait.close.run();
+    expect(h.now()).toMatchObject({ tone: "confirm" });
+    // Every try then fails under the question, which the failure replaces.
+    expect(await handed).toBe(false);
+    expect(h.now()).toMatchObject({
+      tone: "refused",
+      title: "Your connection dropped.",
+    });
   });
 
   it("cannot be swiped past: every waiting state carries it", async () => {
@@ -389,7 +583,8 @@ describe("the x (his note: interruptibility)", () => {
     h.checks.push(counted(2000));
     await h.walker.start("host", { event_id: "e" });
     for (const { view } of h.shown) {
-      if (view.tone === "done") continue;
+      // A done toast goes by itself, and a question's answers are its way out.
+      if (view.tone === "done" || view.tone === "confirm") continue;
       expect(view.close.label.length).toBeGreaterThan(0);
     }
     expect(h.now()).toMatchObject({
@@ -602,7 +797,34 @@ describe("a big album, in parts (cap=split)", () => {
     expect(h.posted).toHaveLength(2);
   });
 
-  it("the x between parts stops the walk, and the old button does nothing after", async () => {
+  // ★ RESHAPED ON PURPOSE (E6; scar kept: a stop leaves the rest behind and a stale tap takes nothing). The expired
+  // reason: the x used to end the walk silently, so a host who stopped after part 1 of 3 was told nothing of what she
+  // had left behind ("would hate for someone to think they downloaded everything").
+  it("★ the x between parts asks what stopping leaves, and Keep going draws the walk as it stood", async () => {
+    const h = harness();
+    h.mints.push(minted({ parts: 3, next: "1_a" }));
+    h.checks.push(counted(2000));
+    await h.walker.start("host", { event_id: "e" });
+    const between = h.now();
+    if (between?.tone !== "between") throw new Error("not between");
+    between.close.run();
+    expect(h.now()).toMatchObject({
+      tone: "confirm",
+      title: "Stop after part 1 of 3?",
+      detail: "Parts 2 and 3 won't download.",
+      actions: [{ label: "Keep going" }, { label: "Stop here" }],
+    });
+    expect(h.dismissed).toEqual([]);
+
+    answer(h.now(), "Keep going").run();
+    expect(h.now()).toMatchObject({
+      tone: "between",
+      title: "Part 1 of 3 is downloading.",
+      action: { label: "Get part 2" },
+    });
+  });
+
+  it("★ Stop here says where she stopped, keeps the tap that takes the rest, and ends only when she puts it away", async () => {
     const h = harness();
     h.mints.push(minted({ parts: 2, next: "1_a" }));
     h.checks.push(counted(2000));
@@ -610,10 +832,104 @@ describe("a big album, in parts (cap=split)", () => {
     const between = h.now();
     if (between?.tone !== "between") throw new Error("not between");
     between.close.run();
-    between.action.run();
+    answer(h.now(), "Stop here").run();
+
+    expect(h.dismissed).toEqual([]);
+    const stopped = h.now();
+    expect(stopped).toMatchObject({
+      tone: "between",
+      title: "Stopped after part 1 of 2.",
+      action: { label: "Get part 2" },
+      close: { label: "Dismiss" },
+    });
+    if (stopped?.tone !== "between") throw new Error("not stopped");
+
+    // The tap that takes the rest still works, once.
+    h.mints.push(minted({ part: 2, parts: 2, token: "tok-2" }));
+    h.checks.push(counted(5));
+    stopped.action.run();
+    stopped.action.run();
+    await settle();
+    expect(h.mintBodies()).toHaveLength(2);
+    expect(h.posted).toHaveLength(2);
+  });
+
+  it("Dismiss after a stop puts the walk away, and the old button does nothing after", async () => {
+    const h = harness();
+    h.mints.push(minted({ parts: 2, next: "1_a" }));
+    h.checks.push(counted(2000));
+    await h.walker.start("host", { event_id: "e" });
+    const between = h.now();
+    if (between?.tone !== "between") throw new Error("not between");
+    between.close.run();
+    answer(h.now(), "Stop here").run();
+    const stopped = h.now();
+    if (stopped?.tone !== "between") throw new Error("not stopped");
+    stopped.close.run();
+    stopped.action.run();
     await settle();
     expect(h.dismissed).toEqual(["walk-1"]);
     expect(h.mintBodies()).toHaveLength(1);
+  });
+
+  it("★ the Worker's word on an earlier part never draws over the question", async () => {
+    const h = harness();
+    h.mints.push(
+      reporting({ parts: 2, next: "1_a", items: 2000, token: "t1" }),
+    );
+    h.checks.push(promised(2000));
+    h.setIdle({ status: 200, body: { ok: true, state: "none" } });
+    await h.walker.start("guest", { qr_token: "qr" });
+    const between = h.now();
+    if (between?.tone !== "between") throw new Error("not between");
+    between.close.run();
+    const asked = h.now();
+    expect(asked).toMatchObject({ tone: "confirm" });
+    // Part 1's word arrives (saved) while she is reading the question: it is kept, never drawn over it.
+    h.setIdle(said("saved", []));
+    await settle();
+    await settle();
+    expect(h.now()).toBe(asked);
+    // Her answer draws the walk as it now stands, with the word.
+    answer(h.now(), "Keep going").run();
+    expect(h.now()).toMatchObject({
+      tone: "between",
+      title: "Part 1 of 2 is saved.",
+    });
+  });
+
+  it("★ cancelling the preparing of a LATER part stops where she stood: the parts before it are hers, and Get part N takes it again", async () => {
+    const h = harness();
+    h.mints.push(minted({ parts: 3, next: "1_a", items: 2000, token: "t1" }));
+    h.checks.push(counted(2000));
+    await h.walker.start("host", { event_id: "e" });
+    const between = h.now();
+    // Part 2's mint hangs: she taps Get part 2, then thinks better of it.
+    h.mints.push("hang");
+    if (between?.tone !== "between") throw new Error("not between");
+    between.action.run();
+    await settle();
+    const wait = h.now();
+    if (wait?.tone !== "wait") throw new Error("not waiting");
+    expect(wait.title).toBe("Preparing part 2 of 3…");
+    wait.close.run();
+    answer(h.now(), "Cancel download").run();
+    await settle();
+
+    expect(h.posted).toHaveLength(1);
+    expect(h.now()).toMatchObject({
+      tone: "between",
+      title: "Stopped after part 1 of 3.",
+      action: { label: "Get part 2" },
+    });
+    // And she can take part 2 after all.
+    h.mints.push(minted({ part: 2, parts: 3, next: "2_b", token: "t2" }));
+    h.checks.push(counted(5));
+    const stopped = h.now();
+    if (stopped?.tone !== "between") throw new Error("not stopped");
+    stopped.action.run();
+    await settle();
+    expect(h.posted.map(([, tok]) => tok)).toEqual(["t1", "t2"]);
   });
 
   it("a later part the album emptied meanwhile ends it: what was taken is everything", async () => {
@@ -775,6 +1091,9 @@ describe("a reload between parts", () => {
     const between = h.now();
     if (between?.tone !== "between") throw new Error("not between");
     between.close.run();
+    // Asked, not yet stopped: the walk is still offered if the page is reloaded now.
+    expect(t.held()).not.toBeNull();
+    answer(h.now(), "Stop here").run();
     expect(t.held()).toBeNull();
 
     const after = harness("desk", t.store);
@@ -824,13 +1143,155 @@ describe("a reload between parts", () => {
 });
 
 describe("the Worker's check", () => {
-  it("that cannot answer never stops the zip: an older Worker's CORS failure falls through", async () => {
+  // ★ RESHAPED ON PURPOSE (red-team 53's MEDIUM, crumbs-65). The scar kept: a check that ANSWERS an error (R2 down)
+  // never stops the zip (below). The expired reason: "an older Worker's CORS failure falls through", which let every
+  // check that failed on the network post its form anyway. A fetch to the Worker that never answers is the page's
+  // line (the Worker deploys before any app that names `/check`), and the form is posted to that same host: a POST
+  // into a dead line is a failed main-frame navigation, which replaced the page with the browser's error page and
+  // never said "Your connection dropped."
+  it("★ that never reached the Worker is a dropped connection: nothing is posted, and it says so with Try again", async () => {
     const h = harness();
     h.mints.push(minted());
     h.checks.push("network", "network");
     const handed = await h.walker.start("guest", { qr_token: "qr" });
-    expect(handed).toBe(true);
+    expect(handed).toBe(false);
     expect(h.calls.filter((c) => c.url === CHECK)).toHaveLength(2);
+    // The form is never posted: the page stays, with its toast and her selection under it.
+    expect(h.posted).toEqual([]);
+    const failed = h.now();
+    expect(failed).toMatchObject({
+      tone: "refused",
+      title: "Your connection dropped.",
+      detail: "Check your signal, then try again.",
+      action: { label: "Try again" },
+      close: { label: "Dismiss" },
+    });
+
+    // Try again takes the part from a fresh mint (a token lives two minutes), and this time it lands.
+    h.mints.push(minted({ token: "tok-2" }));
+    h.checks.push(counted(148));
+    if (failed?.tone !== "refused" || !failed.action) {
+      throw new Error("no Try again");
+    }
+    failed.action.run();
+    await settle();
+    expect(h.posted).toEqual([[WORKER, "tok-2"]]);
+    expect(h.now()).toMatchObject({ tone: "done" });
+  });
+
+  it("★ the host's download says it the same way: one engine for both", async () => {
+    const h = harness();
+    h.mints.push(minted());
+    h.checks.push("network", "network");
+    await h.walker.start("host", { event_id: "e" });
+    expect(h.posted).toEqual([]);
+    expect(h.now()).toMatchObject({
+      tone: "refused",
+      title: "Your connection dropped.",
+      detail: "Check your signal, then try again.",
+    });
+  });
+
+  it("★ a check that hangs is a line that is not carrying it too: after its ceilings, said, never posted", async () => {
+    vi.useFakeTimers();
+    const h = harness();
+    h.mints.push(minted());
+    h.checks.push("hang", "hang");
+    let resolved: boolean | null = null;
+    void h.walker.start("guest", { qr_token: "qr" }).then((r) => {
+      resolved = r;
+    });
+    let waited = 0;
+    while (resolved === null && waited < 40_000) {
+      await vi.advanceTimersByTimeAsync(1_000);
+      await new Promise((r) => turn(r, 0));
+      waited += 1_000;
+    }
+    expect(resolved).toBe(false);
+    // Two 15 s ceilings and the short pause between them: about 31 s, the x there all along.
+    expect(waited).toBeLessThanOrEqual(32_000);
+    expect(h.posted).toEqual([]);
+    expect(h.now()).toMatchObject({
+      tone: "refused",
+      title: "Your connection dropped.",
+      detail: "Check your signal, then try again.",
+      action: { label: "Try again" },
+    });
+  });
+
+  it("the last try decides, as the mint's does: a line that came back to a Worker that errors is the Worker's, not the line's", async () => {
+    const h = harness();
+    h.mints.push(minted());
+    h.checks.push("network", {
+      status: 502,
+      body: { ok: false, reason: "unavailable" },
+    });
+    await h.walker.start("guest", { qr_token: "qr" });
+    expect(h.posted).toHaveLength(1);
+    expect(h.now()).toMatchObject({ tone: "done" });
+
+    // And the other way round: an error, then a line that is gone.
+    const gone = harness();
+    gone.mints.push(minted());
+    gone.checks.push(
+      { status: 502, body: { ok: false, reason: "unavailable" } },
+      "network",
+    );
+    await gone.walker.start("guest", { qr_token: "qr" });
+    expect(gone.posted).toEqual([]);
+    expect(gone.now()).toMatchObject({
+      tone: "refused",
+      title: "Your connection dropped.",
+    });
+  });
+
+  it("★ offline by the browser's own word, a check that never reached the Worker is said after one try", async () => {
+    const h = harness();
+    h.setOnline(false);
+    h.mints.push(minted());
+    h.checks.push("network");
+    await h.walker.start("guest", { qr_token: "qr" });
+    expect(h.calls.filter((c) => c.url === CHECK)).toHaveLength(1);
+    expect(h.posted).toEqual([]);
+    expect(h.now()).toMatchObject({
+      tone: "refused",
+      title: "Your connection dropped.",
+    });
+  });
+
+  it("★ a line that goes while her question stands is said, never posted into", async () => {
+    const h = harness();
+    h.mints.push(minted());
+    h.checks.push(counted(148));
+    const handed = h.walker.start("guest", { qr_token: "qr" });
+    const wait = h.now();
+    if (wait?.tone !== "wait") throw new Error("not waiting");
+    wait.close.run();
+    await settle();
+    await settle();
+    await settle();
+    // The check answered, the line was up, and the question is still standing...
+    expect(h.posted).toEqual([]);
+    expect(h.now()).toMatchObject({ tone: "confirm" });
+    // ...and then the browser itself says the line is down.
+    h.setOnline(false);
+    answer(h.now(), "Keep going").run();
+    expect(await handed).toBe(false);
+    expect(h.posted).toEqual([]);
+    expect(h.now()).toMatchObject({
+      tone: "refused",
+      title: "Your connection dropped.",
+      detail: "Check your signal, then try again.",
+      action: { label: "Try again" },
+    });
+  });
+
+  it("that cannot read the Worker's answer (a body that is not the check's) never stops the zip", async () => {
+    const h = harness();
+    h.mints.push(minted());
+    h.checks.push({ status: 404, body: null });
+    const handed = await h.walker.start("guest", { qr_token: "qr" });
+    expect(handed).toBe(true);
     expect(h.posted).toHaveLength(1);
     expect(h.now()).toMatchObject({ tone: "done" });
   });
@@ -1108,11 +1569,15 @@ describe("an empty or short zip is said, never sent as if whole (export-ends)", 
     });
   });
 
-  it("a zip that never finished says so, with Try again", async () => {
+  // ★ RESHAPED ON PURPOSE (E6; scar kept: a zip with nothing whole says so with a Try again that takes the whole zip
+  // again from its first part). The expired reason: a zip the client left and a zip a read broke both said "That
+  // download didn't finish.", so a cancel and a dropped connection read the same. The Worker's `failed` (a read of
+  // ours broke) keeps the sentence; `stopped` (the client left) is told apart by what the page's own line did.
+  it("a zip a read broke says it did not finish, with Try again, and Try again takes the whole zip again", async () => {
     const h = harness();
     h.mints.push(reporting({ items: 3 }));
     h.checks.push(promised(3));
-    h.setIdle(said("stopped", ["m1", "m2", "m3"]));
+    h.setIdle(said("failed", ["m1", "m2", "m3"]));
     await h.walker.start("guest", { qr_token: "qr" });
     await until(() => h.now()?.tone === "refused");
     expect(h.now()).toMatchObject({
@@ -1125,10 +1590,182 @@ describe("an empty or short zip is said, never sent as if whole (export-ends)", 
     h.mints.push(minted({ token: "tok-2" }));
     h.checks.push(counted(148));
     const refused = h.now();
-    if (refused?.tone !== "refused" || !refused.action) throw new Error("no retry");
+    if (refused?.tone !== "refused" || !refused.action)
+      throw new Error("no retry");
     refused.action.run();
     await settle();
     expect(h.posted.map(([, t]) => t)).toEqual(["tok-1", "tok-2"]);
+  });
+
+  it("★ a zip the client left while the page's own line held is a CANCEL: neutral, hers, with Try again", async () => {
+    const h = harness();
+    h.mints.push(reporting({ items: 3 }));
+    h.checks.push(promised(3));
+    // Every poll answered: streaming, then the Worker says the client left. Her line never failed.
+    h.statuses.push(said("streaming"), said("streaming"));
+    h.setIdle(said("stopped", ["m1", "m2", "m3"]));
+    await h.walker.start("guest", { qr_token: "qr" });
+    await until(() => h.now()?.tone === "cancelled");
+    expect(h.now()).toMatchObject({
+      tone: "cancelled",
+      title: "Download cancelled.",
+      action: { label: "Try again" },
+      close: { label: "Dismiss" },
+      // Held: the Worker's word can come after she has looked away.
+      duration: Infinity,
+    });
+
+    h.mints.push(minted({ token: "tok-2" }));
+    h.checks.push(counted(148));
+    const cancelled = h.now();
+    if (cancelled?.tone !== "cancelled" || !cancelled.action) {
+      throw new Error("no retry");
+    }
+    cancelled.action.run();
+    await settle();
+    expect(h.posted.map(([, t]) => t)).toEqual(["tok-1", "tok-2"]);
+  });
+
+  it("★ a zip the client left after the page's own line failed is a DROPPED CONNECTION: named, with what to do", async () => {
+    const h = harness();
+    h.mints.push(reporting({ items: 3 }));
+    h.checks.push(promised(3));
+    // The line fails under the stream (two polls never reach the app), then comes back to the Worker's word.
+    h.statuses.push(said("streaming"), "network", "network");
+    h.setIdle(said("stopped", ["m1", "m2", "m3"]));
+    await h.walker.start("guest", { qr_token: "qr" });
+    await until(() => h.now()?.tone === "refused");
+    expect(h.now()).toMatchObject({
+      tone: "refused",
+      title: "Your connection dropped.",
+      detail: "Check your signal, then try again.",
+      action: { label: "Try again" },
+    });
+  });
+
+  it("one poll that only ran long is the app's slowness, not a dropped line: a stall counts when it repeats", async () => {
+    const h = harness();
+    h.mints.push(reporting({ items: 3 }));
+    h.checks.push(promised(3));
+    vi.useFakeTimers();
+    h.statuses.push(said("streaming"), "hang");
+    h.setIdle(said("stopped", ["m1", "m2", "m3"]));
+    const started = h.walker.start("guest", { qr_token: "qr" });
+    // The one hung poll runs out its 8 s ceiling; every other poll answers.
+    for (let i = 0; i < 40 && h.now()?.tone !== "cancelled"; i++) {
+      await vi.advanceTimersByTimeAsync(1_000);
+      await new Promise((r) => turn(r, 0));
+    }
+    await started;
+    expect(h.now()).toMatchObject({ tone: "cancelled" });
+  });
+
+  it("a walk an older build kept (no record of its line) claims neither: the old sentence", async () => {
+    const saved = {
+      scope: "guest",
+      body: { qr_token: "qr" },
+      retryOf: null,
+      part: 1,
+      parts: 1,
+      next: null,
+      items: 3,
+      found: 3,
+      missing: [],
+      handed: 1,
+      handedParts: [
+        {
+          part: 1,
+          items: 3,
+          jti: JTI,
+          word: "listening",
+          outcome: null,
+          missing: [],
+        },
+      ],
+    };
+    const store: WalkStore = {
+      load: () => [saved as SavedWalk],
+      save: () => {},
+    };
+    const h = harness("desk", store);
+    h.setIdle(said("stopped", ["m1", "m2", "m3"]));
+    h.walker.resume();
+    await until(() => h.now()?.tone === "refused");
+    expect(h.now()).toMatchObject({
+      tone: "refused",
+      title: "That download didn't finish.",
+    });
+  });
+
+  it("★ a line that stops answering while a zip streams is said under 'Downloading…', and clears when it answers", async () => {
+    const h = harness();
+    h.mints.push(reporting());
+    h.checks.push(promised(148));
+    h.statuses.push(said("streaming"), "network", "network", "network");
+    h.setIdle(said("streaming"));
+    await h.walker.start("guest", { qr_token: "qr" });
+    await until(
+      () =>
+        h.now()?.tone === "downloading" &&
+        (h.now() as { detail?: string }).detail !== undefined,
+    );
+    expect(h.now()).toMatchObject({
+      tone: "downloading",
+      title: "Downloading…",
+      detail: "Your connection dropped. Check your signal.",
+    });
+    // It answers again: the line is back, and the notice goes with it.
+    await until(() => (h.now() as { detail?: string }).detail === undefined);
+    expect((h.now() as { detail?: string }).detail).toBeUndefined();
+  });
+
+  // ★ RED-TEAM 53's LOW (crumbs-65). The walk gives up listening when a stream has been silent past its start
+  // (`START_HEARD_MS`), and it used to say "Your download is starting." as it did, on a line that was still down: the
+  // drop it had just said was un-said. Silence is evidence about the Worker only while her own line is up.
+  it("★ a line still down at the mark where silence would give up keeps its words, and the Worker's word is heard the moment it is back", async () => {
+    const h = harness();
+    h.mints.push(reporting());
+    h.checks.push(promised(148));
+    // Every poll fails from the start: her line is down while the zip streams.
+    h.setIdle("network");
+    await h.walker.start("guest", { qr_token: "qr" });
+    // Far past the mark (fifteen polls a second apart), and the drop is still said, never "starting".
+    await until(() => h.polled().length >= 40);
+    expect(h.polled().length).toBeGreaterThanOrEqual(40);
+    expect(h.now()).toMatchObject({
+      tone: "downloading",
+      title: "Downloading…",
+      detail: "Your connection dropped. Check your signal.",
+    });
+    expect(h.shown.some(({ view }) => view.tone === "done")).toBe(false);
+
+    // The line comes back, and with it the Worker's word: the zip was saved all along.
+    h.setIdle(said("saved", []));
+    await until(() => h.now()?.tone === "done");
+    expect(h.now()).toMatchObject({
+      tone: "done",
+      title: "Your download is saved.",
+    });
+  });
+
+  it("a line that comes back to a Worker with nothing to say is believed again: the walk claims nothing, as it did", async () => {
+    const h = harness();
+    h.mints.push(reporting());
+    h.checks.push(promised(148));
+    // Twenty polls under a dead line (past the mark), then a line that answers "nothing heard".
+    for (let i = 0; i < 20; i++) h.statuses.push("network");
+    h.setIdle(said("none"));
+    await h.walker.start("guest", { qr_token: "qr" });
+    await until(() => h.polled().length >= 20);
+    expect(h.now()).toMatchObject({
+      tone: "downloading",
+      detail: "Your connection dropped. Check your signal.",
+    });
+    await until(() => h.now()?.tone === "done");
+    expect(h.now()).toMatchObject({
+      tone: "done",
+      title: "Your download is starting.",
+    });
   });
 
   it("a part that came up short mid-walk says its count between parts, and the walk's last word counts it", async () => {
@@ -1141,7 +1778,10 @@ describe("an empty or short zip is said, never sent as if whole (export-ends)", 
     await h.walker.start("host", { event_id: "e" });
     await until(() => h.now()?.title === "1,999 of 2,000 are in part 1.");
     const first = h.now();
-    expect(first).toMatchObject({ tone: "between", action: { label: "Get part 2" } });
+    expect(first).toMatchObject({
+      tone: "between",
+      action: { label: "Get part 2" },
+    });
 
     h.setIdle(said("saved", []));
     h.mints.push(
@@ -1182,9 +1822,7 @@ describe("a reload while the last part downloads (export-ends)", () => {
       expect.objectContaining({
         next: null,
         handed: 1,
-        handedParts: [
-          expect.objectContaining({ jti: JTI, word: "listening" }),
-        ],
+        handedParts: [expect.objectContaining({ jti: JTI, word: "listening" })],
       }),
     ]);
 

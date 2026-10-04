@@ -7,6 +7,7 @@ import { ActDoor } from "@/components/app/dashboard/act-door";
 import { Mark, StateDot } from "@/components/app/dashboard/marks";
 import type { WeekCard } from "@/lib/dashboard/home-view";
 import { formatCount } from "@/lib/format/count";
+import { RangeText } from "@/lib/format/range-text";
 import { cn } from "@/lib/utils";
 
 /**
@@ -99,7 +100,7 @@ export function WeekRow({ cards }: { cards: readonly WeekCard[] }) {
               </Link>
               <div className="min-w-0 flex-1 md:mt-3">
                 <p className="hidden text-xs text-muted-foreground md:block">
-                  {card.when}
+                  <RangeText text={card.when} />
                 </p>
                 <h3 className="truncate font-heading text-card-title md:mt-0.5">
                   <Link
@@ -110,7 +111,9 @@ export function WeekRow({ cards }: { cards: readonly WeekCard[] }) {
                   </Link>
                 </h3>
                 <p className="flex min-w-0 items-center gap-1.5 truncate text-xs text-muted-foreground md:hidden">
-                  {`${card.when} · ${item ? item.line : card.quiet}`}
+                  <RangeText
+                    text={`${card.when} · ${item ? item.line : card.quiet}`}
+                  />
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-2 md:mt-2.5 md:min-h-8 md:justify-between">

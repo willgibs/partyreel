@@ -12,7 +12,7 @@ S="$T" zsh "$KIT/integrate.sh" no-such-lane deadbeefcafe body-type /dev/null > "
 grep -q "^INTEGRATE DONE red" "$T/integrate.out" && ! ls "$T"/gate*.log >/dev/null 2>&1 && ok "integrate.sh refuses a missing lane and starts no gate" || bad "integrate.sh did not refuse a missing lane"
 # 1c. every merge and gate script refuses to run with no scratchpad, before it touches anything
 for script in integrate.sh merge-lane.sh gate-lane.sh demo-rerun.sh; do env -u S zsh "$KIT/$script" no-such-lane deadbeef none /dev/null > "$T/nos.out" 2>&1; [ $? -ne 0 ] && grep -q "set S" "$T/nos.out" && ok "$script refuses to run without S" || bad "$script ran without S"; done
-# 2. merge-lane.sh refuses a full-length sha (it compares short ones) and leaves the tree untouched
+# 2. merge-lane.sh refuses a lane that does not exist (here with a full-length sha) and leaves the tree untouched
 BEFORE="$(git status --short)"; S="$T" zsh "$KIT/merge-lane.sh" no-such-lane deadbeefcafe0123456789deadbeefcafe01234567 /dev/null > "$T/merge.out" 2>&1; [ "$(git status --short)" = "$BEFORE" ] && ! grep -q "^MERGED" "$T/merge.out" && ok "merge-lane.sh refuses a bad lane and leaves the tree as it was" || bad "merge-lane.sh merged or changed the tree on a bad lane"
 # 3. record.py refuses a changelog and a STATUS row, and writes nothing: what shipped lives in the merge commit, STATUS is a snapshot
 mkdir -p "$T/docs"; echo '{"changelog": "x"}' > "$T/rec0.json"; echo '{"status": [{"id": "x", "state": "y"}]}' > "$T/rec1.json"
@@ -45,13 +45,20 @@ env -u LAB_BASE node scripts/lab-smoke.mjs > "$T/smoke.out" 2>&1; R1=$?; env -u 
 mkdir -p "$T/cut/docs/tracks"; printf '%s' '{"track":"t","board":"b","owns":["src/app/(dev)/design/sandbox/registry.ts"],"goal":"g","brief":"b"}' > "$T/cut/s.json"
 (cd "$T/cut" && python3 "$KIT/cut-lane.py" deadbeef s.json > "$T/cut.out" 2>&1); [ $? != 0 ] && grep -q "never a shared list" "$T/cut.out" && [ ! -f "$T/cut/docs/tracks/t.md" ] && ok "cut-lane.py refuses a board lane owning a shared list" || bad "cut-lane.py cut a board lane onto a shared list"
 # 12. new-board.mjs refuses a board that exists, a surface that does not and a missing desk place, and writes nothing (a
-#     board is one folder, and the scaffold never overwrites one)
-BEFORE="$(git status --short)"; node scripts/new-board.mjs locked-door "x" --surface guest --desk 90 > "$T/nb1.out" 2>&1; N1=$?
+#     board is one folder, and the scaffold never overwrites one). The board it tries is read from the tree at each run:
+#     a named one decays when its board retires (locked-door did, and the scaffold then wrote a real folder, 2026-10-04).
+LIVE_BOARD=""; for d in src/app/\(dev\)/design/sandbox/*/spec.ts; do [ -f "$d" ] && LIVE_BOARD="$(basename "$(dirname "$d")")" && break; done
+[ -n "$LIVE_BOARD" ] || bad "no board in the sandbox to try new-board.mjs against"
+BEFORE="$(git status --short)"; node scripts/new-board.mjs "${LIVE_BOARD:-no-board-found}" "x" --surface guest --desk 90 > "$T/nb1.out" 2>&1; N1=$?
 node scripts/new-board.mjs zz-negative "x" --surface nowhere --desk 90 > "$T/nb2.out" 2>&1; N2=$?; node scripts/new-board.mjs zz-negative "x" --surface guest > "$T/nb3.out" 2>&1; N3=$?
 [ $N1 = 1 ] && [ $N2 = 1 ] && [ $N3 = 1 ] && grep -q "already exists" "$T/nb1.out" && grep -q "not a surface" "$T/nb2.out" && grep -q "usage" "$T/nb3.out" && [ ! -d "src/app/(dev)/design/sandbox/zz-negative" ] && [ "$(git status --short)" = "$BEFORE" ] && ok "new-board.mjs refuses an existing board, a bad surface and no desk place, and writes nothing" || bad "new-board.mjs scaffolded over a board or without its facts"
 # 13. merge-lane.sh refuses to merge on any branch but launch-prep (a session can open on main), and leaves the tree
 echo msg > "$T/msg13.txt"; BEFORE="$(git status --short)"; S="$T" KIT_BRANCH=zz-not-this-branch zsh "$KIT/merge-lane.sh" no-such-lane deadbeef "$T/msg13.txt" > "$T/br.out" 2>&1; R13=$?
 [ $R13 != 0 ] && grep -q "not zz-not-this-branch" "$T/br.out" && [ "$(git status --short)" = "$BEFORE" ] && ok "merge-lane.sh refuses to merge off launch-prep and leaves the tree" || bad "merge-lane.sh merged off launch-prep"
+# 14. the Vercel guard stands in front of every remote lab run and every deploy (2026-10-04: Hobby's Active CPU, whose
+#     break pauses every function): both lab scripts and alias-ensure.mjs call it, and a local base never spends a read
+grep -q 'guardRemoteBase(base, "lab:demo")' scripts/lab-demo.mjs && grep -q 'guardRemoteBase(base, "lab:smoke")' scripts/lab-smoke.mjs && grep -q 'vercel-usage.mjs' "$KIT/alias-ensure.mjs" && node -e 'import("./scripts/vercel-guard.mjs").then(m=>{m.guardRemoteBase("http://localhost:3131","x");m.guardRemoteBase("http://127.0.0.1:3999","x");console.log("local-ok")})' 2>&1 | grep -qx "local-ok" && ok "the Vercel guard fronts remote lab runs and deploys, and lets a local base through unread" || bad "the Vercel guard is missing from a lab script or alias-ensure, or it reads on a local base"
 # the costs the refusals were written for, re-read from the system as it is now (a report, never a refusal; cost-readings.mjs)
 node "$KIT/cost-readings.mjs" 2>&1 | cut -c1-400 || echo "cost readings: the script failed (read it before the next integration)"
+node "$KIT/vercel-usage.mjs" 2>&1 | cut -c1-400
 rm -rf "$T"; echo "negative control: $([ $RC = 0 ] && echo all refusals hold || echo A REFUSAL HAS GONE QUIET)"; exit $RC

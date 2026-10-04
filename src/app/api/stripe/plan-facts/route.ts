@@ -7,6 +7,7 @@ import {
   toBillingTier,
 } from "@/lib/constants/tiers";
 import { mustQuery } from "@/lib/db/must-query";
+import { readHostMonthUploads } from "@/lib/db/queries/month-uploads";
 import { getHostStorageSummary } from "@/lib/db/queries/storage";
 import { captureWarning } from "@/lib/observability/sentry";
 import { assessSubscription } from "@/lib/stripe/change-plan";
@@ -24,8 +25,10 @@ import { isProPlanId } from "@/lib/validation/checkout";
  * own price marked.
  *
  * Read-only and self-scoped: getUser(), the RLS-scoped profile row, the RLS-scoped
- * storage summary, and (Pro only) the subscription that row names. It decides
- * nothing; the checkout and change-plan routes re-derive everything themselves.
+ * storage summary, this month's uploads (the ledger, for the sentence a smaller
+ * size's allowance earns), and (Pro only) the subscription that row names. It
+ * decides nothing; the checkout and change-plan routes re-derive everything
+ * themselves.
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -44,7 +47,7 @@ export async function GET() {
 
   // mustQuery: a swallowed failure would read as a Free host storing nothing, and
   // the sheet would open on the smallest plan for someone it may not fit.
-  const [profile, storage] = await Promise.all([
+  const [profile, storage, monthUploadedBytes] = await Promise.all([
     mustQuery(
       supabase
         .from("profiles")
@@ -56,6 +59,14 @@ export async function GET() {
       "stripe/plan-facts: profile",
     ),
     getHostStorageSummary(),
+    // Words only (a sentence on a size whose uploads allowance sits below this month's uploads), so a failed read
+    // is said aloud and answered null, never a failed sheet and never a zero that would say nothing is wrong.
+    readHostMonthUploads(user.id).catch((error: unknown) => {
+      captureWarning("billing", "plan-facts: month uploads read failed", {
+        message: error instanceof Error ? error.message : String(error),
+      });
+      return null;
+    }),
   ]);
 
   const tier = toBillingTier(profile?.tier ?? DEFAULT_TIER);
@@ -104,9 +115,10 @@ export async function GET() {
       tier === "event_pass" && profile?.tier_expires_at
         ? formatEntitlementExpiry(profile.tier_expires_at)
         : null,
-    activeBytes: storage.activeBytes,
-    standbyBytes: storage.standbyBytes,
+    storedBytes: storage.storedBytes,
+    deletedBytes: storage.deletedBytes,
     capBytes: effectiveStorageCap(tier, profile?.storage_cap_bytes ?? null),
+    monthUploadedBytes,
     currentPlanId,
     changeBlocked,
   };

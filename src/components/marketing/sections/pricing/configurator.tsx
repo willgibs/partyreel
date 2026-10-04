@@ -15,6 +15,7 @@ import {
   friendlyCapacity,
   GIGABYTE,
   planById,
+  plansForTier,
   videosAllowedForTier,
 } from "@/lib/constants/tiers";
 import { formatCount } from "@/lib/format/count";
@@ -70,28 +71,26 @@ import {
  * The island holds the controls and the frame, nothing else.
  */
 
-/** The curated stop ladder: meaningful detents (the Free cap, the 75 GB pass,
- *  the three Pro sizes), clean keyboard steps, honest numbers. The first stop
- *  IS Free's cap, read from tiers.ts (100 MB since the free/pro shift, a
- *  fraction of a GB), so the block can say "Free covers it" at the exact size
- *  where that is true. */
+/** The curated stop ladder: meaningful detents (Free's cap, the pass, each Pro
+ *  size), clean keyboard steps, honest numbers. Every plan's room is READ from
+ *  tiers.ts and the steps between are round numbers, so the block says "Free
+ *  covers it" or names a size at the exact room where that is true, and a size
+ *  that moves moves its detent with it. */
 export const STOP_GB = [
-  planById("free").storageBytes / GIGABYTE,
-  1,
-  5,
-  10,
-  25,
-  50,
-  75,
-  100,
-  150,
-  250,
-  500,
-  750,
-  1024,
-  1536,
-  2048,
-];
+  ...new Set([
+    planById("free").storageBytes / GIGABYTE,
+    1,
+    5,
+    10,
+    planById("event_pass").storageBytes / GIGABYTE,
+    ...plansForTier("pro").map((p) => p.storageBytes / GIGABYTE),
+    100,
+    500,
+  ]),
+].sort((a, b) => a - b);
+
+/** Where the slider rests: a 200-guest party's room (about 10 GB), the event most hosts arrive with. */
+const START_GB = 10;
 
 /**
  * The result card's own deck: four real events, none of them the pair's stack
@@ -107,7 +106,7 @@ export function printsAt(stop: number): number {
 }
 
 export function Configurator() {
-  const [stop, setStop] = useState(5); // 50 GB, a real wedding's neighborhood
+  const [stop, setStop] = useState(Math.max(0, STOP_GB.indexOf(START_GB)));
   const [video, setVideo] = useState(true);
   const [hostingAgain, setHostingAgain] = useState(false);
 

@@ -8,10 +8,11 @@
  * The server orders every page by `(size desc, id desc)`; an item put back by Undo takes its place
  * in that same order, never the end of the list.
  *
- * ★ THE STRIP COUNTS WHAT THE CHECK COUNTS (`goal=live`). The storage guard reads what is STORED
- * (`host_active_bytes()`), so an item only selected still counts against the size: the strip
- * counts the selection toward the goal so the host watches it close, but its button removes first
- * ("Remove and switch") while anything is only selected, and switches once nothing is.
+ * ★ THE STRIP COUNTS WHAT THE CHECK COUNTS (`goal=live`). The storage guard reads what is STORED, her
+ * albums and her Deleted together (`host_storage_summary`, trash-in-storage), so only what leaves for
+ * good frees room: an item deleted for good here, or Deleted emptied. The strip counts the selection
+ * toward the goal so the host watches it close, but its button deletes first ("Delete and switch")
+ * while anything is only selected, and switches once nothing is.
  */
 import type { StorageItem } from "@/lib/db/queries/storage-list";
 import { formatKindCount } from "@/lib/format/count";
@@ -22,7 +23,7 @@ export const LIST_TITLE = "What’s using space";
 /** "all", or one event's id. */
 export type Filter = "all" | (string & {});
 
-/** What the list keeps of an item it has selected or removed: enough to count, group and name it. */
+/** What the list keeps of an item it has selected or deleted: enough to count, group and name it. */
 export type Picked = Pick<StorageItem, "id" | "eventId" | "bytes" | "type">;
 
 export const pick = (item: StorageItem): Picked => ({
@@ -46,21 +47,21 @@ export function totalBytes(items: Iterable<{ bytes: number }>): number {
   return sum;
 }
 
-/** The items a filter shows, in the list's order, less what this visit removed. */
+/** The items a filter shows, in the list's order, less what this visit deleted. */
 export function shownItems(
   loaded: readonly StorageItem[],
   filter: Filter,
-  removed: ReadonlyMap<string, Picked>,
+  deleted: ReadonlyMap<string, Picked>,
 ): StorageItem[] {
   return loaded
     .filter(
       (item) =>
-        !removed.has(item.id) && (filter === "all" || item.eventId === filter),
+        !deleted.has(item.id) && (filter === "all" || item.eventId === filter),
     )
     .sort(largestFirst);
 }
 
-/** A selection or a removal, grouped by the event each item belongs to. */
+/** A selection or a deletion, grouped by the event each item belongs to. */
 export function byEvent(items: Iterable<Picked>): Map<string, Picked[]> {
   const groups = new Map<string, Picked[]>();
   for (const item of items) {
@@ -73,10 +74,11 @@ export function byEvent(items: Iterable<Picked>): Map<string, Picked[]> {
 
 /**
  * THE GOAL STRIP'S NUMBERS. `gap` is what stood between what she stored BEFORE this visit's
- * removals and the size she chose (the plain cap, never the upload headroom: billing-caps.md);
- * `freed` is what this visit removed plus what is selected; the strip is `done` once the two meet.
- * `pending` is how many of the freed are only selected, which is what makes the button read
- * "Remove and switch". (Counting from what she stores NOW would count every removal twice.)
+ * deletions and the size she chose (the plain cap, never the upload headroom: billing-caps.md);
+ * `freed` is what this visit deleted for good (items, and Deleted when she emptied it) plus what is
+ * selected; the strip is `done` once the two meet. `pending` is how many of the freed are only
+ * selected, which is what makes the button read "Delete and switch". (Counting from what she stores
+ * NOW would count every deletion twice.)
  */
 export type GoalCount = {
   gap: number;
@@ -91,12 +93,13 @@ export type GoalCount = {
 export function goalCount(input: {
   storedBytes: number;
   capBytes: number;
-  removedBytes: number;
+  /** Deleted for good this visit: the items, and Deleted itself when she emptied it. */
+  freedBytes: number;
   selectedBytes: number;
   selectedCount: number;
 }): GoalCount {
   const gap = Math.max(0, input.storedBytes - input.capBytes);
-  const freed = input.removedBytes + input.selectedBytes;
+  const freed = input.freedBytes + input.selectedBytes;
   const remaining = Math.max(0, gap - freed);
   const done = remaining === 0;
   return {
@@ -109,23 +112,23 @@ export function goalCount(input: {
   };
 }
 
-/** What the strip's button does next: nothing yet, remove then switch, or switch. */
-export type GoalStep = "counting" | "remove-and-switch" | "switch";
+/** What the strip's button does next: nothing yet, delete then switch, or switch. */
+export type GoalStep = "counting" | "delete-and-switch" | "switch";
 
 export function goalStep(count: GoalCount): GoalStep {
   if (!count.done) return "counting";
-  return count.pending > 0 ? "remove-and-switch" : "switch";
+  return count.pending > 0 ? "delete-and-switch" : "switch";
 }
 
 /**
  * Where her own plan's goal stands (the over-cap banner's door): nothing yet, enough only selected
- * (the bar's Remove to Deleted finishes it), or enough freed. No step switches anything.
+ * (the bar's Delete for good finishes it), or enough freed. No step switches anything.
  */
-export type FitStep = "counting" | "remove" | "fits";
+export type FitStep = "counting" | "delete" | "fits";
 
 export function fitStep(count: GoalCount): FitStep {
   if (!count.done) return "counting";
-  return count.pending > 0 ? "remove" : "fits";
+  return count.pending > 0 ? "delete" : "fits";
 }
 
 /**

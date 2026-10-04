@@ -29,8 +29,18 @@ const db = vi.hoisted(() => ({
     event_slots: null as number | null,
     storage_cap_bytes: 1000 as number | null,
   },
-  storage: { activeBytes: 920, standbyBytes: 0 } as
-    | { activeBytes: number; standbyBytes: number }
+  storage: {
+    activeBytes: 720,
+    deletedBytes: 200,
+    systemBytes: 0,
+    storedBytes: 920,
+  } as
+    | {
+        activeBytes: number;
+        deletedBytes: number;
+        systemBytes: number;
+        storedBytes: number;
+      }
     | Error,
 }));
 
@@ -86,7 +96,13 @@ beforeEach(() => {
     event_slots: null,
     storage_cap_bytes: 1000,
   };
-  db.storage = { activeBytes: 920, standbyBytes: 0 };
+  // 720 in her albums and 200 in Deleted: her plan holds 920 of its 1,000 (trash-in-storage).
+  db.storage = {
+    activeBytes: 720,
+    deletedBytes: 200,
+    systemBytes: 0,
+    storedBytes: 920,
+  };
   shown.props = null;
   captureError.mockClear();
 });

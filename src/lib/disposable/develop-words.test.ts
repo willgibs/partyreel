@@ -8,7 +8,13 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { developTimeWords } from "@/lib/disposable/develop-words";
+import {
+  DEVELOP_TITLES,
+  developClockLine,
+  developSentence,
+  developTimeWords,
+} from "@/lib/disposable/develop-words";
+import { WAIT_TITLE } from "@/lib/disposable/wait-words";
 
 describe("developTimeWords", () => {
   // A time built in the machine's own zone, so the answer cannot depend on where the suite runs: the words are
@@ -83,5 +89,62 @@ describe("one home for each side's develop words", () => {
         /Intl\.DateTimeFormat|toLocale(?:Date|Time)?String/,
       );
     }
+  });
+});
+
+/* THE ARRIVAL'S WORDS (the-wait r2, Will's `arrival=in-place`): the sheet's word turning, its clock as the night said
+   it, and what a screen reader hears; every time in them the wait's own words, so this side builds no formatter. */
+describe("the develop's own words", () => {
+  // Times built in the machine's own zone, so the words cannot depend on where the suite runs.
+  const nineAm = new Date(2026, 9, 4, 9, 0);
+  const iso = nineAm.toISOString();
+  const later = (days: number, hours = 1) =>
+    new Date(2026, 9, 4 + days, 9 + hours, 0).getTime();
+
+  it("★ the word turns from the wait's own to 'Developed'", () => {
+    expect(DEVELOP_TITLES.before).toBe(WAIT_TITLE);
+    expect(DEVELOP_TITLES.after).toBe("Developed");
+  });
+
+  it("★ the clock is the night's line, said of a time that has come", () => {
+    expect(developClockLine(iso, later(0))).toBe("All at once at 9 am");
+    expect(developClockLine(iso, later(1))).toBe("All at once yesterday");
+    expect(developClockLine(iso, later(3))).toMatch(
+      /^All at once on (Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)$/,
+    );
+    expect(developClockLine(iso, later(12))).toBe("All at once on Oct 4");
+    // Before her clock is known, the line reads whole without a time.
+    expect(developClockLine(iso, null)).toBe("All at once");
+    expect(developClockLine("not a time", later(0))).toBe("All at once");
+  });
+
+  it("what a screen reader hears: the roll, hers in it, when, and a noun only as exact as the roll", () => {
+    expect(
+      developSentence({
+        count: 24,
+        hers: 3,
+        videos: false,
+        developsAt: iso,
+        nowMs: later(0),
+      }),
+    ).toBe("24 photos developed at 9 am, 3 of them yours.");
+    expect(
+      developSentence({
+        count: 1,
+        hers: 0,
+        videos: true,
+        developsAt: iso,
+        nowMs: null,
+      }),
+    ).toBe("1 photo or video developed.");
+    expect(
+      developSentence({
+        count: 1200,
+        hers: 0,
+        videos: true,
+        developsAt: iso,
+        nowMs: later(1),
+      }),
+    ).toBe("1,200 photos and videos developed yesterday.");
   });
 });

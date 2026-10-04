@@ -205,10 +205,10 @@ function mountStyles(
 const style = (name: RegExp) => screen.getByRole("radio", { name });
 
 describe("album styles: one pick of a named album", () => {
-  it("offers Live, Reviewed and Disposable, each its card and its line, the album's own checked", () => {
+  it("offers Live, Review and Disposable, each its card and its line, the album's own checked", () => {
     mountStyles({ capture: "camera", developsAt: AHEAD }, 0, 12);
     expect(style(/^Live\./)).toHaveAttribute("aria-checked", "false");
-    expect(style(/^Reviewed\./)).toHaveAttribute("aria-checked", "false");
+    expect(style(/^Review\./)).toHaveAttribute("aria-checked", "false");
     expect(style(/^Disposable\./)).toHaveAttribute("aria-checked", "true");
     expect(
       screen.getByText(
@@ -228,7 +228,7 @@ describe("album styles: one pick of a named album", () => {
       review: false,
       developsAt: defaultDevelopAt({ eventDate: null }).toISOString(),
     });
-    fireEvent.click(style(/^Reviewed\./));
+    fireEvent.click(style(/^Review\./));
     expect(onSave).toHaveBeenLastCalledWith({
       capture: "upload",
       review: true,
@@ -244,7 +244,7 @@ describe("album styles: one pick of a named album", () => {
     expect(saved.developsAt).not.toBeNull();
   });
 
-  it("★ from Reviewed with photos held, the switch to Disposable asks first: they join the roll", () => {
+  it("★ from Review with photos held, the switch to Disposable asks first: they join the roll", () => {
     const onSave = mountStyles({ review: true }, 3);
     fireEvent.click(style(/^Disposable\./));
     expect(onSave).not.toHaveBeenCalled();
@@ -295,7 +295,7 @@ describe("album styles: one pick of a named album", () => {
 
   it("a mix outside the styles checks none, and stands Customize open with the two answers apart", () => {
     mountStyles({ capture: "camera", developsAt: null });
-    for (const name of [/^Live\./, /^Reviewed\./, /^Disposable\./]) {
+    for (const name of [/^Live\./, /^Review\./, /^Disposable\./]) {
       expect(style(name)).toHaveAttribute("aria-checked", "false");
     }
     expect(

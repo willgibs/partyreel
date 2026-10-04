@@ -66,7 +66,9 @@ export async function readGuestsRoom(
     name: person.name,
     email: person.email,
     asked: askedAgo(person.askedAt, readAt),
-    seed: person.userId ? seedFor(person.userId) : null,
+    // Her account's colour where she has one, else her own guest row's (a name-only newcomer: the colour every
+    // other surface gives her, which turns once to her account's when she claims it), never her name.
+    seed: seedFor(person.userId ?? person.guestId),
   }));
 
   // The union splits before hydration (lib/social/cards.ts owns why): only a profile card has an avatar to resolve,

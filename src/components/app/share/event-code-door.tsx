@@ -1,17 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import { EyeOff, Lock, Pause, type LucideIcon } from "lucide-react";
 
 import { StyledQr } from "@/components/app/styled-qr";
 import { CodeMat } from "@/components/ui/code-mat";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { TapTooltip } from "@/components/ui/tooltip";
 import { useInViewSentinel } from "@/lib/shared/use-in-view-sentinel";
-import { useHydrated } from "@/lib/shared/use-hydrated";
 import { resolveQrPreset } from "@/lib/constants/qr-presets";
 import { trackAttrs } from "@/lib/analytics/events";
 import { stepOf, type Door } from "@/lib/event/door/door";
@@ -124,76 +119,39 @@ const GLYPHS: Record<CodeMarkGlyph, LucideIcon> = {
  * THE MARK, AND ITS WORDS ON EVERY INPUT: a tooltip on hover and on a keyboard's
  * focus, and a tap shows the same words, so a phone is never left with a glyph
  * it cannot ask about (the tooltip primitive refuses a tap on purpose, so the
- * tap is answered here: it toggles the tooltip open and shut).
+ * mark wears `TapTooltip`, `ui/tooltip.tsx`'s one press model: a tap toggles the
+ * words open and shut, a key does the same, a cursor's click keeps them open).
  *
  * ★ ITS OWN BUTTON, BESIDE THE CODE'S, never inside it: pressing the code opens
  * the code card, and asking what a corner means must not.
- *
- * ★ THE RICH TOOLTIP MOUNTS ONLY AFTER HYDRATION (`architecture.md`: radix
- * tooltips on an SSR'd surface left the host page unhydrated in production). The
- * server's paint and the hydrating render carry the browser's own `title`, and
- * the swap is an ordinary later render, the bulk bar's arrangement.
  */
 function CornerMark({ mark }: { mark: CodeMark }) {
-  const hydrated = useHydrated();
-  const [open, setOpen] = useState(false);
-  // How the press began, and whether the tooltip stood open then: a tap's own
-  // pointerleave reaches the tooltip before its click does.
-  const press = useRef<{ touch: boolean; wasOpen: boolean } | null>(null);
   const Icon = GLYPHS[mark.glyph];
   const waiting = mark.waiting > 0;
 
-  const face = (
-    <button
-      type="button"
-      data-code-mark={mark.glyph}
-      aria-label={mark.words}
-      title={hydrated ? undefined : mark.words}
-      onPointerDown={(event) => {
-        press.current = {
-          touch: event.pointerType !== "mouse",
-          wasOpen: open,
-        };
-        // Radix closes an open tooltip on any press of its trigger; the click
-        // below decides instead.
-        event.preventDefault();
-      }}
-      onClick={(event) => {
-        // Radix's own click closes the tooltip; this one owns what a press does.
-        event.preventDefault();
-        const began = press.current;
-        press.current = null;
-        if (began?.touch) setOpen(!began.wasOpen);
-        // A keyboard's Enter or Space toggles, as a tap does; a cursor's click keeps it.
-        else if (event.detail === 0) setOpen((o) => !o);
-        else setOpen(true);
-      }}
-      className={cn(
-        "absolute -top-2 -right-2 z-10 flex h-6 min-w-6 items-center justify-center gap-0.5 rounded-full px-1.5 ring-2 ring-background outline-none",
-        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
-        // A finger's target past the 24px glyph, without growing it.
-        "before:absolute before:-inset-2 before:content-['']",
-        waiting
-          ? "bg-warning text-warning-foreground"
-          : "bg-neutral-900 text-white",
-      )}
-    >
-      <Icon className="size-3.5" strokeWidth={2.25} aria-hidden />
-      {waiting ? (
-        <span className="text-[11px] font-semibold tabular-nums">
-          {formatCount(mark.waiting)}
-        </span>
-      ) : null}
-    </button>
-  );
-
-  if (!hydrated) return face;
   return (
-    <Tooltip open={open} onOpenChange={setOpen}>
-      <TooltipTrigger asChild>{face}</TooltipTrigger>
-      <TooltipContent side="bottom" className="max-w-60 text-pretty">
-        {mark.words}
-      </TooltipContent>
-    </Tooltip>
+    <TapTooltip words={mark.words} side="bottom">
+      <button
+        type="button"
+        data-code-mark={mark.glyph}
+        aria-label={mark.words}
+        className={cn(
+          "absolute -top-2 -right-2 z-10 flex h-6 min-w-6 items-center justify-center gap-0.5 rounded-full px-1.5 ring-2 ring-background outline-none",
+          "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+          // A finger's target past the 24px glyph, without growing it.
+          "before:absolute before:-inset-2 before:content-['']",
+          waiting
+            ? "bg-warning text-warning-foreground"
+            : "bg-neutral-900 text-white",
+        )}
+      >
+        <Icon className="size-3.5" strokeWidth={2.25} aria-hidden />
+        {waiting ? (
+          <span className="text-[11px] font-semibold tabular-nums">
+            {formatCount(mark.waiting)}
+          </span>
+        ) : null}
+      </button>
+    </TapTooltip>
   );
 }

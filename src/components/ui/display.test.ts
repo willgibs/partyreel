@@ -12,14 +12,20 @@ import {
 } from "./floating-layer"
 
 /**
- * THE DISPLAY'S TWO MECHANISMS THAT FAIL QUIETLY (identity r2, layers=display,
- * wired 2026-10-03). Neither pins how the display looks (its greys and its
- * corner are tuned freely in globals.css and floating-layer.ts):
+ * THE DISPLAY'S MECHANISMS THAT FAIL QUIETLY (identity r2, layers=display,
+ * wired 2026-10-03; its room's grade is room=graphite, identity r3). None pins
+ * how the display looks (its greys and its corner are tuned freely in
+ * globals.css and floating-layer.ts):
  *
  * - `.surface-display` is a GROUND, so it carries every token a part inside it
  *   reads, in whole pairs: a pair it leaves out resolves to the page's ground
  *   instead, and a muted line, a separator or a row's glyph paints in paper's
  *   ink on the near-black screen, which no other check sees;
+ * - the screen is ONE SET PER GROUND (near-black on paper, lit graphite in the
+ *   room), declared in whole on both, and `.surface-display` reads the set for
+ *   every value that differs between them: a grey typed into the ground
+ *   instead would keep paper's value in the room, and half of graphite would
+ *   look wired while the rest did not;
  * - `--signal` (the live mark's red) is re-declared beside `--destructive` in
  *   every set that declares it: a var() in a custom property resolves where it
  *   is declared, so a set that moves the red without it carries another
@@ -70,15 +76,34 @@ describe("the display's ground", () => {
     expect(display).toMatch(/color-scheme:\s*dark/)
   })
 
-  it("is one screen on every ground: its surfaces read the theme-independent display tokens", () => {
-    // Declared on `:root` alone, so paper and the room resolve them alike.
-    const root = globals.match(/\n:root \{[\s\S]*?\n\}/g) ?? []
-    expect(
-      root.some((b) => /--display:\s*oklch/.test(b)),
-      "--display is not declared on the theme-independent :root block",
-    ).toBe(true)
+  it("★ is one screen per ground: paper and the room declare the whole set, and the ground reads it", () => {
+    // Paper's set rides the block `.surface-paper` aliases (so a paper subtree inside the room takes paper's again);
+    // the room's rides `.dark`. A token declared on one alone leaves the other ground with nothing, or, on `:root`
+    // alone, with a value the room could never differ from.
+    const named = (body: string) =>
+      [...body.matchAll(/(--display(?:-[a-z]+)?)\s*:/g)].map(([, t]) => t).sort()
+    const paper = named(block(".surface-paper"))
+    expect(paper.length, "paper declares no display set").toBeGreaterThan(1)
+    expect(named(block(".dark")), "the room's display set is not paper's, token for token").toEqual(paper)
     expect(display).toMatch(/--popover:\s*var\(--display\)/)
     expect(display).toMatch(/--background:\s*var\(--display\)/)
+  })
+
+  it("★ reads, never types, the values that differ between the grounds", () => {
+    // The step, the muted words, the caption grey, the lines: each is a ground's own, so a literal here would be
+    // paper's value on graphite.
+    for (const token of [
+      "--card",
+      "--muted",
+      "--muted-foreground",
+      "--faint",
+      "--border",
+      "--input",
+    ])
+      expect(
+        display,
+        `.surface-display types ${token} instead of reading the ground's --display* token`,
+      ).toMatch(new RegExp(`${token}:\\s*var\\(--display`))
   })
 })
 
@@ -125,6 +150,26 @@ describe("which layers are the display", () => {
     const toaster = read("src/components/ui/sonner.tsx")
     expect(toaster).toMatch(/toast:\s*"[^"]*\bsurface-display\b/)
     expect(toaster).toMatch(/"--normal-bg":\s*"var\(--display\)"/)
+  })
+
+  it("★ outlines its chosen row in the ground's own cursor, never a foreground at an alpha", () => {
+    // The row a pointer or a key holds is a wash and an outline, and the outline is `--display-cursor` (fifty percent
+    // on paper's display, fifty-five on the room's graphite): a `ring-foreground/50` typed back in is paper's value
+    // in the room, which nothing else would see.
+    for (const file of [
+      "src/components/ui/dropdown-menu.tsx",
+      "src/components/ui/select.tsx",
+      "src/components/ui/responsive-menu.tsx",
+      "src/components/ui/command-palette.tsx",
+    ]) {
+      const source = read(file)
+      expect(source, `${file}: a chosen row without the cursor`).toMatch(
+        /ring-\(color:--display-cursor\)/,
+      )
+      expect(source, `${file}: a chosen row typed as a foreground alpha`).not.toMatch(
+        /ring-foreground\/50/,
+      )
+    }
   })
 
   it("leaves the work layers in the body, where a host works", () => {

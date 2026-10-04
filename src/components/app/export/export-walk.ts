@@ -14,17 +14,30 @@
  * AFTER IT. The form's answer can never be read (and a refusal there would replace the page), so the
  * Worker is asked first, in a fetch that can be: an empty zip is refused in one line and never sent, a
  * short one is counted with a Try again for exactly what it missed, and a token the Worker would refuse is
- * said here. A check that cannot answer (a Worker from before it, R2 down) never stops the zip. After the
- * post the Worker reports its stream to the app (`export-ends`), so the walk listens: a zip reads SAVED
- * only once the Worker says its last byte went out, one the album emptied after its check was never sent
- * (the Worker's 204) and is said, and one it could not finish is said with a Try again. Where the Worker's
- * word cannot come (an older Worker, a laptop it cannot reach), the walk says what it knows and claims
- * nothing; it stops listening once the stream has been silent past its start (`START_HEARD_MS`).
+ * said here. A check that ANSWERS an error (R2 down) never stops the zip; one that never reached the Worker is
+ * her line, said with a Try again and never posted (`checkEnded`: a POST into a dead line replaces the page with
+ * the browser's own error page). After the post the Worker reports its stream to the app (`export-ends`), so the
+ * walk listens: a zip reads SAVED only once the Worker says its last byte went out, one the album emptied after
+ * its check was never sent (the Worker's 204) and is said, and one it could not finish is said with a Try again.
+ * Where the Worker's word cannot come (an older Worker, a laptop it cannot reach), the walk says what it knows
+ * and claims nothing; it stops listening once the stream has been silent past its start (`START_HEARD_MS`),
+ * unless her own line is down, which is why the silence is hers.
  *
- * ★ EVERY WAIT CAN BE LEFT (Will: "Interruptibility is a huge win in UX"). The x on the right ends
- * whatever is in flight: the mint's or the check's fetch is aborted (the Worker stops reading when
- * its client leaves), the listening stops, the toast goes, and nothing is posted afterwards, whatever
- * arrives late. A file already handed to the browser is the browser's to cancel.
+ * ★ EVERY WAIT CAN BE LEFT (Will: "Interruptibility is a huge win in UX"), AND A CANCEL ASKS FIRST (E6: "a
+ * cancel is intentional"). The x on the right, while a part is prepared or between parts, becomes one question
+ * (`askToCancel`, `askToStop`) and nothing is handed to the browser while it stands (`holdWhileAsked`). Cancel
+ * then ends what is in flight: the mint's or the check's fetch is aborted (the Worker stops reading when its
+ * client leaves), the listening stops, and nothing is posted afterwards, whatever arrives late; the toast says it
+ * was cancelled with a Try again, or, past the first part, where she stopped with the tap that takes the next.
+ * A file already handed to the browser is the browser's to cancel, so the x of a download on its way only puts
+ * the toast away.
+ *
+ * ★ AND A DROPPED CONNECTION NAMES ITSELF (E6). A mint that never reached the app says so and what to do, and so
+ * does a check that never reached the Worker (`sayDropped`: the one place it is drawn, with a Try again from a
+ * fresh mint); a zip the Worker saw the client leave (`stopped`: her cancel in the browser's own list, or a dead
+ * line, which it cannot tell apart) is read by what the page's own line did while it streamed
+ * (`HandedPart.dropped`); a line that stops answering is said under "Downloading…" (`lineLost`), never left
+ * reading as if all were well, and never replaced by "starting" while it is still down.
  *
  * ★ A BIG ALBUM IS A WALK, ONE TAP A PART. Each part is minted when it is asked for (a token lives
  * two minutes), and each is a download a person pressed, because a browser holds back a second
@@ -54,10 +67,13 @@ import {
   CHECK_TRIES_MS,
   type CheckAnswer,
   type CheckVerdict,
+  checkEnded,
   checkVerdict,
   DONE_MS,
   type DownloadPlace,
   EMPTY_EXPORT_MESSAGE,
+  LINE_LOST_AFTER,
+  lineFailed,
   MINT_TRIES_MS,
   type MintAnswer,
   mintVerdict,
@@ -85,22 +101,50 @@ export type ToastAction = { label: string; run: () => void };
  * says what it does there: cancel, stop, dismiss).
  */
 export type ToastView =
-  /** Preparing: a spinner, and the x that cancels. */
+  /** Preparing: a spinner, and the x that cancels (which asks first: `confirm`). */
   | { tone: "wait"; title: string; close: ToastAction }
   /** A host's selection holds hidden items among shown ones: include them, or leave them out? */
   | { tone: "ask"; title: string; actions: ToastAction[]; close: ToastAction }
+  /**
+   * The x was pressed while something is in flight (E6: a cancel is intentional): one question, its two answers,
+   * and nothing handed over while it stands. Keep going first, since it is what an unintended press means.
+   */
+  | { tone: "confirm"; title: string; detail?: string; actions: ToastAction[] }
   /** A part is on its way (or saved) and the next is a tap. */
-  | { tone: "between"; title: string; action: ToastAction; close: ToastAction }
+  | {
+      tone: "between";
+      title: string;
+      detail?: string;
+      action: ToastAction;
+      close: ToastAction;
+    }
   /** Handed over; the Worker's word on it has not come yet. */
-  | { tone: "downloading"; title: string; close: ToastAction }
+  | { tone: "downloading"; title: string; detail?: string; close: ToastAction }
   /** Handed over, all of it. */
   | { tone: "done"; title: string; duration: number }
   /** Handed over, short: the count, and a Try again for what it missed. */
-  | { tone: "short"; title: string; action?: ToastAction; close: ToastAction }
+  | {
+      tone: "short";
+      title: string;
+      detail?: string;
+      action?: ToastAction;
+      close: ToastAction;
+    }
+  /** Cancelled, by her: neutral, never an error, with the way back where there is one. */
+  | {
+      tone: "cancelled";
+      title: string;
+      action?: ToastAction;
+      close: ToastAction;
+      /** How long it stays: ms, or Infinity for one the Worker reported after the fact. */
+      duration: number;
+    }
   /** Nothing was handed over (or nothing whole), and why. */
   | {
       tone: "refused";
       title: string;
+      /** What to do about it, where there is something to do (a dropped connection's). */
+      detail?: string;
       action?: ToastAction;
       close: ToastAction;
     };
@@ -117,6 +161,8 @@ export type WalkDeps = {
   toast: ToastPort;
   /** Where this device keeps a download, read when a walk ends. */
   place: () => DownloadPlace;
+  /** Whether the browser says it is online, read when a try fails (`navigator.onLine`); absent reads as online. */
+  online?: () => boolean;
   sleep: (ms: number) => Promise<void>;
   newId: () => string;
   /** Where a walk between parts is kept for the page's next life (the head's reload note). */
@@ -140,6 +186,12 @@ export type HandedPart = {
   word: "listening" | "saved" | "ended" | "unheard";
   outcome: StreamOutcome | null;
   missing: string[];
+  /**
+   * The page's own line failed while this zip streamed (a status poll never reached the app): what tells a
+   * `stopped` zip that the connection dropped from one that was cancelled (the Worker sees only that the client
+   * left). Absent from a walk an older build kept: then nothing is claimed either way.
+   */
+  dropped?: boolean;
 };
 
 /**
@@ -190,7 +242,8 @@ function readHandedPart(v: unknown): HandedPart | null {
     (p.outcome === null ||
       (typeof p.outcome === "string" && OUTCOMES.has(p.outcome))) &&
     Array.isArray(p.missing) &&
-    p.missing.every((m) => typeof m === "string");
+    p.missing.every((m) => typeof m === "string") &&
+    (p.dropped === undefined || typeof p.dropped === "boolean");
   return ok ? (p as HandedPart) : null;
 }
 
@@ -213,7 +266,10 @@ export function readSavedWalks(raw: unknown): SavedWalk[] {
     // Between parts: a cursor a server would take. Every part taken: only a walk still listening.
     const positionOk =
       typeof s.next === "string"
-        ? EXPORT_CURSOR_RE.test(s.next) && isCount(s.parts) && isCount(s.part) && s.parts > s.part
+        ? EXPORT_CURSOR_RE.test(s.next) &&
+          isCount(s.parts) &&
+          isCount(s.part) &&
+          s.parts > s.part
         : s.next === null &&
           !!parts &&
           parts.some((p) => p?.word === "listening");
@@ -234,7 +290,12 @@ export function readSavedWalks(raw: unknown): SavedWalk[] {
       isCount(s.handed) &&
       partsOk;
     return ok
-      ? [{ ...(s as SavedWalk), handedParts: parts as HandedPart[] | undefined }]
+      ? [
+          {
+            ...(s as SavedWalk),
+            handedParts: parts as HandedPart[] | undefined,
+          },
+        ]
       : [];
   });
 }
@@ -271,6 +332,20 @@ type Walk = {
   busy: boolean;
   /** Ended (cancelled, dismissed or finished): nothing more is said or posted. */
   over: boolean;
+  /**
+   * THE x'S QUESTION STANDS (E6: a cancel asks first): which state it was pressed in. While it stands over a part
+   * being prepared nothing is handed to the browser (`holdWhileAsked`), and between parts the Worker's word on an
+   * earlier part is kept for after her answer, never drawn over it.
+   */
+  asking: "wait" | "between" | null;
+  /** The post waits on these while the question stands. */
+  released: (() => void)[];
+  /** She cancelled the part in flight: what its aborted work was about to do is not done. */
+  cancelled: boolean;
+  /** She stopped between parts: the toast says where, and keeps the tap that takes the next. */
+  stopped: boolean;
+  /** Her own line has stopped answering while a zip streams (`LINE_LOST_AFTER` polls in a row). */
+  lineLost: boolean;
 };
 
 /** One try of one request, with its own ceiling, abandoned the moment the walk is cancelled. */
@@ -313,7 +388,8 @@ async function attempt(
 type MintOutcome =
   | { kind: "ok"; mint: MintAnswer }
   | { kind: "refused"; code: string | null; message: string | null }
-  | { kind: "failed" }
+  /** Every try failed; `line` when it was for want of a connection (a request that never reached the app). */
+  | { kind: "failed"; line: boolean }
   | { kind: "cancelled" };
 
 const JSON_POST = {
@@ -340,8 +416,21 @@ function hiddenMixOf(body: unknown): { hidden: number; shown: number } | null {
 }
 
 export function createExportWalker(deps: WalkDeps) {
+  const online = () => deps.online?.() ?? true;
+
+  /** The question is over (answered, or the walk said something that replaces it): whatever waited on it goes on. */
+  const release = (w: Walk) => {
+    w.asking = null;
+    for (const resolve of w.released.splice(0)) resolve();
+  };
+
   const show = (w: Walk, view: ToastView) => {
-    if (!w.over) deps.toast.show(w.id, view);
+    if (w.over) return;
+    // A question between parts stands over the Worker's word on an earlier part (kept, said after her answer).
+    if (w.asking === "between") return;
+    // Anything else the walk says (an ending, a new state) is past the question.
+    release(w);
+    deps.toast.show(w.id, view);
   };
 
   /* ── the walks a reload finds, as the tab keeps them for its next page (the head's reload note) ── */
@@ -352,6 +441,8 @@ export function createExportWalker(deps: WalkDeps) {
    * still downloading (`next: null`): what the next page needs, kept until the walk ends.
    */
   const keep = (w: Walk) => {
+    // A walk she stopped is hers to take up again on this page only: a reload never offers it back.
+    if (w.stopped) return;
     const at = w.waiting;
     if (!at && !w.done) return;
     kept.set(w.id, {
@@ -365,7 +456,10 @@ export function createExportWalker(deps: WalkDeps) {
       found: w.found,
       missing: [...w.missing],
       handed: w.handed,
-      handedParts: w.handedParts.map((p) => ({ ...p, missing: [...p.missing] })),
+      handedParts: w.handedParts.map((p) => ({
+        ...p,
+        missing: [...p.missing],
+      })),
     });
     save();
   };
@@ -380,6 +474,7 @@ export function createExportWalker(deps: WalkDeps) {
     w.over = true;
     w.controller.abort();
     w.listening.abort();
+    release(w);
     letGo(w);
     deps.toast.dismiss(w.id);
   };
@@ -399,9 +494,17 @@ export function createExportWalker(deps: WalkDeps) {
           const found = Math.max(0, latest.items - latest.missing.length);
           return WALK_COPY.partShort(found, latest.items, w.part);
         }
-        return latest.outcome === "empty"
-          ? WALK_COPY.partEmpty(w.part, parts)
-          : WALK_COPY.partStopped(w.part, parts);
+        if (latest.outcome === "empty")
+          return WALK_COPY.partEmpty(w.part, parts);
+        // The Worker saw the client leave: her line, if the page's own failed while it streamed; her, if it
+        // did not; neither claimed for a walk that never said (an older build's).
+        if (latest.outcome === "stopped" && latest.dropped === true) {
+          return WALK_COPY.partDropped(w.part, parts);
+        }
+        if (latest.outcome === "stopped" && latest.dropped === false) {
+          return WALK_COPY.partCancelled(w.part, parts);
+        }
+        return WALK_COPY.partStopped(w.part, parts);
       }
     }
     return WALK_COPY.partStarted(w.part, parts);
@@ -413,6 +516,7 @@ export function createExportWalker(deps: WalkDeps) {
    */
   function between(w: Walk, next: string, parts: number) {
     w.walked = true;
+    w.stopped = false;
     w.waiting = { next, parts };
     keep(w);
     showBetween(w);
@@ -425,7 +529,12 @@ export function createExportWalker(deps: WalkDeps) {
     const { next, parts } = at;
     show(w, {
       tone: "between",
-      title: betweenTitle(w, parts),
+      // Where she stopped, once she has (E6): said, never a silent end ("would hate for someone to think they
+      // downloaded everything"), with the tap that takes the rest still here.
+      title: w.stopped
+        ? WALK_COPY.stoppedAfter(w.part, parts)
+        : betweenTitle(w, parts),
+      detail: w.lineLost ? WALK_COPY.lost : undefined,
       action: {
         label: WALK_COPY.nextPart(nextPart),
         run: () => {
@@ -434,11 +543,127 @@ export function createExportWalker(deps: WalkDeps) {
           w.part = nextPart;
           w.after = next;
           w.waiting = null;
+          w.stopped = false;
           void takePart(w);
         },
       },
-      close: closeAs(w, WALK_COPY.stop),
+      // A stop asks first; once stopped, the x only puts the toast away.
+      close: w.stopped
+        ? closeAs(w, WALK_COPY.dismiss)
+        : { label: WALK_COPY.stop, run: () => askToStop(w) },
     });
+  }
+
+  /** The toast of a part being prepared, as the walk stands (also what Keep going puts back). */
+  function showWait(w: Walk) {
+    show(w, {
+      tone: "wait",
+      title:
+        w.retryOf !== null
+          ? WALK_COPY.preparingMissing(w.retryOf)
+          : w.parts !== null && w.parts > 1
+            ? WALK_COPY.preparingPart(w.part, w.parts)
+            : WALK_COPY.preparing,
+      close: { label: WALK_COPY.cancel, run: () => askToCancel(w) },
+    });
+  }
+
+  /* ── the x asks first (E6: a cancel is intentional) ─────────────────────── */
+
+  /** Keep going: the question is withdrawn and the walk is drawn as it stands. */
+  function keepGoing(w: Walk) {
+    if (w.over || !w.asking) return;
+    const was = w.asking;
+    release(w);
+    if (was === "between") showBetween(w);
+    else showWait(w);
+  }
+
+  /**
+   * The x of a part being prepared. The mint and the check go on meanwhile (cheap, and what Keep going wants), but
+   * nothing is handed to the browser until she answers (`holdWhileAsked`), so the question is never asked of a
+   * download that has already begun.
+   */
+  function askToCancel(w: Walk) {
+    if (w.over || w.asking) return;
+    w.asking = "wait";
+    deps.toast.show(w.id, {
+      tone: "confirm",
+      title: WALK_COPY.askCancel,
+      actions: [
+        { label: WALK_COPY.keepGoing, run: () => keepGoing(w) },
+        { label: WALK_COPY.cancel, run: () => cancelPart(w) },
+      ],
+    });
+  }
+
+  /** The x between parts: stopping leaves the rest of the album behind, so it says so before it does. */
+  function askToStop(w: Walk) {
+    const at = w.waiting;
+    if (w.over || w.asking || !at) return;
+    w.asking = "between";
+    deps.toast.show(w.id, {
+      tone: "confirm",
+      title: WALK_COPY.askStop(w.part, at.parts),
+      detail: WALK_COPY.askStopDetail(w.part + 1, at.parts),
+      actions: [
+        { label: WALK_COPY.keepGoing, run: () => keepGoing(w) },
+        { label: WALK_COPY.stopHere, run: () => stopHere(w) },
+      ],
+    });
+  }
+
+  /** Stop here, confirmed: the walk stays, the toast says where she stopped, and Get part N is still the way on. */
+  function stopHere(w: Walk) {
+    if (w.over || w.asking !== "between") return;
+    release(w);
+    w.stopped = true;
+    letGo(w);
+    showBetween(w);
+  }
+
+  /**
+   * Cancel, confirmed, while a part is being prepared. Whatever was in flight is abandoned and nothing is handed
+   * over. A first part is the whole download: the walk ends and the toast says it was cancelled, with Try again
+   * (the download again, from its start). A later part leaves the parts before it hers: the walk goes back to
+   * where it stood, stopped, with Get part N to take it again.
+   */
+  function cancelPart(w: Walk) {
+    if (w.over || w.asking !== "wait") return;
+    release(w);
+    w.cancelled = true;
+    w.controller.abort();
+    if (w.part > 1 && w.after !== null && w.parts !== null) {
+      w.part -= 1;
+      w.waiting = { next: w.after, parts: w.parts };
+      w.stopped = true;
+      letGo(w);
+      showBetween(w);
+      return;
+    }
+    w.over = true;
+    w.listening.abort();
+    letGo(w);
+    deps.toast.show(w.id, {
+      tone: "cancelled",
+      title: WALK_COPY.cancelled,
+      action: {
+        label: WALK_COPY.tryAgain,
+        run: () => {
+          deps.toast.dismiss(w.id);
+          void begin(w.scope, w.body, w.retryOf, true);
+        },
+      },
+      close: { label: WALK_COPY.dismiss, run: () => deps.toast.dismiss(w.id) },
+      duration: DONE_MS.cancelled,
+    });
+  }
+
+  /** Nothing is handed to the browser while her question stands over a part being prepared. */
+  async function holdWhileAsked(w: Walk) {
+    while (w.asking === "wait" && !w.over) {
+      await new Promise<void>((resolve) => w.released.push(resolve));
+    }
   }
 
   async function mint(w: Walk): Promise<MintOutcome> {
@@ -448,50 +673,64 @@ export function createExportWalker(deps: WalkDeps) {
       part: w.part,
       ...(w.after ? { after: w.after } : {}),
     });
+    let last: Attempt | null = null;
     for (let i = 0; i < MINT_TRIES_MS.length; i++) {
       if (i > 0) {
         await deps.sleep(RETRY_PAUSE_MS[i - 1]);
         if (w.over) return { kind: "cancelled" };
       }
-      const verdict = mintVerdict(
-        await attempt(
-          deps.fetch,
-          `/api/export/${w.scope}`,
-          { ...JSON_POST, body },
-          MINT_TRIES_MS[i],
-          w.controller.signal,
-        ),
+      const tried = await attempt(
+        deps.fetch,
+        `/api/export/${w.scope}`,
+        { ...JSON_POST, body },
+        MINT_TRIES_MS[i],
+        w.controller.signal,
       );
+      last = tried;
+      const verdict = mintVerdict(tried);
       if (verdict.kind !== "retry") return verdict;
+      // Offline by the browser's own word: another try can only fail the same way, so it is said now.
+      if (tried.kind === "network" && !online()) {
+        return { kind: "failed", line: true };
+      }
     }
-    return { kind: "failed" };
+    // The last try decides what it was: a line that never reached the app, or an app that answered an error.
+    return {
+      kind: "failed",
+      line: !online() || (last !== null && lineFailed(last)),
+    };
   }
 
   async function check(w: Walk, answer: MintAnswer): Promise<CheckVerdict> {
     if (!answer.checkUrl) return { kind: "skip" };
+    let last: Attempt | null = null;
     for (let i = 0; i < CHECK_TRIES_MS.length; i++) {
       if (i > 0) {
         await deps.sleep(RETRY_PAUSE_MS[i - 1]);
         if (w.over) return { kind: "cancelled" };
       }
-      const verdict = checkVerdict(
-        await attempt(
-          deps.fetch,
-          answer.checkUrl,
-          {
-            method: "POST",
-            // text/plain keeps it a CORS "simple" request: no preflight (workers/export/src/index.ts).
-            headers: { "content-type": "text/plain;charset=UTF-8" },
-            body: answer.token,
-            credentials: "omit",
-          },
-          CHECK_TRIES_MS[i],
-          w.controller.signal,
-        ),
+      const tried = await attempt(
+        deps.fetch,
+        answer.checkUrl,
+        {
+          method: "POST",
+          // text/plain keeps it a CORS "simple" request: no preflight (workers/export/src/index.ts).
+          headers: { "content-type": "text/plain;charset=UTF-8" },
+          body: answer.token,
+          credentials: "omit",
+        },
+        CHECK_TRIES_MS[i],
+        w.controller.signal,
       );
+      last = tried;
+      const verdict = checkVerdict(tried);
       if (verdict.kind !== "retry") return verdict;
+      // Offline by the browser's own word: another try can only fail the same way, so it is said now (the mint's rule).
+      if (tried.kind === "network" && !online()) return checkEnded(tried);
     }
-    return { kind: "skip" };
+    // ★ THE LAST TRY DECIDES (`checkEnded`): a line that never carried it is her connection's, never a download to
+    // post blind; an answered error is the Worker's, and the zip goes on uncounted.
+    return checkEnded(last);
   }
 
   /* ── listening for the Worker's word on a handed part (`export-ends`) ── */
@@ -507,30 +746,60 @@ export function createExportWalker(deps: WalkDeps) {
     const gone = () => w.over || ear.aborted || p.word !== "listening";
     let listened = 0;
     let begun = false;
+    // Polls in a row that never reached the app: her own line, which is all the page can know of a dropped one.
+    let misses = 0;
     for (;;) {
       const pause = watchPauseMs(listened);
       await deps.sleep(pause);
       listened += pause;
       if (gone()) return;
-      const state = statusVerdict(
-        await attempt(
-          deps.fetch,
-          STATUS_URL,
-          { ...JSON_POST, body: JSON.stringify({ jti: p.jti }) },
-          STATUS_TRY_MS,
-          ear,
-        ),
+      const tried = await attempt(
+        deps.fetch,
+        STATUS_URL,
+        { ...JSON_POST, body: JSON.stringify({ jti: p.jti }) },
+        STATUS_TRY_MS,
+        ear,
       );
+      const state = statusVerdict(tried);
       if (gone()) return;
+      if (lineFailed(tried)) {
+        misses += 1;
+        // A request that was refused outright is a line that failed; one that only ran long may be the app's
+        // own slowness, so a stall counts only when it repeats. The Worker sees a dropped line and a cancelled
+        // download alike (the client left): this is what tells her own apart.
+        if (tried.kind === "network" || misses >= 2) p.dropped = true;
+        if (misses === LINE_LOST_AFTER) lineChanged(w, true);
+      } else if (tried.kind === "answer") {
+        misses = 0;
+        lineChanged(w, false);
+      }
       if (state?.state === "streaming") begun = true;
       else if (state && state.state !== "none") return heard(w, p, state);
-      if ((!begun && listened >= START_HEARD_MS) || listened >= WATCH_MAX_MS) {
-        return heard(w, p, null);
-      }
+      // ★ SILENCE SAYS SOMETHING ONLY WHILE HER LINE IS UP (red-team 53's LOW). A stream that never begins within
+      // `START_HEARD_MS` means the Worker's word cannot reach this app; but while her own line is down the silence is
+      // hers, so the walk keeps listening, and keeps saying so (`lineLost`), until a poll is answered. It used to give
+      // up at the mark, and "Your download is starting." replaced "Your connection dropped." on a line still down.
+      const silent = !begun && listened >= START_HEARD_MS && !w.lineLost;
+      if (silent || listened >= WATCH_MAX_MS) return heard(w, p, null);
     }
   }
 
-  /** The Worker's word on one part (null: none will come), said where the walk now stands. */
+  /**
+   * Her line stopped answering while a zip streams, or came back: said under the title the walk already shows, so a
+   * download that has quietly stopped is never left reading "Downloading…" (E6: a dropped connection is never hidden).
+   */
+  function lineChanged(w: Walk, lost: boolean) {
+    if (w.over || w.lineLost === lost) return;
+    w.lineLost = lost;
+    if (w.done) say(w);
+    else if (w.waiting && !w.asking) showBetween(w);
+  }
+
+  /**
+   * The Worker's word on one part (null: none will come), said where the walk now stands. It never touches `lineLost`:
+   * only a poll that was answered says her line is back (`lineChanged`), and a walk that gave up listening heard
+   * nothing, which is no word about her line.
+   */
   function heard(w: Walk, p: HandedPart, state: StreamState | null) {
     if (w.over) return;
     if (!state || state.state === "none" || state.state === "streaming") {
@@ -577,6 +846,8 @@ export function createExportWalker(deps: WalkDeps) {
           w.walked && w.handed > 1
             ? WALK_COPY.allStarted(w.handed)
             : WALK_COPY.downloading(place),
+        // A line that has stopped answering is said here, never left under a bare "Downloading…".
+        detail: w.lineLost ? WALK_COPY.lost : undefined,
         close: closeAs(w, WALK_COPY.dismiss),
       });
       return;
@@ -611,9 +882,42 @@ export function createExportWalker(deps: WalkDeps) {
     const found = Math.max(0, w.items - missing.length);
     if (found === 0) {
       // Nothing whole reached her: a zip that never finished, or one the album emptied after its check.
-      const broke = w.handedParts.some(
-        (p) => p.outcome === "stopped" || p.outcome === "failed",
-      );
+      // ★ AND WHY IT NEVER FINISHED, TOLD APART (E6). `failed` is a read that broke on our side. `stopped` is the
+      // client leaving, which the Worker cannot tell from a cancel in the browser's own list: it is her line
+      // when the page's own failed while the zip streamed, and her cancel when it did not. A walk an older build
+      // kept never recorded which (`dropped` absent), so it claims neither.
+      const stoppedParts = w.handedParts.filter((p) => p.outcome === "stopped");
+      const failed = w.handedParts.some((p) => p.outcome === "failed");
+      const dropped = !failed && stoppedParts.some((p) => p.dropped === true);
+      const cancelled =
+        !failed &&
+        !dropped &&
+        stoppedParts.length > 0 &&
+        stoppedParts.every((p) => p.dropped === false);
+      const again = { label: WALK_COPY.tryAgain, run: () => restart(w) };
+      if (cancelled) {
+        // Hers, so neutral, never an error; stays until she puts it away, since the Worker's word can come after
+        // she has looked away.
+        show(w, {
+          tone: "cancelled",
+          title: WALK_COPY.cancelled,
+          action: again,
+          close: closeAs(w, WALK_COPY.dismiss),
+          duration: Infinity,
+        });
+        return;
+      }
+      if (dropped) {
+        show(w, {
+          tone: "refused",
+          title: WALK_COPY.dropped,
+          detail: WALK_COPY.droppedDetail,
+          action: again,
+          close: closeAs(w, WALK_COPY.dismiss),
+        });
+        return;
+      }
+      const broke = failed || stoppedParts.length > 0;
       show(w, {
         tone: "refused",
         title:
@@ -622,10 +926,7 @@ export function createExportWalker(deps: WalkDeps) {
             : broke
               ? WALK_COPY.stopped
               : EMPTY_EXPORT_MESSAGE,
-        action:
-          w.retryOf !== null
-            ? undefined
-            : { label: WALK_COPY.tryAgain, run: () => restart(w) },
+        action: w.retryOf !== null ? undefined : again,
         close: closeAs(w, WALK_COPY.dismiss),
       });
       return;
@@ -634,6 +935,10 @@ export function createExportWalker(deps: WalkDeps) {
     show(w, {
       tone: "short",
       title: WALK_COPY.short(found, w.items),
+      // A part whose zip the line dropped says so, with what to do, beside the count.
+      detail: w.handedParts.some((p) => p.outcome === "stopped" && p.dropped)
+        ? WALK_COPY.droppedDetail
+        : undefined,
       // Exactly the missed ones, as one zip's worth; past that, the whole walk again (never a dead end).
       action:
         missing.length <= MAX_EXPORT_ITEMS
@@ -675,6 +980,10 @@ export function createExportWalker(deps: WalkDeps) {
       done: false,
       waiting: null,
       listening: new AbortController(),
+      asking: null,
+      cancelled: false,
+      stopped: false,
+      lineLost: false,
     });
     void takePart(w);
   }
@@ -744,20 +1053,29 @@ export function createExportWalker(deps: WalkDeps) {
     return true;
   }
 
+  /**
+   * ★ A DROPPED CONNECTION NAMES ITSELF (E6), at every step before the post: what happened and what to do, with the
+   * Try again that takes this part from a fresh mint (a token lives two minutes). The one place it is drawn, so the
+   * mint's, the check's and the post's say it in one voice.
+   */
+  function sayDropped(w: Walk): false {
+    show(w, {
+      tone: "refused",
+      title: WALK_COPY.dropped,
+      detail: WALK_COPY.droppedDetail,
+      action: { label: WALK_COPY.tryAgain, run: () => void takePart(w) },
+      close: closeAs(w, WALK_COPY.dismiss),
+    });
+    return false;
+  }
+
   /** One part: minted, checked, posted, said. "skip" when it held nothing and the walk goes on. */
   async function takeOne(w: Walk): Promise<boolean | "skip"> {
     if (w.over) return false;
     w.controller = new AbortController();
-    show(w, {
-      tone: "wait",
-      title:
-        w.retryOf !== null
-          ? WALK_COPY.preparingMissing(w.retryOf)
-          : w.parts !== null && w.parts > 1
-            ? WALK_COPY.preparingPart(w.part, w.parts)
-            : WALK_COPY.preparing,
-      close: closeAs(w, WALK_COPY.cancel),
-    });
+    w.cancelled = false;
+    w.lineLost = false;
+    showWait(w);
 
     // The question waits on her answer, whose button takes the part from here.
     if (await hiddenAsk(w)) return false;
@@ -765,6 +1083,10 @@ export function createExportWalker(deps: WalkDeps) {
     const minted = await mint(w);
     if (w.over || minted.kind === "cancelled") return false;
     if (minted.kind === "failed") {
+      // ★ A DROPPED CONNECTION NAMES ITSELF (E6): when the tries failed for want of a line it says so and what to
+      // do, so she neither tries on a line that cannot carry it nor blames the app; an app that answered an error
+      // is "Couldn't start that download", as it was.
+      if (minted.line) return sayDropped(w);
       show(w, {
         tone: "refused",
         title: WALK_COPY.failed,
@@ -808,7 +1130,11 @@ export function createExportWalker(deps: WalkDeps) {
     w.parts = answer.parts;
     const checked = await check(w, answer);
     if (w.over || checked.kind === "cancelled") return false;
+    // ★ A CHECK THE LINE NEVER CARRIED NEVER POSTS (red-team 53's MEDIUM): the form goes to the host the check could
+    // not reach, and a POST into a dead line replaces the page with the browser's error page. Said, with Try again.
+    if (checked.kind === "dropped") return sayDropped(w);
     if (checked.kind === "refused") {
+      // An ending: it replaces her question, there being nothing left to cancel.
       show(w, {
         tone: "refused",
         title:
@@ -821,6 +1147,13 @@ export function createExportWalker(deps: WalkDeps) {
       });
       return false;
     }
+    // ★ NOTHING IS HANDED OVER WHILE HER QUESTION STANDS (E6): a download that has begun cannot be asked about. A
+    // Keep going carries on from here; a Cancel (or the x of a later part) abandons this part before a byte moves.
+    await holdWhileAsked(w);
+    if (w.over || w.cancelled) return false;
+    // The check was answered some time ago, and her question may have stood a long while since: a line the browser
+    // itself says is down would turn the post into the same error page, so it is said now instead of posted into.
+    if (!online()) return sayDropped(w);
 
     // What this part holds: the Worker's count, or (it could not say) the mint's own.
     const counted: CheckAnswer =
@@ -876,6 +1209,8 @@ export function createExportWalker(deps: WalkDeps) {
       word: listening ? "listening" : "unheard",
       outcome: null,
       missing: [],
+      // Only a zip the walk listens to can say how its line did: until a poll fails, it did not drop.
+      ...(listening ? { dropped: false } : {}),
     };
     w.handedParts.push(handed);
     if (listening) void listen(w, handed);
@@ -914,6 +1249,11 @@ export function createExportWalker(deps: WalkDeps) {
       listening: new AbortController(),
       busy: false,
       over: false,
+      asking: null,
+      released: [],
+      cancelled: false,
+      stopped: false,
+      lineLost: false,
     };
   }
 

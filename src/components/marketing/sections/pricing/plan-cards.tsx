@@ -28,6 +28,8 @@ import { formatCount } from "@/lib/format/count";
 import { cn } from "@/lib/utils";
 import { formatBytes } from "@/lib/utils";
 
+import { partiesLine, sizeValueText } from "@/components/app/pricing/holds";
+
 /**
  * THE PAIR (Biograph-adapted, Will's 2026-08-27 design notes): Free is the paper
  * sheet, Pro is the same sheet in INK. The premium card is a full token
@@ -258,10 +260,15 @@ export function StatRow({
  *
  * ★ IT IS A REAL `input[type=range]`, so the keyboard, the screen reader and a
  * finger dragging all work without a line of our own: arrows step, Home and End
- * jump, `aria-valuetext` says the room rather than "1 of 3". The stops ARE
- * `plansForTier("pro")` (tiers.ts, the source the Stripe webhook and the SQL
- * enforcement read), indexed, so a fourth Pro size appears on this slider the
- * day it appears in the table and nobody edits a control.
+ * jump, `aria-valuetext` says the size's use and its room rather than "1 of 3".
+ * The stops ARE `plansForTier("pro")` (tiers.ts, the source the Stripe webhook
+ * and the SQL enforcement read), indexed, so a fourth Pro size appears on this
+ * slider the day it appears in the table and nobody edits a control.
+ *
+ * ★ A STOP IS NAMED BY ITS USE, NEVER ITS SIZE (Ladder A, the pricing research:
+ * GB for GB a cloud drive is many times cheaper, so a size read as a size loses
+ * to iCloud, while "a planner's year" is what no drive sells). The room stays in
+ * the stat row beside it, where a host who wants the number finds it.
  *
  * ★ NOTHING GLIDES. Dragging is a high-frequency interaction (the motion rule),
  * so the fill and the price follow the thumb instantly and the one animated
@@ -305,7 +312,7 @@ function SizeSlider({
         value={i}
         onChange={(e) => onPick(plans[Number(e.target.value)].id)}
         aria-label="Pro storage size"
-        aria-valuetext={formatBytes(plans[i].storageBytes)}
+        aria-valuetext={sizeValueText(plans[i])}
         style={{ "--fill": `${pct}%` } as CSSProperties}
         className={cn(
           "h-6 w-full cursor-pointer appearance-none rounded-full bg-transparent outline-none",
@@ -323,20 +330,25 @@ function SizeSlider({
           "motion-reduce:[&::-webkit-slider-thumb]:transition-none",
         )}
       />
-      {/* The stops, named. Not buttons: one control does one job, and a native
-          range already moves to wherever the track is pressed. */}
-      <div
-        aria-hidden
-        className="mt-2 flex justify-between text-micro tabular-nums"
-      >
-        {plans.map((p) => (
+      {/* The stops, named by their use. Not buttons: one control does one job, and
+          a native range already moves to wherever the track is pressed. Each holds
+          a third of the row and may wrap to two lines at a phone's width; the ends
+          sit flush with the track's ends, as the thumb does. */}
+      <div aria-hidden className="mt-2 flex justify-between gap-3 text-micro">
+        {plans.map((p, n) => (
           <span
             key={p.id}
-            className={
-              p.id === value ? "text-background" : "text-background/45"
-            }
+            className={cn(
+              "w-1/3 text-balance transition-colors duration-150 motion-reduce:transition-none",
+              n === 0
+                ? "text-left"
+                : n === plans.length - 1
+                  ? "text-right"
+                  : "text-center",
+              p.id === value ? "text-background" : "text-background/45",
+            )}
           >
-            {formatBytes(p.storageBytes)}
+            {p.use ?? formatBytes(p.storageBytes)}
           </span>
         ))}
       </div>
@@ -433,8 +445,10 @@ export function PlanPair() {
                 about, which is the `section` step's "stat numeral". The Pro
                 card and the Event Pass wear the same pair. */}
             <h2 className="font-heading text-subsection">{free.name}</h2>
+            {/* What it holds leads, as every card's line does (Ladder A): Free is sized
+                for a small gathering, so it says which. */}
             <p className="text-sm text-pretty text-muted-foreground">
-              The full experience, for a small event.
+              The full experience, for a dinner or a birthday at home.
             </p>
             <div className="mt-3 font-heading text-section tabular-nums">
               <PricePop label={free.priceLabel} />
@@ -525,7 +539,13 @@ export function PlanPair() {
                 under them all follow the thumb. */}
             <SizeSlider plans={proPlans} value={proId} onPick={setProId} />
 
-            <div className="mt-4">
+            {/* What the size holds, in parties, before its numbers: the card leads
+                with events (Ladder A), the stat row keeps the room. */}
+            <p className="mt-4 text-sm text-pretty text-background/75">
+              {partiesLine(pro)}.
+            </p>
+
+            <div className="mt-3">
               <StatRow
                 ink
                 stats={[

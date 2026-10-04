@@ -20,6 +20,7 @@ const { looks } = vi.hoisted(() => ({
     email: unknown;
     name: unknown;
     canFollow: unknown;
+    seed: unknown;
   }[],
 }));
 vi.mock("@/components/social/guest-peek", () => ({
@@ -30,7 +31,7 @@ vi.mock("@/components/social/guest-peek", () => ({
     block,
     children,
   }: {
-    item: { displayName: string | null };
+    item: { displayName: string | null; seed?: string };
     email?: string | null;
     canFollow: boolean;
     block?: { target: unknown };
@@ -41,6 +42,7 @@ vi.mock("@/components/social/guest-peek", () => ({
       email,
       name: item.displayName,
       canFollow,
+      seed: item.seed,
     });
     return <div data-testid="look">{children}</div>;
   },
@@ -88,6 +90,7 @@ describe("the credit's look", () => {
         email: "sam@example.com",
         name: "Sam",
         canFollow: false,
+        seed: "s",
       },
     ]);
     // The name is the look's door now, not a link to the page.
@@ -100,6 +103,22 @@ describe("the credit's look", () => {
     );
     expect(screen.getByRole("button", { name: "Sam" })).toBeInTheDocument();
     expect(looks[0]?.target).toEqual({ kind: "media", mediaId: "m-1" });
+  });
+
+  it("★ a typed name's look wears the colour the credit wears: her row's, from the item's face (small-fixes)", () => {
+    credit(
+      photo({
+        isVerified: false,
+        uploaderEmail: null,
+        uploaderFace: { avatarUrl: null, seed: "seed-g1", href: null },
+      }),
+    );
+    expect(looks[0]?.seed).toBe("seed-g1");
+    // No face on the item: no colour to carry (the plain disc), never a stand-in.
+    credit(
+      photo({ isVerified: false, uploaderEmail: null, uploaderFace: null }),
+    );
+    expect(looks[0]?.seed).toBeUndefined();
   });
 
   it("★ the guest album (no provider) keeps the plain credit: its page link, and no look", () => {

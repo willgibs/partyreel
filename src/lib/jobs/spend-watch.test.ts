@@ -204,7 +204,7 @@ describe("the window a counter is diffed over", () => {
   });
 });
 
-describe("the ingress meter's growth", () => {
+describe("the uploads meter's growth", () => {
   it("counts what each period grew by, a new month whole", () => {
     expect(
       ledgerGrowth(
@@ -714,6 +714,17 @@ describe("the readings themselves", () => {
       expect(r.remedy.length).toBeGreaterThan(20);
       if (r.cap !== undefined) expect(r.cap).toBeGreaterThanOrEqual(r.floor);
     }
+  });
+
+  // ★ The uploads meter has one name (red-team 52's NIT: the card still sourced Uploads and Bytes uploaded from "the
+  // monthly ingress meter"). `content-policy.test.ts` fences the retired word over the site and the docs; the
+  // operator's portal is outside that fence, so its own words are held here.
+  it("never words a reading's source or remedy in the backstop's retired name", () => {
+    for (const r of READINGS) {
+      expect(`${r.source} ${r.remedy}`, r.id).not.toMatch(/\bingress\b/i);
+    }
+    expect(def("uploads").source).toContain("uploads meter");
+    expect(def("upload_bytes").source).toContain("uploads meter");
   });
 
   it("measures a counter since the last reading as a rate an hour, and a day's count whole", () => {

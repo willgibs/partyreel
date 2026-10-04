@@ -10,6 +10,7 @@ import {
 
 import { CycledCover } from "@/components/app/dashboard/cover-cycle";
 import { formatCount } from "@/lib/format/count";
+import { RangeText } from "@/lib/format/range-text";
 import { GLASS_MARK } from "@/lib/glass";
 import { cn } from "@/lib/utils";
 
@@ -177,7 +178,7 @@ export function EventCard({
         <div className="flex flex-wrap items-center gap-1.5">
           <span className={PILL}>
             <Calendar className="size-2.5" aria-hidden />
-            {dateLabel}
+            <RangeText text={dateLabel} />
           </span>
           {itemsLabel && (
             <span className={PILL}>

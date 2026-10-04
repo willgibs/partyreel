@@ -1,7 +1,8 @@
 /**
  * THE SPEND WATCH'S CRON (vercel.json, daily before launch; hourly at launch on Pro). Reads our own counters, alerts
  * past ten times the week's busiest and pauses what a trip may pause (`src/lib/jobs/spend-watch-run.ts`; the rules
- * in `spend-watch.ts`; admin-observability.md, "The spend watch").
+ * in `spend-watch.ts`; admin-observability.md, "The spend watch"). The same run reads every vendor's plan meter against
+ * its limit and mails what newly crossed (`limits-watch-run.ts`; "Plan limits"), so Hobby's two crons stay two.
  *
  * ITS OWN ROUTE, NEVER A RIDE ON THE PURGE'S: it must run while the purge is paused, it may be the one pausing it,
  * and it is the one job that asks after the purge's own silence.
@@ -20,8 +21,10 @@ import { servesApp } from "@/lib/surface";
 // The service-role client and node:crypto need the Node runtime.
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-// A run is one RPC, up to 30 pages of Resend's list and a few small writes: seconds, well inside a minute.
-export const maxDuration = 60;
+// A run is one RPC, up to 30 pages of Resend's list, the plan limits' reads (one Vercel GET with a 10 s timeout, up to
+// 40 more pages of Resend's list, two small RPCs, side by side) and a few small writes: seconds, tens at the very worst,
+// so two minutes of headroom rather than a function killed mid-run with its row left "running".
+export const maxDuration = 120;
 
 export async function GET(request: Request): Promise<Response> {
   let cronSecret: string;

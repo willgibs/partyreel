@@ -18,22 +18,18 @@ if git show-ref --verify --quiet "refs/heads/lp/$TRACK"; then
 else
   git branch "lp/$TRACK" "origin/lp/$TRACK"
 fi
-[ "$(git rev-parse --short "lp/$TRACK")" = "$HSHA" ] || { echo "lane head moved: $(git rev-parse --short "lp/$TRACK")"; exit 1; }
+# The head is compared whole: any unambiguous abbreviation of it passes, since git's own short form grows a character as
+# the repository does (8 became 9 on 2026-10-04, and a comparison of short forms refused every lane).
+WANT="$(git rev-parse -q --verify "$HSHA^{commit}" 2>/dev/null)"
+[ -n "$WANT" ] && [ "$(git rev-parse "lp/$TRACK")" = "$WANT" ] || { echo "lane head moved: $(git rev-parse --short "lp/$TRACK") (asked for $HSHA)"; exit 1; }
 git show "lp/$TRACK:docs/tracks/$TRACK.md" | grep -q '^status: handed-off' || { echo "manifest not handed-off"; exit 1; }
 echo "stale by $(git rev-list --count "lp/$TRACK..HEAD") commits"
 git -c merge.conflictStyle=diff3 merge --no-ff --no-commit "lp/$TRACK" >/dev/null 2>&1 || true
-# ★ NO SHARED REGISTRY FILE IS LEFT TO RESOLVE (the lab revamp, 2026-09-29): a board is its folder under sandbox/, so two
-# lanes' boards never touch one file and a retirement is a folder deletion git merges by itself. What remains is a lane
-# cut BEFORE the revamp that edited the retired lists: touchpoints.ts and (shell)/lab/boards.ts stay deleted, and
-# registry.ts is launch-prep's (a board is its folder; a lane retiring one deletes it). Transitional: once no lane cut
-# before the lab revamp's merge is open, this block has nothing to do and can go.
-for f in "src/app/(dev)/design/touchpoints.ts" "src/app/(dev)/design/(shell)/lab/boards.ts"; do
-  if git ls-files -u -- "$f" | grep -q .; then git rm -qf -- "$f"; echo "$f: retired by the lab revamp; the lane's edit is dropped"; fi
-done
+# No shared registry file is left to resolve: a board is its folder under sandbox/, so two lanes' boards never touch one
+# file and a retirement is a folder deletion git merges by itself. A conflict in registry.ts is a real overlap, refused
+# here before the `git add -u` below could stage its markers, and rebuilt by hand from both sides.
 REG="src/app/(dev)/design/sandbox/registry.ts"
-if git ls-files -u -- "$REG" | grep -q .; then git checkout -q --ours -- "$REG"; echo "$REG: launch-prep's; the lane edited the old list"; fi
 grep -l '^<<<<<<<' "$REG" 2>/dev/null && { echo "MARKERS LEFT"; exit 1; }
-[ -f "$REG" ] && git add -- "$REG"
 git rm -qf "docs/tracks/$TRACK.md"
 node "src/app/(dev)/design/gallery/collect-specimens.mjs" >/dev/null
 git add -u -- "src/app/(dev)/design"

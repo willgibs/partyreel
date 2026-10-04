@@ -317,6 +317,7 @@ export type Database = {
           source: string
           start_at: string
           stripe_session_id: string | null
+          uploaded_bytes: number
         }
         Insert: {
           consumed_at?: string | null
@@ -329,6 +330,7 @@ export type Database = {
           source: string
           start_at: string
           stripe_session_id?: string | null
+          uploaded_bytes?: number
         }
         Update: {
           consumed_at?: string | null
@@ -341,6 +343,7 @@ export type Database = {
           source?: string
           start_at?: string
           stripe_session_id?: string | null
+          uploaded_bytes?: number
         }
         Relationships: [
           {
@@ -368,6 +371,7 @@ export type Database = {
           event_password_hash: string | null
           gate: Database["public"]["Enums"]["event_gate"] | null
           host_id: string
+          host_opened_at: string | null
           id: string
           max_upload_bytes: number | null
           moderation_mode: Database["public"]["Enums"]["moderation_mode"]
@@ -400,6 +404,7 @@ export type Database = {
           event_password_hash?: string | null
           gate?: Database["public"]["Enums"]["event_gate"] | null
           host_id: string
+          host_opened_at?: string | null
           id?: string
           max_upload_bytes?: number | null
           moderation_mode?: Database["public"]["Enums"]["moderation_mode"]
@@ -432,6 +437,7 @@ export type Database = {
           event_password_hash?: string | null
           gate?: Database["public"]["Enums"]["event_gate"] | null
           host_id?: string
+          host_opened_at?: string | null
           id?: string
           max_upload_bytes?: number | null
           moderation_mode?: Database["public"]["Enums"]["moderation_mode"]
@@ -1005,9 +1011,11 @@ export type Database = {
           display_name: string | null
           email: string | null
           event_slots: number | null
+          events_display: Json
           id: string
           is_admin: boolean
           last_active_at: string
+          make_room_from_deleted: boolean
           password_set_at: string | null
           slug: string | null
           storage_cap_bytes: number | null
@@ -1030,9 +1038,11 @@ export type Database = {
           display_name?: string | null
           email?: string | null
           event_slots?: number | null
+          events_display?: Json
           id: string
           is_admin?: boolean
           last_active_at?: string
+          make_room_from_deleted?: boolean
           password_set_at?: string | null
           slug?: string | null
           storage_cap_bytes?: number | null
@@ -1055,9 +1065,11 @@ export type Database = {
           display_name?: string | null
           email?: string | null
           event_slots?: number | null
+          events_display?: Json
           id?: string
           is_admin?: boolean
           last_active_at?: string
+          make_room_from_deleted?: boolean
           password_set_at?: string | null
           slug?: string | null
           storage_cap_bytes?: number | null
@@ -1584,6 +1596,7 @@ export type Database = {
         Args: { p_event_ids: string[] }
         Returns: number
       }
+      empty_deleted: { Args: { p_limit?: number }; Returns: Json }
       event_account_ticket: {
         Args: {
           p_admission: Database["public"]["Enums"]["guest_admission"]
@@ -1813,15 +1826,35 @@ export type Database = {
       has_password: { Args: never; Returns: boolean }
       held_event_ids: { Args: { p_event_ids: string[] }; Returns: string[] }
       host_active_bytes: { Args: { p_host_id: string }; Returns: number }
+      host_deleted_media: {
+        Args: { p_host_id: string }
+        Returns: {
+          binned_at: string
+          by_system: boolean
+          file_size_bytes: number
+          media_id: string
+        }[]
+      }
       host_door_waiting: { Args: { p_host_id: string }; Returns: Json }
+      host_room_used: { Args: { p_host_id: string }; Returns: number }
       host_storage_summary: {
         Args: { p_host_id: string }
         Returns: {
           active_bytes: number
           standby_bytes: number
+          system_bytes: number
         }[]
       }
       kept_media_ids: { Args: { p_media_ids: string[] }; Returns: string[] }
+      leave_deleted: {
+        Args: {
+          p_bytes: number
+          p_host_id: string
+          p_limit?: number
+          p_system: boolean
+        }
+        Returns: Record<string, unknown>
+      }
       let_back_in: {
         Args: { p_block_id: string; p_restore?: boolean }
         Returns: Json
@@ -1832,6 +1865,7 @@ export type Database = {
       }
       like_many: { Args: { p_media_ids: string[] }; Returns: Json }
       like_media: { Args: { p_media_id: string }; Returns: Json }
+      limits_watch_readings: { Args: never; Returns: Json }
       list_guest_rows_by_email: {
         Args: { p_after_at?: string; p_after_id?: string; p_limit?: number }
         Returns: {
@@ -1859,13 +1893,6 @@ export type Database = {
           p_type: Database["public"]["Enums"]["media_type"]
         }
         Returns: Json
-      }
-      monthly_ingress_cap: {
-        Args: {
-          p_storage_cap_bytes: number
-          p_tier: Database["public"]["Enums"]["tier_type"]
-        }
-        Returns: number
       }
       my_liked_media_ids: { Args: { p_media_ids: string[] }; Returns: string[] }
       purge_media_now: { Args: { p_media_ids: string[] }; Returns: Json }
@@ -1942,11 +1969,24 @@ export type Database = {
         Args: { p_tier: Database["public"]["Enums"]["tier_type"] }
         Returns: {
           default_storage_cap_bytes: number
-          ingress_cap_multiplier: number
           max_events: number
           max_reel_seconds: number
-          monthly_ingress_bytes: number
+          uploads_bytes: number
         }[]
+      }
+      upload_allowance: {
+        Args: {
+          p_storage_cap_bytes: number
+          p_tier: Database["public"]["Enums"]["tier_type"]
+        }
+        Returns: number
+      }
+      uploads_used: {
+        Args: {
+          p_host_id: string
+          p_tier: Database["public"]["Enums"]["tier_type"]
+        }
+        Returns: number
       }
       verify_current_password: {
         Args: { p_password: string }

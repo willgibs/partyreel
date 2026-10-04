@@ -23,8 +23,8 @@ import { StorageList } from "./storage-list";
  * stores, what that size holds and the gap, then the two ways out, the fix first.
  *
  * ★ THE SECOND WAY OUT IS THE SMALLEST SIZE THAT FITS, AT THE BILLING SHE TAPPED (round two's
- * carried `keep-plan`): when that is the plan she is on it is "Keep Pro 500 GB", which flips the
- * row back, never "choose Pro 500 GB" to a host already on it; tapped yearly, it is that size's
+ * carried `keep-plan`): when that is the plan she is on it is "Keep Pro 200 GB", which flips the
+ * row back, never "choose Pro 200 GB" to a host already on it; tapped yearly, it is that size's
  * yearly price, a real switch through the change-plan route. While her subscription cannot change
  * here, it only flips back.
  *
@@ -36,7 +36,6 @@ export function RefusalFace({
   plan,
   storedBytes,
   current,
-  capBytes,
   canSwitch,
   returnTo,
   onKeep,
@@ -48,15 +47,13 @@ export function RefusalFace({
   storedBytes: number;
   /** The plan she is on, when the sheet knows it. */
   current: Plan | null;
-  /** Her plan's cap now, when known (the list's line about Deleted). */
-  capBytes: number | null;
   canSwitch: boolean;
   returnTo?: string;
   /** Flip the row back to its price. */
   onKeep: () => void;
   /** The second way out came back refused (she stores more than when the sheet opened). */
   onRefused: (refusal: StorageRefusal) => void;
-  /** The list removed or put something back: the plan's facts are stale. */
+  /** The list deleted something for good, or emptied Deleted: the plan's facts are stale. */
   onStorageChanged?: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -111,7 +108,7 @@ export function RefusalFace({
       <div className="flex flex-col gap-2 sm:flex-row">
         <StorageList
           back="Your plan"
-          goal={{ target: plan, capBytes, canSwitch, returnTo }}
+          goal={{ target: plan, canSwitch, returnTo }}
           onChanged={onStorageChanged}
         >
           <Button type="button" size="sm" className="sm:flex-1">

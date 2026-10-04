@@ -2,6 +2,7 @@
 title: Why your event album has no expiry date (and the one exception)
 description: On Free and Pro an album stays until you delete it. Here is the reasoning, the Deleted window, the inactivity clock, and what an Event Pass year means.
 date: "2026-06-26"
+updated: "2026-10-04"
 cover: concert-confetti
 tags:
   - product
@@ -26,7 +27,7 @@ The obvious feature request is an "end event" button: the party is over, close i
 
 An event that could be ended while keeping its photos would be free storage with extra steps. Fill an event, end it, create the next one, repeat. Fill, end, repeat, forever, on a free account. Every product that offers an end-event button has to answer that somehow, usually by quietly deleting the media, which is the opposite of what a host means by "ending" an album.
 
-So the model is blunt instead: an event exists until you delete it, deleting destroys its media, and that is what frees the slot and the space. The upside for you is that nothing on your account is on a timer. The upside for us is that storage is bounded by what people are willing to keep. Both halves are the same design.
+So the model is blunt instead: an event exists until you delete it, deleting frees its slot at once, and its space comes back when its media leaves Deleted for good. The upside for you is that nothing on your account is on a timer. The upside for us is that storage is bounded by what people are willing to keep. Both halves are the same design.
 
 ## Deleted is the undo
 
@@ -34,7 +35,7 @@ Deleting is the only exit, which makes it worth being careful about, so it is no
 
 A deleted event, and any single photo or video you remove, moves to Deleted and sits there for <RecoveryWindowDays /> days. During that window you can restore it and it returns exactly as it was, including its place in the album and whether it was hidden. After that it is permanently gone, and gone means gone: the file is deleted from storage and there is no copy to ask for.
 
-You can also clear something out of Deleted yourself before the window runs down, if you want it truly deleted today. Space, in the meantime, comes back the moment you press delete, not at the end of the window. The mechanics are in [how long your media is kept](/help/how-long-media-is-kept).
+You can also clear something out of Deleted yourself before the window runs down, if you want it truly deleted today. Until it leaves, it still counts in your storage: emptying Deleted gives the space back at once, and with Make room from Deleted on, a new upload takes its room from the oldest of it by itself. The mechanics are in [how long your media is kept](/help/how-long-media-is-kept).
 
 ## The inactivity clock (Free only)
 

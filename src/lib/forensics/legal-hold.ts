@@ -7,8 +7,9 @@
  * the row).
  *
  * The enumerated hard-delete paths and how each excludes holds:
- *   - removed_media sweep + standby eviction → filter `legal_hold_at is null` on the candidate
- *     query (these helpers back the pure part); purgeMediaNow and every `reclaimMedia` batch ask
+ *   - removed_media sweep → filter `legal_hold_at is null` on the candidate query (these helpers back
+ *     the pure part); making room from Deleted (`leave_deleted`) only ASKS a row, never deletes it, so a
+ *     held one waits in that sweep like any asked row; purgeMediaNow and every `reclaimMedia` batch ask
  *     `kept_media_ids` (a hold or an open report) before a single object is deleted (below).
  *   - expired_events sweep + account deletion → an event containing ANY held media is SKIPPED
  *     WHOLE (deleting the event row would FK-CASCADE the held media rows away, and its R2
@@ -31,8 +32,8 @@
  * ★ AN OPERATOR'S REMOVAL (`removed_by_admin`) KEEPS ITS WINDOW THE SAME WAY (20260928140000),
  * because the runbook removes first and holds second: until its `purge_at` it is the operator's
  * time to hold and preserve. purgeMediaNow never takes one (the host's RLS read never lists it and
- * the RPC's subset refuses it), the standby eviction never takes one (its bin read and
- * `standby_hosts` leave it out), the removed_media sweep takes it only once its `purge_at` passes,
+ * the RPC's subset refuses it), making room from Deleted never takes one (`host_deleted_media` leaves
+ * it out), the removed_media sweep takes it only once its `purge_at` passes,
  * and `held_event_ids` answers an event holding one inside its window as held, so expired events
  * and account deletion keep that event whole until the window ends.
  *

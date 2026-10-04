@@ -5,9 +5,11 @@ import { ArrowUpRight, Check } from "lucide-react";
 
 import { CheckoutButton } from "@/components/app/checkout-button";
 import { ManageBillingButton } from "@/components/app/manage-billing-button";
+import { holdsPhrase } from "@/components/app/pricing/holds";
 import {
   HeldChip,
   PlanCardHead,
+  UploadsPause,
   planCardClass,
 } from "@/components/app/pricing/plan-card";
 import { ProPriceList } from "@/components/app/pricing/pro-price-list";
@@ -32,6 +34,7 @@ import {
   planHolds,
   planWithBilling,
   refusalSentence,
+  uploadsPauseNote,
   type StorageRefusal,
 } from "@/lib/billing/storage-guard";
 import {
@@ -41,6 +44,7 @@ import {
   formatCapacity,
   planById,
   plansForTier,
+  uploadsPhrase,
   type Plan,
   type Tier,
 } from "@/lib/constants/tiers";
@@ -158,7 +162,7 @@ function lead(
     return {
       // ★ HER PLAN LEADS (storage-r2's note: "You are on Pro already" was an
       // upgrade door's greeting, and a Pro host who pressed Change plan came
-      // to change it). "Pro 500 GB, monthly" once the sheet's read names it;
+      // to change it). "Pro 200 GB, monthly" once the sheet's read names it;
       // until then, and when it cannot, the tier's own name.
       title: current ? planWithBilling(current) : `Your ${TIER_NAMES.pro} plan`,
       // Never promise a switch the list below cannot open.
@@ -249,7 +253,8 @@ function PlanCard({
       <PlanCardHead
         plan={plan}
         ink={ink}
-        holds={holds(plan.storageBytes, plan.tier !== "free")}
+        holds={holdsPhrase(plan)}
+        uploads={uploadsPhrase(plan)}
         aside={held ? <HeldChip ink={ink} /> : null}
       />
       {children}
@@ -275,7 +280,7 @@ export function PricingSheet({
   // `reads` asks again after the size list stacked over the plan removed or
   // put something back, so the Too small marks are true when she returns.
   const [reads, setReads] = useState(0);
-  const facts = usePlanFacts(isOpen, reads);
+  const { facts, settled, readAt } = usePlanFacts(isOpen, reads);
   // A refusal a buy came back with; cleared when the sheet closes. (A Pro
   // switch's refusal flips its own row, inside the price list.)
   const [refusal, setRefusal] = useState<StorageRefusal | null>(null);
@@ -287,7 +292,7 @@ export function PricingSheet({
   const tier = facts?.tier ?? plan.tier ?? DEFAULT_TIER;
   const hasBilling = facts?.hasBilling ?? plan.hasBilling;
   const passExpiry = facts ? facts.passExpiry : plan.passExpiry;
-  const stored = facts?.activeBytes ?? 0;
+  const stored = facts?.storedBytes ?? 0;
 
   const free = planById("free");
   const pass = planById("event_pass");
@@ -302,12 +307,13 @@ export function PricingSheet({
   );
   const isFree = tier === "free";
   const note = fitNote(stored, opening);
-  // Moving to a cap SMALLER than the one in force (a pass holder with stacked
-  // passes into a small Pro) shrinks Deleted too; said before they buy.
-  const shrinks =
-    facts?.capBytes != null &&
-    opening.storageBytes < facts.capBytes &&
-    planHolds(opening, stored);
+  // A pass holder moving to Pro is measured against the month's uploads like any Pro size; Free's own month never
+  // reaches a Pro size's allowance, so the sentence is only ever hers.
+  const pause = uploadsPauseNote(
+    facts?.monthUploadedBytes ?? null,
+    opening,
+    readAt ?? undefined,
+  );
 
   return (
     <Popup open={isOpen} onOpenChange={changeOpen}>
@@ -326,6 +332,9 @@ export function PricingSheet({
             <>
               <ProPriceList
                 facts={facts}
+                // Her plan is read when the sheet opens; until that read has come back either way, no size is offered.
+                reading={!facts && !settled}
+                readAt={readAt}
                 returnTo={returnTo}
                 onStorageChanged={() => setReads((n) => n + 1)}
               />
@@ -348,6 +357,7 @@ export function PricingSheet({
                       <Benefit key={line}>{line}</Benefit>
                     ))}
                   </ul>
+                  {pause ? <UploadsPause ink>{pause}</UploadsPause> : null}
                   <CheckoutButton
                     planId={opening.id}
                     next={returnTo}
@@ -383,16 +393,6 @@ export function PricingSheet({
                   {note}
                 </p>
               ) : null}
-              {shrinks ? (
-                <p
-                  data-note="deleted"
-                  className="text-xs text-pretty text-muted-foreground"
-                >
-                  A smaller plan also shrinks Deleted: it keeps items only up to
-                  the new size.
-                </p>
-              ) : null}
-
               {/* What both cards' "about N photos" assume, once, the quietest
                   line under them (host-storage r2). */}
               <p data-note="basis" className="text-xs text-pretty text-faint">
@@ -408,7 +408,7 @@ export function PricingSheet({
                   <span className="font-medium text-foreground">
                     {pass.name}
                   </span>{" "}
-                  {`one event, paid once: ${pass.priceLabel.replace(" one-time", "")} for ${formatBytes(pass.storageBytes)}.`}
+                  {`one event, one payment, no subscription: ${pass.priceLabel.replace(" one-time", "")} for ${formatBytes(pass.storageBytes)}.`}
                 </p>
                 <CheckoutButton
                   planId="event_pass"

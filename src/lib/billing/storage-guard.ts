@@ -18,12 +18,19 @@
  * ★ THE PLAIN CAP, NEVER THE WRITE HEADROOM. `create_media` accepts uploads up to
  * the cap plus 10% (`capWithWriteHeadroom`) so a guest mid-upload is not cut off
  * at the line; that slack is a courtesy at write time, not room a host may BUY
- * into. A host storing 105 GB does not fit Pro 100 GB.
+ * into. A host storing 52 GB does not fit Pro 50 GB.
  *
- * ★ THE BYTES ARE ACTIVE BYTES, read by the caller through `getHostStorageSummary`
- * (the same definition as the SQL `host_active_bytes()`), never re-derived here.
- * A Remove frees room at once, which is what makes "remove 40 GB first" an
- * instruction a host can follow in a minute.
+ * ★ THE BYTES ARE WHAT SHE STORES, her albums and her Deleted together, read by the
+ * caller through `getHostStorageSummary` (`storedBytes`, the figure every cap check
+ * in SQL reads too: trash-in-storage), never re-derived here. A delete frees room
+ * only when it leaves Deleted for good (Delete for good, Empty Deleted), which is
+ * why the sentence says "free 40 GB first", never "remove".
+ *
+ * ★ ITS SECOND HALF IS WORDS, NEVER A REFUSAL (`uploadsPauseNote`, red-team 52's LOW). A smaller Pro size also
+ * carries a smaller uploads allowance, and a host who has uploaded past it this month would find every upload,
+ * her guests' included, refused "for now" the moment she switched. The Stripe webhook allows that switch (it does no
+ * usage check and is the sole writer of the tier), so nothing here blocks it: the plan sheet tells her, on the
+ * size's own card, before she presses.
  *
  * Pure and client-safe: no env, no SDK, no DB, only `tiers.ts` and a formatter.
  */
@@ -38,8 +45,8 @@ import { formatBytes } from "@/lib/utils";
 /**
  * Does buying this plan REPLACE the host's cap? A Pro subscription does (any size,
  * either cadence): its cap becomes the whole allowance, and moving to it consumes
- * every live pass as credit. An Event Pass never does: it stacks another 75 GB on
- * top, so it can only ever make room, which is why a pass is never refused.
+ * every live pass as credit. An Event Pass never does: it stacks another pass's room
+ * on top, so it can only ever make room, which is why a pass is never refused.
  */
 export function replacesCap(plan: Plan): boolean {
   return plan.tier === "pro";
@@ -82,7 +89,7 @@ export type PlanChangeCheck =
   | { ok: false; refusal: StorageRefusal };
 
 /**
- * THE CHECK. `storedBytes` is the host's ACTIVE bytes; `target` the plan being
+ * THE CHECK. `storedBytes` is what the host stores (her albums and her Deleted); `target` the plan being
  * bought or switched to. Tier-blind by design: a Free host in the over-cap grace
  * (a lapsed Pro still holding 140 GB) meets exactly the same line as a pass holder
  * or a Pro host shrinking, because what they store is the only fact that matters.
@@ -110,7 +117,45 @@ export function checkPlanChange(
 }
 
 /**
- * "Pro 500 GB, monthly": a price's name says its billing too. A plan's own `name`
+ * The first day of the month after `now`, as a host reads a date ("November 1"). The uploads allowance counts a
+ * UTC calendar month (`storage_ledger`'s `YYYY-MM`, never decremented), so that is when it opens again; a host's own
+ * clock is hours either side of it, never a day.
+ */
+export function nextMonthStart(now: Date = new Date()): string {
+  const first = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1),
+  );
+  return first.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+/**
+ * ★ THE HONEST WORDS FOR A SWITCH BELOW THIS MONTH'S UPLOADS: "You've uploaded 150 GB this month. At 100 GB a month,
+ * new uploads, yours and your guests', would pause until November 1." Null when the size's allowance still has room
+ * (or the month's uploads are not known), and for a plan that never replaces her cap (a pass adds its own year of
+ * uploads and a pass count is never this month's).
+ *
+ * A Pro size counts THIS MONTH's ledger whatever window she is in now (a pass holder's own year is her passes'), so
+ * `monthUploadedBytes` is the ledger's month and the line reads the same for a pass holder moving to Pro. The line
+ * is for a real change of allowance, which is the caller's to decide: her own size at the other billing changes none.
+ * `create_media` refuses once a window's uploads reach the allowance and the deletes never give them back, so at the
+ * line counts as paused. Never a block: `checkPlanChange` is storage's alone.
+ */
+export function uploadsPauseNote(
+  monthUploadedBytes: number | null,
+  target: Plan,
+  now: Date = new Date(),
+): string | null {
+  if (monthUploadedBytes === null || !replacesCap(target)) return null;
+  if (monthUploadedBytes < target.uploadsBytes) return null;
+  return `You've uploaded ${formatBytes(monthUploadedBytes)} this month. At ${formatBytes(target.uploadsBytes)} a month, new uploads, yours and your guests', would pause until ${nextMonthStart(now)}.`;
+}
+
+/**
+ * "Pro 200 GB, monthly": a price's name says its billing too. A plan's own `name`
  * carries only its size, and a Pro host chooses among six prices, two to a size, so
  * any sentence that sends her to one names which (storage-r2's note: "or choose
  * Pro 500 GB" told a host on Pro 500 GB monthly to choose what she had, when it
@@ -122,19 +167,20 @@ export function planWithBilling(plan: Plan): string {
 }
 
 /**
- * "You're storing 140 GB. Pro 100 GB holds 100 GB, so remove 40 GB first, or
- * choose Pro 500 GB, monthly." (the brief's own words for the plain face). The
+ * "You're storing 70 GB. Pro 50 GB holds 50 GB, so free 20 GB first, or
+ * choose Pro 200 GB, monthly." (the brief's own words for the plain face, its
+ * "remove" now "free" since Deleted counts: trash-in-storage). The
  * size that cannot hold is named by its size alone (neither of its prices holds
  * it); the size offered instead is the SMALLEST that fits, named with its
  * billing, never a bigger one, and when nothing fits the sentence stops at what
- * to remove rather than inventing a plan.
+ * to free rather than inventing a plan.
  */
 export function refusalSentence(
   storedBytes: number,
   target: Plan,
   fit: Plan | null,
 ): string {
-  const head = `You're storing ${formatBytesUp(storedBytes)}. ${target.name} holds ${formatBytes(target.storageBytes)}, so remove ${formatBytesUp(storedBytes - target.storageBytes)} first`;
+  const head = `You're storing ${formatBytesUp(storedBytes)}. ${target.name} holds ${formatBytes(target.storageBytes)}, so free ${formatBytesUp(storedBytes - target.storageBytes)} first`;
   return fit ? `${head}, or choose ${planWithBilling(fit)}.` : `${head}.`;
 }
 
@@ -145,7 +191,7 @@ export function refusalSentence(
  * cards are not showing). It names the largest size that cannot hold what she stores
  * (the cheapest move a removal buys) and the smallest that can; when that smallest is
  * her own plan it offers nothing, since she is on it already, and the line ends at
- * what to remove. Null when every size holds it.
+ * what to free. Null when every size holds it.
  */
 export function proFitLine(
   storedBytes: number,
@@ -169,7 +215,7 @@ export function proFitLine(
 /**
  * `formatBytes`, rounded UP at the one decimal it prints. WHY: the stored figure
  * and the gap are instructions. `formatBytes` rounds to nearest, so a host 40.04 GB
- * over would read "remove 40 GB", do exactly that, and be refused again; and one
+ * over would read "free 40 GB", do exactly that, and be refused again; and one
  * storing 100.02 GB against a 100 GB cap would read "storing 100 GB" beside a
  * refusal. Rounding up keeps both numbers sufficient. The epsilon stops float noise
  * on an exact value (140 GB) from ticking it up to 140.1.

@@ -196,7 +196,7 @@ export const JOBS: JobDef[] = [
     runPath: "/api/cron/purge",
   },
   // --- the purge cron's sub-sweeps -------------------------------------------------------------
-  // Each opens and closes its own row inside the parent run. WHY these four and not the other eight:
+  // Each opens and closes its own row inside the parent run. WHY these four and not the other seven:
   // they are the sweeps that loop over ACCOUNTS and either send email or delete bytes, so they are
   // where one bad row used to cost every row behind it, and where an operator might want to stop one
   // thing overnight without giving up storage reclamation.
@@ -292,7 +292,7 @@ export const JOBS: JobDef[] = [
     id: "spend_watch",
     label: "Spend watch",
     description:
-      "Our own spend guards: reads uploads, mail, sign-ins, album changes, downloads and the purge's runs from our own tables, alerts past ten times the busiest of the week, and pauses lifecycle mail, downloads or the purge on its own. Stopping silently leaves the vendors with no cap of ours.",
+      "Our own spend guards: reads uploads, mail, sign-ins, album changes, downloads and the purge's runs from our own tables, alerts past ten times the busiest of the week, and pauses lifecycle mail, downloads or the purge on its own. It also reads every vendor's plan meters against their limits (the Plan limits card) and mails each crossing. Stopping silently leaves the vendors with no cap of ours.",
     kind: "scheduled",
     host: "vercel_cron",
     cron: "0 5 * * *",

@@ -28,10 +28,9 @@ import { LIST_TITLE } from "./storage-list-rules";
 /**
  * WHAT'S USING SPACE (host-storage r1, Will 2026-09-28): every item she stores, largest first
  * across every event (`order=flat`), with a filter for All or one event (his note), the goal strip
- * when a smaller plan is why she is here (`goal=live`), and the product's bulk bar to act on a
- * selection: Download beside Remove (round one's carried `download-first`), Remove to Deleted with
- * the product's one Undo (`showUndoToast`, curation-wiring's). The body is
- * `storage-list-body.tsx`; this is the shell every door mounts.
+ * when a smaller plan is why she is here (`goal=live`), Deleted at its head, and the product's bulk
+ * bar to act on a selection: Download beside Delete for good (round one's carried
+ * `download-first`). The body is `storage-list-body.tsx`; this is the shell every door mounts.
  *
  * ★ ITS KIND IS `list` (popups r1, `lists=panel`): a side panel at a desk, its own screen in a hand
  * whose back arrow says where Back returns. Three doors open it: the storage meter's popover on the
@@ -42,11 +41,12 @@ import { LIST_TITLE } from "./storage-list-rules";
  * ★ TWO GOALS (`StorageGoal`). A smaller plan she chose counts down to that size and finishes the
  * switch; her own plan, which she is over, counts down to its cap (the meter's number: under it the
  * grace is over by the next sweep, which clears at the upload headroom above it) and finishes
- * nothing, since there is nothing to switch: the bar's Remove is the act.
+ * nothing, since there is nothing to switch: the bar's Delete for good is the act.
  *
- * ★ REMOVE RUNS AT ONCE, AND UNDO TAKES IT BACK. Everything it removes waits in Deleted for the
- * window, restorable, and stops counting against the plan at once; the toast names what went and
- * offers it back for its seconds, and Undo is a real restore (`restore_media`, capacity-gated).
+ * ★ WHAT FREES ROOM LEAVES FOR GOOD (trash-in-storage, Will 2026-10-03: Deleted counts in storage).
+ * Her plan holds her albums and her Deleted together, so a move to Deleted frees nothing: the bar
+ * deletes for good, skipping Deleted, and Deleted itself empties from its own row. Both ask first
+ * (neither has an Undo), and both free room the moment they land.
  *
  * ★ NOTHING HERE WRITES A PLAN. The strip's switch asks the change-plan route, which reads what
  * she stores again and opens Stripe's confirm page only for a size that holds it; the webhook is
@@ -70,8 +70,6 @@ import { LIST_TITLE } from "./storage-list-rules";
 export type SwitchGoal = {
   kind?: "switch";
   target: Plan & { id: ProPlanId };
-  /** Her plan's cap now, when known: a switch below it shrinks Deleted too. */
-  capBytes: number | null;
   /** False while her subscription cannot change here (the plan's note says why). */
   canSwitch: boolean;
   /** Where a confirmed switch lands: the door's own page, re-checked by the route. */
@@ -101,7 +99,7 @@ export function StorageList({
   /** Where a hand's back arrow returns, in words ("Dashboard", "Your plan"). */
   back: string;
   goal?: StorageGoal | null;
-  /** Something was removed or put back: the door's own figures are stale. */
+  /** Something was deleted for good, or Deleted emptied: the door's own figures are stale. */
   onChanged?: () => void;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -152,7 +150,7 @@ export function StorageList({
               <PopupHeader
                 title={LIST_TITLE}
                 back={back}
-                description="Largest first, across every event. Select what to remove."
+                description="Largest first, across every event. Select what to delete for good."
               />
               <PopupBody className="pt-2">
                 <ListSkeleton />

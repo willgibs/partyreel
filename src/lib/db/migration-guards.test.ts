@@ -342,16 +342,27 @@ describe("QA #17 — the cap row locks survive body replacement", () => {
     );
   });
 
-  it("restore_media locks the host's profiles row before the capacity gate", () => {
-    expect(latestDefinition("restore_media").body).toContain(
-      "from public.profiles where id = v_event.host_id for update",
-    );
+  // ★ RESHAPED ON PURPOSE (trash-in-storage, 20261003220000; scar kept: the host's profiles row is locked before any
+  // capacity read or slot count). The two restores take it FIRST now, on the caller's own id (her own row; the reads
+  // after it prove the item or the event is hers), the one lock order every capacity decision shares since an upload
+  // making room from Deleted (`leave_deleted`, inside create_media*) writes her Deleted under the same lock.
+  const LOCK_FIRST =
+    "from public.profiles where id = (select auth.uid()) for update";
+
+  it("restore_media locks the host's profiles row first, before it reads the item or its room", () => {
+    const { body } = latestDefinition("restore_media");
+    const lock = body.indexOf(LOCK_FIRST);
+    expect(lock).toBeGreaterThan(-1);
+    expect(lock).toBeLessThan(body.indexOf("from public.media m"));
+    expect(lock).toBeLessThan(body.indexOf("public.host_storage_summary("));
   });
 
-  it("restore_event locks the host's profiles row before the slot + capacity gates", () => {
-    expect(latestDefinition("restore_event").body).toContain(
-      "from public.profiles where id = v_event.host_id for update",
-    );
+  it("restore_event locks the host's profiles row first, before it reads the event or counts the slots", () => {
+    const { body } = latestDefinition("restore_event");
+    const lock = body.indexOf(LOCK_FIRST);
+    expect(lock).toBeGreaterThan(-1);
+    expect(lock).toBeLessThan(body.indexOf("from public.events"));
+    expect(lock).toBeLessThan(body.indexOf("public.tier_limits("));
   });
 
   it("enforce_event_limit locks the host's profiles row before the slot count", () => {
@@ -761,11 +772,14 @@ describe("the door round, wave 0 — Require an upload to view", () => {
     expect(code.match(/m\.status/g)).toHaveLength(1);
     // ★ The fail-open pair is exactly what the presign refuses `cap_reached` on: both cap
     // expressions must read the same in both functions, or a guest could be held at a step the
-    // presign would refuse anyway.
+    // presign would refuse anyway. ★ Reshaped by trash-in-storage (20261003220000; scar kept: one
+    // expression in both): the storage line is `host_room_used`, what she keeps less Deleted while
+    // her setting lets an upload make room from it, the same line the presign's meter refuses past. ★ And by Ladder A
+    // (20261004100000; scar kept: one expression in both): the uploads line is her plan's own number over its window.
     const ctx = latestDefinition("get_upload_context").body;
     for (const expr of [
-      "public.host_active_bytes(v_event.host_id) >= v_cap + (v_cap / 10)",
-      "coalesce(v_month_bytes, 0) >= v_ingress_cap",
+      "public.host_room_used(v_event.host_id) >= v_cap + (v_cap / 10)",
+      "public.uploads_used(v_event.host_id, v_profile.tier) >= v_allowance",
     ]) {
       expect(body).toContain(expr);
       expect(ctx).toContain(expr);
@@ -1771,15 +1785,22 @@ describe("the live reel: the expand (20260924100000) and the drop (2026092411000
       },
     } as const;
     // Both paths: the key binding, the ceiling, QA #17's lock, the paid-only video gate (which is
-    // what keeps a saved cut to a paid event), the ingress meter and the active-bytes cap.
+    // what keeps a saved cut to a paid event), the ingress meter and the storage cap. ★ Reshaped by
+    // trash-in-storage (20261003220000; scar kept: the cap and its 10% bind every upload, refused in
+    // the same words): the cap holds everything she keeps, her Deleted included, read off the one
+    // summary, and with her setting on Deleted makes room for a file that fits beside her albums. ★ And by
+    // Ladder A (20261004100000; scar kept: the uploads line binds every upload, refused under "limit"): the
+    // allowance is her plan's own number over its window, a month or a pass's year.
     const shared = [
       "if p_original_key not like 'events/' || v_event.id::text || '/%' then raise exception 'Object key does not belong to this event.'",
       "if p_preview_key is not null and p_preview_key not like 'events/' || v_event.id::text || '/%' then raise exception 'Preview key does not belong to this event.'",
       "if p_file_size_bytes > c_max_upload_bytes then raise exception 'File exceeds the 10 GB maximum.'",
       "from public.profiles where id = v_event.host_id for update;",
       "if p_type = 'video' and v_profile.tier = 'free' then raise exception 'Video uploads are available on paid plans.'",
-      "if coalesce(v_month_bytes, 0) + p_file_size_bytes > v_ingress_cap then raise exception 'Monthly upload limit reached for this plan.'",
-      "if public.host_active_bytes(v_event.host_id) + p_file_size_bytes > v_cap + (v_cap / 10) then raise exception 'Storage capacity exceeded for this plan.'",
+      "if v_uploaded + p_file_size_bytes > v_allowance then raise exception 'Upload limit reached for this plan.'",
+      "select s.active_bytes, s.standby_bytes into v_active, v_deleted from public.host_storage_summary(v_event.host_id) s;",
+      "and v_profile.make_room_from_deleted and v_active + p_file_size_bytes <= v_cap + (v_cap / 10) then perform public.leave_deleted(v_event.host_id, v_active + v_deleted + p_file_size_bytes - (v_cap + (v_cap / 10)), true);",
+      "if v_active + v_deleted + p_file_size_bytes > v_cap + (v_cap / 10) then raise exception 'Storage capacity exceeded for this plan.'",
     ];
 
     for (const [name, shape] of Object.entries(shapes)) {

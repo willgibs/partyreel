@@ -75,10 +75,7 @@ function BlockedRow({
       data-blocked-row={person.id}
       className="flex items-center gap-3 px-3 py-2.5 sm:px-4"
     >
-      <Avatar
-        size="default"
-        seed={person.verified ? (person.seed ?? undefined) : undefined}
-      >
+      <Avatar size="default" seed={person.seed ?? undefined}>
         {person.verified && person.avatarUrl ? (
           <AvatarImage src={person.avatarUrl} alt="" />
         ) : null}

@@ -51,7 +51,9 @@ The reel stores nothing, so the server says only WHETHER a viewer's album has on
   plays. Below two, with the switch or the lever off, or behind a door, there is no play button (the cover's, the
   shutter's), no view and no `?reel`: the host reaches the reel by adding the album's first two photos, so the view has
   no empty state of its own (a `?reel` below the minimum is dropped quietly and a phone's view whose album drops under
-  two returns to the album). The owner's reel is exactly a guest's. It plays the SERVER's approved list: the manifest's
+  two returns to the album). The owner's reel on this page is exactly a guest's (the page is the guests' view, hers
+  included, so before the develop it has no reel for her either: the host's side plays hers over her hub). It plays the
+  SERVER's approved list: the manifest's
   drawable entries (`reelItems`, no links, never an optimistic blob), a clip's links read by id through the provider's
   resolver (`clips`) about two windows ahead (`createClipSource`); the demo plays its optimistic tiles too, since its
   uploads never reach a server.
@@ -99,12 +101,27 @@ The reel stores nothing, so the server says only WHETHER a viewer's album has on
   writes the new one in that commit: `useReelParam().mode` is right a pass late there, so what is told to another
   component or acted on for good reads `reelOfAddress()` when it acts, never a render's copy (the album's word to the
   head, `viewAsked`, is the one that matters: the curtain stands on it, the owner's and a returning guest's).
-  - **The chrome**: a slim glass bar at rest (play and progress) that pointer movement, or a tap on touch, grows into
-    the dock (a `clip-path` morph, [`live-reel.css`](../../src/components/guest/reel/live-reel.css), instant under
-    reduced motion); a resting pointer settles it back (2.4 s; 4.2 s after a touch). Every control has a tooltip.
+  - **The chrome**: a slim glass bar at rest (play and progress) that pointer movement, or a press on the bar, grows
+    into the dock (a `clip-path` morph, [`live-reel.css`](../../src/components/guest/reel/live-reel.css), instant under
+    reduced motion); it settles back on its own (2.4 s after a pointer, 4.2 s after a touch), never while paused,
+    under reduced motion, with a menu open or with a key's focus in it (`:focus-visible`: a press leaves its control
+    focused, and that must not hold the dock up). Every control has a tooltip, and a menu key's open fill reads
+    `aria-expanded`: the tooltip wrapping the menu's trigger on one button overrides its `data-state` ("closed").
+    - ★ **A click or tap anywhere on the picture is the bar's own press, and the next one puts the dock away: the
+      picture never opens the photo viewer** (a tap is a viewer reaching for the controls, and a viewer opened by it
+      is a second layer between her and them). One toggle, `toggleChrome`, serves the bar, the timeline and the
+      picture. The picture is a SIBLING of every control, never their ancestor, so a press on a control acts on that
+      control and never reaches it (keep the handler on the picture, never up on the view); a press that begins over
+      an open menu only dismisses it; while the screen's pill is up, a press anywhere is the pill's alone.
+    - ★ **A pointer's click within 600 ms of the move that raised the dock keeps it up** (`AIMED_CLICK_MS`): a desk
+      viewer moves to aim, the move wakes the dock, and the click that follows meant "show". A finger's tap and a
+      key's press never moved anything, so they are never held.
+    - ★ **Focus moves to the view when its half of the pane goes quiet**: the dock's controls at rest and the bar
+      while the dock is up are `inert`, which drops their focus onto `body`, where Space and the arrows stop reaching
+      the view, so the commit that quiets a half puts the focus on the view.
   - **The dock**: one row of icon buttons (play/pause, Include videos, Style, Hold, Show the code from 1024px, Add
     yours), then "Make your own" as the single primary, only with a creator. Space pauses, Escape closes, the arrows
-    step a moment (the player's `step`; the clock never moves).
+    step a moment (the player's `step`; the clock never moves), and any other key brings the controls up.
   - **The owner's extras**: at 1024px and up Play on a screen opens `?reel=screen` in a new tab; the Style list's
     footer reads "Only on this device, for now" with Set for everyone (`setReelDefaults`, below), and "Everyone sees
     this look" once they match; Close goes back where the host came from when there is history, else to the album.
@@ -117,11 +134,9 @@ The reel stores nothing, so the server says only WHETHER a viewer's album has on
     left for one hold; a burst stacks into a short feed of limited depth that collapses ("Theo +12").
   - **The code** (Show the code): a white plate bottom right, the event's QR in the host's preset, "Scan to add yours"
     and the readable address. No event name on screen.
-  - A tap on the picture pauses and opens the item in the shared media viewer, grown out of the frame (`origin` of kind
-    `reel` with its rect and no `returnTo`), a playing video carrying on from the reel's moment (`startAt`). Reduced
-    motion holds the first frame with the dock up. The loop never announces its seam. Twelve failed frames or stills
-    send ONE Sentry report per view ("live reel: frames failing"), and every failure feeds the provider's watchdog,
-    which re-mints only the failing ids.
+  - Reduced motion holds the first frame with the dock up. The loop never announces its seam. Twelve failed frames or
+    stills send ONE Sentry report per view ("live reel: frames failing"), and every failure feeds the provider's
+    watchdog, which re-mints only the failing ids.
   - **Video** plays as motion, silent, decoded on the viewer's device from a byte-range window of the original
     ([`engine/video/window-reader.ts`](../../src/lib/reel/engine/video/window-reader.ts)); every failure is the poster.
     Nothing is transcoded or stored.
@@ -150,14 +165,25 @@ A host has no reel to create, only a state to read and a few defaults to set.
   at most two media embedded).
 - **The Reel card counts to two** ([`event-feed/reel-card.tsx`](../../src/components/app/event-feed/reel-card.tsx)):
   dashed at none ("Starts at 2 photos"), the one photo under an overlay at one, then the living card ("Live for guests",
-  or "Live at the develop" while the album's develop time is ahead, since no guest sees a photograph before it; the page
-  hands `developsAt`, and the card turns the moment it comes) dissolving through the reel's own take. Before two a
-  press opens guidance (what is left, Add photos, and on a moderated event that a guest's photo counts once approved);
-  from two it opens `/e/<token>?reel`, where the owner passes every gate (a soft navigation, kept one: a plain press
-  asks for the view's lazy chunk at once, so it lands inside the album's server render and the curtain's black is a
-  beat, [guest-flow.md](guest-flow.md)); off, it opens Settings. The dashboard's item for an event on its day says "1
-  more photo starts the reel" while one short and is gone once it plays; `/dashboard/<id>/reel` is a redirect for old
-  links (into the view once it plays, else the hub).
+  or "Guests get it later" while the album's develop time is ahead, since no guest sees a photograph before it; the page
+  hands `developsAt`, and the card turns the moment it comes) dissolving through the reel's own take. The take is
+  planned on her own scope, sealed shots included: the card is hers from the first photograph, while the head, its band
+  and the album's cover still wear her guests' view. Before two a press opens guidance (what is left, Add photos, and on
+  a moderated event that a guest's photo counts once approved); from two it opens `/e/<token>?reel`, where the owner
+  passes every gate (a soft navigation, kept one: a plain press asks for the view's lazy chunk at once, so it lands
+  inside the album's server render and the curtain's black is a beat, [guest-flow.md](guest-flow.md)), or, while the
+  develop is ahead, plays her own reel over the hub (next); off, it opens Settings. The dashboard's item for an event
+  on its day says "1 more photo starts the reel" while one short and is gone once it plays; `/dashboard/<id>/reel` is a
+  redirect for old links (into the view once it plays, else the hub).
+- ★ **Before the develop she plays her own reel over her own hub** (`event-feed/hub-reel.tsx`, mounted by the hub's
+  page inside the album's store): the guests' own view (`LiveReelView`) on `?reel` of the hub's address, fed her
+  scope, the hub's manifest with sealed shots included (hidden and held left out), its links by id from the hub store's
+  own link store, and the host's defaults, handed through the view's `standIn` (the hub has no guest source). The
+  guests' page cannot play it for her, so it never tries: before the develop it shows her what her guests see, which is
+  no reel, and stands no curtain for her on `?reel` (`reelAsked`); after it, the card goes on opening that page. There is
+  no screen link on the hub's view (`screenLink`: a screen that is not hers cannot open her hub, so a wall plays the
+  reel cast from her own device), no Make your own and no Add yours, and a `?reel` that cannot play (the switch or the
+  lever off, under two photographs that can) is dropped quietly, as the guests' page drops one.
 - **Settings' Highlight reel page** ([`event-settings/reel-page.tsx`](../../src/components/app/event-settings/reel-page.tsx))
   saves each choice the moment it changes: Show the reel, the look every guest starts on (each shown on the event's own
   photo under that mood's `grade`) and the hold; optimistic, put back with a sentence when refused, and a slow answer

@@ -21,6 +21,8 @@ import {
   WhatStaysDemo,
   QrPresetPickerDemo,
   ReviewSectionDemo,
+  InertStorage,
+  StorageChartDemo,
   StorageListDemo,
   AdminHealthBandDemo,
   AdminMetricsChartsDemo,
@@ -301,24 +303,59 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
     section: "Dashboard chrome",
     file: "src/components/app/dashboard/storage-meter.tsx",
     title: "StorageMeter",
-    lede: "The storage ring beside the dashboard's New event. Open it for the friendly capacity, the Event Pass expiry, the standby bytes and the billing buttons.",
+    badge: "updated",
+    lede: "The storage ring beside the dashboard's New event: everything she stores against her cap, her Deleted included, amber only when what an upload must fit beside nears it. Open it for the storage chart, the friendly capacity, the Event Pass expiry and the billing buttons.",
     specimens: [
       {
         label: "Storage meter",
         hint: "ambient · popover",
         node: (
-          <StorageMeter
-            storageUsed={1_200_000_000}
-            storageCap={5_000_000_000}
-            storagePct={24}
-            standbyBytes={0}
-            overBudget={false}
-            passExpiry={null}
-            planName="Pro"
-            hasBilling
-            isEventPass={false}
-          />
+          <InertStorage>
+            <StorageMeter
+              activeBytes={24 * 1024 ** 3}
+              deletedBytes={3 * 1024 ** 3}
+              storageCap={50 * 1024 ** 3}
+              makeRoom
+              passExpiry={null}
+              planName="Pro"
+              hasBilling
+              isEventPass={false}
+            />
+          </InertStorage>
         ),
+      },
+    ],
+  },
+  {
+    id: "storage-chart",
+    family: "compositions",
+    section: "Dashboard chrome",
+    file: "src/components/app/storage/storage-chart.tsx",
+    test: "src/components/app/storage/storage-chart.test.tsx",
+    title: "StorageChart",
+    badge: "new",
+    for: "what her plan holds: her albums and her Deleted drawn apart against the cap, with Make room from Deleted and Empty Deleted beside them",
+    lede: "The storage meter's popover holds it. Her plan's cap holds her albums and her Deleted together, so it is one bar with the two drawn apart, a sentence only when there is something to know or do, and the two acts that free room without leaving it. Drawn here over Pro 50 GB; its switch and Empty Deleted answer after a pause and change nothing.",
+    specimens: [
+      {
+        label: "Empty",
+        hint: "nothing stored",
+        node: <StorageChartDemo state="empty" />,
+      },
+      {
+        label: "Half used",
+        hint: "20.5 GB in albums · 4.25 GB in Deleted",
+        node: <StorageChartDemo state="half" />,
+      },
+      {
+        label: "Full, Make room on",
+        hint: "35 GB in albums · 15 GB in Deleted: an upload takes its room from Deleted",
+        node: <StorageChartDemo state="full-on" />,
+      },
+      {
+        label: "Full, Make room off",
+        hint: "the same bytes: an upload is refused until Deleted is emptied",
+        node: <StorageChartDemo state="full-off" />,
       },
     ],
   },
@@ -330,7 +367,7 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
     test: "src/components/app/storage/storage-list.test.tsx",
     title: "StorageList",
     badge: "new",
-    for: "what is using space: every item a host stores, largest first, with All or one event, the bulk bar's Download and Remove with Undo, and the strip that finishes a smaller plan's switch",
+    for: "what is using space: every item a host stores, largest first, with All or one event, Deleted at its head with Empty, the bulk bar's Download and Delete for good, and the strip that finishes a smaller plan's switch",
     lede: "Opened from the storage meter's popover, and from a Pro price too small for what she stores (tap its Too small, then See what's using space), where the goal strip counts down to that size and its button finishes the switch. Its reads and writes are inert here: they answer after a round trip's pause and change nothing, and the switch stops at a note.",
     specimens: [
       {

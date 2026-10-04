@@ -49,6 +49,21 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 2,
+      "opened": "2026-10-04",
+      "answers": [
+        {
+          "ask": "arrival",
+          "choice": "in-place",
+          "by": "Will",
+          "at": "2026-10-04T06:50:49Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }

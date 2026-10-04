@@ -47,7 +47,8 @@ const MAX_ROWS = (() => {
 const SINGLE_ROW: Record<string, string> = {
   get_event_by_qr_token:
     "keyed on events.qr_token, which is UNIQUE: zero rows or one",
-  host_storage_summary: "one aggregate row (two SUMs, no GROUP BY)",
+  host_storage_summary:
+    "one aggregate row (host_active_bytes beside two SUMs over host_deleted_media, no GROUP BY)",
   tier_limits: "one row: the tier's limits, a constant per tier",
   purge_media_rows:
     "one row per host among at most its input; callers pass at most 1,000 ids (the cron) and purge_media_now sums it in SQL",
@@ -69,6 +70,8 @@ const CALLER_BOUNDED: Record<string, string> = {};
 const INTERNAL: Record<string, string> = {
   event_door_asks:
     "the asks a door may let in (crumbs-29), read inside the statements of the door's trigger and the host's door acts, all SECURITY DEFINER; the owner's EXECUTE alone",
+  host_deleted_media:
+    "her Deleted item by item (trash-in-storage), summed inside host_storage_summary and drained inside leave_deleted, both SECURITY DEFINER; the owner's EXECUTE alone",
 };
 
 type Definition = {

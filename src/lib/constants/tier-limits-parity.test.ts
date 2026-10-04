@@ -5,7 +5,7 @@
  * re-asserted the TypeScript constants against themselves. It never opened the SQL, so the guard
  * every doc references ("a Vitest parity test guards the pairing") did not exist, and the two
  * halves of the pricing model, the TS numbers the UX quotes and the SQL numbers the upload RPCs
- * ENFORCE, could drift silently. A host could be shown 75 GB and be cut off at 2 GB (or the
+ * ENFORCE, could drift silently. A host could be shown 25 GB and be cut off at 2 GB (or the
  * reverse: sold a cap the DB never enforces).
  *
  * So: parse the newest committed definition of `public.tier_limits()` out of supabase/migrations
@@ -25,25 +25,30 @@ import { describe, expect, it } from "vitest";
 import {
   BILLING_TIERS,
   DEFAULT_STORAGE_CAP_BYTES,
-  INGRESS_CAP_MULTIPLIER,
   MAX_EVENTS,
   MAX_REEL_SECONDS,
-  MONTHLY_INGRESS_BYTES,
+  planById,
+  plansForTier,
   type Tier,
+  UPLOADS_BYTES,
 } from "@/lib/constants/tiers";
 
 const MIGRATIONS = join(process.cwd(), "supabase", "migrations");
 
-/** Matches every way the fn gets (re)defined; a return-type change forces DROP + CREATE. */
-const DEFINITION_RE =
-  /create\s+(?:or\s+replace\s+)?function\s+public\.tier_limits\s*\(/;
+/** Matches every way a fn gets (re)defined; a return-type change forces DROP + CREATE. */
+const definitionRe = (fn: string) =>
+  new RegExp(
+    `create\\s+(?:or\\s+replace\\s+)?function\\s+public\\.${fn}\\s*\\(`,
+  );
+const DEFINITION_RE = definitionRe("tier_limits");
 
 /**
- * The migration that most recently defines tier_limits(). Filenames are timestamp-prefixed, so
+ * The migration that most recently defines a fn. Filenames are timestamp-prefixed, so
  * lexical sort = apply order. Taking the LAST one is what makes this test self-updating: a future
  * migration that redefines the fn is picked up automatically, with no list to maintain.
  */
-function newestDefinition(): { file: string; sql: string } {
+function newestDefinition(fn = "tier_limits"): { file: string; sql: string } {
+  const re = definitionRe(fn);
   const hits = readdirSync(MIGRATIONS)
     .filter((f) => f.endsWith(".sql"))
     .sort()
@@ -51,9 +56,9 @@ function newestDefinition(): { file: string; sql: string } {
       file,
       sql: readFileSync(join(MIGRATIONS, file), "utf8"),
     }))
-    .filter(({ sql }) => DEFINITION_RE.test(sql));
+    .filter(({ sql }) => re.test(stripComments(sql)));
   if (hits.length === 0) {
-    throw new Error("No migration defines public.tier_limits().");
+    throw new Error(`No migration defines public.${fn}().`);
   }
   return hits[hits.length - 1];
 }
@@ -197,21 +202,16 @@ function parseTierLimits(
 }
 
 /**
- * The TS side, keyed by SQL column name. `ingress_cap_multiplier` is DERIVED rather than written
- * out: a tier with a static monthly meter has no multiplier, which is exactly the SQL's own
- * `when 'free' then null else 3`. Keeping it derived means this table cannot drift from tiers.ts
- * either.
+ * The TS side, keyed by SQL column name. ★ Reshaped by Ladder A (pricing-wiring, 20261004100000; scar kept: every
+ * column the SQL declares has its tiers.ts record, and every value is compared): the uploads allowance stopped being a
+ * multiple of the cap, so `monthly_ingress_bytes` and the derived `ingress_cap_multiplier` gave way to `uploads_bytes`,
+ * the number a tier sets on its own (Free's a month, ONE pass's over its year; Pro's is its size's, parsed from
+ * upload_allowance() below).
  */
 const TS_LIMITS: Record<string, Record<Tier, number | null>> = {
   max_events: MAX_EVENTS,
-  monthly_ingress_bytes: MONTHLY_INGRESS_BYTES,
   default_storage_cap_bytes: DEFAULT_STORAGE_CAP_BYTES,
-  ingress_cap_multiplier: Object.fromEntries(
-    BILLING_TIERS.map((t) => [
-      t,
-      MONTHLY_INGRESS_BYTES[t] === null ? INGRESS_CAP_MULTIPLIER : null,
-    ]),
-  ) as Record<Tier, number | null>,
+  uploads_bytes: UPLOADS_BYTES,
   max_reel_seconds: MAX_REEL_SECONDS,
 };
 
@@ -239,10 +239,75 @@ describe(`tiers.ts <-> tier_limits() parity (${file})`, () => {
 
   it("reads real numbers out of the SQL (proves the parser is not vacuous)", () => {
     // If the parser ever silently returned empty/undefined everywhere, the assertions above would
-    // pass only if TS were empty too. Pin one concrete SQL-derived value as the canary.
-    // (Moved with the free/pro shift, 2026-09-28: Free was 2 GB.)
+    // pass only if TS were empty too. Pin concrete SQL-derived values as the canary.
+    // (Moved with the free/pro shift, 2026-09-28: Free was 2 GB; and with Ladder A: the pass at 25 GB.)
     expect(sqlLimits.default_storage_cap_bytes.free).toBe(100 * 1024 ** 2);
+    expect(sqlLimits.default_storage_cap_bytes.event_pass).toBe(25 * 1024 ** 3);
+    expect(sqlLimits.uploads_bytes.free).toBe(300 * 1024 ** 2);
+    expect(sqlLimits.uploads_bytes.event_pass).toBe(50 * 1024 ** 3);
     expect(sqlLimits.max_reel_seconds.pro).toBe(60);
     expect(sqlLimits.max_events.pro).toBeNull();
+  });
+});
+
+/**
+ * ★ PRO'S ALLOWANCE IS ITS SIZE'S, and its ladder lives in upload_allowance() (Ladder A, 20261004100000): each
+ * `when p_storage_cap_bytes <= ROOM then UPLOADS` step is a Pro size, smallest first, and the `else` is the largest
+ * size's, which also takes any room past it. Parsed the same fail-closed way as tier_limits(): a step this cannot
+ * read throws. The pass's stack (one pass's allowance for each pass the room holds) and Free's own number are pinned
+ * as the expressions tiers.ts's uploadAllowance() mirrors.
+ */
+describe("tiers.ts <-> upload_allowance() parity", () => {
+  const { file: allowanceFile, sql: allowanceSql } =
+    newestDefinition("upload_allowance");
+  const clean = stripComments(allowanceSql);
+  const start = clean.search(definitionRe("upload_allowance"));
+  const bodyStart = clean.indexOf("as $$", start);
+  const body = clean
+    .slice(bodyStart + "as $$".length, clean.indexOf("$$;", bodyStart))
+    .replace(/\s+/g, " ")
+    .trim();
+  const ladder = body.match(
+    /when p_tier in \('pro', 'max'\) then case (.*?) end when p_tier = 'event_pass'/,
+  );
+
+  it(`reads Pro's ladder from ${allowanceFile}`, () => {
+    expect(
+      ladder,
+      "upload_allowance() no longer opens with Pro's ladder",
+    ).not.toBeNull();
+  });
+
+  it("fails open for a Pro profile with no cap on record", () => {
+    expect(ladder![1]).toMatch(/^when p_storage_cap_bytes is null then null /);
+  });
+
+  it("steps through every Pro size, smallest first, the largest the else", () => {
+    const steps = [
+      ...ladder![1].matchAll(
+        /when p_storage_cap_bytes <= (.+?) then (.+?)(?= when | else )/g,
+      ),
+    ].map((m) => [evalSqlNumber(m[1]), evalSqlNumber(m[2])]);
+    const otherwise = ladder![1].match(/ else (.+)$/);
+    expect(otherwise, "the Pro ladder has no else").not.toBeNull();
+    const sizes = [...plansForTier("pro")].sort(
+      (a, b) => a.storageBytes - b.storageBytes,
+    );
+    expect(steps).toEqual(
+      sizes.slice(0, -1).map((p) => [p.storageBytes, p.uploadsBytes]),
+    );
+    expect(evalSqlNumber(otherwise![1])).toBe(
+      sizes[sizes.length - 1].uploadsBytes,
+    );
+  });
+
+  it("gives a pass one pass's allowance for each pass its room holds, and Free its own", () => {
+    expect(body).toContain(
+      "when p_tier = 'event_pass' then l.uploads_bytes * greatest(1, coalesce(p_storage_cap_bytes, l.default_storage_cap_bytes) / l.default_storage_cap_bytes) else l.uploads_bytes end from public.tier_limits(p_tier) l;",
+    );
+    // The unit of the stack is the pass's own room, the default tier_limits() carries for it.
+    expect(sqlLimits.default_storage_cap_bytes.event_pass).toBe(
+      planById("event_pass").storageBytes,
+    );
   });
 });

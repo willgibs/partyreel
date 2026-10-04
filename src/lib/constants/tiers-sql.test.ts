@@ -14,6 +14,11 @@
  *      the server action) is the boundary a throwaway account meets.
  *   3. A SLUG FREED AT DELETION STAYS FREED. restore_event brings an event back without a custom
  *      link another event took while it sat in Deleted, instead of failing on the unique index.
+ *   4. THE UPLOADS ALLOWANCE IS ONE NUMBER OVER ONE WINDOW (Ladder A, 20261004100000): every body
+ *      that judges an upload reads her plan's own number (`upload_allowance`, its numbers held by
+ *      the parity test) against the same window (`uploads_used`: the month's ledger, or a pass's
+ *      year counted on the pass), and only the two completes ever count a pass's year. A reader
+ *      left on the retired multiplier would let the presign admit what the complete refuses.
  *
  * Same method as the parity test: TEXT-parsed (Vitest has no Postgres), the newest definition wins
  * (filenames sort in apply order), and anything unreadable throws rather than passing quietly.
@@ -171,5 +176,105 @@ describe("a slug freed at deletion stays freed", () => {
       /exception when unique_violation then update public\.events set deleted_at = null, purge_at = null, custom_slug = null/,
     );
     expect(flat).toContain("'custom_slug_released', v_slug_released");
+  });
+});
+
+describe("the uploads allowance is one number over one window", () => {
+  // Every body that judges an upload: the two completes (authoritative), the presign's meter and the three advisories.
+  const READERS = [
+    "create_media",
+    "create_media_as_host",
+    "meter_upload",
+    "get_upload_context",
+    "get_upload_gate",
+    "get_host_upload_context",
+  ];
+
+  it.each(READERS)(
+    "%s reads her plan's own number over its window, never the retired multiplier",
+    (name) => {
+      const flat = newestBody(name).body.replace(/\s+/g, " ");
+      expect(flat).toMatch(
+        /public\.upload_allowance\(v_(profile\.)?tier, v_(profile\.)?storage_cap(_bytes)?\)/,
+      );
+      expect(flat).toMatch(
+        /public\.uploads_used\(v_(event\.host_id|host), v_(profile\.)?tier\)/,
+      );
+      expect(flat).not.toContain("monthly_ingress_cap");
+      expect(flat).not.toMatch(/cumulative_bytes, 0\) (\+|>=)/);
+    },
+  );
+
+  it("counts a pass's year only in the two completes, on her live pass that ends soonest, after the ledger", () => {
+    const writers = READERS.filter((name) =>
+      /update public\.event_passes/.test(newestBody(name).body),
+    );
+    expect(writers).toEqual(["create_media", "create_media_as_host"]);
+    for (const name of writers) {
+      const flat = newestBody(name).body.replace(/\s+/g, " ");
+      expect(flat, name).toContain(
+        "if v_profile.tier = 'event_pass' then update public.event_passes p set uploaded_bytes = p.uploaded_bytes + p_file_size_bytes where p.id = (select q.id from public.event_passes q where q.profile_id = v_event.host_id and q.consumed_at is null and q.start_at <= now() and q.expires_at > now() order by q.expires_at, q.id limit 1); end if;",
+      );
+      // The count lands after the allowance admitted the file and the ledger recorded it, under the profiles lock.
+      expect(flat.indexOf("update public.event_passes")).toBeGreaterThan(
+        flat.indexOf("insert into public.storage_ledger"),
+      );
+      expect(flat.indexOf("for update")).toBeLessThan(
+        flat.indexOf("public.uploads_used("),
+      );
+    }
+  });
+
+  // ★ The Advisor's Q26 F1: a pass whose last live row has ended before the nightly recompute moves her plan would
+  // otherwise upload counted nowhere; both writers refuse her in the allowance's words, after the allowance block.
+  it("refuses a lapsed pass at both writers until the recompute moves her plan", () => {
+    for (const name of ["create_media", "create_media_as_host"]) {
+      const flat = newestBody(name).body.replace(/\s+/g, " ");
+      const clause =
+        "if v_profile.tier = 'event_pass' and not exists ( select 1 from public.event_passes q where q.profile_id = v_event.host_id and q.consumed_at is null and q.start_at <= now() and q.expires_at > now()) then raise exception 'Upload limit reached for this plan.' using errcode = 'check_violation'; end if;";
+      expect(flat, name).toContain(clause);
+      expect(flat.indexOf(clause), name).toBeGreaterThan(
+        flat.indexOf("v_allowance := public.upload_allowance("),
+      );
+      expect(flat.indexOf(clause), name).toBeLessThan(
+        flat.indexOf("insert into public.media ("),
+      );
+    }
+  });
+
+  it("reads the month's ledger for Free and Pro, and a pass holder's live passes for her year", () => {
+    const flat = newestBody("uploads_used").body.replace(/\s+/g, " ");
+    expect(flat).toContain(
+      "when p_tier = 'event_pass' then (select coalesce(sum(p.uploaded_bytes), 0)::bigint from public.event_passes p where p.profile_id = p_host_id and p.consumed_at is null and p.start_at <= now() and p.expires_at > now())",
+    );
+    expect(flat).toContain(
+      "else coalesce((select l.cumulative_bytes from public.storage_ledger l where l.host_id = p_host_id and l.period = to_char(now(), 'YYYY-MM')), 0)",
+    );
+  });
+
+  it("keeps both new functions the service role's alone", () => {
+    const all = readdirSync(MIGRATIONS)
+      .filter((f) => f.endsWith(".sql"))
+      .sort()
+      .map((f) =>
+        readFileSync(join(MIGRATIONS, f), "utf8").replace(/--[^\n]*/g, ""),
+      )
+      .join("\n");
+    for (const sig of [
+      "public.upload_allowance(public.tier_type, bigint)",
+      "public.uploads_used(uuid, public.tier_type)",
+    ]) {
+      expect(all).toContain(
+        `revoke all on function ${sig} from public, anon, authenticated;`,
+      );
+      expect(all).toContain(
+        `grant execute on function ${sig} to service_role;`,
+      );
+      expect(all).not.toMatch(
+        new RegExp(
+          `grant execute on function ${sig.replace(/[().]/g, "\\$&")} to [^;]*\\b(anon|authenticated|public)\\b`,
+        ),
+      );
+    }
   });
 });

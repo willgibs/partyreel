@@ -69,15 +69,15 @@ const serverSchema = z.object({
   // `.optional()` so the app builds without them; assertStripeEnv() asserts at request time.
   STRIPE_SECRET_KEY: z.string().min(1).optional(),
   STRIPE_WEBHOOK_SECRET: z.string().min(1).optional(),
-  STRIPE_PRICE_PRO_100: z.string().min(1).optional(),
-  STRIPE_PRICE_PRO_500: z.string().min(1).optional(),
-  STRIPE_PRICE_PRO_2TB: z.string().min(1).optional(),
+  STRIPE_PRICE_PRO_50: z.string().min(1).optional(),
+  STRIPE_PRICE_PRO_200: z.string().min(1).optional(),
+  STRIPE_PRICE_PRO_1TB: z.string().min(1).optional(),
   // Annual Pro (ruled 2026-08-27: x10 monthly, "two months free"). Like the Event
   // Pass prices: NOT in assertStripeEnv()'s hard assert; validated lazily by
   // priceIdForPlan so monthly checkout keeps working if these are ever unset.
-  STRIPE_PRICE_PRO_100_YR: z.string().min(1).optional(),
-  STRIPE_PRICE_PRO_500_YR: z.string().min(1).optional(),
-  STRIPE_PRICE_PRO_2TB_YR: z.string().min(1).optional(),
+  STRIPE_PRICE_PRO_50_YR: z.string().min(1).optional(),
+  STRIPE_PRICE_PRO_200_YR: z.string().min(1).optional(),
+  STRIPE_PRICE_PRO_1TB_YR: z.string().min(1).optional(),
   // Cut 4c — one-time Event Pass price. NOT in assertStripeEnv()'s hard assert (Pro
   // routes keep working if it's unset); validated lazily by priceIdForPlan.
   STRIPE_PRICE_EVENT_PASS: z.string().min(1).optional(),
@@ -116,6 +116,10 @@ const serverSchema = z.object({
   // request time so the mint route fails closed (never mints an unsigned/destinationless token).
   EXPORT_SIGNING_SECRET: z.string().min(1).optional(),
   EXPORT_WORKER_URL: z.url().optional(),
+  // Vercel usage reads for the plan limits (jobs/limits-watch-vercel.ts): a team-scoped token the spend watch's cron
+  // uses for one GET of /v2/usage. A Vercel token can deploy and delete, so it is its own variable (never the kit's
+  // personal VERCEL_TOKEN) and `.optional()`: unset, the Vercel meters read "No reading" (Not wired) and nothing fails.
+  VERCEL_USAGE_TOKEN: z.string().min(1).optional(),
 });
 
 function formatIssues(error: z.ZodError): string {
@@ -154,12 +158,12 @@ function parseServer() {
     CRON_SECRET: process.env.CRON_SECRET,
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
-    STRIPE_PRICE_PRO_100: process.env.STRIPE_PRICE_PRO_100,
-    STRIPE_PRICE_PRO_500: process.env.STRIPE_PRICE_PRO_500,
-    STRIPE_PRICE_PRO_2TB: process.env.STRIPE_PRICE_PRO_2TB,
-    STRIPE_PRICE_PRO_100_YR: process.env.STRIPE_PRICE_PRO_100_YR,
-    STRIPE_PRICE_PRO_500_YR: process.env.STRIPE_PRICE_PRO_500_YR,
-    STRIPE_PRICE_PRO_2TB_YR: process.env.STRIPE_PRICE_PRO_2TB_YR,
+    STRIPE_PRICE_PRO_50: process.env.STRIPE_PRICE_PRO_50,
+    STRIPE_PRICE_PRO_200: process.env.STRIPE_PRICE_PRO_200,
+    STRIPE_PRICE_PRO_1TB: process.env.STRIPE_PRICE_PRO_1TB,
+    STRIPE_PRICE_PRO_50_YR: process.env.STRIPE_PRICE_PRO_50_YR,
+    STRIPE_PRICE_PRO_200_YR: process.env.STRIPE_PRICE_PRO_200_YR,
+    STRIPE_PRICE_PRO_1TB_YR: process.env.STRIPE_PRICE_PRO_1TB_YR,
     STRIPE_PRICE_EVENT_PASS: process.env.STRIPE_PRICE_EVENT_PASS,
     STRIPE_PRICE_EVENT_PASS_RENEWAL:
       process.env.STRIPE_PRICE_EVENT_PASS_RENEWAL,
@@ -171,6 +175,7 @@ function parseServer() {
     DESIGN_PREVIEW_KEY: process.env.DESIGN_PREVIEW_KEY,
     EXPORT_SIGNING_SECRET: process.env.EXPORT_SIGNING_SECRET,
     EXPORT_WORKER_URL: process.env.EXPORT_WORKER_URL,
+    VERCEL_USAGE_TOKEN: process.env.VERCEL_USAGE_TOKEN,
   });
   if (!parsed.success) {
     throw new Error(
@@ -249,35 +254,35 @@ export function assertCronEnv(): { CRON_SECRET: string } {
 export function assertStripeEnv(): {
   STRIPE_SECRET_KEY: string;
   STRIPE_WEBHOOK_SECRET: string;
-  STRIPE_PRICE_PRO_100: string;
-  STRIPE_PRICE_PRO_500: string;
-  STRIPE_PRICE_PRO_2TB: string;
+  STRIPE_PRICE_PRO_50: string;
+  STRIPE_PRICE_PRO_200: string;
+  STRIPE_PRICE_PRO_1TB: string;
 } {
   const {
     STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET,
-    STRIPE_PRICE_PRO_100,
-    STRIPE_PRICE_PRO_500,
-    STRIPE_PRICE_PRO_2TB,
+    STRIPE_PRICE_PRO_50,
+    STRIPE_PRICE_PRO_200,
+    STRIPE_PRICE_PRO_1TB,
   } = serverEnv;
   if (
     !STRIPE_SECRET_KEY ||
     !STRIPE_WEBHOOK_SECRET ||
-    !STRIPE_PRICE_PRO_100 ||
-    !STRIPE_PRICE_PRO_500 ||
-    !STRIPE_PRICE_PRO_2TB
+    !STRIPE_PRICE_PRO_50 ||
+    !STRIPE_PRICE_PRO_200 ||
+    !STRIPE_PRICE_PRO_1TB
   ) {
     throw new Error(
       "Stripe is not configured. Set STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, and " +
-        "STRIPE_PRICE_PRO_100 / _500 / _2TB (see docs/PRICING.md 'Stripe setup').",
+        "STRIPE_PRICE_PRO_50 / _200 / _1TB (see docs/PRICING.md 'Stripe setup').",
     );
   }
   return {
     STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET,
-    STRIPE_PRICE_PRO_100,
-    STRIPE_PRICE_PRO_500,
-    STRIPE_PRICE_PRO_2TB,
+    STRIPE_PRICE_PRO_50,
+    STRIPE_PRICE_PRO_200,
+    STRIPE_PRICE_PRO_1TB,
   };
 }
 

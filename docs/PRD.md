@@ -52,40 +52,49 @@ next host. **North-star metric: a host creates a second event.**
 ## Monetization and anti-abuse (the why behind the schema)
 
 Pricing is **storage-based**, shaped so Partyreel cannot be abused as unlimited cloud storage. The canonical numbers
-live in `src/lib/constants/tiers.ts`, mirrored for enforcement in the `tier_limits()` SQL function; the plan table,
-Pro's case and the Stripe setup are in [`PRICING.md`](PRICING.md).
+live in `src/lib/constants/tiers.ts`, mirrored for enforcement in the `tier_limits()` and `upload_allowance()` SQL
+functions; the plan table (Ladder A), Pro's case and the Stripe setup are in [`PRICING.md`](PRICING.md).
 
 - **Total storage caps, not item counts**: a plan is total stored bytes against a cap; the pricing page shows the GB
   with a friendly translation into photos and hours of video.
 - **Events persist until the host deletes them; nothing ends them.** An event's dates (a day, or a range of days)
   only say when it happens and never expire it. An "ended" event that kept its media
-  would let a user fill, end, create, repeat; only deletion (or the lifecycle below) frees space, and a deletion ends
-  in the media's destruction once its recovery window closes.
-- **A monthly upload meter, unmarketed**, against fill, delete, re-upload bandwidth burn: generous, never refunded on
-  delete, and seen only as a monthly upload limit when an upload is refused.
+  would let a user fill, end, create, repeat; only leaving Deleted for good (the lifecycle below) frees space, and a
+  deletion ends in the media's destruction once its recovery window closes.
+- **An uploads allowance, published per plan**, against fill, delete, re-upload churn: each plan's own number in the
+  pricing table (Free and Pro a month, a pass its own year), gracious for a real event, never refunded on delete, and
+  sized with the plan's price so no plan's worst month costs more than it pays. Only circuit breakers no real host
+  meets stay unpublished.
 - **No watermark on any uploaded photo or video, on the album, or on the live reel, on any plan.** The one mark is on a
   free event's clips: the free levers are never quality.
 - **Plans**: Free is one event, photos only, the whole album; the first-event experience must still shine, since it
-  sells the upgrade. The Event Pass is one-time and per event, with video and clips with no mark for a year,
-  renewable, and passes stack. Pro is a subscription (monthly or yearly) with a storage selector and unlimited events,
-  its prices set by Stripe Price IDs. The upgrade triggers are video, outgrowing Free's
+  sells the upgrade. The Event Pass is one payment, no subscription, for one big event kept a year, with video and clips
+  with no mark, renewable, and passes stack. Pro is a subscription (monthly or yearly) with unlimited events and a size
+  for each next use (a season of parties, a planner's year, a venue's year), its prices set by Stripe Price IDs. The upgrade triggers are video, outgrowing Free's
   storage, and a second event. Universal per-file limits live in `src/lib/media/limits.ts`.
 
 ## Data retention and lifecycle
 
-One lifecycle across every plan, and media is never hard-deleted at once. Three triggers move media out:
+One lifecycle across every plan, and media is never hard-deleted at once. **A plan's storage holds everything a host
+keeps, her albums and her Deleted together**: one number under one cap, so deleting frees nothing until an item leaves
+Deleted for good, and nobody can store past their plan by parking it in Deleted. Three triggers move media into
+Deleted:
 
+- **The host deletes** an event or an item.
 - **Over capacity**: a lapsed paid grant (a downgrade, a subscription that ends after failed payments, an expired
-  Event Pass) opens a 45-day grace with a warning email and a reminder 7 days before it ends; then the largest files
-  go first until the account is under its cap. Uploads block at the cap plus a 10% buffer.
-- **The host deletes** an event or an item: its room frees at once.
+  Event Pass) opens a 45-day grace on what she keeps by choice, with a warning email and a reminder 7 days before it
+  ends; then what she already deleted leaves for good first, and her largest files go to Deleted until she is under
+  her cap.
 - **Free-plan inactivity**: an event 180 days past its last activity (the host signing in or using the app, an edit to
   the event, a new upload) is removed, with a warning email 14 days before.
 
-Every trigger lands in the same recoverable tail: 30 days in Deleted, restorable by the host in the app (a system
-removal's email names the date; a deletion the host made is never emailed), then hard-deleted by the daily purge cron
-(`events.deleted_at`, `events.purge_at`). Deleted-but-kept bytes are capped at one storage cap per account, oldest
-evicted first, so a restore and re-delete cycle cannot hoard. The windows live in `src/lib/lifecycle/`.
+Every trigger lands in the same recoverable tail: 30 days in Deleted, restorable by the host in the app (restoring her
+own always fits, since it already counts; a system removal's email names the date; a deletion the host made is never
+emailed), then hard-deleted by the daily purge cron (`events.deleted_at`, `events.purge_at`). An item leaves Deleted
+early only for good: her Delete permanently or Empty Deleted, or, when an upload needs room and her account's **Make
+room from Deleted** is on (the default), the oldest items first, as many as the upload needs. With it off, an upload
+that does not fit is refused with the room it needs. Uploads block at the cap plus a 10% buffer. A guest's own delete
+leaves at once, for the host too, and purges that night. The windows live in `src/lib/lifecycle/`.
 
 ## Safety and moderation
 

@@ -54,19 +54,23 @@ export const GROUNDS: readonly Ground[] = [
     name: "The display",
     selector: ".surface-display",
     wears: "surface-display",
-    worn: "The camera's screen: menus, selects, popovers, tooltips and toasts, the same near-black on paper and in the room.",
+    worn: "The camera's screen: menus, selects, popovers, tooltips and toasts, near-black on paper and lit graphite in the room.",
   },
 ];
 
 /**
- * The display's own tokens, declared once on the theme-independent `:root` block (a ground reaches them by wearing
- * `.surface-display`, never as a utility: none is generated). In the order a part reads them.
+ * The display's own tokens, declared per ground (the paper set and `.dark`, each in whole; a layer reaches them by
+ * wearing `.surface-display`, never as a utility: none is generated). In the order a part reads them.
  */
 export const DISPLAY_TOKENS: readonly { name: string; token: string }[] = [
   { name: "Step", token: "--display-step" },
   { name: "Foreground", token: "--display-foreground" },
   { name: "Muted", token: "--display-muted" },
+  { name: "Faint", token: "--display-faint" },
   { name: "Edge", token: "--display-edge" },
+  { name: "Input", token: "--display-input" },
+  { name: "Cursor", token: "--display-cursor" },
+  { name: "Light", token: "--display-light" },
 ];
 
 /** The display itself: the screen's ground, which every other display token is read against. */

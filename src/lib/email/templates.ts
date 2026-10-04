@@ -263,8 +263,11 @@ function renderText(parts: MailParts): string {
   return `${sections.join("\n\n")}\n\n---\n\n${foot}\n`;
 }
 
-/** Every template ends here: one set of parts, two renderings. */
-function composeMail(parts: MailParts): Mail {
+/**
+ * Every template ends here: one set of parts, two renderings. Exported for the one template that lives beside the job
+ * that sends it (the plan limits' alert, `jobs/limits-watch-mail.ts`), which wears this shell rather than a second one.
+ */
+export function composeMail(parts: MailParts): Mail {
   return {
     subject: parts.subject,
     html: renderHtml(parts),
@@ -277,6 +280,11 @@ export const OPERATOR_TAG = "[Partyreel]";
 
 // ── Host mail: the six lifecycle mails ───────────────────────────────────────────────────────────
 
+/**
+ * The over-cap grace's two mails say the deadline's order: what is in Deleted leaves for good first, then her largest
+ * files move to Deleted. That order holds whatever her Make room from Deleted says, since the setting governs uploads
+ * alone and the reduce is not an upload (trash-in-storage), so the words never mention the setting.
+ */
 export function overCapGraceStartEmail(opts: {
   capLabel: string;
   deadline: string;
@@ -289,7 +297,7 @@ export function overCapGraceStartEmail(opts: {
       p(
         `Your account is now using more than your plan's ${opts.capLabel}. You have until `,
         strong(opts.deadline),
-        " to upgrade or remove some media. After that, we'll automatically reduce your storage (largest files first) to fit your plan. Removed items stay recoverable for 30 days.",
+        " to upgrade or free up space. After that, we'll make room automatically: what's in Deleted is deleted for good first, then your largest files move to Deleted, where they stay recoverable for 30 days.",
       ),
     ],
     cta: { href: opts.dashboardUrl, label: "Manage storage" },
@@ -310,7 +318,7 @@ export function overCapReminderEmail(opts: {
       p(
         "Heads up: on ",
         strong(opts.deadline),
-        " we'll automatically reduce your storage to fit your plan if you're still over the limit. Upgrade or remove some media to keep everything.",
+        " we'll make room automatically if you're still over the limit, deleting what's in Deleted for good first, then moving your largest files there. Upgrade, or free up space yourself, to choose what stays.",
       ),
     ],
     cta: { href: opts.dashboardUrl, label: "Manage storage" },
@@ -320,19 +328,37 @@ export function overCapReminderEmail(opts: {
   });
 }
 
+/**
+ * The reduce's own mail (trash-in-storage: Deleted counts in storage, so at the deadline what she already deleted
+ * leaves for good first, and only then her largest files move to Deleted). Each sentence says what this reduce did:
+ * `emptiedDeleted` when her own Deleted left, `movedFiles` when files moved (the default, the shape before Deleted
+ * counted); what moved still counts until its date, which is why restoring it all would take her over again, and an
+ * upload may take its room sooner (her Make room from Deleted setting, on unless she turned it off), which the date's
+ * sentence says rather than promise a date an upload could break.
+ */
 export function overCapReducedEmail(opts: {
   recoverableUntil: string;
   dashboardUrl: string;
+  emptiedDeleted?: boolean;
+  movedFiles?: boolean;
 }): Mail {
+  const movedFiles = opts.movedFiles ?? true;
+  const emptied = opts.emptiedDeleted ?? false;
   return composeMail({
     subject: "We reduced your Partyreel storage to fit your plan",
     heading: "Your storage was reduced",
     blocks: [
-      p(
-        "Because your account stayed over its limit, we removed your largest files to bring it back under your plan. They stay in Deleted until ",
-        strong(opts.recoverableUntil),
-        ". Putting them all back would take you over your plan again, so upgrade or free up space first, then restore them from each event's Deleted section.",
-      ),
+      movedFiles
+        ? p(
+            emptied
+              ? "Because your account stayed over its limit, we deleted what was already in Deleted for good and moved your largest files to Deleted, which brings what you keep back under your plan. They stay in Deleted until "
+              : "Because your account stayed over its limit, we moved your largest files to Deleted, which brings what you keep back under your plan. They stay in Deleted until ",
+            strong(opts.recoverableUntil),
+            " unless new uploads need their room first, and count toward your storage while they're there. Putting them all back would take you over your plan again, so upgrade or free up space first, then restore them from each event's Deleted section.",
+          )
+        : p(
+            "Because your account stayed over its limit, we deleted what was already in Deleted for good, which brings your account back under your plan. Nothing you kept was touched.",
+          ),
     ],
     cta: { href: opts.dashboardUrl, label: "Manage storage" },
     foot: {

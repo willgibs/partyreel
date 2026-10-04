@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useSyncExternalStore } from "react";
-import { Eye, Images, Users } from "lucide-react";
+import { Eye, Users } from "lucide-react";
 
 import { EventCodeDoor } from "@/components/app/share/event-code-door";
 import { EventLinkRow } from "@/components/app/share/event-link-row";
@@ -19,18 +19,15 @@ import {
 } from "@/lib/disposable/host-cover";
 import { useWaitClock } from "@/lib/disposable/use-wait-clock";
 import type { Door } from "@/lib/event/door/door";
-import { formatCount, formatMediaCount } from "@/lib/format/count";
+import { formatCount } from "@/lib/format/count";
+import { RangeText } from "@/lib/format/range-text";
 import { cn, formatEventDate } from "@/lib/utils";
 
 import { EventLive } from "./event-gallery-live";
 
 import { isCoverEntry, newestCoverStills } from "./event-hub-head-stills";
-import {
-  useHostAlbum,
-  useHubCounts,
-  useHubEntries,
-  type HubAlbum,
-} from "./host-album";
+import { HubFactsStrip } from "./event-hub-head-strip";
+import { useHostAlbum, useHubEntries, type HubAlbum } from "./host-album";
 
 /* ── the develop, as the hub's head and its band read it ─────────────────── */
 
@@ -141,21 +138,16 @@ export function HubHeadStills({
 }
 
 /**
- * The album's count on the hub's facts line, live off the album's store (the page is never refreshed
- * to move it), as an icon and a number, its words on hover and a tap.
- */
-export function HubAlbumGlyph({ served }: { served: number }) {
-  const counts = useHubCounts(useHostAlbum());
-  const n = counts?.album ?? served;
-  return <GlyphCount icon={<Images />} count={n} label={formatMediaCount(n)} />;
-}
-
-/**
  * MAYA'S HEAD (`event-header` r1, `host=shared`): the album's own cover her guests walk into, its
- * photographs dissolving edge to edge under the name, with her tools on it. The facts and the link under
- * the title stand as they were (r2 redraws both from his note: "Still don't love how we're presenting
- * some of the metadata under the title"); the code stands on its white mat in the cover's corner,
- * scannable from across a table, and pressing it grows it (`EventCodeDoor`).
+ * photographs dissolving edge to edge under the name, with her tools on it. The code stands on its white mat
+ * in the cover's corner, scannable from across a table, and pressing it grows it (`EventCodeDoor`).
+ *
+ * ★ THE ALBUM'S FACTS ARE THE STRIP ALONG THE FOOT (`event-header` r3, Will's `facts=strip`:
+ * `event-hub-head-strip.tsx`): one mark a photograph, the newest lit while they land, ending in the album's
+ * number, true for a morning, a weekend, an album with no date and a trickle alike. The number it ends in is
+ * the one the line under the title used to carry, so the line keeps the rest: the date, the guests, the views
+ * and the Live mark (the board drew none of them; they are quiet glyphs, and the views are the checklist's
+ * own "Opened N times", which must read what the eye beside it reads).
  *
  * It bleeds by the wide page's own gutter to the window's edges (`app-shell.tsx`: 12px, 20px from `sm`)
  * and reaches up to the app's bar, taking back the main's 32px (`toBar`), unless something stands above
@@ -172,6 +164,7 @@ export function HubCover({
   code,
   stills,
   develop,
+  arrivals,
   toBar = true,
 }: {
   name: string;
@@ -195,6 +188,11 @@ export function HubCover({
    * see (the-wait r1, `cover=guests`), and tells what reads its stills beside it. Absent, the head is the album's.
    */
   develop?: HubDevelopFacts | null;
+  /**
+   * The album's arrivals (`arrivalsOf`'s shape) for a head with no album store to read them off (the Library's
+   * specimen): the hub never passes it, since its strip reads the page's own store live.
+   */
+  arrivals?: readonly number[];
   toBar?: boolean;
 }) {
   return (
@@ -204,47 +202,53 @@ export function HubCover({
       ground={<HubHeadStills served={stills} develop={develop ?? null} />}
     >
       <PublishDevelop develop={develop} />
-      <div className="flex items-end gap-4 px-3 pb-4 sm:gap-8 sm:px-5 sm:pb-7">
-        <div className="min-w-0 flex-1 space-y-2">
-          <PageHeading className="text-section text-balance text-white sm:text-chapter">
-            {name}
-          </PageHeading>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/85">
-            {date && <span>{formatEventDate(date, endDate)}</span>}
-            {/* The album's count, live off the album's store (the page is never refreshed to move it). */}
-            <HubAlbumGlyph served={counts.album} />
-            <GlyphCount
-              icon={<Users />}
-              count={counts.guests}
-              label={
-                counts.guests === 1
-                  ? "1 guest"
-                  : `${formatCount(counts.guests)} guests`
-              }
-            />
-            <GlyphCount
-              icon={<Eye />}
-              count={counts.views}
-              label={
-                counts.views === 1
-                  ? "1 view"
-                  : `${formatCount(counts.views)} views`
-              }
-            />
-            {/* ★ THE LIVE MARK (`first=live`, Will 2026-09-21): nothing until the Realtime channel is
-                actually subscribed, since "Live" over a dead socket is worse than no mark. */}
-            <EventLive />
+      <div className="flex flex-col gap-3.5 px-3 pb-4 sm:gap-5 sm:px-5 sm:pb-7">
+        <div className="flex items-end gap-4 sm:gap-8">
+          <div className="min-w-0 flex-1 space-y-2">
+            <PageHeading className="text-section text-balance text-white sm:text-chapter">
+              {name}
+            </PageHeading>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/85">
+              {date && (
+                <span>
+                  <RangeText text={formatEventDate(date, endDate)} />
+                </span>
+              )}
+              <GlyphCount
+                icon={<Users />}
+                count={counts.guests}
+                label={
+                  counts.guests === 1
+                    ? "1 guest"
+                    : `${formatCount(counts.guests)} guests`
+                }
+              />
+              <GlyphCount
+                icon={<Eye />}
+                count={counts.views}
+                label={
+                  counts.views === 1
+                    ? "1 view"
+                    : `${formatCount(counts.views)} views`
+                }
+              />
+              {/* ★ THE LIVE MARK (`first=live`, Will 2026-09-21): nothing until the Realtime channel is
+                  actually subscribed, since "Live" over a dead socket is worse than no mark. */}
+              <EventLive />
+            </div>
+            <EventLinkRow prettyUrl={prettyUrl} permanentUrl={eventLink} />
           </div>
-          <EventLinkRow prettyUrl={prettyUrl} permanentUrl={eventLink} />
+          <EventCodeDoor
+            eventName={name}
+            joinUrl={eventLink}
+            qrStyle={code.qrStyle}
+            door={code.door}
+            acceptingUploads={code.acceptingUploads}
+            waiting={code.waiting}
+          />
         </div>
-        <EventCodeDoor
-          eventName={name}
-          joinUrl={eventLink}
-          qrStyle={code.qrStyle}
-          door={code.door}
-          acceptingUploads={code.acceptingUploads}
-          waiting={code.waiting}
-        />
+        {/* The album's count, live off the album's store (the page is never refreshed to move it). */}
+        <HubFactsStrip served={counts.album} arrivals={arrivals} />
       </div>
     </EventHead>
   );

@@ -1,19 +1,20 @@
 "use client";
 
 import { useId, useState, type ReactNode } from "react";
-import { Check, ChevronDown, Clock } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 
 import {
   DEVELOP_NOW_QUESTION,
   judgeDevelopTime,
+  toLocalInput,
 } from "@/components/app/event-settings/camera-settings-develop-time";
+import { StylePicture } from "@/components/app/event-settings/camera-settings-style-picture";
 import {
   SettingsCard,
   SettingsNote,
   StackSetting,
 } from "@/components/app/event-settings/settings-furniture";
 import { useSettings } from "@/components/app/event-settings/settings-state";
-import { GUEST_GHOST_FRAMES } from "@/components/guest/gallery-empty-state";
 import { Button } from "@/components/ui/button";
 import { ConsequenceLine } from "@/components/ui/consequence-line";
 import { Input } from "@/components/ui/input";
@@ -44,7 +45,7 @@ import { cn } from "@/lib/utils";
 /**
  * WHAT GUESTS CAN ADD, AS ALBUM STYLES (the-wait r1, Will's desk on build 45: "the option 2 album styles settings design
  * seems far superior - cleaner design/presentation, difference feels more clear"). One pick of a named album, each a
- * card with its picture: Live (free uploads, each shown the moment it's added), Reviewed (free uploads, each held until
+ * card with its picture: Live (free uploads, each shown the moment it's added), Review (free uploads, each held until
  * the host lets it in) and Disposable (the album's camera with a develop time; Will's `name=disposable`). Under them the
  * develop time, where the album has one, the page's switches, and Customize, where the event's two answers stand apart
  * (how guests add; when everyone sees) for a mix outside the three. A style is words over those columns
@@ -56,13 +57,16 @@ import { cn } from "@/lib/utils";
  * longer. The database refuses the pair (`events_approval_never_develops`, 20261003100000).
  *
  * ★ A CHANGE THAT SHOWS PEOPLE SOMETHING SAYS SO FIRST (the door's `ConsequenceLine`; nothing else asks): leaving a
- * develop still ahead, or Develop now, puts every photo taken so far in front of every guest; leaving Reviewed with
+ * develop still ahead, or Develop now, puts every photo taken so far in front of every guest; leaving Review with
  * photos held approves them, shown now, or (★ settled with Will the night of build 45) into a develop time they join
  * the roll, approved and sealed, developing with everyone's (the database releases them in the same save,
  * `events_hold_released`).
  *
- * ★ MOUNTABLE: `AlbumStyles` and `CaptureAndReveal` take the values and a save, so the Library, the lab and the create
- * wizard's later wiring mount the same controls; `AlbumStyleSettings` binds them to Settings' one state.
+ * ★ MOUNTABLE: `AlbumStyles` and `CaptureAndReveal` take the values and a save, so the Library and the lab mount the
+ * same controls; `AlbumStyleSettings` binds them to Settings' one state. Create's add step (`create-event-wizard/
+ * add-step.tsx`) draws its own cards, which share this page's names, lines and columns (`album-style.ts`), its
+ * pictures (`camera-settings-style-picture.tsx`) and its develop time's own judgement
+ * (`camera-settings-develop-time.ts`), so the two never say different things.
  *
  * Times are the host's own: the develop time is shown and picked in her browser's zone (`datetime-local`), and stays
  * blank until hydration, since the server cannot know what "9 am" means to her.
@@ -341,7 +345,7 @@ function StyleCard({
       >
         <span className="sr-only">{`${STYLE_NAMES[style]}. ${line}`}</span>
       </button>
-      <StylePicture style={style} />
+      <StylePicture style={style} className="h-[72px] w-[88px]" />
       <span aria-hidden className="pointer-events-none relative min-w-0 flex-1">
         <span className="block font-heading text-base">
           {STYLE_NAMES[style]}
@@ -362,56 +366,6 @@ function StyleCard({
         {on ? <Check className="size-3" /> : null}
       </span>
     </div>
-  );
-}
-
-/**
- * A STYLE'S PICTURE, a small album in its own light (the board's mini-albums), from the guest ghost pack every empty
- * album already ships (no new asset): Live all lit; Reviewed lit but for one held under a clock and one fading in;
- * Disposable dark but for one, hers.
- */
-function StylePicture({ style }: { style: AlbumStyle }) {
-  const frames = GUEST_GHOST_FRAMES.slice(0, 6);
-  return (
-    <span
-      aria-hidden
-      data-style-picture={style}
-      className="relative grid h-[72px] w-[88px] shrink-0 grid-cols-3 gap-[2px] overflow-hidden rounded-[10px] bg-gallery p-[3px]"
-    >
-      {frames.map((frame, i) => {
-        const lit =
-          style === "live"
-            ? true
-            : style === "approval"
-              ? i % 3 !== 2
-              : i === 4;
-        return (
-          <span
-            key={frame.src}
-            className={cn(
-              "relative overflow-hidden rounded-[2px] bg-white/10",
-              style === "disposable" && lit && "shadow-[0_0_0_1px_#fff]",
-            )}
-          >
-            {lit ? (
-              // eslint-disable-next-line @next/next/no-img-element -- a ghost-pack still, the style's picture
-              <img
-                src={frame.src}
-                alt=""
-                loading="lazy"
-                decoding="async"
-                className={cn(
-                  "absolute inset-0 size-full object-cover",
-                  style === "approval" && i % 3 === 1 && "opacity-40",
-                )}
-              />
-            ) : style === "approval" ? (
-              <Clock className="absolute inset-0 m-auto size-3 text-white/60" />
-            ) : null}
-          </span>
-        );
-      })}
-    </span>
   );
 }
 
@@ -699,14 +653,6 @@ function Choice({
 }
 
 /* ── the develop time, in one place ──────────────────────────────────── */
-
-/** `YYYY-MM-DDTHH:mm` in the browser's own time zone, the value a `datetime-local` field holds. */
-function toLocalInput(iso: string): string {
-  const d = new Date(iso);
-  if (!Number.isFinite(d.getTime())) return "";
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
 
 /**
  * THE DEVELOP TIME, picked in her own zone and saved once she has finished it, and Develop now while it waits (asking

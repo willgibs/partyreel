@@ -43,6 +43,10 @@ vi.mock("@/components/guest/reel/live-reel-view", () => {
   return { LiveReelView: () => null };
 });
 
+// The hub's own view chunk (the reel she plays over her hub before the develop): the card only asks for it on intent.
+const warmHub = vi.hoisted(() => vi.fn());
+vi.mock("./hub-reel-view", () => ({ warmHubReelView: () => warmHub() }));
+
 // The live card's one server read, and the album store's live channel.
 const refreshHubReelAction = vi.fn();
 vi.mock("@/app/(app)/dashboard/[eventId]/actions", () => ({
@@ -82,6 +86,7 @@ class NoopObserver {
 beforeEach(() => {
   openAdd.mockReset();
   openSheet.mockReset();
+  warmHub.mockReset();
   vi.stubGlobal("IntersectionObserver", NoopObserver);
 });
 
@@ -294,9 +299,13 @@ describe("the live card's press", () => {
 /**
  * ★ WHAT IS TRUE UNTIL THE DEVELOP (crumbs-52; red-team 43's NIT: "the Highlight reel card reads 'Live for guests' on a
  * sealed album whose guests see no photograph"). On an album whose develop time is ahead every guest's reel is empty
- * until it, so the live card says it goes live at the develop, and says "Live for guests" again the moment the time is
- * reached, with no reload. The card still opens the view (the host's own reel plays her whole album). The page hands the
- * time (`developsAt`); an album with none, or one reached, reads as it always has.
+ * until it, so the live card never says it is live for guests then: it says guests get it later, and says
+ * "Live for guests" again the moment the time is reached, with no reload. ★ RESHAPED ON PURPOSE (Will's Q5, 2026-10-04:
+ * "the live reel is the host's to play from her own event page as soon as she opens it, even while the album develops;
+ * guests don't have it until the develop"): this pinned "Live at the develop" over a card that opened the guests' view;
+ * the scar is kept (the words stay true of the guests), and what changed is that the reel is hers now, so a press plays
+ * it over her hub, because the guests' view (hers included) has none to open until the develop. The page hands the time
+ * (`developsAt`); an album with none, or one reached, reads and opens as it always has.
  */
 describe("the live card on an album that develops later", () => {
   const liveCard = (developsAt?: string | null) => (
@@ -313,57 +322,167 @@ describe("the live card on an album that develops later", () => {
     />
   );
   const ahead = (ms: number) => new Date(Date.now() + ms).toISOString();
-
-  it("★ says it goes live at the develop, not that it is live for guests, and still opens the view", () => {
-    render(liveCard(ahead(3_600_000)));
-    const link = screen.getByRole("link");
-    expect(link).toHaveTextContent("Live at the develop");
-    expect(link).not.toHaveTextContent("Live for guests");
-    expect(link).toHaveAttribute("href", "/e/token123?reel");
+  // jsdom has no navigation: the browser's own is what a click on a link leaves standing.
+  const stopNavigation = (e: Event) => e.preventDefault();
+  beforeEach(() => document.addEventListener("click", stopNavigation));
+  afterEach(() => {
+    document.removeEventListener("click", stopNavigation);
+    window.history.replaceState(null, "", "/");
   });
 
-  it("says what it always has with no develop time, or one reached", () => {
+  it("★ says guests get it later, never that it is live for them, and plays her own reel on her own page", () => {
+    render(liveCard(ahead(3_600_000)));
+    const link = screen.getByRole("link");
+    expect(link).toHaveTextContent("Guests get it later");
+    expect(link).not.toHaveTextContent("Live for guests");
+    expect(link).not.toHaveTextContent("Live at the develop");
+    // Her hub's own address, which opens on the reel: the guests' view has no reel to open yet.
+    expect(link).toHaveAttribute("href", "/dashboard/e1?reel");
+    expect(link).toHaveAttribute("data-reel-plays", "hub");
+  });
+
+  // ★ RED-TEAM 53's LOW (crumbs-65): "at 375 the Reel card hides 'Guests get it later'". Measured in a 375 viewport the
+  // line is whole at rest (100px of 149), and the one state that hid it was the pill the row condenses to when it sticks
+  // to the bar, where it was `display: none` for everyone, a reader included. A jsdom has no layout, so what is held is
+  // that the pill keeps the words (`sr-only`: out of the way, still said) and never removes them from the page.
+  it.each([
+    [
+      "live, before the develop",
+      () => ({
+        state: "live" as const,
+        have: 2,
+        stills: ["s1"],
+        developsAt: ahead(3_600_000),
+      }),
+      "Guests get it later",
+    ],
+    [
+      "live, with no develop ahead",
+      () => ({ state: "live" as const, have: 2, stills: ["s1"] }),
+      "Live for guests",
+    ],
+    ["switched off", () => ({ state: "off" as const }), "Off"],
+    [
+      "counting",
+      () => ({ state: "counting" as const, have: 1 }),
+      "1 more photo",
+    ],
+  ])(
+    "★ stuck to the bar, the %s pill keeps its words for a reader, never display:none",
+    (_name, over, words) => {
+      render(<ReelCard eventId="e1" reel={{ ...base, ...over() }} stuck />);
+      const said = screen.getByText(words);
+      expect(said.className).toContain("sr-only");
+      expect(said.className).not.toMatch(/(^|\s)hidden(\s|$)/);
+    },
+  );
+
+  it("at rest the same words are drawn under the label", () => {
+    render(liveCard(ahead(3_600_000)));
+    const said = screen.getByText("Guests get it later");
+    expect(said.className).not.toContain("sr-only");
+    expect(said.className).toContain("truncate");
+  });
+
+  it("says what it always has, and opens the guests' view, with no develop time or one reached", () => {
     const { unmount } = render(liveCard(null));
     expect(screen.getByRole("link")).toHaveTextContent("Live for guests");
+    expect(screen.getByRole("link")).toHaveAttribute(
+      "href",
+      "/e/token123?reel",
+    );
     unmount();
     const { unmount: second } = render(liveCard(undefined));
     expect(screen.getByRole("link")).toHaveTextContent("Live for guests");
     second();
     render(liveCard(ahead(-60_000)));
     expect(screen.getByRole("link")).toHaveTextContent("Live for guests");
+    expect(screen.getByRole("link")).toHaveAttribute(
+      "href",
+      "/e/token123?reel",
+    );
   });
 
-  it("★ turns to live for guests the moment the develop time comes, with the hub left open", () => {
+  it("★ turns to live for guests, and to the guests' view, the moment the develop time comes, with the hub left open", () => {
     vi.useFakeTimers();
     try {
       render(liveCard(ahead(90_000)));
-      expect(screen.getByRole("link")).toHaveTextContent("Live at the develop");
+      expect(screen.getByRole("link")).toHaveTextContent("Guests get it later");
       act(() => {
         vi.advanceTimersByTime(89_000);
       });
-      expect(screen.getByRole("link")).toHaveTextContent("Live at the develop");
+      expect(screen.getByRole("link")).toHaveTextContent("Guests get it later");
+      expect(screen.getByRole("link")).toHaveAttribute(
+        "href",
+        "/dashboard/e1?reel",
+      );
       act(() => {
         vi.advanceTimersByTime(2_000);
       });
       expect(screen.getByRole("link")).toHaveTextContent("Live for guests");
+      expect(screen.getByRole("link")).toHaveAttribute(
+        "href",
+        "/e/token123?reel",
+      );
     } finally {
       vi.useRealTimers();
     }
   });
+
+  it("★ a plain press asks for `?reel` on her own hub (the reel plays over it), never for the guests' page", () => {
+    render(liveCard(ahead(3_600_000)));
+    expect(window.location.search).toBe("");
+    fireEvent.click(screen.getByRole("link"), { button: 0 });
+    expect(window.location.search).toBe("?reel");
+    expect(window.location.pathname).toBe("/");
+    // The view's chunk was asked for with the press.
+    expect(warmHub).toHaveBeenCalled();
+  });
+
+  it("a modified click stays the honest navigation: the hub in a tab of its own, opening on the reel", () => {
+    render(liveCard(ahead(3_600_000)));
+    for (const mods of [
+      { metaKey: true },
+      { ctrlKey: true },
+      { shiftKey: true },
+    ]) {
+      fireEvent.click(screen.getByRole("link"), { button: 0, ...mods });
+    }
+    fireEvent.click(screen.getByRole("link"), { button: 1 });
+    expect(window.location.search).toBe("");
+    expect(warmHub).not.toHaveBeenCalled();
+  });
+
+  it("asks for the view's chunk as a pointer comes over it or a key lands on it, so the press opens at once", () => {
+    render(liveCard(ahead(3_600_000)));
+    fireEvent.pointerEnter(screen.getByRole("link"));
+    expect(warmHub).toHaveBeenCalledTimes(1);
+    fireEvent.focus(screen.getByRole("link"));
+    expect(warmHub).toHaveBeenCalledTimes(2);
+  });
+
+  it("asks for nothing of the hub's when the develop is behind it: the guests' view is what a press opens", () => {
+    render(liveCard(null));
+    fireEvent.pointerEnter(screen.getByRole("link"));
+    fireEvent.click(screen.getByRole("link"), { button: 0 });
+    expect(warmHub).not.toHaveBeenCalled();
+    expect(window.location.search).toBe("");
+  });
 });
 
 /**
- * ★ THE CARD RESPECTS THE COVER (crumbs-59, red-team 47's NIT: "the hub's Highlight reel card dissolves through the
+ * ★ HER REEL IS HERS FROM THE FIRST PHOTOGRAPH (Will's Q5, 2026-10-04). The reel's take is planned on the host's own
+ * scope, which sees every photograph she has (she is exempt from the seal), and the card draws it: while the develop is
+ * ahead the live card dissolves through her photographs and the counting card shows the one it has. ★ RESHAPED ON
+ * PURPOSE: this pinned the opposite (crumbs-59, red-team 47's NIT: "the hub's Highlight reel card dissolves through the
  * SEALED shots while the album below is covered and the head is bare, the one picture of what waits that needs no
- * Look"). The reel's take is planned on the host's own scope, which sees every photograph she has (she is exempt from
- * the seal), so on an album whose develop time is ahead its stills are exactly what her guests cannot see yet. Her hub
- * wears her guests' view meanwhile (the head, its band and the album's cover), so the card draws no photograph until
- * the develop, on the live card and the counting one alike, and the stills dissolve in the moment the time is reached.
+ * Look"), when the card was to wear her guests' view with the head, its band and the album's cover. The scar is kept
+ * where it still holds: those three still stand on what her guests can see, and only this card is hers.
  */
-describe("the card on an album that develops later respects the cover", () => {
+describe("the card on an album that develops later is hers", () => {
   const ahead = (ms: number) => new Date(Date.now() + ms).toISOString();
 
-  it("★ draws no photograph on the live card while a develop time is ahead, and still says what it waits for", () => {
+  it("★ draws her photographs on the live card while a develop time is ahead", () => {
     render(
       <ReelCard
         eventId="e1"
@@ -377,32 +496,29 @@ describe("the card on an album that develops later respects the cover", () => {
         stuck={false}
       />,
     );
-    expect(document.querySelector("[data-living]")).toBeNull();
-    expect(document.querySelector("img")).toBeNull();
-    const link = screen.getByRole("link");
-    expect(link).toHaveTextContent("Live at the develop");
-    expect(link).toHaveAttribute("href", "/e/token123?reel");
+    expect(document.querySelector("[data-living='3']")).not.toBeNull();
+    expect(screen.getByRole("link")).toHaveTextContent("Guests get it later");
   });
 
-  it("draws none on the counting card either: the one photograph it has is waiting too", () => {
+  it("shows the one photograph on the counting card too, and counts to two as ever", () => {
     render(
       <ReelCard
         eventId="e1"
         reel={{
           ...base,
           have: 1,
-          stills: ["sealed-1"],
+          stills: ["her-1"],
           developsAt: ahead(3_600_000),
         }}
         stuck={false}
       />,
     );
-    expect(document.querySelector("img")).toBeNull();
+    expect(document.querySelector("img")?.getAttribute("src")).toBe("her-1");
     expect(screen.getByRole("button")).toHaveTextContent("1 more photo");
     expect(document.querySelector("[data-reel-pips='1/2']")).not.toBeNull();
   });
 
-  it("★ lets the stills in the moment the develop time comes, with the hub left open", () => {
+  it("keeps her stills through the develop: they never come or go with the time", () => {
     vi.useFakeTimers();
     try {
       render(
@@ -418,13 +534,9 @@ describe("the card on an album that develops later respects the cover", () => {
           stuck={false}
         />,
       );
-      expect(document.querySelector("[data-living]")).toBeNull();
+      expect(document.querySelector("[data-living='2']")).not.toBeNull();
       act(() => {
-        vi.advanceTimersByTime(89_000);
-      });
-      expect(document.querySelector("[data-living]")).toBeNull();
-      act(() => {
-        vi.advanceTimersByTime(2_000);
+        vi.advanceTimersByTime(91_000);
       });
       expect(document.querySelector("[data-living='2']")).not.toBeNull();
     } finally {
@@ -432,7 +544,7 @@ describe("the card on an album that develops later respects the cover", () => {
     }
   });
 
-  it("draws its stills as it always has with no develop time, or one already reached", () => {
+  it("draws its stills with no develop time, or one already reached, as it always has", () => {
     const live = (developsAt?: string | null): ReelCardData => ({
       ...base,
       state: "live",

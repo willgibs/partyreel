@@ -1,8 +1,10 @@
 /**
- * A CAMERA SHOT'S LIMITS, AS THE PRESIGN SAYS THEM: her roll's frames and its ceiling, and a video's ten seconds and
- * 128 MB. Refused before the bytes move, in the server's own sentences (the upload queue's failure sheet prints them as
- * they are); `create_media` holds the same lines on the R2-HEAD size and under the host's profiles lock, raising the
- * same words, which a parity test reads from its winning body (`roll.test.ts`). Pure, so the rule is unit-testable.
+ * A CAMERA SHOT'S LIMITS, AS THE PRESIGN SAYS THEM: her roll's frames and its ceiling, and a video's length and bytes
+ * (`CAMERA_VIDEO_*`, `media/limits.ts`, the one home of both). Refused before the bytes move, in the server's own
+ * sentences (the upload queue's failure sheet prints them as they are); `create_media` holds the same lines on the
+ * R2-HEAD size and under the host's profiles lock, raising the same words (formatted there from its own copies of the
+ * same constants), which a parity test reads from its winning body (`roll.test.ts`). Pure, so the rule is
+ * unit-testable.
  */
 import { rollRefusal, type RollCount } from "@/lib/disposable/roll";
 import {
@@ -52,7 +54,5 @@ export function cameraShotRefusal(
     }
   }
   const refused = rollRefusal(context.roll ?? null);
-  return refused
-    ? { status: 409, code: "roll_spent", message: refused }
-    : null;
+  return refused ? { status: 409, code: "roll_spent", message: refused } : null;
 }

@@ -90,7 +90,7 @@ function sub(
     cancel_at: over.cancelAt ?? null,
     items: {
       data: (
-        over.items ?? [{ id: "si_1", price: "price_pro_100", quantity: 1 }]
+        over.items ?? [{ id: "si_1", price: "price_pro_50", quantity: 1 }]
       ).map((i) => ({
         id: i.id,
         price: { id: i.price },
@@ -102,8 +102,8 @@ function sub(
 
 const resolve = (priceId: string): Plan | null =>
   ({
-    price_pro_100: planById("pro_100"),
-    price_pro_500_yr: planById("pro_500_yr"),
+    price_pro_50: planById("pro_50"),
+    price_pro_200_yr: planById("pro_200_yr"),
     price_pass: planById("event_pass"),
   })[priceId] ?? null;
 
@@ -113,8 +113,8 @@ describe("which subscriptions can take a change", () => {
       ok: true,
       subscriptionId: "sub_1",
       itemId: "si_1",
-      currentPlan: planById("pro_100"),
-      currentPriceId: "price_pro_100",
+      currentPlan: planById("pro_50"),
+      currentPriceId: "price_pro_50",
       quantity: 1,
     });
   });
@@ -168,8 +168,8 @@ describe("which subscriptions can take a change", () => {
       assessSubscription(
         sub({
           items: [
-            { id: "si_1", price: "price_pro_100" },
-            { id: "si_2", price: "price_pro_500_yr" },
+            { id: "si_1", price: "price_pro_50" },
+            { id: "si_2", price: "price_pro_200_yr" },
           ],
         }),
         "cus_1",
@@ -192,7 +192,7 @@ describe("which subscriptions can take a change", () => {
 
   it("reports the quantity, so the old stepper's 3x can be healed to 1", () => {
     const assessed = assessSubscription(
-      sub({ items: [{ id: "si_1", price: "price_pro_100", quantity: 3 }] }),
+      sub({ items: [{ id: "si_1", price: "price_pro_50", quantity: 3 }] }),
       "cus_1",
       resolve,
     );
@@ -206,7 +206,7 @@ describe("the portal session", () => {
     configurationId: "bpc_tagged",
     subscriptionId: "sub_1",
     itemId: "si_1",
-    priceId: "price_pro_500",
+    priceId: "price_pro_200",
     returnUrl: "https://partyreel.com/account",
   });
 
@@ -214,7 +214,7 @@ describe("the portal session", () => {
     expect(params.flow_data?.type).toBe("subscription_update_confirm");
     expect(params.flow_data?.subscription_update_confirm).toEqual({
       subscription: "sub_1",
-      items: [{ id: "si_1", price: "price_pro_500", quantity: 1 }],
+      items: [{ id: "si_1", price: "price_pro_200", quantity: 1 }],
     });
   });
 

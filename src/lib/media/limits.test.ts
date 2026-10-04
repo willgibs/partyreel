@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   ACCEPTED_MIME,
+  CAMERA_VIDEO_GRACE_SECONDS,
+  CAMERA_VIDEO_MAX_BYTES,
+  CAMERA_VIDEO_SECONDS,
   extForMime,
   MAX_UPLOAD_BYTES,
   MIME_TO_EXT,
@@ -67,5 +70,24 @@ describe("host upload-cap presets", () => {
 
   it("offers a 'No limit' (null) option", () => {
     expect(UPLOAD_CAP_PRESETS.some((p) => p.bytes == null)).toBe(true);
+  });
+});
+
+// The camera's clip (its SQL mirror is create_media's three `c_camera_video_*` constants: roll.test.ts reads each beside
+// these). What is pinned here is what the mirror and the words depend on, never the numbers themselves.
+describe("the camera's clip bounds", () => {
+  it("says its byte bound in whole megabytes, because create_media divides by a megabyte to name it", () => {
+    expect(CAMERA_VIDEO_MAX_BYTES % 1024 ** 2).toBe(0);
+  });
+
+  it("keeps the grace under a second and the byte bound under the universal ceiling", () => {
+    expect(CAMERA_VIDEO_GRACE_SECONDS).toBeGreaterThan(0);
+    expect(CAMERA_VIDEO_GRACE_SECONDS).toBeLessThan(1);
+    expect(CAMERA_VIDEO_MAX_BYTES).toBeLessThan(MAX_UPLOAD_BYTES);
+  });
+
+  it("states its length in whole seconds, because create_media names it with %s and the mark reads it as m:ss", () => {
+    expect(Number.isInteger(CAMERA_VIDEO_SECONDS)).toBe(true);
+    expect(CAMERA_VIDEO_SECONDS).toBeGreaterThan(0);
   });
 });

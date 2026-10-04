@@ -4,8 +4,8 @@
  *
  * WHY THE SHEET ASKS INSTEAD OF BEING TOLD: four doors open the sheet with no idea
  * what the host stores (the create wizard, the restore button, the Deleted grid,
- * the dashboard's event-limit line) and so opened it on Pro 100 GB for a host
- * storing 140 GB. One small authenticated read when it opens means no door has to
+ * the dashboard's event-limit line) and so opened it on the smallest Pro size for a
+ * host it could not hold. One small authenticated read when it opens means no door has to
  * carry bytes, and every door gets the same, current answer.
  *
  * ★ CONTEXT, NEVER AN ENTITLEMENT (billing-caps.md). These facts choose which size
@@ -22,12 +22,19 @@ export type PlanFacts = {
   hasBilling: boolean;
   /** An Event Pass holder's expiry, already formatted by the server. */
   passExpiry: string | null;
-  /** What the cap counts (non-removed media in non-deleted events). */
-  activeBytes: number;
-  /** What Deleted holds (removed media, or anything in a deleted event). */
-  standbyBytes: number;
+  /** What the cap holds: everything she stores, her albums and her Deleted together (trash-in-storage). */
+  storedBytes: number;
+  /** What of it is in Deleted (her removals, and anything in a deleted event, inside their 30 days). */
+  deletedBytes: number;
   /** The cap in force now; null only for a Pro profile the webhook has not written. */
   capBytes: number | null;
+  /**
+   * What she has uploaded THIS calendar month, UTC (the ledger, deletions included): the figure every Pro size's uploads
+   * allowance is measured against, whatever window her own plan counts. Only words ride on it (`uploadsPauseNote`);
+   * absent or null when it is not known (a failed read, an older server), and the sheet then leaves that sentence
+   * out rather than fail. Optional so a surface that draws the sheet from a fixture (the Library) needs no figure.
+   */
+  monthUploadedBytes?: number | null;
   /** A Pro host's plan, read from the subscription's price; null when unknown. */
   currentPlanId: ProPlanId | null;
   /** Why a Pro switch cannot open, or null when it can (or could not be checked). */
@@ -62,15 +69,19 @@ export function parsePlanFacts(data: unknown): PlanFacts | null {
   const r = f as Record<string, unknown>;
   if (!(BILLING_TIERS as readonly unknown[]).includes(r.tier)) return null;
   if (typeof r.hasBilling !== "boolean") return null;
-  if (!finite(r.activeBytes) || !finite(r.standbyBytes)) return null;
+  if (!finite(r.storedBytes) || !finite(r.deletedBytes)) return null;
   if (r.capBytes !== null && !finite(r.capBytes)) return null;
   return {
     tier: r.tier as Tier,
     hasBilling: r.hasBilling,
     passExpiry: typeof r.passExpiry === "string" ? r.passExpiry : null,
-    activeBytes: r.activeBytes,
-    standbyBytes: r.standbyBytes,
+    storedBytes: r.storedBytes,
+    deletedBytes: r.deletedBytes,
     capBytes: r.capBytes as number | null,
+    // Absent from an older server's answer, and unreadable: not known, never a guess.
+    monthUploadedBytes: finite(r.monthUploadedBytes)
+      ? r.monthUploadedBytes
+      : null,
     currentPlanId: isProPlanId(r.currentPlanId) ? r.currentPlanId : null,
     changeBlocked: BLOCKED.has(r.changeBlocked as ChangePlanRefusalCode)
       ? (r.changeBlocked as ChangePlanRefusalCode)

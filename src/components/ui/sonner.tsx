@@ -56,8 +56,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
     <DismissableLayer.Branch asChild>
       <Sonner
         // ★ ALWAYS SONNER'S DARK, because a toast is the display (identity r2,
-        // layers=display): the camera's own screen, one near-black on paper and
-        // in the room. Sonner's light theme paints a description and the close
+        // layers=display): the camera's own screen, near-black on paper and lit
+        // graphite in the room. Sonner's light theme paints a description and the close
         // button's glyph in near-black ink, which on the display is nothing; its
         // dark theme reads every part off the `--normal-*` colours below.
         theme="dark"
@@ -104,10 +104,10 @@ const Toaster = ({ ...props }: ToasterProps) => {
             <Loader2Icon className="size-4 animate-spin" />
           ),
         }}
-        // The display's own colours, which are the same on every ground (the
-        // `--display*` tokens are theme-independent, so they resolve here as
-        // they would anywhere). A toast's state is its glyph lit in the
-        // state's colour (globals.css), never a filled slab.
+        // The display's own colours, read from the ground the Toaster stands in
+        // (the `--display*` set is declared per ground, so a dark session's
+        // toast is graphite and a light one's is near-black). A toast's state is
+        // its glyph lit in the state's colour (globals.css), never a filled slab.
         style={
           {
             "--normal-bg": "var(--display)",

@@ -3,7 +3,7 @@
  *
  *  - `expired_passes` re-derives every pass holder's profile from their ledger windows
  *    (billing-caps.md, ledger edition): natural expiry (tier to free, cap to null), a stacked pass
- *    lapsing (150 GB to 75 GB, absorbed by the over-capacity grace), a renewal window opening, and
+ *    lapsing (two passes' room to one's, absorbed by the over-capacity grace), a renewal window opening, and
  *    drift healing after a missed webhook. Candidates: the profiles labelled `event_pass` PLUS the
  *    owners of any unconsumed ledger row (a future-window renewal brings a lapsed label back once it
  *    opens). `storage_used_bytes` is left alone.

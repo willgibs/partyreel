@@ -95,9 +95,9 @@ function GroundTile({ ground }: { ground: Ground }) {
 
 /**
  * THE DISPLAY'S OWN TOKENS, drawn on the display: the panel is `--display`, and each chip is the token it names
- * on it. Always near-black whatever theme the page is in, which is the point of the token (the same screen on paper
- * and in the room) and why an alpha one, the edge, can be read at all here: on a paper page a white at eleven percent
- * is nothing, and in the room it is the line round every chip.
+ * on it. The set is the ground's own (near-black on a paper page, lit graphite on a dark one), which is why the
+ * alpha ones (the edge, the input, the cursor, the light) can be read at all here: on a paper page a white at eleven
+ * percent is nothing, and on the panel it is the line round every chip.
  */
 export function DisplayTokens() {
   return (

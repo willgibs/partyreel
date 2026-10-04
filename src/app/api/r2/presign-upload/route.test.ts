@@ -10,6 +10,11 @@
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+  CAMERA_VIDEO_MAX_BYTES,
+  CAMERA_VIDEO_SECONDS,
+} from "@/lib/media/limits";
+
 const getUploadContext = vi.fn();
 const mayUploadPastLock = vi.fn();
 const guestUploadsOpen = vi.fn();
@@ -348,20 +353,32 @@ describe("the album's camera", () => {
     expect((await presign()).status).toBe(200);
   });
 
-  it("a camera video: ten seconds and 128 MB, each in its own words, before the roll", async () => {
+  // ★ RESHAPED ON PURPOSE (camera-clip: the clip runs to thirty seconds; scar kept: a camera video past its length or its
+  // bytes is refused in its own code before the roll, with nothing presigned; reason dropped: the old ten seconds and
+  // 128 MB, whose literals (30 s, 129 MB) are now read from the constants, one step past each bound).
+  it("a camera video: its length and its bytes, each in its own words, before the roll", async () => {
     getUploadContext.mockResolvedValue(
       context({ capture: "camera", roll: { ...ROLL, used: 24 } }),
     );
-    const long = await presignVideo(30, 1024);
+    const long = await presignVideo(CAMERA_VIDEO_SECONDS + 1, 1024);
     expect(long.status).toBe(422);
     expect(long.body.code).toBe("too_long");
     getUploadContext.mockResolvedValue(
       context({ capture: "camera", roll: ROLL }),
     );
-    const large = await presignVideo(8, 129 * 1024 ** 2);
+    const large = await presignVideo(8, CAMERA_VIDEO_MAX_BYTES + 1);
     expect(large.status).toBe(422);
     expect(large.body.code).toBe("too_large");
     expect(presignUpload).not.toHaveBeenCalled();
+  });
+
+  it("a full-length clip presigns: thirty seconds at about 5 Mbps is no longer past any bound", async () => {
+    getUploadContext.mockResolvedValue(
+      context({ capture: "camera", roll: ROLL }),
+    );
+    const full = await presignVideo(CAMERA_VIDEO_SECONDS, 19 * 1024 ** 2);
+    expect(full.status).toBe(200);
+    expect(presignUpload).toHaveBeenCalled();
   });
 });
 
@@ -472,7 +489,7 @@ describe("the meter", () => {
       { ok: false, reason: "monthly" },
       409,
       "cap_reached",
-      "This album has hit its upload limit for the month.",
+      "This album has hit its upload limit for now.",
     ],
     [
       "hourly",

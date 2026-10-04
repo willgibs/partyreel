@@ -188,6 +188,9 @@ describe("createEventSchema: a create with only a name lands every default", () 
       require_upload_to_view: false,
       moderation_mode: "live",
       qr_style: "classic",
+      // The album's style at birth (create-wizard r3's add=styles): free uploads and no develop, as the columns default.
+      capture: "upload",
+      develops_at: null,
     });
   });
 
@@ -310,9 +313,9 @@ describe("reelDefaultsInputSchema: setReelDefaults' input", () => {
   });
 });
 
-// HOW GUESTS ADD AND WHEN THE ALBUM DEVELOPS (20261002200000): update-only, each its own key, the three-way "when
-// everyone sees" writing `moderation_mode` beside `develops_at` in one save.
-describe("updateEventSchema: the capture and the develop time", () => {
+// HOW GUESTS ADD AND WHEN THE ALBUM DEVELOPS (20261002200000): an update sends each as its own key, the three-way "when
+// everyone sees" writing `moderation_mode` beside `develops_at` in one save; a create carries them at birth.
+describe("the capture and the develop time: an update's keys, and a create's at birth", () => {
   const inAWeek = new Date(Date.now() + 7 * 86_400_000).toISOString();
 
   it("takes the capture, and a develop time with its offset, or none", () => {
@@ -320,7 +323,10 @@ describe("updateEventSchema: the capture and the develop time", () => {
       capture: "camera",
     });
     expect(
-      updateEventSchema.parse({ develops_at: inAWeek, moderation_mode: "live" }),
+      updateEventSchema.parse({
+        develops_at: inAWeek,
+        moderation_mode: "live",
+      }),
     ).toEqual({ develops_at: inAWeek, moderation_mode: "live" });
     expect(updateEventSchema.parse({ develops_at: null })).toEqual({
       develops_at: null,
@@ -347,18 +353,62 @@ describe("updateEventSchema: the capture and the develop time", () => {
     }
     // The period and the roll's size are the database's: an update never carries them.
     expect(
-      updateEventSchema.parse({ sealed_from: inAWeek, roll_size: 99, mode: "disposable" }),
+      updateEventSchema.parse({
+        sealed_from: inAWeek,
+        roll_size: 99,
+        mode: "disposable",
+      }),
     ).toEqual({});
   });
 
-  it("a create carries neither: a new album takes free uploads and no develop (the column defaults)", () => {
-    const created = createEventSchema.parse({
-      name: "Party",
+  // ★ RESHAPED ON PURPOSE (create-wizard r3's add=styles; scar kept: a create that names only the event still lands
+  // free uploads and no develop, as the columns default): a create used to strip both, since the wizard asked neither.
+  // A new event is now born with its style's columns in one insert, so the create carries them.
+  it("a create carries them: a new album is born as its style (Review, and the camera with a develop time)", () => {
+    expect(
+      createEventSchema.parse({
+        name: "Party",
+        moderation_mode: "hold_for_approval",
+      }),
+    ).toMatchObject({
+      capture: "upload",
+      moderation_mode: "hold_for_approval",
+      develops_at: null,
+    });
+    expect(
+      createEventSchema.parse({
+        name: "Party",
+        capture: "camera",
+        develops_at: inAWeek,
+      }),
+    ).toMatchObject({
       capture: "camera",
+      moderation_mode: "live",
       develops_at: inAWeek,
     });
-    expect(created).not.toHaveProperty("capture");
-    expect(created).not.toHaveProperty("develops_at");
+  });
+
+  it("★ a create refuses what an update refuses: a capture it does not know, a time past the reach, a time with no zone", () => {
+    for (const input of [
+      { capture: "disposable" },
+      { develops_at: new Date(Date.now() + 400 * 86_400_000).toISOString() },
+      { develops_at: "2026-10-03 09:00" },
+      { develops_at: "tomorrow" },
+    ]) {
+      expect(
+        createEventSchema.safeParse({ name: "Party", ...input }).success,
+        JSON.stringify(input),
+      ).toBe(false);
+    }
+    // The period and the roll's size are the database's: a create never carries them either.
+    const born = createEventSchema.parse({
+      name: "Party",
+      capture: "camera",
+      sealed_from: inAWeek,
+      roll_size: 99,
+    });
+    expect(born).not.toHaveProperty("sealed_from");
+    expect(born).not.toHaveProperty("roll_size");
   });
 });
 
@@ -372,13 +422,26 @@ describe("the event's dates: a first day and an optional last", () => {
     for (const schema of [updateEventSchema, createEventSchema]) {
       const name = schema === createEventSchema ? { name: "Weekend" } : {};
       expect(
-        schema.safeParse({ ...name, event_date: "2026-10-03", event_end_date: "2026-10-05" }).success,
+        schema.safeParse({
+          ...name,
+          event_date: "2026-10-03",
+          event_end_date: "2026-10-05",
+        }).success,
       ).toBe(true);
       expect(
-        schema.safeParse({ ...name, event_date: "2026-10-03", event_end_date: "2026-10-03" }).success,
+        schema.safeParse({
+          ...name,
+          event_date: "2026-10-03",
+          event_end_date: "2026-10-03",
+        }).success,
       ).toBe(true);
-      expect(schema.safeParse({ ...name, event_date: "", event_end_date: "" }).success).toBe(true);
-      expect(schema.safeParse({ ...name, event_date: "2026-10-03" }).success).toBe(true);
+      expect(
+        schema.safeParse({ ...name, event_date: "", event_end_date: "" })
+          .success,
+      ).toBe(true);
+      expect(
+        schema.safeParse({ ...name, event_date: "2026-10-03" }).success,
+      ).toBe(true);
     }
     // A save of the date alone is exactly its key: it invents no end.
     expect(updateEventSchema.parse({ event_date: "2026-10-03" })).toEqual({
@@ -408,15 +471,16 @@ describe("the event's dates: a first day and an optional last", () => {
       const r = updateEventSchema.safeParse(input);
       expect(r.success, JSON.stringify(input)).toBe(false);
       if (!r.success)
-        expect(r.error.issues[0]?.message).toBe(
-          "Add the event date first.",
-        );
+        expect(r.error.issues[0]?.message).toBe("Add the event date first.");
     }
   });
 
   it("refuses a last day it cannot read", () => {
     expect(
-      updateEventSchema.safeParse({ event_date: "2026-10-03", event_end_date: "soon" }).success,
+      updateEventSchema.safeParse({
+        event_date: "2026-10-03",
+        event_end_date: "soon",
+      }).success,
     ).toBe(false);
   });
 });

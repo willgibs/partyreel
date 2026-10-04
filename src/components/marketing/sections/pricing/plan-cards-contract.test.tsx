@@ -10,6 +10,7 @@ import {
 import { formatCount } from "@/lib/format/count";
 import { formatBytes } from "@/lib/utils";
 
+import { sizeValueText } from "@/components/app/pricing/holds";
 import { PlanPair } from "./plan-cards";
 
 /**
@@ -75,8 +76,10 @@ describe("the Pro card's size control", () => {
     expect(range.min).toBe("0");
     expect(range.max).toBe(String(PRO.length - 1));
     expect(range.step).toBe("1");
-    // The room, not "1 of 3": what a screen reader reads is the size itself.
-    expect(range.getAttribute("aria-valuetext")).toBe(
+    // The size, not "1 of 3": what a screen reader reads is the size's use and its room. ★ Reshaped by Ladder A
+    // (pricing-wiring; scar kept: never an index): a stop is named by its use now, and the room follows it.
+    expect(range.getAttribute("aria-valuetext")).toBe(sizeValueText(PRO[0]));
+    expect(range.getAttribute("aria-valuetext")).toContain(
       formatBytes(PRO[0].storageBytes),
     );
   });
@@ -88,14 +91,12 @@ describe("the Pro card's size control", () => {
 
     fireEvent.change(range, { target: { value: String(PRO.length - 1) } });
 
-    expect(range.getAttribute("aria-valuetext")).toBe(
-      formatBytes(top.storageBytes),
-    );
+    expect(range.getAttribute("aria-valuetext")).toBe(sizeValueText(top));
     // The price renders through PricePop, which splits the label across
     // elements, so the card is asked for the numbers rather than a string.
     const card = range.closest("div.group") as HTMLElement;
     expect(within(card).getAllByText(formatBytes(top.storageBytes)).length)
-      // The stat row and the slider's own stop label both name it.
+      // The stat row names the room (the slider's stops name the use).
       .toBeGreaterThan(0);
     expect(
       within(card).getByText(

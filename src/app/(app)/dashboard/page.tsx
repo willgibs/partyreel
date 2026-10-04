@@ -18,6 +18,7 @@ import { GraceBanner } from "@/components/app/dashboard/grace-banner";
 import { DashboardHome } from "@/components/app/dashboard/home";
 import { PageInviteCard } from "@/components/app/dashboard/page-invite-card";
 import { StorageMeter } from "@/components/app/dashboard/storage-meter";
+import { makeRoomFrom } from "@/components/app/storage/storage-figures";
 import { WELCOME_VALUE } from "@/components/app/pricing/return-path";
 import { WelcomeToPro } from "@/components/app/pricing/welcome-to-pro";
 import { seedFor } from "@/lib/avatar/seed";
@@ -28,10 +29,7 @@ import {
   toBillingTier,
 } from "@/lib/constants/tiers";
 import { weekEvents } from "@/lib/dashboard/attention";
-import {
-  EVENTS_VIEW_COOKIE,
-  resolveEventsView,
-} from "@/lib/dashboard/events-view";
+import { resolveDisplay } from "@/lib/dashboard/display";
 import type { HomeContext } from "@/lib/dashboard/home-event";
 import {
   buildHomeView,
@@ -86,10 +84,7 @@ import { guestCount } from "@/lib/events/event-guests";
 import { uploadsLabel } from "@/lib/events/visibility-labels";
 import { formatCount } from "@/lib/format/count";
 import { formatDateInZone } from "@/lib/format/date-in-zone";
-import {
-  binCountdownLabel,
-  overStandbyBudget,
-} from "@/lib/lifecycle/recently-deleted";
+import { binCountdownLabel } from "@/lib/lifecycle/recently-deleted";
 import { captureError } from "@/lib/observability/sentry";
 import { getSiteUrl } from "@/lib/site-url";
 import { formatEventDate } from "@/lib/utils";
@@ -118,13 +113,13 @@ function quietly<T>(seam: string, fallback: T) {
 }
 
 /**
- * THE HOST'S HOME (host-dashboard r1, Will 2026-10-02: `purpose=stage`, `needs=week`,
- * `events=seasons`, `arrivals=live`, and the board's four carried calls taken: `head`, `tile`,
- * `finished`, `busier`). The page is today's: headed by the viewer's own day, led by the party of the
- * moment on a stage of its own photographs, then this week's parties each saying its one step, then
- * everything else grouped by when. The composition is `components/app/dashboard/home.tsx` and every
- * rule under it is pure and pinned (`lib/dashboard/`); this page reads, in rounds that each ask only
- * what the one before showed the page will say.
+ * THE HOST'S HOME (host-dashboard r1, Will 2026-10-02: `purpose=stage`, `needs=week`, `events=seasons`,
+ * `arrivals=live`, and the board's four carried calls taken: `head`, `tile`, `finished`, `busier`; r3, 2026-10-04:
+ * `events=menu`, `stage=lit`). The page is today's: headed by the viewer's own day, led by the party of the moment
+ * on a stage of its own photographs (before the first, lit by its own lamp), then this week's parties each saying
+ * its one step, then everything else as she shapes it (her Display, kept on her account and read here with her
+ * profile). The composition is `components/app/dashboard/home.tsx` and every rule under it is pure and pinned
+ * (`lib/dashboard/`); this page reads, in rounds that each ask only what the one before showed the page will say.
  *
  * ★ THE REASON, IN HIS WORDS: "in 1 event dashboards (which every user will experience creating their
  * first and only event, until adding more), the experience feels much more alive that expecting many
@@ -229,13 +224,13 @@ export default async function DashboardPage({
 
   const tier = toBillingTier(profile?.tier ?? DEFAULT_TIER);
   const planName = TIER_NAMES[tier];
-  // Storage (the storage-cap model): ACTIVE bytes against the effective cap, what the cap is enforced
-  // against, so deleting visibly frees room. The ring draws it; the rules read its percent.
+  // Storage (trash-in-storage): everything she stores, her albums and her Deleted together, against the
+  // effective cap, what every cap check holds. The ring draws it; the rules read its percent.
   const storageCap = effectiveStorageCap(
     tier,
     profile?.storage_cap_bytes ?? null,
   );
-  const storageUsed = storage.activeBytes;
+  const storageUsed = storage.storedBytes;
   const storagePct =
     storageCap && storageCap > 0
       ? Math.min(100, Math.round((storageUsed / storageCap) * 100))
@@ -291,6 +286,8 @@ export default async function DashboardPage({
       dateLabel: event.event_date
         ? formatEventDate(event.event_date, endDate)
         : "No date set",
+      // When she last pressed into it from this page: the Recent row's and Last opened's one fact.
+      openedAt: event.host_opened_at,
     };
   });
 
@@ -460,14 +457,14 @@ export default async function DashboardPage({
       head={{ day: longDate(today), line: `${counted} · ${planName}` }}
       view={view}
       ctx={ctx}
-      initialView={resolveEventsView(jar.get(EVENTS_VIEW_COOKIE)?.value)}
+      owner={profile?.id ?? ""}
+      display={resolveDisplay(profile?.events_display)}
       storage={
         <StorageMeter
-          storageUsed={storageUsed}
+          activeBytes={storage.activeBytes}
+          deletedBytes={storage.deletedBytes}
           storageCap={storageCap}
-          storagePct={storagePct}
-          standbyBytes={storage.standbyBytes}
-          overBudget={overStandbyBudget(storage.standbyBytes, storageCap)}
+          makeRoom={makeRoomFrom(profile)}
           passExpiry={passExpiry}
           planName={planName}
           hasBilling={hasBilling}

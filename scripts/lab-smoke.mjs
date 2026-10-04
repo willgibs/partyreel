@@ -42,6 +42,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describeScope, scopeFromArgs } from "./lab-scope.mjs";
+import { guardRemoteBase } from "./vercel-guard.mjs";
 
 const DATA = "src/app/(dev)/design/_data/legacy-routes.ts";
 const SPEC = "src/components/lab/board-spec.ts";
@@ -80,6 +81,7 @@ if (!rawBase) {
   process.exit(2);
 }
 const base = rawBase.replace(/\/+$/, "");
+guardRemoteBase(base, "lab:smoke");
 // The key may ride the environment: pnpm echoes a script's argv into any log it is redirected to,
 // so `DESIGN_PREVIEW_KEY=... pnpm lab:demo` keeps it out of the log where `--key` would not.
 const key = opt("--key", process.env.DESIGN_PREVIEW_KEY ?? "");

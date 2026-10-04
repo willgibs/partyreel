@@ -1,14 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import {
-  EVENTS_VIEW_COOKIE,
-  EVENTS_VIEW_COOKIE_MAX_AGE,
-  resolveEventsView,
-} from "@/lib/dashboard/events-view";
+import { resolveDisplay, storedDisplay } from "@/lib/dashboard/display";
+import { OPEN_STAMP_FRESH_MS } from "@/lib/dashboard/opened";
 import {
   clearEventPassword,
   clearEventSlug,
@@ -22,6 +18,8 @@ import { approveAllPending } from "@/lib/db/mutations/media";
 import { removeMyUpload } from "@/lib/db/mutations/my-uploads";
 import { setEventSocialSettings } from "@/lib/db/mutations/social";
 import { captureError } from "@/lib/observability/sentry";
+import { getRequestAuth } from "@/lib/supabase/request-auth";
+import { isUuidShape } from "@/lib/validation/uuid-shape";
 import {
   createEventSchema,
   eventPasswordSchema,
@@ -241,26 +239,61 @@ export async function removeMyUploadAction(
 }
 
 /**
- * THE EVENTS LIST'S VIEW, PERSISTED (`density=cover`, "let's do both").
+ * HER CHOICES FOR YOUR EVENTS, KEPT ON HER ACCOUNT (host-dashboard r3, `events=menu` and the board's carried
+ * `kept`: "so her phone opens the way her laptop left it"): the Display menu's layout, order, filters, groups and
+ * cover size, and whether Recent is folded. Written to her own profile row (`profiles.events_display`, the column's
+ * one grant, `profiles_update_own`), so nothing here can reach anyone else's; the page reads it back before the
+ * first byte, so the first paint is already hers.
  *
- * A Server Action rather than localStorage, because the view must be known
- * BEFORE the first byte: a local preference renders cover cards on the server
- * and swaps to rows after hydration on every load, so the host watches their
- * whole list re-lay-out each time they open the app. Writing a cookie here
- * makes Next re-render the page and its layouts server-side (the documented
- * behaviour of setting a cookie in a Server Function), so the toggle needs no
- * router.refresh() of its own and the next cold load paints the right view.
+ * ★ NARROWED, THEN KEPT SPARSE. A Server Function is a public endpoint and the payload is the caller's word, so
+ * `resolveDisplay` reads it down to what the menu can mean (a forged key or value is simply its default) and
+ * `storedDisplay` keeps only what differs from the defaults, so the column stays small and a default changed later
+ * reaches everyone who never chose. The database holds its own envelope (an object, 512 bytes) beneath this.
  *
- * `resolveEventsView` narrows whatever arrives to the two legal values, so a
- * hand-forged call can only ever set "cards" or "rows" — a preference cookie
- * is not a trust boundary, but it is still a value this app will read back.
+ * ★ IT REVALIDATES NOTHING. The list laid itself out the instant she pressed; a refresh of the whole dashboard (every
+ * event's covers presigned again) for a layout she already sees would be the lag the page leaves behind.
  */
-export async function setEventsViewAction(view: string): Promise<void> {
-  const cookieStore = await cookies();
-  cookieStore.set(EVENTS_VIEW_COOKIE, resolveEventsView(view), {
-    maxAge: EVENTS_VIEW_COOKIE_MAX_AGE,
-    sameSite: "lax",
-    path: "/",
-    httpOnly: false,
-  });
+export async function setEventsDisplayAction(
+  raw: unknown,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const { supabase, user } = await getRequestAuth();
+  if (!user) return { ok: false, message: "Sign in and try again." };
+  const { error } = await supabase
+    .from("profiles")
+    .update({ events_display: storedDisplay(resolveDisplay(raw)) })
+    .eq("id", user.id);
+  if (error) {
+    captureError("account", error, { seam: "events_display" });
+    return {
+      ok: false,
+      message: "Couldn't keep that for your account. Please try again.",
+    };
+  }
+  return { ok: true };
+}
+
+/**
+ * AN EVENT OPENED, FOR THE RECENT ROW AND THE LAST OPENED ORDER (host-dashboard r3): one timestamp on the event the
+ * host pressed into from her dashboard (`events.host_opened_at`, `HomeShell`'s one listener), hosted events only.
+ *
+ * ★ A PUBLIC ENDPOINT, SO THE ID IS THE CALLER'S WORD: it must be shaped like an id, the session is re-checked with
+ * `getUser()`, and the write is hers under RLS (`events_host_all`), so another host's event, a deleted one, or one that
+ * does not exist is simply no row. ★ AT MOST ONCE A MINUTE AN EVENT, in the database's own filter: Recent's order needs
+ * no finer, and every write moves `updated_at` besides. It revalidates nothing and answers nothing: the press that
+ * caused it is already on its way.
+ */
+export async function noteEventOpenedAction(eventId: unknown): Promise<void> {
+  if (typeof eventId !== "string" || !isUuidShape(eventId)) return;
+  const { supabase, user } = await getRequestAuth();
+  if (!user) return;
+  const now = Date.now();
+  const { error } = await supabase
+    .from("events")
+    .update({ host_opened_at: new Date(now).toISOString() })
+    .eq("id", eventId)
+    .is("deleted_at", null)
+    .or(
+      `host_opened_at.is.null,host_opened_at.lt.${new Date(now - OPEN_STAMP_FRESH_MS).toISOString()}`,
+    );
+  if (error) captureError("db", error, { seam: "event_opened" });
 }

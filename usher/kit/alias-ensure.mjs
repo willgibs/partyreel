@@ -9,6 +9,15 @@ import { call, sleep, err, APP, ADMIN } from "./vercel-lib.mjs";
 // when the app's alias did not move; an admin failure is printed in capitals and does not stop the chain.
 const SHORT = process.env.SHA, FULL = process.env.FULL;
 if (!SHORT || !FULL) { console.error("SHA=<short> FULL=<full> are required"); process.exit(2); }
+// ★ A DEPLOY PUTS WORK ON VERCEL (2026-10-04): the alias it serves is what desks and red-teams press, against Hobby's 4
+// Active CPU-hours a rolling 30 days, whose break pauses every function. Read the load first; past the line, only on
+// Will's word (VERCEL_OK=1).
+{
+  const { spawnSync } = await import("node:child_process");
+  const r = spawnSync(process.execPath, [new URL("./vercel-usage.mjs", import.meta.url).pathname], { encoding: "utf8" });
+  process.stdout.write(r.stdout ?? "");
+  if (r.status === 3 && process.env.VERCEL_OK !== "1") { console.error("alias-ensure refuses: past the Vercel line (VERCEL_OK=1 on Will's word)"); process.exit(2); }
+}
 const envFile = fs.readFileSync("/Users/gibby/local/ai/partyreel/.env.local", "utf8");
 const KEY = envFile.match(/^DESIGN_PREVIEW_KEY=(.*)$/m)[1].trim().replace(/^["']|["']$/g, "");
 const TARGETS = [

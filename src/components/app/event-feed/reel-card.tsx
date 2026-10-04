@@ -36,8 +36,10 @@ import {
 } from "@/lib/event/reel-progress";
 import { roomHref } from "@/lib/event/sections";
 import { formatCount } from "@/lib/format/count";
+import { useReelParam } from "@/lib/guest/reel-url";
 import { cn } from "@/lib/utils";
 
+import { warmHubReelView } from "./hub-reel-view";
 import {
   ROOM_CARD_BASE,
   ROOM_CARD_QUIET,
@@ -64,8 +66,9 @@ export type ReelCardData = {
   pending: number;
   /**
    * The album's develop time (ISO) when one is set. Until it every guest's album, and so their reel, is empty (what
-   * they add waits sealed), so the live card says it goes live at the develop rather than that it is live for guests
-   * (red-team 43). Absent where there is none.
+   * they add waits sealed), so the live card says guests get it later rather than that it is live for them
+   * (red-team 43), and its press plays her own reel over her hub (`hub-reel.tsx`, Will's Q5) rather than opening the
+   * guests' view, which has none yet. Absent where there is none.
    */
   developsAt?: string | null;
 };
@@ -167,7 +170,8 @@ function servedFace(reel: ReelCardData) {
  *   - one: that photo sits under an overlay, "1 more photo";
  *   - two or more: the living card, the reel's own stills dissolving behind it, and a press opens
  *     the view the guests watch (the owner passes every gate there, and the owner's extras ride
- *     inside it);
+ *     inside it), or, while the album's develop time is ahead and the guests' view has no reel,
+ *     plays her own over her hub (`hub-reel.tsx`);
  *   - switched off: a plain card that opens Settings, where the switch lives.
  *
  * ★ BEFORE TWO, A PRESS OPENS GUIDANCE, NEVER AN EMPTY REEL (his note: "If clicked, it should also
@@ -188,20 +192,26 @@ export function ReelCard({
   reel: ReelCardData;
   stuck: boolean;
 }) {
-  // ★ THE CARD RESPECTS THE COVER (crumbs-59, red-team 47's NIT). The reel's take is planned on the host's own scope, which
-  // sees every photograph she has (she is exempt from the seal), so on an album whose develop time is ahead its stills are
-  // exactly what her guests cannot see yet: the live card dissolved through them, and the counting card's one photograph sat
-  // under its overlay, "the one picture of what waits that needs no Look". Her hub wears her guests' view meanwhile (the
-  // head, its band and the album's cover), so the card draws no photograph until the develop, and the stills come in the
-  // moment the time is reached. It follows the develop, as the head and the band do, not Look: Look lifts the album's cover
-  // for a visit, and the head stays her guests' while she looks.
+  // ★ HER REEL IS HERS FROM THE FIRST PHOTOGRAPH, DEVELOP OR NONE (Will's Q5, 2026-10-04: "the live reel is the host's
+  // to play from her own event page as soon as she opens it, even while the album develops; guests don't have it until
+  // the develop"). The card's take is planned on her own scope, which sees every photograph she has (she is exempt from
+  // the seal), so the card draws them and plays them. This reopens crumbs-59 (red-team 47's NIT: a card that drew what
+  // waits while her head wore her guests' view): the head, its band and the album's cover still stand on what her
+  // guests can see, and this card is the one place that is hers. What changes while the develop is ahead is what it
+  // SAYS (guests get it later) and where a press goes (`LiveCard`): the guests' view has no reel to open
+  // yet, so her own reel plays over her hub.
   const developing = useDevelopWait(reel.developsAt ?? null);
-  const shown =
-    developing && reel.stills.length > 0 ? { ...reel, stills: [] } : reel;
-  if (shown.state === "live")
-    return <LiveCard reel={shown} developing={developing} stuck={stuck} />;
-  if (shown.state === "off") return <OffCard eventId={eventId} stuck={stuck} />;
-  return <CountingCard eventId={eventId} reel={shown} stuck={stuck} />;
+  if (reel.state === "live")
+    return (
+      <LiveCard
+        eventId={eventId}
+        reel={reel}
+        developing={developing}
+        stuck={stuck}
+      />
+    );
+  if (reel.state === "off") return <OffCard eventId={eventId} stuck={stuck} />;
+  return <CountingCard eventId={eventId} reel={reel} stuck={stuck} />;
 }
 
 /** The label: a card title at rest, a control label stuck (two roles, two elements, one ladder). */
@@ -211,6 +221,22 @@ function Label({ stuck }: { stuck: boolean }) {
   ) : (
     <span className="relative font-heading text-card-title">{LABEL}</span>
   );
+}
+
+/**
+ * The card's second line: under the label on a phone's two-line card and in a tile, and, condensed to a pill, kept for a
+ * reader and never drawn (`sr-only`). ★ IT USED TO BE `display: none` THERE (red-team 53's LOW: "at 375 the Reel card
+ * hides 'Guests get it later'"), which took the state out of the pill for everyone, assistive technology included,
+ * and a phone host who pressed it could not tell that her guests do not have this reel yet. The line itself is whole at
+ * rest at the widths the card is drawn (measured at 375: "Guests get it later" is 100px of the 149px the line has; it
+ * has 122px at 320 and 118px in the tile at its narrowest), so what the pill leaves out is only what a compact control
+ * has no room for. (A lab frame is an iframe, whose row the observer reads as stuck until it is scrolled into view:
+ * measure a card at a width in a top-level viewport.)
+ */
+function valueClass(stuck: boolean, rest: string): string {
+  return stuck
+    ? "sr-only"
+    : cn("relative truncate text-xs", ROOM_CARD_VALUE, rest);
 }
 
 /** The overlay: heavier at the foot where the words sit, so they read over the brightest still. */
@@ -261,23 +287,40 @@ function useDevelopWait(developsAt: string | null): boolean {
 }
 
 function LiveCard({
+  eventId,
   reel,
   developing,
   stuck,
 }: {
+  eventId: string;
   reel: ReelCardData;
-  /** The album's develop time is still ahead (`useDevelopWait`): the card says so, and draws no still (`ReelCard`). */
+  /** The album's develop time is still ahead (`useDevelopWait`): the card says guests get it later, and plays her own. */
   developing: boolean;
   stuck: boolean;
 }) {
   const { ref, at } = useLivingClock<HTMLAnchorElement>(reel.stills.length);
+  const { open } = useReelParam();
   const living = !stuck && reel.stills.length > 0;
   return (
     <Link
       ref={ref}
-      href={reel.viewHref}
-      onClick={warmReelView}
+      // ★ BEFORE THE DEVELOP SHE PLAYS HER OWN REEL, ON THIS PAGE (`hub-reel.tsx`). The guests' view is a page of
+      // everything guests can see, her own included, so until the develop it has no reel to open; her hub plays hers
+      // from her own scope, over itself, and Back returns to it. The address is real (`?reel` on the hub), so a
+      // modified click is a tab of its own that opens on the reel. After the develop the card opens the guests' view
+      // as it always did, where she passes every gate and the owner's extras ride.
+      href={developing ? `/dashboard/${eventId}?reel` : reel.viewHref}
+      prefetch={developing ? false : undefined}
+      onClick={developing ? (e) => playHere(e, open) : warmReelView}
+      onPointerEnter={developing ? warmHubReelView : undefined}
+      onFocus={developing ? warmHubReelView : undefined}
+      title={
+        developing
+          ? "Plays your reel now. Guests get it at the develop."
+          : undefined
+      }
       data-reel-card="live"
+      data-reel-plays={developing ? "hub" : "guests"}
       className={cn(
         ROOM_CARD_BASE,
         roomCardSize(stuck),
@@ -302,17 +345,26 @@ function LiveCard({
       />
       <Label stuck={stuck} />
       <span
-        className={cn(
-          "relative truncate text-xs",
-          ROOM_CARD_VALUE,
-          stuck && "hidden",
+        className={valueClass(
+          stuck,
           living ? "text-white/85" : "text-muted-foreground",
         )}
       >
-        {developing ? "Live at the develop" : "Live for guests"}
+        {/* ★ SHORT ON PURPOSE: the tile's value line is 118px from `sm` to `md` and 134px after, where "Guests get it at
+            the develop" (155px) was cut at every width; the whole sentence is the card's `title`. */}
+        {developing ? "Guests get it later" : "Live for guests"}
       </span>
     </Link>
   );
+}
+
+/** A plain press plays her reel over her hub; a modified one stays the honest navigation, a tab opening on the reel. */
+function playHere(e: ReactMouseEvent, open: (mode: "hand") => void) {
+  if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0)
+    return;
+  e.preventDefault();
+  warmHubReelView();
+  open("hand");
 }
 
 function OffCard({ eventId, stuck }: { eventId: string; stuck: boolean }) {
@@ -338,15 +390,7 @@ function OffCard({ eventId, stuck }: { eventId: string; stuck: boolean }) {
         aria-hidden
       />
       <Label stuck={stuck} />
-      <span
-        className={cn(
-          "truncate text-xs text-muted-foreground",
-          ROOM_CARD_VALUE,
-          stuck && "hidden",
-        )}
-      >
-        Off
-      </span>
+      <span className={valueClass(stuck, "text-muted-foreground")}>Off</span>
     </Link>
   );
 }
@@ -434,10 +478,8 @@ function CountingCard({
           )}
           <Label stuck={stuck} />
           <span
-            className={cn(
-              "relative truncate text-xs",
-              ROOM_CARD_VALUE,
-              stuck && "hidden",
+            className={valueClass(
+              stuck,
               onPhoto ? "text-white/85" : "text-muted-foreground",
             )}
           >

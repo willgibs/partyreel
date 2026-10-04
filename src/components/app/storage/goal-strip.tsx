@@ -13,19 +13,20 @@ import { fitStep, goalStep, type GoalCount } from "./storage-list-rules";
  * THE LIVE STRIP (host-storage r1, `goal=live`): when a smaller plan is why she is here, it counts
  * down as she selects, and at zero its own button finishes the switch.
  *
- * ★ ITS BUTTON REMOVES FIRST. The switch is checked against what she STORES, so while anything is
- * only selected it reads "Remove and switch" (they go to Deleted, then the switch opens); once
- * nothing is pending it reads "Switch to Pro 100 GB, monthly", the price she tapped, named with
- * its billing because that is exactly what Stripe's confirm page will show her. The change-plan
- * route decides again, whatever this strip counted.
+ * ★ ITS BUTTON DELETES FIRST. The switch is checked against what she STORES, her albums and her
+ * Deleted together (trash-in-storage), so while anything is only selected it reads "Delete and
+ * switch" (they are deleted for good, once she confirms, then the switch opens); once nothing is
+ * pending it reads "Switch to Pro 200 GB, monthly", the price she tapped, named with its billing
+ * because that is exactly what Stripe's confirm page will show her. The change-plan route decides
+ * again, whatever this strip counted.
  *
  * ★ HER OWN PLAN'S GOAL HAS NO BUTTON (crumbs-32, the over-cap banner's door): nothing is switched,
- * so it counts to her cap and says where she stands, enough only selected (the bar's Remove to
- * Deleted finishes it) or enough freed.
+ * so it counts to her cap and says where she stands, enough only selected (the bar's Delete for
+ * good finishes it) or enough freed.
  *
  * The count is a live region: a screen reader hears it close, and hears "Enough freed" once.
  */
-export type GoalPhase = "idle" | "removing" | "opening";
+export type GoalPhase = "idle" | "deleting" | "opening";
 
 /** What the strip says: the gap left, or that it is closed, for the plan she is here for. */
 function goalWords(goal: StorageGoal, count: GoalCount): string {
@@ -55,12 +56,12 @@ export function GoalStrip({
   const fit = goal.kind === "fit";
   const step = fit ? fitStep(count) : goalStep(count);
   const label =
-    phase === "removing"
-      ? "Removing…"
+    phase === "deleting"
+      ? "Deleting…"
       : phase === "opening"
         ? "Opening…"
-        : step === "remove-and-switch"
-          ? "Remove and switch"
+        : step === "delete-and-switch"
+          ? "Delete and switch"
           : goal.kind === "fit"
             ? null
             : `Switch to ${planWithBilling(goal.target)}`;

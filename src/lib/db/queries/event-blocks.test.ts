@@ -4,6 +4,8 @@
  * list, whose restorable count must be the number let_back_in would move and nothing a hold could be read
  * from. (Whether one browser's ticket is blocked is `event_door_standing`'s now.)
  */
+import { createHash } from "node:crypto";
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
@@ -249,7 +251,7 @@ describe("getEventBlocks: the host's Blocked list", () => {
     ).toEqual(["guests", "guests", "media", "profiles"]);
   });
 
-  it("newest first; a confirmed guest by their profile and address, a typed name by its own words", async () => {
+  it("newest first; a confirmed guest by their profile and address, a typed name by its own words and her row's colour", async () => {
     const [sam, theo] = await getEventBlocks(EVENT, format);
     expect(sam).toMatchObject({
       id: "b-sam",
@@ -261,13 +263,19 @@ describe("getEventBlocks: the host's Blocked list", () => {
     });
     expect(sam.seed).toEqual(expect.any(String));
     expect(sam.seed).not.toBe("u-sam");
+    // A typed name is her own guest ROW's colour (small-fixes: the one the Guests list gave her before the block),
+    // hashed, never the raw row id and never the name; it is the colour `seedFor("g-theo")` is everywhere else.
+    expect(theo.seed).toEqual(expect.any(String));
+    expect(theo.seed).not.toBe("g-theo");
+    expect(theo.seed).not.toBe("Theo");
+    expect(theo.seed).toBe(createHash("sha256").update("g-theo").digest("hex"));
     expect(theo).toEqual({
       id: "b-theo",
       name: "Theo",
       verified: false,
       email: null,
       avatarUrl: null,
-      seed: null,
+      seed: theo.seed,
       since: "since 2026-09-27T10:00:00+00:00",
       restorable: 0,
       restorableUntil: null,

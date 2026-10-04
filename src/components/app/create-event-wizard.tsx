@@ -2,6 +2,7 @@
 
 import {
   type ReactNode,
+  useCallback,
   useEffect,
   useId,
   useLayoutEffect,
@@ -32,6 +33,7 @@ import { Button } from "@/components/ui/button";
 import { settingsPageHref } from "@/components/app/event-settings/settings-pages";
 import { PricingSheet } from "@/components/app/pricing/pricing-sheet";
 
+import { AddStep, useAddChoice } from "./create-event-wizard/add-step";
 import { BeatActs, BeatCode, BeatSteps } from "./create-event-wizard/beat";
 import { CapDoor, type CappedEvent } from "./create-event-wizard/cap-door";
 import { useCarry } from "./create-event-wizard/carry";
@@ -49,11 +51,10 @@ import {
 export type { CappedEvent };
 
 /**
- * CREATE'S SCREENS, IN ORDER. The add step (how guests add: the album or the camera, his night slider,
- * and the camera's develop time) joins between the name and the look once create-wizard r3 picks how it
- * reads; every hairline, Back and the carry count from this list.
+ * CREATE'S SCREENS, IN ORDER: the name, the album's style (the add step, create-wizard r3's `add=styles`), the
+ * code's look and the beat. Every hairline, Back and the carry count from this list.
  */
-const STEPS = ["name", "look", "beat"] as const;
+const STEPS = ["name", "add", "look", "beat"] as const;
 type Step = (typeof STEPS)[number];
 
 type CreateEventWizardProps = {
@@ -86,6 +87,10 @@ type CreateEventWizardProps = {
  *    question just under them in one place, the answer in the centre, one button at the foot.
  *  ★ `flow=carry` (`carry.ts`): each answer rises into the head, above hairlines that press back; the
  *    name she typed titles the room from then on, and the head is the way back.
+ *  ★ `add=styles` (`add-step.tsx`, create-wizard r3, Will 2026-10-04): the album's style, between the name
+ *    and the look: Live, Review and Disposable as three cards, each a small album moving through the night,
+ *    the Disposable's develop time directly under its card. The event is born with the style's three columns
+ *    in the one insert (`createFieldsOf`), so Create and Settings say and write one thing.
  *  ★ `look=places` (`look-step.tsx`): her code where guests meet it, her phone and the room's screen,
  *    four swatches re-dressing both (`qr-preset-picker.tsx`).
  *  ★ `beat=develop` (`beat.tsx`): the sample develops into her code where it stands while Create runs;
@@ -115,6 +120,11 @@ export function CreateEventWizard({
   const [name, setName] = useState("");
   const [nameError, setNameError] = useState<string | null>(null);
   const [look, setLook] = useState<QrStyleKey>(DEFAULT_QR_PRESET);
+  // The album's style and its develop time: held here so a Back and a Continue never lose them.
+  const add = useAddChoice();
+  // The add step's night plays once in a Create, as the step first opens.
+  const [nightPlayed, setNightPlayed] = useState(false);
+  const onNightPlayed = useCallback(() => setNightPlayed(true), []);
   const [created, setCreated] = useState<CreatedEvent | null>(null);
   // What is left on the new event, read from what Create sent (the schema's defaults filled) and the
   // account's storage, known the moment Create is pressed.
@@ -160,7 +170,7 @@ export function CreateEventWizard({
       room.current
         ?.querySelector<HTMLInputElement>("[data-room-name-input]")
         ?.focus({ preventScroll: true });
-    } else if (step === "look") {
+    } else if (step === "add" || step === "look") {
       document.getElementById(questionId)?.focus({ preventScroll: true });
     }
   }, [step, questionId]);
@@ -195,15 +205,36 @@ export function CreateEventWizard({
       return;
     }
     setNameError(null);
+    goTo("add");
+  }
+
+  function onAdd() {
+    // A Disposable's develop time is judged here, once she has finished it: it says why under its row and stays.
+    if (!add.confirm()) return;
     goTo("look");
   }
 
   function onCreate() {
     if (creating.current) return;
-    const parsed = createEventSchema.safeParse({ name, qr_style: look });
+    // A time she picked may have passed while she stood on the look: back to it, with the words under its row.
+    if (!add.confirm()) {
+      goTo("add");
+      return;
+    }
+    const parsed = createEventSchema.safeParse({
+      name,
+      qr_style: look,
+      ...add.fields(),
+    });
     if (!parsed.success) {
-      goTo("name");
-      setNameError(parsed.error.issues[0]?.message ?? null);
+      const issue = parsed.error.issues[0];
+      if (issue?.path[0] === "name" || !issue) {
+        goTo("name");
+        setNameError(issue?.message ?? null);
+      } else {
+        // Nothing of hers is wrong but what the add step holds: its own words stand there already.
+        goTo("add");
+      }
       return;
     }
     const values = parsed.data;
@@ -273,7 +304,8 @@ export function CreateEventWizard({
   }
 
   const at = STEPS.indexOf(step) + 1;
-  const onLook = step === "look";
+  // The name titles the room from the second screen until the event exists; Back and the hairlines are the way back.
+  const titled = step === "add" || step === "look";
   const onBeat = step === "beat";
   const arrived = onBeat && created !== null;
   const eventName = created?.name ?? trimmed;
@@ -300,6 +332,22 @@ export function CreateEventWizard({
     );
     foot = (
       <Button type="submit" form={formId} size="cta" className={footButton}>
+        Continue
+      </Button>
+    );
+  } else if (step === "add") {
+    page = (
+      <RoomPage
+        key="add"
+        question="Pick your album's style"
+        questionId={questionId}
+        sub="Change it any time in Settings"
+      >
+        <AddStep choice={add} played={nightPlayed} onPlayed={onNightPlayed} />
+      </RoomPage>
+    );
+    foot = (
+      <Button type="button" size="cta" onClick={onAdd} className={footButton}>
         Continue
       </Button>
     );
@@ -400,10 +448,14 @@ export function CreateEventWizard({
       >
         <RoomHead
           step={{ at, of: STEPS.length }}
-          name={onLook ? trimmed : undefined}
-          onBack={onLook ? () => goTo("name") : undefined}
-          onStep={onLook ? (n) => goTo(STEPS[n - 1]) : undefined}
-          onName={onLook ? () => goTo("name") : undefined}
+          name={titled ? trimmed : undefined}
+          onBack={
+            titled
+              ? () => goTo(STEPS[STEPS.indexOf(step) - 1] ?? "name")
+              : undefined
+          }
+          onStep={titled ? (n) => goTo(STEPS[n - 1]) : undefined}
+          onName={titled ? () => goTo("name") : undefined}
           close={
             arrived
               ? { href: `/dashboard/${created.id}`, label: "Go to your event" }

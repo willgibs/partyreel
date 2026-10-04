@@ -23,12 +23,12 @@ commits to its own handoff. An agent id lives only in the session that spawned i
 is gone (another account, a closed session), respawn the lane on its worktree from `spawn-prompt.txt` plus what its
 predecessor did, what remains and what it measured, read from its transcript
 (`~/.claude/projects/<project>/<old session>/subagents/agent-<id>.jsonl`), so nothing is redone. Never integrate a
-checkpoint or finish a lane's work for it (Will: see every agent's vision through); only a lane that handed off is
+checkpoint or finish a lane's work for it, so every agent's vision is seen through; only a lane that handed off is
 integrated as it stands.
 
 ## Consult the Advisor
 
-Fable advises; the Orchestrator decides (Will, 2026-09-29: two differently intelligent models working off each other).
+Fable advises; the Orchestrator decides: two differently intelligent models working off each other.
 The Advisor is a read-only agent spawned once a session from `advisor-prompt.txt` (`subagent_type: Plan`, model
 `fable`; its id in the pickup) and asked by SendMessage, one question at a time, so its context carries from one
 consult to the next; from another session, respawn it. Ask it when a second mind pays for itself: a migration that
@@ -40,9 +40,8 @@ answer changes a call, the record says so, and a disagreement on a one-way door 
 
 ## Run a round
 
-- **A board opens** on his ask (one line in chat, or `redesign` on a catalog entry) or on an improvement the
-  Orchestrator or a lane sees; his asks get the two or three questions that branch the work, as a short options
-  message, never a report; then one lane per board.
+- **A board opens** as PROGRAM's round says; his ask comes as one line in chat or `redesign` on a catalog entry, and
+  its two or three branching questions go back as a short options message, never a report.
 - **No two asks repeat.** An exploration's brief names the open asks nearest its surface on the standing boards and
   asks nothing they ask (checked at the cut). Board lanes cut in parallel cannot see each other's new asks, so after
   they land and before the `[preview]` for his sitting, read every new ask side by side (`board-card.mjs --desk`) and
@@ -89,7 +88,7 @@ answer changes a call, the record says so, and a disagreement on a one-way door 
 4. Spawn with the Agent tool: `spawn-prompt.txt` filled (`{track}`, `{port}`, and `{scratch}` the absolute path of
    `../partyreel-wt/_scratch`, never `$S`: a session's scratchpad dies with it, captures included), one port each from 3131 to
    3139, at most four lanes at once (`memory_pressure` first; full speed is the default and a 5-hour cut-off is accepted, but
-   near 95% of the weekly window (`get_usage`) keep the pickup's handoff block current for the auto-kill at 100%; eight ran Will's Mac out of memory, 2026-09-28), their production builds taking turns through
+   near 95% of the weekly window (`get_usage`) keep the pickup's handoff block current for the auto-kill at 100%; more run the machine out of memory), their production builds taking turns through
    `scripts/build-lock.sh`. The model is your call on every spawn: Opus for
    big, ambiguous, multi-file work, Sonnet for fast, direct UI work.
 
@@ -110,16 +109,13 @@ Read the Handoff, the lane check and the captures, never the whole diff.
    `zsh usher/kit/negative.sh` before it), run
    `S=$S zsh usher/kit/integrate.sh <track> <sha> <board|none> $S/msg-<track>.txt > $S/integrate-<track>.log` in the
    background: the `--no-ff` merge with the manifest deleted, then the gate on what the lane never gated (its `SCOPE`
-   and `LAB` lines say which; `FULL=1` in front forces everything, for a lane whose own gate is in doubt or whose
-   manifest predates the lab crawl in a wiring lane's Verify line). Read `INTEGRATE DONE green merged=<m> gate=<N>`,
+   and `LAB` lines say which; `FULL=1` in front forces everything, for a lane whose own gate is in doubt). Read `INTEGRATE DONE green merged=<m> gate=<N>`,
    and `<n> checks, 0 failing` when the lab ran, before anything depends on them, and every result from its own exit
    code, never through a pipe to `grep`. A `PREMISE` line names a board whose open asks describe a path the merge
    changed: re-read those asks against production before his next sitting.
 5. **MERGE RED**: two board lanes no longer meet in a shared list (a board is its folder), so a red merge is a real
    overlap: rebuild the file from both sides, then `sandbox/registry.test.ts` and `(shell)/lab/_desk/queue.test.ts`
-   and `git commit -F $S/msg-<track>.txt`. (A lane cut before the lab revamp that still edits the retired
-   `touchpoints.ts` or `(shell)/lab/boards.ts` is resolved by `merge-lane.sh` itself: those stay deleted and
-   `registry.ts` keeps ours.) The gate follows:
+   and `git commit -F $S/msg-<track>.txt`. The gate follows:
    `zsh usher/kit/gate-lane.sh <N> <board> > $S/gate<N>.log`, read by its `SCOPE` and `EXIT[...]` lines.
 6. **The record**, its edits and its commit under one `set -e`: each listed system-doc edit read by eye, fact against
    code; `python3 usher/kit/record.py $S/record-<track>.json` for the In-flight row and the lane's Deferred lines into
@@ -150,6 +146,10 @@ definition in `supabase/migrations/`.
 No push deploys (`vercel.json`): Hobby allows 100 deployment creations a day across both projects, canceled ones
 included, and a creation past the cap fails silently.
 
+0. `node usher/kit/vercel-usage.mjs`: Hobby allows 4 Active CPU-hours a rolling 30 days and pauses every function past
+   it (Vercel unlocked the account once). Exit 3 refuses any Vercel work but what Will asks for by name (`alias-ensure`
+   and remote `lab:*` runs refuse on their own); desk checks and red-teams run on a local production build first, the
+   alias only for sign-in, upload and checkout.
 1. The record commit that should reach the alias carries `[preview]`.
 2. `SHA=<short> FULL=<full> node usher/kit/alias-ensure.mjs > $S/alias-<short>.log`: one deployment per project (app,
    admin), READY, both `launch-prep` aliases assigned, exit 0 only once the app alias serves the sha (a build that
@@ -167,6 +167,10 @@ subject `milestone-<n>: prod = <the three to five things>`); an annotated tag `m
 tag; production READY at the merge SHA, then a verification pass on partyreel.com (what previews cannot prove);
 `git checkout launch-prep && git merge --ff-only main`; STATUS and the pickup rewritten. `main` moves only this way or
 by a true hotfix: fixed on `main`, verified, back-merged to `launch-prep` the same session.
+
+The standing compute budget, at every milestone: `pnpm compute:model --port <yours>` (about 20 minutes with its build;
+local only). Exit 1 is a scenario past `scripts/compute-model/budget.json`: read the scenario before the milestone; lower
+a line when a lever lands.
 
 ## Mutate config
 
@@ -187,7 +191,7 @@ by a true hotfix: fixed on `main`, verified, back-merged to `launch-prep` the sa
 ## The scripts
 
 - `integrate.sh <track> <sha> <board|none> <msgfile>`: `merge-lane.sh` (the `--no-ff` merge, the manifest deleted,
-  a pre-revamp lane's retired lists resolved, the specimen code regenerated, the registry tests and, when the merge adds code to the lane's head or on `FULL=1`, the integration's
+  a conflicted `registry.ts` refused, the specimen code regenerated, the registry tests and, when the merge adds code to the lane's head or on `FULL=1`, the integration's
   one typecheck before the commit), then `gate-lane.sh <N> <board>`, one chain gated on exits; ends
   `INTEGRATE DONE green|red`.
 - `gate-lane.sh <N> <board>`: the gate on the merge at HEAD, on :3130 (never a lane's port), each step on its own exit
@@ -207,13 +211,11 @@ by a true hotfix: fixed on `main`, verified, back-merged to `launch-prep` the sa
 - `alias-ensure.mjs` (with `vercel-lib.mjs`): the alias deployment; `DRY=1` reports without creating.
 - `page-console.mjs <base> [path]`: one page in headless Chrome, its console errors, the key redacted.
 - `board-card.mjs <board...>|--desk`: one screen per board, in desk order (its place, `lives`, its opening and terms,
-  every ask with its context, and the answers of its own round); `desk-check.mjs` and `desk-sections.mjs`: the served
-  desk per section.
+  every ask with its context, and the answers of its own round); `desk-sections.mjs`: the served desk per section.
 - `review-sheet.mjs <batch.txt>` (with `batch-reader.mjs`): his paste beside the boards it answers, each verdict
   beside its drawing; `capture.sh <board> <dir>` and `capture-all.sh` feed it the pictures (every frame of every
   option, named by the frame's title).
 - `demo-rerun.sh <board>`: `lab:demo` alone on a warm :3130, for a gate whose only red is a demo timeout.
 - `test-delta.sh <base-sha>`: the tests at HEAD against a base by name, for a count that moved with no test file in the
   diff.
-- `wave6-check.mjs`: a served page checked line by line through its HTML, no key.
 - `moltbook.mjs`: the Moltbook client (`../moltbook/README.md`).

@@ -100,6 +100,14 @@ export type UnverifiedGuestEntry = {
   kind: "unverified";
   id: string;
   displayName: string;
+  /**
+   * HER COLOUR: `seedFor` of her own guest row (`splitGuestList`, hashed on the server like every seed), never her
+   * name, so a typed name cannot choose one and two "Sam"s are two colours. One colour per ticket: she returns on
+   * another device as a new row and a new colour, which only an account cures, and it turns once to her account's
+   * when she confirms and claims. Absent only on a road that has not read it (a look built from a credit whose
+   * item carries no face).
+   */
+  seed?: string;
 };
 
 /**
@@ -108,7 +116,7 @@ export type UnverifiedGuestEntry = {
  * so `"kind" in item` is the discriminator, here and in the look. Its seed may be
  * missing on one road only: a look built from a photograph's credit
  * (`credit-look.tsx`), whose item carries no face yet; every card that went
- * through `withAvatarUrls` has one.
+ * through `withAvatarUrls` and every entry that went through `splitGuestList` has one.
  */
 export type GuestListItem =
   | (Omit<ProfileCardItem, "seed"> & { seed?: string })
@@ -198,15 +206,16 @@ function Address({ email }: { email: string }) {
 }
 
 // item.seed is seedFor(item.id), hydrated onto every ProfileCardItem by
-// withAvatarUrls (lib/social/cards.ts) — one colour per person, the same
-// place avatarUrl is resolved, so a guest list of two dozen strangers is
-// two dozen distinct hues rather than one repeated grey disc. An unverified
-// entry carries no seed and wears the plain disc: a colour is an identity on
-// every other surface, and this one has not been proven.
+// withAvatarUrls and onto every unverified entry by splitGuestList
+// (lib/social/cards.ts) — one colour per person, the same place avatarUrl is
+// resolved, so a guest list of two dozen strangers is two dozen distinct hues
+// rather than one repeated grey disc. A name nobody proved wears her own ROW's
+// colour but never a photograph (she has none): the mark says what is not
+// proven, and the colour is only the row's, so it lends her no claim.
 function Face({ item }: { item: GuestListItem }) {
   const unverified = isUnverified(item);
   return (
-    <Avatar size="sm" seed={unverified ? undefined : item.seed}>
+    <Avatar size="sm" seed={item.seed}>
       {!unverified && <AvatarImage src={item.avatarUrl ?? undefined} alt="" />}
       <AvatarFallback className="text-[10px]">
         {(item.displayName ?? "?").slice(0, 1).toUpperCase()}

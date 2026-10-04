@@ -94,12 +94,16 @@ import {
   createReelItems,
   newArrivalIds,
 } from "@/lib/guest/reconcile-album-items";
+import { reelOfAddress } from "@/lib/guest/reel-url";
 import { useGalleryDoorbell } from "@/lib/guest/use-gallery-doorbell";
 import { readStoredSession } from "@/lib/guest/use-stored-session";
 import type { QueueItem, QueueProgress } from "@/lib/guest/use-upload-queue";
 import { captureError, captureWarning } from "@/lib/observability/sentry";
 import type { LiveMediaItem } from "@/lib/reel/live/items";
 import { useLivePoll } from "@/lib/shared/use-live-poll";
+
+/** A screen at the party (`?reel=screen`) is watched untouched: its album's net rests but never stops. */
+const onReelScreen = () => reelOfAddress() === "screen";
 
 /** The seed the page streams in (`loadGallerySeed`), resolved behind the page's <Suspense>. */
 export type GalleryPayload = GallerySeed;
@@ -626,7 +630,14 @@ export function GalleryLiveProvider({
     enabled: liveEnabled,
     onRefresh: sync,
   });
-  useLivePoll({ enabled: liveEnabled, live, onPoll: sync });
+  // The store's snapshot is the change (a 304 keeps it); the reel's screen posture is watched untouched.
+  useLivePoll({
+    enabled: liveEnabled,
+    live,
+    onPoll: sync,
+    changeKey: snap,
+    unattended: onReelScreen,
+  });
 
   /* ── the arrivals: what an answer brought that was not on screen a moment ago ── */
   const [arrivals, setArrivals] = useState<string[]>([]);

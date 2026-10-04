@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import Image from "next/image";
 import { ImageUp, Play, QrCode, Undo2 } from "lucide-react";
 
@@ -60,6 +60,7 @@ import { reviewCardFace } from "@/components/app/event-feed/room-card";
 import type { ReelCardData } from "@/components/app/event-feed/reel-card";
 import { EventCodeDoor } from "@/components/app/share/event-code-door";
 import { EventShareProvider } from "@/components/app/share/event-share-provider";
+import { StorageChart } from "@/components/app/storage/storage-chart";
 import { largestFirst } from "@/components/app/storage/storage-list-rules";
 import {
   StorageSourceProvider,
@@ -165,12 +166,13 @@ export function ReviewSectionDemo() {
 }
 
 // WHAT'S USING SPACE, OVER AN INERT ACCOUNT (storage-wiring): the real storage meter, whose popover
-// opens the size list, and a Pro host's six prices, whose Too small flips to the refusal and opens
-// the same list with the goal strip. The account is a videographer on Pro's 500 GB monthly size,
-// 110.8 GB across four events (a handful of long videos are most of it). The
-// source answers after a real round trip's pause and changes nothing: a reviewer here can never
-// remove anyone's photograph, and the strip's switch stops at a note instead of Stripe. (The six
-// rows' own Switch is the product's button, which a signed-out Library sends to sign in.)
+// holds the storage chart and opens the size list, and a Pro host's six prices, whose Too small flips
+// to the refusal and opens the same list with the goal strip. The account is a videographer on Pro's
+// 200 GB monthly size, 110.8 GB across four events (a handful of long videos are most of it) and
+// 3.2 GB in Deleted, which her plan holds too (trash-in-storage). The source answers after a real
+// round trip's pause and changes nothing: a reviewer here can never delete anyone's photograph, empty
+// anyone's Deleted or change anyone's setting, and the strip's switch stops at a note instead of
+// Stripe. (The six rows' own Switch is the product's button, which a signed-out Library sends to sign in.)
 const STORAGE_EVENTS = [
   {
     id: "demo-wedding-maya",
@@ -247,7 +249,9 @@ const STORAGE_ITEMS: StorageItem[] = STORAGE_EVENTS.flatMap((event, e) => [
   ),
 ]).sort(largestFirst);
 
-const STORAGE_STORED = STORAGE_ITEMS.reduce((sum, i) => sum + i.bytes, 0);
+/** Her events' bytes, and her Deleted's: the cap holds both. */
+const STORAGE_ALBUMS = STORAGE_ITEMS.reduce((sum, i) => sum + i.bytes, 0);
+const STORAGE_DELETED = Math.round(3.2 * GIGABYTE);
 const STORAGE_PAGE = 40;
 
 const afterPause = <T,>(value: T) =>
@@ -281,7 +285,8 @@ const DEMO_STORAGE: StorageSource = {
           : null,
       overview: withOverview
         ? {
-            storedBytes: STORAGE_STORED,
+            storedBytes: STORAGE_ALBUMS + STORAGE_DELETED,
+            deletedBytes: STORAGE_DELETED,
             events: STORAGE_EVENTS.map((event) => {
               const own = STORAGE_ITEMS.filter((i) => i.eventId === event.id);
               return {
@@ -295,18 +300,20 @@ const DEMO_STORAGE: StorageSource = {
         : null,
     });
   },
-  remove: (items) =>
+  deleteForGood: (items) =>
     afterPause({
       ok: true as const,
-      removed: Array.isArray(items) ? items.length : 0,
+      deleted: Array.isArray(items) ? items.length : 0,
     }),
-  restore: (ids) =>
+  emptyDeleted: () =>
     afterPause({
       ok: true as const,
-      restored: Array.isArray(ids) ? (ids as string[]) : [],
-      refused: [],
-      message: null,
+      items: 14,
+      events: 0,
+      freedBytes: STORAGE_DELETED,
+      more: false,
     }),
+  setMakeRoom: (on) => afterPause({ ok: true as const, on: on === true }),
   // A plain note in place of Stripe's confirm page (`already_on_plan` is the one code the
   // strip's toast reads as a note rather than a failure).
   switchPlan: () =>
@@ -322,24 +329,23 @@ const PRIYA_FACTS: PlanFacts = {
   tier: "pro",
   hasBilling: true,
   passExpiry: null,
-  activeBytes: STORAGE_STORED,
-  standbyBytes: Math.round(3.2 * GIGABYTE),
-  capBytes: planById("pro_500").storageBytes,
-  currentPlanId: "pro_500",
+  storedBytes: STORAGE_ALBUMS + STORAGE_DELETED,
+  deletedBytes: STORAGE_DELETED,
+  capBytes: planById("pro_200").storageBytes,
+  currentPlanId: "pro_200",
   changeBlocked: null,
 };
 
 export function StorageListDemo() {
-  const cap = planById("pro_500").storageBytes;
+  const cap = planById("pro_200").storageBytes;
   return (
     <StorageSourceProvider source={DEMO_STORAGE}>
       <div className="w-full max-w-xl space-y-6">
         <StorageMeter
-          storageUsed={STORAGE_STORED}
+          activeBytes={STORAGE_ALBUMS}
+          deletedBytes={STORAGE_DELETED}
           storageCap={cap}
-          storagePct={Math.round((STORAGE_STORED / cap) * 100)}
-          standbyBytes={PRIYA_FACTS.standbyBytes}
-          overBudget={false}
+          makeRoom
           passExpiry={null}
           planName="Pro"
           hasBilling
@@ -349,6 +355,63 @@ export function StorageListDemo() {
         <div className="rounded-float border bg-popover p-4">
           <ProPriceList facts={PRIYA_FACTS} returnTo="/account" />
         </div>
+      </div>
+    </StorageSourceProvider>
+  );
+}
+
+/**
+ * The inert source around a specimen the gallery declares inline (the storage meter's popover holds
+ * the chart, whose switch and Empty Deleted would otherwise reach the real Server Functions).
+ */
+export function InertStorage({ children }: { children: ReactNode }) {
+  return (
+    <StorageSourceProvider source={DEMO_STORAGE}>
+      {children}
+    </StorageSourceProvider>
+  );
+}
+
+/**
+ * THE STORAGE CHART'S STATES (trash-in-storage): the chart the storage meter's popover holds, drawn
+ * alone over Pro 50 GB at the four moments that matter. Empty; half used with some in Deleted; and
+ * full, the same 35 GB of albums and 15 GB in Deleted, once with Make room from Deleted on (an upload
+ * takes its room from Deleted, so nothing is in trouble) and once with it off (an upload is refused
+ * until she empties Deleted, so it warns and names that fix). The inert source answers the switch and
+ * Empty Deleted after a pause and changes nothing.
+ */
+const CHART_STATES = {
+  empty: { activeBytes: 0, deletedBytes: 0, makeRoom: true },
+  half: {
+    activeBytes: 20.5 * GIGABYTE,
+    deletedBytes: 4.25 * GIGABYTE,
+    makeRoom: true,
+  },
+  "full-on": {
+    activeBytes: 35 * GIGABYTE,
+    deletedBytes: 15 * GIGABYTE,
+    makeRoom: true,
+  },
+  "full-off": {
+    activeBytes: 35 * GIGABYTE,
+    deletedBytes: 15 * GIGABYTE,
+    makeRoom: false,
+  },
+} as const;
+
+export function StorageChartDemo({
+  state,
+}: {
+  state: keyof typeof CHART_STATES;
+}) {
+  const figures = CHART_STATES[state];
+  return (
+    <StorageSourceProvider source={DEMO_STORAGE}>
+      <div
+        data-chart-state={state}
+        className="w-full max-w-80 rounded-float border bg-popover p-4"
+      >
+        <StorageChart {...figures} capBytes={planById("pro_50").storageBytes} />
       </div>
     </StorageSourceProvider>
   );

@@ -24,6 +24,8 @@ import { formatAdminDate } from "@/lib/format/admin-time";
 import { formatBytes } from "@/lib/utils";
 import { PageHeading } from "@/components/shared/page-heading";
 
+import { accountCap, capLabel } from "./cap";
+
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = { title: "Accounts" };
@@ -80,9 +82,10 @@ export default async function AdminAccountsPage({
             </TableHeader>
             <TableBody>
               {accounts.map((account) => {
-                // A null cap is Pro's unlimited, never a cap of zero: the
-                // over-capacity purge sweep reads it the same way.
-                const cap = account.storage_cap_bytes;
+                // The account's REAL cap (`accountCap`): a Free or pass profile's null column is its
+                // tier's own cap, as the over-capacity purge sweep reads it, and only a Pro with none on
+                // record is unlimited. Reading every null as unlimited marked no Free account over.
+                const cap = accountCap(account.tier, account.storage_cap_bytes);
                 const over = cap !== null && account.storage_used_bytes > cap;
                 return (
                   <TableRow
@@ -118,7 +121,7 @@ export default async function AdminAccountsPage({
                       {formatBytes(account.storage_used_bytes)}
                     </TableCell>
                     <TableCell className="text-right text-muted-foreground tabular-nums">
-                      {cap === null ? "Unlimited" : formatBytes(cap)}
+                      {capLabel(cap)}
                     </TableCell>
                     <TableCell className="text-right whitespace-nowrap text-muted-foreground">
                       {formatAdminDate(account.last_active_at)}

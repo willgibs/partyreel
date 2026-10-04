@@ -6,8 +6,9 @@ Open this before you:
 - handle an abuse report, a legal hold or a CSAM incident (the runbook);
 - register with NCMEC.
 
-Elsewhere: the reports queue ([admin-observability.md](admin-observability.md)), the purge sweeps ([lifecycle-recovery.md](lifecycle-recovery.md)), deny-all and grant
-conventions ([database-security.md](database-security.md)).
+Elsewhere: the reports queue ([admin-observability.md](admin-observability.md)), the purge sweeps
+([lifecycle-recovery.md](lifecycle-recovery.md)), deny-all and grant conventions
+([database-security.md](database-security.md)).
 
 ## What each upload captures
 
@@ -22,50 +23,48 @@ this capture, so a new column changes their words too.
   unproved address appear only on the `?what=record` export, and no page renders either.
 - **Capture is best-effort but loud:** a failure never fails the upload, but it warns (`forensic_capture_failed`,
   area `security`) and shows as a gap in `/admin/forensics`' 24-hour coverage.
-- **No pre-strip EXIF capture.** The browser strips EXIF before upload ([uploads-and-r2.md](uploads-and-r2.md)), so the server never sees
-  it; extracting it first would be the most sensitive collection there is, cut against the marketed EXIF-strip
-  story, and waits on counsel's sign-off.
+- **No pre-strip EXIF capture.** The browser strips EXIF before upload ([uploads-and-r2.md](uploads-and-r2.md)), so
+  the server never sees it; extracting it first would be the most sensitive collection there is, cut against the
+  marketed EXIF-strip story, and waits on counsel's sign-off.
 
 ## Legal hold and preservation
 
 On a report, an operator sets a legal hold (`media.legal_hold_at`, `legal_hold_reason`) and preserves: the original is
-copied server-side to the segregated `preservation/` prefix (outside `events/`; keys single-sourced in `r2/keys.ts`; a
-multipart ranged copy past CopyObject's 5 GB limit), with a JSON evidence snapshot of the media, forensic and event
-rows beside it. The one egress is the audit-logged export on `/admin/forensics`. Holds serve every abuse report, not
-only CSAM. A hold is for what police should see (Will, 2026-09-29), so Hold for forensics on a report takes it down
-too by default: every item it reaches becomes an operator's removal before any copy starts. Unticking Take it down
-too is the QUIET hold, for a preservation request about content that is not harmful to show, where removing it
-would tip someone off: nothing leaves the album.
-- ★ **Held media, and anything an open report names, is never hard-deleted, object OR row** (20260929140000: "an
-  open report protects its item from every permanent delete" until it closes). `kept_media_ids(uuid[])` is the one
-  home of the rule: held, or named by an open report (its item, or every item of the album an album report names).
-  Every R2 delete runs R2-first, so each caller asks it BEFORE building its key list (`reclaimMedia`, purgeMediaNow);
-  `purge_media_rows` asks it again, but alone it would save only the row after the object died. A permanent delete of
-  a kept row is DEFERRED, never refused (`media.purge_asked_at`): the row leaves the deleter's view and the host's
-  meter at once, and the removed_media sweep takes it the night its keeper lets go (`defer_kept_due_media` asks a
-  kept removal past its window the same way). An expired event, or a deleted account's event, holding ANY held media
-  or any open report is skipped whole, because the FK cascade is all-or-nothing. `forensics/legal-hold.ts`
-  enumerates every hard-delete path and why each is safe, so a new path joins it.
+copied server-side to the segregated `preservation/` prefix (outside `events/`; keys single-sourced in `r2/keys.ts`,
+the copy in `r2/objects.ts`), with a JSON evidence snapshot of the media, forensic and event rows beside it. The one
+egress is the audit-logged export on `/admin/forensics`. Holds serve every abuse report, not only CSAM. A hold is for
+what police should see, so Hold for forensics on a report takes it down too by default: every item it reaches becomes
+an operator's removal before any copy starts. Unticking Take it down too is the QUIET hold, for a preservation request
+about content that is not harmful to show, where removing it would tip someone off: nothing leaves the album.
+- ★ **Held media, and anything an open report names, is never hard-deleted, object OR row,** while it is held or an
+  open report names it. `kept_media_ids(uuid[])` is the one home of the rule: held, or named by an open report (its
+  item, or every item of the album an album report names). Every R2 delete runs R2-first, so each caller asks it
+  BEFORE building its key list (`reclaimMedia`, purgeMediaNow); `purge_media_rows` asks it again, but alone it would
+  save only the row after the object died. A permanent delete of a kept row is DEFERRED, never refused
+  (`media.purge_asked_at`): the row leaves the deleter's view and the host's meter at once, and the removed_media
+  sweep takes it the night its keeper lets go (`defer_kept_due_media` asks a kept removal past its window the same
+  way). An event the `expired_events` sweep or an account deletion would take, holding ANY held media or any open
+  report, is skipped whole, because the FK cascade is all-or-nothing. `forensics/legal-hold.ts` enumerates every
+  hard-delete path and why each is safe, so a new path joins it.
 - ★ **Which events hold anything (a hold, an operator's removal in its window, an open report) is ONE
-  `held_event_ids` answer per candidate set, never a read of held rows:**
-  PostgREST cuts a row read at 1,000, and an event whose held rows fell past the cut would read as purgeable. The holds
-  are asked again right before the event rows go, so a hold placed mid-sweep keeps its row and its event. The backup
-  prune needs nothing: its dual check (primary object gone AND row gone) can never be met by a held item.
-- ★ **A hold is discreet: a quietly held row takes the host's own acts like any other** (Will, 2026-09-29: "the
-  host's own delete of a quietly held item looks like any delete"). The hold columns and `purge_asked_at` are not
-  SELECT-granted to `authenticated`, so the owning host (who may BE the investigated uploader) cannot see either.
-  Her Remove, Hide and Show land (the guard's hold branch is gone), her block takes it to Deleted and counts it,
-  her Delete permanently asks it (gone for her, off her meter, as any delete), and the purges skip it. Only a way
-  back stays shut, in terms any item can meet: `restore_media` answers a held item in the vague default copy a
-  missing row gets, and the block's let back in leaves one in Deleted (the list's count of what can come back leaves
-  it out, as it leaves out a withdrawal). Its uploader's own feed and delete read a held blocked upload as any other.
-- ★ **An operator's removal keeps the runbook's window to hold and preserve** (`removed_by_admin`, 20260928140000),
-  because the runbook removes first and holds second. It leaves the host's view and her storage at once
-  (`media_host_all` hides it; `media_release_meter` takes its bytes off her meter, and an operator's restore puts
-  them back, so a takedown and a hold read the same in every number she has), but its copy waits out its own
-  `purge_at` (the removal + 30 days): `purge_media_now` refuses it, the standby budget
-  never counts or evicts it, and `held_event_ids` answers an event holding one inside its window as held, so expired
-  events and account deletion keep that event whole. Then the removed_media sweep takes it, unless it is held.
+  `held_event_ids` answer per candidate set, never a read of held rows:** PostgREST cuts a row read at 1,000, and an
+  event whose held rows fell past the cut would read as purgeable. The holds are asked again right before the event
+  rows go, so a hold placed mid-sweep keeps its row and its event. The backup prune needs nothing: its dual check
+  (primary object gone AND row gone) can never be met by a held item.
+- ★ **A hold is discreet: a quietly held row takes the host's own acts like any other.** The hold columns and
+  `purge_asked_at` are not SELECT-granted to `authenticated`, so the owning host (who may BE the investigated
+  uploader) cannot see either. Her Remove, Hide and Show land, her block takes it to Deleted and counts it, her Delete
+  permanently asks it (gone for her, off her meter, as any delete), and the purges skip it. Only a way back stays
+  shut, in terms any item can meet: `restore_media` answers a held item in the vague default copy a missing row gets,
+  and the block's let back in leaves one in Deleted (the list's count of what can come back leaves it out, as it
+  leaves out a withdrawal). Its uploader's own feed and delete read a held blocked upload as any other.
+- ★ **An operator's removal keeps the runbook's window to hold and preserve** (`removed_by_admin`), because the
+  runbook removes first and holds second. It leaves the host's view and her meter at once
+  ([lifecycle-recovery.md](lifecycle-recovery.md); `media_release_meter` takes its bytes and an operator's restore
+  puts them back), so a takedown and a hold read the same in every number she has. But its copy waits out its own
+  `purge_at` (the removal + 30 days): no act of hers can purge it or make room from it, and `held_event_ids` answers
+  an event holding one inside its window as held, so `expired_events` and account deletion keep that event whole.
+  Then the removed_media sweep takes it, unless it is held.
 - **Preservation objects are deleted only by hand,** audited, on the REPORT Act's one-year clock. Releasing a hold
   does not touch them, and no sweep lists the `preservation/` prefix.
 
@@ -113,4 +112,4 @@ open: failing to preserve or report under 18 U.S.C. 2258A carries six-figure fin
 - After approval: keep the CyberTipline credentials offline (never the repo or Vercel), note the ESP id here, and read
   through the reporting form once so filing under pressure is familiar.
 - At the DNS move to Cloudflare, the free CSAM Scanning Tool goes on the zone, described plainly as scanning only what
-  Cloudflare proxies: it cannot see presigned R2 media, and media serving is not re-architected to widen it.
+  Cloudflare proxies: it cannot see presigned R2 media.

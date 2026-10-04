@@ -22,6 +22,7 @@ import { formatCount } from "@/lib/format/count";
 import { formatBytes } from "@/lib/utils";
 import { isUuidShape } from "@/lib/validation/uuid-shape";
 import { PageHeading } from "@/components/shared/page-heading";
+import { capLabel } from "../cap";
 import {
   CancelDeletionControl,
   DeleteAccountControl,
@@ -84,10 +85,7 @@ export default async function AdminAccountDetailPage({
   const deletion = await getAccountDeletionState(id);
 
   const { profile } = account;
-  const capLabel =
-    account.effectiveCapBytes === null
-      ? "Unlimited"
-      : formatBytes(account.effectiveCapBytes);
+  const capText = capLabel(account.effectiveCapBytes);
   const subscriptionLabel = account.hasSubscription
     ? "Active subscription"
     : profile.tier === "event_pass"
@@ -157,7 +155,7 @@ export default async function AdminAccountDetailPage({
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
           <Row label="Active storage">
-            {formatBytes(account.activeBytes)} of {capLabel}
+            {formatBytes(account.activeBytes)} of {capText}
           </Row>
           <Row label="Counter (real bytes)">
             {formatBytes(account.storageUsedBytes)}

@@ -64,6 +64,22 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 3,
+      "opened": "2026-10-04",
+      "answers": [
+        {
+          "ask": "add",
+          "choice": "styles",
+          "note": "Could continue to be polished, but this is the far superior option. Feels cleaner with more focused views/less fighting for attention, and each option is explained clearly against each other without just throwing screens at a new host. these visuals are more subtle/conceptual, and represent each mode's experience with its description well versus other options that are just throwing fullscreen experiences as me. Bit of a ramble, but yeah, I think this screen wins because of the clear distinction across the 3. Really clear mental model, and I like adding reviewed (should we go with a more simple 'Review'?) asa top-level mode instead of a more confusing subfeature. If disposable is selected, time should either be directly below option item or on a focused following screen, but not tucked underneath the timeline where it may not be noticed.",
+          "by": "Will",
+          "at": "2026-10-04T06:50:49Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }

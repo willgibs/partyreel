@@ -7,24 +7,28 @@ import {
   type Cadence,
 } from "@/components/app/pricing/cadence-toggle";
 import { ChangePlanButton } from "@/components/app/pricing/change-plan-button";
+import { holdsPhrase } from "@/components/app/pricing/holds";
 import {
   HeldChip,
   PlanCardHead,
+  UploadsPause,
   planCardClass,
 } from "@/components/app/pricing/plan-card";
 import { RefusalFace } from "@/components/app/storage/refusal-face";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { PlanFacts } from "@/lib/billing/plan-facts";
 import {
   formatBytesUp,
   planHolds,
   proFitLine,
+  uploadsPauseNote,
   type StorageRefusal,
 } from "@/lib/billing/storage-guard";
 import {
   ESTIMATE_BASIS_NOTE,
-  formatCapacity,
   planById,
   plansForTier,
+  uploadsPhrase,
   type Plan,
 } from "@/lib/constants/tiers";
 import { CHANGE_REFUSAL_MESSAGES } from "@/lib/stripe/change-plan";
@@ -48,13 +52,24 @@ import { isProPlanId, type ProPlanId } from "@/lib/validation/checkout";
  *
  * ★ WHAT `storage-wiring` BUILT ON THESE ROWS STAYS (the brief): a size too small is a PRESS that
  * flips its card in place to the refusal, the list's full width (`RefusalFace`), with what she
- * stores, what the size holds, the gap, and the two ways out ("Keep Pro 500 GB" when the size
+ * stores, what the size holds, the gap, and the two ways out ("Keep Pro 200 GB" when the size
  * that fits is hers, that size's other price when it is not); a switch the server refused (she
  * stores more than when the sheet opened) flips its card the same way, on the refusal's own
  * figure, on the billing it was for. A flipped card whose size holds her bytes again (she removed
  * enough in the list and the sheet re-read) is a price again, with its Switch. Every switch runs
  * the storage check before Stripe's confirm page (billing-caps.md); sizes are cards with buttons
  * under one toggle, never a selector or a slider.
+ *
+ * ★ A SIZE SAYS ITS UPLOADS, AND A SWITCH BELOW THIS MONTH'S SAYS WHAT THAT MEANS (red-team 52's LOW). Each card names
+ * its uploads beside its room ("100 GB of uploads a month"), and a size whose allowance sits at or below what she has
+ * already uploaded this month carries the sentence that says her uploads, her guests' too, would pause until the
+ * month turns (`uploadsPauseNote`): never a refusal and never a confirm, since the webhook allows the switch and
+ * nothing here may block what it allows.
+ *
+ * ★ HER PLAN IS READ BEFORE THE LIST OFFERS A MOVE (red-team 52's NIT: for the two seconds the first read took, every
+ * size, her own included, carried a Switch). While it is still out (`reading`) the cards draw their sizes and leave a
+ * quiet placeholder where the move will stand; a read that fails keeps the old list with its Switches, since
+ * the change-plan route re-checks everything.
  */
 
 /** The three sizes at one billing, smallest first: how a host scans for "the one that fits". */
@@ -69,11 +84,17 @@ const billingWord = (cadence: Cadence) =>
 
 export function ProPriceList({
   facts,
+  reading = false,
+  readAt = null,
   returnTo,
   onStorageChanged,
 }: {
   /** The sheet's server read; null until it lands (or when it could not). */
   facts: PlanFacts | null;
+  /** The read is still out, so which size is hers is not known yet: no card offers a move until it lands. */
+  reading?: boolean;
+  /** When those facts were read: the month a figure in them was measured in (`uploadsPauseNote`). */
+  readAt?: Date | null;
   returnTo?: string;
   /** Something was removed or put back from the list: the sheet re-reads its facts. */
   onStorageChanged?: () => void;
@@ -89,7 +110,7 @@ export function ProPriceList({
     setRefusedAt(null);
   }
 
-  const stored = refusedAt ?? facts?.activeBytes ?? null;
+  const stored = refusedAt ?? facts?.storedBytes ?? null;
   const current =
     facts?.currentPlanId && isProPlanId(facts.currentPlanId)
       ? planById(facts.currentPlanId)
@@ -97,7 +118,6 @@ export function ProPriceList({
   const cadence: Cadence = chosen ?? current?.interval ?? "month";
   const sizes = sizesAt(cadence);
   const blocked = facts?.changeBlocked ?? null;
-  const capBytes = facts?.capBytes ?? null;
   const fits = (plan: Plan) => stored === null || planHolds(plan, stored);
 
   function refused(refusal: StorageRefusal) {
@@ -122,12 +142,6 @@ export function ProPriceList({
     !planHolds(planById(flipped), stored);
   // Read at the billing on show, so the line never names a price the cards are not showing.
   const fitLine = stored === null ? null : proFitLine(stored, current, cadence);
-  const offersShrink =
-    capBytes !== null &&
-    sizes.some(
-      (plan) =>
-        fits(plan) && plan.id !== current?.id && plan.storageBytes < capBytes,
-    );
 
   return (
     <div className="space-y-3">
@@ -135,6 +149,7 @@ export function ProPriceList({
 
       <ul
         aria-label={`Pro sizes, ${billingWord(cadence)}`}
+        aria-busy={reading || undefined}
         className="space-y-2.5"
       >
         {sizes.map((plan) => {
@@ -158,7 +173,6 @@ export function ProPriceList({
                   plan={plan}
                   storedBytes={stored}
                   current={current}
-                  capBytes={capBytes}
                   canSwitch={!blocked}
                   returnTo={returnTo}
                   onKeep={() => setFlipped(null)}
@@ -171,6 +185,15 @@ export function ProPriceList({
           // Her size at the other billing: the switch that changes only how she pays.
           const sameSize =
             current !== null && plan.storageBytes === current.storageBytes;
+          // A switch that changes her allowance and that she may press, read against this month's uploads.
+          const pause =
+            !reading && !isCurrent && !sameSize && holds && !blocked
+              ? uploadsPauseNote(
+                  facts?.monthUploadedBytes ?? null,
+                  plan,
+                  readAt ?? undefined,
+                )
+              : null;
           return (
             <li
               key={plan.id}
@@ -182,10 +205,17 @@ export function ProPriceList({
               <PlanCardHead
                 plan={plan}
                 ink={isCurrent}
-                // The basis is said once, under the three (ESTIMATE_BASIS_NOTE).
-                holds={`about ${formatCapacity(plan.storageBytes, { basis: false })}`}
+                // Its use first, then its estimate; the basis is said once, under the three (ESTIMATE_BASIS_NOTE).
+                holds={holdsPhrase(plan)}
+                uploads={uploadsPhrase(plan)}
                 aside={
-                  isCurrent ? (
+                  reading ? (
+                    <Skeleton
+                      aria-hidden
+                      data-reading=""
+                      className="h-7 w-[4.5rem] shrink-0 rounded-action-sm"
+                    />
+                  ) : isCurrent ? (
                     <HeldChip ink />
                   ) : !holds ? (
                     <button
@@ -220,6 +250,7 @@ export function ProPriceList({
                   ink={isCurrent}
                 />
               ) : null}
+              {pause ? <UploadsPause>{pause}</UploadsPause> : null}
             </li>
           );
         })}
@@ -243,16 +274,6 @@ export function ProPriceList({
           className="text-xs text-pretty text-muted-foreground"
         >
           {fitLine}
-        </p>
-      ) : null}
-
-      {offersShrink && !blocked ? (
-        <p
-          data-note="deleted"
-          className="text-xs text-pretty text-muted-foreground"
-        >
-          A smaller size also shrinks Deleted: it keeps items only up to the new
-          size.
         </p>
       ) : null}
 
@@ -322,7 +343,7 @@ function FitBar({
 
 /**
  * The bar's line: what she stores of this size, and how full that makes it, or how far over. ★ UNDER
- * ONE PERCENT IT SAYS SO: floored at 1%, 97.9 MB of 2 TB read "1% full" of a size it barely touches.
+ * ONE PERCENT IT SAYS SO: floored at 1%, 97.9 MB of 1 TB read "1% full" of a size it barely touches.
  * The bar draws only once she stores something, so a size is never "0% full" here.
  */
 export function fitBarLine(stored: number, bytes: number): string {

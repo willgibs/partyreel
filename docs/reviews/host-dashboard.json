@@ -67,6 +67,34 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 3,
+      "opened": "2026-10-04",
+      "answers": [
+        {
+          "ask": "events",
+          "choice": "menu",
+          "by": "Will",
+          "at": "2026-10-04T06:50:49Z"
+        },
+        {
+          "ask": "stage",
+          "choice": "lit",
+          "by": "Will",
+          "at": "2026-10-04T06:50:49Z"
+        },
+        {
+          "ask": "rule",
+          "choice": "corner",
+          "note": "I'd like to see another exploration of the design of this UI.",
+          "by": "Will",
+          "at": "2026-10-04T06:50:49Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }

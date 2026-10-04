@@ -168,7 +168,8 @@ export function GuestSaveChoice({
       guestSelect.onPress(() => {
         const { run, picks } = guestSelect.get();
         if (run.kind === "getting") {
-          saver().stop();
+          // A stop she means asks first (E6); the engine says what it did, so nothing here draws a word.
+          saver().cancel();
           return;
         }
         if (run.kind === "ready") {

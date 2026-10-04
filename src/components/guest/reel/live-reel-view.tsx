@@ -7,12 +7,12 @@
  * bottom:
  *
  * - THE PICTURE, full-bleed: the live composer over the album's own live payload, in the viewport's
- *   own orientation, covering it. A tap opens the photograph in the shared media viewer, pausing
- *   the reel behind it.
+ *   own orientation, covering it. A click or a tap anywhere on it is the bar's own press (below):
+ *   the controls come up, and the next one puts them away. It never opens the photograph.
  * - THE CHROME: at rest, one slim glass bar at the foot, play and progress, so a viewer always has
- *   something to reach for while the controls are hidden. A pointer's movement (or, on touch, a tap
- *   on the bar itself) grows it into the full dock; a resting pointer lets it settle back. Close shows
- *   and hides with it, and every control carries a tooltip.
+ *   something to reach for while the controls are hidden. A pointer's movement, or a press on the
+ *   bar or anywhere on the picture, grows it into the full dock; a resting pointer or an idle touch
+ *   lets it settle back. Close shows and hides with it, and every control carries a tooltip.
  * - THE DOCK: one row of icon buttons (play/pause, Include videos, Style, Hold, Show the code at a
  *   desk, Add yours; the event's owner also gets Play on a screen at a desk), and beneath it "Make
  *   your own" as the single primary, only once a creator is registered. On a browser that cannot
@@ -55,6 +55,7 @@ import {
   Suspense,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -64,10 +65,10 @@ import type { CSSProperties, ReactNode, RefObject } from "react";
 import { toast } from "sonner";
 
 import { StyledQr } from "@/components/app/styled-qr";
-import { useGalleryLive } from "@/components/guest/gallery-live";
-import { LikesProvider } from "@/components/likes/likes-provider";
-import type { ViewerOrigin } from "@/components/shared/media-lightbox";
-import { MediaLightboxLazy } from "@/components/shared/media-lightbox.lazy";
+import {
+  useGalleryLive,
+  type GalleryLive,
+} from "@/components/guest/gallery-live";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -142,6 +143,12 @@ import { cn } from "@/lib/utils";
 
 import { preloadReelCreator, type ReelCreator } from "./creator-seam";
 
+/** What a page with no guest album's live source hands the view in its place (`ReelViewProps.standIn`). */
+export type ReelStandIn = Pick<
+  GalleryLive,
+  "qrToken" | "reel" | "clips" | "reportPossibleExpiry"
+>;
+
 export type ReelViewProps = {
   mode: ReelMode;
   /** The screen posture below the minimum: the code and the address alone. */
@@ -171,6 +178,19 @@ export type ReelViewProps = {
   /** The event's owner is watching (the host's extras: Play on a screen, Set for everyone). */
   isOwner?: boolean;
   /**
+   * ★ WHERE THE HOST PLAYS HER OWN REEL (`event-feed/hub-reel.tsx`, Will's Q5: "the live reel is the host's to play from
+   * her own event page as soon as she opens it, even while the album develops"): the four things the view reads off the
+   * guest album's live source (its links by id, the host's defaults, the event's key for this device's own picks and
+   * the presign watchdog), handed in by a page that has no guest source, since the hub's album is her own scope and the
+   * guest page's is the guests'. Absent, the guest album's live source answers, as it always did.
+   */
+  standIn?: ReelStandIn;
+  /**
+   * Whether the owner is offered Play on a screen, which opens this address as a screen (default on). The hub's own view
+   * turns it off: a screen that is not hers cannot open her hub, so it plays the reel cast from her own device.
+   */
+  screenLink?: boolean;
+  /**
    * The owner's "Set for everyone": the look and hold this device shows become the event's defaults
    * (reel-defaults-migration's `setReelDefaults`, bound by the controller). Resolves whether it took.
    */
@@ -184,6 +204,14 @@ export type ReelViewProps = {
 /** A resting pointer lets the dock settle back after this long; a touch viewer gets longer. */
 const IDLE_POINTER_MS = 2400;
 const IDLE_TOUCH_MS = 4200;
+/**
+ * ★ A CLICK THIS SOON AFTER THE MOVE THAT RAISED THE DOCK WAS AIMED WITH THAT MOVE (red-team 52: "a click aimed with
+ * a moving mouse hides the controls the move just raised"). The dock grows in 280 ms (`live-reel.css`) and a person
+ * needs about 250 ms more to answer a change on screen, so a click before then is no decision about a dock she has
+ * not yet seen: it is the click that was always going to bring the controls up, on a mouse that had to travel to
+ * the picture first.
+ */
+const AIMED_CLICK_MS = 600;
 /** The bar's pill, at rest (live-reel.css reads these). */
 const BAR_W = 132;
 const BAR_H = 34;
@@ -210,23 +238,27 @@ export function LiveReelView({
   creatorAsked = false,
   onCreatorAskSpent,
   isOwner = false,
+  standIn,
+  screenLink = true,
   onSetForEveryone,
   onClose,
 }: ReelViewProps) {
   const live = useGalleryLive();
+  // What the guest album's live source says of the event, or what the host's own page says in its place.
+  const feed = standIn ?? live;
   // Links by id: the reel reads them at each window, the arrivals' names ride them, the creator's
   // pool waits on them.
-  const clips = live?.clips ?? null;
+  const clips = feed?.clips ?? null;
   const reduced = usePrefersReducedMotion();
   const screen = mode === "screen";
   // A desk: the code toggle and the owner's Play on a screen live here and nowhere smaller (a phone
   // has no room to show a wall its code, and nobody casts a screen from one).
   const desktop = useMediaQuery("(min-width: 1024px)");
-  const qrToken = live?.qrToken ?? "";
+  const qrToken = feed?.qrToken ?? "";
 
   /* ── the viewer's own knobs, kept on this device ─────────────────────────── */
-  const hostStyle = live?.reel?.styleId ?? null;
-  const hostHold = live?.reel?.holdSec ?? null;
+  const hostStyle = feed?.reel?.styleId ?? null;
+  const hostHold = feed?.reel?.holdSec ?? null;
   const [holdSec, setHoldSec] = useState(() => readHoldSec(qrToken, hostHold));
   const [styleId, setStyleId] = useState(
     () => readStyleId(qrToken) ?? resolveLiveStyleId(hostStyle),
@@ -270,7 +302,7 @@ export function LiveReelView({
 
   /* ── the source: the album's live list, fed as it changes ────────────────── */
   // Stills that failed to decode are re-minted by id (the watchdog), never the whole album.
-  const reportExpiry = live?.reportPossibleExpiry;
+  const reportExpiry = feed?.reportPossibleExpiry;
   const [onFailedIds] = useState(
     () => (ids: readonly string[]) => reportExpiry?.(ids),
   );
@@ -278,7 +310,7 @@ export function LiveReelView({
     eventId,
     playable,
     live?.ownIds ?? null,
-    live?.clips ?? null,
+    clips,
     onFailedIds,
   );
   const playerRef = useRef<LiveReelPlayerHandle>(null);
@@ -289,28 +321,26 @@ export function LiveReelView({
   const [chrome, setChrome] = useState<"up" | "rest">("up");
   const [menuOpen, setMenuOpen] = useState(false);
   const [dockFocus, setDockFocus] = useState(false);
-  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  // Where the viewer opened from: the frame it grows out of and a video's moment (see openLightbox).
-  const [viewerFrom, setViewerFrom] = useState<{
-    origin: ViewerOrigin;
-    startAt?: number;
-  } | null>(null);
   const [creatorOpen, setCreatorOpen] = useState(false);
   // The greyed Make your own's reason (`noencode=greyed`), bubbled up for a few seconds.
   const [whyNot, setWhyNot] = useState(false);
   // Never settles BY ITSELF while it is being used, while the reel is paused (a paused reel shows
   // its controls), under reduced motion (a control that vanishes unasked is exactly the motion
   // the setting exists to remove), or while a reason is bubbled up from it. The viewer can still
-  // fold it away on purpose (the timeline).
+  // fold it away on purpose (the timeline, or a tap on the picture: `toggleChrome`).
   const pinned = paused || menuOpen || dockFocus || reduced || whyNot;
   const chromeRef = useRef(chrome);
   const pinnedRef = useRef(pinned);
+  const menuOpenRef = useRef(menuOpen);
   const idleMsRef = useRef(IDLE_POINTER_MS);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // When a pointer's own movement last raised the dock from rest (`onPointerMove`), for `AIMED_CLICK_MS`.
+  const movedUpAtRef = useRef(Number.NEGATIVE_INFINITY);
   useEffect(() => {
     chromeRef.current = chrome;
     pinnedRef.current = pinned;
-  }, [chrome, pinned]);
+    menuOpenRef.current = menuOpen;
+  }, [chrome, pinned, menuOpen]);
 
   const scheduleRest = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
@@ -342,14 +372,40 @@ export function LiveReelView({
     [],
   );
   const chromeUp = chrome === "up";
+  // The press about to click, noted as it lands (the view's own capture phase, so before Radix reads
+  // the same press as a menu's dismissal): which pointer it was, since not every engine types the
+  // click itself, and whether a menu stood open under it.
+  const pressRef = useRef({ pointer: "", overMenu: false });
+  // ★ ONE TOGGLE FOR EVERY WAY TO SHOW OR HIDE THE CHROME: the bar's press, the timeline's and a tap
+  // anywhere on the picture all end here, so they cannot drift apart. Up, it folds away on purpose,
+  // even while pinned (the viewer asked; a pointer's movement or the next press brings it back); at
+  // rest it comes up and starts its own idle clock, a finger's longer than a pointer's.
+  // ★ EXCEPT A POINTER'S CLICK AIMED WITH THE MOVE THAT RAISED IT (`AIMED_CLICK_MS`): a desk viewer moves to
+  // aim, the move wakes the dock, and the click that follows is the one that meant "show", so it keeps the
+  // dock up (and restarts its rest) rather than folding away what the move just brought. A finger's tap and
+  // a key's press never moved anything, so they are never held.
+  const toggleChrome = (e: React.MouseEvent) => {
+    const byTouch = pressedByTouch(e, pressRef.current.pointer);
+    if (chromeUp) {
+      if (
+        !byTouch &&
+        performance.now() - movedUpAtRef.current < AIMED_CLICK_MS
+      ) {
+        wake();
+        return;
+      }
+      if (timerRef.current) clearTimeout(timerRef.current);
+      setChrome("rest");
+    } else {
+      wake(byTouch);
+    }
+  };
 
-  /* ── what is on screen, for the tap, the progress and the lightbox ───────── */
-  const onScreenRef = useRef<LiveMediaItem | null>(null);
+  /* ── the progress ────────────────────────────────────────────────────────── */
   const loopRef = useRef({ loop: -1, seen: 0 });
   const [progress, setProgress] = useState(0);
   const onClipChange = useCallback(
     (item: LiveMediaItem | null) => {
-      onScreenRef.current = item;
       if (!item) return;
       // The timeline is the LOOP: how much of the album this take has shown. A new loop starts it
       // over, silently (nothing marks the seam).
@@ -438,63 +494,37 @@ export function LiveReelView({
     enabled: !idle,
   });
 
-  /* ── the lightbox (a tap on the picture) ─────────────────────────────────── */
-  const pausedBeforeRef = useRef(false);
-  const pictureRef = useRef<HTMLDivElement>(null);
-  // The viewer's reach: the photographs it is about to show get their links and their hearts.
-  const [viewerIds, setViewerIds] = useState<string[]>([]);
-  const ensureLinks = live?.ensureLinks;
-  const onViewerNeedLinks = useCallback(
-    (ids: readonly string[]) => {
-      setViewerIds([...ids]);
-      ensureLinks?.(ids);
-    },
-    [ensureLinks],
-  );
-  // The viewer walks the album's playable photographs as the grid draws them (every one an item,
-  // its links arriving by id: `onNeedLinks`).
+  /* ── the picture's tap ───────────────────────────────────────────────────── */
+  // ★ A TAP ON THE PICTURE IS THE BAR'S OWN PRESS, NEVER THE PHOTOGRAPH'S. The tap is what a viewer
+  // reaches for to bring the controls back, so one that opened the viewer instead put a second layer
+  // between them and the controls, and the viewer's X landed on the picture that opened it again.
+  // The picture is a SIBLING of every control, never their ancestor, so a press that lands on a
+  // control acts on that control and never reaches this: keep the handler on the picture itself,
+  // never up on the view.
+  const onPictureClick = (e: React.MouseEvent) => {
+    // While the pill is up, a press anywhere is the press it asks for.
+    if (pillUp) {
+      void fill();
+      return;
+    }
+    // A press that began over an open menu dismissed it (Radix reads a pointer's press at once and a
+    // touch's at its click) and is only that: one press, one effect.
+    if (pressRef.current.overMenu) return;
+    toggleChrome(e);
+  };
+
+  /* ── the creator (the clip's own room, through the seam) ──────────────────── */
+  // What the clip's room clips from: the album's playable items, their links arriving by id.
   const albumItems = live?.items;
-  const lightboxItems = useMemo(
+  const creatorItems = useMemo(
     () =>
       (albumItems ?? EMPTY_ITEMS).filter((item) => item.reelEligible !== false),
     [albumItems],
   );
-  /**
-   * The viewer grows the photograph out of the FRAME (the picture's own box, `kind: "reel"`) and,
-   * with no `returnTo`, lands back in it on the way out; a video carries on from the reel's moment
-   * (`startAt`) rather than its first frame. The player answers which clip is on screen and where
-   * a playing video has reached (`moment()`); the caption's last report is the fallback.
-   */
-  const openLightbox = useCallback(() => {
-    const moment = playerRef.current?.moment() ?? null;
-    const id = moment?.clipId ?? onScreenRef.current?.id;
-    if (!id) return;
-    const index = lightboxItems.findIndex((m) => m.id === id);
-    if (index < 0) return;
-    const box = pictureRef.current?.getBoundingClientRect() ?? null;
-    const videoSec =
-      lightboxItems[index].type === "video" && moment?.clipId === id
-        ? moment.videoSec
-        : null;
-    pausedBeforeRef.current = paused;
-    setPaused(true);
-    setViewerFrom({
-      origin: {
-        kind: "reel",
-        rect: box && box.width > 0 && box.height > 0 ? box : null,
-      },
-      ...(videoSec !== null ? { startAt: videoSec } : {}),
-    });
-    setLightboxIndex(index);
-  }, [lightboxItems, paused]);
-  const closeLightbox = useCallback(() => {
-    setLightboxIndex(null);
-    setPaused(pausedBeforeRef.current);
-  }, []);
-
-  /* ── the creator (the clip's own room, through the seam) ──────────────────── */
+  // Whether the reel was paused before a room took the screen, so closing it puts that back.
+  const pausedBeforeRef = useRef(false);
   // The host's plan for a clip, the server's (null where it could not be read: no creator then).
-  const clipFacts = live?.reel?.clip ?? null;
+  const clipFacts = feed?.reel?.clip ?? null;
   const creatorOffered = Boolean(creator && clipFacts);
   // Asked of the device once per page, and only when a clip could be offered at all.
   const support = useClipSupport(creatorOffered);
@@ -582,11 +612,27 @@ export function LiveReelView({
 
   /* ── the keyboard ────────────────────────────────────────────────────────── */
   const contentRef = useRef<HTMLDivElement>(null);
+  // ★ THE PANE'S QUIET HALF TAKES ITS FOCUS WITH IT TO THE VIEW, NEVER TO THE PAGE'S BODY. At rest the
+  // dock's controls go inert and while it is up the bar does, and `inert` drops whatever inside it held
+  // the focus onto the body, where the view's keys (Space, the arrows) no longer reach it. A control
+  // pressed with a pointer keeps the focus that press gave it, so the dock's own rest would leave the
+  // view deaf to the keyboard; read here, in the commit that sets `inert` (the browser lets go of the
+  // focus a frame later), the focus is put on the view instead.
+  useLayoutEffect(() => {
+    const active = document.activeElement;
+    if (
+      active &&
+      active !== contentRef.current &&
+      dockRef.current?.contains(active) &&
+      active.closest("[inert]")
+    ) {
+      contentRef.current?.focus({ preventScroll: true });
+    }
+  }, [chrome]);
   const onKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       const target = e.target as HTMLElement;
-      if (target.closest('[role="menu"]') || lightboxIndex !== null) return;
-      if (creatorOpen) return;
+      if (target.closest('[role="menu"]') || creatorOpen) return;
       if (e.key === " ") {
         // Space pauses, unless a control has the focus (then Space is that control's own press).
         if (target !== contentRef.current) return;
@@ -604,7 +650,7 @@ export function LiveReelView({
       }
       if (e.key !== "Escape") wake();
     },
-    [lightboxIndex, creatorOpen, idle, wake],
+    [creatorOpen, idle, wake],
   );
 
   const effectivePaused = paused;
@@ -676,15 +722,27 @@ export function LiveReelView({
               contentRef.current?.focus();
             }}
             onEscapeKeyDown={(e) => {
-              // A layer above (the media viewer, the creator) closes first.
-              if (lightboxIndex !== null || creatorOpen) e.preventDefault();
+              // A layer above (the creator) closes first.
+              if (creatorOpen) e.preventDefault();
             }}
             // ★ NOTHING OUTSIDE CLOSES IT. The view covers the screen, so "outside" is only ever another
-            // layer: a tooltip, a menu, the media viewer, or the add sheet "Add yours" opens (whose focus
-            // moving in would otherwise dismiss the reel under it). Close, Escape and Back close it.
+            // layer: a tooltip, a menu, or the add sheet "Add yours" opens (whose focus moving in would
+            // otherwise dismiss the reel under it). Close, Escape and Back close it.
             onInteractOutside={(e) => e.preventDefault()}
+            onPointerDownCapture={(e) => {
+              pressRef.current = {
+                pointer: e.pointerType,
+                overMenu: menuOpenRef.current,
+              };
+            }}
             onPointerMove={(e) => {
-              if (e.pointerType === "mouse" || e.pointerType === "pen") wake();
+              if (e.pointerType === "mouse" || e.pointerType === "pen") {
+                // The move that raises the dock from rest is stamped, for the click it may be aiming (`toggleChrome`).
+                if (chromeRef.current !== "up") {
+                  movedUpAtRef.current = performance.now();
+                }
+                wake();
+              }
             }}
             onKeyDown={onKeyDown}
             className="fixed inset-0 z-50 overflow-hidden bg-black text-white outline-none select-none"
@@ -693,13 +751,13 @@ export function LiveReelView({
               Highlight reel
             </DialogPrimitive.Title>
 
-            {/* THE PICTURE. Full-bleed, the viewport's own orientation; a tap opens the photograph. */}
+            {/* THE PICTURE. Full-bleed, the viewport's own orientation; a click or a tap anywhere on it
+              is the bar's own press (`onPictureClick`). `touch-manipulation` keeps a quick second tap
+              a tap (hide again) rather than the browser's double-tap zoom. */}
             {!idle && (
               <div
-                ref={pictureRef}
-                className="absolute inset-0"
-                // While the pill is up, a press anywhere is the press it asks for.
-                onClick={pillUp ? () => void fill() : openLightbox}
+                className="absolute inset-0 touch-manipulation"
+                onClick={onPictureClick}
                 data-reel-picture
               >
                 <LiveReelPlayer
@@ -795,18 +853,12 @@ export function LiveReelView({
                 state={chromeUp ? "up" : "rest"}
                 playing={!effectivePaused}
                 progress={progress}
-                onTogglePlay={() => {
+                onTogglePlay={(e) => {
                   setPaused((p) => !p);
-                  wake();
+                  // The press that toggled it says whose rest it earns: a finger's 4.2 s, a pointer's 2.4 s.
+                  wake(pressedByTouch(e, pressRef.current.pointer));
                 }}
-                onToggleDock={(touch) => {
-                  if (chromeUp) {
-                    if (timerRef.current) clearTimeout(timerRef.current);
-                    setChrome("rest");
-                  } else {
-                    wake(touch);
-                  }
-                }}
+                onToggleDock={toggleChrome}
                 includeVideos={includeVideos}
                 hasVideo={hasVideo}
                 onToggleVideos={() => {
@@ -830,7 +882,9 @@ export function LiveReelView({
                 onToggleCode={
                   desktop ? () => setShowCode((on) => !on) : undefined
                 }
-                onPlayOnScreen={isOwner && desktop ? openOnScreen : undefined}
+                onPlayOnScreen={
+                  isOwner && desktop && screenLink ? openOnScreen : undefined
+                }
                 styleFooter={styleFooter}
                 onAddYours={onAddYours}
                 onMakeYourOwn={creatorOffered ? openCreator : undefined}
@@ -847,23 +901,6 @@ export function LiveReelView({
               after a tap, never a paragraph standing over the reel. */}
             {!idle && creatorOffered && support === "no" && whyNot && (
               <WhyNotBubble anchor={dockRef} />
-            )}
-
-            {/* THE MEDIA VIEWER, for a tapped photograph: grown out of the frame, a video carrying on
-              from the reel's moment. Its own likes, since the album's provider sits in the grid. */}
-            {lightboxIndex !== null && (
-              <LikesProvider mediaIds={viewerIds}>
-                <MediaLightboxLazy
-                  items={lightboxItems}
-                  index={lightboxIndex}
-                  onClose={closeLightbox}
-                  onIndexChange={setLightboxIndex}
-                  shareUrl={joinUrl}
-                  origin={viewerFrom?.origin}
-                  startAt={viewerFrom?.startAt}
-                  onNeedLinks={onViewerNeedLinks}
-                />
-              </LikesProvider>
             )}
 
             {/* THE CREATOR: the clip's own room, a dialog of its own over this one (so Escape, focus
@@ -888,7 +925,7 @@ export function LiveReelView({
                   const Creator = creator;
                   return (
                     <Creator
-                      items={lightboxItems}
+                      items={creatorItems}
                       styleId={styleId}
                       eventId={eventId}
                       eventName={eventName}
@@ -917,6 +954,32 @@ export function LiveReelView({
 
 const EMPTY: readonly string[] = [];
 const EMPTY_ITEMS: readonly GalleryItem[] = [];
+
+/* ── the press ─────────────────────────────────────────────────────────────── */
+
+/**
+ * Whether a click was a finger's, which decides how long the controls it brings up stay (a touch
+ * viewer is given the longer rest, IDLE_TOUCH_MS). The press that began the click says so first (a
+ * pointerdown always carries its pointer's type, while not every engine types the click itself), then
+ * the click's own type; and a click no pointer made (a keyboard's or a screen reader's, `detail` 0)
+ * is a viewer who has not aimed at anything, so it gets the touch's rest too.
+ */
+function pressedByTouch(e: React.MouseEvent, began: string): boolean {
+  return (
+    began === "touch" ||
+    (e.nativeEvent as PointerEvent).pointerType === "touch" ||
+    e.detail === 0
+  );
+}
+
+/** Whether focus came the way a keyboard brings it (`:focus-visible`); an engine that cannot say holds it. */
+function keyFocus(el: EventTarget): boolean {
+  try {
+    return (el as Element).matches(":focus-visible");
+  } catch {
+    return true;
+  }
+}
 
 /* ── the source ────────────────────────────────────────────────────────────── */
 
@@ -1348,6 +1411,17 @@ function SetForEveryoneFooter({
 
 /* ── the dock ──────────────────────────────────────────────────────────────── */
 
+/**
+ * ★ A KEY'S HOVER IS FOR A KEY AT REST (red-team 53's NIT). The pointer's lift (12%) came later in the sheet than a
+ * pressed or open key's own fill (18%) and won while the pointer rested on the key, so the key a press had just opened
+ * read as any hovered one, and only lit once the pointer moved away. The state wins by construction, not by source
+ * order: a pressed key (`aria-pressed`, a React prop) never carries the hover, and an open menu's key (`aria-expanded`,
+ * set by the menu alone) is excluded from it in the rule itself.
+ */
+const KEY_HOVER = "[@media(hover:hover)_and_(pointer:fine)]:hover:bg-white/12";
+const MENU_KEY_HOVER =
+  "[@media(hover:hover)_and_(pointer:fine)]:not-aria-expanded:hover:bg-white/12";
+
 function ChromeButton({
   label,
   onClick,
@@ -1358,7 +1432,7 @@ function ChromeButton({
   stagger,
 }: {
   label: string;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent) => void;
   children: ReactNode;
   pressed?: boolean;
   shortcut?: string;
@@ -1383,8 +1457,7 @@ function ChromeButton({
             "flex size-10 shrink-0 items-center justify-center rounded-full text-white outline-none",
             "transition-[transform,background-color] duration-150 ease-emphasis active:scale-[0.94] motion-reduce:active:scale-100",
             "focus-visible:ring-2 focus-visible:ring-white/70",
-            "[@media(hover:hover)_and_(pointer:fine)]:hover:bg-white/12",
-            pressed && "bg-white/18",
+            pressed ? "bg-white/18" : KEY_HOVER,
             className ?? GLASS,
           )}
         >
@@ -1429,8 +1502,12 @@ function MenuButton({
               className={cn(
                 "flex size-10 shrink-0 items-center justify-center rounded-full text-white outline-none",
                 "transition-[transform,background-color] duration-150 ease-emphasis active:scale-[0.94] motion-reduce:active:scale-100",
-                "focus-visible:ring-2 focus-visible:ring-white/70 data-[state=open]:bg-white/18",
-                "[@media(hover:hover)_and_(pointer:fine)]:hover:bg-white/12",
+                // ★ THE OPEN FILL READS `aria-expanded`, NEVER `data-state` (identity r4's finding: the key never
+                // showed its fill). The tooltip wraps the menu's trigger on this one button, and radix spreads the
+                // OUTER trigger's props after the inner one's own, so `data-state` here is the tooltip's ("closed")
+                // while the menu stands open; `aria-expanded` is set by the menu alone.
+                "focus-visible:ring-2 focus-visible:ring-white/70 aria-expanded:bg-white/18",
+                MENU_KEY_HOVER,
               )}
             >
               {icon}
@@ -1525,8 +1602,9 @@ function ReelDock({
   state: "up" | "rest";
   playing: boolean;
   progress: number;
-  onTogglePlay: () => void;
-  onToggleDock: (touch: boolean) => void;
+  onTogglePlay: (e: React.MouseEvent) => void;
+  /** The bar's press at rest and the timeline's in the dock: the view's one toggle (`toggleChrome`). */
+  onToggleDock: (e: React.MouseEvent) => void;
   includeVideos: boolean;
   hasVideo: boolean;
   onToggleVideos: () => void;
@@ -1578,7 +1656,11 @@ function ReelDock({
         ref={paneRef}
         data-state={state}
         data-reel-dock={state}
-        onFocus={() => onFocusWithin(true)}
+        // ★ ONLY A KEY'S FOCUS HOLDS THE DOCK UP. A pointer's or a finger's press leaves the control it
+        // pressed focused, and a dock held up by that never rested again until the viewer pressed
+        // somewhere else; the focus a keyboard brings (`:focus-visible`, the Tab that walks the
+        // controls) is the viewer using it, and keeps it up.
+        onFocus={(e) => onFocusWithin(keyFocus(e.target))}
         onBlur={(e) => {
           if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
             onFocusWithin(false);
@@ -1726,7 +1808,7 @@ function ReelDock({
           {/* The timeline, again: in the dock it is the way back to the bar. */}
           <button
             type="button"
-            onClick={() => onToggleDock(false)}
+            onClick={onToggleDock}
             aria-label="Hide the controls"
             className="group mx-1 flex h-4 items-center outline-none"
           >
@@ -1766,13 +1848,8 @@ function ReelDock({
         {/* THE BAR AT REST: play and progress, one target that grows into the dock. */}
         <button
           type="button"
-          onClick={(e) => {
-            // A tap on the bar opens the dock on touch; a pointer has already woken it by moving.
-            const touch =
-              (e.nativeEvent as PointerEvent).pointerType === "touch" ||
-              e.detail === 0;
-            onToggleDock(touch);
-          }}
+          // A press on the bar opens the dock (a pointer has usually woken it by moving already).
+          onClick={onToggleDock}
           aria-label="Show the reel's controls"
           aria-expanded={up}
           inert={up}

@@ -57,9 +57,10 @@ export const CreditLookContext = createContext<CreditLook | null>(null);
  * step in the right direction of my previous note about redesigning the
  * floating UI"). Top left, opposite the close circle, in the guest list's
  * grammar: a confirmed account's face (its photograph, or its colour's disc
- * with the initial), a typed name's plain disc and the Unverified mark, and a
- * door to the person's page only where one exists. The host still reads the
- * proved address under the name; a typed name never has one to show.
+ * with the initial), a typed name's own colour (her guest ROW's, never a
+ * photograph, small-fixes) beside the Unverified mark, and a door to the
+ * person's page only where one exists. The host still reads the proved address
+ * under the name; a typed name never has one to show.
  *
  * ★ ON YOUR OWN UPLOAD IT READS "YOU" (the brief's call, his to overrule), with
  * no separate mark in the viewer: the credit says it. The Unverified mark stays
@@ -127,9 +128,10 @@ export const FaceCredit = memo(function FaceCredit({
   // A disc only beside a name, the face's own rule: a host who never set one is credited by the badge alone.
   const disc = name !== null && (
     <Avatar
-      // A colour is an identity everywhere else, so only a confirmed account's
-      // seed paints one; a typed name keeps the plain disc (the guest list's rule).
-      seed={!unverified && face?.seed ? face.seed : undefined}
+      // The face's colour, whoever it belongs to: a confirmed account's, or a typed name's own row's (the guest
+      // list's rule). Only a PHOTOGRAPH is withheld from a name nobody proved: it would lend it the claim the
+      // mark withholds, and a typed name has none to show.
+      seed={face?.seed ? face.seed : undefined}
       className="size-7 shrink-0 after:border-white/15"
     >
       {!unverified && face?.avatarUrl && (

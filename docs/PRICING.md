@@ -18,6 +18,12 @@ below).
 - **Storage-based, not item counts.** A plan is a total stored-bytes cap. `profiles.tier` is the **billing category**
   (`free | pro | event_pass`); the granted cap lives in `profiles.storage_cap_bytes` (set by the Stripe webhook from
   the purchased plan), so Pro's storage selector is just different caps under `tier="pro"`.
+- **Deleted counts in storage** (Will, 2026-10-03): the cap holds everything a host keeps, her albums and her Deleted
+  together, so deleting frees nothing until an item leaves Deleted for good (her Delete permanently or Empty Deleted,
+  the 30-day purge, or, with Make room from Deleted on, the default, the oldest first when an upload needs room). One
+  number under one cap is the clear model, what a plan stores is its cap and its 10% write headroom whatever she
+  deletes, and a host who would rather not delete for good to free space moves up a size. A full Deleted never refuses
+  a guest's photo while the setting is on, which is why it is on.
 - **Stripe Prices are the billing truth**, referenced by env key; `tiers.ts` carries the plan shape and the display
   labels, and `tier_limits()` in SQL mirrors its limits. A price change is a new Stripe Price, its env value (a
   redeploy) and the label, together.
@@ -31,15 +37,16 @@ below).
 - **No refunds, on a cancel or an account's deletion** (Will, 2026-10-03): a deletion cancels the plan at once and the
   rest of the period is not refunded, and the dialog says so; a refund would invite upgrading on the event's day and
   claiming most of it back days later.
-- **The monthly ingress meter** (bytes uploaded per month; never refunded on delete) is the anti-abuse guard, because
-  storage caps alone don't stop delete-and-re-upload bandwidth burn. Every plan's bound is a multiple of its effective
-  storage cap (`INGRESS_CAP_MULTIPLIER`, 3; Free's is 300 MB), so the bound scales with the room a host has. **A limit
-  a host could meet is published** (Will, 2026-10-03): the monthly uploads become a row of the pricing table with a
-  hover explainer, each plan's number gracious for nearly everyone, so nobody meets a limit nobody told them of; only a
-  circuit breaker no real host meets stays unpublished. Published, the number only moves up, so it is sized with the
-  plan's price ("What it costs us"); until the table carries it, the site says only that a monthly limit exists. The
-  one outcome worth engineering against is still a false positive blocking a paying host; nothing in `/admin` shows a
-  host's meter, and there is no manual override.
+- **The uploads allowance** (bytes uploaded, never refunded on delete) is the anti-abuse guard, because storage caps
+  alone don't stop delete-and-re-upload churn, which the backup and every upload's operations bill. **A limit a host
+  could meet is published** (Will, 2026-10-03), so every plan carries its own number in the pricing table's Uploads
+  row, with its hover line: Free 300 MB a month, a pass 50 GB over its year, Pro 100 / 200 / 500 GB a month by size.
+  It is never one multiple of the cap: its share of the room falls as the plans grow (3× a month on Free, 2× a year on
+  a pass, then 2×, 1× and about ½× a month on Pro), because a big plan's month never re-fills it and the plan's worst
+  month is what sizes its price ("What it costs us"). A pass counts its own year, on the pass, so its event can take
+  the whole allowance in one night. Published, each number only moves up; a circuit breaker no real host meets stays
+  unpublished. The one outcome worth engineering against is still a false positive blocking a paying host; nothing in
+  `/admin` shows a host's meter, and there is no manual override.
 - **A marketed number can only ever move UP.** Grandfathering makes every published limit sticky, so each one lands at
   the conservative-but-generous end: raising a limit later is a gift, lowering it is a broken promise. That asymmetry,
   not precision, is what picks these numbers.
@@ -49,13 +56,23 @@ below).
 
 ## Tiers
 
-| Plan           | Price                      | Storage | ≈ holds                              | Events                      |
-| -------------- | -------------------------- | ------- | ------------------------------------ | --------------------------- |
-| **Free**       | $0                         | 100 MB  | 29 photos (photos only)              | 1                           |
-| **Pro 100 GB** | $9/mo or $90/yr            | 100 GB  | 29,257 photos or 26 hours of video   | unlimited                   |
-| **Pro 500 GB** | $19/mo or $190/yr          | 500 GB  | 146,286 photos or 131 hours of video | unlimited                   |
-| **Pro 2 TB**   | $39/mo or $390/yr          | 2 TB    | 599,186 photos or 538 hours of video | unlimited                   |
-| **Event Pass** | $24 one-time, $15 to renew | 75 GB   | 21,943 photos or 20 hours of video   | 1 per pass, each for a year |
+**Ladder A** (Will, 2026-10-03 and 10-04: "send it on pricing tier A with $99", the renewal at $19): an event, or a
+year of them.
+
+| Plan           | Price                      | Storage | Uploads             | ≈ holds                              | Events                      |
+| -------------- | -------------------------- | ------- | ------------------- | ------------------------------------ | --------------------------- |
+| **Free**       | $0                         | 100 MB  | 300 MB a month      | 29 photos (photos only)              | 1                           |
+| **Event Pass** | $29 one-time, $19 to renew | 25 GB   | 50 GB over its year | 7,314 photos or 7 hours of video     | 1 per pass, each for a year |
+| **Pro 50 GB**  | $9/mo or $90/yr            | 50 GB   | 100 GB a month      | 14,629 photos or 13 hours of video   | unlimited                   |
+| **Pro 200 GB** | $29/mo or $290/yr          | 200 GB  | 200 GB a month      | 58,514 photos or 53 hours of video   | unlimited                   |
+| **Pro 1 TB**   | $99/mo or $990/yr          | 1 TB    | 500 GB a month      | 299,593 photos or 269 hours of video | unlimited                   |
+
+Each step is a host's next natural use, which is how the pricing page labels it (a plan is never named by its size
+alone, since GB for GB a cloud drive is many times cheaper): the pass is one big event kept a year (a 200-guest
+wedding, twice over), Pro 50 GB a season of parties, Pro 200 GB a planner's year, Pro 1 TB a venue's year, at a price a
+GB that falls gently ($0.18, $0.145, $0.097) and never under the plan's worst month. Every card leads with the events
+it holds (`BIG_PARTY` in `tiers.ts`: 200 guests' 2,000 photos and 100 half-minute clips, about 10 GB of originals) and
+keeps the GB in its row; the pass says "one payment, no subscription", the line its market sells on.
 
 The ≈ column is `formatCapacity` in `tiers.ts`, the phrase /pricing, the plan sheet, the help and the blog print; the
 site derives it from the GB and never types it. **It assumes an iPhone at its default camera settings, and every
@@ -65,18 +82,18 @@ derivation and the sources are the constants' comment). `ESTIMATE_BASIS` is the 
 working.
 
 - **Annual Pro is exactly ×10 the monthly, marketed as "two months free"** (a Vitest pin holds each yearly label at
-  10× its sibling). Why not deeper: the top plan's margin is the limit, and a full 2 TB plan already costs more than
-  it earns at either cadence once its backup is counted ("What it costs us": the worst month), so starting
-  conservative leaves deepening as a later gift. The yearly Stripe prices live on the SAME products as the monthly ones (one
-  product per size, so the size reads the same in Checkout and on Stripe's confirm page); env keys
-  `STRIPE_PRICE_PRO_{100,500,2TB}_YR`. A Pro host moves between sizes and cadences from the app's plan sheet (her
+  10× its sibling). Why not deeper: a yearly price is every plan's thinnest at its worst month, Pro 50 GB's the
+  thinnest of all (1.38×, "What it costs us": the worst month), so starting conservative leaves deepening as a later
+  gift. The yearly Stripe prices live on the SAME products as the monthly ones (one product per size, so the size reads
+  the same in Checkout and on Stripe's confirm page); env keys `STRIPE_PRICE_PRO_{50,200,1TB}_YR`. A plan id and its
+  env key name its size (`pro_50`, `STRIPE_PRICE_PRO_50`), so a key never names a price it does not hold. A Pro host moves between sizes and cadences from the app's plan sheet (her
   three sizes under one Monthly / Yearly toggle, the saving tagged beside Yearly and computed from these labels;
   `/api/stripe/change-plan`, `proration_behavior: always_invoice`), and a pass holder's prorated credit lands as
   customer balance, which pays the NEXT invoice: on yearly, that is a year out (never lost).
 - **A plan change never leaves a host storing more than the new cap** (Will, 2026-09-22). Any Pro purchase or Pro
-  size change must hold what the host already stores (active bytes against the plan's plain cap); a smaller one
-  is refused with the numbers ("You're storing 140 GB. Pro 100 GB holds 100 GB, so remove 40 GB first, or choose
-  Pro 500 GB.") until they remove enough. An Event Pass is never refused (passes stack). So Partyreel never
+  size change must hold what the host already stores (her albums and her Deleted against the plan's plain cap); a
+  smaller one is refused with the numbers ("You're storing 70 GB. Pro 50 GB holds 50 GB, so free 20 GB first, or
+  choose Pro 200 GB, monthly.") until they free enough. An Event Pass is never refused (passes stack). So Partyreel never
   removes media, or pays for storage beyond the plan, because of a purchase; the 45-day over-capacity grace
   remains for a plan that ENDS. The mechanism: [`systems/billing-caps.md`](systems/billing-caps.md).
 - **What Free gates.** **Video is paid** (Pro and the Event Pass; a free event is photos-only for guests AND the host,
@@ -95,15 +112,18 @@ working.
   refuses the reserved words in SQL (`RESERVED_SLUGS`, mirrored and parity-tested), since the RPC is callable past
   the server action; and a slug frees when its event is deleted, for good: a restore brings it back only while it is
   still free.
-- **Event Pass economics.** Passes **STACK**: each purchase is a ledger row granting +1 event slot and +75 GB for its
-  own one-year window (`event_passes` + `profiles.event_slots`). Moving to Pro converts every live pass into
+- **Event Pass economics.** Passes **STACK**: each purchase is a ledger row granting +1 event slot, +25 GB and its own
+  50 GB of uploads for its own one-year window (`event_passes` + `profiles.event_slots`; its uploads counted on the row,
+  `uploaded_bytes`). Moving to Pro converts every live pass into
   **PRORATED CREDIT**: the unused fraction of what was actually paid becomes Stripe customer balance that pays down
-  upcoming Pro invoices (nothing banked, nothing lost), at a Pro size that holds what the passes store. The renewal ($15, `STRIPE_PRICE_EVENT_PASS_RENEWAL`) is sold
+  upcoming Pro invoices (nothing banked, nothing lost), at a Pro size that holds what the passes store. The renewal ($19, `STRIPE_PRICE_EVENT_PASS_RENEWAL`) is sold
   only to a holder with a pass window active now (read from the ledger at checkout) and chains a new window onto the
   soonest-expiring active pass: it extends, never resets, and an unopened renewal year credits at 100%. The
-  dashboard's "Renew Event Pass" button and the pre-expiry nudge email (14 days out) point at it. The renewal is $15
-  because a typical album costs us $3 to $5 a year, an easy yes; a full 75 GB pass costs ≈$32 a year to keep with no
-  re-upload at all, so at today's size the renewal holds only at typical use ("What it costs us": the worst month). At expiry without renewal the account recomputes down (eventually
+  dashboard's "Renew Event Pass" button and the pre-expiry nudge email (14 days out) point at it. The renewal is $19
+  (the Advisor's Q16): a typical album costs us $3 to $5 a year, an easy yes, and a full 25 GB pass ≈$10.72 a year to
+  keep, so the renewal carries a full pass and its own year's 50 GB of uploads at 1.45× ("What it costs us": the worst
+  month). Once sold it binds every holder who renews, so it is priced to outlast our vendors: $19 absorbs a 45% rise
+  in what a pass costs us, where $15 absorbed 14%. At expiry without renewal the account recomputes down (eventually
   to Free, with the over-capacity grace if it holds more than Free's cap: [`PRD.md`](PRD.md) "Data retention and
   lifecycle"). /pricing surfaces the renewal price (the pass card, the table and the FAQ) through
   `EVENT_PASS_RENEWAL_PRICE_LABEL` in `tiers.ts`.
@@ -131,8 +151,8 @@ hold the model:
    explainer, the monthly uploads first), or a circuit breaker no real host meets (a script uploading without end, a
    looped function). A cost in none of the three is a bug, and a new feature names its class before it ships.
 2. **No plan's worst month costs more than its price, net of Stripe.** The worst month is the cap's at its limits:
-   active media at the cap and its 10% headroom, Deleted full, the month's uploads at their allowance, the backup
-   holding all of it, plus the live cost of its events. It is provable only once the backup's prune keeps up and the
+   her albums and her Deleted together at the cap and its 10% headroom, the month's uploads at their allowance, the
+   backup holding all of it, plus the live cost of its events. It is provable only once the backup's prune keeps up and the
    live album grows with viewers × time, never uploads × viewers; the levers below buy both.
 3. **Guards are circuit breakers, not budgets.** Every vendor without a cap gets one of ours (`spend-watch`): past 10×
    the trailing peak it alerts and flips the switch that stops the vector, with its `/admin` card. Growth is never a
@@ -146,7 +166,7 @@ hold the model:
 | [Vercel](https://vercel.com/pricing) | Hobby is [non-commercial](https://vercel.com/docs/limits/fair-use-guidelines); [Pro](https://vercel.com/docs/plans/pro-plan) $20 a seat a month with a $20 credit. [Functions](https://vercel.com/docs/functions/usage-and-pricing) and the proxy, [billed alike](https://vercel.com/docs/routing-middleware) (iad1): $0.60 a million invocations, $0.128 a CPU-hour (I/O waits free), $0.0106 a GB-hour while a request is in flight. CDN: Pro's [Flat Rate](https://vercel.com/docs/pricing/flat-rate-cdn) holds 1M requests and 1 TB, then $20 (10M), $100 (50M), $300 (150M) a month; [on demand](https://vercel.com/docs/pricing/regional-pricing/iad1), $2 a million requests and $0.15 a GB |
 | [Supabase](https://supabase.com/pricing) | Pro $25 a month, Micro in its $10 credit; 100,000 MAU, then $0.00325 each; 250 GB egress (every service, the database's answers too), then $0.09 a GB; disk 8 GB, then $0.125 a GB; Realtime 500 peak connections, then $10 a thousand, and 5M messages, then $2.50 a million, a broadcast counting [one plus one a listener](https://supabase.com/docs/guides/platform/manage-your-usage/realtime-messages); compute Small $15, Medium $60, Large $110 to 8XL $1,870 a month, changed by hand |
 | [Resend](https://resend.com/pricing), [Sentry](https://sentry.io/pricing/) | email free to 3,000 a month (100 a day), Pro $20 for 50,000 with no daily cap, then $0.90 a thousand; errors free to 5,000, Team $26 a month billed yearly for 50,000 |
-| [Stripe](https://stripe.com/pricing) | 2.9% + 30¢ a charge, [0.7% more on a subscription](https://stripe.com/billing/pricing), 1.5% more on an international card: $0.62 of $9 (6.9%), $0.98 of $19, $1.70 of $39 (4.4%), $3.54 of $90 a year, $1.00 of a $24 pass, $0.74 of a $15 renewal |
+| [Stripe](https://stripe.com/pricing) | 2.9% + 30¢ a charge, [0.7% more on a subscription](https://stripe.com/billing/pricing), 1.5% more on an international card: $0.62 of $9 (6.9%), $1.34 of $29, $3.86 of $99 (3.9%), $3.54 of $90 a year, $35.94 of $990, $1.14 of a $29 pass, $0.85 of a $19 renewal |
 | Fixed, at launch | ≈$98 a month: Vercel Pro $20, Supabase Pro $25, Workers Paid $5, Resend Pro $20, Sentry Team $26, the domain ≈$2; [Cloudflare Pro](https://www.cloudflare.com/plans/) $25 ($20 billed yearly) with the media domain; the database's compute is the first line to step |
 
 ### The atlas
@@ -157,34 +177,34 @@ bounds it better. ≈ The operations behind the per-item figures: a call ≈3 ms
 
 **(a) Bytes-months, priced by the cap**
 
-- **Active media.** $0.025 a GB-month with its backup. Bounded by the cap and its 10% write headroom
-  (`supabase/migrations/20261003110000_phone_copy.sql:236`, `capWithWriteHeadroom`, `constants/tiers.ts:402`).
-  Worst: 1.1 × the cap.
+- **Active media.** $0.025 a GB-month with its backup. Bounded, with Deleted, by the cap and its 10% write headroom
+  (`supabase/migrations/20261003220000_deleted_counts.sql:511`, `capWithWriteHeadroom`, `constants/tiers.ts:402`).
+  Worst: 1.1 × the cap, Deleted included.
 - **The copies.** A ≈60 KB preview and a photograph's ≈1 MB phone copy, never metered: ≈30% on a photo's bytes, nearly
   nothing on a video's. The phone copy fits within 4 MB and half its original (`media/preview-size.ts:92,112-121`);
   the preview within 2 MB, checked at presign only and at no ratio to its original (`upload/server-pipeline.ts:176-178`,
   `media/preview-size.ts:21`), which may be one byte (`validation/upload.ts:170,175`). Worst: ≈1.3 × the media for a
   real host; unbounded for a flood of tiny files, each carrying up to 2 MB unmetered. Better: a preview never outweighs
   its original (refused at presign; the tile serves the original, which is smaller anyway).
-- **Deleted.** Up to one cap for 30 days, the oldest out first (`lifecycle/recently-deleted.ts:14,22`,
-  `lifecycle/sweeps/standby-budget.ts:109`), so the primary holds up to 2.1 × the cap; a restore and a re-delete starts
-  an item's 30 days over, so the bin stays full with no upload at all. Worst: ≈$0.033 a GB of cap a month with its
-  backup. Better: published as the bin's size; a re-delete within 30 days keeping its first date (a breaker no real host
-  meets). Infrequent Access for the tail would save a third, but its 30-day minimum and $0.01 a GB read back make one
+- **Deleted.** Inside the cap, for 30 days (`supabase/migrations/20261003220000_deleted_counts.sql`: the cap reads
+  `host_storage_summary`, her albums and her Deleted), so a restore-and-re-delete cycle stores nothing past it. An
+  item leaves early only for good, its object waiting for that night's purge (`leave_deleted`), so a refill day's
+  peak holds what left beside what arrived: at 2× a month (Pro 50 GB's allowance), ≈0.07 × the cap averaged. Worst:
+  ≈$0.0013 a GB of cap a month. Infrequent Access for the tail would save a third, but its 30-day minimum and $0.01 a GB read back make one
   restore cost more than it saved.
 - **The backup.** Every object a PUT creates, copies included (`workers/backup/src/index.ts:96-107`, no key filter at
   `:527-535`), into Infrequent Access under a 35-day lock. Accrue-only today: the prune runs dry
   (`workers/backup/wrangler.jsonc:55`) and, live, deletes at most 500 media a week after scanning 5,000 objects from the
   head of the listing (`workers/backup/src/prune-strategy.ts:20,27`), so a deleted byte stays at $0.013 a GB-month,
-  copies included, for good. Worst: unbounded (a 100 GB plan re-filled 3× a month carries ≈$50 a month of backup a year
-  in). Better: the prune keeps up (a cursor, caps sized to the deletions, `PRUNE_MODE=live`), the invariant's
+  copies included, for good. Worst: unbounded (Pro 50 GB re-filled at its 2× a month carries ≈$16 a month of backup a
+  year in). Better: the prune keeps up (a cursor, caps sized to the deletions, `PRUNE_MODE=live`), the invariant's
   precondition, then the backup holds the live set and 43 days of uploads (the 36-day gate and the weekly cadence);
   then originals only, once something can remake the copies.
 - **Re-uploading (delete and re-upload).** ≈$0.0165 of operations a GiB of photos uploaded (each one three PUTs, two
   HEADs, three backup copies at $10.26 a million, nine Queue operations, four invocations) and $0.0013 a GiB of clips,
-  plus 43 days of backup. Bounded by the monthly meter, 3 × the effective cap a calendar month, never refunded
-  (`constants/tiers.ts:224`, `phone_copy.sql:86,224-229`). Worst at 3×: $0.049 of operations and $0.069 of backup a GB
-  of cap a month. Better: the monthly uploads published per plan and sized with its price.
+  plus 43 days of backup. Bounded by each plan's published uploads allowance, never refunded (`upload_allowance`,
+  `uploads_used`, 20261004100000): 3× the cap a month on Free, 2× a year on a pass, 2×, 1× and ≈½× a month on Pro.
+  Worst at 2× (Pro 50 GB): $0.033 of operations and $0.050 of backup a GB of cap a month.
 
 **(b) Per-request constants**
 
@@ -282,50 +302,56 @@ bounds it better. ≈ The operations behind the per-item figures: a call ≈3 ms
 - **Stripe's fee**, on every charge (the table above), and **a Free account**: 100 MB, ≈$0.003 a month with its copies,
   its creation bounded by Auth's limits and its event resting after 180 quiet days (`lifecycle/inactivity.ts:7`).
 
-**(c) Bounds.** Published today: storage, events, a file's 10 GB, Free's photos only and its 180-day rest. By Will's word
-(2026-10-03) the monthly uploads join them as a row of the pricing table, and so does any limit a host could meet, such
-as Deleted's size and 30 days (the site still names only that a monthly limit exists, `content-policy.test.ts:164`
-fencing the word). Unpublished, because no real host meets them: Auth's hourly email limit and spend-watch's 10×, and
-the breakers still to add (an account's uploads an hour, its events a day, a preview no heavier than its original, a
-re-delete's first date). "No guest limit" (`src/components/marketing/jsonld.tsx:86`, the FAQ,
-`content/llms.ts:120`) and "unlimited events" (`src/components/marketing/sections/pricing/unlock-grid.tsx:53`,
-`constants/marketing-voice.ts:130`) stay true, because a guest is a constant and an event pages; the Terms already
-reserve "reasonable limits on upload volume, download bundling and other activity"
-(`constants/legal-terms.tsx:188,193`).
+**(c) Bounds.** Published, each a row of the pricing table with its hover line (Will, 2026-10-03: any limit a host
+could meet): storage, uploads (each plan's own), events, guests (no limit), a file's 10 GB, Deleted's 30 days and that
+it counts in storage, how long each plan keeps an album, Free's photos only and its 180-day rest. The table's fine
+print says the rest in one line, the fair-use line: every plan is for real events, and behind the table we watch only
+for automated abuse, which we may slow or pause, resting on the Terms' "reasonable limits on upload volume, download
+bundling and other activity" and their bar on getting around a plan's limits (`constants/legal-terms.tsx:188,193`).
+Unpublished, because no real host meets them: an account's uploads a clock hour (20,000) and its events a day (100)
+(`upload_meter`, 20261003210500), Auth's hourly email limit and spend-watch's 10×, and a preview no heavier than its
+original (still to add); `content-policy.test.ts` fences the word "ingress" and the breakers' numbers. "No guest limit"
+(`src/components/marketing/jsonld.tsx:86`, the FAQ, `content/llms.ts:120`) and "unlimited events"
+(`src/components/marketing/sections/pricing/unlock-grid.tsx:53`, `constants/marketing-voice.ts:130`) stay true,
+because a guest is a constant and an event pages.
 
 ### The worst month
 
-Per GB of cap, photographs (a video's copies weigh nothing), the backup's prune keeping up unless named:
+Per GB of cap, photographs (a video's copies weigh nothing), Deleted inside the cap, the backup's prune keeping up
+unless named:
 
 | Case | A GB of cap a month |
 | --- | --- |
 | Full, nothing deleted or re-uploaded | $0.036 (video $0.028) |
-| Today's rules: full, Deleted full, re-uploaded 3× | $0.159: primary $0.041, backup $0.069, operations $0.049 |
-| The same, the prune dry, a year in | $0.587 |
-| Re-uploaded 2× | $0.124 |
-| Re-uploaded 1× | $0.089 (video $0.057) |
-| Re-uploaded 1×, the backup holding originals only | $0.075 |
+| Re-uploaded 2× (Pro 50 GB's allowance) | $0.105: primary $0.022, backup $0.050, operations $0.033 |
+| The same, the prune dry, a year in | $0.381 |
+| Re-uploaded 1× (Pro 200 GB's) | $0.070 (video $0.042) |
+| Re-uploaded ≈½× (Pro 1 TB's) | $0.052 |
+| Re-uploaded 1×, the backup holding originals only | $0.056 |
 
-Today every paid plan breaks rule 2 at its worst month: Pro 100 GB costs $15.94 against $8.38 net of Stripe, Pro 500 GB
-$79.69 against $18.02, Pro 2 TB $326 against $37.30 (full and never re-uploaded, still $73), and the 75 GB pass $143 a
-year against $23, its $15 renewal the same against $14.27 (a full pass kept a year, $32). A one-time pass is the tightest
-case, since its single price carries a year: a full pass costs ≈$0.45 to $0.55 a GB a year to keep (its deletions and a
-refill included), so its renewal's price sets its size, and its uploads fit an allowance over its year (the event and a
-refill) better than a monthly one.
+With Deleted inside the cap the primary holds 1.1 × the cap (a refill day's peak aside), so what is left is churn: the
+backup's 43 days of uploads and their operations. Every Ladder A plan keeps rule 2 at its worst month, before any
+lever: Pro 50 GB costs $5.24 against $8.38 net of Stripe (1.60×; yearly 1.38×, the thinnest), Pro 200 GB $13.92
+against $27.66 (1.99×; 1.67×), Pro 1 TB $52.90 against $95.14 (1.80×; 1.50×), the pass $12.48 a year against $27.86
+(2.23×) and its $19 renewal, a year with its own 50 GB, the same against $18.15 (1.45×; a full pass kept a year with
+no upload, $10.72). Free at its worst is $0.014 a month. A one-time pass is the tightest kind, since its single price
+carries a year, which is why its renewal's price sets its size and its uploads count over its year (the event and a
+second round) rather than a month. Each holds only while the prune keeps up: dry, Pro 50 GB's worst is $19.07 a
+month.
 
 ### The archetypes
 
 | Archetype | Today | After `album-calm` and the levers | Against |
 | --- | --- | --- | --- |
 | Cheap: a Free event at its cap (29 photos, 20 guests, 10 confirming) | $0.06 its month at scale, then $0.003 a month | the same | $0 |
-| Typical: Pro, three parties kept (36 GiB), one more a quarter | $1.39 a month | $1.17 | $9 ($8.38 net) |
-| Expensive: Pro 100 GB full, Deleted full, re-filled 3× a month, a 2,000-guest wedding a month | $55 a month ($98 with the prune dry, a year in) | $16.36 (re-filled 1×) | $9 |
+| Typical: Pro 50 GB, three parties kept (36 GiB), one more a quarter | $1.39 a month | $1.17 | $9 ($8.38 net) |
+| Expensive: Pro 200 GB full, Deleted inside, re-filled 1× a month (its allowance), a 2,000-guest wedding a month | $53 a month ($81 with the prune dry, a year in) | $18.55 | $29 ($27.66 net) |
 | Guest-heavy: the wedding's live album and its guests alone | $37 an evening | $11.40 after `album-calm`, $5.53 after the levers | |
-| Video-heavy: Pro 100 GB full of video, re-filled 3× | $8.82 a month (full and still, $2.75) | $5.71 (1×) | $9 |
-| Churn: Pro 100 GB re-filled 3× a month, photographs | $15.94 a month ($58.67 with the prune dry, a year in) | $8.92 (1×) | $9 |
+| Video-heavy: Pro 50 GB full of video, re-filled 2× (its allowance) | $2.88 a month (full and still, $1.38) | $2.88 | $9 |
+| Churn: Pro 50 GB re-filled 2× a month, photographs | $5.24 a month ($19.07 with the prune dry, a year in) | $3.98 | $9 |
 | Always-open: one screen on the reel all month | $0.54 a month and a connection | $0.39 | |
-| The 2,000-guest wedding (1,000 confirming, 9,500 photos, 500 clips, ≈200 tabs over five hours): 58 GiB kept, $1.46 a month | $39 once: the live album $33 (960,000 syncs, 557,000 links calls, 2M messages, 143 GiB of egress gzipped, $65 raw), its guests $4.24, page loads $1.35, uploads $0.56 | $13 after `album-calm`, $7.44 after the levers | the plan that holds it |
-| Photographer or venue: Pro 2 TB full, refreshed 1× a month, eight parties a month | $194 a month ($338 at 3×) | $160 | $39 ($37.30 net) |
+| The 2,000-guest wedding (1,000 confirming, 9,500 photos, 500 clips, ≈200 tabs over five hours): 58 GiB kept, $1.46 a month | $39 once: the live album $33 (960,000 syncs, 557,000 links calls, 2M messages, 143 GiB of egress gzipped, $65 raw), its guests $4.24, page loads $1.35, uploads $0.56 | $13 after `album-calm`, $7.44 after the levers | the plan that holds its ≈49 GB of originals: two passes ($58) or Pro 200 GB ($29 a month) |
+| Photographer or venue: Pro 1 TB full, refreshed at its 500 GB a month, eight parties a month | $64.70 a month | $50.87 | $99 ($95.14 net) |
 
 The reference party (200 guests over five hours, 2,000 photos and 100 clips of ≈30 s, ≈20 tabs with the socket up,
 ≈100 confirming, ≈400 visits the week after) stores 12.1 GiB ($0.30 a month) and costs $1.47 once today (its live album
@@ -334,21 +360,20 @@ $0.76: 39,000 syncs, 20,500 links calls, 44,100 messages), $0.90 after `album-ca
 ### Breakeven and light-per-heavy
 
 The fixed ≈$98 a month (≈$123 with Cloudflare Pro) is covered by 14 typical Pro hosts at $9, each netting ≈$7.20 (18
-with Cloudflare Pro), or by about 64 passes a year at today's $24, each netting ≈$18.55. The expensive host above,
-lever by lever (Pro 100 GB at $9):
+with Cloudflare Pro), or by about 51 passes a year at $29, each netting ≈$23.41. The expensive host above, lever by
+lever (Pro 200 GB at $29, the smallest size that holds the wedding):
 
-| Step | Its month | Against $8.38 | Typical hosts to cover it |
+| Step | Its month | Against $27.66 | Typical hosts to cover it |
 | --- | --- | --- | --- |
-| As built (the prune dry, a year in; 3× uploads; the live album as built) | $97.72 | −$89.35 | 12.4 |
-| The prune keeps up | $54.99 | −$46.61 | 6.5 |
-| `album-calm` | $29.24 | −$20.87 | 2.9 |
-| The guest count once a beat; attribution in the sync | $26.70 | −$18.32 | 2.5 |
-| One ping a beat | $23.38 | −$15.00 | 2.1 |
-| Uploads published at 1× the cap | $16.36 | −$7.98 | 1.1 |
-| The backup holding originals only | $14.95 | −$6.58 | 0.9 |
+| As built (the prune dry, a year in; its 1× uploads; the live album as built) | $80.77 | −$53.11 | 7.4 |
+| The prune keeps up | $52.98 | −$25.32 | 3.5 |
+| `album-calm` | $27.23 | +$0.43 | 0 |
+| The guest count once a beat; attribution in the sync | $24.69 | +$2.97 | 0 |
+| One ping a beat | $21.37 | +$6.29 | 0 |
+| The backup holding originals only | $18.55 | +$9.10 | 0 |
 
-Pro 2 TB at its worst loses $289 a month as built (40 typical hosts) and $145 at 1× (20): no lever reaches it at $39,
-so it is priced or sized away in the ladder Will picks.
+No Ladder A plan needs another to carry it: each covers its own worst month (above), the biggest host's Pro 1 TB at
+$52.90 against $95.14 (the plans' lines re-run for Ladder A on 2026-10-04, on the same model and prices).
 
 ### Each vendor's guard
 
@@ -364,9 +389,9 @@ so it is priced or sized away in the ladder Will picks.
 
 **The preconditions**, which nobody sees: the prune keeps up (a cursor and caps sized to the deletions, with the
 launch's `PRUNE_MODE=live`: the backup goes from every byte ever uploaded to the live set and 43 days, a re-filled
-100 GB plan $43 a month cheaper a year in); a presign's declared bytes count against the month's uploads, and a preview
-is never heavier than its original (the two unmetered holes close); a re-delete within 30 days keeps its first date;
-an account's uploads an hour and events a day get breakers far past any party. Each is small; rule 2 holds only with
+Pro 50 GB $14 a month cheaper a year in); a presign's declared bytes count against the month's uploads, and a preview
+is never heavier than its original (the two unmetered holes close); an account's uploads an hour and events a day get
+breakers far past any party. Each is small; rule 2 holds only with
 them.
 
 **The win-wins, by saving** (each cuts our cost and is something a guest or a host feels):
@@ -428,12 +453,13 @@ sets the compute step.
 ## `tiers.ts`, the live source
 
 [`src/lib/constants/tiers.ts`](../src/lib/constants/tiers.ts) is the source of truth: read it, never a doc copy.
-Beyond the tables above it holds the `Plan` records with their Stripe price env keys, `MAX_EVENTS`, the ingress model
-(every plan derives `INGRESS_CAP_MULTIPLIER` (3) × its storage cap through `monthlyIngressCap`; no tier keeps a static
-`MONTHLY_INGRESS_BYTES` today), `GATED_EVENT_SETTINGS` (empty; `password` and `custom_slug` are the settings it can
-gate), `MAX_REEL_SECONDS` (60 on every tier), the estimate's basis (`AVG_PHOTO_BYTES`, `VIDEO_BYTES_PER_MIN`,
-`ESTIMATE_BASIS`), and the display helpers `friendlyCapacity` and `formatCapacity`. The DB `tier_type` enum still lists a retired `max` (coerced by
-`toBillingTier()`), and the SQL `tier_limits()` must mirror the file (`tier-limits-parity.test.ts` guards it).
+Beyond the tables above it holds the `Plan` records with their uploads, their use and their Stripe price env keys,
+`MAX_EVENTS`, the uploads allowance (`UPLOADS_BYTES`, `UPLOADS_WINDOW`, `uploadAllowance`, `uploadsLabel`),
+`GATED_EVENT_SETTINGS` (empty; `password` and `custom_slug` are the settings it can gate), `MAX_REEL_SECONDS` (60 on
+every tier), the estimate's basis (`AVG_PHOTO_BYTES`, `VIDEO_BYTES_PER_MIN`, `ESTIMATE_BASIS`), the big party a card
+counts in (`BIG_PARTY`, `partiesHeld`), and the display helpers `friendlyCapacity` and `formatCapacity`. The DB
+`tier_type` enum still lists a retired `max` (coerced by `toBillingTier()`), and the SQL `tier_limits()` and
+`upload_allowance()` must mirror the file (`tier-limits-parity.test.ts` guards both).
 
 ## Stripe setup
 
@@ -447,21 +473,23 @@ lands resources in the wrong catalog.
 
 **The catalog: 4 products, 8 prices.** One product per storage size, so the size shows in Checkout and on Stripe's
 confirm page for a plan change, and **each yearly price rides the SAME product as its monthly sibling**, so a size
-reads as one product at either cadence.
+reads as one product at either cadence. Product names render in Checkout and in the portal, which makes them
+user-facing copy: no em-dash.
 
-| Product              | Price      | Type      | Test Price ID                    | Env key                           |
-| -------------------- | ---------- | --------- | -------------------------------- | --------------------------------- |
-| Partyreel Pro 100 GB | $9 / mo    | recurring | `price_1TcTbgPtjqmVkBwk7qfplvly` | `STRIPE_PRICE_PRO_100`            |
-| Partyreel Pro 100 GB | $90 / yr   | recurring | `price_1U9FInPtjqmVkBwkKKmtg9LL` | `STRIPE_PRICE_PRO_100_YR`         |
-| Partyreel Pro 500 GB | $19 / mo   | recurring | `price_1TcTbtPtjqmVkBwkIT8mPznE` | `STRIPE_PRICE_PRO_500`            |
-| Partyreel Pro 500 GB | $190 / yr  | recurring | `price_1U9FInPtjqmVkBwkcadWJaH3` | `STRIPE_PRICE_PRO_500_YR`         |
-| Partyreel Pro 2 TB   | $39 / mo   | recurring | `price_1TcTbwPtjqmVkBwkHQpJuYOr` | `STRIPE_PRICE_PRO_2TB`            |
-| Partyreel Pro 2 TB   | $390 / yr  | recurring | `price_1U9FIoPtjqmVkBwkiaviRh0Y` | `STRIPE_PRICE_PRO_2TB_YR`         |
-| Partyreel Event Pass | $24 once   | one-time  | `price_1TcUcDPtjqmVkBwkJCypwyVb` | `STRIPE_PRICE_EVENT_PASS`         |
-| Partyreel Event Pass | $15 renew  | one-time  | `price_1TcVuOPtjqmVkBwkTCXTKOIs` | `STRIPE_PRICE_EVENT_PASS_RENEWAL` |
+| Product              | Price      | Type      | Env key                           |
+| -------------------- | ---------- | --------- | --------------------------------- |
+| Partyreel Pro 50 GB  | $9 / mo    | recurring | `STRIPE_PRICE_PRO_50`             |
+| Partyreel Pro 50 GB  | $90 / yr   | recurring | `STRIPE_PRICE_PRO_50_YR`          |
+| Partyreel Pro 200 GB | $29 / mo   | recurring | `STRIPE_PRICE_PRO_200`            |
+| Partyreel Pro 200 GB | $290 / yr  | recurring | `STRIPE_PRICE_PRO_200_YR`         |
+| Partyreel Pro 1 TB   | $99 / mo   | recurring | `STRIPE_PRICE_PRO_1TB`            |
+| Partyreel Pro 1 TB   | $990 / yr  | recurring | `STRIPE_PRICE_PRO_1TB_YR`         |
+| Partyreel Event Pass | $29 once   | one-time  | `STRIPE_PRICE_EVENT_PASS`         |
+| Partyreel Event Pass | $19 renew  | one-time  | `STRIPE_PRICE_EVENT_PASS_RENEWAL` |
 
-The three Pro products are named with an em-dash in the test catalog ("Partyreel Pro — 100 GB"), and those names
-render in Checkout and in the portal, which makes them user-facing copy: the live catalog is created without one.
+The TEST price ids live where the code reads them, the env values; Stripe's dashboard lists them by product. A price
+the env no longer names (a retired size's, a subscription made before a price change) maps to no plan: the webhook
+leaves that profile's entitlement untouched until the subscription ends, and Change plan refuses it (`foreign_price`).
 
 **The webhook endpoint** (dashboard, Developers → Webhooks): `https://partyreel.com/api/stripe/webhook`, sending
 `checkout.session.completed`, `customer.subscription.created` / `.updated` / `.deleted` and `invoice.payment_failed`;
@@ -477,7 +505,7 @@ teardown.
   a host stores, and its quantity stepper (no maximum) could bill two or three times for one cap, so sizes and
   cadences never change here. TEST: `bpc_1TcTxWPtjqmVkBwkcAldFEZA`.
 - **The change-plan configuration** (API only), tagged `metadata.partyreel_purpose=change_plan`:
-  `subscription_update` on over **all six Pro prices** (both cadences on each product),
+  `subscription_update` on over **all six Pro prices** (both cadences on each of the three products),
   `default_allowed_updates: ["price"]`, quantity adjustment off, `proration_behavior: always_invoice`,
   `billing_cycle_anchor: unchanged`, no period-end scheduling; cancellation, invoice history and customer update
   off; payment-method update on (Stripe requires it beside subscription updates). The app finds it by that tag (no
@@ -489,8 +517,8 @@ Vercel, then a redeploy. Only the first two are secrets; the eight price IDs are
 
 - `STRIPE_SECRET_KEY`: the mode's secret key (`sk_test_…` today).
 - `STRIPE_WEBHOOK_SECRET`: the `whsec_…` from the webhook endpoint.
-- `STRIPE_PRICE_PRO_100` / `_500` / `_2TB`: the three monthly Pro prices.
-- `STRIPE_PRICE_PRO_100_YR` / `_500_YR` / `_2TB_YR`: the three annual Pro prices.
+- `STRIPE_PRICE_PRO_50` / `_200` / `_1TB`: the three monthly Pro prices.
+- `STRIPE_PRICE_PRO_50_YR` / `_200_YR` / `_1TB_YR`: the three annual Pro prices.
 - `STRIPE_PRICE_EVENT_PASS` and `STRIPE_PRICE_EVENT_PASS_RENEWAL`: the two one-time prices.
 
 Five are hard-asserted at request time (`assertStripeEnv()`: the key, the webhook secret and the three monthly Pro
@@ -517,8 +545,8 @@ inert until then.
 1. **Switch to live mode**: the Stripe MCP on the live account, or the dashboard in live mode. **Verify first:**
    `list_available_accounts_or_orgs` → `livemode: true`.
 2. **Re-create the 4 products and 8 prices in LIVE** (the Stripe MCP or the dashboard): the three Pro products each
-   with **both** a monthly and a yearly price (100 GB $9/$90, 500 GB $19/$190, 2 TB $39/$390), named without the
-   em-dash, and the Event Pass product with **both** one-time prices ($24 purchase, $15 renewal). Capture the eight
+   with **both** a monthly and a yearly price (50 GB $9/$90, 200 GB $29/$290, 1 TB $99/$990), named without an
+   em-dash, and the Event Pass product with **both** one-time prices ($29 purchase, $19 renewal). Capture the eight
    new **live** `price_…` IDs. Put each yearly price on the same product as its monthly sibling.
 3. **Create the webhook endpoint in LIVE** (dashboard, live mode): the URL and the five events above; copy the
    **live** signing secret (`whsec_…`).

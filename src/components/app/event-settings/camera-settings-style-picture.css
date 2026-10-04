@@ -1,0 +1,98 @@
+/*
+  A STYLE'S PICTURE: the tones of the three little albums (Live, Review, Disposable), as tokens, and the few things a
+  utility cannot say. Every rule hangs off a `style-pic` hook, so nothing here reaches another surface.
+
+  ★ THE TONES ARE TOKENS, so the brand round re-tints Settings' cards and Create's together in this one block (the
+  tones are the guest album's own dark and white, which is why they are not the room's foreground).
+
+  ★ EVERYTHING THAT MOVES IS A TRANSITION the global reduced-motion guard clamps to an instant (bible 5), and a frame
+  shows by its state alone, so the picture stands complete at rest.
+*/
+
+.style-pic {
+  /* The guest album's own dark: the ground every frame stands on. */
+  --style-pic-ground: var(--gallery);
+  /* A frame not yet developed. */
+  --style-pic-cell: oklch(1 0 0 / 0.1);
+  /* An empty album's dashed place. */
+  --style-pic-empty: oklch(1 0 0 / 0.15);
+  /* The ring on the one shot she holds before the develop. */
+  --style-pic-lit: #fff;
+  /* The clock on a photograph waiting for the host. */
+  --style-pic-held: oklch(1 0 0 / 0.6);
+  /* A photograph coming in as the host lets it in: how much of it shows. */
+  --style-pic-fading: 0.4;
+  /* The camera's count on a roll nothing is shot on yet. */
+  --style-pic-ink: oklch(1 0 0 / 0.8);
+  /* The reel's mark the morning after, and the ink on it. */
+  --style-pic-badge: oklch(0 0 0 / 0.55);
+  --style-pic-badge-ink: #fff;
+
+  background: var(--style-pic-ground);
+}
+
+.style-pic-cell {
+  background: var(--style-pic-cell);
+  transition: box-shadow 240ms var(--ease-emphasis);
+}
+/* An empty album's place: dashed, on a layer of its own so a frame fills with no change in its box. */
+.style-pic-cell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px dashed var(--style-pic-empty);
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 240ms var(--ease-emphasis);
+}
+.style-pic-cell[data-cell="empty"] {
+  background: transparent;
+}
+.style-pic-cell[data-cell="empty"]::before {
+  opacity: 1;
+}
+.style-pic-cell[data-cell="hers"] {
+  box-shadow: 0 0 0 1px var(--style-pic-lit);
+}
+
+/* A photograph is shown by its frame's state: the file is always there, so it fades with the night. */
+.style-pic-img {
+  opacity: 0;
+  transition: opacity 320ms var(--ease-emphasis);
+}
+.style-pic-cell[data-cell="lit"] > .style-pic-img,
+.style-pic-cell[data-cell="hers"] > .style-pic-img {
+  opacity: 1;
+}
+.style-pic-cell[data-cell="fading"] > .style-pic-img {
+  opacity: var(--style-pic-fading);
+}
+
+.style-pic-clock {
+  width: max(12px, 9cqw);
+  height: max(12px, 9cqw);
+  color: var(--style-pic-held);
+}
+
+.style-pic-roll {
+  gap: 3cqw;
+  font-size: max(11px, 11cqw);
+  color: var(--style-pic-ink);
+}
+.style-pic-roll > svg {
+  width: max(12px, 12cqw);
+  height: max(12px, 12cqw);
+}
+
+.style-pic-play {
+  bottom: 6cqw;
+  left: 6cqw;
+  width: max(14px, 17cqw);
+  height: max(14px, 17cqw);
+  background: var(--style-pic-badge);
+  color: var(--style-pic-badge-ink);
+}
+.style-pic-play > svg {
+  width: max(7px, 8cqw);
+  height: max(7px, 8cqw);
+}

@@ -3,9 +3,6 @@ import { join, relative } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { monthlyIngressCap, PLANS } from "@/lib/constants/tiers";
-import { formatBytes } from "@/lib/utils";
-
 // Content-policy guard for the marketing/reading surfaces (Track B, B3). Two halves:
 //
 //   1. The em-dash walk over `content/**/*.mdx`. The AST guard
@@ -18,18 +15,23 @@ import { formatBytes } from "@/lib/utils";
 //   2. The claims scan: the T2.5 hard "must not claim" fence (in git:
 //      git show 44090827:docs/decisions/t2p5-marketing-ia.md) bans fabricated social proof (Stripe is in TEST mode:
 //      no "trusted by", no user/host counts, no testimonials), CSAM/NCMEC/
-//      law-enforcement language (counsel + ESP registration pending), and marketing
-//      the ingress backstop numbers (an anti-abuse bound, deliberately unmarketed -
-//      see monthlyIngressCap in lib/constants/tiers.ts: 3x every plan's cap, so
-//      300 MB free, 225 GB event-pass and 300 GB / 1.5 TB / 6 TB pro). The numbers
-//      are DERIVED from the plans here (the free/pro shift moved Free's from a flat
-//      20 GB to 300 MB, and a typed list would have kept fencing the old one).
+//      law-enforcement language (counsel + ESP registration pending), and naming
+//      the abuse machinery behind the plans: the word "ingress" (the backstop's
+//      own name; the published row is "Uploads") and the unpublished circuit
+//      breakers' numbers (an account's uploads an hour, its events a day), which
+//      no real host meets and so no page should give a host to plan around.
+//      ★ REFINED ON PURPOSE by Ladder A (pricing-wiring; scar kept: content never
+//      names the backstop or a breaker's number): the uploads allowance is
+//      PUBLISHED now, each plan's own number in the pricing table's Uploads row,
+//      so the numbers this fence used to derive and refuse (3x every cap) are
+//      legal, and the breakers' numbers are read from the SQL that enforces them
+//      so the fence follows them the way it followed the caps.
 //      Scope = every MDX file + the marketing copy single-sources. Deliberately
 //      NARROW patterns - a false positive here would train people to ignore it.
 //
-// Numbers that ARE marketed (100 MB free, 75 GB pass, 100 GB / 500 GB / 2 TB pro)
-// must reach MDX via the spec-tag components (UploadSize/FreeStorage/...), so a
-// literal ingress figure in content is always a mistake, never a legit spec.
+// Numbers that ARE marketed (every price, storage and uploads number in
+// tiers.ts) reach MDX through the spec-tag components (UploadSize, PlanStorage,
+// PlanUploads, ...), so a plan number is never typed into content.
 
 const ROOT = process.cwd();
 
@@ -49,23 +51,42 @@ function collectMdx(dir: string): string[] {
 const mdxFiles = collectMdx(join(ROOT, "content"));
 
 /**
- * Every plan's monthly ingress bound as it would print ("300 MB", "1.5 TB"), word-bounded and
- * space-optional, so the fence follows tiers.ts: no bound is typed here. A marketed plan size is
- * never an ingress bound (each is 3x a cap), so the marketed numbers stay legal by construction.
+ * An unpublished breaker's number, read from the newest migration that sets it (`c_<name> constant integer := N`),
+ * so the fence follows the SQL that enforces it and no number is typed here. Throws when it cannot read one: a fence
+ * whose number is gone would pass everything.
  */
-const INGRESS_NUMBERS_RE = new RegExp(
+function breaker(name: string): number {
+  const dir = join(ROOT, "supabase", "migrations");
+  let found: number | null = null;
+  for (const file of readdirSync(dir)
+    .filter((f) => f.endsWith(".sql"))
+    .sort()) {
+    const sql = readFileSync(join(dir, file), "utf8").replace(/--[^\n]*/g, "");
+    for (const m of sql.matchAll(
+      new RegExp(`\\b${name} constant integer := (\\d+);`, "g"),
+    )) {
+      found = Number(m[1]);
+    }
+  }
+  if (found === null)
+    throw new Error(`content-policy: no ${name} in the migrations`);
+  return found;
+}
+
+/** "20,000" or "20000", word-bounded, so either spelling of a breaker's number is caught. */
+const spelled = (n: number) =>
+  `(?:${n.toLocaleString("en-US").replace(/,/g, ",?")})`;
+
+/**
+ * The breakers' numbers beside what they count: an account's uploads an hour, its events a day. Narrow on purpose:
+ * "100" alone is everywhere ("100 MB", "100 guests"), so only the number WITH its unit and its window is a claim.
+ */
+const BREAKER_NUMBERS_RE = new RegExp(
   [
-    ...new Set(
-      PLANS.map((plan) => monthlyIngressCap(plan.tier, plan.storageBytes))
-        .filter((bound): bound is number => bound !== null)
-        .map((bound) => formatBytes(bound)),
-    ),
-  ]
-    .map((label) => {
-      const [value, unit] = label.split(" ");
-      return `\\b${value.replace(".", "\\.")} ?${unit}\\b`;
-    })
-    .join("|"),
+    `\\b${spelled(breaker("c_uploads_an_hour"))} (?:uploads|photos|files)(?: an| a| per| every) hour\\b`,
+    `\\b${spelled(breaker("c_events_a_day"))} events(?: a| per| every) day\\b`,
+    `\\b${spelled(breaker("c_events_a_day"))} events in (?:any|a) 24 hours\\b`,
+  ].join("|"),
   "i",
 );
 
@@ -89,12 +110,10 @@ function collectSource(dir: string): string[] {
 // day it lands rather than the day someone remembers to list it: the list this
 // replaced was opt-in, and the events pages' copy (`events.ts`: every type's
 // statement, help lines and FAQ answers) sat outside it for as long as it existed.
-const CLAIM_EXEMPT_CONSTANTS: Record<string, string> = {
-  // The pricing single source DEFINES the ingress backstop: its comments name
-  // the bound and derive its numbers, which is exactly what the fence keeps out
-  // of the copy every other constant feeds.
-  "src/lib/constants/tiers.ts": "defines the ingress backstop",
-};
+// ★ None today (Ladder A): tiers.ts was exempt while it defined the unpublished uploads backstop, whose name and
+// numbers its comments had to say; the allowance is published now and the file names neither, so it is read like
+// every other constant.
+const CLAIM_EXEMPT_CONSTANTS: Record<string, string> = {};
 
 // The copy the claims fence reads beyond MDX: every constant (above) and the two
 // copy sources that live outside src/lib/constants, the FAQ answers (which also
@@ -160,12 +179,12 @@ describe("content policy", () => {
         why: "law-enforcement / CSAM language",
         re: /NCMEC|CSAM|law enforcement/i,
       },
-      // The word itself: content should never discuss the ingress backstop at all.
+      // The word itself: content never discusses the backstop by its name; the published row is "Uploads".
       { why: "ingress backstop", re: /\bingress\b/i },
-      // The literal byte numbers (word-bounded so 100 GB / 500 GB / 2 TB stay legal).
+      // An unpublished breaker's number with what it counts (the published allowances stay legal).
       {
-        why: "ingress cap number",
-        re: INGRESS_NUMBERS_RE,
+        why: "unpublished breaker number",
+        re: BREAKER_NUMBERS_RE,
       },
     ];
     const found = scanLines([...mdxFiles, ...CLAIM_FILES], (line) => {
