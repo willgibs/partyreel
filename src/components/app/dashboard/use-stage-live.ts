@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   readStageLiveAction,
@@ -43,6 +43,8 @@ export function useStageLive({
   });
   const busy = useRef(false);
   const again = useRef(false);
+  // What the wall shows, for the poll's rest: it moves when the wall does (never with its links or the hour).
+  const [wall, setWall] = useState<string | null>(null);
 
   const poll = useCallback(async () => {
     if (busy.current) {
@@ -54,7 +56,10 @@ export function useStageLive({
       do {
         again.current = false;
         const live = await readStageLiveAction(eventId).catch(() => null);
-        if (live) latest.current(live);
+        if (live) {
+          latest.current(live);
+          setWall(wallOf(live));
+        }
       } while (again.current);
     } finally {
       busy.current = false;
@@ -70,5 +75,12 @@ export function useStageLive({
     enabled,
     live,
     onPoll: useCallback(() => void poll(), [poll]),
+    changeKey: wall,
   });
+}
+
+/** The wall as a value that moves only when it does: its counts and its photographs (never their links, re-signed
+ *  on every answer, nor the last hour's count, which moves with the clock). */
+function wallOf(live: StageLive): string {
+  return `${live.approved}:${live.pending}:${live.waiting}:${live.photos.map((p) => p.id).join(",")}`;
 }

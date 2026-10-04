@@ -10,6 +10,11 @@ import { cn } from "@/lib/utils";
  *
  * `newTab` is for the guest entry modal: a guest mid-entry who taps Terms must
  * not lose the sheet they were standing in.
+ *
+ * ★ NEITHER LINK PREFETCHES (compute-levers): the line stands in every guest's
+ * door, so its two prefetches were up to eleven requests a join (a prefetch is
+ * one per route segment), for pages almost nobody opens, and in the door's new
+ * tab a prefetch is never used at all.
  */
 const LINK =
   "underline underline-offset-4 transition-colors duration-150 hover:text-foreground";
@@ -27,11 +32,11 @@ export function LegalConsentLine({
   return (
     <p className={cn("text-xs text-muted-foreground", className)}>
       By continuing you agree to our{" "}
-      <Link href="/terms" className={LINK} {...external}>
+      <Link href="/terms" prefetch={false} className={LINK} {...external}>
         Terms
       </Link>{" "}
       and{" "}
-      <Link href="/privacy" className={LINK} {...external}>
+      <Link href="/privacy" prefetch={false} className={LINK} {...external}>
         Privacy Policy
       </Link>
       .

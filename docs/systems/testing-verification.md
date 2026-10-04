@@ -136,7 +136,9 @@ traps that read as "broken":
 - **A hidden tab stops polling, on purpose** (`useLivePoll`), and the album re-mints its aged links after each poll, so
   a soak tab backgrounded mid-run looks dead once its links expire (at most 90 minutes). Keep it in the foreground, as
   a host's album up on a screen is, and check mid-run with `performance.getEntriesByType("resource")` filtered to
-  `/api/album/guest/sync`: zero entries means hidden, not broken. The refresh on return to visible is itself a recovery
+  `/api/album/guest/sync`: zero entries means hidden, not broken. ★ An untouched foreground tab rests too (a sync
+  every 5 minutes after ten minutes, none after two hours, with the doorbell live): a soak past two hours runs at
+  `?reel=screen`, which never stops, or touches the page. The refresh on return to visible is itself a recovery
   worth asserting.
 - **The demo event cannot test it:** demo mode never polls (`liveEnabled` is false). Soak a real test event's link.
 

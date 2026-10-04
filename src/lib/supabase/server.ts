@@ -9,7 +9,9 @@
  * ⚠️ The `setAll` try/catch is required: created inside a Server Component,
  * cookies are read-only and `.set()` throws. Swallowing it is safe because the
  * proxy (src/proxy.ts → lib/supabase/middleware) refreshes the session cookie
- * on every request.
+ * before every page that renders a session (its matcher names them). A Route
+ * Handler or a Server Function, which the proxy no longer precedes, refreshes
+ * its own: there the write lands on its response (`server.test.ts`).
  */
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
@@ -36,7 +38,8 @@ export async function createClient() {
             }
           } catch {
             // Called from a Server Component, where cookie writes aren't
-            // allowed. Safe to ignore — the proxy refreshes the session cookie.
+            // allowed. Safe to ignore — the proxy refreshed the session cookie
+            // before the page rendered.
           }
         },
       },

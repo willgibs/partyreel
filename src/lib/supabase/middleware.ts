@@ -1,6 +1,10 @@
 /**
- * Session refresh for the proxy (src/proxy.ts). Runs on every matched request,
- * rotates the Supabase auth cookie, and keeps server & client in sync.
+ * Session refresh for the proxy (src/proxy.ts). Runs before every page that
+ * renders a session (the proxy's matcher names them), rotates the Supabase auth
+ * cookie, and keeps server & client in sync. It is the refresh a Server
+ * Component cannot do (it cannot write a cookie); an API route or a Server
+ * Function off those pages refreshes its own session through
+ * `lib/supabase/server.ts`, whose cookie writes land on its response.
  *
  * ⚠️ Three rules that, if broken, cause intermittent logout bugs:
  *   1. Use `createServerClient` (NOT the browser client) here.
