@@ -1,6 +1,6 @@
 ---
 track: customize-r1
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "9a5c82fb"            # the launch-prep SHA the branch was cut from
 board: customize
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -46,25 +46,79 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **The roll's bounds and default.** Recommended: any count from 1 to 99 (two digits on the camera's count and
+  caption), film's 12, 24 and 36 offered at a glance, 24 unless she picks (the middle of film's scale; 27, a shop
+  disposable's own count, is the playful alternative). Built as the `roll` ask's recommendation (`both`). Wiring:
+  `events_roll_size_range` from 1..24 to 1..99 (a migration), `ROLL_SHOTS` split into a default and a most under
+  `roll.test.ts`'s parity, `roll-view.ts`'s `capOf` clamp, `settings-state.tsx`'s values and patch (it reads
+  `rollSize` and never writes it) and the update schema in `validation/event.ts`; re-shoots stay roll + 3
+  (camera-clip's).
+- **Which choices become her usual (account defaults).** Recommended: the album style, the roll's size, the develop's
+  hour (a time of day, never a date), the album's order and what guests take home; never a password, a custom link,
+  dates, the note or the name. Kept on her account (her own row, a migration), read by Create and by
+  `events_reveal_stamp`'s fallback, which today writes 24 back whenever the camera comes on. Built as the `mine` ask's
+  recommendation (`offer`).
+- **Plan limits and pricing.** Recommended: every customization here free on every plan, none sold as a perk: a bigger
+  roll costs nothing past the plan's storage cap and monthly uploads, which already bound every album (Free's 100 MB
+  simply fills sooner, said by its own cap line). A paid perk would be a pricing one-way door: his call; this lane
+  built none.
+- **A Disposable taking photos from the phone's library** (the audit's #7: a camera album takes the camera only).
+  Recommended: not now; it changes what a Disposable is (his camera picks), so its own board if he wants it.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none (a lab-only lane: no production byte changed; the audit's findings wait in `_scratch/customize/audit.md` for
+  the lane that wires them)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: "Max size per upload" stands only under the Videos switch, unreachable on Free though it caps photos too: its
+  own row in What guests can add (customize-r1's audit).
+- Now: turning the camera off and back on writes the roll back to 24 (`events_reveal_stamp`'s coalesce): keep her
+  size, or her usual once account defaults exist.
+- Now: a password's unlock lasts 12 hours (`unlock-token.ts`), so a weekend's guests re-type it twice a day: the
+  party's days plus a night.
+- Now: the develop's 9 am is the host's browser zone: keep the zone it was picked in beside the time, so a destination
+  wedding set from home develops in the party's own morning.
+- Speculative: every guest reads a 12-hour clock and en-US dates: the reader's own locale.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits**: the work `bfcc63e1e` (the board's folder) and this manifest, both pushed to `lp/customize-r1`. No sync:
+  launch-prep moved (pricing-wiring, camera-clip's cut, drive-export-r1), but nothing in this lane's reads, its
+  imports or this file (`git log e2ef36922..origin/launch-prep --` those paths is empty).
+- **Gates** on `bfcc63e1e`'s tree, each its own exit code (logs in `_scratch/customize-r1/`), the first four through
+  `build-lock.sh`: `pnpm typecheck` 0 (`gate-typecheck.log`); `pnpm lint` 0 (`gate-lint.log`); `pnpm test` 0, 877
+  files and 10,571 tests (`gate-test.log`); `pnpm build` 0 (`gate-build.log`); `pnpm lab:smoke --base
+  http://localhost:3133` 0, 6 checks, the board's reading 705 of 1,200 words (`gate-smoke.log`); `pnpm lab:demo
+  --board customize --base http://localhost:3133` 0, 4 steps, 0 failing (`gate-demo-375.log`), and again with
+  `--state screen=1440`, 4 steps, 0 failing (`gate-demo-1440.log`); every frame saved (`shots4`, `shots5`) and read.
+- **Lane check**: `git diff --name-only origin/launch-prep...HEAD` = the twelve files under
+  `src/app/(dev)/design/sandbox/customize/` + this file; no exception.
+- **Items**:
+  - `_scratch/customize/linear.md`: Linear's lessons as twelve principles for Partyreel, each with its Linear example
+    and link (the 86 facts behind them, with URLs, in `_scratch/customize-r1/linear-facts.md`).
+  - `_scratch/customize/audit.md`: every fixed number or behaviour a host or guest meets, classified (13 preferences
+    ranked, better defaults, the fixed with their reasons, pricing apart); its evidence by file and line in
+    `_scratch/customize-r1/audit-sweep.md` (120 items).
+  - The board `customize` (desk 15, host): `roll`, `home`, `mine` and `order`, every option drawn on production's
+    surfaces at 375 and 1440 (Settings with inert writes, Create's room, the camera's parts round a still, the guest's
+    cover and rows, the hub, Account); five carried calls (bounds, create, take-home, taken, which).
+  - Per the Orchestrator's scoping: no ask about a running camera's moments (Q6, D3) or the re-shoots (a flat 3,
+    settled); nothing of host-dashboard's settled answers; `home` is an event's own settings, never a view preference
+    (its `album` option is a line of live words on her album), and `order` keeps three options, no guest's own toggle.
+- **Assets requested from Will**: none (the marketing stills and the guest ghost pack stand in).
+- **Board ideas**:
+  - "Tell me when": a host's mail when people wait at a let-in door, photos wait in Review or the album develops, and
+    the guests' at a develop; her usual with a per-party follow, custom or off (the audit's #4; the mails first).
+  - The cover's photo: "Use as the cover" on a photo's own menu (the audit's #3; event-header's head).
+  - Lowering a roll mid-party, a moment for the moments boards: recommended it asks first and ends the rolls already
+    past the new size, every shot taken staying; raising adds frames at once.
+  - Names on the album and the wall: "Show who took each" (the audit's #8).
+  - A fresh roll each day of a range, the need under "more shots" for a weekend (the audit's #9).
+- **Proposed migrations / Worker / Vercel / Stripe / env changes**: none this round; wiring the roll's bounds and her
+  usual each needs a migration (the first two Questions).
+- **Calls his to overrule**: each ask's recommendation (`roll`: both; `home`: words; `mine`: offer; `order`: turns),
+  and the five carried calls drawn above the board.
+- **Look at first**: `/design/lab/customize?session=customize.roll` at 375 (a guest's camera at 12 and at 36), then
+  `customize.home`.
