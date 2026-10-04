@@ -78,6 +78,9 @@ Round 15, on Will's desk answers of 2026-10-04 06:00Z and his brand note; the ap
    his dashboard figure; the spend watch reading it daily into `/admin`; desk checks and red-teams on a local production
    build (the alias only for sign-in, upload and checkout); polls rest when idle (`use-live-poll.ts` is 12 s without the
    doorbell and 60 s with it, paused only when hidden, and a headless tab is never hidden: about 300 calls an hour each).
+   Vercel's fair-use rules confine Hobby to non-commercial use, so Pro at launch stays a launch switch regardless (it
+   bills Active CPU from $0.128 an hour: today's month would be about $0.50); the foundational work is cost and
+   behaviour at scale, which compute-model prices on both plans.
 1. **Red-team 53** (stopped for the CPU limit; its findings and the walks not taken to `crumbs-65`, run locally); then
    milestone 36 on Will's yes (the runbook's "Milestone"): Ladder A, trash in storage and the round's wirings.
 2. **Desk 2 is Drive alone** (on the alias since build 52). After his answers: the Drive wiring lane (his Google Cloud
