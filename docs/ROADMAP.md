@@ -18,13 +18,10 @@ New lines land at the head of this list (`usher/kit/record.py`); the cross-cutti
 below hold the rest by surface.
 
 - Guests: drop the one-file presign and complete bodies (`server-pipeline.ts`'s `splitBurst(...) === null` arms, kept for a tab loaded before bursts) a milestone after compute-uploads ships.
-- Guests: her album asks its store once per landed file (`gallery-live.tsx`'s `notifyUploaded`), so a recorded burst costs two syncs (a delta, then a 304); ask once per burst.
-- Guests: the door's upload step reads a queue item's progress (0 to 100) as a fraction (`upload-step.tsx`'s bar: `Math.max(it.progress, ...) * 100`), so a bar is full from its first percent.
 - Guests: a sharper album cover: a purpose-made cover variant (about 1,280 px) made in the browser at upload beside the preview (`upload/preview.ts`, no transform), carried on the wire for the cover's ids only and drawn as the second `srcset` candidate of `HeadStills` (the phone copy, 2,048 px and about 330 KB, would cost a phone about 2 MB on the first screen).
 - Host: the host's dashboard session in `pnpm compute:model` (`--host-cookie-env NAME`, a fresh session cookie from the environment), measured once on the local desk; until then `model.mjs` prices a session as five guest-page loads (0.4% of a wedding's calls).
 - Billing: the plan limits' Cloudflare reader `[eng+human]`: R2 operations and Workers requests through the GraphQL Analytics API, once Will mints a `CLOUDFLARE_ANALYTICS_TOKEN` (Account Analytics: Read) (the calls lab's X3).
 - Design: a Library specimen of the Plan limits card (`src/app/admin/jobs/limits-card.tsx`, presentation-only) healthy, critical, with a failed read and with gaps, so `lab:smoke` renders it.
-- Guests: the camera reads a shot's dropped connection by `UPLOAD_WORDS.dropped` because the queue keeps only the message; read `QueueItem`'s cause once `UploadOutcome.cause` reaches the queue.
 - Docs: `profiles-social.md`'s line on her own header's disc gains that the answer is kept per ticket (`pr_guest_seed_<album>`, hash-bound) and a first load holds the disc back and fades it in.
 - Host: the hub develops too (the board's carried `hub`: her cover is the guests' sheet, so her first open after the develop develops it): mount `DevelopSheet` over `event-hub-head-cover.tsx`.
 - Guests: the guest's read carries the period's start (`sealed_from`), so an album turned disposable mid-party develops only its roll (today its photos from before the switch develop on the sheet too: `rollOfEntries`'s note).
@@ -35,7 +32,6 @@ below hold the rest by surface.
 - Design: the Library's Tooltip entry (`library/components/gallery-demos.tsx`, "useless on touch") gains a `TapTooltip` specimen beside it.
 - Guests: a per-tile cancel for an in-flight upload (the guest's pending tile, the host's batch row in `host-upload.tsx`) that asks first and offers Try again, passing `uploadFile`'s `signal`; no control passes one today.
 - Guests: presign and complete have no client ceiling (a retry re-runs the whole upload, so a timed-out complete that had recorded its row would duplicate it); make the retry idempotent on `media_id` (`readRecordedUpload` already answers a replayed complete) so these can time out and say "Your connection dropped." too.
-- Guests: carry `UploadOutcome.cause` into the queue's `QueueItem` (`use-upload-queue.ts`) so the failure sheet draws a dropped connection apart from a refusal (its words already do).
 - Downloads: Try again is offered while the browser says it is offline; hold it until `online` fires and say so.
 - Design: a Library specimen of the download toast's states (the question, a cancel, a dropped connection, a line lost mid-stream) so `lab:smoke` renders them (`export-toast.tsx`).
 - Billing: a Pro host's switch from `/pricing`'s hop (the checkout button's `already_subscribed` re-post to change-plan) carries no uploads sentence (`uploadsPauseNote`); the change-plan route could answer a notice the hop shows before it redirects.
