@@ -59,8 +59,8 @@ Pro's case and the Stripe setup are in [`PRICING.md`](PRICING.md).
   with a friendly translation into photos and hours of video.
 - **Events persist until the host deletes them; nothing ends them.** An event's dates (a day, or a range of days)
   only say when it happens and never expire it. An "ended" event that kept its media
-  would let a user fill, end, create, repeat; only deletion (or the lifecycle below) frees space, and a deletion ends
-  in the media's destruction once its recovery window closes.
+  would let a user fill, end, create, repeat; only leaving Deleted for good (the lifecycle below) frees space, and a
+  deletion ends in the media's destruction once its recovery window closes.
 - **A monthly upload meter, unmarketed**, against fill, delete, re-upload bandwidth burn: generous, never refunded on
   delete, and seen only as a monthly upload limit when an upload is refused.
 - **No watermark on any uploaded photo or video, on the album, or on the live reel, on any plan.** The one mark is on a
@@ -73,19 +73,26 @@ Pro's case and the Stripe setup are in [`PRICING.md`](PRICING.md).
 
 ## Data retention and lifecycle
 
-One lifecycle across every plan, and media is never hard-deleted at once. Three triggers move media out:
+One lifecycle across every plan, and media is never hard-deleted at once. **A plan's storage holds everything a host
+keeps, her albums and her Deleted together**: one number under one cap, so deleting frees nothing until an item leaves
+Deleted for good, and nobody can store past their plan by parking it in Deleted. Three triggers move media into
+Deleted:
 
+- **The host deletes** an event or an item.
 - **Over capacity**: a lapsed paid grant (a downgrade, a subscription that ends after failed payments, an expired
-  Event Pass) opens a 45-day grace with a warning email and a reminder 7 days before it ends; then the largest files
-  go first until the account is under its cap. Uploads block at the cap plus a 10% buffer.
-- **The host deletes** an event or an item: its room frees at once.
+  Event Pass) opens a 45-day grace on what she keeps by choice, with a warning email and a reminder 7 days before it
+  ends; then what she already deleted leaves for good first, and her largest files go to Deleted until she is under
+  her cap.
 - **Free-plan inactivity**: an event 180 days past its last activity (the host signing in or using the app, an edit to
   the event, a new upload) is removed, with a warning email 14 days before.
 
-Every trigger lands in the same recoverable tail: 30 days in Deleted, restorable by the host in the app (a system
-removal's email names the date; a deletion the host made is never emailed), then hard-deleted by the daily purge cron
-(`events.deleted_at`, `events.purge_at`). Deleted-but-kept bytes are capped at one storage cap per account, oldest
-evicted first, so a restore and re-delete cycle cannot hoard. The windows live in `src/lib/lifecycle/`.
+Every trigger lands in the same recoverable tail: 30 days in Deleted, restorable by the host in the app (restoring her
+own always fits, since it already counts; a system removal's email names the date; a deletion the host made is never
+emailed), then hard-deleted by the daily purge cron (`events.deleted_at`, `events.purge_at`). An item leaves Deleted
+early only for good: her Delete permanently or Empty Deleted, or, when an upload needs room and her account's **Make
+room from Deleted** is on (the default), the oldest items first, as many as the upload needs. With it off, an upload
+that does not fit is refused with the room it needs. Uploads block at the cap plus a 10% buffer. A guest's own delete
+leaves at once, for the host too, and purges that night. The windows live in `src/lib/lifecycle/`.
 
 ## Safety and moderation
 

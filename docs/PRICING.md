@@ -18,6 +18,12 @@ below).
 - **Storage-based, not item counts.** A plan is a total stored-bytes cap. `profiles.tier` is the **billing category**
   (`free | pro | event_pass`); the granted cap lives in `profiles.storage_cap_bytes` (set by the Stripe webhook from
   the purchased plan), so Pro's storage selector is just different caps under `tier="pro"`.
+- **Deleted counts in storage** (Will, 2026-10-03): the cap holds everything a host keeps, her albums and her Deleted
+  together, so deleting frees nothing until an item leaves Deleted for good (her Delete permanently or Empty Deleted,
+  the 30-day purge, or, with Make room from Deleted on, the default, the oldest first when an upload needs room). One
+  number under one cap is the clear model, what a plan stores is its cap and its 10% write headroom whatever she
+  deletes, and a host who would rather not delete for good to free space moves up a size. A full Deleted never refuses
+  a guest's photo while the setting is on, which is why it is on.
 - **Stripe Prices are the billing truth**, referenced by env key; `tiers.ts` carries the plan shape and the display
   labels, and `tier_limits()` in SQL mirrors its limits. A price change is a new Stripe Price, its env value (a
   redeploy) and the label, together.
@@ -74,9 +80,9 @@ working.
   `/api/stripe/change-plan`, `proration_behavior: always_invoice`), and a pass holder's prorated credit lands as
   customer balance, which pays the NEXT invoice: on yearly, that is a year out (never lost).
 - **A plan change never leaves a host storing more than the new cap** (Will, 2026-09-22). Any Pro purchase or Pro
-  size change must hold what the host already stores (active bytes against the plan's plain cap); a smaller one
-  is refused with the numbers ("You're storing 140 GB. Pro 100 GB holds 100 GB, so remove 40 GB first, or choose
-  Pro 500 GB.") until they remove enough. An Event Pass is never refused (passes stack). So Partyreel never
+  size change must hold what the host already stores (her albums and her Deleted against the plan's plain cap); a
+  smaller one is refused with the numbers ("You're storing 140 GB. Pro 100 GB holds 100 GB, so free 40 GB first, or
+  choose Pro 500 GB.") until they free enough. An Event Pass is never refused (passes stack). So Partyreel never
   removes media, or pays for storage beyond the plan, because of a purchase; the 45-day over-capacity grace
   remains for a plan that ENDS. The mechanism: [`systems/billing-caps.md`](systems/billing-caps.md).
 - **What Free gates.** **Video is paid** (Pro and the Event Pass; a free event is photos-only for guests AND the host,
@@ -131,8 +137,8 @@ hold the model:
    explainer, the monthly uploads first), or a circuit breaker no real host meets (a script uploading without end, a
    looped function). A cost in none of the three is a bug, and a new feature names its class before it ships.
 2. **No plan's worst month costs more than its price, net of Stripe.** The worst month is the cap's at its limits:
-   active media at the cap and its 10% headroom, Deleted full, the month's uploads at their allowance, the backup
-   holding all of it, plus the live cost of its events. It is provable only once the backup's prune keeps up and the
+   her albums and her Deleted together at the cap and its 10% headroom, the month's uploads at their allowance, the
+   backup holding all of it, plus the live cost of its events. It is provable only once the backup's prune keeps up and the
    live album grows with viewers × time, never uploads × viewers; the levers below buy both.
 3. **Guards are circuit breakers, not budgets.** Every vendor without a cap gets one of ours (`spend-watch`): past 10×
    the trailing peak it alerts and flips the switch that stops the vector, with its `/admin` card. Growth is never a
@@ -157,20 +163,20 @@ bounds it better. ≈ The operations behind the per-item figures: a call ≈3 ms
 
 **(a) Bytes-months, priced by the cap**
 
-- **Active media.** $0.025 a GB-month with its backup. Bounded by the cap and its 10% write headroom
-  (`supabase/migrations/20261003110000_phone_copy.sql:236`, `capWithWriteHeadroom`, `constants/tiers.ts:402`).
-  Worst: 1.1 × the cap.
+- **Active media.** $0.025 a GB-month with its backup. Bounded, with Deleted, by the cap and its 10% write headroom
+  (`supabase/migrations/20261003220000_deleted_counts.sql:511`, `capWithWriteHeadroom`, `constants/tiers.ts:402`).
+  Worst: 1.1 × the cap, Deleted included.
 - **The copies.** A ≈60 KB preview and a photograph's ≈1 MB phone copy, never metered: ≈30% on a photo's bytes, nearly
   nothing on a video's. The phone copy fits within 4 MB and half its original (`media/preview-size.ts:92,112-121`);
   the preview within 2 MB, checked at presign only and at no ratio to its original (`upload/server-pipeline.ts:176-178`,
   `media/preview-size.ts:21`), which may be one byte (`validation/upload.ts:170,175`). Worst: ≈1.3 × the media for a
   real host; unbounded for a flood of tiny files, each carrying up to 2 MB unmetered. Better: a preview never outweighs
   its original (refused at presign; the tile serves the original, which is smaller anyway).
-- **Deleted.** Up to one cap for 30 days, the oldest out first (`lifecycle/recently-deleted.ts:14,22`,
-  `lifecycle/sweeps/standby-budget.ts:109`), so the primary holds up to 2.1 × the cap; a restore and a re-delete starts
-  an item's 30 days over, so the bin stays full with no upload at all. Worst: ≈$0.033 a GB of cap a month with its
-  backup. Better: published as the bin's size; a re-delete within 30 days keeping its first date (a breaker no real host
-  meets). Infrequent Access for the tail would save a third, but its 30-day minimum and $0.01 a GB read back make one
+- **Deleted.** Inside the cap, for 30 days (`supabase/migrations/20261003220000_deleted_counts.sql`: the cap reads
+  `host_storage_summary`, her albums and her Deleted), so a restore-and-re-delete cycle stores nothing past it. An
+  item leaves early only for good, its object waiting for that night's purge (`leave_deleted`), so a refill day's
+  peak holds what left beside what arrived: at 3× a month, ≈0.11 × the cap averaged. Worst: ≈$0.002 a GB of cap a
+  month. Infrequent Access for the tail would save a third, but its 30-day minimum and $0.01 a GB read back make one
   restore cost more than it saved.
 - **The backup.** Every object a PUT creates, copies included (`workers/backup/src/index.ts:96-107`, no key filter at
   `:527-535`), into Infrequent Access under a 35-day lock. Accrue-only today: the prune runs dry
@@ -284,10 +290,10 @@ bounds it better. ≈ The operations behind the per-item figures: a call ≈3 ms
 
 **(c) Bounds.** Published today: storage, events, a file's 10 GB, Free's photos only and its 180-day rest. By Will's word
 (2026-10-03) the monthly uploads join them as a row of the pricing table, and so does any limit a host could meet, such
-as Deleted's size and 30 days (the site still names only that a monthly limit exists, `content-policy.test.ts:164`
-fencing the word). Unpublished, because no real host meets them: Auth's hourly email limit and spend-watch's 10×, and
-the breakers still to add (an account's uploads an hour, its events a day, a preview no heavier than its original, a
-re-delete's first date). "No guest limit" (`src/components/marketing/jsonld.tsx:86`, the FAQ,
+as Deleted's 30 days and that it counts in storage (the site still names only that a monthly limit exists,
+`content-policy.test.ts:164` fencing the word). Unpublished, because no real host meets them: Auth's hourly email
+limit and spend-watch's 10×, and the breakers still to add (an account's uploads an hour, its events a day, a preview
+no heavier than its original). "No guest limit" (`src/components/marketing/jsonld.tsx:86`, the FAQ,
 `content/llms.ts:120`) and "unlimited events" (`src/components/marketing/sections/pricing/unlock-grid.tsx:53`,
 `constants/marketing-voice.ts:130`) stay true, because a guest is a constant and an event pages; the Terms already
 reserve "reasonable limits on upload volume, download bundling and other activity"
@@ -300,18 +306,19 @@ Per GB of cap, photographs (a video's copies weigh nothing), the backup's prune 
 | Case | A GB of cap a month |
 | --- | --- |
 | Full, nothing deleted or re-uploaded | $0.036 (video $0.028) |
-| Today's rules: full, Deleted full, re-uploaded 3× | $0.159: primary $0.041, backup $0.069, operations $0.049 |
-| The same, the prune dry, a year in | $0.587 |
-| Re-uploaded 2× | $0.124 |
-| Re-uploaded 1× | $0.089 (video $0.057) |
-| Re-uploaded 1×, the backup holding originals only | $0.075 |
+| Today's rules: full, Deleted inside, re-uploaded 3× | $0.142: primary $0.024, backup $0.069, operations $0.049 |
+| The same, the prune dry, a year in | $0.558 |
+| Re-uploaded 2× | $0.106 |
+| Re-uploaded 1× | $0.070 (video $0.043) |
+| Re-uploaded 1×, the backup holding originals only | $0.056 |
 
-Today every paid plan breaks rule 2 at its worst month: Pro 100 GB costs $15.94 against $8.38 net of Stripe, Pro 500 GB
-$79.69 against $18.02, Pro 2 TB $326 against $37.30 (full and never re-uploaded, still $73), and the 75 GB pass $143 a
-year against $23, its $15 renewal the same against $14.27 (a full pass kept a year, $32). A one-time pass is the tightest
-case, since its single price carries a year: a full pass costs ≈$0.45 to $0.55 a GB a year to keep (its deletions and a
-refill included), so its renewal's price sets its size, and its uploads fit an allowance over its year (the event and a
-refill) better than a monthly one.
+With Deleted inside the cap the primary holds 1.1 × the cap (a refill day's peak aside), so what is left is churn: the
+backup's 43 days of uploads and their operations. Today every paid plan still breaks rule 2 at its worst month: Pro 100 GB costs $14.20 against $8.38 net of Stripe, Pro 500 GB $70.99 against $18.02, Pro 2 TB
+$291 against $37.30 (full and never re-uploaded, still $73), and the 75 GB pass $128 a year against $23, its $15 renewal
+the same against $14.27 (a full pass kept a year, $32). A one-time pass is the tightest case, since its single price
+carries a year: a full pass costs ≈$0.45 to $0.50 a GB a year to keep (a refill or two included), so its renewal's
+price sets its size, and its uploads fit an allowance over its year (the event and a refill) better than a monthly
+one.
 
 ### The archetypes
 
@@ -319,13 +326,13 @@ refill) better than a monthly one.
 | --- | --- | --- | --- |
 | Cheap: a Free event at its cap (29 photos, 20 guests, 10 confirming) | $0.06 its month at scale, then $0.003 a month | the same | $0 |
 | Typical: Pro, three parties kept (36 GiB), one more a quarter | $1.39 a month | $1.17 | $9 ($8.38 net) |
-| Expensive: Pro 100 GB full, Deleted full, re-filled 3× a month, a 2,000-guest wedding a month | $55 a month ($98 with the prune dry, a year in) | $16.36 (re-filled 1×) | $9 |
+| Expensive: Pro 100 GB full, Deleted inside, re-filled 3× a month, a 2,000-guest wedding a month | $53 a month ($95 with the prune dry, a year in) | $14.48 (re-filled 1×) | $9 |
 | Guest-heavy: the wedding's live album and its guests alone | $37 an evening | $11.40 after `album-calm`, $5.53 after the levers | |
-| Video-heavy: Pro 100 GB full of video, re-filled 3× | $8.82 a month (full and still, $2.75) | $5.71 (1×) | $9 |
-| Churn: Pro 100 GB re-filled 3× a month, photographs | $15.94 a month ($58.67 with the prune dry, a year in) | $8.92 (1×) | $9 |
+| Video-heavy: Pro 100 GB full of video, re-filled 3× | $7.48 a month (full and still, $2.75) | $4.26 (1×) | $9 |
+| Churn: Pro 100 GB re-filled 3× a month, photographs | $14.20 a month ($55.77 with the prune dry, a year in) | $7.03 (1×) | $9 |
 | Always-open: one screen on the reel all month | $0.54 a month and a connection | $0.39 | |
 | The 2,000-guest wedding (1,000 confirming, 9,500 photos, 500 clips, ≈200 tabs over five hours): 58 GiB kept, $1.46 a month | $39 once: the live album $33 (960,000 syncs, 557,000 links calls, 2M messages, 143 GiB of egress gzipped, $65 raw), its guests $4.24, page loads $1.35, uploads $0.56 | $13 after `album-calm`, $7.44 after the levers | the plan that holds it |
-| Photographer or venue: Pro 2 TB full, refreshed 1× a month, eight parties a month | $194 a month ($338 at 3×) | $160 | $39 ($37.30 net) |
+| Photographer or venue: Pro 2 TB full, refreshed 1× a month, eight parties a month | $156 a month ($303 at 3×) | $122 | $39 ($37.30 net) |
 
 The reference party (200 guests over five hours, 2,000 photos and 100 clips of ≈30 s, ≈20 tabs with the socket up,
 ≈100 confirming, ≈400 visits the week after) stores 12.1 GiB ($0.30 a month) and costs $1.47 once today (its live album
@@ -339,15 +346,15 @@ lever by lever (Pro 100 GB at $9):
 
 | Step | Its month | Against $8.38 | Typical hosts to cover it |
 | --- | --- | --- | --- |
-| As built (the prune dry, a year in; 3× uploads; the live album as built) | $97.72 | −$89.35 | 12.4 |
-| The prune keeps up | $54.99 | −$46.61 | 6.5 |
-| `album-calm` | $29.24 | −$20.87 | 2.9 |
-| The guest count once a beat; attribution in the sync | $26.70 | −$18.32 | 2.5 |
-| One ping a beat | $23.38 | −$15.00 | 2.1 |
-| Uploads published at 1× the cap | $16.36 | −$7.98 | 1.1 |
-| The backup holding originals only | $14.95 | −$6.58 | 0.9 |
+| As built (the prune dry, a year in; 3× uploads; the live album as built) | $94.82 | −$86.45 | 12.0 |
+| The prune keeps up | $53.25 | −$44.87 | 6.2 |
+| `album-calm` | $27.50 | −$19.13 | 2.7 |
+| The guest count once a beat; attribution in the sync | $24.96 | −$16.59 | 2.3 |
+| One ping a beat | $21.64 | −$13.26 | 1.8 |
+| Uploads published at 1× the cap | $14.48 | −$6.10 | 0.8 |
+| The backup holding originals only | $13.07 | −$4.69 | 0.7 |
 
-Pro 2 TB at its worst loses $289 a month as built (40 typical hosts) and $145 at 1× (20): no lever reaches it at $39,
+Pro 2 TB at its worst loses $253 a month as built (35 typical hosts) and $107 at 1× (15): no lever reaches it at $39,
 so it is priced or sized away in the ladder Will picks.
 
 ### Each vendor's guard
@@ -365,8 +372,8 @@ so it is priced or sized away in the ladder Will picks.
 **The preconditions**, which nobody sees: the prune keeps up (a cursor and caps sized to the deletions, with the
 launch's `PRUNE_MODE=live`: the backup goes from every byte ever uploaded to the live set and 43 days, a re-filled
 100 GB plan $43 a month cheaper a year in); a presign's declared bytes count against the month's uploads, and a preview
-is never heavier than its original (the two unmetered holes close); a re-delete within 30 days keeps its first date;
-an account's uploads an hour and events a day get breakers far past any party. Each is small; rule 2 holds only with
+is never heavier than its original (the two unmetered holes close); an account's uploads an hour and events a day get
+breakers far past any party. Each is small; rule 2 holds only with
 them.
 
 **The win-wins, by saving** (each cuts our cost and is something a guest or a host feels):

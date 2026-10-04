@@ -339,3 +339,152 @@ describe("sweepOverCapacity", () => {
     expect(state.sent.map((s) => s.kind)).toEqual(["over_cap_grace_start"]);
   });
 });
+
+/**
+ * ★ DELETED COUNTS (trash-in-storage, Will 2026-10-03): the grace reads what she keeps by choice, her albums and her
+ * own Deleted, never the reduce's own removals waiting out their window; at the deadline her own Deleted leaves for
+ * good first, oldest first, and only what it cannot cover moves her largest files. Each case is one host on the
+ * world's clock (NOW), so every removal sits inside its 30 days.
+ */
+describe("Deleted counts in what she keeps", () => {
+  const HOST = uuidOf("h", 1);
+  /** A removal `days` before NOW, inside the window. */
+  const daysAgo = (days: number) =>
+    new Date(NOW.getTime() - days * 86_400_000).toISOString();
+
+  function oneHost(
+    build: (event: FakeRow) => FakeRow[],
+    over: Partial<FakeRow> = {},
+  ) {
+    const host = account(HOST, over);
+    const event = eventRow(uuidOf("e", 7), HOST);
+    const world = createCronWorld(
+      { profiles: [host], events: [event], media: build(event) },
+      { now: NOW },
+    );
+    state.world = world;
+    return world;
+  }
+  const mine = (world: CronWorld) => world.fake.tables.media;
+  const PAST_GRACE = {
+    storage_grace_until: "2026-09-20T00:00:00.000000+00:00",
+  };
+
+  it("★ opens a grace on her own Deleted: under the cap in her albums, over it with what she deleted", async () => {
+    // 6,000 in her albums and 6,000 in her Deleted on a 10,000 cap: she stores 12,000, past its 10% line.
+    const world = oneHost((event) => [
+      ...Array.from({ length: 6 }, (_, i) =>
+        mediaRow(uuidOf("ma", i), event, { file_size_bytes: 1_000 }),
+      ),
+      ...Array.from({ length: 6 }, (_, i) =>
+        mediaRow(uuidOf("md", i), event, {
+          status: "removed",
+          removed_at: daysAgo(3),
+          file_size_bytes: 1_000,
+        }),
+      ),
+    ]);
+    const tally = await sweepOverCapacity(world.client, NOW);
+    expect(tally).toMatchObject({ grace_opened: 1, cleared: 0 });
+    expect(state.sent.map((s) => s.kind)).toEqual(["over_cap_grace_start"]);
+  });
+
+  it("★ never re-opens a grace on the reduce's own removals waiting out their window", async () => {
+    // 10,000 in her albums at the cap, and 5,000 the last reduce moved to Deleted: what she keeps fits.
+    const world = oneHost((event) => [
+      ...Array.from({ length: 10 }, (_, i) =>
+        mediaRow(uuidOf("ma", i), event, { file_size_bytes: 1_000 }),
+      ),
+      ...Array.from({ length: 5 }, (_, i) =>
+        mediaRow(uuidOf("ms", i), event, {
+          status: "removed",
+          removed_at: daysAgo(2),
+          removed_by_system: true,
+          file_size_bytes: 1_000,
+        }),
+      ),
+    ]);
+    const tally = await sweepOverCapacity(world.client, NOW);
+    expect(tally).toMatchObject({ grace_opened: 0, cleared: 0 });
+    expect(state.sent).toEqual([]);
+  });
+
+  it("★ at the deadline, her own Deleted leaves first, oldest first, and nothing she kept is touched while it covers the overage", async () => {
+    // 6,000 kept in her albums and 6,000 in her Deleted (the oldest first), and 3,000 of the system's older still.
+    const world = oneHost(
+      (event) => [
+        ...Array.from({ length: 6 }, (_, i) =>
+          mediaRow(uuidOf("ma", i), event, { file_size_bytes: 1_000 }),
+        ),
+        ...Array.from({ length: 6 }, (_, i) =>
+          mediaRow(uuidOf("md", i), event, {
+            status: "removed",
+            removed_at: daysAgo(10 - i),
+            file_size_bytes: 1_000,
+          }),
+        ),
+        ...Array.from({ length: 3 }, (_, i) =>
+          mediaRow(uuidOf("ms", i), event, {
+            status: "removed",
+            removed_at: daysAgo(20),
+            removed_by_system: true,
+            file_size_bytes: 1_000,
+          }),
+        ),
+      ],
+      PAST_GRACE,
+    );
+    const tally = await sweepOverCapacity(world.client, NOW);
+    // 12,000 kept against 10,000: the two oldest of hers leave, and nothing more.
+    expect(tally).toMatchObject({
+      reduced: 1,
+      deleted_left: 2,
+      items_reduced: 0,
+    });
+    const asked = mine(world).filter((m) => m.purge_asked_at != null);
+    expect(asked.map((m) => m.id).sort()).toEqual(
+      [uuidOf("md", 0), uuidOf("md", 1)].sort(),
+    );
+    // Nothing she kept moved, and the system's removals (older than hers) stayed for their window.
+    expect(mine(world).filter((m) => m.status !== "removed")).toHaveLength(6);
+    expect(
+      mine(world).filter(
+        (m) => m.removed_by_system && m.purge_asked_at != null,
+      ),
+    ).toHaveLength(0);
+    expect(world.fake.tables.profiles[0].storage_grace_until).toBeNull();
+    expect(state.sent.map((s) => s.kind)).toEqual(["over_cap_reduced"]);
+  });
+
+  it("★ when her own Deleted cannot cover it, all of it leaves and then her largest files move", async () => {
+    // 12,000 in her albums (one 3,000 file) and 1,000 in her Deleted: 13,000 against 10,000.
+    const world = oneHost(
+      (event) => [
+        mediaRow(uuidOf("mb", 0), event, { file_size_bytes: 3_000 }),
+        ...Array.from({ length: 9 }, (_, i) =>
+          mediaRow(uuidOf("ma", i), event, { file_size_bytes: 1_000 }),
+        ),
+        mediaRow(uuidOf("md", 0), event, {
+          status: "removed",
+          removed_at: daysAgo(4),
+          file_size_bytes: 1_000,
+        }),
+      ],
+      PAST_GRACE,
+    );
+    const tally = await sweepOverCapacity(world.client, NOW);
+    expect(tally).toMatchObject({
+      reduced: 1,
+      deleted_left: 1,
+      items_reduced: 1,
+    });
+    // Her Deleted left for good; the 3,000 file moved to Deleted as the system's, recoverable for its window.
+    expect(
+      mine(world).find((m) => m.id === uuidOf("md", 0))?.purge_asked_at,
+    ).toBeTruthy();
+    const moved = mine(world).find((m) => m.id === uuidOf("mb", 0));
+    expect(moved).toMatchObject({ status: "removed", removed_by_system: true });
+    expect(moved?.purge_asked_at ?? null).toBeNull();
+    expect(state.sent.map((s) => s.kind)).toEqual(["over_cap_reduced"]);
+  });
+});
