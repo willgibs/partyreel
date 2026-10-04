@@ -17,6 +17,8 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Create: a Library composition of the whole room (the wizard's `create` stand-in prop already draws it with no row written), so every screen, the add step's night included, can be pressed through with no session.
+- Marketing: how-it-works' Create picture (`host-pictures.tsx`) draws three hairlines at the look; the room has four since the add step.
 - Design: `dashboard/display-menu.tsx` and `social/profile-actions-menu.tsx` each type `collisionPadding={8}`, the number `floatingGutter` (`ui/floating-layer.ts`) now names; read it when a lane owns them.
 - Design: when identity's `edge` ask picks a reach for layers, a layer's bright edge reads `--display-light`, and `[data-lit]`'s falloff takes its light as a colour the host sets (r4's `edge.ts` draws it so), so one falloff serves media and layers.
 - Design: the Library's Tooltip entry (`library/components/gallery-demos.tsx`, "useless on touch") gains a `TapTooltip` specimen beside it.
