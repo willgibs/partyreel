@@ -33,6 +33,17 @@ reads:                  # single-sources you depend on: never duplicate, never e
 
 **Goal.** Will's ask: the dead weight in the docs that impedes global problem-solving and future-facing creativity, found and cut in place: history, one-off fixes written as landmines, design written as law, restatement, and a ROADMAP 'Now' that only grows; the take-home board retired; unused kit scripts deleted; the 26 policy tests classified for Will.
 
+## Where I am
+
+- Booted on `lp/docs-prune` from `a62356f0`, fast-forwarded to `0ac6c78f` (the kit fix `78ad4b3d`) before any kit edit.
+- **The audit is whole**: `/Users/gibby/local/ai/partyreel-wt/_scratch/docs-prune/audit.md`. The numbers (17 docs:
+  5,751 lines and 576 ★ before, 4,558 and 210 after), the stale facts corrected in passing, Will's marketing principle
+  folded into marketing-content.md with what runs against it, the ROADMAP's "Now" triage counts, then one section per
+  owned doc: the cuts by kind with real examples, the ★ kept and what each guards, the calls kept in doubt.
+- The cuts it describes sit in the working tree and land after this note, once a verification pass has read each doc
+  against its original for a lost guard or a wrong correction; then the ready files, the board's retirement, the kit
+  and the gate.
+
 ## The brief
 
 **Will's ask (2026-10-04):** "Any other dead weight we've been accruing in docs that impede global problem-solving and future-facing creativity?" His standing philosophy, which this lane applies everywhere it owns: everything is unprotected and may be relitigated; nothing we do is perfect, so everything stays in search of better; history and past decisions must never weigh on agents as rules rather than working guidelines. CLAUDE.md's "Keeping the docs healthy" is the standard: docs hold what a strong model cannot find or infer (security practice, data handling, user safety, how the systems work, their gotchas); design and past decisions are guidance with their reason, never a law; every fact has one home, edited in place; what shipped lives in its merge commit; a one-off mistake is fixed and left in git, and only a recurring one earns a line. Every added line dilutes the rest.
