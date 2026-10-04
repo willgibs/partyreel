@@ -35,6 +35,7 @@ import {
   lensCounts,
 } from "@/lib/dashboard/events-view";
 import { formatCount } from "@/lib/format/count";
+import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 import { cn } from "@/lib/utils";
 
 /**
@@ -272,13 +273,13 @@ export function EventsSection({
       }
     : display.lens === "deleted"
       ? {
-          text: "Nothing deleted. A deleted event stays here for 30 days, then clears for good.",
+          text: `Nothing deleted. A deleted event stays here for ${RECENTLY_DELETED_WINDOW_DAYS} days, then clears for good.`,
           act: "Show every event",
           press: () => choose(resetChoices(display)),
         }
       : counts.all === 0
         ? {
-            text: "No events right now. A deleted event waits in Deleted for 30 days.",
+            text: `No events right now. A deleted event waits in Deleted for ${RECENTLY_DELETED_WINDOW_DAYS} days.`,
             act: "Show Deleted",
             press: () => choose({ ...display, lens: "deleted" }),
           }

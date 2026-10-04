@@ -115,7 +115,6 @@ export function DisplayMenu({
         <Button
           variant="outline"
           size="sm"
-          data-display={n}
           // What the badge counts, said for a reader that cannot see it (its first word is the visible one).
           aria-label={n > 0 ? `Display, ${n} set` : undefined}
         >
