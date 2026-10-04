@@ -2,8 +2,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 /**
  * THE HOME'S SHAPE WHILE IT READS (`loading=asneeded`: the dashboard presigns before it can paint):
- * the head, the stage, a week of parties, and the first group of tiles, in the page's own places and
- * at its own sizes, so nothing jumps when the page lands. It lives with the dashboard, so the page and
+ * the head, the stage, and the first row of her events with its search and Display, in the page's own
+ * places and at its own sizes, so nothing jumps when the page lands. It lives with the dashboard, so the page and
  * its skeleton change in one place; `RouteSkeleton`'s `pulse` draws it and holds the bar's trail.
  *
  * The (app) layout's AppShell already supplies the chrome, so this is a BARE root matching the page's
@@ -38,9 +38,15 @@ export function DashboardSkeleton() {
           </div>
         </div>
       </div>
-      {/* The first group of tiles, at its own fluid columns. */}
-      <div className="space-y-3">
-        <Skeleton className="h-6 w-40" />
+      {/* Her events: the title, the search and Display, then the first tiles at their own fluid columns. */}
+      <div className="space-y-5">
+        <div className="flex items-center justify-between gap-3">
+          <Skeleton className="h-6 w-40" />
+          <div className="flex items-center gap-1.5">
+            <Skeleton className="hidden h-8 w-56 rounded-full sm:block" />
+            <Skeleton className="h-8 w-24 rounded-action-sm" />
+          </div>
+        </div>
         <div className="grid grid-cols-[repeat(auto-fill,minmax(min(calc(50%_-_6px),240px),1fr))] gap-3">
           {Array.from({ length: 5 }, (_, i) => (
             <Skeleton key={i} className="aspect-[3/2] w-full rounded-xl" />

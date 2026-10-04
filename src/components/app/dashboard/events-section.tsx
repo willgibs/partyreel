@@ -1,102 +1,117 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import {
-  ArrowDownWideNarrow,
-  ChevronDown,
-  LayoutGrid,
-  Rows3,
-  Search,
-} from "lucide-react";
+import { startTransition, useState } from "react";
+import { Search } from "lucide-react";
+import { toast } from "sonner";
 
+import { setEventsDisplayAction } from "@/app/(app)/dashboard/actions";
 import { CoverCycleProvider } from "@/components/app/dashboard/cover-cycle";
+import { DisplayMenu } from "@/components/app/dashboard/display-menu";
 import {
   EventTile,
   type TileSize,
 } from "@/components/app/dashboard/event-tile";
 import { EventsRowList } from "@/components/app/dashboard/events-row-list";
+import { EventsTable } from "@/components/app/dashboard/events-table";
+import { RecentRow } from "@/components/app/dashboard/recent-row";
 import { RestoreEventButton } from "@/components/app/restore-event-button";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { setEventsViewAction } from "@/app/(app)/dashboard/actions";
-import { trackAttrs } from "@/lib/analytics/events";
 import {
-  EVENTS_FILTER_OPTIONS,
+  arrange,
+  changed,
+  type Display,
+  type Group,
+  naturalDesc,
+  offersDisplay,
+  resetChoices,
+  type SortKey,
+  type TileScale,
+  yearsOf,
+} from "@/lib/dashboard/display";
+import {
   EVENTS_SEARCH_FROM,
-  EVENTS_SORT_OPTIONS,
   type EventListRow,
-  type EventSeason,
-  type EventsFilter,
-  type EventsSort,
-  type EventsView,
-  filterEventRows,
   lensCounts,
-  searchEventRows,
-  sortEventRows,
 } from "@/lib/dashboard/events-view";
 import { formatCount } from "@/lib/format/count";
+import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 import { cn } from "@/lib/utils";
 
 /**
- * YOUR EVENTS, GROUPED BY WHEN (host-dashboard r1, `events=seasons`: "the freshest drawn largest"), in
- * either of the two views he asked for (`density=cover`, Will 2026-09-20: "Let's do both... For fewer
- * events, I'd expect the cover card to be more popular, but for users with more events, I'd expect the
- * table to be more popular with sorting/filtering").
+ * YOUR EVENTS, SHAPED BY HER (host-dashboard r3, Will 2026-10-04: `events=menu`; his r2 note: "a recent row as
+ * collapsible (keeps last few quickly accessible), then simply a gallery/table/list with deep sort/filter/display
+ * customization for how hosts prefer to organize the rest of their events"). "Your events N", a search from nine
+ * events and one Display button over one collection, under the Recent row; a quiet line under the head says what is
+ * set. The defaults are covers, the newest first, nothing grouped or filtered, so a host with ten sees ten covers
+ * and nothing to set; a planner with two hundred has every choice in one place.
  *
- * Under the stage this is everything else: the stage's own event is not drawn a second time right under
- * itself. The gallery groups by when (`seasonsOf`, decided on the server): coming up, just past, earlier
- * this year, then each year folded into one line whose thumbnails open their events and whose Show
- * opens the year in place. The rows view is the sortable list, one toggle away, the choice remembered.
+ * ★ A CLIENT COMPONENT, BECAUSE THE LAYOUT, THE FILTERS, THE SEARCH AND THE ORDER ARE INSTANT: a management tool's
+ * filter that costs a round trip is a filter the host stops using. Everything arrives resolved and plain (covers as
+ * short-lived presigned urls, never keys; each row's day, date and open decided), her kept choices arrive resolved
+ * (`resolveDisplay`, so the first paint is already her layout), and a choice lays the list out at once and is kept
+ * on her account beside it (`setEventsDisplayAction`), never before it.
  *
- * ★ HIS NOTE ON THE PICK IS THE DIRECTION FOR WHAT COMES NEXT: "a host may have custom preferences on
- * (such as filter, sort, gallery vs table/list, etc)... the host isn't always having to scroll to the
- * very bottom if they're trying to bounce between old events back-to-back". So everything a host can
- * already choose stays one press away (the lens, the view, the order) and a planner's search arrives
- * past eight events; his r2 explores the customizable collection whole.
- *
- * ★ A CLIENT COMPONENT, BECAUSE THE LENS, THE SEARCH AND THE ORDER ARE INSTANT: a management tool's
- * filter that costs a round trip is a filter the host stops using. Everything arrives resolved and plain
- * (covers as short-lived presigned urls, never keys; groups and marks decided). The VIEW rides a cookie a
- * Server Action sets, because it has to be known before the first byte or the list re-lays itself out
- * on every cold load.
+ * Under the stage and this week this is every other event, hers hosted, the ones she added to and (through Show)
+ * the bin: the stage's own event is not drawn again below it.
  */
 
+/**
+ * WHAT THIS TAB LAST SHOWED OF HER EVENTS, by account. ★ A PAGE THE BROWSER'S BACK BRINGS BACK IS DRAWN FROM BEFORE HER
+ * LAST CHOICE: Back restores the dashboard from the client's router cache (the payload the server drew the first time:
+ * verified in a browser, the same render stamp and her layout reset), so a layout she chose, an event she pressed into
+ * and a press of Back would find the old layout again, and the search she typed gone. This is what the section
+ * remembers beside the account's own copy, and a remount reads it first. It is written only in the browser (a handler),
+ * so the server and the first hydration never see it, and it names the account, so another host signing in on the same
+ * tab never meets hers. The search stays only for a visit's length: it is the walk back and forth between two old
+ * events (his r2 note), not a setting.
+ */
+let remembered: {
+  owner: string;
+  display: Display;
+  query: string;
+  at: number;
+} | null = null;
+
+/** How long a search is remembered: the walk between two old events, never a stale filter on a later visit. */
+const QUERY_KEPT_MS = 10 * 60 * 1000;
+
+/** What a press leaves for a remount to find (a handler's, never a render's: the server never writes it). */
+function remember(owner: string, display: Display, query: string): void {
+  remembered = { owner, display, query, at: Date.now() };
+}
+
+const recallDisplay = (owner: string): Display | null =>
+  remembered !== null && remembered.owner === owner ? remembered.display : null;
+const recallQuery = (owner: string): string =>
+  remembered !== null &&
+  remembered.owner === owner &&
+  Date.now() - remembered.at < QUERY_KEPT_MS
+    ? remembered.query
+    : "";
+
 /** A group's grid, by how large its tiles draw: fluid columns, so a wide window holds more, never bigger. */
-const GRID: Record<"large" | "medium" | "small" | "few", string> = {
-  large: "grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))]",
-  medium:
-    "grid-cols-[repeat(auto-fill,minmax(min(calc(50%_-_6px),240px),1fr))]",
-  small:
-    "grid-cols-[repeat(auto-fill,minmax(min(calc(33.333%_-_8px),150px),1fr))]",
+const GRID: Record<TileScale | "few", string> = {
+  l: "grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))]",
+  m: "grid-cols-[repeat(auto-fill,minmax(min(calc(50%_-_6px),240px),1fr))]",
+  s: "grid-cols-[repeat(auto-fill,minmax(min(calc(33.333%_-_8px),150px),1fr))]",
   // A group of one or two draws them a third of a desk wide rather than a fifth, so a host with a
   // couple of events meets covers, not thumbnails in an empty row.
   few: "grid-cols-[repeat(auto-fill,minmax(min(100%,360px),1fr))]",
 };
 
-function TileGrid({
+function Tiles({
   rows,
-  size,
-  few,
+  scale,
   actions,
 }: {
   rows: readonly EventListRow[];
-  size: "large" | "medium" | "small";
-  few?: boolean;
-  actions?: ReadonlyMap<string, React.ReactNode>;
+  scale: TileScale;
+  actions: ReadonlyMap<string, React.ReactNode>;
 }) {
-  const grid = few && rows.length <= 2 ? "few" : size;
+  const grid = rows.length <= 2 && scale !== "s" ? "few" : scale;
   const tile: TileSize =
-    grid === "few" || grid === "large" ? "lg" : grid === "medium" ? "md" : "sm";
+    grid === "few" || grid === "l" ? "lg" : grid === "m" ? "md" : "sm";
   return (
     <ul className={cn("grid gap-3", GRID[grid])}>
       {rows.map((row) => (
@@ -104,7 +119,7 @@ function TileGrid({
           <EventTile
             row={row}
             size={tile}
-            action={actions?.get(`${row.kind}-${row.id}`)}
+            action={actions.get(`${row.kind}-${row.id}`)}
           />
         </li>
       ))}
@@ -112,353 +127,259 @@ function TileGrid({
   );
 }
 
-/** One thumbnail on a folded year's line: its cover, or its month and day. */
-function Thumb({ row }: { row: EventListRow }) {
-  const face = (
-    <>
-      {row.coverUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, not optimizable
-        <img
-          src={row.coverUrl}
-          alt=""
-          loading="lazy"
-          className="absolute inset-0 size-full object-cover"
-        />
-      ) : row.face ? (
-        <span className="absolute inset-0 flex flex-col items-center justify-center leading-none">
-          <span className="text-micro text-muted-foreground uppercase">
-            {row.face.month}
-          </span>
-          <span className="mt-0.5 text-caption font-medium tabular-nums">
-            {row.face.day}
-          </span>
-        </span>
-      ) : null}
-    </>
-  );
-  const box =
-    "relative block size-11 overflow-hidden rounded-[var(--radius-tile)] bg-muted";
-  return row.href ? (
-    <Link
-      href={row.href}
-      aria-label={row.name}
-      title={row.name}
-      className={cn(
-        box,
-        "outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
-      )}
-    >
-      {face}
-    </Link>
-  ) : (
-    <span aria-label={row.name} title={row.name} className={box}>
-      {face}
-    </span>
+function GroupHead({ label, count }: { label: string; count: number }) {
+  return (
+    <h3 className="flex items-baseline gap-2">
+      <span className="font-heading text-card-title">{label}</span>
+      <span className="text-xs text-muted-foreground tabular-nums">
+        {formatCount(count)}
+      </span>
+    </h3>
   );
 }
 
-/**
- * A YEAR, FOLDED INTO ONE LINE: its name and count, a row of its covers (each opens its event, so an
- * old party is one press from the top of the page), and Show, which opens the year in place.
- */
-function FoldedYear({
-  season,
-  rows,
+/** Her events as she laid them out: each group under its head, in her layout. */
+function Arranged({
+  groups,
+  display,
+  actions,
+  onSort,
 }: {
-  season: EventSeason;
-  rows: readonly EventListRow[];
+  groups: readonly Group[];
+  display: Display;
+  actions: ReadonlyMap<string, React.ReactNode>;
+  onSort: (sort: SortKey) => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const id = `season-${season.id}`;
+  const total = groups.reduce((n, g) => n + g.rows.length, 0);
   return (
-    <section
-      data-season={season.id}
-      data-folded={open ? undefined : rows.length}
-      aria-label={season.label}
-      className="space-y-3 border-t border-border pt-4"
-    >
-      <div className="flex items-center gap-4">
-        <h3 className="w-12 shrink-0 font-heading text-card-title tabular-nums sm:w-16">
-          {season.label}
-        </h3>
-        <ul
-          aria-label={`${season.label}, its covers`}
-          className={cn(
-            // Whole thumbnails only: the ones that would wrap are cut with the second line.
-            "flex h-11 min-w-0 flex-1 flex-wrap gap-1.5 overflow-hidden",
-            open && "invisible",
-          )}
-        >
-          {rows.slice(0, 24).map((row) => (
-            <li key={row.id}>
-              <Thumb row={row} />
-            </li>
-          ))}
-        </ul>
-        <Button
-          variant="outline"
-          size="sm"
-          aria-expanded={open}
-          aria-controls={id}
-          onClick={() => setOpen((o) => !o)}
-          className="shrink-0 rounded-full"
-        >
-          {open ? "Fold" : `Show ${formatCount(rows.length)}`}
-          <ChevronDown
-            className={cn(
-              "transition-transform duration-150 ease-emphasis motion-reduce:transition-none",
-              open && "rotate-180",
-            )}
-            aria-hidden
-          />
-        </Button>
+    // The hosted tiles take turns dissolving to their next still, one per beat, in reading order
+    // (`cover-cycle.tsx`, his `pulse` note).
+    <CoverCycleProvider>
+      <div
+        data-arranged={display.layout}
+        data-count={total}
+        className="space-y-7"
+      >
+        {groups.map((g) => {
+          const body =
+            display.layout === "gallery" ? (
+              <Tiles rows={g.rows} scale={display.scale} actions={actions} />
+            ) : display.layout === "table" ? (
+              <EventsTable
+                rows={g.rows}
+                sort={display.sort}
+                desc={display.desc}
+                onSort={onSort}
+                actions={actions}
+              />
+            ) : (
+              <EventsRowList rows={g.rows} actions={actions} />
+            );
+          // A named group (a year) is a region with a head; the whole list is not a second "Your events".
+          return g.label ? (
+            <section key={g.id} aria-label={g.label} className="space-y-3">
+              <GroupHead label={g.label} count={g.rows.length} />
+              {body}
+            </section>
+          ) : (
+            <div key={g.id}>{body}</div>
+          );
+        })}
       </div>
-      <div id={id} hidden={!open}>
-        {open && <TileGrid rows={rows} size="small" />}
-      </div>
-    </section>
-  );
-}
-
-function Group({
-  season,
-  rows,
-}: {
-  season: EventSeason;
-  rows: readonly EventListRow[];
-}) {
-  if (season.size === "folded")
-    return <FoldedYear season={season} rows={rows} />;
-  return (
-    <section
-      data-season={season.id}
-      aria-label={season.label}
-      className="space-y-3"
-    >
-      <h3 className="flex items-baseline gap-2">
-        <span className="font-heading text-card-title">{season.label}</span>
-        <span className="text-xs text-muted-foreground tabular-nums">
-          {formatCount(rows.length)}
-        </span>
-      </h3>
-      <TileGrid rows={rows} size={season.size} few />
-    </section>
-  );
-}
-
-/** The lens as one row of counts: every lens and its number at once, a lens with nothing left out. */
-function LensRow({
-  counts,
-  filter,
-  onChange,
-}: {
-  counts: Record<EventsFilter, number>;
-  filter: EventsFilter;
-  onChange: (next: EventsFilter) => void;
-}) {
-  const lenses = EVENTS_FILTER_OPTIONS.filter(
-    (o) => o.value === "all" || o.value === filter || counts[o.value] > 0,
-  );
-  return (
-    <ToggleGroup
-      type="single"
-      value={filter}
-      // Radix answers "" when the pressed lens is pressed again; a lens always shows something.
-      onValueChange={(v) => v && onChange(v as EventsFilter)}
-      aria-label="Show"
-      className="max-w-full [scrollbar-width:none] overflow-x-auto rounded-full bg-muted p-0.5"
-    >
-      {lenses.map((o) => (
-        <ToggleGroupItem
-          key={o.value}
-          value={o.value}
-          aria-label={`${o.label}, ${formatCount(counts[o.value])}`}
-          className="h-7 gap-1.5 rounded-full px-3 text-xs text-muted-foreground hover:bg-transparent data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-lift"
-        >
-          {o.label}
-          <span className="font-normal text-muted-foreground tabular-nums">
-            {formatCount(counts[o.value])}
-          </span>
-        </ToggleGroupItem>
-      ))}
-    </ToggleGroup>
+    </CoverCycleProvider>
   );
 }
 
 export function EventsSection({
   rows,
-  seasons,
-  initialView,
-  title,
+  today,
+  owner,
+  initial,
+  recent,
 }: {
-  /** Hosted (the stage's own left out), guest and deleted together; the lens decides which show. */
+  /** Hosted (the stage's own left out), guest and deleted together; her Show decides which show. */
   rows: EventListRow[];
-  /** The groups by when, in order, each its rows' ids in its own order (the server's `seasonsOf`). */
-  seasons: EventSeason[];
-  /** Read from the cookie on the server, so the first paint is already right. */
-  initialView: EventsView;
-  /** "Everything else" under a stage, "Your events" without one. */
-  title: string;
+  /** The viewer's calendar day, what Upcoming and Past are measured from. */
+  today: string;
+  /** Whose events these are (her profile's id): what this tab remembers is hers alone. */
+  owner: string;
+  /** Her kept choices, resolved on the server, so the first paint is already her own. */
+  initial: Display;
+  /** The Recent row's events, decided on the server (none below seven events). */
+  recent: EventListRow[];
 }) {
-  const [view, setView] = useState<EventsView>(initialView);
-  const [sort, setSort] = useState<EventsSort>("newest");
-  const [filter, setFilter] = useState<EventsFilter>("all");
-  const [query, setQuery] = useState("");
+  const [display, setDisplay] = useState<Display>(
+    () => recallDisplay(owner) ?? initial,
+  );
+  const [query, setQuery] = useState(() => recallQuery(owner));
 
   if (rows.length === 0) return null;
 
+  /** Lays the list out at once, and keeps the choice for her account beside it. */
+  function choose(next: Display) {
+    setDisplay(next);
+    remember(owner, next, query);
+    startTransition(async () => {
+      try {
+        const answer = await setEventsDisplayAction(next);
+        if (!answer.ok) toast.error(answer.message, { id: "events-display" });
+      } catch {
+        toast.error("Couldn't keep that for your account. Please try again.", {
+          id: "events-display",
+        });
+      }
+    });
+  }
+
   const counts = lensCounts(rows);
-  const shown = searchEventRows(filterEventRows(rows, filter), query);
+  const groups = arrange(rows, display, today, query);
+  const found = groups.reduce((n, g) => n + g.rows.length, 0);
+  const said = changed(display);
   const searching = query.trim().length > 0;
   const searchable = counts.all >= EVENTS_SEARCH_FROM;
-
-  function chooseView(next: string) {
-    // Radix answers "" when the pressed item is pressed again; a two-way switch has no "neither".
-    if (next !== "cards" && next !== "rows") return;
-    setView(next);
-    // Fire and forget: the view has switched, and the cookie only paints the NEXT cold load this way.
-    void setEventsViewAction(next);
-  }
 
   // The bin's Restore is the list's one per-row act. A Guest tile has none: it stays while the account
   // holds a live upload there and leaves with the last one.
   const actions = new Map<string, React.ReactNode>();
-  for (const row of shown) {
-    if (row.kind === "deleted")
-      actions.set(`deleted-${row.id}`, <RestoreEventButton eventId={row.id} />);
+  for (const g of groups)
+    for (const row of g.rows)
+      if (row.kind === "deleted")
+        actions.set(
+          `deleted-${row.id}`,
+          <RestoreEventButton eventId={row.id} />,
+        );
+
+  function search(next: string) {
+    setQuery(next);
+    remember(owner, display, next);
   }
 
-  // The gallery by when: each group's rows in its own order, through the lens and the search.
-  const byKey = new Map(shown.map((r) => [`${r.kind}-${r.id}`, r]));
-  const groups = seasons
-    .map((season) => ({
-      season,
-      rows: season.ids
-        .map((id) =>
-          byKey.get(`${season.id === "guest" ? "guest" : "hosted"}-${id}`),
-        )
-        .filter((r): r is EventListRow => Boolean(r)),
-    }))
-    .filter((g) => g.rows.length > 0);
+  const onSort = (sort: SortKey) =>
+    choose(
+      display.sort === sort
+        ? { ...display, desc: !display.desc }
+        : { ...display, sort, desc: naturalDesc(sort) },
+    );
 
-  const empty =
-    filter === "deleted"
-      ? "Nothing deleted. A deleted event stays here for 30 days, then clears for good."
-      : searching
-        ? `No event's name holds “${query.trim()}”.`
-        : filter === "guest"
-          ? "Add a photo to someone else's album and it shows up here."
-          : "Nothing else yet.";
+  // What an empty list says, and the one press that gets her out of it.
+  const empty = searching
+    ? {
+        text: `No event's name holds “${query.trim()}”.`,
+        act: "Show every event",
+        press: () => {
+          search("");
+          choose(resetChoices(display));
+        },
+      }
+    : display.lens === "deleted"
+      ? {
+          text: `Nothing deleted. A deleted event stays here for ${RECENTLY_DELETED_WINDOW_DAYS} days, then clears for good.`,
+          act: "Show every event",
+          press: () => choose(resetChoices(display)),
+        }
+      : counts.all === 0
+        ? {
+            text: `No events right now. A deleted event waits in Deleted for ${RECENTLY_DELETED_WINDOW_DAYS} days.`,
+            act: "Show Deleted",
+            press: () => choose({ ...display, lens: "deleted" }),
+          }
+        : {
+            text: "No event fits what you chose.",
+            act: "Show every event",
+            press: () => choose(resetChoices(display)),
+          };
 
   return (
-    <section aria-label={title} data-events-view={view} className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-        <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-3">
-          <h2 className="font-heading text-subsection">{title}</h2>
-          <LensRow counts={counts} filter={filter} onChange={setFilter} />
-        </div>
-        <div
-          className={cn(
-            "flex items-center gap-1.5",
-            // The search takes a phone's whole row; without it the toggle rides beside the lens.
-            searchable ? "w-full sm:w-auto" : "ml-auto",
-          )}
-        >
-          {searchable && (
-            <label className="relative flex min-w-0 flex-1 items-center sm:w-64 sm:flex-none">
-              <Search
-                className="pointer-events-none absolute left-3 size-3.5 text-muted-foreground"
-                aria-hidden
-              />
-              <span className="sr-only">Search your events</span>
-              <Input
-                type="search"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={`Search ${formatCount(counts.all)} events`}
-                className="h-8 rounded-full pl-8 text-xs md:text-xs"
-              />
-            </label>
-          )}
-          {/* The order rides with the rows, where he expects it ("with sorting/filtering"); the gallery
-              keeps its one order, by when. */}
-          {view === "rows" && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm">
-                  <ArrowDownWideNarrow />
-                  {EVENTS_SORT_OPTIONS.find((o) => o.value === sort)?.label}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Sort by</DropdownMenuLabel>
-                <DropdownMenuRadioGroup
-                  value={sort}
-                  onValueChange={(v) => setSort(v as EventsSort)}
-                >
-                  {EVENTS_SORT_OPTIONS.map((o) => (
-                    <DropdownMenuRadioItem key={o.value} value={o.value}>
-                      {o.label}
-                    </DropdownMenuRadioItem>
-                  ))}
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-          <ToggleGroup
-            type="single"
-            value={view}
-            onValueChange={chooseView}
-            variant="outline"
-            size="sm"
-            aria-label="How your events are shown"
-            className="ml-auto sm:ml-0"
-          >
-            <ToggleGroupItem
-              value="cards"
-              aria-label="By when"
-              {...trackAttrs("cta_click", {
-                cta: "events-view-cards",
-                location: "dashboard",
-              })}
-            >
-              <LayoutGrid />
-            </ToggleGroupItem>
-            <ToggleGroupItem
-              value="rows"
-              aria-label="Rows"
-              {...trackAttrs("cta_click", {
-                cta: "events-view-rows",
-                location: "dashboard",
-              })}
-            >
-              <Rows3 />
-            </ToggleGroupItem>
-          </ToggleGroup>
-        </div>
-      </div>
-
-      {shown.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-border px-6 py-10 text-center text-sm text-muted-foreground">
-          {empty}
-        </p>
-      ) : view === "rows" ? (
-        <EventsRowList rows={sortEventRows(shown, sort)} actions={actions} />
-      ) : (
-        // The hosted tiles take turns dissolving to their next still, one per beat, in reading order
-        // (`cover-cycle.tsx`, his `pulse` note).
-        <CoverCycleProvider>
-          {searching || filter === "deleted" ? (
-            <TileGrid rows={shown} size="medium" few actions={actions} />
-          ) : (
-            <div className="space-y-7">
-              {groups.map((g) => (
-                <Group key={g.season.id} season={g.season} rows={g.rows} />
-              ))}
-            </div>
-          )}
-        </CoverCycleProvider>
+    <div data-collection="" className="space-y-7">
+      {recent.length > 0 && (
+        <RecentRow
+          rows={recent}
+          folded={display.recent === "folded"}
+          onFold={(folded) =>
+            choose({ ...display, recent: folded ? "folded" : "open" })
+          }
+        />
       )}
-    </section>
+      <section
+        aria-label="Your events"
+        data-events={display.layout}
+        className="space-y-5"
+      >
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+            <h2 className="flex items-baseline gap-2">
+              <span className="font-heading text-subsection">Your events</span>
+              {/* A space a reader hears and a flex row does not draw: the count has its own gap. */}{" "}
+              <span className="text-sm text-muted-foreground tabular-nums">
+                {formatCount(counts.all)}
+              </span>
+            </h2>
+            <div
+              className={cn(
+                "flex items-center gap-1.5",
+                // The search takes a phone's whole row; without it the button rides alone at the right.
+                searchable ? "w-full sm:w-auto" : "ml-auto",
+              )}
+            >
+              {searchable && (
+                <label className="relative flex min-w-0 flex-1 items-center sm:w-56 sm:flex-none">
+                  <Search
+                    className="pointer-events-none absolute left-3 size-3.5 text-muted-foreground"
+                    aria-hidden
+                  />
+                  <span className="sr-only">Search your events</span>
+                  <Input
+                    type="search"
+                    value={query}
+                    onChange={(e) => search(e.target.value)}
+                    placeholder={`Search ${formatCount(counts.all)} events`}
+                    className="h-8 rounded-full pl-8 text-xs md:text-xs"
+                  />
+                </label>
+              )}
+              {offersDisplay(rows) && (
+                <DisplayMenu
+                  display={display}
+                  onChange={choose}
+                  counts={counts}
+                  years={yearsOf(rows, display.year)}
+                />
+              )}
+            </div>
+          </div>
+          {said.length > 0 && (
+            <p
+              data-display-said=""
+              className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground"
+            >
+              <span>{said.join(" · ")}</span>
+              <button
+                type="button"
+                onClick={() => choose(resetChoices(display))}
+                className="font-medium text-foreground outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring/50"
+              >
+                Reset
+              </button>
+            </p>
+          )}
+        </div>
+
+        {found === 0 ? (
+          <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border px-6 py-10 text-center text-sm text-muted-foreground">
+            <p>{empty.text}</p>
+            <Button variant="outline" size="sm" onClick={empty.press}>
+              {empty.act}
+            </Button>
+          </div>
+        ) : (
+          <Arranged
+            groups={groups}
+            display={display}
+            actions={actions}
+            onSort={onSort}
+          />
+        )}
+      </section>
+    </div>
   );
 }

@@ -125,13 +125,16 @@ Gotchas). A new table starts with no client grant, so its migration grants exact
   holds SELECT and its writes only on a table a policy serves, and TRUNCATE, REFERENCES, TRIGGER and MAINTAIN
   (Supabase's latent default; PostgREST issues none) on none.
 
-- **`profiles`:** hosts write `announcements_seen_at`, `welcomed_at` and `make_room_from_deleted`, nothing else.
+- **`profiles`:** hosts write `announcements_seen_at`, `welcomed_at`, `make_room_from_deleted` and `events_display` (her
+  Display choices: sparse jsonb under an envelope CHECK, an object within 512 bytes, narrowed by the app on every read),
+  nothing else.
   Never grant `email` (every transactional email goes there, so a client write is a mail-redirect primitive),
   `display_name` or `bio` (public text, written on the admin client after validation and the profanity check:
   [auth-accounts.md](auth-accounts.md)), `deletion_requested_at` (no un-request path exists), or `slug`, `tier*`,
   `event_slots`, `storage_*`, `is_admin`, `stripe_*`, `avatar_updated_at`, `password_set_at`.
-- **`events`:** hosts write the settings columns and `insert(host_id)`, and `update(deleted_at)` for a soft delete
-  only. `event_password_hash`, `custom_slug`, `qr_token` and `purge_at` are RPC, trigger or default only. SELECT is
+- **`events`:** hosts write the settings columns and `insert(host_id)`, `update(host_opened_at)` (the dashboard's open
+  stamp, a finite instant that only orders her list) and `update(deleted_at)` for a soft delete only.
+  `event_password_hash`, `custom_slug`, `qr_token` and `purge_at` are RPC, trigger or default only. SELECT is
   table-level (RLS scopes the rows), so a new column reads with no grant.
 - **`media`:** UPDATE `status` and `removed_at` only; `purge_at` and `let_in_at` (the approval toast's news) come
   from triggers; the removal provenance (`removed_by_uploader`, `removed_by_system`, `removed_by_admin`,

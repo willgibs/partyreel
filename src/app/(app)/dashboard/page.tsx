@@ -29,10 +29,7 @@ import {
   toBillingTier,
 } from "@/lib/constants/tiers";
 import { weekEvents } from "@/lib/dashboard/attention";
-import {
-  EVENTS_VIEW_COOKIE,
-  resolveEventsView,
-} from "@/lib/dashboard/events-view";
+import { resolveDisplay } from "@/lib/dashboard/display";
 import type { HomeContext } from "@/lib/dashboard/home-event";
 import {
   buildHomeView,
@@ -116,13 +113,13 @@ function quietly<T>(seam: string, fallback: T) {
 }
 
 /**
- * THE HOST'S HOME (host-dashboard r1, Will 2026-10-02: `purpose=stage`, `needs=week`,
- * `events=seasons`, `arrivals=live`, and the board's four carried calls taken: `head`, `tile`,
- * `finished`, `busier`). The page is today's: headed by the viewer's own day, led by the party of the
- * moment on a stage of its own photographs, then this week's parties each saying its one step, then
- * everything else grouped by when. The composition is `components/app/dashboard/home.tsx` and every
- * rule under it is pure and pinned (`lib/dashboard/`); this page reads, in rounds that each ask only
- * what the one before showed the page will say.
+ * THE HOST'S HOME (host-dashboard r1, Will 2026-10-02: `purpose=stage`, `needs=week`, `events=seasons`,
+ * `arrivals=live`, and the board's four carried calls taken: `head`, `tile`, `finished`, `busier`; r3, 2026-10-04:
+ * `events=menu`, `stage=lit`). The page is today's: headed by the viewer's own day, led by the party of the moment
+ * on a stage of its own photographs (before the first, lit by its own lamp), then this week's parties each saying
+ * its one step, then everything else as she shapes it (her Display, kept on her account and read here with her
+ * profile). The composition is `components/app/dashboard/home.tsx` and every rule under it is pure and pinned
+ * (`lib/dashboard/`); this page reads, in rounds that each ask only what the one before showed the page will say.
  *
  * ★ THE REASON, IN HIS WORDS: "in 1 event dashboards (which every user will experience creating their
  * first and only event, until adding more), the experience feels much more alive that expecting many
@@ -289,6 +286,8 @@ export default async function DashboardPage({
       dateLabel: event.event_date
         ? formatEventDate(event.event_date, endDate)
         : "No date set",
+      // When she last pressed into it from this page: the Recent row's and Last opened's one fact.
+      openedAt: event.host_opened_at,
     };
   });
 
@@ -458,7 +457,8 @@ export default async function DashboardPage({
       head={{ day: longDate(today), line: `${counted} · ${planName}` }}
       view={view}
       ctx={ctx}
-      initialView={resolveEventsView(jar.get(EVENTS_VIEW_COOKIE)?.value)}
+      owner={profile?.id ?? ""}
+      display={resolveDisplay(profile?.events_display)}
       storage={
         <StorageMeter
           activeBytes={storage.activeBytes}

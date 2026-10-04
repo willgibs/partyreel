@@ -128,8 +128,10 @@ A lazy predicate alone reaches nobody: the guest poll's quiet path reads one row
   ([lifecycle-recovery.md](lifecycle-recovery.md)). So the churn a freed frame opens is bounded: the storage cap reads
   what the host stores and a withdrawn shot leaves it at once (a withdrawal sits in no Deleted), the uploads
   allowance's meter counts every upload and never gives one back, and the ceiling bounds the rows.
-- A camera video is one shot of up to 10 s (with half a second's grace) and 128 MB, since its length is the client's
-  word (`media/limits.ts`, mirrored in `create_media` under `roll.test.ts`). The host's own uploads are exempt from the
+- A hold films up to 30 seconds at about 5 Mbps (about 19 MB), with half a second's grace, and a clip may weigh 384 MB
+  at most, since its length is the client's word. `media/limits.ts` is the one home (the recorder's `maxMs`, the ring,
+  the "0:30"); `create_media` mirrors it in three `c_camera_video_*` constants and formats both refusals from them,
+  under `roll.test.ts`. The host's own uploads are exempt from the
   roll, the ceiling and the video bounds, and seal with everyone's.
 
 ## The guest's camera
@@ -171,8 +173,9 @@ develops without asking.
 
 **The host's cover** (`event-hub-head-cover.tsx`, mounted by `event-gallery.tsx`): while a develop time is ahead, her
 hub's album is the contact sheet her guests meet, counted from her own manifest (`lib/disposable/host-cover.ts`), until
-Look lifts it for the visit. Her hub's head, its band and the Reel card wear only what her guests can see meanwhile
-(`useHubCoverStills`, `reel-card.tsx`), following the develop, never Look. What waits on it is read by the seal, the
+Look lifts it for the visit. Her hub's head and its band wear only what her guests can see meanwhile
+(`useHubCoverStills`), following the develop, never Look; the Reel card is the one place that is hers, drawing and
+playing her own scope with the sealed shots in it ([reel.md](reel.md)). What waits on it is read by the seal, the
 period only its floor: the held photos a switch put in the roll (and a camera's shots between a develop time and its
 restamped period) are sealed yet created before `sealed_from`, so the page reads them off the rows
 (`host-cover.server.ts`'s `readJoinedIds`) and hands them down as `joined`; `waitsOf` is the one test the count and the

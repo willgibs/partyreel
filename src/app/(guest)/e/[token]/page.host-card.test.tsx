@@ -38,6 +38,8 @@ const EVENT = {
   visibility: "open",
   accepting_uploads: true,
   host_display_name: "Maya",
+  // A develop time, where a test sets one (the album's wait): none by default.
+  develops_at: null as string | null,
 };
 vi.mock("@/lib/events/closed-door.server", () => ({
   pageDoor: async () => ({
@@ -158,6 +160,7 @@ async function hostCardHanded() {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  EVENT.develops_at = null;
   user = { id: "guest-1", email_confirmed_at: "2026-09-01T00:00:00Z" };
   isRequestOwner.mockResolvedValue(false);
   isFollowing.mockResolvedValue(false);
@@ -225,6 +228,27 @@ describe("the reel a viewer asks for", () => {
     returning();
     expect(await reelAskedFor({ reel: "" })).toBe(true);
     user = null;
+    expect(await reelAskedFor({ reel: "" })).toBe(true);
+  });
+
+  it("★ is never the owner's while the develop is ahead: this page shows her what her guests see, which is no reel yet", async () => {
+    // Will's Q5: her own reel plays on her hub before the develop (`event-feed/hub-reel.tsx`). This page is the guests'
+    // view, hers included (no guest-path read takes the owner's exemption), so a black stood from the first byte for a
+    // reel that is not coming would be a flash for nothing.
+    isRequestOwner.mockResolvedValue(true);
+    EVENT.develops_at = new Date(Date.now() + 3_600_000).toISOString();
+    expect(await reelAskedFor({ reel: "" })).toBe(false);
+  });
+
+  it("is the owner's again once the develop is behind it", async () => {
+    isRequestOwner.mockResolvedValue(true);
+    EVENT.develops_at = new Date(Date.now() - 60_000).toISOString();
+    expect(await reelAskedFor({ reel: "" })).toBe(true);
+  });
+
+  it("is still a returning guest's before the develop: what her album shows may already be a reel", async () => {
+    returning();
+    EVENT.develops_at = new Date(Date.now() + 3_600_000).toISOString();
     expect(await reelAskedFor({ reel: "" })).toBe(true);
   });
 

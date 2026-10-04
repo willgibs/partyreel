@@ -2,12 +2,14 @@ import { act, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Stage } from "./stage";
+import { lampOf } from "@/lib/dashboard/stage";
 import type { StageLive } from "@/lib/dashboard/stage-action";
 import { homeContext, homeEvent } from "@/lib/dashboard/testing/home";
 
 /**
- * THE STAGE (host-dashboard r1, `purpose=stage` and `arrivals=live`), pinned as function: what it draws
- * in each phase, and that on its day the doorbell's answers move its photographs, its numbers and its
+ * THE STAGE (host-dashboard r1, `purpose=stage` and `arrivals=live`; r3, `stage=lit`), pinned as function: what
+ * it draws in each phase, that before its first photograph it is lit by the event's own lamp with Settings' five
+ * steps under its name, and that on its day the doorbell's answers move its photographs, its numbers and its
  * act together, through the same rules the server drew it with. Never a look.
  */
 
@@ -53,7 +55,7 @@ beforeEach(() => {
 });
 
 describe("before the day", () => {
-  it("is the event's code on its plate, its ticks, and Invite then Print while nobody has opened it", () => {
+  it("is the event's code on its plate, Settings' five steps, and Invite then Print while nobody has opened it", () => {
     render(
       <Stage
         event={homeEvent({
@@ -68,11 +70,30 @@ describe("before the day", () => {
       />,
     );
     expect(screen.getByTestId("qr")).toBeInTheDocument();
-    expect(screen.getByText("Never opened")).toBeInTheDocument();
+    expect(
+      screen.getByText("Not opened yet: scan it once from your phone"),
+    ).toBeInTheDocument();
     expect(screen.getByText("In 7 days")).toBeInTheDocument();
-    expect(document.querySelector("[data-stage-ticks]")?.textContent).toContain(
-      "Code",
+    // Settings' five steps in a word each; the door, uploads and welcome stand done, the first photos and the code not.
+    const rail = document.querySelector("[data-stage-rail]") as HTMLElement;
+    expect(
+      [...rail.querySelectorAll("li")].map((li) => [
+        li.textContent?.replace(/^\d/, "").replace(/^(Done: |To do: )/, ""),
+        li.hasAttribute("data-done"),
+      ]),
+    ).toEqual([
+      ["Door", true],
+      ["Uploads", true],
+      ["First photos", false],
+      ["Welcome", true],
+      ["Code", false],
+    ]);
+    // The checklist's own head says what a guest still needs, and the rail says Ready, so no second tick does.
+    expect(rail).toHaveTextContent(
+      "Before guests arrive. Guests still need one more thing.",
     );
+    expect(screen.queryByText("Ready for guests")).toBeNull();
+    expect(document.querySelector("[data-stage-ticks]")).toBeNull();
     expect(screen.getByRole("button", { name: "Invite" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Print" })).toHaveAttribute(
       "href",
@@ -98,6 +119,95 @@ describe("before the day", () => {
       "href",
       "/dashboard/e1?room=settings&setting=event",
     );
+  });
+
+  it("says how often the code was opened once it has been", () => {
+    render(
+      <Stage
+        event={homeEvent({
+          date: "2026-10-09",
+          ready: { opened: 12, guestsIn: 0 },
+        })}
+        ctx={homeContext(FRIDAY)}
+        guests={null}
+        photos={[]}
+        share={share}
+        qrToken="tok"
+      />,
+    );
+    expect(screen.getByText("Opened 12 times")).toBeInTheDocument();
+  });
+});
+
+describe("before its first photograph (host-dashboard r3, `stage=lit`)", () => {
+  it("is lit by the event's own lamp, the same one every visit", () => {
+    const { unmount } = render(
+      <Stage
+        event={homeEvent()}
+        ctx={homeContext(FRIDAY)}
+        guests={null}
+        photos={[]}
+        share={share}
+        qrToken="tok"
+      />,
+    );
+    const lit = document.querySelector("[data-stage-lit]") as HTMLElement;
+    expect(lit.dataset.stageLit).toBe(String(lampOf("e1")));
+    unmount();
+    render(
+      <Stage
+        event={homeEvent()}
+        ctx={homeContext(FRIDAY)}
+        guests={null}
+        photos={[]}
+        share={share}
+        qrToken="tok"
+      />,
+    );
+    expect(
+      (document.querySelector("[data-stage-lit]") as HTMLElement).dataset
+        .stageLit,
+    ).toBe(String(lampOf("e1")));
+  });
+
+  it("is drawn lit by no lamp once a photograph has landed, and keeps the ticks the photographs' stage always had", () => {
+    render(
+      <Stage
+        event={homeEvent({
+          date: "2026-10-09",
+          approved: 4,
+          ready: { opened: 2, guestsIn: 0 },
+        })}
+        ctx={homeContext(FRIDAY)}
+        guests={null}
+        photos={photos(3)}
+        share={share}
+        qrToken="tok"
+      />,
+    );
+    expect(document.querySelector("[data-stage-lit]")).toBeNull();
+    expect(document.querySelector("[data-stage-rail]")).toBeNull();
+    expect(document.querySelector("[data-stage-ticks]")).not.toBeNull();
+  });
+
+  it("keeps a party's own numbers on its day, where readiness was not asked, and the lamp until the first lands", () => {
+    render(
+      <Stage
+        event={homeEvent({ date: FRIDAY, approved: 0, ready: null })}
+        ctx={homeContext(FRIDAY)}
+        guests={0}
+        photos={[]}
+        share={share}
+        qrToken="tok"
+      />,
+    );
+    expect(document.querySelector("[data-stage-lit]")).not.toBeNull();
+    expect(document.querySelector("[data-stage-rail]")).toBeNull();
+    expect(document.querySelector("[data-stage-numbers]")).toHaveTextContent(
+      "in the album",
+    );
+    // Nothing was read of the code's opens, so nothing is said of them.
+    expect(screen.queryByText(/opened/i)).toBeNull();
   });
 });
 

@@ -140,11 +140,21 @@ hub and closes back to it.
   logo, the name, the cards and the album share one left line. Their skeletons mark it too, or the page paints narrow
   and jumps.
 - **The head is the guests' cover, hers** (`event-feed/event-hub-head.tsx`'s `HubCover` in the album's own frame,
-  `EventHead`, [guest-flow.md](guest-flow.md)): the album's photographs under the name, the facts and the link, and the
-  code on its mat (`ui/code-mat.tsx`) in the cover's corner, so she sees her party as her guests do. Its photographs
-  are the guests' cover's rule (`event-hub-head-stills.ts`, pure, read on both sides): the reel's opening stills while
-  it plays (`readHubReel`'s), else the newest a guest can see (approved, never hidden, held or a clip), so a still she
-  hides, removes or sends back leaves it the moment the album's store has it.
+  `EventHead`, [guest-flow.md](guest-flow.md)): the album's photographs under the name, the date, her guests and views
+  and the Live mark, the link, and the code on its mat (`ui/code-mat.tsx`) in the cover's corner, so she sees her party
+  as her guests do. Its photographs are the guests' cover's rule (`event-hub-head-stills.ts`, pure, read on both
+  sides): the reel's opening stills while it plays (`readHubReel`'s), else the newest a guest can see (approved, never
+  hidden, held or a clip), so a still she hides, removes or sends back leaves it the moment the album's store has it.
+- **The album's facts are the strip along the cover's foot** (`event-hub-head-strip.tsx`, its maths in
+  `event-hub-head-strip-marks.ts`): a mark a photograph in the album's own order, so no shape of event leans on a
+  timeline. It reads the page's store: its marks are what the hub's album holds (approved and hidden, never Review's) on
+  her own scope, so a photograph waiting for the develop has its mark, and the number it ends in is the counted
+  `counts.album`. ★ **Each width of marks (a hand, a tablet, a desk) is in the DOM and a container query on the strip's
+  own box picks one**: a count chosen from a measured width would paint a desk's 160 marks into a phone and correct
+  itself after hydration. ★ **Lit is photographs landing now**, the newest within a quarter of an hour on the reader's
+  clock: one timeout for the moment it turns, never a poll, and never lit in the server's paint or the hydrating
+  render (they have no clock of hers). With no store and no `arrivals` (the Library's specimen) it draws a flat quiet
+  line, never a shape it does not know.
 - **The code stands beside the h1**, never inside it (an h1 holding a control stops being the page's accessible name).
   It wears the door on its corner (`share/event-code-door.tsx`, its words `codeMark` in `visibility-labels.ts`) and
   dims where a guest who scans cannot add (paused, Only me). The mark is its own button beside the code's, since
@@ -162,7 +172,8 @@ hub and closes back to it.
 - **Every room is a place over the hub, one way in and out**: Review, Guests and Settings stand in one panel
   (`share/room-panel.tsx` for the first two, Settings' own kind and head), the share kit, See it as a guest in a phone
   over the dimmed hub (below), and the Highlight reel is a door: the guests' own view at `?reel` ([reel.md](reel.md)),
-  its owner's close going Back to the hub. The old room routes (`/review`, `/guests`, `/settings`) only redirect to
+  its owner's close going Back to the hub, or, while the album's develop time is ahead, her own reel over the hub on the
+  hub's own `?reel` (below). The old room routes (`/review`, `/guests`, `/settings`) only redirect to
   `roomHref`, because they are in histories, mails and the sign-in's return (which carries a path, never a query). A
   room's panel names its room on the dialog (`data-room-panel`), so the room's own keys read that panel as their page
   (`review-keys.ts`). The crumb trail is the hub's alone, a context each route sets with `SetCrumbs` (so it lands at
@@ -393,5 +404,8 @@ so the profile's visitor-facing "Private" never collides. The six-door menu is `
 The Reel card, the band's reel step, the old route's redirect, Settings' Highlight reel section and the card's door
 into the guests' album at `?reel` are [reel.md](reel.md)'s, with the rest of the reel and the clip. What the hub owes
 it: the card rides the cards row (the Highlight reel is a door, never a room), its threshold reads the album's
-manifest (`isPlayableEntry`), and its stills are the reel's take, planned on the server (`readHubReel`) and asked again
-when its state moves.
+manifest (`isPlayableEntry`), and its stills are the reel's take, planned on the server (`readHubReel`) on her own scope
+and asked again when its state moves. ★ **The card is hers before the develop** (Will's Q5): it draws her photographs,
+sealed shots included, says guests get it later, and a press plays her own reel over the hub (`event-feed/hub-reel.tsx`,
+mounted inside the album's store: a reel outside it never finds its manifest), while the head, its band and the album's
+cover stay her guests' view; after the develop a press opens the guests' view.

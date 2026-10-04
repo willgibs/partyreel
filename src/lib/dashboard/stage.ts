@@ -1,12 +1,19 @@
 import { lastDayOf } from "@/lib/events/dates";
 import type { ReadyFacts } from "@/lib/events/readiness";
-import { readiness } from "@/lib/events/readiness";
+import {
+  readiness,
+  readyHead,
+  settingsReadiness,
+  settingsSteps,
+} from "@/lib/events/readiness";
 import { formatCount } from "@/lib/format/count";
 
 import type { Item, ItemTarget } from "./attention";
 import type { HomeContext, HomeEvent } from "./home-event";
 import {
+  type Dated,
   daysFrom,
+  daysToEvent,
   longDate,
   longDays,
   type Phase,
@@ -199,4 +206,66 @@ export function stageActsOf(
         ? null
         : { label: "Open", to: "hub" };
   return { primary, secondary };
+}
+
+/* ── The stage before its first photograph (host-dashboard r3, `stage=lit`) ───────────────────────────── */
+
+/**
+ * AN EVENT'S OWN LAMP: one of the house's five (`--lamp-1` to `--lamp-5`, light and never UI), picked by its id so it
+ * never changes, which lights its stage until its own photographs do (bible 6: "where there is no photograph, light
+ * brings color with a source and a direction"). Her photographs take the light over the day the first one lands.
+ */
+export function lampOf(id: string): 1 | 2 | 3 | 4 | 5 {
+  let h = 0;
+  for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return ((h % 5) + 1) as 1 | 2 | 3 | 4 | 5;
+}
+
+/** The lamp burns fuller from the week before an event's first day through its last: the day is near. */
+export function lampNear(e: Dated, today: string): boolean {
+  const d = daysToEvent(e, today);
+  return d !== null && d >= 0 && d < WEEK_DAYS;
+}
+
+/** Each of Settings' five steps in a word, as the rail lays them flat (`stageTicksOf` says Door, Uploads, Code). */
+const RAIL_WORDS: Record<string, string> = {
+  door: "Door",
+  adds: "Uploads",
+  photos: "First photos",
+  welcome: "Welcome",
+  code: "Code",
+};
+
+export type StageRail = {
+  steps: { n: number; item: string; word: string; done: boolean }[];
+  /** The checklist's own head, in its two states: "Before guests arrive. Guests still need one more thing." */
+  head: { title: string; line: string };
+};
+
+/**
+ * SETTINGS' FIVE STEPS LAID FLAT under an empty stage's name (Create's last beat draws the same rail): the steps are
+ * Settings' own (`settingsSteps`, room left out), the head is the checklist's (`readyHead`), so a tick here is a tick in
+ * the hub and in Settings. Null where readiness's own reads were not made for this event.
+ */
+export function stageRailOf(facts: ReadyFacts | null): StageRail | null {
+  if (!facts) return null;
+  return {
+    steps: settingsSteps(settingsReadiness(facts)).map((s) => ({
+      n: s.n,
+      item: s.item,
+      word: RAIL_WORDS[s.item] ?? s.title,
+      done: s.done,
+    })),
+    head: readyHead(readiness(facts)),
+  };
+}
+
+/**
+ * Under the plate: how often the code has been opened (scans and views, the host's own included), or the nudge a
+ * code that never was needs. Null where the reads were not made.
+ */
+export function openedLineOf(opened: number | null): string | null {
+  if (opened === null) return null;
+  if (opened === 0) return "Not opened yet: scan it once from your phone";
+  return `Opened ${formatCount(opened)} ${opened === 1 ? "time" : "times"}`;
 }

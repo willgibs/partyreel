@@ -1,83 +1,28 @@
 /**
- * THE EVENTS LIST'S TWO VIEWS, AND THE ORDER AND THE LENS OVER EITHER
- * (`density=cover`, Will 2026-09-20: "Let's do both. Let's make a toggle
- * opposite 'your events' (aligned right side)... For fewer events, I'd expect
- * the cover card to be more popular, but for users with more events, I'd
- * expect the table to be more popular with sorting/filtering").
+ * THE EVENTS LIST'S ROW, ITS LENS AND ITS SEARCH (host-dashboard r1's lens and r3's `events=menu`): what
+ * one event is to the list, resolved on the server and plain, so the client lays the list out (`display.ts`:
+ * the layout, the order, the filters, the groups) without a round trip, the management-tool contract: a
+ * filter is instant or it is not a filter.
  *
- * Pure + node-safe, so the server page (which reads the cookie and paints the
- * first frame) and the client control (which flips it) share ONE definition of
- * what a view is. Nothing here touches `next/headers`: the cookie NAME lives
- * here, the cookie ACCESS lives in the page and the Server Action.
- *
- * ★ WHY A COOKIE AND NOT localStorage. The view has to be known on the SERVER,
- * before the first byte: a local preference would render cover cards on the
- * server and swap to rows after hydration on every single load, which is a
- * visible flip of the whole list every time the host opens the app. A cookie
- * set by a Server Action is read during render, so the first paint is already
- * the view the host chose. (Setting a cookie in a Server Function also makes
- * Next re-render the page and its layouts server-side, so the flip needs no
- * router.refresh() of its own — verified against the Next 16 docs.)
- *
- * Cross-device persistence would want a `profiles.events_view` column; that is
- * a migration, which is the Orchestrator's, and it is a Question in the lane's
- * manifest rather than a thing this file pretends to do.
+ * Pure + node-safe: the server page and the client section share one definition of a row. How the list is
+ * SHOWN is the host's own choice and is kept on her account (`profiles.events_display`, `display.ts`); the
+ * old cookie that kept the two-way view toggle is gone with the toggle.
  */
 
 import type { Marks } from "./attention";
 import type { Season } from "./seasons";
 
-/** The cookie the toggle writes and the dashboard reads. */
-export const EVENTS_VIEW_COOKIE = "pr_events_view";
-
-/** A year: this is a preference, not a session fact. */
-export const EVENTS_VIEW_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
-
-export type EventsView = "cards" | "rows";
-
-/**
- * Cover cards by default — his expectation for the host with a handful of
- * events, and the shape the dashboard has always opened on.
- */
-export const DEFAULT_EVENTS_VIEW: EventsView = "cards";
-
-export function resolveEventsView(raw: string | undefined | null): EventsView {
-  return raw === "rows" || raw === "cards" ? raw : DEFAULT_EVENTS_VIEW;
-}
-
-/* ── The order ───────────────────────────────────────────────────────────── */
-
-export type EventsSort = "newest" | "waiting" | "name";
-
-/** His three, in his words. The row view carries the menu; the cards do not. */
-export const EVENTS_SORT_OPTIONS: { value: EventsSort; label: string }[] = [
-  { value: "newest", label: "Newest" },
-  { value: "waiting", label: "Most waiting" },
-  { value: "name", label: "Name" },
-];
-
-export function resolveEventsSort(raw: string | undefined | null): EventsSort {
-  return raw === "waiting" || raw === "name" ? raw : "newest";
-}
-
 /* ── The lens ────────────────────────────────────────────────────────────── */
 
 /**
- * The bin and the events you added to are FILTERS OF THIS LIST, never a chip
- * row (his `density` note read with `home=pulse`: the five-chip inbox goes).
- * They render in BOTH views on purpose, so a host on the default view always
- * has a door to her own bin.
+ * The bin and the events you added to are FILTERS OF THIS LIST, never a chip row (his `density` note read
+ * with `home=pulse`: the five-chip inbox goes): Display's Show says whose (All, Hosting, Guest, Deleted),
+ * each with its number. A lens with nothing in it is not offered, All excepted (and the one she has set,
+ * so it can always be undone).
  *
- * ★ ONE ROW OF COUNTS, NOT A MENU (host-dashboard r1, drawn under every option
- * of the board's `events` ask): All, the events you host, the events you added
- * to and the bin, each with its number, said at once and one press each, where
- * the Show menu hid three lenses and every number behind a press. A lens with
- * nothing in it is not drawn, All excepted.
- *
- * "Guest" names the events this account ADDED PHOTOS TO at someone else's
- * party (guest by upload, Will 2026-09-22: a person is a guest of an event only
- * through an upload of theirs), in the profile's own word. "Deleted" names ONE
- * thing: soft-deleted EVENTS in the recovery window, never the media bin, which
+ * "Guest" names the events this account ADDED PHOTOS TO at someone else's party (guest by upload, Will
+ * 2026-09-22: a person is a guest of an event only through an upload of theirs), in the profile's own
+ * word. "Deleted" names ONE thing: soft-deleted EVENTS in the recovery window, never the media bin, which
  * is the event's own.
  */
 export type EventsFilter = "all" | "hosting" | "guest" | "deleted";
@@ -101,14 +46,13 @@ export function resolveEventsFilter(
     : "all";
 }
 
-/* ── One row, whichever view draws it ────────────────────────────────────── */
+/* ── One row, whichever layout draws it ──────────────────────────────────── */
 
 /**
- * What both views need about one event, already resolved server-side (covers
- * presigned, dates formatted, counts counted, its group by when and its marks
- * decided). Plain and serializable, so the client can re-lens, search and
- * reorder the list without a server round-trip: the management-tool contract,
- * a filter is instant or it is not a filter.
+ * What every layout needs about one event, already resolved server-side (covers presigned, dates
+ * formatted, counts counted, its marks decided, the three facts the Display rules read). Plain and
+ * serializable, so the client can re-lens, search, reorder and group the list without a server
+ * round-trip.
  */
 export type EventListRow = {
   id: string;
@@ -145,41 +89,27 @@ export type EventListRow = {
   byline: string | null;
   /** Hosted rows only: the marks its tile wears (`marksOf`), Live and one state. */
   marks: Marks | null;
-  /** The group by when it sits in (`seasonsOf`, or "guest"); null in the bin. */
-  seasonId: string | null;
+  /**
+   * The day it sits on, `YYYY-MM-DD`: a hosted event's (`dayOf`: the host's date, else the day its newest
+   * photographs landed), a guest album's newest upload of hers, a deleted event's date. What the Event date
+   * order, the Upcoming and Past filters and the year read; null for an undated, empty album.
+   */
+  day: string | null;
+  /** Whether its host set a date: the No date filter's fact (a day inferred from photographs is not one). */
+  dated: boolean;
+  /**
+   * When the host last pressed into it from her dashboard (`events.host_opened_at`), hosted rows only; null
+   * for one never opened. What the Last opened order and the Recent row read.
+   */
+  openedAt: string | null;
 };
 
-/** A group of the events by when, as the gallery view lays it out: its rows' ids in its own order. */
-export type EventSeason = Season;
-
 /**
- * ★ A STABLE SORT, AND `localeCompare` FOR THE NAME. Array.prototype.sort is
- * stable in every engine we ship to, so equal keys keep the incoming order
- * (newest-first), which is what makes "Most waiting" read sensibly when four
- * events are all waiting on nothing. The name order uses localeCompare rather
- * than `<`, or "Ángela" sorts after "Zoe" for a host whose guests have accents.
+ * A group of the events by when: its rows' ids in its own order. Still composed on the home view (`seasonsOf`)
+ * because the host-dashboard board's drawings read it; the events section groups by year itself (`display.ts`)
+ * and no longer does. Deleted with the board.
  */
-export function sortEventRows(
-  rows: EventListRow[],
-  sort: EventsSort,
-): EventListRow[] {
-  const out = [...rows];
-  if (sort === "name") {
-    out.sort((a, b) =>
-      a.name.localeCompare(b.name, undefined, { numeric: true }),
-    );
-    return out;
-  }
-  if (sort === "waiting") {
-    // People at a door wait as surely as an upload does (the doors, event-settings r1).
-    out.sort((a, b) => b.pending + b.waiting - (a.pending + a.waiting));
-    return out;
-  }
-  out.sort((a, b) =>
-    a.sortDate < b.sortDate ? 1 : a.sortDate > b.sortDate ? -1 : 0,
-  );
-  return out;
-}
+export type EventSeason = Season;
 
 export function filterEventRows(
   rows: EventListRow[],
@@ -194,7 +124,7 @@ export function filterEventRows(
   return rows.filter((r) => r.kind !== "deleted");
 }
 
-/** How many rows each lens holds: the numbers the lens row says beside its words. */
+/** How many rows each lens holds: the numbers Display's Show says beside its words. */
 export function lensCounts(
   rows: readonly EventListRow[],
 ): Record<EventsFilter, number> {
@@ -229,5 +159,5 @@ export function searchEventRows(
   });
 }
 
-/** From this many events (hosted and added to) the lens row carries the search. */
+/** From this many events (hosted and added to) the section's head carries the search. */
 export const EVENTS_SEARCH_FROM = 9;
