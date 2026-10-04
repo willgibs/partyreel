@@ -348,6 +348,15 @@ begin
       raise exception 'Upload limit reached for this plan.' using errcode = 'check_violation';
     end if;
   end if;
+  -- ★ A LAPSED PASS (the Advisor's Q26 F1): her last live pass has ended and the nightly recompute has not moved her to
+  -- Free yet, so no live pass holds her allowance and the count below would land on no row. Refused in the allowance's
+  -- words until the recompute moves her plan, never an upload counted nowhere for up to a day.
+  if v_profile.tier = 'event_pass' and not exists (
+    select 1 from public.event_passes q
+     where q.profile_id = v_event.host_id and q.consumed_at is null
+       and q.start_at <= now() and q.expires_at > now()) then
+    raise exception 'Upload limit reached for this plan.' using errcode = 'check_violation';
+  end if;
 
   -- ★ DELETED COUNTS (20261003220000, trash-in-storage): the cap and its 10% hold everything she keeps, her albums and
   -- her Deleted together (`host_storage_summary`, the one read every cap check makes). With her setting on and this
@@ -531,6 +540,15 @@ begin
     if v_uploaded + p_file_size_bytes > v_allowance then
       raise exception 'Upload limit reached for this plan.' using errcode = 'check_violation';
     end if;
+  end if;
+  -- ★ A LAPSED PASS (the Advisor's Q26 F1): her last live pass has ended and the nightly recompute has not moved her to
+  -- Free yet, so no live pass holds her allowance and the count below would land on no row. Refused in the allowance's
+  -- words until the recompute moves her plan, never an upload counted nowhere for up to a day.
+  if v_profile.tier = 'event_pass' and not exists (
+    select 1 from public.event_passes q
+     where q.profile_id = v_event.host_id and q.consumed_at is null
+       and q.start_at <= now() and q.expires_at > now()) then
+    raise exception 'Upload limit reached for this plan.' using errcode = 'check_violation';
   end if;
 
   -- ★ DELETED COUNTS (20261003220000, trash-in-storage): the cap and its 10% hold everything she keeps, her albums and
@@ -995,11 +1013,13 @@ comment on function public.uploads_used(uuid, public.tier_type) is
 -- reached only through dynamic SQL and to_jsonb, so it fails on what it lacks, never on a parse.
 --
 -- RESULT, 2026-10-04 against the live schema (the drift read above clean first):
---   RED  0/10: 1 the old five columns; 2 no upload_allowance; 3 the same 300 MB line refused in the old words; 4 every
---        size admitting past its line (3x the cap); 5-7 no uploaded_bytes; 8 the two functions absent, the multiplier
+--   RED  0/11: 1 the old five columns; 2 no upload_allowance; 3 the same 300 MB line refused in the old words; 4 every
+--        size admitting past its line (3x the cap); 5-7b no uploaded_bytes; 8 the two functions absent, the multiplier
 --        still defined (the six restated ACLs already as named); 9 no column; 10 the drift read's hashes.
---   GREEN 10/10, nothing persisted after (tier_limits and create_media at their drift hashes, no upload_allowance, no
---        uploaded_bytes column, no fixture user).
+--   7b (the Advisor's Q26 F1) RED on the writers without its clause (the file at b6bcfe59, md5 47f0afad): a lapsed
+--        pass's host and guest uploads both recorded.
+--   GREEN 11/11 on this file, nothing persisted after (tier_limits and create_media at their drift hashes, no
+--        upload_allowance, no uploaded_bytes column, no fixture user).
 -- =============================================================================================
 -- create temp table proof (n serial, step text, ok boolean, detail text);
 -- create temp table fx (k text primary key, id uuid, txt text);
@@ -1259,9 +1279,8 @@ comment on function public.uploads_used(uuid, public.tier_type) is
 -- end $$;
 --
 -- -- 7. What never counts and is never charged: an ended pass, a consumed pass, a renewal whose year has not opened.
--- -- And a pass the nightly sweep has not caught up with yet (her profile still a pass's, no window live) fails open.
 -- do $$
--- declare live uuid; ended uuid; used uuid; ahead uuid; a text; b text; lc bigint;
+-- declare live uuid; ended uuid; used uuid; ahead uuid; a text; lc bigint;
 -- begin
 --   perform pg_temp.reset('event_pass', pg_temp.gb(25));
 --   live := pg_temp.pass(-interval '10 days', interval '355 days');
@@ -1270,16 +1289,32 @@ comment on function public.uploads_used(uuid, public.tier_type) is
 --   ahead := pg_temp.pass(interval '355 days', interval '720 days', 0, false, 'renewal');
 --   a := pg_temp.put(pg_temp.gb(2), 'host');
 --   lc := pg_temp.counted(live);
---   delete from public.event_passes where id = live;
---   b := pg_temp.put(1000, 'guest');
 --   insert into proof (step, ok, detail) values ('7 never counted',
---     a = 'recorded' and lc = pg_temp.gb(2) and b = 'recorded'
+--     a = 'recorded' and lc = pg_temp.gb(2)
 --       and pg_temp.counted(ended) = pg_temp.gb(49) and pg_temp.counted(used) = pg_temp.gb(49)
 --       and pg_temp.counted(ahead) = 0,
---     format('2 GB %s, on the live pass %s; lapsed, unswept %s; ended %s, consumed %s, ahead %s',
---       a, lc, b, pg_temp.counted(ended), pg_temp.counted(used), pg_temp.counted(ahead)));
+--     format('2 GB %s, on the live pass %s; ended %s, consumed %s, ahead %s',
+--       a, lc, pg_temp.counted(ended), pg_temp.counted(used), pg_temp.counted(ahead)));
 -- exception when others then
 --   insert into proof (step, ok, detail) values ('7 never counted', false, sqlerrm);
+-- end $$;
+--
+-- -- 7b. A lapsed pass (the Advisor's Q26 F1): her last live row has ended while the nightly recompute has not yet moved
+-- -- her plan, so her tier still reads event_pass: both writers refuse in the allowance's words, so nothing lands
+-- -- uncounted. (The presign's meter still admits: the complete is the authority, and the window is a day at most.)
+-- do $$
+-- declare a text; b text; m text;
+-- begin
+--   perform pg_temp.reset('event_pass', pg_temp.gb(25));
+--   perform pg_temp.pass(-interval '400 days', -interval '1 day', pg_temp.gb(1));
+--   m := pg_temp.meter(1000);
+--   a := pg_temp.put(1000, 'host');
+--   b := pg_temp.put(1000, 'guest');
+--   insert into proof (step, ok, detail) values ('7b lapsed pass',
+--     a = '23514 Upload limit reached for this plan.' and b = '23514 Upload limit reached for this plan.',
+--     format('host %s; guest %s; the meter %s', a, b, m));
+-- exception when others then
+--   insert into proof (step, ok, detail) values ('7b lapsed pass', false, sqlerrm);
 -- end $$;
 --
 -- -- 8. Every grant: the new functions the service role's alone, tier_limits as it stood, the six restated bodies' ACLs
@@ -1373,8 +1408,8 @@ comment on function public.uploads_used(uuid, public.tier_type) is
 --       ('tier_limits', '134a9d0010f5bfa8cec1a782b8243170'),
 --       ('upload_allowance', '55c7fef03305f30623cf283499be220d'),
 --       ('uploads_used', 'a5c98a2f6218f34dac6c474fb920f358'),
---       ('create_media', '001a2fb25f037d9771e01937ff1ebe62'),
---       ('create_media_as_host', 'aaebac71ce6ffca96bbace4cd4f613e8'),
+--       ('create_media', 'db4049b720413ce04a29afb553c2e83b'),
+--       ('create_media_as_host', '60112e2b73dd40b4d97e1504734453b5'),
 --       ('meter_upload', '00a25a0325274c2263ff6629e02b9af5'),
 --       ('get_upload_context', 'efacd3e71988c0b75287e2a7458120e2'),
 --       ('get_upload_gate', '940a580ebb39e76c6c9fcdf98ca7178e'),

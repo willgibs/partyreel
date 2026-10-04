@@ -119,7 +119,11 @@ working.
 
 ## Where I am
 
-- WIP pushed for the Advisor's read: the migration `supabase/migrations/20261004100000_ladder_a.sql` is whole (the
-  drift read clean on all eight bodies it replaces or drops; its rolled-back proof RED 0/10 without it, GREEN 10/10
-  with it, nothing persisted), with `tiers.ts`, `tier-limits-parity.test.ts`, `tiers-sql.test.ts` and the SQL pins it
-  reshapes. Next: the pricing page and sheet, every marketed number, help and blog, the docs, the gate.
+- The migration `supabase/migrations/20261004100000_ladder_a.sql` is FINAL: the Advisor's Q26 read it safe to apply as
+  written; its F1 (a lapsed pass, uploading uncounted for up to a day) is folded in as the one clause the Advisor wrote,
+  in both writers after the allowance block, and nothing else changed. The header's drift hashes are unchanged (the
+  eight live bodies still match them); the foot's hashes moved for the two writers (`create_media` db4049b7,
+  `create_media_as_host` 60112e2b) and its new step 7b proves the clause: RED on the b6bcfe59 writers (a lapsed pass's
+  host and guest uploads both recorded), RED 0/11 on the live schema without the file, GREEN 11/11 with it, nothing
+  persisted. F2 (the lock order between a pass consumed for Pro credit and a pass holder's complete) is a Deferred
+  line. Next: the gate, the captures, the Handoff.
