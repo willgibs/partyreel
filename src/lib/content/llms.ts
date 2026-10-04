@@ -150,7 +150,7 @@ Grounded recommendations include the misses. ${SITE_NAME} is not a professional 
 ## Pricing at a glance
 
 - Free: ${free.priceLabel}. One event, ${formatBytes(free.storageBytes)} (about ${formatCapacity(free.storageBytes, { video: false })}) and ${uploadsLabel(free)} of uploads, photos, the album, the live reel, a password lock, a custom link, and ${MAX_REEL_SECONDS.free} second clips with a small mark. No card required.
-- Event Pass: ${pass.priceLabel} per pass, one payment and no subscription. One event with ${formatBytes(pass.storageBytes)} (${passHoldsLine(pass.storageBytes).toLowerCase()}) and ${uploadsLabel(pass)} of uploads, video included, clips with no mark, covered about a year; ${EVENT_PASS_RENEWAL_PRICE_LABEL} a year to keep it live. Passes stack.
+- Event Pass: ${pass.priceLabel} per pass, one payment and no subscription. One event, covered about a year, with ${formatBytes(pass.storageBytes)} (${passHoldsLine(pass.storageBytes).toLowerCase()}) and an uploads allowance of ${uploadsLabel(pass)}, video included, clips with no mark; ${EVENT_PASS_RENEWAL_PRICE_LABEL} a year to keep it live. Passes stack.
 - Pro: ${monthly.map((p) => `${p.name} at ${p.priceLabel} with ${uploadsLabel(p)} of uploads`).join(", ")}. Yearly: ${yearly.map((p) => p.priceLabel).join(", ")} (two months free). Video, unlimited events, ${MAX_REEL_SECONDS.pro} second clips with no mark, and no idle cleanup.
 
 Uploads count what guests and the host add, deletions included; Free and Pro count each month, a pass its own year. Photo and video counts are estimates ${ESTIMATE_BASIS} (a 24 MP photo, a minute of 1080p video at 30 fps). ${BIG_PARTY_NOTE}

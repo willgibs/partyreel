@@ -28,6 +28,13 @@ export type PlanFacts = {
   deletedBytes: number;
   /** The cap in force now; null only for a Pro profile the webhook has not written. */
   capBytes: number | null;
+  /**
+   * What she has uploaded THIS calendar month, UTC (the ledger, deletions included): the figure every Pro size's uploads
+   * allowance is measured against, whatever window her own plan counts. Only words ride on it (`uploadsPauseNote`);
+   * absent or null when it is not known (a failed read, an older server), and the sheet then leaves that sentence
+   * out rather than fail. Optional so a surface that draws the sheet from a fixture (the Library) needs no figure.
+   */
+  monthUploadedBytes?: number | null;
   /** A Pro host's plan, read from the subscription's price; null when unknown. */
   currentPlanId: ProPlanId | null;
   /** Why a Pro switch cannot open, or null when it can (or could not be checked). */
@@ -71,6 +78,10 @@ export function parsePlanFacts(data: unknown): PlanFacts | null {
     storedBytes: r.storedBytes,
     deletedBytes: r.deletedBytes,
     capBytes: r.capBytes as number | null,
+    // Absent from an older server's answer, and unreadable: not known, never a guess.
+    monthUploadedBytes: finite(r.monthUploadedBytes)
+      ? r.monthUploadedBytes
+      : null,
     currentPlanId: isProPlanId(r.currentPlanId) ? r.currentPlanId : null,
     changeBlocked: BLOCKED.has(r.changeBlocked as ChangePlanRefusalCode)
       ? (r.changeBlocked as ChangePlanRefusalCode)
