@@ -71,10 +71,12 @@ Round 15, on Will's desk answers of 2026-10-04 06:00Z and his brand note; the ap
    Function calls grew from about 3,000 a day (early September) to 57,400 (2026-10-03), nearly all ours: red-team walks
    and `lab:demo` desk checks on the alias (about 5,000 to 6,000 an hour each), album and hub tabs left polling. Until
    he decides (Pro now, or Hobby with the fixes): **nothing runs against the alias or partyreel.com** (no red-team, no
-   `lab:demo --base` the alias, no `[preview]`). The fixes: a kit guard reading `GET /v2/usage?type=requests` (daily
-   function invocations; Active CPU itself is Pro's Observability Plus) before any alias work, the spend watch reading
-   it daily into `/admin`, desk checks and red-teams on a local production build (the alias only for sign-in, upload and
-   checkout), and every poll resting when hidden, backing off when idle.
+   `lab:demo --base` the alias, no `[preview]`). Built: the kit's guard, `usher/kit/vercel-usage.mjs` (30-day function
+   calls from `GET /v2/usage?type=requests`; Active CPU itself is Pro's Observability Plus; 320,789 calls, about 87% by
+   count at 15:37Z), in front of `alias-ensure.mjs` and every remote `lab:*` run (`d41b1ea3f`). Next: calibrate it from
+   his dashboard figure; the spend watch reading it daily into `/admin`; desk checks and red-teams on a local production
+   build (the alias only for sign-in, upload and checkout); polls rest when idle (`use-live-poll.ts` is 12 s without the
+   doorbell and 60 s with it, paused only when hidden, and a headless tab is never hidden: about 300 calls an hour each).
 1. **Red-team 53** (stopped for the CPU limit; its findings and the walks not taken to `crumbs-65`, run locally); then
    milestone 36 on Will's yes (the runbook's "Milestone"): Ladder A, trash in storage and the round's wirings.
 2. **Desk 2 is Drive alone** (on the alias since build 52). After his answers: the Drive wiring lane (his Google Cloud
