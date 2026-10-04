@@ -1,17 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Check } from "lucide-react";
 
 import { ActDoor } from "@/components/app/dashboard/act-door";
 import { LiveDot, Mark } from "@/components/app/dashboard/marks";
+import { LampLight, Plate, Rail } from "@/components/app/dashboard/stage-lit";
 import { useStageLive } from "@/components/app/dashboard/use-stage-live";
 import { settingsPageHref } from "@/components/app/event-settings/settings-pages";
-import { CodeCard, readableLink } from "@/components/app/share/code-card";
-import { StyledQr } from "@/components/app/styled-qr";
-import { resolveQrPreset } from "@/lib/constants/qr-presets";
 import { itemFor } from "@/lib/dashboard/attention";
 import {
   type HomeContext,
@@ -21,9 +18,12 @@ import {
 import type { ShareFacts } from "@/lib/dashboard/home-view";
 import type { StageLive } from "@/lib/dashboard/stage-action";
 import {
+  lampNear,
+  lampOf,
   stageActsOf,
   stageDateLine,
   stageNumbersOf,
+  stageRailOf,
   stageTicksOf,
   stageWordsOf,
   WALL_PHOTOS,
@@ -41,8 +41,11 @@ import { cn } from "@/lib/utils";
  * at rest. Its words are a phase, a name, a date and the few numbers that move; its acts are the
  * event's own (`lib/dashboard/stage.ts`).
  *
- * ★ THE LIGHT COMES FROM THE PHOTOGRAPH. Behind the words a blurred copy of the lead photograph spills
- * its colour across the dark, so every party's stage is lit by that party and no two read alike.
+ * ★ THE LIGHT COMES FROM THE PHOTOGRAPH, AND BEFORE ONE, FROM THE EVENT'S OWN LAMP. Behind the words a
+ * blurred copy of the lead photograph spills its colour across the dark, so every party's stage is lit by
+ * that party and no two read alike. An event with no photograph yet is lit by one of the house's five lamps,
+ * its own (`stage-lit.tsx`, host-dashboard r3 `stage=lit`): the code on its plate and Settings' five steps
+ * laid flat under the name, until the first photograph takes the light over.
  *
  * ★ ON ITS DAY, THE PHOTOGRAPHS LAND AS THEY ARRIVE (`arrivals=live`: "if we simple display the featured
  * event with that type of gallery preview to see what's happening, think that's a perfect direction").
@@ -176,63 +179,6 @@ function Wall({
   );
 }
 
-/** The plate a guest points a phone at: the event's own code, on its white, as the stage's object. */
-function Plate({
-  eventId,
-  name,
-  share,
-  opened,
-}: {
-  eventId: string;
-  name: string;
-  share: ShareFacts;
-  opened: number | null;
-}) {
-  const router = useRouter();
-  const look = useMemo(() => resolveQrPreset(share.qrStyle), [share.qrStyle]);
-  return (
-    <div className="relative flex flex-col items-center gap-4">
-      <div
-        aria-hidden
-        className="absolute top-1/2 left-1/2 size-[150%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/10 blur-3xl"
-      />
-      <CodeCard
-        who="host"
-        eventName={name}
-        joinUrl={share.joinUrl}
-        prettyUrl={readableLink(share.joinUrl)}
-        qrStyle={share.qrStyle}
-        location="dashboard-stage"
-        onEverything={() => router.push(`/dashboard/${eventId}?room=share`)}
-        trigger={
-          <button
-            type="button"
-            data-stage-plate=""
-            aria-label={`Show ${name}'s code`}
-            className="relative rounded-xl bg-white p-2.5 shadow-lift transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-3 focus-visible:ring-white/60 active:scale-[0.98] motion-reduce:active:scale-100"
-          >
-            <span className="block size-[148px] lg:size-[176px]">
-              <StyledQr
-                value={share.joinUrl}
-                size={176}
-                style={look}
-                className="size-full [&_svg]:size-full"
-              />
-            </span>
-          </button>
-        }
-      />
-      {opened !== null && (
-        <p className="relative text-xs text-gallery-muted">
-          {opened > 0
-            ? `Opened ${formatCount(opened)} ${opened === 1 ? "time" : "times"}`
-            : "Never opened"}
-        </p>
-      )}
-    </div>
-  );
-}
-
 export function Stage({
   event: initial,
   ctx,
@@ -282,12 +228,17 @@ export function Stage({
   const dateLine = stageDateLine(event, ctx.today);
   const item = itemFor(event, ctx);
   const numbers = stageNumbersOf(event, phase, guests);
-  const ticks =
-    phase === "before" ? stageTicksOf(readyFactsOf(event, ctx)) : null;
+  const facts = readyFactsOf(event, ctx);
   const { primary, secondary } = stageActsOf(event, phase, item);
   const lead = photos[0];
+  // No photograph yet: the event's own lamp lights the stage, and its code stands on a plate (`stage-lit.tsx`).
   const plate = !lead;
+  // Before its day the stage says what a guest still needs: a photographs' stage in readiness's ticks, a lit one in
+  // Settings' five steps. On its day and after, with nothing readiness was asked of, the numbers say it.
+  const rail = plate ? stageRailOf(facts) : null;
+  const ticks = phase === "before" && !plate ? stageTicksOf(facts) : null;
   const wall = phase === "live" && photos.length >= WALL_PHOTOS;
+  const lamp = lampOf(event.id);
 
   const door = (
     act: { label: string; to: Parameters<typeof ActDoor>[0]["to"] },
@@ -309,10 +260,13 @@ export function Stage({
   return (
     <section
       data-stage={phase}
+      data-stage-lit={plate ? lamp : undefined}
       aria-label={event.name}
       className="dark relative isolate flex flex-col overflow-hidden rounded-2xl bg-gallery text-gallery-foreground ring-1 ring-gallery-border lg:grid lg:h-[clamp(420px,30vw,560px)] lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]"
     >
-      {/* The light: the lead photograph, blurred into the dark behind the words. */}
+      {/* The light: the event's own lamp until its first photograph, then the lead photograph, blurred into the dark
+          behind the words. */}
+      {plate && <LampLight lamp={lamp} near={lampNear(event, ctx.today)} />}
       {lead && (
         <div
           aria-hidden
@@ -361,7 +315,9 @@ export function Stage({
         </div>
 
         <div className="flex flex-col gap-5 lg:gap-7">
-          {ticks ? (
+          {rail ? (
+            <Rail rail={rail} />
+          ) : ticks ? (
             <Ticks ticks={ticks.ticks} />
           ) : numbers.length > 0 ? (
             <dl data-stage-numbers="" className="flex gap-6 lg:gap-10">
@@ -403,7 +359,7 @@ export function Stage({
         className={cn(
           "relative order-first min-h-0 lg:order-none",
           plate
-            ? "flex h-64 items-center justify-center lg:h-auto"
+            ? "flex h-72 items-center justify-center lg:h-auto"
             : "aspect-[4/3] lg:aspect-auto",
         )}
       >
@@ -413,6 +369,7 @@ export function Stage({
             name={event.name}
             share={share}
             opened={event.ready?.opened ?? null}
+            lamp={lamp}
           />
         ) : (
           <Link

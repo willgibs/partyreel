@@ -13,7 +13,7 @@ import type { GuestEventCardData } from "./guest-events";
 import type { HomeContext, HomeEvent } from "./home-event";
 import { momentEvent } from "./moment";
 import { seasonsOf } from "./seasons";
-import { dateFace, phaseOfEvent, whenOf } from "./when";
+import { dateFace, dayOf, phaseOfEvent, whenOf } from "./when";
 
 /**
  * THE DASHBOARD, COMPOSED (host-dashboard r1's four picks and its four carried calls, wired): what
@@ -24,8 +24,9 @@ import { dateFace, phaseOfEvent, whenOf } from "./when";
  *   - THE STAGE leads with the party of the moment (`moment.ts`), lit by its own photographs.
  *   - THIS WEEK holds every other party within a week of its date, each with its one step or its quiet
  *     state (`attention.ts`).
- *   - EVERYTHING ELSE groups by when (`seasons.ts`), the stage's own event left out, the events you
- *     added to and the bin through the lens.
+ *   - EVERYTHING ELSE is the host's collection (`display.ts`, her Display menu), the stage's own event left
+ *     out, the events you added to and the bin through the lens. Its groups by when (`seasons.ts`) are still
+ *     composed because the host-dashboard board's drawings read them; the events section does not.
  */
 
 /** What the code card needs to open where the host stands: the permanent link and the code's look. */
@@ -45,6 +46,11 @@ export type HostedEvent = HomeEvent & {
   uploadsLabel: string;
   /** The rows view's full date: "October 3, 2026", "October 3–5, 2026", "No date set". */
   dateLabel: string;
+  /**
+   * When the host last pressed into it from her dashboard (`events.host_opened_at`); null or absent for one never
+   * opened (a fixture built before the column need not say it).
+   */
+  openedAt?: string | null;
 };
 
 /** A binned event as the page read it. */
@@ -90,12 +96,13 @@ export type WeekCard = {
 export type HomeView = {
   stage: StageView | null;
   week: WeekCard[];
-  /** Everything else: hosted (the stage's left out), guest and deleted, and the groups by when. */
+  /**
+   * Everything else: hosted (the stage's left out), guest and deleted, and the groups by when (read by the board's
+   * drawings only: the events section lays the rows out by her Display).
+   */
   events: {
     rows: EventListRow[];
     seasons: EventSeason[];
-    /** "Everything else" under a stage, "Your events" without one. */
-    title: string;
   };
   /** The account has any event at all, hosted, added to or binned: the create teaser's opposite. */
   hasAny: boolean;
@@ -178,13 +185,11 @@ export function buildHomeView(input: HomeInput): HomeView {
     statusLabel: e.uploadsLabel,
     byline: null,
     marks: marksOf(e, ctx, inWeek.has(e.id)),
-    seasonId: null,
+    day: dayOf(e),
+    dated: e.date !== null,
+    openedAt: e.openedAt ?? null,
   }));
   const seasons = seasonsOf(listed, ctx.today);
-  const seasonOf = new Map(
-    seasons.flatMap((s) => s.ids.map((id) => [id, s.id] as const)),
-  );
-  for (const row of hostedRows) row.seasonId = seasonOf.get(row.id) ?? null;
 
   const guestRows: EventListRow[] = [...input.guests]
     .sort((a, b) =>
@@ -211,7 +216,10 @@ export function buildHomeView(input: HomeInput): HomeView {
       statusLabel: g.accessible && g.passwordProtected ? "Password" : null,
       byline: g.byline,
       marks: null,
-      seasonId: "guest",
+      // The day she last added to it, in UTC: a guest album is placed by her own newest upload.
+      day: g.lastUploadAt.slice(0, 10),
+      dated: true,
+      openedAt: null,
     }));
   if (guestRows.length > 0)
     seasons.push({
@@ -238,7 +246,9 @@ export function buildHomeView(input: HomeInput): HomeView {
     statusLabel: d.countdown,
     byline: null,
     marks: null,
-    seasonId: null,
+    day: d.date,
+    dated: d.date !== null,
+    openedAt: null,
   }));
 
   return {
@@ -247,7 +257,6 @@ export function buildHomeView(input: HomeInput): HomeView {
     events: {
       rows: [...hostedRows, ...guestRows, ...deletedRows],
       seasons,
-      title: stage ? "Everything else" : "Your events",
     },
     hasAny:
       hosted.length > 0 || input.guests.length > 0 || input.deleted.length > 0,
