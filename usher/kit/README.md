@@ -168,6 +168,10 @@ tag; production READY at the merge SHA, then a verification pass on partyreel.co
 `git checkout launch-prep && git merge --ff-only main`; STATUS and the pickup rewritten. `main` moves only this way or
 by a true hotfix: fixed on `main`, verified, back-merged to `launch-prep` the same session.
 
+The standing compute budget, at every milestone: `pnpm compute:model --port <yours>` (about 20 minutes with its build;
+local only). Exit 1 is a scenario past `scripts/compute-model/budget.json`: read the scenario before the milestone; lower
+a line when a lever lands.
+
 ## Mutate config
 
 - **Vercel env**: the REST API with `$VERCEL_TOKEN` (the P3 team's; there is no `vercel` CLI), values NON-sensitive
