@@ -77,7 +77,8 @@ Round 15, on Will's desk answers of 2026-10-04 06:00Z and his brand note; the ap
 00. **Milestone 36 SHIPPED** on Will's yes (2026-10-04 21:00Z, `28bd6d62`, tag `milestone-36`): production's pass prices
    set to Ladder A's first, both projects READY, the read-only walk PASS, launch-prep fast-forwarded.
 0a. **Phase 2 of the compute fix:** compute-levers (levers 1 and 2) MERGED (-66% of a heavy wedding's calls); next
-   batched presign and complete (lever 4), and the CDN version (lever 3, 3b) only on Will's privacy call X5. An auth red-team of lever 1 runs on the local
+   batched presign and complete (lever 4: `../partyreel-wt/_scratch/specs/compute-uploads.json`, cut it first on the
+   fresh account; Opus, wiring rigor), and the CDN version (lever 3, 3b) only on Will's privacy call X5. An auth red-team of lever 1 runs on the local
    desk before it ships; the fix reaches partyreel.com only through a milestone on Will's yes.
 0. **★ VERCEL'S HOBBY ACTIVE CPU (Will, 2026-10-04 15:30Z: almost maxed; breaking it again may cost the hosting, since
    Vercel unlocked his account once already).** Hobby allows 4 CPU-hours a rolling 30 days and pauses functions past it.
