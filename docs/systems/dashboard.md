@@ -1,14 +1,14 @@
 # The host dashboard
 
-Open this before you change `/dashboard`: its stage, the week, the events grouped by when, the storage ring or the
-claims review. Creating an event, the event page, moderation and the Guest cards (the events an account added to) are
+Open this before you change `/dashboard`: its stage, the week, her events (the Display menu and the Recent row), the
+storage ring or the claims review. Creating an event, the event page, moderation and the Guest cards (the events an account added to) are
 [host-app.md](host-app.md)'s; the bell's words are [notifications-analytics-growth.md](notifications-analytics-growth.md)'s.
 
 `/dashboard` is today's page: the viewer's own day in its head, the party of the moment on a stage of its own
-photographs, this week's other parties each with its one step, then everything else grouped by when. Every rule is
-pure under `lib/dashboard/` (`when.ts`, `attention.ts`, `moment.ts`, `seasons.ts`, `stage.ts`, composed by
-`home-view.ts`; each file's header holds its rule), the page only reads, and the composition is
-`components/app/dashboard/home.tsx`.
+photographs, this week's other parties each with its one step, then the events she opened lately and all her events,
+laid out her way. Every rule is pure under `lib/dashboard/` (`when.ts`, `attention.ts`, `moment.ts`, `stage.ts`,
+`display.ts`, `opened.ts`, composed by `home-view.ts`; each file's header holds its rule), the page only reads, and the
+composition is `components/app/dashboard/home.tsx`.
 
 - ★ **"Today" is the viewer's calendar day, never the server's:** Vercel runs on UTC, so from evening on west of UTC the
   server's today is already tomorrow. The page reads the viewer's zone from `x-vercel-ip-timezone` (validated, else
@@ -21,6 +21,12 @@ pure under `lib/dashboard/` (`when.ts`, `attention.ts`, `moment.ts`, `seasons.ts
 - **The stage** leads with `momentEvent` (`moment.ts`): the event on its day, else the nearest within a month either
   way, else on a quiet day the newest made. Before its day it shows the code and readiness's essentials, on its day
   the live wall, after it the album and its numbers ("in the album", never "photos", since the count includes video).
+  - **With no photograph yet it is lit by the event's own lamp** (`stage-lit.tsx`): one of the five `--lamp-*`, picked
+    by its id and never changing (`lampOf`), only ever as light in a gradient (the set is not in `@theme`), fuller from
+    the week before its first day through its last (`lampNear`), the code on its plate (the code card, 176 px) and
+    Settings' five steps laid flat under the name (`stageRailOf`: `settingsSteps` and the checklist's own head, so a
+    tick here is a tick in the hub). Where readiness was not read (its day, after it) the numbers say it in the rail's
+    place, so a party's day never loses its counts. Its first photograph takes the light over.
 - **The live wall listens and never refreshes the page** (a refresh per photograph would presign every event's covers
   again): on its day the stage hears the album's doorbell and asks `readStageLiveAction`
   (`lib/dashboard/stage-action.ts`) for its wall and counts on `useLivePoll`'s cadence, re-running the same pure rules.
@@ -35,10 +41,30 @@ pure under `lib/dashboard/` (`when.ts`, `attention.ts`, `moment.ts`, `seasons.ts
   `DAY_READS`): readiness's reads for the week's parties and a stage before their day, the day's counts for events on
   their day, the wall and the guest count for the stage alone. A rule never guesses an unread fact: an event with no
   readiness read says no setup step.
-- **Everything else** is grouped by `seasonsOf` on the server (coming up, just past, earlier this year, then each year
-  folded) and laid out on the client through the lens (All, Hosting, Guest, Deleted), a search and the rows view,
-  whose choice is a cookie read before the first paint so the page never redraws into it. The stage's event is not
-  drawn again below it.
+- **Her events are one collection she shapes** (`events-section.tsx`, rules in `display.ts`): "Your events N" (hosted
+  and added to, the stage's own event drawn once above it, the bin never counted), a search from nine, and one Display
+  menu: the layout (gallery, table, list), the order and its direction, what shows (whose, when, a year), the groups
+  (none or by year) and the covers' size, each laid out instantly on the client, a number on the button for what
+  differs from the default, a line under the head saying it and one Reset. Quiet by default: covers, the newest first,
+  nothing grouped or filtered. The sort says "In the album", never "photos".
+  - ★ **Her choices are kept on her account** (`profiles.events_display`, sparse: only what differs from the defaults,
+    narrowed on every read by `resolveDisplay`, never trusted; the column's CHECK is an envelope, not the key list).
+    `setEventsDisplayAction` writes her own row and revalidates nothing; the page resolves them before the first byte.
+    Recent's fold is kept with them but is never a menu choice (no badge, no Reset).
+  - ★ **Back restores the page from the client's router cache, drawn from before her last choice** (read in a browser:
+    the same render stamp, the layout reset), so the section remembers the tab's last choice, and a search for ten
+    minutes, by account (`remembered`): the server's copy alone would revert a layout she chose the moment she pressed
+    into an event and back.
+  - ★ **The bin stays reachable** (`offersDisplay`): Display shows from a second event or whenever Deleted holds one,
+    because Restore lives only here; an account with only deleted events is told so and one press shows them.
+  - **The Recent row** (from seven events, `RECENT_FROM`): the four she opened last, hosted events only, never the
+    stage's or this week's (`recentRowsOf`, decided on the server), folding to small covers. Opens are
+    `events.host_opened_at`, stamped by `HomeShell`'s one listener on every press into an event
+    (`noteEventOpenedAction`, at most once a minute an event, as her under RLS); a navigation takes priority over a
+    pending Server Function in Next 16, so a press never waits for its stamp. A deep link (the bell, an email) is not
+    counted until the hub mounts the same stamp.
+  - The groups by when (`seasonsOf`, `HomeView.events.seasons`) are still composed because the host-dashboard board's
+    drawings read them; the section does not.
 - **A tile** (`event-tile.tsx`) is the dashboard's own atom; `EventCard` draws a profile's public cards. Every range's
   dash is `dashRange`'s (`lib/utils.ts`, shared with `formatEventDate`), and the tiles take turns dissolving to their
   next still (`cover-cycle.tsx`).

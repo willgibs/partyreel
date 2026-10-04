@@ -6,8 +6,8 @@ import { homeContext, hostedEvent } from "./testing/home";
 
 /**
  * THE DASHBOARD, COMPOSED (host-dashboard r1's wiring): the stage leads, the week holds every other party
- * near its date, and everything else groups by when, the stage's own event never drawn twice. What each
- * piece says is pinned in its own module; this pins how the page puts them together.
+ * near its date, and everything else is the host's collection, the stage's own event never drawn twice. What
+ * each piece says is pinned in its own module; this pins how the page puts them together.
  */
 
 const FRIDAY = "2026-10-02";
@@ -57,7 +57,6 @@ describe("one event", () => {
     });
     expect(view.stage?.event.id).toBe("wedding");
     expect(view.week).toEqual([]);
-    expect(view.events.title).toBe("Everything else");
     expect(view.events.rows.map((r) => [r.kind, r.id])).toEqual([
       ["guest", "g1"],
     ]);
@@ -172,7 +171,6 @@ describe("a planner's week", () => {
     const bin = view.events.rows.find((r) => r.kind === "deleted");
     expect(bin).toMatchObject({
       id: "d1",
-      seasonId: null,
       statusLabel: "Deletes in 18 days",
     });
   });
@@ -232,7 +230,6 @@ describe("an account with no hosted event", () => {
   it("has no stage, and its events are its own", () => {
     const view = build([], { guests: [guest()] });
     expect(view.stage).toBeNull();
-    expect(view.events.title).toBe("Your events");
     expect(view.hasAny).toBe(true);
   });
 
@@ -249,5 +246,46 @@ describe("an account with no hosted event", () => {
       ],
     });
     expect(view.events.seasons[0]?.ids).toEqual(["newer", "older"]);
+  });
+});
+
+describe("what each row tells her collection (host-dashboard r3, `events=menu`)", () => {
+  const view = build(
+    [
+      hostedEvent({ id: "lead", date: FRIDAY }),
+      hostedEvent({
+        id: "dated",
+        date: "2026-06-01",
+        openedAt: "2026-10-01T09:00:00.000Z",
+      }),
+      // An undated album placed by the day its photographs landed: it has a day and no date of its host's.
+      hostedEvent({
+        id: "inferred",
+        approved: 20,
+        lastArrival: { at: "2026-09-12T20:00:00.000Z", day: "2026-09-12" },
+      }),
+      hostedEvent({ id: "blank" }),
+    ],
+    { guests: [guest()], deleted: [{ ...binned, date: "2024-03-01" }] },
+  );
+  const rowOf = (id: string) => view.events.rows.find((r) => r.id === id)!;
+
+  it("carries the day it sits on and whether its host dated it", () => {
+    expect(rowOf("dated")).toMatchObject({ day: "2026-06-01", dated: true });
+    expect(rowOf("inferred")).toMatchObject({
+      day: "2026-09-12",
+      dated: false,
+    });
+    expect(rowOf("blank")).toMatchObject({ day: null, dated: false });
+    // A guest album sits on the day she last added to it, a deleted event on its date.
+    expect(rowOf("g1")).toMatchObject({ day: "2026-08-15", dated: true });
+    expect(rowOf("d1")).toMatchObject({ day: "2024-03-01", dated: true });
+  });
+
+  it("carries when she last opened a hosted event, and nothing for one never opened, a guest album or a deleted one", () => {
+    expect(rowOf("dated").openedAt).toBe("2026-10-01T09:00:00.000Z");
+    expect(rowOf("blank").openedAt).toBeNull();
+    expect(rowOf("g1").openedAt).toBeNull();
+    expect(rowOf("d1").openedAt).toBeNull();
   });
 });

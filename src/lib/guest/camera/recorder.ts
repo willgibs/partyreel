@@ -1,15 +1,16 @@
 /**
  * A CAMERA VIDEO, FILMED (Will's `video=hold`, `cost=one`): drawn from the live picture onto a canvas at 1080 on its
- * short side, with the microphone where she allowed it, written by the browser's own `MediaRecorder`, ten seconds at
- * most. Browser-only; the press that starts and stops it is `use-shutter-press.ts`'s.
+ * short side, with the microphone where she allowed it, written by the browser's own `MediaRecorder`, at most
+ * `CAMERA_VIDEO_SECONDS` (`media/limits.ts`). Browser-only; the press that starts and stops it is `use-shutter-press.ts`'s.
  *
  * ★ DRAWN, NOT THE CAMERA'S OWN TRACK. The photo stream runs at the sensor's 12 MP (4032x3024 on his iPhone), past
  * the frame size an H.264 encoder takes, so the video is the picture redrawn at 1080 (`videoSize`): the same crop
- * she framed, mirrored as she saw it on the front camera, about 10 MB for ten seconds. A browser that cannot capture a
- * canvas's stream records the camera's own track instead (`direct`), uncropped.
+ * she framed, mirrored as she saw it on the front camera, about 19 MB for a full thirty seconds at `VIDEO_BITS`. A
+ * browser that cannot capture a canvas's stream records the camera's own track instead (`direct`), uncropped, at the
+ * same asked bitrate.
  *
- * ★ IT ENDS ITSELF AT TEN SECONDS (`maxMs`, the camera video's bound in `media/limits.ts`, which `create_media`
- * holds with half a second's grace), so a held finger can never make a shot the server refuses.
+ * ★ IT ENDS ITSELF AT ITS LENGTH (`maxMs`, the camera video's bound in `media/limits.ts`, which `create_media` holds
+ * with half a second's grace), so a held finger can never make a shot the server refuses.
  *
  * ★ ITS POSTER IS ITS FIRST FRAME, drawn as it starts, so the album's preview of it never waits on a seek into a
  * file the same browser has only just written (a WebM from `MediaRecorder` carries no duration to seek by).
@@ -22,9 +23,13 @@ import {
 } from "@/lib/guest/camera/frame-math";
 import { canvasJpeg, frameSize } from "@/lib/guest/camera/capture";
 
-/** The bitrate a camera video asks for: about 10 MB for ten seconds at 1080. */
-const VIDEO_BITS = 8_000_000;
-const AUDIO_BITS = 128_000;
+/**
+ * The bitrate a camera video asks for: about 19 MB for thirty seconds at 1080, sharp for party footage. An encoder
+ * takes it as a target, not a cap (`recorder.test.ts` holds a full clip at the ask under the smallest per-event file
+ * cap a host may set).
+ */
+export const VIDEO_BITS = 5_000_000;
+export const AUDIO_BITS = 128_000;
 
 export type FilmedVideo = {
   blob: Blob;

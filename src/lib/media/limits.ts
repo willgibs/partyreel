@@ -39,17 +39,25 @@ export const UPLOAD_CAP_PRESETS: { label: string; bytes: number | null }[] = [
 ];
 
 /**
- * A CAMERA SHOT THAT IS A VIDEO (Will, r3: `video=hold`, `cost=one`): held to record, up to ten seconds, one shot of
- * the roll. Its length is the client's word (`duration_seconds` is never verified server-side), so the cost bound is
- * its bytes: 128 MB holds ten seconds of 4K at 60 fps from any current phone, and a client that lies about the length
- * still spends at most that a shot. Guests only, where the album's camera is on (`events.capture = 'camera'`); the
- * host's own uploads are exempt. MIRRORED by create_media's `c_camera_video_bytes` and `c_camera_video_seconds`
- * (20261002200000) under a parity test (`src/lib/disposable/roll.test.ts`), which is why the grace is its own constant:
- * a ten-second recording measures a few hundredths over.
+ * A CAMERA SHOT THAT IS A VIDEO (Will, r3: `video=hold`, `cost=one`): held to record, up to thirty seconds at about
+ * 5 Mbps (about 19 MB: `VIDEO_BITS`, `guest/camera/recorder.ts`), one shot of the roll. `CAMERA_VIDEO_SECONDS` is the
+ * one home of the length wherever it is said: the recorder's `maxMs`, the shutter's ring, the mark's "0:30" and the
+ * server's bound.
+ *
+ * Its length is the client's word (`duration_seconds` is never verified server-side), so the cost bound is its bytes:
+ * 128 MB held ten seconds of 4K at 60 fps from any current phone (about 13 MB a second), so thirty seconds of the same
+ * is 384 MB. A real clip is a twentieth of that; the bound is what a client that lies about the length can spend a
+ * shot, and every byte of it counts against the host's room and her plan's uploads whatever the shot's size. Guests
+ * only, where the album's camera is on (`events.capture = 'camera'`); the host's own uploads are exempt.
+ *
+ * MIRRORED by create_media's `c_camera_video_bytes`, `c_camera_video_seconds` and `c_camera_video_grace`
+ * (20261004120000), whose two refusals are `format()`ed from them, under a parity test
+ * (`src/lib/disposable/roll.test.ts`). The grace is its own constant because a recording measures a few hundredths
+ * over its length.
  */
-export const CAMERA_VIDEO_SECONDS = 10;
+export const CAMERA_VIDEO_SECONDS = 30;
 export const CAMERA_VIDEO_GRACE_SECONDS = 0.5;
-export const CAMERA_VIDEO_MAX_BYTES = 128 * 1024 ** 2; // 128 MB
+export const CAMERA_VIDEO_MAX_BYTES = 384 * 1024 ** 2; // 384 MB
 
 /** Mirrors the Postgres `media_type` enum. */
 export type MediaKind = "photo" | "video";

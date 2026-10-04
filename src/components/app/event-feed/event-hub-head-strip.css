@@ -1,0 +1,53 @@
+/* THE HUB'S FACTS STRIP (`event-hub-head-strip.tsx`): a mark a photograph along the cover's foot, white on the
+   photograph in both themes (the cover is the room whatever the page wears), the quiet slots before the album's
+   first photograph a row of points it will fill, and an end dot that is lit while photographs land.
+
+   ★ THE STATE IS `data-landing`, NEVER `data-lit`: `[data-lit]` is the design's bright edge (a material hook in
+   globals.css that makes its host `position: relative` and draws an edge pseudo-element on a photograph, a framed
+   screen or the QR card), so a state named for it would ring the whole strip.
+
+   ★ LIT HOLDS ITS LIGHT, NEVER A PULSE (the live mark's own rule for a host who keeps the hub open all night): what
+   moves is the album itself, a mark landing at the newest end. The rest state is the default (bible 5), so reduced
+   motion shows every mark whole and at once; the only movement is a mark finding its height as an arrival folds the
+   line again, behind `no-preference`. */
+
+.hub-strip-mark {
+  flex: 0 0 3px;
+  border-radius: 999px;
+  background: #fff;
+}
+.hub-strip-mark[data-waiting] {
+  height: 3px;
+  opacity: 0.32;
+}
+.hub-strip-mark[data-new] {
+  box-shadow: 0 0 7px rgb(255 255 255 / 0.75);
+}
+
+/* The newest end: lit while photographs land, a quiet ring once they have stopped. */
+.hub-strip-end {
+  display: block;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 0.7);
+}
+.hub-strip-end[data-landing] {
+  background: #fff;
+  box-shadow: 0 0 0 4px rgb(255 255 255 / 0.2);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* An arrival folds the line again: each mark settles on its new height rather than jumping to it. */
+  .hub-strip-mark {
+    transition:
+      height 240ms var(--ease-emphasis),
+      opacity 240ms var(--ease-emphasis),
+      box-shadow 240ms var(--ease-emphasis);
+  }
+  .hub-strip-end {
+    transition:
+      background-color 240ms var(--ease-emphasis),
+      box-shadow 240ms var(--ease-emphasis);
+  }
+}

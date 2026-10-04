@@ -3,7 +3,7 @@
 /**
  * THE HUB'S ALBUM, LIVE: one client store per page, seeded with what the page rendered, moved by the
  * host's delta poll, and read by everything on the hub that shows the album or a number off it (the
- * grid, the header's count, the Review card, the Reel card, the album's own header and select-all).
+ * grid, the head's strip, the Review card, the Reel card and her reel's view, the album's own header and select-all).
  * The pure half, and why the hub moved, is `lib/event/hub-album.ts`.
  *
  * ★ NOTHING HERE REFRESHES THE PAGE (Will's lag, the album-host-wiring lane). `EventLive` used to

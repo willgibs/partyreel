@@ -415,13 +415,17 @@ describe("4. the roll, its ceiling, the fast purge, the camera video, the seal a
     expect(latest("kept_media_ids").file).not.toBe(FILE);
   });
 
+  // ★ RESHAPED ON PURPOSE (camera-clip, 20261004120000; scar kept: a camera video is bounded by its bytes and, where it
+  // says one, its length, each refused in the words the guest wrapper routes by; reason dropped: the numbers typed in
+  // the sentences and the grace folded into one literal). The sentences are formatted from the constants now, so the
+  // check and its words are one literal; the constants' values are `roll.test.ts`'s, read beside the TypeScript ones.
   it("a camera video is bounded by its bytes and, where it says one, its length", () => {
     const body = code("create_media");
     expect(body).toContain(
-      "if p_type = 'video' and p_file_size_bytes > c_camera_video_bytes then raise exception 'This video exceeds the 128 MB a camera shot can be.'",
+      "if p_type = 'video' and p_file_size_bytes > c_camera_video_bytes then raise exception using message = format('This video exceeds the %s MB a camera shot can be.', c_camera_video_bytes / (1024 * 1024)), errcode = 'check_violation';",
     );
     expect(body).toContain(
-      "if p_type = 'video' and p_duration_seconds > c_camera_video_seconds then raise exception 'This video is longer than the 10 seconds a camera shot can be.'",
+      "if p_type = 'video' and p_duration_seconds > c_camera_video_seconds + c_camera_video_grace then raise exception using message = format('This video is longer than the %s seconds a camera shot can be.', c_camera_video_seconds), errcode = 'check_violation';",
     );
   });
 

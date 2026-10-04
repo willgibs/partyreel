@@ -27,7 +27,9 @@ const row = (over: Partial<EventListRow> = {}): EventListRow => ({
   statusLabel: "Open",
   byline: null,
   marks: { live: false, state: null },
-  seasonId: "coming",
+  day: "2026-10-03",
+  dated: true,
+  openedAt: null,
   ...over,
 });
 

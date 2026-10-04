@@ -3,9 +3,13 @@ import { describe, expect, it } from "vitest";
 import { itemFor } from "./attention";
 import { readyFactsOf } from "./home-event";
 import {
+  lampNear,
+  lampOf,
+  openedLineOf,
   stageActsOf,
   stageDateLine,
   stageNumbersOf,
+  stageRailOf,
   stageTicksOf,
   stageWordsOf,
 } from "./stage";
@@ -220,5 +224,83 @@ describe("the acts", () => {
       label: "Share the album",
       to: "invite",
     });
+  });
+});
+
+describe("the stage before its first photograph (host-dashboard r3, `stage=lit`)", () => {
+  it("lights each event by one of the house's five lamps, picked by its id and never changing", () => {
+    for (const id of ["a", "e1", "6f1c2c9e-5a3b-4d11-9a0a-1d2f3a4b5c6d", ""]) {
+      expect([1, 2, 3, 4, 5]).toContain(lampOf(id));
+      expect(lampOf(id)).toBe(lampOf(id));
+    }
+    // Five lamps are no monoculture: forty events do not all draw the same.
+    const used = new Set(
+      Array.from({ length: 40 }, (_, i) => lampOf(`event-${i}`)),
+    );
+    expect(used.size).toBeGreaterThanOrEqual(4);
+  });
+
+  it("burns fuller from the week before an event's first day through its last, never for an undated one", () => {
+    const near = (e: ReturnType<typeof homeEvent>) => lampNear(e, FRIDAY);
+    expect(near(homeEvent({ date: "2026-10-09" }))).toBe(false);
+    expect(near(homeEvent({ date: "2026-10-08" }))).toBe(true);
+    expect(near(homeEvent({ date: FRIDAY }))).toBe(true);
+    // A range under way, and one ended, by its nearest day.
+    expect(near(homeEvent({ date: "2026-10-01", endDate: "2026-10-03" }))).toBe(
+      true,
+    );
+    expect(near(homeEvent({ date: "2026-09-20" }))).toBe(false);
+    expect(near(homeEvent())).toBe(false);
+  });
+
+  it("lays Settings' five steps flat, in a word each, with the checklist's own head", () => {
+    const rail = stageRailOf(
+      readyFactsOf(
+        homeEvent({ date: "2026-10-09", ready: { opened: 0, guestsIn: 0 } }),
+        afternoon,
+      ),
+    );
+    expect(rail?.steps.map((s) => [s.n, s.item, s.word, s.done])).toEqual([
+      [1, "door", "Door", true],
+      [2, "adds", "Uploads", true],
+      [3, "photos", "First photos", false],
+      [4, "welcome", "Welcome", true],
+      [5, "code", "Code", false],
+    ]);
+    expect(rail?.head).toEqual({
+      title: "Before guests arrive",
+      line: "Guests still need one more thing.",
+    });
+  });
+
+  it("says ready, and what is still worth doing, once the code has been opened", () => {
+    const rail = stageRailOf(
+      readyFactsOf(
+        homeEvent({ date: "2026-10-09", ready: { opened: 12, guestsIn: 0 } }),
+        afternoon,
+      ),
+    );
+    expect(rail?.steps.find((s) => s.item === "code")?.done).toBe(true);
+    expect(rail?.head).toEqual({
+      title: "Ready for guests",
+      line: "One thing still worth doing.",
+    });
+  });
+
+  it("says nothing of a rail where readiness was not read", () => {
+    expect(stageRailOf(null)).toBeNull();
+    expect(
+      stageRailOf(readyFactsOf(homeEvent({ ready: null }), afternoon)),
+    ).toBeNull();
+  });
+
+  it("says how often the code was opened, or the nudge a code never opened needs, or nothing unread", () => {
+    expect(openedLineOf(null)).toBeNull();
+    expect(openedLineOf(0)).toBe(
+      "Not opened yet: scan it once from your phone",
+    );
+    expect(openedLineOf(1)).toBe("Opened 1 time");
+    expect(openedLineOf(12)).toBe("Opened 12 times");
+    expect(openedLineOf(1200)).toBe("Opened 1,200 times");
   });
 });
