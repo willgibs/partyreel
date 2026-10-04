@@ -36,17 +36,34 @@ working.
 
 **Verify on.** The gate on the synced tree (CLAUDE.md's four steps), each step on its own exit code; `pnpm lab:smoke --base http://localhost:<port>` when the lane changes anything under `src/` but tests (it crawls what the change reaches: the Library, and every board whose drawings import a changed file); and the surfaces the Handoff is judged on, local and live.
 
+## Where I am
+
+- Migration whole and pushed for the Advisor: `supabase/migrations/20261004130000_dashboard_display.sql` (`profiles.events_display`, `events.host_opened_at`; rolled-back proof at its foot, red without the file and green with it on a throwaway Postgres 17 stand-in; live drift read 2026-10-04). Not applied: the Orchestrator's.
+- Building: the pure rules (`lib/dashboard/display.ts`), the Display menu, Recent and the table, the opens' stamp, the lit stage, the page and its two actions.
+
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each is built on its recommended answer and is Will's to overrule.
+
+1. **Where is "opened" recorded, for the Recent row and the Last opened order?** The board's `kept` call covers her choices, not her opens, and a column on her profile cannot hold them exactly (a bounded trail would order only her last dozen, so "Last opened, least recent first" at two hundred events would be wrong). Recommended, built: one timestamp an event, `events.host_opened_at`, stamped by the dashboard's own links when she presses into an event (one delegated listener on the page, a non-blocking Server Function, at most once a minute an event), hosted events only; the migration is the same file as `kept`'s. A deep link (the bell, an email) does not count until the hub mounts the same stamp (Deferred: one line in the hub's file, which is event-header's). Overrule: a trail on her profile, or a cookie on this device.
+2. **Where are her choices kept?** (the board's `kept`, taken as written) On her account: `profiles.events_display jsonb`, sparse (only what differs from the defaults, so a default changed later reaches everyone who never chose), every key narrowed on every read, never trusted; it also keeps whether Recent is folded. The old `pr_events_view` cookie and its toggle retire (no compatibility work before launch).
+3. **Does the Display button always show?** The drawing hides it at one event, but Restore for a deleted event lives only in the dashboard's Deleted list, so a host with one live event and one deleted could not reach it. Recommended, built: the button shows from a second event, or whenever Deleted holds one. Overrule: hidden at one event, as drawn, with the bin reached some other way.
+4. **What does the badge count, and what does Reset undo?** Every choice that differs from the default, the cover size included (the drawing's count skipped it, so a large-cover host had nothing to reset), and never Recent's fold (a press on its own Hide).
+5. **The lit stage beyond the two drawn cases.** The drawing shows an event just made and an event the week before. Built: the rail of Settings' five steps wherever readiness was read (the stage's event before its day); on its day or after, with no photographs yet, the numbers the stage already says (in the album, guests, at the door, to review) take the rail's place, so a party's day never loses its counts; the lamp is brighter from the week before through its day. The one-time ignite as she lands from Create is not wired (nothing tells the dashboard she just came from Create: Deferred).
+6. **Words.** The sort and the column say "In the album", never "photos" (dashboard.md: the count includes video); the quiet line names Hosting, Guest and Deleted with capitals (the drawing lowercased the last two); a reversed Last opened reads "Least recent first".
+7. **"Your events N" counts what the list holds** (hosted and added to, the stage's own event drawn once above, the bin never): as drawn, so the head's "3 events" and the list's "2" are two honest numbers.
+
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/dashboard.md`: the stage before its first photograph (lit by its lamp), the events section (Display kept on her account, Recent, the three layouts) and the opens' stamp; the grouped-by-when gallery and the view cookie leave.
+- `docs/systems/database-security.md`: the two grant lines (`profiles.events_display`, `events.host_opened_at`).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- **Hub** (event-header's wiring): mount the same stamp in `/dashboard/[eventId]` (a client component calling `noteEventOpenedAction`, as `MarkWelcomedOnMount` does) so a deep link, the bell and an email count as opens.
+- **Dashboard**: delete `seasonsOf`, `HomeView.events.seasons` and `.title` once the host-dashboard board retires (its drawings still compose them, so they stay computed and unread meanwhile).
+- **Create** (styles-wiring): say "just made" to the dashboard (a flag on the landing) so the lit stage's lamp ignites once as the board drew it.
 
 ## Handoff (replaces the chat report)
 
