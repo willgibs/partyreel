@@ -496,6 +496,7 @@ the program teardown.
 - One DB-backup test-restore `[human]`: prove the backup restores before it is the only copy.
 - The `help@partyreel.com` mailbox `[human]`: the help center and the documents name it; confirm the receipt path once it exists.
 - The marketing site tuned at phone widths, judged on Will's phone `[eng+human]`: every round so far was judged at desktop.
+- Android, walked hard on real phones before launch `[eng+human]` (Will, 2026-10-04: "we'll find a way to test aggressively on android before launch"): Save through the share sheet into the gallery (the phone-size set and its sizes), the camera (a still, a held clip, the mic's answer), uploads on a weak signal, the door and the reel, on several makes and Chrome versions; nobody has tried Android Save on a device yet.
 - A per-account throttle on the deletion request `[eng]`: beyond Supabase Auth's own OTP limits it is unlimited; it needs a live session plus a password or an emailed code, so the exposure is a borrowed session rather than a stranger, and the throttle is cheap insurance.
 - Submit the apex to the HSTS preload list `[human]`: a one-way door for the domain and every future subdomain (`max-age` already meets the list's requirement; the header ships without `preload` on purpose).
 
