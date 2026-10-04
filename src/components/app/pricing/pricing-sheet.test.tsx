@@ -13,6 +13,7 @@ import {
 } from "@/lib/constants/tiers";
 
 import { PricingSheet, type PricingPlanFacts } from "./pricing-sheet";
+import { READ_PATIENCE_MS } from "./use-plan-facts";
 
 /**
  * WHAT THE IN-APP PRICING SURFACE IS FOR, never how it looks (a contract
@@ -642,6 +643,28 @@ describe("a Pro host's first open, before her plan is read", () => {
     expect(
       within(dialog).getAllByRole("button", { name: /switch/i }),
     ).toHaveLength(3);
+  });
+
+  it("never leaves her waiting on a read that does not come: after a few seconds the list is offered as it stands", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    try {
+      gate = new Promise<void>(() => {});
+      const dialog = openSheet({ plan: PRO });
+      expect(dialog.querySelectorAll("[data-reading]")).toHaveLength(3);
+      await act(async () => {
+        vi.advanceTimersByTime(READ_PATIENCE_MS - 100);
+      });
+      expect(dialog.querySelectorAll("[data-reading]")).toHaveLength(3);
+      await act(async () => {
+        vi.advanceTimersByTime(200);
+      });
+      expect(dialog.querySelectorAll("[data-reading]")).toHaveLength(0);
+      expect(
+        within(dialog).getAllByRole("button", { name: /switch/i }),
+      ).toHaveLength(3);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("a second open reuses what the first read, with no quiet state at all", async () => {

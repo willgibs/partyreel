@@ -17,7 +17,9 @@ import { parsePlanFacts, type PlanFacts } from "@/lib/billing/plan-facts";
  * each with a Switch, her own included, for the two seconds the read took). It turns true once a read has
  * come back either way, and never turns false again: the sheet draws a quiet state while neither facts nor a
  * settled read exist, and the old fallback once a read has failed, since "it still lists the sizes" is what a
- * dropped request must keep.
+ * dropped request must keep. A read that simply never answers settles the same way after `READ_PATIENCE_MS`
+ * (the quiet state is for the two seconds Stripe takes, never a dead end), and an answer that comes later still
+ * lands.
  *
  * ★ `readAt` IS WHEN THE FACTS WERE READ, for the one thing in them that names a date: the month a figure was
  * measured in (`uploadsPauseNote`). A sheet stays mounted on a page for as long as the page lives, so the clock at
@@ -31,6 +33,9 @@ import { parsePlanFacts, type PlanFacts } from "@/lib/billing/plan-facts";
  * (the repo's `react-hooks/set-state-in-effect`), and a reply that lands after the
  * sheet closed or remounted is dropped by the abort.
  */
+/** How long the sheet waits on its read before it stops being quiet and offers the list as it stands. */
+export const READ_PATIENCE_MS = 6000;
+
 export function usePlanFacts(
   open: boolean,
   reads = 0,
@@ -42,6 +47,9 @@ export function usePlanFacts(
   useEffect(() => {
     if (!open) return;
     const controller = new AbortController();
+    const patience = setTimeout(() => {
+      if (!controller.signal.aborted) setSettled(true);
+    }, READ_PATIENCE_MS);
     fetch("/api/stripe/plan-facts", {
       cache: "no-store",
       signal: controller.signal,
@@ -62,7 +70,10 @@ export function usePlanFacts(
         // again: not a read that came back.)
         if (!controller.signal.aborted) setSettled(true);
       });
-    return () => controller.abort();
+    return () => {
+      clearTimeout(patience);
+      controller.abort();
+    };
   }, [open, reads]);
 
   return { facts, settled, readAt };
