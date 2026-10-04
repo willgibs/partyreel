@@ -114,6 +114,16 @@ Each is built as recommended and is Will's to overrule (the same lines stand und
 
 Scratch (every log named below): `../partyreel-wt/_scratch/crumbs-66/`.
 
+- **★ A cross-lane note for compute-uploads (read first).** My harness checks ran on the shared test event "Compute model
+  (test)" while that lane was measuring: I looked for a listener on 3131 only at the start of the session, and its
+  `after-full` run (results object at 22:19:02Z, written 22:32:41Z) began later. Mine, by `meta.date` in
+  `stress/*/results.json` (UTC): sixteen `guest-viewer-20` joins 22:01 to 22:14 (a guest row each, no upload), one
+  `guest-join-upload` at 22:23:36Z (ten photos uploaded at about 22:24Z, inside `after-full`'s hour scenarios), and the
+  forced-error pair 22:25:27Z and 22:29:00Z (two guest rows each, then `guest-hour-live` for three minutes). Another
+  lane's lit album pays about 20 calls for a ten-photo burst, so its `guest-hour-live` or `guest-hour-down` of that window
+  may carry that much extra, and a guest join may add a sync; their `after-hourdown` re-measures the second. I touched
+  nothing of theirs, and every request of mine went to my own port.
+
 - **Commits**, all on `origin/lp/crumbs-66`: fix 3 `91ceb5f22`, fix 4 `64953ad8d`, fix 1 `0b0572216`, the reel view's
   stylesheet `f426bc4e2`, the harness `fdc0e8b16`, `0b8547ca7` and `66abc030d` (the last code commit), then this manifest
   alone (the head is in the chat line). launch-prep had not moved (`805c52ed0` at the cut and at the last fetch), so there is
