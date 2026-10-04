@@ -146,6 +146,10 @@ definition in `supabase/migrations/`.
 No push deploys (`vercel.json`): Hobby allows 100 deployment creations a day across both projects, canceled ones
 included, and a creation past the cap fails silently.
 
+0. `node usher/kit/vercel-usage.mjs`: Hobby allows 4 Active CPU-hours a rolling 30 days and pauses every function past
+   it (Vercel unlocked the account once). Exit 3 refuses any Vercel work but what Will asks for by name (`alias-ensure`
+   and remote `lab:*` runs refuse on their own); desk checks and red-teams run on a local production build first, the
+   alias only for sign-in, upload and checkout.
 1. The record commit that should reach the alias carries `[preview]`.
 2. `SHA=<short> FULL=<full> node usher/kit/alias-ensure.mjs > $S/alias-<short>.log`: one deployment per project (app,
    admin), READY, both `launch-prep` aliases assigned, exit 0 only once the app alias serves the sha (a build that

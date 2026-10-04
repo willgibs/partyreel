@@ -143,6 +143,7 @@ import { join } from "node:path";
 import { inflateSync } from "node:zlib";
 
 import { describeScope, scopeFromArgs } from "./lab-scope.mjs";
+import { guardRemoteBase } from "./vercel-guard.mjs";
 
 const argv = process.argv.slice(2);
 const opt = (name, fallback) =>
@@ -173,6 +174,7 @@ if (!rawBase) {
   process.exit(2);
 }
 const base = rawBase.replace(/\/+$/, "");
+guardRemoteBase(base, "lab:demo");
 // The key may ride the environment: pnpm echoes a script's argv into any log it is redirected to,
 // so `DESIGN_PREVIEW_KEY=... pnpm lab:demo` keeps it out of the log where `--key` would not.
 const key = opt("--key", process.env.DESIGN_PREVIEW_KEY ?? "");

@@ -55,6 +55,10 @@ node scripts/new-board.mjs zz-negative "x" --surface nowhere --desk 90 > "$T/nb2
 # 13. merge-lane.sh refuses to merge on any branch but launch-prep (a session can open on main), and leaves the tree
 echo msg > "$T/msg13.txt"; BEFORE="$(git status --short)"; S="$T" KIT_BRANCH=zz-not-this-branch zsh "$KIT/merge-lane.sh" no-such-lane deadbeef "$T/msg13.txt" > "$T/br.out" 2>&1; R13=$?
 [ $R13 != 0 ] && grep -q "not zz-not-this-branch" "$T/br.out" && [ "$(git status --short)" = "$BEFORE" ] && ok "merge-lane.sh refuses to merge off launch-prep and leaves the tree" || bad "merge-lane.sh merged off launch-prep"
+# 14. the Vercel guard stands in front of every remote lab run and every deploy (2026-10-04: Hobby's Active CPU, whose
+#     break pauses every function): both lab scripts and alias-ensure.mjs call it, and a local base never spends a read
+grep -q 'guardRemoteBase(base, "lab:demo")' scripts/lab-demo.mjs && grep -q 'guardRemoteBase(base, "lab:smoke")' scripts/lab-smoke.mjs && grep -q 'vercel-usage.mjs' "$KIT/alias-ensure.mjs" && node -e 'import("./scripts/vercel-guard.mjs").then(m=>{m.guardRemoteBase("http://localhost:3131","x");m.guardRemoteBase("http://127.0.0.1:3999","x");console.log("local-ok")})' 2>&1 | grep -qx "local-ok" && ok "the Vercel guard fronts remote lab runs and deploys, and lets a local base through unread" || bad "the Vercel guard is missing from a lab script or alias-ensure, or it reads on a local base"
 # the costs the refusals were written for, re-read from the system as it is now (a report, never a refusal; cost-readings.mjs)
 node "$KIT/cost-readings.mjs" 2>&1 | cut -c1-400 || echo "cost readings: the script failed (read it before the next integration)"
+node "$KIT/vercel-usage.mjs" 2>&1 | cut -c1-400
 rm -rf "$T"; echo "negative control: $([ $RC = 0 ] && echo all refusals hold || echo A REFUSAL HAS GONE QUIET)"; exit $RC
