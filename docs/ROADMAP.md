@@ -17,15 +17,12 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
-- Host: the hub's "What a guest needs" list says "Anyone with the link or the code comes in." even when the door asks for a confirmed email, where Settings says "after confirming an email" (`src/lib/events/visibility-labels.ts`, `DOOR_STEP_LINES.public`).
-- Guests: the album header's rotating cover photos are 640 px files stretched to full width with no srcset.
-- Now: `pnpm compute:model`'s first scenario after its warmup (guest-join-upload) times out at the door's name step in a full run and passes alone, and an errored scenario leaves its phones polling under the next scenarios' labels: harden the join's wait and close a scenario's devices on error (`scripts/compute-model/run.mjs`).
+- Guests: a sharper album cover: a purpose-made cover variant (about 1,280 px) made in the browser at upload beside the preview (`upload/preview.ts`, no transform), carried on the wire for the cover's ids only and drawn as the second `srcset` candidate of `HeadStills` (the phone copy, 2,048 px and about 330 KB, would cost a phone about 2 MB on the first screen).
+- Tests: two jsdom timing tests fail only on a loaded machine (2026-10-04, each green alone and on a re-run): `grace-banner.test.tsx`'s countdown to her plan's cap and `review-room-hub.test.tsx`'s arrow from the panel to the first tile; wait on what they mean, never on time.
 - Host: the host's dashboard session in `pnpm compute:model` (`--host-cookie-env NAME`, a fresh session cookie from the environment), measured once on the local desk; until then `model.mjs` prices a session as five guest-page loads (0.4% of a wedding's calls).
 - Billing: the plan limits' Cloudflare reader `[eng+human]`: R2 operations and Workers requests through the GraphQL Analytics API, once Will mints a `CLOUDFLARE_ANALYTICS_TOKEN` (Account Analytics: Read) (the calls lab's X3).
 - Design: a Library specimen of the Plan limits card (`src/app/admin/jobs/limits-card.tsx`, presentation-only) healthy, critical, with a failed read and with gaps, so `lab:smoke` renders it.
-- Host: the Display quiet line's Reset (`events-section.tsx`) drops the focus to the body as the menu's did; hand it to the Display button on its press.
 - Guests: the camera reads a shot's dropped connection by `UPLOAD_WORDS.dropped` because the queue keeps only the message; read `QueueItem`'s cause once `UploadOutcome.cause` reaches the queue.
-- Host (reel): the hub's reel before the develop says nothing of the develop; its dock could say "Guests get it at the develop." (`live-reel-view.tsx`'s prop, `hub-reel.tsx`'s wiring, the card's `developsAt`).
 - Docs: `profiles-social.md`'s line on her own header's disc gains that the answer is kept per ticket (`pr_guest_seed_<album>`, hash-bound) and a first load holds the disc back and fades it in.
 - Host: the hub develops too (the board's carried `hub`: her cover is the guests' sheet, so her first open after the develop develops it): mount `DevelopSheet` over `event-hub-head-cover.tsx`.
 - Guests: the guest's read carries the period's start (`sealed_from`), so an album turned disposable mid-party develops only its roll (today its photos from before the switch develop on the sheet too: `rollOfEntries`'s note).
