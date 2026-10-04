@@ -1,6 +1,6 @@
 ---
 track: identity-r4
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "e8d11584"            # the launch-prep SHA the branch was cut from
 board: identity
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -50,25 +50,109 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each is built as recommended and is Will's to overrule; none is a one-way door.
+
+- **Is the configurator the board's own walk, or new lab machinery?** Built: the walk (the Advisor's Q29). Seven trait
+  asks (field, button, focus, selected, press, loading, toggles) and the edge, none staged behind another (`after`):
+  each is drawn wearing every answer already decided (this sitting's store over the ledger's, `step.tsx`'s `wearing`)
+  and an undecided one as its recommendation (`model.ts` `choiceOf`), so he composes the mix as he walks and can go
+  back to any step. `lab:review --dry` reads `review identity r4: field=well; button=key; focus=halo; ...;
+  call:veil=no` (all nine recorded, dry). Overrule: stage each trait behind the one before it.
+- **Where does a trait open?** Built: on its own screen, caught in its moment (field: Settings' dates, the end being
+  typed; button: Account; focus: the guest's door, the password in focus; selected: Settings' door; press: Create's
+  Continue held; loading: the door's Unlock working; toggles: Account's preferences), at 375 with paper beside the
+  room (two phones stand at the scale one does on a desk's step: `whole.ts`). The other four screens, the two
+  every-state sheets and 1440 are one press away (Show, Screen, Ground). Overrule: open every trait on one screen.
+- **The second new focus mark.** Built: `lit` (its own edge catches the light from above, a keyline of ink inside; a
+  field lights up under it) in the slot the brief named "a lift", whose rise and shadow could not carry 3:1 without a
+  ring and read as chosen on a raised segment (the focus helper's L1 and L2). Recommended: halo, whose paper bloom is
+  a soft grey aura, which is what parts it from the outline (the fresh-eyes pass found the two one answer on paper
+  with a white bloom). Overrule: draw a lift after all.
+- **A press drawn beside its key at rest.** Built: the press step draws each ground as a pair, the key at rest and
+  held (`moment=rest`), since a still shows a 1px travel or a 96% give only against the instant before it.
+- **A3, the veil.** Taken other than as built: half-black in the room, a quarter on paper, where half read heavy (the
+  fresh-eyes pass measured the page from 245 to 123); drawn so on every frame (`sheet/calls.ts`), so if he does not
+  push back the wiring makes `floatingScrim` per ground. Overrule: half-black on both grounds, as built.
+- **A4's teaser has no page with a Display menu on it** (the empty-events teaser renders only for a host with no
+  events; the slim one lives on her profile's private sections now), so the edge's Lit knob carries a tenth place, a
+  new host's dashboard, where `hand-cards` is seen; the edge lights it in no option.
+- **Fields keep their own size.** Built: the field trait sets a 40px floor, never a height, a type size or a right
+  padding (r3's sheet forced 40px and 14px type, which shrank the door's 44px field, would let iOS zoom a phone on
+  focus, and ran the door's text under its eye). A key standing beside a field takes the field's height.
+- **Create's name is not a field atom.** Built: the scene hands it no field slot (`scene/adopt.ts`; create-wizard's
+  `asks=one` drew it as the name at its size on a rule); Create carries the keys, the close and its four looks
+  (adopted as `swatch` atoms, which `selected` dresses).
+- **The edge's `every` reaches paper.** Built: on paper the dark surfaces are photographs and ink keys, lit in white,
+  and every dark key's top light turns up in the room (production lights media on dark grounds alone because its
+  light is the foreground, ink on paper); without it `every` and `floating` drew one picture on the Display, the
+  Add, the Style menu and paper (`lab:demo` warned "same picture" on the dashboard until then). Settings' place and
+  the tooltip are drawn at a laptop whatever the width (Settings in a hand is a whole screen with no layer; a tap
+  opens no tooltip).
+- **Graphite drawn here until `graphite-wiring` lands** (`sheet/room.ts`: the room's `--display*` one step up, the
+  edge's light two fifths); the sheet leaves once production wears it.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none (the lane owns the board's folder alone; what it learned of production is in Deferred and the board ideas)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Design: Chrome draws an `outline` or a border width in whole CSS pixels (1.5px is drawn 1px at every device scale,
+  measured by the focus helper); a 1.5px line in production is a box-shadow spread.
+- Design: globals.css's bright edge (`[data-lit]`) draws its pixel on a padding ring that rounds to nothing under
+  about half scale (a page zoomed out, the lab's laptop steps); a 1px transparent border under the same mask holds at
+  every scale (identity board, `sheet/edge.ts`'s `ON`).
+- Design: the live reel dock's Style and Hold keys never show their open fill (`data-state="closed"` with
+  `aria-expanded="true"` while the menu is open); the Style menu's "Set for everyone" is a hand-drawn pill row, not
+  the key atom.
+- Design: the Display menu's group names (LAYOUT, ORDER, SHOW, GROUP, COVERS) and the door's "ALMOST IN" are spaced
+  capitals outside the camera voice's counts, live and times.
+- Design: Settings' date range at a phone: its two rows share no gutter (the end indented by "to", the × outside).
+- Design: the door's password panel inside a chosen gate reads `--background`, so a lit chosen card (identity's
+  raised or lighter) needs it on the card's own ground.
+- Design: the account menu's "Plan and storage · Event Pass" wraps to two lines at both widths.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits**, pushed to `origin/lp/identity-r4`: `29bbb8572` (the mix as seven traits, the edge on ten screens, the
+  three helpers' first passes), `853dae330` (the one refinement from the fresh-eyes pass), the sync `d4e001c5a`
+  (launch-prep at `18b6bb784`: dashboard-wiring's Display menu and hub-strip-wiring landed, and the board mounts both),
+  `d9654688d` (the dashboard's place on production's own Display menu); this manifest's commit is the chat line's head.
+- **Gates on `d9654688d`** (the synced tree), each on its own exit code, logs in
+  `../partyreel-wt/_scratch/identity-r4/gate-*.log`: typecheck 0; lint 0 (no warnings); test 0 (889 files, 10,756
+  tests); `build-lock.sh pnpm build` 0; `lab:smoke --base http://localhost:3132` 0 (10 checks, the board at 1,125
+  words of its 1,200); `lab:demo --board identity` 0 at 1440 and with `--width 375` (8 steps, 0 failing, no "same
+  picture"; every step 1.0 to 1.1 screens, the stage 0.30 down at a desk and 0.35 at a phone).
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): only `src/app/(dev)/design/sandbox/identity/`
+  and this file; no exception.
+- **The items:**
+  - `spec.ts`: round 4, eight asks (field, button, focus, selected, press, loading, toggles, edge) with the whole
+    context layer, his r3 words in `earlier`, the settled lines (camera, display, lights wired; graphite as picked),
+    eleven terms, nine carried calls (r3's four kept; A1 `corner-scale`, A2 `toast-light`, A3 `veil`, A4
+    `hand-cards`, H3 `dates`); r3's `system` and `room` retired into the traits and the settled lines.
+  - `sheet/`: one stylesheet per option, composed by registered layer variables (`--i-focus`, `--i-sel`,
+    `--i-press`, `--i-body`, the travel and the scale) so no trait overwrites another; r3's whole-system and settled
+    sheets deleted (production wears the voice, the display and the lights); `room.ts` graphite; `calls.ts` the veil
+    as taken.
+  - `views/`: Create's steps as a real screen (production's wizard, a stand-in create); every screen caught in the
+    asked trait's moment (`pins.ts`), a press beside its rest; the edge's places on production's own: the
+    dashboard's events section and Display menu, the hub (cover with its new strip, rooms, bulk bar) under a delete
+    confirm, toasts and a tooltip, the reel's Style menu, a new host's dashboard.
+  - `identity.test.ts`: the spec, the sheets and the recommendations one set of ids; the sheets name atoms only; the
+    corners only in the r3 mark and never working; every focus option one mark on every control; no trait draws an
+    atom's shadow, travel or scale outright.
+- **Assets requested from Will:** none.
+- **Board ideas:**
+  - The bright edge's padding-ring technique fails under half scale everywhere it is worn (the photographs at a
+    zoomed-out desk); a one-line fix in globals.css, drawn and measured here.
+  - A `swatch` atom (a picture chosen among pictures: Create's looks, the reel's moods, the code's styles) that
+    wears the selected trait, instead of each picker drawing its own ring.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none.
+- **Calls his to overrule** (each a Question above or a carried call on the board): the walk as the configurator; each
+  trait on its own screen at 375; `lit` in the lift's slot; a press beside its rest; the veil a quarter on paper; a
+  new host's dashboard as A4's place; fields' 40px floor; Create's name out of the field atom; `every` reaching paper
+  and dark keys; graphite drawn in the board; the carried calls `one-focus-mark`, `head-atoms`, `field-height`,
+  `in-use`, `corner-scale`, `toast-light`, `veil`, `hand-cards`, `dates`.
+- **Look at first:** the field step (Settings' dates on paper beside the room: the well's recess against the ring and
+  the tone), then focus (the door: halo against outline on paper, where the aura parts them), then the edge on the
+  dashboard's Display and the account menu (Lit), in the room.
