@@ -43,13 +43,66 @@ import {
   type QueueProgress,
   type UploadedItem,
 } from "@/lib/guest/use-upload-queue";
-import { uploadFile } from "@/lib/upload/uploader";
+import {
+  uploadFile,
+  type BurstFile,
+  type UploadOutcome,
+} from "@/lib/upload/uploader";
 import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
 import { formatBytes } from "@/lib/utils";
 
 import { GuestUpload, type GuestUploadHandle } from "./guest-upload";
 
-vi.mock("@/lib/upload/uploader", () => ({ uploadFile: vi.fn() }));
+vi.mock("@/lib/upload/uploader", () => {
+  const uploadFile = vi.fn();
+  // ★ THE BURST OVER THE ONE-FILE STAND-IN (compute-uploads): the queue sends what waits as one burst
+  // (`uploadBurst`, whose own engine `uploader.burst.test.ts` holds); here it drives `uploadFile` file by file,
+  // each in the air then told, and a refusal of the session is every later file's, never asked again (the burst's
+  // own rule for a refusal of who is sending).
+  const session = new Set([
+    "session_other_account",
+    "invalid_session",
+    "verification_required",
+  ]);
+  const uploadBurst = async (args: {
+    files: readonly BurstFile[];
+    endpoints: { presign: string; complete: string };
+    identity: Record<string, string>;
+    onOutcome?: (index: number, outcome: UploadOutcome) => void;
+  }) => {
+    const out: UploadOutcome[] = [];
+    let stop: UploadOutcome | null = null;
+    for (const [i, one] of args.files.entries()) {
+      let outcome: UploadOutcome;
+      if (stop) {
+        outcome = stop;
+      } else {
+        one.onSending?.();
+        try {
+          outcome = (await uploadFile({
+            file: one.file,
+            endpoints: args.endpoints,
+            identity: args.identity,
+            onProgress: one.onProgress,
+            reelEligible: one.reelEligible,
+            poster: one.poster,
+          })) as UploadOutcome;
+        } catch {
+          // uploadBurst never rejects: one file's throw is that file's alone.
+          outcome = {
+            ok: false,
+            message: "Something went wrong with that upload. Please try again.",
+          };
+        }
+        if (!outcome.ok && session.has(outcome.code ?? "")) stop = outcome;
+      }
+      out.push(outcome);
+      args.onOutcome?.(i, outcome);
+    }
+    return out;
+  };
+  return { uploadFile, uploadBurst };
+});
 // The claim prompt OWNS the post-upload slot: it resolves the viewer and
 // decides which single card stands, which is its own contract
 // (claim-handle-prompt.test.tsx) and its own supabase call. Stubbed to a marker

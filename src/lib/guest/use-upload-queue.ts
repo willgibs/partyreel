@@ -8,6 +8,13 @@
  * owns it, so the door's upload step and the album's `GuestUpload` both read
  * one snapshot.
  *
+ * ★ WHAT WAITS GOES AS ONE BURST (compute-uploads, the compute model's lever 4): a run takes the files waiting
+ * (`takeBurst`: up to 20, and 1 GiB) and sends them with one presign and as few completes as their landing allows
+ * (`uploadBurst`), the bytes still one file at a time; the camera's shots and a second pick join the next burst. A
+ * file stays `queued` until its bytes go (`uploading`: the file in the air, which the album's stack shows), and
+ * waits `queued` at 100 once they are up, until it is recorded with its siblings (`done`). The session's three
+ * refusals below are read once the burst is over, for every file of it they reached.
+ *
  * ★ THE ALBUM'S OWNER IS NEVER HER OWN GUEST (`ownerEventId`, crumbs-29's
  * Deferred). Her Add on her own album's guest page went through the guest
  * pair, minting her a guest row at her own door, and `create_guest` never
@@ -34,7 +41,8 @@ import { joinEvent, type JoinedGuest } from "@/lib/guest/join";
 import { SESSION_OTHER_ACCOUNT } from "@/lib/guest/session-owner";
 import { dropGuestTicket } from "@/lib/guest/use-stored-session";
 import { HOST_CLIP_ENDPOINTS } from "@/lib/reel/clip-add";
-import { uploadFile, type UploadOutcome } from "@/lib/upload/uploader";
+import { takeBurst } from "@/lib/upload/burst";
+import { uploadBurst, type UploadOutcome } from "@/lib/upload/uploader";
 
 /**
  * The three refusal codes this queue reads by name. Everything else is a file's
@@ -76,9 +84,16 @@ const GUEST_ENDPOINTS = {
 
 /** Where a file goes and as whom: a guest's pair on her ticket, or the host's on her event (the head note). */
 type UploadRoute = Pick<
-  Parameters<typeof uploadFile>[0],
+  Parameters<typeof uploadBurst>[0],
   "endpoints" | "identity"
 >;
+
+/** The three refusals that are the session's, never the file's (the note above): read once a burst is over. */
+const isSessionRefusal = (outcome: UploadOutcome) =>
+  !outcome.ok &&
+  (outcome.code === SESSION_OTHER_ACCOUNT ||
+    outcome.code === DEAD_TICKET ||
+    outcome.code === VERIFICATION_REQUIRED);
 
 export type QueueItemStatus = "queued" | "uploading" | "done" | "error";
 
@@ -270,7 +285,9 @@ export function runProgressOf(
       gone += 1;
     } else {
       sending += 1;
-      if (it.status === "uploading") gone += progress.get(it.id) / 100;
+      // Its own share: the file in the air as far as it has gone, one whose bytes are up whole while it waits to be
+      // recorded with its burst (`queued` at 100), one still waiting nothing (the store holds 0 for it).
+      gone += progress.get(it.id) / 100;
     }
   }
   // Rounded to a thousandth, so a tick that moves nothing the ring can draw re-renders nothing.
@@ -371,6 +388,21 @@ async function simulateUpload(
     mediaId: crypto.randomUUID(),
     kind: file.type.startsWith("video/") ? "video" : "photo",
   };
+}
+
+/** The demo's burst: each file faked in turn (`simulateUpload`), told as `uploadBurst` tells a real one. */
+async function simulateBurst(
+  files: Parameters<typeof uploadBurst>[0]["files"],
+  onOutcome: (index: number, outcome: UploadOutcome) => void,
+): Promise<UploadOutcome[]> {
+  const out: UploadOutcome[] = [];
+  for (const [i, one] of files.entries()) {
+    one.onSending?.();
+    const outcome = await simulateUpload(one.file, (f) => one.onProgress?.(f));
+    out.push(outcome);
+    onOutcome(i, outcome);
+  }
+  return out;
 }
 
 /** One picked file as the queue holds it: waiting its turn. */
@@ -620,7 +652,7 @@ export function useUploadQueue({
     joinsSilently,
   ]);
 
-  // One file at a time — robust on flaky mobile connections.
+  // What waits goes as one burst (the head note), its bytes one file at a time — robust on flaky mobile connections.
   const runQueue = useCallback(async () => {
     if (processingRef.current) return;
     processingRef.current = true;
@@ -628,12 +660,11 @@ export function useUploadQueue({
       for (;;) {
         // The owner never meets a door; anyone else waits for hers to open (the note above).
         if (!ownerEventId && !doorOpenRef.current) break;
-        const next = itemsRef.current.find((it) => it.status === "queued");
-        if (!next) break;
-        /* ★ THE TICKET IS READ PER FILE, NEVER ONCE PER RUN. Both re-joins
-           below swap it mid-run, and the file after a swap must go up on the NEW
+        if (!itemsRef.current.some((it) => it.status === "queued")) break;
+        /* ★ THE TICKET IS READ PER BURST, NEVER ONCE PER RUN. Both re-joins
+           below swap it mid-run, and the burst after a swap must go up on the NEW
            one. (Read once at the top, the verified re-join after a mid-run flip
-           would re-send the refused file on the SPENT ticket and fail the run it
+           would re-send the refused files on the SPENT ticket and fail the run it
            exists to save.) */
         // The owner sends as the host, on no ticket at all (the head note); anyone else on the ticket.
         const token = ownerEventId
@@ -648,52 +679,93 @@ export function useUploadQueue({
             ? { endpoints: GUEST_ENDPOINTS, identity: { session_token: token } }
             : null;
         if (!route) break;
-        patch(next.id, { status: "uploading", progress: 0, error: undefined });
-        const onProgress = (f: number) =>
-          patch(next.id, { progress: Math.round(f * 100) });
-        // BELT AND BRACES with uploadFile's never-reject contract. If anything
+        // The burst is taken AFTER the ticket: a join may have failed what waited, or the door taken it.
+        const burst = takeBurst(
+          itemsRef.current.filter((it) => it.status === "queued"),
+          (it) => it.file.size,
+        );
+        if (burst.length === 0) break;
+        /** Each file's outcome as it is known, once: a landing drawn at once, a file's own refusal in its sheet. */
+        const told = new Map<string, UploadOutcome>();
+        const settle = (it: QueueItem, outcome: UploadOutcome) => {
+          if (told.has(it.id)) return;
+          told.set(it.id, outcome);
+          if (outcome.ok) {
+            // A file landed on this ticket: any later refusal is a new chain.
+            silentJoinSpentRef.current = false;
+            // A row the album keeps until it develops lands as `sealed` (`landedAs`), drawn nowhere.
+            const landed = landedAs(outcome.status, outcome.sealed);
+            patch(it.id, {
+              status: "done",
+              progress: 100,
+              mediaStatus: landed,
+              mediaId: outcome.mediaId,
+            });
+            onUploaded({
+              mediaId: outcome.mediaId,
+              queueId: it.id,
+              file: it.file,
+              kind: outcome.kind,
+              status: landed,
+            });
+            return;
+          }
+          // The session's three wait for the burst's end (below); everything else is this file's own.
+          if (isSessionRefusal(outcome)) return;
+          patch(it.id, {
+            status: "error",
+            progress: 0,
+            error: outcome.message,
+            errorCode: outcome.code,
+          });
+        };
+        const files = burst.map((it) => ({
+          file: it.file,
+          reelEligible: it.reelEligible,
+          poster: it.poster,
+          // Its bytes go: it is the file in the air (the album's stack follows it).
+          onSending: () => patch(it.id, { status: "uploading", progress: 0 }),
+          onProgress: (f: number) =>
+            patch(it.id, { progress: Math.round(f * 100) }),
+          // Its bytes are up: it waits, whole, to be recorded with its burst.
+          onSent: () => patch(it.id, { status: "queued", progress: 100 }),
+        }));
+        // BELT AND BRACES with uploadBurst's never-reject contract. If anything
         // ever DOES reject here, the throw would escape this for(;;) loop: the
-        // current file would be left at "uploading" with no error and no retry
-        // affordance, and every file still queued behind it would be silently
-        // abandoned. One file's failure must only ever fail THAT file.
-        let outcome: UploadOutcome;
+        // burst's files would be left with no error and no retry affordance,
+        // and every file still queued behind them would be silently abandoned.
+        // One file's failure must only ever fail THAT file: a file the burst
+        // never told is failed in place, and every other keeps what it was told.
         try {
-          outcome = isDemo
-            ? await simulateUpload(next.file, onProgress)
-            : await uploadFile({
-                file: next.file,
-                ...route,
-                onProgress,
-                reelEligible: next.reelEligible,
-                poster: next.poster,
-              });
+          if (isDemo) {
+            await simulateBurst(files, (i, o) => settle(burst[i]!, o));
+          } else {
+            await uploadBurst({
+              files,
+              ...route,
+              onOutcome: (i, o) => settle(burst[i]!, o),
+            });
+          }
         } catch (e) {
           console.error("upload queue: unexpected failure", e);
-          outcome = {
+        }
+        for (const it of burst) {
+          settle(it, {
             ok: false,
             message: "Something went wrong with that upload. Please try again.",
-          };
-        }
-        if (outcome.ok) {
-          // A file landed on this ticket: any later refusal is a new chain.
-          silentJoinSpentRef.current = false;
-          // A row the album keeps until it develops lands as `sealed` (`landedAs`), drawn nowhere.
-          const landed = landedAs(outcome.status, outcome.sealed);
-          patch(next.id, {
-            status: "done",
-            progress: 100,
-            mediaStatus: landed,
-            mediaId: outcome.mediaId,
           });
-          onUploaded({
-            mediaId: outcome.mediaId,
-            queueId: next.id,
-            file: next.file,
-            kind: outcome.kind,
-            status: landed,
-          });
-          continue;
         }
+        const spent = burst.filter((it) => isSessionRefusal(told.get(it.id)!));
+        if (spent.length === 0) continue;
+        // The burst's first session refusal decides the branch, for every file of it the session cost.
+        const first = told.get(spent[0]!.id) as Extract<
+          UploadOutcome,
+          { ok: false }
+        >;
+        const requeue = () => {
+          for (const it of spent)
+            patch(it.id, { status: "queued", progress: 0 });
+        };
         /* ──────────────────────────────────────────────────────────────────
            SOMEBODY ELSE'S TICKET.
 
@@ -705,11 +777,11 @@ export function useUploadQueue({
            the routes refuse it (lib/guest/session-owner.ts), at presign or,
            when a sign-in or a sign-out overtook a presign, at completion. The
            ticket is put down (the token, the name and address flag beside it,
-           the cookie) and this file goes back in the queue rather than into
-           the failure sheet; the next pass finds no ticket and `acquireTicket`
-           joins as the viewer the server says this is. So nothing is lost and
-           nothing is credited to the ticket's owner, and a guest who is signed
-           in never learns it happened.
+           the cookie) and the burst's files it cost go back in the queue rather
+           than into the failure sheet; the next pass finds no ticket and
+           `acquireTicket` joins as the viewer the server says this is. So
+           nothing is lost and nothing is credited to the ticket's owner, and a
+           guest who is signed in never learns it happened.
 
            ★ A DEAD TICKET IS PUT DOWN THE SAME WAY (`invalid_session`): a token
            whose row is gone (an ask the door's move to a password ended) can
@@ -728,11 +800,11 @@ export function useUploadQueue({
            (`ticketDown`); the files wait for the door's ticket.
            ────────────────────────────────────────────────────────────────── */
         if (
-          outcome.code === SESSION_OTHER_ACCOUNT ||
-          outcome.code === DEAD_TICKET
+          first.code === SESSION_OTHER_ACCOUNT ||
+          first.code === DEAD_TICKET
         ) {
           sessionRef.current = null;
-          patch(next.id, { status: "queued", progress: 0 });
+          requeue();
           if (!joinsSilently()) {
             let down = () => {};
             onDoorNeeded?.(
@@ -756,7 +828,7 @@ export function useUploadQueue({
            through twelve files. The route answers 403 `verification_required`,
            and the difference this branch draws is between one refused FILE and
            a spent SESSION: if the session is spent, every file still queued
-           behind this one will be refused for the same reason, and letting the
+           behind this burst will be refused for the same reason, and letting the
            loop discover that twelve times over means twelve identical lines in
            the failure sheet and twelve pointless round trips.
 
@@ -781,39 +853,33 @@ export function useUploadQueue({
            Every upload asks the switch again (`get_upload_context`), so a kept
            ticket can never send past it.
            ────────────────────────────────────────────────────────────────── */
-        if (outcome.code === VERIFICATION_REQUIRED) {
-          if (isVerifiedRef.current && !rejoinedRef.current) {
-            rejoinedRef.current = true;
-            const rejoined = await joinEvent({ qrToken });
-            if (rejoined.ok) {
-              const ticket = takeJoin(rejoined.guest);
-              // Re-queue the file this refusal cost; go round again on the new ticket, or, with the
-              // door holding her (the join landed waiting), wait for it.
-              patch(next.id, { status: "queued", progress: 0 });
-              if (ticket === null) break;
-              continue;
-            }
+        if (isVerifiedRef.current && !rejoinedRef.current) {
+          rejoinedRef.current = true;
+          const rejoined = await joinEvent({ qrToken });
+          if (rejoined.ok) {
+            const ticket = takeJoin(rejoined.guest);
+            // Re-queue the files this refusal cost; go round again on the new ticket, or, with the
+            // door holding her (the join landed waiting), wait for it.
+            requeue();
+            if (ticket === null) break;
+            continue;
           }
-          const refused = itemsRef.current.map((it) =>
-            it.id === next.id || it.status === "queued"
-              ? {
-                  ...it,
-                  status: "error" as const,
-                  progress: 0,
-                  error: outcome.message,
-                  errorCode: outcome.code,
-                }
-              : it,
-          );
-          sync(refused);
-          onVerificationRequired?.(outcome.message, true);
-          break;
         }
-        patch(next.id, {
-          status: "error",
-          error: outcome.message,
-          errorCode: outcome.code,
-        });
+        const cost = new Set(spent.map((it) => it.id));
+        const refused = itemsRef.current.map((it) =>
+          cost.has(it.id) || it.status === "queued"
+            ? {
+                ...it,
+                status: "error" as const,
+                progress: 0,
+                error: first.message,
+                errorCode: first.code,
+              }
+            : it,
+        );
+        sync(refused);
+        onVerificationRequired?.(first.message, true);
+        break;
       }
     } finally {
       processingRef.current = false;

@@ -17,8 +17,28 @@ The browser uploads straight to R2 (one PUT under 100 MB, multipart above), so n
 function; a presign route mints the URLs and a complete route records the row through `create_media*`, which writes the
 ledger and enforces the caps (a single PUT lands at its key's `staging/` twin, which the complete copies into
 `events/`: [billing-caps.md](billing-caps.md)). Guests (the session-token capability) and hosts (a signed-in batch)
-share one engine, `upload/server-pipeline.ts`, behind four thin strategy routes, and one client, `uploadFile()` (the
-caller passes its endpoints and an identity), whose contract is the routes' response shapes.
+share one engine, `upload/server-pipeline.ts`, behind four thin strategy routes, and one client, `uploadBurst()` (the
+caller passes its endpoints and an identity; `uploadFile()` is a burst of one), whose contract is the routes' response
+shapes.
+- ★ **The files a phone sends together are a BURST: one presign, and as few completes as their landing allows**
+  (compute-uploads, the compute model's lever 4; the wire and its limits are `upload/burst.ts`'s: `{ ...identity,
+  files: [...] }`, at most 20 files a request, one answer a file in order). The engine runs each file through the very
+  spine its own request ran, in order, for every strategy (the host's routes took bursts unchanged): every check and
+  word a file met alone it meets, and a file refused never stops its siblings. A burst shares only what cannot differ
+  between its files (`Burst.memo`: the switch, the ticket's context, its owner, the lock, read once) and tells each file
+  what its earlier siblings took: the meter judges it with their declared bytes added (held to one upload's ceiling)
+  and the roll counts their shots, as one-at-a-time presigns saw them already landed; each file is metered once. A
+  presign refusal of WHO is sending (`scope: "burst"`) refuses the whole request in the one-file words, and the client
+  gives it to every file not yet asked for; a complete names an upload once a request. The guest's clip budget is the
+  strategy's `budget` hook, met one clip after another. The one-file body still answers as it did, for a tab loaded
+  before bursts (until the next milestone); a rollback past bursts refuses a newer tab's bodies until it reloads.
+- ★ **In the browser a byte never waits for batching** (`uploadBurst`): preparing (the strip, the preview, the phone
+  copy) runs ahead of the network at most 64 MB, presigning asks for every prepared file at once when the network needs
+  its next file or everything is prepared (the first file goes alone), the bytes go one file at a time, and the landed
+  files are recorded together when the last has gone up, 10 s after the first landed (`BURST_RECORD_WAIT_MS`), or at
+  once when the page is hidden (that complete `keepalive`). Meanwhile a landed file stands full: the guest's queue
+  keeps it `queued` at 100 (only the file in the air is `uploading`, which the album's stack follows) and the host's
+  panel `uploading` at 100. Callers take a burst with `takeBurst` (20 files, 1 GiB declared: presigns live 2 h).
 - **The guest/host asymmetries are deliberate, so the shared engine keeps them.** The host's `getUser()` gates in the
   route before the engine (401 before the body is parsed); a guest's token is validated inside the RPCs, and a token
   whose row carries an account uploads only for that signed-in account, and a signed-in account only through a row of
@@ -27,8 +47,9 @@ caller passes its endpoints and an identity), whose contract is the routes' resp
   and a host's `not_owner` is a 404, so existence never leaks; the guest failure sheet prints each refusal verbatim,
   which makes its wording user-facing copy. The one request limiter on the four routes is a guest's clip into the
   album (a `reelEligible: false` completion), which spends `reel_clip_add`, a daily budget per guest session
-  ([reel.md](reel.md)); otherwise the capability, the caps and the meter ([billing-caps.md](billing-caps.md)), the
-  per-part Content-Length binding and the multipart abort are the abuse control.
+  ([reel.md](reel.md)), asked before a byte of the clip lands; otherwise the capability, the caps and the meter
+  ([billing-caps.md](billing-caps.md)), the per-part Content-Length binding and the multipart abort are the abuse
+  control.
 - **`create_media*` is the only write into `media`.** A host's RLS insert would bypass the ledger,
   `storage_used_bytes` and the cap: unmetered storage. The RPC re-checks both keys' event prefix (`events/<event_id>/%`,
   else `bad_key`), so a valid session can never record a row in another event's namespace, nor plant a victim's preview
@@ -48,7 +69,7 @@ caller passes its endpoints and an identity), whose contract is the routes' resp
   its own shot filled, the album closed, a cap its own bytes reached) and the refusal would withdraw the files the row
   names. A recorded clip's replay neither meets nor spends `reel_clip_add`.
 - ★ **A cancel and a dropped connection are told apart, and a dropped one is never hidden** (E6): the failure sheet and
-  the host's rows print `uploadFile`'s message as it is, so a transport's words are the uploader's (`UPLOAD_WORDS`). A
+  the host's rows print each message as it is, so a transport's words are the uploader's (`UPLOAD_WORDS`). A
   request that never reached the network (presign, complete or the byte PUT), and a PUT whose bytes stop moving for
   `UPLOAD_STALL_MS` (45 s, restarting on every byte and when the page comes back to the screen; 90 s for R2's answer
   after the last byte), all say "Your connection dropped. Check your signal, then try again." with `cause: "dropped"`;
@@ -103,7 +124,7 @@ caller passes its endpoints and an identity), whose contract is the routes' resp
 ## The EXIF strip
 
 Originals are served byte-for-byte (the viewer, Save, the zip), so a phone's GPS and device EXIF would leak a location.
-`uploadFile()` strips identifying metadata at step 0, BEFORE any size is read, because the presigned PUT binds
+The uploader strips identifying metadata at step 0, BEFORE any size is read, because the presigned PUT binds
 Content-Length to the declared size and every later step must see the stripped bytes; guests and hosts pass the same
 seam. The stripper (`media/strip-metadata.ts`, whose header carries the per-format rules) is pure and lossless, never
 a pixel re-encode, and the browser and the Node backfill (`scripts/backfill-strip-exif.mjs`) share it rather than fork

@@ -14,14 +14,17 @@ import { FileDropzone } from "@/components/guest/file-dropzone";
 import { UploadThumbnail } from "@/components/shared/upload-thumbnail";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { uploadFile } from "@/lib/upload/uploader";
+import { takeBurst } from "@/lib/upload/burst";
+import { uploadBurst } from "@/lib/upload/uploader";
 
 // The host's own upload panel: a dropzone + per-file queue, reusing the shared
-// uploadFile orchestrator pointed at the authenticated /api/host/r2/* routes. This is
+// uploadBurst orchestrator pointed at the authenticated /api/host/r2/* routes. This is
 // the simpler twin of the guest GuestUpload — the host is already signed in, so there's
 // no just-in-time join, no demo mode, and no email capture. Host uploads are always
 // auto-approved (create_media_as_host), so a finished item posts straight to the album.
-// The queue runs one file at a time (robust on flaky connections), same as the guest flow.
+// ★ What waits goes as one burst (compute-uploads: one presign, and as few completes as its landing
+// allows), its bytes one file at a time (robust on flaky connections), same as the guest flow: a file
+// is `uploading` from its first byte, and stands full there until it is recorded with its burst.
 //
 // ★ THE ALBUM'S OWN STORE BRINGS THE BATCH, NEVER A PAGE REFRESH. The hub's album is a live
 // store (`host-album.tsx`): an approved upload rings the doorbell and the store answers with the
@@ -69,34 +72,46 @@ export function HostUpload({
     [sync],
   );
 
-  // One file at a time. When the queue fully drains, the page's album is told once (the head
-  // note), so the new (auto-approved) items appear in the grid. Once per drain, not per file.
+  // A burst at a time (the head note). When the queue fully drains, the page's album is told once
+  // (the head note), so the new (auto-approved) items appear in the grid. Once per drain, not per file.
   const runQueue = useCallback(async () => {
     if (processingRef.current) return;
     processingRef.current = true;
     let anySucceeded = false;
     try {
       for (;;) {
-        const next = itemsRef.current.find((it) => it.status === "queued");
-        if (!next) break;
-        patch(next.id, { status: "uploading", progress: 0, error: undefined });
-        const onProgress = (f: number) =>
-          patch(next.id, { progress: Math.round(f * 100) });
-        const outcome = await uploadFile({
-          file: next.file,
+        const burst = takeBurst(
+          itemsRef.current.filter((it) => it.status === "queued"),
+          (it) => it.file.size,
+        );
+        if (burst.length === 0) break;
+        await uploadBurst({
+          files: burst.map((it) => ({
+            file: it.file,
+            onSending: () =>
+              patch(it.id, {
+                status: "uploading",
+                progress: 0,
+                error: undefined,
+              }),
+            onProgress: (f: number) =>
+              patch(it.id, { progress: Math.round(f * 100) }),
+          })),
           endpoints: {
             presign: "/api/host/r2/presign-upload",
             complete: "/api/host/r2/complete-upload",
           },
           identity: { event_id: eventId },
-          onProgress,
+          onOutcome: (i, outcome) => {
+            const it = burst[i]!;
+            if (outcome.ok) {
+              anySucceeded = true;
+              patch(it.id, { status: "done", progress: 100 });
+            } else {
+              patch(it.id, { status: "error", error: outcome.message });
+            }
+          },
         });
-        if (outcome.ok) {
-          anySucceeded = true;
-          patch(next.id, { status: "done", progress: 100 });
-        } else {
-          patch(next.id, { status: "error", error: outcome.message });
-        }
       }
     } finally {
       processingRef.current = false;

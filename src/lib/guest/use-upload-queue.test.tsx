@@ -24,9 +24,66 @@ import {
   type QueueItem,
   type QueueProgress,
 } from "@/lib/guest/use-upload-queue";
-import { uploadFile, type UploadOutcome } from "@/lib/upload/uploader";
+import {
+  uploadBurst,
+  uploadFile,
+  type BurstFile,
+  type UploadOutcome,
+} from "@/lib/upload/uploader";
 
-vi.mock("@/lib/upload/uploader", () => ({ uploadFile: vi.fn() }));
+vi.mock("@/lib/upload/uploader", () => {
+  const uploadFile = vi.fn();
+  // ★ THE BURST OVER THE ONE-FILE STAND-IN (compute-uploads): the queue sends what waits as one burst
+  // (`uploadBurst`, whose own engine `uploader.burst.test.ts` holds); here it drives `uploadFile` file by file,
+  // each in the air then told, and a refusal of the session is every later file's, never asked again (the burst's
+  // own rule for a refusal of who is sending).
+  const session = new Set([
+    "session_other_account",
+    "invalid_session",
+    "verification_required",
+  ]);
+  const uploadBurst = vi.fn(
+    async (args: {
+      files: readonly BurstFile[];
+      endpoints: { presign: string; complete: string };
+      identity: Record<string, string>;
+      onOutcome?: (index: number, outcome: UploadOutcome) => void;
+    }) => {
+      const out: UploadOutcome[] = [];
+      let stop: UploadOutcome | null = null;
+      for (const [i, one] of args.files.entries()) {
+        let outcome: UploadOutcome;
+        if (stop) {
+          outcome = stop;
+        } else {
+          one.onSending?.();
+          try {
+            outcome = (await uploadFile({
+              file: one.file,
+              endpoints: args.endpoints,
+              identity: args.identity,
+              onProgress: one.onProgress,
+              reelEligible: one.reelEligible,
+              poster: one.poster,
+            })) as UploadOutcome;
+          } catch {
+            // uploadBurst never rejects: one file's throw is that file's alone.
+            outcome = {
+              ok: false,
+              message:
+                "Something went wrong with that upload. Please try again.",
+            };
+          }
+          if (!outcome.ok && session.has(outcome.code ?? "")) stop = outcome;
+        }
+        out.push(outcome);
+        args.onOutcome?.(i, outcome);
+      }
+      return out;
+    },
+  );
+  return { uploadFile, uploadBurst };
+});
 vi.mock("sonner", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
 
 const mockUploadFile = vi.mocked(uploadFile);
@@ -768,6 +825,95 @@ const flying = (id: string, over: Partial<QueueItem> = {}): QueueItem => ({
   ...over,
 });
 
+describe("★ what waits goes as one burst (compute-uploads)", () => {
+  const burstMock = vi.mocked(uploadBurst);
+
+  it("picks waiting together are one burst, on one ticket, each told as it lands", async () => {
+    let n = 0;
+    mockUploadFile.mockImplementation(async () => landed(`med-${++n}`));
+    const q = mountQueue({ sessionToken: "ticket-1", isVerified: false });
+    act(() =>
+      q.result.current.addFiles([
+        makeFile("a.jpg"),
+        makeFile("b.jpg"),
+        makeFile("c.jpg"),
+      ]),
+    );
+    await waitFor(() =>
+      expect(q.items().map((it) => it.status)).toEqual([
+        "done",
+        "done",
+        "done",
+      ]),
+    );
+    expect(burstMock).toHaveBeenCalledTimes(1);
+    expect(burstMock.mock.calls[0]![0].files).toHaveLength(3);
+    expect(burstMock.mock.calls[0]![0].identity).toEqual({
+      session_token: "ticket-1",
+    });
+    expect(q.onUploaded).toHaveBeenCalledTimes(3);
+  });
+
+  it("★ only the file in the air is `uploading`; one whose bytes are up waits `queued` at 100 for its burst's record", async () => {
+    let release!: () => void;
+    const recorded = new Promise<void>((resolve) => (release = resolve));
+    burstMock.mockImplementationOnce(async ({ files, onOutcome }) => {
+      files[0]!.onSending?.();
+      files[0]!.onSent?.();
+      files[1]!.onSending?.();
+      await recorded;
+      const out = [landed("med-a"), landed("med-b")];
+      out.forEach((o, i) => onOutcome?.(i, o));
+      return out;
+    });
+    const q = mountQueue({ sessionToken: "ticket-1", isVerified: false });
+    act(() =>
+      q.result.current.addFiles([makeFile("a.jpg"), makeFile("b.jpg")]),
+    );
+    await waitFor(() =>
+      expect(q.items().map((it) => [it.status, it.progress])).toEqual([
+        ["queued", 100],
+        ["uploading", 0],
+      ]),
+    );
+    expect(q.onUploaded).not.toHaveBeenCalled();
+    await act(async () => release());
+    await waitFor(() =>
+      expect(q.items().map((it) => it.status)).toEqual(["done", "done"]),
+    );
+  });
+
+  it("a pick made while a burst goes rides the next burst", async () => {
+    let release!: () => void;
+    const first = new Promise<void>((resolve) => (release = resolve));
+    burstMock.mockImplementationOnce(async ({ files, onOutcome }) => {
+      await first;
+      const out = files.map((_, i) => landed(`med-${i}`));
+      out.forEach((o, i) => onOutcome?.(i, o));
+      return out;
+    });
+    mockUploadFile.mockResolvedValue(landed("med-late"));
+    const q = mountQueue({ sessionToken: "ticket-1", isVerified: false });
+    act(() =>
+      q.result.current.addFiles([makeFile("a.jpg"), makeFile("b.jpg")]),
+    );
+    await waitFor(() => expect(burstMock).toHaveBeenCalledTimes(1));
+    act(() => q.result.current.addFiles([makeFile("late.jpg")]));
+    await act(async () => release());
+    await waitFor(() =>
+      expect(q.items().map((it) => it.status)).toEqual([
+        "done",
+        "done",
+        "done",
+      ]),
+    );
+    expect(burstMock).toHaveBeenCalledTimes(2);
+    expect(burstMock.mock.calls[1]![0].files.map((f) => f.file.name)).toEqual([
+      "late.jpg",
+    ]);
+  });
+});
+
 describe("useQueueProgress", () => {
   it("reads one item's live progress and re-renders on its ticks", () => {
     const progress = fakeProgress({ q1: 10 });
@@ -826,6 +972,19 @@ describe("runProgressOf", () => {
       progress: 0.625,
       landed: 1,
       failed: 1,
+    });
+  });
+
+  it("★ a file whose bytes are up waits for its burst's record whole, never back at nothing (compute-uploads)", () => {
+    const progress = fakeProgress({ q1: 100, q2: 40 });
+    const items = [
+      flying("q1", { status: "queued", progress: 100 }),
+      flying("q2"),
+      flying("q3", { status: "queued" }),
+    ];
+    expect(runProgressOf(items, progress, NONE)).toMatchObject({
+      sending: 3,
+      progress: 0.467,
     });
   });
 
