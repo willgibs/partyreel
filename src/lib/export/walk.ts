@@ -22,6 +22,9 @@
  *    The page can tell only what its own line did (`dropped`: a request of its own failed to reach the app), so a
  *    zip the Worker saw the client leave (`stopped`: she cancelled it in the browser's own list, or the line
  *    dropped) reads as a drop when the page's line failed while it streamed, and as a cancel when it did not.
+ *    ONE SENTENCE, EVERYWHERE (crumbs-65): "Your connection dropped. Check your signal, then try again." is the
+ *    uploader's (`UPLOAD_WORDS.dropped`) and the camera's word for the same thing, a title and its detail here, and
+ *    `uploader.test.ts` holds the two to one wording.
  */
 import { formatCount } from "@/lib/format/count";
 import type { Platform } from "@/lib/media/share-save";
@@ -159,15 +162,21 @@ export type CheckVerdict =
   | { kind: "retry" }
   /** It refused the token (paused, or a token it would not stream): never post the form. */
   | { kind: "refused"; reason: "paused" | "forbidden" }
-  /** It could not say (an older Worker, R2 down): the zip goes ahead, uncounted, as it used to. */
+  /**
+   * The check never reached the Worker or never came back (see `checkEnded`): the line is down, so the form is
+   * never posted. It could not be read anyway, and a top-level POST into a dead line is a failed navigation, which
+   * replaces the page with the browser's own error page.
+   */
+  | { kind: "dropped" }
+  /** It answered an error (R2 down): the zip goes ahead, uncounted, as it used to. */
   | { kind: "skip" }
   | { kind: "cancelled" };
 
 /**
- * What one check try means. ★ A CHECK THAT CANNOT ANSWER NEVER STOPS A DOWNLOAD: an older Worker
- * (no `/check`, so the browser's fetch fails on CORS) and an R2 hiccup both fall through to the zip,
- * exactly as it went before the check existed. Only a Worker that says it would refuse the zip
- * stops it, because posting then would replace the album with its bare refusal.
+ * What one check try means. ★ A CHECK THAT ANSWERS AN ERROR NEVER STOPS A DOWNLOAD: an R2 hiccup (a 5xx, or a body
+ * the page cannot read) falls through to the zip, uncounted, as it went before the check existed. Only a Worker
+ * that says it would refuse the zip stops it, because posting then would replace the album with its bare refusal.
+ * A try that never answered at all is `retry` here and the line's, once its tries are spent (`checkEnded`).
  */
 export function checkVerdict(a: Attempt): CheckVerdict {
   if (a.kind === "cancelled") return { kind: "cancelled" };
@@ -201,6 +210,24 @@ export function checkVerdict(a: Attempt): CheckVerdict {
   }
   if (a.status >= 500) return { kind: "retry" };
   return { kind: "skip" };
+}
+
+/**
+ * ★ A CHECK WHOSE TRIES ARE SPENT, DECIDED BY THE LAST ONE (red-team 53's MEDIUM; the mint's own rule: a line that
+ * came back to an app that errors is the app's, not the line's). The form is posted to the very host the check was
+ * asked of, so a check that never reached it (the fetch rejected: offline, a radio that lost its bearer) or never
+ * came back (a ceiling reached: a crowded cell) says the POST would fail the same way. A POST is a main-frame
+ * navigation, and into a dead line it replaced the page with the browser's own error page: the album, her selection
+ * and the toast went with it, and "Your connection dropped." was never said. So it is said here, with a Try again,
+ * and nothing is posted. What only answered an error is the Worker's own trouble, and the zip still goes.
+ *
+ * The older Worker this once also fell through for (no `/check`, so the browser's fetch failed on CORS) cannot
+ * meet an app that names one: the Worker deploys before any app that relies on what is new.
+ */
+export function checkEnded(last: Attempt | null): CheckVerdict {
+  return last !== null && lineFailed(last)
+    ? { kind: "dropped" }
+    : { kind: "skip" };
 }
 
 /* ── the Worker's word on a zip it streamed (`export-ends`) ──────────────── */

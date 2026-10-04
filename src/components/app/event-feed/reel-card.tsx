@@ -223,6 +223,20 @@ function Label({ stuck }: { stuck: boolean }) {
   );
 }
 
+/**
+ * The card's second line: under the label on a phone's two-line card and in a tile, and, condensed to a pill, kept for a
+ * reader and never drawn (`sr-only`). ★ IT USED TO BE `display: none` THERE (red-team 53's LOW: "at 375 the Reel card
+ * hides 'Guests get it later'"), which took the state out of the pill for everyone, assistive technology included,
+ * and a phone host who pressed it could not tell that her guests do not have this reel yet. The line itself is whole at
+ * rest at every width the card is drawn (measured at 375 and 320: 100px of the 149px and 122px it has, and 118px at the
+ * tile's narrowest), so what the pill leaves out is only what a compact control has no room for.
+ */
+function valueClass(stuck: boolean, rest: string): string {
+  return stuck
+    ? "sr-only"
+    : cn("relative truncate text-xs", ROOM_CARD_VALUE, rest);
+}
+
 /** The overlay: heavier at the foot where the words sit, so they read over the brightest still. */
 function Overlay() {
   return (
@@ -329,10 +343,8 @@ function LiveCard({
       />
       <Label stuck={stuck} />
       <span
-        className={cn(
-          "relative truncate text-xs",
-          ROOM_CARD_VALUE,
-          stuck && "hidden",
+        className={valueClass(
+          stuck,
           living ? "text-white/85" : "text-muted-foreground",
         )}
       >
@@ -376,15 +388,7 @@ function OffCard({ eventId, stuck }: { eventId: string; stuck: boolean }) {
         aria-hidden
       />
       <Label stuck={stuck} />
-      <span
-        className={cn(
-          "truncate text-xs text-muted-foreground",
-          ROOM_CARD_VALUE,
-          stuck && "hidden",
-        )}
-      >
-        Off
-      </span>
+      <span className={valueClass(stuck, "text-muted-foreground")}>Off</span>
     </Link>
   );
 }
@@ -472,10 +476,8 @@ function CountingCard({
           )}
           <Label stuck={stuck} />
           <span
-            className={cn(
-              "relative truncate text-xs",
-              ROOM_CARD_VALUE,
-              stuck && "hidden",
+            className={valueClass(
+              stuck,
               onPhoto ? "text-white/85" : "text-muted-foreground",
             )}
           >

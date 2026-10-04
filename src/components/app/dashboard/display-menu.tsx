@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 import {
   ArrowDown,
   ArrowUp,
@@ -42,6 +42,11 @@ import { formatCount } from "@/lib/format/count";
  *
  * ★ EVERY CHOICE IS ONE PRESS AND TAKES EFFECT AT ONCE: the list lays itself out as she presses (a filter is
  * instant or it is not a filter), and the menu stays open over the list she is shaping.
+ *
+ * ★ RESET LEAVES THE FOCUS ON THE MENU (red-team 53's NIT). It shows only while something is set, so the press that
+ * undoes everything removes the very button holding the focus, which then fell to the page's body and threw a
+ * keyboard user out of the menu she was shaping. The press hands the focus to the menu's own panel first, so the next
+ * Tab walks the choices from the top (all of them reset) and Escape still closes it.
  */
 
 const LAYOUT_ICONS: Record<Layout, ReactNode> = {
@@ -104,6 +109,7 @@ export function DisplayMenu({
   years: readonly string[];
 }) {
   const n = changed(display).length;
+  const panel = useRef<HTMLDivElement>(null);
   const set = (patch: Partial<Display>) => onChange({ ...display, ...patch });
   const lenses = lensOptions(counts, display.lens).map((l) => ({
     id: l.id,
@@ -130,11 +136,12 @@ export function DisplayMenu({
         </Button>
       </PopoverTrigger>
       <PopoverContent
+        ref={panel}
         align="end"
         collisionPadding={8}
         // Taller than the room around its button (a phone, or a button mid-page), it scrolls inside itself rather
         // than running off the window: every choice stays reachable without moving the page.
-        className="max-h-[var(--radix-popover-content-available-height)] w-[22rem] space-y-4 overflow-y-auto p-4"
+        className="max-h-[var(--radix-popover-content-available-height)] w-[22rem] space-y-4 overflow-y-auto p-4 outline-none"
       >
         <Section label="Layout">
           <ToggleGroup
@@ -234,7 +241,10 @@ export function DisplayMenu({
           {n > 0 && (
             <button
               type="button"
-              onClick={() => onChange(resetChoices(display))}
+              onClick={() => {
+                onChange(resetChoices(display));
+                panel.current?.focus({ preventScroll: true });
+              }}
               className="font-medium text-foreground outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring/50"
             >
               Reset

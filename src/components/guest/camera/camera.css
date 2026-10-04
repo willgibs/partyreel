@@ -343,6 +343,11 @@
   color: rgb(255 255 255 / 0.62);
   text-align: center;
 }
+/* The hint may be a whole sentence (a dropped connection's, two clauses): balanced, it breaks in the middle and never
+   leaves a word on a line of its own. */
+.cam-hint p {
+  text-wrap: balance;
+}
 .cam-hint-action {
   display: inline-flex;
   align-items: center;

@@ -349,6 +349,46 @@ describe("the chrome (the thin bar)", () => {
     },
   );
 
+  // ★ RED-TEAM 53's NIT (crumbs-65): the open fill (18%) lost to the pointer's hover (12%) while the pointer rested on
+  // the key it had just pressed, because the hover came later in the sheet. A jsdom has no cascade either, so what is
+  // held is the SHIPPED RULE: Tailwind compiles the key's own classes, and the hover rule it emits excludes an open
+  // menu's key (`aria-expanded`), so the open fill wins by construction and not by where the rules happen to sit.
+  it.each([
+    ["Style", /^Style: /],
+    ["Hold", /^Hold: /],
+  ] as const)(
+    "★ the %s key's hover never covers its open fill: the compiled rule leaves an open key out",
+    async (_key, name) => {
+      renderView();
+      const key = screen.getByRole("button", { name });
+      const hover = key.className
+        .split(/\s+/)
+        .filter((c) => c.includes("hover:") && c.includes("bg-white/12"));
+      expect(hover).toHaveLength(1);
+      const { compile } = await import("tailwindcss");
+      const css = (
+        await compile("@theme { --color-white: #fff; } @tailwind utilities;")
+      ).build(hover);
+      expect(css).toMatch(/:not\([^)]*\[aria-expanded="true"\]\)/);
+    },
+  );
+
+  // The same fault on the keys that press (the code, the videos): a pressed key's fill is its own, with no hover
+  // beside it to win; at rest it still has the hover.
+  it("★ a pressed key carries its fill and no hover to cover it; at rest it has the hover", () => {
+    renderView();
+    const rest = screen.getByRole("button", { name: "Show the code" });
+    expect(rest).toHaveAttribute("aria-pressed", "false");
+    expect(rest.className).toContain("hover:bg-white/12");
+    expect(rest.className).not.toMatch(/(^|\s)bg-white\/18/);
+
+    fireEvent.click(rest);
+    const pressed = screen.getByRole("button", { name: "Hide the code" });
+    expect(pressed).toHaveAttribute("aria-pressed", "true");
+    expect(pressed.className).toMatch(/(^|\s)bg-white\/18/);
+    expect(pressed.className).not.toContain("hover:bg-white/12");
+  });
+
   it("labels every control: play, style, hold, the code, Add yours, and Close", () => {
     renderView();
     for (const name of [

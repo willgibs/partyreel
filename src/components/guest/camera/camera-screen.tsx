@@ -75,6 +75,7 @@ import {
 } from "@/lib/guest/camera/words";
 import type { FileExtra } from "@/lib/guest/use-upload-queue";
 import { CAMERA_VIDEO_SECONDS } from "@/lib/media/limits";
+import { UPLOAD_WORDS } from "@/lib/upload/uploader";
 import { cn } from "@/lib/utils";
 
 /** How long a said line stands before the camera's standing line comes back. */
@@ -169,8 +170,12 @@ export function CameraScreen({
   just: ReadonlySet<string>;
   /** The album takes a video (a paid plan and the host's Videos on). */
   albumTakesVideo: boolean;
-  /** Her shots that did not send: how many, and whether a Retry could pass. */
-  unsent: { count: number; retryable: boolean };
+  /**
+   * Her shots that did not send: how many, whether a Retry could pass, and whether the connection is why (red-team 53's
+   * NIT: the camera never said a dropped one). The line then says the uploader's own sentence, never a count that
+   * would read as a broken app.
+   */
+  unsent: { count: number; retryable: boolean; dropped?: boolean };
   /** The newest refusal of a shot's own file, in the server's words: said once, as it arrives. */
   latestRefusal: { key: string; sentence: string } | null;
   /** A refusal of the album itself, in the server's words: the shutter stops. */
@@ -621,7 +626,9 @@ export function CameraScreen({
       (blocked || done || !live
         ? ""
         : unsent.count > 0
-          ? unsentLine(unsent.count)
+          ? unsent.dropped
+            ? UPLOAD_WORDS.dropped
+            : unsentLine(unsent.count)
           : filmable
             ? CAMERA_HINT.tapOrHold
             : CAMERA_HINT.tap));

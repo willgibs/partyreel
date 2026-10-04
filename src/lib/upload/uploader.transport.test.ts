@@ -24,9 +24,10 @@ vi.mock("@/lib/upload/preview", () => ({
 
 const { uploadFile, UPLOAD_ANSWER_MS, UPLOAD_STALL_MS, UPLOAD_WORDS } =
   await import("./uploader");
+const { WALK_COPY } = await import("@/lib/export/walk");
 
 const MEDIA = "44444444-4444-4444-8444-444444444444";
-const DROPPED = "Your connection dropped. Check your signal and try again.";
+const DROPPED = "Your connection dropped. Check your signal, then try again.";
 
 type Behaviour =
   /** The browser reports the network failed. */
@@ -214,6 +215,15 @@ describe("a dropped connection names itself, whichever step it drops at", () => 
 
   it("the words are one sentence, in one place", () => {
     expect(UPLOAD_WORDS.dropped).toBe(DROPPED);
+  });
+
+  // ★ ONE WORDING FOR THE DROP EVERYWHERE (red-team 53's NIT, crumbs-65): the uploader said "and try again" where the
+  // downloads said "then try again". The downloads carry it as a title and its detail, so the two are held to one
+  // sentence here, where a change to either is felt.
+  it("★ is the very sentence the downloads say, a title and its detail", () => {
+    expect(UPLOAD_WORDS.dropped).toBe(
+      `${WALK_COPY.dropped} ${WALK_COPY.droppedDetail}`,
+    );
   });
 
   it("a request the browser ended on its own is the connection's too, not a cancel", async () => {

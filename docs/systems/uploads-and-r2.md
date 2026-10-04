@@ -51,10 +51,14 @@ caller passes its endpoints and an identity), whose contract is the routes' resp
   the host's rows print `uploadFile`'s message as it is, so a transport's words are the uploader's (`UPLOAD_WORDS`). A
   request that never reached the network (presign, complete or the byte PUT), and a PUT whose bytes stop moving for
   `UPLOAD_STALL_MS` (45 s, restarting on every byte and when the page comes back to the screen; 90 s for R2's answer
-  after the last byte), all say "Your connection dropped. Check your signal and try again." with `cause: "dropped"`; an
-  error answer says it "didn't go through" (the status goes to the console, never the guest); an abort `signal` says
-  cancelled (`cause: "cancelled"`; no guest control passes one yet). `complete` is never aborted by a cancel and has no
-  client timeout: a retry re-runs the whole upload, so a timed-out complete that had recorded its row would duplicate it.
+  after the last byte), all say "Your connection dropped. Check your signal, then try again." with `cause: "dropped"`;
+  an error answer says it "didn't go through" (the status goes to the console, never the guest); an abort `signal`
+  says cancelled (`cause: "cancelled"`; no guest control passes one yet). `complete` is never aborted by a cancel and
+  has no client timeout: a retry re-runs the whole upload, so a timed-out complete that had recorded its row would
+  duplicate it. ★ It is ONE SENTENCE everywhere: the downloads say it as a title and its detail (`WALK_COPY`), and
+  the album's camera says this very string where it used to count ("2 shots didn’t send.") when a shot failed that
+  way (the queue keeps the uploader's message as it came, so the camera reads it by `UPLOAD_WORDS.dropped`);
+  `uploader.transport.test.ts` holds the three to one wording.
 - **The size is the R2 HEAD's** at complete, never the client's claim ([database-security.md](database-security.md));
   `duration_seconds`, `width` and `height` stay client-supplied and non-authoritative, the byte cap being the cost
   boundary.
@@ -226,8 +230,13 @@ The zips go off Vercel, on the streaming export Worker (`partyreel-export`, on `
   whose header holds the walk): `POST /check` (the token as `text/plain`, CORS `*`, no credential) answers
   `{ items, found, missing }` by `head` or a folder's `list`, never a byte read, so an empty zip is never sent, a short
   one is counted with a Try again for exactly its missing ids (`ids`, intersected server-side), and a token the Worker
-  would refuse is said rather than replacing the page. A check that cannot answer (an older Worker, R2 down) never
-  stops the zip.
+  would refuse is said rather than replacing the page. A check that ANSWERS an error (R2 down) never stops the zip,
+  but one that never reached the Worker (the fetch rejected, or hung past its ceilings) is a dropped connection and
+  never posts: the form goes to that same host, and a POST into a dead line is a failed main-frame navigation, which
+  replaced the page with the browser's own error page (album, selection and toast gone, the drop never said). The
+  last try decides, as the mint's does, and the walk never posts while the browser itself says it is offline (the
+  question may have stood a while). The older Worker this once fell through for (no `/check`) cannot meet an app that
+  names one: the Worker deploys before any app that relies on what is new.
 - ★ **After the POST the Worker reports, and SAVED is its word, never the page's guess,** because a host who reads
   "saved" may delete the album. The mint signs the minting deployment's own `/api/export/report` into the token
   (`report`) wherever the Worker can reach it (`lib/export/report.ts`'s `reportAddressFor`: never a laptop behind the
@@ -251,7 +260,9 @@ The zips go off Vercel, on the streaming export Worker (`partyreel-export`, on `
   the browser's own list from a dead line, so the page reads its own: a zip streamed while its status polls failed (a
   rejected request, or two stalls) is a drop, one streamed with every poll answered is a cancel, and a walk from an
   older build that recorded neither says "didn't finish". Three polls in a row that fail are said under "Downloading…"
-  and clear when one answers. The take-home Save follows the same two rules (`take-home-save.ts`: `cancel()` asks and
+  and clear when one answers; a line still down keeps those words, and the walk keeps listening (its silence past the
+  stream's start means the Worker's word cannot reach the app only while her own line is up), so a drop is never
+  replaced by "starting". The take-home Save follows the same two rules (`take-home-save.ts`: `cancel()` asks and
   is the guest's foot control, `stop()` is the page leaving and says nothing).
 - ★ **Past one zip's ceilings (2,000 items or 20 GB) an album comes home in parts**, oldest first: each mint
   (`part`, `after`) takes the next part from a position cursor, never a page index, so nothing is skipped or taken

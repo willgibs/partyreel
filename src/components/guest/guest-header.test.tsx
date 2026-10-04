@@ -250,6 +250,127 @@ describe("GuestHeader: a guest with a name and no account", () => {
       );
     });
 
+    /* ★ RED-TEAM 53's NIT (crumbs-65): "her header's disc flashes uncoloured on every load". The server's answer is a
+       pure function of her guest row, so it is KEPT per ticket and a later load paints it at once; a first load,
+       which has to ask, holds its disc back and fades it in coloured, never plain-then-coloured. */
+    const discOf = () => document.querySelector("[data-disc]") as HTMLElement;
+
+    it("★ remembers her colour per ticket: a later load paints it at once, with no ask, and keeps no ticket beside it", async () => {
+      localStorage.setItem("pr_guest_name_tok-1", "Sam");
+      localStorage.setItem("pr_session_tok-1", "sess-1");
+      global.fetch = vi.fn(
+        async () =>
+          new Response(JSON.stringify({ ok: true, seed: "f".repeat(64) })),
+      ) as unknown as typeof fetch;
+      const first = render(<GuestHeader qrToken="tok-1" eventId="evt-1" />);
+      await waitFor(() =>
+        expect(seedOf()?.style.backgroundBlendMode).not.toBe(""),
+      );
+      first.unmount();
+      // Kept, bound to the ticket by a hash of it: the ticket itself (a capability) is never written beside it.
+      const kept = localStorage.getItem("pr_guest_seed_tok-1") ?? "";
+      expect(kept).toMatch(/^[0-9a-z]+\.f{64}$/);
+      expect(kept).not.toContain("sess-1");
+
+      // A later load: the colour is in the first commit, and nothing is asked.
+      global.fetch = vi.fn() as unknown as typeof fetch;
+      render(<GuestHeader qrToken="tok-1" eventId="evt-1" />);
+      expect(seedOf()?.style.backgroundBlendMode).not.toBe("");
+      expect(discOf()).toHaveAttribute("data-disc", "colour");
+      await act(async () => {});
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it("★ a phone handed to the next guest never wears the last one's colour: a new ticket finds none kept, and asks", async () => {
+      localStorage.setItem("pr_guest_name_tok-1", "Sam");
+      localStorage.setItem("pr_session_tok-1", "sess-1");
+      global.fetch = vi.fn(
+        async () =>
+          new Response(JSON.stringify({ ok: true, seed: "f".repeat(64) })),
+      ) as unknown as typeof fetch;
+      const first = render(<GuestHeader qrToken="tok-1" eventId="evt-1" />);
+      await waitFor(() =>
+        expect(seedOf()?.style.backgroundBlendMode).not.toBe(""),
+      );
+      first.unmount();
+
+      // The next guest: a new ticket for the same album (the old one was put down, the entry left behind).
+      localStorage.setItem("pr_guest_name_tok-1", "Dana");
+      localStorage.setItem("pr_session_tok-1", "sess-2");
+      let answer: (r: Response) => void = () => {};
+      global.fetch = vi.fn(
+        () => new Promise<Response>((resolve) => (answer = resolve)),
+      ) as unknown as typeof fetch;
+      render(<GuestHeader qrToken="tok-1" eventId="evt-1" />);
+      // Her disc is held back and plain under it: never the last guest's colour, not for a frame.
+      expect(seedOf()?.style.backgroundBlendMode).toBe("");
+      expect(discOf()).toHaveAttribute("data-disc", "waiting");
+      await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1));
+      await act(async () => {
+        answer(
+          new Response(JSON.stringify({ ok: true, seed: "a".repeat(64) })),
+        );
+      });
+      await waitFor(() =>
+        expect(discOf()).toHaveAttribute("data-disc", "colour"),
+      );
+      expect(localStorage.getItem("pr_guest_seed_tok-1")).toMatch(/\.a{64}$/);
+    });
+
+    it("★ a first load holds its disc back until the colour lands, then shows it coloured, never plain first", async () => {
+      localStorage.setItem("pr_guest_name_tok-1", "Sam");
+      localStorage.setItem("pr_session_tok-1", "sess-1");
+      let answer: (r: Response) => void = () => {};
+      global.fetch = vi.fn(
+        () => new Promise<Response>((resolve) => (answer = resolve)),
+      ) as unknown as typeof fetch;
+      render(<GuestHeader qrToken="tok-1" eventId="evt-1" />);
+      await screen.findByRole("button", { name: /your name on this album/i });
+      // While the ask is in the air the disc is waiting for its colour, and wears none.
+      expect(discOf()).toHaveAttribute("data-disc", "waiting");
+      expect(seedOf()?.style.backgroundBlendMode).toBe("");
+      await act(async () => {
+        answer(
+          new Response(JSON.stringify({ ok: true, seed: "c".repeat(64) })),
+        );
+      });
+      await waitFor(() =>
+        expect(discOf()).toHaveAttribute("data-disc", "colour"),
+      );
+      expect(seedOf()?.style.backgroundBlendMode).not.toBe("");
+    });
+
+    it("a colour that never lands is a plain disc after a short wait, and one the server has none for is plain at once", async () => {
+      localStorage.setItem("pr_guest_name_tok-1", "Sam");
+      localStorage.setItem("pr_session_tok-1", "sess-1");
+      vi.useFakeTimers();
+      try {
+        global.fetch = vi.fn(
+          () => new Promise<Response>(() => {}),
+        ) as unknown as typeof fetch;
+        const slow = render(<GuestHeader qrToken="tok-1" eventId="evt-1" />);
+        await act(async () => {});
+        expect(discOf()).toHaveAttribute("data-disc", "waiting");
+        await act(async () => {
+          vi.advanceTimersByTime(2100);
+        });
+        expect(discOf()).toHaveAttribute("data-disc", "plain");
+        expect(seedOf()?.style.backgroundBlendMode).toBe("");
+        slow.unmount();
+
+        // A ticket that names no row: the server says so, and there is nothing to wait for.
+        localStorage.setItem("pr_session_tok-1", "sess-9");
+        global.fetch = vi.fn(
+          async () => new Response(JSON.stringify({ ok: true, seed: null })),
+        ) as unknown as typeof fetch;
+        render(<GuestHeader qrToken="tok-1" eventId="evt-1" />);
+        await act(async () => {});
+        expect(discOf()).toHaveAttribute("data-disc", "plain");
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
     it("a null from the server (a ticket that names no row) is the plain disc", async () => {
       localStorage.setItem("pr_guest_name_tok-1", "Sam");
       localStorage.setItem("pr_session_tok-1", "sess-1");

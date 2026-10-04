@@ -341,6 +341,49 @@ describe("the live card on an album that develops later", () => {
     expect(link).toHaveAttribute("data-reel-plays", "hub");
   });
 
+  // ★ RED-TEAM 53's LOW (crumbs-65): "at 375 the Reel card hides 'Guests get it later'". Measured in a 375 viewport the
+  // line is whole at rest (100px of 149), and the one state that hid it was the pill the row condenses to when it sticks
+  // to the bar, where it was `display: none` for everyone, a reader included. A jsdom has no layout, so what is held is
+  // that the pill keeps the words (`sr-only`: out of the way, still said) and never removes them from the page.
+  it.each([
+    [
+      "live, before the develop",
+      () => ({
+        state: "live" as const,
+        have: 2,
+        stills: ["s1"],
+        developsAt: ahead(3_600_000),
+      }),
+      "Guests get it later",
+    ],
+    [
+      "live, with no develop ahead",
+      () => ({ state: "live" as const, have: 2, stills: ["s1"] }),
+      "Live for guests",
+    ],
+    ["switched off", () => ({ state: "off" as const }), "Off"],
+    [
+      "counting",
+      () => ({ state: "counting" as const, have: 1 }),
+      "1 more photo",
+    ],
+  ])(
+    "★ stuck to the bar, the %s pill keeps its words for a reader, never display:none",
+    (_name, over, words) => {
+      render(<ReelCard eventId="e1" reel={{ ...base, ...over() }} stuck />);
+      const said = screen.getByText(words);
+      expect(said.className).toContain("sr-only");
+      expect(said.className).not.toMatch(/(^|\s)hidden(\s|$)/);
+    },
+  );
+
+  it("at rest the same words are drawn under the label", () => {
+    render(liveCard(ahead(3_600_000)));
+    const said = screen.getByText("Guests get it later");
+    expect(said.className).not.toContain("sr-only");
+    expect(said.className).toContain("truncate");
+  });
+
   it("says what it always has, and opens the guests' view, with no develop time or one reached", () => {
     const { unmount } = render(liveCard(null));
     expect(screen.getByRole("link")).toHaveTextContent("Live for guests");
@@ -364,15 +407,11 @@ describe("the live card on an album that develops later", () => {
     vi.useFakeTimers();
     try {
       render(liveCard(ahead(90_000)));
-      expect(screen.getByRole("link")).toHaveTextContent(
-        "Guests get it later",
-      );
+      expect(screen.getByRole("link")).toHaveTextContent("Guests get it later");
       act(() => {
         vi.advanceTimersByTime(89_000);
       });
-      expect(screen.getByRole("link")).toHaveTextContent(
-        "Guests get it later",
-      );
+      expect(screen.getByRole("link")).toHaveTextContent("Guests get it later");
       expect(screen.getByRole("link")).toHaveAttribute(
         "href",
         "/dashboard/e1?reel",
@@ -458,9 +497,7 @@ describe("the card on an album that develops later is hers", () => {
       />,
     );
     expect(document.querySelector("[data-living='3']")).not.toBeNull();
-    expect(screen.getByRole("link")).toHaveTextContent(
-      "Guests get it later",
-    );
+    expect(screen.getByRole("link")).toHaveTextContent("Guests get it later");
   });
 
   it("shows the one photograph on the counting card too, and counts to two as ever", () => {
