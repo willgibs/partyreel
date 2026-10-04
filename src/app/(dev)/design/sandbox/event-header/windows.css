@@ -1,0 +1,35 @@
+/* WINDOWS' OWN SHEET (`windows.tsx`): the rooms' small pictures and their band.
+
+   ★ EVERY KEYFRAME CARRIES THIS DOOR'S PREFIX (`eh-windows-`): keyframe names
+   are document-global, and `keyframe-uniqueness.test.ts` reads every sheet.
+   ★ THE REST STATE IS THE DEFAULT (bible 5): every movement sits behind
+   `no-preference`, so reduced motion shows each piece whole, at once. */
+
+/* A window's photographs and faces wait in grey, and take their colour under
+   the pointer (and on a keyboard's focus). */
+.eh-mono {
+  filter: grayscale(1) contrast(0.92);
+  opacity: 0.85;
+}
+.eh-window:hover .eh-mono,
+.eh-window:focus-visible .eh-mono {
+  filter: none;
+  opacity: 1;
+}
+.eh-well {
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.08);
+}
+
+/* The reel's small player: its line stands two fifths in, and stays (a line
+   that ran all night would pull her eye to the one door he asked to quieten). */
+.eh-reel-line {
+  width: 40%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .eh-mono {
+    transition:
+      filter 200ms var(--ease-emphasis),
+      opacity 200ms var(--ease-emphasis);
+  }
+}

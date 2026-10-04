@@ -1,0 +1,32 @@
+/* GLASS'S OWN SHEET (`glass.tsx`): the capsule's segments and its dock.
+
+   ★ EVERY KEYFRAME CARRIES THIS DOOR'S PREFIX (`eh-glass-`): keyframe names
+   are document-global, and `keyframe-uniqueness.test.ts` reads every sheet.
+   ★ THE REST STATE IS THE DEFAULT (bible 5): every movement sits behind
+   `no-preference`, so reduced motion shows each piece whole, at once. */
+
+/* A capsule's segment lights under the pointer. */
+.eh-seg:hover,
+.eh-seg:focus-visible {
+  background: rgb(255 255 255 / 0.12);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .eh-seg {
+    transition: background-color 120ms var(--ease-emphasis);
+  }
+  /* The capsule arrives under the bar as the cover's goes under it. ★ ON THE
+     CAPSULE ITSELF, AND ONLY WHILE IT RUNS (`backwards`): an ancestor holding
+     an opacity animation is a backdrop root, and the glass inside it would
+     blur nothing but its own empty wrapper, for as long as the fill held. */
+  .eh-glass-dock {
+    animation: eh-glass-dock-in 220ms var(--ease-emphasis) backwards;
+  }
+}
+
+@keyframes eh-glass-dock-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}

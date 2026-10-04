@@ -1,0 +1,48 @@
+/* CARDS' OWN SHEET (`cards.tsx`): the cards over the seam and their band.
+
+   ★ EVERY KEYFRAME CARRIES THIS DOOR'S PREFIX (`eh-cards-`): keyframe names
+   are document-global, and `keyframe-uniqueness.test.ts` reads every sheet.
+   ★ THE REST STATE IS THE DEFAULT (bible 5): every movement sits behind
+   `no-preference`, so reduced motion shows each piece whole, at once. */
+
+/* The reel's own violet, on its glyph alone. */
+.eh-chip-reel {
+  background: color-mix(in oklab, var(--reel) 13%, transparent);
+  color: var(--reel);
+}
+.eh-reel-ink {
+  color: var(--reel);
+}
+
+/* Stuck, the cards' band fades into the album rather than ending on a line. */
+.eh-fade-band {
+  padding-bottom: 1.25rem;
+  background: linear-gradient(
+    to bottom,
+    var(--background) 0%,
+    color-mix(in oklab, var(--background) 92%, transparent) 62%,
+    transparent 100%
+  );
+}
+
+/* In the room a card over the seam catches the light along its top edge (the
+   room's depth is light first: bible 6), where paper's lift does the work. */
+[data-eh-ground="room"] .eh-lift,
+[data-eh-ground="room"] .eh-pill-lift {
+  box-shadow:
+    var(--shadow-lift),
+    inset 0 1px 0 rgb(255 255 255 / 0.07);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* A card over the seam lifts under the pointer (a hover: quick). */
+  .eh-lift {
+    transition:
+      translate 160ms var(--ease-emphasis),
+      box-shadow 160ms var(--ease-emphasis);
+  }
+  .eh-lift:hover {
+    translate: 0 -2px;
+    box-shadow: var(--shadow-layer);
+  }
+}

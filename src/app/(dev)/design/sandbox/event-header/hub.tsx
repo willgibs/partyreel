@@ -23,14 +23,8 @@ import { cn } from "@/lib/utils";
 import { Frame } from "@/components/lab";
 
 import { HubAlbum } from "./album";
-import {
-  DoorsRow,
-  type DoorsId,
-  GlassDoors,
-  ROOM_LABEL,
-  type RoomId,
-} from "./doors";
-import type { FactsId } from "./facts";
+import { type DoorDraw, ROOM_LABEL, type RoomId } from "./door-kit";
+import { DOORS, type DoorsId } from "./doors";
 import { type Case, HOST } from "./fixtures";
 import { HubHead } from "./head";
 import {
@@ -40,15 +34,15 @@ import {
   ReviewBody,
   SettingsBody,
 } from "./rooms";
-import type { ScreenId } from "./scene";
+import type { Ground, ScreenId } from "./scene";
 
 /**
  * HER HUB, AS ROOMS-WIRING WIRED IT: production's own order
  * (`dashboard/[eventId]/page.tsx`): the app's chrome (`AppShell`, the crumbs,
  * the bell, her menu), the cover, the doors going sticky, the checklist while
  * the event is not ready (production's `EventChecklist`), and the album. A
- * frame is drawn in both decisions at once: the cover's `facts` and the row's
- * `doors`.
+ * frame is drawn in the door option the board asks for (`doors.tsx`), on the
+ * cover's settled strip.
  *
  * ★ EVERY ROOM OPENS OVER THE HUB (his `rooms=over`, wired): Review, Guests
  * and Settings in one panel at a desk and the whole screen in a hand, the
@@ -66,10 +60,7 @@ import type { ScreenId } from "./scene";
  * scrolled behind (`data-eh-behind`).
  */
 
-export type Ground = "paper" | "room";
-
 export type HubDraw = {
-  facts: FactsId;
   doors: DoorsId;
   c: Case;
   screen: ScreenId;
@@ -116,7 +107,10 @@ function HostApp({
             }
           >
             <SetCrumbs
-              trail={[{ label: "Partyreel", href: "/dashboard" }, { label: name }]}
+              trail={[
+                { label: "Partyreel", href: "/dashboard" },
+                { label: name },
+              ]}
             />
             {children}
           </AppShell>
@@ -270,7 +264,10 @@ function LayerFor({
 }) {
   if (open === "reel")
     return (
-      <div data-eh-room="Highlight reel" className="eh-cover fixed inset-0 z-50">
+      <div
+        data-eh-room="Highlight reel"
+        className="eh-cover fixed inset-0 z-50"
+      >
         <ReelView
           f={d.c}
           desk={d.screen === "1440"}
@@ -286,8 +283,8 @@ function LayerFor({
 /* ── the hub ──────────────────────────────────────────────────────────────── */
 
 /**
- * ONE FRAME OF THE HUB, in both decisions, with `open` the room standing open
- * over it (null: the hub at rest).
+ * ONE FRAME OF THE HUB, in its door option, with `open` the room standing
+ * open over it (null: the hub at rest).
  */
 export function Hub({
   d,
@@ -295,18 +292,29 @@ export function Hub({
   stuck = false,
   onOpen,
   onClose,
-  footRef,
-  capsuleRef,
+  mark,
 }: {
   d: HubDraw;
   open?: RoomId | null;
   stuck?: boolean;
   onOpen?: (room: RoomId) => void;
   onClose?: () => void;
-  footRef?: RefObject<HTMLDivElement | null>;
-  capsuleRef?: RefObject<HTMLDivElement | null>;
+  /** What a live frame reads its stuck state off (the door option attaches it). */
+  mark?: RefObject<HTMLDivElement | null>;
 }) {
   const c = d.c;
+  const door = DOORS[d.doors];
+  const Page = door.Page;
+  const own = useRef<HTMLDivElement | null>(null);
+  const ref = mark ?? own;
+  const draw: DoorDraw = {
+    c,
+    name: c.name,
+    screen: d.screen,
+    ground: d.ground,
+    selected: open,
+    onOpen,
+  };
   const layer = open ? <LayerFor open={open} d={d} onClose={onClose} /> : null;
   return (
     <HostApp name={c.name} ground={d.ground} layer={layer}>
@@ -315,33 +323,8 @@ export function Hub({
         data-eh-behind={layer ? "" : undefined}
         className="space-y-6"
       >
-        <HubHead
-          facts={d.facts}
-          doors={d.doors}
-          c={c}
-          screen={d.screen}
-          doorsOnCover={
-            d.doors === "glass" ? (
-              <GlassDoors
-                c={c}
-                screen={d.screen}
-                selected={open}
-                onOpen={onOpen}
-                capsuleRef={capsuleRef}
-              />
-            ) : undefined
-          }
-        />
-        <DoorsRow
-          doors={d.doors}
-          c={c}
-          name={c.name}
-          screen={d.screen}
-          stuck={stuck}
-          selected={open}
-          onOpen={onOpen}
-          footRef={footRef}
-        />
+        <HubHead id={d.doors} door={door} d={draw} mark={ref} />
+        <Page {...draw} stuck={stuck} mark={ref} />
         {c.photos === 0 ? (
           <EventChecklist
             eventId="eh-maya-and-jay"
@@ -362,9 +345,8 @@ export function Hub({
  * A FRAME'S OWN STUCK STATE, off its own scroll. Production asks an
  * IntersectionObserver with the bar's height as its margin; a root margin
  * does not reach into a frame's document, so a live frame reads its mark's
- * top against the bar on every scroll instead: the row's footprint, or where
- * the doors are glass, the capsule itself (it docks the moment it reaches the
- * bar).
+ * top against the bar on every scroll instead: whatever the door option marks
+ * (a row's footprint, or doors on the cover themselves) at its `stickAt`.
  */
 function useStuckIn(
   mark: RefObject<HTMLDivElement | null>,
@@ -391,14 +373,8 @@ function useStuckIn(
  */
 export function TryHub({ d }: { d: HubDraw }) {
   const [open, setOpen] = useState<RoomId | null>(null);
-  const footRef = useRef<HTMLDivElement | null>(null);
-  const capsuleRef = useRef<HTMLDivElement | null>(null);
-  const glass = d.doors === "glass";
-  const stuck = useStuckIn(
-    glass ? capsuleRef : footRef,
-    glass ? 64 : 57,
-    `${d.doors}-${open}`,
-  );
+  const mark = useRef<HTMLDivElement | null>(null);
+  const stuck = useStuckIn(mark, DOORS[d.doors].stickAt, `${d.doors}-${open}`);
   const root = useRef<HTMLSpanElement | null>(null);
   const close = useCallback(() => setOpen(null), []);
 
@@ -421,8 +397,7 @@ export function TryHub({ d }: { d: HubDraw }) {
         stuck={stuck}
         onOpen={setOpen}
         onClose={close}
-        footRef={footRef}
-        capsuleRef={capsuleRef}
+        mark={mark}
       />
     </>
   );

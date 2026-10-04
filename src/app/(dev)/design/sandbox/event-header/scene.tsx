@@ -46,8 +46,8 @@ export const SCREENS = {
 
 export type ScreenId = keyof typeof SCREENS;
 
-/** A facts frame's height: the bar, the cover and the doors' row under it. */
-export const COVER_H: Record<ScreenId, number> = { "375": 520, "1440": 590 };
+/** The page's two grounds (the cover is the room on both). */
+export type Ground = "paper" | "room";
 
 /** The Screen knob: her laptop first. */
 export const screenOf = (s: BoardState): ScreenId =>
@@ -228,24 +228,6 @@ export function Strip({
 
 /* ── what the frames measure ───────────────────────────────────────────────── */
 
-/**
- * The words a reader meets in an element: every text node outside a screen
- * reader's own line (`.sr-only`, laid out but never seen), split on
- * whitespace, a token counted when it holds a letter or a digit.
- */
-export function wordsIn(el: Element | null): number {
-  if (!el) return 0;
-  const doc = el.ownerDocument;
-  const walk = doc.createTreeWalker(el, 4 /* NodeFilter.SHOW_TEXT */);
-  let n = 0;
-  for (let t = walk.nextNode(); t; t = walk.nextNode()) {
-    if (t.parentElement?.closest(".sr-only, svg, [data-code-door]")) continue;
-    for (const token of (t.textContent ?? "").split(/\s+/))
-      if (/[\p{L}\p{N}]/u.test(token)) n++;
-  }
-  return n;
-}
-
 const px = (n: number) => `${Math.round(n)}px`;
 
 /** Where the album's first photograph lands on the first screen, or that it is below it. */
@@ -268,26 +250,6 @@ function albumStart(root: HTMLElement, screenH: number): string | null {
 }
 
 /**
- * THE COVER'S CAPTION: the words it says (the code's own glyphs aside), what
- * its fact draws and how big, and where the doors' row begins under it.
- */
-export const measureFacts: Probe = (root) => {
-  const head = root.querySelector("[data-eh-head]");
-  if (!head) return null;
-  const parts: string[] = [`the cover says ${wordsIn(head)} words`];
-  const fact = root.querySelector("[data-eh-facts]");
-  if (fact) {
-    const r = fact.getBoundingClientRect();
-    parts.push(
-      `the ${fact.getAttribute("data-eh-facts")} ${px(r.width)} by ${px(r.height)}: ${fact.getAttribute("data-eh-read")}`,
-    );
-  }
-  const code = root.querySelector("[data-code-door]");
-  if (code) parts.push(`the code ${px(code.getBoundingClientRect().width)}`);
-  return `Measured: ${parts.join("; ")}.`;
-};
-
-/**
  * THE DOORS' CAPTION: how many, how big, whether they stand on the cover,
  * over its seam, under it, in the stuck band or docked, where the album
  * starts, and the band's height once it has stuck.
@@ -308,7 +270,7 @@ export const measureDoors =
     const where = doors[0].closest("[data-eh-head]")
       ? "on the cover"
       : doors[0].closest("[data-eh-band][data-stuck]")
-        ? doors[0].closest(".eh-dock")
+        ? doors[0].closest("[data-eh-dock]")
           ? "docked under the bar"
           : "in the stuck band"
         : first.top < coverFoot
