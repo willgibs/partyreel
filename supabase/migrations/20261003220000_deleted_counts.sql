@@ -40,7 +40,7 @@
 -- night nothing keeps it) are untouched; the monthly ingress meter still counts every upload and never refunds one;
 -- `host_active_bytes` keeps its one definition of what her albums hold.
 --
--- AN EXPAND, SO THE DEPLOYED BUILDS KEEP WORKING (milestone 34 on partyreel.com, build 49 on the alias, both on this
+-- AN EXPAND, SO THE DEPLOYED BUILDS KEEP WORKING (milestone 34 on partyreel.com, build 50 on the alias, both on this
 -- database): `host_storage_summary` keeps `active_bytes` and `standby_bytes` with their meanings (its readers take
 -- fields by name, and `system_bytes` is a third they never ask for), and `standby_hosts` stays as it stands, so their
 -- nightly standby sweep keeps running (it evicts Deleted past one cap, which the new cap leaves almost nothing to do).
