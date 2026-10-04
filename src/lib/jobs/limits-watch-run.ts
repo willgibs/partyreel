@@ -62,17 +62,6 @@ export function adminJobsUrl(anchor: string): string {
 
 // ── Reading ───────────────────────────────────────────────────────────────────────────────────────
 
-/**
- * ★ A TYPED SEAM, until `limits_watch_readings` (supabase/migrations/20261004170000_limits_watch_readings.sql) is applied
- * and `src/lib/db/types.ts` regenerated: the generated `Functions` does not name it yet. Drop the seam then.
- */
-type RpcAnswer = PromiseLike<{
-  data: unknown;
-  error: { message: string; code?: string } | null;
-}>;
-const untypedRpc = (admin: AdminClient, fn: string): RpcAnswer =>
-  (admin as unknown as { rpc(fn: string): RpcAnswer }).rpc(fn);
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -91,7 +80,7 @@ async function readDbMeters(
 
   // Each call in its own async function, so a call that throws before it returns a promise is a rejection too.
   const [readings, signIns] = await Promise.allSettled([
-    (async () => untypedRpc(admin, "limits_watch_readings"))(),
+    (async () => admin.rpc("limits_watch_readings"))(),
     (async () =>
       admin.rpc("spend_watch_sign_ins", {
         p_since: new Date(now.getTime() - 30 * DAY_MS).toISOString(),

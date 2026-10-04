@@ -1865,6 +1865,7 @@ export type Database = {
       }
       like_many: { Args: { p_media_ids: string[] }; Returns: Json }
       like_media: { Args: { p_media_id: string }; Returns: Json }
+      limits_watch_readings: { Args: never; Returns: Json }
       list_guest_rows_by_email: {
         Args: { p_after_at?: string; p_after_id?: string; p_limit?: number }
         Returns: {
