@@ -458,6 +458,7 @@ export default async function DashboardPage({
       head={{ day: longDate(today), line: `${counted} · ${planName}` }}
       view={view}
       ctx={ctx}
+      owner={profile?.id ?? ""}
       display={displayOfProfile(profile)}
       storage={
         <StorageMeter

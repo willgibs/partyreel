@@ -55,6 +55,40 @@ import { cn } from "@/lib/utils";
  * the bin: the stage's own event is not drawn again below it.
  */
 
+/**
+ * WHAT THIS TAB LAST SHOWED OF HER EVENTS, by account. ★ A PAGE THE BROWSER'S BACK BRINGS BACK IS DRAWN FROM BEFORE HER
+ * LAST CHOICE: Back restores the dashboard from the client's router cache (the payload the server drew the first time:
+ * verified in a browser, the same render stamp and her layout reset), so a layout she chose, an event she pressed into
+ * and a press of Back would find the old layout again, and the search she typed gone. This is what the section
+ * remembers beside the account's own copy, and a remount reads it first. It is written only in the browser (a handler),
+ * so the server and the first hydration never see it, and it names the account, so another host signing in on the same
+ * tab never meets hers. The search stays only for a visit's length: it is the walk back and forth between two old
+ * events (his r2 note), not a setting.
+ */
+let remembered: {
+  owner: string;
+  display: Display;
+  query: string;
+  at: number;
+} | null = null;
+
+/** How long a search is remembered: the walk between two old events, never a stale filter on a later visit. */
+const QUERY_KEPT_MS = 10 * 60 * 1000;
+
+/** What a press leaves for a remount to find (a handler's, never a render's: the server never writes it). */
+function remember(owner: string, display: Display, query: string): void {
+  remembered = { owner, display, query, at: Date.now() };
+}
+
+const recallDisplay = (owner: string): Display | null =>
+  remembered !== null && remembered.owner === owner ? remembered.display : null;
+const recallQuery = (owner: string): string =>
+  remembered !== null &&
+  remembered.owner === owner &&
+  Date.now() - remembered.at < QUERY_KEPT_MS
+    ? remembered.query
+    : "";
+
 /** A group's grid, by how large its tiles draw: fluid columns, so a wide window holds more, never bigger. */
 const GRID: Record<TileScale | "few", string> = {
   l: "grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))]",
@@ -126,7 +160,7 @@ function Arranged({
         className="space-y-7"
       >
         {groups.map((g) => {
-          const rows =
+          const body =
             display.layout === "gallery" ? (
               <Tiles rows={g.rows} scale={display.scale} actions={actions} />
             ) : display.layout === "table" ? (
@@ -144,10 +178,10 @@ function Arranged({
           return g.label ? (
             <section key={g.id} aria-label={g.label} className="space-y-3">
               <GroupHead label={g.label} count={g.rows.length} />
-              {rows}
+              {body}
             </section>
           ) : (
-            <div key={g.id}>{rows}</div>
+            <div key={g.id}>{body}</div>
           );
         })}
       </div>
@@ -158,6 +192,7 @@ function Arranged({
 export function EventsSection({
   rows,
   today,
+  owner,
   initial,
   recent,
 }: {
@@ -165,19 +200,24 @@ export function EventsSection({
   rows: EventListRow[];
   /** The viewer's calendar day, what Upcoming and Past are measured from. */
   today: string;
+  /** Whose events these are (her profile's id): what this tab remembers is hers alone. */
+  owner: string;
   /** Her kept choices, resolved on the server, so the first paint is already her own. */
   initial: Display;
   /** The Recent row's events, decided on the server (none below seven events). */
   recent: EventListRow[];
 }) {
-  const [display, setDisplay] = useState<Display>(initial);
-  const [query, setQuery] = useState("");
+  const [display, setDisplay] = useState<Display>(
+    () => recallDisplay(owner) ?? initial,
+  );
+  const [query, setQuery] = useState(() => recallQuery(owner));
 
   if (rows.length === 0) return null;
 
   /** Lays the list out at once, and keeps the choice for her account beside it. */
   function choose(next: Display) {
     setDisplay(next);
+    remember(owner, next, query);
     startTransition(async () => {
       try {
         const answer = await setEventsDisplayAction(next);
@@ -208,6 +248,11 @@ export function EventsSection({
           <RestoreEventButton eventId={row.id} />,
         );
 
+  function search(next: string) {
+    setQuery(next);
+    remember(owner, display, next);
+  }
+
   const onSort = (sort: SortKey) =>
     choose(
       display.sort === sort
@@ -221,7 +266,7 @@ export function EventsSection({
         text: `No event's name holds “${query.trim()}”.`,
         act: "Show every event",
         press: () => {
-          setQuery("");
+          search("");
           choose(resetChoices(display));
         },
       }
@@ -285,7 +330,7 @@ export function EventsSection({
                   <Input
                     type="search"
                     value={query}
-                    onChange={(e) => setQuery(e.target.value)}
+                    onChange={(e) => search(e.target.value)}
                     placeholder={`Search ${formatCount(counts.all)} events`}
                     className="h-8 rounded-full pl-8 text-xs md:text-xs"
                   />

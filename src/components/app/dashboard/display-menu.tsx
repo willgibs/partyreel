@@ -130,7 +130,13 @@ export function DisplayMenu({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-[22rem] space-y-4 p-4">
+      <PopoverContent
+        align="end"
+        collisionPadding={8}
+        // Taller than the room around its button (a phone, or a button mid-page), it scrolls inside itself rather
+        // than running off the window: every choice stays reachable without moving the page.
+        className="max-h-[var(--radix-popover-content-available-height)] w-[22rem] space-y-4 overflow-y-auto p-4"
+      >
         <Section label="Layout">
           <ToggleGroup
             type="single"

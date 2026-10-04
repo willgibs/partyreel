@@ -32,6 +32,7 @@ export function DashboardHome({
   head,
   view,
   ctx,
+  owner,
   display,
   storage,
   top,
@@ -41,6 +42,8 @@ export function DashboardHome({
   head: { day: string; line: string };
   view: HomeView;
   ctx: HomeContext;
+  /** Whose home this is (her profile's id), for what the browser remembers of it. */
+  owner: string;
   /** Her kept choices for her events (`resolveDisplay` of her profile), so the first paint is already hers. */
   display: Display;
   /** The storage ring (`StorageMeter`). */
@@ -86,6 +89,7 @@ export function DashboardHome({
         <EventsSection
           rows={events.rows}
           today={ctx.today}
+          owner={owner}
           initial={display}
           recent={recent}
         />

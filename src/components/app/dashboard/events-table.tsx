@@ -146,12 +146,19 @@ export function EventsTable({
                 >
                   {row.name}
                 </span>
+                {/* At a phone the Waiting column folds under the name with the date, so what waits is never lost. */}
                 <span className="block truncate text-xs text-muted-foreground sm:hidden">
                   {row.kind === "guest"
                     ? row.byline
                     : row.kind === "deleted"
                       ? row.statusLabel
                       : row.dateLabel.replace("No date set", "No date")}
+                  {state?.tone === "waiting" && row.kind === "hosted" && (
+                    <span className="text-foreground">
+                      {" · "}
+                      {state.text}
+                    </span>
+                  )}
                 </span>
               </span>
               <span className="w-44 shrink-0 truncate text-sm text-muted-foreground tabular-nums max-sm:hidden">
@@ -172,8 +179,9 @@ export function EventsTable({
                 ) : (
                   state?.tone === "waiting" && (
                     <>
+                      {/* The amber is the dot's, as on every mark: amber type is faint on paper. */}
                       <StateDot tone="waiting" className="size-1.5" />
-                      <span className="text-warning">{state.text}</span>
+                      <span className="text-foreground">{state.text}</span>
                     </>
                   )
                 )}

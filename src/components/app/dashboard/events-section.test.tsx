@@ -112,11 +112,14 @@ const ROWS = [
   }),
 ];
 
+// Each draw is another account's, so what the section remembers of one never reaches the next test.
+let accounts = 0;
 function draw(over: Partial<Parameters<typeof EventsSection>[0]> = {}) {
   return render(
     <EventsSection
       rows={ROWS}
       today={TODAY}
+      owner={`host-${++accounts}`}
       initial={DISPLAY_DEFAULT}
       recent={[]}
       {...over}
@@ -234,6 +237,18 @@ describe("a choice lays the list out at once, and is kept beside it", () => {
     expect(lines()).toEqual(["friend", "busy", "quiet"]);
   });
 
+  it("says what waits in the table's line twice over, in its own column and, for a phone, under the name", () => {
+    draw({ initial: kept({ layout: "table" }) });
+    const line = document.querySelector(
+      "[data-event-line='busy']",
+    ) as HTMLElement;
+    expect(line.textContent?.match(/9 to review/g)).toHaveLength(2);
+    expect(
+      (document.querySelector("[data-event-line='quiet']") as HTMLElement)
+        .textContent,
+    ).not.toContain("to review");
+  });
+
   it("groups by year under a head each, in the order her order reaches them", () => {
     draw({ initial: kept({ group: "year", sort: "date" }) });
     expect(
@@ -269,6 +284,54 @@ describe("a choice lays the list out at once, and is kept beside it", () => {
     choose("Layout", /list/i);
     await waitFor(() => expect(toast.error).toHaveBeenCalled());
     expect(layout()).toBe("list");
+  });
+});
+
+/**
+ * ★ BACK BRINGS THE PAGE BACK FROM THE ROUTER CACHE, drawn from before her last choice (verified in a browser: the same
+ * server render stamp, her layout reset). So a remount finds what this tab last showed, for her account alone.
+ */
+describe("the page restored by Back", () => {
+  it("finds her last choice again, where the cached page says an older one", () => {
+    const first = draw({ owner: "back-1" });
+    openMenu();
+    choose("Layout", /table/i);
+    expect(layout()).toBe("table");
+    first.unmount();
+    // The page the router cache hands back was drawn before her choice: the default.
+    draw({ owner: "back-1", initial: DISPLAY_DEFAULT });
+    expect(layout()).toBe("table");
+    expect(said()).toHaveTextContent("Table");
+  });
+
+  it("finds the search she typed, for the length of a visit", () => {
+    const many = Array.from({ length: 9 }, (_, i) =>
+      row({ id: `p${i}`, name: `Party ${i}`, href: `/dashboard/p${i}` }),
+    );
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-10-04T10:00:00.000Z"));
+    const first = draw({ owner: "back-2", rows: many });
+    fireEvent.change(screen.getByRole("searchbox"), {
+      target: { value: "party 3" },
+    });
+    first.unmount();
+    const second = draw({ owner: "back-2", rows: many });
+    expect(screen.getByRole("searchbox")).toHaveValue("party 3");
+    second.unmount();
+    // Hours on, a fresh visit meets no stale filter.
+    vi.setSystemTime(new Date("2026-10-04T10:11:00.000Z"));
+    draw({ owner: "back-2", rows: many });
+    expect(screen.getByRole("searchbox")).toHaveValue("");
+    vi.useRealTimers();
+  });
+
+  it("never hands one account's choice to another that signs in on the same tab", () => {
+    const first = draw({ owner: "mine" });
+    openMenu();
+    choose("Layout", /list/i);
+    first.unmount();
+    draw({ owner: "someone-else" });
+    expect(layout()).toBe("gallery");
   });
 });
 
