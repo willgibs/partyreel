@@ -17,6 +17,7 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Code hygiene: the reel no longer opens the photo viewer, so `media-lightbox.tsx`'s `ViewerOrigin` kind "reel" with its `startAt` prop, and `player-live.tsx`'s `moment()` with `LiveReelMoment`, have no caller outside their tests: remove them with their tests.
 - Guests: the door's pace, reconsidered when the door is next drawn or walked: its steps carry no X and ignore Escape, "Keep your photos" is left by Maybe later or the back arrow, and the walk through the doorway takes one second.
 - Guests: the camera's words, swept in when the camera is next drawn: "Take the first photo" then "Take photos", "Shot 6 taken." (never for a refused shot), the Reel card's "Live at the develop" and the working phrase "Waiting to develop".
 - Upkeep: the contract migration once a milestone serves trash-in-storage's build (partyreel.com no longer calling it): drop `standby_hosts` (and its pins in `upkeep-migrations.test.ts`, `deleted-events-index-guards.test.ts`, `reports/migration.test.ts`, the sweeps describe of `db/migration-guards.test.ts`, and the `standby_hosts` performance line here), and rename `host_storage_summary.standby_bytes` to `deleted_bytes` (DROP + CREATE) with `readHostStorageSummary` (trash-in-storage).
