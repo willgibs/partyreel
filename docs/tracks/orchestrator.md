@@ -41,6 +41,7 @@ first. Up to four lanes while `memory_pressure` reads at least 50% free; every p
 | `redteam-51` | build 51's red-team (`31b7c652`): Deleted counted on the ring and the chart, a full Free plan both ways, Delete for good and Empty Deleted, a guest's withdrawal purging that night, regressions near the change | DONE 05:05Z: no MEDIUM; the ring and chart, the setting off (the host's numbered refusal, the guest's 409, nothing leaving Deleted) and the regressions PASS; NOT DRIVEN by the permission system's refusal of a permanent delete: the eviction with the setting on (hi's Deleted holds four older items it did not make), Delete for good, Empty Deleted, a withdrawal's purge: Will's walks; one NIT (the ring's popover flush to the edge at 375: `popover.tsx` sets no `collisionPadding`) to the small-fixes batch; left on hi: "RT51 free" live (109.4 MB) and Make room from Deleted off; ledger `../partyreel-wt/_scratch/redteam-51/ledger.txt` | Opus, Will's Chrome | `a027c3916afc6d859` |
 | `docs-prune` | Will's ask (2026-10-04): the dead weight that impedes global problem-solving and future-facing creativity, audited then cut in place (history, one-off fixes written as ★ landmines, design written as law, restatement, a ROADMAP "Now" of 327 lines); the take-home board retired; unused kit scripts; the 26 policy tests classified GUARD or TASTE for him; ROADMAP, PROGRAM, ASSETS and the tracks README as ready files in `_scratch/docs-prune/` for the Orchestrator to copy in | RUNNING (cut at `a62356f0`); its audit pushed first for a sanity check | Opus, 3134 | `a2b0267d4162e3314` |
 | `customize-r1` | Will's ask (2026-10-04): hosts shape their party their way, "rocket ship control potential, but it all makes sense for a brand new user": Linear's lessons (`_scratch/customize/linear.md`), every arbitrary assumption ranked (`_scratch/customize/audit.md`, the roll of 24 first), and the board `customize` at desk 15 (the roll's control, the pattern for options and account defaults, the top preferences in it) | RUNNING (cut at `adf5db32a`) | Opus, 3133 | `a1ba7927eb8a90754` |
+| `camera-clip` | Will's yes (2026-10-04): the album camera's held clip to 30 s at about 5 Mbps (about 19 MB), `create_media` restated from `ladder_a` with Q26's hardening (the grace its own constant, the messages formatted from the constants), the ring's 0:30; re-shoots stay as they are (the flat 3 ships with D3's confirm) | RUNNING (cut at `96276d978`); its migration to the Advisor from its WIP push | Sonnet, 3131 | `a98733f142bf3116e` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Its
 model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`. From another session, respawn it from
@@ -74,9 +75,11 @@ lab) become boards only after his sitting, read side by side with what is left s
 shows answered (3 of 3) on build 51's desk and retires with docs-prune.
 
 1. **Red-team 51 is done** (no MEDIUM; its permanent deletes are Will's walks).
-2. **pricing-wiring** runs: send its migration to the Advisor from its WIP push; create the Stripe TEST prices its
-   Handoff writes (after `list_available_accounts_or_orgs` reads livemode false) and the env by the REST API;
-   integrate; a checkout walk is Will's.
+2. **Build 52 `[preview]`, held until Will's desk sitting ends** (a deploy mid-sitting changes the alias under him):
+   pricing-wiring and crumbs-63 merged, Ladder A's env set. After it serves: move willg97's old TEST subscription (Pro
+   500 GB) onto a Ladder A price with `stripe_test.py` (the alias's webhook then knows it; TEST-key-only, livemode
+   checked on every answer), then red-team 52 on `/pricing`, the plan sheet, the uploads allowance and the reel's tap;
+   a checkout walk is Will's (a card is his to type).
 3. **Drive export:** when the lane pushes its design note, send it to the Advisor (architecture: OAuth, the token
    store, the transfer, the guards, `/admin`), relay its findings to the lane, and integrate the board for his desk.
    The wiring lane is cut after his pick and the Advisor's clear; his one step (a Google Cloud OAuth client) is
