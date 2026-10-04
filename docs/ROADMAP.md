@@ -17,6 +17,7 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Now: `pnpm compute:model`'s first scenario after its warmup (guest-join-upload) times out at the door's name step in a full run and passes alone, and an errored scenario leaves its phones polling under the next scenarios' labels: harden the join's wait and close a scenario's devices on error (`scripts/compute-model/run.mjs`).
 - Host: the host's dashboard session in `pnpm compute:model` (`--host-cookie-env NAME`, a fresh session cookie from the environment), measured once on the local desk; until then `model.mjs` prices a session as five guest-page loads (0.4% of a wedding's calls).
 - Billing: the plan limits' Cloudflare reader `[eng+human]`: R2 operations and Workers requests through the GraphQL Analytics API, once Will mints a `CLOUDFLARE_ANALYTICS_TOKEN` (Account Analytics: Read) (the calls lab's X3).
 - Design: a Library specimen of the Plan limits card (`src/app/admin/jobs/limits-card.tsx`, presentation-only) healthy, critical, with a failed read and with gaps, so `lab:smoke` renders it.
