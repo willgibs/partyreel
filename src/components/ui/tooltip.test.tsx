@@ -302,4 +302,22 @@ describe("TapTooltip: a finger, a cursor and a key", () => {
     expect(html).toContain(`title="${TIP}"`)
     expect(html).not.toContain("tooltip")
   })
+
+  it("leaves a face its own title, and words that are not a string carry no title at all", () => {
+    const own = renderToString(
+      <TapTooltip words={TIP}>
+        <button type="button" title="Its own">
+          Storage
+        </button>
+      </TapTooltip>,
+    )
+    expect(own).toContain('title="Its own"')
+    expect(own).not.toContain(TIP)
+    const rich = renderToString(
+      <TapTooltip words={<b>{TIP}</b>}>
+        <button type="button">Storage</button>
+      </TapTooltip>,
+    )
+    expect(rich).not.toContain("title=")
+  })
 })
