@@ -47,6 +47,7 @@ the dashboard, the hub's strip, graphite, Create's styles, small fixes, red-team
 | `crumbs-66` | red-team 53b's NITs (the hub's door words; the cover's srcset not built: a cover variant deferred), Reset's focus, the hub reel's develop words, the compute harness's join wait | MERGED at `53e1e8fb2` (gate 215 red on a flake, then the full suite green: 11,160; no migration); pruned | Sonnet, 3132 | `aa18239db9c002762` |
 | `crumbs-67` | two jsdom tests that flaked under load wait on what they mean | MERGED at `b6cabeb35` (gate 217 green; tests only; 30 runs in a row under a concurrent build); pruned | Sonnet, 3132 | `a07bf3008e5deabd3` |
 | `crumbs-68` | the door's upload bar fills as the bytes go (it read 0 to 100 as a fraction), her album asks once a landed burst, the failure sheet and camera read the cause of a drop | RUNNING (cut at `370b83331`; may be cut off: resume from its WIP) | Sonnet, 3131 | `ab8e4ad3cf9714ba1` |
+| `compute-presign` | the guest page's next CPU lever: a hand-rolled SigV4 presign behind `src/lib/r2/presign.ts`, byte-identical to the SDK's URLs by a test corpus, measured by `pnpm compute:model`; wiring rigor | RUNNING (cut at `4c1d96892`; may be cut off: resume from its WIP) | Opus, 3132 | `ae54afeec77675ece` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Its
 model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`. From another session, respawn it from
