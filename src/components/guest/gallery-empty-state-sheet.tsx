@@ -17,8 +17,23 @@ import {
   type HerShot,
   layoutSheet,
   type Sheet,
+  SHEET_FOLD_CELLS as FOLD_CELLS,
   sheetCapFor,
 } from "@/lib/disposable/contact-sheet";
+import {
+  DEVELOP_TEMPO,
+  type DevelopMotion,
+  layoutDevelopSheet,
+  momentsOf,
+  rowOf,
+  sinkAt,
+  waveAt,
+} from "@/lib/disposable/contact-sheet-develop";
+import {
+  DEVELOP_TITLES,
+  developClockLine,
+  developSentence,
+} from "@/lib/disposable/develop-words";
 import type { WaitingFacts } from "@/lib/disposable/facts";
 import { useWaitClock } from "@/lib/disposable/use-wait-clock";
 import {
@@ -38,6 +53,10 @@ import { cn } from "@/lib/utils";
  * Maya's hub draws as her cover (`event-hub-head-cover.tsx`, the-wait's `cover=guests`). It reads no album and no
  * session: it is handed the numbers, her own shots and the clock, so neither side's live source rides into the other's
  * page.
+ *
+ * AND ITS DEVELOP (the-wait r2, Will's `arrival=in-place`; the data is `lib/disposable/contact-sheet-develop.ts`):
+ * `DevelopSheet` is the same sheet the morning after, square for square, each square now the photograph it was, its
+ * well's ground a layer of its own so the develop can let it go while the squares stay.
  */
 
 /** The well's width at which the count stands beside the sheet rather than over it. */
@@ -50,8 +69,6 @@ const PAD_NARROW_PX = 32;
 const PHONE_WELL_PX = 351;
 /** How long "+1 just now" stands after the count climbs. */
 const BUMP_MS = 6_000;
-/** The cells the folded chip takes at the head of a capped sheet. */
-const FOLD_CELLS = 3;
 
 /** The well's width, measured as it lays out (a first paint from the album's own last width on this device). */
 function useWellWidth(
@@ -405,6 +422,314 @@ export function ContactSheet({
             </span>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+/* ── the develop ─────────────────────────────────────────────────────────── */
+
+/** A part's moment on the develop's timeline, as the style its animation reads (`.develop-a`). */
+export const developAt = (ms: number): CSSProperties =>
+  ({ "--develop-at": `${Math.round(ms)}ms` }) as CSSProperties;
+
+/** A square's picture, as the develop draws it: the photograph's small preview (a video's poster). */
+export type DevelopPicture = { src: string; video: boolean };
+
+/**
+ * THE SHEET'S WORD, TURNING: "Developing" while it stands, "Developed" as the roll comes up (the old word goes, the new
+ * one rises a beat after it; reduced motion fades it in).
+ */
+function DevelopTitle({
+  playing,
+  motion,
+}: {
+  playing: boolean;
+  motion: DevelopMotion;
+}) {
+  if (!playing) return DEVELOP_TITLES.before;
+  const { word } = momentsOf(motion);
+  return (
+    <span className="grid" data-develop-title="">
+      <span
+        className="develop-a wait-develop-fade-out [grid-area:1/1]"
+        style={developAt(word)}
+      >
+        {DEVELOP_TITLES.before}
+      </span>
+      <span
+        className={cn(
+          "develop-a [grid-area:1/1]",
+          motion === "reduced" ? "wait-develop-fade-in" : "wait-develop-rise",
+        )}
+        style={developAt(word + DEVELOP_TEMPO.step.word)}
+      >
+        {DEVELOP_TITLES.after}
+      </span>
+    </span>
+  );
+}
+
+/**
+ * THE DEVELOP'S SHEET (the-wait r2, `arrival=in-place`): the contact sheet as it stood all night, the roll's squares in
+ * the night's order, each the photograph it was. `still` is the sheet before it moves: everyone's dark, hers lit, the
+ * pictures loading unseen. `play` develops it: each square flashes and comes up from bright and pale in the night's
+ * order, the word turns, then the squares a tile grows out of stand empty (`slots`: the tile is drawn over them,
+ * `gallery-empty-state-wait.tsx`), the rest sink row by row, its words go and its well dissolves. Reduced motion: the
+ * pictures fade up together, the word fades, and the whole sheet fades as the album fades in.
+ *
+ * ★ ITS FRAME IS `ContactSheet`'S, CLASS FOR CLASS (the well's padding, the count's column, the squares' columns and
+ * cap, the foot), so the sheet that develops is the sheet that stood, to the square; only the ground is its own layer.
+ */
+export function DevelopSheet({
+  roll,
+  count,
+  hers,
+  pictures,
+  slots,
+  stage,
+  motion,
+  developsAt,
+  firstPaintWidth = null,
+  className,
+}: {
+  /** The roll that developed, newest first. */
+  roll: readonly string[];
+  /** The whole roll's count, where the roll in hand is its newest part. */
+  count?: number;
+  hers: ReadonlySet<string>;
+  /** The squares' pictures, by id: a square without one develops in the dark. */
+  pictures: ReadonlyMap<string, DevelopPicture>;
+  /** The squares a tile grows out of: drawn empty, the tile standing over them. */
+  slots: ReadonlySet<string>;
+  stage: "still" | "play";
+  motion: DevelopMotion;
+  developsAt: string;
+  firstPaintWidth?: number | null;
+  className?: string;
+}) {
+  const nowMs = useWaitClock();
+  const [width, wellRef] = useWellWidth(firstPaintWidth);
+  const wide = width >= SIDE_BY_SIDE_PX;
+  const sheetWidth = wide
+    ? width - PAD_WIDE_PX - SIDE_COLUMN_PX
+    : width - PAD_NARROW_PX;
+  const plan = useMemo(
+    () => layoutDevelopSheet({ roll, hers, sheetWidth, count }),
+    [roll, hers, sheetWidth, count],
+  );
+  const playing = stage === "play";
+  const full = motion === "full";
+  const t = momentsOf(motion);
+  const n = plan.cells.length;
+  const videos = plan.cells.some((c) => pictures.get(c.id)?.video);
+
+  // In the full pass the words go as the squares begin to sink; in reduced motion the whole sheet fades at once.
+  const wordsGo =
+    playing && full
+      ? {
+          className: "develop-a wait-develop-fade-out",
+          style: developAt(t.open),
+        }
+      : null;
+  const clock = developClockLine(developsAt, nowMs);
+  const yours =
+    plan.hers > 0 ? (
+      <span
+        data-wait-yours=""
+        className="wait-muted flex shrink-0 items-center gap-1.5 whitespace-nowrap"
+      >
+        <span className="wait-key" aria-hidden />
+        {`Yours · ${formatCount(plan.hers)}`}
+      </span>
+    ) : null;
+
+  return (
+    <div
+      className={cn(
+        "relative",
+        playing && !full && "develop-a wait-develop-fade-out",
+        className,
+      )}
+      style={playing && !full ? developAt(t.open) : undefined}
+      data-develop-sheet={plan.count}
+      data-develop-stage={stage}
+    >
+      {/* The well's ground (`.wait-well`: the media surface, its rim and the house's lamp over it), on its own. */}
+      <div
+        aria-hidden
+        className={cn(
+          "absolute inset-0",
+          playing && full && "develop-a wait-develop-fade-out",
+        )}
+        style={
+          playing && full
+            ? developAt(t.open + DEVELOP_TEMPO.step.ground)
+            : undefined
+        }
+        data-develop-ground=""
+      >
+        <div className="wait-well size-full" />
+      </div>
+      <div
+        ref={wellRef}
+        className={cn(
+          "relative text-[var(--gallery-foreground)]",
+          wide ? "flex items-stretch gap-10 p-8" : "p-4",
+        )}
+      >
+        <p className="sr-only">
+          {developSentence({
+            count: plan.count,
+            hers: plan.hers,
+            videos,
+            developsAt,
+            nowMs,
+          })}
+        </p>
+        <div
+          className={cn(
+            "flex shrink-0 justify-between",
+            wide ? "w-56 flex-col" : "items-end",
+          )}
+        >
+          <div
+            aria-hidden
+            className={wordsGo?.className}
+            style={wordsGo?.style}
+          >
+            <p
+              data-wait-count={plan.count}
+              className="font-heading leading-none tabular-nums"
+              style={{ fontSize: wide ? 64 : 44 }}
+            >
+              {formatCount(plan.count)}
+            </p>
+            <p className="wait-muted mt-2 text-sm" data-wait-title="">
+              <DevelopTitle playing={playing} motion={motion} />
+            </p>
+          </div>
+          {wide && (
+            <div
+              aria-hidden
+              className={cn("space-y-2 text-xs", wordsGo?.className)}
+              style={wordsGo?.style}
+            >
+              {yours}
+              <p className="wait-muted" data-wait-clock="">
+                {clock}
+              </p>
+            </div>
+          )}
+        </div>
+        <div className={cn(wide ? "min-w-0 flex-1 self-center" : "mt-4")}>
+          <div
+            aria-hidden
+            className="wait-sheet"
+            style={{
+              gridTemplateColumns: `repeat(${plan.columns}, minmax(0, 1fr))`,
+            }}
+            data-wait-sheet={n}
+          >
+            {plan.folded > 0 && (
+              <span
+                data-wait-folded={plan.folded}
+                className={cn(
+                  "wait-muted flex items-center justify-center rounded-[3px] text-[10px] font-medium tabular-nums",
+                  playing && full && "develop-a wait-develop-sink",
+                )}
+                style={{
+                  gridColumn: `span ${FOLD_CELLS}`,
+                  background:
+                    "color-mix(in oklab, var(--gallery-foreground) 6%, var(--gallery))",
+                  ...(playing && full ? developAt(sinkAt(0)) : null),
+                }}
+              >
+                {`+${formatCount(plan.folded)}`}
+              </span>
+            )}
+            {plan.cells.map((cell, i) => {
+              // A square a tile grows out of keeps its place, empty: the tile is drawn over it from its first frame.
+              if (playing && slots.has(cell.id))
+                return (
+                  <span
+                    key={cell.id}
+                    className="wait-cell"
+                    data-develop-slot={cell.id}
+                    style={{ visibility: "hidden" }}
+                  />
+                );
+              const wave = waveAt(i, n, motion);
+              const picture = pictures.get(cell.id);
+              const sinks = playing && full;
+              return (
+                <span
+                  key={cell.id}
+                  className={cn(
+                    "wait-cell",
+                    sinks && "develop-a wait-develop-sink",
+                  )}
+                  style={sinks ? developAt(sinkAt(rowOf(plan, i))) : undefined}
+                  data-develop-sq={cell.id}
+                  data-develop-wave={Math.round(wave)}
+                  data-hers={cell.hers ? "" : undefined}
+                >
+                  {picture &&
+                    (cell.hers ? (
+                      // Hers stood lit all night: her photograph, as it was.
+                      // eslint-disable-next-line @next/next/no-img-element -- a presigned preview (media-cost-policy)
+                      <img src={picture.src} alt="" draggable={false} />
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element -- a presigned preview (media-cost-policy)
+                      <img
+                        src={picture.src}
+                        alt=""
+                        draggable={false}
+                        decoding="async"
+                        className={cn(
+                          playing
+                            ? cn(
+                                "develop-a",
+                                full
+                                  ? "wait-develop-up"
+                                  : "wait-develop-fade-in",
+                              )
+                            : "wait-develop-picture",
+                        )}
+                        style={playing ? developAt(wave) : undefined}
+                      />
+                    ))}
+                  {cell.hers && picture?.video && <VideoMark />}
+                  {!cell.hers && playing && full && (
+                    <span
+                      aria-hidden
+                      className="develop-a wait-develop-flash"
+                      style={developAt(wave)}
+                    />
+                  )}
+                </span>
+              );
+            })}
+          </div>
+          {!wide && (
+            <div
+              aria-hidden
+              className={cn(
+                "mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs",
+                wordsGo?.className,
+              )}
+              style={wordsGo?.style}
+            >
+              {yours}
+              <span
+                className={cn("wait-muted", !yours && "ml-auto text-right")}
+                data-wait-clock=""
+              >
+                {clock}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -196,6 +196,27 @@ read beside it so its Follow starts on Following; no card means no host row, nev
   into one "+N". Before anything waits, where she can add, the wait's line stands in the sheet's place (`waitRule`),
   said once. The page mounts one source for the sheet, the line and the yield (`AlbumWaitSource`, inside the album's
   live provider).
+- **The develop: the sheet opening into the album** (`AlbumDevelop` in
+  [`gallery-empty-state-wait.tsx`](../../src/components/guest/gallery-empty-state-wait.tsx), its drawing `DevelopSheet`,
+  the data and tokens [`contact-sheet-develop.ts`](../../src/lib/disposable/contact-sheet-develop.ts)): her first open
+  after a develop, on this device however late, and live in place on a page open across it (the clock, or Develop
+  now), the sheet develops where it stood: its squares flash and come up in the night's order, "Developing" turns to
+  "Developed", the cover comes up out of its house light, and the first screen's tiles grow out of their squares while
+  the rest sink and the well dissolves; reduced motion fades alone. Any press, scroll or key ends it on its last frame.
+  ★ **Once per device is a mark** (`pr_develop:<eventId>` in localStorage, the develop time seen, epoch ms): written
+  when it ends or she ends it, and on a first open the door or `?reel` took (spent unplayed); never mid-play, so a
+  return mid-play plays it whole, and a tab put away mid-play stands it still and plays it again on her return.
+  ★ **The server cannot read the mark, so its gate goes before the cover** (`DevelopGate`, `developGateScript`, drawn
+  on the server's render and the hydration's only, where a develop may be owed and no door or reel comes first): it
+  sets `html[data-develop="held"]` before the first paint (the cover's stills held on the house light, the album's rows
+  hidden), and lets go by itself after 6 s if the page never takes it up. The whole develop is one switch on the
+  document (`held`, `play`), its tokens written beside it for the play (`developVars`), so the stylesheet names no
+  number of its own. ★ **The roll is derived, never an id that waited**: the seed's manifest entries created at or
+  before the develop (after the one this device last saw), or, live, the photographs that land after the sheet stood,
+  laid in the night's order so hers stay where they stood. The stage reads the album's own DOM: its rows are the
+  `[data-develop-rows]` section `LiveGallery` draws beside it (which is why the develop mounts there, where a page test
+  that mocks the album never meets it), a growing tile's own tile is hidden under it by a per-play style keyed on
+  `data-media-id`, and it loads only the pictures of the squares in the first screen and of the tiles that grow.
 - **The viewer** is the shared [`media-lightbox.tsx`](../../src/components/shared/media-lightbox.tsx), whose header
   holds its gestures and its paged list (the whole album, mostly unlinked; an unlinked item is a placeholder, never a
   request). The open photograph's `?photo=` address and the phone's Back over it are `shared/masonry.tsx`'s (an
