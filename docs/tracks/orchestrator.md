@@ -80,10 +80,16 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls lab, the red-team brief
    A1 to A4; B1 (adding a password asks whether to keep everyone already in or send everyone back through the door,
    their photos staying, beside a standalone "send everyone back to the door"); B2 (a quiet Declined list at the foot
    of Guests, collapsed, each with Let in); C7 (a first photo's glow); D3 (a confirm on every shot removal, saying it
-   frees a shot, and a different warning once her extra shots are spent; re-shoots a flat 3). Its wiring follows his pick.
+   frees a shot, and a different warning once her extra shots are spent; re-shoots a flat 3); Q6 with B1's pattern (a
+   develop time added to a running camera asks the host: everyone starts a fresh roll of 24 plus 3 re-shoots, the
+   default, or what each guest added counts; the confirm says which); and Q3, how a batch of others' photos lands at
+   375 (one push, a stagger recommended, or one fade), drawn live. Its wiring follows his pick.
 5. **The small-fixes batch** once his pass ends (one Sonnet lane for every production answer it leaves): E6, a cancel
    and a dropped connection told apart for downloads and uploads (a cancel asks first, then offers Try again; a network
-   failure is never hidden and says what to do, so she neither retries in vain nor blames the app). **crumbs-63** (the
+   failure is never hidden and says what to do, so she neither retries in vain nor blames the app); Q2, a spoken "to"
+   in date ranges for screen readers (the dash unchanged on screen); Q5, the host's Reel card ready to play before the
+   develop (her scope, sealed shots included, saying guests get it at the develop) while the guest page, hers
+   included, shows no reel until the develop (no screen link: a screen not hers casts from her own device). **crumbs-63** (the
    reel's tap) integrates on its handoff. **D4, his yes (2026-10-04):** a `camera-clip` lane (Sonnet)
    cut the moment pricing-wiring's migration is APPLIED, since both replace `create_media`: the clip at 30 s and about
    5 Mbps (about 19 MB), `CAMERA_VIDEO_SECONDS` and `create_media`'s `c_camera_video_seconds` and `_bytes` (scaled from
