@@ -37,7 +37,7 @@ the dashboard, the hub's strip, graphite, Create's styles, small fixes, red-team
 | `event-header-r4` | board event-header r4 (desk 20): one ask, the doors (glass recommended: counts as badges on its icons, a tab bar under her thumb on a phone; cards owning the phone; windows lit only where something waits), each refined by its own helper then once from fresh eyes; G1, G2, G4 drawn on production's panel in every option; the waiting colour left to the brand | HANDED OFF at `bf44a50f4` (gates green on `2d6f692d5`, unsynced: launch-prep touched none of its imports), parked for desk 3 | Opus, 3134 | `a4eaf6f839b991e91` |
 | `brand-r1` | board brand r1 (desk 5, desk 4 alone): what the agency returned, three visions as 14-slide decks at a desk and on a phone: Afterglow (recommended: light is the brand, sampled from the photographs, a Ring, a Seam or a Bloom one per screen), Contact Sheet (the print is the brand: paper and ink, film edges, a photo lab's marks), Everyone's Color (people are the brand: every guest a seeded orb, an event the mix of its people); the creative director's pass and one refinement; Will's motion study used | HANDED OFF at `82e262385` (gates green on `2858bbfd6`), parked for desk 4 after desk 3; its Higgsfield asks (nine, by slot and theme) go to ASSETS.md for the picked vision at its integration | Opus, 3135 | `aab7f784008cbcfeb` |
 | `host-dashboard-r4` | board host-dashboard r4 (desk 25): two asks, `chooser` (how she chooses what leads her stage: corner, words recommended, deck; each on production's wired lit stage, every rule saying the fact it read) and `details` (H6, as built or each the other way) | HANDED OFF at `bd75f406a` (synced to `e5cad2fb4`; gates green, lab:demo at 1440 and 375), parked for desk 3: integrated after Will answers desk 2 | Opus, 3136 | `a2252d0ff7db3ba6f` |
-| `redteam-53` | build 53's red-team (`31a73a4`): the dashboard's Display menu and lit stage, Create's styles, the hub's strip and her reel before the develop, the develop's arrival, E6's words contained, Q2's spoken "to", the name-only colour, red-team 52's fixes, graphite, regressions; brief `../partyreel-wt/_scratch/redteam-53/brief.md` | RUNNING (from 14:37Z) | Opus, Will's Chrome | `a74c0224d08c09800` |
+| `redteam-53` | build 53's red-team (`31a73a4`) | STOPPED at 15:40Z mid-walk 6 (the Vercel CPU limit): W1 dashboard, W2 Create, W3 hub before the develop, W4 develop and arrival, W5 downloads and uploads and W9's guest upload PASS; **1 MEDIUM** (a download whose line drops after the mint posts its form anyway: Chrome's error page, never "Your connection dropped"), LOWs (offline, the drop line turns to "Your download is starting." as `heard(null)` resets `lineLost`; the Reel card hides "Guests get it later" at 375) and NITs (Reset drops focus; the Style key's open fill loses to hover; her header disc flashes uncoloured; the camera never says a dropped connection; "and try again" against ", then try again"): all to `crumbs-65`. Not walked: the strip going quiet, Q2 on the tile and table, red-team 52's fixes, graphite, the host's upload, /admin/jobs. Ledger `../partyreel-wt/_scratch/redteam-53/ledger.txt` | Opus, Will's Chrome | `a74c0224d08c09800` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Its
 model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`. From another session, respawn it from
@@ -66,8 +66,17 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls lab, the red-team brief
 Round 15, on Will's desk answers of 2026-10-04 06:00Z and his brand note; the approved plan, whole, is
 `../partyreel-wt/_scratch/desk/round-15-plan.md`.
 
-1. **Red-team 53** (running): its findings to a `crumbs-65` lane (Sonnet) if any; then milestone 36 on Will's yes (the
-   runbook's "Milestone"): Ladder A, trash in storage and the round's wirings.
+0. **★ VERCEL'S HOBBY ACTIVE CPU (Will, 2026-10-04 15:30Z: almost maxed; breaking it again may cost the hosting, since
+   Vercel unlocked his account once already).** Hobby allows 4 CPU-hours a rolling 30 days and pauses functions past it.
+   Function calls grew from about 3,000 a day (early September) to 57,400 (2026-10-03), nearly all ours: red-team walks
+   and `lab:demo` desk checks on the alias (about 5,000 to 6,000 an hour each), album and hub tabs left polling. Until
+   he decides (Pro now, or Hobby with the fixes): **nothing runs against the alias or partyreel.com** (no red-team, no
+   `lab:demo --base` the alias, no `[preview]`). The fixes: a kit guard reading `GET /v2/usage?type=requests` (daily
+   function invocations; Active CPU itself is Pro's Observability Plus) before any alias work, the spend watch reading
+   it daily into `/admin`, desk checks and red-teams on a local production build (the alias only for sign-in, upload and
+   checkout), and every poll resting when hidden, backing off when idle.
+1. **Red-team 53** (stopped for the CPU limit; its findings and the walks not taken to `crumbs-65`, run locally); then
+   milestone 36 on Will's yes (the runbook's "Milestone"): Ladder A, trash in storage and the round's wirings.
 2. **Desk 2 is Drive alone** (on the alias since build 52). After his answers: the Drive wiring lane (his Google Cloud
    step relayed: the design note's section 11; the way-in now lives in production's Display menu and the download toast
    tells a cancel from a dropped line, so the lane reconciles both), and desk 3's four boards integrated (customize-r1,
