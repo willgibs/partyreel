@@ -47,6 +47,14 @@ caller passes its endpoints and an identity), whose contract is the routes' resp
   the key a tile's link shows can send one on any ticket: re-landed, it would meet each gate as it stands now (the roll
   its own shot filled, the album closed, a cap its own bytes reached) and the refusal would withdraw the files the row
   names. A recorded clip's replay neither meets nor spends `reel_clip_add`.
+- ★ **A cancel and a dropped connection are told apart, and a dropped one is never hidden** (E6): the failure sheet and
+  the host's rows print `uploadFile`'s message as it is, so a transport's words are the uploader's (`UPLOAD_WORDS`). A
+  request that never reached the network (presign, complete or the byte PUT), and a PUT whose bytes stop moving for
+  `UPLOAD_STALL_MS` (45 s, restarting on every byte and when the page comes back to the screen; 90 s for R2's answer
+  after the last byte), all say "Your connection dropped. Check your signal and try again." with `cause: "dropped"`; an
+  error answer says it "didn't go through" (the status goes to the console, never the guest); an abort `signal` says
+  cancelled (`cause: "cancelled"`; no guest control passes one yet). `complete` is never aborted by a cancel and has no
+  client timeout: a retry re-runs the whole upload, so a timed-out complete that had recorded its row would duplicate it.
 - **The size is the R2 HEAD's** at complete, never the client's claim ([database-security.md](database-security.md));
   `duration_seconds`, `width` and `height` stay client-supplied and non-authoritative, the byte cap being the cost
   boundary.
@@ -157,7 +165,8 @@ it.
   Attribution lives in the viewer.
 - ★ **Its face goes through `uploader-faces.ts`** (`faceOwner`, drawn server-side), whose header holds the consent
   line ([profiles-social.md](profiles-social.md)): a face only where the album already shows one, a door only to a
-  published page (`/u/<slug>`), and on a guest's view none for a person the event blocked. Faces fail open to the
+  published page (`/u/<slug>`), and on a guest's view none for a person the event blocked. A typed name's face is her
+  own guest row's colour alone (`faceOwner: { kind: "row" }`: no read, no photograph, no door). Faces fail open to the
   plain disc, ride the link's who tuple and re-mint with the link whenever the album's attribution version moves (a
   name, `avatar_updated_at` or `slug`, through the `profiles_album_note` trigger); the teaser and the personal feeds
   carry none, but for the owner's own uploads in her Uploads (`ownUploadCredit`).
@@ -233,6 +242,17 @@ The zips go off Vercel, on the streaming export Worker (`partyreel-export`, on `
   top-level form POST stays on the page, no file) reported `empty`; an object gone mid-stream is skipped and named.
   The reported zip is pushed into a pass-through the response reads, because a client that leaves shows only as a
   failed write: workerd cancels no pulled response body and, under `wrangler dev`, aborts no `request.signal`.
+- ★ **A cancel asks first and a dropped connection names itself** (E6; the words are `WALK_COPY`,
+  `lib/export/walk.ts`). The toast's x, while a part is prepared or between parts, becomes one question ("Cancel this
+  download?", "Stop after part 1 of 3?" with what it leaves) and nothing is posted while it stands; a confirmed cancel
+  says so, neutral and never an error, with Try again (past part 1 it stops where she stood with Get part N, and is not
+  offered again after a reload). A mint that never reached the app says "Your connection dropped." and what to do (an
+  app that answered an error keeps "Couldn't start that download."). The Worker's `stopped` cannot tell her cancel in
+  the browser's own list from a dead line, so the page reads its own: a zip streamed while its status polls failed (a
+  rejected request, or two stalls) is a drop, one streamed with every poll answered is a cancel, and a walk from an
+  older build that recorded neither says "didn't finish". Three polls in a row that fail are said under "Downloading…"
+  and clear when one answers. The take-home Save follows the same two rules (`take-home-save.ts`: `cancel()` asks and
+  is the guest's foot control, `stop()` is the page leaving and says nothing).
 - ★ **Past one zip's ceilings (2,000 items or 20 GB) an album comes home in parts**, oldest first: each mint
   (`part`, `after`) takes the next part from a position cursor, never a page index, so nothing is skipped or taken
   twice while the album moves, and each part is its own tap (a browser holds back a second download a page starts

@@ -65,6 +65,15 @@ function Controls({
 }
 
 /**
+ * WHAT TO DO ABOUT IT, UNDER THE LINE (E6: "your connection dropped" and what to do). Balanced, so a sentence that must
+ * wrap beside a Try again and the x at 375 breaks in the middle ("Check your signal, / then try again.") and never
+ * leaves one word on a line of its own.
+ */
+function Detail({ text }: { text: string }) {
+  return <span className="block text-balance">{text}</span>;
+}
+
+/**
  * A QUESTION'S ANSWERS, UNDER ITS LINE (`ask`, `confirm`). Two answers beside the line squeezed "3 of these 12 are
  * hidden." into four rows at 375 (the toaster's width is fixed, so a desk's too), so they sit in the
  * description's place, left-aligned, and the x keeps its place on the right. Sonner's own action styling,
@@ -146,7 +155,7 @@ export const exportToasts: ToastPort = {
         // Neutral, not green: the walk is half done, and green says finished.
         toast.info(view.title, {
           ...base,
-          description: view.detail,
+          description: view.detail ? <Detail text={view.detail} /> : undefined,
           icon: <Download className="size-4" aria-hidden />,
           duration: Infinity,
           dismissible: false,
@@ -159,7 +168,7 @@ export const exportToasts: ToastPort = {
         // has stopped answering is said under it.
         toast.info(view.title, {
           ...base,
-          description: view.detail,
+          description: view.detail ? <Detail text={view.detail} /> : undefined,
           icon: <Download className="size-4" aria-hidden />,
           duration: Infinity,
           dismissible: false,
@@ -178,7 +187,7 @@ export const exportToasts: ToastPort = {
       case "short":
         toast.warning(view.title, {
           ...base,
-          description: view.detail,
+          description: view.detail ? <Detail text={view.detail} /> : undefined,
           icon: undefined,
           duration: Infinity,
           dismissible: true,
@@ -199,7 +208,7 @@ export const exportToasts: ToastPort = {
       case "refused":
         toast.error(view.title, {
           ...base,
-          description: view.detail,
+          description: view.detail ? <Detail text={view.detail} /> : undefined,
           icon: undefined,
           duration: Infinity,
           dismissible: true,

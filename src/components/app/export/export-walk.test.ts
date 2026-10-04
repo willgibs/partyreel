@@ -459,7 +459,7 @@ describe("the x (his note: interruptibility; E6: it asks first)", () => {
     // Said as hers, neutral (never an error), with the way back and a Dismiss.
     expect(h.now()).toMatchObject({
       tone: "cancelled",
-      title: "That download was cancelled.",
+      title: "Download cancelled.",
       action: { label: "Try again" },
       close: { label: "Dismiss" },
       duration: 8000,
@@ -1449,7 +1449,7 @@ describe("an empty or short zip is said, never sent as if whole (export-ends)", 
     await until(() => h.now()?.tone === "cancelled");
     expect(h.now()).toMatchObject({
       tone: "cancelled",
-      title: "That download was cancelled.",
+      title: "Download cancelled.",
       action: { label: "Try again" },
       close: { label: "Dismiss" },
       // Held: the Worker's word can come after she has looked away.

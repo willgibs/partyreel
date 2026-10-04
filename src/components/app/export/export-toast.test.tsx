@@ -271,7 +271,7 @@ describe("the download's toast", () => {
     act(() =>
       exportToasts.show("dl", {
         tone: "cancelled",
-        title: "That download was cancelled.",
+        title: "Download cancelled.",
         action: { label: "Try again", run: again },
         close: { label: "Dismiss", run: vi.fn() },
         duration: 8000,
@@ -280,7 +280,7 @@ describe("the download's toast", () => {
     flush();
     const el = toastEl();
     expect(el).toHaveAttribute("data-type", "info");
-    expect(el).toHaveTextContent("That download was cancelled.");
+    expect(el).toHaveTextContent("Download cancelled.");
     fireEvent.click(within(el).getByRole("button", { name: "Try again" }));
     expect(again).toHaveBeenCalledTimes(1);
     expect(
@@ -300,7 +300,7 @@ describe("the download's toast", () => {
     act(() =>
       exportToasts.show("dl", {
         tone: "cancelled",
-        title: "That download was cancelled.",
+        title: "Download cancelled.",
         action: { label: "Try again", run: vi.fn() },
         close: { label: "Dismiss", run: vi.fn() },
         duration: Infinity,
@@ -310,7 +310,7 @@ describe("the download's toast", () => {
     act(() => {
       vi.advanceTimersByTime(120_000);
     });
-    expect(toastEl()).toHaveTextContent("That download was cancelled.");
+    expect(toastEl()).toHaveTextContent("Download cancelled.");
   });
 
   it("★ a dropped connection is an error that says what to do, under its line, beside its Try again", () => {

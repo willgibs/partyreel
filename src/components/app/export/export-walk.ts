@@ -21,10 +21,19 @@
  * word cannot come (an older Worker, a laptop it cannot reach), the walk says what it knows and claims
  * nothing; it stops listening once the stream has been silent past its start (`START_HEARD_MS`).
  *
- * ★ EVERY WAIT CAN BE LEFT (Will: "Interruptibility is a huge win in UX"). The x on the right ends
- * whatever is in flight: the mint's or the check's fetch is aborted (the Worker stops reading when
- * its client leaves), the listening stops, the toast goes, and nothing is posted afterwards, whatever
- * arrives late. A file already handed to the browser is the browser's to cancel.
+ * ★ EVERY WAIT CAN BE LEFT (Will: "Interruptibility is a huge win in UX"), AND A CANCEL ASKS FIRST (E6: "a
+ * cancel is intentional"). The x on the right, while a part is prepared or between parts, becomes one question
+ * (`askToCancel`, `askToStop`) and nothing is handed to the browser while it stands (`holdWhileAsked`). Cancel
+ * then ends what is in flight: the mint's or the check's fetch is aborted (the Worker stops reading when its
+ * client leaves), the listening stops, and nothing is posted afterwards, whatever arrives late; the toast says it
+ * was cancelled with a Try again, or, past the first part, where she stopped with the tap that takes the next.
+ * A file already handed to the browser is the browser's to cancel, so the x of a download on its way only puts
+ * the toast away.
+ *
+ * ★ AND A DROPPED CONNECTION NAMES ITSELF (E6). A mint that never reached the app says so and what to do; a zip
+ * the Worker saw the client leave (`stopped`: her cancel in the browser's own list, or a dead line, which it cannot
+ * tell apart) is read by what the page's own line did while it streamed (`HandedPart.dropped`); a line that stops
+ * answering is said under "Downloading…" (`lineLost`), never left reading as if all were well.
  *
  * ★ A BIG ALBUM IS A WALK, ONE TAP A PART. Each part is minted when it is asked for (a token lives
  * two minutes), and each is a download a person pressed, because a browser holds back a second

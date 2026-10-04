@@ -388,7 +388,7 @@ export const WALK_COPY = {
    * ★ THE TWO ENDINGS THAT USED TO READ AS ONE (E6). A cancel: neutral, a way back. A dropped connection: said as
    * what it is, with what to do, so she does not try again on a line that cannot carry it, nor blame the app.
    */
-  cancelled: "That download was cancelled.",
+  cancelled: "Download cancelled.",
   dropped: "Your connection dropped.",
   droppedDetail: "Check your signal, then try again.",
   /** A part of a walk that ended without all of it, told apart the same way. */

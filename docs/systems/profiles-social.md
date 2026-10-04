@@ -44,6 +44,20 @@ A one-way door; `/privacy` and the Terms word it, so a change here changes them 
   address-free; only the host's Guests room shows a confirmed guest's address ([guest-flow.md](guest-flow.md)).
 - **Every card paints its person's colour** from `seedFor(card.id)` (`withAvatarUrls`), never a raw id
   ([auth-accounts.md](auth-accounts.md) holds the rule).
+- ★ **A name-only guest is painted too, in the colour of her own guest row**: `seedFor(guests.id)`, hashed on the server
+  like every seed and never her name (nobody can choose a colour by typing one, and two guests who type "Sam" are two
+  colours). It reaches every place she is drawn through the one hash: the list's unverified entries
+  (`splitGuestList`) and their look, the credit (`faceOwner: { kind: "row" }`, `uploader-faces.ts`, no read), At the
+  door for a newcomer with no account, the Blocked list, and her own header's disc, which asks the server because her
+  browser holds her ticket and never the row's id (`/api/guests/mine`'s `seed`, `lib/avatar/ticket-seed.server.ts`).
+  No raw id reaches a browser that did not already hold it: the entry's row id already rode the list, and the hash is
+  all that is new. A colour is never a claim: no photograph, no door, and the Unverified mark still stands beside her
+  name; a blocked row keeps the plain disc on a guest's view like any blocked face.
+  - **One colour per ticket.** A name-only guest returning on another device is a new row and so a new colour, which
+    only an account cures.
+  - **A claim switches the colour once.** When she confirms and claims, the row is proved (`verified_at`) and every
+    surface turns to her account's colour, the rule for a proved person (`resolveUploaderIdentity`'s case 2, the
+    guest list's cards, `ticketSeed`); it never switches back.
 - **`getMyAttendedEvents`** (the picker's events) takes an approved upload on a PROVED row and deliberately ignores
   visibility and the album's viewer gates: the choice is the guest's own key, settable whatever the host chose. An
   event that blocked her keeps the tile it had, locked as a private album's (`blocked_events_for`), because the block
