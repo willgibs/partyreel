@@ -180,7 +180,7 @@ export function useAddChoice(): AddChoice {
 
 /* ── the step ─────────────────────────────────────────────────────────── */
 
-/** Settings' own mark: a filled round with its tick, or an empty ring. */
+/** Settings' own mark: a filled round with its tick (the house's check micro-pop), or an empty ring. */
 function Mark({ on }: { on: boolean }) {
   return (
     <span
@@ -192,7 +192,7 @@ function Mark({ on }: { on: boolean }) {
           : "border-foreground/35",
       )}
     >
-      {on && <Check className="size-3" strokeWidth={3.25} />}
+      {on && <Check data-check-pop className="size-3" strokeWidth={3.25} />}
     </span>
   );
 }

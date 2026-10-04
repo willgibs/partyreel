@@ -13,6 +13,15 @@ import { useWaitClock } from "@/lib/disposable/use-wait-clock";
 import { developsWhen } from "@/lib/guest/camera/words";
 import { cn } from "@/lib/utils";
 
+/** Asks the field's own picker to open: a browser with none, or one that will not for this press, leaves the field. */
+function openPicker(field: HTMLInputElement) {
+  try {
+    field.showPicker();
+  } catch {
+    // The field is the way.
+  }
+}
+
 /**
  * The time in words: the camera's own ("tomorrow at 9 am") while it is ahead; once a draft is not, the day itself, so a
  * refused time reads as the day she picked and never as "at 9 am" today.
@@ -37,7 +46,7 @@ function wordsFor(iso: string, now: number): string {
  * ★ WHAT SHE PICKS IS A DRAFT UNTIL SHE HAS FINISHED IT (Settings' rule, crumbs-60): leaving the field or Return judges
  * it, once, and a half-typed year is never a time (`judgeDevelopTime`); the words say the draft while it is a whole time,
  * and the refusal stands under the row in words. Create knows no date yet, so the time it offers is 9 am tomorrow; a
- * party further off is a pick away, and Settings moves it later from the date.
+ * party further off is a pick away, here or later in Settings (a stored time never follows the event's date).
  *
  * ★ IT OPENS WITH ITS CARD AND SHUTS WITH IT, in place (a row of height that eases), kept in the DOM, inert and
  * hidden while shut, so its place never moves the card above it and nothing of it waits in the tab order.
@@ -80,6 +89,23 @@ export function DevelopRow({
       inert={!open}
       aria-hidden={open ? undefined : true}
       className={cn("cr-develop-slot", className)}
+      onTransitionEnd={(e) => {
+        // Opened under its card on a screen too short to hold it: it is brought into view, never left where it
+        // may not be noticed (his own worry, and the room's body scrolls). Only what is out of view moves.
+        if (
+          !open ||
+          e.target !== e.currentTarget ||
+          e.propertyName !== "grid-template-rows"
+        )
+          return;
+        const calm = window.matchMedia?.(
+          "(prefers-reduced-motion: reduce)",
+        ).matches;
+        e.currentTarget.scrollIntoView?.({
+          block: "nearest",
+          behavior: calm ? "auto" : "smooth",
+        });
+      }}
     >
       <div className="cr-develop-inner">
         <label
@@ -132,14 +158,13 @@ export function DevelopRow({
             onBlur={onFinish}
             onKeyDown={(e) => {
               if (e.key === "Enter") onFinish();
-            }}
-            onClick={(e) => {
-              try {
-                e.currentTarget.showPicker();
-              } catch {
-                // A browser with no picker to open, or one that will not open it for this press: the field is the way.
+              // A key can open the picker too (the field's own segments are out of sight under the row).
+              if (e.key === " ") {
+                e.preventDefault();
+                openPicker(e.currentTarget);
               }
             }}
+            onClick={(e) => openPicker(e.currentTarget)}
             className="cr-develop-input"
           />
         </label>
