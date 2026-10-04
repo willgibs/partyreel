@@ -45,6 +45,279 @@
   background: var(--destructive);
 }
 
+/* ── the add step: how the album is styled ───────────────────────────── */
+
+/*
+  THE THREE CARDS ARE THE ROOM'S OWN MATERIAL (create-wizard r3's add=styles): a card of the ground's ink, one
+  hairline at rest, a stronger one for the pick, and a soft pool of the lamps' light thrown down under it, so the
+  pick reads lit rather than boxed. The tones are tokens on the group, so the brand round re-tints them in one place;
+  the pictures' own tones are `camera-settings-style-picture.css`'s.
+
+  ★ AT A PHONE A ROW EACH (the picture, its words, its tick) with the develop row directly under the Disposable card;
+  from a laptop three columns, each card a tall picture over its words, and the develop row in the Disposable card's
+  own column. Both are ONE GRID, so the cards share a height and the row never moves a card above it.
+
+  ★ THE LIGHT STAYS INSIDE ITS BOX AND SPILLS ONLY AS INK: a pool laid over the card's lower part and blurred reads as
+  light thrown onto the floor under it while adding nothing to what the room's body can scroll (a blur is ink, never
+  layout).
+*/
+.cr-styles {
+  --cr-card-ground: color-mix(in oklch, var(--foreground) 5%, transparent);
+  --cr-card-ground-on: color-mix(in oklch, var(--foreground) 8%, transparent);
+  --cr-card-edge: color-mix(in oklch, var(--foreground) 10%, transparent);
+  --cr-card-edge-hover: color-mix(in oklch, var(--foreground) 20%, transparent);
+  --cr-card-edge-on: color-mix(in oklch, var(--foreground) 62%, transparent);
+  --cr-pick-glow-a: color-mix(in oklch, var(--lamp-2) 52%, transparent);
+  --cr-pick-glow-b: color-mix(in oklch, var(--lamp-1) 40%, transparent);
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
+  max-width: 400px;
+}
+.cr-style-card + .cr-style-card {
+  margin-top: 0.625rem;
+}
+
+.cr-style-card {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.625rem;
+  border-radius: 1.125rem;
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+  background: var(--cr-card-ground);
+  box-shadow: inset 0 0 0 1px var(--cr-card-edge);
+  transition:
+    background-color 150ms var(--ease-emphasis),
+    box-shadow 150ms var(--ease-emphasis),
+    scale 150ms var(--ease-emphasis);
+}
+@media (hover: hover) {
+  .cr-style-card:hover {
+    box-shadow: inset 0 0 0 1px var(--cr-card-edge-hover);
+  }
+}
+.cr-style-card:active {
+  scale: 0.985;
+}
+.cr-style-card[data-state="checked"] {
+  background: var(--cr-card-ground-on);
+  box-shadow: inset 0 0 0 1.5px var(--cr-card-edge-on);
+}
+.cr-style-card:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+/* The pick's light: always there, shown by the pick, so it comes up rather than appears. */
+.cr-style-card::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 60% 0 0 0;
+  pointer-events: none;
+  background:
+    radial-gradient(50% 60% at 36% 70%, var(--cr-pick-glow-a), transparent 76%),
+    radial-gradient(48% 58% at 66% 74%, var(--cr-pick-glow-b), transparent 76%);
+  filter: blur(34px);
+  opacity: 0;
+  transition: opacity 280ms var(--ease-emphasis);
+}
+.cr-style-card[data-state="checked"]::before {
+  opacity: 0.7;
+}
+
+.cr-style-pic-box {
+  display: block;
+  flex-shrink: 0;
+}
+.cr-style-pic {
+  width: 110px;
+  height: 88px;
+}
+.cr-style-words {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+/* The develop time's row, in place under its card: its height eases in and out, so nothing above it moves. */
+.cr-develop-slot {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  opacity: 0;
+  transition:
+    grid-template-rows 280ms var(--ease-emphasis),
+    opacity 200ms var(--ease-emphasis),
+    visibility 0s linear 280ms;
+}
+.cr-develop-slot[data-open] {
+  grid-template-rows: 1fr;
+  visibility: visible;
+  opacity: 1;
+  transition-delay: 0s;
+}
+.cr-develop-inner {
+  min-height: 0;
+  overflow: hidden;
+  padding-top: 0.625rem;
+}
+.cr-develop {
+  cursor: pointer;
+  background: color-mix(in oklch, var(--foreground) 6%, transparent);
+  box-shadow: inset 0 0 0 1px
+    color-mix(in oklch, var(--foreground) 10%, transparent);
+  transition:
+    box-shadow 150ms var(--ease-emphasis),
+    scale 150ms var(--ease-emphasis);
+}
+@media (hover: hover) {
+  .cr-develop:hover {
+    box-shadow: inset 0 0 0 1px
+      color-mix(in oklch, var(--foreground) 20%, transparent);
+  }
+}
+.cr-develop:active {
+  scale: 0.99;
+}
+.cr-develop:has(.cr-develop-input:focus-visible) {
+  box-shadow: inset 0 0 0 2px var(--ring);
+}
+.cr-develop[data-invalid] {
+  box-shadow: inset 0 0 0 1.5px var(--destructive);
+}
+/* The native field is the row's hand, transparent over all of it: a press anywhere opens the picker. */
+.cr-develop-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+  /* 16px: a phone does not zoom into a field it can read. */
+  font-size: 16px;
+  appearance: none;
+}
+.cr-develop-input::-webkit-calendar-picker-indicator {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* The night under the pictures: a track, three moments, a knob, the night's own light along the fill. */
+.cr-under {
+  width: 100%;
+  max-width: 400px;
+  margin-top: 1.25rem;
+}
+.cr-night {
+  position: relative;
+  height: 28px;
+  touch-action: none;
+}
+.cr-night-track,
+.cr-night-fill {
+  position: absolute;
+  top: 13px;
+  height: 2px;
+  border-radius: 1px;
+}
+.cr-night-track {
+  left: 0;
+  right: 0;
+  background: color-mix(in oklch, var(--foreground) 14%, transparent);
+}
+.cr-night-fill {
+  left: 0;
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklch, var(--lamp-5) 85%, var(--foreground)),
+    color-mix(in oklch, var(--lamp-2) 85%, var(--foreground))
+  );
+}
+.cr-night-stop {
+  position: absolute;
+  top: 10px;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  border-radius: 9999px;
+  background: color-mix(in oklch, var(--foreground) 30%, transparent);
+  transition: background-color 200ms var(--ease-emphasis);
+}
+.cr-night-stop[data-on] {
+  background: color-mix(in oklch, var(--lamp-2) 70%, var(--foreground));
+}
+.cr-night-knob {
+  position: absolute;
+  top: 3px;
+  width: 22px;
+  height: 22px;
+  margin-left: -11px;
+  border-radius: 9999px;
+  background: var(--foreground);
+  box-shadow:
+    0 0 0 5px color-mix(in oklch, var(--foreground) 12%, transparent),
+    0 1px 4px rgb(0 0 0 / 0.45);
+}
+.cr-night-knob,
+.cr-night-fill {
+  transition:
+    left 320ms var(--ease-in-out-strong),
+    width 320ms var(--ease-in-out-strong);
+}
+.cr-night[data-dragging] .cr-night-knob,
+.cr-night[data-dragging] .cr-night-fill {
+  transition: none;
+}
+
+/* From a laptop: three columns, each card a tall picture over its words, the develop row in the third's column. */
+@media (min-width: 64rem) {
+  .cr-styles {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: 1.25rem;
+    max-width: 1040px;
+  }
+  .cr-style-card + .cr-style-card {
+    margin-top: 0;
+  }
+  .cr-style-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 0.75rem;
+  }
+  .cr-style-pic {
+    width: 100%;
+    /* As tall as the room's height leaves above the night, the row and the foot, never past what reads. */
+    height: clamp(9rem, calc(100dvh - 37rem), 14.75rem);
+  }
+  .cr-style-words {
+    margin-top: 0.875rem;
+    align-items: flex-start;
+  }
+  .cr-develop-slot {
+    grid-column: 3;
+  }
+  .cr-under {
+    max-width: 560px;
+    margin-top: 1.75rem;
+  }
+}
+
 /* ── the look: her code where guests meet it ──────────────────────────── */
 
 /*

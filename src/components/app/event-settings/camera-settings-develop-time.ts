@@ -32,6 +32,17 @@ export const DEVELOPS_NOW_WITHIN_MS = 60_000;
 export const DEVELOP_NOW_QUESTION =
   "Every photo added so far shows now, to every guest. New ones show straight away.";
 
+/**
+ * `YYYY-MM-DDTHH:mm` in the browser's own time zone, the value a `datetime-local` field holds (Settings' develop time
+ * and Create's, which pick it the same way), or "" for an instant that is no time.
+ */
+export function toLocalInput(iso: string): string {
+  const d = new Date(iso);
+  if (!Number.isFinite(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 /** A blank field, or one with a segment cleared and not typed again: either reads empty, and neither is a time. */
 export const TIME_UNFINISHED = "Finish the time, or pick another.";
 /** Past what a develop may reach (`DEVELOP_MAX_AHEAD_DAYS`), or a time no calendar holds. */

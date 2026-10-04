@@ -9,6 +9,7 @@ import {
   ALBUM_STYLES,
   APPROVAL_NEVER_WITH_A_DEVELOP,
   approvalWithADevelop,
+  createFieldsOf,
   PRESET_NAME,
   patchForStyle,
   styleLine,
@@ -23,7 +24,7 @@ const AHEAD = "2026-10-11T16:00:00.000Z";
 const PAST = "2026-10-09T16:00:00.000Z";
 
 describe("styleOf: a style is words over the columns, never a column", () => {
-  it("Live is free uploads right away; Reviewed free uploads held for her; Disposable the camera with a develop time", () => {
+  it("Live is free uploads right away; Review free uploads held for her; Disposable the camera with a develop time", () => {
     expect(
       styleOf({ capture: "upload", review: false, developsAt: null }),
     ).toBe("live");
@@ -56,9 +57,11 @@ describe("styleOf: a style is words over the columns, never a column", () => {
   it("the preset is named Disposable (Will's `name=disposable`), and the three in their order", () => {
     expect(PRESET_NAME).toBe("Disposable");
     expect(ALBUM_STYLES).toEqual(["live", "approval", "disposable"]);
+    // ★ RESHAPED ON PURPOSE (create-wizard r3, Will: "should we go with a more simple 'Review'?"; scar kept: three
+    // one-word modes, the middle named for where its photos go, her Review room): it read "Reviewed" before.
     expect(STYLE_NAMES).toEqual({
       live: "Live",
-      approval: "Reviewed",
+      approval: "Review",
       disposable: "Disposable",
     });
   });
@@ -80,7 +83,7 @@ describe("styleOf: a style is words over the columns, never a column", () => {
 });
 
 describe("patchForStyle: one save of all three columns, so no half-state is ever stored", () => {
-  it("Live and Reviewed write free uploads and no develop time", () => {
+  it("Live and Review write free uploads and no develop time", () => {
     const from = {
       capture: "camera" as const,
       review: false,
@@ -123,6 +126,48 @@ describe("patchForStyle: one save of all three columns, so no half-state is ever
         now: new Date(NOW),
       }).toISOString(),
     });
+  });
+});
+
+describe("createFieldsOf: a new event is born with a style's three columns in one insert", () => {
+  it("★ writes exactly what Settings' press of each style writes, in the create's own field names", () => {
+    const fresh = {
+      capture: "upload" as const,
+      review: false,
+      developsAt: null,
+    };
+    const opts = { eventDate: null, nowMs: NOW };
+    expect(createFieldsOf(patchForStyle("live", fresh, opts))).toEqual({
+      capture: "upload",
+      moderation_mode: "live",
+      develops_at: null,
+    });
+    expect(createFieldsOf(patchForStyle("approval", fresh, opts))).toEqual({
+      capture: "upload",
+      moderation_mode: "hold_for_approval",
+      develops_at: null,
+    });
+    expect(createFieldsOf(patchForStyle("disposable", fresh, opts))).toEqual({
+      capture: "camera",
+      moderation_mode: "live",
+      develops_at: defaultDevelopAt({
+        eventDate: null,
+        now: new Date(NOW),
+      }).toISOString(),
+    });
+  });
+
+  it("★ no style is ever born holding approval and a develop time together (`both=never`, at birth too)", () => {
+    for (const style of ALBUM_STYLES) {
+      const f = createFieldsOf(
+        patchForStyle(
+          style,
+          { capture: "camera", review: true, developsAt: AHEAD },
+          { eventDate: null, nowMs: NOW },
+        ),
+      );
+      expect(approvalWithADevelop(f)).toBe(false);
+    }
   });
 });
 

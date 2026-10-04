@@ -23,6 +23,8 @@ import { setReducedMotion } from "../../../../vitest.setup";
  *  - Back appears where there is nothing to go back to, or after Create, where the event already exists
  *    and going back would offer to make it twice;
  *  - the carry stops carrying: the head forgets her name, or the name flies from a guessed place.
+ *  - the add step (create-wizard r3's `add=styles`) stands between the name and the look as a screen of the room like
+ *    the rest: its question first, one button at the foot, a hairline of its own, Back and the head the way to the name.
  * No class, size, word count or duration is pinned; the words are, where a word is the fact.
  */
 
@@ -79,14 +81,27 @@ const page = () => document.querySelector<HTMLElement>("[data-room-page]")!;
 const question = () =>
   within(page()).getByRole("heading", { level: 1 }) as HTMLElement;
 
+/** Her name given and Continue pressed: the add step stands. */
 async function nameIt(name = EVENT.name) {
   await userEvent.type(screen.getByRole("textbox"), name);
+  await userEvent.click(screen.getByRole("button", { name: /^continue$/i }));
+  await screen.findByRole("radiogroup", { name: /album style/i });
+}
+
+/** The add step's Continue pressed: the code's look stands. */
+async function styleIt() {
   await userEvent.click(screen.getByRole("button", { name: /^continue$/i }));
   await screen.findByRole("button", { name: /^create event$/i });
 }
 
-async function createIt() {
+/** The name, the style and the look as they are: the look stands. */
+async function toTheLook() {
   await nameIt();
+  await styleIt();
+}
+
+async function createIt() {
+  await toTheLook();
   await userEvent.click(
     screen.getByRole("button", { name: /^create event$/i }),
   );
@@ -161,6 +176,8 @@ describe("each screen's question, in one place", () => {
     renderWizard();
     expectLaidOut(/^name your event$/i, /^continue$/i);
     await nameIt();
+    expectLaidOut(/^pick your album.s style$/i, /^continue$/i);
+    await styleIt();
     expectLaidOut(/^pick the code.s look$/i, /^create event$/i);
     await userEvent.click(
       screen.getByRole("button", { name: /^create event$/i }),
@@ -185,15 +202,25 @@ describe("each screen's question, in one place", () => {
       "current",
       "todo",
       "todo",
+      "todo",
     ]);
-    expect(head()).toHaveTextContent(/step 1 of 3/i);
+    expect(head()).toHaveTextContent(/step 1 of 4/i);
     await nameIt();
     expect(marks().map((m) => m.dataset.state)).toEqual([
       "done",
       "current",
       "todo",
+      "todo",
     ]);
-    expect(head()).toHaveTextContent(/step 2 of 3/i);
+    expect(head()).toHaveTextContent(/step 2 of 4/i);
+    await styleIt();
+    expect(marks().map((m) => m.dataset.state)).toEqual([
+      "done",
+      "done",
+      "current",
+      "todo",
+    ]);
+    expect(head()).toHaveTextContent(/step 3 of 4/i);
   });
 });
 
@@ -204,7 +231,7 @@ describe("Back (flow=carry: the head is the way back)", () => {
     expect(head().querySelector("[data-room-step] button")).toBeNull();
   });
 
-  it("returns from the look to the name with her name kept, from the head's Back", async () => {
+  it("returns from the add step to the name with her name kept, from the head's Back", async () => {
     renderWizard();
     await nameIt();
     await userEvent.click(screen.getByRole("button", { name: /^back$/i }));
@@ -212,29 +239,54 @@ describe("Back (flow=carry: the head is the way back)", () => {
     expect(screen.getByRole("textbox")).toHaveValue(EVENT.name);
   });
 
-  it("returns from the name in the head, the carry's own way back", async () => {
+  it("returns from the look to the add step, one screen at a time, her style kept", async () => {
+    renderWizard();
+    await nameIt();
+    await userEvent.click(screen.getByRole("radio", { name: /^review\./i }));
+    await styleIt();
+    await userEvent.click(screen.getByRole("button", { name: /^back$/i }));
+    expect(question()).toHaveTextContent(/^pick your album.s style$/i);
+    expect(screen.getByRole("radio", { name: /^review\./i })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    await userEvent.click(screen.getByRole("button", { name: /^back$/i }));
+    expect(question()).toHaveTextContent(/^name your event$/i);
+  });
+
+  it("returns from the name in the head, the carry's own way back, from the add step and the look", async () => {
     renderWizard();
     await nameIt();
     await userEvent.click(
       within(head()).getByRole("button", { name: /back to the name/i }),
     );
     expect(question()).toHaveTextContent(/^name your event$/i);
+    await userEvent.click(screen.getByRole("button", { name: /^continue$/i }));
+    await styleIt();
+    await userEvent.click(
+      within(head()).getByRole("button", { name: /back to the name/i }),
+    );
+    expect(question()).toHaveTextContent(/^name your event$/i);
   });
 
-  it("returns from a done step's hairline, a press for a pointer", async () => {
+  it("returns from a done step's hairline, a press for a pointer: the add step's hairline too", async () => {
     renderWizard();
-    await nameIt();
-    const done = head().querySelector<HTMLElement>(
-      '[data-room-step][data-state="done"] button',
-    );
-    expect(done).toBeTruthy();
-    await userEvent.click(done!);
+    await toTheLook();
+    const done = (n: number) =>
+      head().querySelector<HTMLElement>(
+        `[data-room-step="${n}"][data-state="done"] button`,
+      );
+    expect(done(1)).toBeTruthy();
+    expect(done(2)).toBeTruthy();
+    await userEvent.click(done(2)!);
+    expect(question()).toHaveTextContent(/^pick your album.s style$/i);
+    await userEvent.click(done(1)!);
     expect(question()).toHaveTextContent(/^name your event$/i);
   });
 
   it("keeps the look she picked across a Back and a Continue", async () => {
     renderWizard();
-    await nameIt();
+    await toTheLook();
     await userEvent.click(screen.getByRole("radio", { name: /dots/i }));
     await userEvent.click(screen.getByRole("button", { name: /^back$/i }));
     await userEvent.click(screen.getByRole("button", { name: /^continue$/i }));
@@ -262,7 +314,7 @@ describe("the close", () => {
       "href",
       "/dashboard",
     );
-    await nameIt();
+    await toTheLook();
     expect(screen.getByRole("link", { name: /^close$/i })).toHaveAttribute(
       "href",
       "/dashboard",
@@ -288,6 +340,9 @@ let flown: Flown[] = [];
 const BOXES: Record<string, DOMRect> = {
   "[data-room-name-text]": rect(28, 300, 319, 36),
   "[data-room-name]": rect(108, 14, 159, 20),
+  // The add step's chosen picture, and the hairline it drops into.
+  "[data-carry-pick]": rect(32, 392, 110, 88),
+  '[data-room-step="2"]': rect(165, 52, 33, 3),
 };
 function rect(x: number, y: number, w: number, h: number): DOMRect {
   return {
@@ -370,6 +425,42 @@ describe("the carry (flow=carry): her answer rises into the head", () => {
     );
   });
 
+  it("★ drops the add step's pick into its hairline as the look arrives, measured from where its picture stood", async () => {
+    renderWizard();
+    await nameIt();
+    flown = [];
+    await userEvent.click(screen.getByRole("button", { name: /^continue$/i }));
+    const drop = flown.find((f) => f.el.matches("[data-room-flight-pick]"));
+    expect(drop, "the pick did not drop").toBeTruthy();
+    // It is the picture, never a copy a reader can reach, and it leaves no id behind.
+    expect(drop!.el.getAttribute("aria-hidden")).toBe("true");
+    expect(drop!.el.querySelector("[id]")).toBeNull();
+    // It starts where the picture stood and ends on the hairline: the centres, and the line's width.
+    const from = BOXES["[data-carry-pick]"];
+    const to = BOXES['[data-room-step="2"]'];
+    const dx = to.left + to.width / 2 - (from.left + from.width / 2);
+    const dy = to.top + to.height / 2 - (from.top + from.height / 2);
+    const last = String(drop!.frames.at(-1)?.transform);
+    expect(last).toContain(`translate(${dx}px, ${dy}px)`);
+    expect(last).toContain(`scale(${to.width / from.width})`);
+    expect(String(drop!.frames[0].transform)).toContain("translate(0px, 0px)");
+  });
+
+  it("drops no pick off the name (it has none), and none on the way back", async () => {
+    renderWizard();
+    expect(document.querySelector("[data-carry-pick]")).toBeNull();
+    await nameIt();
+    expect(
+      flown.filter((f) => f.el.matches("[data-room-flight-pick]")),
+    ).toEqual([]);
+    await userEvent.click(screen.getByRole("button", { name: /^continue$/i }));
+    flown = [];
+    await userEvent.click(screen.getByRole("button", { name: /^back$/i }));
+    expect(
+      flown.filter((f) => f.el.matches("[data-room-flight-pick]")),
+    ).toEqual([]);
+  });
+
   it("flies it back down into the field on the way back", async () => {
     renderWizard();
     await nameIt();
@@ -397,6 +488,10 @@ describe("the carry (flow=carry): her answer rises into the head", () => {
     await nameIt();
     expect(flown.filter((f) => f.el.matches("[data-room-flight]"))).toEqual([]);
     expect(document.querySelector("[data-room-flight]")).toBeNull();
+    // And the add step's pick drops nowhere: the look simply stands.
+    await userEvent.click(screen.getByRole("button", { name: /^continue$/i }));
+    expect(document.querySelector("[data-room-flight-pick]")).toBeNull();
+    expect(flown).toEqual([]);
     expect(head().querySelector("[data-room-name]")).not.toHaveStyle({
       visibility: "hidden",
     });

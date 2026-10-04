@@ -102,6 +102,10 @@ export async function createEvent(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
+  // ★ APPROVAL NEVER STANDS WITH A DEVELOP, at birth too: a crafted create asking for both is refused in words, ahead
+  // of the database's CHECK (whose violation the branch below would read as the event limit).
+  if (approvalWithADevelop(values)) return APPROVAL_REFUSED;
+
   // NEVER set qr_token: the DB default generates the unguessable capability token.
   // Empty strings normalize to null for the nullable columns.
   const insert: TablesInsert<"events"> = {
@@ -125,6 +129,12 @@ export async function createEvent(
     require_upload_to_view: values.require_upload_to_view,
     moderation_mode: values.moderation_mode,
     qr_style: values.qr_style,
+    // HOW GUESTS ADD AND WHEN THE ALBUM DEVELOPS, at birth (create-wizard r3's add=styles): bare INSERT-granted columns
+    // (20261002200000), written in this one insert beside `moderation_mode` so a style is never a half-state. The
+    // database does the rest in it: `events_reveal_stamp` fills in the camera's roll, stamps its period, and stores a
+    // develop time under a minute ahead as its own now.
+    capture: values.capture,
+    develops_at: values.develops_at,
   };
 
   const { data, error } = await supabase
@@ -135,6 +145,8 @@ export async function createEvent(
 
   if (error) {
     if (rangeRefusal(error)) return RANGE_REFUSED;
+    // Read by its name, ahead of the branch below: any other CHECK on an insert is taken for the plan's limit.
+    if (approvalRefusal(error)) return APPROVAL_REFUSED;
     if (breakerRefusal(error)) {
       return { ok: false, code: "unknown", message: error.message };
     }

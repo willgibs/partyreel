@@ -1,7 +1,7 @@
 /**
  * THE WAIT, IN A GUEST'S WORDS (the-wait r1, Will's `model=time`: "For the guest screens, I like one question of time
  * where there's only a small distinction between disposable and reviewed"). Every album that holds photos back waits
- * ONE way, Developing, and only its clock says which album it is: as the host lets them in (Reviewed), or all at once
+ * ONE way, Developing, and only its clock says which album it is: as the host lets them in (Review), or all at once
  * at the develop time (a Disposable, or free uploads with a develop time). One home for every place a guest reads it:
  * the album's contact sheet, the Add slot's rule, her tracker (its rows, its badge and its head), the keep's Sent line,
  * the failure sheet and the cover's word over the event's name.
@@ -31,7 +31,7 @@ import { TRACKER_WORDS } from "@/lib/guest/upload-tracker";
  */
 export const WAIT_TITLE = TRACKER_WORDS.waiting;
 
-/** What a wait waits for: the host letting each in (a Reviewed album), or a develop time ahead. */
+/** What a wait waits for: the host letting each in (a Review album), or a develop time ahead. */
 export type WaitClock =
   | { kind: "held"; hostName: string | null }
   | { kind: "develop"; developsAt: string };
