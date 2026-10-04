@@ -115,8 +115,13 @@ working.
   it alone (`after-hourdown/`). Wedding reprojection (`before-merged/` vs `after-reproject/`, only guest-join-upload
   differs): 100-guest wedding 22,655 -> 8,905 calls, heavy 27,896 -> 14,146, a month 2.30M -> 0.93M, CPU-h cal a
   month 49.3 -> 28.0. CPU probe (`cpu-probe.mjs`, same build): one-file presign 9-13 ms, a burst of one 9-11, of nine
-  40; the harness's ~110 ms first presign is process-wide work in its window. Next: the budget line, the red-team
-  (`redteam.mjs`) and `lab:smoke` on 3131, the build, the Handoff.
+  40; the harness's ~110 ms first presign is process-wide work in its window. Clean guest-hour-down (`after-hourdown/`,
+  22:34Z): 67 calls, within 74. The Orchestrator: crumbs-66's checks shared the event 22:01Z to 22:30Z (inside `after1`
+  and `after-full`), so the readings are re-taken on the quiet event: after, `after-quiet-1` 17 calls and `-3` 18
+  (`-2` hit the harness's door-step timeout, the flake crumbs-66 hardens); before, the worktree DETACHES to `805c52ed0`
+  for `before-quiet-*` and returns to `lp/compute-uploads` (a successor finding it detached: `git checkout
+  lp/compute-uploads`). Next: the budget line, the red-team (`redteam.mjs`) and `lab:smoke` on 3131, the build, the
+  Handoff.
 
 - The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
 - Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
