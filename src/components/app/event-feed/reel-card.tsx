@@ -228,8 +228,10 @@ function Label({ stuck }: { stuck: boolean }) {
  * reader and never drawn (`sr-only`). ★ IT USED TO BE `display: none` THERE (red-team 53's LOW: "at 375 the Reel card
  * hides 'Guests get it later'"), which took the state out of the pill for everyone, assistive technology included,
  * and a phone host who pressed it could not tell that her guests do not have this reel yet. The line itself is whole at
- * rest at every width the card is drawn (measured at 375 and 320: 100px of the 149px and 122px it has, and 118px at the
- * tile's narrowest), so what the pill leaves out is only what a compact control has no room for.
+ * rest at the widths the card is drawn (measured at 375: "Guests get it later" is 100px of the 149px the line has; it
+ * has 122px at 320 and 118px in the tile at its narrowest), so what the pill leaves out is only what a compact control
+ * has no room for. (A lab frame is an iframe, whose row the observer reads as stuck until it is scrolled into view:
+ * measure a card at a width in a top-level viewport.)
  */
 function valueClass(stuck: boolean, rest: string): string {
   return stuck
