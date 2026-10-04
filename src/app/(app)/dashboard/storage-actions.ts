@@ -1,8 +1,9 @@
 "use server";
 
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
-import { removeMediaBulk, restoreMedia } from "@/lib/db/mutations/media";
+import { purgeMediaNow, removeMediaBulk } from "@/lib/db/mutations/media";
 import { readHostStorageSummary } from "@/lib/db/queries/storage";
 import {
   readStorageEvents,
@@ -18,20 +19,23 @@ import { captureError } from "@/lib/observability/sentry";
 import { getRequestAuth } from "@/lib/supabase/request-auth";
 
 /**
- * WHAT'S USING SPACE, ON THE SERVER: the size list's read and its two writes (host-storage r1, Will
- * 2026-09-28; the list itself is `components/app/storage/`). Each is a public endpoint, so each
- * parses what the client sent, re-checks the user with `getUser()` (through the request-scoped
- * `getRequestAuth`), and leans on RLS for the rest: the reads are the request's own client
- * (`storage-list.ts`), and the writes are the album's own, `removeMediaBulk` (column-locked, one
- * event at a time) and `restore_media` (the only door back out of Deleted).
+ * WHAT'S USING SPACE AND WHAT DELETED HOLDS, ON THE SERVER (host-storage r1, Will 2026-09-28; trash-in-storage, Will
+ * 2026-10-03: Deleted counts in storage). The size list's read, its one write, and the storage chart's two acts. Each is
+ * a public endpoint, so each parses what the client sent, re-checks the user with `getUser()` (through the
+ * request-scoped `getRequestAuth`), and leans on RLS and the database's own functions for the rest.
  *
- * ★ NOTHING HERE DECIDES A PLAN. The list's goal strip finishes a switch through the change-plan
- * route, which re-reads what the host stores and refuses a size that cannot hold it; the Stripe
- * webhook stays the only writer of the tier and the cap (billing-caps.md).
+ * ★ A DELETE FREES NOTHING UNTIL IT LEAVES DELETED. Her plan holds her albums and her Deleted together, so the list's
+ * act is Delete for good (the album's own Remove, then its own Delete permanently, R2 first), and the chart's are Empty
+ * Deleted (`empty_deleted`: every item asked to leave at once, R2 following in the night's purge) and her setting, Make
+ * room from Deleted.
  *
- * ★ NONE OF THEM REVALIDATES. A Server Function's revalidation re-renders the page that called it in
- * the same round trip, and the list is opened over the dashboard and the account page, each a page
- * of many reads. The list moves by its own acts and refreshes the page behind it once, as it closes.
+ * ★ NOTHING HERE DECIDES A PLAN. The list's goal strip finishes a switch through the change-plan route, which re-reads
+ * what she stores and refuses a size that cannot hold it; the Stripe webhook stays the only writer of the tier and the
+ * cap (billing-caps.md).
+ *
+ * ★ NONE OF THEM REVALIDATES. A Server Function's revalidation re-renders the page that called it in the same round
+ * trip, and the list and the chart open over the dashboard and the account page, each a page of many reads. Each
+ * surface refreshes the page behind it once, when its act lands or its list closes.
  */
 
 type Failure = {
@@ -46,9 +50,10 @@ const SIGN_IN: Failure = {
   message: "Sign in and try again.",
 };
 
-/** The first read's extra: what she stores (the cap's one figure) and her events' totals. */
+/** The first read's extra: what she stores (the cap's one figure), what of it is in Deleted, and her events' totals. */
 export type StorageOverview = {
   storedBytes: number;
+  deletedBytes: number;
   events: StorageEventTotal[];
 };
 
@@ -61,20 +66,16 @@ export type StorageListAnswer =
     }
   | Failure;
 
-export type RemoveStorageAnswer =
-  | { ok: true; removed: number }
-  /** `removedEvents`: the events whose items did go, before the failure stopped the rest. */
-  | (Failure & { removedEvents: string[] });
+export type DeleteStorageAnswer =
+  | { ok: true; deleted: number }
+  /** `deletedEvents`: the events whose items did go, before the failure stopped the rest. */
+  | (Failure & { deletedEvents: string[] });
 
-export type RestoreStorageAnswer =
-  | {
-      ok: true;
-      restored: string[];
-      /** Ids the restore refused (no room, gone), with the first refusal's words. */
-      refused: string[];
-      message: string | null;
-    }
+export type EmptyDeletedAnswer =
+  | { ok: true; items: number; events: number; freedBytes: number }
   | Failure;
+
+export type MakeRoomAnswer = { ok: true; on: boolean } | Failure;
 
 const askSchema = z.object({
   eventId: z.uuid().nullable().default(null),
@@ -100,11 +101,18 @@ const itemsSchema = z
   .min(1)
   .max(MAX_BULK_ITEMS);
 
-const idsSchema = z.array(z.uuid()).min(1).max(MAX_BULK_ITEMS);
+/**
+ * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `empty_deleted` and `profiles.make_room_from_deleted` arrive with
+ * migration 20261003220000, so the two calls that name them go through this untyped view of the request's own client
+ * (drop the cast then). Still the cookie-bound client: RLS and `auth.uid()` hold exactly as they do for a typed call.
+ */
+function untyped(client: unknown): SupabaseClient {
+  return client as SupabaseClient;
+}
 
 /**
- * One page of what she stores, largest first (all her events, or one), and on the first read the
- * overview: the figure the storage guard reads (`host_storage_summary`) and each event's total.
+ * One page of what she stores, largest first (all her events, or one), and on the first read the overview: what she
+ * stores and what of it is in Deleted (`host_storage_summary`, the storage guard's own figures), and each event's total.
  */
 export async function readStorageListAction(
   ask: unknown,
@@ -129,7 +137,13 @@ export async function readStorageListAction(
       items,
       next: page.next,
       overview:
-        events && summary ? { storedBytes: summary.activeBytes, events } : null,
+        events && summary
+          ? {
+              storedBytes: summary.storedBytes,
+              deletedBytes: summary.deletedBytes,
+              events,
+            }
+          : null,
     };
   } catch (error) {
     captureError("media", error, { seam: "storage_list_read" });
@@ -142,26 +156,28 @@ export async function readStorageListAction(
 }
 
 /**
- * Remove a selection to Deleted, one event at a time through the album's own bulk remove. It stops
- * at the first event that fails and names the events already done, so the list keeps those gone and
- * puts the rest back.
+ * DELETE FOR GOOD, a selection from the size list: one event at a time, the album's own two acts in order (its bulk
+ * Remove, then its Delete permanently, which deletes the objects first and asks `kept_media_ids` before it does), so
+ * nothing here re-implements a delete. It stops at the first event that fails and names the events already done, so the
+ * list keeps those gone and puts the rest back; a failure after the Remove leaves that event's items in Deleted, which
+ * the answer says.
  */
-export async function removeStorageItemsAction(
+export async function deleteStorageItemsAction(
   items: unknown,
-): Promise<RemoveStorageAnswer> {
+): Promise<DeleteStorageAnswer> {
   const refused = tooMany(items);
-  if (refused) return { ...refused, removedEvents: [] };
+  if (refused) return { ...refused, deletedEvents: [] };
   const parsed = itemsSchema.safeParse(items);
   if (!parsed.success) {
     return {
       ok: false,
       code: "validation",
       message: "Unsupported selection.",
-      removedEvents: [],
+      deletedEvents: [],
     };
   }
   const { user } = await getRequestAuth();
-  if (!user) return { ...SIGN_IN, removedEvents: [] };
+  if (!user) return { ...SIGN_IN, deletedEvents: [] };
 
   const byEvent = new Map<string, string[]>();
   for (const item of parsed.data) {
@@ -170,72 +186,113 @@ export async function removeStorageItemsAction(
     byEvent.set(item.eventId, ids);
   }
 
-  let removed = 0;
+  let deleted = 0;
   const done: string[] = [];
   for (const [eventId, ids] of byEvent) {
-    const result = await removeMediaBulk(eventId, ids);
-    if (!result.ok) {
-      if (result.code === "unknown") {
-        captureError("media", new Error(result.message), {
-          seam: "storage_list_remove",
+    const removed = await removeMediaBulk(eventId, ids);
+    if (!removed.ok) {
+      if (removed.code === "unknown") {
+        captureError("media", new Error(removed.message), {
+          seam: "storage_list_delete",
+          step: "remove",
           count: ids.length,
         });
       }
       return {
         ok: false,
-        code: result.code === "unauthorized" ? "unauthorized" : "unknown",
-        message: result.message,
-        removedEvents: done,
+        code: removed.code === "unauthorized" ? "unauthorized" : "unknown",
+        message: removed.message,
+        deletedEvents: done,
       };
     }
-    removed += result.data.count;
-    done.push(eventId);
-  }
-  return { ok: true, removed };
-}
-
-/** How many restores run at once: each is one RPC, and an Undo is rarely more than a screenful. */
-const RESTORE_CONCURRENCY = 4;
-
-/**
- * Undo's reversal: each item back out of Deleted through `restore_media`, which checks it is hers,
- * that its event still stands and that her plan has room (the BASE cap). What it refuses stays in
- * Deleted and is named, so the list takes exactly those away again.
- */
-export async function restoreStorageItemsAction(
-  ids: unknown,
-): Promise<RestoreStorageAnswer> {
-  const refusedAtTheDoor = tooMany(ids);
-  if (refusedAtTheDoor) return refusedAtTheDoor;
-  const parsed = idsSchema.safeParse(ids);
-  if (!parsed.success) {
-    return { ok: false, code: "validation", message: "Unsupported selection." };
-  }
-  const { user } = await getRequestAuth();
-  if (!user) return SIGN_IN;
-
-  const queue = [...new Set(parsed.data)];
-  const restored: string[] = [];
-  const refused: string[] = [];
-  let message: string | null = null;
-  const lane = async () => {
-    for (let id = queue.shift(); id !== undefined; id = queue.shift()) {
-      const result = await restoreMedia(id);
-      if (result.ok) {
-        restored.push(id);
-        continue;
-      }
-      refused.push(id);
-      message ??= result.message ?? null;
-      // As `restoreMediaAction` does: a full plan, a slot or a deleted event is an expected
-      // refusal; only `unknown` is worth a look.
-      if (result.code === "unknown") {
-        captureError("media", new Error(result.message), {
-          seam: "storage_list_restore",
+    const purged = await purgeMediaNow(eventId, ids);
+    if (!purged.ok) {
+      if (purged.code === "unknown") {
+        captureError("media", new Error(purged.message), {
+          seam: "storage_list_delete",
+          step: "purge",
+          count: ids.length,
         });
       }
+      return {
+        ok: false,
+        code: purged.code === "unauthorized" ? "unauthorized" : "unknown",
+        message:
+          "Couldn't delete some of those for good. They're in Deleted, where you can try again.",
+        deletedEvents: done,
+      };
     }
+    deleted += purged.data.purged;
+    done.push(eventId);
+  }
+  return { ok: true, deleted };
+}
+
+/**
+ * EMPTY DELETED, the storage chart's button: everything in her Deleted leaves for good at once (`empty_deleted`, which
+ * asks every item to leave and takes every deleted event with it; the bytes stop counting at once and the night's purge
+ * deletes the objects, R2 first). Her own act, authorized inside on `auth.uid()`: the request's client carries her.
+ */
+export async function emptyDeletedAction(): Promise<EmptyDeletedAnswer> {
+  const { supabase, user } = await getRequestAuth();
+  if (!user) return SIGN_IN;
+  const { data, error } = await untyped(supabase).rpc("empty_deleted");
+  const answer = data as {
+    ok?: unknown;
+    items?: unknown;
+    events?: unknown;
+    freed_bytes?: unknown;
+  } | null;
+  if (error || answer?.ok !== true) {
+    captureError("media", error ?? new Error("empty_deleted refused"), {
+      seam: "empty_deleted",
+    });
+    return {
+      ok: false,
+      code: "unknown",
+      message: "Couldn't empty Deleted. Please try again.",
+    };
+  }
+  return {
+    ok: true,
+    items: Number(answer.items ?? 0),
+    events: Number(answer.events ?? 0),
+    freedBytes: Number(answer.freed_bytes ?? 0),
   };
-  await Promise.all(Array.from({ length: RESTORE_CONCURRENCY }, lane));
-  return { ok: true, restored, refused, message };
+}
+
+/**
+ * HER SETTING, Make room from Deleted: hers to write (the column's one grant), on her own row under RLS, so nothing
+ * here can reach anyone else's. Read back from the write itself, so the switch shows what the database holds.
+ */
+export async function setMakeRoomFromDeletedAction(
+  on: unknown,
+): Promise<MakeRoomAnswer> {
+  if (typeof on !== "boolean") {
+    return { ok: false, code: "validation", message: "That isn't a setting." };
+  }
+  const { supabase, user } = await getRequestAuth();
+  if (!user) return SIGN_IN;
+  const { data, error } = await untyped(supabase)
+    .from("profiles")
+    .update({ make_room_from_deleted: on })
+    .eq("id", user.id)
+    .select("make_room_from_deleted")
+    .maybeSingle();
+  const row = data as { make_room_from_deleted?: unknown } | null;
+  if (error || typeof row?.make_room_from_deleted !== "boolean") {
+    captureError(
+      "account",
+      error ?? new Error("make_room_from_deleted unread"),
+      {
+        seam: "make_room_setting",
+      },
+    );
+    return {
+      ok: false,
+      code: "unknown",
+      message: "Couldn't save that. Please try again.",
+    };
+  }
+  return { ok: true, on: row.make_room_from_deleted };
 }

@@ -98,8 +98,9 @@ grant update (make_room_from_deleted) on public.profiles to authenticated;
 -- What her Deleted holds, item by item: exactly what her two Deleted lists show (each album's Deleted and the
 -- dashboard's deleted events), each with the moment it entered Deleted. Never a guest's own withdrawal (final, for her
 -- too), never an operator's removal (it left her view entirely), never a row asked to leave for good
--- (`purge_asked_at`), and nothing past its 30 days or inside an event past its own (the night's purge takes those). A
--- held row counts while it is listed, as any other, since a figure that skipped it would tell her a hold exists.
+-- (`purge_asked_at`), and nothing past its 30 days or inside an event past its own (the night's purge takes those).
+-- Inside is from the window's start on (`>=`), as both lists read it. A held row counts while it is listed, as any
+-- other, since a figure that skipped it would tell her a hold exists.
 -- `binned_at` is the earlier of the item's removal and its event's deletion: the order Deleted empties in.
 create function public.host_deleted_media(p_host_id uuid)
 returns table (media_id uuid, file_size_bytes bigint, binned_at timestamptz, by_system boolean)
@@ -117,9 +118,9 @@ as $$
           and not m.removed_by_uploader
           and not m.removed_by_admin
           and m.purge_asked_at is null
-          and m.removed_at > now() - interval '30 days'
-          and (e.deleted_at is null or e.deleted_at > now() - interval '30 days'))
-       or (m.status <> 'removed' and e.deleted_at > now() - interval '30 days')
+          and m.removed_at >= now() - interval '30 days'
+          and (e.deleted_at is null or e.deleted_at >= now() - interval '30 days'))
+       or (m.status <> 'removed' and e.deleted_at >= now() - interval '30 days')
      );
 $$;
 
@@ -188,8 +189,9 @@ comment on function public.host_room_used(uuid) is
 -- CHECK requires), which takes it out of every host read, every figure and her meter at once (media_host_all,
 -- host_deleted_media, media_release_meter); the removed_media sweep deletes its objects and its row that night, R2
 -- first, or the night its keeper (a hold, an open report) lets go. A deleted event it empties leaves Deleted with its
--- last item: its deletion moves back to the window's start, so the dashboard's list, the bell, every figure and
--- restore_event read it gone at once, and the expired_events sweep takes it that night.
+-- last item: its deletion moves back a minute past the window's start (a minute, so no reader's clock, the app's
+-- included, still reads it inside), so the dashboard's list, the bell, every figure and restore_event read it gone at
+-- once, and the expired_events sweep takes it that night.
 --   `p_system` false leaves the over-capacity reduce's own removals where they are: the reduce's first step (her own
 -- Deleted goes before anything she kept) never takes back what its last run told her stays recoverable.
 --   Locks: the host's profiles row first, every capacity decision's one lock order (already held inside create_media*
@@ -246,9 +248,9 @@ begin
   -- A deleted event left with nothing in Deleted leaves it too, with its last item.
   if cardinality(v_events) > 0 then
     update public.events e
-       set deleted_at = now() - interval '30 days'
+       set deleted_at = now() - interval '30 days 1 minute'
      where e.id = any (v_events)
-       and e.deleted_at > now() - interval '30 days'
+       and e.deleted_at >= now() - interval '30 days'
        and not exists (
          select 1
            from public.host_deleted_media(p_host_id) d
@@ -289,14 +291,14 @@ begin
   -- The host's profiles row first (leave_deleted takes it again, a no-op), so the events counted are the ones that go.
   perform 1 from public.profiles where id = v_uid for update;
   select count(*) into v_events from public.events
-   where host_id = v_uid and deleted_at > now() - interval '30 days';
+   where host_id = v_uid and deleted_at >= now() - interval '30 days';
 
   select l.items, l.freed_bytes into v_items, v_freed from public.leave_deleted(v_uid, null, true) l;
 
   update public.events
-     set deleted_at = now() - interval '30 days'
+     set deleted_at = now() - interval '30 days 1 minute'
    where host_id = v_uid
-     and deleted_at > now() - interval '30 days';
+     and deleted_at >= now() - interval '30 days';
 
   return jsonb_build_object('ok', true, 'items', v_items, 'events', v_events, 'freed_bytes', v_freed);
 end;
@@ -1139,7 +1141,7 @@ begin
   end if;
   -- ★ PAST ITS 30 DAYS IT IS LEAVING (20261003220000): out of her Deleted and out of what she is counted for, so no longer
   -- hers to bring back, even before the night's purge takes it.
-  if v_media.removed_at is null or v_media.removed_at <= now() - interval '30 days' then
+  if v_media.removed_at is null or v_media.removed_at < now() - interval '30 days' then
     return jsonb_build_object('ok', false, 'reason', 'not_found');
   end if;
   if v_media.legal_hold_at is not null then
@@ -1208,10 +1210,10 @@ begin
   end if;
 
   -- ★ INSIDE ITS 30 DAYS (20261003220000): past them an event is leaving, out of her Deleted and her count (an emptied
-  -- event's deletion moves back to the window's start), so it is not found, even before the night's purge.
+  -- event's deletion moves back past the window's start), so it is not found, even before the night's purge.
   select * into v_event from public.events
     where id = p_event_id and host_id = (select auth.uid()) and deleted_at is not null
-      and deleted_at > now() - interval '30 days';
+      and deleted_at >= now() - interval '30 days';
   if not found then
     return jsonb_build_object('ok', false, 'reason', 'not_found');
   end if;
@@ -1310,7 +1312,7 @@ begin
          and m.event_id = v_block.event_id
          and m.status = 'removed'
          and m.removed_at = v_block.created_at
-         and m.removed_at > now() - interval '30 days'
+         and m.removed_at >= now() - interval '30 days'
          and not m.removed_by_uploader
          and not m.removed_by_admin
          and m.purge_asked_at is null
@@ -1870,9 +1872,10 @@ comment on column public.media.purge_asked_at is
 --
 -- select n, step, ok, detail from proof order by n;
 --
--- RESULT, 2026-10-03, nothing persisted by either run (afterwards no `make_room_from_deleted` column and none of the four
+-- RESULT, 2026-10-03, nothing persisted by any run (afterwards no `make_room_from_deleted` column and none of the four
 -- new functions exist, create_media still hashes e83666cd and host_storage_summary c5d0716b, and no "Deleted counts"
--- event or proof user is left):
+-- event or proof user is left). GREEN ran again on the final file, after every 30-day window was aligned on the lists'
+-- own inclusive start (`>=`) and an emptied event moved a minute past it, with the same 15/15:
 --   LIVE RED, without this file's statements: 13 of the 15 steps fail on what each lacks. 1 "no make_room_from_deleted
 --     column"; 2 " system=none" (today's summary sums the same Deleted, 480,000, but has no third column); 3 "past the
 --     line beside Deleted: host "recorded", guest "recorded"" (the cap read her albums alone); 4 "the room a delete was
@@ -1898,11 +1901,11 @@ comment on column public.media.purge_asked_at is
 --     true, on false false false; 12: withdrawal +00:00:00, hers +30 days; 13: {ok, restored 1, no_room 0}; 14: every
 --     ACL as restated, every definer and pinned path; 15 (md5 of each whitespace-collapsed prosrc, the file's own,
 --     matched locally): create_media 48845304c94e0ce4fac32bac36df5350, create_media_as_host
---     d1f7c8775b0d54d4e8f6d41901efeba1, empty_deleted 74cd9c1519e31ace3d24a5fe71258225, get_host_upload_context
+--     d1f7c8775b0d54d4e8f6d41901efeba1, empty_deleted 7f9daee85ffa3873005f153fb250c2b5, get_host_upload_context
 --     47f5299990c5ab234513ac232182bd21, get_upload_context 8d49526db8842f6f8f6432f0f781b9f4, get_upload_gate
---     ca02c6359e707e0494faa9ebe6ba5053, host_deleted_media 33dd69a8e87a2ef88f068c460a5fd670, host_room_used
+--     ca02c6359e707e0494faa9ebe6ba5053, host_deleted_media 6551382586940f1110c50c0a8fa50cfe, host_room_used
 --     27a7afbe085aef044ee0946426b86bf4, host_storage_summary 006d5319db9bd06cfebad85a2978abef, leave_deleted
---     fc8671b700e31d64b212f0a83fc00139, let_back_in 0a4f8efc5b0dde9ffad59ec25faaa7be, meter_upload
---     6e160cf34895e482e4ef91bad6672160, restore_event 44cfdd5468c0d4d37963383ccd14bfc3, restore_media
---     3e1a20bd4e92c2cce88989dc2fe0dec4, set_media_purge_at f1c27be0a29cee7fea762e665cb3aa81.
+--     d700496c307b2a1d8e9edd697cbdc199, let_back_in 21e12ae4bacc90d66b4702d1d40db722, meter_upload
+--     6e160cf34895e482e4ef91bad6672160, restore_event 89a08ed92c61d9b8924e4f1410b89bb9, restore_media
+--     eefa15da54e6ba88d22dc626b42028b6, set_media_purge_at f1c27be0a29cee7fea762e665cb3aa81.
 -- =============================================================================================

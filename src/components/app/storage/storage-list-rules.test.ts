@@ -12,6 +12,7 @@ import type { StorageItem } from "@/lib/db/queries/storage-list";
 import {
   addedLabel,
   byEvent,
+  fitStep,
   formatDuration,
   goalCount,
   goalStep,
@@ -86,16 +87,19 @@ describe("the filter: All, or one event", () => {
   });
 });
 
+// ★ RESHAPED ON PURPOSE (trash-in-storage, 2026-10-03; scar kept: the strip counts what the check counts, from what
+// she stored before this visit, each byte once, to the plain cap). What frees room is what left for good (items deleted
+// for good, Deleted emptied), never a move to Deleted, which the check still counts; its button deletes first.
 describe("the goal strip counts what the check counts", () => {
   // Priya: 110.83 GB stored, Pro 100 GB tapped: 10.83 GB to free.
   const stored = Math.round(110.83 * GIGABYTE);
   const cap = 100 * GIGABYTE;
 
-  it("counts down as items are selected, and removed ones stay counted", () => {
+  it("counts down as items are selected, and what left for good stays counted", () => {
     const counting = goalCount({
       storedBytes: stored,
       capBytes: cap,
-      removedBytes: 4 * GIGABYTE,
+      freedBytes: 4 * GIGABYTE,
       selectedBytes: 5 * GIGABYTE,
       selectedCount: 2,
     });
@@ -107,37 +111,39 @@ describe("the goal strip counts what the check counts", () => {
     expect(counting.percent).toBeLessThan(100);
   });
 
-  it("removes first while anything freed is only selected", () => {
+  it("deletes first while anything freed is only selected", () => {
     // The storage check reads what is STORED: a selection has not freed anything yet.
     const selected = goalCount({
       storedBytes: stored,
       capBytes: cap,
-      removedBytes: 0,
+      freedBytes: 0,
       selectedBytes: 11 * GIGABYTE,
       selectedCount: 3,
     });
     expect(selected.done).toBe(true);
-    expect(goalStep(selected)).toBe("remove-and-switch");
+    expect(goalStep(selected)).toBe("delete-and-switch");
+    expect(fitStep(selected)).toBe("delete");
   });
 
-  it("switches once everything freed has gone to Deleted", () => {
-    const removed = goalCount({
+  it("switches once everything freed has left for good", () => {
+    const freed = goalCount({
       storedBytes: stored,
       capBytes: cap,
-      removedBytes: 11 * GIGABYTE,
+      freedBytes: 11 * GIGABYTE,
       selectedBytes: 0,
       selectedCount: 0,
     });
-    expect(removed.remaining).toBe(0);
-    expect(goalStep(removed)).toBe("switch");
-    expect(removed.percent).toBe(100);
+    expect(freed.remaining).toBe(0);
+    expect(goalStep(freed)).toBe("switch");
+    expect(fitStep(freed)).toBe("fits");
+    expect(freed.percent).toBe(100);
   });
 
   it("reaches zero exactly at the plain cap, never short of it", () => {
     const short = goalCount({
       storedBytes: stored,
       capBytes: cap,
-      removedBytes: stored - cap - 1,
+      freedBytes: stored - cap - 1,
       selectedBytes: 0,
       selectedCount: 0,
     });
@@ -146,7 +152,7 @@ describe("the goal strip counts what the check counts", () => {
     const exact = goalCount({
       storedBytes: stored,
       capBytes: cap,
-      removedBytes: stored - cap,
+      freedBytes: stored - cap,
       selectedBytes: 0,
       selectedCount: 0,
     });
@@ -155,7 +161,7 @@ describe("the goal strip counts what the check counts", () => {
 });
 
 describe("a selection, grouped and named", () => {
-  it("groups by event, which is how Remove and Download reach the server", () => {
+  it("groups by event, which is how Delete for good and Download reach the server", () => {
     const groups = byEvent([
       pick(item("a", 1, { eventId: "party" })),
       pick(item("b", 2)),

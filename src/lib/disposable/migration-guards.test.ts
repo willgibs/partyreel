@@ -54,7 +54,10 @@ function latest(name: string): { body: string; file: string } {
       const tag = opener[1];
       const start = m.index + opener.index! + opener[0].length;
       const close = code.indexOf(`${tag};`, start);
-      found = { body: collapse(code.slice(m.index, close + tag.length + 1)), file };
+      found = {
+        body: collapse(code.slice(m.index, close + tag.length + 1)),
+        file,
+      };
     }
   }
   expect(found, `${name} defined nowhere`).not.toBeNull();
@@ -64,7 +67,10 @@ function latest(name: string): { body: string; file: string } {
 const code = (name: string) => latest(name).body;
 const fileSql = () =>
   collapse(strip(readFileSync(join(MIGRATIONS_DIR, FILE), "utf8")));
-const everything = () => files().map(({ sql }) => collapse(strip(sql))).join(" ");
+const everything = () =>
+  files()
+    .map(({ sql }) => collapse(strip(sql)))
+    .join(" ");
 
 /** The predicate's visible half, as every home writes it; the host's exemption follows it in one of three spellings. */
 const VISIBLE = "m.sealed_until is null or m.sealed_until <= now() or ";
@@ -86,12 +92,17 @@ describe("1. the one predicate in every SQL home a guest's view reaches", () => 
     "album_changes_since",
   ];
 
-  it.each(HOMES)("%s carries it, the host exempt where her own session asks", (name) => {
-    const body = code(name);
-    expect(body).toContain(VISIBLE);
-    const after = body.slice(body.indexOf(VISIBLE) + VISIBLE.length);
-    expect(HOST_ASKS.some((spelling) => after.startsWith(spelling))).toBe(true);
-  });
+  it.each(HOMES)(
+    "%s carries it, the host exempt where her own session asks",
+    (name) => {
+      const body = code(name);
+      expect(body).toContain(VISIBLE);
+      const after = body.slice(body.indexOf(VISIBLE) + VISIBLE.length);
+      expect(HOST_ASKS.some((spelling) => after.startsWith(spelling))).toBe(
+        true,
+      );
+    },
+  );
 
   it("★ the guest album's count and what waits read the predicate and its negation, one statement (one snapshot)", () => {
     const reader = code("album_changes_since");
@@ -110,7 +121,9 @@ describe("1. the one predicate in every SQL home a guest's view reaches", () => 
     expect(reader).toContain(
       "when p_scope = 'host' then ( select count(*) from public.media m where m.event_id = p_event_id and m.status = 'approved')",
     );
-    expect(reader).toContain(" language sql stable security invoker set search_path = ''");
+    expect(reader).toContain(
+      " language sql stable security invoker set search_path = ''",
+    );
   });
 
   it("the open album RPC keeps its gates and its keyset around the predicate (the index still walks in display order)", () => {
@@ -147,7 +160,9 @@ describe("2. the album's versions learn the seal and what waits, and no waiting 
     expect(note).toContain(
       "v_scope := public.album_bits(old.status, old.sealed_until is not null, new.status, new.sealed_until is not null);",
     );
-    expect(note).toContain("if v_scope & 6 <> 0 then perform public.album_remember('a', v_event);");
+    expect(note).toContain(
+      "if v_scope & 6 <> 0 then perform public.album_remember('a', v_event);",
+    );
     expect(note).not.toMatch(/\b(insert into|update public\.|delete from)\b/);
   });
 
@@ -169,9 +184,9 @@ describe("2. the album's versions learn the seal and what waits, and no waiting 
     expect(sql).toContain(
       "create constraint trigger media_album_stamp after insert or update of status, sealed_until or delete on public.media deferrable initially deferred for each row execute function public.album_stamp_media();",
     );
-    expect(sql.indexOf("drop trigger media_album_note on public.media;")).toBeLessThan(
-      sql.indexOf("create trigger media_album_note"),
-    );
+    expect(
+      sql.indexOf("drop trigger media_album_note on public.media;"),
+    ).toBeLessThan(sql.indexOf("create trigger media_album_note"));
   });
 
   it("★ the doorbell rings on the album's own bits (what a guest sees, what waits), and holds for a write that rings once", () => {
@@ -199,13 +214,21 @@ describe("3. develop is a write, a save rewrites in the same save, and nothing s
     expect(pass).toContain(
       "update public.media m set sealed_until = p_event.develops_at where m.event_id = p_event.id and m.status = 'pending' and m.sealed_until is null;",
     );
-    const hold = pass.indexOf("set_config('partyreel.doorbell_hold', 'on', true)");
-    const release = pass.indexOf("set_config('partyreel.doorbell_hold', '', true)");
+    const hold = pass.indexOf(
+      "set_config('partyreel.doorbell_hold', 'on', true)",
+    );
+    const release = pass.indexOf(
+      "set_config('partyreel.doorbell_hold', '', true)",
+    );
     expect(hold).toBeGreaterThan(-1);
     expect(release).toBeGreaterThan(hold);
     // It never writes a status, so it never stamps let_in_at.
-    expect(pass).not.toMatch(/set status|status =\s*'(approved|hidden|removed)'/);
-    expect(pass).toContain(" language plpgsql security invoker set search_path = ''");
+    expect(pass).not.toMatch(
+      /set status|status =\s*'(approved|hidden|removed)'/,
+    );
+    expect(pass).toContain(
+      " language plpgsql security invoker set search_path = ''",
+    );
   });
 
   it("develop_due asks seal_disagrees, runs the one pass waiting on its rows, and rings once", () => {
@@ -219,32 +242,50 @@ describe("3. develop is a write, a save rewrites in the same save, and nothing s
     expect(code("events_develops_rewrite")).toContain(
       "begin perform public.develop_rows(new, true); perform public.album_doorbell(new.id); return null; end;",
     );
-    expect(code("events_develops_rewrite")).toContain(" security definer set search_path = ''");
+    expect(code("events_develops_rewrite")).toContain(
+      " security definer set search_path = ''",
+    );
     expect(fileSql()).toContain(
       "create trigger events_develops_rewrite after update of develops_at on public.events for each row when (old.develops_at is distinct from new.develops_at) execute function public.events_develops_rewrite();",
     );
   });
 
   it("★ no upload and no develop takes the event row's lock (a measured deadlock cycle with restores, purges and takedowns)", () => {
-    for (const name of ["develop_due", "develop_due_sweep", "develop_rows", "create_media", "create_media_as_host"]) {
-      expect(code(name), name).not.toMatch(/\bfrom public\.events\b[^;]*\bfor (share|update|no key update|key share)\b/);
+    for (const name of [
+      "develop_due",
+      "develop_due_sweep",
+      "develop_rows",
+      "create_media",
+      "create_media_as_host",
+    ]) {
+      expect(code(name), name).not.toMatch(
+        /\bfrom public\.events\b[^;]*\bfor (share|update|no key update|key share)\b/,
+      );
     }
   });
 
   it("★ no writer seals a row a guest may have seen: each update of sealed_until clears it, moves a sealed row, or seals a held one", () => {
-    const writes = [...everything().matchAll(/update public\.media m? ?set sealed_until = ([^;]*?) where ([^;]*);/g)];
+    const writes = [
+      ...everything().matchAll(
+        /update public\.media m? ?set sealed_until = ([^;]*?) where ([^;]*);/g,
+      ),
+    ];
     expect(writes.length).toBeGreaterThan(0);
     for (const [, value, where] of writes) {
       const clears = value.trim() === "null";
       const movesSealed =
         where.includes("sealed_until is not null") ||
-        /sealed_until < p_event\.develops_at or [ms]\.sealed_until > p_event\.develops_at/.test(where);
-      const sealsHeld = /status = 'pending' and [ms]\.sealed_until is null/.test(where);
+        /sealed_until < p_event\.develops_at or [ms]\.sealed_until > p_event\.develops_at/.test(
+          where,
+        );
+      const sealsHeld =
+        /status = 'pending' and [ms]\.sealed_until is null/.test(where);
       expect(
         clears || movesSealed || sealsHeld,
         `an update that could seal a visible row: set sealed_until = ${value} where ${where}`,
       ).toBe(true);
-      if (!clears && !sealsHeld) expect(value).toContain("when m.sealed_until <= now() then null");
+      if (!clears && !sealsHeld)
+        expect(value).toContain("when m.sealed_until <= now() then null");
     }
   });
 
@@ -259,8 +300,12 @@ describe("3. develop is a write, a save rewrites in the same save, and nothing s
 
   it("the sweep develops the disagreeing albums in event-id order, a clamped batch a call", () => {
     const sweep = code("develop_due_sweep");
-    expect(sweep).toContain("v_limit constant integer := least(greatest(coalesce(p_limit, 50), 1), 500);");
-    expect(sweep).toContain("and public.seal_disagrees(e) order by e.id limit v_limit loop v_developed := v_developed + public.develop_due(v_event);");
+    expect(sweep).toContain(
+      "v_limit constant integer := least(greatest(coalesce(p_limit, 50), 1), 500);",
+    );
+    expect(sweep).toContain(
+      "and public.seal_disagrees(e) order by e.id limit v_limit loop v_developed := v_developed + public.develop_due(v_event);",
+    );
     expect(fileSql()).toContain(
       "insert into public.ops_flags (key, enabled) values ('develop_rolls_enabled', true) on conflict (key) do nothing;",
     );
@@ -304,7 +349,9 @@ describe("3. develop is a write, a save rewrites in the same save, and nothing s
 describe("4. the roll, its ceiling, the fast purge, the camera video, the seal at insert", () => {
   it("★ create_media counts the roll AFTER the host's profiles lock and under its own advisory lock, then the ceiling", () => {
     const body = code("create_media");
-    const lock = body.indexOf("from public.profiles where id = v_event.host_id for update;");
+    const lock = body.indexOf(
+      "from public.profiles where id = v_event.host_id for update;",
+    );
     const advisory = body.indexOf(
       "perform pg_catalog.pg_advisory_xact_lock( pg_catalog.hashtextextended('roll:' || coalesce(v_guest.user_id, v_guest.id)::text, 0));",
     );
@@ -347,14 +394,21 @@ describe("4. the roll, its ceiling, the fast purge, the camera video, the seal a
     expect(insert).toBeGreaterThan(-1);
     expect(ledger).toBeGreaterThan(insert);
     // Its only writer: no other body names it in a write.
-    const writers = everything().match(/(insert into|update|delete from) public\.camera_rolls/g) ?? [];
+    const writers =
+      everything().match(
+        /(insert into|update|delete from) public\.camera_rolls/g,
+      ) ?? [];
     expect([...new Set(writers)]).toEqual(["insert into public.camera_rolls"]); // a file replacing create_media restates it
   });
 
-  it("★ a camera shot she withdraws purges tonight; every other removal keeps its 30 days, and a hold or a report still keeps it", () => {
+  // ★ RESHAPED ON PURPOSE (trash-in-storage, 20261003220000; scar kept: a camera shot she withdraws purges tonight, and
+  // a hold or a report still keeps it). The rule widened from the camera's shots to every guest's own withdrawal: her
+  // Deleted counts in the host's storage now and a withdrawal is in none of the host's figures, so 30 days of it would
+  // be storage nobody is counted for. Every other removal keeps its 30 days.
+  it("★ a shot she withdraws purges tonight, a camera's or any album's; every other removal keeps its 30 days, and a hold or a report still keeps it", () => {
     const purge = code("set_media_purge_at");
     expect(purge).toContain(
-      "if new.status = 'removed' then new.purge_at := coalesce(new.removed_at, now()) + interval '30 days'; if new.removed_by_uploader then if exists (select 1 from public.events e where e.id = new.event_id and e.capture = 'camera' and new.created_at >= e.sealed_from) then new.purge_at := coalesce(new.removed_at, now()); end if; end if; else new.purge_at := null; end if;",
+      "if new.status = 'removed' then new.purge_at := coalesce(new.removed_at, now()) + interval '30 days'; if new.removed_by_uploader then new.purge_at := coalesce(new.removed_at, now()); end if; else new.purge_at := null; end if;",
     );
     // The purge's own guards are untouched by this lane.
     expect(latest("purge_media_rows").file).not.toBe(FILE);
@@ -418,7 +472,9 @@ describe("5. the reads, and who may call what", () => {
   it("develop_due and its sweep are the service role's; the helpers the owner's alone; the trigger functions no client's", () => {
     const sql = fileSql();
     for (const fn of ["develop_due(uuid)", "develop_due_sweep(integer)"]) {
-      expect(sql).toContain(`revoke all on function public.${fn} from public, anon, authenticated; grant execute on function public.${fn} to service_role;`);
+      expect(sql).toContain(
+        `revoke all on function public.${fn} from public, anon, authenticated; grant execute on function public.${fn} to service_role;`,
+      );
     }
     for (const fn of [
       "album_bits(public.media_status, boolean, public.media_status, boolean)",
@@ -427,12 +483,18 @@ describe("5. the reads, and who may call what", () => {
       "seal_disagrees(public.events)",
       "develop_rows(public.events, boolean)",
     ]) {
-      expect(sql).toContain(`revoke all on function public.${fn} from public, anon, authenticated, service_role;`);
+      expect(sql).toContain(
+        `revoke all on function public.${fn} from public, anon, authenticated, service_role;`,
+      );
     }
     for (const fn of ["events_reveal_stamp()", "events_develops_rewrite()"]) {
-      expect(sql).toContain(`revoke all on function public.${fn} from public, anon, authenticated;`);
+      expect(sql).toContain(
+        `revoke all on function public.${fn} from public, anon, authenticated;`,
+      );
     }
-    expect(sql).toContain("revoke execute on function public.set_media_purge_at() from public, anon, authenticated;");
+    expect(sql).toContain(
+      "revoke execute on function public.set_media_purge_at() from public, anon, authenticated;",
+    );
     expect(everything()).not.toMatch(
       /grant execute on function public\.(develop_due|develop_due_sweep|develop_rows|album_bits|album_doorbell|guest_roll|seal_disagrees|events_reveal_stamp|events_develops_rewrite)\([^)]*\) to [^;]*\b(anon|authenticated|public)\b/,
     );
@@ -443,20 +505,34 @@ describe("5. the reads, and who may call what", () => {
     expect(sql).toContain(
       "grant insert (capture, roll_size, develops_at), update (capture, roll_size, develops_at) on public.events to authenticated;",
     );
-    expect(sql).toContain("grant select (sealed_until) on public.media to authenticated;");
-    expect(sql).not.toMatch(/revoke [^;]* on (table )?public\.(events|media)\b/);
+    expect(sql).toContain(
+      "grant select (sealed_until) on public.media to authenticated;",
+    );
+    expect(sql).not.toMatch(
+      /revoke [^;]* on (table )?public\.(events|media)\b/,
+    );
     // sealed_from and sealed_until are no client's to write, and no anon's to read.
-    expect(everything()).not.toMatch(/grant (insert|update)[^;]*\b(sealed_from|sealed_until)\b/);
-    expect(sql).not.toMatch(/grant [^;]*\b(sealed_from|sealed_until)\b[^;]* to [^;]*\banon\b/);
+    expect(everything()).not.toMatch(
+      /grant (insert|update)[^;]*\b(sealed_from|sealed_until)\b/,
+    );
+    expect(sql).not.toMatch(
+      /grant [^;]*\b(sealed_from|sealed_until)\b[^;]* to [^;]*\banon\b/,
+    );
   });
 
   it("★ the ledger is deny-all: RLS on, no policy, the service role's SELECT alone", () => {
     const sql = fileSql();
-    expect(sql).toContain("alter table public.camera_rolls enable row level security;");
+    expect(sql).toContain(
+      "alter table public.camera_rolls enable row level security;",
+    );
     expect(sql).toContain(
       "revoke all on table public.camera_rolls from public, anon, authenticated, service_role; grant select on table public.camera_rolls to service_role;",
     );
-    expect(everything()).not.toMatch(/create policy [^;]* on public\.camera_rolls/);
-    expect(everything()).not.toMatch(/grant [^;]* on (table )?public\.camera_rolls to [^;]*\b(anon|authenticated)\b/);
+    expect(everything()).not.toMatch(
+      /create policy [^;]* on public\.camera_rolls/,
+    );
+    expect(everything()).not.toMatch(
+      /grant [^;]* on (table )?public\.camera_rolls to [^;]*\b(anon|authenticated)\b/,
+    );
   });
 });

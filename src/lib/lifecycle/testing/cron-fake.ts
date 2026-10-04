@@ -16,11 +16,13 @@
  *    or any open report on the event, an item's or the album's (20260929140000). The fake reads every array answer as a set of rows, so this one is
  *    answered by `withArrayRpc` instead, a thin wrapper that returns the array as `data` (as
  *    PostgREST returns a `uuid[]`).
- *  - `standby_hosts(p_after, p_limit)`: (host, bytes) over the standby predicate of
- *    20260929140000 (never a withdrawal, a system removal, an operator's removal or an asked row), keyset on host
- *    id, `least(p_limit, 1000)`; the fake clamps the answer at 1,000.
- *  - `host_storage_summary(p_host_id)`: one row, the active bytes and exactly what the host's two
- *    Deleted lists show, inside the 30-day window by the world's clock, never an asked row (20260929140000).
+ *  - `host_storage_summary(p_host_id)`: one row, the active bytes, her Deleted exactly as her two Deleted lists show
+ *    it (`host_deleted_media`, 20261003220000: her removals and a deleted event's media, each inside its 30 days by
+ *    the world's clock, never a withdrawal, an operator's removal or an asked row) and the system's part of it.
+ *  - `leave_deleted(p_host_id, p_bytes, p_system)`: her Deleted, oldest first (a deleted event's items, which
+ *    entered together, largest first), each asked until `p_bytes` have left (all of it when null), the system's
+ *    removals only with `p_system`; an event it empties leaves its window; answers one row of its OUT parameters,
+ *    `{items, freed_bytes}` (20261003220000).
  *
  * The world's clock (`now`, the real one by default) is the SQL's `now()`: a test that moves an
  * operator's removal past its window passes the instant it runs the sweeps at.
@@ -89,6 +91,52 @@ export function createCronWorld(
         (r.media_id === m.id ||
           (r.media_id == null && r.event_id === m.event_id)),
     );
+  /**
+   * Her Deleted, item by item, as `host_deleted_media` answers it (20261003220000): her removals inside their 30 days
+   * in an event still standing or still inside its own, and a deleted event's live media inside the event's 30 days;
+   * never a withdrawal, an operator's removal or an asked row. `binnedAt` is when each entered Deleted.
+   */
+  const deletedMedia = (hostId: string) => {
+    const events = eventsById(tables);
+    const windowStart = nowMs() - WINDOW_MS;
+    const out: {
+      row: FakeRow;
+      bytes: number;
+      binnedAt: number;
+      bySystem: boolean;
+    }[] = [];
+    for (const m of tables.media) {
+      const e = events.get(String(m.event_id));
+      if (!e || e.host_id !== hostId) continue;
+      // Inside is from the window's start on (`>=`), as both lists and the SQL read it.
+      const eventInWindow =
+        e.deleted_at == null || at(e.deleted_at) >= windowStart;
+      const removedArm =
+        m.status === "removed" &&
+        !m.removed_by_uploader &&
+        !m.removed_by_admin &&
+        m.purge_asked_at == null &&
+        at(m.removed_at) >= windowStart &&
+        eventInWindow;
+      const deletedEventArm =
+        m.status !== "removed" &&
+        e.deleted_at != null &&
+        at(e.deleted_at) >= windowStart;
+      if (!removedArm && !deletedEventArm) continue;
+      const removed = at(m.removed_at);
+      const deleted = at(e.deleted_at);
+      out.push({
+        row: m,
+        bytes: Number(m.file_size_bytes),
+        binnedAt: Math.min(
+          Number.isNaN(removed) ? Infinity : removed,
+          Number.isNaN(deleted) ? Infinity : deleted,
+        ),
+        bySystem: Boolean(m.removed_by_system),
+      });
+    }
+    return out;
+  };
   /** Released: its bytes already left the host's meter (media_release_meter). */
   const isReleased = (m: FakeRow) =>
     Boolean(m.removed_by_admin) || m.purge_asked_at != null;
@@ -118,60 +166,67 @@ export function createCronWorld(
           freed_bytes,
         }));
       },
-      standby_hosts: (args) => {
-        const events = eventsById(tables);
-        const sums = new Map<string, number>();
-        for (const m of tables.media) {
-          const e = events.get(String(m.event_id));
-          if (!e || m.legal_hold_at != null) continue;
-          const removedArm =
-            m.status === "removed" &&
-            !m.removed_by_system &&
-            !m.removed_by_uploader &&
-            !m.removed_by_admin &&
-            m.purge_asked_at == null;
-          const deletedEventArm =
-            m.status !== "removed" && e.deleted_at != null;
-          if (!removedArm && !deletedEventArm) continue;
-          const host = String(e.host_id);
-          sums.set(host, (sums.get(host) ?? 0) + Number(m.file_size_bytes));
-        }
-        let rows = [...sums]
-          .filter(([, bytes]) => bytes > 0)
-          .map(([host_id, standby_bytes]) => ({ host_id, standby_bytes }))
-          .sort((a, b) =>
-            a.host_id < b.host_id ? -1 : a.host_id > b.host_id ? 1 : 0,
-          );
-        const after = args.p_after as string | undefined;
-        if (after) rows = rows.filter((r) => r.host_id > after);
-        const limit = args.p_limit as number | undefined;
-        if (limit !== undefined && limit !== null) {
-          rows = rows.slice(0, Math.min(limit, 1000));
-        }
-        return rows;
-      },
       host_storage_summary: (args) => {
         const events = eventsById(tables);
-        const windowStart = nowMs() - WINDOW_MS;
         let active = 0;
-        let standby = 0;
         for (const m of tables.media) {
           const e = events.get(String(m.event_id));
           if (!e || e.host_id !== args.p_host_id) continue;
-          const bytes = Number(m.file_size_bytes);
-          if (m.status !== "removed" && e.deleted_at == null) active += bytes;
-          else if (
-            m.status === "removed"
-              ? !m.removed_by_uploader &&
-                !m.removed_by_admin &&
-                m.purge_asked_at == null &&
-                at(m.removed_at) >= windowStart
-              : at(e.deleted_at) >= windowStart
-          ) {
-            standby += bytes;
+          if (m.status !== "removed" && e.deleted_at == null) {
+            active += Number(m.file_size_bytes);
           }
         }
-        return [{ active_bytes: active, standby_bytes: standby }];
+        const deleted = deletedMedia(String(args.p_host_id));
+        return [
+          {
+            active_bytes: active,
+            standby_bytes: deleted.reduce((sum, d) => sum + d.bytes, 0),
+            system_bytes: deleted
+              .filter((d) => d.bySystem)
+              .reduce((sum, d) => sum + d.bytes, 0),
+          },
+        ];
+      },
+      leave_deleted: (args) => {
+        const host = String(args.p_host_id);
+        const want = args.p_bytes == null ? null : Number(args.p_bytes);
+        const system = Boolean(args.p_system);
+        if (want !== null && want <= 0) return { items: 0, freed_bytes: 0 };
+        const stamp = new Date(nowMs()).toISOString();
+        const queue = deletedMedia(host)
+          .filter((d) => system || !d.bySystem)
+          .sort(
+            (a, b) =>
+              a.binnedAt - b.binnedAt ||
+              b.bytes - a.bytes ||
+              (String(a.row.id) < String(b.row.id) ? -1 : 1),
+          );
+        let items = 0;
+        let freed = 0;
+        const touched = new Set<string>();
+        for (const d of queue) {
+          if (d.row.status !== "removed") {
+            d.row.status = "removed";
+            d.row.removed_at = stamp;
+            touched.add(String(d.row.event_id));
+          }
+          d.row.purge_asked_at = stamp;
+          items += 1;
+          freed += d.bytes;
+          if (want !== null && freed >= want) break;
+        }
+        // An event it emptied leaves its window with its last item: a minute past the window's start, as the SQL
+        // moves it.
+        const left = new Set(
+          deletedMedia(host).map((d) => String(d.row.event_id)),
+        );
+        for (const id of touched) {
+          const e = eventsById(tables).get(id);
+          if (e && !left.has(id)) {
+            e.deleted_at = new Date(nowMs() - WINDOW_MS - 60_000).toISOString();
+          }
+        }
+        return { items, freed_bytes: freed };
       },
       defer_kept_due_media: () => {
         let marked = 0;

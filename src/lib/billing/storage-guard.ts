@@ -20,10 +20,11 @@
  * at the line; that slack is a courtesy at write time, not room a host may BUY
  * into. A host storing 105 GB does not fit Pro 100 GB.
  *
- * ★ THE BYTES ARE ACTIVE BYTES, read by the caller through `getHostStorageSummary`
- * (the same definition as the SQL `host_active_bytes()`), never re-derived here.
- * A Remove frees room at once, which is what makes "remove 40 GB first" an
- * instruction a host can follow in a minute.
+ * ★ THE BYTES ARE WHAT SHE STORES, her albums and her Deleted together, read by the
+ * caller through `getHostStorageSummary` (`storedBytes`, the figure every cap check
+ * in SQL reads too: trash-in-storage), never re-derived here. A delete frees room
+ * only when it leaves Deleted for good (Delete for good, Empty Deleted), which is
+ * why the sentence says "free 40 GB first", never "remove".
  *
  * Pure and client-safe: no env, no SDK, no DB, only `tiers.ts` and a formatter.
  */
@@ -82,7 +83,7 @@ export type PlanChangeCheck =
   | { ok: false; refusal: StorageRefusal };
 
 /**
- * THE CHECK. `storedBytes` is the host's ACTIVE bytes; `target` the plan being
+ * THE CHECK. `storedBytes` is what the host stores (her albums and her Deleted); `target` the plan being
  * bought or switched to. Tier-blind by design: a Free host in the over-cap grace
  * (a lapsed Pro still holding 140 GB) meets exactly the same line as a pass holder
  * or a Pro host shrinking, because what they store is the only fact that matters.
@@ -122,19 +123,20 @@ export function planWithBilling(plan: Plan): string {
 }
 
 /**
- * "You're storing 140 GB. Pro 100 GB holds 100 GB, so remove 40 GB first, or
- * choose Pro 500 GB, monthly." (the brief's own words for the plain face). The
+ * "You're storing 140 GB. Pro 100 GB holds 100 GB, so free 40 GB first, or
+ * choose Pro 500 GB, monthly." (the brief's own words for the plain face, its
+ * "remove" now "free" since Deleted counts: trash-in-storage). The
  * size that cannot hold is named by its size alone (neither of its prices holds
  * it); the size offered instead is the SMALLEST that fits, named with its
  * billing, never a bigger one, and when nothing fits the sentence stops at what
- * to remove rather than inventing a plan.
+ * to free rather than inventing a plan.
  */
 export function refusalSentence(
   storedBytes: number,
   target: Plan,
   fit: Plan | null,
 ): string {
-  const head = `You're storing ${formatBytesUp(storedBytes)}. ${target.name} holds ${formatBytes(target.storageBytes)}, so remove ${formatBytesUp(storedBytes - target.storageBytes)} first`;
+  const head = `You're storing ${formatBytesUp(storedBytes)}. ${target.name} holds ${formatBytes(target.storageBytes)}, so free ${formatBytesUp(storedBytes - target.storageBytes)} first`;
   return fit ? `${head}, or choose ${planWithBilling(fit)}.` : `${head}.`;
 }
 
@@ -145,7 +147,7 @@ export function refusalSentence(
  * cards are not showing). It names the largest size that cannot hold what she stores
  * (the cheapest move a removal buys) and the smallest that can; when that smallest is
  * her own plan it offers nothing, since she is on it already, and the line ends at
- * what to remove. Null when every size holds it.
+ * what to free. Null when every size holds it.
  */
 export function proFitLine(
   storedBytes: number,
@@ -169,7 +171,7 @@ export function proFitLine(
 /**
  * `formatBytes`, rounded UP at the one decimal it prints. WHY: the stored figure
  * and the gap are instructions. `formatBytes` rounds to nearest, so a host 40.04 GB
- * over would read "remove 40 GB", do exactly that, and be refused again; and one
+ * over would read "free 40 GB", do exactly that, and be refused again; and one
  * storing 100.02 GB against a 100 GB cap would read "storing 100 GB" beside a
  * refusal. Rounding up keeps both numbers sufficient. The epsilon stops float noise
  * on an exact value (140 GB) from ticking it up to 140.1.

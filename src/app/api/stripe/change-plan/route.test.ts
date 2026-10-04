@@ -31,9 +31,16 @@ vi.mock("@/lib/supabase/server", () => ({
   }),
 }));
 
-let activeBytes = 0;
+/** What she keeps in her albums, and in Deleted: her plan's cap holds both (trash-in-storage). */
+let albumBytes = 0;
+let deletedBytes = 0;
 vi.mock("@/lib/db/queries/storage", () => ({
-  getHostStorageSummary: async () => ({ activeBytes, standbyBytes: 0 }),
+  getHostStorageSummary: async () => ({
+    activeBytes: albumBytes,
+    deletedBytes,
+    systemBytes: 0,
+    storedBytes: albumBytes + deletedBytes,
+  }),
 }));
 
 const PRICES: Record<string, string> = {
@@ -120,7 +127,8 @@ beforeEach(() => {
     stripe_customer_id: "cus_1",
     stripe_subscription_id: "sub_1",
   };
-  activeBytes = 40 * GIGABYTE;
+  albumBytes = 40 * GIGABYTE;
+  deletedBytes = 0;
   retrieve.mockResolvedValue(subscription());
   configurationId.mockResolvedValue("bpc_tagged");
   createSession.mockResolvedValue({
@@ -246,7 +254,7 @@ describe("which subscriptions can change", () => {
 
 describe("the storage guard", () => {
   it("refuses a smaller plan than what the host stores, with the numbers, before Stripe", async () => {
-    activeBytes = 140 * GIGABYTE;
+    albumBytes = 140 * GIGABYTE;
     const { status, json } = await answer({ planId: "pro_100" });
     expect(status).toBe(409);
     expect(json).toMatchObject({
@@ -262,8 +270,22 @@ describe("the storage guard", () => {
     expect(createSession).not.toHaveBeenCalled();
   });
 
+  it("★ counts her Deleted in what she stores: a smaller size must hold it too", async () => {
+    // 90 GB in her albums would fit Pro 100 GB; with 50 GB in Deleted she stores 140 GB.
+    albumBytes = 90 * GIGABYTE;
+    deletedBytes = 50 * GIGABYTE;
+    const { status, json } = await answer({ planId: "pro_100" });
+    expect(status).toBe(409);
+    expect(json).toMatchObject({
+      code: "over_new_cap",
+      storedBytes: 140 * GIGABYTE,
+      gapBytes: 40 * GIGABYTE,
+    });
+    expect(createSession).not.toHaveBeenCalled();
+  });
+
   it("lets a downgrade that fits through, and an upgrade always", async () => {
-    activeBytes = 90 * GIGABYTE;
+    albumBytes = 90 * GIGABYTE;
     expect((await answer({ planId: "pro_100" })).status).toBe(200);
     expect((await answer({ planId: "pro_2tb_yr" })).status).toBe(200);
   });

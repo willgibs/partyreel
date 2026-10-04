@@ -96,9 +96,6 @@ vi.mock("@/lib/lifecycle/sweeps/over-capacity", () => ({
 vi.mock("@/lib/lifecycle/sweeps/inactivity", () => ({
   sweepInactiveFreeEvents: stub("inactive_free_events", 2),
 }));
-vi.mock("@/lib/lifecycle/sweeps/standby-budget", () => ({
-  sweepStandbyBudget: stub("standby_budget", 3),
-}));
 vi.mock("@/lib/lifecycle/sweeps/album-log", () => ({
   sweepAlbumLog: stub("album_log", 1),
 }));
@@ -118,7 +115,6 @@ const BUDGETED = [
   "over_capacity",
   "renewal_nudges",
   "inactive_free_events",
-  "standby_budget",
   "album_log",
 ];
 

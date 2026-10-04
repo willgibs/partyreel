@@ -119,7 +119,10 @@ Each is built as recommended and listed under "Calls his to overrule".
 ## Where I am
 
 - Booted at `e9b006e4`; the plan is the Questions above.
-- The migration `supabase/migrations/20261003220000_deleted_counts.sql` is written and proved on the live schema,
-  rolled back: RED 13/15 failing on what each lacks, GREEN 15/15 (its foot). Next: the lifecycle and storage code
-  (the summary's figures, the over-capacity grace, the standby sweep retired), the chart and its setting, the size
-  list, the routes, the docs.
+- The migration `supabase/migrations/20261003220000_deleted_counts.sql`, proved on the live schema rolled back: RED
+  13/15 failing on what each lacks, GREEN 15/15, run again on the final file (every window on the lists' `>=`).
+- The code is built and its tests reshaped: the summary's four figures, the over-capacity grace on what she keeps (her
+  own Deleted leaves first), the standby sweep retired, the storage chart with its setting and Empty Deleted, the size
+  list's Delete for good with Deleted at its head, the plan routes and the sheet on what she stores, the grace and
+  reduce mails, the Library's chart states. Typecheck, lint and the full suite green on the unsynced tree.
+- Next: sync past crumbs-62, the docs, the captures, the gate and `lab:smoke`, the Handoff.

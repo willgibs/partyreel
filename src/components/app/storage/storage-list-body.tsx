@@ -11,20 +11,23 @@ import {
 } from "@/components/app/event-feed/bulk-bar";
 import { useExportDownload } from "@/components/app/export/use-export-download";
 import { announceChangePlanError } from "@/components/app/pricing/change-plan-request";
-import { showUndoToast } from "@/components/shared/undo-toast";
 import { Button } from "@/components/ui/button";
-import { PopupBody, PopupFooter, PopupHeader } from "@/components/ui/popup";
+import {
+  Popup,
+  PopupBody,
+  PopupClose,
+  PopupContent,
+  PopupFooter,
+  PopupHeader,
+} from "@/components/ui/popup";
 import {
   ResponsiveMenu,
   ResponsiveMenuItem,
 } from "@/components/ui/responsive-menu";
 import { loginPath } from "@/lib/auth/return-path";
+import { formatBytesUp } from "@/lib/billing/storage-guard";
 import { showActionError } from "@/lib/errors/toast";
 import { formatCount } from "@/lib/format/count";
-import {
-  RECENTLY_DELETED_BUDGET_MULTIPLIER,
-  RECENTLY_DELETED_WINDOW_DAYS,
-} from "@/lib/lifecycle/recently-deleted";
 import { useFlip } from "@/lib/shared/use-flip";
 import { formatBytes } from "@/lib/utils";
 
@@ -46,8 +49,10 @@ import {
 } from "./storage-list-rules";
 import {
   countNow,
+  deletedNow,
   EMPTY_SLOT,
   eventsNow,
+  freedBytes,
   INITIAL_LIST,
   listReducer,
   storedBefore,
@@ -62,9 +67,12 @@ import { useStorageSource } from "./storage-source";
  * `useStorageSource`), so a door (the storage meter, a refused price inside the plan) costs its
  * page nothing until a host opens it, and a component test of any of those doors never loads the
  * server's modules.
+ *
+ * ★ WHAT FREES ROOM HERE LEAVES FOR GOOD (trash-in-storage, Will 2026-10-03): her plan holds her
+ * albums and her Deleted together, so the bar's act is Delete for good and Deleted heads the list
+ * with its own Empty. Both ask first, since neither can be undone.
  */
 
-const TOAST_ID = "storage-list";
 /** The row's fade (`duration-150` on the row), before the list closes over it. */
 const LEAVE_MS = 150;
 
@@ -82,6 +90,11 @@ const FIRST_READ: ListState = {
   slots: { all: { ...EMPTY_SLOT, loading: true } },
 };
 
+/** What the confirm is asking about: a selection (and whether the switch follows it), or Deleted itself. */
+type Ask =
+  | { kind: "items"; items: Picked[]; thenSwitch: boolean }
+  | { kind: "empty"; bytes: number };
+
 export function StorageListBody({
   back,
   goal,
@@ -97,10 +110,12 @@ export function StorageListBody({
   const [state, dispatch] = useReducer(listReducer, FIRST_READ);
   const [phase, setPhase] = useState<GoalPhase>("idle");
   const [downloadAsk, setDownloadAsk] = useState(false);
+  const [ask, setAsk] = useState<Ask | null>(null);
   const [attempt, setAttempt] = useState(0);
 
   // The first read, and every retry of it: a page of the largest, with the overview (what she
-  // stores and each event's total). State moves only in the read's own callbacks.
+  // stores, what of it is in Deleted, and each event's total). State moves only in the read's own
+  // callbacks.
   useEffect(() => {
     let current = true;
     source.read({ withOverview: true }).then(
@@ -130,9 +145,10 @@ export function StorageListBody({
 
   const filter = state.filter;
   const slot = state.slots[filter] ?? EMPTY_SLOT;
-  const shown = shownItems(slot.items, filter, state.removed);
+  const shown = shownItems(slot.items, filter, state.deleted);
   const events = eventsNow(state);
   const stored = storedNow(state);
+  const deleted = deletedNow(state);
   const names = new Map(events.map((event) => [event.id, event.name]));
   const eventName = (id: string) => names.get(id) ?? null;
   const register = useFlip(shown.map((item) => item.id).join());
@@ -170,10 +186,10 @@ export function StorageListBody({
   }
 
   /**
-   * Remove a selection to Deleted, leading with the result: the rows fade and leave, the server
+   * Delete a selection for good, leading with the result: the rows fade and leave, the server
    * writes underneath, and a failure puts back whatever did not go. Resolves true once it landed.
    */
-  async function remove(items: Picked[]): Promise<boolean> {
+  async function deleteForGood(items: Picked[]): Promise<boolean> {
     if (items.length === 0) return true;
     const ids = items.map((item) => item.id);
     dispatch({ type: "busy", busy: true });
@@ -181,80 +197,61 @@ export function StorageListBody({
       dispatch({ type: "leaving", ids });
       await wait(LEAVE_MS);
     }
-    dispatch({ type: "removed", items });
+    dispatch({ type: "deleted", items });
     const answer = await source
-      .remove(items.map(({ id, eventId }) => ({ id, eventId })))
+      .deleteForGood(items.map(({ id, eventId }) => ({ id, eventId })))
       .catch(() => ({
         ok: false as const,
         code: "unknown" as const,
-        message: "Couldn't remove those. Please try again.",
-        removedEvents: [] as string[],
+        message: "Couldn't delete those. Please try again.",
+        deletedEvents: [] as string[],
       }));
     dispatch({ type: "busy", busy: false });
     if (!answer.ok) {
-      const done = new Set(answer.removedEvents);
+      const done = new Set(answer.deletedEvents);
       dispatch({
         type: "put-back",
         ids: items.filter((i) => !done.has(i.eventId)).map((i) => i.id),
       });
-      if (done.size > 0) onChanged();
+      // Whatever did go (or reached Deleted on its way) moved the figures behind the list.
+      onChanged();
       showActionError(answer);
       return false;
     }
     onChanged();
-    offerUndo(items);
+    toast.success(
+      `Deleted ${itemsWords(items)} for good (${formatBytes(totalBytes(items))} freed)`,
+    );
     return true;
   }
 
-  /** The act's toast, and its Undo: every item back out of Deleted, or the ones the plan has room for. */
-  function offerUndo(items: Picked[]) {
-    const ids = items.map((item) => item.id);
-    let refused: string[] = [];
-    let restoredAny = false;
-    showUndoToast({
-      id: TOAST_ID,
-      message: `Removed ${itemsWords(items)} (${formatBytes(totalBytes(items))}) to Deleted`,
-      tone: "success",
-      onUndo: () => dispatch({ type: "put-back", ids }),
-      undo: async () => {
-        const answer = await source.restore(ids);
-        if (!answer.ok) {
-          refused = ids;
-          return answer;
-        }
-        restoredAny = answer.restored.length > 0;
-        if (answer.refused.length === 0) return { ok: true };
-        refused = answer.refused;
-        const some = answer.restored.length;
-        return {
-          ok: false,
-          code: "unknown",
-          message:
-            (some > 0 ? `Put back ${some} of ${ids.length}. ` : "") +
-            (answer.message ?? "Some of those couldn’t be restored."),
-        };
-      },
-      onUndoFailed: () => {
-        const back = new Set(refused);
-        dispatch({
-          type: "removed",
-          items: items.filter((item) => back.has(item.id)),
-        });
-        if (restoredAny) onChanged();
-      },
-      onUndone: onChanged,
-    });
+  /** Empty Deleted: everything it holds leaves for good, and what she stores drops by all of it. */
+  async function emptyDeleted(bytes: number): Promise<void> {
+    dispatch({ type: "busy", busy: true });
+    const answer = await source.emptyDeleted().catch(() => ({
+      ok: false as const,
+      code: "unknown" as const,
+      message: "Couldn't empty Deleted. Please try again.",
+    }));
+    dispatch({ type: "busy", busy: false });
+    if (!answer.ok) {
+      showActionError(answer);
+      return;
+    }
+    // The overview's figure is what the strip counted from: it is what left.
+    dispatch({ type: "emptied", bytes });
+    onChanged();
+    toast.success(`Deleted is empty: ${formatBytesUp(bytes)} freed`);
   }
 
-  /** The strip's button: remove what is only selected, then ask the change-plan route to switch. */
-  async function finish() {
+  /** The strip's button, once she has confirmed: delete what is only selected, then ask the change-plan route to switch. */
+  async function finish(pending: Picked[]) {
     // Her own plan's goal has nothing to switch to, so its strip carries no button.
-    if (!goal || goal.kind === "fit" || phase !== "idle") return;
-    const pending = [...state.selected.values()];
+    if (!goal || goal.kind === "fit") return;
     if (pending.length > 0) {
-      setPhase("removing");
-      const removed = await remove(pending);
-      if (!removed) {
+      setPhase("deleting");
+      const done = await deleteForGood(pending);
+      if (!done) {
         setPhase("idle");
         return;
       }
@@ -281,6 +278,26 @@ export function StorageListBody({
     }
   }
 
+  function confirmAsk() {
+    const asked = ask;
+    setAsk(null);
+    if (!asked) return;
+    if (asked.kind === "empty") {
+      void emptyDeleted(asked.bytes);
+      return;
+    }
+    if (asked.thenSwitch) void finish(asked.items);
+    else void deleteForGood(asked.items);
+  }
+
+  /** The strip's own button: nothing selected switches at once; a selection asks first. */
+  function onStripFinish() {
+    if (!goal || goal.kind === "fit" || phase !== "idle") return;
+    const pending = [...state.selected.values()];
+    if (pending.length === 0) void finish([]);
+    else setAsk({ kind: "items", items: pending, thenSwitch: true });
+  }
+
   function download() {
     const groups = byEvent(state.selected.values());
     if (groups.size === 1) {
@@ -302,7 +319,7 @@ export function StorageListBody({
   const shownPicked = shown.map(pick);
   const allShownSelected =
     shown.length > 0 && shown.every((item) => state.selected.has(item.id));
-  // The strip counts from what she stored before this visit's removals, so what went to Deleted
+  // The strip counts from what she stored before this visit's deletions, so what left for good
   // and what is selected are each counted once.
   const count = goal
     ? goalCount({
@@ -310,22 +327,15 @@ export function StorageListBody({
         // Her own plan's cap, or the size she chose: the strip counts to whichever she is here for.
         capBytes:
           goal.kind === "fit" ? goal.capBytes : goal.target.storageBytes,
-        removedBytes: totalBytes(state.removed.values()),
+        freedBytes: freedBytes(state),
         selectedBytes,
         selectedCount: selected.length,
       })
     : null;
-  // Only a switch to a smaller size shrinks Deleted's budget with it.
-  const shrinkTo =
-    goal !== null &&
-    goal.kind !== "fit" &&
-    goal.capBytes !== null &&
-    goal.target.storageBytes < goal.capBytes
-      ? goal.target.storageBytes
-      : null;
   const filterName = filter === "all" ? null : eventName(filter);
   const total = countNow(state, filter);
   const firstLoad = state.overview === null && !state.failed;
+  const albumsBytes = events.reduce((sum, event) => sum + event.bytes, 0);
 
   const actions: BulkBarAction[] = [
     {
@@ -337,14 +347,17 @@ export function StorageListBody({
       onRun: download,
     },
     {
-      id: "remove",
-      label: "Remove to Deleted",
+      id: "delete",
+      label: "Delete for good",
       icon: Trash2,
       color: "destructive",
       disabled: state.busy || phase !== "idle",
-      onRun: () => void remove(selected),
+      onRun: () =>
+        setAsk({ kind: "items", items: selected, thenSwitch: false }),
     },
   ];
+
+  const askedItems = ask?.kind === "items" ? ask.items : [];
 
   return (
     <>
@@ -353,8 +366,8 @@ export function StorageListBody({
         back={back}
         description={
           filterName
-            ? `Largest first, in ${filterName}. Select what to remove.`
-            : "Largest first, across every event. Select what to remove."
+            ? `Largest first, in ${filterName}. Select what to delete for good.`
+            : "Largest first, across every event. Select what to delete for good."
         }
       />
 
@@ -363,7 +376,7 @@ export function StorageListBody({
           goal={goal}
           count={count}
           phase={phase}
-          onFinish={() => void finish()}
+          onFinish={onStripFinish}
         />
       ) : null}
 
@@ -371,7 +384,7 @@ export function StorageListBody({
         <div className="shrink-0 px-4 pt-3 pb-1">
           <EventFilter
             events={events}
-            allBytes={stored ?? 0}
+            allBytes={albumsBytes}
             value={filter}
             onChange={chooseFilter}
           />
@@ -379,6 +392,31 @@ export function StorageListBody({
       ) : null}
 
       <PopupBody className="pt-2" data-storage-body="">
+        {/* ★ DELETED HEADS THE LIST (trash-in-storage): what she already deleted still counts toward her
+            plan, so it is the first room to free, in one press, before anything she kept. */}
+        {state.overview && filter === "all" && deleted > 0 ? (
+          <div
+            data-storage-deleted=""
+            className="-mx-2 mb-2 flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2.5"
+          >
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-foreground">Deleted</p>
+              <p className="text-xs text-pretty text-muted-foreground tabular-nums">
+                {`${formatBytesUp(deleted)}, still counting toward your plan until it's emptied`}
+              </p>
+            </div>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={state.busy || phase !== "idle"}
+              onClick={() => setAsk({ kind: "empty", bytes: deleted })}
+            >
+              Empty
+            </Button>
+          </div>
+        ) : null}
+
         {state.failed ? (
           <div className="flex flex-col items-start gap-3 py-6">
             <p className="text-sm text-muted-foreground">
@@ -417,7 +455,7 @@ export function StorageListBody({
             <p className="py-6 text-sm text-muted-foreground">
               {filterName
                 ? `Nothing left in ${filterName}.`
-                : "Nothing is using space."}
+                : "Nothing is using space in your events."}
             </p>
           )
         ) : (
@@ -465,14 +503,11 @@ export function StorageListBody({
 
         {state.overview ? (
           <p
-            data-storage-note={
-              shrinkTo !== null ? "deleted-shrinks" : "deleted"
-            }
+            data-storage-note="deleted"
             className="pt-4 text-xs text-pretty text-muted-foreground"
           >
-            {shrinkTo !== null
-              ? `Once you switch, Deleted keeps only up to ${formatBytes(RECENTLY_DELETED_BUDGET_MULTIPLIER * shrinkTo)}, so its oldest items clear sooner.`
-              : `Removed items stop counting at once, and wait in Deleted for ${RECENTLY_DELETED_WINDOW_DAYS} days.`}
+            Your plan holds your events and Deleted together. Delete for good
+            skips Deleted, so it frees room at once.
           </p>
         ) : null}
       </PopupBody>
@@ -494,6 +529,44 @@ export function StorageListBody({
           </span>
         </PopupFooter>
       ) : null}
+
+      {/* The one confirm both acts pass through (`popups` r1, `confirm=dialog`): neither can be undone. */}
+      <Popup
+        open={ask !== null}
+        onOpenChange={(open) => {
+          if (!open) setAsk(null);
+        }}
+      >
+        <PopupContent kind="confirm" data-storage-confirm={ask?.kind ?? ""}>
+          {ask?.kind === "empty" ? (
+            <PopupHeader
+              title="Empty Deleted?"
+              description={`Everything in Deleted, ${formatBytesUp(ask.bytes)}, is deleted for good, deleted events included. It can't be undone.`}
+            />
+          ) : (
+            <PopupHeader
+              title={
+                ask?.kind === "items" && ask.thenSwitch
+                  ? `Delete ${itemsWords(askedItems)} for good and switch?`
+                  : `Delete ${itemsWords(askedItems)} for good?`
+              }
+              description={`They skip Deleted and can't be restored. ${formatBytes(totalBytes(askedItems))} frees at once.`}
+            />
+          )}
+          <PopupFooter>
+            <PopupClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </PopupClose>
+            <Button variant="destructive" onClick={confirmAsk}>
+              {ask?.kind === "empty"
+                ? "Empty Deleted"
+                : ask?.kind === "items" && ask.thenSwitch
+                  ? "Delete and switch"
+                  : "Delete for good"}
+            </Button>
+          </PopupFooter>
+        </PopupContent>
+      </Popup>
 
       <ResponsiveMenu
         open={downloadAsk}

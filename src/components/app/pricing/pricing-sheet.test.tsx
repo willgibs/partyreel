@@ -79,8 +79,8 @@ function facts(over: Partial<PlanFacts>): PlanFacts {
     tier: "free",
     hasBilling: false,
     passExpiry: null,
-    activeBytes: 0,
-    standbyBytes: 0,
+    storedBytes: 0,
+    deletedBytes: 0,
     capBytes: planById("free").storageBytes,
     currentPlanId: null,
     changeBlocked: null,
@@ -180,7 +180,7 @@ describe("it opens on the reason it opened", () => {
 describe("it opens on the smallest size that fits what the host stores", () => {
   it("skips a size the host has outgrown, whatever door opened it", async () => {
     // The create wizard's door knows nothing about bytes; the server does.
-    served = facts({ tier: "event_pass", activeBytes: 140 * GIGABYTE });
+    served = facts({ tier: "event_pass", storedBytes: 140 * GIGABYTE });
     const dialog = openSheet({ plan: PASS, trigger: { kind: "room" } });
     await waitFor(() => expect(proCard(dialog, "pro_500")).toBeTruthy());
     expect(proCard(dialog, "pro_100")).toBeNull();
@@ -190,24 +190,42 @@ describe("it opens on the smallest size that fits what the host stores", () => {
   });
 
   it("keeps the smallest size, and says nothing, for a host it fits", async () => {
-    served = facts({ activeBytes: 1 * GIGABYTE });
+    served = facts({ storedBytes: 1 * GIGABYTE });
     const dialog = openSheet();
     await waitFor(() => expect(globalThis.fetch).toHaveBeenCalled());
     expect(proCard(dialog, "pro_100")).toBeTruthy();
     expect(dialog.querySelector('[data-note="fit"]')).toBeNull();
   });
 
-  it("warns before a move that shrinks Deleted, and only then", async () => {
-    // Stacked passes (225 GB) into Pro 100 GB: the cap, and so Deleted, shrinks.
+  // ★ RESHAPED ON PURPOSE (trash-in-storage, 2026-10-03; scar kept: a move to a smaller cap is checked against
+  // everything she keeps). This pinned a warning that a smaller cap shrank Deleted's room beside it; Deleted counts
+  // in storage now, inside the figure every size is checked against, so a size that fits loses her nothing and the
+  // sheet has nothing to warn.
+  it("says nothing more on a move to a smaller size that holds what she stores, Deleted included", async () => {
+    // Stacked passes (225 GB) into Pro 100 GB, storing 50 GB with her Deleted.
     served = facts({
       tier: "event_pass",
-      activeBytes: 50 * GIGABYTE,
+      storedBytes: 50 * GIGABYTE,
+      deletedBytes: 20 * GIGABYTE,
       capBytes: 225 * GIGABYTE,
     });
     const dialog = openSheet({ plan: PASS });
-    await waitFor(() =>
-      expect(dialog.querySelector('[data-note="deleted"]')).toBeTruthy(),
-    );
+    await waitFor(() => expect(globalThis.fetch).toHaveBeenCalled());
+    await waitFor(() => expect(proCard(dialog, "pro_100")).toBeTruthy());
+    expect(dialog.querySelector('[data-note="fit"]')).toBeNull();
+    expect(dialog.querySelector('[data-note="deleted"]')).toBeNull();
+  });
+
+  it("counts her Deleted in the size it opens on", async () => {
+    // 90 GB in her albums and 50 GB in Deleted: 140 GB stored, past Pro 100 GB.
+    served = facts({
+      tier: "event_pass",
+      storedBytes: 140 * GIGABYTE,
+      deletedBytes: 50 * GIGABYTE,
+    });
+    const dialog = openSheet({ plan: PASS, trigger: { kind: "room" } });
+    await waitFor(() => expect(proCard(dialog, "pro_500")).toBeTruthy());
+    expect(proCard(dialog, "pro_100")).toBeNull();
   });
 
   it("keeps the door's facts when the read fails (the Library, a dropped request)", async () => {
@@ -225,7 +243,7 @@ describe("a Pro host's six prices", () => {
     served = facts({
       tier: "pro",
       hasBilling: true,
-      activeBytes: 140 * GIGABYTE,
+      storedBytes: 140 * GIGABYTE,
       capBytes: planById("pro_2tb").storageBytes,
       currentPlanId: "pro_2tb",
     });
@@ -245,9 +263,10 @@ describe("a Pro host's six prices", () => {
     aSwitch("pro_500");
     // Fit is drawn before a tap: the size too small is visibly over, by what she must free.
     expect(row(dialog, "pro_100").textContent).toContain("over by 40 GB");
-    // The numbers sentence, and the Deleted line (500 GB fits and is smaller).
+    // The numbers sentence. No Deleted line: Deleted is inside what she stores (trash-in-storage), so a smaller size
+    // that fits takes nothing from it.
     expect(dialog.querySelector('[data-note="fit"]')).toBeTruthy();
-    expect(dialog.querySelector('[data-note="deleted"]')).toBeTruthy();
+    expect(dialog.querySelector('[data-note="deleted"]')).toBeNull();
 
     await userEvent.click(cadence(dialog, "year"));
     noSwitch("pro_100_yr");
@@ -265,7 +284,7 @@ describe("a Pro host's six prices", () => {
     served = facts({
       tier: "pro",
       hasBilling: true,
-      activeBytes: Math.round(110.83 * GIGABYTE),
+      storedBytes: Math.round(110.83 * GIGABYTE),
       capBytes: planById("pro_500").storageBytes,
       currentPlanId: "pro_500",
     });
@@ -300,7 +319,7 @@ describe("a Pro host's six prices", () => {
     served = facts({
       tier: "pro",
       hasBilling: true,
-      activeBytes: Math.round(110.83 * GIGABYTE),
+      storedBytes: Math.round(110.83 * GIGABYTE),
       capBytes: planById("pro_500").storageBytes,
       currentPlanId: "pro_500",
     });
@@ -329,7 +348,7 @@ describe("a Pro host's six prices", () => {
     served = facts({
       tier: "pro",
       hasBilling: true,
-      activeBytes: Math.round(110.83 * GIGABYTE),
+      storedBytes: Math.round(110.83 * GIGABYTE),
       capBytes: planById("pro_500").storageBytes,
       currentPlanId: "pro_500",
     });
@@ -346,7 +365,7 @@ describe("a Pro host's six prices", () => {
     served = facts({
       tier: "pro",
       hasBilling: true,
-      activeBytes: 10 * GIGABYTE,
+      storedBytes: 10 * GIGABYTE,
       capBytes: planById("pro_500_yr").storageBytes,
       currentPlanId: "pro_500_yr",
     });

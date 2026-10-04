@@ -1,16 +1,20 @@
 /**
  * THE SIZE LIST'S STATE, as one reducer (pure, so its tests run without React): what has loaded
- * for each filter, what is selected, what this visit removed, and which rows are on their way out.
+ * for each filter, what is selected, what this visit deleted for good, and which rows are on their
+ * way out.
  *
- * ★ A REMOVAL LEADS WITH ITS RESULT. The rows fade (`leaving`), then leave (`removed`), and the
- * server's write runs underneath; a failure puts them back (`put-back`), and so does Undo, into
- * the list's own order. What was removed stays counted in `removed` for the whole visit, because
- * it is what the goal strip has freed and what every total on screen already takes off.
+ * ★ A DELETION LEADS WITH ITS RESULT. Once she confirms, the rows fade (`leaving`), then leave
+ * (`deleted`), and the server's write runs underneath; a failure puts back what did not go
+ * (`put-back`), into the list's own order. What went stays counted in `deleted` for the whole
+ * visit, because it is what the goal strip has freed and what every total on screen already takes
+ * off. There is no Undo: an item deleted for good skips Deleted (trash-in-storage), which is why
+ * the bar asks first.
  *
- * ★ WHAT SHE STORES IS THE SERVER'S FIGURE, LESS WHAT THIS VISIT REMOVED. The first read carries
- * `host_storage_summary`'s active bytes (the storage guard's own number); every removal and Undo
- * moves the total on screen by exactly what it moved, and a switch the server refused re-bases it
- * on the refusal's fresher figure (`rebase`).
+ * ★ WHAT SHE STORES IS THE SERVER'S FIGURE, LESS WHAT THIS VISIT FREED. The first read carries
+ * `host_storage_summary`'s stored bytes, her albums and her Deleted together (the storage guard's
+ * own number); every deletion moves the total on screen by exactly what it freed, emptying Deleted
+ * by all of Deleted (`emptied`), and a switch the server refused re-bases it on the refusal's
+ * fresher figure (`rebase`).
  */
 import type { StorageOverview } from "@/app/(app)/dashboard/storage-actions";
 import type {
@@ -42,9 +46,12 @@ export type ListState = {
   filter: Filter;
   slots: Record<string, Slot>;
   selected: ReadonlyMap<string, Picked>;
-  removed: ReadonlyMap<string, Picked>;
+  /** Deleted for good this visit. */
+  deleted: ReadonlyMap<string, Picked>;
   leaving: ReadonlySet<string>;
-  /** A removal or a switch is running: the controls that would start another wait. */
+  /** Deleted, emptied this visit: the bytes it freed (0 until she empties it). */
+  emptied: number;
+  /** A deletion or a switch is running: the controls that would start another wait. */
   busy: boolean;
   /** Added to the overview's figure when a refused switch re-based it (0 otherwise). */
   storedDrift: number;
@@ -63,8 +70,9 @@ export const INITIAL_LIST: ListState = {
   filter: "all",
   slots: {},
   selected: new Map(),
-  removed: new Map(),
+  deleted: new Map(),
   leaving: new Set(),
+  emptied: 0,
   busy: false,
   storedDrift: 0,
 };
@@ -87,8 +95,10 @@ export type ListAction =
   | { type: "select-all"; shown: Picked[] }
   | { type: "clear" }
   | { type: "leaving"; ids: string[] }
-  | { type: "removed"; items: Picked[] }
+  | { type: "deleted"; items: Picked[] }
   | { type: "put-back"; ids: string[] }
+  /** Deleted was emptied: everything it held, as the overview counted it, freed. */
+  | { type: "emptied"; bytes: number }
   | { type: "busy"; busy: boolean }
   | { type: "rebase"; storedBytes: number };
 
@@ -175,13 +185,13 @@ export function listReducer(state: ListState, action: ListAction): ListState {
       return { ...state, selected: new Map() };
     case "leaving":
       return { ...state, leaving: new Set([...state.leaving, ...action.ids]) };
-    case "removed": {
+    case "deleted": {
       const ids = action.items.map((i) => i.id);
-      const removed = new Map(state.removed);
-      for (const item of action.items) removed.set(item.id, item);
+      const deleted = new Map(state.deleted);
+      for (const item of action.items) deleted.set(item.id, item);
       return {
         ...state,
-        removed,
+        deleted,
         selected: withoutKeys(state.selected, ids),
         leaving: without(state.leaving, ids),
       };
@@ -189,44 +199,56 @@ export function listReducer(state: ListState, action: ListAction): ListState {
     case "put-back":
       return {
         ...state,
-        removed: withoutKeys(state.removed, action.ids),
+        deleted: withoutKeys(state.deleted, action.ids),
         leaving: without(state.leaving, action.ids),
       };
+    case "emptied":
+      return { ...state, emptied: state.emptied + Math.max(0, action.bytes) };
     case "busy":
       return { ...state, busy: action.busy };
     case "rebase": {
-      // The server's figure is after this visit's removals; the overview's was before them.
+      // The server's figure is after this visit's deletions; the overview's was before them.
       const base = state.overview?.storedBytes ?? 0;
       return {
         ...state,
-        storedDrift:
-          action.storedBytes + totalBytes(state.removed.values()) - base,
+        storedDrift: action.storedBytes + freedBytes(state) - base,
       };
     }
   }
 }
 
+/** What this visit freed for good: the items it deleted, and Deleted when she emptied it. */
+export function freedBytes(state: ListState): number {
+  return totalBytes(state.deleted.values()) + state.emptied;
+}
+
 /**
- * What she stored when this visit's removals began: the goal strip's starting line, which it
- * counts this visit's removals and the selection against (so a removal is never counted twice).
+ * What she stored when this visit's deletions began: the goal strip's starting line, which it
+ * counts this visit's deletions and the selection against (so a deletion is never counted twice).
  */
 export function storedBefore(state: ListState): number | null {
   if (!state.overview) return null;
   return state.overview.storedBytes + state.storedDrift;
 }
 
-/** What she stores now, as far as the list knows: the server's figure less this visit's removals. */
+/** What she stores now, as far as the list knows: the server's figure less what this visit freed. */
 export function storedNow(state: ListState): number | null {
   const before = storedBefore(state);
   if (before === null) return null;
-  return Math.max(0, before - totalBytes(state.removed.values()));
+  return Math.max(0, before - freedBytes(state));
 }
 
-/** Her events as the filter shows them: each total less what this visit removed from it. */
+/** What Deleted holds now, as far as the list knows: the overview's figure, or nothing once she emptied it. */
+export function deletedNow(state: ListState): number {
+  if (!state.overview || state.emptied > 0) return 0;
+  return state.overview.deletedBytes;
+}
+
+/** Her events as the filter shows them: each total less what this visit deleted from it. */
 export function eventsNow(state: ListState): StorageEventTotal[] {
   const events = state.overview?.events ?? [];
   const gone = new Map<string, { bytes: number; count: number }>();
-  for (const item of state.removed.values()) {
+  for (const item of state.deleted.values()) {
     const g = gone.get(item.eventId) ?? { bytes: 0, count: 0 };
     g.bytes += item.bytes;
     g.count += 1;

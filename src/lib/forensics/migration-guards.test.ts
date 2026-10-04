@@ -77,9 +77,14 @@ describe("restore_media replacement (finding: superseded-body revert)", () => {
     expect(restoreMediaBlock()).toContain("v_media.legal_hold_at is not null");
   });
 
-  it("keeps the capacity gate (a restore must still fit the strict cap)", () => {
-    expect(restoreMediaBlock()).toContain("public.host_active_bytes");
-    expect(restoreMediaBlock()).toContain("insufficient_space");
+  // ★ RESHAPED ON PURPOSE (trash-in-storage, 20261003220000; scar kept: a replacement body keeps the capacity gate it
+  // inherits). Her own removal counts in what she stores, so restoring it moves nothing the cap holds and always fits;
+  // the gate stays for the over-capacity reduce's removals alone, against the strict cap on what she keeps by choice.
+  it("keeps the capacity gate where a restore could still overfill: the over-capacity reduce's removals", () => {
+    const block = restoreMediaBlock();
+    expect(block).toContain("if v_media.removed_by_system then");
+    expect(block).toContain("public.host_storage_summary");
+    expect(block).toContain("insufficient_space");
   });
 });
 

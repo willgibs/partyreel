@@ -182,8 +182,10 @@ describe("3. never metered", () => {
         "set storage_used_bytes = storage_used_bytes + p_file_size_bytes where id = v_event.host_id;",
       );
       expect(body).toContain("v_event.host_id, v_period, p_file_size_bytes,");
+      // ★ Reshaped by trash-in-storage (20261003220000; scar kept: the cap reads the original's bytes alone): the cap
+      // holds her albums and her Deleted together now, read off the one summary.
       expect(body).toContain(
-        "if public.host_active_bytes(v_event.host_id) + p_file_size_bytes > v_cap + (v_cap / 10) then",
+        "if v_active + v_deleted + p_file_size_bytes > v_cap + (v_cap / 10) then",
       );
       // The copy's bytes appear in its check and its insert, and nowhere a meter reads.
       const uses = body.match(/p_phone_bytes/g) ?? [];
@@ -219,13 +221,23 @@ describe("4. who may call them", () => {
       expect(dropped).toBeLessThan(
         sql.indexOf(`create function public.${name}(`),
       );
-      expect(latest(name).file).toBe(FILE);
       // The new signature: the old one, then the copy's two (`p_phone_key`, `p_phone_bytes`).
       const after = `${before}, text, bigint`;
       expect(sql).toContain(
         `revoke execute on function public.${name}(${after}) from public, anon, authenticated;`,
       );
       expect(sql).toContain(
+        `grant execute on function public.${name}(${after}) to service_role;`,
+      );
+      // ★ Reshaped by trash-in-storage (20261003220000; scar kept: the file that wins restates the grants). A later
+      // file may replace the body in place (`create or replace`, this signature untouched); it restates them too.
+      const winner = latest(name).file;
+      expect(winner >= FILE, `${name} wins in ${winner}`).toBe(true);
+      const winning = files().find((f) => f.file === winner)!.sql;
+      expect(winning).toContain(
+        `revoke execute on function public.${name}(${after}) from public, anon, authenticated;`,
+      );
+      expect(winning).toContain(
         `grant execute on function public.${name}(${after}) to service_role;`,
       );
       expect(everything()).not.toMatch(

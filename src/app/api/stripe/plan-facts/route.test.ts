@@ -25,7 +25,13 @@ vi.mock("@/lib/supabase/server", () => ({
   }),
 }));
 
-let storage = { activeBytes: 0, standbyBytes: 0 };
+/** Her albums and her Deleted; what her plan holds is both (trash-in-storage). */
+let storage = {
+  activeBytes: 0,
+  deletedBytes: 0,
+  systemBytes: 0,
+  storedBytes: 0,
+};
 vi.mock("@/lib/db/queries/storage", () => ({
   getHostStorageSummary: async () => storage,
 }));
@@ -77,7 +83,12 @@ beforeEach(() => {
     stripe_subscription_id: null,
     tier_expires_at: null,
   };
-  storage = { activeBytes: 1 * GIGABYTE, standbyBytes: 2 * GIGABYTE };
+  storage = {
+    activeBytes: 1 * GIGABYTE,
+    deletedBytes: 2 * GIGABYTE,
+    systemBytes: 0,
+    storedBytes: 3 * GIGABYTE,
+  };
   retrieve.mockResolvedValue(subscription());
 });
 
@@ -101,8 +112,8 @@ describe("what it answers", () => {
       tier: "free",
       hasBilling: false,
       passExpiry: null,
-      activeBytes: 1 * GIGABYTE,
-      standbyBytes: 2 * GIGABYTE,
+      storedBytes: 3 * GIGABYTE,
+      deletedBytes: 2 * GIGABYTE,
       capBytes: planById("free").storageBytes,
       currentPlanId: null,
       changeBlocked: null,
@@ -195,8 +206,8 @@ describe("the parser the sheet reads through", () => {
         facts: {
           tier: "free",
           hasBilling: false,
-          activeBytes: -1,
-          standbyBytes: 0,
+          storedBytes: -1,
+          deletedBytes: 0,
           capBytes: null,
         },
       }),
@@ -208,8 +219,8 @@ describe("the parser the sheet reads through", () => {
       facts: {
         tier: "pro",
         hasBilling: true,
-        activeBytes: 0,
-        standbyBytes: 0,
+        storedBytes: 0,
+        deletedBytes: 0,
         capBytes: 100,
         currentPlanId: "pro_9tb",
         changeBlocked: "whatever",

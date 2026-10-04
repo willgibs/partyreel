@@ -137,11 +137,12 @@ export async function POST(request: Request) {
   }
 
   // ── THE STORAGE GUARD ───────────────────────────────────────────────────────
-  // Active bytes (getHostStorageSummary, the host_active_bytes definition) against
-  // the target's PLAIN cap. An upgrade always passes; a downgrade that fits passes;
-  // one that does not is refused with the numbers, and nothing reaches Stripe.
-  const { activeBytes } = await getHostStorageSummary();
-  const check = checkPlanChange(activeBytes, target);
+  // What she stores, her albums and her Deleted together (getHostStorageSummary,
+  // the figure every cap check reads: trash-in-storage), against the target's
+  // PLAIN cap. An upgrade always passes; a downgrade that fits passes; one that does
+  // not is refused with the numbers, and nothing reaches Stripe.
+  const { storedBytes } = await getHostStorageSummary();
+  const check = checkPlanChange(storedBytes, target);
   if (!check.ok) {
     return NextResponse.json({ ok: false, ...check.refusal }, { status: 409 });
   }
