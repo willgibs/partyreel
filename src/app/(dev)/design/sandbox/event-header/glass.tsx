@@ -33,14 +33,14 @@ import {
  *    layer's shadow) and the code's chip joins its end, since the cover's
  *    code has just gone under the bar.
  *  - IN A HAND it is the phone's own tab bar, at the screen's foot where her
- *    thumb is, from the first screen to the album's last row: it never moves
- *    and never changes form, and the code's chip joins its end the same way.
- *    On paper it floats over the page itself (the week before's checklist),
- *    so there it wears the app bar's own frosted page (`glass.css`).
+ *    thumb is, from the first screen to the album's last row, the code its
+ *    last door: it never moves and never changes form. On paper it floats
+ *    over the page itself (the week before's checklist), so there it wears
+ *    the app bar's own frosted page (`glass.css`).
  *  - EVERY COUNT RIDES ITS GLYPH AS A BADGE cut into the glyph's shoulder:
- *    today's waiting light where something waits on her, an unlit ring where
- *    it is only hers to act on (Settings' "2 left", the call G4), and the
- *    ring holding the pause while uploads are paused.
+ *    today's waiting light where something waits on her, a disc in the
+ *    door's own ink where it is only hers to act on (Settings' "2 left", the
+ *    call G4), and that disc holding the pause while uploads are paused.
  */
 
 /** Where the capsule stops: 8px under the app's 56px bar (the live frame's `stickAt`). */
@@ -58,9 +58,18 @@ const SHOULDER: Record<
   Size,
   { glyph: number; h: number; x: number; y: number }
 > = {
-  desk: { glyph: 16, h: 15, x: 10.5, y: -7.5 },
+  desk: { glyph: 16, h: 16, x: 10.5, y: -8 },
   hand: { glyph: 20, h: 16, x: 13.5, y: -7.5 },
 };
+
+/**
+ * ★ EVERY DESK GLYPH KEEPS A BADGE'S ROOM, BADGE OR NOT: a door that grew by
+ * its badge moved every door after it the moment Review cleared, under the
+ * hand that knew where Settings was. So the room a one-digit badge overhangs
+ * stands after every glyph (a wider count takes its own), and the doors keep
+ * their places through every moment of the night.
+ */
+const ROOM = SHOULDER.desk.x + SHOULDER.desk.h - SHOULDER.desk.glyph;
 
 /** The clear ring the glyph keeps round its badge. */
 const GAP = 1.5;
@@ -116,9 +125,14 @@ function Glyph({
   const s = SHOULDER[size];
   const badge = badgeOf(face);
   const box = { width: s.glyph, height: s.glyph };
+  const desk = size === "desk";
   if (!badge)
     return (
-      <Icon aria-hidden className="block shrink-0 glass-mark-lit" style={box} />
+      <Icon
+        aria-hidden
+        className="block shrink-0 glass-mark-lit"
+        style={{ ...box, marginInlineEnd: desk ? ROOM : 0 }}
+      />
     );
   const w = badge.kind === "paused" ? s.h : badgeWidth(badge.text, s.h);
   return (
@@ -127,7 +141,7 @@ function Glyph({
       // At a desk the word follows the glyph: the badge's overhang is the glyph's own room, so the word never meets it.
       style={{
         ...box,
-        marginInlineEnd: size === "desk" ? s.x + w - s.glyph : 0,
+        marginInlineEnd: desk ? Math.max(ROOM, s.x + w - s.glyph) : 0,
       }}
     >
       <span
@@ -299,8 +313,14 @@ function Dock(d: DoorDraw) {
  * IN A HAND: THE PHONE'S OWN TAB BAR, at the screen's foot, on the first
  * screen and however far she scrolls. Her thumb is there all night (a drink
  * in the other hand), the doors keep their words at every scroll, and nothing
- * travels: the only change is the code's chip joining its end once the cover
- * has gone. Fixed, so it takes no room in the page.
+ * in it ever moves.
+ *
+ * ★ THE CODE IS ITS LAST DOOR FROM THE FIRST SCREEN, never a chip arriving:
+ * one joining as the cover left pushed all five doors over by its width (As a
+ * guest by 36pt) under the thumb that knew them. On a phone the cover's own
+ * code stands at the top corner, out of her thumb's reach, so the bar's chip
+ * is the code she can reach, and it stands at rest too. Fixed, so the bar
+ * takes no room in the page.
  */
 function Foot({ stuck, ...d }: DoorDraw & { stuck: boolean }) {
   return (
@@ -312,7 +332,7 @@ function Foot({ stuck, ...d }: DoorDraw & { stuck: boolean }) {
       className="eh-glass-foot pointer-events-none fixed inset-x-3 z-30"
     >
       <div className="pointer-events-auto">
-        <Capsule {...d} at="foot" chip={stuck} />
+        <Capsule {...d} at="foot" chip />
       </div>
     </div>
   );
@@ -321,7 +341,7 @@ function Foot({ stuck, ...d }: DoorDraw & { stuck: boolean }) {
 export const GLASS: DoorOption = {
   CoverFoot: ({ fact, mark, ...d }) =>
     d.screen === "375" ? (
-      // In a hand the doors stand at the screen's foot (`Page`), so the cover's foot is the strip alone, and the live frame watches it: once the cover has gone under the bar, the chip joins.
+      // In a hand the doors stand at the screen's foot (`Page`), so the cover's foot is the strip alone; the live frame watches it, and the bar marks itself stuck once the cover has gone.
       <div ref={mark}>{fact}</div>
     ) : (
       // At a desk the capsule stands between the name and the strip, and the live frame watches it: it docks as it reaches the bar.

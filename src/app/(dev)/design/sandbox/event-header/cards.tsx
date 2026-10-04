@@ -9,6 +9,8 @@ import {
   useRef,
 } from "react";
 
+import { Pause } from "lucide-react";
+
 import { formatCount } from "@/lib/format/count";
 import { cn } from "@/lib/utils";
 
@@ -168,6 +170,14 @@ function Door({
           <span data-fold="num" className="eh-cards-num font-heading">
             {formatCount(face.left)}
           </span>
+        </span>
+      ) : face.paused ? (
+        // Paused uploads on a pill too small for "Paused": the plain pause, the code's own corner glyph.
+        <span
+          aria-hidden
+          className="eh-cards-count eh-cards-left eh-cards-pause"
+        >
+          <Pause data-fold="light" fill="currentColor" strokeWidth={0} />
         </span>
       ) : null}
     </button>

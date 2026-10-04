@@ -12,7 +12,7 @@ import {
 
 import type { DoorsId } from "./doors";
 import { CASES, type Moment } from "./fixtures";
-import { Hub, type HubDraw, TryHub } from "./hub";
+import { type HubDraw, StillHub, TryHub } from "./hub";
 import {
   type Ground,
   measureDoors,
@@ -78,10 +78,13 @@ function DoorsStrip({ s, doors }: { s: BoardState; doors: DoorsId }) {
         },
         {
           id: `${key}-band`,
-          title: "Scrolled into the album",
+          title:
+            moment === "before"
+              ? "Scrolled down the page"
+              : "Scrolled into the album",
           node: (
             <>
-              <Hub d={d} stuck />
+              <StillHub d={d} />
               <ScrollTo y={INTO[screen]} />
             </>
           ),

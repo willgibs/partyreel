@@ -458,6 +458,18 @@ function useStuckIn(
 }
 
 /**
+ * A STILL FRAME SCROLLED INTO THE ALBUM: its doors in whatever form that
+ * scroll really gives them, read off the frame as Try it reads it and never
+ * forced, so a page too short to scroll the cover away (the week before, at a
+ * desk) keeps its doors as they rest, as production would.
+ */
+export function StillHub({ d }: { d: HubDraw }) {
+  const mark = useRef<HTMLDivElement | null>(null);
+  const stuck = useStuckIn(mark, DOORS[d.doors].stickAt, d.doors);
+  return <Hub d={d} stuck={stuck} mark={mark} />;
+}
+
+/**
  * TRY IT: the hub running. Scroll it and the doors fold into their band (or
  * the capsule docks under the bar); press a door and its room opens over the
  * hub as wired; Esc and the room's own close bring her back.

@@ -280,18 +280,31 @@
 
 /* ══ STUCK: A PILL ═════════════════════════════════════════════════════════ */
 
+/* ★ EVERY PILL ONE WIDTH, WHATEVER IT COUNTS: a pill that grew to hold "8"
+   moved every door after it by its count's width the moment Review cleared,
+   under the thumb that knew where Settings was. So a pill is a slot, its
+   glyph, word and count centred in it. */
 [data-stuck] .eh-cards-door {
   display: flex;
   flex: none;
   align-items: center;
+  justify-content: center;
   gap: 6px;
+  width: 124px;
   height: 36px;
-  padding: 0 12px;
+  padding: 0 10px;
 }
-/* In a hand a pill is its glyph alone: a 36px round, the code chip's size. */
+/* In a hand a pill is its glyph and its count, one 48px slot each, so the
+   face, five pills and the code fit the screen's width with room to spare. */
 [data-screen="375"][data-stuck] .eh-cards-door {
   gap: 4px;
-  padding: 0 10px;
+  width: 48px;
+  padding: 0 4px;
+}
+/* The guest's view stands the width at rest, and a pill like the rest stuck. */
+[data-screen="375"][data-stuck] .eh-cards-door[data-eh-door="guest"] {
+  grid-column: auto;
+  height: 36px;
 }
 [data-stuck] .eh-cards-skin {
   border-radius: 999px;
@@ -325,6 +338,13 @@
 }
 [data-stuck] .eh-cards-left {
   display: flex;
+}
+/* Paused uploads, once the cover's code (which wears the pause) has gone: a
+   plain pause on Settings' pill, in its ink, never amber (the call G4). */
+.eh-cards-pause > svg {
+  width: 11px;
+  height: 11px;
+  color: var(--muted-foreground);
 }
 
 /* ══ UNDER THE POINTER, PRESSED, FOCUSED ═══════════════════════════════════ */

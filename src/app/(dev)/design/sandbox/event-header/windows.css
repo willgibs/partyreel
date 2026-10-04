@@ -188,13 +188,22 @@
 }
 
 /* ══ THE BAND: THE SAME ROW, STUCK ═══════════════════════════════════════
-   Every window shrinks where it stands, the columns closing up only by the
-   face growing in at the left and the code at the right (under where the
-   cover's code stood), so each door stays within a few steps of where her
-   hand found it at rest. */
+   Every window shrinks into the band, the face growing in at the left and the
+   code at the right (under where the cover's code stood): at a desk the doors
+   gather after the face and the name, in a hand each keeps its column. */
 
 .eh-windows-band[data-stuck] .eh-windows-row {
   padding-right: 48px;
+}
+/* At a desk the band gathers its doors after the face and the name, a
+   toolbar, rather than leaving them spread on the resting row's columns. */
+.eh-windows-band[data-stuck]:not([data-hand]) .eh-windows-cell {
+  flex: 0 0 auto;
+}
+/* The count rides the words in the band at a desk ("Guests 2"), so the
+   window's corner keeps none there. */
+.eh-windows-band[data-stuck]:not([data-hand]) .eh-windows-badge {
+  opacity: 0;
 }
 .eh-windows-band[data-stuck] .eh-windows-lead {
   width: auto;
@@ -245,6 +254,17 @@
 .eh-windows-band[data-hand][data-stuck] .eh-windows-lead {
   margin-right: 8px;
 }
+/* In a hand the face is round and a hairline parts it from the windows: two
+   photographs side by side read as two doors, and only one is. */
+.eh-windows-band[data-hand] .eh-windows-lead img {
+  border-radius: 999px;
+}
+.eh-windows-band[data-hand] .eh-windows-lead [data-band-lead]::after {
+  content: "";
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+}
 .eh-windows-band[data-hand][data-stuck] .eh-windows-door {
   gap: 0;
   width: 100%; /* a thumb's target is the whole column, not the window */
@@ -278,6 +298,14 @@
   }
   .eh-windows-row {
     transition: padding-right 240ms var(--ease-emphasis);
+  }
+  .eh-windows-cell {
+    transition:
+      flex-grow 240ms var(--ease-emphasis),
+      flex-basis 240ms var(--ease-emphasis);
+  }
+  .eh-windows-badge {
+    transition: opacity 120ms var(--ease-emphasis);
   }
   .eh-windows-lead {
     transition:

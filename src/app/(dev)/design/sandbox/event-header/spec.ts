@@ -18,9 +18,14 @@ import { type Control, defineExploration } from "@/components/lab/exploration";
  *
  * ★ THE CALLS G1, G2 AND G4 ARE DRAWN IN EVERY OPTION (never asked here or
  * elsewhere): See it as a guest is a door opening an inert phone over the
- * dimmed hub; Review and Guests open in Settings' one panel, a room's link
- * opens another room in it, the reel full screen; Settings' count is plain,
- * never amber, and paused uploads read Paused (the Moment knob's week after).
+ * dimmed hub; Review and Guests open in Settings' own panel (production's), a
+ * room's link opens another room in it, the reel full screen; Settings' count
+ * is plain, never amber, and paused uploads read Paused (the Moment knob's
+ * week after, where the lane's call puts the word on Settings' door too).
+ *
+ * ★ EACH OPTION WAS DRAWN BY ITS OWN DESIGNER, THEN REFINED ONCE FROM A FRESH
+ * PAIR OF EYES (the round's method): no door moves when a count comes or goes,
+ * in any option, at either size.
  *
  * ★ EVERY FRAME IS PRODUCTION'S HUB, NOT A PICTURE OF IT: the app's bar, the
  * album's own head (`EventHead`, its photographs dissolving in the real
@@ -81,7 +86,7 @@ export const EVENT_HEADER = defineExploration({
     n: 4,
     date: "2026-10-04",
     changed:
-      "Round four: the three doors again, each refined to its best version by its own designer: glass with its counts as badges on its icons, cards owning the phone, windows quieter, each with its sticky form.",
+      "Round four: the three doors again, each refined to its best version by its own designer, then once from fresh eyes: glass with its counts as badges and a phone's tab bar, cards owning the phone, windows lit where something waits.",
   },
   history: [
     {
@@ -104,14 +109,14 @@ export const EVENT_HEADER = defineExploration({
     },
   ],
   context:
-    "Round four, on the hub as built: the cover, its strip, the code and the album are production's, and only the doors are redrawn. Each option opens on Try it, the hub running; every caption is read off its frame.",
+    "Round four, on the hub as built: the cover, its strip, the code, the album and every room are production's; only the doors are redrawn. Each option opens on Try it, the hub running; every caption is read off its frame.",
   opening: {
     about:
       "Round four of the hub's doors: glass, cards over the seam and windows, each refined to its best version, each with its sticky form.",
     settled: [
       "The cover's facts are the strip, your round-three pick (being wired now): every frame here stands on it.",
-      "Every room opens over the hub (wired): Review, Guests and Settings in one panel, the reel full screen, As a guest a phone.",
-      "Drawn in every option, yours to push back on: a room's link opens another room in its panel, and paused uploads read Paused.",
+      "Every room opens over the hub (wired): Review and Guests in Settings' panel, the reel full screen, As a guest an inert phone.",
+      "In every option a room's link opens another room in its panel: in Settings, Who can get in, then Let them in from Guests.",
       "The waiting light's colour is the brand's question (its status set): every door here wears today's light and adds no hue.",
       "The atoms are identity's, wired: the camera's voice, the display's layers, every state a light.",
     ],
@@ -165,6 +170,32 @@ export const EVENT_HEADER = defineExploration({
         "An option's first frame: the hub running. Scroll it, then press any door.",
     },
   ],
+  carried: [
+    {
+      id: "glass-stuck",
+      question: "Where does the glass capsule go once she scrolls?",
+      taken:
+        "At a desk it stops under the bar where it reached it, the code joining its end; on a phone it is a tab bar at the screen's foot from the first screen.",
+      overrule:
+        "A full-width band under the bar holds it, the cover's face leading, at both sizes, as the cards' band does.",
+    },
+    {
+      id: "cards-phone",
+      question: "How do the cards stand on a phone?",
+      taken:
+        "A two by two grid over the seam with As a guest the width under it: every door and its count in sight at rest.",
+      overrule:
+        "Round three's shelf: larger cards in a row she scrolls sideways, two and a half in sight.",
+    },
+    {
+      id: "settings-paused",
+      question: "What does Settings' door say while uploads are paused?",
+      taken:
+        "Paused, the uploads' own word, plain and never amber, in place of the door's word; the code's corner keeps its pause.",
+      overrule:
+        "The door's word stays (Private · You let in) and only the code's corner says paused, as production does now.",
+    },
+  ],
   asks: [
     {
       id: "doors",
@@ -177,43 +208,44 @@ export const EVENT_HEADER = defineExploration({
       lands:
         "The hub's doors at rest and in their sticky form, at a desk and in a hand.",
       context:
-        "Two frames each: Try it, the hub running (scroll it and the doors take their sticky form; press any door and its room opens over the hub), then scrolled into the album. The Moment knob draws the week before and after.",
+        "Two frames each: Try it, the hub running (scroll it and the doors take their sticky form; press any door and its room opens over the hub), then scrolled into the album. The Moment knob draws the week before and the week after.",
       options: [
         {
           id: "glass",
           label: "One glass capsule",
           means:
-            "All five doors in one glass capsule on the cover, a waiting count a badge on its icon; stuck, the capsule docks under the bar.",
+            "All five doors in one glass capsule, each count a badge on its icon: on the cover at a desk, stopping under the bar as she scrolls; on a phone, its tab bar.",
           gains:
-            "The calmest hub: one object on the cover, the album highest, and it docks as itself.",
+            "One object that never jumps: under the bar at a desk, under her thumb on a phone.",
           costs:
-            "Doors on a moving photograph, and a phone's capsule is five small segments.",
+            "Five doors share one bar, and on a phone it covers the album's foot all night.",
         },
         {
           id: "cards",
           label: "Cards over the seam",
           means:
-            "The cover fades into the page and the cards stand over that seam, App Store depth; stuck, pills under a band that fades.",
+            "The cover dissolves into the page and five cards stand across the seam, every one in sight on a phone; stuck, they fold into pills under the bar.",
           gains:
-            "The cover and its doors as one composition, each card roomy and calm.",
+            "Every door and its count in sight at rest, phone included; a waiting count reads across the room.",
           costs:
-            "A deep row that pushes the album down, and a phone's cards share its width.",
+            "The deepest row: on a phone the album starts lowest, and the band sits out of her thumb's reach.",
         },
         {
           id: "windows",
-          label: "Quiet windows",
+          label: "Quiet windows, lit where something waits",
           means:
-            "Each door a small quiet picture of its room, taking its colour under the pointer; stuck, the picture is the pill's glyph.",
+            "Each door a small picture of its room on the page, in grey until something in it waits on her; stuck, the same windows shrink into the band.",
           gains:
-            "Each door shows what is inside it, and the row stays quiet between the cover and the album.",
-          costs: "Five small pictures to read, and the album starts lowest.",
+            "The calmest middle: the cover and album stay the pictures, colour landing only where she is needed.",
+          costs:
+            "Five small pictures to learn, and a row of its own under the cover starts the album low.",
         },
       ],
       recommended: "glass",
       because:
-        "One object holds every door on the cover and docks as itself, the album highest: your lean, with its counts on its icons.",
+        "Your lean, refined: one object that never moves, its counts on its icons, the album highest, and on a phone it waits under her thumb all night.",
       overrule:
-        "If the doors should feel like a shelf of their own, the cards over the seam.",
+        "If every door should be big and readable across the room at rest, the cards over the seam.",
       configs: [SCREEN, GROUND, MOMENT],
     },
   ],

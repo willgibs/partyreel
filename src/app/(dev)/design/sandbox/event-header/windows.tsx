@@ -40,11 +40,11 @@ import { AT_THE_DOOR, type Case, GUESTS, REVIEW } from "./fixtures";
  * (no hover) still shows colour exactly where she is needed, and none at all
  * when nothing is. Settings never lights (the call G4: nothing waits on her).
  *
- * ★ ONE ROW, TWO SIZES, NEVER A SWAP: stuck, the same windows shrink where
- * they stand into the band (production's rule: the row never remounts), the
- * cover's face growing in at its left and the code at its right, so every
- * door stays within a few steps of the column her hand already knows
- * (`windows.css`).
+ * ★ ONE ROW, TWO SIZES, NEVER A SWAP: stuck, the same windows shrink into
+ * the band (production's rule: the row never remounts), the cover's face
+ * growing in at its left and the code at its right; at a desk they gather
+ * after the face and the name as one toolbar, in a hand each keeps its
+ * column, the whole width a thumb's target (`windows.css`).
  *
  * ★ LIT IS `data-eh-lit`, NEVER `data-lit`: that one is production's bright
  * edge (`globals.css`), and on a door it draws a hairline round the cell.
@@ -273,20 +273,11 @@ function Count({ face, className }: { face: DoorFace; className?: string }) {
 /**
  * THE WINDOW: a tile a step off the page holding its room, the picture drawn
  * once at `ART` and scaled to the window (so it shrinks with it into the
- * band), and in a hand its count on the corner, a small plate over the
- * window's edge (the lift: one object overlapping another).
+ * band), and its count on the corner, a small plate over the window's edge
+ * (the lift: one object overlapping another), at a desk as in a hand: the
+ * strongest "this one wants you" the row has, where she is already looking.
  */
-function Window({
-  room,
-  c,
-  face,
-  hand,
-}: {
-  room: RoomId;
-  c: Case;
-  face: DoorFace;
-  hand: boolean;
-}) {
+function Window({ room, c, face }: { room: RoomId; c: Case; face: DoorFace }) {
   return (
     <span className="eh-windows-frame" aria-hidden>
       <span className="eh-windows-pane bg-card">
@@ -296,7 +287,7 @@ function Window({
           </span>
         </span>
       </span>
-      {hand && (face.count || face.left || face.paused) ? (
+      {face.count || face.left || face.paused ? (
         <span className="eh-windows-badge absolute -top-1.5 -right-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-popover px-[5px] text-[10px] text-foreground shadow-lift">
           <Count face={face} />
         </span>
@@ -305,7 +296,7 @@ function Window({
   );
 }
 
-/** The value line under a desk's title: the light leads a waiting room's words; a count hers to act on is the foreground; the rest quiet. */
+/** The value line under a desk's title: a waiting room's words and a count hers to act on in the foreground, the rest quiet (the light rides the window's corner). */
 function Value({ face }: { face: DoorFace }) {
   return (
     <span
@@ -316,7 +307,6 @@ function Value({ face }: { face: DoorFace }) {
           : "text-muted-foreground",
       )}
     >
-      {face.amber ? <span className="eh-amber" aria-hidden /> : null}
       <span className="truncate">{face.value}</span>
     </span>
   );
@@ -371,9 +361,9 @@ function Door({
         onClick={() => onOpen?.(room)}
         // No card at rest: the plate is the pointer's and the open room's. In the room it takes the
         // secondary step, since the muted one sits too close to the near-black page to be seen.
-        className="eh-windows-door text-left outline-none hover:bg-muted focus-visible:bg-muted focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.98] aria-pressed:bg-secondary motion-reduce:active:scale-100 dark:hover:bg-secondary/70 dark:focus-visible:bg-secondary/70"
+        className="eh-windows-door text-left outline-none hover:bg-muted focus-visible:bg-muted focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.98] aria-pressed:bg-secondary aria-pressed:ring-2 aria-pressed:ring-foreground motion-reduce:active:scale-100 dark:hover:bg-secondary/70 dark:focus-visible:bg-secondary/70"
       >
-        <Window room={room} c={c} face={face} hand={hand} />
+        <Window room={room} c={c} face={face} />
         {hand ? (
           <span
             aria-hidden
@@ -448,13 +438,13 @@ function Row({
           aria-label="This event"
           className="eh-windows-row"
         >
-          {/* The cover's face once the cover has gone, decorative (the h1 named it). Its face alone at
-              a desk too: the bar's crumbs name the event just above it, so the name said twice, and it
-              would push every door a name's width from the column it rests in. An album with no
-              photograph yet has no face to lead with, and an empty plate there reads as a hole. */}
+          {/* The cover's face once the cover has gone, decorative (the h1 named it): at a desk with
+              the event's name, the doors gathered after it as a toolbar rather than five links spread
+              across the width; in a hand the face alone, round and set apart by a hairline, so it never
+              reads as a sixth window. An album with no photograph yet has no face to lead with. */}
           {c.stills.length > 0 ? (
             <span className="eh-windows-lead" aria-hidden>
-              <BandLead c={c} name={name} phone />
+              <BandLead c={c} name={name} phone={hand} />
             </span>
           ) : null}
           {ROOM_ORDER.map((room) => (

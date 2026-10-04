@@ -53,12 +53,19 @@
   background-color: var(--warning);
   color: var(--warning-foreground);
 }
-/* Hers to act on, or paused: unlit, the door's own ink as a ring (it turns
-   with the door to ink on the open room's white). */
+/* Hers to act on, or paused: the door's own ink as a filled disc, never
+   amber (the call G4). ★ FILLED, NEVER A RING: a hairline ring on a gear
+   tangled in its teeth and its "1" could not be read. White on the glass,
+   ink on the open room's white lozenge and on paper's frosted bar. */
 .eh-glass-badge[data-badge="unlit"],
 .eh-glass-badge[data-badge="paused"] {
-  box-shadow: inset 0 0 0 1.5px
-    color-mix(in oklab, currentColor 78%, transparent);
+  background-color: rgb(255 255 255 / 0.92);
+  color: var(--color-neutral-950);
+}
+.eh-glass-seg[aria-pressed="true"] .eh-glass-badge[data-badge="unlit"],
+.eh-glass-seg[aria-pressed="true"] .eh-glass-badge[data-badge="paused"] {
+  background-color: var(--color-neutral-950);
+  color: #fff;
 }
 
 /* ══ THE CAPSULE OFF THE COVER ════════════════════════════════════════════ */
@@ -77,6 +84,17 @@
     inset 0 1px 0 0 rgb(255 255 255 / var(--glass-lip)),
     inset 0 0 0 1px rgb(255 255 255 / var(--glass-hairline)),
     var(--shadow-layer);
+}
+/* ★ OFF THE COVER THE GLASS IS STEADIER: over the album's rows production's
+   pane (saturation doubled) took each photograph's colour as it passed, olive
+   then navy then brown, the bar's words on a different ground every second.
+   Darker and nearer neutral, the photographs under it are a glow and its words
+   keep one contrast. On the cover it stays production's glass. */
+.eh-glass-capsule[data-at="dock"],
+.eh-glass-capsule[data-at="foot"] {
+  --glass-tint: 0.3;
+  --glass-saturate: 1.1;
+  --glass-brightness: 0.55;
 }
 
 /* ★ A PHONE'S FOOT ON PAPER WEARS THE APP BAR'S OWN FROSTED PAGE, NOT THE
@@ -97,6 +115,15 @@
 }
 .eh-glass-capsule[data-at="foot"][data-ground="paper"] .glass-mark-lit {
   filter: none;
+}
+.eh-glass-capsule[data-at="foot"][data-ground="paper"]
+  .eh-glass-seg:not([aria-pressed="true"])
+  .eh-glass-badge[data-badge="unlit"],
+.eh-glass-capsule[data-at="foot"][data-ground="paper"]
+  .eh-glass-seg:not([aria-pressed="true"])
+  .eh-glass-badge[data-badge="paused"] {
+  background-color: var(--foreground);
+  color: var(--background);
 }
 .eh-glass-capsule[data-ground="paper"][data-at="foot"]
   .eh-glass-seg[aria-pressed="true"] {
