@@ -40,7 +40,7 @@ dev server at most; every production build takes turns through `scripts/build-lo
 | `brand-r1` | board brand r1 (desk 5, a desk of its own): what the agency returned, three cohesive brand visions (positioning, wordmark and icon, a palette whose status set never reads as the brand, the aurora or another signature, the hashvatar as atmosphere, type, imagery, motion, the pages' dark or light philosophy), each on six touchpoints as sketches | RUNNING (cut at `312af72fe`); three agency-team helpers, a creative director's pass | Opus, 3135 | `aab7f784008cbcfeb` |
 | `host-dashboard-r4` | board host-dashboard r4 (desk 25): the stage's corner explored again (read as the corner menu, drawn with the lit stage around it), two to four directions; H6 folded in | RUNNING (cut at `ea9737d2f`) | Opus, 3136 | `a2252d0ff7db3ba6f` |
 | `dashboard-wiring` | Will's picks: events=menu (the Display popover, Recent, search from 9, her choices kept per the board's carried call) and stage=lit; owns `dashboard/actions.ts`; a migration only if `kept` needs a profile column | RUNNING (cut at `ea9737d2f`) | Sonnet, 3137 | `a5e85465d0cc30de7` |
-| `redteam-52` | build 52's red-team (`e8d11584`): Ladder A on `/pricing` (every number, every hover line, the fair-use line, no "ingress"), the plan sheet as willg97 (now Pro 1 TB), the Free words, the reel's tap, regressions | RUNNING; brief `../partyreel-wt/_scratch/redteam-52/brief.md` | Opus, Will's Chrome | `a2e373dc2ce9e647b` |
+| `redteam-52` | build 52's red-team (`e8d11584`): Ladder A on `/pricing`, the plan sheet as willg97 (Pro 1 TB), the Free words, the reel's tap, regressions | DONE 07:55Z: every number matches Ladder A (no "ingress" in 116 pages), the plan sheet, the reel's tap and the regressions PASS; **1 MEDIUM** (the pricing matrix's row explainers open by mouse and keyboard but never by a finger, while the subhead says to hover them: Uploads and Deleted unreadable on a phone), 3 LOWs (the plan sheet shows no uploads allowance and `checkPlanChange` checks storage only; a desk's mouse move raises the reel's controls and the click after hides them; `/admin/accounts` lists Free caps as Unlimited) and 6 NITs: all to `crumbs-64`, before milestone 36; ledger `../partyreel-wt/_scratch/redteam-52/ledger.txt` | Opus, Will's Chrome | `a2e373dc2ce9e647b` |
 | `hub-strip-wiring` | Will's picks: facts=strip on the hub's head; Q5, the host's Reel card ready before the develop and the guest page, hers included, without the reel until it; owns `event-feed/`, the hub page and `host-app.md` | RUNNING (cut at `73d2d254b`) | Sonnet, 3131 | `a432b7517d1b00d45` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Its
@@ -93,7 +93,15 @@ Q30 folded in): read it first. Its spine:
    picks; **desk 6** the brand applied (brand-marks with the status set, aurora, marketing-themes with N4, N7, N9,
    demo-framing r6, presence r1), cut after brand r1's pick. The Drive wiring lane after his desk-2 pick, his Google
    Cloud step relayed then. camera-clip's migration to the Advisor from its WIP push.
-6. **The close of the day:** STATUS, this pickup, the calls lab (text calls only now; 45 remain). Moltbook hourly only
+6. **crumbs-64** (Sonnet), when a seat frees and before milestone 36: red-team 52's MEDIUM (the pricing matrix's
+   row explainers readable by a finger: a tap opens them, the subhead's words for touch too) and its LOWs and NITs
+   (the plan sheet's uploads allowance and a downgrade below this month's uploads; the reel's desk click after a move
+   keeping the controls up; `/admin/accounts`' Free caps; the help and llms.txt's "over its year ... for about a
+   year"; `/account#plan`'s "paid once"; the sheet's Switch on her own plan; admin's Spend watch saying "ingress"; the
+   375 tooltip's edge). Ledger `../partyreel-wt/_scratch/redteam-52/ledger.txt`.
+7. **Pacing (Will, 2026-10-04 07:55Z):** the 5-hour window would run out before its reset at the night's burn, so no
+   new lane is cut until running ones finish, and the wirings run two at a time; `get_usage` each hour.
+8. **The close of the day:** STATUS, this pickup, the calls lab (text calls only now; 45 remain). Moltbook hourly only
    on his word.
 
 ## Waiting on Will
