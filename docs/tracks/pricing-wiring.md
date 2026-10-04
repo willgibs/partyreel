@@ -1,6 +1,6 @@
 ---
 track: pricing-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "31b7c652"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -98,32 +98,137 @@ working.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/billing-caps.md`: the mirror is `tier_limits()` and `upload_allowance()` under the parity test; the
+  uploads allowance is each plan's own published number against `uploads_used()`; ★ its window (a calendar month for
+  Free and Pro, a pass's own year counted on `event_passes.uploaded_bytes`, the lapsed pass refused at the completes);
+  the allowance published and only the breakers fenced, the meter's wire names kept; four counters (a pass's
+  `uploaded_bytes` beside the ledger's); the pass ledger's uploads; the Pro sheet's holds line (`holdsPhrase`).
+- Owned docs moved in place too: `PRICING.md` (Ladder A with its Uploads column and uses, the fees, the worst month
+  re-run, the archetypes, the breakeven, the catalog and its env keys) and `PRD.md`'s pricing lines.
+- Proposed for the reads (not mine to edit):
+  - `database-security.md:90`: "`tier_limits` and `monthly_ingress_cap` (INVOKER;" becomes "`tier_limits`,
+    `upload_allowance` and `uploads_used` (INVOKER;".
+  - `database-security.md:118`: "`storage_ledger` (the monthly ingress meter: its readers are" becomes
+    "`storage_ledger` (Free's and Pro's monthly uploads meter; a pass's year counts on its own
+    `event_passes.uploaded_bytes`: their readers are".
+  - `database-security.md:180-184`: "The cap, ingress and event-slot checks" becomes "The cap, uploads and event-slot
+    checks"; "so no deadlock is constructible;" becomes "so none of them can deadlock another (the one cycle outside
+    them: a pass consumed for Pro credit takes `event_passes` before `profiles`, the Deferred F2 line);".
+  - `marketing-content.md:105`: "(`tiers.ts`, which defines the ingress backstop)" becomes "(none today: the uploads
+    allowance is published, and the fence reads the breakers' numbers from the SQL that enforces them)".
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now `[eng]`: consume passes for Pro credit through an RPC that takes the host's `profiles` row first (the Advisor's
+  Q26 F2: `consumePassesForProCredit`, `src/lib/db/mutations/event-passes.ts:64`, writes `event_passes` then `profiles`
+  while the completes take `profiles` then the pass's row; a cycle Postgres detects, one side retried, never corruption).
+- Now `[eng]`: the presign's meter refuses a lapsed pass up front, as the completes do (F1's clause lives in the two
+  writers, so until the nightly recompute a lapsed pass's upload is presigned and sent, then refused at the complete).
+- Now `[eng]`, after the next milestone: rename the uploads meter's wire names to window-neutral ones (`at_monthly_cap`,
+  the presign meter's `'monthly'` reason), which milestone 35 reads by name today.
+- Now `[eng]`, after the next milestone ships Ladder A: archive the six retired Pro prices (100 GB, 500 GB, 2 TB) and
+  the two old pass prices in Stripe TEST, drop `STRIPE_PRICE_PRO_100` to `_2TB_YR` from Vercel, and take the old six out
+  of the change-plan portal configuration.
+- ROADMAP edits proposed (Launch checkpoint): delete "Revisit the paid-ingress `INGRESS_CAP_MULTIPLIER`" (resolved: the
+  multiplier is gone, each plan publishes its own allowance, the worst month re-run in PRICING.md); the meter's
+  operator line becomes "The uploads meter's operator surface `[eng]`: nothing in `/admin` shows a host's uploads
+  against her allowance (this month's ledger, or her live passes' `uploaded_bytes`) and nothing can lift it, while
+  `PRICING.md`'s posture is that a false positive must never quietly block a paying host."
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits**, pushed to `lp/pricing-wiring`: `b6bcfe59d` (the single source, the env keys, the parity guards, the
+  migration for the Advisor), `8ad147fef` (F1 folded, the migration final), `11812e45a` (every surface, the help and
+  the blog, llms, press, the spec components, the docs), `f91e334d8` (sync: launch-prep at `f3708569e`, clean, no
+  shared path). The head is in the chat line.
+- **Gates on the synced tree at `f91e334d8`**, each on its own exit code (logs: `_scratch/pricing-wiring/gate/synced/`):
+  typecheck 0, lint 0, test 0 (877 files, 10,585 tests), build 0, `lab:smoke --base http://localhost:3131` 0 (179
+  checks, 0 failing). No board, so no `lab:demo`.
+- **The migration's proof**, rolled back with nothing persisted (its foot): RED 0/11 on the live schema without the
+  file, GREEN 11/11 with it: each allowance refused past its number at both writers and the presign's meter, a pass's
+  year counted on the pass and opened at zero by a renewal, stacked passes, Free's month, and 7b, the lapsed pass (RED
+  on the `b6bcfe59` writers). The parity test holds `tier_limits()` and `upload_allowance()` to tiers.ts. The Advisor's
+  Q26: safe to apply as written.
+- **Seen on the dev server** (`_scratch/pricing-wiring/captures/`, `report.txt`): `/pricing` at 375 and 1440, whose
+  plans chapter is paper and whose matrix and FAQ are the room whatever the session's theme (the light and dark
+  captures are byte-identical); the three Pro stops' labels, values, parties lines and prices; all 17 hover lines read
+  off the open tooltip; the fair-use line and the basis note; the configurator recommending a pass at 10 GB with video.
+  The plan sheet's Pro sizes (the Library's storage-list) at 375 and 1440, light and dark: Too small with its over-by
+  line, Your plan, Switch, each holds line led by its use.
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = owned paths, this file and 33 exceptions:
+  - The renamed env keys (Q1): `src/lib/env.ts`, a read, because the brief's rename lands in its schema (the six Pro
+    keys and `assertStripeEnv()`'s three, nothing else), and `.env.example`.
+  - The presign refusals' words, window-neutral (Q5): `src/app/api/host/r2/presign-upload/route.ts` and
+    `src/app/api/r2/presign-upload/route.ts`, one string each.
+  - Tests that pinned the old ids, sizes or words, reshaped with their scars: `src/app/api/stripe/{change-plan,checkout,
+    plan-facts,webhook}/route.test.ts`, `src/app/api/r2/presign-upload/route.test.ts`, `src/lib/stripe/{change-plan,
+    entitlement,provision}.test.ts`, `src/lib/billing/{plan-ids,storage-guard}.test.ts`,
+    `src/components/app/storage/{storage-list.test.tsx,storage-list-rules.test.ts}`, `src/lib/upload/server-pipeline.test.ts`;
+    and the mirror's guards, `src/lib/constants/tier-limits-parity.test.ts` (the brief's parity test),
+    `src/lib/db/migration-guards.test.ts` and `src/lib/upload/server-pipeline-meter-migration.test.ts` (latest-wins
+    pins now naming `ladder_a`).
+  - Comments that stated the old sizes as the mechanism, made size-free or rescaled, no code:
+    `src/app/api/stripe/checkout/route.ts`, `src/components/app/storage/{goal-strip,refusal-face}.tsx`,
+    `src/lib/billing/{passes,plan-facts,storage-guard}.ts`, `src/lib/lifecycle/sweeps/passes.ts`,
+    `src/lib/stripe/entitlement.ts`, `src/components/marketing/pricing-jsonld.ts`,
+    `src/components/marketing/sections/features/album/how-much-fits.tsx`.
+  - The Library's specimens drawn on retired sizes: `src/app/(dev)/design/(shell)/library/compositions/{composition-demos,
+    gallery-demos}.tsx` and the regenerated `src/app/(dev)/design/gallery/specimens.generated.json`.
+- **The items:**
+  - tiers.ts on Ladder A: ids `pro_50`, `pro_200`, `pro_1tb` and their `_yr`, each plan's `uploadsBytes` and `use`,
+    `uploadAllowance`, `uploadsLabel`, the big-party unit (`BIG_PARTY`, `partiesHeld`); the multiplier gone.
+  - `20261004100000_ladder_a.sql`, final: `tier_limits()` with `uploads_bytes`, `upload_allowance()`, `uploads_used()`,
+    `event_passes.uploaded_bytes`, the six bodies restated with the allowance and the pass's count, F1,
+    `monthly_ingress_cap()` dropped; an expand for milestone 35.
+  - `/pricing`: cards that lead with the events each holds, Pro's stops named by use with the parties line, the pass's
+    "One payment, no subscription" at $29 with its $19 renewal, the matrix's published rows with their hover lines
+    (Deleted's rewritten), the fair-use line, the configurator's stops on the new sizes, the FAQ.
+  - The plan sheet and the Pro size list: holds lines led by use (`holdsPhrase`), the pass's line.
+  - Every marketed number from the single source: llms.txt, the press kit, the spec components (`PlanUploads`,
+    `ProUploads`), ten help articles, four blog posts and both AUTHORING briefs, trash-in-storage's follow-ups; the
+    content fence refined (the breakers' numbers read from their SQL, nothing exempt).
+  - PRICING.md, billing-caps.md and the PRD, in place.
+- **Assets requested from Will:** none.
+- **Board ideas:** a Library specimen of the whole plan sheet for a Free host and a pass holder (only a Pro host's size
+  list is drawn today, and the sheet needs a sign-in, which localhost cannot do, so its pass line and cards are seen
+  nowhere before the alias).
+- **Proposed changes, in this order:**
+  1. Apply `supabase/migrations/20261004100000_ladder_a.sql` by protocol (the drift read against its header's eight
+     hashes, the proof at its foot RED then GREEN, apply verbatim, `get_advisors`, regenerate `src/lib/db/types.ts`),
+     before this build deploys.
+  2. Stripe TEST, after `livemode` reads false: three products, "Partyreel Pro 50 GB", "Partyreel Pro 200 GB" and
+     "Partyreel Pro 1 TB", each with two recurring USD prices: $9 a month and $90 a year; $29 a month and $290 a year;
+     $99 a month and $990 a year. On the existing "Partyreel Event Pass" product, two one-time prices: $29 (the pass)
+     and $19 (the renewal). The six Pro prices join the change-plan portal configuration (`bpc_1UIhooPtjqmVkBwkcLe9YgYN`)
+     beside the six old ones until the next milestone.
+  3. Vercel env before the deploy (`assertStripeEnv()` hard-asserts the three new monthly keys, so without them every
+     Stripe route on the alias refuses): `STRIPE_PRICE_PRO_50`, `_200`, `_1TB`, `_50_YR`, `_200_YR` and `_1TB_YR`
+     (non-sensitive public ids) in every environment, which Production does not read yet; `STRIPE_PRICE_EVENT_PASS` and
+     `STRIPE_PRICE_EVENT_PASS_RENEWAL` take the $29 and $19 ids in Preview and Development only, Production
+     (milestone 35) keeping its old ids until the next milestone ships this code. The same eight in `.env.local`.
+  4. Cancel the one TEST subscription on the retired Pro 500 GB monthly price once the new prices exist (Q3); Will's
+     checkout walk on the alias subscribes on a Ladder A price.
+  5. ROADMAP: the four Deferred lines, the multiplier's line deleted and the meter's operator line refined (Deferred).
+  6. The reads' four edits under System-doc edits.
+- **Calls his to overrule:**
+  - Q1 to Q5 as built: ids and env keys renamed; the pass's year from its purchase, counted on the pass; the old TEST
+    subscription cancelled; the one-way doors; the meter's wire names kept until after the next milestone.
+  - The uses: Free "A small gathering", the pass "One big event", Pro "A season of parties", "A planner's year", "A
+    venue's year" (at 375 the first stop wraps to two lines, as its comment allows).
+  - The big-party unit: 200 guests at about 2,000 photos and 100 clips of 30 s, so "a 200-guest wedding, twice over"
+    and "room for about 5, 20 or 100 parties", rounded to fives past ten, its basis said once under the cards.
+  - The fair-use line under the table, and the refusals' "for now" ("You've hit this plan's upload limit for now.",
+    "This album has hit its upload limit for now.").
+- **Look at first:**
+  - The order: the migration, then Stripe and the env, then the deploy.
+  - Between the apply and the next milestone, both deployments' webhooks provision a pass bought on the alias (one
+    ledger row, the session's unique index) but each recompute writes its own constant, and partyreel.com's nightly
+    sweep (milestone 35) re-derives every pass holder at 75 GB a pass: a $29 pass walked on the alias can read 75 GB the
+    next day. Test accounts only, more room never less; the next milestone ends it.
+  - `/pricing`'s matrix with its hover lines, and the pass card.
+  - Not this lane's: a headless Chrome from a `lab:demo` run (pid 45014, port 9413, started 2026-10-03 12:44) is
+    still running, orphaned to launchd.
 
 ## Where I am
 
-- The migration `supabase/migrations/20261004100000_ladder_a.sql` is FINAL: the Advisor's Q26 read it safe to apply as
-  written; its F1 (a lapsed pass, uploading uncounted for up to a day) is folded in as the one clause the Advisor wrote,
-  in both writers after the allowance block, and nothing else changed. The header's drift hashes are unchanged (the
-  eight live bodies still match them); the foot's hashes moved for the two writers (`create_media` db4049b7,
-  `create_media_as_host` 60112e2b) and its new step 7b proves the clause: RED on the b6bcfe59 writers (a lapsed pass's
-  host and guest uploads both recorded), RED 0/11 on the live schema without the file, GREEN 11/11 with it, nothing
-  persisted. F2 (the lock order between a pass consumed for Pro credit and a pass holder's complete) is a Deferred
-  line. Next: the gate, the captures, the Handoff.
+- Handed off: the gate green on the synced tree at `f91e334d8`; the Handoff above is the whole report.
