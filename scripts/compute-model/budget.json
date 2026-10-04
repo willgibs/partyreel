@@ -1,0 +1,45 @@
+{
+  "note": "pnpm compute:model fails when a scenario's calls or local Vercel-billed CPU (ms) exceed these. Written by --write-budget from a measured run, with headroom (calls +10%, CPU x2: it is noisy on a shared machine; a scenario under 10 calls is held to its calls alone); lower a line when a lever lands, never raise one to make a regression pass without saying why in its commit.",
+  "measured": {
+    "sha": "18f983ec9",
+    "date": "2026-10-04T17:45:21.378Z",
+    "k": 20,
+    "cpu": "Apple M3 Max",
+    "node": "v22.21.1"
+  },
+  "scenarios": {
+    "guest-join-upload": {
+      "calls": 148,
+      "vercelCpuMs": 5430
+    },
+    "guest-hour-live": {
+      "calls": 146,
+      "vercelCpuMs": 2800
+    },
+    "guest-hour-down": {
+      "calls": 676,
+      "vercelCpuMs": 13310
+    },
+    "guest-viewer-20": {
+      "calls": 2,
+      "vercelCpuMs": null
+    },
+    "guest-download": {
+      "calls": 4,
+      "vercelCpuMs": null
+    },
+    "visitor-5-pages": {
+      "calls": 35,
+      "vercelCpuMs": 80
+    },
+    "crawler-50": {
+      "calls": 56,
+      "vercelCpuMs": 80
+    },
+    "lab-demo": {
+      "per": "step",
+      "calls": 12,
+      "vercelCpuMs": 230
+    }
+  }
+}
