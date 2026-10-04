@@ -81,6 +81,7 @@ function DropdownMenuContent({
   className,
   align = "start",
   sideOffset = 4,
+  collisionPadding = floatingGutter,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Content>) {
   return (
@@ -89,6 +90,9 @@ function DropdownMenuContent({
         data-slot="dropdown-menu-content"
         sideOffset={sideOffset}
         align={align}
+        // The family's gutter: a menu pushed against the viewport stands clear
+        // of the glass, as its submenu always did.
+        collisionPadding={collisionPadding}
         className={cn(
           // The panel's 4px of padding IS the row's corner offset.
           // Move it and `floatingRow` is wrong by the difference.

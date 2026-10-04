@@ -64,7 +64,7 @@ export const floatingRow = "rounded-[calc(var(--radius-float)_-_4px)]"
  * THE GUTTER A LAYER KEEPS FROM THE GLASS (`collisionPadding`, in px): the
  * menus' own 8, so a layer opened beside a control at the edge of a phone (the
  * storage ring's popover at 375) is shifted clear of the edge, never flush to
- * it. The popover, a submenu, the responsive menu and the words of a
+ * it. A menu, its submenu, the popover, the responsive menu and the words of a
  * `TapTooltip` read this one number; a layer with a reason of its own names it.
  */
 export const floatingGutter = 8
