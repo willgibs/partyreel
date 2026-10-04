@@ -16,8 +16,6 @@
  */
 import "server-only";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-
 import { QueryFailedError } from "@/lib/db/must-query";
 import type { AdminClient } from "@/lib/lifecycle/reclaim";
 
@@ -32,8 +30,8 @@ export type LeftDeleted = {
 };
 
 /**
- * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `leave_deleted` arrives with migration 20261003220000 (drop the cast
- * then). Its answer is one row of OUT parameters, an object or a one-row list depending on how PostgREST shapes it.
+ * `leave_deleted` (20261003220000) answers one row of OUT parameters, an object or a one-row list depending on how
+ * PostgREST shapes it, so the row is read either way.
  */
 export async function leaveDeleted(
   admin: AdminClient,
@@ -41,10 +39,12 @@ export async function leaveDeleted(
   bytes: number,
   limit: number = LEAVE_DELETED_BATCH,
 ): Promise<LeftDeleted> {
-  const { data, error } = await (admin as unknown as SupabaseClient).rpc(
-    "leave_deleted",
-    { p_host_id: hostId, p_bytes: bytes, p_system: false, p_limit: limit },
-  );
+  const { data, error } = await admin.rpc("leave_deleted", {
+    p_host_id: hostId,
+    p_bytes: bytes,
+    p_system: false,
+    p_limit: limit,
+  });
   if (error) throw new QueryFailedError("cron/purge: leave_deleted", error);
   const row = (Array.isArray(data) ? data[0] : data) as {
     items?: unknown;

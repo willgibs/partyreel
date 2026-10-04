@@ -50,17 +50,6 @@ export const NO_STORAGE: HostStorageSummary = {
 };
 
 /**
- * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `system_bytes` arrives with migration 20261003220000, so the row is read
- * through this shape (drop the cast then). `standby_bytes` is the SQL's own name for her Deleted, kept for the builds
- * deployed before it.
- */
-type SummaryRow = {
-  active_bytes?: number | string | null;
-  standby_bytes?: number | string | null;
-  system_bytes?: number | string | null;
-};
-
-/**
  * One host's figures from the aggregate. Service-role, so the CALLER proves the id: never pass one that did not come
  * from `getUser()` or an admin-gated read.
  */
@@ -73,7 +62,8 @@ export async function readHostStorageSummary(
   );
   if (error) throw error;
   // A `returns table` function answers a list; this one always answers exactly one row (every SUM coalesces to 0).
-  const row = (data as SummaryRow[] | null)?.[0];
+  // `standby_bytes` is the SQL's own name for her Deleted, kept for the builds deployed before 20261003220000.
+  const row = data?.[0];
   const activeBytes = Number(row?.active_bytes ?? 0);
   const deletedBytes = Number(row?.standby_bytes ?? 0);
   return {

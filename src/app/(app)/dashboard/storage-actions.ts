@@ -1,6 +1,5 @@
 "use server";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 import { purgeMediaNow, removeMediaBulk } from "@/lib/db/mutations/media";
@@ -119,15 +118,6 @@ const itemsSchema = z
   .array(z.object({ id: z.uuid(), eventId: z.uuid() }))
   .min(1)
   .max(MAX_BULK_ITEMS);
-
-/**
- * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `empty_deleted` and `profiles.make_room_from_deleted` arrive with
- * migration 20261003220000, so the two calls that name them go through this untyped view of the request's own client
- * (drop the cast then). Still the cookie-bound client: RLS and `auth.uid()` hold exactly as they do for a typed call.
- */
-function untyped(client: unknown): SupabaseClient {
-  return client as SupabaseClient;
-}
 
 /**
  * One page of what she stores, largest first (all her events, or one), and on the first read the overview: what she
@@ -268,7 +258,7 @@ export async function emptyDeletedAction(): Promise<EmptyDeletedAnswer> {
   let more = true;
   let calls = 0;
   while (more) {
-    const { data, error } = await untyped(supabase).rpc("empty_deleted", {
+    const { data, error } = await supabase.rpc("empty_deleted", {
       p_limit: EMPTY_DELETED_BATCH,
     });
     calls += 1;
@@ -320,7 +310,7 @@ export async function setMakeRoomFromDeletedAction(
   }
   const { supabase, user } = await getRequestAuth();
   if (!user) return SIGN_IN;
-  const { data, error } = await untyped(supabase)
+  const { data, error } = await supabase
     .from("profiles")
     .update({ make_room_from_deleted: on })
     .eq("id", user.id)

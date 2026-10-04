@@ -18,7 +18,10 @@ if git show-ref --verify --quiet "refs/heads/lp/$TRACK"; then
 else
   git branch "lp/$TRACK" "origin/lp/$TRACK"
 fi
-[ "$(git rev-parse --short "lp/$TRACK")" = "$HSHA" ] || { echo "lane head moved: $(git rev-parse --short "lp/$TRACK")"; exit 1; }
+# The head is compared whole: any unambiguous abbreviation of it passes, since git's own short form grows a character as
+# the repository does (8 became 9 on 2026-10-04, and a comparison of short forms refused every lane).
+WANT="$(git rev-parse -q --verify "$HSHA^{commit}" 2>/dev/null)"
+[ -n "$WANT" ] && [ "$(git rev-parse "lp/$TRACK")" = "$WANT" ] || { echo "lane head moved: $(git rev-parse --short "lp/$TRACK") (asked for $HSHA)"; exit 1; }
 git show "lp/$TRACK:docs/tracks/$TRACK.md" | grep -q '^status: handed-off' || { echo "manifest not handed-off"; exit 1; }
 echo "stale by $(git rev-list --count "lp/$TRACK..HEAD") commits"
 git -c merge.conflictStyle=diff3 merge --no-ff --no-commit "lp/$TRACK" >/dev/null 2>&1 || true

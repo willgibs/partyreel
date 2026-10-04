@@ -17,6 +17,13 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Guests: the door's pace, reconsidered when the door is next drawn or walked: its steps carry no X and ignore Escape, "Keep your photos" is left by Maybe later or the back arrow, and the walk through the doorway takes one second.
+- Guests: the camera's words, swept in when the camera is next drawn: "Take the first photo" then "Take photos", "Shot 6 taken." (never for a refused shot), the Reel card's "Live at the develop" and the working phrase "Waiting to develop".
+- Upkeep: the contract migration once a milestone serves trash-in-storage's build (partyreel.com no longer calling it): drop `standby_hosts` (and its pins in `upkeep-migrations.test.ts`, `deleted-events-index-guards.test.ts`, `reports/migration.test.ts`, the sweeps describe of `db/migration-guards.test.ts`, and the `standby_hosts` performance line here), and rename `host_storage_summary.standby_bytes` to `deleted_bytes` (DROP + CREATE) with `readHostStorageSummary` (trash-in-storage).
+- Host app: a deleted event's own Delete forever on its Deleted card; today Empty Deleted takes every deleted event at once, or one event's items after its restore (trash-in-storage).
+- Admin: the account view shows what an account stores and its Deleted beside its active bytes (`getAccountDetail`) (trash-in-storage).
+- Cost: an asked row nothing keeps waits for the night's purge, so a refill day's R2 peak holds the old set beside the new (PRICING's ≈0.11 × the cap at 3×); reclaiming those at once, R2 first, would drop it (trash-in-storage).
+- Host app: `get_host_upload_context`'s early "Storage is full for your plan" could carry the meter's numbers too (only when her albums alone sit at the line) (trash-in-storage).
 - Guests: behind "A photo first", a newcomer over a waiting album reads "Nothing here yet. Add the first photo and the album opens." (`waitingOnArrival` needs `access === "full"` in `src/app/(guest)/e/[token]/page.tsx`; a photo-first newcomer is `teaser`): say what waits there too (from `redteam-50`).
 - Host: Settings > Who can get in: each switch's hit area (`after:-inset-x-3`) overflows two `overflow-hidden` boxes by 11 px, so a `scrollIntoView()` on a switch shifts rows 2 to 4 and clips "A photo first"; a mouse and Tab never trigger it (latent; from `redteam-50`).
 - Guests: the cover's desk glyph says both nouns until the album's source tells it its kinds, since the first paint's `getGalleryStats` knows only `approvedTotal`; carrying the photo and video counts there would name them from the first byte (from `crumbs-61`).
@@ -491,6 +498,7 @@ the program teardown.
 - One DB-backup test-restore `[human]`: prove the backup restores before it is the only copy.
 - The `help@partyreel.com` mailbox `[human]`: the help center and the documents name it; confirm the receipt path once it exists.
 - The marketing site tuned at phone widths, judged on Will's phone `[eng+human]`: every round so far was judged at desktop.
+- Android, walked hard on real phones before launch `[eng+human]`: Save through the share sheet into the gallery (the phone-size set and its sizes), the camera (a still, a held clip, the mic's answer), uploads on a weak signal, the door and the reel, on several makes and Chrome versions; nobody has tried Android Save on a device yet.
 - A per-account throttle on the deletion request `[eng]`: beyond Supabase Auth's own OTP limits it is unlimited; it needs a live session plus a password or an emailed code, so the exposure is a borrowed session rather than a stranger, and the throttle is cheap insurance.
 - Submit the apex to the HSTS preload list `[human]`: a one-way door for the domain and every future subdomain (`max-age` already meets the list's requirement; the header ships without `preload` on purpose).
 

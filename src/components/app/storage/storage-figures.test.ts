@@ -29,14 +29,14 @@ const figures = (over: Partial<StorageFigures>): StorageFigures => ({
 });
 
 describe("her setting, read off her profile", () => {
-  it("is on unless she turned it off, as a row from before the column reads", () => {
+  // Reshaped on purpose at the types' regeneration (2026-10-04): the column is NOT NULL and typed boolean, so the two
+  // cases for a row from before it and for a value that was not a boolean expired with the untyped seam. The scar
+  // kept: no row to read is the column's default, on, never a guess at "off".
+  it("is on unless she turned it off, and on with no row to read", () => {
     expect(makeRoomFrom(null)).toBe(true);
     expect(makeRoomFrom(undefined)).toBe(true);
-    expect(makeRoomFrom({ tier: "pro" })).toBe(true);
     expect(makeRoomFrom({ make_room_from_deleted: true })).toBe(true);
     expect(makeRoomFrom({ make_room_from_deleted: false })).toBe(false);
-    // Anything but a boolean is the column's default, never a guess at "off".
-    expect(makeRoomFrom({ make_room_from_deleted: "false" })).toBe(true);
   });
 });
 

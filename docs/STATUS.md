@@ -26,31 +26,32 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 
 ## The desk
 
-Empty until round 13's boards land: identity r3 (actions and fields as one system), host-dashboard r3, the-wait r2
-(the arrival), event-header r3 (facts and doors), create-wizard r3 (the add step) and demo-framing r5 (the hero).
+Six boards wait for his sitting on the alias: identity r3 (actions and fields as one system), host-dashboard r3, the-wait
+r2 (the arrival), event-header r3 (facts and doors), create-wizard r3 (the add step) and demo-framing r5 (the hero).
 
 ## Live state
 
-- **Prod:** partyreel.com is `main` at tag `milestone-34` (`2aae7331`, 2026-10-03 07:50Z: round 12 whole), both
-  projects READY; the read-only walk PASS (the home, pricing, how it works, help, login, a dead link's soft 404, the
-  lab hidden; no console error or exception).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 50 (`048016f9`, 2026-10-03
-  23:55Z): round 13's wirings (identity, the waiting experience, taking photos home with the phone copy, the rooms over
-  the hub, Create as a room, the frame headers; red-team 46 PASS, its MEDIUMs fixed), event date ranges, and Will's
-  next desk (six boards), the calm album, the spend watch, uploads through staging and the backup prune's hold, and red-teams 46 to 49's fixes; red-team 50 walks it before milestone 35.
+- **Prod:** partyreel.com is `main` at tag `milestone-35` (`20c1deb7`, 2026-10-04 03:10Z: round 13 whole), both
+  projects READY; the read-only walk PASS (the home, pricing, how it works, help, blog, the legal pages, login,
+  robots, the sitemap and llms.txt all 200 with no console error or exception; the lab 404; frame-ancestors, the frame
+  header, HSTS and nosniff on both projects; the admin domain at its login; the cron routes 401 to a stranger). Its
+  crons: the purge at 04:00 UTC and the spend watch at 05:00.
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 51 (`31b7c652`, 2026-10-04
+  03:58Z): milestone 35 plus trash-in-storage (Deleted counts in storage, Make room from Deleted on by default, the
+  storage chart) and Will's next desk (six boards); red-team 51 walks it.
   Vercel installs with pnpm 9.14.4, `package.json`'s `packageManager`.
-- **The shared database** runs every migration through 2026-10-03: `disposable_foundation` (20261002223236),
-  `deletion_requested_at`'s comment (20261003030842), `approval_never_with_a_develop` (20261003103742),
-  `phone_copy` (20261003104506) and `event_end_date` (20261003154825, an expand milestone 34 never names), each by
-  protocol; no build of either project reads a dropped thing. The album-log prune runs nightly with the purge,
-  its first production run green (2026-10-02 04:48Z: one row pruned over 58 albums).
+- **The shared database** runs every migration through 2026-10-04, each by protocol: round 13's
+  (`approval_never_with_a_develop`, `phone_copy`, `event_end_date`, `spend_watch`, `event_dates_finite`,
+  `upload_meter`, `doorbell_moment`) and `deleted_counts` (20261004032249, trash-in-storage's: an expand, so milestone
+  35 meets the new cap with its old storage words until the next milestone); no build of either project reads a
+  dropped thing. The album-log prune runs nightly with the purge.
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** about 9,550 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
+- **Tests:** about 10,550 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
 - **Jobs:** the daily purge cron (Vercel Hobby fires it anywhere between 04:00 and 05:00 UTC, seen at 04:48; its first run on milestone 28's sweeps was green:
-  every sweep ok, none stopped early, the orphan scan read 1,368 objects and deleted none, the standby budget's one host
-  willg97 with the withdrawals out), the media-backup Worker and the daily DB-backup Action are live, and the export
+  every sweep ok, none stopped early, the orphan scan read 1,368 objects and deleted none; the standby budget's sweep
+  retired with trash-in-storage), the spend watch daily at 05:00 UTC (hourly at launch), the media-backup Worker and the daily DB-backup Action are live, and the export
   Worker checks itself daily at 05:30 UTC (`/admin/jobs`); the deletion-aware
   backup prune runs dry (`PRUNE_MODE=live` is a launch flip).
 - **The repo is public for the interim** (GitHub Actions minutes); private again when the budget clears.

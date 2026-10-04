@@ -1008,6 +1008,7 @@ export type Database = {
           id: string
           is_admin: boolean
           last_active_at: string
+          make_room_from_deleted: boolean
           password_set_at: string | null
           slug: string | null
           storage_cap_bytes: number | null
@@ -1033,6 +1034,7 @@ export type Database = {
           id: string
           is_admin?: boolean
           last_active_at?: string
+          make_room_from_deleted?: boolean
           password_set_at?: string | null
           slug?: string | null
           storage_cap_bytes?: number | null
@@ -1058,6 +1060,7 @@ export type Database = {
           id?: string
           is_admin?: boolean
           last_active_at?: string
+          make_room_from_deleted?: boolean
           password_set_at?: string | null
           slug?: string | null
           storage_cap_bytes?: number | null
@@ -1584,6 +1587,7 @@ export type Database = {
         Args: { p_event_ids: string[] }
         Returns: number
       }
+      empty_deleted: { Args: { p_limit?: number }; Returns: Json }
       event_account_ticket: {
         Args: {
           p_admission: Database["public"]["Enums"]["guest_admission"]
@@ -1813,15 +1817,35 @@ export type Database = {
       has_password: { Args: never; Returns: boolean }
       held_event_ids: { Args: { p_event_ids: string[] }; Returns: string[] }
       host_active_bytes: { Args: { p_host_id: string }; Returns: number }
+      host_deleted_media: {
+        Args: { p_host_id: string }
+        Returns: {
+          binned_at: string
+          by_system: boolean
+          file_size_bytes: number
+          media_id: string
+        }[]
+      }
       host_door_waiting: { Args: { p_host_id: string }; Returns: Json }
+      host_room_used: { Args: { p_host_id: string }; Returns: number }
       host_storage_summary: {
         Args: { p_host_id: string }
         Returns: {
           active_bytes: number
           standby_bytes: number
+          system_bytes: number
         }[]
       }
       kept_media_ids: { Args: { p_media_ids: string[] }; Returns: string[] }
+      leave_deleted: {
+        Args: {
+          p_bytes: number
+          p_host_id: string
+          p_limit?: number
+          p_system: boolean
+        }
+        Returns: Record<string, unknown>
+      }
       let_back_in: {
         Args: { p_block_id: string; p_restore?: boolean }
         Returns: Json
