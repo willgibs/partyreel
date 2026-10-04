@@ -1,4 +1,4 @@
-import { act, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -75,10 +75,18 @@ function renderWizard(storagePct = 10) {
   );
 }
 
+/** The name given and the album's style left as it opens (Live): the look stands, and she picks Rounded. */
 async function toTheLook() {
-  await userEvent.type(screen.getByRole("textbox"), EVENT.name);
+  await toTheAdd();
   await userEvent.click(screen.getByRole("button", { name: /^continue$/i }));
   await userEvent.click(await screen.findByRole("radio", { name: /rounded/i }));
+}
+
+/** The name given: the add step stands. */
+async function toTheAdd() {
+  await userEvent.type(screen.getByRole("textbox"), EVENT.name);
+  await userEvent.click(screen.getByRole("button", { name: /^continue$/i }));
+  await screen.findByRole("radiogroup", { name: /album style/i });
 }
 
 async function createIt(storagePct?: number) {
@@ -317,5 +325,178 @@ describe("the way on", () => {
       expect.stringMatching(/free plan/i),
       expect.anything(),
     );
+  });
+});
+
+/* ── the album's style at birth (create-wizard r3's add=styles) ────────────────────────────────────────── */
+
+/**
+ * ★ A NEW EVENT IS BORN WITH ITS STYLE'S THREE COLUMNS IN ONE INSERT (`createFieldsOf`): what a host picked on the add
+ * step is what the event is made with, and what Settings then shows (`styleOf` of the row reads her pick back). What fails
+ * silently: a pick that never reaches the create (the event lands Live whatever she chose), approval standing with a
+ * develop time, a Disposable made with no time or a time that has already passed, and a pick lost across a Back.
+ */
+describe("the album's style at birth (add=styles)", () => {
+  const style = (name: RegExp) => screen.getByRole("radio", { name });
+
+  async function created() {
+    await userEvent.click(screen.getByRole("button", { name: /^continue$/i }));
+    await userEvent.click(
+      await screen.findByRole("button", { name: /^create event$/i }),
+    );
+    await screen.findByRole("button", { name: /^get it ready$/i });
+    return createEventInWizard.mock.calls[0]![0] as {
+      capture: string;
+      moderation_mode: string;
+      develops_at: string | null;
+    };
+  }
+
+  it("opens on Live, the album most hosts want and the columns' own default: Continue alone keeps it", async () => {
+    renderWizard();
+    await toTheAdd();
+    expect(style(/^live\./i)).toHaveAttribute("aria-checked", "true");
+    expect(await created()).toMatchObject({
+      capture: "upload",
+      moderation_mode: "live",
+      develops_at: null,
+    });
+  });
+
+  it("★ Review is born holding each upload for her: free uploads, approval, no develop time", async () => {
+    renderWizard();
+    await toTheAdd();
+    await userEvent.click(style(/^review\./i));
+    expect(await created()).toMatchObject({
+      capture: "upload",
+      moderation_mode: "hold_for_approval",
+      develops_at: null,
+    });
+  });
+
+  it("★ Disposable is born the album's camera with a develop time ahead, and never with approval", async () => {
+    renderWizard();
+    await toTheAdd();
+    await userEvent.click(style(/^disposable\./i));
+    const sent = await created();
+    expect(sent).toMatchObject({ capture: "camera", moderation_mode: "live" });
+    // Create knows no date: 9 am tomorrow, in her own clock, the camera settings' own default.
+    const at = new Date(sent.develops_at!);
+    expect(at.getTime()).toBeGreaterThan(Date.now());
+    expect(at.getHours()).toBe(9);
+  });
+
+  it("★ the last pick is the style, however she moved between them: no half-state rides along", async () => {
+    renderWizard();
+    await toTheAdd();
+    await userEvent.click(style(/^disposable\./i));
+    await userEvent.click(style(/^review\./i));
+    await userEvent.click(style(/^live\./i));
+    await userEvent.click(style(/^disposable\./i));
+    await userEvent.click(style(/^review\./i));
+    // A Disposable's time left with its card, and approval never meets a develop time.
+    expect(await created()).toEqual(
+      expect.objectContaining({
+        capture: "upload",
+        moderation_mode: "hold_for_approval",
+        develops_at: null,
+      }),
+    );
+  });
+
+  it("keeps her style (and a develop time she moved) across a Back and a Continue", async () => {
+    renderWizard();
+    await toTheAdd();
+    await userEvent.click(style(/^disposable\./i));
+    fireEvent.change(screen.getByLabelText("Develop time"), {
+      target: { value: "2027-03-05T14:30" },
+    });
+    await userEvent.click(screen.getByRole("button", { name: /^continue$/i }));
+    await userEvent.click(screen.getByRole("button", { name: /^back$/i }));
+    expect(style(/^disposable\./i)).toHaveAttribute("aria-checked", "true");
+    expect(screen.getByLabelText("Develop time")).toHaveValue(
+      "2027-03-05T14:30",
+    );
+    const sent = await created();
+    expect(new Date(sent.develops_at!).getTime()).toBe(
+      new Date(2027, 2, 5, 14, 30).getTime(),
+    );
+  });
+
+  it("★ a develop time that is no time stops her on the add step, in words under its row, and sends nothing", async () => {
+    renderWizard();
+    await toTheAdd();
+    await userEvent.click(style(/^disposable\./i));
+    const field = screen.getByLabelText("Develop time");
+    for (const [typed, words] of [
+      ["", /finish the time/i],
+      ["2020-01-01T09:00", /that time has passed/i],
+      ["2099-01-01T09:00", /within a year/i],
+      // A year left half typed (Chrome types 2027 as 0002, 0020, 0202 on its way): never a time anybody meant.
+      ["0202-10-05T09:00", /pick a year/i],
+    ] as const) {
+      fireEvent.change(field, { target: { value: typed } });
+      await userEvent.click(
+        screen.getByRole("button", { name: /^continue$/i }),
+      );
+      expect(
+        screen.getByRole("radiogroup", { name: /album style/i }),
+      ).toBeTruthy();
+      expect(field).toHaveAttribute("aria-invalid", "true");
+      expect(field).toHaveAccessibleDescription(words);
+    }
+    expect(createEventInWizard).not.toHaveBeenCalled();
+    // And a whole time ahead lets her on.
+    fireEvent.change(field, { target: { value: "2027-03-05T14:30" } });
+    await userEvent.click(screen.getByRole("button", { name: /^continue$/i }));
+    expect(
+      await screen.findByRole("button", { name: /^create event$/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("★ a time that passed while she stood on the look is not made: back to the add step, the words under its row", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    try {
+      vi.setSystemTime(new Date(2026, 9, 10, 20, 0, 0));
+      renderWizard();
+      await toTheAdd();
+      await userEvent.click(style(/^disposable\./i));
+      await userEvent.click(
+        screen.getByRole("button", { name: /^continue$/i }),
+      );
+      await screen.findByRole("button", { name: /^create event$/i });
+      // She left the tab open past 9 am tomorrow.
+      vi.setSystemTime(new Date(2026, 9, 11, 10, 0, 0));
+      await userEvent.click(
+        screen.getByRole("button", { name: /^create event$/i }),
+      );
+      expect(
+        await screen.findByRole("radiogroup", { name: /album style/i }),
+      ).toBeInTheDocument();
+      expect(screen.getByLabelText("Develop time")).toHaveAccessibleDescription(
+        /that time has passed/i,
+      );
+      expect(createEventInWizard).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("a refused Create keeps her style, as it keeps her name and her look", async () => {
+    createEventInWizard.mockResolvedValue({
+      ok: false,
+      code: "unknown",
+      message: "The network dropped.",
+    });
+    renderWizard();
+    await toTheAdd();
+    await userEvent.click(style(/^review\./i));
+    await userEvent.click(screen.getByRole("button", { name: /^continue$/i }));
+    await userEvent.click(
+      await screen.findByRole("button", { name: /^create event$/i }),
+    );
+    await screen.findByRole("button", { name: /^create event$/i });
+    await userEvent.click(screen.getByRole("button", { name: /^back$/i }));
+    expect(style(/^review\./i)).toHaveAttribute("aria-checked", "true");
   });
 });

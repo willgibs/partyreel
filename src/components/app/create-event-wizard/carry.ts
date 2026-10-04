@@ -24,7 +24,10 @@ import { useCallback, useEffect, useRef } from "react";
  * reads at once. The global guard clamps CSS, never a script's animation, so this asks first; where the
  * browser has no `animate` (an old engine, a test's jsdom) it cuts the same way.
  *
- * The add step (create-wizard r3) joins with its own carry, the pick dropping into its hairline.
+ * ★ A PICK DROPS INTO ITS HAIRLINE (create-wizard r3's `drop`, taken): the add step's chosen card carries
+ * `data-carry-pick="2"`, the number of the hairline it belongs to. Leaving the step forward, its picture lifts off the
+ * leaving screen and flies into that hairline, shrinking to the line and going out as it lands, the way the name rises
+ * off the first step. Measured like the name: from where the pick stood to where the line stands now.
  */
 
 /** How long her words fly, ms; the screens' fade and rise sit inside it. */
@@ -40,6 +43,8 @@ type Pending = {
   from: DOMRect | null;
   /** Forward, the words themselves, photographed before their field leaves. */
   words: HTMLElement | null;
+  /** Forward, the pick's picture, photographed where it stood, and the hairline it drops into (its step number). */
+  pick: { picture: HTMLElement; from: DOMRect; to: number } | null;
 };
 
 /** A house curve read off its token, so a retuned curve moves this too; a literal stands in for none. */
@@ -122,7 +127,29 @@ export function useCarry() {
         dir === 1 && hasWords(source)
           ? (source.cloneNode(true) as HTMLElement)
           : null;
-      pending.current = { dir, ghost, from, words };
+      // A pick on the leaving screen: its picture, to drop into its hairline once the next screen stands.
+      let pick: Pending["pick"] = null;
+      const marked =
+        dir === 1
+          ? page?.querySelector<HTMLElement>("[data-carry-pick]")
+          : null;
+      const to = Number(marked?.dataset.carryPick);
+      if (marked && Number.isInteger(to)) {
+        const rect = marked.getBoundingClientRect();
+        if (rect.width >= 2) {
+          const picture = marked.cloneNode(true) as HTMLElement;
+          for (const el of [
+            picture,
+            ...picture.querySelectorAll<HTMLElement>("[id]"),
+          ])
+            el.removeAttribute("id");
+          picture.removeAttribute("data-carry-pick");
+          picture.setAttribute("aria-hidden", "true");
+          picture.setAttribute("data-room-flight-pick", "");
+          pick = { picture, from: rect, to };
+        }
+      }
+      pending.current = { dir, ghost, from, words, pick };
     },
     [settle],
   );
@@ -174,6 +201,49 @@ export function useCarry() {
           },
         ),
       );
+    }
+
+    // The pick drops into its hairline: lifted off the leaving screen, shrinking to the line and going out as it lands.
+    if (p.pick && flyers.current) {
+      const { picture, from, to } = p.pick;
+      const line = room.querySelector<HTMLElement>(`[data-room-step="${to}"]`);
+      const at = line?.getBoundingClientRect();
+      if (at && at.width >= 2) {
+        Object.assign(picture.style, {
+          position: "fixed",
+          left: `${from.left}px`,
+          top: `${from.top}px`,
+          width: `${from.width}px`,
+          height: `${from.height}px`,
+          margin: "0",
+          pointerEvents: "none",
+          transformOrigin: "center",
+          zIndex: "60",
+        });
+        flyers.current.append(picture);
+        const dx = at.left + at.width / 2 - (from.left + from.width / 2);
+        const dy = at.top + at.height / 2 - (from.top + from.height / 2);
+        const k = Math.max(0.04, at.width / from.width);
+        const dropped = () => picture.remove();
+        cleanups.current.push(dropped);
+        const drop = picture.animate(
+          [
+            { transform: "translate(0px, 0px) scale(1)", opacity: 1 },
+            {
+              transform: `translate(${dx * 0.7}px, ${dy * 0.7}px) scale(${0.3 + k})`,
+              opacity: 0.9,
+              offset: 0.7,
+            },
+            {
+              transform: `translate(${dx}px, ${dy}px) scale(${k})`,
+              opacity: 0,
+            },
+          ],
+          { duration: CARRY_MS, easing: strong, fill: "forwards" },
+        );
+        running.current.push(drop);
+        void drop.finished.then(dropped, dropped);
+      }
     }
 
     // Her words in flight, between the field and the head's line.

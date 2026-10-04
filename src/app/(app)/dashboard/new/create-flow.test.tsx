@@ -30,7 +30,9 @@ import { CreateEventWizard } from "@/components/app/create-event-wizard";
  *     the two sharing surfaces stayed one (`hand=same`).
  *
  * And the look step (`look=places`, Will 2026-10-03): her code where guests
- * meet it, on her phone and on the room's screen, four looks re-dressing both.
+ * meet it, on her phone and on the room's screen, four looks re-dressing both;
+ * and the add step before it (`add=styles`, Will 2026-10-04), which opens
+ * answered, so a name is still all Create asks for.
  *
  * No class, size, word or duration is pinned, but for the one fact a word
  * carries: the look step's codes are SAMPLES (below).
@@ -98,6 +100,10 @@ async function toTheLook() {
   renderWizard();
   await userEvent.type(screen.getByRole("textbox"), EVENT.name);
   await userEvent.click(screen.getByRole("button", { name: /continue/i }));
+  // The add step (create-wizard r3's add=styles) stands between the name and the look; it opens on Live, so Continue
+  // alone keeps the album as every host who never touched a setting has it.
+  await screen.findByRole("radiogroup", { name: /album style/i });
+  await userEvent.click(screen.getByRole("button", { name: /continue/i }));
   await screen.findByRole("button", { name: /create event/i });
 }
 
@@ -133,9 +139,31 @@ describe("what creating asks for", () => {
   it("advances on a name alone, Enter as well as Continue", async () => {
     renderWizard();
     await userEvent.type(screen.getByRole("textbox"), `${EVENT.name}{Enter}`);
+    // ★ RESHAPED ON PURPOSE (create-wizard r3's add=styles; scar kept: a name alone is enough to go on): the screen
+    // after the name is the album's style now, which opens on its answer (Live), so nothing more is required of her.
     expect(
-      await screen.findByRole("button", { name: /create event/i }),
+      await screen.findByRole("radiogroup", { name: /album style/i }),
     ).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: /^live\./i })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+  });
+
+  it("asks nothing more than a name: the album's style opens answered, and a Create from it needs no pick", async () => {
+    await toTheLook();
+    await userEvent.click(
+      await screen.findByRole("button", { name: /create event/i }),
+    );
+    await screen.findByRole("button", { name: /get it ready/i });
+    expect(createEventInWizard).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: EVENT.name,
+        capture: "upload",
+        moderation_mode: "live",
+        develops_at: null,
+      }),
+    );
   });
 });
 
@@ -308,6 +336,8 @@ describe("the door at the cap", () => {
     // milliseconds later. The beat must survive it.
     const { rerender } = renderWizard({ atCap: false, cappedEvents: [] });
     await userEvent.type(screen.getByRole("textbox"), EVENT.name);
+    await userEvent.click(screen.getByRole("button", { name: /continue/i }));
+    await screen.findByRole("radiogroup", { name: /album style/i });
     await userEvent.click(screen.getByRole("button", { name: /continue/i }));
     await userEvent.click(
       await screen.findByRole("button", { name: /create event/i }),

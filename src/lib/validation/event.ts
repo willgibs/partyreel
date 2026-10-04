@@ -167,6 +167,28 @@ function datesInOrder(
   }
 }
 
+// HOW GUESTS ADD AND WHEN THE ALBUM DEVELOPS (lane `disposable-foundation`, 20261002200000). A new event is born with
+// them too (create-wizard r3's add=styles: a style is these two columns and `moderation_mode`, one insert, so no
+// half-state is ever stored), and the update sends them as Settings' styles and develop time change them.
+//  - `capture`: free uploads or the album's camera. The database fills in the roll (24) and stamps its period
+//    (`events.sealed_from`, never written here); `roll_size` is the wizard's to name later, never this form's.
+//  - `develops_at`: the develop time, or null for none. Any real time up to a year and a day ahead; one at or before
+//    now (Develop now writes the browser's now) is stored as the database's own now. The column holds only a
+//    finite-time envelope (`events_develops_at_finite`), so this bound is the write's.
+// The third, `moderation_mode`, is the event's own field above: the three-way "when everyone sees" writes it beside
+// `develops_at`, and `createEvent` and `updateEvent` refuse the pair approval-with-a-develop in words
+// (`approvalWithADevelop`) before the database's CHECK would.
+const developFields = {
+  capture: z.enum(CAPTURES),
+  develops_at: z.iso
+    .datetime({ offset: true })
+    .refine(
+      (iso) => developTimeWithinReach(iso),
+      `Pick a develop time within ${DEVELOP_MAX_AHEAD_DAYS} days.`,
+    )
+    .nullable(),
+};
+
 /**
  * A CREATE: the fields, with the defaults a new event needs (each mirrors its column default), so
  * a create that names only the event lands every setting a host who never touched one gets.
@@ -180,6 +202,9 @@ export const createEventSchema = z
     require_upload_to_view: eventFields.require_upload_to_view.default(false),
     moderation_mode: eventFields.moderation_mode.default("live"),
     qr_style: eventFields.qr_style.default("classic"),
+    // The album's style at birth: free uploads and no develop time, as the columns default.
+    capture: developFields.capture.default("upload"),
+    develops_at: developFields.develops_at.default(null),
   })
   .superRefine(datesInOrder);
 
@@ -208,26 +233,6 @@ const reelFields = {
 // the upload's own gate reads the plan (`create_media`), never this column alone.
 const videoFields = {
   allow_videos: z.boolean(),
-};
-
-// HOW GUESTS ADD AND WHEN THE ALBUM DEVELOPS (lane `disposable-foundation`, 20261002200000), update-only like the
-// reel's and the Videos switch (a new event takes the column defaults: free uploads, no develop), so the create
-// wizard's later wiring adds them to the create with no migration (the columns hold an INSERT grant too). The third,
-// `moderation_mode`, is the event's own field above: the three-way "when everyone sees" writes it beside `develops_at`.
-//  - `capture`: free uploads or the album's camera. The database fills in the roll (24) and stamps its period
-//    (`events.sealed_from`, never written here); `roll_size` is the wizard's to name later, never this form's.
-//  - `develops_at`: the develop time, or null for none. Any real time up to a year and a day ahead; one at or before
-//    now (Develop now writes the browser's now) is stored as the database's own now. The column holds only a
-//    finite-time envelope (`events_develops_at_finite`), so this bound is the write's.
-const developFields = {
-  capture: z.enum(CAPTURES),
-  develops_at: z.iso
-    .datetime({ offset: true })
-    .refine(
-      (iso) => developTimeWithinReach(iso),
-      `Pick a develop time within ${DEVELOP_MAX_AHEAD_DAYS} days.`,
-    )
-    .nullable(),
 };
 
 /**

@@ -4,7 +4,7 @@
  * clear"). How guests add is `events.capture`; when everyone sees is `moderation_mode` with `develops_at` (`reveal.ts`).
  * A style is words and a picture over those columns, never a column of its own:
  *  - Live: free uploads, each shown the moment it's added;
- *  - Reviewed: free uploads, each held until the host lets it in;
+ *  - Review: free uploads, each held until the host lets it in (the name is where those photos go: her Review room);
  *  - Disposable: the album's camera with a develop time (the preset's name, Will's `name=disposable`).
  * A mix outside the three (the camera showing live or under approval, free uploads with a develop time) is no style:
  * Settings shows it under Customize, where the two answers stand apart.
@@ -18,7 +18,12 @@
  * host's write says it in words first (`approvalWithADevelop`). A host checks a disposable by lifting her cover
  * before it develops, and moves the develop time if she needs longer.
  *
- * Create's card reads these words when the create wizard asks how guests add (create-wizard r3, after this lane).
+ * ★ THE NAMES ARE THE CAMERA'S VOICE, ONE WORD EACH (Will's pick on create-wizard r3, "should we go with a more simple
+ * 'Review'?"): Live, Review and Disposable stand as three modes of one album, wherever a style is named (Create's add
+ * step, Settings' cards, the help). `lib/admin/reports.ts`' "Reviewed" is a report's status, never this.
+ *
+ * Create reads these words and `patchForStyle`'s columns too (create-wizard r3's add=styles): a new event is born with
+ * a style's three columns in one insert (`createFieldsOf`), so what Create shows and what Settings shows can never differ.
  *
  * Pure and isomorphic, like its neighbours.
  */
@@ -34,7 +39,7 @@ export const PRESET_NAME = "Disposable";
 
 export const STYLE_NAMES: Record<AlbumStyle, string> = {
   live: "Live",
-  approval: "Reviewed",
+  approval: "Review",
   disposable: PRESET_NAME,
 };
 
@@ -98,6 +103,23 @@ export function patchForStyle(
           eventEndDate: opts.eventEndDate,
           now: new Date(nowMs),
         }).toISOString(),
+  };
+}
+
+/**
+ * A STYLE'S COLUMNS IN THE NAMES THE CREATE CARRIES (`createEventSchema`): the one write a new event is born with, so a
+ * style is never a half-state at birth either. `capture` and `develops_at` are the foundation's INSERT-granted columns
+ * (20261002200000); `moderation_mode` is the event's own answer, `hold_for_approval` where the host reviews.
+ */
+export function createFieldsOf(v: StyleColumns): {
+  capture: Capture;
+  moderation_mode: "live" | "hold_for_approval";
+  develops_at: string | null;
+} {
+  return {
+    capture: v.capture,
+    moderation_mode: v.review ? "hold_for_approval" : "live",
+    develops_at: v.developsAt,
   };
 }
 

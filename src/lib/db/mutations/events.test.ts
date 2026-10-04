@@ -15,6 +15,7 @@ import { createEventSchema, updateEventSchema } from "@/lib/validation/event";
 vi.mock("server-only", () => ({}));
 
 const patches: Record<string, unknown>[] = [];
+const inserts: Record<string, unknown>[] = [];
 const reads: string[] = [];
 /** What the next write answers with: the database's own refusal, where a test hands one. */
 let nextError: { code: string; message: string } | null = null;
@@ -25,8 +26,11 @@ function eventsBuilder() {
       patches.push(patch);
       return builder;
     },
-    // A creation (upload-meter's daily breaker): the row is the test's to ignore, the answer `single`'s.
-    insert: () => builder,
+    // A creation (upload-meter's daily breaker): the row is recorded, the answer is `single`'s.
+    insert(row: Record<string, unknown>) {
+      inserts.push(row);
+      return builder;
+    },
     select(columns: string) {
       reads.push(columns);
       return builder;
@@ -68,6 +72,7 @@ const { APPROVAL_NEVER_WITH_A_DEVELOP } =
 
 beforeEach(() => {
   patches.length = 0;
+  inserts.length = 0;
   reads.length = 0;
   nextError = null;
 });
@@ -346,5 +351,90 @@ describe("createEvent: the daily breaker", () => {
   it("a creation the database takes is the row", async () => {
     const result = await createEvent(values);
     expect(result).toEqual({ ok: true, data: { id: "event-1" } });
+  });
+});
+
+// THE ALBUM'S STYLE AT BIRTH (create-wizard r3's add=styles): a style is `capture`, `moderation_mode` and `develops_at`,
+// and a new event is born with all three in ONE insert, so no half-state is ever stored (the database stamps the roll
+// and the period in that same insert: `events_reveal_stamp`).
+describe("createEvent: the album's style at birth", () => {
+  const AT = new Date(Date.now() + 86_400_000).toISOString();
+
+  it("★ inserts a style's three columns together: Live, Review and Disposable", async () => {
+    await createEvent(createEventSchema.parse({ name: "Live one" }));
+    await createEvent(
+      createEventSchema.parse({
+        name: "Review one",
+        moderation_mode: "hold_for_approval",
+      }),
+    );
+    await createEvent(
+      createEventSchema.parse({
+        name: "Disposable one",
+        capture: "camera",
+        moderation_mode: "live",
+        develops_at: AT,
+      }),
+    );
+    expect(
+      inserts.map((i) => ({
+        capture: i.capture,
+        moderation_mode: i.moderation_mode,
+        develops_at: i.develops_at,
+      })),
+    ).toEqual([
+      { capture: "upload", moderation_mode: "live", develops_at: null },
+      {
+        capture: "upload",
+        moderation_mode: "hold_for_approval",
+        develops_at: null,
+      },
+      { capture: "camera", moderation_mode: "live", develops_at: AT },
+    ]);
+  });
+
+  it("never writes the period or the roll: they are the database's (`events_reveal_stamp`)", async () => {
+    await createEvent(
+      createEventSchema.parse({
+        name: "Disposable one",
+        capture: "camera",
+        develops_at: AT,
+      }),
+    );
+    expect(inserts[0]).not.toHaveProperty("sealed_from");
+    expect(inserts[0]).not.toHaveProperty("roll_size");
+  });
+
+  it("★ refuses approval with a develop time, in words, and inserts nothing (`both=never`, at birth too)", async () => {
+    const result = await createEvent(
+      createEventSchema.parse({
+        name: "Both",
+        capture: "camera",
+        moderation_mode: "hold_for_approval",
+        develops_at: AT,
+      }),
+    );
+    expect(result).toEqual({
+      ok: false,
+      code: "unknown",
+      message: APPROVAL_NEVER_WITH_A_DEVELOP,
+    });
+    expect(inserts).toEqual([]);
+  });
+
+  it("★ the database's refusal of the pair on an insert reads as the same words, never as the plan's event limit", async () => {
+    nextError = {
+      code: "23514",
+      message:
+        'new row for relation "events" violates check constraint "events_approval_never_develops"',
+    };
+    const result = await createEvent(
+      createEventSchema.parse({ name: "A party" }),
+    );
+    expect(result).toEqual({
+      ok: false,
+      code: "unknown",
+      message: APPROVAL_NEVER_WITH_A_DEVELOP,
+    });
   });
 });
