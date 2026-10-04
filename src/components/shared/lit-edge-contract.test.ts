@@ -60,6 +60,16 @@ describe("the bright edge: data-lit", () => {
     expect(rule).toMatch(/pointer-events:\s*none\s*;/);
   });
 
+  it("★ draws its one pixel on a 1px transparent border, never on a padding", () => {
+    // Chrome draws a border under a device pixel as one whole device pixel and rounds a padding to the pixel grid, so
+    // a padding ring drew nothing once a page was zoomed under half (identity r4, measured with CSS `zoom: .33`): every
+    // photograph's edge vanished at a zoomed-out desk while it read right at 100%.
+    const rule = generating.after;
+    expect(rule).toMatch(/border:\s*1px solid transparent\s*;/);
+    expect(rule).not.toMatch(/(^|[;\s])padding\s*:/);
+    expect(rule).toMatch(/mask-clip:\s*padding-box,\s*border-box\s*;/);
+  });
+
   it("makes the host a containing block without taking over its positioning", () => {
     // `position: relative` in @layer base: a host that is `absolute` or
     // `sticky` by utility keeps that (utilities outrank base), and one that is

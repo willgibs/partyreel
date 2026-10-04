@@ -382,7 +382,7 @@ function CommandPaletteItem({
     className: cn(
       "flex cursor-pointer items-center gap-3 px-3 py-2.5 text-sm select-none",
       floatingRow,
-      active && "bg-accent ring-[1.5px] ring-foreground/50 ring-inset",
+      active && "bg-accent ring-[1.5px] ring-(color:--display-cursor) ring-inset",
       disabled && "pointer-events-none opacity-50",
       className
     ),

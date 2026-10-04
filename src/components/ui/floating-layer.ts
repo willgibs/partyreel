@@ -61,6 +61,15 @@ export const floatingTipCorner = "rounded-[calc(var(--radius-float)_-_6px)]"
 export const floatingRow = "rounded-[calc(var(--radius-float)_-_4px)]"
 
 /**
+ * THE GUTTER A LAYER KEEPS FROM THE GLASS (`collisionPadding`, in px): the
+ * menus' own 8, so a layer opened beside a control at the edge of a phone (the
+ * storage ring's popover at 375) is shifted clear of the edge, never flush to
+ * it. A menu, its submenu, the popover, the responsive menu and the words of a
+ * `TapTooltip` read this one number; a layer with a reason of its own names it.
+ */
+export const floatingGutter = 8
+
+/**
  * TWO MATERIALS, BY WHAT A LAYER IS FOR (identity r2, layers=display, wired
  * 2026-10-03). Both opaque, both under the LAYER shadow (the light board's
  * rule: the larger of the two shadows goes under anything the page keeps
@@ -68,9 +77,10 @@ export const floatingRow = "rounded-[calc(var(--radius-float)_-_4px)]"
  *
  * THE DISPLAY, for the QUICK layers, what a press opens and the next press
  * closes (a menu, a popover, a select, the Add's rows, the palette; the
- * tooltip and the toast wear it too): the camera's own screen, one near-black
- * on paper and in the room (`.surface-display` in globals.css re-declares every
- * token inside it), parted from the room by its edge.
+ * tooltip and the toast wear it too): the camera's own screen, near-black on
+ * paper and lit graphite in the room (`.surface-display` in globals.css
+ * re-declares every token inside it from the ground's own `--display*` set),
+ * parted from the room by its light and its edge.
  */
 export const floatingDisplay =
   "surface-display bg-popover text-popover-foreground ring-1 ring-border"

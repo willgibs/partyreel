@@ -9,6 +9,7 @@ import {
   floatingClock,
   floatingDisplayPanel,
   floatingEntrance,
+  floatingGutter,
 } from "@/components/ui/floating-layer"
 
 function Popover({ ...props }: React.ComponentProps<typeof PopoverPrimitive.Root>) {
@@ -25,6 +26,7 @@ function PopoverContent({
   className,
   align = "center",
   sideOffset = 6,
+  collisionPadding = floatingGutter,
   ...props
 }: React.ComponentProps<typeof PopoverPrimitive.Content>) {
   return (
@@ -33,6 +35,9 @@ function PopoverContent({
         data-slot="popover-content"
         align={align}
         sideOffset={sideOffset}
+        // The menus' gutter: a popover beside a control at the edge of a phone
+        // (the storage ring at 375) stands clear of the glass, never flush to it.
+        collisionPadding={collisionPadding}
         className={cn(
           "z-50 w-64 origin-(--radix-popover-content-transform-origin) p-3",
           // The display (layers=display): a popover is a quick layer, what a

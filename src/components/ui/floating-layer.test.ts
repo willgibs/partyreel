@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest"
 import {
   floatingCrossSlide,
   floatingEdgeEntranceResponsive,
+  floatingGutter,
   floatingPopupShapes,
 } from "./floating-layer"
 import { POPUP_KINDS, isDialogShape } from "./popup-kinds"
@@ -68,6 +69,30 @@ describe("the floating layer's mechanisms", () => {
         `${utility} rides unprefixed: reduced motion would have to out-specificity it rather than it simply being absent`,
       ).toContain(`motion-safe:${utility}`)
     }
+  })
+})
+
+describe("the gutter at the glass", () => {
+  it("★ is the contract's one number on every anchored layer that keeps one", () => {
+    // Red-team 51's NIT: the storage ring's popover sat flush to the left edge at 375 because it set no
+    // `collisionPadding` at all. The menus' 8 is `floatingGutter` now, so a layer that keeps a gutter reads it, and a
+    // literal typed back in is a second number the next retune would miss.
+    for (const file of [
+      "src/components/ui/popover.tsx",
+      "src/components/ui/dropdown-menu.tsx",
+      "src/components/ui/responsive-menu.tsx",
+      "src/components/ui/tooltip.tsx",
+    ]) {
+      const source = readFileSync(join(ROOT, file), "utf8")
+      expect(source, `${file} stopped reading the gutter`).toMatch(
+        /\bfloatingGutter\b/,
+      )
+      expect(
+        source,
+        `${file} types a gutter of its own`,
+      ).not.toMatch(/collisionPadding\s*(=|:)\s*\{?\s*\d/)
+    }
+    expect(floatingGutter).toBe(8)
   })
 })
 

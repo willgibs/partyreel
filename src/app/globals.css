@@ -211,6 +211,35 @@
   --gallery-muted: oklch(0.715 0.0105 286);
   --gallery-border: oklch(1 0 0 / 8%);
 
+  /* THE DISPLAY'S SCREEN, ONE SET PER GROUND (layers=display, identity r2; the
+     room's own grade is room=graphite, identity r3). The camera's own screen
+     every quick layer is made of (a menu, a popover, a select, a tooltip, a
+     toast, the Add's rows): `.surface-display` below reads these. On paper it
+     is near-black, which is what parts it from the silver body; the room
+     declares its own, in `.dark`.
+
+     ★ A GROUND'S TOKENS, DECLARED IN WHOLE ON BOTH: a layer reads whichever
+     ground it stands in, so a value declared once on `:root` could never
+     differ in the room, and a paper subtree inside the room (a paper chapter
+     in a cinema page) takes paper's by wearing `.surface-paper`, which
+     aliases this block. Kept out of `@theme`: no `bg-display` utility
+     exists, a surface reaches the display by wearing its ground.
+
+     `--display-cursor` is the outline of the row a pointer or a key holds
+     (its wash is `--accent` inside the ground), and `--display-light` the
+     bright edge's light on a layer: nothing draws that edge on a layer yet
+     (the identity board's `edge` ask decides its reach), so the token waits
+     for its reader. */
+  --display: oklch(0.165 0.004 286);
+  --display-step: oklch(0.235 0.004 286);
+  --display-foreground: oklch(0.975 0.002 286);
+  --display-muted: oklch(0.72 0.005 286);
+  --display-faint: oklch(0.56 0.005 286);
+  --display-edge: oklch(1 0 0 / 11%);
+  --display-input: oklch(1 0 0 / 20%);
+  --display-cursor: oklch(1 0 0 / 50%);
+  --display-light: oklch(1 0 0 / 30%);
+
   /* ─── THE LAMP SET: the house palette for LIGHT (SPILL + BEAM + confetti).
      Named for the engine's SOURCE rule, "every instance names its lamp". The five hues ARE the
      identity: 25 coral, 85 amber, 155 green, 255 blue, 305 violet. What varies
@@ -274,18 +303,6 @@
      tighter, and a work layer (a dialog, a panel, a sheet) a quarter rounder. */
   --radius-float: 1rem;
 
-  /* THE DISPLAY: the camera's own screen (layers=display, identity r2), one
-     near-black on paper and in the room, which is what the quick layers (a
-     menu, a popover, a select, a tooltip, a toast, the Add's rows) are made
-     of. Theme-independent by definition, so declared here once; the ground
-     that wears them is `.surface-display` (below). Kept out of `@theme`: no
-     `bg-display` utility exists, a surface reaches the display by wearing its
-     ground. */
-  --display: oklch(0.165 0.004 286);
-  --display-step: oklch(0.235 0.004 286);
-  --display-foreground: oklch(0.975 0.002 286);
-  --display-muted: oklch(0.72 0.005 286);
-  --display-edge: oklch(1 0 0 / 11%);
   /* The lamps' cadence, ONE token: every shipped lamp (the
      footer seam, the film strip, the reel pool, the feature heroes' screen
      lamps) passes --glw-dur: var(--spill-cadence), so the whole page moves on
@@ -398,6 +415,26 @@
   --shadow-layer:
     0 2px 8px oklch(0 0 0 / 0.55), 0 16px 36px -6px oklch(0 0 0 / 0.75);
 
+  /* THE DISPLAY IN THE ROOM IS LIT GRAPHITE (Will's pick on identity r3,
+     room=graphite, 2026-10-04; the board's words for it: "a lit grey the eye
+     finds without a flash"). A near-black screen parts from a near-black body
+     (0.085) by its edge and its shadow alone; one step up it parts by its
+     light. The step, the muted words, the caption grey, the lines, the
+     cursor's outline and the edge's light each rise with it, so a pop-out in
+     the room reads as the same object as paper's on its own ground. The paper
+     set and its reasons are in the `:root` block, and every token here is the
+     room's whole answer to one there: a brand re-tint of the display is those
+     two blocks and nothing else. */
+  --display: oklch(0.29 0.005 286);
+  --display-step: oklch(0.355 0.005 286);
+  --display-foreground: oklch(0.975 0.002 286);
+  --display-muted: oklch(0.77 0.005 286);
+  --display-faint: oklch(0.62 0.005 286);
+  --display-edge: oklch(1 0 0 / 12%);
+  --display-input: oklch(1 0 0 / 22%);
+  --display-cursor: oklch(1 0 0 / 55%);
+  --display-light: oklch(1 0 0 / 40%);
+
   /* --gallery* intentionally NOT overridden: galleries stay dark in every theme. */
 }
 
@@ -486,11 +523,11 @@
 /* `.surface-display` (identity r2, layers=display, wired 2026-10-03): THE
    DISPLAY, the camera's own screen, which every quick layer is made of: a menu
    and its submenu, a select's list, a popover, the Add's rows, a tooltip, a
-   toast (`floatingDisplay` in `ui/floating-layer.ts`). One near-black on paper
-   and in the room, so a quick choice opens the same object on both grounds:
-   on paper it gets attention by contrast, in the room it parts by its edge.
-   A work layer (a dialog, a panel, a sheet) is not this: a host works there,
-   in the body's own material.
+   toast (`floatingDisplay` in `ui/floating-layer.ts`). Near-black on paper, lit
+   graphite in the room (the `--display*` set of each ground, declared above),
+   so a quick choice opens the same object on both grounds: on paper it gets
+   attention by contrast, in the room by its light. A work layer (a dialog, a
+   panel, a sheet) is not this: a host works there, in the body's own material.
 
    ★ EVERY TOKEN A PART READS, IN WHOLE PAIRS, as `.surface-ink` does: a row's
    glyph, a muted line, a separator, a destructive row, a switch among the rows
@@ -517,14 +554,15 @@
   --secondary-foreground: var(--display-foreground);
   --muted: var(--display-step);
   --muted-foreground: var(--display-muted);
-  --faint: oklch(0.56 0.005 286);
-  /* A chosen row's wash: light on the screen, inside an opaque panel. */
+  --faint: var(--display-faint);
+  /* A chosen row's wash: light on the screen, inside an opaque panel (its
+     outline is `--display-cursor`, which the row's own classes read). */
   --accent: oklch(1 0 0 / 9%);
   --accent-foreground: var(--display-foreground);
   --destructive: oklch(0.7 0.19 24);
   --signal: var(--destructive);
   --border: var(--display-edge);
-  --input: oklch(1 0 0 / 20%);
+  --input: var(--display-input);
   --ring: var(--display-foreground);
   --brand: var(--primary);
   --brand-foreground: var(--primary-foreground);
@@ -2505,9 +2543,17 @@
    positioning (utilities outrank base), and one that is not positioned cannot
    let the edge escape to an ancestor and ring the wrong box.
 
-   One pixel is drawn as a 1px padding ring through mask-composite (the
-   gradient fills the box, the mask keeps the box minus its content box). Both
-   spellings ship, because Safari composites on the prefixed one. ═══════════ */
+   One pixel is the pseudo-element's own 1px transparent BORDER, kept through
+   mask-composite (the gradient fills the border box, the mask keeps the border
+   box minus its padding box). Both spellings ship, because Safari composites
+   on the prefixed one.
+
+   ★ A BORDER, NOT A PADDING (identity r4, measured on its board). Chrome draws
+   a border narrower than a device pixel as one whole device pixel, but rounds
+   a padding to the pixel grid, so the ring drawn on a 1px padding rounded to
+   nothing once the page was scaled under about half (a zoomed-out desk, a
+   laptop's smaller steps) and every photograph's edge vanished; at 1:1 the two
+   are the same pixel. ═══════════ */
 @layer base {
   [data-lit] {
     position: relative;
@@ -2539,23 +2585,26 @@
         position: absolute;
         inset: calc(-1 * var(--lit-border));
         border-radius: inherit;
-        padding: 1px;
+        border: 1px solid transparent;
         pointer-events: none;
         /* Lit from above: an ellipse anchored on the top edge, wider than the
            box so the two top corners are still inside the light, and spent
-           before the bottom edge. */
+           before the bottom edge. The trailing `border-box` is the gradient's
+           origin and clip both: it spans the whole box, as the padding ring
+           it replaces did. */
         background: radial-gradient(
-          135% 100% at 50% 0%,
-          color-mix(in oklab, var(--foreground) 30%, transparent) 0%,
-          color-mix(in oklab, var(--foreground) 13%, transparent) 36%,
-          color-mix(in oklab, var(--foreground) 4%, transparent) 66%,
-          transparent 92%
-        );
+            135% 100% at 50% 0%,
+            color-mix(in oklab, var(--foreground) 30%, transparent) 0%,
+            color-mix(in oklab, var(--foreground) 13%, transparent) 36%,
+            color-mix(in oklab, var(--foreground) 4%, transparent) 66%,
+            transparent 92%
+          )
+          border-box;
         -webkit-mask-image:
           linear-gradient(#000 0 0), linear-gradient(#000 0 0);
         mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0);
-        -webkit-mask-clip: content-box, border-box;
-        mask-clip: content-box, border-box;
+        -webkit-mask-clip: padding-box, border-box;
+        mask-clip: padding-box, border-box;
         -webkit-mask-composite: xor;
         mask-composite: exclude;
       }
