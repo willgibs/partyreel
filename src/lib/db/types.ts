@@ -371,6 +371,7 @@ export type Database = {
           event_password_hash: string | null
           gate: Database["public"]["Enums"]["event_gate"] | null
           host_id: string
+          host_opened_at: string | null
           id: string
           max_upload_bytes: number | null
           moderation_mode: Database["public"]["Enums"]["moderation_mode"]
@@ -403,6 +404,7 @@ export type Database = {
           event_password_hash?: string | null
           gate?: Database["public"]["Enums"]["event_gate"] | null
           host_id: string
+          host_opened_at?: string | null
           id?: string
           max_upload_bytes?: number | null
           moderation_mode?: Database["public"]["Enums"]["moderation_mode"]
@@ -435,6 +437,7 @@ export type Database = {
           event_password_hash?: string | null
           gate?: Database["public"]["Enums"]["event_gate"] | null
           host_id?: string
+          host_opened_at?: string | null
           id?: string
           max_upload_bytes?: number | null
           moderation_mode?: Database["public"]["Enums"]["moderation_mode"]
@@ -1008,6 +1011,7 @@ export type Database = {
           display_name: string | null
           email: string | null
           event_slots: number | null
+          events_display: Json
           id: string
           is_admin: boolean
           last_active_at: string
@@ -1034,6 +1038,7 @@ export type Database = {
           display_name?: string | null
           email?: string | null
           event_slots?: number | null
+          events_display?: Json
           id: string
           is_admin?: boolean
           last_active_at?: string
@@ -1060,6 +1065,7 @@ export type Database = {
           display_name?: string | null
           email?: string | null
           event_slots?: number | null
+          events_display?: Json
           id?: string
           is_admin?: boolean
           last_active_at?: string

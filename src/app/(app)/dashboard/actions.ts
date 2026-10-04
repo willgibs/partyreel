@@ -5,7 +5,6 @@ import { redirect } from "next/navigation";
 
 import { resolveDisplay, storedDisplay } from "@/lib/dashboard/display";
 import { OPEN_STAMP_FRESH_MS } from "@/lib/dashboard/opened";
-import type { TablesUpdate } from "@/lib/db/types";
 import {
   clearEventPassword,
   clearEventSlug,
@@ -261,11 +260,7 @@ export async function setEventsDisplayAction(
   if (!user) return { ok: false, message: "Sign in and try again." };
   const { error } = await supabase
     .from("profiles")
-    // TYPED SEAM until `types.ts` is regenerated after 20261004130000 applies: the generated Update type does not
-    // name the column yet.
-    .update({
-      events_display: storedDisplay(resolveDisplay(raw)),
-    } as unknown as TablesUpdate<"profiles">)
+    .update({ events_display: storedDisplay(resolveDisplay(raw)) })
     .eq("id", user.id);
   if (error) {
     captureError("account", error, { seam: "events_display" });
@@ -294,11 +289,7 @@ export async function noteEventOpenedAction(eventId: unknown): Promise<void> {
   const now = Date.now();
   const { error } = await supabase
     .from("events")
-    // TYPED SEAM until `types.ts` is regenerated after 20261004130000 applies: the generated Update type does not
-    // name the column yet.
-    .update({
-      host_opened_at: new Date(now).toISOString(),
-    } as unknown as TablesUpdate<"events">)
+    .update({ host_opened_at: new Date(now).toISOString() })
     .eq("id", eventId)
     .is("deleted_at", null)
     .or(

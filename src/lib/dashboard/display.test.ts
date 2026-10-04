@@ -6,7 +6,6 @@ import {
   DISPLAY_DEFAULT,
   type Display,
   directionWords,
-  displayOfProfile,
   filtered,
   lensOptions,
   naturalDesc,
@@ -147,15 +146,6 @@ describe("what is kept", () => {
       recent: "folded",
     });
     expect(JSON.stringify(biggest).length).toBeLessThan(256);
-  });
-
-  it("reads her choices off her profile row, and every default off one that has none or none yet", () => {
-    expect(displayOfProfile(null)).toEqual(DISPLAY_DEFAULT);
-    expect(displayOfProfile(undefined)).toEqual(DISPLAY_DEFAULT);
-    expect(displayOfProfile({ id: "p" })).toEqual(DISPLAY_DEFAULT);
-    expect(
-      displayOfProfile({ id: "p", events_display: { layout: "list" } }).layout,
-    ).toBe("list");
   });
 });
 

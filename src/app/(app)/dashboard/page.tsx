@@ -29,7 +29,7 @@ import {
   toBillingTier,
 } from "@/lib/constants/tiers";
 import { weekEvents } from "@/lib/dashboard/attention";
-import { displayOfProfile } from "@/lib/dashboard/display";
+import { resolveDisplay } from "@/lib/dashboard/display";
 import type { HomeContext } from "@/lib/dashboard/home-event";
 import {
   buildHomeView,
@@ -37,7 +37,6 @@ import {
   type HostedEvent,
 } from "@/lib/dashboard/home-view";
 import { momentEvent } from "@/lib/dashboard/moment";
-import { openedAtOf } from "@/lib/dashboard/opened";
 import { type StagePhoto, WALL_PHOTOS } from "@/lib/dashboard/stage";
 import {
   calendarDayInZone,
@@ -288,7 +287,7 @@ export default async function DashboardPage({
         ? formatEventDate(event.event_date, endDate)
         : "No date set",
       // When she last pressed into it from this page: the Recent row's and Last opened's one fact.
-      openedAt: openedAtOf(event),
+      openedAt: event.host_opened_at,
     };
   });
 
@@ -459,7 +458,7 @@ export default async function DashboardPage({
       view={view}
       ctx={ctx}
       owner={profile?.id ?? ""}
-      display={displayOfProfile(profile)}
+      display={resolveDisplay(profile?.events_display)}
       storage={
         <StorageMeter
           activeBytes={storage.activeBytes}

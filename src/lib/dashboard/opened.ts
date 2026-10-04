@@ -21,13 +21,3 @@ export const OPEN_STAMP_GAP_MS = 5_000;
 
 /** The server stamps an event at most this often: Recent's order needs no finer, and a write is a write. */
 export const OPEN_STAMP_FRESH_MS = 60_000;
-
-/**
- * WHEN THE HOST LAST OPENED AN EVENT, OFF ITS ROW. A TYPED SEAM until `types.ts` is regenerated after 20261004130000
- * applies: the generated row does not name `host_opened_at` yet, so it is read as the unknown it is, and an event read
- * before the column exists (or never opened) is null.
- */
-export function openedAtOf(event: object): string | null {
-  const at = (event as { host_opened_at?: unknown }).host_opened_at;
-  return typeof at === "string" ? at : null;
-}

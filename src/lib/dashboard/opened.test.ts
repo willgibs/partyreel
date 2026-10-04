@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { openedAtOf, openedIdOf } from "./opened";
+import { openedIdOf } from "./opened";
 
 /**
  * AN EVENT'S OPEN, READ OFF A LINK (host-dashboard r3): which presses on the dashboard go INTO an event, and so stamp
@@ -39,16 +39,5 @@ describe("a link into an event", () => {
       undefined,
     ])
       expect(openedIdOf(href), String(href)).toBeNull();
-  });
-});
-
-describe("when the host last opened an event, off its row", () => {
-  it("is the stamp, or null for one never opened or a row from before the column", () => {
-    expect(openedAtOf({ host_opened_at: "2026-10-04T10:00:00+00:00" })).toBe(
-      "2026-10-04T10:00:00+00:00",
-    );
-    expect(openedAtOf({ host_opened_at: null })).toBeNull();
-    expect(openedAtOf({})).toBeNull();
-    expect(openedAtOf({ host_opened_at: 17 })).toBeNull();
   });
 });

@@ -148,18 +148,6 @@ export function resolveDisplay(raw: unknown): Display {
 }
 
 /**
- * HER KEPT CHOICES, OFF HER PROFILE ROW. A TYPED SEAM until `types.ts` is regenerated after 20261004130000 applies: the
- * generated row does not name `events_display` yet, so it is read as the unknown it is, and a profile read before the
- * column exists (or with nothing kept) is every default.
- */
-export function displayOfProfile(profile: object | null | undefined): Display {
-  return resolveDisplay(
-    (profile as { events_display?: unknown } | null | undefined)
-      ?.events_display,
-  );
-}
-
-/**
  * What the column keeps: only what differs from the defaults, and the direction only when it is not the order's own, so
  * `resolveDisplay(storedDisplay(d))` is `d` and `{}` is every default.
  */
