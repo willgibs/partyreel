@@ -58,6 +58,35 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 3,
+      "opened": "2026-10-04",
+      "answers": [
+        {
+          "ask": "system",
+          "choice": null,
+          "note": "Honestly, I love parts of all of these. A configurator may be best here (and maybe other parts of lab), where I can mix and match across and tweak finely, rather than choose one option, when in reality, each option may have some winning traits and a meshed option would win. However, let's not overuse configurator - most of the time you do a perfect job of enough good directions and recommend a winning solution that we don't need to break down fine configs, but lots of fine options across these here that really define our platform. For example, keys and wells is my favorite foundation, but far from sold on the viewfinder focus (don't like it right now), tend to like a lighter surface for active selection items, etc.",
+          "by": "Will",
+          "at": "2026-10-04T06:50:49Z"
+        },
+        {
+          "ask": "room",
+          "choice": "graphite",
+          "by": "Will",
+          "at": "2026-10-04T06:50:49Z"
+        },
+        {
+          "ask": "edge",
+          "choice": null,
+          "note": "Could you give me more real UI to see examples of each? The host menu gives me exactly one instance to compare against, which feels incomplete for something that sets a foundation like this.",
+          "by": "Will",
+          "at": "2026-10-04T06:50:49Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }
