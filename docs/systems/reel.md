@@ -174,7 +174,8 @@ A host has no reel to create, only a state to read and a few defaults to set.
   inside the album's server render and the curtain's black is a beat, [guest-flow.md](guest-flow.md)), or, while the
   develop is ahead, plays her own reel over the hub (next); off, it opens Settings. The dashboard's item for an event
   on its day says "1 more photo starts the reel" while one short and is gone once it plays; `/dashboard/<id>/reel` is a
-  redirect for old links (into the view once it plays, else the hub).
+  redirect for old links (once the reel plays: into the view, or into her own reel over the hub while the develop is
+  ahead, as the card does; else the hub).
 - ★ **Before the develop she plays her own reel over her own hub** (`event-feed/hub-reel.tsx`, mounted by the hub's
   page inside the album's store): the guests' own view (`LiveReelView`) on `?reel` of the hub's address, fed her
   scope, the hub's manifest with sealed shots included (hidden and held left out), its links by id from the hub store's
