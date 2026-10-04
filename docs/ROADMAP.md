@@ -17,6 +17,11 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Guests: a per-tile cancel for an in-flight upload (the guest's pending tile, the host's batch row in `host-upload.tsx`) that asks first and offers Try again, passing `uploadFile`'s `signal`; no control passes one today.
+- Guests: presign and complete have no client ceiling (a retry re-runs the whole upload, so a timed-out complete that had recorded its row would duplicate it); make the retry idempotent on `media_id` (`readRecordedUpload` already answers a replayed complete) so these can time out and say "Your connection dropped." too.
+- Guests: carry `UploadOutcome.cause` into the queue's `QueueItem` (`use-upload-queue.ts`) so the failure sheet draws a dropped connection apart from a refusal (its words already do).
+- Downloads: Try again is offered while the browser says it is offline; hold it until `online` fires and say so.
+- Design: a Library specimen of the download toast's states (the question, a cancel, a dropped connection, a line lost mid-stream) so `lab:smoke` renders them (`export-toast.tsx`).
 - Billing: a Pro host's switch from `/pricing`'s hop (the checkout button's `already_subscribed` re-post to change-plan) carries no uploads sentence (`uploadsPauseNote`); the change-plan route could answer a notice the hop shows before it redirects.
 - Host: nowhere in the app says a host's uploads this month against her plan's allowance (Free's 300 MB a month is stated nowhere in-app); the storage ring's popover or the Plan card could say it beside the plan's number.
 - Host: the hub counts as an open (`/dashboard/[eventId]` mounts `noteEventOpenedAction` once, as `MarkWelcomedOnMount` does), so a deep link, the bell and an email reach Recent and Last opened.
