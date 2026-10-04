@@ -222,6 +222,30 @@ describe("a choice lays the list out at once, and is kept beside it", () => {
     expect(setEventsDisplayAction).toHaveBeenLastCalledWith(DISPLAY_DEFAULT);
   });
 
+  // ★ RED-TEAM 53b's NIT (crumbs-66), the menu's own Reset's twin (`display-menu.test.tsx`): the line's Reset shows
+  // only while something is set, so the press that undoes everything removes the very button holding the focus,
+  // which fell to the page's <body> and threw a keyboard user out of her place. It goes to the Display button, the
+  // control that holds her choices, before the line is gone.
+  it("★ hands the focus to the Display button when the line's Reset goes, never dropping it to the page", () => {
+    draw({ initial: kept({ layout: "table", lens: "hosting" }) });
+    const reset = within(said() as HTMLElement).getByRole("button", {
+      name: "Reset",
+    });
+    reset.focus();
+    expect(document.activeElement).toBe(reset);
+
+    fireEvent.click(reset);
+
+    // Everything is reset, so the line and its Reset left...
+    expect(said()).toBeNull();
+    expect(reset.isConnected).toBe(false);
+    // ...and the focus did not leave with them: it stands on the button that holds her choices.
+    expect(document.activeElement).not.toBe(document.body);
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: "Display" }),
+    );
+  });
+
   it("presses a table head to sort by it and again to turn it round, keeping each", () => {
     draw({ initial: kept({ layout: "table" }) });
     const table = document.querySelector("[data-events-table]") as HTMLElement;
