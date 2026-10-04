@@ -79,7 +79,10 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls lab, the red-team brief
    their photos staying, beside a standalone "send everyone back to the door"); B2 (a quiet Declined list at the foot
    of Guests, collapsed, each with Let in); C7 (a first photo's glow); D3 (a confirm on every shot removal, saying it
    frees a shot, and a different warning once her extra shots are spent; re-shoots a flat 3). Its wiring follows his pick.
-5. **crumbs-63** (the reel's tap) integrates on its handoff. **D4, his yes (2026-10-04):** a `camera-clip` lane (Sonnet)
+5. **The small-fixes batch** once his pass ends (one Sonnet lane for every production answer it leaves): E6, a cancel
+   and a dropped connection told apart for downloads and uploads (a cancel asks first, then offers Try again; a network
+   failure is never hidden and says what to do, so she neither retries in vain nor blames the app). **crumbs-63** (the
+   reel's tap) integrates on its handoff. **D4, his yes (2026-10-04):** a `camera-clip` lane (Sonnet)
    cut the moment pricing-wiring's migration is APPLIED, since both replace `create_media`: the clip at 30 s and about
    5 Mbps (about 19 MB), `CAMERA_VIDEO_SECONDS` and `create_media`'s `c_camera_video_seconds` and `_bytes` (scaled from
    128 MB) restated from pricing-wiring's body under a later prefix, the ring's 0:30. **Re-shoots a flat 3** (his word:
@@ -93,11 +96,9 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls lab, the red-team brief
 - **His desk** on the alias (six boards: identity r3, host-dashboard r3, the-wait r2, event-header r3, create-wizard
   r3, demo-framing r5; drive-export joins at desk 20 when it lands):
   `https://partyreel-git-launch-prep-partyreel.vercel.app/design/lab?key=fiesta`.
-- **The calls lab** (`../partyreel-wt/_scratch/calls/calls-lab.md`), his pass under way (2026-10-04 03:15Z): section A
-  goes to the lab, B1 answered (recorded in the file). Q2 to Q6 open. He asks direct questions in chat; answer in
-  chat, never only in a file.
+- **The calls lab** (`../partyreel-wt/_scratch/calls/calls-lab.md`), his pass under way: Q2 to Q6 open, sections F
+  to P and R left (A to E answered and routed into the steps above and ROADMAP). It holds only what still needs him:
+  an answer leaves it the moment it is routed, and it keeps no settled list or index (his word, 2026-10-04). Answer
+  his direct questions in chat, never only in a file.
 - **His walks:** the camera on his iPhone (a held-shutter video on a waiting sheet), Save into Photos, Record Video's
   size, a deletion and its Cancel deletion on hi@willgibs.com, the spend watch's uploads switch off and on.
-- **Decided:** milestone 35 (shipped 03:10Z); Drive export (plan, review, the lab first); Make room from Deleted on
-  by default (built); the renewal $19; Ladder A with 1 TB at $99; no guest limit (his question answered 03:00Z: a
-  guest is a per-request constant, the calm album and the guards cover the rest).
