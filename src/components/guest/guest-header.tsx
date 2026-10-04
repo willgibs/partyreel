@@ -122,6 +122,42 @@ export function GuestHeader({
   const emailAttached = useStoredEmailAttached(qrToken ?? "");
   const [guestSession] = useStoredSession(qrToken ?? "");
 
+  /* ★ HER OWN COLOUR (small-fixes, "the name-only guest's hashvatar"): the disc beside a name-only guest's own name
+     wears the colour every other surface gives her, the hash of her own guest ROW. The browser holds her ticket and
+     never the row's id, and a hash cannot be made here (`node:crypto`, `seed.ts`), so the server answers it
+     (`/api/guests/mine`'s `seed` ask), once a ticket. A courtesy, never a gate: until it lands, or where it never
+     does, she wears the plain disc she wore. Kept by ticket, so a phone handed to the next guest never wears the
+     last one's colour. */
+  const [seeds, setSeeds] = useState<Record<string, string>>({});
+  const asked = useRef(new Set<string>());
+  useEffect(() => {
+    if (!qrToken || !guestName || !guestSession) return;
+    if (asked.current.has(guestSession)) return;
+    asked.current.add(guestSession);
+    void (async () => {
+      try {
+        const res = await fetch("/api/guests/mine", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            qr_token: qrToken,
+            session_token: guestSession,
+            seed: true,
+          }),
+        });
+        const body = (await res.json()) as { ok?: boolean; seed?: unknown };
+        if (res.ok && body.ok && typeof body.seed === "string") {
+          const seed = body.seed;
+          setSeeds((known) => ({ ...known, [guestSession]: seed }));
+        }
+      } catch {
+        // The plain disc stays; asked again the next time the page opens.
+        asked.current.delete(guestSession);
+      }
+    })();
+  }, [qrToken, guestName, guestSession]);
+  const ownSeed = guestSession ? (seeds[guestSession] ?? null) : null;
+
   /**
    * LOOK AT WHO THE DEVICE HOLDS and make the slot say so. `verify` asks the server even about the
    * account already drawn (the door settled on a guest while one stands); without it a look at the
@@ -332,6 +368,7 @@ export function GuestHeader({
             name={guestName}
             qrToken={qrToken}
             sessionToken={guestSession}
+            seed={ownSeed}
             emailAttached={emailAttached}
             onRenamed={() => router.refresh()}
           />

@@ -11,6 +11,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const listSessionMediaIds = vi.fn();
+const ticketSeed = vi.fn();
 const readOwnUploads = vi.fn();
 const countKeptTicketUploads = vi.fn();
 const getUser = vi.fn();
@@ -20,6 +21,10 @@ const checkAbuseRate = vi
   .fn()
   .mockResolvedValue({ allowed: true, retryAfterSec: 0 });
 
+// HER OWN COLOUR (small-fixes): the hash of her row, read from the server; its own rule is ticket-seed.server.test.ts's.
+vi.mock("@/lib/avatar/ticket-seed.server", () => ({
+  ticketSeed: (...args: unknown[]) => ticketSeed(...args),
+}));
 vi.mock("@/lib/db/mutations/guest-media", () => ({
   listSessionMediaIds: (...args: unknown[]) => listSessionMediaIds(...args),
   // Her pictures ride the read (20261002200000); a case that names none has none.
@@ -109,8 +114,15 @@ beforeEach(() => {
   readOwnUploads.mockResolvedValue({ items: [], news: [] });
   countKeptTicketUploads.mockResolvedValue(0);
   getUser.mockResolvedValue({ data: { user: null } });
-  getUploadGate.mockResolvedValue({ contributed: false, albumFull: false, eventGone: false, roll: null });
-  presignDownload.mockImplementation(async ({ key }: { key: string }) => `https://r2.test/${key}?sig`);
+  getUploadGate.mockResolvedValue({
+    contributed: false,
+    albumFull: false,
+    eventGone: false,
+    roll: null,
+  });
+  presignDownload.mockImplementation(
+    async ({ key }: { key: string }) => `https://r2.test/${key}?sig`,
+  );
   sortTickets
     .mockReset()
     .mockImplementation(
@@ -166,6 +178,90 @@ describe("every 'no' looks the same from a browser", () => {
 
   it("an unknown token answers an empty list, exactly like an empty album", async () => {
     expect(await ids({ qr_token: TOKEN, session_token: THEIRS })).toEqual([]);
+  });
+});
+
+/**
+ * ★ HER OWN COLOUR (`seed: true`, small-fixes, "the name-only guest's hashvatar"): a name-only guest's header paints
+ * the colour every other surface gives her, the hash of her own guest ROW. Her browser holds her ticket and never the
+ * row's id, so this is where the hash is made. It answers her own ticket's hash and nothing else, `null` (the plain
+ * disc) for every "no", never cached, and never the raw id.
+ */
+describe("her own colour (seed)", () => {
+  const seed = (body: Record<string, unknown> = {}) =>
+    post({ qr_token: TOKEN, session_token: MINE, seed: true, ...body });
+
+  it("★ answers the hash of her own ticket's row, for this event and this ticket", async () => {
+    ticketSeed.mockResolvedValue("a".repeat(64));
+    const res = await seed();
+    await expect(res.json()).resolves.toEqual({
+      ok: true,
+      seed: "a".repeat(64),
+    });
+    expect(ticketSeed).toHaveBeenCalledWith({
+      eventId: "event-1",
+      sessionToken: MINE,
+    });
+    // Never the tracker's or the delete list's answer: it reads none of what they do.
+    expect(listSessionMediaIds).not.toHaveBeenCalled();
+    expect(readOwnUploads).not.toHaveBeenCalled();
+  });
+
+  it("is never cached: the answer is per session token", async () => {
+    ticketSeed.mockResolvedValue("a".repeat(64));
+    expect((await seed()).headers.get("Cache-Control")).toContain("no-store");
+  });
+
+  it("★ every 'no' is the same null: an unknown event, a private album, a ticket that names no row", async () => {
+    getEventByQrToken.mockResolvedValue({ ok: false });
+    await expect((await seed()).json()).resolves.toEqual({
+      ok: true,
+      seed: null,
+    });
+    getEventByQrToken.mockResolvedValue({
+      ok: true,
+      data: { id: "event-1", visibility: "private" },
+    });
+    await expect((await seed()).json()).resolves.toEqual({
+      ok: true,
+      seed: null,
+    });
+    getEventByQrToken.mockResolvedValue({
+      ok: true,
+      data: { id: "event-1", visibility: "open" },
+    });
+    ticketSeed.mockResolvedValue(null);
+    await expect((await seed()).json()).resolves.toEqual({
+      ok: true,
+      seed: null,
+    });
+  });
+
+  it("★ a ticket that is another account's to this viewer is not asked about: null, nothing read", async () => {
+    sortTickets.mockResolvedValue({ hers: [], others: [MINE] });
+    await expect((await seed()).json()).resolves.toEqual({
+      ok: true,
+      seed: null,
+    });
+    expect(ticketSeed).not.toHaveBeenCalled();
+  });
+
+  it("a failed read is the plain disc, reported, never a failed answer", async () => {
+    ticketSeed.mockRejectedValue(new Error("db down"));
+    const res = await seed();
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({ ok: true, seed: null });
+    expect(captureError).toHaveBeenCalledWith(
+      "media",
+      expect.any(Error),
+      expect.objectContaining({ seam: "ticket_seed_fail_open" }),
+    );
+  });
+
+  it("is limited like the page's other asks: a tripped limiter is a 429 before anything is read", async () => {
+    checkAbuseRate.mockResolvedValue({ allowed: false, retryAfterSec: 30 });
+    expect((await seed()).status).toBe(429);
+    expect(ticketSeed).not.toHaveBeenCalled();
   });
 });
 
@@ -549,8 +645,20 @@ describe("her own pictures and her roll (20261002200000)", () => {
       ],
       news: [],
       pictures: [
-        { id: "m1", type: "photo", original_key: "events/e/photo/1/original.jpg", preview_key: "events/e/photo/1/preview.webp", created_at: "2026-10-02T12:00:00.000000+00:00" },
-        { id: "m2", type: "video", original_key: "events/e/video/2/original.mp4", preview_key: null, created_at: "2026-10-02T12:01:00.000000+00:00" },
+        {
+          id: "m1",
+          type: "photo",
+          original_key: "events/e/photo/1/original.jpg",
+          preview_key: "events/e/photo/1/preview.webp",
+          created_at: "2026-10-02T12:00:00.000000+00:00",
+        },
+        {
+          id: "m2",
+          type: "video",
+          original_key: "events/e/video/2/original.mp4",
+          preview_key: null,
+          created_at: "2026-10-02T12:01:00.000000+00:00",
+        },
       ],
     });
     const out = await answer(ask);
@@ -558,29 +666,57 @@ describe("her own pictures and her roll (20261002200000)", () => {
       {
         id: "m1",
         status: "pending",
-        picture: { type: "photo", at: Date.parse("2026-10-02T12:00:00.000000+00:00"), tile: "https://r2.test/events/e/photo/1/preview.webp?sig" },
+        picture: {
+          type: "photo",
+          at: Date.parse("2026-10-02T12:00:00.000000+00:00"),
+          tile: "https://r2.test/events/e/photo/1/preview.webp?sig",
+        },
       },
       {
         id: "m2",
         status: "approved",
         sealed: true,
-        picture: { type: "video", at: Date.parse("2026-10-02T12:01:00.000000+00:00"), tile: "https://r2.test/events/e/video/2/original.mp4?sig" },
+        picture: {
+          type: "video",
+          at: Date.parse("2026-10-02T12:01:00.000000+00:00"),
+          tile: "https://r2.test/events/e/video/2/original.mp4?sig",
+        },
       },
       { id: "m3", status: "approved" },
     ]);
     // Stable inside the bucket, like every album link, so a re-ask hands back the URL the browser cached.
-    expect(presignDownload).toHaveBeenCalledWith({ key: "events/e/photo/1/preview.webp", stable: true });
+    expect(presignDownload).toHaveBeenCalledWith({
+      key: "events/e/photo/1/preview.webp",
+      stable: true,
+    });
     // Read for THIS ticket alone: the read is the one that decides whose a picture is.
-    expect(readOwnUploads).toHaveBeenCalledWith(expect.objectContaining({ sessionToken: MINE }));
+    expect(readOwnUploads).toHaveBeenCalledWith(
+      expect.objectContaining({ sessionToken: MINE }),
+    );
   });
 
   it("a presign that fails costs that picture alone, and is reported", async () => {
     readOwnUploads.mockResolvedValue({
-      items: [{ id: "m1", status: "pending" }, { id: "m2", status: "pending" }],
+      items: [
+        { id: "m1", status: "pending" },
+        { id: "m2", status: "pending" },
+      ],
       news: [],
       pictures: [
-        { id: "m1", type: "photo", original_key: "events/e/photo/1/original.jpg", preview_key: null, created_at: "2026-10-02T12:00:00.000000+00:00" },
-        { id: "m2", type: "photo", original_key: "events/e/photo/2/original.jpg", preview_key: null, created_at: "2026-10-02T12:00:00.000000+00:00" },
+        {
+          id: "m1",
+          type: "photo",
+          original_key: "events/e/photo/1/original.jpg",
+          preview_key: null,
+          created_at: "2026-10-02T12:00:00.000000+00:00",
+        },
+        {
+          id: "m2",
+          type: "photo",
+          original_key: "events/e/photo/2/original.jpg",
+          preview_key: null,
+          created_at: "2026-10-02T12:00:00.000000+00:00",
+        },
       ],
     });
     presignDownload.mockImplementation(async ({ key }: { key: string }) => {
@@ -596,7 +732,12 @@ describe("her own pictures and her roll (20261002200000)", () => {
   it("★ an album with its camera on answers her roll, read for her ticket and her account; free uploads none", async () => {
     getEventByQrToken.mockResolvedValue({
       ok: true,
-      data: { id: "event-1", visibility: "open", capture: "camera", roll_size: 24 },
+      data: {
+        id: "event-1",
+        visibility: "open",
+        capture: "camera",
+        roll_size: 24,
+      },
     });
     getUploadGate.mockResolvedValue({
       contributed: true,
@@ -606,9 +747,16 @@ describe("her own pictures and her roll (20261002200000)", () => {
     });
     const out = await answer(ask);
     expect(out.roll).toEqual({ used: 3, cap: 24, taken: 5, ceiling: 72 });
-    expect(getUploadGate).toHaveBeenCalledWith({ eventId: "event-1", sessionToken: MINE, userId: null });
+    expect(getUploadGate).toHaveBeenCalledWith({
+      eventId: "event-1",
+      sessionToken: MINE,
+      userId: null,
+    });
 
-    getEventByQrToken.mockResolvedValue({ ok: true, data: { id: "event-1", visibility: "open" } });
+    getEventByQrToken.mockResolvedValue({
+      ok: true,
+      data: { id: "event-1", visibility: "open" },
+    });
     getUploadGate.mockClear();
     const free = await answer(ask);
     expect(free).not.toHaveProperty("roll");
@@ -618,11 +766,20 @@ describe("her own pictures and her roll (20261002200000)", () => {
   it("a ticket that is not hers is never read for her roll: her account's rows alone", async () => {
     getEventByQrToken.mockResolvedValue({
       ok: true,
-      data: { id: "event-1", visibility: "open", capture: "camera", roll_size: 24 },
+      data: {
+        id: "event-1",
+        visibility: "open",
+        capture: "camera",
+        roll_size: 24,
+      },
     });
     sortTickets.mockImplementation(async () => ({ hers: [], others: [MINE] }));
     getUser.mockResolvedValue({ data: { user: { id: "user-9" } } });
     await answer(ask);
-    expect(getUploadGate).toHaveBeenCalledWith({ eventId: "event-1", sessionToken: null, userId: "user-9" });
+    expect(getUploadGate).toHaveBeenCalledWith({
+      eventId: "event-1",
+      sessionToken: null,
+      userId: "user-9",
+    });
   });
 });

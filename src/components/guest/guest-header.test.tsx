@@ -182,6 +182,87 @@ describe("GuestHeader: a guest with a name and no account", () => {
     ).toBeNull();
   });
 
+  /* ★ HER OWN COLOUR (small-fixes, "the name-only guest's hashvatar"): the disc beside her own name wears the colour
+     every other surface gives her, the hash of her own guest row, which only the server can make (her browser holds
+     her ticket and never the row's id). One ask a ticket, a courtesy that never gates anything. */
+  describe("her own colour", () => {
+    const realFetch = global.fetch;
+    afterEach(() => {
+      global.fetch = realFetch;
+    });
+    const seedOf = () =>
+      document.querySelector("[data-slot='avatar']") as HTMLElement | null;
+
+    it("asks the server for it once, by her ticket, and her disc wears it", async () => {
+      localStorage.setItem("pr_guest_name_tok-1", "Sam");
+      localStorage.setItem("pr_session_tok-1", "sess-1");
+      global.fetch = vi.fn(
+        async () =>
+          new Response(JSON.stringify({ ok: true, seed: "f".repeat(64) })),
+      ) as unknown as typeof fetch;
+      const { rerender } = render(
+        <GuestHeader qrToken="tok-1" eventId="evt-1" />,
+      );
+      await waitFor(() =>
+        expect(seedOf()?.style.backgroundBlendMode).not.toBe(""),
+      );
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+      const [url, init] = vi.mocked(global.fetch).mock.calls[0];
+      expect(url).toBe("/api/guests/mine");
+      expect(JSON.parse(String((init as RequestInit).body))).toEqual({
+        qr_token: "tok-1",
+        session_token: "sess-1",
+        seed: true,
+      });
+      // Not asked again for the same ticket, however the page re-renders.
+      rerender(<GuestHeader qrToken="tok-1" eventId="evt-1" />);
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it("★ asks nothing without a ticket: no row to colour yet, the plain disc", async () => {
+      localStorage.setItem("pr_guest_name_tok-1", "Sam");
+      global.fetch = vi.fn() as unknown as typeof fetch;
+      render(<GuestHeader qrToken="tok-1" eventId="evt-1" />);
+      await screen.findByRole("button", { name: /your name on this album/i });
+      expect(global.fetch).not.toHaveBeenCalled();
+      expect(seedOf()?.style.backgroundBlendMode).toBe("");
+    });
+
+    it("a colour the server could not give leaves the plain disc, and a failed ask is made again next time", async () => {
+      localStorage.setItem("pr_guest_name_tok-1", "Sam");
+      localStorage.setItem("pr_session_tok-1", "sess-1");
+      global.fetch = vi.fn(async () => {
+        throw new TypeError("Failed to fetch");
+      }) as unknown as typeof fetch;
+      const first = render(<GuestHeader qrToken="tok-1" eventId="evt-1" />);
+      await screen.findByRole("button", { name: /your name on this album/i });
+      await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1));
+      expect(seedOf()?.style.backgroundBlendMode).toBe("");
+      first.unmount();
+
+      global.fetch = vi.fn(
+        async () =>
+          new Response(JSON.stringify({ ok: true, seed: "e".repeat(64) })),
+      ) as unknown as typeof fetch;
+      render(<GuestHeader qrToken="tok-1" eventId="evt-1" />);
+      await waitFor(() =>
+        expect(seedOf()?.style.backgroundBlendMode).not.toBe(""),
+      );
+    });
+
+    it("a null from the server (a ticket that names no row) is the plain disc", async () => {
+      localStorage.setItem("pr_guest_name_tok-1", "Sam");
+      localStorage.setItem("pr_session_tok-1", "sess-1");
+      global.fetch = vi.fn(
+        async () => new Response(JSON.stringify({ ok: true, seed: null })),
+      ) as unknown as typeof fetch;
+      render(<GuestHeader qrToken="tok-1" eventId="evt-1" />);
+      await screen.findByRole("button", { name: /your name on this album/i });
+      await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1));
+      expect(seedOf()?.style.backgroundBlendMode).toBe("");
+    });
+  });
+
   it("never claims a name on a page with no event behind it (/u/[slug])", () => {
     localStorage.setItem("pr_guest_name_tok-1", "Sam");
     render(<GuestHeader />);

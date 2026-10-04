@@ -36,6 +36,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { ticketSeed } from "@/lib/avatar/ticket-seed.server";
 import {
   countKeptTicketUploads,
   listSessionMediaIds,
@@ -95,6 +96,18 @@ const mineSchema = z.object({
  * "One of yours is in the album" once across a reload, a return or her account's other device. Ids of her own
  * uploads, already in her `items`; never anybody else's, and nothing when the door holds her.
  */
+/**
+ * ★ HER OWN COLOUR (`seed: true`, small-fixes, "the name-only guest's hashvatar"): `{ ok, seed }`, the colour her
+ * header's disc wears, which a name-only guest must read from here since her browser holds her ticket and never her
+ * row's id. It is `seedFor` of her own guest row (the colour every other surface gives her), hashed on the server:
+ * the hash is all that travels, and `null` (the plain disc) for every "no", read only as far as the ticket is hers.
+ */
+const seedSchema = z.object({
+  qr_token: z.string().trim().min(1),
+  session_token: z.string().trim().min(1),
+  seed: z.literal(true),
+});
+
 const statusesSchema = z.object({
   qr_token: z.string().trim().min(1),
   session_token: z.string().trim().min(1).optional(),
@@ -232,17 +245,19 @@ async function withPictures(
 ): Promise<(OwnUpload & { picture?: OwnPictureLink })[]> {
   if (pictures.length === 0) return items;
   const minted = await Promise.allSettled(
-    pictures.map(async (p): Promise<[string, OwnPictureLink]> => [
-      p.id,
-      {
-        type: p.type,
-        at: Date.parse(p.created_at),
-        tile: await presignDownload({
-          key: p.preview_key ?? p.original_key,
-          stable: true,
-        }),
-      },
-    ]),
+    pictures.map(
+      async (p): Promise<[string, OwnPictureLink]> => [
+        p.id,
+        {
+          type: p.type,
+          at: Date.parse(p.created_at),
+          tile: await presignDownload({
+            key: p.preview_key ?? p.original_key,
+            stable: true,
+          }),
+        },
+      ],
+    ),
   );
   const links = new Map<string, OwnPictureLink>();
   for (const result of minted) {
@@ -273,6 +288,37 @@ async function rollOf(
     userId,
   });
   return gate.roll ?? null;
+}
+
+async function answerSeed(
+  request: Request,
+  input: { qr_token: string; session_token: string },
+): Promise<Response> {
+  const refused = await breadthRefusal(request, input.qr_token);
+  if (refused) return refused;
+  const none = NextResponse.json(
+    { ok: true, seed: null },
+    { headers: PRIVATE },
+  );
+  const event = await getEventByQrToken(input.qr_token);
+  if (!event.ok || !(await letsThrough(event.data, input.session_token))) {
+    return none;
+  }
+  // As far as the ticket is hers to the viewer (a signed-in account on a shared phone is not another guest's face).
+  const ticket = (await sortTickets(await viewerId(), [input.session_token]))
+    .hers[0];
+  if (!ticket) return none;
+  try {
+    const seed = await ticketSeed({
+      eventId: event.data.id,
+      sessionToken: ticket,
+    });
+    return NextResponse.json({ ok: true, seed }, { headers: PRIVATE });
+  } catch (error) {
+    // A colour is a courtesy, never a gate: a failed read leaves her the plain disc, and is reported.
+    captureError("media", error, { seam: "ticket_seed_fail_open" });
+    return none;
+  }
 }
 
 async function answerKept(
@@ -313,6 +359,9 @@ export async function POST(request: Request) {
 
   const keep = keptSchema.safeParse(body);
   if (keep.success) return answerKept(request, keep.data);
+
+  const seeded = seedSchema.safeParse(body);
+  if (seeded.success) return answerSeed(request, seeded.data);
 
   const asked = statusesSchema.safeParse(body);
   if (asked.success) return answerStatuses(request, asked.data);
