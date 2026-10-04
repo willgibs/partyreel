@@ -50,15 +50,18 @@ model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`.
 
 **Handoff across accounts** (Will's rule: wind down near the weekly limit; the other account resumes at once). This
 session (`2ba90542-62d6-487c-8c79-3657619f9133`, hi@willgibs.com, weekly 92% at 21:15Z 2026-10-04, resets Tuesday
-2026-10-06 21:00Z) WOUND DOWN at that hour: no lane running, nothing staged, launch-prep = main + records. The next
-Orchestrator runs on willg97 (its weekly reset 2026-10-04 13:00Z, 0% then). Its first steps:
+2026-10-06 21:00Z) runs to 100% on Will's word (no token wasted): compute-uploads (lever 4) and crumbs-66 were cut at
+21:30Z and may be mid-flight when it stops. The next Orchestrator runs on willg97 (its weekly reset 2026-10-04 13:00Z,
+0% then). Its first steps:
+- for each `lp/*` whose manifest is not `handed-off`, resume it per the runbook's "Resume a lane" (its pushed WIP, its
+  predecessor's transcript under `subagents/agent-<id>.jsonl`, the same port); one whose manifest says handed-off is
+  ready to integrate;
 - read this pickup, then STATUS; recreate the hourly heartbeat (`CronCreate`, session-only; the old one died with this
   session);
 - Will's desk: `http://localhost:3000/design/lab?key=fiesta` is served by `pnpm start -p 3000` in
   `../partyreel-wt/desk` (nohup; a restart of the machine needs it restarted: checkout `origin/launch-prep`, build with
   `NEXT_PUBLIC_SITE_URL=http://localhost:3000`, start);
-- the specs of round 15 and the next lane are in `../partyreel-wt/_scratch/specs/` (`compute-uploads.json` is lever 4,
-  ready to cut: `python3 usher/kit/cut-lane.py <sha> <spec>`);
+- the specs of round 15 and its later lanes are in `../partyreel-wt/_scratch/specs/`;
 - the parked boards keep their worktrees: identity-r4, event-header-r4, host-dashboard-r4, customize-r1, brand-r1;
 - MCP tool ids change with the account; Claude in Chrome, the Supabase MCP on `ddafaemglzmuekbtjwzn` and the Vercel
   token in `.env.local` are what the work needs (the Vercel MCP needs the partyreel team re-authorized).
@@ -77,8 +80,7 @@ Round 15, on Will's desk answers of 2026-10-04 06:00Z and his brand note; the ap
 00. **Milestone 36 SHIPPED** on Will's yes (2026-10-04 21:00Z, `28bd6d62`, tag `milestone-36`): production's pass prices
    set to Ladder A's first, both projects READY, the read-only walk PASS, launch-prep fast-forwarded.
 0a. **Phase 2 of the compute fix:** compute-levers (levers 1 and 2) MERGED (-66% of a heavy wedding's calls); next
-   batched presign and complete (lever 4: `../partyreel-wt/_scratch/specs/compute-uploads.json`, cut it first on the
-   fresh account; Opus, wiring rigor), and the CDN version (lever 3, 3b) only on Will's privacy call X5. An auth red-team of lever 1 runs on the local
+   batched presign and complete (lever 4, `compute-uploads`, running), and the CDN version (lever 3, 3b) only on Will's privacy call X5. An auth red-team of lever 1 runs on the local
    desk before it ships; the fix reaches partyreel.com only through a milestone on Will's yes.
 0. **★ VERCEL'S HOBBY ACTIVE CPU (Will, 2026-10-04 15:30Z: almost maxed; breaking it again may cost the hosting, since
    Vercel unlocked his account once already).** Hobby allows 4 CPU-hours a rolling 30 days and pauses functions past it.
