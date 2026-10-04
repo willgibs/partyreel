@@ -36,10 +36,6 @@ export type LeadProps = {
   /** The event on the stage now, as the page composed it around the rule's lead. */
   stage: StageView;
   ctx: HomeContext;
-  /** Each ranged event's last day (`event-dates`, drawn as settled). */
-  ends: Record<string, string>;
-  /** She has just come from Create: the empty stage's lamp ignites once. */
-  fresh: boolean;
   /** The rule she keeps. */
   rule: RuleId;
   /** Choosing a rule: the stage follows at once, and her account keeps it. */

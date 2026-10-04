@@ -58,11 +58,12 @@ import {
 
 /**
  * YOUR EVENTS, AS ROUND THREE SETTLED THEM (`events=menu`, Will 2026-10-04;
- * `dashboard-wiring` builds it in production now): the Recent row over one
- * collection, quiet until she opens its one Display menu (the layout, the
- * order, what shows, the groups and the covers' size), a line saying what is
- * set. Drawn here as settled, so the stage above it is judged on the page as
- * it will ship; the three ways it beat retired with round three.
+ * built by `dashboard-wiring`): the Recent row over one collection, quiet
+ * until she opens its one Display menu (the layout, the order, what shows, the
+ * groups and the covers' size), a line saying what is set. The board's drawing
+ * of production's, because production's keeps each choice for her account
+ * through a Server Function, which a frame must never call; the three ways it
+ * beat retired with round three.
  *
  * ★ QUIET BY DEFAULT: covers, the newest first, nothing grouped (his "over-
  * organizing"); the Recent row from seven events (`RECENT_FROM`), and the

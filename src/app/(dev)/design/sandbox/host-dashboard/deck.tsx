@@ -374,7 +374,7 @@ export function DeckLead(p: LeadProps) {
                   </button>
                   {/* Read as the radio's description: "Newest, radio, checked, leads with ...". */}
                   <span id={`${noteId}-${r}`} hidden>
-                    {`Leads with ${c.event.name}${c.front ? ", on the stage now" : ""}: ${p.leads[r] ? factOf(p.leads[r]!, p.ends, today) : ""}.`}
+                    {`Leads with ${c.event.name}${c.front ? ", on the stage now" : ""}: ${p.leads[r] ? factOf(p.leads[r]!, today) : ""}.`}
                   </span>
                 </span>
               );
@@ -390,7 +390,7 @@ export function DeckLead(p: LeadProps) {
                 <Face e={peeked.event} className="size-5 rounded-[5px]" />
                 <b className="truncate">{peeked.event.name}</b>
                 <span className="shrink-0">
-                  · {factOf(p.leads[peek]!, p.ends, today)}
+                  · {factOf(p.leads[peek]!, today)}
                 </span>
               </>
             )}
@@ -453,8 +453,6 @@ export function DeckLead(p: LeadProps) {
         key={front}
         stage={p.stage}
         ctx={p.ctx}
-        ends={p.ends}
-        fresh={p.fresh}
         countWord={p.countWord}
         className={cn(
           "deck-band",
@@ -476,7 +474,6 @@ export function DeckLead(p: LeadProps) {
           <StageView
             stage={ghost}
             ctx={p.ctx}
-            ends={p.ends}
             countWord={p.countWord}
           />
         </div>

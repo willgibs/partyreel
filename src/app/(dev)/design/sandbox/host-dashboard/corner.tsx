@@ -84,7 +84,7 @@ function rowsOf(p: LeadProps): Row[] {
       id: r.id,
       label: r.label,
       event: lead.event,
-      fact: factOf(lead, p.ends, p.ctx.today),
+      fact: factOf(lead, p.ctx.today),
     });
   }
   return out;
@@ -433,8 +433,6 @@ export function CornerLead(p: LeadProps) {
         key={p.stage.event.id}
         stage={p.stage}
         ctx={p.ctx}
-        ends={p.ends}
-        fresh={p.fresh}
         countWord={p.countWord}
         className={cn(
           moved && "hd-corner-arrive",

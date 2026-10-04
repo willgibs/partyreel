@@ -234,11 +234,7 @@ function pastWords(day: string, today: string): string {
  * "in 18 days", "Sat, Dec 12", "opened last", "photos Sep 26", and where the
  * rule found nothing of its own kind, that: "nothing dated ahead".
  */
-export function factOf(
-  lead: Lead,
-  ends: Record<string, string>,
-  today: string,
-): string {
+export function factOf(lead: Lead, today: string): string {
   if (lead.fellBack)
     return lead.rule === "upcoming"
       ? "nothing dated ahead"
@@ -247,82 +243,29 @@ export function factOf(
         : "nothing opened yet";
   if (lead.why === "live") return "on today";
   if (lead.why === "near") return nearWords(lead.day!, today);
-  if (lead.why === "next") return whenFor(lead.event, ends, today);
+  if (lead.why === "next") return whenFor(lead.event, today);
   if (lead.why === "opened") return "opened last";
   if (lead.why === "photos") return `photos ${pastWords(lead.day!, today)}`;
   return `made ${pastWords(lead.event.createdAt.slice(0, 10), today)}`;
 }
 
 /** A rule's row under its name: the event it leads with today, and the fact it read. */
-export const leadLine = (
-  lead: Lead,
-  ends: Record<string, string>,
-  today: string,
-): string => `${lead.event.name} · ${factOf(lead, ends, today)}`;
+export const leadLine = (lead: Lead, today: string): string =>
+  `${lead.event.name} · ${factOf(lead, today)}`;
 
 /** Whether a party is on its own day: the one thing no rule overrides. */
 export function partyOnItsDay(host: Pick<Host, "hosted" | "ctx">): boolean {
   return host.hosted.some((e) => phaseOfEvent(e, host.ctx.today) === "live");
 }
 
-/* ── a range of days (`event-dates`, drawn as settled) ────────────────── */
+/* ── an event's when ──────────────────────────────────────────────────── */
 
-const fmt = (o: Intl.DateTimeFormatOptions) =>
-  new Intl.DateTimeFormat("en-US", { ...o, timeZone: "UTC" });
-const WD = fmt({ weekday: "short" });
-const WD_LONG = fmt({ weekday: "long" });
-const MD = fmt({ month: "short", day: "numeric" });
-const D = fmt({ day: "numeric" });
-const MY = fmt({ month: "short", year: "numeric" });
-const MDY_LONG = fmt({ month: "long", day: "numeric", year: "numeric" });
-const MD_LONG = fmt({ month: "long", day: "numeric" });
-const LONG = fmt({ weekday: "long", month: "long", day: "numeric" });
-
-const at = (day: string) => {
-  const [y, m, d] = day.split("-").map(Number);
-  return new Date(Date.UTC(y!, m! - 1, d!));
-};
-const sameMonth = (a: string, b: string) => a.slice(0, 7) === b.slice(0, 7);
-
-/**
- * A RANGE'S WHEN, IN THE TILE'S FEWEST WORDS (`whenOf`'s ladder, widened to two
- * days): "Sat – Sun" inside the week, "Nov 14 – 15" inside the month or this
- * year, "May 2025" once its year has gone (its days no longer matter).
- */
-export function rangeWhen(start: string, end: string, today: string): string {
-  const d = daysFrom(today, start);
-  const span = sameMonth(start, end)
-    ? `${MD.format(at(start))} – ${D.format(at(end))}`
-    : `${MD.format(at(start))} – ${MD.format(at(end))}`;
-  if (d > 1 && d < 7)
-    return `${WD.format(at(start))} – ${WD.format(at(end))}`;
-  if (start.slice(0, 4) === today.slice(0, 4) || d > 0) return span;
-  return MY.format(at(start));
-}
-
-/** A range in full, the rows' and the table's date: "October 6 – 7, 2026". */
-export function rangeLabel(start: string, end: string): string {
-  if (sameMonth(start, end))
-    return `${MD_LONG.format(at(start))} – ${D.format(at(end))}, ${start.slice(0, 4)}`;
-  return `${MD_LONG.format(at(start))} – ${MDY_LONG.format(at(end))}`;
-}
-
-/** The stage's date line for a range: "Saturday, November 14 to Sunday, November 15". */
-export const rangeLine = (start: string, end: string): string =>
-  `${LONG.format(at(start))} to ${LONG.format(at(end))}`;
-
-/** The weekday words of a range a week out: "Saturday to Sunday". */
-export const rangeDays = (start: string, end: string): string =>
-  `${WD_LONG.format(at(start))} to ${WD_LONG.format(at(end))}`;
-
-/** An event's when, a range's where it has one: what every drawing of the board says. */
+/** An event's when in a row's fewest words, a range's included: production's own (`whenOf`). */
 export function whenFor(
-  e: Pick<HostedEvent, "id" | "date">,
-  ends: Record<string, string>,
+  e: Pick<HostedEvent, "date" | "endDate">,
   today: string,
 ): string {
-  const end = ends[e.id];
-  return e.date && end ? rangeWhen(e.date, end, today) : whenOf(e.date, today);
+  return whenOf(e.date, today, false, e.endDate);
 }
 
 /* ── the page, around a lead ──────────────────────────────────────────── */
@@ -357,15 +300,12 @@ export function homeInput(host: Host, leadId?: string | null): HomeInput {
  * and busier than any, so production's moment always leads with it), which
  * draws every real event as a row, a week card and a group member through
  * production's own rules; the chosen lead is then lifted out of the rows, the
- * week and its group, exactly as production leaves its own lead out. A range's
- * words are then laid over the rows and the week (`ranged`).
+ * week and its group, exactly as production leaves its own lead out.
  */
 export function homeAround(host: Host, leadId: string | null): HomeView {
   const base = buildHomeView(homeInput(host, leadId));
   const lead = host.hosted.find((e) => e.id === leadId);
-  const view =
-    !lead || base.stage?.event.id === lead.id ? base : lifted(host, lead);
-  return ranged(view, host);
+  return !lead || base.stage?.event.id === lead.id ? base : lifted(host, lead);
 }
 
 /** The page with `lead` on the stage, by way of the decoy. Exported for the test that holds it to production. */
@@ -400,35 +340,6 @@ export function lifted(host: Host, lead: HostedEvent): HomeView {
       seasons: wide.events.seasons
         .map((s) => ({ ...s, ids: s.ids.filter((id) => id !== lead.id) }))
         .filter((s) => s.ids.length > 0),
-    },
-  };
-}
-
-/** A range's words over production's rows and week cards (production has no end date yet). */
-function ranged(view: HomeView, host: Host): HomeView {
-  if (Object.keys(host.ends).length === 0) return view;
-  const today = host.ctx.today;
-  const startOf = new Map(host.hosted.map((e) => [e.id, e.date]));
-  return {
-    ...view,
-    week: view.week.map((c) => {
-      const start = startOf.get(c.id);
-      const end = host.ends[c.id];
-      return start && end ? { ...c, when: rangeWhen(start, end, today) } : c;
-    }),
-    events: {
-      ...view.events,
-      rows: view.events.rows.map((r) => {
-        const start = r.kind === "hosted" ? startOf.get(r.id) : null;
-        const end = host.ends[r.id];
-        return start && end
-          ? {
-              ...r,
-              when: rangeWhen(start, end, today),
-              dateLabel: rangeLabel(start, end),
-            }
-          : r;
-      }),
     },
   };
 }

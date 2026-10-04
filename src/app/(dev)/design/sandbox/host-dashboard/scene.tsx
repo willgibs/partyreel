@@ -93,8 +93,8 @@ export const readStage: Reader = (root) => {
   const tall = Math.round(stage.getBoundingClientRect().height);
   const parts = [
     `${stage.getAttribute("aria-label")}, ${(word?.textContent ?? "").trim().toLowerCase()}, ${tall} px tall`,
-    stage.dataset.hdEmpty
-      ? `no photos: lit by lamp ${stage.dataset.hdLamp}`
+    stage.dataset.stageLit
+      ? `no photos: lit by lamp ${stage.dataset.stageLit}`
       : "its photographs",
   ];
   const ticks = stage.querySelectorAll("[data-stage-rail] li");

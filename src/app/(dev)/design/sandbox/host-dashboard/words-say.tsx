@@ -59,13 +59,12 @@ export function rowOf(
   rule: RuleId,
   leads: Leads,
   stageId: string,
-  ends: Record<string, string>,
   today: string,
 ): { line: string; face: HostedEvent | null } {
   const lead = leads[rule];
   if (!lead) return { line: SAID[rule].line, face: null };
   // The name keeps its dot and the fact stays whole, so a narrow row wraps between the two.
-  const fact = factOf(lead, ends, today).replace(/ /g, "\u00a0");
+  const fact = factOf(lead, today).replace(/ /g, "\u00a0");
   return {
     line: `${lead.event.name}\u00a0· ${fact}`,
     face: lead.event.id === stageId ? null : lead.event,

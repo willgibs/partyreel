@@ -63,8 +63,6 @@ export type Start = {
   collection?: CollectionStart;
   /** The frame opens scrolled to her events, or to the week. */
   scroll?: "events" | "week";
-  /** She has just come from Create: the empty stage's light ignites once. */
-  fresh?: boolean;
 };
 
 /** Each way of choosing what leads, drawn whole: the stage with its control. */
@@ -252,8 +250,6 @@ export function Dashboard({
                 key={visits}
                 stage={view.stage}
                 ctx={host.ctx}
-                ends={host.ends}
-                fresh={Boolean(start.fresh) && visits === 0}
                 rule={rule}
                 onRule={setRule}
                 picks={picks}

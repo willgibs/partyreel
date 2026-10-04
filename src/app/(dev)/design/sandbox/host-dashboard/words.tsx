@@ -316,8 +316,6 @@ function TurnLead(p: LeadProps) {
           key={shown.event.id}
           stage={shown}
           ctx={p.ctx}
-          ends={p.ends}
-          fresh={p.fresh && shown === p.stage && !moved}
           countWord={p.countWord}
           eyebrow={eyebrow}
           className={cn(
@@ -329,7 +327,7 @@ function TurnLead(p: LeadProps) {
           )}
           plateCaption={
             turned && shown.event.id !== p.stage.event.id && p.leads[shownRule]
-              ? leadLine(p.leads[shownRule]!, p.ends, today)
+              ? leadLine(p.leads[shownRule]!, today)
               : undefined
           }
         />
@@ -374,13 +372,7 @@ function TurnLead(p: LeadProps) {
               {RULES.map((r, i) => {
                 const on = r.id === p.rule;
                 // Its line, and a face only where choosing it would put another event on the stage.
-                const row = rowOf(
-                  r.id,
-                  p.leads,
-                  p.stage.event.id,
-                  p.ends,
-                  today,
-                );
+                const row = rowOf(r.id, p.leads, p.stage.event.id, today);
                 return (
                   <button
                     key={r.id}

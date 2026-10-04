@@ -17,11 +17,12 @@ import { SCREEN } from "./knobs";
  * `details` is the call H6 folded in: four details the dashboard was built
  * with and never drawn for him, each shown as built and the other way.
  *
- * ★ EVERY FRAME IS PRODUCTION'S PAGE. The head, the stage with its
- * photographs (`photo-stage.tsx`, production's copied with its slots), the
- * week and every rule under them are production's, composed by
- * `buildHomeView` from fixtures in production's own shapes (`model.ts`,
- * `model.test.ts`); round three's picks are drawn as they are being built.
+ * ★ EVERY FRAME IS PRODUCTION'S PAGE. The head, the stage (`stage-copy.tsx`,
+ * production's own copied with the round's slots, lit by its lamp before its
+ * first photograph), the week and every rule under them are production's,
+ * composed by `buildHomeView` from fixtures in production's own shapes
+ * (`model.ts`, `model.test.ts`); her events are the board's drawing of
+ * production's Display menu (`collection.tsx`).
  *
  * Nothing here asks what another board asks: the atoms are `identity`'s, the
  * hub's head is `event-header`'s, and the event page Try it opens is a
@@ -66,12 +67,12 @@ export const HOST_DASHBOARD = defineExploration({
     },
   ],
   context:
-    "Round four, on the dashboard as it is being built, for hosts on Tuesday 10 November, a quiet day: Nia with three events (her wedding made last night), Ari ten, Jo forty, Maya one on an Event Pass and Lena five with a full week. Every frame runs: press any event to open it, then come back. The Screen knob draws a phone. Each caption is read off its frame.",
+    "Round four, on the dashboard as built, for hosts on Tuesday 10 November, a quiet day: Nia with three events (her wedding made last night), Ari ten, Jo forty, Maya one on an Event Pass and Lena five with a full week. Every frame runs: press any event to open it, then come back. The Screen knob draws a phone. Each caption is read off its frame.",
   opening: {
     about:
       "Round four: how a host chooses what leads her stage, drawn again on the whole lit stage. We read your note as the corner; say if you meant the dashboard whole.",
     settled: [
-      "One Display menu over your events, and the code lit by its own lamp, are being built now and are drawn here as they will ship.",
+      "One Display menu over your events, and the code lit by its own lamp, are built, and the stage in every frame is production's own.",
       "Her choices are kept on her account; her events open as covers, the newest first; Recent shows from seven events.",
       "Newest puts a party within a month first; an empty event is lit by its own lamp; a party on its own day always leads.",
       "Until your pick, the stage keeps today's rule: the newest leads.",
