@@ -78,8 +78,10 @@ shapes.
   has no client timeout: a retry re-runs the whole upload, so a timed-out complete that had recorded its row would
   duplicate it. ★ It is ONE SENTENCE everywhere: the downloads say it as a title and its detail (`WALK_COPY`), and
   the album's camera says this very string where it used to count ("2 shots didn’t send.") when a shot failed that
-  way (the queue keeps the uploader's message as it came, so the camera reads it by `UPLOAD_WORDS.dropped`);
-  `uploader.transport.test.ts` holds the three to one wording.
+  way; `uploader.transport.test.ts` holds the three to one wording. ★ **The cause, never the words, says which it was:**
+  the queue keeps the outcome's `cause` beside the message (`QueueItem.cause`: `dropped`, `cancelled`, absent for a
+  refusal, cleared by a Retry), and what draws a drop apart from a refusal reads it: the camera's line, and the failure
+  sheet's row for a dropped connection (a signal mark before its sentence).
 - **The size is the R2 HEAD's** at complete, never the client's claim ([database-security.md](database-security.md));
   `duration_seconds`, `width` and `height` stay client-supplied and non-authoritative, the byte cap being the cost
   boundary.

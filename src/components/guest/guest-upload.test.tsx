@@ -783,6 +783,33 @@ describe("GuestUpload: a run that ends badly opens the failure sheet", () => {
     expect(toast.error).not.toHaveBeenCalled();
   });
 
+  it("★ draws a dropped connection apart from a refusal: the queue's cause reaches the sheet, whatever the words", async () => {
+    mockUploadFile
+      .mockResolvedValueOnce({
+        ok: false,
+        message: "The line went quiet.",
+        cause: "dropped",
+      })
+      .mockResolvedValueOnce({
+        ok: false,
+        code: "storage_error",
+        message: "That upload failed.",
+      });
+    const { addFiles } = mount();
+    addFiles([makeFile("a.jpg"), makeFile("b.jpg")]);
+
+    await waitFor(() =>
+      expect(screen.getByText("2 of 2 didn't upload")).toBeInTheDocument(),
+    );
+    const marked = document.querySelectorAll('[data-cause="dropped"]');
+    expect(marked).toHaveLength(1);
+    expect(marked[0]).toHaveTextContent("a.jpg");
+    expect(marked[0].querySelector("svg.lucide-wifi-off")).not.toBeNull();
+    expect(
+      screen.getByText("That upload failed.").closest("li"),
+    ).not.toHaveAttribute("data-cause");
+  });
+
   it("stays shut when the run is clean", async () => {
     mockUploadFile.mockResolvedValue({
       ok: true,

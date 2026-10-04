@@ -64,7 +64,6 @@ import {
 } from "@/lib/guest/camera/words";
 import { useStoredSession } from "@/lib/guest/use-stored-session";
 import type { FileExtra, QueueItem } from "@/lib/guest/use-upload-queue";
-import { UPLOAD_WORDS } from "@/lib/upload/uploader";
 
 import "./camera.css";
 
@@ -293,12 +292,10 @@ export function AlbumCamera({
   const latestFileRefusal = [...failed]
     .reverse()
     .find(({ state }) => refusalOf(state.code) === "file");
-  // ★ A DROPPED CONNECTION IS NEVER HIDDEN (E6, red-team 53's NIT): the queue keeps the uploader's message as it came,
-  // so a shot that failed for want of a line carries the uploader's own sentence (`UPLOAD_WORDS`), and the camera says
-  // it where it used to count ("2 shots didn’t send."), which read as a broken app on a stadium's signal.
-  const droppedUnsent = toRetry.some(
-    ({ state }) => state.error === UPLOAD_WORDS.dropped,
-  );
+  // ★ A DROPPED CONNECTION IS NEVER HIDDEN (E6): a shot that failed for want of a line says so in the uploader's own
+  // sentence (`UPLOAD_WORDS.dropped`, drawn by the screen) where a count ("2 shots didn’t send.") would read as a broken app
+  // on a stadium's signal. The queue's `cause` says which it was, never the words, which are free to change.
+  const droppedUnsent = toRetry.some(({ state }) => state.cause === "dropped");
   const retryUnsent = useCallback(() => {
     const at = Date.now();
     const keys = new Set(toRetry.map(({ shot }) => shot.key));

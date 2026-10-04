@@ -52,6 +52,8 @@ export type ShotState = {
   mediaId?: string;
   error?: string;
   code?: string;
+  /** Why the transport ended it (`QueueItem.cause`): `dropped` is the connection, which the camera says in its own line. */
+  cause?: QueueItem["cause"];
 };
 
 export function shotState(
@@ -70,6 +72,7 @@ export function shotState(
       queueId: item.id,
       error: item.error,
       code: item.errorCode,
+      cause: item.cause,
     };
   }
   return {

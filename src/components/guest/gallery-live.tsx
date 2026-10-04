@@ -16,8 +16,9 @@
  *     own, so a batch arrives in one call (album-calm, `album-wire-carry.ts`).
  * The doorbell (in calm batches, asking at once for a develop's moment, and silent in a hidden tab:
  * `use-gallery-doorbell.ts`) and the fallback poll both call it, and the store coalesces overlapping calls; her own
- * upload syncs at once, never on the clock, and her photograph's link rides that sync's delta, so the window's ask for
- * it waits for the answer (`owedLinks`).
+ * upload syncs at once, never on the clock, ONCE for every file of a burst (the files recorded together settle in one
+ * run: `notifyUploaded`), and her photograph's link rides that sync's delta, so the window's ask for it waits for the
+ * answer (`owedLinks`).
  *
  * ★ THE FIRST PAINT IS THE SERVER'S ANSWER, NOT A LOADING STATE. The page embeds the manifest and
  * the first window's links (`gallery-seed.ts`); the store adopts them through its own first sync,
@@ -268,7 +269,12 @@ function measureMedia(
 }
 
 export type LiveGalleryHandle = {
-  /** An upload finished: optimistic tile (approved only) + a sync. */
+  /**
+   * An upload finished: its optimistic tile (approved only) at once, and a sync. ★ The files of a burst settle in one
+   * run (`uploadBurst` records them together), so what lands in the same tick asks the album ONCE, a microtask after
+   * the last of them (a sync asked while one is in the air runs again when it lands: an ask a file would make every
+   * burst a delta and then a 304).
+   */
   notifyUploaded: (u: UploadedItem) => void;
   /**
    * A rename lands (the rename patch): this device's OWN credits say the new name at once, rather
@@ -690,6 +696,8 @@ export function GalleryLiveProvider({
    * sync that fails or carries no link still lets the ask go: held back for an answer, never for good.
    */
   const owedLinks = useRef(new Map<string, boolean>());
+  /** The ids that landed in the tick now running, waiting for their one ask (`notifyUploaded`). */
+  const landings = useRef<string[]>([]);
 
   /* ── a guest's own photographs: removable ever, and final for the host too ── */
   const [sessionMine, setSessionMine] = useState<ReadonlySet<string>>(
@@ -854,10 +862,18 @@ export function GalleryLiveProvider({
       const owed = owedLinks.current;
       if (u.status === "approved" && !owed.has(u.mediaId))
         owed.set(u.mediaId, false);
-      void store.sync().then(() => {
-        const asked = owed.get(u.mediaId);
-        owed.delete(u.mediaId);
-        if (asked) void store.links.ensure([u.mediaId]);
+      // ★ ONE ASK A BURST: the first landing of a tick schedules it, the rest of the tick join it, and every id of the
+      // tick asks for its link together once the one answer is in.
+      const landing = landings.current;
+      landing.push(u.mediaId);
+      if (landing.length > 1) return;
+      queueMicrotask(() => {
+        const ids = landing.splice(0);
+        void store.sync().then(() => {
+          const asked = ids.filter((id) => owed.get(id));
+          for (const id of ids) owed.delete(id);
+          if (asked.length > 0) void store.links.ensure(asked);
+        });
       });
     },
     renameMine(displayName) {

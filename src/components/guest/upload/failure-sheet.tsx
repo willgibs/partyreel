@@ -30,7 +30,7 @@
  * (`retryCanPass`, the refusal ladder the door's step reads too).
  */
 import { useState } from "react";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, WifiOff } from "lucide-react";
 
 import { PickPreview } from "@/components/guest/upload/pick-preview";
 import { usePickUrls } from "@/components/guest/upload/use-pick-urls";
@@ -49,6 +49,7 @@ import { retryCanPass } from "@/lib/guest/upload-refusal";
 import { useWaitClock } from "@/lib/disposable/use-wait-clock";
 import { restWaitLine, waitWords } from "@/lib/disposable/wait-words";
 import { NOTHING_WAITS, type UploadsWait } from "@/lib/guest/upload-tracker";
+import type { UploadCause } from "@/lib/upload/uploader";
 
 /** One file that did not go: the queue's id, its file, the server's words and their code. */
 export type UploadFailure = {
@@ -57,6 +58,11 @@ export type UploadFailure = {
   error?: string;
   /** The refusal's code, which says whether the same file could go on a retry. */
   code?: string;
+  /**
+   * Why the transport ended it (`QueueItem.cause`): `dropped` is the connection, and its row says so apart from a
+   * refusal, which is the server's own sentence and never a mark of the line's.
+   */
+  cause?: UploadCause;
 };
 
 /**
@@ -136,7 +142,11 @@ export function UploadFailureList({
       )}
       <ul data-upload-failures className="flex flex-col gap-3">
         {failures.map((f) => (
-          <li key={f.id} className="flex items-center gap-3">
+          <li
+            key={f.id}
+            data-cause={f.cause}
+            className="flex items-center gap-3"
+          >
             <PickPreview
               file={f.file}
               url={urls.get(f.id)}
@@ -147,6 +157,14 @@ export function UploadFailureList({
                 {f.file.name}
               </span>
               <span className="block text-reading text-pretty text-muted-foreground">
+                {/* ★ A DROPPED CONNECTION IS DRAWN APART FROM A REFUSAL: the line's, never the file's, so it wears the
+                    signal's mark before its sentence (the cause, never the words, says which). */}
+                {f.cause === "dropped" && (
+                  <WifiOff
+                    aria-hidden
+                    className="mr-1.5 inline size-4 align-text-bottom"
+                  />
+                )}
                 {f.error ?? "That upload did not finish."}
               </span>
             </span>

@@ -75,6 +75,29 @@ describe("shotState", () => {
     });
   });
 
+  it("carries the transport's cause beside the sentence, so the camera never matches the words", () => {
+    const f = file();
+    expect(
+      shotState({ file: f }, [
+        item(f, {
+          status: "error",
+          error: "Your connection dropped. Check your signal, then try again.",
+          cause: "dropped",
+        }),
+      ]),
+    ).toMatchObject({ status: "failed", cause: "dropped" });
+    // An answer that was an error is the server's, not the line's: no cause.
+    expect(
+      shotState({ file: f }, [
+        item(f, {
+          status: "error",
+          error: "Nope.",
+          errorCode: "storage_error",
+        }),
+      ]).cause,
+    ).toBeUndefined();
+  });
+
   it("is in flight while taking or sending, and only then", () => {
     expect(inFlight({ status: "taking" })).toBe(true);
     expect(inFlight({ status: "sending" })).toBe(true);

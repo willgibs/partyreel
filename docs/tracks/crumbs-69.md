@@ -1,33 +1,35 @@
 ---
-track: crumbs-68
+track: crumbs-69
 status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "0fdb73cb"            # the launch-prep SHA the branch was cut from
+cut: "6174f136"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
-  - src/lib/guest/use-upload-queue
-  - src/components/guest/upload-step
-  - src/components/guest/gallery-live.tsx
-  - src/components/guest/camera/
+  - src/app/(app)/dashboard/[eventId]/page.tsx
+  - src/app/(app)/dashboard/[eventId]/reel/
+  - src/components/app/event-feed/hub-opened
 reads:                  # single-sources you depend on: never duplicate, never edit
-  - CLAUDE.md
+  - src/app/(app)/dashboard/actions.ts
+  - src/lib/dashboard/opened.ts
 ---
 
-# lp/crumbs-68
+# lp/crumbs-69
 
-**Goal.** Three upload crumbs: the door's upload bar fills as the bytes go, a guest's album asks once per landed burst, and the failure sheet tells a dropped connection from a refusal.
+**Goal.** Two hub crumbs from round 15's ROADMAP: the hub counts as an open for Recent and Last opened, and the old reel route sends a live reel to her own hub's reel while a develop is ahead.
 
 ## The brief
 
 **The round's direction (Will, standing since round 13, carried by every lane):** never dev-tool-ish (the viewfinder's corners survive only as a focus mark, never a style, and so does nothing of their loading state); a host of 1 to about 10 events first, scaling to hundreds; "all work no play is a boring consumer product": delight where it costs nothing in clarity; nothing depends on a timeline (undated, morning-only and multi-day events all read well); "everything should feel as immediate/responsive/snappy, and anything taking longer should provide clear state feedback and potential interruptibility"; Partyreel runs with no AI managing it (every operator fix ships its `/admin` control); cost is designed like the architecture (every image and video action multiplies at scale). Production is the working version: a pick is the best of what was drawn, never a rule.
 
-**★ Local only:** nothing of yours requests the alias, partyreel.com or any *.vercel.app (Hobby's Active CPU). Port 3000 is Will's desk; 3132 is another lane's.
+**★ Local only:** nothing of yours requests the alias, partyreel.com or any *.vercel.app (Hobby's Active CPU). Port 3000 is Will's desk; 3132 is another lane's; yours is 3131.
 
 **The fixes**, each pinned by a test that fails on the old code:
-1. **The door's upload bar** (`upload-step.tsx`) reads a queue item's progress (0 to 100) as a fraction (`Math.max(it.progress, ...) * 100`), so a bar is full from its first percent. It must fill as the bytes go. Check every other reader of `QueueItem.progress` for the same scale.
-2. **Her album asks once per landed burst.** `gallery-live.tsx`'s `notifyUploaded` asks the album's store once per landed file, so a recorded burst costs two syncs (a delta, then a 304). Since compute-uploads (merged), a burst's files are recorded together: ask once per burst. Keep her own tiles optimistic, as now.
-3. **The failure sheet tells a dropped connection from a refusal.** Carry `UploadOutcome.cause` (`"dropped"`, `"cancelled"` and the refusals, from `src/lib/upload/uploader.ts`) into the queue's `QueueItem` (`use-upload-queue.ts`). The failure sheet and the camera then read the cause instead of matching the message (`UPLOAD_WORDS.dropped`, crumbs-65's stopgap).
+1. **The hub counts as an open.** Today only a press from the dashboard stamps `events.host_opened_at` (`noteEventOpenedAction`, `src/app/(app)/dashboard/actions.ts`; `HomeShell`'s listener), so a deep link, the bell or an email never reaches Recent or Last opened.
+   - Mount a small client component on the hub (`/dashboard/[eventId]`) that calls the same action once on mount, as `MarkWelcomedOnMount` does.
+   - The action's own once-a-minute filter keeps a reload cheap.
+   - It costs one Server Function call a hub visit: say so, and keep it at that (never a poll).
+2. **The old reel route** (`/dashboard/<id>/reel`, a redirect) sends a live reel to the guests' page, which has no reel before the develop. While a develop time is ahead, send it to the hub's `?reel`, her own reel (hub-strip-wiring, merged); after the develop, as today.
 
-Wiring rigor (these ship): the whole gate. Measure fix 2 with `pnpm compute:model --port 3131` (guest-join-upload's calls) and lower its budget line if it falls (`scripts/compute-model/budget.json`, an exception in your Handoff).
+Wiring rigor: the whole gate. Work economically, with no helper agents; push a WIP commit at each step (this account's weekly usage is near its end).
 
 **Starts from.** CLAUDE.md's working loop, the bible's ten and production as it is; the tests say what has to keep
 working.
