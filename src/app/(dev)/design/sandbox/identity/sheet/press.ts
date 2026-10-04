@@ -130,11 +130,10 @@ ${held(SHUTTER)} { --i-press-s: 0.94; }
 /**
  * BLINK (ink): the control snaps to ink under the finger and fades back as it
  * lifts, the way a camera's screen blacks out on the shutter. What is ink
- * already turns to the other ink (a negative, ringed in ink so it keeps its
- * edge): the primary, the white key on a photograph, the code chip; a delete
- * flashes its own red; a glass round, the photograph's ink, white; a link
- * stands on a plate of ink. The shutter, whose face is its own, blacks out
- * whole.
+ * already flashes half a step toward its inverse: the primary, the white key
+ * on a photograph, the code chip; a delete flashes its own red; a glass
+ * round, the photograph's ink, white; a link stands on a plate of ink. The
+ * shutter, whose face is its own, blacks out whole.
  *
  * ★ ONE FLAT FLASH: a ring of the flash's own colour covers the body's lines
  * (a key's bevel, a pill's ring), which would otherwise draw a lit edge across
@@ -155,9 +154,14 @@ ${BODIED.join(", ")} {
 ${HELD} { transition-duration: 0ms; }
 ${held(...BODIED)} { --blink-ring: var(--ink); --i-press: ${layers(FLASH)}; }
 ${held(...BODIED.filter((s) => s !== SHUTTER && s !== CODE_CHIP))} { background: var(--ink); color: var(--ink-fg); }
-${held(btn("default"))} { background: var(--ink-fg); color: var(--ink); }
+/* What is ink already blinks half a step toward its inverse, a flash and never a second key: the
+   whole negative read as the quiet key beside it (the fresh-eyes pass, Account's Change plan). */
+${held(btn("default"))} {
+  --blink-mid: color-mix(in oklab, var(--ink) 55%, var(--ink-fg));
+  background: var(--blink-mid); color: var(--ink-fg); --blink-ring: var(--blink-mid);
+}
 ${held(btn("on-photo"), CODE_CHIP)} {
-  background: oklch(0.13 0.004 286); color: oklch(1 0 0); --blink-ring: oklch(1 0 0 / 70%);
+  background: oklch(0.62 0.004 286); color: oklch(1 0 0); --blink-ring: oklch(0.62 0.004 286);
 }
 ${held(btn("destructive"))} { background: var(--destructive); color: oklch(1 0 0); --blink-ring: var(--destructive); }
 ${held(btn("glass"))} { background: oklch(1 0 0); color: oklch(0.13 0.004 286); --blink-ring: oklch(1 0 0); }

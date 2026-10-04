@@ -41,7 +41,9 @@ const TOKENS = `
   --vf-thumb: oklch(1 0 0);
 }
 .dark {
-  --vf-key-hi: oklch(1 0 0 / 8%);
+  /* One light from above on every ground: a key's top edge catches it in the room as a lit rim
+     (it was 8%, a line nobody saw on the room's near-black). */
+  --vf-key-hi: oklch(1 0 0 / 14%);
   --vf-key-lo: oklch(0 0 0 / 45%);
   --vf-ink-hi: oklch(1 0 0 / 75%);
   --vf-ink-lo: oklch(0 0 0 / 20%);
@@ -53,7 +55,7 @@ const TOKENS = `
   --vf-thumb: oklch(0.64 0.005 286);
 }
 .surface-display {
-  --vf-key-hi: oklch(1 0 0 / 9%);
+  --vf-key-hi: oklch(1 0 0 / 14%);
   --vf-key-lo: oklch(0 0 0 / 45%);
   --vf-ink-hi: oklch(1 0 0 / 75%);
   --vf-ink-lo: oklch(0 0 0 / 20%);
@@ -63,6 +65,28 @@ const TOKENS = `
   --vf-wash: oklch(1 0 0 / 7%);
   --vf-wash-strong: oklch(1 0 0 / 12%);
   --vf-thumb: oklch(0.7 0.005 286);
+}
+/* A well: its fill, the shade along its top edge and its fade, its faint rim, the lip of light
+   along its foot (lit from above). On paper a step under the page; in the room deeper than the
+   page; on the display a step under the screen. Every well reads these: a field, a switch, a
+   check, a segmented control's track. */
+:root, .surface-paper {
+  --vf-well: oklch(0.948 0.003 286);
+  --vf-well-top: oklch(0 0 0 / 26%); --vf-well-fade: oklch(0 0 0 / 7%);
+  --vf-well-rim: oklch(0 0 0 / 8%); --vf-well-lip: oklch(1 0 0 / 70%);
+  --vf-well-rim-hover: oklch(0 0 0 / 16%);
+}
+.dark {
+  --vf-well: oklch(0.075 0.003 286);
+  --vf-well-top: oklch(0 0 0 / 60%); --vf-well-fade: oklch(0 0 0 / 50%);
+  --vf-well-rim: oklch(1 0 0 / 5%); --vf-well-lip: oklch(1 0 0 / 10%);
+  --vf-well-rim-hover: oklch(1 0 0 / 12%);
+}
+.surface-display {
+  --vf-well: color-mix(in oklab, var(--display), oklch(0 0 0) 35%);
+  --vf-well-top: oklch(0 0 0 / 45%); --vf-well-fade: oklch(0 0 0 / 35%);
+  --vf-well-rim: oklch(1 0 0 / 6%); --vf-well-lip: oklch(1 0 0 / 10%);
+  --vf-well-rim-hover: oklch(1 0 0 / 14%);
 }
 /* Ink and its two tones, read on the atom itself, where its own ground is. */
 :where(${ATOMS}, ${CHIPS}, ${SEGMENTS}, ${TABS}, ${SLIDER}) {

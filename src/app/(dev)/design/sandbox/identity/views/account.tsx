@@ -95,10 +95,28 @@ function accountScript(
 ): readonly (readonly [number, () => void])[] {
   if (menu) return [[800, openAccountMenu]];
   switch (moment) {
+    case "field":
+    case "focus":
+      // The name being typed stands clear of the frame's foot, its mark whole.
+      return [
+        [
+          700,
+          () =>
+            bring(document.getElementById("identity-display-name"), "center"),
+        ],
+      ];
     case "press":
       return [[700, () => pin(byText("button", "Change plan"), "press")]];
     case "loading":
-      return [[700, () => busy(byText("button", "Save"))]];
+      return [
+        [
+          700,
+          () => {
+            bring(document.getElementById("identity-display-name"), "center");
+            busy(byText("button", "Save"));
+          },
+        ],
+      ];
     case "toggles":
       return [
         [700, () => bring(document.getElementById("identity-prefs"), "center")],

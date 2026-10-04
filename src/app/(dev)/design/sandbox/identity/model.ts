@@ -168,11 +168,13 @@ export const isSheet = (v: ViewId): v is SheetView =>
 
 /**
  * THE MOMENT A SCREEN IS CAUGHT IN: the trait being asked (a field typed in,
- * a key held down, a key working, a gate chosen), or `edge`, the screen with
- * its layer open. Each screen pins the moment where it really happens on it,
- * the same in every option, so two frames differ by the option alone.
+ * a key held down, a key working, a gate chosen), `edge`, the screen with its
+ * layer open, or `rest`, the instant before a press (a press is judged beside
+ * the key at rest: a still cannot show the move). Each screen pins the moment
+ * where it really happens on it, the same in every option, so two frames
+ * differ by the option alone.
  */
-export const MOMENT_IDS = [...TRAITS, "edge"] as const;
+export const MOMENT_IDS = [...TRAITS, "edge", "rest"] as const;
 export type MomentId = (typeof MOMENT_IDS)[number];
 export const momentOf = (v: unknown): MomentId => pick(MOMENT_IDS, v, "field");
 

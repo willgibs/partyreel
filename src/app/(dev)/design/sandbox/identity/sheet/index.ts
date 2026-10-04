@@ -2,6 +2,7 @@ import type { AskId, Choice } from "../model";
 
 import { BASE_CSS } from "./base";
 import { BUTTON_CSS } from "./button";
+import { CALLS_CSS } from "./calls";
 import { EDGE_CSS } from "./edge";
 import { FIELD_CSS } from "./field";
 import { FOCUS_CSS } from "./focus";
@@ -15,7 +16,8 @@ import { TOGGLES_CSS } from "./toggles";
 /**
  * ONE MIX, ONE STYLESHEET OVER PRODUCTION: the tokens and the composition the
  * traits share, then each trait's pick, then the room's pop-out (graphite, as
- * picked) and the light edge's reach. Nothing in `src/components/` is touched:
+ * picked), the carried calls the lane takes other than as built (`calls.ts`)
+ * and the light edge's reach. Nothing in `src/components/` is touched:
  * a frame mounts production's own components wearing this, which is what
  * wiring a pick at the source does (`globals.css` and `src/components/ui/`).
  *
@@ -65,6 +67,7 @@ export function sheetFor(c: Choice): string {
     LOADING_CSS[c.loading],
     FOCUS_CSS[c.focus],
     ROOM_CSS,
+    CALLS_CSS,
     EDGE_CSS[c.edge],
     ON_PHOTO,
   ].join("\n");

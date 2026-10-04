@@ -23,16 +23,17 @@ export function byText<T extends HTMLElement = HTMLElement>(
 
 /**
  * Pins a state a pointer or a keyboard would bring (`hover`, `press`,
- * `focus`). ★ A PRESS IS A HOVER TOO: a finger or a pointer held down on a key
- * is over it, so a pinned press wears both, or it reads quieter than the hover
- * beside it.
+ * `focus`). ★ A PRESS IS PINNED ALONE: these screens are drawn as a finger
+ * meets them, and a finger has no hover, so a held key wears its press and
+ * nothing a pointer would add (the press options then differ by their own
+ * drawing, never by a hover's fill they would all share).
  */
 export function pin(
   el: Element | null | undefined,
   state: "hover" | "press" | "focus",
 ): void {
   if (!el) return;
-  el.setAttribute("data-demo", state === "press" ? "hover press" : state);
+  el.setAttribute("data-demo", state);
 }
 
 /** Marks an action working, as a wired atom does while it waits on the server. */

@@ -126,7 +126,9 @@ const GROUND_NAME: Record<GroundId, string> = {
  * AN OPTION, DRAWN: one view at the width the knobs hold, on each ground
  * asked for, side by side. A desk's sheet holds both grounds in one frame; a
  * phone's sheet is two phone pages a ground. A screen that is the room in
- * both themes (Create) is drawn once.
+ * both themes (Create) is drawn once. A press is drawn beside its key at rest
+ * (`beside`), each ground a pair: a still shows a press only against the
+ * instant before it.
  */
 export function OptionFrames({
   choice,
@@ -136,6 +138,7 @@ export function OptionFrames({
   w,
   grounds,
   name,
+  beside,
 }: {
   choice: Choice;
   view: ViewId;
@@ -145,13 +148,20 @@ export function OptionFrames({
   w: Width;
   grounds: readonly GroundId[];
   name: string;
+  /** A moment drawn before each frame on the same ground, and what it is called. */
+  beside?: { moment: MomentId; words: string; held: string };
 }) {
-  const frame = (g: GroundId, words: string, page: PageNo = 1) => (
+  const frame = (
+    g: GroundId,
+    words: string,
+    page: PageNo = 1,
+    at: MomentId = moment,
+  ) => (
     <SceneFrame
-      key={`${view}-${g}-${page}`}
+      key={`${view}-${g}-${page}-${at}`}
       choice={choice}
       view={view}
-      moment={moment}
+      moment={at}
       w={w}
       ground={g}
       page={page}
@@ -172,10 +182,17 @@ export function OptionFrames({
     );
   // Create is a room of its own in both themes: one frame says it.
   const on: readonly GroundId[] = view === "create" ? ["room"] : grounds;
+  const called = (g: GroundId) =>
+    view === "create" ? what : `${what}, ${GROUND_NAME[g]}`;
   return (
     <Story>
-      {on.map((g) =>
-        frame(g, view === "create" ? what : `${what}, ${GROUND_NAME[g]}`),
+      {on.flatMap((g) =>
+        beside
+          ? [
+              frame(g, `${called(g)}, ${beside.words}`, 1, beside.moment),
+              frame(g, `${called(g)}, ${beside.held}`),
+            ]
+          : [frame(g, called(g))],
       )}
     </Story>
   );

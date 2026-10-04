@@ -73,7 +73,7 @@ export const IDENTITY = defineExploration({
       "Viewfinder's body, the camera voice, the display for every pop-out and status as lights are wired: every frame stands on production's own.",
       "The room's pop-outs are graphite, as you picked: a lit grey one step above the room's black, drawn here while it is wired.",
       "Form only, never hue: today's achromatic chrome and the status lights as they are; the brand round owns colour.",
-      "Built, drawn on these screens and yours to overrule: 8px panels and 2px photos, a toast's lit glyph, the half-black veil, the hand-made cards.",
+      "Calls drawn on these screens, yours to overrule: 8px panels and 2px photos, a toast's lit glyph, a lighter veil on paper, the hand-made cards.",
     ],
     earlier: [
       "Round three: you loved parts of all three systems and asked to mix them; keys and wells your favourite foundation.",
@@ -189,10 +189,10 @@ export const IDENTITY = defineExploration({
     {
       id: "veil",
       question:
-        "Does a dialog, a panel or a sheet dim the page by half, on paper as in the room?",
+        "How far does a dialog, a panel or a sheet dim the page under it, on paper and in the room?",
       taken:
-        "Yes, as built: a half-black, sharp veil, drawn under the delete confirm and Settings' panel here.",
-      overrule: "A lighter veil on paper (a quarter), or the old light blur.",
+        "Half-black in the room; a quarter on paper, where half read heavy (drawn so on the delete confirm and Settings here).",
+      overrule: "Half-black on paper too, as built today.",
     },
     {
       id: "hand-cards",
@@ -229,16 +229,16 @@ export const IDENTITY = defineExploration({
           id: "well",
           label: "A well: sunk into the page",
           means:
-            "A step darker than the page with a shade inside its top edge; in use it lifts toward the card, still sunk.",
+            "A step under the page, its top edge in shade and its foot catching the light; in use it lifts toward the card, still sunk.",
           gains: "Never mistaken for a button, and your favourite foundation.",
           costs:
-            "A shade on every field is a detail a flat page could live without.",
+            "A recess on every field is a detail a flat page could live without.",
         },
         {
           id: "ring",
           label: "A ring: drawn in line",
           means:
-            "An open 1.5px ring you see the page through, soft-cornered; in use the ring darkens to ink.",
+            "An open 1.5px ring you see the page through, lit from above: a shade along its foot on paper, a light along its top in the room.",
           gains: "The lightest field, familiar from every phone.",
           costs: "The nearest to the generic shadcn look you wanted to leave.",
         },
@@ -246,7 +246,7 @@ export const IDENTITY = defineExploration({
           id: "tone",
           label: "A tone: a quiet fill",
           means:
-            "A few percent of the ground's own ink and no line at all; in use it steps up a tone.",
+            "A firm tone of the ground's own ink and no line, always a step under a tone key; in use it steps up a tone.",
           gains: "The calmest page: a form reads as quiet as its type.",
           costs:
             "With no edge, a field on a card is the faintest of the three.",
@@ -278,7 +278,7 @@ export const IDENTITY = defineExploration({
           id: "key",
           label: "A key: bevelled, it stands up",
           means:
-            "A light edge above and a shade below, the primary ink with its bevel caught in it; quiet keys sit on a hairline.",
+            "A face a step up from what it stands on, lit along its top, shaded at its foot, a pixel proud; the primary is ink, its face catching the light.",
           gains: "The most tactile and the most ours: a key looks pressable.",
           costs:
             "A bevel on every key is ornament a flat page could live without.",
@@ -295,7 +295,7 @@ export const IDENTITY = defineExploration({
           id: "ink",
           label: "Ink: a tone, and one ink key",
           means:
-            "Every action but the primary rests as a quiet tone with no line; the primary is solid ink.",
+            "Every action but the primary rests as a firm tone with no line; the primary is flat ink, with no bevel and no light.",
           gains: "The calmest page: one ink action, everything else hushed.",
           costs: "A quiet tone can read as a field when it sits beside one.",
         },
@@ -326,7 +326,7 @@ export const IDENTITY = defineExploration({
           id: "halo",
           label: "A halo: a quiet ring of light round it",
           means:
-            "A fine line of ink stands 2px off the control over a clear band, in a soft bloom of light, lit from above; it gathers in as it arrives.",
+            "A fine line of ink stands 2px off the control over a clear band, in a soft aura (grey on paper, light in the room); it gathers in as it arrives.",
           gains:
             "Clear on every control, on paper, in the room and on photos, and calm: light round it, never a box.",
           costs:
@@ -336,7 +336,7 @@ export const IDENTITY = defineExploration({
           id: "lit",
           label: "Lit: its own edge catches the light",
           means:
-            "Inside its edge, a rim of light with a keyline of ink within it, so a dark control shows the light and a light one the ink; a toggle wears it round.",
+            "Its own edge catches the light from above, brightest along its top, a keyline of ink inside; a field lights up under it, white on paper.",
           gains:
             "Nothing is drawn outside the control, so it never crowds a neighbour, a track or a photo.",
           costs:
@@ -401,13 +401,13 @@ export const IDENTITY = defineExploration({
           gains:
             "Your lighter surface, and a key you can feel: of a piece with keys and wells.",
           costs:
-            "On paper only its shadow parts it from the lighter step, and shadows add up on a busy page.",
+            "On paper it parts from the lighter step by its shadow and inset, and shadows add up on a busy page.",
         },
         {
           id: "lighter",
           label: "Lighter: the chosen one lit, flat",
           means:
-            "The chosen one stays flush where it is and is lit, flat, with no shadow: the brightest thing in its track, in the room well above a raised key.",
+            "The chosen one is a lit cell, flat, filling its place in the track to the edge: the brightest thing there, in the room well above a raised key.",
           gains:
             "The plainest lighter surface: chosen reads as lit, never as an object.",
           costs:
@@ -426,7 +426,7 @@ export const IDENTITY = defineExploration({
           id: "frame",
           label: "Frame: a thin frame round a tone",
           means:
-            "The chosen one is drawn rather than filled: a 1.5px frame of its ink round a faint tone.",
+            "The chosen one is drawn rather than filled: a 1.5px frame of its ink, and on a chosen card a mat line three pixels inside its edge.",
           gains: "Chosen is drawn, not filled: calm on a long list.",
           costs:
             "Inside a ring's track or on a ringed card it reads as one line too many.",
@@ -477,11 +477,10 @@ export const IDENTITY = defineExploration({
           id: "blink",
           label: "Blink: it snaps to ink",
           means:
-            "The control snaps to ink under the finger and fades back as it lifts; an ink key flashes its negative and the shutter flashes whole, like a camera's.",
+            "The control snaps to ink under the finger and fades back as it lifts; an ink key flashes half a step toward white, the shutter blacks out whole.",
           gains:
             "Unmissable and quick: the press is a flash, seen round any finger.",
-          costs:
-            "A flash on every press is loud on a long form, and an ink key's negative can read as a new state.",
+          costs: "A flash on every press is loud on a long form.",
         },
       ],
       recommended: "sink",
@@ -507,33 +506,33 @@ export const IDENTITY = defineExploration({
       options: [
         {
           id: "dots",
-          label: "Three lights breathing",
+          label: "Three lights after its words",
           means:
-            "Its words give way to three lights breathing in its own ink; the key keeps its width.",
-          gains: "The plainest wait, and the quietest.",
-          costs: "The words go, so a slow wait no longer says what is working.",
+            "Its words stay and three small lights breathe after them in the key's own ink: a key saying Save... while it saves.",
+          gains: "The plainest wait, and its words still say what is working.",
+          costs: "The key grows a little while it works, to hold its lights.",
         },
         {
           id: "arc",
           label: "An arc running round",
           means:
-            "A quarter of a ring runs round the key a few pixels out, and its words stay.",
+            "A small arc turns inside the key before its words, which dim a little while it works, as a phone's own control does.",
           gains: "Everyone reads a spinner as working.",
-          costs: "A ring round every working key is the generic spinner.",
+          costs: "A spinner is the generic wait, the one every app shows.",
         },
         {
           id: "track",
           label: "A track filling",
           means:
-            "A line of the key's own ink fills a faint track along its floor, a meter of the work, and its words stay.",
-          gains: "Words kept, and of a piece with the meters' frames.",
+            "A segment of the key's own ink runs along a faint track at its foot, edge to edge, and its words stay.",
+          gains: "Words kept, and of a piece with the meters' line.",
           costs:
-            "A filling line can read as progress the server is not sending.",
+            "Quiet: a line along a key's foot is easy to miss on a busy page.",
         },
       ],
       recommended: "track",
       because:
-        "It keeps the key's words, so a slow wait still says what is working, and it fills like every meter in the app.",
+        "It keeps the key's words, so a slow wait still says what is working, and it runs like every meter in the app.",
       overrule: "If a key should go quiet while it waits, three lights.",
       configs: [SHOW, SCREEN, GROUND],
     },
@@ -556,7 +555,7 @@ export const IDENTITY = defineExploration({
           id: "wells",
           label: "Wells: wells that fill with ink",
           means:
-            "A switch is a well its thumb, a small key, slides along, filling with ink when on; a check, a radio and a slider's track are small wells too.",
+            "A switch is a well its rimmed thumb slides along, filling with ink when on; a check and a radio are rimmed sockets that fill with ink.",
           gains:
             "Of a piece with wells and keys: a toggle is a field you flip, and on reads as filled.",
           costs:
@@ -566,16 +565,16 @@ export const IDENTITY = defineExploration({
           id: "circles",
           label: "Circles: drawn in line",
           means:
-            "A switch is a pill of a 1.5px ring that fills with ink; a check and a radio are circles of the same ring, a check filling round its tick, a radio dotted.",
+            "Drawn in line: a switch is a 1.5px ring whose knob alone is inked when on; a check and a radio are circles of the same ring.",
           gains: "The lightest toggles, familiar from every phone.",
           costs:
-            "A round check sits close to a radio, and rings are the generic look you wanted to leave.",
+            "Rings are the generic look you wanted to leave, and on is the quietest of the three.",
         },
         {
           id: "tone",
           label: "Tone: a quiet tone that turns to ink",
           means:
-            "Every toggle rests as a quiet tone with no line and a lit thumb, and turns to solid ink when it is on.",
+            "Every toggle rests as a firm tone with no line (a radio a ring of tone) and turns to solid ink when it is on.",
           gains: "The calmest list of settings: only what is on is inked.",
           costs:
             "Off is faint: a row of off switches is the quietest thing on the page.",
@@ -620,15 +619,15 @@ export const IDENTITY = defineExploration({
           gains:
             "What opens over the page reads lit, of a piece with the photographs; pages of cards stay calm.",
           costs:
-            "Cards stay flat beside lit layers; on paper the light is a quiet lip inside the display's edge.",
+            "Cards and paper's photos stay as built; on paper the light is a quiet lip inside the display's edge.",
         },
         {
           id: "every",
           label: "Every dark surface: layers and cards lit",
           means:
-            "Everything that floats, plus every card in the room (the card and the hand-made cards that end in a ring) and the cover's glass rounds' lip brighter.",
+            "Everything that floats, plus every card and dark key in the room lit along its top, and on paper the photographs and ink keys lit in white.",
           gains:
-            "The richest room: one light over the whole dark app, cards included.",
+            "The richest light: one light over every dark surface, on paper too.",
           costs:
             "A page of cards (Account, Settings) fills with lit edges; past a few they read as frames.",
         },

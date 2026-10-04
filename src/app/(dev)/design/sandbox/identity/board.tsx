@@ -129,6 +129,12 @@ function trait(ask: Trait, option: string, s: BoardState): ReactNode {
       w={screenOf(s.screen)}
       grounds={GROUNDS[groundsOf(s.ground)]}
       name={NAME(ask, option)}
+      // A press is a move: a still shows it only beside the key at rest.
+      beside={
+        ask === "press"
+          ? { moment: "rest", words: "at rest", held: "held down" }
+          : undefined
+      }
     />
   );
 }
@@ -136,8 +142,10 @@ function trait(ask: Trait, option: string, s: BoardState): ReactNode {
 /**
  * The edge's option, on the place Lit holds, always on paper and in the room
  * (the question is what a dark surface does on each). A tooltip is a desk's
- * alone (a tap opens none), so it is drawn at a laptop whatever the width.
+ * alone (a tap opens none), and Settings in a hand is a whole screen with no
+ * layer to light, so both are drawn at a laptop whatever the width.
  */
+const DESK_ONLY: readonly LitId[] = ["tooltip", "settings"];
 function edge(option: string, s: BoardState): ReactNode {
   const choice = choiceOf({ ...s, edge: option });
   const place = litOf(s.lit);
@@ -148,7 +156,7 @@ function edge(option: string, s: BoardState): ReactNode {
       view={view}
       moment="edge"
       what={what(view, "edge")}
-      w={place === "tooltip" ? 1440 : screenOf(s.screen)}
+      w={DESK_ONLY.includes(place) ? 1440 : screenOf(s.screen)}
       grounds={GROUNDS.both}
       name={NAME("edge", option)}
     />

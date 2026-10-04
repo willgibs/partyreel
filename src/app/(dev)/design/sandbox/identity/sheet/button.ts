@@ -11,7 +11,11 @@ import {
   ICON,
   LIVE,
   OFF,
+  TOAST,
 } from "./states";
+
+/** A toast's one action (an Undo): sonner's, styled by production as a small pill; each build gives it its shape. */
+const TOAST_ACTION = `${TOAST}[data-styled="true"] [data-button]`;
 
 /**
  * WHAT YOU PRESS: every button (production's six variants and the head's two,
@@ -58,7 +62,23 @@ ${btn("glass")} {
  * machined bevel, a light edge above and a shade below; the primary is ink
  * with the bevel caught in it.
  */
+const KEY_TOKENS = `
+:root, .surface-paper {
+  --vf-key-face: oklch(0.993 0.001 286); --vf-key-drop: oklch(0 0 0 / 14%); --vf-key-ramp: oklch(1 0 0 / 11%);
+}
+.dark { --vf-key-face: oklch(0.225 0.004 286); --vf-key-drop: oklch(0 0 0 / 55%); --vf-key-ramp: oklch(1 0 0 / 0%); }
+.surface-display {
+  --vf-key-face: color-mix(in oklab, var(--display-step), oklch(1 0 0) 5%); --vf-key-drop: oklch(0 0 0 / 45%);
+  --vf-key-ramp: oklch(1 0 0 / 0%);
+}
+`;
+
+/** A key's machining: the light along its top, the shade along its foot, the pixel it stands proud by. */
+const BEVEL = (hi: string, lo: string) =>
+  `inset 0 1px 0 ${hi}, inset 0 -1px 0 ${lo}, 0 1px 0 0 var(--vf-key-drop)`;
+
 const KEY = `
+${KEY_TOKENS}
 ${BTN} { --k-r: 7px; border-radius: var(--k-r); }
 ${BTN}[data-size="xs"] { --k-r: 5px; }
 ${BTN}[data-size="sm"] { --k-r: 6px; }
@@ -66,17 +86,22 @@ ${BTN}[data-size="lg"] { --k-r: 8px; }
 ${BTN}[data-size="cta"] { --k-r: 10px; }
 ${BTN}${ICON}, ${BTN}[data-size="icon-cta"] { --k-r: 999px; }
 
+/* The primary is ink, its face caught by the light from above (a ramp on paper's near-black, where a
+   one-pixel line alone was lost) and standing a pixel proud of the card. */
 ${btn("default")} {
-  --k-ink: var(--primary-foreground); background: var(--primary); color: var(--k-ink);
-  --i-body: inset 0 1px 0 var(--vf-ink-hi), inset 0 -1px 0 var(--vf-ink-lo);
+  --k-ink: var(--primary-foreground); background-color: var(--primary); color: var(--k-ink);
+  background-image: linear-gradient(var(--vf-key-ramp), transparent 75%);
+  --i-body: ${BEVEL("var(--vf-ink-hi)", "var(--vf-ink-lo)")};
 }
-${btn("default")}${HOVER}${LIVE} { background: color-mix(in oklab, var(--primary) 86%, var(--background)); }
+${btn("default")}${HOVER}${LIVE} { background-color: color-mix(in oklab, var(--primary) 86%, var(--background)); }
 
+/* A quiet key is a face a step up from what it stands on: white on paper, a lit grey in the room
+   (an outline there read as a ring, not a key). */
 ${btn("secondary", "outline")} {
   --k-ink: var(--foreground); background: var(--secondary); color: var(--k-ink);
-  --i-body: inset 0 1px 0 var(--vf-key-hi), inset 0 -1px 0 var(--vf-key-lo), inset 0 0 0 1px var(--border);
+  --i-body: ${BEVEL("var(--vf-key-hi)", "var(--vf-key-lo)")}, inset 0 0 0 1px var(--border);
 }
-${btn("outline")} { background: var(--card); }
+${btn("outline")} { background: var(--vf-key-face); }
 ${btn("secondary", "outline")}${HOVER}${LIVE} { background: var(--accent); }
 
 ${btn("ghost")} { --k-ink: var(--foreground); background: transparent; color: var(--k-ink); }
@@ -84,7 +109,7 @@ ${btn("ghost")}${HOVER}${LIVE} { background: var(--secondary); --i-body: inset 0
 
 ${btn("destructive")} {
   --k-ink: var(--destructive); background: var(--secondary); color: var(--k-ink);
-  --i-body: inset 0 1px 0 var(--vf-key-hi), inset 0 -1px 0 var(--vf-key-lo),
+  --i-body: ${BEVEL("var(--vf-key-hi)", "var(--vf-key-lo)")},
     inset 0 0 0 1px color-mix(in oklab, var(--destructive) 38%, transparent);
 }
 ${btn("destructive")}${HOVER}${LIVE} { background: color-mix(in oklab, var(--destructive) 12%, var(--secondary)); }
@@ -108,6 +133,8 @@ ${btn("on-photo")} {
 ${btn("on-photo")}${HOVER}${LIVE} { background: oklch(0.93 0 0); }
 
 ${CODE_CHIP} { border-radius: 9px; --i-body: inset 0 -1px 0 oklch(0 0 0 / 14%), 0 0 0 1px var(--border), var(--shadow-lift); }
+/* a toast's Undo: a small key in the screen's own ink */
+${TOAST_ACTION} { border-radius: 6px !important; box-shadow: inset 0 1px 0 var(--vf-ink-hi), inset 0 -1px 0 var(--vf-ink-lo); }
 `;
 
 /**
@@ -151,6 +178,8 @@ ${btn("on-photo")} { --k-ink: oklch(0.13 0.004 286); background: oklch(1 0 0); c
 ${btn("on-photo")}${HOVER}${LIVE} { background: oklch(0.92 0 0); }
 
 ${CODE_CHIP} { border-radius: 12px; --i-body: var(--shadow-lift), 0 0 0 1.5px var(--vf-ring); }
+/* a toast's Undo: a small pill, as built */
+${TOAST_ACTION} { border-radius: 999px !important; }
 `;
 
 /**
@@ -159,6 +188,13 @@ ${CODE_CHIP} { border-radius: 12px; --i-body: var(--shadow-lift), 0 0 0 1.5px va
  * type; the primary is the house's ink, near-black on paper and white in the
  * room.
  */
+const INK_TONES = `
+:root, .surface-paper { --vf-tone-key: 14%; --vf-tone-key-up: 19%; }
+.dark, .surface-display { --vf-tone-key: 13%; --vf-tone-key-up: 18%; }
+`;
+const KEY_TONE = (p: string) =>
+  `color-mix(in oklab, var(--foreground) var(${p}), transparent)`;
+
 const INK = `
 ${BTN} { --k-r: 10px; border-radius: var(--k-r); }
 ${BTN}[data-size="xs"] { --k-r: 7px; }
@@ -167,11 +203,14 @@ ${BTN}[data-size="lg"] { --k-r: 11px; }
 ${BTN}[data-size="cta"] { --k-r: 13px; }
 ${BTN}:is(${ICON},[data-size="icon-cta"]) { --k-r: 999px; }
 
-${btn("default")} { --k-ink: var(--ink-fg); background: var(--ink); color: var(--ink-fg); --i-body: inset 0 1px 0 var(--vf-ink-hi); }
+/* The primary is flat ink: no bevel, no light; ink is the house's one strong value, not a key. */
+${btn("default")} { --k-ink: var(--ink-fg); background: var(--ink); color: var(--ink-fg); }
 ${btn("default")}${HOVER}${LIVE} { background: color-mix(in oklab, var(--ink) 86%, var(--background)); }
 
-${btn("secondary", "outline")} { --k-ink: var(--foreground); background: var(--tone); color: var(--foreground); }
-${btn("secondary", "outline")}${HOVER}${LIVE} { background: var(--tone-up); }
+/* A quiet action is a firm tone, always a step over a tone field (field.ts), so the two never twin. */
+${INK_TONES}
+${btn("secondary", "outline")} { --k-ink: var(--foreground); background: ${KEY_TONE("--vf-tone-key")}; color: var(--foreground); }
+${btn("secondary", "outline")}${HOVER}${LIVE} { background: ${KEY_TONE("--vf-tone-key-up")}; }
 
 ${btn("ghost")} { --k-ink: var(--foreground); background: transparent; color: var(--foreground); }
 ${btn("ghost")}${HOVER}${LIVE} { background: var(--tone); }
@@ -191,6 +230,8 @@ ${btn("on-photo")} { --k-ink: oklch(0.13 0.004 286); background: oklch(1 0 0); c
 ${btn("on-photo")}${HOVER}${LIVE} { background: oklch(0.93 0 0); }
 
 ${CODE_CHIP} { border-radius: 11px; --i-body: var(--shadow-lift); }
+/* a toast's Undo: a small plate of the screen's ink */
+${TOAST_ACTION} { border-radius: 8px !important; box-shadow: none; }
 `;
 
 export const BUTTON_CSS: Record<ButtonId, string> = {

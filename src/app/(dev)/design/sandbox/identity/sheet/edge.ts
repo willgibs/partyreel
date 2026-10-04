@@ -21,8 +21,10 @@ import { btn, CARDS, QUICK, TOAST } from "./states";
  *    display is dark on paper too) and, in the room, every dialog, panel and
  *    sheet (on paper those are white, and a light surface takes none);
  *  - `every`: floating, plus every card in the room (the card atom and the
- *    hand-made cards that end in the house ring), and the cover's glass
- *    rounds' own lip of light brighter.
+ *    hand-made cards that end in the house ring), the cover's glass rounds'
+ *    own lip of light brighter, every dark key's top light turned up to the
+ *    light's strength, and on paper the dark things too: the photographs and
+ *    the ink keys, lit in white.
  *
  * ★ THE EDGE REPLACES THE HAIRLINE, IT IS NEVER A THIRD OUTLINE (the bright
  * edge's own rule): a lit surface gives up its ring, so it ends in light above
@@ -131,8 +133,13 @@ const onPaper = (list: string, suffix = ""): string =>
     .map((s) => `${s}:not(:is(.dark *):not(.surface-paper *))${suffix}`)
     .join(", ");
 
-/** The room's own light on a work layer or a card: its foreground at production's media strength. */
-const ROOM_LIGHT = "color-mix(in oklab, var(--foreground) 30%, transparent)";
+/**
+ * The room's own light on a work layer or a card: its foreground, at the
+ * strength that gives its rim the brightness a graphite pop-out's has (one rim
+ * per ground: at production's media 30% a dialog's rim on its darker surface
+ * read at a third of a menu's, the fresh-eyes pass measured).
+ */
+const ROOM_LIGHT = "color-mix(in oklab, var(--foreground) 46%, transparent)";
 
 /* ── what floats ───────────────────────────────────────────────────────── */
 
@@ -199,7 +206,34 @@ ${each(inRoom(STANDING), "::after")} { ${DOWN_LEFT} }
 
 /* ── every dark surface ────────────────────────────────────────────────── */
 
+/**
+ * ★ EVERY DARK SURFACE ON PAPER TOO: on paper the dark things are photographs
+ * and ink keys, and both are lit from above here in the light's own white
+ * (production lights media on dark grounds alone because its light is the
+ * foreground, which on paper is ink; a white light has no such rim). An ink
+ * key's top light is the same light, a step brighter.
+ */
+const PAPER_DARK = `
+${onPaper("[data-lit]")} { --vf-lit: oklch(1 0 0 / 34%); --vf-lit-at: calc(-1 * var(--lit-border, 0px)); }
+${onPaper("[data-lit]", "::after")} { ${ALL_ROUND} }
+${onPaper(btn("default"))} { --vf-ink-hi: oklch(1 0 0 / 34%); }
+`;
+
+/**
+ * ★ AND EVERY DARK KEY: a key in the room or on the display is a dark surface
+ * too, and its top light is this same light (`base.ts`'s `--vf-key-hi`, a
+ * raised choice's `--sel-key-hi`), so every reach turns it up to the light's
+ * own strength, where floating leaves it a key's quiet bevel.
+ */
+const DARK_KEYS = `
+.dark, .surface-display { --vf-key-hi: oklch(1 0 0 / 30%); --sel-key-hi: oklch(1 0 0 / 30%); }
+.surface-paper { --vf-key-hi: oklch(1 0 0 / 85%); --sel-key-hi: oklch(1 0 0); }
+.surface-paper .surface-display { --vf-key-hi: oklch(1 0 0 / 30%); --sel-key-hi: oklch(1 0 0 / 30%); }
+`;
+
 const EVERY = `
+${PAPER_DARK}
+${DARK_KEYS}
 ${inRoom(CARDS)} { --vf-lit: ${ROOM_LIGHT}; --tw-ring-shadow: 0 0 #0000; }
 ${each(inRoom(CARDS), STATIC)} { position: relative; }
 ${each(inRoom(CARDS), "::after")} { ${ALL_ROUND} }

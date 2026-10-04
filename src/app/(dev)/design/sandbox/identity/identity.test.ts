@@ -5,6 +5,7 @@ import { optionId } from "@/components/lab";
 import { type AskId, choiceOf, OPTIONS, RECOMMENDED } from "./model";
 import { sheetFor, SHEETS_BY_ASK } from "./sheet";
 import { BASE_CSS } from "./sheet/base";
+import { CALLS_CSS } from "./sheet/calls";
 import { ROOM_CSS } from "./sheet/room";
 import { IDENTITY } from "./spec";
 
@@ -19,6 +20,7 @@ import { IDENTITY } from "./spec";
 const EVERY_SHEET: { name: string; css: string }[] = [
   { name: "base", css: BASE_CSS },
   { name: "room", css: ROOM_CSS },
+  { name: "calls", css: CALLS_CSS },
   ...(Object.keys(SHEETS_BY_ASK) as AskId[]).flatMap((ask) =>
     Object.entries(SHEETS_BY_ASK[ask] as Record<string, string>).map(
       ([option, css]) => ({ name: `${ask}.${option}`, css }),

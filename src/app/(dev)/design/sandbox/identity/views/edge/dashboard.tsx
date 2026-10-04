@@ -211,10 +211,11 @@ function Pills({
   );
 }
 
+/** A group's name, in the camera voice: sentence case (spaced capitals are a count's, a time's, live's). */
 function Section({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="space-y-2">
-      <p className="text-label text-muted-foreground uppercase">{label}</p>
+      <p className="text-xs font-medium text-muted-foreground">{label}</p>
       {children}
     </div>
   );

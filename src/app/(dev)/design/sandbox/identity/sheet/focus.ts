@@ -68,8 +68,8 @@ import {
  *
  * ★ THE SHUTTER WEARS ITS OWN LIGHT 2 TO 5PX OUT (`ui/shutter.css`), painted
  * over anything its box draws, and its face covers its box: every mark stands
- * beyond its light there, as a ring. A working key's arc (`loading.ts`) is
- * the same light, so a mark round a working key stands beyond it too.
+ * beyond its light there, as a ring. A working key draws its work inside it
+ * (`loading.ts`), so a mark round it stands where it always does.
  *
  * Pseudo-elements by `states.ts`'s table: a mark drawn apart from its control
  * stands on `::after`, on a switch and a tab on `::before`; on a field (no
@@ -104,12 +104,6 @@ const TOGGLED = [SWITCH, CHECK, RADIO, SLIDER_THUMB]
   .map((s) => `${s}${FOCUS}`)
   .join(", ");
 const LINK = `${btn("link")}${FOCUS}`;
-/**
- * A key working with focus on it (Enter pressed on Save): the arc that
- * `loading.ts` may run spins 2.5 to 4px out, so a mark drawn round a key
- * stands beyond it there, and the work spins inside the mark.
- */
-const WORKING = `${BTN}${BUSY}${FOCUS}`;
 
 /** A length as the mark arrives: `from` in its first frame, `to` once settled (`--fo-t` 0 to 1). */
 const settle = (to: string, from: string) =>
@@ -146,12 +140,17 @@ ${ARRIVING} { animation: fo-arrive ${dur} var(--ease-emphasis); }
  * ground's ink stands two pixels off the control over a clear band of its
  * ground, with a soft bloom of light round it, lit from above (the house's one
  * light), gathering in from a wider, softer glow as it arrives: on paper an ink
- * line in white light, in the room a line of light with its bloom, on a
+ * line in a soft grey aura, in the room a line of light with its bloom, on a
  * photograph a white line over a near-black band so it reads on any sky. The
  * shutter's own ring of light, without its hue, worn by everything.
+ *
+ * ★ ON PAPER THE BLOOM IS AN AURA OF THE PAGE'S OWN INK: light cannot show on
+ * white, and a white bloom left the halo a hard ring the outline draws too
+ * (the fresh-eyes pass: the two landed on one answer on paper). The aura is
+ * what parts them: a halo is soft round its line, an outline is a line.
  */
 const HALO_TOKENS = `
-:root, .surface-paper { --fo-bloom: oklch(1 0 0); }
+:root, .surface-paper { --fo-bloom: oklch(0.14 0.004 286 / 10%); }
 .dark, .surface-ink { --fo-bloom: oklch(1 0 0 / 18%); }
 .surface-display { --fo-bloom: oklch(1 0 0 / 15%); }
 ${PHOTO} { --fo-bloom: oklch(1 0 0 / 26%); }
@@ -165,7 +164,6 @@ const HALO = `
 ${HALO_TOKENS}
 ${FOCUSED} { --i-focus: ${halo(LINE)}; }
 ${ERRED} { --i-focus: ${halo("var(--destructive)")}; }
-${WORKING} { --i-focus: ${halo(LINE, "5.5px")}; }
 ${SHUTTER}${FOCUS} {
   outline: 2px solid ${LINE}; outline-offset: ${settle("7px", "8.5px")};
   --i-focus: 0 0 0 7px var(--fo-veil, transparent), 0 -1px ${settle("12px", "22px")} 9px var(--fo-bloom);
@@ -176,7 +174,9 @@ ${arrive("140ms")}
 /**
  * LIT (new; it took the lift's place, whose rise and shadow could not carry
  * 3:1 without a ring and read as chosen on a raised segment): what has focus
- * catches the light on its own
+ * catches the light from above on its own edge, brightest along its top (the
+ * light edge's falloff, worn by a control), and a field lights up under it:
+ * white on paper, a step lighter in the room. It catches the light on its own
  * edge. Inside its edge, a rim of light and, within it, a keyline of the
  * ground's ink, so a dark control shows the lit rim and a light one the ink
  * line, whatever it is filled with; a glint of light crosses the edge as it
@@ -187,9 +187,12 @@ ${arrive("140ms")}
  * own light; a link's edge is its underline.
  */
 const LIT_TOKENS = `
-:root, .surface-paper { --fo-hi: oklch(1 0 0); --fo-lo: oklch(0.14 0.004 286); }
-.dark, .surface-ink { --fo-hi: oklch(1 0 0 / 92%); --fo-lo: oklch(0 0 0); }
-.surface-display { --fo-hi: oklch(1 0 0 / 92%); --fo-lo: var(--background); }
+:root, .surface-paper { --fo-hi: oklch(1 0 0); --fo-lo: oklch(0.14 0.004 286); --fo-lit-fill: oklch(1 0 0); }
+.dark, .surface-ink { --fo-hi: oklch(1 0 0 / 92%); --fo-lo: oklch(0 0 0); --fo-lit-fill: oklch(0.19 0.004 286); }
+.surface-display {
+  --fo-hi: oklch(1 0 0 / 92%); --fo-lo: var(--background);
+  --fo-lit-fill: color-mix(in oklab, var(--display-step), oklch(1 0 0) 6%);
+}
 ${PHOTO} { --fo-hi: oklch(1 0 0); --fo-lo: oklch(0 0 0); }
 `;
 /** The glint: a soft light inside the edge that is spent by the time the mark settles. */
@@ -199,7 +202,12 @@ const keyline = (line: string, gap = "1.5px") =>
 /* In error the edge is the destructive colour alone, 2px: it stands apart from every fill, so it needs no rim. */
 const LIT = `
 ${LIT_TOKENS}
-${FOCUSED} { --i-focus: inset 0 0 0 1.5px var(--fo-hi), inset 0 0 0 3px var(--fo-lo), ${GLINT}; }
+${FOCUSED} {
+  --i-focus: inset 0 1.5px 0 0 var(--fo-hi), inset 0 0 0 1.5px color-mix(in oklab, var(--fo-hi) 45%, transparent),
+    inset 0 0 0 3px var(--fo-lo), ${GLINT};
+}
+/* A field lights up under its edge: white on paper, a step lighter in the room. */
+${each(FIELDS, FOCUS)} { background-color: var(--fo-lit-fill); }
 ${TOGGLED}, ${each(FIELDS, FOCUS + BUSY)} { --i-focus: ${keyline(LINE)}; }
 ${SHUTTER}${FOCUS} { outline: 2px solid ${LINE}; outline-offset: 6px; --i-focus: 0 0 0 6px var(--fo-veil, transparent); }
 ${ERRED} { --i-focus: inset 0 0 0 2px var(--destructive), ${GLINT}; }
@@ -221,7 +229,6 @@ ${arrive("140ms")}
 const OUTLINE = `
 ${FOCUSED} { outline: 2px solid var(--foreground); outline-offset: ${settle("2.5px", "6px")}; }
 ${SHUTTER}${FOCUS} { outline-offset: ${settle("7px", "10.5px")}; }
-${WORKING} { outline-offset: 5.5px; }
 ${PHOTO} :is(${FOCUSED}) { --i-focus: 0 0 0 ${settle("2.5px", "6px")} oklch(0 0 0 / 30%); }
 ${PHOTO} ${SHUTTER}${FOCUS} { --i-focus: 0 0 0 7px oklch(0 0 0 / 30%); }
 ${ERRED} { outline-color: var(--destructive); }
@@ -256,6 +263,8 @@ ${each(FIELDS, FOCUS)} {
   --i-focus: ${CURSOR_IN("color-mix(in oklab, var(--ink-fg) 55%, transparent)")};
 }
 ${each(FIELDS, FOCUS + "::placeholder")} { color: color-mix(in oklab, var(--ink-fg) 55%, transparent); }
+/* A field's own trailing control (the door's eye) turns with it, or it is a grey mark on ink. */
+${each(FIELDS, `${FOCUS} ~ button`)} { color: var(--primary-foreground); }
 ${each(FIELDS, FOCUS + "::selection")} { background: color-mix(in oklab, var(--ink-fg) 30%, transparent); color: var(--ink-fg); }
 [data-slot="select-trigger"]${FOCUS} svg { color: var(--ink-fg) !important; opacity: 0.8; }
 ${each(FIELDS, ERROR + FOCUS)} { --i-focus: ${CURSOR_IN("var(--destructive)")}; }
@@ -283,7 +292,6 @@ ${[SWITCH, TAB].map((s) => `${s}::before`).join(", ")} { ${lockAt("9px")} }
 ${[BTN, CHIP, SEGMENT, CHECK, RADIO, SLIDER_THUMB, SHUTTER, CODE_CHIP].map((s) => `${s}${FOCUS}::after`).join(", ")} { ${locked("4px")} }
 ${SHUTTER}::after { inset: -14px; }
 ${SHUTTER}${FOCUS}::after { inset: -8px; }
-${WORKING}::after { inset: -7px; }
 ${[SWITCH, TAB].map((s) => `${s}${FOCUS}::before`).join(", ")} { ${locked("3px")} }
 ${FIELDS} { --m-c: transparent; --m-a: 8px; --m-w: 1.5px; }
 ${each(FIELDS, FOCUS)} { --m-c: var(--foreground); }

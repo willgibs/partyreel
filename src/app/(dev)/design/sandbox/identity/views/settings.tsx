@@ -159,6 +159,7 @@ function doorScript(
     case "field":
       return [...CHANGE_PASSWORD, [1300, () => pin(passwordField(), "focus")]];
     case "button":
+    case "rest":
       return CHANGE_PASSWORD;
     case "press":
       return [...CHANGE_PASSWORD, [1300, () => pin(setPassword(), "press")]];

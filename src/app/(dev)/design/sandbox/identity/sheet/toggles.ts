@@ -62,28 +62,50 @@ ${SWITCH}${SWITCH_ON}${PRESS}${LIVE} ${THUMB} { translate: ${w - thumb - pad - g
 
 /**
  * WELLS THAT FILL WITH INK (keys and wells): a switch is a well its thumb, a
- * small key, slides along, and the well fills with ink when it is on; a check
- * and a radio are small wells that fill with ink; a slider's track is a well
+ * small rimmed key, slides along, and the well fills with ink when it is on; a
+ * check and a radio are sockets that fill with ink; a slider's track is a well
  * the ink fills along, its thumb a key. The ink keeps the well's shade along
- * its top, so it reads as poured in, not painted on. A switch's well is ringed
- * a step firmer than a field's, so off still reads as a switch on a white card.
+ * its top and a lit lip at its foot, so it reads as poured in, not painted on.
+ * A switch's well is a step deeper and ringed a step firmer than a field's, so
+ * off still reads as a switch on a white card.
  */
+const WELL_TOKENS = `
+:root, .surface-paper {
+  --vf-switch-well: oklch(0.92 0.003 286); --vf-knob-rim: oklch(0 0 0 / 30%);
+  --vf-socket: oklch(1 0 0); --vf-socket-rim: oklch(0 0 0 / 34%);
+}
+.dark {
+  --vf-switch-well: oklch(0.075 0.003 286); --vf-knob-rim: oklch(0 0 0 / 55%);
+  --vf-socket: oklch(0.075 0.003 286); --vf-socket-rim: oklch(1 0 0 / 24%);
+}
+.surface-display {
+  --vf-switch-well: color-mix(in oklab, var(--display), oklch(0 0 0) 35%); --vf-knob-rim: oklch(0 0 0 / 50%);
+  --vf-socket: color-mix(in oklab, var(--display), oklch(0 0 0) 35%); --vf-socket-rim: oklch(1 0 0 / 26%);
+}
+`;
 const WELLS = `
+${WELL_TOKENS}
 ${travel(42, 18, 3)}
 ${SWITCH} {
-  height: 24px; border-radius: 999px; background: var(--muted);
+  height: 24px; border-radius: 999px; background: var(--vf-switch-well);
   --i-body: inset 0 0 0 1px var(--input), inset 0 1px 3px var(--vf-well-shade);
 }
 ${SWITCH}${HOVER}${LIVE}:not(${SWITCH_ON}) { --i-body: inset 0 0 0 1px var(--vf-ring-strong), inset 0 1px 3px var(--vf-well-shade); }
-${SWITCH}${SWITCH_ON} { background: var(--primary); --i-body: inset 0 0 0 1px transparent, inset 0 1px 3px oklch(0 0 0 / 30%); }
+${SWITCH}${SWITCH_ON} {
+  background: var(--primary);
+  --i-body: inset 0 0 0 1px transparent, inset 0 1px 3px oklch(0 0 0 / 30%), inset 0 -1px 0 oklch(1 0 0 / 16%);
+}
 ${SWITCH}${ERROR} { --i-body: inset 0 0 0 1.5px var(--destructive), inset 0 1px 3px var(--vf-well-shade); }
+/* The thumb is a small key: its rim carries the contrast a white key on a light well could not. */
 ${THUMB} {
   border-radius: 999px; background: var(--vf-thumb);
-  box-shadow: 0 1px 2px oklch(0 0 0 / 28%), 0 0 0 0.5px oklch(0 0 0 / 8%), inset 0 -1px 0 oklch(0 0 0 / 8%);
+  box-shadow: 0 1px 2px oklch(0 0 0 / 28%), 0 0 0 1px var(--vf-knob-rim), inset 0 -1px 0 oklch(0 0 0 / 8%);
 }
 ${SWITCH}${SWITCH_ON} ${THUMB} { background: var(--primary-foreground); }
 
-${CHECK}, ${RADIO} { width: 18px; height: 18px; background: var(--muted); --i-body: inset 0 0 0 1px var(--input), inset 0 1px 2px var(--vf-well-shade); }
+/* A check and a radio are sockets: white on paper with a firm rim (a well inside a well read as
+   nothing on a chosen card), a deep well in the room; each fills with ink. */
+${CHECK}, ${RADIO} { width: 18px; height: 18px; background: var(--vf-socket); --i-body: inset 0 0 0 1px var(--vf-socket-rim), inset 0 1px 2px var(--vf-well-shade); }
 ${CHECK} { border-radius: 5px; }
 ${RADIO} { border-radius: 999px; }
 ${CHECK}${HOVER}${LIVE}:not(${CHECKED}), ${RADIO}${HOVER}${LIVE}:not(${CHECKED}) {
@@ -112,7 +134,8 @@ ${SLIDER_THUMB}${HOVER} { --i-body: 0 2px 6px oklch(0 0 0 / 32%), 0 0 0 0.5px ok
 
 /**
  * CIRCLES (all rings): drawn in line. A switch is a pill of a 1.5px ring with
- * a dot of the ring's grey that fills with ink when on; a check and a radio
+ * an empty socket for a knob, and on the ring darkens and the knob alone is
+ * inked; a check and a radio
  * are circles of the same ring, a check filling with ink round its tick, a
  * radio keeping its ring round an ink dot (so the two part at a glance); a
  * slider is a line with an ink line along it and a ringed thumb.
@@ -121,11 +144,13 @@ const CIRCLES = `
 ${travel(44, 18, 4)}
 ${SWITCH} { height: 26px; border-radius: 999px; background: transparent; --i-body: inset 0 0 0 1.5px var(--vf-ring-strong); }
 ${SWITCH}${HOVER}${LIVE}:not(${SWITCH_ON}) { --i-body: inset 0 0 0 1.5px var(--foreground); }
-${SWITCH}${SWITCH_ON} { background: var(--primary); --i-body: inset 0 0 0 1.5px var(--primary); }
+${SWITCH}${SWITCH_ON} { background: transparent; --i-body: inset 0 0 0 1.5px var(--foreground); }
 ${SWITCH}${ERROR} { --i-body: inset 0 0 0 1.5px var(--destructive); }
-${THUMB} { border-radius: 999px; background: var(--vf-ring-strong); box-shadow: none; }
-${SWITCH}${HOVER}${LIVE}:not(${SWITCH_ON}) ${THUMB} { background: var(--foreground); }
-${SWITCH}${SWITCH_ON} ${THUMB} { background: var(--primary-foreground); }
+/* Off, the knob is an empty socket in the ring (a grey disc read as held off); on, the ring stays and
+   the knob alone is inked: the one family whose on is drawn, not filled. */
+${THUMB} { border-radius: 999px; background: var(--card); box-shadow: inset 0 0 0 1.5px var(--vf-ring-strong); }
+${SWITCH}${HOVER}${LIVE}:not(${SWITCH_ON}) ${THUMB} { box-shadow: inset 0 0 0 1.5px var(--foreground); }
+${SWITCH}${SWITCH_ON} ${THUMB} { background: var(--foreground); box-shadow: none; }
 
 ${CHECK}, ${RADIO} {
   width: 20px; height: 20px; border-radius: 999px; background: transparent;
@@ -147,24 +172,28 @@ ${SLIDER_THUMB}${HOVER} { --i-body: inset 0 0 0 2.5px var(--foreground); }
 /* ── TONE ────────────────────────────────────────────────────────────── */
 
 /**
- * TONE TO INK (ink): every toggle rests as a quiet tone with no line and
- * turns to solid ink when it is on. Off keeps a whole step of tone and a lit
- * thumb, so a row of off switches still reads as switches.
+ * TONE TO INK (ink): every toggle rests as a tone with no line (a radio a
+ * ring of tone) and turns to solid ink when it is on. Off keeps a firm step of
+ * tone and a lit thumb, so a row of off switches still reads as switches.
  */
 const TONE = `
 ${travel(44, 20, 3)}
-${SWITCH} { height: 26px; border-radius: 999px; background: var(--tone-up); --i-body: 0 0 #0000; }
-${SWITCH}${HOVER}${LIVE}:not(${SWITCH_ON}) { background: color-mix(in oklab, var(--foreground) 19%, transparent); }
+${SWITCH} { height: 26px; border-radius: 999px; background: color-mix(in oklab, var(--foreground) 20%, transparent); --i-body: 0 0 #0000; }
+${SWITCH}${HOVER}${LIVE}:not(${SWITCH_ON}) { background: color-mix(in oklab, var(--foreground) 26%, transparent); }
 ${SWITCH}${SWITCH_ON} { background: var(--ink); }
 ${SWITCH}${ERROR} { --i-body: inset 0 0 0 1.5px var(--destructive); }
 ${THUMB} { border-radius: 999px; background: var(--vf-thumb); box-shadow: 0 1px 2px oklch(0 0 0 / 24%); }
 ${SWITCH}${SWITCH_ON} ${THUMB} { background: var(--ink-fg); }
 
-${CHECK}, ${RADIO} { width: 20px; height: 20px; background: var(--tone-up); color: var(--ink-fg); --i-body: 0 0 #0000; }
-${CHECK} { border-radius: 6px; }
-${RADIO} { border-radius: 999px; }
-${CHECK}${HOVER}${LIVE}:not(${CHECKED}), ${RADIO}${HOVER}${LIVE}:not(${CHECKED}) { background: color-mix(in oklab, var(--foreground) 21%, transparent); }
-${CHECK}${CHECKED}, ${RADIO}${CHECKED} { background: var(--ink); }
+${CHECK} { width: 20px; height: 20px; border-radius: 6px; background: color-mix(in oklab, var(--foreground) 20%, transparent); color: var(--ink-fg); --i-body: 0 0 #0000; }
+/* A radio off is a ring of tone, not a disc: a disc of tone read as a filled choice on a well card. */
+${RADIO} {
+  width: 20px; height: 20px; border-radius: 999px; background: transparent; color: var(--ink-fg);
+  --i-body: inset 0 0 0 2px color-mix(in oklab, var(--foreground) 24%, transparent);
+}
+${CHECK}${HOVER}${LIVE}:not(${CHECKED}) { background: color-mix(in oklab, var(--foreground) 26%, transparent); }
+${RADIO}${HOVER}${LIVE}:not(${CHECKED}) { --i-body: inset 0 0 0 2px color-mix(in oklab, var(--foreground) 34%, transparent); }
+${CHECK}${CHECKED}, ${RADIO}${CHECKED} { background: var(--ink); --i-body: 0 0 #0000; }
 ${CHECK}${ERROR}, ${RADIO}${ERROR} { --i-body: inset 0 0 0 1.5px var(--destructive); }
 
 ${SLIDER} { --thumb-size: 18px; }

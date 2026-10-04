@@ -115,21 +115,24 @@ const TOKENS = `
   --sel-lit-ground: oklch(0.972 0.002 286);
 }
 .dark {
-  --sel-key-top: oklch(0.36 0.005 286);
-  --sel-key: oklch(0.315 0.005 286);
-  --sel-key-card: oklch(0.235 0.005 286);
+  --sel-key-top: oklch(0.42 0.005 286);
+  --sel-key: oklch(0.37 0.005 286);
+  --sel-key-card: oklch(0.29 0.005 286);
   --sel-key-hi: oklch(1 0 0 / 12%);
   --sel-key-lo: oklch(0 0 0 / 40%);
   --sel-key-rim: oklch(1 0 0 / 5%);
   --sel-key-drop: oklch(0 0 0 / 60%);
   --sel-key-fall: oklch(0 0 0 / 50%);
   --sel-key-ground: oklch(0.185 0.004 286);
-  --sel-lit: oklch(0.45 0.005 286);
-  --sel-lit-card: oklch(0.31 0.005 286);
+  --sel-lit: oklch(0.52 0.005 286);
+  --sel-lit-card: oklch(0.38 0.005 286);
   --sel-lit-rim: transparent;
-  --sel-lit-ground: oklch(0.235 0.004 286);
+  --sel-lit-ground: oklch(0.27 0.004 286);
 }
+.surface-paper, :root { --sel-in-well: oklch(0.93 0.003 286); }
+.dark { --sel-in-well: oklch(0.085 0.003 286); }
 .surface-display {
+  --sel-in-well: var(--display);
   --sel-key-top: color-mix(in oklab, var(--display-step), oklch(1 0 0) 19%);
   --sel-key: color-mix(in oklab, var(--display-step), oklch(1 0 0) 14%);
   --sel-key-card: var(--sel-key);
@@ -242,13 +245,17 @@ ${SWATCH_ON}::before { background: ${FACE}; box-shadow: ${layers(KEY)}; }
 const LIT: readonly Layer[] = [[true, "0 0 0 1px", "var(--sel-lit-rim)"]];
 
 /**
- * A STILL LIGHTER STEP: the chosen one stays flush and is lit, flat and with
- * no shadow, the brightest thing in its track; a chosen card keeps its well
- * (a lit well, not a key). Under a pointer, a little light.
+ * A STILL LIGHTER STEP: the chosen one is a lit cell, flat and with no
+ * shadow, filling its place in the track to the track's edge, the brightest
+ * thing in it (in the room well above a raised key); a chosen card is lit
+ * flat, a lit well, not a key. Under a pointer, a little light.
  */
 const LIGHTER = `
 ${PICKS}, ${RADIO_CARD} { --i-sel: ${layers(LIT, false)}; }
 ${PICKED} { background: var(--sel-lit); --i-sel: ${layers(LIT)}; }
+/* A lit cell, not a key: it fills its place in the track to the track's own edge, top to foot,
+   where a raised key stands inset in it (the fresh-eyes pass: on paper the two parted by form alone). */
+${SEGMENT}${ON}, ${TAB}${TAB_ON} { margin-block: -3px; height: 36px; }
 ${WAITING_HOVER} { background: color-mix(in oklab, var(--sel-lit) 35%, transparent); }
 ${CARD_PICKED} {
   background: var(--sel-lit-card) !important; --background: var(--sel-lit-ground);
@@ -271,9 +278,11 @@ const INK = `
 ${PICKED} { background: var(--ink); color: var(--ink-fg); }
 ${WAITING_HOVER} { background: var(--tone); }
 ${RADIO_CARD} { --i-sel: ${layers(RING, false)}; }
-${CARD_PICKED} { --i-sel: ${layers(RING)}; }
+${CARD_PICKED} { --i-sel: ${layers(RING)}; --background: var(--sel-in-well); }
 ${SWATCH_ON}::before { background: var(--ink); }
 ${SWATCH_ON} ${SWATCH_LABEL} { color: var(--ink-fg); }
+/* A white code on a white plate needs its own edge: a band of the room between them. */
+${SWATCH_ON} ${SWATCH_TILE} { box-shadow: 0 0 0 2px var(--background); }
 `;
 
 /* ── FRAME ───────────────────────────────────────────────────────────── */
@@ -282,14 +291,23 @@ const FRAMED: readonly Layer[] = [[true, "0 0 0 1.5px", "var(--foreground)"]];
 
 /**
  * A TONE FRAME: the chosen one is drawn rather than filled, a thin frame of
- * its ink round a faint tone; under a pointer the frame is drawn faintly
- * where it would close.
+ * its ink round a faint tone; a chosen card keeps its fill and takes the
+ * frame as a mat line inside its edge; under a pointer the frame is drawn
+ * faintly where it would close.
  */
 const FRAME = `
-${PICKS}, ${RADIO_CARD} { --i-sel: ${layers(FRAMED, false)}; }
+${PICKS} { --i-sel: ${layers(FRAMED, false)}; }
 ${PICKED} { background: var(--tone); --i-sel: ${layers(FRAMED)}; }
 ${WAITING_HOVER} { --i-sel: inset 0 0 0 1.5px color-mix(in oklab, var(--foreground) 22%, transparent); }
-${CARD_PICKED} { background: var(--tone) !important; --i-sel: ${layers(FRAMED)}; }
+/* A chosen card keeps its fill and takes a mat line three pixels inside its edge, as a print's
+   mat does, so it never doubles the field's own ring or a focus mark outside it. */
+${RADIO_CARD}::before {
+  content: ""; position: absolute; inset: 3px; pointer-events: none; z-index: 0;
+  border-radius: calc(var(--rc-r, 10px) - 3px); box-shadow: inset 0 0 0 1.5px transparent;
+  transition: box-shadow 140ms linear;
+}
+${CARD_PICKED}::before { box-shadow: inset 0 0 0 1.5px var(--foreground); }
+${CARD_PICKED} { --background: var(--sel-in-well); }
 ${SWATCH}::before { box-shadow: ${layers(FRAMED, false)}; }
 ${SWATCH_ON}::before { background: var(--tone); box-shadow: ${layers(FRAMED)}; }
 `;
