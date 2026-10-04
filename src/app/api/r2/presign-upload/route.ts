@@ -1,5 +1,5 @@
 import { getUploadContext } from "@/lib/db/mutations/guest";
-import { parseRollCount } from "@/lib/disposable/roll";
+import { parseRollCount, type RollCount } from "@/lib/disposable/roll";
 import { cameraShotRefusal } from "@/lib/disposable/shot";
 import { mayUploadPastLock } from "@/lib/events/upload-lock";
 import { checkSessionOwner } from "@/lib/guest/session-owner.server";
@@ -21,6 +21,17 @@ const ALBUM_FULL =
 // "For now", never "for the month": a pass counts its uploads over its own year (Ladder A, 20261004100000).
 const ALBUM_MONTH_SPENT = "This album has hit its upload limit for now.";
 
+/**
+ * ★ HER ROLL AS A BURST'S SHOT MEETS IT (compute-uploads): the context counts the shots that have landed, and the shots
+ * this burst admitted before this one land with it, so they are counted too, exactly as a shot sent one at a time met a
+ * roll its earlier shots had already filled. Each is a frame and a take (`roll.ts`: a video is one shot).
+ */
+function rollAfter(roll: RollCount | null, earlier: number): RollCount | null {
+  return roll && earlier > 0
+    ? { ...roll, used: roll.used + earlier, taken: roll.taken + earlier }
+    : roll;
+}
+
 // Issues presigned URLs for a guest's browser → R2 DIRECT upload. The pipeline
 // engine (lib/upload/server-pipeline.ts) owns the shared spine; this strategy
 // owns the GUEST gates: the capability session, whose ticket it is (an
@@ -29,14 +40,20 @@ const ALBUM_MONTH_SPENT = "This album has hit its upload limit for now.";
 // GUESTS ONLY — the host route has no equivalent check). create_media (at
 // complete) remains authoritative for everything re-checked here, but for the
 // month, which the engine's meter counts and decides here at the presign.
+//
+// ★ A BURST (the engine's head note) asks the switch, the ticket's context, the lock and the ticket's owner ONCE
+// (`burst.memo`, keyed by what each depends on), and every gate about who is sending and where is the burst's own
+// (`scope: "burst"`): one sentence answers the whole request, as it answered each file's. A video, a size, a shot and
+// the meter are each file's own.
 const guestPresignStrategy: PresignStrategy<typeof presignUploadSchema> = {
   schema: presignUploadSchema,
-  async resolveEvent(parsed, kind) {
+  async resolveEvent(parsed, kind, burst) {
+    const token = parsed.session_token;
     // ★ THE PLATFORM'S UPLOADS SWITCH (the spend watch's offer, `ops_flags.uploads_enabled`), asked FIRST: while it
     // is off, a runaway costs one small read a request and nothing else, and the sentence is Partyreel's, never the
     // host's, so it says nothing about the album. It fails OPEN (`guestUploadsOpen`): a switch nobody can read never
     // stops a real party. A file already presigned completes; nothing in flight is cut.
-    if (!(await guestUploadsOpen())) {
+    if (!(await burst.memo("uploads-open", guestUploadsOpen))) {
       return {
         ok: false,
         refusal: {
@@ -44,14 +61,22 @@ const guestPresignStrategy: PresignStrategy<typeof presignUploadSchema> = {
           code: "uploads_paused",
           message:
             "Uploads are paused on Partyreel for now. Try again in a little while.",
+          scope: "burst",
         },
       };
     }
-    const ctx = await getUploadContext(parsed.session_token, kind);
+    const ctx = await burst.memo(`context:${kind}:${token}`, () =>
+      getUploadContext(token, kind),
+    );
     if (!ctx.ok) {
       return {
         ok: false,
-        refusal: { status: 401, code: "invalid_session", message: ctx.message },
+        refusal: {
+          status: 401,
+          code: "invalid_session",
+          message: ctx.message,
+          scope: "burst",
+        },
       };
     }
     if (ctx.data.event_deleted) {
@@ -61,6 +86,7 @@ const guestPresignStrategy: PresignStrategy<typeof presignUploadSchema> = {
           status: 409,
           code: "event_gone",
           message: "This event is no longer available.",
+          scope: "burst",
         },
       };
     }
@@ -79,12 +105,14 @@ const guestPresignStrategy: PresignStrategy<typeof presignUploadSchema> = {
           status: 403,
           code: "unauthorized",
           message: "This event is private.",
+          scope: "burst",
         },
       };
     }
+    const eventId = ctx.data.event_id;
     if (
       ctx.data.visibility === "password" &&
-      !(await mayUploadPastLock(ctx.data.event_id))
+      !(await burst.memo(`lock:${eventId}`, () => mayUploadPastLock(eventId)))
     ) {
       return {
         ok: false,
@@ -92,6 +120,7 @@ const guestPresignStrategy: PresignStrategy<typeof presignUploadSchema> = {
           status: 403,
           code: "unlock_required",
           message: "This event is locked. Enter the event password to upload.",
+          scope: "burst",
         },
       };
     }
@@ -102,6 +131,7 @@ const guestPresignStrategy: PresignStrategy<typeof presignUploadSchema> = {
           status: 403,
           code: "uploads_closed",
           message: "This event isn't accepting uploads right now.",
+          scope: "burst",
         },
       };
     }
@@ -112,11 +142,18 @@ const guestPresignStrategy: PresignStrategy<typeof presignUploadSchema> = {
     // everybody; ABOVE the identity gate, because a ticket that is not yours says nothing about
     // whether YOU have confirmed an email. The client reads the code by name, puts the ticket down
     // and joins as whoever is holding the phone, so this sentence is almost never seen.
-    const owner = await checkSessionOwner(parsed.session_token);
+    const owner = await burst.memo(`owner:${token}`, () =>
+      checkSessionOwner(token),
+    );
     if (!owner.ok) {
       return {
         ok: false,
-        refusal: { status: 403, code: owner.code, message: owner.message },
+        refusal: {
+          status: 403,
+          code: owner.code,
+          message: owner.message,
+          scope: "burst",
+        },
       };
     }
     // ★ THE IDENTITY GATE, RE-CHECKED PER REQUEST. A session token minted while the event was
@@ -131,7 +168,7 @@ const guestPresignStrategy: PresignStrategy<typeof presignUploadSchema> = {
       // refusing real guests, and it is the difference between noticing within the hour and
       // hearing about it from the host.
       captureWarning("security", "upload_refused_unverified", {
-        event_id: ctx.data.event_id,
+        event_id: eventId,
         stage: "presign",
       });
       return {
@@ -140,11 +177,12 @@ const guestPresignStrategy: PresignStrategy<typeof presignUploadSchema> = {
           status: 403,
           code: "verification_required",
           message: "Confirm your email to add photos to this event.",
+          scope: "burst",
         },
       };
     }
     // A free event is photos-only. The message is EVENT-framed, never
-    // tier-framed — a guest must not learn the host's plan.
+    // tier-framed — a guest must not learn the host's plan. A burst's photographs still go.
     if (ctx.data.video_blocked) {
       return {
         ok: false,
@@ -155,6 +193,7 @@ const guestPresignStrategy: PresignStrategy<typeof presignUploadSchema> = {
         },
       };
     }
+    // Already full, or its uploads spent: no file of the burst fits (the meter judges each file that might).
     if (ctx.data.at_storage_cap || ctx.data.at_monthly_cap) {
       return {
         ok: false,
@@ -162,6 +201,7 @@ const guestPresignStrategy: PresignStrategy<typeof presignUploadSchema> = {
           status: 409,
           code: "cap_reached",
           message: ctx.data.at_storage_cap ? ALBUM_FULL : ALBUM_MONTH_SPENT,
+          scope: "burst",
         },
       };
     }
@@ -181,14 +221,17 @@ const guestPresignStrategy: PresignStrategy<typeof presignUploadSchema> = {
     // ★ THE ALBUM'S CAMERA (20261002200000): a video shot has a length and a byte bound (`media/limits.ts`), her roll
     // holds its frames (24), and a period takes three rolls' worth. Refused here before the bytes move, in the server's own words;
     // create_media holds the same lines on the R2-HEAD size and counts the roll under its locks, so this is the
-    // friendly half, never the boundary.
+    // friendly half, never the boundary. A burst's earlier shots are counted on her roll (`rollAfter`).
     const shot = cameraShotRefusal(
-      { capture: ctx.data.capture, roll: parseRollCount(ctx.data.roll) },
+      {
+        capture: ctx.data.capture,
+        roll: rollAfter(parseRollCount(ctx.data.roll), burst.admitted.files),
+      },
       kind,
       parsed,
     );
     if (shot) return { ok: false, refusal: shot };
-    return { ok: true, eventId: ctx.data.event_id };
+    return { ok: true, eventId };
   },
   // ★ THE METER'S REFUSALS, IN THE ALBUM'S WORDS (upload-meter): the meter judges THIS file (the context above only
   // knew whether the album was already full), so a file the room or the month cannot take is refused here, before its

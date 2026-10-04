@@ -9,10 +9,20 @@
  * -> THE METER (refused in the strategy's words, or the hour tallied)
  * -> server-built key -> a single PUT at its STAGING twin, or a multipart at its key.
  * The spine (complete): parse -> zod -> classify -> the row already recorded
- * answers at once -> multipart sum/abort guard + assemble -> R2-HEAD
+ * answers at once -> the strategy's own budget -> multipart sum/abort guard + assemble -> R2-HEAD
  * authoritative size (database-security.md) -> a staged single PUT copied into
  * events/ -> strategy.createRecord (which counts the month) -> per-strategy
  * error-status mapping, a refusal taking back out only what no row names.
+ *
+ * ★ A BURST IS ITS FILES, ONE AFTER ANOTHER, IN ONE REQUEST (compute-uploads; the wire is `burst.ts`'s). Both spines
+ * take a burst's body beside the one-file body, for every strategy, and run each file through the very spine a request
+ * of its own ran, in order: every check, refusal and word a file met alone it meets in a burst, and a file refused never
+ * stops its siblings. A burst shares only what cannot differ between its files (`Burst.memo`: who is sending, to which
+ * album, asked once) and tells each file what its earlier siblings took (`Burst.admitted`), so the roll and the meter
+ * judge it as a presign one at a time did, after the files before it had landed. A presign refusal the strategy marks
+ * the burst's own (`scope: "burst"`: who is sending, which every file meets alike) refuses the whole request as a
+ * one-file request's is. A burst's completes run one after another too, so a budget (the guest's clips a day) is met
+ * by each file after the one before it was spent.
  *
  * INVARIANTS THIS FILE OWNS (must survive any edit — docs/systems/
  * uploads-and-r2.md):
@@ -28,7 +38,8 @@
  *   at this file's CompleteMultipartUpload. So the month (`create_media*`, on the HEAD) counts what landed, once: an
  *   unsent byte never counts, an abandoned one never persists nor is backed up, and a retried PUT counts once.
  * - The presign's meter (`meterUpload`) refuses what the hour, the month or the room cannot take, before a byte moves,
- *   and counts no month itself; it fails OPEN, as the limiters do, since the complete is the count.
+ *   and counts no month itself; it fails OPEN, as the limiters do, since the complete is the count. A burst's file is
+ *   metered with its earlier siblings' declared bytes added (`Burst.admitted`), as their landing would have counted them.
  * - ★ A COMPLETE FOR AN UPLOAD ALREADY RECORDED IS ITS ROW'S TO ANSWER (crumbs-62, red-team 49's LOW): read by its id
  *   before any gate, copy or withdrawal, it answers `recorded` and moves nothing, whoever sends it; and a refused or
  *   failed record takes back out of `events/` only what no row names (`withdrawUnlessRecorded`). A gate that moved
@@ -72,6 +83,7 @@ import {
   phoneKeyFor,
   stagingKeyFor,
 } from "@/lib/r2/keys";
+import { fileBody, splitBurst } from "@/lib/upload/burst";
 import { checkCompleteKeyConsistency } from "@/lib/upload/complete-key-check";
 import {
   abortMultipartUpload,
@@ -97,6 +109,12 @@ export type PipelineRefusal = {
   status: number;
   code: string;
   message: string;
+  /**
+   * `burst`: a presign gate about WHO is sending and WHERE (the ticket, the album's door, its switches and its
+   * fullness), which every file of a burst meets alike, so it refuses the whole request (the module's head note).
+   * Absent: this file's own, and its siblings go on.
+   */
+  scope?: "burst";
 };
 
 /** `retryAfterSec` rides as `Retry-After` (the hourly breaker's refusal says when the hour ends). */
@@ -110,6 +128,59 @@ function refuse(r: PipelineRefusal, retryAfterSec?: number) {
         : {}),
     },
   );
+}
+
+/** One file's refusal inside a burst's answer: its words, and the status its own request would have answered. */
+function fileRefusal(r: PipelineRefusal) {
+  return {
+    ok: false as const,
+    status: r.status,
+    code: r.code,
+    message: r.message,
+  };
+}
+
+const BAD_BODY: PipelineRefusal = {
+  status: 400,
+  code: "bad_request",
+  message: "Invalid request body.",
+};
+
+// ─── Bursts ──────────────────────────────────────────────────────────────────
+
+/**
+ * ★ WHAT THE FILES OF ONE REQUEST SHARE, AND WHAT EACH IS TOLD OF THE ONES BEFORE IT (the head note). `memo` answers
+ * every file of the request with one read of what cannot differ between them (the ticket's context, its owner, the
+ * album's lock and switch), keyed by everything the read depends on; a read that failed is asked again by the next
+ * file, as each file's own request asked it. `admitted` is what this request admitted before the file in hand (its
+ * files, and their declared bytes): the roll counts those shots, and the meter adds those bytes. A one-file request
+ * has a burst of its own, so its reads are its own and nothing came before it.
+ */
+export type Burst = {
+  memo<T>(key: string, read: () => Promise<T>): Promise<T>;
+  readonly admitted: { readonly files: number; readonly bytes: number };
+};
+
+type OpenBurst = Burst & { admit(bytes: number): void };
+
+function openBurst(): OpenBurst {
+  const reads = new Map<string, Promise<unknown>>();
+  const admitted = { files: 0, bytes: 0 };
+  return {
+    memo<T>(key: string, read: () => Promise<T>): Promise<T> {
+      const held = reads.get(key);
+      if (held) return held as Promise<T>;
+      const fresh = read();
+      reads.set(key, fresh);
+      fresh.catch(() => reads.delete(key));
+      return fresh;
+    },
+    admitted,
+    admit(bytes: number) {
+      admitted.files += 1;
+      admitted.bytes += bytes;
+    },
+  };
 }
 
 /**
@@ -161,10 +232,13 @@ export type PresignStrategy<Schema extends z.ZodType<PresignCommon>> = {
    * Resolve + authorize the target event and apply EVERY per-strategy gate
    * (session/ownership, event state, video gating, caps, the guests-only
    * per-event max_upload_bytes) with its route's exact status/code/message.
+   * `burst` shares this request's reads across its files and says what its earlier files took (the head note); a
+   * strategy that reads it marks a refusal every file would meet alike `scope: "burst"`.
    */
   resolveEvent(
     parsed: z.output<Schema>,
     kind: MediaKind,
+    burst: Burst,
   ): Promise<
     { ok: true; eventId: string } | { ok: false; refusal: PipelineRefusal }
   >;
@@ -176,6 +250,33 @@ export type PresignStrategy<Schema extends z.ZodType<PresignCommon>> = {
   meterRefusal(refusal: MeterRefusal): PipelineRefusal;
 };
 
+const BAD_PRESIGN: PipelineRefusal = {
+  status: 400,
+  code: "bad_request",
+  message: "Invalid upload request.",
+};
+
+const UNSUPPORTED_TYPE: PipelineRefusal = {
+  status: 415,
+  code: "unsupported_type",
+  message: "That file type isn't supported.",
+};
+
+/**
+ * A burst's file whose URLs could not be minted (a multipart R2 would not open): its own failure, said and reported,
+ * never its siblings'. A one-file request still fails as it always did.
+ */
+const PRESIGN_FAILED: PipelineRefusal = {
+  status: 502,
+  code: "presign_failed",
+  message: "Couldn't start the upload. Please try again.",
+};
+
+/** One file's presign: its answer's body (the one-file request's body, field for field), or its refusal. */
+type PresignAnswer =
+  | { ok: true; body: Record<string, unknown> }
+  | { ok: false; refusal: PipelineRefusal; retryAfterSec?: number };
+
 export async function runPresignPipeline<
   Schema extends z.ZodType<PresignCommon>,
 >(request: Request, strategy: PresignStrategy<Schema>): Promise<NextResponse> {
@@ -183,57 +284,97 @@ export async function runPresignPipeline<
   try {
     body = await request.json();
   } catch {
-    return refuse({
-      status: 400,
-      code: "bad_request",
-      message: "Invalid request body.",
-    });
+    return refuse(BAD_BODY);
   }
 
-  const parsed = strategy.schema.safeParse(body);
-  if (!parsed.success) {
-    return refuse({
-      status: 400,
-      code: "bad_request",
-      message: "Invalid upload request.",
-    });
+  const burst = splitBurst(body);
+  if (burst === null) {
+    // ONE FILE: the body every client sent before bursts, and a tab loaded before them still sends.
+    const parsed = strategy.schema.safeParse(body);
+    if (!parsed.success) return refuse(BAD_PRESIGN);
+    const one = await presignFile(parsed.data, strategy, openBurst());
+    return one.ok
+      ? NextResponse.json(one.body)
+      : refuse(one.refusal, one.retryAfterSec);
   }
-  const { content_type, size_bytes } = parsed.data;
+  if (burst === "malformed") return refuse(BAD_PRESIGN);
+
+  const shared = openBurst();
+  const files: Record<string, unknown>[] = [];
+  for (const entry of burst.files) {
+    const parsed = strategy.schema.safeParse(fileBody(burst, entry));
+    let one: PresignAnswer;
+    if (!parsed.success) {
+      one = { ok: false, refusal: BAD_PRESIGN };
+    } else {
+      try {
+        one = await presignFile(parsed.data, strategy, shared);
+      } catch (e) {
+        captureError("upload", e, { phase: "presign_burst" });
+        one = { ok: false, refusal: PRESIGN_FAILED };
+      }
+    }
+    // ★ THE BURST'S OWN GATE (`scope: "burst"`): every file would meet it alike, so before any file is admitted it is
+    // the whole request's answer, exactly a one-file request's; met after some were (a read that moved mid-request),
+    // it is this file's and every later one's, and the earlier answers stand.
+    if (!one.ok && one.refusal.scope === "burst") {
+      if (shared.admitted.files === 0) {
+        return refuse(one.refusal, one.retryAfterSec);
+      }
+      while (files.length < burst.files.length) {
+        files.push(fileRefusal(one.refusal));
+      }
+      break;
+    }
+    files.push(one.ok ? one.body : fileRefusal(one.refusal));
+  }
+  return NextResponse.json({ ok: true, files });
+}
+
+/** The presign spine for one file, after its body parsed (the head note). */
+async function presignFile<Schema extends z.ZodType<PresignCommon>>(
+  parsed: z.output<Schema>,
+  strategy: PresignStrategy<Schema>,
+  burst: OpenBurst,
+): Promise<PresignAnswer> {
+  const { content_type, size_bytes } = parsed;
 
   // Classify + derive the extension SERVER-SIDE from the content-type.
   const kind = classifyMime(content_type);
   const ext = extForMime(content_type);
-  if (!kind || !ext) {
-    return refuse({
-      status: 415,
-      code: "unsupported_type",
-      message: "That file type isn't supported.",
-    });
-  }
+  if (!kind || !ext) return { ok: false, refusal: UNSUPPORTED_TYPE };
 
   // Universal 10 GB per-upload ceiling + MIME (fail fast — zero orphans for too-big files).
   const check = validateUpload({ mime: content_type, sizeBytes: size_bytes });
   if (!check.ok) {
-    return refuse({ status: 422, code: "invalid_file", message: check.reason });
+    return {
+      ok: false,
+      refusal: { status: 422, code: "invalid_file", message: check.reason },
+    };
   }
 
-  const resolved = await strategy.resolveEvent(parsed.data, kind);
-  if (!resolved.ok) return refuse(resolved.refusal);
+  const resolved = await strategy.resolveEvent(parsed, kind, burst);
+  if (!resolved.ok) return { ok: false, refusal: resolved.refusal };
 
   // ★ THE METER (upload-meter, 20261003210500): after every gate and before any URL exists, a file the hour's breaker,
   // the month or the room cannot take is refused here, before a byte moves, in the strategy's words; an admitted one
   // tallies the hour and counts nothing of the month (the complete counts what landed, on its HEAD, once). It fails
   // OPEN, as the limiters do (`meterUpload` reports it): the complete's count and caps stand behind it.
+  // ★ A BURST'S FILE IS METERED WITH ITS EARLIER SIBLINGS' BYTES ADDED (compute-uploads): one at a time, they had
+  // landed before it was presigned, so the month and the room already held them; the sum is held to the meter's own
+  // bound (one upload's ceiling), which still judges this file at least as strictly as alone. Its hour is its own.
   const metered = await meterUpload({
     eventId: resolved.eventId,
     kind,
-    bytes: size_bytes,
+    bytes: Math.min(size_bytes + burst.admitted.bytes, MAX_UPLOAD_BYTES),
   });
   if (!metered.ok && metered.reason !== "unavailable") {
-    return refuse(
-      strategy.meterRefusal(metered),
-      metered.reason === "hourly" ? metered.retryAfterSec : undefined,
-    );
+    return {
+      ok: false,
+      refusal: strategy.meterRefusal(metered),
+      retryAfterSec:
+        metered.reason === "hourly" ? metered.retryAfterSec : undefined,
+    };
   }
 
   // Server-built key: the resolved event + a server-generated id + classified
@@ -263,7 +404,7 @@ export async function runPresignPipeline<
     variant: "preview",
     ext: "webp",
   });
-  const previewSize = parsed.data.preview_size_bytes;
+  const previewSize = parsed.preview_size_bytes;
   const previewRefused =
     previewSize === undefined ? null : previewRefusal(previewSize, size_bytes);
   const preview =
@@ -291,7 +432,7 @@ export async function runPresignPipeline<
   // its exact length, at the staging twin of the photograph's own key; past either, the original simply uploads
   // without one. A clip
   // never asks (videos stay as taken), and an old client never sends the size, so its answer is unchanged.
-  const phoneSize = parsed.data.phone_size_bytes;
+  const phoneSize = parsed.phone_size_bytes;
   const phoneKey = phoneKeyFor({ eventId: resolved.eventId, mediaId });
   const phone =
     kind === "photo" &&
@@ -314,17 +455,21 @@ export async function runPresignPipeline<
       contentType: content_type,
       contentLength: size_bytes,
     });
-    return NextResponse.json({
+    burst.admit(size_bytes);
+    return {
       ok: true,
-      strategy: "single",
-      media_id: mediaId,
-      key,
-      content_type,
-      url,
-      headers,
-      ...previewField,
-      ...phoneField,
-    });
+      body: {
+        ok: true,
+        strategy: "single",
+        media_id: mediaId,
+        key,
+        content_type,
+        url,
+        headers,
+        ...previewField,
+        ...phoneField,
+      },
+    };
   }
 
   const { uploadId } = await createMultipartUpload({
@@ -347,18 +492,22 @@ export async function runPresignPipeline<
     }),
   );
 
-  return NextResponse.json({
+  burst.admit(size_bytes);
+  return {
     ok: true,
-    strategy: "multipart",
-    media_id: mediaId,
-    key,
-    content_type,
-    upload_id: uploadId,
-    part_size_bytes: plan[0],
-    parts,
-    ...previewField,
-    ...phoneField,
-  });
+    body: {
+      ok: true,
+      strategy: "multipart",
+      media_id: mediaId,
+      key,
+      content_type,
+      upload_id: uploadId,
+      part_size_bytes: plan[0],
+      parts,
+      ...previewField,
+      ...phoneField,
+    },
+  };
 }
 
 // ─── Complete ────────────────────────────────────────────────────────────────
@@ -400,7 +549,8 @@ type CreateRecordOutcome =
        * `pr_guest_<eventId>` here, because a completed upload is the LAST moment before the album
        * is supposed to open and the one act that proves the token is real. Optional, and the host
        * strategy never sets it: a host has an account and no guest session. The engine applies
-       * them verbatim to the 200 and to nothing else, so a refused upload never writes one.
+       * them verbatim to the 200 and to nothing else, so a refused upload never writes one (a burst's
+       * answer carries the first landed file's: every file of a burst shares its ticket and its event).
        */
       setCookies?: readonly (GuestCookieWrite | null | undefined)[];
     }
@@ -416,13 +566,15 @@ export type CompleteStrategy<Schema extends z.ZodType<CompleteCommon>> = {
   schema: Schema;
   /**
    * The authoritative record write (create_media / create_media_as_host wrapper). `phone` is the verified
-   * phone-size copy, recorded in the same insert (`p_phone_key`, `p_phone_bytes`), or null for none.
+   * phone-size copy, recorded in the same insert (`p_phone_key`, `p_phone_bytes`), or null for none. `burst` shares
+   * this request's reads across its files (the head note).
    */
   createRecord(
     parsed: z.output<Schema>,
     kind: MediaKind,
     realSize: number,
     phone: PhoneCopy | null,
+    burst: Burst,
   ): Promise<CreateRecordOutcome>;
   /** HTTP status per failure code — each route's own mapping. */
   errorStatus(code: string): number;
@@ -433,6 +585,40 @@ export type CompleteStrategy<Schema extends z.ZodType<CompleteCommon>> = {
    * host id), handed to the forensic-capture seam (trust-safety-forensics.md). No new auth is derived here.
    */
   forensicIdentity(parsed: z.output<Schema>): ForensicIdentity;
+  /**
+   * ★ A BUDGET THE ROUTE HOLDS BEYOND `create_media*`'s OWN (the guest's clips into the album a day, `reel_clip_add`):
+   * `check` is asked of a file once its row is known not to exist (one already recorded is its row's to answer, never
+   * the budget's) and before a byte of it lands; `spend` once its completion answers ok. A burst's files meet it one
+   * after another, each after the one before it was spent, as their own requests did. Absent: nothing beyond the RPC.
+   */
+  budget?: {
+    check(
+      parsed: z.output<Schema>,
+      request: Request,
+    ): Promise<{ refusal: PipelineRefusal; retryAfterSec?: number } | null>;
+    spend(parsed: z.output<Schema>, request: Request): Promise<void>;
+  };
+};
+
+const BAD_COMPLETE: PipelineRefusal = {
+  status: 400,
+  code: "bad_request",
+  message: "Invalid completion request.",
+};
+
+/** One file's completion: its answer's body (the one-file request's, field for field) and cookies, or its refusal. */
+type CompleteAnswer =
+  | {
+      ok: true;
+      body: { ok: true; status: string; sealed?: true };
+      setCookies?: readonly (GuestCookieWrite | null | undefined)[];
+    }
+  | { ok: false; refusal: PipelineRefusal; retryAfterSec?: number };
+
+/** The duplicate's answer, word for word what a twin whose insert met its own row says (`recorded`). */
+const RECORDED: CompleteAnswer = {
+  ok: true,
+  body: { ok: true, status: "recorded" },
 };
 
 export async function runCompletePipeline<
@@ -442,22 +628,61 @@ export async function runCompletePipeline<
   try {
     body = await request.json();
   } catch {
-    return refuse({
-      status: 400,
-      code: "bad_request",
-      message: "Invalid request body.",
-    });
+    return refuse(BAD_BODY);
   }
 
-  const parsed = strategy.schema.safeParse(body);
-  if (!parsed.success) {
-    return refuse({
-      status: 400,
-      code: "bad_request",
-      message: "Invalid completion request.",
-    });
+  const burst = splitBurst(body);
+  if (burst === null) {
+    // ONE FILE: the body every client sent before bursts, and a tab loaded before them still sends.
+    const parsed = strategy.schema.safeParse(body);
+    if (!parsed.success) return refuse(BAD_COMPLETE);
+    const one = await completeFile(parsed.data, strategy, request, openBurst());
+    if (!one.ok) return refuse(one.refusal, one.retryAfterSec);
+    const response = NextResponse.json(one.body);
+    if (one.setCookies?.length) applyGuestCookies(response, one.setCookies);
+    return response;
   }
-  const { media_id, key, content_type, upload_id, parts } = parsed.data;
+  if (burst === "malformed") return refuse(BAD_COMPLETE);
+
+  const shared = openBurst();
+  const seen = new Set<string>();
+  const files: Record<string, unknown>[] = [];
+  let cookies: readonly (GuestCookieWrite | null | undefined)[] | undefined;
+  for (const entry of burst.files) {
+    const parsed = strategy.schema.safeParse(fileBody(burst, entry));
+    let one: CompleteAnswer;
+    if (!parsed.success || seen.has(parsed.data.media_id)) {
+      // An upload is completed once a request: a second entry for it is malformed, never a race with itself.
+      one = { ok: false, refusal: BAD_COMPLETE };
+    } else {
+      seen.add(parsed.data.media_id);
+      try {
+        one = await completeFile(parsed.data, strategy, request, shared);
+      } catch (e) {
+        // A throw the one-file request would have answered 500 is this file's alone: reported, and its siblings go on.
+        captureError("upload", e, {
+          phase: "complete_burst",
+          media_id: parsed.data.media_id,
+        });
+        one = { ok: false, refusal: NOT_FINALIZED };
+      }
+    }
+    if (one.ok && !cookies && one.setCookies?.length) cookies = one.setCookies;
+    files.push(one.ok ? one.body : fileRefusal(one.refusal));
+  }
+  const response = NextResponse.json({ ok: true, files });
+  if (cookies) applyGuestCookies(response, cookies);
+  return response;
+}
+
+/** The complete spine for one file, after its body parsed (the head note). */
+async function completeFile<Schema extends z.ZodType<CompleteCommon>>(
+  parsed: z.output<Schema>,
+  strategy: CompleteStrategy<Schema>,
+  request: Request,
+  burst: Burst,
+): Promise<CompleteAnswer> {
+  const { media_id, key, content_type } = parsed;
 
   // ★ KEY BINDING (QA Pattern A, defense-in-depth). The server BUILT both keys at presign as
   // events/<eventId>/<kind>/<mediaId>/<variant>.<ext>, but the client hands them back here, so a
@@ -469,13 +694,16 @@ export async function runCompletePipeline<
   const keyEventId = parseEventIdFromKey(key);
   if (!keyEventId || parseMediaIdFromKey(key) !== media_id) {
     captureWarning("upload", "complete_key_mismatch", { key, media_id });
-    return refuse({
-      status: 400,
-      code: "bad_key",
-      message: "That upload key doesn't match this upload.",
-    });
+    return {
+      ok: false,
+      refusal: {
+        status: 400,
+        code: "bad_key",
+        message: "That upload key doesn't match this upload.",
+      },
+    };
   }
-  const previewKey = parsed.data.preview_key;
+  const previewKey = parsed.preview_key;
   if (
     previewKey &&
     (!isValidMediaKey(previewKey, keyEventId) ||
@@ -486,15 +714,18 @@ export async function runCompletePipeline<
       previewKey,
       media_id,
     });
-    return refuse({
-      status: 400,
-      code: "bad_key",
-      message: "That preview key doesn't match this upload.",
-    });
+    return {
+      ok: false,
+      refusal: {
+        status: 400,
+        code: "bad_key",
+        message: "That preview key doesn't match this upload.",
+      },
+    };
   }
   // The phone copy is bound the same way: this upload's own, in this upload's event (its variant, kind and
   // ext are the consistency check's below). A stranger's key here is the same plant the preview's binding stops.
-  const phoneKey = parsed.data.phone_key;
+  const phoneKey = parsed.phone_key;
   if (
     phoneKey &&
     (!isValidMediaKey(phoneKey, keyEventId) ||
@@ -505,11 +736,7 @@ export async function runCompletePipeline<
       phoneKey,
       media_id,
     });
-    return refuse({
-      status: 400,
-      code: "bad_key",
-      message: "That upload key doesn't match this upload.",
-    });
+    return { ok: false, refusal: KEY_NOT_THIS_UPLOAD };
   }
 
   // size_bytes is still accepted by the schemas (the presign step uses it) but is
@@ -517,13 +744,7 @@ export async function runCompletePipeline<
 
   // Derive media_type server-side from the content-type (never trust a client type).
   const kind = classifyMime(content_type);
-  if (!kind) {
-    return refuse({
-      status: 415,
-      code: "unsupported_type",
-      message: "That file type isn't supported.",
-    });
-  }
+  if (!kind) return { ok: false, refusal: UNSUPPORTED_TYPE };
 
   // ★ VARIANT/KIND/EXT BINDING, the second half of the key binding above. The key IS the
   // issuance record: presign minted <kind>/<variant>.<ext> from ITS content_type, so requiring the
@@ -547,11 +768,7 @@ export async function runCompletePipeline<
       media_id,
       content_type,
     });
-    return refuse({
-      status: 400,
-      code: "bad_key",
-      message: "That upload key doesn't match this upload.",
-    });
+    return { ok: false, refusal: KEY_NOT_THIS_UPLOAD };
   }
 
   // ★ AN UPLOAD ALREADY RECORDED IS ANSWERED BY ITS ROW, AT ONCE (crumbs-62, red-team 49's LOW): after the request's
@@ -563,6 +780,33 @@ export async function runCompletePipeline<
   // the complete go on as it always did: the row is asked again before anything is taken back out.
   const prior = await readRecorded(media_id);
   if (prior.kind === "row") return answerRecorded(prior.originalKey, key);
+
+  // ★ THE ROUTE'S OWN BUDGET (the guest's clips a day): asked once the row is known not to exist (a clip already
+  // recorded is its row's to answer, never the budget's) and before a byte of it lands; spent once it answers ok.
+  const spent = await strategy.budget?.check(parsed, request);
+  if (spent) {
+    return {
+      ok: false,
+      refusal: spent.refusal,
+      retryAfterSec: spent.retryAfterSec,
+    };
+  }
+  const landed = await landAndRecord(parsed, strategy, request, burst, kind);
+  if (landed.ok) await strategy.budget?.spend(parsed, request);
+  return landed;
+}
+
+/** The complete spine past its gates: assemble, land, record, and take back out what a refused record copied in. */
+async function landAndRecord<Schema extends z.ZodType<CompleteCommon>>(
+  parsed: z.output<Schema>,
+  strategy: CompleteStrategy<Schema>,
+  request: Request,
+  burst: Burst,
+  kind: MediaKind,
+): Promise<CompleteAnswer> {
+  const { media_id, key, upload_id, parts } = parsed;
+  const previewKey = parsed.preview_key;
+  const phoneKey = parsed.phone_key;
 
   // Multipart: assemble the object before recording it. (Single-PUT is already
   // finalized by the browser's PUT.)
@@ -586,20 +830,19 @@ export async function runCompletePipeline<
           upload_id,
           uploadedBytes,
         });
-        return refuse({
-          status: 413,
-          code: "too_large",
-          message: "This upload exceeded the size limit and was discarded.",
-        });
+        return {
+          ok: false,
+          refusal: {
+            status: 413,
+            code: "too_large",
+            message: "This upload exceeded the size limit and was discarded.",
+          },
+        };
       }
       await completeMultipartUpload({ key, uploadId: upload_id, parts });
     } catch (e) {
       captureError("upload", e, { key, upload_id });
-      return refuse({
-        status: 502,
-        code: "complete_failed",
-        message: "Couldn't finalize the upload. Please retry.",
-      });
+      return { ok: false, refusal: NOT_FINALIZED };
     }
   }
 
@@ -608,7 +851,7 @@ export async function runCompletePipeline<
   // meter is SUM(media.file_size_bytes)). database-security.md. ★ And a staged
   // single PUT is copied into its key here, before any row names it (`landOriginal`).
   const landing = await landOriginal({ key, upload_id, media_id });
-  if (!landing.ok) return refuse(landing.refusal);
+  if (!landing.ok) return { ok: false, refusal: landing.refusal };
   const { realSize, copied } = landing;
 
   // The derivatives land the same way, each best-effort: a preview that did not land is recorded as none (its tile
@@ -620,9 +863,7 @@ export async function runCompletePipeline<
     ? await verifyPhoneCopy({ phoneKey, realSize, media_id, copied })
     : null;
   const record =
-    previewKey && !landedPreview
-      ? { ...parsed.data, preview_key: undefined }
-      : parsed.data;
+    previewKey && !landedPreview ? { ...parsed, preview_key: undefined } : parsed;
 
   // ★ A REFUSED OR FAILED RECORD TAKES ITS COPIES BACK OUT, UNLESS A ROW NAMES THEM (`withdrawUnlessRecorded`): the
   // objects this complete wrote into `events/` with no row to name them are deleted at once rather than left for the
@@ -630,18 +871,18 @@ export async function runCompletePipeline<
   // makes it this one's answer too. The staged objects stay where they are, for the lifecycle rule.
   let result: CreateRecordOutcome;
   try {
-    result = await strategy.createRecord(record, kind, realSize, phone);
+    result = await strategy.createRecord(record, kind, realSize, phone, burst);
   } catch (e) {
-    const recorded = await withdrawUnlessRecorded({ copied, media_id, key });
-    if (!recorded) throw e;
+    if (!(await withdrawUnlessRecorded({ copied, media_id, key }))) throw e;
     // The twin's row answers; the throw is still reported, never swallowed.
     captureError("upload", e, { key, media_id, phase: "record_twin" });
-    return recorded;
+    return RECORDED;
   }
 
   if (!result.ok) {
-    const recorded = await withdrawUnlessRecorded({ copied, media_id, key });
-    if (recorded) return recorded;
+    if (await withdrawUnlessRecorded({ copied, media_id, key })) {
+      return RECORDED;
+    }
     // Routine user rejections (cap/limits/closed/session/ownership) are expected;
     // only a key mismatch or an unmapped DB error signals a bug.
     if (result.code === "bad_key" || result.code === "unknown") {
@@ -651,11 +892,14 @@ export async function runCompletePipeline<
         key,
       });
     }
-    return refuse({
-      status: strategy.errorStatus(result.code),
-      code: result.code,
-      message: result.message,
-    });
+    return {
+      ok: false,
+      refusal: {
+        status: strategy.errorStatus(result.code),
+        code: result.code,
+        message: result.message,
+      },
+    };
   }
 
   // Forensic capture (trust-safety-forensics.md), at the ONE seam where the row + the request context coexist.
@@ -668,8 +912,8 @@ export async function runCompletePipeline<
     headers: request.headers,
     mediaId: media_id,
     key,
-    deviceUuid: parsed.data.device_uuid ?? null,
-    identity: strategy.forensicIdentity(parsed.data),
+    deviceUuid: parsed.device_uuid ?? null,
+    identity: strategy.forensicIdentity(parsed),
   });
 
   // {media_id, status} on a fresh insert; {idempotent:true} for a twin whose insert met its own row.
@@ -678,14 +922,19 @@ export async function runCompletePipeline<
   // completes `approved` but is no album content yet, and the uploader's caller must not draw it as such. Said only
   // when true, so every other answer is the one it always was.
   const sealed = !("idempotent" in result.data) && result.data.sealed === true;
-  const response = NextResponse.json({
+  return {
     ok: true,
-    status,
-    ...(sealed ? { sealed: true } : {}),
-  });
-  if (result.setCookies?.length) applyGuestCookies(response, result.setCookies);
-  return response;
+    body: { ok: true, status, ...(sealed ? { sealed: true as const } : {}) },
+    setCookies: result.setCookies,
+  };
 }
+
+/** The key bindings' refusal of a key that is not this upload's. */
+const KEY_NOT_THIS_UPLOAD: PipelineRefusal = {
+  status: 400,
+  code: "bad_key",
+  message: "That upload key doesn't match this upload.",
+};
 
 /** The complete's two refusals of an original it cannot land (a missing object, a copy R2 would not make). */
 const NOT_VERIFIED: PipelineRefusal = {
@@ -877,46 +1126,36 @@ async function readRecorded(media_id: string): Promise<RecordedRead> {
   }
 }
 
-/** The duplicate's answer, word for word what a twin whose insert met its own row says (`recorded`). */
-const recordedAnswer = () =>
-  NextResponse.json({ ok: true, status: "recorded" });
-
 /**
  * A recorded upload's answer. A key that is not the one its row was recorded with (the id is the row's, the event,
  * kind or ext is not) is a complete our client never sends: refused in the key binding's words, and nothing moves.
  */
-function answerRecorded(originalKey: string, key: string): NextResponse {
+function answerRecorded(originalKey: string, key: string): CompleteAnswer {
   if (originalKey !== key) {
     captureWarning("upload", "complete_key_not_its_row", { key });
-    return refuse({
-      status: 400,
-      code: "bad_key",
-      message: "That upload key doesn't match this upload.",
-    });
+    return { ok: false, refusal: KEY_NOT_THIS_UPLOAD };
   }
-  return recordedAnswer();
+  return RECORDED;
 }
 
 /**
  * ★ A REFUSAL NEVER WITHDRAWS A KEY A RECORDED ROW POINTS TO (crumbs-62). What a refused or failed record copied into
  * `events/` goes back out only once the row is read and there is none. Found, the row wins: a twin complete of this
  * upload recorded it while this one met a gate the twin had just moved (the roll its insert filled, the room its bytes
- * took), so the upload IS recorded and this complete says so (with a key not its row's, it keeps its refusal, and the
- * files stay). A read that fails takes nothing out and says so: the orphan sweep reclaims, a day on, a key no row
- * names. The read and the delete are two acts, so a twin recording in the milliseconds between them could still lose
- * its files; that needs both completes of one upload to straddle a host's change of a gate, and the backup holds every
- * object of `events/` meanwhile.
+ * took), so the upload IS recorded and this complete says so (true; with a key not its row's, it keeps its refusal,
+ * and the files stay). A read that fails takes nothing out and says so: the orphan sweep reclaims, a day on, a key no
+ * row names. The read and the delete are two acts, so a twin recording in the milliseconds between them could still
+ * lose its files; that needs both completes of one upload to straddle a host's change of a gate, and the backup holds
+ * every object of `events/` meanwhile.
  */
 async function withdrawUnlessRecorded(args: {
   copied: string[];
   media_id: string;
   key: string;
-}): Promise<NextResponse | null> {
+}): Promise<boolean> {
   const { copied, media_id, key } = args;
   const now = await readRecorded(media_id);
-  if (now.kind === "row") {
-    return now.originalKey === key ? recordedAnswer() : null;
-  }
+  if (now.kind === "row") return now.originalKey === key;
   if (now.kind === "unknown") {
     if (copied.length > 0) {
       captureWarning("upload", "unrecorded_copies_left", {
@@ -925,8 +1164,8 @@ async function withdrawUnlessRecorded(args: {
         error: "the media row could not be read",
       });
     }
-    return null;
+    return false;
   }
   await unlandCopies(copied, media_id);
-  return null;
+  return false;
 }
