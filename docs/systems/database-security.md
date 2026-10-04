@@ -13,7 +13,7 @@ DEFINER RPCs validate inside; `anon` never touches a table. A feature's own RPC 
 
 ## The RPC inventory and the advisor set
 
-`get_advisors` (security) after every schema change reads 19 `rls_enabled_no_policy`, 4 in lint `0028` and 35 in
+`get_advisors` (security) after every schema change reads 19 `rls_enabled_no_policy`, 4 in lint `0028` and 36 in
 `0029`.
 Leaked Password Protection is on, so its WARN never shows. A function in the wrong list means a grant slipped.
 
@@ -56,7 +56,7 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
   `check_slug_available`, `has_password` / `verify_current_password` / `mark_password_set`, `get_my_uploads` /
   `remove_my_upload`, `claim_anonymous_uploads` / `claim_ticket_asks` / `claim_asked_uploads`,
   `list_guest_rows_by_email` / `claim_guest_rows_by_email` /
-  `disown_guest_rows_by_email`, `restore_media` / `restore_event` / `purge_media_now`, `like_media` /
+  `disown_guest_rows_by_email`, `restore_media` / `restore_event` / `purge_media_now` / `empty_deleted` (Empty Deleted, a batch a call), `like_media` /
   `get_my_likes` / `get_event_like_counts`, `follow_user` / `block_user`, the per-event block's two host acts,
   `block_from_event` / `let_back_in`, and the door's four, `set_event_door` / `let_in_at_door` / `add_event_invites` /
   `remove_event_invite` ([guest-flow.md](guest-flow.md)).
@@ -86,7 +86,8 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
   simply absent, and it may name only media columns the host's SELECT grant holds.
 - **Service-role only, never in either list:** the server-mediated set above, `action_rate`, `article_feedback_summary`
   (an INVOKER read, one jsonb, behind the admin seam), `purge_media_rows`,
-  `record_link_hit`, `host_active_bytes`, `host_storage_summary`, `tier_limits` and `monthly_ingress_cap` (INVOKER;
+  `record_link_hit`, `host_active_bytes`, `host_storage_summary`, `leave_deleted` (the over-capacity deadline's first
+  step, a batch a call), `tier_limits` and `monthly_ingress_cap` (INVOKER;
   every other caller is a DEFINER body), the paged album's reader
   `album_changes_since` (an INVOKER read the Next routes call after their own capability check) and its log's prune
   `album_prune_tombstones` (DEFINER: the tables grant the service role SELECT only), the develop's `develop_due` and
@@ -100,7 +101,8 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
   is created, never when it fires).
 - **The owner's alone** (revoked from the service role too, so no role PostgREST serves can call them): helpers only
   a definer body reads, `event_door_asks` (a set no request can page) and `event_account_ticket` (a whole guest row,
-  its ticket in it), and the develop's five (`album_bits`, `album_doorbell`, `seal_disagrees`, `guest_roll`,
+  its ticket in it), Deleted's one definition `host_deleted_media` and the upload's line `host_room_used` (both
+  SECURITY INVOKER, read only by the four capacity bodies), and the develop's five (`album_bits`, `album_doorbell`, `seal_disagrees`, `guest_roll`,
   `develop_rows`).
 - ★ **Every SECURITY DEFINER function pins `set search_path = ''` and fully qualifies every name** (`public.events`,
   `auth.users`, `extensions.crypt`): an unpinned path lets a caller shadow a name and run it as the owner. No
@@ -127,7 +129,7 @@ a table created since starts with no client grant, so its migration grants exact
   `authenticated` holds SELECT and its writes only on a table a policy serves, and TRUNCATE, REFERENCES, TRIGGER and
   MAINTAIN (Supabase's latent default; PostgREST issues none) on none.
 
-- **`profiles`:** hosts write `announcements_seen_at` and `welcomed_at`, nothing else, so a new column is
+- **`profiles`:** hosts write `announcements_seen_at`, `welcomed_at` and `make_room_from_deleted`, nothing else, so a new column is
   fail-closed. Never grant `email` (every transactional email goes there, so a client write is a mail-redirect
   primitive), `display_name` or `bio` (public text, written on the admin client after validation and the profanity
   check: [auth-accounts.md](auth-accounts.md)), `deletion_requested_at` (no un-request path exists), or `slug`, `tier*`, `event_slots`,
@@ -179,7 +181,9 @@ a table created since starts with no client grant, so its migration grants exact
   checks are check-then-act over aggregates no row lock can hold, so two concurrent uploads, restores or creates
   would each read N-1 and both admit. `create_media`, `create_media_as_host`, `restore_media`, `restore_event` and
   `enforce_event_limit` each take exactly ONE profiles lock, the host's, as their first lock, so no deadlock is
-  constructible; never lock a second host's row in these bodies.
+  constructible; never lock a second host's row in these bodies. `leave_deleted` and `empty_deleted` take the host's
+  row first too, and the restores take it before the item's, so a restore and an upload making room never act on one
+  row at once.
 - ★ **A mint of an ask reads the door under the event row's share lock** (`create_guest`, `ask_to_join`,
   `20260930100000`). Every move of the door writes that row (`set_event_door` locks it `for no key update`,
   `set_event_password`'s update takes the same lock), and the triggers that end or admit the asks read only what has

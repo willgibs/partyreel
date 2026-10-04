@@ -481,8 +481,8 @@ visitor-facing "Private" never collides.
 - **Tiles render through the shared `MediaTile`, never `next/image`**, whose optimizer 400s on short-lived presigned R2
   URLs.
 - **The review pair `approveBulk` and `hideBulk` are scoped to `status='pending'`**, so a crafted call cannot flip
-  other media; Undo's `returnToReview` is scoped to the state its verdict left. **Remove is soft** (`status='removed'` and `removed_at`): it frees storage at once, and the cron reclaims
-  after the recovery window ([lifecycle-recovery.md](lifecycle-recovery.md)).
+  other media; Undo's `returnToReview` is scoped to the state its verdict left. **Remove is soft** (`status='removed'` and `removed_at`): it moves to Deleted, which still counts in her storage until
+  it leaves for good, and the cron reclaims after the 30 days ([lifecycle-recovery.md](lifecycle-recovery.md)).
 - **The host's tile verbs are a fixed three: like, download, hide/show** (one slot whose glyph swaps in place; the pane
   is [design-system.md](design-system.md)'s album tile). Delete is deliberately not a tile verb: a fan on a dense grid is
   a misclick trap, and it is the consequential one. Delete lives in the viewer and bulk select, approval in Review.
