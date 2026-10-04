@@ -116,11 +116,11 @@ Each is built as recommended and listed under "Calls his to overrule".
   Deleted never counts it nor makes room from it), `docs/systems/disposable-mode.md` (the camera's withdrawal rule is
   now every album's, and the cap reads what the host stores).
 - For the Orchestrator, in docs this lane reads and never edits:
-  - `database-security.md`: the advisor line (`0029` 35 → 36 with `empty_deleted`); the authenticated-only list gains
-    `empty_deleted`; the service-role-only list gains `host_room_used` and `leave_deleted`; `host_deleted_media` is the
-    owner's alone (as `event_door_asks`); hosts write `profiles.make_room_from_deleted` too; the capacity-lock bullet:
-    `leave_deleted` and `empty_deleted` take the host's profiles row first, and the restores take the caller's own row
-    first.
+  - `database-security.md`: the advisor line (`0029` 35 → 36 with `empty_deleted(integer)`); the authenticated-only
+    list gains `empty_deleted`; the service-role-only list gains `leave_deleted(uuid, bigint, boolean, integer)`;
+    `host_deleted_media` and `host_room_used` are the owner's alone, SECURITY INVOKER (as `event_door_asks`); hosts
+    write `profiles.make_room_from_deleted` too; the capacity-lock bullet: `leave_deleted` and `empty_deleted` take the
+    host's profiles row first, and the restores take the caller's own row first.
   - `host-app.md:484`: "Remove is soft ...: it frees storage at once" (it moves to Deleted and still counts until it
     leaves for good).
 
@@ -148,23 +148,47 @@ Each is built as recommended and listed under "Calls his to overrule".
   `0bd36746` the sync (a merge of `origin/launch-prep` at `44b2a954`, crumbs-62 and pricing-research in, no conflict);
   `db56a97b` the docs and the over-capacity cases; `2dbaf352` the host's room words and the Library's polish;
   `58ec63e6` a comment in the migration's head; `36f43004` this file; `e968be9d` the second sync (`0e45140f`, docs
-  only: ROADMAP and the pickup); then this file alone.
-- **Gates on the synced tree, `e968be9d`** (logs in `../partyreel-wt/_scratch/trash-in-storage/`, exits in
-  `gate-exits-synced.txt`): `pnpm typecheck` 0, `pnpm lint` 0, `pnpm test` 0 (877 files, 10,535 tests,
-  `gate-test-synced.log`), `zsh scripts/build-lock.sh pnpm build` 0 (`gate-build-synced.log`),
-  `pnpm lab:smoke --base http://localhost:3131` 0 (154 checks, `gate-lab-smoke-synced.log`). The same five green on
-  `2dbaf352` before it (`gate-exits.txt`). No board, so no `lab:demo`.
-- **Red first, each:** the migration's foot (`supabase/migrations/20261003220000_deleted_counts.sql:1396`, RESULT at
-  `:1875`): LIVE RED without its statements 13/15 failing on what each lacks, GREEN with them 15/15, run again on the
-  final file (`_scratch/.../green2_min.sql`), nothing persisted (a read afterwards: no column, none of the four
-  functions, `create_media` still `e83666cd`). It covers the cap counting Deleted (steps 2-3), a delete freeing nothing
-  (4), making room oldest first for her upload and a guest's (5), past what Deleted can free (6), `leave_deleted` (7),
-  Empty Deleted (8), restore always fitting (9), the meter's line by the setting (10), the advisories (11), the
-  withdrawal's night (12), Let back in (13), every grant (14), the bodies' hashes (15). The over-capacity path:
-  `src/lib/lifecycle/sweeps/over-capacity.test.ts`'s four new cases fail 3 of 4 on the old sweep
-  (`red-over-capacity.log`) and pass 10/10 on this one (`green-over-capacity.log`). The retired eviction: the cron's
+  only: ROADMAP and the pickup); `97e8136e` this file; `e1f6bc07` the Advisor's Q23 (below); `1fbf2efb` the third sync
+  (`b08aa01c`, the pickup alone); then this file alone.
+- **The Advisor's Q23, amended in place** (`e1f6bc07`; its verdict: safe to apply as written):
+  - F1: `leave_deleted` gains `p_limit` and answers `more`; `empty_deleted(p_limit default 2000)`, at most 5,000,
+    takes a batch a call and lets the deleted events go only with the last one; `emptyDeletedAction` calls again while
+    `more` within 40 s, adding up what each freed, and answers `more` when time ran out or a later batch failed after
+    earlier ones left; the chart and the size list say Deleted still holds some, its Empty there to finish. The same
+    8 s timeout binds the service role through PostgREST (`authenticator` carries it; read live), so the over-capacity
+    deadline leaves her Deleted a batch a call (`LEAVE_DELETED_BATCH`) under the sweep's deadline, and a due grace
+    finishes to the real cap even inside the headroom, so a run stopped part way is never cleared half done with no
+    mail. The upload's eviction stays bounded by its bytes.
+  - F2: `restore_media` and Let back in set `removed_by_system = false`; `host_deleted_media` reads `by_system` as
+    `m.status = 'removed' and m.removed_by_system`.
+  - F3: `host_room_used` is the owner's alone and runs as its caller (SECURITY INVOKER); only the four definer bodies
+    read it.
+  - The pin: `src/lib/billing/storage-summary.test.ts` holds `media_host_all`'s latest USING to exactly its three
+    conjuncts (her events, not an operator's removal, not asked) beside `host_deleted_media`'s restated pair, so a policy
+    that changes fails until the figure follows; and pins the flag's reading and the two restores' clear.
+  - Words: `billing-caps.md` (the setting governs uploads alone), `lifecycle-recovery.md` (the deadline's order holds
+    whatever the setting; the grace mails say so), the grace mails' doc comment in `lib/email/templates.ts`.
+- **Gates on the synced tree, `1fbf2efb`** (logs in `../partyreel-wt/_scratch/trash-in-storage/`, exits in
+  `gate-exits-q23.txt`): `pnpm typecheck` 0, `pnpm lint` 0, `pnpm test` 0 (877 files, 10,546 tests,
+  `gate-q23-test.log`), `zsh scripts/build-lock.sh pnpm build` 0 (`gate-q23-build.log`),
+  `pnpm lab:smoke --base http://localhost:3131` 0 (154 checks, `gate-q23-lab-smoke.log`). The same five green before
+  the amendment on `e968be9d` (`gate-exits-synced.txt`) and `2dbaf352` (`gate-exits.txt`). No board, so no `lab:demo`.
+- **Red first, each:** the migration's foot (`supabase/migrations/20261003220000_deleted_counts.sql:1428`, RESULT at
+  `:1963`), run on the amended file as one `begin; … rollback;` each: LIVE RED without its statements 14/16 failing on
+  what each lacks, GREEN with them 16/16 (`_scratch/.../red3.sql`, `green3.sql`), the drift read unchanged before and
+  nothing persisted after (no column, none of the four functions, `create_media` still `e83666cd`). It covers the cap
+  counting Deleted (steps 2-3, a live row's stale flag counted hers), a delete freeing nothing (4), making room oldest
+  first for her upload and a guest's (5), past what Deleted can free (6), `leave_deleted` by bytes or a count with
+  `more` (7), Empty Deleted a batch a call with the events leaving last (8), restore always fitting (9), a restored
+  system removal losing its flag (9b), the meter's line by the setting (10), the advisories (11), the withdrawal's
+  night (12), Let back in clearing the flag (13), every grant and signature (14), the bodies' hashes (15, the file's
+  own). The over-capacity path: `src/lib/lifecycle/sweeps/over-capacity.test.ts`'s four first cases fail 3 of 4 on the
+  pre-lane sweep (`red-over-capacity.log`), its three Q23 cases (a batch a call, a deadline between batches, a due
+  reduce finished inside the headroom) fail 3 of 3 on the pre-amendment sweep (`red-q23-over-capacity.log`), and all
+  13 pass (`green-q23-over-capacity.log`). The retired eviction: the cron's
   budgeted list (`src/app/api/cron/purge/route.test.ts`) without it, its sweep and tests deleted, `operator-removal.test.ts`
-  on `leave_deleted`. The UI: `storage-list.test.tsx` (17), `storage-chart.test.tsx` (11), `storage-figures.test.ts`.
+  on `leave_deleted`. The UI: `storage-list.test.tsx` (18), `storage-chart.test.tsx` (12), `storage-figures.test.ts`,
+  `storage-list-state.test.ts`; the action's batches: `storage-actions.test.ts`.
 - **Captures** (`_scratch/trash-in-storage/captures/`, the Library's real components in a headless Chrome of mine):
   `chart-{empty,half,full-on,full-off}-{375,1440}.png` and their `-dark` twins, the entry pages, the ring's popover in
   situ (`meter-popover-{375,1440}.png`), the size list and its confirm (`size-list-*.png`). The four states are the
@@ -224,15 +248,18 @@ Each is built as recommended and listed under "Calls his to overrule".
   and drop the typed seams: `src/lib/db/queries/storage.ts` (`SummaryRow`), `src/app/(app)/dashboard/storage-actions.ts`
   (`untyped`), `src/lib/lifecycle/leave-deleted.ts` (the client cast), `src/components/app/storage/storage-figures.ts`
   (`makeRoomFrom`'s parameter). Milestone 34 and build 50 keep working (the head says what they meet). No Worker,
-  Vercel, Stripe or env change.
+  Vercel, Stripe or env change. The protocol's drift md5s are unchanged by the amendment (read live again before the
+  re-run); the file's own bodies hash as its RESULT says.
 - **Calls his to overrule:** Q1 the setting on by default; Q2 room made at the complete, never the presign; Q3 what
   leaves first (oldest first, a deleted event's own largest first, never more than the upload needs); Q4 the grace on what she keeps, her
   own Deleted first at the deadline, a system removal's restore gated; Q5 every guest withdrawal purges that night;
   Q6 the size list's Delete for good and Empty; Q7 restore always fits, nothing past 30 days; Q8 Empty Deleted beside
-  the chart (a deleted event's own Delete forever deferred); Q9 an expand, milestone 34 meeting the new cap.
+  the chart (a deleted event's own Delete forever deferred); Q9 an expand, milestone 34 meeting the new cap; Q23's
+  sizes (2,000 items a call, at most 5,000; the action's 40 s; past it, "empty it again"), and a due grace finishing
+  to the real cap inside the headroom.
 - **Look at first:** the captures (`captures/chart-*-375.png`, `meter-popover-375.png`); `create_media`'s cap block
-  (`supabase/migrations/20261003220000_deleted_counts.sql:494`) and `leave_deleted` (`:201`); the deadline's order in
-  `src/lib/lifecycle/sweeps/over-capacity.ts:345`. And the smoke's PREMISE lines: open asks on `host-dashboard` (3),
+  (`supabase/migrations/20261003220000_deleted_counts.sql:523`), `leave_deleted` (`:210`) and `empty_deleted` after it;
+  the deadline's order and its batches in `src/lib/lifecycle/sweeps/over-capacity.ts:353`. And the smoke's PREMISE lines: open asks on `host-dashboard` (3),
   `event-header` (2) and `the-wait` (1) describe files this change touched, to re-read before his next sitting.
   ROADMAP's "an upload reads the host's active bytes three times" now reads what she stores (`host_room_used` at the
   context and the meter, the summary at the complete, twice when it makes room): its counter idea still holds.
