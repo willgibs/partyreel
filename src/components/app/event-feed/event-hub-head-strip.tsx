@@ -87,7 +87,7 @@ export function HubFactsStrip({
     <div
       data-hub-strip=""
       data-photos={photos}
-      data-lit={lit ? "" : undefined}
+      data-landing={lit ? "" : undefined}
       className="@container flex min-w-0 items-end gap-3 text-white"
     >
       {tiers.map(({ tier, marks }) => (
@@ -163,7 +163,7 @@ function EndCount({
     >
       <span
         className="hub-strip-end"
-        data-lit={lit ? "" : undefined}
+        data-landing={lit ? "" : undefined}
         aria-hidden
       />
       <span

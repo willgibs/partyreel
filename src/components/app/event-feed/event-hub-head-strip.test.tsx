@@ -156,9 +156,9 @@ describe("lit", () => {
   it("★ is photographs landing now: the newest within a quarter of an hour lights the end and its recent marks", () => {
     useAlbum(album([600, 300, 120, 14, 5, 2]));
     const { container } = render(<HubFactsStrip served={6} />);
-    expect(root(container).hasAttribute("data-lit")).toBe(true);
+    expect(root(container).hasAttribute("data-landing")).toBe(true);
     expect(
-      container.querySelector(".hub-strip-end")?.hasAttribute("data-lit"),
+      container.querySelector(".hub-strip-end")?.hasAttribute("data-landing"),
     ).toBe(true);
     const lit = [...tier(container, "hand").children].filter((m) =>
       m.hasAttribute("data-new"),
@@ -170,10 +170,18 @@ describe("lit", () => {
     );
   });
 
+  it("★ never wears the design's bright edge: `data-lit` is that material hook, and would ring the whole strip", () => {
+    // Found in a real browser (a hairline box round the strip), where a state named `data-lit` read as the edge's own.
+    useAlbum(album([600, 300, 120, 14, 5, 2]));
+    const { container } = render(<HubFactsStrip served={6} />);
+    expect(root(container).hasAttribute("data-landing")).toBe(true);
+    expect(container.querySelector("[data-lit]")).toBeNull();
+  });
+
   it("is never lit for an album that has gone quiet", () => {
     useAlbum(album([600, 300, 120, 16]));
     const { container } = render(<HubFactsStrip served={4} />);
-    expect(root(container).hasAttribute("data-lit")).toBe(false);
+    expect(root(container).hasAttribute("data-landing")).toBe(false);
     expect(container.querySelector("[data-new]")).toBeNull();
     expect(container.querySelector(".sr-only")?.textContent).not.toContain(
       "landing now",
@@ -183,27 +191,27 @@ describe("lit", () => {
   it("★ puts its light out at the quarter hour on its own, with nothing refreshed", () => {
     useAlbum(album([60, 30, 10]));
     const { container } = render(<HubFactsStrip served={3} />);
-    expect(root(container).hasAttribute("data-lit")).toBe(true);
+    expect(root(container).hasAttribute("data-landing")).toBe(true);
     // Five minutes on it is still landing, the newest being ten minutes old; at the quarter hour it is not.
     act(() => {
       vi.advanceTimersByTime(4 * MIN);
     });
-    expect(root(container).hasAttribute("data-lit")).toBe(true);
+    expect(root(container).hasAttribute("data-landing")).toBe(true);
     act(() => {
       vi.advanceTimersByTime(2 * MIN);
     });
-    expect(root(container).hasAttribute("data-lit")).toBe(false);
+    expect(root(container).hasAttribute("data-landing")).toBe(false);
     expect(container.querySelector("[data-new]")).toBeNull();
   });
 
   it("lights again when a new photograph lands, and keeps one timer for the moment it turns", () => {
     useAlbum(album([300, 200]));
     const { container, rerender } = render(<HubFactsStrip served={2} />);
-    expect(root(container).hasAttribute("data-lit")).toBe(false);
+    expect(root(container).hasAttribute("data-landing")).toBe(false);
     expect(vi.getTimerCount()).toBe(0);
     useAlbum(album([300, 200, 0]));
     rerender(<HubFactsStrip served={3} />);
-    expect(root(container).hasAttribute("data-lit")).toBe(true);
+    expect(root(container).hasAttribute("data-landing")).toBe(true);
     expect(vi.getTimerCount()).toBe(1);
   });
 
@@ -216,7 +224,7 @@ describe("lit", () => {
   it("★ is not lit in the server's paint or the hydrating render, which have no clock of hers", () => {
     useAlbum(album([60, 30, 2]));
     const html = renderToString(<HubFactsStrip served={3} />);
-    expect(html).not.toContain("data-lit");
+    expect(html).not.toContain("data-landing");
     expect(html).not.toContain("data-new");
     // The album's marks and number are all there in the first byte.
     expect(html).toContain('data-hub-strip-tier="desk"');
@@ -237,7 +245,7 @@ describe("a head with no album store", () => {
     );
     expect(heights.size).toBe(1);
     expect([...tier(container, "desk").children]).toHaveLength(160);
-    expect(root(container).hasAttribute("data-lit")).toBe(false);
+    expect(root(container).hasAttribute("data-landing")).toBe(false);
   });
 
   it("draws the arrivals it was handed (the Library's specimen), and lights what is landing", () => {
@@ -258,6 +266,6 @@ describe("a head with no album store", () => {
         .map((m) => (m as HTMLElement).style.height),
     );
     expect(heights.size).toBeGreaterThan(0);
-    expect(root(container).hasAttribute("data-lit")).toBe(true);
+    expect(root(container).hasAttribute("data-landing")).toBe(true);
   });
 });

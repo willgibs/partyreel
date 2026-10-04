@@ -110,7 +110,7 @@ describe("the hub's head", () => {
       cover({ arrivals: [nowMin - 500, nowMin - 300, nowMin - 2] }),
     );
     expect(
-      container.querySelector("[data-hub-strip]")?.hasAttribute("data-lit"),
+      container.querySelector("[data-hub-strip]")?.hasAttribute("data-landing"),
     ).toBe(true);
   });
 });
