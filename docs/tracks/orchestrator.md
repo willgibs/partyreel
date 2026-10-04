@@ -111,42 +111,80 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team brie
 
 ## Next, in order
 
-0. **Running** (resumed 15:40Z; integrate each as it hands off, gates from 180):
-   - `event-dates`: its gate (its migration applied and the types regenerated; it drops its own `endDateOf` seams);
-   - `the-wait-r2`: refining, then its gate;
-   - `crumbs-56`: red-team 46's two MEDIUMs;
-   - `redteam-46`: W4 to W8 on build 46, then its restore and verdict.
-   The Advisor's Q13 stands: the backup Worker's originals-only filter is never deployed before a remake job exists
-   (PRICING.md's lever 2a).
-1. **`crumbs-57`** (Sonnet), cut at red-team 46's verdict, for its LOWs and NITs:
-   - the host's cover standing up to 30 s after her own Develop now;
-   - the sheet's screen-reader "photos" for a video;
-   - the Download panel's "photos & videos" when there's no video;
-   - whatever W4 to W8 add.
-   It rides build 47 if it hands off in time, else build 48.
-2. **Build 47 (`e5be373c`) serves the alias** (17:00Z; deployments pruned); the desk pass green (`board-card.mjs
-   --desk`: no two asks repeat; `lab:demo` on the alias, 11 steps at 1440 and at 375, 0 failing); his desk-ready
-   message sent 17:20Z (the draft `../partyreel-wt/_scratch/morning-2026-10-03.md`, the calls file through 129).
-3. **Red-team 47 on the delta** while he is at his desk:
-   - event-dates' range everywhere;
-   - both MEDIUMs re-walked;
-   - crumbs-57's items.
-   Milestone 35 waits on its verdict and his yes.
-4. **The close:** STATUS, the calls file (from 127), this pickup; then Moltbook one pass an hour.
+Written 2026-10-04 02:55Z for a controlled compaction, on Will's answers of 02:50Z. Nothing runs: every lane is merged or
+parked; the alias serves build 50 (`048016f9`, red-team 50 clean). Do these in order.
+
+0. **First, answer Will's open question in chat:** would a guest limit help our costs or resources anywhere? (His
+   words: "If not, and everything is effectively the same regardless of limit/no limit, let's keep no limit. If there are
+   benefits, let's judge.") The facts, from PRICING.md's atlas:
+   - a guest is a per-request constant: ≈$0.004 a confirmed guest past 100,000 MAU, nothing below it;
+   - the live album grows with viewers × time since `album-calm`, never uploads × viewers: the 2,000-guest wedding is
+     ≈$11 to $5.50 of live cost, inside even a $29 pass;
+   - the runaway guards already stand: the join backstop of 3,000 a quarter-hour per address and event, the hourly
+     uploads breaker, `spend-watch`, Supabase Auth's email limit.
+
+   Recommended: keep no limit. Name the one benefit a limit would buy (Realtime connection slots at a giant event), and
+   why the calm album and the guards already cover it.
+1. **Milestone 35 (his yes, 02:50Z), from `launch-prep`'s tip.** Since build 50 the tip carries records only.
+   - Run the full gate (`FULL=1`).
+   - Merge `launch-prep` into `main` with the tag `milestone-35`, the message naming the round: round 13's wirings,
+     event dates, album-calm, spend-watch, upload-meter's staging, backup-prune's controls, crumbs-55 to 62, red-teamed
+     on builds 46 to 50 with no MEDIUM open.
+   - Wait for production READY, then walk partyreel.com read-only.
+   - Production now runs the spend watch's 05:00 cron (Hobby: two crons).
+   - STATUS gets production's line.
+   - The runbook's "Milestone" section has the steps.
+2. **trash-in-storage, at once after the milestone** (the Advisor's Q23 and Q24: apply minutes before its build):
+   - apply `20261003220000_deleted_counts.sql` by protocol (a helper verbatim; md5 75c77cffc8e335bd3bb2cae72d9a18cb,
+     2,003 lines; the md5 proof, advisors 0029 +1 expected, the foot's 15 hashes);
+   - integrate `c645bfd7` (FULL gate) and regenerate the types;
+   - build 51 `[preview]` and red-team 51: Deleted counted, the setting on and off, Empty Deleted, the chart, restore,
+     the over-cap path, a guest withdrawal purging that night.
+
+   Its Q1, the setting's default ON, is **Will's yes**; its other Questions are calls R1 and R2 in the calls lab.
+3. **pricing-wiring, after trash merges** (both move the cap). Will's Ladder A, his words "send it on pricing tier A
+   with $99":
+   - Free: 100 MB, photos, 300 MB of uploads a month, 1 event.
+   - Event Pass: $29 once, 25 GB, 50 GB of uploads over its year (a new yearly meter), **renewal $19 (his word, 02:50Z)**.
+   - Pro 50 GB: $9 a month or $90 a year, 100 GB of uploads a month.
+   - Pro 200 GB: $29 or $290, 200 GB a month.
+   - Pro 1 TB: $99 or $990, 500 GB a month.
+   - Unlimited events and no guest limit on every paid plan.
+   - The table's published rows, each with a hover line: Storage, Uploads, Events, Guests, Largest file, Deleted, Kept
+     (`ladders.md`'s row table), with Deleted's line rewritten for "counts in your storage".
+   - The fair-use line, in the Advisor's Q16 words.
+   - Cards that lead with the events they hold; "one payment, no subscription" on the pass.
+   - Stripe test prices are the Orchestrator's via the MCP, after `list_available_accounts_or_orgs` shows livemode false.
+   - Every marketed number in `tiers.ts`, `tier_limits()` (a migration by protocol), /pricing, the plan sheet, the help,
+     the blog, llms.txt and the JSON-LD.
+   - PRICING.md's Tiers table.
+4. **Google Drive export (his yes, 02:50Z): plan and review first, the UI in the lab first, then wiring.** His words:
+   "if it's that easy to dump into Google Drive and we can basically swallow WedUploader/WeddingQR/PixBearer's entire
+   feature set at $29/event within a cancellable $9/month unlimited events drive-offload one month subscription, that's a
+   hilariously great win ... let's ensure this is fully planned and reviewed, then do it. lab exploration first to nail
+   UI."
+   - **The research:** `drive.file` only, never full `drive` (no CASA: "Definitely don't want to pay for that security
+     audit"). Brand verification only. A Worker plus Queue streaming R2 to Drive's resumable uploads at ≈$0.0007 a GB.
+     Dropbox via `save_url` next; Google Photos no (10,000 requests a day per project); iCloud impossible.
+   - **Order:**
+     1. a design note and the Advisor's review of the architecture: the OAuth flow, the token store (encrypted,
+        server-only, revoked on disconnect), the transfer job and its `/admin` health signal, the full-Drive and 429
+        paths;
+     2. a lab board for the UI, on his desk: the Send to Drive entry on the host's Download panel, the consent, the
+        progress, done, and the clean exit (delete it here after export);
+     3. the wiring after his pick;
+     4. his one step: a Google Cloud project with an OAuth client, the steps written by the lane.
+5. **The close of the day:** STATUS, this pickup, the calls lab (`../partyreel-wt/_scratch/calls/calls-lab.md`: new calls
+   in its form, a section per batch). Moltbook hourly only on his word.
 
 ## Waiting on Will
 
-- **His pricing pick: DECIDED 2026-10-03 23:58Z, Ladder A with 1 TB at $99** (his word: "Let's send it on pricing tier
-  A with $99 ... a very cheap entry to pro and nicely scaled storage tiers along the way"): Free 100 MB (photos, 300 MB
-  of uploads a month, 1 event); the Event Pass $29 once, 25 GB, 50 GB of uploads over its year, renewal $15 as A draws it
-  (the research leaned $19: his to overrule); Pro 50 GB $9 a month or $90 a year (100 GB of uploads a month), Pro 200 GB
-  $29 or $290 (200 GB), Pro 1 TB $99 or $990 (500 GB); unlimited events and no guest limit kept; limits published with
-  hover lines, the fair-use line per the Advisor's Q16; Deleted inside storage. `pricing-wiring` is cut once
-  `trash-in-storage` merges (both move the cap). His next ask: an easy export to Google Drive (viability researched).
-- **The calls file** (`../partyreel-wt/_scratch/calls/relay-calls.md`, calls 1 to 133): he reviews in batches, with
-  comments where needed. Direct questions go to him in chat, never only in the file.
-- **His desk** tonight on build 49 (six boards).
+- **His desk tonight** on the alias (six boards: identity r3, host-dashboard r3, the-wait r2, event-header r3,
+  create-wizard r3, demo-framing r5): `https://partyreel-git-launch-prep-partyreel.vercel.app/design/lab?key=fiesta`.
+- **The calls lab** (`../partyreel-wt/_scratch/calls/calls-lab.md`): Q2 to Q6 open (a spoken "to"; how a batch
+  lands; "within seconds"; the room screen's link; a develop time added mid-party), sections A to R. He reviews in
+  batches and asks direct questions in chat; answer in chat, never only in a file.
 - **His walks:** the camera on his iPhone (a held-shutter video on a waiting sheet), Save into Photos, Record Video's
-  size, a deletion and its Cancel deletion on hi@willgibs.com, and the spend watch's uploads switch off and on
-  (red-team 48 could not press it).
-- **His yes for milestone 35** once red-team 49 is clean.
+  size, a deletion and its Cancel deletion on hi@willgibs.com, the spend watch's uploads switch off and on.
+- **Decided 02:50Z** (recorded above): milestone 35 yes; Drive export yes (plan, review, the lab first); Make room from
+  Deleted on by default; the renewal $19. The pricing ladder was decided at 23:58Z: A, with 1 TB at $99.
