@@ -34,7 +34,15 @@
  *
  * LAZY (live-reel.tsx): this module reaches the whole canvas engine, and nobody who never opens the
  * view downloads it.
+ *
+ * ★ THE VIEW IMPORTS ITS OWN STYLESHEET (crumbs-66). The dock's classes (`lr-pane`, `lr-bar-content`, `lr-dock-content`,
+ * `lr-follow`) live in `live-reel.css`, which only the guests' controller (`live-reel.tsx`) imported, and the hub's reel
+ * (`event-feed/hub-reel.tsx`) mounts this view without that controller: the built hub route's CSS list did not hold the
+ * sheet, so the host's dock drew with no clip to the bar's pill, the bar's glyphs and the dock's controls on screen at
+ * once, and the Close key never leaving. A component imports the sheet it is drawn by.
  */
+import "./live-reel.css";
+
 import {
   Clock3,
   ImagePlus,

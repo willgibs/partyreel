@@ -14,6 +14,10 @@
  * The walk reads the screen, presses what the screen offers and presses it again when the screen has not moved in
  * `settle` ms, so a lost press costs a few seconds and never the run. Only presses with no side effect are repeated:
  * the name's own Continue mints the guest, so `run.mjs` presses that one once.
+ *
+ * ★ IT PRESSES TWO BUTTONS AND NO OTHER: the welcome's Continue (by its whole label) and the chooser's Continue as guest
+ * (by its start, since its hint, "Just your name", is part of the button). Create account, Log in and anything the door
+ * grows beside them are never pressed, so a walk that no longer finds its way says so (below) instead of signing in.
  */
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -40,36 +44,66 @@ export function deviceRegistry(open) {
   };
 }
 
-/**
- * The screen as the walk reads it, as an expression for the page: whether the name field shows, and the labels of the
- * buttons a press could land on (visible, enabled, no wider than the screen, as `page.click` finds them).
- */
-export const doorScreen = (nameSelector) => `(() => JSON.stringify({
-  name: [...document.querySelectorAll(${JSON.stringify(nameSelector)})].some((e) => e.getBoundingClientRect().height > 0),
-  buttons: [...document.querySelectorAll("button")].filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && r.width <= innerWidth && !e.disabled && getComputedStyle(e).visibility !== "hidden"; }).map((e) => ((e.getAttribute("aria-label") || "") + " " + e.textContent).trim()),
-}))()`;
+/** A button a press could land on: visible, enabled, no wider than the screen (a sheet mid-animation draws a scaled copy). */
+const PRESSABLE = `(e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && r.width <= innerWidth && !e.disabled && getComputedStyle(e).visibility !== "hidden"; }`;
+/** A button's label: what it says, or what it is called where it says nothing. */
+const LABEL = `(e) => (e.textContent || "").trim() || e.getAttribute("aria-label") || ""`;
 
 /**
- * What the walk presses next: the way on from the welcome (Continue) or from the chooser (Continue as guest, which
- * leads, since the welcome's own Continue may still be on screen as it leaves). Null when the name field is up (the
+ * The screen as the walk reads it, as an expression for the page: whether the name field shows, and the labels of the
+ * buttons a press could land on, in the order they stand.
+ */
+export const doorScreen = (nameSelector) => `(() => {
+  const pressable = ${PRESSABLE};
+  const label = ${LABEL};
+  return JSON.stringify({
+    name: [...document.querySelectorAll(${JSON.stringify(nameSelector)})].some((e) => e.getBoundingClientRect().height > 0),
+    buttons: [...document.querySelectorAll("button")].filter(pressable).map(label),
+  });
+})()`;
+
+/** The button a press names, as an expression for `page.clickEl`: the same place in the same order, still wearing its label. */
+export const doorButton = ({ label, index }) => `(() => {
+  const pressable = ${PRESSABLE};
+  const label = ${LABEL};
+  const button = [...document.querySelectorAll("button")].filter(pressable)[${index}];
+  return button && label(button) === ${JSON.stringify(label)} ? button : null;
+})()`;
+
+/** The door's two ways on, in the order they lead: each says which labels it is. */
+const WAYS_ON = [
+  (label) => label.startsWith("Continue as guest"),
+  (label) => label === "Continue",
+];
+
+/**
+ * What the walk presses next, as the button's label and its place among the pressable ones: the chooser's Continue as
+ * guest leads, since the welcome's own Continue may still be on screen as it leaves. Null when the name field is up (the
  * walk has arrived) or when nothing offers a way yet.
  */
 export function nextDoorPress(seen) {
   if (seen.name) return null;
-  const offers = (text) => seen.buttons.some((label) => label.includes(text));
-  if (offers("Continue as guest")) return "Continue as guest";
-  if (offers("Continue")) return "Continue";
+  for (const isWay of WAYS_ON) {
+    const index = seen.buttons.findIndex(isWay);
+    if (index >= 0) return { label: seen.buttons[index], index };
+  }
   return null;
 }
 
 /**
  * Walks a page to the door's name field and returns once it shows, or throws saying what was on screen. The screen is
- * read every `every` ms; what it offers is pressed; a press the screen has not answered in `settle` ms is made again
- * (one the screen answered, by changing, is never repeated).
+ * read every `every` ms; what it offers is pressed (`press`, by default a real click on that very button); a press the
+ * screen has not answered in `settle` ms is made again (one the screen answered, by changing, is never repeated).
  */
 export async function walkToName(
   page,
-  { nameSelector, timeout = 90_000, settle = 6_000, every = 250 },
+  {
+    nameSelector,
+    timeout = 90_000,
+    settle = 6_000,
+    every = 250,
+    press = (target) => page.clickEl(doorButton(target), { timeout: 3_000 }),
+  },
 ) {
   const probe = doorScreen(nameSelector);
   const until = Date.now() + timeout;
@@ -89,10 +123,10 @@ export async function walkToName(
       // The screen moved on, so whatever was pressed landed.
       if (pressed && pressed.screen !== screen) pressed = null;
       if (!pressed || Date.now() - pressed.at >= settle) {
-        const press = nextDoorPress(seen);
-        if (press) {
+        const target = nextDoorPress(seen);
+        if (target) {
           try {
-            await page.click("button", { text: press, timeout: 3_000 });
+            await press(target);
             pressed = { screen, at: Date.now() };
           } catch {
             // It left the screen between the read and the press: read it again.

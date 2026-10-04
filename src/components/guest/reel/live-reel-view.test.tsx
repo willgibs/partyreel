@@ -23,6 +23,9 @@
  *
  * The canvas engine is stubbed (player-live.test.tsx pins it); the code's renderer too.
  */
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { useEffect, useImperativeHandle } from "react";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -1162,6 +1165,39 @@ describe("never silent", () => {
     expect((h.live as GalleryLive).reportPossibleExpiry).toHaveBeenCalledWith([
       "m2",
     ]);
+  });
+});
+
+/**
+ * ★ THE VIEW CARRIES ITS OWN STYLESHEET (crumbs-66). The dock's classes live in `live-reel.css`, which only the guests'
+ * controller imported; the hub mounts the view without that controller, and its built route held no such sheet, so the
+ * host's dock drew unclipped (the bar's glyphs over the dock's controls, the Close key never leaving).
+ */
+describe("the view's own stylesheet", () => {
+  const read = (file: string) =>
+    readFileSync(
+      join(process.cwd(), "src/components/guest/reel", file),
+      "utf8",
+    );
+
+  it("★ imports the sheet its dock's classes are drawn by, so any page that mounts it has them", () => {
+    expect(read("live-reel-view.tsx")).toMatch(
+      /^import "\.\/live-reel\.css";$/m,
+    );
+  });
+
+  it("draws only classes that sheet defines (the dock's pane, its two contents and the corner that follows it)", () => {
+    const view = read("live-reel-view.tsx");
+    const sheet = read("live-reel.css");
+    for (const name of [
+      "lr-pane",
+      "lr-bar-content",
+      "lr-dock-content",
+      "lr-follow",
+    ]) {
+      expect(view, name).toContain(name);
+      expect(sheet, name).toContain(`.${name}`);
+    }
   });
 });
 
