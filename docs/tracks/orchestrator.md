@@ -38,7 +38,7 @@ first. Up to four lanes while `memory_pressure` reads at least 50% free; every p
 | `drive-export-r1` | Send to Google Drive, round 1: the design note for the Advisor (`../partyreel-wt/_scratch/drive-export/design.md`: OAuth with `drive.file` only, the encrypted token store, the Worker and Queue streaming R2 to Drive, every failure path, the guards, `/admin`, live sync, Will's Google Cloud step), then the board `drive-export` at desk 20 | RUNNING (cut at `738c72d0`): the note pushed at `8d3f605e` with four Questions; the Advisor's Q25 (04:20Z, `../partyreel-wt/_scratch/drive-export/q25-advisor.md`): NOT YET, F1 to F4 blocking (the app alone proves an item safe before a delete, from size and MD5 against R2; identity by `drive_file_id`, never the folder; a lane's lifecycle and the poison lane; one snapshot RPC), relayed 04:25Z; the lane amends the note, then Q26 re-reads it while the board finishes | Opus, 3132 | `af71a05c6c8bafbf7` |
 | `pricing-wiring` | Will's Ladder A everywhere a price or a limit is said or enforced (Free 100 MB; the pass $29, 25 GB, 50 GB of uploads over its year, renewal $19; Pro 50 GB / 200 GB / 1 TB at $9 / $29 / $99 with 100 / 200 / 500 GB of uploads a month), the published rows with hover lines and the fair-use line, `tiers.ts` and `tier_limits()` by migration, the help's "frees at once" lines; the Stripe TEST prices the Orchestrator's | RUNNING (cut at `9d7475e7`): the Advisor's Q26 (04:55Z, `_scratch/pricing/q26-advisor.md`): SAFE TO APPLY AS WRITTEN (an expand; advisors unchanged); F1 (a lapsed pass fails open up to a day) folded into the file before the apply on the Orchestrator's word, then the delta re-read and the apply by protocol, the file frozen after; F2 a Deferred line; the pages, copy and docs meanwhile | Opus, 3131 | `a2dfaff7d147088f0` |
 | `crumbs-63` | Will's reel note (2026-10-04): a tap anywhere on the reel shows or hides its controls like the always-visible bar (idle rest and a pointer's movement unchanged), never the photo viewer | MERGED at `3267bf52a` (gate 198 green, light: test 10,562; the lane's on its head: typecheck, lint, test, build, lab:smoke 139, real Chrome at 1440 and 375 with touch, reduced motion and the screen); rides the next build; pruned | Sonnet, 3133 | `abce758c33eeab02c` |
-| `redteam-51` | build 51's red-team (`31b7c652`): Deleted counted on the ring and the chart, a full Free plan both ways (Make room from Deleted on makes exactly the room; off refuses in words), Delete for good and Empty Deleted, a guest's withdrawal purging that night, regressions near the change; brief `../partyreel-wt/_scratch/redteam-51/brief.md` | RUNNING (spawned 03:59Z) | Opus, Will's Chrome | `a027c3916afc6d859` |
+| `redteam-51` | build 51's red-team (`31b7c652`): Deleted counted on the ring and the chart, a full Free plan both ways, Delete for good and Empty Deleted, a guest's withdrawal purging that night, regressions near the change | DONE 05:05Z: no MEDIUM; the ring and chart, the setting off (the host's numbered refusal, the guest's 409, nothing leaving Deleted) and the regressions PASS; NOT DRIVEN by the permission system's refusal of a permanent delete: the eviction with the setting on (hi's Deleted holds four older items it did not make), Delete for good, Empty Deleted, a withdrawal's purge: Will's walks; one NIT (the ring's popover flush to the edge at 375: `popover.tsx` sets no `collisionPadding`) to the small-fixes batch; left on hi: "RT51 free" live (109.4 MB) and Make room from Deleted off; ledger `../partyreel-wt/_scratch/redteam-51/ledger.txt` | Opus, Will's Chrome | `a027c3916afc6d859` |
 | `docs-prune` | Will's ask (2026-10-04): the dead weight that impedes global problem-solving and future-facing creativity, audited then cut in place (history, one-off fixes written as ★ landmines, design written as law, restatement, a ROADMAP "Now" of 327 lines); the take-home board retired; unused kit scripts; the 26 policy tests classified GUARD or TASTE for him; ROADMAP, PROGRAM, ASSETS and the tracks README as ready files in `_scratch/docs-prune/` for the Orchestrator to copy in | RUNNING (cut at `a62356f0`); its audit pushed first for a sanity check | Opus, 3134 | `a2b0267d4162e3314` |
 | `customize-r1` | Will's ask (2026-10-04): hosts shape their party their way, "rocket ship control potential, but it all makes sense for a brand new user": Linear's lessons (`_scratch/customize/linear.md`), every arbitrary assumption ranked (`_scratch/customize/audit.md`, the roll of 24 first), and the board `customize` at desk 15 (the roll's control, the pattern for options and account defaults, the top preferences in it) | RUNNING (cut at `adf5db32a`) | Opus, 3133 | `a1ba7927eb8a90754` |
 
@@ -73,8 +73,7 @@ lands: last time a stacked desk of 100+ asks made every good idea fight open que
 lab) become boards only after his sitting, read side by side with what is left so no two asks repeat. take-home
 shows answered (3 of 3) on build 51's desk and retires with docs-prune.
 
-1. **Red-team 51** walks build 51 (`31b7c652`): read its report, fix any MEDIUM before the next milestone (a crumbs
-   lane), file the rest.
+1. **Red-team 51 is done** (no MEDIUM; its permanent deletes are Will's walks).
 2. **pricing-wiring** runs: send its migration to the Advisor from its WIP push; create the Stripe TEST prices its
    Handoff writes (after `list_available_accounts_or_orgs` reads livemode false) and the env by the REST API;
    integrate; a checkout walk is Will's.
@@ -93,7 +92,8 @@ shows answered (3 of 3) on build 51's desk and retires with docs-prune.
    375 (one push, a stagger recommended, or one fade), drawn live. Its wiring follows his pick.
 5. **The small-fixes batch** once his pass ends (one Sonnet lane for every production answer it leaves): E6, a cancel
    and a dropped connection told apart for downloads and uploads (a cancel asks first, then offers Try again; a network
-   failure is never hidden and says what to do, so she neither retries in vain nor blames the app); Q2, a spoken "to"
+   failure is never hidden and says what to do, so she neither retries in vain nor blames the app); red-team 51's
+   NIT (the popover's `collisionPadding`, 8 as the menus); Q2, a spoken "to"
    in date ranges for screen readers (the dash unchanged on screen); Q5, the host's Reel card ready to play before the
    develop (her scope, sealed shots included, saying guests get it at the develop) while the guest page, hers
    included, shows no reel until the develop (no screen link: a screen not hers casts from her own device). **crumbs-63** (the
@@ -123,4 +123,8 @@ shows answered (3 of 3) on build 51's desk and retires with docs-prune.
   an answer leaves it the moment it is routed, and it keeps no settled list or index (his word, 2026-10-04). Answer
   his direct questions in chat, never only in a file.
 - **His walks:** the camera on his iPhone (a held-shutter video on a waiting sheet), Save into Photos, Record Video's
-  size, a deletion and its Cancel deletion on hi@willgibs.com, the spend watch's uploads switch off and on.
+  size, a deletion and its Cancel deletion on hi@willgibs.com, the spend watch's uploads switch off and on; and
+  trash-in-storage's permanent deletes, which no agent may press (red-team 51): on hi@willgibs.com, the size list's
+  Delete for good on "RT51 free"'s photos, then Make room from Deleted back on and one upload past the line (the
+  oldest of Deleted, four older test items, leaves for good), Empty Deleted, and a guest's own removal reading its
+  purge that night.
