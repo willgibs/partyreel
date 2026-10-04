@@ -12,7 +12,8 @@ owns:                    # the standing claims no lane touches
 reads:
   - CLAUDE.md
   - docs/PROGRAM.md
-announces: []
+announces:
+  - "kit fix at launch-prep (2026-10-04): `integrate.sh` passes the lane's sha whole and `merge-lane.sh` compares heads whole (git's short form grew to 9 characters, so comparing short forms refused every lane); `negative.sh`'s check 2 reworded. A lane editing `usher/kit/` syncs before touching those three."
 ---
 
 # The Orchestrator's state
