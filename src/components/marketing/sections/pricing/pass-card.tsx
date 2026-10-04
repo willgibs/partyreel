@@ -17,6 +17,8 @@ import { formatCount } from "@/lib/format/count";
 import { OVER_CAP_GRACE_DAYS } from "@/lib/lifecycle/over-cap";
 import { formatBytes } from "@/lib/utils";
 
+import { passHoldsLine } from "@/components/app/pricing/holds";
+
 /**
  * THE EVENT PASS, REDRAWN AS A TICKET (`pass=under` + `pair=pro` with his flip,
  * Will 2026-09-20): "Should get a redesign, but stay wide beneath", and "make
@@ -54,6 +56,11 @@ import { formatBytes } from "@/lib/utils";
  * ★ ITS REASON IS WHAT IT WAS, WITHOUT THE LOCKS (the free/pro shift): one
  * event, video, its own room, no subscription. The password and the custom
  * link are on every plan now, so its lines name what a pass adds over Free.
+ *
+ * ★ IT LEADS WITH THE EVENT IT HOLDS AND SAYS IT IS PAID ONCE (Ladder A, the
+ * pricing research): fifteen of sixteen rivals sell one event for one price and
+ * "no subscription" is their loudest line, so the pass says "one payment, no
+ * subscription" first, and its room reads as a wedding before it reads as GB.
  */
 
 /** The frame: the one big event a pass covers. */
@@ -122,7 +129,7 @@ export function PassCard() {
         <div className="flex flex-col gap-2 p-6 sm:p-7 lg:w-80 lg:shrink-0">
           <h2 className="font-heading text-subsection">{pass.name}</h2>
           <p className="text-sm text-pretty text-muted-foreground">
-            One big event, paid once.
+            {passHoldsLine(pass.storageBytes)}.
           </p>
           {/* The display face for money: Urbanist with tabular digits, the
               register every subject number on the site now shares; the
@@ -159,9 +166,11 @@ export function PassCard() {
         {/* The what-you-get half. */}
         <div className="flex flex-1 flex-col gap-4 p-6 sm:p-7">
           <ul className="flex flex-col gap-2.5">
+            <PassPoint>One payment, no subscription</PassPoint>
             <PassPoint>Photos and video, like Pro</PassPoint>
-            <PassPoint>Clips with no watermark</PassPoint>
-            <PassPoint>No subscription, and no inactivity sweep</PassPoint>
+            <PassPoint>
+              Clips with no watermark, and no inactivity sweep
+            </PassPoint>
             <PassPoint>
               Passes stack: each one adds an event and{" "}
               {formatBytes(pass.storageBytes)}

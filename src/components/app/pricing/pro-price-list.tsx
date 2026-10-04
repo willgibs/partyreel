@@ -7,6 +7,7 @@ import {
   type Cadence,
 } from "@/components/app/pricing/cadence-toggle";
 import { ChangePlanButton } from "@/components/app/pricing/change-plan-button";
+import { holdsPhrase } from "@/components/app/pricing/holds";
 import {
   HeldChip,
   PlanCardHead,
@@ -22,7 +23,6 @@ import {
 } from "@/lib/billing/storage-guard";
 import {
   ESTIMATE_BASIS_NOTE,
-  formatCapacity,
   planById,
   plansForTier,
   type Plan,
@@ -48,7 +48,7 @@ import { isProPlanId, type ProPlanId } from "@/lib/validation/checkout";
  *
  * ★ WHAT `storage-wiring` BUILT ON THESE ROWS STAYS (the brief): a size too small is a PRESS that
  * flips its card in place to the refusal, the list's full width (`RefusalFace`), with what she
- * stores, what the size holds, the gap, and the two ways out ("Keep Pro 500 GB" when the size
+ * stores, what the size holds, the gap, and the two ways out ("Keep Pro 200 GB" when the size
  * that fits is hers, that size's other price when it is not); a switch the server refused (she
  * stores more than when the sheet opened) flips its card the same way, on the refusal's own
  * figure, on the billing it was for. A flipped card whose size holds her bytes again (she removed
@@ -174,8 +174,8 @@ export function ProPriceList({
               <PlanCardHead
                 plan={plan}
                 ink={isCurrent}
-                // The basis is said once, under the three (ESTIMATE_BASIS_NOTE).
-                holds={`about ${formatCapacity(plan.storageBytes, { basis: false })}`}
+                // Its use first, then its estimate; the basis is said once, under the three (ESTIMATE_BASIS_NOTE).
+                holds={holdsPhrase(plan)}
                 aside={
                   isCurrent ? (
                     <HeldChip ink />
@@ -304,7 +304,7 @@ function FitBar({
 
 /**
  * The bar's line: what she stores of this size, and how full that makes it, or how far over. ★ UNDER
- * ONE PERCENT IT SAYS SO: floored at 1%, 97.9 MB of 2 TB read "1% full" of a size it barely touches.
+ * ONE PERCENT IT SAYS SO: floored at 1%, 97.9 MB of 1 TB read "1% full" of a size it barely touches.
  * The bar draws only once she stores something, so a size is never "0% full" here.
  */
 export function fitBarLine(stored: number, bytes: number): string {

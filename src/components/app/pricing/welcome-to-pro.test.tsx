@@ -43,7 +43,7 @@ function modal(props: Partial<React.ComponentProps<typeof WelcomeToPro>> = {}) {
     <WelcomeToPro
       applied
       planName="Pro"
-      capBytes={100 * 1024 ** 3}
+      capBytes={200 * 1024 ** 3}
       nextUrl="/dashboard"
       door={{ label: "Go to your dashboard" }}
       {...props}

@@ -18,7 +18,8 @@ import { presignUploadSchema } from "@/lib/validation/upload";
  */
 const ALBUM_FULL =
   "This album is full right now. The host needs to free up space.";
-const ALBUM_MONTH_SPENT = "This album has hit its upload limit for the month.";
+// "For now", never "for the month": a pass counts its uploads over its own year (Ladder A, 20261004100000).
+const ALBUM_MONTH_SPENT = "This album has hit its upload limit for now.";
 
 // Issues presigned URLs for a guest's browser → R2 DIRECT upload. The pipeline
 // engine (lib/upload/server-pipeline.ts) owns the shared spine; this strategy

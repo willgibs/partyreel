@@ -2,20 +2,24 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   AVG_PHOTO_BYTES,
+  BIG_PARTY,
+  BIG_PARTY_BYTES,
+  BIG_PARTY_NOTE,
   BILLING_TIERS,
   DEFAULT_STORAGE_CAP_BYTES,
   ESTIMATE_BASIS,
   ESTIMATE_BASIS_NOTE,
+  EVENT_PASS_RENEWAL_PRICE_LABEL,
   GATED_EVENT_SETTINGS,
   GIGABYTE,
-  INGRESS_CAP_MULTIPLIER,
   MAX_EVENTS,
   MAX_REEL_SECONDS,
   MEGABYTE,
-  MONTHLY_INGRESS_BYTES,
   PLAN_IDS,
   PLANS,
   TERABYTE,
+  UPLOADS_BYTES,
+  UPLOADS_WINDOW,
   VIDEO_BYTES_PER_MIN,
   clampReelSeconds,
   effectiveStorageCap,
@@ -23,11 +27,13 @@ import {
   formatLimit,
   friendlyCapacity,
   isSettingLocked,
-  monthlyIngressCap,
   annualPlanFor,
+  partiesHeld,
   planById,
   plansForTier,
   toBillingTier,
+  uploadAllowance,
+  uploadsLabel,
   videosAllowedForTier,
   withinLimit,
   withinStorage,
@@ -67,21 +73,39 @@ describe("PLANS integrity", () => {
   });
   it("only the Event Pass has a fixed term", () => {
     expect(planById("event_pass").termDays).toBe(365);
-    expect(planById("pro_100").termDays).toBeUndefined();
+    expect(planById("pro_50").termDays).toBeUndefined();
   });
-  it("plansForTier returns the three Pro storage options", () => {
+  it("plansForTier returns the three Pro storage options, smallest first", () => {
     expect(plansForTier("pro").map((p) => p.id)).toEqual([
-      "pro_100",
-      "pro_500",
-      "pro_2tb",
+      "pro_50",
+      "pro_200",
+      "pro_1tb",
     ]);
   });
   it("plansForTier('pro','year') returns the three annual siblings", () => {
     expect(plansForTier("pro", "year").map((p) => p.id)).toEqual([
-      "pro_100_yr",
-      "pro_500_yr",
-      "pro_2tb_yr",
+      "pro_50_yr",
+      "pro_200_yr",
+      "pro_1tb_yr",
     ]);
+  });
+  // A plan id and its env key name its SIZE (pricing-wiring: "pro_100" holding 50 GB would lie to every
+  // reader of a log, a test or the Stripe metadata), so an id can be read for the room it sells.
+  it("names every Pro plan and its price env key by its size", () => {
+    for (const plan of [...plansForTier("pro"), ...plansForTier("pro", "year")]) {
+      const size = plan.name.replace("Pro ", "").replace(" ", "").toLowerCase();
+      expect(plan.id.replace("_yr", "")).toBe(`pro_${size.replace("gb", "")}`);
+      expect(plan.stripePriceEnvKey).toBe(
+        `STRIPE_PRICE_${plan.id.toUpperCase()}`,
+      );
+    }
+  });
+  it("labels every Pro size and the pass by its use, the yearly sibling as its month", () => {
+    for (const monthly of plansForTier("pro")) {
+      expect(monthly.use, monthly.id).toBeTruthy();
+      expect(annualPlanFor(monthly.id)?.use).toBe(monthly.use);
+    }
+    expect(planById("event_pass").use).toBeTruthy();
   });
   // The annual ruling (Will, 2026-08-27): a year costs exactly TEN months
   // ("two months free"), and the pair can only move together. Parsed off the
@@ -100,7 +124,7 @@ describe("PLANS integrity", () => {
   it("annualPlanFor is null off the monthly Pro plans", () => {
     expect(annualPlanFor("free")).toBeNull();
     expect(annualPlanFor("event_pass")).toBeNull();
-    expect(annualPlanFor("pro_100_yr")).toBeNull();
+    expect(annualPlanFor("pro_50_yr")).toBeNull();
   });
 });
 
@@ -114,28 +138,58 @@ describe("tier limit literals (marketed-number pins)", () => {
   it("covers every billing tier", () => {
     for (const t of BILLING_TIERS) {
       expect(MAX_EVENTS[t]).toBeDefined();
-      expect(MONTHLY_INGRESS_BYTES[t]).toBeDefined();
+      expect(UPLOADS_BYTES[t]).toBeDefined();
+      expect(UPLOADS_WINDOW[t]).toBeDefined();
       expect(DEFAULT_STORAGE_CAP_BYTES[t]).toBeDefined();
       expect(MAX_REEL_SECONDS[t]).toBeGreaterThan(0);
     }
   });
-  // The free/pro shift (Will, 2026-09-28) moved this pin from 2 GB and a flat 20 GB meter: Free
-  // is 100 MB now, and its meter follows the paid rule (derived, 3x the cap).
-  it("free: 1 event, derived ingress, 100 MB cap", () => {
+  // The free/pro shift (Will, 2026-09-28) moved this pin from 2 GB: Free is 100 MB. Ladder A
+  // (Will, 2026-10-03) publishes its uploads, 300 MB a month (the number the multiplier made).
+  it("free: 1 event, 100 MB, 300 MB of uploads a month", () => {
     expect(MAX_EVENTS.free).toBe(1);
-    expect(MONTHLY_INGRESS_BYTES.free).toBeNull(); // null = derived, like every paid tier
     expect(DEFAULT_STORAGE_CAP_BYTES.free).toBe(100 * MEGABYTE);
     expect(planById("free").storageBytes).toBe(100 * MEGABYTE);
+    expect(UPLOADS_BYTES.free).toBe(300 * MEGABYTE);
+    expect(UPLOADS_WINDOW.free).toBe("month");
   });
-  it("pro: unlimited events + derived ingress + profile-governed cap", () => {
+  it("pro: unlimited events, its room and its uploads its size's, never a tier default", () => {
     expect(MAX_EVENTS.pro).toBeNull();
-    expect(MONTHLY_INGRESS_BYTES.pro).toBeNull(); // null = derived, not unmetered (billing-caps.md)
     expect(DEFAULT_STORAGE_CAP_BYTES.pro).toBeNull();
+    expect(UPLOADS_BYTES.pro).toBeNull(); // null = its size's (uploadAllowance), not unmetered
+    expect(UPLOADS_WINDOW.pro).toBe("month");
   });
-  it("event_pass: 1 event, derived ingress, 75 GB cap", () => {
+  // Ladder A moved the pass from 75 GB at $24 (renewal $15) to 25 GB at $29 (renewal $19), its
+  // uploads counted over its own year.
+  it("event_pass: 1 event, 25 GB, 50 GB of uploads over its year, $29 once, $19 to renew", () => {
     expect(MAX_EVENTS.event_pass).toBe(1);
-    expect(MONTHLY_INGRESS_BYTES.event_pass).toBeNull(); // null = derived (billing-caps.md)
-    expect(DEFAULT_STORAGE_CAP_BYTES.event_pass).toBe(75 * GIGABYTE);
+    expect(DEFAULT_STORAGE_CAP_BYTES.event_pass).toBe(25 * GIGABYTE);
+    expect(UPLOADS_BYTES.event_pass).toBe(50 * GIGABYTE);
+    expect(UPLOADS_WINDOW.event_pass).toBe("year");
+    expect(planById("event_pass").priceLabel).toBe("$29 one-time");
+    expect(EVENT_PASS_RENEWAL_PRICE_LABEL).toBe("$19");
+  });
+  // Ladder A's Pro steps (Will, "send it on pricing tier A with $99"): 50 GB / 200 GB / 1 TB at $9 /
+  // $29 / $99 a month, with 100 / 200 / 500 GB of uploads a month. The retired steps were 100 GB /
+  // 500 GB / 2 TB at $9 / $19 / $39, uploads unpublished at 3x the room.
+  it("pro: Ladder A's three sizes, their prices and their uploads", () => {
+    expect(
+      plansForTier("pro").map((p) => [
+        p.name,
+        p.storageBytes,
+        p.uploadsBytes,
+        p.priceLabel,
+      ]),
+    ).toEqual([
+      ["Pro 50 GB", 50 * GIGABYTE, 100 * GIGABYTE, "$9/mo"],
+      ["Pro 200 GB", 200 * GIGABYTE, 200 * GIGABYTE, "$29/mo"],
+      ["Pro 1 TB", TERABYTE, 500 * GIGABYTE, "$99/mo"],
+    ]);
+    expect(plansForTier("pro", "year").map((p) => p.priceLabel)).toEqual([
+      "$90/yr",
+      "$290/yr",
+      "$990/yr",
+    ]);
   });
   // Free was 30 until the free/pro shift: a clip's length stopped being a paid line.
   it("clip length caps: 60s on every tier (billing-caps.md)", () => {
@@ -143,27 +197,77 @@ describe("tier limit literals (marketed-number pins)", () => {
     expect(MAX_REEL_SECONDS.pro).toBe(60);
     expect(MAX_REEL_SECONDS.event_pass).toBe(60);
   });
-  it("the ingress multiplier is 3x the effective storage cap, every tier (billing-caps.md)", () => {
-    expect(INGRESS_CAP_MULTIPLIER).toBe(3);
+  // The uploads rise down the ladder while their share of the room falls (Ladder A's shape: a big
+  // plan is an archive that never turns over in a month, and its worst month sizes its price).
+  it("the Pro uploads rise down the ladder while their share of the room falls", () => {
+    const sizes = plansForTier("pro");
+    for (let i = 1; i < sizes.length; i++) {
+      expect(sizes[i].uploadsBytes).toBeGreaterThan(sizes[i - 1].uploadsBytes);
+      expect(sizes[i].uploadsBytes / sizes[i].storageBytes).toBeLessThan(
+        sizes[i - 1].uploadsBytes / sizes[i - 1].storageBytes,
+      );
+    }
   });
 });
 
-describe("monthlyIngressCap (billing-caps.md ingress derivation)", () => {
-  // Reshaped with the free/pro shift: Free's bound was a flat 20 GB whatever its cap; it follows
-  // the paid rule now, so the 2 GB -> 100 MB cut tightened the churn bound with it.
-  it("free: 3x its 100 MB default = 300 MB, the paid rule", () => {
-    expect(monthlyIngressCap("free", null)).toBe(300 * MEGABYTE);
+/**
+ * ★ THE UPLOADS ALLOWANCE IS EACH PLAN'S OWN NUMBER (Ladder A; reshaped from monthlyIngressCap, whose scar this keeps:
+ * a Pro profile with no cap on record fails OPEN, never blocking a paying host on missing data). The SQL twin is
+ * upload_allowance(), held to these by tier-limits-parity.test.ts.
+ */
+describe("uploadAllowance", () => {
+  it("free: its own 300 MB, whatever its cap reads", () => {
+    expect(uploadAllowance("free", null)).toBe(300 * MEGABYTE);
+    expect(uploadAllowance("free", 100 * MEGABYTE)).toBe(300 * MEGABYTE);
   });
-  it("pro: 3x the purchased cap (each Pro size scales its own bound)", () => {
-    expect(monthlyIngressCap("pro", 100 * GIGABYTE)).toBe(300 * GIGABYTE);
-    expect(monthlyIngressCap("pro", 500 * GIGABYTE)).toBe(1500 * GIGABYTE);
-    expect(monthlyIngressCap("pro", 2 * TERABYTE)).toBe(6 * TERABYTE);
+  it("pro: each size its own number", () => {
+    expect(uploadAllowance("pro", 50 * GIGABYTE)).toBe(100 * GIGABYTE);
+    expect(uploadAllowance("pro", 200 * GIGABYTE)).toBe(200 * GIGABYTE);
+    expect(uploadAllowance("pro", TERABYTE)).toBe(500 * GIGABYTE);
   });
-  it("event_pass: 3x the 75 GB default = 225 GB", () => {
-    expect(monthlyIngressCap("event_pass", null)).toBe(225 * GIGABYTE);
+  it("pro: a retired size takes the smallest Ladder A size that holds it, the largest's past them all", () => {
+    expect(uploadAllowance("pro", 100 * GIGABYTE)).toBe(200 * GIGABYTE);
+    expect(uploadAllowance("pro", 500 * GIGABYTE)).toBe(500 * GIGABYTE);
+    expect(uploadAllowance("pro", 2 * TERABYTE)).toBe(500 * GIGABYTE);
   });
   it("pro with no cap on record fails OPEN (unmetered), never blocks", () => {
-    expect(monthlyIngressCap("pro", null)).toBeNull();
+    expect(uploadAllowance("pro", null)).toBeNull();
+  });
+  it("event_pass: one pass's 50 GB for each pass its room holds, never fewer than one", () => {
+    expect(uploadAllowance("event_pass", null)).toBe(50 * GIGABYTE);
+    expect(uploadAllowance("event_pass", 25 * GIGABYTE)).toBe(50 * GIGABYTE);
+    expect(uploadAllowance("event_pass", 50 * GIGABYTE)).toBe(100 * GIGABYTE);
+    expect(uploadAllowance("event_pass", 10 * GIGABYTE)).toBe(50 * GIGABYTE);
+  });
+});
+
+describe("uploadsLabel (the pricing table's Uploads row)", () => {
+  it("says each plan's number and its window", () => {
+    expect(uploadsLabel(planById("free"))).toBe("300 MB a month");
+    expect(uploadsLabel(planById("event_pass"))).toBe("50 GB over its year");
+    expect(plansForTier("pro").map(uploadsLabel)).toEqual([
+      "100 GB a month",
+      "200 GB a month",
+      "500 GB a month",
+    ]);
+    expect(uploadsLabel(planById("pro_1tb_yr"))).toBe("500 GB a month");
+  });
+});
+
+describe("the big party (the unit a pricing card leads with)", () => {
+  it("is 200 guests' 2,000 photos and 100 half-minute clips: about 10 GB of originals", () => {
+    expect(BIG_PARTY.guests).toBe(200);
+    expect(BIG_PARTY_BYTES / GIGABYTE).toBeCloseTo(10.01, 2);
+    expect(BIG_PARTY_NOTE).toBe(
+      "A 200-guest party is counted at about 2,000 photos and 100 clips of 30 seconds.",
+    );
+  });
+  it("counts each room the friendly way: the pass twice over, Pro 5, 20 and 100", () => {
+    expect(partiesHeld(planById("event_pass").storageBytes)).toBe(2);
+    expect(plansForTier("pro").map((p) => partiesHeld(p.storageBytes))).toEqual(
+      [5, 20, 100],
+    );
+    expect(partiesHeld(planById("free").storageBytes)).toBe(0);
   });
 });
 
@@ -189,7 +293,7 @@ describe("clampReelSeconds (billing-caps.md length clamp)", () => {
 describe("effectiveStorageCap", () => {
   it("falls back to the tier default when no explicit cap", () => {
     expect(effectiveStorageCap("free", null)).toBe(100 * MEGABYTE);
-    expect(effectiveStorageCap("event_pass", null)).toBe(75 * GIGABYTE);
+    expect(effectiveStorageCap("event_pass", null)).toBe(25 * GIGABYTE);
   });
   it("an explicit cap wins (the Pro storage selector)", () => {
     expect(effectiveStorageCap("pro", 500 * GIGABYTE)).toBe(500 * GIGABYTE);
@@ -280,7 +384,7 @@ describe("formatCapacity", () => {
   it("switches from minutes to hours at 120 minutes, with en-US thousands separators", () => {
     expect(
       formatCapacity(planById("event_pass").storageBytes, { basis: false }),
-    ).toBe("21,943 photos or 20 hours of video");
+    ).toBe("7,314 photos or 7 hours of video");
     expect(formatCapacity(GIGABYTE, { basis: false })).toBe(
       "293 photos or 16 minutes of video",
     );
@@ -290,8 +394,8 @@ describe("formatCapacity", () => {
     expect(
       formatCapacity(planById("free").storageBytes, { video: false }),
     ).toBe("29 photos at an iPhone's default camera settings");
-    expect(formatCapacity(planById("pro_100").storageBytes)).toBe(
-      "29,257 photos or 26 hours of video at an iPhone's default camera settings",
+    expect(formatCapacity(planById("pro_50").storageBytes)).toBe(
+      "14,629 photos or 13 hours of video at an iPhone's default camera settings",
     );
   });
 });
@@ -324,9 +428,9 @@ describe("a limit or an estimate in another runtime's locale", () => {
     runAsGermanNumberRuntime();
     expect(
       formatCapacity(planById("event_pass").storageBytes, { basis: false }),
-    ).toBe("21,943 photos or 20 hours of video");
+    ).toBe("7,314 photos or 7 hours of video");
     expect(
-      formatCapacity(planById("pro_2tb").storageBytes, { basis: false }),
-    ).toBe("599,186 photos or 538 hours of video");
+      formatCapacity(planById("pro_1tb").storageBytes, { basis: false }),
+    ).toBe("299,593 photos or 269 hours of video");
   });
 });

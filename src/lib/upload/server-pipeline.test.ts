@@ -163,7 +163,7 @@ describe("the host's presign meets the meter too", () => {
       { ok: false, reason: "monthly" },
       409,
       "cap_reached",
-      "You've hit this plan's upload limit for the month.",
+      "You've hit this plan's upload limit for now.",
     ],
     [
       "hourly",

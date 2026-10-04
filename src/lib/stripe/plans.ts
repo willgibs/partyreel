@@ -12,23 +12,24 @@ import { planById, type Plan, type PlanId } from "@/lib/constants/tiers";
 import { serverEnv } from "@/lib/env";
 
 // Paid plan id → the env value holding its Stripe Price ID. Explicit (not a dynamic
-// serverEnv index) so it stays type-safe.
+// serverEnv index) so it stays type-safe. Each key names its plan's size, so a key never names a
+// price it does not hold (a size that changes takes new keys, and the old ones retire with it).
 const PRICE_ENV: Record<
-  | "pro_100"
-  | "pro_500"
-  | "pro_2tb"
-  | "pro_100_yr"
-  | "pro_500_yr"
-  | "pro_2tb_yr"
+  | "pro_50"
+  | "pro_200"
+  | "pro_1tb"
+  | "pro_50_yr"
+  | "pro_200_yr"
+  | "pro_1tb_yr"
   | "event_pass",
   string | undefined
 > = {
-  pro_100: serverEnv.STRIPE_PRICE_PRO_100,
-  pro_500: serverEnv.STRIPE_PRICE_PRO_500,
-  pro_2tb: serverEnv.STRIPE_PRICE_PRO_2TB,
-  pro_100_yr: serverEnv.STRIPE_PRICE_PRO_100_YR,
-  pro_500_yr: serverEnv.STRIPE_PRICE_PRO_500_YR,
-  pro_2tb_yr: serverEnv.STRIPE_PRICE_PRO_2TB_YR,
+  pro_50: serverEnv.STRIPE_PRICE_PRO_50,
+  pro_200: serverEnv.STRIPE_PRICE_PRO_200,
+  pro_1tb: serverEnv.STRIPE_PRICE_PRO_1TB,
+  pro_50_yr: serverEnv.STRIPE_PRICE_PRO_50_YR,
+  pro_200_yr: serverEnv.STRIPE_PRICE_PRO_200_YR,
+  pro_1tb_yr: serverEnv.STRIPE_PRICE_PRO_1TB_YR,
   event_pass: serverEnv.STRIPE_PRICE_EVENT_PASS,
 };
 
@@ -59,7 +60,7 @@ export function eventPassRenewalPriceId(): string {
 
 /** Reverse lookup: a Stripe Price ID → the Plan (so the webhook derives tier + cap). */
 export function planForPriceId(priceId: string): Plan | null {
-  // The renewal price maps to the same event_pass plan (75 GB / 1-yr term).
+  // The renewal price maps to the same event_pass plan (one pass's room, a year's term).
   if (priceId === serverEnv.STRIPE_PRICE_EVENT_PASS_RENEWAL) {
     return planById("event_pass");
   }

@@ -68,7 +68,7 @@ function item(
 const BIG = item(1, 9.4);
 const MID = item(2, 4.1, PARTY);
 const SMALL = item(3, 1.2);
-/** What her Deleted holds: with her events' 110 GB, she stores 110.83 GB. */
+/** What her Deleted holds: with her events' 60 GB, she stores 60.83 GB. */
 const DELETED = Math.round(0.83 * GIGABYTE);
 
 function firstAnswer(
@@ -80,16 +80,16 @@ function firstAnswer(
     items,
     next: null,
     overview: {
-      storedBytes: 110 * GIGABYTE + deletedBytes,
+      storedBytes: 60 * GIGABYTE + deletedBytes,
       deletedBytes,
       events: [
         {
           id: WEDDING,
           name: "Maya & Theo",
-          bytes: 80 * GIGABYTE,
+          bytes: 40 * GIGABYTE,
           count: 2,
         },
-        { id: PARTY, name: "Ivy turns one", bytes: 30 * GIGABYTE, count: 1 },
+        { id: PARTY, name: "Ivy turns one", bytes: 20 * GIGABYTE, count: 1 },
       ],
     },
   };
@@ -373,10 +373,10 @@ describe("Deleted, first", () => {
   });
 
   it("counts what emptying it freed toward her own plan's goal", async () => {
-    // 110.83 GB stored on a 110 GB plan: Deleted's 850 MB is the whole gap.
+    // 60.83 GB stored on a 60 GB plan: Deleted's 850 MB is the whole gap.
     const dialog = open(fakeSource(), {
       kind: "fit",
-      capBytes: 110 * GIGABYTE,
+      capBytes: 60 * GIGABYTE,
     });
     await waitFor(() =>
       expect(dialog.querySelector("[data-storage-goal]")).toBeTruthy(),
@@ -428,9 +428,9 @@ describe("download hands off to the export", () => {
 });
 
 describe("the goal strip", () => {
-  const pro100 = { ...planById("pro_100"), id: "pro_100" as const };
+  const pro50 = { ...planById("pro_50"), id: "pro_50" as const };
   const goal: StorageGoal = {
-    target: pro100,
+    target: pro50,
     canSwitch: true,
     returnTo: "/account",
   };
@@ -469,7 +469,7 @@ describe("the goal strip", () => {
       expect(assign).toHaveBeenCalledWith("https://stripe.test/c"),
     );
     expect(order).toEqual(["delete", "switch"]);
-    expect(source.switchPlan).toHaveBeenCalledWith("pro_100", "/account");
+    expect(source.switchPlan).toHaveBeenCalledWith("pro_50", "/account");
     vi.unstubAllGlobals();
   });
 
@@ -479,12 +479,12 @@ describe("the goal strip", () => {
         kind: "refused" as const,
         refusal: {
           code: "over_new_cap" as const,
-          planId: "pro_100" as const,
-          storedBytes: 104 * GIGABYTE,
-          capBytes: 100 * GIGABYTE,
+          planId: "pro_50" as const,
+          storedBytes: 54 * GIGABYTE,
+          capBytes: 50 * GIGABYTE,
           gapBytes: 4 * GIGABYTE,
           fits: [],
-          message: "You're storing 104 GB.",
+          message: "You're storing 54 GB.",
         },
       })),
     });
@@ -495,12 +495,12 @@ describe("the goal strip", () => {
     const strip = dialog.querySelector("[data-storage-goal]") as HTMLElement;
     await userEvent.click(within(strip).getByRole("button"));
     await answerConfirm("Delete and switch");
-    // 13.5 GB went; a guest's uploads meanwhile left 104 GB against 100 GB.
+    // 13.5 GB went; a guest's uploads meanwhile left 54 GB against 50 GB.
     await waitFor(() =>
       expect(strip.getAttribute("data-state")).toBe("counting"),
     );
     expect(strip.textContent).toContain("4 GB");
-    expect(toast).toHaveBeenCalledWith("You're storing 104 GB.");
+    expect(toast).toHaveBeenCalledWith("You're storing 54 GB.");
   });
 
   // ★ crumbs-20 (one of the ROADMAP's six bare `/login`s): a session that lapsed while the list was open
@@ -544,8 +544,8 @@ describe("the goal strip", () => {
  * is switched (there is no plan to switch to), so the strip carries no button and the bar's Delete for good is the act.
  */
 describe("her own plan's goal", () => {
-  // She stores 110.83 GB on a 100 GB plan: 10.83 GB past it.
-  const fit: StorageGoal = { kind: "fit", capBytes: 100 * GIGABYTE };
+  // She stores 60.83 GB on a 50 GB plan: 10.83 GB past it.
+  const fit: StorageGoal = { kind: "fit", capBytes: 50 * GIGABYTE };
 
   it("★ counts down to her own cap and says where she stands, with nothing to switch", async () => {
     const source = fakeSource();

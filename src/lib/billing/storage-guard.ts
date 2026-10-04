@@ -18,7 +18,7 @@
  * ★ THE PLAIN CAP, NEVER THE WRITE HEADROOM. `create_media` accepts uploads up to
  * the cap plus 10% (`capWithWriteHeadroom`) so a guest mid-upload is not cut off
  * at the line; that slack is a courtesy at write time, not room a host may BUY
- * into. A host storing 105 GB does not fit Pro 100 GB.
+ * into. A host storing 52 GB does not fit Pro 50 GB.
  *
  * ★ THE BYTES ARE WHAT SHE STORES, her albums and her Deleted together, read by the
  * caller through `getHostStorageSummary` (`storedBytes`, the figure every cap check
@@ -39,8 +39,8 @@ import { formatBytes } from "@/lib/utils";
 /**
  * Does buying this plan REPLACE the host's cap? A Pro subscription does (any size,
  * either cadence): its cap becomes the whole allowance, and moving to it consumes
- * every live pass as credit. An Event Pass never does: it stacks another 75 GB on
- * top, so it can only ever make room, which is why a pass is never refused.
+ * every live pass as credit. An Event Pass never does: it stacks another pass's room
+ * on top, so it can only ever make room, which is why a pass is never refused.
  */
 export function replacesCap(plan: Plan): boolean {
   return plan.tier === "pro";
@@ -111,7 +111,7 @@ export function checkPlanChange(
 }
 
 /**
- * "Pro 500 GB, monthly": a price's name says its billing too. A plan's own `name`
+ * "Pro 200 GB, monthly": a price's name says its billing too. A plan's own `name`
  * carries only its size, and a Pro host chooses among six prices, two to a size, so
  * any sentence that sends her to one names which (storage-r2's note: "or choose
  * Pro 500 GB" told a host on Pro 500 GB monthly to choose what she had, when it
@@ -123,8 +123,8 @@ export function planWithBilling(plan: Plan): string {
 }
 
 /**
- * "You're storing 140 GB. Pro 100 GB holds 100 GB, so free 40 GB first, or
- * choose Pro 500 GB, monthly." (the brief's own words for the plain face, its
+ * "You're storing 70 GB. Pro 50 GB holds 50 GB, so free 20 GB first, or
+ * choose Pro 200 GB, monthly." (the brief's own words for the plain face, its
  * "remove" now "free" since Deleted counts: trash-in-storage). The
  * size that cannot hold is named by its size alone (neither of its prices holds
  * it); the size offered instead is the SMALLEST that fits, named with its

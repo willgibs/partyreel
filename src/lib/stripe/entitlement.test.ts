@@ -4,8 +4,8 @@ import { resolveEntitlement } from "@/lib/stripe/entitlement";
 
 // billing-caps.md's rule (one plan at a time for Pro; passes stack) lives or dies on this function: the checkout route is a
 // thin gate over it, so every way it could answer "none" for a host who actually holds a plan is a
-// way back into the failure it guards (a second Pro subscription, or an Event Pass collapsing a 2 TB cap
-// to 75 GB while Stripe keeps billing Pro, feeding the over-capacity sweep customer media to delete).
+// way back into the failure it guards (a second Pro subscription, or an Event Pass collapsing a Pro cap
+// to a pass's while Stripe keeps billing Pro, feeding the over-capacity sweep customer media to delete).
 const NOW = new Date("2026-07-29T12:00:00.000Z");
 const FUTURE = "2027-01-01T00:00:00.000Z";
 const PAST = "2026-01-01T00:00:00.000Z";

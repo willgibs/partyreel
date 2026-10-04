@@ -3,7 +3,7 @@ title: Hide, remove, and restore
 description: "Hide keeps a photo in the album for you, dimmed, and off it for guests; Show undoes it. Remove sends it to Deleted, where Restore brings it back for 30 days and Delete permanently skips the wait."
 category: event-album
 order: 2
-updated: "2026-10-02"
+updated: "2026-10-04"
 keywords:
   - hide
   - unhide
@@ -25,7 +25,7 @@ Hide is for the blurry duplicate, the one shot someone would rather not see, and
 
 ## Remove
 
-<UiLabel>Remove</UiLabel> in the photo viewer, or <UiLabel>Delete</UiLabel> in Select mode, asks you to confirm: the photo disappears from the album right away and moves to Deleted, permanently gone after <RecoveryDays /> unless you restore it first. Its space comes back to your plan immediately.
+<UiLabel>Remove</UiLabel> in the photo viewer, or <UiLabel>Delete</UiLabel> in Select mode, asks you to confirm: the photo disappears from the album right away and moves to Deleted, permanently gone after <RecoveryDays /> unless you restore it first. It still counts in your storage while it waits, and stops counting when it leaves Deleted.
 
 ## Deleted, and restoring
 
@@ -33,7 +33,7 @@ Hide is for the blurry duplicate, the one shot someone would rather not see, and
 
 Removed photos wait under the <UiLabel>Deleted</UiLabel> filter in the album's <UiLabel>View</UiLabel> menu for <RecoveryDays />, each with a countdown. <UiLabel>Restore</UiLabel> puts one back exactly as it was: a photo that was hidden comes back hidden, one that was waiting for review comes back waiting. <UiLabel>Delete permanently</UiLabel> skips the wait, after a confirmation that it can't be undone. Nothing in Deleted can be downloaded, so grab a copy before you remove something you might want.
 
-Restoring needs room: if your storage is full, Restore refuses and offers an upgrade instead.
+Restoring always fits: a photo in Deleted was counted in your storage all along, so bringing it back adds nothing.
 
 Deleted events work the same way: pick <UiLabel>Deleted</UiLabel> in the row over your dashboard's events, and a restore brings the whole album back in one go. See [your dashboard, explained](/help/your-dashboard-explained); deleting an event is in [event settings, explained](/help/event-settings-explained).
 
@@ -42,9 +42,9 @@ Deleted events work the same way: pick <UiLabel>Deleted</UiLabel> in the row ove
 - **Anything removed by Partyreel** after a report. It leaves your album at once, it never appears in Deleted, and it isn't counted in the Deleted figure on your storage meter. There's nothing to restore.
 - **A guest's own deletion.** When a guest deletes their own upload, right on the album or from their profile, it's gone for you too: it leaves your album at once, it never appears in Deleted, and it isn't counted in the Deleted figure on your storage meter. There's nothing to restore. Their choice wins, and their confirmation told them so.
 
-## Deleted has a budget
+## Deleted counts in your storage
 
-Deleted items are held free of charge, up to roughly your plan's storage size. Past that, the oldest items clear early rather than waiting the full <RecoveryDays />. The storage meter on your dashboard shows what's in Deleted at any time.
+What waits in Deleted counts in your storage beside your albums, and the storage meter on your dashboard draws the two apart. With <UiLabel>Make room from Deleted</UiLabel> on (it is unless you turn it off), a new upload that needs room takes it from the oldest of Deleted, which then leaves for good; with it off, uploads wait until you make room. <UiLabel>Empty Deleted</UiLabel> clears everything in it at once.
 
 <Callout type="tip" title="Undo is the whole point">
 

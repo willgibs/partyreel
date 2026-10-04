@@ -168,7 +168,7 @@ export function ReviewSectionDemo() {
 // WHAT'S USING SPACE, OVER AN INERT ACCOUNT (storage-wiring): the real storage meter, whose popover
 // holds the storage chart and opens the size list, and a Pro host's six prices, whose Too small flips
 // to the refusal and opens the same list with the goal strip. The account is a videographer on Pro's
-// 500 GB monthly size, 110.8 GB across four events (a handful of long videos are most of it) and
+// 200 GB monthly size, 110.8 GB across four events (a handful of long videos are most of it) and
 // 3.2 GB in Deleted, which her plan holds too (trash-in-storage). The source answers after a real
 // round trip's pause and changes nothing: a reviewer here can never delete anyone's photograph, empty
 // anyone's Deleted or change anyone's setting, and the strip's switch stops at a note instead of
@@ -331,13 +331,13 @@ const PRIYA_FACTS: PlanFacts = {
   passExpiry: null,
   storedBytes: STORAGE_ALBUMS + STORAGE_DELETED,
   deletedBytes: STORAGE_DELETED,
-  capBytes: planById("pro_500").storageBytes,
-  currentPlanId: "pro_500",
+  capBytes: planById("pro_200").storageBytes,
+  currentPlanId: "pro_200",
   changeBlocked: null,
 };
 
 export function StorageListDemo() {
-  const cap = planById("pro_500").storageBytes;
+  const cap = planById("pro_200").storageBytes;
   return (
     <StorageSourceProvider source={DEMO_STORAGE}>
       <div className="w-full max-w-xl space-y-6">
@@ -374,8 +374,8 @@ export function InertStorage({ children }: { children: ReactNode }) {
 
 /**
  * THE STORAGE CHART'S STATES (trash-in-storage): the chart the storage meter's popover holds, drawn
- * alone over Pro 100 GB at the four moments that matter. Empty; half used with some in Deleted; and
- * full, the same 70 GB of albums and 30 GB in Deleted, once with Make room from Deleted on (an upload
+ * alone over Pro 50 GB at the four moments that matter. Empty; half used with some in Deleted; and
+ * full, the same 35 GB of albums and 15 GB in Deleted, once with Make room from Deleted on (an upload
  * takes its room from Deleted, so nothing is in trouble) and once with it off (an upload is refused
  * until she empties Deleted, so it warns and names that fix). The inert source answers the switch and
  * Empty Deleted after a pause and changes nothing.
@@ -383,18 +383,18 @@ export function InertStorage({ children }: { children: ReactNode }) {
 const CHART_STATES = {
   empty: { activeBytes: 0, deletedBytes: 0, makeRoom: true },
   half: {
-    activeBytes: 41 * GIGABYTE,
-    deletedBytes: 8.5 * GIGABYTE,
+    activeBytes: 20.5 * GIGABYTE,
+    deletedBytes: 4.25 * GIGABYTE,
     makeRoom: true,
   },
   "full-on": {
-    activeBytes: 70 * GIGABYTE,
-    deletedBytes: 30 * GIGABYTE,
+    activeBytes: 35 * GIGABYTE,
+    deletedBytes: 15 * GIGABYTE,
     makeRoom: true,
   },
   "full-off": {
-    activeBytes: 70 * GIGABYTE,
-    deletedBytes: 30 * GIGABYTE,
+    activeBytes: 35 * GIGABYTE,
+    deletedBytes: 15 * GIGABYTE,
     makeRoom: false,
   },
 } as const;
@@ -411,10 +411,7 @@ export function StorageChartDemo({
         data-chart-state={state}
         className="w-full max-w-80 rounded-float border bg-popover p-4"
       >
-        <StorageChart
-          {...figures}
-          capBytes={planById("pro_100").storageBytes}
-        />
+        <StorageChart {...figures} capBytes={planById("pro_50").storageBytes} />
       </div>
     </StorageSourceProvider>
   );

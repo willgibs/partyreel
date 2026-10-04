@@ -41,10 +41,10 @@ afterEach(() => {
 
 async function press() {
   render(
-    <ChangePlanButton planId="pro_100">Switch to Pro 100 GB</ChangePlanButton>,
+    <ChangePlanButton planId="pro_50">Switch to Pro 50 GB</ChangePlanButton>,
   );
   await userEvent.click(
-    screen.getByRole("button", { name: "Switch to Pro 100 GB" }),
+    screen.getByRole("button", { name: "Switch to Pro 50 GB" }),
   );
 }
 

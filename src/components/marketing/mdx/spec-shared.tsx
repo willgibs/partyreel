@@ -35,6 +35,7 @@ import {
   formatLimit,
   planById,
   plansForTier,
+  uploadsLabel,
   videosAllowedForTier,
 } from "@/lib/constants/tiers";
 import { TEASER_LIMIT } from "@/lib/events/gallery-access";
@@ -81,7 +82,8 @@ export const UploadSize = () => <>{formatBytes(MAX_UPLOAD_BYTES)}</>;
 export const FreeStorage = () => <PlanStorage id="free" />;
 export const EventPassStorage = () => <PlanStorage id="event_pass" />;
 export const EventPassPrice = () => <PlanPrice id="event_pass" />;
-export const ProPrice = () => <PlanPrice id="pro_100" />;
+// Pro's entry price is its smallest size's, read from the plan list so no id is typed here.
+export const ProPrice = () => <PlanPrice id={plansForTier("pro")[0].id} />;
 
 // ── The wider spec family (the blog library, 2026-09) ───────────────────────────
 // Naming convention: a name ending in a UNIT (Seconds, Days, Size) renders the bare numeral or
@@ -108,6 +110,11 @@ export const PlanStorage = ({ id }: { id: PlanId }) => (
 );
 export const PlanPrice = ({ id }: { id: PlanId }) => (
   <>{planById(id).priceLabel}</>
+);
+/** A plan's uploads allowance with its window, the pricing table's Uploads row ("300 MB a month",
+ *  "50 GB over its year"): published since Ladder A, so an article says it through this, never typed. */
+export const PlanUploads = ({ id }: { id: PlanId }) => (
+  <>{uploadsLabel(planById(id))}</>
 );
 export const EventPassRenewalPrice = () => (
   <>{EVENT_PASS_RENEWAL_PRICE_LABEL}</>
@@ -189,13 +196,25 @@ export const FreePrice = () => <>{planById("free").priceLabel}</>;
 // The help-catalog round (2026-09-01) widened the family so no marketed limit,
 // price, or lifecycle window is ever typed into an article. Each reads ONE
 // constant; the content-policy fence stays the guard against literals.
-/** "100 GB, 500 GB, or 2 TB": the Pro storage sizes, from the plan list. */
+/** "50 GB, 200 GB, or 1 TB": the Pro storage sizes, from the plan list. */
 export const ProPlans = () => {
   const sizes = plansForTier("pro").map((p) => formatBytes(p.storageBytes));
   const last = sizes.pop();
   return (
     <>
       {sizes.join(", ")}, or {last}
+    </>
+  );
+};
+/** "100 GB, 200 GB, or 500 GB a month": the Pro sizes' uploads, in `<ProPlans />`'s order. */
+export const ProUploads = () => {
+  const allowances = plansForTier("pro").map((p) =>
+    formatBytes(p.uploadsBytes),
+  );
+  const last = allowances.pop();
+  return (
+    <>
+      {allowances.join(", ")}, or {last} a month
     </>
   );
 };
@@ -648,6 +667,7 @@ export const sharedComponents = {
   EventLimit,
   PlanStorage,
   PlanPrice,
+  PlanUploads,
   EventPassRenewalPrice,
   PhotoAverageSize,
   VideoMinuteSize,
@@ -659,6 +679,7 @@ export const sharedComponents = {
   th: MdxTh,
   td: MdxTd,
   ProPlans,
+  ProUploads,
   RecoveryDays,
   MaxEvents,
   UploadCapFloor,

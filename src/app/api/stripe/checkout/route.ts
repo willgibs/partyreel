@@ -104,7 +104,7 @@ export async function POST(request: Request) {
   // when that hop fails, or when a Pro host tries to buy a pass.
   //
   // Event Passes STACK (Will, 2026-08-27): each purchase is its own ledger row granting +1 event
-  // slot and +75 GB for its own year, so "already holds a pass" is no longer a refusal. The old
+  // slot and one pass's room for its own year, so "already holds a pass" is no longer a refusal. The old
   // cap-collapse hazard (a pass write flattening a Pro cap) is gone structurally: pass state is
   // recomputed from the ledger and never touches a Pro profile. Pro holders still cannot buy a
   // pass (nothing to stack ONTO under a bigger live cap).
@@ -147,7 +147,7 @@ export async function POST(request: Request) {
 
   // ── THE STORAGE GUARD (Will, 2026-09-22; billing-caps.md) ─────────────────────────────────
   // A Pro checkout REPLACES the cap (every live pass becomes credit), so a host must fit the
-  // plan they buy: stacked passes holding 140 GB cannot buy Pro 100 GB and shrink into the
+  // plan they buy: three stacked passes holding 75 GB cannot buy Pro 50 GB and shrink into the
   // over-cap grace. What she stores (her albums and her Deleted together: trash-in-storage)
   // against the plan's PLAIN cap, refused with the numbers BEFORE a Stripe customer exists. An
   // Event Pass is never checked: it stacks, so it can only ever add room. A Free host in the
