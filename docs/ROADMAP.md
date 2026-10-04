@@ -17,6 +17,8 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Guests: behind "A photo first", a newcomer over a waiting album reads "Nothing here yet. Add the first photo and the album opens." (`waitingOnArrival` needs `access === "full"` in `src/app/(guest)/e/[token]/page.tsx`; a photo-first newcomer is `teaser`): say what waits there too (from `redteam-50`).
+- Host: Settings > Who can get in: each switch's hit area (`after:-inset-x-3`) overflows two `overflow-hidden` boxes by 11 px, so a `scrollIntoView()` on a switch shifts rows 2 to 4 and clips "A photo first"; a mouse and Tab never trigger it (latent; from `redteam-50`).
 - Guests: the cover's desk glyph says both nouns until the album's source tells it its kinds, since the first paint's `getGalleryStats` knows only `approvedTotal`; carrying the photo and video counts there would name them from the first byte (from `crumbs-61`).
 - Uploads: an upload reads the host's active bytes three times (the context, the meter, create_media), the last under her lock; one maintained counter (PRICING lever 7's per-event sums) makes each O(1) (from `upload-meter`).
 - Launch checkpoint: the venue-shaped limiter kinds still sized for a 400-join venue (rename and attach_email 60, export 100 a quarter-hour per address and album) meet the 2,000-guest wedding's end of night; size them as the join was (from `upload-meter`).
