@@ -9,8 +9,8 @@
 | [architecture.md](systems/architecture.md) | work across systems (the route groups, the two stores of truth, the data flows, the scheduled jobs), revalidate a path, or chase a host page that renders but never hydrates |
 | [auth-accounts.md](systems/auth-accounts.md) | change sign-in (the one account door, codes, passwords, Google, passkeys) or a Supabase Auth dashboard setting, a display name, an avatar, the `/welcome` gate or account deletion |
 | [guest-flow.md](systems/guest-flow.md) | change the event link `/e/[token]`: who counts as a guest, visibility and the password gate, the door and the confirm doors, the live gallery, demo mode |
-| [dashboard.md](systems/dashboard.md) | change the host dashboard: its bands, the events list, the Guest cards, the claims review |
-| [host-app.md](systems/host-app.md) | change a host surface: creating an event, the QR designer and print, the custom link, the welcome, the event page and its settings, moderation |
+| [dashboard.md](systems/dashboard.md) | change the host dashboard: its stage and week, the events list, the storage ring, the claims review |
+| [host-app.md](systems/host-app.md) | change a host surface: creating an event, the QR designer and print, the custom link, the welcome, the event page and its settings, moderation, the Guest cards |
 | [reel.md](systems/reel.md) | change the highlight reel (when it exists, its take, the tile, the view that is also the screen, the host's card and defaults, the platform lever) or the clip (the creator, Add to event), or a word either says |
 | [disposable-mode.md](systems/disposable-mode.md) | touch the develop or the camera: `develops_at`, `capture` and the roll, a row's seal (`sealed_until`) and its one predicate in any guest read, what waits on the guest's sync, the develop and its sweep, a guest's withdrawn shot |
 | [uploads-and-r2.md](systems/uploads-and-r2.md) | touch the upload pipeline, an R2 key, client or presign, the EXIF strip, or how media renders (tiles, previews, posters, the viewer) and downloads (Save, Download all) |

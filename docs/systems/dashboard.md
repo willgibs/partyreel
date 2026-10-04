@@ -1,8 +1,8 @@
 # The host dashboard
 
-Open this before you change `/dashboard`: its stage, the week, the events grouped by when, the storage ring, the Guest
-tiles or the claims review. Creating an event, the event page and moderation are [host-app.md](host-app.md)'s; the
-bell's words are [notifications-analytics-growth.md](notifications-analytics-growth.md)'s.
+Open this before you change `/dashboard`: its stage, the week, the events grouped by when, the storage ring or the
+claims review. Creating an event, the event page, moderation and the Guest cards (the events an account added to) are
+[host-app.md](host-app.md)'s; the bell's words are [notifications-analytics-growth.md](notifications-analytics-growth.md)'s.
 
 `/dashboard` is today's page: the viewer's own day in its head, the party of the moment on a stage of its own
 photographs, this week's other parties each with its one step, then everything else grouped by when. Every rule is
