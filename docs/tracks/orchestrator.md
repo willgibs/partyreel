@@ -83,10 +83,12 @@ Round 15, on Will's desk answers of 2026-10-04 06:00Z and his brand note; the ap
    Vercel's fair-use rules confine Hobby to non-commercial use, so Pro at launch stays a launch switch regardless (it
    bills Active CPU from $0.128 an hour: today's month would be about $0.50); the foundational work is cost and
    behaviour at scale, which compute-model prices on both plans.
-1. **Red-team 53** (stopped for the CPU limit): its findings in `crumbs-65` (running, local); then a local red-team 53b
+1. **Red-team 53** (stopped for the CPU limit): its findings fixed by `crumbs-65` (merged, gate 210); next a local red-team 53b
    on the desk build at port 3000 (the walks not taken: the strip going quiet, Q2 on the tile and table, red-team 52's
    fixes, graphite, the host's upload, /admin/jobs, plus crumbs-65's "Look at first"); then milestone 36 on Will's yes
    (the runbook's "Milestone"), which is also the first deploy since the CPU limit: run `vercel-usage.mjs` first.
+   Red-team 53b waits for the weekly (88% at 17:33Z) after compute-model and limits-watch hand off; refresh the desk
+   build to launch-prep's head first (`../partyreel-wt/desk`: checkout, build with the localhost site URL, restart).
 2. **Desk 2 is Drive alone** (on the alias since build 52). After his answers: the Drive wiring lane (his Google Cloud
    step relayed: the design note's section 11; the way-in now lives in production's Display menu and the download toast
    tells a cancel from a dropped line, so the lane reconciles both), and desk 3's four boards integrated (customize-r1,
