@@ -24,6 +24,7 @@ import {
   readyHead,
 } from "@/lib/events/readiness";
 import { formatCount } from "@/lib/format/count";
+import { RangeText } from "@/lib/format/range-text";
 import { cn } from "@/lib/utils";
 
 import { useHostAlbum, useHubCounts, useHubEntries } from "./host-album";
@@ -195,7 +196,7 @@ function Row({
             {item.title}
           </span>
           <span className="block text-caption text-pretty text-muted-foreground">
-            {item.line}
+            <RangeText text={item.line} />
           </span>
         </span>
       </span>

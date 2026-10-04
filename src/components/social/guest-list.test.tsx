@@ -167,6 +167,44 @@ describe("GuestList: unverified guests", () => {
     displayName: "Sam",
   };
 
+  // The name-only guest's hashvatar (small-fixes): her own row's colour, never a photograph, on the chip, the faces
+  // row and the look alike. The scar kept from the plain-disc rule it replaces: the mark still stands beside her.
+  it("★ paints a typed name in her own row's colour, and still marks it", () => {
+    const { container } = render(
+      <GuestList items={[{ ...unverified, seed: "seed-g1" }]} />,
+    );
+    const disc = container.querySelector("[data-slot='avatar']") as HTMLElement;
+    // jsdom cannot store the mesh gradient, so a seeded root is read off its blend mode (avatar.test.tsx says why).
+    expect(disc.style.backgroundBlendMode).not.toBe("");
+    expect(
+      screen.getByRole("button", { name: UNVERIFIED_LABEL }),
+    ).toBeInTheDocument();
+  });
+
+  it("two typed names that are the same word wear two colours: the colour is the row's, never the name's", () => {
+    const { container } = render(
+      <GuestList
+        items={[
+          { ...unverified, id: "g1", seed: "seed-g1" },
+          { ...unverified, id: "g2", seed: "seed-g2" },
+        ]}
+      />,
+    );
+    // The ink the fallback's initial is painted in is the seed's own (one colour per person).
+    const [a, b] = [
+      ...container.querySelectorAll("[data-slot='avatar-fallback']"),
+    ].map((el) => (el as HTMLElement).style.color);
+    expect(a).not.toBe("");
+    expect(b).not.toBe("");
+    expect(a).not.toBe(b);
+  });
+
+  it("an entry with no seed (a road that has not read one) keeps the plain disc", () => {
+    const { container } = render(<GuestList items={[unverified]} />);
+    const disc = container.querySelector("[data-slot='avatar']") as HTMLElement;
+    expect(disc.style.backgroundBlendMode).toBe("");
+  });
+
   it("names an unverified guest, marks the name, and links nowhere, look and all", () => {
     render(<GuestList items={[unverified]} />);
     expect(screen.getByText("Sam")).toBeInTheDocument();

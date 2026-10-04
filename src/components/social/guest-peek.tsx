@@ -63,7 +63,7 @@ import type { GuestListItem } from "./guest-list";
 function Face({ item }: { item: GuestListItem }) {
   const unverified = "kind" in item;
   return (
-    <Avatar size="lg" seed={unverified ? undefined : item.seed}>
+    <Avatar size="lg" seed={item.seed}>
       {!unverified && <AvatarImage src={item.avatarUrl ?? undefined} alt="" />}
       <AvatarFallback>
         {(item.displayName ?? "?").slice(0, 1).toUpperCase()}

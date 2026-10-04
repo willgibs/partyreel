@@ -13,6 +13,15 @@
  *    and the last one says plainly that that is everything. Never "in 2 zips".
  *  - `phone` (built as the board's zip): Download all goes to Files on a phone, and says so.
  *  - `means=mine`: the Yours row (`export-dialog.tsx`), filtered on the server.
+ *
+ * And Will's E6 (2026-10-04): a cancel and a dropped connection are told apart.
+ *  - A CANCEL IS INTENTIONAL: the x asks first ("Cancel this download?", nothing is handed over while it stands),
+ *    then the toast says it was cancelled and offers Try again (or, past the first part, the part she stopped at).
+ *  - A DROPPED CONNECTION IS NEVER HIDDEN: it says "Your connection dropped." and what to do, so she neither tries
+ *    in vain nor blames the app (his picture: a crowded indoor stadium, "I hate this app, it's not working").
+ *    The page can tell only what its own line did (`dropped`: a request of its own failed to reach the app), so a
+ *    zip the Worker saw the client leave (`stopped`: she cancelled it in the browser's own list, or the line
+ *    dropped) reads as a drop when the page's line failed while it streamed, and as a cancel when it did not.
  */
 import { formatCount } from "@/lib/format/count";
 import type { Platform } from "@/lib/media/share-save";
@@ -45,6 +54,22 @@ export type Attempt =
   | { kind: "network" }
   | { kind: "timeout" }
   | { kind: "cancelled" };
+
+/**
+ * WHETHER A TRY FAILED FOR WANT OF A LINE, which is the only thing the page can know about a dropped connection:
+ * its request never reached the app (`network`: the fetch rejected, offline or a radio that lost its bearer) or
+ * never came back (`timeout`: a stadium's crowded cell). An answer, even a 500, is a line that works, and a
+ * `cancelled` try is her own act.
+ */
+export const lineFailed = (a: Attempt): boolean =>
+  a.kind === "network" || a.kind === "timeout";
+
+/**
+ * How many status polls in a row must fail before the toast says the line looks lost while a zip streams: three,
+ * which is a few seconds offline (each poll rejects at once) and about half a minute on a line that only stalls
+ * (each waits out its ceiling), never one dropped request on a weak line that comes right on the next.
+ */
+export const LINE_LOST_AFTER = 3;
 
 /** A mint that answered what the walk needs. */
 export type MintAnswer = {
@@ -354,10 +379,40 @@ export const WALK_COPY = {
       ? "Both parts are saved. That's\u00a0everything."
       : `All ${parts} parts are saved. That's\u00a0everything.`,
   /**
-   * One zip that never finished: nothing whole reached her. One line beside its Try again at 375 and at a
-   * desk, as the hollow zip's is ("stopped before it finished" ran two).
+   * One zip that never finished and nobody stopped it: a read broke (the Worker's `failed`), so it is ours, and
+   * said plainly. One line beside its Try again at 375 and at a desk, as the hollow zip's is ("stopped before it
+   * finished" ran two).
    */
   stopped: "That download didn't finish.",
+  /**
+   * ★ THE TWO ENDINGS THAT USED TO READ AS ONE (E6). A cancel: neutral, a way back. A dropped connection: said as
+   * what it is, with what to do, so she does not try again on a line that cannot carry it, nor blame the app.
+   */
+  cancelled: "Download cancelled.",
+  dropped: "Your connection dropped.",
+  droppedDetail: "Check your signal, then try again.",
+  /** A part of a walk that ended without all of it, told apart the same way. */
+  partCancelled: (part: number, parts: number) =>
+    `Part ${part} of ${parts} was cancelled.`,
+  partDropped: (part: number, parts: number) =>
+    `Part ${part} of ${parts} stopped: your connection dropped.`,
+  /** While a zip streams and her own line has stopped answering: the walk goes on listening, and says so. */
+  lost: "Your connection dropped. Check your signal.",
+  /**
+   * ★ THE x, ASKED BEFORE IT IS BELIEVED (E6: "a cancel is intentional"). Only where something is in flight: while
+   * the zip is prepared, and between parts, where stopping leaves the rest of the album behind.
+   */
+  askCancel: "Cancel this download?",
+  keepGoing: "Keep going",
+  askStop: (part: number, parts: number) =>
+    `Stop after part ${part} of ${parts}?`,
+  /** What stopping leaves: "Part 3", "Parts 2 and 3", "Parts 2 to 4": a walk's own words, never "zips". */
+  askStopDetail: (next: number, parts: number) =>
+    `${partsLeft(next, parts)} won't download.`,
+  stopHere: "Stop here",
+  /** After a confirmed stop between parts: where she stopped, and the tap that takes the next part. */
+  stoppedAfter: (part: number, parts: number) =>
+    `Stopped after part ${part} of ${parts}.`,
   /** A host's selection that mixes hidden and shown items asks first (`export-ends`). */
   hiddenAsk: (hidden: number, total: number) =>
     hidden === 1
@@ -395,5 +450,16 @@ export const WALK_COPY = {
   dismiss: "Dismiss",
 } as const;
 
-/** How long a finished walk's words stay: one zip reads at a glance, a walk's last word a little longer. */
-export const DONE_MS = { one: 4000, walk: 7000 } as const;
+/** The parts a stop leaves behind, in a walk's own words: "Part 3", "Parts 2 and 3", "Parts 2 to 4". */
+export function partsLeft(next: number, parts: number): string {
+  if (next >= parts) return `Part ${parts}`;
+  return parts - next === 1
+    ? `Parts ${next} and ${parts}`
+    : `Parts ${next} to ${parts}`;
+}
+
+/**
+ * How long a finished walk's words stay: one zip reads at a glance, a walk's last word a little longer. A cancel she
+ * just made stays long enough to read and to take its Try again, and goes by itself (she meant it).
+ */
+export const DONE_MS = { one: 4000, walk: 7000, cancelled: 8000 } as const;

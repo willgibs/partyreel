@@ -77,6 +77,7 @@ export function GuestNameMenu({
   name,
   qrToken,
   sessionToken,
+  seed,
   emailAttached = false,
   onRenamed,
 }: {
@@ -86,6 +87,11 @@ export function GuestNameMenu({
   qrToken?: string;
   /** The capability the address lands on. Without one there is no row to add to. */
   sessionToken?: string | null;
+  /**
+   * HER OWN COLOUR (small-fixes): `seedFor` of her own guest row, the colour every other surface gives her, read
+   * from the server by the header (`/api/guests/mine`'s `seed` ask). Null until it lands, and where it never does.
+   */
+  seed?: string | null;
   /** This device put an unconfirmed address on this event's row (the device flag). */
   emailAttached?: boolean;
   /** Fired after a confirmation lands, so the header can re-resolve itself. */
@@ -123,9 +129,9 @@ export function GuestNameMenu({
           aria-label="Your name on this album"
           className="flex items-center gap-2 rounded-full outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
         >
-          {/* No seed: a colour is an identity on every other surface of this
-              product, and this one has not been proven (unverified-mark.tsx). */}
-          <Avatar size="sm">
+          {/* Her own row's colour, the one every other surface gives her (small-fixes): never a photograph,
+              and the mark beside her name in the menu still says what is not proven (unverified-mark.tsx). */}
+          <Avatar size="sm" seed={seed ?? undefined}>
             <AvatarFallback className="text-[10px]">
               {name.slice(0, 1).toUpperCase()}
             </AvatarFallback>

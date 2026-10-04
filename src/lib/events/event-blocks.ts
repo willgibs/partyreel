@@ -161,7 +161,7 @@ export type BlockedPerson = {
   /** The confirmed address the block keys on, the host's to see as it was in the room. */
   email: string | null;
   avatarUrl: string | null;
-  /** The person's colour (`seedFor`, never a raw id); null for a typed name. */
+  /** The person's colour (`seedFor`, never a raw id): an account's, or a typed name's own row's. */
   seed: string | null;
   /** "Blocked Sep 28", in the viewer's own zone, formatted by the server. */
   since: string;

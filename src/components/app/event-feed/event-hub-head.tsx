@@ -20,6 +20,7 @@ import {
 import { useWaitClock } from "@/lib/disposable/use-wait-clock";
 import type { Door } from "@/lib/event/door/door";
 import { formatCount } from "@/lib/format/count";
+import { RangeText } from "@/lib/format/range-text";
 import { cn, formatEventDate } from "@/lib/utils";
 
 import { EventLive } from "./event-gallery-live";
@@ -208,7 +209,11 @@ export function HubCover({
               {name}
             </PageHeading>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/85">
-              {date && <span>{formatEventDate(date, endDate)}</span>}
+              {date && (
+                <span>
+                  <RangeText text={formatEventDate(date, endDate)} />
+                </span>
+              )}
               <GlyphCount
                 icon={<Users />}
                 count={counts.guests}

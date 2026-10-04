@@ -8,6 +8,7 @@ import { StateDot } from "@/components/app/dashboard/marks";
 import type { SortKey } from "@/lib/dashboard/display";
 import type { EventListRow } from "@/lib/dashboard/events-view";
 import { formatCount } from "@/lib/format/count";
+import { RangeText } from "@/lib/format/range-text";
 import { cn } from "@/lib/utils";
 
 /**
@@ -148,11 +149,15 @@ export function EventsTable({
                 </span>
                 {/* At a phone the Waiting column folds under the name with the date, so what waits is never lost. */}
                 <span className="block truncate text-xs text-muted-foreground sm:hidden">
-                  {row.kind === "guest"
-                    ? row.byline
-                    : row.kind === "deleted"
-                      ? row.statusLabel
-                      : row.dateLabel.replace("No date set", "No date")}
+                  {row.kind === "guest" ? (
+                    row.byline
+                  ) : row.kind === "deleted" ? (
+                    row.statusLabel
+                  ) : (
+                    <RangeText
+                      text={row.dateLabel.replace("No date set", "No date")}
+                    />
+                  )}
                   {state?.tone === "waiting" && row.kind === "hosted" && (
                     <span className="text-foreground">
                       {" · "}
@@ -162,7 +167,9 @@ export function EventsTable({
                 </span>
               </span>
               <span className="w-44 shrink-0 truncate text-sm text-muted-foreground tabular-nums max-sm:hidden">
-                {row.dateLabel.replace("No date set", "No date")}
+                <RangeText
+                  text={row.dateLabel.replace("No date set", "No date")}
+                />
               </span>
               <span className="w-16 shrink-0 text-right text-sm text-muted-foreground tabular-nums sm:w-28">
                 {row.kind === "guest"

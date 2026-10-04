@@ -55,6 +55,28 @@ beforeEach(() => {
 });
 
 describe("before the day", () => {
+  it("★ says a range's two days with a 'to' a reader hears, its dash kept for the eye (Q2)", () => {
+    const { container } = render(
+      <Stage
+        event={homeEvent({
+          date: "2026-10-09",
+          endDate: "2026-10-11",
+          ready: { opened: 0, guestsIn: 0 },
+        })}
+        ctx={homeContext(FRIDAY)}
+        guests={null}
+        photos={[]}
+        share={share}
+        qrToken="tok"
+      />,
+    );
+    const range = container.querySelector("[data-range]");
+    expect(range?.textContent).toContain("Friday, October 9");
+    expect(
+      container.querySelector("[data-range] .sr-only")?.textContent,
+    ).toMatch(/to/);
+  });
+
   it("is the event's code on its plate, Settings' five steps, and Invite then Print while nobody has opened it", () => {
     render(
       <Stage

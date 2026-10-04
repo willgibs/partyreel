@@ -164,4 +164,20 @@ describe("the reel and this event", () => {
       "Maya's 30th.",
     );
   });
+
+  // Q2: a range's dash is read as "to" in a label, and only the DATE is a range: a dash in a name is a dash.
+  it("★ marks the date as the one range part, said with its 'to' where the sentence is only read", () => {
+    const parts = say("event", { dateLabel: "October 3–5, 2026" });
+    expect(parts.filter((p) => p.range)).toEqual([
+      { text: "October 3–5, 2026", range: true },
+    ]);
+    expect(sentenceText(parts)).toBe(
+      "Maya's 30th, October 3 to 5, 2026. Not on your profile.",
+    );
+    const named = say("event", {
+      name: "Sam – Wedding",
+      dateLabel: "October 3, 2026",
+    });
+    expect(sentenceText(named)).toContain("Sam – Wedding, October 3, 2026.");
+  });
 });

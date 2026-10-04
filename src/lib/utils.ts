@@ -199,12 +199,30 @@ function calendarDay(date: string): Date {
  *
  * ★ A SCREEN READER MAY NOT SAY "TO" FOR IT (measured, crumbs-58): macOS's voice reads "October 3–5" as "3 to 5" but says
  * nothing for a spaced dash, and no "to" between weekday names; NVDA lists the en dash under "most" punctuation, so its
- * default level ("some") skips it.
+ * default level ("some") skips it. So a range is never drawn as bare text: `RangeText` (`lib/format/range-text.tsx`)
+ * keeps the dash for the eye and hides it from a reader, who is told "to" instead, and a range placed in an attribute
+ * or a sentence a reader reads (`aria-label`, `title`) goes through `spokenRange`. The dash is the ONE marker both
+ * read, so a range any formatter builds from `dashRange` is covered with no second form to keep in step.
  */
 export function dashRange(from: string, to: string): string {
   return /\s/.test(from) || /\s/.test(to)
     ? `${from} \u2013 ${to}`
     : `${from}\u2013${to}`;
+}
+
+/** A range dash with the single spaces `dashRange` closes or opens it with ("3\u20135", "October 30 \u2013 November 2"). */
+const RANGE_DASH_SOURCE = "\\s?\\u2013\\s?";
+
+/** `split` on this keeps each dash (with its spaces) between the terms it stands between: `RangeText`'s cut. */
+export const RANGE_DASH = new RegExp(`(${RANGE_DASH_SOURCE})`);
+
+/**
+ * A range, spoken: its dash said as "to" ("October 3\u20135, 2026" reads "October 3 to 5, 2026"), for a place a reader
+ * takes as a plain string, where `RangeText`'s hidden "to" has no markup to ride. Only a date formatter's own
+ * output belongs here (an en dash in somebody's name is a dash): the rest of the text is untouched.
+ */
+export function spokenRange(text: string): string {
+  return text.replace(new RegExp(RANGE_DASH_SOURCE, "g"), " to ");
 }
 
 /**

@@ -6,6 +6,7 @@ import { DOOR_FOOT, DoorWords } from "@/components/guest/door/door-page";
 import { LiveCount } from "@/components/guest/door/lit";
 import { LegalConsentLine } from "@/components/shared/legal-consent-line";
 import { Button } from "@/components/ui/button";
+import { RangeText } from "@/lib/format/range-text";
 import { formatEventDate } from "@/lib/utils";
 
 /**
@@ -61,7 +62,9 @@ export function HostedBy({
         </>
       )}
       {host && eventDate && " · "}
-      {eventDate && formatEventDate(eventDate, eventEndDate)}
+      {eventDate && (
+        <RangeText text={formatEventDate(eventDate, eventEndDate)} />
+      )}
     </p>
   );
 }

@@ -14,7 +14,14 @@
  * the sheet with every file already in hand, never a failure. A dismissed sheet keeps them in hand the same way.
  *
  * ★ EVERY WAIT CAN BE LEFT (Will: "Interruptibility is a huge win in UX"): the toast's x aborts every read in
- * flight and lets the files go. A file that cannot be read is tried once more and then left out, and said.
+ * flight and lets the files go, but asks first (E6, Will 2026-10-04: "a cancel is intentional"): nothing is handed
+ * to the phone's sheet while the question stands, and a confirmed stop says it was cancelled with a Try again, or,
+ * past the first part, where she stopped with the tap that takes the next. A file that cannot be read is tried once
+ * more and then left out, and said.
+ *
+ * ★ AND A DROPPED CONNECTION IS NEVER HIDDEN (E6): a Save that could not reach the app says "Your connection
+ * dropped." and what to do, and one whose reads stalled or were refused says so beside what it did save, so she
+ * neither tries on a line that cannot carry it nor blames the app.
  *
  * The engine owns no React: it fetches through `deps.fetch`, shares through `deps.nav`, speaks through the walk's
  * own toast port (`export-toast.tsx`) and reports its state to the caller (`onState`), so its tests stand in for
@@ -23,6 +30,7 @@
 import type {
   ExportScope,
   ToastPort,
+  ToastView,
 } from "@/components/app/export/export-walk";
 import {
   packSheets,
@@ -31,7 +39,7 @@ import {
   setNoun,
   TOO_MANY_FOR_PHOTOS,
 } from "@/lib/export/take-home";
-import { DONE_MS } from "@/lib/export/walk";
+import { DONE_MS, partsLeft, WALK_COPY } from "@/lib/export/walk";
 import { fetchMediaFile, type NavigatorLike } from "@/lib/media/share-save";
 import { formatBytes } from "@/lib/utils";
 
@@ -86,6 +94,20 @@ export const SAVE_COPY = {
   tryAgain: "Try again",
   cancel: "Stop saving",
   dismiss: "Dismiss",
+  /** The x, asked before it is believed (E6): before the first part is in Photos, and past it, where it leaves the rest. */
+  askStop: "Stop saving?",
+  askStopAfter: (part: number, parts: number) =>
+    `Stop after part ${part} of ${parts}?`,
+  askStopDetail: (next: number, parts: number) =>
+    `${partsLeft(next, parts)} won't be saved.`,
+  keepGoing: "Keep going",
+  stopHere: "Stop here",
+  cancelled: "Saving cancelled.",
+  stoppedAfter: (part: number, parts: number) =>
+    `Stopped after part ${part} of ${parts}.`,
+  /** What a Save that lost its line says of what it did not save: it cannot be tapped again, only picked again. */
+  droppedDetail:
+    "Your connection dropped. Check your signal, then save those again.",
 } as const;
 
 function capital(s: string): string {
@@ -115,6 +137,18 @@ type Run = {
   saved: SaveItem[];
   /** What the next tap does: open the sheet (`sheet`), take the next part (`next`), or nothing yet. */
   waiting: "sheet" | "next" | null;
+  /** The x's question stands: nothing is handed to the phone's sheet while it does (`holdWhileAsked`). */
+  asking: boolean;
+  released: (() => void)[];
+  /** The toast as the engine last drew it, which a Keep going puts back. */
+  last: ToastView | null;
+  /**
+   * Which attempt at the current part is live: a stop that leaves the Save standing moves it on, so a part's reads
+   * still unwinding when she takes the next part up again are never mistaken for the new part's (`getPart`).
+   */
+  epoch: number;
+  /** Reads that failed for want of a line (a body that stopped, a read the browser would not let through). */
+  lineMisses: number;
 };
 
 export function createTakeHomeSaver(deps: SaveDeps) {
@@ -122,22 +156,152 @@ export function createTakeHomeSaver(deps: SaveDeps) {
 
   const state = (s: SaveState) => deps.onState?.(s);
 
-  /** Let the run go: every read aborted, every file released, the toast gone. */
+  /** The question is over (answered, or the Save said something that replaces it): what waited on it goes on. */
+  function release(r: Run) {
+    r.asking = false;
+    for (const resolve of r.released.splice(0)) resolve();
+  }
+
+  /**
+   * Every toast the Save draws goes through here, so the question can stand over progress: while it does, a state
+   * that is only a wait or a tap (the bytes arriving, a part ready) is kept and not drawn, and an ending (saved,
+   * refused, short, cancelled) replaces the question, there being nothing left to ask about.
+   */
+  function put(r: Run, view: ToastView) {
+    if (run !== r) return;
+    r.last = view;
+    if (r.asking) {
+      if (view.tone === "wait" || view.tone === "between") return;
+      release(r);
+    }
+    deps.toast.show(r.id, view);
+  }
+
+  /** Let the run go at once, without a word: every read aborted, every file released, the toast gone. */
   function stop() {
     if (!run) return;
+    release(run);
     run.abort.abort();
     deps.toast.dismiss(run.id);
     run = null;
     state({ kind: "idle" });
   }
 
-  const close = { label: SAVE_COPY.cancel, run: stop };
+  /**
+   * ★ THE x ASKS FIRST (E6: a cancel is intentional). The reads go on meanwhile, but nothing is handed to the phone's
+   * sheet until she answers (`holdWhileAsked`); Keep going draws the toast as it stood, and Stop saving cancels.
+   */
+  function cancel() {
+    const r = run;
+    if (!r || r.asking) return;
+    // Parts already in Photos are hers: stopping past the first leaves the rest, and says so before it does.
+    const parts = r.sheets.length;
+    const shared = r.waiting === "next" ? r.part : r.part - 1;
+    r.asking = true;
+    deps.toast.show(r.id, {
+      tone: "confirm",
+      title:
+        shared >= 1 && shared < parts
+          ? SAVE_COPY.askStopAfter(shared, parts)
+          : SAVE_COPY.askStop,
+      detail:
+        shared >= 1 && shared < parts
+          ? SAVE_COPY.askStopDetail(shared + 1, parts)
+          : undefined,
+      actions: [
+        { label: SAVE_COPY.keepGoing, run: () => keepGoing(r) },
+        {
+          label:
+            shared >= 1 && shared < parts
+              ? SAVE_COPY.stopHere
+              : SAVE_COPY.cancel,
+          run: () => cancelRun(r),
+        },
+      ],
+    });
+  }
+
+  /** Keep going: the question is withdrawn and the toast is drawn as it stood. */
+  function keepGoing(r: Run) {
+    if (run !== r || !r.asking) return;
+    release(r);
+    if (r.last) deps.toast.show(r.id, r.last);
+  }
+
+  /**
+   * Stopped, confirmed. Nothing in Photos yet: the Save ends and says it was cancelled, with Try again (the Save
+   * from its start). Parts already in Photos: the Save stays, said where she stopped, with the tap that takes the
+   * next part, so what she left behind is never a silent loss.
+   */
+  function cancelRun(r: Run) {
+    if (run !== r || !r.asking) return;
+    release(r);
+    r.abort.abort();
+    r.epoch += 1;
+    r.files = null;
+    const parts = r.sheets.length;
+    const shared = r.waiting === "next" ? r.part : r.part - 1;
+    if (shared >= 1 && shared < parts) {
+      r.abort = new AbortController();
+      r.part = shared;
+      r.waiting = "next";
+      state({ kind: "ready", part: shared + 1, parts });
+      deps.toast.show(r.id, {
+        tone: "between",
+        title: SAVE_COPY.stoppedAfter(shared, parts),
+        action: {
+          label: SAVE_COPY.nextPart(shared + 1),
+          run: () => void nextPart(r),
+        },
+        close: { label: SAVE_COPY.dismiss, run: stop },
+      });
+      return;
+    }
+    const { scope, body } = r;
+    run = null;
+    state({ kind: "idle" });
+    deps.toast.show(r.id, {
+      tone: "cancelled",
+      title: SAVE_COPY.cancelled,
+      action: {
+        label: SAVE_COPY.tryAgain,
+        run: () => {
+          deps.toast.dismiss(r.id);
+          void start(scope, body);
+        },
+      },
+      close: {
+        label: SAVE_COPY.dismiss,
+        run: () => deps.toast.dismiss(r.id),
+      },
+      duration: DONE_MS.cancelled,
+    });
+  }
+
+  /** Nothing is handed to the phone's sheet while her question stands. */
+  async function holdWhileAsked(r: Run) {
+    while (r.asking && run === r) {
+      await new Promise<void>((resolve) => r.released.push(resolve));
+    }
+  }
+
+  /** The toast's x: a question first, never a stop on the press. */
+  const close = { label: SAVE_COPY.cancel, run: cancel };
+
+  type Asked =
+    | SaveItem[]
+    /** Refused outright (`final` where another try would say the same), or the app answered an error. */
+    | { refused: string | null; final?: true }
+    /** The links could not be asked for: `line` when the request never reached the app. */
+    | { refused: null; line: boolean }
+    | null;
 
   async function ask(
     scope: ExportScope,
     body: Record<string, unknown>,
     signal: AbortSignal,
-  ) {
+  ): Promise<Asked> {
+    let line = false;
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
         const res = await deps.fetch(`/api/export/${scope}`, {
@@ -146,6 +310,7 @@ export function createTakeHomeSaver(deps: SaveDeps) {
           body: JSON.stringify({ ...body, step: "save" }),
           signal,
         });
+        line = false;
         const data = (await res.json().catch(() => null)) as {
           ok?: boolean;
           items?: SaveItem[];
@@ -161,9 +326,11 @@ export function createTakeHomeSaver(deps: SaveDeps) {
         if (res.status < 500) return { refused: data?.message ?? null };
       } catch {
         if (signal.aborted) return null;
+        // A request that never reached the app: the line, which is all the page can know of a dropped one.
+        line = true;
       }
     }
-    return { refused: null };
+    return { refused: null, line };
   }
 
   /** One file, tried twice: a dropped read on a party's network is worth one more go. */
@@ -171,6 +338,7 @@ export function createTakeHomeSaver(deps: SaveDeps) {
     item: SaveItem,
     signal: AbortSignal,
     onBytes: (received: number) => void,
+    onLine: () => void,
   ): Promise<File | null> {
     for (let attempt = 0; attempt < 2; attempt++) {
       const got = await fetchMediaFile(item.url, item.name, {
@@ -181,20 +349,27 @@ export function createTakeHomeSaver(deps: SaveDeps) {
       });
       if (got.kind === "file") return got.file;
       if (got.kind === "aborted" || got.kind === "too-large") return null;
+      // A body that stopped arriving, or a read the browser would not let through (a dropped network looks like
+      // one): the line, as far as the page can tell. An answer that was not a 200 is the app's.
+      if (got.kind === "failed" && got.why !== "status") onLine();
       onBytes(0);
     }
     return null;
   }
 
-  /** The current part's files into the phone, the toast and the ring counting. */
-  async function getPart(r: Run): Promise<void> {
+  /**
+   * The current part's files into the phone, the toast and the ring counting. True once they are in hand; false when
+   * the part was abandoned meanwhile (a stop, or the Save let go), so nothing goes on to hand them over.
+   */
+  async function getPart(r: Run): Promise<boolean> {
     r.waiting = null;
+    const epoch = r.epoch;
     const sheet = r.sheets[r.part - 1] ?? [];
     const parts = r.sheets.length;
     const total = sheet.reduce((sum, i) => sum + i.bytes, 0);
     const received = new Map<string, number>();
     const say = () => {
-      if (run !== r) return;
+      if (run !== r || r.epoch !== epoch) return;
       const got = Math.min(
         total,
         [...received.values()].reduce((a, b) => a + b, 0),
@@ -205,7 +380,7 @@ export function createTakeHomeSaver(deps: SaveDeps) {
         part: r.part,
         parts,
       });
-      deps.toast.show(r.id, {
+      put(r, {
         tone: "wait",
         title:
           parts > 1
@@ -217,14 +392,24 @@ export function createTakeHomeSaver(deps: SaveDeps) {
     say();
     const files: (File | null)[] = new Array(sheet.length).fill(null);
     let next = 0;
+    // This part's own signal, taken now: a stop that leaves the Save standing swaps in a fresh controller for the
+    // next part, and a lane still unwinding from this one must not read that and carry on fetching.
+    const signal = r.abort.signal;
     const lane = async () => {
-      while (next < sheet.length && !r.abort.signal.aborted) {
+      while (next < sheet.length && !signal.aborted) {
         const index = next++;
         const item = sheet[index];
-        files[index] = await bring(item, r.abort.signal, (bytes) => {
-          received.set(item.id, bytes);
-          say();
-        });
+        files[index] = await bring(
+          item,
+          signal,
+          (bytes) => {
+            received.set(item.id, bytes);
+            say();
+          },
+          () => {
+            r.lineMisses += 1;
+          },
+        );
         received.set(item.id, item.bytes);
         say();
       }
@@ -232,14 +417,19 @@ export function createTakeHomeSaver(deps: SaveDeps) {
     await Promise.all(
       Array.from({ length: Math.min(CONCURRENCY, sheet.length) }, lane),
     );
-    if (run !== r) return;
+    if (run !== r || r.epoch !== epoch) return false;
     r.missed += files.filter((f) => f === null).length;
     r.files = files.filter((f): f is File => f !== null);
     r.saved.push(...sheet.filter((_, i) => files[i] !== null));
+    return true;
   }
 
   /** Hand the part's files to the phone's sheet, or wait for the tap that can. */
   async function share(r: Run): Promise<void> {
+    // Nothing goes to the sheet while her question stands: Keep going carries on from here (the tap that began
+    // this has lapsed by then, so the files wait for the next one). Awaited only then, so the common path reaches
+    // the sheet with no hop between the tap and it.
+    if (r.asking) await holdWhileAsked(r);
     if (run !== r || !r.files) return;
     r.waiting = null;
     const parts = r.sheets.length;
@@ -262,7 +452,7 @@ export function createTakeHomeSaver(deps: SaveDeps) {
         return;
       }
       if (run !== r) return;
-      deps.toast.show(r.id, {
+      put(r, {
         tone: "refused",
         title: SAVE_COPY.refused,
         action: { label: SAVE_COPY.tryAgain, run: () => void share(r) },
@@ -275,7 +465,7 @@ export function createTakeHomeSaver(deps: SaveDeps) {
     if (r.part < parts) {
       r.waiting = "next";
       state({ kind: "ready", part: r.part + 1, parts });
-      deps.toast.show(r.id, {
+      put(r, {
         tone: "between",
         title: SAVE_COPY.partSaved(r.part, parts),
         action: {
@@ -296,7 +486,7 @@ export function createTakeHomeSaver(deps: SaveDeps) {
     const parts = r.sheets.length;
     state({ kind: "ready", part: r.part, parts });
     if (!speak) return;
-    deps.toast.show(r.id, {
+    put(r, {
       tone: "between",
       title:
         parts > 1
@@ -308,10 +498,10 @@ export function createTakeHomeSaver(deps: SaveDeps) {
   }
 
   async function nextPart(r: Run) {
-    if (run !== r) return;
+    if (run !== r || r.asking) return;
+    // A part she stopped at is taken up again here: its reads are new, and what the old ones were doing is over.
     r.part += 1;
-    await getPart(r);
-    await share(r);
+    if (await getPart(r)) await share(r);
   }
 
   /** Every part has gone: the loose files download, and the walk says what it saved. */
@@ -327,7 +517,20 @@ export function createTakeHomeSaver(deps: SaveDeps) {
           : r.loose.length > 0
             ? `${SAVE_COPY.saved(noun)} ${SAVE_COPY.loose(r.loose.length)}`
             : SAVE_COPY.saved(noun);
-    deps.toast.show(r.id, { tone: "done", title, duration: DONE_MS.one });
+    if (r.missed > 0 && r.lineMisses > 0) {
+      // ★ NEVER HIDDEN (E6): what the line dropped is said where it stays, beside what did save, with what to do.
+      put(r, {
+        tone: "short",
+        title,
+        detail: SAVE_COPY.droppedDetail,
+        close: {
+          label: SAVE_COPY.dismiss,
+          run: () => deps.toast.dismiss(r.id),
+        },
+      });
+    } else {
+      put(r, { tone: "done", title, duration: DONE_MS.one });
+    }
     run = null;
     state({ kind: "done" });
   }
@@ -350,17 +553,28 @@ export function createTakeHomeSaver(deps: SaveDeps) {
       missed: 0,
       saved: [],
       waiting: null,
+      asking: false,
+      released: [],
+      last: null,
+      epoch: 0,
+      lineMisses: 0,
     };
     run = r;
     state({ kind: "asking" });
-    deps.toast.show(r.id, { tone: "wait", title: SAVE_COPY.asking, close });
+    put(r, { tone: "wait", title: SAVE_COPY.asking, close });
     const answer = await ask(scope, body, r.abort.signal);
     if (run !== r) return;
     if (answer === null) return stop();
     if (!Array.isArray(answer)) {
-      deps.toast.show(r.id, {
+      // ★ A DROPPED CONNECTION NAMES ITSELF (E6): a request that never reached the app says so and what to do; an
+      // app that answered an error keeps its own sentence.
+      const dropped = "line" in answer && answer.line;
+      put(r, {
         tone: "refused",
-        title: answer.refused ?? SAVE_COPY.refused,
+        title: dropped
+          ? WALK_COPY.dropped
+          : (answer.refused ?? SAVE_COPY.refused),
+        detail: dropped ? WALK_COPY.droppedDetail : undefined,
         action:
           "final" in answer
             ? undefined
@@ -387,8 +601,7 @@ export function createTakeHomeSaver(deps: SaveDeps) {
       await advance(r);
       return;
     }
-    await getPart(r);
-    await share(r);
+    if (await getPart(r)) await share(r);
   }
 
   return {
@@ -399,11 +612,14 @@ export function createTakeHomeSaver(deps: SaveDeps) {
      */
     tap(): void {
       const r = run;
-      if (!r) return;
+      if (!r || r.asking) return;
       if (r.waiting === "sheet") void share(r);
       else if (r.waiting === "next") void nextPart(r);
     },
+    /** Let the run go at once and say nothing: a page that is leaving, or a new Save replacing this one. */
     stop,
+    /** Ask whether to stop (the toast's x, and a control that stops a Save under way): the cancel she means. */
+    cancel,
     /** Whether a Save is under way (its control is the stop, or the tap that opens the sheet). */
     get busy(): boolean {
       return run !== null;

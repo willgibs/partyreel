@@ -192,7 +192,8 @@ Dashboard state, held nowhere in the repo, that the code assumes:
 - ★ **An avatar's colour is `seedFor(profiles.id)`, a server-side SHA-256, never the raw id,** on every surface (a
   profile with no photograph wears it; `Avatar`'s `seed`), so one person is one colour everywhere and no raw id
   reaches a browser. The guest "Hosted by" byline takes the host's photo and seed from a server-only read keyed on
-  `events.host_id` (`getHostAvatarSeed`), so the anon event RPC never returns the host id.
+  `events.host_id` (`getHostAvatarSeed`), so the anon event RPC never returns the host id. A guest with no account
+  wears her own guest row's colour (`seedFor(guests.id)`: [profiles-social.md](profiles-social.md)).
 
 ## Deleting an account
 

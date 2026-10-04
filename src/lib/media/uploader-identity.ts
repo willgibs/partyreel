@@ -39,10 +39,13 @@
  * ★ AND WHOSE FACE A CREDIT WEARS, BY THE SAME CASES (crumbs-38, the viewer's credit: "takes a face and a
  * door"). A face belongs to exactly the people the album already shows one for: the host (case 1, the
  * "Hosted by" byline's face) and a PROVED name whose account still stands (case 2, the guest list's
- * face); a typed name (case 3) has no face to show, and nobody (case 4) is nobody. So the rule that names
- * a person also says whose face it would be (`faceOwner`), and decides it nowhere else: a second rule for
- * faces could promote an unproved name to a face the way a `user_id` test would promote it to "verified".
- * The owner is server-side only (it holds an account id): `uploader-faces.ts` turns it into the `face`
+ * face), each their account's colour, photograph and door; a typed name (case 3) is a colour alone, her own
+ * guest ROW's (`seedFor(guests.id)`, small-fixes: the guest list's rule, so she is one colour wherever she is
+ * drawn), with no photograph (she has none) and no door (no page stands behind a name nobody proved), and
+ * nobody (case 4) is nobody. So the rule that names a person also says whose face it would be (`faceOwner`),
+ * and decides it nowhere else: a second rule for faces could promote an unproved name to a photograph or a
+ * door the way a `user_id` test would promote it to "verified".
+ * The owner is server-side only (it holds an account or row id): `uploader-faces.ts` turns it into the `face`
  * a credit draws, and every mapper copies that, field by field, never the owner.
  */
 
@@ -59,13 +62,15 @@ export type UploaderFace = {
 };
 
 /**
- * WHOSE FACE IT WOULD BE (server-side only, never on a wire): the event's host, or the account behind a
+ * WHOSE FACE IT WOULD BE (server-side only, never on a wire): the event's host, the account behind a
  * proved name with the guest row that carries it (a per-event block holds rows, so the guest's view can
- * leave a blocked person's face off by the row).
+ * leave a blocked person's face off by the row), or a typed name's own guest row, whose colour is all the
+ * face she has.
  */
 export type FaceOwner =
   | { kind: "host" }
-  | { kind: "account"; accountId: string; guestId: string };
+  | { kind: "account"; accountId: string; guestId: string }
+  | { kind: "row"; guestId: string };
 
 export type UploaderIdentity = {
   displayName: string | null;
@@ -154,15 +159,16 @@ export function resolveUploaderIdentity(
   // of anything, and the host's half of this identity is a name plus the mark. Returning one would
   // put an unproved address under a name the host has no way to check, which is the impersonation
   // the whole round exists to prevent.
-  // ★ And NO FACE: a typed name keeps the plain disc everywhere (the guest list's rule), since a face
-  // beside an unproved name would lend it the claim the mark withholds.
+  // ★ And no PHOTOGRAPH and no DOOR, since a face beside an unproved name would lend it the claim the mark
+  // withholds: only her own row's colour (the guest list's rule), which claims nothing, and which turns to her
+  // account's once she proves an email and case 2 takes the row.
   if (guest.display_name !== null && guest.display_name.trim() !== "") {
     return {
       displayName: guest.display_name,
       email: null,
       isHost: false,
       isVerified: false,
-      faceOwner: null,
+      faceOwner: { kind: "row", guestId: row.guest_id },
     };
   }
   // 4. Nameless: minted before names were asked. Nobody is named, so nothing is claimed.

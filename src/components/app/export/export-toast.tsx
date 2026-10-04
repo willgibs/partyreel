@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, EyeOff, X } from "lucide-react";
+import { Ban, Download, EyeOff, X } from "lucide-react";
 import { toast } from "sonner";
 
 import type {
@@ -65,30 +65,48 @@ function Controls({
 }
 
 /**
- * A QUESTION'S ANSWERS, UNDER ITS LINE (`ask`). Two answers beside the line squeezed "3 of these 12 are
+ * WHAT TO DO ABOUT IT, UNDER THE LINE (E6: "your connection dropped" and what to do). Balanced, so a sentence that must
+ * wrap beside a Try again and the x at 375 breaks in the middle ("Check your signal, / then try again.") and never
+ * leaves one word on a line of its own.
+ */
+function Detail({ text }: { text: string }) {
+  return <span className="block text-balance">{text}</span>;
+}
+
+/**
+ * A QUESTION'S ANSWERS, UNDER ITS LINE (`ask`, `confirm`). Two answers beside the line squeezed "3 of these 12 are
  * hidden." into four rows at 375 (the toaster's width is fixed, so a desk's too), so they sit in the
  * description's place, left-aligned, and the x keeps its place on the right. Sonner's own action styling,
- * with its push to the right undone.
+ * with its push to the right undone. A `detail` (what stopping leaves behind) stands over them.
  */
-function Answers({ actions }: { actions: ToastAction[] }) {
+function Answers({
+  actions,
+  detail,
+}: {
+  actions: ToastAction[];
+  detail?: string;
+}) {
   return (
-    <span
-      data-export-toast-answers=""
-      className="mt-2 flex flex-wrap items-center gap-1.5"
-    >
-      {actions.map((answer) => (
-        <button
-          key={answer.label}
-          type="button"
-          data-button=""
-          data-action=""
-          style={{ marginInlineStart: 0 }}
-          onClick={answer.run}
-        >
-          {answer.label}
-        </button>
-      ))}
-    </span>
+    <>
+      {detail ? <span className="block">{detail}</span> : null}
+      <span
+        data-export-toast-answers=""
+        className="mt-2 flex flex-wrap items-center gap-1.5"
+      >
+        {actions.map((answer) => (
+          <button
+            key={answer.label}
+            type="button"
+            data-button=""
+            data-action=""
+            style={{ marginInlineStart: 0 }}
+            onClick={answer.run}
+          >
+            {answer.label}
+          </button>
+        ))}
+      </span>
+    </>
   );
 }
 
@@ -121,10 +139,23 @@ export const exportToasts: ToastPort = {
           action: <Controls close={view.close} />,
         });
         return;
+      case "confirm":
+        // The x, asked before it is believed (E6): neutral, held until she answers, and no x of its own (the
+        // answers are the way out). Keep going is first, since it is what an unintended press means.
+        toast.info(view.title, {
+          ...base,
+          description: <Answers actions={view.actions} detail={view.detail} />,
+          icon: <Ban className="size-4" aria-hidden />,
+          duration: Infinity,
+          dismissible: false,
+          action: undefined,
+        });
+        return;
       case "between":
         // Neutral, not green: the walk is half done, and green says finished.
         toast.info(view.title, {
           ...base,
+          description: view.detail ? <Detail text={view.detail} /> : undefined,
           icon: <Download className="size-4" aria-hidden />,
           duration: Infinity,
           dismissible: false,
@@ -133,9 +164,11 @@ export const exportToasts: ToastPort = {
         return;
       case "downloading":
         // Handed over and on its way; the Worker's word turns it to saved (`export-ends`). Neutral, as
-        // between parts, and held: the x only lets the toast go, the browser keeps the download.
+        // between parts, and held: the x only lets the toast go, the browser keeps the download. A line that
+        // has stopped answering is said under it.
         toast.info(view.title, {
           ...base,
+          description: view.detail ? <Detail text={view.detail} /> : undefined,
           icon: <Download className="size-4" aria-hidden />,
           duration: Infinity,
           dismissible: false,
@@ -154,8 +187,20 @@ export const exportToasts: ToastPort = {
       case "short":
         toast.warning(view.title, {
           ...base,
+          description: view.detail ? <Detail text={view.detail} /> : undefined,
           icon: undefined,
           duration: Infinity,
+          dismissible: true,
+          action: <Controls action={view.action} close={view.close} />,
+        });
+        return;
+      case "cancelled":
+        // Hers, so neutral and never an error: said once, with the way back, and gone by itself where she was
+        // looking (her own press), held where the Worker reported it after the fact.
+        toast.info(view.title, {
+          ...base,
+          icon: undefined,
+          duration: view.duration,
           dismissible: true,
           action: <Controls action={view.action} close={view.close} />,
         });
@@ -163,6 +208,7 @@ export const exportToasts: ToastPort = {
       case "refused":
         toast.error(view.title, {
           ...base,
+          description: view.detail ? <Detail text={view.detail} /> : undefined,
           icon: undefined,
           duration: Infinity,
           dismissible: true,
