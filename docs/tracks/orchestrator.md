@@ -46,6 +46,7 @@ the dashboard, the hub's strip, graphite, Create's styles, small fixes, red-team
 | `compute-uploads` | lever 4: a burst of uploads is one presign and as few completes as its landing allows, every per-file check kept | MERGED at `3915071ca` (gate 216 green; no migration; a guest's join and ten photos 59 calls to 17, a wedding -65%); his call in the calls lab (AC); pruned | Opus, 3131 | `a1127664b1a59539e` |
 | `crumbs-66` | red-team 53b's NITs (the hub's door words; the cover's srcset not built: a cover variant deferred), Reset's focus, the hub reel's develop words, the compute harness's join wait | MERGED at `53e1e8fb2` (gate 215 red on a flake, then the full suite green: 11,160; no migration); pruned | Sonnet, 3132 | `aa18239db9c002762` |
 | `crumbs-67` | two jsdom tests that flake under load (`grace-banner.test.tsx`, `review-room-hub.test.tsx`) wait on what they mean | RUNNING (cut at `16a9afdfb`; may be cut off: resume from its WIP) | Sonnet, 3132 | `a07bf3008e5deabd3` |
+| `crumbs-68` | the door's upload bar fills as the bytes go (it read 0 to 100 as a fraction), her album asks once a landed burst, the failure sheet and camera read the cause of a drop | RUNNING (cut at `370b83331`; may be cut off: resume from its WIP) | Sonnet, 3131 | `ab8e4ad3cf9714ba1` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Its
 model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`. From another session, respawn it from
