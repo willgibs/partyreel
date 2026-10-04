@@ -214,12 +214,23 @@ export type DoorOption = {
   stickAt: number;
 };
 
+/** Whether a CSS transition is still running anywhere in the band (production's `morphing`, `event-cards-row.tsx`). */
+function morphing(band: HTMLElement): boolean {
+  if (typeof band.getAnimations !== "function") return false;
+  return band
+    .getAnimations({ subtree: true })
+    .some((a) => a.playState === "running" && "transitionProperty" in a);
+}
+
 /**
- * ★ A STICKY ROW'S FOOTPRINT HOLDS ITS RESTING HEIGHT (production's
- * `useStuckBand`), so condensing to the band never moves the album: a row that
- * shrank under a live frame's scroll would lift its own footprint off the bar
- * and unstick it, for ever. Read off the band while it rests; the footprint
- * takes it as its `minHeight`.
+ * ★ A STICKY ROW'S FOOTPRINT HOLDS ITS RESTING HEIGHT, READ ONLY AT REST AND
+ * NEVER MID-MORPH (production's `useStuckBand`), so condensing to the band
+ * never moves the album: a row that shrank under a live frame's scroll would
+ * lift its own footprint off the bar and unstick it, for ever, and a floor
+ * read while a row transitions back out of its band would follow it down and
+ * let scroll anchoring lift the row into the band again. So a read waits for
+ * the band to rest and its transitions to end (`transitionend` bubbles up);
+ * the footprint takes it as its `minHeight`.
  */
 export function useRestHeight(
   band: RefObject<HTMLElement | null>,
@@ -230,11 +241,20 @@ export function useRestHeight(
     const el = band.current;
     if (!el || stuck) return;
     const win = el.ownerDocument.defaultView ?? window;
-    const hold = () => setRest(el.getBoundingClientRect().height);
+    const hold = () => {
+      if (el.hasAttribute("data-stuck") || morphing(el)) return;
+      setRest(el.getBoundingClientRect().height);
+    };
     hold();
     const ro = new win.ResizeObserver(hold);
     ro.observe(el);
-    return () => ro.disconnect();
+    el.addEventListener("transitionend", hold);
+    el.addEventListener("transitioncancel", hold);
+    return () => {
+      ro.disconnect();
+      el.removeEventListener("transitionend", hold);
+      el.removeEventListener("transitioncancel", hold);
+    };
   }, [band, stuck]);
   return rest;
 }
@@ -243,7 +263,9 @@ export function useRestHeight(
  * THE BAND'S LEAD once the cover has gone: its first photograph and the
  * event's name (production's `data-band-lead`), so the hub still reads as the
  * album's however deep she goes. `onGlass` draws it white for a material on
- * the photograph; a phone keeps the face and drops the name.
+ * the photograph; a phone keeps the face and drops the name. ★ AN ALBUM WITH
+ * NO PHOTOGRAPH YET LEADS WITH ITS NAME ALONE (and a phone with nothing): an
+ * empty plate where the face would be reads as a hole.
  */
 export function BandLead({
   c,
@@ -274,15 +296,7 @@ export function BandLead({
             onGlass ? "rounded-full" : "rounded-lg",
           )}
         />
-      ) : (
-        <span
-          aria-hidden
-          className={cn(
-            "size-9 shrink-0",
-            onGlass ? "rounded-full bg-white/15" : "rounded-lg bg-muted",
-          )}
-        />
-      )}
+      ) : null}
       {phone ? null : (
         <span
           className={cn(

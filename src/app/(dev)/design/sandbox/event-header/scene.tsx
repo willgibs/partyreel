@@ -269,13 +269,15 @@ export const measureDoors =
     const coverFoot = head?.getBoundingClientRect().bottom ?? 0;
     const where = doors[0].closest("[data-eh-head]")
       ? "on the cover"
-      : doors[0].closest("[data-eh-band][data-stuck]")
-        ? doors[0].closest("[data-eh-dock]")
-          ? "docked under the bar"
-          : "in the stuck band"
-        : first.top < coverFoot
-          ? `over the seam, ${px(coverFoot - first.top)} up into the cover`
-          : "under the cover";
+      : doors[0].closest("[data-eh-foot]")
+        ? "at the screen's foot"
+        : doors[0].closest("[data-eh-band][data-stuck]")
+          ? doors[0].closest("[data-eh-dock]")
+            ? "docked under the bar"
+            : "in the stuck band"
+          : first.top < coverFoot
+            ? `over the seam, ${px(coverFoot - first.top)} up into the cover`
+            : "under the cover";
     parts.push(
       `${doors.length} doors ${where}, the first ${px(first.width)} by ${px(first.height)}`,
     );

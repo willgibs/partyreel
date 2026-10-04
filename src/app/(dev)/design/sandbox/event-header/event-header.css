@@ -92,7 +92,9 @@
   display: none;
 }
 
-/* ══ HOW A ROOM ARRIVES (as wired: every room over the hub) ═══════════════ */
+/* ══ HOW A ROOM ARRIVES (as wired: every room over the hub) ═══════════════
+   The panel is production's own `Popup` and arrives on its own clocks; the
+   reel and the guest's phone are drawn here. */
 
 /* Her album in a phone: the frame inside the frame shows its viewport only,
    at four fifths of its size so it fits a laptop's screen whole. */
@@ -106,31 +108,23 @@
   gap: 0;
 }
 
+/* On production's floating clocks (`floating-layer.ts`): the scrim at the
+   standard beat, a whole surface from an edge at the edge's 300ms. */
 @media (prefers-reduced-motion: no-preference) {
   .eh-layer .eh-scrim {
     animation: eh-fade 200ms var(--ease-emphasis) both;
   }
-  .eh-panel {
-    animation: eh-from-right 300ms var(--ease-drawer) both;
-  }
   .eh-cover {
-    animation: eh-from-foot 360ms var(--ease-drawer) both;
+    animation: eh-from-foot 300ms var(--ease-drawer) both;
   }
   .eh-phone {
-    animation: eh-phone-in 420ms var(--ease-emphasis) both;
+    animation: eh-phone-in 300ms var(--ease-emphasis) both;
   }
 }
 
 @keyframes eh-fade {
   from {
     opacity: 0;
-  }
-}
-
-@keyframes eh-from-right {
-  from {
-    opacity: 0;
-    transform: translateX(40px);
   }
 }
 

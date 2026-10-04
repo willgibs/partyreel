@@ -2,7 +2,7 @@
 
 import "./windows.css";
 
-import { type RefObject, useLayoutEffect, useRef, useState } from "react";
+import { type RefObject, useRef } from "react";
 import { Check, Pause, Play, Users } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -22,6 +22,7 @@ import {
   ROOM_ORDER,
   ROOM_SHORT,
   type RoomId,
+  useRestHeight,
 } from "./door-kit";
 import { AT_THE_DOOR, type Case, GUESTS, REVIEW } from "./fixtures";
 
@@ -395,50 +396,6 @@ function Door({
 
 /* ── the row and its band ─────────────────────────────────────────────────── */
 
-/** Whether a transition is still running anywhere in the band (production's `morphing`, `event-cards-row.tsx`). */
-function folding(band: HTMLElement): boolean {
-  if (typeof band.getAnimations !== "function") return false;
-  return band
-    .getAnimations({ subtree: true })
-    .some((a) => a.playState === "running" && "transitionProperty" in a);
-}
-
-/**
- * ★ THE FOOTPRINT HOLDS THE RESTING ROW'S HEIGHT, READ ONLY AT REST AND
- * NEVER MID-FOLD (production's `useStuckBand`). This row folds by
- * transitions, so as it opens back out of the band its height passes through
- * every size between: a floor read on the way would follow the fold, move the
- * album, and let scroll anchoring lift the row back into the band, the loop
- * production's row header describes. So a read waits for the band to rest
- * and its transitions to end (`transitionend` bubbles up from the windows).
- */
-function useHeldRest(
-  band: RefObject<HTMLElement | null>,
-  stuck: boolean,
-): number {
-  const [rest, setRest] = useState(0);
-  useLayoutEffect(() => {
-    const el = band.current;
-    if (!el || stuck) return;
-    const win = el.ownerDocument.defaultView ?? window;
-    const hold = () => {
-      if (el.hasAttribute("data-stuck") || folding(el)) return;
-      setRest(el.getBoundingClientRect().height);
-    };
-    hold();
-    const ro = new win.ResizeObserver(hold);
-    ro.observe(el);
-    el.addEventListener("transitionend", hold);
-    el.addEventListener("transitioncancel", hold);
-    return () => {
-      ro.disconnect();
-      el.removeEventListener("transitionend", hold);
-      el.removeEventListener("transitioncancel", hold);
-    };
-  }, [band, stuck]);
-  return rest;
-}
-
 /**
  * THE ROW UNDER THE COVER, sticky, folding into its band once it reaches the
  * bar: production's footprint and band (`event-cards-row.tsx`). Every piece
@@ -459,7 +416,7 @@ function Row({
   mark: RefObject<HTMLDivElement | null>;
 }) {
   const bandRef = useRef<HTMLDivElement | null>(null);
-  const rest = useHeldRest(bandRef, stuck);
+  const rest = useRestHeight(bandRef, stuck);
   const hand = screen === "375";
   const faces = facesOf(c);
   return (
