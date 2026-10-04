@@ -71,6 +71,14 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls lab, the red-team brief
 Round 15, on Will's desk answers of 2026-10-04 06:00Z and his brand note; the approved plan, whole, is
 `../partyreel-wt/_scratch/desk/round-15-plan.md`.
 
+00. **Milestone 36, ready for Will's yes** (red-team 53b PASS on the local desk; 25 merges since milestone 35). The
+   checklist, in order, on his yes:
+   - production's `STRIPE_PRICE_EVENT_PASS` and `STRIPE_PRICE_EVENT_PASS_RENEWAL` take preview's values (Ladder A's
+     pass; read 2026-10-04: every other production key equals preview's but the site URL, the lab key and the export
+     Worker's pair, by design);
+   - the full gate (gate 214, FULL=1) and `pnpm compute:model` green at the tip;
+   - the runbook's "Milestone" (merge, tag, push: main deploys itself), production READY at the SHA;
+   - one short read-only walk on partyreel.com (Hobby's CPU: a dozen pages, no lab), then STATUS and this pickup.
 0a. **Phase 2 of the compute fix:** compute-levers (levers 1 and 2) MERGED (-66% of a heavy wedding's calls); next
    batched presign and complete (lever 4), and the CDN version (lever 3, 3b) only on Will's privacy call X5. An auth red-team of lever 1 runs on the local
    desk before it ships; the fix reaches partyreel.com only through a milestone on Will's yes.
