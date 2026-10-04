@@ -26,8 +26,9 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 
 ## The desk
 
-Six boards wait for his sitting on the alias: identity r3 (actions and fields as one system), host-dashboard r3, the-wait
-r2 (the arrival), event-header r3 (facts and doors), create-wizard r3 (the add step) and demo-framing r5 (the hero).
+Desk 2 is Send to Google Drive alone (nine asks, build 52). Desk 3's boards are drawing (identity r4, event-header r4,
+host-dashboard r4; customize r1 parked to join them), then the brand (brand r1), the small moments and the brand
+applied: `../partyreel-wt/_scratch/desk/round-15-plan.md`.
 
 ## Live state
 
