@@ -1,6 +1,6 @@
 ---
 track: hub-strip-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "fdbe1cab"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -37,25 +37,48 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each is built as recommended and listed in the Handoff as his to overrule; none is a one-way door (no migration, no deploy).
+
+- **Q1. Where does the host play her reel before the develop?** Recommended, built: on her own hub. The guests' own view mounts over the hub on `?reel` of the hub's address, fed her scope (`event-feed/hub-reel.tsx`), so the guest page stays what her guests meet. The other readings: the guest page's `?reel` with an owner exemption (rejected: no guest-path read takes the owner's exemption, `disposable-mode.md`, and it would teach her nothing of the difference Will asked the two pages to teach), or a trimmed player on the hub (rejected: it loses Style, Hold and Set for everyone, which she most wants to tune before the develop).
+- **Q2. After the develop, where does the card's press go?** Recommended, built: unchanged, to the guests' view at `/e/<token>?reel` (Make your own, Add yours and Play on a screen ride there). Only the develop-ahead state plays on the hub. Overrule: always play on the hub (one view), at the cost of wiring the creator and the host's Add to event there.
+- **Q3. The card's words.** Recommended, built: "Guests get it later" (the whole sentence is the card's `title`). Will's "at the develop" is 155 px on a tile whose value line is 118 px from `sm` to `md` and 134 px after (and 149 px on a phone's grid): it was cut at every width, measured. Overrule: a wider tile, which is the doors' redraw (event-header r4).
+- **Q4. What the line under the title keeps beside the strip.** Recommended, built: the date, her guests, her views and the Live mark; only the album glyph left (the strip's end says the number). The board drew none of the four. Views stay because the checklist's "Opened N times" must read what the eye beside it reads (`page.test.tsx`'s pin). Overrule: the board's bare cover (delete the line's siblings of the date).
+- **Q5. What is a photograph on the strip?** Recommended, built: what the hub's album holds (approved and hidden, never Review's) on her own scope, so a photograph waiting for the develop has its mark, and the number is the counted `counts.album`.
+- **Q6. What is lit?** Recommended, built: the newest within a quarter of an hour on the reader's clock, one timeout for the moment it turns, not lit in the server's paint or the hydrating render. Not coupled to the doorbell's socket (the Live pip keeps that claim, and stays).
+- **Q7. A tablet's width.** Recommended, built: a third tier of marks (36 to 104) between the board's two (19 to 52, 54 to 160), each tier picked by a container query on the strip's own box, so a tablet neither packs 160 marks into 540 px nor spaces 52 a comb's width apart.
+- **Q8. What the hub's view offers.** Recommended, built: the guests' own dock without Play on a screen (Will's: a screen that is not hers cannot open her hub), Make your own and Add yours; Set for everyone stays (the look is hers to set before the develop).
+- **Q9. The guest page's reel curtain.** Recommended, built: never the owner's while a develop is ahead (`reelAsked`). Today that page already shows her what her guests see, so an old link to it before the develop lands on the album; the gate only stops the black standing for a reel that is not coming.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/host-app.md`: the head (what it keeps), a new bullet for the strip, the rooms bullet's door into the reel, and "The highlight reel, the host's side".
+- `docs/systems/reel.md` (the Orchestrator's exception): the owner's reel on the guest page, the Reel card's words and press, and a new bullet for her reel on her own hub (with the guest page's gate).
+- `docs/systems/disposable-mode.md`: one sentence of "The host's cover" (the Reel card no longer wears only what her guests can see; it is the one place that is hers).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Host: `/dashboard/<id>/reel` (the old route's redirect) sends a live reel to the guests' page, which has no reel before the develop; send it to the hub's `?reel` while a develop time is ahead (`reel/page.tsx`, two lines).
+- Design: the Library's hub-head specimens (`composition-demos.tsx`'s `HubCoverDemo`, `HubBandDemo`) hand `HubCover` no `arrivals`, so they draw the strip's flat quiet line; one prop each draws the real one (and the entry's lede in `gallery-demos.tsx` still calls the facts "today's").
+- Host (clip): the hub's reel view has no Make your own (its seam wants the host's plan and her own Add to event); wire it from the hub so she can make a clip before the develop.
+- Records: ROADMAP's Host line "while a develop time is ahead the hub's Reel card draws no still" is done (it draws her stills now) and retires; its Design line about the Reel card's words written by hand in two drawings now also covers "Guests get it later".
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed to `origin/lp/hub-strip-wiring`:** `6b53688b6` (the strip and Q5), `4acc038dc` (the reel's black and its way out, the strip's end said once to a reader, marks rounded, the timer clamped), `e59bff2fd` (a view test's narrowing), `95d696da1` (the strip's state is `data-landing`), then this manifest. launch-prep moved while the lane ran (camera-clip merged at `e9a2ed921`, then records): none of it is under this lane's reads, and a dry-run `git merge origin/launch-prep` auto-merged clean (`docs/systems/disposable-mode.md` is the one file both touched), so there is no sync commit (PROGRAM: records and unrelated code never need one).
+- **Gates on `95d696da1`, each on its own exit code** (logs in `../partyreel-wt/_scratch/hub-strip-wiring/final-*.log`): `pnpm typecheck` 0; `pnpm lint` 0; `pnpm test` 0 (882 files, 10,655 tests); `zsh scripts/build-lock.sh pnpm build` 0; `pnpm lab:smoke --base http://localhost:3131` 0 (`final-smoke.log`: 151 checks, 0 failing; scope: the Library, and event-header and identity, whose drawings import `host-album.tsx`). No board, so no `lab:demo`.
+- **Local verification** (the real components in throwaway pages over a fake album store, never committed; the pages are in `_scratch/hub-strip-wiring/pages/`; captures in `_scratch/hub-strip-wiring/shots/`, taken in a headless Chrome of the lane's own): server HTML carries the strip with all three widths and no lit state, hydration clean (no console message); the strip at 1440 lit (`strip-lit-1440.png`), quiet at 120 photos (`card-after-develop-1440.png`) and a three-photo album (`strip-quiet-small-1440.png`); the Reel card on a develop-ahead album, press, and **her reel playing real photographs over the hub with the guests' dock and no Play on a screen, Make your own or Add yours** (`reel-open-1440.png`); Close and Back both return to the hub, a deep link at `?reel` opens it and its Close replaces in place. The 375 and 768 widths were measured in same-origin iframes (hand tier 52 marks at 22 px, tablet tier 104 at 26 px). A real browser caught one bug no test could: a state named `data-lit` is the design's bright edge (`globals.css`) and ringed the whole strip, so the state is `data-landing` and a test pins it. **Live: not from a lane** (no lane push deploys; the hub is behind a sign-in localhost cannot complete; R2 refuses the canvas's reads from localhost): red-team 53 judges it, and "Look at first" is its script.
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): everything under `src/components/app/event-feed/` (the strip's `event-hub-head-strip.tsx`, `-marks.ts`, `.css`, `hub-reel.tsx`, `hub-reel-view.ts`, the card, the head, a comment in `host-album.tsx`, and their tests), `src/app/(app)/dashboard/[eventId]/page.tsx`, `docs/systems/host-app.md` and this file; plus the exceptions, each one the smallest edit that does the job:
+  - `src/app/(guest)/e/[token]/page.tsx` and its test `page.host-card.test.tsx` (the Orchestrator's listed gate): `reelAsked` is never the owner's while a develop is ahead. The page already showed her what her guests see; this only stops the black curtain standing for a reel that is not coming.
+  - `src/components/guest/reel/live-reel-view.tsx` and its test: two optional props, `standIn` (the four things the view reads off the guest album's live source: links by id, the host's defaults, the event's key, the presign watchdog) and `screenLink`. The hub has no guest source, and without them the hub could only play a trimmed player that loses Style, Hold and Set for everyone. Every existing call is unchanged (the new tests fail on the old view, and a mutation check confirmed four of the six).
+  - `src/app/(app)/dashboard/[eventId]/event-not-found.test.tsx`: one mock line for the page's new import (`hub-reel`), since that test stands in for everything the page imports.
+  - `docs/systems/reel.md` (the Orchestrator's exception) and `docs/systems/disposable-mode.md` (one sentence that would otherwise lie: the Reel card no longer wears only what her guests can see), listed under System-doc edits.
+- **The items:**
+  - The facts strip along the hub cover's foot, wired in `HubCover` with the album glyph retired (`event-hub-head.tsx`, `event-hub-head-strip*.ts(x)`, `.css`; `event-hub-head-strip-marks.test.ts`, `event-hub-head-strip.test.tsx`, `event-hub-head.test.tsx`).
+  - The Reel card draws her scope's stills and says "Guests get it later" while a develop is ahead, and its press plays her reel (`reel-card.tsx`; `reel-card.test.tsx` reshaped on purpose, the crumbs-52 and crumbs-59 scars kept where they still hold).
+  - Her reel over her hub on `?reel`, through the guests' own view (`hub-reel.tsx`, `hub-reel-view.ts`, mounted in the page; `hub-reel.test.tsx`, `hub-reel-view.test.ts`, `hub-wiring.test.ts`).
+  - The guest page's reel curtain, never the owner's before the develop (`page.tsx`, pinned by three new cases in `page.host-card.test.tsx`).
+- **Assets requested from Will:** none.
+- **Board ideas:** (1) the board's `faces` option and its `eh-end`, `eh-print`, `eh-chip` and avatar states in `sandbox/event-header/facts.tsx` use `data-lit` as a state, which is the design's bright-edge hook (it makes its host `position: relative` and draws an edge pseudo-element); name them otherwise when `faces` gets its own board. (2) If he wants the bare cover the board drew, one board question: does the line under the title keep her guests, her views and the Live mark? (3) The card could say the develop's own time ("Guests get it at 9 am") if the doors' redraw gives its value line room.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none.
+- **Calls his to overrule:** Q1 the host's pre-develop reel plays on her own hub (not through the guest page); Q2 after the develop the card still opens the guests' view; Q3 the card says "Guests get it later", the whole sentence is its `title`; Q4 the line under the title keeps the date, guests, views and Live, only the album glyph left; Q5 the strip counts what the hub's album holds on her own scope, sealed shots included; Q6 lit is a quarter hour on the reader's clock and not tied to the socket; Q7 a tablet tier of 36 to 104 marks beside the board's two; Q8 the hub's view has no Play on a screen, Make your own or Add yours; Q9 the guest page stands no reel curtain for the owner before the develop.
+- **Look at first** (red-team 53's script, on the alias, as willg97 and in a phone's width): (1) on a Disposable album with a develop time ahead and two or more photographs, the Reel card draws her photographs and says "Guests get it later" (hover: the whole sentence); press it: the black, then her reel playing her photographs, sealed ones included, over the hub, with the dock holding no Play on a screen, Make your own or Add yours; Style then Set for everyone works; Close and the phone's Back return to the hub; a reload at `/dashboard/<id>?reel` reopens it. (2) `/e/<token>?reel` as the owner before the develop: the album her guests meet, no black curtain, no reel; See it as a guest as before. (3) After Develop now: the card says "Live for guests" and a press opens the guests' view. (4) The strip at 375, 768 and 1440 on a real album: a mark a photograph and the number the head's own count, quiet points on a small album, the end dot and the newest marks lit while a guest's phone uploads and quiet a quarter hour after, nothing lit in the first paint; a photograph hidden or sent back to Review changes the marks and the number with nothing refreshed.
