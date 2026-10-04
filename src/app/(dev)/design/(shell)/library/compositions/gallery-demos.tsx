@@ -312,9 +312,9 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
         node: (
           <InertStorage>
             <StorageMeter
-              activeBytes={1_000_000_000}
-              deletedBytes={200_000_000}
-              storageCap={5_000_000_000}
+              activeBytes={24 * 1024 ** 3}
+              deletedBytes={3 * 1024 ** 3}
+              storageCap={100 * 1024 ** 3}
               makeRoom
               passExpiry={null}
               planName="Pro"
@@ -344,7 +344,7 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
       },
       {
         label: "Half used",
-        hint: "41.2 GB in albums · 8.6 GB in Deleted",
+        hint: "41 GB in albums · 8.5 GB in Deleted",
         node: <StorageChartDemo state="half" />,
       },
       {

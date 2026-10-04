@@ -21,8 +21,17 @@ export type MeterRefusal =
   | { reason: "hourly"; retryAfterSec: number }
   /** This file's declared bytes would take the month past its allowance (read as the complete reads it). */
   | { reason: "monthly" }
-  /** This file would not fit the storage cap and its 10% write headroom. */
-  | { reason: "storage" }
+  /**
+   * This file would not fit the storage cap and its 10% write headroom. ★ With its numbers (trash-in-storage,
+   * 20261003220000), each null when the database does not send it: what the file needs freed, what Deleted holds, and
+   * whether Deleted could make the room (her setting), for the owner's own words; a guest's never read them.
+   */
+  | {
+      reason: "storage";
+      neededBytes: number | null;
+      deletedBytes: number | null;
+      makesRoom: boolean | null;
+    }
   /** The event was deleted between the route's gates and the meter. */
   | { reason: "event_gone" };
 
@@ -34,6 +43,12 @@ export type MeterOutcome =
 
 /** An hour is the breaker's whole window, so a retry hint past it (or under a second) is not one the meter gave. */
 const HOUR_SECONDS = 3600;
+
+/** A byte count the meter sent, or null for anything that is not one (a bigint may arrive as text). */
+function bytesOrNull(value: unknown): number | null {
+  const n = typeof value === "string" ? Number(value) : value;
+  return typeof n === "number" && Number.isFinite(n) && n >= 0 ? n : null;
+}
 
 /**
  * Read `meter_upload`'s answer. Pure, so the refusal ladder is tested without a database. Anything it does not know
@@ -47,14 +62,25 @@ export function parseMeterAnswer(data: unknown): MeterOutcome {
     ok?: unknown;
     reason?: unknown;
     retry_after_sec?: unknown;
+    needed_bytes?: unknown;
+    deleted_bytes?: unknown;
+    makes_room?: unknown;
   };
   if (answer.ok === true) return { ok: true };
   if (answer.ok !== false) return { ok: false, reason: "unavailable" };
   switch (answer.reason) {
     case "monthly":
-    case "storage":
     case "event_gone":
       return { ok: false, reason: answer.reason };
+    case "storage":
+      return {
+        ok: false,
+        reason: "storage",
+        neededBytes: bytesOrNull(answer.needed_bytes),
+        deletedBytes: bytesOrNull(answer.deleted_bytes),
+        makesRoom:
+          typeof answer.makes_room === "boolean" ? answer.makes_room : null,
+      };
     case "hourly": {
       const secs = Number(answer.retry_after_sec);
       return {

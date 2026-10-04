@@ -203,7 +203,7 @@ export function StorageChart({
           dialogDescription="When your plan is full, new uploads are refused, your guests' too, until you empty Deleted or choose a bigger plan."
           confirmLabel="Turn it off"
           cancelLabel="Keep it on"
-          className="[&_p]:text-xs"
+          className="[&_p]:text-xs [&_p]:text-pretty"
         />
         {deletedBytes > 0 ? (
           <Popup>

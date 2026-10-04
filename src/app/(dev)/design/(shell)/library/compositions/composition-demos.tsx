@@ -382,8 +382,8 @@ export function InertStorage({ children }: { children: ReactNode }) {
 const CHART_STATES = {
   empty: { activeBytes: 0, deletedBytes: 0, makeRoom: true },
   half: {
-    activeBytes: Math.round(41.2 * GIGABYTE),
-    deletedBytes: Math.round(8.6 * GIGABYTE),
+    activeBytes: 41 * GIGABYTE,
+    deletedBytes: 8.5 * GIGABYTE,
     makeRoom: true,
   },
   "full-on": {

@@ -13,6 +13,7 @@ import {
   formatStored,
   makeRoomFrom,
   readStorage,
+  roomRefusalWords,
   storageHeadline,
   storageNote,
   type StorageFigures,
@@ -162,5 +163,63 @@ describe("the one sentence under the bar", () => {
     expect(off).toMatch(/30 days/);
     // Nothing in Deleted and room to spare: nothing to say.
     expect(note(figures({ activeBytes: 20 * GIGABYTE }))).toBeNull();
+  });
+});
+
+describe("the owner's words when an upload won't fit", () => {
+  const plain =
+    "This file won't fit in your plan's storage. Free up space or upgrade.";
+
+  it("keeps the plain sentence without the meter's numbers", () => {
+    expect(roomRefusalWords({})).toBe(plain);
+    expect(
+      roomRefusalWords({
+        neededBytes: null,
+        deletedBytes: 5,
+        makesRoom: false,
+      }),
+    ).toBe(plain);
+    expect(
+      roomRefusalWords({ neededBytes: 5, deletedBytes: 5, makesRoom: null }),
+    ).toBe(plain);
+  });
+
+  it("with the setting on, any delete makes the room: the file need only fit beside her albums", () => {
+    const line = roomRefusalWords({
+      neededBytes: 2 * GIGABYTE,
+      deletedBytes: 30 * GIGABYTE,
+      makesRoom: true,
+    });
+    expect(line).toContain(formatBytesUp(2 * GIGABYTE));
+    expect(line).toMatch(/albums/);
+    expect(line).not.toMatch(/for good/);
+  });
+
+  it("with it off, names what Deleted holds and the two ways out when that is enough", () => {
+    const line = roomRefusalWords({
+      neededBytes: 2 * GIGABYTE,
+      deletedBytes: 30 * GIGABYTE,
+      makesRoom: false,
+    });
+    expect(line).toContain(formatBytesUp(2 * GIGABYTE));
+    expect(line).toContain(formatBytesUp(30 * GIGABYTE));
+    expect(line).toMatch(/empty it/);
+    expect(line).toMatch(/Make room from Deleted/);
+  });
+
+  it("with it off and Deleted short of the room, says the rest must go for good", () => {
+    const short = roomRefusalWords({
+      neededBytes: 2 * GIGABYTE,
+      deletedBytes: GIGABYTE,
+      makesRoom: false,
+    });
+    expect(short).toMatch(/the rest for good/);
+    const none = roomRefusalWords({
+      neededBytes: 2 * GIGABYTE,
+      deletedBytes: 0,
+      makesRoom: false,
+    });
+    expect(none).toMatch(/for good/);
+    expect(none).not.toMatch(/Deleted holds/);
   });
 });

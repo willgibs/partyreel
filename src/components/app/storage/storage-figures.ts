@@ -127,3 +127,31 @@ export function storageNote(
 export const MAKE_ROOM_LABEL = "Make room from Deleted";
 export const MAKE_ROOM_HINT =
   "When an upload needs room, the oldest items in Deleted are deleted for good first.";
+
+/**
+ * THE OWNER'S WORDS WHEN AN UPLOAD WON'T FIT (the presign's meter, `meter_upload`'s numbers): the room the file needs and
+ * the one way she can make it, which her setting decides. On, Deleted makes room at the upload, so the file only has
+ * to fit beside her albums, and any delete helps; off, Deleted holds its bytes until it is emptied. Without the numbers
+ * (a database before 20261003220000) the plain sentence stands. Never a guest's: hers name the album, never the plan.
+ */
+export function roomRefusalWords(refusal: {
+  neededBytes?: number | null;
+  deletedBytes?: number | null;
+  makesRoom?: boolean | null;
+}): string {
+  const { neededBytes: needed, deletedBytes: deleted, makesRoom } = refusal;
+  if (needed == null || !(needed > 0) || makesRoom == null) {
+    return "This file won't fit in your plan's storage. Free up space or upgrade.";
+  }
+  const room = formatBytesUp(needed);
+  if (makesRoom) {
+    return `This file needs ${room} more room than your albums leave. Delete something, or upgrade.`;
+  }
+  if (deleted != null && deleted > 0) {
+    const held = formatBytesUp(deleted);
+    return deleted >= needed
+      ? `This file needs ${room} more room. Deleted holds ${held}: empty it, or turn on Make room from Deleted.`
+      : `This file needs ${room} more room. Deleted holds ${held}: empty it and delete the rest for good, or upgrade.`;
+  }
+  return `This file needs ${room} more room. Delete something for good, or upgrade.`;
+}
