@@ -1,12 +1,12 @@
 import { STORAGE_STEP_PCT } from "@/lib/dashboard/next-step";
-import { type Door, doorOf, stepOf } from "@/lib/event/door/door";
+import { type Door, doorOf } from "@/lib/event/door/door";
 import { photosToGo, reelState } from "@/lib/event/reel-progress";
 import {
   SETTINGS_GROUP_TITLES,
   type SettingsGroup,
 } from "@/lib/events/guest-experience-summary";
 import { lastDayOf } from "@/lib/events/dates";
-import { DOOR_STEP_LINES, GATE_LINES } from "@/lib/events/visibility-labels";
+import { DOOR_STEP_LINES, doorGuestLine } from "@/lib/events/visibility-labels";
 import { formatCount } from "@/lib/format/count";
 import { formatEventDate } from "@/lib/utils";
 
@@ -46,6 +46,14 @@ export type ReadyFacts = {
   guestsIn: number;
   /** Addresses on the invite list. */
   invited: number;
+  /**
+   * What the album's own gates ask after the door, Settings' own facts (`DoorFacts`): a confirmed email rather than a
+   * typed name, and a photo first. The door's line says them (`doorGuestLine`), so the list never says a guest walks in
+   * where Settings says she confirms an email. Absent reads as a new event's own defaults (an email, no photo first), so
+   * a surface that draws no door line (Create's hand-off, a stand-in) carries neither.
+   */
+  requireVerifiedEmail?: boolean;
+  requireUploadToView?: boolean;
   acceptingUploads: boolean;
   /** The album's count (approved and hidden: the number the hub's header says). */
   approved: number;
@@ -133,19 +141,16 @@ export function doorLetsGuestsIn(f: ReadyFacts): boolean {
   }
 }
 
-/** The door's own line for a guest, in the door's one home's words. */
-function doorGuestLine(door: Door): string {
-  const step = stepOf(door);
-  if (step !== "private" || door === "private") return DOOR_STEP_LINES[step];
-  return GATE_LINES[door as Exclude<Door, "open" | "private">];
-}
-
 const times = (n: number) => `${formatCount(n)} ${n === 1 ? "time" : "times"}`;
 
 function doorItem(f: ReadyFacts): ReadyItem {
   const done = doorLetsGuestsIn(f);
   const line = done
-    ? doorGuestLine(f.door)
+    ? doorGuestLine(f.door, {
+        requireVerifiedEmail: f.requireVerifiedEmail ?? true,
+        requireUploadToView: f.requireUploadToView ?? false,
+        acceptingUploads: f.acceptingUploads,
+      })
     : f.door === "private"
       ? DOOR_STEP_LINES.only_me
       : f.door === "closed"

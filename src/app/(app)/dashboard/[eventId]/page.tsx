@@ -327,6 +327,9 @@ export default async function EventDetailPage({
     hasPassword: event.has_password,
     guestsIn: doorCounts.in,
     invited: doorCounts.invited,
+    // What the album's own gates ask after the door, so the list says what Settings says (`doorGuestLine`).
+    requireVerifiedEmail: event.require_verified_email,
+    requireUploadToView: event.require_upload_to_view,
     acceptingUploads: event.accepting_uploads,
     approved: seed.sync.counts.album,
     playable: reelFace.have,
