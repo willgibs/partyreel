@@ -30,13 +30,13 @@ const calls: { url: string; body: unknown }[] = [];
 const REFUSAL = {
   ok: false,
   code: "over_new_cap",
-  planId: "pro_100",
+  planId: "pro_50",
   storedBytes: 140 * GIGABYTE,
   capBytes: 100 * GIGABYTE,
   gapBytes: 40 * GIGABYTE,
-  fits: ["pro_500", "pro_2tb"],
+  fits: ["pro_200", "pro_1tb"],
   message:
-    "You're storing 140 GB. Pro 100 GB holds 100 GB, so remove 40 GB first, or choose Pro 500 GB.",
+    "You're storing 70 GB. Pro 50 GB holds 50 GB, so remove 20 GB first, or choose Pro 200 GB.",
 };
 
 let assigned: string | null = null;
@@ -87,7 +87,7 @@ async function press(
   props: Partial<React.ComponentProps<typeof CheckoutButton>> = {},
 ) {
   render(
-    <CheckoutButton planId="pro_100" {...props}>
+    <CheckoutButton planId="pro_50" {...props}>
       Get Pro
     </CheckoutButton>,
   );
@@ -104,7 +104,7 @@ describe("a storage refusal shows its numbers", () => {
       storedBytes: 140 * GIGABYTE,
       capBytes: 100 * GIGABYTE,
       gapBytes: 40 * GIGABYTE,
-      fits: ["pro_500", "pro_2tb"],
+      fits: ["pro_200", "pro_1tb"],
     });
     expect(toast.error).not.toHaveBeenCalled();
   });
@@ -130,7 +130,7 @@ describe("a Pro host choosing a Pro plan", () => {
       status: 200,
       body: { ok: true, url: "https://billing.stripe.com/p/session/x" },
     };
-    await press({ planId: "pro_2tb_yr", next: "/account" });
+    await press({ planId: "pro_1tb_yr", next: "/account" });
     await waitFor(() =>
       expect(assigned).toBe("https://billing.stripe.com/p/session/x"),
     );
@@ -138,7 +138,7 @@ describe("a Pro host choosing a Pro plan", () => {
       "/api/stripe/checkout",
       "/api/stripe/change-plan",
     ]);
-    expect(calls[1].body).toEqual({ planId: "pro_2tb_yr", next: "/account" });
+    expect(calls[1].body).toEqual({ planId: "pro_1tb_yr", next: "/account" });
     expect(calls.some((c) => c.url === "/api/stripe/portal")).toBe(false);
   });
 

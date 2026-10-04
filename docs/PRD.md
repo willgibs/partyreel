@@ -52,8 +52,8 @@ next host. **North-star metric: a host creates a second event.**
 ## Monetization and anti-abuse (the why behind the schema)
 
 Pricing is **storage-based**, shaped so Partyreel cannot be abused as unlimited cloud storage. The canonical numbers
-live in `src/lib/constants/tiers.ts`, mirrored for enforcement in the `tier_limits()` SQL function; the plan table,
-Pro's case and the Stripe setup are in [`PRICING.md`](PRICING.md).
+live in `src/lib/constants/tiers.ts`, mirrored for enforcement in the `tier_limits()` and `upload_allowance()` SQL
+functions; the plan table (Ladder A), Pro's case and the Stripe setup are in [`PRICING.md`](PRICING.md).
 
 - **Total storage caps, not item counts**: a plan is total stored bytes against a cap; the pricing page shows the GB
   with a friendly translation into photos and hours of video.
@@ -61,14 +61,16 @@ Pro's case and the Stripe setup are in [`PRICING.md`](PRICING.md).
   only say when it happens and never expire it. An "ended" event that kept its media
   would let a user fill, end, create, repeat; only leaving Deleted for good (the lifecycle below) frees space, and a
   deletion ends in the media's destruction once its recovery window closes.
-- **A monthly upload meter, unmarketed**, against fill, delete, re-upload bandwidth burn: generous, never refunded on
-  delete, and seen only as a monthly upload limit when an upload is refused.
+- **An uploads allowance, published per plan**, against fill, delete, re-upload churn: each plan's own number in the
+  pricing table (Free and Pro a month, a pass its own year), gracious for a real event, never refunded on delete, and
+  sized with the plan's price so no plan's worst month costs more than it pays. Only circuit breakers no real host
+  meets stay unpublished.
 - **No watermark on any uploaded photo or video, on the album, or on the live reel, on any plan.** The one mark is on a
   free event's clips: the free levers are never quality.
 - **Plans**: Free is one event, photos only, the whole album; the first-event experience must still shine, since it
-  sells the upgrade. The Event Pass is one-time and per event, with video and clips with no mark for a year,
-  renewable, and passes stack. Pro is a subscription (monthly or yearly) with a storage selector and unlimited events,
-  its prices set by Stripe Price IDs. The upgrade triggers are video, outgrowing Free's
+  sells the upgrade. The Event Pass is one payment, no subscription, for one big event kept a year, with video and clips
+  with no mark, renewable, and passes stack. Pro is a subscription (monthly or yearly) with unlimited events and a size
+  for each next use (a season of parties, a planner's year, a venue's year), its prices set by Stripe Price IDs. The upgrade triggers are video, outgrowing Free's
   storage, and a second event. Universal per-file limits live in `src/lib/media/limits.ts`.
 
 ## Data retention and lifecycle

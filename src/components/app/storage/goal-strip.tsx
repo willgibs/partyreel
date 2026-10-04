@@ -16,7 +16,7 @@ import { fitStep, goalStep, type GoalCount } from "./storage-list-rules";
  * ★ ITS BUTTON DELETES FIRST. The switch is checked against what she STORES, her albums and her
  * Deleted together (trash-in-storage), so while anything is only selected it reads "Delete and
  * switch" (they are deleted for good, once she confirms, then the switch opens); once nothing is
- * pending it reads "Switch to Pro 100 GB, monthly", the price she tapped, named with its billing
+ * pending it reads "Switch to Pro 200 GB, monthly", the price she tapped, named with its billing
  * because that is exactly what Stripe's confirm page will show her. The change-plan route decides
  * again, whatever this strip counted.
  *

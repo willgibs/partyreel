@@ -15,7 +15,7 @@ export type PricingJsonLdSite = {
 };
 
 /**
- * Numeric price from a plan's display label ("$9/mo" → 9, "$24 one-time" → 24,
+ * Numeric price from a plan's display label ("$9/mo" → 9, "$29 one-time" → 29,
  * "$0" → 0). tiers.ts deliberately carries no separate numeric price (Stripe
  * Prices are the billing truth; priceLabel is the display truth), so the
  * structured data derives from the SAME string shoppers see, and the Vitest pin

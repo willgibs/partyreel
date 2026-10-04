@@ -4,7 +4,10 @@ import {
   planById,
 } from "@/lib/constants/tiers";
 import { OVER_CAP_GRACE_DAYS } from "@/lib/lifecycle/over-cap";
+import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 import { formatBytes } from "@/lib/utils";
+
+import { passHoldsLine } from "@/components/app/pricing/holds";
 
 /**
  * Pricing-page FAQ — one source for the visible accordion AND the FAQPage
@@ -40,7 +43,8 @@ export const PRICING_FAQ_ITEMS: FaqItem[] = [
     q: "Can I run one big event without a subscription?",
     // What a pass adds over Free since the free/pro shift: the password, the custom link and
     // full-length clips are on every plan, so "every paid control" would oversell it.
-    a: `Yes, that is exactly what the Event Pass is: ${pass.priceLabel.replace(" one-time", "")} once for ${formatBytes(pass.storageBytes)}, video, and clips with no watermark, covering its event for about a year. Keep it live longer for ${EVENT_PASS_RENEWAL_PRICE_LABEL} a year.`,
+    // Ladder A: the pass says "one payment, no subscription" first, and its room as a wedding before GB.
+    a: `Yes, that is exactly what the Event Pass is: one payment, no subscription. ${pass.priceLabel.replace(" one-time", "")} once for ${formatBytes(pass.storageBytes)} (${passHoldsLine(pass.storageBytes).toLowerCase()}), video, and clips with no watermark, covering its event for about a year. Keep it live longer for ${EVENT_PASS_RENEWAL_PRICE_LABEL} a year.`,
   },
   {
     q: "What happens when I move from an Event Pass to Pro?",
@@ -51,8 +55,10 @@ export const PRICING_FAQ_ITEMS: FaqItem[] = [
     a: `Yes. Passes stack: each one adds another event slot and another ${formatBytes(pass.storageBytes)} for its own year, on the same account.`,
   },
   {
+    // ★ Deleted counts in storage (trash-in-storage): a delete frees nothing until the item leaves Deleted, so the
+    // answer names the two ways room comes back and the setting that makes it by itself.
     q: "What happens if I hit my storage limit?",
-    a: "Uploads pause until there is room; nothing you already collected is touched. Delete what you don't want (space frees immediately) or move up a size.",
+    a: `Uploads pause until there is room, and nothing you already collected is touched. What you delete waits ${RECENTLY_DELETED_WINDOW_DAYS} days in Deleted and still counts in your storage until it leaves, so empty Deleted or delete for good to free room now, or leave Make room from Deleted on and the oldest of it makes room for new uploads by itself. Or move up a size.`,
   },
   {
     q: "Do my events expire?",

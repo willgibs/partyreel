@@ -44,12 +44,12 @@ vi.mock("@/lib/db/queries/storage", () => ({
 }));
 
 const PRICES: Record<string, string> = {
-  pro_100: "price_pro_100",
-  pro_500: "price_pro_500",
-  pro_2tb: "price_pro_2tb",
-  pro_100_yr: "price_pro_100_yr",
-  pro_500_yr: "price_pro_500_yr",
-  pro_2tb_yr: "price_pro_2tb_yr",
+  pro_50: "price_pro_50",
+  pro_200: "price_pro_200",
+  pro_1tb: "price_pro_1tb",
+  pro_50_yr: "price_pro_50_yr",
+  pro_200_yr: "price_pro_200_yr",
+  pro_1tb_yr: "price_pro_1tb_yr",
 };
 vi.mock("@/lib/stripe/plans", () => ({
   priceIdForPlan: (id: string) => PRICES[id],
@@ -113,7 +113,7 @@ function subscription(over: Record<string, unknown> = {}) {
     cancel_at_period_end: false,
     cancel_at: null,
     items: {
-      data: [{ id: "si_1", price: { id: "price_pro_500" }, quantity: 1 }],
+      data: [{ id: "si_1", price: { id: "price_pro_200" }, quantity: 1 }],
     },
     ...over,
   };
@@ -139,7 +139,7 @@ beforeEach(() => {
 describe("who may ask", () => {
   it("refuses a caller who is not signed in", async () => {
     user = null;
-    const { status, json } = await answer({ planId: "pro_100" });
+    const { status, json } = await answer({ planId: "pro_50" });
     expect(status).toBe(401);
     expect(json.code).toBe("unauthorized");
     expect(retrieve).not.toHaveBeenCalled();
@@ -147,7 +147,7 @@ describe("who may ask", () => {
 
   it("refuses a malformed body and any plan that is not one of the six Pro ids", async () => {
     expect((await answer("{not json")).status).toBe(400);
-    for (const planId of ["event_pass", "free", "pro_1tb", undefined]) {
+    for (const planId of ["event_pass", "free", "pro_2tb", undefined]) {
       const { status, json } = await answer({ planId });
       expect(status, String(planId)).toBe(400);
       expect(json.code).toBe("bad_request");
@@ -160,7 +160,7 @@ describe("who may ask", () => {
       stripe_customer_id: "cus_1",
       stripe_subscription_id: null,
     };
-    const { status, json } = await answer({ planId: "pro_100" });
+    const { status, json } = await answer({ planId: "pro_50" });
     expect(status).toBe(409);
     expect(json.code).toBe("not_subscribed");
   });
@@ -171,7 +171,7 @@ describe("who may ask", () => {
       stripe_customer_id: null,
       stripe_subscription_id: null,
     };
-    expect((await answer({ planId: "pro_100" })).json.code).toBe(
+    expect((await answer({ planId: "pro_50" })).json.code).toBe(
       "no_subscription",
     );
     expect(retrieve).not.toHaveBeenCalled();
@@ -183,7 +183,7 @@ describe("who may ask", () => {
         code: "resource_missing",
       }),
     );
-    expect((await answer({ planId: "pro_100" })).json.code).toBe(
+    expect((await answer({ planId: "pro_50" })).json.code).toBe(
       "no_subscription",
     );
   });
@@ -192,7 +192,7 @@ describe("who may ask", () => {
 describe("which subscriptions can change", () => {
   it("refuses a subscription that is not theirs, with a 403", async () => {
     retrieve.mockResolvedValue(subscription({ customer: "cus_someone_else" }));
-    const { status, json } = await answer({ planId: "pro_100" });
+    const { status, json } = await answer({ planId: "pro_50" });
     expect(status).toBe(403);
     expect(json.code).toBe("not_yours");
     expect(createSession).not.toHaveBeenCalled();
@@ -203,13 +203,13 @@ describe("which subscriptions can change", () => {
       subscription({
         items: {
           data: [
-            { id: "si_1", price: { id: "price_pro_500" }, quantity: 1 },
-            { id: "si_2", price: { id: "price_pro_100" }, quantity: 1 },
+            { id: "si_1", price: { id: "price_pro_200" }, quantity: 1 },
+            { id: "si_2", price: { id: "price_pro_50" }, quantity: 1 },
           ],
         },
       }),
     );
-    expect((await answer({ planId: "pro_100" })).json.code).toBe("multi_item");
+    expect((await answer({ planId: "pro_50" })).json.code).toBe("multi_item");
   });
 
   it("refuses a subscription on a price that is not ours", async () => {
@@ -220,22 +220,22 @@ describe("which subscriptions can change", () => {
         },
       }),
     );
-    expect((await answer({ planId: "pro_100" })).json.code).toBe(
+    expect((await answer({ planId: "pro_50" })).json.code).toBe(
       "foreign_price",
     );
   });
 
   it("refuses an unpaid or an ending subscription", async () => {
     retrieve.mockResolvedValue(subscription({ status: "past_due" }));
-    expect((await answer({ planId: "pro_100" })).json.code).toBe(
+    expect((await answer({ planId: "pro_50" })).json.code).toBe(
       "payment_issue",
     );
     retrieve.mockResolvedValue(subscription({ cancel_at_period_end: true }));
-    expect((await answer({ planId: "pro_100" })).json.code).toBe("ending");
+    expect((await answer({ planId: "pro_50" })).json.code).toBe("ending");
   });
 
   it("refuses the plan the host is already on", async () => {
-    expect((await answer({ planId: "pro_500" })).json.code).toBe(
+    expect((await answer({ planId: "pro_200" })).json.code).toBe(
       "already_on_plan",
     );
   });
@@ -244,57 +244,57 @@ describe("which subscriptions can change", () => {
     retrieve.mockResolvedValue(
       subscription({
         items: {
-          data: [{ id: "si_1", price: { id: "price_pro_500" }, quantity: 3 }],
+          data: [{ id: "si_1", price: { id: "price_pro_200" }, quantity: 3 }],
         },
       }),
     );
-    expect((await answer({ planId: "pro_500" })).status).toBe(200);
+    expect((await answer({ planId: "pro_200" })).status).toBe(200);
   });
 });
 
 describe("the storage guard", () => {
   it("refuses a smaller plan than what the host stores, with the numbers, before Stripe", async () => {
-    albumBytes = 140 * GIGABYTE;
-    const { status, json } = await answer({ planId: "pro_100" });
+    albumBytes = 70 * GIGABYTE;
+    const { status, json } = await answer({ planId: "pro_50" });
     expect(status).toBe(409);
     expect(json).toMatchObject({
       ok: false,
       code: "over_new_cap",
-      planId: "pro_100",
-      storedBytes: 140 * GIGABYTE,
-      capBytes: planById("pro_100").storageBytes,
-      gapBytes: 40 * GIGABYTE,
-      fits: ["pro_500", "pro_2tb"],
+      planId: "pro_50",
+      storedBytes: 70 * GIGABYTE,
+      capBytes: planById("pro_50").storageBytes,
+      gapBytes: 20 * GIGABYTE,
+      fits: ["pro_200", "pro_1tb"],
     });
     expect(typeof json.message).toBe("string");
     expect(createSession).not.toHaveBeenCalled();
   });
 
   it("★ counts her Deleted in what she stores: a smaller size must hold it too", async () => {
-    // 90 GB in her albums would fit Pro 100 GB; with 50 GB in Deleted she stores 140 GB.
-    albumBytes = 90 * GIGABYTE;
-    deletedBytes = 50 * GIGABYTE;
-    const { status, json } = await answer({ planId: "pro_100" });
+    // 40 GB in her albums would fit Pro 50 GB; with 30 GB in Deleted she stores 70 GB.
+    albumBytes = 40 * GIGABYTE;
+    deletedBytes = 30 * GIGABYTE;
+    const { status, json } = await answer({ planId: "pro_50" });
     expect(status).toBe(409);
     expect(json).toMatchObject({
       code: "over_new_cap",
-      storedBytes: 140 * GIGABYTE,
-      gapBytes: 40 * GIGABYTE,
+      storedBytes: 70 * GIGABYTE,
+      gapBytes: 20 * GIGABYTE,
     });
     expect(createSession).not.toHaveBeenCalled();
   });
 
   it("lets a downgrade that fits through, and an upgrade always", async () => {
-    albumBytes = 90 * GIGABYTE;
-    expect((await answer({ planId: "pro_100" })).status).toBe(200);
-    expect((await answer({ planId: "pro_2tb_yr" })).status).toBe(200);
+    albumBytes = 45 * GIGABYTE;
+    expect((await answer({ planId: "pro_50" })).status).toBe(200);
+    expect((await answer({ planId: "pro_1tb_yr" })).status).toBe(200);
   });
 });
 
 describe("the session it asks Stripe for", () => {
   it("confirms exactly one item at quantity 1, on the tagged configuration, then redirects", async () => {
     const { status, json } = await answer({
-      planId: "pro_2tb",
+      planId: "pro_1tb",
       next: "/account",
     });
     expect(status).toBe(200);
@@ -312,7 +312,7 @@ describe("the session it asks Stripe for", () => {
         type: "subscription_update_confirm",
         subscription_update_confirm: {
           subscription: "sub_1",
-          items: [{ id: "si_1", price: "price_pro_2tb", quantity: 1 }],
+          items: [{ id: "si_1", price: "price_pro_1tb", quantity: 1 }],
         },
         after_completion: {
           type: "redirect",
@@ -323,7 +323,7 @@ describe("the session it asks Stripe for", () => {
   });
 
   it("never lets the body pick a return path off the allow-list", async () => {
-    await answer({ planId: "pro_2tb", next: "https://evil.example/steal" });
+    await answer({ planId: "pro_1tb", next: "https://evil.example/steal" });
     expect(createSession.mock.calls[0][0].return_url).toBe(
       "https://partyreel.com/dashboard",
     );
@@ -331,7 +331,7 @@ describe("the session it asks Stripe for", () => {
 
   it("fails closed, loudly, when no configuration carries the tag", async () => {
     configurationId.mockRejectedValue(new MissingConfig("missing"));
-    const { status, json } = await answer({ planId: "pro_2tb" });
+    const { status, json } = await answer({ planId: "pro_1tb" });
     expect(status).toBe(503);
     expect(json.code).toBe("unavailable");
     expect(createSession).not.toHaveBeenCalled();
@@ -354,14 +354,14 @@ describe("the session it asks Stripe for", () => {
         }),
       )
       .mockResolvedValueOnce({ url: "https://billing.stripe.com/p/session/y" });
-    const { status } = await answer({ planId: "pro_2tb" });
+    const { status } = await answer({ planId: "pro_1tb" });
     expect(status).toBe(200);
     expect(forgetConfiguration).toHaveBeenCalledTimes(1);
     expect(createSession.mock.calls[1][0].configuration).toBe("bpc_fresh");
   });
 
   it("writes nothing to the profile (the webhook applies the new cap)", async () => {
-    await answer({ planId: "pro_2tb" });
+    await answer({ planId: "pro_1tb" });
     expect(profileUpdate).not.toHaveBeenCalled();
   });
 });

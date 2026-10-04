@@ -13,7 +13,7 @@ import { CtaBand } from "@/components/marketing/system/cta-band";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
-import { ESTIMATE_BASIS_NOTE } from "@/lib/constants/tiers";
+import { BIG_PARTY_NOTE, ESTIMATE_BASIS_NOTE } from "@/lib/constants/tiers";
 
 /**
  * THE PAGE'S LINE (the free/pro shift, Will 2026-09-28). It was the golden line "Start free,
@@ -76,7 +76,8 @@ export const metadata: Metadata = {
  *
  * Every number on this page renders from tiers.ts / limits.ts (the DRY single
  * sources that server-side enforcement also reads). Copy rules: no em-dashes,
- * no ingress numbers (test-banned), no invented proof.
+ * no abuse breaker's number (test-banned: content-policy.test.ts), no invented
+ * proof.
  */
 export default function PricingPage() {
   return (
@@ -103,11 +104,12 @@ export default function PricingPage() {
             <PlanPair />
             <PassCard />
             {/* Every photo and video count above assumes one camera, and says
-                which (host-storage r2): once, under the plans it qualifies. A
-                sentence a reader needs to read the counts, so the second text
+                which (host-storage r2): once, under the plans it qualifies. The
+                party every card counts in says its working beside it (Ladder A).
+                A sentence a reader needs to read the counts, so the second text
                 step (7.0:1 on the page), never the faint one (3.2:1). */}
             <p className="mx-auto mt-5 max-w-4xl text-center text-xs text-pretty text-muted-foreground">
-              {ESTIMATE_BASIS_NOTE}
+              {ESTIMATE_BASIS_NOTE} {BIG_PARTY_NOTE}
             </p>
           </div>
         </SectionShell>

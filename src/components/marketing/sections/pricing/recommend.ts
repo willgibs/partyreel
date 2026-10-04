@@ -8,7 +8,8 @@
  *   • Free's cap (100 MB since the free/pro shift: a small event's photos);
  *   • "hosting again" is the Pass → Pro fork (a pass covers ONE event; passes
  *     stack, but a recurring host is what Pro is FOR);
- *   • 75 GB is a single pass's room; above it, one event needs Pro storage;
+ *   • a single pass's room (tiers.ts) is the most one event takes on a pass;
+ *     above it, one event needs Pro storage;
  *   • Pro sizes resolve to the SMALLEST cap that fits (never upsell past fit).
  */
 import {
@@ -86,12 +87,12 @@ export function recommendPlan(input: CalculatorInput): Recommendation {
     };
   }
 
-  // One event that needs video or more room, inside a single pass's 75 GB.
+  // One event that needs video or more room, inside a single pass's room.
   if (bytes <= pass.storageBytes) {
     return {
       planId: "event_pass",
       plan: pass,
-      reason: `One event, paid once. A pass holds ${capacityPhrase(pass.storageBytes, true, { basis: false })}, video included.`,
+      reason: `One event, one payment, no subscription. A pass holds ${capacityPhrase(pass.storageBytes, true, { basis: false })}.`,
       alternative: null,
     };
   }

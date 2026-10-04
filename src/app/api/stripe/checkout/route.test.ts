@@ -108,23 +108,23 @@ beforeEach(() => {
 
 describe("a Pro checkout over the cap", () => {
   it("is refused with the numbers before any Stripe customer exists", async () => {
-    // Stacked passes holding 140 GB, trying Pro 100 GB.
+    // Stacked passes holding 70 GB, trying Pro 50 GB.
     profile = {
       stripe_customer_id: null,
       tier: "event_pass",
       tier_expires_at: new Date(Date.now() + 86_400_000).toISOString(),
     };
-    albumBytes = 140 * GIGABYTE;
-    const { status, json } = await checkout({ planId: "pro_100" });
+    albumBytes = 70 * GIGABYTE;
+    const { status, json } = await checkout({ planId: "pro_50" });
     expect(status).toBe(409);
     expect(json).toMatchObject({
       ok: false,
       code: "over_new_cap",
-      planId: "pro_100",
-      storedBytes: 140 * GIGABYTE,
-      capBytes: planById("pro_100").storageBytes,
-      gapBytes: 40 * GIGABYTE,
-      fits: ["pro_500", "pro_2tb"],
+      planId: "pro_50",
+      storedBytes: 70 * GIGABYTE,
+      capBytes: planById("pro_50").storageBytes,
+      gapBytes: 20 * GIGABYTE,
+      fits: ["pro_200", "pro_1tb"],
     });
     expect(createCustomer).not.toHaveBeenCalled();
     expect(adminUpdate).not.toHaveBeenCalled();
@@ -132,25 +132,25 @@ describe("a Pro checkout over the cap", () => {
   });
 
   it("★ counts her Deleted in what she stores: Deleted is inside the cap she would buy", async () => {
-    // 90 GB in her albums would fit Pro 100 GB; with 50 GB in Deleted she stores 140 GB.
-    albumBytes = 90 * GIGABYTE;
-    deletedBytes = 50 * GIGABYTE;
-    const { status, json } = await checkout({ planId: "pro_100" });
+    // 40 GB in her albums would fit Pro 50 GB; with 30 GB in Deleted she stores 70 GB.
+    albumBytes = 40 * GIGABYTE;
+    deletedBytes = 30 * GIGABYTE;
+    const { status, json } = await checkout({ planId: "pro_50" });
     expect(status).toBe(409);
     expect(json).toMatchObject({
       code: "over_new_cap",
-      storedBytes: 140 * GIGABYTE,
-      gapBytes: 40 * GIGABYTE,
+      storedBytes: 70 * GIGABYTE,
+      gapBytes: 20 * GIGABYTE,
     });
     expect(createCustomer).not.toHaveBeenCalled();
   });
 
   it("meets a Free host in the over-cap grace the same way", async () => {
-    albumBytes = 140 * GIGABYTE;
-    expect((await checkout({ planId: "pro_100_yr" })).json.code).toBe(
+    albumBytes = 70 * GIGABYTE;
+    expect((await checkout({ planId: "pro_50_yr" })).json.code).toBe(
       "over_new_cap",
     );
-    expect((await checkout({ planId: "pro_500_yr" })).status).toBe(200);
+    expect((await checkout({ planId: "pro_200_yr" })).status).toBe(200);
   });
 });
 
@@ -163,8 +163,8 @@ describe("what is never refused for storage", () => {
   });
 
   it("sells a Pro plan that fits", async () => {
-    albumBytes = 90 * GIGABYTE;
-    const { status, json } = await checkout({ planId: "pro_100" });
+    albumBytes = 45 * GIGABYTE;
+    const { status, json } = await checkout({ planId: "pro_50" });
     expect(status).toBe(200);
     expect(json.url).toBe("https://checkout.stripe.com/c/x");
   });
@@ -173,7 +173,7 @@ describe("what is never refused for storage", () => {
 describe("the session's window", () => {
   it("closes a Pro session in about half an hour, never Stripe's default day", async () => {
     const before = Math.floor(Date.now() / 1000);
-    await checkout({ planId: "pro_500" });
+    await checkout({ planId: "pro_200" });
     const expiresAt = createSession.mock.calls[0][0].expires_at as number;
     // At least Stripe's 30-minute floor from any clock that could create it, and
     // nowhere near 24 hours.
@@ -194,7 +194,7 @@ describe("an active Pro host", () => {
       tier: "pro",
       tier_expires_at: null,
     };
-    for (const planId of ["pro_2tb", "event_pass"]) {
+    for (const planId of ["pro_1tb", "event_pass"]) {
       const { status, json } = await checkout({ planId });
       expect(status).toBe(409);
       expect(json.code).toBe("already_subscribed");

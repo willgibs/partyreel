@@ -108,8 +108,8 @@ export function HowMuchFits() {
   const free = planById("free");
   const pass = planById("event_pass");
   const pro = plansForTier("pro");
-  // The bars are relative to the Pro ENTRY size (2% / 75% / 100%), not the 2 TB
-  // top tier: against 2 TB every bar reads as empty and the device says nothing.
+  // The bars are relative to the Pro ENTRY size (a sliver / a half / full), not the
+  // top size: against 1 TB every bar reads as empty and the device says nothing.
   const largest = pro[0].storageBytes;
   const proSizes = pro.map((p) => formatBytes(p.storageBytes));
 

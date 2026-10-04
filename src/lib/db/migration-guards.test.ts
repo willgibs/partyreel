@@ -774,11 +774,12 @@ describe("the door round, wave 0 — Require an upload to view", () => {
     // expressions must read the same in both functions, or a guest could be held at a step the
     // presign would refuse anyway. ★ Reshaped by trash-in-storage (20261003220000; scar kept: one
     // expression in both): the storage line is `host_room_used`, what she keeps less Deleted while
-    // her setting lets an upload make room from it, the same line the presign's meter refuses past.
+    // her setting lets an upload make room from it, the same line the presign's meter refuses past. ★ And by Ladder A
+    // (20261004100000; scar kept: one expression in both): the uploads line is her plan's own number over its window.
     const ctx = latestDefinition("get_upload_context").body;
     for (const expr of [
       "public.host_room_used(v_event.host_id) >= v_cap + (v_cap / 10)",
-      "coalesce(v_month_bytes, 0) >= v_ingress_cap",
+      "public.uploads_used(v_event.host_id, v_profile.tier) >= v_allowance",
     ]) {
       expect(body).toContain(expr);
       expect(ctx).toContain(expr);
@@ -1787,14 +1788,16 @@ describe("the live reel: the expand (20260924100000) and the drop (2026092411000
     // what keeps a saved cut to a paid event), the ingress meter and the storage cap. ★ Reshaped by
     // trash-in-storage (20261003220000; scar kept: the cap and its 10% bind every upload, refused in
     // the same words): the cap holds everything she keeps, her Deleted included, read off the one
-    // summary, and with her setting on Deleted makes room for a file that fits beside her albums.
+    // summary, and with her setting on Deleted makes room for a file that fits beside her albums. ★ And by
+    // Ladder A (20261004100000; scar kept: the uploads line binds every upload, refused under "limit"): the
+    // allowance is her plan's own number over its window, a month or a pass's year.
     const shared = [
       "if p_original_key not like 'events/' || v_event.id::text || '/%' then raise exception 'Object key does not belong to this event.'",
       "if p_preview_key is not null and p_preview_key not like 'events/' || v_event.id::text || '/%' then raise exception 'Preview key does not belong to this event.'",
       "if p_file_size_bytes > c_max_upload_bytes then raise exception 'File exceeds the 10 GB maximum.'",
       "from public.profiles where id = v_event.host_id for update;",
       "if p_type = 'video' and v_profile.tier = 'free' then raise exception 'Video uploads are available on paid plans.'",
-      "if coalesce(v_month_bytes, 0) + p_file_size_bytes > v_ingress_cap then raise exception 'Monthly upload limit reached for this plan.'",
+      "if v_uploaded + p_file_size_bytes > v_allowance then raise exception 'Upload limit reached for this plan.'",
       "select s.active_bytes, s.standby_bytes into v_active, v_deleted from public.host_storage_summary(v_event.host_id) s;",
       "and v_profile.make_room_from_deleted and v_active + p_file_size_bytes <= v_cap + (v_cap / 10) then perform public.leave_deleted(v_event.host_id, v_active + v_deleted + p_file_size_bytes - (v_cap + (v_cap / 10)), true);",
       "if v_active + v_deleted + p_file_size_bytes > v_cap + (v_cap / 10) then raise exception 'Storage capacity exceeded for this plan.'",

@@ -5,6 +5,7 @@ import { ArrowUpRight, Check } from "lucide-react";
 
 import { CheckoutButton } from "@/components/app/checkout-button";
 import { ManageBillingButton } from "@/components/app/manage-billing-button";
+import { holdsPhrase } from "@/components/app/pricing/holds";
 import {
   HeldChip,
   PlanCardHead,
@@ -158,7 +159,7 @@ function lead(
     return {
       // ★ HER PLAN LEADS (storage-r2's note: "You are on Pro already" was an
       // upgrade door's greeting, and a Pro host who pressed Change plan came
-      // to change it). "Pro 500 GB, monthly" once the sheet's read names it;
+      // to change it). "Pro 200 GB, monthly" once the sheet's read names it;
       // until then, and when it cannot, the tier's own name.
       title: current ? planWithBilling(current) : `Your ${TIER_NAMES.pro} plan`,
       // Never promise a switch the list below cannot open.
@@ -249,7 +250,7 @@ function PlanCard({
       <PlanCardHead
         plan={plan}
         ink={ink}
-        holds={holds(plan.storageBytes, plan.tier !== "free")}
+        holds={holdsPhrase(plan)}
         aside={held ? <HeldChip ink={ink} /> : null}
       />
       {children}
@@ -392,7 +393,7 @@ export function PricingSheet({
                   <span className="font-medium text-foreground">
                     {pass.name}
                   </span>{" "}
-                  {`one event, paid once: ${pass.priceLabel.replace(" one-time", "")} for ${formatBytes(pass.storageBytes)}.`}
+                  {`one event, one payment, no subscription: ${pass.priceLabel.replace(" one-time", "")} for ${formatBytes(pass.storageBytes)}.`}
                 </p>
                 <CheckoutButton
                   planId="event_pass"

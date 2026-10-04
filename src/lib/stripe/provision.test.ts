@@ -23,7 +23,7 @@ function subEvent(
     quantities?: (number | undefined)[];
   },
 ): Stripe.Event {
-  const priceId = sub.priceId ?? "price_pro_500";
+  const priceId = sub.priceId ?? "price_pro_200";
   const items =
     sub.priceId === null
       ? []
@@ -44,15 +44,15 @@ function subEvent(
   } as unknown as Stripe.Event;
 }
 
-// Stub resolver: only "price_pro_500" is known (→ the Pro 500 GB plan).
+// Stub resolver: only "price_pro_200" is known (→ the Pro 200 GB plan).
 const resolve = (priceId: string): Plan | null =>
-  priceId === "price_pro_500" ? planById("pro_500") : null;
+  priceId === "price_pro_200" ? planById("pro_200") : null;
 
 describe("resolveSubscriptionUpdate", () => {
   it("provisions Pro + the plan's cap on an active subscription", () => {
     const patch = resolveSubscriptionUpdate(
       subEvent("customer.subscription.created", {
-        priceId: "price_pro_500",
+        priceId: "price_pro_200",
         customer: "cus_abc",
         id: "sub_abc",
       }),
@@ -61,7 +61,7 @@ describe("resolveSubscriptionUpdate", () => {
     expect(patch).toEqual({
       customerId: "cus_abc",
       tier: "pro",
-      storageCapBytes: planById("pro_500").storageBytes,
+      storageCapBytes: planById("pro_200").storageBytes,
       subscriptionId: "sub_abc",
       // A grant names no subscription to end: it applies whatever the profile followed.
       endsSubscriptionId: null,
@@ -70,17 +70,17 @@ describe("resolveSubscriptionUpdate", () => {
 
   it("re-derives the cap on a plan switch (updated)", () => {
     const patch = resolveSubscriptionUpdate(
-      subEvent("customer.subscription.updated", { priceId: "price_pro_500" }),
+      subEvent("customer.subscription.updated", { priceId: "price_pro_200" }),
       resolve,
     );
     expect(patch?.tier).toBe("pro");
-    expect(patch?.storageCapBytes).toBe(planById("pro_500").storageBytes);
+    expect(patch?.storageCapBytes).toBe(planById("pro_200").storageBytes);
   });
 
   it("downgrades to Free on deletion (cap null → Free default)", () => {
     const patch = resolveSubscriptionUpdate(
       subEvent("customer.subscription.deleted", {
-        priceId: "price_pro_500",
+        priceId: "price_pro_200",
         customer: "cus_xyz",
       }),
       resolve,
@@ -99,7 +99,7 @@ describe("resolveSubscriptionUpdate", () => {
     const patch = resolveSubscriptionUpdate(
       subEvent("customer.subscription.updated", {
         status: "canceled",
-        priceId: "price_pro_500",
+        priceId: "price_pro_200",
       }),
       resolve,
     );
@@ -130,10 +130,10 @@ describe("resolveSubscriptionUpdate", () => {
  * lifecycle events, and the deletion that ends it all.
  */
 describe("resolveSubscriptionUpdate: every status", () => {
-  const PRO_500 = planById("pro_500").storageBytes;
+  const PRO_200 = planById("pro_200").storageBytes;
   const grant = {
     tier: "pro",
-    storageCapBytes: PRO_500,
+    storageCapBytes: PRO_200,
     subscriptionId: "sub_123",
     endsSubscriptionId: null,
   };
@@ -167,7 +167,7 @@ describe("resolveSubscriptionUpdate: every status", () => {
     for (const [status, expected] of cases) {
       it(`${type.split(".").pop()} + ${status} → ${expected ? expected.tier : "no change"}`, () => {
         const patch = resolveSubscriptionUpdate(
-          subEvent(type, { status, priceId: "price_pro_500" }),
+          subEvent(type, { status, priceId: "price_pro_200" }),
           resolve,
         );
         expect(patch).toEqual(
@@ -183,7 +183,7 @@ describe("resolveSubscriptionUpdate: every status", () => {
         resolveSubscriptionUpdate(
           subEvent("customer.subscription.deleted", {
             status,
-            priceId: "price_pro_500",
+            priceId: "price_pro_200",
           }),
           resolve,
         ),
@@ -257,9 +257,9 @@ describe("resolveSubscriptionUpdate: two subscriptions, one customer", () => {
  */
 describe("successorSubscription", () => {
   const plans: Record<string, Plan> = {
-    price_pro_100: planById("pro_100"),
-    price_pro_500: planById("pro_500"),
-    price_pro_2tb: planById("pro_2tb"),
+    price_pro_50: planById("pro_50"),
+    price_pro_200: planById("pro_200"),
+    price_pro_1tb: planById("pro_1tb"),
   };
   const known = (priceId: string): Plan | null => plans[priceId] ?? null;
   const sub = (
@@ -270,7 +270,7 @@ describe("successorSubscription", () => {
       id,
       status: opts.status ?? "active",
       created: opts.created ?? 1_790_000_000,
-      items: { data: [{ price: { id: opts.price ?? "price_pro_500" } }] },
+      items: { data: [{ price: { id: opts.price ?? "price_pro_200" } }] },
     }) as unknown as Stripe.Subscription;
 
   it("★ never the ending one, and only what still grants: active, trialing or past due, at a known price", () => {
@@ -301,17 +301,17 @@ describe("successorSubscription", () => {
   it("★ the one that stores the most, the newest on a tie, then the id; the rest still bill", () => {
     const next = successorSubscription(
       [
-        sub("sub_small", { price: "price_pro_100", created: 9 }),
-        sub("sub_big_b", { price: "price_pro_2tb", created: 5 }),
-        sub("sub_big_a", { price: "price_pro_2tb", created: 5 }),
-        sub("sub_big_old", { price: "price_pro_2tb", created: 1 }),
+        sub("sub_small", { price: "price_pro_50", created: 9 }),
+        sub("sub_big_b", { price: "price_pro_1tb", created: 5 }),
+        sub("sub_big_a", { price: "price_pro_1tb", created: 5 }),
+        sub("sub_big_old", { price: "price_pro_1tb", created: 1 }),
       ],
       "sub_ending",
       known,
     );
     expect(next?.successor).toMatchObject({
       id: "sub_big_a",
-      plan: planById("pro_2tb"),
+      plan: planById("pro_1tb"),
     });
     expect(next?.others.map((o) => o.id)).toEqual([
       "sub_big_b",
@@ -322,8 +322,8 @@ describe("successorSubscription", () => {
 
   it("answers the same whatever order Stripe lists them in, so a replay follows the same one", () => {
     const listed = [
-      sub("sub_x", { price: "price_pro_500", created: 3 }),
-      sub("sub_y", { price: "price_pro_500", created: 7 }),
+      sub("sub_x", { price: "price_pro_200", created: 3 }),
+      sub("sub_y", { price: "price_pro_200", created: 7 }),
     ];
     const forward = successorSubscription(listed, "sub_a", known);
     const backward = successorSubscription(
@@ -397,7 +397,7 @@ describe("subscriptionQuantityWarning (the old portal stepper's multiples)", () 
       subEvent("customer.subscription.updated", { quantities: [3] }),
       resolve,
     );
-    expect(patch?.storageCapBytes).toBe(planById("pro_500").storageBytes);
+    expect(patch?.storageCapBytes).toBe(planById("pro_200").storageBytes);
   });
 });
 
@@ -481,7 +481,7 @@ describe("eventPassSession (the billing-caps.md ledger recognizer)", () => {
   });
 
   it("returns null for non-pass sessions and missing ids", () => {
-    expect(eventPassSession(checkoutEvent({ planId: "pro_500" }))).toBeNull();
+    expect(eventPassSession(checkoutEvent({ planId: "pro_200" }))).toBeNull();
     expect(eventPassSession(checkoutEvent({}))).toBeNull();
     expect(
       eventPassSession(checkoutEvent({ planId: "event_pass", userId: null })),
@@ -497,7 +497,7 @@ describe("proCreditSession (the prorated Pass → Pro credit)", () => {
     expect(
       proCreditSession(
         checkoutEvent({
-          planId: "pro_100",
+          planId: "pro_50",
           mode: "subscription",
           userId: "u3",
           customer: "cus_3",
@@ -516,7 +516,7 @@ describe("proCreditSession (the prorated Pass → Pro credit)", () => {
   it("returns null without the stamp, off subscription mode, or for junk values", () => {
     expect(
       proCreditSession(
-        checkoutEvent({ planId: "pro_100", mode: "subscription" }),
+        checkoutEvent({ planId: "pro_50", mode: "subscription" }),
       ),
     ).toBeNull();
     expect(
@@ -531,7 +531,7 @@ describe("proCreditSession (the prorated Pass → Pro credit)", () => {
     expect(
       proCreditSession(
         checkoutEvent({
-          planId: "pro_100",
+          planId: "pro_50",
           mode: "subscription",
           passCreditCents: "0",
         }),
@@ -540,7 +540,7 @@ describe("proCreditSession (the prorated Pass → Pro credit)", () => {
     expect(
       proCreditSession(
         checkoutEvent({
-          planId: "pro_100",
+          planId: "pro_50",
           mode: "subscription",
           passCreditCents: "junk",
         }),

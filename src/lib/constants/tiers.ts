@@ -15,17 +15,22 @@
  *   • Events PERSIST until the host deletes them — there is deliberately NO event
  *     end date. If an event could be "ended" while keeping its media, a user could
  *     fill → end → create-new → repeat for unlimited free storage. `MAX_EVENTS`
- *     counts events that EXIST (deleted_at IS NULL); deleting one (destroying its
- *     media) is the only way to free a slot.
- *   • The MONTHLY INGRESS meter counts bytes UPLOADED per month and NEVER refunds on
- *     delete — storage caps alone don't stop delete→re-upload egress burn. It reads
- *     `storage_ledger.cumulative_bytes`, which never decrements. Every tier derives it:
- *     INGRESS_CAP_MULTIPLIER x the effective storage cap (`monthlyIngressCap`), Free
- *     included (its 100 MB allows 300 MB a month), so the abuse bound scales with the
- *     room a host has (billing-caps.md).
+ *     counts events that EXIST (deleted_at IS NULL); deleting one is the only way to
+ *     free a slot.
+ *   • THE UPLOADS ALLOWANCE counts bytes UPLOADED and NEVER refunds on delete:
+ *     storage caps alone don't stop delete→re-upload churn, which the backup and every
+ *     upload's operations bill whatever the cap says. It is PUBLISHED (the pricing
+ *     table's Uploads row, `uploadsLabel`), so every plan carries its own number sized
+ *     with its price (PRICING.md, "What it costs us"), never a multiple of its cap: the
+ *     allowance a GB falls as the plans grow, since a big plan's month never re-fills
+ *     it. It counts over its window (`UPLOADS_WINDOW`): Free and Pro a calendar month
+ *     (`storage_ledger.cumulative_bytes`, which never decrements), the Event Pass its
+ *     own year, on the pass itself (`event_passes.uploaded_bytes`), so a pass's event
+ *     can take its whole allowance on its one night (billing-caps.md).
  *
- * Keep these numbers in lockstep with the Postgres `public.tier_limits()` fn (DB
- * enforcement) — a Vitest parity test guards the pairing. The universal per-file
+ * Keep these numbers in lockstep with the Postgres `public.tier_limits()` and
+ * `public.upload_allowance()` fns (DB enforcement): a Vitest parity test
+ * (`tier-limits-parity.test.ts`) guards the pairing. The universal per-file
  * limit (10 GB per file, size is the ONLY per-file gate) is NOT here — it lives in
  * lib/media/limits.ts because it applies to every tier. (The `tier_type` enum still lists a retired `max`
  * value — folded into Pro storage options; it is unused, left in place because
@@ -36,6 +41,7 @@
  */
 
 import { formatCount } from "@/lib/format/count";
+import { formatBytes } from "@/lib/utils";
 
 export const BILLING_TIERS = ["free", "pro", "event_pass"] as const;
 export type Tier = (typeof BILLING_TIERS)[number];
@@ -62,12 +68,12 @@ export type BillingKind = "free" | "subscription" | "one_time";
 
 export const PLAN_IDS = [
   "free",
-  "pro_100",
-  "pro_500",
-  "pro_2tb",
-  "pro_100_yr",
-  "pro_500_yr",
-  "pro_2tb_yr",
+  "pro_50",
+  "pro_200",
+  "pro_1tb",
+  "pro_50_yr",
+  "pro_200_yr",
+  "pro_1tb_yr",
   "event_pass",
 ] as const;
 export type PlanId = (typeof PLAN_IDS)[number];
@@ -78,6 +84,17 @@ export type Plan = {
   tier: Tier;
   name: string;
   storageBytes: number;
+  /**
+   * What the plan lets a host and her guests upload in its window (`UPLOADS_WINDOW`: a month,
+   * or a pass's year), deletions included. PUBLISHED: the pricing table's Uploads row.
+   * The pass's is EACH pass's (passes stack); Pro's is its size's.
+   */
+  uploadsBytes: number;
+  /**
+   * Who the size is for, in a host's words: the label a Pro size wears on the pricing page's
+   * slider (a plan is never named by its size alone; the GB sits in its row beside it).
+   */
+  use?: string;
   /** Display only — Stripe Prices are the billing truth. */
   priceLabel: string;
   billing: BillingKind;
@@ -89,6 +106,15 @@ export type Plan = {
   termDays?: number;
 };
 
+/**
+ * ★ LADDER A (Will, 2026-10-03 23:58Z and 2026-10-04 02:50Z: "send it on pricing tier A with $99",
+ * the renewal at $19): an event, or a year of them. Its reasons are PRICING.md's ("What it costs
+ * us"); the shape in one breath: the first paid steps are one big event (the pass) or several (Pro
+ * 50 GB), then each Pro step is a host's next natural use at a gently falling price a GB ($0.18,
+ * $0.145, $0.097) that never drops under the plan's worst month, and every published uploads
+ * number is sized so that worst month stays under the price (rule 2). Every marketed number here
+ * only moves UP after launch (grandfathering): raising one is a gift, lowering one a broken promise.
+ */
 export const PLANS: Plan[] = [
   // ★ FREE IS THE WHOLE EXPERIENCE, SIZED FOR A SMALL GATHERING (Will, 2026-09-28): "the free
   // plan feels very close to the same pro experience, minus a few core blockers". The password,
@@ -96,80 +122,106 @@ export const PLANS: Plan[] = [
   // thirty photos at an iPhone's defaults), so what paid adds is a short list a host can read at
   // a glance: video, more storage, unlimited events, clips with no mark. Starting this low is
   // the reversible direction: raising a marketed limit later is a gift, lowering one is not.
+  // Its uploads are three times its room a month: a small event's guests re-adding a few photos
+  // never meet it, and a script re-filling 100 MB costs us nothing worth a breaker.
   {
     id: "free",
     tier: "free",
     name: "Free",
     storageBytes: 100 * MEGABYTE,
+    uploadsBytes: 300 * MEGABYTE,
+    use: "A small gathering",
     priceLabel: "$0",
     billing: "free",
   },
+  // ★ THE PRO SIZES ARE A HOST'S NEXT USES, and their uploads rise down the ladder while the share
+  // of the room they re-fill falls (twice the room a month, then once, then half): a big plan is a
+  // venue's archive, which never turns over in a month, and its worst month is what sizes its price.
   {
-    id: "pro_100",
+    id: "pro_50",
     tier: "pro",
-    name: "Pro 100 GB",
-    storageBytes: 100 * GIGABYTE,
+    name: "Pro 50 GB",
+    storageBytes: 50 * GIGABYTE,
+    uploadsBytes: 100 * GIGABYTE,
+    use: "A season of parties",
     priceLabel: "$9/mo",
     billing: "subscription",
-    stripePriceEnvKey: "STRIPE_PRICE_PRO_100",
+    stripePriceEnvKey: "STRIPE_PRICE_PRO_50",
   },
   {
-    id: "pro_500",
+    id: "pro_200",
     tier: "pro",
-    name: "Pro 500 GB",
-    storageBytes: 500 * GIGABYTE,
-    priceLabel: "$19/mo",
+    name: "Pro 200 GB",
+    storageBytes: 200 * GIGABYTE,
+    uploadsBytes: 200 * GIGABYTE,
+    use: "A planner's year",
+    priceLabel: "$29/mo",
     billing: "subscription",
-    stripePriceEnvKey: "STRIPE_PRICE_PRO_500",
+    stripePriceEnvKey: "STRIPE_PRICE_PRO_200",
   },
   {
-    id: "pro_2tb",
+    id: "pro_1tb",
     tier: "pro",
-    name: "Pro 2 TB",
-    storageBytes: 2 * TERABYTE,
-    priceLabel: "$39/mo",
+    name: "Pro 1 TB",
+    storageBytes: TERABYTE,
+    uploadsBytes: 500 * GIGABYTE,
+    use: "A venue's year",
+    priceLabel: "$99/mo",
     billing: "subscription",
-    stripePriceEnvKey: "STRIPE_PRICE_PRO_2TB",
+    stripePriceEnvKey: "STRIPE_PRICE_PRO_1TB",
   },
   // Annual Pro: exactly x10 the monthly, marketed as "two
   // months free". x10 is a DRIFT GUARD as much as a price: a test pins each
   // yearly label to 10x its monthly sibling, so the pair can only move together.
   {
-    id: "pro_100_yr",
+    id: "pro_50_yr",
     tier: "pro",
-    name: "Pro 100 GB",
-    storageBytes: 100 * GIGABYTE,
+    name: "Pro 50 GB",
+    storageBytes: 50 * GIGABYTE,
+    uploadsBytes: 100 * GIGABYTE,
+    use: "A season of parties",
     priceLabel: "$90/yr",
     billing: "subscription",
     interval: "year",
-    stripePriceEnvKey: "STRIPE_PRICE_PRO_100_YR",
+    stripePriceEnvKey: "STRIPE_PRICE_PRO_50_YR",
   },
   {
-    id: "pro_500_yr",
+    id: "pro_200_yr",
     tier: "pro",
-    name: "Pro 500 GB",
-    storageBytes: 500 * GIGABYTE,
-    priceLabel: "$190/yr",
+    name: "Pro 200 GB",
+    storageBytes: 200 * GIGABYTE,
+    uploadsBytes: 200 * GIGABYTE,
+    use: "A planner's year",
+    priceLabel: "$290/yr",
     billing: "subscription",
     interval: "year",
-    stripePriceEnvKey: "STRIPE_PRICE_PRO_500_YR",
+    stripePriceEnvKey: "STRIPE_PRICE_PRO_200_YR",
   },
   {
-    id: "pro_2tb_yr",
+    id: "pro_1tb_yr",
     tier: "pro",
-    name: "Pro 2 TB",
-    storageBytes: 2 * TERABYTE,
-    priceLabel: "$390/yr",
+    name: "Pro 1 TB",
+    storageBytes: TERABYTE,
+    uploadsBytes: 500 * GIGABYTE,
+    use: "A venue's year",
+    priceLabel: "$990/yr",
     billing: "subscription",
     interval: "year",
-    stripePriceEnvKey: "STRIPE_PRICE_PRO_2TB_YR",
+    stripePriceEnvKey: "STRIPE_PRICE_PRO_1TB_YR",
   },
+  // ★ THE PASS IS ONE BIG EVENT KEPT A YEAR: 25 GB holds a 200-guest wedding twice over, and it is
+  // the room its $19 renewal can carry for a whole year (a full pass costs us about $10.72 a year
+  // to keep), so the renewal holds at the pass's own size. Its uploads count over ITS year, not a
+  // month: the event and a full second round land on one night, which a monthly allowance would
+  // ration in the one month that matters and waste in the eleven that do not.
   {
     id: "event_pass",
     tier: "event_pass",
     name: "Event Pass",
-    storageBytes: 75 * GIGABYTE,
-    priceLabel: "$24 one-time",
+    storageBytes: 25 * GIGABYTE,
+    uploadsBytes: 50 * GIGABYTE,
+    use: "One big event",
+    priceLabel: "$29 one-time",
     billing: "one_time",
     stripePriceEnvKey: "STRIPE_PRICE_EVENT_PASS",
     termDays: 365,
@@ -188,9 +240,12 @@ export const TIER_NAMES: Record<Tier, string> = {
  * STRIPE_PRICE_EVENT_PASS_RENEWAL is the billing truth, see PRICING.md). A
  * separate cheaper one-time price that extends a live pass by another year
  * (billing-caps.md); surfaced on /pricing so the keep-it-alive cost is
- * never a surprise.
+ * never a surprise. $19, not $15 (the Advisor's Q16): once sold it binds every
+ * holder who renews, so it has to outlast our vendors' prices, and $19 absorbs
+ * a 45% rise in what a pass costs us where $15 absorbs 14%. Its year carries
+ * the pass's own uploads, since a renewal is a new ledger row with its own count.
  */
-export const EVENT_PASS_RENEWAL_PRICE_LABEL = "$15";
+export const EVENT_PASS_RENEWAL_PRICE_LABEL = "$19";
 
 /** Events that may EXIST per tier — the free→paid wall. null = unlimited. */
 export const MAX_EVENTS: Record<Tier, number | null> = {
@@ -200,57 +255,82 @@ export const MAX_EVENTS: Record<Tier, number | null> = {
 };
 
 /**
- * Monthly uploaded-bytes (ingress) STATIC cap — anti-abuse, unmarketed, never refunds.
- * null = DERIVED (INGRESS_CAP_MULTIPLIER x the effective storage cap — read a host's bound
- * through monthlyIngressCap, never this record directly). No tier carries a static meter
- * today: Free's flat 20 GB went with its 2 GB cap, and Free now follows the paid rule (the
- * free/pro shift: 3 x 100 MB), so one lever moves the bound whenever the room moves. The
- * record stays so a tier can take a static bound back without changing tier_limits()'s
- * columns. MUST mirror tier_limits().monthly_ingress_bytes.
+ * The window each tier's uploads count over. A calendar month (UTC, the ledger's `YYYY-MM`) for
+ * Free and Pro; a pass's own year for the Event Pass, counted on its ledger row from its purchase
+ * (or, for a renewal, from the day its year opens), so a pass's year is the one it paid for, never
+ * the calendar's. Mirrors which count `uploads_used()` reads.
  */
-export const MONTHLY_INGRESS_BYTES: Record<Tier, number | null> = {
-  free: null, // derived: 3x 100 MB = 300 MB
-  pro: null, // derived: 3x the purchased storage cap (300 GB / 1.5 TB / 6 TB)
-  event_pass: null, // derived: 3x 75 GB = 225 GB
+export const UPLOADS_WINDOW: Record<Tier, "month" | "year"> = {
+  free: "month",
+  pro: "month",
+  event_pass: "year",
 };
 
 /**
- * Monthly ingress = this multiple of the EFFECTIVE storage cap, on every tier (billing-caps.md).
- * Why a multiplier, not static bytes: the abuse bound scales with the room a host has,
- * stays unmarketed, and 3x leaves a full extra refill cycle of legitimate headroom
- * (too-low blocks a real host; too-high is only mild abuse headroom).
- * MUST mirror tier_limits().ingress_cap_multiplier.
+ * The uploads allowance a TIER sets on its own: Free's, and ONE pass's (a stack multiplies it,
+ * `uploadAllowance`). Pro is null here because its allowance is its size's, exactly as its storage
+ * is (`profiles.storage_cap_bytes`, never a tier default). Derived from the plans, never typed
+ * twice. MUST mirror tier_limits().uploads_bytes.
  */
-export const INGRESS_CAP_MULTIPLIER = 3;
+export const UPLOADS_BYTES: Record<Tier, number | null> = {
+  free: planById("free").uploadsBytes,
+  pro: null,
+  event_pass: planById("event_pass").uploadsBytes,
+};
 
 /**
- * The monthly ingress cap for a host: a tier's static meter when it has one (none does
- * today), else the multiplier times the effective storage cap (the host's actual
- * storage_cap_bytes — Pro has three cap sizes — falling back to the tier default). A paid
- * profile with no cap on record yet (the Stripe webhook writes it) returns null =
- * unmetered: fail OPEN, never block a paying host on missing data. Mirrors the SQL
- * monthly_ingress_cap() fn the upload RPCs enforce with.
+ * What a host may upload in her current window, by her plan: what the upload RPCs refuse past
+ * (`upload_allowance()`, which this mirrors under the parity test).
+ *
+ *  - Free: its own number.
+ *  - An Event Pass: one pass's allowance for each pass her room holds (passes stack, and the
+ *    recompute writes her cap as the passes' rooms summed), never fewer than one pass's.
+ *  - Pro: her size's number, read off the cap the webhook wrote, at the SMALLEST Pro size that
+ *    holds it, and the largest size's above them all. A cap between sizes only exists on a
+ *    subscription at a price we no longer sell (or a hand-set comp), and taking the larger
+ *    size's number there fails toward the host. A Pro profile with no cap on record yet (the
+ *    webhook writes it) is unmetered: fail OPEN, never block a paying host on missing data.
  */
-export function monthlyIngressCap(
+export function uploadAllowance(
   tier: Tier,
   storageCapBytes: number | null,
 ): number | null {
-  const staticBytes = MONTHLY_INGRESS_BYTES[tier];
-  if (staticBytes !== null) return staticBytes;
-  const cap = effectiveStorageCap(tier, storageCapBytes);
-  return cap === null ? null : INGRESS_CAP_MULTIPLIER * cap;
+  if (tier === "pro") {
+    if (storageCapBytes === null) return null;
+    const sizes = plansForTier("pro");
+    const size =
+      sizes.find((p) => storageCapBytes <= p.storageBytes) ??
+      sizes[sizes.length - 1];
+    return size.uploadsBytes;
+  }
+  if (tier === "event_pass") {
+    const pass = planById("event_pass");
+    const room = effectiveStorageCap(tier, storageCapBytes) ?? pass.storageBytes;
+    return pass.uploadsBytes * Math.max(1, Math.floor(room / pass.storageBytes));
+  }
+  return planById("free").uploadsBytes;
+}
+
+/**
+ * A plan's Uploads row as the pricing table prints it: "300 MB a month", "50 GB over its year".
+ * The one way an allowance is said, so the table, the help and llms.txt never word it twice.
+ */
+export function uploadsLabel(plan: Plan): string {
+  const window =
+    UPLOADS_WINDOW[plan.tier] === "year" ? "over its year" : "a month";
+  return `${formatBytes(plan.uploadsBytes)} ${window}`;
 }
 
 /**
  * Per-tier default storage cap, used when `profiles.storage_cap_bytes` is null.
  * Pro is null on purpose — a Pro account's cap is always set explicitly by the
- * webhook from the purchased plan (100/500/2048 GB). MUST mirror
- * tier_limits().default_storage_cap_bytes.
+ * webhook from the purchased plan. The pass's is ONE pass's room; the recompute
+ * writes a stack's sum. MUST mirror tier_limits().default_storage_cap_bytes.
  */
 export const DEFAULT_STORAGE_CAP_BYTES: Record<Tier, number | null> = {
-  free: 100 * MEGABYTE,
+  free: planById("free").storageBytes,
   pro: null,
-  event_pass: 75 * GIGABYTE,
+  event_pass: planById("event_pass").storageBytes,
 };
 
 /** The cap to enforce when a profile has no explicit `storage_cap_bytes`. */
@@ -488,3 +568,34 @@ export function formatCapacity(
   const estimate = video ? `${photosText} or ${videoText}` : photosText;
   return basis ? `${estimate} ${ESTIMATE_BASIS}` : estimate;
 }
+
+/**
+ * ★ THE BIG PARTY, THE UNIT A CARD LEADS WITH (the cost atlas's reference party): a host reads "a
+ * 200-guest wedding, twice over" before she reads 25 GB, so the pricing cards count their room in
+ * these. 200 guests over an evening, adding about 2,000 photos and 100 half-minute clips, at the
+ * iPhone defaults every estimate assumes: about 10 GB of originals, which is what a plan's storage
+ * counts (the previews and phone-size copies are ours). Like every estimate it says its working
+ * once, where it prints (`BIG_PARTY_NOTE`).
+ */
+export const BIG_PARTY = {
+  guests: 200,
+  photos: 2_000,
+  clips: 100,
+  clipSeconds: 30,
+} as const;
+
+export const BIG_PARTY_BYTES =
+  BIG_PARTY.photos * AVG_PHOTO_BYTES +
+  BIG_PARTY.clips * (BIG_PARTY.clipSeconds / 60) * VIDEO_BYTES_PER_MIN;
+
+/**
+ * How many big parties a room holds, the friendly way: whole under ten (2, 5), then to the
+ * nearest five (20, 100), since "102 parties" claims a precision the estimate never had.
+ */
+export function partiesHeld(bytes: number): number {
+  const n = bytes / BIG_PARTY_BYTES;
+  return n < 10 ? Math.round(n) : Math.round(n / 5) * 5;
+}
+
+/** The party's working, for the note under the cards that count in it. */
+export const BIG_PARTY_NOTE = `A ${BIG_PARTY.guests}-guest party is counted at about ${formatCount(BIG_PARTY.photos)} photos and ${BIG_PARTY.clips} clips of ${BIG_PARTY.clipSeconds} seconds.`;

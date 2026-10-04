@@ -4,8 +4,8 @@
  *
  * WHY THE SHEET ASKS INSTEAD OF BEING TOLD: four doors open the sheet with no idea
  * what the host stores (the create wizard, the restore button, the Deleted grid,
- * the dashboard's event-limit line) and so opened it on Pro 100 GB for a host
- * storing 140 GB. One small authenticated read when it opens means no door has to
+ * the dashboard's event-limit line) and so opened it on the smallest Pro size for a
+ * host it could not hold. One small authenticated read when it opens means no door has to
  * carry bytes, and every door gets the same, current answer.
  *
  * ★ CONTEXT, NEVER AN ENTITLEMENT (billing-caps.md). These facts choose which size

@@ -20,8 +20,11 @@ import {
   MAX_EVENTS,
   planById,
   plansForTier,
+  uploadsLabel,
 } from "@/lib/constants/tiers";
 import { formatCount } from "@/lib/format/count";
+import { INACTIVE_MONTHS, WARN_BEFORE_DAYS } from "@/lib/lifecycle/inactivity";
+import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
 import { cn, formatBytes } from "@/lib/utils";
 
@@ -31,8 +34,14 @@ import { clipTermsFor } from "./clip-terms";
  * The full plan matrix (Resend-informed): row labels carry a hover/focus
  * tooltip where a term needs one; booleans are the A16 marks (green check =
  * included, muted minus = not); everything numeric derives from tiers.ts /
- * limits.ts. Ingress caps stay OFF this table by design (billing-caps.md: unmarketed,
- * and the content-policy test hard-fails the build if the numbers appear).
+ * limits.ts.
+ *
+ * ★ EVERY LIMIT A HOST CAN MEET IS A ROW HERE, WITH ITS LINE IN HER WORDS (Will,
+ * 2026-10-03: "a limit a host could meet is published"). Storage, Uploads,
+ * Events, Guests, Largest file, Deleted and Kept each carry the one-sentence
+ * hover that says what it counts and what she can do about it; only a circuit
+ * breaker no real host meets stays off the page, which the fine print under the
+ * table says in one line (the Terms' "reasonable limits" are what it rests on).
  *
  * Layout: the plan header row is STICKY from lg up (the Biograph sticky-summary
  * move adapted to a matrix: names, prices and CTAs stay present while rows
@@ -65,15 +74,20 @@ function buildGroups(): MatrixGroup[] {
   const free = planById("free");
   const pass = planById("event_pass");
   const pro = plansForTier("pro");
-  const proStorage = pro.map((p) => formatBytes(p.storageBytes)).join(", ");
+  // Pro's sizes and their uploads read in one order, the slider's, so a reader matches them by place.
+  const proList = (values: string[]) =>
+    `${values.slice(0, -1).join(", ")} or ${values[values.length - 1]}`;
+  const proStorage = proList(pro.map((p) => formatBytes(p.storageBytes)));
+  const proUploads = `${proList(pro.map((p) => formatBytes(p.uploadsBytes)))} a month`;
   const freePhotos = friendlyCapacity(free.storageBytes).photos;
   const passCap = friendlyCapacity(pass.storageBytes);
   const proTopCap = friendlyCapacity(pro[pro.length - 1].storageBytes);
   const perFile = formatBytes(MAX_UPLOAD_BYTES);
+  const deleted = `${RECENTLY_DELETED_WINDOW_DAYS} days`;
 
   return [
     {
-      title: "Events and storage",
+      title: "Storage, uploads and events",
       rows: [
         {
           label: "Billing",
@@ -90,17 +104,8 @@ function buildGroups(): MatrixGroup[] {
           ],
         },
         {
-          label: "Events",
-          tip: "Events that exist at once. Deleting an event frees its slot, and deleted events wait 30 days in Deleted.",
-          values: [
-            `${MAX_EVENTS.free}`,
-            "1 per pass",
-            MAX_EVENTS.pro === null ? "Unlimited" : `${MAX_EVENTS.pro}`,
-          ],
-        },
-        {
           label: "Storage",
-          tip: "Your total across events. Plans are sized by storage, never per guest.",
+          tip: "Everything you and your guests keep, counted on the original files. Previews and phone-size copies are on us.",
           values: [
             formatBytes(free.storageBytes),
             `${formatBytes(pass.storageBytes)} per pass`,
@@ -118,27 +123,43 @@ function buildGroups(): MatrixGroup[] {
           ],
         },
         {
-          label: "Event lifetime",
-          tip: "No end dates by design: an album stays exactly where its QR points.",
+          // The allowance a GB falls as Pro grows (Ladder A), so Pro's sizes print in the slider's order.
+          label: "Uploads",
+          tip: "What you and your guests can add, deletions included: deleting something never gives its upload back. Free and Pro count each month; a pass counts its own year, so its event can use it all in one night.",
           values: [
-            "Until you delete it",
-            `About a year, renew for ${EVENT_PASS_RENEWAL_PRICE_LABEL}`,
-            "Until you delete it",
+            uploadsLabel(free),
+            `${formatBytes(pass.uploadsBytes)} per pass, over its year`,
+            proUploads,
           ],
         },
         {
-          label: "Idle cleanup",
-          tip: "A Free event untouched for about six months gets a 14-day email warning, then moves to Deleted for 30 days.",
+          label: "Events",
+          tip: "Events you keep at once. Delete one to free its place, or move to Pro for as many as you like.",
           values: [
-            "After ~6 months idle",
-            "Not while the pass is live",
-            "Never",
+            `${MAX_EVENTS.free}`,
+            "1 per pass",
+            MAX_EVENTS.pro === null ? "Unlimited" : `${MAX_EVENTS.pro}`,
+          ],
+        },
+        {
+          label: "Guests",
+          tip: "Everyone can join, add and view, and we never charge by the guest.",
+          values: ["No limit", "No limit", "No limit"],
+        },
+        {
+          // One row for how long each plan keeps an album, Free's rest included: a reader compares keeping, once.
+          label: "Kept",
+          tip: `A Free event rests in Deleted after about ${INACTIVE_MONTHS} months with no activity, and we email ${WARN_BEFORE_DAYS} days before. An album stays exactly where its QR points: no end dates.`,
+          values: [
+            "While in use",
+            `A year, renew for ${EVENT_PASS_RENEWAL_PRICE_LABEL}`,
+            "While subscribed",
           ],
         },
       ],
     },
     {
-      title: "Uploads",
+      title: "Photos and video",
       rows: [
         { label: "Photo uploads", values: [true, true, true] },
         {
@@ -147,8 +168,8 @@ function buildGroups(): MatrixGroup[] {
           values: [false, true, true],
         },
         {
-          label: "Per-file limit",
-          tip: "Photos and videos alike, on every plan. Size is the only per-file gate.",
+          label: "Largest file",
+          tip: "The biggest single photo or video. You can set a smaller one for an event.",
           values: [perFile, perFile, perFile],
         },
         {
@@ -213,9 +234,10 @@ function buildGroups(): MatrixGroup[] {
       title: "Safety net",
       rows: [
         {
-          label: "30 days in Deleted",
-          tip: "Anything you delete can be restored, exactly as it was, for 30 days.",
-          values: [true, true, true],
+          // trash-in-storage: Deleted counts in storage, and the setting that makes room is its other half.
+          label: "Deleted",
+          tip: `Deleted items wait ${RECENTLY_DELETED_WINDOW_DAYS} days so you can bring them back, and they count in your storage until they leave. With Make room from Deleted on, the oldest go first when an upload needs the room.`,
+          values: [deleted, deleted, deleted],
         },
         {
           label: "Download everything",
@@ -402,6 +424,22 @@ export function ComparisonTable() {
             ))}
           </table>
         </div>
+        {/* ★ THE FAIR-USE LINE (Ladder A): the table is every limit a host meets, so the one thing
+            behind it, a breaker for scripts, is said once, in the table's own fine print, resting on
+            the Terms' "reasonable limits on upload volume" and their bar on getting around a plan's
+            limits. The second text step: a reader acts on it. */}
+        <p className="mx-auto mt-5 max-w-3xl text-center text-xs text-pretty text-muted-foreground">
+          Every plan is for real events. The limits in this table are the ones a
+          host meets; behind them we watch only for automated abuse (scripts,
+          never parties), which we may slow or pause, as our{" "}
+          <Link
+            href="/terms"
+            className="underline decoration-muted-foreground/40 underline-offset-4 hover:text-foreground"
+          >
+            Terms
+          </Link>{" "}
+          describe.
+        </p>
       </Reveal>
     </SectionShell>
   );

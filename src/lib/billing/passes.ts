@@ -8,7 +8,7 @@
  * unit-testable with fixture rows:
  *
  *   • STACKING (Will, 2026-08-27): concurrent passes are rows whose windows overlap
- *     "now". Active-now count IS the entitlement: count x 75 GB storage, count event
+ *     "now". Active-now count IS the entitlement: count x one pass's room, count event
  *     slots (profiles.event_slots -> the SQL enforce_event_limit override).
  *   • RENEWAL EXTENDS, NEVER RESETS (billing-caps.md): a renewal is a
  *     NEW row whose window starts where the soonest-expiring active pass ends, so it
@@ -49,7 +49,7 @@ export function livePasses(passes: PassRow[]): PassRow[] {
   return passes.filter((p) => p.consumed_at === null);
 }
 
-/** Live rows whose window contains `now` — each one is a concurrent slot + 75 GB. */
+/** Live rows whose window contains `now` — each one is a concurrent slot + one pass's room. */
 export function activeNowPasses(passes: PassRow[], now: Date): PassRow[] {
   const t = now.getTime();
   return livePasses(passes).filter((p) => {
@@ -141,7 +141,7 @@ export type PassEntitlement = {
 /**
  * The single derivation the webhook and the nightly sweep both write to profiles
  * (never partially — these four fields move together). Storage sums per active
- * slot: two concurrent passes = 150 GB, dropping back to 75 GB when one lapses
+ * slot: two concurrent passes hold two passes' room, dropping back to one's when one lapses
  * (the existing 45-day over-cap grace machinery absorbs the shrink).
  */
 export function derivePassEntitlement(

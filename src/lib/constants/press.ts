@@ -17,7 +17,7 @@
  * a final pass, not ratified lines.
  */
 
-import { planById } from "./tiers";
+import { planById, plansForTier } from "./tiers";
 
 /** Mirrors SUPPORT_EMAIL in constants/site.ts (pinned, not imported: see the header). */
 const PRESS_EMAIL = "help@partyreel.com";
@@ -58,7 +58,7 @@ export const PRESS_FACTS: { label: string; value: string }[] = [
   },
   {
     label: "Pricing",
-    value: `Free to start. Event Pass ${planById("event_pass").priceLabel.replace(" one-time", "")} once. Pro from ${planById("pro_100").priceLabel.replace("/mo", "")} a month. Never priced per guest.`,
+    value: `Free to start. Event Pass ${planById("event_pass").priceLabel.replace(" one-time", "")} once. Pro from ${plansForTier("pro")[0].priceLabel.replace("/mo", "")} a month. Never priced per guest.`,
   },
   {
     label: "Availability",

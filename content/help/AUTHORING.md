@@ -155,7 +155,7 @@ the shared file or the blog's (each file's header says whose it is).
 - `<UiLabel>` for quoted app strings; `<Kbd>` for literal keys.
 - Spec inlines, each reading one constant: `<UploadSize />`,
   `<FreeStorage />`, `<EventPassStorage />`, `<EventPassPrice />`,
-  `<ProPrice />`, `<FreePrice />`, `<ProPlans />`, `<EventPassRenewalPrice />`,
+  `<ProPrice />`, `<FreePrice />`, `<ProPlans />`, `<ProUploads />`, `<EventPassRenewalPrice />`,
   `<ReelSeconds tier="free" />`, `<RecoveryDays />`,
   `<MaxEvents tier="free" />`, `<UploadCapFloor />`, `<InactivityMonths />`,
   `<EventPassTerm />`, `<PasswordMinLength />`, `<AccountPasswordMinLength />`, `<UnlockHours />`,
@@ -172,7 +172,7 @@ the shared file or the blog's (each file's header says whose it is).
 - Markdown tables (GFM) for comparisons; the component map styles them (a
   scrolling wrapper, a nowrap label column).
 - The blog library's wider spec family renders here too (`<PlanStorage id>`,
-  `<PlanPrice id>`, `<ReelStyleCount />`, `<RecoveryWindowDays />`, `<InactiveDays />`,
+  `<PlanPrice id>`, `<PlanUploads id>`, `<ReelStyleCount />`, `<RecoveryWindowDays />`, `<InactiveDays />`,
   `<CapacityEstimate plan>`, `<Yes />` / `<No />` and the rest; the full table is in
   `../blog/AUTHORING.md`). One name, one number: `<OverCapGraceDays />` renders the
   bare number on both surfaces, so write the unit in prose. An estimate always says

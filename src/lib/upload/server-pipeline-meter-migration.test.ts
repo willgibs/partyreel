@@ -108,8 +108,10 @@ describe("1. the meter", () => {
     const breaker = at(
       "if v_ledger.hour_started_at = v_hour and v_ledger.hour_uploads >= c_uploads_an_hour then",
     );
+    // ★ Reshaped by Ladder A (20261004100000; scar kept: the allowance is read here, in this order, as the complete
+    // holds it, and refused under the wire's 'monthly'): her plan's own number over its window, a month or a pass's year.
     const month = at(
-      "if v_ingress_cap is not null and coalesce(v_ledger.cumulative_bytes, 0) + p_bytes > v_ingress_cap then return jsonb_build_object('ok', false, 'reason', 'monthly');",
+      "if v_allowance is not null and public.uploads_used(v_host, v_tier) + p_bytes > v_allowance then return jsonb_build_object('ok', false, 'reason', 'monthly');",
     );
     // trash-in-storage: the room is the line an upload meets (`host_room_used`), refused with its numbers.
     const room = at(
@@ -122,10 +124,13 @@ describe("1. the meter", () => {
     expect(room).toBeLessThan(tally);
   });
 
-  it("★ reads the month exactly as the complete holds it: the same cap, the same strict line, the same key", () => {
+  // ★ Reshaped by Ladder A (20261004100000; scar kept: one allowance, one window, one strict line on both sides): the
+  // allowance is each plan's own number (`upload_allowance`) over its window (`uploads_used`: the month's ledger, or a
+  // pass's year on the pass), where it was 3x the cap over the month's row alone.
+  it("★ reads the allowance exactly as the complete holds it: the same number, the same window, the same strict line", () => {
     const body = latest("meter_upload").body;
     expect(body).toContain(
-      "v_ingress_cap := public.monthly_ingress_cap(v_tier, v_storage_cap);",
+      "v_allowance := public.upload_allowance(v_tier, v_storage_cap);",
     );
     expect(body).toContain("v_period text := to_char(now(), 'YYYY-MM');");
     expect(body).toContain(
@@ -134,10 +139,10 @@ describe("1. the meter", () => {
     for (const name of ["create_media", "create_media_as_host"]) {
       const complete = latest(name).body;
       expect(complete, name).toContain(
-        "v_ingress_cap := public.monthly_ingress_cap(v_profile.tier, v_profile.storage_cap_bytes);",
+        "v_allowance := public.upload_allowance(v_profile.tier, v_profile.storage_cap_bytes);",
       );
       expect(complete, name).toContain(
-        "if coalesce(v_month_bytes, 0) + p_file_size_bytes > v_ingress_cap then raise exception 'Monthly upload limit reached for this plan.'",
+        "v_uploaded := public.uploads_used(v_event.host_id, v_profile.tier); if v_uploaded + p_file_size_bytes > v_allowance then raise exception 'Upload limit reached for this plan.'",
       );
       // trash-in-storage: the complete holds everything she keeps, Deleted making room where her setting lets it.
       expect(complete, name).toContain(

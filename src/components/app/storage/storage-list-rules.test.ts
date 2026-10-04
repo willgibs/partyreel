@@ -91,9 +91,9 @@ describe("the filter: All, or one event", () => {
 // she stored before this visit, each byte once, to the plain cap). What frees room is what left for good (items deleted
 // for good, Deleted emptied), never a move to Deleted, which the check still counts; its button deletes first.
 describe("the goal strip counts what the check counts", () => {
-  // Priya: 110.83 GB stored, Pro 100 GB tapped: 10.83 GB to free.
-  const stored = Math.round(110.83 * GIGABYTE);
-  const cap = 100 * GIGABYTE;
+  // Priya: 60.83 GB stored, Pro 50 GB tapped: 10.83 GB to free.
+  const stored = Math.round(60.83 * GIGABYTE);
+  const cap = 50 * GIGABYTE;
 
   it("counts down as items are selected, and what left for good stays counted", () => {
     const counting = goalCount({

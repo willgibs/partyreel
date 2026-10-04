@@ -15,8 +15,9 @@ The numbers, the Stripe catalog, both portal configurations, the ten env values 
 A tier is a total stored-bytes cap; nothing caps items per event. `tiers.ts` holds every price and limit and stays
 client-import-safe (no env, no Price IDs: those map in the server-only `stripe/plans.ts`).
 
-- **`tier_limits()` mirrors `tiers.ts`,** held by `tier-limits-parity.test.ts`, which parses the newest migration
-  defining it and throws on anything it cannot read. A limit only TypeScript knows is a suggestion: the clip's length
+- **`tier_limits()` and `upload_allowance()` mirror `tiers.ts`,** held by `tier-limits-parity.test.ts`, which parses
+  the newest migration defining each (the per-tier columns, and Pro's ladder of sizes) and throws on anything it cannot
+  read. A limit only TypeScript knows is a suggestion: the clip's length
   cap is mirrored in SQL and reaches the creator only as the server's tier-derived `ClipFacts`, never the client's.
   Changing the function's return columns is DROP + CREATE (grants: [database-security.md](database-security.md)).
 - ★ **The cap holds everything she stores, her albums and her Deleted together** (`host_storage_summary`: her albums
@@ -26,11 +27,24 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
 - **`create_media*` enforce two bounds,** on the HEAD's size, at complete. What she stores against the cap plus a 10%
   write headroom (`capWithWriteHeadroom` mirrors it, so the over-cap sweep engages at the same line), Deleted making
   the room first when her setting is on and the file fits beside her albums (`leave_deleted`, oldest first, exactly
-  what the file needs, under the profiles lock), and a monthly INGRESS meter (`storage_ledger.cumulative_bytes`)
-  against `monthly_ingress_cap()`: a multiple of the effective cap on every tier, Free included (the static
-  `monthly_ingress_bytes` column stays, null everywhere, for a tier that takes one back), so the abuse bound scales
-  with the room. The ingress bound is a backstop, never marketed (`content-policy.test.ts` fails content that names
-  it). `host_storage_summary` is the one read every cap check makes.
+  what the file needs, under the profiles lock), and the UPLOADS ALLOWANCE: her plan's own published number
+  (`upload_allowance()`: Free's and one pass's from `tier_limits()`, a stack's one pass's for each pass her room holds,
+  Pro's by its size, the smallest Ladder A size holding her cap) against what its window has used (`uploads_used()`).
+  `host_storage_summary` is the one read every cap check makes.
+- ★ **The allowance's window is a calendar month, or a pass's own year.** Free and Pro read this month's
+  `storage_ledger.cumulative_bytes` (UTC, `YYYY-MM`, never decremented). A pass holder reads her live passes'
+  `event_passes.uploaded_bytes`, which the two completes alone increment, on the live pass that ends soonest, under
+  the profiles lock: so the year is the one she paid for, a renewal's year opens on its own row at zero, and a pass
+  that ends takes its count with it (generous at a stack's edge, never a false refusal). Every upload still lands on
+  the month's row too (spend-watch and the hour's breaker read it). ★ A pass the nightly recompute has not caught up
+  with (her profile still a pass's, no window live) is refused at the completes in the allowance's words (the
+  Advisor's Q26 F1), so nothing lands counted nowhere; the presign's meter still admits it for that day at most. A Pro
+  profile with no cap on record is unmetered.
+- **The allowance is published; only the breakers are not.** The pricing table's Uploads row prints each plan's
+  number with its window (`uploadsLabel`); `content-policy.test.ts` fences the backstop's old name ("ingress") and the
+  unpublished breakers' numbers, read from the SQL that sets them. The meter's wire keeps its names
+  (`at_monthly_cap`, the `'monthly'` reason) for the allowance whatever its window, and the two presign routes refuse
+  it "for now", never "for the month".
 - **Make room from Deleted** (`profiles.make_room_from_deleted`, on by default, the one profiles column a host
   writes): on, a full plan's upload takes its room from Deleted, oldest first, so a full Deleted never refuses a
   guest's photo at a party; off, the upload is refused until she empties Deleted or moves up a size. It governs
@@ -52,7 +66,8 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   grief needs real bytes: declaring a size spends nothing.
 - **The presign's meter refuses early, and counts no month** (`meter_upload`, 20261003210500, through
   `upload/server-pipeline-meter.ts`): after every gate of its route and before any URL exists, it refuses past the
-  hour's breaker, past the month (the complete's own line, read early) or past the room (`host_room_used`; the
+  hour's breaker, past the allowance (the complete's own line over the same window, read early) or past the room
+  (`host_room_used`; the
   refusal carries `needed_bytes`, `deleted_bytes` and `makes_room`), each in the route's own words (a guest's name the
   album, never the plan: `meterRefusal`), and tallies the hour for an upload it admits. No profiles
   lock: its reads are advisory and the tally is one atomic upsert. It fails OPEN, as the limiters do, since the
@@ -64,10 +79,10 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   included, in `enforce_event_limit` on a creation alone (its undelete trigger is a restore) and after the plan's own
   limit; the create action prints its sentence, never the plan limit's, since a Pro host has no event limit to upgrade
   past (`mutations/events.ts`). Each constant's WHY sits beside it in 20261003210500.
-- **Three counters, deliberately different; never reconcile them.** The cap reads what she stores, Deleted included,
+- **Four counters, deliberately different; never reconcile them.** The cap reads what she stores, Deleted included,
   so a delete frees nothing until the item leaves Deleted for good; the monthly ledger never decrements (it is also
-  the delete-and-re-upload churn defense); `storage_used_bytes` is the PHYSICAL meter only (up on create, down when a
-  row is asked to leave or purged) and gates nothing.
+  the delete-and-re-upload churn defense), and nor does a pass's `uploaded_bytes`, its year's twin; `storage_used_bytes`
+  is the PHYSICAL meter only (up on create, down when a row is asked to leave or purged) and gates nothing.
 - ★ **Every storage figure a host or the storage guard reads is `host_storage_summary(uuid)`** (through
   `getHostStorageSummary`, on the admin client with the `getUser()` id): her albums, her Deleted and the system's part
   of it, whatever the album's size, and what her plan holds is the first two together (`storedBytes`). Deleted is only
@@ -98,7 +113,7 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
 - **One plan at a time for Pro; passes stack.** Checkout refuses everything, a pass included, for an active Pro: a
   second subscription double-bills one cap, a size or cadence change is change-plan's, and cancelling is the
   portal's. `resolveEntitlement()` decides from `profiles`, never the request body. Another pass is another ledger row
-  (one more event slot and another pass's storage, for its own year), and a pass holder may start Pro, the prorated
+  (one more event slot and another pass's storage and uploads, for its own year), and a pass holder may start Pro, the prorated
   credit consuming their passes. A pass write never flattens a Pro cap (the recompute's WHERE carries
   `.neq("tier","pro")`). Pro caps never stack, as a max or a sum: every webhook would resolve two live entitlements,
   and "whose media survives when one plan ends?" has no honest answer.
@@ -139,7 +154,8 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   `customer.subscription.*` event fires: `checkout.session.completed` (`metadata.plan_id === "event_pass"`) mints one
   `event_passes` row (idempotent on `stripe_session_id`; `price_cents` is what was actually charged, so a promo
   prorates off the real payment) and `recomputePassEntitlement` derives the profile. Each row owns a
-  `[start_at, expires_at)` window: a purchase stacks a fresh year from its own instant; a renewal (the cheaper price,
+  `[start_at, expires_at)` window, and its uploads counted inside it: a purchase stacks a fresh year from its own
+  instant; a renewal (the cheaper price,
   `metadata.renewal="1"`) starts at the soonest-expiring active pass's expiry (it extends, never resets, per window),
   and an unopened renewal year credits at 100% on a move to Pro. A renewal needs a window active NOW, read from the
   ledger at checkout, never the profile's label. `profiles.event_slots` is the concurrent-pass count and, when set,
@@ -202,8 +218,9 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   `/dashboard`, `/dashboard/<uuid>` with an optional `room=share|settings`, and `/account`; anything else returns to
   `/dashboard`, so no client value leaves the origin, and Stripe validates none of it. The list is also the set of
   pages that mount `WelcomeToPro`, so a new shape mounts the modal in the same change.
-- **A Pro host's plan is her three sizes under one Monthly / Yearly toggle** (`pro-price-list.tsx`): it opens on her
-  billing, the tag beside Yearly is computed from the price labels (`cadence.ts`, the smallest whole-month saving
+- **A Pro host's plan is her three sizes under one Monthly / Yearly toggle** (`pro-price-list.tsx`), each card's
+  holds line led by the size's use (`holdsPhrase`, `components/app/pricing/holds.ts`, the pricing page's phrases' one
+  home): it opens on her billing, the tag beside Yearly is computed from the price labels (`cadence.ts`, the smallest whole-month saving
   across sizes), each card draws how full what she stores would make it, and the fit line reads at the billing on
   show. `carry` still holds for a host choosing a first plan: one Pro size at one cadence beside Free.
 - ★ **An estimate always carries its camera.** `formatCapacity` appends `ESTIMATE_BASIS` ("at an iPhone's default
