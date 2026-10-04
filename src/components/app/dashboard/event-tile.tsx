@@ -6,6 +6,7 @@ import { CycledCover } from "@/components/app/dashboard/cover-cycle";
 import { LiveDot, Mark, StateDot } from "@/components/app/dashboard/marks";
 import { RoleMarker } from "@/components/app/event-card";
 import type { EventListRow } from "@/lib/dashboard/events-view";
+import { RangeText } from "@/lib/format/range-text";
 import { cn } from "@/lib/utils";
 
 /**
@@ -177,11 +178,13 @@ export function EventTile({
               photo ? "text-white/75" : "text-muted-foreground",
             )}
           >
-            {row.kind === "hosted"
-              ? row.when
-              : row.kind === "deleted"
-                ? row.statusLabel
-                : (row.byline ?? row.dateLabel)}
+            {row.kind === "hosted" ? (
+              <RangeText text={row.when} />
+            ) : row.kind === "deleted" ? (
+              row.statusLabel
+            ) : (
+              (row.byline ?? <RangeText text={row.dateLabel} />)
+            )}
           </p>
         )}
       </div>

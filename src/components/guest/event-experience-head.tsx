@@ -20,6 +20,7 @@ import type { GallerySeed } from "@/lib/events/gallery-seed";
 import { createReelItems } from "@/lib/guest/reconcile-album-items";
 import { tileStills } from "@/lib/guest/reel-tile";
 import { formatCount, formatMediaCount } from "@/lib/format/count";
+import { RangeText } from "@/lib/format/range-text";
 import type { LiveMediaItem } from "@/lib/reel/live/items";
 import { cn, formatEventDate } from "@/lib/utils";
 
@@ -297,7 +298,11 @@ export function AlbumCover({
                   ·
                 </span>
               )}
-              {date && <span>{formatEventDate(date, endDate)}</span>}
+              {date && (
+                <span>
+                  <RangeText text={formatEventDate(date, endDate)} />
+                </span>
+              )}
               {mediaCount > 0 && (
                 <span className="hidden items-center gap-x-2.5 md:flex">
                   {(host || date) && (

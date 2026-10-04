@@ -6,6 +6,7 @@ import { ArrowRight, Images, Lock } from "lucide-react";
 import { StateDot } from "@/components/app/dashboard/marks";
 import type { EventListRow } from "@/lib/dashboard/events-view";
 import { formatCount } from "@/lib/format/count";
+import { RangeText } from "@/lib/format/range-text";
 import { cn } from "@/lib/utils";
 
 /**
@@ -59,7 +60,9 @@ function Row({ row, action }: { row: EventListRow; action?: React.ReactNode }) {
             {row.name}
           </span>
           <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-            <span>{row.dateLabel}</span>
+            <span>
+              <RangeText text={row.dateLabel} />
+            </span>
             {/* The album's size is the HOST's number: a guest row is somebody
                 else's album, and this list holds no count of it. */}
             {row.kind !== "guest" && (

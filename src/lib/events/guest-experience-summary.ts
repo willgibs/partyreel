@@ -2,6 +2,7 @@ import type { Capture } from "@/lib/disposable/facts";
 import type { DevelopState } from "@/lib/disposable/reveal";
 import { ROLL_SHOTS } from "@/lib/disposable/roll";
 import type { Door } from "@/lib/event/door/door";
+import { spokenRange } from "@/lib/utils";
 
 /**
  * THE SETTINGS, READ AS SENTENCES (event-settings r1, Will 2026-09-29: `structure=summary`, with his
@@ -38,7 +39,12 @@ export type SentenceWord =
   | "profile";
 
 /** One stretch of a sentence: prose, or a word that is a control. */
-export type SentencePart = { text: string; word?: SentenceWord };
+export type SentencePart = {
+  text: string;
+  word?: SentenceWord;
+  /** The text is a date range as a formatter wrote it, so it is drawn by `RangeText` and spoken with its "to". */
+  range?: true;
+};
 
 /** What the sentences are made from: the album's settings as a host has them now. */
 export type SettingsFacts = {
@@ -97,6 +103,8 @@ const word = (text: string, w: SentenceWord): SentencePart => ({
   word: w,
 });
 const prose = (text: string): SentencePart => ({ text });
+/** A date as the hub writes it, which may be a range: its own part, so a dash in an event's NAME is never read as one. */
+const date = (text: string): SentencePart => ({ text, range: true });
 
 /**
  * WHO GETS IN, AND WHAT THEY DO FIRST. ★ AN ADDRESS GATE HOLDS THE EMAIL STEP ON (letting each person
@@ -201,10 +209,13 @@ function reelSentence(f: SettingsFacts): SentencePart[] {
 }
 
 function eventSentence(f: SettingsFacts): SentencePart[] {
-  const named = f.dateLabel ? `${f.name}, ${f.dateLabel}.` : `${f.name}.`;
-  if (f.onProfile === null) return [prose(named)];
+  const named = f.dateLabel
+    ? [prose(`${f.name}, `), date(f.dateLabel), prose(".")]
+    : [prose(`${f.name}.`)];
+  if (f.onProfile === null) return named;
   return [
-    prose(`${named} `),
+    ...named,
+    prose(" "),
     word(f.onProfile ? "On your profile" : "Not on your profile", "profile"),
     prose("."),
   ];
@@ -229,5 +240,6 @@ export function settingsSentence(
 
 /** A sentence's parts, read as one string. */
 export function sentenceText(parts: readonly SentencePart[]): string {
-  return parts.map((p) => p.text).join("");
+  // A label is read aloud, so a range in it is said with its "to" (`spokenRange`).
+  return parts.map((p) => (p.range ? spokenRange(p.text) : p.text)).join("");
 }

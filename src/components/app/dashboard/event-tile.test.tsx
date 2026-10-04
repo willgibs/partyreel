@@ -34,6 +34,17 @@ const row = (over: Partial<EventListRow> = {}): EventListRow => ({
 });
 
 describe("a hosted tile", () => {
+  // Q2: a range keeps its dash for the eye and says "to" for a reader (`RangeText`), wherever it renders.
+  it("★ says a range's when with its 'to' for a reader and its dash for the eye", () => {
+    const { container } = render(
+      <EventTile row={row({ when: "Oct 3–5" })} size="md" />,
+    );
+    expect(container.querySelector("[data-range]")?.textContent).toContain(
+      "Oct 3–",
+    );
+    expect(container.querySelector(".sr-only")?.textContent?.trim()).toBe("to");
+  });
+
   it("opens its event and says its name and when, its date face before a photograph", () => {
     const { container } = render(<EventTile row={row()} size="md" />);
     expect(screen.getByRole("link")).toHaveAttribute("href", "/dashboard/e1");

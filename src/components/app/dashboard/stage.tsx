@@ -31,6 +31,7 @@ import {
 import { phaseOfEvent } from "@/lib/dashboard/when";
 import type { StagePhoto } from "@/lib/dashboard/stage";
 import { formatCount } from "@/lib/format/count";
+import { RangeText } from "@/lib/format/range-text";
 import { cn } from "@/lib/utils";
 
 /**
@@ -303,7 +304,9 @@ export function Stage({
             {event.name}
           </h2>
           {dateLine ? (
-            <p className="mt-1.5 text-sm text-gallery-muted">{dateLine}</p>
+            <p className="mt-1.5 text-sm text-gallery-muted">
+              <RangeText text={dateLine} />
+            </p>
           ) : (
             <Link
               href={settingsPageHref(event.id, "event")}
