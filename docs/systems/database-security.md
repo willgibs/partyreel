@@ -85,7 +85,7 @@ semantics live in its doc.
 - **Service-role only, never in either list:** the server-mediated set above, `action_rate`,
   `article_feedback_summary` (an INVOKER read, one jsonb, behind the admin seam), `purge_media_rows`,
   `record_link_hit`, `host_active_bytes`, `host_storage_summary`, `leave_deleted` (the over-capacity deadline's first
-  step), `tier_limits` and `monthly_ingress_cap` (INVOKER; every other caller is a DEFINER body), the paged album's
+  step), `tier_limits`, `upload_allowance` and `uploads_used` (INVOKER; every other caller is a DEFINER body), the paged album's
   reader `album_changes_since` (an INVOKER read the Next routes call after their own capability check) and its log's
   prune `album_prune_tombstones` (DEFINER: the tables grant the service role SELECT only), the develop's
   `develop_due` and `develop_due_sweep` (DEFINER: they write `sealed_until`, which no role holds;
@@ -111,7 +111,8 @@ semantics live in its doc.
   paged album's versions and change log: service_role SELECT only, written by the deferred triggers and the log's
   prune alone), `camera_rolls` (the camera's ledger, service_role SELECT only, written by `create_media` alone),
   `article_feedback` (the help center's feedback beacon, no identity of any kind), and
-  `storage_ledger` (the monthly ingress meter: its readers are the upload gates, DEFINER, and the service role).
+  `storage_ledger` (Free's and Pro's monthly uploads meter, a pass's year counting on its own
+  `event_passes.uploaded_bytes`: its readers are the upload gates, DEFINER, and the service role).
 
 ## Grants
 
@@ -171,11 +172,13 @@ Gotchas). A new table starts with no client grant, so its migration grants exact
   `events_name_len` and `events_description_len` mirror `validation/event.ts` under a parity guard, and
   `events_qr_style_len` is an envelope, never the preset list, so a new preset needs no migration. A paid gate on an
   event setting lives inside its setter RPC ([billing-caps.md](billing-caps.md)).
-- ★ **Every capacity decision locks the host's `profiles` row `for update` first.** The cap, ingress and event-slot
+- ★ **Every capacity decision locks the host's `profiles` row `for update` first.** The cap, uploads and event-slot
   checks are check-then-act over aggregates no row lock can hold, so two concurrent uploads, restores or creates
   would each read N-1 and both admit. `create_media`, `create_media_as_host`, `restore_media`, `restore_event` and
   `enforce_event_limit` each take exactly ONE profiles lock, the host's, as their first lock, so no deadlock is
-  constructible; never lock a second host's row in these bodies. `leave_deleted` and `empty_deleted` take the host's
+  constructible among them; never lock a second host's row in these bodies. The one cycle outside them: a pass
+  consumed for Pro credit takes `event_passes` before `profiles` (Postgres detects the deadlock and one side is
+  retried; a ROADMAP line puts it in order). `leave_deleted` and `empty_deleted` take the host's
   row first too, and the restores take it before the item's, so a restore and an upload making room never act on one
   row at once.
 - ★ **A mint of an ask reads the door under the event row's share lock** (`create_guest`, `ask_to_join`). Every move

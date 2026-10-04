@@ -12,7 +12,7 @@ Open this before you:
 Elsewhere: the paged album, the doorbell and the album's wait as a guest sees it ([guest-flow.md](guest-flow.md)), the
 upload pipeline ([uploads-and-r2.md](uploads-and-r2.md)), the grants, the RPC inventory and the lock order
 ([database-security.md](database-security.md)), the purge and its guards
-([lifecycle-recovery.md](lifecycle-recovery.md)), the caps and the ingress meter ([billing-caps.md](billing-caps.md)).
+([lifecycle-recovery.md](lifecycle-recovery.md)), the caps and the uploads allowance ([billing-caps.md](billing-caps.md)).
 The foundation migration's header (`20261002200000_disposable_foundation.sql`) holds the lock analysis and its
 measurements.
 
@@ -126,8 +126,8 @@ A lazy predicate alone reaches nobody: the guest poll's quiet path reads one row
   read.
 - A shot she withdraws purges that night, as every guest's own withdrawal does in any album
   ([lifecycle-recovery.md](lifecycle-recovery.md)). So the churn a freed frame opens is bounded: the storage cap reads
-  what the host stores and a withdrawn shot leaves it at once (a withdrawal sits in no Deleted), the monthly ingress
-  meter counts every upload and never gives one back, and the ceiling bounds the rows.
+  what the host stores and a withdrawn shot leaves it at once (a withdrawal sits in no Deleted), the uploads
+  allowance's meter counts every upload and never gives one back, and the ceiling bounds the rows.
 - A camera video is one shot of up to 10 s (with half a second's grace) and 128 MB, since its length is the client's
   word (`media/limits.ts`, mirrored in `create_media` under `roll.test.ts`). The host's own uploads are exempt from the
   roll, the ceiling and the video bounds, and seal with everyone's.

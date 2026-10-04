@@ -35,8 +35,9 @@ handlers.
 Rows live in Postgres (Supabase); media bytes in the R2 bucket `partyreel` (`events/…`); profile photos in Supabase
 Storage, derivable and so outside the R2 backup. Each store's backup runs off the app, on Cloudflare and GitHub Actions,
 so a backup failure is a durability risk, never an outage (the mechanics: [durability-backups.md](durability-backups.md)).
-- **Write:** the phone PUTs to a presigned URL on the primary bucket; its `object-created` event queues a copy into the
-  locked backup bucket; `create_media` writes the row and the ledger and enforces the cap and ingress
+- **Write:** the phone PUTs to a presigned URL on the primary bucket (a `staging/` key the complete copies into
+  `events/`, or a multipart assembled there); an object landing under `events/` queues a copy into the locked backup
+  bucket; `create_media` writes the row and the ledger and enforces the cap and the uploads allowance
   ([uploads-and-r2.md](uploads-and-r2.md)).
 - **Read:** the app presigns a GET and the browser pulls the bytes straight from the primary. The backup is never in
   the read path, and raw keys never reach the browser.

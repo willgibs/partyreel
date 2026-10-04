@@ -7,7 +7,7 @@ Open this before you:
 - change how media renders (tiles, previews, video posters, the viewer) or how photos are taken home (Save, a
   guest's Select then Save, a host's two sets, the zips).
 
-Elsewhere: cap and ingress enforcement ([billing-caps.md](billing-caps.md)), the purge and reclaim ([lifecycle-recovery.md](lifecycle-recovery.md)), the backups
+Elsewhere: the cap and the uploads allowance ([billing-caps.md](billing-caps.md)), the purge and reclaim ([lifecycle-recovery.md](lifecycle-recovery.md)), the backups
 ([durability-backups.md](durability-backups.md)), the grants and the server-mediated RPCs ([database-security.md](database-security.md)), forensic capture
 ([trust-safety-forensics.md](trust-safety-forensics.md)).
 

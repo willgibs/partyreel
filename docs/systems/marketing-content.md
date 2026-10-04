@@ -80,8 +80,9 @@ hide-on-scroll in `header-shell.tsx`, desktop panels in `marketing-nav.tsx`, a f
   cap on any plan, and an upload is never a "clip" ([reel.md](reel.md) holds the nouns and the clip's levers).
 - `content-policy.test.ts`'s header lists every fenced claim, and its claims fence reads every constant under
   `src/lib/constants/` (the copy single-sources and the legal content, so a new one is fenced the day it lands) but
-  the ones `CLAIM_EXEMPT_CONSTANTS` names with a reason (`tiers.ts`, which defines the ingress backstop), plus the
-  FAQ answers and the llms builders; a copy source outside `src/lib/constants/` joins `CLAIM_FILES` by hand.
+  the ones `CLAIM_EXEMPT_CONSTANTS` names with a reason (none today: the uploads allowance is published, and the fence
+  reads only the unpublished breakers' numbers, from the SQL that enforces them), plus the FAQ answers and the llms
+  builders; a copy source outside `src/lib/constants/` joins `CLAIM_FILES` by hand.
 
 ## Pages and their single sources
 

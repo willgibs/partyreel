@@ -350,7 +350,7 @@ manifest page never says `full`; a read that fails is still a failure.
 
 ★ **THE UPLOAD GATE FAILS OPEN, AND THE FAIL-OPEN IS THE SERVER'S.** `canContribute = accepting_uploads && !albumFull`,
 where `albumFull` is exactly the pair the presign ladder refuses `cap_reached` on (the storage cap plus its 10%
-write headroom, or the monthly ingress cap), carried verbatim by `get_upload_gate`, so the gate never holds a guest
+write headroom, or the uploads allowance), carried verbatim by `get_upload_gate`, so the gate never holds a guest
 the presign would refuse. An unreachable `get_upload_gate` resolves to `{contributed: false, albumFull: true}`
 with a captured warning, which opens the album. ★ **OWN DELETES CLOSE IT**: an upload counts whatever the host
 does to it (pending, approved, hidden, or removed by

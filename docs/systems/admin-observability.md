@@ -133,7 +133,7 @@ reads our own counters, judges each against a ceiling, and pauses the switch tha
 costs no guest's moment. The rules are pure (`lib/jobs/spend-watch.ts`); the run reads, writes and tells
 (`spend-watch-run.ts`); the card is `app/admin/jobs/spend-watch-card.tsx`.
 - **The readings** come in one call (`spend_watch_readings`, INVOKER and service-role only; its one DEFINER helper,
-  `spend_watch_sign_ins`, counts `auth.users`): our own counters (the ingress meter, every album's change counters,
+  `spend_watch_sign_ins`, counts `auth.users`): our own counters (the uploads meter, every album's change counters,
   the day's lifecycle mail, sign-ins, zips and purge runs), the snapshots diffed into rates an hour, and the one vendor
   reading our tokens can take, Resend's own sent-mail list (every sender, Supabase Auth's sign-in codes included).
 - ★ **What could not be read:** Supabase's usage (Realtime messages, MAU, egress) needs a Management API personal token,
