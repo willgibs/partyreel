@@ -67,6 +67,12 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls lab, the red-team brief
 
 ## Next, in order
 
+**His word on the desk (2026-10-04 05:00Z):** he answers the alias desk's six boards (11 asks) before any new board
+lands: last time a stacked desk of 100+ asks made every good idea fight open questions. So `drive-export-r1` and
+`customize-r1` hand off and wait unintegrated, and the calls lab's visual calls (his word: anything visual goes to the
+lab) become boards only after his sitting, read side by side with what is left so no two asks repeat. take-home
+shows answered (3 of 3) on build 51's desk and retires with docs-prune.
+
 1. **Red-team 51** walks build 51 (`31b7c652`): read its report, fix any MEDIUM before the next milestone (a crumbs
    lane), file the rest.
 2. **pricing-wiring** runs: send its migration to the Advisor from its WIP push; create the Stripe TEST prices its
