@@ -219,6 +219,157 @@ describe("the download's toast", () => {
     expect(toastEl().querySelector("[data-export-toast-controls]")).toBeNull();
   });
 
+  // E6: the x asks before it is believed, in the toast itself.
+  it("★ a cancel asks first: one line, what stopping leaves, the two answers under it, and no x of its own", () => {
+    const keep = vi.fn();
+    const stop = vi.fn();
+    act(() =>
+      exportToasts.show("dl", {
+        tone: "confirm",
+        title: "Stop after part 1 of 3?",
+        detail: "Parts 2 and 3 won't download.",
+        actions: [
+          { label: "Keep going", run: keep },
+          { label: "Stop here", run: stop },
+        ],
+      }),
+    );
+    flush();
+
+    const el = toastEl();
+    expect(el).toHaveAttribute("data-type", "info");
+    expect(el).toHaveAttribute("data-dismissible", "false");
+    expect(el).toHaveTextContent("Stop after part 1 of 3?");
+    expect(el).toHaveTextContent("Parts 2 and 3 won't download.");
+    // The answers are the way out: no x, so there is nothing to swipe or press that decides it for her.
+    expect(el.querySelector("[data-export-toast-controls]")).toBeNull();
+    expect(el.querySelector("[data-close-button]")).toBeNull();
+    const buttons = within(el).getAllByRole("button");
+    expect(buttons.map((b) => b.textContent)).toEqual([
+      "Keep going",
+      "Stop here",
+    ]);
+    fireEvent.click(buttons[0]);
+    expect(keep).toHaveBeenCalledTimes(1);
+    expect(stop).not.toHaveBeenCalled();
+
+    // The next state carries nothing of the question: its detail and its answers go.
+    act(() =>
+      exportToasts.show("dl", {
+        tone: "wait",
+        title: "Preparing part 2 of 3…",
+        close: { label: "Cancel download", run: vi.fn() },
+      }),
+    );
+    flush();
+    expect(toastEl()).not.toHaveTextContent("won't download");
+    expect(toastEl().querySelector("[data-export-toast-answers]")).toBeNull();
+  });
+
+  it("a cancel she made is neutral, never an error, with its way back and an x, and goes by itself in its time", () => {
+    const again = vi.fn();
+    act(() =>
+      exportToasts.show("dl", {
+        tone: "cancelled",
+        title: "That download was cancelled.",
+        action: { label: "Try again", run: again },
+        close: { label: "Dismiss", run: vi.fn() },
+        duration: 8000,
+      }),
+    );
+    flush();
+    const el = toastEl();
+    expect(el).toHaveAttribute("data-type", "info");
+    expect(el).toHaveTextContent("That download was cancelled.");
+    fireEvent.click(within(el).getByRole("button", { name: "Try again" }));
+    expect(again).toHaveBeenCalledTimes(1);
+    expect(
+      within(el).getByRole("button", { name: "Dismiss" }),
+    ).toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(8500);
+    });
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(document.querySelector("[data-sonner-toast]")).toBeNull();
+  });
+
+  it("a cancel the Worker reported after the fact is held until she puts it away", () => {
+    act(() =>
+      exportToasts.show("dl", {
+        tone: "cancelled",
+        title: "That download was cancelled.",
+        action: { label: "Try again", run: vi.fn() },
+        close: { label: "Dismiss", run: vi.fn() },
+        duration: Infinity,
+      }),
+    );
+    flush();
+    act(() => {
+      vi.advanceTimersByTime(120_000);
+    });
+    expect(toastEl()).toHaveTextContent("That download was cancelled.");
+  });
+
+  it("★ a dropped connection is an error that says what to do, under its line, beside its Try again", () => {
+    act(() =>
+      exportToasts.show("dl", {
+        tone: "refused",
+        title: "Your connection dropped.",
+        detail: "Check your signal, then try again.",
+        action: { label: "Try again", run: vi.fn() },
+        close: { label: "Dismiss", run: vi.fn() },
+      }),
+    );
+    flush();
+    const el = toastEl();
+    expect(el).toHaveAttribute("data-type", "error");
+    expect(el).toHaveTextContent("Your connection dropped.");
+    expect(el).toHaveTextContent("Check your signal, then try again.");
+    expect(
+      within(el).getByRole("button", { name: "Try again" }),
+    ).toBeInTheDocument();
+
+    // And the next state carries nothing of it (sonner merges an update into the toast it replaces).
+    act(() =>
+      exportToasts.show("dl", {
+        tone: "done",
+        title: "Your download is saved.",
+        duration: 4000,
+      }),
+    );
+    flush();
+    expect(toastEl()).not.toHaveTextContent("Check your signal");
+  });
+
+  it("a line lost while a zip streams is said under 'Downloading…', which stays held with its x", () => {
+    act(() =>
+      exportToasts.show("dl", {
+        tone: "downloading",
+        title: "Downloading…",
+        detail: "Your connection dropped. Check your signal.",
+        close: { label: "Dismiss", run: vi.fn() },
+      }),
+    );
+    flush();
+    const el = toastEl();
+    expect(el).toHaveTextContent("Downloading…");
+    expect(el).toHaveTextContent("Your connection dropped. Check your signal.");
+    expect(el).toHaveAttribute("data-dismissible", "false");
+    // The line is back: the same toast, the notice gone.
+    act(() =>
+      exportToasts.show("dl", {
+        tone: "downloading",
+        title: "Downloading…",
+        close: { label: "Dismiss", run: vi.fn() },
+      }),
+    );
+    flush();
+    expect(toastEl()).not.toHaveTextContent("Check your signal");
+  });
+
   it("a short zip is amber, with its Try again and the x", () => {
     act(() =>
       exportToasts.show("dl", {

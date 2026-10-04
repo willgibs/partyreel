@@ -47,6 +47,10 @@ function world(opts: {
   answer: SaveItem[] | { status: number; body: unknown };
   /** URLs whose reads fail every time. */
   broken?: Set<string>;
+  /** URLs whose reads never reach the app: the fetch rejects (a dropped network), every time. */
+  dropped?: Set<string>;
+  /** The route's own request fails outright (a dropped network) instead of answering. */
+  askRejects?: boolean;
   active?: boolean;
   /** What the sheet does: resolve (saved), or reject with a name. */
   sheet?: () => Promise<void>;
@@ -74,6 +78,7 @@ function world(opts: {
     async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
       if (url.startsWith("/api/export/")) {
+        if (opts.askRejects) throw new TypeError("Failed to fetch");
         const a = opts.answer;
         return Array.isArray(a)
           ? new Response(JSON.stringify({ ok: true, items: a, more: false }), {
@@ -90,6 +95,7 @@ function world(opts: {
         );
       }
       if (opts.broken?.has(url)) return new Response("no", { status: 403 });
+      if (opts.dropped?.has(url)) throw new TypeError("Failed to fetch");
       const item = byUrl.get(url)!;
       return new Response(new Uint8Array(item.bytes), {
         status: 200,
@@ -303,6 +309,187 @@ describe("what cannot come", () => {
       said.tone === "refused" ? said.action : "not refused",
     ).toBeUndefined();
     expect(last(w.states)).toEqual({ kind: "idle" });
+  });
+});
+
+/** The question's answer, by its label. */
+function answer(view: ToastView | undefined, label: string) {
+  if (view?.tone !== "confirm") throw new Error(`not asking: ${view?.tone}`);
+  const found = view.actions.find((a) => a.label === label);
+  if (!found) throw new Error(`no answer "${label}"`);
+  return found;
+}
+
+// E6 (Will 2026-10-04): a cancel is intentional, so the toast's x (and the foot's press) asks first, then says it was
+// cancelled with a Try again; and a dropped connection is never hidden.
+describe("the x asks first (E6)", () => {
+  it("★ asks 'Stop saving?' with Keep going first, and cancels nothing on the press alone", async () => {
+    const w = world({ answer: items(24), hang: true });
+    const going = w.saver.start("guest", { qr_token: "q" });
+    await settle();
+    expect(w.fileReads.length).toBeGreaterThan(0);
+
+    w.saver.cancel();
+    expect(last(w.toasts)).toMatchObject({
+      tone: "confirm",
+      title: "Stop saving?",
+      actions: [{ label: "Keep going" }, { label: "Stop saving" }],
+    });
+    // Nothing has stopped: the run is alive and its toast is not dismissed.
+    expect(w.saver.busy).toBe(true);
+    expect(w.dismissed).toEqual([]);
+
+    answer(last(w.toasts), "Keep going").run();
+    expect(last(w.toasts)).toMatchObject({ tone: "wait" });
+    // Leave it for real, so the hung reads end.
+    w.saver.stop();
+    await going;
+  });
+
+  it("★ Stop saving says it was cancelled, neutral, with Try again, and no sheet opens", async () => {
+    const w = world({ answer: items(24), hang: true });
+    const going = w.saver.start("guest", { qr_token: "q" });
+    await settle();
+    w.saver.cancel();
+    answer(last(w.toasts), "Stop saving").run();
+    await going;
+
+    expect(w.share).not.toHaveBeenCalled();
+    expect(w.saver.busy).toBe(false);
+    expect(last(w.states)).toEqual({ kind: "idle" });
+    const said = last(w.toasts);
+    expect(said).toMatchObject({
+      tone: "cancelled",
+      title: "Saving cancelled.",
+      action: { label: "Try again" },
+      close: { label: "Dismiss" },
+      duration: 8000,
+    });
+
+    // Try again is the Save again, from its start.
+    if (said.tone !== "cancelled" || !said.action) throw new Error("no retry");
+    const reads = w.fileReads.length;
+    said.action.run();
+    await settle();
+    expect(w.fileReads.length).toBeGreaterThan(reads);
+  });
+
+  it("★ hands nothing to the phone's sheet while the question stands, then Keep going lets the files wait for a tap", async () => {
+    const w = world({ answer: items(3) });
+    const going = w.saver.start("guest", { qr_token: "q" });
+    // The press comes while the links and files are still on their way.
+    w.saver.cancel();
+    await settle();
+    await settle();
+    await settle();
+    expect(w.fileReads).toHaveLength(3);
+    expect(w.share).not.toHaveBeenCalled();
+    expect(last(w.toasts)).toMatchObject({ tone: "confirm" });
+
+    answer(last(w.toasts), "Keep going").run();
+    await going;
+    // The sheet opens, or waits for one more tap where the first has lapsed: never a failure.
+    expect(w.shared.length === 1 || last(w.states).kind === "ready").toBe(true);
+  });
+
+  it("past the first part, Stop here says where she stopped and keeps the tap that takes the rest", async () => {
+    const w = world({ answer: items(200) });
+    await w.saver.start("host", { event_id: "e", types: "photo" });
+    expect(last(w.toasts)).toMatchObject({
+      tone: "between",
+      title: "Part 1 of 2 is saved.",
+    });
+
+    w.saver.cancel();
+    expect(last(w.toasts)).toMatchObject({
+      tone: "confirm",
+      title: "Stop after part 1 of 2?",
+      detail: "Part 2 won't be saved.",
+      actions: [{ label: "Keep going" }, { label: "Stop here" }],
+    });
+    // A tap meanwhile does nothing: the question comes first.
+    w.saver.tap();
+    await settle();
+    expect(w.shared).toHaveLength(1);
+
+    answer(last(w.toasts), "Stop here").run();
+    expect(last(w.toasts)).toMatchObject({
+      tone: "between",
+      title: "Stopped after part 1 of 2.",
+      action: { label: "Get part 2" },
+      close: { label: "Dismiss" },
+    });
+    expect(w.saver.busy).toBe(true);
+    expect(last(w.states)).toEqual({ kind: "ready", part: 2, parts: 2 });
+
+    // The rest is still hers to take.
+    w.saver.tap();
+    await settle();
+    await settle();
+    expect(w.shared.map((s) => s.length)).toEqual([181, 19]);
+    expect(last(w.toasts)).toMatchObject({ title: "Saved 200 photos." });
+  });
+
+  it("stop() is still the page leaving: at once, silent, nothing asked", async () => {
+    const w = world({ answer: items(24), hang: true });
+    const going = w.saver.start("guest", { qr_token: "q" });
+    await settle();
+    w.saver.stop();
+    await going;
+    expect(w.toasts.some((t) => t.tone === "confirm")).toBe(false);
+    expect(w.toasts.some((t) => t.tone === "cancelled")).toBe(false);
+  });
+});
+
+describe("a dropped connection is never hidden (E6)", () => {
+  it("★ links that never arrive say the connection dropped, with what to do and a Try again", async () => {
+    const w = world({ answer: items(3), askRejects: true });
+    await w.saver.start("guest", { qr_token: "q" });
+    expect(last(w.toasts)).toMatchObject({
+      tone: "refused",
+      title: "Your connection dropped.",
+      detail: "Check your signal, then try again.",
+      action: { label: "Try again" },
+    });
+    expect(w.fileReads).toHaveLength(0);
+  });
+
+  it("an app that answers an error is not a dropped connection: it keeps its sentence", async () => {
+    const w = world({ answer: { status: 500, body: { ok: false } } });
+    await w.saver.start("guest", { qr_token: "q" });
+    const said = last(w.toasts);
+    expect(said).toMatchObject({
+      tone: "refused",
+      title: "Couldn't get your photos. Try again.",
+    });
+    expect((said as { detail?: unknown }).detail).toBeUndefined();
+  });
+
+  it("★ files the line dropped say so beside what did save, and stay until she puts it away", async () => {
+    const set = items(4);
+    const w = world({
+      answer: set,
+      dropped: new Set([set[1].url, set[2].url]),
+    });
+    await w.saver.start("guest", { qr_token: "q" });
+    expect(w.shared[0]).toHaveLength(2);
+    expect(last(w.toasts)).toMatchObject({
+      tone: "short",
+      title: "Saved 2 photos. 2 couldn't be saved.",
+      detail:
+        "Your connection dropped. Check your signal, then save those again.",
+      close: { label: "Dismiss" },
+    });
+  });
+
+  it("a file the app refused (not a dropped read) keeps the plain, brief word", async () => {
+    const set = items(4);
+    const w = world({ answer: set, broken: new Set([set[2].url]) });
+    await w.saver.start("guest", { qr_token: "q" });
+    expect(last(w.toasts)).toMatchObject({
+      tone: "done",
+      title: "Saved 3 photos. 1 couldn't be saved.",
+    });
   });
 });
 

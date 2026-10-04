@@ -18,15 +18,18 @@ import { GuestSaveChoice } from "@/components/guest/live-gallery-save";
 import { guestSelect } from "@/components/guest/live-gallery-select";
 import { setViewportWidth } from "../../../vitest.setup";
 
-const { start, stop, tap, startDownload, toastError } = vi.hoisted(() => ({
-  start: vi.fn(async () => {}),
-  stop: vi.fn(),
-  tap: vi.fn(),
-  startDownload: vi.fn(async () => true),
-  toastError: vi.fn(),
-}));
+const { start, stop, cancel, tap, startDownload, toastError } = vi.hoisted(
+  () => ({
+    start: vi.fn(async () => {}),
+    stop: vi.fn(),
+    cancel: vi.fn(),
+    tap: vi.fn(),
+    startDownload: vi.fn(async () => true),
+    toastError: vi.fn(),
+  }),
+);
 vi.mock("@/components/app/export/take-home-save", () => ({
-  createTakeHomeSaver: () => ({ start, stop, tap, busy: false }),
+  createTakeHomeSaver: () => ({ start, stop, cancel, tap, busy: false }),
 }));
 vi.mock("@/components/app/export/use-export-download", () => ({
   useExportDownload: () => ({ startDownload, fetchSummary: vi.fn() }),
@@ -224,12 +227,14 @@ describe("the press, by where the Save stands", () => {
     });
   });
 
-  it("while photographs arrive a press stops it; once ready it opens the sheet", () => {
+  // E6: a stop she means asks first, so the press asks (`cancel`), and only the page leaving stops at once.
+  it("while photographs arrive a press asks whether to stop it; once ready it opens the sheet", () => {
     phone();
     mountWith(["p1"]);
     act(() => guestSelect.setRun({ kind: "getting", progress: 0.3 }));
     act(() => guestSelect.press());
-    expect(stop).toHaveBeenCalledTimes(1);
+    expect(cancel).toHaveBeenCalledTimes(1);
+    expect(stop).not.toHaveBeenCalled();
     act(() => guestSelect.setRun({ kind: "ready" }));
     act(() => guestSelect.press());
     expect(tap).toHaveBeenCalledTimes(1);

@@ -96,6 +96,9 @@ const walker = createExportWalker({
     typeof navigator === "undefined"
       ? "desk"
       : downloadPlaceFor(detectPlatform(navigator)),
+  // The browser's own word on its line (E6): "offline" is certain, while "online" says only that a network is
+  // attached, so a dropped request is still what names a dropped connection.
+  online: () => typeof navigator === "undefined" || navigator.onLine !== false,
   sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
   newId: () => `export-${++walks}`,
   store: tabWalks,

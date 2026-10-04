@@ -11,6 +11,15 @@
  *
  * XHR (not fetch) because only XHR exposes upload progress events. Reading a
  * multipart part's ETag requires the R2 bucket CORS to expose the ETag header.
+ *
+ * ★ A CANCEL AND A DROPPED CONNECTION ARE TOLD APART, AND A DROPPED CONNECTION IS NEVER HIDDEN (E6, Will 2026-10-04;
+ * the failure sheet and the host's rows print `message` as it is, so the words are said here). A request that never
+ * reached the network says "Your connection dropped. Check your signal and try again." (the sentence presign and
+ * complete always said, now the byte PUT's too: it used to read "Network error during upload.", which reads as
+ * a broken app to the person holding the phone in a crowded stadium), a PUT whose bytes stopped moving is ended and
+ * said the same way (`UPLOAD_STALL_MS`: a stalled link would otherwise sit at its percentage for ever, hiding the
+ * very thing she needs to know), an answer that is an error says the upload did not go through, and a `signal` she
+ * aborts says it was cancelled. `cause` carries which, beside the words, for a surface that draws them apart.
  */
 import { stripFileMetadata } from "@/lib/media/strip-metadata";
 import { classifyMime, validateUpload } from "@/lib/media/validators";
@@ -78,7 +87,35 @@ export type UploadOutcome =
   // account the viewer is not). The difference between "this file did not
   // go" and "your session is worth nothing now" is the difference between a
   // Retry that works and one that cannot.
-  | { ok: false; code?: string; message: string };
+  //
+  // `cause` is set where the failure was the transport's: `dropped` (the connection: Retry once it is back) or
+  // `cancelled` (her own abort: nothing is wrong). Absent for a refusal and for a local validation.
+  | { ok: false; code?: string; message: string; cause?: UploadCause };
+
+/** Why a transfer ended without landing, where the transport decided it (E6). */
+export type UploadCause = "dropped" | "cancelled";
+
+/**
+ * THE WORDS A TRANSPORT FAILURE SAYS, in one place (E6). The failure sheet prints a message as it is, so each is
+ * copy a guest can act on.
+ */
+export const UPLOAD_WORDS = {
+  dropped: "Your connection dropped. Check your signal and try again.",
+  cancelled: "That upload was cancelled.",
+  /** A server's answer that was an error (an expired link, a refused size): not the line's fault, nor hers. */
+  refused: "That upload didn't go through. Please try again.",
+} as const;
+
+/**
+ * HOW LONG BYTES MAY STOP MOVING before the upload is ended as a dropped connection. A phone on a weak link still
+ * moves bytes every few seconds; a socket that has gone quiet for this long is not coming back (the OS would wait
+ * minutes more), and a fresh request beats waiting on it. Generous on purpose: the clock restarts on every byte,
+ * and on a page that has been in the background (a phone's browser freezes its timers there).
+ */
+export const UPLOAD_STALL_MS = 45_000;
+
+/** After the last byte, how long R2 may take to answer (a big object is finalised there) before it is a drop. */
+export const UPLOAD_ANSWER_MS = 90_000;
 
 function measureFile(file: File, kind: "photo" | "video"): Promise<Measured> {
   return new Promise((resolve) => {
@@ -150,27 +187,86 @@ function putWithProgress(args: {
   body: Blob;
   headers?: Record<string, string>;
   onProgress?: (fraction: number) => void;
+  /** Her cancel: aborts the transfer, said as a cancel and never as a drop. */
+  signal?: AbortSignal;
+  /** Test seam: the stall ceilings (`UPLOAD_STALL_MS`, `UPLOAD_ANSWER_MS`). */
+  stallMs?: number;
+  answerMs?: number;
 }): Promise<XMLHttpRequest> {
-  const { url, body, headers, onProgress } = args;
+  const { url, body, headers, onProgress, signal } = args;
+  const stallMs = args.stallMs ?? UPLOAD_STALL_MS;
+  const answerMs = args.answerMs ?? UPLOAD_ANSWER_MS;
   return new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new UploadError(UPLOAD_WORDS.cancelled, "cancelled"));
+      return;
+    }
     const xhr = new XMLHttpRequest();
     const progress = perFrame(onProgress);
+    // ★ A STALLED TRANSFER IS A DROPPED CONNECTION, SAID (E6): the clock restarts on every byte the browser reports
+    // sent, and on the page coming back to the screen (a background tab's timers freeze); once the last byte is
+    // out it waits for R2's answer instead. A silence that long ends the transfer the way a drop would.
+    let quiet: ReturnType<typeof setTimeout> | undefined;
+    let stalled = false;
+    const wait = (ms: number) => {
+      clearTimeout(quiet);
+      quiet = setTimeout(() => {
+        stalled = true;
+        xhr.abort();
+      }, ms);
+    };
+    let answering = false;
+    const seen = () => wait(answering ? answerMs : stallMs);
+    const onAbort = () => xhr.abort();
+    // The page, where there is one with events to hear (a test's node world has none, and a stub may be bare).
+    const page =
+      typeof document !== "undefined" &&
+      typeof document.addEventListener === "function"
+        ? document
+        : null;
+    const onShow = () => {
+      if (page?.visibilityState === "visible") seen();
+    };
+    const done = () => {
+      clearTimeout(quiet);
+      progress.stop();
+      signal?.removeEventListener("abort", onAbort);
+      page?.removeEventListener("visibilitychange", onShow);
+    };
     xhr.open("PUT", url);
     for (const [name, value] of Object.entries(headers ?? {})) {
       xhr.setRequestHeader(name, value);
     }
     xhr.upload.onprogress = (e) => {
+      seen();
       if (e.lengthComputable) progress.push(e.loaded / e.total);
     };
+    xhr.upload.onload = () => {
+      answering = true;
+      seen();
+    };
     xhr.onload = () => {
-      progress.stop();
+      done();
       if (xhr.status >= 200 && xhr.status < 300) resolve(xhr);
-      else reject(new Error(`Upload failed (${xhr.status}).`));
+      else reject(new UploadError(UPLOAD_WORDS.refused, undefined, xhr.status));
     };
     xhr.onerror = () => {
-      progress.stop();
-      reject(new Error("Network error during upload."));
+      done();
+      reject(new UploadError(UPLOAD_WORDS.dropped, "dropped"));
     };
+    // An abort is hers when her signal says so; a stall is ours and reads as the drop it is; anything else (the
+    // browser ending the request) is the connection's too.
+    xhr.onabort = () => {
+      done();
+      reject(
+        signal?.aborted && !stalled
+          ? new UploadError(UPLOAD_WORDS.cancelled, "cancelled")
+          : new UploadError(UPLOAD_WORDS.dropped, "dropped"),
+      );
+    };
+    signal?.addEventListener("abort", onAbort, { once: true });
+    page?.addEventListener("visibilitychange", onShow);
+    seen();
     xhr.send(body);
   });
 }
@@ -178,25 +274,41 @@ function putWithProgress(args: {
 /**
  * An upload failure whose message is ALREADY guest-ready copy. Anything else
  * that escapes gets the generic message instead, so a raw JS error string
- * ("Unexpected token '<'") can never reach a guest's screen.
+ * ("Unexpected token '<'") can never reach a guest's screen. `why` is the
+ * transport's own verdict where it made one (E6); `status` is the answer's, kept
+ * for the console and never said.
  */
-class UploadError extends Error {}
+class UploadError extends Error {
+  constructor(
+    message: string,
+    readonly why?: UploadCause,
+    readonly status?: number,
+  ) {
+    super(message);
+  }
+}
 
-async function postJson<T>(url: string, body: unknown): Promise<T> {
+async function postJson<T>(
+  url: string,
+  body: unknown,
+  signal?: AbortSignal,
+): Promise<T> {
   let res: Response;
   try {
     res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
+      signal,
     });
   } catch {
     // fetch REJECTS only on a genuine transport failure (venue WiFi dropping,
     // a cell handoff, the tab going offline) and never on a 4xx/5xx. Uncaught,
-    // this blip would wedge the whole batch.
-    throw new UploadError(
-      "Your connection dropped. Check your signal and try again.",
-    );
+    // this blip would wedge the whole batch. Hers, if her signal ended it.
+    if (signal?.aborted) {
+      throw new UploadError(UPLOAD_WORDS.cancelled, "cancelled");
+    }
+    throw new UploadError(UPLOAD_WORDS.dropped, "dropped");
   }
   try {
     return (await res.json()) as T;
@@ -232,11 +344,19 @@ export async function uploadFile(args: {
   reelEligible?: boolean;
   /** The image the album shows for this upload, when the caller already has it (a clip's poster). */
   poster?: Blob;
+  /** Her cancel: ends the transfer and answers `cause: "cancelled"`, never a failure of the connection's. */
+  signal?: AbortSignal;
 }): Promise<UploadOutcome> {
   try {
     return await runUpload(args);
   } catch (e) {
-    if (e instanceof UploadError) return { ok: false, message: e.message };
+    if (e instanceof UploadError) {
+      return {
+        ok: false,
+        message: e.message,
+        ...(e.why ? { cause: e.why } : {}),
+      };
+    }
     // An unexpected throw is a bug, not a guest-facing condition: keep it in
     // the console for triage, and show copy a guest can act on.
     console.error("uploadFile: unexpected failure", e);
@@ -259,6 +379,7 @@ async function runUpload(args: {
   onProgress?: (fraction: number) => void;
   reelEligible?: boolean;
   poster?: Blob;
+  signal?: AbortSignal;
 }): Promise<UploadOutcome> {
   const {
     file: pickedFile,
@@ -267,7 +388,12 @@ async function runUpload(args: {
     onProgress,
     reelEligible,
     poster,
+    signal,
   } = args;
+  // Hers before a byte moved: nothing was started, so nothing is left behind.
+  if (signal?.aborted) {
+    return { ok: false, message: UPLOAD_WORDS.cancelled, cause: "cancelled" };
+  }
 
   const kind = classifyMime(pickedFile.type);
   if (!kind) return { ok: false, message: "That file type isn't supported." };
@@ -311,14 +437,18 @@ async function runUpload(args: {
   const phone = await generatePhoneCopy(file, kind, measured);
 
   // 1. Presign (server validates identity + caps and builds the key; issues an optional preview PUT).
-  const presign = await postJson<PresignResponse>(endpoints.presign, {
-    ...identity,
-    content_type: file.type,
-    size_bytes: file.size,
-    duration_seconds: measured.duration,
-    preview_size_bytes: preview?.blob.size,
-    phone_size_bytes: phone?.blob.size,
-  });
+  const presign = await postJson<PresignResponse>(
+    endpoints.presign,
+    {
+      ...identity,
+      content_type: file.type,
+      size_bytes: file.size,
+      duration_seconds: measured.duration,
+      preview_size_bytes: preview?.blob.size,
+      phone_size_bytes: phone?.blob.size,
+    },
+    signal,
+  );
   if (!presign.ok) {
     return {
       ok: false,
@@ -336,6 +466,7 @@ async function runUpload(args: {
         body: file,
         headers: presign.headers,
         onProgress,
+        signal,
       });
     } else {
       const partSize = presign.part_size_bytes;
@@ -348,6 +479,7 @@ async function runUpload(args: {
           body: blob,
           onProgress: (frac) =>
             onProgress?.((uploadedBytes + frac * blob.size) / file.size),
+          signal,
         });
         uploadedBytes += blob.size;
         const eTag = xhr.getResponseHeader("ETag");
@@ -370,9 +502,24 @@ async function runUpload(args: {
       }
     }
   } catch (e) {
+    // The transport's own words (`UPLOAD_WORDS`), with its verdict beside them: a dropped connection and a cancel
+    // are never the same sentence (E6). Anything else that escaped is not guest copy.
+    if (e instanceof UploadError) {
+      if (e.status !== undefined) {
+        console.error("uploadFile: the byte PUT was answered an error", {
+          status: e.status,
+        });
+      }
+      return {
+        ok: false,
+        message: e.message,
+        ...(e.why ? { cause: e.why } : {}),
+      };
+    }
+    console.error("uploadFile: unexpected failure in the byte PUT", e);
     return {
       ok: false,
-      message: e instanceof Error ? e.message : "Upload failed.",
+      message: "Something went wrong with that upload. Please try again.",
     };
   }
 
@@ -390,6 +537,7 @@ async function runUpload(args: {
         url: put.url,
         body: made.blob,
         headers: put.headers,
+        signal,
       });
       return put.key;
     } catch {
@@ -400,6 +548,12 @@ async function runUpload(args: {
     derived(presign.preview, preview),
     derived(presign.phone, phone),
   ]);
+  // Hers while the copies went: the original is in R2 but no row was written, so nothing is recorded and the
+  // multipart, if any, is left for the bucket's own abort rule. (Once `complete` is asked it is not aborted: a row
+  // that may already be recorded is not the cancel's to undo, and its answer is what the caller reads.)
+  if (signal?.aborted) {
+    return { ok: false, message: UPLOAD_WORDS.cancelled, cause: "cancelled" };
+  }
 
   // 3. Complete (assembles multipart in R2, then records the media row).
   const complete = await postJson<CompleteResponse>(endpoints.complete, {
