@@ -22,10 +22,10 @@ export type PlanFacts = {
   hasBilling: boolean;
   /** An Event Pass holder's expiry, already formatted by the server. */
   passExpiry: string | null;
-  /** What the cap counts (non-removed media in non-deleted events). */
-  activeBytes: number;
-  /** What Deleted holds (removed media, or anything in a deleted event). */
-  standbyBytes: number;
+  /** What the cap holds: everything she stores, her albums and her Deleted together (trash-in-storage). */
+  storedBytes: number;
+  /** What of it is in Deleted (her removals, and anything in a deleted event, inside their 30 days). */
+  deletedBytes: number;
   /** The cap in force now; null only for a Pro profile the webhook has not written. */
   capBytes: number | null;
   /** A Pro host's plan, read from the subscription's price; null when unknown. */
@@ -62,14 +62,14 @@ export function parsePlanFacts(data: unknown): PlanFacts | null {
   const r = f as Record<string, unknown>;
   if (!(BILLING_TIERS as readonly unknown[]).includes(r.tier)) return null;
   if (typeof r.hasBilling !== "boolean") return null;
-  if (!finite(r.activeBytes) || !finite(r.standbyBytes)) return null;
+  if (!finite(r.storedBytes) || !finite(r.deletedBytes)) return null;
   if (r.capBytes !== null && !finite(r.capBytes)) return null;
   return {
     tier: r.tier as Tier,
     hasBilling: r.hasBilling,
     passExpiry: typeof r.passExpiry === "string" ? r.passExpiry : null,
-    activeBytes: r.activeBytes,
-    standbyBytes: r.standbyBytes,
+    storedBytes: r.storedBytes,
+    deletedBytes: r.deletedBytes,
     capBytes: r.capBytes as number | null,
     currentPlanId: isProPlanId(r.currentPlanId) ? r.currentPlanId : null,
     changeBlocked: BLOCKED.has(r.changeBlocked as ChangePlanRefusalCode)

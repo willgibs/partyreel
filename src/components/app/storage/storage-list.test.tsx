@@ -1,12 +1,17 @@
 /**
  * THE SIZE LIST, PINNED BY BEHAVIOUR (host-storage r1: `order=flat` with the All or per-event
- * filter, `goal=live`, `refusal=inline`'s list door; round one's carried Download and bulk Remove
- * with the product's one Undo). Its reads and writes are a fake source, so these pin what the list
- * DOES with their answers: what it shows and in what order, what it sends to the server grouped
- * how, what it puts back, and what the strip's button runs, in what order. Words are read for
- * their facts, never their phrasing.
+ * filter, `goal=live`, `refusal=inline`'s list door; round one's carried Download). Its reads and
+ * writes are a fake source, so these pin what the list DOES with their answers: what it shows and
+ * in what order, what it sends to the server grouped how, what it puts back, and what the strip's
+ * button runs, in what order. Words are read for their facts, never their phrasing.
+ *
+ * ★ RESHAPED ON PURPOSE (trash-in-storage, 2026-10-03; scar kept: grouped by event, leading with the
+ * result, a failure put back and said, the door told once as the list closes, the strip deleting
+ * before it switches). Deleted counts in storage, so the bar's Remove to Deleted and its Undo
+ * retired: its act is Delete for good, behind a confirm since it cannot be undone, and Deleted
+ * heads the list with its own Empty.
  */
-import { act, render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { toast } from "sonner";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -20,8 +25,9 @@ import { setReducedMotion } from "../../../../vitest.setup";
 // The default source imports the Server Functions; every test hands its own instead.
 vi.mock("@/app/(app)/dashboard/storage-actions", () => ({
   readStorageListAction: vi.fn(),
-  removeStorageItemsAction: vi.fn(),
-  restoreStorageItemsAction: vi.fn(),
+  deleteStorageItemsAction: vi.fn(),
+  emptyDeletedAction: vi.fn(),
+  setMakeRoomFromDeletedAction: vi.fn(),
 }));
 const push = vi.fn();
 const refresh = vi.fn();
@@ -62,15 +68,20 @@ function item(
 const BIG = item(1, 9.4);
 const MID = item(2, 4.1, PARTY);
 const SMALL = item(3, 1.2);
-const STORED = Math.round(110.83 * GIGABYTE);
+/** What her Deleted holds: with her events' 110 GB, she stores 110.83 GB. */
+const DELETED = Math.round(0.83 * GIGABYTE);
 
-function firstAnswer(items = [BIG, MID, SMALL]): StorageListAnswer {
+function firstAnswer(
+  items = [BIG, MID, SMALL],
+  deletedBytes = DELETED,
+): StorageListAnswer {
   return {
     ok: true,
     items,
     next: null,
     overview: {
-      storedBytes: STORED,
+      storedBytes: 110 * GIGABYTE + deletedBytes,
+      deletedBytes,
       events: [
         {
           id: WEDDING,
@@ -93,12 +104,20 @@ function fakeSource(over: Partial<StorageSource> = {}): StorageSource {
       }
       return firstAnswer();
     }),
-    remove: vi.fn(async () => ({ ok: true as const, removed: 1 })),
-    restore: vi.fn(async (ids: unknown) => ({
+    deleteForGood: vi.fn(async (items: unknown) => ({
       ok: true as const,
-      restored: ids as string[],
-      refused: [],
-      message: null,
+      deleted: (items as unknown[]).length,
+    })),
+    emptyDeleted: vi.fn(async () => ({
+      ok: true as const,
+      items: 4,
+      events: 0,
+      freedBytes: DELETED,
+      more: false,
+    })),
+    setMakeRoom: vi.fn(async (on: unknown) => ({
+      ok: true as const,
+      on: Boolean(on),
     })),
     switchPlan: vi.fn(async () => ({
       kind: "redirect" as const,
@@ -136,6 +155,12 @@ const checkboxFor = (dialog: HTMLElement, it: StorageItem) =>
   within(
     dialog.querySelector(`[data-storage-row="${it.id}"]`) as HTMLElement,
   ).getByRole("checkbox");
+
+/** The one confirm every act that cannot be undone passes through: answer it with one of its two buttons. */
+async function answerConfirm(label: string) {
+  const confirm = await screen.findByRole("alertdialog");
+  await userEvent.click(within(confirm).getByRole("button", { name: label }));
+}
 
 beforeEach(() => {
   setReducedMotion(true);
@@ -176,49 +201,59 @@ describe("what she stores, largest first", () => {
   });
 });
 
-describe("remove, and Undo", () => {
-  it("removes a selection grouped by event, leading with the result, and offers it back", async () => {
+describe("Delete for good", () => {
+  it("asks first, then deletes a selection grouped by event, leading with the result", async () => {
     const source = fakeSource();
     const dialog = open(source);
     await waitFor(() => expect(rowIds(dialog)).toHaveLength(3));
     await userEvent.click(checkboxFor(dialog, BIG));
     await userEvent.click(checkboxFor(dialog, MID));
     await userEvent.click(
-      within(dialog).getByRole("button", { name: "Remove to Deleted" }),
+      within(dialog).getByRole("button", { name: "Delete for good" }),
     );
+    // Nothing leaves until she says so: it cannot be undone.
+    expect(source.deleteForGood).not.toHaveBeenCalled();
+    expect(rowIds(dialog)).toHaveLength(3);
+
+    await answerConfirm("Delete for good");
     await waitFor(() => expect(rowIds(dialog)).toEqual([SMALL.id]));
-    expect(source.remove).toHaveBeenCalledWith([
+    expect(source.deleteForGood).toHaveBeenCalledWith([
       { id: BIG.id, eventId: WEDDING },
       { id: MID.id, eventId: PARTY },
     ]);
-
-    // The act's own toast, with its one Undo: the rows come back, then the server restores.
     await waitFor(() => expect(toast.success).toHaveBeenCalled());
-    const options = vi.mocked(toast.success).mock.calls[0][1] as unknown as {
-      action: { onClick: () => void };
-    };
-    await act(async () => options.action.onClick());
-    await waitFor(() =>
-      expect(rowIds(dialog)).toEqual([BIG.id, MID.id, SMALL.id]),
-    );
-    expect(source.restore).toHaveBeenCalledWith([BIG.id, MID.id]);
   });
 
-  it("puts the rows back and says why when the removal fails", async () => {
+  it("deletes nothing when she cancels", async () => {
+    const source = fakeSource();
+    const dialog = open(source);
+    await waitFor(() => expect(rowIds(dialog)).toHaveLength(3));
+    await userEvent.click(checkboxFor(dialog, SMALL));
+    await userEvent.click(
+      within(dialog).getByRole("button", { name: "Delete for good" }),
+    );
+    await answerConfirm("Cancel");
+    await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
+    expect(source.deleteForGood).not.toHaveBeenCalled();
+    expect(rowIds(dialog)).toHaveLength(3);
+  });
+
+  it("puts the rows back and says why when the deletion fails", async () => {
     const source = fakeSource({
-      remove: vi.fn(async () => ({
+      deleteForGood: vi.fn(async () => ({
         ok: false as const,
         code: "unknown" as const,
         message: "Couldn't remove those items. Please try again.",
-        removedEvents: [],
+        deletedEvents: [],
       })),
     });
     const dialog = open(source);
     await waitFor(() => expect(rowIds(dialog)).toHaveLength(3));
     await userEvent.click(checkboxFor(dialog, SMALL));
     await userEvent.click(
-      within(dialog).getByRole("button", { name: "Remove to Deleted" }),
+      within(dialog).getByRole("button", { name: "Delete for good" }),
     );
+    await answerConfirm("Delete for good");
     await waitFor(() => expect(toast.error).toHaveBeenCalled());
     expect(rowIds(dialog)).toEqual([BIG.id, MID.id, SMALL.id]);
     expect(toast.success).not.toHaveBeenCalled();
@@ -232,8 +267,9 @@ describe("remove, and Undo", () => {
     await waitFor(() => expect(rowIds(dialog)).toHaveLength(3));
     await userEvent.click(checkboxFor(dialog, SMALL));
     await userEvent.click(
-      within(dialog).getByRole("button", { name: "Remove to Deleted" }),
+      within(dialog).getByRole("button", { name: "Delete for good" }),
     );
+    await answerConfirm("Delete for good");
     await waitFor(() => expect(toast.success).toHaveBeenCalled());
     expect(changed).not.toHaveBeenCalled();
     expect(refresh).not.toHaveBeenCalled();
@@ -243,6 +279,118 @@ describe("remove, and Undo", () => {
     );
     expect(changed).toHaveBeenCalledTimes(1);
     expect(refresh).toHaveBeenCalledTimes(1);
+  });
+});
+
+/**
+ * ★ DELETED HEADS THE LIST (trash-in-storage): what she already deleted still counts toward her plan, so it is the
+ * first room to free, in one press, before anything she kept; emptied, the figures the list counts from drop by it.
+ */
+describe("Deleted, first", () => {
+  it("names what Deleted holds and empties it, once she confirms", async () => {
+    const source = fakeSource();
+    const dialog = open(source);
+    await waitFor(() => expect(rowIds(dialog)).toHaveLength(3));
+    const deleted = dialog.querySelector(
+      "[data-storage-deleted]",
+    ) as HTMLElement;
+    expect(deleted.textContent).toContain("850 MB");
+    await userEvent.click(
+      within(deleted).getByRole("button", { name: "Empty" }),
+    );
+    expect(source.emptyDeleted).not.toHaveBeenCalled();
+
+    await answerConfirm("Empty Deleted");
+    await waitFor(() =>
+      expect(dialog.querySelector("[data-storage-deleted]")).toBeNull(),
+    );
+    expect(source.emptyDeleted).toHaveBeenCalledTimes(1);
+    expect(toast.success).toHaveBeenCalled();
+    // Her kept items are untouched.
+    expect(rowIds(dialog)).toEqual([BIG.id, MID.id, SMALL.id]);
+  });
+
+  it("is not there when Deleted holds nothing", async () => {
+    const dialog = open(
+      fakeSource({ read: vi.fn(async () => firstAnswer(undefined, 0)) }),
+    );
+    await waitFor(() => expect(rowIds(dialog)).toHaveLength(3));
+    expect(dialog.querySelector("[data-storage-deleted]")).toBeNull();
+  });
+
+  it("stays where it was and says why when emptying fails", async () => {
+    const source = fakeSource({
+      emptyDeleted: vi.fn(async () => ({
+        ok: false as const,
+        code: "unknown" as const,
+        message: "Couldn't empty Deleted. Please try again.",
+      })),
+    });
+    const dialog = open(source);
+    await waitFor(() => expect(rowIds(dialog)).toHaveLength(3));
+    const deleted = dialog.querySelector(
+      "[data-storage-deleted]",
+    ) as HTMLElement;
+    await userEvent.click(
+      within(deleted).getByRole("button", { name: "Empty" }),
+    );
+    await answerConfirm("Empty Deleted");
+    await waitFor(() => expect(toast.error).toHaveBeenCalled());
+    expect(dialog.querySelector("[data-storage-deleted]")).toBeTruthy();
+    expect(toast.success).not.toHaveBeenCalled();
+  });
+
+  // The Advisor's Q23: Empty Deleted goes a batch a call, so an action that ran out of time answers what it freed with
+  // more still there; the row keeps what is left, with its Empty to finish.
+  it("keeps what is left, with its Empty, when an Empty answers with more still there", async () => {
+    const source = fakeSource({
+      emptyDeleted: vi.fn(async () => ({
+        ok: true as const,
+        items: 2_000,
+        events: 0,
+        freedBytes: Math.round(0.5 * GIGABYTE),
+        more: true,
+      })),
+    });
+    const dialog = open(source);
+    await waitFor(() => expect(rowIds(dialog)).toHaveLength(3));
+    const deleted = dialog.querySelector(
+      "[data-storage-deleted]",
+    ) as HTMLElement;
+    await userEvent.click(
+      within(deleted).getByRole("button", { name: "Empty" }),
+    );
+    await answerConfirm("Empty Deleted");
+    await waitFor(() =>
+      expect(toast.success).toHaveBeenCalledWith(
+        expect.stringMatching(/still holds more/),
+      ),
+    );
+    const left = dialog.querySelector("[data-storage-deleted]") as HTMLElement;
+    // 850 MB less the 512 MB that left, rounded up.
+    expect(left.textContent).toContain("338 MB");
+    expect(within(left).getByRole("button", { name: "Empty" })).toBeTruthy();
+  });
+
+  it("counts what emptying it freed toward her own plan's goal", async () => {
+    // 110.83 GB stored on a 110 GB plan: Deleted's 850 MB is the whole gap.
+    const dialog = open(fakeSource(), {
+      kind: "fit",
+      capBytes: 110 * GIGABYTE,
+    });
+    await waitFor(() =>
+      expect(dialog.querySelector("[data-storage-goal]")).toBeTruthy(),
+    );
+    const strip = dialog.querySelector("[data-storage-goal]") as HTMLElement;
+    expect(strip.getAttribute("data-state")).toBe("counting");
+    const deleted = dialog.querySelector(
+      "[data-storage-deleted]",
+    ) as HTMLElement;
+    await userEvent.click(
+      within(deleted).getByRole("button", { name: "Empty" }),
+    );
+    await answerConfirm("Empty Deleted");
+    await waitFor(() => expect(strip.getAttribute("data-state")).toBe("fits"));
   });
 });
 
@@ -283,19 +431,18 @@ describe("the goal strip", () => {
   const pro100 = { ...planById("pro_100"), id: "pro_100" as const };
   const goal: StorageGoal = {
     target: pro100,
-    capBytes: planById("pro_500").storageBytes,
     canSwitch: true,
     returnTo: "/account",
   };
 
-  it("counts down, removes what is only selected, then asks the change-plan route", async () => {
+  it("counts down, asks once, deletes what is only selected, then asks the change-plan route", async () => {
     const assign = vi.fn();
     vi.stubGlobal("location", { ...window.location, assign });
     const order: string[] = [];
     const source = fakeSource({
-      remove: vi.fn(async () => {
-        order.push("remove");
-        return { ok: true as const, removed: 2 };
+      deleteForGood: vi.fn(async () => {
+        order.push("delete");
+        return { ok: true as const, deleted: 2 };
       }),
       switchPlan: vi.fn(async () => {
         order.push("switch");
@@ -313,13 +460,15 @@ describe("the goal strip", () => {
 
     await userEvent.click(checkboxFor(dialog, BIG));
     await userEvent.click(checkboxFor(dialog, MID));
-    expect(strip.getAttribute("data-state")).toBe("remove-and-switch");
+    expect(strip.getAttribute("data-state")).toBe("delete-and-switch");
     await userEvent.click(within(strip).getByRole("button"));
+    expect(order).toEqual([]);
+    await answerConfirm("Delete and switch");
 
     await waitFor(() =>
       expect(assign).toHaveBeenCalledWith("https://stripe.test/c"),
     );
-    expect(order).toEqual(["remove", "switch"]);
+    expect(order).toEqual(["delete", "switch"]);
     expect(source.switchPlan).toHaveBeenCalledWith("pro_100", "/account");
     vi.unstubAllGlobals();
   });
@@ -345,6 +494,7 @@ describe("the goal strip", () => {
     await userEvent.click(checkboxFor(dialog, MID));
     const strip = dialog.querySelector("[data-storage-goal]") as HTMLElement;
     await userEvent.click(within(strip).getByRole("button"));
+    await answerConfirm("Delete and switch");
     // 13.5 GB went; a guest's uploads meanwhile left 104 GB against 100 GB.
     await waitFor(() =>
       expect(strip.getAttribute("data-state")).toBe("counting"),
@@ -367,6 +517,7 @@ describe("the goal strip", () => {
       await userEvent.click(checkboxFor(dialog, MID));
       const strip = dialog.querySelector("[data-storage-goal]") as HTMLElement;
       await userEvent.click(within(strip).getByRole("button"));
+      await answerConfirm("Delete and switch");
       await waitFor(() =>
         expect(push).toHaveBeenCalledWith("/login?next=%2Fdashboard"),
       );
@@ -381,7 +532,7 @@ describe("the goal strip", () => {
     await userEvent.click(checkboxFor(dialog, BIG));
     await userEvent.click(checkboxFor(dialog, MID));
     const strip = dialog.querySelector("[data-storage-goal]") as HTMLElement;
-    expect(strip.getAttribute("data-state")).toBe("remove-and-switch");
+    expect(strip.getAttribute("data-state")).toBe("delete-and-switch");
     expect(within(strip).queryByRole("button")).toBeNull();
   });
 });
@@ -389,8 +540,8 @@ describe("the goal strip", () => {
 /**
  * ★ HER OWN PLAN AS THE GOAL (crumbs-32, from `storage-wiring`): the over-cap grace banner said "largest files first"
  * with no door. Its door (and the meter's, while she is over) opens the list counting down to her own cap: the gap
- * is what she stores past it, the count runs on what she selects and removes, and nothing is switched (there is no
- * plan to switch to), so the strip carries no button and the bar's Remove to Deleted is the act.
+ * is what she stores past it, Deleted included, the count runs on what she selects and deletes for good, and nothing
+ * is switched (there is no plan to switch to), so the strip carries no button and the bar's Delete for good is the act.
  */
 describe("her own plan's goal", () => {
   // She stores 110.83 GB on a 100 GB plan: 10.83 GB past it.
@@ -413,19 +564,20 @@ describe("her own plan's goal", () => {
     expect(strip.getAttribute("data-state")).toBe("counting");
     expect(strip.textContent).toContain("1.5 GB");
     await userEvent.click(checkboxFor(dialog, MID));
-    expect(strip.getAttribute("data-state")).toBe("remove");
+    expect(strip.getAttribute("data-state")).toBe("delete");
     expect(within(strip).queryByRole("button")).toBeNull();
 
-    // The bar's Remove is the act: removed, the gap is freed.
+    // The bar's Delete for good is the act: deleted, the gap is freed.
     await userEvent.click(
-      within(dialog).getByRole("button", { name: "Remove to Deleted" }),
+      within(dialog).getByRole("button", { name: "Delete for good" }),
     );
+    await answerConfirm("Delete for good");
     await waitFor(() => expect(strip.getAttribute("data-state")).toBe("fits"));
-    expect(source.remove).toHaveBeenCalledTimes(1);
+    expect(source.deleteForGood).toHaveBeenCalledTimes(1);
     expect(source.switchPlan).not.toHaveBeenCalled();
   });
 
-  it("keeps Deleted's own note: nothing about her plan changes", async () => {
+  it("keeps Deleted's own note: her plan holds her events and Deleted together", async () => {
     const dialog = open(fakeSource(), fit);
     await waitFor(() => expect(rowIds(dialog)).toHaveLength(3));
     expect(

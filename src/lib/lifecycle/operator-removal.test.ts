@@ -5,7 +5,8 @@
  * to hold and preserve. So, on the clamping fake with the SQL functions modelled on that migration:
  *
  *  - the removed_media sweep takes it only once its purge_at passes, and never while it is held;
- *  - the standby budget never charges it to the host nor evicts it, however far over she is;
+ *  - her Deleted never counts it, and making room from Deleted never takes it, however far over she is
+ *    (trash-in-storage: the standby budget that once evicted Deleted retired with it);
  *  - an expired event, or a deleted account's event, holding one inside its window is kept WHOLE,
  *    as a held event is, and goes once the window ends.
  */
@@ -16,7 +17,6 @@ import {
   createCronWorld,
   eventRow,
   mediaRow,
-  stamp,
   uuidOf,
   type CronWorld,
 } from "@/lib/lifecycle/testing/cron-fake";
@@ -37,6 +37,8 @@ vi.mock("@/lib/supabase/avatar-storage", () => ({
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => state.world!.client,
 }));
+// The storage summary's own module also holds the signed-in read; this suite reads by id alone.
+vi.mock("@/lib/supabase/request-auth", () => ({ getRequestAuth: vi.fn() }));
 vi.mock("@/lib/r2/delete", () => ({
   deleteR2Objects: vi.fn(async (keys: string[]) => {
     state.world?.recordR2(keys);
@@ -47,8 +49,8 @@ vi.mock("@/lib/r2/delete", () => ({
 
 const { sweepRemovedMedia } =
   await import("@/lib/lifecycle/sweeps/removed-media");
-const { sweepStandbyBudget } =
-  await import("@/lib/lifecycle/sweeps/standby-budget");
+const { leaveDeleted } = await import("@/lib/lifecycle/leave-deleted");
+const { readHostStorageSummary } = await import("@/lib/db/queries/storage");
 const { sweepExpiredEvents } =
   await import("@/lib/lifecycle/sweeps/expired-events");
 const { purgeAccount } = await import("@/lib/lifecycle/account-deletion");
@@ -131,16 +133,25 @@ describe("the removed_media sweep", () => {
   });
 });
 
-describe("the standby budget", () => {
-  it("★ never charges an operator's removal to the host, and never evicts one, however far over she is", async () => {
+// ★ RESHAPED ON PURPOSE (trash-in-storage, 2026-10-03; scar kept: an operator's removal is never the host's to be
+// charged for nor to lose early). The standby budget retired with Deleted counting in storage; what drains Deleted
+// now is `leave_deleted` (an upload making room, Empty Deleted, the over-capacity deadline's first step), and an
+// operator's removal is in none of it.
+describe("her Deleted, and making room from it", () => {
+  it("★ never counts an operator's removal in her Deleted, and never takes one to make room, however far over she is", async () => {
     const event = eventRow(uuidOf("e", 1), HOST);
     const media: FakeRow[] = [];
-    // Her own 20 removals, 10 bytes each: 200 against a budget of 100.
+    // Inside the window by NOW's clock, seconds after September 10.
+    const inside = (seconds: number) =>
+      new Date(Date.UTC(2026, 8, 10) + seconds * 1000)
+        .toISOString()
+        .replace("Z", "000+00:00");
+    // Her own 20 removals, 10 bytes each.
     for (let i = 0; i < 20; i++) {
       media.push(
         mediaRow(uuidOf("mo", i), event, {
           status: "removed",
-          removed_at: stamp(1_000 + i),
+          removed_at: inside(1_000 + i),
           purge_at: RECENT_PURGE,
           file_size_bytes: 10,
         }),
@@ -148,7 +159,7 @@ describe("the standby budget", () => {
     }
     // 30 operator removals, OLDER than all of hers: an eviction by age would take these first.
     for (let i = 0; i < 30; i++) {
-      media.push(takedown(uuidOf("mt", i), event, stamp(i), RECENT_PURGE));
+      media.push(takedown(uuidOf("mt", i), event, inside(i), RECENT_PURGE));
     }
     const w = world({
       profiles: [{ id: HOST, tier: "pro", storage_cap_bytes: 100 }],
@@ -156,31 +167,36 @@ describe("the standby budget", () => {
       media,
     });
 
-    const tally = await sweepStandbyBudget(w.client, NOW, new Set());
-
-    // Only her own bytes count: 200 over a 100 budget, so her 10 oldest go, 100 bytes.
-    expect(tally).toMatchObject({
-      over_budget: 1,
-      media_rows: 10,
-      freed_bytes: 100,
+    // Only her own bytes are her Deleted.
+    await expect(readHostStorageSummary(HOST)).resolves.toMatchObject({
+      deletedBytes: 200,
+      systemBytes: 0,
+    });
+    // Asked for far more than she holds, it takes all of hers and nothing of the operator's.
+    await expect(leaveDeleted(w.client, HOST, 1_000_000)).resolves.toEqual({
+      items: 20,
+      freedBytes: 200,
+      more: false,
     });
     const left = w.fake.tables.media;
-    expect(left.filter((m) => m.removed_by_admin)).toHaveLength(30);
-    expect(left.filter((m) => !m.removed_by_admin)).toHaveLength(10);
+    expect(
+      left.filter((m) => m.removed_by_admin && m.purge_asked_at == null),
+    ).toHaveLength(30);
+    expect(
+      left.filter((m) => !m.removed_by_admin && m.purge_asked_at != null),
+    ).toHaveLength(20);
   });
 
-  it("does not list a host whose only Deleted bytes are operator removals", async () => {
+  it("reads nothing in her Deleted when its only bytes are an operator's removals", async () => {
     const event = eventRow(uuidOf("e", 1), HOST);
-    const w = world({
+    world({
       profiles: [{ id: HOST, tier: "pro", storage_cap_bytes: 1 }],
       events: [event],
       media: [takedown(uuidOf("mt", 1), event, RECENT, RECENT_PURGE)],
     });
-    const tally = await sweepStandbyBudget(w.client, NOW, new Set());
-    expect(tally).toMatchObject({
-      candidates: 0,
-      over_budget: 0,
-      media_rows: 0,
+    await expect(readHostStorageSummary(HOST)).resolves.toMatchObject({
+      deletedBytes: 0,
+      storedBytes: 0,
     });
   });
 });

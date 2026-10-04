@@ -319,7 +319,7 @@ export default async function EventDetailPage({
   );
   const storagePct =
     storage && storageCap && storageCap > 0
-      ? Math.min(100, Math.round((storage.activeBytes / storageCap) * 100))
+      ? Math.min(100, Math.round((storage.storedBytes / storageCap) * 100))
       : 0;
   const readyFacts: ReadyFacts = {
     door: event.door,

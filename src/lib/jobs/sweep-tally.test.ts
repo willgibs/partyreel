@@ -30,10 +30,9 @@ describe("the sub-sweep map", () => {
   });
 
   it("leaves every other sweep riding the parent run", () => {
-    // The other eight are cheap, loop-free or both; a card each would drown the console.
+    // The other seven are cheap, loop-free or both; a card each would drown the console.
     expect(subSweepJobFor("expired_passes")).toBeNull();
     expect(subSweepJobFor("job_health")).toBeNull();
-    expect(subSweepJobFor("standby_budget")).toBeNull();
   });
 
   it("stays in step with the catalog in both directions", () => {

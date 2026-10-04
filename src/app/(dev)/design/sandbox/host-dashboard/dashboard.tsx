@@ -169,7 +169,8 @@ export function Dashboard({
     const place = () => {
       const top = doc.querySelector<HTMLElement>("[data-hd-collection]");
       // The app's bar stays at the top as the page scrolls, so her events start under it.
-      const bar = doc.querySelector("header")?.getBoundingClientRect().height ?? 0;
+      const bar =
+        doc.querySelector("header")?.getBoundingClientRect().height ?? 0;
       if (top)
         win.scrollTo(
           0,
@@ -210,11 +211,10 @@ export function Dashboard({
       {/* Drawn, not wired: its popover's plans lead to Checkout. */}
       <span inert>
         <StorageMeter
-          storageUsed={host.plan.usedBytes}
+          activeBytes={host.plan.usedBytes}
+          deletedBytes={0}
           storageCap={cap}
-          storagePct={host.ctx.storagePct}
-          standbyBytes={0}
-          overBudget={false}
+          makeRoom
           passExpiry={null}
           planName={host.plan.name}
           hasBilling={host.plan.tier !== "free"}

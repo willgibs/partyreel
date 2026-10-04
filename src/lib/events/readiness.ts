@@ -443,17 +443,17 @@ export function newEventFacts(
 }
 
 /**
- * THE ACCOUNT'S STORAGE, AS THE WHOLE PERCENT `ReadyFacts.storagePct` READS: active bytes against the
- * effective cap (what the cap is enforced against, so deleting visibly frees room), rounded, never past
- * 100, and 0 where there is no cap to run short of. The dashboard meter's own math, in one place for the
- * route that hands it to a checklist (`/dashboard/new`; the hub and the dashboard still say it inline).
+ * THE ACCOUNT'S STORAGE, AS THE WHOLE PERCENT `ReadyFacts.storagePct` READS: everything she stores (her albums and
+ * her Deleted together, what the cap holds: trash-in-storage) against the effective cap, rounded, never past 100,
+ * and 0 where there is no cap to run short of. The dashboard meter's own math, in one place for the route that hands
+ * it to a checklist (`/dashboard/new`; the hub and the dashboard still say it inline).
  */
 export function storageUsedPct(
-  activeBytes: number,
+  storedBytes: number,
   capBytes: number | null,
 ): number {
   if (!capBytes || capBytes <= 0) return 0;
-  return Math.min(100, Math.round((activeBytes / capBytes) * 100));
+  return Math.min(100, Math.round((storedBytes / capBytes) * 100));
 }
 
 /**

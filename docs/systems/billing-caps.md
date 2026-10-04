@@ -19,13 +19,29 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   defining it and throws on anything it cannot read. A limit only TypeScript knows is a suggestion: the clip's length
   cap is mirrored in SQL and reaches the creator only as the server's tier-derived `ClipFacts`, never the client's.
   Changing the function's return columns is DROP + CREATE (grants: [database-security.md](database-security.md)).
-- **`create_media*` enforce two bounds,** on the HEAD's size, at complete. ACTIVE bytes (`host_active_bytes()`:
-  non-removed media in non-deleted events) against the cap plus a 10% write headroom (`capWithWriteHeadroom` mirrors it,
-  so the over-cap sweep engages at the same line), and a monthly INGRESS meter (`storage_ledger.cumulative_bytes`)
+- ★ **The cap holds everything she stores, her albums and her Deleted together** (`host_storage_summary`: her albums
+  `host_active_bytes()`, non-removed media in non-deleted events, beside the sum of `host_deleted_media`, exactly her
+  two Deleted lists: [lifecycle-recovery.md](lifecycle-recovery.md)). A delete frees nothing; an item frees room only
+  when it leaves Deleted for good, so nothing parked in Deleted outgrows the plan.
+- **`create_media*` enforce two bounds,** on the HEAD's size, at complete. What she stores against the cap plus a 10%
+  write headroom (`capWithWriteHeadroom` mirrors it, so the over-cap sweep engages at the same line), Deleted making
+  the room first when her setting is on and the file fits beside her albums (`leave_deleted`, oldest first, exactly
+  what the file needs, under the profiles lock), and a monthly INGRESS meter (`storage_ledger.cumulative_bytes`)
   against `monthly_ingress_cap()`: a multiple of the effective cap on every tier, Free included (the static
   `monthly_ingress_bytes` column stays, null everywhere, for a tier that takes one back), so the abuse bound scales
   with the room. The ingress bound is a backstop, never marketed (`content-policy.test.ts` fails content that names
-  it). `host_active_bytes()` is the one SQL definition every cap check reads.
+  it). `host_storage_summary` is the one read every cap check makes.
+- **Make room from Deleted** (`profiles.make_room_from_deleted`, on by default, the one profiles column a host
+  writes): on, a full plan's upload takes its room from Deleted, oldest first, so a full Deleted never refuses a
+  guest's photo at a party; off, the upload is refused until she empties Deleted or moves up a size. It governs
+  uploads alone: at the over-capacity deadline her own Deleted leaves first whatever it says, since the reduce is not
+  an upload ([lifecycle-recovery.md](lifecycle-recovery.md)). The line an
+  upload meets before its complete is `host_room_used` (her albums, plus Deleted while the setting is off): the
+  presign's meter refuses past it and the three upload advisories answer "full" at it, so nobody is sent to upload a
+  file the complete will refuse. The storage chart (`components/app/storage/storage-chart.tsx`, the storage ring's
+  popover) draws her albums and her Deleted apart against the cap beside the switch (which asks only when it turns
+  off) and Empty Deleted (which always asks); the ring's percent is everything she stores, amber only when what an
+  upload must fit beside nears the cap (`readStorage`).
 - ★ **The month counts what landed, once, at complete; staging makes "landed" exact** (upload-meter, the Advisor's
   Q19). Every single PUT (an original under the multipart threshold, every preview, every phone copy) is minted at its
   key's `staging/` twin (`stagingKeyFor`, `r2/keys.ts`), and the complete copies it into `events/` before its row is
@@ -36,8 +52,9 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   grief needs real bytes: declaring a size spends nothing.
 - **The presign's meter refuses early, and counts no month** (`meter_upload`, 20261003210500, through
   `upload/server-pipeline-meter.ts`): after every gate of its route and before any URL exists, it refuses past the
-  hour's breaker, past the month (the complete's own line, read early) or past the room, each in the route's own words
-  (a guest's name the album, never the plan: `meterRefusal`), and tallies the hour for an upload it admits. No profiles
+  hour's breaker, past the month (the complete's own line, read early) or past the room (`host_room_used`; the
+  refusal carries `needed_bytes`, `deleted_bytes` and `makes_room`), each in the route's own words (a guest's name the
+  album, never the plan: `meterRefusal`), and tallies the hour for an upload it admits. No profiles
   lock: its reads are advisory and the tally is one atomic upsert. It fails OPEN, as the limiters do, since the
   complete's count and caps stand behind it.
 - **Two breakers far past any party, unpublished, refused in words,** so "no guest limit" and "unlimited events" stay
@@ -47,15 +64,16 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   included, in `enforce_event_limit` on a creation alone (its undelete trigger is a restore) and after the plan's own
   limit; the create action prints its sentence, never the plan limit's, since a Pro host has no event limit to upgrade
   past (`mutations/events.ts`). Each constant's WHY sits beside it in 20261003210500.
-- **Three counters, deliberately different; never reconcile them.** The cap reads active bytes, so a delete frees
-  room at once; the monthly ledger never decrements (it is also the delete-and-re-upload churn defense);
-  `storage_used_bytes` is the PHYSICAL meter only (up on create, down only in `purge_media_rows`) and gates nothing.
+- **Three counters, deliberately different; never reconcile them.** The cap reads what she stores, Deleted included,
+  so a delete frees nothing until the item leaves Deleted for good; the monthly ledger never decrements (it is also
+  the delete-and-re-upload churn defense); `storage_used_bytes` is the PHYSICAL meter only (up on create, down when a
+  row is asked to leave or purged) and gates nothing.
 - ★ **Every storage figure a host or the storage guard reads is `host_storage_summary(uuid)`** (through
-  `getHostStorageSummary`, on the admin client with the `getUser()` id): one sum each for active and Deleted bytes,
-  whatever the album's size. Deleted is only what the host can restore: a guest's own withdrawal counts in neither
-  number, because a guest's own delete is gone everywhere for the host. `storage-summary.test.ts` reads both filters
-  off the migrations, and a failed read throws, because the guard would read a swallowed failure as an empty account
-  and sell any size.
+  `getHostStorageSummary`, on the admin client with the `getUser()` id): her albums, her Deleted and the system's part
+  of it, whatever the album's size, and what her plan holds is the first two together (`storedBytes`). Deleted is only
+  what the host can restore: a guest's own withdrawal counts in no figure, because a guest's own delete is gone
+  everywhere for the host. `storage-summary.test.ts` reads both definitions off the migrations, and a failed read
+  throws, because the guard would read a swallowed failure as an empty account and sell any size.
 - **Video is a paid feature** (`tier != 'free'`). The authoritative gate sits at the top of the tier-caps block of
   BOTH `create_media` and `create_media_as_host`, after `tier_limits()` loads: in the universal-limits block above it
   the tier is not loaded yet, and the check would silently pass everything. The upload contexts return an advisory
@@ -87,8 +105,9 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
 - ★ **No plan change leaves a host storing more than the new cap,** so we never remove a host's media or carry their
   excess ourselves. One check, `checkPlanChange`, guards every purchase that REPLACES the cap: any Pro checkout (a
   pass holder's included) and any Pro-to-Pro size or cadence change, a downgrade included. An Event Pass only adds
-  room, so it is never refused; cancelling is as normal. The check compares ACTIVE bytes (`getHostStorageSummary`,
-  never re-derived) with the target plan's PLAIN cap from `tiers.ts`, never the 10% headroom (a courtesy at upload,
+  room, so it is never refused; cancelling is as normal. The check compares what she STORES, her Deleted included
+  (`getHostStorageSummary`'s `storedBytes`, never re-derived), with the target plan's PLAIN cap from `tiers.ts`, never
+  the 10% headroom (a courtesy at upload,
   not room to buy into), and it ignores the current tier, so a Free host in the over-cap grace meets the same line.
   A refusal (409 `over_new_cap`) names the smallest size that fits WITH its billing (a size has two prices), rounding
   the stored figure and the gap UP so doing exactly what it says is enough; what a host stores prints that one way on
@@ -185,17 +204,18 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   pages that mount `WelcomeToPro`, so a new shape mounts the modal in the same change.
 - **A Pro host's plan is her three sizes under one Monthly / Yearly toggle** (`pro-price-list.tsx`): it opens on her
   billing, the tag beside Yearly is computed from the price labels (`cadence.ts`, the smallest whole-month saving
-  across sizes), each card draws how full her active bytes would make it, and the fit line reads at the billing on
+  across sizes), each card draws how full what she stores would make it, and the fit line reads at the billing on
   show. `carry` still holds for a host choosing a first plan: one Pro size at one cadence beside Free.
 - ★ **An estimate always carries its camera.** `formatCapacity` appends `ESTIMATE_BASIS` ("at an iPhone's default
   camera settings") by default; `basis: false` is only for a surface that says it once beside the figures (the sheet's
   cards over one `ESTIMATE_BASIS_NOTE`, a table under its caption).
 - **A size too small for what she stores is a door, not a dead end** (`components/app/storage/`): its card flips in
-  place to the numbers, and "See what's using space" opens the size list (her active items largest first, read under
-  RLS) with a goal strip that finishes that switch. The strip only ever calls change-plan, which checks again, and its
-  button removes what is only selected first ("Remove and switch"), because the check counts active bytes and a
-  selection has freed nothing yet; it counts from what she stored before this visit's removals, so a removal is never
-  counted twice, and a refused switch re-bases it on the refusal's fresher figure.
+  place to the numbers, and "See what's using space" opens the size list (her items largest first, read under RLS,
+  Deleted at its head with Empty) with a goal strip that finishes that switch. The list frees room the one way room
+  frees, Delete for good, behind a confirm (nothing comes back). The strip only ever calls change-plan, which checks
+  again, and its button deletes what is only selected first ("Delete and switch", the same confirm), because a
+  selection has freed nothing yet; it counts from what she stored before this visit's deletions, so nothing is counted
+  twice, and a refused switch re-bases it on the refusal's fresher figure.
 
 ## Verifying billing
 

@@ -16,9 +16,11 @@
  * `purge_media_rows` protects only the row; this filter is what protects the OBJECT. An open report's
  * item is left by `reclaimMedia` itself, which asks `kept_media_ids` before deleting anything.
  *
- * ★ THEN WHAT A KEEPER DEFERRED (admin-triage r2, 20260929140000). An ASKED row (`purge_asked_at`: the host's
- * Delete permanently, or a removal past its window, that something kept) is due the night its keeper lets go,
- * whatever its own `purge_at` says, so a second pass reads them by id. And last, `defer_kept_due_media` marks
+ * ★ THEN WHAT WAS ASKED TO LEAVE (admin-triage r2, 20260929140000; trash-in-storage, 20261003220000). An ASKED row
+ * (`purge_asked_at`: the host's Delete permanently on a row something kept, a removal past its window that something
+ * kept, or an item leaving Deleted ahead of its window through `leave_deleted`: an upload making room, Empty Deleted,
+ * the over-capacity reduce's first step) is due that night, or the night its keeper lets go, whatever its own
+ * `purge_at` says, so a second pass reads them by id. And last, `defer_kept_due_media` marks
  * asked every removal past its window that something still keeps, so its bytes leave the host's meter the night
  * any other removal's would: a quietly held item she deleted reads, in every number she has, like any delete.
  */

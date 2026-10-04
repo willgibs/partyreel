@@ -1,8 +1,12 @@
 /**
  * THE SIZE LIST'S STATE, PINNED BY BEHAVIOUR: pages append in the list's order, a filter keeps
- * its own pages, a selection survives a filter change, "All" toggles what is shown, a removal
- * leads with its result and a failure (or an Undo) puts it back, and every figure on screen is
- * the server's less what this visit removed.
+ * its own pages, a selection survives a filter change, "All" toggles what is shown, a deletion
+ * for good leads with its result and a failure puts back what did not go, emptying Deleted frees
+ * all of it, and every figure on screen is the server's less what this visit freed.
+ *
+ * ★ RESHAPED ON PURPOSE (trash-in-storage, 2026-10-03; scar kept: a deletion leads with its result,
+ * a failure puts back what did not go, each byte counted once). The list's act is Delete for good,
+ * which has no Undo, and Deleted, counted in what she stores, empties from its own row.
  */
 import { describe, expect, it } from "vitest";
 
@@ -12,7 +16,9 @@ import type { StorageItem } from "@/lib/db/queries/storage-list";
 import { pick } from "./storage-list-rules";
 import {
   countNow,
+  deletedNow,
   eventsNow,
+  freedBytes,
   INITIAL_LIST,
   listReducer,
   storedBefore,
@@ -37,6 +43,7 @@ function item(id: string, gb: number, eventId = "wedding"): StorageItem {
 
 const OVERVIEW = {
   storedBytes: 20 * GIGABYTE,
+  deletedBytes: 0,
   events: [
     { id: "wedding", name: "Maya & Theo", bytes: 14 * GIGABYTE, count: 3 },
     { id: "party", name: "Ivy turns one", bytes: 6 * GIGABYTE, count: 2 },
@@ -120,7 +127,7 @@ describe("the selection", () => {
   });
 });
 
-describe("a removal leads with its result", () => {
+describe("a deletion for good leads with its result", () => {
   const b = pick(item("b", 8));
   const p = pick(item("p", 4, "party"));
 
@@ -132,7 +139,7 @@ describe("a removal leads with its result", () => {
       { type: "leaving", ids: ["b", "p"] },
     ]);
     expect(state.leaving.has("b")).toBe(true);
-    const gone = listReducer(state, { type: "removed", items: [b, p] });
+    const gone = listReducer(state, { type: "deleted", items: [b, p] });
     expect(gone.selected.size).toBe(0);
     expect(gone.leaving.size).toBe(0);
     expect(storedNow(gone)).toBe(8 * GIGABYTE);
@@ -144,30 +151,71 @@ describe("a removal leads with its result", () => {
     expect(countNow(gone, "party")).toBe(1);
   });
 
-  it("puts back what a failure or an Undo returns", () => {
+  it("puts back what a failure did not delete", () => {
     const state = run([
       firstPage,
-      { type: "removed", items: [b, p] },
+      { type: "deleted", items: [b, p] },
       { type: "put-back", ids: ["p"] },
     ]);
-    expect([...state.removed.keys()]).toEqual(["b"]);
+    expect([...state.deleted.keys()]).toEqual(["b"]);
     expect(storedNow(state)).toBe(12 * GIGABYTE);
   });
 });
 
+describe("Deleted, at the head of the list", () => {
+  const withDeleted: ListAction = {
+    ...firstPage,
+    type: "loaded",
+    overview: {
+      ...OVERVIEW,
+      storedBytes: 23 * GIGABYTE,
+      deletedBytes: 3 * GIGABYTE,
+    },
+  } as ListAction;
+
+  it("counts in what she stores until it is emptied, and then frees all of it", () => {
+    const loaded = run([withDeleted]);
+    expect(deletedNow(loaded)).toBe(3 * GIGABYTE);
+    expect(storedNow(loaded)).toBe(23 * GIGABYTE);
+    const emptied = listReducer(loaded, {
+      type: "emptied",
+      bytes: 3 * GIGABYTE,
+    });
+    expect(deletedNow(emptied)).toBe(0);
+    expect(storedNow(emptied)).toBe(20 * GIGABYTE);
+    expect(freedBytes(emptied)).toBe(3 * GIGABYTE);
+    // Her events never held Deleted: their totals stand.
+    expect(eventsNow(emptied).map((e) => e.bytes / GIGABYTE)).toEqual([14, 6]);
+  });
+
+  it("keeps what an Empty left behind when it answered with more still there", () => {
+    const loaded = run([withDeleted]);
+    const partly = listReducer(loaded, { type: "emptied", bytes: GIGABYTE });
+    expect(deletedNow(partly)).toBe(2 * GIGABYTE);
+    expect(storedNow(partly)).toBe(22 * GIGABYTE);
+    // Finished later, with the rest: nothing is left.
+    const finished = listReducer(partly, {
+      type: "emptied",
+      bytes: 2 * GIGABYTE,
+    });
+    expect(deletedNow(finished)).toBe(0);
+    expect(storedNow(finished)).toBe(20 * GIGABYTE);
+  });
+});
+
 describe("what she stores", () => {
-  it("re-bases on a refused switch's fresher figure, after this visit's removals", () => {
-    // She removed 8 GB (20 -> 12), then a guest added 3 GB: the refusal says 15.
+  it("re-bases on a refused switch's fresher figure, after this visit's deletions", () => {
+    // She deleted 8 GB for good (20 -> 12), then a guest added 3 GB: the refusal says 15.
     const state = run([
       firstPage,
-      { type: "removed", items: [pick(item("b", 8))] },
+      { type: "deleted", items: [pick(item("b", 8))] },
       { type: "rebase", storedBytes: 15 * GIGABYTE },
     ]);
     expect(storedNow(state)).toBe(15 * GIGABYTE);
-    // The strip's starting line: the fresher figure plus what this visit already removed, so
-    // the 8 GB is counted once, as freed.
+    // The strip's starting line: the fresher figure plus what this visit already freed, so the
+    // 8 GB is counted once, as freed.
     expect(storedBefore(state)).toBe(23 * GIGABYTE);
-    // A later Undo of the 8 GB moves it by exactly 8 GB.
+    // A later put-back of the 8 GB (a failure's) moves it by exactly 8 GB.
     expect(
       storedNow(listReducer(state, { type: "put-back", ids: ["b"] })),
     ).toBe(23 * GIGABYTE);

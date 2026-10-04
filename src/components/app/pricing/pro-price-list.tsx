@@ -89,7 +89,7 @@ export function ProPriceList({
     setRefusedAt(null);
   }
 
-  const stored = refusedAt ?? facts?.activeBytes ?? null;
+  const stored = refusedAt ?? facts?.storedBytes ?? null;
   const current =
     facts?.currentPlanId && isProPlanId(facts.currentPlanId)
       ? planById(facts.currentPlanId)
@@ -97,7 +97,6 @@ export function ProPriceList({
   const cadence: Cadence = chosen ?? current?.interval ?? "month";
   const sizes = sizesAt(cadence);
   const blocked = facts?.changeBlocked ?? null;
-  const capBytes = facts?.capBytes ?? null;
   const fits = (plan: Plan) => stored === null || planHolds(plan, stored);
 
   function refused(refusal: StorageRefusal) {
@@ -122,12 +121,6 @@ export function ProPriceList({
     !planHolds(planById(flipped), stored);
   // Read at the billing on show, so the line never names a price the cards are not showing.
   const fitLine = stored === null ? null : proFitLine(stored, current, cadence);
-  const offersShrink =
-    capBytes !== null &&
-    sizes.some(
-      (plan) =>
-        fits(plan) && plan.id !== current?.id && plan.storageBytes < capBytes,
-    );
 
   return (
     <div className="space-y-3">
@@ -158,7 +151,6 @@ export function ProPriceList({
                   plan={plan}
                   storedBytes={stored}
                   current={current}
-                  capBytes={capBytes}
                   canSwitch={!blocked}
                   returnTo={returnTo}
                   onKeep={() => setFlipped(null)}
@@ -243,16 +235,6 @@ export function ProPriceList({
           className="text-xs text-pretty text-muted-foreground"
         >
           {fitLine}
-        </p>
-      ) : null}
-
-      {offersShrink && !blocked ? (
-        <p
-          data-note="deleted"
-          className="text-xs text-pretty text-muted-foreground"
-        >
-          A smaller size also shrinks Deleted: it keeps items only up to the new
-          size.
         </p>
       ) : null}
 

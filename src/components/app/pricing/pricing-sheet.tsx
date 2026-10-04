@@ -287,7 +287,7 @@ export function PricingSheet({
   const tier = facts?.tier ?? plan.tier ?? DEFAULT_TIER;
   const hasBilling = facts?.hasBilling ?? plan.hasBilling;
   const passExpiry = facts ? facts.passExpiry : plan.passExpiry;
-  const stored = facts?.activeBytes ?? 0;
+  const stored = facts?.storedBytes ?? 0;
 
   const free = planById("free");
   const pass = planById("event_pass");
@@ -302,12 +302,6 @@ export function PricingSheet({
   );
   const isFree = tier === "free";
   const note = fitNote(stored, opening);
-  // Moving to a cap SMALLER than the one in force (a pass holder with stacked
-  // passes into a small Pro) shrinks Deleted too; said before they buy.
-  const shrinks =
-    facts?.capBytes != null &&
-    opening.storageBytes < facts.capBytes &&
-    planHolds(opening, stored);
 
   return (
     <Popup open={isOpen} onOpenChange={changeOpen}>
@@ -383,16 +377,6 @@ export function PricingSheet({
                   {note}
                 </p>
               ) : null}
-              {shrinks ? (
-                <p
-                  data-note="deleted"
-                  className="text-xs text-pretty text-muted-foreground"
-                >
-                  A smaller plan also shrinks Deleted: it keeps items only up to
-                  the new size.
-                </p>
-              ) : null}
-
               {/* What both cards' "about N photos" assume, once, the quietest
                   line under them (host-storage r2). */}
               <p data-note="basis" className="text-xs text-pretty text-faint">

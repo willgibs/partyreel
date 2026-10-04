@@ -49,9 +49,16 @@ vi.mock("@/lib/db/queries/event-passes", () => ({
   getLivePasses: async () => livePasses,
 }));
 
-let activeBytes = 0;
+/** What she keeps in her albums, and in Deleted: her plan's cap holds both (trash-in-storage). */
+let albumBytes = 0;
+let deletedBytes = 0;
 vi.mock("@/lib/db/queries/storage", () => ({
-  getHostStorageSummary: async () => ({ activeBytes, standbyBytes: 0 }),
+  getHostStorageSummary: async () => ({
+    activeBytes: albumBytes,
+    deletedBytes,
+    systemBytes: 0,
+    storedBytes: albumBytes + deletedBytes,
+  }),
 }));
 
 vi.mock("@/lib/stripe/plans", () => ({
@@ -93,7 +100,8 @@ beforeEach(() => {
   livePasses = [];
   user = { id: "host-1", email: "host@example.com" };
   profile = { stripe_customer_id: null, tier: "free", tier_expires_at: null };
-  activeBytes = 1 * GIGABYTE;
+  albumBytes = 1 * GIGABYTE;
+  deletedBytes = 0;
   createCustomer.mockResolvedValue({ id: "cus_new" });
   createSession.mockResolvedValue({ url: "https://checkout.stripe.com/c/x" });
 });
@@ -106,7 +114,7 @@ describe("a Pro checkout over the cap", () => {
       tier: "event_pass",
       tier_expires_at: new Date(Date.now() + 86_400_000).toISOString(),
     };
-    activeBytes = 140 * GIGABYTE;
+    albumBytes = 140 * GIGABYTE;
     const { status, json } = await checkout({ planId: "pro_100" });
     expect(status).toBe(409);
     expect(json).toMatchObject({
@@ -123,8 +131,22 @@ describe("a Pro checkout over the cap", () => {
     expect(createSession).not.toHaveBeenCalled();
   });
 
+  it("★ counts her Deleted in what she stores: Deleted is inside the cap she would buy", async () => {
+    // 90 GB in her albums would fit Pro 100 GB; with 50 GB in Deleted she stores 140 GB.
+    albumBytes = 90 * GIGABYTE;
+    deletedBytes = 50 * GIGABYTE;
+    const { status, json } = await checkout({ planId: "pro_100" });
+    expect(status).toBe(409);
+    expect(json).toMatchObject({
+      code: "over_new_cap",
+      storedBytes: 140 * GIGABYTE,
+      gapBytes: 40 * GIGABYTE,
+    });
+    expect(createCustomer).not.toHaveBeenCalled();
+  });
+
   it("meets a Free host in the over-cap grace the same way", async () => {
-    activeBytes = 140 * GIGABYTE;
+    albumBytes = 140 * GIGABYTE;
     expect((await checkout({ planId: "pro_100_yr" })).json.code).toBe(
       "over_new_cap",
     );
@@ -134,14 +156,14 @@ describe("a Pro checkout over the cap", () => {
 
 describe("what is never refused for storage", () => {
   it("sells an Event Pass however much the host stores (passes stack)", async () => {
-    activeBytes = 3 * TERABYTE;
+    albumBytes = 3 * TERABYTE;
     const { status } = await checkout({ planId: "event_pass" });
     expect(status).toBe(200);
     expect(createSession.mock.calls[0][0].mode).toBe("payment");
   });
 
   it("sells a Pro plan that fits", async () => {
-    activeBytes = 90 * GIGABYTE;
+    albumBytes = 90 * GIGABYTE;
     const { status, json } = await checkout({ planId: "pro_100" });
     expect(status).toBe(200);
     expect(json.url).toBe("https://checkout.stripe.com/c/x");

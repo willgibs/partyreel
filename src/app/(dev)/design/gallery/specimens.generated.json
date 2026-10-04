@@ -216,7 +216,13 @@
       "<EventCard\n  variant=\"trash\"\n  href={null}\n  name=\"Old Test Event\"\n  coverUrl={SAMPLE.cover3}\n  dateLabel=\"Mar 11\"\n  statusLabel=\"6 days left\"\n/>"
     ],
     "storage-meter": [
-      "<StorageMeter\n  storageUsed={1_200_000_000}\n  storageCap={5_000_000_000}\n  storagePct={24}\n  standbyBytes={0}\n  overBudget={false}\n  passExpiry={null}\n  planName=\"Pro\"\n  hasBilling\n  isEventPass={false}\n/>"
+      "<InertStorage>\n  <StorageMeter\n    activeBytes={24 * 1024 ** 3}\n    deletedBytes={3 * 1024 ** 3}\n    storageCap={100 * 1024 ** 3}\n    makeRoom\n    passExpiry={null}\n    planName=\"Pro\"\n    hasBilling\n    isEventPass={false}\n  />\n</InertStorage>"
+    ],
+    "storage-chart": [
+      "<StorageChartDemo state=\"empty\" />",
+      "<StorageChartDemo state=\"half\" />",
+      "<StorageChartDemo state=\"full-on\" />",
+      "<StorageChartDemo state=\"full-off\" />"
     ],
     "storage-list": [
       "<StorageListDemo />"

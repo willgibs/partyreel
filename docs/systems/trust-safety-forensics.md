@@ -63,8 +63,8 @@ would tip someone off: nothing leaves the album.
   because the runbook removes first and holds second. It leaves the host's view and her storage at once
   (`media_host_all` hides it; `media_release_meter` takes its bytes off her meter, and an operator's restore puts
   them back, so a takedown and a hold read the same in every number she has), but its copy waits out its own
-  `purge_at` (the removal + 30 days): `purge_media_now` refuses it, the standby budget
-  never counts or evicts it, and `held_event_ids` answers an event holding one inside its window as held, so expired
+  `purge_at` (the removal + 30 days): `purge_media_now` refuses it, her Deleted never counts it nor makes room from
+  it (`host_deleted_media`), and `held_event_ids` answers an event holding one inside its window as held, so expired
   events and account deletion keep that event whole. Then the removed_media sweep takes it, unless it is held.
 - **Preservation objects are deleted only by hand,** audited, on the REPORT Act's one-year clock. Releasing a hold
   does not touch them, and no sweep lists the `preservation/` prefix.
