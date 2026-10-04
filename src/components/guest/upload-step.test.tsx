@@ -10,6 +10,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   UploadStep,
   classifyRun,
+  uploadBarPercent,
   uploadStepChooseAgain,
   uploadStepReason,
 } from "@/components/guest/upload-step";
@@ -163,7 +164,7 @@ describe("the surface", () => {
   it("shows a progress strip per pick while a run is going, and no picker", () => {
     const { container } = mount({
       queue: [
-        item({ id: "a", status: "uploading", progress: 0.4 }),
+        item({ id: "a", status: "uploading", progress: 40 }),
         item({ id: "b", status: "queued", progress: 0 }),
       ],
     });
@@ -174,6 +175,32 @@ describe("the surface", () => {
     expect(
       screen.queryByRole("button", { name: "Take a photo" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("★ each bar fills as its bytes go: the queue's 0 to 100 is a percent, never a fraction", () => {
+    const { container } = mount({
+      queue: [
+        item({ id: "a", status: "uploading", progress: 1 }),
+        item({ id: "b", status: "uploading", progress: 40 }),
+        item({ id: "c", status: "queued", progress: 0 }),
+        // Its bytes are up and it waits to be recorded with its burst (`queued` at 100).
+        item({ id: "d", status: "queued", progress: 100 }),
+        item({ id: "e", status: "done", progress: 100 }),
+      ],
+    });
+    const widths = [
+      ...container.querySelectorAll<HTMLElement>("[data-upload-progress] > *"),
+    ].map((bar) => bar.style.width);
+    // One percent in is a sliver (the floor), 40 is 40, a waiting pick shows its sliver, and a landed one is whole.
+    expect(widths).toEqual(["4%", "40%", "4%", "100%", "100%"]);
+  });
+
+  it("the bar's percent is the progress itself, floored while it waits and capped at whole", () => {
+    expect(uploadBarPercent({ status: "uploading", progress: 62 })).toBe(62);
+    expect(uploadBarPercent({ status: "uploading", progress: 0 })).toBe(4);
+    expect(uploadBarPercent({ status: "queued", progress: 100 })).toBe(100);
+    expect(uploadBarPercent({ status: "uploading", progress: 140 })).toBe(100);
+    expect(uploadBarPercent({ status: "done", progress: 0 })).toBe(100);
   });
 
   it("the OFF skip is offered once, and never ON", () => {

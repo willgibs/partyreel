@@ -48,6 +48,19 @@ export function classifyRun(failures: readonly QueueItem[]): RefusalClass {
   return classes.length > 0 ? "choose" : "retry";
 }
 
+/**
+ * ★ HOW FAR A PICK'S BAR IS FILLED, IN PERCENT: THE QUEUE'S OWN 0 TO 100 (`QueueItem.progress`, written as
+ * `Math.round(fraction * 100)`), never a fraction: scaled by 100 again, a bar stands full from its first percent and
+ * says nothing of the bytes going. A pick still waiting its turn shows a sliver (a bar of nothing reads as no bar at
+ * all), and a landed one is whole.
+ */
+export function uploadBarPercent(
+  it: Pick<QueueItem, "status" | "progress">,
+): number {
+  const floor = it.status === "done" ? 100 : 4;
+  return Math.round(Math.min(100, Math.max(it.progress, floor)));
+}
+
 export function UploadStep({
   isDemo,
   requireUpload,
@@ -152,9 +165,7 @@ export function UploadStep({
                 >
                   <span
                     className="block h-full rounded-full bg-primary transition-[width] duration-300 ease-out motion-reduce:transition-none"
-                    style={{
-                      width: `${Math.round(Math.max(it.progress, it.status === "done" ? 1 : 0.04) * 100)}%`,
-                    }}
+                    style={{ width: `${uploadBarPercent(it)}%` }}
                   />
                 </span>
               </li>
