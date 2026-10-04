@@ -19,6 +19,12 @@ reads:                  # single-sources you depend on: never duplicate, never e
 
 **Goal.** Send to Google Drive, round 1: the architecture's design note for the Advisor's review (OAuth with drive.file only, the encrypted token store, the Worker and Queue streaming R2 to Drive, every failure path, the guards, the /admin signal, live sync, Will's one Google Cloud step), then the board drawing every moment a host meets (the way in, connecting, progress, done and the clean exit, the hard moments, the connection in Account).
 
+## Where I am
+
+- Booted: worktree `drive-export-r1` on `lp/drive-export-r1`, cut from `738c72d0`; read the manifest, the research, the reads, PRICING's model and rules, trash-in-storage's manifest, the take-home panel and the host export route; re-read Google's limits, errors, uploads, OAuth and client pages and Cloudflare's Queues and Workers limits today.
+- **The design note is whole, for the Advisor:** `../partyreel-wt/_scratch/drive-export/design.md` (OAuth, the token store, the transfer, the job, every failure path, cost and guards, operators, the clean exit, live sync, Dropbox, Will's one step, the wiring lane's shape).
+- Next: the board `drive-export` (desk 20), built on the four recommendations below.
+
 ## The brief
 
 **The round's direction (Will, standing since round 13, carried by every lane):** never dev-tool-ish (the viewfinder's corners survive only as a focus mark, never a style, and so does nothing of their loading state); a host of 1 to about 10 events first, scaling to hundreds; "all work no play is a boring consumer product": delight where it costs nothing in clarity; nothing depends on a timeline (undated, morning-only and multi-day events all read well); "everything should feel as immediate/responsive/snappy, and anything taking longer should provide clear state feedback and potential interruptibility"; Partyreel runs with no AI managing it (every operator fix ships its `/admin` control); cost is designed like the architecture (every image and video action multiplies at scale). Production is the working version: a pick is the best of what was drawn, never a rule.
@@ -67,7 +73,26 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each is built as recommended (the board draws it and its alternatives) and listed under "Calls his to overrule".
+
+- **Q1. Which plans get Send to Google Drive: every plan, Free included.** It costs about $0.0007 a GB (Free's whole
+  100 MB is a hundredth of a cent), it is the honest way out ("your photos are yours, in your own Drive"), and it
+  cannibalizes nothing: what a real event outgrows on Free is 100 MB and photos only, not the way out. What the
+  competitors charge for is the automatic copy of every upload as it arrives, which is live sync, and that is where a
+  plan line belongs. Asked rather than guessed because PRICING's only-up rule makes a gift on Free permanent.
+- **Q2. Live sync: the second version, a fast follow on the same queue.** Version one proves the hard parts (OAuth, the
+  token store, the transfer, every failure path, `/admin`) on a send she starts and watches; live sync adds its own
+  decisions (which uploads go and when, whether a guest's take-back reaches her Drive, its plan line) that deserve their
+  own red-team. Version one still covers a growing album: Send on an album already sent sends only what is new.
+- **Q3. The clean exit: to Deleted, behind a fresh check of her Drive, never for good by default.** Free 7.4 GB checks
+  her Drive again (every item the album holds, hidden ones too, by size and MD5, nothing new since), then moves the album
+  to Deleted through the existing delete. With Make room from Deleted on (the default) its room goes to her next uploads
+  whenever they need it; Delete for good is the quieter second act, for a host moving to a smaller plan. A long
+  background job is exactly where a bug would cost a wedding, and Deleted's 30 days are the difference.
+- **Q4. The folder and the names: `My Drive / Partyreel / Garden party · 3 Oct 2026 / 2026-10-03 21.14.05 · Sam.jpg`.**
+  One Partyreel folder (in our colour), one folder per album (its date when it has one), every file named by when it
+  reached the album, in her time zone, and who sent it, so the folder reads as the evening in order. We hold no capture
+  time and no original name; never an email address.
 
 ## System-doc edits (in place, owned facts only)
 
