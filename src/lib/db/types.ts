@@ -317,6 +317,7 @@ export type Database = {
           source: string
           start_at: string
           stripe_session_id: string | null
+          uploaded_bytes: number
         }
         Insert: {
           consumed_at?: string | null
@@ -329,6 +330,7 @@ export type Database = {
           source: string
           start_at: string
           stripe_session_id?: string | null
+          uploaded_bytes?: number
         }
         Update: {
           consumed_at?: string | null
@@ -341,6 +343,7 @@ export type Database = {
           source?: string
           start_at?: string
           stripe_session_id?: string | null
+          uploaded_bytes?: number
         }
         Relationships: [
           {
@@ -1884,13 +1887,6 @@ export type Database = {
         }
         Returns: Json
       }
-      monthly_ingress_cap: {
-        Args: {
-          p_storage_cap_bytes: number
-          p_tier: Database["public"]["Enums"]["tier_type"]
-        }
-        Returns: number
-      }
       my_liked_media_ids: { Args: { p_media_ids: string[] }; Returns: string[] }
       purge_media_now: { Args: { p_media_ids: string[] }; Returns: Json }
       purge_media_rows: {
@@ -1966,11 +1962,24 @@ export type Database = {
         Args: { p_tier: Database["public"]["Enums"]["tier_type"] }
         Returns: {
           default_storage_cap_bytes: number
-          ingress_cap_multiplier: number
           max_events: number
           max_reel_seconds: number
-          monthly_ingress_bytes: number
+          uploads_bytes: number
         }[]
+      }
+      upload_allowance: {
+        Args: {
+          p_storage_cap_bytes: number
+          p_tier: Database["public"]["Enums"]["tier_type"]
+        }
+        Returns: number
+      }
+      uploads_used: {
+        Args: {
+          p_host_id: string
+          p_tier: Database["public"]["Enums"]["tier_type"]
+        }
+        Returns: number
       }
       verify_current_password: {
         Args: { p_password: string }
