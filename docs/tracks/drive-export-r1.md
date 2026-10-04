@@ -1,6 +1,6 @@
 ---
 track: drive-export-r1
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "50de9a79"            # the launch-prep SHA the branch was cut from
 board: drive-export
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -39,7 +39,8 @@ reads:                  # single-sources you depend on: never duplicate, never e
     F8 the Google URL allowlist; N1 to N9 folded into their lines; Ladder A's numbers in the cost math (section 6).
   - One place it departs from Q25, on purpose: the snapshot does not filter quiet legal holds, since a quietly held row
     is invisible to its host by design and her zip includes it (section 3).
-- Next: the board `drive-export` (desk 20), drawn and passing `lab:demo`; its clean exit redrawn on N9's proof.
+- The board `drive-export` (desk 20) is drawn, its clean exit on N9's proof, and the gate is green on the synced tree
+  `ed2e5d28` (the Handoff below). Handed off.
 
 ## The brief
 
@@ -116,21 +117,73 @@ Each is built as recommended (the board draws it and its alternatives) and liste
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- None: a lab lane. The wiring writes `docs/systems/drive-export.md` (with the design note's leak table and runbook).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Drive: wire Send to Google Drive on the board's picks and the amended design note
+  (`_scratch/drive-export/design.md`, Q25 met), Will's Google Cloud step (its section 11) relayed first (drive-export-r1).
+- Drive: live sync as v2 on the same queue, its decisions per the design note's section 9 (drive-export-r1).
+- Drive: Dropbox through `save_url`, the lease carrying a presigned GET (drive-export-r1).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed on `lp/drive-export-r1`:** `8d3f605e` the design note's WIP (Where I am and the Questions);
+  `65ed9dcb` the first sync (a merge of `origin/launch-prep` at `38f88e12`: trash-in-storage's storage chart, which the
+  board quotes); `1ef7f9c5` the design note amended on Q25 (Where I am names each F by its line); `f2b4bf71` the board;
+  `f467131b` its prettier pass (wrapping only); `ed2e5d28` the second sync (a merge of `78ad4b3d`: the types regenerated
+  after `deleted_counts`, whose `storage-figures.ts` and storage actions the board's ring and inert source read).
+  launch-prep has since moved by records and crumbs-63's reel merge only (no path of this lane's or its reads), so no
+  third sync. The head is in the chat line.
+- **Gates on the synced tree `ed2e5d28`**, each on its own exit code (logs under `../partyreel-wt/_scratch/drive-export-r1/`):
+  `pnpm typecheck` 0 (`gate2-typecheck.log`); `pnpm lint` 0 (`gate2-lint.log`); `pnpm test` 0, 877 files and 10,565 tests
+  (`gate3-test.log`; the run before it failed one test outside this lane, `storage-list.test.tsx` "opens on every event's
+  items, largest first, with a chip per event", a load flake: green alone three times and on the rerun,
+  `gate2-test.log`); `zsh scripts/build-lock.sh pnpm build` 0 (`gate2-build.log`); `pnpm lab:smoke --base
+  http://localhost:3132` 0, 25 checks, the board's reading 835 of 1,200 words (`gate2-smoke.log`); `pnpm lab:demo --board
+  drive-export --base http://localhost:3132` 0, 9 steps, every option drawn and seen whole at 1440 and 375 above the dock
+  (`gate2-demo.log`).
+- **Captures, every frame of every option** (named by ask, option and frame): the room at 1440 `final/` and at 375
+  `final375/`; light at 1440 `final-light/` and at 375 `final-light375/` (lab:demo pins `prefers-color-scheme: dark`, so a
+  copy with light, `tools/lab-demo-light.mjs`, 9 steps 0 failing each: `gate2-demo-light*.log`). Reduced motion is
+  lab:demo's own still pass; the board's one animation (the toast's spinner) stops under it.
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = this file and the ten files of
+  `src/app/(dev)/design/sandbox/drive-export/`. No exceptions.
+- **The items:**
+  - The design note `_scratch/drive-export/design.md`, amended in place on the Advisor's Q25 (F1 to F8 and N1 to N9 in
+    their lines, Ladder A's numbers), with one departure from Q25 on purpose: the snapshot does not filter quiet legal
+    holds, which are invisible to their host by design and in her zip already (its section 3).
+  - The board `drive-export` (desk 20, host, `tracks: drive-export-r1`): nine asks of three options, every option drawn
+    on production's look (the real `Popup` in its plan, confirm and list kinds, `Progress`, `Badge`, `Button`, `Card`,
+    `Switch`, `Logo`, `StorageChart` over an inert source; the hub's bar and rows, Your events, the toaster and the size
+    rows quoted where production's own needs a session), two staged asks (the hard moments on While it sends' place;
+    freeing its room behind When it's done), three carried calls (plans, live sync, where in her Drive).
+  - Freeing its room is drawn on N9's proof: the confirm once the app has checked every item the album holds (hidden,
+    waiting and developing too), her storage chart after, and the refusal when the check finds a gap.
+  - Google's consent screen and her Drive are neutral stand-ins carrying our words and names, never Google's look.
+- **Assets requested from Will:** none for the board (a lucide folder stands in for Google's Drive mark, which the
+  wiring places by Google's own brand rules). For the wiring: the logo · 120×120 PNG · 1 · for the consent screen's
+  branding, if the P3 project has none (the design note's section 11, step 3).
+- **Board ideas:**
+  - Keep each photo's capture time (EXIF `DateTimeOriginal`, read before the strip removes it), so Drive's names, the
+    album's order and the reel can say when a photo was taken, not when it arrived (the naming ask's cost).
+  - Send a selection to Drive from the album's Select bar, beside Download (the same job over chosen ids).
+  - `storage-list.test.tsx` "opens on every event's items, largest first" flakes under the full suite's load.
+  - Two orphaned headless Chromes from 2026-10-03 12:44 (pids 44980 and 45014, parent launchd, `lab-demo-*`
+    profiles) still run on this machine; not this lane's.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none in this lane. The wiring's are the design
+  note's section 12 (the `cloud_export` migration, the `partyreel-drive` Worker and its Queue, six env vars), after
+  Will's Google Cloud step (section 11), which the Orchestrator relays.
+- **Calls his to overrule** (each built as recommended):
+  - Q1 every plan; Q2 live sync second; Q3 to Deleted behind the app's own check; Q4 when it arrived, then who.
+  - The way in: a third way, Google Drive (else the row under the two, or a second act on Originals).
+  - The other doors: Your events and storage too (else storage alone, or Take it home alone).
+  - Connecting: our promise, then a final press (else straight to Google, or Google's screen said first).
+  - While it sends: on the album it's sending (else a toast that follows her, or inside Take it home).
+  - The hard moments: on the send itself, one act each (else a banner across the app, or the email carries it).
+  - Done: Open in Drive, then free its room (else free its room first, or freeing in storage only).
+  - The connection: its own card under Plan (else a line in Plan, or a Connected apps card).
+  - The design note's own: a second OAuth client in the P3 project; the Vercel app the token's only decrypter; a new
+    Worker beside the export Worker; Partyreel never bins in her Drive on its own.
+- **Look at first:** the board's Freeing its room step (the app's check drawn, the chart after, the gap), then The way
+  in; the design note's section 8 (what proves an item safe) and section 3 (the lanes and their ends).
