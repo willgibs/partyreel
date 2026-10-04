@@ -26,6 +26,12 @@
  * only when it leaves Deleted for good (Delete for good, Empty Deleted), which is
  * why the sentence says "free 40 GB first", never "remove".
  *
+ * ★ ITS SECOND HALF IS WORDS, NEVER A REFUSAL (`uploadsPauseNote`, red-team 52's LOW). A smaller Pro size also
+ * carries a smaller uploads allowance, and a host who has uploaded past it this month would find every upload,
+ * her guests' included, refused "for now" the moment she switched. The Stripe webhook allows that switch (it does no
+ * usage check and is the sole writer of the tier), so nothing here blocks it: the plan sheet tells her, on the
+ * size's own card, before she presses.
+ *
  * Pure and client-safe: no env, no SDK, no DB, only `tiers.ts` and a formatter.
  */
 import {
@@ -108,6 +114,44 @@ export function checkPlanChange(
       message: refusalSentence(storedBytes, target, fits[0] ?? null),
     },
   };
+}
+
+/**
+ * The first day of the month after `now`, as a host reads a date ("November 1"). The uploads allowance counts a
+ * UTC calendar month (`storage_ledger`'s `YYYY-MM`, never decremented), so that is when it opens again; a host's own
+ * clock is hours either side of it, never a day.
+ */
+export function nextMonthStart(now: Date = new Date()): string {
+  const first = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1),
+  );
+  return first.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+/**
+ * ★ THE HONEST WORDS FOR A SWITCH BELOW THIS MONTH'S UPLOADS: "You've uploaded 150 GB this month. At 100 GB a month,
+ * new uploads, yours and your guests', would pause until November 1." Null when the size's allowance still has room
+ * (or the month's uploads are not known), and for a plan that never replaces her cap (a pass adds its own year of
+ * uploads and a pass count is never this month's).
+ *
+ * A Pro size counts THIS MONTH's ledger whatever window she is in now (a pass holder's own year is her passes'), so
+ * `monthUploadedBytes` is the ledger's month and the line reads the same for a pass holder moving to Pro. The line
+ * is for a real change of allowance, which is the caller's to decide: her own size at the other billing changes none.
+ * `create_media` refuses once a window's uploads reach the allowance and the deletes never give them back, so at the
+ * line counts as paused. Never a block: `checkPlanChange` is storage's alone.
+ */
+export function uploadsPauseNote(
+  monthUploadedBytes: number | null,
+  target: Plan,
+  now: Date = new Date(),
+): string | null {
+  if (monthUploadedBytes === null || !replacesCap(target)) return null;
+  if (monthUploadedBytes < target.uploadsBytes) return null;
+  return `You've uploaded ${formatBytes(monthUploadedBytes)} this month. At ${formatBytes(target.uploadsBytes)} a month, new uploads, yours and your guests', would pause until ${nextMonthStart(now)}.`;
 }
 
 /**

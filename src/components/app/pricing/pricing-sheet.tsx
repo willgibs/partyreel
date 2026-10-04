@@ -9,6 +9,7 @@ import { holdsPhrase } from "@/components/app/pricing/holds";
 import {
   HeldChip,
   PlanCardHead,
+  UploadsPause,
   planCardClass,
 } from "@/components/app/pricing/plan-card";
 import { ProPriceList } from "@/components/app/pricing/pro-price-list";
@@ -33,6 +34,7 @@ import {
   planHolds,
   planWithBilling,
   refusalSentence,
+  uploadsPauseNote,
   type StorageRefusal,
 } from "@/lib/billing/storage-guard";
 import {
@@ -42,6 +44,7 @@ import {
   formatCapacity,
   planById,
   plansForTier,
+  uploadsPhrase,
   type Plan,
   type Tier,
 } from "@/lib/constants/tiers";
@@ -251,6 +254,7 @@ function PlanCard({
         plan={plan}
         ink={ink}
         holds={holdsPhrase(plan)}
+        uploads={uploadsPhrase(plan)}
         aside={held ? <HeldChip ink={ink} /> : null}
       />
       {children}
@@ -276,7 +280,7 @@ export function PricingSheet({
   // `reads` asks again after the size list stacked over the plan removed or
   // put something back, so the Too small marks are true when she returns.
   const [reads, setReads] = useState(0);
-  const facts = usePlanFacts(isOpen, reads);
+  const { facts, settled, readAt } = usePlanFacts(isOpen, reads);
   // A refusal a buy came back with; cleared when the sheet closes. (A Pro
   // switch's refusal flips its own row, inside the price list.)
   const [refusal, setRefusal] = useState<StorageRefusal | null>(null);
@@ -303,6 +307,13 @@ export function PricingSheet({
   );
   const isFree = tier === "free";
   const note = fitNote(stored, opening);
+  // A pass holder moving to Pro is measured against the month's uploads like any Pro size; Free's own month never
+  // reaches a Pro size's allowance, so the sentence is only ever hers.
+  const pause = uploadsPauseNote(
+    facts?.monthUploadedBytes ?? null,
+    opening,
+    readAt ?? undefined,
+  );
 
   return (
     <Popup open={isOpen} onOpenChange={changeOpen}>
@@ -321,6 +332,9 @@ export function PricingSheet({
             <>
               <ProPriceList
                 facts={facts}
+                // Her plan is read when the sheet opens; until that read has come back either way, no size is offered.
+                reading={!facts && !settled}
+                readAt={readAt}
                 returnTo={returnTo}
                 onStorageChanged={() => setReads((n) => n + 1)}
               />
@@ -343,6 +357,7 @@ export function PricingSheet({
                       <Benefit key={line}>{line}</Benefit>
                     ))}
                   </ul>
+                  {pause ? <UploadsPause ink>{pause}</UploadsPause> : null}
                   <CheckoutButton
                     planId={opening.id}
                     next={returnTo}

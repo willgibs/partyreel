@@ -204,6 +204,14 @@ export type ReelViewProps = {
 /** A resting pointer lets the dock settle back after this long; a touch viewer gets longer. */
 const IDLE_POINTER_MS = 2400;
 const IDLE_TOUCH_MS = 4200;
+/**
+ * ★ A CLICK THIS SOON AFTER THE MOVE THAT RAISED THE DOCK WAS AIMED WITH THAT MOVE (red-team 52: "a click aimed with
+ * a moving mouse hides the controls the move just raised"). The dock grows in 280 ms (`live-reel.css`) and a person
+ * needs about 250 ms more to answer a change on screen, so a click before then is no decision about a dock she has
+ * not yet seen: it is the click that was always going to bring the controls up, on a mouse that had to travel to
+ * the picture first.
+ */
+const AIMED_CLICK_MS = 600;
 /** The bar's pill, at rest (live-reel.css reads these). */
 const BAR_W = 132;
 const BAR_H = 34;
@@ -326,6 +334,8 @@ export function LiveReelView({
   const menuOpenRef = useRef(menuOpen);
   const idleMsRef = useRef(IDLE_POINTER_MS);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // When a pointer's own movement last raised the dock from rest (`onPointerMove`), for `AIMED_CLICK_MS`.
+  const movedUpAtRef = useRef(Number.NEGATIVE_INFINITY);
   useEffect(() => {
     chromeRef.current = chrome;
     pinnedRef.current = pinned;
@@ -370,12 +380,24 @@ export function LiveReelView({
   // anywhere on the picture all end here, so they cannot drift apart. Up, it folds away on purpose,
   // even while pinned (the viewer asked; a pointer's movement or the next press brings it back); at
   // rest it comes up and starts its own idle clock, a finger's longer than a pointer's.
+  // ★ EXCEPT A POINTER'S CLICK AIMED WITH THE MOVE THAT RAISED IT (`AIMED_CLICK_MS`): a desk viewer moves to
+  // aim, the move wakes the dock, and the click that follows is the one that meant "show", so it keeps the
+  // dock up (and restarts its rest) rather than folding away what the move just brought. A finger's tap and
+  // a key's press never moved anything, so they are never held.
   const toggleChrome = (e: React.MouseEvent) => {
+    const byTouch = pressedByTouch(e, pressRef.current.pointer);
     if (chromeUp) {
+      if (
+        !byTouch &&
+        performance.now() - movedUpAtRef.current < AIMED_CLICK_MS
+      ) {
+        wake();
+        return;
+      }
       if (timerRef.current) clearTimeout(timerRef.current);
       setChrome("rest");
     } else {
-      wake(pressedByTouch(e, pressRef.current.pointer));
+      wake(byTouch);
     }
   };
 
@@ -714,7 +736,13 @@ export function LiveReelView({
               };
             }}
             onPointerMove={(e) => {
-              if (e.pointerType === "mouse" || e.pointerType === "pen") wake();
+              if (e.pointerType === "mouse" || e.pointerType === "pen") {
+                // The move that raises the dock from rest is stamped, for the click it may be aiming (`toggleChrome`).
+                if (chromeRef.current !== "up") {
+                  movedUpAtRef.current = performance.now();
+                }
+                wake();
+              }
             }}
             onKeyDown={onKeyDown}
             className="fixed inset-0 z-50 overflow-hidden bg-black text-white outline-none select-none"
@@ -825,9 +853,10 @@ export function LiveReelView({
                 state={chromeUp ? "up" : "rest"}
                 playing={!effectivePaused}
                 progress={progress}
-                onTogglePlay={() => {
+                onTogglePlay={(e) => {
                   setPaused((p) => !p);
-                  wake();
+                  // The press that toggled it says whose rest it earns: a finger's 4.2 s, a pointer's 2.4 s.
+                  wake(pressedByTouch(e, pressRef.current.pointer));
                 }}
                 onToggleDock={toggleChrome}
                 includeVideos={includeVideos}
@@ -1392,7 +1421,7 @@ function ChromeButton({
   stagger,
 }: {
   label: string;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent) => void;
   children: ReactNode;
   pressed?: boolean;
   shortcut?: string;
@@ -1463,7 +1492,11 @@ function MenuButton({
               className={cn(
                 "flex size-10 shrink-0 items-center justify-center rounded-full text-white outline-none",
                 "transition-[transform,background-color] duration-150 ease-emphasis active:scale-[0.94] motion-reduce:active:scale-100",
-                "focus-visible:ring-2 focus-visible:ring-white/70 data-[state=open]:bg-white/18",
+                // ★ THE OPEN FILL READS `aria-expanded`, NEVER `data-state` (identity r4's finding: the key never
+                // showed its fill). The tooltip wraps the menu's trigger on this one button, and radix spreads the
+                // OUTER trigger's props after the inner one's own, so `data-state` here is the tooltip's ("closed")
+                // while the menu stands open; `aria-expanded` is set by the menu alone.
+                "focus-visible:ring-2 focus-visible:ring-white/70 aria-expanded:bg-white/18",
                 "[@media(hover:hover)_and_(pointer:fine)]:hover:bg-white/12",
               )}
             >
@@ -1559,7 +1592,7 @@ function ReelDock({
   state: "up" | "rest";
   playing: boolean;
   progress: number;
-  onTogglePlay: () => void;
+  onTogglePlay: (e: React.MouseEvent) => void;
   /** The bar's press at rest and the timeline's in the dock: the view's one toggle (`toggleChrome`). */
   onToggleDock: (e: React.MouseEvent) => void;
   includeVideos: boolean;

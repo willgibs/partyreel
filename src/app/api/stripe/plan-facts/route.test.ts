@@ -36,6 +36,16 @@ vi.mock("@/lib/db/queries/storage", () => ({
   getHostStorageSummary: async () => storage,
 }));
 
+/** What she has uploaded this month; a function to throw, as a failed read does. */
+let monthUploads: () => Promise<number> = async () => 0;
+vi.mock("@/lib/db/queries/month-uploads", () => ({
+  readHostMonthUploads: (...args: unknown[]) => {
+    monthUploadsCalls.push(args);
+    return monthUploads();
+  },
+}));
+const monthUploadsCalls: unknown[][] = [];
+
 vi.mock("@/lib/stripe/plans", () => ({
   planForPriceId: (priceId: string): Plan | null =>
     priceId === "price_pro_200_yr" ? planById("pro_200_yr") : null,
@@ -75,6 +85,8 @@ function subscription(over: Record<string, unknown> = {}) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  monthUploadsCalls.length = 0;
+  monthUploads = async () => 0;
   user = { id: "host-1" };
   profile = {
     tier: "free",
@@ -115,10 +127,59 @@ describe("what it answers", () => {
       storedBytes: 3 * GIGABYTE,
       deletedBytes: 2 * GIGABYTE,
       capBytes: planById("free").storageBytes,
+      monthUploadedBytes: 0,
       currentPlanId: null,
       changeBlocked: null,
     });
     expect(retrieve).not.toHaveBeenCalled();
+  });
+
+  // ★ RED-TEAM 52's LOW: the sheet could not tell a Pro host that a smaller size's uploads allowance sat below what
+  // she had already uploaded this month. The figure is context for one sentence, read for the id `getUser()` proved.
+  it("carries what she has uploaded this month, read for her own id", async () => {
+    monthUploads = async () => 150 * GIGABYTE;
+    const { facts: f } = await facts();
+    expect(f?.monthUploadedBytes).toBe(150 * GIGABYTE);
+    expect(monthUploadsCalls).toEqual([["host-1"]]);
+  });
+
+  it("reads an answer with no month figure, or a malformed one, as not known (an old tab, a proxy's page)", () => {
+    const answer = {
+      tier: "pro",
+      hasBilling: true,
+      passExpiry: null,
+      storedBytes: 1,
+      deletedBytes: 0,
+      capBytes: 50 * GIGABYTE,
+      currentPlanId: null,
+      changeBlocked: null,
+    };
+    expect(parsePlanFacts({ facts: answer })?.monthUploadedBytes).toBeNull();
+    for (const bad of [-1, Number.NaN, "150", Infinity]) {
+      expect(
+        parsePlanFacts({ facts: { ...answer, monthUploadedBytes: bad } })
+          ?.monthUploadedBytes,
+      ).toBeNull();
+    }
+    expect(
+      parsePlanFacts({ facts: { ...answer, monthUploadedBytes: 7 } })
+        ?.monthUploadedBytes,
+    ).toBe(7);
+  });
+
+  it("degrades, never fails, when the month's uploads cannot be read: said aloud, answered null", async () => {
+    monthUploads = async () => {
+      throw new Error("rpc down");
+    };
+    const { status, facts: f } = await facts();
+    expect(status).toBe(200);
+    expect(f?.monthUploadedBytes).toBeNull();
+    expect(f?.storedBytes).toBe(3 * GIGABYTE);
+    expect(captureWarning).toHaveBeenCalledWith(
+      "billing",
+      "plan-facts: month uploads read failed",
+      { message: "rpc down" },
+    );
   });
 
   it("gives a pass holder the stacked cap and the expiry", async () => {

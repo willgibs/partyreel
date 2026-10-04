@@ -103,7 +103,7 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   it past the server action.
 - The `tier_type` enum carries an unused `max`: coerce a database tier with `toBillingTier()` (`max` becomes
   `pro`, anything unknown `free`) before indexing `tiers.ts`. Dropping an enum value is not worth its risk.
-- A Free profile's null `storage_cap_bytes` falls back to the `tier_limits()` default.
+- A Free or pass profile's null `storage_cap_bytes` falls back to its tier's default cap (`effectiveStorageCap`) on every surface that prints or checks a cap, the operator's Accounts list included; only a Pro's null is unmetered.
 - **A clip added to an event is an ordinary video:** `create_media*` meters it against the cap and the monthly meter
   like any upload, and the video gate refuses it on Free. The live reel and a clip kept on a device store nothing, so
   they cost nothing ([reel.md](reel.md)).
@@ -131,6 +131,12 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   clock), so the check it passed stays true. The backstops stay: the webhook does no usage check, and the 45-day
   over-cap grace catches what the check cannot see (a cancellation, a pass running out, a dashboard change, growth
   between the check and Stripe's confirm).
+- ★ **A smaller Pro size also carries a smaller uploads allowance, and that is words, never a refusal.** A host whose
+  month's uploads (`PlanFacts.monthUploadedBytes`: the ledger's month through `readHostMonthUploads`, whatever window
+  her own plan counts) have reached the target size's allowance reads, on that size's card, that new uploads (her
+  guests' too) would pause until the month turns (`uploadsPauseNote`): the webhook allows the switch, so
+  `checkPlanChange` stays storage's alone. Only a real change of allowance she may press carries it, and a failed
+  read omits the sentence, never the sheet.
 - **A Pro switch goes through `/api/stripe/change-plan`, never the general portal.** `/pricing` is static and
   tier-blind, so a Pro host's tap on a Pro size is refused at checkout (`already_subscribed`) and the button re-posts
   the same plan id to change-plan. After the subscription and storage checks, the route opens a portal session on
@@ -221,8 +227,9 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
 - **A Pro host's plan is her three sizes under one Monthly / Yearly toggle** (`pro-price-list.tsx`), each card's
   holds line led by the size's use (`holdsPhrase`, `components/app/pricing/holds.ts`, the pricing page's phrases' one
   home): it opens on her billing, the tag beside Yearly is computed from the price labels (`cadence.ts`, the smallest whole-month saving
-  across sizes), each card draws how full what she stores would make it, and the fit line reads at the billing on
-  show. `carry` still holds for a host choosing a first plan: one Pro size at one cadence beside Free.
+  across sizes), each card names its uploads (`uploadsPhrase`) and draws how full what she stores would make it, and
+  the fit line reads at the billing on show. The list is quiet, offering no move, until her plan is read
+  (`usePlanFacts`' `settled`); a read that fails keeps the Switches, since change-plan re-checks everything. `carry` still holds for a host choosing a first plan: one Pro size at one cadence beside Free.
 - ★ **An estimate always carries its camera.** `formatCapacity` appends `ESTIMATE_BASIS` ("at an iPhone's default
   camera settings") by default; `basis: false` is only for a surface that says it once beside the figures (the sheet's
   cards over one `ESTIMATE_BASIS_NOTE`, a table under its caption).

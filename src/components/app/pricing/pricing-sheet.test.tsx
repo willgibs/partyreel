@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -9,9 +9,11 @@ import {
   TIER_NAMES,
   planById,
   plansForTier,
+  uploadsPhrase,
 } from "@/lib/constants/tiers";
 
 import { PricingSheet, type PricingPlanFacts } from "./pricing-sheet";
+import { READ_PATIENCE_MS } from "./use-plan-facts";
 
 /**
  * WHAT THE IN-APP PRICING SURFACE IS FOR, never how it looks (a contract
@@ -58,11 +60,15 @@ const PRO_SIZES = plansForTier("pro");
 
 /** What `/api/stripe/plan-facts` would answer; null = the read fails (the Library). */
 let served: PlanFacts | null = null;
+/** A held read: the answer waits for it (the two seconds the real route takes when it asks Stripe). */
+let gate: Promise<void> | null = null;
 beforeEach(() => {
   served = null;
+  gate = null;
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: string) => {
+      if (gate) await gate;
       if (url !== "/api/stripe/plan-facts" || !served) {
         return { ok: false, json: async () => ({}) };
       }
@@ -82,6 +88,7 @@ function facts(over: Partial<PlanFacts>): PlanFacts {
     storedBytes: 0,
     deletedBytes: 0,
     capBytes: planById("free").storageBytes,
+    monthUploadedBytes: 0,
     currentPlanId: null,
     changeBlocked: null,
     ...over,
@@ -415,6 +422,270 @@ describe("a Pro host's six prices", () => {
     for (const el of dialog.querySelectorAll("[data-price-row]")) {
       expect(within(el as HTMLElement).queryByRole("button")).toBeNull();
     }
+  });
+});
+
+/**
+ * ★ A SIZE SAYS ITS UPLOADS, AND A SWITCH BELOW THIS MONTH'S SAYS WHAT THAT MEANS (red-team 52's LOW: "each size's
+ * card names its storage and estimate but never its uploads a month ... a Pro 1 TB host who has uploaded, say,
+ * 150 GB this month can switch to Pro 50 GB with no word"). Words only: the webhook allows the switch, so the
+ * Switch stays pressable and the storage guard stays storage's alone.
+ */
+describe("a size's uploads, and a switch below this month's", () => {
+  const PRO_1TB_HOST = (over: Partial<PlanFacts> = {}) =>
+    facts({
+      tier: "pro",
+      hasBilling: true,
+      storedBytes: 10 * GIGABYTE,
+      capBytes: planById("pro_1tb").storageBytes,
+      currentPlanId: "pro_1tb",
+      ...over,
+    });
+  const note = (dialog: HTMLElement, id: string) =>
+    row(dialog, id).querySelector('[data-note="uploads-pause"]');
+
+  it("★ names each size's uploads beside its room, at both billings", async () => {
+    served = PRO_1TB_HOST();
+    const dialog = openSheet({ plan: PRO });
+    await waitFor(() =>
+      expect(row(dialog, "pro_1tb").getAttribute("data-current")).toBe("true"),
+    );
+    for (const plan of plansForTier("pro", "month")) {
+      expect(
+        row(dialog, plan.id).querySelector('[data-note="uploads"]')
+          ?.textContent,
+      ).toBe(uploadsPhrase(plan));
+    }
+    await userEvent.click(cadence(dialog, "year"));
+    for (const plan of plansForTier("pro", "year")) {
+      expect(
+        row(dialog, plan.id).querySelector('[data-note="uploads"]')
+          ?.textContent,
+      ).toBe(uploadsPhrase(plan));
+    }
+    // Ladder A's three numbers, read from tiers.ts: 100, 200 and 500 GB a month.
+    expect(row(dialog, "pro_50_yr").textContent).toContain(
+      "100 GB of uploads a month",
+    );
+  });
+
+  it("names the uploads on the Free host's cards too: Free's own month and the Pro size she is offered", () => {
+    const dialog = openSheet();
+    expect(
+      dialog.querySelector('[data-plan="free"] [data-note="uploads"]')
+        ?.textContent,
+    ).toBe(uploadsPhrase(planById("free")));
+    expect(
+      dialog.querySelector(
+        `[data-plan="${PRO_SIZES[0].id}"] [data-note="uploads"]`,
+      )?.textContent,
+    ).toBe(uploadsPhrase(PRO_SIZES[0]));
+  });
+
+  it("★ a size whose allowance this month's uploads have reached says what a switch means, and still offers it", async () => {
+    served = PRO_1TB_HOST({ monthUploadedBytes: 150 * GIGABYTE });
+    const dialog = openSheet({ plan: PRO });
+    await waitFor(() => expect(note(dialog, "pro_50")).toBeTruthy());
+    expect(note(dialog, "pro_50")?.textContent).toContain("150 GB this month");
+    expect(note(dialog, "pro_50")?.textContent).toContain("100 GB a month");
+    expect(note(dialog, "pro_50")?.textContent).toMatch(
+      /until [A-Z][a-z]+ 1\./,
+    );
+    // Never a block: the switch is there to press, and the others carry no sentence.
+    expect(
+      within(row(dialog, "pro_50")).getByRole("button", { name: /switch/i }),
+    ).toBeEnabled();
+    expect(note(dialog, "pro_200")).toBeNull();
+    expect(note(dialog, "pro_1tb")).toBeNull();
+    // The same at the yearly prices.
+    await userEvent.click(cadence(dialog, "year"));
+    expect(note(dialog, "pro_50_yr")).toBeTruthy();
+    expect(note(dialog, "pro_200_yr")).toBeNull();
+    expect(note(dialog, "pro_1tb_yr")).toBeNull();
+  });
+
+  it("says nothing on her own size at the other billing: that switch changes no allowance", async () => {
+    // Pro 50 GB, 100 GB uploaded this month: the line is reached already, whatever she presses.
+    served = facts({
+      tier: "pro",
+      hasBilling: true,
+      storedBytes: 10 * GIGABYTE,
+      capBytes: planById("pro_50").storageBytes,
+      currentPlanId: "pro_50",
+      monthUploadedBytes: planById("pro_50").uploadsBytes,
+    });
+    const dialog = openSheet({ plan: PRO });
+    await waitFor(() =>
+      expect(row(dialog, "pro_50").getAttribute("data-current")).toBe("true"),
+    );
+    await userEvent.click(cadence(dialog, "year"));
+    expect(
+      within(row(dialog, "pro_50_yr")).getByRole("button", {
+        name: "Switch to yearly",
+      }),
+    ).toBeEnabled();
+    expect(note(dialog, "pro_50_yr")).toBeNull();
+  });
+
+  it("★ names the month the figure was read in, never the month the page was loaded in", async () => {
+    // The sheet stays mounted for as long as its page lives: loaded on September 30, opened on October 5.
+    vi.useFakeTimers({ toFake: ["Date"] });
+    try {
+      vi.setSystemTime(new Date(Date.UTC(2026, 8, 30, 12)));
+      served = PRO_1TB_HOST({ monthUploadedBytes: 150 * GIGABYTE });
+      const props = {
+        onOpenChange: () => {},
+        trigger: { kind: "plan" } as const,
+        plan: PRO,
+      };
+      const { rerender } = render(<PricingSheet open={false} {...props} />);
+      vi.setSystemTime(new Date(Date.UTC(2026, 9, 5, 12)));
+      rerender(<PricingSheet open {...props} />);
+      const dialog = await screen.findByRole("dialog");
+      await waitFor(() => expect(note(dialog, "pro_50")).toBeTruthy());
+      expect(note(dialog, "pro_50")?.textContent).toContain(
+        "until November 1.",
+      );
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("says nothing of uploads while this month's are not known, or inside every size", async () => {
+    served = PRO_1TB_HOST({ monthUploadedBytes: null });
+    const dialog = openSheet({ plan: PRO });
+    await waitFor(() =>
+      expect(row(dialog, "pro_1tb").getAttribute("data-current")).toBe("true"),
+    );
+    expect(dialog.querySelector('[data-note="uploads-pause"]')).toBeNull();
+  });
+
+  it("offers it only where a switch is offered: a size too small for what she stores has its own words", async () => {
+    served = PRO_1TB_HOST({
+      storedBytes: 70 * GIGABYTE,
+      monthUploadedBytes: 150 * GIGABYTE,
+    });
+    const dialog = openSheet({ plan: PRO });
+    await waitFor(() =>
+      expect(row(dialog, "pro_50").getAttribute("data-fits")).toBe("false"),
+    );
+    expect(note(dialog, "pro_50")).toBeNull();
+  });
+
+  it("★ a pass holder moving to Pro reads it on the Pro card she is offered", async () => {
+    served = facts({
+      tier: "event_pass",
+      hasBilling: true,
+      capBytes: planById("event_pass").storageBytes,
+      monthUploadedBytes: 120 * GIGABYTE,
+    });
+    const dialog = openSheet({ plan: PASS });
+    await waitFor(() =>
+      expect(
+        proCard(dialog).querySelector('[data-note="uploads-pause"]'),
+      ).toBeTruthy(),
+    );
+  });
+});
+
+/**
+ * ★ HER PLAN IS READ BEFORE THE SHEET OFFERS A MOVE (red-team 52's NIT: "the sheet's first open, before
+ * /api/stripe/plan-facts answers (2,066 ms here), is titled 'Your Pro plan' with 'Switch' on all three sizes, her
+ * own Pro 1 TB included"). A quiet state until the facts land; a read that fails keeps the old list.
+ */
+describe("a Pro host's first open, before her plan is read", () => {
+  const PRO_200_HOST = () =>
+    facts({
+      tier: "pro",
+      hasBilling: true,
+      capBytes: planById("pro_200").storageBytes,
+      currentPlanId: "pro_200",
+    });
+
+  it("★ draws her three sizes quietly, with no move offered and none marked hers, until the read lands", async () => {
+    let release!: () => void;
+    gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    served = PRO_200_HOST();
+    const dialog = openSheet({ plan: PRO });
+    expect(dialog.querySelectorAll("[data-price-row]")).toHaveLength(3);
+    expect(dialog.querySelectorAll("[data-reading]")).toHaveLength(3);
+    expect(dialog.querySelector("ul[aria-busy='true']")).not.toBeNull();
+    expect(
+      within(dialog).queryByRole("button", { name: /switch/i }),
+    ).toBeNull();
+    expect(dialog.querySelector("[data-current]")).toBeNull();
+    // The sizes themselves are there to read, uploads included.
+    expect(row(dialog, "pro_200").textContent).toContain(
+      uploadsPhrase(planById("pro_200")),
+    );
+    await act(async () => {
+      release();
+    });
+    await waitFor(() =>
+      expect(row(dialog, "pro_200").getAttribute("data-current")).toBe("true"),
+    );
+    expect(dialog.querySelectorAll("[data-reading]")).toHaveLength(0);
+    expect(dialog.querySelector("ul[aria-busy]")).toBeNull();
+    expect(
+      within(row(dialog, "pro_50")).getByRole("button", { name: /switch/i }),
+    ).toBeTruthy();
+    expect(within(row(dialog, "pro_200")).queryByRole("button")).toBeNull();
+  });
+
+  it("★ keeps the old list, every size with its Switch, when the read never comes (the change-plan route re-checks)", async () => {
+    served = null;
+    const dialog = openSheet({ plan: PRO });
+    await waitFor(() =>
+      expect(dialog.querySelectorAll("[data-reading]")).toHaveLength(0),
+    );
+    expect(
+      within(dialog).getAllByRole("button", { name: /switch/i }),
+    ).toHaveLength(3);
+  });
+
+  it("never leaves her waiting on a read that does not come: after a few seconds the list is offered as it stands", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    try {
+      gate = new Promise<void>(() => {});
+      const dialog = openSheet({ plan: PRO });
+      expect(dialog.querySelectorAll("[data-reading]")).toHaveLength(3);
+      await act(async () => {
+        vi.advanceTimersByTime(READ_PATIENCE_MS - 100);
+      });
+      expect(dialog.querySelectorAll("[data-reading]")).toHaveLength(3);
+      await act(async () => {
+        vi.advanceTimersByTime(200);
+      });
+      expect(dialog.querySelectorAll("[data-reading]")).toHaveLength(0);
+      expect(
+        within(dialog).getAllByRole("button", { name: /switch/i }),
+      ).toHaveLength(3);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("a second open reuses what the first read, with no quiet state at all", async () => {
+    served = PRO_200_HOST();
+    const props = {
+      onOpenChange: () => {},
+      trigger: { kind: "plan" } as const,
+      plan: PRO,
+    };
+    const { rerender } = render(<PricingSheet open {...props} />);
+    const dialog = screen.getByRole("dialog");
+    await waitFor(() =>
+      expect(row(dialog, "pro_200").getAttribute("data-current")).toBe("true"),
+    );
+    rerender(<PricingSheet open={false} {...props} />);
+    // The next read is held, as the real one is for two seconds.
+    gate = new Promise<void>(() => {});
+    rerender(<PricingSheet open {...props} />);
+    const again = screen.getByRole("dialog");
+    expect(again.querySelectorAll("[data-reading]")).toHaveLength(0);
+    expect(row(again, "pro_200").getAttribute("data-current")).toBe("true");
   });
 });
 

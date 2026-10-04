@@ -114,6 +114,17 @@ describe("buildLlmsTxt", () => {
     expect(txt).not.toMatch(/\bingress\b/i);
   });
 
+  // ★ Red-team 52's NIT: the pass's uploads window was spelled into a sentence that already had its term ("50 GB over
+  // its year of uploads ... covered about a year"). The term leads and the allowance's "its year" refers back to it.
+  it("says the pass's year once: its allowance never repeats the term it sits beside", () => {
+    const line = txt.split("\n").find((l) => l.startsWith("- Event Pass:"))!;
+    expect(line).toContain(
+      uploadsLabel(PLANS.find((p) => p.id === "event_pass")!),
+    );
+    expect(line).not.toMatch(/over its year of uploads/);
+    expect(line).not.toMatch(/over its year[^;.]*\babout a year\b/);
+  });
+
   it("includes the honest-limits section (the trust anchor)", () => {
     expect(txt).toContain("## When it is not");
   });

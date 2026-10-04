@@ -34,6 +34,7 @@ import {
   toBillingTier,
   uploadAllowance,
   uploadsLabel,
+  uploadsPhrase,
   videosAllowedForTier,
   withinLimit,
   withinStorage,
@@ -251,6 +252,30 @@ describe("uploadsLabel (the pricing table's Uploads row)", () => {
       "500 GB a month",
     ]);
     expect(uploadsLabel(planById("pro_1tb_yr"))).toBe("500 GB a month");
+  });
+});
+
+describe("uploadsPhrase (a plan card's own line)", () => {
+  it("says the same number and window as the table's cell, with what it counts", () => {
+    expect(uploadsPhrase(planById("free"))).toBe("300 MB of uploads a month");
+    expect(uploadsPhrase(planById("event_pass"))).toBe(
+      "50 GB of uploads over its year",
+    );
+    expect(plansForTier("pro").map(uploadsPhrase)).toEqual([
+      "100 GB of uploads a month",
+      "200 GB of uploads a month",
+      "500 GB of uploads a month",
+    ]);
+  });
+
+  it("★ never drifts from the cell: every plan's phrase is its label with the noun placed", () => {
+    for (const plan of PLANS) {
+      const [bytes, ...window] = uploadsLabel(plan).split(" ");
+      const [unit, ...rest] = window;
+      expect(uploadsPhrase(plan)).toBe(
+        `${bytes} ${unit} of uploads ${rest.join(" ")}`,
+      );
+    }
   });
 });
 

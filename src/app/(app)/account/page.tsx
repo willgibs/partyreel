@@ -345,7 +345,7 @@ export default async function AccountPage({
               <span className="font-medium text-foreground">
                 {planById("event_pass").name}
               </span>{" "}
-              covers one event, paid once:{" "}
+              one event, one payment, no subscription:{" "}
               {planById("event_pass").priceLabel.replace(" one-time", "")} for{" "}
               {formatBytes(planById("event_pass").storageBytes)}.
             </p>
