@@ -42,6 +42,8 @@ dev server at most; every production build takes turns through `scripts/build-lo
 | `dashboard-wiring` | Will's picks: events=menu (the Display menu kept on her account, Recent, search from 9, the table) and stage=lit | MERGED at `3b9e049c1` (gate 203 green); its migration APPLIED (`dashboard_display`, 20261004084757, Q32 safe as written, md5 c859e3a3, advisors 19/4/36); types and the seams next; his calls in the calls lab (S); pruned | Sonnet, 3137 | `a5e85465d0cc30de7` |
 | `redteam-52` | build 52's red-team (`e8d11584`): Ladder A on `/pricing`, the plan sheet as willg97 (Pro 1 TB), the Free words, the reel's tap, regressions | DONE 07:55Z: every number matches Ladder A (no "ingress" in 116 pages), the plan sheet, the reel's tap and the regressions PASS; **1 MEDIUM** (the pricing matrix's row explainers open by mouse and keyboard but never by a finger, while the subhead says to hover them: Uploads and Deleted unreadable on a phone), 3 LOWs (the plan sheet shows no uploads allowance and `checkPlanChange` checks storage only; a desk's mouse move raises the reel's controls and the click after hides them; `/admin/accounts` lists Free caps as Unlimited) and 6 NITs: all to `crumbs-64`, before milestone 36; ledger `../partyreel-wt/_scratch/redteam-52/ledger.txt` | Opus, Will's Chrome | `a2e373dc2ce9e647b` |
 | `hub-strip-wiring` | Will's picks: facts=strip on the hub's head; Q5, her Reel card ready before the develop, her reel over her hub | MERGED at `fd245c903` (gate 204 green; no migration); his calls in the calls lab (T); pruned | Sonnet, 3131 | `a432b7517d1b00d45` |
+| `crumbs-64` | red-team 52's findings before milestone 36: the pricing matrix's explainers by a finger (the MEDIUM), the plan sheet's uploads and a switch below this month's, the reel's desk click and the dock's open fill, admin's real caps, the NITs | RUNNING (cut at `1bf8a5854`) | Sonnet, 3131 | `a0cf21489f57fa1d6` |
+| `small-fixes` | E6 (a cancel asks, then offers Try again; a dropped connection names itself and what to do; downloads and uploads), Q2's spoken "to" in a date range, the name-only guest's hashvatar (`seedFor(guests.id)`) | RUNNING (cut at `1bf8a5854`) | Sonnet, 3137 | `a96e693860630af2e` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Its
 model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`. From another session, respawn it from
@@ -114,8 +116,8 @@ Q30 folded in): read it first. Its spine:
 9. **Pacing (Will, 2026-10-04 07:55Z: never pause overnight):** the boards' twelve helpers drawing at once burned
    the 5-hour window about 30 points an hour (60% at 08:44Z; it resets 11:40Z). The weekly is the night's real wall: 72%,
    rising about 0.29 for each 5-hour point, so about one more window's worth remains before Will switches accounts.
-   - Before 11:40Z, no new lane; the boards finish with their own helpers.
-   - From 11:40Z, the wirings run two at a time, Sonnet where they can.
+   - From 11:45Z (the window reset): brand-r1 resumed; crumbs-64 and small-fixes cut (Sonnet); then graphite-wiring
+     and styles-wiring, then arrival-wiring, then build 53 and red-team 53. The weekly was 80% at 11:45Z.
    - At 90% of a window, the running lanes are asked to commit and pause.
    - From 96% weekly, nothing new starts and every lane parks at a commit.
    - `get_usage` at every wake.
