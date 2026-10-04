@@ -67,7 +67,34 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **Q1 The plan ids and env keys: renamed, since the old names would lie** (built). `pro_100` / `pro_500` / `pro_2tb`
+  (and `_yr`) become `pro_50` / `pro_200` / `pro_1tb`, and `STRIPE_PRICE_PRO_100` / `_500` / `_2TB` (and `_YR`)
+  become `STRIPE_PRICE_PRO_50` / `_200` / `_1TB`: a key named 100 GB holding a 50 GB price misleads every log, test and
+  Stripe metadata line for good. The pass's two keys keep their names (they name no size) and change value. The new
+  keys also let both generations live side by side in every Vercel environment: milestone 35 keeps reading the old
+  keys until the next milestone, so nothing about partyreel.com moves before it.
+- **Q2 The pass's year as the meter's window: from its purchase, counted on the pass** (built). Each `event_passes` row
+  already owns its paid window `[start_at, expires_at)`; its uploads count on the row itself
+  (`event_passes.uploaded_bytes`), so the year is exactly the one she paid for (a renewal's year opens on its own row at
+  zero), and a month's uploads never ration her event's night. The event's date is the wrong anchor: it can be any day
+  (or none, or a range), move, or come after the purchase, and a pass is bought for an account, not an event. A stack
+  counts each upload on the live pass that ends soonest, so a pass that ends takes its count with it: generous at the
+  edge (a stack's later pass can see up to a pass's worth more), never a false refusal, inside the pass's cost room
+  (its 50 GB carries ≈356 GB a year at 1.2x).
+- **Q3 A test subscription on an old price** (one exists: a Pro profile on the retired 500 GB monthly price, TEST).
+  After the env swap its price maps to no plan, so its renewals and updates leave the profile untouched (500 GB; its
+  uploads take the smallest Ladder A size holding it, 500 GB a month), a deletion still drops it to Free, and the plan
+  sheet's change refuses it (`foreign_price`). Recommended: the Orchestrator cancels it in Stripe TEST once the new
+  prices exist (the webhook drops the profile to Free whatever its price), and Will's checkout walk subscribes on a
+  Ladder A price; the change-plan portal configuration takes the six new prices beside the six old until the next
+  milestone, then drops the old.
+- **Q4 The one-way doors** (nothing crosses before launch; nothing is sold): at launch every number here closes:
+  each price, each storage size, each uploads allowance (published now), the pass's year and its $19 renewal once
+  sold, Free's 100 MB and 180-day rest, the yearly x10, "no guest limit" and "unlimited events". Built as decided.
+- **Q5 The meter's wire names stay** (`at_monthly_cap`, the meter's `'monthly'` reason): they now mean the uploads
+  allowance whatever its window, a pass's year included. Milestone 35 reads them by name, so renaming them now would
+  move its refusals from the presign to the complete; a ROADMAP line renames them after the next milestone. The two
+  presign refusals lose "for the month" (a pass's window is its year).
 
 ## System-doc edits (in place, owned facts only)
 
@@ -89,3 +116,10 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am
+
+- WIP pushed for the Advisor's read: the migration `supabase/migrations/20261004100000_ladder_a.sql` is whole (the
+  drift read clean on all eight bodies it replaces or drops; its rolled-back proof RED 0/10 without it, GREEN 10/10
+  with it, nothing persisted), with `tiers.ts`, `tier-limits-parity.test.ts`, `tiers-sql.test.ts` and the SQL pins it
+  reshapes. Next: the pricing page and sheet, every marketed number, help and blog, the docs, the gate.

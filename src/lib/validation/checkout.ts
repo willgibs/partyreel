@@ -10,12 +10,12 @@ import type { PlanId } from "@/lib/constants/tiers";
  * as an unknown id at both doors.
  */
 export const PRO_PLAN_IDS = [
-  "pro_100",
-  "pro_500",
-  "pro_2tb",
-  "pro_100_yr",
-  "pro_500_yr",
-  "pro_2tb_yr",
+  "pro_50",
+  "pro_200",
+  "pro_1tb",
+  "pro_50_yr",
+  "pro_200_yr",
+  "pro_1tb_yr",
 ] as const satisfies readonly PlanId[];
 
 export type ProPlanId = (typeof PRO_PLAN_IDS)[number];
