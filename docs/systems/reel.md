@@ -99,12 +99,23 @@ The reel stores nothing, so the server says only WHETHER a viewer's album has on
   writes the new one in that commit: `useReelParam().mode` is right a pass late there, so what is told to another
   component or acted on for good reads `reelOfAddress()` when it acts, never a render's copy (the album's word to the
   head, `viewAsked`, is the one that matters: the curtain stands on it, the owner's and a returning guest's).
-  - **The chrome**: a slim glass bar at rest (play and progress) that pointer movement, or a tap on touch, grows into
-    the dock (a `clip-path` morph, [`live-reel.css`](../../src/components/guest/reel/live-reel.css), instant under
-    reduced motion); a resting pointer settles it back (2.4 s; 4.2 s after a touch). Every control has a tooltip.
+  - **The chrome**: a slim glass bar at rest (play and progress) that pointer movement, or a press on the bar, grows
+    into the dock (a `clip-path` morph, [`live-reel.css`](../../src/components/guest/reel/live-reel.css), instant under
+    reduced motion); it settles back on its own (2.4 s after a pointer, 4.2 s after a touch), never while paused,
+    under reduced motion, with a menu open or with a key's focus in it (`:focus-visible`: a press leaves its control
+    focused, and that must not hold the dock up). Every control has a tooltip.
+    - ★ **A click or tap anywhere on the picture is the bar's own press, and the next one puts the dock away: the
+      picture never opens the photo viewer** (a tap is a viewer reaching for the controls, and a viewer opened by it
+      is a second layer between her and them). One toggle, `toggleChrome`, serves the bar, the timeline and the
+      picture. The picture is a SIBLING of every control, never their ancestor, so a press on a control acts on that
+      control and never reaches it (keep the handler on the picture, never up on the view); a press that begins over
+      an open menu only dismisses it; while the screen's pill is up, a press anywhere is the pill's alone.
+    - ★ **Focus moves to the view when its half of the pane goes quiet**: the dock's controls at rest and the bar
+      while the dock is up are `inert`, which drops their focus onto `body`, where Space and the arrows stop reaching
+      the view, so the commit that quiets a half puts the focus on the view.
   - **The dock**: one row of icon buttons (play/pause, Include videos, Style, Hold, Show the code from 1024px, Add
     yours), then "Make your own" as the single primary, only with a creator. Space pauses, Escape closes, the arrows
-    step a moment (the player's `step`; the clock never moves).
+    step a moment (the player's `step`; the clock never moves), and any other key brings the controls up.
   - **The owner's extras**: at 1024px and up Play on a screen opens `?reel=screen` in a new tab; the Style list's
     footer reads "Only on this device, for now" with Set for everyone (`setReelDefaults`, below), and "Everyone sees
     this look" once they match; Close goes back where the host came from when there is history, else to the album.
@@ -117,11 +128,9 @@ The reel stores nothing, so the server says only WHETHER a viewer's album has on
     left for one hold; a burst stacks into a short feed of limited depth that collapses ("Theo +12").
   - **The code** (Show the code): a white plate bottom right, the event's QR in the host's preset, "Scan to add yours"
     and the readable address. No event name on screen.
-  - A tap on the picture pauses and opens the item in the shared media viewer, grown out of the frame (`origin` of kind
-    `reel` with its rect and no `returnTo`), a playing video carrying on from the reel's moment (`startAt`). Reduced
-    motion holds the first frame with the dock up. The loop never announces its seam. Twelve failed frames or stills
-    send ONE Sentry report per view ("live reel: frames failing"), and every failure feeds the provider's watchdog,
-    which re-mints only the failing ids.
+  - Reduced motion holds the first frame with the dock up. The loop never announces its seam. Twelve failed frames or
+    stills send ONE Sentry report per view ("live reel: frames failing"), and every failure feeds the provider's
+    watchdog, which re-mints only the failing ids.
   - **Video** plays as motion, silent, decoded on the viewer's device from a byte-range window of the original
     ([`engine/video/window-reader.ts`](../../src/lib/reel/engine/video/window-reader.ts)); every failure is the poster.
     Nothing is transcoded or stored.

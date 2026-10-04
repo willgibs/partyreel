@@ -2,14 +2,15 @@
  * THE REEL'S FULL-SCREEN VIEW, WHICH IS ALSO THE WALL, pinned as behaviour.
  *
  * - The chrome: the dock is up on arrival and settles to the slim bar at rest; a pointer's
- *   movement, or a tap on the bar, brings it back; every control is labelled (the tooltips hang off
- *   those labels).
+ *   movement, a press on the bar, or a click or tap anywhere on the picture (the bar's own press,
+ *   never the photograph's) brings it back, and the next press on the picture puts it away; every
+ *   control is labelled (the tooltips hang off those labels).
  * - The controls: one row of icon buttons, Add yours an icon, "Make your own" the one primary
  *   beneath, only with a creator AND the host's plan in hand (on a browser that cannot encode it
  *   stays, greyed, and a tap bubbles up why); Include videos only where the album holds a video.
  * - The creator: opened from Make your own, or on arrival when the tile's line asked for it, and
  *   handed everything it needs (the event's name, who is making it, the plan's facts).
- * - The keyboard: Space pauses, Escape closes, the arrows step.
+ * - The keyboard: Space pauses, Escape closes, the arrows step, Enter brings the controls up.
  * - The page under it cannot scroll while it is open.
  * - The hold (3 s default) and the style are the viewer's own, kept on this device and handed to the
  *   engine as a factor per mood.
@@ -36,7 +37,6 @@ const h = vi.hoisted(() => ({
   live: null as unknown,
   player: null as null | Record<string, unknown>,
   step: vi.fn(),
-  moment: vi.fn((): unknown => null),
   captureWarning: vi.fn(),
   canFullscreen: vi.fn(() => true),
   enterFullscreen: vi.fn(async () => true),
@@ -48,7 +48,7 @@ const h = vi.hoisted(() => ({
     release: vi.fn(),
     wanted: vi.fn(() => true),
   },
-  lightbox: null as null | Record<string, unknown>,
+  viewerMounted: false,
   support: "yes" as "checking" | "yes" | "no",
 }));
 
@@ -58,10 +58,7 @@ vi.mock("@/components/guest/gallery-live", () => ({
 vi.mock("@/lib/reel/engine/player-live", () => ({
   LiveReelPlayer: (props: Record<string, unknown>) => {
     h.player = props;
-    useImperativeHandle(props.ref as never, () => ({
-      step: h.step,
-      moment: h.moment,
-    }));
+    useImperativeHandle(props.ref as never, () => ({ step: h.step }));
     const onClipChange = props.onClipChange as (i: LiveMediaItem) => void;
     const first = (
       props.source as { itemFor: (id: string) => LiveMediaItem }
@@ -79,14 +76,13 @@ vi.mock("@/components/app/styled-qr", () => ({
     <div data-testid="qr" data-value={value} />
   ),
 }));
+// The photo viewer, stubbed so that anything of the reel's that mounted it would show: the reel never
+// opens it (a tap is the chrome's, see "a tap on the picture").
 vi.mock("@/components/shared/media-lightbox.lazy", () => ({
-  MediaLightboxLazy: (props: Record<string, unknown>) => {
-    h.lightbox = props;
-    return props.index === null ? null : <div data-testid="lightbox" />;
+  MediaLightboxLazy: () => {
+    h.viewerMounted = true;
+    return <div data-testid="lightbox" />;
   },
-}));
-vi.mock("@/components/likes/likes-provider", () => ({
-  LikesProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 vi.mock("@/lib/observability/sentry", () => ({
   captureWarning: (...args: unknown[]) => h.captureWarning(...args),
@@ -194,14 +190,26 @@ function renderView(props: Partial<Props> = {}) {
 }
 
 const dock = () => document.querySelector("[data-reel-dock]");
+const picture = () =>
+  document.querySelector<HTMLElement>("[data-reel-picture]")!;
+const bar = () =>
+  screen.getByRole("button", { name: "Show the reel's controls" });
+// The reel's own dialog is the only one there is: nothing a press on the picture could open stands over it.
+const dialogs = () => document.querySelectorAll('[role="dialog"]');
+/**
+ * One press as a pointer makes it: its pointerdown (which names the pointer), then its click, which
+ * counts one (a click with no pointer behind it, a keyboard's, reads `detail` 0).
+ */
+function press(el: Element, pointerType: "mouse" | "touch" | "pen" = "mouse") {
+  fireEvent.pointerDown(el, { pointerType });
+  fireEvent.click(el, { detail: 1 });
+}
 
 beforeEach(() => {
   h.live = live();
   h.player = null;
-  h.lightbox = null;
+  h.viewerMounted = false;
   h.step.mockClear();
-  h.moment.mockReset();
-  h.moment.mockReturnValue(null);
   h.captureWarning.mockClear();
   h.canFullscreen.mockReturnValue(true);
   h.enterFullscreen.mockClear();
@@ -237,6 +245,65 @@ describe("the chrome (the thin bar)", () => {
     expect(dock()).toHaveAttribute("data-state", "up");
     fireEvent.click(screen.getByRole("button", { name: "Hide the controls" }));
     expect(dock()).toHaveAttribute("data-state", "rest");
+  });
+
+  it("a pointer's press on a control leaves the dock free to rest, though the control keeps the focus", () => {
+    vi.useFakeTimers();
+    renderView();
+    // A press focuses the control it pressed, and that is no reason to hold the dock up: jsdom (like a
+    // browser, for a press) does not call that focus visible.
+    act(() => screen.getByRole("button", { name: "Pause" }).focus());
+    expect(dock()).toHaveAttribute("data-state", "up");
+    act(() => vi.advanceTimersByTime(2600));
+    expect(dock()).toHaveAttribute("data-state", "rest");
+  });
+
+  it("a key's focus holds the dock up until it leaves, then it rests", () => {
+    vi.useFakeTimers();
+    const matches = Element.prototype.matches;
+    const keyed = vi
+      .spyOn(Element.prototype, "matches")
+      .mockImplementation(function (this: Element, selector: string) {
+        return selector === ":focus-visible"
+          ? true
+          : matches.call(this, selector);
+      });
+    try {
+      renderView();
+      const pause = screen.getByRole("button", { name: "Pause" });
+      act(() => pause.focus());
+      act(() => vi.advanceTimersByTime(10_000));
+      expect(dock()).toHaveAttribute("data-state", "up");
+      act(() => pause.blur());
+      act(() => vi.advanceTimersByTime(2600));
+      expect(dock()).toHaveAttribute("data-state", "rest");
+    } finally {
+      keyed.mockRestore();
+    }
+  });
+
+  it("keeps the focus on the view when the half it was in goes quiet, so Space still pauses", () => {
+    vi.useFakeTimers();
+    renderView();
+    const content = document.querySelector<HTMLElement>(
+      "[data-live-reel-view]",
+    )!;
+    // A pointer's press leaves the control it pressed focused; when the dock rests its controls go
+    // inert, which a browser answers by dropping that focus onto the page's body.
+    act(() => screen.getByRole("button", { name: "Pause" }).focus());
+    act(() => vi.advanceTimersByTime(2600));
+    expect(dock()).toHaveAttribute("data-state", "rest");
+    expect(document.activeElement).toBe(content);
+    fireEvent.keyDown(document.activeElement!, { key: " " });
+    expect(h.player?.paused).toBe(true);
+    // The same when the bar holds it and the press that opens the dock turns the bar inert.
+    fireEvent.keyDown(content, { key: " " });
+    act(() => vi.advanceTimersByTime(2600));
+    expect(dock()).toHaveAttribute("data-state", "rest");
+    act(() => bar().focus());
+    press(bar());
+    expect(dock()).toHaveAttribute("data-state", "up");
+    expect(document.activeElement).toBe(content);
   });
 
   it("labels every control: play, style, hold, the code, Add yours, and Close", () => {
@@ -403,6 +470,29 @@ describe("the keyboard", () => {
     fireEvent.keyDown(content, { key: "Escape" });
     expect(props.onClose).toHaveBeenCalled();
   });
+
+  it("Enter brings the controls up and opens nothing; on a control it is that control's own press", () => {
+    vi.useFakeTimers();
+    renderView();
+    const content = document.querySelector<HTMLElement>(
+      "[data-live-reel-view]",
+    )!;
+    content.focus();
+    act(() => vi.advanceTimersByTime(2600));
+    expect(dock()).toHaveAttribute("data-state", "rest");
+    fireEvent.keyDown(content, { key: "Enter" });
+    expect(dock()).toHaveAttribute("data-state", "up");
+    // It neither pauses the reel nor puts the controls away, and nothing opens over it.
+    fireEvent.keyDown(content, { key: "Enter" });
+    expect(dock()).toHaveAttribute("data-state", "up");
+    expect(h.player?.paused).toBe(false);
+    expect(h.viewerMounted).toBe(false);
+    expect(dialogs()).toHaveLength(1);
+    // Space on a control is that control's press and never the view's pause.
+    const play = screen.getByRole("button", { name: "Pause" });
+    fireEvent.keyDown(play, { key: " " });
+    expect(h.player?.paused).toBe(false);
+  });
 });
 
 describe("the page under it", () => {
@@ -502,68 +592,169 @@ describe("a view already open follows the event going live (build 10's red-team:
   });
 });
 
-describe("a tap on the picture (a tap opens the viewer)", () => {
-  it("pauses and opens the photograph on screen in the media viewer", () => {
+/**
+ * A tap on the picture used to pause the reel and open the photograph in the shared viewer, grown out
+ * of the frame and carrying a video on from the reel's moment. That was reshaped on purpose: it made
+ * the reel's own controls the hardest thing to reach (a tap meant to bring them up opened a second
+ * layer, whose X landed on the picture that opened it again). What those four tests pinned (which clip
+ * the viewer opened on, the frame it grew from, a video's moment) died with the viewer; their one
+ * lasting scar is that a tap must not pause the reel or open anything over it.
+ */
+describe("a tap on the picture (the bar's own press, never the photograph's)", () => {
+  it("brings the controls up, and the next tap puts them away", () => {
+    vi.useFakeTimers();
     renderView();
-    fireEvent.click(document.querySelector("[data-reel-picture]")!);
-    expect(screen.getByTestId("lightbox")).toBeInTheDocument();
-    expect(h.lightbox?.index).toBe(0);
-    expect(h.player?.paused).toBe(true);
+    act(() => vi.advanceTimersByTime(2600));
+    expect(dock()).toHaveAttribute("data-state", "rest");
+    press(picture());
+    expect(dock()).toHaveAttribute("data-state", "up");
+    press(picture());
+    expect(dock()).toHaveAttribute("data-state", "rest");
+    press(picture());
+    expect(dock()).toHaveAttribute("data-state", "up");
   });
 
-  it("opens the clip the player says is on screen", () => {
+  it("never pauses the reel and never opens the photograph", () => {
+    vi.useFakeTimers();
     renderView();
-    h.moment.mockReturnValue({ clipId: "m2", videoSec: null });
-    fireEvent.click(document.querySelector("[data-reel-picture]")!);
-    expect(h.lightbox?.index).toBe(1);
+    act(() => vi.advanceTimersByTime(2600));
+    press(picture());
+    press(picture());
+    press(picture(), "touch");
+    expect(h.player?.paused).toBe(false);
+    expect(h.viewerMounted).toBe(false);
+    expect(screen.queryByTestId("lightbox")).toBeNull();
+    expect(dialogs()).toHaveLength(1);
+    // And the reel is still the one dialog, with its view in place.
+    expect(document.querySelector("[data-live-reel-view]")).not.toBeNull();
   });
 
-  it("grows the viewer out of the frame, and a video carries on from the reel's moment", () => {
-    h.live = live({ items: [item(1, { type: "video" }), item(2), item(3)] });
+  // The bar's press and the picture's tap are one press: the same controls, the same rest.
+  const WAYS: [string, () => HTMLElement][] = [
+    ["the bar's press", bar],
+    ["a tap on the picture", picture],
+  ];
+  it.each(WAYS)(
+    "%s brings the controls up and they rest on their own: a pointer's 2.4 s, a finger's 4.2 s",
+    (_way, target) => {
+      vi.useFakeTimers();
+      renderView();
+      act(() => vi.advanceTimersByTime(2600));
+      expect(dock()).toHaveAttribute("data-state", "rest");
+      // A pointer's click.
+      press(target(), "mouse");
+      expect(dock()).toHaveAttribute("data-state", "up");
+      act(() => vi.advanceTimersByTime(2300));
+      expect(dock()).toHaveAttribute("data-state", "up");
+      act(() => vi.advanceTimersByTime(200));
+      expect(dock()).toHaveAttribute("data-state", "rest");
+      // A finger's tap, which is given longer.
+      press(target(), "touch");
+      expect(dock()).toHaveAttribute("data-state", "up");
+      act(() => vi.advanceTimersByTime(4100));
+      expect(dock()).toHaveAttribute("data-state", "up");
+      act(() => vi.advanceTimersByTime(200));
+      expect(dock()).toHaveAttribute("data-state", "rest");
+    },
+  );
+
+  it("a click no pointer made (a keyboard's, a screen reader's) gets the finger's longer rest", () => {
+    vi.useFakeTimers();
     renderView();
-    const picture = document.querySelector<HTMLElement>("[data-reel-picture]")!;
-    vi.spyOn(picture, "getBoundingClientRect").mockReturnValue({
-      x: 0,
-      y: 0,
-      left: 0,
-      top: 0,
-      right: 1440,
-      bottom: 900,
-      width: 1440,
-      height: 900,
-      toJSON: () => ({}),
-    } as DOMRect);
-    h.moment.mockReturnValue({ clipId: "m1", videoSec: 2.5 });
-    fireEvent.click(picture);
-    expect(h.lightbox?.origin).toEqual({
-      kind: "reel",
-      rect: expect.objectContaining({ width: 1440, height: 900 }),
+    act(() => vi.advanceTimersByTime(2600));
+    // `detail` 0 is how a click that was not a pointer's reads.
+    fireEvent.click(picture(), { detail: 0 });
+    expect(dock()).toHaveAttribute("data-state", "up");
+    act(() => vi.advanceTimersByTime(4100));
+    expect(dock()).toHaveAttribute("data-state", "up");
+    act(() => vi.advanceTimersByTime(200));
+    expect(dock()).toHaveAttribute("data-state", "rest");
+  });
+
+  it("a pointer's movement still brings the controls up, after a tap put them away", () => {
+    vi.useFakeTimers();
+    renderView();
+    press(picture());
+    expect(dock()).toHaveAttribute("data-state", "rest");
+    fireEvent.pointerMove(document.querySelector("[data-live-reel-view]")!, {
+      pointerType: "mouse",
     });
-    // No `returnTo`: the way out lands back in the frame.
-    expect(h.lightbox?.origin).not.toHaveProperty("returnTo");
-    expect(h.lightbox?.startAt).toBe(2.5);
+    expect(dock()).toHaveAttribute("data-state", "up");
+    // A finger moving over the picture is no pointer's movement.
+    press(picture());
+    fireEvent.pointerMove(document.querySelector("[data-live-reel-view]")!, {
+      pointerType: "touch",
+    });
+    expect(dock()).toHaveAttribute("data-state", "rest");
   });
 
-  it("a photograph carries no moment, and a frame with no size fades in", () => {
+  it("never reaches a control: a press that lands on one acts on that control and leaves the chrome as it was", () => {
     renderView();
-    const picture = document.querySelector<HTMLElement>("[data-reel-picture]")!;
-    // A frame not laid out yet is no box to grow from.
-    vi.spyOn(picture, "getBoundingClientRect").mockReturnValue({
-      x: 0,
-      y: 0,
-      left: 0,
-      top: 0,
-      right: 0,
-      bottom: 0,
-      width: 0,
-      height: 0,
-      toJSON: () => ({}),
-    } as DOMRect);
-    h.moment.mockReturnValue({ clipId: "m1", videoSec: null });
-    fireEvent.click(picture);
-    expect(h.lightbox?.origin).toEqual({ kind: "reel", rect: null });
-    expect(h.lightbox?.startAt).toBeUndefined();
+    expect(dock()).toHaveAttribute("data-state", "up");
+    press(screen.getByRole("button", { name: "Pause" }));
+    expect(h.player?.paused).toBe(true);
+    expect(dock()).toHaveAttribute("data-state", "up");
+    // The dock's own pane (the gaps between its controls) is chrome too, never the picture.
+    press(dock()!);
+    expect(dock()).toHaveAttribute("data-state", "up");
+    press(screen.getByRole("button", { name: "Close" }));
+    expect(dock()).toHaveAttribute("data-state", "up");
   });
+
+  it("a paused reel keeps its controls up by itself, and a tap still puts them away on purpose", () => {
+    vi.useFakeTimers();
+    renderView();
+    fireEvent.click(screen.getByRole("button", { name: "Pause" }));
+    act(() => vi.advanceTimersByTime(10_000));
+    expect(dock()).toHaveAttribute("data-state", "up");
+    press(picture());
+    expect(dock()).toHaveAttribute("data-state", "rest");
+    press(picture());
+    expect(dock()).toHaveAttribute("data-state", "up");
+    act(() => vi.advanceTimersByTime(10_000));
+    expect(dock()).toHaveAttribute("data-state", "up");
+  });
+
+  it("under reduced motion the controls never rest by themselves, and a tap still puts them away on purpose", () => {
+    setReducedMotion(true);
+    vi.useFakeTimers();
+    renderView();
+    act(() => vi.advanceTimersByTime(10_000));
+    expect(dock()).toHaveAttribute("data-state", "up");
+    press(picture());
+    expect(dock()).toHaveAttribute("data-state", "rest");
+    act(() => vi.advanceTimersByTime(10_000));
+    expect(dock()).toHaveAttribute("data-state", "rest");
+    press(picture());
+    expect(dock()).toHaveAttribute("data-state", "up");
+    act(() => vi.advanceTimersByTime(10_000));
+    expect(dock()).toHaveAttribute("data-state", "up");
+  });
+
+  it.each(["mouse", "touch"] as const)(
+    "a %s's press that dismisses a menu is only that",
+    async (pointer) => {
+      renderView();
+      fireEvent.pointerDown(screen.getByRole("button", { name: /^Style: / }), {
+        ctrlKey: false,
+        button: 0,
+      });
+      expect(screen.getByRole("menu")).toBeInTheDocument();
+      // Radix starts listening for a press outside the menu one task after it opens.
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+      await act(async () => {
+        press(picture(), pointer);
+      });
+      expect(screen.queryByRole("menu")).toBeNull();
+      // The menu went and the controls stayed: one press, one effect.
+      expect(dock()).toHaveAttribute("data-state", "up");
+      // The next press is a tap on the picture again.
+      press(picture(), pointer);
+      expect(dock()).toHaveAttribute("data-state", "rest");
+    },
+  );
 });
 
 describe("the arrivals (the arrival chip)", () => {
@@ -611,16 +802,24 @@ describe("on a screen (the view is the wall)", () => {
     );
   });
 
-  it("a press anywhere fills the screen and keeps it awake, and opens nothing else", async () => {
+  it("a press anywhere fills the screen and keeps it awake, and is only that; after it a tap is the chrome's like anywhere", async () => {
     renderView({ mode: "screen" });
+    expect(dock()).toHaveAttribute("data-state", "up");
     await act(async () => {
-      fireEvent.click(document.querySelector("[data-reel-picture]")!);
+      press(picture());
     });
     expect(h.enterFullscreen).toHaveBeenCalled();
     expect(h.wake.acquire).toHaveBeenCalled();
-    // The press was the pill's, not the media viewer's.
-    expect(screen.queryByTestId("lightbox")).toBeNull();
+    // The press was the pill's: the controls stand as they did and nothing opened over the reel.
+    expect(dock()).toHaveAttribute("data-state", "up");
+    expect(h.viewerMounted).toBe(false);
+    expect(dialogs()).toHaveLength(1);
     expect(document.querySelector("[data-reel-fill]")).toBeNull();
+    // The pill's press is spent, so the next one is the bar's own press, as on any other surface.
+    press(picture());
+    expect(dock()).toHaveAttribute("data-state", "rest");
+    press(picture());
+    expect(dock()).toHaveAttribute("data-state", "up");
   });
 
   it("leaving fullscreen never pauses it or lets go of the screen: the pill simply returns", async () => {
