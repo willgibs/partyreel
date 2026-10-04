@@ -36,8 +36,8 @@ the alias together; desk 4 is brand r1 alone; then the small moments and the bra
   robots, the sitemap and llms.txt all 200 with no console error or exception; the lab 404; frame-ancestors, the frame
   header, HSTS and nosniff on both projects; the admin domain at its login; the cron routes 401 to a stranger). Its
   crons: the purge at 04:00 UTC and the spend watch at 05:00.
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 52 (`e8d11584`, 2026-10-04):
-  Ladder A, the reel's tap and desk 2's Drive board; red-team 52 walked it (one MEDIUM, fixed by crumbs-64).
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 53 (`31a73a46`, 2026-10-04
+  14:35Z): round 15's wirings on Ladder A and trash in storage, desk 2's Drive board unchanged; red-team 53 walks it.
   Vercel installs with pnpm 9.14.4, `package.json`'s `packageManager`.
 - **The shared database** runs every migration through 2026-10-04, each by protocol: round 13's
   (`approval_never_with_a_develop`, `phone_copy`, `event_end_date`, `spend_watch`, `event_dates_finite`,
