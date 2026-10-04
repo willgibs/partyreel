@@ -826,9 +826,13 @@ a Change. The typed name also rides the code request as `DOOR_NAME_KEY`, so a ma
   pip never blinks on a return. Two sockets and two joins on the wire after a rejoin are supabase-js's own, and
   harmless.
 - **The conditional poll** (the shared [`use-live-poll.ts`](../../src/lib/shared/use-live-poll.ts)): its cadence
-  keys solely off the channel state, **60 s** while `SUBSCRIBED` (a safety net) and **12 s** when the socket is down;
-  it stops while the tab is hidden (and never starts in a tab that opens hidden) and polls once, at once, when it is
-  shown, the hidden tab's one catch-up. Every poll sends `If-None-Match`; a quiet album answers a **bare 304** having
+  keys off the channel state and whether anyone is at the page. While `SUBSCRIBED` it is a safety net at **60 s**,
+  resting at **5 minutes** after ten untouched minutes and **stopping** after two untouched hours (a press, a scroll, a
+  key or a return wakes it, asking at once; the reel's `?reel=screen` rests but never stops); with the socket down it
+  is **12 s**, slowing to 60 s after a minute with nothing new and back on a change. It stops while the tab is hidden
+  (and never starts in a tab that opens hidden) and polls once, at once, when it is shown, the hidden tab's one
+  catch-up. ★ A stopped net leaves the links on screen to age (`refreshAged` rides each sync): the next ring's sync,
+  or a touch's, re-mints them. Every poll sends `If-None-Match`; a quiet album answers a **bare 304** having
   read one row, its version; a change answers the DELTA since the version this device holds, merged by id and checked
   against the server's count read in the same snapshot (a mismatch heals at once with a fresh manifest, never drawn).
   ★ A version below the album's WATERMARK answers a fresh manifest too: the purge cron prunes a purged item's change

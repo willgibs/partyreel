@@ -73,18 +73,23 @@ Vercel bills every call (an invocation) and its Active CPU, and Hobby stops ever
 invocations in a rolling 30 days. ★ We scale by the event, not the user: every poll, prefetch and proxy run is
 multiplied by every lit phone in the room.
 - **What counts as a call:** the proxy, on every request its matcher takes and before the CDN (a static page it
-  matches still costs one); then a dynamic page or its RSC, a route handler or a Server Function, one more. Static
-  files, `/_next/image` and prerendered pages are the CDN's.
+  matches still costs one), which is only a page that renders a session, its RSC and prefetches included, and every
+  path on the admin host (`src/proxy.ts` says why); then a dynamic page or its RSC, a route handler or a Server
+  Function, one more. Static files, `/_next/image` and prerendered pages are the CDN's. ★ An API route meets an
+  expired token itself and refreshes it through `lib/supabase/server.ts`, whose cookie writes land on its response;
+  a page that renders a session must keep the proxy before it, since a render cannot write the refreshed cookie.
 - **The rule:** a change that adds a call per poll, per page load or per photo is a regression even when every page
   looks right. `pnpm compute:model --port <yours>` (`scripts/compute-model/`, usage in `run.mjs`'s head) plays each
   guest's, visitor's and crawler's actions on a local production build, counts their calls and CPU, and fails past
   `budget.json`. Run it at milestones and with any change to the matcher, a poll, a prefetch or a client fetch; a
   lever that lands lowers its lines.
-- **The headline (2026-10-04, `model.mjs` holds the assumptions):** a 100-guest wedding is ≈56,000 calls, 17 to 28%
-  of Hobby's month of CPU (at 44 ms a call, or calibrated per call); half are lit albums answering other guests'
-  uploads (a burst of ten costs every lit album ≈20 calls), then uploads (≈9 calls a photo) and page loads with their
-  prefetches. A month of 100 events is ≈5.8M calls. The guest page is the dearest call (≈250 to 420 ms of local CPU
-  over a 1,000-photo album); a quiet poll is two calls and ≈17 ms.
+- **The headline (2026-10-04, with the proxy only where a session matters and polls that rest; `model.mjs` holds the
+  assumptions):** a 100-guest wedding is ≈24,000 calls (≈27,500 with tabs left lit for hours), a month of 100 events
+  ≈2.4M. Three fifths are lit albums answering other guests' uploads (a burst of ten costs every lit album ≈10 calls,
+  one a sync), a fifth uploads (≈4.6 calls a photo); a guest's join is ≈5 calls and a returning load 3. A lit album's
+  net is one call a poll, ≈19 in its first lit hour and none after two untouched ones. The guest page is the dearest
+  call (≈250 to 420 ms of local CPU over a 1,000-photo album); a quiet poll is ≈17 to 26 ms (more when it opens a
+  fresh connection after a rest).
 
 ## Host-page hydration
 

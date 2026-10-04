@@ -36,6 +36,10 @@ serves `admin.partyreel.com` as an allow-list and rewrites everything else to th
 `/admin` whatever the Host header says, with `assertAdminSurface()` inside the seam as belt and braces. Unset serves
 both, which is dev and also the rollback. Both projects build every route; the security boundary is RLS and the seam,
 never reachability.
+- ★ **The rule reaches every path only on the admin project's hosts.** The proxy's matcher takes the session pages
+  everywhere and every path only where the host is `admin.<domain>` or a `partyreel-admin` vercel.app host (a matcher
+  is literals read at build, so it cannot see `NEXT_PUBLIC_SURFACE`); an admin domain outside that pattern would serve
+  the app's static pages and API routes unrefused, so a new one joins it in `src/proxy.ts`.
 - **A cron runs on the app surface only.** `vercel.json` is one file, so both projects register every cron and Vercel
   calls each route once per project; a cron route stops on the admin surface before any read (`servesApp()`), because
   a second run a day would fake a cadence and mask a real missed run.
