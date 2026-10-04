@@ -191,6 +191,14 @@ export type ReelViewProps = {
    */
   screenLink?: boolean;
   /**
+   * ★ A LINE THE DOCK CARRIES FOR THE PAGE THAT MOUNTED THE VIEW (red-team 53b's deferred line, crumbs-66), for what the page
+   * knows and the view does not. The hub's reel plays her own scope while her album develops, when her guests have no
+   * reel yet, and the dock, where she reads what this view is, said nothing of it: the hub hands "Guests get it at the
+   * develop." for as long as the develop is ahead. It stands under the controls and rises with them, so it is read where
+   * she looks and never drawn over the picture; absent, as on every guest's page, the dock has no such line.
+   */
+  dockNote?: string;
+  /**
    * The owner's "Set for everyone": the look and hold this device shows become the event's defaults
    * (reel-defaults-migration's `setReelDefaults`, bound by the controller). Resolves whether it took.
    */
@@ -240,6 +248,7 @@ export function LiveReelView({
   isOwner = false,
   standIn,
   screenLink = true,
+  dockNote,
   onSetForEveryone,
   onClose,
 }: ReelViewProps) {
@@ -894,6 +903,7 @@ export function LiveReelView({
                 onMenuOpenChange={setMenuOpen}
                 onFocusWithin={setDockFocus}
                 addLabel={isDemo ? "Add yours (a demo upload)" : "Add yours"}
+                note={dockNote}
               />
             )}
 
@@ -1598,6 +1608,7 @@ function ReelDock({
   onMenuOpenChange,
   onFocusWithin,
   addLabel,
+  note,
 }: {
   state: "up" | "rest";
   playing: boolean;
@@ -1632,6 +1643,8 @@ function ReelDock({
   onMenuOpenChange: (open: boolean) => void;
   onFocusWithin: (focused: boolean) => void;
   addLabel: string;
+  /** The page's line under the controls (`ReelViewProps.dockNote`). */
+  note?: string;
 }) {
   const up = state === "up";
   let i = 0;
@@ -1842,6 +1855,17 @@ function ReelDock({
                 Make your own
               </button>
             </div>
+          )}
+
+          {note && (
+            <p
+              data-reel-note=""
+              data-lr-stagger=""
+              style={{ "--lr-i": i++ } as CSSProperties}
+              className="px-2 pb-1 text-center text-caption font-medium text-pretty text-white"
+            >
+              <span className={GLASS_MARK_LIT}>{note}</span>
+            </p>
           )}
         </div>
 

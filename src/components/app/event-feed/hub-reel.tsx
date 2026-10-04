@@ -15,6 +15,8 @@ import type {
   ReelViewProps,
 } from "@/components/guest/reel/live-reel-view";
 import { createClipResolver } from "@/lib/album/resolver";
+import { developState } from "@/lib/disposable/reveal";
+import { useWaitClock } from "@/lib/disposable/use-wait-clock";
 import { playableCount, REEL_MINIMUM } from "@/lib/event/reel-progress";
 import {
   ENTRY_HIDDEN,
@@ -54,6 +56,11 @@ import { loadHubReelView } from "./hub-reel-view";
  *
  * ★ A `?reel` THAT CANNOT PLAY IS DROPPED QUIETLY, as the guest page drops one: the switch off, the platform lever off,
  * or fewer than two photographs that can play (a host who hides photographs under a playing reel returns to her hub).
+ *
+ * ★ BEFORE THE DEVELOP THE DOCK SAYS WHAT HER GUESTS HAVE (red-team 53b's deferred line): she plays her own scope while
+ * the album develops, and the Reel card says her guests get it later (`reel-card.tsx`); the view's dock now says it too,
+ * "Guests get it at the develop.", for as long as the develop (`developsAt`, the card's own time) is ahead. It is read on
+ * the clock every develop reader shares, so a hub left open across the develop stops saying it at the develop itself.
  */
 
 const HubReelViewLazy = lazy(() =>
@@ -75,7 +82,12 @@ export type HubReelProps = {
   reelOn: boolean;
   /** The host's defaults the view starts on (`events.reel_style_id`, `reel_hold_sec`; null is the product's own). */
   look: { styleId: string | null; holdSec: number | null };
+  /** The album's develop time (`events.develops_at`, ISO) or null: until it her guests have no reel (the Reel card's own). */
+  developsAt: string | null;
 };
+
+/** What the dock says while her guests wait for the develop. */
+export const GUESTS_WAIT_NOTE = "Guests get it at the develop.";
 
 const NO_ITEMS: readonly LiveMediaItem[] = [];
 
@@ -92,11 +104,16 @@ export function HubReel({
   qrToken,
   reelOn,
   look,
+  developsAt,
 }: HubReelProps) {
   const album = useHostAlbum();
   const entries = useHubEntries(album);
   const { mode, close } = useReelParam();
   const [buildItems] = useState(createReelItems);
+  // The develop's clock runs only while there is a reel open to say it in (and a develop to wait for).
+  const clock = useWaitClock(mode !== null && developsAt !== null);
+  const guestsWait =
+    clock !== null && developState(developsAt, clock).kind === "waiting";
 
   const available =
     reelOn &&
@@ -165,6 +182,7 @@ export function HubReel({
     isOwner: true,
     standIn,
     screenLink: false,
+    dockNote: guestsWait ? GUESTS_WAIT_NOTE : undefined,
     onSetForEveryone: setForEveryone,
     onClose: closeView,
   };

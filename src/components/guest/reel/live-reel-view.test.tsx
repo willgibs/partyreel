@@ -1223,6 +1223,31 @@ describe("played from the host's own page", () => {
     expect(hostPage.reportPossibleExpiry).toHaveBeenCalledWith(["m2"]);
   });
 
+  // ★ THE HUB'S REEL BEFORE THE DEVELOP SAID NOTHING OF IT (red-team 53b's deferred line, crumbs-66): she plays her own scope
+  // while her guests have no reel yet, and the dock, which is where she reads what this view is, carried no word of
+  // that. The page that mounts the view says what it knows (`dockNote`); the guests' own page knows nothing to say.
+  it("★ carries the page's note in its dock, and nothing where the page has none", () => {
+    h.live = null;
+    const { unmount } = renderView({
+      playable,
+      standIn: standIn(),
+      isOwner: true,
+      screenLink: false,
+      dockNote: "Guests get it at the develop.",
+    });
+    expect(dock()).toHaveTextContent("Guests get it at the develop.");
+    // In the dock's own controls, which are inert at rest: never over the picture, never a second line drawn on it.
+    expect(
+      document
+        .querySelector(".lr-dock-content")
+        ?.contains(screen.getByText("Guests get it at the develop.")),
+    ).toBe(true);
+    unmount();
+    renderView({ playable, standIn: standIn(), isOwner: true });
+    expect(dock()).not.toHaveTextContent("Guests get it");
+    expect(document.querySelector("[data-reel-note]")).toBeNull();
+  });
+
   it("offers no creator without the host's plan in hand: the stand-in names none", () => {
     h.live = null;
     renderView({ playable, standIn: standIn(), creator: vi.fn() as never });

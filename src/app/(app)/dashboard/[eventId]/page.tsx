@@ -487,6 +487,7 @@ export default async function EventDetailPage({
               styleId: event.reel_style_id,
               holdSec: event.reel_hold_sec,
             }}
+            developsAt={event.develops_at}
           />
 
           {/* A photograph's credit in the host's viewer opens its sender's look, with its quiet Block
