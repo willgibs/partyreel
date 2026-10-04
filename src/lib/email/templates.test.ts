@@ -366,7 +366,7 @@ describe("the subjects and the first line", () => {
 
   it("the inbox preview is each host mail's first line, and a form's own words", () => {
     expect(previewOf(HOST.graceStart.html)).toBe(
-      "Your account is now using more than your plan's 100 GB. You have until November 3, 2026 to upgrade or remove some media. After that, we'll automatically reduce your storage (largest files first) to fit your plan. Removed items stay recoverable for 30 days.",
+      "Your account is now using more than your plan's 100 GB. You have until November 3, 2026 to upgrade or free up space. After that, we'll make room automatically: what's in Deleted is deleted for good first, then your largest files move to Deleted, where they stay recoverable for 30 days.",
     );
     for (const [id, mail] of Object.entries(HOST)) {
       const firstParagraph = mail.text.split("\n\n")[1];
@@ -413,6 +413,33 @@ describe("system-removal email copy (recovery Phase 5)", () => {
     expect(text).toMatch(/upgrade or free up space first, then restore them/);
     // The plain-text twin is the same words.
     expect(HOST.reduced.text).toMatch(/would take you over your plan again/);
+  });
+
+  // ★ trash-in-storage: at the deadline what she already deleted leaves for good first, so a reduce that only emptied
+  // Deleted touched nothing she kept and says so, with no window to name (nothing waits in Deleted).
+  it("overCapReducedEmail: a reduce that only emptied Deleted says nothing she kept was touched", () => {
+    const only = T.overCapReducedEmail({
+      recoverableUntil: "July 2, 2026",
+      dashboardUrl: "https://partyreel.com/dashboard",
+      emptiedDeleted: true,
+      movedFiles: false,
+    });
+    const text = visibleText(only.html);
+    expect(text).toMatch(/deleted what was already in Deleted for good/);
+    expect(text).toMatch(/back under your plan/);
+    expect(text).toMatch(/Nothing you kept was touched/);
+    expect(text).not.toContain("July 2, 2026");
+    const both = visibleText(
+      T.overCapReducedEmail({
+        recoverableUntil: "July 2, 2026",
+        dashboardUrl: "https://partyreel.com/dashboard",
+        emptiedDeleted: true,
+      }).html,
+    );
+    expect(both).toMatch(
+      /deleted what was already in Deleted for good and moved your largest files/,
+    );
+    expect(both).toMatch(/would take you over your plan again/);
   });
 
   it("overCapGraceStartEmail: concrete 30-day window, not 'a short window'", () => {

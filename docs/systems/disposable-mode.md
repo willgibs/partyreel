@@ -131,11 +131,13 @@ A lazy predicate alone reaches nobody: the guest poll's quiet path reads one row
 - ★ **The ceiling outlives the purge.** At most `roll_size * 3` shots a period, removed or not, counted in the ledger
   `camera_rolls` (written by `create_media` alone), because the purge deletes the very rows a count of media would
   read.
-- ★ **A camera shot she withdraws purges that night**: `set_media_purge_at` writes `purge_at = removed_at` for her own
-  removal (`removed_by_uploader`) of a row taken in the camera's period; every other removal keeps the bin's 30 days,
-  and a legal hold, an open report and `kept_media_ids` keep it as they keep any row.
-- The churn a freed frame opens is bounded three ways: the storage cap reads active bytes (a withdrawn shot leaves it
-  at once), the monthly ingress meter counts every upload and never gives one back, the ceiling bounds the rows.
+- ★ **A camera shot she withdraws purges that night**, as every guest's own withdrawal does in any album:
+  `set_media_purge_at` writes `purge_at = removed_at` for a `removed_by_uploader` removal
+  ([lifecycle-recovery.md](lifecycle-recovery.md)); every other removal keeps the bin's 30 days, and a legal hold, an
+  open report and `kept_media_ids` keep it as they keep any row.
+- The churn a freed frame opens is bounded three ways: the storage cap reads what the host stores, and a withdrawn
+  shot leaves it at once (a withdrawal sits in no Deleted), the monthly ingress meter counts every upload and never
+  gives one back, the ceiling bounds the rows.
 - A camera video is one shot of up to 10 s (with half a second's grace) and 128 MB, since its length is the client's
   word (`media/limits.ts`, mirrored in `create_media` under `roll.test.ts`). The host's own uploads are exempt from the
   roll, the ceiling and the video bounds, and seal with everyone's.

@@ -196,7 +196,7 @@ export const JOBS: JobDef[] = [
     runPath: "/api/cron/purge",
   },
   // --- the purge cron's sub-sweeps -------------------------------------------------------------
-  // Each opens and closes its own row inside the parent run. WHY these four and not the other eight:
+  // Each opens and closes its own row inside the parent run. WHY these four and not the other seven:
   // they are the sweeps that loop over ACCOUNTS and either send email or delete bytes, so they are
   // where one bad row used to cost every row behind it, and where an operator might want to stop one
   // thing overnight without giving up storage reclamation.

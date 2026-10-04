@@ -104,8 +104,8 @@ export async function GET() {
       tier === "event_pass" && profile?.tier_expires_at
         ? formatEntitlementExpiry(profile.tier_expires_at)
         : null,
-    activeBytes: storage.activeBytes,
-    standbyBytes: storage.standbyBytes,
+    storedBytes: storage.storedBytes,
+    deletedBytes: storage.deletedBytes,
     capBytes: effectiveStorageCap(tier, profile?.storage_cap_bytes ?? null),
     currentPlanId,
     changeBlocked,

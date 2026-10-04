@@ -104,7 +104,12 @@ vi.mock("@/lib/db/queries/social", () => ({
   },
 }));
 vi.mock("@/lib/db/queries/storage", () => ({
-  getHostStorageSummary: async () => ({ activeBytes: 0, standbyBytes: 0 }),
+  getHostStorageSummary: async () => ({
+    activeBytes: 0,
+    deletedBytes: 0,
+    systemBytes: 0,
+    storedBytes: 0,
+  }),
 }));
 vi.mock("@/lib/db/queries/claims", () => ({
   getMyClaimableGuestRows: async () => [],

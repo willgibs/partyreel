@@ -76,7 +76,7 @@ export default async function NewEventPage() {
     : [];
   const storagePct = storage
     ? storageUsedPct(
-        storage.activeBytes,
+        storage.storedBytes,
         effectiveStorageCap(tier, profile?.storage_cap_bytes ?? null),
       )
     : 0;

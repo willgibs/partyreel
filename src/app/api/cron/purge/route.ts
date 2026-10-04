@@ -71,7 +71,6 @@ import {
   sweepRenewalNudges,
 } from "@/lib/lifecycle/sweeps/passes";
 import { sweepRemovedMedia } from "@/lib/lifecycle/sweeps/removed-media";
-import { sweepStandbyBudget } from "@/lib/lifecycle/sweeps/standby-budget";
 import { captureError, captureWarning } from "@/lib/observability/sentry";
 import { servesApp } from "@/lib/surface";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -85,7 +84,7 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 /** The sweeps that work under a deadline, in the order they run: the clock shares the window between them. */
-const BUDGETED_SWEEPS = 11;
+const BUDGETED_SWEEPS = 10;
 
 type AdminClient = ReturnType<typeof createAdminClient>;
 
@@ -373,11 +372,6 @@ export async function GET(request: Request): Promise<Response> {
       deadline,
       resumeAfter: await resumeCursor("purge_inactivity"),
     }),
-  );
-  // LAST of the budgeted: after expired_events + removed_media (so `handled` excludes ids they
-  // purged) and after over_capacity (whose auto-reduce is system-removed and never counts here).
-  await runBudgeted("standby_budget", (deadline) =>
-    sweepStandbyBudget(admin, now, handled, { deadline }),
   );
   // LAST of the budgeted (crumbs-37): the album change log's prune. Pure upkeep, so it takes what the
   // window has left, and it runs after every sweep that purges, so tonight's tombstones are in its walk.

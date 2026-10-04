@@ -75,11 +75,14 @@ const everything = () =>
     .join(" ");
 
 describe("1. the meter", () => {
+  // ★ Reshaped by trash-in-storage (20261003220000; scar kept: one signature, a definer with an empty search_path):
+  // a later file replaces the body in place (`create or replace`, this signature untouched) and restates the grants.
   it("is this file's, one signature: an event, a type and the declared bytes, a definer with an empty search_path", () => {
     const { body, file } = latest("meter_upload");
-    expect(file).toBe(FILE);
-    expect(body).toContain(
-      "create function public.meter_upload( p_event_id uuid, p_type public.media_type, p_bytes bigint ) returns jsonb language plpgsql security definer set search_path = '' as $$",
+    expect(file >= FILE, file).toBe(true);
+    expect(fileSql()).toContain("create function public.meter_upload(");
+    expect(body).toMatch(
+      /^create (or replace )?function public\.meter_upload\( p_event_id uuid, p_type public\.media_type, p_bytes bigint \) returns jsonb language plpgsql security definer set search_path = '' as \$\$/,
     );
   });
 
@@ -89,8 +92,9 @@ describe("1. the meter", () => {
     expect(body).toContain(
       "select e.host_id into v_host from public.events e where e.id = p_event_id and e.deleted_at is null;",
     );
+    // trash-in-storage reads her setting in the same plain read (Make room from Deleted).
     expect(body).toContain(
-      "select p.tier, p.storage_cap_bytes into v_tier, v_storage_cap from public.profiles p where p.id = v_host;",
+      "select p.tier, p.storage_cap_bytes, p.make_room_from_deleted into v_tier, v_storage_cap, v_make_room from public.profiles p where p.id = v_host;",
     );
   });
 
@@ -107,9 +111,11 @@ describe("1. the meter", () => {
     const month = at(
       "if v_ingress_cap is not null and coalesce(v_ledger.cumulative_bytes, 0) + p_bytes > v_ingress_cap then return jsonb_build_object('ok', false, 'reason', 'monthly');",
     );
+    // trash-in-storage: the room is the line an upload meets (`host_room_used`), refused with its numbers.
     const room = at(
-      "if v_cap is not null and public.host_active_bytes(v_host) + p_bytes > v_cap + (v_cap / 10) then return jsonb_build_object('ok', false, 'reason', 'storage');",
+      "v_used := public.host_room_used(v_host); if v_used + p_bytes > v_cap + (v_cap / 10) then",
     );
+    expect(body.indexOf("'reason', 'storage'", room)).toBeGreaterThan(room);
     const tally = at("insert into public.storage_ledger as l (");
     expect(breaker).toBeLessThan(month);
     expect(month).toBeLessThan(room);
@@ -133,8 +139,9 @@ describe("1. the meter", () => {
       expect(complete, name).toContain(
         "if coalesce(v_month_bytes, 0) + p_file_size_bytes > v_ingress_cap then raise exception 'Monthly upload limit reached for this plan.'",
       );
+      // trash-in-storage: the complete holds everything she keeps, Deleted making room where her setting lets it.
       expect(complete, name).toContain(
-        "if public.host_active_bytes(v_event.host_id) + p_file_size_bytes > v_cap + (v_cap / 10) then raise exception 'Storage capacity exceeded for this plan.'",
+        "if v_active + v_deleted + p_file_size_bytes > v_cap + (v_cap / 10) then raise exception 'Storage capacity exceeded for this plan.'",
       );
     }
   });
@@ -192,10 +199,12 @@ describe("1. the meter", () => {
 });
 
 describe("2. the month is the complete's", () => {
+  // ★ Reshaped by trash-in-storage (scar kept: this file never touches a complete): 20261003220000 replaces both in
+  // place for the cap, so the pin is that the winner is any file but this one.
   it.each(["create_media", "create_media_as_host"])(
-    "★ %s is 20261003110000's, untouched by this file",
+    "★ %s is untouched by this file",
     (name) => {
-      expect(latest(name).file).toBe("20261003110000_phone_copy.sql");
+      expect(latest(name).file).not.toBe(FILE);
       expect(fileSql()).not.toContain(`function public.${name}(`);
     },
   );

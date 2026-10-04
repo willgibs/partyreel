@@ -18,6 +18,7 @@ import { GraceBanner } from "@/components/app/dashboard/grace-banner";
 import { DashboardHome } from "@/components/app/dashboard/home";
 import { PageInviteCard } from "@/components/app/dashboard/page-invite-card";
 import { StorageMeter } from "@/components/app/dashboard/storage-meter";
+import { makeRoomFrom } from "@/components/app/storage/storage-figures";
 import { WELCOME_VALUE } from "@/components/app/pricing/return-path";
 import { WelcomeToPro } from "@/components/app/pricing/welcome-to-pro";
 import { seedFor } from "@/lib/avatar/seed";
@@ -86,10 +87,7 @@ import { guestCount } from "@/lib/events/event-guests";
 import { uploadsLabel } from "@/lib/events/visibility-labels";
 import { formatCount } from "@/lib/format/count";
 import { formatDateInZone } from "@/lib/format/date-in-zone";
-import {
-  binCountdownLabel,
-  overStandbyBudget,
-} from "@/lib/lifecycle/recently-deleted";
+import { binCountdownLabel } from "@/lib/lifecycle/recently-deleted";
 import { captureError } from "@/lib/observability/sentry";
 import { getSiteUrl } from "@/lib/site-url";
 import { formatEventDate } from "@/lib/utils";
@@ -229,13 +227,13 @@ export default async function DashboardPage({
 
   const tier = toBillingTier(profile?.tier ?? DEFAULT_TIER);
   const planName = TIER_NAMES[tier];
-  // Storage (the storage-cap model): ACTIVE bytes against the effective cap, what the cap is enforced
-  // against, so deleting visibly frees room. The ring draws it; the rules read its percent.
+  // Storage (trash-in-storage): everything she stores, her albums and her Deleted together, against the
+  // effective cap, what every cap check holds. The ring draws it; the rules read its percent.
   const storageCap = effectiveStorageCap(
     tier,
     profile?.storage_cap_bytes ?? null,
   );
-  const storageUsed = storage.activeBytes;
+  const storageUsed = storage.storedBytes;
   const storagePct =
     storageCap && storageCap > 0
       ? Math.min(100, Math.round((storageUsed / storageCap) * 100))
@@ -463,11 +461,10 @@ export default async function DashboardPage({
       initialView={resolveEventsView(jar.get(EVENTS_VIEW_COOKIE)?.value)}
       storage={
         <StorageMeter
-          storageUsed={storageUsed}
+          activeBytes={storage.activeBytes}
+          deletedBytes={storage.deletedBytes}
           storageCap={storageCap}
-          storagePct={storagePct}
-          standbyBytes={storage.standbyBytes}
-          overBudget={overStandbyBudget(storage.standbyBytes, storageCap)}
+          makeRoom={makeRoomFrom(profile)}
           passExpiry={passExpiry}
           planName={planName}
           hasBilling={hasBilling}

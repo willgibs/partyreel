@@ -148,12 +148,13 @@ export async function POST(request: Request) {
   // ── THE STORAGE GUARD (Will, 2026-09-22; billing-caps.md) ─────────────────────────────────
   // A Pro checkout REPLACES the cap (every live pass becomes credit), so a host must fit the
   // plan they buy: stacked passes holding 140 GB cannot buy Pro 100 GB and shrink into the
-  // over-cap grace. Active bytes against the plan's PLAIN cap, refused with the numbers
-  // BEFORE a Stripe customer exists. An Event Pass is never checked: it stacks, so it can
-  // only ever add room. A Free host in the grace meets the same line (the check is tier-blind).
+  // over-cap grace. What she stores (her albums and her Deleted together: trash-in-storage)
+  // against the plan's PLAIN cap, refused with the numbers BEFORE a Stripe customer exists. An
+  // Event Pass is never checked: it stacks, so it can only ever add room. A Free host in the
+  // grace meets the same line (the check is tier-blind).
   if (replacesCap(plan)) {
-    const { activeBytes } = await getHostStorageSummary();
-    const check = checkPlanChange(activeBytes, plan);
+    const { storedBytes } = await getHostStorageSummary();
+    const check = checkPlanChange(storedBytes, plan);
     if (!check.ok) {
       return NextResponse.json(
         { ok: false, ...check.refusal },

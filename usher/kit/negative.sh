@@ -45,8 +45,11 @@ env -u LAB_BASE node scripts/lab-smoke.mjs > "$T/smoke.out" 2>&1; R1=$?; env -u 
 mkdir -p "$T/cut/docs/tracks"; printf '%s' '{"track":"t","board":"b","owns":["src/app/(dev)/design/sandbox/registry.ts"],"goal":"g","brief":"b"}' > "$T/cut/s.json"
 (cd "$T/cut" && python3 "$KIT/cut-lane.py" deadbeef s.json > "$T/cut.out" 2>&1); [ $? != 0 ] && grep -q "never a shared list" "$T/cut.out" && [ ! -f "$T/cut/docs/tracks/t.md" ] && ok "cut-lane.py refuses a board lane owning a shared list" || bad "cut-lane.py cut a board lane onto a shared list"
 # 12. new-board.mjs refuses a board that exists, a surface that does not and a missing desk place, and writes nothing (a
-#     board is one folder, and the scaffold never overwrites one)
-BEFORE="$(git status --short)"; node scripts/new-board.mjs locked-door "x" --surface guest --desk 90 > "$T/nb1.out" 2>&1; N1=$?
+#     board is one folder, and the scaffold never overwrites one). The board it tries is read from the tree at each run:
+#     a named one decays when its board retires (locked-door did, and the scaffold then wrote a real folder, 2026-10-04).
+LIVE_BOARD=""; for d in src/app/\(dev\)/design/sandbox/*/spec.ts; do [ -f "$d" ] && LIVE_BOARD="$(basename "$(dirname "$d")")" && break; done
+[ -n "$LIVE_BOARD" ] || bad "no board in the sandbox to try new-board.mjs against"
+BEFORE="$(git status --short)"; node scripts/new-board.mjs "${LIVE_BOARD:-no-board-found}" "x" --surface guest --desk 90 > "$T/nb1.out" 2>&1; N1=$?
 node scripts/new-board.mjs zz-negative "x" --surface nowhere --desk 90 > "$T/nb2.out" 2>&1; N2=$?; node scripts/new-board.mjs zz-negative "x" --surface guest > "$T/nb3.out" 2>&1; N3=$?
 [ $N1 = 1 ] && [ $N2 = 1 ] && [ $N3 = 1 ] && grep -q "already exists" "$T/nb1.out" && grep -q "not a surface" "$T/nb2.out" && grep -q "usage" "$T/nb3.out" && [ ! -d "src/app/(dev)/design/sandbox/zz-negative" ] && [ "$(git status --short)" = "$BEFORE" ] && ok "new-board.mjs refuses an existing board, a bad surface and no desk place, and writes nothing" || bad "new-board.mjs scaffolded over a board or without its facts"
 # 13. merge-lane.sh refuses to merge on any branch but launch-prep (a session can open on main), and leaves the tree

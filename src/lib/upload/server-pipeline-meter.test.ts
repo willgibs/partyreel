@@ -38,6 +38,9 @@ describe("parseMeterAnswer", () => {
     expect(parseMeterAnswer({ ok: false, reason: "storage" })).toEqual({
       ok: false,
       reason: "storage",
+      neededBytes: null,
+      deletedBytes: null,
+      makesRoom: null,
     });
     expect(parseMeterAnswer({ ok: false, reason: "event_gone" })).toEqual({
       ok: false,
@@ -46,6 +49,41 @@ describe("parseMeterAnswer", () => {
     expect(
       parseMeterAnswer({ ok: false, reason: "hourly", retry_after_sec: 2275 }),
     ).toEqual({ ok: false, reason: "hourly", retryAfterSec: 2275 });
+  });
+
+  // trash-in-storage (20261003220000): a storage refusal carries the room the file needs, what Deleted holds and
+  // whether Deleted could make the room, for the owner's own words; anything that is not a count reads as none.
+  it("reads a storage refusal's numbers, and none it cannot trust", () => {
+    expect(
+      parseMeterAnswer({
+        ok: false,
+        reason: "storage",
+        needed_bytes: 150_000,
+        deleted_bytes: "450000",
+        makes_room: false,
+      }),
+    ).toEqual({
+      ok: false,
+      reason: "storage",
+      neededBytes: 150_000,
+      deletedBytes: 450_000,
+      makesRoom: false,
+    });
+    expect(
+      parseMeterAnswer({
+        ok: false,
+        reason: "storage",
+        needed_bytes: -1,
+        deleted_bytes: "lots",
+        makes_room: "yes",
+      }),
+    ).toEqual({
+      ok: false,
+      reason: "storage",
+      neededBytes: null,
+      deletedBytes: null,
+      makesRoom: null,
+    });
   });
 
   it("the breaker's hint is an hour at most: one it did not give reads as the whole hour", () => {

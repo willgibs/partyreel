@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { roomRefusalWords } from "@/components/app/storage/storage-figures";
 import { getHostUploadContext } from "@/lib/db/mutations/host-media";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -70,11 +71,11 @@ const hostPresignStrategy: PresignStrategy<typeof hostPresignUploadSchema> = {
   meterRefusal(refusal) {
     switch (refusal.reason) {
       case "storage":
+        // trash-in-storage: the room it needs and the one way to make it, by her setting (`roomRefusalWords`).
         return {
           status: 409,
           code: "cap_reached",
-          message:
-            "This file won't fit in your plan's storage. Free up space or upgrade.",
+          message: roomRefusalWords(refusal),
         };
       case "monthly":
         return { status: 409, code: "cap_reached", message: PLAN_MONTH_SPENT };

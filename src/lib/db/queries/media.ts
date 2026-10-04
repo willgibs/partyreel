@@ -154,8 +154,8 @@ export async function listEventMedia(
 /**
  * The event's soft-removed media still within the recovery window — the event-detail "Recently
  * deleted" section. Mirror of listEventMedia but `status='removed'` (the bin), newest-removed
- * first, windowed to RECENTLY_DELETED_WINDOW_DAYS (older are about to be hard-purged; the
- * standby-budget cron can also evict early). Carries `purge_at` for the countdown chip. RLS
+ * first, windowed to RECENTLY_DELETED_WINDOW_DAYS (older are about to be hard-purged; making room
+ * from Deleted can also take them early). Carries `purge_at` for the countdown chip. RLS
  * (media_host_all) scopes to media in the host's own events.
  *
  * ★ `removed_by_uploader = false` is a PRODUCT rule, not an optimisation: a guest deleting their
