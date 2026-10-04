@@ -13,8 +13,8 @@
   },
   "scenarios": {
     "guest-join-upload": {
-      "calls": 68,
-      "vercelCpuMs": 5430
+      "calls": 20,
+      "vercelCpuMs": 2620
     },
     "guest-hour-live": {
       "calls": 26,
