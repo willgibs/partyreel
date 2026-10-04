@@ -77,6 +77,16 @@ export type SettingsFacts = {
   };
 };
 
+/**
+ * WHAT THE DOOR'S SENTENCE READS, and nothing else: the door, the identity step, the photo first and whether uploads
+ * are open. Another surface that says what the door asks (the hub's checklist, `visibility-labels.ts`'s
+ * `doorGuestLine`) hands exactly these, so it reads the same facts Settings does and says the same words.
+ */
+export type DoorFacts = Pick<
+  SettingsFacts,
+  "door" | "requireVerifiedEmail" | "requireUploadToView" | "acceptingUploads"
+>;
+
 /** The group titles, which the sentence under each one answers. */
 export const SETTINGS_GROUP_TITLES: Record<SettingsGroup, string> = {
   door: "Who can get in",
@@ -111,7 +121,7 @@ const date = (text: string): SentencePart => ({ text, range: true });
  * in and the invite list both match a confirmed address), so there it is said as prose, never as a
  * control a host could turn off.
  */
-function doorSentence(f: SettingsFacts): SentencePart[] {
+export function doorSentence(f: DoorFacts): SentencePart[] {
   const who = word(DOOR_WHO[f.door], "door");
   if (f.door === "private") {
     return [who, prose(". Guests meet a closed album.")];

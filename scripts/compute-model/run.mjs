@@ -22,11 +22,13 @@
  * page still looks right, and only a count can see it.
  *
  * HOW. `server.mjs` serves the build and records each request (calls on Vercel, the CPU Vercel would bill); a headless
- * Chrome of its own (`chrome.mjs`) plays each scenario the way the real client does, against this port only. ★ LOCAL
- * ONLY: the base is always http://localhost:<port>, every device blocks Vercel's and Partyreel's hosts, and nothing
- * here sends a request to Vercel. The guest scenarios run on the test event "Compute model (test)" (willg97's, 1,000
- * photos seeded through the real write path by `scripts/seed-demo-event.mjs`); its token is read with the service key
- * from `.env.local` and never printed. Each run adds one guest row per joining device and ten photos to that event.
+ * Chrome of its own (`chrome.mjs`) plays each scenario the way the real client does, against this port only
+ * (`phones.mjs` keeps what a scenario's phones are owed: all of them closed when it ends, errored or not, and the door
+ * walked by pressing what is on screen). ★ LOCAL ONLY: the base is always http://localhost:<port>, every device blocks
+ * Vercel's and Partyreel's hosts, and nothing here sends a request to Vercel. The guest scenarios run on the test event
+ * "Compute model (test)" (willg97's, 1,000 photos seeded through the real write path by `scripts/seed-demo-event.mjs`);
+ * its token is read with the service key from `.env.local` and never printed. Each run adds one guest row per joining
+ * device and ten photos to that event.
  *
  * THE HOUR, COMPRESSED. A guest's hour plays in 60/K minutes (`--k`, default 20; the 12 s-poll hour at K/2, so a round
  * trip stays well inside its compressed interval): the page's Date runs K times fast and
@@ -40,8 +42,14 @@ import { cpus, tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { clockShim, device, launchChrome, sleep } from "./chrome.mjs";
+import {
+  clockShim,
+  device as openDevice,
+  launchChrome,
+  sleep,
+} from "./chrome.mjs";
 import { printProjections, project, scale, summarize } from "./model.mjs";
+import { deviceRegistry, submitName, walkToName } from "./phones.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, "../..");
@@ -70,6 +78,11 @@ const labBoard = opt("--lab-board", "");
 const hostCookieEnv = opt("--host-cookie-env", "");
 const EVENT_NAME = "Compute model (test)";
 const FIXTURES = "/Users/gibby/local/ai/partyreel-test-media/images";
+
+// ★ EVERY PHONE A SCENARIO OPENS IS CLOSED WHEN IT ENDS, errored or not (`phones.mjs`). A scenario that threw used to leave
+// its devices open, polling under the labels of the scenarios after it; the scenarios open theirs through this one.
+const phones = deviceRegistry(openDevice);
+const device = phones.device;
 
 /** A value from the worktree's `.env.local` (album-perf's pattern), or "". Never printed. */
 function envLocal(name) {
@@ -162,37 +175,55 @@ function photos(n = 10) {
 }
 
 // ── What a guest does (the real door, the real uploader) ─────────────────────────────────────────
+/**
+ * ★ THE JOIN PRESSES WHAT IS ON SCREEN, NOT WHAT IT ASSUMES LANDED (`phones.mjs`). The first scenario of a full run follows
+ * the build, on the machine's busiest minute, and a press of the door's (Continue, Continue as guest, the name's Continue)
+ * can do nothing: no mint is sent, the name sheet stays up, and the old twenty-second wait for it to close timed out at
+ * the name step where the same join passed alone. Each press is repeated when the screen did not answer it. A join that
+ * still fails says which step it was and keeps what the phone showed, where a bare timeout named nothing but a selector.
+ */
 async function joinAsGuest(page, token, name, { addPhotos = false } = {}) {
   const NAME = `input[placeholder="Your name"]`;
   const shown = (sel) =>
     `[...document.querySelectorAll(${JSON.stringify(sel)})].some((e) => e.getBoundingClientRect().height > 0)`;
-  await page.goto(`/e/${token}`);
-  await page.idle({ quiet: 1_000 });
-  await page.click("button", { text: "Continue" });
-  await page.click("button", { text: "Continue as guest" });
-  await page.waitFor(shown(NAME));
-  await sleep(600); // the sheet's own entrance
-  await page.eval(`document.querySelector(${JSON.stringify(NAME)}).focus()`);
-  await page.type(name);
-  await page.waitFor(
-    `document.querySelector(${JSON.stringify(NAME)}).value === ${JSON.stringify(name)}`,
-  );
-  // The name's own Continue, in the name's own sheet (the welcome's stays mounted under it).
-  await page.clickEl(
-    `[...(document.querySelector(${JSON.stringify(NAME)}).closest("form, [role=dialog]") ?? document).querySelectorAll("button")].find((b) => b.textContent.trim().startsWith("Continue") && !b.disabled)`,
-  );
-  // Named (the door mints her ticket: `POST /api/guests`), the door's last step offers the camera and the album's
-  // picker; an uploader stays on it (its inputs take the files), anyone else looks around first.
-  await page.waitFor(`!(${shown(NAME)})`, { timeout: 20_000 });
-  await page.waitFor(shown("button"), { timeout: 5_000 });
-  if (!addPhotos) {
-    await page.click("button", { text: "Skip for now" });
+  let step = "opening the link";
+  try {
+    await page.goto(`/e/${token}`);
+    await page.idle({ quiet: 1_000 });
+    step = "walking to the name field";
+    await walkToName(page, { nameSelector: NAME });
+    step = "typing the name";
+    await sleep(600); // the sheet's own entrance
+    await page.eval(`document.querySelector(${JSON.stringify(NAME)}).focus()`);
+    await page.type(name);
     await page.waitFor(
-      `![...document.querySelectorAll("button")].some((b) => b.textContent.includes("Skip for now") && b.getBoundingClientRect().height > 0)`,
+      `document.querySelector(${JSON.stringify(NAME)}).value === ${JSON.stringify(name)}`,
+      { timeout: 30_000 },
     );
-    await sleep(800); // the sheet's exit: a press under it lands on its backdrop
+    // The name's own Continue, in the name's own sheet (the welcome's stays mounted under it), pressed again only when it did
+    // nothing: it is disabled ("Just a second…") while its mint is on its way, so a repeat never mints a second guest.
+    // Named (the door mints her ticket: `POST /api/guests`), the door's last step offers the camera and the album's
+    // picker; an uploader stays on it (its inputs take the files), anyone else looks around first.
+    step = "pressing the name's Continue, waiting for the guest to be minted";
+    await submitName(page, { nameSelector: NAME });
+    step = "waiting for the door's last step";
+    await page.waitFor(shown("button"), { timeout: 20_000 });
+    if (!addPhotos) {
+      step = "skipping the camera";
+      await page.click("button", { text: "Skip for now" });
+      await page.waitFor(
+        `![...document.querySelectorAll("button")].some((b) => b.textContent.includes("Skip for now") && b.getBoundingClientRect().height > 0)`,
+      );
+      await sleep(800); // the sheet's exit: a press under it lands on its backdrop
+    }
+    await page.idle({ quiet: 1_500 });
+  } catch (e) {
+    const file = join(out, `join-failed-${name.replace(/\W+/g, "-")}.png`);
+    await page.screenshot(file).catch(() => {});
+    throw new Error(
+      `${name} could not join, ${step} (the phone's screen: ${file}): ${e.message}`,
+    );
   }
-  await page.idle({ quiet: 1_500 });
 }
 
 /** Waits until the server has seen `n` completes from this device in this scenario (the uploads have landed). */
@@ -699,8 +730,10 @@ try {
     try {
       extra = (await s.run({ browser: chrome.browser, event })) ?? {};
     } catch (e) {
-      extra = { error: String(e.message ?? e).slice(0, 300) };
+      extra = { error: String(e.message ?? e).slice(0, 400) };
     }
+    // Its phones go with it, errored or not, before the label moves on: an open one would poll under the next scenario's.
+    await phones.closeAll();
     await label("(between)");
     const recs = await recordsOf(s.name);
     results.scenarios[s.name] = extra.skipped

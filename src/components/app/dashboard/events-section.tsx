@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useState } from "react";
+import { startTransition, useRef, useState } from "react";
 import { Search } from "lucide-react";
 import { toast } from "sonner";
 
@@ -212,6 +212,8 @@ export function EventsSection({
     () => recallDisplay(owner) ?? initial,
   );
   const [query, setQuery] = useState(() => recallQuery(owner));
+  // The search and the Display button's row: where the quiet line's Reset hands the focus (below).
+  const controls = useRef<HTMLDivElement>(null);
 
   if (rows.length === 0) return null;
 
@@ -315,6 +317,7 @@ export function EventsSection({
               </span>
             </h2>
             <div
+              ref={controls}
               className={cn(
                 "flex items-center gap-1.5",
                 // The search takes a phone's whole row; without it the button rides alone at the right.
@@ -355,7 +358,17 @@ export function EventsSection({
               <span>{said.join(" · ")}</span>
               <button
                 type="button"
-                onClick={() => choose(resetChoices(display))}
+                onClick={() => {
+                  choose(resetChoices(display));
+                  // ★ RESET HANDS THE FOCUS TO THE DISPLAY BUTTON (red-team 53b's NIT, the menu's own Reset's twin). This
+                  // line shows only while something is set, so the press that undoes everything removes the very button
+                  // holding the focus, which then fell to the page's body and threw a keyboard user out of her place. The
+                  // button is Radix's popover trigger (`aria-haspopup`), the one in this row, and the focus moves before
+                  // React commits the line away.
+                  controls.current
+                    ?.querySelector<HTMLElement>("[aria-haspopup='dialog']")
+                    ?.focus({ preventScroll: true });
+                }}
                 className="font-medium text-foreground outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring/50"
               >
                 Reset

@@ -327,6 +327,9 @@ export default async function EventDetailPage({
     hasPassword: event.has_password,
     guestsIn: doorCounts.in,
     invited: doorCounts.invited,
+    // What the album's own gates ask after the door, so the list says what Settings says (`doorGuestLine`).
+    requireVerifiedEmail: event.require_verified_email,
+    requireUploadToView: event.require_upload_to_view,
     acceptingUploads: event.accepting_uploads,
     approved: seed.sync.counts.album,
     playable: reelFace.have,
@@ -487,6 +490,7 @@ export default async function EventDetailPage({
               styleId: event.reel_style_id,
               holdSec: event.reel_hold_sec,
             }}
+            developsAt={event.develops_at}
           />
 
           {/* A photograph's credit in the host's viewer opens its sender's look, with its quiet Block

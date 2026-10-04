@@ -6,6 +6,11 @@ import {
   type PrivateGate,
 } from "@/lib/event/door/door";
 import { peopleWaiting } from "@/lib/event/door/words";
+import {
+  type DoorFacts,
+  doorSentence,
+  sentenceText,
+} from "@/lib/events/guest-experience-summary";
 
 /**
  * THE DOOR'S WORDS, SINGLE-SOURCED: the settings, the hub, the Library and marketing's plates all read
@@ -72,6 +77,26 @@ export const GATE_HELP: Record<PrivateGate, string> = {
   closed:
     "For after the party, or when enough people are in: everyone already inside keeps adding, and nobody new can join until you open it again.",
 };
+
+/**
+ * WHAT A GUEST MEETS AT THE DOOR, IN ONE LINE, AS THIS ALBUM HAS IT SET (red-team 53b's NIT, crumbs-66): the hub's "What a
+ * guest needs" list said "Anyone with the link or the code comes in." (`DOOR_STEP_LINES.public`, step one's answer) even
+ * where the album asks for a confirmed email first, which Settings said ("Anyone with the link, after confirming an
+ * email."). ★ A PUBLIC OR PASSWORD DOOR IS NOT WHOLE WITHOUT WHAT THE ALBUM'S OWN GATES ASK AFTER IT, the identity step and
+ * a photo first, so those two doors say Settings' own sentence, built by the same function from the same facts
+ * (`DoorFacts`), and the two can never say different things. A gate and Only me ask nothing more of her than their line
+ * says (a gate that keys on an address holds the email step on), so they keep it.
+ */
+export function doorGuestLine(
+  door: Door,
+  asks: Omit<DoorFacts, "door">,
+): string {
+  if (door === "open" || door === "password") {
+    return sentenceText(doorSentence({ door, ...asks }));
+  }
+  const gate = gateOf(door);
+  return gate ? GATE_LINES[gate] : DOOR_STEP_LINES.only_me;
+}
 
 /** A gate in a word or two, after "Private ·". */
 const DOOR_GATE_SHORT: Record<PrivateGate, string> = {
