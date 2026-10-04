@@ -52,6 +52,11 @@ working.
 
 ## Handoff (replaces the chat report)
 
+**Progress (a successor resumes here; this block is replaced by the final Handoff).** Worktree `../partyreel-wt/crumbs-66`,
+branch `lp/crumbs-66`, dev port 3132, scratch `../partyreel-wt/_scratch/crumbs-66/`. Done and pushed: fix 3 (`91ceb5f22`),
+fix 4 (`64953ad8d`), each red-first. Open: fix 1 (door line), fix 2 (cover srcset: the phone copy is not on the album's
+wire, see Questions), fix 5 (harness), then the gate, the lane check and the final Handoff.
+
 - The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
 - Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
 - Gates on the synced tree, each on its own exit code, and the sha they ran on
