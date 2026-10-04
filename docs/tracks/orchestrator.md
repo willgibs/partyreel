@@ -25,28 +25,19 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 ## In flight
 
-Round 15 (2026-10-04), on Will's desk answers on build 31b7c65 (transcribed at `7575ce528`) and his brand note. Milestone
-35 is live; Ladder A, trash in storage and the reel's tap are merged on launch-prep for milestone 36. Six lanes with a
-dev server at most; every production build takes turns through `scripts/build-lock.sh`.
+Round 15 (2026-10-04), on Will's desk answers on build 31b7c65 and his brand note. Milestone 35 is live. Every wiring
+of the round is merged on launch-prep for milestone 36 (Ladder A, trash in storage, the reel's tap, the camera's clip,
+the dashboard, the hub's strip, graphite, Create's styles, small fixes, red-team 52's fixes, the arrival), and build 53
+(`31a73a46`) serves them on the alias. The boards below are parked at their handoffs for their desks.
 
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
-| `drive-export-r1` | board drive-export r1, desk 2 alone: Send to Google Drive, nine asks; the design safe to wire as designed (Q27) | MERGED at `c33e578d0` (gate 200 green: lab:demo 9 steps); on build 52 for his desk 2; the wiring lane after his pick | Opus, 3132 | `af71a05c6c8bafbf7` |
-| `docs-prune` | Will's ask: the docs' dead weight cut (17 system docs 5,724 to 4,574 lines, 575 to 209 stars; ROADMAP's Now 332 to 181); take-home retired; the 26 policy tests classified for him | MERGED at `4578653a5` (gate 201 green); its ready files copied in at the record (the two deferred calls it cut re-added) | Opus, 3134 | `a2b0267d4162e3314` |
 | `customize-r1` | board customize r1 (desk 15): the roll (film's 12/24/36 or 1 to 99), where options live, "use for new parties", the album's order; Linear's lessons and the audit in `_scratch/customize/` | HANDED OFF at `97a8d62b9`, parked for desk 3 (integrated with the foundation boards) | Opus, 3133 | `a1ba7927eb8a90754` |
-| `camera-clip` | Will's yes: the camera's held clip to 30 s at about 5 Mbps (about 19 MB), the per-shot bound 384 MB; `create_media` restated from `ladder_a` with Q26's hardening | MERGED at `e9a2ed921` (gate 202 green); its migration APPLIED (`camera_clip`, 20261004073636, Q31 safe as written, md5 84d8618d, the body fab801fc; grants unchanged, no types); its doc lines placed at the record; pruned | Sonnet, 3131 | `a98733f142bf3116e` |
 | `identity-r4` | board identity r4 (desk 10): Will's mix as seven trait asks (field, button, focus, selected, press, loading, toggles), each on real screens wearing the picks before it, and the edge on ten places on paper beside the room; A1 to A4 and H3 as carried calls; form, never hue | HANDED OFF at `204bd7970` (synced to `18b6bb784`; gates green, lab:demo 8 steps at 1440 and 375), parked for desk 3; its edge-under-scale fix routed to graphite-wiring, the reel dock's open fill to crumbs-64 | Opus, 3132 | `a4152d141563a9a7d` |
 | `event-header-r4` | board event-header r4 (desk 20): one ask, the doors (glass recommended: counts as badges on its icons, a tab bar under her thumb on a phone; cards owning the phone; windows lit only where something waits), each refined by its own helper then once from fresh eyes; G1, G2, G4 drawn on production's panel in every option; the waiting colour left to the brand | HANDED OFF at `bf44a50f4` (gates green on `2d6f692d5`, unsynced: launch-prep touched none of its imports), parked for desk 3 | Opus, 3134 | `a4eaf6f839b991e91` |
 | `brand-r1` | board brand r1 (desk 5, desk 4 alone): what the agency returned, three visions as 14-slide decks at a desk and on a phone: Afterglow (recommended: light is the brand, sampled from the photographs, a Ring, a Seam or a Bloom one per screen), Contact Sheet (the print is the brand: paper and ink, film edges, a photo lab's marks), Everyone's Color (people are the brand: every guest a seeded orb, an event the mix of its people); the creative director's pass and one refinement; Will's motion study used | HANDED OFF at `82e262385` (gates green on `2858bbfd6`), parked for desk 4 after desk 3; its Higgsfield asks (nine, by slot and theme) go to ASSETS.md for the picked vision at its integration | Opus, 3135 | `aab7f784008cbcfeb` |
 | `host-dashboard-r4` | board host-dashboard r4 (desk 25): two asks, `chooser` (how she chooses what leads her stage: corner, words recommended, deck; each on production's wired lit stage, every rule saying the fact it read) and `details` (H6, as built or each the other way) | HANDED OFF at `bd75f406a` (synced to `e5cad2fb4`; gates green, lab:demo at 1440 and 375), parked for desk 3: integrated after Will answers desk 2 | Opus, 3136 | `a2252d0ff7db3ba6f` |
-| `dashboard-wiring` | Will's picks: events=menu (the Display menu kept on her account, Recent, search from 9, the table) and stage=lit | MERGED at `3b9e049c1` (gate 203 green); its migration APPLIED (`dashboard_display`, 20261004084757, Q32 safe as written, md5 c859e3a3, advisors 19/4/36); types and the seams next; his calls in the calls lab (S); pruned | Sonnet, 3137 | `a5e85465d0cc30de7` |
-| `redteam-52` | build 52's red-team (`e8d11584`): Ladder A on `/pricing`, the plan sheet as willg97 (Pro 1 TB), the Free words, the reel's tap, regressions | DONE 07:55Z: every number matches Ladder A (no "ingress" in 116 pages), the plan sheet, the reel's tap and the regressions PASS; **1 MEDIUM** (the pricing matrix's row explainers open by mouse and keyboard but never by a finger, while the subhead says to hover them: Uploads and Deleted unreadable on a phone), 3 LOWs (the plan sheet shows no uploads allowance and `checkPlanChange` checks storage only; a desk's mouse move raises the reel's controls and the click after hides them; `/admin/accounts` lists Free caps as Unlimited) and 6 NITs: all to `crumbs-64`, before milestone 36; ledger `../partyreel-wt/_scratch/redteam-52/ledger.txt` | Opus, Will's Chrome | `a2e373dc2ce9e647b` |
-| `hub-strip-wiring` | Will's picks: facts=strip on the hub's head; Q5, her Reel card ready before the develop, her reel over her hub | MERGED at `fd245c903` (gate 204 green; no migration); his calls in the calls lab (T); pruned | Sonnet, 3131 | `a432b7517d1b00d45` |
-| `crumbs-64` | red-team 52's findings before milestone 36: the pricing matrix's explainers by a finger (the MEDIUM), the plan sheet's uploads and a switch below this month's, the reel's desk click and the dock's open fill, admin's real caps, the NITs | MERGED at `7f8af45d7` (gate 205 green; no migration); his calls in the calls lab (U); pruned | Sonnet, 3131 | `a0cf21489f57fa1d6` |
-| `small-fixes` | E6 (a cancel asks, then offers Try again; a dropped connection names itself and what to do; downloads and uploads), Q2's spoken "to" in a date range, the name-only guest's hashvatar (`seedFor(guests.id)`) | MERGED at `15b5b2f7f` (gate 206 green; no migration); his calls in the calls lab (V); pruned | Sonnet, 3137 | `a96e693860630af2e` |
-| `graphite-wiring` | Will's room=graphite in `.dark` as tokens, the popover's and menus' 8 px gutter, the bright edge at every scale, one `TapTooltip` for words | MERGED at `f0f69e7c4` (gate 207 green; no migration); his call in the calls lab (W); pruned | Sonnet, 3131 | `abcd8aad9bf44176f` |
-| `styles-wiring` | Will's add=styles in Create, Review everywhere for the middle style, the develop time under the Disposable card | MERGED at `9fe8663fc` (gate 208 green; no migration); the develop time's open question in the calls lab (X); pruned | Sonnet, 3132 | `a8e962e785b73f56a` |
-| `arrival-wiring` | Will's arrival=in-place: the contact sheet develops into the album's first rows, once per phone | MERGED at `d1ba8b2c0` (gate 209 green; no migration); his calls in the calls lab (Y); pruned | Opus, 3134 | `ae39397e625aa233f` |
+| `redteam-53` | build 53's red-team (`31a73a4`): the dashboard's Display menu and lit stage, Create's styles, the hub's strip and her reel before the develop, the develop's arrival, E6's words contained, Q2's spoken "to", the name-only colour, red-team 52's fixes, graphite, regressions; brief `../partyreel-wt/_scratch/redteam-53/brief.md` | RUNNING (from 14:37Z) | Opus, Will's Chrome | `a74c0224d08c09800` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Its
 model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`. From another session, respawn it from
@@ -67,44 +58,32 @@ account. Connectors follow the account: Claude in Chrome (every red-team needs i
 If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` holds a merge made after this note (push
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
 staged, uncommitted merge is finished by `usher/kit/merge-lane.sh`'s own steps or reset with `git merge --abort`.
-This session's scratchpad holds the specs (`specs-r15/`) and gate logs (the next gate is 202); nothing there is needed that these lines and the manifests do not carry. Everything a successor reads lives
+This session's scratchpad holds the specs (`specs-r15/`) and gate logs (the next gate is 210); nothing there is needed that these lines and the manifests do not carry. Everything a successor reads lives
 in the repo or in `../partyreel-wt/_scratch/` (the calls lab, the red-team briefs and ledgers, the Drive research).
 
 ## Next, in order
 
-Round 15, on Will's desk answers of 2026-10-04 06:00Z (build 31b7c65, transcribed at `7575ce528`) and his brand note.
-The approved plan, whole, is `../partyreel-wt/_scratch/desk/round-15-plan.md` (self-reviewed, the Advisor's Q29 and
-Q30 folded in): read it first. Its spine:
+Round 15, on Will's desk answers of 2026-10-04 06:00Z and his brand note; the approved plan, whole, is
+`../partyreel-wt/_scratch/desk/round-15-plan.md`.
 
-1. **Desk 2 is Drive alone.** drive-export r1 integrated, then build 52 `[preview]` (Ladder A, the reel's tap, the Drive
-   board). After build 52 serves: move willg97's old TEST subscription onto Pro 1 TB monthly (`stripe_test.py` in the
-   session scratchpad: TEST key only, livemode checked on every answer); red-team 52 (`/pricing`'s matrix and hover
-   lines, the plan sheet, the pass card, the reel's tap); `lab:demo --board drive-export` on the alias at 1440 and 375,
-   then tell Will desk 2 is ready.
-2. **The boards now** (no system doc needed): identity-r4 (the mix as seven trait asks, the edge on nine real screens,
-   A1-A4 and H3 folded in, form never hue), event-header-r4 (the three doors, each by its own helper; form only; G1, G2,
-   G4), brand-r1 (three agency visions, desk 5, above everything its answer shapes); host-dashboard-r4 (the corner with
-   its stage; H6) at the first free seat. Specs in the session's `specs-r15/`. Six dev-server lanes at most.
-3. **docs-prune merges** (its ready files copied after reading each diff, re-adding every ROADMAP line recorded after
-   its snapshot; the take-home ledger deleted in that record), which frees the 17 system docs for the wirings.
-4. **The wirings**, as seats free (dashboard-wiring and hub-strip-wiring MERGED; `types.ts` regenerated after
-   `dashboard_display` and its typed seams dropped next): arrival-wiring (in-place), styles-wiring (styles, Review
-   everywhere, the time under the Disposable card), graphite-wiring (room=graphite, the popover gutter; owns
-   `src/components/ui/`), small-fixes (E6, Q2's spoken "to", the name-only guest's hashvatar: `seedFor(guests.id)`).
-   Specs in the session's `specs-r15/`. Then red-team 53, and milestone 36 on Will's yes.
-5. **Desk 3** (identity r4, customize r1, event-header r4, host-dashboard r4), each parked at its handoff and integrated
-   only after Will answers desk 2 (two desks never stand on the alias together), then the desk pass; **desk 4** brand r1
-   alone; **desk 5** the moments boards (host-moments: B1, Q6, B2, L3; guest-moments: C7, D3 with the flat 3, Q3, G6;
+1. **Red-team 53** (running): its findings to a `crumbs-65` lane (Sonnet) if any; then milestone 36 on Will's yes (the
+   runbook's "Milestone"): Ladder A, trash in storage and the round's wirings.
+2. **Desk 2 is Drive alone** (on the alias since build 52). After his answers: the Drive wiring lane (his Google Cloud
+   step relayed: the design note's section 11; the way-in now lives in production's Display menu and the download toast
+   tells a cancel from a dropped line, so the lane reconciles both), and desk 3's four boards integrated (customize-r1,
+   identity-r4, event-header-r4, host-dashboard-r4, one at a time), the desk pass (`board-card.mjs --desk`, PREMISE
+   re-reads, any two asks asking one decision merged), a `[preview]`, `lab:demo` on the alias at 1440 and 375, then
+   tell him desk 3 is ready.
+3. **Desk 4 is brand r1 alone**, integrated after desk 3's answers; its nine Higgsfield asks go to ASSETS.md for the
+   picked vision only.
+4. **Desk 5**, the moments boards (host-moments: B1, Q6, B2, L3; guest-moments: C7, D3 with the flat 3, Q3, G6;
    account-moments: I4, I5; create-wizard r4: the styles' polish, F1, F2), cut after desk 3's identity and customize
-   picks; **desk 6** the brand applied (brand-marks with the status set, aurora, marketing-themes with N4, N7, N9,
-   demo-framing r6, presence r1), cut after brand r1's pick. The Drive wiring lane after his desk-2 pick, his Google
-   Cloud step relayed then. camera-clip's migration to the Advisor from its WIP push.
-6. **crumbs-64** (Sonnet), when a seat frees and before milestone 36: red-team 52's MEDIUM (the pricing matrix's
-   row explainers readable by a finger: a tap opens them, the subhead's words for touch too) and its LOWs and NITs
-   (the plan sheet's uploads allowance and a downgrade below this month's uploads; the reel's desk click after a move
-   keeping the controls up; `/admin/accounts`' Free caps; the help and llms.txt's "over its year ... for about a
-   year"; `/account#plan`'s "paid once"; the sheet's Switch on her own plan; admin's Spend watch saying "ingress"; the
-   375 tooltip's edge). Ledger `../partyreel-wt/_scratch/redteam-52/ledger.txt`.
+   picks. **Desk 6**, the brand applied (brand-marks with the status set, aurora, marketing-themes with N4, N7, N9,
+   demo-framing r6, presence r1, moments-in-motion), cut after brand r1's pick.
+5. **The calls lab's open question X1** (a Disposable's develop time when the date comes later): its recommended fix
+   is a small lane on his word.
+6. **A capture incident:** brand-r1's capture drove host-dashboard-r4's headless Chrome for about 16 s at
+   04:47 local; the desk pass re-reads host-dashboard r4 by `lab:demo` before desk 3.
 7. **Will's motion inspirations, studied** (`../partyreel-wt/_scratch/inspiration/2026-10-04-motion.md`; his six links
    and words beside it): sent to brand-r1 at 08:10Z as material for its visions' signature ("the aurora that answers":
    light answering a real signal), the aurora as ink on paper, the motion principles and "the code develops". After
@@ -116,24 +95,20 @@ Q30 folded in): read it first. Its spine:
 8. **The heartbeat:** cron `11f7f524`, hourly at :17 local, session-only (it dies with this session; recreate it in a
    new one). A fail-safe: it acts only on ready work and otherwise ends in a line (Will: stalls are rare, needless
    wakeups cost context).
-9. **Pacing (Will, 2026-10-04 07:55Z: never pause overnight):** the boards' twelve helpers drawing at once burned
-   the 5-hour window about 30 points an hour (60% at 08:44Z; it resets 11:40Z). The weekly is the night's real wall: 72%,
-   rising about 0.29 for each 5-hour point, so about one more window's worth remains before Will switches accounts.
-   - From 11:45Z (the window reset): brand-r1 resumed; crumbs-64 (merged) and small-fixes; from 12:40Z graphite,
-     styles and arrival (the burn fell to about 8 window points an hour with one Opus lane); then build 53 and red-team
-     53. The weekly was 81% at 12:34Z.
-   - At 90% of a window, the running lanes are asked to commit and pause.
-   - From 96% weekly, nothing new starts and every lane parks at a commit.
-   - `get_usage` at every wake.
-10. **The close of the day:** STATUS, this pickup, the calls lab (text calls only now; 45 remain). Moltbook hourly only
-   on his word.
+9. **Pacing (Will: never pause overnight; he switches accounts at a weekly limit):** the night's twelve board helpers
+   burned the 5-hour window about 30 points an hour; Sonnet wirings and one Opus lane burn about 8. The weekly was 85%
+   at 14:18Z (this account's resets Tuesday 21:00Z; willg97's reset today at 13:00Z). From 96% weekly nothing new
+   starts and every lane parks at a commit; `get_usage` at every wake.
+10. **The close of the day:** STATUS, this pickup, the calls lab. Moltbook hourly only on his word.
 
 ## Waiting on Will
 
-- **Desk 2, Drive alone** (nine asks), on build 52 once it serves:
+- **Desk 2, Drive alone** (nine asks), on the alias (build 53 now):
   `https://partyreel-git-launch-prep-partyreel.vercel.app/design/lab?key=fiesta`.
-- **The calls lab** (`../partyreel-wt/_scratch/calls/calls-lab.md`): text calls only now (45), whenever he likes; the
-  visual ones are on boards. He asks direct questions in chat; answer in chat, never only in a file.
+- **The calls lab** (`../partyreel-wt/_scratch/calls/calls-lab.md`): one open question (X1, a Disposable's develop time
+  when the date comes later), then the text calls built and his to overrule (the night's wirings added S to Y). He asks
+  direct questions in chat; answer in chat, never only in a file.
+- **Milestone 36** on his yes, after red-team 53.
 - **His six motion links, a note:** libraries.dev is blocked on his home network (the ISP's CUJO filter), so three of
   the six (voice, image, gooey) were read from their MIT source on GitHub, never watched; the study says what each is
   worth.
