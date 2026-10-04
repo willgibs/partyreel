@@ -105,9 +105,12 @@ Q30 folded in): read it first. Its spine:
    brand-r1 if still drawing (else to brand r2's applied boards), and the strongest suggestion (likely a motion
    foundation for Partyreel's moments: delete, open, arrive, the develop; a QR that develops out of pixels) as a lab
    board for a later desk, never stacked onto desk 3. Will works overnight-autonomous until morning.
-8. **Pacing (Will, 2026-10-04 07:55Z):** the 5-hour window would run out before its reset at the night's burn, so no
+8. **The heartbeat:** cron `11f7f524`, hourly at :17 local, session-only (it dies with this session; recreate it in a
+   new one). A fail-safe: it acts only on ready work and otherwise ends in a line (Will: stalls are rare, needless
+   wakeups cost context).
+9. **Pacing (Will, 2026-10-04 07:55Z):** the 5-hour window would run out before its reset at the night's burn, so no
    new lane is cut until running ones finish, and the wirings run two at a time; `get_usage` each hour.
-9. **The close of the day:** STATUS, this pickup, the calls lab (text calls only now; 45 remain). Moltbook hourly only
+10. **The close of the day:** STATUS, this pickup, the calls lab (text calls only now; 45 remain). Moltbook hourly only
    on his word.
 
 ## Waiting on Will
