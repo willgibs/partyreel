@@ -99,12 +99,14 @@ Q30 folded in): read it first. Its spine:
    keeping the controls up; `/admin/accounts`' Free caps; the help and llms.txt's "over its year ... for about a
    year"; `/account#plan`'s "paid once"; the sheet's Switch on her own plan; admin's Spend watch saying "ingress"; the
    375 tooltip's edge). Ledger `../partyreel-wt/_scratch/redteam-52/ledger.txt`.
-7. **Will's motion inspirations** (six links, `../partyreel-wt/_scratch/inspiration/will-2026-10-04.md`): a research
-   helper (Opus, `a3c351085e4f63b86`) studies each in code and visually and writes
-   `../partyreel-wt/_scratch/inspiration/2026-10-04-motion.md`. Then route: what informs the brand's signature to
-   brand-r1 if still drawing (else to brand r2's applied boards), and the strongest suggestion (likely a motion
-   foundation for Partyreel's moments: delete, open, arrive, the develop; a QR that develops out of pixels) as a lab
-   board for a later desk, never stacked onto desk 3. Will works overnight-autonomous until morning.
+7. **Will's motion inspirations, studied** (`../partyreel-wt/_scratch/inspiration/2026-10-04-motion.md`; his six links
+   and words beside it): sent to brand-r1 at 08:10Z as material for its visions' signature ("the aurora that answers":
+   light answering a real signal), the aurora as ink on paper, the motion principles and "the code develops". After
+   brand r1's pick, a `moments-in-motion` board joins desk 6, drawn in the chosen brand: the product's verbs as one
+   family (take back as smoke in Your shots and the bin's Delete permanently, never a soft Remove; set aside; open, with
+   a weighted pull to dismiss and the full flight only for rare launches; arrive; develop as a cell reveal), the
+   camera's filming glow, Create's code flipping only the modules that differ. Skipped: gooey as a language, the tilt on
+   every photo. ★ The smoke reads pixels: an album tile's presigned image taints the canvas.
 8. **The heartbeat:** cron `11f7f524`, hourly at :17 local, session-only (it dies with this session; recreate it in a
    new one). A fail-safe: it acts only on ready work and otherwise ends in a line (Will: stalls are rare, needless
    wakeups cost context).
@@ -119,6 +121,9 @@ Q30 folded in): read it first. Its spine:
   `https://partyreel-git-launch-prep-partyreel.vercel.app/design/lab?key=fiesta`.
 - **The calls lab** (`../partyreel-wt/_scratch/calls/calls-lab.md`): text calls only now (45), whenever he likes; the
   visual ones are on boards. He asks direct questions in chat; answer in chat, never only in a file.
+- **His six motion links, a note:** libraries.dev is blocked on his home network (the ISP's CUJO filter), so three of
+  the six (voice, image, gooey) were read from their MIT source on GitHub, never watched; the study says what each is
+  worth.
 - **The 26 policy tests, GUARD or TASTE** (`../partyreel-wt/_scratch/docs-prune/policy-tests.md`): which taste rules he
   keeps as his voice and which go.
 - **His walks:** the camera on his iPhone (a held-shutter video on a waiting sheet), Save into Photos, Record Video's
