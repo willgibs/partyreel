@@ -54,9 +54,10 @@ export function classifyRun(failures: readonly QueueItem[]): RefusalClass {
  * says nothing of the bytes going. A pick still waiting its turn shows a sliver (a bar of nothing reads as no bar at
  * all), and a landed one is whole.
  */
-export function uploadBarPercent(
-  it: Pick<QueueItem, "status" | "progress">,
-): number {
+export function uploadBarPercent(it: {
+  status: QueueItem["status"];
+  progress: QueueItem["progress"];
+}): number {
   const floor = it.status === "done" ? 100 : 4;
   return Math.round(Math.min(100, Math.max(it.progress, floor)));
 }

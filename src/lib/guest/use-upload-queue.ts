@@ -108,6 +108,7 @@ export type QueueItem = {
    *  video badge before the server confirms anything. */
   kind: "photo" | "video";
   status: QueueItemStatus;
+  /** A PERCENT, 0 to 100, never a fraction: the bytes' own `Math.round(fraction * 100)`, as every bar reads it. */
   progress: number;
   mediaStatus?: string;
   /**
