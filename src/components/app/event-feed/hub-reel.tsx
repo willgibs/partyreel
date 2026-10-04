@@ -87,7 +87,7 @@ export type HubReelProps = {
 };
 
 /** What the dock says while her guests wait for the develop. */
-export const GUESTS_WAIT_NOTE = "Guests get it at the develop.";
+const GUESTS_WAIT_NOTE = "Guests get it at the develop.";
 
 const NO_ITEMS: readonly LiveMediaItem[] = [];
 
