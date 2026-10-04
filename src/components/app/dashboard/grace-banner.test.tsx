@@ -37,9 +37,9 @@ import {
 const WEDDING = "10000000-0000-4000-8000-000000000001";
 
 // The list's body is a lazy chunk (`storage-list.tsx`), so the first open pays a cold import of its whole module graph:
-// about 300 ms alone, and a loaded machine stretches it past the one second a `waitFor` gives. Awaited here, under the
-// hook's own longer budget, so the waits below are only for the list's own states. (What is left in them is React's:
-// a lazy body shows 300 ms after its skeleton, a fixed floor that never scales with the machine.)
+// about a quarter of a second alone, and a loaded machine stretches it past the one second a `waitFor` gives. Awaited
+// here, under the hook's own longer budget, so the waits below are only for the list's own states. (What is left in
+// them is React's: a lazy body shows 300 ms after its skeleton, a fixed floor that never scales with the machine.)
 beforeAll(async () => {
   await import("@/components/app/storage/storage-list-body");
 });
