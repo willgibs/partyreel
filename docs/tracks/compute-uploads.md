@@ -93,6 +93,13 @@ working.
   strategy hook; `uploader.ts`'s `uploadBurst` (prep ahead under a byte budget, presign what is prepared when the
   network waits or when all is prepared, PUTs one at a time, completes batched by the 10 s rule), `uploadFile` a burst
   of one; the queue and the host panel send bursts; run.mjs's `landed()` counts rows.
+- Built and pushed through `0e79abced` (server engine, client engine, queue, host panel, harness, system doc). After
+  run 1 (`_scratch/compute-uploads/after1/`): guest-join-upload 22 calls, 1,007 ms (her upload 11: presign 2,
+  complete 2, sync 5, links 2; the listener 6). Each batched complete took 11 to 17 s locally (files one after
+  another), so a burst's files now land four at once and are recorded in order (`0e79abced`). Lint 0, full test 0
+  (911 files, 11,187 tests) on `0e79abced`. Next: the full `compute:model` (`after-full/`), the wedding-level
+  reprojection (swap `before/`'s guest-join-upload ledger into a copy of `after-full/`), the budget line, a local
+  red-team of the burst wire on 3131, the build and `lab:smoke`, then the Handoff.
 
 - The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
 - Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
