@@ -22,13 +22,22 @@ import { HubReel, type HubReelProps } from "./hub-reel";
  */
 
 const seen = vi.hoisted(() => ({ props: [] as unknown[] }));
+// The view's chunk, held behind a gate: the first tests stand in the wait before it lands, every other test releases it.
+const chunk = vi.hoisted(() => {
+  let release!: () => void;
+  const landed = new Promise<void>((resolve) => (release = resolve));
+  return { landed, release };
+});
 vi.mock("./hub-reel-view", () => ({
-  loadHubReelView: async () => ({
-    LiveReelView: (props: unknown) => {
-      seen.props.push(props);
-      return <div data-testid="reel-view" />;
-    },
-  }),
+  loadHubReelView: async () => {
+    await chunk.landed;
+    return {
+      LiveReelView: (props: unknown) => {
+        seen.props.push(props);
+        return <div data-testid="reel-view" />;
+      },
+    };
+  },
   warmHubReelView: () => {},
 }));
 
@@ -92,7 +101,35 @@ afterEach(() => {
   window.history.replaceState(null, "", "/");
 });
 
+/**
+ * ★ THE WAIT BEFORE THE VIEW'S CHUNK LANDS: first in the file, since a chunk that has landed stays landed for the rest of
+ * it (the lazy component is the module's), and the only tests that hold it back.
+ */
+describe("the press before the view's chunk has landed", () => {
+  it("★ answers at once with the reel's own black and a way out", async () => {
+    open();
+    render(<HubReel {...props()} />);
+    expect(document.querySelector("[data-hub-reel-curtain]")).not.toBeNull();
+    expect(screen.queryByTestId("reel-view")).toBeNull();
+    // The way out, with the chunk still on its way: she is never stuck on a black she cannot leave.
+    act(() => screen.getByRole("button", { name: "Close the reel" }).click());
+    await waitFor(() => expect(window.location.search).toBe(""));
+    expect(document.querySelector("[data-hub-reel-curtain]")).toBeNull();
+  });
+
+  it("hands the black over to the view when the chunk lands", async () => {
+    open();
+    render(<HubReel {...props()} />);
+    expect(document.querySelector("[data-hub-reel-curtain]")).not.toBeNull();
+    chunk.release();
+    expect(await screen.findByTestId("reel-view")).toBeInTheDocument();
+    expect(document.querySelector("[data-hub-reel-curtain]")).toBeNull();
+  });
+});
+
 describe("her reel on her own hub", () => {
+  beforeEach(() => chunk.release());
+
   it("draws nothing until the address asks for it", async () => {
     const { container } = render(<HubReel {...props()} />);
     await settle();
@@ -223,6 +260,8 @@ describe("her reel on her own hub", () => {
 });
 
 describe("a `?reel` that cannot play", () => {
+  beforeEach(() => chunk.release());
+
   it("★ is dropped quietly below the minimum of two photographs that can play", async () => {
     store.entries = [photo("a"), entry("held", ENTRY_REEL | ENTRY_PENDING, 1)];
     open();

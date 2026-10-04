@@ -125,11 +125,15 @@ const TIER_SHOWN: Record<StripTier["id"], string> = {
   desk: "hidden @4xl:flex",
 };
 
-/** A filled mark stands from 3px (a point) up to the line's height, the taller the brighter. */
+/**
+ * A filled mark stands from 3px (a point) up to the line's height, the taller the brighter. Rounded to a tenth of a
+ * pixel and a hundredth of an opacity: a hundred and sixty marks times three widths of full-precision floats is HTML a
+ * browser reads no difference in.
+ */
 function markStyle(tier: StripTier, m: StripMark): CSSProperties {
   return {
-    height: `${3 + (tier.height - 3) * m.h}px`,
-    opacity: 0.55 + 0.45 * m.h,
+    height: `${Math.round((3 + (tier.height - 3) * m.h) * 10) / 10}px`,
+    opacity: Math.round((0.55 + 0.45 * m.h) * 100) / 100,
   };
 }
 
@@ -143,15 +147,20 @@ function EndCount({
   lit: boolean;
   words: string;
 }) {
+  // Said once to a reader, by the sentence beside the line (`sr-only`), so what is drawn here is hidden from them.
   if (photos === 0) {
     return (
-      <span className="shrink-0 pb-px text-xs text-white/70">
+      <span aria-hidden className="shrink-0 pb-px text-xs text-white/70">
         No photos yet
       </span>
     );
   }
   return (
-    <span className="flex shrink-0 items-center gap-1.5 pb-px" title={words}>
+    <span
+      aria-hidden
+      className="flex shrink-0 items-center gap-1.5 pb-px"
+      title={words}
+    >
       <span
         className="hub-strip-end"
         data-lit={lit ? "" : undefined}
@@ -167,6 +176,9 @@ function EndCount({
   );
 }
 
+/** setTimeout holds a delay of 2^31 - 1 ms at most. */
+const MAX_TIMER_MS = 2 ** 31 - 1;
+
 /**
  * WHETHER THE NEWEST PHOTOGRAPH IS LANDING NOW, on this device's clock (`event-hub-head-strip-marks.ts`'s quarter hour).
  *
@@ -181,8 +193,12 @@ function useLandingNow(newest: number | null): boolean {
       if (newest === null) return () => {};
       const left = msUntilQuiet(newest, Date.now());
       if (left <= 0) return () => {};
-      // A hair past the moment, so the snapshot read when it fires is already quiet.
-      const timer = window.setTimeout(onChange, left + 50);
+      // A hair past the moment, so the snapshot read when it fires is already quiet. A browser holds a delay of 2^31 - 1 ms at
+      // most (a clock set far behind the album's would ask for more, and fire at once).
+      const timer = window.setTimeout(
+        onChange,
+        Math.min(left + 50, MAX_TIMER_MS),
+      );
       return () => window.clearTimeout(timer);
     },
     [newest],

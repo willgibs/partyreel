@@ -8,6 +8,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { X } from "lucide-react";
 
 import type {
   ReelStandIn,
@@ -168,8 +169,28 @@ export function HubReel({
     onClose: closeView,
   };
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<ViewCurtain onClose={closeView} />}>
       <HubReelViewLazy {...viewProps} />
     </Suspense>
+  );
+}
+
+/**
+ * ★ THE PRESS ANSWERS AT ONCE, AND CAN BE TAKEN BACK. The view is a lazy chunk, unwarmed on a touch screen until the
+ * press itself, so until it lands the reel's own black stands over the hub (the view's ground is the same black, so the
+ * hand-over is not seen) with a way out: a chunk that is slow, or never comes, is never a hub she cannot get back to.
+ */
+function ViewCurtain({ onClose }: { onClose: () => void }) {
+  return (
+    <div data-hub-reel-curtain="" className="fixed inset-0 z-50 bg-black">
+      <button
+        type="button"
+        aria-label="Close the reel"
+        onClick={onClose}
+        className="absolute top-4 right-4 flex size-10 items-center justify-center rounded-full bg-white/10 text-white outline-none hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white/60"
+      >
+        <X className="size-5" aria-hidden />
+      </button>
+    </div>
   );
 }

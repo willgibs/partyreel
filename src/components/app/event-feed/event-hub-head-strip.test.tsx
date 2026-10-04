@@ -98,6 +98,12 @@ describe("the marks", () => {
     expect(container.querySelector(".sr-only")?.textContent).toBe(
       "3 photos & videos",
     );
+    // What is drawn at its end says the same, so it is hidden from a reader too: the sentence is read once.
+    expect(
+      container
+        .querySelector("[data-hub-strip-count]")!
+        .closest("[aria-hidden]"),
+    ).not.toBeNull();
   });
 
   it("★ counts what the hub's album holds, never what waits in Review", () => {

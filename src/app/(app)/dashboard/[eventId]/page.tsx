@@ -441,8 +441,8 @@ export default async function EventDetailPage({
 
       <EventShareProvider initialSheet={place} eventId={event.id}>
         {/* THE ALBUM'S STORE wraps everything on the page that shows the album
-            or a number off it: the header's count and pip, the cards' Review
-            and Reel, the checklist and Settings' rail, the album and its header. */}
+            or a number off it: the head's strip and pip, the cards' Review
+            and Reel, her reel's view, the checklist and Settings' rail, the album and its header. */}
         <HostAlbumProvider seed={seed} qrToken={event.qr_token}>
           {/* ★ THE HEAD IS THE ALBUM'S OWN (`event-header` r1, `host=shared`): the cover her guests walk
               into, its photographs dissolving edge to edge under the name, with her tools on it: the
