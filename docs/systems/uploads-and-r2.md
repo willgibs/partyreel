@@ -152,6 +152,12 @@ it.
   `album-guest-links.ts` and `album-host-links.ts`), and the render routes are dynamic. A guest's own items the album
   cannot show her (held, or sealed for the develop) are presigned for her alone by her tracker's read
   (`/api/guests/mine`, as far as the ticket is hers), never a refused one's.
+- ★ **Presigns are signed by hand, byte-identical to the SDK's** (`r2/sigv4.ts` behind `r2/presign.ts`): SigV4's
+  query presign on Node's `crypto`, about a twelfth of `getSignedUrl`'s CPU (257 links in 2 ms, not 28), its derived
+  key made once a day. `presign.test.ts` holds every URL equal to the SDK's over a corpus of keys, operations, types,
+  lengths, expiries and clocks (the SDK's presigner is a dev dependency for it alone), so a change to what is signed
+  is proved there first. It refuses what the SDK signed silently: an empty key (the SDK signs the bucket's root, a
+  listing), an empty type, a length or part number that is no whole count, a bucket name R2 would not take.
 - **Gallery read presigns are stable:** `presignDownload({ stable: true })` pins the signing date to the current
   30-minute bucket (`r2/presign-bucket.ts`), so two presigns of one key in a bucket are byte-identical: the image
   cache works across refetches and the gallery's ETag rolls with the bucket. They live 90 minutes (two buckets and
@@ -216,8 +222,8 @@ it.
   it cannot hold (a large or stalled original, a refused read), is drawn and saved the plain way, and two refused
   reads before any success (an origin R2's CORS does not list, localhost among them) turn holding off for the page.
 - ★ **No guest byte is billed by Vercel** (`media-cost-policy.test.ts`): no remote pattern, domain or loader for the
-  image optimizer, no `next/image` fed a link or beside a presigner, and `GetObjectCommand` only signed, in
-  `r2/presign.ts`.
+  image optimizer, no `next/image` fed a link or beside a presigner, and no `GetObjectCommand` in `src/`: a read is a
+  URL signed in `r2/sigv4.ts`, which holds no client and sends nothing.
 
 ## Taking photos home
 
