@@ -111,7 +111,8 @@ export const DRIVE_EXPORT = defineExploration({
       question: "Which plans get Send to Google Drive?",
       taken:
         "Every plan, Free included: it costs us about nothing and a way out is a promise. Live sync, next, is where a paid line belongs.",
-      overrule: "Paid plans only: Free sees it in Take it home with a Pro mark.",
+      overrule:
+        "Paid plans only: Free sees it in Take it home with a Pro mark.",
     },
     {
       id: "live-sync",
@@ -159,7 +160,8 @@ export const DRIVE_EXPORT = defineExploration({
           label: "A second act on Originals",
           means:
             "Originals keeps Download and gains Send to Drive beside it: the same full-size set, kept in her Drive instead.",
-          gains: "Says exactly what goes, the originals, with nothing new to read.",
+          gains:
+            "Says exactly what goes, the originals, with nothing new to read.",
           costs:
             "A second button on one card is easy to miss, and a phone's lead card is Phone size.",
         },
@@ -313,7 +315,8 @@ export const DRIVE_EXPORT = defineExploration({
           means:
             "The panel's Drive card becomes the progress, and the album's Download button wears the count while it runs.",
           gains: "Nothing new on any page: reopen Download to see it.",
-          costs: "Out of sight unless she goes looking, and nothing on the dashboard.",
+          costs:
+            "Out of sight unless she goes looking, and nothing on the dashboard.",
         },
       ],
       recommended: "album",
@@ -387,8 +390,7 @@ export const DRIVE_EXPORT = defineExploration({
           label: "Open in Drive, then free its room",
           means:
             "In your Drive, every one checked: Open in Drive leads, and a quieter line offers Free 7.4 GB from Partyreel.",
-          gains:
-            "Celebrates the send first; the way out is one press away.",
+          gains: "Celebrates the send first; the way out is one press away.",
           costs: "The way out is easy to read past.",
         },
         {
@@ -412,7 +414,8 @@ export const DRIVE_EXPORT = defineExploration({
       recommended: "open-free",
       because:
         "She looks first, then frees: the way out one quiet press away, never the headline over her wedding.",
-      overrule: "If the storage win should be the headline, free its room first.",
+      overrule:
+        "If the storage win should be the headline, free its room first.",
       configs: [SCREEN],
     },
     {
@@ -512,7 +515,8 @@ export const DRIVE_EXPORT = defineExploration({
     {
       id: "naming",
       label: "Folder and file names",
-      question: "How should the album's folder and files be named in her Drive?",
+      question:
+        "How should the album's folder and files be named in her Drive?",
       where: ["Host", "Her Google Drive", "The album's folder"],
       when: "Maya opens the Partyreel folder in her Drive the day after the send.",
       matters:
@@ -551,7 +555,8 @@ export const DRIVE_EXPORT = defineExploration({
       recommended: "when-who",
       because:
         "Names that sort into the evening and say who sent each one read as the album, years from now.",
-      overrule: "If finding one guest's photos matters most, a folder per guest.",
+      overrule:
+        "If finding one guest's photos matters most, a folder per guest.",
       configs: [SCREEN],
     },
   ],

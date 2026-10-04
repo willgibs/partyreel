@@ -260,7 +260,9 @@ export function FolderPicture({
       <span
         className={cn(
           "absolute rounded-t-md bg-foreground/15",
-          wide ? "top-[20%] left-[8%] h-[10%] w-[30%]" : "top-[22%] left-[8%] h-3 w-[28%]",
+          wide
+            ? "top-[20%] left-[8%] h-[10%] w-[30%]"
+            : "top-[22%] left-[8%] h-3 w-[28%]",
         )}
       />
       <span

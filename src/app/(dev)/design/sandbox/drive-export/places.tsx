@@ -26,7 +26,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Popup,
   PopupBody,
@@ -80,7 +84,14 @@ function Ring({ pct, warning }: { pct: number; warning: boolean }) {
       )}
     >
       <svg viewBox="0 0 18 18" className="size-[18px] -rotate-90" aria-hidden>
-        <circle cx="9" cy="9" r={RING_R} fill="none" strokeWidth="2.5" className="stroke-foreground/12" />
+        <circle
+          cx="9"
+          cy="9"
+          r={RING_R}
+          fill="none"
+          strokeWidth="2.5"
+          className="stroke-foreground/12"
+        />
         <circle
           cx="9"
           cy="9"
@@ -111,7 +122,12 @@ const ringOf = (s: Stored) =>
 
 /** The inert source the real storage chart answers to (the Library's own shape): nothing it presses writes. */
 const INERT: StorageSource = {
-  read: async () => ({ ok: true as const, items: [], next: null, overview: null }),
+  read: async () => ({
+    ok: true as const,
+    items: [],
+    next: null,
+    overview: null,
+  }),
   deleteForGood: async () => ({ ok: true as const, deleted: 0 }),
   emptyDeleted: async () => ({
     ok: true as const,
@@ -136,7 +152,10 @@ function RingOpen({ stored }: { stored: Stored }) {
       <Popover open>
         <PopoverTrigger asChild>
           <button type="button" aria-label="Storage" className="rounded-full">
-            <Ring pct={reading.ringPct} warning={reading.warning || reading.over} />
+            <Ring
+              pct={reading.ringPct}
+              warning={reading.warning || reading.over}
+            />
           </button>
         </PopoverTrigger>
         <PopoverContent align="end" className="w-80 space-y-3">
@@ -181,7 +200,10 @@ function TileMark({ dot, children }: { dot: string; children: ReactNode }) {
         GLASS_MARK,
       )}
     >
-      <span aria-hidden className={cn("inline-block size-1.5 shrink-0 rounded-full", dot)} />
+      <span
+        aria-hidden
+        className={cn("inline-block size-1.5 shrink-0 rounded-full", dot)}
+      />
       {children}
     </span>
   );
@@ -222,7 +244,9 @@ function YourEvents({
               >
                 {l}
                 {i === 0 ? (
-                  <span className="text-muted-foreground tabular-nums">{albums.length}</span>
+                  <span className="text-muted-foreground tabular-nums">
+                    {albums.length}
+                  </span>
                 ) : null}
               </span>
             ))}
@@ -254,20 +278,29 @@ function YourEvents({
           return (
             <li
               key={a.id}
-              data-dx-read={a.id === "maya-jay" ? "the album's tile" : undefined}
+              data-dx-read={
+                a.id === "maya-jay" ? "the album's tile" : undefined
+              }
               className="@container/tile relative"
             >
               <div
                 className={cn(
                   "relative block aspect-[3/2] overflow-hidden rounded-xl",
-                  picked && "ring-3 ring-success ring-offset-2 ring-offset-background",
+                  picked &&
+                    "ring-3 ring-success ring-offset-2 ring-offset-background",
                 )}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element -- a bootstrap still, the tile's cover */}
-                <img src={coverOf(a.cover)} alt="" className="absolute inset-0 size-full object-cover" />
+                <img
+                  src={coverOf(a.cover)}
+                  alt=""
+                  className="absolute inset-0 size-full object-cover"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
                 <div className="absolute inset-x-0 bottom-0 p-3 text-white">
-                  <h3 className="truncate font-heading text-card-title">{a.name}</h3>
+                  <h3 className="truncate font-heading text-card-title">
+                    {a.name}
+                  </h3>
                   <p className="mt-0.5 truncate text-xs text-white/75 tabular-nums">
                     {`${a.day ?? "No date"} · ${formatBytes(a.bytes)}`}
                   </p>
@@ -283,7 +316,9 @@ function YourEvents({
                       : "border-white/80 bg-black/25",
                   )}
                 >
-                  {picked ? <Check className="size-3.5" strokeWidth={3} /> : null}
+                  {picked ? (
+                    <Check className="size-3.5" strokeWidth={3} />
+                  ) : null}
                 </span>
               ) : null}
               {mark && a.id === "maya-jay" ? (
@@ -375,7 +410,12 @@ export function Dashboard({
       <Page>
         <div className="space-y-8">
           <HomeHead ring={ring} count={albums.length} />
-          <YourEvents albums={albums} door={door} picking={picking} mark={mark} />
+          <YourEvents
+            albums={albums}
+            door={door}
+            picking={picking}
+            mark={mark}
+          />
         </div>
       </Page>
     </Ground>
@@ -395,7 +435,11 @@ function SizeRow({ i }: { i: number }) {
       <span className="relative flex size-5 shrink-0 items-center justify-center rounded-full border border-border bg-background" />
       <span className="relative size-11 shrink-0 overflow-hidden rounded-md bg-muted">
         {/* eslint-disable-next-line @next/next/no-img-element -- a bootstrap still, the row's thumbnail */}
-        <img src={photoAt(i + 2).src} alt="" className="absolute inset-0 size-full object-cover" />
+        <img
+          src={photoAt(i + 2).src}
+          alt=""
+          className="absolute inset-0 size-full object-cover"
+        />
         {clip ? (
           <span className="absolute right-0.5 bottom-0.5 rounded bg-black/60 px-1 text-micro font-medium text-white tabular-nums">
             {`0:${String(20 + i * 7).padStart(2, "0")}`}
@@ -405,7 +449,9 @@ function SizeRow({ i }: { i: number }) {
       <span className="relative min-w-0 flex-1">
         <span className="flex items-baseline justify-between gap-2">
           <span className="font-medium text-foreground tabular-nums">{`${SIZES[i]} MB`}</span>
-          <span className="shrink-0 text-xs text-muted-foreground tabular-nums">Sep 12</span>
+          <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
+            Sep 12
+          </span>
         </span>
         <span className="mt-0.5 flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
           <span className="truncate">{EVENT.name}</span>
@@ -486,11 +532,15 @@ function PlanCard({ line }: { line?: ReactNode }) {
       <CardContent className="space-y-4">
         <dl className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1">
-            <dt className="text-xs font-medium text-muted-foreground">Events</dt>
+            <dt className="text-xs font-medium text-muted-foreground">
+              Events
+            </dt>
             <dd className="text-sm">{`${ALBUMS.length} of Unlimited used`}</dd>
           </div>
           <div className="space-y-1">
-            <dt className="text-xs font-medium text-muted-foreground">Storage</dt>
+            <dt className="text-xs font-medium text-muted-foreground">
+              Storage
+            </dt>
             <dd className="text-sm">{`About ${formatCapacity(STORAGE.capBytes)}`}</dd>
           </div>
         </dl>
@@ -537,7 +587,10 @@ export function Account({ way, over }: { way: AccountWay; over?: ReactNode }) {
       >
         <DriveName className="font-medium text-foreground" />
         <span className="min-w-0 truncate">{`Connected as ${HOST.email}`}</span>
-        <button type="button" className="font-medium text-foreground underline underline-offset-4">
+        <button
+          type="button"
+          className="font-medium text-foreground underline underline-offset-4"
+        >
           Disconnect
         </button>
       </div>
@@ -561,8 +614,8 @@ export function Account({ way, over }: { way: AccountWay; over?: ReactNode }) {
                   <DriveName className="gap-2" />
                 </CardTitle>
                 <CardDescription>
-                  Where Send to Drive puts your albums. Partyreel sees only
-                  what it puts there.
+                  Where Send to Drive puts your albums. Partyreel sees only what
+                  it puts there.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -571,8 +624,12 @@ export function Account({ way, over }: { way: AccountWay; over?: ReactNode }) {
                     <AvatarFallback className="text-[10px]">M</AvatarFallback>
                   </Avatar>
                   <span className="flex min-w-0 flex-1 flex-col">
-                    <span className="truncate text-sm font-medium">{HOST.email}</span>
-                    <span className="text-xs text-muted-foreground">Connected 13 Sep</span>
+                    <span className="truncate text-sm font-medium">
+                      {HOST.email}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      Connected 13 Sep
+                    </span>
                   </span>
                   <Light tone="done">Connected</Light>
                 </div>
@@ -583,7 +640,9 @@ export function Account({ way, over }: { way: AccountWay; over?: ReactNode }) {
                     <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" />
                   </dd>
                   <dt className="text-muted-foreground">Sent</dt>
-                  <dd className="tabular-nums">2 albums · 11.5 GB · the last on 13 Sep</dd>
+                  <dd className="tabular-nums">
+                    2 albums · 11.5 GB · the last on 13 Sep
+                  </dd>
                 </dl>
                 <Button variant="outline" size="sm">
                   Disconnect
@@ -651,7 +710,10 @@ export function ExitConfirm({ way }: { way: ExitWay }) {
   return (
     <Popup open onOpenChange={() => {}}>
       <PopupContent kind="confirm" size="md">
-        <PopupHeader title={`Free ${size} from Partyreel?`} description={where} />
+        <PopupHeader
+          title={`Free ${size} from Partyreel?`}
+          description={where}
+        />
         <PopupBody className="flex flex-col gap-3">
           <div
             data-dx-read="the app's check"

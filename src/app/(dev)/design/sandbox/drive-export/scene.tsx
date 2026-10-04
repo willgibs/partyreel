@@ -27,7 +27,8 @@ const textOf = (el: Element | null | undefined) =>
   ((el as HTMLElement | null)?.innerText ?? "").replace(/\s+/g, " ").trim();
 
 /** Clipped for a caption: a long line keeps its head. */
-const clip = (s: string, n = 90) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
+const clip = (s: string, n = 90) =>
+  s.length > n ? `${s.slice(0, n - 1)}…` : s;
 
 /**
  * THE FRAME, READ: every marked piece in document order, its words and, where

@@ -380,7 +380,13 @@ export function TakeHome({
 /* ── connecting ───────────────────────────────────────────────────────── */
 
 /** One promise line: its glyph and its words. */
-function PromiseLine({ icon, children }: { icon: ReactNode; children: ReactNode }) {
+function PromiseLine({
+  icon,
+  children,
+}: {
+  icon: ReactNode;
+  children: ReactNode;
+}) {
   return (
     <li className="flex items-start gap-3">
       <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-foreground [&_svg]:size-4">
@@ -446,7 +452,10 @@ export function MirrorStep() {
         </>
       }
     >
-      <ul data-dx-read="Google's lines, said first" className="flex flex-col gap-2">
+      <ul
+        data-dx-read="Google's lines, said first"
+        className="flex flex-col gap-2"
+      >
         {line(
           "See, edit, create, and delete only the specific Google Drive files you use with this app",
           "Only the files Partyreel puts in your Drive: never anything else there.",

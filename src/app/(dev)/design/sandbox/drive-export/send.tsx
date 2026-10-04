@@ -103,7 +103,10 @@ export const MOMENTS: Record<MomentId, Moment> = {
     meter: pct(MID.sent, TOTAL_COUNT),
     facts: `${formatCount(MID.sent)} of ${formatCount(TOTAL_COUNT)} sent`,
     line: "Connect again and it carries on where it stopped.",
-    acts: [{ label: "Reconnect", lead: true, icon: <FolderUp /> }, { label: "Cancel" }],
+    acts: [
+      { label: "Reconnect", lead: true, icon: <FolderUp /> },
+      { label: "Cancel" },
+    ],
   },
   partly: {
     tone: "paused",
@@ -160,7 +163,9 @@ function Acts({ acts, small = true }: { acts: Act[]; small?: boolean }) {
       {acts.map((a) => (
         <Button
           key={a.label}
-          variant={a.lead ? "default" : a.label === "Cancel" ? "ghost" : "outline"}
+          variant={
+            a.lead ? "default" : a.label === "Cancel" ? "ghost" : "outline"
+          }
           size={small ? "sm" : "default"}
         >
           {a.icon}
@@ -200,7 +205,9 @@ export function SendStrip({ moment }: { moment: Moment }) {
       ) : null}
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-xs text-muted-foreground tabular-nums">
         <span>{moment.facts}</span>
-        {moment.line ? <span className="text-pretty">{moment.line}</span> : null}
+        {moment.line ? (
+          <span className="text-pretty">{moment.line}</span>
+        ) : null}
       </div>
       {moment.quiet ? (
         <button
@@ -215,7 +222,9 @@ export function SendStrip({ moment }: { moment: Moment }) {
 }
 
 const TOAST_ICON: Record<Moment["tone"], ReactNode> = {
-  sending: <Loader2 className="size-4 animate-spin motion-reduce:animate-none" />,
+  sending: (
+    <Loader2 className="size-4 animate-spin motion-reduce:animate-none" />
+  ),
   paused: <TriangleAlert className="size-4 text-warning" />,
   done: <CircleCheck className="size-4 text-success" />,
   stopped: <TriangleAlert className="size-4 text-destructive" />,
@@ -237,7 +246,9 @@ export function SendToast({ moment }: { moment: Moment }) {
       >
         <span className="mt-0.5 shrink-0">{TOAST_ICON[moment.tone]}</span>
         <span className="flex min-w-0 flex-1 flex-col gap-1.5">
-          <span className="text-sm font-medium text-pretty">{moment.title}</span>
+          <span className="text-sm font-medium text-pretty">
+            {moment.title}
+          </span>
           {moment.meter !== undefined ? (
             <Meter value={moment.meter} className="h-1.5" />
           ) : null}
@@ -261,7 +272,9 @@ export function SendToast({ moment }: { moment: Moment }) {
           ) : null}
         </span>
         <span
-          aria-label={moment.acts.some((a) => a.label === "Cancel") ? "Cancel" : "Close"}
+          aria-label={
+            moment.acts.some((a) => a.label === "Cancel") ? "Cancel" : "Close"
+          }
           className="-mt-1 -mr-1.5 flex size-8 shrink-0 items-center justify-center rounded-md opacity-55"
         >
           <X className="size-3.5" />

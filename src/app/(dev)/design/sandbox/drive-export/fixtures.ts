@@ -46,7 +46,11 @@ export const DRIVE = {
 export const DRIVE_FREE = DRIVE.capBytes - DRIVE.usedBytes;
 
 /** Mid-send, 9 minutes in: 412 of the 1,284 sent, 2.4 of the 7.4 GB. */
-export const MID = { sent: 412, sentBytes: 2.4 * GIGABYTE, minutesLeft: 16 } as const;
+export const MID = {
+  sent: 412,
+  sentBytes: 2.4 * GIGABYTE,
+  minutesLeft: 16,
+} as const;
 
 /** Her storage on Pro 100 GB the morning after: her albums and her Deleted. */
 export const STORAGE = {
@@ -58,12 +62,54 @@ export const STORAGE = {
 
 /** Her other albums, as Your events and What's using space list them (bytes as her originals weigh). */
 export const ALBUMS = [
-  { id: "maya-jay", name: "Maya & Jay", day: "12 Sep", bytes: TOTAL_BYTES, items: TOTAL_COUNT, cover: "wedding-golden" },
-  { id: "jay-40", name: "Jay turns 40", day: "2 Aug", bytes: 4.1 * GIGABYTE, items: 612, cover: "party-balloons" },
-  { id: "lake-week", name: "Lake week", day: "14–20 Jul", bytes: 2.6 * GIGABYTE, items: 388, cover: "festival-lights" },
-  { id: "engagement", name: "Engagement party", day: "8 Mar", bytes: 1.9 * GIGABYTE, items: 301, cover: "reception-hall" },
-  { id: "nye", name: "New Year's Eve", day: "31 Dec", bytes: 0.9 * GIGABYTE, items: 164, cover: "concert-confetti" },
-  { id: "garden", name: "Garden lunch", day: undefined, bytes: 0.4 * GIGABYTE, items: 72, cover: "reception-table" },
+  {
+    id: "maya-jay",
+    name: "Maya & Jay",
+    day: "12 Sep",
+    bytes: TOTAL_BYTES,
+    items: TOTAL_COUNT,
+    cover: "wedding-golden",
+  },
+  {
+    id: "jay-40",
+    name: "Jay turns 40",
+    day: "2 Aug",
+    bytes: 4.1 * GIGABYTE,
+    items: 612,
+    cover: "party-balloons",
+  },
+  {
+    id: "lake-week",
+    name: "Lake week",
+    day: "14–20 Jul",
+    bytes: 2.6 * GIGABYTE,
+    items: 388,
+    cover: "festival-lights",
+  },
+  {
+    id: "engagement",
+    name: "Engagement party",
+    day: "8 Mar",
+    bytes: 1.9 * GIGABYTE,
+    items: 301,
+    cover: "reception-hall",
+  },
+  {
+    id: "nye",
+    name: "New Year's Eve",
+    day: "31 Dec",
+    bytes: 0.9 * GIGABYTE,
+    items: 164,
+    cover: "concert-confetti",
+  },
+  {
+    id: "garden",
+    name: "Garden lunch",
+    day: undefined,
+    bytes: 0.4 * GIGABYTE,
+    items: 72,
+    cover: "reception-table",
+  },
 ] as const;
 
 /** The three she picks on Your events to send in one go. */
@@ -85,8 +131,14 @@ export const BIG = {
 
 /** The two files a partly-done send could not move, as the album names them. */
 export const STUCK = [
-  { name: "2026-09-12 23.41.07 · Theo.mov", why: "Google wouldn't take it after 5 tries" },
-  { name: "2026-09-12 23.52.19 · Theo.mov", why: "Google wouldn't take it after 5 tries" },
+  {
+    name: "2026-09-12 23.41.07 · Theo.mov",
+    why: "Google wouldn't take it after 5 tries",
+  },
+  {
+    name: "2026-09-12 23.52.19 · Theo.mov",
+    why: "Google wouldn't take it after 5 tries",
+  },
 ] as const;
 
 export type Still = { src: string; w: number; h: number };
@@ -122,21 +174,97 @@ export const coverOf = (id: string): string => marketingImage(id).src;
  * takes " (2)"). The guests are typed names, as her album names them.
  */
 export const FILES = [
-  { at: "2026-09-12 16.02.44", who: "Priya", ext: "jpg", bytes: 4.2, kind: "photo" },
-  { at: "2026-09-12 16.02.51", who: "Priya", ext: "jpg", bytes: 3.9, kind: "photo" },
-  { at: "2026-09-12 16.40.12", who: "Maya", ext: "heic", bytes: 2.8, kind: "photo" },
-  { at: "2026-09-12 17.15.03", who: "Theo", ext: "mov", bytes: 61.4, kind: "clip" },
-  { at: "2026-09-12 18.27.30", who: "Sam", ext: "jpg", bytes: 5.1, kind: "photo" },
-  { at: "2026-09-12 19.48.09", who: "Jo", ext: "jpg", bytes: 4.6, kind: "photo" },
-  { at: "2026-09-12 21.14.05", who: "Priya", ext: "jpg", bytes: 4.4, kind: "photo" },
-  { at: "2026-09-12 21.14.05", who: "Priya", ext: "jpg", bytes: 4.3, kind: "photo", second: true },
-  { at: "2026-09-12 22.06.58", who: "Ade", ext: "jpg", bytes: 3.7, kind: "photo" },
-  { at: "2026-09-12 23.30.21", who: "Sam", ext: "mp4", bytes: 48.2, kind: "clip" },
-  { at: "2026-09-13 09.12.40", who: "Jo", ext: "jpg", bytes: 4.0, kind: "photo" },
+  {
+    at: "2026-09-12 16.02.44",
+    who: "Priya",
+    ext: "jpg",
+    bytes: 4.2,
+    kind: "photo",
+  },
+  {
+    at: "2026-09-12 16.02.51",
+    who: "Priya",
+    ext: "jpg",
+    bytes: 3.9,
+    kind: "photo",
+  },
+  {
+    at: "2026-09-12 16.40.12",
+    who: "Maya",
+    ext: "heic",
+    bytes: 2.8,
+    kind: "photo",
+  },
+  {
+    at: "2026-09-12 17.15.03",
+    who: "Theo",
+    ext: "mov",
+    bytes: 61.4,
+    kind: "clip",
+  },
+  {
+    at: "2026-09-12 18.27.30",
+    who: "Sam",
+    ext: "jpg",
+    bytes: 5.1,
+    kind: "photo",
+  },
+  {
+    at: "2026-09-12 19.48.09",
+    who: "Jo",
+    ext: "jpg",
+    bytes: 4.6,
+    kind: "photo",
+  },
+  {
+    at: "2026-09-12 21.14.05",
+    who: "Priya",
+    ext: "jpg",
+    bytes: 4.4,
+    kind: "photo",
+  },
+  {
+    at: "2026-09-12 21.14.05",
+    who: "Priya",
+    ext: "jpg",
+    bytes: 4.3,
+    kind: "photo",
+    second: true,
+  },
+  {
+    at: "2026-09-12 22.06.58",
+    who: "Ade",
+    ext: "jpg",
+    bytes: 3.7,
+    kind: "photo",
+  },
+  {
+    at: "2026-09-12 23.30.21",
+    who: "Sam",
+    ext: "mp4",
+    bytes: 48.2,
+    kind: "clip",
+  },
+  {
+    at: "2026-09-13 09.12.40",
+    who: "Jo",
+    ext: "jpg",
+    bytes: 4.0,
+    kind: "photo",
+  },
 ] as const;
 
 /** The short ids the zip's names carry (the first 8 of each media id). */
 export const SHORT_IDS = [
-  "0b7c21fa", "1e94d3a2", "2c5f8e10", "3a1d77c4", "4f0e2b96", "5d8a14ce",
-  "6b3c90f1", "7e2a58d3", "8c41f07a", "9a6e3d25", "a3f7c1e8",
+  "0b7c21fa",
+  "1e94d3a2",
+  "2c5f8e10",
+  "3a1d77c4",
+  "4f0e2b96",
+  "5d8a14ce",
+  "6b3c90f1",
+  "7e2a58d3",
+  "8c41f07a",
+  "9a6e3d25",
+  "a3f7c1e8",
 ] as const;
