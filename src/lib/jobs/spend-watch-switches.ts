@@ -5,7 +5,7 @@
  *
  * ★ EACH FAILS IN ITS OWN DIRECTION, on purpose (the doc's "kill switches fail differently"):
  *  - guest uploads fail OPEN: a switch nobody can read must never stop a real party (the capability, the caps and the
- *    ingress meter still stand behind every upload);
+ *    uploads meter still stand behind every upload);
  *  - lifecycle mail fails CLOSED for the mail it holds: a held reminder goes out the next night, while mail sent into
  *    a runaway spends the Resend quota the operator alerts ride;
  *  - a row not seeded yet reads as ON for both, so code that ships ahead of its migration changes nothing.

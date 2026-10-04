@@ -2,16 +2,10 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { CheckoutButton } from "@/components/app/checkout-button";
-import { portalSkinProps } from "@/components/marketing/chrome/portal-skin";
 import { MatrixMark } from "@/components/marketing/matrix-mark";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import {
   ESTIMATE_BASIS_NOTE,
   EVENT_PASS_RENEWAL_PRICE_LABEL,
@@ -29,17 +23,19 @@ import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
 import { cn, formatBytes } from "@/lib/utils";
 
 import { clipTermsFor } from "./clip-terms";
+import { RowTip } from "./row-tip";
 
 /**
- * The full plan matrix (Resend-informed): row labels carry a hover/focus
- * tooltip where a term needs one; booleans are the A16 marks (green check =
- * included, muted minus = not); everything numeric derives from tiers.ts /
- * limits.ts.
+ * The full plan matrix (Resend-informed): row labels carry a tooltip where a term
+ * needs one, open to a cursor's hover, a key's focus and a finger's tap (`RowTip`:
+ * the words are published terms, so a phone must be able to read them); booleans
+ * are the A16 marks (green check = included, muted minus = not); everything
+ * numeric derives from tiers.ts / limits.ts.
  *
  * ★ EVERY LIMIT A HOST CAN MEET IS A ROW HERE, WITH ITS LINE IN HER WORDS (Will,
  * 2026-10-03: "a limit a host could meet is published"). Storage, Uploads,
  * Events, Guests, Largest file, Deleted and Kept each carry the one-sentence
- * hover that says what it counts and what she can do about it; only a circuit
+ * line that says what it counts and what she can do about it; only a circuit
  * breaker no real host meets stays off the page, which the fine print under the
  * table says in one line (the Terms' "reasonable limits" are what it rests on).
  *
@@ -302,17 +298,7 @@ function LabelCell({ row }: { row: MatrixRow }) {
       scope="row"
       className="px-4 py-3 text-left font-medium max-sm:block max-sm:pt-3 max-sm:pb-1"
     >
-      <Tooltip>
-        <TooltipTrigger className="cursor-help text-left font-medium underline decoration-muted-foreground/40 decoration-dotted underline-offset-4">
-          {row.label}
-        </TooltipTrigger>
-        {/* Portaled → carries the skin itself (THE PORTAL RULE). "cinema"
-            since the table's chapter went dark: a portaled surface cannot read
-            the room it was opened from. */}
-        <TooltipContent {...portalSkinProps("cinema")} side="top">
-          <span className="max-w-60 text-pretty">{row.tip}</span>
-        </TooltipContent>
-      </Tooltip>
+      <RowTip label={row.label} tip={row.tip} />
     </th>
   );
 }
@@ -349,7 +335,7 @@ export function ComparisonTable() {
       id="compare"
       eyebrow="Compare"
       heading="Every plan, side by side."
-      subhead="The full sheet. Hover a row name for the fine print in plain words."
+      subhead="The full sheet. Hover or tap a row name for the fine print in plain words."
     >
       <Reveal className="mx-auto mt-12 max-w-5xl">
         <div

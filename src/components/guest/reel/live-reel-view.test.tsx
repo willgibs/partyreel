@@ -306,6 +306,49 @@ describe("the chrome (the thin bar)", () => {
     expect(document.activeElement).toBe(content);
   });
 
+  // ★ THE PRESS ON PLAY SAYS WHOSE REST IT EARNS (red-team 52's NIT: a finger's press on Play woke the dock on the
+  // pointer's 2.4 s, where the picture's and the bar's taps got the finger's 4.2 s). A paused reel keeps its controls
+  // by itself, so the rest that matters starts when Play lets go of that pin.
+  it.each([
+    ["a finger's", "touch", 4200],
+    ["a pointer's", "mouse", 2400],
+  ] as const)(
+    "%s press on Play lets the dock rest after its own wait, %s ms",
+    (_who, pointer, ms) => {
+      vi.useFakeTimers();
+      renderView();
+      press(screen.getByRole("button", { name: "Pause" }), pointer);
+      act(() => vi.advanceTimersByTime(10_000));
+      expect(dock()).toHaveAttribute("data-state", "up");
+      press(screen.getByRole("button", { name: "Play" }), pointer);
+      act(() => vi.advanceTimersByTime(ms - 100));
+      expect(dock()).toHaveAttribute("data-state", "up");
+      act(() => vi.advanceTimersByTime(200));
+      expect(dock()).toHaveAttribute("data-state", "rest");
+    },
+  );
+
+  // ★ THE OPEN FILL READS `aria-expanded` (identity r4's finding: "data-state="closed" with aria-expanded="true" while
+  // the menu is open", so the key never lit). The tooltip wraps the menu's trigger on one button, and radix spreads
+  // the outer trigger's props after the inner one's own, so `data-state` there is the tooltip's; a jsdom has no
+  // cascade, so what is held is that the fill follows the attribute the menu alone sets, and that it is set while open.
+  it.each([
+    ["Style", /^Style: /],
+    ["Hold", /^Hold: /],
+  ] as const)(
+    "the %s key shows its open fill while its menu stands open",
+    async (_key, name) => {
+      renderView();
+      const key = screen.getByRole("button", { name });
+      expect(key).toHaveAttribute("aria-expanded", "false");
+      expect(key.className).toContain("aria-expanded:bg-white/18");
+      expect(key.className).not.toContain("data-[state=open]");
+      fireEvent.pointerDown(key, { ctrlKey: false, button: 0 });
+      expect(screen.getByRole("menu")).toBeInTheDocument();
+      expect(key).toHaveAttribute("aria-expanded", "true");
+    },
+  );
+
   it("labels every control: play, style, hold, the code, Add yours, and Close", () => {
     renderView();
     for (const name of [
@@ -676,6 +719,10 @@ describe("a tap on the picture (the bar's own press, never the photograph's)", (
     expect(dock()).toHaveAttribute("data-state", "rest");
   });
 
+  // ★ RESHAPED ON PURPOSE (red-team 52's desk click; scar kept: a pointer's movement brings the controls up after a
+  // tap put them away, and a finger's never does). The second press followed the movement in the same instant, which
+  // is a click aimed with that movement and is held now (`a click aimed with the move ...`, below); a viewer who
+  // answers the dock after seeing it takes longer than a beat.
   it("a pointer's movement still brings the controls up, after a tap put them away", () => {
     vi.useFakeTimers();
     renderView();
@@ -685,12 +732,85 @@ describe("a tap on the picture (the bar's own press, never the photograph's)", (
       pointerType: "mouse",
     });
     expect(dock()).toHaveAttribute("data-state", "up");
+    act(() => vi.advanceTimersByTime(700));
     // A finger moving over the picture is no pointer's movement.
     press(picture());
     fireEvent.pointerMove(document.querySelector("[data-live-reel-view]")!, {
       pointerType: "touch",
     });
     expect(dock()).toHaveAttribute("data-state", "rest");
+  });
+
+  describe("a click aimed with the move that raised the dock (red-team 52: a desk viewer moves to aim, and the click hid what the move had brought)", () => {
+    const view = () => document.querySelector("[data-live-reel-view]")!;
+    const rest = () => {
+      vi.useFakeTimers();
+      renderView();
+      act(() => vi.advanceTimersByTime(2600));
+      expect(dock()).toHaveAttribute("data-state", "rest");
+    };
+
+    it("★ keeps the controls up, and its own rest starts from the click", () => {
+      rest();
+      // The mouse travels onto the picture: the move wakes the dock, and 150 ms later the click lands.
+      fireEvent.pointerMove(view(), { pointerType: "mouse" });
+      expect(dock()).toHaveAttribute("data-state", "up");
+      act(() => vi.advanceTimersByTime(150));
+      press(picture(), "mouse");
+      expect(dock()).toHaveAttribute("data-state", "up");
+      // The click restarted the pointer's rest: 2.4 s from IT, not from the move.
+      act(() => vi.advanceTimersByTime(2300));
+      expect(dock()).toHaveAttribute("data-state", "up");
+      act(() => vi.advanceTimersByTime(200));
+      expect(dock()).toHaveAttribute("data-state", "rest");
+    });
+
+    it("holds the click that lands on the dock the move just grew under the pointer (the bar's own press)", () => {
+      rest();
+      fireEvent.pointerMove(view(), { pointerType: "mouse" });
+      act(() => vi.advanceTimersByTime(120));
+      // The bar went inert as the dock grew, so the click meets the dock's timeline instead.
+      press(screen.getByRole("button", { name: "Hide the controls" }), "mouse");
+      expect(dock()).toHaveAttribute("data-state", "up");
+    });
+
+    it("a click after the beat is the viewer's own answer to the dock: it folds away", () => {
+      rest();
+      fireEvent.pointerMove(view(), { pointerType: "mouse" });
+      act(() => vi.advanceTimersByTime(700));
+      press(picture(), "mouse");
+      expect(dock()).toHaveAttribute("data-state", "rest");
+    });
+
+    it("only a movement that RAISED the dock starts a beat: a dock already up folds on the next click as ever", () => {
+      vi.useFakeTimers();
+      renderView();
+      expect(dock()).toHaveAttribute("data-state", "up");
+      // The first sight's dock is up and a pointer moves over it: nothing was raised, so nothing is held.
+      fireEvent.pointerMove(view(), { pointerType: "mouse" });
+      press(picture(), "mouse");
+      expect(dock()).toHaveAttribute("data-state", "rest");
+    });
+
+    it("never holds a finger's tap or a key's press: neither moved anything", () => {
+      rest();
+      fireEvent.pointerMove(view(), { pointerType: "mouse" });
+      press(picture(), "touch");
+      expect(dock()).toHaveAttribute("data-state", "rest");
+      // The same for a click no pointer made (`detail` 0).
+      fireEvent.pointerMove(view(), { pointerType: "mouse" });
+      expect(dock()).toHaveAttribute("data-state", "up");
+      fireEvent.click(picture(), { detail: 0 });
+      expect(dock()).toHaveAttribute("data-state", "rest");
+    });
+
+    it("holds a pen's click as a mouse's", () => {
+      rest();
+      fireEvent.pointerMove(view(), { pointerType: "pen" });
+      act(() => vi.advanceTimersByTime(100));
+      press(picture(), "pen");
+      expect(dock()).toHaveAttribute("data-state", "up");
+    });
   });
 
   it("never reaches a control: a press that lands on one acts on that control and leaves the chrome as it was", () => {

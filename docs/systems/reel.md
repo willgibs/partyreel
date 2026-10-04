@@ -105,13 +105,17 @@ The reel stores nothing, so the server says only WHETHER a viewer's album has on
     into the dock (a `clip-path` morph, [`live-reel.css`](../../src/components/guest/reel/live-reel.css), instant under
     reduced motion); it settles back on its own (2.4 s after a pointer, 4.2 s after a touch), never while paused,
     under reduced motion, with a menu open or with a key's focus in it (`:focus-visible`: a press leaves its control
-    focused, and that must not hold the dock up). Every control has a tooltip.
+    focused, and that must not hold the dock up). Every control has a tooltip, and a menu key's open fill reads
+    `aria-expanded`: the tooltip wrapping the menu's trigger on one button overrides its `data-state` ("closed").
     - ★ **A click or tap anywhere on the picture is the bar's own press, and the next one puts the dock away: the
       picture never opens the photo viewer** (a tap is a viewer reaching for the controls, and a viewer opened by it
       is a second layer between her and them). One toggle, `toggleChrome`, serves the bar, the timeline and the
       picture. The picture is a SIBLING of every control, never their ancestor, so a press on a control acts on that
       control and never reaches it (keep the handler on the picture, never up on the view); a press that begins over
       an open menu only dismisses it; while the screen's pill is up, a press anywhere is the pill's alone.
+    - ★ **A pointer's click within 600 ms of the move that raised the dock keeps it up** (`AIMED_CLICK_MS`): a desk
+      viewer moves to aim, the move wakes the dock, and the click that follows meant "show". A finger's tap and a
+      key's press never moved anything, so they are never held.
     - ★ **Focus moves to the view when its half of the pane goes quiet**: the dock's controls at rest and the bar
       while the dock is up are `inert`, which drops their focus onto `body`, where Space and the arrows stop reaching
       the view, so the commit that quiets a half puts the focus on the view.

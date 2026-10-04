@@ -13,11 +13,13 @@ import {
   checkPlanChange,
   fittingProPlans,
   formatBytesUp,
+  nextMonthStart,
   parseStorageRefusal,
   planWithBilling,
   proFitLine,
   refusalSentence,
   replacesCap,
+  uploadsPauseNote,
 } from "./storage-guard";
 
 /**
@@ -221,5 +223,65 @@ describe("a refusal read back on the client", () => {
     expect(parseStorageRefusal({ code: "already_subscribed" })).toBe(null);
     expect(parseStorageRefusal("<html>")).toBe(null);
     expect(parseStorageRefusal(null)).toBe(null);
+  });
+});
+
+/**
+ * ★ A SWITCH BELOW THIS MONTH'S UPLOADS GETS ITS HONEST WORDS (red-team 52's LOW: "a Pro 1 TB host who has uploaded
+ * 150 GB this month can switch to Pro 50 GB with no word, and from that moment every upload ... is refused"). Words
+ * only: the webhook allows the switch, so `checkPlanChange` stays storage's alone and these cases pin that it still
+ * lets such a host through.
+ */
+describe("a switch below this month's uploads", () => {
+  const october = new Date(Date.UTC(2026, 9, 14, 12));
+
+  it("says what she has uploaded, what the size allows, and when uploads open again", () => {
+    const note = uploadsPauseNote(150 * GIGABYTE, pro50, october);
+    expect(note).toContain("150 GB this month");
+    expect(note).toContain(`${formatBytes(pro50.uploadsBytes)} a month`);
+    expect(note).toContain("yours and your guests'");
+    expect(note).toContain("November 1");
+  });
+
+  it("holds its tongue while the month's uploads sit inside the allowance, and at the line says it", () => {
+    expect(uploadsPauseNote(99 * GIGABYTE, pro50, october)).toBeNull();
+    expect(uploadsPauseNote(pro50.uploadsBytes - 1, pro50, october)).toBeNull();
+    // `create_media` refuses once the window's uploads reach the allowance: at the line is paused.
+    expect(uploadsPauseNote(pro50.uploadsBytes, pro50, october)).not.toBeNull();
+  });
+
+  it("reads each size against its own allowance: past Pro 50 GB's 100 GB and inside Pro 200 GB's 200 GB", () => {
+    const used = 150 * GIGABYTE;
+    expect(uploadsPauseNote(used, pro50, october)).not.toBeNull();
+    expect(uploadsPauseNote(used, pro200, october)).toBeNull();
+    expect(uploadsPauseNote(used, pro1tb, october)).toBeNull();
+    // Both prices of a size carry the one allowance.
+    expect(uploadsPauseNote(used, planById("pro_50_yr"), october)).toBe(
+      uploadsPauseNote(used, pro50, october),
+    );
+  });
+
+  it("says nothing when the month's uploads are not known, and nothing of a pass (it never replaces her cap)", () => {
+    expect(uploadsPauseNote(null, pro50, october)).toBeNull();
+    expect(uploadsPauseNote(900 * GIGABYTE, pass, october)).toBeNull();
+  });
+
+  it("★ never blocks: the storage check lets the same host through to that size", () => {
+    expect(checkPlanChange(10 * GIGABYTE, pro50)).toEqual({ ok: true });
+    expect(uploadsPauseNote(150 * GIGABYTE, pro50, october)).not.toBeNull();
+  });
+
+  it("names the first of the NEXT month, UTC, across a year's end and a month's last instant", () => {
+    expect(nextMonthStart(october)).toBe("November 1");
+    expect(nextMonthStart(new Date(Date.UTC(2026, 11, 31, 23, 59, 59)))).toBe(
+      "January 1",
+    );
+    // The month turns at 00:00 UTC, whatever a host's own clock says.
+    expect(nextMonthStart(new Date(Date.UTC(2026, 1, 28, 23, 59, 59)))).toBe(
+      "March 1",
+    );
+    expect(nextMonthStart(new Date(Date.UTC(2026, 2, 1, 0, 0, 0)))).toBe(
+      "April 1",
+    );
   });
 });

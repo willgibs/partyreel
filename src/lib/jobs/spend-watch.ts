@@ -87,7 +87,7 @@ export const SWITCH_LABEL: Record<SwitchKey, string> = {
  *  - `pause`: the watch pauses the switch itself, on a new trip, because a false alarm there delays a reminder, a
  *    zip or a night's reclamation and never a guest's moment.
  *  - `offer`: it alerts and the card offers the switch, because a false alarm would stop a real party (PRICING.md's
- *    ingress principle: blocking a paying host by mistake is the one failure worth engineering against).
+ *    rule that blocking a paying host by mistake is the one failure worth engineering against).
  *  - `alert`: nothing of ours stops it without hurting someone; the alert is the guard.
  */
 export type StopPolicy =
@@ -101,7 +101,7 @@ export type ReadingDef = {
   /** What one reading is a rate of. */
   unit: "hour" | "day";
   /**
-   * `since_last`: a cumulative counter (the ingress meter, the album versions) diffed against the last reading at
+   * `since_last`: a cumulative counter (the uploads meter, the album versions) diffed against the last reading at
    * least an hour old, as a rate an hour. `last_day`: a count of the last 24 hours, read whole each run, so an
    * hourly cadence never scales one scheduled run up to 24 a day.
    */
@@ -132,7 +132,7 @@ export const READINGS: readonly ReadingDef[] = [
     // A 200-guest party adds about 2,100 items over five hours; a 2,000-guest one peaks past this.
     floor: 1_000,
     stop: { kind: "offer", switch: "uploads_enabled" },
-    source: "the monthly ingress meter (storage_ledger), deletes included",
+    source: "the monthly uploads meter (storage_ledger), deletes included",
     remedy:
       "A real party reads like this too. Look at /admin/metrics and the album it comes from before pausing guest uploads.",
   },
@@ -145,7 +145,7 @@ export const READINGS: readonly ReadingDef[] = [
     // The reference party stores about 12 GB over five hours.
     floor: 10 * GB,
     stop: { kind: "offer", switch: "uploads_enabled" },
-    source: "the monthly ingress meter (storage_ledger), deletes included",
+    source: "the monthly uploads meter (storage_ledger), deletes included",
     remedy:
       "Big videos read like this too. A loop that uploads and deletes shows here and not in storage, since the meter never refunds.",
   },
@@ -281,7 +281,7 @@ export function ceilingOf(
 
 // ── The record a run keeps, and reading it back ───────────────────────────────────────────────────
 
-/** The monthly ingress meter's platform totals: period ('YYYY-MM') -> [bytes, items]. */
+/** The monthly uploads meter's platform totals: period ('YYYY-MM') -> [bytes, items]. */
 export type LedgerSnap = Record<string, [number, number]>;
 
 export type Snapshot = {
@@ -417,7 +417,7 @@ export function baselineRun(
 }
 
 /**
- * What the ingress meter grew by between two snapshots. The meter never refunds, so this counts every upload,
+ * What the uploads meter grew by between two snapshots. The meter never refunds, so this counts every upload,
  * deleted or not; a period's total that fell (an account deleted, its ledger rows with it) contributes nothing
  * rather than cancelling another's growth.
  */

@@ -311,14 +311,26 @@ export function uploadAllowance(
   return planById("free").uploadsBytes;
 }
 
+/** The window an allowance counts over, in words: the one place "a month" and "over its year" are spelled. */
+function uploadsWindowWords(plan: Plan): string {
+  return UPLOADS_WINDOW[plan.tier] === "year" ? "over its year" : "a month";
+}
+
 /**
  * A plan's Uploads row as the pricing table prints it: "300 MB a month", "50 GB over its year".
  * The one way an allowance is said, so the table, the help and llms.txt never word it twice.
  */
 export function uploadsLabel(plan: Plan): string {
-  const window =
-    UPLOADS_WINDOW[plan.tier] === "year" ? "over its year" : "a month";
-  return `${formatBytes(plan.uploadsBytes)} ${window}`;
+  return `${formatBytes(plan.uploadsBytes)} ${uploadsWindowWords(plan)}`;
+}
+
+/**
+ * The same allowance as a card's own line, where a table's cell has its row label to say what it counts:
+ * "100 GB of uploads a month", "50 GB of uploads over its year" (red-team 52: the plan sheet's cards named each
+ * size's storage and estimate and never its uploads).
+ */
+export function uploadsPhrase(plan: Plan): string {
+  return `${formatBytes(plan.uploadsBytes)} of uploads ${uploadsWindowWords(plan)}`;
 }
 
 /**
