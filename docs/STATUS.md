@@ -15,12 +15,11 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 
 ## The current round: round 15, from his desk on build 51
 
-- **Milestone 35 is live** (`20c1deb7`, 2026-10-04 03:10Z): round 13 whole, red-teamed on builds 47 to 50. The legal
-  text is rewritten once, right before launch (his word).
-- **Round 15 runs on `launch-prep`** from his answers of 2026-10-04 and his brand note. **Milestone 36 is ready for his
-  yes** (25 merges; the full gate 214 and the compute budget green; red-team 53b PASS on the local desk): Ladder A,
-  trash in storage, the round's wirings, three crumbs, the camera's 30 s clip, the plan limits watch and the compute
-  fixes (the proxy only where a session matters, polls that rest: a heavy wedding's calls -66%).
+- **Milestone 36 is live** (`28bd6d62`, 2026-10-04 21:00Z): round 15's Ladder A, trash in storage, the round's wirings,
+  the plan limits watch and the compute fixes, red-teamed on builds 52 and 53 and locally (53b). The legal text is
+  rewritten once, right before launch (his word).
+- **Round 15 continues on `launch-prep`**: desk 2 (Drive), then desks 3 and 4; the compute fixes' next levers (batched
+  uploads; the CDN-cached album on his privacy call).
 - **Vercel's Hobby Active CPU** read 3h 56m of 4h (2026-10-04): nothing of ours runs on Vercel until milestone 36; desks
   and red-teams run on a local production build at port 3000 (`CLAUDE.md`, "Local dev vs. live testing").
 
@@ -33,11 +32,10 @@ once desk 2 is answered; desk 4 is brand r1 alone; then the small moments and th
 
 ## Live state
 
-- **Prod:** partyreel.com is `main` at tag `milestone-35` (`20c1deb7`, 2026-10-04 03:10Z: round 13 whole), both
-  projects READY; the read-only walk PASS (the home, pricing, how it works, help, blog, the legal pages, login,
-  robots, the sitemap and llms.txt all 200 with no console error or exception; the lab 404; frame-ancestors, the frame
-  header, HSTS and nosniff on both projects; the admin domain at its login; the cron routes 401 to a stranger). Its
-  crons: the purge at 04:00 UTC and the spend watch at 05:00.
+- **Prod:** partyreel.com is `main` at tag `milestone-36` (`28bd6d62`, 2026-10-04 21:00Z), both projects READY; the
+  read-only walk PASS (the public pages 200, the lab 404, the cron 401 to a stranger, Ladder A on /pricing with no
+  "ingress", HSTS, nosniff and frame-ancestors, the admin domain at its login). Production's pass prices are Ladder A's
+  TEST prices. Its crons: the purge at 04:00 UTC and the spend watch (now with the plan limits) at 05:00.
 - **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 53 (`31a73a46`, 2026-10-04
   14:35Z): round 15's wirings on Ladder A and trash in storage, desk 2's Drive board unchanged; red-team 53 walks it.
   Vercel installs with pnpm 9.14.4, `package.json`'s `packageManager`.
