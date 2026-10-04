@@ -75,11 +75,21 @@ working.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/uploads-and-r2.md`, "The upload pipeline": the client is `uploadBurst()` (`uploadFile()` a burst of
+  one); two new ★ bullets (the burst on the server: the wire, each file through its own spine, `Burst.memo` and
+  `admitted`, the meter's and the roll's earlier siblings, the burst-scoped refusal, the clip budget hook, the one-file
+  body kept; the burst in the browser: preparing ahead, presigning on need, the record's three moments, the statuses
+  a landed file wears); the clip limiter is asked before a byte of the clip lands; two mentions of `uploadFile` made
+  the uploader's.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now · Guests: drop the one-file presign and complete bodies (`server-pipeline.ts`'s `splitBurst(...) === null`
+  arms, kept for a tab loaded before bursts) a milestone after compute-uploads ships.
+- Now · Guests: her album asks its store once per landed file (`gallery-live.tsx`'s `notifyUploaded`), so a recorded
+  burst costs two syncs (a delta, then a 304); ask once per burst.
+- Now · Guests: the door's upload step reads a queue item's progress (0 to 100) as a fraction (`upload-step.tsx`'s
+  bar: `Math.max(it.progress, ...) * 100`), so a bar is full from its first percent.
 
 ## Handoff (replaces the chat report)
 
@@ -97,9 +107,16 @@ working.
   run 1 (`_scratch/compute-uploads/after1/`): guest-join-upload 22 calls, 1,007 ms (her upload 11: presign 2,
   complete 2, sync 5, links 2; the listener 6). Each batched complete took 11 to 17 s locally (files one after
   another), so a burst's files now land four at once and are recorded in order (`0e79abced`). Lint 0, full test 0
-  (911 files, 11,187 tests) on `0e79abced`. Next: the full `compute:model` (`after-full/`), the wedding-level
-  reprojection (swap `before/`'s guest-join-upload ledger into a copy of `after-full/`), the budget line, a local
-  red-team of the burst wire on 3131, the build and `lab:smoke`, then the Handoff.
+  (911 files, 11,187 tests) on `0e79abced`.
+- Full `compute:model` on `0e79abced` (`after-full/`, log `after-full.log`): guest-join-upload 18 calls, 1,522 ms (her
+  upload 10: presign 2, complete 2, sync 4, links 2; the listener 3); every scenario within budget but guest-hour-down
+  (121 > 74), contaminated: another lane's harness uploaded two bursts to the same test event during it (rows at
+  18:19 and 18:24 EDT, guests "Diag", "Count", extra Listener/Uploader pairs), so its album never rested; re-running
+  it alone (`after-hourdown/`). Wedding reprojection (`before-merged/` vs `after-reproject/`, only guest-join-upload
+  differs): 100-guest wedding 22,655 -> 8,905 calls, heavy 27,896 -> 14,146, a month 2.30M -> 0.93M, CPU-h cal a
+  month 49.3 -> 28.0. CPU probe (`cpu-probe.mjs`, same build): one-file presign 9-13 ms, a burst of one 9-11, of nine
+  40; the harness's ~110 ms first presign is process-wide work in its window. Next: the budget line, the red-team
+  (`redteam.mjs`) and `lab:smoke` on 3131, the build, the Handoff.
 
 - The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
 - Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
