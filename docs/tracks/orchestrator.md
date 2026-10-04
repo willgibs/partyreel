@@ -38,6 +38,7 @@ first. Up to four lanes while `memory_pressure` reads at least 50% free; every p
 | `pricing-wiring` | Will's Ladder A everywhere a price or a limit is said or enforced (Free 100 MB; the pass $29, 25 GB, 50 GB of uploads over its year, renewal $19; Pro 50 GB / 200 GB / 1 TB at $9 / $29 / $99 with 100 / 200 / 500 GB of uploads a month), the published rows with hover lines and the fair-use line, `tiers.ts` and `tier_limits()` by migration, the help's "frees at once" lines; the Stripe TEST prices the Orchestrator's | RUNNING (cut at `9d7475e7`); its migration to the Advisor from its WIP push | Opus, 3131 | `a2dfaff7d147088f0` |
 | `crumbs-63` | Will's reel note (2026-10-04): a tap anywhere on the reel shows or hides its controls like the always-visible bar (idle rest and a pointer's movement unchanged), never the photo viewer | RUNNING (cut at `99f12d04`) | Sonnet, 3133 | `abce758c33eeab02c` |
 | `redteam-51` | build 51's red-team (`31b7c652`): Deleted counted on the ring and the chart, a full Free plan both ways (Make room from Deleted on makes exactly the room; off refuses in words), Delete for good and Empty Deleted, a guest's withdrawal purging that night, regressions near the change; brief `../partyreel-wt/_scratch/redteam-51/brief.md` | RUNNING (spawned 03:59Z) | Opus, Will's Chrome | `a027c3916afc6d859` |
+| `docs-prune` | Will's ask (2026-10-04): the dead weight that impedes global problem-solving and future-facing creativity, audited then cut in place (history, one-off fixes written as ★ landmines, design written as law, restatement, a ROADMAP "Now" of 327 lines); the take-home board retired; unused kit scripts; the 26 policy tests classified GUARD or TASTE for him; ROADMAP, PROGRAM, ASSETS and the tracks README as ready files in `_scratch/docs-prune/` for the Orchestrator to copy in | RUNNING (cut at `a62356f0`); its audit pushed first for a sanity check | Opus, 3134 | `a2b0267d4162e3314` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Its
 model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`. From another session, respawn it from
@@ -88,7 +89,12 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls lab, the red-team brief
    128 MB) restated from pricing-wiring's body under a later prefix, the ring's 0:30. **Re-shoots a flat 3** (his word:
    `c_roll_retakes` as roll + 3, never three rolls' worth) ship with D3's confirm, so the "only a deletion" warning
    exists from its first day; the UI board draws them together.
-6. **The close of the day:** STATUS, this pickup, the calls lab (`../partyreel-wt/_scratch/calls/calls-lab.md`: new
+6. **docs-prune** (Will's ask on dead weight): read its audit when it pushes (the cuts' kinds and examples) and
+   say so if its judgment strays; at its merge copy in its ready files (`_scratch/docs-prune/*.new.md`: ROADMAP,
+   PROGRAM, ASSETS, the tracks README) after reading each diff, delete `docs/reviews/take-home.json`, apply its
+   proposals for the docs running lanes own once they merge, and put its GUARD/TASTE list of the policy tests to Will.
+   The old scratch (red-teams 10 to 45, merged lanes' captures) went to `~/.Trash/partyreel-scratch-2026-10-04`.
+7. **The close of the day:** STATUS, this pickup, the calls lab (`../partyreel-wt/_scratch/calls/calls-lab.md`: new
    calls in its form, a section per batch, UI calls to the lab). Moltbook hourly only on his word.
 
 ## Waiting on Will
