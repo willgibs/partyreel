@@ -50,7 +50,28 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **Links in the complete's answer: not built (recommended).** Her album draws her photos from their own bytes the
+  moment they land (`notifyUploaded`'s optimistic tiles), and the one sync that follows already carries their links in
+  its delta (album-calm's carrying transport). Links in the complete would be minted twice and save no call: what cuts
+  the self-syncs is the burst's files landing in one answer, which her album's store coalesces.
+- **No file names at presign (recommended).** The answers return by position, so the server needs none and no file
+  name leaves the phone.
+- **When a landed file is recorded (Will's UX call; recommended 10 s).** A burst's landed files are recorded together
+  when its last file has gone up, or 10 s after the first of them landed, or at once when the page is hidden (one
+  complete, kept alive). Until then the file's bar stands full ("finishing"); her own tile already shows it. Shorter
+  costs calls on a slow phone (one complete per few photos), longer delays the album for everyone else.
+- **A burst: at most 20 files and 1 GiB declared (recommended).** Presigns live 2 h; preparing (strip, preview, phone
+  copy) runs at most 64 MB ahead of the network, so a phone never holds a whole burst's bytes.
+- **The roll and the meter count a burst's earlier files (recommended).** Each file of a burst meets every check it
+  met alone, and the meter judges it with its earlier siblings' declared bytes added (capped at 10 GiB) and the roll
+  with its earlier shots counted, exactly as one-at-a-time presigns saw the earlier files already landed.
+- **Owns omitted the clients and the harness the brief names:** edited `src/lib/guest/use-upload-queue.ts` (the
+  guest's queue, which the camera feeds), `src/components/app/host-upload.tsx`, and `scripts/compute-model/run.mjs`'s
+  `landed()` (crumbs-66's file: a burst's ten files land in one complete, so the wait counts rows, not requests). The
+  host routes are untouched: the engine takes the burst shape for every strategy.
+- **A rollback past this deploy (accept, recommended):** a tab loaded from it sends bursts an older server refuses
+  "Invalid upload request." until it reloads (no skew protection on Hobby). The one-file shape stays on the server for
+  tabs from before it, until the next milestone.
 
 ## System-doc edits (in place, owned facts only)
 
@@ -61,6 +82,17 @@ working.
 - none yet
 
 ## Handoff (replaces the chat report)
+
+**Progress (for a successor; replaced by the Handoff proper at the end):**
+- Booted at `805c52ed0`. Baseline `pnpm compute:model --port 3131 --scenarios guest-join-upload` = 61 calls, 2,938 ms
+  (join 5; her upload 46: presign 10, complete 10, sync 16, links 10; the listener 10). Run in
+  `../partyreel-wt/_scratch/compute-uploads/before/`, log `before.log`.
+- Plan: `src/lib/upload/burst.ts` (shared limits, `takeBurst`, the wire's split); `server-pipeline.ts` takes a burst
+  body (`{...identity, files: [...]}`) beside the one-file body for every strategy, a per-request `Burst` (memoized
+  reads, earlier siblings' files and bytes for the roll and the meter), per-file answers, the guest's clip budget a
+  strategy hook; `uploader.ts`'s `uploadBurst` (prep ahead under a byte budget, presign what is prepared when the
+  network waits or when all is prepared, PUTs one at a time, completes batched by the 10 s rule), `uploadFile` a burst
+  of one; the queue and the host panel send bursts; run.mjs's `landed()` counts rows.
 
 - The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
 - Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
