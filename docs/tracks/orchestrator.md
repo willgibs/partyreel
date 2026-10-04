@@ -99,9 +99,15 @@ Q30 folded in): read it first. Its spine:
    keeping the controls up; `/admin/accounts`' Free caps; the help and llms.txt's "over its year ... for about a
    year"; `/account#plan`'s "paid once"; the sheet's Switch on her own plan; admin's Spend watch saying "ingress"; the
    375 tooltip's edge). Ledger `../partyreel-wt/_scratch/redteam-52/ledger.txt`.
-7. **Pacing (Will, 2026-10-04 07:55Z):** the 5-hour window would run out before its reset at the night's burn, so no
+7. **Will's motion inspirations** (six links, `../partyreel-wt/_scratch/inspiration/will-2026-10-04.md`): a research
+   helper (Opus, `a3c351085e4f63b86`) studies each in code and visually and writes
+   `../partyreel-wt/_scratch/inspiration/2026-10-04-motion.md`. Then route: what informs the brand's signature to
+   brand-r1 if still drawing (else to brand r2's applied boards), and the strongest suggestion (likely a motion
+   foundation for Partyreel's moments: delete, open, arrive, the develop; a QR that develops out of pixels) as a lab
+   board for a later desk, never stacked onto desk 3. Will works overnight-autonomous until morning.
+8. **Pacing (Will, 2026-10-04 07:55Z):** the 5-hour window would run out before its reset at the night's burn, so no
    new lane is cut until running ones finish, and the wirings run two at a time; `get_usage` each hour.
-8. **The close of the day:** STATUS, this pickup, the calls lab (text calls only now; 45 remain). Moltbook hourly only
+9. **The close of the day:** STATUS, this pickup, the calls lab (text calls only now; 45 remain). Moltbook hourly only
    on his word.
 
 ## Waiting on Will
