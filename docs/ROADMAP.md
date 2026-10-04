@@ -17,6 +17,9 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Design: `dashboard/display-menu.tsx` and `social/profile-actions-menu.tsx` each type `collisionPadding={8}`, the number `floatingGutter` (`ui/floating-layer.ts`) now names; read it when a lane owns them.
+- Design: when identity's `edge` ask picks a reach for layers, a layer's bright edge reads `--display-light`, and `[data-lit]`'s falloff takes its light as a colour the host sets (r4's `edge.ts` draws it so), so one falloff serves media and layers.
+- Design: the Library's Tooltip entry (`library/components/gallery-demos.tsx`, "useless on touch") gains a `TapTooltip` specimen beside it.
 - Guests: a per-tile cancel for an in-flight upload (the guest's pending tile, the host's batch row in `host-upload.tsx`) that asks first and offers Try again, passing `uploadFile`'s `signal`; no control passes one today.
 - Guests: presign and complete have no client ceiling (a retry re-runs the whole upload, so a timed-out complete that had recorded its row would duplicate it); make the retry idempotent on `media_id` (`readRecordedUpload` already answers a replayed complete) so these can time out and say "Your connection dropped." too.
 - Guests: carry `UploadOutcome.cause` into the queue's `QueueItem` (`use-upload-queue.ts`) so the failure sheet draws a dropped connection apart from a refusal (its words already do).
