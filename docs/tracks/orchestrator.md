@@ -48,17 +48,20 @@ the dashboard, the hub's strip, graphite, Create's styles, small fixes, red-team
 model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`. From another session, respawn it from
 `usher/kit/advisor-prompt.txt`.
 
-**Handoff across accounts** (Will's rule: watch the weekly from 96%, refresh this block often from 98%). The
-Orchestrator session is `2ba90542-62d6-487c-8c79-3657619f9133` (hi@willgibs.com, seated 2026-10-01 18:08Z; its weekly
-resets Tuesday 2026-10-06 21:00Z, willg97's Sunday 2026-10-04 13:00Z; Will hands off only when one maxes its weekly
-limit). willg97's `157caa18` stays idle and `b01c012e` stays retired. From another session, respawn each running lane
-per the runbook's "Resume a lane": kill by port any dev server left on 3131 to 3136 (and any orphaned headless Chrome),
-then `spawn-prompt.txt` filled (same track, same port) plus a note naming its pushed commits, what remains, its
-predecessor's transcript at
-`~/.claude/projects/-Users-gibby-local-ai-partyreel/2ba90542-62d6-487c-8c79-3657619f9133/subagents/agent-<id>.jsonl`
-(grep it, never read it whole), that a stale `.next/dev/lock` may be deleted and that MCP tool ids change with the
-account. Connectors follow the account: Claude in Chrome (every red-team needs it), the Supabase MCP on
-`ddafaemglzmuekbtjwzn`, the Vercel MCP on his personal team (deploys ride `$VERCEL_TOKEN`; only runtime logs need P3).
+**Handoff across accounts** (Will's rule: wind down near the weekly limit; the other account resumes at once). This
+session (`2ba90542-62d6-487c-8c79-3657619f9133`, hi@willgibs.com, weekly 92% at 21:15Z 2026-10-04, resets Tuesday
+2026-10-06 21:00Z) WOUND DOWN at that hour: no lane running, nothing staged, launch-prep = main + records. The next
+Orchestrator runs on willg97 (its weekly reset 2026-10-04 13:00Z, 0% then). Its first steps:
+- read this pickup, then STATUS; recreate the hourly heartbeat (`CronCreate`, session-only; the old one died with this
+  session);
+- Will's desk: `http://localhost:3000/design/lab?key=fiesta` is served by `pnpm start -p 3000` in
+  `../partyreel-wt/desk` (nohup; a restart of the machine needs it restarted: checkout `origin/launch-prep`, build with
+  `NEXT_PUBLIC_SITE_URL=http://localhost:3000`, start);
+- the specs of round 15 and the next lane are in `../partyreel-wt/_scratch/specs/` (`compute-uploads.json` is lever 4,
+  ready to cut: `python3 usher/kit/cut-lane.py <sha> <spec>`);
+- the parked boards keep their worktrees: identity-r4, event-header-r4, host-dashboard-r4, customize-r1, brand-r1;
+- MCP tool ids change with the account; Claude in Chrome, the Supabase MCP on `ddafaemglzmuekbtjwzn` and the Vercel
+  token in `.env.local` are what the work needs (the Vercel MCP needs the partyreel team re-authorized).
 
 If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` holds a merge made after this note (push
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
