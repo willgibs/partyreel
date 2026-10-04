@@ -21,9 +21,25 @@ reads:                  # single-sources you depend on: never duplicate, never e
 
 ## Where I am
 
-- Booted: worktree `drive-export-r1` on `lp/drive-export-r1`, cut from `738c72d0`; read the manifest, the research, the reads, PRICING's model and rules, trash-in-storage's manifest, the take-home panel and the host export route; re-read Google's limits, errors, uploads, OAuth and client pages and Cloudflare's Queues and Workers limits today.
-- **The design note is whole, for the Advisor:** `../partyreel-wt/_scratch/drive-export/design.md` (OAuth, the token store, the transfer, the job, every failure path, cost and guards, operators, the clean exit, live sync, Dropbox, Will's one step, the wiring lane's shape).
-- Next: the board `drive-export` (desk 20), built on the four recommendations below.
+- Booted: worktree `drive-export-r1` on `lp/drive-export-r1`, cut from `738c72d0`, synced with `origin/launch-prep` at
+  `38f88e12` (trash-in-storage's merge: the storage chart the board quotes) as `65ed9dcb`.
+- **The design note, amended in place on the Advisor's Q25** (`../partyreel-wt/_scratch/drive-export/design.md`; the
+  review beside it, `q25-advisor.md`). Q25 is met, each F by its line:
+  - F1: the exit's proof is the app's own (section 8, "What proves an item safe"): Drive `files.get` batched and R2
+    `HeadObject`, metadata only, every item the album holds now, never a write to her Drive; the Worker's closing check
+    decides the page and nothing else (section 4); Partyreel never bins in her Drive on its own (section 3).
+  - F2: identity is `drive_file_id`, then `appProperties` with no parent clause (section 3, "Never a duplicate"); a
+    moved file is still hers (section 5's row).
+  - F3: a `wait`/`paused`/`stopped` lane acks and ends; only `throttled` and an app outage re-queue; a kick adds
+    `concurrency` minus live lanes at most once a minute; three dead lanes a day pause the connection with an `/admin`
+    Resume (section 3, "Lanes").
+  - F4: one RPC, `cloud_export_snapshot`, its predicate pinned to `chosenRows`; names at the lease; nothing to send
+    ends the job at the press (section 4, "Making one"; section 3, "Names").
+  - F5 the refresh claim, F6 `refresh_expires_at`, F7 the operator's connection pause and the audited Delete our copy,
+    F8 the Google URL allowlist; N1 to N9 folded into their lines; Ladder A's numbers in the cost math (section 6).
+  - One place it departs from Q25, on purpose: the snapshot does not filter quiet legal holds, since a quietly held row
+    is invisible to its host by design and her zip includes it (section 3).
+- Next: the board `drive-export` (desk 20), drawn and passing `lab:demo`; its clean exit redrawn on N9's proof.
 
 ## The brief
 
@@ -76,23 +92,27 @@ working.
 Each is built as recommended (the board draws it and its alternatives) and listed under "Calls his to overrule".
 
 - **Q1. Which plans get Send to Google Drive: every plan, Free included.** It costs about $0.0007 a GB (Free's whole
-  100 MB is a hundredth of a cent), it is the honest way out ("your photos are yours, in your own Drive"), and it
+  100 MB is under a hundredth of a cent), it is the honest way out ("your photos are yours, in your own Drive"), and it
   cannibalizes nothing: what a real event outgrows on Free is 100 MB and photos only, not the way out. What the
   competitors charge for is the automatic copy of every upload as it arrives, which is live sync, and that is where a
   plan line belongs. Asked rather than guessed because PRICING's only-up rule makes a gift on Free permanent.
 - **Q2. Live sync: the second version, a fast follow on the same queue.** Version one proves the hard parts (OAuth, the
-  token store, the transfer, every failure path, `/admin`) on a send she starts and watches; live sync adds its own
-  decisions (which uploads go and when, whether a guest's take-back reaches her Drive, its plan line) that deserve their
-  own red-team. Version one still covers a growing album: Send on an album already sent sends only what is new.
-- **Q3. The clean exit: to Deleted, behind a fresh check of her Drive, never for good by default.** Free 7.4 GB checks
-  her Drive again (every item the album holds, hidden ones too, by size and MD5, nothing new since), then moves the album
-  to Deleted through the existing delete. With Make room from Deleted on (the default) its room goes to her next uploads
-  whenever they need it; Delete for good is the quieter second act, for a host moving to a smaller plan. A long
-  background job is exactly where a bug would cost a wedding, and Deleted's 30 days are the difference.
-- **Q4. The folder and the names: `My Drive / Partyreel / Garden party · 3 Oct 2026 / 2026-10-03 21.14.05 · Sam.jpg`.**
-  One Partyreel folder (in our colour), one folder per album (its date when it has one), every file named by when it
-  reached the album, in her time zone, and who sent it, so the folder reads as the evening in order. We hold no capture
-  time and no original name; never an email address.
+  token store, the transfer, every failure path, `/admin`) on a send she starts and watches. Live sync opens what the
+  one-shot send does not (the Advisor's N8): a live-moderation album would copy a troll's upload into her Google account
+  in seconds (so only approved items, after a grace window); a guest's take-back must reach the Drive copy (Partyreel's
+  first automatic removal in a user's Drive); an idle sync must hold no lane; guests' uploads leaving our custody is a
+  new disclosure in the guest-facing privacy text. Version one still covers a growing album: Send on an album already
+  sent sends only what is new.
+- **Q3. The clean exit: to Deleted, behind the app's own fresh check, never for good by default.** Free 7.4 GB has the
+  app itself check every item the album holds now (hidden, waiting and sealed too) in her Drive and in R2, from
+  metadata (exists, not trashed, size and MD5 equal), within ten minutes, nothing new since; then the existing soft
+  delete. With Make room from Deleted on (the default) its room goes to her next uploads whenever they need it; Delete
+  for good is the quieter second act, for a host moving to a smaller plan. A long background job is exactly where a bug
+  would cost a wedding, and Deleted's 30 days are the difference.
+- **Q4. The folder and the names: `My Drive / Partyreel / Maya & Jay · 12 Sep 2026 / 2026-09-12 21.14.05 · Priya.jpg`.**
+  One Partyreel folder, one folder per album (its date when it has one), every file named by when it reached the album,
+  in her time zone, and who sent it, so the folder reads as the evening in order (a batch sent the morning after sorts
+  by when it arrived: we hold no capture time and no original name). Never an email address.
 
 ## System-doc edits (in place, owned facts only)
 
