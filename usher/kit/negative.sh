@@ -12,7 +12,7 @@ S="$T" zsh "$KIT/integrate.sh" no-such-lane deadbeefcafe body-type /dev/null > "
 grep -q "^INTEGRATE DONE red" "$T/integrate.out" && ! ls "$T"/gate*.log >/dev/null 2>&1 && ok "integrate.sh refuses a missing lane and starts no gate" || bad "integrate.sh did not refuse a missing lane"
 # 1c. every merge and gate script refuses to run with no scratchpad, before it touches anything
 for script in integrate.sh merge-lane.sh gate-lane.sh demo-rerun.sh; do env -u S zsh "$KIT/$script" no-such-lane deadbeef none /dev/null > "$T/nos.out" 2>&1; [ $? -ne 0 ] && grep -q "set S" "$T/nos.out" && ok "$script refuses to run without S" || bad "$script ran without S"; done
-# 2. merge-lane.sh refuses a full-length sha (it compares short ones) and leaves the tree untouched
+# 2. merge-lane.sh refuses a lane that does not exist (here with a full-length sha) and leaves the tree untouched
 BEFORE="$(git status --short)"; S="$T" zsh "$KIT/merge-lane.sh" no-such-lane deadbeefcafe0123456789deadbeefcafe01234567 /dev/null > "$T/merge.out" 2>&1; [ "$(git status --short)" = "$BEFORE" ] && ! grep -q "^MERGED" "$T/merge.out" && ok "merge-lane.sh refuses a bad lane and leaves the tree as it was" || bad "merge-lane.sh merged or changed the tree on a bad lane"
 # 3. record.py refuses a changelog and a STATUS row, and writes nothing: what shipped lives in the merge commit, STATUS is a snapshot
 mkdir -p "$T/docs"; echo '{"changelog": "x"}' > "$T/rec0.json"; echo '{"status": [{"id": "x", "state": "y"}]}' > "$T/rec1.json"

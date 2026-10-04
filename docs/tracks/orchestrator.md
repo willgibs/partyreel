@@ -12,7 +12,8 @@ owns:                    # the standing claims no lane touches
 reads:
   - CLAUDE.md
   - docs/PROGRAM.md
-announces: []
+announces:
+  - "kit fix at launch-prep (2026-10-04): `integrate.sh` passes the lane's sha whole and `merge-lane.sh` compares heads whole (git's short form grew to 9 characters, so comparing short forms refused every lane); `negative.sh`'s check 2 reworded. A lane editing `usher/kit/` syncs before touching those three."
 ---
 
 # The Orchestrator's state
@@ -33,8 +34,13 @@ first. Up to four lanes while `memory_pressure` reads at least 50% free; every p
 
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
-| `trash-in-storage` | Will's word (2026-10-03): Deleted counts in storage (the cap holds albums and Deleted together, deleting frees nothing until an item leaves Deleted for good), Make room from Deleted (on by default, his yes 02:50Z), the chart used and deleted apart; the standby budget and the re-delete guard retire | MERGED at `38f88e12` (gate 197 green FULL: lint, test 10,547, build, lab:smoke 176, lab:demo all); its migration APPLIED (`deleted_counts`, 20261004032249, the drift read clean on all eleven bodies, md5 75c77cff, advisors 19 / 4 / 36); types and its four seams at `958b6ee7`; build 51 and red-team 51 next | Opus, 3131 | `ae451b0bbdbee9503` |
-| `drive-export-r1` | Send to Google Drive, round 1: the design note for the Advisor (`../partyreel-wt/_scratch/drive-export/design.md`: OAuth with `drive.file` only, the encrypted token store, the Worker and Queue streaming R2 to Drive, every failure path, the guards, `/admin`, live sync, Will's Google Cloud step), then the board `drive-export` at desk 20 | RUNNING (cut at `738c72d0`); the note pushed first as a WIP, then the Advisor reads it while the lane draws | Opus, 3132 | `af71a05c6c8bafbf7` |
+| `trash-in-storage` | Will's word (2026-10-03): Deleted counts in storage (the cap holds albums and Deleted together, deleting frees nothing until an item leaves Deleted for good), Make room from Deleted (on by default, his yes 02:50Z), the chart used and deleted apart; the standby budget and the re-delete guard retire | MERGED at `38f88e12` (gate 197 green FULL: lint, test 10,547, build, lab:smoke 176, lab:demo all); its migration APPLIED (`deleted_counts`, 20261004032249, the drift read clean on all eleven bodies, md5 75c77cff, advisors 19 / 4 / 36); types and its four seams at `958b6ee7`; build 51 (`31b7c652`) on the alias, red-team 51 walking it; worktree pruned | Opus, 3131 | `ae451b0bbdbee9503` |
+| `drive-export-r1` | Send to Google Drive, round 1: the design note for the Advisor (`../partyreel-wt/_scratch/drive-export/design.md`), then the board `drive-export` at desk 20 | HANDED OFF at `ab909d7e6` (gate green on its synced tree `ed2e5d28`): the board drawn (nine decisions); the design SAFE TO WIRE AS DESIGNED (the Advisor's Q27, 05:25Z, `_scratch/drive-export/q27-advisor.md`: F1 to F8 met, the quiet-hold departure right, five notes for the wiring lane); WAITS UNINTEGRATED until Will's sitting on the six boards ends (his word), then integrate for his next desk; the wiring lane after his pick, his Google Cloud step (the note's section 11) relayed then | Opus, 3132 | `af71a05c6c8bafbf7` |
+| `pricing-wiring` | Will's Ladder A everywhere a price or a limit is said or enforced (Free 100 MB; the pass $29, 25 GB, 50 GB of uploads over its year, renewal $19; Pro 50 GB / 200 GB / 1 TB at $9 / $29 / $99 with 100 / 200 / 500 GB of uploads a month), the published rows with hover lines and the fair-use line, `tiers.ts` and `tier_limits()` by migration, the help's "frees at once" lines; the Stripe TEST prices the Orchestrator's | RUNNING (cut at `9d7475e7`): the Advisor's Q26 (04:55Z, `_scratch/pricing/q26-advisor.md`): SAFE TO APPLY AS WRITTEN (an expand; advisors unchanged); F1 (a lapsed pass fails open up to a day) folded into the file before the apply on the Orchestrator's word, then the delta re-read and the apply by protocol, the file frozen after; F2 a Deferred line; the pages, copy and docs meanwhile | Opus, 3131 | `a2dfaff7d147088f0` |
+| `crumbs-63` | Will's reel note (2026-10-04): a tap anywhere on the reel shows or hides its controls like the always-visible bar (idle rest and a pointer's movement unchanged), never the photo viewer | MERGED at `3267bf52a` (gate 198 green, light: test 10,562; the lane's on its head: typecheck, lint, test, build, lab:smoke 139, real Chrome at 1440 and 375 with touch, reduced motion and the screen); rides the next build; pruned | Sonnet, 3133 | `abce758c33eeab02c` |
+| `redteam-51` | build 51's red-team (`31b7c652`): Deleted counted on the ring and the chart, a full Free plan both ways, Delete for good and Empty Deleted, a guest's withdrawal purging that night, regressions near the change | DONE 05:05Z: no MEDIUM; the ring and chart, the setting off (the host's numbered refusal, the guest's 409, nothing leaving Deleted) and the regressions PASS; NOT DRIVEN by the permission system's refusal of a permanent delete: the eviction with the setting on (hi's Deleted holds four older items it did not make), Delete for good, Empty Deleted, a withdrawal's purge: Will's walks; one NIT (the ring's popover flush to the edge at 375: `popover.tsx` sets no `collisionPadding`) to the small-fixes batch; left on hi: "RT51 free" live (109.4 MB) and Make room from Deleted off; ledger `../partyreel-wt/_scratch/redteam-51/ledger.txt` | Opus, Will's Chrome | `a027c3916afc6d859` |
+| `docs-prune` | Will's ask (2026-10-04): the dead weight that impedes global problem-solving and future-facing creativity, audited then cut in place (history, one-off fixes written as ★ landmines, design written as law, restatement, a ROADMAP "Now" of 327 lines); the take-home board retired; unused kit scripts; the 26 policy tests classified GUARD or TASTE for him; ROADMAP, PROGRAM, ASSETS and the tracks README as ready files in `_scratch/docs-prune/` for the Orchestrator to copy in | RUNNING (cut at `a62356f0`); its audit pushed first for a sanity check | Opus, 3134 | `a2b0267d4162e3314` |
+| `customize-r1` | Will's ask (2026-10-04): hosts shape their party their way, "rocket ship control potential, but it all makes sense for a brand new user": Linear's lessons (`_scratch/customize/linear.md`), every arbitrary assumption ranked (`_scratch/customize/audit.md`, the roll of 24 first), and the board `customize` at desk 15 (the roll's control, the pattern for options and account defaults, the top preferences in it) | RUNNING (cut at `adf5db32a`) | Opus, 3133 | `a1ba7927eb8a90754` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Its
 model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`. From another session, respawn it from
@@ -61,26 +67,50 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls lab, the red-team brief
 
 ## Next, in order
 
-1. **Build 51 `[preview]`** (this record): milestone 35 plus trash-in-storage. Then **red-team 51** (Opus, Will's
-   Chrome), its brief written at `../partyreel-wt/_scratch/redteam-51/brief.md` (fill `{STAMP}` from the alias):
-   Deleted counted on the ring and the chart, a full Free plan both ways (the setting on makes exactly the room, off
-   refuses in words), Delete for good and Empty Deleted (only on a Deleted holding nothing it did not make), a guest's
-   withdrawal purging that night, regressions near the change.
-2. **pricing-wiring, cut now** (trash merged, so their owns no longer meet; spec `specs-r14/pricing-wiring.json`):
-   Will's Ladder A everywhere, the published rows with hover lines, the fair-use line, `tiers.ts` and `tier_limits()`
-   by migration, the help's "frees at once" lines trash-in-storage left. Stripe TEST prices are the Orchestrator's
-   through the MCP after `list_available_accounts_or_orgs` reads livemode false; the env by the REST API; a checkout
-   walk is Will's (a card is his to type).
+**His word on the desk (2026-10-04 05:00Z):** he answers the alias desk's six boards (11 asks) before any new board
+lands: last time a stacked desk of 100+ asks made every good idea fight open questions. So `drive-export-r1` and
+`customize-r1` hand off and wait unintegrated, and the calls lab's visual calls (his word: anything visual goes to the
+lab) become boards only after his sitting, read side by side with what is left so no two asks repeat. take-home
+shows answered (3 of 3) on build 51's desk and retires with docs-prune.
+
+1. **Red-team 51 is done** (no MEDIUM; its permanent deletes are Will's walks).
+2. **pricing-wiring** runs: send its migration to the Advisor from its WIP push; create the Stripe TEST prices its
+   Handoff writes (after `list_available_accounts_or_orgs` reads livemode false) and the env by the REST API;
+   integrate; a checkout walk is Will's.
 3. **Drive export:** when the lane pushes its design note, send it to the Advisor (architecture: OAuth, the token
    store, the transfer, the guards, `/admin`), relay its findings to the lane, and integrate the board for his desk.
    The wiring lane is cut after his pick and the Advisor's clear; his one step (a Google Cloud OAuth client) is
    relayed then.
-4. **The calls lab's UI board** (his word 02:50Z on section A: a question about how something looks is drawn, never
-   asked in text): once his pass through the calls lab ends, one lab lane draws every UI call he leaves (A1 to A4 at
-   least) and B1's answer as an ask: adding a password asks whether to keep everyone already in or send everyone back
-   through the door with it (their photos stay), beside a standalone "send everyone back to the door". Its wiring
-   follows his pick.
-5. **The close of the day:** STATUS, this pickup, the calls lab (`../partyreel-wt/_scratch/calls/calls-lab.md`: new
+4. **The calls lab's UI board** (his word 2026-10-04 on section A: a question about how something looks is drawn,
+   never asked in text): once his pass through the calls lab ends, one lab lane draws every UI call he sends there:
+   A1 to A4; B1 (adding a password asks whether to keep everyone already in or send everyone back through the door,
+   their photos staying, beside a standalone "send everyone back to the door"); B2 (a quiet Declined list at the foot
+   of Guests, collapsed, each with Let in); C7 (a first photo's glow); D3 (a confirm on every shot removal, saying it
+   frees a shot, and a different warning once her extra shots are spent; re-shoots a flat 3); Q6 with B1's pattern (a
+   develop time added to a running camera asks the host: everyone starts a fresh roll of 24 plus 3 re-shoots, the
+   default, or what each guest added counts; the confirm says which); and Q3, how a batch of others' photos lands at
+   375 (one push, a stagger recommended, or one fade), drawn live. Its wiring follows his pick.
+5. **The small-fixes batch** once his pass ends (one Sonnet lane for every production answer it leaves): E6, a cancel
+   and a dropped connection told apart for downloads and uploads (a cancel asks first, then offers Try again; a network
+   failure is never hidden and says what to do, so she neither retries in vain nor blames the app); red-team 51's
+   NIT (the popover's `collisionPadding`, 8 as the menus); Q2, a spoken "to"
+   in date ranges for screen readers (the dash unchanged on screen); Q5, the host's Reel card ready to play before the
+   develop (her scope, sealed shots included, saying guests get it at the develop) while the guest page, hers
+   included, shows no reel until the develop (no screen link: a screen not hers casts from her own device). **crumbs-63** (the
+   reel's tap) integrates on its handoff. **D4, his yes (2026-10-04):** a `camera-clip` lane (Sonnet)
+   cut the moment pricing-wiring's migration is APPLIED, since both replace `create_media`: the clip at 30 s and about
+   5 Mbps (about 19 MB), `CAMERA_VIDEO_SECONDS` and `create_media`'s `c_camera_video_seconds` and `_bytes` (scaled from
+   128 MB) restated from pricing-wiring's body under a later prefix, the ring's 0:30, hardened as Q26's camera list
+   says (`_scratch/pricing/q26-advisor.md`: the SQL messages `format()`ed from the constants, the grace its own
+   constant). **Re-shoots a flat 3** (his word:
+   `c_roll_retakes` as roll + 3, never three rolls' worth) ship with D3's confirm, so the "only a deletion" warning
+   exists from its first day; the UI board draws them together.
+6. **docs-prune** (Will's ask on dead weight): read its audit when it pushes (the cuts' kinds and examples) and
+   say so if its judgment strays; at its merge copy in its ready files (`_scratch/docs-prune/*.new.md`: ROADMAP,
+   PROGRAM, ASSETS, the tracks README) after reading each diff (re-adding any line recorded after its snapshot), delete `docs/reviews/take-home.json`, apply its
+   proposals for the docs running lanes own once they merge, and put its GUARD/TASTE list of the policy tests to Will.
+   The old scratch (red-teams 10 to 45, merged lanes' captures) went to `~/.Trash/partyreel-scratch-2026-10-04`.
+7. **The close of the day:** STATUS, this pickup, the calls lab (`../partyreel-wt/_scratch/calls/calls-lab.md`: new
    calls in its form, a section per batch, UI calls to the lab). Moltbook hourly only on his word.
 
 ## Waiting on Will
@@ -88,11 +118,13 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls lab, the red-team brief
 - **His desk** on the alias (six boards: identity r3, host-dashboard r3, the-wait r2, event-header r3, create-wizard
   r3, demo-framing r5; drive-export joins at desk 20 when it lands):
   `https://partyreel-git-launch-prep-partyreel.vercel.app/design/lab?key=fiesta`.
-- **The calls lab** (`../partyreel-wt/_scratch/calls/calls-lab.md`), his pass under way (2026-10-04 03:15Z): section A
-  goes to the lab, B1 answered (recorded in the file). Q2 to Q6 open. He asks direct questions in chat; answer in
-  chat, never only in a file.
+- **The calls lab** (`../partyreel-wt/_scratch/calls/calls-lab.md`), his pass under way: Q2 to Q6 open, sections F
+  to P and R left (A to E answered and routed into the steps above and ROADMAP). It holds only what still needs him:
+  an answer leaves it the moment it is routed, and it keeps no settled list or index (his word, 2026-10-04). Answer
+  his direct questions in chat, never only in a file.
 - **His walks:** the camera on his iPhone (a held-shutter video on a waiting sheet), Save into Photos, Record Video's
-  size, a deletion and its Cancel deletion on hi@willgibs.com, the spend watch's uploads switch off and on.
-- **Decided:** milestone 35 (shipped 03:10Z); Drive export (plan, review, the lab first); Make room from Deleted on
-  by default (built); the renewal $19; Ladder A with 1 TB at $99; no guest limit (his question answered 03:00Z: a
-  guest is a per-request constant, the calm album and the guards cover the rest).
+  size, a deletion and its Cancel deletion on hi@willgibs.com, the spend watch's uploads switch off and on; and
+  trash-in-storage's permanent deletes, which no agent may press (red-team 51): on hi@willgibs.com, the size list's
+  Delete for good on "RT51 free"'s photos, then Make room from Deleted back on and one upload past the line (the
+  oldest of Deleted, four older test items, leaves for good), Empty Deleted, and a guest's own removal reading its
+  purge that night.

@@ -36,10 +36,9 @@ r2 (the arrival), event-header r3 (facts and doors), create-wizard r3 (the add s
   robots, the sitemap and llms.txt all 200 with no console error or exception; the lab 404; frame-ancestors, the frame
   header, HSTS and nosniff on both projects; the admin domain at its login; the cron routes 401 to a stranger). Its
   crons: the purge at 04:00 UTC and the spend watch at 05:00.
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 50 (`048016f9`, 2026-10-03
-  23:55Z): round 13's wirings (identity, the waiting experience, taking photos home with the phone copy, the rooms over
-  the hub, Create as a room, the frame headers; red-team 46 PASS, its MEDIUMs fixed), event date ranges, and Will's
-  next desk (six boards), the calm album, the spend watch, uploads through staging and the backup prune's hold, and red-teams 46 to 49's fixes; red-team 50 walks it before milestone 35.
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 51 (`31b7c652`, 2026-10-04
+  03:58Z): milestone 35 plus trash-in-storage (Deleted counts in storage, Make room from Deleted on by default, the
+  storage chart) and Will's next desk (six boards); red-team 51 walks it.
   Vercel installs with pnpm 9.14.4, `package.json`'s `packageManager`.
 - **The shared database** runs every migration through 2026-10-04, each by protocol: round 13's
   (`approval_never_with_a_develop`, `phone_copy`, `event_end_date`, `spend_watch`, `event_dates_finite`,

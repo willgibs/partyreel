@@ -8,7 +8,7 @@
 # Born 2026-09-20 from two mistakes in one day: a gate started on the merge script's tail (a full sha aborted it silently),
 # and a lane's branch pruned before the merge line was read.
 set -u
-TRACK="$1"; HSHA="${2:0:8}"; BOARD="$3"; MSG="$4"
+TRACK="$1"; HSHA="$2"; BOARD="$3"; MSG="$4"
 # S is this session's scratchpad, required: a default would write one session's logs into another's.
 : "${S:?set S to this session's scratchpad}"
 KIT="$(cd "$(dirname "$0")" && pwd)"; cd "$KIT/../.."
