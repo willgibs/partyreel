@@ -33,8 +33,11 @@ first. Up to four lanes while `memory_pressure` reads at least 50% free; every p
 
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
-| `trash-in-storage` | Will's word (2026-10-03): Deleted counts in storage (the cap holds albums and Deleted together, deleting frees nothing until an item leaves Deleted for good), Make room from Deleted (on by default, his yes 02:50Z), the chart used and deleted apart; the standby budget and the re-delete guard retire | MERGED at `38f88e12` (gate 197 green FULL: lint, test 10,547, build, lab:smoke 176, lab:demo all); its migration APPLIED (`deleted_counts`, 20261004032249, the drift read clean on all eleven bodies, md5 75c77cff, advisors 19 / 4 / 36); types and its four seams at `958b6ee7`; build 51 and red-team 51 next | Opus, 3131 | `ae451b0bbdbee9503` |
-| `drive-export-r1` | Send to Google Drive, round 1: the design note for the Advisor (`../partyreel-wt/_scratch/drive-export/design.md`: OAuth with `drive.file` only, the encrypted token store, the Worker and Queue streaming R2 to Drive, every failure path, the guards, `/admin`, live sync, Will's Google Cloud step), then the board `drive-export` at desk 20 | RUNNING (cut at `738c72d0`); the note pushed first as a WIP, then the Advisor reads it while the lane draws | Opus, 3132 | `af71a05c6c8bafbf7` |
+| `trash-in-storage` | Will's word (2026-10-03): Deleted counts in storage (the cap holds albums and Deleted together, deleting frees nothing until an item leaves Deleted for good), Make room from Deleted (on by default, his yes 02:50Z), the chart used and deleted apart; the standby budget and the re-delete guard retire | MERGED at `38f88e12` (gate 197 green FULL: lint, test 10,547, build, lab:smoke 176, lab:demo all); its migration APPLIED (`deleted_counts`, 20261004032249, the drift read clean on all eleven bodies, md5 75c77cff, advisors 19 / 4 / 36); types and its four seams at `958b6ee7`; build 51 (`31b7c652`) on the alias, red-team 51 walking it; worktree pruned | Opus, 3131 | `ae451b0bbdbee9503` |
+| `drive-export-r1` | Send to Google Drive, round 1: the design note for the Advisor (`../partyreel-wt/_scratch/drive-export/design.md`: OAuth with `drive.file` only, the encrypted token store, the Worker and Queue streaming R2 to Drive, every failure path, the guards, `/admin`, live sync, Will's Google Cloud step), then the board `drive-export` at desk 20 | RUNNING (cut at `738c72d0`): the note pushed whole at `8d3f605e` with four Questions (every plan, Free too; live sync second; the clean exit to Deleted after a fresh check of her Drive; `Partyreel / Album · date / time · name`); the Advisor's Q25 reading it (sent 03:50Z); the board next | Opus, 3132 | `af71a05c6c8bafbf7` |
+| `pricing-wiring` | Will's Ladder A everywhere a price or a limit is said or enforced (Free 100 MB; the pass $29, 25 GB, 50 GB of uploads over its year, renewal $19; Pro 50 GB / 200 GB / 1 TB at $9 / $29 / $99 with 100 / 200 / 500 GB of uploads a month), the published rows with hover lines and the fair-use line, `tiers.ts` and `tier_limits()` by migration, the help's "frees at once" lines; the Stripe TEST prices the Orchestrator's | RUNNING (cut at `9d7475e7`); its migration to the Advisor from its WIP push | Opus, 3131 | `a2dfaff7d147088f0` |
+| `crumbs-63` | Will's reel note (2026-10-04): a tap anywhere on the reel shows or hides its controls like the always-visible bar (idle rest and a pointer's movement unchanged), never the photo viewer | RUNNING (cut at `99f12d04`) | Sonnet, 3133 | `abce758c33eeab02c` |
+| `redteam-51` | build 51's red-team (`31b7c652`): Deleted counted on the ring and the chart, a full Free plan both ways (Make room from Deleted on makes exactly the room; off refuses in words), Delete for good and Empty Deleted, a guest's withdrawal purging that night, regressions near the change; brief `../partyreel-wt/_scratch/redteam-51/brief.md` | RUNNING (spawned 03:59Z) | Opus, Will's Chrome | `a027c3916afc6d859` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Its
 model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`. From another session, respawn it from
@@ -61,26 +64,24 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls lab, the red-team brief
 
 ## Next, in order
 
-1. **Build 51 `[preview]`** (this record): milestone 35 plus trash-in-storage. Then **red-team 51** (Opus, Will's
-   Chrome), its brief written at `../partyreel-wt/_scratch/redteam-51/brief.md` (fill `{STAMP}` from the alias):
-   Deleted counted on the ring and the chart, a full Free plan both ways (the setting on makes exactly the room, off
-   refuses in words), Delete for good and Empty Deleted (only on a Deleted holding nothing it did not make), a guest's
-   withdrawal purging that night, regressions near the change.
-2. **pricing-wiring, cut now** (trash merged, so their owns no longer meet; spec `specs-r14/pricing-wiring.json`):
-   Will's Ladder A everywhere, the published rows with hover lines, the fair-use line, `tiers.ts` and `tier_limits()`
-   by migration, the help's "frees at once" lines trash-in-storage left. Stripe TEST prices are the Orchestrator's
-   through the MCP after `list_available_accounts_or_orgs` reads livemode false; the env by the REST API; a checkout
-   walk is Will's (a card is his to type).
+1. **Red-team 51** walks build 51 (`31b7c652`): read its report, fix any MEDIUM before the next milestone (a crumbs
+   lane), file the rest.
+2. **pricing-wiring** runs: send its migration to the Advisor from its WIP push; create the Stripe TEST prices its
+   Handoff writes (after `list_available_accounts_or_orgs` reads livemode false) and the env by the REST API;
+   integrate; a checkout walk is Will's.
 3. **Drive export:** when the lane pushes its design note, send it to the Advisor (architecture: OAuth, the token
    store, the transfer, the guards, `/admin`), relay its findings to the lane, and integrate the board for his desk.
    The wiring lane is cut after his pick and the Advisor's clear; his one step (a Google Cloud OAuth client) is
    relayed then.
-4. **The calls lab's UI board** (his word 02:50Z on section A: a question about how something looks is drawn, never
-   asked in text): once his pass through the calls lab ends, one lab lane draws every UI call he leaves (A1 to A4 at
-   least) and B1's answer as an ask: adding a password asks whether to keep everyone already in or send everyone back
-   through the door with it (their photos stay), beside a standalone "send everyone back to the door". Its wiring
-   follows his pick.
-5. **The close of the day:** STATUS, this pickup, the calls lab (`../partyreel-wt/_scratch/calls/calls-lab.md`: new
+4. **The calls lab's UI board** (his word 2026-10-04 on section A: a question about how something looks is drawn,
+   never asked in text): once his pass through the calls lab ends, one lab lane draws every UI call he sends there:
+   A1 to A4; B1 (adding a password asks whether to keep everyone already in or send everyone back through the door,
+   their photos staying, beside a standalone "send everyone back to the door"); B2 (a quiet Declined list at the foot
+   of Guests, collapsed, each with Let in); C7 (a first photo's glow); D3 (a confirm on every shot removal, saying it
+   frees a shot, and a different warning once her extra shots are spent). Its wiring follows his pick.
+5. **crumbs-63** (the reel's tap) integrates on its handoff. **D4** waits on his yes: the camera's clip at 30 s and a
+   lower bitrate (about 19 MB), a constant, `create_media`'s matching check by migration and the ring's 0:30.
+6. **The close of the day:** STATUS, this pickup, the calls lab (`../partyreel-wt/_scratch/calls/calls-lab.md`: new
    calls in its form, a section per batch, UI calls to the lab). Moltbook hourly only on his word.
 
 ## Waiting on Will
