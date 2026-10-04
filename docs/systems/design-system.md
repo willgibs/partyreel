@@ -32,9 +32,13 @@ view) is plain to anyone already.
 - **Five grounds, five classes**, each a whole token set in globals.css: the page `:root, .surface-paper` (paper), the
   room `.dark` (the app and every cinema chapter), the slab `.surface-ink` (an always-dark leaf on paper, such as the
   footer), the mat `.surface-mat` (declared, worn nowhere yet) and the display `.surface-display` (the quick layers'
-  near-black screen, the same on paper and in the room). `--gallery*` is the media well, always dark and the deepest
+  screen: near-black on paper, lit graphite in the room). `--gallery*` is the media well, always dark and the deepest
   ground. A ground re-declares every token a part inside it reads, in whole pairs (`--signal` beside `--destructive`),
   because a pair left out resolves to the ground beneath (`ui/display.test.ts` holds the display's).
+- ★ **The display's `--display*` set is declared per ground**, in whole, on paper's block and on `.dark`, never on
+  `:root` alone: the layer reads whichever ground it stands in, a paper subtree inside the room takes paper's again by
+  wearing `.surface-paper`, and a value the layer needs on only one ground still gets a token on both (a literal typed
+  into `.surface-display` is paper's grey on graphite, which `display.test.ts` refuses for the ones that differ).
 - **Three text steps**: `--foreground`, `--muted-foreground` and `--faint`, each a solid grey per ground rather than an
   alpha, so it reads the same over whatever is behind it. `--faint` is under 4.5:1 on every ground, so it is for
   captions and hints, never a sentence, a control's only label or under a further alpha (`faint-copy-policy.test.tsx`).
@@ -261,6 +265,10 @@ QR card, through `[data-lit]` in globals.css.
   wrapper is square, so the hook is on the rounded box inside it.
 - **`data-lit="border"`** pushes the edge out over a 1px `border`, so such a host must not clip: `overflow: hidden` cuts
   at the padding box, exactly where the border ends, erasing the edge (the canvas player rounds its canvas instead).
+- ★ **The edge's pixel is a 1px transparent border under the mask, never a padding**: Chrome draws a border under a
+  device pixel as one whole device pixel but rounds a padding to the pixel grid, so a padding ring drew nothing once a
+  page was zoomed under half (a zoomed-out desk, a laptop's smaller steps) while looking right at 100%. Measure an
+  edge at 100% and under half zoom (CSS `zoom: .33`).
 - **Dark grounds only** (`@variant dark`, so nothing is generated on paper, where a gallery holds hundreds of tiles), and
   only under `@supports` for `color-mix` and `mask-composite`: without the mask the gradient veils the photograph.
 
@@ -417,15 +425,15 @@ transition properties rather than `transition-all`, so nothing they did not mean
 
 `floating-layer.ts` (`src/components/ui/`) exports what every floating panel wears, so no primitive answers it locally:
 `floatingCorner` (`rounded-float`) around rows derived from the panel's own padding; `floatingEntrance` (anchored) and
-`floatingEdgeEntrance` (the sheet's slide); and `floatingClock`, whose three rungs follow frequency: instant for what
-opens dozens of times an hour (a tooltip, a dropdown, a select), standard for a popover or dialog, edge for the sheet.
-The light is `shadow-layer`, the ground's own. `sonner.tsx` sits outside the family by name; the QR mini-modal's View
+`floatingEdgeEntrance` (the sheet's slide); `floatingGutter`, the 8px an anchored layer keeps from the glass; and
+`floatingClock`, whose three rungs follow frequency: instant for what opens dozens of times an hour (a tooltip, a
+dropdown, a select), standard for a popover or dialog, edge for the sheet. The light is `shadow-layer`, the ground's own. `sonner.tsx` sits outside the family by name; the QR mini-modal's View
 Transition is its one sanctioned hole ([host-app.md](host-app.md)).
 
 - **Two materials, by what a layer is for.** A quick layer, what a press opens and the next press closes (a menu and
   its submenu, a select's list, a popover, the Add's rows, the palette, a tooltip, a toast), is the display:
   `floatingDisplayPanel` (`floatingTip` for a tooltip's capsule) on the `.surface-display` ground, the camera's own
-  near-black screen on paper and in the room. A work layer, where a host does something (a dialog, the popup's shapes,
+  screen, near-black on paper and lit graphite in the room. A work layer, where a host does something (a dialog, the popup's shapes,
   the Sheet), is the body's: `floatingWorkSurface` over `floatingScrim`. A body panel that is neither (the marketing
   nav's, the code card) keeps `floatingPanel`, the ground's popover and its ring. Whatever a quick layer holds reads
   the screen's tokens and names no colour of its own, which `ui/display.test.ts` holds.
@@ -585,9 +593,12 @@ board, its own sheet and scenes), found by the registry and the board route and 
   against transparent black, so the pair resolves to the union. Split the masks across two nested elements.
 - **Radix's `Portal` renders its children one commit after it mounts**, so an effect keyed on a dialog opening finds
   no element: the viewer binds its stage and media through callback refs held in state, and keys its effects on those.
-- **A tap never opens a tooltip** (`ui/tooltip`'s `TooltipTrigger` refuses a focus a finger or a pen began, and its
-  arrow takes no pointer): a touch's compatibility mousedown comes after its pointerup, so Radix opened the tooltip on
-  that focus and its arrow slid over the trigger's edge and took the tap.
+- **A tap never opens a tooltip on an icon control** (`ui/tooltip`'s `TooltipTrigger` refuses a focus a finger or a pen
+  began, and its arrow takes no pointer): a touch's compatibility mousedown comes after its pointerup, so Radix opened
+  the tooltip on that focus and its arrow slid over the trigger's edge and took the tap. A control whose words are the
+  thing asked for (a glyph with no label, a table row's fine print) wears `TapTooltip` instead, the one press model: a
+  tap toggles the words, a cursor's click keeps them open (Radix dismisses at the press of its own trigger, so a click
+  would blink them), a key toggles, and the rich tooltip mounts after hydration with the words as the `title` until then.
 - **A full-width `inset-x-0` overlay above a gesture track eats the gesture** across its flanks, killing swipe
   navigation on every viewer at once: the box takes `pointer-events-none`, its controls `pointer-events-auto`.
 - **`src/components/ui/*` keeps the shadcn generator's style** (no semicolons, `.prettierignore`d) while app code uses

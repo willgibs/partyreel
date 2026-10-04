@@ -1,7 +1,9 @@
 import { act, fireEvent, render, screen } from "@testing-library/react"
+import { renderToString } from "react-dom/server"
 import { describe, expect, it } from "vitest"
 
 import {
+  TapTooltip,
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -120,5 +122,184 @@ describe("a tooltip's trigger under a finger, a cursor and a keyboard", () => {
     expect(content?.className).toContain(
       "*:has-data-[slot=tooltip-arrow]:pointer-events-none",
     )
+  })
+})
+
+/**
+ * ★ WORDS A FINGER MUST BE ABLE TO ASK FOR: THE ONE PRESS MODEL (crumbs-64). The code's corner mark, the glyph
+ * count and the pricing matrix's row each carried this beside the primitive, and each of their own tests still holds
+ * its surface's part of it; what is held here is the model itself, fired in a phone's order, a cursor's and a key's.
+ */
+const TIP = "Everything you and your guests keep."
+
+function mountTap() {
+  const clicks: string[] = []
+  render(
+    <>
+      <TapTooltip words={TIP} side="bottom">
+        <button type="button" onClick={() => clicks.push("face")}>
+          Storage
+        </button>
+      </TapTooltip>
+      <p>Elsewhere on the page</p>
+    </>,
+  )
+  return { face: screen.getByRole("button", { name: "Storage" }), clicks }
+}
+
+const words = () =>
+  Array.from(document.querySelectorAll("[data-slot='tooltip-content']")).map(
+    (el) => el.textContent ?? "",
+  )
+
+/** One tap as a phone makes it: the pointer down and up, then the click (its compatibility mouse events never come). */
+async function tap(el: Element) {
+  await act(async () => {
+    fireEvent.pointerDown(el, { pointerType: "touch", isPrimary: true })
+    fireEvent.pointerUp(el, { pointerType: "touch", isPrimary: true })
+    fireEvent.click(el, { detail: 1 })
+  })
+}
+
+/** Radix starts listening for a press outside its words one task after they open. */
+const settle = () =>
+  act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0))
+  })
+
+describe("TapTooltip: a finger, a cursor and a key", () => {
+  it("★ a tap opens the words, and the next tap on the face puts them away", async () => {
+    const { face, clicks } = mountTap()
+    expect(words()).toEqual([])
+    await tap(face)
+    expect(words()).toEqual([expect.stringContaining(TIP)])
+    await settle()
+    await tap(face)
+    expect(words()).toEqual([])
+    // The face's own press is still its own: both taps reached its handler, ahead of the model's.
+    expect(clicks).toEqual(["face", "face"])
+  })
+
+  it("★ a tap anywhere else, and a finger's tap on the words themselves, put them away", async () => {
+    const { face } = mountTap()
+    await tap(face)
+    await settle()
+    const elsewhere = screen.getByText("Elsewhere on the page")
+    await act(async () => {
+      fireEvent.pointerDown(elsewhere, { pointerType: "touch" })
+      fireEvent.pointerUp(elsewhere, { pointerType: "touch" })
+      fireEvent.click(elsewhere, { detail: 1 })
+    })
+    expect(words()).toEqual([])
+    await tap(face)
+    await settle()
+    const bubble = document.querySelector("[data-slot='tooltip-content']")!
+    await act(async () => {
+      fireEvent.pointerDown(bubble, { pointerType: "touch" })
+      fireEvent.click(bubble, { detail: 1 })
+    })
+    expect(words()).toEqual([])
+  })
+
+  it("a cursor's click on the words leaves them up: it may be selecting a phrase to copy", async () => {
+    const { face } = mountTap()
+    await act(async () => {
+      fireEvent.pointerDown(face, { pointerType: "mouse" })
+      fireEvent.click(face, { detail: 1 })
+    })
+    await settle()
+    const bubble = document.querySelector("[data-slot='tooltip-content']")!
+    await act(async () => {
+      fireEvent.pointerDown(bubble, { pointerType: "mouse" })
+      fireEvent.click(bubble, { detail: 1 })
+    })
+    expect(words()).toHaveLength(1)
+  })
+
+  it("★ a cursor's hover opens it and its click keeps the same words up, never blinking them", async () => {
+    const { face } = mountTap()
+    await act(async () => {
+      fireEvent.pointerMove(face, { pointerType: "mouse" })
+      // The provider's delay is 0, which radix still rides on a timer.
+      await new Promise((resolve) => setTimeout(resolve, 5))
+    })
+    const before = document.querySelector("[data-slot='tooltip-content']")
+    expect(before).not.toBeNull()
+    await settle()
+    // Radix would dismiss the words at the pointerdown (the face is outside them) and the click would reopen them a
+    // beat later; the face's own press is no dismissal.
+    await act(async () => {
+      fireEvent.pointerDown(face, { pointerType: "mouse" })
+    })
+    expect(document.querySelector("[data-slot='tooltip-content']")).toBe(before)
+    await act(async () => {
+      fireEvent.pointerUp(face, { pointerType: "mouse" })
+      fireEvent.click(face, { detail: 1 })
+    })
+    expect(document.querySelector("[data-slot='tooltip-content']")).toBe(before)
+    expect(words()).toHaveLength(1)
+  })
+
+  it("a key's focus opens it, Enter or Space toggles it, and Escape puts it away", async () => {
+    const { face } = mountTap()
+    await act(async () => {
+      face.focus()
+    })
+    expect(words()).toEqual([expect.stringContaining(TIP)])
+    // `detail` 0 is how a click no pointer made reads.
+    await act(async () => {
+      fireEvent.click(face, { detail: 0 })
+    })
+    expect(words()).toEqual([])
+    await act(async () => {
+      fireEvent.click(face, { detail: 0 })
+    })
+    expect(words()).toHaveLength(1)
+    await act(async () => {
+      fireEvent.keyDown(face, { key: "Escape" })
+    })
+    expect(words()).toEqual([])
+  })
+
+  it("a key's Enter after a mouse press that never clicked toggles, rather than opening on a stale press", async () => {
+    const { face } = mountTap()
+    // Pressed, dragged off the face, released elsewhere: no click ever came for it.
+    await act(async () => {
+      fireEvent.pointerDown(face, { pointerType: "mouse" })
+    })
+    await act(async () => {
+      face.focus()
+    })
+    expect(words()).toHaveLength(1)
+    await act(async () => {
+      fireEvent.click(face, { detail: 0 })
+    })
+    expect(words()).toEqual([])
+  })
+
+  it("a finger's focus alone opens nothing: only its click does (the primitive's scar stands)", async () => {
+    const { face } = mountTap()
+    fireEvent.pointerDown(face, { pointerType: "touch", isPrimary: true })
+    await act(async () => {
+      face.focus()
+    })
+    expect(words()).toEqual([])
+    fireEvent.pointerUp(face, { pointerType: "touch", isPrimary: true })
+    await act(async () => {
+      fireEvent.click(face, { detail: 1 })
+    })
+    expect(words()).toHaveLength(1)
+  })
+
+  it("★ draws the face bare with the words as its title before hydration, and mounts no tooltip", () => {
+    // The server's paint and the hydrating render: a radix tooltip in a server-rendered first paint left the host page
+    // unhydrated in production (architecture.md), so the rich tooltip waits for the render after it.
+    const html = renderToString(
+      <TapTooltip words={TIP}>
+        <button type="button">Storage</button>
+      </TapTooltip>,
+    )
+    expect(html).toContain(`title="${TIP}"`)
+    expect(html).not.toContain("tooltip")
   })
 })

@@ -107,7 +107,7 @@ export default async function FoundationsPage({
           <Sub
             id="display"
             title="The display"
-            blurb="The camera's screen, one near-black on paper and in the room: a menu, a select, a popover, a tooltip or a toast is made of it. The five tokens are theme-independent and have no utility; a layer wears them through the ground above."
+            blurb="The camera's screen, near-black on paper and lit graphite in the room: a menu, a select, a popover, a tooltip or a toast is made of it. Each ground declares the whole set and none has a utility; a layer wears them through the ground above."
           >
             <DisplayTokens />
           </Sub>

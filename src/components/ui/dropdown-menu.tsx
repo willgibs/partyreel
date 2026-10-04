@@ -9,6 +9,7 @@ import {
   floatingClock,
   floatingDisplayPanel,
   floatingEntrance,
+  floatingGutter,
   floatingRow,
 } from "@/components/ui/floating-layer"
 import { CheckIcon, ChevronRightIcon } from "lucide-react"
@@ -38,11 +39,12 @@ import { CheckIcon, ChevronRightIcon } from "lucide-react"
  * banked owns the material.
  *
  * ★ IT OPENS ON THE DISPLAY (identity r2, layers=display): the camera's own
- * screen, near-black on paper and in the room, its chosen row a light wash
- * with a light outline (`focus:` is the row Radix holds highlighted, by the
- * pointer or the keys). Every part above reads the display's own tokens, so
- * none of them names a colour for it; the label's 70 percent of the screen's
- * ink is the display's muted grey.
+ * screen, near-black on paper and lit graphite in the room, its chosen row a
+ * light wash with a light outline (`focus:` is the row Radix holds highlighted,
+ * by the pointer or the keys; the outline is the ground's `--display-cursor`).
+ * Every part above reads the display's own tokens, so none of them names a
+ * colour for it; the label's 70 percent of the screen's ink is the display's
+ * muted grey.
  *
  * The corner, the material, the entrance and the light are NOT here: they are
  * the floating-layer contract (`floating-layer.ts`), shared with the select,
@@ -203,7 +205,7 @@ function DropdownMenuItem({
         // glyph is quiet and 16px wide, so every label in a menu starts at the
         // same x and a call site never types `text-muted-foreground` on an icon
         // again. `data-inset` puts a row with no icon on that same x.
-        "group/dropdown-menu-item relative flex cursor-default items-center gap-2 px-2 py-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground focus:ring-[1.5px] focus:ring-foreground/50 focus:ring-inset not-data-[variant=destructive]:focus:**:text-accent-foreground data-inset:pl-8 data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/20 data-[variant=destructive]:focus:text-destructive data-[variant=destructive]:focus:ring-destructive/50 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&>svg:first-child]:text-muted-foreground data-[variant=destructive]:*:[svg]:text-destructive",
+        "group/dropdown-menu-item relative flex cursor-default items-center gap-2 px-2 py-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground focus:ring-[1.5px] focus:ring-(color:--display-cursor) focus:ring-inset not-data-[variant=destructive]:focus:**:text-accent-foreground data-inset:pl-8 data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/20 data-[variant=destructive]:focus:text-destructive data-[variant=destructive]:focus:ring-destructive/50 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&>svg:first-child]:text-muted-foreground data-[variant=destructive]:*:[svg]:text-destructive",
         floatingRow,
         className
       )}
@@ -247,7 +249,7 @@ function DropdownMenuCheckboxItem({
       data-slot="dropdown-menu-checkbox-item"
       data-inset={inset}
       className={cn(
-        "relative flex cursor-default items-center gap-2 py-1.5 pr-8 pl-2 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground focus:ring-[1.5px] focus:ring-foreground/50 focus:ring-inset focus:**:text-accent-foreground data-inset:pl-8 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&>svg:first-child]:text-muted-foreground",
+        "relative flex cursor-default items-center gap-2 py-1.5 pr-8 pl-2 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground focus:ring-[1.5px] focus:ring-(color:--display-cursor) focus:ring-inset focus:**:text-accent-foreground data-inset:pl-8 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&>svg:first-child]:text-muted-foreground",
         floatingRow,
         className
       )}
@@ -292,7 +294,7 @@ function DropdownMenuRadioItem({
       data-slot="dropdown-menu-radio-item"
       data-inset={inset}
       className={cn(
-        "relative flex cursor-default items-center gap-2 py-1.5 pr-8 pl-2 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground focus:ring-[1.5px] focus:ring-foreground/50 focus:ring-inset focus:**:text-accent-foreground data-inset:pl-8 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&>svg:first-child]:text-muted-foreground",
+        "relative flex cursor-default items-center gap-2 py-1.5 pr-8 pl-2 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground focus:ring-[1.5px] focus:ring-(color:--display-cursor) focus:ring-inset focus:**:text-accent-foreground data-inset:pl-8 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&>svg:first-child]:text-muted-foreground",
         floatingRow,
         className
       )}
@@ -397,7 +399,7 @@ function DropdownMenuSubTrigger({
       data-slot="dropdown-menu-sub-trigger"
       data-inset={inset}
       className={cn(
-        "flex cursor-default items-center gap-2 px-2 py-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground focus:ring-[1.5px] focus:ring-foreground/50 focus:ring-inset not-data-[variant=destructive]:focus:**:text-accent-foreground data-inset:pl-8 data-open:bg-accent data-open:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&>svg:first-child]:text-muted-foreground",
+        "flex cursor-default items-center gap-2 px-2 py-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground focus:ring-[1.5px] focus:ring-(color:--display-cursor) focus:ring-inset not-data-[variant=destructive]:focus:**:text-accent-foreground data-inset:pl-8 data-open:bg-accent data-open:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&>svg:first-child]:text-muted-foreground",
         floatingRow,
         className
       )}
@@ -433,7 +435,7 @@ function DropdownMenuSubTrigger({
  */
 function DropdownMenuSubContent({
   className,
-  collisionPadding = 8,
+  collisionPadding = floatingGutter,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.SubContent>) {
   return (
