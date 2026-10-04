@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 
 import { GuestActionDock } from "@/components/guest/guest-action-dock";
+import { createAlbumKinds } from "@/components/guest/guest-action-dock-kinds";
 import { guestSelect } from "@/components/guest/live-gallery-select";
 import type { QueueItem, QueueProgress } from "@/lib/guest/use-upload-queue";
 
@@ -403,5 +404,77 @@ describe("in select mode the shutter turns to Save", () => {
       screen.getByRole("button", { name: "Add photos" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Invite" })).toBeInTheDocument();
+  });
+
+  /**
+   * ★ IT NAMES WHAT HER PICKS HOLD (red-team 49's NIT): "Save 15 photos" stood over 12 photos and 3 videos, where the
+   * album's own line said "15 photos & videos". The album's kinds reach the foot through the page's store
+   * (`guest-action-dock-kinds.tsx`), and every word the shutter says names the set through `setNoun`.
+   */
+  it("★ names what her picks hold, photos and videos as the album says them, in every state", () => {
+    const kinds = createAlbumKinds();
+    kinds.set(
+      new Map([
+        ["a", "photo"],
+        ["b", "photo"],
+        ["v", "video"],
+      ]),
+    );
+    render(
+      <GuestActionDock
+        hidden={false}
+        uploadingCount={0}
+        onAdd={() => {}}
+        invite={invite}
+        kinds={kinds}
+      />,
+    );
+    act(() => {
+      guestSelect.enter();
+      guestSelect.pick(["a", "b", "v"]);
+    });
+    expect(
+      screen.getByRole("button", { name: "Save 3 photos & videos" }),
+    ).toBeEnabled();
+    act(() => guestSelect.unpick(["a", "b"]));
+    expect(screen.getByRole("button", { name: "Save 1 video" })).toBeEnabled();
+    act(() => guestSelect.pick(["b"]));
+    act(() => guestSelect.setRun({ kind: "getting", progress: 0.2 }));
+    expect(
+      screen.getByRole("button", {
+        name: "Saving 2 photos & videos. Tap to stop.",
+      }),
+    ).toBeInTheDocument();
+    act(() => guestSelect.setRun({ kind: "ready" }));
+    expect(
+      screen.getByRole("button", { name: "Save 2 photos & videos: ready" }),
+    ).toBeEnabled();
+  });
+
+  it("follows the album's word when it lands after her picks, and counts a pick it never named as a photo", () => {
+    const kinds = createAlbumKinds();
+    render(
+      <GuestActionDock
+        hidden={false}
+        uploadingCount={0}
+        onAdd={() => {}}
+        invite={invite}
+        kinds={kinds}
+      />,
+    );
+    act(() => {
+      guestSelect.enter();
+      guestSelect.pick(["v1", "v2"]);
+    });
+    expect(screen.getByRole("button", { name: "Save 2 photos" })).toBeEnabled();
+    act(() =>
+      kinds.set(
+        new Map([
+          ["v1", "video"],
+          ["v2", "video"],
+        ]),
+      ),
+    );
+    expect(screen.getByRole("button", { name: "Save 2 videos" })).toBeEnabled();
   });
 });

@@ -70,7 +70,11 @@ plan's whole text (lane splits, the Advisor's Q11 corrections, Will's answers) i
 | `backup-prune` | the pricing invariant's precondition: the backup's prune keeps up with deletions (a cursor, caps sized to the backlog, fail closed, dry-run until the launch switch) and the orphan sweep's cursor; the Worker deploy and `PRUNE_MODE=live` the Orchestrator's on Will's yes | MERGED at `17e5faba` and `45b7fb7a` (gates 190 and 191 green; the Advisor's Q20 met: a hold never releases itself, Release the hold on `/admin/jobs`, a trip raises); DEPLOYED dry (`partyreel-backup` ef73313c); `PRUNE_MODE=live` the launch's, on Will's yes | Opus, 3132 | `a7c8c37fddaa17749` |
 | `upload-meter` | the pricing invariant's preconditions: abandoned uploads never stored or backed up unmetered, a preview never heavier than its original, an account's uploads an hour (20,000) and events a day (100) as unpublished breakers, the join limiter sized for a 2,000-guest wedding on one Wi-Fi (3,000) | MERGED at `656712bb` (gate 192 green: lint, test, build, lab:smoke, lab:demo four boards); its migration APPLIED (20261003213849, Q21 safe as written, md5 64e799ef), types and its seam after; the R2 rule `staging-expire` set (staging/, a day) | Opus, 3131 | `a84dc730135e7cf76` |
 | `crumbs-61` | red-team 48's LOWs and NITs: one link for a guest's own upload, a range keeping its length when its start moves, Develop now to every guest together, the waiting sheet's footer at 375, the guest page's Add in a newcomer's words, the guest album's noun | MERGED at `e9f56432` (gate 193 green: lint, test, build, lab:smoke, lab:demo seven boards); its migration APPLIED (`doorbell_moment`, 20261003214116, Q22 safe as written, md5 780f930d) | Sonnet, 3133 | `ae9df0b537793d0ea` |
-| `redteam-49` | build 49's red-team (`e795ad07`): uploads through staging (the month counted once at complete, an abandoned upload stored and counted nowhere, no staging key in the backup), Settings' develop time (crumbs-60), Develop now to every guest together, crumbs-61's fixes, `/admin/jobs` read only, regressions | running (from 22:12Z); brief and ledger `../partyreel-wt/_scratch/redteam-49/` | Opus, Will's Chrome | `aea8819888948ba5c` |
+| `redteam-49` | build 49's red-team (`e795ad07`): uploads through staging (the month counted once at complete, an abandoned upload stored and counted nowhere, no staging key in the backup), Settings' develop time (crumbs-60), Develop now to every guest together, crumbs-61's fixes, `/admin/jobs` read only, regressions | DONE 23:10Z: no MEDIUM; every walk PASS but Develop now's spread (1.25 to 1.43 s from a slow sync or two in the burst, LOW, accepted); a LOW read from the code (a re-sent complete can delete a recorded upload's files) and two NITs, crumbs-62's; restored (four events in Deleted) | Opus, Will's Chrome | `aea8819888948ba5c` |
+| `trash-in-storage` | Will's word (2026-10-03): Deleted counts in storage (the cap holds albums and Deleted together, deleting frees nothing until an item leaves Deleted for good), an account setting freeing the oldest of Deleted first when an upload needs room, the chart used and deleted apart; the standby budget and the re-delete guard retire; its migration for the Orchestrator | running (cut at `e9b006e4`); WIP pushes each milestone | Opus, 3131 | `ae451b0bbdbee9503` |
+| `pricing-research` | context for Will's deferred ladder and renewal: the market's prices for event photo sharing, what a host compares us to (cloud storage, photographers' galleries), each ladder for and against with Deleted inside the cap, new ideas; for him in `../partyreel-wt/_scratch/pricing-research/` | MERGED at `b0719ef4` (gate 194 green); its summary in chat 23:40Z: A with 1 TB at $99, the first Pro step yearly-only ($90), the renewal $19 ($15 holds); on his pick | Opus, none | `a2673136580ea64fb` |
+| `crumbs-62` | red-team 49's LOW (a re-sent complete answers its recorded row at once and never deletes its files) and NITs (the door's step on a waiting album, the guest's Save noun); before milestone 35 | MERGED at `3dd2f265` (gate 195 green, light: test; the lane's on its head, the bug reproduced live first: a replay after uploads closed or on a dead ticket deleted the files; green live: both replays 200 recorded, every file kept) | Opus, 3133 | `a33025d25953bbc7d` |
+| `redteam-50` | build 50's red-team (`048016f9`), the last walk before milestone 35: crumbs-62's replay live (a recorded upload's files kept, a real refusal still cleaning up), its two words, a regression pass at 375 and 1440 | running (from 23:57Z); brief and ledger `../partyreel-wt/_scratch/redteam-50/` | Opus, Will's Chrome | `a956b2c9b3bdf2b01` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Q15
 (pricing and cost bounds, 17:45Z) answered: three rules (one marketed axis, storage; no plan's worst-case month above its
@@ -132,12 +136,17 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team brie
 
 ## Waiting on Will
 
-- **His walks** (2026-10-02): the phone measurement, the real upload, the Save check and the two-Checkout-tabs check
-  are DONE (the last passed whole on 2026-10-03: two live test subscriptions, the newer followed; the followed
-  one cancelled, the survivor followed with Pro kept; the account deleted, nothing left billing; hi@willgibs.com
-  restored before the purge at his ask). Owed: Record Video's 1080p size on his iPhone; after build 44, the walk-through when let in,
-  a password door, reduced motion over the door states and the new hub, the camera on his phone.
-- **The calls file** (90 calls, `../partyreel-wt/_scratch/calls/relay-calls.md`): he reviews it today.
-- **His next desk** on build 44.
-- **Asks that come due later**: Libraries.dev access for a lane (when the help chat is cut), any F1 frames he loves
-  (when the admin look is cut), asset 38 (the privacy hero's photograph).
+- **His pricing pick: DECIDED 2026-10-03 23:58Z, Ladder A with 1 TB at $99** (his word: "Let's send it on pricing tier
+  A with $99 ... a very cheap entry to pro and nicely scaled storage tiers along the way"): Free 100 MB (photos, 300 MB
+  of uploads a month, 1 event); the Event Pass $29 once, 25 GB, 50 GB of uploads over its year, renewal $15 as A draws it
+  (the research leaned $19: his to overrule); Pro 50 GB $9 a month or $90 a year (100 GB of uploads a month), Pro 200 GB
+  $29 or $290 (200 GB), Pro 1 TB $99 or $990 (500 GB); unlimited events and no guest limit kept; limits published with
+  hover lines, the fair-use line per the Advisor's Q16; Deleted inside storage. `pricing-wiring` is cut once
+  `trash-in-storage` merges (both move the cap). His next ask: an easy export to Google Drive (viability researched).
+- **The calls file** (`../partyreel-wt/_scratch/calls/relay-calls.md`, calls 1 to 133): he reviews in batches, with
+  comments where needed. Direct questions go to him in chat, never only in the file.
+- **His desk** tonight on build 49 (six boards).
+- **His walks:** the camera on his iPhone (a held-shutter video on a waiting sheet), Save into Photos, Record Video's
+  size, a deletion and its Cancel deletion on hi@willgibs.com, and the spend watch's uploads switch off and on
+  (red-team 48 could not press it).
+- **His yes for milestone 35** once red-team 49 is clean.

@@ -17,6 +17,7 @@ import {
   runCompletePipeline,
   type CompleteStrategy,
 } from "@/lib/upload/server-pipeline";
+import { readRecordedUpload } from "@/lib/upload/server-pipeline-recorded";
 import { completeUploadSchema } from "@/lib/validation/upload";
 
 /**
@@ -178,6 +179,20 @@ async function checkClipAddRate(
   }
 }
 
+/**
+ * Whether a clip's completion names an upload already recorded (the engine's own read, `readRecordedUpload`). No id,
+ * or a read that fails, answers no, and the budget is asked as it always was.
+ */
+async function clipRecorded(mediaId: unknown): Promise<boolean> {
+  const id = z.uuid().safeParse(mediaId);
+  if (!id.success) return false;
+  try {
+    return (await readRecordedUpload(id.data)) !== null;
+  } catch {
+    return false;
+  }
+}
+
 async function recordClipAdd(sessionToken: string, ip: string): Promise<void> {
   try {
     const { ipHash, scopeHash } = abuseHashes(
@@ -196,7 +211,11 @@ export async function POST(request: Request) {
   // "the upload whose reel_eligible is false"). Peeking at a CLONE leaves the original stream
   // untouched for the pipeline's own parse; a body that fails to parse here just skips the gate and
   // lets the pipeline produce its normal bad_request refusal.
-  let peek: { reel_eligible?: unknown; session_token?: unknown } = {};
+  let peek: {
+    reel_eligible?: unknown;
+    session_token?: unknown;
+    media_id?: unknown;
+  } = {};
   try {
     peek = (await request.clone().json()) as typeof peek;
   } catch {
@@ -204,6 +223,11 @@ export async function POST(request: Request) {
   }
 
   if (peek.reel_eligible === false && typeof peek.session_token === "string") {
+    // ★ A CLIP ALREADY RECORDED IS ITS ROW'S TO ANSWER, NEVER THE BUDGET'S (crumbs-62): its completion sent again
+    // writes nothing, so it neither meets the limiter (a spent day would refuse a clip that landed) nor spends it.
+    if (await clipRecorded(peek.media_id)) {
+      return runCompletePipeline(request, guestCompleteStrategy);
+    }
     const ip = clientIp(request.headers);
     const gate = await checkClipAddRate(peek.session_token, ip);
     if (!gate.allowed) {

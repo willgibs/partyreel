@@ -39,6 +39,10 @@ vi.mock("@/lib/r2/presign", () => ({
   headObject: vi.fn(async () => null),
   copyObject: vi.fn(),
 }));
+// No row recorded yet (crumbs-62's re-sent complete is `src/lib/upload/server-pipeline.test.ts`'s).
+vi.mock("@/lib/upload/server-pipeline-recorded", () => ({
+  readRecordedUpload: vi.fn(async () => null),
+}));
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({ auth: { getUser: () => getUser() } }),
 }));
