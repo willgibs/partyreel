@@ -863,7 +863,9 @@ async function landAndRecord<Schema extends z.ZodType<CompleteCommon>>(
     ? await verifyPhoneCopy({ phoneKey, realSize, media_id, copied })
     : null;
   const record =
-    previewKey && !landedPreview ? { ...parsed, preview_key: undefined } : parsed;
+    previewKey && !landedPreview
+      ? { ...parsed, preview_key: undefined }
+      : parsed;
 
   // ★ A REFUSED OR FAILED RECORD TAKES ITS COPIES BACK OUT, UNLESS A ROW NAMES THEM (`withdrawUnlessRecorded`): the
   // objects this complete wrote into `events/` with no row to name them are deleted at once rather than left for the

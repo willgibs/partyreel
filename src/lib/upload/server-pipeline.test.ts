@@ -378,3 +378,111 @@ describe("stagingKeyFor, the staging twin", () => {
     expect(STAGING_PREFIX.startsWith("events/")).toBe(false);
   });
 });
+
+/**
+ * ★ THE HOST'S ROUTES TAKE A BURST WITH NO CHANGE OF THEIRS (compute-uploads): the engine reads the burst's body for
+ * every strategy, and a strategy written before bursts (the host's, which reads no `Burst`) runs each file through
+ * its own gates as ever. Her 401 still comes before the body is read.
+ */
+describe("the host's routes take a burst", () => {
+  const IDS = [
+    "44444444-4444-4444-8444-444444444441",
+    "44444444-4444-4444-8444-444444444442",
+  ];
+  const keyOf = (id: string) => `events/${EVENT}/photo/${id}/original.jpg`;
+
+  async function hostBurst(
+    route: (req: Request) => Promise<Response>,
+    files: unknown[],
+  ) {
+    const res = await route(
+      new Request("https://partyreel.com/api/host/r2/burst", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event_id: EVENT, files }),
+      }),
+    );
+    return {
+      status: res.status,
+      body: (await res.json()) as {
+        ok: boolean;
+        code?: string;
+        files?: { ok: boolean; code?: string; status?: unknown }[];
+      },
+    };
+  }
+
+  it("presigns each file in her plan's words, a clip on a photos-only plan refused alone", async () => {
+    getHostUploadContext.mockImplementation(
+      async (_event: string, kind: string) => ({
+        ok: true,
+        data: {
+          event_id: EVENT,
+          at_storage_cap: false,
+          at_monthly_cap: false,
+          video_blocked: kind === "video",
+        },
+      }),
+    );
+    const { status, body } = await hostBurst(POST, [
+      { content_type: "image/jpeg", size_bytes: 1000 },
+      { content_type: "video/mp4", size_bytes: 5000 },
+      { content_type: "image/jpeg", size_bytes: 2000 },
+    ]);
+    expect(status).toBe(200);
+    expect(body.files?.map((f) => f.ok)).toEqual([true, false, true]);
+    expect(body.files?.[1]).toMatchObject({
+      status: 403,
+      code: "video_not_allowed",
+    });
+    // The meter, each admitted file once, with the bytes before it.
+    expect(meterUpload.mock.calls.map(([a]) => a.bytes)).toEqual([1000, 3000]);
+  });
+
+  it("records each file once; a refused one alone takes its copy back out", async () => {
+    headObject.mockImplementation(async ({ key }: { key: string }) =>
+      key.startsWith(STAGING_PREFIX)
+        ? { size: 1000, lastModified: null }
+        : null,
+    );
+    createMediaAsHost.mockImplementation(
+      async ({ mediaId }: { mediaId: string }) =>
+        mediaId === IDS[0]
+          ? { ok: false, code: "cap_reached", message: "Storage is full." }
+          : { ok: true, data: { media_id: mediaId, status: "approved" } },
+    );
+    const { status, body } = await hostBurst(
+      complete.POST,
+      IDS.map((id) => ({
+        media_id: id,
+        key: keyOf(id),
+        content_type: "image/jpeg",
+        size_bytes: 1000,
+        upload_id: null,
+        parts: [],
+      })),
+    );
+    expect(status).toBe(200);
+    expect(body.files).toEqual([
+      {
+        ok: false,
+        status: 409,
+        code: "cap_reached",
+        message: "Storage is full.",
+      },
+      { ok: true, status: "approved" },
+    ]);
+    expect(createMediaAsHost).toHaveBeenCalledTimes(2);
+    expect(deleteR2Objects).toHaveBeenCalledWith([keyOf(IDS[0])]);
+  });
+
+  it("a signed-out caller is refused before her burst is read", async () => {
+    getUser.mockResolvedValue({ data: { user: null } });
+    const { status, body } = await hostBurst(POST, [
+      { content_type: "image/jpeg", size_bytes: 1000 },
+    ]);
+    expect(status).toBe(401);
+    expect(body.code).toBe("unauthorized");
+    expect(getHostUploadContext).not.toHaveBeenCalled();
+  });
+});
