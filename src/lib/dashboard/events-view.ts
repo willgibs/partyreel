@@ -46,7 +46,7 @@ export function resolveEventsFilter(
     : "all";
 }
 
-/* ── One row, whichever view draws it ────────────────────────────────────── */
+/* ── One row, whichever layout draws it ──────────────────────────────────── */
 
 /**
  * What every layout needs about one event, already resolved server-side (covers presigned, dates
@@ -105,9 +105,9 @@ export type EventListRow = {
 };
 
 /**
- * A group of the events by when: its rows' ids in its own order. Still composed on the home view (`seasonsOf`) because the
- * host-dashboard board's drawings read it; the events section groups by year itself (`display.ts`) and no
- * longer does. Deleted with the board.
+ * A group of the events by when: its rows' ids in its own order. Still composed on the home view (`seasonsOf`)
+ * because the host-dashboard board's drawings read it; the events section groups by year itself (`display.ts`)
+ * and no longer does. Deleted with the board.
  */
 export type EventSeason = Season;
 

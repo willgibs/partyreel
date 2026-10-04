@@ -45,6 +45,10 @@ export function HomeShell({ children }: { children: ReactNode }) {
       data-home=""
       className="space-y-7 lg:space-y-9"
       onClickCapture={stamp}
+      // A middle press opens the event in a tab of its own: an open too (a modified click is a click already).
+      onAuxClickCapture={(event) => {
+        if (event.button === 1) stamp(event);
+      }}
     >
       {children}
     </div>
