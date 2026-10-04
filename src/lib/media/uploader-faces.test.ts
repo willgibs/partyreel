@@ -4,10 +4,14 @@
  *
  * Pinned, against profiles-social.md's consent line ("a door only to a page its owner published, a face only where
  * the album already shows one, never an address"): a confirmed sender wears their photograph and `seedFor`'s colour
- * (never an account id), a door only where a handle published a page; a typed name and nobody wear nothing; the
- * host wears the byline's face; on a GUEST's view a person the event blocked wears nothing (on no list, so no face
+ * (never an account id), a door only where a handle published a page; a typed name wears only her row's colour and
+ * nobody wears nothing; the host wears the byline's face; on a GUEST's view a person the event blocked wears nothing (on no list, so no face
  * the album shows), while the host's view keeps it; the rule's owner (an account id) never leaves; a failed read
  * leaves the plain disc, captured, never a failed album; the window's people are read once, by account.
+ *
+ * A TYPED NAME WEARS HER OWN ROW'S COLOUR (small-fixes, "the name-only guest's hashvatar"): `seedFor` of her guest
+ * row, never her name and never the account behind it, with no photograph and no door; nothing is read for it; on a
+ * guest's view a blocked row keeps the plain disc like any blocked face.
  *
  * HER OWN FACE, ON HER OWN PAGE (crumbs-45; build 36's red-team found a "?" disc on the owner's own upload in her
  * Uploads): her name, photograph and colour, never a door (she is on her page); no name, no face; read from her own
@@ -104,7 +108,7 @@ function identities(): Map<string, UploaderIdentity> {
         profile: "Sam",
       }),
     ],
-    // A typed name, a real account behind it: no face, whatever the account holds.
+    // A typed name, a real account behind it: her own row's colour only, whatever the account holds.
     [
       "m-maya",
       sender("g-maya", {
@@ -168,10 +172,46 @@ describe("the credit's face and door", () => {
     });
   });
 
-  it("★ a typed name wears no face, even with an account behind it", async () => {
+  it("★ a typed name wears her own ROW's colour and nothing else: no photograph, no door, never the account behind it", async () => {
     const out = await withUploaderFaces("ev-1", identities(), "guest");
-    expect(out.get("m-maya")?.face).toBeNull();
+    // The seed is her guest row's hash (g-maya), not Leah's account's (u-leah) that the typed row rides beside.
+    expect(out.get("m-maya")?.face).toEqual({
+      avatarUrl: null,
+      seed: seed("g-maya"),
+      href: null,
+    });
+    expect(out.get("m-maya")?.face?.seed).not.toBe(seed("u-leah"));
     expect(out.get("m-maya")?.displayName).toBe("Maya J.");
+  });
+
+  it("two people who typed one name are two colours: the seed is the row's, never the name's", async () => {
+    const two = new Map([
+      ["m-1", sender("g-sam-1", { display_name: "Sam" })],
+      ["m-2", sender("g-sam-2", { display_name: "Sam" })],
+    ]);
+    const out = await withUploaderFaces("ev-1", two, "host");
+    expect(out.get("m-1")?.face?.seed).toBe(seed("g-sam-1"));
+    expect(out.get("m-2")?.face?.seed).toBe(seed("g-sam-2"));
+    expect(out.get("m-1")?.face?.seed).not.toBe(out.get("m-2")?.face?.seed);
+    expect(out.get("m-1")?.face?.seed).not.toBe(seed("Sam"));
+  });
+
+  it("★ a blocked typed name keeps the plain disc on a guest's view; the host's keeps her colour", async () => {
+    const blocked = new Map([
+      ["m-b", sender("g-blocked", { display_name: "Bo Typed" })],
+    ]);
+    const guest = await withUploaderFaces("ev-1", blocked, "guest");
+    expect(guest.get("m-b")?.face).toBeNull();
+    expect(guest.get("m-b")?.displayName).toBe("Bo Typed");
+    const host = await withUploaderFaces("ev-1", blocked, "host");
+    expect(host.get("m-b")?.face?.seed).toBe(seed("g-blocked"));
+  });
+
+  it("a typed name alone reads nothing from the database: the colour is a hash of the row id", async () => {
+    const only = new Map([["m-1", sender("g-1", { display_name: "Sam" })]]);
+    const out = await withUploaderFaces("ev-1", only, "host");
+    expect(out.get("m-1")?.face?.seed).toBe(seed("g-1"));
+    expect(fake.requests).toEqual([]);
   });
 
   it("the host's own upload wears the byline's face, and the host's page as its door", async () => {
@@ -237,13 +277,13 @@ describe("the credit's face and door", () => {
     });
   });
 
-  it("asks nothing when nobody in the window can wear a face", async () => {
+  it("asks nothing when nobody in the window can wear a face (a nameless row)", async () => {
     const out = await withUploaderFaces(
       "ev-1",
-      new Map([["m-maya", identities().get("m-maya")!]]),
+      new Map([["m-none", sender("g-none", {})]]),
       "guest",
     );
-    expect(out.get("m-maya")?.face).toBeNull();
+    expect(out.get("m-none")?.face).toBeNull();
     expect(fake.requests).toEqual([]);
   });
 });

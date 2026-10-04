@@ -9,6 +9,9 @@
  *   - a FACE is the person's photograph and colour exactly as the album's own Guests list and "Hosted by" byline
  *     paint them (`withAvatarUrls`, `getHostAvatarSeed`): the avatar's public URL and `seedFor`'s hash, never a storage
  *     path and never an account id;
+ *   - ★ A TYPED NAME'S FACE IS HER ROW'S COLOUR ALONE (small-fixes: the Guests list paints her the same): `seedFor` of
+ *     her own guest row, no photograph and no door, never her name. It needs no read, only the row id the identity
+ *     rule already carried, so it costs the album nothing, and the hash is all that travels;
  *   - a DOOR is `/u/<slug>` only where a handle published a page (a profile is public by existence);
  *   - ★ a person the event BLOCKED is on no list and in no count (`event_blocked_guest_ids`), so on the guest's view a
  *     photograph of theirs the host restored keeps the plain disc and no door: its name, as before, and nothing more;
@@ -120,10 +123,12 @@ export async function withUploaderFaces(
 ): Promise<Map<string, UploaderIdentity>> {
   const accounts = new Set<string>();
   let anyHost = false;
+  let anyRow = false;
   for (const who of identities.values()) {
     if (who.faceOwner?.kind === "account")
       accounts.add(who.faceOwner.accountId);
     else if (who.faceOwner?.kind === "host") anyHost = true;
+    else if (who.faceOwner?.kind === "row") anyRow = true;
   }
 
   let profiles = new Map<string, ProfileFace>();
@@ -160,7 +165,7 @@ export async function withUploaderFaces(
             "faces: host",
           )
         : Promise.resolve(null),
-      viewer === "guest" && accounts.size > 0
+      viewer === "guest" && (accounts.size > 0 || anyRow)
         ? getBlockedGuestIds(eventId)
         : Promise.resolve(new Set<string>()),
     ]);
@@ -202,6 +207,9 @@ export async function withUploaderFaces(
       } else if (owner?.kind === "account" && !blocked.has(owner.guestId)) {
         const profile = profiles.get(owner.accountId);
         if (profile) face = await faceOf(owner.accountId, profile);
+      } else if (owner?.kind === "row" && !blocked.has(owner.guestId)) {
+        // A colour from her row alone: no photograph, no door, nothing read.
+        face = { avatarUrl: null, seed: seedFor(owner.guestId), href: null };
       }
       out.set(id, withFace(who, face));
     }),

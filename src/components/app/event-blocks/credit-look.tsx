@@ -53,7 +53,15 @@ function lookItem(
   name: string,
   unverified: boolean,
 ): GuestListItem {
-  if (unverified) return { kind: "unverified", id: item.id, displayName: name };
+  if (unverified) {
+    // Her colour is the credit's own (her row's, hashed on the server): the look wears what the credit wears.
+    return {
+      kind: "unverified",
+      id: item.id,
+      displayName: name,
+      seed: item.uploaderFace?.seed ?? undefined,
+    };
+  }
   const href = item.uploaderFace?.href ?? null;
   const slug = href?.startsWith("/u/")
     ? decodeURIComponent(href.slice("/u/".length))

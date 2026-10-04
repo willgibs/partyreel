@@ -62,6 +62,46 @@ describe("the credit's face", () => {
     ).toEqual([]);
   });
 
+  // The name-only guest's hashvatar (small-fixes): a typed name's own row's colour beside the mark, never a
+  // photograph and never a door, whatever a face on the item might carry.
+  it("★ a typed name wears her own row's colour with the mark beside it, and opens nothing", () => {
+    const el = credit(
+      photo({
+        uploaderName: "Maya J.",
+        isVerified: false,
+        uploaderFace: { avatarUrl: null, seed: "seed-g-maya", href: null },
+      }),
+    );
+    const disc = el.querySelector("[data-slot='avatar']") as HTMLElement;
+    // jsdom cannot store the mesh gradient, so a seeded root is read off its blend mode (avatar.test.tsx says why).
+    expect(disc.style.backgroundBlendMode).not.toBe("");
+    expect(within(el).getByText("M")).toBeInTheDocument();
+    expect(within(el).getByText("Maya J.")).toBeInTheDocument();
+    expect(within(el).queryAllByRole("link")).toEqual([]);
+  });
+
+  it("★ never lends an unproved name a photograph or a door, even if a face on the item carries them", () => {
+    const el = credit(
+      photo({
+        uploaderName: "Maya J.",
+        isVerified: false,
+        uploaderFace: {
+          avatarUrl: "https://cdn.test/avatars/u/avatar.webp",
+          seed: "seed-g-maya",
+          href: "/u/maya",
+        },
+      }),
+    );
+    expect(el.querySelector("img")).toBeNull();
+    expect(within(el).queryAllByRole("link")).toEqual([]);
+  });
+
+  it("a typed name with no face on the item keeps the plain disc", () => {
+    const el = credit(photo({ uploaderName: "Maya J.", isVerified: false }));
+    const disc = el.querySelector("[data-slot='avatar']") as HTMLElement;
+    expect(disc.style.backgroundBlendMode).toBe("");
+  });
+
   it("the album's credit of a host keeps the byline's face and its door", () => {
     const el = credit(
       photo({

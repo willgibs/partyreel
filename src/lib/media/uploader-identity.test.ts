@@ -94,7 +94,8 @@ describe("resolveUploaderIdentity", () => {
       email: null,
       isHost: false,
       isVerified: false,
-      faceOwner: null,
+      // A typed name's face is her own row's colour alone (`seedFor(guests.id)`, small-fixes).
+      faceOwner: { kind: "row", guestId: "g1" },
     });
   });
 
@@ -289,9 +290,9 @@ describe("whose face a credit wears, by the same cases (crumbs-38)", () => {
     });
   });
 
-  it("★ a typed name wears no face, even with a real account behind it (user_id alone proves nothing)", () => {
-    // The face is a claim like the mark's absence: an unconfirmed sign-up's account must never lend its
-    // photograph to the name it typed.
+  it("★ a typed name wears her own ROW's colour, never her account's, even with a real account behind it (user_id alone proves nothing)", () => {
+    // The photograph is a claim like the mark's absence: an unconfirmed sign-up's account must never lend its
+    // photograph or its colour to the name it typed. Her face is her guest row's, which claims nothing.
     const out = resolveUploaderIdentity(
       guest({
         user_id: "u1",
@@ -301,7 +302,17 @@ describe("whose face a credit wears, by the same cases (crumbs-38)", () => {
       }),
       HOST,
     );
-    expect(out.faceOwner).toBeNull();
+    expect(out.faceOwner).toEqual({ kind: "row", guestId: "g1" });
+    expect(JSON.stringify(out.faceOwner)).not.toContain("u1");
+  });
+
+  it("a blank typed name is nobody's face: no name, nothing claimed", () => {
+    expect(
+      resolveUploaderIdentity(
+        guest({ display_name: "   ", verified_at: null, profiles: null }),
+        HOST,
+      ).faceOwner,
+    ).toBeNull();
   });
 
   it("a deleted account's surviving upload, and a proved row with no name, wear nobody's face", () => {

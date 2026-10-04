@@ -49,6 +49,30 @@ beforeEach(() => {
 });
 
 describe("BlockedSection", () => {
+  // The name-only guest's hashvatar (small-fixes): a blocked typed name keeps the colour her row gave her in the
+  // Guests list, beside the mark; a person with no seed keeps the plain disc.
+  it("★ paints a typed name in her row's colour and a seedless one plain", () => {
+    const { container } = render(
+      <BlockedSection
+        eventName="Party"
+        people={[
+          person({
+            id: "b-theo",
+            name: "Theo",
+            verified: false,
+            email: null,
+            seed: "seed-g-theo",
+          }),
+          person({ id: "b-ann", name: "Ann", verified: false, email: null }),
+        ]}
+      />,
+    );
+    const [theo, ann] = [...container.querySelectorAll("[data-slot='avatar']")];
+    // jsdom cannot store the mesh gradient, so a seeded root is read off its blend mode (avatar.test.tsx says why).
+    expect((theo as HTMLElement).style.backgroundBlendMode).not.toBe("");
+    expect((ann as HTMLElement).style.backgroundBlendMode).toBe("");
+  });
+
   it("renders nothing while nobody is blocked", () => {
     const { container } = render(
       <BlockedSection eventName="Party" people={[]} />,

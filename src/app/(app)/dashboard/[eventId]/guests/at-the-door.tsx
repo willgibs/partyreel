@@ -21,7 +21,7 @@ export type DoorPerson = {
   email: string | null;
   /** "5 minutes ago", said on the server so the first paint and the client agree. */
   asked: string;
-  /** Her face's seed (`seedFor`), where she has an account. */
+  /** Her face's seed (`seedFor`): her account's, else her own guest row's, never her name; null draws the plain disc. */
   seed: string | null;
 };
 
