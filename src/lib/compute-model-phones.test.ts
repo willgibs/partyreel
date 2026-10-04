@@ -351,7 +351,9 @@ describe("the name sheet's Continue", () => {
     };
     return {
       presses,
-      page: { eval: vi.fn(async () => JSON.stringify(read())) },
+      page: {
+        eval: vi.fn(async (_expression?: string) => JSON.stringify(read())),
+      },
       press: vi.fn(async () => {
         presses.push(Date.now());
         if (loses > 0) {
@@ -387,8 +389,8 @@ describe("the name sheet's Continue", () => {
     const { page, press } = sheet();
     const order: string[] = [];
     const read = page.eval.getMockImplementation()!;
-    page.eval.mockImplementation(async (expression: string) => {
-      if (expression.includes(".blur()")) order.push("blur");
+    page.eval.mockImplementation(async (expression?: string) => {
+      if (expression?.includes(".blur()")) order.push("blur");
       return read(expression);
     });
     press.mockImplementation(async () => {
