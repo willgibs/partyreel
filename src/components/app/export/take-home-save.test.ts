@@ -51,6 +51,8 @@ function world(opts: {
   dropped?: Set<string>;
   /** The route's own request fails outright (a dropped network) instead of answering. */
   askRejects?: boolean;
+  /** The first N reads of any file past this index never answer until they are aborted (a second part, mid-Save). */
+  hangFirst?: { from: number; count: number };
   active?: boolean;
   /** What the sheet does: resolve (saved), or reject with a name. */
   sheet?: () => Promise<void>;
@@ -87,6 +89,19 @@ function world(opts: {
           : new Response(JSON.stringify(a.body), { status: a.status });
       }
       fileReads.push(url);
+      const past = opts.hangFirst;
+      if (
+        past &&
+        Number(url.split("-").pop()) >= past.from &&
+        fileReads.filter((u) => Number(u.split("-").pop()) >= past.from)
+          .length <= past.count
+      ) {
+        await new Promise((_, reject) =>
+          init?.signal?.addEventListener("abort", () =>
+            reject(Object.assign(new Error("aborted"), { name: "AbortError" })),
+          ),
+        );
+      }
       if (opts.hang) {
         await new Promise((_, reject) =>
           init?.signal?.addEventListener("abort", () =>
@@ -426,6 +441,37 @@ describe("the x asks first (E6)", () => {
     w.saver.tap();
     await settle();
     await settle();
+    expect(w.shared.map((s) => s.length)).toEqual([181, 19]);
+    expect(last(w.toasts)).toMatchObject({ title: "Saved 200 photos." });
+  });
+
+  it("★ a part she stopped mid-download is not carried on by its unwinding reads when she takes the next one up", async () => {
+    // 200 photographs: 181 in the first sheet, 19 in the second. The second sheet's first three reads hang.
+    const w = world({
+      answer: items(200),
+      hangFirst: { from: 181, count: 3 },
+    });
+    await w.saver.start("host", { event_id: "e", types: "photo" });
+    expect(w.shared.map((s) => s.length)).toEqual([181]);
+
+    w.saver.tap();
+    await settle();
+    expect(last(w.states)).toMatchObject({ kind: "getting", part: 2 });
+    const readsOfPartTwo = () =>
+      w.fileReads.filter((u) => Number(u.split("-").pop()) >= 181).length;
+    expect(readsOfPartTwo()).toBe(3);
+
+    // She stops it mid-part and takes it up again at once, before the aborted reads have finished unwinding.
+    w.saver.cancel();
+    answer(last(w.toasts), "Stop here").run();
+    w.saver.tap();
+    await settle();
+    await settle();
+    await settle();
+
+    // Three reads were abandoned, and the new attempt read each of the 19 once: nothing was read a second time
+    // by a lane that outlived its part.
+    expect(readsOfPartTwo()).toBe(3 + 19);
     expect(w.shared.map((s) => s.length)).toEqual([181, 19]);
     expect(last(w.toasts)).toMatchObject({ title: "Saved 200 photos." });
   });

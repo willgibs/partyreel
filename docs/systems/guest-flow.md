@@ -943,8 +943,9 @@ the visitor stays on the event page and a verified-email event re-gates to the d
 
 **A third state, for the commonest person at a name-only party**: signed out WITH a stored name, the header wears
 [`guest-name-menu.tsx`](../../src/components/guest/guest-name-menu.tsx) instead of the stranger's CTA: the name, its
-label (read from the mark, so the two cannot drift), the email row, Change name and Log in. It is the one surface that
-knows about an unconfirmed address, and it reads only the device flag `pr_guest_email_attached_<qr>` (never an
+label (read from the mark, so the two cannot drift), the email row, Change name and Log in, and a disc in her own row's
+colour (the header asks `/api/guests/mine` `{seed: true}` once a ticket: [profiles-social.md](profiles-social.md)). It is
+the one surface that knows about an unconfirmed address, and it reads only the device flag `pr_guest_email_attached_<qr>` (never an
 address; none is stored): name only → "Unverified" and **Add your email**
 ([`add-email-dialog.tsx`](../../src/components/guest/add-email-dialog.tsx): Save over `attachGuestEmail`, or "Confirm
 it now instead" handing to the code door); address attached → "Email not confirmed" and **Confirm your email** (the

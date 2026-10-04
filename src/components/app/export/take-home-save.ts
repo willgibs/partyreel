@@ -142,8 +142,11 @@ type Run = {
   released: (() => void)[];
   /** The toast as the engine last drew it, which a Keep going puts back. */
   last: ToastView | null;
-  /** She stopped this part: what its abandoned reads were about to do is not done. */
-  cancelled: boolean;
+  /**
+   * Which attempt at the current part is live: a stop that leaves the Save standing moves it on, so a part's reads
+   * still unwinding when she takes the next part up again are never mistaken for the new part's (`getPart`).
+   */
+  epoch: number;
   /** Reads that failed for want of a line (a body that stopped, a read the browser would not let through). */
   lineMisses: number;
 };
@@ -234,7 +237,7 @@ export function createTakeHomeSaver(deps: SaveDeps) {
     if (run !== r || !r.asking) return;
     release(r);
     r.abort.abort();
-    r.cancelled = true;
+    r.epoch += 1;
     r.files = null;
     const parts = r.sheets.length;
     const shared = r.waiting === "next" ? r.part : r.part - 1;
@@ -354,15 +357,19 @@ export function createTakeHomeSaver(deps: SaveDeps) {
     return null;
   }
 
-  /** The current part's files into the phone, the toast and the ring counting. */
-  async function getPart(r: Run): Promise<void> {
+  /**
+   * The current part's files into the phone, the toast and the ring counting. True once they are in hand; false when
+   * the part was abandoned meanwhile (a stop, or the Save let go), so nothing goes on to hand them over.
+   */
+  async function getPart(r: Run): Promise<boolean> {
     r.waiting = null;
+    const epoch = r.epoch;
     const sheet = r.sheets[r.part - 1] ?? [];
     const parts = r.sheets.length;
     const total = sheet.reduce((sum, i) => sum + i.bytes, 0);
     const received = new Map<string, number>();
     const say = () => {
-      if (run !== r || r.cancelled) return;
+      if (run !== r || r.epoch !== epoch) return;
       const got = Math.min(
         total,
         [...received.values()].reduce((a, b) => a + b, 0),
@@ -385,13 +392,16 @@ export function createTakeHomeSaver(deps: SaveDeps) {
     say();
     const files: (File | null)[] = new Array(sheet.length).fill(null);
     let next = 0;
+    // This part's own signal, taken now: a stop that leaves the Save standing swaps in a fresh controller for the
+    // next part, and a lane still unwinding from this one must not read that and carry on fetching.
+    const signal = r.abort.signal;
     const lane = async () => {
-      while (next < sheet.length && !r.abort.signal.aborted) {
+      while (next < sheet.length && !signal.aborted) {
         const index = next++;
         const item = sheet[index];
         files[index] = await bring(
           item,
-          r.abort.signal,
+          signal,
           (bytes) => {
             received.set(item.id, bytes);
             say();
@@ -407,10 +417,11 @@ export function createTakeHomeSaver(deps: SaveDeps) {
     await Promise.all(
       Array.from({ length: Math.min(CONCURRENCY, sheet.length) }, lane),
     );
-    if (run !== r || r.cancelled) return;
+    if (run !== r || r.epoch !== epoch) return false;
     r.missed += files.filter((f) => f === null).length;
     r.files = files.filter((f): f is File => f !== null);
     r.saved.push(...sheet.filter((_, i) => files[i] !== null));
+    return true;
   }
 
   /** Hand the part's files to the phone's sheet, or wait for the tap that can. */
@@ -419,7 +430,7 @@ export function createTakeHomeSaver(deps: SaveDeps) {
     // this has lapsed by then, so the files wait for the next one). Awaited only then, so the common path reaches
     // the sheet with no hop between the tap and it.
     if (r.asking) await holdWhileAsked(r);
-    if (run !== r || !r.files || r.cancelled) return;
+    if (run !== r || !r.files) return;
     r.waiting = null;
     const parts = r.sheets.length;
     if (r.files.length === 0) {
@@ -489,10 +500,8 @@ export function createTakeHomeSaver(deps: SaveDeps) {
   async function nextPart(r: Run) {
     if (run !== r || r.asking) return;
     // A part she stopped at is taken up again here: its reads are new, and what the old ones were doing is over.
-    r.cancelled = false;
     r.part += 1;
-    await getPart(r);
-    await share(r);
+    if (await getPart(r)) await share(r);
   }
 
   /** Every part has gone: the loose files download, and the walk says what it saved. */
@@ -547,7 +556,7 @@ export function createTakeHomeSaver(deps: SaveDeps) {
       asking: false,
       released: [],
       last: null,
-      cancelled: false,
+      epoch: 0,
       lineMisses: 0,
     };
     run = r;
@@ -592,8 +601,7 @@ export function createTakeHomeSaver(deps: SaveDeps) {
       await advance(r);
       return;
     }
-    await getPart(r);
-    await share(r);
+    if (await getPart(r)) await share(r);
   }
 
   return {
