@@ -1,32 +1,206 @@
-/* GLASS'S OWN SHEET (`glass.tsx`): the capsule's segments and its dock.
+/* GLASS'S OWN SHEET (`glass.tsx`): the capsule's doors, the badges on their
+   glyphs, the code's chip joining, and the capsule lifting as it docks.
 
-   ★ EVERY KEYFRAME CARRIES THIS DOOR'S PREFIX (`eh-glass-`): keyframe names
-   are document-global, and `keyframe-uniqueness.test.ts` reads every sheet.
+   ★ EVERY STATE LIVES HERE, UNLAYERED: the lab's utilities sit in a sub-layer
+   that loses to production's on the same property (`design.css`), so a
+   door's hover, press and open state never ride a lab utility.
+   ★ EVERY CLASS AND KEYFRAME CARRIES THIS DOOR'S PREFIX (`eh-glass-`):
+   keyframe names are document-global, and `keyframe-uniqueness.test.ts`
+   reads every sheet.
    ★ THE REST STATE IS THE DEFAULT (bible 5): every movement sits behind
    `no-preference`, so reduced motion shows each piece whole, at once. */
 
-/* A capsule's segment lights under the pointer. */
-.eh-seg:hover,
-.eh-seg:focus-visible {
-  background: rgb(255 255 255 / 0.12);
+/* ══ A DOOR ════════════════════════════════════════════════════════════════ */
+
+.eh-glass-seg {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Under the pointer and under a press: the pane lights. A touch never keeps a
+   hover it left behind (`hover: hover`). */
+@media (hover: hover) {
+  .eh-glass-seg:not([aria-pressed="true"]):hover {
+    background-color: color-mix(in oklab, currentColor 12%, transparent);
+  }
+}
+.eh-glass-seg:not([aria-pressed="true"]):active {
+  background-color: color-mix(in oklab, currentColor 20%, transparent);
+}
+
+/* The open room's door: a white lozenge in ink, the one bright thing in the
+   capsule, readable through the scrim the room lays over the hub. The halo a
+   glyph wears on the glass would only blur ink on white. */
+.eh-glass-seg[aria-pressed="true"] {
+  background-color: #fff;
+  color: var(--color-neutral-950);
+}
+.eh-glass-seg[aria-pressed="true"] .glass-mark-lit {
+  filter: none;
+}
+
+/* Production's focus on a photograph is white, the one ring that reads on any
+   of them: here the door's own ink (white on the glass, ink on the open
+   room's lozenge and on paper), inside the door, so it never crosses a
+   neighbour. */
+.eh-glass-seg:focus-visible {
+  box-shadow: inset 0 0 0 2px color-mix(in oklab, currentColor 80%, transparent);
+}
+
+/* ══ THE BADGES ═══════════════════════════════════════════════════════════ */
+
+/* Waiting on her: today's waiting light, a crisp point, no glow. */
+.eh-glass-badge[data-badge="lit"] {
+  background-color: var(--warning);
+  color: var(--warning-foreground);
+}
+/* Hers to act on, or paused: unlit, the door's own ink as a ring (it turns
+   with the door to ink on the open room's white). */
+.eh-glass-badge[data-badge="unlit"],
+.eh-glass-badge[data-badge="paused"] {
+  box-shadow: inset 0 0 0 1.5px
+    color-mix(in oklab, currentColor 78%, transparent);
+}
+
+/* ══ THE CAPSULE OFF THE COVER ════════════════════════════════════════════ */
+
+/* At a phone's foot, clear of the home indicator where there is one. */
+.eh-glass-foot {
+  bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+
+/* Floating over the album, the capsule takes the layer (the elevation
+   contract: a bar the page keeps living behind) under the glass's own two
+   edges, which a shadow utility would replace. */
+.eh-glass-capsule[data-at="dock"],
+.eh-glass-capsule[data-at="foot"] {
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / var(--glass-lip)),
+    inset 0 0 0 1px rgb(255 255 255 / var(--glass-hairline)),
+    var(--shadow-layer);
+}
+
+/* ★ A PHONE'S FOOT ON PAPER WEARS THE APP BAR'S OWN FROSTED PAGE, NOT THE
+   GLASS. Glass is media chrome: its brightness is what holds white words over
+   a photograph, and over the paper page itself (the week before's checklist,
+   an empty album) the same pane is a flat grey pill with white words near
+   2.4:1. Where the bar floats over paper it is the page's chrome, as the
+   app's bar above it is (`app-shell.tsx`: the page at 80%, blurred), in the
+   page's ink; in the room, and wherever it stands on a photograph, the glass. */
+.eh-glass-capsule[data-at="foot"][data-ground="paper"] {
+  background-color: color-mix(in oklab, var(--background) 80%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  color: var(--foreground);
+  box-shadow:
+    inset 0 0 0 1px var(--border),
+    var(--shadow-layer);
+}
+.eh-glass-capsule[data-at="foot"][data-ground="paper"] .glass-mark-lit {
+  filter: none;
+}
+.eh-glass-capsule[data-ground="paper"][data-at="foot"]
+  .eh-glass-seg[aria-pressed="true"] {
+  background-color: var(--foreground);
+  color: var(--background);
+}
+
+/* While the dock stands, the cover's capsule keeps its place and is hidden:
+   one capsule on screen (`glass.tsx`'s `Dock`). ★ ITS DOORS FOLD AWAY TOO,
+   its fixed height holding the footprint: a hidden door still has a box, and
+   a page too short to scroll the cover away (the week before) would otherwise
+   read ten doors on the frame, five of them under the dock. */
+[data-eh-glass-docked] .eh-glass-capsule[data-at="cover"] {
+  visibility: hidden;
+}
+[data-eh-glass-docked] .eh-glass-capsule[data-at="cover"] > * {
+  display: none;
+}
+
+/* ══ THE CODE'S CHIP ══════════════════════════════════════════════════════ */
+
+/* Folded away until the cover's code has gone; then the chip's 36px and the
+   4px it keeps from the last door. Clipped while it opens, so it rides the
+   capsule's end rather than crossing the doors. */
+.eh-glass-chip {
+  width: 0;
+  opacity: 0;
+  overflow: clip;
+  overflow-clip-margin: 6px;
+}
+.eh-glass-chip[data-on] {
+  width: 2.5rem;
+  opacity: 1;
+}
+.eh-glass-chip-in {
+  transform-origin: right center;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .eh-seg {
-    transition: background-color 120ms var(--ease-emphasis);
+  /* A door answers at once under the pointer (she crosses these all night)
+     and lets go over a breath; a press gives under the finger. */
+  .eh-glass-seg {
+    transition:
+      background-color 180ms var(--ease-emphasis),
+      color 180ms var(--ease-emphasis),
+      scale 160ms var(--ease-emphasis);
   }
-  /* The capsule arrives under the bar as the cover's goes under it. ★ ON THE
-     CAPSULE ITSELF, AND ONLY WHILE IT RUNS (`backwards`): an ancestor holding
-     an opacity animation is a backdrop root, and the glass inside it would
-     blur nothing but its own empty wrapper, for as long as the fill held. */
-  .eh-glass-dock {
-    animation: eh-glass-dock-in 220ms var(--ease-emphasis) backwards;
+  @media (hover: hover) {
+    .eh-glass-seg:hover {
+      transition-duration: 0ms, 0ms, 160ms;
+    }
+  }
+  .eh-glass-seg:active {
+    scale: 0.96;
+    transition-duration: 0ms, 0ms, 90ms;
+  }
+
+  /* The chip at a phone's foot opens and folds in place (the capsule never
+     leaves); the doors make room for it. */
+  .eh-glass-chip {
+    transition:
+      width 260ms var(--ease-emphasis),
+      opacity 200ms var(--ease-emphasis);
+  }
+  .eh-glass-chip-in {
+    scale: 0.7;
+    transition: scale 260ms var(--ease-emphasis);
+  }
+  .eh-glass-chip[data-on] .eh-glass-chip-in {
+    scale: 1;
+  }
+
+  /* At a desk the dock is drawn as the capsule reaches the bar, already
+     itself: it lifts off the page and the chip grows into its end, once. */
+  .eh-glass-capsule[data-at="dock"] {
+    animation: eh-glass-lift 220ms var(--ease-emphasis) backwards;
+  }
+  .eh-glass-capsule[data-at="dock"] .eh-glass-chip {
+    animation: eh-glass-chip-open 260ms var(--ease-emphasis) backwards;
+  }
+  .eh-glass-capsule[data-at="dock"] .eh-glass-chip-in {
+    animation: eh-glass-chip-pop 260ms var(--ease-emphasis) backwards;
   }
 }
 
-@keyframes eh-glass-dock-in {
+@keyframes eh-glass-lift {
   from {
+    box-shadow:
+      inset 0 1px 0 0 rgb(255 255 255 / var(--glass-lip)),
+      inset 0 0 0 1px rgb(255 255 255 / var(--glass-hairline)),
+      0 0 0 0 transparent,
+      0 0 0 0 transparent;
+  }
+}
+
+@keyframes eh-glass-chip-open {
+  from {
+    width: 0;
     opacity: 0;
-    transform: translateY(-8px);
+  }
+}
+
+@keyframes eh-glass-chip-pop {
+  from {
+    scale: 0.7;
   }
 }

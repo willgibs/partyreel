@@ -1,48 +1,391 @@
-/* CARDS' OWN SHEET (`cards.tsx`): the cards over the seam and their band.
+/* CARDS' OWN SHEET (`cards.tsx`): the seam, the cards over it, how they fold
+   into their band's pills and the band itself.
 
-   ★ EVERY KEYFRAME CARRIES THIS DOOR'S PREFIX (`eh-cards-`): keyframe names
-   are document-global, and `keyframe-uniqueness.test.ts` reads every sheet.
+   ★ EVERY CLASS AND KEYFRAME CARRIES THIS DOOR'S PREFIX (`eh-cards-`): all
+   three doors' sheets load into every frame, and keyframe names are
+   document-global (`keyframe-uniqueness.test.ts` reads every sheet).
    ★ THE REST STATE IS THE DEFAULT (bible 5): every movement sits behind
-   `no-preference`, so reduced motion shows each piece whole, at once. */
+   `no-preference`, so reduced motion shows each piece whole, at once.
+   ★ NO CSS TRANSITION ON ANYTHING THE FOLD CARRIES (the skin's box, a disc's
+   opacity, a glyph's transform): a running transition outranks an animation
+   in the cascade and would steal the fold's frames. */
 
-/* The reel's own violet, on its glyph alone. */
-.eh-chip-reel {
-  background: color-mix(in oklab, var(--reel) 13%, transparent);
-  color: var(--reel);
+/* ══ THE SEAM ══════════════════════════════════════════════════════════════ */
+
+/* The photograph dissolves into the page on an eased ramp (half a cosine), so
+   neither the fade's start nor the cover's own foot reads as a line. It runs
+   under the cards and just above them, never behind the strip, whose white
+   marks need the photograph's dark foot on paper. */
+[data-eh-seam="cards"].eh-seam-fade {
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    color-mix(in oklab, var(--eh-page) 2.4%, transparent) 10%,
+    color-mix(in oklab, var(--eh-page) 9.5%, transparent) 20%,
+    color-mix(in oklab, var(--eh-page) 20.6%, transparent) 30%,
+    color-mix(in oklab, var(--eh-page) 34.5%, transparent) 40%,
+    color-mix(in oklab, var(--eh-page) 50%, transparent) 50%,
+    color-mix(in oklab, var(--eh-page) 65.5%, transparent) 60%,
+    color-mix(in oklab, var(--eh-page) 79.4%, transparent) 70%,
+    color-mix(in oklab, var(--eh-page) 90.5%, transparent) 80%,
+    color-mix(in oklab, var(--eh-page) 97.6%, transparent) 90%,
+    var(--eh-page) 100%
+  );
 }
-.eh-reel-ink {
-  color: var(--reel);
+/* In the room the photograph's foot is already dark (the cover's own scrim),
+   so it holds to the cards' tops and dissolves only behind them: the cards
+   overlap the photograph itself, and the gaps between them show it go. */
+[data-eh-ground="room"] [data-eh-seam="cards"].eh-seam-fade {
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 44%,
+    color-mix(in oklab, var(--eh-page) 9.5%, transparent) 55%,
+    color-mix(in oklab, var(--eh-page) 34.5%, transparent) 66%,
+    color-mix(in oklab, var(--eh-page) 65.5%, transparent) 77%,
+    color-mix(in oklab, var(--eh-page) 90.5%, transparent) 88%,
+    var(--eh-page) 100%
+  );
 }
 
-/* Stuck, the cards' band fades into the album rather than ending on a line. */
-.eh-fade-band {
-  padding-bottom: 1.25rem;
+/* ══ THE BAND ══════════════════════════════════════════════════════════════ */
+
+.eh-cards-band {
+  position: relative;
+  isolation: isolate;
+  padding: 0 20px 8px;
+}
+.eh-cards-band[data-screen="375"] {
+  padding: 0 12px 6px;
+}
+.eh-cards-band[data-stuck] {
+  padding-top: 8px;
+  padding-bottom: 20px;
+}
+/* Stuck, the band's ground fades into the album rather than ending on a line:
+   a layer of its own, so the fold can bring it up under the pills. */
+.eh-cards-veil {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
   background: linear-gradient(
     to bottom,
     var(--background) 0%,
     color-mix(in oklab, var(--background) 92%, transparent) 62%,
     transparent 100%
   );
+  pointer-events: none;
+}
+[data-stuck] > .eh-cards-veil {
+  display: block;
 }
 
-/* In the room a card over the seam catches the light along its top edge (the
-   room's depth is light first: bible 6), where paper's lift does the work. */
-[data-eh-ground="room"] .eh-lift,
-[data-eh-ground="room"] .eh-pill-lift {
+/* ══ THE ROW ═══════════════════════════════════════════════════════════════ */
+
+/* At rest: five across a desk, a hand's two by two with the guest's view the
+   width under it; stuck, one line of pills between the cover's face and the
+   code. The face and the code exist only stuck. */
+.eh-cards-doors {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+[data-screen="375"] > .eh-cards-doors {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.eh-cards-band[data-stuck] > .eh-cards-doors {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.eh-cards-band[data-screen="375"][data-stuck] > .eh-cards-doors {
+  gap: 5px;
+}
+.eh-cards-lead,
+.eh-cards-code {
+  display: none;
+}
+[data-stuck] .eh-cards-lead {
+  display: flex;
+  padding-right: 4px;
+}
+[data-stuck] .eh-cards-code {
+  display: flex;
+  margin-left: 2px;
+}
+
+/* ══ A CARD ════════════════════════════════════════════════════════════════ */
+
+/* The glyph in its disc, the title over its line, a waiting count at the end. */
+.eh-cards-door {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 14px;
+  min-width: 0;
+  height: 72px;
+  padding: 0 16px;
+  text-align: left;
+  color: var(--card-foreground);
+  outline: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+[data-screen="375"] .eh-cards-door {
+  height: 58px;
+  padding: 0 11px;
+  column-gap: 9px;
+}
+/* In a hand the guest's view closes the grid at its full width, one line. */
+[data-screen="375"] .eh-cards-door[data-eh-door="guest"] {
+  grid-column: 1 / -1;
+  height: 46px;
+}
+/* ★ A HAND'S GRID FOLDS UP UNDER ITSELF: each row stands on the one below,
+   so as the grid gathers into one line of pills the lower cards tuck under
+   the upper ones (and come out from under them as it unfolds) rather than
+   crossing over their faces mid-flight. */
+[data-screen="375"] .eh-cards-door[data-eh-door="reel"],
+[data-screen="375"] .eh-cards-door[data-eh-door="guests"] {
+  z-index: 3;
+}
+[data-screen="375"] .eh-cards-door[data-eh-door="review"],
+[data-screen="375"] .eh-cards-door[data-eh-door="settings"] {
+  z-index: 2;
+}
+[data-screen="375"] .eh-cards-door[data-eh-door="guest"] {
+  z-index: 1;
+}
+
+/* The surface: a card is its tone on the lift, since it overlaps the cover. */
+.eh-cards-skin {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  border-radius: calc(var(--radius) * 1.5);
+  background-color: var(--card);
+  box-shadow: var(--shadow-lift);
+  pointer-events: none;
+}
+/* In the room a card over the seam is lit from above, the room's depth being
+   light first (bible 6), and edged where its tone alone cannot part it from
+   the photograph's dark foot. */
+[data-eh-ground="room"] .eh-cards-skin {
+  background-image: linear-gradient(rgb(255 255 255 / 0.045), transparent 70%);
   box-shadow:
     var(--shadow-lift),
-    inset 0 1px 0 rgb(255 255 255 / 0.07);
+    inset 0 1px 0 rgb(255 255 255 / 0.09),
+    0 0 0 1px rgb(255 255 255 / 0.05);
+}
+/* And under the pointer the room's card takes a step of light, with a soft
+   light following the pointer across it (`follow` in `cards.tsx`): Apple
+   TV's focus, the one delight here, costing nothing in clarity. A shadow
+   alone cannot say hover on near-black. */
+[data-eh-ground="room"] .eh-cards-skin::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    180px circle at var(--eh-cards-x, 50%) var(--eh-cards-y, 0%),
+    rgb(255 255 255 / 0.08),
+    transparent 70%
+  );
+  opacity: 0;
 }
 
+.eh-cards-glyph {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  color: var(--muted-foreground);
+}
+[data-screen="375"] .eh-cards-glyph {
+  width: 28px;
+  height: 28px;
+}
+.eh-cards-disc {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: var(--secondary);
+}
+/* A step lighter in the room, where the secondary step sits too near the card's own. */
+[data-eh-ground="room"] .eh-cards-disc {
+  background: var(--accent);
+}
+.eh-cards-mark {
+  position: relative;
+  display: flex;
+}
+.eh-cards-mark > svg {
+  width: 18px;
+  height: 18px;
+}
+[data-screen="375"] .eh-cards-mark > svg {
+  width: 15px;
+  height: 15px;
+}
+/* The reel's own violet, on its glyph alone (one colour per action, never a state). */
+.eh-cards-reel {
+  color: var(--reel);
+}
+.eh-cards-reel > .eh-cards-disc {
+  background: color-mix(in oklab, var(--reel) 16%, var(--card));
+}
+
+.eh-cards-text {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+[data-screen="375"] .eh-cards-door[data-eh-door="guest"] .eh-cards-text {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 8px;
+}
+.eh-cards-word {
+  display: none;
+}
+
+/* The waiting count: its light, then the numeral, the loudest thing on a card. */
+.eh-cards-count {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+[data-screen="375"] .eh-cards-count {
+  gap: 6px;
+}
+.eh-cards-num {
+  font-size: 28px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+[data-screen="375"] .eh-cards-num {
+  font-size: 24px;
+}
+.eh-cards-left {
+  display: none;
+}
+
+/* ══ STUCK: A PILL ═════════════════════════════════════════════════════════ */
+
+[data-stuck] .eh-cards-door {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+}
+/* In a hand a pill is its glyph alone: a 36px round, the code chip's size. */
+[data-screen="375"][data-stuck] .eh-cards-door {
+  gap: 4px;
+  padding: 0 10px;
+}
+[data-stuck] .eh-cards-skin {
+  border-radius: 999px;
+}
+[data-stuck] .eh-cards-glyph {
+  width: 16px;
+  height: 16px;
+}
+[data-stuck] .eh-cards-disc {
+  opacity: 0;
+}
+[data-stuck] .eh-cards-mark > svg {
+  width: 16px;
+  height: 16px;
+}
+[data-stuck] .eh-cards-text {
+  display: none;
+}
+[data-stuck] .eh-cards-word {
+  display: inline;
+}
+[data-stuck] .eh-cards-count {
+  gap: 5px;
+}
+[data-screen="375"][data-stuck] .eh-cards-count {
+  gap: 4px;
+  padding-left: 2px;
+}
+[data-stuck] .eh-cards-num {
+  font-size: 13px;
+}
+[data-stuck] .eh-cards-left {
+  display: flex;
+}
+
+/* ══ UNDER THE POINTER, PRESSED, FOCUSED ═══════════════════════════════════ */
+
 @media (prefers-reduced-motion: no-preference) {
-  /* A card over the seam lifts under the pointer (a hover: quick). */
-  .eh-lift {
+  /* A press answers at once (frequent: instant), a hover quickly. */
+  .eh-cards-door {
     transition:
       translate 160ms var(--ease-emphasis),
-      box-shadow 160ms var(--ease-emphasis);
+      scale 120ms var(--ease-emphasis);
   }
-  .eh-lift:hover {
-    translate: 0 -2px;
+  .eh-cards-door:active {
+    scale: 0.97;
+  }
+}
+
+@media (hover: hover) {
+  /* Under the pointer: on paper the layer's shadow, in the room a step of light. */
+  .eh-cards-door:hover > .eh-cards-skin {
     box-shadow: var(--shadow-layer);
   }
+  [data-eh-ground="room"] .eh-cards-door:hover > .eh-cards-skin {
+    background-color: var(--secondary);
+    box-shadow:
+      var(--shadow-layer),
+      inset 0 1px 0 rgb(255 255 255 / 0.11),
+      0 0 0 1px rgb(255 255 255 / 0.07);
+  }
+  [data-eh-ground="room"]
+    .eh-cards-band:not([data-stuck])
+    .eh-cards-door:hover
+    > .eh-cards-skin::after {
+    opacity: 1;
+  }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  /* A card over the seam rises a little under the pointer (a hover: quick). */
+  .eh-cards-band:not([data-stuck]) .eh-cards-door:hover {
+    translate: 0 -2px;
+  }
+  .eh-cards-skin {
+    transition:
+      background-color 160ms var(--ease-emphasis),
+      box-shadow 160ms var(--ease-emphasis);
+  }
+  [data-eh-ground="room"] .eh-cards-skin::after {
+    transition: opacity 200ms var(--ease-emphasis);
+  }
+}
+
+/* While her room stands open its door is ringed in the ink; a keyboard's focus
+   takes production's ring (`ring-3 ring-ring/50`). Both drawn on the surface,
+   so they travel with the fold, and last, so a hover never takes them off. */
+.eh-cards-band .eh-cards-door[aria-pressed="true"] > .eh-cards-skin {
+  box-shadow:
+    0 0 0 2px var(--foreground),
+    var(--shadow-lift);
+}
+.eh-cards-band .eh-cards-door:focus-visible > .eh-cards-skin {
+  box-shadow:
+    0 0 0 3px color-mix(in oklab, var(--ring) 50%, transparent),
+    var(--shadow-lift);
 }
