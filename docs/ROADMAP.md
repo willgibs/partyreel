@@ -17,6 +17,9 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Guests: drop the one-file presign and complete bodies (`server-pipeline.ts`'s `splitBurst(...) === null` arms, kept for a tab loaded before bursts) a milestone after compute-uploads ships.
+- Guests: her album asks its store once per landed file (`gallery-live.tsx`'s `notifyUploaded`), so a recorded burst costs two syncs (a delta, then a 304); ask once per burst.
+- Guests: the door's upload step reads a queue item's progress (0 to 100) as a fraction (`upload-step.tsx`'s bar: `Math.max(it.progress, ...) * 100`), so a bar is full from its first percent.
 - Guests: a sharper album cover: a purpose-made cover variant (about 1,280 px) made in the browser at upload beside the preview (`upload/preview.ts`, no transform), carried on the wire for the cover's ids only and drawn as the second `srcset` candidate of `HeadStills` (the phone copy, 2,048 px and about 330 KB, would cost a phone about 2 MB on the first screen).
 - Tests: two jsdom timing tests fail only on a loaded machine (2026-10-04, each green alone and on a re-run): `grace-banner.test.tsx`'s countdown to her plan's cap and `review-room-hub.test.tsx`'s arrow from the panel to the first tile; wait on what they mean, never on time.
 - Host: the host's dashboard session in `pnpm compute:model` (`--host-cookie-env NAME`, a fresh session cookie from the environment), measured once on the local desk; until then `model.mjs` prices a session as five guest-page loads (0.4% of a wedding's calls).
