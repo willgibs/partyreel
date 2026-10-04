@@ -77,7 +77,7 @@ export const EVERYONE: Vision = {
     atmosphere: 1780,
     voice: 1730,
     pages: 1320,
-    hero: 830,
+    hero: 900,
     "dark-page": 1150,
     "light-page": 1790,
     "empty-hub": 1360,

@@ -1,16 +1,18 @@
 "use client";
 
-import {
-  type CSSProperties,
-  Fragment,
-  type ReactNode,
-  useId,
-} from "react";
+import { type CSSProperties, Fragment, type ReactNode, useId } from "react";
 
 import { seedsFrom } from "@/lib/avatar/gradient";
 import { cn } from "@/lib/utils";
 
-import { GUESTS, PARTY, Photo, type PhotoId, Seeded, seededColors } from "../deck/media";
+import {
+  GUESTS,
+  PARTY,
+  Photo,
+  type PhotoId,
+  Seeded,
+  seededColors,
+} from "../deck/media";
 
 /**
  * CONTACT SHEET'S SYSTEM: the palette, the status set and the signature's
@@ -102,7 +104,7 @@ export const GROUND = {
 export const BAND_IN_ROOM = "#191512";
 
 export type StatusState = "waiting" | "done" | "failed";
-export type MarkKind = "circle" | "tick" | "cross";
+export type MarkKind = "circle" | "open" | "tick" | "cross";
 
 /**
  * THE LAB'S MARKS: a state is a mark and its word. Each has a paper register
@@ -118,12 +120,15 @@ export const STATUS: Record<
     readonly room: { oklch: string; hex: string; ratio: string };
   }
 > = {
+  // ★ WAITING HAS NO HUE (the creative director's pass): a blue pencil was a
+  // hue of its own on the commonest state, on a slide headed "No colour of
+  // our own". It is graphite now, an open loop the hand has not closed yet.
   waiting: {
-    mark: "circle",
-    tool: "Blue pencil",
+    mark: "open",
+    tool: "Graphite pencil",
     word: "Developing",
-    paper: { oklch: "oklch(0.52 0.19 264)", hex: "#2d5ed4", ratio: "5.3:1" },
-    room: { oklch: "oklch(0.74 0.13 258)", hex: "#76acfc", ratio: "8.7:1" },
+    paper: { oklch: "oklch(0.47 0.008 70)", hex: "#5e5a56", ratio: "6.3:1" },
+    room: { oklch: "oklch(0.78 0.01 75)", hex: "#bbb7b0", ratio: "10.1:1" },
   },
   done: {
     mark: "tick",
@@ -233,7 +238,11 @@ export function Edge({
         fontSize: size,
         height: band ? (height ?? Math.round(size * 2.4)) : height,
         justifyContent:
-          align === "center" ? "center" : align === "end" ? "flex-end" : undefined,
+          align === "center"
+            ? "center"
+            : align === "end"
+              ? "flex-end"
+              : undefined,
         ...style,
       }}
       aria-label={items.map(itemText).join(", ")}
@@ -246,7 +255,10 @@ export function Edge({
         return (
           <Fragment key={`${i}-${text}`}>
             {i > 0 && <EdgeArrow />}
-            <span className={cn("cs-edge-item", dim && "cs-edge-dim")} aria-hidden>
+            <span
+              className={cn("cs-edge-item", dim && "cs-edge-dim")}
+              aria-hidden
+            >
               {seed && <Seeded seed={seed} className="cs-edge-dot" />}
               {text}
             </span>
@@ -298,9 +310,24 @@ export const PARTY_EDGE: EdgeItem[] = eventEdge();
 
 /** A few more events, for a host's sheet (a dashboard, an account). */
 export const EVENTS: readonly (EdgeEvent & { kind: string })[] = [
-  { name: PARTY.name, seed: PARTY.seed, date: PARTY.dateShort, kind: "Wedding" },
-  { name: "Theo turns 30", seed: "event-theo-30", date: "03.10.26", kind: "Birthday" },
-  { name: "Lisbon trip", seed: "event-lisbon-trip", date: "21.10.26", kind: "Trip" },
+  {
+    name: PARTY.name,
+    seed: PARTY.seed,
+    date: PARTY.dateShort,
+    kind: "Wedding",
+  },
+  {
+    name: "Theo turns 30",
+    seed: "event-theo-30",
+    date: "03.10.26",
+    kind: "Birthday",
+  },
+  {
+    name: "Lisbon trip",
+    seed: "event-lisbon-trip",
+    date: "21.10.26",
+    kind: "Trip",
+  },
   { name: "Studio offsite", seed: "event-offsite-2026", kind: "Conference" },
 ];
 
@@ -370,7 +397,10 @@ export function Develop({
       className={cn("cs-develop absolute inset-0", className)}
       data-cs-loop={loop ? "" : undefined}
       style={{
-        ...vars({ "--cs-dev-delay": `${delay}ms`, "--cs-dev-dur": `${duration}ms` }),
+        ...vars({
+          "--cs-dev-delay": `${delay}ms`,
+          "--cs-dev-dur": `${duration}ms`,
+        }),
         ...style,
       }}
     >
@@ -459,7 +489,9 @@ export function Print({
     >
       <div className="cs-print-image" style={{ width: iw, height: ih }}>
         {develop ? (
-          <Develop {...(typeof develop === "object" ? develop : {})}>{image}</Develop>
+          <Develop {...(typeof develop === "object" ? develop : {})}>
+            {image}
+          </Develop>
         ) : (
           image
         )}
@@ -595,7 +627,11 @@ export function Strip({
           <EdgeArrow />
           <span aria-hidden>{f.n}</span>
           {f.who && (
-            <span className="cs-edge-item" aria-hidden style={{ marginLeft: "0.5em" }}>
+            <span
+              className="cs-edge-item"
+              aria-hidden
+              style={{ marginLeft: "0.5em" }}
+            >
               <Seeded seed={f.who.seed} className="cs-edge-dot" />
               {f.who.name}
             </span>
@@ -617,7 +653,13 @@ const MARK_PATHS: Record<MarkKind, readonly string[]> = {
   circle: [
     "M30.6 8.4C20.6 5.7 8.9 10.5 6.7 21.7C4.6 32.7 13.3 42 24.7 41.7C36.5 41.4 43.7 32.5 42.5 21.9C41.5 12.7 33.3 7.1 22.9 8C19.5 8.3 16.7 9.4 14.4 11",
   ],
-  tick: ["M9.4 25.8C12.6 28.5 15.6 32.2 18.9 36.8C23.9 26.4 30.9 16.6 40.8 8.4"],
+  // The loop not yet closed: the pencil stops short of where it began.
+  open: [
+    "M30.6 8.4C20.6 5.7 8.9 10.5 6.7 21.7C4.6 32.7 13.3 42 24.7 41.7C36.5 41.4 43.7 32.5 42.5 21.9C42.1 18.4 40.8 15.5 38.9 13.2",
+  ],
+  tick: [
+    "M9.4 25.8C12.6 28.5 15.6 32.2 18.9 36.8C23.9 26.4 30.9 16.6 40.8 8.4",
+  ],
   cross: [
     "M11.6 10.8C19.7 19.3 27.9 28.6 36.9 38.4",
     "M37.8 10.2C29.5 18.1 20.9 27.4 11 37.8",
@@ -632,6 +674,8 @@ const MARK_PATHS: Record<MarkKind, readonly string[]> = {
 export function Mark({
   kind,
   size = 28,
+  w,
+  h,
   color,
   weight = 3.4,
   draw = false,
@@ -643,6 +687,10 @@ export function Mark({
 }: {
   kind: MarkKind;
   size?: number;
+  /** A loop drawn round something wider than tall (a frame's number on its
+   *  edge): the 48 box stretched to w by h, the stroke kept even. */
+  w?: number;
+  h?: number;
   /** A STATUS register's hex, or ink for a note in the margin. */
   color?: string;
   /** Stroke width in the 48 box. */
@@ -661,8 +709,9 @@ export function Mark({
   return (
     <svg
       viewBox="0 0 48 48"
-      width={size}
-      height={size}
+      width={w ?? size}
+      height={h ?? size}
+      preserveAspectRatio={w || h ? "none" : undefined}
       className={cn("cs-mark", className)}
       style={{
         color,
@@ -700,10 +749,34 @@ export function Mark({
             broken mark. At rest the pencil's pass is simply complete. */}
         {circling &&
           MARK_PATHS[kind].map((d) => (
-            <path key={`base-${d}`} d={d} strokeWidth={weight} className="cs-mark-base" />
+            <path
+              key={`base-${d}`}
+              d={d}
+              strokeWidth={
+                w || h
+                  ? Math.max(
+                      1.6,
+                      (weight * Math.min(w ?? size, h ?? size)) / 30,
+                    )
+                  : weight
+              }
+              vectorEffect={w || h ? "non-scaling-stroke" : undefined}
+              className="cs-mark-base"
+            />
           ))}
         {MARK_PATHS[kind].map((d) => (
-          <path key={d} d={d} pathLength={1} strokeWidth={weight} className="cs-mark-pen" />
+          <path
+            key={d}
+            d={d}
+            pathLength={1}
+            strokeWidth={
+              w || h
+                ? Math.max(1.6, (weight * Math.min(w ?? size, h ?? size)) / 30)
+                : weight
+            }
+            vectorEffect={w || h ? "non-scaling-stroke" : undefined}
+            className="cs-mark-pen"
+          />
         ))}
       </g>
     </svg>
@@ -737,7 +810,10 @@ export function Status({
   const s = STATUS[state];
   const color = s[tone].hex;
   return (
-    <span className={cn("cs-status", className)} style={{ fontSize: size, ...style }}>
+    <span
+      className={cn("cs-status", className)}
+      style={{ fontSize: size, ...style }}
+    >
       <Mark
         kind={s.mark}
         size={Math.round(size * 1.65)}

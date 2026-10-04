@@ -33,7 +33,10 @@ function Form({
       <p className="ev-title" style={{ fontSize: 17, marginTop: 16 }}>
         {title}
       </p>
-      <p className="ev-body" style={{ fontSize: 13.5, marginTop: 4, color: ON.paper.muted }}>
+      <p
+        className="ev-body"
+        style={{ fontSize: 13.5, marginTop: 4, color: ON.paper.muted }}
+      >
         {line}
       </p>
     </div>
@@ -88,8 +91,24 @@ const FORMS = {
 /** The huddle on its well: what stands in for a photograph. */
 function HuddleForm({ w, h }: { w: number; h: number }) {
   return (
-    <div style={{ width: w, height: h, backgroundColor: BASE.well.hex, borderRadius: 4, position: "relative" }}>
-      <Mix people={CROWD.slice(0, 9)} w={w} h={h} tone="room" pad={12} gap={0.24} style={{ position: "absolute", left: 0, top: 0 }} />
+    <div
+      style={{
+        width: w,
+        height: h,
+        backgroundColor: BASE.well.hex,
+        borderRadius: 4,
+        position: "relative",
+      }}
+    >
+      <Mix
+        people={CROWD.slice(0, 9)}
+        w={w}
+        h={h}
+        tone="room"
+        pad={12}
+        gap={0.24}
+        style={{ position: "absolute", left: 0, top: 0 }}
+      />
     </div>
   );
 }
@@ -97,16 +116,25 @@ function HuddleForm({ w, h }: { w: number; h: number }) {
 function DoPicture({ w, h }: { w: number; h: number }) {
   return (
     <div style={{ width: w }}>
-      <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>
+      <div
+        className="flex items-center justify-between"
+        style={{ marginBottom: 12 }}
+      >
         <p className="ev-title" style={{ fontSize: 15 }}>
           {PARTY.name}
         </p>
         <GuestRow people={CROWD} max={8} total={PARTY.guests} size={24} />
       </div>
       <Pic id="wedding-toast" style={{ width: w, height: h }} focus="55% 45%" />
-      <div className="flex items-center justify-between" style={{ marginTop: 12 }}>
+      <div
+        className="flex items-center justify-between"
+        style={{ marginTop: 12 }}
+      >
         <Credit person={CROWD[2]} size={22} />
-        <span className="ev-body" style={{ fontSize: 13, color: ON.paper.muted }}>
+        <span
+          className="ev-body"
+          style={{ fontSize: 13, color: ON.paper.muted }}
+        >
           1 of {PARTY.photos.toLocaleString("en-US")}
         </span>
       </div>
@@ -114,7 +142,15 @@ function DoPicture({ w, h }: { w: number; h: number }) {
   );
 }
 
-function NeverPicture({ w, h, pad = true }: { w: number; h: number; pad?: boolean }) {
+function NeverPicture({
+  w,
+  h,
+  pad = true,
+}: {
+  w: number;
+  h: number;
+  pad?: boolean;
+}) {
   return (
     <div style={{ width: w, paddingTop: pad ? 36 : 12 }}>
       <Pic id="wedding-toast" style={{ width: w, height: h }} focus="55% 45%">
@@ -147,28 +183,52 @@ export function Signature({ screen }: SlideProps) {
   if (!isDesk(screen)) return <SignaturePhone screen={screen} />;
   return (
     <SlideGround tone="paper" screen={screen}>
-      <div className="absolute flex items-end justify-between" style={{ left: 72, right: 72, top: 92 }}>
+      <div
+        className="absolute flex items-end justify-between"
+        style={{ left: 72, right: 72, top: 92 }}
+      >
         <div>
           <Kicker tone="paper">The signature</Kicker>
           <h2 className="ev-display" style={{ fontSize: 76, marginTop: 10 }}>
             The Mix
           </h2>
         </div>
-        <p className="ev-body" style={{ fontSize: 16, width: 560, color: ON.paper.ink, marginBottom: 6 }}>
-          Every guest is an orb, an object you could count. An event wears its people in the order
-          they arrived, wherever there is no photograph to wear instead.
+        <p
+          className="ev-body"
+          style={{
+            fontSize: 16,
+            width: 560,
+            color: ON.paper.ink,
+            marginBottom: 6,
+          }}
+        >
+          Every guest is an orb, an object you could count. An event wears its
+          people in the order they arrived, wherever there is no photograph to
+          wear instead.
         </p>
       </div>
       <div
         className="absolute grid"
-        style={{ left: 72, top: 236, width: 1296, gridTemplateColumns: "0.95fr 1.1fr 1fr 1fr 1fr", gap: 30 }}
+        style={{
+          left: 72,
+          top: 236,
+          width: 1296,
+          gridTemplateColumns: "0.95fr 1.1fr 1fr 1fr 1fr",
+          gap: 30,
+        }}
       >
         <Form {...FORMS.one} h={112}>
           <OnePerson big={96} />
         </Form>
         <Form {...FORMS.row} h={112}>
           <div style={{ paddingBottom: 30 }}>
-            <GuestRow people={CROWD} max={6} total={PARTY.guests} size={42} pop />
+            <GuestRow
+              people={CROWD}
+              max={6}
+              total={PARTY.guests}
+              size={42}
+              pop
+            />
           </div>
         </Form>
         <Form {...FORMS.huddle} h={112}>
@@ -181,21 +241,48 @@ export function Signature({ screen }: SlideProps) {
         </Form>
         <Form {...FORMS.toss} h={112}>
           <div className="relative" style={{ width: 226, height: 112 }}>
-            <Toss people={CROWD} w={226} h={112} ox={113} oy={112} min={7} max={18} reach={0.92} />
+            <Toss
+              people={CROWD}
+              w={226}
+              h={112}
+              ox={113}
+              oy={112}
+              min={7}
+              max={18}
+              reach={0.92}
+            />
           </div>
         </Form>
       </div>
       <div className="absolute" style={{ left: 72, top: 476, width: 600 }}>
         <Kicker tone="paper">Do</Kicker>
-        <p className="ev-body" style={{ fontSize: 14, marginTop: 4, marginBottom: 12, color: ON.paper.muted }}>
-          People beside the picture: faces and credits, small. The photograph stays whole.
+        <p
+          className="ev-body"
+          style={{
+            fontSize: 14,
+            marginTop: 4,
+            marginBottom: 12,
+            color: ON.paper.muted,
+          }}
+        >
+          People beside the picture: faces and credits, small. The photograph
+          stays whole.
         </p>
         <DoPicture w={600} h={262} />
       </div>
       <div className="absolute" style={{ left: 768, top: 476, width: 600 }}>
         <Kicker tone="paper">Never</Kicker>
-        <p className="ev-body" style={{ fontSize: 14, marginTop: 4, marginBottom: 12, color: ON.paper.muted }}>
-          Color over a photograph: no orbs on the picture, no tint, no glow at its edges.
+        <p
+          className="ev-body"
+          style={{
+            fontSize: 14,
+            marginTop: 4,
+            marginBottom: 12,
+            color: ON.paper.muted,
+          }}
+        >
+          Color over a photograph: no orbs on the picture, no tint, no glow at
+          its edges.
         </p>
         <NeverPicture w={600} h={262} />
       </div>
@@ -212,15 +299,22 @@ function SignaturePhone({ screen }: SlideProps) {
           The Mix
         </h2>
         <p className="ev-body" style={{ fontSize: 15, marginTop: 12 }}>
-          Every guest is an orb, an object you could count. An event wears its people in the order
-          they arrived, wherever there is no photograph to wear instead.
+          Every guest is an orb, an object you could count. An event wears its
+          people in the order they arrived, wherever there is no photograph to
+          wear instead.
         </p>
         <div className="grid" style={{ gap: 22, marginTop: 24 }}>
           <Form {...FORMS.one} h={92}>
             <OnePerson big={88} />
           </Form>
           <Form {...FORMS.row} h={44}>
-            <GuestRow people={CROWD} max={7} total={PARTY.guests} size={40} pop />
+            <GuestRow
+              people={CROWD}
+              max={7}
+              total={PARTY.guests}
+              size={40}
+              pop
+            />
           </Form>
           <Form {...FORMS.huddle} h={120}>
             <HuddleForm w={335} h={120} />
@@ -230,21 +324,43 @@ function SignaturePhone({ screen }: SlideProps) {
           </Form>
           <Form {...FORMS.toss} h={84}>
             <div className="relative" style={{ width: 335, height: 84 }}>
-              <Toss people={CROWD} w={335} h={84} ox={167} oy={84} min={7} max={17} reach={0.92} />
+              <Toss
+                people={CROWD}
+                w={335}
+                h={84}
+                ox={167}
+                oy={84}
+                min={7}
+                max={17}
+                reach={0.92}
+              />
             </div>
           </Form>
         </div>
         <div style={{ marginTop: 30 }}>
           <Kicker tone="paper">Do</Kicker>
-          <p className="ev-body" style={{ fontSize: 14, marginTop: 4, marginBottom: 12, color: ON.paper.muted }}>
-            People beside the picture: faces and credits, small. The photograph stays whole.
+          <p
+            className="ev-body"
+            style={{
+              fontSize: 14,
+              marginTop: 4,
+              marginBottom: 12,
+              color: ON.paper.muted,
+            }}
+          >
+            People beside the picture: faces and credits, small. The photograph
+            stays whole.
           </p>
           <DoPicture w={335} h={184} />
         </div>
         <div style={{ marginTop: 26 }}>
           <Kicker tone="paper">Never</Kicker>
-          <p className="ev-body" style={{ fontSize: 14, marginTop: 4, color: ON.paper.muted }}>
-            Color over a photograph: no orbs on the picture, no tint, no glow at its edges.
+          <p
+            className="ev-body"
+            style={{ fontSize: 14, marginTop: 4, color: ON.paper.muted }}
+          >
+            Color over a photograph: no orbs on the picture, no tint, no glow at
+            its edges.
           </p>
           <NeverPicture w={335} h={184} pad={false} />
         </div>

@@ -2,7 +2,14 @@
 
 import { GUESTS, type PhotoId, Photo, Seeded } from "../../deck/media";
 import { HEAD } from "../../deck/deck";
-import { Copy, Display, Kicker, type Screen, SlideFoot, SlideRoot } from "../parts";
+import {
+  Copy,
+  Display,
+  Kicker,
+  type Screen,
+  SlideFoot,
+  SlideRoot,
+} from "../parts";
 import {
   Edge,
   eventEdge,
@@ -38,6 +45,15 @@ const SWATCHES: readonly Swatch[] = [
 ];
 
 const ORDER: readonly StatusState[] = ["waiting", "done", "failed"];
+/** The frame each state rings or marks: its number on the edge and who shot it. */
+const FRAME: Record<
+  StatusState,
+  { n: string; who: { name: string; seed: string } }
+> = {
+  waiting: { n: "31", who: { name: GUESTS[1].name, seed: GUESTS[1].seed } },
+  done: { n: "32", who: { name: GUESTS[2].name, seed: GUESTS[2].seed } },
+  failed: { n: "33", who: { name: GUESTS[3].name, seed: GUESTS[3].seed } },
+};
 const THUMBS: Record<StatusState, PhotoId | null> = {
   waiting: "wedding-toast",
   done: "festival-crowd",
@@ -55,13 +71,32 @@ function Chip({ s, w }: { s: Swatch; w: number }) {
           borderRadius: 2,
         }}
       />
-      <p className="cs-read" style={{ margin: "8px 0 0", fontSize: 13, lineHeight: "17px", fontWeight: 600 }}>
+      <p
+        className="cs-read"
+        style={{
+          margin: "8px 0 0",
+          fontSize: 13,
+          lineHeight: "17px",
+          fontWeight: 600,
+        }}
+      >
         {s.name}
       </p>
-      <p className="cs-read cs-tnum" style={{ margin: 0, fontSize: 11.5, lineHeight: "16px", whiteSpace: "nowrap" }}>
+      <p
+        className="cs-read cs-tnum"
+        style={{
+          margin: 0,
+          fontSize: 11.5,
+          lineHeight: "16px",
+          whiteSpace: "nowrap",
+        }}
+      >
         {s.oklch}
       </p>
-      <p className="cs-read cs-muted" style={{ margin: 0, fontSize: 12, lineHeight: "16px" }}>
+      <p
+        className="cs-read cs-muted"
+        style={{ margin: 0, fontSize: 12, lineHeight: "16px" }}
+      >
         {s.role}
       </p>
     </div>
@@ -99,7 +134,8 @@ function OnPrint({
               overflow: "hidden",
               borderRadius: 2,
               background: "#1c1814",
-              boxShadow: "inset 0 1px 0 rgb(255 255 255 / 0.22), 0 0 0 1px rgb(255 255 255 / 0.06)",
+              boxShadow:
+                "inset 0 1px 0 rgb(255 255 255 / 0.22), 0 0 0 1px rgb(255 255 255 / 0.06)",
               opacity: state === "failed" ? 0.9 : 1,
             }}
           >
@@ -107,50 +143,101 @@ function OnPrint({
           </div>
         ) : (
           <Print w={w} ratio={ratio} border={b}>
-            {image ?? <div style={{ position: "absolute", inset: 0, background: GROUND.sheet.hex }} />}
+            {image ?? (
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  background: GROUND.sheet.hex,
+                }}
+              />
+            )}
           </Print>
         )}
-        {state === "waiting" && (
-          <Mark
-            kind="circle"
-            size={Math.round(w * 1.55)}
-            color={reg.hex}
-            weight={2.4}
-            circling
-            style={{ position: "absolute", left: -w * 0.27, top: (h - w * 1.55) / 2 }}
+      </div>
+      {/* ★ THE MARK LIVES IN THE BORDER, NEVER ON THE PHOTOGRAPH (the creative
+          director's pass): the loop goes round the frame's number on its edge,
+          the way an editor rings a frame on a contact sheet, and the tick and
+          the cross stand beside the edge line. */}
+      <div
+        style={{
+          position: "relative",
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          marginTop: 12,
+          height: 26,
+        }}
+      >
+        <span
+          style={{
+            position: "relative",
+            display: "inline-flex",
+            padding: "0 10px",
+          }}
+        >
+          <Edge
+            items={[
+              FRAME[state].n,
+              { text: FRAME[state].who.name, seed: FRAME[state].who.seed },
+            ]}
+            size={11}
+            style={{ color: room ? GROUND.roomInk.hex : GROUND.ink.hex }}
           />
-        )}
+          {state === "waiting" && (
+            <Mark
+              kind="open"
+              w={Math.round(w * 0.86)}
+              h={34}
+              color={reg.hex}
+              weight={2.4}
+              circling
+              style={{ position: "absolute", left: -6, top: -8 }}
+            />
+          )}
+        </span>
         {state === "done" && (
           <Mark
             kind="tick"
-            size={Math.round(w * 0.58)}
+            size={24}
             color={reg.hex}
             weight={3.6}
             draw
             delay={900}
-            style={{ position: "absolute", right: -w * 0.18, bottom: -w * 0.1 }}
           />
         )}
         {state === "failed" && (
           <Mark
             kind="cross"
-            size={Math.round(w * 0.86)}
+            size={20}
             color={reg.hex}
-            weight={3.4}
+            weight={3.6}
             draw
             delay={1300}
-            style={{ position: "absolute", left: w * 0.07, top: (h - w * 0.86) / 2 }}
           />
         )}
       </div>
-      <p className="cs-read" style={{ margin: "14px 0 0", fontSize: 14, lineHeight: "18px", fontWeight: 600 }}>
+      <p
+        className="cs-read"
+        style={{
+          margin: "10px 0 0",
+          fontSize: 14,
+          lineHeight: "18px",
+          fontWeight: 600,
+        }}
+      >
         <span style={{ color: reg.hex }} data-bd-contrast={measure}>
           {s.word}
         </span>
       </p>
       <p
         className="cs-read cs-tnum"
-        style={{ margin: "2px 0 0", fontSize: 12, lineHeight: "16px", color: room ? GROUND.roomMuted.hex : GROUND.ink2.hex }}
+        style={{
+          margin: "2px 0 0",
+          fontSize: 12,
+          lineHeight: "16px",
+          color: room ? GROUND.roomMuted.hex : GROUND.ink2.hex,
+        }}
       >
         {s.tool}, {reg.ratio}
       </p>
@@ -184,17 +271,33 @@ function InSitu({ w, gap, room }: { w: number; gap: number; room: boolean }) {
 function Source({ w, orb }: { w: number; orb: number }) {
   return (
     <div style={{ width: w }}>
-      <Print photo="party-balloons" w={w} edge={[...PARTY_EDGE.slice(1, 3), "Sam"]} edgeSize={10} border={12} />
+      <Print
+        photo="party-balloons"
+        w={w}
+        edge={[...PARTY_EDGE.slice(1, 3), "Sam"]}
+        edgeSize={10}
+        border={12}
+      />
       <Copy size={14} lead={20} style={{ marginTop: 12 }}>
-        <strong style={{ color: GROUND.ink.hex }}>Photographs.</strong>{" "}Every hue on a screen is someone&rsquo;s.
+        <strong style={{ color: GROUND.ink.hex }}>Photographs. </strong>
+        {"Every hue on a screen is someone\u2019s."}
       </Copy>
-      <div style={{ display: "flex", gap: Math.round(orb * 0.28), marginTop: 22 }}>
+      <div
+        style={{ display: "flex", gap: Math.round(orb * 0.28), marginTop: 22 }}
+      >
         {GUESTS.map((g) => (
-          <Seeded key={g.seed} seed={g.seed} style={{ width: orb, height: orb }} />
+          <Seeded
+            key={g.seed}
+            seed={g.seed}
+            style={{ width: orb, height: orb }}
+          />
         ))}
       </div>
       <Copy size={14} lead={20} style={{ marginTop: 12 }}>
-        <strong style={{ color: GROUND.ink.hex }}>People.</strong>{" "}Each guest&rsquo;s seeded light, on their avatar and on a print not yet developed.
+        <strong style={{ color: GROUND.ink.hex }}>People. </strong>
+        {
+          "Each guest\u2019s seeded light, on their avatar and on a print not yet developed."
+        }
       </Copy>
     </div>
   );
@@ -206,23 +309,48 @@ function NotAmber({ size = 14 }: { size?: number }) {
       <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
         <span
           className="cs-read"
-          style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 600, minWidth: 104 }}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            fontSize: 14,
+            fontWeight: 600,
+            minWidth: 104,
+          }}
         >
-          <span style={{ width: 9, height: 9, borderRadius: 9, background: OLD_WAITING.hex, flex: "none" }} />
-          <span style={{ color: OLD_WAITING.hex }} data-bd-contrast="today's waiting amber on paper">
+          <span
+            style={{
+              width: 9,
+              height: 9,
+              borderRadius: 9,
+              background: OLD_WAITING.hex,
+              flex: "none",
+            }}
+          />
+          <span
+            style={{ color: OLD_WAITING.hex }}
+            data-bd-contrast="today's waiting amber on paper"
+          >
             Waiting
           </span>
         </span>
         <Copy size={size} lead={Math.round(size * 1.42)}>
-          Today&rsquo;s waiting, {OLD_WAITING.oklch}: the commonest colour on a screen with no photographs, so it read as the brand, and a dull one.
+          Today&rsquo;s waiting, {OLD_WAITING.oklch}: the commonest colour on a
+          screen with no photographs, so it read as the brand, and a dull one.
         </Copy>
       </div>
       <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
         <span style={{ minWidth: 104 }}>
-          <Status state="waiting" size={14} measure="blue pencil on paper" />
+          <Status
+            state="waiting"
+            size={14}
+            measure="graphite pencil on paper"
+          />
         </span>
         <Copy size={size} lead={Math.round(size * 1.42)}>
-          Now a circle in blue pencil, a mark a hand makes and lifts when the state ends. Beside photographs and people it reads as a note on the sheet, never as ours.
+          Now an open loop in graphite round the frame&rsquo;s number: a mark a
+          hand makes and closes when the state ends. No hue at all, so it never
+          reads as ours.
         </Copy>
       </div>
     </div>
@@ -236,14 +364,21 @@ export function ColorSlide({ screen }: { screen: Screen }) {
 function ColorDesk() {
   return (
     <SlideRoot screen="1440">
-      <div className="absolute" style={{ left: 64, top: HEAD["1440"] + 42, width: 452 }}>
+      <div
+        className="absolute"
+        style={{ left: 64, top: HEAD["1440"] + 42, width: 452 }}
+      >
         <Display size={52} style={{ lineHeight: 0.98 }}>
           No colour of our own.
         </Display>
         <Copy size={16} lead={24} style={{ marginTop: 18 }}>
-          Warm paper and deep ink, so a photograph is always the brightest colour on a screen. Colour comes from two places only: the photographs, and the people in them.
+          Warm paper and deep ink, so a photograph is always the brightest
+          colour on a screen. Colour comes from two places only: the
+          photographs, and the people in them.
         </Copy>
-        <Kicker style={{ marginTop: 34 }}>Why waiting is no longer amber</Kicker>
+        <Kicker style={{ marginTop: 34 }}>
+          Why waiting is no longer amber
+        </Kicker>
         <div style={{ marginTop: 16 }}>
           <NotAmber size={13} />
         </div>
@@ -254,12 +389,22 @@ function ColorDesk() {
           <Source w={322} orb={30} />
         </div>
       </div>
-      <div className="absolute" style={{ left: 940, top: HEAD["1440"] + 42, width: 436 }}>
+      <div
+        className="absolute"
+        style={{ left: 940, top: HEAD["1440"] + 42, width: 436 }}
+      >
         <Kicker>Status, beside the edge</Kicker>
         <div style={{ marginTop: 18 }}>
           <InSitu w={116} gap={44} room={false} />
         </div>
-        <div className="cs-on-room" style={{ marginTop: 22, background: GROUND.room.hex, padding: "18px 20px 18px" }}>
+        <div
+          className="cs-on-room"
+          style={{
+            marginTop: 22,
+            background: GROUND.room.hex,
+            padding: "18px 20px 18px",
+          }}
+        >
           <InSitu w={106} gap={39} room />
         </div>
       </div>
@@ -281,13 +426,35 @@ function SwatchList() {
   return (
     <div style={{ display: "grid", gap: 10 }}>
       {SWATCHES.map((s) => (
-        <div key={s.name} style={{ display: "grid", gridTemplateColumns: "44px 1fr", gap: 12, alignItems: "center" }}>
-          <div style={{ height: 34, background: s.hex, boxShadow: "inset 0 0 0 1px rgb(22 18 15 / 0.1)", borderRadius: 2 }} />
+        <div
+          key={s.name}
+          style={{
+            display: "grid",
+            gridTemplateColumns: "44px 1fr",
+            gap: 12,
+            alignItems: "center",
+          }}
+        >
+          <div
+            style={{
+              height: 34,
+              background: s.hex,
+              boxShadow: "inset 0 0 0 1px rgb(22 18 15 / 0.1)",
+              borderRadius: 2,
+            }}
+          />
           <div>
-            <p className="cs-read" style={{ margin: 0, fontSize: 13, lineHeight: "17px" }}>
-              <strong>{s.name}</strong> <span className="cs-tnum">{s.oklch}</span>
+            <p
+              className="cs-read"
+              style={{ margin: 0, fontSize: 13, lineHeight: "17px" }}
+            >
+              <strong>{s.name}</strong>{" "}
+              <span className="cs-tnum">{s.oklch}</span>
             </p>
-            <p className="cs-read cs-muted" style={{ margin: 0, fontSize: 12, lineHeight: "16px" }}>
+            <p
+              className="cs-read cs-muted"
+              style={{ margin: 0, fontSize: 12, lineHeight: "16px" }}
+            >
               {s.role}
             </p>
           </div>
@@ -300,40 +467,81 @@ function SwatchList() {
 function ColorPhone() {
   return (
     <SlideRoot screen="375">
-      <div className="absolute" style={{ left: 16, right: 16, top: HEAD["375"] + 24 }}>
+      <div
+        className="absolute"
+        style={{ left: 16, right: 16, top: HEAD["375"] + 24 }}
+      >
         <Display size={36} style={{ lineHeight: 1 }}>
           No colour of our own.
         </Display>
         <Copy size={15} lead={22} style={{ marginTop: 12 }}>
-          Warm paper and deep ink, so a photograph is always the brightest colour on a screen. Colour comes from the photographs, and the people in them.
+          Warm paper and deep ink, so a photograph is always the brightest
+          colour on a screen. Colour comes from the photographs, and the people
+          in them.
         </Copy>
-        <Kicker style={{ fontSize: 11, marginTop: 26 }}>Status, beside the edge</Kicker>
+        <Kicker style={{ fontSize: 11, marginTop: 26 }}>
+          Status, beside the edge
+        </Kicker>
         <div style={{ marginTop: 14 }}>
           <InSitu w={96} gap={27} room={false} />
         </div>
-        <div className="cs-on-room" style={{ marginTop: 18, background: GROUND.room.hex, padding: "16px 0", marginInline: -16 }}>
+        <div
+          className="cs-on-room"
+          style={{
+            marginTop: 18,
+            background: GROUND.room.hex,
+            padding: "16px 0",
+            marginInline: -16,
+          }}
+        >
           <div style={{ paddingInline: 16 }}>
             <InSitu w={96} gap={27} room />
           </div>
         </div>
-        <Kicker style={{ fontSize: 11, marginTop: 26 }}>Why waiting is no longer amber</Kicker>
+        <Kicker style={{ fontSize: 11, marginTop: 26 }}>
+          Why waiting is no longer amber
+        </Kicker>
         <div style={{ marginTop: 12 }}>
           <NotAmber size={13} />
         </div>
-        <Kicker style={{ fontSize: 11, marginTop: 26 }}>Where colour comes from</Kicker>
-        <div style={{ display: "grid", gridTemplateColumns: "150px 1fr", gap: 14, marginTop: 12, alignItems: "start" }}>
+        <Kicker style={{ fontSize: 11, marginTop: 26 }}>
+          Where colour comes from
+        </Kicker>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "150px 1fr",
+            gap: 14,
+            marginTop: 12,
+            alignItems: "start",
+          }}
+        >
           <Print photo="party-balloons" w={150} border={8} />
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 34px)", gap: 8 }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, 34px)",
+              gap: 8,
+            }}
+          >
             {GUESTS.map((g) => (
-              <Seeded key={g.seed} seed={g.seed} style={{ width: 34, height: 34 }} />
+              <Seeded
+                key={g.seed}
+                seed={g.seed}
+                style={{ width: 34, height: 34 }}
+              />
             ))}
           </div>
         </div>
         <Copy size={13} lead={19} style={{ marginTop: 10 }}>
           <strong style={{ color: GROUND.ink.hex }}>Photographs</strong>, and{" "}
-          <strong style={{ color: GROUND.ink.hex }}>people</strong>: each guest&rsquo;s seeded light, on their avatar and on a print not yet developed.
+          <strong style={{ color: GROUND.ink.hex }}>people</strong>: each
+          guest&rsquo;s seeded light, on their avatar and on a print not yet
+          developed.
         </Copy>
-        <Kicker style={{ fontSize: 11, marginTop: 26 }}>The base, with no hue</Kicker>
+        <Kicker style={{ fontSize: 11, marginTop: 26 }}>
+          The base, with no hue
+        </Kicker>
         <div style={{ marginTop: 12 }}>
           <SwatchList />
         </div>

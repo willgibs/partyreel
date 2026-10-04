@@ -24,7 +24,6 @@ import {
 const PHOTO = "party-balloons" as const;
 
 function Sampling({ width, color }: { width: number; color: string }) {
-  const hues = SAMPLED[PHOTO].map((x) => `${Math.round(x.h)}°`).join("  ");
   return (
     <div className="flex flex-col items-start gap-2.5" style={{ width }}>
       <LightChips
@@ -33,7 +32,7 @@ function Sampling({ width, color }: { width: number; color: string }) {
         height={5}
         className="w-28"
       />
-      <Readout style={{ color }}>Its light, sampled: {hues}</Readout>
+      <Readout style={{ color }}>Its light, from this photograph</Readout>
     </div>
   );
 }
@@ -53,7 +52,12 @@ export function Cover({ screen }: SlideProps) {
           </h1>
           <p
             className="ag-lede"
-            style={{ color: t.muted, fontSize: 17, marginTop: 14, maxWidth: 290 }}
+            style={{
+              color: t.muted,
+              fontSize: 17,
+              marginTop: 14,
+              maxWidth: 290,
+            }}
           >
             The brand is the light the photographs give off.
           </p>
@@ -86,7 +90,11 @@ export function Cover({ screen }: SlideProps) {
         className="absolute flex flex-col items-start"
         style={{ left: 96, top: 262, width: 600 }}
       >
-        <h1 className="ag-display" style={{ fontSize: 150 }} data-bd-contrast="title on the room">
+        <h1
+          className="ag-display"
+          style={{ fontSize: 150 }}
+          data-bd-contrast="title on the room"
+        >
           Afterglow
         </h1>
         <p

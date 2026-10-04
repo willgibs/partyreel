@@ -308,12 +308,17 @@ export function lightOfPhotos(ids: readonly PhotoId[]): Light {
  * violet, warming where a face catches the stage. Read left to right (a
  * bottom edge) or top to bottom (a side).
  */
-export const EDGE: Partial<Record<PhotoId, Partial<Record<"bottom" | "left", readonly number[]>>>> = {
+export const EDGE: Partial<
+  Record<PhotoId, Partial<Record<"bottom" | "left", readonly number[]>>>
+> = {
   "concert-confetti": { bottom: [9, 294, 308, 309, 293, 277] },
   "wedding-toast": { bottom: [50, 141, 52, 69, 51, 40] },
   "reception-table": { bottom: [114, 97, 65, 54, 64, 52] },
   "wedding-arch": { bottom: [138, 129, 129, 129, 140, 131] },
-  "party-balloons": { bottom: [82, 67, 81, 68, 68], left: [175, 184, 5, 82, 82] },
+  "party-balloons": {
+    bottom: [82, 67, 81, 68, 68],
+    left: [175, 184, 5, 82, 82],
+  },
   "wedding-petals": { left: [98, 51, 250, 83, 51] },
   "festival-lights": { bottom: [233, 246, 233, 220, 233, 247] },
 };
@@ -380,12 +385,30 @@ export type RegisterId = keyof typeof REGISTER;
 const yellowness = (h: number) =>
   Math.max(0, Math.cos(((hueGap(h, 95) / 70) * Math.PI) / 2));
 
+/**
+ * ★ LIGHT NEVER GOES OLIVE (the creative director's pass): a yellow-green
+ * light read as light at its source and as mud a few pixels out, where it
+ * falls off over the room (the Seam under the long table and under the album
+ * wall came out khaki). So the band of hues the eye reads as olive once dimmed
+ * is pulled to the nearest clean light it was nearly: gold below 110, green
+ * above. The photograph's own light, said truthfully, never a dirty version.
+ */
+const unOlive = (h: number) => (h > 92 && h < 128 ? (h < 110 ? 80 : 138) : h);
+
+/**
+ * THE FLOOR: a light is drawn at no less than the chroma slide 4 prints for it
+ * (0.13), so a soft daylight photograph still gives off LIGHT, never a grey
+ * stain; "never louder than its photograph" still caps it from above.
+ */
+const CHROMA_FLOOR = 0.13;
+
 /** A lamp's colour in a register, gamut-fitted. */
 export function lampTone(lamp: Lamp, register: RegisterId): Tone {
   const r = REGISTER[register];
-  const l = Math.min(0.95, r.l + r.lift * yellowness(lamp.h) + (lamp.dl ?? 0));
+  const h = unOlive(lamp.h);
+  const l = Math.min(0.95, r.l + r.lift * yellowness(h) + (lamp.dl ?? 0));
   const own = lamp.c === undefined ? r.c : lamp.c * r.boost;
-  return tone(l, Math.min(r.c, own), lamp.h);
+  return tone(l, Math.min(r.c, Math.max(CHROMA_FLOOR, own)), h);
 }
 
 /** Each lamp's centre along its light, 0 to 1, by its share. */
@@ -421,8 +444,37 @@ export function conicOf(
   return `conic-gradient(in oklab from ${from}deg, ${stops.join(", ")})`;
 }
 
-/** The light as a band along an edge (a seam's colour), left to right. */
-export function bandOf(light: Light, register: RegisterId): string {
+/**
+ * The light as a band along an edge (a seam's colour), left to right.
+ * `hard` draws each lamp as its own segment with a hair between (the house
+ * five, which come from no photograph, are never blended into a spectrum: a
+ * smooth rainbow hairline under a page reads as decoration, five separate
+ * lamps read as the house's own light, as the cover's chips draw them).
+ */
+export function bandOf(
+  light: Light,
+  register: RegisterId,
+  hard = false,
+): string {
+  if (hard) {
+    const total = light.reduce((s, x) => s + x.w, 0) || 1;
+    let acc = 0;
+    const stops: string[] = [];
+    light.forEach((x, i) => {
+      const a = (acc / total) * 100;
+      acc += x.w;
+      const b = (acc / total) * 100;
+      const col = lampTone(x, register).oklch;
+      const gap = i === light.length - 1 ? 0 : 0.6;
+      stops.push(`${col} ${a.toFixed(1)}%`, `${col} ${(b - gap).toFixed(1)}%`);
+      if (gap)
+        stops.push(
+          `transparent ${(b - gap).toFixed(1)}%`,
+          `transparent ${b.toFixed(1)}%`,
+        );
+    });
+    return `linear-gradient(90deg, ${stops.join(", ")})`;
+  }
   const at = centres(light);
   const stops = light.map(
     (x, i) => `${lampTone(x, register).oklch} ${(at[i] * 100).toFixed(1)}%`,
@@ -465,8 +517,9 @@ type Vars = CSSProperties & Record<`--${string}`, string | number>;
 
 /**
  * THE SEAM: light where two grounds meet. It is born at the edge and spent
- * before the words (its box is its reach; the copy starts below it), it drifts
- * along its edge on the one slow clock, and on paper it carries its source
+ * before the words (its box is its reach; the copy starts below it), it rests
+ * still and answers what happens (it drifts only where a slide asks it to,
+ * the deck's one looping exception), and on paper it carries its source
  * line, the edge itself lit.
  *
  * Mount it as the first child of a `relative` box whose edge it lights.
@@ -477,7 +530,7 @@ export function Seam({
   edge = "top",
   reach,
   strength = 1,
-  drift = true,
+  drift = false,
   className,
   style,
 }: {
@@ -488,7 +541,8 @@ export function Seam({
   reach?: number;
   /** 0 to 1, the light's opacity at its edge (1 is the register's own). */
   strength?: number;
-  /** Drift along the edge on the 24 s clock (where motion is welcome). */
+  /** Drift along the edge on the 24 s clock: off by default, since the light
+   *  answers events and never loops (the creative director's pass). */
   drift?: boolean;
   className?: string;
   style?: CSSProperties;
@@ -496,8 +550,16 @@ export function Seam({
   const paper = ground === "paper";
   const vars: Vars = {
     height: reach ?? (paper ? 56 : 120),
-    "--ag-band": bandOf(light, paper ? "paperSeam" : "roomSeam"),
-    "--ag-line": bandOf(light, paper ? "paperLine" : "roomLine"),
+    "--ag-band": bandOf(
+      light,
+      paper ? "paperSeam" : "roomSeam",
+      light === HOUSE,
+    ),
+    "--ag-line": bandOf(
+      light,
+      paper ? "paperLine" : "roomLine",
+      light === HOUSE,
+    ),
     "--ag-o": strength * (paper ? 1 : 0.95),
     ...style,
   };
@@ -586,7 +648,7 @@ export function Ring({
   size = 64,
   progress,
   glyph = "add",
-  breathe = true,
+  breathe = false,
   className,
   style,
   label,
@@ -682,10 +744,17 @@ export function SeedCover({
 }) {
   const o = orbFor(seed);
   const paper = ground === "paper";
-  const lit = lampTone({ h: o.hue, w: 1, dl: 0.06 }, paper ? "paper" : "room").oklch;
+  const lit = lampTone(
+    { h: o.hue, w: 1, dl: 0.06 },
+    paper ? "paper" : "room",
+  ).oklch;
   const body = lampTone({ h: o.hue, w: 1 }, paper ? "paper" : "room").oklch;
-  const deep = lampTone({ h: (o.hue + 348) % 360, w: 1, dl: -0.08 }, paper ? "paper" : "room").oklch;
-  const a = (c: string, pct: number) => `color-mix(in oklab, ${c} ${pct}%, transparent)`;
+  const deep = lampTone(
+    { h: (o.hue + 348) % 360, w: 1, dl: -0.08 },
+    paper ? "paper" : "room",
+  ).oklch;
+  const a = (c: string, pct: number) =>
+    `color-mix(in oklab, ${c} ${pct}%, transparent)`;
   const x = Math.round(o.light.x + 8);
   const y = Math.round(o.light.y + 10);
   return (

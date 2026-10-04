@@ -4,7 +4,14 @@ import type { CSSProperties } from "react";
 
 import { Photo } from "../../deck/media";
 import { HEAD } from "../../deck/deck";
-import { Copy, Display, Kicker, type Screen, SlideFoot, SlideRoot } from "../parts";
+import {
+  Copy,
+  Display,
+  Kicker,
+  type Screen,
+  SlideFoot,
+  SlideRoot,
+} from "../parts";
 import {
   Edge,
   eventEdge,
@@ -26,10 +33,26 @@ import {
  */
 
 const FORMS: readonly { n: string; title: string; line: string }[] = [
-  { n: "1", title: "The edge line.", line: "Ink on paper: under a print, along an album's head." },
-  { n: "2", title: "The border.", line: "A photograph alone sits as a print, its edge in the border." },
-  { n: "3", title: "The rebate.", line: "The edge knocked out of the film's ink: a strip, a hero's foot, the footer." },
-  { n: "4", title: "The frame edge.", line: "Every frame's number, and who shot it." },
+  {
+    n: "1",
+    title: "The edge line.",
+    line: "Ink on paper: under a print, along an album's head.",
+  },
+  {
+    n: "2",
+    title: "The border.",
+    line: "A photograph alone sits as a print, its edge in the border.",
+  },
+  {
+    n: "3",
+    title: "The rebate.",
+    line: "The edge knocked out of the film's ink: a strip, a hero's foot, the footer.",
+  },
+  {
+    n: "4",
+    title: "The frame edge.",
+    line: "Every frame's number, and who shot it.",
+  },
 ];
 
 const STRIP: readonly StripFrame[] = [
@@ -68,8 +91,19 @@ function Forms({ size = 14 }: { size?: number }) {
   return (
     <div style={{ display: "grid", gap: 14 }}>
       {FORMS.map((f) => (
-        <div key={f.n} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-          <span style={{ position: "relative", width: 20, height: 20, flex: "none", marginTop: 1 }}>
+        <div
+          key={f.n}
+          style={{ display: "flex", gap: 12, alignItems: "flex-start" }}
+        >
+          <span
+            style={{
+              position: "relative",
+              width: 20,
+              height: 20,
+              flex: "none",
+              marginTop: 1,
+            }}
+          >
             <Tag n={f.n} style={{ left: 0, top: 0 }} />
           </span>
           <Copy size={size} lead={Math.round(size * 1.42)}>
@@ -88,14 +122,26 @@ function DoDont({ w }: { w: number }) {
   return (
     <div style={{ display: "flex", gap: 20 }}>
       <div style={{ width: w }}>
-        <Print photo="wedding-arch" w={w} border={Math.round(w * 0.05)} edge={PARTY_EDGE.slice(1)} edgeSize={9} />
+        <Print
+          photo="wedding-arch"
+          w={w}
+          border={Math.round(w * 0.05)}
+          edge={PARTY_EDGE.slice(1)}
+          edgeSize={9}
+        />
         <Copy size={13} lead={18} style={{ marginTop: 10 }}>
-          <strong style={{ color: STATUS.done.paper.hex }}>Do.</strong>{" "}
-          Under the photograph, in its border.
+          <strong style={{ color: STATUS.done.paper.hex }}>Do.</strong> Under
+          the photograph, in its border.
         </Copy>
       </div>
       <div style={{ width: w }}>
-        <div style={{ position: "relative", width: w, height: ih + Math.round(w * 0.1) }}>
+        <div
+          style={{
+            position: "relative",
+            width: w,
+            height: ih + Math.round(w * 0.1),
+          }}
+        >
           <div
             style={{
               position: "absolute",
@@ -111,7 +157,13 @@ function DoDont({ w }: { w: number }) {
             <Edge
               items={PARTY_EDGE}
               size={10}
-              style={{ position: "absolute", left: 10, right: 10, top: Math.round(ih * 0.45), color: "#fff" }}
+              style={{
+                position: "absolute",
+                left: 10,
+                right: 10,
+                top: Math.round(ih * 0.45),
+                color: "#fff",
+              }}
             />
           </div>
           <Mark
@@ -121,12 +173,16 @@ function DoDont({ w }: { w: number }) {
             weight={3.2}
             draw
             delay={900}
-            style={{ position: "absolute", left: w * 0.25, top: Math.round(w * 0.05) + (ih - w * 0.5) / 2 }}
+            style={{
+              position: "absolute",
+              left: w * 0.25,
+              top: Math.round(w * 0.05) + (ih - w * 0.5) / 2,
+            }}
           />
         </div>
         <Copy size={13} lead={18} style={{ marginTop: 10 }}>
-          <strong style={{ color: STATUS.failed.paper.hex }}>Never.</strong>{" "}
-          On the photograph, or stacked into a wall.
+          <strong style={{ color: STATUS.failed.paper.hex }}>Never.</strong> On
+          the photograph, or stacked into a wall.
         </Copy>
       </div>
     </div>
@@ -138,7 +194,7 @@ const LIVES =
 const NEVER =
   "Over a photograph. As a heading or a sentence. Inside a button. Alone, belonging to nothing, or stacked into a block, which is how an edge turns into a terminal.";
 const AURORA =
-  "The aurora steps back to the projector: light spilled from a photograph on the reel's wall, in the room, never on paper.";
+  "The aurora becomes the latent image: the colour of a photograph about to be, seeded from the people in it, never a glow round a picture.";
 
 export function SignatureSlide({ screen }: { screen: Screen }) {
   return screen === "1440" ? <SignatureDesk /> : <SignaturePhone />;
@@ -147,12 +203,18 @@ export function SignatureSlide({ screen }: { screen: Screen }) {
 function SignatureDesk() {
   return (
     <SlideRoot screen="1440">
-      <div className="absolute" style={{ left: 64, top: HEAD["1440"] + 42, width: 790 }}>
+      <div
+        className="absolute"
+        style={{ left: 64, top: HEAD["1440"] + 42, width: 790 }}
+      >
         <Display size={50} style={{ lineHeight: 1 }}>
           Every event prints its own edge.
         </Display>
         <Copy size={16} lead={24} style={{ marginTop: 16, maxWidth: 720 }}>
-          The edge is the film&rsquo;s own type along the album: the event&rsquo;s frame mark, its name, its date, every frame and who shot it. The border is the paper round a photograph alone. Both frame the media; neither ever touches it.
+          The edge is the film&rsquo;s own type along the album: the
+          event&rsquo;s frame mark, its name, its date, every frame and who shot
+          it. The border is the paper round a photograph alone. Both frame the
+          media; neither ever touches it.
         </Copy>
       </div>
       <div className="absolute" style={{ left: 64, top: 262 }}>
@@ -169,11 +231,20 @@ function SignatureDesk() {
         <Tag n="1" style={{ left: 610, top: 386 }} />
       </div>
       <div className="absolute" style={{ left: 64, top: 702 }}>
-        <Strip frames={STRIP} frameW={140} gap={6} edgeSize={10} top={PARTY_EDGE} />
+        <Strip
+          frames={STRIP}
+          frameW={140}
+          gap={6}
+          edgeSize={10}
+          top={PARTY_EDGE}
+        />
         <Tag n="3" style={{ left: 776, top: 4 }} />
         <Tag n="4" style={{ left: 776, top: 118 }} />
       </div>
-      <div className="absolute" style={{ left: 880, top: HEAD["1440"] + 46, width: 496 }}>
+      <div
+        className="absolute"
+        style={{ left: 880, top: HEAD["1440"] + 46, width: 496 }}
+      >
         <Kicker>Its forms</Kicker>
         <div style={{ marginTop: 16 }}>
           <Forms size={14} />
@@ -201,12 +272,17 @@ function SignatureDesk() {
 function SignaturePhone() {
   return (
     <SlideRoot screen="375">
-      <div className="absolute" style={{ left: 16, right: 16, top: HEAD["375"] + 24 }}>
+      <div
+        className="absolute"
+        style={{ left: 16, right: 16, top: HEAD["375"] + 24 }}
+      >
         <Display size={34} style={{ lineHeight: 1 }}>
           Every event prints its own edge.
         </Display>
         <Copy size={15} lead={22} style={{ marginTop: 12 }}>
-          The film&rsquo;s own type along the album: the event&rsquo;s mark, name, date, every frame and who shot it. The border is the paper round a photograph alone. Neither ever touches the media.
+          The film&rsquo;s own type along the album: the event&rsquo;s mark,
+          name, date, every frame and who shot it. The border is the paper round
+          a photograph alone. Neither ever touches the media.
         </Copy>
         <div style={{ position: "relative", marginTop: 22 }}>
           <Print
@@ -219,8 +295,22 @@ function SignaturePhone() {
             read="the edge under a print"
           />
         </div>
-        <div style={{ position: "relative", marginTop: 18, marginRight: -16, overflow: "hidden" }}>
-          <Strip frames={STRIP.slice(0, 3)} frameW={110} gap={5} pad={8} edgeSize={9} top={PARTY_EDGE} />
+        <div
+          style={{
+            position: "relative",
+            marginTop: 18,
+            marginRight: -16,
+            overflow: "hidden",
+          }}
+        >
+          <Strip
+            frames={STRIP.slice(0, 3)}
+            frameW={110}
+            gap={5}
+            pad={8}
+            edgeSize={9}
+            top={PARTY_EDGE}
+          />
         </div>
         <Kicker style={{ fontSize: 11, marginTop: 26 }}>Its forms</Kicker>
         <div style={{ marginTop: 12 }}>
@@ -230,7 +320,9 @@ function SignaturePhone() {
         <Copy size={14} lead={20} style={{ marginTop: 8 }}>
           {LIVES}
         </Copy>
-        <Kicker style={{ fontSize: 11, marginTop: 20 }}>Where it never goes</Kicker>
+        <Kicker style={{ fontSize: 11, marginTop: 20 }}>
+          Where it never goes
+        </Kicker>
         <Copy size={14} lead={20} style={{ marginTop: 8 }}>
           {NEVER}
         </Copy>

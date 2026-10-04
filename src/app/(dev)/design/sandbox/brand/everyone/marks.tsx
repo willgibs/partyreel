@@ -26,11 +26,11 @@ import { BASE, CROWD, ON, Orb, orbOf, type Tone } from "./system";
  * guess, and a later outline replaces only the `<text>`. The brand-marks
  * board outlines and finishes the drawing.
  *
- * ★ THE ICON IS A PARTY OF THREE: three house guests, gathered as people stand
- * for a photograph, two behind and one in front, each parted from the next by
- * the tile's own colour (the guest row's ring). Drawn in the orb's own
- * material (the mesh, as SVG gradients), on the display's near-black, with the
- * light edge on its top bevel.
+ * ★ THE ICON IS A ROW OF THREE (the creative director's pass: a glossy huddle
+ * recalled a game's bubbles): three house guests side by side, each
+ * overlapping the next and parted from it by the tile's own colour, exactly as
+ * every event draws its guest row; matte (no highlight); on a paper tile by
+ * default, the display's near-black for a dark home screen.
  */
 
 /* ── shared: an orb in SVG ─────────────────────────────────────────────── */
@@ -146,7 +146,9 @@ const origins: number[] = [];
 for (let i = 0; i < WORD.length; i++) {
   const ink = INK[WORD[i]];
   origins.push(
-    i === 0 ? -ink.l : origins[i - 1] + INK[WORD[i - 1]].r + GAPS[i - 1] - ink.l,
+    i === 0
+      ? -ink.l
+      : origins[i - 1] + INK[WORD[i - 1]].r + GAPS[i - 1] - ink.l,
   );
 }
 const L_RIGHT = origins[8] + INK.l.r;
@@ -261,9 +263,15 @@ export function Trail({
   arrive?: boolean;
 }) {
   const d = h * WORDMARK_DOT_SHARE;
-  const people = CROWD.slice(start, start + count);
+  // ★ A TRAIL ENDS IN A COUNT (the creative director's pass): six people
+  // follow the full stop, then everyone else is a number, never thirty orbs.
+  const people = CROWD.slice(start, start + Math.min(count, TRAIL_MAX));
+  const rest = count - people.length;
   return (
-    <div className="ev-row" style={{ ["--ev-row-overlap" as string]: `${-d * overlap}px` }}>
+    <div
+      className="ev-row"
+      style={{ ["--ev-row-overlap" as string]: `${-d * overlap}px` }}
+    >
       {people.map((p, i) => (
         <Orb
           key={p.seed}
@@ -279,9 +287,28 @@ export function Trail({
           }}
         />
       ))}
+      {rest > 0 && (
+        <span
+          className="ev-count"
+          style={{
+            height: d,
+            minWidth: d,
+            fontSize: Math.round(d * 0.4),
+            paddingLeft: Math.round(d * overlap + d * 0.32),
+            paddingRight: Math.round(d * 0.3),
+            backgroundColor: ON[tone].step,
+            color: ON[tone].ink,
+          }}
+        >
+          +{rest}
+        </span>
+      )}
     </div>
   );
 }
+
+/** The most people a trail draws before its count. */
+const TRAIL_MAX = 6;
 
 /** The wordmark, then everyone after its full stop. */
 export function WordAndEveryone({
@@ -298,7 +325,9 @@ export function WordAndEveryone({
   return (
     <div className="flex items-end">
       <Wordmark height={height} tone={tone} read="wordmark" />
-      <div style={{ marginLeft: gap, marginBottom: height * WORDMARK_FOOT_SHARE }}>
+      <div
+        style={{ marginLeft: gap, marginBottom: height * WORDMARK_FOOT_SHARE }}
+      >
         <Trail h={height} count={count} tone={tone} />
       </div>
     </div>
@@ -373,27 +402,64 @@ const ICON_GROUND = {
   tinted: [0.2, 0.14, 0.1],
 } as const;
 
-/** The icon's party: three house guests, beside, behind and nearest. */
+/** The icon's party: three house guests, a row of the brand's own crowd. */
 export const ICON_PARTY = ["house:255", "house:85", "house:25"] as const;
 
 /**
- * Where the party stands on the 1024 tile: an asymmetric huddle, the way three
- * friends lean in for a photograph. One a step back and higher, one beside,
- * one nearest; never symmetric, because two equal circles above a larger one
- * read as a famous mouse, and three in a line as a typing indicator.
+ * ONE PERSON, MATTE, for the icon (the creative director's pass: three glossy
+ * balls with a highlight read as 2012 and as a game's bubbles). The orb is its
+ * own body colour with the hashvatar's diffused depths and no specular: a
+ * breath lighter where the light falls, a shade deeper on the far side, no
+ * overlay highlight at all.
  */
-const SEATS = [
-  { cx: 336, cy: 532, r: 178 },
-  { cx: 690, cy: 392, r: 158 },
-  { cx: 584, cy: 612, r: 200 },
-] as const;
+function MatteOrbSvg({
+  seed,
+  cx,
+  cy,
+  r,
+  id,
+}: {
+  seed: string;
+  cx: number;
+  cy: number;
+  r: number;
+  id: string;
+}) {
+  const o = orbOf(seed);
+  const { secondaryDark } = meshDepths(o);
+  const body = hex(o.body);
+  const soft = hex(
+    fitChroma({
+      l: Math.min(0.95, o.body.l + 0.05),
+      c: o.body.c * 0.96,
+      h: o.body.h,
+    }),
+  );
+  return (
+    <g>
+      <defs>
+        <radialGradient id={`${id}-m`} cx="0.34" cy="0.28" r="0.95">
+          <stop offset="0" stopColor={soft} />
+          <stop offset="0.62" stopColor={body} />
+          <stop offset="1" stopColor={body} />
+        </radialGradient>
+        <radialGradient id={`${id}-d`} cx="0.78" cy="0.84" r="0.8">
+          <stop offset="0" stopColor={hex(secondaryDark)} stopOpacity="0.32" />
+          <stop offset="1" stopColor={hex(secondaryDark)} stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <circle cx={cx} cy={cy} r={r} fill={`url(#${id}-m)`} />
+      <circle cx={cx} cy={cy} r={r} fill={`url(#${id}-d)`} />
+    </g>
+  );
+}
 
 export function AppIcon({
   size,
   party = ICON_PARTY,
   small,
   mask = true,
-  variant = "dark",
+  variant = "light",
   tint = 85,
   className,
   style,
@@ -422,14 +488,22 @@ export function AppIcon({
 }) {
   const id = svgId(useId());
   const tiny = small ?? size <= 40;
-  const ringW = tiny ? 34 : 22;
   const ground = ICON_GROUND[variant];
-  const order = useMemo(
+  // ★ THE ROW, AS EVERY EVENT DRAWS ITS GUESTS: three people side by side,
+  // each overlapping the next by a quarter and parted from it by the tile's
+  // own colour, the first in front. At 29 they grow and the part widens.
+  const r = tiny ? 196 : 172;
+  const step = 2 * r * (tiny ? 0.78 : 0.74);
+  const ringW = tiny ? 40 : 26;
+  const seats = useMemo(
     () =>
-      SEATS.map((s, i) => ({ ...s, seed: party[i] ?? party[0], i })).sort(
-        (a, b) => a.r - b.r,
-      ),
-    [party],
+      [0, 1, 2].map((i) => ({
+        i,
+        cx: 512 + (i - 1) * step,
+        cy: 512,
+        seed: party[i] ?? party[0],
+      })),
+    [party, step],
   );
   return (
     <svg
@@ -443,15 +517,46 @@ export function AppIcon({
       style={style}
     >
       <defs>
-        <linearGradient id={`${id}-ground`} x1="0" y1="0" x2="0" y2="1024" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor={hex({ l: ground[0], c: 0.004, h: 286 })} />
-          <stop offset="0.55" stopColor={hex({ l: ground[1], c: 0.004, h: 286 })} />
-          <stop offset="1" stopColor={hex({ l: ground[2], c: 0.004, h: 286 })} />
+        <linearGradient
+          id={`${id}-ground`}
+          x1="0"
+          y1="0"
+          x2="0"
+          y2="1024"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop
+            offset="0"
+            stopColor={hex({ l: ground[0], c: 0.004, h: 286 })}
+          />
+          <stop
+            offset="0.55"
+            stopColor={hex({ l: ground[1], c: 0.004, h: 286 })}
+          />
+          <stop
+            offset="1"
+            stopColor={hex({ l: ground[2], c: 0.004, h: 286 })}
+          />
         </linearGradient>
         {/* The light edge on the top bevel; on paper the bevel is a shade, not a light. */}
-        <linearGradient id={`${id}-edge`} x1="0" y1="0" x2="0" y2="1024" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor={variant === "light" ? "#000" : "#fff"} stopOpacity={variant === "light" ? 0.07 : 0.42} />
-          <stop offset="0.08" stopColor={variant === "light" ? "#000" : "#fff"} stopOpacity={variant === "light" ? 0.03 : 0.08} />
+        <linearGradient
+          id={`${id}-edge`}
+          x1="0"
+          y1="0"
+          x2="0"
+          y2="1024"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop
+            offset="0"
+            stopColor={variant === "light" ? "#000" : "#fff"}
+            stopOpacity={variant === "light" ? 0.07 : 0.42}
+          />
+          <stop
+            offset="0.08"
+            stopColor={variant === "light" ? "#000" : "#fff"}
+            stopOpacity={variant === "light" ? 0.03 : 0.08}
+          />
           <stop offset="0.3" stopColor="#fff" stopOpacity="0" />
         </linearGradient>
         <clipPath id={`${id}-clip`}>
@@ -460,27 +565,31 @@ export function AppIcon({
       </defs>
       <g clipPath={`url(#${id}-clip)`}>
         <rect width="1024" height="1024" fill={`url(#${id}-ground)`} />
-        {order.map((s) => (
+        {/* Drawn last to first, so the first stands in front, as in a guest row. */}
+        {[...seats].reverse().map((s) => (
           <g key={s.i}>
-            {/* The part: the tile's own colour, so a guest in front parts from one behind. */}
-            <circle cx={s.cx} cy={s.cy} r={s.r + ringW} fill={`url(#${id}-ground)`} />
+            <circle
+              cx={s.cx}
+              cy={s.cy}
+              r={r + ringW}
+              fill={`url(#${id}-ground)`}
+            />
             {variant === "tinted" ? (
               <MonoOrbSvg
                 cx={s.cx}
                 cy={s.cy}
-                r={s.r}
+                r={r}
                 id={`${id}-o${s.i}`}
                 l={orbOf(s.seed).body.l}
                 hue={tint}
               />
             ) : (
-              <OrbSvg
+              <MatteOrbSvg
                 seed={s.seed}
                 cx={s.cx}
                 cy={s.cy}
-                r={s.r}
+                r={r}
                 id={`${id}-o${s.i}`}
-                simple={tiny}
               />
             )}
           </g>
@@ -526,7 +635,7 @@ export function Lockup({
       className={cn("ev-lockup", className)}
       style={{ gap: height * 0.32 }}
     >
-      <AppIcon size={height} />
+      <AppIcon size={height} variant={tone === "room" ? "dark" : "light"} />
       {/* 0.84 of the icon puts the x-height at 0.38 of it, the share a lowercase
           word needs to hold its own beside a filled tile. */}
       <Wordmark height={height * 0.84} tone={tone} dot={dot} />

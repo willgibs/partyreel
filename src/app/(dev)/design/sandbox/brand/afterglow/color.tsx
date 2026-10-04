@@ -34,7 +34,11 @@ import {
  * printed is the value drawn; every contrast claimed is measured off the frame.
  */
 
-const SCENE_PHOTOS = ["wedding-toast", "party-balloons", "reception-table"] as const;
+const SCENE_PHOTOS = [
+  "wedding-toast",
+  "party-balloons",
+  "reception-table",
+] as const;
 const SCENE_LIGHT = lightOfPhotos(SCENE_PHOTOS);
 
 const short = (t: Tone) => `${t.l} ${t.c} ${t.h}`;
@@ -97,15 +101,32 @@ function SourceRow({
           <span style={{ fontWeight: 600 }}>{name}</span>
           <span style={{ color: r.muted }}> {line}</span>
         </p>
-        <LightChips light={light} register="room" height={6} className="mt-2.5 w-full" />
+        <LightChips
+          light={light}
+          register="room"
+          height={6}
+          className="mt-2.5 w-full"
+        />
         <p
           className="ag-num mt-1.5"
-          style={{ color: r.faint, fontSize: 10.5, letterSpacing: "0.02em", whiteSpace: "nowrap", overflow: "hidden" }}
+          style={{
+            color: r.faint,
+            fontSize: 10.5,
+            letterSpacing: "0.02em",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+          }}
         >
           {values}
         </p>
       </div>
-      <Ring light={light} ground="room" size={desk ? 34 : 28} glyph="none" breathe={false} />
+      <Ring
+        light={light}
+        ground="room"
+        size={desk ? 34 : 28}
+        glyph="none"
+        breathe={false}
+      />
     </div>
   );
 }
@@ -127,10 +148,12 @@ function Scene({
   return (
     <div
       style={{
-        background: ground === "room" ? GROUND.roomCard.hex : GROUND.paperCard.hex,
+        background:
+          ground === "room" ? GROUND.roomCard.hex : GROUND.paperCard.hex,
         borderRadius: 16,
         padding: desk ? 18 : 12,
-        boxShadow: ground === "paper" ? "0 1px 2px rgb(0 0 0 / 0.06)" : undefined,
+        boxShadow:
+          ground === "paper" ? "0 1px 2px rgb(0 0 0 / 0.06)" : undefined,
       }}
     >
       <div className="flex" style={{ gap: 3 }}>
@@ -143,7 +166,10 @@ function Scene({
           />
         ))}
       </div>
-      <div className="flex items-center justify-between" style={{ marginTop: desk ? 20 : 16 }}>
+      <div
+        className="flex items-center justify-between"
+        style={{ marginTop: desk ? 20 : 16 }}
+      >
         <div className="flex flex-col" style={{ gap: desk ? 13 : 12 }}>
           <StatusLight
             state="standby"
@@ -153,15 +179,31 @@ function Scene({
           >
             3 waiting for you
           </StatusLight>
-          <StatusLight state="ready" ground={ground} contrast={`ready point ${on}`}>
+          <StatusLight
+            state="ready"
+            ground={ground}
+            contrast={`ready point ${on}`}
+          >
             12 approved
           </StatusLight>
-          <StatusLight state="fault" ground={ground} contrast={`fault point ${on}`}>
+          <StatusLight
+            state="fault"
+            ground={ground}
+            contrast={`fault point ${on}`}
+          >
             1 upload failed
           </StatusLight>
         </div>
-        <div className="flex flex-col items-center" style={{ gap: 12, paddingRight: desk ? 22 : 10 }}>
-          <Ring light={SCENE_LIGHT} ground={ground} size={desk ? 56 : 48} label="Add photos" />
+        <div
+          className="flex flex-col items-center"
+          style={{ gap: 12, paddingRight: desk ? 22 : 10 }}
+        >
+          <Ring
+            light={SCENE_LIGHT}
+            ground={ground}
+            size={desk ? 56 : 48}
+            label="Add photos"
+          />
           <Readout style={{ color: r.faint }}>The album&apos;s light</Readout>
         </div>
       </div>
@@ -180,24 +222,42 @@ function StatusTable({ desk }: { desk: boolean }) {
             key={id}
             className="grid items-center"
             style={{
-              gridTemplateColumns: desk ? "16px 78px 1fr 146px 184px" : "16px 1fr",
+              gridTemplateColumns: desk
+                ? "16px 78px 1fr 146px 184px"
+                : "16px 1fr",
               columnGap: 12,
               rowGap: 3,
               padding: "9px 0",
               borderTop: i ? "1px solid rgb(255 255 255 / 0.08)" : undefined,
             }}
           >
-            <span className="ag-point" data-state={id} style={{ color: s.room.hex, width: 8, height: 8 }} />
-            <span className="ag-body" style={{ fontSize: 13.5, fontWeight: 600 }}>
+            <span
+              className="ag-point"
+              data-state={id}
+              style={{ color: s.room.hex, width: 8, height: 8 }}
+            />
+            <span
+              className="ag-body"
+              style={{ fontSize: 13.5, fontWeight: 600 }}
+            >
               {s.name}
             </span>
             <span
               className="ag-caption"
-              style={{ color: r.muted, gridColumn: desk ? undefined : "2 / -1" }}
+              style={{
+                color: r.muted,
+                gridColumn: desk ? undefined : "2 / -1",
+              }}
             >
               {s.means}
             </span>
-            <span className="ag-caption ag-num" style={{ color: r.faint, gridColumn: desk ? undefined : "2 / -1" }}>
+            <span
+              className="ag-caption ag-num"
+              style={{
+                color: r.faint,
+                gridColumn: desk ? undefined : "2 / -1",
+              }}
+            >
               Room {short(s.room)}
             </span>
             <span
@@ -211,7 +271,11 @@ function StatusTable({ desk }: { desk: boolean }) {
                 gridColumn: desk ? undefined : "2 / -1",
               }}
             >
-              <span className="ag-point" data-state={id} style={{ color: s.paper.hex, width: 8, height: 8 }} />
+              <span
+                className="ag-point"
+                data-state={id}
+                style={{ color: s.paper.hex, width: 8, height: 8 }}
+              />
               Paper {short(s.paper)}
             </span>
           </div>
@@ -221,7 +285,13 @@ function StatusTable({ desk }: { desk: boolean }) {
   );
 }
 
-function Why({ desk, ground = "room" }: { desk: boolean; ground?: "room" | "paper" }) {
+function Why({
+  desk,
+  ground = "room",
+}: {
+  desk: boolean;
+  ground?: "room" | "paper";
+}) {
   const r = ink(ground);
   return (
     <div className="flex items-start" style={{ gap: desk ? 18 : 14 }}>
@@ -235,7 +305,10 @@ function Why({ desk, ground = "room" }: { desk: boolean; ground?: "room" | "pape
           color: GROUND[ground].hex,
         }}
       />
-      <p className="ag-body" style={{ fontSize: desk ? 14 : 13.5, color: r.muted }}>
+      <p
+        className="ag-body"
+        style={{ fontSize: desk ? 14 : 13.5, color: r.muted }}
+      >
         <span style={{ color: r.fg, fontWeight: 600 }}>Waiting was amber</span>
         {` (oklch ${short(RETIRED_WARNING)}): after the hashvatar, the commonest colour in the app, so it read as the brand. Waiting is a pause, not a warning: now it is the camera's standby, half-lit and breathing, with no hue at all.`}
       </p>
@@ -251,13 +324,23 @@ export function ColorSlide({ screen }: SlideProps) {
       name: "The photographs.",
       line: "Sampled from what is on the screen, at its own intensity.",
       light: lightOfPhoto("party-dj"),
-      art: <LitPhoto id="party-dj" style={{ width: desk ? 104 : 76, height: desk ? 70 : 52 }} />,
+      art: (
+        <LitPhoto
+          id="party-dj"
+          style={{ width: desk ? 104 : 76, height: desk ? 70 : 52 }}
+        />
+      ),
     },
     {
       name: "The seed.",
       line: "Before the first photograph: the event's own hue, at three depths.",
       light: lightOfSeed(PARTY.seed),
-      art: <Seeded seed={PARTY.seed} style={{ width: desk ? 60 : 48, height: desk ? 60 : 48 }} />,
+      art: (
+        <Seeded
+          seed={PARTY.seed}
+          style={{ width: desk ? 60 : 48, height: desk ? 60 : 48 }}
+        />
+      ),
     },
     {
       name: "The house.",
@@ -266,7 +349,15 @@ export function ColorSlide({ screen }: SlideProps) {
       art: (
         <div className="flex" style={{ gap: 5 }}>
           {LAMPS.map((x) => (
-            <span key={x.n} style={{ width: desk ? 14 : 10, height: desk ? 14 : 10, borderRadius: 99, background: x.hex }} />
+            <span
+              key={x.n}
+              style={{
+                width: desk ? 14 : 10,
+                height: desk ? 14 : 10,
+                borderRadius: 99,
+                background: x.hex,
+              }}
+            />
           ))}
         </div>
       ),
@@ -283,18 +374,34 @@ export function ColorSlide({ screen }: SlideProps) {
     </div>
   );
   const inks = (
-    <div className="flex flex-wrap items-center" style={{ gap: desk ? 18 : 12 }}>
+    <div
+      className="flex flex-wrap items-center"
+      style={{ gap: desk ? 18 : 12 }}
+    >
       {(["fg", "muted", "faint"] as const).map((k) => (
-        <span key={`r${k}`} className="ag-subtitle" style={{ color: INK.room[k].hex, fontSize: 22 }}>
+        <span
+          key={`r${k}`}
+          className="ag-subtitle"
+          style={{ color: INK.room[k].hex, fontSize: 22 }}
+        >
           Aa
         </span>
       ))}
       <span
         className="flex items-center"
-        style={{ gap: desk ? 18 : 12, background: GROUND.paper.hex, padding: "6px 12px", borderRadius: 4 }}
+        style={{
+          gap: desk ? 18 : 12,
+          background: GROUND.paper.hex,
+          padding: "6px 12px",
+          borderRadius: 4,
+        }}
       >
         {(["fg", "muted", "faint"] as const).map((k) => (
-          <span key={`p${k}`} className="ag-subtitle" style={{ color: INK.paper[k].hex, fontSize: 22 }}>
+          <span
+            key={`p${k}`}
+            className="ag-subtitle"
+            style={{ color: INK.paper[k].hex, fontSize: 22 }}
+          >
             Aa
           </span>
         ))}
@@ -308,7 +415,10 @@ export function ColorSlide({ screen }: SlideProps) {
   if (!desk)
     return (
       <SlideRoot screen={screen} ground="room">
-        <div className="absolute inset-x-0 px-5" style={{ top: HEAD[screen] + 26 }}>
+        <div
+          className="absolute inset-x-0 px-5"
+          style={{ top: HEAD[screen] + 26 }}
+        >
           <Readout style={{ color: r.faint }}>The ground is quiet</Readout>
           <div className="mt-4">{grounds}</div>
           <div className="mt-5">{inks}</div>
@@ -332,7 +442,11 @@ export function ColorSlide({ screen }: SlideProps) {
         </div>
         <div
           className="absolute inset-x-0 bottom-0 px-5"
-          style={{ top: 1404, background: GROUND.paper.hex, color: INK.paper.fg.hex }}
+          style={{
+            top: 1404,
+            background: GROUND.paper.hex,
+            color: INK.paper.fg.hex,
+          }}
         >
           <div className="mt-7">
             <Scene
@@ -366,7 +480,9 @@ export function ColorSlide({ screen }: SlideProps) {
         </div>
       </div>
       <div className="absolute" style={{ left: 772, top: 92, width: 604 }}>
-        <Readout style={{ color: r.faint }}>Status is a point and its word</Readout>
+        <Readout style={{ color: r.faint }}>
+          Status is a point and its word
+        </Readout>
         <div style={{ marginTop: 14 }}>
           <Scene desk tile={187} />
         </div>
@@ -380,10 +496,18 @@ export function ColorSlide({ screen }: SlideProps) {
         className="absolute inset-x-0 bottom-0"
         style={{ top: 686, background: GROUND.paper.hex, color: p.fg }}
       >
-        <div className="absolute flex items-center" style={{ left: 64, top: 0, bottom: 0, gap: 22 }}>
+        <div
+          className="absolute flex items-center"
+          style={{ left: 64, top: 0, bottom: 0, gap: 22 }}
+        >
           <div className="flex" style={{ gap: 3 }}>
             {(["wedding-arch", "wedding-rings"] as const).map((id) => (
-              <LitPhoto key={id} id={id} ground="paper" style={{ width: 150, height: 108 }} />
+              <LitPhoto
+                key={id}
+                id={id}
+                ground="paper"
+                style={{ width: 150, height: 108 }}
+              />
             ))}
           </div>
           <div className="flex flex-col" style={{ gap: 13, marginLeft: 8 }}>
@@ -395,14 +519,25 @@ export function ColorSlide({ screen }: SlideProps) {
             >
               3 waiting for you
             </StatusLight>
-            <StatusLight state="ready" ground="paper" contrast="ready point on paper">
+            <StatusLight
+              state="ready"
+              ground="paper"
+              contrast="ready point on paper"
+            >
               12 approved
             </StatusLight>
-            <StatusLight state="fault" ground="paper" contrast="fault point on paper">
+            <StatusLight
+              state="fault"
+              ground="paper"
+              contrast="fault point on paper"
+            >
               1 upload failed
             </StatusLight>
           </div>
-          <div className="flex flex-col items-center" style={{ gap: 12, marginLeft: 26 }}>
+          <div
+            className="flex flex-col items-center"
+            style={{ gap: 12, marginLeft: 26 }}
+          >
             <Ring
               light={lightOfPhotos(["wedding-arch", "wedding-rings"])}
               ground="paper"

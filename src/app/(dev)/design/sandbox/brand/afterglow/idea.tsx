@@ -27,19 +27,34 @@ const POSITIONING = {
 const TRAITS = [
   ["Luminous", "It glows and never shouts: light, never paint."],
   ["Generous", "The photographs take the brightest place on every screen."],
-  ["Alive", "Photos land, light ignites, the album fills while the party goes on."],
+  [
+    "Alive",
+    "Photos land, light ignites, the album fills while the party goes on.",
+  ],
   ["Exact", "A camera's instruments: small hard lights and true words."],
 ] as const;
 
 const LEDGER = [
-  ["Achromatic chrome", "Kept, stricter", "Waiting loses its amber; state is the only paint."],
-  ["The five lamps", "Kept", "The third source, after the photographs and the seed."],
-  ["The hashvatar", "Kept, promoted", "The light's seed before the first photograph."],
-  ["The light edge", "Kept", "One pixel of light on media, in the room."],
-  ["Viewfinder and the display", "Kept", "The shutter's face goes dark, so photos stay brightest."],
-  ["Status as lights", "Kept, sharpened", "A point and its word; it never glows."],
-  ["Urbanist and Inter", "Kept, tuned", "One italic in the brand: the wordmark's."],
-  ["The fence on paper", "Argued", "The light gets a paper register instead of a fence."],
+  [
+    "Waiting",
+    "Changed",
+    "It loses its amber: a half-lit standby point with no hue.",
+  ],
+  [
+    "The hashvatar",
+    "Promoted",
+    "The event's light before its first photograph.",
+  ],
+  [
+    "The shutter",
+    "Changed",
+    "Its face goes dark, so the photographs stay brightest.",
+  ],
+  [
+    "Light on paper",
+    "Argued",
+    "A paper register of its own, where today it is switched off.",
+  ],
 ] as const;
 
 /** The idea in one picture: the order of brightness on every screen. */
@@ -57,7 +72,12 @@ function Order({ desk }: { desk: boolean }) {
       line: "What they give off, at an edge.",
       art: (
         <div className="flex items-center justify-center" style={box}>
-          <LightChips light={SAMPLED["party-balloons"]} register="paper" height={desk ? 10 : 8} className="w-full" />
+          <LightChips
+            light={SAMPLED["party-balloons"]}
+            register="paper"
+            height={desk ? 10 : 8}
+            className="w-full"
+          />
         </div>
       ),
     },
@@ -65,9 +85,20 @@ function Order({ desk }: { desk: boolean }) {
       name: "Everything else",
       line: "A quiet ground of ink and paper.",
       art: (
-        <div className="flex flex-col justify-center" style={{ ...box, gap: 6 }}>
+        <div
+          className="flex flex-col justify-center"
+          style={{ ...box, gap: 6 }}
+        >
           {[92, 70, 82].map((w) => (
-            <span key={w} style={{ width: `${w}%`, height: 4, borderRadius: 2, background: "rgb(20 20 22 / 0.16)" }} />
+            <span
+              key={w}
+              style={{
+                width: `${w}%`,
+                height: 4,
+                borderRadius: 2,
+                background: "rgb(20 20 22 / 0.16)",
+              }}
+            />
           ))}
         </div>
       ),
@@ -76,20 +107,44 @@ function Order({ desk }: { desk: boolean }) {
   return (
     <div>
       <Readout style={{ color: t.faint }}>The order of brightness</Readout>
-      <div className="flex items-start" style={{ gap: desk ? 18 : 10, marginTop: 14 }}>
+      <div
+        className="flex items-start"
+        style={{ gap: desk ? 18 : 10, marginTop: 14 }}
+      >
         {steps.map((s, i) => (
-          <div key={s.name} className="flex items-start" style={{ gap: desk ? 18 : 10 }}>
+          <div
+            key={s.name}
+            className="flex items-start"
+            style={{ gap: desk ? 18 : 10 }}
+          >
             <div style={{ width: desk ? 150 : 92 }}>
               {s.art}
-              <p className="ag-body" style={{ fontSize: desk ? 14 : 12.5, fontWeight: 600, marginTop: 10 }}>
+              <p
+                className="ag-body"
+                style={{
+                  fontSize: desk ? 14 : 12.5,
+                  fontWeight: 600,
+                  marginTop: 10,
+                }}
+              >
                 {s.name}
               </p>
-              <p className="ag-caption" style={{ color: t.muted, marginTop: 2 }}>
+              <p
+                className="ag-caption"
+                style={{ color: t.muted, marginTop: 2 }}
+              >
                 {s.line}
               </p>
             </div>
             {i < steps.length - 1 ? (
-              <span className="ag-subtitle" style={{ color: t.faint, fontSize: desk ? 22 : 18, marginTop: desk ? 22 : 18 }}>
+              <span
+                className="ag-subtitle"
+                style={{
+                  color: t.faint,
+                  fontSize: desk ? 22 : 18,
+                  marginTop: desk ? 22 : 18,
+                }}
+              >
                 ›
               </span>
             ) : null}
@@ -117,7 +172,10 @@ export function Idea({ screen }: SlideProps) {
           <p className="ag-subtitle" style={{ fontSize: desk ? 24 : 19 }}>
             {name}
           </p>
-          <p className="ag-body" style={{ color: t.muted, marginTop: 4, fontSize: desk ? 14 : 12.5 }}>
+          <p
+            className="ag-body"
+            style={{ color: t.muted, marginTop: 4, fontSize: desk ? 14 : 12.5 }}
+          >
             {line}
           </p>
         </div>
@@ -160,7 +218,11 @@ export function Idea({ screen }: SlideProps) {
   );
   const proof = (w: number, h: number) => (
     <div style={{ width: w, height: h }}>
-      <Bloom light={lightOfPhoto("reception-table")} ground="paper" style={{ height: "100%" }}>
+      <Bloom
+        light={lightOfPhoto("reception-table")}
+        ground="paper"
+        style={{ height: "100%" }}
+      >
         <LitPhoto id="reception-table" ground="paper" className="size-full" />
       </Bloom>
     </div>
@@ -169,7 +231,10 @@ export function Idea({ screen }: SlideProps) {
   if (!desk)
     return (
       <SlideRoot screen={screen} ground="paper">
-        <div className="absolute inset-x-0 px-6" style={{ top: HEAD[screen] + 28 }}>
+        <div
+          className="absolute inset-x-0 px-6"
+          style={{ top: HEAD[screen] + 28 }}
+        >
           <Readout style={{ color: t.faint }}>Positioning</Readout>
           <h2 className="ag-title mt-3" style={{ fontSize: 34 }}>
             {POSITIONING.claim.map((l) => (
@@ -193,7 +258,7 @@ export function Idea({ screen }: SlideProps) {
           </Readout>
           <div className="mt-4">{traits}</div>
           <Readout className="mt-11 block" style={{ color: t.faint }}>
-            What it keeps, and argues
+            What it changes from today
           </Readout>
           <div className="mt-2">{ledger}</div>
         </div>
@@ -229,16 +294,90 @@ export function Idea({ screen }: SlideProps) {
       <div className="absolute" style={{ left: 800, top: 112, width: 544 }}>
         <div className="flex items-end gap-6">
           {proof(268, 179)}
-          <p className="ag-caption" style={{ color: t.faint, maxWidth: 200, paddingBottom: 2 }}>
-            On paper too: the light is the photograph&apos;s, born thin and bright at its
-            edges.
+          <p
+            className="ag-caption"
+            style={{ color: t.faint, maxWidth: 200, paddingBottom: 2 }}
+          >
+            On paper too: the light is the photograph&apos;s, born thin and
+            bright at its edges.
           </p>
         </div>
         <Readout className="block" style={{ color: t.faint, marginTop: 50 }}>
-          What it keeps, and argues
+          What it changes from today
         </Readout>
         <div style={{ marginTop: 8 }}>{ledger}</div>
+        <div className="flex" style={{ gap: 24, marginTop: 34 }}>
+          <TodayAndNow />
+        </div>
       </div>
     </SlideRoot>
+  );
+}
+
+/**
+ * TODAY AND NOW, side by side (the creative director's pass): today's light is
+ * a haze of the house five that comes from no photograph; Afterglow's is the
+ * light of the photograph it surrounds.
+ */
+function TodayAndNow() {
+  const t = ink("paper");
+  const box = { width: 260, height: 112, borderRadius: 6 } as const;
+  return (
+    <>
+      <div>
+        <div
+          className="relative overflow-hidden"
+          style={{ ...box, background: "#0a0a0b" }}
+        >
+          <div
+            aria-hidden
+            className="absolute"
+            style={{
+              inset: "-30%",
+              background:
+                "radial-gradient(40% 50% at 35% 55%, oklch(0.72 0.17 25 / 0.55), transparent), radial-gradient(35% 45% at 60% 45%, oklch(0.7 0.14 255 / 0.5), transparent), radial-gradient(30% 40% at 50% 70%, oklch(0.68 0.16 305 / 0.45), transparent)",
+              filter: "blur(18px)",
+            }}
+          />
+          <div
+            className="absolute rounded"
+            style={{
+              left: 86,
+              top: 32,
+              width: 88,
+              height: 48,
+              background: "#f4f4f5",
+            }}
+          />
+        </div>
+        <p className="ag-caption" style={{ color: t.muted, marginTop: 8 }}>
+          Today: a haze from no photograph.
+        </p>
+      </div>
+      <div>
+        <div
+          className="flex items-center justify-center overflow-hidden"
+          style={{ ...box, background: "#0a0a0b" }}
+        >
+          <div style={{ width: 132, height: 78 }}>
+            <Bloom
+              light={lightOfPhoto("wedding-toast")}
+              ground="room"
+              blur={14}
+              style={{ height: "100%" }}
+            >
+              <LitPhoto
+                id="wedding-toast"
+                ground="room"
+                className="size-full"
+              />
+            </Bloom>
+          </div>
+        </div>
+        <p className="ag-caption" style={{ color: t.muted, marginTop: 8 }}>
+          Afterglow: the light of the photograph it surrounds.
+        </p>
+      </div>
+    </>
   );
 }

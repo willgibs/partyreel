@@ -354,11 +354,7 @@
 }
 /* Standby: half-lit, the camera's light warming up. */
 .ag-point[data-state="standby"] {
-  background-image: linear-gradient(
-    90deg,
-    currentColor 50%,
-    transparent 50%
-  );
+  background-image: linear-gradient(90deg, currentColor 50%, transparent 50%);
   box-shadow: inset 0 0 0 1.5px currentColor;
 }
 

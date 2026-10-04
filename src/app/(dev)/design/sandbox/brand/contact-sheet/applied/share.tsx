@@ -5,7 +5,16 @@ import type { CSSProperties } from "react";
 import { HEAD } from "../../deck/deck";
 import { PARTY, Qr } from "../../deck/media";
 import { Display, Kicker, type Screen, SlideRoot } from "../parts";
-import { Edge, eventEdge, GROUND, Latent, Print, Strip, type StripFrame, who } from "../system";
+import {
+  Edge,
+  eventEdge,
+  GROUND,
+  Latent,
+  Print,
+  Strip,
+  type StripFrame,
+  who,
+} from "../system";
 import { Scaled } from "./kit";
 
 /**
@@ -35,29 +44,80 @@ export function TableCard({ style }: { style?: CSSProperties }) {
   return (
     <div
       className="cs-print"
-      style={{ position: "relative", width: CARD.w, height: CARD.h, overflow: "hidden", ...style }}
+      style={{
+        position: "relative",
+        width: CARD.w,
+        height: CARD.h,
+        overflow: "hidden",
+        ...style,
+      }}
       data-bd-read="the table card, 5 by 7 in"
     >
-      <div style={{ position: "absolute", left: b, top: b, width: CARD.w - 2 * b, height: 286, borderRadius: 2, overflow: "hidden" }}>
+      <div
+        style={{
+          position: "absolute",
+          left: b,
+          top: b,
+          width: CARD.w - 2 * b,
+          height: 286,
+          borderRadius: 2,
+          overflow: "hidden",
+        }}
+      >
         <Latent seed={PARTY.seed} veil={0.85} />
       </div>
-      <div style={{ position: "absolute", left: b, right: b, top: b + 286 + 30 }}>
+      <div
+        style={{ position: "absolute", left: b, right: b, top: b + 286 + 30 }}
+      >
         <Display size={58} style={{ lineHeight: 0.96 }}>
           {PARTY.name}
         </Display>
-        <p className="cs-read cs-muted" style={{ margin: "10px 0 0", fontSize: 18, lineHeight: "25px" }}>
+        <p
+          className="cs-read cs-muted"
+          style={{ margin: "10px 0 0", fontSize: 18, lineHeight: "25px" }}
+        >
           {PARTY.kind}, {PARTY.date}
         </p>
       </div>
-      <div style={{ position: "absolute", left: b, right: b, top: 470, display: "flex", gap: 22, alignItems: "center" }}>
-        <div style={{ flex: "none", width: 152, height: 152, display: "grid", placeItems: "center" }}>
+      <div
+        style={{
+          position: "absolute",
+          left: b,
+          right: b,
+          top: 470,
+          display: "flex",
+          gap: 22,
+          alignItems: "center",
+        }}
+      >
+        <div
+          style={{
+            flex: "none",
+            width: 152,
+            height: 152,
+            display: "grid",
+            placeItems: "center",
+          }}
+        >
           <Qr value={URL} size={152} color={GROUND.ink.hex} />
         </div>
         <div>
-          <p className="cs-read" style={{ margin: 0, fontSize: 23, lineHeight: "28px", fontWeight: 650, letterSpacing: "-0.01em" }}>
+          <p
+            className="cs-read"
+            style={{
+              margin: 0,
+              fontSize: 23,
+              lineHeight: "28px",
+              fontWeight: 650,
+              letterSpacing: "-0.01em",
+            }}
+          >
             Scan to add your photos
           </p>
-          <p className="cs-read cs-muted" style={{ margin: "8px 0 0", fontSize: 17, lineHeight: "23px" }}>
+          <p
+            className="cs-read cs-muted"
+            style={{ margin: "8px 0 0", fontSize: 17, lineHeight: "23px" }}
+          >
             Point your camera at the code. No app required.
           </p>
         </div>
@@ -67,7 +127,13 @@ export function TableCard({ style }: { style?: CSSProperties }) {
         band
         size={12}
         height={30}
-        style={{ position: "absolute", left: 0, right: 0, bottom: 0, paddingLeft: b }}
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          paddingLeft: b,
+        }}
       />
     </div>
   );
@@ -104,14 +170,38 @@ export function ShareCard() {
         <Display size={124} style={{ lineHeight: 0.9 }}>
           {PARTY.name}
         </Display>
-        <p className="cs-read cs-muted" style={{ margin: "26px 0 0", fontSize: 38, lineHeight: "46px" }}>
+        <p
+          className="cs-read cs-muted"
+          style={{ margin: "26px 0 0", fontSize: 38, lineHeight: "46px" }}
+        >
           {PARTY.kind} album
         </p>
-        <div style={{ display: "flex", alignItems: "center", gap: 22, marginTop: 64 }}>
-          <div style={{ background: GROUND.print.hex, padding: 10, boxShadow: "0 0 0 1px rgb(22 18 15 / 0.1)" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 22,
+            marginTop: 64,
+          }}
+        >
+          <div
+            style={{
+              background: GROUND.print.hex,
+              padding: 10,
+              boxShadow: "0 0 0 1px rgb(22 18 15 / 0.1)",
+            }}
+          >
             <Qr value={URL} size={128} color={GROUND.ink.hex} />
           </div>
-          <p className="cs-read" style={{ margin: 0, fontSize: 30, lineHeight: "36px", fontWeight: 600 }}>
+          <p
+            className="cs-read"
+            style={{
+              margin: 0,
+              fontSize: 30,
+              lineHeight: "36px",
+              fontWeight: 600,
+            }}
+          >
             {PARTY.photos.toLocaleString("en-US")} photos
             <br />
             from {PARTY.guests} guests
@@ -138,18 +228,37 @@ export function ShareCard() {
         style={{ position: "absolute", left: 760, top: 40 }}
       />
       <Edge
-        items={eventEdge(undefined, [`${PARTY.guests} guests`, `${PARTY.photos} frames`])}
+        items={eventEdge(undefined, [
+          `${PARTY.guests} guests`,
+          `${PARTY.photos} frames`,
+        ])}
         band
         size={15}
         height={40}
-        style={{ position: "absolute", left: 0, right: 0, bottom: 0, paddingLeft: 72 }}
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          paddingLeft: 72,
+        }}
       />
     </div>
   );
 }
 
 /** The table the card stands on: linen under a paper wall, and the card's shadow on it. */
-function Table({ top, w, cardLeft, cardW }: { top: number; w: number; cardLeft: number; cardW: number }) {
+function Table({
+  top,
+  w,
+  cardLeft,
+  cardW,
+}: {
+  top: number;
+  w: number;
+  cardLeft: number;
+  cardW: number;
+}) {
   return (
     <>
       <div
@@ -173,7 +282,8 @@ function Table({ top, w, cardLeft, cardW }: { top: number; w: number; cardLeft: 
           top: top - 10,
           height: 26,
           borderRadius: "50%",
-          background: "radial-gradient(closest-side, rgb(22 18 15 / 0.32), rgb(22 18 15 / 0))",
+          background:
+            "radial-gradient(closest-side, rgb(22 18 15 / 0.32), rgb(22 18 15 / 0))",
         }}
       />
     </>
@@ -192,24 +302,56 @@ function ShareDesk() {
   return (
     <SlideRoot screen="1440" style={{ background: GROUND.sheet.hex }}>
       <Table top={tableTop} w={1440} cardLeft={cardLeft} cardW={CARD.w} />
-      <Kicker style={{ position: "absolute", left: cardLeft, top: HEAD["1440"] + 30 }}>
+      <Kicker
+        style={{ position: "absolute", left: cardLeft, top: HEAD["1440"] + 30 }}
+      >
         The table card, 5 by 7 in, at true size
       </Kicker>
-      <TableCard style={{ position: "absolute", left: cardLeft, top: cardTop, borderRadius: 3 }} />
-      <div className="absolute" style={{ left: 656, top: cardTop + CARD.h / 2 - (SHARE.h * shareScale) / 2 - 44 }}>
+      <TableCard
+        style={{
+          position: "absolute",
+          left: cardLeft,
+          top: cardTop,
+          borderRadius: 3,
+        }}
+      />
+      <div
+        className="absolute"
+        style={{
+          left: 656,
+          top: cardTop + CARD.h / 2 - (SHARE.h * shareScale) / 2 - 44,
+        }}
+      >
         <Kicker>The share card, 1200 by 630</Kicker>
         <Scaled
           w={SHARE.w}
           h={SHARE.h}
           scale={shareScale}
-          style={{ marginTop: 18, borderRadius: 10, boxShadow: "0 0 0 1px rgb(22 18 15 / 0.1), 0 24px 50px -24px rgb(22 18 15 / 0.4)" }}
+          style={{
+            marginTop: 18,
+            borderRadius: 10,
+            boxShadow:
+              "0 0 0 1px rgb(22 18 15 / 0.1), 0 24px 50px -24px rgb(22 18 15 / 0.4)",
+          }}
         >
           <ShareCard />
         </Scaled>
-        <div style={{ width: SHARE.w * shareScale, marginTop: 14, display: "flex", justifyContent: "space-between" }}>
-          <p className="cs-read" style={{ margin: 0, fontSize: 14, lineHeight: "20px" }}>
+        <div
+          style={{
+            width: SHARE.w * shareScale,
+            marginTop: 14,
+            display: "flex",
+            justifyContent: "space-between",
+          }}
+        >
+          <p
+            className="cs-read"
+            style={{ margin: 0, fontSize: 14, lineHeight: "20px" }}
+          >
             <strong style={{ fontWeight: 600 }}>{PARTY.name}</strong>
-            <span className="cs-muted">: the album&rsquo;s link, unfolded in a thread</span>
+            <span className="cs-muted">
+              : the album&rsquo;s link, unfolded in a thread
+            </span>
           </p>
           <span className="cs-read cs-faint" style={{ fontSize: 13 }}>
             partyreel.com
@@ -231,7 +373,12 @@ function SharePhone() {
       <Table top={tableTop} w={375} cardLeft={16} cardW={343} />
       <div className="absolute" style={{ left: 16, top }}>
         <Kicker style={{ fontSize: 11 }}>The table card, 5 by 7 in</Kicker>
-        <Scaled w={CARD.w} h={CARD.h} scale={scale} style={{ marginTop: 14, overflow: "visible" }}>
+        <Scaled
+          w={CARD.w}
+          h={CARD.h}
+          scale={scale}
+          style={{ marginTop: 14, overflow: "visible" }}
+        >
           <TableCard />
         </Scaled>
       </div>
@@ -241,13 +388,28 @@ function SharePhone() {
           w={SHARE.w}
           h={SHARE.h}
           scale={shareScale}
-          style={{ marginTop: 14, borderRadius: 8, boxShadow: "0 0 0 1px rgb(22 18 15 / 0.1), 0 18px 36px -20px rgb(22 18 15 / 0.4)" }}
+          style={{
+            marginTop: 14,
+            borderRadius: 8,
+            boxShadow:
+              "0 0 0 1px rgb(22 18 15 / 0.1), 0 18px 36px -20px rgb(22 18 15 / 0.4)",
+          }}
         >
           <ShareCard />
         </Scaled>
-        <p className="cs-read" style={{ margin: "12px 0 0", fontSize: 13, lineHeight: "19px", width: 343 }}>
+        <p
+          className="cs-read"
+          style={{
+            margin: "12px 0 0",
+            fontSize: 13,
+            lineHeight: "19px",
+            width: 343,
+          }}
+        >
           <strong style={{ fontWeight: 600 }}>{PARTY.name}</strong>
-          <span className="cs-muted">: the album&rsquo;s link, unfolded in a thread</span>
+          <span className="cs-muted">
+            : the album&rsquo;s link, unfolded in a thread
+          </span>
         </p>
       </div>
     </SlideRoot>

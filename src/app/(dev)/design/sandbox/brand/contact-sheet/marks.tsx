@@ -118,23 +118,23 @@ const SQUIRCLE = (() => {
   return `M${r},0 H${s - r} C${s - r + k},0 ${s},${r - k} ${s},${r} V${s - r} C${s},${s - r + k} ${s - r + k},${s} ${s - r},${s} H${r} C${r - k},${s} 0,${s - r + k} 0,${s - r} V${r} C0,${r - k} ${r - k},0 ${r},0 Z`;
 })();
 
-/** The P's ink, in ems of its font size, measured off the face. */
-const P_INK = { left: 0.04, right: 0.57, stem: 0.2025, cap: 0.66 } as const;
-
 export type IconDetail = "full" | "mid" | "min";
 
 /**
- * THE APP ICON: Partyreel's P, printed the way film prints its frame numbers,
- * paper on the film's ink, its foot cut on the wordmark's angle.
+ * THE APP ICON: ONE PRINT ON THE FILM'S INK (the creative director's pass: a
+ * white P on a dark tile was the category's most generic move, and its words
+ * vanished below 180). The icon is the sheet's own object instead: a single
+ * print, square-cornered (the board's only mark that is not a circle), lying a
+ * hair off true on the film's ink, its border wider at the foot where the edge
+ * rule runs under the image, the way an edge sits under every print in the
+ * system. Inside it, the latent image: the photograph about to be, in graphite
+ * on the house icon (the brand has no hue of its own), in that event's own
+ * seeded colours on an event's icon (`seed`), so every event still has its own.
  *
- * Three drawings by size (`detail`, chosen from `size` when absent): `full`
- * (120 px and up) adds the edge along its foot (the frame mark ▸1A and the
- * stock name), `mid` is the P alone, and `min` (under 48) enlarges the P a
- * step and drops the light edge, which is noise at 29 px.
- *
- * `ground="paper"` is the light variant (ink on a print). `seed` draws an
- * EVENT's icon, the one a guest's home screen keeps: the same P on that
- * event's latent image, so every event has its own icon as it has its own edge.
+ * Three drawings by size (`detail`, from `size` when absent): `full` (120 and
+ * up) with the edge's arrow and rule and a soft lift; `mid` with the rule
+ * alone; `min` (under 48) the print a step larger, upright, its rule thicker,
+ * no lift, so it holds at 29. `ground="paper"` lays the print on a paper tile.
  */
 export function AppIcon({
   size,
@@ -157,15 +157,21 @@ export function AppIcon({
   const level: IconDetail =
     detail ?? (size >= 120 ? "full" : size >= 48 ? "mid" : "min");
   const paper = ground === "paper" && !seed;
-  const fg = paper ? GROUND.ink.hex : GROUND.paper.hex;
-  const fs = level === "min" ? 66 : level === "full" ? 60 : 62;
-  const lift = level === "full" ? 3.5 : 0;
-  const x = 51.5 - ((P_INK.left + P_INK.right) / 2) * fs;
-  const y = 51 + (P_INK.cap / 2) * fs - lift;
-  const x0 = x + P_INK.left * fs;
-  const x1 = x + P_INK.stem * fs;
-  const cut = `M${x0 - 1.5} ${y + 0.6} L${x1 + 1.5} ${(y + 0.6 - (x1 - x0 + 3) * CUT).toFixed(2)} L${x1 + 1.5} ${y + 6} L${x0 - 1.5} ${y + 6} Z`;
+  const min = level === "min";
+  // The print, in the 100 box: portrait, its foot border wider for the edge.
+  const pw = min ? 60 : 52;
+  const ph = min ? 70 : 62;
+  const side = min ? 5 : 4.6;
+  const foot = min ? 13 : 13.5;
+  const px = (100 - pw) / 2;
+  const py = (100 - ph) / 2 - (min ? 0 : 1);
+  const tilt = min ? 0 : -4;
+  const ix = px + side;
+  const iy = py + side;
+  const iw = pw - side * 2;
+  const ih = ph - side - foot;
   const ev = seed ? seededColors(seed) : null;
+  const ink = GROUND.ink.hex;
   return (
     <svg
       viewBox="0 0 100 100"
@@ -183,94 +189,81 @@ export function AppIcon({
         </clipPath>
         <radialGradient id={`${id}g`} cx="0.5" cy="0" r="1.05">
           <stop offset="0" stopColor={paper ? "#ffffff" : "#2b251f"} />
-          <stop offset="0.72" stopColor={paper ? GROUND.print.hex : GROUND.ink.hex} />
+          <stop offset="0.72" stopColor={paper ? GROUND.sheet.hex : ink} />
         </radialGradient>
         <linearGradient id={`${id}e`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#fff" stopOpacity="0.2" />
           <stop offset="0.35" stopColor="#fff" stopOpacity="0" />
         </linearGradient>
-        {ev && (
-          <>
-            <radialGradient id={`${id}l`} cx="0.3" cy="0.24" r="0.75">
-              <stop offset="0" stopColor={ev.lit} />
-              <stop offset="1" stopColor={ev.lit} stopOpacity="0" />
-            </radialGradient>
-            <radialGradient id={`${id}d`} cx="0.8" cy="0.86" r="0.7">
-              <stop offset="0" stopColor={ev.deep} />
-              <stop offset="1" stopColor={ev.deep} stopOpacity="0" />
-            </radialGradient>
-          </>
-        )}
-        <mask id={`${id}c`} maskUnits="userSpaceOnUse" x={0} y={0} width={100} height={100}>
-          <rect width={100} height={100} fill="#fff" />
-          <path d={cut} fill="#000" />
-        </mask>
+        {/* The latent image: graphite on the house icon, the seed on an event's. */}
+        <radialGradient id={`${id}l`} cx="0.3" cy="0.22" r="0.95">
+          <stop offset="0" stopColor={ev ? ev.lit : "#a39c93"} />
+          <stop offset="0.55" stopColor={ev ? ev.body : "#5b554e"} />
+          <stop offset="1" stopColor={ev ? ev.deep : "#221e1a"} />
+        </radialGradient>
+        <filter id={`${id}s`} x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation={2.2} />
+        </filter>
       </defs>
       <g clipPath={`url(#${id}t)`}>
-        {ev ? (
-          <>
-            <rect width={100} height={100} fill={ev.body} />
-            <rect width={100} height={100} fill={`url(#${id}l)`} />
-            <rect width={100} height={100} fill={`url(#${id}d)`} />
-            {/* The ink over the latent image, so the paper P holds 4.5:1 on any seed. */}
-            <rect width={100} height={100} fill={GROUND.ink.hex} opacity={0.38} />
-          </>
-        ) : (
+        <rect
+          width={100}
+          height={100}
+          fill={min ? (paper ? GROUND.sheet.hex : ink) : `url(#${id}g)`}
+        />
+        <g transform={`rotate(${tilt} 50 50)`}>
+          {!min && (
+            // The print's contact with the ink: a short, soft lift.
+            <rect
+              x={px + 1}
+              y={py + 2.6}
+              width={pw}
+              height={ph}
+              fill="#000"
+              opacity={paper ? 0.16 : 0.5}
+              filter={`url(#${id}s)`}
+            />
+          )}
           <rect
-            width={100}
-            height={100}
-            fill={level === "min" ? (paper ? GROUND.print.hex : GROUND.ink.hex) : `url(#${id}g)`}
+            x={px}
+            y={py}
+            width={pw}
+            height={ph}
+            rx={0.6}
+            fill={GROUND.print.hex}
           />
-        )}
-        <g mask={`url(#${id}c)`}>
-          <text x={x} y={y} fill={fg} fontSize={fs} style={DISPLAY_FACE}>
-            P
-          </text>
-        </g>
-        {level === "full" && (
-          // The edge as a film prints it round a frame: the stock's name along
-          // the top, the frame mark along the foot, both on the P's stem line.
-          <g fill={fg}>
-            <text
-              x={x0}
-              y={y - P_INK.cap * fs - 6.2}
-              fontSize={5.2}
-              opacity={0.5}
-              style={{
-                fontFamily: "var(--font-cs-edge), sans-serif",
-                fontWeight: 600,
-                letterSpacing: "0.8px",
-              }}
-            >
-              PARTYREEL
-            </text>
-            <path d={`M${x0 + 0.3} ${y + 8.3} l3.5 2.1 l-3.5 2.1 z`} />
-            <text
-              x={x0 + 5.4}
-              y={y + 12.4}
-              fontSize={5.6}
-              style={{
-                fontFamily: "var(--font-cs-edge), sans-serif",
-                fontWeight: 600,
-                letterSpacing: "0.5px",
-              }}
-            >
-              1A
-            </text>
+          <rect x={ix} y={iy} width={iw} height={ih} fill={`url(#${id}l)`} />
+          {/* The edge rule under the image: the system's edge, at the icon's size. */}
+          <g fill={ink}>
+            {level === "full" && (
+              <path d={`M${ix} ${iy + ih + 4.1} l2.6 1.6 l-2.6 1.6 z`} />
+            )}
+            <rect
+              x={level === "full" ? ix + 4.4 : ix}
+              y={iy + ih + (min ? 4.6 : 5.1)}
+              width={level === "full" ? iw - 4.4 : iw * 0.62}
+              height={min ? 2.4 : 1.1}
+              opacity={min ? 0.9 : 0.75}
+            />
           </g>
-        )}
+        </g>
       </g>
       {paper ? (
         <path
           d={SQUIRCLE}
           fill="none"
-          stroke={GROUND.ink.hex}
+          stroke={ink}
           strokeOpacity={0.12}
-          strokeWidth={level === "min" ? 1.6 : 0.8}
+          strokeWidth={min ? 1.6 : 0.8}
         />
       ) : (
-        level !== "min" && (
-          <path d={SQUIRCLE} fill="none" stroke={`url(#${id}e)`} strokeWidth={1.1} />
+        !min && (
+          <path
+            d={SQUIRCLE}
+            fill="none"
+            stroke={`url(#${id}e)`}
+            strokeWidth={1.1}
+          />
         )
       )}
     </svg>
@@ -281,7 +274,8 @@ export function AppIcon({
 
 /**
  * THE LOCKUP: the icon and the wordmark side by side, the icon a third taller
- * than the wordmark's box so the P and the wordmark's P share a cap height.
+ * than the wordmark's box, so the print stands as tall as the word's capitals
+ * with its foot.
  */
 export function Lockup({
   height = 40,
@@ -303,10 +297,19 @@ export function Lockup({
   return (
     <div
       className={className}
-      style={{ display: "flex", alignItems: "center", gap: Math.round(height * 0.36), ...style }}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: Math.round(height * 0.36),
+        ...style,
+      }}
       data-bd-read={read}
     >
-      <AppIcon size={icon} ground={ground} detail={icon >= 48 ? "mid" : "min"} />
+      <AppIcon
+        size={icon}
+        ground={ground}
+        detail={icon >= 48 ? "mid" : "min"}
+      />
       <Wordmark height={height} color={color} />
     </div>
   );

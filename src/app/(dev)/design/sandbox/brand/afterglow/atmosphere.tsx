@@ -28,8 +28,18 @@ import {
 const SEED = PARTY.seed;
 const EVENTS = [
   { name: "Maya & Jay", date: "Sat 12 Sept", seed: PARTY.seed, guests: 31 },
-  { name: "Lena turns 30", date: "Fri 2 Oct", seed: "event-lena-birthday", guests: 18 },
-  { name: "Ines & Tom", date: "Sat 17 Oct", seed: "event-ines-wedding", guests: 54 },
+  {
+    name: "Lena turns 30",
+    date: "Fri 2 Oct",
+    seed: "event-lena-birthday",
+    guests: 18,
+  },
+  {
+    name: "Ines & Tom",
+    date: "Sat 17 Oct",
+    seed: "event-ines-wedding",
+    guests: 54,
+  },
 ] as const;
 
 /** The guest's empty album: the seed where the photographs will be, the shutter lit by it. */
@@ -39,7 +49,10 @@ function EmptyAlbum({ w, h }: { w: number; h: number }) {
   const pad = 16;
   return (
     <PhoneShell width={w} height={h}>
-      <div className="flex h-full flex-col" style={{ padding: `${Math.round(h * 0.07)}px ${pad}px ${pad}px` }}>
+      <div
+        className="flex h-full flex-col"
+        style={{ padding: `${Math.round(h * 0.07)}px ${pad}px ${pad}px` }}
+      >
         <p className="ag-subtitle" style={{ fontSize: 22 }}>
           {PARTY.name}
         </p>
@@ -59,13 +72,21 @@ function EmptyAlbum({ w, h }: { w: number; h: number }) {
               }}
             />
           ))}
-          <span className="ag-caption ag-num" style={{ color: t.faint, marginLeft: 8 }}>
+          <span
+            className="ag-caption ag-num"
+            style={{ color: t.faint, marginLeft: 8 }}
+          >
             +26
           </span>
         </div>
         <SeedCover
           seed={SEED}
-          style={{ marginTop: 18, width: inner - 2 * pad, height: Math.round(h * 0.3), borderRadius: 2 }}
+          style={{
+            marginTop: 18,
+            width: inner - 2 * pad,
+            height: Math.round(h * 0.3),
+            borderRadius: 2,
+          }}
         />
         <p className="ag-subtitle" style={{ fontSize: 18, marginTop: 18 }}>
           {VOICE.guestEmpty}
@@ -74,7 +95,12 @@ function EmptyAlbum({ w, h }: { w: number; h: number }) {
           Add the first photo. Everyone sees it land.
         </p>
         <div className="mt-auto flex justify-center pb-1">
-          <Ring light={lightOfSeed(SEED)} ground="room" size={Math.round(w * 0.19)} label="Add photos" />
+          <Ring
+            light={lightOfSeed(SEED)}
+            ground="room"
+            size={Math.round(w * 0.19)}
+            label="Add photos"
+          />
         </div>
       </div>
     </PhoneShell>
@@ -87,7 +113,15 @@ function Dashboard({ w, cols }: { w: number; cols: number }) {
   const gap = 14;
   const cw = Math.floor((w - 40 - (cols - 1) * gap) / cols);
   return (
-    <div style={{ width: w, background: GROUND.display.hex, borderRadius: 14, padding: 20, boxShadow: "inset 0 0 0 1px rgb(255 255 255 / 0.06)" }}>
+    <div
+      style={{
+        width: w,
+        background: GROUND.display.hex,
+        borderRadius: 14,
+        padding: 20,
+        boxShadow: "inset 0 0 0 1px rgb(255 255 255 / 0.06)",
+      }}
+    >
       <div className="flex items-baseline justify-between">
         <p className="ag-subtitle" style={{ fontSize: 20 }}>
           Your events
@@ -97,8 +131,19 @@ function Dashboard({ w, cols }: { w: number; cols: number }) {
       <div className="mt-4 flex flex-wrap" style={{ gap }}>
         {EVENTS.slice(0, cols < 3 ? 2 : 3).map((e) => (
           <div key={e.seed} style={{ width: cw }}>
-            <SeedCover seed={e.seed} style={{ width: cw, height: Math.round(cw * 0.7), borderRadius: 2, boxShadow: "inset 0 0 0 1px rgb(255 255 255 / 0.06)" }} />
-            <p className="ag-body" style={{ fontSize: 14.5, fontWeight: 600, marginTop: 10 }}>
+            <SeedCover
+              seed={e.seed}
+              style={{
+                width: cw,
+                height: Math.round(cw * 0.7),
+                borderRadius: 2,
+                boxShadow: "inset 0 0 0 1px rgb(255 255 255 / 0.06)",
+              }}
+            />
+            <p
+              className="ag-body"
+              style={{ fontSize: 14.5, fontWeight: 600, marginTop: 10 }}
+            >
               {e.name}
             </p>
             <p className="ag-caption ag-num" style={{ color: t.muted }}>
@@ -116,9 +161,25 @@ function Account({ w, h }: { w: number; h: number }) {
   const t = ink("room");
   const host = PARTY.hostSeed;
   return (
-    <div className="relative overflow-hidden" style={{ width: w, height: h, background: GROUND.roomCard.hex, borderRadius: 14 }}>
-      <Seam light={lightOfSeed(host)} ground="room" reach={Math.round(h * 0.36)} strength={0.72} />
-      <div className="relative flex flex-col items-center" style={{ paddingTop: Math.round(h * 0.2) }}>
+    <div
+      className="relative overflow-hidden"
+      style={{
+        width: w,
+        height: h,
+        background: GROUND.roomCard.hex,
+        borderRadius: 14,
+      }}
+    >
+      <Seam
+        light={lightOfSeed(host)}
+        ground="room"
+        reach={Math.round(h * 0.36)}
+        strength={0.72}
+      />
+      <div
+        className="relative flex flex-col items-center"
+        style={{ paddingTop: Math.round(h * 0.2) }}
+      >
         <Seeded seed={host} style={{ width: 84, height: 84 }} />
         <p className="ag-subtitle" style={{ fontSize: 22, marginTop: 14 }}>
           {PARTY.host}
@@ -148,11 +209,30 @@ function Account({ w, h }: { w: number; h: number }) {
 const FIRST: PhotoId = "wedding-toast";
 const AFTER: PhotoId[] = ["wedding-toast", "wedding-rings", "reception-table"];
 
-function Step({ tiles, light, w, small = false }: { tiles: readonly ("seed" | PhotoId)[]; light: Light; w: number; small?: boolean }) {
+function Step({
+  tiles,
+  light,
+  w,
+  small = false,
+}: {
+  tiles: readonly ("seed" | PhotoId)[];
+  light: Light;
+  w: number;
+  small?: boolean;
+}) {
   const tw = Math.floor((w - 4) / 3);
   const th = Math.round(tw * (small ? 0.8 : 0.62));
   return (
-    <div className="relative overflow-hidden" style={{ width: w, height: th + (small ? 46 : 70), background: GROUND.room.hex, borderRadius: 6, boxShadow: "inset 0 0 0 1px rgb(255 255 255 / 0.07)" }}>
+    <div
+      className="relative overflow-hidden"
+      style={{
+        width: w,
+        height: th + (small ? 46 : 70),
+        background: GROUND.room.hex,
+        borderRadius: 6,
+        boxShadow: "inset 0 0 0 1px rgb(255 255 255 / 0.07)",
+      }}
+    >
       <div className="flex" style={{ gap: 2 }}>
         {tiles.map((x, i) =>
           x === "seed" ? (
@@ -162,30 +242,80 @@ function Step({ tiles, light, w, small = false }: { tiles: readonly ("seed" | Ph
           ),
         )}
       </div>
-      <div className="absolute inset-x-0" style={{ top: th * 0.4, height: th * 0.6 + 4, background: `linear-gradient(to bottom, transparent, ${GROUND.room.hex})` }} />
-      <div className="absolute inset-x-0 flex justify-center" style={{ bottom: small ? 9 : 14 }}>
-        <Ring light={light} ground="room" size={small ? 26 : 38} glyph={small ? "none" : "add"} breathe={false} />
+      <div
+        className="absolute inset-x-0"
+        style={{
+          top: th * 0.4,
+          height: th * 0.6 + 4,
+          background: `linear-gradient(to bottom, transparent, ${GROUND.room.hex})`,
+        }}
+      />
+      <div
+        className="absolute inset-x-0 flex justify-center"
+        style={{ bottom: small ? 9 : 14 }}
+      >
+        <Ring
+          light={light}
+          ground="room"
+          size={small ? 26 : 38}
+          glyph={small ? "none" : "add"}
+          breathe={false}
+        />
       </div>
     </div>
   );
 }
 
-function Handover({ w, vertical, compact = false }: { w: number; vertical: boolean; compact?: boolean }) {
+function Handover({
+  w,
+  vertical,
+  compact = false,
+}: {
+  w: number;
+  vertical: boolean;
+  compact?: boolean;
+}) {
   const t = ink("room");
   const seedLight = lightOfSeed(SEED);
   const steps = [
-    { label: "The seed's light", line: "Teal: the event's own hue, before anything lands.", tiles: ["seed", "seed", "seed"] as const, light: seedLight },
-    { label: "The first photograph", line: "Lands in its place; the light begins to turn.", tiles: [FIRST, "seed", "seed"] as const, light: [...lightOfPhotos([FIRST]), ...seedLight.slice(0, 2)] },
-    { label: "The photographs' light", line: "From now on the album lights itself.", tiles: AFTER, light: lightOfPhotos(AFTER) },
+    {
+      label: "The seed's light",
+      line: "Teal: the event's own hue, before anything lands.",
+      tiles: ["seed", "seed", "seed"] as const,
+      light: seedLight,
+    },
+    {
+      label: "The first photograph",
+      line: "Lands in its place; the light begins to turn.",
+      tiles: [FIRST, "seed", "seed"] as const,
+      light: [...lightOfPhotos([FIRST]), ...seedLight.slice(0, 2)],
+    },
+    {
+      label: "The photographs' light",
+      line: "From now on the album lights itself.",
+      tiles: AFTER,
+      light: lightOfPhotos(AFTER),
+    },
   ];
   const gap = compact ? 12 : 36;
   const sw = vertical ? w : Math.floor((w - 2 * gap) / 3);
   return (
-    <div className={vertical ? "flex flex-col" : "flex items-start"} style={{ gap: vertical ? 22 : gap }}>
+    <div
+      className={vertical ? "flex flex-col" : "flex items-start"}
+      style={{ gap: vertical ? 22 : gap }}
+    >
       {steps.map((s, i) => (
         <div key={s.label} style={{ width: sw }}>
           <Step tiles={s.tiles} light={s.light} w={sw} small={compact} />
-          <p className="ag-body" style={{ fontSize: compact ? 12.5 : 14, fontWeight: 600, marginTop: compact ? 8 : 12, lineHeight: 1.3 }}>
+          <p
+            className="ag-body"
+            style={{
+              fontSize: compact ? 12.5 : 14,
+              fontWeight: 600,
+              marginTop: compact ? 8 : 12,
+              lineHeight: 1.3,
+            }}
+          >
             <span className="ag-num" style={{ color: t.faint }}>
               {i + 1}{" "}
             </span>
@@ -207,14 +337,17 @@ export function AtmosphereSlide({ screen }: SlideProps) {
   if (screen === "375")
     return (
       <SlideRoot screen={screen} ground="room">
-        <div className="absolute inset-x-0 px-6" style={{ top: HEAD[screen] + 26 }}>
+        <div
+          className="absolute inset-x-0 px-6"
+          style={{ top: HEAD[screen] + 26 }}
+        >
           <Readout style={{ color: t.faint }}>Without media</Readout>
           <h2 className="ag-title mt-3" style={{ fontSize: 32 }}>
             Before the first photograph, the seed is the light.
           </h2>
           <p className="ag-body mt-3" style={{ color: t.muted, fontSize: 14 }}>
-            Every event and every person has a seed. Where no photograph exists yet, its hue
-            is the colour, and the first photograph takes it over.
+            Every event and every person has a seed. Where no photograph exists
+            yet, its hue is the colour, and the first photograph takes it over.
           </p>
           <div className="mt-7 flex justify-center">
             <EmptyAlbum w={252} h={500} />
@@ -238,14 +371,25 @@ export function AtmosphereSlide({ screen }: SlideProps) {
     <SlideRoot screen={screen} ground="room">
       <div className="absolute" style={{ left: 64, top: 92, right: 64 }}>
         <Readout style={{ color: t.faint }}>Without media</Readout>
-        <div className="flex items-end justify-between" style={{ marginTop: 12, gap: 40 }}>
+        <div
+          className="flex items-end justify-between"
+          style={{ marginTop: 12, gap: 40 }}
+        >
           <h2 className="ag-title" style={{ fontSize: 38 }}>
             Before the first photograph, the seed is the light.
           </h2>
-          <p className="ag-body" style={{ color: t.muted, fontSize: 14.5, maxWidth: 400, paddingBottom: 2 }}>
-            Every event and every person has a seed, the hashvatar. Until a photograph
-            exists, its hue at three depths is the colour; the first photograph takes it
-            over.
+          <p
+            className="ag-body"
+            style={{
+              color: t.muted,
+              fontSize: 14.5,
+              maxWidth: 400,
+              paddingBottom: 2,
+            }}
+          >
+            Every event and every person has a seed, the hashvatar. Until a
+            photograph exists, its hue at three depths is the colour; the first
+            photograph takes it over.
           </p>
         </div>
       </div>

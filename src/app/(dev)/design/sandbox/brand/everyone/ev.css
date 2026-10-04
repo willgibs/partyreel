@@ -17,8 +17,70 @@
    drawn whole and in place without it. Only transform and opacity move. */
 
 .ev-root {
-  --ev-join: linear(0, 0.306, 0.547, 0.731, 0.866, 0.959, 1.019, 1.052, 1.066, 1.07, 1.07, 1.069, 1.068, 1.066, 1.064, 1.061, 1.058, 1.055, 1.051, 1.047, 1.043, 1.038, 1.034, 1.029, 1.025, 1.021, 1.017, 1.013, 1.01, 1.007, 1.004, 1.003, 1.001, 1, 1);
-  --ev-settle: linear(0, 0.07, 0.223, 0.401, 0.569, 0.711, 0.822, 0.902, 0.956, 0.99, 1.009, 1.018, 1.02, 1.019, 1.016, 1.012, 1.009, 1.006, 1.004, 1.002, 1.001, 1, 1, 1, 1);
+  --ev-join: linear(
+    0,
+    0.306,
+    0.547,
+    0.731,
+    0.866,
+    0.959,
+    1.019,
+    1.052,
+    1.066,
+    1.07,
+    1.07,
+    1.069,
+    1.068,
+    1.066,
+    1.064,
+    1.061,
+    1.058,
+    1.055,
+    1.051,
+    1.047,
+    1.043,
+    1.038,
+    1.034,
+    1.029,
+    1.025,
+    1.021,
+    1.017,
+    1.013,
+    1.01,
+    1.007,
+    1.004,
+    1.003,
+    1.001,
+    1,
+    1
+  );
+  --ev-settle: linear(
+    0,
+    0.07,
+    0.223,
+    0.401,
+    0.569,
+    0.711,
+    0.822,
+    0.902,
+    0.956,
+    0.99,
+    1.009,
+    1.018,
+    1.02,
+    1.019,
+    1.016,
+    1.012,
+    1.009,
+    1.006,
+    1.004,
+    1.002,
+    1.001,
+    1,
+    1,
+    1,
+    1
+  );
   position: absolute;
   inset: 0;
   overflow: hidden;
@@ -32,26 +94,37 @@
    size (`fonts.ts` says why). Its ascenders run tall, so a display line keeps
    0.94 of leading: at 0.9 an l kisses the y above it. */
 .ev-display {
-  font-family: var(--font-ev-display), var(--font-display), ui-serif, Georgia, serif;
+  font-family:
+    var(--font-ev-display), var(--font-display), ui-serif, Georgia, serif;
   font-weight: 900;
-  font-variation-settings: "opsz" 144, "SOFT" 100, "WONK" 0;
+  font-variation-settings:
+    "opsz" 144,
+    "SOFT" 100,
+    "WONK" 0;
   letter-spacing: -0.03em;
   line-height: 0.94;
 }
 /* A headline: the same face a step lighter, the 72 cut. */
 .ev-head {
-  font-family: var(--font-ev-display), var(--font-display), ui-serif, Georgia, serif;
+  font-family:
+    var(--font-ev-display), var(--font-display), ui-serif, Georgia, serif;
   font-weight: 800;
-  font-variation-settings: "opsz" 72, "SOFT" 100, "WONK" 0;
+  font-variation-settings:
+    "opsz" 72,
+    "SOFT" 100,
+    "WONK" 0;
   letter-spacing: -0.02em;
   line-height: 1.04;
 }
 /* A small heading (an event's name, a card's title): the browser picks the
    optical size from the font size, which opens the face up as it shrinks. */
 .ev-title {
-  font-family: var(--font-ev-display), var(--font-display), ui-serif, Georgia, serif;
+  font-family:
+    var(--font-ev-display), var(--font-display), ui-serif, Georgia, serif;
   font-weight: 700;
-  font-variation-settings: "SOFT" 100, "WONK" 0;
+  font-variation-settings:
+    "SOFT" 100,
+    "WONK" 0;
   letter-spacing: -0.004em;
   line-height: 1.15;
 }
@@ -440,4 +513,12 @@
   to {
     transform: translateX(-9.9px);
   }
+}
+
+/* The outlined tag (the creative director's pass): sentence case, the word in
+   ink, the outline drawn as an inset ring so the tag keeps its size. */
+.ev-tag.ev-tag-line {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 600;
 }

@@ -54,10 +54,18 @@ function Landed({ n, tile, gap }: { n: number; tile: number; gap: number }) {
     <ul className="grid" style={{ gap }}>
       {LANDED.slice(0, n).map((l) => (
         <li key={l.id} className="flex items-center" style={{ gap: 16 }}>
-          <Pic id={l.id} focus={l.focus} lit style={{ width: tile, height: tile, flex: "none" }} />
+          <Pic
+            id={l.id}
+            focus={l.focus}
+            lit
+            style={{ width: tile, height: tile, flex: "none" }}
+          />
           <div className="grid" style={{ gap: 7 }}>
             <Credit person={l.who} size={24} tone="room" />
-            <span className="ev-body" style={{ fontSize: 13, color: BASE.roomMuted.hex }}>
+            <span
+              className="ev-body"
+              style={{ fontSize: 13, color: BASE.roomMuted.hex }}
+            >
               {l.when}
             </span>
           </div>
@@ -107,19 +115,41 @@ function ReelDesk() {
       </div>
       <div
         className="ev-photo ev-photo-lit"
-        style={{ position: "absolute", left: 56, top: 384, width: reelW, height: reelH }}
+        style={{
+          position: "absolute",
+          left: 56,
+          top: 384,
+          width: reelW,
+          height: reelH,
+        }}
       >
         <Reel id="hero-candidate-02" />
       </div>
       <div className="absolute" style={{ left: 976, top: 384, width: 408 }}>
         <Kicker tone="room">A sample reel</Kicker>
-        <p className="ev-head" style={{ fontSize: 27, marginTop: 10, color: BASE.roomInk.hex }}>
+        <p
+          className="ev-head"
+          style={{ fontSize: 27, marginTop: 10, color: BASE.roomInk.hex }}
+        >
           {SAMPLE}
         </p>
         <div style={{ marginTop: 16 }}>
-          <GuestRow people={MADE_BY} max={8} total={GUESTS_N} size={30} tone="room" pop />
+          <GuestRow
+            people={MADE_BY}
+            max={8}
+            total={GUESTS_N}
+            size={30}
+            tone="room"
+            pop
+          />
         </div>
-        <div style={{ height: 1, backgroundColor: ON.room.line, margin: "26px 0 22px" }} />
+        <div
+          style={{
+            height: 1,
+            backgroundColor: ON.room.line,
+            margin: "26px 0 22px",
+          }}
+        />
         <Kicker tone="room" style={{ marginBottom: 16 }}>
           Just landed
         </Kicker>
@@ -148,7 +178,12 @@ function ReelPhone() {
         <p
           className="ev-body"
           data-bd-contrast="body in the room, on a phone"
-          style={{ fontSize: 16, lineHeight: 1.5, marginTop: 16, color: BASE.roomMuted.hex }}
+          style={{
+            fontSize: 16,
+            lineHeight: 1.5,
+            marginTop: 16,
+            color: BASE.roomMuted.hex,
+          }}
         >
           {BODY}
         </p>
@@ -161,20 +196,39 @@ function ReelPhone() {
       </div>
       {/* The landscape cut, edge to edge: the portrait cut letterboxes its
           stills in black, which would make the reel the darkest thing here. */}
-      <div className="ev-photo ev-photo-lit" style={{ marginTop: 28, width: 375, height: 290, borderRadius: 0 }}>
+      <div
+        className="ev-photo ev-photo-lit"
+        style={{ marginTop: 28, width: 375, height: 290, borderRadius: 0 }}
+      >
         <Reel id="hero-candidate-02" />
       </div>
       <div style={{ padding: "0 20px" }}>
         <Kicker tone="room" style={{ marginTop: 26 }}>
           A sample reel
         </Kicker>
-        <p className="ev-head" style={{ fontSize: 23, marginTop: 8, color: BASE.roomInk.hex }}>
+        <p
+          className="ev-head"
+          style={{ fontSize: 23, marginTop: 8, color: BASE.roomInk.hex }}
+        >
           {SAMPLE}
         </p>
         <div style={{ marginTop: 14 }}>
-          <GuestRow people={MADE_BY} max={7} total={GUESTS_N} size={30} tone="room" pop />
+          <GuestRow
+            people={MADE_BY}
+            max={7}
+            total={GUESTS_N}
+            size={30}
+            tone="room"
+            pop
+          />
         </div>
-        <div style={{ height: 1, backgroundColor: ON.room.line, margin: "24px 0 20px" }} />
+        <div
+          style={{
+            height: 1,
+            backgroundColor: ON.room.line,
+            margin: "24px 0 20px",
+          }}
+        />
         <Kicker tone="room" style={{ marginBottom: 14 }}>
           Just landed
         </Kicker>

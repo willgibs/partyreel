@@ -2,7 +2,14 @@
 
 import { PARTY, Qr } from "../../deck/media";
 import { HEAD } from "../../deck/deck";
-import { Copy, Display, Kicker, type Screen, SlideFoot, SlideRoot } from "../parts";
+import {
+  Copy,
+  Display,
+  Kicker,
+  type Screen,
+  SlideFoot,
+  SlideRoot,
+} from "../parts";
 import { edgeCode, EVENTS, GROUND, Print, Status } from "../system";
 
 /**
@@ -41,7 +48,13 @@ function Action({ children, size = 15 }: { children: string; size?: number }) {
 function EmptyAlbum({ w, phone = false }: { w: number; phone?: boolean }) {
   const code = edgeCode(PARTY.seed);
   return (
-    <div style={{ display: "flex", gap: phone ? 18 : 28, flexDirection: phone ? "column" : "row" }}>
+    <div
+      style={{
+        display: "flex",
+        gap: phone ? 18 : 28,
+        flexDirection: phone ? "column" : "row",
+      }}
+    >
       <Print
         seed={PARTY.seed}
         w={w}
@@ -51,22 +64,47 @@ function EmptyAlbum({ w, phone = false }: { w: number; phone?: boolean }) {
         edgeSize={10}
         read="the latent image, an empty album"
       />
-      <div style={{ width: phone ? undefined : 230, paddingTop: phone ? 0 : 6 }}>
+      <div
+        style={{ width: phone ? undefined : 230, paddingTop: phone ? 0 : 6 }}
+      >
         <Display size={phone ? 32 : 40} style={{ lineHeight: 1 }}>
           {PARTY.name}
         </Display>
         <Copy size={14} lead={20} style={{ marginTop: 8 }}>
           {PARTY.kind}, {PARTY.date}
         </Copy>
-        <Copy size={phone ? 17 : 18} lead={phone ? 24 : 26} muted={false} style={{ marginTop: phone ? 14 : 22, fontWeight: 600 }}>
-          <span data-bd-read="empty-state voice">Your first album starts here.</span>
+        <Copy
+          size={phone ? 17 : 18}
+          lead={phone ? 24 : 26}
+          muted={false}
+          style={{ marginTop: phone ? 14 : 22, fontWeight: 600 }}
+        >
+          <span data-bd-read="empty-state voice">
+            Your first album starts here.
+          </span>
         </Copy>
         <div style={{ marginTop: 16 }}>
           <Action>Add the first photo</Action>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: phone ? 18 : 30 }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 14,
+            marginTop: phone ? 18 : 30,
+          }}
+        >
           <Print w={84} border={8} ratio={1} flat>
-            <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", background: GROUND.print.hex, color: GROUND.ink.hex }}>
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                display: "grid",
+                placeItems: "center",
+                background: GROUND.print.hex,
+                color: GROUND.ink.hex,
+              }}
+            >
               <Qr size={68} />
             </div>
           </Print>
@@ -81,7 +119,14 @@ function EmptyAlbum({ w, phone = false }: { w: number; phone?: boolean }) {
 
 function Account({ w, phone = false }: { w: number; phone?: boolean }) {
   return (
-    <div style={{ display: "flex", gap: 18, flexDirection: phone ? "row" : "column", alignItems: phone ? "flex-start" : undefined }}>
+    <div
+      style={{
+        display: "flex",
+        gap: 18,
+        flexDirection: phone ? "row" : "column",
+        alignItems: phone ? "flex-start" : undefined,
+      }}
+    >
       <Print
         seed={PARTY.hostSeed}
         w={w}
@@ -111,7 +156,9 @@ function Account({ w, phone = false }: { w: number; phone?: boolean }) {
 
 function HostSheet({ w, gap }: { w: number; gap: number }) {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: `repeat(2, ${w}px)`, gap }}>
+    <div
+      style={{ display: "grid", gridTemplateColumns: `repeat(2, ${w}px)`, gap }}
+    >
       {EVENTS.map((e) => (
         <div key={e.seed}>
           <Print
@@ -140,9 +187,12 @@ export function AtmosphereSlide({ screen }: { screen: Screen }) {
 function AtmosphereDesk() {
   return (
     <SlideRoot screen="1440">
-      <div className="absolute" style={{ left: 64, top: HEAD["1440"] + 42, width: 860 }}>
+      <div
+        className="absolute"
+        style={{ left: 64, top: HEAD["1440"] + 42, width: 860 }}
+      >
         <Display size={50} style={{ lineHeight: 1 }}>
-          The photograph about to be.
+          Our aurora: the photograph about to be.
         </Display>
         <Copy size={16} lead={24} style={{ marginTop: 16, maxWidth: 800 }}>
           {LEDE}
@@ -174,9 +224,12 @@ function AtmosphereDesk() {
 function AtmospherePhone() {
   return (
     <SlideRoot screen="375">
-      <div className="absolute" style={{ left: 16, right: 16, top: HEAD["375"] + 24 }}>
+      <div
+        className="absolute"
+        style={{ left: 16, right: 16, top: HEAD["375"] + 24 }}
+      >
         <Display size={34} style={{ lineHeight: 1 }}>
-          The photograph about to be.
+          Our aurora: the photograph about to be.
         </Display>
         <Copy size={15} lead={22} style={{ marginTop: 12 }}>
           {LEDE}
@@ -189,7 +242,9 @@ function AtmospherePhone() {
         <div style={{ marginTop: 14 }}>
           <Account w={150} phone />
         </div>
-        <Kicker style={{ fontSize: 11, marginTop: 32 }}>A host&apos;s sheet, before any photo</Kicker>
+        <Kicker style={{ fontSize: 11, marginTop: 32 }}>
+          A host&apos;s sheet, before any photo
+        </Kicker>
         <div style={{ marginTop: 14 }}>
           <HostSheet w={163} gap={16} />
         </div>

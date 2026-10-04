@@ -50,9 +50,7 @@ export type Vision = {
   readonly name: string;
   /** One line under the name. */
   readonly line: string;
-  readonly slides: Readonly<
-    Record<SlideId, (props: SlideProps) => ReactNode>
-  >;
+  readonly slides: Readonly<Record<SlideId, (props: SlideProps) => ReactNode>>;
   /** A slide's height on a phone, where 812 is not enough. */
   readonly phoneHeight?: Partial<Record<SlideId, number>>;
   /**

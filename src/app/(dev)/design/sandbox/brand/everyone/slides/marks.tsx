@@ -18,9 +18,20 @@ const DOTS = [
   { dot: "house:255", who: "A visitor, fresh each visit" },
 ] as const;
 
-function Line({ children, tone, w }: { children: string; tone: "paper" | "room"; w?: number }) {
+function Line({
+  children,
+  tone,
+  w,
+}: {
+  children: string;
+  tone: "paper" | "room";
+  w?: number;
+}) {
   return (
-    <p className="ev-body" style={{ fontSize: 15, color: ON[tone].muted, maxWidth: w }}>
+    <p
+      className="ev-body"
+      style={{ fontSize: 15, color: ON[tone].muted, maxWidth: w }}
+    >
       {children}
     </p>
   );
@@ -52,15 +63,18 @@ export function Marks({ screen }: SlideProps) {
         </div>
         <div style={{ marginTop: 26 }}>
           <Line tone="paper" w={640}>
-            A word and a person. Lowercase, so no letter stands taller than the rest; the full
-            stop is a guest, seeded, so it is whoever is looking.
+            A word and a person. Lowercase, so no letter stands taller than the
+            rest; the full stop is a guest, seeded, so it is whoever is looking.
           </Line>
         </div>
         <div className="flex" style={{ gap: 40, marginTop: 40 }}>
           {DOTS.map((d) => (
             <div key={d.who} className="flex flex-col" style={{ gap: 10 }}>
               <Wordmark height={30} dot={d.dot} />
-              <span className="ev-body" style={{ fontSize: 13, color: ON.paper.muted }}>
+              <span
+                className="ev-body"
+                style={{ fontSize: 13, color: ON.paper.muted }}
+              >
                 {d.who}
               </span>
             </div>
@@ -73,7 +87,8 @@ export function Marks({ screen }: SlideProps) {
           </div>
           <div style={{ marginTop: 18 }}>
             <Line tone="paper" w={600}>
-              The party, then the word and its plus one. The icon leads where the word cannot fit.
+              The party, then the word and its plus one. The icon leads where
+              the word cannot fit.
             </Line>
           </div>
         </div>
@@ -95,8 +110,8 @@ export function Marks({ screen }: SlideProps) {
           <AppIcon size={264} read="icon, 1024 artboard" />
           <div style={{ paddingTop: 6 }}>
             <Line tone="room" w={150}>
-              A party of three: three house guests leaning in for the photo, each parted by the
-              tile&apos;s own color.
+              A row of three: the house&apos;s own guests side by side, matte,
+              each parted by the tile, as every event draws its guest row.
             </Line>
           </div>
         </div>
@@ -126,15 +141,21 @@ function MarksPhone({ screen }: SlideProps) {
         </div>
         <div style={{ marginTop: 16 }}>
           <Line tone="paper">
-            A word and a person. Lowercase, so no letter stands taller than the rest; the full
-            stop is a guest, seeded, so it is whoever is looking.
+            A word and a person. Lowercase, so no letter stands taller than the
+            rest; the full stop is a guest, seeded, so it is whoever is looking.
           </Line>
         </div>
-        <div className="grid" style={{ gridTemplateColumns: "1fr 1fr", gap: 18, marginTop: 22 }}>
+        <div
+          className="grid"
+          style={{ gridTemplateColumns: "1fr 1fr", gap: 18, marginTop: 22 }}
+        >
           {DOTS.map((d) => (
             <div key={d.who} className="flex flex-col" style={{ gap: 8 }}>
               <Wordmark height={26} dot={d.dot} />
-              <span className="ev-body" style={{ fontSize: 12, color: ON.paper.muted }}>
+              <span
+                className="ev-body"
+                style={{ fontSize: 12, color: ON.paper.muted }}
+              >
                 {d.who}
               </span>
             </div>
@@ -162,8 +183,8 @@ function MarksPhone({ screen }: SlideProps) {
         </div>
         <div style={{ marginTop: 14 }}>
           <Line tone="room">
-            A party of three: three house guests leaning in for the photo, each parted by the
-            tile&apos;s own color.
+            A row of three: the house&apos;s own guests side by side, matte,
+            each parted by the tile, as every event draws its guest row.
           </Line>
         </div>
         <div style={{ marginTop: 22 }}>

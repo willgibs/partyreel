@@ -120,7 +120,12 @@ export function Copy({
   return (
     <p
       className={cn("cs-read", muted && "cs-muted", className)}
-      style={{ fontSize: size, lineHeight: `${lead ?? Math.round(size * 1.5)}px`, margin: 0, ...style }}
+      style={{
+        fontSize: size,
+        lineHeight: `${lead ?? Math.round(size * 1.5)}px`,
+        margin: 0,
+        ...style,
+      }}
     >
       {children}
     </p>
@@ -133,7 +138,13 @@ export function Copy({
  * letters touch below about 50 px at the hero's tracking.
  */
 export const trackFor = (size: number) =>
-  size >= 90 ? "-0.04em" : size >= 48 ? "-0.03em" : size >= 28 ? "-0.02em" : "-0.012em";
+  size >= 90
+    ? "-0.04em"
+    : size >= 48
+      ? "-0.03em"
+      : size >= 28
+        ? "-0.02em"
+        : "-0.012em";
 
 /** A display line in the vision's loud face. */
 export function Display({
@@ -152,7 +163,12 @@ export function Display({
   return (
     <Tag
       className={cn("cs-display", className)}
-      style={{ fontSize: size, margin: 0, letterSpacing: trackFor(size), ...style }}
+      style={{
+        fontSize: size,
+        margin: 0,
+        letterSpacing: trackFor(size),
+        ...style,
+      }}
     >
       {children}
     </Tag>

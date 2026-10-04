@@ -1,12 +1,18 @@
 "use client";
 
-import { type CSSProperties, type RefObject, useEffect, useRef, useState } from "react";
+import {
+  type CSSProperties,
+  type RefObject,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
-import { MARKETING_REELS, marketingImage } from "@/lib/constants/marketing-media";
+import { MARKETING_REELS } from "@/lib/constants/marketing-media";
 import { REEL_LINE } from "@/lib/constants/marketing-voice";
 
 import { HEAD } from "../../deck/deck";
-import { type PhotoId, Reel } from "../../deck/media";
+import { Reel } from "../../deck/media";
 import { Display, type Screen, SlideRoot } from "../parts";
 import { Edge, type EdgeItem, PARTY_EDGE, who } from "../system";
 import { Pill, RollStrip, type RollFrame, SiteNav } from "./kit";
@@ -14,9 +20,8 @@ import { Pill, RollStrip, type RollFrame, SiteNav } from "./kit";
 /**
  * 10 A DARK PAGE (/reel): the one page that is the room, because it is the
  * one page where film is projected. The reel plays as a projection with the
- * light edge on its bevel, and the aurora's whole job here is the projector's
- * spill: the colour round the screen is the shot on the screen, blurred into
- * light and changing a beat after each cut. Under it, the band credits every
+ * light edge on its bevel and nothing round it: the room's only colour is the
+ * picture on the wall. Under it, the band credits every
  * frame as it plays (its number, and who shot it in their own light), and the
  * album's roll below advances as photos land.
  *
@@ -25,8 +30,9 @@ import { Pill, RollStrip, type RollFrame, SiteNav } from "./kit";
  * the dark as it does on paper.
  */
 
-const REEL = MARKETING_REELS.find((r) => r.id === "hero-candidate-02") ?? MARKETING_REELS[0];
-const SHOTS = REEL.recipe.clipIds as readonly PhotoId[];
+const REEL =
+  MARKETING_REELS.find((r) => r.id === "hero-candidate-02") ??
+  MARKETING_REELS[0];
 const BOUNDS = REEL.shotBoundaries;
 
 /** Who shot each frame the reel plays, and its number on the roll. */
@@ -59,8 +65,8 @@ const ROLL: readonly RollFrame[] = (
   photo,
   focus,
   // Each guest's own frame counter, so a roll drawn twice never shows its seam.
-  n: String([12, 7, 21, 3, 15, 9, 26, 18][i]),
-  who: who([0, 4, 5, 7, 2, 3, 6, 1][i]),
+  n: String([12, 7, 21, 32, 15, 9, 26, 18][i]),
+  who: who([0, 4, 5, 1, 2, 3, 6, 1][i]),
 }));
 
 const REBATE = [
@@ -78,14 +84,19 @@ function useBoardPause(box: RefObject<HTMLDivElement | null>) {
     const v = box.current?.querySelector("video");
     const slide = box.current?.closest("[data-bd-slide]");
     if (!v || !slide) return;
-    const reduce = v.ownerDocument.defaultView?.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduce = v.ownerDocument.defaultView?.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
     const sync = () => {
       if (slide.hasAttribute("data-bd-paused")) v.pause();
       else if (!reduce) void v.play().catch(() => {});
     };
     sync();
     const mo = new MutationObserver(sync);
-    mo.observe(slide, { attributes: true, attributeFilter: ["data-bd-paused"] });
+    mo.observe(slide, {
+      attributes: true,
+      attributeFilter: ["data-bd-paused"],
+    });
     return () => mo.disconnect();
   }, [box]);
 }
@@ -98,7 +109,8 @@ function useShot(box: RefObject<HTMLDivElement | null>): number {
     if (!v) return;
     const read = () => {
       let i = 0;
-      for (let k = 0; k < BOUNDS.length; k++) if (v.currentTime >= BOUNDS[k]) i = k;
+      for (let k = 0; k < BOUNDS.length; k++)
+        if (v.currentTime >= BOUNDS[k]) i = k;
       setShot((s) => (s === i ? s : i));
     };
     v.addEventListener("timeupdate", read);
@@ -112,24 +124,21 @@ function useShot(box: RefObject<HTMLDivElement | null>): number {
 }
 
 /**
- * THE PROJECTION: the reel on the wall, the light edge on its bevel, and the
- * spill round it, which is the shot itself thrown wide and soft (one layer a
- * shot, only the one on the screen lit). Its band prints the event's edge and
- * the frame on the screen, and changes with the cut.
+ * THE PROJECTION: the reel on the wall, the light edge on its bevel and no
+ * halo round it (the creative director's pass: a glow round the reel is
+ * another vision's Bloom; this one's colour is the picture's alone). Its band
+ * prints the event's edge and the frame on the screen, and changes with the cut.
  */
 function Projection({
   w,
   band = 26,
   edgeSize = 11,
-  spill = 1,
   compact = false,
   style,
 }: {
   w: number;
   band?: number;
   edgeSize?: number;
-  /** How far the light reaches, as a share of the screen. */
-  spill?: number;
   compact?: boolean;
   style?: CSSProperties;
 }) {
@@ -146,36 +155,16 @@ function Projection({
   return (
     <div style={{ position: "relative", width: w, height: h + band, ...style }}>
       <div
-        className="cs-spill"
-        aria-hidden
-        style={{
-          // Behind every word on the page (the page root isolates), and
-          // reaching right and down more than up and left: light falls from
-          // the screen onto the wall and the floor, never over the copy.
-          zIndex: -1,
-          left: -w * 0.04 * spill,
-          right: -w * 0.12 * spill,
-          top: h * 0.1 * spill,
-          bottom: -h * 0.5 * spill,
-          opacity: 0.5,
-        }}
-      >
-        {/* Each still is blurred once, on its own layer; only its opacity
-            ever moves, so the cut never re-blurs anything. */}
-        {SHOTS.map((id, i) => (
-          // eslint-disable-next-line @next/next/no-img-element -- the projector's light, a still blurred into spill inside a lab frame
-          <img
-            key={id}
-            src={marketingImage(id).src}
-            alt=""
-            data-cs-lit={i === shot ? "" : undefined}
-            style={{ filter: `blur(${Math.round(w * 0.075)}px) saturate(1.15)`, willChange: "opacity" }}
-          />
-        ))}
-      </div>
-      <div
         ref={box}
-        style={{ position: "absolute", left: 0, top: 0, width: w, height: h, overflow: "hidden", borderRadius: 2 }}
+        style={{
+          position: "absolute",
+          left: 0,
+          top: 0,
+          width: w,
+          height: h,
+          overflow: "hidden",
+          borderRadius: 2,
+        }}
         data-bd-read="the reel, projected"
       >
         <Reel id="hero-candidate-02" />
@@ -186,7 +175,8 @@ function Projection({
             position: "absolute",
             inset: 0,
             borderRadius: 2,
-            boxShadow: "inset 0 1px 0 rgb(255 255 255 / 0.34), inset 0 0 0 1px rgb(255 255 255 / 0.07)",
+            boxShadow:
+              "inset 0 1px 0 rgb(255 255 255 / 0.34), inset 0 0 0 1px rgb(255 255 255 / 0.07)",
           }}
         />
       </div>
@@ -195,28 +185,60 @@ function Projection({
         band
         size={edgeSize}
         height={band}
-        style={{ position: "absolute", left: 0, right: 0, top: h, background: "#191512", color: "#f3f0ea" }}
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          top: h,
+          background: "#191512",
+          color: "#f3f0ea",
+        }}
         read="the band, crediting the frame on the screen"
       />
     </div>
   );
 }
 
-export function DarkPage({ layout, top = 0 }: { layout: "desk" | "phone"; top?: number }) {
+export function DarkPage({
+  layout,
+  top = 0,
+}: {
+  layout: "desk" | "phone";
+  top?: number;
+}) {
   return layout === "desk" ? <DarkDesk top={top} /> : <DarkPhone top={top} />;
 }
 
 function DarkDesk({ top }: { top: number }) {
   return (
-    <div className="cs-on-room" style={{ position: "relative", width: 1440, height: 900, isolation: "isolate" }}>
+    <div
+      className="cs-on-room"
+      style={{
+        position: "relative",
+        width: 1440,
+        height: 900,
+        isolation: "isolate",
+      }}
+    >
       <div style={{ position: "absolute", left: 0, right: 0, top }}>
         <SiteNav layout="desk" room current="Features" />
       </div>
-      <div className="absolute" style={{ left: 64, top: top + 122, width: 560 }}>
+      <div
+        className="absolute"
+        style={{ left: 64, top: top + 122, width: 560 }}
+      >
         <Display as="h1" size={66} style={{ lineHeight: 0.96 }}>
           <span data-bd-read="h1, the reel's own line">{REEL_LINE}</span>
         </Display>
-        <p className="cs-read cs-muted" style={{ fontSize: 18, lineHeight: "28px", margin: "26px 0 0", maxWidth: 500 }}>
+        <p
+          className="cs-read cs-muted"
+          style={{
+            fontSize: 18,
+            lineHeight: "28px",
+            margin: "26px 0 0",
+            maxWidth: 500,
+          }}
+        >
           {REEL_SUB}
         </p>
         <div style={{ display: "flex", gap: 12, marginTop: 30 }}>
@@ -228,12 +250,26 @@ function DarkDesk({ top }: { top: number }) {
           </Pill>
         </div>
       </div>
-      <Projection w={704} style={{ position: "absolute", left: 672, top: top + 106 }} />
-      <div className="absolute" style={{ left: 64, top: top + 590, width: 520 }}>
+      <Projection
+        w={704}
+        style={{ position: "absolute", left: 672, top: top + 106 }}
+      />
+      <div
+        className="absolute"
+        style={{ left: 64, top: top + 590, width: 520 }}
+      >
         <Display size={38} style={{ lineHeight: 1.02 }}>
           {LIVE_HEAD}
         </Display>
-        <p className="cs-read cs-muted" style={{ fontSize: 16, lineHeight: "25px", margin: "16px 0 0", maxWidth: 470 }}>
+        <p
+          className="cs-read cs-muted"
+          style={{
+            fontSize: 16,
+            lineHeight: "25px",
+            margin: "16px 0 0",
+            maxWidth: 470,
+          }}
+        >
           {LIVE_SUB}
         </p>
       </div>
@@ -244,7 +280,13 @@ function DarkDesk({ top }: { top: number }) {
         edgeSize={10}
         rebate={REBATE}
         advance
-        style={{ position: "absolute", left: 672, top: top + 600, width: 1440 - 672 }}
+        newest={3}
+        style={{
+          position: "absolute",
+          left: 672,
+          top: top + 600,
+          width: 1440 - 672,
+        }}
       />
     </div>
   );
@@ -252,7 +294,15 @@ function DarkDesk({ top }: { top: number }) {
 
 function DarkPhone({ top }: { top: number }) {
   return (
-    <div className="cs-on-room" style={{ position: "relative", width: 375, height: 1060 + top, isolation: "isolate" }}>
+    <div
+      className="cs-on-room"
+      style={{
+        position: "relative",
+        width: 375,
+        height: 1060 + top,
+        isolation: "isolate",
+      }}
+    >
       <div style={{ position: "absolute", left: 0, right: 0, top }}>
         <SiteNav layout="phone" room />
       </div>
@@ -260,10 +310,15 @@ function DarkPhone({ top }: { top: number }) {
         <Display as="h1" size={42} style={{ lineHeight: 0.98 }}>
           <span data-bd-read="h1, the reel's own line">{REEL_LINE}</span>
         </Display>
-        <p className="cs-read cs-muted" style={{ fontSize: 16, lineHeight: "24px", margin: "16px 0 0" }}>
+        <p
+          className="cs-read cs-muted"
+          style={{ fontSize: 16, lineHeight: "24px", margin: "16px 0 0" }}
+        >
           {REEL_SUB}
         </p>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 22 }}>
+        <div
+          style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 22 }}
+        >
           <Pill size={15} tone="paper">
             Start free
           </Pill>
@@ -282,7 +337,10 @@ function DarkPhone({ top }: { top: number }) {
         <Display size={32} style={{ lineHeight: 1.02 }}>
           {LIVE_HEAD}
         </Display>
-        <p className="cs-read cs-muted" style={{ fontSize: 15, lineHeight: "23px", margin: "12px 0 0" }}>
+        <p
+          className="cs-read cs-muted"
+          style={{ fontSize: 15, lineHeight: "23px", margin: "12px 0 0" }}
+        >
           {LIVE_SUB}
         </p>
       </div>
@@ -293,6 +351,7 @@ function DarkPhone({ top }: { top: number }) {
         edgeSize={9}
         rebate={REBATE}
         advance
+        newest={1}
         offset={30}
         style={{ position: "absolute", left: 0, top: top + 900, width: 375 }}
       />

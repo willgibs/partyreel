@@ -4,7 +4,14 @@ import type { PhotoId } from "../../deck/media";
 import { HEAD } from "../../deck/deck";
 import { Wordmark } from "../marks";
 import { Display, Kicker, type Screen, SlideRoot } from "../parts";
-import { Edge, PARTY_EDGE, Print, Strip, type StripFrame, who } from "../system";
+import {
+  Edge,
+  PARTY_EDGE,
+  Print,
+  Strip,
+  type StripFrame,
+  who,
+} from "../system";
 
 /**
  * 01 COVER: the key visual is the party's contact sheet, everyone's frames
@@ -93,7 +100,10 @@ function CoverDesk() {
         style={{ position: "absolute", left: 546, top: 412 }}
         read="the keeper print"
       />
-      <div className="absolute" style={{ left: 64, top: HEAD["1440"] + 50, width: 480 }}>
+      <div
+        className="absolute"
+        style={{ left: 64, top: HEAD["1440"] + 50, width: 480 }}
+      >
         <Kicker>A brand for Partyreel</Kicker>
         <Display as="h1" size={124} style={{ marginTop: 28, lineHeight: 0.86 }}>
           <span data-bd-read="territory">
@@ -104,7 +114,12 @@ function CoverDesk() {
         </Display>
         <p
           className="cs-read cs-muted"
-          style={{ fontSize: 27, lineHeight: "35px", marginTop: 34, maxWidth: 440 }}
+          style={{
+            fontSize: 27,
+            lineHeight: "35px",
+            marginTop: 34,
+            maxWidth: 440,
+          }}
           data-bd-read="line"
         >
           Everyone&rsquo;s roll, developed together.
@@ -112,7 +127,12 @@ function CoverDesk() {
       </div>
       <div className="absolute" style={{ left: 64, bottom: 64 }}>
         <Wordmark height={70} read="wordmark" />
-        <Edge items={PARTY_EDGE} size={12} style={{ marginTop: 18 }} className="cs-muted" />
+        <Edge
+          items={PARTY_EDGE}
+          size={12}
+          style={{ marginTop: 18 }}
+          className="cs-muted"
+        />
       </div>
     </SlideRoot>
   );
@@ -151,7 +171,10 @@ function CoverPhone() {
         style={{ position: "absolute", left: 18, top: 396 }}
         read="the keeper print"
       />
-      <div className="absolute" style={{ left: 16, right: 16, top: HEAD["375"] + 22 }}>
+      <div
+        className="absolute"
+        style={{ left: 16, right: 16, top: HEAD["375"] + 22 }}
+      >
         <Kicker style={{ fontSize: 11 }}>A brand for Partyreel</Kicker>
         <Display as="h1" size={62} style={{ marginTop: 14, lineHeight: 0.86 }}>
           <span data-bd-read="territory">
@@ -170,7 +193,12 @@ function CoverPhone() {
       </div>
       <div className="absolute" style={{ left: 16, right: 16, bottom: 26 }}>
         <Wordmark height={44} read="wordmark" />
-        <Edge items={PARTY_EDGE} size={11} style={{ marginTop: 12 }} className="cs-muted" />
+        <Edge
+          items={PARTY_EDGE}
+          size={11}
+          style={{ marginTop: 12 }}
+          className="cs-muted"
+        />
       </div>
     </SlideRoot>
   );

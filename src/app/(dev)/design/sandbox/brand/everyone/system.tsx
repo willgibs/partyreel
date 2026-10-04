@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  type CSSProperties,
-  type ReactNode,
-  useMemo,
-} from "react";
+import { type CSSProperties, type ReactNode, useMemo } from "react";
 
 import {
   background,
@@ -260,36 +256,50 @@ export function StatusTag({
   running?: boolean;
 }) {
   const s = STATUS[kind];
-  const plate = s.plate(tone);
-  const words = s.words(tone);
-  const font = Math.round(size * 0.46);
+  // ★ OUTLINED, IN SENTENCE CASE, THE HUE IN THE GLYPH ALONE (the creative
+  // director's pass: solid all-caps fills with icons and a striped badge read
+  // as a CI dashboard, and a solid green landed on a green person). The tag is
+  // ink on the ground in an ink outline; only its glyph carries the state's
+  // hue, and waiting's hatch shows only while work truly runs.
+  const ink = ON[tone].ink;
+  const hue =
+    kind === "waiting"
+      ? ink
+      : STATUS_HUE[kind][tone === "room" ? "room" : "paper"].hex;
+  const font = Math.round(size * 0.5);
   return (
     <span
       data-ev-status={kind}
       className={cn(
-        "ev-tag",
-        kind === "waiting" && "ev-tag-hatch",
-        kind === "waiting" && running && "ev-tag-hatch-run",
+        "ev-tag ev-tag-line",
+        kind === "waiting" && running && "ev-tag-hatch ev-tag-hatch-run",
         tone === "room" && "ev-tag-room",
         className,
       )}
       style={{
         height: size,
-        paddingInline: Math.round(size * 0.38),
-        gap: Math.round(size * 0.28),
-        backgroundColor: plate.hex,
-        color: words.hex,
+        paddingInline: Math.round(size * 0.36),
+        gap: Math.round(size * 0.26),
+        backgroundColor: "transparent",
+        boxShadow: `inset 0 0 0 1.5px ${ink}`,
+        color: ink,
         fontSize: font,
         ...style,
       }}
     >
-      <StatusGlyph kind={kind} size={Math.round(size * 0.44)} />
+      <StatusGlyph kind={kind} size={Math.round(size * 0.46)} color={hue} />
       <span data-bd-contrast={contrastLabel} className="ev-tag-word">
         {children ?? s.word}
       </span>
     </span>
   );
 }
+
+/** The one hue a state's glyph carries, on each ground (waiting carries none). */
+export const STATUS_HUE = {
+  success: { paper: swatch(0.53, 0.13, 152), room: swatch(0.76, 0.17, 152) },
+  error: { paper: swatch(0.55, 0.21, 27), room: swatch(0.7, 0.19, 25) },
+} as const;
 
 /* ── the colour source: people, and the house mix before them ───────────── */
 
@@ -357,7 +367,11 @@ export function houseOrb(hue: number): OrbData {
     seed: `house-${hue}`,
     hue,
     hue2: (hue + 60) % 360,
-    lit: fitChroma({ l: Math.min(0.93, body.l + 0.13), c: body.c * 0.9, h: hue }),
+    lit: fitChroma({
+      l: Math.min(0.93, body.l + 0.13),
+      c: body.c * 0.9,
+      h: hue,
+    }),
     body,
     deep: fitChroma({
       l: Math.max(0.2, body.l - 0.24),
@@ -497,7 +511,10 @@ export function Orb({
 }) {
   const o = useMemo(() => orbOf(seed), [seed]);
   const shadows: string[] = [];
-  if (lit) shadows.push(`inset 0 ${Math.max(1, size * 0.012)}px 0 rgb(255 255 255 / 0.28)`);
+  if (lit)
+    shadows.push(
+      `inset 0 ${Math.max(1, size * 0.012)}px 0 rgb(255 255 255 / 0.28)`,
+    );
   if (ring) shadows.push(`0 0 0 ${ring}px ${ringColor ?? "transparent"}`);
   return (
     <div
@@ -556,7 +573,9 @@ export function GuestRow({
   return (
     <div
       className={cn("ev-row", className)}
-      style={{ ["--ev-row-overlap" as string]: `${-Math.round(size * 0.25)}px` }}
+      style={{
+        ["--ev-row-overlap" as string]: `${-Math.round(size * 0.25)}px`,
+      }}
     >
       {shown.map((p, i) => (
         <Orb
@@ -643,8 +662,7 @@ export function huddle(
   const aspect = w / h;
   const pts = people.map((p, i) => {
     const t = n > 1 ? i / (n - 1) : 0;
-    const d =
-      i === 0 ? host : (1 - vary + vary * r[i]) * (1 - 0.18 * t);
+    const d = i === 0 ? host : (1 - vary + vary * r[i]) * (1 - 0.18 * t);
     const a = i * GOLDEN + 0.6;
     const rr = 0.62 * Math.sqrt(i);
     return {
@@ -653,7 +671,7 @@ export function huddle(
       i,
       d,
       x: Math.cos(a) * rr * Math.sqrt(aspect),
-      y: Math.sin(a) * rr / Math.sqrt(aspect),
+      y: (Math.sin(a) * rr) / Math.sqrt(aspect),
     };
   });
   const gx = aspect >= 1 ? 0.006 / aspect : 0.006;
@@ -801,7 +819,8 @@ export function toss(
     const a = -Math.PI * (0.06 + 0.88 * slot);
     const band = 0.66 + 0.34 * r[i * 3 + 1];
     const dist = band * reach;
-    const d = min + (max - min) * (0.35 + 0.65 * r[i * 3 + 2]) * (1.15 - 0.3 * band);
+    const d =
+      min + (max - min) * (0.35 + 0.65 * r[i * 3 + 2]) * (1.15 - 0.3 * band);
     return {
       seed: p.seed,
       name: p.name,
@@ -947,23 +966,54 @@ export function Mix({
   orbClass?: string;
   stagger?: number;
 }) {
+  // ★ A COUNT IS A NUMBER, NEVER AN ORB (the creative director's pass: a
+  // 31-orb huddle read as a ball pit, not the quiet hashvatar). The host and
+  // six guests stand in; everyone after them is a count.
+  const shown = useMemo(() => people.slice(0, HUDDLE_MAX), [people]);
+  const rest = people.length - shown.length;
   const spots = useMemo(
-    () => huddle(people, { w, h, gap, host, vary, pad }),
-    [people, w, h, gap, host, vary, pad],
+    () => huddle(shown, { w, h, gap, host, vary, pad }),
+    [shown, w, h, gap, host, vary, pad],
   );
+  const chip = Math.max(22, Math.round(Math.min(w, h) * 0.14));
   return (
-    <Placed
-      spots={spots}
-      w={w}
-      h={h}
-      ringColor={ON[tone].ground}
+    <div
       className={className}
-      style={style}
-      orbClass={orbClass}
-      stagger={stagger}
-    />
+      style={{ position: "relative", width: w, height: h, ...style }}
+    >
+      <Placed
+        spots={spots}
+        w={w}
+        h={h}
+        ringColor={ON[tone].ground}
+        style={{ position: "absolute", left: 0, top: 0 }}
+        orbClass={orbClass}
+        stagger={stagger}
+      />
+      {rest > 0 && (
+        <span
+          className="ev-count"
+          style={{
+            position: "absolute",
+            right: Math.round(chip * 0.5),
+            bottom: Math.round(chip * 0.45),
+            height: chip,
+            minWidth: chip,
+            paddingInline: Math.round(chip * 0.32),
+            fontSize: Math.round(chip * 0.42),
+            backgroundColor: ON[tone].step,
+            color: ON[tone].ink,
+          }}
+        >
+          +{rest}
+        </span>
+      )}
+    </div>
   );
 }
+
+/** The most people a huddle draws: the host and six guests. */
+export const HUDDLE_MAX = 7;
 
 /** The crowd rows, measured and drawn in one call. */
 export function Crowd({
@@ -1088,12 +1138,31 @@ export function AddRing({
   }, [people, n, r, c]);
   return (
     <div className="relative" style={{ width: c * 2, height: c * 2 }}>
-      <svg width={c * 2} height={c * 2} className="absolute inset-0" aria-hidden>
+      <svg
+        width={c * 2}
+        height={c * 2}
+        className="absolute inset-0"
+        aria-hidden
+      >
         {n === 1 ? (
-          <circle cx={c} cy={c} r={r} fill="none" stroke={arcs[0].color} strokeWidth={3} />
+          <circle
+            cx={c}
+            cy={c}
+            r={r}
+            fill="none"
+            stroke={arcs[0].color}
+            strokeWidth={3}
+          />
         ) : (
           arcs.map((a) => (
-            <path key={a.seed} d={a.d} fill="none" stroke={a.color} strokeWidth={3} strokeLinecap="butt" />
+            <path
+              key={a.seed}
+              d={a.d}
+              fill="none"
+              stroke={a.color}
+              strokeWidth={3}
+              strokeLinecap="butt"
+            />
           ))
         )}
       </svg>
@@ -1110,11 +1179,88 @@ export function AddRing({
           boxShadow: `0 0 0 2px ${ground}`,
         }}
       >
-        <svg width={size * 0.36} height={size * 0.36} viewBox="0 0 12 12" aria-hidden>
-          <path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" />
+        <svg
+          width={size * 0.36}
+          height={size * 0.36}
+          viewBox="0 0 12 12"
+          aria-hidden
+        >
+          <path
+            d="M6 1v10M1 6h10"
+            stroke="currentColor"
+            strokeWidth={1.7}
+            strokeLinecap="round"
+          />
         </svg>
       </div>
     </div>
+  );
+}
+
+/**
+ * THE ADD AS YOURSELF (the creative director's pass: a ring of light round the
+ * Add was another vision's Ring and production's shutter). The Add is your own
+ * orb with a plus on it, in your colour, no ring: you add as yourself. For a
+ * guest not yet in, it is `seat`: an empty dashed seat at the end of the row.
+ */
+export function AddOrb({
+  you,
+  size = 60,
+  seat = false,
+  tone = "room",
+}: {
+  you?: Person;
+  size?: number;
+  /** An empty seat (a guest not yet in): a dashed circle and a plus. */
+  seat?: boolean;
+  tone?: Tone;
+}) {
+  const plus = (
+    <svg
+      width={size * 0.38}
+      height={size * 0.38}
+      viewBox="0 0 12 12"
+      aria-hidden
+    >
+      <path
+        d="M6 1.2v9.6M1.2 6h9.6"
+        stroke="currentColor"
+        strokeWidth={1.8}
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+  if (seat || !you)
+    return (
+      <span
+        role="img"
+        aria-label="Add photos"
+        className="inline-flex items-center justify-center"
+        style={{
+          width: size,
+          height: size,
+          borderRadius: 9999,
+          border: `2px dashed ${ON[tone].muted}`,
+          color: ON[tone].ink,
+        }}
+      >
+        {plus}
+      </span>
+    );
+  return (
+    <span
+      role="img"
+      aria-label={`Add photos as ${you.name}`}
+      className="relative inline-flex"
+    >
+      <Orb seed={you.seed} size={size} />
+      <span
+        className="absolute inset-0 flex items-center justify-center"
+        style={{ color: colorsOf(you.seed).ink }}
+      >
+        {plus}
+      </span>
+    </span>
   );
 }
 

@@ -5,7 +5,7 @@ import { PARTY, Qr } from "../../deck/media";
 import { Wordmark } from "../marks";
 import { isDesk, Pic, SlideGround } from "../slides/kit";
 import {
-  AddRing,
+  AddOrb,
   BASE,
   HOST,
   ON,
@@ -29,8 +29,8 @@ import {
  * 12 THE HUB, EMPTY. Maya's own event a minute after she made it: her cover,
  * the name, the code ready to share, and the album that starts here, wearing
  * the vision's atmosphere where the photographs will be: on the album's dark
- * well, the host stands alone, her own orb, lit, with the Add ringed in her
- * colour (one guest is a whole ring). "Just you so far" is the row's first
+ * well, the host stands alone, her own orb, lit, with the Add as her own orb
+ * and a plus (she adds as herself). "Just you so far" is the row's first
  * line, and every guest after her adds to it.
  *
  * ★ THE STATUS SET WHERE A HOST READS IT: production's readiness list ("Before
@@ -44,20 +44,50 @@ import {
  * word), which is the system's claim seen at its hardest.
  */
 
-const READY: { title: string; line: string; kind: StatusKind; word: string }[] = [
-  { title: "Who can get in", line: "Anyone with the code, once their email is confirmed.", kind: "success", word: "Done" },
-  { title: "What guests can add", line: "Uploads are open.", kind: "success", word: "Done" },
-  { title: "The code", line: "Nobody has opened it yet.", kind: "waiting", word: "Not yet" },
-];
+const READY: { title: string; line: string; kind: StatusKind; word: string }[] =
+  [
+    {
+      title: "Who can get in",
+      line: "Anyone with the code, once their email is confirmed.",
+      kind: "success",
+      word: "Done",
+    },
+    {
+      title: "What guests can add",
+      line: "Uploads are open.",
+      kind: "success",
+      word: "Done",
+    },
+    {
+      title: "The code",
+      line: "Nobody has opened it yet.",
+      kind: "waiting",
+      word: "Not yet",
+    },
+  ];
 
 /** The readiness list, its rows wearing the status set. */
-function Ready({ font, tag, desk }: { font: number; tag: number; desk: boolean }) {
+function Ready({
+  font,
+  tag,
+  desk,
+}: {
+  font: number;
+  tag: number;
+  desk: boolean;
+}) {
   return (
     <div>
-      <p className="ev-title" style={{ fontSize: font + 3, color: BASE.ink.hex }}>
+      <p
+        className="ev-title"
+        style={{ fontSize: font + 3, color: BASE.ink.hex }}
+      >
         Before guests arrive
       </p>
-      <p className="ev-body" style={{ fontSize: font - 1, color: BASE.muted.hex, marginTop: 2 }}>
+      <p
+        className="ev-body"
+        style={{ fontSize: font - 1, color: BASE.muted.hex, marginTop: 2 }}
+      >
         Guests still need one more thing.
       </p>
       <ul style={{ marginTop: 10 }}>
@@ -65,16 +95,30 @@ function Ready({ font, tag, desk }: { font: number; tag: number; desk: boolean }
           <li
             key={r.title}
             className="flex items-center justify-between"
-            style={{ gap: 14, padding: `${desk ? 9 : 10}px 0`, borderTop: `1px solid ${ON.paper.line}` }}
+            style={{
+              gap: 14,
+              padding: `${desk ? 9 : 10}px 0`,
+              borderTop: `1px solid ${ON.paper.line}`,
+            }}
           >
             <div className="ev-body min-w-0" style={{ fontSize: font }}>
               <p style={{ fontWeight: 550, color: BASE.ink.hex }}>{r.title}</p>
-              <p style={{ fontSize: font - 1.5, color: BASE.muted.hex, marginTop: 1 }}>{r.line}</p>
+              <p
+                style={{
+                  fontSize: font - 1.5,
+                  color: BASE.muted.hex,
+                  marginTop: 1,
+                }}
+              >
+                {r.line}
+              </p>
             </div>
             <StatusTag
               kind={r.kind}
               size={tag}
-              contrastLabel={desk && i === 2 ? "waiting word on its plate" : undefined}
+              contrastLabel={
+                desk && i === 2 ? "waiting word on its plate" : undefined
+              }
             >
               {r.word}
             </StatusTag>
@@ -86,7 +130,15 @@ function Ready({ font, tag, desk }: { font: number; tag: number; desk: boolean }
 }
 
 /** The code on its white mat, the address under it, and the two ways out. */
-function CodeCard({ qr, font, desk }: { qr: number; font: number; desk: boolean }) {
+function CodeCard({
+  qr,
+  font,
+  desk,
+}: {
+  qr: number;
+  font: number;
+  desk: boolean;
+}) {
   return (
     <div
       className="flex items-center"
@@ -102,13 +154,32 @@ function CodeCard({ qr, font, desk }: { qr: number; font: number; desk: boolean 
         <Qr size={qr} color={BASE.ink.hex} />
       </div>
       <div className="min-w-0">
-        <p className="ev-title" style={{ fontSize: font + 3, color: BASE.ink.hex }}>
+        <p
+          className="ev-title"
+          style={{ fontSize: font + 3, color: BASE.ink.hex }}
+        >
           The code
         </p>
-        <p className="ev-body text-balance" style={{ fontSize: font - 0.5, color: BASE.muted.hex, marginTop: 3, lineHeight: 1.4 }}>
+        <p
+          className="ev-body text-balance"
+          style={{
+            fontSize: font - 0.5,
+            color: BASE.muted.hex,
+            marginTop: 3,
+            lineHeight: 1.4,
+          }}
+        >
           Share it to bring everyone in.
         </p>
-        <p className="ev-body" style={{ fontSize: font - 1.5, color: BASE.ink.hex, marginTop: 10, fontWeight: 500 }}>
+        <p
+          className="ev-body"
+          style={{
+            fontSize: font - 1.5,
+            color: BASE.ink.hex,
+            marginTop: 10,
+            fontWeight: 500,
+          }}
+        >
           {/* The address breaks after its /e/ or not at all: never inside the slug. */}
           {PARTY.url.split("/e/")[0]}/e/
           <wbr />
@@ -151,21 +222,46 @@ function Well({
   return (
     <div
       className="relative flex flex-col items-center"
-      style={{ width: w, height: h, borderRadius: 12, backgroundColor: BASE.well.hex, paddingTop: h * 0.13 }}
+      style={{
+        width: w,
+        height: h,
+        borderRadius: 12,
+        backgroundColor: BASE.well.hex,
+        paddingTop: h * 0.13,
+      }}
     >
-      <Orb seed={HOST.seed} size={orb} lit className="ev-arrive" title={HOST.name} />
+      <Orb
+        seed={HOST.seed}
+        size={orb}
+        lit
+        className="ev-arrive"
+        title={HOST.name}
+      />
       <p
         className="ev-head text-center"
-        data-bd-contrast={font > 15 ? "the album's line on the well" : undefined}
+        data-bd-contrast={
+          font > 15 ? "the album's line on the well" : undefined
+        }
         style={{ fontSize: head, color: BASE.roomInk.hex, marginTop: h * 0.07 }}
       >
         Your first album starts here
       </p>
-      <p className="ev-body text-center" style={{ fontSize: font, color: BASE.roomMuted.hex, marginTop: 8, maxWidth: w * 0.8 }}>
+      <p
+        className="ev-body text-center"
+        style={{
+          fontSize: font,
+          color: BASE.roomMuted.hex,
+          marginTop: 8,
+          maxWidth: w * 0.8,
+        }}
+      >
         Add the first photos. Everyone who scans the code adds theirs.
       </p>
-      <div className="absolute" style={{ left: "50%", bottom: h * 0.07, transform: "translateX(-50%)" }}>
-        <AddRing people={[HOST]} size={add} ground={BASE.well.hex} />
+      <div
+        className="absolute"
+        style={{ left: "50%", bottom: h * 0.07, transform: "translateX(-50%)" }}
+      >
+        <AddOrb you={HOST} size={add} />
       </div>
     </div>
   );
@@ -189,27 +285,58 @@ const DESK_H = 1000;
 
 function HubDesk() {
   return (
-    <div className="relative overflow-hidden" style={{ width: 1440, height: DESK_H, backgroundColor: ON.paper.ground }}>
-      <div className="flex items-center justify-between" style={{ height: 62, paddingInline: 40 }}>
+    <div
+      className="relative overflow-hidden"
+      style={{ width: 1440, height: DESK_H, backgroundColor: ON.paper.ground }}
+    >
+      <div
+        className="flex items-center justify-between"
+        style={{ height: 62, paddingInline: 40 }}
+      >
         <div className="flex items-center" style={{ gap: 26 }}>
-          <Wordmark height={24} dot={HOST.seed} read="wordmark in the app, Maya's dot" />
-          <span className="ev-body flex items-center" style={{ gap: 8, fontSize: 14.5, color: BASE.muted.hex }}>
+          <Wordmark
+            height={24}
+            dot={HOST.seed}
+            read="wordmark in the app, Maya's dot"
+          />
+          <span
+            className="ev-body flex items-center"
+            style={{ gap: 8, fontSize: 14.5, color: BASE.muted.hex }}
+          >
             Your events
             <Chevron dir="right" size={10} color={BASE.faint.hex} />
-            <span style={{ color: BASE.ink.hex, fontWeight: 550 }}>{PARTY.name}</span>
+            <span style={{ color: BASE.ink.hex, fontWeight: 550 }}>
+              {PARTY.name}
+            </span>
           </span>
         </div>
         <div className="flex items-center" style={{ gap: 18 }}>
-          <span className="ev-body" style={{ fontSize: 14.5, color: BASE.ink.hex }}>Settings</span>
+          <span
+            className="ev-body"
+            style={{ fontSize: 14.5, color: BASE.ink.hex }}
+          >
+            Settings
+          </span>
           <Orb seed={HOST.seed} size={32} initial="M" />
         </div>
       </div>
-      <Pic id="wedding-arch" focus="50% 46%" style={{ width: 1440, height: 270, borderRadius: 0 }} />
+      <Pic
+        id="wedding-arch"
+        focus="50% 46%"
+        style={{ width: 1440, height: 270, borderRadius: 0 }}
+      />
       <div className="absolute" style={{ left: 56, top: 362 }}>
-        <h1 className="ev-display" data-bd-read="the event's name" style={{ fontSize: 66, color: BASE.ink.hex }}>
+        <h1
+          className="ev-display"
+          data-bd-read="the event's name"
+          style={{ fontSize: 66, color: BASE.ink.hex }}
+        >
           {PARTY.name}
         </h1>
-        <p className="ev-body" style={{ fontSize: 16.5, color: BASE.muted.hex, marginTop: 10 }}>
+        <p
+          className="ev-body"
+          style={{ fontSize: 16.5, color: BASE.muted.hex, marginTop: 10 }}
+        >
           {PARTY.date} · {PARTY.kind}
         </p>
       </div>
@@ -219,7 +346,10 @@ function HubDesk() {
       <div className="absolute" style={{ left: 56, top: 500 }}>
         <Well w={840} h={456} orb={160} head={36} font={16.5} add={60} />
       </div>
-      <div className="absolute grid" style={{ left: 928, top: 500, width: 456, gap: 22 }}>
+      <div
+        className="absolute grid"
+        style={{ left: 928, top: 500, width: 456, gap: 22 }}
+      >
         <CodeCard qr={132} font={15} desk />
         <Ready font={15} tag={26} desk />
       </div>
@@ -231,21 +361,41 @@ function HubDesk() {
 
 function HubPhone({ top, status = false }: { top: number; status?: boolean }) {
   return (
-    <div className="relative overflow-hidden" style={{ width: 375, backgroundColor: ON.paper.ground }}>
+    <div
+      className="relative overflow-hidden"
+      style={{ width: 375, backgroundColor: ON.paper.ground }}
+    >
       {status ? <StatusBar tone="paper" /> : <div style={{ height: top }} />}
-      <div className="flex items-center justify-between" style={{ height: 48, paddingInline: 16 }}>
-        <span className="ev-body flex items-center" style={{ gap: 4, fontSize: 15, color: BASE.ink.hex }}>
+      <div
+        className="flex items-center justify-between"
+        style={{ height: 48, paddingInline: 16 }}
+      >
+        <span
+          className="ev-body flex items-center"
+          style={{ gap: 4, fontSize: 15, color: BASE.ink.hex }}
+        >
           <Chevron dir="left" size={16} weight={1.8} />
           Your events
         </span>
         <Orb seed={HOST.seed} size={30} initial="M" />
       </div>
-      <Pic id="wedding-arch" focus="50% 46%" style={{ width: 375, height: 200, borderRadius: 0 }} />
+      <Pic
+        id="wedding-arch"
+        focus="50% 46%"
+        style={{ width: 375, height: 200, borderRadius: 0 }}
+      />
       <div style={{ padding: "20px 16px 0" }}>
-        <h1 className="ev-display" data-bd-read={status ? undefined : "the event's name, on a phone"} style={{ fontSize: 42, color: BASE.ink.hex }}>
+        <h1
+          className="ev-display"
+          data-bd-read={status ? undefined : "the event's name, on a phone"}
+          style={{ fontSize: 42, color: BASE.ink.hex }}
+        >
           {PARTY.name}
         </h1>
-        <p className="ev-body" style={{ fontSize: 15, color: BASE.muted.hex, marginTop: 6 }}>
+        <p
+          className="ev-body"
+          style={{ fontSize: 15, color: BASE.muted.hex, marginTop: 6 }}
+        >
           {PARTY.date} · {PARTY.kind}
         </p>
         <div style={{ marginTop: 14 }}>
@@ -279,9 +429,18 @@ export function EmptyHub({ screen }: SlideProps) {
   const scale = bw / 1440;
   const pw = 284;
   return (
-    <SlideGround tone="paper" screen={screen} pad={false} style={{ backgroundColor: BASE.step.hex }}>
+    <SlideGround
+      tone="paper"
+      screen={screen}
+      pad={false}
+      style={{ backgroundColor: BASE.step.hex }}
+    >
       <div className="absolute" style={{ left: 52, top: 92 }}>
-        <BrowserShell width={bw} height={Math.round(DESK_H * scale)} url="partyreel.com/dashboard">
+        <BrowserShell
+          width={bw}
+          height={Math.round(DESK_H * scale)}
+          url="partyreel.com/dashboard"
+        >
           <Scaled w={1440} h={DESK_H} scale={scale}>
             <HubDesk />
           </Scaled>

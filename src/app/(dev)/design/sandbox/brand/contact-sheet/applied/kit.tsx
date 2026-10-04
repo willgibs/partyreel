@@ -8,7 +8,14 @@ import { cn } from "@/lib/utils";
 
 import { Photo, type PhotoId, Seeded } from "../../deck/media";
 import { Wordmark } from "../marks";
-import { Develop, Edge, EdgeArrow, type EdgeItem, GROUND, vars } from "../system";
+import {
+  Develop,
+  Edge,
+  EdgeArrow,
+  type EdgeItem,
+  GROUND,
+  vars,
+} from "../system";
 
 /**
  * THE APPLIED KIT: what the six touchpoints (slides 9 to 14) share beyond the
@@ -44,7 +51,13 @@ export function Scaled({
   return (
     <div
       className={className}
-      style={{ position: "relative", width: w * scale, height: h * scale, overflow: "hidden", ...style }}
+      style={{
+        position: "relative",
+        width: w * scale,
+        height: h * scale,
+        overflow: "hidden",
+        ...style,
+      }}
     >
       <div
         style={{
@@ -92,7 +105,10 @@ export function BrowserShell({
   const bar = 34;
   const scale = w / page;
   return (
-    <div className={cn("cs-browser", className)} style={{ width: w, height: h, ...style }}>
+    <div
+      className={cn("cs-browser", className)}
+      style={{ width: w, height: h, ...style }}
+    >
       <div className="cs-browser-bar" style={{ height: bar }}>
         <span className="cs-browser-dots" aria-hidden>
           <i />
@@ -115,26 +131,89 @@ export function BrowserShell({
 }
 
 /** A phone's status bar, drawn plainly: the time, the signal, the battery. */
-export function StatusBar({ room = false, time = "9:41" }: { room?: boolean; time?: string }) {
+export function StatusBar({
+  room = false,
+  time = "9:41",
+}: {
+  room?: boolean;
+  time?: string;
+}) {
   return (
     <div className={cn("cs-statusbar", room && "cs-on-room")} aria-hidden>
       <span className="cs-statusbar-time">{time}</span>
       <span className="cs-statusbar-icons">
         <svg viewBox="0 0 18 12" width={17} height={11}>
           <rect x="0" y="8" width="3" height="4" rx="0.8" fill="currentColor" />
-          <rect x="5" y="5.5" width="3" height="6.5" rx="0.8" fill="currentColor" />
-          <rect x="10" y="3" width="3" height="9" rx="0.8" fill="currentColor" />
-          <rect x="15" y="0" width="3" height="12" rx="0.8" fill="currentColor" />
+          <rect
+            x="5"
+            y="5.5"
+            width="3"
+            height="6.5"
+            rx="0.8"
+            fill="currentColor"
+          />
+          <rect
+            x="10"
+            y="3"
+            width="3"
+            height="9"
+            rx="0.8"
+            fill="currentColor"
+          />
+          <rect
+            x="15"
+            y="0"
+            width="3"
+            height="12"
+            rx="0.8"
+            fill="currentColor"
+          />
         </svg>
         <svg viewBox="0 0 16 12" width={15} height={11}>
-          <path d="M8 11.4 L5.6 8.8 A3.4 3.4 0 0 1 10.4 8.8 Z" fill="currentColor" />
-          <path d="M3.4 6.6 A6.6 6.6 0 0 1 12.6 6.6" stroke="currentColor" strokeWidth="1.7" fill="none" strokeLinecap="round" />
-          <path d="M1.1 4.2 A9.8 9.8 0 0 1 14.9 4.2" stroke="currentColor" strokeWidth="1.7" fill="none" strokeLinecap="round" />
+          <path
+            d="M8 11.4 L5.6 8.8 A3.4 3.4 0 0 1 10.4 8.8 Z"
+            fill="currentColor"
+          />
+          <path
+            d="M3.4 6.6 A6.6 6.6 0 0 1 12.6 6.6"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            fill="none"
+            strokeLinecap="round"
+          />
+          <path
+            d="M1.1 4.2 A9.8 9.8 0 0 1 14.9 4.2"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            fill="none"
+            strokeLinecap="round"
+          />
         </svg>
         <svg viewBox="0 0 27 13" width={25} height={12}>
-          <rect x="0.6" y="0.6" width="22.6" height="11.8" rx="3.4" fill="none" stroke="currentColor" strokeOpacity="0.4" strokeWidth="1.1" />
-          <rect x="2.4" y="2.4" width="17.4" height="8.2" rx="2" fill="currentColor" />
-          <path d="M24.6 4.4 v4.2 a2.1 2.1 0 0 0 0 -4.2 z" fill="currentColor" fillOpacity="0.4" />
+          <rect
+            x="0.6"
+            y="0.6"
+            width="22.6"
+            height="11.8"
+            rx="3.4"
+            fill="none"
+            stroke="currentColor"
+            strokeOpacity="0.4"
+            strokeWidth="1.1"
+          />
+          <rect
+            x="2.4"
+            y="2.4"
+            width="17.4"
+            height="8.2"
+            rx="2"
+            fill="currentColor"
+          />
+          <path
+            d="M24.6 4.4 v4.2 a2.1 2.1 0 0 0 0 -4.2 z"
+            fill="currentColor"
+            fillOpacity="0.4"
+          />
         </svg>
       </span>
     </div>
@@ -193,8 +272,19 @@ export function Pill({
 /** A plus, drawn on the label's line. */
 export function PlusGlyph({ size = 14 }: { size?: number }) {
   return (
-    <svg viewBox="0 0 14 14" width={size} height={size} aria-hidden style={{ flex: "none" }}>
-      <path d="M7 1.5v11M1.5 7h11" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+    <svg
+      viewBox="0 0 14 14"
+      width={size}
+      height={size}
+      aria-hidden
+      style={{ flex: "none" }}
+    >
+      <path
+        d="M7 1.5v11M1.5 7h11"
+        stroke="currentColor"
+        strokeWidth="1.9"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -202,7 +292,13 @@ export function PlusGlyph({ size = 14 }: { size?: number }) {
 /** A play triangle, for a reel's door. */
 export function PlayGlyph({ size = 12 }: { size?: number }) {
   return (
-    <svg viewBox="0 0 12 14" width={size} height={size * 1.15} aria-hidden style={{ flex: "none" }}>
+    <svg
+      viewBox="0 0 12 14"
+      width={size}
+      height={size * 1.15}
+      aria-hidden
+      style={{ flex: "none" }}
+    >
       <path d="M1.2 1.4 L11 7 L1.2 12.6 Z" fill="currentColor" />
     </svg>
   );
@@ -211,8 +307,21 @@ export function PlayGlyph({ size = 12 }: { size?: number }) {
 /** A small chevron after a nav word that opens a menu. */
 function Chevron() {
   return (
-    <svg viewBox="0 0 10 6" width={9} height={6} aria-hidden style={{ opacity: 0.6 }}>
-      <path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.4" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    <svg
+      viewBox="0 0 10 6"
+      width={9}
+      height={6}
+      aria-hidden
+      style={{ opacity: 0.6 }}
+    >
+      <path
+        d="M1 1l4 4 4-4"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -249,7 +358,10 @@ export function SiteNav({
         padding: desk ? "0 64px" : "0 16px",
       }}
     >
-      <Wordmark height={desk ? 25 : 21} read={desk ? "wordmark, the nav" : undefined} />
+      <Wordmark
+        height={desk ? 25 : 21}
+        read={desk ? "wordmark, the nav" : undefined}
+      />
       {desk && (
         <span className="cs-nav-words">
           {NAV.map((n) => (
@@ -270,8 +382,19 @@ export function SiteNav({
           Start free
         </Pill>
         {!desk && (
-          <svg viewBox="0 0 20 14" width={20} height={14} aria-label="Menu" style={{ marginLeft: 6 }}>
-            <path d="M1 3h18M1 11h18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          <svg
+            viewBox="0 0 20 14"
+            width={20}
+            height={14}
+            aria-label="Menu"
+            style={{ marginLeft: 6 }}
+          >
+            <path
+              d="M1 3h18M1 11h18"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+            />
           </svg>
         )}
       </span>
@@ -292,7 +415,13 @@ export const SITE_EDGE: EdgeItem[] = [
  * edge knocked out of it, then the footer's words on the same paper (or the
  * same room). Never a chapter of another ground.
  */
-export function SiteClose({ layout, room = false }: { layout: "desk" | "phone"; room?: boolean }) {
+export function SiteClose({
+  layout,
+  room = false,
+}: {
+  layout: "desk" | "phone";
+  room?: boolean;
+}) {
   const desk = layout === "desk";
   const cols = desk
     ? [
@@ -306,7 +435,17 @@ export function SiteClose({ layout, room = false }: { layout: "desk" | "phone"; 
       ];
   return (
     <footer className={cn("cs-close", room && "cs-on-room")}>
-      <Edge items={SITE_EDGE} band repeat={desk ? 6 : 3} size={desk ? 11 : 10} height={desk ? 26 : 24} />
+      {/* The close is a rule, never a marquee (the creative director's pass: a
+          repeated band read as a ticker, the terminal look the edge forbids;
+          edges stay with prints and strips). */}
+      <div
+        aria-hidden
+        style={{
+          height: 2,
+          background: room ? "#f3f0ea" : "#16120f",
+          opacity: 0.9,
+        }}
+      />
       <div
         style={{
           display: "flex",
@@ -315,9 +454,22 @@ export function SiteClose({ layout, room = false }: { layout: "desk" | "phone"; 
           alignItems: "flex-start",
         }}
       >
-        <div style={{ flex: desk ? "0 0 300px" : "none", display: desk ? "block" : "none" }}>
+        <div
+          style={{
+            flex: desk ? "0 0 300px" : "none",
+            display: desk ? "block" : "none",
+          }}
+        >
           <Wordmark height={20} />
-          <p className="cs-read cs-muted" style={{ margin: "12px 0 0", fontSize: 13, lineHeight: "19px", maxWidth: 260 }}>
+          <p
+            className="cs-read cs-muted"
+            style={{
+              margin: "12px 0 0",
+              fontSize: 13,
+              lineHeight: "19px",
+              maxWidth: 260,
+            }}
+          >
             The whole event, in one album.
           </p>
         </div>
@@ -327,7 +479,11 @@ export function SiteClose({ layout, room = false }: { layout: "desk" | "phone"; 
               {head}
             </span>
             {items.map((t) => (
-              <span key={t} className="cs-read cs-muted" style={{ fontSize: 13 }}>
+              <span
+                key={t}
+                className="cs-read cs-muted"
+                style={{ fontSize: 13 }}
+              >
                 {t}
               </span>
             ))}
@@ -340,6 +496,11 @@ export function SiteClose({ layout, room = false }: { layout: "desk" | "phone"; 
 
 /* ── a roll that advances ────────────────────────────────────────────────── */
 
+/** The advance's own clock (`cs-roll` in cs.css): its start, one step, the move. */
+const ROLL_START = 3.4;
+const ROLL_STEP = 1.8;
+const ROLL_MOVE = 0.18;
+
 export type RollFrame = {
   readonly photo: PhotoId;
   readonly focus?: string;
@@ -347,6 +508,12 @@ export type RollFrame = {
   readonly n: string;
   /** Who shot it (or, for a plan, whose album): a name and a seed for the dot. */
   readonly who?: { readonly name: string; readonly seed: string };
+  /**
+   * The newest frame, caught mid-develop (the creative director's pass: a
+   * roll of finished prints read as an archive). Paper white still rising into
+   * the photograph, its edge saying JUST NOW.
+   */
+  readonly fresh?: boolean;
 };
 
 /**
@@ -367,6 +534,7 @@ export function RollStrip({
   edgeSize = 10,
   rebate,
   advance = false,
+  newest,
   develop,
   offset = 0,
   className,
@@ -381,6 +549,14 @@ export function RollStrip({
   /** The rebate's words, a segment per frame, in turn (an event's edge cut in two). */
   rebate: readonly (readonly EdgeItem[])[];
   advance?: boolean;
+  /**
+   * The run index of the newest frame (the rightmost in view at rest). It is
+   * caught mid-develop with JUST NOW on its edge; on an advancing roll each
+   * frame that arrives at the right takes its turn as the newest (a CSS delay
+   * per arrival on the advance's own clock), so the develop always sits where
+   * the roll is growing. Under reduced motion only the one at rest is.
+   */
+  newest?: number;
   develop?: { delay?: number; duration?: number; count?: number };
   /** Px the run starts left of the strip's own edge (a strip bleeding in from the left). */
   offset?: number;
@@ -411,18 +587,54 @@ export function RollStrip({
         {run.map((f, i) => {
           const image = <Photo id={f.photo} focus={f.focus} />;
           const devs = develop && i < devCount;
+          // Its turn as the newest frame: k steps after the one at rest.
+          const k = newest === undefined ? -1 : i - newest;
+          const turn = advance ? k >= 0 && k < frames.length : k === 0;
+          const freshNow = f.fresh || turn;
+          const follow: CSSProperties | undefined = turn
+            ? {
+                opacity: k === 0 ? 1 : 0,
+                ...vars({
+                  "--cs-follow-delay": `${(ROLL_START + k * ROLL_STEP - ROLL_MOVE).toFixed(2)}s`,
+                }),
+              }
+            : undefined;
           return (
             <div key={`${f.n}-${i}`} style={{ width: frameW, flex: "none" }}>
-              <div style={{ height: rowTop, display: "flex", alignItems: "center", overflow: "hidden" }}>
-                <Edge items={rebate[i % rebate.length]} size={edgeSize} className="cs-edge-dim" />
+              <div
+                style={{
+                  height: rowTop,
+                  display: "flex",
+                  alignItems: "center",
+                  overflow: "hidden",
+                }}
+              >
+                <Edge
+                  items={rebate[i % rebate.length]}
+                  size={edgeSize}
+                  className="cs-edge-dim"
+                />
               </div>
-              <div className="cs-strip-frame" style={{ width: frameW, height: fh }}>
+              <div
+                className="cs-strip-frame"
+                style={{ position: "relative", width: frameW, height: fh }}
+              >
                 {devs ? (
-                  <Develop delay={(develop.delay ?? 200) + i * 140} duration={develop.duration ?? 1800}>
+                  <Develop
+                    delay={(develop.delay ?? 200) + i * 140}
+                    duration={develop.duration ?? 1800}
+                  >
                     {image}
                   </Develop>
                 ) : (
                   image
+                )}
+                {freshNow && (
+                  <div
+                    aria-hidden
+                    className={cn("cs-fresh", turn && advance && "cs-follow")}
+                    style={follow}
+                  />
                 )}
               </div>
               <div
@@ -433,9 +645,26 @@ export function RollStrip({
                 <EdgeArrow />
                 <span aria-hidden>{f.n}</span>
                 {f.who && (
-                  <span className="cs-edge-item" aria-hidden style={{ marginLeft: "0.5em" }}>
+                  <span
+                    className="cs-edge-item"
+                    aria-hidden
+                    style={{ marginLeft: "0.5em" }}
+                  >
                     <Seeded seed={f.who.seed} className="cs-edge-dot" />
                     {f.who.name}
+                  </span>
+                )}
+                {freshNow && (
+                  <span
+                    className={cn(
+                      "cs-edge-item",
+                      turn && advance && "cs-follow",
+                    )}
+                    style={follow}
+                    aria-hidden
+                  >
+                    <EdgeArrow />
+                    <span>Just now</span>
                   </span>
                 )}
               </div>
@@ -496,7 +725,10 @@ export function DevelopingCode({
       from = hers;
     }
     const still: [number, number][] = [];
-    const arrive: [number, number][][] = Array.from({ length: WAVES }, () => []);
+    const arrive: [number, number][][] = Array.from(
+      { length: WAVES },
+      () => [],
+    );
     const leave: [number, number][][] = Array.from({ length: WAVES }, () => []);
     for (let r = 0; r < hers.n; r++)
       for (let c = 0; c < hers.n; c++) {
@@ -511,7 +743,12 @@ export function DevelopingCode({
       }
     return { n: hers.n, still, arrive, leave };
   }, [value, sample]);
-  const layer = (cells: [number, number][], key: string, cls?: string, wave?: number) => (
+  const layer = (
+    cells: [number, number][],
+    key: string,
+    cls?: string,
+    wave?: number,
+  ) => (
     <svg
       key={key}
       viewBox={`0 0 ${n} ${n}`}
@@ -522,7 +759,9 @@ export function DevelopingCode({
         position: "absolute",
         inset: 0,
         ...(wave != null
-          ? vars({ "--cs-code-delay": `${delay + Math.round((wave * duration) / WAVES)}ms` })
+          ? vars({
+              "--cs-code-delay": `${delay + Math.round((wave * duration) / WAVES)}ms`,
+            })
           : {}),
       }}
       fill={color}
@@ -551,7 +790,17 @@ export function DevelopingCode({
 /* ── small pieces ────────────────────────────────────────────────────────── */
 
 /** A person's seeded light, as a round avatar with an optional ring of paper. */
-export function Orb({ seed, size, ring = false, style }: { seed: string; size: number; ring?: boolean; style?: CSSProperties }) {
+export function Orb({
+  seed,
+  size,
+  ring = false,
+  style,
+}: {
+  seed: string;
+  size: number;
+  ring?: boolean;
+  style?: CSSProperties;
+}) {
   return (
     <Seeded
       seed={seed}

@@ -32,11 +32,21 @@ import {
  */
 
 const H1 = "Every photo, from every guest, in one place.";
-const SUB = "One code in the room. Every phone uploads into the same album, live, at full quality.";
+const SUB =
+  "One code in the room. Every phone uploads into the same album, live, at full quality.";
 const CLAIMS = [
-  ["Originals, not copies", "Photos land at full resolution. Nothing is recompressed on the way in."],
-  ["Video too", "Videos upload the same way photos do, from the same sheet, into the same album."],
-  ["Download one, or all of it", "Every original is there to take, one at a time or the whole album at once."],
+  [
+    "Originals, not copies",
+    "Photos land at full resolution. Nothing is recompressed on the way in.",
+  ],
+  [
+    "Video too",
+    "Videos upload the same way photos do, from the same sheet, into the same album.",
+  ],
+  [
+    "Download one, or all of it",
+    "Every original is there to take, one at a time or the whole album at once.",
+  ],
 ] as const;
 
 /** The bottom row carries `EDGE` data, so its light can be born in place; anchored at the foot so the crop keeps that edge. */
@@ -80,15 +90,23 @@ function AlbumLine({ size }: { size: "desk" | "phone" }) {
   const desk = size === "desk";
   return (
     <div className="flex items-center justify-between">
-      <div className="flex items-baseline" style={{ gap: desk ? 16 : 10, flexWrap: "wrap" }}>
+      <div
+        className="flex items-baseline"
+        style={{ gap: desk ? 16 : 10, flexWrap: "wrap" }}
+      >
         <span className="ag-subtitle" style={{ fontSize: desk ? 22 : 19 }}>
           {PARTY.name}
         </span>
         <Readout style={{ color: t.faint }}>
-          {PARTY.photos.toLocaleString("en-US")} photos from {PARTY.guests} guests
+          {PARTY.photos.toLocaleString("en-US")} photos from {PARTY.guests}{" "}
+          guests
         </Readout>
       </div>
-      <StatusLight state="ready" ground="room" wordContrast={desk ? "status word under the wall" : undefined}>
+      <StatusLight
+        state="ready"
+        ground="room"
+        wordContrast={desk ? "status word under the wall" : undefined}
+      >
         3 just added
       </StatusLight>
     </div>
@@ -103,9 +121,15 @@ function AlbumDesk() {
   const top = 288;
   const reach = 112;
   return (
-    <div className="absolute inset-0 overflow-hidden" style={{ background: GROUND.room.hex, color: t.fg }}>
+    <div
+      className="absolute inset-0 overflow-hidden"
+      style={{ background: GROUND.room.hex, color: t.fg }}
+    >
       <SiteNav ground="room" screen="desk" active="Features" />
-      <div className="absolute flex items-end justify-between" style={{ left: 96, right: 96, top: 116 }}>
+      <div
+        className="absolute flex items-end justify-between"
+        style={{ left: 96, right: 96, top: 116 }}
+      >
         <div>
           <Readout style={{ color: t.faint }}>The live album</Readout>
           <h1
@@ -118,17 +142,39 @@ function AlbumDesk() {
             <span className="block">in one place.</span>
           </h1>
         </div>
-        <p className="ag-lede" style={{ fontSize: 17.5, color: t.muted, maxWidth: 340, paddingBottom: 4 }}>
+        <p
+          className="ag-lede"
+          style={{
+            fontSize: 17.5,
+            color: t.muted,
+            maxWidth: 340,
+            paddingBottom: 4,
+          }}
+        >
           {SUB}
         </p>
       </div>
-      <div className="absolute" style={{ left: 56, top, width: wallW, height: wall.height }}>
+      <div
+        className="absolute"
+        style={{ left: 56, top, width: wallW, height: wall.height }}
+      >
         <Wall tiles={wall.tiles} />
       </div>
-      <div className="absolute" style={{ left: 56, top: top + wall.height, width: wallW, height: reach }}>
+      <div
+        className="absolute"
+        style={{
+          left: 56,
+          top: top + wall.height,
+          width: wallW,
+          height: reach,
+        }}
+      >
         <WallSeam tiles={wall.bottom} width={wallW} reach={reach} />
       </div>
-      <div className="absolute" style={{ left: 96, right: 96, top: top + wall.height + reach + 12 }}>
+      <div
+        className="absolute"
+        style={{ left: 96, right: 96, top: top + wall.height + reach + 12 }}
+      >
         <AlbumLine size="desk" />
       </div>
     </div>
@@ -145,14 +191,28 @@ function AlbumPhone() {
   const reach = 92;
   const foot = 1362;
   return (
-    <div className="absolute inset-0 overflow-hidden" style={{ background: GROUND.room.hex, color: t.fg }}>
+    <div
+      className="absolute inset-0 overflow-hidden"
+      style={{ background: GROUND.room.hex, color: t.fg }}
+    >
       <SiteNav ground="room" screen="phone" active="Features" />
       <div className="absolute" style={{ left: 20, right: 20, top: 132 }}>
         <Readout style={{ color: t.faint }}>The live album</Readout>
-        <h1 className="ag-title" style={{ fontSize: 35, marginTop: 12, color: t.fg }}>
+        <h1
+          className="ag-title"
+          style={{ fontSize: 35, marginTop: 12, color: t.fg }}
+        >
           {H1}
         </h1>
-        <p className="ag-lede" style={{ fontSize: 15.5, lineHeight: 1.5, color: t.muted, marginTop: 14 }}>
+        <p
+          className="ag-lede"
+          style={{
+            fontSize: 15.5,
+            lineHeight: 1.5,
+            color: t.muted,
+            marginTop: 14,
+          }}
+        >
           {SUB}
         </p>
         <div className="flex" style={{ gap: 10, marginTop: 22 }}>
@@ -167,10 +227,16 @@ function AlbumPhone() {
       <div className="absolute inset-x-0" style={{ top, height: wall.height }}>
         <Wall tiles={wall.tiles} />
       </div>
-      <div className="absolute inset-x-0" style={{ top: top + wall.height, height: reach }}>
+      <div
+        className="absolute inset-x-0"
+        style={{ top: top + wall.height, height: reach }}
+      >
         <WallSeam tiles={wall.bottom} width={375} reach={reach} />
       </div>
-      <div className="absolute" style={{ left: 20, right: 20, top: top + wall.height + reach + 6 }}>
+      <div
+        className="absolute"
+        style={{ left: 20, right: 20, top: top + wall.height + reach + 6 }}
+      >
         <AlbumLine size="phone" />
       </div>
       {/* A quiet section: no light, the room and its words. */}
@@ -183,14 +249,23 @@ function AlbumPhone() {
           {CLAIMS.map(([title, body]) => (
             <div key={title}>
               <p style={{ fontSize: 15, fontWeight: 600 }}>{title}</p>
-              <p className="ag-body" style={{ fontSize: 14, color: t.muted, marginTop: 2 }}>
+              <p
+                className="ag-body"
+                style={{ fontSize: 14, color: t.muted, marginTop: 2 }}
+              >
                 {body}
               </p>
             </div>
           ))}
         </div>
       </div>
-      <SiteFooter ground="room" screen="phone" light={ALBUM_LIGHT} height={ALBUM_PHONE_H - foot} style={{ top: foot }} />
+      <SiteFooter
+        ground="room"
+        screen="phone"
+        light={ALBUM_LIGHT}
+        height={ALBUM_PHONE_H - foot}
+        style={{ top: foot }}
+      />
     </div>
   );
 }
@@ -203,12 +278,20 @@ export function DarkPageSlide({ screen }: SlideProps) {
   if (screen === "375")
     return (
       <SlideRoot screen={screen} ground="room">
-        <div className="absolute inset-x-0 top-0 overflow-hidden" style={{ height: ALBUM_PHONE_H }}>
+        <div
+          className="absolute inset-x-0 top-0 overflow-hidden"
+          style={{ height: ALBUM_PHONE_H }}
+        >
           <AlbumPhone />
         </div>
         <div
           className="absolute inset-x-0"
-          style={{ top: ALBUM_PHONE_H, paddingInline: 20, paddingTop: 22, borderTop: "1px solid rgb(255 255 255 / 0.08)" }}
+          style={{
+            top: ALBUM_PHONE_H,
+            paddingInline: 20,
+            paddingTop: 22,
+            borderTop: "1px solid rgb(255 255 255 / 0.08)",
+          }}
         >
           <Note ground="room" label="The Seam, in place">
             {PROOF}
@@ -217,7 +300,11 @@ export function DarkPageSlide({ screen }: SlideProps) {
       </SlideRoot>
     );
   return (
-    <SlideRoot screen={screen} ground="room" style={{ background: GROUND.display.hex }}>
+    <SlideRoot
+      screen={screen}
+      ground="room"
+      style={{ background: GROUND.display.hex }}
+    >
       <BrowserWindow
         width={1000}
         ground="room"
@@ -235,10 +322,24 @@ export function DarkPageSlide({ screen }: SlideProps) {
       >
         <AlbumPhone />
       </PhoneView>
-      <Readout className="absolute" style={{ right: 48, top: 742, width: 300, textAlign: "center", color: t.faint }}>
+      <Readout
+        className="absolute"
+        style={{
+          right: 48,
+          top: 742,
+          width: 300,
+          textAlign: "center",
+          color: t.faint,
+        }}
+      >
         A scroll later: its foot, 375 wide
       </Readout>
-      <Note ground="room" label="The Seam, in place" width={640} style={{ position: "absolute", left: 48, top: 780 }}>
+      <Note
+        ground="room"
+        label="The Seam, in place"
+        width={640}
+        style={{ position: "absolute", left: 48, top: 780 }}
+      >
         {PROOF}
       </Note>
     </SlideRoot>

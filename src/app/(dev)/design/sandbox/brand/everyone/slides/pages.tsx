@@ -9,7 +9,7 @@ import { CROWD, ON, Orb, type Tone } from "../system";
 import { isDesk, Kicker, Pic, SlideGround } from "./kit";
 
 /**
- * 08 DARK AND LIGHT. One rule decides a page's ground: daylight where people
+ * 08 DARK AND LIGHT. One rule decides a page's ground: paper where people
  * gather and words are read, the room where the pictures are the subject.
  * Each page is wholly one ground; inside it, sections change by form and
  * scale, never by ground.
@@ -24,15 +24,62 @@ type Page = {
 };
 
 const MAP: Page[] = [
-  { path: "/", name: "Home", tone: "paper", why: "The front door is people", photo: "wedding-toast" },
-  { path: "/features/album", name: "The album", tone: "room", why: "A wall of photographs", photo: "concert-confetti" },
-  { path: "/features/*", name: "Guests, the code, curation, privacy", tone: "paper", why: "How people take part", photo: "reception-table" },
-  { path: "/events", name: "Events", tone: "paper", why: "Occasions are people", photo: "wedding-arch" },
-  { path: "/reel", name: "The reel", tone: "room", why: "It plays", photo: "festival-lights" },
-  { path: "/pricing", name: "Pricing", tone: "paper", why: "A plain conversation" },
+  {
+    path: "/",
+    name: "Home",
+    tone: "paper",
+    why: "The front door is people",
+    photo: "wedding-toast",
+  },
+  {
+    path: "/features/album",
+    name: "The album",
+    tone: "room",
+    why: "A wall of photographs",
+    photo: "concert-confetti",
+  },
+  {
+    path: "/features/*",
+    name: "Guests, the code, curation, privacy",
+    tone: "paper",
+    why: "How people take part",
+    photo: "reception-table",
+  },
+  {
+    path: "/events",
+    name: "Events",
+    tone: "paper",
+    why: "Occasions are people",
+    photo: "wedding-arch",
+  },
+  {
+    path: "/reel",
+    name: "The reel",
+    tone: "room",
+    why: "It plays",
+    photo: "festival-lights",
+  },
+  {
+    path: "/pricing",
+    name: "Pricing",
+    tone: "paper",
+    why: "A plain conversation",
+  },
   { path: "/help", name: "Help", tone: "paper", why: "Reading, calmly" },
-  { path: "/about", name: "About", tone: "paper", why: "Who we are", photo: "party-balloons" },
-  { path: "/blog", name: "Blog", tone: "paper", why: "Reading", photo: "wedding-rings" },
+  {
+    path: "/about",
+    name: "About",
+    tone: "paper",
+    why: "Who we are",
+    photo: "party-balloons",
+  },
+  {
+    path: "/blog",
+    name: "Blog",
+    tone: "paper",
+    why: "Reading",
+    photo: "wedding-rings",
+  },
   { path: "/legal", name: "Legal", tone: "paper", why: "Reading" },
 ];
 
@@ -59,7 +106,8 @@ function Thumb({ p, w, h }: { p: Page; w: number; h: number }) {
         backgroundColor: t.ground,
         borderRadius: 4,
         overflow: "hidden",
-        boxShadow: p.tone === "paper" ? `inset 0 0 0 1px ${ON.paper.line}` : undefined,
+        boxShadow:
+          p.tone === "paper" ? `inset 0 0 0 1px ${ON.paper.line}` : undefined,
         padding: 8 * s,
         display: "grid",
         alignContent: "start",
@@ -81,7 +129,13 @@ function Thumb({ p, w, h }: { p: Page; w: number; h: number }) {
         </div>
       )}
       {p.photo ? (
-        <Pic id={p.photo} style={{ width: "100%", height: h * (p.tone === "room" ? 0.42 : 0.3) }} />
+        <Pic
+          id={p.photo}
+          style={{
+            width: "100%",
+            height: h * (p.tone === "room" ? 0.42 : 0.3),
+          }}
+        />
       ) : (
         <div className="grid" style={{ gap: 4 * s, marginTop: 2 * s }}>
           {bar(p.tone, "100%", 3 * s)}
@@ -130,7 +184,15 @@ const RHYTHM: { k: string; line: string; draw: (w: number) => ReactNode }[] = [
     k: "Quiet",
     line: "The information, in columns, with nobody in it.",
     draw: (w) => (
-      <div className="grid" style={{ gridTemplateColumns: "1fr 1fr 1fr", gap: 10, padding: "12px", width: w }}>
+      <div
+        className="grid"
+        style={{
+          gridTemplateColumns: "1fr 1fr 1fr",
+          gap: 10,
+          padding: "12px",
+          width: w,
+        }}
+      >
         {[0, 1, 2].map((i) => (
           <div key={i} className="grid" style={{ gap: 4 }}>
             {bar("paper", "70%", 5, true)}
@@ -145,9 +207,19 @@ const RHYTHM: { k: string; line: string; draw: (w: number) => ReactNode }[] = [
     k: "Close",
     line: "The word and everyone after it; the one call to act.",
     draw: () => (
-      <div className="flex items-center justify-between" style={{ padding: "14px 12px" }}>
+      <div
+        className="flex items-center justify-between"
+        style={{ padding: "14px 12px" }}
+      >
         <Wordmark height={16} />
-        <div style={{ width: 46, height: 14, borderRadius: 6, backgroundColor: ON.paper.ink }} />
+        <div
+          style={{
+            width: 46,
+            height: 14,
+            borderRadius: 6,
+            backgroundColor: ON.paper.ink,
+          }}
+        />
       </div>
     ),
   },
@@ -171,8 +243,13 @@ function Rhythm({ w }: { w: number }) {
             {r.draw(w)}
           </div>
           <div>
-            <p className="ev-title" style={{ fontSize: 14 }}>{r.k}</p>
-            <p className="ev-body" style={{ fontSize: 13, color: ON.paper.muted, marginTop: 2 }}>
+            <p className="ev-title" style={{ fontSize: 14 }}>
+              {r.k}
+            </p>
+            <p
+              className="ev-body"
+              style={{ fontSize: 13, color: ON.paper.muted, marginTop: 2 }}
+            >
               {r.line}
             </p>
           </div>
@@ -191,7 +268,15 @@ const TODAY: { label: string; fill: string; ink: string; flex: number }[] = [
   { label: "Ink", fill: "#1d1d20", ink: "#a1a1a5", flex: 0.8 },
 ];
 
-function Strip({ w, today, compact = false }: { w: number; today: boolean; compact?: boolean }) {
+function Strip({
+  w,
+  today,
+  compact = false,
+}: {
+  w: number;
+  today: boolean;
+  compact?: boolean;
+}) {
   return (
     <div
       className="flex"
@@ -208,13 +293,26 @@ function Strip({ w, today, compact = false }: { w: number; today: boolean; compa
           <div
             key={i}
             className="ev-label flex items-center justify-center"
-            style={{ flex: t.flex, backgroundColor: t.fill, color: t.ink, fontSize: compact ? 8.5 : 9.5, letterSpacing: compact ? "0.04em" : undefined }}
+            style={{
+              flex: t.flex,
+              backgroundColor: t.fill,
+              color: t.ink,
+              fontSize: compact ? 8.5 : 9.5,
+              letterSpacing: compact ? "0.04em" : undefined,
+            }}
           >
             {t.label}
           </div>
         ))
       ) : (
-        <div className="flex flex-1 items-center" style={{ backgroundColor: ON.paper.ground, padding: "0 12px", gap: 10 }}>
+        <div
+          className="flex flex-1 items-center"
+          style={{
+            backgroundColor: ON.paper.ground,
+            padding: "0 12px",
+            gap: 10,
+          }}
+        >
           <Wordmark height={13} />
           <div className="flex" style={{ gap: 2 }}>
             {CROWD.slice(1, compact ? 6 : 12).map((c) => (
@@ -243,17 +341,31 @@ function TodayNow({ w, stacked = false }: { w: number; stacked?: boolean }) {
   return (
     // The strips' own width bounds the note under them, or it runs to the slide's edge.
     <div className="grid" style={{ gap: 10, width: w }}>
-      <div className={stacked ? "grid" : "flex items-center"} style={{ gap: stacked ? 6 : 14 }}>
-        <span className="ev-label" style={{ width: 64, color: ON.paper.muted }}>Today</span>
+      <div
+        className={stacked ? "grid" : "flex items-center"}
+        style={{ gap: stacked ? 6 : 14 }}
+      >
+        <span className="ev-label" style={{ width: 64, color: ON.paper.muted }}>
+          Today
+        </span>
         <Strip w={w - lw} today compact={stacked} />
       </div>
-      <div className={stacked ? "grid" : "flex items-center"} style={{ gap: stacked ? 6 : 14 }}>
-        <span className="ev-label" style={{ width: 64, color: ON.paper.ink }}>Now</span>
+      <div
+        className={stacked ? "grid" : "flex items-center"}
+        style={{ gap: stacked ? 6 : 14 }}
+      >
+        <span className="ev-label" style={{ width: 64, color: ON.paper.ink }}>
+          Now
+        </span>
         <Strip w={w - lw} today={false} compact={stacked} />
       </div>
-      <p className="ev-body" style={{ fontSize: 13, color: ON.paper.muted, paddingLeft: lw }}>
-        The home today cuts between cinema, paper and ink, and the three argue. Here it keeps
-        one ground, and lets the photographs and the people set the pace.
+      <p
+        className="ev-body"
+        style={{ fontSize: 13, color: ON.paper.muted, paddingLeft: lw }}
+      >
+        The home today cuts between cinema, paper and ink, and the three argue.
+        Here it keeps one ground, and lets the photographs and the people set
+        the pace.
       </p>
     </div>
   );
@@ -262,7 +374,10 @@ function TodayNow({ w, stacked = false }: { w: number; stacked?: boolean }) {
 /** The map as a compact list (the phone): a ground chip, the page, its reason. */
 function MapList() {
   return (
-    <div className="grid" style={{ gridTemplateColumns: "1fr 1fr", columnGap: 14, rowGap: 14 }}>
+    <div
+      className="grid"
+      style={{ gridTemplateColumns: "1fr 1fr", columnGap: 14, rowGap: 14 }}
+    >
       {MAP.map((p) => (
         <div key={p.path} className="flex items-start" style={{ gap: 10 }}>
           <div
@@ -273,7 +388,10 @@ function MapList() {
               borderRadius: 3,
               overflow: "hidden",
               backgroundColor: ON[p.tone].ground,
-              boxShadow: p.tone === "paper" ? `inset 0 0 0 1px ${ON.paper.line}` : undefined,
+              boxShadow:
+                p.tone === "paper"
+                  ? `inset 0 0 0 1px ${ON.paper.line}`
+                  : undefined,
               padding: 4,
               display: "grid",
               alignContent: "start",
@@ -281,11 +399,20 @@ function MapList() {
             }}
           >
             {bar(p.tone, "80%", 3, true)}
-            {p.photo ? <Pic id={p.photo} style={{ width: "100%", height: 16 }} /> : bar(p.tone, "100%", 2)}
+            {p.photo ? (
+              <Pic id={p.photo} style={{ width: "100%", height: 16 }} />
+            ) : (
+              bar(p.tone, "100%", 2)
+            )}
           </div>
           <div>
-            <p className="ev-title" style={{ fontSize: 13 }}>{p.name}</p>
-            <p className="ev-body" style={{ fontSize: 12, color: ON.paper.muted, marginTop: 1 }}>
+            <p className="ev-title" style={{ fontSize: 13 }}>
+              {p.name}
+            </p>
+            <p
+              className="ev-body"
+              style={{ fontSize: 12, color: ON.paper.muted, marginTop: 1 }}
+            >
               {p.tone === "paper" ? "Light" : "Dark"} · {p.why}
             </p>
           </div>
@@ -297,12 +424,24 @@ function MapList() {
 
 function MapGrid({ tw, th, cols }: { tw: number; th: number; cols: number }) {
   return (
-    <div className="grid" style={{ gridTemplateColumns: `repeat(${cols}, ${tw}px)`, columnGap: 14, rowGap: 18 }}>
+    <div
+      className="grid"
+      style={{
+        gridTemplateColumns: `repeat(${cols}, ${tw}px)`,
+        columnGap: 14,
+        rowGap: 18,
+      }}
+    >
       {MAP.map((p) => (
         <div key={p.path}>
           <Thumb p={p} w={tw} h={th} />
-          <p className="ev-title" style={{ fontSize: 13, marginTop: 8 }}>{p.name}</p>
-          <p className="ev-body" style={{ fontSize: 11.5, color: ON.paper.muted, marginTop: 1 }}>
+          <p className="ev-title" style={{ fontSize: 13, marginTop: 8 }}>
+            {p.name}
+          </p>
+          <p
+            className="ev-body"
+            style={{ fontSize: 11.5, color: ON.paper.muted, marginTop: 1 }}
+          >
             {p.tone === "paper" ? "Light" : "Dark"} · {p.why}
           </p>
         </div>
@@ -317,13 +456,20 @@ export function Pages({ screen }: SlideProps) {
     <SlideGround tone="paper" screen={screen}>
       <div className="absolute" style={{ left: 72, top: 96, width: 520 }}>
         <Kicker tone="paper">Dark and light</Kicker>
-        <h2 className="ev-display" style={{ fontSize: 56, marginTop: 14, lineHeight: 0.96 }}>
-          Daylight for people, the room for pictures.
+        <h2
+          className="ev-display"
+          style={{ fontSize: 56, marginTop: 14, lineHeight: 0.96 }}
+        >
+          Paper for people, the room for pictures.
         </h2>
-        <p className="ev-body" style={{ fontSize: 15, marginTop: 18, color: ON.paper.ink }}>
-          A page is wholly one ground, chosen by its subject: where people gather and words are
-          read, daylight; where the photographs are the subject, the room, so a picture is the
-          brightest thing on it. Inside a page, sections change by form and scale, never by ground.
+        <p
+          className="ev-body"
+          style={{ fontSize: 15, marginTop: 18, color: ON.paper.ink }}
+        >
+          A page is wholly one ground, chosen by its subject: where people
+          gather and words are read, paper; where the photographs are the
+          subject, the room, so a picture is the brightest thing on it. Inside a
+          page, sections change by form and scale, never by ground.
         </p>
         <div style={{ marginTop: 26 }}>
           <Kicker tone="paper" style={{ marginBottom: 12 }}>
@@ -347,13 +493,17 @@ function PagesPhone({ screen }: SlideProps) {
     <SlideGround tone="paper" screen={screen}>
       <div style={{ padding: "28px 20px 0" }}>
         <Kicker tone="paper">Dark and light</Kicker>
-        <h2 className="ev-display" style={{ fontSize: 42, marginTop: 10, lineHeight: 0.96 }}>
-          Daylight for people, the room for pictures.
+        <h2
+          className="ev-display"
+          style={{ fontSize: 42, marginTop: 10, lineHeight: 0.96 }}
+        >
+          Paper for people, the room for pictures.
         </h2>
         <p className="ev-body" style={{ fontSize: 14, marginTop: 14 }}>
-          A page is wholly one ground, chosen by its subject: where people gather and words are
-          read, daylight; where the photographs are the subject, the room. Inside a page, sections
-          change by form and scale, never by ground.
+          A page is wholly one ground, chosen by its subject: where people
+          gather and words are read, paper; where the photographs are the
+          subject, the room. Inside a page, sections change by form and scale,
+          never by ground.
         </p>
         <div style={{ marginTop: 24 }}>
           <MapList />

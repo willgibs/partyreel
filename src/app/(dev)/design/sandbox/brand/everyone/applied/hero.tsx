@@ -6,7 +6,7 @@ import type { SlideProps } from "../../deck/contract";
 import type { PhotoId } from "../../deck/media";
 import { Trail, WORDMARK_DOT_SHARE } from "../marks";
 import { isDesk, Pic, SlideGround } from "../slides/kit";
-import { BASE, ON, Orb, PhoneShell } from "../system";
+import { BASE, CROWD, ON, Orb, PhoneShell } from "../system";
 import {
   Action,
   BrowserShell,
@@ -40,12 +40,46 @@ import {
 
 const VISITOR = "house:305";
 
-const BAND: { id: PhotoId; focus?: string }[] = [
-  { id: "wedding-toast", focus: "62% 45%" },
-  { id: "reception-table", focus: "50% 50%" },
-  { id: "party-dj", focus: "50% 38%" },
-  { id: "festival-crowd", focus: "50% 50%" },
+/**
+ * The band is the live album (the creative director's pass: four uncredited
+ * photographs were a stock landing page). Each photograph is credited under
+ * it with its guest and when it landed, people beside the picture, never on it.
+ */
+const BAND: { id: PhotoId; focus?: string; by: number; when: string }[] = [
+  { id: "wedding-toast", focus: "62% 45%", by: 2, when: "just now" },
+  { id: "reception-table", focus: "50% 50%", by: 6, when: "1 min ago" },
+  { id: "party-dj", focus: "50% 38%", by: 5, when: "4 min ago" },
+  { id: "festival-crowd", focus: "50% 50%", by: 4, when: "9 min ago" },
 ];
+
+/** A photograph's credit: its guest, then when it landed. */
+function BandCredit({
+  by,
+  when,
+  size,
+  font,
+}: {
+  by: number;
+  when: string;
+  size: number;
+  font: number;
+}) {
+  const p = CROWD[by];
+  return (
+    <span
+      className="flex items-center"
+      style={{
+        gap: Math.round(size * 0.4),
+        fontSize: font,
+        color: ON.paper.ink,
+      }}
+    >
+      <Orb seed={p.seed} size={size} />
+      <span style={{ fontWeight: 600 }}>{p.name}</span>
+      <span style={{ color: ON.paper.muted }}>{when}</span>
+    </span>
+  );
+}
 
 /** The thesis without its stop: the stop is drawn, a person. */
 const [LINE_A, LINE_B] = SITE_THESIS.replace(/\.$/, "").split(", ");
@@ -55,7 +89,15 @@ const [LINE_A, LINE_B] = SITE_THESIS.replace(/\.$/, "").split(", ");
  * would, on the baseline at the wordmark's share of the size, and the trail
  * leaves from it at the same size.
  */
-function Thesis({ size, count, read }: { size: number; count: number; read?: string }) {
+function Thesis({
+  size,
+  count,
+  read,
+}: {
+  size: number;
+  count: number;
+  read?: string;
+}) {
   const d = size * WORDMARK_DOT_SHARE;
   const sink = size * 0.009;
   return (
@@ -72,10 +114,23 @@ function Thesis({ size, count, read }: { size: number; count: number; read?: str
       <span
         aria-hidden
         className="relative inline-block"
-        style={{ width: d, height: d, marginLeft: size * 0.055, verticalAlign: "baseline" }}
+        style={{
+          width: d,
+          height: d,
+          marginLeft: size * 0.055,
+          verticalAlign: "baseline",
+        }}
       >
-        <Orb seed={VISITOR} size={d} style={{ position: "absolute", left: 0, bottom: -sink }} />
-        <span className="absolute" style={{ left: d + d * 0.34, bottom: -sink }} aria-hidden>
+        <Orb
+          seed={VISITOR}
+          size={d}
+          style={{ position: "absolute", left: 0, bottom: -sink }}
+        />
+        <span
+          className="absolute"
+          style={{ left: d + d * 0.34, bottom: -sink }}
+          aria-hidden
+        >
           <Trail h={size} count={count} start={0} />
         </span>
       </span>
@@ -89,21 +144,38 @@ const DESK_H = 1000;
 
 function HeroDesk() {
   return (
-    <div className="relative overflow-hidden" style={{ width: 1440, height: DESK_H, backgroundColor: ON.paper.ground }}>
+    <div
+      className="relative overflow-hidden"
+      style={{ width: 1440, height: DESK_H, backgroundColor: ON.paper.ground }}
+    >
       <SiteNav tone="paper" dot={VISITOR} />
       <div className="absolute" style={{ left: 56, top: 124 }}>
         <Thesis size={150} count={30} read="H1 at a desk" />
       </div>
-      <div className="absolute flex items-end justify-between" style={{ left: 56, right: 56, top: 446 }}>
+      <div
+        className="absolute flex items-end justify-between"
+        style={{ left: 56, right: 56, top: 446 }}
+      >
         <p
           className="ev-body"
           data-bd-contrast="subhead on paper"
-          style={{ width: 600, fontSize: 21, lineHeight: 1.45, color: BASE.muted.hex }}
+          style={{
+            width: 600,
+            fontSize: 21,
+            lineHeight: 1.45,
+            color: BASE.muted.hex,
+          }}
         >
           {SITE_SUBHEAD}
         </p>
         <div className="flex" style={{ gap: 12, paddingBottom: 4 }}>
-          <Action tone="paper" solid h={56} font={17} contrastLabel="Start free on its plate">
+          <Action
+            tone="paper"
+            solid
+            h={56}
+            font={17}
+            contrastLabel="Start free on its plate"
+          >
             Start free
           </Action>
           <Action tone="paper" h={56} font={17}>
@@ -112,9 +184,28 @@ function HeroDesk() {
           </Action>
         </div>
       </div>
-      <div className="absolute flex" style={{ left: 0, top: 640, width: 1440, height: DESK_H - 640, gap: 3 }}>
+      <div
+        className="absolute flex"
+        style={{ left: 0, top: 640, width: 1440, height: DESK_H - 640, gap: 3 }}
+      >
         {BAND.map((b) => (
-          <Pic key={b.id} id={b.id} focus={b.focus} style={{ flex: 1, height: "100%" }} />
+          <div
+            key={b.id}
+            className="flex flex-col"
+            style={{ flex: 1, height: "100%" }}
+          >
+            <Pic id={b.id} focus={b.focus} style={{ flex: 1, minHeight: 0 }} />
+            <div
+              style={{
+                height: 44,
+                display: "flex",
+                alignItems: "center",
+                paddingInline: 14,
+              }}
+            >
+              <BandCredit by={b.by} when={b.when} size={20} font={14} />
+            </div>
+          </div>
         ))}
       </div>
     </div>
@@ -126,16 +217,28 @@ function HeroDesk() {
 function HeroPhone({ top, status = false }: { top: number; status?: boolean }) {
   const tile = (375 - 3) / 2;
   return (
-    <div className="relative overflow-hidden" style={{ width: 375, backgroundColor: ON.paper.ground }}>
+    <div
+      className="relative overflow-hidden"
+      style={{ width: 375, backgroundColor: ON.paper.ground }}
+    >
       {status ? <StatusBar tone="paper" /> : <div style={{ height: top }} />}
       <SiteNavPhone tone="paper" dot={VISITOR} />
       <div style={{ padding: "30px 20px 0" }}>
         {/* 46 px: the line runs 0.43 em a letter, so "The whole event," holds 335 with room to spare. */}
-        <Thesis size={46} count={12} read={status ? undefined : "H1 on a phone"} />
+        <Thesis
+          size={46}
+          count={12}
+          read={status ? undefined : "H1 on a phone"}
+        />
         <p
           className="ev-body"
           data-bd-contrast={status ? undefined : "subhead on a phone"}
-          style={{ marginTop: 22, fontSize: 16.5, lineHeight: 1.45, color: BASE.muted.hex }}
+          style={{
+            marginTop: 22,
+            fontSize: 16.5,
+            lineHeight: 1.45,
+            color: BASE.muted.hex,
+          }}
         >
           {SITE_SUBHEAD}
         </p>
@@ -149,9 +252,22 @@ function HeroPhone({ top, status = false }: { top: number; status?: boolean }) {
           </Action>
         </div>
       </div>
-      <div className="grid" style={{ marginTop: 32, gridTemplateColumns: "1fr 1fr", gap: 3 }}>
+      <div
+        className="grid"
+        style={{
+          marginTop: 32,
+          gridTemplateColumns: "1fr 1fr",
+          columnGap: 3,
+          rowGap: 10,
+        }}
+      >
         {BAND.map((b) => (
-          <Pic key={b.id} id={b.id} focus={b.focus} style={{ height: tile }} />
+          <div key={b.id}>
+            <Pic id={b.id} focus={b.focus} style={{ height: tile }} />
+            <div style={{ marginTop: 7, paddingInline: 2 }}>
+              <BandCredit by={b.by} when={b.when} size={16} font={12} />
+            </div>
+          </div>
         ))}
       </div>
     </div>
@@ -173,9 +289,18 @@ export function Hero({ screen }: SlideProps) {
   const pw = 284;
   const ps = pw / 375;
   return (
-    <SlideGround tone="paper" screen={screen} pad={false} style={{ backgroundColor: BASE.step.hex }}>
+    <SlideGround
+      tone="paper"
+      screen={screen}
+      pad={false}
+      style={{ backgroundColor: BASE.step.hex }}
+    >
       <div className="absolute" style={{ left: 52, top: 92 }}>
-        <BrowserShell width={bw} height={Math.round(DESK_H * scale)} url="partyreel.com">
+        <BrowserShell
+          width={bw}
+          height={Math.round(DESK_H * scale)}
+          url="partyreel.com"
+        >
           <Scaled w={1440} h={DESK_H} scale={scale}>
             <HeroDesk />
           </Scaled>

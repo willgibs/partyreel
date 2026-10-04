@@ -29,7 +29,12 @@ export function Cover({ screen }: SlideProps) {
         style={{ left: 0, top: 56, width: 1440, height: 430, gap: 3 }}
       >
         {BAND.map((b) => (
-          <Pic key={b.id} id={b.id} focus={b.focus} style={{ flex: 1, height: "100%" }} />
+          <Pic
+            key={b.id}
+            id={b.id}
+            focus={b.focus}
+            style={{ flex: 1, height: "100%" }}
+          />
         ))}
       </div>
       <div className="absolute" style={{ left: 72, top: 548 }}>
@@ -70,7 +75,10 @@ function CoverPhone({ screen }: SlideProps) {
       <div className="absolute" style={{ left: 20, top: 500 }}>
         <WordAndEveryone height={wm} count={10} gap={5} />
       </div>
-      <div className="absolute" style={{ left: 20, right: 20, top: 500 + wm + 40 }}>
+      <div
+        className="absolute"
+        style={{ left: 20, right: 20, top: 500 + wm + 40 }}
+      >
         <p className="ev-head" style={{ fontSize: 36 }}>
           Every guest
           <br />

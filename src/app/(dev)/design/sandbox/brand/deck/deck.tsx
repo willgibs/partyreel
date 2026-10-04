@@ -71,13 +71,17 @@ const textOf = (el: Element) =>
   ((el as HTMLElement).innerText ?? el.textContent ?? "")
     .replace(/\s+/g, " ")
     .trim();
-const clip = (s: string, n = 64) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
+const clip = (s: string, n = 64) =>
+  s.length > n ? `${s.slice(0, n - 1)}…` : s;
 
 /** sRGB channels of a computed colour, or null when it is not a plain rgb(a). */
 function rgba(v: string): [number, number, number, number] | null {
   const m = v.match(/rgba?\(([^)]+)\)/);
   if (!m) return null;
-  const p = m[1].split(/[\s,/]+/).filter(Boolean).map(Number);
+  const p = m[1]
+    .split(/[\s,/]+/)
+    .filter(Boolean)
+    .map(Number);
   return [p[0], p[1], p[2], p.length > 3 ? p[3] : 1];
 }
 const lum = ([r, g, b]: number[]) => {

@@ -5,7 +5,14 @@ import type { CSSProperties, ReactNode } from "react";
 import { Photo, type PhotoId } from "../../deck/media";
 import { HEAD } from "../../deck/deck";
 import { Wordmark } from "../marks";
-import { Copy, Display, Kicker, type Screen, SlideFoot, SlideRoot } from "../parts";
+import {
+  Copy,
+  Display,
+  Kicker,
+  type Screen,
+  SlideFoot,
+  SlideRoot,
+} from "../parts";
 import { Edge, GROUND } from "../system";
 
 /**
@@ -16,9 +23,23 @@ import { Edge, GROUND } from "../system";
  * a spread, a sheet, a read, a sheet, and the close on its edge.
  */
 
-type Kind = "home" | "features" | "events" | "reel" | "pricing" | "help" | "about" | "blog" | "legal";
+type Kind =
+  | "home"
+  | "features"
+  | "events"
+  | "reel"
+  | "pricing"
+  | "help"
+  | "about"
+  | "blog"
+  | "legal";
 
-const PAGES: readonly { kind: Kind; name: string; room?: boolean; why: string }[] = [
+const PAGES: readonly {
+  kind: Kind;
+  name: string;
+  room?: boolean;
+  why: string;
+}[] = [
   { kind: "home", name: "Home", why: "A spread, then sheets" },
   { kind: "features", name: "Features", why: "Each feature a print" },
   { kind: "events", name: "Events", why: "A sheet per kind" },
@@ -32,7 +53,12 @@ const PAGES: readonly { kind: Kind; name: string; room?: boolean; why: string }[
 
 /* ── a page, in miniature ─────────────────────────────────────────────────── */
 
-const bar = (w: number | string, h: number, o = 1, room = false): CSSProperties => ({
+const bar = (
+  w: number | string,
+  h: number,
+  o = 1,
+  room = false,
+): CSSProperties => ({
   width: w,
   height: h,
   borderRadius: 1,
@@ -40,15 +66,43 @@ const bar = (w: number | string, h: number, o = 1, room = false): CSSProperties 
   opacity: o,
 });
 
-function Pic({ id, w, h, focus }: { id: PhotoId; w: number | string; h: number; focus?: string }) {
+function Pic({
+  id,
+  w,
+  h,
+  focus,
+}: {
+  id: PhotoId;
+  w: number | string;
+  h: number;
+  focus?: string;
+}) {
   return (
-    <div style={{ width: w, height: h, overflow: "hidden", borderRadius: 1, flex: "none" }}>
+    <div
+      style={{
+        width: w,
+        height: h,
+        overflow: "hidden",
+        borderRadius: 1,
+        flex: "none",
+      }}
+    >
       <Photo id={id} focus={focus} />
     </div>
   );
 }
 
-function MiniPage({ kind, room, w, h }: { kind: Kind; room?: boolean; w: number; h: number }) {
+function MiniPage({
+  kind,
+  room,
+  w,
+  h,
+}: {
+  kind: Kind;
+  room?: boolean;
+  w: number;
+  h: number;
+}) {
   const ink = room ? GROUND.roomInk.hex : GROUND.ink.hex;
   const pad = Math.round(w * 0.06);
   const unit = w / 280;
@@ -61,7 +115,14 @@ function MiniPage({ kind, room, w, h }: { kind: Kind; room?: boolean; w: number;
           <div style={bar("70%", 9 * unit)} />
           <div style={bar("80%", 3 * unit, 0.35)} />
         </div>
-        <div style={{ background: GROUND.print.hex, padding: 4 * unit, boxShadow: "0 3px 8px -3px rgb(22 18 15 / .35)", transform: "rotate(-2deg)" }}>
+        <div
+          style={{
+            background: GROUND.print.hex,
+            padding: 4 * unit,
+            boxShadow: "0 3px 8px -3px rgb(22 18 15 / .35)",
+            transform: "rotate(-2deg)",
+          }}
+        >
           <Pic id="wedding-petals" w={62 * unit} h={78 * unit} />
         </div>
       </div>
@@ -70,8 +131,21 @@ function MiniPage({ kind, room, w, h }: { kind: Kind; room?: boolean; w: number;
     body = (
       <div style={{ display: "grid", gap: 6 * unit }}>
         <div style={bar("60%", 8 * unit)} />
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 3 * unit }}>
-          {(["reception-table", "party-balloons", "wedding-rings", "festival-lights"] as const).map((p) => (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: 3 * unit,
+          }}
+        >
+          {(
+            [
+              "reception-table",
+              "party-balloons",
+              "wedding-rings",
+              "festival-lights",
+            ] as const
+          ).map((p) => (
             <Pic key={p} id={p} w="100%" h={34 * unit} />
           ))}
         </div>
@@ -80,48 +154,94 @@ function MiniPage({ kind, room, w, h }: { kind: Kind; room?: boolean; w: number;
     );
   if (kind === "events")
     body = (
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 5 * unit }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(3, 1fr)",
+          gap: 5 * unit,
+        }}
+      >
         {(["wedding-arch", "party-dj", "festival-crowd"] as const).map((p) => (
-          <div key={p} style={{ background: GROUND.print.hex, padding: 3 * unit, boxShadow: "0 0 0 1px rgb(22 18 15 / .1)" }}>
+          <div
+            key={p}
+            style={{
+              background: GROUND.print.hex,
+              padding: 3 * unit,
+              boxShadow: "0 0 0 1px rgb(22 18 15 / .1)",
+            }}
+          >
             <Pic id={p} w="100%" h={46 * unit} />
-            <div style={{ ...bar("60%", 3 * unit, 0.5), marginTop: 4 * unit }} />
+            <div
+              style={{ ...bar("60%", 3 * unit, 0.5), marginTop: 4 * unit }}
+            />
           </div>
         ))}
       </div>
     );
   if (kind === "reel")
     body = (
-      <div style={{ position: "relative", display: "grid", placeItems: "center" }}>
+      <div
+        style={{ position: "relative", display: "grid", placeItems: "center" }}
+      >
         <div
           aria-hidden
           style={{
             position: "absolute",
             inset: `${-6 * unit}px ${-14 * unit}px`,
-            background: "radial-gradient(60% 70% at 50% 55%, rgb(214 150 92 / 0.32), transparent 70%)",
+            background:
+              "radial-gradient(60% 70% at 50% 55%, rgb(214 150 92 / 0.32), transparent 70%)",
           }}
         />
-        <div style={{ position: "relative", boxShadow: "0 0 0 1px rgb(255 255 255 / .12), 0 -1px 0 rgb(255 255 255 / .3)" }}>
+        <div
+          style={{
+            position: "relative",
+            boxShadow:
+              "0 0 0 1px rgb(255 255 255 / .12), 0 -1px 0 rgb(255 255 255 / .3)",
+          }}
+        >
           <Pic id="festival-crowd" w={150 * unit} h={78 * unit} />
         </div>
       </div>
     );
   if (kind === "pricing")
     body = (
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6 * unit }}>
-        {(["party-balloons", "wedding-toast", "festival-lights"] as const).map((ph) => (
-          <div key={ph} style={{ background: GROUND.print.hex, padding: 4 * unit, boxShadow: "0 0 0 1px rgb(22 18 15 / .1)", display: "grid", gap: 3 * unit }}>
-            <Pic id={ph} w="100%" h={24 * unit} />
-            <div style={bar("45%", 7 * unit)} />
-            <div style={bar("80%", 2.5 * unit, 0.3)} />
-            <div style={bar("62%", 2.5 * unit, 0.3)} />
-          </div>
-        ))}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(3, 1fr)",
+          gap: 6 * unit,
+        }}
+      >
+        {(["party-balloons", "wedding-toast", "festival-lights"] as const).map(
+          (ph) => (
+            <div
+              key={ph}
+              style={{
+                background: GROUND.print.hex,
+                padding: 4 * unit,
+                boxShadow: "0 0 0 1px rgb(22 18 15 / .1)",
+                display: "grid",
+                gap: 3 * unit,
+              }}
+            >
+              <Pic id={ph} w="100%" h={24 * unit} />
+              <div style={bar("45%", 7 * unit)} />
+              <div style={bar("80%", 2.5 * unit, 0.3)} />
+              <div style={bar("62%", 2.5 * unit, 0.3)} />
+            </div>
+          ),
+        )}
       </div>
     );
   if (kind === "help")
     body = (
       <div style={{ display: "grid", gap: 5 * unit }}>
-        <div style={{ ...bar("100%", 12 * unit, 0.08), boxShadow: `inset 0 0 0 1px rgb(22 18 15 / .2)` }} />
+        <div
+          style={{
+            ...bar("100%", 12 * unit, 0.08),
+            boxShadow: `inset 0 0 0 1px rgb(22 18 15 / .2)`,
+          }}
+        />
         {[92, 80, 88, 60].map((p) => (
           <div key={p} style={bar(`${p}%`, 3 * unit, 0.3)} />
         ))}
@@ -131,8 +251,22 @@ function MiniPage({ kind, room, w, h }: { kind: Kind; room?: boolean; w: number;
     body = (
       <div style={{ display: "grid", gap: 6 * unit }}>
         <Wordmark height={16 * unit} color={ink} />
-        <div style={{ display: "flex", gap: 3 * unit, background: GROUND.ink.hex, padding: 3 * unit }}>
-          {(["wedding-toast", "concert-confetti", "reception-hall", "wedding-golden"] as const).map((p) => (
+        <div
+          style={{
+            display: "flex",
+            gap: 3 * unit,
+            background: GROUND.ink.hex,
+            padding: 3 * unit,
+          }}
+        >
+          {(
+            [
+              "wedding-toast",
+              "concert-confetti",
+              "reception-hall",
+              "wedding-golden",
+            ] as const
+          ).map((p) => (
             <Pic key={p} id={p} w={36 * unit} h={24 * unit} />
           ))}
         </div>
@@ -142,7 +276,10 @@ function MiniPage({ kind, room, w, h }: { kind: Kind; room?: boolean; w: number;
     body = (
       <div style={{ display: "grid", gap: 6 * unit }}>
         {(["reception-table", "wedding-rings"] as const).map((p) => (
-          <div key={p} style={{ display: "flex", gap: 6 * unit, alignItems: "center" }}>
+          <div
+            key={p}
+            style={{ display: "flex", gap: 6 * unit, alignItems: "center" }}
+          >
             <Pic id={p} w={40 * unit} h={27 * unit} />
             <div style={{ flex: 1, display: "grid", gap: 3 * unit }}>
               <div style={bar("70%", 5 * unit)} />
@@ -177,7 +314,13 @@ function MiniPage({ kind, room, w, h }: { kind: Kind; room?: boolean; w: number;
         gap: 7 * unit,
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
         <Wordmark height={9 * unit} color={ink} />
         <div style={{ display: "flex", gap: 4 * unit }}>
           {[0, 1, 2].map((i) => (
@@ -187,7 +330,13 @@ function MiniPage({ kind, room, w, h }: { kind: Kind; room?: boolean; w: number;
       </div>
       <div style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>{body}</div>
       {/* The close: a thin edge band, then the footer on the page's own ground. */}
-      <div style={{ margin: `0 ${-pad}px`, height: 4 * unit, background: room ? "#2a241e" : GROUND.ink.hex }} />
+      <div
+        style={{
+          margin: `0 ${-pad}px`,
+          height: 4 * unit,
+          background: room ? "#2a241e" : GROUND.ink.hex,
+        }}
+      />
       <div style={{ display: "flex", gap: 6 * unit, marginBottom: -2 * unit }}>
         {[22, 16, 19, 14].map((w2, i) => (
           <div key={i} style={bar(w2 * unit, 2 * unit, 0.3, room)} />
@@ -199,7 +348,12 @@ function MiniPage({ kind, room, w, h }: { kind: Kind; room?: boolean; w: number;
 
 /* ── the rhythm inside a page ────────────────────────────────────────────── */
 
-const RHYTHM: readonly { n: string; title: string; line: string; draw: ReactNode }[] = [
+const RHYTHM: readonly {
+  n: string;
+  title: string;
+  line: string;
+  draw: ReactNode;
+}[] = [
   {
     n: "01",
     title: "The spread",
@@ -211,8 +365,22 @@ const RHYTHM: readonly { n: string; title: string; line: string; draw: ReactNode
     title: "A sheet",
     line: "The dense grid: frames side by side.",
     draw: (
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 2 }}>
-        {(["party-dj", "wedding-toast", "party-balloons", "festival-lights", "reception-table"] as const).map((p) => (
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(5, 1fr)",
+          gap: 2,
+        }}
+      >
+        {(
+          [
+            "party-dj",
+            "wedding-toast",
+            "party-balloons",
+            "festival-lights",
+            "reception-table",
+          ] as const
+        ).map((p) => (
           <Pic key={p} id={p} w="100%" h={19} />
         ))}
       </div>
@@ -229,7 +397,13 @@ const RHYTHM: readonly { n: string; title: string; line: string; draw: ReactNode
             <div key={p} style={bar(`${p}%`, 3, 0.3)} />
           ))}
         </div>
-        <div style={{ background: GROUND.print.hex, padding: 2, boxShadow: "0 0 0 1px rgb(22 18 15 / .12)" }}>
+        <div
+          style={{
+            background: GROUND.print.hex,
+            padding: 2,
+            boxShadow: "0 0 0 1px rgb(22 18 15 / .12)",
+          }}
+        >
           <Pic id="wedding-rings" w={30} h={22} />
         </div>
       </div>
@@ -238,7 +412,7 @@ const RHYTHM: readonly { n: string; title: string; line: string; draw: ReactNode
   {
     n: "04",
     title: "The close",
-    line: "The edge band, then the footer, on the same paper.",
+    line: "A rule, then the footer, on the same paper.",
     draw: (
       <div style={{ display: "grid", gap: 4 }}>
         <Edge items={["Partyreel", "One album"]} size={7} band height={12} />
@@ -256,8 +430,25 @@ function Rhythm() {
   return (
     <div style={{ display: "grid", gap: 16 }}>
       {RHYTHM.map((r) => (
-        <div key={r.n} style={{ display: "grid", gridTemplateColumns: "116px 1fr", gap: 14, alignItems: "center" }}>
-          <div style={{ width: 116, overflow: "hidden", background: GROUND.paper.hex, boxShadow: "0 0 0 1px rgb(22 18 15 / .12)", padding: 6, boxSizing: "border-box" }}>
+        <div
+          key={r.n}
+          style={{
+            display: "grid",
+            gridTemplateColumns: "116px 1fr",
+            gap: 14,
+            alignItems: "center",
+          }}
+        >
+          <div
+            style={{
+              width: 116,
+              overflow: "hidden",
+              background: GROUND.paper.hex,
+              boxShadow: "0 0 0 1px rgb(22 18 15 / .12)",
+              padding: 6,
+              boxSizing: "border-box",
+            }}
+          >
             {r.draw}
           </div>
           <div>
@@ -272,14 +463,34 @@ function Rhythm() {
   );
 }
 
-function PageMap({ w, h, cols, gap }: { w: number; h: number; cols: number; gap: number }) {
+function PageMap({
+  w,
+  h,
+  cols,
+  gap,
+}: {
+  w: number;
+  h: number;
+  cols: number;
+  gap: number;
+}) {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: `repeat(${cols}, ${w}px)`, gap }}>
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: `repeat(${cols}, ${w}px)`,
+        gap,
+      }}
+    >
       {PAGES.map((p, i) => (
         <div key={p.kind}>
           <MiniPage kind={p.kind} room={p.room} w={w} h={h} />
           <Edge
-            items={[String(i + 1).padStart(2, "0"), p.name, p.room ? "The room" : "Paper"]}
+            items={[
+              String(i + 1).padStart(2, "0"),
+              p.name,
+              p.room ? "The room" : "Paper",
+            ]}
             size={11}
             style={{ marginTop: 9, color: p.room ? GROUND.ink.hex : undefined }}
           />
@@ -302,7 +513,10 @@ export function PagesSlide({ screen }: { screen: Screen }) {
 function PagesDesk() {
   return (
     <SlideRoot screen="1440">
-      <div className="absolute" style={{ left: 64, top: HEAD["1440"] + 42, width: 900 }}>
+      <div
+        className="absolute"
+        style={{ left: 64, top: HEAD["1440"] + 42, width: 900 }}
+      >
         <Display size={50} style={{ lineHeight: 1 }}>
           Paper, unless it&rsquo;s projected.
         </Display>
@@ -319,7 +533,8 @@ function PagesDesk() {
           <Rhythm />
         </div>
         <Copy size={13} lead={19} style={{ marginTop: 22 }}>
-          A section opens on a spread and winds down through sheets and reads; the page closes on its edge, never on a chapter of another ground.
+          A section opens on a spread and winds down through sheets and reads;
+          the page closes on its edge, never on a chapter of another ground.
         </Copy>
       </div>
       <SlideFoot screen="1440" />
@@ -330,7 +545,10 @@ function PagesDesk() {
 function PagesPhone() {
   return (
     <SlideRoot screen="375">
-      <div className="absolute" style={{ left: 16, right: 16, top: HEAD["375"] + 24 }}>
+      <div
+        className="absolute"
+        style={{ left: 16, right: 16, top: HEAD["375"] + 24 }}
+      >
         <Display size={34} style={{ lineHeight: 1 }}>
           Paper, unless it&rsquo;s projected.
         </Display>

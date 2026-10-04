@@ -66,7 +66,7 @@ export const CONTACT_SHEET: Vision = {
     hero: 1310,
     "dark-page": 1130,
     "light-page": 1480,
-    "empty-hub": 1480,
+    "empty-hub": 1512,
     share: 930,
     "home-screen": 1300,
   },

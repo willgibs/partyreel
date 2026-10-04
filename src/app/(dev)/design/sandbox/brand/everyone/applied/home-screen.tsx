@@ -10,7 +10,7 @@ import { BASE, ON, PhoneShell } from "../system";
 import { Caption, Scaled, StatusBar } from "./kit";
 
 /**
- * 14 ON A HOME SCREEN. The party of three at its true size (60 pt) on a phone,
+ * 14 ON A HOME SCREEN. The row of three at its true size (60 pt) on a phone,
  * among neighbours that are plain tiles with plain marks (no real app, no
  * real logo), over a photograph, in daylight and in the dark. The tile to its
  * left carries a red badge, so the one test that matters is seen in one
@@ -23,7 +23,13 @@ import { Caption, Scaled, StatusBar } from "./kit";
  * to one hue, where the party must hold by its shape and its parts alone).
  */
 
-type Tile = { name: string; fill: string; mark: "lines" | "grid" | "tri" | "wave" | "square" | "bars" | "chev" | "plus"; ink?: string; badge?: number };
+type Tile = {
+  name: string;
+  fill: string;
+  mark: "lines" | "grid" | "tri" | "wave" | "square" | "bars" | "chev" | "plus";
+  ink?: string;
+  badge?: number;
+};
 
 /** The neighbours: plain tiles in the colours real home screens hold, each a plain mark. */
 const NEIGHBOURS: Tile[] = [
@@ -48,7 +54,13 @@ const NEIGHBOURS: Tile[] = [
 const OURS_AT = 6;
 
 function Mark({ kind, ink }: { kind: Tile["mark"]; ink: string }) {
-  const s = { stroke: ink, strokeWidth: 6, fill: "none", strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+  const s = {
+    stroke: ink,
+    strokeWidth: 6,
+    fill: "none",
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+  };
   return (
     <g>
       {kind === "lines" && <path d="M34 42h32M34 54h32M34 66h20" {...s} />}
@@ -62,9 +74,25 @@ function Mark({ kind, ink }: { kind: Tile["mark"]; ink: string }) {
       )}
       {kind === "tri" && <path d="M50 32 70 66H30z" fill={ink} />}
       {kind === "wave" && <path d="M28 56c7-10 15-10 22 0s15 10 22 0" {...s} />}
-      {kind === "square" && <rect x={31} y={36} width={38} height={28} rx={5} {...s} strokeWidth={5.5} />}
+      {kind === "square" && (
+        <rect
+          x={31}
+          y={36}
+          width={38}
+          height={28}
+          rx={5}
+          {...s}
+          strokeWidth={5.5}
+        />
+      )}
       {kind === "bars" && <path d="M36 66V50M50 66V36M64 66V44" {...s} />}
-      {kind === "chev" && <path d="M38 34l16 16-16 16M52 34l16 16-16 16" {...s} strokeWidth={5.5} />}
+      {kind === "chev" && (
+        <path
+          d="M38 34l16 16-16 16M52 34l16 16-16 16"
+          {...s}
+          strokeWidth={5.5}
+        />
+      )}
       {kind === "plus" && <path d="M50 34v32M34 50h32" {...s} />}
     </g>
   );
@@ -74,7 +102,13 @@ function Mark({ kind, ink }: { kind: Tile["mark"]; ink: string }) {
 function NeighbourIcon({ t, size }: { t: Tile; size: number }) {
   return (
     <div className="relative" style={{ width: size, height: size }}>
-      <svg viewBox="0 0 100 100" width={size} height={size} aria-hidden className="block">
+      <svg
+        viewBox="0 0 100 100"
+        width={size}
+        height={size}
+        aria-hidden
+        className="block"
+      >
         <g transform="scale(0.09765625)">
           <path d={TILE_PATH} fill={t.fill} />
         </g>
@@ -84,7 +118,13 @@ function NeighbourIcon({ t, size }: { t: Tile; size: number }) {
         // The phone's own red light: a flat disc and its count, at the tile's top right.
         <span
           className="ev-badge"
-          style={{ height: size * 0.39, minWidth: size * 0.39, fontSize: size * 0.25, right: -size * 0.14, top: -size * 0.14 }}
+          style={{
+            height: size * 0.39,
+            minWidth: size * 0.39,
+            fontSize: size * 0.25,
+            right: -size * 0.14,
+            top: -size * 0.14,
+          }}
         >
           {t.badge}
         </span>
@@ -93,11 +133,29 @@ function NeighbourIcon({ t, size }: { t: Tile; size: number }) {
   );
 }
 
-function Cell({ children, label, size, light }: { children: ReactNode; label: string; size: number; light: boolean }) {
+function Cell({
+  children,
+  label,
+  size,
+  light,
+}: {
+  children: ReactNode;
+  label: string;
+  size: number;
+  light: boolean;
+}) {
   return (
-    <div className="flex flex-col items-center" style={{ width: size + 20, gap: size * 0.1 }}>
+    <div
+      className="flex flex-col items-center"
+      style={{ width: size + 20, gap: size * 0.1 }}
+    >
       {children}
-      <span className={light ? "ev-home-label ev-home-label-light" : "ev-home-label"} style={{ fontSize: size * 0.19 }}>
+      <span
+        className={
+          light ? "ev-home-label ev-home-label-light" : "ev-home-label"
+        }
+        style={{ fontSize: size * 0.19 }}
+      >
         {label}
       </span>
     </div>
@@ -132,7 +190,17 @@ function HomeScreen({
   }
   return (
     <div className="relative overflow-hidden" style={{ width: w, height: h }}>
-      <Pic id={photo} focus={focus} style={{ position: "absolute", inset: 0, width: w, height: h, borderRadius: 0 }} />
+      <Pic
+        id={photo}
+        focus={focus}
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: w,
+          height: h,
+          borderRadius: 0,
+        }}
+      />
       <div className="relative">
         {/* Both wallpapers are dark along their top edge, so the bar is light on both. */}
         <StatusBar tone="room" w={w} />
@@ -150,10 +218,19 @@ function HomeScreen({
         {cells.map((c, i) =>
           c.ours ? (
             <Cell key="ours" label="Partyreel" size={icon} light={light}>
-              <AppIcon size={icon} variant={light ? "light" : "dark"} read={read} />
+              <AppIcon
+                size={icon}
+                variant={light ? "light" : "dark"}
+                read={read}
+              />
             </Cell>
           ) : (
-            <Cell key={`${c.t!.name}-${i}`} label={c.t!.name} size={icon} light={light}>
+            <Cell
+              key={`${c.t!.name}-${i}`}
+              label={c.t!.name}
+              size={icon}
+              light={light}
+            >
               <NeighbourIcon t={c.t!} size={icon} />
             </Cell>
           ),
@@ -167,7 +244,10 @@ function HomeScreen({
 function BesideBadge({ scale }: { scale: number }) {
   const inbox = NEIGHBOURS.find((t) => t.badge !== undefined)!;
   return (
-    <div className="flex" style={{ gap: 33 * scale, padding: `${12 * scale}px 0 0 ${2 * scale}px` }}>
+    <div
+      className="flex"
+      style={{ gap: 33 * scale, padding: `${12 * scale}px 0 0 ${2 * scale}px` }}
+    >
       <NeighbourIcon t={inbox} size={60 * scale} />
       <AppIcon size={60 * scale} read="the icon beside a badge, at 2x" />
     </div>
@@ -185,11 +265,25 @@ function Looks({ size, gap }: { size: number; gap: number }) {
   return (
     <div className="flex" style={{ gap }}>
       {LOOKS.map((l) => (
-        <div key={l.v} className="flex flex-col items-start" style={{ gap: 10 }}>
-          <div className={l.v === "light" ? "ev-icon-on-paper" : undefined} style={{ borderRadius: size * 0.225 }}>
-            <AppIcon size={size} variant={l.v} read={`icon, ${l.name.toLowerCase()}`} />
+        <div
+          key={l.v}
+          className="flex flex-col items-start"
+          style={{ gap: 10 }}
+        >
+          <div
+            className={l.v === "light" ? "ev-icon-on-paper" : undefined}
+            style={{ borderRadius: size * 0.225 }}
+          >
+            <AppIcon
+              size={size}
+              variant={l.v}
+              read={`icon, ${l.name.toLowerCase()}`}
+            />
           </div>
-          <span className="ev-body" style={{ fontSize: 13, color: BASE.muted.hex }}>
+          <span
+            className="ev-body"
+            style={{ fontSize: 13, color: BASE.muted.hex }}
+          >
             {l.name}
           </span>
         </div>
@@ -198,20 +292,31 @@ function Looks({ size, gap }: { size: number; gap: number }) {
   );
 }
 
-const LINE = "A badge is the phone's flat red count. The party is three lit guests, parted by their tile.";
+const LINE =
+  "A badge is the phone's flat red count. The party is three guests in a row, matte, parted by their tile.";
 
 export function HomeScreenSlide({ screen }: SlideProps) {
   if (!isDesk(screen)) {
     return (
       <SlideGround tone="paper" screen={screen} pad={false}>
         <div style={{ height: 52 }} />
-        <HomeScreen w={375} h={560} photo="concert-confetti" focus="50% 30%" light={false} read="icon at 60, on a phone" />
+        <HomeScreen
+          w={375}
+          h={560}
+          photo="concert-confetti"
+          focus="50% 30%"
+          light={false}
+          read="icon at 60, on a phone"
+        />
         <div style={{ padding: "26px 20px 0" }}>
           <Kicker tone="paper">Beside a badge, at 2×</Kicker>
           <div style={{ marginTop: 6 }}>
             <BesideBadge scale={2} />
           </div>
-          <p className="ev-body" style={{ fontSize: 14.5, color: ON.paper.ink, marginTop: 18 }}>
+          <p
+            className="ev-body"
+            style={{ fontSize: 14.5, color: ON.paper.ink, marginTop: 18 }}
+          >
             {LINE}
           </p>
           <Kicker tone="paper" style={{ marginTop: 30 }}>
@@ -226,18 +331,37 @@ export function HomeScreenSlide({ screen }: SlideProps) {
   }
   const pw = 393;
   return (
-    <SlideGround tone="paper" screen={screen} pad={false} style={{ backgroundColor: BASE.step.hex }}>
+    <SlideGround
+      tone="paper"
+      screen={screen}
+      pad={false}
+      style={{ backgroundColor: BASE.step.hex }}
+    >
       <div className="absolute" style={{ left: 80, top: 96 }}>
         <PhoneShell width={pw} tone="paper">
           <Scaled w={pw} h={852} scale={1}>
-            <HomeScreen w={pw} h={852} photo="wedding-petals" focus="50% 40%" light read="icon at 60, daylight" />
+            <HomeScreen
+              w={pw}
+              h={852}
+              photo="wedding-petals"
+              focus="50% 40%"
+              light
+              read="icon at 60, daylight"
+            />
           </Scaled>
         </PhoneShell>
       </div>
       <div className="absolute" style={{ left: 80 + pw + 24 + 36, top: 96 }}>
         <PhoneShell width={pw} tone="room">
           <Scaled w={pw} h={852} scale={1}>
-            <HomeScreen w={pw} h={852} photo="concert-confetti" focus="50% 30%" light={false} read="icon at 60, in the dark" />
+            <HomeScreen
+              w={pw}
+              h={852}
+              photo="concert-confetti"
+              focus="50% 30%"
+              light={false}
+              read="icon at 60, in the dark"
+            />
           </Scaled>
         </PhoneShell>
       </div>
@@ -246,7 +370,10 @@ export function HomeScreenSlide({ screen }: SlideProps) {
         <div style={{ marginTop: 8 }}>
           <BesideBadge scale={2} />
         </div>
-        <p className="ev-body" style={{ fontSize: 15, color: ON.paper.ink, marginTop: 22 }}>
+        <p
+          className="ev-body"
+          style={{ fontSize: 15, color: ON.paper.ink, marginTop: 22 }}
+        >
           {LINE}
         </p>
         <Kicker tone="paper" style={{ marginTop: 52 }}>

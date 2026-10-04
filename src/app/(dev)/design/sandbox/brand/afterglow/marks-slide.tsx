@@ -14,7 +14,13 @@ import { GROUND, INK, Readout } from "./system";
  */
 
 /** The wordmark with its construction drawn over it, in the ground's faint ink. */
-function Construction({ height, ground }: { height: number; ground: "room" | "paper" }) {
+function Construction({
+  height,
+  ground,
+}: {
+  height: number;
+  ground: "room" | "paper";
+}) {
   const s = height / 64;
   const w = 308 * s;
   const guide = INK[ground].faint.hex;
@@ -24,7 +30,12 @@ function Construction({ height, ground }: { height: number; ground: "room" | "pa
     const dx = b[0] - a[0];
     const dy = b[1] - a[1];
     const len = Math.hypot(dx, dy);
-    return [a[0] - (dx / len) * k, a[1] - (dy / len) * k, b[0] + (dx / len) * k, b[1] + (dy / len) * k];
+    return [
+      a[0] - (dx / len) * k,
+      a[1] - (dy / len) * k,
+      b[0] + (dx / len) * k,
+      b[1] + (dy / len) * k,
+    ];
   };
   return (
     <div className="relative" style={{ width: w, height }}>
@@ -40,20 +51,46 @@ function Construction({ height, ground }: { height: number; ground: "room" | "pa
         stroke={guide}
         strokeWidth={0.32}
       >
-        <line x1={-12} x2={320} y1={G.baseline} y2={G.baseline} strokeDasharray="1.2 1.2" />
-        <line x1={-12} x2={320} y1={G.xHeight} y2={G.xHeight} strokeDasharray="1.2 1.2" />
+        <line
+          x1={-12}
+          x2={320}
+          y1={G.baseline}
+          y2={G.baseline}
+          strokeDasharray="1.2 1.2"
+        />
+        <line
+          x1={-12}
+          x2={320}
+          y1={G.xHeight}
+          y2={G.xHeight}
+          strokeDasharray="1.2 1.2"
+        />
         <line x1={slantAt(-9)} y1={-9} x2={slantAt(66)} y2={66} />
         {G.cuts.map((c, i) => {
           const [x1, y1, x2, y2] = ext(c.from, c.to, 7);
           return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} />;
         })}
         <line x1={G.bar.x0} x2={G.bar.x1} y1={G.bar.y - 4} y2={G.bar.y - 4} />
-        <line x1={G.bar.x0} x2={G.bar.x0} y1={G.bar.y - 5.6} y2={G.bar.y - 2.4} />
-        <line x1={G.bar.x1} x2={G.bar.x1} y1={G.bar.y - 5.6} y2={G.bar.y - 2.4} />
+        <line
+          x1={G.bar.x0}
+          x2={G.bar.x0}
+          y1={G.bar.y - 5.6}
+          y2={G.bar.y - 2.4}
+        />
+        <line
+          x1={G.bar.x1}
+          x2={G.bar.x1}
+          y1={G.bar.y - 5.6}
+          y2={G.bar.y - 2.4}
+        />
       </svg>
       <Readout
         className="absolute"
-        style={{ color: guide, left: (G.bar.x0 + 4) * s, top: (G.bar.y - 4) * s - 26 }}
+        style={{
+          color: guide,
+          left: (G.bar.x0 + 4) * s,
+          top: (G.bar.y - 4) * s - 26,
+        }}
       >
         One bar, r t y
       </Readout>
@@ -73,7 +110,13 @@ function Construction({ height, ground }: { height: number; ground: "room" | "pa
   );
 }
 
-function IconSizes({ ground, gap = 28 }: { ground: "room" | "paper"; gap?: number }) {
+function IconSizes({
+  ground,
+  gap = 28,
+}: {
+  ground: "room" | "paper";
+  gap?: number;
+}) {
   const t = ink(ground);
   return (
     <div className="flex items-end" style={{ gap }}>
@@ -93,14 +136,21 @@ export function MarksSlide({ screen }: SlideProps) {
   if (screen === "375")
     return (
       <SlideRoot screen={screen} ground="room">
-        <div className="absolute inset-x-0 px-6" style={{ top: HEAD[screen] + 28 }}>
+        <div
+          className="absolute inset-x-0 px-6"
+          style={{ top: HEAD[screen] + 28 }}
+        >
           <Readout style={{ color: room.faint }}>The icon</Readout>
           <div className="mt-4 flex justify-center">
             <AppIcon size={232} read="icon, 1024 style" />
           </div>
-          <p className="ag-body mt-5" style={{ color: room.muted, fontSize: 14 }}>
-            <span style={{ color: room.fg }}>The shutter.</span> A dark disc in a ring of
-            light: what a guest presses to add a photograph is the brand on a home screen.
+          <p
+            className="ag-body mt-5"
+            style={{ color: room.muted, fontSize: 14 }}
+          >
+            <span style={{ color: room.fg }}>The shutter.</span> A dark disc in
+            a ring of light: what a guest presses to add a photograph is the
+            brand on a home screen.
           </p>
           <div className="mt-7">
             <IconSizes ground="room" gap={22} />
@@ -111,9 +161,15 @@ export function MarksSlide({ screen }: SlideProps) {
           <div className="mt-6">
             <Construction height={64} ground="room" />
           </div>
-          <p className="ag-body mt-14" style={{ color: room.muted, fontSize: 14 }}>
-            <span style={{ color: room.fg }}>Will&apos;s own drawing, kept.</span> The one
-            mark that never glows: its letters run joined, like frames on a reel.
+          <p
+            className="ag-body mt-14"
+            style={{ color: room.muted, fontSize: 14 }}
+          >
+            <span style={{ color: room.fg }}>
+              Will&apos;s own drawing, kept.
+            </span>{" "}
+            The one mark that never glows: its letters run joined, like frames
+            on a reel.
           </p>
         </div>
         <div
@@ -130,9 +186,12 @@ export function MarksSlide({ screen }: SlideProps) {
           <div className="mt-6 pl-3">
             <Lockup height={36} ground="paper" read="lockup on paper" />
           </div>
-          <p className="ag-body mt-8" style={{ color: paper.muted, fontSize: 14 }}>
-            The ring&apos;s centre on the x-height. The light stays the symbol&apos;s; the
-            word takes the ground&apos;s ink.
+          <p
+            className="ag-body mt-8"
+            style={{ color: paper.muted, fontSize: 14 }}
+          >
+            The ring&apos;s centre on the x-height. The light stays the
+            symbol&apos;s; the word takes the ground&apos;s ink.
           </p>
         </div>
       </SlideRoot>
@@ -157,25 +216,39 @@ export function MarksSlide({ screen }: SlideProps) {
                 </div>
               ))}
             </div>
-            <p className="ag-caption" style={{ color: room.faint, maxWidth: 190, marginTop: -6 }}>
-              Cut for its size: the bevel goes at 60, the corona at 29, where the band
-              thickens to stay a ring.
+            <p
+              className="ag-caption"
+              style={{ color: room.faint, maxWidth: 190, marginTop: -6 }}
+            >
+              Cut for its size: the bevel goes at 60, the corona at 29, where
+              the band thickens to stay a ring.
             </p>
           </div>
         </div>
         <p
           className="ag-body"
-          style={{ color: room.muted, fontSize: 15, marginTop: 34, maxWidth: 540 }}
+          style={{
+            color: room.muted,
+            fontSize: 15,
+            marginTop: 34,
+            maxWidth: 540,
+          }}
         >
           <span style={{ color: room.fg }}>The shutter.</span>
-          {" A dark disc in a ring of light: what a guest presses to add a photograph is the brand on a home screen. Its light is the house five, weighted the way Partyreel's own photographs light, falling from the top left like every light in the product."}
+          {
+            " A dark disc in a ring of light: what a guest presses to add a photograph is the brand on a home screen. It is lit as an object is, by one warm key from the top left like every light in the product: amber where the light lands, spent to shadow on the far side, on a matte disc."
+          }
         </p>
         <div className="flex items-end gap-7" style={{ marginTop: 34 }}>
           {(["room", "tinted", "paper"] as const).map((a) => (
             <div key={a} className="flex flex-col items-start gap-2.5">
               <AppIcon size={72} appearance={a} />
               <Readout style={{ color: room.faint }}>
-                {a === "room" ? "Default" : a === "tinted" ? "Tinted" : "On a print"}
+                {a === "room"
+                  ? "Default"
+                  : a === "tinted"
+                    ? "Tinted"
+                    : "On a print"}
               </Readout>
             </div>
           ))}
@@ -190,17 +263,32 @@ export function MarksSlide({ screen }: SlideProps) {
         </div>
         <p
           className="ag-body"
-          style={{ color: room.muted, fontSize: 15, marginTop: 70, maxWidth: 560 }}
+          style={{
+            color: room.muted,
+            fontSize: 15,
+            marginTop: 70,
+            maxWidth: 560,
+          }}
         >
-          <span style={{ color: room.fg }}>Will&apos;s own drawing, kept untouched.</span>
-          {" The one mark that never glows: ink on paper, paper in the room. Its letters run joined, like frames on a reel, and its cuts lean on one angle."}
+          <span style={{ color: room.fg }}>
+            Will&apos;s own drawing, kept untouched.
+          </span>
+          {
+            " The one mark that never glows: ink on paper, paper in the room. Its letters run joined, like frames on a reel, and its cuts lean on one angle."
+          }
         </p>
       </div>
 
       {/* On paper: the wordmark, and the lockup. */}
       <div
         className="absolute"
-        style={{ left: 696, right: 0, top: 572, bottom: 0, background: GROUND.paper.hex }}
+        style={{
+          left: 696,
+          right: 0,
+          top: 572,
+          bottom: 0,
+          background: GROUND.paper.hex,
+        }}
       >
         <div className="absolute" style={{ left: 64, top: 48 }}>
           <Readout style={{ color: paper.faint }}>On paper</Readout>
@@ -216,11 +304,17 @@ export function MarksSlide({ screen }: SlideProps) {
         </div>
         <p
           className="ag-body absolute"
-          style={{ left: 64, top: 206, maxWidth: 600, color: paper.muted, fontSize: 14 }}
+          style={{
+            left: 64,
+            top: 206,
+            maxWidth: 600,
+            color: paper.muted,
+            fontSize: 14,
+          }}
         >
           The lockup sets the ring&apos;s centre on the x-height, a third of the
-          word&apos;s height apart. The light stays the symbol&apos;s; the word takes the
-          ground&apos;s ink.
+          word&apos;s height apart. The light stays the symbol&apos;s; the word
+          takes the ground&apos;s ink.
         </p>
       </div>
     </SlideRoot>

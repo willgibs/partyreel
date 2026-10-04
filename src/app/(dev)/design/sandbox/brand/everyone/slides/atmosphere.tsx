@@ -3,7 +3,7 @@
 import type { SlideProps } from "../../deck/contract";
 import { PARTY } from "../../deck/media";
 import {
-  AddRing,
+  AddOrb,
   BASE,
   CROWD,
   crowdFor,
@@ -32,27 +32,49 @@ function EmptyAlbum({ w }: { w: number }) {
   const s = w / 280;
   return (
     <PhoneShell width={w} tone="room">
-      <div className="absolute" style={{ left: 18 * s, right: 18 * s, top: 52 * s }}>
+      <div
+        className="absolute"
+        style={{ left: 18 * s, right: 18 * s, top: 52 * s }}
+      >
         <p className="ev-head" style={{ fontSize: 25 * s, color: ON.room.ink }}>
           {PARTY.name}
         </p>
-        <p className="ev-body" style={{ fontSize: 12 * s, color: ON.room.muted, marginTop: 4 * s }}>
+        <p
+          className="ev-body"
+          style={{ fontSize: 12 * s, color: ON.room.muted, marginTop: 4 * s }}
+        >
           {PARTY.date}
         </p>
       </div>
       <div className="absolute" style={{ left: 0, top: 118 * s }}>
-        <Mix people={HERE} w={w} h={250 * s} tone="room" pad={34 * s} gap={0.3} />
+        <Mix
+          people={HERE}
+          w={w}
+          h={250 * s}
+          tone="room"
+          pad={34 * s}
+          gap={0.3}
+        />
       </div>
-      <div className="absolute text-center" style={{ left: 18 * s, right: 18 * s, top: 388 * s }}>
+      <div
+        className="absolute text-center"
+        style={{ left: 18 * s, right: 18 * s, top: 388 * s }}
+      >
         <p className="ev-head" style={{ fontSize: 20 * s, color: ON.room.ink }}>
           The album starts with&nbsp;you.
         </p>
-        <p className="ev-body" style={{ fontSize: 12.5 * s, color: ON.room.muted, marginTop: 6 * s }}>
+        <p
+          className="ev-body"
+          style={{ fontSize: 12.5 * s, color: ON.room.muted, marginTop: 6 * s }}
+        >
           {HERE.length} guests are here. Add the first photo.
         </p>
       </div>
-      <div className="absolute" style={{ left: "50%", bottom: 34 * s, transform: "translateX(-50%)" }}>
-        <AddRing people={HERE} size={56 * s} ground={ON.room.ground} />
+      <div
+        className="absolute"
+        style={{ left: "50%", bottom: 34 * s, transform: "translateX(-50%)" }}
+      >
+        <AddOrb you={CROWD[3]} size={56 * s} />
       </div>
     </PhoneShell>
   );
@@ -79,8 +101,20 @@ function EventCard({
 }) {
   const h = 116 * s;
   return (
-    <div style={{ backgroundColor: ON.paper.card, borderRadius: 8 * s, overflow: "hidden" }}>
-      <div style={{ height: h, backgroundColor: BASE.well.hex, position: "relative" }}>
+    <div
+      style={{
+        backgroundColor: ON.paper.card,
+        borderRadius: 8 * s,
+        overflow: "hidden",
+      }}
+    >
+      <div
+        style={{
+          height: h,
+          backgroundColor: BASE.well.hex,
+          position: "relative",
+        }}
+      >
         <Mix
           people={people}
           w={w}
@@ -95,7 +129,14 @@ function EventCard({
         <p className="ev-title" style={{ fontSize: 15 * s }}>
           {name}
         </p>
-        <p className="ev-body" style={{ fontSize: 11.5 * s, color: ON.paper.muted, marginTop: 2 * s }}>
+        <p
+          className="ev-body"
+          style={{
+            fontSize: 11.5 * s,
+            color: ON.paper.muted,
+            marginTop: 2 * s,
+          }}
+        >
           {meta}
         </p>
       </div>
@@ -108,14 +149,35 @@ function Dashboard({ w }: { w: number }) {
   const inner = w - 32 * s;
   return (
     <PhoneShell width={w} tone="paper">
-      <div className="absolute" style={{ left: 16 * s, right: 16 * s, top: 50 * s }}>
+      <div
+        className="absolute"
+        style={{ left: 16 * s, right: 16 * s, top: 50 * s }}
+      >
         <p className="ev-head" style={{ fontSize: 25 * s }}>
           Your events
         </p>
         <div className="grid" style={{ gap: 12 * s, marginTop: 14 * s }}>
-          <EventCard people={CROWD} name={PARTY.name} meta={`${PARTY.guests} guests · Saturday 12 September`} w={inner} s={s} />
-          <EventCard people={THEO} name="Theo's 30th" meta="6 guests · Friday 2 October" w={inner} s={s} />
-          <EventCard people={CLUB} name="Book club" meta="Just you so far · share the code" w={inner} s={s} />
+          <EventCard
+            people={CROWD}
+            name={PARTY.name}
+            meta={`${PARTY.guests} guests · Saturday 12 September`}
+            w={inner}
+            s={s}
+          />
+          <EventCard
+            people={THEO}
+            name="Theo's 30th"
+            meta="6 guests · Friday 2 October"
+            w={inner}
+            s={s}
+          />
+          <EventCard
+            people={CLUB}
+            name="Book club"
+            meta="Just you so far · share the code"
+            w={inner}
+            s={s}
+          />
         </div>
       </div>
     </PhoneShell>
@@ -127,33 +189,58 @@ function Account({ w }: { w: number }) {
   const me = CROWD[3];
   return (
     <PhoneShell width={w} tone="paper">
-      <div className="absolute flex flex-col items-center" style={{ left: 16 * s, right: 16 * s, top: 70 * s }}>
+      <div
+        className="absolute flex flex-col items-center"
+        style={{ left: 16 * s, right: 16 * s, top: 70 * s }}
+      >
         <Orb seed={me.seed} size={132 * s} lit />
         <p className="ev-head" style={{ fontSize: 26 * s, marginTop: 18 * s }}>
           {me.name}
         </p>
-        <p className="ev-body text-center" style={{ fontSize: 12 * s, color: ON.paper.muted, marginTop: 4 * s }}>
+        <p
+          className="ev-body text-center"
+          style={{ fontSize: 12 * s, color: ON.paper.muted, marginTop: 4 * s }}
+        >
           Your color, on every album you join.
         </p>
       </div>
-      <div className="absolute" style={{ left: 16 * s, right: 16 * s, top: 332 * s }}>
+      <div
+        className="absolute"
+        style={{ left: 16 * s, right: 16 * s, top: 332 * s }}
+      >
         <p className="ev-label" style={{ color: ON.paper.muted }}>
           Your events
         </p>
         {[
           { name: PARTY.name, people: CROWD, n: PARTY.guests },
           { name: "Theo's 30th", people: THEO, n: 6 },
-          { name: "Sam's leaving drinks", people: crowdFor("event-sam", 14), n: 14 },
+          {
+            name: "Sam's leaving drinks",
+            people: crowdFor("event-sam", 14),
+            n: 14,
+          },
         ].map((e) => (
           <div
             key={e.name}
             className="flex items-center justify-between"
-            style={{ padding: `${11 * s}px 0`, borderBottom: `1px solid ${ON.paper.line}` }}
+            style={{
+              padding: `${11 * s}px 0`,
+              borderBottom: `1px solid ${ON.paper.line}`,
+            }}
           >
-            <span className="ev-body" style={{ fontSize: 13.5 * s, fontWeight: 500 }}>
+            <span
+              className="ev-body"
+              style={{ fontSize: 13.5 * s, fontWeight: 500 }}
+            >
               {e.name}
             </span>
-            <GuestRow people={e.people} max={4} total={e.n} size={20 * s} initials={false} />
+            <GuestRow
+              people={e.people}
+              max={4}
+              total={e.n}
+              size={20 * s}
+              initials={false}
+            />
           </div>
         ))}
       </div>
@@ -177,7 +264,10 @@ export function Atmosphere({ screen }: SlideProps) {
     <SlideGround tone="paper" screen={screen}>
       <div className="absolute" style={{ left: 72, top: 96, width: 330 }}>
         <Kicker tone="paper">Without media</Kicker>
-        <h2 className="ev-display" style={{ fontSize: 54, marginTop: 14, lineHeight: 0.95, width: 380 }}>
+        <h2
+          className="ev-display"
+          style={{ fontSize: 54, marginTop: 14, lineHeight: 0.95, width: 380 }}
+        >
           People stand&nbsp;in.
         </h2>
         <ol className="ev-body" style={{ marginTop: 26, fontSize: 15 }}>
@@ -185,9 +275,16 @@ export function Atmosphere({ screen }: SlideProps) {
             <li
               key={r}
               className="flex"
-              style={{ gap: 12, padding: "10px 0", borderTop: `1px solid ${ON.paper.line}` }}
+              style={{
+                gap: 12,
+                padding: "10px 0",
+                borderTop: `1px solid ${ON.paper.line}`,
+              }}
             >
-              <span className="ev-num" style={{ color: ON.paper.muted, width: 16, flex: "none" }}>
+              <span
+                className="ev-num"
+                style={{ color: ON.paper.muted, width: 16, flex: "none" }}
+              >
                 {i + 1}
               </span>
               <span>{r}</span>
@@ -195,15 +292,31 @@ export function Atmosphere({ screen }: SlideProps) {
           ))}
         </ol>
       </div>
-      <div className="absolute flex items-start" style={{ left: 462, top: 92, gap: 34 }}>
+      <div
+        className="absolute flex items-start"
+        style={{ left: 462, top: 92, gap: 34 }}
+      >
         {[
-          { el: <EmptyAlbum w={pw} />, cap: "An empty album: the guests already here" },
-          { el: <Dashboard w={pw} />, cap: "A dashboard before any photo: each event's mix" },
+          {
+            el: <EmptyAlbum w={pw} />,
+            cap: "An empty album: the guests already here",
+          },
+          {
+            el: <Dashboard w={pw} />,
+            cap: "A dashboard before any photo: each event's mix",
+          },
           { el: <Account w={pw} />, cap: "An account page: your own color" },
         ].map((x) => (
-          <figure key={x.cap} className="flex flex-col" style={{ gap: 14, width: pw + 18 }}>
+          <figure
+            key={x.cap}
+            className="flex flex-col"
+            style={{ gap: 14, width: pw + 18 }}
+          >
             {x.el}
-            <figcaption className="ev-body" style={{ fontSize: 13, color: ON.paper.muted }}>
+            <figcaption
+              className="ev-body"
+              style={{ fontSize: 13, color: ON.paper.muted }}
+            >
               {x.cap}
             </figcaption>
           </figure>
@@ -224,15 +337,29 @@ function AtmospherePhone({ screen }: SlideProps) {
         </h2>
         <ol className="ev-body" style={{ marginTop: 18, fontSize: 14 }}>
           {RULES.map((r, i) => (
-            <li key={r} className="flex" style={{ gap: 10, padding: "8px 0", borderTop: `1px solid ${ON.paper.line}` }}>
-              <span className="ev-num" style={{ color: ON.paper.muted, width: 14, flex: "none" }}>
+            <li
+              key={r}
+              className="flex"
+              style={{
+                gap: 10,
+                padding: "8px 0",
+                borderTop: `1px solid ${ON.paper.line}`,
+              }}
+            >
+              <span
+                className="ev-num"
+                style={{ color: ON.paper.muted, width: 14, flex: "none" }}
+              >
                 {i + 1}
               </span>
               <span>{r}</span>
             </li>
           ))}
         </ol>
-        <div className="flex flex-col items-center" style={{ gap: 30, marginTop: 26 }}>
+        <div
+          className="flex flex-col items-center"
+          style={{ gap: 30, marginTop: 26 }}
+        >
           <EmptyAlbum w={pw} />
           <Dashboard w={pw} />
         </div>

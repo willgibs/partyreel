@@ -48,8 +48,8 @@ const ROLL: readonly RollFrame[] = (
   focus,
   // Each guest's own frame counter: everyone shoots their own roll, and a
   // roll drawn twice to loop never shows a seam in its numbers.
-  n: String([14, 9, 22, 5, 17, 11, 30, 19][i]),
-  who: who([2, 6, 4, 3, 7, 1, 0, 5][i]),
+  n: String([14, 9, 22, 5, 17, 11, 32, 19][i]),
+  who: who([2, 6, 4, 3, 7, 1, 1, 5][i]),
 }));
 
 /** The rebate along the roll, the event's edge cut in two and printed frame by frame. */
@@ -59,9 +59,18 @@ const REBATE = [
 ] as const;
 
 /** The site's own four facts, the quiet row under the hero. */
-const FACTS = ["No app required", "Unlimited by default", "Yours until you delete it", "No photo watermarks"] as const;
+const FACTS = [
+  "No app required",
+  "Unlimited by default",
+  "Yours until you delete it",
+  "No photo watermarks",
+] as const;
 
-const KEEPER_EDGE = ["24", { text: "Lena", seed: who(5).seed }, "The keeper"] as const;
+const KEEPER_EDGE = [
+  "24",
+  { text: "Lena", seed: who(5).seed },
+  "The keeper",
+] as const;
 
 const [LINE_1, LINE_2] = SITE_THESIS.split(", ");
 
@@ -74,15 +83,35 @@ function DemoDoor({ size = 14, orb = 26 }: { size?: number; orb?: number }) {
     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
       <span style={{ display: "flex", flex: "none" }}>
         {GUESTS.slice(0, 6).map((g, i) => (
-          <Orb key={g.seed} seed={g.seed} size={orb} ring style={{ marginLeft: i ? -Math.round(orb * 0.3) : 0 }} />
+          <Orb
+            key={g.seed}
+            seed={g.seed}
+            size={orb}
+            ring
+            style={{ marginLeft: i ? -Math.round(orb * 0.3) : 0 }}
+          />
         ))}
       </span>
-      <p className="cs-read" style={{ margin: 0, fontSize: size, lineHeight: `${Math.round(size * 1.4)}px` }}>
+      <p
+        className="cs-read"
+        style={{
+          margin: 0,
+          fontSize: size,
+          lineHeight: `${Math.round(size * 1.4)}px`,
+        }}
+      >
         <span className="cs-muted">
-          {PARTY.name}&rsquo;s {PARTY.kind.toLowerCase()}: {PARTY.guests} guests,{" "}
-          {PARTY.photos.toLocaleString("en-US")} photos.
+          {PARTY.name}&rsquo;s {PARTY.kind.toLowerCase()}: {PARTY.guests}{" "}
+          guests, {PARTY.photos.toLocaleString("en-US")} photos.
         </span>{" "}
-        <span style={{ fontWeight: 600, textDecoration: "underline", textUnderlineOffset: 3, textDecorationThickness: 1.5 }}>
+        <span
+          style={{
+            fontWeight: 600,
+            textDecoration: "underline",
+            textUnderlineOffset: 3,
+            textDecorationThickness: 1.5,
+          }}
+        >
           Try the live demo
         </span>
       </p>
@@ -94,7 +123,13 @@ function DemoDoor({ size = 14, orb = 26 }: { size?: number; orb?: number }) {
  * THE PAGE ITSELF, at its own width: 1280 at a desk, 375 on a phone. `top`
  * is what sits above the nav (a phone's status bar, the deck's head).
  */
-export function HeroPage({ layout, top = 0 }: { layout: "desk" | "phone"; top?: number }) {
+export function HeroPage({
+  layout,
+  top = 0,
+}: {
+  layout: "desk" | "phone";
+  top?: number;
+}) {
   return layout === "desk" ? <HeroDesk top={top} /> : <HeroPhone top={top} />;
 }
 
@@ -104,7 +139,10 @@ function HeroDesk({ top }: { top: number }) {
       <div style={{ position: "absolute", left: 0, right: 0, top }}>
         <SiteNav layout="desk" />
       </div>
-      <div className="absolute" style={{ left: 64, top: top + 128, width: 800 }}>
+      <div
+        className="absolute"
+        style={{ left: 64, top: top + 128, width: 800 }}
+      >
         <Display as="h1" size={112} style={{ lineHeight: 0.9 }}>
           <span data-bd-read="h1, the site's own line">
             {LINE_1},
@@ -114,7 +152,12 @@ function HeroDesk({ top }: { top: number }) {
         </Display>
         <p
           className="cs-read cs-muted"
-          style={{ fontSize: 21, lineHeight: "32px", margin: "34px 0 0", maxWidth: 560 }}
+          style={{
+            fontSize: 21,
+            lineHeight: "32px",
+            margin: "34px 0 0",
+            maxWidth: 560,
+          }}
           data-bd-read="subhead"
         >
           {SITE_SUBHEAD}
@@ -136,6 +179,7 @@ function HeroDesk({ top }: { top: number }) {
         edgeSize={10}
         rebate={REBATE}
         advance
+        newest={6}
         develop={{ delay: 300, duration: 1700 }}
         offset={92}
         style={{ position: "absolute", left: 0, top: top + 676, width: 1280 }}
@@ -154,7 +198,13 @@ function HeroDesk({ top }: { top: number }) {
       />
       <div
         className="absolute"
-        style={{ left: 64, right: 64, top: top + 884, display: "flex", justifyContent: "space-between" }}
+        style={{
+          left: 64,
+          right: 64,
+          top: top + 884,
+          display: "flex",
+          justifyContent: "space-between",
+        }}
       >
         {FACTS.map((f, i) => (
           <span
@@ -190,10 +240,15 @@ function HeroPhone({ top }: { top: number }) {
             {LINE_2}
           </span>
         </Display>
-        <p className="cs-read cs-muted" style={{ fontSize: 17, lineHeight: "25px", margin: "18px 0 0" }}>
+        <p
+          className="cs-read cs-muted"
+          style={{ fontSize: 17, lineHeight: "25px", margin: "18px 0 0" }}
+        >
           {SITE_SUBHEAD}
         </p>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 22 }}>
+        <div
+          style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 22 }}
+        >
           <Pill size={16}>Start free</Pill>
           <Pill size={16} tone="line" lead={<PlayGlyph size={10} />}>
             Watch a sample reel
@@ -207,6 +262,7 @@ function HeroPhone({ top }: { top: number }) {
         edgeSize={9}
         rebate={REBATE}
         advance
+        newest={2}
         develop={{ delay: 300, duration: 1700, count: 4 }}
         offset={40}
         style={{ position: "absolute", left: 0, top: top + 512, width: 375 }}
@@ -258,7 +314,15 @@ function HeroSlideDesk() {
         style={{ position: "absolute", left: 1040, top: HEAD["1440"] + 96 }}
       >
         <StatusBar />
-        <div style={{ position: "absolute", left: 0, top: 0, transform: `scale(${scale})`, transformOrigin: "0 0" }}>
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            top: 0,
+            transform: `scale(${scale})`,
+            transformOrigin: "0 0",
+          }}
+        >
           <HeroPage layout="phone" top={47} />
         </div>
       </PhoneShell>
@@ -272,9 +336,20 @@ function HeroSlidePhone() {
       <div style={{ position: "absolute", left: 0, top: 0 }}>
         <HeroPage layout="phone" top={HEAD["375"]} />
       </div>
-      <div className="absolute" style={{ left: 16, right: 16, top: HEAD["375"] + 904 }}>
-        <Kicker style={{ fontSize: 11 }}>The same first screen, at a desk</Kicker>
-        <BrowserShell w={343} h={300} url="partyreel.com" page={1280} style={{ marginTop: 14 }}>
+      <div
+        className="absolute"
+        style={{ left: 16, right: 16, top: HEAD["375"] + 904 }}
+      >
+        <Kicker style={{ fontSize: 11 }}>
+          The same first screen, at a desk
+        </Kicker>
+        <BrowserShell
+          w={343}
+          h={300}
+          url="partyreel.com"
+          page={1280}
+          style={{ marginTop: 14 }}
+        >
           <HeroPage layout="desk" />
         </BrowserShell>
       </div>

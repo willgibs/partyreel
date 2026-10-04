@@ -4,12 +4,24 @@ import type { CSSProperties, ReactNode } from "react";
 
 import { passHoldsLine } from "@/components/app/pricing/holds";
 import { PRO_LINE } from "@/lib/constants/marketing-voice";
-import { EVENT_PASS_RENEWAL_PRICE_LABEL, MAX_EVENTS, planById } from "@/lib/constants/tiers";
+import {
+  EVENT_PASS_RENEWAL_PRICE_LABEL,
+  MAX_EVENTS,
+  planById,
+} from "@/lib/constants/tiers";
 import { formatBytes } from "@/lib/utils";
 
 import { HEAD } from "../../deck/deck";
 import { Display, type Screen, SlideRoot } from "../parts";
-import { edgeCode, EdgeArrow, EVENTS, GROUND, Print, Strip, type StripFrame } from "../system";
+import {
+  edgeCode,
+  EdgeArrow,
+  EVENTS,
+  GROUND,
+  Print,
+  Strip,
+  type StripFrame,
+} from "../system";
 import { Pill, SiteClose, SiteNav } from "./kit";
 
 /**
@@ -25,12 +37,17 @@ import { Pill, SiteClose, SiteNav } from "./kit";
  */
 
 const FREE = planById("free");
-const PRO = [planById("pro_50"), planById("pro_200"), planById("pro_1tb")] as const;
+const PRO = [
+  planById("pro_50"),
+  planById("pro_200"),
+  planById("pro_1tb"),
+] as const;
 const PRO_YEAR = planById("pro_50_yr");
 const PASS = planById("event_pass");
 
 const PRICING_LINE = "Start free, upgrade for video and more room.";
-const PRICING_SUB = "No per-guest fees. Plans are sized by storage, so pick the room your event actually needs.";
+const PRICING_SUB =
+  "No per-guest fees. Plans are sized by storage, so pick the room your event actually needs.";
 
 /** A price label's number and its tail ("$9" and "/mo", "$29" and "one-time"). */
 function splitPrice(label: string): [string, string] {
@@ -40,9 +57,21 @@ function splitPrice(label: string): [string, string] {
 
 /** Pro's strip: three events, an album each, each frame credited to its event. */
 const PRO_FRAMES: readonly StripFrame[] = [
-  { photo: "wedding-toast", n: edgeCode(EVENTS[0].seed), who: { name: EVENTS[0].name, seed: EVENTS[0].seed } },
-  { photo: "party-dj", n: edgeCode(EVENTS[1].seed), who: { name: EVENTS[1].name, seed: EVENTS[1].seed } },
-  { photo: "reception-hall", n: edgeCode(EVENTS[3].seed), who: { name: EVENTS[3].name, seed: EVENTS[3].seed } },
+  {
+    photo: "wedding-toast",
+    n: edgeCode(EVENTS[0].seed),
+    who: { name: EVENTS[0].name, seed: EVENTS[0].seed },
+  },
+  {
+    photo: "party-dj",
+    n: edgeCode(EVENTS[1].seed),
+    who: { name: EVENTS[1].name, seed: EVENTS[1].seed },
+  },
+  {
+    photo: "reception-hall",
+    n: edgeCode(EVENTS[3].seed),
+    who: { name: EVENTS[3].name, seed: EVENTS[3].seed },
+  },
 ];
 
 type Plan = {
@@ -71,7 +100,10 @@ const PLANS: readonly Plan[] = [
       "No watermark on photos or the album",
     ],
     limits: ["Photos only", "A small mark on clips"],
-    short: [`${MAX_EVENTS.free} event, every guest, the album and the reel`, "Every gate and a custom link"],
+    short: [
+      `${MAX_EVENTS.free} event, every guest, the album and the reel`,
+      "Every gate and a custom link",
+    ],
     action: "Start free",
   },
   {
@@ -86,7 +118,11 @@ const PLANS: readonly Plan[] = [
       "Clips with no watermark",
       "Never removed for inactivity",
     ],
-    short: ["Photos and video", "Unlimited events, one album each", "Clips with no watermark"],
+    short: [
+      "Photos and video",
+      "Unlimited events, one album each",
+      "Clips with no watermark",
+    ],
     note: `Or ${PRO_YEAR.priceLabel.replace("/yr", "")} a year, two months free.`,
     action: `Get Pro at ${PRO[0].priceLabel}`,
     primary: true,
@@ -127,7 +163,10 @@ function PlanPicture({
   if (plan.key === "pro") {
     // The strip stands exactly as tall as its neighbours' prints, so the three
     // pictures share one line along their foot.
-    const printH = border + Math.round((w - 2 * border) / ratio) + Math.max(border, Math.round(edgeSize * 2.3));
+    const printH =
+      border +
+      Math.round((w - 2 * border) / ratio) +
+      Math.max(border, Math.round(edgeSize * 2.3));
     const fh = printH - Math.round(edgeSize * 2.4) - Math.round(edgeSize * 2.6);
     const pad = 10;
     const gap = 6;
@@ -141,7 +180,12 @@ function PlanPicture({
         gap={gap}
         pad={pad}
         edgeSize={edgeSize}
-        top={["Pro", formatBytes(PRO[0].storageBytes), "Unlimited events", "Photos and video"]}
+        top={[
+          "Pro",
+          formatBytes(PRO[0].storageBytes),
+          "Unlimited events",
+          "Photos and video",
+        ]}
         style={{ width: w }}
       />
     );
@@ -158,7 +202,11 @@ function PlanPicture({
         ...(compact ? [] : [free ? FREE.name : PASS.name]),
         ...(free
           ? [formatBytes(FREE.storageBytes), `${MAX_EVENTS.free} event`]
-          : [formatBytes(PASS.storageBytes), `${MAX_EVENTS.event_pass} event`, "A year"]),
+          : [
+              formatBytes(PASS.storageBytes),
+              `${MAX_EVENTS.event_pass} event`,
+              "A year",
+            ]),
       ]}
       edgeSize={edgeSize}
       flat
@@ -168,24 +216,68 @@ function PlanPicture({
 }
 
 /** A plan's list, on the edge's arrow. */
-function Points({ plan, size, phone = false }: { plan: Plan; size: number; phone?: boolean }) {
+function Points({
+  plan,
+  size,
+  phone = false,
+}: {
+  plan: Plan;
+  size: number;
+  phone?: boolean;
+}) {
   const lead = Math.round(size * 1.5);
   const row = (t: string, limit: boolean): ReactNode => (
     <li
       key={t}
       className="cs-read"
-      style={{ display: "flex", gap: 10, fontSize: size, lineHeight: `${lead}px`, color: limit ? GROUND.faint.hex : undefined }}
+      style={{
+        display: "flex",
+        gap: 10,
+        fontSize: size,
+        lineHeight: `${lead}px`,
+        color: limit ? GROUND.faint.hex : undefined,
+      }}
     >
-      <span className="cs-edge" style={{ height: lead, fontSize: size * 0.78, flex: "none", width: size * 0.5 }} aria-hidden>
-        {limit ? <span style={{ width: "0.7em", height: 1.5, background: "currentColor", display: "block" }} /> : <EdgeArrow />}
+      <span
+        className="cs-edge"
+        style={{
+          height: lead,
+          fontSize: size * 0.78,
+          flex: "none",
+          width: size * 0.5,
+        }}
+        aria-hidden
+      >
+        {limit ? (
+          <span
+            style={{
+              width: "0.7em",
+              height: 1.5,
+              background: "currentColor",
+              display: "block",
+            }}
+          />
+        ) : (
+          <EdgeArrow />
+        )}
       </span>
       <span>{t}</span>
     </li>
   );
   return (
-    <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gap: 4 }}>
+    <ul
+      style={{
+        margin: 0,
+        padding: 0,
+        listStyle: "none",
+        display: "grid",
+        gap: 4,
+      }}
+    >
       {(phone ? plan.short : plan.points).map((t) => row(t, false))}
-      {(phone ? plan.limits?.slice(0, 1) : plan.limits)?.map((t) => row(t, true))}
+      {(phone ? plan.limits?.slice(0, 1) : plan.limits)?.map((t) =>
+        row(t, true),
+      )}
     </ul>
   );
 }
@@ -219,40 +311,84 @@ function Sizes({ size }: { size: number }) {
             fontSize: size,
             fontWeight: 600,
             background: i === 0 ? GROUND.print.hex : undefined,
-            boxShadow: i === 0 ? "0 1px 2px rgb(22 18 15 / 0.12), 0 0 0 1px rgb(22 18 15 / 0.06)" : undefined,
+            boxShadow:
+              i === 0
+                ? "0 1px 2px rgb(22 18 15 / 0.12), 0 0 0 1px rgb(22 18 15 / 0.06)"
+                : undefined,
             color: i === 0 ? GROUND.ink.hex : GROUND.ink2.hex,
           }}
         >
           {formatBytes(p.storageBytes)}
-          <span style={{ fontWeight: 500, color: GROUND.ink2.hex }}>{splitPrice(p.priceLabel)[0]}</span>
+          <span style={{ fontWeight: 500, color: GROUND.ink2.hex }}>
+            {splitPrice(p.priceLabel)[0]}
+          </span>
         </span>
       ))}
     </div>
   );
 }
 
-function PlanColumn({ plan, w, phone = false, style }: { plan: Plan; w: number; phone?: boolean; style?: CSSProperties }) {
+function PlanColumn({
+  plan,
+  w,
+  phone = false,
+  style,
+}: {
+  plan: Plan;
+  w: number;
+  phone?: boolean;
+  style?: CSSProperties;
+}) {
   const [num, tail] = splitPrice(plan.price);
   const body = phone ? 15 : 14;
   return (
-    <div style={{ width: w, display: "flex", flexDirection: "column", ...style }}>
+    <div
+      style={{ width: w, display: "flex", flexDirection: "column", ...style }}
+    >
       <PlanPicture plan={plan} w={w} edgeSize={phone ? 9 : 10} />
-      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginTop: phone ? 18 : 20 }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "baseline",
+          justifyContent: "space-between",
+          marginTop: phone ? 18 : 20,
+        }}
+      >
         <Display as="h2" size={phone ? 28 : 30} style={{ lineHeight: 1 }}>
           {plan.name}
         </Display>
-        <span style={{ display: "inline-flex", alignItems: "baseline", gap: 6 }} data-bd-read={`${plan.name}'s price`}>
-          <span className="cs-display cs-tnum" style={{ fontSize: phone ? 40 : 44, letterSpacing: "-0.03em", lineHeight: 1 }}>
+        <span
+          style={{ display: "inline-flex", alignItems: "baseline", gap: 6 }}
+          data-bd-read={`${plan.name}'s price`}
+        >
+          <span
+            className="cs-display cs-tnum"
+            style={{
+              fontSize: phone ? 40 : 44,
+              letterSpacing: "-0.03em",
+              lineHeight: 1,
+            }}
+          >
             {num}
           </span>
           {tail && (
-            <span className="cs-read cs-muted" style={{ fontSize: 14, fontWeight: 500 }}>
+            <span
+              className="cs-read cs-muted"
+              style={{ fontSize: 14, fontWeight: 500 }}
+            >
               {tail}
             </span>
           )}
         </span>
       </div>
-      <p className="cs-read cs-muted" style={{ margin: "6px 0 0", fontSize: body, lineHeight: `${Math.round(body * 1.45)}px` }}>
+      <p
+        className="cs-read cs-muted"
+        style={{
+          margin: "6px 0 0",
+          fontSize: body,
+          lineHeight: `${Math.round(body * 1.45)}px`,
+        }}
+      >
         {plan.line}
       </p>
       <div style={{ marginTop: phone ? 14 : 16 }}>
@@ -264,11 +400,16 @@ function PlanColumn({ plan, w, phone = false, style }: { plan: Plan; w: number; 
         </div>
       )}
       {plan.note && (
-        <p className="cs-read cs-muted" style={{ margin: "10px 0 0", fontSize: 13, lineHeight: "19px" }}>
+        <p
+          className="cs-read cs-muted"
+          style={{ margin: "10px 0 0", fontSize: 13, lineHeight: "19px" }}
+        >
           {plan.note}
         </p>
       )}
-      <div style={{ marginTop: phone ? 16 : "auto", paddingTop: phone ? 0 : 16 }}>
+      <div
+        style={{ marginTop: phone ? 16 : "auto", paddingTop: phone ? 0 : 16 }}
+      >
         <Pill size={15} tone={plan.primary ? "ink" : "line"} wide>
           {plan.action}
         </Pill>
@@ -290,21 +431,41 @@ function PlanRow({ plan }: { plan: Plan }) {
         <Display as="h2" size={24} style={{ lineHeight: 1 }}>
           {plan.name}
         </Display>
-        <span style={{ display: "inline-flex", alignItems: "baseline", gap: 5, marginTop: 6 }} data-bd-read={`${plan.name}'s price`}>
-          <span className="cs-display cs-tnum" style={{ fontSize: 32, letterSpacing: "-0.03em", lineHeight: 1 }}>
+        <span
+          style={{
+            display: "inline-flex",
+            alignItems: "baseline",
+            gap: 5,
+            marginTop: 6,
+          }}
+          data-bd-read={`${plan.name}'s price`}
+        >
+          <span
+            className="cs-display cs-tnum"
+            style={{ fontSize: 32, letterSpacing: "-0.03em", lineHeight: 1 }}
+          >
             {num}
           </span>
           {tail && (
-            <span className="cs-read cs-muted" style={{ fontSize: 13, fontWeight: 500 }}>
+            <span
+              className="cs-read cs-muted"
+              style={{ fontSize: 13, fontWeight: 500 }}
+            >
               {tail}
             </span>
           )}
         </span>
-        <p className="cs-read cs-muted" style={{ margin: "8px 0 0", fontSize: 14, lineHeight: "20px" }}>
+        <p
+          className="cs-read cs-muted"
+          style={{ margin: "8px 0 0", fontSize: 14, lineHeight: "20px" }}
+        >
           {plan.line}
         </p>
         {plan.note && (
-          <p className="cs-read cs-muted" style={{ margin: "6px 0 0", fontSize: 13, lineHeight: "19px" }}>
+          <p
+            className="cs-read cs-muted"
+            style={{ margin: "6px 0 0", fontSize: 13, lineHeight: "19px" }}
+          >
             {plan.note}
           </p>
         )}
@@ -343,7 +504,10 @@ function Cadence() {
               fontSize: 14,
               fontWeight: 600,
               background: i === 0 ? GROUND.print.hex : undefined,
-              boxShadow: i === 0 ? "0 1px 2px rgb(22 18 15 / 0.12), 0 0 0 1px rgb(22 18 15 / 0.06)" : undefined,
+              boxShadow:
+                i === 0
+                  ? "0 1px 2px rgb(22 18 15 / 0.12), 0 0 0 1px rgb(22 18 15 / 0.06)"
+                  : undefined,
               color: i === 0 ? GROUND.ink.hex : GROUND.ink2.hex,
             }}
           >
@@ -358,7 +522,13 @@ function Cadence() {
   );
 }
 
-export function LightPage({ layout, top = 0 }: { layout: "desk" | "phone"; top?: number }) {
+export function LightPage({
+  layout,
+  top = 0,
+}: {
+  layout: "desk" | "phone";
+  top?: number;
+}) {
   return layout === "desk" ? <LightDesk top={top} /> : <LightPhone top={top} />;
 }
 
@@ -374,14 +544,27 @@ function LightDesk({ top }: { top: number }) {
         <Display as="h1" size={50} style={{ lineHeight: 1 }}>
           <span data-bd-read="h1, the page's own line">{PRICING_LINE}</span>
         </Display>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 16 }}>
-          <p className="cs-read cs-muted" style={{ margin: 0, fontSize: 17, lineHeight: "26px" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginTop: 16,
+          }}
+        >
+          <p
+            className="cs-read cs-muted"
+            style={{ margin: 0, fontSize: 17, lineHeight: "26px" }}
+          >
             {PRICING_SUB}
           </p>
           <Cadence />
         </div>
       </div>
-      <div className="absolute" style={{ left: 64, top: top + 238, display: "flex", gap, height: 556 }}>
+      <div
+        className="absolute"
+        style={{ left: 64, top: top + 238, display: "flex", gap, height: 556 }}
+      >
         {PLANS.map((p) => (
           <PlanColumn key={p.key} plan={p} w={colW} />
         ))}
@@ -399,13 +582,24 @@ function LightPhone({ top }: { top: number }) {
         <Display as="h1" size={36} style={{ lineHeight: 1 }}>
           <span data-bd-read="h1, the page's own line">{PRICING_LINE}</span>
         </Display>
-        <p className="cs-read cs-muted" style={{ margin: "14px 0 0", fontSize: 16, lineHeight: "24px" }}>
+        <p
+          className="cs-read cs-muted"
+          style={{ margin: "14px 0 0", fontSize: 16, lineHeight: "24px" }}
+        >
           {PRICING_SUB}
         </p>
         <div style={{ marginTop: 28 }}>
           <PlanColumn plan={PLANS[1]} w={343} phone />
         </div>
-        <div style={{ display: "grid", gap: 26, marginTop: 40, paddingTop: 28, borderTop: "1px solid rgb(22 18 15 / 0.1)" }}>
+        <div
+          style={{
+            display: "grid",
+            gap: 26,
+            marginTop: 40,
+            paddingTop: 28,
+            borderTop: "1px solid rgb(22 18 15 / 0.1)",
+          }}
+        >
           <PlanRow plan={PLANS[0]} />
           <PlanRow plan={PLANS[2]} />
         </div>

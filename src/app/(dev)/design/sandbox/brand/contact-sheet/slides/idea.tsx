@@ -2,7 +2,14 @@
 
 import type { PhotoId } from "../../deck/media";
 import { HEAD } from "../../deck/deck";
-import { Copy, Display, Kicker, type Screen, SlideFoot, SlideRoot } from "../parts";
+import {
+  Copy,
+  Display,
+  Kicker,
+  type Screen,
+  SlideFoot,
+  SlideRoot,
+} from "../parts";
 import { EdgeArrow, Print } from "../system";
 
 /**
@@ -15,16 +22,42 @@ const PROMISE =
 const FOR =
   "For hosts and everyone they invite: a wedding, a birthday, a trip, a festival. One code on the table puts the whole room's photographs on one sheet, so the brand can be the paper and the photographs can be the colour.";
 
-const TRAITS: readonly { n: string; word: string; line: string; photo: PhotoId; focus?: string }[] = [
-  { n: "01", word: "Candid", line: "The blink beside the keeper. Every frame counts.", photo: "party-dj" },
-  { n: "02", word: "Crafted", line: "A photo lab's care: the border, the edge, the type.", photo: "reception-table" },
-  { n: "03", word: "Witty", line: "A lab's humour in the margins, never on the photograph.", photo: "party-balloons" },
-  { n: "04", word: "Alive", line: "Everyone's roll at once: a party still going, never a dusty album.", photo: "concert-confetti" },
+const TRAITS: readonly {
+  n: string;
+  word: string;
+  line: string;
+  photo: PhotoId;
+  focus?: string;
+}[] = [
+  {
+    n: "01",
+    word: "Candid",
+    line: "The blink beside the keeper. Every frame counts.",
+    photo: "party-dj",
+  },
+  {
+    n: "02",
+    word: "Crafted",
+    line: "A photo lab's care: the border, the edge, the type.",
+    photo: "reception-table",
+  },
+  {
+    n: "03",
+    word: "Witty",
+    line: "A lab's humour in the margins, never on the photograph.",
+    photo: "party-balloons",
+  },
+  {
+    n: "04",
+    word: "Alive",
+    line: "Everyone's roll at once: a party still going, never a dusty album.",
+    photo: "concert-confetti",
+  },
 ];
 
 const KEPT = [
   "No brand hue, warmed to paper and ink",
-  "The five lamps, as the projector's light",
+  "The five lamps, kept as light for the reel's wall",
   "The hashvatar, as the latent image",
   "The light edge, where film is projected",
   "Photographs at a 2 px corner",
@@ -34,21 +67,38 @@ const ARGUED = [
   "Status as lights: now the lab's marks",
   "Urbanist: now Bricolage Grotesque, more ink",
   "The silver body: now warm paper",
-  "The aurora: the reel's light, never on paper",
+  "The aurora: the latent image, the colour of a photograph about to be",
 ];
 
 function Items({ items, size }: { items: readonly string[]; size: number }) {
   return (
-    <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gap: size * 0.62 }}>
+    <ul
+      style={{
+        margin: 0,
+        padding: 0,
+        listStyle: "none",
+        display: "grid",
+        gap: size * 0.62,
+      }}
+    >
       {items.map((t) => (
         <li
           key={t}
           className="cs-read"
-          style={{ display: "flex", gap: 10, fontSize: size, lineHeight: `${Math.round(size * 1.38)}px` }}
+          style={{
+            display: "flex",
+            gap: 10,
+            fontSize: size,
+            lineHeight: `${Math.round(size * 1.38)}px`,
+          }}
         >
           <span
             className="cs-edge"
-            style={{ fontSize: size * 0.8, height: Math.round(size * 1.38), flex: "none" }}
+            style={{
+              fontSize: size * 0.8,
+              height: Math.round(size * 1.38),
+              flex: "none",
+            }}
             aria-hidden
           >
             <EdgeArrow />
@@ -60,7 +110,15 @@ function Items({ items, size }: { items: readonly string[]; size: number }) {
   );
 }
 
-function Trait({ t, w, line }: { t: (typeof TRAITS)[number]; w: number; line: number }) {
+function Trait({
+  t,
+  w,
+  line,
+}: {
+  t: (typeof TRAITS)[number];
+  w: number;
+  line: number;
+}) {
   return (
     <div style={{ width: w }}>
       <Print
@@ -73,7 +131,14 @@ function Trait({ t, w, line }: { t: (typeof TRAITS)[number]; w: number; line: nu
         flat
       />
       <Copy size={line} style={{ marginTop: 10 }}>
-        <strong className="cs-display" style={{ fontSize: line + 3, letterSpacing: "-0.02em", color: "var(--cs-ink)" }}>
+        <strong
+          className="cs-display"
+          style={{
+            fontSize: line + 3,
+            letterSpacing: "-0.02em",
+            color: "var(--cs-ink)",
+          }}
+        >
           {t.word}.
         </strong>{" "}
         {t.line}
@@ -89,7 +154,10 @@ export function IdeaSlide({ screen }: { screen: Screen }) {
 function IdeaDesk() {
   return (
     <SlideRoot screen="1440">
-      <div className="absolute" style={{ left: 64, top: HEAD["1440"] + 40, width: 610 }}>
+      <div
+        className="absolute"
+        style={{ left: 64, top: HEAD["1440"] + 40, width: 610 }}
+      >
         <Kicker>Positioning</Kicker>
         <Display size={46} style={{ marginTop: 18, lineHeight: 1.0 }}>
           <span data-bd-read="promise">{PROMISE}</span>
@@ -98,22 +166,38 @@ function IdeaDesk() {
           {FOR}
         </Copy>
         <Kicker style={{ marginTop: 44 }}>Kept from today, and argued</Kicker>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, marginTop: 18 }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 32,
+            marginTop: 18,
+          }}
+        >
           <div>
-            <p className="cs-read" style={{ fontSize: 13, fontWeight: 600, margin: "0 0 10px" }}>
+            <p
+              className="cs-read"
+              style={{ fontSize: 13, fontWeight: 600, margin: "0 0 10px" }}
+            >
               Kept
             </p>
             <Items items={KEPT} size={14} />
           </div>
           <div>
-            <p className="cs-read" style={{ fontSize: 13, fontWeight: 600, margin: "0 0 10px" }}>
+            <p
+              className="cs-read"
+              style={{ fontSize: 13, fontWeight: 600, margin: "0 0 10px" }}
+            >
               Argued
             </p>
             <Items items={ARGUED} size={14} />
           </div>
         </div>
       </div>
-      <div className="absolute" style={{ left: 740, top: HEAD["1440"] + 40, width: 636 }}>
+      <div
+        className="absolute"
+        style={{ left: 740, top: HEAD["1440"] + 40, width: 636 }}
+      >
         <Kicker>Personality</Kicker>
         <div
           style={{
@@ -137,7 +221,10 @@ function IdeaDesk() {
 function IdeaPhone() {
   return (
     <SlideRoot screen="375">
-      <div className="absolute" style={{ left: 16, right: 16, top: HEAD["375"] + 24 }}>
+      <div
+        className="absolute"
+        style={{ left: 16, right: 16, top: HEAD["375"] + 24 }}
+      >
         <Kicker style={{ fontSize: 11 }}>Positioning</Kicker>
         <Display size={31} style={{ marginTop: 12, lineHeight: 1.02 }}>
           <span data-bd-read="promise">{PROMISE}</span>

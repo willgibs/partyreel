@@ -38,7 +38,12 @@ import { Caption, Scaled } from "./kit";
 function HostAndHouse({ size }: { size: number }) {
   const people: readonly Person[] = [HOST, ...HOUSE_ROW];
   return (
-    <div className="ev-row" style={{ ["--ev-row-overlap" as string]: `${-Math.round(size * 0.24)}px` }}>
+    <div
+      className="ev-row"
+      style={{
+        ["--ev-row-overlap" as string]: `${-Math.round(size * 0.24)}px`,
+      }}
+    >
       {people.map((p, i) => (
         <Orb
           key={p.seed}
@@ -67,16 +72,30 @@ function TableCard() {
       className="ev-print relative overflow-hidden"
       style={{ width: w, height: h, backgroundColor: BASE.white.hex }}
     >
-      <Pic id="wedding-golden" focus="50% 38%" style={{ width: w, height: 196, borderRadius: 0 }} />
+      <Pic
+        id="wedding-golden"
+        focus="50% 38%"
+        style={{ width: w, height: 196, borderRadius: 0 }}
+      />
       <div className="absolute" style={{ left: 28, right: 28, top: 222 }}>
-        <p className="ev-display" data-bd-read="the event on the table card" style={{ fontSize: 48, color: BASE.ink.hex }}>
+        <p
+          className="ev-display"
+          data-bd-read="the event on the table card"
+          style={{ fontSize: 48, color: BASE.ink.hex }}
+        >
           {PARTY.name}
         </p>
-        <p className="ev-body" style={{ fontSize: 13, color: BASE.muted.hex, marginTop: 8 }}>
+        <p
+          className="ev-body"
+          style={{ fontSize: 13, color: BASE.muted.hex, marginTop: 8 }}
+        >
           {PARTY.date}
         </p>
       </div>
-      <div className="absolute flex items-start" style={{ left: 22, right: 28, top: 318, gap: 18 }}>
+      <div
+        className="absolute flex items-start"
+        style={{ left: 22, right: 28, top: 318, gap: 18 }}
+      >
         {/* The quiet zone is the card's own white: four modules clear on every side. */}
         <div style={{ padding: 6, flex: "none" }}>
           <Qr size={150} color={BASE.ink.hex} />
@@ -89,19 +108,37 @@ function TableCard() {
           >
             Scan to add your photos
           </p>
-          <p className="ev-body" style={{ fontSize: 13, color: BASE.muted.hex, marginTop: 10 }}>
+          <p
+            className="ev-body"
+            style={{ fontSize: 13, color: BASE.muted.hex, marginTop: 10 }}
+          >
             No app required
           </p>
-          <p className="ev-body" style={{ fontSize: 10.5, color: BASE.muted.hex, marginTop: 16, lineHeight: 1.35 }}>
+          <p
+            className="ev-body"
+            style={{
+              fontSize: 10.5,
+              color: BASE.muted.hex,
+              marginTop: 16,
+              lineHeight: 1.35,
+            }}
+          >
             partyreel.com/e/
             <br />
             {PARTY.slug}
           </p>
         </div>
       </div>
-      <div className="absolute flex items-center justify-between" style={{ left: 28, right: 28, bottom: 26 }}>
+      <div
+        className="absolute flex items-center justify-between"
+        style={{ left: 28, right: 28, bottom: 26 }}
+      >
         <HostAndHouse size={22} />
-        <Wordmark height={20} dot={HOST.seed} read="wordmark on the table card" />
+        <Wordmark
+          height={20}
+          dot={HOST.seed}
+          read="wordmark on the table card"
+        />
       </div>
     </div>
   );
@@ -111,28 +148,68 @@ function TableCard() {
 
 function ShareCard({ pop = true }: { pop?: boolean }) {
   return (
-    <div className="relative overflow-hidden" style={{ width: 1200, height: 630, backgroundColor: BASE.white.hex }}>
-      <Pic id="wedding-toast" focus="58% 45%" style={{ position: "absolute", left: 0, top: 0, width: 540, height: 630, borderRadius: 0 }} />
+    <div
+      className="relative overflow-hidden"
+      style={{ width: 1200, height: 630, backgroundColor: BASE.white.hex }}
+    >
+      <Pic
+        id="wedding-toast"
+        focus="58% 45%"
+        style={{
+          position: "absolute",
+          left: 0,
+          top: 0,
+          width: 540,
+          height: 630,
+          borderRadius: 0,
+        }}
+      />
       <div className="absolute" style={{ left: 600, top: 64, right: 60 }}>
-        <p className="ev-display" style={{ fontSize: 100, color: BASE.ink.hex }}>
+        <p
+          className="ev-display"
+          style={{ fontSize: 100, color: BASE.ink.hex }}
+        >
           {PARTY.name}
         </p>
         {/* Set for the size a message shows it (about a quarter): the name, the
             faces and the count must read there; the address and code are for a screen. */}
-        <p className="ev-body" style={{ fontSize: 34, color: BASE.muted.hex, marginTop: 16 }}>
+        <p
+          className="ev-body"
+          style={{ fontSize: 34, color: BASE.muted.hex, marginTop: 16 }}
+        >
           {PARTY.date}
         </p>
         <div className="flex items-center" style={{ gap: 18, marginTop: 34 }}>
-          <GuestRow people={CROWD} max={6} total={PARTY.guests} size={64} pop={pop} />
+          <GuestRow
+            people={CROWD}
+            max={6}
+            total={PARTY.guests}
+            size={64}
+            pop={pop}
+          />
         </div>
-        <p className="ev-body" style={{ fontSize: 38, color: BASE.ink.hex, marginTop: 14, fontWeight: 600 }}>
+        <p
+          className="ev-body"
+          style={{
+            fontSize: 38,
+            color: BASE.ink.hex,
+            marginTop: 14,
+            fontWeight: 600,
+          }}
+        >
           {PARTY.guests} guests are in
         </p>
       </div>
-      <div className="absolute flex items-end justify-between" style={{ left: 600, right: 60, bottom: 52 }}>
+      <div
+        className="absolute flex items-end justify-between"
+        style={{ left: 600, right: 60, bottom: 52 }}
+      >
         <div>
           <Wordmark height={40} dot={HOST.seed} />
-          <p className="ev-body" style={{ fontSize: 21, color: BASE.muted.hex, marginTop: 12 }}>
+          <p
+            className="ev-body"
+            style={{ fontSize: 21, color: BASE.muted.hex, marginTop: 12 }}
+          >
             {PARTY.url}
           </p>
         </div>
@@ -149,7 +226,11 @@ export function ShareSlide({ screen }: SlideProps) {
     const ts = 335 / (4 * IN);
     const ss = 335 / 1200;
     return (
-      <SlideGround tone="paper" screen={screen} style={{ backgroundColor: BASE.step.hex }}>
+      <SlideGround
+        tone="paper"
+        screen={screen}
+        style={{ backgroundColor: BASE.step.hex }}
+      >
         <div style={{ padding: "28px 20px 0" }}>
           <Scaled w={4 * IN} h={6 * IN} scale={ts} className="ev-print-lift">
             <TableCard />
@@ -171,7 +252,11 @@ export function ShareSlide({ screen }: SlideProps) {
   }
   const ss = 0.6;
   return (
-    <SlideGround tone="paper" screen={screen} style={{ backgroundColor: BASE.step.hex }}>
+    <SlideGround
+      tone="paper"
+      screen={screen}
+      style={{ backgroundColor: BASE.step.hex }}
+    >
       <div className="absolute" style={{ left: 128, top: 128 }}>
         <div className="ev-print-lift">
           <TableCard />
@@ -188,9 +273,18 @@ export function ShareSlide({ screen }: SlideProps) {
           The share card · 1200 × 630, at 60%
         </Caption>
       </div>
-      <p className="ev-body absolute" style={{ left: 600, top: 718, width: 560, fontSize: 15, color: ON.paper.muted }}>
-        Print comes before the guests, so house guests stand in beside Maya. The link is live, so
-        it wears the real row.
+      <p
+        className="ev-body absolute"
+        style={{
+          left: 600,
+          top: 718,
+          width: 560,
+          fontSize: 15,
+          color: ON.paper.muted,
+        }}
+      >
+        Print comes before the guests, so house guests stand in beside Maya. The
+        link is live, so it wears the real row.
       </p>
     </SlideGround>
   );

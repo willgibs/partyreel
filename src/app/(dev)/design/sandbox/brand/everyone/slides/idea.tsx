@@ -26,11 +26,23 @@ export const POSITIONING = [
 ] as const;
 
 export const TRAITS = [
-  { t: "Generous", l: "Everyone gets a color, a credit and a place in the row." },
-  { t: "Social", l: "A crowd, never a catalogue: people fill every screen photos have not." },
-  { t: "Bright", l: "Daylight grounds, big friendly type, joy as the default." },
-  { t: "Cheeky", l: "A wink where it costs nothing: a full stop that is a person." },
-  { t: "Grown-up", l: "Grey chrome, one color source, and it never talks over a photograph." },
+  {
+    t: "Generous",
+    l: "Everyone gets a color, a credit and a place in the row.",
+  },
+  {
+    t: "Social",
+    l: "A crowd, never a catalogue: people fill every screen photos have not.",
+  },
+  { t: "Bright", l: "Paper grounds, big friendly type, joy as the default." },
+  {
+    t: "Cheeky",
+    l: "A wink where it costs nothing: a full stop that is a person.",
+  },
+  {
+    t: "Grown-up",
+    l: "Grey chrome, one color source, and it never talks over a photograph.",
+  },
 ] as const;
 
 export const KEEPS = [
@@ -60,7 +72,10 @@ function Ledger({
   return (
     <div>
       <Kicker tone="paper">{title}</Kicker>
-      <ul className="ev-body" style={{ marginTop: 10, fontSize: desk ? 15 : 14 }}>
+      <ul
+        className="ev-body"
+        style={{ marginTop: 10, fontSize: desk ? 15 : 14 }}
+      >
         {items.map((it) => (
           <li
             key={it}
@@ -85,11 +100,17 @@ export function Idea({ screen }: SlideProps) {
     <SlideGround tone="paper" screen={screen}>
       <div className="absolute" style={{ left: 72, top: 96, width: 760 }}>
         <Kicker tone="paper">The idea</Kicker>
-        <h2 className="ev-display" style={{ fontSize: 76, marginTop: 18, lineHeight: 0.94 }}>
+        <h2
+          className="ev-display"
+          style={{ fontSize: 76, marginTop: 18, lineHeight: 0.94 }}
+        >
           An event&apos;s color is the people in it.
         </h2>
       </div>
-      <dl className="absolute ev-body" style={{ left: 900, top: 120, width: 468, fontSize: 16 }}>
+      <dl
+        className="ev-body absolute"
+        style={{ left: 900, top: 120, width: 468, fontSize: 16 }}
+      >
         {POSITIONING.map((p) => (
           <div key={p.k} style={{ marginBottom: 18 }}>
             <dt className="ev-label" style={{ color: ON.paper.muted }}>
@@ -100,18 +121,27 @@ export function Idea({ screen }: SlideProps) {
         ))}
       </dl>
       <div className="absolute" style={{ left: 72, top: 372 }}>
-        <GuestRow people={CROWD} max={31} size={30} initials={false} />
+        <GuestRow people={CROWD} max={7} size={30} initials={false} />
       </div>
       <div
         className="absolute grid"
-        style={{ left: 72, top: 436, width: 1296, gridTemplateColumns: "repeat(5, 1fr)", gap: 28 }}
+        style={{
+          left: 72,
+          top: 436,
+          width: 1296,
+          gridTemplateColumns: "repeat(5, 1fr)",
+          gap: 28,
+        }}
       >
         {TRAITS.map((t) => (
           <div key={t.t}>
             <p className="ev-head" style={{ fontSize: 30 }}>
               {t.t}
             </p>
-            <p className="ev-body" style={{ fontSize: 15, marginTop: 8, color: ON.paper.muted }}>
+            <p
+              className="ev-body"
+              style={{ fontSize: 15, marginTop: 8, color: ON.paper.muted }}
+            >
               {t.l}
             </p>
           </div>
@@ -119,9 +149,14 @@ export function Idea({ screen }: SlideProps) {
       </div>
       <div
         className="absolute grid"
-        style={{ left: 72, top: 596, width: 1296, gridTemplateColumns: "1fr 1fr", gap: 56 }}
+        style={{
+          left: 72,
+          top: 596,
+          width: 1296,
+          gridTemplateColumns: "1fr 1fr",
+          gap: 56,
+        }}
       >
-        <Ledger title="Keeps from today" items={KEEPS} desk />
         <Ledger title="Argues" items={ARGUES} desk />
       </div>
     </SlideGround>
@@ -133,11 +168,20 @@ function IdeaPhone({ screen }: SlideProps) {
     <SlideGround tone="paper" screen={screen}>
       <div style={{ padding: "28px 20px 0" }}>
         <Kicker tone="paper">The idea</Kicker>
-        <h2 className="ev-display" style={{ fontSize: 46, marginTop: 14, lineHeight: 0.95 }}>
+        <h2
+          className="ev-display"
+          style={{ fontSize: 46, marginTop: 14, lineHeight: 0.95 }}
+        >
           An event&apos;s color is the people in it.
         </h2>
         <div style={{ marginTop: 22 }}>
-          <GuestRow people={CROWD} max={13} size={26} initials={false} total={31} />
+          <GuestRow
+            people={CROWD}
+            max={13}
+            size={26}
+            initials={false}
+            total={31}
+          />
         </div>
         <dl className="ev-body" style={{ marginTop: 22, fontSize: 15 }}>
           {POSITIONING.map((p) => (
@@ -151,18 +195,26 @@ function IdeaPhone({ screen }: SlideProps) {
         </dl>
         <div style={{ marginTop: 10 }}>
           {TRAITS.map((t) => (
-            <div key={t.t} style={{ padding: "10px 0", borderTop: `1px solid ${ON.paper.line}` }}>
+            <div
+              key={t.t}
+              style={{
+                padding: "10px 0",
+                borderTop: `1px solid ${ON.paper.line}`,
+              }}
+            >
               <p className="ev-head" style={{ fontSize: 22 }}>
                 {t.t}
               </p>
-              <p className="ev-body" style={{ fontSize: 14, marginTop: 4, color: ON.paper.muted }}>
+              <p
+                className="ev-body"
+                style={{ fontSize: 14, marginTop: 4, color: ON.paper.muted }}
+              >
                 {t.l}
               </p>
             </div>
           ))}
         </div>
         <div style={{ marginTop: 22, display: "grid", gap: 22 }}>
-          <Ledger title="Keeps from today" items={KEEPS} desk={false} />
           <Ledger title="Argues" items={ARGUES} desk={false} />
         </div>
       </div>

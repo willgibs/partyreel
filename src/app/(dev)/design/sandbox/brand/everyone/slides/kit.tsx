@@ -88,7 +88,10 @@ export function Pic({
   children?: ReactNode;
 }) {
   return (
-    <div className={cn("ev-photo", lit && "ev-photo-lit", className)} style={style}>
+    <div
+      className={cn("ev-photo", lit && "ev-photo-lit", className)}
+      style={style}
+    >
       <Photo id={id} focus={focus} />
       {children}
     </div>
