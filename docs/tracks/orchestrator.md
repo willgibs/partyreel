@@ -76,7 +76,8 @@ Round 15, on Will's desk answers of 2026-10-04 06:00Z and his brand note; the ap
    - production's `STRIPE_PRICE_EVENT_PASS` and `STRIPE_PRICE_EVENT_PASS_RENEWAL` take preview's values (Ladder A's
      pass; read 2026-10-04: every other production key equals preview's but the site URL, the lab key and the export
      Worker's pair, by design);
-   - the full gate (gate 214, FULL=1) and `pnpm compute:model` green at the tip;
+   - DONE at `fc1141600`: the full gate (gate 214, FULL=1: 11,121 tests, 186 lab checks, 9 desk steps) and
+     `pnpm compute:model` (every scenario in budget: a crawler's 50 pages 0 calls, a lit hour 24);
    - the runbook's "Milestone" (merge, tag, push: main deploys itself), production READY at the SHA;
    - one short read-only walk on partyreel.com (Hobby's CPU: a dozen pages, no lab), then STATUS and this pickup.
 0a. **Phase 2 of the compute fix:** compute-levers (levers 1 and 2) MERGED (-66% of a heavy wedding's calls); next

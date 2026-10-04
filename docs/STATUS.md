@@ -17,16 +17,18 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 
 - **Milestone 35 is live** (`20c1deb7`, 2026-10-04 03:10Z): round 13 whole, red-teamed on builds 47 to 50. The legal
   text is rewritten once, right before launch (his word).
-- **Round 15 runs on `launch-prep`** from his answers of 2026-10-04 and his brand note. Merged for milestone 36: Ladder
-  A pricing, trash in storage, the reel's tap, the camera's 30 s clip, the dashboard's Display menu and lit stage, the
-  hub's facts strip and her reel before the develop, graphite, Create's styles, E6 and the name-only colours, red-team
-  52's fixes; arrival-wiring is the last wiring. Milestone 36 waits on build 53's red-team and his yes.
+- **Round 15 runs on `launch-prep`** from his answers of 2026-10-04 and his brand note. **Milestone 36 is ready for his
+  yes** (25 merges; the full gate 214 and the compute budget green; red-team 53b PASS on the local desk): Ladder A,
+  trash in storage, the round's wirings, three crumbs, the camera's 30 s clip, the plan limits watch and the compute
+  fixes (the proxy only where a session matters, polls that rest: a heavy wedding's calls -66%).
+- **Vercel's Hobby Active CPU** read 3h 56m of 4h (2026-10-04): nothing of ours runs on Vercel until milestone 36; desks
+  and red-teams run on a local production build at port 3000 (`CLAUDE.md`, "Local dev vs. live testing").
 
 ## The desk
 
-Desk 2 is Send to Google Drive alone (nine asks, on build 52). Desk 3's four boards are handed off and parked (identity
-r4, customize r1, event-header r4, host-dashboard r4), integrated once desk 2 is answered so two desks never stand on
-the alias together; desk 4 is brand r1 alone; then the small moments and the brand applied:
+Desk 2 is Send to Google Drive alone (nine asks), on Will's local desk (`http://localhost:3000/design/lab?key=fiesta`).
+Desk 3's four boards are handed off and parked (identity r4, customize r1, event-header r4, host-dashboard r4), integrated
+once desk 2 is answered; desk 4 is brand r1 alone; then the small moments and the brand applied:
 `../partyreel-wt/_scratch/desk/round-15-plan.md`.
 
 ## Live state
@@ -47,7 +49,7 @@ the alias together; desk 4 is brand r1 alone; then the small moments and the bra
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** about 10,950 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
+- **Tests:** about 11,120 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
 - **Jobs:** the daily purge cron (Vercel Hobby fires it anywhere between 04:00 and 05:00 UTC, seen at 04:48; its first run on milestone 28's sweeps was green:
   every sweep ok, none stopped early, the orphan scan read 1,368 objects and deleted none; the standby budget's sweep
   retired with trash-in-storage), the spend watch daily at 05:00 UTC (hourly at launch), the media-backup Worker and the daily DB-backup Action are live, and the export
@@ -71,6 +73,6 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-- Desk 2 (Drive, on build 52); the calls lab (`../partyreel-wt/_scratch/calls/calls-lab.md`: one open question, X1,
-  then the calls built and his to overrule); the 26 policy tests (guard or taste); milestone 36 after red-team 53; the
-  walks only he can drive (`tracks/orchestrator.md`).
+- Milestone 36's yes; desk 2 (Drive, on the local desk); the calls lab's open questions (X1 to X5: the develop time, a
+  Vercel token for the limits watch, a Cloudflare analytics token, a resting album's staleness, the CDN-cached album)
+  and the calls built for him to overrule; the 26 policy tests; the walks only he can drive (`tracks/orchestrator.md`).
