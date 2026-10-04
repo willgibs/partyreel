@@ -562,6 +562,78 @@ describe("a join nobody at the door could fix", () => {
   });
 });
 
+/*
+ * ★ WHY A FILE DID NOT GO RIDES THE QUEUE (the failure sheet and the camera draw a dropped connection apart from a
+ * refusal by the transport's `cause`, never by matching its words): a drop and her own cancel carry theirs, a refusal
+ * carries none, and a Retry gives it back with the rest of the failure.
+ */
+describe("★ the cause of a failure rides the queue", () => {
+  const DROPPED = "Your connection dropped. Check your signal, then try again.";
+
+  it("a dropped connection and a cancel carry their cause beside the sentence; a refusal carries none", async () => {
+    answer({});
+    mockUploadFile
+      .mockResolvedValueOnce({ ok: false, message: DROPPED, cause: "dropped" })
+      .mockResolvedValueOnce({
+        ok: false,
+        message: "That upload was cancelled.",
+        cause: "cancelled",
+      })
+      .mockResolvedValueOnce({
+        ok: false,
+        code: "too_large",
+        message: "Files for this event are capped at 500 MB.",
+      });
+    const q = mountQueue({ sessionToken: STALE, isVerified: false });
+
+    act(() =>
+      q.result.current.addFiles([
+        makeFile("a.jpg"),
+        makeFile("b.jpg"),
+        makeFile("c.jpg"),
+      ]),
+    );
+    await waitFor(() =>
+      expect(q.items().map((it) => it.status)).toEqual([
+        "error",
+        "error",
+        "error",
+      ]),
+    );
+    expect(q.items().map((it) => it.cause)).toEqual([
+      "dropped",
+      "cancelled",
+      undefined,
+    ]);
+    expect(q.items()[0]).toMatchObject({ error: DROPPED });
+    expect(q.items()[0].errorCode).toBeUndefined();
+    expect(q.items()[2]).toMatchObject({ errorCode: "too_large" });
+  });
+
+  it("a Retry gives the cause back with the rest of the failure", async () => {
+    answer({});
+    mockUploadFile.mockResolvedValueOnce({
+      ok: false,
+      message: DROPPED,
+      cause: "dropped",
+    });
+    const q = mountQueue({ sessionToken: STALE, isVerified: false });
+
+    act(() => q.result.current.addFiles([makeFile()]));
+    await waitFor(() =>
+      expect(q.items()[0]).toMatchObject({ status: "error", cause: "dropped" }),
+    );
+
+    // The second go stays in the air (queued only now, so a failure above never leaves it for the next test), and
+    // what the item holds is exactly what the Retry left it.
+    mockUploadFile.mockReturnValueOnce(new Promise<UploadOutcome>(() => {}));
+    act(() => q.result.current.retry(q.items()[0].id));
+    await waitFor(() => expect(q.items()[0].status).toBe("uploading"));
+    expect(q.items()[0].cause).toBeUndefined();
+    expect(q.items()[0].error).toBeUndefined();
+  });
+});
+
 describe("the ticket is read per file, never once per run", () => {
   it("★ the verified re-join after a mid-run flip sends the refused file on the NEW ticket", async () => {
     // A run that captured its ticket once would re-send this file on the SPENT ticket and fail
