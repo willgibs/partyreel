@@ -61,8 +61,10 @@ composition is `components/app/dashboard/home.tsx`.
     stage's or this week's (`recentRowsOf`, decided on the server), folding to small covers. Opens are
     `events.host_opened_at`, stamped by `HomeShell`'s one listener on every press into an event
     (`noteEventOpenedAction`, at most once a minute an event, as her under RLS); a navigation takes priority over a
-    pending Server Function in Next 16, so a press never waits for its stamp. A deep link (the bell, an email) is not
-    counted until the hub mounts the same stamp.
+    pending Server Function in Next 16, so a press never waits for its stamp. The hub stamps itself too (`HubOpened`,
+    the same action, on mount), so a deep link (the bell, an email) counts: ★ one Server Function call a hub visit,
+    never a poll (the minute's filter spares the write, not the call), so a press from here asks twice, the second
+    finding no row to move.
   - The groups by when (`seasonsOf`, `HomeView.events.seasons`) are still composed because the host-dashboard board's
     drawings read them; the section does not.
 - **A tile** (`event-tile.tsx`) is the dashboard's own atom; `EventCard` draws a profile's public cards. Every range's

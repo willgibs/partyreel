@@ -9,6 +9,7 @@ import { HostCreditLookProvider } from "@/components/app/event-blocks/credit-loo
 import { EventChecklist } from "@/components/app/event-feed/checklist";
 import { EventCardsRow } from "@/components/app/event-feed/event-cards-row";
 import { HubCover } from "@/components/app/event-feed/event-hub-head";
+import { HubOpened } from "@/components/app/event-feed/hub-opened";
 import { HubReel } from "@/components/app/event-feed/hub-reel";
 import {
   newestCoverStills,
@@ -441,6 +442,10 @@ export default async function EventDetailPage({
           { label: event.name },
         ]}
       />
+      {/* ★ THE HUB COUNTS AS AN OPEN (crumbs-69): a deep link, the bell or an email never passed the dashboard's
+          press, so the hub stamps `host_opened_at` itself, once on mount (`hub-opened.tsx`). Drawn only for an event
+          found, so a gone or foreign one is never asked after. */}
+      <HubOpened eventId={event.id} />
 
       <EventShareProvider initialSheet={place} eventId={event.id}>
         {/* THE ALBUM'S STORE wraps everything on the page that shows the album

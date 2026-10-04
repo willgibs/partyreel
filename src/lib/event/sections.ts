@@ -203,8 +203,8 @@ export function legacySectionRoom(
 
 /**
  * WHERE AN OLD DEEP LINK LANDS NOW (`legacySectionRoom`'s room, as an address): Review and Guests open over the
- * hub; the reel lands on its own door's redirect, which plays it for the guests' view or comes back to the hub where
- * the card says what is left. Null keeps the hub as it is.
+ * hub; the reel lands on its own door's redirect, which plays it (in the guests' view, or over her own hub while the
+ * develop is ahead) or comes back to the hub where the card says what is left. Null keeps the hub as it is.
  */
 export function legacyRoomAddress(
   eventId: string,
