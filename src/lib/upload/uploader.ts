@@ -541,10 +541,14 @@ async function runBurst(
   };
 
   // ── Preparing: one file at a time, ahead of the network but never too far (PREP_AHEAD_BYTES) ──
-  // What the page holds: every prepared file whose bytes are not yet up (the one in the air included).
+  // What the page holds: every prepared file whose bytes are not yet up (the one in the air included), and its copies.
   const aheadBytes = () => {
     let bytes = 0;
-    for (let i = 0; i < n; i++) bytes += prepared[i]?.file.size ?? 0;
+    for (const p of prepared) {
+      if (p)
+        bytes +=
+          p.file.size + (p.preview?.blob.size ?? 0) + (p.phone?.blob.size ?? 0);
+    }
     return bytes;
   };
   async function prepareAll() {
