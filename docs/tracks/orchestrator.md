@@ -78,9 +78,13 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls lab, the red-team brief
    A1 to A4; B1 (adding a password asks whether to keep everyone already in or send everyone back through the door,
    their photos staying, beside a standalone "send everyone back to the door"); B2 (a quiet Declined list at the foot
    of Guests, collapsed, each with Let in); C7 (a first photo's glow); D3 (a confirm on every shot removal, saying it
-   frees a shot, and a different warning once her extra shots are spent). Its wiring follows his pick.
-5. **crumbs-63** (the reel's tap) integrates on its handoff. **D4** waits on his yes: the camera's clip at 30 s and a
-   lower bitrate (about 19 MB), a constant, `create_media`'s matching check by migration and the ring's 0:30.
+   frees a shot, and a different warning once her extra shots are spent; re-shoots a flat 3). Its wiring follows his pick.
+5. **crumbs-63** (the reel's tap) integrates on its handoff. **D4, his yes (2026-10-04):** a `camera-clip` lane (Sonnet)
+   cut the moment pricing-wiring's migration is APPLIED, since both replace `create_media`: the clip at 30 s and about
+   5 Mbps (about 19 MB), `CAMERA_VIDEO_SECONDS` and `create_media`'s `c_camera_video_seconds` and `_bytes` (scaled from
+   128 MB) restated from pricing-wiring's body under a later prefix, the ring's 0:30. **Re-shoots a flat 3** (his word:
+   `c_roll_retakes` as roll + 3, never three rolls' worth) ship with D3's confirm, so the "only a deletion" warning
+   exists from its first day; the UI board draws them together.
 6. **The close of the day:** STATUS, this pickup, the calls lab (`../partyreel-wt/_scratch/calls/calls-lab.md`: new
    calls in its form, a section per batch, UI calls to the lab). Moltbook hourly only on his word.
 
