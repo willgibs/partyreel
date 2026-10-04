@@ -39,6 +39,7 @@ the dashboard, the hub's strip, graphite, Create's styles, small fixes, red-team
 | `host-dashboard-r4` | board host-dashboard r4 (desk 25): two asks, `chooser` (how she chooses what leads her stage: corner, words recommended, deck; each on production's wired lit stage, every rule saying the fact it read) and `details` (H6, as built or each the other way) | HANDED OFF at `bd75f406a` (synced to `e5cad2fb4`; gates green, lab:demo at 1440 and 375), parked for desk 3: integrated after Will answers desk 2 | Opus, 3136 | `a2252d0ff7db3ba6f` |
 | `redteam-53` | build 53's red-team (`31a73a4`) | STOPPED at 15:40Z mid-walk 6 (the Vercel CPU limit): W1 dashboard, W2 Create, W3 hub before the develop, W4 develop and arrival, W5 downloads and uploads and W9's guest upload PASS; **1 MEDIUM** (a download whose line drops after the mint posts its form anyway: Chrome's error page, never "Your connection dropped"), LOWs (offline, the drop line turns to "Your download is starting." as `heard(null)` resets `lineLost`; the Reel card hides "Guests get it later" at 375) and NITs (Reset drops focus; the Style key's open fill loses to hover; her header disc flashes uncoloured; the camera never says a dropped connection; "and try again" against ", then try again"): all to `crumbs-65`. Not walked: the strip going quiet, Q2 on the tile and table, red-team 52's fixes, graphite, the host's upload, /admin/jobs. Ledger `../partyreel-wt/_scratch/redteam-53/ledger.txt` | Opus, Will's Chrome | `a74c0224d08c09800` |
 | `compute-model` | Phase 1 of Will's foundational fix: what Partyreel costs Vercel per user action (calls and CPU per scenario on a local production build), projected onto a 100-guest wedding, a 10,000-guest Sunday and a month of 100 events, a standing budget (`pnpm compute:model`), and the levers with their costs, for the Advisor and Will; local only | RUNNING (cut at `08f6c8cd5`) | Opus, 3131 | `a097c42685f2fa292` |
+| `crumbs-65` | red-team 53's findings before milestone 36: a download whose line drops after the mint (the MEDIUM), the drop line kept while offline, the Reel card's words at 375, the NITs; local only | RUNNING (cut at `9b487923f`) | Sonnet, 3132 | `a986701b02f98a735` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Its
 model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`. From another session, respawn it from
@@ -81,8 +82,10 @@ Round 15, on Will's desk answers of 2026-10-04 06:00Z and his brand note; the ap
    Vercel's fair-use rules confine Hobby to non-commercial use, so Pro at launch stays a launch switch regardless (it
    bills Active CPU from $0.128 an hour: today's month would be about $0.50); the foundational work is cost and
    behaviour at scale, which compute-model prices on both plans.
-1. **Red-team 53** (stopped for the CPU limit; its findings and the walks not taken to `crumbs-65`, run locally); then
-   milestone 36 on Will's yes (the runbook's "Milestone"): Ladder A, trash in storage and the round's wirings.
+1. **Red-team 53** (stopped for the CPU limit): its findings in `crumbs-65` (running, local); then a local red-team 53b
+   on the desk build at port 3000 (the walks not taken: the strip going quiet, Q2 on the tile and table, red-team 52's
+   fixes, graphite, the host's upload, /admin/jobs, plus crumbs-65's "Look at first"); then milestone 36 on Will's yes
+   (the runbook's "Milestone"), which is also the first deploy since the CPU limit: run `vercel-usage.mjs` first.
 2. **Desk 2 is Drive alone** (on the alias since build 52). After his answers: the Drive wiring lane (his Google Cloud
    step relayed: the design note's section 11; the way-in now lives in production's Display menu and the download toast
    tells a cancel from a dropped line, so the lane reconciles both), and desk 3's four boards integrated (customize-r1,
