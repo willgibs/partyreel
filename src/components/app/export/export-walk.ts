@@ -1099,11 +1099,8 @@ export function createExportWalker(deps: WalkDeps) {
     w.parts = answer.parts;
     const checked = await check(w, answer);
     if (w.over || checked.kind === "cancelled") return false;
-    // ★ NOTHING IS HANDED OVER WHILE HER QUESTION STANDS (E6): a download that has begun cannot be asked about. A
-    // Keep going carries on from here; a Cancel (or the x of a later part) abandons this part before a byte moves.
-    await holdWhileAsked(w);
-    if (w.over || w.cancelled) return false;
     if (checked.kind === "refused") {
+      // An ending: it replaces her question, there being nothing left to cancel.
       show(w, {
         tone: "refused",
         title:
@@ -1116,6 +1113,10 @@ export function createExportWalker(deps: WalkDeps) {
       });
       return false;
     }
+    // ★ NOTHING IS HANDED OVER WHILE HER QUESTION STANDS (E6): a download that has begun cannot be asked about. A
+    // Keep going carries on from here; a Cancel (or the x of a later part) abandons this part before a byte moves.
+    await holdWhileAsked(w);
+    if (w.over || w.cancelled) return false;
 
     // What this part holds: the Worker's count, or (it could not say) the mint's own.
     const counted: CheckAnswer =

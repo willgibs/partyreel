@@ -189,13 +189,8 @@ function putWithProgress(args: {
   onProgress?: (fraction: number) => void;
   /** Her cancel: aborts the transfer, said as a cancel and never as a drop. */
   signal?: AbortSignal;
-  /** Test seam: the stall ceilings (`UPLOAD_STALL_MS`, `UPLOAD_ANSWER_MS`). */
-  stallMs?: number;
-  answerMs?: number;
 }): Promise<XMLHttpRequest> {
   const { url, body, headers, onProgress, signal } = args;
-  const stallMs = args.stallMs ?? UPLOAD_STALL_MS;
-  const answerMs = args.answerMs ?? UPLOAD_ANSWER_MS;
   return new Promise((resolve, reject) => {
     if (signal?.aborted) {
       reject(new UploadError(UPLOAD_WORDS.cancelled, "cancelled"));
@@ -216,7 +211,7 @@ function putWithProgress(args: {
       }, ms);
     };
     let answering = false;
-    const seen = () => wait(answering ? answerMs : stallMs);
+    const seen = () => wait(answering ? UPLOAD_ANSWER_MS : UPLOAD_STALL_MS);
     const onAbort = () => xhr.abort();
     // The page, where there is one with events to hear (a test's node world has none, and a stub may be bare).
     const page =

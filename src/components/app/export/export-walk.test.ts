@@ -543,6 +543,23 @@ describe("the x (his note: interruptibility; E6: it asks first)", () => {
     expect(h.now("walk-2")).toMatchObject({ tone: "done" });
   });
 
+  it("a Worker that refuses the zip while the question stands replaces it too: nothing is left to cancel or to keep", async () => {
+    const h = harness();
+    h.mints.push(minted());
+    h.checks.push({ status: 200, body: { ok: false, reason: "paused" } });
+    const handed = h.walker.start("guest", { qr_token: "qr" });
+    const wait = h.now();
+    if (wait?.tone !== "wait") throw new Error("not waiting");
+    wait.close.run();
+    expect(h.now()).toMatchObject({ tone: "confirm" });
+    expect(await handed).toBe(false);
+    expect(h.now()).toMatchObject({
+      tone: "refused",
+      title: "Downloads are paused right now. Please try again later.",
+    });
+    expect(h.posted).toEqual([]);
+  });
+
   it("a failure that arrives while the question stands replaces it: the walk is over, there is nothing to cancel", async () => {
     const h = harness();
     h.mints.push("network", "network", "network");
