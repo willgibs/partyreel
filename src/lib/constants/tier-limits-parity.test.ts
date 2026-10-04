@@ -5,7 +5,7 @@
  * re-asserted the TypeScript constants against themselves. It never opened the SQL, so the guard
  * every doc references ("a Vitest parity test guards the pairing") did not exist, and the two
  * halves of the pricing model, the TS numbers the UX quotes and the SQL numbers the upload RPCs
- * ENFORCE, could drift silently. A host could be shown 75 GB and be cut off at 2 GB (or the
+ * ENFORCE, could drift silently. A host could be shown 25 GB and be cut off at 2 GB (or the
  * reverse: sold a cap the DB never enforces).
  *
  * So: parse the newest committed definition of `public.tier_limits()` out of supabase/migrations
@@ -37,7 +37,9 @@ const MIGRATIONS = join(process.cwd(), "supabase", "migrations");
 
 /** Matches every way a fn gets (re)defined; a return-type change forces DROP + CREATE. */
 const definitionRe = (fn: string) =>
-  new RegExp(`create\\s+(?:or\\s+replace\\s+)?function\\s+public\\.${fn}\\s*\\(`);
+  new RegExp(
+    `create\\s+(?:or\\s+replace\\s+)?function\\s+public\\.${fn}\\s*\\(`,
+  );
 const DEFINITION_RE = definitionRe("tier_limits");
 
 /**
@@ -270,7 +272,10 @@ describe("tiers.ts <-> upload_allowance() parity", () => {
   );
 
   it(`reads Pro's ladder from ${allowanceFile}`, () => {
-    expect(ladder, "upload_allowance() no longer opens with Pro's ladder").not.toBeNull();
+    expect(
+      ladder,
+      "upload_allowance() no longer opens with Pro's ladder",
+    ).not.toBeNull();
   });
 
   it("fails open for a Pro profile with no cap on record", () => {
@@ -291,7 +296,9 @@ describe("tiers.ts <-> upload_allowance() parity", () => {
     expect(steps).toEqual(
       sizes.slice(0, -1).map((p) => [p.storageBytes, p.uploadsBytes]),
     );
-    expect(evalSqlNumber(otherwise![1])).toBe(sizes[sizes.length - 1].uploadsBytes);
+    expect(evalSqlNumber(otherwise![1])).toBe(
+      sizes[sizes.length - 1].uploadsBytes,
+    );
   });
 
   it("gives a pass one pass's allowance for each pass its room holds, and Free its own", () => {

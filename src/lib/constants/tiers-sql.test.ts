@@ -194,8 +194,12 @@ describe("the uploads allowance is one number over one window", () => {
     "%s reads her plan's own number over its window, never the retired multiplier",
     (name) => {
       const flat = newestBody(name).body.replace(/\s+/g, " ");
-      expect(flat).toMatch(/public\.upload_allowance\(v_(profile\.)?tier, v_(profile\.)?storage_cap(_bytes)?\)/);
-      expect(flat).toMatch(/public\.uploads_used\(v_(event\.host_id|host), v_(profile\.)?tier\)/);
+      expect(flat).toMatch(
+        /public\.upload_allowance\(v_(profile\.)?tier, v_(profile\.)?storage_cap(_bytes)?\)/,
+      );
+      expect(flat).toMatch(
+        /public\.uploads_used\(v_(event\.host_id|host), v_(profile\.)?tier\)/,
+      );
       expect(flat).not.toContain("monthly_ingress_cap");
       expect(flat).not.toMatch(/cumulative_bytes, 0\) (\+|>=)/);
     },
@@ -221,6 +225,23 @@ describe("the uploads allowance is one number over one window", () => {
     }
   });
 
+  // ★ The Advisor's Q26 F1: a pass whose last live row has ended before the nightly recompute moves her plan would
+  // otherwise upload counted nowhere; both writers refuse her in the allowance's words, after the allowance block.
+  it("refuses a lapsed pass at both writers until the recompute moves her plan", () => {
+    for (const name of ["create_media", "create_media_as_host"]) {
+      const flat = newestBody(name).body.replace(/\s+/g, " ");
+      const clause =
+        "if v_profile.tier = 'event_pass' and not exists ( select 1 from public.event_passes q where q.profile_id = v_event.host_id and q.consumed_at is null and q.start_at <= now() and q.expires_at > now()) then raise exception 'Upload limit reached for this plan.' using errcode = 'check_violation'; end if;";
+      expect(flat, name).toContain(clause);
+      expect(flat.indexOf(clause), name).toBeGreaterThan(
+        flat.indexOf("v_allowance := public.upload_allowance("),
+      );
+      expect(flat.indexOf(clause), name).toBeLessThan(
+        flat.indexOf("insert into public.media ("),
+      );
+    }
+  });
+
   it("reads the month's ledger for Free and Pro, and a pass holder's live passes for her year", () => {
     const flat = newestBody("uploads_used").body.replace(/\s+/g, " ");
     expect(flat).toContain(
@@ -235,7 +256,9 @@ describe("the uploads allowance is one number over one window", () => {
     const all = readdirSync(MIGRATIONS)
       .filter((f) => f.endsWith(".sql"))
       .sort()
-      .map((f) => readFileSync(join(MIGRATIONS, f), "utf8").replace(/--[^\n]*/g, ""))
+      .map((f) =>
+        readFileSync(join(MIGRATIONS, f), "utf8").replace(/--[^\n]*/g, ""),
+      )
       .join("\n");
     for (const sig of [
       "public.upload_allowance(public.tier_type, bigint)",
@@ -244,7 +267,9 @@ describe("the uploads allowance is one number over one window", () => {
       expect(all).toContain(
         `revoke all on function ${sig} from public, anon, authenticated;`,
       );
-      expect(all).toContain(`grant execute on function ${sig} to service_role;`);
+      expect(all).toContain(
+        `grant execute on function ${sig} to service_role;`,
+      );
       expect(all).not.toMatch(
         new RegExp(
           `grant execute on function ${sig.replace(/[().]/g, "\\$&")} to [^;]*\\b(anon|authenticated|public)\\b`,

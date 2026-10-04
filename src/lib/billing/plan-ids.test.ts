@@ -22,7 +22,9 @@ describe("the Pro plan ids", () => {
   });
 
   it("recognise a Pro id and nothing else", () => {
-    expect(isProPlanId("pro_500_yr")).toBe(true);
+    expect(isProPlanId("pro_200_yr")).toBe(true);
+    // A retired id is refused like any other unknown one.
+    expect(isProPlanId("pro_500_yr")).toBe(false);
     expect(isProPlanId("event_pass")).toBe(false);
     expect(isProPlanId("free")).toBe(false);
     expect(isProPlanId(undefined)).toBe(false);
@@ -43,7 +45,7 @@ describe("the change-plan body", () => {
     for (const planId of PRO_PLAN_IDS) {
       expect(changePlanSchema.safeParse({ planId }).success, planId).toBe(true);
     }
-    for (const planId of ["event_pass", "free", "pro_1tb", "", 7, null]) {
+    for (const planId of ["event_pass", "free", "pro_2tb", "", 7, null]) {
       expect(changePlanSchema.safeParse({ planId }).success).toBe(false);
     }
   });

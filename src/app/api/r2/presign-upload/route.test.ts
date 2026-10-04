@@ -472,7 +472,7 @@ describe("the meter", () => {
       { ok: false, reason: "monthly" },
       409,
       "cap_reached",
-      "This album has hit its upload limit for the month.",
+      "This album has hit its upload limit for now.",
     ],
     [
       "hourly",

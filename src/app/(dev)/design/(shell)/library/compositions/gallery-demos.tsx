@@ -314,7 +314,7 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
             <StorageMeter
               activeBytes={24 * 1024 ** 3}
               deletedBytes={3 * 1024 ** 3}
-              storageCap={100 * 1024 ** 3}
+              storageCap={50 * 1024 ** 3}
               makeRoom
               passExpiry={null}
               planName="Pro"
@@ -335,7 +335,7 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
     title: "StorageChart",
     badge: "new",
     for: "what her plan holds: her albums and her Deleted drawn apart against the cap, with Make room from Deleted and Empty Deleted beside them",
-    lede: "The storage meter's popover holds it. Her plan's cap holds her albums and her Deleted together, so it is one bar with the two drawn apart, a sentence only when there is something to know or do, and the two acts that free room without leaving it. Drawn here over Pro 100 GB; its switch and Empty Deleted answer after a pause and change nothing.",
+    lede: "The storage meter's popover holds it. Her plan's cap holds her albums and her Deleted together, so it is one bar with the two drawn apart, a sentence only when there is something to know or do, and the two acts that free room without leaving it. Drawn here over Pro 50 GB; its switch and Empty Deleted answer after a pause and change nothing.",
     specimens: [
       {
         label: "Empty",
@@ -344,12 +344,12 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
       },
       {
         label: "Half used",
-        hint: "41 GB in albums · 8.5 GB in Deleted",
+        hint: "20.5 GB in albums · 4.25 GB in Deleted",
         node: <StorageChartDemo state="half" />,
       },
       {
         label: "Full, Make room on",
-        hint: "70 GB in albums · 30 GB in Deleted: an upload takes its room from Deleted",
+        hint: "35 GB in albums · 15 GB in Deleted: an upload takes its room from Deleted",
         node: <StorageChartDemo state="full-on" />,
       },
       {

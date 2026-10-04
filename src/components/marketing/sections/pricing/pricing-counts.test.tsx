@@ -101,7 +101,9 @@ describe("the pricing pages' counts in a browser that is not en-US", () => {
       ["event_pass", ...plansForTier("pro").map((p) => p.id)] as const
     ).map(photos);
     // The pass's own room, then the three Pro sizes: the card is the brain's pick for each, whichever plan that is.
-    for (const gb of [75, 100, 500, 2048]) {
+    for (const gb of [planById("event_pass"), ...plansForTier("pro")].map(
+      (p) => p.storageBytes / 1024 ** 3,
+    )) {
       const stop = STOP_GB.indexOf(gb);
       expect(stop, `${gb} GB is a stop on the ladder`).toBeGreaterThan(-1);
       fireEvent.change(slider, { target: { value: String(stop) } });

@@ -38,7 +38,7 @@ vi.mock("@/lib/db/queries/storage", () => ({
 
 vi.mock("@/lib/stripe/plans", () => ({
   planForPriceId: (priceId: string): Plan | null =>
-    priceId === "price_pro_500_yr" ? planById("pro_500_yr") : null,
+    priceId === "price_pro_200_yr" ? planById("pro_200_yr") : null,
 }));
 
 const retrieve = vi.fn();
@@ -67,7 +67,7 @@ function subscription(over: Record<string, unknown> = {}) {
     cancel_at_period_end: false,
     cancel_at: null,
     items: {
-      data: [{ id: "si_1", price: { id: "price_pro_500_yr" }, quantity: 1 }],
+      data: [{ id: "si_1", price: { id: "price_pro_200_yr" }, quantity: 1 }],
     },
     ...over,
   };
@@ -144,7 +144,7 @@ describe("what it answers", () => {
       tier_expires_at: null,
     };
     const { facts: f } = await facts();
-    expect(f?.currentPlanId).toBe("pro_500_yr");
+    expect(f?.currentPlanId).toBe("pro_200_yr");
     expect(f?.changeBlocked).toBe(null);
   });
 
@@ -158,7 +158,7 @@ describe("what it answers", () => {
     };
     retrieve.mockResolvedValue(subscription({ cancel_at_period_end: true }));
     const { facts: f } = await facts();
-    expect(f?.currentPlanId).toBe("pro_500_yr");
+    expect(f?.currentPlanId).toBe("pro_200_yr");
     expect(f?.changeBlocked).toBe("ending");
   });
 

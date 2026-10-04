@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
-import { GIGABYTE, planById } from "@/lib/constants/tiers";
+import { GIGABYTE, planById, plansForTier } from "@/lib/constants/tiers";
 import { formatBytes } from "@/lib/utils";
 
 import { Configurator, printsAt, STOP_GB } from "./configurator";
@@ -68,13 +68,19 @@ const dragTo = (gb: number) => {
 };
 
 describe("the storage ladder", () => {
-  it("rises, and stops exactly on the Free cap and a single pass's room", () => {
+  // Ladder A (pricing-wiring): every Pro size is a stop as well, read from the plans, so a reader can land on
+  // each room the slider's verdict may name.
+  it("rises, and stops exactly on the Free cap, a single pass's room and every Pro size", () => {
     for (let i = 1; i < STOP_GB.length; i++) {
       expect(STOP_GB[i], "the ladder only climbs").toBeGreaterThan(
         STOP_GB[i - 1],
       );
     }
-    for (const plan of [planById("free"), planById("event_pass")]) {
+    for (const plan of [
+      planById("free"),
+      planById("event_pass"),
+      ...plansForTier("pro"),
+    ]) {
       expect(
         STOP_GB.includes(plan.storageBytes / GIGABYTE),
         `${plan.name}'s cap is a stop a visitor can land on`,
@@ -90,9 +96,10 @@ describe("the storage ladder", () => {
     expect(range.max).toBe(String(STOP_GB.length - 1));
     expect(range.step).toBe("1");
 
-    dragTo(75);
+    const passGb = planById("event_pass").storageBytes / GIGABYTE;
+    dragTo(passGb);
     expect(range.getAttribute("aria-valuetext")).toBe(
-      formatBytes(75 * GIGABYTE),
+      formatBytes(passGb * GIGABYTE),
     );
   });
 });
@@ -100,11 +107,12 @@ describe("the storage ladder", () => {
 describe("the result card", () => {
   it("names the plan recommendPlan names, on both sides of the hosting fork", () => {
     render(<Configurator />);
+    const passGb = planById("event_pass").storageBytes / GIGABYTE;
     const at75 = (hostingAgain: boolean) =>
-      recommendPlan({ bytes: 75 * GIGABYTE, video: true, hostingAgain });
+      recommendPlan({ bytes: passGb * GIGABYTE, video: true, hostingAgain });
 
     // One event at a single pass's room: the pass is the honest answer.
-    dragTo(75);
+    dragTo(passGb);
     expect(
       screen.getByRole("heading", { name: at75(false).plan.name }),
     ).toBeTruthy();
@@ -142,7 +150,7 @@ describe("the result card", () => {
     expect(screen.getByRole("link").getAttribute("href")).toBe("/login");
 
     // Past the Free cap, the door becomes a real checkout trigger.
-    dragTo(250);
+    dragTo(100);
     expect(screen.queryByRole("link")).toBeNull();
     expect(
       screen

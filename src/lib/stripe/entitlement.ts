@@ -8,7 +8,7 @@
  *
  * THE FAILURE THIS PREVENTS: nothing stopped a host on an active Pro subscription from
  * opening a SECOND subscription, or from buying an Event Pass whose provisioning writes
- * `storage_cap_bytes = 75 GB` straight over their 2 TB while Stripe keeps billing Pro. The nightly
+ * a pass's `storage_cap_bytes` straight over the Pro cap they pay for while Stripe keeps billing Pro. The nightly
  * over-capacity sweep then began removing media that sat legitimately inside the cap they pay for.
  * Refusing at checkout kills the whole class at its source instead of patching the sweep
  * downstream.

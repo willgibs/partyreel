@@ -23,8 +23,8 @@ import { StorageList } from "./storage-list";
  * stores, what that size holds and the gap, then the two ways out, the fix first.
  *
  * ★ THE SECOND WAY OUT IS THE SMALLEST SIZE THAT FITS, AT THE BILLING SHE TAPPED (round two's
- * carried `keep-plan`): when that is the plan she is on it is "Keep Pro 500 GB", which flips the
- * row back, never "choose Pro 500 GB" to a host already on it; tapped yearly, it is that size's
+ * carried `keep-plan`): when that is the plan she is on it is "Keep Pro 200 GB", which flips the
+ * row back, never "choose Pro 200 GB" to a host already on it; tapped yearly, it is that size's
  * yearly price, a real switch through the change-plan route. While her subscription cannot change
  * here, it only flips back.
  *

@@ -11,10 +11,9 @@ import { PRICING_FAQ_ITEMS } from "@/components/marketing/sections/pricing/prici
 import { ABOUT_PRESS_HREF } from "@/lib/constants/about";
 import { EVENT_TYPE_SLUGS } from "@/lib/constants/events";
 import { FEATURE_PAGE_SLUGS } from "@/lib/constants/feature-pages";
-import { monthlyIngressCap, PLANS } from "@/lib/constants/tiers";
+import { PLANS, uploadsLabel } from "@/lib/constants/tiers";
 import { getPostListItems } from "@/lib/content/blog";
 import { LLMS_BLOG_LIMIT, LLMS_HELP_PER_SHELF } from "@/lib/content/llms";
-import { formatBytes } from "@/lib/utils";
 import { getAllArticles } from "@/lib/content/help";
 
 import { buildLlmsFullTxt, buildLlmsTxt } from "./llms";
@@ -89,29 +88,30 @@ describe("buildLlmsTxt", () => {
     expect(txt).not.toContain(`${SITE_URL}/press`);
   });
 
+  // ★ Reshaped by Ladder A (pricing-wiring; scar kept: the marketed numbers present, the fenced word absent, both
+  // read from tiers.ts): the uploads allowance is published now, so each plan's own number is a marketed number here.
   it("carries the marketed numbers and never the fenced ones", () => {
     for (const marketed of [
       "$0",
-      "$24",
-      "$15",
+      "$29",
+      "$19",
       "$9/mo",
-      "$39/mo",
+      "$99/mo",
       "$90/yr",
-      "$390/yr",
+      "$990/yr",
       "100 MB", // Free since the free/pro shift (it was 2 GB)
-      "75 GB",
+      "25 GB",
+      "1 TB",
       "10 GB",
     ]) {
       expect(txt, `mentions ${marketed}`).toContain(marketed);
     }
-    // The unmarketed backstop numbers (also enforced by content-policy over
-    // this module's source; this asserts the generated OUTPUT too), derived
-    // from tiers.ts so a moved cap moves the fence with it.
-    expect(txt).not.toMatch(/\bingress\b/i);
     for (const plan of PLANS) {
-      const bound = monthlyIngressCap(plan.tier, plan.storageBytes);
-      if (bound !== null) expect(txt).not.toContain(formatBytes(bound));
+      expect(txt, `${plan.id}'s uploads`).toContain(uploadsLabel(plan));
     }
+    // The backstop's own name stays off (also enforced by content-policy over this module's source; this asserts
+    // the generated OUTPUT too).
+    expect(txt).not.toMatch(/\bingress\b/i);
   });
 
   it("includes the honest-limits section (the trust anchor)", () => {

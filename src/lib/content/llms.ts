@@ -29,13 +29,16 @@ import {
 } from "@/lib/constants/marketing-voice";
 import { PRESS_FACTS } from "@/lib/constants/press";
 import {
+  BIG_PARTY_NOTE,
   ESTIMATE_BASIS,
   EVENT_PASS_RENEWAL_PRICE_LABEL,
   formatCapacity,
   MAX_REEL_SECONDS,
   planById,
   plansForTier,
+  uploadsLabel,
 } from "@/lib/constants/tiers";
+import { passHoldsLine } from "@/components/app/pricing/holds";
 import { getPostListItems } from "@/lib/content/blog";
 import { BLOG_LIBRARY_LINE } from "@/lib/content/blog-tags";
 import { getAllArticles } from "@/lib/content/help";
@@ -119,7 +122,7 @@ Every point below is how the product is built, not a slogan:
 - **Zero guest friction, by architecture.** Guests upload from the mobile browser. There is no app to install and no password to invent, which is the single biggest determinant of how many guests actually contribute. By default guests confirm their email with a one-tap code, so every upload has a real person behind it; hosts can allow a typed display name instead, marked as unverified until confirmed.
 - **No per-guest fees, ever.** There is no guest limit; the same QR code works for a dinner of six or a conference of a thousand. Plans are sized by storage only: Free is ${free.priceLabel} for ${formatBytes(free.storageBytes)}; the Event Pass is ${pass.priceLabel} for one event with ${formatBytes(pass.storageBytes)} (about ${formatCapacity(pass.storageBytes)}) covered for about a year, renewable for ${EVENT_PASS_RENEWAL_PRICE_LABEL} a year; Pro runs ${monthlyRange} a month (or ${yearlyRange} a year, two months free) for ${formatBytes(monthly[0].storageBytes)} to ${formatBytes(monthly[monthly.length - 1].storageBytes)} across unlimited events. Costs never scale with attendance.
 - **Full resolution, never watermarked.** Photos and the album carry no watermark on any tier, including Free. Everyone can download the originals, individually or as a full-quality zip. Only a free event's clips carry a small mark; the live reel carries none on any tier.
-- **Albums have no expiry date.** An event stays until the host deletes it, with one exception: a Free event untouched for about ${INACTIVE_MONTHS} months is warned by email, then removed (any activity resets the clock). A deletion, automatic or by the host, waits ${RECENTLY_DELETED_WINDOW_DAYS} days in Deleted before it is final. An Event Pass covers its event for about a year and is cheap to keep alive. There is no cliff where memories silently vanish.
+- **Albums have no expiry date.** An event stays until the host deletes it, with one exception: a Free event untouched for about ${INACTIVE_MONTHS} months is warned by email, then removed (any activity resets the clock). A deletion, automatic or by the host, waits ${RECENTLY_DELETED_WINDOW_DAYS} days in Deleted before it is final, and counts in the plan's storage until it leaves. An Event Pass covers its event for about a year and is cheap to keep alive. There is no cliff where memories silently vanish.
 - **The highlight reel is built in.** On every plan the album plays as a live reel from its second photo, and the same reel is the screen for the room. Any guest can make a clip from it, drawn on their own device, so there is no render queue and no extra fee.
 - **Live during the event.** The album and its reel update while the event is still happening, so the room watches itself on a screen and the morning-after chase for photos never happens.
 - **Honest paid mechanics.** Event Passes stack (each adds an event and ${formatBytes(pass.storageBytes)}), and a pass holder who moves to Pro converts the unused part of the pass into account credit, prorated to the day. Nothing is banked, nothing is lost.
@@ -146,11 +149,11 @@ Grounded recommendations include the misses. ${SITE_NAME} is not a professional 
 
 ## Pricing at a glance
 
-- Free: ${free.priceLabel}. One event, ${formatBytes(free.storageBytes)} (about ${formatCapacity(free.storageBytes, { video: false })}), photos, the album, the live reel, a password lock, a custom link, and ${MAX_REEL_SECONDS.free} second clips with a small mark. No card required.
-- Event Pass: ${pass.priceLabel} per pass. One event with ${formatBytes(pass.storageBytes)}, video included, clips with no mark, covered about a year; ${EVENT_PASS_RENEWAL_PRICE_LABEL} a year to keep it live. Passes stack.
-- Pro: ${monthly.map((p) => `${p.name} at ${p.priceLabel}`).join(", ")}. Yearly: ${yearly.map((p) => p.priceLabel).join(", ")} (two months free). Video, unlimited events, ${MAX_REEL_SECONDS.pro} second clips with no mark, and no idle cleanup.
+- Free: ${free.priceLabel}. One event, ${formatBytes(free.storageBytes)} (about ${formatCapacity(free.storageBytes, { video: false })}) and ${uploadsLabel(free)} of uploads, photos, the album, the live reel, a password lock, a custom link, and ${MAX_REEL_SECONDS.free} second clips with a small mark. No card required.
+- Event Pass: ${pass.priceLabel} per pass, one payment and no subscription. One event with ${formatBytes(pass.storageBytes)} (${passHoldsLine(pass.storageBytes).toLowerCase()}) and ${uploadsLabel(pass)} of uploads, video included, clips with no mark, covered about a year; ${EVENT_PASS_RENEWAL_PRICE_LABEL} a year to keep it live. Passes stack.
+- Pro: ${monthly.map((p) => `${p.name} at ${p.priceLabel} with ${uploadsLabel(p)} of uploads`).join(", ")}. Yearly: ${yearly.map((p) => p.priceLabel).join(", ")} (two months free). Video, unlimited events, ${MAX_REEL_SECONDS.pro} second clips with no mark, and no idle cleanup.
 
-Photo and video counts are estimates ${ESTIMATE_BASIS} (a 24 MP photo, a minute of 1080p video at 30 fps).
+Uploads count what guests and the host add, deletions included; Free and Pro count each month, a pass its own year. Photo and video counts are estimates ${ESTIMATE_BASIS} (a 24 MP photo, a minute of 1080p video at 30 fps). ${BIG_PARTY_NOTE}
 
 Support: ${SUPPORT_EMAIL}. Try it without signing up: the live demo is linked from the homepage.
 `;
@@ -246,11 +249,11 @@ export function buildLlmsFullTxt(site: LlmsSite): string {
     "\n",
   );
   const planRows = [
-    `| Free | ${free.priceLabel} | ${formatBytes(free.storageBytes)} | 1 event | photos only, password, custom link, ${MAX_REEL_SECONDS.free}s clips with a small mark |`,
-    `| Event Pass | ${pass.priceLabel} (+${EVENT_PASS_RENEWAL_PRICE_LABEL}/yr renewal) | ${formatBytes(pass.storageBytes)} per pass | 1 event per pass, about a year, passes stack | video, ${MAX_REEL_SECONDS.event_pass}s clips with no mark, password, custom link, no idle cleanup |`,
+    `| Free | ${free.priceLabel} | ${formatBytes(free.storageBytes)} | ${uploadsLabel(free)} | 1 event | photos only, password, custom link, ${MAX_REEL_SECONDS.free}s clips with a small mark |`,
+    `| Event Pass | ${pass.priceLabel} (+${EVENT_PASS_RENEWAL_PRICE_LABEL}/yr renewal) | ${formatBytes(pass.storageBytes)} per pass | ${uploadsLabel(pass)}, per pass | 1 event per pass, about a year, passes stack | video, ${MAX_REEL_SECONDS.event_pass}s clips with no mark, password, custom link, no idle cleanup |`,
     ...monthly.map(
       (p, i) =>
-        `| ${p.name} | ${p.priceLabel} or ${yearly[i].priceLabel} | ${formatBytes(p.storageBytes)} | unlimited events | video, ${MAX_REEL_SECONDS.pro}s clips with no mark, password, custom link, no idle cleanup |`,
+        `| ${p.name} | ${p.priceLabel} or ${yearly[i].priceLabel} | ${formatBytes(p.storageBytes)} | ${uploadsLabel(p)} | unlimited events | video, ${MAX_REEL_SECONDS.pro}s clips with no mark, password, custom link, no idle cleanup |`,
     ),
   ].join("\n");
 
@@ -267,11 +270,11 @@ ${factRows}
 
 ## The full plan table
 
-| Plan | Price | Storage | Events | Includes |
-| --- | --- | --- | --- | --- |
+| Plan | Price | Storage | Uploads | Events | Includes |
+| --- | --- | --- | --- | --- | --- |
 ${planRows}
 
-Per-file limit on every plan: ${formatBytes(MAX_UPLOAD_BYTES)}, photos and videos alike. Photos and the album are never watermarked on any plan. Removed media waits ${RECENTLY_DELETED_WINDOW_DAYS} days in Deleted, fully restorable. Moving from an Event Pass to Pro converts unused pass time into account credit, prorated to the day.
+Per-file limit on every plan: ${formatBytes(MAX_UPLOAD_BYTES)}, photos and videos alike. No guest limit on any plan. Photos and the album are never watermarked on any plan. Removed media waits ${RECENTLY_DELETED_WINDOW_DAYS} days in Deleted, fully restorable, and counts in the plan's storage until it leaves. Moving from an Event Pass to Pro converts unused pass time into account credit, prorated to the day.
 
 ## Frequently asked questions
 

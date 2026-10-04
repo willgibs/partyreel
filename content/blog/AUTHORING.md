@@ -170,8 +170,10 @@ here too; `../help/AUTHORING.md` lists them.
 | --- | --- |
 | `<UploadSize />` | the per-file ceiling, photos and videos alike |
 | `<FreeStorage />`, `<EventPassStorage />` | aliases of `<PlanStorage id>` kept for the help center; new posts use the `id` form |
-| `<PlanStorage id="pro_500" />` | any plan's storage (`free`, `event_pass`, `pro_100`, `pro_500`, `pro_2tb`, `pro_100_yr`, `pro_500_yr`, `pro_2tb_yr`) |
-| `<PlanPrice id="pro_100_yr" />` | a price label (`<EventPassPrice />` and `<ProPrice />` are aliases for the help center) |
+| `<PlanStorage id="pro_200" />` | any plan's storage (`free`, `event_pass`, `pro_50`, `pro_200`, `pro_1tb`, `pro_50_yr`, `pro_200_yr`, `pro_1tb_yr`) |
+| `<PlanPrice id="pro_50_yr" />` | a price label (`<EventPassPrice />` and `<ProPrice />` are aliases for the help center) |
+| `<PlanUploads id="event_pass" />` | a plan's uploads allowance with its window ("50 GB over its year", "300 MB a month"), the pricing table's Uploads row |
+| `<ProUploads />` | the Pro sizes' uploads in `<ProPlans />`'s order ("100 GB, 200 GB, or 500 GB a month") |
 | `<EventPassRenewalPrice />` | the one-time renewal price |
 | `<EventLimit tier="free" />` | events a tier may hold (`pro` renders the unlimited word) |
 | `<ReelSeconds tier="free" />` | a clip's length ceiling in seconds for `free`, `pro`, `event_pass` (the live reel has none) |

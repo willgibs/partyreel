@@ -56,9 +56,9 @@ vi.mock("@/lib/stripe/client", () => ({
 }));
 
 const PRICES: Record<string, Plan> = {
-  price_pro_100: planById("pro_100"),
-  price_pro_500: planById("pro_500"),
-  price_pro_2tb: planById("pro_2tb"),
+  price_pro_50: planById("pro_50"),
+  price_pro_200: planById("pro_200"),
+  price_pro_1tb: planById("pro_1tb"),
 };
 vi.mock("@/lib/stripe/plans", () => ({
   planForPriceId: (priceId: string): Plan | null => PRICES[priceId] ?? null,
@@ -90,7 +90,7 @@ vi.mock("@/lib/supabase/admin", () => ({
 
 const { POST } = await import("@/app/api/stripe/webhook/route");
 
-const PRO_500 = planById("pro_500").storageBytes;
+const PRO_200 = planById("pro_200").storageBytes;
 /** Stripe's `created`, unix seconds. Every delivery below is at or after it. */
 const T0 = 1_790_000_000;
 const at = (seconds: number) => new Date(seconds * 1000).toISOString();
@@ -116,7 +116,7 @@ function proOn(subscriptionId: string): FakeRow {
     stripe_subscription_id: subscriptionId,
     stripe_event_created_at: at(T0),
     tier: "pro",
-    storage_cap_bytes: PRO_500,
+    storage_cap_bytes: PRO_200,
   });
 }
 
@@ -157,7 +157,7 @@ function subscriptionEvent(
         status: opts.status ?? "active",
         items: {
           data: (opts.quantities ?? [1]).map((quantity) => ({
-            price: { id: "price_pro_500" },
+            price: { id: "price_pro_200" },
             quantity,
           })),
         },
@@ -217,7 +217,7 @@ function listed(
     status: opts.status ?? "active",
     created: opts.created ?? T0,
     items: {
-      data: [{ price: { id: opts.price ?? "price_pro_500" }, quantity: 1 }],
+      data: [{ price: { id: opts.price ?? "price_pro_200" }, quantity: 1 }],
     },
   };
 }
@@ -231,7 +231,7 @@ describe("the subscription branch", () => {
     expect(profilePatches()).toHaveLength(1);
     expect(row()).toMatchObject({
       tier: "pro",
-      storage_cap_bytes: PRO_500,
+      storage_cap_bytes: PRO_200,
       stripe_subscription_id: "sub_1",
       stripe_event_created_at: at(T0),
     });
@@ -392,7 +392,7 @@ describe("two subscriptions, one customer", () => {
     );
     expect(row()).toMatchObject({
       tier: "pro",
-      storage_cap_bytes: PRO_500,
+      storage_cap_bytes: PRO_200,
       stripe_subscription_id: "sub_live",
       stripe_event_created_at: at(T0 + 5),
     });
@@ -505,7 +505,7 @@ describe("the followed subscription ends while another still bills", () => {
     seed(proOn("sub_a"));
     stripe.subscriptions = [
       listed("sub_a", { status: "canceled" }),
-      listed("sub_b", { price: "price_pro_2tb" }),
+      listed("sub_b", { price: "price_pro_1tb" }),
     ];
 
     const response = await deliver(
@@ -520,7 +520,7 @@ describe("the followed subscription ends while another still bills", () => {
     expect(stripe.listed).toEqual([{ customer: "cus_1", limit: 100 }]);
     expect(row()).toMatchObject({
       tier: "pro",
-      storage_cap_bytes: planById("pro_2tb").storageBytes,
+      storage_cap_bytes: planById("pro_1tb").storageBytes,
       stripe_subscription_id: "sub_b",
       stripe_event_created_at: at(T0 + 60),
     });
@@ -556,10 +556,10 @@ describe("the followed subscription ends while another still bills", () => {
   it("★ follows the one that stores the most, the newest on a tie, and warns that the rest still bill", async () => {
     seed(proOn("sub_a"));
     stripe.subscriptions = [
-      listed("sub_small", { price: "price_pro_100", created: T0 + 9 }),
-      listed("sub_big_old", { price: "price_pro_2tb", created: T0 + 1 }),
-      listed("sub_big_new", { price: "price_pro_2tb", created: T0 + 5 }),
-      listed("sub_due", { status: "past_due", price: "price_pro_500" }),
+      listed("sub_small", { price: "price_pro_50", created: T0 + 9 }),
+      listed("sub_big_old", { price: "price_pro_1tb", created: T0 + 1 }),
+      listed("sub_big_new", { price: "price_pro_1tb", created: T0 + 5 }),
+      listed("sub_due", { status: "past_due", price: "price_pro_200" }),
     ];
 
     await deliver(
@@ -572,7 +572,7 @@ describe("the followed subscription ends while another still bills", () => {
 
     expect(row()).toMatchObject({
       tier: "pro",
-      storage_cap_bytes: planById("pro_2tb").storageBytes,
+      storage_cap_bytes: planById("pro_1tb").storageBytes,
       stripe_subscription_id: "sub_big_new",
     });
     expect(captureWarning).toHaveBeenCalledWith(
@@ -742,7 +742,7 @@ describe("the quantity warning", () => {
       }),
     );
     expect(multiple).toEqual(single);
-    expect(multiple.storage_cap_bytes).toBe(PRO_500);
+    expect(multiple.storage_cap_bytes).toBe(PRO_200);
   });
 
   it("stays quiet at a quantity of one", async () => {
