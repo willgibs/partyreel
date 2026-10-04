@@ -1,6 +1,6 @@
 ---
 track: crumbs-66
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "0b83614f"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -112,4 +112,86 @@ Each is built as recommended and is Will's to overrule (the same lines stand und
 
 ## Handoff (replaces the chat report)
 
-(filled at the end)
+Scratch (every log named below): `../partyreel-wt/_scratch/crumbs-66/`.
+
+- **Commits**, all on `origin/lp/crumbs-66`: fix 3 `91ceb5f22`, fix 4 `64953ad8d`, fix 1 `0b0572216`, the reel view's
+  stylesheet `f426bc4e2`, the harness `fdc0e8b16`, `0b8547ca7` and `66abc030d` (the last code commit), then this manifest
+  alone (the head is in the chat line). launch-prep had not moved (`805c52ed0` at the cut and at the last fetch), so there is
+  no sync commit.
+- **Gates**, each on its own exit code. On `fb282da95` (every `src/` change but a test): `pnpm lint` 0, `pnpm test` 0
+  (909 files, 11,156 tests), `NEXT_PUBLIC_SITE_URL=http://localhost:3132 zsh scripts/build-lock.sh pnpm build` 0,
+  `pnpm lab:smoke --base http://localhost:3132 --timeout 90000` 0 (156 checks, 0 failing; scope the Library, the shell and
+  boards create-wizard, event-header, host-dashboard and identity, which import `guest-experience-summary.ts`)
+  (`lint.log`, `test.log`, `build.log`, `smoke.log`). On `66abc030d` (`git diff fb282da95..66abc030d --stat`: only
+  `scripts/compute-model/{phones,run}.mjs`, `src/lib/compute-model-phones.test.ts` and this file): `pnpm typecheck` 0,
+  `pnpm lint` 0, `pnpm test` 0 (909 files, 11,162 tests) (`typecheck2.log`, `lint3.log`, `test3.log`). The smoke's PREMISE
+  line: drive-export's nine open asks describe `events-section.tsx`; this lane changed only the quiet line's Reset press (a
+  focus handoff), nothing those asks describe.
+- **Red first**: each new or reshaped test fails on the old source (that file's source swapped for `origin/launch-prep`'s,
+  then restored): events-section 1, hub-reel 2 (a third, "says nothing with no develop", holds on both), live-reel-view 1
+  for the dock's line and 1 for the stylesheet, readiness 2; `visibility-labels.test.ts` and `compute-model-phones.test.ts`
+  import functions the old source does not have, and the harness's red is measured, below.
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): 18 files. Under `owns`: `visibility-labels.ts` and its
+  test, `events-section.tsx`, `hub-reel.tsx` and its test, `live-reel-view.tsx` and its test, `run.mjs`; this file; and
+  `docs/systems/reel.md` and `host-app.md` (listed under System-doc edits). Exceptions, each for its reason:
+  `events-section.test.tsx` (the owns name a file, its test is its pin); `src/app/(app)/dashboard/[eventId]/page.tsx`
+  (four lines: the two identity facts for fix 1, `developsAt` for fix 4: props the owned files take); `readiness.ts` and
+  `readiness.test.ts` (the hub's door line is built there from `ReadyFacts`); `guest-experience-summary.ts` (two lines: it
+  exports `doorSentence` and a `DoorFacts` type, so the label module reads Settings' own sentence); `scripts/compute-model/
+  phones.mjs` (new) and `src/lib/compute-model-phones.test.ts` (new): the harness's testable half, since `run.mjs`
+  measures the moment it is loaded and cannot be imported.
+- **The items**
+  1. NIT, the hub's door line: `doorGuestLine` (`visibility-labels.ts`) says "Anyone with the link, after confirming an
+     email." (a name, a photo first, as the album asks) at a Public and a password door, from `doorSentence` over Settings'
+     own four facts; `ReadyFacts` carries the two switches (optional), the hub's page hands them (`page.tsx`), the old local
+     copy in `readiness.ts` is gone. Tests: `visibility-labels.test.ts` (the sentence equals Settings' for both doors across
+     all 16 fact combinations) and `readiness.test.ts`.
+  2. NIT, the cover's photographs: not built; see the first Question and the first Deferred line (the phone copy is off the
+     wire and the wrong size; 327 KB average, 182 of 3,445 photos have one).
+  3. NIT, the quiet line's Reset: it hands the focus to the Display button before React drops the line (`events-section.tsx`).
+     Real Chrome (a scratch page on 3132, since removed): after a real click on Reset the active element is the Display
+     button (`aria-haspopup=dialog`), the line gone, the layout back to gallery; `events-section.test.tsx`.
+  4. The hub's reel before the develop: the view takes `dockNote` (`live-reel-view.tsx`: a line under the dock's controls,
+     in the dock's glass type), the hub says "Guests get it at the develop." while `developsAt` is ahead, on `useWaitClock`
+     so it stops at the develop itself (`hub-reel.tsx`; tests in both). Real Chrome on a scratch page with the reel's sheet
+     loaded: the line reads under the timeline at a desk and at 375, one line, inside the dock.
+  5. A finding beyond the five, fixed: the hub's reel view carried no stylesheet. `live-reel.css` holds the dock's classes
+     and only the guests' controller imported it (`live-reel.tsx`); the hub's built route never listed it, the guest page's
+     did, so the host's dock drew unclipped (the first scratch screenshot: the bar's glyphs over the controls). The view
+     imports its own sheet; the rebuilt view's loader names it first (`css-evidence.txt`: module 456813 in
+     `static/chunks/0sh64xlulp2jx.js`); `live-reel-view.test.tsx` holds the import.
+  6. The compute harness, measured on the production build with CPU throttled by `Emulation.setCPUThrottlingRate` on a
+     scratch copy of `chrome.mjs` (`stress/`): the old join's name-step timeout reproduced, 3 of 4 joins at 6x and 10x
+     (`old-6`, `old-6-b`, `old-10-a`), and in every failed join the server's ledger holds no `POST /api/guests`. The
+     recorded pointer events say why (`lost-press.log`): the press moves focus off the name field, the blur drops the
+     keyboard's lift, the sheet's foot moves 65 px up between pointerdown and pointerup, and the click lands on the body
+     (3 of 6 presses). The join (`phones.mjs`, `run.mjs`) now blurs the field and waits 600 ms, presses the name's Continue,
+     and presses again when the sheet did not move (capped at three, never while the button is disabled for its mint);
+     the door's two navigation presses read the screen the same way and press only the welcome's Continue and the chooser's
+     Continue as guest. First presses landed 8 of 8 at 6x and 4 of 4 at 10x or unthrottled, against 2 of 8 without the blur
+     (`press-count-before.log`, `press-count-after*.log`); 8 of 8 whole joins passed, one mint each (`fix-6-c`..`fix-10-d`);
+     the real first scenario, `guest-join-upload` under 6x, passed at 60 calls of its 68 (`join-upload-6.log`).
+     Closing on error: a forced error after both phones joined (`<out>/photos` made a file, so `photos(10)` throws): the
+     old harness left `listener` and `uploader` polling, 3 and 3 records under `guest-hour-live`; the new one none
+     (`err-old.log`, `err-new.log`, the ledgers counted by scenario and device). A full 15-minute `pnpm compute:model` run
+     was not made: the other seven scenarios are unchanged; run it at the milestone.
+- **ROADMAP lines this lane closes** (the Orchestrator records them): the door line, the Display Reset, the hub reel's
+  develop words, the compute harness's join and phones; the cover line stays, as the Deferred line below.
+- Assets requested from Will: none
+- Board ideas: the name step's Continue can lose a press (Deferred, third line: the keyboard-sheet bench is where to look);
+  a Library specimen of the hub's reel view with its dock (Deferred, last line).
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none
+- Calls his to overrule: the six Questions above, one line each (the cover stays on the preview; the hub's door line is
+  Settings' own sentence, a password door included, "or the code" gone from it; fix 1 reached `readiness.ts`, the hub's page
+  and `guest-experience-summary.ts`; the dock says the develop line under its controls only while it is up, naming no time;
+  the reel view imports its own sheet; the harness presses again and never a fourth button).
+- Look at first (signed in, the local build at port 3000; nothing of mine touched Vercel):
+  1. A Disposable album with a develop ahead and two shots: its hub, the Reel card, the reel over the hub: at rest the bar
+     is a slim pill and the controls grow out of it (the sheet is new on the hub), raise the dock: "Guests get it at the
+     develop." under the timeline. Set the develop a minute ahead and leave the reel open: the line goes at the develop, on
+     the clock's next half minute; after Develop now in Settings, a fresh open has no line.
+  2. The hub's "What a guest needs" list on a new event: the door row reads "Anyone with the link, after confirming an
+     email."; in Settings, What guests do first set to a name: the row reads "after typing a name" once the save lands; A
+     photo first on: "...and adding a photo".
+  3. The dashboard with Display set to Table: Tab to the quiet line's Reset, Enter: the focus is on the Display button, and
+     the next Tab leaves from there.
