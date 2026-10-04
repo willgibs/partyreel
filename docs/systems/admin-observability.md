@@ -5,6 +5,7 @@ Open this before you:
 - touch the admin's sign-in, its MFA or the two-deployment perimeter;
 - add a backend job, a kill switch or anything else that must report its health;
 - change a spend guard: a reading, a floor, a ceiling or a switch the spend watch pauses;
+- change a vendor's plan or a plan limit the watch measures (a plan cutover, a new meter, a credential for one);
 - add a Sentry capture.
 
 Elsewhere: host-side moderation ([host-app.md](host-app.md)), the forensic surface and the CSAM runbook
@@ -138,8 +139,9 @@ costs no guest's moment. The rules are pure (`lib/jobs/spend-watch.ts`); the run
   reading our tokens can take, Resend's own sent-mail list (every sender, Supabase Auth's sign-in codes included).
 - ★ **What could not be read:** Supabase's usage (Realtime messages, MAU, egress) needs a Management API personal token,
   which the app holds none of; R2 and Workers need a Cloudflare API token (the app holds R2's S3 keys only, which read
-  no usage); Vercel and Sentry hold no runtime token either; Resend's quota headers come back only on a send. Each is
-  watched by its own dashboard's alert.
+  no usage); Vercel's token is the plan limits' optional one below, and Sentry holds none; Resend's quota headers come
+  back only on a send. What none of these can read is watched by its own dashboard's alert, and the plan limits read
+  what they can of them.
 - **The ceiling** is ten times the busiest reading of the trailing week, never under the reading's floor (what a quiet
   week cannot reach) and never past a vendor's own hard stop (Resend's free day stops at 100, the alert mail with it,
   so its reading caps at 80 until `RESEND_DAILY_QUOTA` goes null at the Pro cutover). A missing or warming reading
@@ -161,6 +163,49 @@ costs no guest's moment. The rules are pure (`lib/jobs/spend-watch.ts`); the run
   one-time notice and every operator mail always send, since a held notice would be lost for good.
 - **Who watches the watchman:** the purge cron's freshness scan pages on every job's silence but its own; the watch
   raises the purge's `job_missed_run` in the scan's own words.
+
+## Plan limits
+
+The spend watch is a circuit breaker for a runaway (ten times the busiest of the week); nothing in it saw the slow climb
+toward a vendor's plan limit, which on Vercel Hobby pauses the team's functions for 30 days (the account was unlocked
+once already). So its daily run also reads every meter of `lib/jobs/limits-watch-limits.ts`, judges each against the
+plan's limit, and mails what newly crossed. The rules are pure (`limits-watch.ts`); the run reads, writes and tells
+(`limits-watch-run.ts`, called from `spend-watch-run.ts`: no cron of its own, since Hobby allows two and both exist); the
+card is `app/admin/jobs/limits-card.tsx`, beside the spend watch's.
+- **The limits live in one file, each the vendor's own number for the plan we are on today,** its page and date beside
+  it, never guessed. ★ The org is on Supabase **Pro**, not Free; Vercel is Hobby, Resend and Cloudflare free. A plan
+  cutover is an edit there (and `RESEND_DAILY_QUOTA` going null removes the daily mail meter). GB counts as 10^9 bytes,
+  the vendors saying nothing, so a share reads high, never low.
+- **The meters and where each number comes from.** Vercel: one `GET /v2/usage?type=requests` (the usher kit's own call;
+  `limits-watch-vercel.ts` is its only caller and takes the token as an argument) read into invocations, Fast Data
+  Transfer (both directions count), CDN requests and Active CPU, which Hobby's API never answers, so it is ★ ESTIMATED
+  from the calls at 44 ms of CPU a call (`VERCEL_CPU_SECONDS_PER_CALL`, read off the dashboard 2026-10-04: recalibrate
+  it and the kit's together; the card names the estimate). Fast Origin Transfer and image transformations have no
+  Hobby API, and ISR Reads has no Hobby allowance on Vercel's pages (`NOT_WATCHED`). Supabase: the database's size
+  and R2's bytes from one SQL call, `limits_watch_readings()` (R2's is every media row's original and phone copy: a
+  floor, the previews and the backup bucket left out), and monthly active users from `spend_watch_sign_ins` over 30 days
+  (a floor too: Supabase also counts token refreshes). Resend: its own list of sent mail, every sender, tallied by UTC
+  day in one pass (the month to date, the week's busiest day). Egress, Realtime, R2's operations and the Workers'
+  requests need a token the app holds none of: **Not wired**, said on the card.
+- **A meter's climb is projected by its shape** (`MeterShape`): a rolling Vercel window counts the days that roll out
+  of it, so ★ a steady meter never warns on its days left (each day adds what it drops); a gauge takes the slope of our
+  own earlier readings (none before two days of them); a month's meter tells days left only when its limit would come
+  before the calendar resets it; a daily one reads the week's busiest day. WARNING at 60% of the limit or 30 days left
+  at the trailing week's rate, CRITICAL at 85% or 7: a slow climb warns weeks before its share would.
+- ★ **A crossing is mailed once.** A meter is mailed only when its level outranks the one it was last TOLD (stored in
+  `counts.limits`, per meter): one message a run through `sendOnce` (kind `spend_watch`, keyed by the day and the
+  crossings it names), the meter told only once the mail went, forgetting its level only once it has clearly fallen
+  (5 points of share, a fifth fewer days), so a meter hovering on a threshold is mailed once. A history that cannot be
+  read holds the mail and fails the run, since a duplicate is worse than a mail a day late.
+- ★ **A gap is not a failure, and a failure is not a gap.** A meter with no credential (`needs`) or no vendor API
+  (`unavailable`) says "No reading" and why on the card and fails nothing, so a Question left open never paints the
+  watch red; a read that FAILED (a refused token, an unreadable answer) fails the spend watch's run and says which, and
+  a card of mostly gaps counts them in its header. Warnings stay on the card and in the mail; a CRITICAL meter also
+  holds the run at Needs a look (`breaker_tripped`, the bell).
+- ★ **The Vercel token can deploy and delete,** so it is its own variable (`VERCEL_USAGE_TOKEN`, never the usher kit's
+  personal `VERCEL_TOKEN`), optional (unset reads "Not wired"), team-scoped, used for that one GET and never printed (an
+  error says only the HTTP status); Sensitive on Vercel at launch. The app holds no Supabase personal access token (it
+  can delete the project) and no Cloudflare analytics token yet.
 
 ## Reports
 

@@ -3,7 +3,9 @@
  * stubbed; the rules real). Red first for each direction: a quiet night is ok and silent; a new trip of downloads
  * pauses them and alerts once; a trip of uploads alerts and offers, never pauses; a reading it could not take fails
  * the run and never passes as zero; an unreadable own switch alerts without pausing; a trip that goes on never
- * re-pauses what an operator turned back on; and the purge's own silence pages.
+ * re-pauses what an operator turned back on; the purge's own silence pages; and the plan limits that ride the run
+ * (stubbed here: `limits-watch-run.test.ts` holds their rules) are kept in its record, fail it when a read of them
+ * failed, hold it at attention when one is critical, and are never read while it is paused.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -78,6 +80,14 @@ vi.mock("@/lib/observability/sentry", () => ({
 vi.mock("@/lib/env", () => ({ env: {}, serverEnv: {} }));
 vi.mock("@/lib/auth/admin-host", () => ({ ADMIN_HOST: "admin.partyreel.com" }));
 
+// The plan limits ride the run; their own rules are tested in limits-watch-run.test.ts, so here they are an edge.
+const runLimitsWatch = vi.fn();
+vi.mock("@/lib/jobs/limits-watch-run", () => ({
+  runLimitsWatch: (...a: unknown[]) => runLimitsWatch(...a),
+  adminJobsUrl: (anchor: string) =>
+    `https://admin.partyreel.com/admin/jobs#${anchor}`,
+}));
+
 const { runSpendWatch } = await import("@/lib/jobs/spend-watch-run");
 
 // ── fixtures ───────────────────────────────────────────────────────────────────────────────────────
@@ -130,8 +140,21 @@ function finished() {
   };
 }
 
+/** What the plan limits' step answers on a quiet night: a record, nothing past a threshold, nothing failed. */
+const quietLimits = {
+  stored: { at: NOW.toISOString(), meters: {} },
+  warn: [],
+  critical: [],
+  failed: [],
+  gaps: [],
+  mailed: [],
+  problem: false,
+  notes: [],
+};
+
 beforeEach(() => {
   vi.clearAllMocks();
+  runLimitsWatch.mockResolvedValue(quietLimits);
   getJobFlags.mockResolvedValue({ spend_watch: true, purge_cron: true });
   startJobRun.mockResolvedValue({
     runId: "run-1",
@@ -196,6 +219,97 @@ describe("a quiet night", () => {
     );
     expect(startJobRun).not.toHaveBeenCalled();
     expect(rpc).not.toHaveBeenCalled();
+    expect(runLimitsWatch).not.toHaveBeenCalled();
+  });
+});
+
+describe("the plan limits that ride the run", () => {
+  it("keeps their record in the run's counts, beside the readings, and reads them once", async () => {
+    const outcome = await runSpendWatch({ trigger: "schedule", now: NOW });
+    expect(runLimitsWatch).toHaveBeenCalledTimes(1);
+    expect(runLimitsWatch).toHaveBeenCalledWith({
+      admin: expect.anything(),
+      now: NOW,
+    });
+    const run = finished();
+    expect(run.counts.limits).toEqual(quietLimits.stored);
+    expect(run.counts).toHaveProperty("readings");
+    expect(outcome.limits).toEqual({ warn: [], critical: [], failed: [] });
+    expect(run.status).toBe("ok");
+    expect(run.counts).not.toHaveProperty("breaker_tripped");
+  });
+
+  it("★ holds the run at attention (the bell) for a critical meter, though nothing tripped and nothing failed", async () => {
+    runLimitsWatch.mockResolvedValue({
+      ...quietLimits,
+      critical: ["vercel_active_cpu"],
+      warn: ["vercel_cdn_requests"],
+      mailed: ["vercel_active_cpu", "vercel_cdn_requests"],
+      notes: [
+        "Plan limits critical: Vercel Active CPU.",
+        "Plan limits warning: Vercel CDN requests.",
+      ],
+    });
+    const outcome = await runSpendWatch({ trigger: "schedule", now: NOW });
+    const run = finished();
+    expect(run.status).toBe("ok");
+    expect(run.counts).toMatchObject({ breaker_tripped: true, tripped: 0 });
+    expect(run.note).toBe(
+      "Plan limits critical: Vercel Active CPU. Plan limits warning: Vercel CDN requests.",
+    );
+    expect(outcome.limits?.critical).toEqual(["vercel_active_cpu"]);
+    // A warning alone is the card and the mail, never the bell.
+    runLimitsWatch.mockResolvedValue({
+      ...quietLimits,
+      warn: ["vercel_cdn_requests"],
+      notes: ["Plan limits warning: Vercel CDN requests."],
+    });
+    vi.mocked(finishJobRun).mockClear();
+    await runSpendWatch({ trigger: "schedule", now: NOW });
+    expect(finished().counts).not.toHaveProperty("breaker_tripped");
+  });
+
+  it("★ fails the run, with the words, when a read of a meter failed, and when the step itself had a problem", async () => {
+    runLimitsWatch.mockResolvedValue({
+      ...quietLimits,
+      failed: ["vercel_invocations"],
+      notes: ["No plan-limits reading: Vercel Function invocations."],
+    });
+    const outcome = await runSpendWatch({ trigger: "schedule", now: NOW });
+    expect(outcome.status).toBe("error");
+    expect(finished().note).toBe(
+      "No plan-limits reading: Vercel Function invocations.",
+    );
+
+    vi.mocked(finishJobRun).mockClear();
+    runLimitsWatch.mockResolvedValue({
+      ...quietLimits,
+      problem: true,
+      stored: null,
+      notes: [
+        "The plan limits' mail could not be sent: it is tried again next run.",
+      ],
+    });
+    const second = await runSpendWatch({ trigger: "schedule", now: NOW });
+    expect(second.status).toBe("error");
+    // A step that kept no record leaves the run's own readings whole.
+    expect(finished().counts).not.toHaveProperty("limits");
+    expect(finished().counts).toHaveProperty("readings");
+  });
+
+  it("is never a reason to skip the spend watch's own trips: a trip is judged and paused beside it", async () => {
+    runLimitsWatch.mockResolvedValue({
+      ...quietLimits,
+      failed: ["resend_month"],
+      problem: true,
+    });
+    rpc.mockResolvedValue({
+      data: { ...quietDb, downloads: 900 },
+      error: null,
+    });
+    const outcome = await runSpendWatch({ trigger: "schedule", now: NOW });
+    expect(outcome.tripped).toEqual(["downloads"]);
+    expect(pauseSwitch).toHaveBeenCalledWith("export_enabled", NOW);
   });
 });
 
