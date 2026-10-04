@@ -13,93 +13,71 @@ The public `(marketing)` route group serves the site, the help center and the bl
 app's design system turned up: the same tokens and faces, louder only through type, layout and motion
 ([design-system.md](design-system.md), whose "Chapters" paces every core page). Its motion is calm and fluid but never
 still: a loop moves often enough that a visitor scrolling past never misses a step, which is what makes them stop and
-watch; and a punchy line beside a strong visual beats a paragraph. One `SITE_URL` and brand constant set
+watch; and a punchy line beside a strong visual beats a paragraph.
+
+**The copy sells the feeling truthfully, never pedantically literally**, headings and hero lines above all, on every
+marketing surface: "Uploads appear the moment guests take them" stays, though the calm album shows another guest's
+photo some seconds later, since a reader knows nothing is instant and a qualifier like "within seconds" only kills the
+line (the live album is keeping one open and watching it fill). Exactness lives where a reader looks for it: the
+pricing table and its hover lines, the help, the fine print. Prices and limits are exact everywhere, and a claim is
+never false (the fences below).
+
+One `SITE_URL` and brand constant set
 (`src/lib/constants/site.ts`) feeds the sitemap, robots and the root `metadataBase`; `BRAND_HEX` is a literal hex
 because satori reads no CSS token.
 
 ## The chrome: header, nav, footer
 
-The nav is single-sourced in `lib/constants/marketing-nav.ts` and drawn by `marketing-header.tsx` (desktop panels in
-`marketing-nav.tsx`, a full-screen phone menu in `mobile-menu.tsx`) and `marketing-footer.tsx`; both render only live
-routes.
+The nav is single-sourced in `lib/constants/marketing-nav.ts` and drawn by `marketing-header.tsx` (its shell and the
+hide-on-scroll in `header-shell.tsx`, desktop panels in `marketing-nav.tsx`, a full-screen phone menu in
+`mobile-menu.tsx`) and `marketing-footer.tsx`; both render only live routes.
 
-- ★ **`PRIMARY_NAV`'s order is load-bearing**: Radix derives the cross-slide from adjacent items' index delta, so the
-  three panel groups (Features, Events, Resources) stay contiguous and Pricing stays last as the only flat link, or a
-  pair of panels loses its sweep.
-- **The nav's clocks are `--mkt-dropdown-*` and `--mkt-nav-*` on `[data-mkt]`**, and `--mkt-dropdown-open-ms` drives
-  the enter, the box morph and the cross-slide together so they cannot drift; JS reads the hover intent through
-  `readCssMs`. Every chrome clock carries a `var(…, fallback)`, because the root 404 renders this header without
-  marketing.css. The panel's `transform-origin` comes from the open trigger's rect (`--mkt-nav-origin-dx`).
-- ★ **The bar hides by transform alone, never by height**: about fourteen consumers derive from `--mkt-header-h`, so it
-  stays `4rem` and the sticky box never moves. It leaves once the reader commits past a one-header reveal zone, returns
-  on any upward movement, at the top and on `:focus-within`, and never leaves with a panel or the phone sheet open; the
-  hide and its escapes are ONE compound selector, so no utility order decides them. `-translate-y-full` writes the
-  standalone `translate` property, so the clock is `transition-[translate]`. Direction is the one thing an
-  IntersectionObserver cannot report, so the header's single passive listener lives in `use-scroll-direction.ts`.
-- ★ **The header's right cluster reads the session from a cookie on the client, so every marketing route stays
-  prerendered.** `session-hint.tsx` runs on `useSyncExternalStore` with a server snapshot of `false`, so the prerendered
-  routes ship Log in and Start free and a signed-in host's `Dashboard` lands before paint; one `getUser()` in the chrome
-  would make every route dynamic. The signal is the `sb-<project-ref>-auth-token` cookie, readable because
-  `@supabase/ssr` keeps the session in `document.cookie`. ★ It is a hint, never authorization: the `(app)` layout's
-  `getUser()` and RLS are the boundary, and either wrong answer lands the visitor on `/login`.
-- **The Resources group** is the header panel and the footer column at once (Help, Blog, Press, Contact), held as a
-  two-way mirror by a test; Press goes straight to the kit band on About (`/about#press`, a literal here that
-  `marketing-nav.test.ts` pins to `ABOUT_PRESS_HREF`), and a row that names an anchor is never "current". One idea has
-  one page and two doors: the Resources panel's featured card is the primary door to `/how-it-works`, the Features
-  panel's footnote the second. Each also carries a plain Search row (the panel's in the Features footnote's grammar,
-  the phone menu's in its Resources group), component-side because an action is not a route: the help palette's
-  doorbell (the help center's bullets below).
-- **The footer is the ink slab** (`.surface-ink`, never a nested `.dark` or `bg-gallery`), with three registers: the
-  demo invitation (the demo's code on a pile of photographs that fans on hover, from `sm` up, since a phone cannot scan
-  itself; phones get a link), the index and the legal bar. ★ `Start free` renders at every width in both branches of the `if (!DEMO_EVENT_URL)` return, because
-  the pages with no `CtaBand` would otherwise end with nothing to do whenever the demo is unset.
-- **The footer's index shows everything**: four columns (Features, Events, Product, Resources, with About and Careers as
-  Resources' tail), the hubs linked from the Features and Events titles, Privacy and Terms in the legal bar with
-  `/llms.txt`. Nothing is collapsed: the sitemap is small enough to show whole, and a test refuses an accordion. The
-  FAQ link is the one link that follows the page (`footer-faq-link.tsx`, a client island because a server footer cannot
-  read the pathname): on a route whose own FAQ section is `id="faq"` (`OWN_FAQ_ROUTES`: /pricing, the events hub, every
-  event page and every feature page, whose bands carry the anchor) it stays there, and from every other page it goes
-  to the home's. The routes are exact (a 404 under a family has no FAQ to stay on), and a test holds them both ways:
-  each carries the anchor, and every page that draws an FAQ band is listed.
-- **The root 404 renders the same footer outside `(marketing)`**, where marketing.css never loads, so the footer carries
-  everything it needs itself: the slab's tokens, the seam glow, and the pile's box, size and rest pose. ★ The rest pose
-  is a layered utility on purpose: the `.mkt-stack` recipe is unlayered, so on a marketing page its rest pose and hover
-  fan win, and an inline pose would outrank the fan everywhere.
+- ★ **The chrome reads no session on the server, so every marketing route stays prerendered**: one `getUser()` in the
+  chrome would make every route dynamic and cost an Auth round-trip per view. The header's right cluster reads the
+  `sb-<project-ref>-auth-token` cookie on the client (`session-hint.tsx`, on `useSyncExternalStore` with a server
+  snapshot of `false`), readable because `@supabase/ssr` keeps the session in `document.cookie`. It is a hint, never
+  authorization: the `(app)` layout's `getUser()` and RLS are the boundary, and either wrong answer lands the visitor
+  on `/login`.
+- **marketing.css loads only inside `(marketing)`, and its recipes are unlayered.** The root 404 renders this header and
+  footer outside the group, so each chrome piece carries what it needs itself (a fallback or a literal on every clock,
+  the slab's tokens, the demo pile's box and rest pose). An unlayered recipe outranks every utility on its element
+  ([design-system.md](design-system.md)): `[data-mkt] .mkt-line` forces `display: block`, so centre a constrained child
+  with `mx-auto`, never a parent's `justify-center`; the pile's rest pose is a layered utility on purpose, so on a
+  marketing page the recipe's hover fan wins, where an inline pose would outrank it everywhere.
+- **The Resources group** is the header panel and the footer column at once, a mirror `marketing-nav.test.ts` holds;
+  Press goes to the kit band on About (`ABOUT_PRESS_HREF`). Each menu's Search row is component-side, since an action is
+  not a route: it rings the help palette (the help center's bullets below).
+- **The footer's FAQ link follows the page** (`footer-faq-link.tsx`, a client island because a server footer cannot read
+  the pathname): on a route in `OWN_FAQ_ROUTES`, whose FAQ band carries `id="faq"`, it stays there, and from every other
+  page it goes to the home's; `marketing-nav.test.ts` holds the list both ways.
 
 ## The claims every page shares
 
-- **"No app required."**, never "no account": a new event requires verified emails by default. The claim runs across
-  the OG cards, the trust strip, the footer, `events.ts`, `press.ts`, `careers.ts`, the JSON-LD `featureList`, the
-  guest door and the articles, and the lines themselves live in `marketing-voice.ts` (its head comment carries the
-  fence). A line may describe the per-event switch truthfully or report a different act (reporting is anonymous, the
-  demo needs no sign-up). ★ The expensive case is a suggested host announcement: a help or blog line handing a host "no
-  sign-up" becomes a support question a hundred times over once their event asks for an email. "Nothing but their
-  phones" is the same promise in other words, and `content-policy.test.ts` fences both.
+- **"No app required.", never "no account"**: a new event requires verified emails by default. The lines live in
+  `marketing-voice.ts`, whose head comment holds the fence; a line may describe the per-event switch truthfully or
+  report a different act (reporting is anonymous, the demo needs no sign-up). ★ The expensive case is a suggested host
+  announcement: a help or blog line handing a host "no sign-up" becomes a support question a hundred times over once
+  their event asks for an email. `content-policy.test.ts` refuses a line promising "no app" and "no account" together.
 - ★ **A line that says an event "stays up" carries the Free plan's one exception**: an event nobody touches for about six
   months is warned about by email, then moved to Deleted, where it can be restored for 30 days (the help guide's rule 7,
-  derived from `lifecycle/inactivity.ts` (`INACTIVE_MONTHS`) and `recently-deleted.ts`). The
-  home FAQ's keep answer, the event pages' lines and the two blog posts that say how long an album lasts (reunion and
-  trip) hold it (`faq-data.test.ts`, `events.test.ts`, `blog-keep-lines.test.ts`); the pricing FAQ, the llms files and
-  `/features/privacy` carry it too.
-- **A subhead runs opportunity, then what we do, then the benefit**: `SITE_SUBHEAD` is the model (their guests already
-  shot the best photographs; what we do in one clause with no mechanism; the failure it spares them).
+  derived from `lifecycle/inactivity.ts` (`INACTIVE_MONTHS`) and `recently-deleted.ts`). The home FAQ's keep answer,
+  the event pages' lines and the two blog posts that say how long an album lasts hold it (`faq-data.test.ts`,
+  `events.test.ts`, `blog-keep-lines.test.ts`); the pricing FAQ, the llms files and `/features/privacy` carry it too.
 - **An empty state names what is about to exist**, with the album as the noun and "starts" as the verb ("Your first
   album starts here"), so it invites the first upload rather than waiting for one.
 - **The promise-neutralization doctrine**: published copy commits to outcomes (a reply, a review, host control), never
   to who or what delivers them (no "a real person answers", no "a human reviews every report", no "business day"), so
   support and moderation can evolve, AI first-gates included, without breaking published and especially legal
-  language. The reply line, verbatim wherever a reply is mentioned, is `REPLY_LINE` in `constants/contact.ts`;
-  moderation copy is actor-free. The fence in `content-policy.test.ts` scans all of the marketing source narrowly on
-  purpose, so "every upload has a real person behind it" and careers' "We read every application" stay legal.
-- **The site shows no team**: no headcount, no founder biography, no named spokesperson. `/about` alone tells a
-  first-person origin and closes on joining the team.
-- **Comparisons stay category-level** (the cross-platform album, the account wall, the per-person rental); only the
-  blog names incumbents (Google Photos, iCloud, WhatsApp, AirDrop, disposables), hedged, and a QR-app rival is never
-  named.
-- ★ **The reel's nouns and its one mark.** A clip is what a viewer makes from the reel; an upload is a photo or a
-  video, never a "clip". The live reel and the screen carry no mark and no cap on any plan, so every watermark or
-  length claim names the clip ("30-second clips with a small mark"), never the reel, which carries neither
-  ([reel.md](reel.md)).
+  language. The reply line, verbatim wherever a reply is mentioned, is `REPLY_LINE` in `constants/contact.ts`. The
+  fence in `content-policy.test.ts` scans all of the marketing source narrowly on purpose, so "every upload has a real
+  person behind it" and careers' "We read every application" stay legal.
+- **The site shows no team** (no headcount, no founder biography, no named spokesperson), so nothing hints at less than
+  a stellar product; `/about` tells a first-person origin, and careers is where "small team" may live.
+- **Comparisons stay category-level** (the cross-platform album, the account wall, the per-person rental), since naming
+  products dates the copy and sounds defensive; only the blog names incumbents, hedged, and never a QR-app rival
+  (`content/blog/AUTHORING.md`).
+- **Every watermark or length claim names the clip, never the reel**: the live reel and the screen carry no mark and no
+  cap on any plan, and an upload is never a "clip" ([reel.md](reel.md) holds the nouns and the clip's levers).
 - `content-policy.test.ts`'s header lists every fenced claim, and its claims fence reads every constant under
   `src/lib/constants/` (the copy single-sources and the legal content, so a new one is fenced the day it lands) but
   the ones `CLAIM_EXEMPT_CONSTANTS` names with a reason (`tiers.ts`, which defines the ingress backstop), plus the
@@ -108,169 +86,87 @@ routes.
 ## Pages and their single sources
 
 - **Each section's media is made for its own point, never borrowed from the demo**: a film for the home's reel teaser,
-  a still for a card, each a `marketing-media.ts` entry named by the component that shows it, and nothing has to trace
-  back to one dataset (a feature demo needs to explain the product, not to agree with the demo album). The demo stays an
-  experience a visitor opens on purpose, through its labelled doors (below). Every Watch opens the one contained player
-  (`sections/shared/reel-player.tsx`), which keeps the reader on the page with the film framed and Start free beside it.
+  a still for a card, each a `marketing-media.ts` entry named by the component that shows it, since a feature demo needs
+  to explain the product, not to agree with the demo album. The demo stays an experience a visitor opens on purpose,
+  through its labelled doors (below). Every Watch opens the one contained player (`sections/shared/reel-player.tsx`),
+  which keeps the reader on the page.
 - **The home**: `sections/home/section-ids.ts` is the one source of the sections' order and surface, consecutive paper
   ids rendering inside one `PaperChapter`; the headers read `SECTION_HEADERS` in `marketing-voice.ts`.
 - **The feature family**: identity in `constants/feature-pages.ts`. The hub is a directory of photographic doors
   (`features/shared/feature-door.tsx`), and the same doors close every feature page (`related-features.tsx`), so the site
-  holds one picture of each feature. Every hero but /qr's composes `PageHero` (/qr's plate sits beside its lockup), and
-  an eyebrow is the page's own label, never a "Features ·" breadcrumb. The FAQ band (`shared/feature-faq.tsx`) emits its
-  own FAQPage JSON-LD; a page's FAQ list is data only.
+  holds one picture of each feature. The FAQ band (`shared/feature-faq.tsx`) emits its own FAQPage JSON-LD; a page's FAQ
+  list is data only.
 - ★ **`/features/album` keeps six product facts true to the shipped app**, each easy to get wrong: verified emails are
   required by default; every upload carries a name (with the switch off, a typed name with an unverified mark), so no
   surface calls an upload or a guest anonymous; a guest's own delete leaves the album at once; a private page shows no
-  name and no count (that tease is the password state); the album has no big-screen mode of its own (the wall is the
-  reel's screen, [reel.md](reel.md)); nothing locks or hides at lapse.
-  Every figure derives from `tiers.ts`, `limits.ts` and the lifecycle constants (`lifecycle/over-cap.ts`, whose grace
-  numbers the cron reads too), and every quoted app string is pinned by `mock-parity.test.ts`.
-- ★ **The album page's fill grid** (`album/album-fill-grid.tsx` over `use-album-fill.ts`, one tick and a pure derivation
-  landing a tile in a laptop and a phone at once): its FLIP wrapper carries no transform of its own, its `layoutKey` is
-  the mounted count, never the tick, and the beat stays above `--tune-reorder-ms`, or a landing re-runs the layout
-  effect mid-slide and snaps the column.
-- ★ **The album page's hero is the live album taking uploads** (`album/arrivals-hero.tsx`): the stream
-  (`shared/album-stream/`) hands each photograph over as it dissolves at the album's edge, and the stage's `LiveAlbum`
-  (a ring of the twelve stills, each arrival taken from its hidden tail) lets the rows push it in as a guest's arrival.
-  The stage's clip is the album's own scroller, never only a clip: the rows anchor whatever scrolls them, and with the
-  page as their scroller every arrival moved the page under a reader a little past the album's first row. The stream,
-  the stage and the hero's floor change composition together at 1280 (`STREAM_LG_MIN`, `stream-engine.test.ts`).
-  ★ Its stills reach the product's own tile at their slot's size: `MediaTile` draws a presigned URL as it is, so the
-  stage hands each still the optimizer's widths and a `sizes` (`variants`, a field no product surface sets) through
-  `stillVariants`, its slot `ratio × the rows' target` at the stage's box (`stillSizes`, held against the real rows
-  engine at nine widths), and its ahead-of-arrival decode takes the same variants, or it would ready a file the tile
-  never draws. A still dropped into the manifest later inherits the path; the source files are never resized by hand.
-- ★ **`/features/privacy`'s hero is the lens** (`sections/features/privacy/`: `privacy-lens.ts` holds every number,
-  `privacy-lens.css` the structure, `lens-stage.tsx` the markup, a server component with no script of its own): a photograph
-  under the page's own words, veiled in the lightbox's ground, and one clear round pane that rests 2.4 seconds on one
-  thing at a time, never a face and never the words. ★ **The rests are bands, not pixels**: the hero's padding IS the
-  two bands the pane rests in (`bandPx`: its diameter and a gap each side, below the header and above the foot), the
-  lockup sits in what is left, and a rest is a share of the width in its band (`REST_PLACES`: the board's four round
-  the words from `WIDE_MIN_PX`, the screen's four corners below), so no rest can sit under a word at any width or any
-  copy; a pane that rested at pixels drawn on two canvases would be on its objects at two widths only. ★ **The pane
-  and the photograph in it move as one**: transforms only, the photograph the stage's own size (`cq` units, a size
-  container) moving exactly against the pane (`restTransforms`, held to `pane + view = 0` at a grid of screens by an
-  evaluator for the CSS it writes), and the keyframes are written once per reach, in `%` of a stage-sized box, never
-  per screen. ★ **The veil is the lightbox's ground as a still**: the photograph under `--glass-behind-*` as a filter
-  drawn once, a tint over it, never the live backdrop filter under a pane that moves every frame (a full-screen blur
-  re-run round the pane each time, which no stylesheet can spare a weak phone); it measured the same picture at under
-  half the GPU process's frame time, falls off to the room at the screen's edges where a backdrop filter would mirror,
-  and the pane's sharp photograph is never inside the filtered element. The words' ground is two pools of the room's
-  colour inside the lockup's own Container (`PageHero`'s `children`, negative z under the hero's `isolation`): they
-  follow the copy's height, their widths follow the measured lines, and a glide that crosses the words crosses under
-  them. ★ **The photograph is the one thing to swap** (`PRIVACY_STILL`, a manifest id): people toward the middle,
-  small bright things in the top and bottom thirds; re-measure the words' contrast over the loop when it changes,
-  since the pools were sized on the stand-in, and re-measure the lockup (`privacy-lens.test.ts`) when the copy
-  changes.
+  name and no count (that tease is the password state's); the album has no big-screen mode of its own (the wall is the
+  reel's screen, [reel.md](reel.md)); nothing locks or hides at lapse. Every figure derives from `tiers.ts`, `limits.ts`
+  and the lifecycle constants (`lifecycle/over-cap.ts`), and every quoted app string is pinned by `mock-parity.test.ts`.
+- **The album page's hero is the live album taking uploads** (`album/arrivals-hero.tsx` over `shared/album-stream/` and
+  `live-album-stage.tsx`; the filling grid is `album-fill-grid.tsx` over `use-album-fill.ts`).
+- **`/features/privacy`'s hero is the lens** (`sections/features/privacy/`), a server component with no script of its
+  own: every number in `privacy-lens.ts`, the structure in `privacy-lens.css`. The photograph (`PRIVACY_STILL`) is the
+  one thing to swap; re-measure the words' contrast over the loop when it changes, since the pools behind the words were
+  sized on the stand-in.
 - **`/events`**: one `[slug]` template for the four types, all copy and per-type media in `constants/events.ts`
-  (`EVENT_TYPE*`, named apart from the real `events` domain). ★ `media` is the single home of a per-type photograph: no
-  component names a still of its own. ★ **Every event object carries the demo's real code, never a dead link**: the
-  pages server-render it as `footer-qr.tsx` does (`qrcode-generator` is DOM-free, so the matrix ships as inert markup at
-  zero client JS), encoding `/demo`, never the event link; with no demo configured each object drops the piece carrying
-  the code and the door proof loses its door. The proof's reel is the door's STILL twin, its film behind a press: the
-  river is the section's one motion, and two moving cards cancel each other out. ★ **The prints are literal `bg-white`, never `bg-card`**: they stand on the
-  cinema ground, where the card token is near-black and a paper border would render as a gap. The FAQ is the one shared
-  accordion (`faq-accordion.tsx`: an `<h3>` around a `<button>`, since a heading inside a native `<summary>` drops out of
-  some screen readers) with the page's own `FaqPageJsonLd`. ★ A closed answer is `hidden="until-found"` where the browser
-  can find into hidden content (`onbeforematch`), so find-in-page reads it and its `beforematch` opens that question, as a
-  native `<details>` did; React writes any `hidden` string as a plain `hidden`, so the accordion sets the value by hand
-  after hydration, and marketing.css lists `content-visibility` with `allow-discrete` beside the height clock so a
-  closing answer stays drawn until it has collapsed. Elsewhere the closed answer is `inert`.
-- **The frame library** (`marketing/frames/`): a `BrowserFrame` base and a vocabulary (album, gallery, reel, phone, QR),
-  never one visual reused; `QrFrame`'s `liveQrUrl` renders a real scannable code when the demo is set.
+  (`EVENT_TYPE*`, named apart from the real `events` domain). The FAQ is the one shared accordion (`faq-accordion.tsx`,
+  whose head holds why it is not a `<details>` and how find-in-page opens a closed answer) with the page's own
+  `FaqPageJsonLd`.
+- **The frame library** (`marketing/frames/`): a `BrowserFrame` base and a vocabulary (album, gallery, reel, phone, QR);
+  `QrFrame`'s `liveQrUrl` renders a real scannable code when the demo is set.
 - **`/how-it-works`**: `constants/how-it-works.ts` is the one source of both step sets, read by the page, the home's
   stepper and the app's welcome ([host-app.md](host-app.md)).
-- **`/reel`**: the live style switcher is the engine's proof (the canvas arrives only behind its lazy island), then the
-  live reel, the screen and the clip. The tile is the app's own `PosterCard` over `LivingStills`, so the motion a
-  visitor meets there is the one they meet on their album; the screen's corner code is the demo's real one and drops
-  with the demo; the clip table gives each plan's clip one cell, its length and its mark together (`clipTermsFor`,
-  the clip creator's own facts, the pricing matrix's phrase too), under `TIER_NAMES`. The hero's heading is `REEL_LINE`
-  (`marketing-voice.ts`), the reel door's line at both sizes, so the door and the room it opens agree; the home's close
-  keeps words of its own.
+- **`/reel`**: the tile is the app's own `PosterCard` over `LivingStills`, so the motion a visitor meets there is the one
+  they meet on their album; the clip table reads `clipTermsFor` (the clip creator's own facts, the pricing matrix's
+  phrase too) under `TIER_NAMES`; the hero's heading is `REEL_LINE` (`marketing-voice.ts`), the reel door's line, so the
+  door and the room it opens agree. The reel engine stays out of first-load marketing chunks (the pure
+  `engine/style-registry` is the one engine module there): /reel reaches `CanvasReelPlayer` only behind a lazy boundary,
+  and /careers plays `InlineReelPlayer`.
 - **`/pricing`**: one paper chapter (the Free and Pro pair, the Event Pass, the configurator closing it), then one dark
-  room (the unlock tiles, the matrix, the FAQ). ★ The order is deliberate: a reader sizes their event while the pair is
-  still in their eye, and the room proves where Free ends. ★ It stays in `(cinema)` although it opens on paper, because
-  a page cannot flip its header from inside and globals.css refuses `.dark` inside `.surface-paper`. Pro's size slider
-  stops are `plansForTier("pro")`, never a typed range; the Pass ticket imports the pair's `StatRow`, never a copy; the
-  configurator's two planes cannot be two card fills, because on paper `--card` and `--background` are the same white
-  and `bg-muted` is the only real step; `recommend.ts` alone picks the plan; the FAQ is one list,
-  `pricing-faq-data.ts`, read by the accordion and the JSON-LD (its section is `id="faq"`, the target of the footer's
-  FAQ link while a reader is on this page); at 375 the plans stack.
+  room (the unlock tiles, the matrix, the FAQ), so a reader sizes their event while the pair is still in their eye and
+  the room proves where Free ends. It stays in `(cinema)` although it opens on paper, because a page cannot flip its
+  header from inside and globals.css refuses `.dark` inside `.surface-paper`. Pro's size slider stops are
+  `plansForTier("pro")`, never a typed range; the Pass ticket imports the pair's `StatRow`, never a copy; `recommend.ts`
+  alone picks the plan; the FAQ is one list, `pricing-faq-data.ts`, read by the accordion and the JSON-LD (its section
+  is `id="faq"`, the target of the footer's FAQ link while a reader is on this page).
 - **`/privacy` and `/terms`**: `constants/legal.ts` (version, date, `status`, the bracketed `LEGAL_PARTY`
   placeholders, the block model, `LEGAL_RELATED`) and the content modules `legal-privacy.tsx` and `legal-terms.tsx`,
-  which are env-free (never importing `site.ts`). Every section carries an "In short" line beside the formal text. The
-  meta card straddling the cut is a `<div>`, never a `<header>`, because `ArticleToc` measures the first header; the rail
-  takes its own overflow, since the Terms outgrow a laptop viewport. **Section ids are the anchor contract**
-  (`legal.test.ts`). **The launch switch is a test**: `status: "effective"` with a bracketed placeholder still in the text
-  fails CI. ★ **The Terms carry no prices and no cap numbers**; they point at `/pricing`, so a price change never
-  falsifies a contract. **The fences read the legal text and its comments**, so their patterns cannot be quoted even
-  in a comment: write "working days", "public authorities", "content that sexually exploits minors", "reasonable limits
-  on upload volume". Acceptance is the one `LegalConsentLine`, shown once per surface (in place on `/login`, a new tab
-  elsewhere, none where the surface already carries it): no checkbox, nothing recorded. The sitemap reads the legal
-  `lastUpdated`. The reading pieces shared with the articles live in `marketing/reading/`.
+  which are env-free (never importing `site.ts`). Every section carries an "In short" line beside the formal text.
+  **Section ids are the anchor contract** (`legal.test.ts`). **The launch switch is a test**: `status: "effective"` with
+  a bracketed placeholder still in the text fails CI. ★ **The Terms carry no prices and no cap numbers**; they point at
+  `/pricing`, so a price change never falsifies a contract. **The fences read the legal text and its comments**, so
+  their patterns cannot be quoted even in a comment: write "working days", "public authorities", "content that
+  sexually exploits minors", "reasonable limits on upload volume". Acceptance is the one `LegalConsentLine`, shown once
+  per surface (in place on `/login`, a new tab elsewhere, none where the surface already carries it): no checkbox,
+  nothing recorded. The reading pieces shared with the articles live in `marketing/reading/`; `ArticleToc` measures the
+  first `<header>` for its scroll offset, so the meta card straddling the cut is a `<div>`.
 - **`/about`**: copy in `constants/about.ts`, a `CLAIM_FILES` entry because the page file itself is reached only by the
-  weaker neutralization fence. It tells the mission as a story (the opportunity, the problem, a better way), and its six
-  convictions land as the answer, each linking to the page that proves it; it says who we are, never who we are not,
-  and closes on careers with no `CtaBand`. The gather (`about/gather.tsx`) carries the dark-to-paper cut from `sm` up.
-  ★ **The press kit is a muted band between the convictions and the close** (`about/press-kit-band.tsx`, copy in
-  `ABOUT_PRESS_KIT`, `id="press"`): four different plates (the mark on paper and on ink, the QR, the share card; never
-  a grid of near-twins), one download and the usage line, in the ledger's own measure and split. `/press` is a page
-  whose only act is `redirect()` (a 307, never a 308: the kit's home may move again, and a permanent redirect would sit
-  in every CDN and phone that followed it), out of the sitemap, and every door that names the kit reads
-  `ABOUT_PRESS_HREF` (the nav's Press rows, /contact's directory row and `press` hint, the llms files). The plates'
-  grounds are literal colours (`PLATE_PAPER`, `BRAND_HEX`), never theme utilities: a plate is the artwork's own ground,
-  and following a token flip hides the artwork. The kit is manifest-driven (`PRESS_KIT`, `scripts/build-press-kit.mjs`,
+  weaker neutralization fence. The press kit is a band on it (`about/press-kit-band.tsx`, copy in `ABOUT_PRESS_KIT`,
+  `id="press"`), and `/press` is a page whose only act is `redirect()` (a 307, never a 308: the kit's home may move
+  again, and a permanent redirect would sit in every CDN and phone that followed it), out of the sitemap; every door
+  that names the kit reads `ABOUT_PRESS_HREF`. The kit is manifest-driven (`PRESS_KIT`, `scripts/build-press-kit.mjs`,
   `scripts/build-press-qr.mjs` and the committed zip, which `press-kit.test.ts` parses back and CRC-checks), so a logo
-  change is a files-and-rows edit. No boilerplate, one-liner or fact strip on the page: the paragraph both llms files
-  open on lives in `lib/content/llms.ts`, and the fact sheet (`PRESS_FACTS`) feeds `/llms-full.txt` alone.
-  ★ A beat whose concept is a change of arrangement must not hide its starting arrangement: `[data-mkt-fly]` animates
-  opacity from 0, which would hide the scatter, so `.mkt-gather` moves only position and angle, and the scatter is an
-  authored table (never `Math.random()`, which desyncs SSR), so the no-JS page is prints on a table.
-- **The utility-page rhythm**: a cinema hero, a paper body, the ink footer, on about, blog, careers, contact,
-  privacy and terms. A page takes the rhythm by JOINING the `(cinema)` group and wrapping its body in one
-  `PaperChapter`, which brings the dark nav, the overscroll and the browser chrome with it (route groups are not in URLs,
-  so moving a page needs no redirect): a dark hero decides the route group, never a hand-built dark set on the paper
-  side ([design-system.md](design-system.md)), and a light page is a `PaperChapter` inside `(cinema)`, since no paper
-  group exists. No dark chapter sits in the middle of these pages; a set-apart block inside a paper body takes the muted
-  panel, `bg-muted/40` between hairlines.
-- **`/careers`**: copy in `constants/careers.ts` (a `CLAIM_FILES` entry); the page argues in photographs, never a pitch
-  (the roll, the selects, the reel). The reel is `InlineReelPlayer`, never the engine: the engine stays out of
-  first-load marketing chunks (the pure `engine/style-registry` is the one engine module there, and /reel reaches
-  `CanvasReelPlayer` only behind a lazy boundary). ★ **The hero's unique pass is never lazy-loaded**: the sheet fills
-  the first screen, so one set of frames loads eager (`eagerFrames`), only the repeats stay lazy, and `priority` stays at
-  six, since a preload per frame would fight the LCP element. The hero's circled marks are positional (the sheet repeats
-  three times, so id-based marks would circle every keeper thrice), while the roll's derive from the kept ids, so the
-  four circled are provably the album's four. The offer keeps "Competitive compensation", and there is no `JobPosting`
-  JSON-LD while the listing is a placeholder. `/careers/[slug]` morphs its emblem from the listing through the shared
-  `morph-delegate.tsx`, mounted from a careers-scoped layout; an emblem for an unwritten role draws from neutral kinds
-  only, because inheriting `reel` or `open` asserts something false. ★ The role rail's `lg:self-stretch` is
-  load-bearing, or `lg:items-start` collapses the aside and sticky gets no travel (the help ToC's trap).
-- **`/contact`**: a dark hero, then one `PaperChapter` (the desk, the self-serve search band, the close). Its first
-  field is a required topic, single-sourced in `constants/contact.ts` (labels, icons, each topic's own note with one
-  to four help links, and the directory beside the form) and read by the zod enum, the `contact_submissions.topic`
-  CHECK, the email's subject tag and the `/admin/support` chip; a parity test pins the enum to the migration, and
-  `contact.test.ts` holds every hint link to a real route or article and each topic to its own answers (no shared
-  shelf link, and no reply timing of a hint's own: `REPLY_LINE` is the only true one, so a per-topic promise would be
-  invented). The directory's Press row and the `press` topic's hint both go to the kit band (`ABOUT_PRESS_HREF`), and
-  a door may name an anchor: `contact.test.ts` resolves it to an id written in the page's folder. `?about=<slug>`
-  prefills the subject and picks the topic through the exhaustive `CATEGORY_TOPIC` map (a new help category fails
-  typecheck until mapped), via `form.reset` so "Send another" keeps it; the route stays static, reading
-  `window.location` on mount against an allowlist of OWN keys (a plain object also answers `constructor`), never
-  `useSearchParams`. ★ A Radix Select takes no controlled `""` (it latches the placeholder over a later value), its
-  hidden native bridge emits an empty `onValueChange` during mount that would clobber a programmatic pick, and
-  `SelectValue` cannot resolve a label before the items mount, so the trigger's label is hand-rendered.
-- **A sent note becomes a receipt on the card that wrote it**, /contact's and a job application's alike (`NoteReceipt`
-  and its choreography `useReceiptSwap`, `components/marketing/forms/`; each form says only what is its own: the topic,
-  `REPLY_LINE` and the postmark, or the role and the careers page's own "we read every application"), and nothing
-  leaves the server a second time: a receipt email is a send to an address nobody verified (spoofed sends, inbox
-  bombing), so the sender's own words and the address a reply goes to come back on the card, and no toast repeats the
-  thanks. ★ Every arrival is `motion-safe:starting:` (the visible state is the default), so reduced motion, a throttled
-  tab and a browser without `@starting-style` meet the finished card. The form's height is measured in the submit
-  handler (a ref read in render is a lint error, and so is reading the hook's returned object, which holds the ref:
-  take it apart where it is called) and kept from `lg`, condensed to the receipt's in a hand; focus moves to the
-  receipt's heading and back to the first field on Send another; the submit waits for hydration; a Server Function
-  that rejects is a failed send with the words kept. The write path is under "Public forms".
+  change is a files-and-rows edit. The paragraph both llms files open on lives in `lib/content/llms.ts`, and the fact
+  sheet (`PRESS_FACTS`) feeds `/llms-full.txt` alone.
+- **The utility-page rhythm**: a cinema hero, a paper body, the ink footer, on about, blog, careers, contact, privacy
+  and terms. A page takes the rhythm by joining the `(cinema)` group and wrapping its body in one `PaperChapter`, which
+  brings the dark nav, the overscroll and the browser chrome with it (route groups are not in URLs, so moving a page
+  needs no redirect); a light page is a `PaperChapter` inside `(cinema)`, since no paper group exists, and dark chrome is
+  never hand-built on the paper side ([design-system.md](design-system.md)). The body stays one paper chapter, so a
+  set-apart block inside it takes the muted panel, `bg-muted/40` between hairlines, rather than a dark chapter.
+- **`/careers`**: copy in `constants/careers.ts` (a `CLAIM_FILES` entry), and no `JobPosting` JSON-LD while the listing
+  is a placeholder, since structured data would publish a vacancy we are not ready to commit to. `/careers/[slug]`
+  morphs its emblem from the listing through the shared `morph-delegate.tsx` (the blog's cover morph, below), mounted
+  from a careers-scoped layout; an emblem for an unwritten role draws from neutral kinds only, because inheriting `reel`
+  or `open` asserts something false.
+- **`/contact`**: its first field is a required topic, single-sourced in `constants/contact.ts` (labels, icons, each
+  topic's note and help links, the directory beside the form) and read by the zod enum, the `contact_submissions.topic`
+  CHECK, the email's subject tag and the `/admin/support` chip; a parity test pins the enum to the migration, so a new
+  topic is a migration too. `contact.test.ts` holds every hint link to a real route or article and each topic to its own
+  answers, with no reply timing of a hint's own: `REPLY_LINE` is the only true one, so a per-topic promise would be
+  invented. `?about=<slug>` prefills the subject and picks the topic through the exhaustive `CATEGORY_TOPIC` map (a new
+  help category fails typecheck until mapped); the route stays static by reading `window.location` on mount against an
+  allowlist of OWN keys (a plain object also answers `constructor`), never `useSearchParams`.
 
 ## The content pipeline: help and blog
 
@@ -279,8 +175,8 @@ one core, `lib/content/collection.ts` (`loadCollection`, `slugify`, `extractHead
 with `help.ts` and `blog.ts` as thin wrappers.
 
 - **In-repo by choice**: publishing is a deploy, the price of running no CMS for a curated, engineering-authored
-  library. Never `@next/mdx` (file as route): it cannot list or filter a collection by frontmatter, which the index,
-  search, sitemap and related articles need.
+  library. `@next/mdx` (file as route) cannot list or filter a collection by frontmatter, which the index, search,
+  sitemap and related articles need.
 - **`blockJS` stays on**: it strips raw `{expressions}` and keeps JSX components, which is why every live number rides a
   spec component reading `tiers.ts`, `limits.ts` and the lifecycle constants, and why a UI string is quoted in its
   rendered form. Articles are first-party and build-compiled: never feed untrusted input to MDX.
@@ -293,70 +189,42 @@ with `help.ts` and `blog.ts` as thin wrappers.
   typed size, price or limit beside its unit.
 - **The authoring briefs are `content/help/AUTHORING.md` and `content/blog/AUTHORING.md`.** They name the fences by
   pointer only: the content-policy scan reads `.md` too, and a brief must obey itself.
-- **Help** is a ten-category lifecycle taxonomy (set up, invite, guests, album, share, reel, pay, account, trust, fix),
-  each category but troubleshooting linking up to its marketing feature; a troubleshooting article ends on its own
-  frontmatter `rung` instead, "Working now?" and the calm, working version of the same act (every fix carries one, it
-  never lands on another fix: `help.test.ts`). A new category lands with its first article, its emblem, its strip label
-  and grid column, and its `CATEGORY_TOPIC` row (a test requires an article per category). At ten categories the index
-  strip's cells need `sm:min-w-0`, or the desktop strip scrolls. Search ranks in the pure, fs-free
-  `help-search-rank.ts`.
-- ★ **The help palette mounts in two places only, `help/layout.tsx` and `/contact`**, never sitewide and never in the
-  admin portal, which has its own on `ui/command-palette` (`help-palette-mounts.test.tsx`). Everything else reaches it
-  through `help-search-signal.ts`: a Search row rings a window event a mounted palette answers in place, and goes to
-  `/help?search` when nothing does, where the palette opens on arrival and the query leaves the address. A query, never
-  a hash: a client navigation to `#search` finds no element and scrolls the arriving page. The chrome cannot read the
-  provider's context (it sits above `help/layout.tsx`), which is why a bell and not a context.
-- **The hero's search drops from its own field**: no chips under it; pressing it at a desk with a pointer opens the
-  palette ON the field (`dropFrom`), its input where the field was and the Suggested questions (`HELP_QUICK_LINKS`)
-  beneath. Touch screens, ⌘K, the article's pill and an arrival keep the top placement: a keyboard rising over the page,
-  no field in view, or a hero still mid-entrance.
-- ★ **Every step of a how-to keeps the screen it describes**: `<Step screen="…">` (and a `<Callout>`'s) names an id in
-  `help/step-screens/registry.ts`, and a test fails a step without one. A phone screen is a 375px iframe document of its
-  own (the door's type is viewport-clamped and reads `sm:`, so drawn in the page it would wear the desk's sizes), built
-  as the reader nears it, the page's sheets cloned in and kept in step, inert, animations off; a desk screen is markup
-  laid out at 400px and `zoom`ed into the 200px slot on the server. Both are drawn from the product's own pieces, and
-  every word a picture quotes is held to the file it quotes (`step-screens.test.ts`).
+- **Help** is a lifecycle taxonomy (`help.ts`), each category but troubleshooting linking up to its marketing feature; a
+  troubleshooting article ends on its own frontmatter `rung` instead, the working version of the same act
+  (`help.test.ts`). A new category lands with its first article, its emblem, its strip label and grid column, and its
+  `CATEGORY_TOPIC` row. Search ranks in the pure, fs-free `help-search-rank.ts`.
+- **The help palette mounts in `help/layout.tsx` and `/contact` only** (`help-palette-mounts.test.tsx`), so the admin
+  portal's own ⌘K never meets a second one. Everything else reaches it through `help-search-signal.ts`: a Search row
+  rings a window event a mounted palette answers in place, and goes to `/help?search` when nothing does, where the
+  palette opens on arrival and the query leaves the address. A query, never a hash: a client navigation to `#search`
+  finds no element and scrolls the arriving page. A bell and not a context, because the chrome sits above
+  `help/layout.tsx` and cannot read the provider's context.
+- **Every how-to step names the screen it describes** (`<Step screen="…">`, and a `<Callout>`'s, an id in
+  `help/step-screens/registry.ts`; a test fails a step without one), drawn from the product's own pieces, and every word
+  a picture quotes is held to the file it quotes (`step-screens.test.ts`).
 - **"Did this answer your question?" is a counted beacon**: one fire-and-forget post a click to `/api/help/feedback`
-  (JSON only, a published slug only, the `help_feedback` limiter failing closed, a bare status back), one
-  `article_feedback` row read only at `/admin/help-feedback`; the reader's thank-you or sorry never depends on it
-  ([admin-observability.md](admin-observability.md), [database-security.md](database-security.md)).
-- ★ **`[data-mkt] .mkt-line` forces `display: block`** and silently kills flex utilities on the same element (an
-  unlayered marketing.css rule), so centre a constrained child with `mx-auto`, never a parent's `justify-center`.
-- **The blog stays distinct from /help**, since both open dark: /help opens on an instrument (a question, search, the
-  emblem strip), the blog on its lead story, with no search, no emblems and a tag rail of words only.
-- **The blog index's h1 is small on purpose**: `Blog` at the `subsection` step over a drawn `[data-mkt-rule]`, so the
-  newest post's featured card owns the stage. It stays the h1, because it is what the page is.
-- **Tags are a zero-import registry** (`lib/content/blog-tags.ts`: the client island and `PostCard` reach it, and a test
-  reads the file): the schema enforces membership (a typo fails the build), one or two tags and at most one audience. The
-  rail prints labels in fixed registry order, and the library heading keeps one height under every filter, because a
-  height change is what the set-change FLIP animates as a jolt. "Keep reading" is scored (a shared audience counts
-  double) rather than same-tag-first, which would funnel every ending to the two newest posts.
-- ★ **The hero exists only in the unfiltered view**: lifting it out of a filtered set renders empty tags, because a
-  hero can own tags no other post has (`lib/content/blog-index.ts`; `normalizeTag` checks posts, not the registry).
-  The filter rides `?tag=` through `useSyncExternalStore`, never `useSearchParams`, which would deopt the static route;
-  pagination rides `?page=`, never `/blog/page/[n]` routes, which would multiply the URL space. ★ `paginate()` clamps,
-  so a stale page lands on a real one. The develop stagger is capped on library cards so the staged lead lands last.
-- ★ **A cover fallback is a pure function of the slug** (`lib/content/blog-covers.ts`), so publishing never re-skins an
-  older post; walking the list to hand out unused images is deterministic but not stable. A frontmatter `cover` is a
-  `MARKETING_IMAGES` id (a typo fails the build), and a test pins that no photograph repeats beside itself on any page or
-  filter and that the lead is landscape.
-- **An article opens on the same cover at the same crop as the card**, its `description` the standfirst; it ends on
-  its chronological neighbours, then related posts excluding them. An optional `faq` renders outside the body (so the
-  reading spine measures the article) and ships as `FaqPageJsonLd`. Every long-form page marks its body with
-  `ARTICLE_BODY_ID`.
+  (JSON only, a published slug only, a bare status back), one identity-free `article_feedback` row read only at
+  `/admin/help-feedback`; the reader's thank-you or sorry never depends on it. Its limiter and table are
+  [database-security.md](database-security.md)'s, its reading [admin-observability.md](admin-observability.md)'s.
+- **Tags are a zero-import registry** (`lib/content/blog-tags.ts`: the client island and `PostCard` reach it): the
+  schema enforces membership (a typo fails the build), one or two tags and at most one audience.
+- **The blog index stays static**: the filter rides `?tag=` through `useSyncExternalStore`, never `useSearchParams`,
+  which would deopt the static route, and pagination rides `?page=`, not `/blog/page/[n]` routes, which would multiply
+  the URL space.
+- **A cover fallback is a pure function of the slug** (`lib/content/blog-covers.ts`), so publishing never re-skins an
+  older post; a frontmatter `cover` is a `MARKETING_IMAGES` id (a typo fails the build).
+- **An article's optional `faq` renders outside its body** (so the reading spine measures the article) and ships as
+  `FaqPageJsonLd`; every long-form page marks its body with `ARTICLE_BODY_ID`.
 - **The cover morph is the native View Transitions API**, driven by `system/morph-delegate.tsx` from one delegated
-  island so every card stays a server component. It is not React's `<ViewTransition>`, which needs
-  `experimental.viewTransition` and swaps the whole app's React runtime to a canary: a product-wide trade that is Will's
-  call. ★ The delegate intercepts in the CAPTURE phase, because `next/link` calls `preventDefault` first and a bubble
-  listener bails (the morph silently does nothing while navigation works); and the delegate, not the server render,
-  owns `view-transition-name`, because a name cleared from an incoming cover is a DOM mutation React never undoes, which
-  would disarm every later morph. The CSS is name-scoped, since `::view-transition-*` is document-global.
+  island so every card stays a server component. React's `<ViewTransition>` needs `experimental.viewTransition`, which
+  swaps the whole app's React runtime to a canary: a product-wide trade to raise as a question, not to make inside a
+  marketing change. The delegate intercepts in the CAPTURE phase, because `next/link` calls `preventDefault` first and
+  a bubble listener bails (the morph silently does nothing while navigation works); and the delegate, not the server
+  render, owns `view-transition-name`, because a name cleared from an incoming cover is a DOM mutation React never
+  undoes, which would disarm every later morph.
 - **One registered author** (`partyreel-team`): a dormant named entry is what a content agent picks up by accident. The
-  byline is one component on the body face. `title` caps at 80 characters as a layout contract, failing the build
-  rather than shipping a clamped title. The OG card reads its cover off disk, never fetched, because
-  `NEXT_PUBLIC_SITE_URL` resolves to prod on preview builds. The RSS feed (`/blog/feed.xml`) is force-static, and
-  `buildBlogRssXml` takes its config as a parameter, staying out of the env-validating `site.ts`. `draft: true` posts are
-  excluded everywhere; retired slugs 308 through `blog-redirects.ts` into `redirects()`.
+  OG card reads its cover off disk, never fetched, because `NEXT_PUBLIC_SITE_URL` resolves to prod on preview builds.
+  Retired slugs 308 through `blog-redirects.ts` into `redirects()`.
 
 ## Public forms
 
@@ -364,133 +232,113 @@ The contact and application forms write the deny-all `contact_submissions` and `
 contract: the shared fields and honeypot (`lib/validation/public-form.ts`) and one pipeline (`submitPublicForm`,
 `lib/security/public-form-submit.ts`: validate, the honeypot, the form's own refusal, the rate gate, the row, the
 notify), each Server Function naming only its schema, its row and its mail (`public-form-submit.test.ts` drives both
-end to end).
+end to end). The rate gate fails closed ([database-security.md](database-security.md)).
 
 - **The row is authoritative; the email is best effort.** The pipeline inserts on the service-role admin client
   FIRST, then tries the Resend notify in a try/catch (`sendOnce`, `dedupeKey` the row id so a double submit notifies
   once, `replyTo` the submitter); a missing key, an unset inbox or a failed send is logged and swallowed, never changing
   what the visitor sees.
 - **No anon RPC and no anon grant sit behind a public form**, so it adds no anon-executable surface. ★ The hidden
-  honeypot is named for nothing real (`HONEYPOT_FIELD`, `lantern`; it was `website`, which an autofill fills for a real
-  person, whose note then vanished behind a success): it returns success before the rate gate (and before a careers
-  role is looked up) and stores nothing, so a bot learns nothing, and a walk of the success path on a dev server fills
-  it to send no row and no mail.
+  honeypot is named for nothing an autofill fills (`HONEYPOT_FIELD`, `lantern`), or a real person's note would vanish
+  behind a success: it returns success before the rate gate (and before a careers role is looked up) and stores
+  nothing, so a bot learns nothing, and a walk of the success path on a dev server fills it to send no row and no mail.
+- ★ **No receipt email**: a send to an address nobody verified is a spoofed send or an inbox bomb, so a sent note
+  becomes a receipt on the card that wrote it (`NoteReceipt`, `components/marketing/forms/`), showing the sender's own
+  words and the address a reply goes to, and nothing leaves the server a second time.
 - The address shown is `SUPPORT_EMAIL`; the destination is the optional `CONTACT_NOTIFY_EMAIL` (falling back to it), so
   moving the mail is an env swap. Resend Inbound stays unused (webhook-only ingestion, no mailbox).
 
 ## SEO, OG and the AI layer
 
-- **The root layout sets `metadataBase` from `SITE_URL`**, because Next errors on relative OG URLs without it.
-- ★ **`SITE_DESCRIPTION` is its own line, never the hero subhead**: composed as thesis plus subhead it passes 160
+- **`SITE_DESCRIPTION` is its own line, never the hero subhead**: composed as thesis plus subhead it passes 160
   characters and every result cuts it mid-clause. The line is `SITE_DESCRIPTION_LINE` in `marketing-voice.ts`
   (env-free, so a pure test measures it), composed with the thesis in `site.ts`.
-- **OG images are code-generated with `next/og`**: the site-wide card, per-route cards and the per-event card
-  (`(guest)/e/[token]/opengraph-image.tsx`). They load no font: the built-in one dodges the satori font trap, so never
-  add a loader.
+- **OG images are code-generated with `next/og`**: the site-wide card, per-route cards and the per-event card, a route
+  at `/e/<token>/card` rather than an `opengraph-image` file ([guest-flow.md](guest-flow.md) says why). They load no
+  custom font: the built-in one dodges the Next 16 satori font gotcha their heads name.
 - ★ **The event page unfurls but is never indexed**: `/e/[token]` emits the event's OG through `generateMetadata` with
   `robots: { index: false }`, because the opaque `qr_token` must never reach an index, and `robots.ts` disallows `/e/`
   (with the app, admin, auth, `/design` and `/api/`) while `/u/[slug]` profiles stay crawlable. `getEventByQrToken` is
-  wrapped in React `cache()`, so the metadata, the page and the OG image share one RPC.
+  wrapped in React `cache()`, so the metadata and the page share one RPC.
 - **The sitemap lists only the marketing routes**, each with its content date where it has one.
 - **The AI layer**: `/llms.txt` and `/llms-full.txt` are built by pure functions in `lib/content/llms.ts` (numbers from
   `tiers.ts` and `limits.ts`; a `CLAIM_FILES` entry; link integrity tested against the real routes) and served
   force-static; the short file lists a few articles per help shelf and the newest posts, because the catalog outgrows
   its budget. `robots.ts` allows the AI crawlers by name. A `SoftwareApplication` schema mounts in the `(marketing)`
   layout beside Organization and WebSite, with no ratings or reviews: absent beats fabricated. The llms files' "When it
-  is not" section is deliberate credibility: never "fix" it into praise.
-- ★ **A count can glue itself to its noun**: Next 16's SWC drops the leading whitespace of a JSX text run that spans
-  lines and holds an HTML entity (`&rsquo;`, `&nbsp;`), so `{n} marketing pages` renders "24marketing". tsc does not
-  reproduce it, and a prettier reflow can create the shape; put an explicit `{" "}` after the expression.
+  is not" section is deliberate credibility, kept honest rather than turned into praise.
+- **A count can glue itself to its noun**: Next 16's SWC drops the leading whitespace of a JSX text run that spans
+  lines and holds an HTML entity (`&rsquo;`, `&nbsp;`), so `{n} marketing pages` renders "24marketing"; tsc and the
+  test runner's transform do not reproduce it, and a prettier reflow can create the shape. Keep the space out of such a
+  text (the value and its word as one string, the entity written as its character): a `{" "}` is no fix, since
+  prettier folds it back. `jsx-text-space-policy.test.ts` compiles with SWC and refuses the shape.
 - **In `pnpm dev` the `og:image` URL shows the localhost host** while the sitemap and robots show the partyreel.com
-  fallback: not a bug. The per-event OG URL carries a hash suffix, so read it from `<head>`.
+  fallback: not a bug. A per-route card's URL carries a hash suffix (its file sits in a route group), so read it from
+  `<head>`.
 
 ## The 404 pages
 
-Six `not-found.tsx` files, five sharing one presentational core, `shared/not-found-screen.tsx` (exactly one of
-`visual` or `icon`, a `help` line, and a `digest` on the crash screens only), and the guest link's wearing the door's
-own empty doorway ([guest-flow.md](guest-flow.md), the door family), each with one chrome, a 404 status and `noindex`.
+Six `not-found.tsx` files, five sharing one presentational core, `shared/not-found-screen.tsx`, and the guest link's
+wearing the door's own empty doorway ([guest-flow.md](guest-flow.md), the door family), each with one chrome and
+`noindex`. By audience: root (its own header and footer in `app/not-found.site.tsx`, since an unmatched URL falls
+through to `app/layout.tsx` with no group chrome; on the admin build it branches on `surface() === "admin"` to the
+portal's screen), marketing (a cinema page's own `notFound()`, no chrome), guest (an event link that resolves to
+nothing, under the logo-only bar; an unknown `/u/` handle has its own screen that never says why), host (inside
+`AppShell`) and admin (inside the MFA-gated `AdminShell`).
 
-- **The root 404 renders its own header and footer** (`app/not-found.site.tsx`), because an unmatched URL falls
-  through to `app/layout.tsx` with no group chrome; on the admin build `not-found.tsx` branches on
-  `surface() === "admin"` to the portal's own screen.
-- ★ **No `not-found.tsx` draws anything itself**: Next renders a not-found into EVERY page under it (the root's into
-  every route's, a group's into each page of the group), so whatever it drew rode every page (the root's chrome inline
-  cost `/login`, `/pricing`, `/about`, `/help`, the home and a guest album 107 to 112 KB of HTML and 43 to 56 KB of
-  gzipped JS each, on `next start`; a group's screen cost the guest link's 404 every album load 17.8 KB of HTML, the
-  cinema group's every marketing page 4 KB, the guest profile's about 14.7 KB, the host app's about 3.5 KB and the
-  portal's about 2.2 KB). Each keeps its metadata (and the root its viewport and surface branch) and renders one
-  reference into the ONE client boundary (`app/not-found.lazy.tsx`, `next/dynamic` in a client module, a real split),
-  whose loaders name each screen (`app/not-found.site.tsx`, the admin host's, and a group's `not-found.screen.tsx`
-  beside its `not-found.tsx`), so any other page carries one reference and the boundary's chunk (1.7 KB gzipped, 0.25 KB of it the five
-  groups' loaders) that every page carried already; `not-found.test.ts` walks every not-found's eager imports and names each entry, so a new one that
-  draws is refused. ★ One boundary, never one per group: measured, each boundary's chunk carried its own copy of
-  `next/dynamic`'s runtime (1.3 KB gzipped on every page of its group, more than a small screen had cost). Read in
-  brotli, which a host serves, the guest album's HTML falls by about 1 KB (its raw 17.8 KB is the flight payload a
-  phone decodes), so the win is parse and decode work more than wire. ★ A `notFound()` thrown while a page renders is
-  served as Next's error shell (`<html id="__next_error__">`, an empty body) and drawn by the client once its script
-  has run, whatever the screen is (about six seconds of white on Slow 4G at 4x CPU, never drawn without script), and
-  Next 16.2.6 gives a page no way to set its own status. So the three links a stranger holds never throw it
-  (stale-link): the guest link and the profile draw their segment's not-found themselves, in the HTML, titled by its
-  metadata and noindex, and answer 200, a soft 404 (gone-link-soft). ★ A status the proxy sets on a request it sends
-  on (`NextResponse.next({ status: 404 })`) is answered on Vercel with the platform's own `/404`, the root's page from
-  cache, and the page never renders (build 30's red-team: a stale guest link showed the site's generic 404; the
-  status passes on `next start`, which honours it). The proxy's only 404s are its two rewrites to the root's own page
-  (the surface rule's, the lab gate's), the page Vercel's `/404` serves anyway. And every marketing
-  `[slug]` page declares `dynamicParams = false`, so an unknown slug is routing's 404 with the root's screen
-  (`marketing-dynamic-params-policy.test.ts`). The host app's event pages and the portal's record pages draw theirs
-  the same way with no read for the status: behind sign-in nothing reads it, so they answer 200 (a soft 404, noindex),
-  titled from their group's `not-found.metadata.ts` (crumbs-28). What still throws (a cinema page's own, the print
+- ★ **No `not-found.tsx` draws anything itself**: Next renders a not-found into every page under it (the root's into
+  every route's, a group's into each page of the group), so whatever one drew rides every page (the root's chrome inline
+  would cost every route about 110 KB of HTML). Each keeps its metadata and renders one reference into the one client
+  boundary (`app/not-found.lazy.tsx`, `next/dynamic` in a client module, a real split), whose loaders name each screen
+  (`app/not-found.site.tsx`, the admin host's, and a group's `not-found.screen.tsx` beside its `not-found.tsx`); one
+  boundary, not one per group, since each boundary's chunk carries its own copy of `next/dynamic`'s runtime.
+  `not-found.test.ts` walks every not-found's eager imports, so a new one that draws is refused.
+- ★ **A link a stranger holds never throws `notFound()`**: one thrown while a page renders is served as Next's error
+  shell (`<html id="__next_error__">`, an empty body) and drawn by the client once its script has run (about six
+  seconds of white on Slow 4G at 4x CPU, never drawn without script), and Next 16.2.6 gives a page no way to set its own
+  status. So the guest link and the profile draw their segment's not-found themselves, in the HTML, titled by its
+  metadata and noindex, and answer 200, a soft 404; every marketing `[slug]` page declares `dynamicParams = false`, so
+  an unknown slug is routing's 404 with the root's screen (`marketing-dynamic-params-policy.test.ts`). The host app's
+  event pages and the portal's record pages draw theirs the same way: behind sign-in nothing reads the status, so they
+  answer 200, titled from their group's `not-found.metadata.ts`. What still throws (a cinema page's own, the print
   sheet's) paints its screen one request after the boundary's chunk.
-  `global-not-found` is no substitute in Next 16.2.6: experimental, it serves only unmatched URLs (a thrown
+- ★ **A status the proxy sets on a request it sends on never reaches the page**: on Vercel,
+  `NextResponse.next({ status: 404 })` is answered with the platform's own `/404`, the root's page from cache, and the
+  page never renders, while `next start` honours the status, so it passes locally. The proxy's only 404s are its two
+  rewrites to the root's own page (the surface rule's, the lab gate's), the page Vercel's `/404` serves anyway.
+- **`global-not-found` is no substitute in Next 16.2.6**: experimental, it serves only unmatched URLs (a thrown
   `notFound()` with no nearer boundary, the lab's or the print sheet's, would draw Next's bare default), needs its own
   copy of the document shell, and sits on every route's root layer, so its client JS still loads everywhere.
-- ★ **The marketing group carries its own boundary**, rendering only the centred content (copy in
-  `marketing-not-found.tsx`): the chrome lives in the `(cinema)` layout, so a `notFound()` with no nearer boundary
-  renders the ROOT not-found inside a group layout that already drew a header and footer, and the chrome double-stacks.
-  A `(marketing)`-level boundary would render skinless. ★ Never delete the `(cinema)` 404 for catching no `[slug]`: a
-  static page can call `notFound()` too.
-- **By audience**: root (its own chrome, and a bad marketing slug's), marketing (a cinema page's own `notFound()`, no
-  chrome), guest (an event link that resolves to nothing: reassurance, "What is Partyreel?" and the demo under the
-  logo-only bar; an unknown `/u/` handle has its own screen that never says why), host (inside `AppShell`), admin
-  (inside the MFA-gated `AdminShell`).
-- **The root 404 stands on the image trail** (`shared/trail`), which walks its own figure until a cursor takes over.
-  Nothing is laid over a photograph: the words punch a feathered window in the trail, so the muted description keeps its
-  contrast; the trail needs layout, so without scripting a reader gets the words and links on clean paper. Its code
-  and `trail.css` arrive in the site screen's own chunk, so no other page preloads the sheet.
-- ★ **The root 404's links prefetch nothing on sight** (`QuietChromePrefetch` around its screen; the chrome and the
-  words draw every link through `ChromeLink`, `next/link` itself everywhere else). Standing outside `(marketing)`, it
-  holds none of the sheets its links' routes need, and a prefetched payload makes React preload each sheet it names:
-  marketing.css and the home's three were preloaded and never drawn, four "preloaded but not used" warnings a load. A
-  press still navigates in place and fetches then. (The home's three warn on every other marketing page too, from the
-  header logo's prefetch of `/`: ROADMAP's line.)
+- **The marketing group's boundary is `(cinema)`'s, rendering only the centred content** (copy in
+  `marketing-not-found.tsx`): the chrome lives in the `(cinema)` layout, so with no nearer boundary the root not-found
+  would render inside a layout that already drew a header and footer, and the chrome would double-stack; a
+  `(marketing)`-level boundary would render skinless. It stays although no `[slug]` sits in `(cinema)`, since a static
+  page can call `notFound()` too.
+- **The root 404's links prefetch nothing on sight** (`QuietChromePrefetch` around its screen, every link drawn through
+  `ChromeLink`): standing outside `(marketing)`, it holds none of the sheets its links' routes need, and a prefetched
+  payload makes React preload each sheet it names, never drawn. A press still navigates in place and fetches then.
 
 ## The demo (marketing side)
 
-The demo is one real curated event, switched on by one public env var and needing no schema of its own.
+The demo is one real curated event, switched on by one public env var, `NEXT_PUBLIC_DEMO_QR_TOKEN` (named literally in
+`env.ts`'s `parsePublic()`, whose head says why), and needing no schema of its own.
 
-- ★ **`NEXT_PUBLIC_DEMO_QR_TOKEN` must be read explicitly in `env.ts`'s `parsePublic()`**: Next inlines only a
-  literally named `process.env.NEXT_PUBLIC_*`, so a var added to the schema but not its reader stays `undefined` in prod.
 - **`lib/demo.ts` is the single source** (`DEMO_EVENT_URL`, `isDemoToken`). Set, every demo door links the real event
-  and the `/features/qr` code scans; unset, no demo link exists anywhere and each door stands down.
+  and the `/features/qr` code scans; unset, no demo link exists anywhere and each door stands down, so no page carries a
+  dead link or a code that encodes the site it is on.
 - **`/demo` (`app/demo/route.ts`) is a 307**, never a cached 308, because the demo row can be re-seeded or retired.
-- **The demo's doors are objects built for their places**: the home hero's is the link card
-  (`sections/home/cinema-hero-card.tsx`: the code and a custom address on white paper, the domain in the faint step so
-  the slug leads, four prints standing out of it, each wearing the guest who added it), its code the short `/demo` door
-  and a symbol rather than a scan, since the modal a desk's press opens carries the one that scans; `DemoFrame`
-  (`system/demo-ticket.tsx`, a photograph in a mat with the code in its corner) is the Features panel's pane, its code a
-  symbol and a tap target too; the footer's invitation is the code on its photo pile (`chrome/footer-demo.tsx`),
-  scannable because its copy promises a scan; `DemoCtaLink` is the live dot and the words, beside the button in five
-  heroes and at a closing band's foot in the credit's place (the credit stands only where a band has no demo line); the
-  home hero's "Try our demo event" eyebrow is the block's first line, inside its measured height (`hero-stream.ts`
-  `blockH`).
+- **The demo's doors are objects built for their places**: the home hero's link card
+  (`sections/home/cinema-hero-card.tsx`), `DemoFrame` (`system/demo-ticket.tsx`, the Features panel's pane), the
+  footer's invitation (`chrome/footer-demo.tsx`) and `DemoCtaLink` (the live dot and the words). A code is drawn to scan
+  only where its copy promises a scan (the footer's, the event objects'); the hero card's and `DemoFrame`'s are symbols,
+  since the modal a desk's press opens carries the one that scans.
 - **Every pointer to the demo is a demo door** (`system/demo-modal/`): a real `target="_blank"` link, so a phone, a
   tablet (a coarse pointer), a modified press and a reader without script open the demo in a new tab, and a plain press
-  at a desk (640 and up, a fine pointer: the Sheet's own split) opens the one demo modal: the `/demo` code on paper, the
-  short link in words, and the demo a button away. ★ The modal belongs to the page, not the door: a door only asks
-  (`store.ts`) and one host draws it (`host.tsx`, its own root on `<body>` on the first press), because a door can leave
-  while the modal is up (the nav's pane closes with its panel the moment focus enters the modal), and focus returns to
-  the opener or the fallback it named. The event objects, `/how-it-works`' proof and the footer's phone link are still
-  plain links.
+  at a desk (640 and up, a fine pointer: the Sheet's own split) opens the one demo modal. The modal belongs to the page,
+  not the door: a door only asks (`store.ts`) and one host draws it (`host.tsx`, its own root on `<body>` on the first
+  press), because a door can leave while the modal is up, and focus returns to the opener or the fallback it named. A
+  plain link to the demo is easy to miss in review, so `demo-door-policy.test.ts` refuses one anywhere in the marketing
+  source.
 - The guest-side demo mode is [guest-flow.md](guest-flow.md)'s; the in-app QR designer and the welcome are
   [host-app.md](host-app.md)'s; the marketing analytics and the OG-driven growth are
   [notifications-analytics-growth.md](notifications-analytics-growth.md)'s.
