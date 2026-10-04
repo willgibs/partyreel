@@ -39,9 +39,9 @@ dev server at most; every production build takes turns through `scripts/build-lo
 | `event-header-r4` | board event-header r4 (desk 20): the three doors (glass with its badges, cards over the seam owning the phone, windows), each by its own helper; form and behaviour only (the waiting color is the brand's); G1, G2, G4 folded in | RUNNING (cut at `312af72fe`); three helpers, one fresh-eyes pass | Opus, 3134 | `a4eaf6f839b991e91` |
 | `brand-r1` | board brand r1 (desk 5, a desk of its own): what the agency returned, three cohesive brand visions (positioning, wordmark and icon, a palette whose status set never reads as the brand, the aurora or another signature, the hashvatar as atmosphere, type, imagery, motion, the pages' dark or light philosophy), each on six touchpoints as sketches | RUNNING (cut at `312af72fe`); three agency-team helpers, a creative director's pass | Opus, 3135 | `aab7f784008cbcfeb` |
 | `host-dashboard-r4` | board host-dashboard r4 (desk 25): the stage's corner explored again (read as the corner menu, drawn with the lit stage around it), two to four directions; H6 folded in | RUNNING (cut at `ea9737d2f`) | Opus, 3136 | `a2252d0ff7db3ba6f` |
-| `dashboard-wiring` | Will's picks: events=menu (the Display popover, Recent, search from 9, her choices kept per the board's carried call) and stage=lit; owns `dashboard/actions.ts`; a migration only if `kept` needs a profile column | RUNNING (cut at `ea9737d2f`) | Sonnet, 3137 | `a5e85465d0cc30de7` |
+| `dashboard-wiring` | Will's picks: events=menu (the Display menu kept on her account, Recent, search from 9, the table) and stage=lit | MERGED at `3b9e049c1` (gate 203 green); its migration APPLIED (`dashboard_display`, 20261004084757, Q32 safe as written, md5 c859e3a3, advisors 19/4/36); types and the seams next; his calls in the calls lab (S); pruned | Sonnet, 3137 | `a5e85465d0cc30de7` |
 | `redteam-52` | build 52's red-team (`e8d11584`): Ladder A on `/pricing`, the plan sheet as willg97 (Pro 1 TB), the Free words, the reel's tap, regressions | DONE 07:55Z: every number matches Ladder A (no "ingress" in 116 pages), the plan sheet, the reel's tap and the regressions PASS; **1 MEDIUM** (the pricing matrix's row explainers open by mouse and keyboard but never by a finger, while the subhead says to hover them: Uploads and Deleted unreadable on a phone), 3 LOWs (the plan sheet shows no uploads allowance and `checkPlanChange` checks storage only; a desk's mouse move raises the reel's controls and the click after hides them; `/admin/accounts` lists Free caps as Unlimited) and 6 NITs: all to `crumbs-64`, before milestone 36; ledger `../partyreel-wt/_scratch/redteam-52/ledger.txt` | Opus, Will's Chrome | `a2e373dc2ce9e647b` |
-| `hub-strip-wiring` | Will's picks: facts=strip on the hub's head; Q5, the host's Reel card ready before the develop and the guest page, hers included, without the reel until it; owns `event-feed/`, the hub page and `host-app.md` | RUNNING (cut at `73d2d254b`) | Sonnet, 3131 | `a432b7517d1b00d45` |
+| `hub-strip-wiring` | Will's picks: facts=strip on the hub's head; Q5, her Reel card ready before the develop, her reel over her hub | MERGED at `fd245c903` (gate 204 green; no migration); his calls in the calls lab (T); pruned | Sonnet, 3131 | `a432b7517d1b00d45` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Its
 model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`. From another session, respawn it from
@@ -82,11 +82,11 @@ Q30 folded in): read it first. Its spine:
    its stage; H6) at the first free seat. Specs in the session's `specs-r15/`. Six dev-server lanes at most.
 3. **docs-prune merges** (its ready files copied after reading each diff, re-adding every ROADMAP line recorded after
    its snapshot; the take-home ledger deleted in that record), which frees the 17 system docs for the wirings.
-4. **The wirings**, as seats free: dashboard-wiring (events=menu, stage=lit; owns `dashboard/actions.ts`),
-   hub-strip-wiring (facts=strip, Q5's Reel card; owns `event-feed/` and `host-app.md`), arrival-wiring (in-place),
-   styles-wiring (styles, Review everywhere, the time under the Disposable card), graphite-wiring (room=graphite, the
-   popover gutter; owns `src/components/ui/`), small-fixes (E6, Q2's spoken "to", the name-only guest's hashvatar:
-   `seedFor(guests.id)`). Then red-team 53, and milestone 36 on Will's yes.
+4. **The wirings**, as seats free (dashboard-wiring and hub-strip-wiring MERGED; `types.ts` regenerated after
+   `dashboard_display` and its typed seams dropped next): arrival-wiring (in-place), styles-wiring (styles, Review
+   everywhere, the time under the Disposable card), graphite-wiring (room=graphite, the popover gutter; owns
+   `src/components/ui/`), small-fixes (E6, Q2's spoken "to", the name-only guest's hashvatar: `seedFor(guests.id)`).
+   Specs in the session's `specs-r15/`. Then red-team 53, and milestone 36 on Will's yes.
 5. **Desk 3** (identity r4, customize r1, event-header r4, host-dashboard r4) after the desk pass; **desk 4** brand r1
    alone; **desk 5** the moments boards (host-moments: B1, Q6, B2, L3; guest-moments: C7, D3 with the flat 3, Q3, G6;
    account-moments: I4, I5; create-wizard r4: the styles' polish, F1, F2), cut after desk 3's identity and customize
@@ -110,8 +110,14 @@ Q30 folded in): read it first. Its spine:
 8. **The heartbeat:** cron `11f7f524`, hourly at :17 local, session-only (it dies with this session; recreate it in a
    new one). A fail-safe: it acts only on ready work and otherwise ends in a line (Will: stalls are rare, needless
    wakeups cost context).
-9. **Pacing (Will, 2026-10-04 07:55Z):** the 5-hour window would run out before its reset at the night's burn, so no
-   new lane is cut until running ones finish, and the wirings run two at a time; `get_usage` each hour.
+9. **Pacing (Will, 2026-10-04 07:55Z: never pause overnight):** the boards' twelve helpers drawing at once burned
+   the 5-hour window about 30 points an hour (60% at 08:44Z; it resets 11:40Z). The weekly is the night's real wall: 72%,
+   rising about 0.29 for each 5-hour point, so about one more window's worth remains before Will switches accounts.
+   - Before 11:40Z, no new lane; the boards finish with their own helpers.
+   - From 11:40Z, the wirings run two at a time, Sonnet where they can.
+   - At 90% of a window, the running lanes are asked to commit and pause.
+   - From 96% weekly, nothing new starts and every lane parks at a commit.
+   - `get_usage` at every wake.
 10. **The close of the day:** STATUS, this pickup, the calls lab (text calls only now; 45 remain). Moltbook hourly only
    on his word.
 
