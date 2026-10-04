@@ -1,0 +1,517 @@
+/* AFTERGLOW'S OWN SHEET: the light's three forms (the Seam, the Bloom, the
+   Ring), the status point, the lit photograph, the phone, and the type. Every
+   selector is `.ag-…` (or a state on one); keyframes are `ag-…`.
+
+   ★ LIGHT MOVES SLOWLY, THE INTERFACE INSTANTLY. One clock for the light (the
+   aurora's 24 s), a bloom that ignites once in 1.4 s and rests lit, a standby
+   point that breathes at 2.4 s. Everything moves on transform or opacity, and
+   only inside `prefers-reduced-motion: no-preference`: the rest state below is
+   the whole design, lit and still. */
+
+/* ── the slide and the type ─────────────────────────────────────────────── */
+
+.ag-slide {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  isolation: isolate;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.ag-display {
+  font-family: var(--font-display), var(--font-sans), sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  line-height: 0.9;
+}
+
+.ag-title {
+  font-family: var(--font-display), var(--font-sans), sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.032em;
+  line-height: 1.04;
+}
+
+.ag-subtitle {
+  font-family: var(--font-display), var(--font-sans), sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.ag-lede {
+  font-size: 19px;
+  line-height: 1.45;
+  letter-spacing: -0.012em;
+}
+
+.ag-body {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ag-caption {
+  font-size: 12px;
+  line-height: 1.42;
+}
+
+/* The camera's voice: what a camera prints. */
+.ag-readout {
+  font-family: var(--font-sans), ui-sans-serif, sans-serif;
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 14px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ag-slide[data-screen="375"] .ag-readout {
+  font-size: 11.5px;
+}
+
+.ag-num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── THE SEAM: light where two grounds meet ─────────────────────────────── */
+
+.ag-seam {
+  position: absolute;
+  left: 0;
+  right: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+.ag-seam[data-edge="top"] {
+  top: 0;
+}
+.ag-seam[data-edge="bottom"] {
+  bottom: 0;
+  transform: scaleY(-1);
+}
+
+/* The light: the band's colour, pooled along the edge in three soft ellipses
+   (unioned) with a hot core at the edge and a short fall, so it reads as
+   light gathering where it enters, never as a wash. Wider than its box, for
+   the drift. */
+.ag-seam-light {
+  position: absolute;
+  inset: 0 -14%;
+  background: var(--ag-band);
+  opacity: var(--ag-o, 0.95);
+  -webkit-mask-image:
+    radial-gradient(
+      ellipse 62% 100% at 22% 0%,
+      rgb(0 0 0 / 0.86) 0%,
+      rgb(0 0 0 / 0.4) 22%,
+      rgb(0 0 0 / 0.1) 58%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 58% 92% at 50% 0%,
+      rgb(0 0 0 / 0.8) 0%,
+      rgb(0 0 0 / 0.38) 22%,
+      rgb(0 0 0 / 0.1) 58%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 62% 100% at 78% 0%,
+      rgb(0 0 0 / 0.86) 0%,
+      rgb(0 0 0 / 0.4) 22%,
+      rgb(0 0 0 / 0.1) 58%,
+      transparent 100%
+    );
+  mask-image:
+    radial-gradient(
+      ellipse 62% 100% at 22% 0%,
+      rgb(0 0 0 / 0.86) 0%,
+      rgb(0 0 0 / 0.4) 22%,
+      rgb(0 0 0 / 0.1) 58%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 58% 92% at 50% 0%,
+      rgb(0 0 0 / 0.8) 0%,
+      rgb(0 0 0 / 0.38) 22%,
+      rgb(0 0 0 / 0.1) 58%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 62% 100% at 78% 0%,
+      rgb(0 0 0 / 0.86) 0%,
+      rgb(0 0 0 / 0.4) 22%,
+      rgb(0 0 0 / 0.1) 58%,
+      transparent 100%
+    );
+}
+
+/* PAPER: a third of the reach, a fall that is spent within it. */
+.ag-seam[data-ground="paper"] .ag-seam-light {
+  -webkit-mask-image:
+    radial-gradient(
+      ellipse 36% 100% at 20% 0%,
+      #000 0%,
+      rgb(0 0 0 / 0.45) 26%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 34% 92% at 50% 0%,
+      #000 0%,
+      rgb(0 0 0 / 0.42) 26%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 36% 100% at 80% 0%,
+      #000 0%,
+      rgb(0 0 0 / 0.45) 26%,
+      transparent 100%
+    );
+  mask-image:
+    radial-gradient(
+      ellipse 36% 100% at 20% 0%,
+      #000 0%,
+      rgb(0 0 0 / 0.45) 26%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 34% 92% at 50% 0%,
+      #000 0%,
+      rgb(0 0 0 / 0.42) 26%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 36% 100% at 80% 0%,
+      #000 0%,
+      rgb(0 0 0 / 0.45) 26%,
+      transparent 100%
+    );
+}
+
+/* The source line: the edge itself, lit (1 px in the room, 1.5 on paper). */
+.ag-seam-line {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: var(--ag-line);
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    #000 14%,
+    #000 86%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    #000 14%,
+    #000 86%,
+    transparent 100%
+  );
+}
+.ag-seam[data-ground="paper"] .ag-seam-line {
+  height: 1.5px;
+}
+
+/* ── THE BLOOM: light behind the one live subject ───────────────────────── */
+
+.ag-bloom {
+  position: relative;
+  isolation: isolate;
+}
+.ag-bloom-light {
+  position: absolute;
+  inset: calc(-1 * var(--ag-spread));
+  z-index: -1;
+  border-radius: calc(var(--ag-radius) + var(--ag-spread));
+  background: var(--ag-conic);
+  filter: blur(var(--ag-blur));
+  opacity: var(--ag-rest, 0.85);
+  pointer-events: none;
+}
+.ag-bloom-subject {
+  position: relative;
+  height: 100%;
+}
+
+/* ── THE RING: light round what adds a photograph ───────────────────────── */
+
+.ag-ring {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  isolation: isolate;
+  --ag-shade: rgb(10 10 12 / 0.55);
+}
+.ag-ring[data-ground="paper"] {
+  --ag-shade: rgb(246 246 247 / 0.5);
+}
+.ag-ring-glow,
+.ag-ring-band {
+  position: absolute;
+  inset: calc(-1 * (var(--ag-gap) + var(--ag-band)));
+  border-radius: 9999px;
+  pointer-events: none;
+}
+.ag-ring-glow {
+  z-index: -1;
+  background: var(--ag-conic);
+  filter: blur(var(--ag-glow));
+  opacity: 0.55;
+}
+.ag-ring[data-ground="paper"] .ag-ring-glow {
+  opacity: 0.6;
+}
+.ag-ring-band {
+  -webkit-mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - var(--ag-band)),
+    #000 calc(100% - var(--ag-band) + 0.5px)
+  );
+  mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - var(--ag-band)),
+    #000 calc(100% - var(--ag-band) + 0.5px)
+  );
+}
+/* Lit from above: the band falls toward its ground on its underside, the way
+   the icon's ring does. */
+.ag-ring-track,
+.ag-ring-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(to bottom, transparent 30%, var(--ag-shade) 100%),
+    var(--ag-conic);
+}
+.ag-ring-fill {
+  opacity: 0;
+  -webkit-mask: conic-gradient(#000 calc(var(--ag-p) * 1turn), transparent 0);
+  mask: conic-gradient(#000 calc(var(--ag-p) * 1turn), transparent 0);
+}
+.ag-ring[data-state="sending"] .ag-ring-track {
+  opacity: 0.26;
+}
+.ag-ring[data-state="sending"] .ag-ring-fill {
+  opacity: 1;
+}
+.ag-ring[data-state="sending"] .ag-ring-glow {
+  opacity: 0.32;
+}
+/* The face: dark on both grounds (the display in the room, the ink on paper),
+   lit along its top edge like every surface in the product. */
+.ag-ring-face {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  color: #f5f5f6;
+  background: radial-gradient(
+    120% 120% at 40% 18%,
+    #2a2a2f 0%,
+    #141417 52%,
+    #0b0b0d 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.16),
+    0 8px 20px -8px rgb(0 0 0 / 0.85);
+}
+.ag-ring[data-ground="paper"] .ag-ring-face {
+  background: radial-gradient(
+    120% 120% at 40% 18%,
+    #34343a 0%,
+    #19191c 52%,
+    #0f0f11 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.18),
+    0 6px 14px -6px rgb(0 0 0 / 0.4);
+}
+
+/* ── STATUS: a point and its word ───────────────────────────────────────── */
+
+.ag-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+/* Painted as an IMAGE, never a background-colour, so the deck's contrast
+   reader walks past the point to the ground it sits on. Hard-edged, no glow. */
+.ag-point {
+  display: inline-block;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  background-image: linear-gradient(currentColor, currentColor);
+}
+/* Standby: half-lit, the camera's light warming up. */
+.ag-point[data-state="standby"] {
+  background-image: linear-gradient(
+    90deg,
+    currentColor 50%,
+    transparent 50%
+  );
+  box-shadow: inset 0 0 0 1.5px currentColor;
+}
+
+/* ── the lit photograph ─────────────────────────────────────────────────── */
+
+.ag-photo {
+  position: relative;
+  overflow: hidden;
+  border-radius: 2px;
+  background: #121214;
+}
+.ag-photo[data-ground="room"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    135% 100% at 50% 0%,
+    rgb(255 255 255 / 0.32) 0%,
+    rgb(255 255 255 / 0.13) 36%,
+    rgb(255 255 255 / 0.04) 66%,
+    transparent 92%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+.ag-photo[data-ground="paper"] {
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.08),
+    0 4px 10px -2px rgb(0 0 0 / 0.1);
+}
+
+/* ── the phone and the chips ────────────────────────────────────────────── */
+
+.ag-phone {
+  position: relative;
+  flex-shrink: 0;
+  background: linear-gradient(180deg, #1e1e22 0%, #0f0f11 100%);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.1),
+    0 40px 80px -30px rgb(0 0 0 / 0.7);
+}
+.ag-phone-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.ag-chips {
+  display: flex;
+  gap: 2px;
+  overflow: hidden;
+  border-radius: 2px;
+}
+.ag-chips > span {
+  min-width: 6px;
+}
+
+/* A cross for a never: two hairlines in the ground's own ink. */
+.ag-never {
+  position: relative;
+}
+.ag-never::before,
+.ag-never::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 70%;
+  height: 1.5px;
+  background: currentColor;
+  opacity: 0.7;
+  pointer-events: none;
+}
+.ag-never::before {
+  transform: translate(-50%, -50%) rotate(30deg);
+}
+.ag-never::after {
+  transform: translate(-50%, -50%) rotate(-30deg);
+}
+
+/* ── motion: only where it is welcome ───────────────────────────────────── */
+
+@media (prefers-reduced-motion: no-preference) {
+  .ag-seam[data-drift] .ag-seam-light {
+    animation: ag-drift var(--ag-clock, 24s) ease-in-out infinite alternate;
+  }
+  .ag-bloom[data-ignite] .ag-bloom-light {
+    animation: ag-ignite 1400ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+  .ag-ring[data-breathe][data-state="rest"] .ag-ring-glow {
+    animation: ag-breathe 4.8s ease-in-out infinite alternate;
+  }
+  .ag-ring-fill {
+    transition: opacity 240ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .ag-point[data-state="standby"] {
+    animation: ag-standby 2.4s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes ag-drift {
+  from {
+    transform: translateX(-6%);
+  }
+  to {
+    transform: translateX(6%);
+  }
+}
+
+@keyframes ag-ignite {
+  0% {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  28% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: var(--ag-rest, 0.85);
+    transform: scale(1.015);
+  }
+}
+
+@keyframes ag-breathe {
+  to {
+    opacity: 0.32;
+  }
+}
+
+@keyframes ag-standby {
+  to {
+    opacity: 0.35;
+  }
+}
+
+/* Forced colours: the light is decoration; the faces and words carry it. */
+@media (forced-colors: active) {
+  .ag-seam,
+  .ag-bloom-light,
+  .ag-ring-glow,
+  .ag-ring-band {
+    display: none;
+  }
+}
