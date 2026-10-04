@@ -720,7 +720,7 @@ export function EventExperience({
      anything paints, it holds the cover on its house light and the album under the sheet (`developGateScript`). The
      server's own reading decides where the gate goes (a develop time set and no longer ahead at render, the album
      open to her, no door and no reel first, something in it), so the hydrating render draws the very same script. */
-  primeSeedRoll(galleryPromise);
+  if (event.develops_at) primeSeedRoll(galleryPromise);
   const serverDevelopMs = developMs(event.develops_at);
   const developGate =
     serverDevelopMs !== null &&

@@ -18,6 +18,7 @@ import {
   developVerdict,
   growAt,
   layoutDevelopSheet,
+  nightRoll,
   parseDevelopMark,
   restAt,
   rollOfEntries,
@@ -173,6 +174,40 @@ describe("the roll is what developed", () => {
 
   it("nothing when everything came after the develop", () => {
     expect(rollOfEntries([entry(1, DEVELOP + MIN)], DEVELOP, null)).toEqual([]);
+  });
+});
+
+describe("★ a page open across its develop keeps the night's order: hers stand where they stood", () => {
+  const MIN0 = DEVELOP - 60 * MIN;
+  // The night: five shots in one minute, two of them hers (taken first that minute, so the night drew them first).
+  const waiting = { count: 5, minutes: [[MIN0, 5]] as [number, number][] };
+  const her = (n: number) => ({
+    key: id(n),
+    at: MIN0 + 1000,
+    src: `https://r2/${n}`,
+    video: false,
+    sending: false,
+  });
+  // The album's order, newest first: hers among everyone's as their times fell.
+  const roll = [id(5), id(4), id(3), id(2), id(1)];
+
+  it("her squares keep their places, everyone's fill the rest in the album's order", () => {
+    const order = nightRoll({ waiting, hers: [her(2), her(4)], roll });
+    // Oldest first, the night drew hers first in their minute: 2 and 4, then everyone's oldest first (1, 3, 5).
+    expect([...order].reverse()).toEqual([id(2), id(4), id(1), id(3), id(5)]);
+    expect(new Set(order)).toEqual(new Set(roll));
+  });
+
+  it("what the night never counted stands after it; what never landed leaves no square", () => {
+    const order = nightRoll({
+      waiting: { count: 3, minutes: [[MIN0, 3]] },
+      hers: [her(2), her(9)],
+      roll: [id(6), ...roll],
+    });
+    expect(order).toHaveLength(6);
+    expect(order).not.toContain(id(9));
+    expect(order[0]).toBe(id(6));
+    expect([...order].reverse()[0]).toBe(id(2));
   });
 });
 

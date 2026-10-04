@@ -422,9 +422,26 @@ function LiveGalleryView({
   // heals at once never flashes a failure; then the album boundary's own card, in the reading column
   // the empty album keeps, with Try again. Nothing of the album is drawn meanwhile, her own new
   // photograph included: it shows with the album, as it did while the boundary held the failure.
-  if (live.albumRead === "trying") return <GallerySkeleton step={step} />;
+  // ★ THE DEVELOP (the-wait r2, `arrival=in-place`): the contact sheet over these rows' top, developing into them on the
+  // first open after the roll develops; nothing at all on every other open. An album still being read, or one that could
+  // not be, draws it too, so a hold the page's gate took before the first paint is let go there at once.
+  const developStage = develop ? (
+    <AlbumDevelop live={live} {...develop} />
+  ) : null;
+  if (live.albumRead === "trying")
+    return (
+      <>
+        <GallerySkeleton step={step} />
+        {developStage}
+      </>
+    );
   if (live.albumRead === "failed")
-    return <AlbumUnread retry={live.retryAlbum} />;
+    return (
+      <>
+        <AlbumUnread retry={live.retryAlbum} />
+        {developStage}
+      </>
+    );
 
   return (
     <>
@@ -559,9 +576,7 @@ function LiveGalleryView({
           </div>
         )}
       </section>
-      {/* ★ THE DEVELOP (the-wait r2, `arrival=in-place`): the contact sheet over these rows' top, developing into them
-        on the first open after the roll develops; nothing at all on every other open. */}
-      {develop && <AlbumDevelop live={live} {...develop} />}
+      {developStage}
     </>
   );
 }

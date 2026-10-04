@@ -38,6 +38,7 @@ import {
   developVars,
   developVerdict,
   growAt,
+  nightRoll,
   parseDevelopMark,
   restAt,
   rollOfEntries,
@@ -449,9 +450,16 @@ export type AlbumDevelopProps = {
 /**
  * THE ALBUM'S DEVELOP, inside the album's live source and the wait's: the album's own view mounts it beside its rows, in
  * the album's box (`live-gallery.tsx`, handed the page's word), and it decides whether this open plays the develop, and
- * plays it.
+ * plays it. An album with no develop time (and the demo) draws nothing and runs no clock at all.
  */
-export function AlbumDevelop({
+export function AlbumDevelop(
+  props: AlbumDevelopProps & { live: GalleryLive | null },
+) {
+  if (!props.developsAt || props.isDemo) return null;
+  return <DevelopDirector {...props} />;
+}
+
+function DevelopDirector({
   live,
   eventId,
   developsAt,
@@ -725,7 +733,12 @@ function DevelopStage({
       landed.length > 0 &&
       (landed.length >= expected || nothingWaits)
     )
-      return landed;
+      // In the night's order: the sheet she was watching develops square for square.
+      return nightRoll({
+        waiting: start.night.waiting,
+        hers: start.night.hers,
+        roll: landed,
+      });
     return null;
   }, [start, landed, nothingWaits]);
   const count = start.kind === "cold" ? start.count : (roll?.length ?? 0);
@@ -752,13 +765,15 @@ function DevelopStage({
 
   /* THE STILL SHEET, AND WHAT IT LOADS: the squares in the first screen, hers, and the tiles that grow. */
   const stage = useRef<HTMLDivElement | null>(null);
+  // Once it plays, what it loads stands: a picture arriving mid-play would start its own develop late.
+  const settled = useRef(false);
   const [wanted, setWanted] = useState<ReadonlySet<string>>(
     () => new Set(hers),
   );
   const measureWanted = useCallback(() => {
     const el = stage.current;
     const rows = rowsOf(el);
-    if (!el || !rows) return;
+    if (!el || !rows || settled.current) return;
     const fold = window.innerHeight + BELOW_FOLD_PX;
     const want = new Set<string>();
     const onSheet = new Set<string>();
@@ -806,6 +821,17 @@ function DevelopStage({
     if (owed.length > 0) ensureLinks(owed);
   }, [wanted, byId, ensureLinks]);
 
+  // Her own pictures as the night's sheet lit them (a page open across the develop): hers stay lit through the turn.
+  const nightPictures = useMemo(() => {
+    const map = new Map<string, DevelopPicture>();
+    if (start.kind !== "live") return map;
+    for (const shot of start.night.hers) {
+      // A video of hers on this device is its file, no picture an `<img>` can draw.
+      if (shot.src && !(shot.video && shot.src.startsWith("blob:")))
+        map.set(shot.key, { src: shot.src, video: shot.video });
+    }
+    return map;
+  }, [start]);
   const pictures = useMemo(() => {
     const map = new Map<string, DevelopPicture>();
     for (const id of wanted) {
@@ -813,9 +839,13 @@ function DevelopStage({
       // A square draws the small preview alone: a photograph without one keeps its square dark (its tile, its original).
       if (item?.previewUrl)
         map.set(id, { src: item.previewUrl, video: item.type === "video" });
+      else {
+        const night = nightPictures.get(id);
+        if (night) map.set(id, night);
+      }
     }
     return map;
-  }, [wanted, byId]);
+  }, [wanted, byId, nightPictures]);
 
   /* READY: the roll in hand, its pictures decoded (or the cap passed), the lead stood, the door quiet, the page seen. */
   const [phase, setPhase] = useState<"still" | "play">("still");
@@ -835,6 +865,7 @@ function DevelopStage({
       if (shown) setSeen((n) => n + 1);
       else {
         // Put away mid-play: the sheet stands still again, and plays from the start when she is back.
+        settled.current = false;
         setPhase("still");
         setGeometry(null);
       }
@@ -895,6 +926,12 @@ function DevelopStage({
     const rows = rowsOf(el);
     if (!el || !rows) return;
     const box = el.getBoundingClientRect();
+    // A page that came back scrolled past the sheet (a return mid-page) opens there, plainly: the develop stays owed.
+    if (box.top + el.offsetHeight < 0) {
+      onEnd(false);
+      return;
+    }
+    settled.current = true;
     const squares = new Map<
       string,
       { rect: Rect; wave: number; hers: boolean }
@@ -948,7 +985,7 @@ function DevelopStage({
     ].join("\n");
     setGeometry({ grows, css, slots: new Set(grows.map((g) => g.id)) });
     setPhase("play");
-  }, [motion, order, byId]);
+  }, [motion, order, byId, onEnd]);
 
   const ready =
     roll !== null &&
@@ -980,22 +1017,19 @@ function DevelopStage({
     return () => window.clearTimeout(timer);
   }, [playing, motion, grows, onEnd]);
 
-  // Any press, scroll or key ends it on its last frame, at once.
+  // Any press, scroll or key ends it on its last frame, at once; and a window that changes size mid-play (its tiles
+  // were measured where they stood), while the still sheet simply lays itself out again.
   useEffect(() => {
     const stop = () => onEnd(true);
     const opts = { capture: true, passive: true } as const;
-    const kinds = [
-      "pointerdown",
-      "keydown",
-      "wheel",
-      "touchmove",
-      "resize",
-    ] as const;
+    const kinds = ["pointerdown", "keydown", "wheel", "touchmove"] as const;
     for (const kind of kinds) window.addEventListener(kind, stop, opts);
+    if (playing) window.addEventListener("resize", stop, opts);
     return () => {
       for (const kind of kinds) window.removeEventListener(kind, stop, opts);
+      window.removeEventListener("resize", stop, opts);
     };
-  }, [onEnd]);
+  }, [onEnd, playing]);
   // The door's stage coming over the album ends it, spent: the door is the page now.
   useEffect(() => {
     if (doorStands) onEnd(true);

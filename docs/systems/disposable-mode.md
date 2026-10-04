@@ -7,11 +7,11 @@ Open this before you:
 - change the paged album's guest scope, its validator or the doorbell;
 - change how guests add (the roll, its ceiling, a camera video's bounds) or her own withdrawal of a shot;
 - change the album's camera (`components/guest/camera/`, `lib/guest/camera/`), the host's cover, Settings' album
-  styles or the wait's clock, or build what a guest meets when an album develops.
+  styles or the wait's clock, or what a guest meets when an album develops.
 
-Elsewhere: the paged album, the doorbell and the album's wait as a guest sees it ([guest-flow.md](guest-flow.md)), the
-upload pipeline ([uploads-and-r2.md](uploads-and-r2.md)), the grants, the RPC inventory and the lock order
-([database-security.md](database-security.md)), the purge and its guards
+Elsewhere: the paged album, the doorbell, the album's wait as a guest sees it and its develop
+([guest-flow.md](guest-flow.md)), the upload pipeline ([uploads-and-r2.md](uploads-and-r2.md)), the grants, the RPC
+inventory and the lock order ([database-security.md](database-security.md)), the purge and its guards
 ([lifecycle-recovery.md](lifecycle-recovery.md)), the caps and the uploads allowance ([billing-caps.md](billing-caps.md)).
 The foundation migration's header (`20261002200000_disposable_foundation.sql`) holds the lock analysis and its
 measurements.

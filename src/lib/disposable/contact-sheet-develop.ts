@@ -22,9 +22,12 @@
  */
 import {
   columnsFor,
+  type HerShot,
+  layoutSheet,
   SHEET_FOLD_CELLS,
   sheetCapFor,
 } from "@/lib/disposable/contact-sheet";
+import type { WaitingFacts } from "@/lib/disposable/facts";
 import type { ManifestEntry } from "@/lib/events/album-wire";
 
 /* ── the tokens ──────────────────────────────────────────────────────────── */
@@ -198,6 +201,48 @@ export function rollOfEntries(
     roll.push(entry[0]);
   }
   return roll;
+}
+
+/**
+ * THE ROLL IN THE NIGHT'S ORDER, on a page open across its develop: her squares stand where the night's sheet drew them
+ * (at their own minutes, which the album's photographs no longer carry), everyone's take the rest in the album's own
+ * order, so the sheet she was watching develops square for square, never reshuffled at the turn. What the night did not
+ * count (a shot that landed with the develop) stands after it, newest last. Newest first, as the album holds the roll.
+ */
+export function nightRoll(input: {
+  /** What waited as the develop came: the night's count and its minutes. */
+  waiting: Pick<WaitingFacts, "count" | "minutes"> | null;
+  /** Her shots on the night's sheet. */
+  hers: readonly HerShot[];
+  /** The roll that landed, newest first. */
+  roll: readonly string[];
+}): string[] {
+  const { waiting, hers, roll } = input;
+  const night = layoutSheet({
+    waiting,
+    hers: hers.filter((shot) => !shot.sending),
+    cap: Number.MAX_SAFE_INTEGER,
+    nowMs: null,
+  });
+  const landed = new Set(roll);
+  const mine = new Set(
+    night.cells.flatMap((cell) =>
+      cell.kind === "hers" && landed.has(cell.key.slice(2))
+        ? [cell.key.slice(2)]
+        : [],
+    ),
+  );
+  // Everyone's, oldest first, in the album's order.
+  const theirs = [...roll].reverse().filter((id) => !mine.has(id));
+  const order: string[] = [];
+  for (const cell of night.cells) {
+    if (cell.kind === "hers" && mine.has(cell.key.slice(2)))
+      order.push(cell.key.slice(2));
+    else if (cell.kind === "theirs" && theirs.length > 0)
+      order.push(theirs.shift()!);
+  }
+  order.push(...theirs);
+  return order.reverse();
 }
 
 /* ── the sheet ───────────────────────────────────────────────────────────── */
