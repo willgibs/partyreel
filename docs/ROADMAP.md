@@ -17,6 +17,8 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Host: the hub develops too (the board's carried `hub`: her cover is the guests' sheet, so her first open after the develop develops it): mount `DevelopSheet` over `event-hub-head-cover.tsx`.
+- Guests: the guest's read carries the period's start (`sealed_from`), so an album turned disposable mid-party develops only its roll (today its photos from before the switch develop on the sheet too: `rollOfEntries`'s note).
 - Create: a Library composition of the whole room (the wizard's `create` stand-in prop already draws it with no row written), so every screen, the add step's night included, can be pressed through with no session.
 - Marketing: how-it-works' Create picture (`host-pictures.tsx`) draws three hairlines at the look; the room has four since the add step.
 - Design: `dashboard/display-menu.tsx` and `social/profile-actions-menu.tsx` each type `collisionPadding={8}`, the number `floatingGutter` (`ui/floating-layer.ts`) now names; read it when a lane owns them.
