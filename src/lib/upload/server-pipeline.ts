@@ -586,12 +586,14 @@ export type CompleteStrategy<Schema extends z.ZodType<CompleteCommon>> = {
    */
   forensicIdentity(parsed: z.output<Schema>): ForensicIdentity;
   /**
-   * ★ A BUDGET THE ROUTE HOLDS BEYOND `create_media*`'s OWN (the guest's clips into the album a day, `reel_clip_add`):
-   * `check` is asked of a file once its row is known not to exist (one already recorded is its row's to answer, never
-   * the budget's) and before a byte of it lands; `spend` once its completion answers ok. A burst's files meet it one
-   * after another, each after the one before it was spent, as their own requests did. Absent: nothing beyond the RPC.
+   * ★ A BUDGET THE ROUTE HOLDS BEYOND `create_media*`'s OWN (the guest's clips into the album a day, `reel_clip_add`),
+   * for the files it `applies` to: `check` is asked of such a file once its row is known not to exist (one already
+   * recorded is its row's to answer, never the budget's) and before a byte of it lands; `spend` once its completion
+   * answers ok. A burst's budgeted files land one after another, each after the one before it was spent, as their own
+   * requests did. Absent: nothing beyond the RPC.
    */
   budget?: {
+    applies(parsed: z.output<Schema>): boolean;
     check(
       parsed: z.output<Schema>,
       request: Request,
@@ -636,7 +638,11 @@ export async function runCompletePipeline<
     // ONE FILE: the body every client sent before bursts, and a tab loaded before them still sends.
     const parsed = strategy.schema.safeParse(body);
     if (!parsed.success) return refuse(BAD_COMPLETE);
-    const one = await completeFile(parsed.data, strategy, request, openBurst());
+    const step = await landFile(parsed.data, strategy, request);
+    const one =
+      "done" in step
+        ? step.done
+        : await recordFile(step.landed, strategy, request, openBurst());
     if (!one.ok) return refuse(one.refusal, one.retryAfterSec);
     const response = NextResponse.json(one.body);
     if (one.setCookies?.length) applyGuestCookies(response, one.setCookies);
@@ -644,25 +650,48 @@ export async function runCompletePipeline<
   }
   if (burst === "malformed") return refuse(BAD_COMPLETE);
 
-  const shared = openBurst();
+  // An upload is completed once a request: a second entry for it is malformed, never a race with itself.
   const seen = new Set<string>();
+  const parsedFiles = burst.files.map((entry) => {
+    const parsed = strategy.schema.safeParse(fileBody(burst, entry));
+    if (!parsed.success || seen.has(parsed.data.media_id)) return null;
+    seen.add(parsed.data.media_id);
+    return parsed.data;
+  });
+  // ★ THE BURST'S FILES LAND SIDE BY SIDE AND ARE RECORDED IN ORDER: each file's own checks, its row's read and its R2
+  // landing (the HEADs and copies, most of a complete's wait) run ahead, a few at once (`COMPLETE_LANES`), touching
+  // only that file's own keys; its record (the gates' re-checks, `create_media*`, a refusal's withdrawal, forensics)
+  // runs one file after another in the burst's order, so the rows are written as one-at-a-time completes wrote them.
+  // A file the route's budget is for (a clip) lands inside that order too, after the one before it was spent.
+  const lane = lanes(COMPLETE_LANES);
+  const landings = parsedFiles.map((parsed) =>
+    parsed && !strategy.budget?.applies(parsed)
+      ? settled(lane(() => landFile(parsed, strategy, request)))
+      : null,
+  );
+  const shared = openBurst();
   const files: Record<string, unknown>[] = [];
   let cookies: readonly (GuestCookieWrite | null | undefined)[] | undefined;
-  for (const entry of burst.files) {
-    const parsed = strategy.schema.safeParse(fileBody(burst, entry));
+  for (const [i, parsed] of parsedFiles.entries()) {
     let one: CompleteAnswer;
-    if (!parsed.success || seen.has(parsed.data.media_id)) {
-      // An upload is completed once a request: a second entry for it is malformed, never a race with itself.
+    if (!parsed) {
       one = { ok: false, refusal: BAD_COMPLETE };
     } else {
-      seen.add(parsed.data.media_id);
       try {
-        one = await completeFile(parsed.data, strategy, request, shared);
+        const ahead = landings[i];
+        const landed = ahead
+          ? await ahead
+          : { step: await landFile(parsed, strategy, request) };
+        if ("error" in landed) throw landed.error;
+        one =
+          "done" in landed.step
+            ? landed.step.done
+            : await recordFile(landed.step.landed, strategy, request, shared);
       } catch (e) {
         // A throw the one-file request would have answered 500 is this file's alone: reported, and its siblings go on.
         captureError("upload", e, {
           phase: "complete_burst",
-          media_id: parsed.data.media_id,
+          media_id: parsed.media_id,
         });
         one = { ok: false, refusal: NOT_FINALIZED };
       }
@@ -675,14 +704,61 @@ export async function runCompletePipeline<
   return response;
 }
 
-/** The complete spine for one file, after its body parsed (the head note). */
-async function completeFile<Schema extends z.ZodType<CompleteCommon>>(
+/** How many of a burst's files land at once (their R2 HEADs and copies): a few, never the whole burst at R2. */
+const COMPLETE_LANES = 4;
+
+/** At most `width` of the works handed in run at once; the rest wait their turn, in order. */
+function lanes(width: number) {
+  let running = 0;
+  const waiting: (() => void)[] = [];
+  return async <T>(work: () => Promise<T>): Promise<T> => {
+    while (running >= width) await new Promise<void>((go) => waiting.push(go));
+    running += 1;
+    try {
+      return await work();
+    } finally {
+      running -= 1;
+      waiting.shift()?.();
+    }
+  };
+}
+
+/** A landing run ahead, held as its outcome: a rejection waits, handled, for its turn in the burst's order. */
+function settled<T>(
+  work: Promise<T>,
+): Promise<{ step: T } | { error: unknown }> {
+  return work.then(
+    (step) => ({ step }),
+    (error: unknown) => ({ error }),
+  );
+}
+
+/** A file landed in `events/`, its record still to write: what the record needs, and what a refusal takes back out. */
+type Landed<Schema extends z.ZodType<CompleteCommon>> = {
+  parsed: z.output<Schema>;
+  kind: MediaKind;
+  /** The body the record writes (a preview that did not land is none). */
+  record: z.output<Schema>;
+  realSize: number;
+  phone: PhoneCopy | null;
+  copied: string[];
+};
+
+/** Where a file's landing ended: its answer already (a refusal, its row's `recorded`), or landed for its record. */
+type LandStep<Schema extends z.ZodType<CompleteCommon>> =
+  | { done: CompleteAnswer }
+  | { landed: Landed<Schema> };
+
+/**
+ * The complete spine for one file up to its record (the head note): its own shape, its row, the route's budget, and
+ * its bytes landed in `events/`. Nothing here writes a row.
+ */
+async function landFile<Schema extends z.ZodType<CompleteCommon>>(
   parsed: z.output<Schema>,
   strategy: CompleteStrategy<Schema>,
   request: Request,
-  burst: Burst,
-): Promise<CompleteAnswer> {
-  const { media_id, key, content_type } = parsed;
+): Promise<LandStep<Schema>> {
+  const { media_id, key, content_type, upload_id, parts } = parsed;
 
   // ★ KEY BINDING (QA Pattern A, defense-in-depth). The server BUILT both keys at presign as
   // events/<eventId>/<kind>/<mediaId>/<variant>.<ext>, but the client hands them back here, so a
@@ -694,14 +770,7 @@ async function completeFile<Schema extends z.ZodType<CompleteCommon>>(
   const keyEventId = parseEventIdFromKey(key);
   if (!keyEventId || parseMediaIdFromKey(key) !== media_id) {
     captureWarning("upload", "complete_key_mismatch", { key, media_id });
-    return {
-      ok: false,
-      refusal: {
-        status: 400,
-        code: "bad_key",
-        message: "That upload key doesn't match this upload.",
-      },
-    };
+    return { done: { ok: false, refusal: KEY_NOT_THIS_UPLOAD } };
   }
   const previewKey = parsed.preview_key;
   if (
@@ -715,11 +784,13 @@ async function completeFile<Schema extends z.ZodType<CompleteCommon>>(
       media_id,
     });
     return {
-      ok: false,
-      refusal: {
-        status: 400,
-        code: "bad_key",
-        message: "That preview key doesn't match this upload.",
+      done: {
+        ok: false,
+        refusal: {
+          status: 400,
+          code: "bad_key",
+          message: "That preview key doesn't match this upload.",
+        },
       },
     };
   }
@@ -736,7 +807,7 @@ async function completeFile<Schema extends z.ZodType<CompleteCommon>>(
       phoneKey,
       media_id,
     });
-    return { ok: false, refusal: KEY_NOT_THIS_UPLOAD };
+    return { done: { ok: false, refusal: KEY_NOT_THIS_UPLOAD } };
   }
 
   // size_bytes is still accepted by the schemas (the presign step uses it) but is
@@ -744,7 +815,7 @@ async function completeFile<Schema extends z.ZodType<CompleteCommon>>(
 
   // Derive media_type server-side from the content-type (never trust a client type).
   const kind = classifyMime(content_type);
-  if (!kind) return { ok: false, refusal: UNSUPPORTED_TYPE };
+  if (!kind) return { done: { ok: false, refusal: UNSUPPORTED_TYPE } };
 
   // ★ VARIANT/KIND/EXT BINDING, the second half of the key binding above. The key IS the
   // issuance record: presign minted <kind>/<variant>.<ext> from ITS content_type, so requiring the
@@ -768,7 +839,7 @@ async function completeFile<Schema extends z.ZodType<CompleteCommon>>(
       media_id,
       content_type,
     });
-    return { ok: false, refusal: KEY_NOT_THIS_UPLOAD };
+    return { done: { ok: false, refusal: KEY_NOT_THIS_UPLOAD } };
   }
 
   // ★ AN UPLOAD ALREADY RECORDED IS ANSWERED BY ITS ROW, AT ONCE (crumbs-62, red-team 49's LOW): after the request's
@@ -779,34 +850,23 @@ async function completeFile<Schema extends z.ZodType<CompleteCommon>>(
   // duplicate's (`recorded`), with no cookie and no forensic record, both the first landing's. A read that fails lets
   // the complete go on as it always did: the row is asked again before anything is taken back out.
   const prior = await readRecorded(media_id);
-  if (prior.kind === "row") return answerRecorded(prior.originalKey, key);
+  if (prior.kind === "row")
+    return { done: answerRecorded(prior.originalKey, key) };
 
   // ★ THE ROUTE'S OWN BUDGET (the guest's clips a day): asked once the row is known not to exist (a clip already
   // recorded is its row's to answer, never the budget's) and before a byte of it lands; spent once it answers ok.
-  const spent = await strategy.budget?.check(parsed, request);
-  if (spent) {
-    return {
-      ok: false,
-      refusal: spent.refusal,
-      retryAfterSec: spent.retryAfterSec,
-    };
+  if (strategy.budget?.applies(parsed)) {
+    const spent = await strategy.budget.check(parsed, request);
+    if (spent) {
+      return {
+        done: {
+          ok: false,
+          refusal: spent.refusal,
+          retryAfterSec: spent.retryAfterSec,
+        },
+      };
+    }
   }
-  const landed = await landAndRecord(parsed, strategy, request, burst, kind);
-  if (landed.ok) await strategy.budget?.spend(parsed, request);
-  return landed;
-}
-
-/** The complete spine past its gates: assemble, land, record, and take back out what a refused record copied in. */
-async function landAndRecord<Schema extends z.ZodType<CompleteCommon>>(
-  parsed: z.output<Schema>,
-  strategy: CompleteStrategy<Schema>,
-  request: Request,
-  burst: Burst,
-  kind: MediaKind,
-): Promise<CompleteAnswer> {
-  const { media_id, key, upload_id, parts } = parsed;
-  const previewKey = parsed.preview_key;
-  const phoneKey = parsed.phone_key;
 
   // Multipart: assemble the object before recording it. (Single-PUT is already
   // finalized by the browser's PUT.)
@@ -831,18 +891,20 @@ async function landAndRecord<Schema extends z.ZodType<CompleteCommon>>(
           uploadedBytes,
         });
         return {
-          ok: false,
-          refusal: {
-            status: 413,
-            code: "too_large",
-            message: "This upload exceeded the size limit and was discarded.",
+          done: {
+            ok: false,
+            refusal: {
+              status: 413,
+              code: "too_large",
+              message: "This upload exceeded the size limit and was discarded.",
+            },
           },
         };
       }
       await completeMultipartUpload({ key, uploadId: upload_id, parts });
     } catch (e) {
       captureError("upload", e, { key, upload_id });
-      return { ok: false, refusal: NOT_FINALIZED };
+      return { done: { ok: false, refusal: NOT_FINALIZED } };
     }
   }
 
@@ -851,7 +913,7 @@ async function landAndRecord<Schema extends z.ZodType<CompleteCommon>>(
   // meter is SUM(media.file_size_bytes)). database-security.md. ★ And a staged
   // single PUT is copied into its key here, before any row names it (`landOriginal`).
   const landing = await landOriginal({ key, upload_id, media_id });
-  if (!landing.ok) return { ok: false, refusal: landing.refusal };
+  if (!landing.ok) return { done: { ok: false, refusal: landing.refusal } };
   const { realSize, copied } = landing;
 
   // The derivatives land the same way, each best-effort: a preview that did not land is recorded as none (its tile
@@ -866,6 +928,37 @@ async function landAndRecord<Schema extends z.ZodType<CompleteCommon>>(
     previewKey && !landedPreview
       ? { ...parsed, preview_key: undefined }
       : parsed;
+
+  return {
+    landed: { parsed, kind, record, realSize, phone, copied },
+  };
+}
+
+/**
+ * The complete spine's record for one landed file: the write, a refusal's withdrawal, the forensic record, and the
+ * route's budget spent. A burst's records run one after another, in its order.
+ */
+async function recordFile<Schema extends z.ZodType<CompleteCommon>>(
+  landed: Landed<Schema>,
+  strategy: CompleteStrategy<Schema>,
+  request: Request,
+  burst: Burst,
+): Promise<CompleteAnswer> {
+  const answer = await writeRecord(landed, strategy, request, burst);
+  if (answer.ok && strategy.budget?.applies(landed.parsed)) {
+    await strategy.budget.spend(landed.parsed, request);
+  }
+  return answer;
+}
+
+async function writeRecord<Schema extends z.ZodType<CompleteCommon>>(
+  landed: Landed<Schema>,
+  strategy: CompleteStrategy<Schema>,
+  request: Request,
+  burst: Burst,
+): Promise<CompleteAnswer> {
+  const { parsed, kind, record, realSize, phone, copied } = landed;
+  const { media_id, key } = parsed;
 
   // ★ A REFUSED OR FAILED RECORD TAKES ITS COPIES BACK OUT, UNLESS A ROW NAMES THEM (`withdrawUnlessRecorded`): the
   // objects this complete wrote into `events/` with no row to name them are deleted at once rather than left for the

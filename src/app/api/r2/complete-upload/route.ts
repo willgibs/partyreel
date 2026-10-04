@@ -198,12 +198,12 @@ const guestCompleteStrategy: CompleteStrategy<typeof guestCompleteSchema> = {
    * completion this route meters beyond create_media's own caps. The engine asks it once the clip's row is known not
    * to exist (★ A CLIP ALREADY RECORDED IS ITS ROW'S TO ANSWER, NEVER THE BUDGET'S, crumbs-62: its completion sent
    * again writes nothing, so it neither meets the limiter, a spent day included, nor spends it) and before a byte of
-   * it lands, and spends it once the clip's completion answers ok; a burst's clips meet it one after another. Every
-   * other upload never touches it.
+   * it lands, and spends it once the clip's completion answers ok; a burst's clips land one after another. Every
+   * other upload never touches it (`applies`).
    */
   budget: {
+    applies: (parsed) => parsed.reel_eligible === false,
     async check(parsed, request) {
-      if (parsed.reel_eligible !== false) return null;
       const gate = await checkClipAddRate(
         parsed.session_token,
         clientIp(request.headers),
@@ -220,7 +220,6 @@ const guestCompleteStrategy: CompleteStrategy<typeof guestCompleteSchema> = {
           };
     },
     async spend(parsed, request) {
-      if (parsed.reel_eligible !== false) return;
       await recordClipAdd(parsed.session_token, clientIp(request.headers));
     },
   },

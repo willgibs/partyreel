@@ -241,6 +241,37 @@ describe("one request records a burst", () => {
   });
 });
 
+describe("★ a burst's files land side by side and are recorded in its order", () => {
+  it("at most four land at once, and the rows are written one after another, in order", async () => {
+    const ids = Array.from(
+      { length: 7 },
+      (_, i) => `55555555-5555-4555-8555-55555555555${i}`,
+    );
+    let inFlight = 0;
+    let most = 0;
+    headObject.mockImplementation(async ({ key }: { key: string }) => {
+      inFlight += 1;
+      most = Math.max(most, inFlight);
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      inFlight -= 1;
+      return key.startsWith("staging/") ? { size: 1000 } : null;
+    });
+    let writing = 0;
+    createMedia.mockImplementation(async ({ mediaId }: { mediaId: string }) => {
+      writing += 1;
+      expect(writing).toBe(1);
+      await new Promise((resolve) => setTimeout(resolve, 1));
+      writing -= 1;
+      return { ok: true, data: { media_id: mediaId, status: "approved" } };
+    });
+    const { files } = await completeBurst(ids.map((id) => landed(id)));
+    expect(files.every((f) => f.ok)).toBe(true);
+    expect(most).toBeGreaterThan(1);
+    expect(most).toBeLessThanOrEqual(4);
+    expect(createMedia.mock.calls.map(([a]) => a.mediaId)).toEqual(ids);
+  });
+});
+
 describe("★ a file refused never stops its siblings, which land and are counted once", () => {
   it("the roll refuses the middle shot: its copies go back out, its siblings land", async () => {
     createMedia.mockImplementation(async ({ mediaId }: { mediaId: string }) =>
