@@ -1044,12 +1044,15 @@ describe("played from the host's own page", () => {
 
   it("starts on the host's own defaults, and keeps this device's own picks under the stand-in's key", () => {
     h.live = null;
-    renderView({ playable, standIn: standIn() });
-    expect(h.player?.styleId).toBe("mono");
+    // The player stub keeps the props it was last drawn with (read through a function: TypeScript narrows `h.player`
+    // to its last assignment, which a render in between changes).
+    const styleOnScreen = () => h.player?.styleId;
+    const { unmount } = renderView({ playable, standIn: standIn() });
+    expect(styleOnScreen()).toBe("mono");
+    unmount();
     localStorage.setItem("pr_reel_style_host-key", "editorial");
-    h.player = null;
     renderView({ playable, standIn: standIn() });
-    expect(h.player?.styleId).toBe("editorial");
+    expect(styleOnScreen()).toBe("editorial");
   });
 
   it("asks the stand-in's presign watchdog for exactly the failing clip", () => {
