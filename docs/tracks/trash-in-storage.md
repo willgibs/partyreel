@@ -149,11 +149,13 @@ Each is built as recommended and listed under "Calls his to overrule".
   `db56a97b` the docs and the over-capacity cases; `2dbaf352` the host's room words and the Library's polish;
   `58ec63e6` a comment in the migration's head; `36f43004` this file; `e968be9d` the second sync (`0e45140f`, docs
   only: ROADMAP and the pickup); `97e8136e` this file; `e1f6bc07` the Advisor's Q23 (below); `1fbf2efb` the third sync
-  (`b08aa01c`, the pickup alone); then this file alone.
+  (`b08aa01c`, the pickup alone); `9a30de00` this file; `74344210` the Advisor's Q24 (below); `a3e5bea1` the fourth sync
+  (`b6e02cf1`, the pickup alone); then this file alone.
 - **The Advisor's Q23, amended in place** (`e1f6bc07`; its verdict: safe to apply as written):
   - F1: `leave_deleted` gains `p_limit` and answers `more`; `empty_deleted(p_limit default 2000)`, at most 5,000,
     takes a batch a call and lets the deleted events go only with the last one; `emptyDeletedAction` calls again while
-    `more` within 40 s, adding up what each freed, and answers `more` when time ran out or a later batch failed after
+    `more` within 10 s (the Advisor's Q24: inside any function limit the dashboard's route runs under, which sets no
+    `maxDuration`), adding up what each freed, and answers `more` when time ran out or a later batch failed after
     earlier ones left; the chart and the size list say Deleted still holds some, its Empty there to finish. The same
     8 s timeout binds the service role through PostgREST (`authenticator` carries it; read live), so the over-capacity
     deadline leaves her Deleted a batch a call (`LEAVE_DELETED_BATCH`) under the sweep's deadline, and a due grace
@@ -168,11 +170,18 @@ Each is built as recommended and listed under "Calls his to overrule".
     that changes fails until the figure follows; and pins the flag's reading and the two restores' clear.
   - Words: `billing-caps.md` (the setting governs uploads alone), `lifecycle-recovery.md` (the deadline's order holds
     whatever the setting; the grace mails say so), the grace mails' doc comment in `lib/email/templates.ts`.
-- **Gates on the synced tree, `1fbf2efb`** (logs in `../partyreel-wt/_scratch/trash-in-storage/`, exits in
-  `gate-exits-q23.txt`): `pnpm typecheck` 0, `pnpm lint` 0, `pnpm test` 0 (877 files, 10,546 tests,
-  `gate-q23-test.log`), `zsh scripts/build-lock.sh pnpm build` 0 (`gate-q23-build.log`),
-  `pnpm lab:smoke --base http://localhost:3131` 0 (154 checks, `gate-q23-lab-smoke.log`). The same five green before
-  the amendment on `e968be9d` (`gate-exits-synced.txt`) and `2dbaf352` (`gate-exits.txt`). No board, so no `lab:demo`.
+- **The Advisor's Q24** (`74344210`; its verdict: safe to apply as written): N1, the Empty Deleted action answers within
+  10 s (`EMPTY_DELETED_BUDGET_MS`), every batch committed and `more` said, since the dashboard's route sets no
+  `maxDuration` and a 40 s loop could outlast its function limit into the generic error; no `maxDuration` added, the
+  batch kept at 2,000. A test pins it (`storage-actions.test.ts`), red on the 40 s budget (`red-q24-budget.log`) and
+  green on 10 s (`green-q24-budget.log`). The migration is untouched: md5 `75c77cffc8e335bd3bb2cae72d9a18cb`, the file
+  the Advisor cleared.
+- **Gates on the synced tree, `a3e5bea1`** (logs in `../partyreel-wt/_scratch/trash-in-storage/`, exits in
+  `gate-exits-q24.txt`): `pnpm typecheck` 0, `pnpm lint` 0, `pnpm test` 0 (877 files, 10,547 tests,
+  `gate-q24-test.log`), `zsh scripts/build-lock.sh pnpm build` 0 (`gate-q24-build.log`),
+  `pnpm lab:smoke --base http://localhost:3131` 0 (154 checks, `gate-q24-lab-smoke.log`). The same five green before
+  on `1fbf2efb` (`gate-exits-q23.txt`), `e968be9d` (`gate-exits-synced.txt`) and `2dbaf352` (`gate-exits.txt`). No
+  board, so no `lab:demo`.
 - **Red first, each:** the migration's foot (`supabase/migrations/20261003220000_deleted_counts.sql:1428`, RESULT at
   `:1963`), run on the amended file as one `begin; … rollback;` each: LIVE RED without its statements 14/16 failing on
   what each lacks, GREEN with them 16/16 (`_scratch/.../red3.sql`, `green3.sql`), the drift read unchanged before and
@@ -255,7 +264,7 @@ Each is built as recommended and listed under "Calls his to overrule".
   own Deleted first at the deadline, a system removal's restore gated; Q5 every guest withdrawal purges that night;
   Q6 the size list's Delete for good and Empty; Q7 restore always fits, nothing past 30 days; Q8 Empty Deleted beside
   the chart (a deleted event's own Delete forever deferred); Q9 an expand, milestone 34 meeting the new cap; Q23's
-  sizes (2,000 items a call, at most 5,000; the action's 40 s; past it, "empty it again"), and a due grace finishing
+  sizes (2,000 items a call, at most 5,000; the action's 10 s; past it, "empty it again"), and a due grace finishing
   to the real cap inside the headroom.
 - **Look at first:** the captures (`captures/chart-*-375.png`, `meter-popover-375.png`); `create_media`'s cap block
   (`supabase/migrations/20261003220000_deleted_counts.sql:523`), `leave_deleted` (`:210`) and `empty_deleted` after it;
