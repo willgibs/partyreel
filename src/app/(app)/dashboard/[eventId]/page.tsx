@@ -9,6 +9,7 @@ import { HostCreditLookProvider } from "@/components/app/event-blocks/credit-loo
 import { EventChecklist } from "@/components/app/event-feed/checklist";
 import { EventCardsRow } from "@/components/app/event-feed/event-cards-row";
 import { HubCover } from "@/components/app/event-feed/event-hub-head";
+import { HubReel } from "@/components/app/event-feed/hub-reel";
 import {
   newestCoverStills,
   reelCoverStills,
@@ -469,6 +470,23 @@ export default async function EventDetailPage({
             stills={coverStills}
             develop={develop}
             toBar={!welcomed}
+          />
+
+          {/* ★ HER REEL, ON HER OWN PAGE (Will's Q5, `hub-reel.tsx`): the view the guests watch, mounted over the hub
+              on `?reel` and fed her own scope, so she plays it from the first photograph and while the album develops,
+              when the guests' view (hers included) has no reel yet. Nothing until the address asks. */}
+          <HubReel
+            eventId={event.id}
+            eventName={event.name}
+            joinUrl={eventLink}
+            displayAddress={prettyUrl.replace(/^https?:\/\//, "")}
+            qrStyle={event.qr_style}
+            qrToken={event.qr_token}
+            reelOn={reelFace.state !== "off"}
+            look={{
+              styleId: event.reel_style_id,
+              holdSec: event.reel_hold_sec,
+            }}
           />
 
           {/* A photograph's credit in the host's viewer opens its sender's look, with its quiet Block

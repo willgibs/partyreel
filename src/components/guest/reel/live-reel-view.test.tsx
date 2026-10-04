@@ -168,7 +168,7 @@ function live(over: Partial<GalleryLive> = {}): GalleryLive {
 type Props = Parameters<typeof LiveReelView>[0];
 
 function renderView(props: Partial<Props> = {}) {
-  const liveValue = h.live as GalleryLive;
+  const liveValue = h.live as GalleryLive | null;
   const all: Props = {
     mode: "hand",
     idle: false,
@@ -178,7 +178,7 @@ function renderView(props: Partial<Props> = {}) {
     displayAddress: "partyreel.com/e/party",
     qrStyle: "classic",
     isDemo: false,
-    playable: liveValue.serverItems,
+    playable: liveValue?.serverItems ?? [],
     onAddYours: vi.fn(),
     creator: null,
     addClipToAlbum: null,
@@ -1002,5 +1002,101 @@ describe("never silent", () => {
     expect((h.live as GalleryLive).reportPossibleExpiry).toHaveBeenCalledWith([
       "m2",
     ]);
+  });
+});
+
+/**
+ * ★ PLAYED FROM THE HOST'S OWN PAGE (hub-strip-wiring, Will's Q5: "the live reel is the host's to play from her own event
+ * page as soon as she opens it, even while the album develops"). The hub has no guest album's live source (its album is
+ * the host's own scope), so it hands the view the four things the view reads off one, as `standIn`: the links by id, the
+ * host's defaults, the event's key for this device's own picks and the presign watchdog. With none, the guest source
+ * answers as it always did (every test above).
+ */
+describe("played from the host's own page", () => {
+  const playable: LiveMediaItem[] = [1, 2, 3].map((i) => ({
+    id: `m${i}`,
+    type: "photo",
+    url: "",
+    status: "approved",
+    drawable: true,
+  }));
+  const standIn = () => {
+    const clips = {
+      get: vi.fn((id: string) => ({ tile: `tile-${id}`, view: `view-${id}` })),
+      ensure: vi.fn(async () => {}),
+    };
+    return {
+      clips,
+      qrToken: "host-key",
+      reel: { ...REEL, styleId: "mono", holdSec: 2, clip: null },
+      reportPossibleExpiry: vi.fn(),
+    };
+  };
+
+  it("★ plays with no guest source at all: its links come off the stand-in, by id", () => {
+    h.live = null;
+    const hostPage = standIn();
+    renderView({ playable, standIn: hostPage });
+    expect(h.player).not.toBeNull();
+    // The clip source read the first clip's links through the host's own resolver.
+    expect(hostPage.clips.get).toHaveBeenCalledWith("m1");
+  });
+
+  it("starts on the host's own defaults, and keeps this device's own picks under the stand-in's key", () => {
+    h.live = null;
+    renderView({ playable, standIn: standIn() });
+    expect(h.player?.styleId).toBe("mono");
+    localStorage.setItem("pr_reel_style_host-key", "editorial");
+    h.player = null;
+    renderView({ playable, standIn: standIn() });
+    expect(h.player?.styleId).toBe("editorial");
+  });
+
+  it("asks the stand-in's presign watchdog for exactly the failing clip", () => {
+    h.live = null;
+    const hostPage = standIn();
+    renderView({ playable, standIn: hostPage });
+    act(() => (h.player?.onExpired as (id: string) => void)("m2"));
+    expect(hostPage.reportPossibleExpiry).toHaveBeenCalledWith(["m2"]);
+  });
+
+  it("offers no creator without the host's plan in hand: the stand-in names none", () => {
+    h.live = null;
+    renderView({ playable, standIn: standIn(), creator: vi.fn() as never });
+    expect(screen.queryByRole("button", { name: /make your own/i })).toBeNull();
+  });
+
+  it("★ the owner at a desk is offered no screen link where the page says there is none", () => {
+    h.live = null;
+    const { unmount } = renderView({
+      playable,
+      standIn: standIn(),
+      isOwner: true,
+      screenLink: false,
+    });
+    expect(
+      screen.queryByRole("button", { name: "Play on a screen" }),
+    ).toBeNull();
+    unmount();
+    // And is still offered it by default, which is every guest page's own owner.
+    renderView({ playable, standIn: standIn(), isOwner: true });
+    expect(
+      screen.getByRole("button", { name: "Play on a screen" }),
+    ).toBeInTheDocument();
+  });
+
+  it("the owner's Set for everyone rides the stand-in's page just the same", () => {
+    h.live = null;
+    renderView({
+      playable,
+      standIn: standIn(),
+      isOwner: true,
+      onSetForEveryone: vi.fn(async () => true),
+    });
+    fireEvent.pointerDown(screen.getByRole("button", { name: /^Style: / }), {
+      ctrlKey: false,
+      button: 0,
+    });
+    expect(screen.getByText("Everyone sees this look")).toBeInTheDocument();
   });
 });

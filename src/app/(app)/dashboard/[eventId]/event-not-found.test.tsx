@@ -94,6 +94,7 @@ vi.mock("@/components/app/event-blocks/blocked-section", () => ({
 vi.mock("@/components/app/event-feed/event-cards-row", () => ({
   EventCardsRow: part,
 }));
+vi.mock("@/components/app/event-feed/hub-reel", () => ({ HubReel: part }));
 vi.mock("@/components/app/event-feed/room-card", () => ({
   reviewCardFace: part,
 }));
