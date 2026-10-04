@@ -104,21 +104,51 @@ Each is built as recommended and is Will's to overrule.
 
 ## Handoff (replaces the chat report)
 
-- **Commits.** Work commit `79bd40c51`, pushed to `origin/lp/limits-watch`. `launch-prep` had not moved since the base
-  `288e67275` (`git fetch origin`, `git log 288e67275..origin/launch-prep` empty before this handoff), so there is no sync
-  commit.
-- **Gates**, each on its own exit code, all on `79bd40c51` (my dev server on 3138 ran for the smoke only, then stopped): `pnpm typecheck` 0; `pnpm
-  lint` 0; `pnpm test` 0 (906 files, 11,076 tests, run through `scripts/build-lock.sh`); `pnpm build` 0 (through the lock);
-  `pnpm lab:smoke --base http://localhost:3138` 0 (189 checks, 0 failing; `.env.example` widened its scope to the whole lab).
-  No board, so no `lab:demo`. `pnpm test` ran again after this manifest commit, which changes docs only.
+- **Commits.** Work commits `79bd40c51` (the watch) and `f1d255968` (the cron route's `maxDuration` 60 to 120 for the reads
+  that now ride it), pushed to `origin/lp/limits-watch`. `launch-prep` had not moved since the base `288e67275` (`git fetch
+  origin`, `git log 288e67275..origin/launch-prep` empty before this handoff), so there is no sync commit.
+- **Gates**, each on its own exit code, all on `f1d255968` (my dev server on 3138 ran for the smoke only, then stopped):
+  `pnpm typecheck` 0; `pnpm lint` 0; `pnpm test` 0 (906 files, 11,076 tests, run through `scripts/build-lock.sh`); `pnpm build` 0
+  (through the lock); `pnpm lab:smoke --base http://localhost:3138` 0 (189 checks, 0 failing; `.env.example` widened its
+  scope to the whole lab). No board, so no `lab:demo`. `pnpm test` ran again after this manifest commit, which changes docs only.
 - **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): every line under an `owns` prefix (`src/lib/jobs/limits-watch*`,
-  `src/lib/jobs/spend-watch-run*`, `src/app/admin/jobs/`, `docs/systems/admin-observability.md`) or this file, except four
+  `src/lib/jobs/spend-watch-run*`, `src/app/api/cron/spend-watch/`, `src/app/admin/jobs/`, `docs/systems/admin-observability.md`)
+  or this file, except four
   small ones, each said here: `supabase/migrations/20261004170000_limits_watch_readings.sql` (new: the SQL the database-size
   and R2-bytes readings need, which no existing function answers; the Orchestrator applies it); `src/lib/env.ts` and
   `.env.example` (`VERCEL_USAGE_TOKEN`, optional: CLAUDE.md's rule that a new secret goes in env.ts); `src/lib/email/templates.ts`
   (one word: `export` on `composeMail`, so the alert wears the shared mail shell from the job's own file). No other live
   lane claims any of them (peer sweep of `docs/tracks/`). `src/app/admin/jobs/page.tsx` shows 367 changed lines but `git diff -w`
   is 57: the Fragment that puts the new card beside the spend watch's re-indents the job card.
+  ```
+  $ git diff --name-only origin/launch-prep...HEAD
+  .env.example
+  docs/systems/admin-observability.md
+  docs/tracks/limits-watch.md
+  src/app/admin/jobs/attention-line.tsx
+  src/app/admin/jobs/catalog.ts
+  src/app/admin/jobs/limits-card.test.tsx
+  src/app/admin/jobs/limits-card.tsx
+  src/app/admin/jobs/page.tsx
+  src/app/admin/jobs/spend-watch-card.tsx
+  src/app/api/cron/spend-watch/route.ts
+  src/lib/email/templates.ts
+  src/lib/env.ts
+  src/lib/jobs/limits-watch-limits.ts
+  src/lib/jobs/limits-watch-mail.test.ts
+  src/lib/jobs/limits-watch-mail.ts
+  src/lib/jobs/limits-watch-resend.test.ts
+  src/lib/jobs/limits-watch-resend.ts
+  src/lib/jobs/limits-watch-run.test.ts
+  src/lib/jobs/limits-watch-run.ts
+  src/lib/jobs/limits-watch-vercel.test.ts
+  src/lib/jobs/limits-watch-vercel.ts
+  src/lib/jobs/limits-watch.test.ts
+  src/lib/jobs/limits-watch.ts
+  src/lib/jobs/spend-watch-run.test.ts
+  src/lib/jobs/spend-watch-run.ts
+  supabase/migrations/20261004170000_limits_watch_readings.sql
+  ```
 - **The items.**
   - `src/lib/jobs/limits-watch-limits.ts`: 16 meters (Vercel 6, Supabase 4, Cloudflare 4, Resend 2), each limit the vendor's
     own number for the plan we are on, its page and the date read in the WHY-comment; the Active CPU calibration (44 ms a
@@ -132,6 +162,7 @@ Each is built as recommended and is Will's to overrule.
   - `src/lib/jobs/limits-watch-run.ts` (+ test, 17 cases): takes every meter, judges, mails, keeps the record; never throws;
     called by `spend-watch-run.ts` as step 5b (so no new cron; `vercel.json` untouched), which fails the run on a failed read
     and holds it at attention for a CRITICAL meter (`spend-watch-run.test.ts` gained 4 cases).
+  - `src/app/api/cron/spend-watch/route.ts`: `maxDuration` 120 (was 60) and its header says the plan limits ride the run.
   - `src/lib/jobs/limits-watch-mail.ts` (+ test): one operator mail a run to the spend watch's recipient, through `sendOnce`
     (kind `spend_watch`, key by the day and the crossings it names); no new mail kind.
   - `src/app/admin/jobs/limits-card.tsx` (+ test, 14 cases) beside the spend watch's card in `page.tsx`: a bar and its words
