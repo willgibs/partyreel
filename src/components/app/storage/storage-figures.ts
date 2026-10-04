@@ -8,20 +8,23 @@
  * flow's one rounding (`formatBytesUp`) so a figure here reads as the plan's refusal and the size list read it.
  */
 import { formatBytesUp } from "@/lib/billing/storage-guard";
+import type { Tables } from "@/lib/db/types";
 
 /** The share of the cap past which the ring and the chart turn amber: near enough that it matters. */
 export const NEAR_FULL = 0.85;
 
 /**
- * HER SETTING, Make room from Deleted, read off her profile row (`profiles.make_room_from_deleted`, 20261003220000): on
- * unless she turned it off, which is also what a row from before the column reads as (the column's default). ★ THE
- * TYPED SEAM, UNTIL THE TYPES REGENERATE: it takes any row and reads the column by name, so the generated profile row
- * passes as it is today and after (then type the parameter as that row).
+ * HER SETTING, Make room from Deleted, read off her profile row (`profiles.make_room_from_deleted`, 20261003220000,
+ * NOT NULL and on by default): on unless she turned it off, and on when there is no row to read (the column's
+ * default, never a guess at "off").
  */
-export function makeRoomFrom(profile: object | null | undefined): boolean {
-  const value = (profile as { make_room_from_deleted?: unknown } | null)
-    ?.make_room_from_deleted;
-  return typeof value === "boolean" ? value : true;
+export function makeRoomFrom(
+  profile:
+    | Pick<Tables<"profiles">, "make_room_from_deleted">
+    | null
+    | undefined,
+): boolean {
+  return profile?.make_room_from_deleted ?? true;
 }
 
 export type StorageFigures = {
