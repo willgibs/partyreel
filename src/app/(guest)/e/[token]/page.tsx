@@ -667,11 +667,17 @@ export default async function GuestEventPage({
   // either (red-team 44: it stood for the owner alone, and a returning guest met her album, then the reel over it).
   // The parameter is `reel-url.ts`'s `REEL_PARAM`, spelled here because that module is the client's (a
   // server import of it would be a client reference, not the string).
+  //
+  // ★ NEVER THE OWNER'S WHILE THE DEVELOP IS AHEAD (Will's Q5): this page shows her what her guests see, hers included
+  // (no guest-path read takes the owner's exemption), and before the develop that is no reel, so a black stood from
+  // the first byte for a reel that is not coming would be a flash for nothing. Her own reel plays on her hub then
+  // (`event-feed/hub-reel.tsx`); an old link to this address lands on the album as her guests meet it.
   const reelAsked =
     !isDemo &&
     access === "full" &&
     arrival.face === null &&
     !arrival.scrim &&
+    !(isOwner && waits.developsAt !== null) &&
     (await searchParams)?.reel !== undefined;
 
   return (

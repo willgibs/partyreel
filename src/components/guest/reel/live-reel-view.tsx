@@ -65,7 +65,10 @@ import type { CSSProperties, ReactNode, RefObject } from "react";
 import { toast } from "sonner";
 
 import { StyledQr } from "@/components/app/styled-qr";
-import { useGalleryLive } from "@/components/guest/gallery-live";
+import {
+  useGalleryLive,
+  type GalleryLive,
+} from "@/components/guest/gallery-live";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -140,6 +143,12 @@ import { cn } from "@/lib/utils";
 
 import { preloadReelCreator, type ReelCreator } from "./creator-seam";
 
+/** What a page with no guest album's live source hands the view in its place (`ReelViewProps.standIn`). */
+export type ReelStandIn = Pick<
+  GalleryLive,
+  "qrToken" | "reel" | "clips" | "reportPossibleExpiry"
+>;
+
 export type ReelViewProps = {
   mode: ReelMode;
   /** The screen posture below the minimum: the code and the address alone. */
@@ -168,6 +177,19 @@ export type ReelViewProps = {
   onCreatorAskSpent?: () => void;
   /** The event's owner is watching (the host's extras: Play on a screen, Set for everyone). */
   isOwner?: boolean;
+  /**
+   * ★ WHERE THE HOST PLAYS HER OWN REEL (`event-feed/hub-reel.tsx`, Will's Q5: "the live reel is the host's to play from
+   * her own event page as soon as she opens it, even while the album develops"): the four things the view reads off the
+   * guest album's live source (its links by id, the host's defaults, the event's key for this device's own picks and
+   * the presign watchdog), handed in by a page that has no guest source, since the hub's album is her own scope and the
+   * guest page's is the guests'. Absent, the guest album's live source answers, as it always did.
+   */
+  standIn?: ReelStandIn;
+  /**
+   * Whether the owner is offered Play on a screen, which opens this address as a screen (default on). The hub's own view
+   * turns it off: a screen that is not hers cannot open her hub, so it plays the reel cast from her own device.
+   */
+  screenLink?: boolean;
   /**
    * The owner's "Set for everyone": the look and hold this device shows become the event's defaults
    * (reel-defaults-migration's `setReelDefaults`, bound by the controller). Resolves whether it took.
@@ -208,23 +230,27 @@ export function LiveReelView({
   creatorAsked = false,
   onCreatorAskSpent,
   isOwner = false,
+  standIn,
+  screenLink = true,
   onSetForEveryone,
   onClose,
 }: ReelViewProps) {
   const live = useGalleryLive();
+  // What the guest album's live source says of the event, or what the host's own page says in its place.
+  const feed = standIn ?? live;
   // Links by id: the reel reads them at each window, the arrivals' names ride them, the creator's
   // pool waits on them.
-  const clips = live?.clips ?? null;
+  const clips = feed?.clips ?? null;
   const reduced = usePrefersReducedMotion();
   const screen = mode === "screen";
   // A desk: the code toggle and the owner's Play on a screen live here and nowhere smaller (a phone
   // has no room to show a wall its code, and nobody casts a screen from one).
   const desktop = useMediaQuery("(min-width: 1024px)");
-  const qrToken = live?.qrToken ?? "";
+  const qrToken = feed?.qrToken ?? "";
 
   /* ── the viewer's own knobs, kept on this device ─────────────────────────── */
-  const hostStyle = live?.reel?.styleId ?? null;
-  const hostHold = live?.reel?.holdSec ?? null;
+  const hostStyle = feed?.reel?.styleId ?? null;
+  const hostHold = feed?.reel?.holdSec ?? null;
   const [holdSec, setHoldSec] = useState(() => readHoldSec(qrToken, hostHold));
   const [styleId, setStyleId] = useState(
     () => readStyleId(qrToken) ?? resolveLiveStyleId(hostStyle),
@@ -268,7 +294,7 @@ export function LiveReelView({
 
   /* ── the source: the album's live list, fed as it changes ────────────────── */
   // Stills that failed to decode are re-minted by id (the watchdog), never the whole album.
-  const reportExpiry = live?.reportPossibleExpiry;
+  const reportExpiry = feed?.reportPossibleExpiry;
   const [onFailedIds] = useState(
     () => (ids: readonly string[]) => reportExpiry?.(ids),
   );
@@ -276,7 +302,7 @@ export function LiveReelView({
     eventId,
     playable,
     live?.ownIds ?? null,
-    live?.clips ?? null,
+    clips,
     onFailedIds,
   );
   const playerRef = useRef<LiveReelPlayerHandle>(null);
@@ -476,7 +502,7 @@ export function LiveReelView({
   // Whether the reel was paused before a room took the screen, so closing it puts that back.
   const pausedBeforeRef = useRef(false);
   // The host's plan for a clip, the server's (null where it could not be read: no creator then).
-  const clipFacts = live?.reel?.clip ?? null;
+  const clipFacts = feed?.reel?.clip ?? null;
   const creatorOffered = Boolean(creator && clipFacts);
   // Asked of the device once per page, and only when a clip could be offered at all.
   const support = useClipSupport(creatorOffered);
@@ -827,7 +853,9 @@ export function LiveReelView({
                 onToggleCode={
                   desktop ? () => setShowCode((on) => !on) : undefined
                 }
-                onPlayOnScreen={isOwner && desktop ? openOnScreen : undefined}
+                onPlayOnScreen={
+                  isOwner && desktop && screenLink ? openOnScreen : undefined
+                }
                 styleFooter={styleFooter}
                 onAddYours={onAddYours}
                 onMakeYourOwn={creatorOffered ? openCreator : undefined}
