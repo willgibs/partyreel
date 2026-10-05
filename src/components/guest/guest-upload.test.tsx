@@ -1120,6 +1120,77 @@ describe("GuestUpload: a failure the slot never reported is not the next run's (
     );
     expect(screen.getByText("b.jpg")).toBeInTheDocument();
     expect(screen.getByText("Nope B.")).toBeInTheDocument();
+    // ★ (crumbs-76) and its heading counts what it lists inside the run it belongs to: one of the two that went
+    // out together did not, never "1 of 0" (a Retry adds no item for a count by length to find).
+    expect(screen.getByText("1 of 2 didn't upload")).toBeInTheDocument();
+  });
+
+  /* ★ THE FAILURE HEADING COUNTS THE RUN'S OWN FILES (crumbs-76; ROADMAP: "a Retry that fails again, or a slot mounted
+     mid-run, reads '1 of 0 didn't upload'"). The count was the queue's length less a baseline taken at the run's
+     start, and a Retry adds no item. */
+  it("★ a Retry that fails again says '1 of 1 didn't upload', never '1 of 0'", async () => {
+    mockUploadFile.mockReset();
+    mockUploadFile.mockResolvedValue({ ok: false, message: "Nope." });
+    const gated = mountGated();
+    sendThroughSheet(gated.handleRef, [makeFile("a.jpg")]);
+    await screen.findByText("1 of 1 didn't upload");
+
+    // Its Retry closes the sheet and sends the file again: the run is the one file going again.
+    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+    await waitFor(() => expect(mockUploadFile).toHaveBeenCalledTimes(2));
+    expect(await screen.findByText("1 of 1 didn't upload")).toBeInTheDocument();
+    expect(screen.queryByText(/ of 0 /)).toBeNull();
+  });
+
+  it("★ a slot that mounts mid-run heads the whole run it ends with, never '1 of 0'", async () => {
+    mockUploadFile.mockReset();
+    let refuseB!: () => void;
+    mockUploadFile.mockResolvedValueOnce(LANDED).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          refuseB = () => resolve({ ok: false, message: "Nope." });
+        }),
+    );
+    // The door's run, handed to the album while it goes: a has landed, b is still in the air.
+    const gated = mountGated({}, false);
+    act(() =>
+      gated.queueRef.current!.addFiles([makeFile("a.jpg"), makeFile("b.jpg")]),
+    );
+    await waitFor(() => expect(mockUploadFile).toHaveBeenCalledTimes(2));
+    gated.ungate();
+    await act(async () => refuseB());
+
+    expect(await screen.findByText("1 of 2 didn't upload")).toBeInTheDocument();
+  });
+
+  it("★ a single Retry of three failures beside one that landed counts what it lists inside its run", async () => {
+    mockUploadFile.mockReset();
+    mockUploadFile
+      .mockResolvedValueOnce({ ok: false, message: "Nope A." })
+      .mockResolvedValueOnce({ ok: false, message: "Nope B." })
+      .mockResolvedValueOnce(LANDED)
+      // a.jpg's Retry goes up and is refused again.
+      .mockResolvedValue({ ok: false, message: "Nope A again." });
+    const gated = mountGated();
+    sendThroughSheet(gated.handleRef, [
+      makeFile("a.jpg"),
+      makeFile("b.jpg"),
+      makeFile("c.jpg"),
+    ]);
+    await screen.findByText("2 of 3 didn't upload");
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Retry" })[0]);
+    await waitFor(() => expect(mockUploadFile).toHaveBeenCalledTimes(4));
+    await waitFor(() =>
+      expect(last(gated).map((it) => it.status)).toEqual([
+        "error",
+        "error",
+        "done",
+      ]),
+    );
+    // Both are listed again, with a.jpg's new refusal, in the run they belong to: never "2 of 1".
+    expect(await screen.findByText("2 of 3 didn't upload")).toBeInTheDocument();
+    expect(screen.getByText("Nope A again.")).toBeInTheDocument();
   });
 });
 

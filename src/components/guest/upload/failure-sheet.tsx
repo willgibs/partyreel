@@ -32,16 +32,15 @@
 import { useState } from "react";
 import { RefreshCw, WifiOff } from "lucide-react";
 
+import { DoorHeading } from "@/components/guest/door/heading";
 import { PickPreview } from "@/components/guest/upload/pick-preview";
 import { usePickUrls } from "@/components/guest/upload/use-pick-urls";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
   SheetFooter,
   SheetHeader,
-  SheetTitle,
 } from "@/components/ui/sheet";
 import { UPLOAD_FAILED_HELP_HREF } from "@/lib/content/help-links";
 import { formatCount } from "@/lib/format/count";
@@ -249,17 +248,33 @@ export function UploadFailureSheet({
   }
   const shown = open && failures.length > 0 ? { failures, sent } : latched;
   const nowMs = useWaitClock();
+  const heading = uploadFailureHeading(shown.failures.length, shown.sent);
+  /* ★ A RUN THAT FAILED WHOLE HAS NO "EVERYTHING ELSE" TO SAY (crumbs-76): "1 of 1 didn't upload" under "Everything
+     else is in Maya's album" spoke of a rest that does not exist. The line is said only where the run sent more than
+     failed, and the dialog is described by it only then. */
+  const rest =
+    shown.sent > shown.failures.length
+      ? uploadFailureElsewhere({ hostName, waits, nowMs })
+      : null;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent responsive className="overflow-y-auto">
+      <SheetContent
+        responsive
+        className="overflow-y-auto"
+        // No rest to say, so nothing describes the dialog (Radix reads an explicit undefined as that choice).
+        {...(rest ? {} : { "aria-describedby": undefined })}
+      >
         <SheetHeader>
-          <SheetTitle>
-            {uploadFailureHeading(shown.failures.length, shown.sent)}
-          </SheetTitle>
-          <SheetDescription>
-            {uploadFailureElsewhere({ hostName, waits, nowMs })}
-          </SheetDescription>
+          {/* The door's own heading scale (one failure, one size of heading: the door's upload step says this very
+              failure on it too), and its words ARE the dialog's title and description. Clear of the sheet's own X,
+              which stands in the first line's corner. */}
+          <DoorHeading
+            announce
+            title={heading}
+            reason={rest ?? undefined}
+            className="pr-8"
+          />
         </SheetHeader>
 
         <div className="px-4">

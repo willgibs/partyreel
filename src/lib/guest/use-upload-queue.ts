@@ -390,6 +390,57 @@ export function useRunProgress(
   return { ...counts, progress: fraction };
 }
 
+/**
+ * ★ THE RUN'S OWN FILES, COUNTED FOR A FAILURE'S HEADING ("N of SENT didn't upload", `failure-sheet.tsx`). The whole
+ * run: every file `inRun` (not already settled when the run began, or going again: a Retry), and any failure the
+ * heading lists that is not among them, so what is listed is always part of what is counted and a heading never
+ * reads "2 of 1". Counted off the items by their ids, never by how many the queue held (a Retry adds no item: counted
+ * by length, "1 of 1 didn't upload" read "1 of 0" once it failed again).
+ */
+export function runSentOf(
+  items: readonly QueueItem[],
+  before: ReadonlySet<string>,
+  listed: readonly Pick<QueueItem, "id">[],
+): number {
+  const alsoListed = new Set(listed.map((it) => it.id));
+  return items.filter((it) => inRun(it, before) || alsoListed.has(it.id))
+    .length;
+}
+
+/**
+ * ★ THE RUN'S OWN COUNT, FOR WHOEVER HEADS A FAILURE WITH IT (the album's slot and the door's step: both read the
+ * page's one queue, and either may be the one standing when a run ends). The ids already settled when the run began,
+ * taken in the render where something goes where nothing was (the sanctioned adjust-state-during-render pattern, as
+ * `useRunProgress` takes its own: an effect would count the new files in their own baseline); `runSentOf` does the
+ * rest.
+ *
+ * ★ A RUN THAT BEGINS WITH FAILURES STILL LISTED IS THEIR GO CONTINUING, not a new one: one of three Retried while the
+ * sheet stands over the other two sends a file of the same go, and the whole it counts stays what it was ("2 of 3"
+ * before and after), so a heading never changes its meaning under her thumb. A run that begins with nothing listed (a
+ * Retry of all of them, or the next pick) is a go of its own, whose files are the ones going.
+ *
+ * ★ A MOUNT MID-RUN COUNTS EVERYTHING HELD, where `useRunProgress` leaves out what settled before it mounted: this
+ * never saw the run begin (the slot mounts under `key={access}` with the door's run already going), so nothing may be
+ * taken for outside it, and the heading reads the whole run it ends with.
+ */
+export function useRunSent(
+  items: readonly QueueItem[],
+  listed: readonly Pick<QueueItem, "id">[],
+): number {
+  const running = items.some(isActive);
+  const [before, setBefore] = useState<ReadonlySet<string>>(NOTHING_BEFORE);
+  const [wasRunning, setWasRunning] = useState(running);
+  if (running !== wasRunning) {
+    setWasRunning(running);
+    if (running && listed.length === 0) {
+      setBefore(
+        new Set(items.filter((it) => !isActive(it)).map((it) => it.id)),
+      );
+    }
+  }
+  return runSentOf(items, before, listed);
+}
+
 export type UploadedItem = {
   mediaId: string;
   /** The queue item that produced this upload - lets the gallery re-key its

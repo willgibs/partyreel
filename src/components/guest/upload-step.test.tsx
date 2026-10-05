@@ -234,6 +234,74 @@ describe("the step over an album that waits", () => {
   });
 });
 
+/**
+ * ★ THE FAILURE HEADING COUNTS THE RUN'S OWN FILES (crumbs-76; ROADMAP: "a Retry that fails again, or a slot mounted
+ * mid-run, reads '1 of 0 didn't upload'"). The step's "SENT" was the queue's length less a baseline taken at the run's
+ * start, and its own Retry adds no item: counted that way a failure that failed again read "1 of 0".
+ */
+describe("the failure heading", () => {
+  const step = (queue: QueueItem[]) => (
+    <UploadStep
+      isDemo={false}
+      requireUpload={false}
+      albumEmpty={false}
+      queue={queue}
+      onSend={vi.fn()}
+      onRetry={vi.fn()}
+      onDismiss={vi.fn()}
+      onContinueWithout={vi.fn()}
+    />
+  );
+
+  it("★ a Retry in place that fails again reads the run it was, never '1 of 0'", () => {
+    const view = render(step([item({ id: "a" })]));
+    expect(screen.getByText("1 of 1 didn't upload")).toBeInTheDocument();
+    // Retry: the very item goes up again (no item is added), and fails again.
+    view.rerender(step([item({ id: "a", status: "queued" })]));
+    view.rerender(step([item({ id: "a" })]));
+    expect(screen.getByText("1 of 1 didn't upload")).toBeInTheDocument();
+  });
+
+  it("★ a step that mounts mid-run reads the whole run it ends with", () => {
+    const view = render(
+      step([
+        item({ id: "a", status: "done", progress: 100 }),
+        item({ id: "b", status: "uploading", progress: 30 }),
+        item({ id: "c", status: "queued" }),
+      ]),
+    );
+    view.rerender(
+      step([
+        item({ id: "a", status: "done", progress: 100 }),
+        item({ id: "b" }),
+        item({ id: "c" }),
+      ]),
+    );
+    expect(screen.getByText("2 of 3 didn't upload")).toBeInTheDocument();
+  });
+
+  it("counts the run it ends and leaves out what an earlier run landed", () => {
+    const view = render(
+      step([item({ id: "old", status: "done", progress: 100 })]),
+    );
+    view.rerender(
+      step([
+        item({ id: "old", status: "done", progress: 100 }),
+        item({ id: "x", status: "queued" }),
+        item({ id: "y", status: "queued" }),
+      ]),
+    );
+    view.rerender(
+      step([
+        item({ id: "old", status: "done", progress: 100 }),
+        item({ id: "x" }),
+        item({ id: "y" }),
+      ]),
+    );
+    expect(screen.getByText("2 of 2 didn't upload")).toBeInTheDocument();
+  });
+});
+
 describe("the surface", () => {
   it("offers the two named acts, and Send hands the picks up", () => {
     const { container, onSend } = mount();

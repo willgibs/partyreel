@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -246,5 +246,99 @@ describe("what it says of everything else", () => {
       screen.getByText("Everything else develops as Maya lets it in."),
     ).toBeInTheDocument();
     expect(screen.queryByText(/in Maya’s album/)).toBeNull();
+  });
+});
+
+/**
+ * ★ A RUN THAT FAILED WHOLE HAS NO "EVERYTHING ELSE" TO SAY (crumbs-76; ROADMAP: the sheet "speaks of 'Everything else'
+ * when a send failed whole ('1 of 1 didn't upload')"). The line speaks of the rest of the run, and a run that sent only
+ * what failed has none: it said the rest was in Maya's album (or developing with everyone's) over a heading that said
+ * nothing had gone. It is said where the run sent more than failed, and the dialog is described by it only then.
+ */
+describe("a run that failed whole", () => {
+  const AT = "2026-10-04T02:00:00.000Z";
+  const WAITS = [
+    undefined,
+    { waits: false, developsAt: null },
+    { waits: true, developsAt: AT },
+    { waits: true, developsAt: null },
+  ];
+  const sheet = (
+    failed: number,
+    sent: number,
+    waits?: { waits: boolean; developsAt: string | null },
+  ) =>
+    render(
+      <UploadFailureSheet
+        open
+        onOpenChange={vi.fn()}
+        failures={Array.from({ length: failed }, (_, i) =>
+          failure(`${i}.jpg`, "This event isn't accepting uploads."),
+        )}
+        sent={sent}
+        hostName="Maya"
+        onRetry={vi.fn()}
+        waits={waits}
+      />,
+    );
+
+  it("★ says nothing of the rest, however the album shows what is added", () => {
+    for (const waits of WAITS) {
+      const { unmount } = sheet(1, 1, waits);
+      expect(screen.getByText("1 of 1 didn't upload")).toBeInTheDocument();
+      expect(screen.queryByText(/Everything else/)).toBeNull();
+      unmount();
+    }
+    sheet(2, 2);
+    expect(screen.getByText("2 of 2 didn't upload")).toBeInTheDocument();
+    expect(screen.queryByText(/Everything else/)).toBeNull();
+  });
+
+  it("still says it where something else went", () => {
+    sheet(1, 3);
+    expect(
+      screen.getByText("Everything else is in Maya’s album."),
+    ).toBeInTheDocument();
+  });
+
+  it("describes the dialog by that line only where there is one", () => {
+    const whole = sheet(1, 1);
+    const wholeDialog = screen.getByRole("dialog");
+    expect(wholeDialog).not.toHaveAttribute("aria-describedby");
+    whole.unmount();
+
+    sheet(1, 3);
+    expect(screen.getByRole("dialog")).toHaveAccessibleDescription(
+      "Everything else is in Maya’s album.",
+    );
+  });
+});
+
+/**
+ * ★ ONE HEADING SCALE FOR ONE FAILURE (crumbs-76; ROADMAP: the album's sheet "heads with a Sheet's card title" while
+ * the same failure in the door's upload step "heads on the door's scale"). The sheet's heading is the door's own
+ * (`door/heading.tsx`), and its words are the dialog's title and description themselves: one node each, named once.
+ */
+describe("the heading", () => {
+  it("★ is the door's heading, and names the dialog, once", () => {
+    mount(
+      [failure("a.jpg", "That upload did not finish.")],
+      undefined,
+      undefined,
+      3,
+    );
+    const dialog = screen.getByRole("dialog", {
+      name: "1 of 3 didn't upload",
+    });
+    const title = within(dialog).getByText("1 of 3 didn't upload");
+    // The door's own heading (the scale lives there, and so does its reveal), not a Sheet's card title.
+    expect(title.closest("[data-door-heading]")).not.toBeNull();
+    expect(title).toHaveAttribute("data-door-line");
+    expect(dialog.querySelector('[data-slot="sheet-title"]')).toBeNull();
+    // Said once for the eye and the ear alike: the same words are not hidden in a second copy.
+    expect(within(dialog).getAllByText("1 of 3 didn't upload")).toHaveLength(1);
+    expect(dialog).toHaveAccessibleDescription(
+      "Everything else is in Maya’s album.",
+    );
   });
 });
