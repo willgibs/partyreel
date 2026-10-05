@@ -14,6 +14,11 @@ export function albumPath(eventId: string): string {
   return `/dashboard/${eventId}`;
 }
 
+/** Connect (or reconnect) Google Drive, landing back on `next` (an app path; the connect route re-checks it). */
+export function connectHref(next: string): string {
+  return `/api/drive/connect?next=${encodeURIComponent(next)}`;
+}
+
 /**
  * A HINT, NEVER A GATE: set when she connects or presses Send, cleared on Disconnect, so the places that would poll her
  * sends (the app-wide flag, the album's strip, the dashboard's lights) poll only for a host who uses Drive. Every host

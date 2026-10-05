@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { AccountAvatarForm } from "@/components/app/account-avatar-form";
 import { AccountDeleteCard } from "@/components/app/account-delete-card";
+import { DriveAccountCard } from "@/components/app/drive/drive-account-card";
 import { parseEmailChangeHint } from "./email-change";
 import { PROFILE_SETUP_PATH } from "./profile/invite";
 import { EmailSection } from "./email-section";
@@ -352,6 +353,9 @@ export default async function AccountPage({
           )}
         </CardContent>
       </Card>
+
+      {/* Send to Google Drive's connection, beside the plan it serves. */}
+      <DriveAccountCard userId={profile.id} zone={viewerZone} />
 
       <Card>
         <CardHeader>

@@ -12,10 +12,12 @@
  */
 import type { AlbumPreview } from "@/lib/drive/press";
 import type { DriveReturn } from "@/lib/drive/oauth-cookie";
+import { connectHref } from "@/lib/drive/links";
 import type { PressAnswer, PressRefusal } from "@/lib/drive/press";
 import { formatBytes } from "@/lib/utils";
 
 export type { AlbumPreview };
+export { connectHref };
 
 export const DRIVE_INTENT_KEY = "pr-drive-intent";
 const INTENT_TTL_MS = 15 * 60 * 1000;
@@ -84,9 +86,6 @@ export function peekIntent(): DriveIntent | null {
 }
 
 /** The connect's address, landing back on `next` (one of the sign-in return shapes, checked on the server). */
-export function connectHref(next: string): string {
-  return `/api/drive/connect?next=${encodeURIComponent(next)}`;
-}
 
 /** Her browser's zone, for the files' names (when each arrived, in her own time). */
 function zone(): string {

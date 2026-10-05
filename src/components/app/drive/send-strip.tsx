@@ -23,7 +23,7 @@ import {
   PopupFooter,
   PopupHeader,
 } from "@/components/ui/popup";
-import { hasDriveHint } from "@/lib/drive/links";
+import { albumPath, hasDriveHint } from "@/lib/drive/links";
 import {
   momentOf,
   sendForAlbum,
@@ -123,7 +123,7 @@ export function SendStripFor({ send, nowMs }: { send: SendView; nowMs: number })
         window.open(GOOGLE_STORAGE_URL, "_blank", "noopener,noreferrer");
         return;
       case "reconnect":
-        window.location.assign(connectHref(send.eventId ? `/dashboard/${send.eventId}` : "/dashboard"));
+        window.location.assign(connectHref(send.eventId ? albumPath(send.eventId) : "/dashboard"));
         return;
       case "see_which":
         setWhich((w) => !w);

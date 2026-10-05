@@ -15,7 +15,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-import { hasDriveHint } from "@/lib/drive/links";
+import { albumPath, hasDriveHint } from "@/lib/drive/links";
 import { isUnfinished, momentOf, type SendView } from "@/lib/drive/moments";
 
 import { actOn, connectHref, peekIntent, returnWords, takeReturnWord } from "./drive-client";
@@ -88,7 +88,7 @@ function DriveFlagListening() {
       if (!send.flagDue || flagged.has(stopKey(send))) continue;
       flagged.add(stopKey(send));
       const moment = momentOf(send, nowMs);
-      const album = send.eventId ? `/dashboard/${send.eventId}` : "/dashboard";
+      const album = send.eventId ? albumPath(send.eventId) : "/dashboard";
       const reconnect = moment.acts.find((a) => a.id === "reconnect");
       toast.warning(moment.title, {
         id: `drive-flag-${send.id}`,
