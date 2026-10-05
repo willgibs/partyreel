@@ -150,8 +150,8 @@ Round 15, on Will's desk answers of 2026-10-04 and his brand note; the approved 
   `94d66338`). Sign-in works there through the chooser. "Stack desk 3" is his to say; otherwise one desk at a time.
 - **The calls lab** (`../partyreel-wt/_scratch/calls/calls-lab.md`): open questions X1 (a Disposable's develop time
   when the date comes later), X2 (a Vercel token for the limits watch), X3 (a read-only Cloudflare analytics token),
-  X5 (the CDN-cached album version), X6 (the operator's uploads credit); X4 is built. Then the text calls built and
-  his to overrule. He asks direct questions in chat; answer in chat, never only in a file.
+  X5 (the CDN-cached album version), X6 (the operator's uploads credit), X7 (keep a photo's capture time); X4 is
+  built. Then the text calls built and his to overrule (AF to AP: today's merges, added 2026-10-05). He asks direct questions in chat; answer in chat, never only in a file.
 - **Milestone 37** on his yes, after red-team 54.
 - **Vercel:** Pro now, or Hobby until the window clears in early November.
 - **Six retired env names** (`STRIPE_PRICE_PRO_100` to `_2TB_YR`) to delete from both Vercel projects and `.env.local`:
