@@ -109,18 +109,18 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
     section: "The event's head",
     file: "src/components/app/event-feed/event-hub-head.tsx",
     title: "The hub's head",
-    for: "Maya's hub wearing her album's cover, her numbers and link on it and the code on its white mat",
-    lede: "One head on both sides of the code (`host=shared`): Maya sees her party as her guests do. The facts and the link under the title are today's (r2 redraws them); the code stands on its mat in the cover's corner, scannable from across a table, wearing its door on its corner. Once it has scrolled away the room cards' band carries its face and the code as a chip.",
+    for: "Maya's hub wearing her album's cover, her numbers and link on it, the facts strip along its foot and the code on its white mat",
+    lede: "One head on both sides of the code (`host=shared`): Maya sees her party as her guests do. Under the title stand the date, the guests, the views and the link; along the cover's foot runs the facts strip (`facts=strip`), one mark a photograph, each as tall as the photographs that landed within ten minutes of it, the newest lit while photographs land and the line ending in the album's number. The code stands on its mat in the cover's corner, scannable from across a table, wearing its door on its corner. Once it has scrolled away the room cards' band carries its face and the code as a chip.",
     specimens: [
       {
         label: "Tonight",
-        hint: "two people at her door, the lock's count on the code's corner",
+        hint: "two people at her door, the lock's count on the code's corner; the strip's newest marks stay lit for a quarter-hour after this page loads, as they do while photographs land",
         bleed: true,
         node: <HubCoverDemo />,
       },
       {
         label: "The week before",
-        hint: "nothing in the album: the house light",
+        hint: "nothing in the album: the house light, and the strip a quiet line that says No photos yet",
         bleed: true,
         node: <HubCoverDemo before />,
       },
