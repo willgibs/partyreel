@@ -85,7 +85,9 @@ semantics live in its doc.
 - **Service-role only, never in either list:** the server-mediated set above, `action_rate`,
   `article_feedback_summary` (an INVOKER read, one jsonb, behind the admin seam), `purge_media_rows`,
   `record_link_hit`, `host_active_bytes`, `host_storage_summary`, `leave_deleted` (the over-capacity deadline's first
-  step), `tier_limits`, `upload_allowance` and `uploads_used` (INVOKER; every other caller is a DEFINER body), the paged album's
+  step), `tier_limits`, `upload_allowance` and `uploads_used` (INVOKER; every other caller is a DEFINER body),
+  `uploads_windows` (an INVOKER read behind the admin seam, every listed host's `uploads_used` in one call) and
+  `consume_passes_for_pro_credit` (INVOKER, the webhook's pass-to-Pro conversion), the paged album's
   reader `album_changes_since` (an INVOKER read the Next routes call after their own capability check) and its log's
   prune `album_prune_tombstones` (DEFINER: the tables grant the service role SELECT only), the develop's
   `develop_due` and `develop_due_sweep` (DEFINER: they write `sealed_until`, which no role holds;
@@ -180,11 +182,12 @@ Gotchas). A new table starts with no client grant, so its migration grants exact
   checks are check-then-act over aggregates no row lock can hold, so two concurrent uploads, restores or creates
   would each read N-1 and both admit. `create_media`, `create_media_as_host`, `restore_media`, `restore_event` and
   `enforce_event_limit` each take exactly ONE profiles lock, the host's, as their first lock, so no deadlock is
-  constructible among them; never lock a second host's row in these bodies. The one cycle outside them: a pass
-  consumed for Pro credit takes `event_passes` before `profiles` (Postgres detects the deadlock and one side is
-  retried; a ROADMAP line puts it in order). `leave_deleted` and `empty_deleted` take the host's
-  row first too, and the restores take it before the item's, so a restore and an upload making room never act on one
-  row at once.
+  constructible among them; never lock a second host's row in these bodies. `leave_deleted` and `empty_deleted` take
+  the host's row first too, and the restores take it before the item's, so a restore and an upload making room never
+  act on one row at once. ★ So does every writer of a pass's row (`event-passes-migration.test.ts`): the completes
+  count on her live pass under her profiles lock, and `consume_passes_for_pro_credit`, the pass-to-Pro credit, takes
+  that lock before it converts her passes, since the reverse order in one transaction deadlocks with a complete
+  (measured, 20261005130000).
 - ★ **A mint of an ask reads the door under the event row's share lock** (`create_guest`, `ask_to_join`). Every move
   of the door writes that row (`set_event_door` locks it `for no key update`, `set_event_password`'s update takes the
   same lock), and the triggers that end or admit the asks read only what has committed, so a join minted unlocked in

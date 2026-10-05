@@ -68,7 +68,7 @@ export async function insertPassPurchase(
 
 /**
  * Convert every live pass to consumed('pro_credit') and clear the chain fields
- * (`tier_expires_at`, `event_slots`) — the "nothing gets banked" write when a host
+ * (`tier_expires_at`, `event_slots`): the "nothing gets banked" write when a host
  * starts Pro with a prorated credit. Consumes ALL unconsumed rows (the credit was
  * computed over all of them at checkout time). Returns how many rows this call
  * consumed: 0 = a replay (already consumed), which the webhook treats as success.

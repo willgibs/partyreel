@@ -46,15 +46,40 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **What does a host whose pass lapsed read when she uploads?** Built (the brief's "the same words"): the presign
+  refuses it as the allowance (the wire's `'monthly'`), so she reads "You've hit this plan's upload limit for now." and
+  a guest "This album has hit its upload limit for now.", until the nightly recompute moves her to Free. Recommended:
+  keep for now (a day at most, and the Plan card says her pass ended). The alternative is a host-only sentence that
+  names the cause ("Your Event Pass has ended. Renew it to keep collecting."): a new meter reason and one host-route
+  case, the guest's words unchanged.
+- **How does the operator read a lapsed pass?** Built: the list's Uploads cell says `PASS LAPSED` and the day it ended,
+  its Allowance cell "Uploads refused", the row tinted as an account at its limit; the account's page says "Her pass
+  ended <minute UTC>: new uploads, hers and her guests', are refused until the nightly recompute moves her to Free.",
+  and its Billing row "Pass expired" where it said "Pass expires" of a past date. Recommended: as built.
+- **Where does "lapsed, since when" come from?** Built: the ledger, by the completes' own predicate (her tier a pass's,
+  no unconsumed pass live now), never `profiles.tier_expires_at`; since is when her last pass stopped being live (its
+  expiry, or its conversion to Pro credit when that came first). A credited host whose subscription event has not
+  landed reads lapsed for those seconds, which is true (her uploads are refused then). Recommended: as built.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/billing-caps.md` (owned): a lapsed pass is refused at the presign's meter too (and the advisories
+  still read it not full); the credit's conversion is one call, her profiles row first; the sole-writer line names the
+  conversion's clear.
+- `docs/systems/database-security.md` (the lane's fact, a read in the frontmatter): the profiles-first rule now covers
+  every writer of a pass's row (the "one cycle outside them" sentence deleted, the measured reason in its place); the
+  service-role-only inventory names `uploads_windows` and `consume_passes_for_pro_credit`.
+- `docs/systems/admin-observability.md` (the lane's fact): the accounts list and page ask one keyset read; a lapsed
+  pass reads Pass lapsed, since when, Uploads refused.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Uploads: the three upload advisories (`get_upload_context`, `get_upload_gate`, `get_host_upload_context`) still read a
+  lapsed pass as not full, so her album's upload door opens and the presign refuses; reading the completes' predicate
+  there is a replacement of the three (a migration).
+- Uploads: the completes' allowance refusal reaches a host as "Storage is full for your plan" (`mapHostCheckViolation`,
+  `db/mutations/host-media.ts`, maps every "limit" to the room's words) and a guest as the SQL's own "Upload limit
+  reached for this plan.", where the presign says each route's allowance sentence.
 
 ## Handoff (replaces the chat report)
 

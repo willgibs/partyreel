@@ -278,7 +278,21 @@ comment on function public.uploads_windows(uuid[], uuid, integer) is
 -- the answer. The RED run is the same call without this file's statements: everything this file adds is reached only
 -- through dynamic SQL, so it fails on what it lacks, never on a parse.
 --
--- RESULT: filled in from the runs below.
+-- RESULT, 2026-10-05 against the live schema (the drift read above clean first: meter_upload at 00a25a03, the two new
+-- functions absent):
+--   RED  0/6: 1 no consume_passes_for_pro_credit; 2 the meter admits the lapsed pass ('ok') while both writers refuse
+--        it ("23514 Upload limit reached for this plan."), and the credited one too; 3-4 no uploads_windows; 5 the two
+--        functions' ACLs and shapes absent (the meter's as named); 6 the meter at its 20261004100000 hash.
+--   GREEN 6/6 on this file, nothing persisted after (meter_upload at 00a25a03, both new functions absent, no fixture
+--        user, event or pass).
+-- THE PRE-FLIGHT (database-security.md), a throwaway Postgres 17 cluster holding a stand-in of the touched tables, the
+-- Supabase roles and the current bodies, the file applied verbatim (pg_get_functiondef's diff of the meter is exactly
+-- its one block): its contract check RED 0/8 without the file, GREEN 8/8 with it (the clamp at 1,000 over 1,500
+-- profiles; a grant slipped to authenticated still fails 42501 on event_passes, INVOKER's point). Its two-session lock
+-- run: the webhook's two writes JOINED in their shipped order deadlock with a complete (40P01, "deadlock detected");
+-- as shipped, two requests, they never deadlock, but a reader between them saw her passes consumed with her chain
+-- still set; the conversion first, a complete waits and then finds no live pass; a complete first, the conversion
+-- waits and then converts. Neither order of the new pair deadlocks.
 -- =============================================================================================
 -- create temp table proof (n serial, step text, ok boolean, detail text);
 -- create temp table fx (k text primary key, id uuid, txt text);
@@ -520,9 +534,9 @@ comment on function public.uploads_windows(uuid[], uuid, integer) is
 -- declare r record; got text; bad text := '';
 -- begin
 --   for r in select * from (values
---       ('consume_passes_for_pro_credit', 'TBD'),
---       ('meter_upload', 'TBD'),
---       ('uploads_windows', 'TBD')
+--       ('consume_passes_for_pro_credit', '1270f6da98f1ee9652b3e32f16725aa7'),
+--       ('meter_upload', '9d193450b8d017644f89fee0963b20bd'),
+--       ('uploads_windows', 'aa686f8a59a9e615c4b83caebe969ad0')
 --     ) v(fn, want)
 --   loop
 --     select md5(btrim(regexp_replace(p.prosrc, '\s+', ' ', 'g'))) into got
