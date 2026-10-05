@@ -46,7 +46,7 @@ import { getAllArticles } from "./help";
  * has had since take-home r1), so a stale label that only a board, a mock or
  * the portal still carries would pass while no control a reader meets says
  * it (help-center's old stub hid "Tap to retry" in two articles that way, and
- * "Download all" stood in three articles and seven posts the same way).
+ * "Download all" stood in four articles and seven posts the same way).
  */
 const SKIP =
   /\.test\.tsx?$|\/help\/|mdx-components\.tsx$|\/mdx\/spec-[a-z]+\.tsx$|\/app\/\(dev\)\/|\/components\/lab\/|\/components\/marketing\/|\/app\/\(marketing\)\/|\/app\/admin\/|\/components\/admin\/|\/lib\/admin\/|\/lib\/jobs\//;
