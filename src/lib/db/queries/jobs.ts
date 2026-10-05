@@ -67,6 +67,11 @@ function noticeRetriesDb(db: ReturnType<typeof createAdminClient>) {
   return db as unknown as SupabaseClient;
 }
 
+/** The same seam for Send to Google Drive's tables (20261005120000): drop it when the types regenerate. */
+function untypedDb(db: ReturnType<typeof createAdminClient>) {
+  return db as unknown as SupabaseClient;
+}
+
 /**
  * The generated row says `string` for `status` and `triggered_by` because the columns are `text`
  * with a CHECK (the catalog is TypeScript, so a new job never needs a migration); the app-level
@@ -462,6 +467,9 @@ export async function getJobSignals(nowMs = Date.now()): Promise<JobSignals> {
     noticesKept,
     oldestNotice,
     exportsUnended,
+    driveFilesSent,
+    driveFailures,
+    driveStuck,
   ] = await Promise.all([
     mustCount(
       db
@@ -541,6 +549,25 @@ export async function getJobSignals(nowMs = Date.now()): Promise<JobSignals> {
         ),
       "admin/jobs: downloads with no end",
     ),
+    // Send to Google Drive (drive-wiring): the files that reached a host's Drive in the day (kept ones included:
+    // each was confirmed in her Drive), its failures, and the sends stuck an hour with work and no progress.
+    mustCount(
+      untypedDb(db)
+        .from("cloud_export_items")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "sent")
+        .gt("sent_at", sinceIso),
+      "admin/jobs: 24h files sent to Drive",
+    ),
+    failuresOf("drive_transfer"),
+    mustCount(
+      untypedDb(db)
+        .from("cloud_exports")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "sending")
+        .not("stuck_since", "is", null),
+      "admin/jobs: Drive sends stuck",
+    ),
   ]);
 
   const oldestFailedAt = (oldestNotice as { first_failed_at?: string } | null)
@@ -559,6 +586,11 @@ export async function getJobSignals(nowMs = Date.now()): Promise<JobSignals> {
       ok24h: exportsFinished,
       failed24h: exportFailures,
       owed: exportsUnended,
+    },
+    drive_transfer: {
+      ok24h: driveFilesSent,
+      failed24h: driveFailures,
+      owed: driveStuck,
     },
   };
 }

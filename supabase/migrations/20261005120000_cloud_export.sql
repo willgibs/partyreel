@@ -317,6 +317,9 @@ create index cloud_export_items_sent_media_idx on public.cloud_export_items (med
   where status = 'sent';
 create index cloud_export_items_check_idx on public.cloud_export_items (job_id, media_id)
   where status = 'sent';
+-- The transfer signal's day (/admin/jobs: the files that reached hosts' Drives in the last 24 hours).
+create index cloud_export_items_sent_at_idx on public.cloud_export_items (sent_at)
+  where status = 'sent';
 
 -- =============================================================================================
 -- 5. cloud_export_leases
@@ -1181,19 +1184,20 @@ begin
   end if;
 
   -- The token, decided before any work is taken: a refresh another caller is making means wait.
+  -- (each answer names the account the seals are bound to: their associated data, `tokens.server.ts`)
   if v_conn.access_ct is not null and v_conn.access_expires_at > c_now + interval '20 minutes' then
     v_access := jsonb_build_object('state', 'cached', 'access_ct', v_conn.access_ct,
-                                   'expires_at', v_conn.access_expires_at);
+                                   'expires_at', v_conn.access_expires_at, 'user_id', v_conn.user_id);
   elsif v_conn.refresh_claimed_until > c_now then
     if v_conn.access_ct is not null and v_conn.access_expires_at > c_now + interval '12 minutes' then
       v_access := jsonb_build_object('state', 'cached', 'access_ct', v_conn.access_ct,
-                                     'expires_at', v_conn.access_expires_at);
+                                     'expires_at', v_conn.access_expires_at, 'user_id', v_conn.user_id);
     else
       return jsonb_build_object('state', 'wait', 'why', 'refresh');
     end if;
   else
     v_claim := true;
-    v_access := jsonb_build_object('state', 'refresh', 'refresh_ct', v_conn.refresh_ct);
+    v_access := jsonb_build_object('state', 'refresh', 'refresh_ct', v_conn.refresh_ct, 'user_id', v_conn.user_id);
   end if;
 
   -- Google's day: what this connection uploaded over the last 24 hours, stopped at 700 GB of its 750.
@@ -1630,6 +1634,7 @@ begin
   return jsonb_build_object(
     'state', case when v_stop then 'stop' else 'ok' end,
     'until', case when p_done or v_stop then null else c_now + interval '15 minutes' end,
+    'connection_id', v_conn.id,
     'job_id', v_job.id,
     'user_id', v_job.user_id,
     'before', v_before,
@@ -1766,6 +1771,7 @@ begin
 
   return jsonb_build_object(
     'state', 'ok',
+    'connection_id', v_lease.connection_id,
     'job_id', v_job.id,
     'user_id', v_job.user_id,
     'before', v_before,

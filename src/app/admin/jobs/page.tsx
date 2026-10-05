@@ -107,6 +107,7 @@ const SIGNAL_LABEL: Partial<Record<JobId, { ok: string; failed: string }>> = {
   unlock_limiter: { ok: "failed unlocks recorded", failed: "limiter errors" },
   help_feedback: { ok: "clicks recorded", failed: "clicks dropped" },
   export_delivery: { ok: "downloads finished", failed: "failed" },
+  drive_transfer: { ok: "files in hosts' Drives", failed: "failures" },
 };
 
 /**
@@ -133,6 +134,15 @@ const READING_LABEL: Partial<
     unit: "held by the backup alone",
     remedy:
       'Restore each from the backup: copy it from partyreel-backup into partyreel at the same key (durability-backups.md, Restore), then check its row still names it. The prune\'s own log names every one ("held by the backup alone", Workers Logs for partyreel-backup), and it never deletes one while its row lives.',
+  },
+  drive_queue: {
+    unit: "lanes waiting",
+    remedy: "Lanes drain on their own; a connection runs at most three, oldest send first.",
+  },
+  drive_dead_letters: {
+    unit: "lanes given up on",
+    remedy:
+      "Read the lane's error in Workers Logs for partyreel-drive (drive-lane). Its connection paused itself at three in a day: Resume it on /admin/exports once the cause is fixed, then purge the dead letters from the Cloudflare dashboard.",
   },
 };
 

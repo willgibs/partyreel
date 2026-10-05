@@ -559,6 +559,7 @@ export async function nameItems(
 
 export type ReportOutcome = {
   state: "ok" | "stop";
+  connectionId: string | null;
   jobId: string | null;
   userId: string | null;
   before: string | null;
@@ -569,6 +570,7 @@ export type ReportOutcome = {
 function reportOutcomeOf(r: Record<string, unknown>): ReportOutcome {
   return {
     state: str(r.state) === "ok" ? "ok" : "stop",
+    connectionId: str(r.connection_id),
     jobId: str(r.job_id),
     userId: str(r.user_id),
     before: str(r.before),
@@ -608,7 +610,21 @@ export async function reportCheckPage(input: {
   return { ...reportOutcomeOf(r), back: num(r.back) ?? 0, failed: num(r.failed) ?? 0, duplicates: num(r.duplicates) };
 }
 
+/** A finished send the sweep hands the done mail's fold. */
+export type FinishedSendRow = {
+  jobId: string;
+  albumName: string;
+  status: string;
+  itemsTotal: number;
+  itemsSent: number;
+  itemsKept: number;
+  itemsFailed: number;
+  bytesSent: number;
+  folderUrl: string | null;
+};
+
 export type SweepOutcome = {
+  doneMail: { userId: string; sends: FinishedSendRow[] }[];
   kick: { connectionId: string; lanes: number }[];
   recheck: string[];
   reconnect: { connectionId: string; userId: string; why: string }[];
@@ -623,6 +639,20 @@ export async function sweepSends(): Promise<SweepOutcome> {
   const r = await rpc("cloud_export_sweep", {});
   const list = (v: unknown) => (Array.isArray(v) ? v.map(obj) : []);
   return {
+    doneMail: list(r.done_mail).map((d) => ({
+      userId: str(d.user_id) ?? "",
+      sends: list(d.jobs).map((j) => ({
+        jobId: str(j.job_id) ?? "",
+        albumName: str(j.album_name) ?? "",
+        status: str(j.status) ?? "done",
+        itemsTotal: num(j.items_total) ?? 0,
+        itemsSent: num(j.items_sent) ?? 0,
+        itemsKept: num(j.items_kept) ?? 0,
+        itemsFailed: num(j.items_failed) ?? 0,
+        bytesSent: num(j.bytes_sent) ?? 0,
+        folderUrl: str(j.folder_url),
+      })),
+    })),
     kick: list(r.kick).map((k) => ({ connectionId: str(k.connection_id) ?? "", lanes: num(k.lanes) ?? 0 })),
     recheck: (Array.isArray(r.recheck) ? r.recheck : []).filter((x): x is string => typeof x === "string"),
     reconnect: list(r.reconnect).map((c) => ({
@@ -855,4 +885,51 @@ export async function readSendItems(input: {
       reason: input.state === "skipped" ? str(r.skip_reason) : str(r.last_error),
     };
   });
+}
+
+/** The sends of a connection a finding just paused for one reason (each gets its own paused mail, once). */
+export async function readJustPaused(connectionId: string, reason: string, sinceMs: number): Promise<string[]> {
+  const rows = await mustQuery(
+    admin()
+      .from("cloud_exports")
+      .select("id")
+      .eq("connection_id", connectionId)
+      .eq("status", "paused")
+      .eq("pause_reason", reason)
+      .gte("paused_at", new Date(sinceMs).toISOString())
+      .limit(100),
+    "drive: sends just paused",
+  );
+  return (Array.isArray(rows) ? rows : []).map((r) => str(obj(r).id)).filter((id): id is string => Boolean(id));
+}
+
+/** The done mail named these sends: marked, so the fold never names one twice. */
+export async function markMailed(jobIds: string[]): Promise<void> {
+  if (jobIds.length === 0) return;
+  await rpc("cloud_export_mailed", { p_jobs: jobIds });
+}
+
+/** When the Drive sweep last wrote its heartbeat (it writes one an hour), or null for never. */
+export async function lastSweepHeartbeatAt(): Promise<number | null> {
+  const row = await mustQuery(
+    admin()
+      .from("job_runs")
+      .select("started_at")
+      .eq("job", "drive_sweep")
+      .order("started_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    "drive: the sweep's last heartbeat",
+  );
+  const at = str(obj(row).started_at);
+  return at ? Date.parse(at) : null;
+}
+
+/** A send's folder in her Drive (deny-all to her: the column is not granted), for "Check again" on a binned folder. */
+export async function readSendFolderId(jobId: string): Promise<string | null> {
+  const row = await mustQuery(
+    admin().from("cloud_exports").select("folder_id").eq("id", jobId).maybeSingle(),
+    "drive: a send's folder",
+  );
+  return str(obj(row).folder_id);
 }
