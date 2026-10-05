@@ -18,7 +18,7 @@
     },
     "guest-hour-live": {
       "calls": 26,
-      "vercelCpuMs": 1540
+      "vercelCpuMs": 1190
     },
     "guest-hour-down": {
       "calls": 74,
