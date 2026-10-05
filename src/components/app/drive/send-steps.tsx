@@ -35,7 +35,7 @@ import {
   rememberIntent,
   returnWords,
 } from "./drive-client";
-import { FolderPicture } from "./drive-parts";
+import { FolderPicture, Notice, NotSetUpNotice } from "./drive-parts";
 import { refreshDriveStatus, useDriveStatus } from "./use-drive-status";
 
 /** About how fast a send goes, for "Takes": 5 MB a second (Google's pace for one account, three lanes). */
@@ -71,35 +71,6 @@ function PromiseLine({
       </span>
       <span className="pt-1.5 text-sm text-pretty">{children}</span>
     </li>
-  );
-}
-
-/** A refusal or a return's words, in place, with what to do. */
-function Notice({
-  title,
-  detail,
-  children,
-}: {
-  title: string;
-  detail?: string;
-  children?: React.ReactNode;
-}) {
-  return (
-    <div
-      role="status"
-      data-drive-notice=""
-      className="flex flex-col gap-1.5 rounded-float bg-warning/10 px-3 py-2.5 text-sm ring-1 ring-warning/40"
-    >
-      <span className="font-medium text-pretty">{title}</span>
-      {detail ? (
-        <span className="text-xs text-pretty text-muted-foreground">
-          {detail}
-        </span>
-      ) : null}
-      {children ? (
-        <span className="mt-1 flex flex-wrap gap-1.5">{children}</span>
-      ) : null}
-    </div>
   );
 }
 
@@ -245,10 +216,7 @@ export function DriveSendSteps({
       <>
         {header}
         <PopupBody>
-          <Notice
-            title="Send to Google Drive isn't set up yet."
-            detail="It's on its way. Download keeps every original meanwhile."
-          />
+          <NotSetUpNotice />
         </PopupBody>
       </>
     );

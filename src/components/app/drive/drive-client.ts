@@ -16,6 +16,8 @@ import { connectHref } from "@/lib/drive/links";
 import type { PressAnswer, PressRefusal } from "@/lib/drive/press";
 import { formatBytes } from "@/lib/utils";
 
+import { NOT_SET_UP } from "./not-set-up";
+
 export type { AlbumPreview };
 export { connectHref };
 
@@ -193,7 +195,7 @@ export function refusalWords(answer: Extract<PressAnswer, { ok: false }>): {
   const words: Record<PressRefusal, { title: string; detail?: string }> = {
     bad_request: { title: "Couldn't start that send." },
     unauthorized: { title: "Sign in again to send." },
-    unavailable: { title: "Send to Google Drive isn't set up yet." },
+    unavailable: { title: NOT_SET_UP.title },
     rate_limited: {
       title: "That's a lot of sends at once.",
       detail: "Try again in a minute.",
@@ -280,7 +282,7 @@ export function returnWords(word: DriveReturn): {
         good: false,
       };
     case "unavailable":
-      return { title: "Send to Google Drive isn't set up yet.", good: false };
+      return { title: NOT_SET_UP.title, good: false };
     default:
       return {
         title: "Couldn't connect Google Drive.",

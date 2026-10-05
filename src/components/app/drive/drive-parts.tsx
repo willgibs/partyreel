@@ -16,6 +16,8 @@ import { Progress } from "@/components/ui/progress";
 import type { DriveTone } from "@/lib/drive/moments";
 import { cn } from "@/lib/utils";
 
+import { NOT_SET_UP } from "./not-set-up";
+
 /** The stand-in for Google's Drive mark (one place to swap it). */
 export function DriveGlyph({ className }: { className?: string }) {
   return <FolderUp className={cn("size-4 shrink-0", className)} aria-hidden />;
@@ -168,4 +170,38 @@ export function FolderPicture({
       </span>
     </span>
   );
+}
+
+/** A refusal or a return's words, in place, with what to do. */
+export function Notice({
+  title,
+  detail,
+  children,
+}: {
+  title: string;
+  detail?: string;
+  children?: ReactNode;
+}) {
+  return (
+    <div
+      role="status"
+      data-drive-notice=""
+      className="flex flex-col gap-1.5 rounded-float bg-warning/10 px-3 py-2.5 text-sm ring-1 ring-warning/40"
+    >
+      <span className="font-medium text-pretty">{title}</span>
+      {detail ? (
+        <span className="text-xs text-pretty text-muted-foreground">
+          {detail}
+        </span>
+      ) : null}
+      {children ? (
+        <span className="mt-1 flex flex-wrap gap-1.5">{children}</span>
+      ) : null}
+    </div>
+  );
+}
+
+/** Drive is not set up on this deployment (`NOT_SET_UP`), said where a press would otherwise go on to a choice. */
+export function NotSetUpNotice() {
+  return <Notice title={NOT_SET_UP.title} detail={NOT_SET_UP.detail} />;
 }

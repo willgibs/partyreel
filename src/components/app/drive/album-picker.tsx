@@ -10,7 +10,7 @@
  * A list rather than checks on the tiles: it reads the same over the gallery, the table and the list, and a planner
  * with two hundred albums picks from rows. (Recorded as Will's to overrule: the board drew checks on the tiles.)
  */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Check, FolderUp, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -31,8 +31,9 @@ import { useMediaQuery } from "@/lib/use-media-query";
 import { cn, formatBytes, formatEventDate } from "@/lib/utils";
 
 import { peekIntent, takeIntent, takeReturnWord } from "./drive-client";
-import { DriveGlyph } from "./drive-parts";
+import { DriveGlyph, NotSetUpNotice } from "./drive-parts";
 import { DriveSendSteps, type SendDone } from "./send-steps";
+import { useDriveStatus } from "./use-drive-status";
 
 type Albums = { albums: AlbumPreview[]; more: boolean };
 
@@ -45,6 +46,35 @@ function stateOf(
   if (a.sentBefore)
     return { label: `${formatCount(a.newItems)} new`, tone: "muted" };
   return null;
+}
+
+/**
+ * ★ THE LIST STANDS ONLY WHERE DRIVE IS SET UP, AND WHERE IT IS NOT THAT COMES FIRST (red-team 55's NIT): the list let
+ * her pick albums (up to ten a press) and only the press said "isn't set up yet", where Take it home says it on its first
+ * press. It reads the one status poll once, when the popup opens (the step mounts only while open, so a host who never
+ * opens this asks nothing), and asks for no album until Drive is there: an unread status (a failed read) is no
+ * verdict, and the press says what it finds.
+ */
+function PickGate({
+  children,
+  fallback,
+  onThere,
+}: {
+  children: ReactNode;
+  /** What stands in the list's place where Drive is not set up. */
+  fallback: ReactNode;
+  /** Drive is there (or the read said nothing): the list may be asked for, once per mount. */
+  onThere: () => void;
+}) {
+  const { status, loaded } = useDriveStatus();
+  const notSetUp = loaded && status !== null && !status.configured;
+  const there = loaded && !notSetUp;
+  useEffect(() => {
+    if (there) onThere();
+    // Once for each time the step stands: `onThere` is the picker's own closure over what it holds right now.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [there]);
+  return notSetUp ? <>{fallback}</> : <>{children}</>;
 }
 
 export function AlbumPicker({
@@ -91,7 +121,9 @@ export function AlbumPicker({
     setPicked(new Set(preset?.events ?? []));
     setIncludeHidden(preset?.includeHidden ?? false);
     setReturned(preset?.returned ?? null);
-    load(preset?.includeHidden ?? false);
+    // A fresh list for every opening, asked for by the pick step once Drive is known to be there (`PickGate`).
+    setList(null);
+    setFailed(false);
   };
 
   // Back from Google with albums she meant to send from here (or from the storage door): the final press again.
@@ -109,7 +141,6 @@ export function AlbumPicker({
       returned: word,
     });
     // Once, on the paint after the return.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const chosen = useMemo(
@@ -165,7 +196,19 @@ export function AlbumPicker({
               desk={desk}
             />
           ) : (
-            <>
+            <PickGate
+              onThere={() => {
+                if (!list && !failed) load(includeHidden);
+              }}
+              fallback={
+                <>
+                  <PopupHeader title="Send to Google Drive" back="Dashboard" />
+                  <PopupBody className="pt-2">
+                    <NotSetUpNotice />
+                  </PopupBody>
+                </>
+              }
+            >
               <PopupHeader
                 title="Send to Google Drive"
                 back="Dashboard"
@@ -319,7 +362,7 @@ export function AlbumPicker({
                   <FolderUp /> Send to Drive
                 </Button>
               </PopupFooter>
-            </>
+            </PickGate>
           )}
         </PopupContent>
       </Popup>
