@@ -155,24 +155,9 @@ const corpusOf = (sources: Iterable<{ source: string; name?: string }>) =>
  * which is how they went unseen. A BASELINE THAT MAY ONLY SHRINK, the way the row-cap allow-lists are: an entry fails
  * once the product says its label again, or its article stops quoting it, so fixing the article is deleting the entry.
  * The articles are the help catalog's (`content/help/`), not this test's: each `why` says what the product says now.
+ * Empty is the steady state: a label an article quotes is one a control says, and a new entry is a debt owed.
  */
-const NOT_SHIPPED: { slug: string; label: string; why: string }[] = [
-  {
-    slug: "download-photos-videos-and-albums",
-    label: "Download album",
-    why: "the Download album menu left with take-home r1: a guest takes photos home by Select, then Save (live-gallery-save.tsx), a host by her two sets (take-home-panel.tsx); the article still walks the menu",
-  },
-  {
-    slug: "your-data-and-deleting-your-account",
-    label: "Download album",
-    why: "the same menu: a host's take-home is her two sets (take-home-panel.tsx), and her Download is the gallery menu's",
-  },
-  {
-    slug: "your-public-profile-following-and-blocking",
-    label: "Unfollow",
-    why: "crumbs-44's one control reads Following once on, a toggle that reads as pressed (relation-toggle.tsx's RELATION_FACE), so the Connections card has no Unfollow: its row says Following",
-  },
-];
+const NOT_SHIPPED: { slug: string; label: string; why: string }[] = [];
 
 /** A scan reads about 1,100 files through the TypeScript parser, a second or two alone; under a loaded run it needs a budget of its own. */
 const SCAN_BUDGET_MS = 60_000;

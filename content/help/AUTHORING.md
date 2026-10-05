@@ -40,9 +40,14 @@ file for limits. Field notes:
   nouns. They feed search ranking and the related-articles scorer, where each
   shared keyword counts twice what a shared category does, so a generic list
   ("event", "photos") relates everything to everything.
-- `audience` (optional): `host`, `guest`, or `both`. The default derives from
-  the category (the guest category is guest-voiced, troubleshooting answers
-  both, everything else addresses the host). Set it only for the exceptions.
+- `audience` (optional): `host`, `guest`, or `both`: who the article HELPS, the
+  people who would act on it (a guest-voiced article a host sends her guests,
+  or acts on herself, helps both). The default derives from the category and
+  is what most of its shelf is: the guest category is guest-voiced;
+  troubleshooting, account & profile and the highlight reel help both;
+  everything else addresses the host. Set it only where an article differs,
+  never to say what its category already does (`help.test.ts` holds both); the
+  badge and the palette name only a difference.
 - `plans` (optional): the plans a feature applies to, rendered as badges in
   the In-short card. Leave it empty when the article applies to every plan.
 - `action` (optional): `{ label, href }`, the one door under the short answer
@@ -87,11 +92,14 @@ file for limits. Field notes:
    note gets a reply, usually within a day." (`REPLY_LINE` in
    `constants/contact.ts`), and the durability facts in `constants/about.ts`
    and on the privacy page (their "no expiry" clauses answer to rule 7).
-7. **One reconciled lifecycle sentence.** Events have no end date. On the
-   Free plan an event nobody touches for about six months is warned by
-   email, then moved to Deleted, where it can be restored for 30 days. Use
-   the components for both windows; never let one article say "never
-   expires" while another describes the removal.
+7. **One reconciled lifecycle sentence.** An event never expires, and its
+   date, with the end date a host may add for a run of days, only says when
+   it happens: nothing closes, locks or removes an event because a day
+   passed, so no line says an event "has no end date" (Settings offers "Add an
+   end date"). On the Free plan an event nobody touches for about six months
+   is warned by email, then moved to Deleted, where it can be restored for 30
+   days. Use the components for both windows; never let one article say
+   "never expires" while another describes the removal.
 8. **Voice**: warm and confident. Plain second person, contractions welcome,
    short sentences, a little personality in openings and callouts, never
    jokey. Hosts are "you" managing "your event"; guest articles address the
@@ -187,11 +195,12 @@ Ten categories in lifecycle order; the article order within each is the
 ### 01 Getting started
 
 1. how-partyreel-works
-2. create-your-first-event
-3. your-dashboard-explained
-4. your-event-page-explained
-5. event-settings-explained
-6. day-of-checklist-for-hosts
+2. try-the-live-demo
+3. create-your-first-event
+4. your-dashboard-explained
+5. your-event-page-explained
+6. event-settings-explained
+7. day-of-checklist-for-hosts
 
 ### 02 QR & invites
 
