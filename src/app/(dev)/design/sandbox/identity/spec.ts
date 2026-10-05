@@ -71,7 +71,7 @@ export const IDENTITY = defineExploration({
       "Round four of Partyreel's own atoms: your mix, trait by trait, each on real screens wearing your picks so far, then how far the light edge reaches.",
     settled: [
       "Viewfinder's body, the camera voice, the display for every pop-out and status as lights are wired: every frame stands on production's own.",
-      "The room's pop-outs are graphite, as you picked: a lit grey one step above the room's black, drawn here while it is wired.",
+      "The room's pop-outs are graphite, as you picked: a lit grey one step above the room's black, now wired.",
       "Form only, never hue: today's achromatic chrome and the status lights as they are; the brand round owns colour.",
       "Calls drawn on these screens, yours to overrule: 8px panels and 2px photos, a toast's lit glyph, a lighter veil on paper, the hand-made cards.",
     ],

@@ -114,7 +114,7 @@ export const EVENT_HEADER = defineExploration({
     about:
       "Round four of the hub's doors: glass, cards over the seam and windows, each refined to its best version, each with its sticky form.",
     settled: [
-      "The cover's facts are the strip, your round-three pick (being wired now): every frame here stands on it.",
+      "The cover's facts are the strip, your round-three pick, now wired: every frame here stands on it.",
       "Every room opens over the hub (wired): Review and Guests in Settings' panel, the reel full screen, As a guest an inert phone.",
       "In every option a room's link opens another room in its panel: in Settings, Who can get in, then Let them in from Guests.",
       "The waiting light's colour is the brand's question (its status set): every door here wears today's light and adds no hue.",
