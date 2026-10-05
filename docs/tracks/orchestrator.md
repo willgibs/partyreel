@@ -56,6 +56,7 @@ the dashboard, the hub's strip, graphite, Create's styles, small fixes, red-team
 | `uploads-meter-ui` | this month's uploads against her allowance in the storage ring's popover | MERGED at `c00b1f5b0` (gate 225 green); his calls in the calls lab (AD); pruned | Sonnet, 3131 | `a5d19501a15912cc1` |
 | `upload-cancel` | E6 for uploads: an in-flight upload's x asks first, then offers Try again | MERGED at `4a064993f` (gate 226 green); his calls in the calls lab (AE); pruned | Sonnet, 3132 | `a80a1b7990acf514c` |
 | `crumbs-72` | Settings' develop time never lost (one hook with the date field's close-save), the host's storage refusal with its numbers, the teaser's waiting words, the reel's dead viewer path removed | RUNNING (cut at `192a09666`; may be cut off: resume from its WIP) | Sonnet, 3131 | `acf51d0ab0fa56db8` |
+| `admin-uploads` | the operator sees a host's uploads against her allowance (/admin/accounts, the account view) and her Deleted beside her active bytes; read-only; the reset is a Question | RUNNING (cut at `19938cf7d`; may be cut off: resume from its WIP) | Sonnet, 3132 | `a92c83ecc3155933c` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Its
 model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`. From another session, respawn it from
@@ -65,7 +66,7 @@ model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`.
 session (`2ba90542-62d6-487c-8c79-3657619f9133`, hi@willgibs.com, weekly 92% at 21:15Z 2026-10-04, resets Tuesday
 2026-10-06 21:00Z) runs to 100% on Will's word (no token wasted). Since milestone 36 it merged compute-uploads,
 compute-presign, compute-lazy-sdk, crumbs-66 to crumbs-71, library-specimens, uploads-meter-ui and upload-cancel (98%
-weekly at 02:12Z 2026-10-05); crumbs-72 may be mid-flight when it stops. The next Orchestrator runs on willg97 (its weekly reset 2026-10-04 13:00Z,
+weekly at 02:12Z 2026-10-05); crumbs-72 and admin-uploads may be mid-flight when it stops. The next Orchestrator runs on willg97 (its weekly reset 2026-10-04 13:00Z,
 0% then). Its first steps:
 - for each `lp/*` whose manifest is not `handed-off`, resume it per the runbook's "Resume a lane" (its pushed WIP, its
   predecessor's transcript under `subagents/agent-<id>.jsonl`, the same port); one whose manifest says handed-off is
