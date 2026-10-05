@@ -47,7 +47,6 @@
  */
 import "server-only";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
 
 import {
   capWithWriteHeadroom,
@@ -136,22 +135,15 @@ export type OverCapCandidate = {
  */
 export const CANDIDATE_PAGE = 100;
 
-/**
- * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `over_capacity_candidates` arrives with migration 20261005060000, so
- * the call that names it goes through this untyped client (drop the cast then).
- */
-function untyped(admin: AdminClient): SupabaseClient {
-  return admin as unknown as SupabaseClient;
-}
-
 /** One page of candidates after `after`, ascending by id: PostgREST's answer as `readAllPages` takes it. */
 function candidatesPage(
   admin: AdminClient,
   after: string | null,
   limit: number,
 ): PromiseLike<PageResult<OverCapCandidate>> {
-  return untyped(admin).rpc("over_capacity_candidates", {
-    p_after: after,
+  return admin.rpc("over_capacity_candidates", {
+    // The generated Args take no null: an absent p_after is the SQL default (null), the first page.
+    p_after: after ?? undefined,
     p_limit: limit,
   });
 }

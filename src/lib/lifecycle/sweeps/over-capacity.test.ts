@@ -240,7 +240,9 @@ describe("sweepOverCapacity", () => {
     expect(calls).toHaveLength(Math.ceil(1_299 / CANDIDATE_PAGE));
     expect(candidateRequests(world)).toHaveLength(calls.length);
     expect(calls.every((c) => c.p_limit === CANDIDATE_PAGE)).toBe(true);
-    expect(calls[0].p_after).toBeNull();
+    // The first page names no p_after: the generated Args take no null, so it is omitted and the SQL default (null)
+    // starts the walk.
+    expect(calls[0].p_after).toBeUndefined();
     expect(calls[1].p_after).toBe(uuidOf("a", CANDIDATE_PAGE - 1));
     expect(
       world.fake.requests.filter((r) => r.name === "host_storage_summary"),

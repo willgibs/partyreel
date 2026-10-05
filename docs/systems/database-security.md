@@ -14,7 +14,7 @@ semantics live in its doc.
 
 ## The RPC inventory and the advisor set
 
-`get_advisors` (security) after every schema change reads 19 `rls_enabled_no_policy`, 4 in lint `0028` and 36 in
+`get_advisors` (security) after every schema change reads 20 `rls_enabled_no_policy`, 4 in lint `0028` and 36 in
 `0029`. Leaked Password Protection is on, so its WARN never shows. A function in the wrong list means a grant slipped.
 
 - **Anon capability reads (`0028`, and `0029` too; by design, never revoke):** `get_event_by_qr_token`,
@@ -112,7 +112,8 @@ semantics live in its doc.
   prune alone), `camera_rolls` (the camera's ledger, service_role SELECT only, written by `create_media` alone),
   `article_feedback` (the help center's feedback beacon, no identity of any kind), and
   `storage_ledger` (Free's and Pro's monthly uploads meter, a pass's year counting on its own
-  `event_passes.uploaded_bytes`: its readers are the upload gates, DEFINER, and the service role).
+  `event_passes.uploaded_bytes`: its readers are the upload gates, DEFINER, and the service role), and
+  `notice_retries` (a one-time notice kept rendered until a retry sends it, never the address: `sendOnce`).
 
 ## Grants
 
