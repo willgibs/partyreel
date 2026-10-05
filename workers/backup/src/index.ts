@@ -8,7 +8,13 @@
  *                 each new object is copied PRIMARY -> BACKUP within seconds (RPO ~ seconds).
  *   scheduled() — a daily reconciliation sweep: copy any `events/` object missing from BACKUP. This
  *                 is the backstop for missed/failed events AND the one-time initial seed of objects
- *                 that predate the Worker.
+ *                 that predate the Worker. The weekly cron runs the deletion-aware prune instead.
+ *   fetch()     — one door: Restore now (restore-door.ts), the operator's press from /admin/jobs, which
+ *                 asks the prune's Durable Object for a restore pass. Every other request is a 404.
+ *
+ * THE RESTORE (durability-backups.md, "The restore") copies the backup's lone copies back into PRIMARY: a
+ * pass is the Durable Object's alarm (prune-state.ts), asked for by the daily cron, by the prune's end
+ * and by the door, so it has its own invocation and budget whoever asked.
  *
  * The BACKUP bucket is in a different region (WNAM) with a Bucket Lock (>= the 30-day recovery
  * window) so nothing — not the purge cron, not a compromised token, not a bug — can delete a backup
@@ -32,6 +38,10 @@ import { parseLedger } from "./prune-ledger";
 import { readConfirmAnswer, runPrune, type ConfirmAnswer } from "./prune-run";
 import { PRUNE_STATE_NAME, PruneState } from "./prune-state";
 import { depthNote, readQueueDepths, type DepthCounts } from "./queue-metrics";
+import { handleRestoreDoor } from "./restore-door";
+import { confirmNamed } from "./restore-pass";
+import { restoreModeOf } from "./restore-run";
+import type { RestoreTrigger } from "./restore-schedule";
 
 // The prune's ledger lives in this Durable Object class; a Worker exports the classes its bindings name.
 export { PruneState };
@@ -43,6 +53,11 @@ export type Env = {
   BACKUP: R2Bucket;
   /** Prune mode: the literal "live" enables deletes; anything else (incl. unset) is a dry run. */
   PRUNE_MODE?: string;
+  /**
+   * Restore mode (restore-run.ts): the literal "on" copies lone copies back, "off" does nothing at all, anything else
+   * (incl. unset) is a dry run that reports what it would copy.
+   */
+  RESTORE_MODE?: string;
   /** App endpoint that row-confirms gone mediaIds + runs the prune breaker (the Worker can't reach the DB). */
   PRUNE_API_URL?: string;
   /** Shared bearer secret for PRUNE_API_URL (`wrangler secret put PRUNE_API_SECRET`). */
@@ -340,9 +355,20 @@ async function pruneRun(
       backup: env.BACKUP,
       primary: env.PRIMARY,
       confirm: (ids, scanned) => confirmGone(env, ids, scanned, mode),
+      named: (keys) => confirmNamed(env, keys),
+      // The lone copies' table lives in the same object as the ledger; one that cannot be read is no table to settle.
+      ...(store && readable
+        ? { lone: { record: (walk) => store.recordLone(walk) } }
+        : {}),
       now: () => Date.now(),
     },
-    { mode, ledger: parsed.ledger, startedAtMs: Date.now(), releasedAtMs },
+    {
+      mode,
+      ledger: parsed.ledger,
+      startedAtMs: Date.now(),
+      releasedAtMs,
+      restoreMode: restoreModeOf(env.RESTORE_MODE),
+    },
   );
   console.log("prune: done", result.counts);
 
@@ -403,6 +429,28 @@ async function prune(env: Env): Promise<void> {
       note: String(err).slice(0, 300),
     });
   }
+  // The run may have just found lone copies: a restore pass follows it, in an invocation of its own.
+  await askForRestore(env, "schedule");
+}
+
+/**
+ * Ask the prune's Durable Object for a restore pass (prune-state.ts). Never throws: a request that fails is logged,
+ * and the next day's cron asks again (the restore's card reads Overdue if none gets through).
+ */
+async function askForRestore(env: Env, trigger: RestoreTrigger): Promise<void> {
+  if (!env.PRUNE_STATE) {
+    console.warn("restore: no ledger binding; no pass asked for");
+    return;
+  }
+  try {
+    const stub = env.PRUNE_STATE.get(
+      env.PRUNE_STATE.idFromName(PRUNE_STATE_NAME),
+    );
+    const { state } = await stub.requestRestore(trigger);
+    console.log("restore: pass asked for", { trigger, state });
+  } catch (err) {
+    console.error("restore: could not ask for a pass", { err: String(err) });
+  }
 }
 
 export default {
@@ -447,7 +495,23 @@ export default {
     if (controller.cron === PRUNE_CRON) {
       ctx.waitUntil(prune(env));
     } else {
+      // The daily restore pass is asked for FIRST, apart from the reconcile: a reconcile that outgrows its 15
+      // minutes is cut off by the platform, and must not take the day's restore with it.
+      ctx.waitUntil(askForRestore(env, "schedule"));
       ctx.waitUntil(reconcile(env));
     }
+  },
+
+  // The one door: Restore now from /admin/jobs (restore-door.ts). Everything else is a 404.
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const ns = env.PRUNE_STATE;
+    return handleRestoreDoor(
+      request,
+      env,
+      ns
+        ? (trigger) =>
+            ns.get(ns.idFromName(PRUNE_STATE_NAME)).requestRestore(trigger)
+        : null,
+    );
   },
 } satisfies ExportedHandler<Env, R2EventMessage>;

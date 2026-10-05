@@ -2,6 +2,7 @@
 
 Open this before you:
 - touch anything that deletes R2 objects: the orphan sweep, the backup prune;
+- touch anything that writes the backup into the primary: the backup restore;
 - change the backup Worker, its Queue or the DB-backup Action;
 - restore from backup;
 - reason about R2 cost or scale.
@@ -39,10 +40,10 @@ day-long `staging/` object never reaches the lock.
   letter is a media object with NO backup copy until a reconcile catches it. The depths ride the heartbeat's `counts`
   (`queue_backlog`, `dead_letter_backlog`, each with `_oldest_min`), strings a test pins on BOTH sides since the
   packages cannot import each other.
-- ★ **The Worker's two jobs report through the app, and fail opposite ways on purpose** (`job-heartbeat.ts`, on a URL
+- ★ **The Worker's jobs report through the app, and fail opposite ways on purpose** (`job-heartbeat.ts`, on a URL
   derived from `PRUNE_API_URL`, since a Worker cannot reach the database): on an unreachable heartbeat the reconcile
-  runs anyway (a missing backup copy beats a missing log line), and the prune skips (it deletes from the last-resort
-  copy, so it acts on no unanswered question).
+  runs anyway (a missing backup copy beats a missing log line), while the prune skips (it deletes from the last-resort
+  copy, so it acts on no unanswered question) and so does the restore (it writes only what the app names).
 
 ### The deletion-aware prune
 
@@ -60,13 +61,17 @@ guards are layered (`workers/backup/src/prune-run.ts`, a pure engine under test)
   whole run with nothing deleted and the cursor where it was; a failed HEAD keeps that one item while the run still
   deletes the others it confirmed, and closes as an error.
 - ★ **What the backup alone holds is an alert, never a note:** a candidate whose row lives while the primary lost its
-  object is a host's photo with one copy left. It is kept, counted on every run that judged its candidates
-  (`primary_missing`, zero included, so a quiet week is a reading), said second in the note and named key by key in
-  the run's log ("held by the backup alone", Workers Logs, the first 200 items a run); `/admin/jobs` reads it as a card
-  of its own beside the dead letters (`backup_primary_missing`, a failure at any count, the bell), whose remedy is the
-  restore below, key by key. Nothing copies one back by itself: the prune cannot tell a lost object from one its row no
-  longer names, and a blind copy would be deleted again as an orphan. It sees only keys past the 36-day gate, and a run
-  counts the range it walked, so a pass that spans runs reports each range in its turn.
+  object is a host's photo with one copy left. It is kept, and with the restore on or in dry run the app's confirm
+  route is asked which of its keys a live row still NAMES (`loneKeys` → `named`, by `mediaKeysOf`), so a key its row
+  let go of (a phone copy dropped at an upload's complete for being over its cap) is never counted or copied back:
+  restored, it would be an object no row names, which no sweep reclaims (the orphan sweep keys on the row's id). The
+  rest go into the lone copies' table (`lone-store.ts`, SQL in `PruneState`): a run settles the range it judged into
+  it and reports the table's whole count (`primary_missing`, zero included, so a quiet week is a reading), so a pass
+  that spans runs reads the whole backup's lone copies after every run, never its own range alone. The count is said
+  second in the note, each item's keys named in the run's log ("held by the backup alone", Workers Logs, the first 200
+  items a run), and raised where the report lands (`/api/internal/job-run`: the `backup_primary_missing` warning and
+  the ops mail, at most once a day) beside its card on `/admin/jobs` (a failure at any count, the bell). It sees only
+  keys past the 36-day gate. The restore below copies them back.
 - **An app-side breaker** (`evaluatePrune`): an empty `media` table beside candidates deletes nothing and alerts. The
   orphan sweep's fractional cap is deliberately absent: the gone fraction is legitimately large after a clear-out.
 - **The hold is the clamp, sized to the deletions:** a run whose backlog passes ten times the usual (the median of its
@@ -95,6 +100,35 @@ guards are layered (`workers/backup/src/prune-run.ts`, a pure engine under test)
   which reads attention with a counted `remaining`. A ledger it cannot read makes the run dry and saves nothing; one
   that reads back damaged falls back to the head, the floor and no hold, the safe direction each.
 
+### The restore
+
+The backup's lone copies, copied back into the primary on their own (`workers/backup/src/restore-run.ts`, a pure
+engine under test, wired in `restore-pass.ts`): a pass takes each key in the lone copies' table and copies it from
+`partyreel-backup` into `partyreel` at the same key.
+- ★ **Three guards on every copy, each on its own:** only a key a live row still names, asked of the confirm route
+  right before each batch; never over an object that is there, a HEAD first and then the write itself conditional
+  (`If-None-Match: *`, which R2's binding refuses with `null` when anything is stored at the key: the Workers API
+  reference, "Conditional operations", read 2026-10-05, and walked in workerd's local R2); never past one write's
+  reach: R2 takes at most 5 GiB less 5 MiB in one put and a multipart upload's complete takes no condition, so a
+  larger object is never written by halves; it stays held, said key by key, for a copy by hand.
+- ★ **Its mode is its own (`RESTORE_MODE`):** `on` copies, `off` does nothing, and anything else (unset included) is a
+  dry run that asks and reads everything and copies nothing, so a var missing or mistyped never writes; wrangler.jsonc
+  ships `dryrun`. Switching it on is no launch switch: it writes only objects a live row names, into places nothing
+  is stored. It fails closed on an unreachable app, since it writes only what the app names.
+- **A pass is `PruneState`'s alarm,** so it has an invocation and a 15-minute budget of its own whoever asked: the
+  daily cron (asked first, apart from the reconcile, which the platform cuts off at 15 minutes), each prune's end, and
+  Restore now. A request never starts a second pass beside one in flight and is never lost: one that comes while a
+  pass runs queues the next (`restore-schedule.ts`). A pass judges at most 2,000 keys and starts no copy past 12
+  minutes; what it leaves is counted (`remaining`) and the next pass carries on.
+- **Restore now is the one start the app has for a Cloudflare job:** the restore card's control, behind AAL2, POSTs
+  the Worker's one door (`POST /restore` on its workers.dev origin, `BACKUP_WORKER_URL`, the internal-jobs bearer it
+  already holds), which asks the object for a pass; every other path is a 404 and every other caller a 401.
+- **Every outcome is said:** each key's in Workers Logs with its key; its card (`backup_restore`, its own switch and
+  heartbeat, daily) says what it copied back, what it could not and why (a failed copy stays held for the next pass;
+  too large, or gone from the backup too, closes the pass as an error), and what it left alone (in the primary
+  already, or named by no row: both dropped from the table). Its report carries the table's count after it, which the
+  lone copies' card reads beside the prune's, freshest first, so lone copies copied back read healthy at once.
+
 ## Pillar C: the database backup
 
 Supabase Pro's daily backup (7 days, same vendor) plus a nightly off-site `pg_dump` to `partyreel-backup/db/` (the
@@ -106,7 +140,8 @@ the database password rotates until its secret follows (the app's API keys are s
 
 Rows come from the Supabase backup or the `db/` dump; bytes by copying `partyreel-backup` into `partyreel`. A full
 restore needs BOTH halves, and the prune is paused from `/admin/jobs` first: mid-restore, rows and objects are missing
-together, which is exactly what it reads as gone. Media's recovery point is seconds on the live path (the daily
+together, which is exactly what it reads as gone. The backup restore (above) mends a handful of lone copies on its
+own; a whole bucket is this copy, and its conditional writes make any race with the restore harmless. Media's recovery point is seconds on the live path (the daily
 reconcile the backstop), the database's up to a day, and the recovery time is a bucket-to-bucket copy on free
 in-region egress. Pillar A protects the objects while the rows are transiently wrong, which is exactly when a restore
 is under way.
@@ -119,7 +154,8 @@ is under way.
   near-zero usage; the truth is Billing, Billable usage. A $10 usage budget alert to partyr33l@gmail.com guards a real
   runaway.
 - **The prune's cost shape is its primary-first merge** (above): two listings a thousand keys (Class A) and no call
-  about a live object, about $0 into tens of millions of objects. Its deadline bounds a run to what two list calls a
+  about a live object, about $0 into tens of millions of objects. The restore's is its lone copies: a pass with none
+  is two heartbeat calls to the app; each key at most four R2 calls inside Cloudflare and a confirm call a thousand. Its deadline bounds a run to what two list calls a
   thousand keys can reach in 12 minutes (millions at a Worker's R2 latency); past that a pass spans runs, deleted bytes
   outlive the 43 days, and the card reads `stopped_early` every week: the cue for a daily cadence (a catalog change).
 - **The reconcile restarts at the head every run:** it examines at most `RECONCILE_MAX_PER_RUN` (5,000) objects from

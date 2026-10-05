@@ -71,7 +71,9 @@ describe("the job catalog", () => {
   it("only offers Run now where the app can actually start the job", () => {
     // A Cloudflare Worker cron and a GitHub Action cannot be triggered from here (no credential,
     // no endpoint), so promising a button would be a lie on the operator's console. Neither can a
-    // sub-sweep: it runs inside the purge cron, and its card says to run that.
+    // sub-sweep: it runs inside the purge cron, and its card says to run that. The backup restore's
+    // Restore now is no exception to this rule: it asks its Worker's own door (restore-now.ts), a
+    // control of its card, never the generic Run now that calls the app's own cron routes.
     for (const job of JOBS) {
       if (job.host !== "vercel_cron") expect(job.canRunNow).toBe(false);
     }
@@ -739,11 +741,11 @@ describe("the backup's lone copies (crumbs-75)", () => {
       reading: readDepth(def(), sources),
     });
 
-  it("is a reading of the prune's own runs, beside the dead letters, with nothing to pause or run", () => {
+  it("is a reading of the prune's runs and the restore's passes, beside the dead letters, with nothing to pause or run", () => {
     expect(def()).toMatchObject({
       kind: "derived",
       host: "cloudflare_worker",
-      readFrom: ["backup_prune"],
+      readFrom: ["backup_prune", "backup_restore"],
       flagKey: null,
       canRunNow: false,
     });
@@ -777,6 +779,58 @@ describe("the backup's lone copies (crumbs-75)", () => {
         },
       ]),
     ).toBeNull();
+  });
+
+  it("★ reads the restore's pass after the prune that found them, freshest first: copied back, it reads healthy at once", () => {
+    const restored: DepthSource = {
+      job: "backup_restore",
+      counts: { primary_missing: 0, restored: 2, restore_mode: "on" },
+      startedAtMs: NOW - 1_800_000,
+      health: "ok",
+    };
+    expect(verdict([at({ primary_missing: 2 }), restored])).toBe("ok");
+    // A restore that could not copy them back carries what it left, and its failure.
+    expect(
+      verdict([
+        at({ primary_missing: 2 }),
+        {
+          ...restored,
+          counts: { primary_missing: 1, failed: 1 },
+          health: "failed",
+        },
+      ]),
+    ).toBe("failed");
+    // A newer prune that found more outranks an older restore's zero.
+    expect(
+      verdict([{ ...at({ primary_missing: 3 }), startedAtMs: NOW }, restored]),
+    ).toBe("failed");
+  });
+});
+
+describe("the backup restore (durability-restore)", () => {
+  it("is a scheduled Worker job with its own switch, beside the lone copies it restores, its Run now its own", () => {
+    expect(defOf("backup_restore")).toMatchObject({
+      kind: "scheduled",
+      host: "cloudflare_worker",
+      flagKey: "backup_restore_enabled",
+      canRunNow: false,
+      expectedEveryMs: DAY,
+    });
+    const ids = JOBS.map((j) => j.id);
+    expect(ids.indexOf("backup_restore")).toBe(
+      ids.indexOf("backup_primary_missing") + 1,
+    );
+  });
+
+  it("rides the cron its Worker deploys for the reconcile, so the missed-run rule judges the real clock", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { join } = await import("node:path");
+    const wrangler = readFileSync(
+      join(process.cwd(), "workers", "backup", "wrangler.jsonc"),
+      "utf8",
+    );
+    expect(defOf("backup_restore").cron).toBe(defOf("backup_reconcile").cron);
+    expect(wrangler).toContain(`"${defOf("backup_restore").cron}"`);
   });
 });
 

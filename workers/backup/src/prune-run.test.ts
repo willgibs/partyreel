@@ -24,12 +24,16 @@ import {
   type PruneLimits,
   type PrunePorts,
 } from "./prune-run";
+import type { LoneStore } from "./lone-store";
+import { readNamedAnswer } from "./named";
+import type { RestoreMode } from "./restore-run";
 import {
   createFakeR2,
   headedKeys,
   listStarts,
   type FakeR2,
 } from "./testing/fake-r2";
+import { openLoneStore } from "./testing/sqlite";
 
 const DAY = 86_400_000;
 const NOW = Date.UTC(2026, 9, 5, 6, 0, 0); // a Monday, 06:00 UTC: the prune's cron
@@ -162,6 +166,7 @@ async function run(
     limits?: Partial<PruneLimits>;
     at?: number;
     releasedAtMs?: number | null;
+    restoreMode?: RestoreMode;
   } = {},
 ) {
   if (opts.at !== undefined) {
@@ -174,6 +179,7 @@ async function run(
     startedAtMs: w.clock.t,
     limits: opts.limits,
     releasedAtMs: opts.releasedAtMs ?? null,
+    restoreMode: opts.restoreMode,
   });
 }
 
@@ -793,5 +799,198 @@ describe("what the backup alone holds", () => {
 
     const empty = await run(makeWorld());
     expect(PRIMARY_MISSING_KEY in empty.counts).toBe(false);
+  });
+});
+
+/**
+ * ★ THE LONE COPIES ACROSS A PASS, AND ONLY THOSE A ROW NAMES (durability-restore). A run settles its range into the
+ * lone copies' table (lone-store.ts, here on Node's own SQLite) and reports the table's whole count, so a pass that
+ * spans runs reads the whole backup's lone copies after every run; with the restore on or in dry run it asks which
+ * keys a live row names first, so a key a row let go of is never counted, kept or copied back.
+ */
+describe("the lone copies, carried across a pass", () => {
+  async function withTable(w: World): Promise<LoneStore> {
+    const store = await openLoneStore();
+    w.ports.lone = {
+      record: async (walk) =>
+        walk ? store.walk(walk, w.clock.t).keys : store.tally().keys,
+    };
+    return store;
+  }
+
+  /** The app's answer, from the keys rows name. */
+  function namesFrom(w: World, named: Set<string>, calls: string[][] = []) {
+    w.ports.named = async (keys) => {
+      calls.push([...keys]);
+      return readNamedAnswer({ named: keys.filter((k) => named.has(k)) }, keys);
+    };
+    return calls;
+  }
+
+  it("★ reads the whole backup's lone copies after every run of a pass, never each run's range alone", async () => {
+    const w = makeWorld();
+    const store = await withTable(w);
+    addLive(w, uuid(1));
+    const lone = addMedia(w, uuid(2), { row: true });
+    const F = uuid(1, 0xf);
+    for (let i = 10; i < 14; i++) addGone(w, uuid(i), { event: F });
+
+    // Run one stops at its delete cap among the gone items, past the lone copy.
+    const first = await run(w, { limits: { deleteMedia: 2 } });
+    expect(first.counts.stopped_early).toBe(true);
+    expect(first.counts[PRIMARY_MISSING_KEY]).toBe(lone.length);
+
+    // Run two takes the rest and finds no lone copy there: the backup still holds the first alone, and says so.
+    const second = await run(w, { ledger: first.ledger! });
+    expect(second.counts.pass_complete).toBe(true);
+    expect(second.counts[PRIMARY_MISSING_KEY]).toBe(lone.length);
+    expect(second.counts.lone_found).toBe(0);
+    expect(second.note).toMatch(
+      /2 keys are held by the backup alone, none of them in this run's range: their rows live, their primary objects are gone\./,
+    );
+    expect(store.page(null, 10)).toEqual(lone);
+
+    // Put back in the primary, the next pass's first run drops it: the count follows the backup, not the calendar.
+    for (const k of lone) w.primary.objects.set(k, { key: k, uploaded: OLD });
+    const third = await run(w, { ledger: second.ledger! });
+    expect(third.counts[PRIMARY_MISSING_KEY]).toBe(0);
+    expect(store.tally().keys).toBe(0);
+  });
+
+  it("★ counts only the keys a live row names, keeps only those for the restore, and says how many it left alone", async () => {
+    const w = makeWorld();
+    const store = await withTable(w);
+    addLive(w, uuid(1));
+    // The row names its original; its phone copy was dropped at the upload's complete (over its cap).
+    const [original, phone] = addMedia(w, uuid(2), {
+      row: true,
+      variants: ["original.jpg", "phone.jpg"],
+    });
+    const calls = namesFrom(w, new Set([original]));
+    const result = await run(w, { mode: "dryrun", restoreMode: "dryrun" });
+    expect(calls).toEqual([[original, phone]]);
+    expect(result.counts).toMatchObject({
+      [PRIMARY_MISSING_KEY]: 1,
+      lone_unnamed: 1,
+      restore_mode: "dryrun",
+    });
+    expect(store.page(null, 10)).toEqual([original]);
+    const lines = result.note.split(". ");
+    expect(lines[1]).toMatch(
+      /^1 key of 1 item is held by the backup alone: its row lives, its primary object is gone/,
+    );
+    expect(result.note).toMatch(
+      /The restore is in dry run, so it copies nothing until RESTORE_MODE is on; this run's log names each\./,
+    );
+    expect(result.note).toMatch(
+      /1 key under living rows is named by none of them \(an upload's dropped phone copy, say\): left alone, never counted or copied back\./,
+    );
+    expect(deletedKeys(w.backup)).toEqual([]);
+  });
+
+  it("says the restore copies them back next when it is on", async () => {
+    const w = makeWorld();
+    await withTable(w);
+    addLive(w, uuid(1));
+    const lone = addMedia(w, uuid(2), { row: true });
+    namesFrom(w, new Set(lone));
+    const result = await run(w, { restoreMode: "on" });
+    expect(result.counts).toMatchObject({
+      [PRIMARY_MISSING_KEY]: 2,
+      restore_mode: "on",
+    });
+    expect(result.note).toMatch(
+      /2 keys of 1 item are held by the backup alone: their rows live, their primary objects are gone\. The restore copies them back next \(RESTORE_MODE on\); its card says what it copied\./,
+    );
+  });
+
+  it("counts every lone key, and says so, when the app cannot say which a row names", async () => {
+    const w = makeWorld();
+    const store = await withTable(w);
+    addLive(w, uuid(1));
+    const lone = addMedia(w, uuid(2), { row: true });
+    w.ports.named = async () => ({ kind: "unavailable", detail: "HTTP 503" });
+    const result = await run(w, { restoreMode: "on" });
+    expect(result.counts[PRIMARY_MISSING_KEY]).toBe(lone.length);
+    expect(result.note).toMatch(
+      /Could not ask which a live row names, so every lone key counts\./,
+    );
+    expect(store.page(null, 10)).toEqual(lone);
+    // Not a doubt about deleting: the run itself closes as it would.
+    expect(result.status).toBe("ok");
+  });
+
+  it("asks nothing with the restore off, and says to copy by hand", async () => {
+    const w = makeWorld();
+    await withTable(w);
+    addLive(w, uuid(1));
+    addMedia(w, uuid(2), { row: true });
+    const calls = namesFrom(w, new Set());
+    const result = await run(w, { restoreMode: "off" });
+    expect(calls).toEqual([]);
+    expect(result.counts).toMatchObject({
+      [PRIMARY_MISSING_KEY]: 2,
+      restore_mode: "off",
+    });
+    expect(result.note).toMatch(
+      /The restore is off \(RESTORE_MODE\): copy each from the backup by hand; this run's log names each\./,
+    );
+  });
+
+  it("settles a held run's range too, which judged its candidates all the same", async () => {
+    const w = makeWorld();
+    const store = await withTable(w);
+    addLive(w, uuid(1));
+    const lone = addMedia(w, uuid(2), { row: true });
+    for (let i = 3; i <= PRUNE_HOLD_FLOOR_MEDIA + 3; i++) {
+      addGone(w, uuid(i), { event: uuid(1, 0xf) });
+    }
+    const result = await run(w, {
+      ledger: {
+        ...EMPTY_LEDGER,
+        history: [{ atMs: NOW - 7 * DAY, goneMedia: 12, live: true }],
+      },
+    });
+    expect(result.counts.breaker_tripped).toBe(true);
+    expect(result.counts[PRIMARY_MISSING_KEY]).toBe(lone.length);
+    expect(result.note.split(". ")[0]).toMatch(/^Held since /);
+    expect(result.note).toMatch(
+      /2 keys of 1 item are held by the backup alone/,
+    );
+    expect(store.page(null, 10)).toEqual(lone);
+  });
+
+  it("counts its own range, says so and closes as an error when the table cannot be written", async () => {
+    const w = makeWorld();
+    addLive(w, uuid(1));
+    const lone = addMedia(w, uuid(2), { row: true });
+    w.ports.lone = {
+      record: async () => {
+        throw new Error("the object is overloaded");
+      },
+    };
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const result = await run(w);
+      expect(result.status).toBe("error");
+      expect(result.counts[PRIMARY_MISSING_KEY]).toBe(lone.length);
+      expect(result.note).toMatch(
+        /The lone copies' table could not be written, so this count is this run's range alone\./,
+      );
+    } finally {
+      logged.mockRestore();
+    }
+  });
+
+  it("leaves the table as it was on a run a doubt stopped", async () => {
+    const w = makeWorld();
+    const store = await withTable(w);
+    store.walk({ after: null, through: null, found: [key(uuid(9))] }, NOW);
+    addLive(w, uuid(1));
+    addMedia(w, uuid(2), { row: true });
+    w.confirm = "down";
+    const aborted = await run(w);
+    expect(aborted.status).toBe("error");
+    expect(store.page(null, 10)).toEqual([key(uuid(9))]);
   });
 });
