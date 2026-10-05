@@ -200,6 +200,9 @@ const approvedCount = cache(async function approvedCount(
   return count ?? 0;
 });
 
+/** What an album holds by kind: the two add up to its size. */
+export type AlbumKinds = { photos: number; videos: number };
+
 /**
  * Header stats for the guest page: the approved media count and how many GUESTS it came from
  * ("N photos & videos from M guests"). ★ M is THE ONE COUNT (a guest is anyone who uploaded, even
@@ -214,9 +217,9 @@ const approvedCount = cache(async function approvedCount(
  * ★ `kinds` IS WHAT THE ALBUM HOLDS BY KIND, so the cover's count names it from the first byte
  * ("12 photos", "3 videos") instead of both nouns until the live album has told (crumbs-74;
  * `albumCountWords` words both from one function, so the first paint and the live source agree).
- * It costs ONE more head count, of the videos, in the round the page already waits on (an album
- * mostly holds photographs, so the videos are the small side), and photos are what the total holds
- * besides them: the two always add up to the total the header shows, and the total stays the one
+ * It costs ONE more head count, of the videos, in the round the page already waits on (the total
+ * is already counted, so one more names both kinds), and photos are what the total holds besides
+ * them: the two always add up to the total the header shows, and the total stays the one
  * request-scoped answer the gallery payload shares. Never a list, never a per-row scan. The two
  * heads are not one snapshot, so a video count past the total (an approval landed between them) is
  * no answer: `kinds` is then null, and so is a failed read (reported, never the page's failure:
@@ -254,9 +257,6 @@ export async function getGalleryStats(
         : { photos: approvedTotal - videos, videos },
   };
 }
-
-/** What an album holds by kind: the two add up to its size. */
-export type AlbumKinds = { photos: number; videos: number };
 
 /**
  * The album's VIDEOS, a HEAD count on the very predicate the total counts (approved, unsealed), or null where this
