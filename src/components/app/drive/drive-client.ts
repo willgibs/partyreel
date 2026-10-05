@@ -27,6 +27,11 @@ export type DriveIntent = {
   source: "panel" | "picker" | "storage";
   events: string[];
   includeHidden: boolean;
+  /**
+   * The page Google sends her back to (the press's `returnPath`): where the place that owns this intent stands. Absent
+   * on an intent an older page wrote, which then stands for any page, as every intent did.
+   */
+  path?: string;
   at: number;
 };
 
@@ -66,6 +71,7 @@ export function takeIntent(): DriveIntent | null {
       source: i.source,
       events: i.events,
       includeHidden: i.includeHidden === true,
+      ...(typeof i.path === "string" ? { path: i.path } : {}),
       at: i.at,
     };
   } catch {
@@ -85,7 +91,14 @@ export function peekIntent(): DriveIntent | null {
   }
 }
 
-/** The connect's address, landing back on `next` (one of the sign-in return shapes, checked on the server). */
+/**
+ * Whether the place that owns this intent stands on the page she has landed on. The intent outlives an abandoned send
+ * (a quarter of an hour, in this tab), so one for another page is stale here: nobody on this page takes its word, and a
+ * flag that waited for its owner would let a Connect from Account say nothing.
+ */
+export function intentIsHere(intent: DriveIntent, pathname: string): boolean {
+  return intent.path === undefined || intent.path === pathname;
+}
 
 /** Her browser's zone, for the files' names (when each arrived, in her own time). */
 function zone(): string {

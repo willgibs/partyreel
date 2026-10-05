@@ -185,7 +185,12 @@ export function DriveSendSteps({
   const allUnderWay = albums.length > 0 && albums.every((a) => a.unfinished);
 
   const goToGoogle = () => {
-    rememberIntent({ source, events: eventIds, includeHidden });
+    rememberIntent({
+      source,
+      events: eventIds,
+      includeHidden,
+      path: returnPath,
+    });
     window.location.assign(connectHref(returnPath));
   };
 

@@ -17,10 +17,12 @@ import { toast } from "sonner";
 
 import { albumPath, hasDriveHint } from "@/lib/drive/links";
 import { isUnfinished, momentOf, type SendView } from "@/lib/drive/moments";
+import type { DriveReturn } from "@/lib/drive/oauth-cookie";
 
 import {
   actOn,
   connectHref,
+  intentIsHere,
   peekIntent,
   returnWords,
   takeReturnWord,
@@ -34,7 +36,10 @@ function stopKey(send: SendView): string {
   return `${send.id}:${send.status}:${send.pauseReason ?? ""}`;
 }
 
-/** Mounted on every host page; listens only for a host who uses Drive (the hint cookie), so nobody else polls. */
+/**
+ * Mounted on every host page. The return word is for every host, even one with no hint yet (her first connect); the
+ * rest listens only for a host who uses Drive (the hint cookie), so nobody else polls.
+ */
 export function DriveFlag() {
   const [active, setActive] = useState(false);
   useEffect(() => {
@@ -42,52 +47,54 @@ export function DriveFlag() {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- read once from the browser after mount
     setActive(hasDriveHint());
   }, []);
-  return active ? <DriveFlagListening /> : <DriveReturnWord />;
+  return (
+    <>
+      <DriveReturnWord />
+      {active ? <DriveFlagListening /> : null}
+    </>
+  );
 }
 
-/** A return from Google said where no place took it, even for a host with no hint yet (her first connect). */
+/**
+ * ★ WHAT A RETURN FROM GOOGLE SAID IS SAID A BEAT AFTER THE COMMIT, NEVER FROM THE MOUNT EFFECT (red-team 55's MEDIUM).
+ * Every return is a full page load, and the root layout draws `<Toaster />` AFTER `{children}`: effects run in tree
+ * order, so this page's effect runs before the Toaster has subscribed, and sonner shows a toast only to the Toaster
+ * that is subscribed when it is published (no replay): `/account?drive=unavailable` cleaned its address and said
+ * nothing, where a client navigation (the Toaster already there) said it. A timer lets the whole commit's effects land
+ * first (the boom probe's own beat: `root-layout-crash.tsx`).
+ *
+ * ★ THE WORD IS TAKEN NOW AND SAID THEN, AND THE BEAT IS NEVER CANCELLED WITH THE EFFECT. `takeReturnWord` is once for
+ * the address (the first place takes it and the rest read nothing), so an effect that took the word and gave up its
+ * timer on cleanup would lose it for good when React runs the effect twice (`next dev`'s Strict Mode): the toast belongs
+ * to the page, not to this component.
+ *
+ * ★ THE PLACE THAT OWNS A SEND WAITING IN THIS TAB TAKES THE WORD IN PLACE (Take it home, Your events' picker: they say
+ * it on their own page, with the final press), but only an intent for THIS page (`intentIsHere`): one left by an
+ * abandoned send for another album would otherwise swallow Account's Connect and every Reconnect, which carry no intent.
+ */
 function DriveReturnWord() {
   useEffect(() => {
-    if (peekIntent()) return;
+    const intent = peekIntent();
+    if (intent && intentIsHere(intent, window.location.pathname)) return;
     const word = takeReturnWord();
-    if (!word) return;
-    const said = returnWords(word);
-    if (said.good)
-      toast.success(said.title, {
-        description: said.detail,
-        id: "drive-return",
-      });
-    else
-      toast.warning(said.title, {
-        description: said.detail,
-        id: "drive-return",
-      });
+    if (word) sayReturnWord(word);
   }, []);
   return null;
+}
+
+/** The return's words as the house's toast, once the Toaster can hear them (`DriveReturnWord`). */
+function sayReturnWord(word: DriveReturn) {
+  const said = returnWords(word);
+  setTimeout(() => {
+    const show = said.good ? toast.success : toast.warning;
+    show(said.title, { description: said.detail, id: "drive-return" });
+  }, 0);
 }
 
 function DriveFlagListening() {
   const router = useRouter();
   const { status } = useDriveStatus();
   const previous = useRef(new Map<string, SendView["status"]>());
-
-  // A return from Google that no place on this page took (no send waiting in the tab): said here, once.
-  useEffect(() => {
-    if (peekIntent()) return;
-    const word = takeReturnWord();
-    if (!word) return;
-    const said = returnWords(word);
-    if (said.good)
-      toast.success(said.title, {
-        description: said.detail,
-        id: "drive-return",
-      });
-    else
-      toast.warning(said.title, {
-        description: said.detail,
-        id: "drive-return",
-      });
-  }, []);
 
   useEffect(() => {
     if (!status) return;
