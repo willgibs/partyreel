@@ -5,17 +5,25 @@
  * dashboard's lights, Take it home, Account's card and the app-wide flag all read this one store, so a page polls
  * `GET /api/drive/status` once however many places show a send.
  *
- * ★ IT POLLS ONLY WHILE SOMETHING MOVES: every 3 seconds while a send is running and the page is looked at, 15 when it
- * has not moved since the last answer, and not at all when nothing is unfinished (a press asks again at once:
+ * ★ IT POLLS ONLY WHILE SOMETHING MOVES: every 3 seconds while a send is sending or checking and the page is looked at,
+ * never slower (crumbs-82: the lanes report every 10 seconds, so a poll between two reports finds nothing new, and a
+ * slower beat after it drew the strip in coarse steps, a timed report never showing), 15 for a send that waits (paused)
+ * or whose stopped files have stopped landing, and not at all when nothing is unfinished (a press asks again at once:
  * `refreshDriveStatus`). A hidden tab stops; coming back to it asks at once. Nothing runs in the browser but this
  * reading: the send itself goes on with every tab shut.
  *
  * ★ A FAILED READ KEEPS THE LAST ANSWER and tries again on the slow beat: a send never vanishes from her page because
  * one poll did not come back.
+ *
+ * ★ EVERY PLACE READS THE CONNECTION SHE HAS NOW (`this-connection.ts`): a send of an earlier connection is history, so
+ * no album wears its light or strip and the flag never speaks of it, as Your events' list, which the database answers
+ * per connection, never did.
  */
 import { useSyncExternalStore } from "react";
 
 import type { DriveStatus } from "@/lib/drive/status";
+
+import { onThisConnection } from "./this-connection";
 
 export const FAST_MS = 3_000;
 export const SLOW_MS = 15_000;
@@ -32,6 +40,18 @@ let subscribed = 0;
 function emit(next: Snapshot) {
   snapshot = next;
   for (const l of listeners) l();
+}
+
+/** Whether a send is doing its work now: the lanes report every 10 seconds, so its numbers move every few polls. */
+function running(status: DriveStatus | null): boolean {
+  return Boolean(
+    status?.sends.some(
+      (s) =>
+        s.status === "sending" ||
+        s.status === "preparing" ||
+        s.status === "checking",
+    ),
+  );
 }
 
 /**
@@ -89,12 +109,16 @@ async function poll(): Promise<void> {
         credentials: "same-origin",
       });
       if (!res.ok) throw new Error(String(res.status));
-      const status = (await res.json()) as DriveStatus;
+      const status = onThisConnection((await res.json()) as DriveStatus);
       const sig = signature(status);
       const changed = sig !== lastSignature;
       lastSignature = sig;
       emit({ status, loaded: true });
-      if (moving(status)) schedule(changed ? FAST_MS : SLOW_MS);
+      // ★ A SEND AT WORK KEEPS THE FAST BEAT WHETHER OR NOT THIS ANSWER MOVED: an unchanged answer is the gap between
+      // two of its lanes' reports, never a send gone still. Only a stopped send's landing files, which end by
+      // themselves, slow down once they stop moving.
+      if (running(status)) schedule(FAST_MS);
+      else if (moving(status)) schedule(changed ? FAST_MS : SLOW_MS);
       else if (unfinished(status)) schedule(SLOW_MS);
     } catch {
       emit({ ...snapshot, loaded: true });

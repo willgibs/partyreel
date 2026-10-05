@@ -4,6 +4,11 @@
  * Drive, what has been sent, and Disconnect. Without a connection, what connecting does and its one press. Where Send to
  * Google Drive is not set up on this deployment it says so in words, as the three doors do (`NOT_SET_UP`), and offers no
  * press: a Connect there could only come back as "isn't set up yet".
+ *
+ * ★ "SENT" IS WHAT THIS CONNECTION HAS SENT (crumbs-82; the Drive re-walk's finding). It read every send she ever made,
+ * so after a reconnect it counted albums Your events' list showed with no state and the dashboard's tiles still lit,
+ * files the connection in hand knows nothing of (a Disconnect forgets every Google id). The sends before it are one
+ * quiet line, "Earlier", still said and no longer counted as this connection's (`this-connection.ts`).
  */
 import { ExternalLink } from "lucide-react";
 
@@ -21,7 +26,7 @@ import { connectHref, DRIVE_ACCOUNT_ANCHOR } from "@/lib/drive/links";
 import {
   readConnection,
   readMySends,
-  readMySentTotals,
+  readMySentRows,
 } from "@/lib/db/queries/drive";
 import { driveConfigured } from "@/lib/env";
 import { formatCount } from "@/lib/format/count";
@@ -31,6 +36,10 @@ import { formatBytes } from "@/lib/utils";
 import { DriveDisconnect } from "./drive-disconnect";
 import { DriveName } from "./drive-parts";
 import { NOT_SET_UP } from "./not-set-up";
+import { type SentHistory, sentHistoryOf } from "./this-connection";
+
+const albumsWords = (n: number) =>
+  `${formatCount(n)} ${n === 1 ? "album" : "albums"}`;
 
 export async function DriveAccountCard({
   userId,
@@ -69,11 +78,15 @@ export async function DriveAccountCard({
       </Card>
     );
   }
-  const [connection, totals, sends] = await Promise.all([
+  const [connection, rows, sends] = await Promise.all([
     readConnection(userId),
-    readMySentTotals(),
+    readMySentRows(),
     readMySends(),
   ]);
+  // Split at the connection's own start: with none, the Sent row is not drawn and nothing is split.
+  const sent: SentHistory | null = connection
+    ? sentHistoryOf(rows, connection.createdAt)
+    : null;
   const connect = connectHref("/account");
   const running = sends.filter((s) =>
     ["preparing", "sending", "paused", "checking"].includes(s.status),
@@ -159,14 +172,22 @@ export async function DriveAccountCard({
               </dd>
               <dt className="text-muted-foreground">Sent</dt>
               <dd className="tabular-nums">
-                {totals.albums === 0
+                {!sent || sent.now.albums === 0
                   ? "Nothing yet"
-                  : `${formatCount(totals.albums)} ${totals.albums === 1 ? "album" : "albums"} · ${formatBytes(totals.bytes)}${
-                      totals.lastAt
-                        ? ` · the last on ${formatDateInZone(totals.lastAt, zone)}`
+                  : `${albumsWords(sent.now.albums)} · ${formatBytes(sent.now.bytes)}${
+                      sent.now.lastAt
+                        ? ` · the last on ${formatDateInZone(sent.now.lastAt, zone)}`
                         : ""
                     }`}
               </dd>
+              {sent && sent.before.albums > 0 ? (
+                <>
+                  <dt className="text-muted-foreground">Earlier</dt>
+                  <dd className="text-pretty text-muted-foreground tabular-nums">
+                    {`${albumsWords(sent.before.albums)} · ${formatBytes(sent.before.bytes)}, sent before this connection. They stay where they went.`}
+                  </dd>
+                </>
+              ) : null}
             </dl>
             <div className="flex flex-wrap gap-2">
               {connection.status !== "connected" ? (
