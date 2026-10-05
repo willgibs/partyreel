@@ -59,6 +59,7 @@ the dashboard, the hub's strip, graphite, Create's styles, small fixes, red-team
 | `admin-uploads` | the operator sees a host's uploads against her allowance and her Deleted beside her active bytes; read-only | MERGED at `41405f36a` (gate 228 green); the reset is the calls lab's X6; pruned | Sonnet, 3132 | `a92c83ecc3155933c` |
 | `crumbs-73` | the hub develops too; how-it-works' four hairlines | MERGED at `32a286c3b` (gate 229 green); pruned | Sonnet, 3131 | `a386ace618c2b7342` |
 | `library-specimens-2` | the hub-head specimens' real strip; Create's whole room as a Library composition | MERGED at `4ce8c5561` (gate 230 green); pruned | Sonnet, 3131 | `a84adf5b16e812599` |
+| `crumbs-74` | the album cover's count names its kinds from the first byte | RUNNING (cut at `439aa8899`; resume from its WIP) | Sonnet, 3131 | (spawned 03:28Z) |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Its
 model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`. From another session, respawn it from
