@@ -69,7 +69,9 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   hour's breaker, past the allowance (the complete's own line over the same window, read early) or past the room
   (`host_room_used`; the
   refusal carries `needed_bytes`, `deleted_bytes` and `makes_room`), each in the route's own words (a guest's name the
-  album, never the plan: `meterRefusal`), and tallies the hour for an upload it admits. No profiles
+  album, never the plan: `meterRefusal`), and tallies the hour for an upload it admits. The host's route lets a full
+  account go on to that refusal, never saying "full" at the context: its `at_storage_cap` is a bare flag with none of
+  those numbers (the month's early refusal there stays, one sentence both say alike). No profiles
   lock: its reads are advisory and the tally is one atomic upsert. It fails OPEN, as the limiters do, since the
   complete's count and caps stand behind it.
 - **Two breakers far past any party, unpublished, refused in words,** so "no guest limit" and "unlimited events" stay

@@ -165,10 +165,14 @@ before it saves (`ConsequenceLine`, `styleSwitchConsequence`), as a develop time
 ★ **The develop time is sent only when it is plainly meant** (`DevelopTimeControl`, judged by
 `camera-settings-develop-time.ts`), because a save of a time at or before the database's now is Develop now (above),
 and a year left half typed is such a time (Chrome fires a whole value at each digit as 2027 is typed into a year: 0002,
-0020, 0202). What she types is a draft judged once, when she leaves the field or presses Return, never on a keystroke
-and never as the panel closes (a close cannot ask); what cannot be meant is refused in words under the field, and a
-time the database would store as now asks Develop now's own question, whose answer writes now. The guard is the app's
-alone: the schema accepts a past `develops_at` (Develop now writes through it), so an older build or a crafted request
+0020, 0202). What she types is a draft judged once, never on a keystroke: when she leaves the field, presses Return,
+a picker's choice has rested a beat (a phone's picker may never blur it), or the panel closes (Escape or Back must not
+drop a time; the date's own beat and close-save, `useFinishedFields` in `camera-settings-finish.ts`). A close cannot
+ask, so it writes only what a blur would write unasked, a time plainly meant; what cannot be meant is refused in words
+under the field, and a time the database would store as now asks Develop now's own question, whose answer writes now.
+The field's state lives in `AlbumStyles` and `CaptureAndReveal`, which stay mounted while the time comes and goes, and a
+write that changes when everyone sees drops the draft first, so a style switch that clears the time is never answered by
+a late write of a typed one. The guard is the app's alone: the schema accepts a past `develops_at` (Develop now writes through it), so an older build or a crafted request
 develops without asking.
 
 **The host's cover** (`event-hub-head-cover.tsx`, mounted by `event-gallery.tsx`): while a develop time is ahead, her
