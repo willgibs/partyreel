@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { floatingGutter } from "@/components/ui/floating-layer";
 import {
   Popover,
   PopoverContent,
@@ -138,7 +139,7 @@ export function DisplayMenu({
       <PopoverContent
         ref={panel}
         align="end"
-        collisionPadding={8}
+        collisionPadding={floatingGutter}
         // Taller than the room around its button (a phone, or a button mid-page), it scrolls inside itself rather
         // than running off the window: every choice stays reachable without moving the page.
         className="max-h-[var(--radix-popover-content-available-height)] w-[22rem] space-y-4 overflow-y-auto p-4 outline-none"

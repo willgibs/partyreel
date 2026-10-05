@@ -76,12 +76,16 @@ describe("the gutter at the glass", () => {
   it("★ is the contract's one number on every anchored layer that keeps one", () => {
     // Red-team 51's NIT: the storage ring's popover sat flush to the left edge at 375 because it set no
     // `collisionPadding` at all. The menus' 8 is `floatingGutter` now, so a layer that keeps a gutter reads it, and a
-    // literal typed back in is a second number the next retune would miss.
+    // literal typed back in is a second number the next retune would miss. Two menus that name the gutter for their
+    // own reason (the Display menu's panel scrolls inside the room it leaves; the profile menu hangs from its trigger's
+    // side at a phone) each typed that 8 until crumbs-70 had them read it.
     for (const file of [
       "src/components/ui/popover.tsx",
       "src/components/ui/dropdown-menu.tsx",
       "src/components/ui/responsive-menu.tsx",
       "src/components/ui/tooltip.tsx",
+      "src/components/app/dashboard/display-menu.tsx",
+      "src/components/social/profile-actions-menu.tsx",
     ]) {
       const source = readFileSync(join(ROOT, file), "utf8")
       expect(source, `${file} stopped reading the gutter`).toMatch(
