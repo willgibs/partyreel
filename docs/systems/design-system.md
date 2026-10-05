@@ -486,6 +486,11 @@ One `Toaster` (`ui/sonner.tsx`) in the root layout: top centre, clear of every f
 expanded, since a phone has no hover to open sonner's pile. Its offset cannot read `--mkt-header-h`, which is scoped
 to `[data-mkt]`, a sibling scope.
 
+- ★ **A toast published from a mount effect on a full page load is never seen**: the root layout draws `<Toaster />`
+  after `{children}`, effects run in tree order, and sonner shows a toast only to a Toaster subscribed when it is
+  published (it keeps a history and replays nothing). Say it a beat later, from a timer that outlives the effect (Strict
+  Mode runs the effect twice, so a timer cancelled on cleanup loses a word taken once): `drive-flag.tsx`'s return word
+  and the boom probe's crash are the two that met it, and a client navigation, with the Toaster already there, hides it.
 - **An error waits for a press**, since a failure that vanishes unread repeats itself (sonner has no per-type
   duration, so `ui/sonner.tsx` patches `toast.error` once at load).
 - **A toast is pressable over an open modal, and a press on one is inside every layer**: an open Radix modal sets

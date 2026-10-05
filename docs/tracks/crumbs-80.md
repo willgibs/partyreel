@@ -17,8 +17,6 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
 reads:                  # single-sources you depend on: never duplicate, never edit
   - src/app/(app)/layout.tsx
   - src/components/ui/sonner.tsx
-  - ../partyreel-wt/_scratch/redteam-55/ledger.txt
-  - ../partyreel-wt/_scratch/redteam-54b/ledger.txt
 ---
 
 # lp/crumbs-80
@@ -46,15 +44,64 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each is built as recommended and is Will's to overrule; none is a one-way door.
+
+1. **Account's Drive card while Drive is not set up** (red-team 55's NIT; env.ts's note and the brief expect "not set up
+   yet" in words). *Recommended, built:* the card stands with the three doors' own sentence ("Send to Google Drive isn't
+   set up yet. It's on its way. Download keeps every original meanwhile.") and no Connect, since a press there could only
+   come back as that sentence; the five places that say it share one home (`not-set-up.ts`). The other answer: nothing
+   on Account until Drive is set up (what it did): then env.ts's note is the line to change.
+2. **A whole-failed run's row Retry says "Everything else is in the album" before anything landed** (red-team 54b's
+   NIT). *Recommended, built, stricter than the call as worded:* the sheet says nothing of the rest until every file it
+   does not list has landed, not "until something has": with one of three landed and a second in the air, "something
+   landed" would still say the rest is in the album over a file that is not. Where a run has just ended the two rules
+   are one, so only a Retry in flight meets the difference.
+3. **The door's Sending step closes at the first recorded group while files still go** (red-team 54b's NIT, a call).
+   *Recommended: leave it, and pin it* (one assertion in `entry-modal.test.tsx`; nothing else built). The first landing
+   is what the step asked for, so she is let into the album, where the stack carries the rest with its count and its x
+   (the one place a file can be stopped: the standing direction's "potential interruptibility"), and the keep waits for
+   the whole count (red-team 54's fix). Holding her at a sheet with no exit for the whole run would make the album's
+   reveal wait for it (minutes on a slow line with videos) to close a gap that already says "N to go". *The other
+   answer:* hold the step while files go and the keep is due, so a signed-out guest's door is one continuous sheet
+   (Sending, then the keep, as `guest-capture` r1 drew it before the keep learned to wait): in `entry-modal.tsx`,
+   `contributed` and `hasContributed` read false while `filesGoing && keepDue`; a signed-in guest, who has no keep, still
+   goes in at the first landing.
+4. **An unanswered "Stop this upload?" outlives its x by the complete's length** (red-team 54b's NIT, a call).
+   *Recommended, built:* the question goes the moment the x does (its bytes are up, its complete is coming), saying
+   nothing, since the Stop it offers could only answer too late and the file landing is the answer.
+
+Calls made inside the lane that the Orchestrator may want in front of Will (each built; each one line to undo):
+
+- **A hung presign is taken back at 8 s and asked again beside the files waiting behind it** (`PRESIGN_REASK_MS`), where
+  the alternatives were failing the stuck file at 8 s or letting a second presign go beside it and sending bytes out of
+  order. Once a file, only with a prepared file waiting behind it; a presign nobody waits behind keeps the whole 30 s;
+  a phantom presign stores nothing and tallies the hour breaker (20,000) once more.
+- **A lost answer heals itself through the queue's own runner** (5, 20 and 60 s on, when the browser says the line is
+  back, when the page is looked at again; three asks a File), where the alternative, settling a row when the album's
+  sync draws its photograph, needs the page's files (`event-experience.tsx`, `gallery-live.tsx`), which this lane does
+  not own. The host panel's row is not covered (Deferred).
+- **A chip over 44 characters wraps on a phone, whole from `sm` up** (`UI_LABEL_WRAPS_FROM`): the fix is in the shared
+  `UiLabel`, so the five more messages `/help/messages-guests-might-see` cut at 375 (one 173 px off) are mended too.
+- **Your events' list reads Drive's status once when it opens** (hint or no), to say "not set up" before any choice and to
+  ask for no album for nothing: one small read a press, beside the albums' own.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/guest-flow.md`: the stack's x and its question; the failure sheet's rest line and the lost-answer heal;
+  the door's failure view naming the files; the door's step not held for the run (a call).
+- `docs/systems/uploads-and-r2.md`: the presign's re-ask; the queue's heal of a kept complete.
+- `docs/systems/drive-export.md`: the doors say "not set up" first (Account's card included); the hint's reach; the
+  return word taken on the first commit and said a beat later.
+- `docs/systems/design-system.md`: a toast published from a mount effect on a full load is never seen (the recurring one).
+- `docs/systems/marketing-content.md`: a chip over 44 characters wraps on a phone.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: the host panel's rows (`host-upload.tsx`) have the same lost-answer gap (a dropped row over a tile the hub's album
+  already drew); `use-upload-queue.heal.ts` is generic over its rows and is the rule, wired in about ten lines of the
+  panel (its items keep `cause`, its retry re-queues).
+- Now: if Will overrules Question 3, hold the door's Sending step while files go and the keep is due (the entry-modal
+  line is in the Question).
 
 ## Handoff (replaces the chat report)
 

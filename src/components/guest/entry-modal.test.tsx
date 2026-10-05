@@ -1649,6 +1649,10 @@ describe("the keep: the door's last screen", () => {
     // Five landed and six are going: nothing is asked yet.
     expect(screen.queryByRole("button", { name: "Maybe later" })).toBeNull();
     expect(screen.queryByText(/joined Maya/)).toBeNull();
+    // ★ AND THE DOOR'S SENDING STEP IS NOT HELD FOR THE REST OF THE RUN (a call, Will's to overrule: red-team 54b's NIT,
+    // crumbs-80's Questions): the first landing is what the step asked for, so she is let into the album, where the stack
+    // carries the six with their count and its x, and the keep waits for the whole of it.
+    expect(document.querySelector("[data-upload-step]")).toBeNull();
 
     // The burst has landed: the keep rises once, over all eleven.
     view.rerender(

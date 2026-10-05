@@ -17,8 +17,11 @@ A Cloudflare Worker streams each original from R2 into a Google resumable upload
 Worker holds no database credential, no refresh token, no key and no client secret: it leases work and an hour of
 access from signed internal routes). Its doors are Take it home's Originals card (Send to Drive beside Download), Your
 events (several albums from one list) and What's using space (the album it shows); the send shows on the album it
-sends (`send-strip.tsx`); Account's Google Drive card is the connection. The database's half is migration
-20261005120000, whole in one file with its rolled-back check at its foot.
+sends (`send-strip.tsx`); Account's Google Drive card is the connection. Where Drive is not set up on the deployment
+(`driveConfigured()`) every door says so first, in one sentence (`not-set-up.ts`, whose words a server component can
+read): Take it home's step, Your events' list in place of its albums (it asks for none), What's using space's step and
+Account's card (the card stands, with no press). The database's half is migration 20261005120000, whole in one file with
+its rolled-back check at its foot.
 
 ★ **Nothing in this flow deletes what it sent or suggests deleting it** (PRICING.md: "Export is an off-ramp, never a
 one-click exit"). `cloud_export_act` cancels, resumes, retries and acknowledges, and no more; deleting stays where it
@@ -58,7 +61,15 @@ that very write (`CreatedFolder` and the Worker's `CreatedFile` are branded so n
   same mail.
 - **The `pr_drive` hint cookie** (set at connect and at a press, cleared at Disconnect, readable by the page, worth
   nothing) is what lets her pages poll `/api/drive/status`: only a host who uses Drive polls, so a hub never spends
-  Vercel CPU asking for nothing. It is a hint, never a gate.
+  Vercel CPU asking for nothing (the strip, the tile's light, What's using space's send line and the app-wide flag listen
+  only with it; Your events' list and the press's step read the status once when they open, hint or no, since the press
+  itself needs it). It is a hint, never a gate.
+- ★ **The return from Google (`?drive=`) is taken on the page's first commit and said a beat later** (`drive-flag.tsx`).
+  The app-wide flag says it unless a send waiting in this tab left from this page (`DriveIntent.path`: Take it home and
+  Your events say it in place, with the final press; a stale intent for another album swallows nothing). A toast sent
+  from a mount effect on a full page load is dropped, because the root layout's Toaster subscribes after the page's
+  effects ([design-system.md](design-system.md)), and the timer is never cancelled with the effect: the word is taken
+  once for the address, and Strict Mode runs the effect twice.
 
 ## The tokens
 

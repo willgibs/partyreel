@@ -191,6 +191,9 @@ with `help.ts` and `blog.ts` as thin wrappers.
   of the product says (never a comment, a mock, a board or the operator's portal, which still names a retired "Download
   all"), every internal link and anchor resolves, and every literal-referenced slug is pinned; a test also scans the
   bodies for a typed size, price or limit beside its unit.
+- **A `<UiLabel>` chip stays whole (`nowrap`) except a label over 44 characters, which wraps on a phone**
+  (`UI_LABEL_WRAPS_FROM`, `mdx/spec-shared.tsx`): a quoted message longer than a phone's line was cut mid-word at the
+  screen's edge, so author such a label as it is said and let the chip wrap; from `sm` up it stays whole.
 - **The authoring briefs are `content/help/AUTHORING.md` and `content/blog/AUTHORING.md`.** They name the fences by
   pointer only: the content-policy scan reads `.md` too, and a brief must obey itself.
 - **Help** is a lifecycle taxonomy (`help.ts`), each category but troubleshooting linking up to its marketing feature; a
