@@ -1,6 +1,6 @@
 ---
 track: crumbs-80
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "a35d07a4"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -104,13 +104,65 @@ Calls made inside the lane that the Orchestrator may want in front of Will (each
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+Walk tooling, logs and shots sit in `../partyreel-wt/_scratch/crumbs-80/` (`tools/` below is that folder's: the CDP
+scripts, `stand375.log`, `stand1440.log`, `shots/`). The walks' 25 MB event log and the headless profile were deleted
+with the cleanup; the scripts, the two logs and the shots stay.
+
+- **Commits, all pushed** (`origin/lp/crumbs-80` = `fc4b73c04` before this file's own commit; the head is in the chat
+  line): `acd962a23` the return word · `05863cf46` Drive says "not set up" first · `1735248b9` the door names the
+  files, the rest line, the stack's question · `cf3f4daf9` the hung presign · `f876f8d37` the lost answer heals ·
+  `4fa4ce485` the chips · `dce5b9155` docs, Questions, the door's pin · `fd376c905` the heal waits out an offline line
+  · `fc4b73c04` the host panel heals too. **No sync:** launch-prep moved by one record commit (`8f9c9a23b`,
+  `docs/tracks/orchestrator.md` alone), nothing under `owns` or `reads` (PROGRAM.md, "Sync").
+- **Gates on `fc4b73c04`**, each on its own exit code (`../partyreel-wt/_scratch/crumbs-80/gate.log`, a log per step
+  beside it): `pnpm typecheck` 0 · `pnpm lint` 0 (the log holds no warning) · `pnpm test` 0 (987 files, 12,238 tests:
+  `gate-test.log`) · `zsh scripts/build-lock.sh pnpm build` 0 (`gate-build.log`) · `pnpm lab:smoke --base
+  http://localhost:3134` 0 (170 checks, 0 failing: `gate-smoke.log`). Each new test was also run against the old file
+  and failed there. This file's commit changes no code.
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`, 37 paths): 26 under `owns` (their tests included),
+  this file, the five `docs/systems/` files listed above, and five outside `owns`, each small and each the one place
+  its fix could live: `gallery-rows.tsx` + its test (the stack's Stop question leaves with its x: a 6-line effect),
+  `host-upload.tsx` + its test (the host panel's rows heal a lost answer through the same hook: a dozen lines of code
+  and their comment), `marketing/mdx/spec-shared.tsx` (`UiLabel`, the one chip every help article shares).
+- **The items** (numbers are the brief's):
+  - 1 **MEDIUM, the Drive return word on a full load** · `acd962a23` · `DriveReturnWord` (`drive-flag.tsx`) takes the
+    word on the first commit and says it a beat later, once the Toaster has subscribed; only an intent staged for this
+    very page withholds it (`intentIsHere`) · `drive-flag.test.tsx` (the real Toaster, Strict Mode, the hint cookie, a
+    stale intent) · walked `/account?drive=unavailable` loaded whole, at 375 and 1440.
+  - 2 **LOW, a lost answer** · `f876f8d37`, `fd376c905`, `fc4b73c04` · `use-upload-queue.heal.ts` asks again, through
+    the owner's own runner, for a file whose complete is kept, so the sheet or the host's row lets it go when the
+    server answers · `use-upload-queue.heal.test.tsx` and the heal cases in `use-upload-queue.test.tsx`,
+    `guest-upload.test.tsx`, `host-upload.test.tsx` · walked with `tools/healwalk.mjs` (CDP cuts the complete's
+    answer) at 375 and 1440: the sheet let go 3 to 36 ms after the line came back.
+  - 3 **NITs** · the hung presign (`cf3f4daf9`: `uploader.ts`, `PRESIGN_REASK_MS`; `uploader.presign.test.ts`, 7
+    cases; walked with `tools/cutcomplete.mjs --hold-presign`) · Drive says "not set up" first in the send list,
+    What's using space (its status read now waits for the hint cookie) and Account's card, from one home (`05863cf46`:
+    `not-set-up.ts`, `not-set-up.test.tsx`, `drive-account-card.test.tsx`) · walked at 375 and 1440:
+    `/account?drive=unavailable`, Your events > Send to Drive (the notice, no list, no choice), What's using space >
+    an album > Send to Drive (no `/api/drive` request until the press, then one, and the notice).
+  - 4 **Red-team 54b's** (`1735248b9`, `4fa4ce485`) · the door's failed view names every refused file and its reason
+    (`upload-step.tsx`, `upload-step.test.tsx`; `tools/shots/door-375-refused.png`, `door-1440-refused.png`) · a chip
+    over 44 characters wraps on a phone (`spec-shared.tsx`, `ui-label-wrap.test.tsx`; both help pages walked at 375
+    and 1440) · the row Retry says nothing of the rest until every file it does not list has landed
+    (`failure-sheet.tsx`, `failure-sheet.test.tsx`, `guest-upload.test.tsx`; Question 2) · the Stop question leaves
+    with its x (`gallery-rows.tsx`, `gallery-rows.test.tsx`; `tools/stand375.log`, `tools/stand1440.log`: gone within
+    0.3 s of the complete being asked, 3.8 s before the held complete was released; Question 4) · the door's Sending
+    step left as it is and pinned (`entry-modal.test.tsx`; Question 3).
+- **Assets requested from Will:** none.
+- **Board ideas:** (a) `UiLabel` is the one chip for the ~100 quoted labels in `content/help`; a long one now wraps on
+  a phone with each line boxed, the value plate's way: a small look could confirm that over a quote block or a smaller
+  chip. (b) One host presign answered 401 during the host-row walk (an expired access token on a request no page load
+  had refreshed); the row's Retry then worked: seen once, no log kept, not chased.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none.
+- **Test data left:** the event "CR80 live" (`4208ea18-f7d4-41bc-9d63-7fe9390f87ff`, host account) moved to Deleted
+  through its Settings on 2026-10-05 (read back by SQL: `deleted_at` set, `purge_at` 2026-11-04); its uploads count
+  under Deleted until it is emptied (never pressed: Empty Deleted, Delete for good). No other data; nothing requested
+  of the Vercel alias, partyreel.com or any `*.vercel.app`.
+- **For the next cut:** a ledger path belongs in the brief's text, not in `reads` (the guard resolves `reads` from the
+  cwd, where `../partyreel-wt/...` does not exist: `pnpm test` was red on it until the two paths left the front
+  matter).
+- **Calls his to overrule:** Questions 1 to 4 above, and the four calls made inside the lane (the presign's 8 s
+  re-ask, the heal's timing and triggers, the 44-character chip rule, Your events' one status read at opening).
+- **Look at first:** `/account?drive=unavailable` loaded whole (the toast, then the card's not-set-up line, no
+  Connect); Your events > Send to Drive (the notice, no albums); a failure sheet over a lost answer closing itself
+  when the line is back; `/help/notifications-and-emails` at 375 (both subjects whole, wrapped).
