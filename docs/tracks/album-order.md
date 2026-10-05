@@ -1,6 +1,6 @@
 ---
 track: album-order
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "e123a6a9"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -56,13 +56,13 @@ working.
   zone, read by the page's server from the request (`x-vercel-ip-timezone`, the dashboard's day's own source) else the
   server's, and that same zone handed to the browser so the first paint and the hydration agree. `albumTurnAt` takes
   the zone as an argument, so the event's own zone drops in when that column lands.
-- **Q3 The first paint must already be in her order, which crosses four files outside `owns`.** The seed embeds the
+- **Q3 The first paint must already be in her order, which crosses five files outside `owns`.** The seed embeds the
   links of exactly the first paint's photographs (an in-order album painted from newest-first links would shimmer, or
   flip at hydration), and the guest's View menu is assembled in `live-gallery.tsx`. Recommended, built, each edit
   minimal and none owned by an open lane: `src/app/(guest)/e/[token]/page.tsx` (the zone and the remembered order read
   from the request, handed to the seed and the page), `src/lib/events/gallery-access.server.ts` (the seed's first-paint
-  order: one field), `src/components/guest/live-gallery.tsx` (Sort and Filter in its View menu, the order and the
-  filter applied) and its test (the Showing tests reshaped to Filter, their scars kept).
+  order: one field) and its test (one case), `src/components/guest/live-gallery.tsx` (Sort and Filter in its View menu,
+  the order and the filter applied) and its test (the Showing tests reshaped to Filter, their scars kept).
 - **Q4 Remembered per device.** Recommended, built: the sort, per album, and only as a departure from the turn
   (choosing the album's own order again forgets it, so the album keeps turning for her), in a small cookie the page
   reads (`pr_album_sort`, the `pr_album_w` way) so her first paint is already her order. The filter stays this visit's
@@ -83,21 +83,78 @@ working.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/guest-flow.md`: "The album, in justified rows" refined (the first paint in the order it opens in,
+  `albumFirstPaintIds`; her lens); a new bullet beside it, "The album's order turns once the party is over" (the turn,
+  the capture-time key, whose 9 am, the first paint's order, the live turn, what is remembered); the arrival grammar's
+  "One she cannot see is said" (the pill); "And which tiles are a guest's own" refined for Size, Sort and Filter.
+- Proposed for docs this lane does not own (the Orchestrator's to place): `host-app.md`, beside the hub's album, "an
+  arrival out of the host's sight wears the album's pill under the stuck band (`event-gallery-news.ts`, guest-flow.md's
+  arrival grammar)"; `design-system.md`'s album tile, after "Nothing a reader is looking at moves", "and what lands out
+  of sight is said by one glass pill (`album-window-news.tsx`)".
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now · Guest: an undated album never turns: a host's "in order now" for it (no column now).
+- Now · Host: See it as a guest lays the album newest first after the turn (`as-guest-view.tsx` hands `LiveGallery` no
+  order); hand it the guests' order from its server read.
+- Now · refine the develop-zone line: the zone kept beside the develop time also turns the album, for every reader (the
+  turn reads each reader's own 9 am until then: `albumTurnAt` takes the zone).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed:** `6c58472be` (the work), `4513a2edf` (follow-ups, guest-flow.md), `41380aa80` (the sync: a merge
+  of `origin/launch-prep` at `a90d27cb8`, no conflict), `37b9aaf34` (one more pin), then this manifest. After the sync
+  launch-prep took records and `d6bfc64a0` (masonry's Strict Mode fix, not in this lane's reads, no overlap).
+- **Gates on the synced tree at `37b9aaf34`, each its own exit code** (logs in `_scratch/album-order/gate-*.log`):
+  `pnpm typecheck` 0; `pnpm lint` 0; `pnpm test` 0 (1015 files, 12639 tests); `zsh scripts/build-lock.sh pnpm build` 0;
+  `pnpm lab:smoke --base http://localhost:3133` 0 (173 checks: customize, event-header and identity reached).
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = the owned prefixes, this file, and five exceptions
+  (Q3: no open lane owns them): `src/app/(guest)/e/[token]/page.tsx`, `src/lib/events/gallery-access.server.ts` and
+  `.test.ts`, `src/components/guest/live-gallery.tsx` and `.test.tsx`. The page reads `resolveViewerZone` from
+  `src/lib/dashboard/viewer-day.ts`, which crumbs-82 now owns (a read, never an edit).
+- **1, the turn as presentation** (`src/lib/shared/album-order.ts`, `src/components/guest/gallery-order.ts`, the page,
+  `live-gallery.tsx`): newest first while on, the night in order from 9 am after the last day (the reader's zone) or
+  at the develop; undated and the demo never; the seed links the opening order's first paint (`albumFirstPaintIds`);
+  the page turns it live. Pinned: `album-order.test.ts` (undated, a range's LAST day, a disposable at its develop, the
+  zone in LA, London, Auckland, Kolkata and Sydney, both DST nights, an unreadable zone), `gallery-order.test.tsx`
+  (the timer, a return to the tab, a Develop now), `live-gallery.test.tsx` ("the album's order and her lens": the rows
+  handed the night in order from its start; an arrival appends), `album-window-plan.test.ts`, the seed's one case.
+- **2, the guest's sort and filter** (`gallery-view.ts`): Size, Sort (the host's `sortViewGroup`), Filter (All,
+  Photos, Videos, Yours (n), each only with something to show; `lensAlbum`); her order remembered per album as a
+  departure (`pr_album_sort`), her lens per visit. Pinned: `gallery-view.test.ts`, `live-gallery.test.tsx`.
+- **3, the arrivals pill** (`album-window-news.tsx` over `album-window.tsx`; guest `gallery-rows.tsx`, hub
+  `event-gallery.tsx` + `event-gallery-news.ts`): judged once as it stands in the rows, the pill under the stuck chrome
+  (`barBottom`), past the head only, a landing cleared whole on reach, smooth press (instant reduced, focus by keyboard),
+  down under a dialog. Pinned: `album-window-news.test.tsx` (21), `gallery-rows.test.tsx`, `event-gallery.test.tsx`.
+- **4, the edge cases:** the turn under a reader (her photograph's pixel held; the pill flips to where the news now
+  lies), a batch of 200 above (the anchor's exact scroll; "200 new" up; press, reach, clear) and with a late approval
+  below ("201 new" pointing to the nearer, then "200 new" up), a disposable's later uploads appending, and X7's
+  fixture: a late upload taken at the party lands mid-album by `happenedAt`, the anchoring holds and the pill points
+  to it (both sides pinned).
+- **Walked locally on a production build at 3133, a headless Chrome of my own** (captures in `_scratch/album-order/`):
+  a turned album (Arrival wiring develop, its develop reached) opens 01, 02, 03 at 1440 (`look-781ccf-1440-2.png`) and
+  375; View at 1440 and 375 (`view-781ccf-1440-1-menu.png`, `view-781ccf-375-1-menu.png`); Newest first written to the
+  cookie, the same first paint after a reload, forgotten by choosing Oldest; Videos on Reel lane probe ("Showing
+  videos 4 · Show all", `view-bbc329-1440-2-lens.png`). **The pill with real uploads from a second guest** on crumbs-76
+  free: newest first ↑ at 1440 and 375, in order ↓ at 1440 and (after the sync) 375, the reader's photograph on the
+  same pixel each time (110/110, 96/96, 160/160, 181/181), the press landing on the arrival
+  (`pill-newest-1440-1-pill.png`, `pill-newest-375-1-pill.png`, `pill-oldest-1440-1-pill.png`, `*-2-landed.png`);
+  the hub's album in the lab, 30 arrivals ↑, anchor 210/210 (`host-1440-1-pill.png`, `host-1440-pill-zoom.png`).
+- **Test data:** name-only test guests joined the disposable albums above; each walk's upload was taken back by its
+  guest except the first, one `landscape-1600x1200.jpg` by "Pill adder" on crumbs-76 free (its session went with its
+  profile), the host's to delete.
+- **For the Orchestrator's desk walk (3000, signed in):** the hub's pill under the app header and the stuck cards
+  band (folding into pills since event-header-wiring) at 1440 and 375, its press, and the hub's Oldest first.
+- **Assets requested from Will:** none.
+- **Board ideas:** the album's pill and the Review room's "N new" are drawn twice (`album-window-news.tsx`,
+  `review-section.tsx`): one atom; the pill could lead with the newest arrival's own picture beside its count
+  (pictures before numbers); the hub's Sort could be remembered as the guest's is.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none (one new functional cookie,
+  `pr_album_sort`, client-written, `Path=/e`, for the launch's cookie list if `/privacy` keeps one).
+- **Calls his to overrule:** the 9 am is the reader's zone until the event keeps one; the sort remembered per album
+  only as a departure, the filter per visit; the demo never turns; the pill counts others' arrivals, never her own
+  upload; a landing clears whole when reached, and the pill waits until she is past the album's first row; the hub
+  does not turn (its Oldest first reads the guests' key); the album turns live under a reader, anchored; Photos and
+  Videos offered only where both kinds stand, without counts.
+- **Look at first:** `pill-newest-375-1-pill.png` and `host-1440-1-pill.png` (the carried call, drawn once), then
+  `look-781ccf-1440-2.png` (the night in order).
