@@ -45,7 +45,41 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **Q1 The night in order's key (X7, Will 2026-10-05: "keep the capture time").** Recommended, built: in order runs on
+  when each was taken wherever an item carries a capture time, else when it arrived, behind one function
+  (`happenedAt` in `src/lib/shared/album-order.ts`, reading `takenAtOf`, which answers null until the capture-time lane
+  carries `media.captured_at` on the wire: that lane changes that one function and nothing else). Newest first stays
+  by arrival (the live feed). The host's Oldest first reads the same key. With capture times the in-order album stops
+  being append-only (a late upload taken at the party lands mid-album): pinned with a fixture carrying a capture time,
+  the anchoring holds and the pill points to where it landed. Nothing added to the wire or the database here.
+- **Q2 Whose 9 am.** No event keeps a zone yet (ROADMAP's develop-zone line), so recommended, built: the reader's own
+  zone, read by the page's server from the request (`x-vercel-ip-timezone`, the dashboard's day's own source) else the
+  server's, and that same zone handed to the browser so the first paint and the hydration agree. `albumTurnAt` takes
+  the zone as an argument, so the event's own zone drops in when that column lands.
+- **Q3 The first paint must already be in her order, which crosses four files outside `owns`.** The seed embeds the
+  links of exactly the first paint's photographs (an in-order album painted from newest-first links would shimmer, or
+  flip at hydration), and the guest's View menu is assembled in `live-gallery.tsx`. Recommended, built, each edit
+  minimal and none owned by an open lane: `src/app/(guest)/e/[token]/page.tsx` (the zone and the remembered order read
+  from the request, handed to the seed and the page), `src/lib/events/gallery-access.server.ts` (the seed's first-paint
+  order: one field), `src/components/guest/live-gallery.tsx` (Sort and Filter in its View menu, the order and the
+  filter applied) and its test (the Showing tests reshaped to Filter, their scars kept).
+- **Q4 Remembered per device.** Recommended, built: the sort, per album, and only as a departure from the turn
+  (choosing the album's own order again forgets it, so the album keeps turning for her), in a small cookie the page
+  reads (`pr_album_sort`, the `pr_album_w` way) so her first paint is already her order. The filter stays this visit's
+  (as Yours was): remembered, it would open a returning guest's album on a slice of it, and Yours cannot be known before
+  her uploads are read. Overrule: the filter remembered too.
+- **Q5 The pill.** Recommended, built: it counts what the album calls an arrival (someone else's photo, a late
+  approval), never her own upload (the sweep and her tracker say hers); one press takes her to the top of the nearest
+  landing, the arrow pointing that way; a landing (its run of rows) clears the moment she reaches it, by the pill or her
+  own scroll; landings on both sides count together and the arrow points to the nearer. It stands under the page's bar
+  and only once she is past the album's first row, so it never covers the head or the cover.
+- **Q6 The turn under a reader.** Recommended, built: the album turns live at its moment (a timer, and a return to the
+  tab), her photograph held on its pixel; a reader who chose an order keeps hers. The demo never turns (it is the party
+  in progress, and its turn card sits beside the album's first tile, which is the photograph a visitor just added).
+- **Q7 Photos and Videos.** Recommended, built: offered only where the album holds both kinds, Yours only while she
+  owns one, no Filter group where none applies; a filter left empty falls back to All (Yours' old rule, for each).
+- **Q8 The host's hub.** Recommended, built: it takes the pill but does not turn (her working view stays newest first,
+  her Sort per visit as today), and a teaser's nine never turn.
 
 ## System-doc edits (in place, owned facts only)
 
