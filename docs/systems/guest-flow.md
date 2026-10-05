@@ -122,10 +122,24 @@ read beside it so its Follow starts on Following; no card means no host row, nev
   [`album-window.tsx`](../../src/components/shared/album-window.tsx)): only the rows around the view are mounted; a
   photograph's link and heart load when its row mounts, and a tile whose row leaves cancels its unfinished download,
   since every R2 read shares a few HTTP/1.1 connections ([uploads-and-r2.md](uploads-and-r2.md)). The first paint is
-  the server's: rows per width class at the width the album last laid them (`pr_album_w`, path-scoped), links for
-  exactly those photographs (`firstPaintIds`), and the hydration draws the plan the server wrote (`data-rows-plan`),
-  never its own. The Yours filter runs over the manifest (the device's own ids met with it; the count stays the
-  album's). A photograph with no link yet is a loading tile, never a request.
+  the server's: rows per width class at the width the album last laid them (`pr_album_w`, path-scoped), in the order
+  it opens in, links for exactly those photographs (`albumFirstPaintIds`), and the hydration draws the plan the server
+  wrote (`data-rows-plan`), never its own. Her lens (Photos, Videos, Yours: `lensAlbum`) runs over the manifest (the
+  device's own ids met with it; the counts stay the album's). A photograph with no link yet is a loading tile, never a
+  request.
+- **The album's order turns once the party is over** ([`album-order.ts`](../../src/lib/shared/album-order.ts),
+  customize r1's `order=turns`): newest first while it is on, the night in order from 9 am the morning after its last
+  day or from its develop; an undated album and the demo never turn, and a teaser's nine stay newest first. It is
+  presentation over the one wire (the manifest and its delta stay `created_at desc`): the view turns the live source's
+  list (`inOrder`) and the rows lay from the end it grows at, so an album in order only grows at its end. In order
+  reads `happenedAt`: when each was taken where the wire carries a capture time (`takenAtOf`, the capture-time lane's
+  one switch), else when it arrived; newest first is always by arrival, the live feed. ★ The 9 am is the reader's, as
+  no event keeps a zone yet: the page's server reads it from the request (`x-vercel-ip-timezone`, else its own) and
+  hands the browser that zone with the order it decided (`guestAlbumOrder`), so the seed links the first paint of that
+  order and the hydration lays the same rows; the page then turns it on the device's clock (`useGuestAlbumOrder`: a
+  timer, a return to the tab, a Develop now). Behind a gate the order knows no days, as the shell does not. Her Newest
+  or Oldest is remembered per album on the device only as a departure from the turn (`pr_album_sort`, which the page
+  reads; choosing the album's own order forgets it), her lens for the visit.
   The page root is two boxes ([`event-experience.tsx`](../../src/components/guest/event-experience.tsx)): `COLUMN`,
   the reading measure, and `BLEED`, the gutter alone. The album alone takes `BLEED` and the cover runs the window's
   width; everything else the page says keeps `COLUMN`.
@@ -968,6 +982,16 @@ a Change. The typed name also rides the code request as `DOOR_NAME_KEY`, so a ma
   failed decode is let in at once), waits for a video with no preview's link alone, and never holds the seed, a
   filter's or step's toggle, an arrival the Yours filter hides, this device's own landing or anything under reduced
   motion. The glow is lit when it is let in.
+  **One she cannot see is said, never shown by moving her** (album-order,
+  [`album-window-news.tsx`](../../src/components/shared/album-window-news.tsx); the hub's album too, its arrivals off
+  the hub's store, `event-gallery-news.ts`). The rows already hold her place (the anchoring); the surface also hands
+  them its arrivals (`AlbumNews`: the glow's list, so never her own), each judged once as it first stands in the rows
+  against what she can see once the change's scroll is paid (one held at the door when it is let in; a lens's change
+  brings none), and what landed out of sight wears one glass pill, "N new" and the arrow to the nearest landing (a run
+  of rows that each hold one), under whatever chrome is stuck to the screen (`barBottom` finds it by hit-testing) and
+  only once she is past the album's first row, so never over its head or the cover. A landing clears whole the moment
+  any row of it is in view, by her scroll or the pill's press (to its top under the bar; smooth, at once under reduced
+  motion, a keyboard's landing on its first photograph), and a dialog over the album stands the pill down.
 - **A guest's own photographs, removable ever**: two identities, one control (its rules are the Invariants above;
   the delete itself is [lifecycle-recovery.md](lifecycle-recovery.md)'s). Signed in → `removeMyUploadGuestAction`
   ([`actions.ts`](<../../src/app/(guest)/e/[token]/actions.ts>)) on `remove_my_upload` (`auth.uid()`, any device, for
@@ -998,13 +1022,16 @@ a Change. The typed name also rides the code request as `DOOR_NAME_KEY`, so a ma
   ([`yours-filter.ts`](../../src/lib/guest/yours-filter.ts), pure), while the Download menu's Yours row is read by
   `/api/export/guest` itself, from the account and this browser's ticket cookie, as far as the ticket is hers
   ([uploads-and-r2.md](uploads-and-r2.md)). A guest's own tiles wear no mark, so the one View menu
-  ([`view-menu.tsx`](../../src/components/shared/view-menu.tsx), the host gallery's own object) is the filter's one
-  door, its Showing group (Everyone's / Yours (n)) only while the guest owns something; the count line keeps the whole
-  album's size, and the filter cannot stay live once she owns nothing, so removing her last photograph never strands
-  her in an empty view. The menu's Size step is server-resolved: the page reads the shared `pr_tile_size` cookie the
-  host dashboard does ([`tile-size-cookie.ts`](../../src/lib/shared/tile-size-cookie.ts)'s `resolveRowStep`) and
-  threads it as `initialRowStep` to `LiveGallery`, so the first paint is the step a returning guest picked; the write
-  rides `setRowStepAction` ([`actions.ts`](<../../src/app/(guest)/e/[token]/actions.ts>)), the host action's mirror.
+  ([`view-menu.tsx`](../../src/components/shared/view-menu.tsx), the host gallery's own object; its groups are
+  [`gallery-view.ts`](../../src/components/guest/gallery-view.ts)'s: Size, Sort and Filter) is the filter's one door,
+  its Yours (n) only while the guest owns something, Photos and Videos only where the album holds both, and no Filter
+  at all where All would stand alone; the count line keeps the whole album's size, and a lens cannot stay live with
+  nothing to show (`lensAlbum`), so removing her last photograph, or the album's last video, never strands her in an
+  empty view. Sort is the host's own control (`sortViewGroup`). The menu's Size step is server-resolved: the page reads
+  the shared `pr_tile_size` cookie the host dashboard does
+  ([`tile-size-cookie.ts`](../../src/lib/shared/tile-size-cookie.ts)'s `resolveRowStep`) and threads it as
+  `initialRowStep` to `LiveGallery`, so the first paint is the step a returning guest picked; the write rides
+  `setRowStepAction` ([`actions.ts`](<../../src/app/(guest)/e/[token]/actions.ts>)), the host action's mirror.
 
 ## Auth-aware header island
 

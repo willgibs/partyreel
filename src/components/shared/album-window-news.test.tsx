@@ -18,6 +18,7 @@ import type { GridMedia } from "@/components/app/media-grid";
 import { rowsInView } from "@/components/shared/album-window";
 import {
   AlbumNewsContext,
+  barBottom,
   landingsOf,
   pillFor,
   rowInView,
@@ -166,6 +167,46 @@ afterEach(() => {
   vi.restoreAllMocks();
   setReducedMotion(false);
   window.history.replaceState(null, "", "/");
+});
+
+describe("under the bar", () => {
+  /**
+   * The hub's chrome as a hit test meets it: the app's header stuck at the top (56px), its cards band stuck under it
+   * (to 110px) inside a footprint that takes no pointer below its cards (so the album answers there), then the album.
+   */
+  it("finds the bottom of the chrome stuck to the screen, and never counts the album or itself", () => {
+    const header = document.createElement("header");
+    header.style.position = "sticky";
+    const footprint = document.createElement("div");
+    footprint.style.position = "sticky";
+    const band = document.createElement("div");
+    footprint.appendChild(band);
+    const album = document.createElement("div");
+    document.body.append(header, footprint, album);
+    const at = vi.fn((_x: number, y: number) =>
+      y < 56 ? header : y < 110 ? band : album,
+    );
+    const doc = {
+      elementFromPoint: at,
+      defaultView: window,
+    } as unknown as Document;
+    try {
+      // Read to four pixels: the first step past the band.
+      expect(barBottom(doc, 400)).toBe(112);
+      // A guest's page scrolls its header away: nothing is stuck, and the pill stands 12px from the top.
+      at.mockImplementation(() => album);
+      expect(barBottom(doc, 400)).toBe(0);
+    } finally {
+      header.remove();
+      footprint.remove();
+      album.remove();
+    }
+  });
+
+  it("an engine with no hit-testing finds no bar", () => {
+    const doc = { defaultView: window } as unknown as Document;
+    expect(barBottom(doc, 400)).toBe(0);
+  });
 });
 
 describe("the arithmetic", () => {

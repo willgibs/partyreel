@@ -954,6 +954,9 @@ export function AlbumRows<
     const lensMoved = primed && news.lens !== s.lens;
     s.lens = news.lens;
     s.primed = true;
+    // The usual change (a poll's delta, a step) brings no news: nothing to place, so no index of the album is built.
+    if (s.unseen.size === 0 && news.arrivals.every((id) => s.judged.has(id)))
+      return;
     const rows = rowIndex(laid.layout.rows);
     // A reflow moves rows; one that left the rows (hidden, removed, outside the lens) is no news now.
     for (const id of [...s.unseen.keys()]) {
