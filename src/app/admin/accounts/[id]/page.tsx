@@ -14,15 +14,29 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/auth/admin-context";
-import { getAccountDetail } from "@/lib/db/queries/accounts";
+import {
+  getAccountDetail,
+  readAccountHourUploads,
+  readAccountUploads,
+  type Reading,
+} from "@/lib/db/queries/accounts";
 import { getAccountDeletionState } from "@/lib/lifecycle/account-deletion";
 import { nextPurgeWindow } from "@/lib/lifecycle/purge-time";
 import { formatAdminDate, formatAdminTimestamp } from "@/lib/format/admin-time";
 import { formatCount } from "@/lib/format/count";
+import { captureWarning } from "@/lib/observability/sentry";
 import { formatBytes } from "@/lib/utils";
 import { isUuidShape } from "@/lib/validation/uuid-shape";
 import { PageHeading } from "@/components/shared/page-heading";
 import { capLabel } from "../cap";
+import {
+  hourLabel,
+  hourState,
+  NO_READING,
+  uploadsState,
+  usedOfLabel,
+  windowLabel,
+} from "../uploads";
 import {
   CancelDeletionControl,
   DeleteAccountControl,
@@ -69,6 +83,20 @@ function Row({
   );
 }
 
+/** What a reading says when it was not taken: "No reading" and why, in the failure tone, never a zero. */
+function NoReading({ reading }: { reading: Reading<unknown> }) {
+  return (
+    <>
+      <span className="text-destructive">{NO_READING}</span>
+      {reading.ok ? null : (
+        <span className="block text-caption break-words text-muted-foreground">
+          {reading.message}
+        </span>
+      )}
+    </>
+  );
+}
+
 export default async function AdminAccountDetailPage({
   params,
 }: {
@@ -82,7 +110,24 @@ export default async function AdminAccountDetailPage({
   // album page says why of both (crumbs-28).
   const account = isUuidShape(id) ? await readAccount(id) : null;
   if (!account) return <AdminNotFoundPageScreen />;
-  const deletion = await getAccountDeletionState(id);
+  // Her uploads are read beside the deletion state, each its own read: one that fails says No reading and never
+  // fails the page, so the operator who came to read something else (the delete below) still has it.
+  const [deletion, uploads, hour] = await Promise.all([
+    getAccountDeletionState(id),
+    readAccountUploads(account.profile),
+    readAccountHourUploads(id),
+  ]);
+  // Said once to Sentry (the read swallows its failure into No reading, so nothing else would), with the first reason.
+  const unread = [uploads.used, hour].flatMap((r) => (r.ok ? [] : [r.message]));
+  if (unread.length > 0) {
+    captureWarning("admin", "account: uploads read failed", {
+      user_id: id,
+      unread: unread.length,
+      message: unread[0],
+    });
+  }
+  const uploadsAt = uploadsState(uploads);
+  const hourAt = hourState(hour);
 
   const { profile } = account;
   const capText = capLabel(account.effectiveCapBytes);
@@ -154,14 +199,69 @@ export default async function AdminAccountDetailPage({
           <CardTitle>Storage and usage</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
-          <Row label="Active storage">
-            {formatBytes(account.activeBytes)} of {capText}
+          {/* Her plan's cap holds her albums and her Deleted together, so each is drawn and the total is the figure
+              the cap is read against (a delete frees nothing until the item leaves Deleted for good). */}
+          <Row label="Albums">{formatBytes(account.activeBytes)}</Row>
+          <Row label="Deleted">{formatBytes(account.deletedBytes)}</Row>
+          <Row label="Stored">
+            {formatBytes(account.storedBytes)} of {capText}
           </Row>
           <Row label="Counter (real bytes)">
             {formatBytes(account.storageUsedBytes)}
           </Row>
           <Row label="Events">{formatCount(account.eventCount)}</Row>
           <Row label="Media">{formatCount(account.mediaCount)}</Row>
+        </CardContent>
+      </Card>
+
+      {/* The refusals an upload meets before the room: the plan's allowance over its window and the hour's breaker
+          (the same reads the presign makes, `uploads_used` and the month's ledger row). Read-only: nothing here
+          lifts a count (admin-observability.md). */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Uploads</CardTitle>
+          <CardDescription>
+            What her plan lets her and her guests upload. A delete never gives
+            it back.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          <Row label={windowLabel(uploads.window)}>
+            {uploads.used.ok ? (
+              <span className="inline-flex flex-wrap items-center justify-end gap-2">
+                {uploadsAt === "at" ? (
+                  <Badge variant="warning">At limit</Badge>
+                ) : null}
+                {usedOfLabel(uploads)}
+              </span>
+            ) : (
+              <NoReading reading={uploads.used} />
+            )}
+          </Row>
+          {uploadsAt === "at" ? (
+            <p className="text-caption text-muted-foreground">
+              At her allowance: new uploads, hers and her guests&apos;, are
+              refused until the window turns.
+            </p>
+          ) : null}
+          <Row label="Started this hour">
+            {hour.ok ? (
+              <span className="inline-flex flex-wrap items-center justify-end gap-2">
+                {hourAt === "at" ? (
+                  <Badge variant="warning">At limit</Badge>
+                ) : null}
+                {hourLabel(hour)}
+              </span>
+            ) : (
+              <NoReading reading={hour} />
+            )}
+          </Row>
+          {hourAt === "at" ? (
+            <p className="text-caption text-muted-foreground">
+              At the hour&apos;s breaker: uploads are refused until the next UTC
+              hour.
+            </p>
+          ) : null}
         </CardContent>
       </Card>
 

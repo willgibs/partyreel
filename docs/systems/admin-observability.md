@@ -6,6 +6,7 @@ Open this before you:
 - add a backend job, a kill switch or anything else that must report its health;
 - change a spend guard: a reading, a floor, a ceiling or a switch the spend watch pauses;
 - change a vendor's plan or a plan limit the watch measures (a plan cutover, a new meter, a credential for one);
+- change what the Accounts pages read of a host (her uploads, her storage);
 - add a Sentry capture.
 
 Elsewhere: host-side moderation ([host-app.md](host-app.md)), the forensic surface and the CSAM runbook
@@ -289,6 +290,29 @@ test. The open queue is the review grid (`components/admin/report-queue.tsx`), i
 `/api/help/feedback` reports every click it drops (the limiter could not answer, or the insert failed), because the
 reader sees the same thank-you either way and nothing else would ever show it. A failed read says so in words, never
 "No feedback yet".
+
+## Accounts
+
+`/admin/accounts` and an account's page are read-only (billing changes go through Stripe: the webhook is the sole writer
+of tier and cap), and they say what the product enforces on an upload, so "why was this host refused" needs no SQL. The
+reads are `lib/db/queries/accounts.ts`; the words are `app/admin/accounts/uploads.ts`, shared by the list and the page so
+a row and its card never disagree.
+- ★ **A host's uploads are `uploads_used` asked with HER OWN tier,** as `create_media*` and `meter_upload` ask it (this
+  calendar month's ledger for Free and Pro, her live passes' own year for a pass holder), against `uploadAllowance` (the
+  one home, tiers.ts). `readHostMonthUploads` asks as `pro` on purpose, for the plan sheet's "what a switch to Pro is
+  measured against", so reusing it would show a pass holder a ledger her allowance never reads. The list asks the RPC once
+  a row (the page's 50 at most) instead of recomputing the window in TypeScript, so no figure can disagree with a refusal;
+  a Pro with no cap on record reads Unmetered, the SQL's fail-open.
+- **The hour is the month's ledger row** (`hour_started_at`, `hour_uploads`: the uploads started in the current UTC clock
+  hour; a row from an earlier hour counts zero). Its ceiling is the SQL's `c_uploads_an_hour`, mirrored as `UPLOADS_AN_HOUR`
+  under a parity test that reads the newest migration setting it. Unpublished: it shows here and nowhere a host reads.
+- **The cap holds her albums and her Deleted together** (`host_storage_summary`), so the page draws both and the total
+  against the cap; the list's Storage column is still the physical counter, which gates nothing.
+- ★ **A read that fails says "No reading" and why, never a zero, and never takes the page:** the readers answer
+  `{ ok: false, message }` and the page raises one Sentry warning (Sentry never enters `lib/db`). A real zero is a reading.
+- ★ **Nothing here lifts a host's uploads count.** The ledger sits behind billing enforcement, and `cumulative_bytes`
+  is also the spend watch's meter of what the platform pays for (it diffs snapshots of its sum), so zeroing it would
+  both lift the guard and skew the watch: a lift must be additive and audited, never an edit of the ledger.
 
 ## Sentry
 
