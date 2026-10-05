@@ -17,6 +17,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
   within,
 } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -50,6 +51,7 @@ vi.mock("@/components/app/pricing/pricing-sheet", () => ({
 }));
 
 const { EventSettingsSheet } = await import("./event-settings-sheet");
+const { ROLL_REST_MS } = await import("./camera-settings");
 const { hostEvent, NO_COUNTS, readyFacts } =
   await import("./testing/host-event");
 
@@ -609,5 +611,158 @@ describe("every page ends in Next", () => {
   it("is never drawn at rest: the steps are the way in", () => {
     const { body } = sheet();
     expect(body.querySelector("[data-settings-next]")).toBeNull();
+  });
+});
+
+/**
+ * ★ THE ROLL, A WORD ON THE FIRST SCREEN AND A WHOLE CONTROL ON ITS PAGE (customize r1: Will's `roll=both` and
+ * `home=words`). The sentence's "24 shots" swaps film's three in place and sends the one field; Another number opens What
+ * guests can add at the stepper, in focus; the page's boxes save at once and a run of steps once she rests; and her roll is
+ * kept while the album takes free uploads, so the Disposable card still says it.
+ */
+describe("the roll: a live word, and its page's whole control", () => {
+  const ID = "11111111-2222-4333-8444-555555555555";
+  const ahead = () => new Date(Date.now() + 2 * 86_400_000).toISOString();
+  const disposable = (roll: number | null = 24) =>
+    ({
+      capture: "camera",
+      roll_size: roll,
+      develops_at: ahead(),
+    }) as Parameters<typeof hostEvent>[0];
+  const sentence = () =>
+    document.querySelector(
+      "[data-settings-row='adds'] [data-settings-sentence]",
+    )?.textContent;
+
+  it("★ the camera's sentence says its roll as a word, and a film size picked there sends the roll alone", async () => {
+    sheet({ event: disposable() });
+    expect(sentence()).toBe(
+      "Photos and videos on the album's camera, 24 shots each, hidden until the album develops.",
+    );
+    fireEvent.click(screen.getByRole("button", { name: "24 shots" }));
+    const menu = screen.getByRole("menu");
+    expect(
+      within(menu)
+        .getAllByRole("menuitem")
+        .map((m) => m.textContent),
+    ).toEqual([
+      "12 shotsFilm's short roll.",
+      "24 shotsPartyreel's usual.",
+      "36 shotsFilm's long roll.",
+      "Another numberAny count from 1 to 99.",
+    ]);
+    await act(async () => {
+      fireEvent.click(
+        within(menu).getByRole("menuitem", { name: /^36 shots/ }),
+      );
+    });
+    expect(updateEventAction).toHaveBeenCalledTimes(1);
+    expect(updateEventAction).toHaveBeenCalledWith(ID, { roll_size: 36 });
+    expect(sentence()).toContain("36 shots each");
+  });
+
+  it("a count that is none of film's three is offered as itself, chosen, beside them", () => {
+    sheet({ event: disposable(50) });
+    fireEvent.click(screen.getByRole("button", { name: "50 shots" }));
+    const chosen = within(screen.getByRole("menu"))
+      .getAllByRole("menuitem")
+      .filter((m) => m.getAttribute("aria-current") === "true")
+      .map((m) => m.textContent);
+    expect(chosen).toEqual(["50 shots"]);
+  });
+
+  it("★ Another number opens What guests can add at the stepper, its count in focus, and writes nothing", async () => {
+    const view = sheet({ event: disposable() });
+    fireEvent.click(screen.getByRole("button", { name: "24 shots" }));
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("menuitem", { name: /^Another number/ }),
+      );
+    });
+    expect(view.onOpenPage).toHaveBeenCalledWith("adds");
+    expect(updateEventAction).not.toHaveBeenCalled();
+    // The address answers with the page: it opens at the stepper.
+    view.rerender(
+      <EventSettingsSheet
+        open
+        onOpenChange={view.onOpenChange}
+        page="adds"
+        onOpenPage={view.onOpenPage}
+        onClosePage={view.onClosePage}
+        event={hostEvent(disposable())}
+        tier="pro"
+        counts={NO_COUNTS}
+        pendingCount={0}
+        social={{ displayInProfile: false, hostHasSlug: true }}
+        reelSample={null}
+        ready={readyFacts()}
+        onOpenCode={view.onOpenCode}
+      />,
+    );
+    expect(
+      screen.getByRole("radio", { name: /another number of shots/i }),
+    ).toHaveAttribute("aria-checked", "true");
+    await waitFor(() =>
+      expect(document.activeElement).toBe(screen.getByRole("spinbutton")),
+    );
+  });
+
+  it("★ on its page a box saves at once; a run of steps is one save, sent once she rests", async () => {
+    sheet({ page: "adds", event: disposable() });
+    const group = screen.getByRole("radiogroup", { name: "Shots each" });
+    await act(async () => {
+      fireEvent.click(within(group).getByRole("radio", { name: "12 shots" }));
+    });
+    expect(updateEventAction).toHaveBeenLastCalledWith(ID, { roll_size: 12 });
+    updateEventAction.mockClear();
+
+    vi.useFakeTimers();
+    try {
+      fireEvent.click(
+        within(group).getByRole("radio", { name: /another number/i }),
+      );
+      const more = screen.getByRole("button", { name: "More shots" });
+      fireEvent.click(more);
+      fireEvent.click(more);
+      fireEvent.click(more);
+      expect(screen.getByRole("spinbutton")).toHaveAttribute(
+        "aria-valuenow",
+        "15",
+      );
+      expect(updateEventAction).not.toHaveBeenCalled();
+      await act(async () => {
+        vi.advanceTimersByTime(ROLL_REST_MS);
+      });
+      expect(updateEventAction).toHaveBeenCalledTimes(1);
+      expect(updateEventAction).toHaveBeenCalledWith(ID, { roll_size: 15 });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("★ a count still resting when the page goes is saved as it goes (the state outlives the panel)", async () => {
+    const view = sheet({ page: "adds", event: disposable() });
+    fireEvent.click(
+      screen.getByRole("radio", { name: /another number of shots/i }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Fewer shots" }));
+    expect(updateEventAction).not.toHaveBeenCalled();
+    await act(async () => {
+      view.unmount();
+    });
+    expect(updateEventAction).toHaveBeenCalledWith(ID, { roll_size: 23 });
+  });
+
+  it("★ her roll is kept while the album takes free uploads: no roll row, and the Disposable card says her count", () => {
+    sheet({
+      page: "adds",
+      event: { capture: "upload", roll_size: 36 } as Parameters<
+        typeof hostEvent
+      >[0],
+    });
+    expect(screen.queryByRole("radiogroup", { name: "Shots each" })).toBeNull();
+    expect(
+      document.querySelector("[data-album-style='disposable']")?.textContent,
+    ).toContain("The album's camera, 36 shots each.");
   });
 });

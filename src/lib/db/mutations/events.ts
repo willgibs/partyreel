@@ -130,10 +130,12 @@ export async function createEvent(
     moderation_mode: values.moderation_mode,
     qr_style: values.qr_style,
     // HOW GUESTS ADD AND WHEN THE ALBUM DEVELOPS, at birth (create-wizard r3's add=styles): bare INSERT-granted columns
-    // (20261002200000), written in this one insert beside `moderation_mode` so a style is never a half-state. The
-    // database does the rest in it: `events_reveal_stamp` fills in the camera's roll, stamps its period, and stores a
-    // develop time under a minute ahead as its own now.
+    // (20261002200000), written in this one insert beside `moderation_mode` so a style is never a half-state, with the
+    // roll she named under the Disposable pick (customize r1's `roll=both`; none named is null). The database does the
+    // rest in it: `events_reveal_stamp` fills in a camera's unnamed roll (24), stamps its period, and stores a develop
+    // time under a minute ahead as its own now.
     capture: values.capture,
+    roll_size: values.roll_size,
     develops_at: values.develops_at,
   };
 
@@ -274,11 +276,13 @@ export async function updateEvent(
   // narrows (the upload's gate reads the plan).
   if (values.allow_videos !== undefined)
     patch.allow_videos = values.allow_videos;
-  // HOW GUESTS ADD AND WHEN THE ALBUM DEVELOPS (20261002200000): bare granted-column writes. The database does the
-  // rest in this same save: `events_reveal_stamp` fills in the camera's roll and stamps its period, and a new develop
-  // time rewrites the album's rows (`events_develops_rewrite`: Develop now, right away and a moved time land with the
-  // save, ringing the album once).
+  // HOW GUESTS ADD AND WHEN THE ALBUM DEVELOPS (20261002200000), AND THE ROLL SHE NAMES (20261005190000): bare
+  // granted-column writes, the roll's bounds held by `events_roll_size_range` behind the schema's words. The database
+  // does the rest in this same save: `events_reveal_stamp` fills in a camera's unnamed roll and stamps its period (free
+  // uploads keep her roll for the camera's return), and a new develop time rewrites the album's rows
+  // (`events_develops_rewrite`: Develop now, right away and a moved time land with the save, ringing the album once).
   if (values.capture !== undefined) patch.capture = values.capture;
+  if (values.roll_size !== undefined) patch.roll_size = values.roll_size;
   if (values.develops_at !== undefined) patch.develops_at = values.develops_at;
 
   const { data, error } = await supabase

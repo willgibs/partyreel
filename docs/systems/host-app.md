@@ -24,11 +24,11 @@ its gate (below); `allow_videos` is the Videos switch, binding guests only, as `
 (the host's own are exempt); `qr_style` is plain text, app-validated, so presets grow without a migration.
 
 - **The sole create path is `/dashboard/new`** (`create-event-wizard.tsx`, its screens in `create-event-wizard/`): the
-  name, the code's look, then the beat. It creates once, at commit (an abandoned Create leaves no row), through the
-  non-redirecting `createEventInWizard`, which returns the id and token so the beat can draw the real code. Only the
-  name is required; everything else is edited in Settings (below). The look step's codes are samples and say so on
-  the code: they encode `previewJoinUrl`'s stand-in link, as long as a real one so the look is true, and it names
-  nobody's album, so a test-scan meets a 404.
+  name, the album's style (a Disposable's develop time and roll under its pick), the code's look, then the beat. It
+  creates once, at commit (an abandoned Create leaves no row), through the non-redirecting `createEventInWizard`, which
+  returns the id and token so the beat can draw the real code. Only the name is required; everything else is edited in
+  Settings (below). The look step's codes are samples and say so on the code: they encode `previewJoinUrl`'s stand-in
+  link, as long as a real one so the look is true, and it names nobody's album, so a test-scan meets a 404.
 - **The room is `fixed` over the (app) shell, whose bar steps aside in CSS** (`data-app-room` on the room, read by the
   header's `group-has-[[data-app-room]]/shell:hidden`, since a page cannot hand its layout a prop), so nothing of the
   app waits in the tab order behind Create.
@@ -204,15 +204,17 @@ hub and closes back to it.
   and the custom link). Every door to it reads Invite (`share/invite-button.tsx`): the head's code, the sticky band's
   chip, the checklist's code row, Settings' last step and the dashboard card's QR chip. The code is drawn in this one
   sharing surface, so a fix to it lands everywhere.
-- **Settings is five steps** (`event-settings/`): Who can get in, What guests can add, The highlight reel and The
-  event, each row one sentence (`settingsSentence`, the one home) whose underlined words are live controls
-  (`SettingWord`) and whose row opens its own page, then the code. The rows tick once ready, by the checklist's own
-  function (`settingsReadiness`: the server's facts, the album's live counts over them, Settings' optimistic values
-  over both, so a step ticks the moment its choice is made). Every control saves itself (no form, no Save):
-  `SettingsProvider` lays an optimistic overlay over the server row, a key dropped once the row catches up, with a
-  sequence per key so a late answer never undoes a newer choice (a save that throws, a dropped connection, settles as a
-  refusal does: put back, freed, said, and `run` never rejects); a text field saves when it is left. `/settings`
-  survives as a redirect, because it is a published URL.
+- **Settings is five steps** (`event-settings/`): Who can get in, What guests can add, The highlight reel and The event,
+  each row one sentence (`settingsSentence`, the one home) whose underlined words are live controls (`SettingWord`) and
+  whose row opens its own page, then the code. The sentence is the overview and each page the whole control (customize
+  r1's `home=words`): a word swaps a choice in place, and an answer only its page can take (a password to set, a roll's
+  Another number) opens that page, the roll's at its stepper in focus (`SettingsState.opening`). The rows tick once
+  ready, by the checklist's own function (`settingsReadiness`: the server's facts, the album's live counts over them,
+  Settings' optimistic values over both, so a step ticks the moment its choice is made). Every control saves itself (no
+  form, no Save): `SettingsProvider` lays an optimistic overlay over the server row, a key dropped once the row catches
+  up, with a sequence per key so a late answer never undoes a newer choice (a save that throws, a dropped connection,
+  settles as a refusal does: put back, freed, said, and `run` never rejects); a text field saves when it is left.
+  `/settings` survives as a redirect, because it is a published URL.
 - ★ **A date field saves once she has finished it, never on its change**: Chrome's date input fires a complete date on
   every keystroke that makes one (a year typed digit by digit passes 0002, 0020 and 0202 on its way to 2027), so a
   keyboard's edit waits to be left or Entered, a picker's choice saves a beat after the last, the panel's close saves a

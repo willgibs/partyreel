@@ -23,13 +23,18 @@ describe("rollView", () => {
       refusal: null,
       ceilingReached: false,
     });
-    // No size named (or one past the product's own) is the product's roll.
+    // ★ RESHAPED ON PURPOSE (settings-wiring, 20261005190000; scar kept: no size named, or one past the host's bounds, is
+    // the product's roll; reason dropped: 24 was the most a host could name, so 99 read as 24). Any count to 99 is hers.
     expect(rollView({ server: null, rollSize: null, pending: 0 }).cap).toBe(
       ROLL_SHOTS,
     );
-    expect(rollView({ server: null, rollSize: 99, pending: 0 }).cap).toBe(
-      ROLL_SHOTS,
-    );
+    expect(rollView({ server: null, rollSize: 99, pending: 0 }).cap).toBe(99);
+    expect(rollView({ server: null, rollSize: 50, pending: 0 }).cap).toBe(50);
+    for (const past of [0, 100, 12.5]) {
+      expect(rollView({ server: null, rollSize: past, pending: 0 }).cap).toBe(
+        ROLL_SHOTS,
+      );
+    }
   });
 
   it("steps down by the shots taken since the read, the instant they are taken", () => {

@@ -15,6 +15,7 @@
  * Pure, so every rule is a unit test.
  */
 import {
+  isRollSize,
   ROLL_RETAKES,
   ROLL_RETAKES_SPENT_MESSAGE,
   ROLL_SHOTS,
@@ -37,14 +38,13 @@ export type RollView = {
   ceilingReached: boolean;
 };
 
-/** A roll's size as the event row names it (24 unless the host named fewer), else the product's. */
+/**
+ * A roll's size as the event row names it (any count from 1 to 99, 24 unless the host named another), else the
+ * product's. ★ THE HOST'S BOUNDS, NEVER THE DEFAULT: a roll of 50 reads 50 before the server's first answer lands, never
+ * 24 for an instant (the old bound was the default, 20261005190000 widened it).
+ */
 function capOf(rollSize: number | null | undefined): number {
-  return typeof rollSize === "number" &&
-    Number.isInteger(rollSize) &&
-    rollSize > 0 &&
-    rollSize <= ROLL_SHOTS
-    ? rollSize
-    : ROLL_SHOTS;
+  return isRollSize(rollSize) ? rollSize : ROLL_SHOTS;
 }
 
 export function rollView(input: {
