@@ -8,7 +8,11 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/app/(dev)/design/(shell)/library/compositions/
 reads:                  # single-sources you depend on: never duplicate, never edit
   - src/components/app/export/export-toast.tsx
+  - src/components/app/export/export-walk.ts
+  - src/lib/export/walk.ts
   - src/app/admin/jobs/limits-card.tsx
+  - src/lib/jobs/limits-watch.ts
+  - src/lib/jobs/limits-watch-limits.ts
   - src/components/ui/tooltip.tsx
 ---
 
@@ -34,7 +38,24 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+All three are built as recommended; each is Will's to overrule.
+
+- **Where does each specimen live?** The download toast is a Compositions entry in a new "Downloads" section
+  (`export-toast.tsx` sits in `src/components/app`, which that family exists for); the Plan limits card is a
+  Compositions entry in "The operations portal", beside its sibling admin entries; TapTooltip is a second specimen
+  on the Tooltip entry (Components, Overlays), whose `for` line stops saying "useless on touch" and now names its
+  test. Recommended: as built.
+- **The toast's states are fired, not drawn.** Sonner holds a toast only after a call, so no server render can carry
+  one and a drawing would copy markup the component does not export. The entry is a panel of buttons firing the real
+  `exportToasts` on the page's own toaster, one toast updated in place by its id as in production; the toast's own
+  controls (the x, the question's answers, Try again) walk a fixture between states with no request. All nine tones,
+  the five the lanes named first; a test with the real Toaster presses each and reads its words, so a regression
+  fails the gate and not only a look. Recommended: as built.
+- **Plan limits' states stand as whole cards** (healthy, critical, a failed read, gaps) built from the real
+  `METERS`, so a new meter appears by itself, plus the two short "nothing to show" cards (never read, unreadable).
+  Four cards on one page repeat the card's DOM ids (`#plan-limits`, `#limit-<meter>`): harmless here (the labels they
+  point at read the same) and never in the portal, which draws one. The alternative, one card and a switch, would
+  leave three of the four states outside the server render `lab:smoke` crawls. Recommended: as built.
 
 ## System-doc edits (in place, owned facts only)
 
