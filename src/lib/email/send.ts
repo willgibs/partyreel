@@ -19,6 +19,14 @@
  * what /admin/jobs reads as "N sent, N failed in the last 24 hours". The THROW is unchanged —
  * the caller's behaviour is exactly what it was.
  *
+ * ★ A ONE-TIME NOTICE IS KEPT UNTIL IT SENDS (crumbs-75). The release above retries a mail only because its sweep
+ * calls again while the state lasts. A one-time notice (`STATE_NOTICES`: an idle event put in Deleted, a grace opened,
+ * a plan reduced) is sent AFTER its sweep moved the state, and the sweep never meets that state again, so one refused
+ * send lost it for good: a Resend outage the night an event was removed, and its host was never told. So a notice
+ * whose claim or send fails is KEPT, rendered, in `notice_retries` (whose it is, never its address), beside the
+ * release; its sweep retries it first thing each night (`retryParkedNotices`, below) until it sends, the claim still
+ * keeping the send single, and gives it up, loudly, `NOTICE_RETRY_DAYS` after its first failure. The throw still comes.
+ *
  * THE LIFECYCLE-MAIL PAUSE (the spend watch, `ops_flags.lifecycle_mail_enabled`). While it is off, the mail a
  * lifecycle sweep sends again every night its state lasts (`HELD_WHILE_PAUSED`, send-kinds.ts) is HELD: never
  * claimed, so it goes out the first night after the switch is back on, and `false` comes back as if it had gone
@@ -28,14 +36,34 @@
  */
 import "server-only";
 
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 import { getResend } from "@/lib/email/client";
-import { heldWhilePaused } from "@/lib/email/send-kinds";
+import {
+  heldWhilePaused,
+  isStateNotice,
+  NOTICE_RETRY_DAYS,
+  type StateNotice,
+} from "@/lib/email/send-kinds";
 import { assertResendEnv } from "@/lib/env";
 import { recordSignalFailure } from "@/lib/jobs/failure-log";
+import { forEachIsolated } from "@/lib/jobs/isolate";
 import { lifecycleMailFlowing } from "@/lib/jobs/spend-watch-switches";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const UNIQUE_VIOLATION = "23505";
+
+const DAY_MS = 86_400_000;
+
+type AdminClient = ReturnType<typeof createAdminClient>;
+
+/**
+ * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `notice_retries` arrives with migration 20261005060000, so the reads
+ * and writes that name it go through this untyped client (drop the cast then).
+ */
+function untyped(admin: AdminClient): SupabaseClient {
+  return admin as unknown as SupabaseClient;
+}
 
 export type SendOnceArgs = {
   /** Stable category, e.g. "over_cap_grace_start". */
@@ -55,6 +83,15 @@ export type SendOnceArgs = {
   /** Optional Reply-To — e.g. so an operator can reply straight to a form submitter. */
   replyTo?: string;
 };
+
+/**
+ * What `sendOnce` throws when the claim or Resend refused: already recorded in `email_delivery` (Sentry and the row),
+ * so a caller that records its own failures (the notice retry) knows not to say it twice. Still an `Error` with the
+ * words it always had, so every other caller reads it exactly as before.
+ */
+export class SendFailedError extends Error {
+  override name = "SendFailedError";
+}
 
 /**
  * Returns true if an email was sent; false if it was not sent this time: already sent (deduped), or held while
@@ -89,6 +126,9 @@ export async function sendOnce(args: SendOnceArgs): Promise<boolean> {
   });
   if (claimError) {
     if (claimError.code === UNIQUE_VIOLATION) return false; // already sent
+    // Nothing went: a notice is kept for its retry as a refused one is (a claim that cannot be written most often
+    // means the database is down, and then keeping it fails too, which says so).
+    if (isStateNotice(args.kind)) await keepNotice(admin, args, args.kind);
     await recordSignalFailure({
       job: "email_delivery",
       area: "other",
@@ -96,7 +136,9 @@ export async function sendOnce(args: SendOnceArgs): Promise<boolean> {
       error: new Error(claimError.message),
       extra: { kind: args.kind, code: claimError.code },
     });
-    throw new Error(`sent_emails claim (${args.kind}): ${claimError.message}`);
+    throw new SendFailedError(
+      `sent_emails claim (${args.kind}): ${claimError.message}`,
+    );
   }
 
   const { error: sendError } = await resend.emails.send({
@@ -114,6 +156,8 @@ export async function sendOnce(args: SendOnceArgs): Promise<boolean> {
       .delete()
       .eq("kind", args.kind)
       .eq("dedupe_key", args.dedupeKey);
+    // A one-time notice's sweep never calls again, so the notice is kept for the retry that will.
+    if (isStateNotice(args.kind)) await keepNotice(admin, args, args.kind);
     // A refusal and a transient failure look the same from here (Resend answers both as an error),
     // and both are worth the signal: one is "this address will never work", the other is "we are
     // retrying nightly and nobody knows". The KIND is recorded, never the address — the row renders
@@ -125,9 +169,214 @@ export async function sendOnce(args: SendOnceArgs): Promise<boolean> {
       error: new Error(sendError.message),
       extra: { kind: args.kind, name: sendError.name },
     });
-    throw new Error(`resend send (${args.kind}): ${sendError.message}`);
+    throw new SendFailedError(
+      `resend send (${args.kind}): ${sendError.message}`,
+    );
   }
   return true;
+}
+
+/**
+ * KEEP A NOTICE FOR ITS RETRY: the mail as it was rendered and whose it is, upserted on sent_emails' own key, so a
+ * retry that fails again moves `last_failed_at` while `first_failed_at` (the give-up clock, never written here) keeps
+ * the first failure's instant. The address is never kept: the retry reads the account's own at the time, so a changed
+ * one is honoured and an account on its way out has none. Never throws (its caller is already failing); a notice that
+ * cannot be kept is recorded as lost, the one way it still can be.
+ */
+async function keepNotice(
+  admin: AdminClient,
+  args: SendOnceArgs,
+  kind: StateNotice,
+): Promise<void> {
+  const lost = (why: string, error: Error, code?: string) =>
+    recordSignalFailure({
+      job: "email_delivery",
+      area: "other",
+      operation: `notice lost: ${why} (${kind})`,
+      error,
+      extra: { kind, code },
+    });
+  if (!args.profileId) {
+    await lost(
+      "no account to retry it for",
+      new Error("a one-time notice was sent with no profileId"),
+    );
+    return;
+  }
+  try {
+    const { error } = await untyped(admin).from("notice_retries").upsert(
+      {
+        kind,
+        dedupe_key: args.dedupeKey,
+        profile_id: args.profileId,
+        subject: args.subject,
+        html: args.html,
+        text: args.text,
+        last_failed_at: new Date().toISOString(),
+      },
+      { onConflict: "kind,dedupe_key" },
+    );
+    if (error) {
+      await lost("it could not be kept", new Error(error.message), error.code);
+    }
+  } catch (e) {
+    await lost(
+      "it could not be kept",
+      e instanceof Error ? e : new Error(String(e)),
+    );
+  }
+}
+
+/** At most this many kept notices of one kind a run, the oldest first: a backlog drains over the nights. */
+export const NOTICE_RETRIES_A_RUN = 25;
+
+/** Retries failing in a row that read as Resend down, not one bad address: the rest wait for the next run. */
+const RETRY_ABORT_AFTER = 3;
+
+export type NoticeRetryTally = {
+  /** Kept notices a retry sent this run. */
+  notices_resent: number;
+  /** Retries that failed again: each still kept, and recorded in `email_delivery`. */
+  notices_failed: number;
+  /** Kept notices let go unsent: given up past `NOTICE_RETRY_DAYS` (recorded), or their account has no address left. */
+  notices_dropped: number;
+};
+
+type KeptNotice = {
+  kind: StateNotice;
+  dedupe_key: string;
+  profile_id: string;
+  subject: string;
+  html: string;
+  text: string;
+  first_failed_at: string;
+};
+
+/**
+ * THE RETRY: each kept notice of these kinds, oldest first, sent again through `sendOnce` (so the claim keeps it
+ * single: one another run's retry already sent answers false and is simply let go), and let go once it went. Called by
+ * the sweep that owns the kinds, first thing in its run, so its switch stops the retries with the sweep, and under its
+ * deadline (`stopWhen`). Never throws: every failure is recorded in `email_delivery` (a refused send by `sendOnce`
+ * itself, anything else here), and three in a row stop it for the night.
+ */
+export async function retryParkedNotices(opts: {
+  kinds: readonly StateNotice[];
+  now: Date;
+  stopWhen?: () => boolean;
+}): Promise<NoticeRetryTally> {
+  const tally: NoticeRetryTally = {
+    notices_resent: 0,
+    notices_failed: 0,
+    notices_dropped: 0,
+  };
+  const records: Promise<void>[] = [];
+  const record = (operation: string, error: unknown, kind: string) =>
+    recordSignalFailure({
+      job: "email_delivery",
+      area: "other",
+      operation: `${operation} (${kind})`,
+      error: error instanceof Error ? error : new Error(String(error)),
+      extra: { kind },
+    });
+
+  let admin: AdminClient;
+  try {
+    admin = createAdminClient();
+  } catch (e) {
+    await record("notice retry: no database client", e, opts.kinds.join(","));
+    return tally;
+  }
+  const giveUpBefore = opts.now.getTime() - NOTICE_RETRY_DAYS * DAY_MS;
+
+  /** Let a kept notice go: it went, a claim says it already had, or it is given up. */
+  const letGo = async (n: KeptNotice) => {
+    const { error } = await untyped(admin)
+      .from("notice_retries")
+      .delete()
+      .eq("kind", n.kind)
+      .eq("dedupe_key", n.dedupe_key);
+    if (error) {
+      throw new Error(`notice_retries let go (${n.kind}): ${error.message}`);
+    }
+  };
+
+  const retryOne = async (n: KeptNotice) => {
+    if (Date.parse(n.first_failed_at) < giveUpBefore) {
+      await letGo(n);
+      tally.notices_dropped += 1;
+      await record(
+        `notice given up after ${NOTICE_RETRY_DAYS} days of failed sends`,
+        new Error("a kept notice never sent"),
+        n.kind,
+      );
+      return;
+    }
+    const { data: profile, error } = await admin
+      .from("profiles")
+      .select("email")
+      .eq("id", n.profile_id)
+      .maybeSingle();
+    if (error) throw new Error(`notice retry: the account (${error.message})`);
+    if (!profile?.email) {
+      // Her account has no address any more (anonymised on its way out): there is no one left to tell.
+      await letGo(n);
+      tally.notices_dropped += 1;
+      return;
+    }
+    const sent = await sendOnce({
+      kind: n.kind,
+      dedupeKey: n.dedupe_key,
+      profileId: n.profile_id,
+      to: profile.email,
+      subject: n.subject,
+      html: n.html,
+      text: n.text,
+    });
+    // False is a claim saying it went already (another run's retry): no longer owed either way.
+    await letGo(n);
+    if (sent) tally.notices_resent += 1;
+  };
+
+  for (const kind of opts.kinds) {
+    if (opts.stopWhen?.()) break;
+    // A night's retries of one kind, the oldest first; the rest wait for the next night, and /admin/jobs counts every
+    // kept notice with a head count (`getJobSignals`).
+    const { data, error } = await untyped(admin)
+      .from("notice_retries")
+      .select(
+        "kind, dedupe_key, profile_id, subject, html, text, first_failed_at",
+      )
+      .eq("kind", kind)
+      .order("first_failed_at", { ascending: true })
+      .order("dedupe_key", { ascending: true })
+      .limit(NOTICE_RETRIES_A_RUN);
+    if (error) {
+      await record(
+        "notice retry: the kept notices",
+        new Error(error.message),
+        kind,
+      );
+      continue;
+    }
+    const isolated = await forEachIsolated(
+      (data ?? []) as KeptNotice[],
+      retryOne,
+      {
+        // `sendOnce` recorded its own refusal; anything else is said here, once.
+        onError: (n, e) => {
+          if (!(e instanceof SendFailedError)) {
+            records.push(record("notice retry", e, n.kind));
+          }
+        },
+        abortAfterConsecutive: RETRY_ABORT_AFTER,
+        stopWhen: opts.stopWhen,
+      },
+    );
+    tally.notices_failed += isolated.failed;
+    if (isolated.aborted) break;
+  }
+  await Promise.all(records);
+  return tally;
 }
 
 /** A LIKE pattern's own characters, taken literally. */

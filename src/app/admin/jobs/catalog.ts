@@ -22,7 +22,8 @@
  *               carries the FAILURES (status `error`); the successes are counted in their own table.
  *               A missed-run rule would be meaningless, so it is not applied.
  *   derived   — no rows at all. The reading rides another job's `counts` (the Cloudflare queue and
- *               dead-letter depths, which only the Worker can see). Its freshness is its source's.
+ *               dead-letter depths, which only the Worker can see, and the keys the prune found the
+ *               backup alone holds). Its freshness is its source's.
  *
  * Adding a job: add an entry here, seed its `ops_flags` row if it has a switch, and have the job
  * call the heartbeat. `job_runs.job` is deliberately unconstrained in SQL so a new job never needs
@@ -52,6 +53,8 @@ export type JobId =
   // The Cloudflare queue's backlog + its dead letters, read by the Worker, reported on its runs.
   | "backup_queue"
   | "backup_dead_letters"
+  // What the backup prune found held by the backup alone (crumbs-75): rows alive, primary objects gone.
+  | "backup_primary_missing"
   // The "Download all" zip Worker's daily self-check (`export-ends`), on the exports' own switch.
   | "export"
   // Rolling 24h signals over work that has no schedule of its own.
@@ -103,7 +106,15 @@ export type JobDef = {
   readFrom?: JobId[];
 };
 
-const DAY_MS = 24 * 60 * 60 * 1000;
+const HOUR_MS = 60 * 60 * 1000;
+const DAY_MS = 24 * HOUR_MS;
+
+/**
+ * How long a download the Worker spoke of may go without saying how it ended before `export_delivery` counts it as
+ * owed (crumbs-75): past what a whole 20 GB part takes on a 10 Mbps line (about four and a half hours), so a long
+ * download still streaming is never read as one that died.
+ */
+export const EXPORT_END_GRACE_MS = 6 * HOUR_MS;
 
 /** The window every `signal` job reports over. One day, matching the daily cron's own rhythm. */
 export const SIGNAL_WINDOW_MS = DAY_MS;
@@ -119,12 +130,25 @@ export const MISSED_GRACE_MULTIPLIER = 1.5;
 /**
  * The `counts` keys the Worker reports its Cloudflare depths under. Named HERE, in the pure module,
  * because the Worker writes them and the console reads them back: a string typed twice in two
- * packages is exactly how a health signal quietly stops resolving.
+ * packages is exactly how a health signal quietly stops resolving. `primary_missing` is the backup
+ * prune's own count of keys the backup alone holds (`workers/backup/src/prune-run.ts`, which writes it
+ * on every run that judged its candidates, zero included).
  */
 export const DEPTH_COUNT_KEYS = {
   backup_queue: "queue_backlog",
   backup_dead_letters: "dead_letter_backlog",
+  backup_primary_missing: "primary_missing",
 } as const;
+
+/**
+ * The readings where any count at all is a failure: a dead letter is a media object with no backup copy, and a key
+ * held by the backup alone is a media object with no primary copy (a host's photo that will not open, the backup its
+ * last copy). A live backlog is the other kind: a burst queues legitimately, so a big one reads attention.
+ */
+export const ZERO_TOLERANCE_READINGS: readonly JobId[] = [
+  "backup_dead_letters",
+  "backup_primary_missing",
+];
 
 /** The matching "how old is the oldest unacknowledged message" keys, in whole minutes. */
 export const DEPTH_AGE_COUNT_KEYS = {
@@ -357,6 +381,22 @@ export const JOBS: JobDef[] = [
     canRunNow: false,
     readFrom: ["backup_reconcile", "backup_prune"],
   },
+  // The prune's own finding (crumbs-75): the inverse of a dead letter, a primary object gone while its row lives.
+  // Only the prune reads both buckets against the rows, so only its runs carry it.
+  {
+    id: "backup_primary_missing",
+    label: "Held by the backup alone",
+    description:
+      "Media files whose row still lives while the primary bucket lost the object: the backup is the only copy, and the photo will not open for its host until it is restored. The weekly prune finds them among the backup keys past its 36-day gate and never deletes one.",
+    kind: "derived",
+    host: "cloudflare_worker",
+    cron: null,
+    cadence: "Read on every prune run",
+    expectedEveryMs: 0,
+    flagKey: null,
+    canRunNow: false,
+    readFrom: ["backup_prune"],
+  },
   // --- the "Download all" Worker --------------------------------------------------------------
   // Its switch is the exports' own kill switch (`export_enabled`, the one /admin/exports flips): pausing
   // downloads is the only thing a switch here could mean, and a heartbeat with a switch of its own would
@@ -394,7 +434,7 @@ export const JOBS: JobDef[] = [
     id: "email_delivery",
     label: "Transactional email",
     description:
-      "Every lifecycle and operator email of the last day, and every send that failed or was refused. A dead sender is silent by design today: the claim is released and the cron simply tries again tomorrow, forever.",
+      "Every lifecycle and operator email of the last day, every send that failed or was refused, and every one-time notice still waiting to send. A failed notice (an event removed, a grace opened, a plan reduced) is kept and retried by its sweep each night until it goes, and given up, said here, after 30 days.",
     kind: "signal",
     host: "app",
     cron: null,
@@ -448,7 +488,7 @@ export const JOBS: JobDef[] = [
     id: "export_delivery",
     label: "Album downloads",
     description:
-      "Every Download all the Worker finished in the last day, and every one that failed: a check the bucket could not answer, a zip an object read broke, a mint with nothing configured. A guest sees a toast; nothing else would tell us.",
+      "Every Download all the Worker finished in the last day, every one that failed (a check the bucket could not answer, a zip an object read broke, a mint with nothing configured), and every one the Worker spoke of but never said how it ended, hours on. A guest sees a toast; nothing else would tell us.",
     kind: "signal",
     host: "app",
     cron: null,
@@ -550,6 +590,14 @@ export type JobSignal = {
   ok24h: number;
   /** Failures in the window — the `job_runs` error rows this job wrote. */
   failed24h: number;
+  /**
+   * Work the path still owes past its grace (crumbs-75): a one-time notice kept for its retry, a download the Worker
+   * spoke of but never said how it ended. Nothing has thrown, so it is not a failure; nothing is done either, so it
+   * is never a calm reading. Absent where a signal owes nothing by construction.
+   */
+  owed?: number;
+  /** When the oldest owed piece of work began owing (the first failure of the oldest kept notice), or null. */
+  owedSinceMs?: number | null;
 };
 
 /** A `derived` job's reading, plus the health of the run that carried it. */
@@ -587,12 +635,15 @@ export function isJobMissed(
 /**
  * A `signal` job's verdict. ONE failure in the window is a failure: these are all paths that are
  * supposed to be silent, so anything they logged is by definition the thing we could not see before.
+ * Work still OWED past its grace (a notice waiting to send, a download with no end) is `attention`
+ * (crumbs-75): nothing failed in the window, which is exactly how it used to stay off the bell.
  * No activity at all is `never`, never `ok` — zero of everything is the calm-empty-page reading this
  * console exists to refuse, and the card prints both numbers so the operator can tell which it is.
  */
 export function signalHealth(signal: JobSignal | null): JobHealth {
   if (!signal) return "never";
   if (signal.failed24h > 0) return "failed";
+  if ((signal.owed ?? 0) > 0) return "attention";
   if (signal.ok24h > 0) return "ok";
   return "never";
 }
@@ -600,8 +651,9 @@ export function signalHealth(signal: JobSignal | null): JobHealth {
 /**
  * A `derived` job's verdict. The reading is only as good as the run that carried it, so an unwell
  * source WINS: a depth of zero read four days ago is not a healthy queue, it is no reading at all.
- * Any dead letter is a FAILURE (each one is a media object with no backup copy); a merely large live
- * backlog is `attention`, because an upload burst queues legitimately and the reconcile backstops it.
+ * Any count on a zero-tolerance reading is a FAILURE (`ZERO_TOLERANCE_READINGS`: a dead letter, a key
+ * the backup alone holds); a merely large live backlog is `attention`, because an upload burst queues
+ * legitimately and the reconcile backstops it.
  */
 export function readingHealth(
   def: JobDef,
@@ -610,7 +662,7 @@ export function readingHealth(
   if (!reading) return "never";
   if (isUnhealthy(reading.sourceHealth)) return reading.sourceHealth;
   if (reading.value === null) return "never";
-  if (def.id === "backup_dead_letters") {
+  if (ZERO_TOLERANCE_READINGS.includes(def.id)) {
     return reading.value > 0 ? "failed" : "ok";
   }
   return reading.value >= QUEUE_BACKLOG_ATTENTION ? "attention" : "ok";

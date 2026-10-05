@@ -13,7 +13,7 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/db/queries/jobs
   - src/app/admin/jobs/
   - src/lib/admin/palette
-  - supabase/migrations/2026100
+  - supabase/migrations/20261005060000_over_capacity_read.sql
   - docs/systems/lifecycle-recovery.md
   - docs/systems/admin-observability.md
   - docs/systems/durability-backups.md
@@ -39,7 +39,7 @@ reads:                  # single-sources you depend on: never duplicate, never e
 2. **Deadlock-prone multi-event deletes.** `sweeps/expired-events.ts` and `lifecycle/account-deletion.ts` cascade into `album_state` and `album_changes` in row order, so overlapping purge runs can deadlock with the album-log prune (retried next night). Delete in event-id order.
 3. **The backup prune's `primary_missing`** (rows alive, primary objects gone, the backup the only copy) closes its run `ok` with a note (`workers/backup/src/prune-run.ts`). Raise it as a durability alert with a restore path beside the dead letters in `/admin/jobs`. The Worker deploy is the Orchestrator's (`wrangler`): say in your Handoff exactly what to deploy and how to verify it.
 4. **An export whose Worker report never arrived** stays a Started or Checked row on `/admin/exports` and never reaches the bell. The `export_delivery` signal (`src/lib/db/queries/jobs.ts`) counts mints left with no end after a few hours.
-5. **The over-capacity sweep sees only some accounts at scale.** `sweeps/over-capacity.ts` checks every profile past Free's cap with one `host_storage_summary` call each, so past a few hundred paying hosts a night sees only some. One SQL read of the accounts over their effective cap makes it exact. If that needs a function, write the migration as a new file in `supabase/migrations/` (its name begins `2026100`, the prefix your manifest owns) (definer rules, `revoke ... from public` before exact grants, per `docs/systems/database-security.md`; prove it with a rolled-back check through the Supabase MCP). The Orchestrator applies it, and nothing of yours may write to the database.
+5. **The over-capacity sweep sees only some accounts at scale.** `sweeps/over-capacity.ts` checks every profile past Free's cap with one `host_storage_summary` call each, so past a few hundred paying hosts a night sees only some. One SQL read of the accounts over their effective cap makes it exact. If that needs a function, write the migration as a new file in `supabase/migrations/` (named exactly `20261005060000_over_capacity_read.sql`, the file your manifest owns) (definer rules, `revoke ... from public` before exact grants, per `docs/systems/database-security.md`; prove it with a rolled-back check through the Supabase MCP). The Orchestrator applies it, and nothing of yours may write to the database.
 6. **The admin palette** (`src/lib/admin/palette.ts`) names the spend watch's two switches, jumping to `/admin/jobs#switch-uploads_enabled` and `#switch-lifecycle_mail_enabled`.
 
 Wiring rigor: the whole gate. Record subtractively in the three system docs you own.

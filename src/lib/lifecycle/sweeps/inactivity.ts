@@ -17,6 +17,10 @@
  * so an event is due for a warning only when EVERY input (the event's `updated_at` and the host's
  * `last_active_at` included) is past the warning line. Filtering both in SQL keeps an active free
  * host's old events out of the candidate list entirely; the newest upload is still asked per event.
+ *
+ * ★ ITS ONE-TIME NOTICE IS RETRIED HERE (crumbs-75). The removal mail is sent after the event leaves the
+ * candidate list for good, so a send that failed is kept (`sendOnce`) and this sweep sends it again first
+ * thing each run (`retryParkedNotices`), under its own switch and deadline, until it goes.
  */
 import "server-only";
 
@@ -26,7 +30,11 @@ import {
   inactivityRemovedEmail,
   inactivityWarningEmail,
 } from "@/lib/email/templates";
-import { sendOnce } from "@/lib/email/send";
+import {
+  retryParkedNotices,
+  sendOnce,
+  type NoticeRetryTally,
+} from "@/lib/email/send";
 import {
   emptyTally,
   forEachIsolated,
@@ -59,7 +67,8 @@ export type InactivityTally = {
   rows_not_attempted: number;
   rows_note?: string;
   resume_after?: string;
-} & Partial<StoppedEarly>;
+} & NoticeRetryTally &
+  Partial<StoppedEarly>;
 
 type InactiveCandidate = {
   id: string;
@@ -134,6 +143,13 @@ export async function sweepInactiveFreeEvents(
   const deadline = opts.deadline ?? NO_DEADLINE;
   const nowMs = now.getTime();
   const dashboardUrl = `${await getSiteUrl()}/dashboard`;
+  // First, the removal notices an earlier run could not send. It never throws, and its failures are the mail
+  // signal's (`email_delivery`), so they ride the tally without failing the sweep.
+  const notices = await retryParkedNotices({
+    kinds: ["inactivity_removed"],
+    now,
+    stopWhen: () => deadline.passed(),
+  });
   let warned = 0;
   let removed = 0;
   let candidates = 0;
@@ -270,6 +286,7 @@ export async function sweepInactiveFreeEvents(
     candidates,
     warned,
     removed,
+    ...notices,
     rows_failed: total.failed,
     rows_not_attempted: total.skipped,
     rows_note: tallyNote("events", total) ?? undefined,

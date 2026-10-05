@@ -2,6 +2,7 @@
  * SWEEP 7 ON THE CLAMPING FAKE (H11): 2,100 stale free events examined in keyset batches past 1,000,
  * the pre-filter dropping only events whose verdict is "none", a recent upload keeping an event, and
  * a deadline that stops the sweep leaving a cursor and a counted remainder the next run carries on.
+ * And (crumbs-75) its kept removal notices retried first, under its deadline.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -18,6 +19,9 @@ import {
 const state = vi.hoisted(() => ({
   world: null as CronWorld | null,
   sent: [] as { kind: string; dedupeKey: string }[],
+  /** What ran, in order: the retry, then the sweep's own sends. */
+  order: [] as string[],
+  retried: { notices_resent: 0, notices_failed: 0, notices_dropped: 0 },
 }));
 
 vi.mock("server-only", () => ({}));
@@ -31,10 +35,17 @@ vi.mock("@/lib/observability/sentry", () => ({
 }));
 vi.mock("@/lib/email/send", () => ({
   sendOnce: vi.fn(async (input: { kind: string; dedupeKey: string }) => {
+    state.order.push("send");
     state.sent.push({ kind: input.kind, dedupeKey: input.dedupeKey });
     return true;
   }),
+  retryParkedNotices: vi.fn(async () => {
+    state.order.push("retry");
+    return state.retried;
+  }),
 }));
+
+const { retryParkedNotices } = await import("@/lib/email/send");
 
 const { sweepInactiveFreeEvents } =
   await import("@/lib/lifecycle/sweeps/inactivity");
@@ -101,8 +112,11 @@ function fixture() {
 }
 
 beforeEach(() => {
+  vi.clearAllMocks();
   state.world = null;
   state.sent = [];
+  state.order = [];
+  state.retried = { notices_resent: 0, notices_failed: 0, notices_dropped: 0 };
 });
 
 describe("sweepInactiveFreeEvents", () => {
@@ -158,5 +172,34 @@ describe("sweepInactiveFreeEvents", () => {
     expect(second).toMatchObject({ removed: 800, warned: 100 });
     expect(second.stopped_early).toBeUndefined();
     expect(second.resume_after).toBeUndefined();
+  });
+
+  // ★ crumbs-75: the removal mail goes after the event has left the candidate list for good, so a send that failed
+  // is kept and this sweep, its only sender, retries it, first, under its own switch and deadline.
+  it("★ retries its kept removal notices first, under its deadline, and carries their tally without failing", async () => {
+    const { world } = fixture();
+    state.retried = {
+      notices_resent: 2,
+      notices_failed: 1,
+      notices_dropped: 1,
+    };
+    const deadline = passesAfter(1_000_000);
+    const tally = await sweepInactiveFreeEvents(world.client, NOW, {
+      deadline,
+    });
+
+    expect(retryParkedNotices).toHaveBeenCalledTimes(1);
+    const [args] = vi.mocked(retryParkedNotices).mock.calls[0];
+    expect(args.kinds).toEqual(["inactivity_removed"]);
+    expect(args.now).toBe(NOW);
+    expect(typeof args.stopWhen).toBe("function");
+    expect(state.order[0]).toBe("retry");
+    // The retries' failures are the mail signal's: they ride the tally and fail no row.
+    expect(tally).toMatchObject({
+      notices_resent: 2,
+      notices_failed: 1,
+      notices_dropped: 1,
+      rows_failed: 0,
+    });
   });
 });
