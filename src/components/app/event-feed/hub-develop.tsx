@@ -80,9 +80,8 @@ import { cn } from "@/lib/utils";
 
 /** How far below the fold a square's picture is still worth loading (a phone's momentum before she scrolls). */
 const BELOW_FOLD_PX = 48;
-/** A stage this tall is in view at a lesser share of itself (a short viewport, a sheet of many rows). */
+/** The share of the sheet that must be on screen for it to count as seen (a short viewport shows a sheet in part). */
 const IN_VIEW_RATIO = 0.4;
-const IN_VIEW_PX = 240;
 /** The rest tiles that stagger by their place, before the album's own cap (`restAt`'s) takes the rest together. */
 const STAGGERED_TILES =
   Math.ceil(DEVELOP_TEMPO.step.tileCap / DEVELOP_TEMPO.step.tile) + 1;
@@ -321,21 +320,20 @@ function HubDevelopDirector({
     if (cold?.verdict === "spent") writeMark(eventId, cold.atMs);
   }, [cold, eventId]);
 
-  const end = useCallback(
-    (spent: boolean) => {
-      if (!start) return;
-      if (spent) writeMark(eventId, start.atMs);
-      setEnded((prev) => new Set(prev).add(start.key));
-    },
-    [start, eventId],
-  );
+  // Every end is spent: the mark is written as it ends or she ends it (a page put away mid-play never ends it, so her
+  // return plays it whole).
+  const end = useCallback(() => {
+    if (!start) return;
+    writeMark(eventId, start.atMs);
+    setEnded((prev) => new Set(prev).add(start.key));
+  }, [start, eventId]);
   // `?reel` over the hub is what she came for: spent unplayed. Read as the address stands a frame after the page mounts,
   // since a soft navigation renders against the page it leaves (`reelOfAddress`'s note); the reel's own black stands
   // over the hub meanwhile.
   useEffect(() => {
     if (!start) return;
     const frame = requestAnimationFrame(() => {
-      if (reelOfAddress() !== null) end(true);
+      if (reelOfAddress() !== null) end();
     });
     return () => cancelAnimationFrame(frame);
   }, [start, end]);
@@ -413,7 +411,7 @@ function HubDevelopStage({
 }: {
   roll: readonly string[];
   developsAt: string;
-  onEnd: (spent: boolean) => void;
+  onEnd: () => void;
 }) {
   const album = useHostAlbum();
   const entries = useHubEntries(album);
@@ -514,9 +512,7 @@ function HubDevelopStage({
         const item = items[items.length - 1];
         if (!item) return;
         setInView(
-          item.isIntersecting &&
-            (item.intersectionRatio >= IN_VIEW_RATIO ||
-              item.intersectionRect.height >= IN_VIEW_PX),
+          item.isIntersecting && item.intersectionRatio >= IN_VIEW_RATIO,
         );
       },
       { threshold: [0, IN_VIEW_RATIO, 1] },
@@ -591,11 +587,11 @@ function HubDevelopStage({
   useEffect(() => {
     if (!linked) return;
     let current = true;
-    void Promise.allSettled(srcKey.split("\n").filter(Boolean).map(decoded)).then(
-      () => {
-        if (current) setDecodedKey(srcKey);
-      },
-    );
+    void Promise.allSettled(
+      srcKey.split("\n").filter(Boolean).map(decoded),
+    ).then(() => {
+      if (current) setDecodedKey(srcKey);
+    });
     return () => {
       current = false;
     };
@@ -684,10 +680,7 @@ function HubDevelopStage({
   const grows = geometry?.grows.length ?? 0;
   useEffect(() => {
     if (!playing) return;
-    const timer = window.setTimeout(
-      () => onEnd(true),
-      developLength("full", grows),
-    );
+    const timer = window.setTimeout(onEnd, developLength("full", grows));
     return () => window.clearTimeout(timer);
   }, [playing, grows, onEnd]);
 
@@ -695,7 +688,7 @@ function HubDevelopStage({
   // album (a press on a card above it is no reason to take the develop from her). A window that changes size mid-play
   // ends it too (its tiles were measured where they stood), while the still sheet simply lays itself out again.
   useEffect(() => {
-    const stop = () => onEnd(true);
+    const stop = () => onEnd();
     const opts = { capture: true, passive: true } as const;
     const section =
       stage.current?.closest("section") ?? stage.current?.parentElement;

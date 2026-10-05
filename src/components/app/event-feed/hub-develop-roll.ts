@@ -40,6 +40,7 @@ export function videoIdsOf(
 ): ReadonlySet<string> {
   const inRoll = new Set(roll);
   const videos = new Set<string>();
-  for (const e of entries) if (inRoll.has(e[0]) && e[3] & ENTRY_VIDEO) videos.add(e[0]);
+  for (const e of entries)
+    if (inRoll.has(e[0]) && e[3] & ENTRY_VIDEO) videos.add(e[0]);
   return videos;
 }

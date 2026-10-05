@@ -5,7 +5,10 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { hubRollOf, videoIdsOf } from "@/components/app/event-feed/hub-develop-roll";
+import {
+  hubRollOf,
+  videoIdsOf,
+} from "@/components/app/event-feed/hub-develop-roll";
 import { rollOfEntries } from "@/lib/disposable/contact-sheet-develop";
 import {
   ENTRY_HIDDEN,

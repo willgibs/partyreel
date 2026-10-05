@@ -75,7 +75,8 @@ vi.mock("./gallery-actions", () => ({
 const { EventGallery } = await import("./event-gallery");
 
 const MIN_US = 60_000_000;
-const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
+const id = (n: number) =>
+  `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 
 /** An IntersectionObserver the test drives (the develop's stage plays only once it is seen). */
 class FakeIO {

@@ -6,6 +6,7 @@
  * and that the rows under it are never remounted. The album's store and its neighbours stand in: pinned is the director.
  */
 import { act, fireEvent, render, screen } from "@testing-library/react";
+import { useEffect } from "react";
 import { renderToString } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -26,7 +27,10 @@ import {
 
 const fx = vi.hoisted(() => ({
   entries: [] as ManifestEntry[],
-  links: new Map<string, { tile: string; who: [string | null, number, null] }>(),
+  links: new Map<
+    string,
+    { tile: string; who: [string | null, number, null] }
+  >(),
   ensure: vi.fn(async (_ids: string[]) => {}),
 }));
 
@@ -67,7 +71,8 @@ const AHEAD = new Date(2026, 9, 10, 12, 0, 0).toISOString();
 const T0 = DEVELOP_MS * 1000 - 600 * MIN_US;
 const FLAGS = ENTRY_REEL | ENTRY_PREVIEW;
 /** Album ids are uuids (a tile that grows is found by one). */
-const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
+const id = (n: number) =>
+  `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const entry = (n: number, minutes: number, flags = FLAGS): ManifestEntry => [
   id(n),
   4,
@@ -116,14 +121,11 @@ const stage = (c: HTMLElement) =>
   c.querySelector("[data-hub-develop]")?.getAttribute("data-hub-develop") ??
   null;
 
+/** The rows' own life, counted: a develop that starts or ends must never remount them. */
+const rowLife = { mounted: 0, unmounted: 0 };
+
 /** The hub's album section, as `EventGallery` draws it: a header with a press in it, and the rows in the develop's box. */
-function Hub({
-  develops_at = DEVELOP,
-  rowMounts,
-}: {
-  develops_at?: string | null;
-  rowMounts?: { mounted: number; unmounted: number };
-}) {
+function Hub({ develops_at = DEVELOP }: { develops_at?: string | null }) {
   return (
     <div>
       <button type="button">A card above the album</button>
@@ -133,31 +135,22 @@ function Hub({
           eventId="event-1"
           develop={{ develops_at, sealed_from: null }}
         >
-          <Rows rowMounts={rowMounts} />
+          <Rows />
         </HubDevelop>
       </section>
     </div>
   );
 }
 
-function Rows({
-  rowMounts,
-}: {
-  rowMounts?: { mounted: number; unmounted: number };
-}) {
-  const tracked = rowMounts;
-  // The rows' own life, counted: a develop that starts or ends must never remount them.
+function Rows() {
+  useEffect(() => {
+    rowLife.mounted += 1;
+    return () => {
+      rowLife.unmounted += 1;
+    };
+  }, []);
   return (
-    <div
-      data-testid="rows"
-      ref={(el) => {
-        if (!tracked || !el) return;
-        tracked.mounted += 1;
-        return () => {
-          tracked.unmounted += 1;
-        };
-      }}
-    >
+    <div data-testid="rows">
       {fx.entries
         .filter((e) => (e[3] & (ENTRY_HIDDEN | ENTRY_PENDING)) === 0)
         .map((e) => (
@@ -188,7 +181,15 @@ beforeEach(() => {
   vi.stubGlobal("ResizeObserver", FakeRO);
   localStorage.clear();
   FakeIO.all.clear();
-  fx.entries = [entry(5, 50), entry(4, 40), entry(3, 30), entry(2, 20), entry(1, 10)];
+  rowLife.mounted = 0;
+  rowLife.unmounted = 0;
+  fx.entries = [
+    entry(5, 50),
+    entry(4, 40),
+    entry(3, 30),
+    entry(2, 20),
+    entry(1, 10),
+  ];
   fx.links = new Map(
     fx.entries.map((e) => [
       e[0],
@@ -238,16 +239,17 @@ describe("★ her first open after the develop plays it, in place", () => {
   it("★ her own are lit, as the cover lit them: the squares of the photographs she took", async () => {
     const { container } = render(<Hub />);
     const lit = [...container.querySelectorAll("[data-develop-sq][data-hers]")];
-    expect(lit.map((el) => el.getAttribute("data-develop-sq"))).toEqual([id(2)]);
+    expect(lit.map((el) => el.getAttribute("data-develop-sq"))).toEqual([
+      id(2),
+    ]);
   });
 
   it("★ the album's rows are never remounted as the develop holds, plays and ends", async () => {
-    const rowMounts = { mounted: 0, unmounted: 0 };
-    const { container } = render(<Hub rowMounts={rowMounts} />);
+    const { container } = render(<Hub />);
     await playIt();
     await advance(developLength("full", 5) + 50);
     expect(stage(container)).toBeNull();
-    expect(rowMounts).toEqual({ mounted: 1, unmounted: 0 });
+    expect(rowLife).toEqual({ mounted: 1, unmounted: 0 });
   });
 
   it("★ loads only what she can see: the pictures of the squares in the first screen, never one below the fold", async () => {
@@ -481,10 +483,7 @@ describe("what it never plays", () => {
 
 describe("★ the gate holds the album from the first byte", () => {
   const HubServer = ({ develops_at }: { develops_at: string | null }) => (
-    <HubDevelop
-      eventId="event-1"
-      develop={{ develops_at, sealed_from: null }}
-    >
+    <HubDevelop eventId="event-1" develop={{ develops_at, sealed_from: null }}>
       <div>rows</div>
     </HubDevelop>
   );
