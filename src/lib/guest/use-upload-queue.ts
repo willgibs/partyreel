@@ -20,7 +20,9 @@
  * file is NOT a failure: the uploader settles it `cause: "cancelled"` and it leaves the queue (nothing for the failure
  * sheet, the shutter's ring or her uploads to count, and nothing recorded, so the meter counts nothing), and `stop`
  * hands back the way to send it again. One not yet in a burst (waiting for the next, for a door, for a ticket) leaves
- * at once. Too late once its complete is asked: it lands, and `stop` says so by handing back nothing.
+ * at once. Too late once its complete is asked: it lands, and `stop` says so by handing back nothing, AT ONCE (a press
+ * that waited for the landing left its question standing, unchanged, for as long as the complete took, so it read as
+ * unheard).
  *
  * ★ THE ALBUM'S OWNER IS NEVER HER OWN GUEST (`ownerEventId`, crumbs-29's
  * Deferred). Her Add on her own album's guest page went through the guest
@@ -48,6 +50,7 @@ import { joinEvent, type JoinedGuest } from "@/lib/guest/join";
 import { SESSION_OTHER_ACCOUNT } from "@/lib/guest/session-owner";
 import { dropGuestTicket } from "@/lib/guest/use-stored-session";
 import { HOST_CLIP_ENDPOINTS } from "@/lib/reel/clip-add";
+import { classifyMime, validateUpload } from "@/lib/media/validators";
 import { takeBurst } from "@/lib/upload/burst";
 import type { StopResult } from "@/lib/upload/stop-upload";
 import {
@@ -101,6 +104,25 @@ type UploadRoute = Pick<
   "endpoints" | "identity"
 >;
 
+/**
+ * ★ A REFUSAL OF THE FILE ITSELF THAT THE UPLOADER MADE ON THE PHONE CARRIES NO CODE (red-team 54's LOW). A wrong type
+ * ("That file type isn't supported.") and a file over the ceiling ("This file is larger than the 10 GB maximum.") are
+ * refused before any request, so unlike the server's they have no `code`, and a refusal with none reads as a transport
+ * failure worth another go: the failure sheet offered Retry and Retry all, and a press sent nothing, since the same check
+ * refused the same file again at once. Asked of the file again here, with the very validators the uploader asks
+ * (`media/validators`, never a rule of its own), a refusal no code speaks for is told as the code the refusal ladder
+ * already knows for it, so no surface offers a Retry that cannot pass (`classifyRefusal`: "choose"). A file that passes is
+ * none of this: its code-less failure is the line's or the server's, and keeps its Retry.
+ */
+export function localRefusalCode(
+  file: Pick<File, "type" | "size">,
+): "unsupported_type" | "too_large" | undefined {
+  if (!classifyMime(file.type)) return "unsupported_type";
+  return validateUpload({ mime: file.type, sizeBytes: file.size }).ok
+    ? undefined
+    : "too_large";
+}
+
 /** The three refusals that are the session's, never the file's (the note above): read once a burst is over. */
 const isSessionRefusal = (outcome: UploadOutcome) =>
   !outcome.ok &&
@@ -134,7 +156,8 @@ export type QueueItem = {
    * the words, but the door's upload step has no exit, so what a guest can DO about a refusal has
    * to be derivable: `uploads_closed` and `cap_reached` open the album (the fail-open),
    * `invalid_session` goes back to the name, and only the rest may offer a Retry. Absent for a
-   * local validation or a transport failure, which `classifyRefusal` reads as "worth another go".
+   * transport failure, which `classifyRefusal` reads as "worth another go"; a local refusal of the file
+   * itself is told as the code the ladder knows for it (`localRefusalCode`), so it never is.
    */
   errorCode?: string;
   /**
@@ -388,6 +411,57 @@ export function useRunProgress(
     return { sending: counts.sending, progress: 0, landed: 0, failed: 0 };
   }
   return { ...counts, progress: fraction };
+}
+
+/**
+ * ★ THE RUN'S OWN FILES, COUNTED FOR A FAILURE'S HEADING ("N of SENT didn't upload", `failure-sheet.tsx`). The whole
+ * run: every file `inRun` (not already settled when the run began, or going again: a Retry), and any failure the
+ * heading lists that is not among them, so what is listed is always part of what is counted and a heading never
+ * reads "2 of 1". Counted off the items by their ids, never by how many the queue held (a Retry adds no item: counted
+ * by length, "1 of 1 didn't upload" read "1 of 0" once it failed again).
+ */
+export function runSentOf(
+  items: readonly QueueItem[],
+  before: ReadonlySet<string>,
+  listed: readonly Pick<QueueItem, "id">[],
+): number {
+  const alsoListed = new Set(listed.map((it) => it.id));
+  return items.filter((it) => inRun(it, before) || alsoListed.has(it.id))
+    .length;
+}
+
+/**
+ * ★ THE RUN'S OWN COUNT, FOR WHOEVER HEADS A FAILURE WITH IT (the album's slot and the door's step: both read the
+ * page's one queue, and either may be the one standing when a run ends). The ids already settled when the run began,
+ * taken in the render where something goes where nothing was (the sanctioned adjust-state-during-render pattern, as
+ * `useRunProgress` takes its own: an effect would count the new files in their own baseline); `runSentOf` does the
+ * rest.
+ *
+ * ★ A RUN THAT BEGINS WITH FAILURES STILL LISTED IS THEIR GO CONTINUING, not a new one: one of three Retried while the
+ * sheet stands over the other two sends a file of the same go, and the whole it counts stays what it was ("2 of 3"
+ * before and after), so a heading never changes its meaning under her thumb. A run that begins with nothing listed (a
+ * Retry of all of them, or the next pick) is a go of its own, whose files are the ones going.
+ *
+ * ★ A MOUNT MID-RUN COUNTS EVERYTHING HELD, where `useRunProgress` leaves out what settled before it mounted: this
+ * never saw the run begin (the slot mounts under `key={access}` with the door's run already going), so nothing may be
+ * taken for outside it, and the heading reads the whole run it ends with.
+ */
+export function useRunSent(
+  items: readonly QueueItem[],
+  listed: readonly Pick<QueueItem, "id">[],
+): number {
+  const running = items.some(isActive);
+  const [before, setBefore] = useState<ReadonlySet<string>>(NOTHING_BEFORE);
+  const [wasRunning, setWasRunning] = useState(running);
+  if (running !== wasRunning) {
+    setWasRunning(running);
+    if (running && listed.length === 0) {
+      setBefore(
+        new Set(items.filter((it) => !isActive(it)).map((it) => it.id)),
+      );
+    }
+  }
+  return runSentOf(items, before, listed);
 }
 
 export type UploadedItem = {
@@ -789,7 +863,10 @@ export function useUploadQueue({
             status: "error",
             progress: 0,
             error: outcome.message,
-            errorCode: outcome.code,
+            // The server's own code where it spoke; else, for a refusal that was not the line's, the file's own (above).
+            errorCode:
+              outcome.code ??
+              (outcome.cause ? undefined : localRefusalCode(it.file)),
             cause: outcome.cause,
           });
         };
@@ -1243,6 +1320,14 @@ export function useUploadQueue({
    * too late (its complete was asked, so it landed or failed as it would have: the album and the failure sheet say so).
    * A file in a burst is stopped through its own signal and its siblings carry on; one still waiting for a burst has
    * started nothing and simply leaves.
+   *
+   * ★ TOO LATE IS ANSWERED AT ONCE, NOT AT THE LANDING (red-team 54): the question her press answers is on screen until
+   * `stop` resolves, so a late press that waited for the complete (4 s on one photo, 8 s on five) left it standing
+   * unchanged and read as unheard. The complete is asked the moment a burst has nothing left to send (the uploader's
+   * `sendDone`: every file of it up), after which an abort is ignored and its answer stands, so a file whose bytes are up
+   * with no sibling still going is past stopping and says so now, aborting nothing (the file lands exactly as it would
+   * have). A file whose bytes are up while a sibling still goes only waits for it (`BURST_RECORD_WAIT_MS`): nothing is
+   * asked yet, so the stop still takes it back.
    */
   const stop = useCallback(
     (id: string): Promise<StopResult> => {
@@ -1261,6 +1346,11 @@ export function useUploadQueue({
         sync(itemsRef.current.filter((q) => q.id !== id));
         return Promise.resolve(again);
       }
+      // Every file of the burst not yet told holds a stop of its own, so these are the burst still in play: all of them
+      // up (`queued` at 100, which `onSent` sets) is the uploader's `sendDone`, its complete asked or being asked.
+      const inPlay = itemsRef.current.filter((q) => stopsRef.current.has(q.id));
+      if (inPlay.every((q) => q.status === "queued" && q.progress === 100))
+        return Promise.resolve(null);
       return new Promise<StopResult>((resolve) => {
         asksRef.current.set(id, (cancelled) =>
           resolve(cancelled ? again : null),

@@ -1324,6 +1324,13 @@ export function EventExperience({
         gate={gate}
         doorGate={doorGate}
         acceptsVideo={event.accepts_video}
+        // The album's camera, where its host chose one: the door's first photograph is taken with it (crumbs-76), and the
+        // door says when it is open (the keep waits, the album's failure sheet stands down) and takes a shot back
+        // through the page's own removal, as the slot's camera does.
+        camera={cameraAlbum ? { rollSize: event.roll_size ?? null } : null}
+        onCameraOpenChange={setCameraOpen}
+        removedIds={removedIds}
+        onOwnRemoved={handleOwnRemoved}
         capBytes={hostCap}
         hasContributed={serverContributed}
         contributed={clientContributed}
@@ -1538,7 +1545,9 @@ export function EventExperience({
                       // The door's own step is showing this run's failures, or its keep stands in
                       // front of the album: one run never gets two surfaces, and the failure sheet
                       // waits for the keep to be answered (see the one queue's note above).
-                      suppressFailures={uploadStepActive || keepDue}
+                      suppressFailures={
+                        uploadStepActive || keepDue || cameraOpen
+                      }
                       onFailuresClosed={flushPendingVerification}
                       isDemo={isDemo}
                       host={hostCard}

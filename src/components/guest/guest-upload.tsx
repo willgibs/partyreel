@@ -25,9 +25,13 @@ import {
   uploadsWait as uploadsWaitOf,
   type UploadsWait,
 } from "@/lib/guest/upload-tracker";
-// The queue MACHINE lives in `event-experience.tsx`; only its types are read
+// The queue MACHINE lives in `event-experience.tsx`; only its types, and the run's own count, are read
 // here.
-import type { FileExtra, QueueItem } from "@/lib/guest/use-upload-queue";
+import {
+  useRunSent,
+  type FileExtra,
+  type QueueItem,
+} from "@/lib/guest/use-upload-queue";
 
 export type { UploadedItem } from "@/lib/guest/use-upload-queue";
 
@@ -247,30 +251,16 @@ export function GuestUpload({
     (it) => it.status === "error" && !carried.has(it),
   );
   /**
-   * ★ crumbs-6, one line into a lane it does not own, why: the exact register's failure heading
-   * ("N of SENT didn't upload", `failure-sheet.tsx`'s `uploadFailureHeading`) needs the whole
-   * run's count, and only the queue's own owner ever sees a run's start — `upload-step.tsx` tracks
-   * the identical baseline for the door's OWN inline failure view, but that instance's ref dies
-   * the moment the door closes, and a run can still be going when it does (`suppressFailures`
-   * above is proof two surfaces watch one queue). `runBaseline` is `items.length` from the render
-   * just BEFORE this run's files were appended (one render lagged, via `prevItemsLen`, so the new
-   * files are never counted in their own baseline), so `sent = items.length - runBaseline` is
-   * exactly this run's own total.
-   *
-   * ★ STARTS AT 0, NOT `items.length`: a mount that never witnessed its run start (this slot can
-   * remount under `key={access}`, mid-run, with `items` handed straight in) must count everything
-   * already there as THIS run, or `sent` reads short. 0 is exactly that.
-   *
-   * ★ STATE, NOT A REF: `sentThisRun` below reads it during render, and a ref's `.current` may
-   * only be read inside an effect or a handler (React Compiler's own rule).
+   * ★ THE HEADING'S "SENT" IS THE RUN'S OWN FILES (`useRunSent`), never how many items the queue holds beyond a
+   * baseline: a Retry adds no item, so counted by length a failure that failed again read "1 of 0", and so did a slot
+   * mounted mid-run (this one can mount under `key={access}` with the door's run already going). The count lives with
+   * the queue's own definition of a run (`inRun`), and the door's step reads the same one.
    */
-  const [runBaseline, setRunBaseline] = useState(0);
-  const prevItemsLen = useRef(items.length);
+  const sentThisRun = useRunSent(items, failures);
   useEffect(() => {
     const running = items.some(
       (it) => it.status === "queued" || it.status === "uploading",
     );
-    if (running && !wasRunning.current) setRunBaseline(prevItemsLen.current);
     if (
       wasRunning.current &&
       !running &&
@@ -279,9 +269,7 @@ export function GuestUpload({
       setFailuresOpen(true);
     }
     wasRunning.current = running;
-    prevItemsLen.current = items.length;
   }, [items, carried]);
-  const sentThisRun = items.length - runBaseline;
   // ★ NEVER OVER THE CAMERA: it says what did not go in its own words while it is open, and the sheet opens on the
   // same failures the moment it closes (the run's edge already set `failuresOpen`).
   const sheetOpen =
@@ -407,6 +395,7 @@ export function GuestUpload({
         sent={sentThisRun}
         hostName={hostName}
         waits={addsWaitFor({ uploadsWait: wait, isOwner, isDemo })}
+        camera={camera}
         onRetry={onRetry}
       />
 
