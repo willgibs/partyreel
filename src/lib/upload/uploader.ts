@@ -18,9 +18,9 @@
  *    and files beyond it while the prepared ones not yet up hold less than `PREP_AHEAD_BYTES`, so a phone never holds
  *    a whole burst of photographs in memory;
  *  - PRESIGNING asks for every prepared file at once: the first file alone (its bytes start as soon as they can), then
- *    the rest together, asked early enough to be back before the network needs them (when the file in the air will end
- *    within about two presign round trips, by its own pace) or at once when preparing can add nothing more (all
- *    prepared, or held by the budget);
+ *    the rest together, asked early enough to be back before the network needs them (once the file in the air has
+ *    handed its last byte to the network, `endsSoon`) or at once when preparing can add nothing more (all prepared,
+ *    or held by the budget);
  *  - THE BYTES go one file at a time (robust on flaky mobile connections), and a landed file waits for its siblings
  *    (`BURST_RECORD_WAIT_MS`), so the burst is RECORDED together: when its last file has gone up, when the first landed
  *    has waited that long, or at once when the page is hidden (that complete kept alive past the page).
@@ -592,12 +592,6 @@ type Sent = {
   parts: { partNumber: number; eTag: string }[];
 };
 
-/**
- * How far ahead of need the next presign is asked, at the least: about two of the last presign's round trips, never
- * under this, so the answer is back before the file in the air ends however the line breathes.
- */
-const PRESIGN_LEAD_MIN_MS = 1_000;
-
 async function runBurst(
   args: Parameters<typeof uploadBurst>[0],
   outcomes: readonly (UploadOutcome | undefined)[],
@@ -667,18 +661,9 @@ async function runBurst(
   let sendIndex = 0;
   /** Preparing waits on the budget: nothing more can be prepared until the file in the air is up. */
   let prepHeld = false;
-  /**
-   * The file in the air, as its own pace tells when it will end: its original's bytes and its copies' (which follow it),
-   * and the first and the latest of its progress reports.
-   */
-  let air: {
-    bytes: number;
-    copyBytes: number;
-    first?: { fraction: number; at: number };
-    fraction: number;
-    at: number;
-  } | null = null;
-  /** The last presign's round trip: the next one is asked about twice that ahead of need. */
+  /** The file in the air: when its original began to go, and when it handed its last byte to the network. */
+  let air: { startedAt: number; handedOffAt: number | null } | null = null;
+  /** The last presign's round trip (`endsSoon`). */
   let presignMs = 0;
   let presigning = false;
   let recording = false;
@@ -772,23 +757,15 @@ async function runBurst(
     return false;
   };
   /**
-   * The file in the air will end (its copies sent too) within the lead, by its own pace since its first report. A file
-   * that takes under twice the lead to send never asks ahead: its whole send is shorter than a batch needs to gather,
-   * so asking ahead would only split the batch, and the network's own need asks soon enough.
+   * ★ THE FILE IN THE AIR IS NEARLY DONE: its original's last byte is handed to the network. What is left (the line
+   * draining what the browser already counted as sent, R2's answer, then the copies' PUTs) measured about a second and
+   * a half on a quick line at a 4x throttle, which a presign's round trip fits inside. The browser's progress runs that
+   * far ahead of the line, so its pace cannot say when a file ends; this one moment can. A file handed off quicker than
+   * a presign's round trip never asks ahead: it is small on a quick line, where preparing is what the network waits for
+   * and an early ask would only split the batch.
    */
-  const endsSoon = () => {
-    const first = air?.first;
-    if (!air || !first || air.at <= first.at) return false;
-    const rate =
-      ((air.fraction - first.fraction) * air.bytes) / (air.at - first.at);
-    if (!(rate > 0)) return false;
-    const lead = Math.max(PRESIGN_LEAD_MIN_MS, 2 * presignMs);
-    if ((air.bytes + air.copyBytes) / rate < 2 * lead) return false;
-    const left =
-      ((1 - air.fraction) * air.bytes + air.copyBytes) / rate -
-      (Date.now() - air.at);
-    return left <= lead;
-  };
+  const endsSoon = () =>
+    air?.handedOffAt != null && air.handedOffAt - air.startedAt >= presignMs;
   function maybePresign() {
     if (presigning || stopped) return;
     const ready: number[] = [];
@@ -907,12 +884,7 @@ async function runBurst(
       stage[i] = "sending";
       files[i].onSending?.();
       const p = prepared[i]!;
-      air = {
-        bytes: p.file.size,
-        copyBytes: Math.max(p.preview?.blob.size ?? 0, p.phone?.blob.size ?? 0),
-        fraction: 0,
-        at: Date.now(),
-      };
+      air = { startedAt: Date.now(), handedOffAt: null };
       // Its bytes stop for the burst's cancel or its own (a PUT in the air is aborted: said as a cancel, never a drop).
       const own = eitherSignal(signal, files[i].signal);
       let landed: Awaited<ReturnType<typeof sendBytes>>;
@@ -923,10 +895,8 @@ async function runBurst(
           presigned[i]!,
           own.signal,
           (fraction) => {
-            if (!air) return;
-            air.fraction = fraction;
-            air.at = Date.now();
-            air.first ??= { fraction, at: air.at };
+            if (!air || fraction < 1 || air.handedOffAt !== null) return;
+            air.handedOffAt = Date.now();
             maybePresign();
           },
         );

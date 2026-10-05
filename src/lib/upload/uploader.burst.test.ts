@@ -65,6 +65,11 @@ let putMs: (name: string) => number;
 let drops: (name: string) => boolean;
 /** How many progress reports a PUT makes on its way, evenly paced (1: a single one as it lands). */
 let steps: (name: string) => number;
+/**
+ * How long R2 takes to answer once the browser has handed it the last byte (by name): the line draining what the
+ * browser already counted as sent, and the answer itself (0: the answer comes with the last byte).
+ */
+let answerMs: (name: string) => number;
 /** How long a presign takes to answer, and how long preparing a file takes (by its name). */
 let presignMs: number;
 let prepMs: (name: string) => number;
@@ -111,6 +116,12 @@ class FakeXhr {
         ),
       );
     }
+    const land = () => {
+      this.status = 200;
+      log.push(`landed ${this.name}`);
+      at[`landed ${this.name}`] = Date.now();
+      this.onload?.();
+    };
     this.timers.push(
       setTimeout(() => {
         if (drops(this.name)) {
@@ -123,10 +134,10 @@ class FakeXhr {
           total: body.size,
         } as ProgressEvent);
         this.upload.onload?.();
-        this.status = 200;
-        log.push(`landed ${this.name}`);
-        at[`landed ${this.name}`] = Date.now();
-        this.onload?.();
+        at[`handed off ${this.name}`] = Date.now();
+        const wait = answerMs(this.name);
+        if (wait > 0) this.timers.push(setTimeout(land, wait));
+        else land();
       }, total),
     );
   }
@@ -167,6 +178,7 @@ beforeEach(() => {
   putMs = () => 50;
   drops = () => false;
   steps = () => 1;
+  answerMs = () => 0;
   presignMs = 0;
   prepMs = () => 0;
   for (const k of Object.keys(at)) delete at[k];
@@ -464,37 +476,32 @@ describe("★ preparing runs ahead of the network, never too far", () => {
 });
 
 describe("★ the network never waits between files (uploads-idempotent)", () => {
-  it("★ the next presign is back before the file in the air ends, so the next file's bytes start as its last ones land", async () => {
-    // A slow phone on a quick line: each file takes 1.5 s to prepare and 4 s to send, a presign 800 ms. Preparing has
-    // not finished when the first file's bytes end, so a presign asked only then left the line idle for its round trip.
+  it("★ the next presign is asked once the file in the air has handed off its last byte, so the next file goes as it lands", async () => {
+    // A slow phone on a quick line: each file takes 1.5 s to prepare, 4 s to hand its bytes to the browser's network
+    // and a second more for the line to drain them and R2 to answer; a presign takes 600 ms. Preparing has not finished
+    // when the first file lands, so a presign asked only then left the line idle for its round trip.
     prepMs = () => 1_500;
     putMs = () => 4_000;
-    steps = () => 40;
-    presignMs = 800;
+    answerMs = () => 1_000;
+    steps = () => 20;
+    presignMs = 600;
     const { out } = await send(burstOf(5), { run: 60_000 });
     expect(out.every((o) => o.ok)).toBe(true);
-    // Asked while the first file was still in the air, for every file prepared by then.
-    expect(at["presign 2"]).toBeLessThan(at["landed f1000"]!);
+    // Asked the moment the first file's last byte was handed off, for every file prepared by then.
+    expect(at["presign 2"]).toBe(at["handed off f1000"]);
     expect(presigns()[1]!.body.files.length).toBeGreaterThan(1);
-    // So the second file's bytes went the moment the first's landed.
+    // So the second file's bytes went the moment the first landed.
     expect(at["put f1001"]! - at["landed f1000"]!).toBeLessThan(50);
-    // And never a presign a file: the burst asked no more often than it did when it waited for need.
+    // And never a presign a file: no more often than when it waited for need.
     expect(presigns().length).toBeLessThanOrEqual(3);
   });
 
-  it("a file so small it lands before its pace can be read is presigned when the network needs it, as before", async () => {
-    putMs = () => 5;
-    steps = () => 1;
-    const { out } = await send(burstOf(4));
-    expect(out.every((o) => o.ok)).toBe(true);
-    expect(presigns().map((c) => c.body.files.length)).toEqual([1, 3]);
-  });
-
-  it("a file quicker to send than a batch needs to gather never asks ahead: the network's need asks, as before", async () => {
-    // One second to send, a 300 ms presign: under twice the lead, so the batch is not split for a gap that small.
+  it("a file handed off quicker than a presign's round trip never asks ahead: the network's need asks, as before", async () => {
+    // Small on a quick line: preparing is what the network waits for, so an early ask would only split the batch.
     prepMs = () => 400;
-    putMs = () => 1_000;
-    steps = () => 20;
+    putMs = () => 200;
+    answerMs = () => 300;
+    steps = () => 4;
     presignMs = 300;
     const { out } = await send(burstOf(5), { run: 60_000 });
     expect(out.every((o) => o.ok)).toBe(true);
