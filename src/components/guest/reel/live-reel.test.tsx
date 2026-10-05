@@ -18,7 +18,7 @@
  *
  * The view itself is stubbed (its own file pins it); the doorbell is the one seam driven by hand.
  */
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -94,7 +94,8 @@ vi.mock("@/components/guest/reel/creator-seam", () => ({
   preloadReelCreator: () => {},
 }));
 
-const { GalleryLiveProvider } = await import("@/components/guest/gallery-live");
+const { GalleryLiveProvider, useGalleryLive } =
+  await import("@/components/guest/gallery-live");
 // The lazy view's module, loaded once up front, so its chunk resolves at once when a test opens it.
 await import("@/components/guest/reel/live-reel-view");
 const { LiveReel } = await import("@/components/guest/reel/live-reel");
@@ -197,6 +198,16 @@ function serve() {
       headers: { get: (): string | null => null },
     };
   }) as unknown as typeof fetch;
+}
+
+/** The album's live source, as the page's own children read it (a test asks for links through it). */
+const probe = { live: null as ReturnType<typeof useGalleryLive> };
+function LiveProbe() {
+  const live = useGalleryLive();
+  useEffect(() => {
+    probe.live = live;
+  }, [live]);
+  return null;
 }
 
 /**
@@ -319,7 +330,7 @@ async function mount({
             isOwner={isOwner}
             headBridge={bridge}
           >
-            {null}
+            <LiveProbe />
           </LiveReel>
         </GalleryLiveProvider>
       </Suspense>
@@ -598,6 +609,39 @@ describe("the cover keeps the photographs it is dealing (compute-reads)", () => 
     await settle();
 
     expect(stills(container)).toEqual(["m1", ...before.slice(0, 5)]);
+  });
+
+  /**
+   * ★ A COVER KEPT THROUGH A BUSY PARTY STAYS LIT. The link store keeps lit only the ids it was recently asked for (600),
+   * so after a guest scrolls past more photographs than that, the cover's six are no longer re-minted by the store's own
+   * rounds and their presigns would die at 90 minutes, taking the pictures with them (a link past its expiry is never
+   * handed out). The cover asks for its six again whenever the album moves, which is a no-op while they are fresh.
+   */
+  it("★ its links are re-minted as the album moves once they have aged, however much was asked for since", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    try {
+      const big = range(11, 700);
+      const { container } = await opened(big);
+      const before = stills(container);
+      expect(before).toHaveLength(6);
+      // The guest scrolls past 650 other photographs: the store's 600 recent asks no longer hold the cover's six.
+      probe.live!.ensureLinks(
+        big.map((it) => it.id).filter((id) => !before.includes(id)),
+      );
+      await settle();
+      const asked = linkAsks().length;
+
+      // Ninety-five minutes on, every presign they were minted with has died.
+      vi.setSystemTime(Date.now() + 95 * 60_000);
+      await pollWith([...range(1, 2), ...big]);
+      await settle();
+
+      expect(stills(container)).toEqual(before);
+      const sent = linkAsks().slice(asked);
+      expect(sent.flat().filter((id) => before.includes(id))).toHaveLength(6);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("★ every still hidden at once is six new ones, each link asked for once, in one request", async () => {

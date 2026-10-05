@@ -373,9 +373,14 @@ function useCoverStills(
     : NO_DEAL;
   if (next !== deal) setDeal(next);
   const ensureLinks = live.ensureLinks;
+  // ★ THE SIX ARE ASKED FOR AGAIN WHENEVER THE ALBUM MOVES, not only when the deal changes: a kept still's link is
+  // asked for here again, which costs nothing while it is fresh and re-mints it once it has aged. The link store
+  // remembers only the ids it was recently asked for (its `interestSize`), so a cover kept through a busy party would
+  // otherwise fall out of what `refreshAged` keeps lit, and its pictures would vanish when their presigns died. (A
+  // re-deal asked on every arrival by accident, which is how this healed before the cover kept its stills.)
   useEffect(() => {
     ensureLinks(picked);
-  }, [ensureLinks, picked]);
+  }, [ensureLinks, picked, playable]);
   const drawn: HeadStill[] = [];
   if (live.access === "teaser") {
     for (const item of live.serverItems) {
