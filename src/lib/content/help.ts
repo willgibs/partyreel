@@ -192,9 +192,11 @@ export const helpFrontmatterSchema = z.object({
   /** Extra search hints beyond title/description. */
   keywords: z.array(z.string()).default([]),
   /**
-   * Who the article addresses. Optional: the default derives from the category
-   * (`resolveAudience`), so only the exceptions set it. Drives the article
-   * meta tag, the palette's "Guest" tail, and the guest end-matter pointer.
+   * Who the article HELPS: the people who would act on it, which is wider than who it is voiced to (a
+   * guest-voiced article a host would send her guests, or act on herself, helps both). Optional: the default
+   * derives from the category (`defaultAudience`), so only a difference sets it and never to restate the
+   * default (`help.test.ts` holds both). Drives the article meta tag, the palette's tail, and the guest
+   * end-matter pointer.
    */
   audience: z.enum(HELP_AUDIENCES).optional(),
   /** "Applies to" plan badges in the In-short card's footer. Empty = every plan. */
@@ -220,9 +222,11 @@ export type HelpFrontmatter = z.infer<typeof helpFrontmatterSchema>;
 export type HelpArticle = CollectionEntry<HelpFrontmatter>;
 
 /**
- * The audience an article speaks to, with the category as the default: the
- * guest lane is guest-voiced, troubleshooting answers both, everything else
- * addresses the host. Frontmatter `audience` overrides for the exceptions.
+ * The audience an article helps, with the category as the default: the
+ * guest lane is guest-voiced; troubleshooting, the account (one account is
+ * a host's and a guest's) and the highlight reel (every guest watches it, a
+ * host sets it) answer both; everything else addresses the host. Frontmatter
+ * `audience` overrides for the exceptions.
  */
 export function resolveAudience(article: {
   frontmatter: Pick<HelpFrontmatter, "audience" | "category">;
@@ -231,9 +235,19 @@ export function resolveAudience(article: {
   return defaultAudience(article.frontmatter.category);
 }
 
-function defaultAudience(category: HelpCategorySlug): HelpAudience {
+/**
+ * ★ A CATEGORY'S DEFAULT IS WHAT MOST OF ITS ARTICLES ARE (`help.test.ts` holds it). It said host for the account and
+ * the highlight reel while most of their articles overrode it to both, so the default said the opposite of its own
+ * shelf and a new article there came out host-only without anyone choosing it.
+ */
+export function defaultAudience(category: HelpCategorySlug): HelpAudience {
   if (category === "guest-experience") return "guest";
-  if (category === "troubleshooting") return "both";
+  if (
+    category === "troubleshooting" ||
+    category === "account-and-profile" ||
+    category === "highlight-reel"
+  )
+    return "both";
   return "host";
 }
 

@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import { HELP_REDIRECTS } from "@/lib/content/help-redirects";
 import {
+  audienceLabel,
+  defaultAudience,
   extractHeadings,
   getAllArticles,
   getAllSlugs,
@@ -9,7 +11,9 @@ import {
   getRelatedArticles,
   getSearchIndex,
   getStartHereArticles,
+  HELP_AUDIENCES,
   HELP_CATEGORIES,
+  type HelpCategorySlug,
   HELP_DESCRIPTION_MAX,
   HELP_QUICK_LINKS,
   helpFrontmatterSchema,
@@ -74,6 +78,43 @@ describe("help content integrity", () => {
         !a.frontmatter.audience,
     );
     if (guestLane) expect(resolveAudience(guestLane)).toBe("guest");
+  });
+
+  // ★ THE AUDIENCE IS SET ON PURPOSE (help-words): `defaultAudience` said host for the account and the highlight reel
+  // while most of their articles overrode it to both, so the default contradicted its own shelf and a new article
+  // there came out host-only by accident. A shelf's default is now what most of its articles are, and an article
+  // names an audience only where it differs, so every `audience:` in a frontmatter is a choice somebody made.
+  it("★ a category's default is what most of its articles help, and an article never restates it", () => {
+    for (const category of HELP_CATEGORIES) {
+      const shelf = articles.filter(
+        (a) => a.frontmatter.category === category.slug,
+      );
+      const count = (audience: string) =>
+        shelf.filter((a) => resolveAudience(a) === audience).length;
+      const most = Math.max(...HELP_AUDIENCES.map(count));
+      expect(
+        count(defaultAudience(category.slug)),
+        `${category.slug}: its default is not what most of its articles are`,
+      ).toBe(most);
+    }
+    for (const article of articles) {
+      expect(
+        article.frontmatter.audience,
+        `${article.slug} sets the audience its category already gives it`,
+      ).not.toBe(defaultAudience(article.frontmatter.category));
+    }
+  });
+
+  it("the tag names only what the shelf does not already say", () => {
+    const on = (
+      category: HelpCategorySlug,
+      audience?: "host" | "guest" | "both",
+    ) => audienceLabel({ frontmatter: { category, audience } });
+    expect(on("account-and-profile")).toBeNull();
+    expect(on("account-and-profile", "host")).toBe("For hosts");
+    expect(on("event-album")).toBeNull();
+    expect(on("event-album", "both")).toBe("Hosts & guests");
+    expect(on("guest-experience", "both")).toBe("Hosts & guests");
   });
 
   it("## headings are plain text and never sit inside a Callout", () => {

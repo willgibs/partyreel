@@ -3,8 +3,7 @@
  * galleries. SERVER-ONLY — raw keys never reach the browser (uploads-and-r2.md). Up to
  * three presigns per item: an INLINE url (grid/lightbox render) and an `attachment`
  * download url (the lightbox Save) from the original key, plus the small tile preview
- * from `preview_key` when the row has one (`toModerationFeedItems` mints the first two
- * alone). Single source so every surface that still hands a whole list of linked items
+ * from `preview_key` when the row has one. Single source so every surface that still hands a whole list of linked items
  * presigns identically: the guest album's teaser (its nine, inline), the personal feeds and
  * the operator's. The paged album mints its links by id instead (`album-guest-links.ts`).
  */
@@ -101,9 +100,14 @@ export async function toGridItems(
 // moderation grid needs status to pick Remove vs Restore, and the caption to link to the album).
 // Same presign primitives as toGridItems — just per-item event name.
 //
+// ★ A TILE DRAWS ITS PREVIEW, NEVER ITS ORIGINAL, WHERE THERE IS ONE (crumbs-78): the feed is up to 60 tiles and a
+// drill-in page up to 500, and each tile fetched its original to draw a square: a full-size photograph, or a clip's
+// metadata and first frame in a `<video>`. The row's `preview_key` is signed beside the original (the grid draws
+// `previewUrl ?? url`), so the original is a tile's picture only on a row with no preview, and the viewer's always.
+//
 // ★ A COVERED ITEM IS NEVER SIGNED (build 23's NIT-7, the albums grid since crumbs-21): `covered` is
 // `readCoveredItems`' answer, the rule's one home, and an item in it leaves here with no url of any
-// kind, so nothing of its picture can reach the browser, whatever the grid draws.
+// kind (its preview's included), so nothing of its picture can reach the browser, whatever the grid draws.
 export async function toModerationFeedItems(
   items: ModerationMediaItem[],
   covered: ReadonlySet<string> = new Set(),
@@ -121,7 +125,7 @@ export async function toModerationFeedItems(
           hostLabel: m.hostLabel,
         };
       }
-      const [url, downloadUrl] = await Promise.all([
+      const [url, downloadUrl, previewUrl] = await Promise.all([
         presignDownload({ key: m.originalKey, stable: true }),
         presignDownload({
           key: m.originalKey,
@@ -132,12 +136,17 @@ export async function toModerationFeedItems(
             type: m.type,
           }),
         }),
+        // Stable-presigned like the original. Null on a row with no preview: its tile draws the original.
+        m.previewKey
+          ? presignDownload({ key: m.previewKey, stable: true })
+          : Promise.resolve(null),
       ]);
       return {
         id: m.id,
         type: m.type,
         url,
         downloadUrl,
+        previewUrl,
         status: m.status,
         eventId: m.eventId,
         eventName: m.eventName,

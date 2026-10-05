@@ -9,9 +9,9 @@ import {
 } from "@/components/ui/tooltip";
 
 // Wraps ONE action control in a styled hover/focus tooltip (desktop). Reuses the
-// root TooltipProvider (200ms delay). `asChild` keeps the child as the real
-// <button>/<a>, so its aria-label stays the a11y name and the tooltip is the
-// visible label.
+// root TooltipProvider (providers.tsx: `delayDuration` 0, so it opens at once).
+// `asChild` keeps the child as the real <button>/<a>, so its aria-label stays the
+// a11y name and the tooltip is the visible label.
 //
 // LIGHTBOX-ONLY (Will, 2026-06-20 redo). The lightbox renders client-only
 // (`MediaLightboxLazy` is `ssr:false`), so its tooltips can't cause a hydration

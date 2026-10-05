@@ -8,8 +8,8 @@
  * - The controls: one row of icon buttons, Add yours an icon, "Make your own" the one primary
  *   beneath, only with a creator AND the host's plan in hand (on a browser that cannot encode it
  *   stays, greyed, and a tap bubbles up why); Include videos only where the album holds a video.
- * - The creator: opened from Make your own, or on arrival when the tile's line asked for it, and
- *   handed everything it needs (the event's name, who is making it, the plan's facts).
+ * - The creator: opened from Make your own, and handed everything it needs (the event's name, who is
+ *   making it, the plan's facts).
  * - The keyboard: Space pauses, Escape closes, the arrows step, Enter brings the controls up.
  * - The page under it cannot scroll while it is open.
  * - The hold (3 s default) and the style are the viewer's own, kept on this device and handed to the
@@ -506,35 +506,6 @@ describe("the chrome (the thin bar)", () => {
       vi.advanceTimersByTime(4300);
     });
     expect(screen.queryByRole("status")).toBeNull();
-  });
-
-  it("opens the creator on arrival when the tile's line asked for it, once", async () => {
-    const Creator = () => <div data-testid="creator" />;
-    const spent = vi.fn();
-    renderView({
-      creator: Creator,
-      creatorAsked: true,
-      onCreatorAskSpent: spent,
-    });
-    await act(async () => {});
-    expect(screen.getByTestId("creator")).toBeInTheDocument();
-    expect(spent).toHaveBeenCalledTimes(1);
-  });
-
-  it("asked for on a browser that cannot encode, it opens on the reel with the door explaining", async () => {
-    h.support = "no";
-    const Creator = () => <div data-testid="creator" />;
-    renderView({
-      creator: Creator,
-      creatorAsked: true,
-      onCreatorAskSpent: vi.fn(),
-    });
-    await act(async () => {});
-    expect(screen.queryByTestId("creator")).toBeNull();
-    expect(dock()).toHaveAttribute("data-state", "up");
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "This browser can't make clips.",
-    );
   });
 });
 

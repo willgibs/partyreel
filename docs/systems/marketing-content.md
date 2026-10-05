@@ -63,6 +63,8 @@ hide-on-scroll in `header-shell.tsx`, desktop panels in `marketing-nav.tsx`, a f
   derived from `lifecycle/inactivity.ts` (`INACTIVE_MONTHS`) and `recently-deleted.ts`). The home FAQ's keep answer,
   the event pages' lines and the two blog posts that say how long an album lasts hold it (`faq-data.test.ts`,
   `events.test.ts`, `blog-keep-lines.test.ts`); the pricing FAQ, the llms files and `/features/privacy` carry it too.
+  No line says an event "has no end date" either: Settings offers "Add an end date" (`lib/events/dates.ts`), which only
+  says when it happens, so a line says an event never expires, or says what a date does.
 - **An empty state names what is about to exist**, with the album as the noun and "starts" as the verb ("Your first
   album starts here"), so it invites the first upload rather than waiting for one.
 - **The promise-neutralization doctrine**: published copy commits to outcomes (a reply, a review, host control), never
@@ -185,15 +187,17 @@ with `help.ts` and `blog.ts` as thin wrappers.
   and the ToC cannot drift.
 - **Nothing client-side may import the MDX components map** (`marketing/mdx-components.tsx`, composed from
   `mdx/spec-*.tsx`, whose composer throws on a duplicate name): it reaches `node:fs`.
-- **Four tests hold the catalog honest**: every article compiles, every `<UiLabel>` is a shipped app string, every
-  internal link and anchor resolves, and every literal-referenced slug is pinned; a test also scans the bodies for a
-  typed size, price or limit beside its unit.
+- **Four tests hold the catalog honest**: every article compiles, every `<UiLabel>` (a post's too) is a string a control
+  of the product says (never a comment, a mock, a board or the operator's portal, which still names a retired "Download
+  all"), every internal link and anchor resolves, and every literal-referenced slug is pinned; a test also scans the
+  bodies for a typed size, price or limit beside its unit.
 - **The authoring briefs are `content/help/AUTHORING.md` and `content/blog/AUTHORING.md`.** They name the fences by
   pointer only: the content-policy scan reads `.md` too, and a brief must obey itself.
 - **Help** is a lifecycle taxonomy (`help.ts`), each category but troubleshooting linking up to its marketing feature; a
   troubleshooting article ends on its own frontmatter `rung` instead, the working version of the same act
-  (`help.test.ts`). A new category lands with its first article, its emblem, its strip label and grid column, and its
-  `CATEGORY_TOPIC` row. Search ranks in the pure, fs-free `help-search-rank.ts`.
+  (`help.test.ts`). A category's default audience is what most of its articles help, and an article's own `audience`
+  names only a difference (also `help.test.ts`). A new category lands with its first article, its emblem, its strip
+  label and grid column, and its `CATEGORY_TOPIC` row. Search ranks in the pure, fs-free `help-search-rank.ts`.
 - **The help palette mounts in `help/layout.tsx` and `/contact` only** (`help-palette-mounts.test.tsx`), so the admin
   portal's own ⌘K never meets a second one. Everything else reaches it through `help-search-signal.ts`: a Search row
   rings a window event a mounted palette answers in place, and goes to `/help?search` when nothing does, where the
@@ -340,6 +344,9 @@ The demo is one real curated event, switched on by one public env var, `NEXT_PUB
   press), because a door can leave while the modal is up, and focus returns to the opener or the fallback it named. A
   plain link to the demo is easy to miss in review, so `demo-door-policy.test.ts` refuses one anywhere in the marketing
   source.
+- **The help center's one demo article** (`help/try-the-live-demo`) says what the demo simulates and leaves out (nothing
+  saved, no email step, no Select or clip, the phone pair), so a change to the demo's guest side is a change to it. It
+  links the home and `/how-it-works`, whose doors are demo doors, never `/demo` itself.
 - The guest-side demo mode is [guest-flow.md](guest-flow.md)'s; the in-app QR designer and the welcome are
   [host-app.md](host-app.md)'s; the marketing analytics and the OG-driven growth are
   [notifications-analytics-growth.md](notifications-analytics-growth.md)'s.

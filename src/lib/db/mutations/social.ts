@@ -546,6 +546,10 @@ export async function setProfileBio(
  * you is exactly who you may need to report), and reporting is never coupled to
  * blocking: the menu offers both, each on its own.
  *
+ * The row says its reporter was signed in (`reporter_signed_in`, which defaults to false): only a signed-in person
+ * gets this far, and the queue reads the column (`reporterWho`), so left to the default it would call her a
+ * signed-out guest.
+ *
  * reports.profile_id arrived with migration 20260919130000 (applied 2026-09-19).
  */
 export async function createProfileReport(input: {
@@ -568,6 +572,7 @@ export async function createProfileReport(input: {
   const { error } = await createAdminClient().from("reports").insert({
     profile_id: input.profileId,
     reason: input.reason,
+    reporter_signed_in: true,
   });
   if (error) {
     return {

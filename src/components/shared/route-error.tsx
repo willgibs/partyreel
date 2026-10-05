@@ -8,8 +8,14 @@ import { HelpLine, NotFoundScreen } from "@/components/shared/not-found-screen";
 import { Button } from "@/components/ui/button";
 import { captureError, type SentryArea } from "@/lib/observability/sentry";
 
-/** The boundaries this component draws: every `render:*` area there is. */
-type RouteErrorArea = Extract<SentryArea, `render:${string}`>;
+/**
+ * The boundaries this component draws: every `render:*` area but `render:global`, which is `global-error.tsx`'s and
+ * is drawn there, in inline styles, since that screen may import nothing of the kit.
+ */
+type RouteErrorArea = Exclude<
+  Extract<SentryArea, `render:${string}`>,
+  "render:global"
+>;
 
 /**
  * What Next hands every `error.js` that a screen reads: the crash, and `unstable_retry` (16.2), the router's refresh
@@ -71,7 +77,7 @@ const HELP_BY_AREA: Record<RouteErrorArea, ReactNode> = {
   // The root boundary (src/app/error.tsx): a crash inside a group's OWN layout,
   // which skipped every branded boundary below it. Something structural failed,
   // so the line that matters is the one that reaches a person.
-  "render:global": <HelpLine href="/contact">Tell us what happened</HelpLine>,
+  "render:root": <HelpLine href="/contact">Tell us what happened</HelpLine>,
 };
 
 // THE CRASH WRAPPER for the route-group error.tsx boundaries, and the only

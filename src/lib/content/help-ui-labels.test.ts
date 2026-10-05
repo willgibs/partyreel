@@ -4,6 +4,7 @@ import { join } from "node:path";
 import ts from "typescript";
 import { beforeAll, describe, expect, it } from "vitest";
 
+import { getAllPosts } from "./blog";
 import { getAllArticles } from "./help";
 
 /**
@@ -12,6 +13,11 @@ import { getAllArticles } from "./help";
  * of the shipped app, so a reader who opens the product recognizes every
  * control the help center named. Whitespace is collapsed on both sides and
  * MDX entities are decoded, so a label that wraps in JSX still matches.
+ *
+ * ★ THE BLOG QUOTES THE SAME CONTROLS, SO IT IS HELD TO THE SAME PRODUCT (help-words): posts told a host to leave
+ * "Require verified emails" on, a switch the product renamed "An email first", because the blog's labels were read by
+ * nothing. A post's <UiLabel> is checked exactly as an article's is, and it has no baseline: no post quotes a label
+ * the product does not say.
  *
  * ★ WHAT IS READ IS THE PRODUCT'S OWN COPY (crumbs-77): the string literals,
  * template pieces and JSX text of its source, never a comment, an identifier
@@ -27,17 +33,23 @@ import { getAllArticles } from "./help";
  *
  * Scope: every .ts/.tsx under src/ EXCEPT tests, the help pages (which would
  * match their own rendering), the MDX components (which quote nothing), the
- * lab (`src/app/(dev)/` and its kit, `src/components/lab/`), and the
- * marketing site (`src/components/marketing/`, `src/app/(marketing)/`).
- * ★ THE LAB AND THE MARKETING SITE ARE NOT THE PRODUCT (crumbs-49, crumbs-77):
- * a board quotes the very strings it proposes to retire, and a marketing
- * mock quotes the product's copy on purpose (`mock-parity.test.ts` holds it
- * to the product, not the other way round), so a stale label that only a
- * board or a mock still carries would pass while no control a reader meets
- * says it (help-center's old stub hid "Tap to retry" in two articles that way).
+ * lab (`src/app/(dev)/` and its kit, `src/components/lab/`), the
+ * marketing site (`src/components/marketing/`, `src/app/(marketing)/`), and
+ * the operator's portal (`src/app/admin/`, `src/components/admin/`,
+ * `src/lib/admin/`, and `src/lib/jobs/`, whose switches the portal labels).
+ * ★ THE LAB, THE MARKETING SITE AND THE PORTAL ARE NOT THE PRODUCT (crumbs-49,
+ * crumbs-77, help-words): a board quotes the very strings it proposes to
+ * retire, a marketing mock quotes the product's copy on purpose
+ * (`mock-parity.test.ts` holds it to the product, not the other way round),
+ * and the portal names controls in the operator's words ("Download all" is
+ * still a card on /admin/exports and a spend-watch switch, a button no guest
+ * has had since take-home r1), so a stale label that only a board, a mock or
+ * the portal still carries would pass while no control a reader meets says
+ * it (help-center's old stub hid "Tap to retry" in two articles that way, and
+ * "Download all" stood in four articles and seven posts the same way).
  */
 const SKIP =
-  /\.test\.tsx?$|\/help\/|mdx-components\.tsx$|\/mdx\/spec-[a-z]+\.tsx$|\/app\/\(dev\)\/|\/components\/lab\/|\/components\/marketing\/|\/app\/\(marketing\)\//;
+  /\.test\.tsx?$|\/help\/|mdx-components\.tsx$|\/mdx\/spec-[a-z]+\.tsx$|\/app\/\(dev\)\/|\/components\/lab\/|\/components\/marketing\/|\/app\/\(marketing\)\/|\/app\/admin\/|\/components\/admin\/|\/lib\/admin\/|\/lib\/jobs\//;
 
 function walk(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -155,24 +167,9 @@ const corpusOf = (sources: Iterable<{ source: string; name?: string }>) =>
  * which is how they went unseen. A BASELINE THAT MAY ONLY SHRINK, the way the row-cap allow-lists are: an entry fails
  * once the product says its label again, or its article stops quoting it, so fixing the article is deleting the entry.
  * The articles are the help catalog's (`content/help/`), not this test's: each `why` says what the product says now.
+ * Empty is the steady state: a label an article quotes is one a control says, and a new entry is a debt owed.
  */
-const NOT_SHIPPED: { slug: string; label: string; why: string }[] = [
-  {
-    slug: "download-photos-videos-and-albums",
-    label: "Download album",
-    why: "the Download album menu left with take-home r1: a guest takes photos home by Select, then Save (live-gallery-save.tsx), a host by her two sets (take-home-panel.tsx); the article still walks the menu",
-  },
-  {
-    slug: "your-data-and-deleting-your-account",
-    label: "Download album",
-    why: "the same menu: a host's take-home is her two sets (take-home-panel.tsx), and her Download is the gallery menu's",
-  },
-  {
-    slug: "your-public-profile-following-and-blocking",
-    label: "Unfollow",
-    why: "crumbs-44's one control reads Following once on, a toggle that reads as pressed (relation-toggle.tsx's RELATION_FACE), so the Connections card has no Unfollow: its row says Following",
-  },
-];
+const NOT_SHIPPED: { slug: string; label: string; why: string }[] = [];
 
 /** A scan reads about 1,100 files through the TypeScript parser, a second or two alone; under a loaded run it needs a budget of its own. */
 const SCAN_BUDGET_MS = 60_000;
@@ -189,6 +186,10 @@ describe("the scan reads the product's source and not the lab's", () => {
     "/r/src/components/marketing/sections/features/sharing/zip-modal-demo.tsx",
     "/r/src/components/marketing/frames/phone-frame.tsx",
     "/r/src/app/(marketing)/(cinema)/features/sharing/page.tsx",
+    "/r/src/app/admin/exports/page.tsx",
+    "/r/src/components/admin/health-band.tsx",
+    "/r/src/lib/admin/palette.ts",
+    "/r/src/lib/jobs/spend-watch.ts",
   ])("skips %s", (path) => {
     expect(SKIP.test(path)).toBe(true);
   });
@@ -278,7 +279,7 @@ describe("every <UiLabel> quotes a shipped app string", () => {
     expect(files.length).toBeGreaterThan(300);
     expect(
       files.filter((f) =>
-        /\(dev\)|\/components\/lab\/|\/components\/marketing\/|\/app\/\(marketing\)\//.test(
+        /\(dev\)|\/components\/lab\/|\/components\/marketing\/|\/app\/\(marketing\)\/|\/app\/admin\/|\/components\/admin\/|\/lib\/admin\/|\/lib\/jobs\//.test(
           f,
         ),
       ),
@@ -315,6 +316,26 @@ describe("every <UiLabel> quotes a shipped app string", () => {
         expect(
           corpus.includes(label),
           `"${label}" (in ${article.slug}) is not a shipped app string: no control says it (a comment or a marketing mock may, which does not count)`,
+        ).toBe(true);
+      }
+    });
+  }
+
+  const posts = getAllPosts();
+  expect(posts.length).toBeGreaterThan(0);
+
+  for (const post of posts) {
+    const labels = labelsOf(post.body);
+    if (labels.length === 0) continue;
+    it(`blog ${post.slug}: ${labels.length} labels`, () => {
+      for (const label of labels) {
+        expect(
+          label.length,
+          `empty UiLabel in blog ${post.slug}`,
+        ).toBeGreaterThan(0);
+        expect(
+          corpus.includes(label),
+          `"${label}" (in blog ${post.slug}) is not a shipped app string: no control says it (a comment or a marketing mock may, which does not count)`,
         ).toBe(true);
       }
     });
