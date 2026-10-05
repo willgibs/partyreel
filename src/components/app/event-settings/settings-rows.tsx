@@ -21,6 +21,13 @@ import {
   type WordChoice,
 } from "@/components/app/event-settings/setting-word";
 import { Button } from "@/components/ui/button";
+import {
+  FILM_ROLLS,
+  ROLL_MAX,
+  ROLL_MIN,
+  ROLL_SHOTS,
+  rollShots,
+} from "@/lib/disposable/roll";
 import { formatCount } from "@/lib/format/count";
 import { RangeText } from "@/lib/format/range-text";
 import { DOORS, stepOf, type Door } from "@/lib/event/door/door";
@@ -138,6 +145,38 @@ export function doorConsequence(
   return email;
 }
 
+/** What each of film's three says under its count in the roll's quick choice. */
+const FILM_NOTES: Record<(typeof FILM_ROLLS)[number], string> = {
+  12: "Film's short roll.",
+  24: "Partyreel's usual.",
+  36: "Film's long roll.",
+};
+
+/**
+ * THE ROLL'S QUICK CHOICE (customize r1's `home=words`): film's three, her own count where it is none of them, and
+ * Another number, which opens What guests can add at the stepper, in focus (the sentence is the overview, the page the
+ * whole control).
+ */
+export function rollChoices(current: number): WordChoice[] {
+  const film = (FILM_ROLLS as readonly number[]).includes(current);
+  return [
+    ...FILM_ROLLS.map((n) => ({
+      id: String(n),
+      label: rollShots(n),
+      note: FILM_NOTES[n],
+      selected: n === current,
+    })),
+    ...(film
+      ? []
+      : [{ id: String(current), label: rollShots(current), selected: true }]),
+    {
+      id: "other",
+      label: "Another number",
+      note: `Any count from ${ROLL_MIN} to ${ROLL_MAX}.`,
+    },
+  ];
+}
+
 /** The guest's own line for a door, when nothing more pressing is said. */
 function doorLine(door: Door): string {
   const step = stepOf(door);
@@ -248,6 +287,19 @@ function useWordChoices(openPage: (page: SettingsPage) => void): Record<
         },
       ],
       onChoose: (id) => void s.saveEvent({ acceptingUploads: id === "open" }),
+    },
+    roll: {
+      title: "Shots on each guest's roll",
+      busy: s.saving("rollSize"),
+      choices: rollChoices(v.rollSize ?? ROLL_SHOTS),
+      onChoose: (id) => {
+        if (id === "other") {
+          s.openAt("roll");
+          openPage("adds");
+          return;
+        }
+        void s.saveEvent({ rollSize: Number(id) });
+      },
     },
     review: {
       title: "Where what guests add goes",

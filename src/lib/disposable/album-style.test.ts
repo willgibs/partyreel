@@ -140,21 +140,42 @@ describe("createFieldsOf: a new event is born with a style's three columns in on
     expect(createFieldsOf(patchForStyle("live", fresh, opts))).toEqual({
       capture: "upload",
       moderation_mode: "live",
+      roll_size: null,
       develops_at: null,
     });
     expect(createFieldsOf(patchForStyle("approval", fresh, opts))).toEqual({
       capture: "upload",
       moderation_mode: "hold_for_approval",
+      roll_size: null,
       develops_at: null,
     });
     expect(createFieldsOf(patchForStyle("disposable", fresh, opts))).toEqual({
       capture: "camera",
       moderation_mode: "live",
+      roll_size: null,
       develops_at: defaultDevelopAt({
         eventDate: null,
         now: new Date(NOW),
       }).toISOString(),
     });
+  });
+
+  it("★ the roll she picked rides with the camera alone: a Disposable is born with it, Live and Review with none", () => {
+    const fresh = {
+      capture: "upload" as const,
+      review: false,
+      developsAt: null,
+    };
+    const opts = { eventDate: null, nowMs: NOW };
+    expect(
+      createFieldsOf(patchForStyle("disposable", fresh, opts), 50).roll_size,
+    ).toBe(50);
+    expect(
+      createFieldsOf(patchForStyle("live", fresh, opts), 50).roll_size,
+    ).toBeNull();
+    expect(
+      createFieldsOf(patchForStyle("approval", fresh, opts), 12).roll_size,
+    ).toBeNull();
   });
 
   it("★ no style is ever born holding approval and a develop time together (`both=never`, at birth too)", () => {

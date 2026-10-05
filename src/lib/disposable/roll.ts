@@ -1,11 +1,18 @@
 /**
  * THE CAMERA'S ROLL: how many shots a guest holds at once, and how many she may take, counted by the server.
  *
- * ★ ONE HOME, MIRRORED IN SQL (20261002200000), under parity tests that read the winning bodies (`roll.test.ts`):
- *  - `ROLL_SHOTS`: the roll a camera carries unless its host names fewer, and the most she may name
- *    (`events_reveal_stamp` fills it in, `events_roll_size_range` bounds it);
+ * ★ ONE HOME, MIRRORED IN SQL (20261002200000, 20261005190000), under parity tests that read the winning bodies
+ * (`roll.test.ts`):
+ *  - `ROLL_SHOTS`: the roll a camera carries unless its host names another (`events_reveal_stamp` fills it in);
+ *  - `ROLL_MIN` and `ROLL_MAX`: the sizes a host may name, two digits on the camera's count (customize r1, Will's
+ *    `roll=both`: film's 12, 24 and 36, or any count from 1 to 99; `events_roll_size_range` bounds it);
  *  - `ROLL_RETAKES`: the ceiling's multiple (`c_roll_retakes` in `create_media` and both upload reads).
  * Change each side together.
+ *
+ * ★ HER ROLL OUTLIVES THE CAMERA (20261005190000): the row keeps the size she named while the album takes free
+ * uploads, so a style switch, or the camera turned off and on, comes back to her roll and never to 24. A free-upload
+ * album's `roll_size` is therefore no sign of a camera: every reader asks `capture` first (`developFactsOf`, the SQL's
+ * `v_event.capture = 'camera'`), and only Settings reads the kept size (`rollSizeOf`).
  *
  * What counts against the roll is her LIVE shots since the period began (`events.sealed_from`): held, approved or
  * hidden (a host's hide keeps the frame taken). One she withdraws, or the host removes, gives its frame back (Will,
@@ -16,6 +23,41 @@
  * The host's own uploads are no roll's.
  */
 export const ROLL_SHOTS = 24;
+
+/** The fewest shots a host may name: a roll of one, the whole night in a single frame. */
+export const ROLL_MIN = 1;
+
+/** The most a host may name: two digits on the camera's count (`events_roll_size_range`'s upper bound). */
+export const ROLL_MAX = 99;
+
+/** Film's three sizes, the scale every disposable and every roll of 35 mm was sold in: the boxes a host picks from. */
+export const FILM_ROLLS = [12, 24, 36] as const;
+
+/** Whether a value is a roll a host may name: a whole number of shots from `ROLL_MIN` to `ROLL_MAX`. */
+export function isRollSize(value: unknown): value is number {
+  return (
+    typeof value === "number" &&
+    Number.isInteger(value) &&
+    value >= ROLL_MIN &&
+    value <= ROLL_MAX
+  );
+}
+
+/** A count brought inside the bounds, whole: what a stepper lands on, whatever it was handed. */
+export function clampRoll(n: number): number {
+  if (!Number.isFinite(n)) return ROLL_SHOTS;
+  return Math.min(ROLL_MAX, Math.max(ROLL_MIN, Math.round(n)));
+}
+
+/** The size a row names, or null where it names none this code can read (a free-upload album that never had one). */
+export function rollSizeOf(value: unknown): number | null {
+  return isRollSize(value) ? value : null;
+}
+
+/** "12 shots", "1 shot": a roll as a sentence and a box say it. */
+export function rollShots(n: number): string {
+  return `${n} ${n === 1 ? "shot" : "shots"}`;
+}
 
 /** The ceiling's multiple: a guest takes at most `ROLL_RETAKES` rolls' worth in a period, removed or not. */
 export const ROLL_RETAKES = 3;

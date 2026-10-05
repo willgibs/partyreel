@@ -21,6 +21,7 @@ import { createClient } from "@/lib/supabase/server";
 import {
   type CreateEventValues,
   LAST_DAY_BEFORE_FIRST,
+  ROLL_SIZE_MESSAGE,
   type UpdateEventValues,
 } from "@/lib/validation/event";
 
@@ -78,6 +79,26 @@ function rangeRefusal(error: { code?: string; message?: string }): boolean {
 }
 
 /**
+ * ★ THE ROLL'S BOUNDS (20261005190000, `events_roll_size_range`): read by its name and said in the schema's words, since
+ * on an insert any other CHECK reads as the plan's event limit. The schema and the stepper keep a roll inside them, so
+ * this meets a build ahead of its migration (a roll past the old 24) or a crafted call.
+ */
+const ROLL_CHECK = "events_roll_size_range";
+const ROLL_REFUSED = {
+  ok: false as const,
+  code: "unknown" as const,
+  message: ROLL_SIZE_MESSAGE,
+};
+
+function rollRefusal(error: { code?: string; message?: string }): boolean {
+  return (
+    error.code === CHECK_VIOLATION &&
+    typeof error.message === "string" &&
+    error.message.includes(ROLL_CHECK)
+  );
+}
+
+/**
  * ★ AN ACCOUNT'S EVENTS A DAY (upload-meter, 20261003210500): `enforce_event_limit` refuses the 101st creation in any
  * 24 hours in its own sentence ("You've created a lot of events today. Try again tomorrow."), which the wizard prints
  * as it is. Read by its words, as the CHECKs above are read by their names, and ahead of the plan limit's branch, whose
@@ -130,10 +151,12 @@ export async function createEvent(
     moderation_mode: values.moderation_mode,
     qr_style: values.qr_style,
     // HOW GUESTS ADD AND WHEN THE ALBUM DEVELOPS, at birth (create-wizard r3's add=styles): bare INSERT-granted columns
-    // (20261002200000), written in this one insert beside `moderation_mode` so a style is never a half-state. The
-    // database does the rest in it: `events_reveal_stamp` fills in the camera's roll, stamps its period, and stores a
-    // develop time under a minute ahead as its own now.
+    // (20261002200000), written in this one insert beside `moderation_mode` so a style is never a half-state, with the
+    // roll she named under the Disposable pick (customize r1's `roll=both`; none named is null). The database does the
+    // rest in it: `events_reveal_stamp` fills in a camera's unnamed roll (24), stamps its period, and stores a develop
+    // time under a minute ahead as its own now.
     capture: values.capture,
+    roll_size: values.roll_size,
     develops_at: values.develops_at,
   };
 
@@ -147,6 +170,7 @@ export async function createEvent(
     if (rangeRefusal(error)) return RANGE_REFUSED;
     // Read by its name, ahead of the branch below: any other CHECK on an insert is taken for the plan's limit.
     if (approvalRefusal(error)) return APPROVAL_REFUSED;
+    if (rollRefusal(error)) return ROLL_REFUSED;
     if (breakerRefusal(error)) {
       return { ok: false, code: "unknown", message: error.message };
     }
@@ -274,11 +298,13 @@ export async function updateEvent(
   // narrows (the upload's gate reads the plan).
   if (values.allow_videos !== undefined)
     patch.allow_videos = values.allow_videos;
-  // HOW GUESTS ADD AND WHEN THE ALBUM DEVELOPS (20261002200000): bare granted-column writes. The database does the
-  // rest in this same save: `events_reveal_stamp` fills in the camera's roll and stamps its period, and a new develop
-  // time rewrites the album's rows (`events_develops_rewrite`: Develop now, right away and a moved time land with the
-  // save, ringing the album once).
+  // HOW GUESTS ADD AND WHEN THE ALBUM DEVELOPS (20261002200000), AND THE ROLL SHE NAMES (20261005190000): bare
+  // granted-column writes, the roll's bounds held by `events_roll_size_range` behind the schema's words. The database
+  // does the rest in this same save: `events_reveal_stamp` fills in a camera's unnamed roll and stamps its period (free
+  // uploads keep her roll for the camera's return), and a new develop time rewrites the album's rows
+  // (`events_develops_rewrite`: Develop now, right away and a moved time land with the save, ringing the album once).
   if (values.capture !== undefined) patch.capture = values.capture;
+  if (values.roll_size !== undefined) patch.roll_size = values.roll_size;
   if (values.develops_at !== undefined) patch.develops_at = values.develops_at;
 
   const { data, error } = await supabase
@@ -292,6 +318,7 @@ export async function updateEvent(
   if (error) {
     if (approvalRefusal(error)) return APPROVAL_REFUSED;
     if (rangeRefusal(error)) return RANGE_REFUSED;
+    if (rollRefusal(error)) return ROLL_REFUSED;
     return {
       ok: false,
       code: "unknown",
