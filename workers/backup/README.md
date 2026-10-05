@@ -6,7 +6,8 @@ it is excluded from the app's `tsc`/`eslint`/`vitest` (see root `tsconfig.json` 
 
 > Status: the backup copy is **live + DR-drill-verified** (results below). The deletion-aware prune
 > ships in **dry-run** (deletes nothing) and keeps up with deletions (a cursor in a Durable Object, its
-> caps its budget); a human flips `PRUNE_MODE` to live at launch.
+> caps its budget); a human flips `PRUNE_MODE` to live at launch. The restore of the backup's lone copies
+> ships in **dry-run** too (copies nothing); `RESTORE_MODE=on` is its own switch, no launch switch.
 
 ## How it works
 
@@ -15,7 +16,10 @@ it is excluded from the app's `tsc`/`eslint`/`vitest` (see root `tsconfig.json` 
   through; larger ones (videos up to ~5 GB) use the R2 multipart binding API (`src/strategy.ts`).
 - **`scheduled()`** runs two crons (it branches on `controller.cron`): a **daily reconciliation** (copy
   any `events/` object missing from BACKUP — the backstop for missed/failed events **and the one-time
-  initial seed**), and a **weekly deletion-aware prune** (see "Deletion-aware prune" below).
+  initial seed**), and a **weekly deletion-aware prune** (see "Deletion-aware prune" below). The daily
+  cron also asks for a **restore pass** (see "Restore" below), and so does each prune's end.
+- **`fetch()`** is one door, `POST /restore` (Restore now from `/admin/jobs`, the internal-jobs bearer);
+  every other request is a 404, every other caller a 401 (`src/restore-door.ts`).
 - **Idempotent:** every copy does `BACKUP.head(key)` first and skips if present. Safe because media
   keys are write-once AND the Bucket Lock forbids overwriting a locked object.
 - **Avatars are excluded** (the `events/` prefix filter): they overwrite-in-place (conflicts with the
@@ -119,6 +123,28 @@ first deploy that carries it. A later change to the class takes a new tag, never
 
 **Flip to live (the launch switch):** set `"PRUNE_MODE": "live"` in `wrangler.jsonc`, then `wrangler deploy`.
 
+## Restore — the backup's lone copies, copied back
+
+A lone copy is a backup key whose row still names it while the primary lost the object: a host's photo with
+one copy left. The prune finds them (past its 36-day gate), asks the app which keys a live row still names
+(`src/named.ts`, the confirm route's `loneKeys` shape) and keeps them in the lone copies' table
+(`src/lone-store.ts`, SQL in the `PruneState` object), so a pass that spans runs reports the whole backup's.
+A restore pass (`src/restore-run.ts`, wired in `src/restore-pass.ts`) copies each back from `partyreel-backup`
+into `partyreel` at the same key:
+
+- **Only keys a live row names** (asked again right before each batch), **never over an object that is
+  there** (a HEAD, then a put with `onlyIf: If-None-Match: *`, which returns `null` when anything is stored),
+  **never past one write's reach** (over 5 GiB less 5 MiB it stays held, said, for a copy by hand).
+- **`RESTORE_MODE`**: `on` copies, `off` does nothing, anything else (`dryrun`, the default) asks and reads
+  everything and copies nothing.
+- **A pass is the object's alarm** (`src/prune-state.ts`, `src/restore-schedule.ts`): asked for by the daily
+  cron, each prune's end and the door; a request never starts a second pass beside one in flight, and one that
+  comes mid-pass queues the next. Its own heartbeat (`backup_restore`) and switch on `/admin/jobs`; it fails
+  closed on an unreachable app. The table needs no setup: the object creates it.
+
+**Switch it on:** set `"RESTORE_MODE": "on"` in `wrangler.jsonc`, then `wrangler deploy`. For Restore now,
+set the app's `BACKUP_WORKER_URL` to this Worker's workers.dev origin (`workers_dev` is on in `wrangler.jsonc`).
+
 **Verify:**
 - *Before a deploy:* `npm test` drives the engine against fake buckets for every rule above (the engine
   takes its buckets, confirm route and clock as ports, so the same code also runs outside the Worker).
@@ -133,6 +159,9 @@ first deploy that carries it. A later change to the class takes a new tag, never
 
 ```bash
 npm run typecheck   # tsc against @cloudflare/workers-types
-npm test            # vitest — the pure helpers and the prune's engine on fakes
+npm test            # vitest — the pure helpers, the prune's and the restore's engines on fakes, the table on Node's SQLite
 npm run dry-run     # wrangler build (no deploy, no auth)
 ```
+
+`wrangler dev` runs the Worker against local R2 and Durable Object simulations (never the real buckets unless
+a binding says `"remote": true`), which is how the restore's conditional write and its alarm were walked.

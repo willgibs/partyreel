@@ -106,9 +106,10 @@ job's `counts`; a dead letter and a key the backup alone holds each fail at any 
   the purge cron: each run checks every job for a terminal row within 1.5 times its cadence and raises one
   `job_missed_run` warning per silent job. A depth reading raises `job_dead_letters_pending` or `job_queue_backlog`
   inside `/api/internal/job-run` as the Worker hands it over, as does a held backup prune (`backup_prune_held` and the
-  ops mail), and a signal failure raises where it happens (`jobs/failure-log.ts`). The prune's lone copies
-  (`primary_missing`) ring the bell from their card alone so far (ROADMAP). `jobHealth` without its inputs
-  answers `never`, not `missed`, so the scan never pages on a number it did not take.
+  ops mail) and any report carrying the backup's lone copies (`primary_missing`, the prune's run or the restore's
+  pass: `backup_primary_missing`, and the ops mail at most once a day), and a signal failure raises where it happens
+  (`jobs/failure-log.ts`). `jobHealth` without its inputs answers `never`, not `missed`, so the scan never pages on a
+  number it did not take.
 - **A sub-sweep can be a job of its own** (which, and why, is [lifecycle-recovery.md](lifecycle-recovery.md)'s): it
   opens and closes its own row inside the parent run through `createSweepRunner`, with its own switch and card; the
   rest ride the parent's row.
@@ -131,7 +132,9 @@ job's `counts`; a dead letter and a key the backup alone holds each fail at any 
   start one, so those jobs show no Run now (a button that lies is worse than a sentence that explains), and only a
   `scheduled` job may open a run there, since a start against a signal or a reading would leave a `running` row
   nothing closes; its one other answer is the backup prune's release stamp
-  ([durability-backups.md](durability-backups.md)).
+  ([durability-backups.md](durability-backups.md)). The one start the app has is the backup restore's Restore now
+  (AAL2), which goes to the Worker's own door instead (`BACKUP_WORKER_URL`, the same bearer; durability-backups.md,
+  "The restore").
   ★ The export Worker's daily heartbeat (the `export` job) rides its own signed report instead (`/api/export/report`,
   [uploads-and-r2.md](uploads-and-r2.md)), written as one closed row, so a Worker whose export secret drifted from the
   app's reads Missed, where the shared bearer would have let it check in healthy. The Drive Worker's sweep does the

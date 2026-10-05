@@ -203,7 +203,14 @@ describe("what it copies back", () => {
     expect(w.primary.objects.get(raced)?.size).toBe(1);
     expect(result.counts).toMatchObject({ restored: 0, present: 2 });
     expect(result.status).toBe("ok");
+    expect(result.note).toMatch(/2 were in the primary already, left as they are\./);
     expect(w.table.size).toBe(0);
+
+    // One reads as one.
+    const one = makeWorld();
+    const k = addLone(one, key(6));
+    one.primary.objects.set(k, { key: k, uploaded: new Date(NOW) });
+    expect((await restore(one)).note).toMatch(/1 was in the primary already, left as it is\./);
   });
 
   it("copies nothing in a dry run, says what it would, and keeps every key held", async () => {

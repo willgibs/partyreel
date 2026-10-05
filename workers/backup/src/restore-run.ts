@@ -312,7 +312,9 @@ export async function runRestore(
   }
   if (n.present > 0) {
     lines.push(
-      `${fmt(n.present)} were in the primary already, left as they are.`,
+      n.present === 1
+        ? "1 was in the primary already, left as it is."
+        : `${fmt(n.present)} were in the primary already, left as they are.`,
     );
   }
   if (n.unnamed > 0) {
