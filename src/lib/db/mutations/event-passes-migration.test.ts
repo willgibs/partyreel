@@ -108,10 +108,9 @@ describe("3. what it writes", () => {
 });
 
 describe("4. the order holds for every writer of a pass's row", () => {
-  it("★ each live body that updates event_passes locks the host's profiles row before it", () => {
-    const writers = liveFunctions().filter((f) =>
-      /\bupdate public\.event_passes\b/.test(f.code),
-    );
+  it("★ each live body that writes event_passes locks the same host's profiles row before it", () => {
+    const write = /\b(?:update|delete from|insert into) public\.event_passes\b/;
+    const writers = liveFunctions().filter((f) => write.test(f.code));
     // The scan is not vacuous: the two completes and the conversion are among them (a new writer joins the rule below).
     expect(writers.map((f) => f.name)).toEqual(
       expect.arrayContaining([
@@ -121,13 +120,15 @@ describe("4. the order holds for every writer of a pass's row", () => {
       ]),
     );
     for (const f of writers) {
-      const lock = at(
-        f.code,
-        /from public\.profiles where id = [^;]* for update/,
+      const lock = f.code.match(
+        /from public\.profiles where id = ([a-z_.]+) for update/,
       );
-      expect(lock, f.name).toBeLessThan(
-        f.code.indexOf("update public.event_passes"),
-      );
+      expect(lock, `${f.name} takes no profiles lock`).not.toBeNull();
+      const writeAt = f.code.search(write);
+      expect(lock!.index!, f.name).toBeLessThan(writeAt);
+      // The pass it writes is that host's: the write statement keys on the id the lock took.
+      const statement = f.code.slice(writeAt, f.code.indexOf(";", writeAt));
+      expect(statement, f.name).toContain(`profile_id = ${lock![1]}`);
     }
   });
 

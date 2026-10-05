@@ -48,8 +48,18 @@ export function usedLabel(uploads: AccountUploads): string {
   return uploads.used.ok ? formatBytes(uploads.used.value) : NO_READING;
 }
 
+type Lapsed = NonNullable<AccountUploads["lapsed"]>;
+
 /** The badge a lapsed pass wears, in the list's row and on the account's page alike. */
 export const PASS_LAPSED = "Pass lapsed";
+
+/** The badge a pass converted to Pro credit wears while her Pro plan has not landed: her uploads are refused too. */
+export const PRO_PENDING = "Pro pending";
+
+/** Which of the two a lapsed account wears: her last pass expired, or became Pro credit. */
+export function lapsedBadge(lapsed: Lapsed): string {
+  return lapsed.converted ? PRO_PENDING : PASS_LAPSED;
+}
 
 /** What a lapsed pass's allowance is, compact for a table: none, every upload refused. */
 export const UPLOADS_REFUSED = "Uploads refused";
@@ -65,18 +75,24 @@ export function allowanceLabel(uploads: AccountUploads): string {
 }
 
 /** When a lapsed pass ended, as the list's row says it ("Oct 3, 2026 UTC"), or null when no pass of hers ever was live. */
-export function lapsedSinceDate(lapsed: {
-  since: string | null;
-}): string | null {
+export function lapsedSinceDate(lapsed: Lapsed): string | null {
   return lapsed.since ? formatAdminDate(lapsed.since) : null;
 }
 
 /**
  * What a lapsed pass means, on the account's page: when her pass ended (to the minute, as the page reads every
- * moment) and that every upload, hers and her guests', is refused until the nightly recompute moves her to Free.
- * The words never promise the recompute's minute (a run can stop short of an account and take it the next night).
+ * moment) and what lifts the refusal of every upload, hers and her guests': the nightly recompute moving her to Free
+ * after an expiry, her Pro plan landing after a conversion to Pro credit (a host who has paid for Pro, whom the
+ * operator looks for in Stripe). The words never promise the recompute's minute (a run can stop short of an account
+ * and take it the next night).
  */
-export function lapsedSentence(lapsed: { since: string | null }): string {
+export function lapsedSentence(lapsed: Lapsed): string {
+  if (lapsed.converted) {
+    const when = lapsed.since
+      ? `Her passes became Pro credit ${formatAdminTimestamp(lapsed.since)}`
+      : "Her passes became Pro credit";
+    return `${when} and her Pro plan has not landed yet: new uploads, hers and her guests', are refused until it does.`;
+  }
   const what =
     "new uploads, hers and her guests', are refused until the nightly recompute moves her to Free.";
   return lapsed.since

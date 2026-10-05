@@ -32,9 +32,9 @@ import { capLabel } from "../cap";
 import {
   hourLabel,
   hourState,
+  lapsedBadge,
   lapsedSentence,
   NO_READING,
-  PASS_LAPSED,
   uploadsState,
   usedOfLabel,
   windowLabel,
@@ -241,9 +241,9 @@ export default async function AdminAccountDetailPage({
           <Row label={windowLabel(uploads.window)}>
             {!uploads.used.ok ? (
               <NoReading reading={uploads.used} />
-            ) : uploadsAt === "lapsed" ? (
-              // ★ No "0 B of 50 GB": her pass year is over, and every upload is refused until the recompute.
-              <Badge variant="warning">{PASS_LAPSED}</Badge>
+            ) : uploadsAt === "lapsed" && uploads.lapsed ? (
+              // ★ No "0 B of 50 GB": her pass year is over, and every upload is refused until her plan moves.
+              <Badge variant="warning">{lapsedBadge(uploads.lapsed)}</Badge>
             ) : (
               <span className="inline-flex flex-wrap items-center justify-end gap-2">
                 {uploadsAt === "at" ? (

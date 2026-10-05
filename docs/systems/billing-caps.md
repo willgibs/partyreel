@@ -158,8 +158,9 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   general portal keeps the card, the invoices and cancelling, with its plan switching OFF: its quantity stepper has no
   maximum and could bill two or three times for one cap.
 - **The prorated pass-to-Pro credit is honoured in the webhook, idempotently:** a customer-balance grant keyed
-  `pass-credit-<sessionId>` (a Stripe idempotency key, so a retry never double-grants), then ONE call,
-  `consume_passes_for_pro_credit`, that consumes every unconsumed pass (zero rows on replay) and clears
+  `pass-credit-<sessionId>` (a Stripe idempotency key, which holds for at least 24 hours, so a retry inside that window
+  never double-grants; a delivery retries for three days, so a conversion still failing a day on grants again), then
+  ONE call, `consume_passes_for_pro_credit`, that consumes every unconsumed pass (zero rows on replay) and clears
   `tier_expires_at` and `event_slots` in one transaction. ★ It takes her profiles row first, the capacity bodies' order
   (an upload's complete holds that row while it counts on her live pass, so the reverse order, in one transaction,
   deadlocks with it), and nobody reads her passes consumed with her chain still set. A balance carries from invoice to

@@ -25,17 +25,20 @@
 --      replace keeps its ACL, and the grants are restated as they stand live.
 --   3. uploads_windows(host ids, after, limit): every listed host's uploads window in ONE set-returning read, for
 --      /admin/accounts, which asked uploads_used once a row (50 calls a page view). Each figure IS uploads_used(host,
---      her own tier), called per row, so it cannot disagree with the refusal it warns of; beside it, whether she is a
---      pass holder with no live window (the completes' own predicate) and since when (when her last pass stopped being
---      live), so the operator reads "lapsed, uploads refused" where "0 B" of an allowance stood. Keyset on the profile
---      id, p_limit clamped to 1,000 (database-security.md, "Set-returning functions and the row cap"). SECURITY
---      INVOKER, the service role's alone: it reads profiles and event_passes and calls uploads_used, each the service
---      role's already, so it adds no reach.
+--      her own tier), called per row, so it cannot disagree with the refusal it warns of; beside it, the tier and cap
+--      it was asked with (so the page holds the figure to the allowance of the same plan, read in the same snapshot),
+--      whether she is a pass holder with no live window (the completes' own predicate), since when (when her last pass
+--      stopped being live), and whether that was its conversion to Pro credit, so the operator reads "lapsed, uploads
+--      refused" where "0 B" of an allowance stood. Keyset on the profile id, p_limit clamped to 1,000
+--      (database-security.md, "Set-returning functions and the row cap"). SECURITY INVOKER, the service role's alone:
+--      it reads profiles and event_passes and calls uploads_used, each the service role's already, so it adds no reach.
 --
 -- ★ APPLY THIS BEFORE THE LANE'S CODE DEPLOYS: the webhook calls (1) and the accounts pages call (3) by name, and
--- PostgREST answers a call to a function it does not hold with PGRST202. Ahead of this file, a credited Pro checkout's
--- delivery is a 500 that Stripe retries (delayed, never lost) and every accounts row says "No reading". (2) changes no
--- signature, no answer's keys and no refusal's routing, so the deployed build is indifferent to it.
+-- PostgREST answers a call to a function it does not hold with PGRST202. Ahead of this file every accounts row says "No
+-- reading", and a credited Pro checkout's delivery is a 500 that Stripe retries, AFTER the route has granted the credit's
+-- balance: that grant's idempotency key holds for Stripe's window (at least 24 hours) while a delivery retries for three
+-- days, so a conversion still failing a day on grants the balance again. (2) changes no signature, no answer's keys and
+-- no refusal's routing, so the deployed build is indifferent to it.
 --
 -- THE PROTOCOL (database-security.md, "Workflow"): the drift read first: the one body this file replaces, hashed live as
 -- md5(btrim(regexp_replace(prosrc, '\s+', ' ', 'g'))), must equal its newest repo definition, as it did on 2026-10-05:
@@ -214,10 +217,13 @@ grant execute on function public.meter_upload(uuid, public.media_type, bigint) t
 -- 3. Every listed host's uploads window, one read.
 -- =============================================================================================
 -- One row a listed profile, in id order (an id that names no profile answers no row). Each column is the product's own
--- answer, never a re-derivation: `used_bytes` is uploads_used asked with her own tier, exactly as create_media* and
--- meter_upload ask it; `pass_lapsed` is the completes' lapsed-pass predicate; `pass_lapsed_at` is when her last pass
--- stopped being live (the latest end among her passes that ever were: its expiry, or its conversion to Pro credit when
--- that came first), null while she is not lapsed and when no pass of hers ever was live (a tier set by hand).
+-- answer, read in one snapshot, never a re-derivation: `tier` and `storage_cap_bytes` are the plan the row was asked
+-- with (the page holds the figure to that plan's allowance, so a plan moving between the list's read and this one never
+-- pairs one plan's figure with another's allowance); `used_bytes` is uploads_used asked with her own tier, exactly as
+-- create_media* and meter_upload ask it; `pass_lapsed` is the completes' lapsed-pass predicate; `pass_lapsed_at` is when
+-- her last pass stopped being live (the latest end among her passes that ever were: its expiry, or its conversion to Pro
+-- credit when that came first), null while she is not lapsed and when no pass of hers ever was live (a tier set by
+-- hand); `pass_converted` says that end was the conversion (her Pro plan not landed yet), not an expiry.
 create function public.uploads_windows(
   p_host_ids uuid[],
   p_after_id uuid default null,
@@ -225,9 +231,12 @@ create function public.uploads_windows(
 )
 returns table (
   host_id uuid,
+  tier public.tier_type,
+  storage_cap_bytes bigint,
   used_bytes bigint,
   pass_lapsed boolean,
-  pass_lapsed_at timestamptz
+  pass_lapsed_at timestamptz,
+  pass_converted boolean
 )
 language sql
 stable
@@ -235,15 +244,12 @@ set search_path = ''
 as $$
   select
     p.id,
+    p.tier,
+    p.storage_cap_bytes,
     public.uploads_used(p.id, p.tier),
     w.lapsed,
-    case when w.lapsed then (
-      select max(least(q.expires_at, coalesce(q.consumed_at, q.expires_at)))
-        from public.event_passes q
-       where q.profile_id = p.id
-         and q.start_at <= now()
-         and q.start_at < least(q.expires_at, coalesce(q.consumed_at, q.expires_at))
-    ) end
+    e.ended_at,
+    coalesce(e.converted, false)
   from public.profiles p
   cross join lateral (
     select p.tier = 'event_pass' and not exists (
@@ -251,6 +257,19 @@ as $$
        where q.profile_id = p.id and q.consumed_at is null
          and q.start_at <= now() and q.expires_at > now()) as lapsed
   ) w
+  -- The pass whose live end is the latest, read only for a lapsed row: a pass that was ever live (its window opened
+  -- before it ended), its end its expiry or its conversion when that came first.
+  left join lateral (
+    select least(q.expires_at, coalesce(q.consumed_at, q.expires_at)) as ended_at,
+           (q.consumed_at is not null and q.consumed_at < q.expires_at) as converted
+      from public.event_passes q
+     where w.lapsed
+       and q.profile_id = p.id
+       and q.start_at <= now()
+       and q.start_at < least(q.expires_at, coalesce(q.consumed_at, q.expires_at))
+     order by 1 desc, 2 desc
+     limit 1
+  ) e on true
   where p.id = any(p_host_ids)
     and (p_after_id is null or p.id > p_after_id)
   order by p.id
@@ -267,7 +286,7 @@ comment on function public.consume_passes_for_pro_credit(uuid) is
   'The pass-to-Pro credit''s ledger write (the Stripe webhook, service role only): takes the host''s profiles row first, as every capacity body does, then marks every unconsumed pass of hers consumed (pro_credit) and clears tier_expires_at and event_slots, in one transaction. Answers how many passes this call consumed; 0 on a replay.';
 
 comment on function public.uploads_windows(uuid[], uuid, integer) is
-  'Each listed host''s uploads window, one row a profile in id order (keyset on p_after_id, p_limit clamped to 1,000): uploads_used(host, her own tier), whether she is a pass holder with no live pass (uploads refused until the nightly recompute moves her to Free) and when her last pass stopped being live. Service role only: /admin/accounts.';
+  'Each listed host''s uploads window, one row a profile in id order (keyset on p_after_id, p_limit clamped to 1,000): her tier and cap as read, uploads_used(host, her own tier), whether she is a pass holder with no live pass (uploads refused until her plan moves), when her last pass stopped being live and whether that was its conversion to Pro credit. Service role only: /admin/accounts.';
 
 -- =============================================================================================
 -- THE ROLLED-BACK PROOF (database-security.md, "An unapplied migration is proved on the live schema"): one execute_sql
@@ -351,14 +370,33 @@ comment on function public.uploads_windows(uuid[], uuid, integer) is
 --   return sqlstate || ' ' || sqlerrm;
 -- end $f$;
 --
--- -- The consume, as the webhook calls it (dynamic: the red run has no such function).
+-- -- The consume, as the webhook calls it: as the service role, whose privileges an INVOKER body runs with (dynamic: the
+-- -- red run has no such function).
 -- create function pg_temp.consume(p_host uuid) returns text language plpgsql as $f$
 -- declare n integer;
 -- begin
+--   set local role service_role;
 --   execute 'select public.consume_passes_for_pro_credit($1)' into n using p_host;
+--   reset role;
 --   return n::text;
 -- exception when others then
+--   reset role;
 --   return 'error ' || sqlstate || ' ' || sqlerrm;
+-- end $f$;
+--
+-- -- The read, as the accounts pages call it: as the service role, its rows one jsonb array in id order (dynamic, as above).
+-- create function pg_temp.windows(p_ids uuid[], p_after uuid default null, p_limit integer default null) returns jsonb
+-- language plpgsql as $f$
+-- declare got jsonb;
+-- begin
+--   set local role service_role;
+--   execute 'select coalesce(jsonb_agg(to_jsonb(w) order by w.host_id), ''[]''::jsonb) from public.uploads_windows($1, $2, $3) w'
+--     into got using p_ids, p_after, p_limit;
+--   reset role;
+--   return got;
+-- exception when others then
+--   reset role;
+--   raise;
 -- end $f$;
 --
 -- -- The fixtures: five hosts (auth users, so handle_new_user makes each profile), the lapsed host's album and one guest
@@ -444,8 +482,9 @@ comment on function public.uploads_windows(uuid[], uuid, integer) is
 --   insert into proof (step, ok, detail) values ('2 meter, lapsed pass', false, sqlerrm);
 -- end $$;
 --
--- -- 3. The read's parity: for each host, used_bytes is exactly uploads_used(host, her own tier) (a month's ledger, a
--- -- stack's two years, a lapsed pass's nothing), and lapsed and since say what the completes enforce.
+-- -- 3. The read's parity, as the service role reads it: for each host, used_bytes is exactly uploads_used(host, her own
+-- -- tier) (a month's ledger, a stack's two years, a lapsed pass's nothing), the tier and cap are her profile's, and
+-- -- lapsed, since and converted say what the completes enforce and why.
 -- do $$
 -- declare r record; want bigint; got_rows integer := 0; bad text := ''; ids uuid[]; lapsed_end timestamptz;
 --   credited_at timestamptz;
@@ -469,33 +508,45 @@ comment on function public.uploads_windows(uuid[], uuid, integer) is
 --   select max(consumed_at) into credited_at from public.event_passes where profile_id = pg_temp.fx('credited');
 --   ids := array[pg_temp.fx('free'), pg_temp.fx('pro'), pg_temp.fx('stack'), pg_temp.fx('lapsed'), pg_temp.fx('credited'),
 --                gen_random_uuid()];
---   for r in execute 'select w.*, p.tier from public.uploads_windows($1) w join public.profiles p on p.id = w.host_id' using ids loop
+--   for r in
+--     select x.*, p.tier as profile_tier, p.storage_cap_bytes as profile_cap
+--       from jsonb_to_recordset(pg_temp.windows(ids)) as x(host_id uuid, tier public.tier_type, storage_cap_bytes bigint,
+--              used_bytes bigint, pass_lapsed boolean, pass_lapsed_at timestamptz, pass_converted boolean)
+--       join public.profiles p on p.id = x.host_id
+--   loop
 --     got_rows := got_rows + 1;
---     want := public.uploads_used(r.host_id, r.tier);
+--     want := public.uploads_used(r.host_id, r.profile_tier);
 --     if r.used_bytes is distinct from want then bad := bad || format(' %s used %s want %s;', r.host_id, r.used_bytes, want); end if;
+--     if r.tier is distinct from r.profile_tier or r.storage_cap_bytes is distinct from r.profile_cap then
+--       bad := bad || format(' %s plan %s/%s;', r.host_id, r.tier, r.storage_cap_bytes);
+--     end if;
 --     if r.host_id = pg_temp.fx('lapsed') then
---       if not r.pass_lapsed or r.pass_lapsed_at is distinct from lapsed_end then bad := bad || ' lapsed host;'; end if;
+--       if not r.pass_lapsed or r.pass_lapsed_at is distinct from lapsed_end or r.pass_converted then bad := bad || ' lapsed host;'; end if;
 --     elsif r.host_id = pg_temp.fx('credited') then
---       if not r.pass_lapsed or r.pass_lapsed_at is distinct from credited_at then bad := bad || ' credited host;'; end if;
---     elsif r.pass_lapsed or r.pass_lapsed_at is not null then
+--       if not r.pass_lapsed or r.pass_lapsed_at is distinct from credited_at or not r.pass_converted then bad := bad || ' credited host;'; end if;
+--     elsif r.pass_lapsed or r.pass_lapsed_at is not null or r.pass_converted then
 --       bad := bad || format(' %s read lapsed;', r.host_id);
 --     end if;
 --   end loop;
 --   if got_rows <> 5 then bad := bad || format(' %s rows for 5 profiles and a stranger;', got_rows); end if;
---   insert into proof (step, ok, detail) values ('3 read parity', bad = '', coalesce(nullif(bad, ''), '5 hosts, each uploads_used''s own figure; lapsed and credited since when'));
+--   insert into proof (step, ok, detail) values ('3 read parity', bad = '', coalesce(nullif(bad, ''), '5 hosts, each uploads_used''s own figure and plan; lapsed, credited, since when and why'));
 -- exception when others then
 --   insert into proof (step, ok, detail) values ('3 read parity', false, sqlerrm);
 -- end $$;
 --
--- -- 4. The read's pages: id order, the keyset excludes up to its cursor, p_limit takes that many, a null p_limit all.
+-- -- 4. The read's pages, as the service role reads them: id order, the keyset excludes up to its cursor, p_limit takes
+-- -- that many, a null p_limit all.
 -- do $$
 -- declare ids uuid[]; sorted uuid[]; page1 uuid[]; page2 uuid[]; whole uuid[];
 -- begin
 --   ids := array[pg_temp.fx('free'), pg_temp.fx('pro'), pg_temp.fx('stack'), pg_temp.fx('lapsed'), pg_temp.fx('credited')];
 --   select array_agg(x order by x) into sorted from unnest(ids) x;
---   execute 'select array_agg(host_id order by host_id) from public.uploads_windows($1, null, 2)' into page1 using ids;
---   execute 'select array_agg(host_id order by host_id) from public.uploads_windows($1, $2, 1000)' into page2 using ids, page1[2];
---   execute 'select array_agg(host_id order by host_id) from public.uploads_windows($1)' into whole using ids;
+--   select array_agg((e->>'host_id')::uuid order by (e->>'host_id')::uuid) into page1
+--     from jsonb_array_elements(pg_temp.windows(ids, null, 2)) e;
+--   select array_agg((e->>'host_id')::uuid order by (e->>'host_id')::uuid) into page2
+--     from jsonb_array_elements(pg_temp.windows(ids, page1[2], 1000)) e;
+--   select array_agg((e->>'host_id')::uuid order by (e->>'host_id')::uuid) into whole
+--     from jsonb_array_elements(pg_temp.windows(ids)) e;
 --   insert into proof (step, ok, detail) values ('4 read pages',
 --     page1 = sorted[1:2] and page2 = sorted[3:5] and whole = sorted,
 --     format('page1 %s, page2 %s, whole %s', cardinality(page1), cardinality(page2), cardinality(whole)));
@@ -536,7 +587,7 @@ comment on function public.uploads_windows(uuid[], uuid, integer) is
 --   for r in select * from (values
 --       ('consume_passes_for_pro_credit', '1270f6da98f1ee9652b3e32f16725aa7'),
 --       ('meter_upload', '9d193450b8d017644f89fee0963b20bd'),
---       ('uploads_windows', 'aa686f8a59a9e615c4b83caebe969ad0')
+--       ('uploads_windows', 'adbf915999626ce4ff70fbed0cd7108b')
 --     ) v(fn, want)
 --   loop
 --     select md5(btrim(regexp_replace(p.prosrc, '\s+', ' ', 'g'))) into got

@@ -306,9 +306,11 @@ a row and its card never disagree.
   one home, tiers.ts). `readHostMonthUploads` asks as `pro` on purpose, for the plan sheet's "what a switch to Pro is
   measured against", so reusing it would show a pass holder a ledger her allowance never reads. The list and the page
   ask one keyset read for every host they show (`uploads_windows`), which calls `uploads_used` per row in SQL instead of
-  recomputing the window in TypeScript, so no figure can disagree with a refusal; a Pro with no cap on record reads
-  Unmetered, the SQL's fail-open. ★ A pass holder with no live pass (the completes' own refusal) reads Pass lapsed,
-  since when, and Uploads refused, never "0 B" of an allowance no pass holds.
+  recomputing the window in TypeScript, so no figure can disagree with a refusal, and answers the tier and cap it asked
+  with, so a row holds its figure to that plan's allowance even when the plan moved since the list was read; a Pro with
+  no cap on record reads Unmetered, the SQL's fail-open. ★ A pass holder with no live pass (the completes' own refusal)
+  reads Pass lapsed, since when, and Uploads refused (Pro pending when her last pass became Pro credit and her Pro plan
+  has not landed), never "0 B" of an allowance no pass holds.
 - **The hour is the month's ledger row** (`hour_started_at`, `hour_uploads`: the uploads started in the current UTC clock
   hour; a row from an earlier hour counts zero). Its ceiling is the SQL's `c_uploads_an_hour`, mirrored as `UPLOADS_AN_HOUR`
   under a parity test that reads the newest migration setting it. Unpublished: it shows here and nowhere a host reads.

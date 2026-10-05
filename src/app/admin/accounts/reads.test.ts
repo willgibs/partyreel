@@ -70,17 +70,21 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-/** One `uploads_windows` row as PostgREST answers it. */
+/** One `uploads_windows` row as PostgREST answers it: the plan it was asked with, its figure, and a lapse if one. */
 function windowRow(
   hostId: string,
   usedBytes: unknown,
   lapsedAt: string | null | undefined = undefined,
+  plan: { tier?: unknown; cap?: unknown; converted?: boolean } = {},
 ) {
   return {
     host_id: hostId,
+    tier: plan.tier ?? "free",
+    storage_cap_bytes: plan.cap ?? null,
     used_bytes: usedBytes,
     pass_lapsed: lapsedAt !== undefined,
     pass_lapsed_at: lapsedAt ?? null,
+    pass_converted: plan.converted ?? false,
   };
 }
 
@@ -149,10 +153,13 @@ describe("every listed host's uploads against her allowance, in one read", () =>
     ];
     answerWindows([
       windowRow(id(1), 212 * MEGABYTE),
-      windowRow(id(2), 61 * GIGABYTE),
-      windowRow(id(3), 0),
-      windowRow(id(4), 0),
-      windowRow(id(5), 5 * GIGABYTE),
+      windowRow(id(2), 61 * GIGABYTE, undefined, {
+        tier: "event_pass",
+        cap: 50 * GIGABYTE,
+      }),
+      windowRow(id(3), 0, undefined, { tier: "pro", cap: 200 * GIGABYTE }),
+      windowRow(id(4), 0, undefined, { tier: "max", cap: 1024 * GIGABYTE }),
+      windowRow(id(5), 5 * GIGABYTE, undefined, { tier: "pro", cap: null }),
     ]);
     const [free, pass, pro, max, unmetered] =
       await readAccountsUploads(profiles);
@@ -179,18 +186,47 @@ describe("every listed host's uploads against her allowance, in one read", () =>
     });
   });
 
-  it("★ a lapsed pass reads lapsed, with when her pass ended, never a calm 0 B", async () => {
+  it("★ a lapsed pass reads lapsed, with when her pass ended and how, never a calm 0 B", async () => {
+    const pass = { tier: "event_pass", cap: 25 * GIGABYTE };
     answerWindows([
-      windowRow(id(1), 0, "2026-10-03T14:00:00+00:00"),
-      windowRow(id(2), 0, null), // lapsed, no pass of hers ever live
+      windowRow(id(1), 0, "2026-10-03T14:00:00+00:00", pass),
+      windowRow(id(2), 0, null, pass), // lapsed, no pass of hers ever live
+      windowRow(id(3), 0, "2026-10-05T09:30:00+00:00", {
+        ...pass,
+        converted: true,
+      }),
     ]);
-    const [ended, neverLive] = await readAccountsUploads([
+    const [ended, neverLive, converted] = await readAccountsUploads([
       { id: id(1), tier: "event_pass", storage_cap_bytes: 25 * GIGABYTE },
       { id: id(2), tier: "event_pass", storage_cap_bytes: null },
+      { id: id(3), tier: "event_pass", storage_cap_bytes: 25 * GIGABYTE },
     ]);
-    expect(ended!.lapsed).toEqual({ since: "2026-10-03T14:00:00+00:00" });
+    expect(ended!.lapsed).toEqual({
+      since: "2026-10-03T14:00:00+00:00",
+      converted: false,
+    });
     expect(ended!.used).toEqual({ ok: true, value: 0 });
-    expect(neverLive!.lapsed).toEqual({ since: null });
+    expect(neverLive!.lapsed).toEqual({ since: null, converted: false });
+    // Her passes became Pro credit and her Pro plan has not landed: refused too, and said so.
+    expect(converted!.lapsed).toEqual({
+      since: "2026-10-05T09:30:00+00:00",
+      converted: true,
+    });
+  });
+
+  it("★ holds each figure to the plan it was read with, never to a plan the list read a moment before", async () => {
+    // The list read a lapsed pass; the nightly recompute moved her to Free before this read, which answers Free's
+    // month. The row says Free's month against Free's allowance, never that figure against a pass's year.
+    answerWindows([windowRow(id(1), 120 * MEGABYTE)]);
+    const [moved] = await readAccountsUploads([
+      { id: id(1), tier: "event_pass", storage_cap_bytes: 25 * GIGABYTE },
+    ]);
+    expect(moved).toEqual({
+      window: "month",
+      allowanceBytes: 300 * MEGABYTE,
+      used: { ok: true, value: 120 * MEGABYTE },
+      lapsed: null,
+    });
   });
 
   it("pages past 1,000 hosts on the keyset, so no host is cut at PostgREST's cap", async () => {
@@ -265,16 +301,31 @@ describe("every listed host's uploads against her allowance, in one read", () =>
       ]);
       expect(uploads!.used.ok, String(used)).toBe(false);
     }
-    rpc.mockReset();
-    answerWindows([{ ...windowRow(id(1), 0), pass_lapsed: "yes" as never }]);
-    const [noFlag] = await readAccountsUploads([
-      { id: id(1), tier: "event_pass", storage_cap_bytes: null },
-    ]);
-    expect(noFlag!.used.ok).toBe(false);
+    for (const broken of [
+      { pass_lapsed: "yes" },
+      { tier: null },
+      { tier: 7 },
+      { storage_cap_bytes: "lots" },
+      { storage_cap_bytes: Number.NaN },
+    ]) {
+      rpc.mockReset();
+      answerWindows([{ ...windowRow(id(1), 0), ...broken } as never]);
+      const [uploads] = await readAccountsUploads([
+        { id: id(1), tier: "event_pass", storage_cap_bytes: null },
+      ]);
+      expect(uploads!.used.ok, JSON.stringify(broken)).toBe(false);
+      // A row it cannot read keeps the list's own plan beside its No reading.
+      expect(uploads!.window, JSON.stringify(broken)).toBe("year");
+    }
   });
 
   it("the account's page asks the same read for its one host", async () => {
-    answerWindows([windowRow(id(9), 1, "2026-10-01T00:00:00+00:00")]);
+    answerWindows([
+      windowRow(id(9), 1, "2026-10-01T00:00:00+00:00", {
+        tier: "event_pass",
+        cap: 25 * GIGABYTE,
+      }),
+    ]);
     const uploads = await readAccountUploads({
       id: id(9),
       tier: "event_pass",
@@ -282,7 +333,10 @@ describe("every listed host's uploads against her allowance, in one read", () =>
     });
     expect(rpc).toHaveBeenCalledTimes(1);
     expect(rpc.mock.calls[0]![1].p_host_ids).toEqual([id(9)]);
-    expect(uploads.lapsed).toEqual({ since: "2026-10-01T00:00:00+00:00" });
+    expect(uploads.lapsed).toEqual({
+      since: "2026-10-01T00:00:00+00:00",
+      converted: false,
+    });
   });
 });
 

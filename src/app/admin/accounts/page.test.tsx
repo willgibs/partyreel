@@ -26,6 +26,8 @@ const usage = vi.hoisted(() => ({
   byName: {} as Record<string, number | string>,
   /** A lapsed pass's end, by display name (null: no pass of hers ever live); an account not named here is not lapsed. */
   lapsedByName: {} as Record<string, string | null>,
+  /** The lapsed accounts whose last pass became Pro credit (her Pro plan not landed yet). */
+  convertedNames: [] as string[],
 }));
 const sentry = vi.hoisted(() => ({ warnings: [] as unknown[][] }));
 /** The admin gate's answer, and how many reads were made behind it. */
@@ -65,7 +67,9 @@ vi.mock("@/lib/db/queries/accounts", () => ({
             ? { ok: true, value: used }
             : { ok: false, message: used },
         lapsed:
-          typeof used === "number" && since !== undefined ? { since } : null,
+          typeof used === "number" && since !== undefined
+            ? { since, converted: usage.convertedNames.includes(name) }
+            : null,
       };
     });
   },
@@ -98,6 +102,7 @@ beforeEach(() => {
   accounts.rows = [];
   usage.byName = {};
   usage.lapsedByName = {};
+  usage.convertedNames = [];
   sentry.warnings = [];
   gate.aal = "aal2";
   gate.reads = 0;
@@ -299,6 +304,25 @@ describe("one read for the page, and a lapsed pass said truly (billing-locks)", 
     expect(within(live).getByText("50 GB / yr")).toBeInTheDocument();
     expect(within(live).queryByText("Pass lapsed")).toBeNull();
     expect(live.getAttribute("data-tone")).toBeNull();
+  });
+
+  it("★ a pass converted to Pro credit whose Pro plan has not landed reads Pro pending, its uploads refused", async () => {
+    usage.lapsedByName = { Converting: "2026-10-05T09:30:00+00:00" };
+    usage.convertedNames = ["Converting"];
+    accounts.rows = [
+      row({
+        display_name: "Converting",
+        tier: "event_pass",
+        storage_used_bytes: 2 * GIGABYTE,
+      }),
+    ];
+    await draw();
+    const converting = rowOf("Converting");
+    expect(within(converting).getByText("Pro pending")).toBeInTheDocument();
+    expect(within(converting).queryByText("Pass lapsed")).toBeNull();
+    expect(within(converting).getByText("Oct 5, 2026 UTC")).toBeInTheDocument();
+    expect(within(converting).getByText("Uploads refused")).toBeInTheDocument();
+    expect(converting.getAttribute("data-tone")).toBe("warning");
   });
 });
 

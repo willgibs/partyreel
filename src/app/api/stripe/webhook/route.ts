@@ -265,11 +265,13 @@ export async function POST(request: Request) {
       }
 
       // A Pro checkout carrying a prorated pass credit (billing-caps.md): honor it BEFORE the
-      // generic customer binding. Two idempotent steps, each safe under Stripe's three-day
-      // retry window, ordered so a mid-flight failure can always resume:
-      //   1. grant the credit as Stripe customer balance (the idempotency key pins the
-      //      POST, so a retry never double-grants); balance auto-applies to upcoming
-      //      Pro invoices and Checkout's own first invoice never consumes balance;
+      // generic customer binding. Two idempotent steps, ordered so a mid-flight failure can
+      // always resume:
+      //   1. grant the credit as Stripe customer balance (the idempotency key pins the POST for
+      //      Stripe's key window, at least 24 hours, so a retry inside it never double-grants;
+      //      a delivery retries for three days, so a step 2 still failing a day on grants
+      //      again, a ROADMAP line); balance auto-applies to upcoming Pro invoices and
+      //      Checkout's own first invoice never consumes balance;
       //   2. consume every live pass and clear the chain fields ("nothing gets banked":
       //      0 rows on a replay), ONE transaction that takes her profiles row first, as an
       //      upload's complete does, so the two never close a lock cycle and nothing reads

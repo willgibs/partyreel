@@ -78,8 +78,9 @@ export async function insertPassPurchase(
  * of an upload's complete (her profiles row, then the pass it counts on), held apart
  * only because each request is its own transaction, so a host sat between them with
  * her passes consumed and her chain still set. A failed call throws, so the webhook
- * answers 500 and Stripe retries (the credit's balance grant before it is keyed, so a
- * retry never grants twice).
+ * answers 500 and Stripe retries. The credit's balance grant runs before it, keyed, but
+ * a Stripe idempotency key holds for at least 24 hours while a delivery retries for three
+ * days: a conversion still failing a day on grants the balance again (a ROADMAP line).
  */
 export async function consumeLivePassesForProCredit(
   profileId: string,

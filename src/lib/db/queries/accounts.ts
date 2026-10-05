@@ -182,20 +182,24 @@ export type AccountUploads = {
   used: Reading<number>;
   /**
    * ★ A PASS WITH NO LIVE YEAR (the completes' Q26 F1 refusal): her profile still says Event Pass, but no pass of hers
-   * is live, so every upload, hers and her guests', is refused in the allowance's words until the nightly recompute
-   * moves her to Free, and `used` is a figure over no window at all. `since` is when her last pass stopped being live
-   * (null when no pass of hers ever was). Null for every account holding a live window, and whenever `used` was not
-   * read, since a reading that was not taken says nothing.
+   * is live, so every upload, hers and her guests', is refused in the allowance's words until her plan moves, and
+   * `used` is a figure over no window at all. `since` is when her last pass stopped being live (null when no pass of
+   * hers ever was); `converted` says that was its conversion to Pro credit (her Pro plan has not landed yet), not an
+   * expiry (the nightly recompute has not moved her to Free yet). Null for every account holding a live window, and
+   * whenever `used` was not read, since a reading that was not taken says nothing.
    */
-  lapsed: { since: string | null } | null;
+  lapsed: { since: string | null; converted: boolean } | null;
 };
 
-/** One row of `uploads_windows` (20261005130000), as PostgREST answers it. */
+/** One row of `uploads_windows` (20261005130000), as PostgREST answers it: checked before a field is believed. */
 type UploadsWindowRow = {
   host_id: string;
+  tier: unknown;
+  storage_cap_bytes: unknown;
   used_bytes: unknown;
   pass_lapsed: unknown;
   pass_lapsed_at: unknown;
+  pass_converted: unknown;
 };
 
 /**
@@ -209,6 +213,20 @@ function uploadsWindowsDb(db: ReturnType<typeof createAdminClient>) {
 /** What a listed account says when its row did not come back: the account was not found by the read. */
 const NO_ROW = "uploads_windows answered no row for this account";
 
+type Listed = Pick<Tables<"profiles">, "id" | "tier" | "storage_cap_bytes">;
+
+/** The window and the number a plan holds her to: the one home's (`UPLOADS_WINDOW`, `uploadAllowance`), never retyped. */
+function heldBy(
+  tier: string,
+  storageCapBytes: number | null,
+): Pick<AccountUploads, "window" | "allowanceBytes"> {
+  const billing = toBillingTier(tier);
+  return {
+    window: UPLOADS_WINDOW[billing],
+    allowanceBytes: uploadAllowance(billing, storageCapBytes),
+  };
+}
+
 /**
  * ★ EVERY LISTED HOST'S UPLOADS AGAINST HER ALLOWANCE, AS THE PRODUCT ENFORCES THEM, IN ONE READ (`uploads_windows`,
  * 20261005130000). It was one `uploads_used` call a row, 50 a page view. Each figure is still `uploads_used(host,
@@ -220,6 +238,11 @@ const NO_ROW = "uploads_windows answered no row for this account";
  * is held to is `uploadAllowance`, the one home in tiers.ts, which mirrors the SQL `upload_allowance()` under the
  * parity test. Answers in the order asked; the ids ride the POST body, keyset-paged on the profile id.
  *
+ * ★ ONE SNAPSHOT A ROW: a read row carries the tier and cap its figure was asked with, and its window and allowance
+ * are that plan's, so a plan that moved between the list's read and this one (the nightly recompute taking a lapsed
+ * pass to Free) never holds one plan's figure to another's allowance. The list's own plan stands only beside a reading
+ * that was not taken.
+ *
  * ★ A FAILED READ IS "NO READING", NEVER A ZERO: this never throws, so the failure cannot take the page from an
  * operator who came to read something else (the delete beside it), and it carries its words for the caller's Sentry
  * capture (Sentry never enters `src/lib/db`). A failed call fails every row it was asked for, and an account the read
@@ -227,24 +250,16 @@ const NO_ROW = "uploads_windows answered no row for this account";
  * from an admin-gated read.
  */
 export async function readAccountsUploads(
-  profiles: readonly Pick<
-    Tables<"profiles">,
-    "id" | "tier" | "storage_cap_bytes"
-  >[],
+  profiles: readonly Listed[],
 ): Promise<AccountUploads[]> {
-  const held = profiles.map((profile) => {
-    const tier = toBillingTier(profile.tier);
-    return {
-      window: UPLOADS_WINDOW[tier],
-      allowanceBytes: uploadAllowance(tier, profile.storage_cap_bytes),
-    };
-  });
+  const held = profiles.map((profile) =>
+    heldBy(profile.tier, profile.storage_cap_bytes),
+  );
   if (profiles.length === 0) return [];
-  let rows: UploadsWindowRow[];
   try {
     const db = uploadsWindowsDb(createAdminClient());
     const ids = [...new Set(profiles.map((profile) => profile.id))];
-    ({ rows } = await readAllPages(
+    const { rows } = await readAllPages(
       "accounts: uploads windows",
       (after: string | null, limit) =>
         db.rpc("uploads_windows", {
@@ -253,46 +268,48 @@ export async function readAccountsUploads(
           p_limit: limit,
         }),
       (row: UploadsWindowRow) => row.host_id,
-    ));
+    );
+    const byId = new Map(rows.map((row) => [row.host_id, row]));
+    return profiles.map((profile, index) => {
+      const row = byId.get(profile.id);
+      return row
+        ? (readWindow(row) ?? {
+            ...held[index]!,
+            used: {
+              ok: false,
+              message: "uploads_windows answered a row it could not read",
+            },
+            lapsed: null,
+          })
+        : {
+            ...held[index]!,
+            used: { ok: false, message: NO_ROW },
+            lapsed: null,
+          };
+    });
   } catch (error) {
     const unread = failure(error);
     return held.map((h) => ({ ...h, used: unread, lapsed: null }));
   }
-  const byId = new Map(rows.map((row) => [row.host_id, row]));
-  return profiles.map((profile, index) => {
-    const row = byId.get(profile.id);
-    const read = row
-      ? readWindow(row)
-      : { used: { ok: false as const, message: NO_ROW }, lapsed: null };
-    return { ...held[index], ...read };
-  });
 }
 
 /**
- * One row's reading, or why it is none. `uploads_used` coalesces to 0, so a figure that is not a size is a broken
- * read, never an empty month, and a lapsed flag that is not a boolean is no flag at all.
+ * One row's reading, or null when the row is not one the function answers: `uploads_used` coalesces to 0, so a figure
+ * that is not a size is a broken read, never an empty month; a tier that is no string or a cap that is no size names
+ * no plan; and a lapsed flag that is not a boolean is no flag at all.
  */
-function readWindow(
-  row: UploadsWindowRow,
-): Pick<AccountUploads, "used" | "lapsed"> {
+function readWindow(row: UploadsWindowRow): AccountUploads | null {
   const used = row.used_bytes;
-  if (typeof used !== "number" || !Number.isFinite(used) || used < 0) {
-    return {
-      used: {
-        ok: false,
-        message: "uploads_windows answered something other than a size",
-      },
-      lapsed: null,
-    };
-  }
-  if (typeof row.pass_lapsed !== "boolean") {
-    return {
-      used: {
-        ok: false,
-        message: "uploads_windows answered no lapsed flag",
-      },
-      lapsed: null,
-    };
+  const cap = row.storage_cap_bytes;
+  if (
+    typeof row.tier !== "string" ||
+    (cap !== null && (typeof cap !== "number" || !Number.isFinite(cap))) ||
+    typeof used !== "number" ||
+    !Number.isFinite(used) ||
+    used < 0 ||
+    typeof row.pass_lapsed !== "boolean"
+  ) {
+    return null;
   }
   const since =
     typeof row.pass_lapsed_at === "string" &&
@@ -300,8 +317,11 @@ function readWindow(
       ? row.pass_lapsed_at
       : null;
   return {
+    ...heldBy(row.tier, cap),
     used: { ok: true, value: used },
-    lapsed: row.pass_lapsed ? { since } : null,
+    lapsed: row.pass_lapsed
+      ? { since, converted: row.pass_converted === true }
+      : null,
   };
 }
 

@@ -32,9 +32,9 @@ import { PageHeading } from "@/components/shared/page-heading";
 import { accountCap, capLabel } from "./cap";
 import {
   allowanceLabel,
+  lapsedBadge,
   lapsedSinceDate,
   NO_READING,
-  PASS_LAPSED,
   uploadsState,
   usedLabel,
 } from "./uploads";
@@ -129,10 +129,7 @@ export default async function AdminAccountsPage({
                 // either takes the same warning as an account past its cap.
                 const held = uploads[index];
                 const state = uploadsState(held);
-                const lapsedSince =
-                  state === "lapsed" && held.lapsed
-                    ? lapsedSinceDate(held.lapsed)
-                    : null;
+                const lapsed = state === "lapsed" ? held.lapsed : null;
                 return (
                   <TableRow
                     key={account.id}
@@ -178,12 +175,13 @@ export default async function AdminAccountsPage({
                         <span className="text-destructive">
                           {usedLabel(held)}
                         </span>
-                      ) : state === "lapsed" ? (
+                      ) : lapsed ? (
                         // ★ No figure: a lapsed pass's window is no window, and its "0 B" read as room to spare
-                        // while every upload was refused. The badge says why and the date since when.
+                        // while every upload was refused. The badge says why (an expiry, or a conversion to Pro
+                        // credit whose Pro plan has not landed) and the date since when.
                         <span className="inline-flex items-center justify-end gap-2">
-                          <Badge variant="warning">{PASS_LAPSED}</Badge>
-                          {lapsedSince}
+                          <Badge variant="warning">{lapsedBadge(lapsed)}</Badge>
+                          {lapsedSinceDate(lapsed)}
                         </span>
                       ) : (
                         <span className="inline-flex items-center justify-end gap-2">

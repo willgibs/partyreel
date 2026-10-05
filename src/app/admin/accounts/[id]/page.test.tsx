@@ -26,6 +26,8 @@ const state = vi.hoisted(() => ({
   used: { ok: true, value: 0 } as Reading,
   /** A lapsed pass's end (null: no pass of hers ever live), or undefined for an account that is not lapsed. */
   lapsedSince: undefined as string | null | undefined,
+  /** Whether that end was her passes' conversion to Pro credit (her Pro plan not landed yet). */
+  converted: false,
   hour: { ok: true, value: 0 } as Reading,
   warnings: [] as unknown[][],
   aal: "aal2",
@@ -74,7 +76,7 @@ vi.mock("@/lib/db/queries/accounts", () => ({
       used: state.used,
       lapsed:
         state.used.ok && state.lapsedSince !== undefined
-          ? { since: state.lapsedSince }
+          ? { since: state.lapsedSince, converted: state.converted }
           : null,
     };
   },
@@ -143,6 +145,7 @@ const card = (title: string) =>
 beforeEach(() => {
   state.used = { ok: true, value: 0 };
   state.lapsedSince = undefined;
+  state.converted = false;
   state.hour = { ok: true, value: 0 };
   state.warnings = [];
   state.aal = "aal2";
@@ -318,6 +321,23 @@ describe("a lapsed pass (billing-locks)", () => {
         "She holds no live pass: new uploads, hers and her guests', are refused until the nightly recompute moves her to Free.",
       ),
     ).toBeInTheDocument();
+  });
+
+  it("★ a pass converted to Pro credit says Pro pending and that her Pro plan has not landed, never 'moves her to Free'", async () => {
+    account({ tier: "event_pass", cap: 25 * GIGABYTE });
+    state.lapsedSince = "2026-10-05T09:30:00+00:00";
+    state.converted = true;
+    await draw();
+    const uploads = within(card("Uploads"));
+    expect(uploads.getByText("Pass year").nextElementSibling?.textContent).toBe(
+      "Pro pending",
+    );
+    expect(
+      uploads.getByText(
+        "Her passes became Pro credit Oct 5, 2026, 09:30 UTC and her Pro plan has not landed yet: new uploads, hers and her guests', are refused until it does.",
+      ),
+    ).toBeInTheDocument();
+    expect(uploads.queryByText(/moves her to Free/)).toBeNull();
   });
 
   it("a live pass still reads its year against its allowance, and an expiry ahead says expires", async () => {
