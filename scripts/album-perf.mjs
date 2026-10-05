@@ -1061,11 +1061,18 @@ async function ensureApproved(id) {
   );
   return false;
 }
+/**
+ * How long a hide or an arrival has to reach the page. The album answers a doorbell ping at its next batch tick
+ * (`ALBUM_BATCH_MS`, 15 s, `src/lib/guest/refresh-coalescer.ts`), so a write made just after a tick lands a whole
+ * beat later, then the sync and the commit: a wait of the beat's own length could just miss it, and read a slow
+ * album as one that never heard.
+ */
+const ARRIVAL_WAIT_MS = 20_000;
 /** Arms the page's watch without awaiting it: the write it waits for comes next. */
 const watchSize = (ws, from, dir, id = null) =>
   evaluate(
     ws,
-    `void (window.__sizeWatch = __ap.sizeChange(${from}, ${dir}, 15000, ${JSON.stringify(id)}))`,
+    `void (window.__sizeWatch = __ap.sizeChange(${from}, ${dir}, ${ARRIVAL_WAIT_MS}, ${JSON.stringify(id)}))`,
   );
 
 /**
@@ -1094,7 +1101,11 @@ async function headArrival(ws) {
     flipped = id;
     await setStatus(id, "hidden");
     const hid = await evaluate(ws, "window.__sizeWatch");
-    if (!hid) return { id, error: "the hide did not reach the page in 15s" };
+    if (!hid)
+      return {
+        id,
+        error: `the hide did not reach the page in ${ARRIVAL_WAIT_MS / 1000}s`,
+      };
     await sleep(1500);
     const before = await evaluate(ws, "__ap.inView()");
     if (!before.length)
@@ -1109,7 +1120,7 @@ async function headArrival(ws) {
       return {
         id,
         hideMs: hid.at,
-        error: "the arrival did not reach the page in 15s",
+        error: `the arrival did not reach the page in ${ARRIVAL_WAIT_MS / 1000}s`,
       };
     await sleep(900);
     const settledView = await evaluate(ws, "__ap.inView()");

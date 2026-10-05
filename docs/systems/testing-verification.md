@@ -65,6 +65,11 @@ The local-first-then-live policy, the gate's steps, the account chooser and the 
   willg97 and hi@willgibs.com.
 - **`src/lib/db/testing/fake-postgrest.ts`** is the in-memory PostgREST for unit-testing a read that can outgrow
   1,000 rows (`asSupabase(fake)` stands in for the client).
+- **`src/lib/db/testing/migrations.ts`** is the one reader of the migration set for the SQL guard tests: it replays every
+  `create` and `drop` of a `public` function in file order, a function being its name and argument types (a drop takes
+  one overload), so a dropped function is not live and `liveFunction(name)` throws naming the file that drops it. Its
+  test holds the replay to the files' own history (every `drop` without `if exists` took a function, no `create` met
+  one it held live).
 
 ## When a browser check disagrees
 
@@ -79,9 +84,7 @@ differently, not only looks different.** Rendering is suspended between tool cal
 - `loading="lazy"` images below the fold never load (inside a lab frame too: lazy loading resolves against the top
   window), and `await img.decode()` on one hangs the evaluate for 45 seconds: race it against a timeout;
 - `useAmbientPause` consumers report paused, and focus styles do not paint while `document.hasFocus()` is false (hand
-  the keyboard pass to the human);
-- `resize_window` reports success and changes nothing: measure a narrow layout in a same-origin `<iframe>` at that
-  width (`contentDocument.documentElement.scrollWidth` against `clientWidth`).
+  the keyboard pass to the human).
 
 What stays honest: the DOM, computed styles, `getBoundingClientRect`, attributes, real hovers and clicks, and a `data-*`
 flipped by hand to read a state's styling. Assert the mechanism (durations, easings, `transition-property`, data
@@ -97,6 +100,14 @@ function of elapsed time can be frozen at a chosen moment and shot.
   wait, screenshot).
 - **A click aimed during an enter animation lands at the mid-flight rect** (real Chrome too): wait for it to settle,
   re-read the rect, then click.
+- **The Browser pane's `resize_window` emulates a viewport on the tab you pass it** (your own `tabId`): `innerWidth`,
+  `clientWidth`, `matchMedia(...).matches` and layout answer the new size at once, a size beyond the pane is laid out
+  whole and shown scaled, and it holds across navigation and reload until the `desktop` preset clears it (the app also
+  clears it when your turn ends or the pane's width changes). A width under 768 also makes the tab a phone (an Android
+  Chrome user agent, five touch points, a coarse pointer), and 768 and up stays a desktop: reload after crossing 768, so
+  the server's guess and every load-time device gate run again. In the hidden pane the `resize` and `matchMedia`
+  `change` events can land only after the read that follows the resize, so a hook that follows a media query by event
+  (`useMediaQuery`) may not have re-rendered yet: read again, or reload.
 - **The Chrome MCP runs in an isolated world:** a `javascript_tool` DOM write never reaches the app's own
   `getComputedStyle` readers, so drive the real control instead of injecting a variable; a query string on the URL you
   navigate to makes the tool refuse page JavaScript; a short-lived `sonner` toast reads as "nothing happened", so
@@ -133,8 +144,8 @@ function of elapsed time can be frozen at a chosen moment and shot.
 
 ## The presign-roll soak
 
-Soaking an album left open all evening (its links re-minted by id before they die, `src/lib/album/links.ts`) has two
-traps that read as "broken":
+Soaking an album left open all evening (its links re-minted by id before they die, `src/lib/album/links.ts`) has traps
+that read as "broken":
 - **A hidden tab stops polling, on purpose** (`useLivePoll`), and the album re-mints its aged links after each poll, so
   a soak tab backgrounded mid-run looks dead once its links expire (at most 90 minutes). Keep it in the foreground, as
   a host's album up on a screen is, and check mid-run with `performance.getEntriesByType("resource")` filtered to
@@ -143,6 +154,14 @@ traps that read as "broken":
   `?reel=screen`, which never stops, or touches the page. The refresh on return to visible is itself a recovery
   worth asserting.
 - **The demo event cannot test it:** demo mode never polls (`liveEnabled` is false). Soak a real test event's link.
+- ★ **A teaser has no by-id re-mint: its links roll with the 30-minute presign bucket.** A viewer held at the album's door
+  (an unconfirmed email on a verified-email album, no upload yet on one that requires an upload to view) sees nine
+  photographs whose links ride the sync's own payload, since no link route serves a viewer still at the door, and its
+  validator carries the bucket (`guestAlbumEtag`'s `bucketId` in `api/album/guest/sync`; `album-validator.test.ts` pins
+  that the full album's does not). Its poll answers 304 while the bucket holds and 200 with nine fresh links on the first
+  poll after it rolls, on the epoch's half hours rather than 30 minutes after the page loaded. The cadence and the
+  hidden and two-hour stops are the full album's, so a teaser that stops polling shows dead tiles at most 90 minutes
+  after its last refresh: soak it across two rolls and read its tiles, not the request count.
 
 ## Stale CSS on the dev server
 

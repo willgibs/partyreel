@@ -5,6 +5,11 @@ import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
 import { MAX_ROWS } from "@/lib/db/read-all";
+import {
+  readMigrations,
+  replayFunctions,
+  type MigrationFile,
+} from "@/lib/db/testing/migrations";
 
 /**
  * EVERY READ REACHES ITS LAST ROW: the static guard of the 1,000-row round (2026-09-23). The six
@@ -30,8 +35,9 @@ import { MAX_ROWS } from "@/lib/db/read-all";
  *     callback's chunk. A write is not exempt here: its list rides the URL all the same.
  *  C. AN UNPAGED SET-RETURNING RPC: `.rpc("<name>", <args>)` whose LATEST definition in
  *     `supabase/migrations/` returns `table (...)` or `setof`, with no `p_limit` key in an object
- *     literal `<args>` and no bound on the chain. Drops count (a function dropped later is gone),
- *     and `SINGLE_ROW` names the functions that return one row by construction, each with why.
+ *     literal `<args>` and no bound on the chain. Drops count (a function dropped later is gone: the
+ *     reader is `testing/migrations.ts`, shared with the two SQL guard tests), and `SINGLE_ROW` names
+ *     the functions that return one row by construction, each with why.
  *  D. `MAX_ROWS` DRIFTING FROM THE PLATFORM: it must equal `supabase/config.toml`'s
  *     `[api] max_rows`, because `readAllPages` reads a short page as the last one.
  *
@@ -90,85 +96,23 @@ const SOURCES = [
 
 /* ───────────────────────────── the migrations ──────────────────────────── */
 
-/** Every migration's SQL, in timestamp order (the reader below strips the comments). */
-function readMigrations(): { file: string; sql: string }[] {
-  const dir = join(ROOT, "supabase/migrations");
-  return readdirSync(dir)
-    .filter((f) => f.endsWith(".sql"))
-    .sort()
-    .map((file) => ({ file, sql: readFileSync(join(dir, file), "utf8") }));
-}
-
-/** The index just past the parenthesis that closes the one at `open`, or -1. */
-function closeParen(sql: string, open: number): number {
-  let depth = 0;
-  for (let i = open; i < sql.length; i++) {
-    if (sql[i] === "(") depth++;
-    else if (sql[i] === ")" && --depth === 0) return i + 1;
-  }
-  return -1;
-}
-
-/** `public.foo`, `"foo"`, `foo` as `foo`; null for another schema's function. */
-function publicName(raw: string): string | null {
-  const bare = raw.replace(/"/g, "").trim().toLowerCase();
-  const dot = bare.lastIndexOf(".");
-  if (dot === -1) return bare;
-  return bare.slice(0, dot) === "public" ? bare.slice(dot + 1) : null;
-}
-
 /**
- * THE DROP-AWARE READER: the functions standing after the whole set, replayed statement by
- * statement, each mapped to whether its LATEST definition is set-returning (`returns table (...)`,
- * `returns table(` with no space, `returns setof`, over as many lines as its signature takes). A
- * `drop function` removes the name until a later `create` brings it back; a drop may name several
- * functions. Per name, not per signature: PostgREST refuses overloads, so a name is one function.
- * (`migration-guards.test.ts`' `latestDefinition` sees only creates, which is why this is its own.)
+ * The functions standing after the whole set, each mapped to whether it is SET-RETURNING (`returns table (...)`,
+ * `returns table(` with no space, `returns setof`, over as many lines as its signature takes). The replay is
+ * `testing/migrations.ts`'s, drops and all: a dropped function is gone until a later `create` brings it back, a
+ * drop may name several functions, and a drop of one overload leaves the others. By name, since the rule below is
+ * asked of an `.rpc("<name>")` call: a name is set-returning when ANY overload standing is, because PostgREST picks
+ * the overload by the arguments the call names, and a call that can reach a set can be cut.
  */
 function setReturningFunctions(
-  migrations: { file: string; sql: string }[],
+  migrations: readonly MigrationFile[],
 ): Map<string, boolean> {
-  const live = new Map<string, boolean>();
-  const statement =
-    /\b(create(?:\s+or\s+replace)?|drop)\s+function\s+(if\s+exists\s+)?/gi;
-  for (const { sql: raw } of migrations) {
-    const sql = raw.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/--[^\n]*/g, "");
-    for (const m of sql.matchAll(statement)) {
-      const from = m.index + m[0].length;
-      if (m[1].toLowerCase() === "drop") {
-        const end = sql.indexOf(";", from);
-        let list = sql.slice(from, end === -1 ? undefined : end);
-        // Take out every argument list, so `numeric(10,2)` cannot split a name.
-        for (
-          let open = list.indexOf("(");
-          open !== -1;
-          open = list.indexOf("(")
-        ) {
-          const close = closeParen(list, open);
-          list = list.slice(0, open) + (close === -1 ? "" : list.slice(close));
-        }
-        for (const part of list.split(",")) {
-          const name = publicName(part.replace(/\b(cascade|restrict)\b/gi, ""));
-          if (name) live.delete(name);
-        }
-        continue;
-      }
-      const head =
-        /^((?:"?[a-z_][a-z0-9_]*"?\.)?"?[a-z_][a-z0-9_]*"?)\s*\(/i.exec(
-          sql.slice(from),
-        );
-      if (!head) continue;
-      const name = publicName(head[1]);
-      if (!name) continue;
-      const close = closeParen(sql, from + head[0].length - 1);
-      if (close === -1) continue;
-      live.set(
-        name,
-        /^\s*returns\s+(?:setof\b|table\s*\()/i.test(sql.slice(close)),
-      );
-    }
+  const sets = new Map<string, boolean>();
+  for (const fn of replayFunctions(migrations).live) {
+    const returnsSet = /^(?:setof\b|table\s*\()/i.test(fn.returns);
+    sets.set(fn.name, (sets.get(fn.name) ?? false) || returnsSet);
   }
-  return live;
+  return sets;
 }
 
 /** `[api] max_rows` in a config.toml, or null. */
@@ -862,11 +806,28 @@ describe("the walker, on fixtures", () => {
         sql: "drop function if exists public.a(uuid), public.c() cascade;\n-- create function public.e() returns setof uuid as $$ $$;",
       },
       {
+        // The same types as 2.sql, so it REPLACES b (other types would add an overload, as the next test says).
         file: "5.sql",
-        sql: "create or replace function public.b(p_x int) returns jsonb as $$ $$;",
+        sql: "create or replace function public.b(p_x int, p_y numeric(10,2) default 1) returns jsonb as $$ $$;",
       },
     ]);
     expect([...live]).toEqual([["b", false]]);
+  });
+
+  it("the migration reader: a name is set-returning while any overload of it standing is, and a drop takes one overload", () => {
+    const migrations = [
+      {
+        file: "1.sql",
+        sql: "create function public.g(p_x int) returns table (id uuid) as $$ $$; create function public.g(p_x int, p_y int) returns jsonb as $$ $$;",
+      },
+    ];
+    expect([...setReturningFunctions(migrations)]).toEqual([["g", true]]);
+    expect([
+      ...setReturningFunctions([
+        ...migrations,
+        { file: "2.sql", sql: "drop function public.g(integer);" },
+      ]),
+    ]).toEqual([["g", false]]);
   });
 
   it("the config reader: max_rows under [api] only", () => {
