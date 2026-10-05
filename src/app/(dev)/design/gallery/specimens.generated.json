@@ -70,6 +70,13 @@
     "confirm-switch": [
       "<ConfirmSwitchDemo />"
     ],
+    "toggle-group": [
+      "<ToggleGroup\n  type=\"single\"\n  variant=\"outline\"\n  size=\"sm\"\n  defaultValue=\"none\"\n  aria-label=\"Show your events on your page\"\n>\n  <ToggleGroupItem value=\"all\">Show all 12</ToggleGroupItem>\n  <ToggleGroupItem value=\"none\">Keep all private</ToggleGroupItem>\n</ToggleGroup>",
+      "<ToggleGroup\n  type=\"multiple\"\n  variant=\"outline\"\n  defaultValue={[\"photos\", \"videos\"]}\n  aria-label=\"Show\"\n>\n  <ToggleGroupItem value=\"photos\">\n    <Images /> Photos\n  </ToggleGroupItem>\n  <ToggleGroupItem value=\"videos\">\n    <Video /> Videos\n  </ToggleGroupItem>\n  <ToggleGroupItem value=\"hidden\">\n    <EyeOff /> Hidden\n  </ToggleGroupItem>\n</ToggleGroup>",
+      "<ToggleGroup\n  type=\"single\"\n  defaultValue=\"gallery\"\n  aria-label=\"Layout\"\n  className=\"grid w-full max-w-xs grid-cols-3 gap-1.5\"\n>\n  {[\n    { id: \"gallery\", label: \"Gallery\", icon: <LayoutGrid /> },\n    { id: \"table\", label: \"Table\", icon: <Table2 /> },\n    { id: \"list\", label: \"List\", icon: <Rows3 /> },\n  ].map((l) => (\n    <ToggleGroupItem\n      key={l.id}\n      value={l.id}\n      className=\"flex h-14 flex-col gap-1 rounded-xl border border-border text-xs data-[state=on]:border-foreground data-[state=on]:bg-muted\"\n    >\n      {l.icon}\n      {l.label}\n    </ToggleGroupItem>\n  ))}\n</ToggleGroup>",
+      "<DisplayMenuDemo />",
+      "<ToggleGroup\n  type=\"single\"\n  variant=\"outline\"\n  size=\"sm\"\n  defaultValue=\"all\"\n  disabled\n  aria-label=\"Show your events on your page (unavailable)\"\n>\n  <ToggleGroupItem value=\"all\">Show all 12</ToggleGroupItem>\n  <ToggleGroupItem value=\"none\">Keep all private</ToggleGroupItem>\n</ToggleGroup>"
+    ],
     "dormant": [
       "<DormantDemo />"
     ],
@@ -164,7 +171,8 @@
       "<div className=\"flex justify-center\">\n  <NotFoundScreen\n    icon={Compass}\n    eyebrow=\"404\"\n    title=\"Event not found\"\n    description=\"This link may have expired or the event was removed.\"\n    actions={\n      <Button asChild size=\"sm\">\n        <Link href=\"#\">Back home</Link>\n      </Button>\n    }\n  />\n</div>"
     ],
     "route-error": [
-      "<RouteErrorMock />"
+      "<RouteErrorMock />",
+      "<RouteErrorMock area=\"admin\" />"
     ],
     "set-name-step": [
       "<SetNameStepDemo />"
@@ -390,6 +398,10 @@
     "morph-delegate": [
       "<>\n  <MorphDelegate\n    name=\"blog-cover\"\n    linkAttr=\"data-cover-morph\"\n    plateAttr=\"data-cover-plate\"\n  />\n  <Link\n    href={`/blog/${LIBRARY_MORPH_SLUG}`}\n    data-cover-morph=\"\"\n    className=\"group relative block aspect-4/5 max-w-[14rem] overflow-hidden rounded-lg bg-muted\"\n  >\n    <span data-cover-plate=\"\" className=\"absolute inset-0\">\n      <Image\n        src={morphCover.src}\n        alt=\"\"\n        fill\n        sizes=\"224px\"\n        className=\"object-cover\"\n      />\n    </span>\n  </Link>\n  <p className=\"mt-3 text-xs text-muted-foreground\">\n    Click the cover: the plate grows into the article&rsquo;s own\n    plate where the browser supports view transitions, and navigates\n    plainly where it does not.\n  </p>\n</>"
     ],
+    "how-it-works-stepper": [
+      "<HowItWorksStepperDemo />",
+      "<HowItWorksStepperDemo perspective=\"guest\" />"
+    ],
     "cta-band": [
       "<CtaBand\n  heading=\"Your next event starts here.\"\n  subhead=\"A sample band: the primary defaults to the marketing CTA.\"\n  demoLink\n  className=\"py-12\"\n/>",
       "<CtaBand\n  heading=\"Your next event starts here.\"\n  subhead=\"A sample band: the primary defaults to the marketing CTA.\"\n  credit\n  className=\"py-12\"\n/>"
@@ -403,6 +415,10 @@
     ],
     "demo-door": [
       "<DemoDoor\n  href={DEMO_EVENT_URL ?? \"/demo\"}\n  source=\"library\"\n  className=\"mkt-learn inline-flex items-center gap-2 text-label font-medium text-muted-foreground uppercase hover:text-foreground\"\n>\n  <LiveDot />\n  <span className=\"inline-flex items-center gap-1\">\n    Try our demo event\n    <LearnChevron />\n  </span>\n</DemoDoor>"
+    ],
+    "contact-receipt": [
+      "<ContactReceiptDemo kind=\"named\" />",
+      "<ContactReceiptDemo kind=\"plain\" />"
     ],
     "feature-door": [
       "<div className=\"max-w-sm\">\n  <FeatureDoor slug=\"album\" copy=\"long\" />\n</div>",

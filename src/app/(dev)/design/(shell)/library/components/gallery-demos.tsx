@@ -3,17 +3,22 @@ import {
   Clapperboard,
   Compass,
   Eye,
+  EyeOff,
   Heart,
   ImageUp,
   Images,
+  LayoutGrid,
   ListChecks,
   Play,
   Plus,
   QrCode,
+  Rows3,
   Settings,
   Share2,
+  Table2,
   Trash2,
   Users,
+  Video,
 } from "lucide-react";
 
 import {
@@ -129,6 +134,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   Tooltip,
   TooltipContent,
@@ -154,6 +160,7 @@ import {
   TapTooltipDemo,
   ToastDemo,
 } from "./interactive-demos";
+import { DisplayMenuDemo } from "./toggle-group-demo";
 
 /**
  * THE PRIMITIVES, declared (the gallery round, 2026-09-12).
@@ -1084,6 +1091,141 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
         label: "Turn it off to see the ask",
         hint: "confirmWhen={(next) => !next}: the ON direction is instant, same as any plain Switch",
         node: <ConfirmSwitchDemo />,
+      },
+    ],
+  },
+  {
+    id: "toggle-group",
+    file: "src/components/ui/toggle-group.tsx",
+    for: "the segmented choice: the dashboard's display menu (its layout tiles and its sort, whose and when pills) and the profile wizard's one-time show-all choice",
+    family: "components",
+    section: "Inputs",
+    badge: "new",
+    lede: "One press picks one (type single: the pressed item stays pressed) or any number of them (type multiple), each item a button with `aria-pressed`, the group one tab stop with arrow keys between. It wears its caller's shape through className (a tray of pills, a row of tiles, an outlined pair); the two axes are the stock ones. Four callers today: the display menu's three groups and the profile wizard's pair.",
+    variants: [
+      {
+        prop: "variant",
+        source: "cva",
+        fallback: "default",
+        options: ["default", "outline"],
+        sample: (o) => (
+          <ToggleGroup
+            type="single"
+            variant={o as "default" | "outline"}
+            defaultValue="all"
+            aria-label={`Show, ${o}`}
+          >
+            <ToggleGroupItem value="all">All</ToggleGroupItem>
+            <ToggleGroupItem value="mine">Mine</ToggleGroupItem>
+          </ToggleGroup>
+        ),
+      },
+      {
+        prop: "size",
+        source: "cva",
+        fallback: "default",
+        options: ["default", "sm"],
+        sample: (o) => (
+          <ToggleGroup
+            type="single"
+            variant="outline"
+            size={o as "default" | "sm"}
+            defaultValue="all"
+            aria-label={`Show, ${o}`}
+          >
+            <ToggleGroupItem value="all">All</ToggleGroupItem>
+            <ToggleGroupItem value="mine">Mine</ToggleGroupItem>
+          </ToggleGroup>
+        ),
+      },
+    ],
+    specimens: [
+      {
+        label: "One choice, drawn as the state it leaves",
+        hint: "the profile wizard's pair: type single, outline, sm; press the one already pressed and nothing changes",
+        node: (
+          <ToggleGroup
+            type="single"
+            variant="outline"
+            size="sm"
+            defaultValue="none"
+            aria-label="Show your events on your page"
+          >
+            <ToggleGroupItem value="all">Show all 12</ToggleGroupItem>
+            <ToggleGroupItem value="none">Keep all private</ToggleGroupItem>
+          </ToggleGroup>
+        ),
+      },
+      {
+        label: "Several at once",
+        hint: "type multiple: each item is its own switch; none is a valid state",
+        node: (
+          <ToggleGroup
+            type="multiple"
+            variant="outline"
+            defaultValue={["photos", "videos"]}
+            aria-label="Show"
+          >
+            <ToggleGroupItem value="photos">
+              <Images /> Photos
+            </ToggleGroupItem>
+            <ToggleGroupItem value="videos">
+              <Video /> Videos
+            </ToggleGroupItem>
+            <ToggleGroupItem value="hidden">
+              <EyeOff /> Hidden
+            </ToggleGroupItem>
+          </ToggleGroup>
+        ),
+      },
+      {
+        label: "Tiles",
+        hint: "the display menu's layout: a grid of three, each an icon over its word, the pressed one outlined in ink",
+        node: (
+          <ToggleGroup
+            type="single"
+            defaultValue="gallery"
+            aria-label="Layout"
+            className="grid w-full max-w-xs grid-cols-3 gap-1.5"
+          >
+            {[
+              { id: "gallery", label: "Gallery", icon: <LayoutGrid /> },
+              { id: "table", label: "Table", icon: <Table2 /> },
+              { id: "list", label: "List", icon: <Rows3 /> },
+            ].map((l) => (
+              <ToggleGroupItem
+                key={l.id}
+                value={l.id}
+                className="flex h-14 flex-col gap-1 rounded-xl border border-border text-xs data-[state=on]:border-foreground data-[state=on]:bg-muted"
+              >
+                {l.icon}
+                {l.label}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+        ),
+      },
+      {
+        label: "In the dashboard's display menu",
+        hint: "the real menu over a state of its own: press Display, then any tile or pill; the badge counts what is set, Reset clears it",
+        node: <DisplayMenuDemo />,
+      },
+      {
+        label: "Disabled",
+        hint: "a group a host cannot change right now: every item dims and takes no press",
+        node: (
+          <ToggleGroup
+            type="single"
+            variant="outline"
+            size="sm"
+            defaultValue="all"
+            disabled
+            aria-label="Show your events on your page (unavailable)"
+          >
+            <ToggleGroupItem value="all">Show all 12</ToggleGroupItem>
+            <ToggleGroupItem value="none">Keep all private</ToggleGroupItem>
+          </ToggleGroup>
+        ),
       },
     ],
   },

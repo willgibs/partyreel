@@ -60,6 +60,8 @@ import {
 import { Row } from "@/app/(dev)/design/reference/reference-ui";
 import {
   ConfettiDemo,
+  ContactReceiptDemo,
+  HowItWorksStepperDemo,
   OverlayDemo,
   RevealDemo,
   StatBandDemo,
@@ -1085,6 +1087,29 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
     ],
   },
 
+  /* ─────────────────────────────── Sections ───────────────────────────── */
+  {
+    id: "how-it-works-stepper",
+    file: "src/components/marketing/sections/shared/how-it-works-stepper.tsx",
+    for: "the home's How it works passage: the whole loop as six numbers with one step on screen, its picture beside the words at a desk and under them in a hand, and the door to the full walkthrough at its foot",
+    test: "src/components/marketing/sections/shared/how-it-works-stepper.test.tsx",
+    badge: "new",
+    family: "marketing",
+    section: "Sections",
+    lede: "A full-width section, so it is drawn in a real viewport at each of the two screens it is read at (a laptop and a phone), inside the section shell the home gives it. One step is in the page at a time: the numbers are buttons with `aria-pressed`, a step's words and picture arrive as a pair (the picture a beat behind), and the steps are the walkthrough's own (`lib/constants/how-it-works.ts`), so the two cannot drift. The home tells it from the host's side; the guest's is the same component with one prop.",
+    specimens: [
+      {
+        label: "The host's loop, in the home's section",
+        hint: "perspective=host (the default) · press a number · Replay plays the arrival",
+        node: <HowItWorksStepperDemo />,
+      },
+      {
+        label: "The guest's loop",
+        hint: "perspective=guest · the same six numbers, told from the other side",
+        node: <HowItWorksStepperDemo perspective="guest" />,
+      },
+    ],
+  },
   /* ──────────────────────────── Conversion ────────────────────────────── */
   {
     id: "cta-band",
@@ -1211,6 +1236,29 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
     ],
   },
 
+
+  {
+    id: "contact-receipt",
+    file: "src/app/(marketing)/(cinema)/contact/contact-receipt.tsx",
+    for: "the card a sent note becomes on /contact: the news, the sender's own words back, the one reply promise and a way on while they wait, the card postmarked",
+    test: "src/app/(marketing)/(cinema)/contact/contact-receipt.test.tsx",
+    badge: "new",
+    family: "marketing",
+    section: "Conversion",
+    lede: "What the contact form ends on, drawn on the page's own card at a laptop and a phone: a check that draws itself, a heading that greets a clean first name (a title, an initial or nothing typed gets the plain line), what the note was about with its topic's mark, the subject or the note's opening clamped to two lines, the address a reply goes to, one reply promise and the topic's own first answer to read while they wait, with the stamp's postmark pressed over the card's corner. The card here stands in for the form's own, which the page does not export; the receipt and the postmark are the real ones.",
+    specimens: [
+      {
+        label: "A first name and a subject",
+        hint: "Billing: the topic's mark and its first help link · Send another plays the arrival again",
+        node: <ContactReceiptDemo kind="named" />,
+      },
+      {
+        label: "A title and no subject",
+        hint: "Dr. is no first name, so the line is plain; the message's own opening stands in, clamped to two lines",
+        node: <ContactReceiptDemo kind="plain" />,
+      },
+    ],
+  },
   /* ─────────────────────────── Feature pieces ─────────────────────────── */
   {
     id: "feature-door",
