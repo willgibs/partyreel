@@ -41,6 +41,7 @@ import { DownloadToastDemo } from "./download-toast-demo";
 import { HostGridArrivalDemo } from "./host-grid-arrival-demo";
 import { ModerationGridDemo } from "./moderation-grid-demo";
 import { PlanLimitsDemo } from "./plan-limits-demo";
+import { SpendWatchDemo } from "./spend-watch-demo";
 import {
   LockChipDemo,
   PricingSheetDemo,
@@ -319,6 +320,44 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
             <PlanLimitsDemo state="unreadable" />
           </div>
         ),
+      },
+    ],
+  },
+  {
+    id: "spend-watch-card",
+    badge: "new",
+    family: "compositions",
+    section: "The operations portal",
+    file: "src/app/admin/jobs/spend-watch-card.tsx",
+    test: "src/app/admin/jobs/spend-watch-card.test.tsx",
+    title: "The spend watch's card",
+    for: "every reading of the spend watch's last run against its ceiling on /admin/jobs, and the switches it can stop: a number against its ceiling, Tripped with what to check, No reading with why, never a number a reading is not",
+    lede: "The real card over runs written by hand, drawn as the page draws it: the readings above the switches it can stop. A quiet night reads as numbers under their ceilings with every switch on; a runaway night marks Tripped with what to check where the source stood, tints the row, offers the uploads switch (only a person pauses it) and shows a pause the watch made itself, still the watch's until someone turns it back on; a reading the watch could not take says No reading and why in the failure tone, and one warming up says so; and a missing or unreadable run says it in words, with no switch drawn as on. The two switches this card holds are pressed through their whole flow here (the portal's one sheet saying what pausing reaches, the pause, the way back) over a stand-in write: pausing guest uploads is a platform-wide act and the lab runs against the real project, so nothing is written.",
+    specimens: [
+      {
+        label: "A quiet night",
+        hint: "the one card that may say nothing is wrong: every reading under its ceiling, every switch on · press a switch off for the sheet, then Pause",
+        node: <SpendWatchDemo state="healthy" />,
+      },
+      {
+        label: "A runaway night",
+        hint: "uploads, bytes and downloads past their ceilings: Tripped, the row tinted, what to check in place of the source · Guest uploads offered, Download all paused by the watch itself",
+        node: <SpendWatchDemo state="tripped" />,
+      },
+      {
+        label: "A reading missing",
+        hint: "Accounts signed in has No reading and why, in the failure tone; Uploads is warming up: neither is drawn as a number",
+        node: <SpendWatchDemo state="missing" />,
+      },
+      {
+        label: "Nothing to show",
+        hint: "the watch has not run: said in words, never a calm table",
+        node: <SpendWatchDemo state="none" />,
+      },
+      {
+        label: "Unreadable",
+        hint: "the run and the switches could not be read: both say so, and no switch is shown as on",
+        node: <SpendWatchDemo state="unreadable" />,
       },
     ],
   },
