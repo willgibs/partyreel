@@ -57,6 +57,7 @@ the dashboard, the hub's strip, graphite, Create's styles, small fixes, red-team
 | `upload-cancel` | E6 for uploads: an in-flight upload's x asks first, then offers Try again | MERGED at `4a064993f` (gate 226 green); his calls in the calls lab (AE); pruned | Sonnet, 3132 | `a80a1b7990acf514c` |
 | `crumbs-72` | Settings' develop time never lost, the host's storage refusal with its numbers, the teaser's waiting words, the reel's dead viewer path | MERGED at `d26e7d69a` (gate 227 green; the develop time's picker on a real iPhone is Will's walk); pruned | Sonnet, 3131 | `acf51d0ab0fa56db8` |
 | `admin-uploads` | the operator sees a host's uploads against her allowance (/admin/accounts, the account view) and her Deleted beside her active bytes; read-only; the reset is a Question | RUNNING (cut at `19938cf7d`; may be cut off: resume from its WIP) | Sonnet, 3132 | `a92c83ecc3155933c` |
+| `crumbs-73` | the hub develops too (her first open after the develop develops the cover in place, once per phone); how-it-works' four hairlines | RUNNING (cut at `1de8681a2`; may be cut off: resume from its WIP) | Sonnet, 3131 | `a386ace618c2b7342` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Its
 model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`. From another session, respawn it from
