@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Popup, PopupContent } from "@/components/ui/popup";
 import { DESK_QUERY } from "@/components/ui/popup-kinds";
 import { hasDriveHint } from "@/lib/drive/links";
-import { sendForAlbum, tileLight } from "@/lib/drive/moments";
+import { checkedAll, sendForAlbum, tileLight } from "@/lib/drive/moments";
 import { useMediaQuery } from "@/lib/use-media-query";
 
 import { DriveName } from "./drive-parts";
@@ -43,9 +43,7 @@ function SentLineListening({ eventId }: { eventId: string }) {
   return (
     <span className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground tabular-nums">
       <span>
-        {light.tone === "done"
-          ? "In your Drive, every one checked"
-          : light.label}
+        {checkedAll(send) ? "In your Drive, every one checked" : light.label}
       </span>
       {send.status === "done" && send.folderUrl ? (
         <a

@@ -1,7 +1,8 @@
 /**
- * THE ROLL AND THE CAMERA VIDEO, ONE HOME EACH AND THEIR SQL MIRRORS (20261002200000): the roll's size and its ceiling's
- * multiple live in TypeScript (`roll.ts`), the camera video's two bounds in `media/limits.ts`, and each is restated in
- * the winning SQL (the stamp that fills a roll in, the CHECK that bounds one, the constants of the bodies that count);
+ * THE ROLL AND THE CAMERA VIDEO, ONE HOME EACH AND THEIR SQL MIRRORS (20261002200000, 20261005190000): the roll's size,
+ * its bounds and its ceiling's multiple live in TypeScript (`roll.ts`), the camera video's two bounds in
+ * `media/limits.ts`, and each is restated in the winning SQL (the stamp that fills a roll in, the CHECK that bounds one,
+ * the constants of the bodies that count);
  * the sentences the shot past the roll, past its ceiling and an over-long video meet are raised by `create_media` and
  * said by the presign. A change on one side alone fails here.
  */
@@ -11,13 +12,20 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+  clampRoll,
+  FILM_ROLLS,
+  isRollSize,
   parseRollCount,
+  ROLL_MAX,
+  ROLL_MIN,
   ROLL_RETAKES,
   ROLL_RETAKES_SPENT_MESSAGE,
   ROLL_SHOTS,
   rollHasFrame,
   rollRefusal,
   rollRefusalSentence,
+  rollShots,
+  rollSizeOf,
   rollSpentMessage,
 } from "@/lib/disposable/roll";
 import {
@@ -71,14 +79,46 @@ function allSql(): string {
     .replace(/\s+/g, " ");
 }
 
+/** The bounds of the last `events_roll_size_range` the set adds, in file order: the CHECK the database holds. */
+function winningRollRange(): [number, number] {
+  let found: [number, number] | null = null;
+  const re =
+    /add constraint events_roll_size_range check \(roll_size between (\d+) and (\d+)\)/g;
+  for (const { sql } of migrations()) {
+    for (const m of sql.replace(/\s+/g, " ").matchAll(re)) {
+      found = [Number(m[1]), Number(m[2])];
+    }
+  }
+  expect(found, "events_roll_size_range added nowhere").not.toBeNull();
+  return found!;
+}
+
 describe("the roll's one home and its SQL mirrors", () => {
-  it("a camera's roll is filled in at ROLL_SHOTS, and no host may name more", () => {
-    expect(body("events_reveal_stamp")).toContain(
-      `new.roll_size := coalesce(new.roll_size, ${ROLL_SHOTS});`,
+  // ★ RESHAPED ON PURPOSE (settings-wiring, 20261005190000; scar kept: a camera's roll is filled in at ROLL_SHOTS, and
+  // the CHECK holds a host to the bounds this file holds; reason dropped: ROLL_SHOTS was the most she could name, and free
+  // uploads cleared her roll). Will's `roll=both` names any count from 1 to 99, and her roll outlives the camera.
+  it("a camera's roll is filled in at ROLL_SHOTS, free uploads keep hers, and a host names ROLL_MIN to ROLL_MAX", () => {
+    const stamp = body("events_reveal_stamp");
+    expect(stamp).toContain(
+      `if new.capture = 'camera' then new.roll_size := coalesce(new.roll_size, ${ROLL_SHOTS}); end if;`,
+    );
+    // Nothing in the stamp clears her roll: a style switch, or the camera off and on, comes back to it.
+    expect(stamp).not.toContain("new.roll_size := null");
+    expect(winningRollRange()).toEqual([ROLL_MIN, ROLL_MAX]);
+    // A camera always carries a roll; free uploads may keep one (the old two-way tie is dropped in the same file).
+    expect(allSql()).toContain(
+      "add constraint events_camera_has_roll check (capture <> 'camera' or roll_size is not null)",
     );
     expect(allSql()).toContain(
-      `add constraint events_roll_size_range check (roll_size between 1 and ${ROLL_SHOTS})`,
+      "drop constraint events_roll_size_follows_capture",
     );
+  });
+
+  it("film's three sizes stand inside the bounds, the usual among them", () => {
+    for (const n of FILM_ROLLS) expect(isRollSize(n)).toBe(true);
+    expect(FILM_ROLLS).toContain(ROLL_SHOTS);
+    expect(isRollSize(ROLL_MIN)).toBe(true);
+    expect(isRollSize(ROLL_MAX)).toBe(true);
   });
 
   it.each(["create_media", "get_upload_context", "get_upload_gate"])(
@@ -237,6 +277,50 @@ describe("the refusal the next shot meets", () => {
       "",
     ]) {
       expect(rollRefusalSentence(other)).toBeNull();
+    }
+  });
+});
+
+describe("a roll a host may name", () => {
+  it("is a whole number of shots from ROLL_MIN to ROLL_MAX, and nothing else", () => {
+    for (const ok of [1, 8, 12, 24, 36, 50, 99])
+      expect(isRollSize(ok)).toBe(true);
+    for (const bad of [
+      0,
+      -1,
+      100,
+      12.5,
+      Number.NaN,
+      Infinity,
+      "24",
+      null,
+      undefined,
+    ]) {
+      expect(isRollSize(bad), String(bad)).toBe(false);
+    }
+    expect(rollSizeOf(36)).toBe(36);
+    expect(rollSizeOf(100)).toBeNull();
+    expect(rollSizeOf(null)).toBeNull();
+  });
+
+  it("a stepper lands inside the bounds, whole, whatever it is handed", () => {
+    expect(clampRoll(0)).toBe(ROLL_MIN);
+    expect(clampRoll(-20)).toBe(ROLL_MIN);
+    expect(clampRoll(100)).toBe(ROLL_MAX);
+    expect(clampRoll(36.4)).toBe(36);
+    expect(clampRoll(Number.NaN)).toBe(ROLL_SHOTS);
+  });
+
+  it("says one shot as one", () => {
+    expect(rollShots(1)).toBe("1 shot");
+    expect(rollShots(12)).toBe("12 shots");
+  });
+
+  it("the server's roll sentence reads back at any size a host may name", () => {
+    for (const n of [ROLL_MIN, 12, ROLL_MAX]) {
+      expect(rollRefusalSentence(rollSpentMessage(n))).toBe(
+        rollSpentMessage(n),
+      );
     }
   });
 });

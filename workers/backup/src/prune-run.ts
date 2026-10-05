@@ -33,6 +33,7 @@ import {
   PRUNE_CONFIRM_BATCH,
   PRUNE_DELETE_CAP_PER_RUN,
   PRUNE_HEAD_CONCURRENCY,
+  PRUNE_LOCK_MIN_AGE_MS,
   PRUNE_RUN_DEADLINE_MS,
   PRUNE_SUBREQUEST_BUDGET,
   isPrunableAge,
@@ -450,7 +451,9 @@ export async function runPrune(
     }
 
     // The range this run settled: after where it began, through where the next run resumes (to the end for a run
-    // that reached it). A run cut short at the first key it listed settled nothing, and only reads the count.
+    // that reached it). A run cut short at the first key it listed settled nothing, and only reads the count. It
+    // judged only the keys past the gate, so it settles only the table's old side: the young lone copies are the
+    // reconcile's (reconcile-run.ts), and a walk that settled them would drop every one it never looked at.
     const walk: LoneWalk | null =
       resumeFrom === null
         ? null
@@ -463,6 +466,10 @@ export async function runPrune(
                   ? null
                   : position,
             found,
+            judged: {
+              side: "old",
+              cutMs: input.startedAtMs - PRUNE_LOCK_MIN_AGE_MS,
+            },
           };
     let held = found.length;
     let tableFailed = false;

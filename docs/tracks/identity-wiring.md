@@ -1,24 +1,22 @@
 ---
-track: event-header-wiring
+track: identity-wiring
 status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "e123a6a9"            # the launch-prep SHA the branch was cut from
+cut: "6a1d56f5"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
-  - src/app/(app)/dashboard/[eventId]/page.tsx
-  - src/components/app/event-feed/event-hub-head
-  - src/components/app/event-feed/event-cards-row
-  - src/components/app/event-feed/room-card
-  - src/components/app/event-feed/reel-card
-  - src/components/app/event-feed/edge-fade-scroller
+  - src/components/ui/
+  - src/app/globals.css
+  - src/app/theme.css
+  - src/components/guest/camera/
+  - docs/systems/design-system.md
 reads:                  # single-sources you depend on: never duplicate, never edit
-  - docs/reviews/event-header.json
-  - src/app/(dev)/design/sandbox/event-header/spec.ts
-  - docs/systems/host-app.md
+  - docs/reviews/identity.json
+  - src/app/(dev)/design/sandbox/identity/spec.ts
 ---
 
-# lp/event-header-wiring
+# lp/identity-wiring
 
-**Goal.** The hub's doors as Will picked them: the cover dissolving into the page and five cards across the seam, folding into pills under the bar when stuck.
+**Goal.** Will's three settled identity traits in production: the halo on every focusable atom, the shrink on every action, and the bright edge on everything that floats.
 
 ## The brief
 
@@ -26,9 +24,12 @@ reads:                  # single-sources you depend on: never duplicate, never e
 
 **Local only:** nothing of yours requests the Vercel alias, partyreel.com or any *.vercel.app, and nothing deploys. Port 3136 is yours; 3000 is Will's desk.
 
-**From Will's desk 3 answer:** event-header r4's doors = cards ("Cards over the seam: the cover dissolves into the page and five cards stand across the seam, every one in sight on a phone; stuck, they fold into pills under the bar"; lands: the hub's doors at rest and in their sticky form, at a desk and in a hand). His note: "This feels a bit more pronounced than the glass capsule, without shouting like the quiet windows with their more media-forward visuals do. Let's carry this version forward, but run another exploration to see what some of your ideas of polish look like." Wire r4's cards (the board's drawing: `src/app/(dev)/design/sandbox/event-header/`, `cards.tsx` through `door-kit.tsx`) into the production hub head, with its carried calls G1, G2 and G4 as the board drew them on production's panel; the waiting colour stays the brand's (today's token). A polish round (event-header r5) runs in parallel on the board, so build the cards cleanly and leave polish to his next pick. The hub's Guests card while a sealed roll waits: say its shots are developing, as the Guests room now does (crumbs-81's idea; the ROADMAP line this retires).
+**From Will's desk 3 answers on identity r4** (his verdicts: `docs/reviews/identity.json`; the board's own drawing of each: `src/app/(dev)/design/sandbox/identity/`, its option code is the spec):
+1. **focus = halo:** "a quiet ring of light round it: a fine line of ink stands 2px off the control over a clear band, in a soft aura (grey on paper, light in the room); it gathers in as it arrives." Lands: every focusable atom's focus-visible: keys, fields, switches, checks, radios, a slider's thumb, tabs, the shutter.
+2. **press = shrink:** "the control gives under the finger by about two pixels at every size, from a chip to the 44px key, the way a phone's own controls do." Lands: every action's active state: buttons, chips, segments, the shutter and the code chip.
+3. **edge = floating:** "every pop-out takes the edge in place of its hairline, on paper too; in the room every dialog, sheet and panel takes it on its free edge. Cards stay flat." Lands: `globals.css`'s bright edge (`data-lit`), carried from media to the surfaces the answer names, on dark grounds only.
 
-`docs/systems/host-app.md` is settings-wiring's: write your doc lines as a proposal in the Handoff. Wiring rigor: the whole gate; the hub is a host page, which only port 3000 signs into: walk what your port reaches (the doors' component at 375, 640, 1024 and 1440, sticky and at rest) and list the signed-in walk for the Orchestrator's desk.
+Change only these three traits, one home each (a token or a utility, never per-component copies), and nothing of the atoms' forms: identity r5 (a board, in parallel) asks the field, the buttons, selected and the toggles as one set, and brand r2 (Afterglow, picked on desk 4) owns colour and light, so the edge keeps today's light until its pick. Reduced motion lands each at once. Pin each by a test that fails on the old code (a focusable atom without the halo, an action without the press, a floating layer without the edge), and keep `popup-kinds.test.ts` and the Library's specimens green. Wiring rigor: the whole gate; walked on your port at 1440 and 375, by keyboard (focus) and by pointer (press), in the room and on paper; the PREMISE lines `lab:smoke` prints for the boards whose `lives` include `src/components/ui/` listed in your Handoff.
 
 **Starts from.** CLAUDE.md's working loop, the bible's ten and production as it is; the tests say what has to keep
 working.

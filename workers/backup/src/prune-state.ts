@@ -11,9 +11,13 @@
  *  - THE RESTORE'S CLOCK (restore-schedule.ts): a restore pass is this object's alarm, so it has an invocation and a
  *    15-minute budget of its own whoever asked for it (the daily cron, the prune's end, an operator's Restore now
  *    through the Worker's door). The pass itself is restore-pass.ts.
+ *  - THE RECONCILE'S LEDGER (reconcile-ledger.ts): its cursor through the two listings, its pass and its last whole
+ *    pass, a get and a put beside the prune's; and its young lone copies, settled into the same table on the young
+ *    side of the gate (lone-store.ts), so the prune's walk and the reconcile's never drop each other's keys.
  *
- * Only index.ts imports this module (the tests run in plain Node, and `cloudflare:workers` exists only in the Workers
- * runtime); everything it decides lives in modules the tests drive.
+ * The class keeps its name (a rename is a migration of its own): it holds the backup Worker's memory, not the prune's
+ * alone. Only index.ts imports this module (the tests run in plain Node, and `cloudflare:workers` exists only in the
+ * Workers runtime); everything it decides lives in modules the tests drive.
  */
 import { DurableObject } from "cloudflare:workers";
 
@@ -29,6 +33,8 @@ import {
 } from "./restore-schedule";
 
 const LEDGER_KEY = "ledger";
+/** The reconcile's ledger: a key of its own, so neither job's record can overwrite the other's. */
+const RECONCILE_KEY = "reconcile_ledger";
 /** The trigger the next alarm's pass reports under. */
 const TRIGGER_KEY = "restore_trigger";
 /** When the pass in flight began (epoch ms), absent between passes. */
@@ -59,6 +65,27 @@ export class PruneState extends DurableObject<RestoreEnv> {
     return walk
       ? this.lone.walk(walk, Date.now()).keys
       : this.lone.tally().keys;
+  }
+
+  /** The reconcile's stored ledger, or null before its first run. Parsed by the caller, never trusted. */
+  async loadReconcile(): Promise<unknown> {
+    return (await this.ctx.storage.get(RECONCILE_KEY)) ?? null;
+  }
+
+  async saveReconcile(ledger: unknown): Promise<void> {
+    await this.ctx.storage.put(RECONCILE_KEY, ledger);
+  }
+
+  /**
+   * A reconcile run's range, settled on its side of the gate (null: settles nothing, reads the count): the whole
+   * backup's count after it, and how many keys were new to the table (a restore pass is then worth asking for).
+   */
+  async settleLone(
+    walk: LoneWalk | null,
+  ): Promise<{ held: number; added: number }> {
+    if (!walk) return { held: this.lone.tally().keys, added: 0 };
+    const after = this.lone.settle(walk, Date.now());
+    return { held: after.keys, added: after.added };
   }
 
   /** Ask for a restore pass: now, or joining one set, or following the one in flight. */

@@ -53,3 +53,24 @@ export function layerIsUp({
   const roles = dialogsOnly ? MODAL_ROLES : [...MODAL_ROLES, ...EPHEMERAL_ROLES];
   return document.querySelector(selectorOf(roles, except)) !== null;
 }
+
+/**
+ * Whether a key or a press came from inside a layer other than the caller's own: the nearest layer around
+ * its target, of any role, is not the caller's.
+ *
+ * ★ THE LAYER THE KEY CAME FROM, NOT EVERY LAYER IN THE DOCUMENT (back-layers): a surface that is itself a
+ * layer and owns the keys while it is on top (the viewer) stands down for a layer stacked OVER it, which holds
+ * the focus (a modal traps it, a menu and a look take it as they open), and never for one UNDER it, which
+ * `layerIsUp` counts too: a viewer opened from inside a panel would lose its arrows to the panel. A target with
+ * no layer around it (the page, the window) is nobody else's.
+ */
+export function insideAnotherLayer(
+  target: EventTarget | null,
+  { except }: Pick<LayerOptions, "except"> = {},
+): boolean {
+  // Duck-typed, never `instanceof Element`: a Library frame's elements wear the frame's own prototypes.
+  const el = target as Element | null;
+  if (!el || typeof el.closest !== "function") return false;
+  const layer = el.closest(selectorOf([...MODAL_ROLES, ...EPHEMERAL_ROLES]));
+  return layer !== null && !(except !== undefined && layer.matches(except));
+}

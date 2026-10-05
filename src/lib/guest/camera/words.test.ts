@@ -6,6 +6,10 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { ROLL_MAX, ROLL_MIN, rollSpentMessage } from "@/lib/disposable/roll";
+
+import { reelCells } from "./reel";
+import { rollView } from "./roll-view";
 import {
   addWords,
   afterShotHint,
@@ -233,5 +237,36 @@ describe("the lines", () => {
     expect(unsentLine(3)).toBe("3 shots didn’t send.");
     expect(reelLabel(6)).toBe("Your shots, 6 on the roll");
     expect(reelLabel(2, true)).toBe("Your shots, 2 taken");
+  });
+});
+
+/**
+ * ★ ANY ROLL A HOST MAY NAME (customize r1's `roll=both`: 1 to 99): the camera's count, its caption, its end and the
+ * server's refusal say a roll of one and a roll of 99 as they say film's 24, and the reel draws every frame of either.
+ */
+describe("the camera at any roll a host may name", () => {
+  it("counts, ends and refuses a roll of one and of ninety-nine in the same words", () => {
+    for (const cap of [ROLL_MIN, 12, 36, 50, ROLL_MAX]) {
+      const base = { cap, done: false, host: false, sending: 0 };
+      expect(reelCaption({ ...base, frame: 1 })).toBe(`Frame 1 of ${cap}`);
+      expect(reelCaption({ ...base, frame: cap, done: true })).toBe(
+        `${cap} of ${cap}`,
+      );
+      expect(
+        reelCells({ cap, used: 0, recording: false, recent: [] }),
+      ).toHaveLength(cap);
+      expect(rollView({ server: null, rollSize: cap, pending: 0 }).cap).toBe(
+        cap,
+      );
+    }
+    expect(
+      rollDoneLine({ cap: ROLL_MIN, reveal: "live", developsAt: null }),
+    ).toBe("1 shot, all in the album.");
+    expect(
+      rollDoneLine({ cap: ROLL_MAX, reveal: "live", developsAt: null }),
+    ).toBe("99 shots, all in the album.");
+    expect(
+      rollView({ server: null, rollSize: ROLL_MAX, pending: ROLL_MAX }).refusal,
+    ).toBe(rollSpentMessage(ROLL_MAX));
   });
 });

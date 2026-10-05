@@ -275,5 +275,95 @@ describe("the backup restore's card (durability-restore)", () => {
   });
 });
 
+describe("the backup reconcile's card (backup-reconcile)", () => {
+  it("★ says its pass in words: this run ended it, when the last whole pass ended, and what it found, in place of the raw counts", async () => {
+    state.states = [
+      runOf(
+        "backup_reconcile",
+        {
+          checked: 5_862,
+          copied: 0,
+          mismatched: 2,
+          breaker_tripped: true,
+          absent_from_primary: 654,
+          young_absent: 611,
+          lone_found: 0,
+          primary_missing: 0,
+          pass_complete: true,
+          pass_walked: 5_862,
+          pass_started_at: "2026-10-05T05:00:00.000Z",
+          last_pass_at: "2026-10-05T05:00:12.000Z",
+          last_pass_walked: 5_862,
+        },
+        {
+          note: "The pass reached the end: 5,862 keys compared with the backup's, every one backed up.",
+        },
+      ),
+    ];
+    state.states[0].lastRun!.breakerTripped = true;
+    render(await JobsPage());
+    const reconcile = card("backup_reconcile");
+    expect(within(reconcile).getByText("Needs a look")).toBeInTheDocument();
+    expect(within(reconcile).getByText("Pass")).toBeInTheDocument();
+    expect(
+      within(reconcile).getByText(
+        "Complete: 5,862 keys compared with the backup, every one backed up",
+      ),
+    ).toBeInTheDocument();
+    expect(within(reconcile).getByText("Last full pass")).toBeInTheDocument();
+    expect(
+      within(reconcile).getByText("Oct 5, 2026, 05:00 UTC, 5,862 keys"),
+    ).toBeInTheDocument();
+    expect(
+      within(reconcile).getByText(
+        /^2 keys differ between the buckets \(size or checksum\): left as they are, never overwritten/,
+      ),
+    ).toBeInTheDocument();
+    expect(within(reconcile).queryByText("Reported")).toBeNull();
+  });
+
+  it("★ reads a pass carried across runs as one in progress, from when it began, with no whole pass yet", async () => {
+    state.states = [
+      runOf("backup_reconcile", {
+        checked: 40_000,
+        copied: 0,
+        pass_complete: false,
+        pass_walked: 80_000,
+        pass_started_at: "2026-10-04T05:00:00.000Z",
+        stopped_early: true,
+        lone_found: 0,
+      }),
+    ];
+    state.states[0].lastRun!.stoppedEarly = true;
+    render(await JobsPage());
+    const reconcile = card("backup_reconcile");
+    expect(within(reconcile).getByText("Needs a look")).toBeInTheDocument();
+    expect(
+      within(reconcile).getByText(
+        "In progress: 80,000 keys compared since Oct 4, 2026, 05:00 UTC; the next run carries on",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      within(reconcile).getByText("None has reached the end yet"),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps the raw counts of a run from before the pass", async () => {
+    state.states = [
+      runOf("backup_reconcile", {
+        capped: false,
+        copied: 0,
+        failed: 0,
+        checked: 3_419,
+      }),
+    ];
+    render(await JobsPage());
+    const reconcile = card("backup_reconcile");
+    expect(within(reconcile).getByText("Reported")).toBeInTheDocument();
+    expect(within(reconcile).getByText("checked 3,419")).toBeInTheDocument();
+    expect(within(reconcile).queryByText("Pass")).toBeNull();
+  });
+});
+
 // Keep `screen` in use for a failing render's own debugging.
 void screen;

@@ -34,14 +34,18 @@ function emit(next: Snapshot) {
   for (const l of listeners) l();
 }
 
-/** Whether a send is running (its numbers can move). */
+/**
+ * Whether a send's numbers can move: running, or ★ stopped with files still landing (what was on its way at her
+ * Cancel lands after it, and her page keeps listening until it has, never frozen at the number of the press).
+ */
 function moving(status: DriveStatus | null): boolean {
   return Boolean(
     status?.sends.some(
       (s) =>
         s.status === "sending" ||
         s.status === "preparing" ||
-        s.status === "checking",
+        s.status === "checking" ||
+        s.landing === true,
     ),
   );
 }
@@ -57,7 +61,10 @@ function unfinished(status: DriveStatus | null): boolean {
 /** What changed between two answers, as one string (a send's numbers and state). */
 function signature(status: DriveStatus | null): string {
   return (status?.sends ?? [])
-    .map((s) => `${s.id}:${s.status}:${s.itemsSent}:${s.bytesSent}`)
+    .map(
+      (s) =>
+        `${s.id}:${s.status}:${s.itemsSent}:${s.bytesSent}:${s.landing ? 1 : 0}`,
+    )
     .join("|");
 }
 

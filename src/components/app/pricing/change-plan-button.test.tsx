@@ -57,8 +57,10 @@ describe("a plan switch, signed out", () => {
     );
   });
 
+  // Reshaped on purpose (pricing-doors): /pricing used to be the example of a page off the list and is on it now, so the
+  // scar moved to /help, which is still not a place a sign-in may return to.
   it("keeps the bare login on a page no sign-in returns to", async () => {
-    pathname = "/pricing";
+    pathname = "/help";
     await press();
     await waitFor(() => expect(push).toHaveBeenCalledWith("/login"));
   });

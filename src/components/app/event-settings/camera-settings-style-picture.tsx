@@ -68,10 +68,13 @@ export const STYLE_PICTURE_SRCS: readonly string[] = FRAMES.map((f) => f.src);
 export function StylePicture({
   style,
   moment = "party",
+  roll = ROLL_SHOTS,
   className,
 }: {
   style: AlbumStyle;
   moment?: StyleMoment;
+  /** The roll the disposable's camera holds as guests arrive: hers once she has picked one (Create's step). */
+  roll?: number;
   className?: string;
 }) {
   const cells = pictureCells(style, moment);
@@ -114,10 +117,10 @@ export function StylePicture({
         );
       })}
       {moment === "arrive" && style === "disposable" ? (
-        // The camera holds its roll: nothing shot yet, 24 frames to take.
+        // The camera holds its roll: nothing shot yet, every frame of hers to take.
         <span className="style-pic-roll absolute inset-0 flex items-center justify-center font-medium tabular-nums">
           <Camera aria-hidden strokeWidth={2} />
-          {ROLL_SHOTS}
+          {roll}
         </span>
       ) : null}
       {moment === "morning" ? (

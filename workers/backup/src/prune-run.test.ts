@@ -982,6 +982,29 @@ describe("the lone copies, carried across a pass", () => {
     }
   });
 
+  it("★ settles only the old side of the gate: a young lone copy the daily reconcile keeps survives the prune's run", async () => {
+    // On the old code the prune's walk settled every row in its range, so the young copy the reconcile found
+    // (backup-reconcile) was dropped by the next Monday's run, which never judges a key inside the gate.
+    const w = makeWorld();
+    const store = await withTable(w);
+    addLive(w, uuid(1));
+    const lone = addMedia(w, uuid(2), { row: true });
+    const youngKey = key(uuid(3));
+    w.backup.objects.set(youngKey, { key: youngKey, uploaded: YOUNG });
+    store.settle(
+      {
+        after: null,
+        through: null,
+        found: [{ key: youngKey, uploadedMs: YOUNG.getTime() }],
+        judged: { side: "young", cutMs: NOW - 36 * DAY },
+      },
+      NOW - DAY,
+    );
+    const result = await run(w);
+    expect(store.page(null, 10)).toEqual([...lone, youngKey].sort());
+    expect(result.counts[PRIMARY_MISSING_KEY]).toBe(lone.length + 1);
+  });
+
   it("leaves the table as it was on a run a doubt stopped", async () => {
     const w = makeWorld();
     const store = await withTable(w);

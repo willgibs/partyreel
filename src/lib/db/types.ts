@@ -193,6 +193,7 @@ export type Database = {
           full_since: string | null
           id: string
           kicked_at: string | null
+          lane_failed_messages: string[]
           lane_failures: number
           lane_failures_on: string | null
           lane_rekicked_at: string | null
@@ -231,6 +232,7 @@ export type Database = {
           full_since?: string | null
           id?: string
           kicked_at?: string | null
+          lane_failed_messages?: string[]
           lane_failures?: number
           lane_failures_on?: string | null
           lane_rekicked_at?: string | null
@@ -269,6 +271,7 @@ export type Database = {
           full_since?: string | null
           id?: string
           kicked_at?: string | null
+          lane_failed_messages?: string[]
           lane_failures?: number
           lane_failures_on?: string | null
           lane_rekicked_at?: string | null
@@ -344,6 +347,7 @@ export type Database = {
           confirmed_at: string | null
           drive_file_id: string | null
           drive_md5: string | null
+          forgotten_at: string | null
           job_id: string
           kept: boolean
           last_error: string | null
@@ -367,6 +371,7 @@ export type Database = {
           confirmed_at?: string | null
           drive_file_id?: string | null
           drive_md5?: string | null
+          forgotten_at?: string | null
           job_id: string
           kept?: boolean
           last_error?: string | null
@@ -390,6 +395,7 @@ export type Database = {
           confirmed_at?: string | null
           drive_file_id?: string | null
           drive_md5?: string | null
+          forgotten_at?: string | null
           job_id?: string
           kept?: boolean
           last_error?: string | null
@@ -2068,9 +2074,13 @@ export type Database = {
       clear_event_password: { Args: { p_event_id: string }; Returns: undefined }
       clear_event_slug: { Args: { p_event_id: string }; Returns: undefined }
       cloud_connection_disconnect: { Args: { p_user: string }; Returns: Json }
+      cloud_connection_forget: {
+        Args: { p_connection: string }
+        Returns: number
+      }
       cloud_connection_kick: { Args: { p_connection: string }; Returns: Json }
       cloud_connection_lane_failed: {
-        Args: { p_connection: string; p_error: string }
+        Args: { p_connection: string; p_error: string; p_message: string }
         Returns: Json
       }
       cloud_connection_operator: {

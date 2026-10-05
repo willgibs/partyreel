@@ -104,6 +104,43 @@ describe("the hub's head", () => {
     expect(container.querySelector("[data-hub-strip-count]")).toBeNull();
   });
 
+  /**
+   * THE COVER'S SEAM (`event-header` r4, Will's cards over the seam): its photograph dissolves into the page at its foot, and
+   * its words clear what the doors' cards cover. What a jsdom can hold is the structure that makes it so: the fade is the page's
+   * own colour, so it stands OUTSIDE the cover (always the room), and the cover and the row read one set of numbers.
+   */
+  it("★ stands the cover in its seam: the photograph's fade is a sibling outside the cover, which is always the room", () => {
+    const { container } = render(cover());
+    const seam = container.firstElementChild as HTMLElement;
+    expect(seam).toHaveClass("hub-seam");
+    const head = seam.querySelector("[data-event-head]") as HTMLElement;
+    expect(head).not.toBeNull();
+    const fade = seam.querySelector("[data-hub-fade]") as HTMLElement;
+    expect(fade).toHaveClass("hub-cover-fade");
+    // The fade is the page's colour (`--background`), which inside the cover (`dark`) would be the room's: never within it.
+    expect(head.contains(fade)).toBe(false);
+    expect(fade.parentElement).toBe(seam);
+    expect(fade).toHaveAttribute("aria-hidden", "true");
+  });
+
+  it("clears the cards in its foot, and grows rather than clips a long name", () => {
+    const { container } = render(cover());
+    const foot = container.querySelector(".hub-cover-foot") as HTMLElement;
+    expect(foot).not.toBeNull();
+    // The foot's clearance is the seam's own (`event-hub-head-seam.css`), never a padding utility the row cannot read.
+    expect(foot.className).not.toMatch(/(^|\s)(sm:)?pb-/);
+    const head = container.querySelector("[data-event-head]") as HTMLElement;
+    expect(head.className).toContain("min-h-[20.5rem]");
+    expect(head.className).toContain("h-auto");
+  });
+
+  it("reaches the app's bar by default, taking back the main's 32px on its own wrapper, and not when something stands above it", () => {
+    const { container, rerender } = render(cover({ toBar: true }));
+    expect(container.firstElementChild).toHaveClass("-mt-8");
+    rerender(cover({ toBar: false }));
+    expect(container.firstElementChild).not.toHaveClass("-mt-8");
+  });
+
   it("hands the strip the arrivals of a head outside the hub's store", () => {
     const nowMin = Date.now() / 60_000;
     const { container } = render(

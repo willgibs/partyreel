@@ -34,7 +34,7 @@ printf 'DRIVE_WORKER_SECRET=<the app'"'"'s value>\n' > .dev.vars
 # wrangler.walk.jsonc: this Worker, the REAL bucket read from the laptop ("remote": true), the desk build as its app.
 npx wrangler dev -c wrangler.walk.jsonc --port 8787 --test-scheduled   # needs `wrangler login` for the bucket
 # the desk build's .env.local: DRIVE_WORKER_URL=http://localhost:8787 (and the same DRIVE_WORKER_SECRET)
-# the sweep by hand: curl "http://localhost:8787/__scheduled?cron=*/5+*+*+*+*"
+# the sweep by hand: curl "http://localhost:8787/__scheduled?cron=*/15+*+*+*+*"
 ```
 
 ## Tests

@@ -27,15 +27,13 @@ import { LikeButton, LikeCountBadge } from "@/components/likes/like-button";
 import { ActionTooltip } from "@/components/shared/action-tooltip";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Popup,
+  PopupClose,
+  PopupContent,
+  PopupFooter,
+  PopupHeader,
+  PopupTrigger,
+} from "@/components/ui/popup";
 import { GLASS, GLASS_MARK_LIT } from "@/lib/glass";
 import { requestPhotoReport, useReportDoorOpen } from "@/lib/guest/report-door";
 import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
@@ -659,11 +657,15 @@ export const ActionCapsule = memo(function ActionCapsule({
           it gone everywhere, not still visible to the host as well"): no window
           and no place it waits. ★ A HOST'S OWN UPLOAD is the one exception
           (`isHost`, which only the personal Uploads pairs with this Trash): its
-          delete is restorable, so it says the host's words. */}
+          delete is restorable, so it says the host's words.
+          ★ THE VIEWER'S QUESTIONS ARE THE ONE TABLE'S CONFIRM (back-layers), as its
+          Delete permanently already was: over the viewer a question holds a
+          history entry of its own (`ui/popup-back.ts`), so on a phone Back closes
+          the question and leaves the photograph, and only the Popup knows it. */}
       {onDelete && canDeleteThis && (
-        <Dialog>
+        <Popup>
           <ActionTooltip label="Delete">
-            <DialogTrigger asChild>
+            <PopupTrigger asChild>
               <button
                 type="button"
                 aria-label="Delete"
@@ -671,35 +673,37 @@ export const ActionCapsule = memo(function ActionCapsule({
               >
                 <Trash2 className="size-5" />
               </button>
-            </DialogTrigger>
+            </PopupTrigger>
           </ActionTooltip>
-          <DialogContent role="alertdialog">
-            <DialogHeader>
-              <DialogTitle>Delete this upload?</DialogTitle>
-              <DialogDescription>
-                {item.isHost ? (
-                  <HostRemovalWords />
-                ) : (
-                  <>
-                    It&rsquo;s deleted from the event right away and can&rsquo;t
-                    be recovered.
-                  </>
-                )}
-                {deleteConsequence && ` ${deleteConsequence}`}
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <DialogClose asChild>
+          <PopupContent kind="confirm">
+            <PopupHeader
+              title="Delete this upload?"
+              description={
+                <>
+                  {item.isHost ? (
+                    <HostRemovalWords />
+                  ) : (
+                    <>
+                      It&rsquo;s deleted from the event right away and
+                      can&rsquo;t be recovered.
+                    </>
+                  )}
+                  {deleteConsequence && ` ${deleteConsequence}`}
+                </>
+              }
+            />
+            <PopupFooter>
+              <PopupClose asChild>
                 <Button variant="outline">Cancel</Button>
-              </DialogClose>
-              <DialogClose asChild>
+              </PopupClose>
+              <PopupClose asChild>
                 <Button variant="destructive" onClick={() => onDelete(item)}>
                   Delete
                 </Button>
-              </DialogClose>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+              </PopupClose>
+            </PopupFooter>
+          </PopupContent>
+        </Popup>
       )}
 
       {/* the curate group (HOST only): hide/show are reversible and direct;
@@ -739,9 +743,9 @@ export const ActionCapsule = memo(function ActionCapsule({
             </ActionTooltip>
           )}
           {onRemove && (
-            <Dialog>
+            <Popup>
               <ActionTooltip label="Remove">
-                <DialogTrigger asChild>
+                <PopupTrigger asChild>
                   <button
                     type="button"
                     aria-label="Remove"
@@ -749,30 +753,28 @@ export const ActionCapsule = memo(function ActionCapsule({
                   >
                     <Trash2 className="size-5" />
                   </button>
-                </DialogTrigger>
+                </PopupTrigger>
               </ActionTooltip>
-              <DialogContent role="alertdialog">
-                <DialogHeader>
-                  <DialogTitle>Remove this item?</DialogTitle>
-                  <DialogDescription>
-                    <HostRemovalWords />
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                  <DialogClose asChild>
+              <PopupContent kind="confirm">
+                <PopupHeader
+                  title="Remove this item?"
+                  description={<HostRemovalWords />}
+                />
+                <PopupFooter>
+                  <PopupClose asChild>
                     <Button variant="outline">Cancel</Button>
-                  </DialogClose>
-                  <DialogClose asChild>
+                  </PopupClose>
+                  <PopupClose asChild>
                     <Button
                       variant="destructive"
                       onClick={() => onRemove(item)}
                     >
                       Remove
                     </Button>
-                  </DialogClose>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                  </PopupClose>
+                </PopupFooter>
+              </PopupContent>
+            </Popup>
           )}
         </>
       )}
@@ -796,9 +798,9 @@ export const ActionCapsule = memo(function ActionCapsule({
         </ActionTooltip>
       )}
       {onPurge && (
-        <Dialog>
+        <Popup>
           <ActionTooltip label="Delete permanently">
-            <DialogTrigger asChild>
+            <PopupTrigger asChild>
               <button
                 type="button"
                 aria-label="Delete permanently"
@@ -806,10 +808,10 @@ export const ActionCapsule = memo(function ActionCapsule({
               >
                 <Trash2 className="size-5" />
               </button>
-            </DialogTrigger>
+            </PopupTrigger>
           </ActionTooltip>
           <PurgeConfirmContent onConfirm={() => onPurge(item)} />
-        </Dialog>
+        </Popup>
       )}
     </div>
   );

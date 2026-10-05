@@ -4,11 +4,13 @@ import {
   BRAND_NAME_MESSAGE,
   RESERVED_WORD_MESSAGE,
 } from "@/lib/constants/reserved-slugs";
+import { ROLL_MAX, ROLL_MIN } from "@/lib/disposable/roll";
 import { HOLD_STEPS_SEC, REEL_MOOD_IDS } from "@/lib/reel/defaults";
 import {
   createEventSchema,
   eventSlugSchema,
   reelDefaultsInputSchema,
+  ROLL_SIZE_MESSAGE,
   updateEventSchema,
 } from "@/lib/validation/event";
 
@@ -351,14 +353,29 @@ describe("the capture and the develop time: an update's keys, and a create's at 
         JSON.stringify(input),
       ).toBe(false);
     }
-    // The period and the roll's size are the database's: an update never carries them.
+    // The period is the database's: an update never carries it.
     expect(
       updateEventSchema.parse({
         sealed_from: inAWeek,
-        roll_size: 99,
         mode: "disposable",
       }),
     ).toEqual({});
+  });
+
+  // ★ RESHAPED ON PURPOSE (settings-wiring, Will's `roll=both`; scar kept: the period is never a host's to write, and a
+  // roll outside the CHECK's bounds is refused before the write; reason dropped: the roll's size was the database's
+  // alone). A host names her roll, 1 to 99, in Settings and in Create, so an update carries it and refuses past it.
+  it("an update carries the roll a host names, 1 to 99, and refuses any other in words", () => {
+    for (const n of [ROLL_MIN, 12, 36, 50, ROLL_MAX]) {
+      expect(updateEventSchema.parse({ roll_size: n })).toEqual({
+        roll_size: n,
+      });
+    }
+    for (const bad of [0, ROLL_MAX + 1, 12.5, "24", null]) {
+      const parsed = updateEventSchema.safeParse({ roll_size: bad });
+      expect(parsed.success, JSON.stringify(bad)).toBe(false);
+      expect(parsed.error?.issues[0]?.message).toBe(ROLL_SIZE_MESSAGE);
+    }
   });
 
   // ★ RESHAPED ON PURPOSE (create-wizard r3's add=styles; scar kept: a create that names only the event still lands
@@ -400,7 +417,8 @@ describe("the capture and the develop time: an update's keys, and a create's at 
         JSON.stringify(input),
       ).toBe(false);
     }
-    // The period and the roll's size are the database's: a create never carries them either.
+    // The period is the database's: a create never carries it. The roll is hers to name at birth (Will's `roll=both`),
+    // none named being the database's 24, and one past the bounds is refused as an update refuses it.
     const born = createEventSchema.parse({
       name: "Party",
       capture: "camera",
@@ -408,7 +426,15 @@ describe("the capture and the develop time: an update's keys, and a create's at 
       roll_size: 99,
     });
     expect(born).not.toHaveProperty("sealed_from");
-    expect(born).not.toHaveProperty("roll_size");
+    expect(born.roll_size).toBe(99);
+    expect(createEventSchema.parse({ name: "Party" }).roll_size).toBeNull();
+    expect(
+      createEventSchema.safeParse({
+        name: "Party",
+        capture: "camera",
+        roll_size: 100,
+      }).success,
+    ).toBe(false);
   });
 });
 

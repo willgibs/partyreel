@@ -23,6 +23,7 @@ import {
 import { videosAllowedForTier, type Tier } from "@/lib/constants/tiers";
 import { developFactsOf, type Capture } from "@/lib/disposable/facts";
 import { developState } from "@/lib/disposable/reveal";
+import { rollSizeOf } from "@/lib/disposable/roll";
 import type { DoorCounts } from "@/lib/db/queries/event-doors";
 import type { HostEvent } from "@/lib/db/queries/events";
 import type { Door } from "@/lib/event/door/door";
@@ -74,13 +75,21 @@ export type SettingsValues = {
   displayInProfile: boolean | null;
   /**
    * How guests add, the camera's roll, and the develop time (20261002200000; ISO, null for none). With `review`, the
-   * develop time answers "when everyone sees what's added" (`lib/disposable/reveal.ts`). The roll's size is the
-   * database's to fill in (24), so it is read and never written here.
+   * develop time answers "when everyone sees what's added" (`lib/disposable/reveal.ts`).
    */
   capture: Capture;
+  /**
+   * The roll she named, 1 to 99 (customize r1's `roll=both`), or null where none was ever named (the database fills in
+   * 24 when a camera starts). ★ READ WHATEVER THE CAPTURE: free uploads keep her roll for the camera's return
+   * (20261005190000), so the Disposable card and Customize say her size before she switches back, and the switch lands
+   * on it with nothing to correct.
+   */
   rollSize: number | null;
   developsAt: string | null;
 };
+
+/** A control a live word sends her to: its page opens at it ("Another number" opens the roll's stepper, in focus). */
+export type SettingsOpening = "roll";
 
 /** A stored style that is not a mood (a legacy treatment, a retired id) starts guests on the default. */
 export function resolveMood(styleId: string | null): string {
@@ -115,13 +124,12 @@ function valuesOf(
     reelStyleId: resolveMood(event.reel_style_id),
     reelHoldSec: resolveHoldSec(event.reel_hold_sec),
     displayInProfile: social ? social.displayInProfile : null,
-    // ★ Read through the seam until the types regenerate (the row carries the columns; `Tables<"events">` learns
-    // them then). The develop time in one spelling (ISO), so a save the row agrees with lets its overlay go.
+    // The develop time in one spelling (ISO), so a save the row agrees with lets its overlay go.
     ...developValuesOf(event),
   };
 }
 
-/** How guests add and the develop time off the host's row, the time normalized to `toISOString`'s spelling. */
+/** How guests add, her roll and the develop time off the host's row, the time normalized to `toISOString`'s spelling. */
 function developValuesOf(
   event: HostEvent,
 ): Pick<SettingsValues, "capture" | "rollSize" | "developsAt"> {
@@ -129,7 +137,8 @@ function developValuesOf(
   const at = facts.developsAt ? new Date(facts.developsAt) : null;
   return {
     capture: facts.capture,
-    rollSize: facts.rollSize,
+    // Her kept roll, never the guests' reading of it (`developFactsOf` answers a roll only beside the camera).
+    rollSize: rollSizeOf(event.roll_size),
     developsAt:
       at && Number.isFinite(at.getTime()) ? at.toISOString() : facts.developsAt,
   };
@@ -176,6 +185,15 @@ type SettingsState = {
   afterSaves: (fn: () => void) => boolean;
   /** A setting is being written. */
   saving: (key: Key) => boolean;
+  /** Where a live word sent her, for its page to open at (and to say it has: `openAt(null)`). */
+  opening: SettingsOpening | null;
+  openAt: (to: SettingsOpening | null) => void;
+  /**
+   * Lays a value over the row with no write yet: a draft every reader says at once (the sentence, a card's line) while
+   * its control waits for her to rest before it saves (the roll's stepper). The save that follows answers for it as any
+   * save does, put back if refused.
+   */
+  lay: (patch: Partial<SettingsValues>) => void;
 };
 
 const Context = createContext<SettingsState | null>(null);
@@ -206,6 +224,8 @@ function eventPatch(patch: Partial<SettingsValues>) {
     out.max_upload_bytes = patch.maxUploadBytes;
   if (patch.allowVideos !== undefined) out.allow_videos = patch.allowVideos;
   if (patch.capture !== undefined) out.capture = patch.capture;
+  // Her roll, written only as a count: nothing in Settings clears it (the database keeps it for the camera's return).
+  if (patch.rollSize != null) out.roll_size = patch.rollSize;
   if (patch.developsAt !== undefined) out.develops_at = patch.developsAt;
   return out;
 }
@@ -310,6 +330,14 @@ export function SettingsProvider({
   }
 
   const values: SettingsValues = { ...base, ...overlay };
+
+  // A live word's way to its page's own control: set as the word moves her, spent as the control takes her in.
+  const [opening, setOpening] = useState<SettingsOpening | null>(null);
+
+  const lay = useCallback(
+    (patch: Partial<SettingsValues>) => setOverlay((o) => ({ ...o, ...patch })),
+    [],
+  );
 
   /**
    * One save: lay the change over the row, write it, and settle. `write` answers whether the database
@@ -545,6 +573,9 @@ export function SettingsProvider({
     saveProfile,
     saving: (key) => inFlight.has(key),
     afterSaves,
+    opening,
+    openAt: setOpening,
+    lay,
   };
 
   return <Context.Provider value={state}>{children}</Context.Provider>;

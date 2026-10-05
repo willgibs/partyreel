@@ -60,9 +60,10 @@ import { PlanLimitsCard, type LatestLimits } from "./limits-card";
 import { owedWords } from "./owed-words";
 import { readLastPruneReport, readPruneHoldReleasedAtMs } from "./prune-hold";
 import { pruneHoldView, type PruneHoldView } from "./prune-hold-view";
+import { reconcileView, type ReconcileLine } from "./reconcile-view";
 import { RestoreNowControl } from "./restore-control";
 import { restoreNowWired } from "./restore-now";
-import { restoreView } from "./restore-view";
+import { restoreView, type RestoreLine } from "./restore-view";
 import {
   SpendWatchReadings,
   SpendWatchSwitches,
@@ -169,6 +170,23 @@ function formatMinutes(minutes: number): string {
  * out, and the backlog it left is the thing to see), ahead of the six-part cut below.
  */
 const LEAD_COUNT_KEYS = ["remaining", "sweeps_stopped_early"];
+
+/**
+ * One line of a job's words (the restore's pass, the reconcile's): what waits on a person in the band's attention voice,
+ * a quiet fact muted, work done plain.
+ */
+function viewLine(line: RestoreLine | ReconcileLine) {
+  return line.tone === "attention" ? (
+    <AttentionLine key={line.text}>{line.text}</AttentionLine>
+  ) : (
+    <p
+      key={line.text}
+      className={line.tone === "quiet" ? "text-muted-foreground" : undefined}
+    >
+      {line.text}
+    </p>
+  );
+}
 
 /** A compact one-line rendering of a run's counts, so the card says what the run DID, not just that it ran. */
 function summarizeCounts(counts: JobRunRow["counts"]): string | null {
@@ -413,6 +431,11 @@ export default async function JobsPage() {
           def.id === "backup_restore"
             ? restoreView(last?.counts ?? null)
             : null;
+        // So does the reconcile's: its pass (it carries a cursor), its last whole pass, what waits on a person.
+        const reconcile =
+          def.id === "backup_reconcile"
+            ? reconcileView(last?.counts ?? null)
+            : null;
 
         return (
           <Fragment key={def.id}>
@@ -577,24 +600,34 @@ export default async function JobsPage() {
                         <div className="flex gap-2 sm:col-span-2">
                           <dt className="text-muted-foreground">Last pass</dt>
                           <dd className="min-w-0 flex-1 space-y-1">
-                            {restore.lines.map((line) =>
-                              line.tone === "attention" ? (
-                                <AttentionLine key={line.text}>
-                                  {line.text}
-                                </AttentionLine>
-                              ) : (
-                                <p
-                                  key={line.text}
-                                  className={
-                                    line.tone === "quiet"
-                                      ? "text-muted-foreground"
-                                      : undefined
-                                  }
-                                >
-                                  {line.text}
-                                </p>
-                              ),
-                            )}
+                            {restore.lines.map(viewLine)}
+                          </dd>
+                        </div>
+                      ) : null}
+                    </>
+                  ) : null}
+
+                  {reconcile ? (
+                    <>
+                      <div className="flex gap-2 sm:col-span-2">
+                        <dt className="text-muted-foreground">Pass</dt>
+                        <dd className="min-w-0 flex-1">
+                          {viewLine(reconcile.pass)}
+                        </dd>
+                      </div>
+                      <div className="flex gap-2 sm:col-span-2">
+                        <dt className="text-muted-foreground">
+                          Last full pass
+                        </dt>
+                        <dd className="min-w-0 flex-1">
+                          {viewLine(reconcile.lastPass)}
+                        </dd>
+                      </div>
+                      {reconcile.lines.length > 0 ? (
+                        <div className="flex gap-2 sm:col-span-2">
+                          <dt className="text-muted-foreground">Found</dt>
+                          <dd className="min-w-0 flex-1 space-y-1">
+                            {reconcile.lines.map(viewLine)}
                           </dd>
                         </div>
                       ) : null}
@@ -604,7 +637,8 @@ export default async function JobsPage() {
                   {counts &&
                   def.kind === "scheduled" &&
                   def.id !== "spend_watch" &&
-                  def.id !== "backup_restore" ? (
+                  def.id !== "backup_restore" &&
+                  !reconcile ? (
                     <div className="flex gap-2 sm:col-span-2">
                       <dt className="text-muted-foreground">Reported</dt>
                       <dd className="text-muted-foreground">{counts}</dd>
