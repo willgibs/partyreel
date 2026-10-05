@@ -6,8 +6,8 @@ Open this before you:
 - touch `develops_at`, `capture`, `roll_size` or `sealed_from` on `events`, or `sealed_until` on `media`;
 - change the paged album's guest scope, its validator or the doorbell;
 - change how guests add (the roll, its ceiling, a camera video's bounds) or her own withdrawal of a shot;
-- change the album's camera (`components/guest/camera/`, `lib/guest/camera/`), the host's cover, Settings' album
-  styles or the wait's clock, or what a guest meets when an album develops.
+- change the album's camera (`components/guest/camera/`, `lib/guest/camera/`), the host's cover and her hub's develop,
+  Settings' album styles or the wait's clock, or what a guest meets when an album develops.
 
 Elsewhere: the paged album, the doorbell, the album's wait as a guest sees it and its develop
 ([guest-flow.md](guest-flow.md)), the upload pipeline ([uploads-and-r2.md](uploads-and-r2.md)), the grants, the RPC
@@ -184,6 +184,20 @@ period only its floor: the held photos a switch put in the roll (and a camera's 
 restamped period) are sealed yet created before `sealed_from`, so the page reads them off the rows
 (`host-cover.server.ts`'s `readJoinedIds`) and hands them down as `joined`; `waitsOf` is the one test the count and the
 head share.
+
+**The hub develops too** (`hub-develop.tsx`, wrapping the rows in `event-gallery.tsx`'s box): her first open after the
+develop plays the guests' `DevelopSheet` in her album's place, on the guests' tokens, stylesheet and
+`pr_develop:<eventId>` mark (so a phone plays one develop once, whichever page met it first, and a develop she moves
+later plays again; [guest-flow.md](guest-flow.md)). It is decided once, as the box mounts: a cover that gives way to her
+rows at the develop (the clock, or Develop now) plays it, and a time that comes while she is looking early is owed her
+next open. Her manifest holds the roll (`hub-develop-roll.ts`: the guests' `rollOfEntries` less her hidden and held
+photographs, so both sides count the same ones), so nothing waits to land.
+- ★ Her album stands below the head, the cards and the checklist, so the sheet (held over the rows from the first byte
+  by the guests' gate script) plays once it has been in view a beat: a scroll never ends it, and a press or key ends it
+  anywhere while it plays but only inside her album while it waits.
+- `?reel` spends it unplayed; reduced motion lands developed at once (nothing held, the mark written).
+- ★ The rows' box (`[data-develop-album]`, `[data-develop-rows]`) is one tree whether or not a develop is owed, so no
+  develop remounts the grid.
 
 **The wait's clock** (`lib/disposable/use-wait-clock.ts`): every line that says when an album develops is said from now,
 in the reader's own clock and only after hydration (`wait-words.ts`, `lib/guest/camera/words.ts`), and every reader
