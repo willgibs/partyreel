@@ -51,6 +51,7 @@ Lanes merged before milestone 37 left this table: their summaries are their merg
 | `capture-time` | Will's X7: a photo keeps the time it was taken, never the place or the device: read before the strip, kept in the file's minimal EXIF, validated on the server, `media.captured_at` (migration `20261005200000_capture_time.sql`, the Advisor first), on the album's wire, naming its Drive copy | RUNNING (cut at `0ff67f0a`) | Opus, 3131 | `a2516557c94207581` |
 | `credit-watch` | the Advisor's Q33 after-steps: a leased claim answers busy, a stuck credit on /admin/accounts, the recompute's seconds, the expired-passes sweep's cost, a change-plan configuration missing a price caught (migration `20261005201000_credit_watch.sql`) | RUNNING (cut at `0ff67f0a`) | Opus, 3138 | `a4aacf9c3fb29b068` |
 | `identity-wiring` | Will's three settled identity traits into production: the halo on every focusable atom, the shrink on every action, the bright edge on everything that floats (one home each; forms untouched: identity r5 asks the set; light: brand r2) | RUNNING (cut at `6a1d56f5`) | Opus, 3136 | `af513bd6bed4eeaef` |
+| `crumbs-82` | host-dashboard r4's chooser = words, `/account`'s trail, FollowButton's slug, the Drive re-walk's small findings (the unticked box named, "deletes" gone, Sent's counts per connection, the strip's beat) and /admin's title on a non-admin 404 | RUNNING (cut at `9d64fe3f`) | Sonnet, 3139 | (spawning) |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a22be0c2878d7ab19`, this session, spawned
 for Q31 (billing-locks' migration against the live schema and milestone 36's callers). Its model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`.
@@ -102,9 +103,7 @@ Round 15, on Will's desk answers of 2026-10-04 and his brand note; the approved 
    refresh the desk, tell him. **Desk 6** = the brand applied (after brand r2's pick); **desk 7** = the moments boards
    (host-, guest-, account-moments, create-wizard r4; after identity r5's set pick).
 4. **Lanes running** (eight agents with the re-walk; memory 61% free at the eighth, weekly 51% at 20:50Z): album-order,
-   identity-r5, event-header-r5, brand-r2, capture-time, credit-watch, identity-wiring (their rows above). **Queued:**
-   crumbs-82 (host-dashboard's chooser=words and two crumbs; spec `_scratch/specs/crumbs-82.json`, port 3139), cut as a
-   seat frees. Each lane's migration goes through the Advisor (`a22be0c2878d7ab19`, this session) before the apply.
+   identity-r5, event-header-r5, brand-r2, capture-time, credit-watch, identity-wiring (their rows above). Queued: none (crumbs-82 cut when the re-walk ended). Each lane's migration goes through the Advisor (`a22be0c2878d7ab19`, this session) before the apply.
 5. **The calls lab:** AF to AP added today; X7 answered and routed (capture-time); a helper adds the later merges'
    calls (AQ onward).
 6. **Compute:** lever 3 and 3b (the CDN-cached album version) only on Will's X5; the guest page's next CPU levers
