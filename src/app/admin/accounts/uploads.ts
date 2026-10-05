@@ -48,6 +48,15 @@ export function allowanceLabel(uploads: AccountUploads): string {
   return `${formatBytes(uploads.allowanceBytes)} / ${uploads.window === "year" ? "yr" : "mo"}`;
 }
 
+/** Her window on the account's page, as a sentence: "212 MB of 300 MB", "5 GB, unmetered", or "No reading". */
+export function usedOfLabel(uploads: AccountUploads): string {
+  if (!uploads.used.ok) return NO_READING;
+  const used = formatBytes(uploads.used.value);
+  return uploads.allowanceBytes === null
+    ? `${used}, unmetered`
+    : `${used} of ${formatBytes(uploads.allowanceBytes)}`;
+}
+
 /** The row's name on the account's page: the window the allowance counts over. */
 export function windowLabel(window: AccountUploads["window"]): string {
   return window === "year" ? "Pass year" : "This month";
