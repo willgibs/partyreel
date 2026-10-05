@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useEffect, useRef, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -65,6 +65,14 @@ export function CheckoutButton({
 }: CheckoutButtonProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  // Whether the button is still on the page: a hold that outlives it never takes her to Stripe from somewhere else.
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
 
   /** The numbers where the host is looking, or in a toast that carries them. */
   function showRefusal(refusal: StorageRefusal) {
@@ -119,8 +127,9 @@ export function CheckoutButton({
             // ★ A SWITCH BELOW THIS MONTH'S UPLOADS SAYS SO BEFORE IT LEAVES (crumbs-70). The plan sheet says it on the
             // size's own card before the press; this page is tier-blind and has no card, so the route answers the
             // sentence (`uploadsPauseNote`) and it is shown here, held one reading while the button still says it is
-            // working, and hers to stop (a wait with no way out is not one the brief allows). Words, never a refusal and
-            // never a confirm: the webhook allows the switch, and she goes on unless she says otherwise.
+            // working, and hers to stop (Stay here, or simply leaving the page: a wait with no way out is not one the
+            // brief allows). Words, never a refusal and never a confirm: the webhook allows the switch, and she goes on
+            // unless she says otherwise.
             if (outcome.notice) {
               const hold = { stay: false };
               toast(outcome.notice, {
@@ -135,7 +144,7 @@ export function CheckoutButton({
               await new Promise((resolve) =>
                 setTimeout(resolve, NOTICE_HOLD_MS),
               );
-              if (hold.stay) return;
+              if (hold.stay || !mounted.current) return;
             }
             window.location.href = outcome.url;
             return;

@@ -50,7 +50,7 @@ working.
   parameter `LampLight` reads once; I did not move an exit the verdicts settled (`landing=beat`, `create=hand`).
 - **How long does the hop hold the way to Stripe for the sentence?** **Recommended, built:** the sentence as a plain toast
   and the redirect held 5 s (one reading of 22 words), the button saying it is working meanwhile and the toast carrying
-  a "Stay here" that stops it (the round's standing "potential interruptibility"): never a refusal and never a confirm
+  a "Stay here" that stops it, as does leaving the page (the round's standing "potential interruptibility"): never a refusal and never a confirm
   (the webhook allows the switch, and Stripe's page is the confirm). Will's to overrule: a Continue action on the toast
   instead (a click more, and the page never leaves mid-sentence), or no hold.
 - **The route says the sentence only for a step down in the uploads allowance** (`target.uploadsBytes <
@@ -70,6 +70,8 @@ working.
 
 - Design: the Library draws no production `Stage` in its lit state (the host-dashboard board draws its own `EmptyStage`), so
   the ignition has no specimen `lab:smoke` renders or Will can replay; one specimen with a replay key would.
+- Billing: the storage list's switch (`storage-list-body.tsx`, through `storage-source.tsx`) is a third client of
+  change-plan and says no uploads sentence either; the route's `notice` is there for it to show as the hop does.
 - At the record, delete the three ROADMAP lines this lane finished: Design's two menus (`collisionPadding={8}`), Billing's
   `/pricing` hop sentence, and Create's flag for the lit stage's lamp.
 

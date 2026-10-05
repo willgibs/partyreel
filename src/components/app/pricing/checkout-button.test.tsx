@@ -239,6 +239,22 @@ describe("a switch below this month's uploads says so before it leaves", () => {
     expect(assigned).toBe(null);
   });
 
+  it("★ does not take her to Stripe from another page once she has left this one during the hold", async () => {
+    replies["/api/stripe/checkout"] = subscribed;
+    replies["/api/stripe/change-plan"] = {
+      status: 200,
+      body: { ok: true, url: URL, notice: NOTICE },
+    };
+    const { unmount } = render(
+      <CheckoutButton planId="pro_50">Get Pro</CheckoutButton>,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Get Pro" }));
+    await waitFor(() => expect(toast).toHaveBeenCalledTimes(1));
+    unmount();
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(assigned).toBe(null);
+  });
+
   it("goes at once, with nothing said, when the route answers no sentence", async () => {
     replies["/api/stripe/checkout"] = subscribed;
     replies["/api/stripe/change-plan"] = {
