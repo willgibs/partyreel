@@ -7,6 +7,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { PICK_SETTLE_MS } from "@/components/app/event-settings/camera-settings-finish";
 import { developTimeWords } from "@/lib/disposable/develop-words";
 import { defaultDevelopAt } from "@/lib/disposable/reveal";
 
@@ -589,16 +590,257 @@ describe("a blank or half filled field is no time", () => {
   });
 });
 
-describe("closing the panel mid-edit writes nothing", () => {
-  // The date saves a finished day as the panel closes, since a date only says when. A develop time moves what guests see:
-  // a close could not ask, and the field also goes when another control clears the time (a style switch), where a late
-  // write would put a time back over her choice.
-  it("a time typed and not left is dropped with the page, whatever it was", () => {
+/**
+ * ★ A CLOSE KEEPS A TIME PLAINLY MEANT, AND NOTHING ELSE (crumbs-72, reshaped from crumbs-60's "closing the panel mid-edit
+ * writes nothing"). Escape or Back takes the page away with focus still in the field, and a field removed from the page
+ * never blurs, so a typed time was lost with it: the date field has always saved a finished day as the panel closes.
+ * What keeps crumbs-60's scar: a develop cannot be undone and a close cannot ask, so a close writes only what a blur
+ * would write unasked (a time ahead, within reach); never a year left half typed, never a past time (which a blur
+ * ASKS about), and never a time over what another control did (a style switch that cleared the time took the field with
+ * it, and a late write would put the time back over her choice). What dropped the reason that expired: "a develop time
+ * moves what guests see, a close could not ask" is now the rule of what a close writes, not a reason to write nothing.
+ */
+describe("closing the panel mid-edit keeps a time plainly meant, and nothing else", () => {
+  it("★ a time typed and not left is saved as the page closes, once", () => {
+    const onSave = mountWaiting();
+    typeInto(developField(), [["5", "2026-10-05T16:00"]]);
+    expect(onSave).not.toHaveBeenCalled();
+    cleanup();
+    expect(onSave).toHaveBeenCalledTimes(1);
+    expect(onSave).toHaveBeenCalledWith({
+      developsAt: new Date("2026-10-05T16:00").toISOString(),
+    });
+  });
+
+  it("the same where the control carries its own time (Customize's two answers, apart)", () => {
+    const onSave = mount({ developsAt: AHEAD });
+    typeInto(developField(), [["5", "2026-10-05T16:00"]]);
+    cleanup();
+    expect(onSave).toHaveBeenCalledTimes(1);
+    expect(onSave).toHaveBeenCalledWith({
+      developsAt: new Date("2026-10-05T16:00").toISOString(),
+    });
+  });
+
+  it("a time already left (or entered) is not saved twice by the close that follows", () => {
+    for (const finish of [leave, pressReturn]) {
+      const onSave = mountWaiting();
+      const field = developField();
+      typeInto(field, [["5", "2026-10-05T16:00"]]);
+      finish(field);
+      expect(onSave).toHaveBeenCalledTimes(1);
+      cleanup();
+      expect(onSave).toHaveBeenCalledTimes(1);
+    }
+  });
+
+  it("★ a year left half typed is dropped with the page, as a blur would refuse it", () => {
     const onSave = mountWaiting();
     const field = developField();
-    fireEvent.change(field, { target: { value: "2026-10-05T10:30" } });
+    const tail = field.value.slice(4);
+    typeInto(field, [
+      ["2", `0002${tail}`],
+      ["0", `0020${tail}`],
+      ["2", `0202${tail}`],
+    ]);
     cleanup();
     expect(onSave).not.toHaveBeenCalled();
+  });
+
+  it("★ a past time is dropped with the page: a blur would ask Develop now's question, and a close cannot", () => {
+    const onSave = mountWaiting();
+    fireEvent.change(developField(), {
+      target: { value: local(NOW.getTime() - DAY) },
+    });
+    cleanup();
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
+  it("an album that has developed drops a past time too, and a field left as it was writes nothing", () => {
+    const developed = mountStyles({ capture: "camera", developsAt: PAST });
+    fireEvent.change(developField(), {
+      target: { value: local(NOW.getTime() - 2 * DAY) },
+    });
+    cleanup();
+    expect(developed).not.toHaveBeenCalled();
+    const asItWas = mountWaiting();
+    fireEvent.change(developField(), {
+      target: { value: developField().value },
+    });
+    cleanup();
+    expect(asItWas).not.toHaveBeenCalled();
+  });
+
+  /** Settings' own arrangement, mounted so its saved value can follow a save as the provider's overlay does. */
+  function mountFollowing(value: Value) {
+    const onSave = vi.fn();
+    const props = {
+      rollSize: null,
+      eventDate: null,
+      heldCount: 0,
+      savingCapture: false,
+      savingReveal: false,
+      onSave,
+    };
+    const view = render(<AlbumStyles {...props} value={value} />);
+    const follow = (next: Value) =>
+      view.rerender(<AlbumStyles {...props} value={next} />);
+    return { onSave, follow };
+  }
+  const WAITING: Value = {
+    capture: "camera",
+    review: false,
+    developsAt: AHEAD,
+  };
+  const LIVE: Value = { capture: "upload", review: false, developsAt: null };
+
+  it("★ a style switch that clears the time takes a typed time with it: the close never writes it back", () => {
+    const { onSave, follow } = mountFollowing(WAITING);
+    // Typed, not left: a press on a button never blurs the field on a phone, so the time is still a draft at the switch.
+    typeInto(developField(), [["5", "2026-10-05T16:00"]]);
+    // Leaving a develop still ahead asks first; the switch is written when she answers.
+    fireEvent.click(style(/^Live/));
+    expect(onSave).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Show them now" }));
+    expect(onSave).toHaveBeenCalledTimes(1);
+    expect(onSave).toHaveBeenLastCalledWith(LIVE);
+    // The save lays itself over the row, the time is gone and its field with it; then the page closes.
+    follow(LIVE);
+    expect(screen.queryByLabelText("Develop time")).toBeNull();
+    cleanup();
+    expect(onSave).toHaveBeenCalledTimes(1);
+  });
+
+  it("the same through Customize's own answers: Right away, once its question is answered", () => {
+    const { onSave, follow } = mountFollowing(WAITING);
+    typeInto(developField(), [["5", "2026-10-05T16:00"]]);
+    fireEvent.click(
+      screen.getByRole("button", { name: /Customize how guests add/ }),
+    );
+    fireEvent.click(radio("Right away"));
+    fireEvent.click(screen.getByRole("button", { name: "Show them now" }));
+    expect(onSave).toHaveBeenCalledTimes(1);
+    expect(onSave).toHaveBeenLastCalledWith({
+      review: false,
+      developsAt: null,
+    });
+    follow({ ...LIVE, capture: "camera" });
+    cleanup();
+    expect(onSave).toHaveBeenCalledTimes(1);
+  });
+
+  it("a switch back to Disposable starts the field clean: no old draft, words or question returns with it", () => {
+    const { onSave, follow } = mountFollowing(WAITING);
+    const field = developField();
+    const saved = field.value;
+    fireEvent.change(field, { target: { value: local(NOW.getTime() - DAY) } });
+    leave(field);
+    expect(screen.getByText(DEVELOP_NOW_LINE)).toBeInTheDocument();
+    fireEvent.click(style(/^Live/));
+    fireEvent.click(screen.getByRole("button", { name: "Show them now" }));
+    follow(LIVE);
+    fireEvent.click(style(/^Disposable/));
+    expect(onSave).toHaveBeenCalledTimes(2);
+    follow(WAITING);
+    expect(screen.queryByText(DEVELOP_NOW_LINE)).toBeNull();
+    expect(developField().value).toBe(saved);
+    expect(developField()).not.toHaveAttribute("aria-invalid");
+  });
+});
+
+/**
+ * ★ A PICKER'S CHOICE SAVES A BEAT AFTER IT (crumbs-72, the date field's own beat): a phone's picker may never blur the
+ * field, so a time picked there waited for a leaving that did not come. A change no key made is a picker's; it is
+ * judged once it has rested, exactly as a leaving would judge it, and a wheel that reports every notch it turns commits
+ * the one it rests on. A change a key made (typing, an arrow) always waits to be left.
+ */
+describe("a picker's choice saves a beat after it, with no leaving", () => {
+  const rest = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+  it("★ saves a time picked and never left, once it has rested", async () => {
+    const onSave = mountWaiting();
+    fireEvent.change(developField(), { target: { value: "2026-10-05T10:30" } });
+    expect(onSave).not.toHaveBeenCalled();
+    await rest(PICK_SETTLE_MS + 100);
+    expect(onSave).toHaveBeenCalledTimes(1);
+    expect(onSave).toHaveBeenCalledWith({
+      developsAt: new Date("2026-10-05T10:30").toISOString(),
+    });
+  });
+
+  it("a wheel's every notch is one save, the time it rests on", async () => {
+    const onSave = mountWaiting();
+    const field = developField();
+    for (const time of [
+      "2026-10-05T09:00",
+      "2026-10-05T10:00",
+      "2026-10-05T11:00",
+    ]) {
+      fireEvent.change(field, { target: { value: time } });
+    }
+    await rest(PICK_SETTLE_MS - 100);
+    expect(onSave).not.toHaveBeenCalled();
+    await rest(200);
+    expect(onSave).toHaveBeenCalledTimes(1);
+    expect(onSave).toHaveBeenCalledWith({
+      developsAt: new Date("2026-10-05T11:00").toISOString(),
+    });
+  });
+
+  it("a change a key made never saves on the beat, only when she leaves", async () => {
+    const onSave = mountWaiting();
+    const field = developField();
+    typeInto(field, [["5", "2026-10-05T16:00"]]);
+    await rest(PICK_SETTLE_MS + 100);
+    expect(onSave).not.toHaveBeenCalled();
+    leave(field);
+    expect(onSave).toHaveBeenCalledTimes(1);
+  });
+
+  it("★ a picked past time asks Develop now's question when it has rested, and writes nothing", async () => {
+    const onSave = mountWaiting();
+    fireEvent.change(developField(), {
+      target: { value: local(NOW.getTime() - DAY) },
+    });
+    await rest(PICK_SETTLE_MS + 100);
+    expect(screen.getByText(DEVELOP_NOW_LINE)).toBeInTheDocument();
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
+  it("a picked time beyond a year says so in words, and writes nothing", async () => {
+    const onSave = mountWaiting();
+    fireEvent.change(developField(), { target: { value: "2028-10-05T10:30" } });
+    await rest(PICK_SETTLE_MS + 100);
+    expect(screen.getByText("Pick a time within a year.")).toBeInTheDocument();
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
+  it("a cleared field is never saved by the beat, only by leaving: it says to finish it", async () => {
+    const onSave = mountWaiting();
+    const field = developField();
+    fireEvent.change(field, { target: { value: "" } });
+    await rest(PICK_SETTLE_MS + 100);
+    expect(screen.queryByText("Finish the time, or pick another.")).toBeNull();
+    leave(field);
+    expect(
+      screen.getByText("Finish the time, or pick another."),
+    ).toBeInTheDocument();
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
+  it("★ a save on its way never disables the field: a picker still open would close under her mid-pick", () => {
+    render(
+      <AlbumStyles
+        value={{ capture: "camera", review: false, developsAt: AHEAD }}
+        rollSize={null}
+        eventDate={null}
+        heldCount={0}
+        savingCapture={false}
+        savingReveal
+        onSave={vi.fn()}
+      />,
+    );
+    expect(developField()).not.toBeDisabled();
   });
 });
 
