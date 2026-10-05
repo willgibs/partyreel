@@ -202,4 +202,35 @@ describe("sweepInactiveFreeEvents", () => {
       rows_failed: 0,
     });
   });
+
+  it("★ lets a kept removal notice go only while its event still sits in Deleted (never after she restored it)", async () => {
+    const idle = { tier: "free", last_active_at: LONG_AGO };
+    const removed = event(uuidOf("x", 1), LONG_AGO, idle, {
+      deleted_at: RECENT,
+    });
+    // Back in her albums, and touched as she restored it (so tonight's sweep has nothing to say of it either).
+    const restored = event(uuidOf("x", 2), RECENT, idle, {
+      deleted_at: null,
+    });
+    const world = createCronWorld({ events: [removed, restored], media: [] });
+    state.world = world;
+    await sweepInactiveFreeEvents(world.client, NOW);
+
+    const [args] = vi.mocked(retryParkedNotices).mock.calls[0];
+    const ask = (dedupeKey: string) =>
+      args.stillTrue?.({
+        kind: "inactivity_removed",
+        dedupeKey,
+        profileId: uuidOf("h", 1),
+      });
+    expect(await ask(String(removed.id))).toBe(true);
+    expect(await ask(String(restored.id))).toBe(false);
+    // An event the purge has taken since is no more to tell of.
+    expect(await ask(uuidOf("x", 3))).toBe(false);
+    // An event that cannot be read is no answer: the retry keeps the notice and says so.
+    delete (world.fake.tables as Record<string, unknown>).events;
+    await expect(ask(String(removed.id))).rejects.toThrow(
+      /a kept removal notice's event/,
+    );
+  });
 });

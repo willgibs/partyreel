@@ -290,20 +290,47 @@ export async function reduceToCap(
   return { done: true, removed };
 }
 
+/**
+ * IS A KEPT GRACE-START NOTICE STILL SO? Its key names the grace it announced (`<profile>:<the grace's end>`, as the
+ * sweep opens one), so it goes only while that very grace stands and she still keeps past her write line, by this
+ * run's candidate read: a grace cleared since (she upgraded, or freed room for good), or one she has come back inside
+ * (which this very run then clears), is never announced late.
+ */
+export function graceNoticeStillTrue(
+  notice: { dedupeKey: string; profileId: string },
+  candidates: readonly OverCapCandidate[],
+): boolean {
+  const c = candidates.find((row) => row.id === notice.profileId);
+  if (!c?.storage_grace_until) return false;
+  const announced = `${c.id}:${new Date(c.storage_grace_until).toISOString()}`;
+  if (notice.dedupeKey !== announced) return false;
+  const cap = effectiveStorageCap(toBillingTier(c.tier), c.storage_cap_bytes);
+  return (
+    cap !== null &&
+    c.active_bytes + c.deleted_bytes - c.system_bytes >
+      capWithWriteHeadroom(cap)
+  );
+}
+
 export async function sweepOverCapacity(
   admin: AdminClient,
   now: Date,
   opts: { deadline?: Deadline; resumeAfter?: string | null } = {},
 ): Promise<OverCapacityTally> {
   const deadline = opts.deadline ?? NO_DEADLINE;
-  // First, the grace and reduce notices an earlier run could not send. It never throws, and its failures are the
-  // mail signal's (`email_delivery`), so they ride the tally without failing the sweep.
+  const candidates = await readOverCapCandidates(admin);
+  // Then the grace and reduce notices an earlier run could not send. It never throws, and its failures are the mail
+  // signal's (`email_delivery`), so they ride the tally without failing the sweep. A grace's start goes only while
+  // that grace still stands and she still keeps past her line (`graceNoticeStillTrue`, judged on this run's read);
+  // the reduce's always goes, since it says what was done.
   const notices = await retryParkedNotices({
     kinds: ["over_cap_grace_start", "over_cap_reduced"],
     now,
     stopWhen: () => deadline.passed(),
+    stillTrue: (notice) =>
+      notice.kind !== "over_cap_grace_start" ||
+      graceNoticeStillTrue(notice, candidates),
   });
-  const candidates = await readOverCapCandidates(admin);
   const dashboardUrl = `${await getSiteUrl()}/dashboard`;
   let graceOpened = 0;
   let reminded = 0;

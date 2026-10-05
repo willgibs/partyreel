@@ -144,11 +144,23 @@ export async function sweepInactiveFreeEvents(
   const nowMs = now.getTime();
   const dashboardUrl = `${await getSiteUrl()}/dashboard`;
   // First, the removal notices an earlier run could not send. It never throws, and its failures are the mail
-  // signal's (`email_delivery`), so they ride the tally without failing the sweep.
+  // signal's (`email_delivery`), so they ride the tally without failing the sweep. Each goes only while its event
+  // (the notice's key) still sits in Deleted: one she restored meanwhile is let go, never told she lost it.
   const notices = await retryParkedNotices({
     kinds: ["inactivity_removed"],
     now,
     stopWhen: () => deadline.passed(),
+    stillTrue: async ({ dedupeKey }) => {
+      const event = await mustQuery(
+        admin
+          .from("events")
+          .select("deleted_at")
+          .eq("id", dedupeKey)
+          .maybeSingle(),
+        "cron/purge: a kept removal notice's event",
+      );
+      return event?.deleted_at != null;
+    },
   });
   let warned = 0;
   let removed = 0;

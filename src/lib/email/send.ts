@@ -238,7 +238,10 @@ export type NoticeRetryTally = {
   notices_resent: number;
   /** Retries that failed again: each still kept, and recorded in `email_delivery`. */
   notices_failed: number;
-  /** Kept notices let go unsent: given up past `NOTICE_RETRY_DAYS` (recorded), or their account has no address left. */
+  /**
+   * Kept notices let go unsent: given up past `NOTICE_RETRY_DAYS` (recorded), their account has no address left, or
+   * what they say is no longer so (`stillTrue`).
+   */
   notices_dropped: number;
 };
 
@@ -252,17 +255,29 @@ type KeptNotice = {
   first_failed_at: string;
 };
 
+/** What a sweep is asked about a kept notice before it goes again: the notice by its key, and whose it is. */
+export type KeptNoticeKey = {
+  kind: StateNotice;
+  dedupeKey: string;
+  profileId: string;
+};
+
 /**
  * THE RETRY: each kept notice of these kinds, oldest first, sent again through `sendOnce` (so the claim keeps it
  * single: one another run's retry already sent answers false and is simply let go), and let go once it went. Called by
  * the sweep that owns the kinds, first thing in its run, so its switch stops the retries with the sweep, and under its
  * deadline (`stopWhen`). Never throws: every failure is recorded in `email_delivery` (a refused send by `sendOnce`
  * itself, anything else here), and three in a row stop it for the night.
+ *
+ * ★ A NOTICE GOES ONLY WHILE WHAT IT SAYS IS STILL SO (`stillTrue`, the sweep's own answer): a day late, "your event
+ * is in Deleted" to a host who has restored it, or "you are over your plan" to one who has since upgraded, would be a
+ * wrong mail, worse than none. One that is no longer so is let go quietly: nothing failed, the state moved on.
  */
 export async function retryParkedNotices(opts: {
   kinds: readonly StateNotice[];
   now: Date;
   stopWhen?: () => boolean;
+  stillTrue?: (notice: KeptNoticeKey) => boolean | Promise<boolean>;
 }): Promise<NoticeRetryTally> {
   const tally: NoticeRetryTally = {
     notices_resent: 0,
@@ -309,6 +324,19 @@ export async function retryParkedNotices(opts: {
         new Error("a kept notice never sent"),
         n.kind,
       );
+      return;
+    }
+    if (
+      opts.stillTrue &&
+      !(await opts.stillTrue({
+        kind: n.kind,
+        dedupeKey: n.dedupe_key,
+        profileId: n.profile_id,
+      }))
+    ) {
+      // What it says is no longer so (her event is back, her grace has cleared): a wrong mail is worse than none.
+      await letGo(n);
+      tally.notices_dropped += 1;
       return;
     }
     const { data: profile, error } = await admin

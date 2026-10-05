@@ -478,6 +478,67 @@ describe("★ retryParkedNotices", () => {
       }),
     );
   });
+
+  // ★ A late notice must still be true: "your event is in Deleted" to a host who restored it, or "you are over your
+  // plan" to one who upgraded, is a wrong mail, worse than none.
+  it("★ lets a notice go quietly when its sweep says what it says is no longer so, asking by the notice's own key", async () => {
+    const fake = world({
+      notice_retries: [
+        keptRow({ dedupe_key: "restored" }),
+        keptRow({ dedupe_key: "still-deleted" }),
+      ],
+    });
+    const asked: unknown[] = [];
+    const tally = await retryParkedNotices({
+      kinds: ["inactivity_removed"],
+      now: NOW,
+      stillTrue: (notice) => {
+        asked.push(notice);
+        return notice.dedupeKey !== "restored";
+      },
+    });
+    expect(tally).toEqual({
+      notices_resent: 1,
+      notices_failed: 0,
+      notices_dropped: 1,
+    });
+    expect(asked).toEqual([
+      { kind: "inactivity_removed", dedupeKey: "restored", profileId: HOST },
+      {
+        kind: "inactivity_removed",
+        dedupeKey: "still-deleted",
+        profileId: HOST,
+      },
+    ]);
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(fake.tables.notice_retries).toEqual([]);
+    // Nothing failed: the state moved on.
+    expect(recordSignalFailure).not.toHaveBeenCalled();
+  });
+
+  it("keeps a notice whose sweep could not say whether it is still so, and says so once", async () => {
+    const fake = world({ notice_retries: [keptRow()] });
+    const tally = await retryParkedNotices({
+      kinds: ["inactivity_removed"],
+      now: NOW,
+      stillTrue: () => {
+        throw new Error("the event could not be read");
+      },
+    });
+    expect(tally).toEqual({
+      notices_resent: 0,
+      notices_failed: 1,
+      notices_dropped: 0,
+    });
+    expect(send).not.toHaveBeenCalled();
+    expect(fake.tables.notice_retries).toHaveLength(1);
+    expect(recordSignalFailure).toHaveBeenCalledTimes(1);
+    expect(recordSignalFailure).toHaveBeenCalledWith(
+      expect.objectContaining({
+        operation: "notice retry (inactivity_removed)",
+      }),
+    );
+  });
 });
 
 /**

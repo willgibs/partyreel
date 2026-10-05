@@ -56,8 +56,10 @@ vi.mock("@/lib/email/send", () => ({
 }));
 
 const { retryParkedNotices, sendOnce } = await import("@/lib/email/send");
-const { CANDIDATE_PAGE, sweepOverCapacity } =
+const { CANDIDATE_PAGE, graceNoticeStillTrue, sweepOverCapacity } =
   await import("@/lib/lifecycle/sweeps/over-capacity");
+type OverCapCandidate =
+  import("@/lib/lifecycle/sweeps/over-capacity").OverCapCandidate;
 
 const NOW = new Date("2026-09-23T04:00:00.000Z");
 const MB = 1024 ** 2;
@@ -536,8 +538,8 @@ describe("sweepOverCapacity", () => {
   });
 
   // ★ crumbs-75: the grace's start and the reduce are mailed after the state moved, so a send that failed is kept and
-  // this sweep, their only sender, retries them first, under its own switch and deadline.
-  it("★ retries its two kept notices first, under its deadline, and carries their tally without failing", async () => {
+  // this sweep, their only sender, retries them before any mail of its own, under its own switch and deadline.
+  it("★ retries its two kept notices before its own mail, under its deadline, and carries their tally without failing", async () => {
     const { world } = fixture();
     state.retried = {
       notices_resent: 1,
@@ -561,6 +563,117 @@ describe("sweepOverCapacity", () => {
       notices_dropped: 0,
       rows_failed: 0,
     });
+  });
+
+  // ★ A late grace-start must still be so: "you are over your plan" to a host who upgraded the day after is a wrong
+  // mail. The retry asks this run's own candidate read, before the run clears what it clears.
+  it("★ announces a kept grace's start only while that very grace stands and she still keeps past her line", async () => {
+    const { world, reminded, clears, opens } = fixture();
+    await sweepOverCapacity(world.client, NOW);
+    const [args] = vi.mocked(retryParkedNotices).mock.calls[0];
+    const ask = (
+      kind: Parameters<NonNullable<typeof args.stillTrue>>[0]["kind"],
+      profileId: unknown,
+      at: string,
+    ) =>
+      args.stillTrue?.({
+        kind,
+        dedupeKey: `${String(profileId)}:${new Date(at).toISOString()}`,
+        profileId: String(profileId),
+      });
+    // In a grace and keeping 20,000 past an 11,000 line: still so.
+    expect(
+      await ask(
+        "over_cap_grace_start",
+        reminded.id,
+        "2026-09-26T00:00:00.000000+00:00",
+      ),
+    ).toBe(true);
+    // A grace other than the one announced (a later one opened since): not this notice's.
+    expect(
+      await ask(
+        "over_cap_grace_start",
+        reminded.id,
+        "2026-09-27T00:00:00.000000+00:00",
+      ),
+    ).toBe(false);
+    // In a grace but keeping nothing (she freed room for good; this run clears it): no longer so.
+    expect(
+      await ask(
+        "over_cap_grace_start",
+        clears.id,
+        "2026-10-30T00:00:00.000000+00:00",
+      ),
+    ).toBe(false);
+    // No grace on the read at all (this run's read came before it opened one): nothing to announce late.
+    expect(
+      await ask("over_cap_grace_start", opens.id, "2026-11-07T04:00:00.000Z"),
+    ).toBe(false);
+    // The reduce's notice says what was done, so it always goes.
+    expect(
+      await ask(
+        "over_cap_reduced",
+        clears.id,
+        "2026-10-30T00:00:00.000000+00:00",
+      ),
+    ).toBe(true);
+  });
+});
+
+describe("graceNoticeStillTrue", () => {
+  const G = "2026-10-30T04:00:00.123+00:00";
+  const host = (over: Partial<OverCapCandidate>): OverCapCandidate => ({
+    id: "11111111-1111-4111-8111-111111111111",
+    email: "h@example.com",
+    tier: "pro",
+    storage_cap_bytes: CAP,
+    storage_grace_until: G,
+    active_bytes: 2 * CAP,
+    deleted_bytes: 0,
+    system_bytes: 0,
+    ...over,
+  });
+  const key = (c: OverCapCandidate, at = G) => ({
+    dedupeKey: `${c.id}:${new Date(at).toISOString()}`,
+    profileId: c.id,
+  });
+
+  it("reads the grace it announced to the millisecond, as the sweep keyed it", () => {
+    const c = host({});
+    expect(graceNoticeStillTrue(key(c), [c])).toBe(true);
+    expect(graceNoticeStillTrue(key(c, "2026-10-30T04:00:00.124Z"), [c])).toBe(
+      false,
+    );
+  });
+
+  it("judges what she keeps, the reduce's own removals left out, against her write line", () => {
+    // 11,000 of her own on a 10,000 cap: inside the tenth, so no longer over.
+    expect(
+      graceNoticeStillTrue(key(host({ active_bytes: 11_000 })), [
+        host({ active_bytes: 11_000 }),
+      ]),
+    ).toBe(false);
+    // Over only by the system's removals: not hers to be told about.
+    const reduced = host({
+      active_bytes: 9_000,
+      deleted_bytes: 5_000,
+      system_bytes: 5_000,
+    });
+    expect(graceNoticeStillTrue(key(reduced), [reduced])).toBe(false);
+    // Her own Deleted counts.
+    const deleted = host({ active_bytes: 9_000, deleted_bytes: 5_000 });
+    expect(graceNoticeStillTrue(key(deleted), [deleted])).toBe(true);
+  });
+
+  it("never announces a grace that cleared, an unlimited plan, or an account not on the read", () => {
+    const c = host({});
+    expect(
+      graceNoticeStillTrue(key(c), [host({ storage_grace_until: null })]),
+    ).toBe(false);
+    expect(
+      graceNoticeStillTrue(key(c), [host({ storage_cap_bytes: null })]),
+    ).toBe(false);
+    expect(graceNoticeStillTrue(key(c), [])).toBe(false);
   });
 });
 

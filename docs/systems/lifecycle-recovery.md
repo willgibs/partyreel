@@ -51,6 +51,11 @@ PostgREST fake.
   (`purge_media_now`) through its own wrapper. The rows go through `purge_media_rows` (service role only; it never
   deletes a held row and decrements `storage_used_bytes` atomically), at most `MAX_ROWS` ids a call and one call at a
   time (`reclaim.ts` says why).
+- ★ **An event row goes in a statement of its own, in event-id order** (`deleteEventsInIdOrder`,
+  `sweeps/delete-events.ts`, both `expired_events` and `deleted_accounts`), the deadline asked between two: its
+  cascade takes the album's `album_state` and `album_changes` rows, and one DELETE of a batch took them in its plan's
+  order against `album_log`'s prune, which takes them album by album in event-id order, so overlapping runs could
+  deadlock. A request an event costs a few tens of milliseconds; a large account's events may take more than a night.
 - ★ **Held media is excluded from every hard-delete path;** the rule and how each sweep keeps it are in
   [trust-safety-forensics.md](trust-safety-forensics.md).
 
@@ -146,6 +151,10 @@ PostgREST fake.
   window unless an upload needs their room first), with an email saying which happened; back under, the grace clears.
   A reduce the deadline stops part way keeps its grace, sends no mail and is the next run's first account, and a due
   grace finishes to the real cap even inside the headroom, so no reduce is cleared half done.
+  ★ Its candidates are exactly the accounts with something to do, one SQL read a page (`over_capacity_candidates`, a
+  page of 100, keyset on id): a grace standing, or kept bytes past her own line, each with the `host_storage_summary`
+  it was judged on, so no account costs a call of its own. The meter (`storage_used_bytes`, which kept bytes never pass)
+  decides who is summed at all, so the paying hosts well inside their plans are never summed.
 - **Renewal:** an Event Pass holder is nudged ahead of expiry (`RENEWAL_NUDGE_DAYS`, shared with the bell), unless
   they turned Event Pass reminders off (`notification_prefs.notify_pass_renewal`, read through
   `resolveNotificationPrefs` before any send; a failed read stops the sweep rather than guess); its button opens
@@ -166,10 +175,16 @@ PostgREST fake.
   Resend is hit at most once per state, which keeps inside the free tier's 3,000 a month; while lifecycle mail is
   paused (the spend watch's switch), the mail a sweep re-sends is held before the claim and goes the first night after
   ([admin-observability.md](admin-observability.md) "The spend watch"). A failed send releases the claim and never
-  double-sends, so a mail its sweep re-sends while the state lasts retries next run, but a one-time notice
-  (`STATE_NOTICES`), sent after its sweep has moved the state, is lost. A failed claim or send records into the
-  `email_delivery` signal (a Sentry event and one throttled `job_runs` row `/admin/jobs` reads) before it throws, so a
-  refused address never looks like a healthy night.
+  double-sends, so a mail its sweep re-sends while the state lasts retries next run. A failed claim or send records into
+  the `email_delivery` signal (a Sentry event and one throttled `job_runs` row `/admin/jobs` reads) before it throws, so
+  a refused address never looks like a healthy night.
+- ★ **A one-time notice (`STATE_NOTICES`) is kept until it sends:** sent after its sweep has moved the state, its sweep
+  never sends it again, so a failed claim or send keeps it (`notice_retries`: the rendered mail and whose it is, never
+  the address, read from her profile at each try) and the sweep that owns the kind retries it first thing each night
+  (`retryParkedNotices`) through the same claim, only while what it says is still so (her event still in Deleted; her
+  grace still the one announced, and she still past her line, by that run's candidate read), letting it go once it
+  went and giving it up, recorded, `NOTICE_RETRY_DAYS` (30) after its first failure. Its failures are the mail signal's,
+  never the sweep's run; `/admin/jobs` counts what waits and since when (the email card's owed line).
 - ★ **Every fallible call sits above the claim** (`assertResendEnv()`, `getResend()`): only a Resend send error
   releases the row, so a throw between the claim and the send burns that `(kind, dedupe_key)` for good, one
   permanently unsendable warning per host, fixable only by a manual DELETE.
