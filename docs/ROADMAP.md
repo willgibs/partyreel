@@ -17,6 +17,7 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Now: if Will overrules Question 3, hold the door's Sending step while files go and the keep is due (the entry-modal line is in the Question).
 - Now: "Guests: the failure sheet's Retry all re-queues its files one at a time and each call runs the queue (`use-upload-queue.ts`'s `retry`), so the first run takes a burst of one: a dropped burst's Try again is two completes where one would do (walked, uploads-idempotent); re-queue the list, then run the queue once."
 - Now: "Uploads: a burst boundary (past 20 files, 1 GiB, or a pick made while a burst goes) waits for the last burst's complete before the next burst's first file prepares and presigns (the queue awaits `uploadBurst` whole); start the next burst once the last one's bytes are up."
 - Trust & safety: "Delete our copy from her Drive", an audited operator act for a takedown of an item a send delivered (it needs the connection's key at the time; written to `forensic_audit_log`).
