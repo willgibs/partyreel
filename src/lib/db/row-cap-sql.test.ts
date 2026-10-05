@@ -15,19 +15,24 @@
  * A function that returns one value (a scalar, a jsonb, a uuid[]) is not set-returning at all, which is
  * how this round answers counts, covers, holds and metrics.
  *
- * ★ DROP-AWARE. `migration-guards.test.ts`' latestDefinition sees only `create` statements, so a
- * function that a later file drops (20260923130000 drops `get_saved_events`) would still look alive
- * there. This reader replays creates AND drops in file order, so the list below is what the live
- * database holds, and each allow-list entry must still describe a live function (a stale entry fails,
- * the way a baseline that may only shrink does).
+ * ★ DROP-AWARE. The reader is `testing/migrations.ts`, shared with `migration-guards.test.ts` and
+ * `row-cap-policy.test.ts`: it replays creates AND drops in file order, so a function that a later file
+ * drops (20260923130000 drops `get_saved_events`) is not live, and the list below is what the live
+ * database holds. Each allow-list entry must still describe a live function (a stale entry fails, the
+ * way a baseline that may only shrink does).
  */
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import {
+  executableMigrations,
+  liveFunctions,
+  type SqlFunction,
+} from "@/lib/db/testing/migrations";
+
 const ROOT = join(__dirname, "..", "..", "..");
-const MIGRATIONS_DIR = join(ROOT, "supabase", "migrations");
 
 /** The live cap, read from the one place it is declared for this project. */
 const MAX_ROWS = (() => {
@@ -74,96 +79,18 @@ const INTERNAL: Record<string, string> = {
     "her Deleted item by item (trash-in-storage), summed inside host_storage_summary and drained inside leave_deleted, both SECURITY DEFINER; the owner's EXECUTE alone",
 };
 
-type Definition = {
-  file: string;
-  /** From `create` to the body's closing dollar-quote, comments stripped, whitespace collapsed. */
-  sql: string;
-  /** The parameter list between the name's parens. */
-  params: string;
-  /** What follows RETURNS, up to the language/volatility clauses. */
-  returns: string;
-};
-
-/** Strip `--` comments (a quoted example is not code) and collapse whitespace. */
-function executable(sql: string): string {
-  return sql.replace(/--[^\n]*/g, "").replace(/\s+/g, " ");
-}
-
-/** The index of the paren that closes the one opened at `open`. */
-function closingParen(sql: string, open: number): number {
-  let depth = 0;
-  for (let i = open; i < sql.length; i++) {
-    if (sql[i] === "(") depth++;
-    else if (sql[i] === ")" && --depth === 0) return i;
-  }
-  return -1;
-}
-
 /**
- * Every public function the migration set leaves standing, by name, with its winning definition:
- * creates and drops replayed statement by statement in file order.
+ * Every public function the migration set leaves standing, by name. The set leaves each name one function
+ * (`testing/migrations.test.ts` pins it), so a name is the key the rules below read.
  */
-function liveFunctions(): Map<string, Definition> {
-  const live = new Map<string, Definition>();
-  const files = readdirSync(MIGRATIONS_DIR)
-    .filter((f) => f.endsWith(".sql"))
-    .sort();
-  const statement =
-    /\b(create (?:or replace )?function|drop function(?: if exists)?) public\.([a-z_0-9]+) ?\(/g;
-  for (const file of files) {
-    const sql = executable(readFileSync(join(MIGRATIONS_DIR, file), "utf8"));
-    for (const match of sql.matchAll(statement)) {
-      const [, verb, name] = match;
-      if (verb.startsWith("drop")) {
-        live.delete(name);
-        continue;
-      }
-      const open = match.index! + match[0].length - 1;
-      const close = closingParen(sql, open);
-      expect(
-        close,
-        `${file}: ${name}'s parameter list never closes`,
-      ).toBeGreaterThan(open);
-      const rest = sql.slice(close + 1);
-      const opener = rest.match(/ as (\$[a-z_]*\$)/);
-      expect(
-        opener,
-        `${file}: ${name} has no dollar-quoted body`,
-      ).not.toBeNull();
-      const bodyEnd = rest.indexOf(
-        opener![1],
-        opener!.index! + opener![0].length,
-      );
-      expect(bodyEnd, `${file}: ${name}'s body never closes`).toBeGreaterThan(
-        0,
-      );
-      const returns = rest.match(
-        /^ returns (.*?) (?:language|stable|immutable|volatile|security|set) /,
-      );
-      live.set(name, {
-        file,
-        sql:
-          sql.slice(match.index!, close + 1) +
-          rest.slice(0, bodyEnd + opener![1].length),
-        params: sql.slice(open + 1, close).trim(),
-        returns: returns ? returns[1] : "",
-      });
-    }
-  }
-  return live;
-}
-
-const LIVE = liveFunctions();
+const LIVE = new Map(liveFunctions().map((f) => [f.name, f]));
 
 /**
  * Whether no role PostgREST serves can call this function, replayed across the set: some file revokes its EXECUTE
  * from public, anon, authenticated AND the service role, and no file grants it to anyone.
  */
 function ownerOnly(name: string): boolean {
-  const sqls = readdirSync(MIGRATIONS_DIR)
-    .filter((f) => f.endsWith(".sql"))
-    .sort()
-    .map((f) => executable(readFileSync(join(MIGRATIONS_DIR, f), "utf8")));
+  const sqls = executableMigrations().map(({ sql }) => sql);
   const revoked = new RegExp(
     `revoke (?:all|execute) on function public\\.${name}\\([^)]*\\) from public, anon, authenticated, service_role;`,
   );
@@ -176,9 +103,10 @@ function ownerOnly(name: string): boolean {
 const setReturning = [...LIVE].filter(([, d]) =>
   /^(table|setof)\b/.test(d.returns),
 );
-const takesLimit = (d: Definition) =>
+const takesLimit = (d: SqlFunction) =>
   /\bp_limit (?:integer|int)\b/.test(d.params);
-const clamps = (d: Definition) => d.sql.includes(`least(p_limit, ${MAX_ROWS})`);
+const clamps = (d: SqlFunction) =>
+  d.code.includes(`least(p_limit, ${MAX_ROWS})`);
 
 describe("the reader replays the set the way the database does", () => {
   it("is drop-aware: a function a later file drops is not live", () => {
@@ -202,6 +130,10 @@ describe("the reader replays the set the way the database does", () => {
       "p_after_at timestamptz default null, p_after_id uuid default null, p_limit integer default null",
     );
     expect(LIVE.get("event_covers")?.returns).toBe("jsonb");
+  });
+
+  it("holds each name once: two live overloads of a name would hide one from every rule below", () => {
+    expect(LIVE.size).toBe(liveFunctions().length);
   });
 
   it("finds a real population of set-returning functions (the scan is not vacuous)", () => {
@@ -278,7 +210,7 @@ describe("a NULL p_limit on a paged function means 'no limit', never a silent 1,
   for (const [name, def] of setReturning) {
     if (!takesLimit(def) || name in CALLER_BOUNDED) continue;
     it(name, () => {
-      expect(def.sql).toContain(
+      expect(def.code).toContain(
         `limit case when p_limit is null then null else least(p_limit, ${MAX_ROWS}) end`,
       );
       expect(def.params).toContain("p_limit integer default null");

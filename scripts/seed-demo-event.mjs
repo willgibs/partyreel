@@ -147,9 +147,11 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://partyreel.com";
 // --- shared single-sources (imported, never re-implemented) -----------------
 
 // Node >= 22.18 type-strips .ts imports natively (.nvmrc pins 22.21.1), the same trick
-// backfill-strip-exif.mjs uses. Only leaf modules work: a .ts file with a RUNTIME `@/...` or
-// extensionless relative import cannot resolve here (that is why classifyMime is rebuilt below
-// from limits.ts's own arrays rather than imported from validators.ts).
+// backfill-strip-exif.mjs uses. Only a module whose RUNTIME imports are `.ts` files named in full
+// loads here: a `@/...` or extensionless relative import cannot resolve (that is why classifyMime
+// is rebuilt below from limits.ts's own arrays rather than imported from validators.ts, and why
+// read-all.ts spells its one import `./must-query.ts`; src/lib/db/testing/script-imports.test.ts
+// loads every module imported here).
 let mediaObjectKey,
   parseMediaIdFromKey,
   ACCEPTED_PHOTO_MIME,
@@ -161,7 +163,9 @@ let mediaObjectKey,
   previewTargetSize,
   shouldSkipPreview,
   stripMetadataBytes,
-  readJpegOrientation;
+  readJpegOrientation,
+  readAllPages,
+  MAX_ROWS;
 try {
   ({ mediaObjectKey, parseMediaIdFromKey } = await import(
     new URL("../src/lib/r2/keys.ts", import.meta.url)
@@ -178,6 +182,9 @@ try {
   ));
   ({ stripMetadataBytes, readJpegOrientation } = await import(
     new URL("../src/lib/media/strip-metadata.ts", import.meta.url)
+  ));
+  ({ readAllPages, MAX_ROWS } = await import(
+    new URL("../src/lib/db/read-all.ts", import.meta.url)
   ));
 } catch (e) {
   console.error(
@@ -235,35 +242,17 @@ const fmt = (n) => n.toLocaleString("en-US");
 const mb = (n) => `${(n / 1024 / 1024).toFixed(2)} MB`;
 
 /**
- * PostgREST's `max_rows` on this project (1,000): read-all.ts's MAX_ROWS, pinned there to
- * supabase/config.toml. One read never returns more, and it cuts with no error, so every list below
- * pages, and every id list handed to purge_media_rows stops at it too.
- */
-const PAGE = 1000;
-
-/**
- * Read a list to its last row, one keyset page at a time: `readAllPages` (src/lib/db/read-all.ts)
- * in miniature, because that module imports `@/lib/db/must-query` at runtime, which plain Node cannot
- * resolve (the note on the single-sources above). Its rules, kept: `page(after)` builds a FRESH query
- * ending in `.limit(PAGE)`, a page shorter than PAGE is the last, and an error, an over-long page or a
- * cursor that did not advance stops the run rather than reading on or looping.
+ * Read a list to its last row, one keyset page at a time, through the app's own `readAllPages`
+ * (src/lib/db/read-all.ts, whose header has the rules): PostgREST cuts a read at `MAX_ROWS` (1,000) with no
+ * error, so every list below pages. `page(after, limit)` builds a FRESH query ending in `.limit(limit)`. An
+ * error, an over-long page or a cursor that did not advance throws there, and this stops the run with the
+ * label's words rather than reading on or looping.
  */
 async function readAllRows(label, page, keyOf) {
-  const rows = [];
-  let after = null;
-  for (;;) {
-    const { data, error } = await page(after);
-    if (error) fail(`${label}: ${error.message}`);
-    const batch = data ?? [];
-    if (batch.length > PAGE)
-      fail(
-        `${label}: a page returned ${batch.length} rows for a limit of ${PAGE}`,
-      );
-    rows.push(...batch);
-    if (batch.length < PAGE) return rows;
-    const next = keyOf(batch[batch.length - 1]);
-    if (next === after) fail(`${label}: the cursor did not advance`);
-    after = next;
+  try {
+    return (await readAllPages(label, page, keyOf)).rows;
+  } catch (error) {
+    return fail(error instanceof Error ? error.message : String(error));
   }
 }
 
@@ -565,13 +554,13 @@ async function wipeExistingMedia(eventId) {
   // survive the purge).
   const existing = await readAllRows(
     "Couldn't read the event's media",
-    (after) => {
+    (after, limit) => {
       let q = supabase
         .from("media")
         .select("id, original_key, preview_key, phone_key, legal_hold_at")
         .eq("event_id", eventId)
         .order("id", { ascending: true })
-        .limit(PAGE);
+        .limit(limit);
       if (after) q = q.gt("id", after);
       return q;
     },
@@ -613,13 +602,13 @@ async function wipeExistingMedia(eventId) {
   }
   console.log(`  deleted ${fmt(deleted)} R2 object(s)`);
 
-  // At most PAGE ids a call: purge_media_rows answers one row per host among its input (the policy
-  // test's SINGLE_ROW note), and every caller holds its input to PAGE so the answer is never cut.
+  // At most MAX_ROWS ids a call: purge_media_rows answers one row per host among its input (the policy
+  // test's SINGLE_ROW note), and every caller holds its input to MAX_ROWS so the answer is never cut.
   let freedBytes = 0;
-  for (let i = 0; i < purgeable.length; i += PAGE) {
+  for (let i = 0; i < purgeable.length; i += MAX_ROWS) {
     const { data: freed, error: purgeErr } = await supabase.rpc(
       "purge_media_rows",
-      { p_media_ids: purgeable.slice(i, i + PAGE).map((r) => r.id) },
+      { p_media_ids: purgeable.slice(i, i + MAX_ROWS).map((r) => r.id) },
     );
     if (purgeErr) fail(`purge_media_rows failed: ${purgeErr.message}`);
     for (const r of freed ?? []) freedBytes += Number(r.freed_bytes ?? 0);

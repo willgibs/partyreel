@@ -29,6 +29,15 @@ import { describe, expect, it } from "vitest";
 const FORBIDDEN = ["—", "&mdash;"];
 const SRC = join(process.cwd(), "src");
 
+/**
+ * ★ THE SCAN HAS A BUDGET OF ITS OWN (crumbs-77). It reads and parses every file of the app through the TypeScript
+ * parser (about 1,600 of them, a second alone), which is CPU work that grows with the tree, and vitest's 5 s default
+ * is for a test that waits on nothing: a full run under other lanes' builds timed it out on a tree with no em-dash
+ * in it. A budget, not a timing claim: a scan that finds one still fails at once, on its own assertion, and one
+ * that hangs fails at the budget.
+ */
+const SCAN_BUDGET_MS = 60_000;
+
 const SCAN_DIRS = ["app", "components", "lib"];
 const SCAN_FILES: string[] = [];
 
@@ -82,7 +91,7 @@ function offenders(file: string): string[] {
   return hits;
 }
 
-describe("no-em-dash copy policy", () => {
+describe("no-em-dash copy policy", { timeout: SCAN_BUDGET_MS }, () => {
   it("has no em-dashes in user-facing copy (comments are exempt)", () => {
     const files = [
       ...SCAN_DIRS.flatMap((d) => collectFiles(join(SRC, d))),
