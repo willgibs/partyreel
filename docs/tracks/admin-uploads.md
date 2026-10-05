@@ -37,15 +37,23 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **Does the operator get a reset of a host's uploads count, and in what shape? (NOT BUILT: it writes the ledger behind billing enforcement, a one-way door for the anti-abuse guard.)** Recommended: yes, before launch (a false positive must never quietly block a paying host, and with no AI managing the product the remedy is an `/admin` control, never hand-run SQL), but as an additive, audited CREDIT, never a zeroing:
+  - *Why not zero it:* `storage_ledger.cumulative_bytes` is also the spend watch's meter of what the platform pays for (`spend-watch.ts`), the hour's breaker rides the same row, and a pass's year is `event_passes.uploaded_bytes`; an `update ... set cumulative_bytes = 0` lifts the guard, blinds the watch and leaves no trace.
+  - *The shape:* a `credit_bytes` column (default 0, check >= 0) on the month's ledger row and on `event_passes`, which `uploads_used()` subtracts (floor 0). That one function is what every writer, advisory and the plan sheet read, so every refusal, figure and readout (this lane's included) agrees the moment a credit lands. It adds uploads only: the storage cap and its 10% headroom still bind, and a credit dies with its window (a month's row, a pass's year), so it needs no expiry job.
+  - *The act:* one SECURITY DEFINER RPC (`credit_host_uploads(p_host_id, p_bytes, p_operator_id, p_reason)`, revoked from public, anon and authenticated, granted to service_role) that takes the profiles lock the completes take, credits the window she is held to (the month's row, or the live pass that ends soonest), and refuses a reason under 10 characters, a non-positive amount, an amount over one whole window's allowance, a third credit in one window (a host who needs a third is on the wrong plan: Will's call), and a lapsed pass (no window to credit). It writes one row of the proposed `admin_actions` log (operator, host, kind, bytes, reason, `uploads_used` before and after) in the same transaction, so there is no credit without a record.
+  - *The control:* a button on the account's Uploads card behind `requireAdminAction()` (admin and AAL2) and `destructive-sheet.tsx` (it lists what it touches; the amount defaults to what brings her back under, capped at one window; the reason is required; the operator types the host's email, re-checked server-side against the row, as the delete does). It re-reads `uploads_used` and shows the new figure, raises a Sentry warning, and the card says "Credited 300 MB this window by <operator>: <reason>".
+  - *The other way:* no reset yet. A blocked host upgrades or waits for the window, and this lane's readout makes any false positive diagnosable; the likelier false positives are a stale cap or tier (the webhook's to fix, which the card's allowance now shows) rather than a miscounted ledger.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/admin-observability.md`: a new "Accounts" section (a host's uploads are `uploads_used` asked with her own tier, against `uploadAllowance`; the hour is the month's ledger row, its ceiling mirrored under a parity test; the cap holds albums and Deleted; a failed read is "No reading", never a zero, never the page; nothing lifts the count), and its "Open this before you" list gains the Accounts reads.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Admin: the Accounts list's Storage column and its over-cap tint read `storage_used_bytes`, the physical counter, which gates nothing and differs from what the cap holds (`host_storage_summary`: 4 MB apart on a test account), while the account's page now draws her albums, her Deleted and their total; a batched read of the summary over the page's ids (a migration) would make the list say what the page does.
+- Admin: the Accounts list reads one `uploads_used` a row (the page's 50 at most, each its own so one failure is one No reading); one function over the page's ids (a migration) would make it one read.
+- Admin: a pass holder whose last pass has ended and whom the nightly recompute has not moved yet reads "0 B of 50 GB" on the account's page while `create_media*` refuses every upload (the lapsed-pass guard, 20261004100000); read her live passes and say "No live pass" beside the figure.
+- Admin: the operator's reset of a host's uploads count (the Question above, an additive audited credit): retires the last of the ROADMAP line this lane serves once Will answers.
 
 ## Handoff (replaces the chat report)
 
