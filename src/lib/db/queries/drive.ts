@@ -1327,7 +1327,9 @@ export async function readDriveAdmin(
             db
               .from("cloud_connections")
               .select(ADMIN_CONNECTION_COLUMNS)
-              .in("user_id", chunk),
+              .in("user_id", chunk)
+              // One connection an account (unique user and provider), so a chunk reads at most its own length.
+              .limit(chunk.length),
             "drive admin: breaker connections",
           );
           return (Array.isArray(rows) ? rows : []) as Record<string, unknown>[];

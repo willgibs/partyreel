@@ -87,6 +87,7 @@ export async function lifecycleMailFlowing(kind: string): Promise<boolean> {
  * watch then pauses nothing, and the console says the switches could not be read rather than drawing them ON.
  */
 export async function readSwitches(): Promise<SwitchStates> {
+  // row-cap: SWITCH_KEYS, the watch's own constant list of five keys, so every switch it knows is read (one it did not read would draw as on)
   const rows = await mustQuery(
     createAdminClient()
       .from("ops_flags")

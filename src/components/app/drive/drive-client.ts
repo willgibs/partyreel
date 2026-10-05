@@ -277,18 +277,25 @@ export function returnWords(word: DriveReturn): {
   }
 }
 
-/** Read and clear `?drive=` from the address (the page keeps it no longer than its first look). */
+/** The address whose `?drive=` was taken: several places ask on one mount, and the first takes it. */
+let takenFrom: string | null = null;
+
+/**
+ * Read and clear `?drive=` from the address (the page keeps it no longer than its first look). ★ The address is
+ * cleaned a microtask late and handed `null`, never the entry's own state: called from a mount effect, Next's history
+ * patch is not installed yet, and a state carrying Next's `__NA` makes it skip the call (history-state-policy.test.ts).
+ */
 export function takeReturnWord(): DriveReturn | null {
   try {
-    const url = new URL(window.location.href);
+    const href = window.location.href;
+    if (takenFrom === href) return null;
+    const url = new URL(href);
     const word = url.searchParams.get("drive");
     if (!word) return null;
+    takenFrom = href;
     url.searchParams.delete("drive");
-    window.history.replaceState(
-      window.history.state,
-      "",
-      `${url.pathname}${url.search}${url.hash}`,
-    );
+    const clean = `${url.pathname}${url.search}${url.hash}`;
+    queueMicrotask(() => window.history.replaceState(null, "", clean));
     const known = [
       "connected",
       "switched",

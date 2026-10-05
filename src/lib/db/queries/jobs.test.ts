@@ -219,6 +219,9 @@ describe("getJobSignals", () => {
     // (crumbs-75) the mail's reads the kept notices.
     state.fake.tables.export_log = [];
     state.fake.tables.notice_retries = [];
+    // (drive-wiring) and Send to Google Drive's signal reads its items and its sends.
+    state.fake.tables.cloud_export_items = [];
+    state.fake.tables.cloud_exports = [];
     const signals = await getJobSignals(now);
     expect(signals.help_feedback).toEqual({ ok24h: 2, failed24h: 1 });
     expect(signals.abuse_limiter).toEqual({ ok24h: 0, failed24h: 1 });
@@ -233,6 +236,8 @@ describe("getJobSignals", () => {
         job_runs: [],
         export_log: [],
         notice_retries: [],
+        cloud_export_items: [],
+        cloud_exports: [],
       },
     });
     await expect(getJobSignals()).rejects.toThrow(/help feedback/);
@@ -256,6 +261,8 @@ describe("getJobSignals", () => {
         unlock_attempts: [],
         article_feedback: [],
         notice_retries: [],
+        cloud_export_items: [],
+        cloud_exports: [],
         export_log: [
           mint("2026-10-01T11:00:00.000000+00:00", "saved"),
           mint("2026-10-01T10:00:00.000000+00:00", "short"),
@@ -316,6 +323,8 @@ describe("getJobSignals", () => {
         unlock_attempts: [],
         article_feedback: [],
         notice_retries: [],
+        cloud_export_items: [],
+        cloud_exports: [],
         job_runs: [],
         export_log: [
           // Owed: checked and found something, never streamed or never said so.
@@ -387,6 +396,8 @@ describe("getJobSignals", () => {
             first_failed_at: "2026-09-20T04:00:00.000000+00:00",
           },
         ],
+        cloud_export_items: [],
+        cloud_exports: [],
       },
     });
     const signals = await getJobSignals(now);
@@ -407,8 +418,60 @@ describe("getJobSignals", () => {
         article_feedback: [],
         export_log: [],
         job_runs: [],
+        cloud_export_items: [],
+        cloud_exports: [],
       },
     });
     await expect(getJobSignals()).rejects.toThrow(/kept/);
+  });
+
+  // drive-wiring: the transfers' signal. A file in her Drive in the day (a kept one too: it was confirmed there) is
+  // the success half, its failure rows the other, and a send stuck an hour with work and no progress is owed.
+  it("counts the day's files that reached a Drive, their failures, and the sends stuck", async () => {
+    const now = Date.parse("2026-10-05T12:00:00.000Z");
+    state.fake = createFakePostgrest({
+      tables: {
+        sent_emails: [],
+        action_attempts: [],
+        unlock_attempts: [],
+        article_feedback: [],
+        export_log: [],
+        notice_retries: [],
+        job_runs: [
+          runRow(1, "drive_transfer", "error", "2026-10-05T08:00:00.000000+00:00", null),
+        ],
+        cloud_export_items: [
+          { status: "sent", sent_at: "2026-10-05T11:00:00.000000+00:00" },
+          { status: "sent", sent_at: "2026-10-05T10:00:00.000000+00:00" },
+          // Yesterday's, and one still pending.
+          { status: "sent", sent_at: "2026-10-03T10:00:00.000000+00:00" },
+          { status: "pending", sent_at: null },
+        ],
+        cloud_exports: [
+          { status: "sending", stuck_since: "2026-10-05T10:00:00.000000+00:00" },
+          { status: "sending", stuck_since: null },
+          // A stuck mark left on a send that has since paused is not owed.
+          { status: "paused", stuck_since: "2026-10-05T09:00:00.000000+00:00" },
+        ],
+      },
+    });
+    const signals = await getJobSignals(now);
+    expect(signals.drive_transfer).toEqual({ ok24h: 2, failed24h: 1, owed: 1 });
+  });
+
+  it("throws when Drive's items cannot be read, never reading them as quiet", async () => {
+    state.fake = createFakePostgrest({
+      tables: {
+        sent_emails: [],
+        action_attempts: [],
+        unlock_attempts: [],
+        article_feedback: [],
+        export_log: [],
+        notice_retries: [],
+        job_runs: [],
+        cloud_exports: [],
+      },
+    });
+    await expect(getJobSignals()).rejects.toThrow(/sent to Drive/);
   });
 });

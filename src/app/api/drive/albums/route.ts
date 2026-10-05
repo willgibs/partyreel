@@ -26,7 +26,7 @@ export async function GET(request: Request) {
       { status: 401 },
     );
 
-  // row-cap: her newest 200 live albums, the picker's whole list (a planner past it sends the rest from each album)
+  // Her newest 200 live albums, the picker's whole list (a planner past it sends the rest from each album).
   const events = await mustQuery(
     supabase
       .from("events")
