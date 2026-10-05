@@ -29,8 +29,15 @@ import {
 } from "@/lib/db/testing/fake-postgrest";
 
 vi.mock("server-only", () => ({}));
+// Every presign this module asks for, with how it asked (a cover's `stable` is pinned below).
+const presigns = vi.hoisted(() => ({
+  calls: [] as { key: string; stable?: boolean }[],
+}));
 vi.mock("@/lib/r2/presign", () => ({
-  presignDownload: async ({ key }: { key: string }) => `signed:${key}`,
+  presignDownload: async (params: { key: string; stable?: boolean }) => {
+    presigns.calls.push(params);
+    return `signed:${params.key}`;
+  },
 }));
 
 const HOST = "host-1";
@@ -53,6 +60,7 @@ const {
   getReelProgress,
   listEvents,
   listRecentlyDeletedEvents,
+  readCoverUrls,
 } = await import("@/lib/db/queries/events");
 
 const NOW = Date.parse("2026-09-23T12:00:00.000Z");
@@ -83,6 +91,7 @@ beforeEach(() => {
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(NOW);
   signedIn = true;
+  presigns.calls.length = 0;
 });
 
 afterEach(() => {
@@ -325,6 +334,43 @@ describe("getEventCoverUrls: one cover per event, in one request", () => {
     await expect(getEventCoverUrls(["a"])).rejects.toThrow(
       /dashboard: event covers/,
     );
+  });
+
+  /**
+   * ★ A COVER IS PRESIGNED STABLE (compute-reads). A stable presign pins its signing date to the half hour's start, so
+   * a second visit inside it is handed the same URL and the browser serves the picture it holds; a fresh signature on
+   * every render re-downloaded each card's cover on every visit (the profile's cards, the Guest cards, the Deleted
+   * tab). `readCoverUrls` is the one reader behind all of them, so one pin covers the service role's path (the
+   * profile's, `social.ts`) and the host's own.
+   */
+  it("★ presigns every cover stable, so a visit inside the half hour is handed the same URL", async () => {
+    const ids = [uuid("e", 1), uuid("e", 2)];
+    fake = createFakePostgrest({
+      rpc: {
+        event_covers: () => ({
+          [ids[0]]: { preview_key: "p-1", original_key: "o-1" },
+          [ids[1]]: { preview_key: null, original_key: "o-2" },
+        }),
+      },
+    });
+
+    const host = await getEventCoverUrls(ids);
+    const profile = await readCoverUrls(
+      asSupabase(fake),
+      ids,
+      "social: covers",
+    );
+
+    expect(host.get(ids[0])).toBe("signed:p-1");
+    expect(profile.get(ids[1])).toBe("signed:o-2");
+    // Four presigns, two readers, and not one of them a fresh signature.
+    expect(presigns.calls.map((c) => c.key).sort()).toEqual([
+      "o-2",
+      "o-2",
+      "p-1",
+      "p-1",
+    ]);
+    expect(presigns.calls.every((c) => c.stable === true)).toBe(true);
   });
 });
 

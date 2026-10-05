@@ -120,7 +120,10 @@ than redrawing them, so a host's first minute looks like the site that sold them
   navigating, or the guard bounces the host straight back; `/welcome` itself gates on neither, or it loops.
 - **A guest-made account never takes the tour** (`isGuestFirstVisit`, `lib/welcome.ts`): an account that hosts no live
   event and already holds a Guest card lands on its dashboard, marked welcomed there by `MarkWelcomedOnMount` (a client
-  effect, since `after()` in a server component cannot read cookies).
+  effect, since `after()` in a server component cannot read cookies). ★ **The page counts the cards, never builds
+  them** (`countMyGuestEventCards`: the cards' own candidates, `myGuestEventLatest`, counted in the database, so a
+  guest-made account's first visit makes no cover request, presign or host read), and reads the viewer from the
+  request's cached `getRequestAuth`, never a `getUser()` of its own.
 
 ## The event page
 
@@ -246,7 +249,16 @@ hub and closes back to it.
   any move while the socket is down, reaches the store by the poll alone. The album's writes never revalidate the hub:
   each asks the store to catch up. `HostMediaGrid` marks arrivals by diffing ids, never links (they roll every half hour), and the guest
   album's own gate lets an arrival into the rows (`shared/use-arrival-gate.ts`, [guest-flow.md](guest-flow.md)), asking
-  for its link itself (`HubRows.onNeedLinks`), since a delta brings none.
+  for its link itself (`HubRows.onNeedLinks`), which the delta's own carry answers (next).
+- ★ **A batch is one call on the hub, as on the guest's album** ([guest-flow.md](guest-flow.md)'s carry): the delta
+  carries its APPROVED arrivals' links and their like counts (`hostCarriedIds`, newest first, at most
+  `ALBUM_DELTA_LINKS_MAX`, minted by `readHostLinksBody`, the links route's own builder), and the hub's transport
+  answers the link store's ask for them itself (`events/album-wire-carry.ts`; it sits UNDER `seedingTransport`, so a
+  carried link's count reaches `likeCounts` like any links answer's). A held upload carries none (Review asks its
+  queue's links by id when it opens) and neither does a hidden one (the host's own Hide is an upsert whose tile already
+  holds its link), so a moderated party's arrivals and every Hide cost only the delta; a failed carry is reported and
+  the arrival asks the links route, as it always did. An approval or a Show of an item the hub already holds carries a
+  link it will not use: bounded by the screenful, and the price of the server not knowing what the hub holds.
 - **The hub's album is the paged album, and its numbers are counted**: the page plans the host's first sync (every
   item but the bin, each status in its flags) and mints links for the newest window (`FIRST_WINDOW`,
   `readHostLinksBody`, which also carries each item's like count, a host-only figure); the windowed rows ask for the

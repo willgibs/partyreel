@@ -15,10 +15,15 @@ import {
 import {
   ALBUM_DELTA_LINKS_MAX,
   ALBUM_LINK_REMINT_MS,
+  ENTRY_HIDDEN,
+  ENTRY_PENDING,
   type AlbumLinkTuple,
   type AlbumLinksBody,
   type GuestFullSync,
   type GuestWhoTuple,
+  type HostAlbumLinksBody,
+  type HostSyncBody,
+  type HostWhoTuple,
   type ManifestEntry,
 } from "@/lib/events/album-wire";
 import {
@@ -26,7 +31,12 @@ import {
   STABLE_DOWNLOAD_TTL_SECONDS,
 } from "@/lib/r2/presign-bucket";
 
-import { carriedIds, carryingTransport } from "./album-wire-carry";
+import {
+  carriedIds,
+  carryingTransport,
+  hostCarriedIds,
+  type HostCarriedSync,
+} from "./album-wire-carry";
 
 const T0 = 1_790_000_000_000_000;
 const uuid = (i: number) =>
@@ -368,5 +378,312 @@ describe("never a carried link it should not use", () => {
       [uuid(100), uuid(499)].sort(),
     );
     expect(w.asked).toEqual([[uuid(100)]]);
+  });
+});
+
+/**
+ * ★ THE HUB'S DELTA CARRIES TOO (compute-reads): the host's poll answers a delta with its approved arrivals' links
+ * and their like counts, and the same layer answers the link store's ask for them with the counts beside them, where
+ * the hub's like counts read them (`hub-album.ts`'s `seedingTransport` taps every links answer's `likes`).
+ */
+describe("which of the hub's upserts carry links", () => {
+  const at = (i: number, flags: number): ManifestEntry => [
+    uuid(i),
+    640,
+    480,
+    flags,
+    T0 + i,
+  ];
+
+  it("★ the approved ones only: a held upload and a hidden one carry none", () => {
+    const upsert = [
+      at(1, 4),
+      at(2, 4 | ENTRY_PENDING),
+      at(3, 4 | ENTRY_HIDDEN),
+    ];
+    expect(hostCarriedIds(upsert)).toEqual([uuid(1)]);
+    // The guest's choice, which every entry of its album satisfies, is unchanged.
+    expect(carriedIds(upsert)).toEqual([uuid(3), uuid(2), uuid(1)]);
+  });
+
+  it("the newest first, at most the cap, after the held and hidden are left out", () => {
+    const upsert = [
+      ...Array.from({ length: 60 }, (_, i) => at(i + 1, 4)),
+      at(100, 4 | ENTRY_PENDING),
+    ];
+    const ids = hostCarriedIds(upsert);
+    expect(ids).toHaveLength(ALBUM_DELTA_LINKS_MAX);
+    expect(ids[0]).toBe(uuid(60));
+    expect(ids).not.toContain(uuid(100));
+  });
+
+  it("none for a delta with nothing new", () => {
+    expect(hostCarriedIds([])).toEqual([]);
+  });
+});
+
+describe("★ the hub's batch arrives in one call, its counts with it", () => {
+  const hostTuple = (
+    i: number,
+    tag = "carried",
+  ): AlbumLinkTuple<HostWhoTuple> => [
+    uuid(i),
+    `https://r2.test/${tag}/${i}/tile`,
+    null,
+    `https://r2.test/${tag}/${i}/dl`,
+    ["Maya", 0, "maya@example.com"],
+  ];
+
+  function hubWorld() {
+    let clock = 1_800_000_000_000;
+    const now = () => clock;
+    const answers: SyncResult[] = [];
+    const asked: string[][] = [];
+    let failLinks = false;
+    /** The links route's own counts, by id: what a direct ask is answered with. */
+    const routeLikes: Record<number, number> = {};
+    const inner: AlbumTransport<HostWhoTuple> = {
+      async sync() {
+        return answers.shift() ?? { status: 304 };
+      },
+      async manifest() {
+        throw new Error("no pages here");
+      },
+      async links(ids) {
+        asked.push([...ids]);
+        if (failLinks) throw new Error("offline");
+        const served = clock + SKEW;
+        const body: HostAlbumLinksBody = {
+          ok: true,
+          access: "full",
+          gate: null,
+          b: Math.floor(served / PRESIGN_BUCKET_MS),
+          now: served,
+          links: ids.map((id) => hostTuple(Number(id.slice(-12)), "fresh")),
+          missing: [],
+          likes: Object.fromEntries(
+            ids.flatMap((id): [string, number][] => {
+              const n = routeLikes[Number(id.slice(-12))];
+              return n ? [[id, n]] : [];
+            }),
+          ),
+        };
+        return body;
+      },
+    };
+    const transport = carryingTransport(inner, now);
+    const store = createAlbumStore<HostWhoTuple>({ transport, now });
+    return {
+      inner,
+      transport,
+      store,
+      asked,
+      routeLikes,
+      answer: (r: SyncResult) => answers.push(r),
+      advance: (ms: number) => (clock += ms),
+      now,
+      failLinks: (v: boolean) => (failLinks = v),
+    };
+  }
+
+  const counts = { album: 0, pending: 0 };
+  /** A host answer: the album part and the hub's two numbers, with a carry when `carry` names one. */
+  function hostFull(
+    over: Record<string, unknown> & { total?: number },
+  ): SyncResult {
+    const total = over.total ?? 0;
+    const body = {
+      ok: true,
+      counts: { ...counts, album: total },
+      ...over,
+    } as HostSyncBody;
+    return { status: 200, etag: '"a1-h"', body };
+  }
+  function hostDelta(
+    w: ReturnType<typeof hubWorld>,
+    over: {
+      v: number;
+      upsert?: ManifestEntry[];
+      remove?: string[];
+      total: number;
+      carry?: { ids: number[]; likes?: Record<number, number> };
+    },
+  ): SyncResult {
+    const served = w.now() + SKEW;
+    const carried: HostCarriedSync["links"] | undefined = over.carry
+      ? {
+          b: Math.floor(served / PRESIGN_BUCKET_MS),
+          now: served,
+          links: over.carry.ids.map((i) => hostTuple(i)),
+          likes: Object.fromEntries(
+            Object.entries(over.carry.likes ?? {}).map(([i, n]) => [
+              uuid(Number(i)),
+              n,
+            ]),
+          ),
+        }
+      : undefined;
+    return hostFull({
+      kind: "delta",
+      v: over.v,
+      attr: 1,
+      upsert: over.upsert ?? [],
+      remove: over.remove ?? [],
+      total: over.total,
+      ...(carried ? { links: carried } : {}),
+    });
+  }
+  async function hubOpened(w: ReturnType<typeof hubWorld>) {
+    w.answer(
+      hostFull({
+        kind: "manifest",
+        v: 10,
+        attr: 1,
+        entries: [entry(1), entry(2)],
+        next: null,
+        total: 2,
+      }),
+    );
+    await w.store.sync();
+  }
+  const likesOf = async (
+    w: ReturnType<typeof hubWorld>,
+    ids: number[],
+  ): Promise<Record<string, number> | undefined> =>
+    ((await w.transport.links(ids.map(uuid))) as HostAlbumLinksBody).likes;
+
+  it("★ the carried links answer the link store's ask with no request, the host's who tuple intact", async () => {
+    const w = hubWorld();
+    await hubOpened(w);
+    w.answer(
+      hostDelta(w, {
+        v: 11,
+        upsert: [entry(3), entry(4)],
+        total: 4,
+        carry: { ids: [3, 4] },
+      }),
+    );
+    await w.store.sync();
+    await w.store.links.ensure([uuid(4), uuid(3)]);
+    expect(w.asked).toEqual([]);
+    expect(w.store.links.get(uuid(4))?.tile).toBe(
+      "https://r2.test/carried/4/tile",
+    );
+    // The address rides only the host's own tuple, and survives the carry.
+    expect(w.store.links.get(uuid(3))?.who).toEqual([
+      "Maya",
+      0,
+      "maya@example.com",
+    ]);
+  });
+
+  it("★ a carried link's like count rides the answer: a count above zero is named, an unliked item is absent (reads 0)", async () => {
+    const w = hubWorld();
+    await hubOpened(w);
+    w.answer(
+      hostDelta(w, {
+        v: 11,
+        upsert: [entry(3), entry(4)],
+        total: 4,
+        carry: { ids: [3, 4], likes: { 3: 2 } },
+      }),
+    );
+    await w.store.sync();
+    expect(await likesOf(w, [3, 4])).toEqual({ [uuid(3)]: 2 });
+    expect(w.asked).toEqual([]);
+  });
+
+  it("★ a host delta whose items nobody liked still answers a count map, empty: its carry reads as the host's", async () => {
+    const w = hubWorld();
+    await hubOpened(w);
+    w.answer(
+      hostDelta(w, {
+        v: 11,
+        upsert: [entry(3)],
+        total: 3,
+        carry: { ids: [3] },
+      }),
+    );
+    await w.store.sync();
+    expect(await likesOf(w, [3])).toEqual({});
+  });
+
+  it("★ a mixed ask is one answer with both halves' counts: the carried ones' and the route's", async () => {
+    const w = hubWorld();
+    await hubOpened(w);
+    w.routeLikes[1] = 5;
+    w.answer(
+      hostDelta(w, {
+        v: 11,
+        upsert: [entry(3)],
+        total: 3,
+        carry: { ids: [3], likes: { 3: 2 } },
+      }),
+    );
+    await w.store.sync();
+    const body = (await w.transport.links([
+      uuid(3),
+      uuid(1),
+    ])) as HostAlbumLinksBody;
+    expect(w.asked).toEqual([[uuid(1)]]);
+    expect(body.links.map((l) => l[0]).sort()).toEqual([uuid(1), uuid(3)]);
+    expect(body.likes).toEqual({ [uuid(3)]: 2, [uuid(1)]: 5 });
+  });
+
+  it("the server's half failing still lands the carried half and its counts", async () => {
+    const w = hubWorld();
+    await hubOpened(w);
+    w.answer(
+      hostDelta(w, {
+        v: 11,
+        upsert: [entry(3)],
+        total: 3,
+        carry: { ids: [3], likes: { 3: 4 } },
+      }),
+    );
+    await w.store.sync();
+    w.failLinks(true);
+    const body = (await w.transport.links([
+      uuid(3),
+      uuid(1),
+    ])) as HostAlbumLinksBody;
+    expect(body.links.map((l) => l[0])).toEqual([uuid(3)]);
+    expect(body.likes).toEqual({ [uuid(3)]: 4 });
+  });
+
+  it("a guest's carried links never grow a count map: its answers are what they were", async () => {
+    const w = world();
+    await opened(w);
+    w.answer(delta(w, { v: 11, upsert: [entry(3)], total: 3, carry: [3] }));
+    await w.store.sync();
+    expect(await w.transport.links([uuid(3)])).not.toHaveProperty("likes");
+  });
+
+  it("a delta with no links (an older server) is asked for exactly as before", async () => {
+    const w = hubWorld();
+    await hubOpened(w);
+    w.answer(hostDelta(w, { v: 11, upsert: [entry(3)], total: 3 }));
+    await w.store.sync();
+    await w.store.links.ensure([uuid(3)]);
+    expect(w.asked).toEqual([[uuid(3)]]);
+  });
+
+  it("each carried link answers once, so a re-mint is the route's own answer, its count with it", async () => {
+    const w = hubWorld();
+    await hubOpened(w);
+    w.answer(
+      hostDelta(w, {
+        v: 11,
+        upsert: [entry(4)],
+        total: 3,
+        carry: { ids: [4], likes: { 4: 1 } },
+      }),
+    );
+    await w.store.sync();
+    expect(await likesOf(w, [4])).toEqual({ [uuid(4)]: 1 });
+    expect(w.asked).toEqual([]);
+    w.routeLikes[4] = 7;
+    expect(await likesOf(w, [4])).toEqual({ [uuid(4)]: 7 });
+    expect(w.asked).toEqual([[uuid(4)]]);
   });
 });

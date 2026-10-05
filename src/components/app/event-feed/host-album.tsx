@@ -14,6 +14,12 @@
  * guest's arrivals land in calm batches on the device's clock, the host's own writes at once, and a
  * hidden tab neither listens nor asks.
  *
+ * ★ A BATCH IS ONE CALL ON THE HUB TOO (compute-reads, as the guest's album is: album-calm). The host's delta carries
+ * its approved arrivals' links and their like counts (`/api/album/host/<id>/sync`), and the transport under the store
+ * answers the link store's ask for them itself (`events/album-wire-carry.ts`), so the arrival gate and the window find
+ * their links with no links call after the delta. It sits BENEATH the seeding transport, so the like counts a carried
+ * answer brings reach `likeCounts` exactly as a links route's do.
+ *
  * ★ THE TWO SIGNALS ARE STILL BOTH NEEDED. The doorbell's trigger fires on the approved-visible set
  * (`20260611220000_gallery_doorbell.sql`), so a guest's upload to a moderated event rings nobody; the
  * host's version moves on every status change (`album_changes_since`, host scope), so the timer's
@@ -45,6 +51,7 @@ import {
   type AlbumTransport,
 } from "@/lib/album/store";
 import { hostAlbumTransport } from "@/lib/album/transport";
+import { carryingTransport } from "@/lib/events/album-wire-carry";
 import {
   createLikeCounts,
   linkReader,
@@ -135,14 +142,20 @@ export const HUB_WRITES: HubWrites = {
   purge: (...a) => purgeMediaNowAction(...a),
 };
 
-function createHubAlbum(
+/**
+ * The hub's album over its routes: the page's seed replayed once, the delta's carried links answering the link store's
+ * ask, and the live routes under both. Exported for the tests that count what a batch costs.
+ */
+export function createHubAlbum(
   seed: HubAlbumSeed,
   live: AlbumTransport<HostWhoTuple>,
   writes: HubWrites,
 ): HubAlbum {
   const likeCounts = createLikeCounts();
   const store = createAlbumStore<HostWhoTuple>({
-    transport: seedingTransport(seed, live, (asked, body) =>
+    // ★ THE CARRY IS UNDER THE SEED'S LAYER, never over it: a carried answer must pass `onLikes` like any links answer,
+    // or a carried link would land without its count (and read 0 where it is liked).
+    transport: seedingTransport(seed, carryingTransport(live), (asked, body) =>
       likeCounts.apply(asked, body),
     ),
     // Healed at once by the store (a fresh manifest); reported so a lost change is never silent.
