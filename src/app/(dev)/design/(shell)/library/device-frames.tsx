@@ -109,7 +109,24 @@ export function QuietArrival({ ms = 700 }: { ms?: number }) {
 /** A portrait phone's text keyboard on a screen this tall (`use-keyboard-inset.ts` measured 0.42 to 0.44 of it). */
 export const KEYBOARD_PX = 340;
 
-const LAYER = '[data-slot="popup-content"]';
+/**
+ * The layers that stand on the keyboard (`useKeyboardInset` writes the four things on each): the popup, the dialog, the
+ * sheet and the look (which wears its own slot name over the popup's).
+ */
+const LAYER = [
+  '[data-slot="popup-content"]',
+  '[data-slot="dialog-content"]',
+  '[data-slot="sheet-content"]',
+  '[data-slot="guest-peek"]',
+].join(",");
+
+/** Every layer a caption may read: the keyboard's, and the three that are primitives of their own. */
+const ANY_LAYER = [
+  LAYER,
+  '[data-slot="code-card"]',
+  '[data-slot="responsive-menu"]',
+  '[data-slot="responsive-menu-rows"]',
+].join(",");
 
 /**
  * A KEYBOARD, UP: a drawn one at the foot of the frame and, on every popup standing in it, the four things
@@ -164,29 +181,34 @@ export function KeyboardStandIn({ up }: { up: boolean }) {
 
 const KEY_ROWS = [10, 9, 7] as const;
 
-/** The drawn keyboard: neutral keys on a grey tray, over everything the frame holds. */
+/** The drawn keyboard: a suggestions strip over neutral keys on a grey tray, over everything the frame holds. */
 function KeyboardBody() {
   return (
     <div
       aria-hidden
       data-keyboard-stand-in=""
       style={{ height: KEYBOARD_PX }}
-      className="fixed inset-x-0 bottom-0 z-[60] flex flex-col justify-between gap-2 bg-neutral-300 px-1.5 pt-2 pb-6 dark:bg-neutral-800"
+      className="fixed inset-x-0 bottom-0 z-[60] flex flex-col justify-end gap-2.5 bg-neutral-300 px-1.5 pt-3 pb-9 dark:bg-neutral-800"
     >
+      <div className="mb-0.5 flex h-9 items-center justify-around text-neutral-500">
+        <span className="h-4 w-14 rounded-full bg-neutral-400/60 dark:bg-neutral-600/70" />
+        <span className="h-4 w-16 rounded-full bg-neutral-400/60 dark:bg-neutral-600/70" />
+        <span className="h-4 w-12 rounded-full bg-neutral-400/60 dark:bg-neutral-600/70" />
+      </div>
       {KEY_ROWS.map((n) => (
         <div key={n} className="flex justify-center gap-1.5">
           {Array.from({ length: n }, (_, i) => (
             <span
               key={i}
-              className="h-11 flex-1 rounded-md bg-neutral-50 shadow-[0_1px_0_rgb(0_0_0/0.3)] dark:bg-neutral-600"
+              className="h-[46px] flex-1 rounded-md bg-neutral-50 shadow-[0_1px_0_rgb(0_0_0/0.3)] dark:bg-neutral-600"
             />
           ))}
         </div>
       ))}
       <div className="flex justify-center gap-1.5">
-        <span className="h-11 w-12 rounded-md bg-neutral-400/80 dark:bg-neutral-700" />
-        <span className="h-11 flex-1 rounded-md bg-neutral-50 shadow-[0_1px_0_rgb(0_0_0/0.3)] dark:bg-neutral-600" />
-        <span className="h-11 w-20 rounded-md bg-neutral-400/80 dark:bg-neutral-700" />
+        <span className="h-[46px] w-12 rounded-md bg-neutral-400/80 dark:bg-neutral-700" />
+        <span className="h-[46px] flex-1 rounded-md bg-neutral-50 shadow-[0_1px_0_rgb(0_0_0/0.3)] dark:bg-neutral-600" />
+        <span className="h-[46px] w-20 rounded-md bg-neutral-400/80 dark:bg-neutral-700" />
       </div>
     </div>
   );
@@ -196,7 +218,15 @@ function KeyboardBody() {
  * What a popup stands in, so its scrim and corner have something to dim: a stand-in album page, the app's own
  * tokens and no data. Drawn at the frame's own width, so a hand's page is two columns and a desk's four.
  */
-export function BehindThePopup({ children }: { children?: ReactNode }) {
+export function BehindThePopup({
+  action,
+  children,
+}: {
+  /** The control a popup opens from, standing in the page's head (a menu anchors to it). */
+  action?: ReactNode;
+  /** What stands under the head, above the tiles (a name a look opens from). */
+  children?: ReactNode;
+}) {
   return (
     <div
       data-library-behind=""
@@ -204,20 +234,20 @@ export function BehindThePopup({ children }: { children?: ReactNode }) {
     >
       <div className="mb-5 flex items-center justify-between gap-3">
         <p className="font-heading text-lg">Maya &amp; Jay&rsquo;s wedding</p>
-        <span className="h-8 w-24 rounded-lg bg-muted" />
+        {action ?? <span className="h-8 w-24 rounded-lg bg-foreground/10" />}
       </div>
+      {children ? <div className="mb-5">{children}</div> : null}
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {Array.from({ length: 12 }, (_, i) => (
           <span
             key={i}
             className={cn(
-              "aspect-square rounded-lg bg-muted",
-              i % 3 === 0 && "bg-muted/60",
+              "aspect-square rounded-lg bg-foreground/10",
+              i % 3 === 0 && "bg-foreground/5",
             )}
           />
         ))}
       </div>
-      {children}
     </div>
   );
 }
@@ -225,14 +255,26 @@ export function BehindThePopup({ children }: { children?: ReactNode }) {
 /** A caption read off the frame's own document: what the scene is doing, or null while it has not settled. */
 export type Probe = (root: HTMLElement, win: Window) => string | null;
 
-/** The popup standing in a frame, read off its own document: its kind, its shape, and the room it takes. */
+/** The layer standing in a frame, read off its own document: its kind and shape, and the room it takes. */
 export const readLayer: Probe = (root) => {
-  const layer = root.ownerDocument.querySelector<HTMLElement>(LAYER);
+  const layer = root.ownerDocument.querySelector<HTMLElement>(ANY_LAYER);
   if (!layer) return null;
   const box = layer.getBoundingClientRect();
-  const shape = layer.getAttribute("data-shape");
+  if (box.width === 0) return null;
+  const slot = layer.getAttribute("data-slot");
+  // The shape a popup, dialog or card says it stands in; the two menus and a card beside a name say it by their slot
+  // (a menu's Radix `data-side` is which edge of its button it opens on, not a shape), a sheet by its side.
+  const shape =
+    slot === "responsive-menu"
+      ? "menu"
+      : slot === "responsive-menu-rows"
+        ? "rows"
+        : (layer.getAttribute("data-shape") ??
+          (slot === "sheet-content" ? layer.getAttribute("data-side") : null) ??
+          // A dialog that wears no shape is the takeover (`fullScreen` sets none).
+          (slot === "dialog-content" ? "takeover" : null) ??
+          (slot === "guest-peek" ? "anchored" : slot));
   const kind = layer.getAttribute("data-kind");
-  if (!shape || box.width === 0) return null;
   return `${kind ? `${kind} → ` : ""}${shape}, ${Math.round(box.width)} × ${Math.round(box.height)}`;
 };
 

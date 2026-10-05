@@ -66,16 +66,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuFooter,
@@ -114,14 +104,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -160,6 +142,12 @@ import {
   TapTooltipDemo,
   ToastDemo,
 } from "./interactive-demos";
+import { DialogSheetDemo } from "./overlay-demos";
+import {
+  ArrivalGuardDemo,
+  PopupKindDemo,
+  PopupSizeSample,
+} from "./popup-demos";
 import { DisplayMenuDemo } from "./toggle-group-demo";
 
 /**
@@ -1729,98 +1717,143 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
   },
 
   {
-    id: "dialog",
-    file: "src/components/ui/dialog.tsx",
-    for: "the modal, plus the fullScreen takeover a whole-screen surface asks for",
+    id: "popup-kinds",
+    file: "src/components/ui/popup-kinds.ts",
+    test: "src/components/ui/popup-kinds.test.ts",
+    title: "Popup kinds",
+    for: "the one table that says where each kind of popup opens, at a desk and in a hand: eight kinds, and a call site only ever names its kind",
+    badge: "new",
     family: "components",
     section: "Overlays",
-    lede: "Trigger-anchored where it belongs; the live components, fully interactive.",
+    lede: "Every popup in the product is one of eight kinds, and each kind has one answer at a desk and one in a hand (the product's one breakpoint, 640 px), so a call site says `kind=\"confirm\"` and never spells a posture. Each is drawn open in a real viewport at a laptop and a phone over a stand-in album, closed by its own control, with the captions read off the popup standing in each frame. The five that `PopupContent` draws wear stand-in words; the choice, the share and the peek are primitives of their own and are the real ones (the responsive menu, the code card, the look), and the plan is the real plans' sheet over inert doors. The kinds with a field (the form, the settings' name) take the keyboard on the phone.",
+    variants: [
+      {
+        prop: "kind",
+        source: "declared",
+        options: [
+          "list",
+          "confirm",
+          "form",
+          "choice",
+          "share",
+          "plan",
+          "settings",
+          "peek",
+        ],
+        note: "A row of the table is a kind: a shape for a desk, a shape for a hand, where focus lands at a desk, and how a screen reader announces it. The edge shapes (panel, screen, cover, sheet) and the centred ones (dialog, wide) are one Radix element; a menu, the code card and a card at a name are primitives of their own.",
+      },
+    ],
+    specimens: [
+      {
+        label: "list",
+        hint: "lists=panel · a panel beside the screen at a desk, the whole screen under a back arrow in a hand",
+        node: <PopupKindDemo kind="list" />,
+      },
+      {
+        label: "confirm",
+        hint: "confirm=dialog · a centred alertdialog on its safe answer, wider when it lists what leaves",
+        node: <PopupKindDemo kind="confirm" />,
+      },
+      {
+        label: "form",
+        hint: "forms=dialog · one question with a field, standing in the band the keyboard leaves",
+        node: <PopupKindDemo kind="form" />,
+      },
+      {
+        label: "choice",
+        hint: "choices=menu · ResponsiveMenu: under the button that asked, at the thumb with Cancel beneath in a hand",
+        node: <PopupKindDemo kind="choice" />,
+      },
+      {
+        label: "share",
+        hint: "share=card · the code card: white for a scanner, a card at a desk and the whole screen in a hand",
+        node: <PopupKindDemo kind="share" />,
+      },
+      {
+        label: "plan",
+        hint: "plans=wide · the plans' sheet: stacked cards in a wide dialog, the whole screen under a close in a hand",
+        node: <PopupKindDemo kind="plan" />,
+      },
+      {
+        label: "settings",
+        hint: "settings=panel · a panel at a desk, the whole screen in a hand; the name's field takes the keyboard",
+        node: <PopupKindDemo kind="settings" />,
+      },
+      {
+        label: "peek",
+        hint: "peek=card · the look: a card beside the name at a desk, the sheet in a hand",
+        node: <PopupKindDemo kind="peek" />,
+      },
+    ],
+  },
+  {
+    id: "popup",
+    file: "src/components/ui/popup.tsx",
+    test: "src/components/ui/popup.test.tsx",
+    for: "the one element every dialog-shaped popup is: it names its kind and the table picks the shape for the width it opens at, one structure at every shape (a header, a body that scrolls, a footer that stays), keyboard-safe, and a layer a tap opened takes no tap until it has settled",
+    badge: "new",
+    family: "components",
+    section: "Overlays",
+    lede: "The Dialog and the Sheet as one element: `<PopupContent kind=\"confirm\">` is the whole of a call site's answer to where it opens, and the kind's row in the table (`popup-kinds.ts`, drawn on its own entry) picks the shape. A centred dialog, a side panel and a phone's whole screen are the same three parts at different sizes, so the parts read the shape they stand in. Two things are worth pressing: how wide a centred shape is (by what it says), and what a layer does with a tap that lands while it is still arriving.",
+    variants: [
+      {
+        prop: "size",
+        source: "prop",
+        fallback: "sm",
+        options: ["sm", "md", "lg"],
+        note: "How wide a centred shape is, by what it says: sm a question, md one that lists what leaves, lg a long form. The edge shapes ignore it. Each sample opens the live layer in this window.",
+        sample: (o) => <PopupSizeSample size={o as "sm" | "md" | "lg"} />,
+      },
+    ],
+    specimens: [
+      {
+        label: "A tap that lands while it arrives",
+        hint: "the second tap of a double tap lands inside the layer the first one opened: the guard takes no press until the entrance has run out",
+        node: <ArrivalGuardDemo />,
+      },
+    ],
+  },
+  {
+    id: "dialog",
+    file: "src/components/ui/dialog.tsx",
+    test: "src/components/ui/dialog.test.tsx",
+    for: "the dialog primitive: the centred shape under the confirm and form kinds, and the dialogs the popups board left alone (Welcome to Pro, the avatar cropper, the demo modal, the photograph viewer's own), plus the fullScreen takeover a whole-screen surface asks for",
+    badge: "updated",
+    family: "components",
+    section: "Overlays",
+    lede: "A kind of popup opens through `PopupContent` (see Popup kinds), which wears this primitive's centred shape for the confirm and the form; the Dialog itself stays what the dialogs outside the table draw with. Each is drawn open in a real viewport at a laptop and a phone, closed by its own control, the captions read off what stands in each frame.",
     specimens: [
       {
         label: "Dialog",
-        node: (
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm">
-                Open dialog
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Delete this event?</DialogTitle>
-                <DialogDescription>
-                  This removes the event and everything in it. There is no undo.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter showCloseButton>
-                <Button variant="destructive" size="sm">
-                  Delete
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        ),
+        hint: "the centred shape · a press on X, Cancel or the scrim closes it · Replay opens it again",
+        node: <DialogSheetDemo variant="dialog" />,
       },
       {
         label: "Takeover",
         hint: "fullScreen: an edge-to-edge room that holds the page still behind it",
-        node: (
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm">
-                Open takeover
-              </Button>
-            </DialogTrigger>
-            <DialogContent fullScreen showCloseButton={false}>
-              <div className="flex shrink-0 items-start justify-between gap-3 border-b px-4 py-3">
-                <DialogHeader>
-                  <DialogTitle>Review</DialogTitle>
-                  <DialogDescription>
-                    The page behind cannot scroll, and its scrollbar does not
-                    stay beside this room.
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogClose asChild>
-                  <Button variant="ghost" size="sm">
-                    Done
-                  </Button>
-                </DialogClose>
-              </div>
-              <div className="flex-1 overflow-y-auto p-4 text-sm text-muted-foreground">
-                What scrolls is this body.
-              </div>
-            </DialogContent>
-          </Dialog>
-        ),
+        node: <DialogSheetDemo variant="takeover" />,
       },
     ],
   },
   {
     id: "sheet",
     file: "src/components/ui/sheet.tsx",
-    for: "the edge panel; the marketing mobile menu is what it carries today",
+    test: "src/components/ui/sheet.test.tsx",
+    for: "the edge sheet: the guest door's one sheet (a bottom sheet in a hand, a panel from the right at a desk, standing on the keyboard), the failure and email sheets, and at a fixed side the marketing phone menu and the design shell's panel",
+    badge: "updated",
     family: "components",
     section: "Overlays",
+    lede: "The product's popups open through `PopupContent` by kind (see Popup kinds); the Sheet stays the guest door's surface and the edge panel of two shells. `responsive` is the door's: one surface that is a bottom sheet in a hand and a full-height panel at a desk, with no centred float anywhere, and it stands on the keyboard while a field in it holds focus. A fixed side is for a surface with no desk posture.",
     specimens: [
       {
-        label: "Sheet",
-        node: (
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="sm">
-                Open sheet
-              </Button>
-            </SheetTrigger>
-            <SheetContent>
-              <SheetHeader>
-                <SheetTitle>Share this event</SheetTitle>
-                <SheetDescription>
-                  Your guests scan one QR code to join and upload.
-                </SheetDescription>
-              </SheetHeader>
-            </SheetContent>
-          </Sheet>
-        ),
+        label: "Responsive, the guest door's",
+        hint: "responsive · a bottom sheet in a hand, a panel at a desk · switch the keyboard up on the phone",
+        node: <DialogSheetDemo variant="responsive" />,
+      },
+      {
+        label: "A fixed side",
+        hint: "side=right (the default) · the phone menu's and the shell's posture",
+        node: <DialogSheetDemo variant="side" />,
       },
     ],
   },

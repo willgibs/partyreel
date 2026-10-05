@@ -39,6 +39,7 @@ import {
 import { CreateRoomDemo } from "./create-room-demo";
 import { DownloadToastDemo } from "./download-toast-demo";
 import { PlanLimitsDemo } from "./plan-limits-demo";
+import { LockChipDemo, PricingSheetDemo, WelcomeToProDemo } from "./pricing-demos";
 
 /**
  * THE PRODUCT COMPOSITIONS, declared (the gallery round, 2026-09-12).
@@ -706,6 +707,83 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
         label: "Invited",
         hint: "type one and press Enter, or paste a list with a bad entry in it",
         node: <InvitedDemo />,
+      },
+    ],
+  },
+  /* THE PLANS' SURFACE (library-specimens-3): the real sheet, chip and receipt over the doors the surface names
+     (`pricing-doors.tsx`), so Checkout, the billing portal and Stripe's confirm page are nowhere in reach and the
+     sheet opens on a fixture's facts, in a real viewport at a laptop and a phone. */
+  {
+    id: "pricing-sheet",
+    file: "src/components/app/pricing/pricing-sheet.tsx",
+    test: "src/components/app/pricing/pricing-sheet.test.tsx",
+    title: "PricingSheet",
+    for: "the plans, inside the app: led by the reason it opened (a locked control, no room, a look at the plan), two cards and a price for a host choosing a first plan, her three sizes under one Monthly / Yearly toggle for a Pro host, the pass on one line, a quiet foot to the full page",
+    badge: "new",
+    family: "compositions",
+    section: "Plans and billing",
+    lede: "The real sheet over the doors the surface names, so the buttons that leave for Stripe do what they do until they would leave and then say the Library stops there, and it opens on a fixture's facts after the pause a real read takes. A popup of the plan kind: a wide dialog at a laptop, the whole screen under a close in a hand. Four hosts: a Free host who pressed the video lock, a pass holder whose albums outgrew the smallest size, a pass holder looking at the plan, and a Pro host with three sizes (one too small for what she stores, one a switch). Nothing is fetched, posted or opened.",
+    specimens: [
+      {
+        label: "A locked control, on Free",
+        hint: "trigger=locked · opens on the feature's own words, Free beside one Pro card, the pass on one line",
+        node: <PricingSheetDemo state="locked" />,
+      },
+      {
+        label: "Out of room, a pass holder",
+        hint: "trigger=room · the read moves the card to the smallest size that fits and says which it skipped",
+        node: <PricingSheetDemo state="room" />,
+      },
+      {
+        label: "A look at the plan, a pass holder",
+        hint: "trigger=plan · the Pro card and Add a pass, never Free",
+        node: <PricingSheetDemo state="pass" />,
+      },
+      {
+        label: "A Pro host's three sizes",
+        hint: "a quiet list until her plan is read · her size held, one too small, one a switch · Manage billing",
+        node: <PricingSheetDemo state="pro" />,
+      },
+    ],
+  },
+  {
+    id: "lock-chip",
+    file: "src/components/app/pricing/lock-chip.tsx",
+    test: "src/components/app/pricing/lock-chip.test.tsx",
+    title: "LockChip",
+    for: "the one component behind every locked control: the control's own name and the plan that opens it, a tooltip saying why it is locked, a press that opens the plans' sheet led by that feature. Convert, not block",
+    badge: "new",
+    family: "compositions",
+    section: "Plans and billing",
+    lede: "A locked control is a button, never a dead label: it wears its own name and the plan, says why in its tooltip, and opens the sheet on the feature it stands for. Three chips over a Free host; press one and the sheet opens in this window over the inert doors (a laptop's wide dialog, a phone's whole screen).",
+    specimens: [
+      {
+        label: "Three locked controls",
+        hint: "hover or focus a chip for why it is locked · press it for the sheet, led by its feature",
+        node: <LockChipDemo />,
+      },
+    ],
+  },
+  {
+    id: "welcome-to-pro",
+    file: "src/components/app/pricing/welcome-to-pro.tsx",
+    test: "src/components/app/pricing/welcome-to-pro.test.tsx",
+    title: "WelcomeToPro",
+    for: "the door out of Checkout: a receipt that says the plan only once the server has it, and heals itself when the webhook is late",
+    badge: "new",
+    family: "compositions",
+    section: "Plans and billing",
+    lede: "What a host lands on after paying. Stripe redirects the instant payment succeeds, routinely seconds before the webhook writes the tier, so the receipt decides which of two true things to say: the plan is on (its three facts and the way on), or the payment is in and the plan is being applied. A pending receipt re-reads the server a bounded number of times and flips to the real one. Over a router that goes nowhere, at a laptop and a phone.",
+    specimens: [
+      {
+        label: "The plan is on",
+        hint: "applied · the room it holds, video, no watermark · Go to your dashboard closes it",
+        node: <WelcomeToProDemo state="applied" />,
+      },
+      {
+        label: "The webhook is late",
+        hint: "Payment received, then, after its first re-read, Welcome to Pro · Replay plays the race again",
+        node: <WelcomeToProDemo state="race" />,
       },
     ],
   },

@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Check, PartyPopper } from "lucide-react";
 
+import { usePricingRouter } from "@/components/app/pricing/pricing-doors";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -65,7 +65,7 @@ export function WelcomeToPro({
   nextUrl: string;
   door: { label: string; href?: string };
 }) {
-  const router = useRouter();
+  const router = usePricingRouter();
   const [open, setOpen] = useState(true);
   // StrictMode mounts effects twice in dev, and a refresh re-renders this
   // component: one poll per arrival, never one per render.
