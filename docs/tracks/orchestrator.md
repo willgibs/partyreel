@@ -26,9 +26,9 @@ model Will seats (Fable or Opus); nothing here depends on which.
 ## In flight
 
 Round 15 continues (2026-10-05), seated on willg97. Milestone 36 is live. `launch-prep` holds 17 merged lanes for
-milestone 37 (below), which waits on red-team 54 and Will's yes. Desk 2 (Drive alone) is on his local desk at
-`94d66338`. Desk 3's four boards are merged on `launch-prep` (gates 1 to 4 green, the desk pass clean at `23b6461bd`)
-while his desk stays pinned to Drive alone: desk 3 serves the moment he pastes desk 2, by a desk refresh.
+milestone 37 (below) and this session's merges, which wait on red-team 54 (54b for the rest) and Will's yes. Desk 2 at
+`94d66338` was answered (desk 2 transcribed at `952b9cce2`: the Drive wiring cut); his desk now serves desk 3 at
+`18e075a30` (identity r4, customize r1, event-header r4, host-dashboard r4: 15 asks, the desk pass clean).
 
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
@@ -37,6 +37,8 @@ while his desk stays pinned to Drive alone: desk 3 serves the moment he pastes d
 | `crumbs-76` | the guest's upload counts and words ("1 of 0", "Everything else", the camera hearing uploads reopen, the host on her guest page, one heading scale, a camera album's door) | RUNNING | Sonnet, 3132 | `af667c9e8c7ed6f87` |
 | `crumbs-77` | the gate's flakes and guards (two tests under load, help labels, one drop-aware migration reader, three migration files recovered, two scripts, two testing-doc facts) | MERGED at `4be0b5a1b` (gate 5 green, the whole lab: its tsconfig line reaches every page); pruned | Sonnet, 3133 | `a5625f1475a561cab` |
 | `library-specimens-3` | Library specimens for what lab:smoke cannot reach (popup kinds, the stepper, toggle-group, the pricing pieces over a stubbed door, ContactReceipt, HostMediaGrid's arrival, RouteErrorMock, plate sizes) | RUNNING | Sonnet, 3134 | `a227bf5ce904530be` |
+| `drive-wiring` | Send to Google Drive as Will picked it on desk 2 (Originals' second act, Your events and storage, our promise first, progress on the album, a stop in place plus an app-wide flag, done as done with no delete suggested, the Account card, when-then-who names): the design note minus its clean exit; migration `20261005120000_cloud_export.sql` (the Advisor, then the protocol), Worker `workers/drive/`, env per its Handoff; waits on Will's Google client for the live walk | RUNNING | Opus, 3136 | `a60bf71bcb1402618` |
+| `help-words` | the help center, the blog and two marketing sections say what the product does today (end dates, Select then Save, the reel's place, a live-demo article, audiences, three stale labels) | RUNNING | Sonnet, 3137 | `a2033d03d542634ca` |
 | `identity-r4` | board identity r4 (desk 10): Will's mix as seven trait asks (field, button, focus, selected, press, loading, toggles), each on real screens wearing the picks before it, and the edge on ten places on paper beside the room; A1 to A4 and H3 as carried calls; form, never hue | MERGED at `eed3f3d30` (gate 1 green, lab:demo 8 steps), waiting for desk 3; its scratch kept for the desk | Opus (gone) | `a4152d141563a9a7d` |
 | `customize-r1` | board customize r1 (desk 15): the roll (film's 12/24/36 or 1 to 99), where options live, "use for new parties", the album's order; Linear's lessons and the audit in `_scratch/customize/` | MERGED at `386f4fd4a` (gate 2 green), waiting for desk 3; its scratch kept for the desk | Opus (gone) | `a1ba7927eb8a90754` |
 | `event-header-r4` | board event-header r4 (desk 20): one ask, the doors (glass recommended: counts as badges on its icons, a tab bar under her thumb on a phone; cards owning the phone; windows lit only where something waits); G1, G2, G4 drawn on production's panel; the waiting colour left to the brand | MERGED at `66aec24fa` (gate 3 green), waiting for desk 3; its scratch kept for the desk (captures) | Opus (gone) | `a4eaf6f839b991e91` |
