@@ -7,8 +7,8 @@
  * read. What these hold:
  *   1. ★ PARITY BY CONSTRUCTION: each figure IS `uploads_used(host, her own tier)`, the function every refusal reads,
  *      called per row, never a sum of its own; the rolled-back proof at the file's foot compares them row by row.
- *   2. ★ THE LAPSED FLAG IS THE COMPLETES' OWN PREDICATE, "since" is when her last pass stopped being live, and
- *      "converted" whether that was its conversion to Pro credit; each row answers the plan it was asked with.
+ *   2. ★ THE LAPSED FLAG IS THE COMPLETES' OWN QUESTION (`pass_lapsed`), "since" is when her last pass stopped being
+ *      live, and "converted" whether that was its conversion to Pro credit; each row answers the plan it was asked with.
  *   3. Its pages and grants: keyset on the profile id, clamped to 1,000; INVOKER, the service role's alone.
  *   4. The call's argument names and the row's columns are the function's (PostgREST resolves a call by its names).
  */
@@ -34,35 +34,38 @@ describe("1. parity by construction", () => {
     expect(body).not.toMatch(
       /\bstorage_ledger\b|\buploaded_bytes\b|\bcumulative_bytes\b/,
     );
-    // And every refusal asks the same function the same way (the completes with the profile they locked).
+    // And every refusal asks the same function the same way. ★ Reshaped by billing-integrity (20261005181000; scar
+    // kept: the figure is the one the refusals read): the completes and the meter ask the uploads line's one home,
+    // `uploads_refused`, with the profile they read, and it reads `uploads_used(host, her tier)`, this figure.
     for (const name of ["create_media", "create_media_as_host"]) {
       expect(liveFunction(name).code, name).toContain(
-        "v_uploaded := public.uploads_used(v_event.host_id, v_profile.tier);",
+        "public.uploads_refused(v_event.host_id, v_profile.tier, v_profile.storage_cap_bytes, p_file_size_bytes)",
       );
     }
     expect(liveFunction("meter_upload").code).toContain(
-      "public.uploads_used(v_host, v_tier) + p_bytes > v_allowance",
+      "public.uploads_refused(v_host, v_tier, v_storage_cap, p_bytes)",
+    );
+    expect(liveFunction("uploads_refused").code).toContain(
+      "public.uploads_used(p_host_id, p_tier) + p_bytes > a.allowance",
     );
   });
 });
 
 describe("2. the lapsed flag and since when", () => {
-  it("★ is the completes' own lapsed-pass predicate, over the same rows", () => {
+  // ★ Reshaped by billing-integrity (20261005181000; scar kept: the flag is the completes' own lapsed-pass question,
+  // over the same rows): it asks `pass_lapsed`, the one home the completes reach through `uploads_refused`, where it
+  // restated the predicate and this pin held the copy to theirs.
+  it("★ is the completes' own lapsed-pass question, over the same rows", () => {
     const { code } = read();
-    const ours = code.match(
-      /select p\.tier = 'event_pass' and not exists \( (select 1 from public\.event_passes q where .*?)\) as lapsed/,
+    expect(code).toContain(
+      "cross join lateral (select public.pass_lapsed(p.id, p.tier) as lapsed) w",
     );
-    expect(ours, "the read's lapsed flag").not.toBeNull();
+    expect(liveFunction("uploads_refused").code).toContain(
+      "or public.pass_lapsed(p_host_id, p_tier)",
+    );
     for (const name of ["create_media", "create_media_as_host"]) {
-      const theirs = liveFunction(name).code.match(
-        /if v_profile\.tier = 'event_pass' and not exists \( (select 1 from public\.event_passes q where .*?)\) then raise exception 'Upload limit reached for this plan\.'/,
-      );
-      expect(theirs, `${name}'s lapsed pass refusal`).not.toBeNull();
-      expect(ours![1], name).toBe(
-        theirs![1].replace(
-          "q.profile_id = v_event.host_id",
-          "q.profile_id = p.id",
-        ),
+      expect(liveFunction(name).code, name).toContain(
+        "if public.uploads_refused(v_event.host_id, v_profile.tier, v_profile.storage_cap_bytes, p_file_size_bytes) then raise exception 'Upload limit reached for this plan.'",
       );
     }
   });

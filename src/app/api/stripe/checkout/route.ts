@@ -4,7 +4,7 @@ import {
   safeReturnPath,
   withWelcomeMarker,
 } from "@/components/app/pricing/return-path";
-import { activeNowPasses, passProCreditCents } from "@/lib/billing/passes";
+import { activeNowPasses, passCreditMetadata } from "@/lib/billing/passes";
 import { checkPlanChange, replacesCap } from "@/lib/billing/storage-guard";
 import { planById } from "@/lib/constants/tiers";
 import { mustQuery } from "@/lib/db/must-query";
@@ -168,21 +168,14 @@ export async function POST(request: Request) {
   // Computed here (the promise the buyer clicks on), stamped into session metadata, and honored
   // by the webhook on completion: it grants the amount as Stripe customer balance (auto-applied
   // to upcoming Pro invoices; Checkout's own first invoice never consumes balance, so nothing is
-  // lost to the first charge) and consumes every live pass. Passes with unopened renewal windows
+  // lost to the first charge) and converts the passes it counted. Passes with unopened renewal windows
   // credit at 100% — nothing gets banked, nothing gets lost.
   const metadata: Record<string, string> = { plan_id: planId };
   if (renewal) metadata.renewal = "1";
+  // ★ The credit and EVERY pass it counted (`passCreditMetadata`): the webhook converts exactly the passes named,
+  // never one bought after this checkout (billing-integrity; the ids were an audit trail cut at ten).
   if (plan.tier === "pro") {
-    const creditCents = passProCreditCents(passes, now);
-    if (creditCents > 0) {
-      metadata.pass_credit_cents = String(creditCents);
-      // Audit trail only (consumption is every-live-row); capped well under Stripe's 500-char
-      // metadata value limit.
-      metadata.credited_pass_ids = passes
-        .map((p) => p.id)
-        .slice(0, 10)
-        .join(",");
-    }
+    Object.assign(metadata, passCreditMetadata(passes, now));
   }
 
   const priceId = renewal ? eventPassRenewalPriceId() : priceIdForPlan(planId);

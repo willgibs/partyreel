@@ -1,8 +1,7 @@
 import type Stripe from "stripe";
 
-import { passWindowForPurchase } from "@/lib/billing/passes";
+import { creditedPassIds, passWindowForPurchase } from "@/lib/billing/passes";
 import {
-  consumeLivePassesForProCredit,
   insertPassPurchase,
   recomputePassEntitlement,
 } from "@/lib/db/mutations/event-passes";
@@ -22,6 +21,8 @@ import type { TablesUpdate } from "@/lib/db/types";
 import { captureError, captureWarning } from "@/lib/observability/sentry";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+import { honorPassCredit } from "./pass-credit";
+
 // Stripe webhook = the SINGLE source of truth for a host's tier. CRITICAL: read the
 // RAW body (req.text(), NOT req.json()) before constructEvent — JSON-parsing mutates
 // the bytes and the signature check fails. All writes go through the service-role
@@ -35,6 +36,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
 // would be the same fail-open shape the parity test was just fixed for.
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+// ★ Held under the pass credit's claim lease (10 minutes, `claim_pass_credit`, 20261005181000): a delivery that holds
+// the claim always finishes or dies before another may take it over, so two never grant past each other.
+export const maxDuration = 120;
 
 type Admin = ReturnType<typeof createAdminClient>;
 
@@ -264,37 +268,35 @@ export async function POST(request: Request) {
         return Response.json({ received: true });
       }
 
-      // A Pro checkout carrying a prorated pass credit (billing-caps.md): honor it BEFORE the
-      // generic customer binding. Two idempotent steps, ordered so a mid-flight failure can
-      // always resume:
-      //   1. grant the credit as Stripe customer balance (the idempotency key pins the POST for
-      //      Stripe's key window, at least 24 hours, so a retry inside it never double-grants;
-      //      a delivery retries for three days, so a step 2 still failing a day on grants
-      //      again, a ROADMAP line); balance auto-applies to upcoming Pro invoices and
-      //      Checkout's own first invoice never consumes balance;
-      //   2. consume every live pass and clear the chain fields ("nothing gets banked":
-      //      0 rows on a replay), ONE transaction that takes her profiles row first, as an
-      //      upload's complete does, so the two never close a lock cycle and nothing reads
-      //      her passes consumed with her chain still set (`consume_passes_for_pro_credit`;
-      //      tier/cap themselves arrive via the subscription events, which also null
-      //      event_slots).
+      // A Pro checkout carrying a prorated pass credit (billing-caps.md): honor it BEFORE the generic customer
+      // binding (`honorPassCredit`): a claim of our own keyed by the session, read on every retry, so the balance is
+      // granted once ever (Stripe's idempotency key held for a day while a failing delivery retries for three); then
+      // exactly the passes the session names converted, never one bought since. A credit that names no pass is a
+      // checkout this code cannot hold to its promise: a 500, never a guess at which passes it meant.
+      const session = event.data.object as Stripe.Checkout.Session;
       const credit = proCreditSession(event);
       if (credit) {
-        await getStripe().customers.createBalanceTransaction(
-          credit.customerId,
-          {
-            amount: -credit.creditCents,
-            currency: "usd",
-            description: "Event Pass credit (prorated)",
-          },
-          { idempotencyKey: `pass-credit-${credit.sessionId}` },
-        );
-        await consumeLivePassesForProCredit(credit.userId);
+        const passIds = creditedPassIds(session.metadata);
+        if (!passIds) {
+          throw new Error("a credited checkout names no pass it credited");
+        }
+        const outcome = await honorPassCredit({
+          ...credit,
+          passIds,
+          sessionCreated: session.created,
+        });
+        if (outcome === "busy") {
+          // Another delivery of this checkout holds the claim (the two TEST endpoints both receive every event):
+          // not done here, so not a 200. Stripe retries this one, which then finds the grant on record.
+          return new Response(
+            "Another delivery is honoring this checkout's pass credit; retry later.",
+            { status: 409 },
+          );
+        }
       }
 
       // Otherwise (Pro subscription checkout) just bind the Stripe customer to the host;
       // the tier is provisioned from the customer.subscription.* events below.
-      const session = event.data.object as Stripe.Checkout.Session;
       const userId = session.client_reference_id;
       const customerId =
         typeof session.customer === "string"

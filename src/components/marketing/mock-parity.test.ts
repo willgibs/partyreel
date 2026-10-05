@@ -191,7 +191,7 @@ const ENTRIES: ParityEntry[] = [
     label: "album cap refusal, the guest's words",
     marketingFile:
       "src/components/marketing/sections/features/album/how-much-fits.tsx",
-    appFile: "src/app/api/r2/presign-upload/route.ts",
+    appFile: "src/lib/upload/cap-words.ts",
     literal: "This album is full right now. The host needs to free up space.",
   },
   {

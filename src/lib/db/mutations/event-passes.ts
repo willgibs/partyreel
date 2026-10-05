@@ -5,28 +5,38 @@
  *   1. INSERTS ARE THE IDEMPOTENCY BOUNDARY: one Checkout session mints at most
  *      one row (unique partial index on stripe_session_id); a Stripe re-delivery
  *      surfaces as 23505 and is reported as "replay", never an error.
- *   2. THE PROFILE IS DERIVED STATE: recomputePassEntitlement is the ONLY writer
+ *   2. THE PROFILE IS DERIVED STATE: `recompute_pass_entitlement` is the ONLY writer
  *      of the pass-owned profile fields (tier/storage_cap_bytes/event_slots/
- *      tier_expires_at for non-Pro profiles), always writing the full set from
- *      derivePassEntitlement so a replayed recompute lands the same row; the one
- *      other write is the credit's conversion (4), which only clears the chain.
+ *      tier_expires_at for non-Pro profiles), always writing the full set from the
+ *      ledger so a replayed recompute lands the same row; the one other write is the
+ *      credit's conversion (4), which only clears the chain.
  *   3. NEVER TOUCH A PRO PROFILE: the subscription webhook owns those fields for
- *      tier='pro'. The guard rides IN THE WHERE CLAUSE (atomic under READ
- *      COMMITTED, the applyEntitlement lesson) so a concurrent Pro provision
- *      can't be clobbered by a pass recompute that read a stale tier.
- *   4. ★ THE CREDIT'S CONVERSION TAKES HER PROFILES ROW FIRST (billing-locks): it is one
- *      SQL transaction (`consume_passes_for_pro_credit`), never two requests, in the one
- *      lock order every capacity body keeps (database-security.md): an upload's complete
- *      holds her profiles row while it counts on her live pass, so a conversion that took
- *      the passes first, in one transaction, would close a cycle with it.
+ *      tier='pro'. The recompute reads the tier under her profiles row lock and writes
+ *      in the same transaction, so a concurrent Pro provision is never clobbered by a
+ *      recompute that read a stale tier.
+ *   4. ★ THE PASS-TO-PRO CREDIT IS GRANTED ONCE EVER AND CONVERTS ONLY WHAT IT CREDITED
+ *      (billing-integrity, 20261005181000): a claim of our own keyed by the checkout
+ *      session (`claim_pass_credit`), the grant put on record (`record_pass_credit_grant`),
+ *      then exactly the passes the session named converted (`convert_pass_credit`). Each
+ *      is one SQL transaction that takes her profiles row first, the one lock order every
+ *      capacity body keeps (database-security.md): an upload's complete holds that row
+ *      while it counts on her live pass.
  */
 import "server-only";
 
-import { derivePassEntitlement } from "@/lib/billing/passes";
-import { getLivePasses } from "@/lib/db/queries/event-passes";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const UNIQUE_VIOLATION = "23505";
+
+/**
+ * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: the credit's three functions and the recompute arrive with migration
+ * 20261005181000, so their calls go through this untyped client (drop the cast then).
+ */
+function creditDb(db: ReturnType<typeof createAdminClient>) {
+  return db as unknown as SupabaseClient;
+}
 
 export type PassPurchaseInsert = {
   profileId: string;
@@ -56,36 +66,127 @@ export async function insertPassPurchase(
   return "inserted";
 }
 
-/**
- * Convert every live pass to consumed('pro_credit') and clear the chain fields
- * (`tier_expires_at`, `event_slots`): the "nothing gets banked" write when a host
- * starts Pro with a prorated credit. Consumes ALL unconsumed rows (the credit was
- * computed over all of them at checkout time). Returns how many rows this call
- * consumed: 0 = a replay (already consumed), which the webhook treats as success.
- *
- * ★ ONE CALL, ONE TRANSACTION, HER PROFILES ROW FIRST (`consume_passes_for_pro_credit`,
- * 20261005130000). It was two requests, the passes and then the profile: the reverse
- * of an upload's complete (her profiles row, then the pass it counts on), held apart
- * only because each request is its own transaction, so a host sat between them with
- * her passes consumed and her chain still set. A failed call throws, so the webhook
- * answers 500 and Stripe retries. The credit's balance grant runs before it, keyed, but
- * a Stripe idempotency key holds for at least 24 hours while a delivery retries for three
- * days: a conversion still failing a day on grants the balance again (a ROADMAP line).
- */
-export async function consumeLivePassesForProCredit(
-  profileId: string,
-): Promise<number> {
-  const { data, error } = await createAdminClient().rpc(
-    "consume_passes_for_pro_credit",
-    { p_host_id: profileId },
-  );
-  if (error) {
-    throw new Error(`consume_passes_for_pro_credit: ${error.message}`);
+/** What a credit's claim answers (`claim_pass_credit`, read on every delivery before any grant). */
+export type PassCreditClaim =
+  /** This delivery holds the claim; `resumed` when it took over a lapsed one, so look on Stripe's side first. */
+  | { state: "claimed"; resumed: boolean }
+  /** The grant is on record: never grant again, whenever the retry comes. */
+  | { state: "granted"; balanceTransactionId: string }
+  /** Another delivery holds the claim's lease: answer non-2xx and let Stripe retry. */
+  | { state: "busy"; retryAfterSec: number }
+  /** A pass it names was converted already, or is another checkout's to credit: grant and convert nothing. */
+  | { state: "overlap" }
+  /** No profile holds the host: nothing to credit. */
+  | { state: "no_host" };
+
+/** Read `claim_pass_credit`'s answer, or throw: an answer it does not know is a broken call, never a guess. */
+export function parseClaim(data: unknown): PassCreditClaim {
+  const answer = (typeof data === "object" && data !== null ? data : {}) as {
+    state?: unknown;
+    resumed?: unknown;
+    balance_transaction_id?: unknown;
+    retry_after_sec?: unknown;
+  };
+  switch (answer.state) {
+    case "claimed":
+      if (typeof answer.resumed === "boolean") {
+        return { state: "claimed", resumed: answer.resumed };
+      }
+      break;
+    case "granted":
+      if (
+        typeof answer.balance_transaction_id === "string" &&
+        answer.balance_transaction_id !== ""
+      ) {
+        return {
+          state: "granted",
+          balanceTransactionId: answer.balance_transaction_id,
+        };
+      }
+      break;
+    case "busy": {
+      const secs = Number(answer.retry_after_sec);
+      return {
+        state: "busy",
+        retryAfterSec:
+          Number.isFinite(secs) && secs >= 1 ? Math.ceil(secs) : 600,
+      };
+    }
+    case "overlap":
+    case "no_host":
+      return { state: answer.state };
   }
-  // The function answers a row count; anything else is a broken call, never "nothing to consume".
+  throw new Error("claim_pass_credit answered something it never answers");
+}
+
+/**
+ * Take (or read) the claim on one credited checkout's credit before any grant: its session, the host, the credit the
+ * checkout computed and the passes it named. A failed call throws, so the webhook answers 500 and Stripe retries.
+ */
+export async function claimPassCredit(input: {
+  sessionId: string;
+  hostId: string;
+  creditCents: number;
+  passIds: string[];
+}): Promise<PassCreditClaim> {
+  const { data, error } = await creditDb(createAdminClient()).rpc(
+    "claim_pass_credit",
+    {
+      p_session_id: input.sessionId,
+      p_host_id: input.hostId,
+      p_credit_cents: input.creditCents,
+      p_pass_ids: input.passIds,
+    },
+  );
+  if (error) throw new Error(`claim_pass_credit: ${error.message}`);
+  return parseClaim(data);
+}
+
+/**
+ * Put a credit's customer-balance transaction on record, once. Answers the transaction on record: the one passed, or an
+ * earlier one when there is one (two grants for one checkout, which the caller reports).
+ */
+export async function recordPassCreditGrant(
+  sessionId: string,
+  hostId: string,
+  balanceTransactionId: string,
+): Promise<string> {
+  const { data, error } = await creditDb(createAdminClient()).rpc(
+    "record_pass_credit_grant",
+    {
+      p_session_id: sessionId,
+      p_host_id: hostId,
+      p_balance_transaction_id: balanceTransactionId,
+    },
+  );
+  if (error) throw new Error(`record_pass_credit_grant: ${error.message}`);
+  if (typeof data !== "string" || data === "") {
+    throw new Error(
+      "record_pass_credit_grant answered something other than a transaction",
+    );
+  }
+  return data;
+}
+
+/**
+ * Convert exactly the passes a granted credit's checkout named (consumed `pro_credit`) and clear the chain fields when
+ * any converted, in ONE transaction that takes her profiles row first. Returns how many this call converted: 0 on a
+ * replay, which the webhook reads as success, and never a pass bought after the checkout. A failed call throws, so the
+ * webhook answers 500 and Stripe retries, behind a grant on record that cannot repeat.
+ */
+export async function convertPassCredit(
+  sessionId: string,
+  hostId: string,
+): Promise<number> {
+  const { data, error } = await creditDb(createAdminClient()).rpc(
+    "convert_pass_credit",
+    { p_session_id: sessionId, p_host_id: hostId },
+  );
+  if (error) throw new Error(`convert_pass_credit: ${error.message}`);
+  // The function answers a row count; anything else is a broken call, never "nothing to convert".
   if (typeof data !== "number" || !Number.isInteger(data) || data < 0) {
     throw new Error(
-      "consume_passes_for_pro_credit answered something other than a count",
+      "convert_pass_credit answered something other than a count",
     );
   }
   return data;
@@ -93,55 +194,33 @@ export async function consumeLivePassesForProCredit(
 
 export type RecomputeResult = "updated" | "unchanged" | "skipped_pro";
 
+const RECOMPUTE_RESULTS: readonly unknown[] = [
+  "updated",
+  "unchanged",
+  "skipped_pro",
+] satisfies RecomputeResult[];
+
 /**
- * Re-derive a profile's pass entitlement from its ledger and write the four
- * pass-owned fields together. Safe to call any time (webhook, sweeps, drift
- * healing): it is a pure function of the ledger + the clock. `.neq("tier",
- * "pro")` keeps it off subscription-owned rows atomically.
+ * Re-derive a profile's pass entitlement from its ledger and write the four pass-owned fields together, in ONE SQL
+ * transaction under her profiles row lock (`recompute_pass_entitlement`). It read the ledger and wrote the profile in
+ * two requests, so a conversion landing between them had its cleared chain put back until the subscription event came.
+ * Safe to call any time (webhook, sweeps, drift healing): a pure function of the ledger and the instant, the sweep's
+ * `now` when it passes one, the database's otherwise. Never a Pro profile (`skipped_pro`).
  */
 export async function recomputePassEntitlement(
   profileId: string,
-  now: Date = new Date(),
+  now?: Date,
 ): Promise<RecomputeResult> {
-  const admin = createAdminClient();
-  const passes = await getLivePasses(profileId);
-  const derived = derivePassEntitlement(passes, now);
-
-  const { data: current, error: readError } = await admin
-    .from("profiles")
-    .select("tier, storage_cap_bytes, event_slots, tier_expires_at")
-    .eq("id", profileId)
-    .maybeSingle();
-  if (readError) throw new Error(`recompute read: ${readError.message}`);
-  if (!current) return "unchanged";
-  if (current.tier === "pro") return "skipped_pro";
-
-  // Timestamps compare as epoch ms: Postgres serializes "+00:00" where our derived
-  // ISO says ".000Z", and a string compare would report perpetual drift.
-  const sameExpiry =
-    (current.tier_expires_at === null && derived.tierExpiresAt === null) ||
-    (current.tier_expires_at !== null &&
-      derived.tierExpiresAt !== null &&
-      Date.parse(current.tier_expires_at) ===
-        Date.parse(derived.tierExpiresAt));
-  const same =
-    current.tier === derived.tier &&
-    current.storage_cap_bytes === derived.storageCapBytes &&
-    current.event_slots === derived.eventSlots &&
-    sameExpiry;
-  if (same) return "unchanged";
-
-  const { data: updated, error } = await admin
-    .from("profiles")
-    .update({
-      tier: derived.tier,
-      storage_cap_bytes: derived.storageCapBytes,
-      event_slots: derived.eventSlots,
-      tier_expires_at: derived.tierExpiresAt,
-    })
-    .eq("id", profileId)
-    .neq("tier", "pro")
-    .select("id");
-  if (error) throw new Error(`recompute write: ${error.message}`);
-  return (updated ?? []).length === 1 ? "updated" : "skipped_pro";
+  const { data, error } = await creditDb(createAdminClient()).rpc(
+    "recompute_pass_entitlement",
+    // A null instant is the database's own now(): the key is left out and the default applies.
+    { p_host_id: profileId, p_now: now?.toISOString() },
+  );
+  if (error) throw new Error(`recompute_pass_entitlement: ${error.message}`);
+  if (!RECOMPUTE_RESULTS.includes(data)) {
+    throw new Error(
+      "recompute_pass_entitlement answered something it never answers",
+    );
+  }
+  return data as RecomputeResult;
 }

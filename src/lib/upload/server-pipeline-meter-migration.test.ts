@@ -6,9 +6,10 @@
  * (`server-pipeline-meter.ts`).
  *
  * What they hold:
- *   1. THE METER: `meter_upload` refuses past the hour's breaker, the month (the complete's own line), a lapsed pass (the
- *      completes' own refusal, billing-locks) and the room, and tallies the hour in one atomic upsert; it counts NOTHING
- *      of the month and takes no profiles lock; it is the service role's alone.
+ *   1. THE METER: `meter_upload` refuses past the hour's breaker, the uploads line (the completes' own question,
+ *      `uploads_refused`: her plan's allowance over its window, or a lapsed pass; billing-integrity) and the room, and
+ *      tallies the hour in one atomic upsert; it counts NOTHING of the month and takes no profiles lock; it is the
+ *      service role's alone.
  *   2. THE MONTH IS THE COMPLETE'S: `create_media*` are 20261003110000's, untouched, still the only writers of the
  *      month's bytes and items; the meter writes the hour's columns alone.
  *   3. THE BREAKERS: an account's uploads a clock hour (20,000) and its creations a day (100), the second on a creation
@@ -110,8 +111,9 @@ describe("1. the meter", () => {
     );
     // ★ Reshaped by Ladder A (20261004100000; scar kept: the allowance is read here, in this order, as the complete
     // holds it, and refused under the wire's 'monthly'): her plan's own number over its window, a month or a pass's year.
+    // ★ And by billing-integrity (20261005181000; same scar): read through the completes' own question, one home.
     const month = at(
-      "if v_allowance is not null and public.uploads_used(v_host, v_tier) + p_bytes > v_allowance then return jsonb_build_object('ok', false, 'reason', 'monthly');",
+      "if public.uploads_refused(v_host, v_tier, v_storage_cap, p_bytes) then return jsonb_build_object('ok', false, 'reason', 'monthly');",
     );
     // trash-in-storage: the room is the line an upload meets (`host_room_used`), refused with its numbers.
     const room = at(
@@ -126,23 +128,27 @@ describe("1. the meter", () => {
 
   // ★ Reshaped by Ladder A (20261004100000; scar kept: one allowance, one window, one strict line on both sides): the
   // allowance is each plan's own number (`upload_allowance`) over its window (`uploads_used`: the month's ledger, or a
-  // pass's year on the pass), where it was 3x the cap over the month's row alone.
-  it("★ reads the allowance exactly as the complete holds it: the same number, the same window, the same strict line", () => {
+  // pass's year on the pass), where it was 3x the cap over the month's row alone. ★ And by billing-integrity
+  // (20261005181000; same scar, and billing-locks' lapsed pass with it): the meter and both completes ask ONE function,
+  // `uploads_refused`, the meter with the declared bytes and the completes with the HEAD's, so the line cannot be held
+  // two ways; where each restated the predicate and a parity pin held the copies together.
+  it("★ asks the completes' own question: the same function, her plan's same figures, the meter's declared bytes", () => {
     const body = latest("meter_upload").body;
     expect(body).toContain(
-      "v_allowance := public.upload_allowance(v_tier, v_storage_cap);",
+      "if public.uploads_refused(v_host, v_tier, v_storage_cap, p_bytes) then return jsonb_build_object('ok', false, 'reason', 'monthly'); end if;",
     );
     expect(body).toContain("v_period text := to_char(now(), 'YYYY-MM');");
     expect(body).toContain(
       "v_cap := coalesce(v_storage_cap, (select l.default_storage_cap_bytes from public.tier_limits(v_tier) l));",
     );
+    // Nothing of the line restated here: no allowance or window of its own, no lapsed predicate of its own.
+    expect(body).not.toMatch(
+      /public\.upload_allowance\(|public\.uploads_used\(|event_passes/,
+    );
     for (const name of ["create_media", "create_media_as_host"]) {
       const complete = latest(name).body;
       expect(complete, name).toContain(
-        "v_allowance := public.upload_allowance(v_profile.tier, v_profile.storage_cap_bytes);",
-      );
-      expect(complete, name).toContain(
-        "v_uploaded := public.uploads_used(v_event.host_id, v_profile.tier); if v_uploaded + p_file_size_bytes > v_allowance then raise exception 'Upload limit reached for this plan.'",
+        "if public.uploads_refused(v_event.host_id, v_profile.tier, v_profile.storage_cap_bytes, p_file_size_bytes) then raise exception 'Upload limit reached for this plan.'",
       );
       // trash-in-storage: the complete holds everything she keeps, Deleted making room where her setting lets it.
       expect(complete, name).toContain(
@@ -152,36 +158,24 @@ describe("1. the meter", () => {
   });
 
   // ★ billing-locks (20261005130000): until the nightly recompute moved a lapsed pass holder to Free, the meter admitted
-  // her upload, its bytes went up, and the complete refused them (the Advisor's Q26 F1). The meter now refuses it first,
-  // with the completes' own predicate over the same rows, in the allowance's words (the wire's 'monthly', which both
-  // presign routes say as their allowance sentence), after the allowance and before the room, with no lock.
-  it("★ refuses a lapsed pass as both completes do: their predicate, the allowance's words, after the allowance and before the room", () => {
+  // her upload, its bytes went up, and the complete refused them (the Advisor's Q26 F1). ★ Reshaped by billing-integrity
+  // (20261005181000; scar kept: refused before a byte moves, in the allowance's words, after the breaker and before the
+  // room, with no lock): the lapsed pass is `pass_lapsed`, asked inside `uploads_refused`, the very call the completes
+  // make, so no predicate is restated here to drift from theirs.
+  it("★ refuses a lapsed pass as both completes do: through their own question, after the breaker and before the room", () => {
     const body = latest("meter_upload").body;
-    const lapsed = body.match(
-      /if v_tier = 'event_pass' and not exists \( (select 1 from public\.event_passes q where .*?)\) then return jsonb_build_object\('ok', false, 'reason', 'monthly'\); end if;/,
+    const line = body.indexOf(
+      "if public.uploads_refused(v_host, v_tier, v_storage_cap, p_bytes) then",
     );
-    expect(lapsed, "the meter's lapsed pass refusal").not.toBeNull();
-    for (const name of ["create_media", "create_media_as_host"]) {
-      const complete = latest(name).body;
-      const theirs = complete.match(
-        /if v_profile\.tier = 'event_pass' and not exists \( (select 1 from public\.event_passes q where .*?)\) then raise exception 'Upload limit reached for this plan\.'/,
-      );
-      expect(theirs, `${name}'s lapsed pass refusal`).not.toBeNull();
-      // The same predicate, the host named the way each body names her.
-      expect(lapsed![1], name).toBe(
-        theirs![1].replace(
-          "q.profile_id = v_event.host_id",
-          "q.profile_id = v_host",
-        ),
-      );
-    }
-    const allowance = body.indexOf(
-      "if v_allowance is not null and public.uploads_used(v_host, v_tier) + p_bytes > v_allowance then",
+    const breaker = body.indexOf(
+      "if v_ledger.hour_started_at = v_hour and v_ledger.hour_uploads >= c_uploads_an_hour then",
     );
     const room = body.indexOf("v_used := public.host_room_used(v_host);");
-    expect(allowance).toBeGreaterThan(-1);
-    expect(lapsed!.index!).toBeGreaterThan(allowance);
-    expect(lapsed!.index!).toBeLessThan(room);
+    expect(line).toBeGreaterThan(breaker);
+    expect(breaker).toBeGreaterThan(-1);
+    expect(room).toBeGreaterThan(line);
+    const one = latest("uploads_refused").body;
+    expect(one).toContain("or public.pass_lapsed(p_host_id, p_tier)");
   });
 
   it("★ the hour's tally is one upsert, atomic on its row: its WHERE refuses the 20,001st even past a raced early read", () => {
