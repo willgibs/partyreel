@@ -4,11 +4,14 @@
  * its bytes start as soon as they ever did; the rest together) and one complete, each file's answer its own; a file
  * refused at either step never stops its siblings; a refusal of who is sending is every unasked file's, never asked
  * again; a dropped PUT fails its file alone; a landed file waits at most `BURST_RECORD_WAIT_MS` for its siblings, and
- * the page leaving the screen records what landed at once, in a complete that outlives the page; preparing runs at
- * most `PREP_AHEAD_BYTES` ahead of the network; her cancel ends everything not recorded, and one file's own cancel
- * ends that file alone (its siblings are recorded together as ever); each file settles once.
+ * the page leaving the screen records what landed at once, in a complete that outlives the page; preparing runs
+ * ahead of the network, the network's next file always and the rest within `PREP_AHEAD_BYTES`; the next presign is
+ * back before the file in the air lands (uploads-idempotent), so the line never waits between files; her cancel ends
+ * everything not recorded, and one file's own cancel ends that file alone (its siblings are recorded together as
+ * ever); each file settles once.
  * Stood in: the strip (a pass-through), the derivatives (none), the image measure, the network (fetch for the two
- * routes, a timed XHR for the PUTs) and the clock.
+ * routes, a timed XHR for the PUTs, its progress paced and R2's answer coming a while after its last byte) and the
+ * clock.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -455,7 +458,7 @@ describe("★ when a landed file is recorded", () => {
 });
 
 describe("★ preparing runs ahead of the network, never too far", () => {
-  it(`holds at most ${PREP_AHEAD_BYTES / MB} MB of prepared files not yet up (the next one always may)`, async () => {
+  it(`holds at most ${PREP_AHEAD_BYTES / MB} MB of prepared files not yet up beyond the network's next one`, async () => {
     putMs = () => 1_000;
     const big = 40 * MB;
     await send([photo(big), photo(big + 1), photo(big + 2)]);

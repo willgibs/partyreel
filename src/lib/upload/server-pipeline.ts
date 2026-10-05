@@ -31,7 +31,8 @@
  * - The phone copy (take-home r1) is never metered, so it is capped twice (`phoneCopyFits`): its PUT is
  *   minted only within 4 MB and half the declared original, and complete records it only within both on
  *   the HEAD sizes, else drops it and lands the photograph without one.
- * - An over-stuffed multipart is ABORTED, never assembled.
+ * - An over-stuffed multipart is ABORTED, never assembled; one a first complete assembled and never recorded lands on
+ *   its replay as assembled (uploads-idempotent: only that complete can have put an object at its key).
  * - ★ A BYTE REACHES `events/` ONLY THROUGH A COMPLETE (upload-meter, the Advisor's Q19): every single PUT is minted
  *   at its key's `staging/` twin (`stagingKeyFor`), which the backup and the orphan sweep never read and a lifecycle
  *   rule empties a day on, and the complete copies it in before the row is written; a multipart becomes an object only

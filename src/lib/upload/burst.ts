@@ -31,9 +31,10 @@ export const MAX_BURST_BYTES = 1024 ** 3;
 export const BURST_RECORD_WAIT_MS = 10_000;
 
 /**
- * How far preparing (the strip, the preview, the phone copy: bytes held in memory) may run ahead of the network: a
- * file is prepared only while the prepared files not yet sent hold less than this (the next one always may), so a
- * phone never holds a whole burst of photographs at once.
+ * How far preparing (the strip, the preview, the phone copy: bytes held in memory) may run ahead of the network: the
+ * network's next file is always prepared, and a file beyond it only while the prepared files not yet sent hold less
+ * than this, so a phone never holds a whole burst of photographs at once. It is what lets one presign carry a burst:
+ * the files it carries are the ones prepared.
  */
 export const PREP_AHEAD_BYTES = 64 * 1024 ** 2;
 

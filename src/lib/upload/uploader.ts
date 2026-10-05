@@ -515,7 +515,8 @@ export type BurstFile = {
   onSent?: () => void;
   /**
    * HER CANCEL OF THIS ONE FILE: it settles `cause: "cancelled"` (nothing recorded, nothing counted) and its siblings go
-   * on. Too late once its complete is asked (a row may be recorded): the abort is then ignored and its answer stands.
+   * on. Too late once its complete is asked (a row may be recorded), and for a file going again on its kept complete
+   * (`UNANSWERED`): the abort is then ignored and its answer stands.
    */
   signal?: AbortSignal;
 };
