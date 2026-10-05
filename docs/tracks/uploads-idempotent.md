@@ -46,7 +46,33 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **Q1. Fix 2's premise predates compute-uploads.** `runUpload` is gone: preparing already runs ahead of the network,
+  held to 64 MB of prepared files not yet up (`PREP_AHEAD_BYTES`), and that budget is what lets one presign carry a
+  burst. Two gaps are left: a file over the budget (a video) holds the next file's preparing until its bytes are up,
+  and the next presign is asked only once the network needs it (a round trip between files). Recommended, built: the
+  file after the one in the air is always prepared (the brief's "one beyond the one sending"), files beyond it within
+  the 64 MB as before; and the next presign is asked before the file in the air ends (when its bytes' own pace says it
+  ends within about two presign round trips), or at once when preparing can add nothing more to it. Overrule: the
+  brief's literal bound (one prepared file beyond the one sending, no byte budget), which costs a presign a file.
+- **Q2. The ceilings.** Recommended, built: a presign may take 30 s and a complete 60 s, each clock restarting when the
+  page comes back to the screen (a phone freezes a hidden page's timers, as the byte PUT's stall clock already allows
+  for); past it the request is a dropped connection, said in the one sentence with Try again.
+- **Q3. A Try again after a lost complete sends that complete again, never the upload.** The phone keeps a file's
+  complete while its answer is unknown (no answer, an answer it cannot read, or the server's own "couldn't finish":
+  `complete_failed`, `unknown`) and a Try again sends it again with the same media id: the row answers `recorded` if it
+  was written, else the file lands now, in one round trip, its bytes never sent twice. Kept by the File itself, so a
+  Retry (which hands the same file back) replays and a second pick of the same photograph is a new upload. Any other
+  refusal is final, and its Try again uploads afresh. Recommended, built.
+- **Q4. A replayed file cannot be stopped.** Its row may already exist, so it is the record's from its first moment
+  (the x on a guest's tile answers "too late" at once, a host's row shows none), as a file whose complete is asked
+  already is. Recommended, built.
+- **Q5. A replay answered `recorded` is drawn by the album's sync, not at once.** The server says only "recorded" of a
+  row (crumbs-62: nothing of a row leaves the server to whoever holds a key), so the phone does not know its status
+  (approved, held, sealed) and the album's sync, asked at once, brings it. Recommended: keep (no status for a key).
+- **Q6. A multipart R2 will not assemble stays "Couldn't finalize the upload. Please retry."** on every Try again (the
+  failure sheet's Not now clears it) rather than start the upload over and risk a second row. Practically unreachable
+  (a part list R2 refuses, or an upload its abort rule took days later); one whose first complete assembled it and
+  then died now lands on the replay. Recommended, built.
 
 ## System-doc edits (in place, owned facts only)
 
