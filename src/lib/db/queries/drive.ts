@@ -1161,3 +1161,21 @@ export async function readConnectionUser(connectionId: string): Promise<string |
   );
   return str(obj(row).user_id);
 }
+
+/** Connections still holding a grant (not `revoked`), a page at a time in id order: the revoke-all's walk. */
+export async function readLiveConnections(input: {
+  after: string | null;
+  limit: number;
+}): Promise<{ id: string; userId: string }[]> {
+  let query = admin()
+    .from("cloud_connections")
+    .select("id, user_id")
+    .neq("status", "revoked")
+    .order("id", { ascending: true })
+    .limit(Math.min(Math.max(input.limit, 1), 500));
+  if (input.after) query = query.gt("id", input.after);
+  const rows = await mustQuery(query, "drive admin: live connections");
+  return ((Array.isArray(rows) ? rows : []) as Record<string, unknown>[])
+    .map((r) => ({ id: str(r.id) ?? "", userId: str(r.user_id) ?? "" }))
+    .filter((r) => r.id && r.userId);
+}

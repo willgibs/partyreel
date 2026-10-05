@@ -23,7 +23,7 @@ import { formatCount } from "@/lib/format/count";
 import { captureError } from "@/lib/observability/sentry";
 import { formatBytes } from "@/lib/utils";
 
-import { DriveConnectionActs, DriveKillSwitch, DriveSendActs } from "./drive-controls";
+import { DriveConnectionActs, DriveKillSwitch, DriveRevokeAll, DriveSendActs } from "./drive-controls";
 import { clientHealth, connectionActs, connectionWord, sendActs, sendWord } from "./drive-words";
 
 /** The four jobs Send to Google Drive reports through (`app/admin/jobs/catalog.ts`). */
@@ -161,6 +161,7 @@ export async function DriveSection({ search, health }: { search: string | null; 
               )}
             </p>
           ) : null}
+          {data ? <DriveRevokeAll connections={data.connections} /> : null}
         </CardContent>
       </Card>
 

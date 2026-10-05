@@ -13,11 +13,21 @@ import { z } from "zod";
 
 import { type ActionResult } from "@/app/(app)/dashboard/actions";
 import { requireAdminAction } from "@/lib/auth/admin-context";
-import { actOnSend, operatorOnConnection, readConnectionUser } from "@/lib/db/queries/drive";
+import {
+  actOnSend,
+  operatorOnConnection,
+  readConnectionUser,
+  readLiveConnections,
+  recordRefreshFailed,
+} from "@/lib/db/queries/drive";
 import { disconnectDrive } from "@/lib/drive/disconnect.server";
-import { kickConnection } from "@/lib/drive/service.server";
+import { revokeToken } from "@/lib/drive/google";
+import { notifyReconnect } from "@/lib/drive/mail.server";
+import { kickConnection, openConnectionTokens } from "@/lib/drive/service.server";
 import { captureError } from "@/lib/observability/sentry";
 import { createAdminClient } from "@/lib/supabase/admin";
+
+import { REVOKE_ALL_PHRASE } from "./drive-words";
 
 const PATH = "/admin/exports";
 
@@ -118,4 +128,62 @@ export async function driveDisconnectAction(connectionId: string): Promise<Actio
     captureError("export", e, { action: "drive_operator_disconnect" });
     return refused("Couldn't disconnect. Please try again.");
   }
+}
+
+/** One press's budget: inside a Vercel function's time, leaving room to answer. */
+const REVOKE_ALL_BUDGET_MS = 45_000;
+
+/**
+ * THE LEAK RUNBOOK'S ONE ACT (drive-export.md, "When a secret leaks"): every connection's grant revoked at Google
+ * and its tokens wiped, as Google's own `invalid_grant` does (status revoked, her sends paused `disconnected`, the
+ * reconnect mail), so a leaked token key or client secret opens nothing that still works. Each host's sends carry on
+ * when she reconnects the same Google account. A press runs for 45 seconds and says what remains.
+ */
+export async function driveRevokeAllAction(typed: string): Promise<ActionResult> {
+  const auth = await requireAdminAction();
+  if (!auth.ok) return auth.result;
+  if (typed !== REVOKE_ALL_PHRASE) return refused(`Type \u201c${REVOKE_ALL_PHRASE}\u201d to confirm.`);
+  const started = Date.now();
+  let done = 0;
+  let unconfirmed = 0;
+  let after: string | null = null;
+  try {
+    for (;;) {
+      const page = await readLiveConnections({ after, limit: 100 });
+      if (page.length === 0) break;
+      for (const c of page) {
+        if (Date.now() - started > REVOKE_ALL_BUDGET_MS) {
+          revalidatePath(PATH);
+          return refused(
+            `Revoked ${done}${unconfirmed ? ` (${unconfirmed} not confirmed by Google)` : ""}; more remain. Press again to go on.`,
+          );
+        }
+        // Revoke at Google first (the grant is what a leaked secret would use), then wipe ours either way.
+        let tokens: { refresh: string | null; access: string | null } | null = null;
+        try {
+          tokens = await openConnectionTokens(c.id);
+        } catch {
+          tokens = null;
+        }
+        const token = tokens?.refresh ?? tokens?.access ?? null;
+        const revoked = token ? await revokeToken(token) : false;
+        if (!revoked) unconfirmed += 1;
+        await recordRefreshFailed({ connectionId: c.id, error: "revoked by an operator (revoke every connection)", revoked: true });
+        await notifyReconnect({ connectionId: c.id, userId: c.userId, why: "revoked" });
+        done += 1;
+      }
+      after = page[page.length - 1]!.id;
+    }
+  } catch (e) {
+    captureError("export", e, { action: "drive_revoke_all", done });
+    revalidatePath(PATH);
+    return refused(`Stopped after ${done}: ${e instanceof Error ? e.message.slice(0, 120) : "an error"}. Press again to go on.`);
+  }
+  revalidatePath(PATH);
+  if (unconfirmed > 0) {
+    return refused(
+      `Every connection is revoked here (${done}); Google didn't confirm ${unconfirmed}. Their keys are wiped, so nothing of ours opens them.`,
+    );
+  }
+  return { ok: true };
 }

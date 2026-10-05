@@ -13,8 +13,14 @@ import { DestructiveSheet, GuardedSwitch } from "@/components/admin/destructive-
 import { Button } from "@/components/ui/button";
 import { formatCount } from "@/lib/format/count";
 
-import { driveConnectionAction, driveDisconnectAction, driveSendAction, toggleDriveExportsAction } from "./drive-actions";
-import type { ConnectionActId, SendActId } from "./drive-words";
+import {
+  driveConnectionAction,
+  driveDisconnectAction,
+  driveRevokeAllAction,
+  driveSendAction,
+  toggleDriveExportsAction,
+} from "./drive-actions";
+import { REVOKE_ALL_PHRASE, type ConnectionActId, type SendActId } from "./drive-words";
 
 export function DriveKillSwitch({ enabled }: { enabled: boolean }) {
   return (
@@ -196,6 +202,40 @@ export function DriveConnectionActs({
         severity="reversible"
         successMessage="Disconnected and revoked at Google."
         onConfirm={() => driveDisconnectAction(connectionId)}
+      />
+    </div>
+  );
+}
+
+/**
+ * For a leak of the token key or the client secret (drive-export.md, "When a secret leaks"): every grant revoked at
+ * Google, every key wiped, every host mailed to reconnect. Permanent for the grants, so the phrase is typed.
+ */
+export function DriveRevokeAll({ connections }: { connections: number }) {
+  const [asking, setAsking] = useState(false);
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
+      <p className="min-w-0 flex-1 basis-64 text-caption text-muted-foreground">
+        If the token key or the client secret leaks: rotate them (the runbook), then revoke every connection here.
+      </p>
+      <Button size="sm" variant="destructive" onClick={() => setAsking(true)} disabled={connections === 0}>
+        Revoke every connection
+      </Button>
+      <DestructiveSheet
+        open={asking}
+        onOpenChange={setAsking}
+        title="Revoke every Google Drive connection?"
+        lede="Each grant is revoked at Google and its key wiped here, so nothing leaked can open it. Every host's sends pause until she reconnects the same Google account, then carry on."
+        verb="Revoke every connection"
+        touches={[
+          `${formatCount(connections)} ${connections === 1 ? "connection" : "connections"}, every host who connected`,
+          "Running sends pause (nothing is lost; they resume at her reconnect)",
+          "Each host gets one email asking her to reconnect",
+        ]}
+        severity="permanent"
+        confirmText={REVOKE_ALL_PHRASE}
+        successMessage="Every connection is revoked."
+        onConfirm={(typed) => driveRevokeAllAction(typed)}
       />
     </div>
   );

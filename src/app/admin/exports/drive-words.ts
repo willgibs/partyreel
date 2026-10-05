@@ -126,3 +126,6 @@ export function clientHealth(lastUsedAt: string | null, nowMs: number): { attent
   const days = Math.floor((nowMs - Date.parse(lastUsedAt)) / (24 * 60 * 60 * 1000));
   return { attention: days >= CLIENT_IDLE_ATTENTION_DAYS, days };
 }
+
+/** What the operator types to revoke every connection (a wrong-act guard: every host must reconnect after it). */
+export const REVOKE_ALL_PHRASE = "revoke every connection";
