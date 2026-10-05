@@ -26,7 +26,7 @@ model Will seats (Fable or Opus); nothing here depends on which.
 ## In flight
 
 Round 15 continues (2026-10-05, evening), seated on willg97. Milestone 37 is live (`b67cdc1f2`). Since then
-launch-prep holds twelve merged lanes and three applied migrations (billing_integrity, cloud_export_fixes,
+launch-prep holds thirteen merged lanes (album-order the latest, gate 21) and three applied migrations (billing_integrity, cloud_export_fixes,
 roll_size_range) for milestone 38, plus the Orchestrator's StrictMode tile fix (`d6bfc64a0`). Desks 3 and 4 are
 answered and transcribed; his desk (`localhost:3000`, launch-prep `5104a5d05`) holds no open ask until desk 5 lands.
 Lanes merged before milestone 37 left this table: their summaries are their merge commits (`git log`).
@@ -57,6 +57,10 @@ Lanes merged before milestone 37 left this table: their summaries are their merg
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a22be0c2878d7ab19`, this session, spawned
 for Q31 (billing-locks' migration against the live schema and milestone 36's callers). Its model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`.
 
+**The 5-hour cut (2026-10-05 ~21:55Z, Will: 98%; resets ~00:40Z 2026-10-06):** every lane was asked for a pushed WIP
+commit and a `## Where I am` in its manifest. In this session, resume each by SendMessage to its agent id (the In flight
+table); nothing was mid-merge (launch-prep `4a360eabe` and on, pushed).
+
 **Handoff across accounts** (Will's rule: wind down near the weekly limit; the other account resumes at once). This
 session: `f2c62c71-9c33-49f4-9fd5-d48376be9824` on willg97@gmail.com, weekly 0% at 04:10Z 2026-10-05, resetting
 Sunday 2026-10-11 13:00Z (hi@willgibs.com resets Tuesday 2026-10-06 21:00Z). If it ends, the next Orchestrator:
@@ -66,7 +70,7 @@ Sunday 2026-10-11 13:00Z (hi@willgibs.com resets Tuesday 2026-10-06 21:00Z). If 
 - reads this pickup, then STATUS; recreates the hourly heartbeat only for an unattended run (`CronCreate`, session-only; Will: off while he works
   actively; this session's was deleted 2026-10-05 when he returned);
 - Will's desk: `http://localhost:3000/design/lab?key=fiesta` is served by `pnpm start -p 3000` in
-  `../partyreel-wt/desk` (nohup), pinned at `94d66338` (Drive alone) until he pastes desk 2. A refresh: checkout the
+  `../partyreel-wt/desk` (nohup), pinned at `5104a5d05` (no open ask); the next refresh serves desk 5. A refresh: checkout the
   SHA detached, `pnpm install`, stop port 3000, `rm -rf .next`, build with `NEXT_PUBLIC_SITE_URL=http://localhost:3000`
   through `scripts/build-lock.sh`, `nohup pnpm start -p 3000`, then the `sentry-release` in `/design/lab` names it
   (about a minute; `../partyreel-wt/_scratch/desk/desk-refresh.sh <sha>` does it all; its `.env.local` is a symlink to the root's, so Will's env lands there too);
@@ -118,7 +122,12 @@ Round 15, on Will's desk answers of 2026-10-04 and his brand note; the approved 
 8. **Pacing (Will, 2026-10-05):** weekly usage is no constraint (two Claude accounts, about $500 of cloud usage
    untapped, a third account at worst): the fastest pace I am comfortable with, the machine's memory the limit (eight
    agents at 61 to 68% free). Weekly 59% at 21:32Z (resets 2026-10-11 13:00Z): near 95% the handoff block is current
-   so the other account's Orchestrator takes over.
+   so the other account's Orchestrator takes over. **Cloud first where a lane fits** (Will, 2026-10-05: until
+   willg97's $250 cloud credit is spent; local where it really benefits): in this desktop session the Agent tool's
+   `isolation: "remote"` ran on the Mac (a probe), so the route from here is claude.ai routines (`RemoteTrigger`,
+   run on demand, a cloud session on the GitHub repo pushing its `lp/` branch; it cannot message back), awaiting his yes
+   to create the first; he may seat the Orchestrator in a cloud session once weekly maxes, where cloud subagents may
+   work (chosen at a session's start).
 9. **The close of the day:** STATUS (stale since 2026-10-03), this pickup, the calls lab. Moltbook only on his word.
 
 ## Waiting on Will
