@@ -336,6 +336,31 @@ describe("a batch landing above while she reads deep", () => {
     await scrollTo(lastOfBatch - 200);
     expect(pill()).toBeNull();
   });
+
+  it("★ a batch of 200 above and a late approval just below count together; the arrow points to the nearer, then to the rest", async () => {
+    const { rerender } = render(
+      <Album items={album} news={{ arrivals: [] }} />,
+    );
+    await scrollTo(10_000);
+    const batch = Array.from({ length: 200 }, (_, i) => photo(i, "new"));
+    // The late approval lands a few rows below what she reads.
+    const at = album.findIndex((m) => m.id === "a150");
+    const late = photo(0, "late");
+    const next = [...batch, ...album.slice(0, at), late, ...album.slice(at)];
+    rerender(
+      <Album
+        items={next}
+        news={{ arrivals: [...batch.map((m) => m.id), late.id] }}
+      />,
+    );
+    expect(pill()!.textContent).toContain("201 new");
+    expect(pill()!.dataset.albumNewsPill).toBe("down");
+    // The press goes to the nearer landing; reaching it leaves the batch above, said.
+    fireEvent.click(pill()!, { detail: 1 });
+    await scrollTo(scrollY);
+    expect(pill()!.textContent).toContain("200 new");
+    expect(pill()!.dataset.albumNewsPill).toBe("up");
+  });
 });
 
 describe("arrivals that land below her", () => {
