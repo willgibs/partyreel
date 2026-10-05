@@ -62,19 +62,25 @@ describe("the spend watch's migration", () => {
 
   it("★ traps each section's failure alone, so one missing reading never takes the rest", () => {
     const readings = bodyOf("spend_watch_readings");
-    for (const section of [
+    // The winning body (drive-wiring's cloud_export added `drive_bytes`): every section traps its own failure, so the
+    // count of handlers is the count of sections, named once here.
+    const sections = [
       "ledger",
       "album",
       "lifecycle_mail",
       "sign_ins",
       "downloads",
       "purge_runs",
-    ]) {
+      "drive_bytes",
+    ];
+    for (const section of sections) {
       expect(readings).toContain(
         `v_errors := v_errors || jsonb_build_object('${section}', sqlerrm);`,
       );
     }
-    expect(readings.match(/exception when others then/g)).toHaveLength(6);
+    expect(readings.match(/exception when others then/g)).toHaveLength(
+      sections.length,
+    );
     // And no lifecycle kind is typed in SQL: the app passes send-kinds.ts's list, and none named is an error.
     expect(readings).toContain(
       "raise exception 'no lifecycle kinds were named';",
