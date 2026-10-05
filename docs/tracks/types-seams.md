@@ -1,6 +1,6 @@
 ---
 track: types-seams
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "9fd2bccb"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -33,25 +33,37 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- Drop a sixth untyped admin cast too, `src/lib/drive/mail.server.ts:39` (`admin(): SupabaseClient`, no seam comment, outside this lane's `owns`)? Recommended: yes, in the next lane that owns `src/lib/drive/`: three lines (the import, the return type, the return), and a scratch copy of the file typechecks clean against the real types with no other fix. Left standing here.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/database-security.md`, Gotchas: one ★ bullet, "A typed RPC call cannot say null" (the generated Args mark an argument with a default optional and none nullable, and PostgREST finds a function by the names sent: an argument whose default is null takes `?? undefined`, one with no default stays on the wire as a cast null; both checked live, the Handoff's last item).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: `src/lib/drive/mail.server.ts` still casts the admin client to an untyped `SupabaseClient` (three lines; probed clean against the real types).
+- Now: `queries/drive.ts`'s table readers (`connectionOf`, `sendRowOf`, `readDriveAdmin`'s lists) still take typed rows through `Record<string, unknown>` casts and `Array.isArray` guards, the untyped client's leftovers; typed fields would shrink them, but no test reads those readers yet.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
+- The work commit `022ec0b2d` and one docs-only commit after it (`fdb2f6b58`, one line of the Gotchas bullet), pushed to `origin/lp/types-seams`; no sync commit: launch-prep moved only by a record commit since the base `0833b00b1` (`a6f905d4d`, `docs/tracks/orchestrator.md` alone), none in `src/lib/db/types.ts` or a path of mine. The head is in the chat line.
+- Gates on `022ec0b2d` (tree clean at the start: `_scratch/types-seams/gate-status.txt` is empty, the sha is in `gate-sha.txt`), each on its own exit code in `_scratch/types-seams/<step>-2.exit`, logs `<step>-2.log`: `pnpm typecheck` 0, `pnpm lint` 0 (no output), `pnpm test` 0 (981 files, 12,167 tests), `pnpm build` 0 (compiled, 268/268 pages). The same four ran green on the uncommitted tree first (`*-1.log`). No `lab:smoke`: every file touched is `server-only` and no rendered path changed, as the brief's wiring rigor says. The two docs-only commits after it (`fdb2f6b58` and this file's) were checked by a full `pnpm test` on the head (exit 0, `_scratch/types-seams/test-3.log`).
+- Lane check, `git diff --name-only origin/launch-prep...HEAD`: the five owned files (`src/lib/db/mutations/event-passes.ts`, `src/lib/db/queries/accounts.ts`, `drive.ts`, `drive-stops.ts`, `jobs.ts`) + `src/lib/db/queries/drive.test.ts` (new, under the `queries/drive` prefix) + this file; two exceptions: `src/app/admin/accounts/reads.test.ts` (two hunks, the brief's "a test that pins a wire shape keeps its meaning": it pinned the first page's `p_after_id` as null, and now pins it absent) and `docs/systems/database-security.md` (the one ★ bullet above).
+- The items, one line each:
+  - `passCreditDb`, `uploadsWindowsDb`, `untyped`, drive-stops's cast and `untypedDb` are gone with their comments; no `SupabaseClient` import is left unused (drive-stops keeps its one, for `SupabaseClient<Database>`).
+  - `drive.ts`'s `rpc()` is generic over the generated `cloud_*` names and Args, so a wrong name, a missing key or a wrong type is a compile error; `cloud_export_sweep`, whose Args are `never`, is called with none (the body is `{}` either way).
+  - `readMyDriveStops` takes `SupabaseClient<Database>` (the bell passes its request client) and reads typed fields; `readMySends`, `readMySend` and `readMySentTotals` take the typed server client, and `readMySentTotals` loses its `as unknown as PromiseLike<PageResult<…>>` cast.
+  - Six arguments of five functions have a SQL default (null) and now take `?? undefined`, so a null leaves the key out: `uploads_windows.p_after_id`, `cloud_connection_refreshed.p_refresh_ct`, `cloud_connection_operator.p_note`, `cloud_export_report.p_finding`, `cloud_export_check_page.p_duplicates` and `.p_finding` (the work commit's body says "five arguments" and lists these six).
+  - Seven arguments of four functions have no default and take a null on purpose (`cloud_connection_upsert.p_email`, `.p_name`, `.p_refresh_expires_at`; `cloud_connection_room.p_limit`; `cloud_connection_root.p_candidate`, `.p_expected`; `cloud_export_act.p_user`): they stay on the wire as null through `nullableArg`, the one cast, since a key left out is PGRST202.
+  - `reportWork`'s `p_items` is cast `as Json` (the report route builds each item from the Worker's JSON: strings, numbers, booleans, nulls); the exported signatures are otherwise unchanged, so no caller moved.
+  - `UploadsWindowRow` stays the app's validated reading of the row, not the generated one: a `returns table` column carries no nullability, so the generated row types `storage_cap_bytes` as `number` and `pass_lapsed_at` as `string`, while live, three real hosts' rows came back with a null `pass_lapsed_at` on all three and a null `storage_cap_bytes` on some; its comment says so.
+  - New `src/lib/db/queries/drive.test.ts` (14 tests): each changed call's body as PostgREST receives it (read after `JSON.stringify`, so an `undefined` is no key), against the migrations' own signatures (every argument without a default is on the wire; no key names an argument the function lacks), a real 0 kept for `p_limit` and `p_duplicates`, and the sweep called with none. Mutation-checked: dropping the upsert's nulls, `|| undefined` on `p_duplicates` and sending `p_refresh_ct` as null each turn exactly one case red.
+  - Live, read-only, no key printed (`node --env-file=.env.local`, scripts `_scratch/types-seams/live-uploads-windows.mjs` and `live-drive-wires.mjs`): `uploads_windows` with `p_after_id` left out and with null both answer, and over three real hosts it returned three rows; ten wire shapes of seven other functions (ghost ids, so each answers from its first lookup and writes nothing; not `cloud_connection_upsert`, which writes, nor the sweep, which works) resolve on the real PostgREST; and a key with no default left out is `PGRST202` for `uploads_windows` (`p_host_ids`), `cloud_connection_room` (`p_limit`) and `cloud_export_act` (`p_user`).
+- Assets requested from Will: none
+- Board ideas: none (a wiring lane; nothing rendered)
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- Calls his to overrule, one line each:
+  - The seven required nulls are cast (`nullableArg`), not given `default null` by a migration (which would drop the cast): a migration for a type's convenience was not mine to take.
+  - `drive.ts`'s table readers keep their defensive reading of typed rows (no test reads them, and the brief said no behaviour change), while `drive-stops.ts`, small and wholly the seam, reads typed fields.
+  - The recurring rule has a home as one ★ Gotchas bullet in `database-security.md`, and `drive.test.ts` is new: both are beyond the five seams.
+- Look at first: `src/lib/db/queries/drive.ts` from its top to `nullableArg` and the `?? undefined` sites, then the case list in `drive.test.ts`, which is the wire as PostgREST receives it.
