@@ -117,27 +117,28 @@ Round 15, on Will's desk answers of 2026-10-04 and his brand note; the approved 
 `../partyreel-wt/_scratch/desk/round-15-plan.md`; this session's opening plan is
 `~/.claude/plans/please-resume-your-role-delightful-cascade.md`.
 
-1. **Milestone 37 SHIPPED** on Will's yes (2026-10-05 16:25Z, `b67cdc1f2`, tag `milestone-37`): both projects READY, the
-   read-only walk PASS, launch-prep fast-forwarded. Drive's secrets SET by Will (2026-10-05: `.env.local` with `DRIVE_WORKER_URL=http://localhost:8787`, both Vercel projects, `wrangler secret put`; the queue `partyreel-drive` made) but for `workers/drive/.dev.vars`, his one command (gitignored; an agent's secret write is refused). `.dev.vars` made by Will; the desk at `1b49495cb`; the local Worker on :8787 (`wrangler dev`, log `../partyreel-wt/_scratch/drive-wiring/wrangler-dev.log`); the DRIVE WALK PASS (6 of 6; agent `a840f4f1590e89119`, ledger `../partyreel-wt/_scratch/drive-walk/ledger.txt`; findings to drive-fixes). Next: drive-fixes merged and its migration applied; a short re-walk on the desk (a send whose check runs before done, Disconnect, the counts; the drive.file consent on P3 again: Will's yes, 2026-10-05); then Drive's Worker deploys (`cd workers/drive && npm ci && npx wrangler queues create partyreel-drive-dlq --message-retention-period-secs 1209600 && npx wrangler deploy`, `DRIVE_APP_URL` to partyreel.com, Vercel's non-secret `DRIVE_WORKER_URL` and a redeploy) on Will's yes, after `vercel-usage.mjs`: the sweep calls partyreel.com every five minutes. One Google project kept for sign-in and Drive (Will, 2026-10-05).
-2. **Desk 3 is ready** (merged, gates 1 to 4, the desk pass clean: no two asks ask one decision, no PREMISE,
-   `lab:demo` green at 1440 and 375): served by a desk refresh the moment he pastes desk 2.
-3. **Lanes as seats free**, off the parked boards' surfaces (the hub's doors, the dashboard's stage, Settings'
-   options, `ui/` atoms, marketing): `billing-locks` (Opus: pass consumption takes `profiles` first, the presign
-   refuses a lapsed pass, `/admin/accounts`' 50 `uploads_used` calls as one read, a lapsed pass's "0 B"; migrations
-   through the Advisor); `uploads-idempotent` (Opus: a retried complete idempotent on `media_id`, so presign and
-   complete get ceilings; the next file prepared while one sends); `compute-hub-links` (Sonnet: the hub's delta carries
-   its links, the cover keeps its playing stills); `help-words` (Sonnet, facts only); the spend watch card's specimen
-   after crumbs-75; then ROADMAP "Now" in batches: data integrity, bugs a person can hit, cost, accessibility, hygiene.
-4. **When he pastes desk 2:** transcribe (`review-sheet.mjs`, `pnpm lab:review --dry`, then for real); the Drive
-   wiring lane (Opus; his Google Cloud step relayed: the design note's section 11; the way-in lives in production's
-   Display menu and the download toast tells a cancel from a dropped line, so the lane reconciles both); the desk
-   refresh (desk 3 served); tell him.
-5. **Desk 4 is brand r1 alone**, integrated after desk 3's answers. **Desk 5**, the moments boards (host-moments: B1,
-   Q6, B2, L3; guest-moments: C7, D3 with the flat 3, Q3, G6; account-moments: I4, I5; create-wizard r4: the styles'
-   polish, F1, F2), cut after desk 3's identity and customize picks. **Desk 6**, the brand applied (brand-marks with
-   the status set, aurora, marketing-themes with N4, N7, N9, demo-framing r6, presence r1, moments-in-motion), cut
-   after brand r1's pick; Will's motion study (`../partyreel-wt/_scratch/inspiration/2026-10-04-motion.md`) feeds
-   moments-in-motion (★ the smoke reads pixels: an album tile's presigned image taints the canvas).
+1. **Milestone 37 SHIPPED** (2026-10-05 16:25Z, `b67cdc1f2`). Since then merged: crumbs-81, durability-restore,
+   billing-integrity (migration applied), brand-r1, pricing-doors (TEST portal configuration fixed), drive-fixes
+   (migration applied), back-layers (merging). Desks 3 and 4 answered and transcribed.
+2. **Drive's road to live:** refresh the desk to the head; the desk re-walk (drive-fixes' Handoff, its seven watches;
+   the local Worker `cd workers/drive && npx wrangler dev -c wrangler.walk.jsonc --port 8787 --test-scheduled`; P3's
+   consent, Will's yes 2026-10-05); then red-team 56 and milestone 38 on his yes, where Drive's Worker deploys (never
+   against milestone 37's build: `npm ci`, `wrangler queues create partyreel-drive-dlq --message-retention-period-secs
+   1209600`, `wrangler deploy`, `DRIVE_APP_URL` partyreel.com, the cron every fifteen minutes) and Vercel's non-secret
+   `DRIVE_WORKER_URL` (production holds Drive's four secrets but not the URL, so it reads "not set up" until then);
+   `partyreel-backup` deploys at 38 too (RESTORE_MODE dryrun; then `BACKUP_WORKER_URL` on partyreel-admin). The
+   Advisor wants 38 soon: milestone 37's build re-grants a Pro credit past a day (TEST money).
+3. **Desk 5 = identity r5 + event-header r5 + brand r2** (all running): integrate each at its handoff, the desk pass,
+   refresh the desk, tell him. **Desk 6** = the brand applied (after brand r2's pick); **desk 7** = the moments boards
+   (host-, guest-, account-moments, create-wizard r4; after identity r5's set pick).
+4. **Lanes queued, specs written in `_scratch/specs/` (PORT to fill at the cut), each as a seat frees:** capture-time
+   (Will's X7: keep the capture time, never place or device; owns `src/lib/drive/` and `workers/drive/`), credit-watch
+   (the Advisor's Q33 after-steps and the change-plan configuration check), crumbs-82 (host-dashboard's chooser=words
+   and two crumbs), identity-wiring (halo, shrink, the floating edge into `src/components/ui/`, once back-layers' merge
+   frees `ui/popup*`). Running: backup-reconcile, settings-wiring, album-order, identity-r5, event-header-r5,
+   event-header-wiring, brand-r2 (seven; memory 58% free at the seventh). Weekly 48% at 20:25Z: no more than seven.
+5. **The calls lab:** AF to AP added today; X7 answered and routed (capture-time). billing-integrity's, back-layers',
+   pricing-doors', drive-fixes' and durability-restore's calls to add at the close of the day.
 6. **Compute:** lever 3 and 3b (the CDN-cached album version) only on Will's X5; the guest page's next CPU levers
    (AsyncLocalStorage on Node 24, a lighter first paint) measured locally first; `pnpm compute:model` at every
    milestone.
