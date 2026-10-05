@@ -153,8 +153,8 @@ hub and closes back to it.
   own box picks one**: a count chosen from a measured width would paint a desk's 160 marks into a phone and correct
   itself after hydration. ★ **Lit is photographs landing now**, the newest within a quarter of an hour on the reader's
   clock: one timeout for the moment it turns, never a poll, and never lit in the server's paint or the hydrating
-  render (they have no clock of hers). With no store and no `arrivals` (the Library's specimen) it draws a flat quiet
-  line, never a shape it does not know.
+  render (they have no clock of hers). With no store and no `arrivals` it draws a flat quiet line, never a shape it does
+  not know.
 - **The code stands beside the h1**, never inside it (an h1 holding a control stops being the page's accessible name).
   It wears the door on its corner (`share/event-code-door.tsx`, its words `codeMark` in `visibility-labels.ts`) and
   dims where a guest who scans cannot add (paused, Only me). The mark is its own button beside the code's, since

@@ -36,6 +36,7 @@ import {
   InvitedDemo,
   SettingsDemo,
 } from "./composition-demos";
+import { CreateRoomDemo } from "./create-room-demo";
 import { DownloadToastDemo } from "./download-toast-demo";
 import { PlanLimitsDemo } from "./plan-limits-demo";
 
@@ -76,6 +77,37 @@ const qrSlot = (
 );
 
 export const COMPOSITION_ENTRIES: GalleryEntry[] = [
+  /* CREATE'S ROOM (library-specimens-2): the real wizard over the stand-in its `create` prop is for, in a real viewport
+     (the room is the whole screen, `fixed` and read against the viewport), so every screen can be pressed through with no
+     session and no row written. */
+  {
+    id: "create-room",
+    badge: "new",
+    family: "compositions",
+    section: "Create",
+    file: "src/components/app/create-event-wizard.tsx",
+    test: "src/components/app/create-event-wizard.test.tsx",
+    title: "Create's room",
+    for: "the whole screen a host makes an event in: her event's name, the album's style, the code's look, then her code developing, one question and one button to a screen, and the door before it at a plan's limit",
+    lede: "The real wizard in a real viewport, over the stand-in its `create` prop is for: Create event answers after a round trip with an event nobody wrote, so every screen can be pressed through with no session. Type a name and it rises into the head; the album's style plays its night once as the step opens (Live, Review and Disposable, each a small album moving through it); the code's look dresses her phone and the room's screen; Create event develops the sample into her code, with Print and Share and Settings' steps beneath. The frame is the viewport, so the room reads its width and height: a phone and a laptop are the room each is. Get it ready, See Pro and the close are held, since each leaves the room, and the name's field does not take focus as the room opens, which production's does.",
+    specimens: [
+      {
+        label: "At a phone",
+        hint: "375 by 812: type a name, Continue, pick a style, Continue, pick a look, Create event; Back or a hairline walks back",
+        node: <CreateRoomDemo screen="phone" />,
+      },
+      {
+        label: "At a laptop",
+        hint: "1440 by 900, zoomed down to the page's column: the frame's own viewport is still the laptop's",
+        node: <CreateRoomDemo screen="desk" />,
+      },
+      {
+        label: "At the plan's limit",
+        hint: "Free holds one event: the door arrives before the work and names the event holding the slot",
+        node: <CreateRoomDemo atCap />,
+      },
+    ],
+  },
   /* THE EVENT'S HEAD (added by lp/header-wiring at the HEAD of the list, under a heading of its own, so
      it lands on its own hunk): `event-header` r1's three picks as production composes them. */
   {
@@ -109,18 +141,18 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
     section: "The event's head",
     file: "src/components/app/event-feed/event-hub-head.tsx",
     title: "The hub's head",
-    for: "Maya's hub wearing her album's cover, her numbers and link on it and the code on its white mat",
-    lede: "One head on both sides of the code (`host=shared`): Maya sees her party as her guests do. The facts and the link under the title are today's (r2 redraws them); the code stands on its mat in the cover's corner, scannable from across a table, wearing its door on its corner. Once it has scrolled away the room cards' band carries its face and the code as a chip.",
+    for: "Maya's hub wearing her album's cover, her numbers and link on it, the facts strip along its foot and the code on its white mat",
+    lede: "One head on both sides of the code (`host=shared`): Maya sees her party as her guests do. Under the title stand the date, the guests, the views and the link; along the cover's foot runs the facts strip (`facts=strip`), one mark a photograph, each as tall as the photographs that landed within ten minutes of it, the newest lit while photographs land and the line ending in the album's number. The code stands on its mat in the cover's corner, scannable from across a table, wearing its door on its corner. Once it has scrolled away the room cards' band carries its face and the code as a chip.",
     specimens: [
       {
         label: "Tonight",
-        hint: "two people at her door, the lock's count on the code's corner",
+        hint: "two people at her door, the lock's count on the code's corner; the strip's newest marks stay lit for a quarter-hour after this page loads, as they do while photographs land",
         bleed: true,
         node: <HubCoverDemo />,
       },
       {
         label: "The week before",
-        hint: "nothing in the album: the house light",
+        hint: "nothing in the album: the house light, and the strip a quiet line that says No photos yet",
         bleed: true,
         node: <HubCoverDemo before />,
       },
