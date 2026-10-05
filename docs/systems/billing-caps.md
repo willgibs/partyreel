@@ -241,10 +241,11 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
 - ★ **Leaving for Stripe takes a phone sheet's own history entry with it** (`pricing/leave.ts`, the doors' `leave`). On a
   phone the sheet holds one same-URL entry so Back closes it, and a plain `href` pushed Stripe on top of that entry: Back
   from Stripe landed on the page and the next press on the same address again. The way out REPLACES the entry while the
-  window stands on a popup's (its marker, or the sheet open as a place when a router commit stripped the marker), so one
-  Back returns to the page. A button on a page and the sheet at a desk still push: replacing an entry that is not a popup's
-  would land Back on the page before it. A replace asks for one reload if the browser restores the page from its
-  back/forward cache, where the sheet would believe in the entry the replace took and its close would go Back too far.
+  sheet is open as a place (read off its content's `data-pricing-sheet` and `data-shape`, never the popup's history
+  marker, which a router commit strips, as a list stacked over the sheet does with each deletion), so one Back returns to
+  the page. A button on a page and the sheet at a desk still push: replacing an entry that is not the sheet's would land
+  Back on the page before it. A replace asks for one reload if the browser restores the page from its back/forward cache,
+  where the sheet would believe in the entry the replace took and its close would go Back too far.
 - ★ **The account page's Plan card (`#plan`) is billing's one home in the app,** and every fact on it is
   server-derived: the columns only the webhook and the pass recompute write, read through the RLS-scoped profile row.
   Its only search params are `?reset` and `?welcome` (Stripe's return marker, which opens the receipt and decides no
