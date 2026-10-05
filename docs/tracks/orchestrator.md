@@ -135,7 +135,7 @@ Round 15, on Will's desk answers of 2026-10-04 and his brand note; the approved 
 
 ## Waiting on Will
 
-- **Claude in Chrome on willg97:** red-team 54's host walks need it (resume that agent by SendMessage once connected).
+- **Drive's Google client** (done 2026-10-05 by the Orchestrator in Chrome as P3: the Drive API enabled on `partyreel-498522`, `drive.file` in Data Access, the audience already External and In production, a web client "Partyreel Drive" with the callbacks `https://partyreel.com/api/drive/callback` and `http://localhost:3000/api/drive/callback`; the alias's callback left out while Vercel holds): Will copies its ID and secret from the creation dialog into `.env.local` (`GOOGLE_DRIVE_CLIENT_ID`, `GOOGLE_DRIVE_CLIENT_SECRET`) and Vercel's `partyreel` project; a lost secret is re-minted on the client's page.
 - **Desk 2, Drive alone** (nine asks), on his local desk: `http://localhost:3000/design/lab?key=fiesta` (launch-prep at
   `94d66338`). Sign-in works there through the chooser. "Stack desk 3" is his to say; otherwise one desk at a time.
 - **The calls lab** (`../partyreel-wt/_scratch/calls/calls-lab.md`): open questions X1 (a Disposable's develop time
