@@ -158,9 +158,9 @@ describe("nothing is written", () => {
 
   it("★ so is a press on the viewer's own Like, Hide or Remove, and the viewer's way out is not", () => {
     const { getByTestId } = render(<HostGridArrivalDemo />);
-    // The viewer opens in a portal, a React child of the demo: a dialog with its toolbar stands in for it.
+    // The viewer opens in a portal, a React child of the demo: its content (the element the lightbox marks) stands in.
     const viewer = document.createElement("div");
-    viewer.setAttribute("role", "dialog");
+    viewer.setAttribute("data-lightbox-content", "");
     getByTestId("grid").appendChild(viewer);
     const button = (label: string) => {
       const el = document.createElement("button");

@@ -78,7 +78,7 @@ const VIEWER_VERBS = /^(like|unlike|approve|hide|unhide|remove|restore)\b/i;
 /** A press on a host's write, from a tile or from the viewer: it goes nowhere here. */
 function hold(event: MouseEvent) {
   const target = event.target as Element | null;
-  const button = target?.closest?.('[role="dialog"] button');
+  const button = target?.closest?.("[data-lightbox-content] button");
   const viewerVerb =
     !!button &&
     VIEWER_VERBS.test(
