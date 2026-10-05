@@ -45,8 +45,8 @@ below).
   a pass, then 2×, 1× and about ½× a month on Pro), because a big plan's month never re-fills it and the plan's worst
   month is what sizes its price ("What it costs us"). A pass counts its own year, on the pass, so its event can take
   the whole allowance in one night. Published, each number only moves up; a circuit breaker no real host meets stays
-  unpublished. The one outcome worth engineering against is still a false positive blocking a paying host; nothing in
-  `/admin` shows a host's meter, and there is no manual override.
+  unpublished. The one outcome worth engineering against is still a false positive blocking a paying host: `/admin/accounts`
+  shows each host's meter against her allowance (read-only), and the override is the calls lab's X6 (an audited credit).
 - **A marketed number can only ever move UP.** Grandfathering makes every published limit sticky, so each one lands at
   the conservative-but-generous end: raising a limit later is a gift, lowering it is a broken promise. That asymmetry,
   not precision, is what picks these numbers.
