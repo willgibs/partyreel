@@ -31,7 +31,8 @@
  * - The phone copy (take-home r1) is never metered, so it is capped twice (`phoneCopyFits`): its PUT is
  *   minted only within 4 MB and half the declared original, and complete records it only within both on
  *   the HEAD sizes, else drops it and lands the photograph without one.
- * - An over-stuffed multipart is ABORTED, never assembled.
+ * - An over-stuffed multipart is ABORTED, never assembled; one a first complete assembled and never recorded lands on
+ *   its replay as assembled (uploads-idempotent: only that complete can have put an object at its key).
  * - ★ A BYTE REACHES `events/` ONLY THROUGH A COMPLETE (upload-meter, the Advisor's Q19): every single PUT is minted
  *   at its key's `staging/` twin (`stagingKeyFor`), which the backup and the orphan sweep never read and a lifecycle
  *   rule empties a day on, and the complete copies it in before the row is written; a multipart becomes an object only
@@ -903,8 +904,20 @@ async function landFile<Schema extends z.ZodType<CompleteCommon>>(
       }
       await completeMultipartUpload({ key, uploadId: upload_id, parts });
     } catch (e) {
-      captureError("upload", e, { key, upload_id });
-      return { done: { ok: false, refusal: NOT_FINALIZED } };
+      // ★ ASSEMBLED ALREADY (uploads-idempotent): a complete sent again after its first try assembled the object and
+      // ended before its row (an answer lost, a function out of time) finds no upload left to list or assemble, and
+      // the object at its key, which only a complete of this very upload can have made (the key is built from its
+      // media id, an UploadPart URL makes no object, and that complete held the parts' sum to the ceiling first): it
+      // lands as assembled, its HEAD the size. Nothing at the key keeps the failure, which a replay asks again (a twin
+      // may be assembling it still), so the phone never starts the upload over beside a row that may come.
+      if (!(await assembledAt(key))) {
+        captureError("upload", e, { key, upload_id });
+        return { done: { ok: false, refusal: NOT_FINALIZED } };
+      }
+      captureWarning("upload", "multipart_already_assembled", {
+        key,
+        media_id,
+      });
     }
   }
 
@@ -1078,6 +1091,16 @@ async function landOriginal(args: {
   } catch {
     captureWarning("upload", "head_object_failed", { key, media_id });
     return { ok: false, refusal: NOT_VERIFIED };
+  }
+}
+
+/** Whether a multipart original stands assembled at its key (a HEAD that cannot answer says no, and nothing lands). */
+async function assembledAt(key: string): Promise<boolean> {
+  try {
+    const head = await headObject({ key });
+    return head !== null && head.size > 0;
+  } catch {
+    return false;
   }
 }
 

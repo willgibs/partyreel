@@ -4,11 +4,14 @@
  * its bytes start as soon as they ever did; the rest together) and one complete, each file's answer its own; a file
  * refused at either step never stops its siblings; a refusal of who is sending is every unasked file's, never asked
  * again; a dropped PUT fails its file alone; a landed file waits at most `BURST_RECORD_WAIT_MS` for its siblings, and
- * the page leaving the screen records what landed at once, in a complete that outlives the page; preparing runs at
- * most `PREP_AHEAD_BYTES` ahead of the network; her cancel ends everything not recorded, and one file's own cancel
- * ends that file alone (its siblings are recorded together as ever); each file settles once.
+ * the page leaving the screen records what landed at once, in a complete that outlives the page; preparing runs
+ * ahead of the network, the network's next file always and the rest within `PREP_AHEAD_BYTES`; the next presign is
+ * back before the file in the air lands (uploads-idempotent), so the line never waits between files; her cancel ends
+ * everything not recorded, and one file's own cancel ends that file alone (its siblings are recorded together as
+ * ever); each file settles once.
  * Stood in: the strip (a pass-through), the derivatives (none), the image measure, the network (fetch for the two
- * routes, a timed XHR for the PUTs) and the clock.
+ * routes, a timed XHR for the PUTs, its progress paced and R2's answer coming a while after its last byte) and the
+ * clock.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -63,6 +66,18 @@ let completeGate: Promise<void> | null;
 /** How long a PUT takes (by its file's name), and whether it drops. */
 let putMs: (name: string) => number;
 let drops: (name: string) => boolean;
+/** How many progress reports a PUT makes on its way, evenly paced (1: a single one as it lands). */
+let steps: (name: string) => number;
+/**
+ * How long R2 takes to answer once the browser has handed it the last byte (by name): the line draining what the
+ * browser already counted as sent, and the answer itself (0: the answer comes with the last byte).
+ */
+let answerMs: (name: string) => number;
+/** How long a presign takes to answer, and how long preparing a file takes (by its name). */
+let presignMs: number;
+let prepMs: (name: string) => number;
+/** When each logged moment happened, on the (fake) clock. */
+const at: Record<string, number> = {};
 
 class FakeXhr {
   status = 0;
@@ -74,7 +89,7 @@ class FakeXhr {
     onload: null as (() => void) | null,
   };
   private name = "";
-  private timer: ReturnType<typeof setTimeout> | undefined;
+  private timers: ReturnType<typeof setTimeout>[] = [];
   open(_method: string, url: string) {
     this.name = url.split("/").pop()!;
   }
@@ -83,26 +98,51 @@ class FakeXhr {
     return '"etag"';
   }
   abort() {
-    clearTimeout(this.timer);
+    for (const t of this.timers) clearTimeout(t);
     this.onabort?.();
   }
   send(body: Blob) {
     log.push(`put ${this.name}`);
-    this.timer = setTimeout(() => {
-      if (drops(this.name)) {
-        this.onerror?.();
-        return;
-      }
-      this.upload.onprogress?.({
-        lengthComputable: true,
-        loaded: body.size,
-        total: body.size,
-      } as ProgressEvent);
-      this.upload.onload?.();
+    at[`put ${this.name}`] = Date.now();
+    const total = putMs(this.name);
+    const reports = steps(this.name);
+    for (let k = 1; k < reports; k++) {
+      this.timers.push(
+        setTimeout(
+          () =>
+            this.upload.onprogress?.({
+              lengthComputable: true,
+              loaded: (body.size * k) / reports,
+              total: body.size,
+            } as ProgressEvent),
+          (total * k) / reports,
+        ),
+      );
+    }
+    const land = () => {
       this.status = 200;
       log.push(`landed ${this.name}`);
+      at[`landed ${this.name}`] = Date.now();
       this.onload?.();
-    }, putMs(this.name));
+    };
+    this.timers.push(
+      setTimeout(() => {
+        if (drops(this.name)) {
+          this.onerror?.();
+          return;
+        }
+        this.upload.onprogress?.({
+          lengthComputable: true,
+          loaded: body.size,
+          total: body.size,
+        } as ProgressEvent);
+        this.upload.onload?.();
+        at[`handed off ${this.name}`] = Date.now();
+        const wait = answerMs(this.name);
+        if (wait > 0) this.timers.push(setTimeout(land, wait));
+        else land();
+      }, total),
+    );
   }
 }
 
@@ -140,6 +180,11 @@ beforeEach(() => {
   page.listeners.clear();
   putMs = () => 50;
   drops = () => false;
+  steps = () => 1;
+  answerMs = () => 0;
+  presignMs = 0;
+  prepMs = () => 0;
+  for (const k of Object.keys(at)) delete at[k];
   presignGate = null;
   completeGate = null;
   presignAnswer = (files) => ({ ok: true, files: files.map(presigned) });
@@ -148,7 +193,10 @@ beforeEach(() => {
     files: files.map(() => ({ ok: true, status: "approved" })),
   });
   generatePreview.mockReset().mockImplementation(async (file: File) => {
+    const ms = prepMs(file.name);
+    if (ms > 0) await new Promise((resolve) => setTimeout(resolve, ms));
     log.push(`prepared ${file.name}`);
+    at[`prepared ${file.name}`] = Date.now();
     return null;
   });
   vi.stubGlobal("XMLHttpRequest", FakeXhr);
@@ -169,6 +217,10 @@ beforeEach(() => {
       const body = JSON.parse(init.body) as { files: Entry[] };
       calls.push({ url, body, keepalive: init.keepalive });
       log.push(url.includes("presign") ? "presign" : "complete");
+      if (url.includes("presign"))
+        at[`presign ${presigns().length}`] = Date.now();
+      if (url.includes("presign") && presignMs > 0)
+        await new Promise((resolve) => setTimeout(resolve, presignMs));
       if (url.includes("presign") && presigns().length > 1) await presignGate;
       if (url.includes("complete")) await completeGate;
       // The presign's entries carry no name (none leaves the phone): the stand-in names them by size.
@@ -406,7 +458,7 @@ describe("★ when a landed file is recorded", () => {
 });
 
 describe("★ preparing runs ahead of the network, never too far", () => {
-  it(`holds at most ${PREP_AHEAD_BYTES / MB} MB of prepared files not yet up (the next one always may)`, async () => {
+  it(`holds at most ${PREP_AHEAD_BYTES / MB} MB of prepared files not yet up beyond the network's next one`, async () => {
     putMs = () => 1_000;
     const big = 40 * MB;
     await send([photo(big), photo(big + 1), photo(big + 2)]);
@@ -423,6 +475,58 @@ describe("★ preparing runs ahead of the network, never too far", () => {
     for (let i = 0; i < 8; i++) {
       expect(log.indexOf(`prepared f${1000 + i}`)).toBeLessThan(firstLanded);
     }
+  });
+});
+
+describe("★ the network never waits between files (uploads-idempotent)", () => {
+  it("★ the next presign is asked once the file in the air has handed off its last byte, so the next file goes as it lands", async () => {
+    // A slow phone on a quick line: each file takes 1.5 s to prepare, 4 s to hand its bytes to the browser's network
+    // and a second more for the line to drain them and R2 to answer; a presign takes 600 ms. Preparing has not finished
+    // when the first file lands, so a presign asked only then left the line idle for its round trip.
+    prepMs = () => 1_500;
+    putMs = () => 4_000;
+    answerMs = () => 1_000;
+    steps = () => 20;
+    presignMs = 600;
+    const { out } = await send(burstOf(5), { run: 60_000 });
+    expect(out.every((o) => o.ok)).toBe(true);
+    // Asked the moment the first file's last byte was handed off, for every file prepared by then.
+    expect(at["presign 2"]).toBe(at["handed off f1000"]);
+    expect(presigns()[1]!.body.files.length).toBeGreaterThan(1);
+    // So the second file's bytes went the moment the first landed.
+    expect(at["put f1001"]! - at["landed f1000"]!).toBeLessThan(50);
+    // And never a presign a file: no more often than when it waited for need.
+    expect(presigns().length).toBeLessThanOrEqual(3);
+  });
+
+  it("a file handed off quicker than a presign's round trip never asks ahead: the network's need asks, as before", async () => {
+    // Small on a quick line: preparing is what the network waits for, so an early ask would only split the batch.
+    prepMs = () => 400;
+    putMs = () => 200;
+    answerMs = () => 300;
+    steps = () => 4;
+    presignMs = 300;
+    const { out } = await send(burstOf(5), { run: 60_000 });
+    expect(out.every((o) => o.ok)).toBe(true);
+    expect(at["presign 2"]).toBeGreaterThanOrEqual(at["landed f1000"]!);
+  });
+
+  it("★ the file after one over the budget is prepared while it goes, and presigned in time; the one beyond waits", async () => {
+    putMs = () => 5_000;
+    steps = () => 50;
+    presignMs = 300;
+    const big = 100 * MB;
+    const { out } = await send([photo(big), photo(big + 1), photo(big + 2)], {
+      run: 60_000,
+    });
+    expect(out.every((o) => o.ok)).toBe(true);
+    // The second (the network's next) is prepared and presigned while the first goes: no gap between them.
+    expect(at[`prepared f${big + 1}`]).toBeLessThan(at[`landed f${big}`]!);
+    expect(at[`put f${big + 1}`]! - at[`landed f${big}`]!).toBeLessThan(50);
+    // The third is beyond the next and the budget holds it until the first is up.
+    expect(at[`prepared f${big + 2}`]).toBeGreaterThanOrEqual(
+      at[`landed f${big}`]!,
+    );
   });
 });
 

@@ -13,17 +13,29 @@
  * `burst.ts`'s). The files a caller hands together (`uploadBurst`; `uploadFile` is a burst of one) share ONE presign
  * and as few completes as their landing allows, where each file was a presign and a complete of its own (a burst of
  * ten photos was 20 function calls). Three stages run side by side and a byte never waits for batching:
- *  - PREPARING runs ahead of the network, one file at a time and at most `PREP_AHEAD_BYTES` ahead, so a phone never
- *    holds a whole burst of photographs in memory;
- *  - PRESIGNING asks for every prepared file at once, the moment the network needs its next file or everything is
- *    prepared (the first file goes alone, so its bytes start as soon as they did; the rest ride one request while it
- *    goes);
+ *  - PREPARING runs ahead of the network, one file at a time: the file after the one in the air always (uploads-
+ *    idempotent: a file over the budget, a video, no longer holds its successor's preparing until its bytes are up),
+ *    and files beyond it while the prepared ones not yet up hold less than `PREP_AHEAD_BYTES`, so a phone never holds
+ *    a whole burst of photographs in memory;
+ *  - PRESIGNING asks for every prepared file at once: the first file alone (its bytes start as soon as they can), then
+ *    the rest together, asked early enough to be back before the network needs them (once the file in the air has
+ *    handed its last byte to the network, `endsSoon`) or at once when preparing can add nothing more (all prepared,
+ *    or held by the budget);
  *  - THE BYTES go one file at a time (robust on flaky mobile connections), and a landed file waits for its siblings
  *    (`BURST_RECORD_WAIT_MS`), so the burst is RECORDED together: when its last file has gone up, when the first landed
  *    has waited that long, or at once when the page is hidden (that complete kept alive past the page).
  * Every file meets every check it met alone (the server's spine, file by file), a file refused never stops its
  * siblings, and each settles exactly once (`onOutcome`). A refusal of WHO is sending (the burst's whole answer) is
  * every file's not yet presigned, never asked again.
+ *
+ * ★ A REQUEST NEVER HANGS, AND A LOST ANSWER IS ASKED AGAIN, NEVER REDONE (uploads-idempotent). Presign and complete
+ * each have a ceiling (`PRESIGN_CEILING_MS`, `COMPLETE_CEILING_MS`), past which the line is as dropped as a refused
+ * connection and says so with its Try again, never a spinner for ever. That is safe for the complete only because a
+ * complete whose answer never came (no answer, one the phone cannot read, or the server's own "couldn't finish") is
+ * KEPT, by the very File (`UNANSWERED`): the next try of that file sends that same complete again, its media id and
+ * all, and never the upload, so a row the first one wrote answers `recorded` (`readRecordedUpload`), one it never wrote
+ * lands now, and no row or byte is ever counted twice. Any other answer settles it, and a refused file's next try
+ * starts afresh.
  *
  * XHR (not fetch) because only XHR exposes upload progress events. Reading a
  * multipart part's ETag requires the R2 bucket CORS to expose the ETag header.
@@ -42,7 +54,8 @@
  * A file stopped alone settles `cause: "cancelled"` at once and its siblings carry on, recorded together as ever: what
  * has not asked for a row is simply not recorded (a PUT in the air is aborted, a presign in the air meets its own
  * answer and the file's entry is let go), and a file whose complete is already asked is the record's, never the
- * cancel's: a row may exist, and its answer is what the caller reads.
+ * cancel's: a row may exist, and its answer is what the caller reads. A file going again on a kept complete is the
+ * record's from its first moment, for the same reason.
  *
  * ★ ONE SENTENCE FOR THE DROP, EVERYWHERE (crumbs-65): the downloads say it as a title and its detail
  * (`WALK_COPY.dropped` and `droppedDetail`), the camera's hint says this very string, and
@@ -158,6 +171,49 @@ export const UPLOAD_STALL_MS = 45_000;
 /** After the last byte, how long R2 may take to answer (a big object is finalised there) before it is a drop. */
 export const UPLOAD_ANSWER_MS = 90_000;
 
+/**
+ * HOW LONG A PRESIGN MAY TAKE before it is a dropped connection (uploads-idempotent, the head note). Measured on a
+ * local build against the real database, a burst's presign answers within a second; one unanswered at thirty is a line
+ * that died under it. The clock restarts when the page comes back to the screen (a phone freezes a hidden page's
+ * timers, and a request that finished meanwhile must not be ended by a timer that fires late).
+ */
+export const PRESIGN_CEILING_MS = 30_000;
+
+/**
+ * HOW LONG A COMPLETE MAY TAKE before it is a dropped connection. Measured, a burst's complete records its files in a
+ * few seconds (their copies landed four at a time, their rows one after another); a minute is a line that died. Its
+ * clock restarts as the presign's does. Ending it is safe only because the complete is kept for the next try
+ * (`UNANSWERED`): a row it wrote meanwhile answers that try, and is never written twice.
+ */
+export const COMPLETE_CEILING_MS = 60_000;
+
+/** A file's complete as it was asked, kept while its answer is unknown (`UNANSWERED`). */
+type Unanswered = {
+  /** The complete's entry for this file, exactly as it went: its media id, key, copies and parts. */
+  entry: Record<string, unknown>;
+  mediaId: string;
+  kind: "photo" | "video";
+};
+
+/**
+ * ★ THE COMPLETES WHOSE ANSWER NEVER CAME, BY THE FILE THEY RECORD (the head note). A Retry hands the uploader the very
+ * File it sent (the guest's queue and the host's panel keep it), which finds its complete here and sends it again
+ * instead of presigning and uploading anew, which would write a second row beside the one the first complete may have
+ * written. A second pick of the same photograph is another File, so another upload. Weak, so a file a queue lets go
+ * takes its entry with it; one page's, as the queue is.
+ */
+const UNANSWERED = new WeakMap<File, Unanswered>();
+
+/**
+ * The server's own "couldn't finish" (a failure it threw, a database it could not reach): a row may stand behind it,
+ * so its complete is kept for the next try as a lost answer's is. Every other refusal is the server's settled word on
+ * the file, and its next try starts afresh.
+ */
+const UNSETTLED_REFUSALS: ReadonlySet<string> = new Set([
+  "complete_failed",
+  "unknown",
+]);
+
 function measureFile(file: File, kind: "photo" | "video"): Promise<Measured> {
   return new Promise((resolve) => {
     const url = URL.createObjectURL(file);
@@ -259,10 +315,12 @@ function putWithProgress(args: {
   body: Blob;
   headers?: Record<string, string>;
   onProgress?: (fraction: number) => void;
+  /** Every progress report as it comes (never one a frame): the burst hears its last byte handed off (`endsSoon`). */
+  onBytes?: (fraction: number) => void;
   /** Her cancel: aborts the transfer, said as a cancel and never as a drop. */
   signal?: AbortSignal;
 }): Promise<XMLHttpRequest> {
-  const { url, body, headers, onProgress, signal } = args;
+  const { url, body, headers, onProgress, onBytes, signal } = args;
   return new Promise((resolve, reject) => {
     if (signal?.aborted) {
       reject(new UploadError(UPLOAD_WORDS.cancelled, "cancelled"));
@@ -301,7 +359,9 @@ function putWithProgress(args: {
     }
     xhr.upload.onprogress = (e) => {
       seen();
-      if (e.lengthComputable) progress.push(e.loaded / e.total);
+      if (!e.lengthComputable) return;
+      progress.push(e.loaded / e.total);
+      onBytes?.(e.loaded / e.total);
     };
     xhr.upload.onload = () => {
       answering = true;
@@ -372,38 +432,62 @@ const KEEPALIVE_MAX_BYTES = 60_000;
 async function postJson<T>(
   url: string,
   body: unknown,
-  opts: { signal?: AbortSignal; keepalive?: boolean } = {},
+  opts: { signal?: AbortSignal; keepalive?: boolean; ceilingMs: number },
 ): Promise<T> {
-  const { signal } = opts;
+  const { signal, ceilingMs } = opts;
   const text = JSON.stringify(body);
-  let res: Response;
+  // ★ THE CEILING (the head note): a request still unanswered past it is ended as the dropped line it is, its clock
+  // restarting whenever the page is looked at again. Beside her signal, never in its place: hers says cancelled.
+  const ceiling = new AbortController();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const arm = () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => ceiling.abort(), ceilingMs);
+  };
+  const page = pageEvents();
+  const onShow = () => {
+    if (page?.visibilityState === "visible") arm();
+  };
+  const either = eitherSignal(signal, ceiling.signal);
+  arm();
+  page?.addEventListener("visibilitychange", onShow);
+  // Hers if her signal ended it; anything else that ended it (the ceiling, the line) is the connection's.
+  const ended = () =>
+    signal?.aborted
+      ? new UploadError(UPLOAD_WORDS.cancelled, "cancelled")
+      : new UploadError(UPLOAD_WORDS.dropped, "dropped");
   try {
-    res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: text,
-      signal,
-      ...(opts.keepalive && text.length <= KEEPALIVE_MAX_BYTES
-        ? { keepalive: true }
-        : {}),
-    });
-  } catch {
-    // fetch REJECTS only on a genuine transport failure (venue WiFi dropping,
-    // a cell handoff, the tab going offline) and never on a 4xx/5xx. Uncaught,
-    // this blip would wedge the whole batch. Hers, if her signal ended it.
-    if (signal?.aborted) {
-      throw new UploadError(UPLOAD_WORDS.cancelled, "cancelled");
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: text,
+        signal: either.signal,
+        ...(opts.keepalive && text.length <= KEEPALIVE_MAX_BYTES
+          ? { keepalive: true }
+          : {}),
+      });
+    } catch {
+      // fetch REJECTS only on a genuine transport failure (venue WiFi dropping,
+      // a cell handoff, the tab going offline) and never on a 4xx/5xx. Uncaught,
+      // this blip would wedge the whole batch.
+      throw ended();
     }
-    throw new UploadError(UPLOAD_WORDS.dropped, "dropped");
-  }
-  try {
-    return (await res.json()) as T;
-  } catch {
-    // A proxy/edge failure answers with an HTML error page, so .json() throws
-    // on a response that arrived perfectly well.
-    throw new UploadError(
-      `The server didn't respond properly (${res.status}). Please try again.`,
-    );
+    try {
+      return (await res.json()) as T;
+    } catch {
+      // A body cut off by the ceiling or her signal is that; otherwise a proxy/edge failure answered with an HTML
+      // error page, so .json() throws on a response that arrived perfectly well.
+      if (either.signal?.aborted) throw ended();
+      throw new UploadError(
+        `The server didn't respond properly (${res.status}). Please try again.`,
+      );
+    }
+  } finally {
+    clearTimeout(timer);
+    page?.removeEventListener("visibilitychange", onShow);
+    either.dispose();
   }
 }
 
@@ -431,7 +515,8 @@ export type BurstFile = {
   onSent?: () => void;
   /**
    * HER CANCEL OF THIS ONE FILE: it settles `cause: "cancelled"` (nothing recorded, nothing counted) and its siblings go
-   * on. Too late once its complete is asked (a row may be recorded): the abort is then ignored and its answer stands.
+   * on. Too late once its complete is asked (a row may be recorded), and for a file going again on its kept complete
+   * (`UNANSWERED`): the abort is then ignored and its answer stands.
    */
   signal?: AbortSignal;
 };
@@ -517,11 +602,11 @@ async function runBurst(
   const n = files.length;
   const stage: Stage[] = files.map(() => "waiting");
   const prepared: (Prepared | undefined)[] = [];
-  /** What a file's complete names of it once its blobs are let go (they are, the moment its bytes are up). */
-  const meta: { size: number; kind: "photo" | "video"; measured: Measured }[] =
-    [];
   const presigned: (PresignedFile | undefined)[] = [];
-  const sent: (Sent | undefined)[] = [];
+  /** Each landed file's complete, as it is asked (and kept, while its answer is unknown: `UNANSWERED`). */
+  const asked: (Unanswered | undefined)[] = [];
+  /** A file going again on its kept complete: the record's from its first moment (the head note). */
+  const replay: boolean[] = files.map(() => false);
   const sentAt: number[] = [];
 
   const settle = (i: number, outcome: UploadOutcome) => {
@@ -547,6 +632,23 @@ async function runBurst(
     if (one.signal?.aborted) settle(i, cancelled);
   });
 
+  // ★ A FILE WHOSE LAST COMPLETE NEVER ANSWERED GOES AGAIN ON IT (the head note): no preparing, presign or byte, and
+  // that very complete asked again at once. Its bytes went up on the try before, so it stands full from the start.
+  files.forEach((one, i) => {
+    const kept = outcomes[i] ? undefined : UNANSWERED.get(one.file);
+    if (!kept) return;
+    // Taken: this complete's answer decides again whether it is kept (`record`), and the same File twice in one burst
+    // is a second upload of it.
+    UNANSWERED.delete(one.file);
+    asked[i] = kept;
+    replay[i] = true;
+    stage[i] = "sent";
+    sentAt[i] = Date.now();
+    one.onSending?.();
+    one.onProgress?.(1);
+    one.onSent?.();
+  });
+
   // ── The stages' one clock: every change pokes, and a stage waiting on another waits for the next poke ──
   let waiters: (() => void)[] = [];
   const next = () => new Promise<void>((resolve) => waiters.push(resolve));
@@ -556,6 +658,14 @@ async function runBurst(
   let sendDone = false;
   /** The file the network waits on for its presign, or null while it has one (or is sending). */
   let wantPresign: number | null = null;
+  /** The file the network is on: the one in the air, or the one it waits on for its presign. */
+  let sendIndex = 0;
+  /** Preparing waits on the budget: nothing more can be prepared until the file in the air is up. */
+  let prepHeld = false;
+  /** The file in the air: when its original began to go, and when it handed its last byte to the network. */
+  let air: { startedAt: number; handedOffAt: number | null } | null = null;
+  /** The last presign's round trip (`endsSoon`). */
+  let presignMs = 0;
   let presigning = false;
   let recording = false;
   const page = pageEvents();
@@ -579,7 +689,14 @@ async function runBurst(
     }
   };
 
-  // ── Preparing: one file at a time, ahead of the network but never too far (PREP_AHEAD_BYTES) ──
+  /** Whether a file still needs the network (its bytes are not up and it is not settled). */
+  const needsNetwork = (s: Stage) =>
+    s === "waiting" ||
+    s === "prepared" ||
+    s === "presigning" ||
+    s === "presigned";
+
+  // ── Preparing: one file at a time, ahead of the network: the next one always, the rest within PREP_AHEAD_BYTES ──
   // What the page holds: every prepared file whose bytes are not yet up (the one in the air included), and its copies.
   const aheadBytes = () => {
     let bytes = 0;
@@ -590,16 +707,36 @@ async function runBurst(
     }
     return bytes;
   };
+  /** No file stands between the one the network is on and file `i`: `i` is the network's next. */
+  const goesNext = (i: number) => {
+    for (let j = sendIndex + 1; j < i; j++) {
+      if (needsNetwork(stage[j])) return false;
+    }
+    return true;
+  };
   async function prepareAll() {
     for (let i = 0; i < n; i++) {
-      while (!stopped && aheadBytes() >= PREP_AHEAD_BYTES) await next();
-      if (stopped || outcomes[i]) continue;
+      // ★ THE NEXT FILE IS ALWAYS PREPARED (uploads-idempotent): a file over the budget in the air (a video) held its
+      // successor's preparing until its own bytes were up, so the next one was prepared in the gap between them.
+      while (
+        !stopped &&
+        !outcomes[i] &&
+        aheadBytes() >= PREP_AHEAD_BYTES &&
+        !goesNext(i)
+      ) {
+        if (!prepHeld) {
+          prepHeld = true;
+          // Held, nothing more can join the next presign before the file in the air is up: it may be asked now.
+          maybePresign();
+        }
+        await next();
+      }
+      prepHeld = false;
+      if (stopped || outcomes[i] || stage[i] !== "waiting") continue;
       const made = await prepare(files[i]);
       if (outcomes[i]) continue;
       if (made.ok) {
         prepared[i] = made.prepared;
-        const { file, kind, measured } = made.prepared;
-        meta[i] = { size: file.size, kind, measured };
         stage[i] = "prepared";
       } else {
         settle(i, made.outcome);
@@ -610,7 +747,26 @@ async function runBurst(
     poke();
   }
 
-  // ── Presigning: every prepared file at once, when the network needs one or nothing is left to prepare ──
+  // ── Presigning: every prepared file at once, back before the network needs the next one ──
+  /** The network's next file, after the one it is on, is prepared and has no presign yet. */
+  const nextWantsPresign = () => {
+    for (let j = sendIndex + 1; j < n; j++) {
+      const s = stage[j];
+      if (s === "prepared") return true;
+      if (needsNetwork(s)) return false;
+    }
+    return false;
+  };
+  /**
+   * ★ THE FILE IN THE AIR IS NEARLY DONE: its original's last byte is handed to the network. What is left (the line
+   * draining what the browser already counted as sent, R2's answer, then the copies' PUTs) measured about a second and
+   * a half on a quick line at a 4x throttle, which a presign's round trip fits inside. The browser's progress runs that
+   * far ahead of the line, so its pace cannot say when a file ends; this one moment can. A file handed off quicker than
+   * a presign's round trip never asks ahead: it is small on a quick line, where preparing is what the network waits for
+   * and an early ask would only split the batch.
+   */
+  const endsSoon = () =>
+    air?.handedOffAt != null && air.handedOffAt - air.startedAt >= presignMs;
   function maybePresign() {
     if (presigning || stopped) return;
     const ready: number[] = [];
@@ -619,7 +775,10 @@ async function runBurst(
     }
     if (ready.length === 0) return;
     const needed = wantPresign !== null && stage[wantPresign] === "prepared";
-    if (!needed && !prepDone) return;
+    // ★ ASKED BEFORE NEED (the head note), and only for the network's next file: once the file in the air nears its
+    // end, or once preparing is held by the budget (nothing more could join before it ends). Every prepared file rides.
+    const ahead = nextWantsPresign() && (prepHeld || endsSoon());
+    if (!needed && !prepDone && !ahead) return;
     presigning = true;
     void presign(ready).finally(() => {
       presigning = false;
@@ -628,6 +787,7 @@ async function runBurst(
   }
   async function presign(ready: number[]) {
     for (const i of ready) stage[i] = "presigning";
+    const began = Date.now();
     let answer: BurstAnswer<PresignedFile>;
     try {
       answer = await postJson<BurstAnswer<PresignedFile>>(
@@ -645,13 +805,14 @@ async function runBurst(
             };
           }),
         },
-        { signal },
+        { signal, ceilingMs: PRESIGN_CEILING_MS },
       );
     } catch (e) {
       const failed = failureOf(e);
       for (const i of ready) settle(i, failed);
       return;
     }
+    presignMs = Date.now() - began;
     if (answer.ok === false) {
       // ★ WHO IS SENDING WAS REFUSED (the burst's whole answer): every file it carried meets it, and so does every
       // file not yet asked for, never asked again (each would meet it alike). A file already presigned goes on: its own
@@ -684,9 +845,36 @@ async function runBurst(
     });
   }
 
+  /** A landed file's complete: its entry exactly as the complete sends it, and as a kept one is sent again. */
+  const completeOf = (i: number, p: Prepared, landed: Sent): Unanswered => {
+    const put = presigned[i]!;
+    return {
+      mediaId: put.media_id,
+      kind: p.kind,
+      entry: {
+        media_id: put.media_id,
+        key: put.key,
+        content_type: put.content_type,
+        size_bytes: p.file.size,
+        duration_seconds: p.measured.duration,
+        width: p.measured.width,
+        height: p.measured.height,
+        preview_key: landed.previewKey,
+        phone_key: landed.phoneKey,
+        // Only a clip says anything (the live reel never plays a reel); every other entry is unchanged.
+        ...(files[i].reelEligible === false ? { reel_eligible: false } : {}),
+        upload_id: put.strategy === "multipart" ? put.upload_id : null,
+        parts: landed.parts,
+      },
+    };
+  };
+
   // ── The bytes: one file at a time, in order ──
   async function sendAll() {
     for (let i = 0; i < n; i++) {
+      sendIndex = i;
+      // A kept complete's bytes went up on the try before.
+      if (replay[i]) continue;
       while (!outcomes[i] && !presigned[i]) {
         wantPresign = i;
         maybePresign();
@@ -696,24 +884,32 @@ async function runBurst(
       if (outcomes[i]) continue;
       stage[i] = "sending";
       files[i].onSending?.();
+      const p = prepared[i]!;
+      air = { startedAt: Date.now(), handedOffAt: null };
       // Its bytes stop for the burst's cancel or its own (a PUT in the air is aborted: said as a cancel, never a drop).
       const own = eitherSignal(signal, files[i].signal);
       let landed: Awaited<ReturnType<typeof sendBytes>>;
       try {
         landed = await sendBytes(
           files[i],
-          prepared[i]!,
+          p,
           presigned[i]!,
           own.signal,
+          (fraction) => {
+            if (!air || fraction < 1 || air.handedOffAt !== null) return;
+            air.handedOffAt = Date.now();
+            maybePresign();
+          },
         );
       } finally {
         own.dispose();
+        air = null;
       }
       // Its bytes are up (or never will be): its blobs are let go, so preparing may run on (`aheadBytes`).
       prepared[i] = undefined;
       if (outcomes[i]) continue;
       if (landed.ok) {
-        sent[i] = landed.sent;
+        asked[i] = completeOf(i, p, landed.sent);
         sentAt[i] = Date.now();
         stage[i] = "sent";
         files[i].onSent?.();
@@ -722,6 +918,7 @@ async function runBurst(
       }
       poke();
     }
+    sendIndex = n;
     sendDone = true;
     poke();
   }
@@ -739,7 +936,9 @@ async function runBurst(
       sendDone ||
       hidden ||
       due.length >= MAX_BURST_FILES ||
-      waited >= BURST_RECORD_WAIT_MS;
+      waited >= BURST_RECORD_WAIT_MS ||
+      // A kept complete goes at once: nothing of it is left to send, and its answer is a round trip away.
+      due.some((i) => replay[i]);
     if (!now) {
       timer ??= setTimeout(() => {
         timer = undefined;
@@ -757,10 +956,11 @@ async function runBurst(
   }
   async function record(due: number[]) {
     for (const i of due) stage[i] = "recording";
+    const keep = (i: number) => UNANSWERED.set(files[i].file, asked[i]!);
     let answer: BurstAnswer<RecordedFile>;
     try {
-      // `complete` is never aborted by a cancel and has no client timeout: a retry re-runs the whole upload, so a
-      // timed-out complete that had recorded its rows would duplicate them.
+      // Never aborted by a cancel (a row may be written); ended past its ceiling as the dropped line it is, the files
+      // it carried kept for their next try (below), so that try asks again and never writes a second row.
       answer = await postJson<BurstAnswer<RecordedFile>>(
         endpoints.complete,
         {
@@ -768,37 +968,19 @@ async function runBurst(
           // CAPTURE-ONLY (trust-safety-forensics.md): the durable device UUID for the deny-all forensic
           // record. Never read back, never product logic; omitted when storage is blocked.
           device_uuid: getDeviceId() ?? undefined,
-          files: due.map((i) => {
-            const m = meta[i]!;
-            const put = presigned[i]!;
-            const landed = sent[i]!;
-            return {
-              media_id: put.media_id,
-              key: put.key,
-              content_type: put.content_type,
-              size_bytes: m.size,
-              duration_seconds: m.measured.duration,
-              width: m.measured.width,
-              height: m.measured.height,
-              preview_key: landed.previewKey,
-              phone_key: landed.phoneKey,
-              // Only a clip says anything (the live reel never plays a reel); every other entry is unchanged.
-              ...(files[i].reelEligible === false
-                ? { reel_eligible: false }
-                : {}),
-              upload_id: put.strategy === "multipart" ? put.upload_id : null,
-              parts: landed.parts,
-            };
-          }),
+          files: due.map((i) => asked[i]!.entry),
         },
-        { keepalive: true },
+        { keepalive: true, ceilingMs: COMPLETE_CEILING_MS },
       );
     } catch (e) {
+      // ★ NO ANSWER (the line, the ceiling, a body it could not read): whether a row was written is unknown.
+      for (const i of due) keep(i);
       const failed = failureOf(e);
       for (const i of due) settle(i, failed);
       return;
     }
     if (answer.ok === false) {
+      // The whole request refused in the route's own words: it recorded nothing.
       const refused: UploadOutcome = {
         ok: false,
         code: answer.code,
@@ -810,18 +992,24 @@ async function runBurst(
     const list = filesOf(answer, due.length);
     due.forEach((i, k) => {
       const one = list?.[k];
-      if (!one) settle(i, { ok: false, message: SOMETHING_WRONG });
-      else if (one.ok) {
+      const { mediaId, kind } = asked[i]!;
+      if (!one) {
+        // An answer of the wrong shape says nothing of the row: kept, as no answer is.
+        keep(i);
+        settle(i, { ok: false, message: SOMETHING_WRONG });
+      } else if (one.ok) {
         // mediaId + kind let the caller optimistically render the upload in the gallery
         // (and dedupe it against the server poll by id).
         settle(i, {
           ok: true,
           status: one.status,
-          mediaId: presigned[i]!.media_id,
-          kind: meta[i]!.kind,
+          mediaId,
+          kind,
           ...(one.sealed === true ? { sealed: true } : {}),
         });
       } else {
+        // The server's own "couldn't finish" may stand on a row it wrote: kept. Any other refusal is its settled word.
+        if (UNSETTLED_REFUSALS.has(one.code)) keep(i);
         settle(i, {
           ok: false,
           code: one.code,
@@ -832,16 +1020,18 @@ async function runBurst(
   }
 
   // Hers: what no request carries yet, and what landed with no row asked for, is cancelled (nothing is recorded); a
-  // request in the air meets its own answer, and a file being recorded is the record's.
+  // request in the air meets its own answer, and a file being recorded (or going again on its kept complete) is the
+  // record's.
   const onAbort = () => {
     stopped = true;
     for (let i = 0; i < n; i++) {
       const s = stage[i];
       if (
-        s === "waiting" ||
-        s === "prepared" ||
-        s === "presigned" ||
-        s === "sent"
+        !replay[i] &&
+        (s === "waiting" ||
+          s === "prepared" ||
+          s === "presigned" ||
+          s === "sent")
       ) {
         settle(i, cancelled);
       }
@@ -850,10 +1040,11 @@ async function runBurst(
   };
   // Hers, one file (`BurstFile.signal`): that file alone is cancelled wherever it stands short of its complete, and
   // everything else goes on. A PUT in the air is aborted by the signal it carries (`sendAll`); a presign in the air
-  // meets its own answer, which lets this file's entry go (`presign`); a file being recorded is the record's.
+  // meets its own answer, which lets this file's entry go (`presign`); a file being recorded is the record's, and so is
+  // one going again on its kept complete (a row may already stand).
   const cancelOne = (i: number) => {
     const s = stage[i];
-    if (s === "recording" || s === "settled") return;
+    if (replay[i] || s === "recording" || s === "settled") return;
     settle(i, cancelled);
     poke();
   };
@@ -872,6 +1063,8 @@ async function runBurst(
   signal?.addEventListener("abort", onAbort, { once: true });
   page?.addEventListener("visibilitychange", onVisibility);
   try {
+    // A kept complete is asked before anything else starts.
+    poke();
     await Promise.all([prepareAll(), sendAll()]);
     while (outcomes.some((o) => !o)) {
       poke();
@@ -952,6 +1145,8 @@ async function sendBytes(
   p: Prepared,
   presign: PresignedFile,
   signal: AbortSignal | undefined,
+  /** Its original's every progress report, 0 to 1 across all its parts (`endsSoon` hears the 1). */
+  onBytes?: (fraction: number) => void,
 ): Promise<{ ok: true; sent: Sent } | { ok: false; outcome: UploadOutcome }> {
   const { file } = p;
   const onProgress = one.onProgress;
@@ -963,6 +1158,7 @@ async function sendBytes(
         body: file,
         headers: presign.headers,
         onProgress,
+        onBytes,
         signal,
       });
     } else {
@@ -971,11 +1167,13 @@ async function sendBytes(
       for (const part of presign.parts) {
         const start = (part.partNumber - 1) * partSize;
         const blob = file.slice(start, Math.min(start + partSize, file.size));
+        const whole = (frac: number) =>
+          (uploadedBytes + frac * blob.size) / file.size;
         const xhr = await putWithProgress({
           url: part.url,
           body: blob,
-          onProgress: (frac) =>
-            onProgress?.((uploadedBytes + frac * blob.size) / file.size),
+          onProgress: (frac) => onProgress?.(whole(frac)),
+          onBytes: (frac) => onBytes?.(whole(frac)),
           signal,
         });
         uploadedBytes += blob.size;
