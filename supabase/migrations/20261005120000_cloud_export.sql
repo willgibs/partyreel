@@ -2321,7 +2321,9 @@ grant execute on function public.spend_watch_readings(timestamptz, text[]) to se
 -- breaker's hours; another Google account replacing the row; invalid_grant wiping the tokens and the same account back
 -- resuming; the switch off leasing and kicking nothing and a kick being three lanes once a minute; the sweep whole;
 -- the spend watch's drive_bytes; the breaker at the press and in the sweep, and an operator's Lift; the token claim;
--- an operator's pause and resume. The error it ends on must read `ROLLED BACK: every cloud_export check held {...}`.
+-- an operator's pause and resume; a dying lane pausing at three; a re-sent original keeping its name; a retry refused
+-- beside a newer send of the album; no stuck mark while the switch is off. The error it ends on must read
+-- `ROLLED BACK: every cloud_export check held {...}`.
 -- The lane ran it on a local stand-in (postgresql@17, the Supabase roles, handle_new_user's shape) and on the live
 -- project BEFORE the apply: the file's statements at the head of the same transaction, rolled back (the Handoff).
 -- =============================================================================================
@@ -2766,6 +2768,17 @@ grant execute on function public.spend_watch_readings(timestamptz, text[]) to se
 --                      where (e ->> 'prior_file_id') = 'file-' || (e ->> 'media_id') or e ->> 'prior_file_id' in ('f1', 'f2', 'file-again')) then
 --     raise exception 'FAIL 13: a second send''s items lack their prior files: %', v_r;
 --   end if;
+--   -- The same original sent again keeps its own name (another original of that name still holds " (2)").
+--   if not exists (select 1 from jsonb_array_elements(v_r -> 'items') e where (e ->> 'media_id')::uuid = v_ids[1]) then
+--     raise exception 'FAIL 13: the first original is not in the second send''s first lease: %', v_r;
+--   end if;
+--   v_r := public.cloud_export_name_items((v_r ->> 'lease')::uuid, jsonb_build_array(
+--            jsonb_build_object('media_id', v_ids[1], 'stem', '2026-09-12 21.14.05 · Priya', 'ext', 'jpg'),
+--            jsonb_build_object('media_id', v_ids[2], 'stem', '2026-09-12 21.14.05 · Priya', 'ext', 'jpg')));
+--   if v_r -> 'names' ->> v_ids[1]::text <> '2026-09-12 21.14.05 · Priya.jpg'
+--      or (v_r -> 'names' ? v_ids[2]::text and v_r -> 'names' ->> v_ids[2]::text <> '2026-09-12 21.14.05 · Priya (2).jpg') then
+--     raise exception 'FAIL 13: a re-sent original did not keep its name: %', v_r;
+--   end if;
 --
 --   -- ── 14. Disconnect: the row and its folders go, the running send ends, the finished one forgets its folder ──
 --   v_r := public.cloud_connection_disconnect(v_host);
@@ -2917,6 +2930,38 @@ grant execute on function public.spend_watch_readings(timestamptz, text[]) to se
 --   if (v_r ->> 'failures')::integer <> 3 or (select j.pause_reason from public.cloud_exports j where j.id = v_job2) <> 'failing'
 --      or (select j.attention_at from public.cloud_exports j where j.id = v_job2) is not null then
 --     raise exception 'FAIL 22: the third dead lane: %', v_r;
+--   end if;
+--
+--   -- ── 23. A retry waits for a newer send of the album: one unfinished send an album, said in a code ──
+--   insert into public.cloud_exports (user_id, event_id, connection_id, album_name, status, items_total, items_failed,
+--                                     started_at, closed_at)
+--   values (v_host, v_event, v_conn, 'Maya & Jay', 'partly_done', 1, 1, now(), now())
+--   returning id into v_third;
+--   insert into public.cloud_export_items (job_id, media_id, position, bytes, status) values (v_third, v_ids[3], 1, 1000, 'failed');
+--   if (select count(*) from public.cloud_exports j where j.user_id = v_host and j.event_id = v_event
+--         and j.status in ('preparing', 'sending', 'paused', 'checking')) <> 1 then
+--     raise exception 'FAIL 23: the fixture needs exactly one unfinished send of the album';
+--   end if;
+--   v_r := public.cloud_export_act(v_host, v_third, 'retry');
+--   if v_r ->> 'code' is distinct from 'already_sending'
+--      or (select j.status from public.cloud_exports j where j.id = v_third) <> 'partly_done' then
+--     raise exception 'FAIL 23: a retry beside a running send: %', v_r;
+--   end if;
+--
+--   -- ── 24. No stuck mark while the switch is off: every send then waits on purpose ──
+--   update public.cloud_exports set status = 'sending', pause_reason = null, stuck_since = null,
+--          last_progress_at = now() - interval '2 hours', started_at = now() - interval '3 hours'
+--    where id = v_job2;
+--   update public.cloud_export_items set status = 'pending', lease_token = null where job_id = v_job2 and status = 'leased';
+--   update public.ops_flags set enabled = false where key = 'drive_export_enabled';
+--   perform public.cloud_export_sweep();
+--   if (select j.stuck_since from public.cloud_exports j where j.id = v_job2) is not null then
+--     raise exception 'FAIL 24: a send was marked stuck while the switch was off';
+--   end if;
+--   update public.ops_flags set enabled = true where key = 'drive_export_enabled';
+--   perform public.cloud_export_sweep();
+--   if (select j.stuck_since from public.cloud_exports j where j.id = v_job2) is null then
+--     raise exception 'FAIL 24: an hour without progress is not stuck once the switch is back on';
 --   end if;
 --
 --   raise exception 'ROLLED BACK: every cloud_export check held %', v_report;
