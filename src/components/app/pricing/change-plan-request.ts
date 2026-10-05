@@ -11,8 +11,12 @@ import type { ProPlanId } from "@/lib/validation/checkout";
  * the storage guard routes around).
  */
 export type ChangePlanOutcome =
-  /** Go: Stripe's confirm page for exactly this one price. */
-  | { kind: "redirect"; url: string }
+  /**
+   * Go: Stripe's confirm page for exactly this one price. `notice` is the route's sentence for a switch below this
+   * month's uploads (`uploadsPauseNote`), words only: the plan sheet says them on the size's own card before the press,
+   * so only /pricing's hop, which has no card, shows this one (the CheckoutButton, before it leaves).
+   */
+  | { kind: "redirect"; url: string; notice?: string }
   /** The host stores more than the plan holds: show the numbers, never a bare toast. */
   | { kind: "refused"; refusal: StorageRefusal }
   /** Any other refusal or failure, with the server's own sentence and code. */
@@ -37,11 +41,14 @@ export async function requestChangePlan(
     const body = (data ?? {}) as {
       ok?: unknown;
       url?: unknown;
+      notice?: unknown;
       message?: unknown;
       code?: unknown;
     };
     if (res.ok && body.ok === true && typeof body.url === "string") {
-      return { kind: "redirect", url: body.url };
+      return typeof body.notice === "string" && body.notice
+        ? { kind: "redirect", url: body.url, notice: body.notice }
+        : { kind: "redirect", url: body.url };
     }
     return {
       kind: "error",

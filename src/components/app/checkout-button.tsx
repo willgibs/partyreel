@@ -40,6 +40,13 @@ type CheckoutButtonProps = Omit<
   onRefused?: (refusal: StorageRefusal) => void;
 };
 
+/**
+ * How long a sentence the host has not read yet holds the way to Stripe's confirm page: one reading, then she goes on
+ * (and it is still her page to confirm or leave there). 22 words at a reader's pace, so the page never leaves
+ * mid-sentence; the toast outlasts it by a beat.
+ */
+const NOTICE_HOLD_MS = 5_000;
+
 // Starts a Stripe Checkout session for a Pro plan and redirects to Stripe. Signed-out
 // visitors (the public pricing page) are sent to /login first. The server route is
 // authoritative — this is just the trigger.
@@ -109,6 +116,16 @@ export function CheckoutButton({
         ) {
           const outcome = await requestChangePlan(planId, next);
           if (outcome.kind === "redirect") {
+            // ★ A SWITCH BELOW THIS MONTH'S UPLOADS SAYS SO BEFORE IT LEAVES (crumbs-70). The plan sheet says it on the
+            // size's own card before the press; this page is tier-blind and has no card, so the route answers the
+            // sentence (`uploadsPauseNote`) and it is shown here, held one reading while the button still says it is
+            // working. Words, never a refusal and never a confirm: the webhook allows the switch.
+            if (outcome.notice) {
+              toast(outcome.notice, { duration: NOTICE_HOLD_MS + 1_000 });
+              await new Promise((resolve) =>
+                setTimeout(resolve, NOTICE_HOLD_MS),
+              );
+            }
             window.location.href = outcome.url;
             return;
           }

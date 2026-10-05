@@ -8,6 +8,9 @@
  *     `already_subscribed` sends the same plan to /api/stripe/change-plan, and
  *     the general billing portal is never opened for it (its switcher cannot
  *     know what a host stores). A Pro host's pass click keeps checkout's words.
+ *  3. A switch below this month's uploads says so BEFORE it leaves (crumbs-70): the route
+ *     answers the sentence beside the url, and the hop (a tier-blind page with no card of
+ *     its own to carry the words) shows it and holds one reading before Stripe's page.
  */
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -181,6 +184,50 @@ describe("a Pro host choosing a Pro plan", () => {
     await userEvent.click(screen.getByRole("button", { name: "Buy a pass" }));
     await waitFor(() => expect(toast.error).toHaveBeenCalledTimes(1));
     expect(calls.map((c) => c.url)).toEqual(["/api/stripe/checkout"]);
+  });
+});
+
+describe("a switch below this month's uploads says so before it leaves", () => {
+  const NOTICE =
+    "You've uploaded 150 GB this month. At 100 GB a month, new uploads, yours and your guests', would pause until November 1.";
+  const URL = "https://billing.stripe.com/p/session/x";
+  const subscribed = {
+    status: 409,
+    body: { ok: false, code: "already_subscribed", message: "On Pro." },
+  };
+
+  // Real time moves the clock too (userEvent and waitFor lean on timers); the hold itself is stepped.
+  beforeEach(() => vi.useFakeTimers({ shouldAdvanceTime: true }));
+  afterEach(() => vi.useRealTimers());
+
+  it("shows the route's sentence, then holds one reading before it goes to Stripe", async () => {
+    replies["/api/stripe/checkout"] = subscribed;
+    replies["/api/stripe/change-plan"] = {
+      status: 200,
+      body: { ok: true, url: URL, notice: NOTICE },
+    };
+    await press();
+    await waitFor(() =>
+      expect(toast).toHaveBeenCalledWith(NOTICE, expect.anything()),
+    );
+    // Still here, and saying it is working: she has not had a moment to read it yet.
+    expect(assigned).toBe(null);
+    expect(screen.getByRole("button")).toBeDisabled();
+    await vi.advanceTimersByTimeAsync(5_000);
+    await waitFor(() => expect(assigned).toBe(URL));
+    // Words, never an error: the webhook allows the switch.
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it("goes at once, with nothing said, when the route answers no sentence", async () => {
+    replies["/api/stripe/checkout"] = subscribed;
+    replies["/api/stripe/change-plan"] = {
+      status: 200,
+      body: { ok: true, url: URL },
+    };
+    await press();
+    await waitFor(() => expect(assigned).toBe(URL));
+    expect(toast).not.toHaveBeenCalled();
   });
 });
 

@@ -6,10 +6,13 @@
  * Partyreel set by hand, an unpaid or ending subscription, the plan you are on) and
  * the fail-closed configuration lookup. The happy path asserts the session the route
  * ASKS Stripe for: one item, quantity 1, the tagged configuration, a redirect after
- * completion. Nothing here writes a profile, and the last case proves it.
+ * completion. Nothing here writes a profile, and the last case proves it. And the one
+ * thing the route says that is not a refusal: the uploads sentence a smaller size earns
+ * (`notice`, crumbs-70), never blocking what the webhook allows.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { uploadsPauseNote } from "@/lib/billing/storage-guard";
 import { GIGABYTE, planById, type Plan } from "@/lib/constants/tiers";
 
 vi.mock("server-only", () => ({}));
@@ -80,9 +83,17 @@ vi.mock("@/lib/stripe/portal-config", () => ({
 vi.mock("@/lib/site-url", () => ({
   getSiteUrl: async () => "https://partyreel.com",
 }));
+/** What she has uploaded this month, by the ledger (the sentence a smaller size's allowance earns reads it). */
+const monthUploads = vi.fn();
+vi.mock("@/lib/db/queries/month-uploads", () => ({
+  readHostMonthUploads: (...args: unknown[]) => monthUploads(...args),
+}));
+
 const captureError = vi.fn();
+const captureWarning = vi.fn();
 vi.mock("@/lib/observability/sentry", () => ({
   captureError: (...args: unknown[]) => captureError(...args),
+  captureWarning: (...args: unknown[]) => captureWarning(...args),
 }));
 
 const { POST } = await import("@/app/api/stripe/change-plan/route");
@@ -129,6 +140,7 @@ beforeEach(() => {
   };
   albumBytes = 40 * GIGABYTE;
   deletedBytes = 0;
+  monthUploads.mockResolvedValue(0);
   retrieve.mockResolvedValue(subscription());
   configurationId.mockResolvedValue("bpc_tagged");
   createSession.mockResolvedValue({
@@ -363,5 +375,84 @@ describe("the session it asks Stripe for", () => {
   it("writes nothing to the profile (the webhook applies the new cap)", async () => {
     await answer({ planId: "pro_1tb" });
     expect(profileUpdate).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * ★ THE USES SENTENCE (crumbs-70: /pricing's hop is tier-blind, so the route is where a Pro host's switch learns
+ * that a smaller size also carries a smaller uploads allowance). The default subscription is Pro 200 GB monthly
+ * (200 GB of uploads a month); Pro 50 GB allows 100 GB a month. Words beside the url: the session is made either way.
+ */
+describe("the uploads sentence a smaller size earns", () => {
+  it("answers the sentence beside the url when this month's uploads are past the smaller size's allowance", async () => {
+    monthUploads.mockResolvedValue(150 * GIGABYTE);
+    const { status, json } = await answer({ planId: "pro_50" });
+    expect(status).toBe(200);
+    expect(json.ok).toBe(true);
+    expect(json.url).toBe("https://billing.stripe.com/p/session/x");
+    // The sheet's own words, from their one home (never a second copy of the sentence).
+    expect(json.notice).toBe(
+      uploadsPauseNote(150 * GIGABYTE, planById("pro_50")),
+    );
+    expect(json.notice).toMatch(/uploaded 150 GB this month/);
+    expect(json.notice).toMatch(/pause until/);
+    expect(monthUploads).toHaveBeenCalledWith("host-1");
+  });
+
+  it("★ never blocks what the webhook allows: the session is made, at quantity 1, with the sentence in hand", async () => {
+    monthUploads.mockResolvedValue(900 * GIGABYTE);
+    const { status } = await answer({ planId: "pro_50" });
+    expect(status).toBe(200);
+    expect(createSession).toHaveBeenCalledTimes(1);
+    expect(createSession.mock.calls[0][0].flow_data).toMatchObject({
+      subscription_update_confirm: {
+        items: [{ id: "si_1", price: "price_pro_50", quantity: 1 }],
+      },
+    });
+    expect(profileUpdate).not.toHaveBeenCalled();
+  });
+
+  it("says nothing while this month's uploads are under the smaller size's allowance", async () => {
+    monthUploads.mockResolvedValue(99 * GIGABYTE);
+    const { json } = await answer({ planId: "pro_50" });
+    expect(json).toEqual({
+      ok: true,
+      url: "https://billing.stripe.com/p/session/x",
+    });
+  });
+
+  it("says nothing, and reads nothing, for a bigger size or her own size at the other billing", async () => {
+    monthUploads.mockResolvedValue(900 * GIGABYTE);
+    // Pro 1 TB carries more uploads than Pro 200 GB; Pro 200 GB yearly carries the same.
+    for (const planId of ["pro_1tb", "pro_200_yr"]) {
+      const { status, json } = await answer({ planId });
+      expect(status, planId).toBe(200);
+      expect(json.notice, planId).toBeUndefined();
+    }
+    expect(monthUploads).not.toHaveBeenCalled();
+  });
+
+  it("answers no sentence, never a failed switch, when the ledger cannot be read", async () => {
+    monthUploads.mockRejectedValue(new Error("ledger down"));
+    const { status, json } = await answer({ planId: "pro_50" });
+    expect(status).toBe(200);
+    expect(json).toEqual({
+      ok: true,
+      url: "https://billing.stripe.com/p/session/x",
+    });
+    // Said aloud for the operator, so a quiet missing sentence is a visible fault.
+    expect(captureWarning).toHaveBeenCalledWith(
+      "billing",
+      expect.stringContaining("month uploads"),
+      expect.anything(),
+    );
+  });
+
+  it("does not read the ledger for a switch the storage guard refuses", async () => {
+    albumBytes = 70 * GIGABYTE;
+    const { status, json } = await answer({ planId: "pro_50" });
+    expect(status).toBe(409);
+    expect(json.code).toBe("over_new_cap");
+    expect(monthUploads).not.toHaveBeenCalled();
   });
 });
