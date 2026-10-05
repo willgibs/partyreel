@@ -518,6 +518,19 @@ function wallStamp(time: ExifTime | null): CaptureStamp | null {
 }
 
 /**
+ * ★ A CAPTURE READ NEVER COSTS THE STRIP: whatever it meets, the worst it can do is read no time. Every read is
+ * bounds-checked and meant never to throw, but one that did would end its walk, and a walk that ends fails open with
+ * every byte of the original's metadata, GPS included; so each read is asked through this.
+ */
+function quietly<T>(read: () => T): T | null {
+  try {
+    return read();
+  } catch {
+    return null;
+  }
+}
+
+/**
  * The minimal TIFF every rebuilt Exif carries: a little-endian IFD0 with ONLY the
  * Orientation (26 bytes), or an empty IFD0 (14 bytes) when there is none. No sub-IFDs, no
  * GPS, no maker notes, no thumbnail. With a capture time (Will, 2026-10-05: keep it, never
@@ -787,7 +800,7 @@ function stripJpeg(bytes: Uint8Array): StripBytesResult {
         // read here, from the original, before the segment is dropped.
         exifInsertIndex = parts.length;
         orientation = tiffOrientation(payload.subarray(6));
-        time = tiffCaptureTime(payload.subarray(6));
+        time = quietly(() => tiffCaptureTime(payload.subarray(6)));
       }
     }
 
@@ -1435,7 +1448,11 @@ function* blankMoov(
   const read = yield* readExactly(pos, pos + h.boxSize);
   if (!read) return "malformed";
   // The capture time, from the ORIGINAL moov: its metadata box goes below.
-  const found = moovCapture(read, h.headerLen, h.boxSize);
+  const found = quietly(() => moovCapture(read, h.headerLen, h.boxSize)) ?? {
+    captured: null,
+    header: null,
+    quicktime: null,
+  };
   const moov = read.slice(); // own copy to patch
   let changed = blankMetadataChildren(moov, h.headerLen, h.boxSize, 0);
   if (changed === null) return "malformed";
@@ -2171,7 +2188,7 @@ function* planHeifItems(
     if (isExif) {
       const tiff = exifItemTiff(data);
       if (tiff && tiffHasGps(tiff)) gps = true;
-      const time = tiff ? tiffCaptureTime(tiff) : null;
+      const time = tiff ? quietly(() => tiffCaptureTime(tiff)) : null;
       captured ??= wallStamp(time);
       blank = blankExifBlock(
         data.length,
@@ -2550,7 +2567,7 @@ function* walkSegment(
       // Read, never rewritten: Info stays byte-identical, its DateUTC with it.
       const info = yield* readExactly(body, end);
       if (!info) return null;
-      dateUtc = infoDateUtc(info);
+      dateUtc = quietly(() => infoDateUtc(info));
     }
     p = end;
   }

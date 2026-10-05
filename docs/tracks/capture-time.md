@@ -55,7 +55,9 @@ working.
   `OffsetTimeOriginal`: a wall clock and no zone. Recommended, built: read it in the uploader's own browser zone (she
   is nearly always where she shot it, and uploads the same night); the stored file keeps exactly the camera's wall
   clock, never an invented zone. (UTC would put a New York night five hours early; dropping it would lose most such
-  photos' times.)
+  photos' times.) Once the party keeps its own zone (event-zone, cut today), the party's zone is the better reading for
+  a guest who uploads from elsewhere: a Deferred line, since the claim would then carry the bare wall clock for the
+  server to read in the event's zone.
 - **Q2 The bounds.** Recommended, built (one home, `src/lib/media/capture-time.ts`): a claim after the server's now
   plus a day is dropped (a camera a zone ahead still counts), and so is one before 1 Jan 1990 (before any consumer
   camera stamped a file: it catches the reset clocks, 1904, 1970 and 1980); the arrival stands, and the upload never
@@ -81,10 +83,10 @@ working.
   older tab ignores the element. Measured bytes in the Handoff.
 - **Q6 The reads that feed the wire sit outside the owns.** The manifest's two reads (`album-guest.ts`,
   `album-host.ts`), the delta's parser (`album-sync.ts`), the host's column list (`media.ts`'s `MEDIA_HOST_COLUMNS`,
-  pinned to her SELECT grant), the lease's mapper (`queries/drive.ts`) and the hub's duration read (`hub-album.ts`,
-  album-order's file, which read a duration only from a six-element entry). Recommended, built: the fewest lines in
-  each, every one listed in the lane check; the host's SELECT grant gains `captured_at` (her own album's times, which
-  her originals carry anyway).
+  pinned to her SELECT grant), the lease's mapper (`queries/drive.ts`), the hub's duration read (`hub-album.ts`, which
+  read a duration only from a six-element entry) and guest-flow.md's one clause that said an album in order only grows
+  at its end. Recommended, built: the fewest lines in each, every one listed in the lane check; the host's SELECT grant
+  gains `captured_at` (her own album's times, which her originals carry anyway).
 - **Q7 The backfill.** Recommended, built: it keeps a capture time in what it rewrites (the one shared strip) and
   writes no `captured_at`: a hand-run script never writes the column `create_media*` writes once.
 
