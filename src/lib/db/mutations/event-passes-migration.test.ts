@@ -112,11 +112,14 @@ describe("4. the order holds for every writer of a pass's row", () => {
     const writers = liveFunctions().filter((f) =>
       /\bupdate public\.event_passes\b/.test(f.code),
     );
-    expect(writers.map((f) => f.name).sort()).toEqual([
-      "consume_passes_for_pro_credit",
-      "create_media",
-      "create_media_as_host",
-    ]);
+    // The scan is not vacuous: the two completes and the conversion are among them (a new writer joins the rule below).
+    expect(writers.map((f) => f.name)).toEqual(
+      expect.arrayContaining([
+        "consume_passes_for_pro_credit",
+        "create_media",
+        "create_media_as_host",
+      ]),
+    );
     for (const f of writers) {
       const lock = at(
         f.code,
