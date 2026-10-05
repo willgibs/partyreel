@@ -37,6 +37,7 @@ import { AddStep, useAddChoice } from "./create-event-wizard/add-step";
 import { BeatActs, BeatCode, BeatSteps } from "./create-event-wizard/beat";
 import { CapDoor, type CappedEvent } from "./create-event-wizard/cap-door";
 import { useCarry } from "./create-event-wizard/carry";
+import { rememberJustMade } from "./create-event-wizard/just-made";
 import { LookStep } from "./create-event-wizard/look-step";
 import { NameStep } from "./create-event-wizard/name-step";
 import {
@@ -257,6 +258,8 @@ export function CreateEventWizard({
       );
       creating.current = false;
       if (result.ok) {
+        // Her dashboard's lit stage ignites its lamp once, the first time it draws this event (`just-made.ts`).
+        rememberJustMade(result.event.id);
         setCreated(result.event);
         return;
       }
