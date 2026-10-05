@@ -248,51 +248,24 @@ describe("waitingCount", () => {
 describe("trackerShows", () => {
   const some = rows({ own: [{ id: "m1", status: "pending" }] });
 
-  it("only where she has something sent at a moderated event", () => {
-    expect(
-      trackerShows({
-        moderated: true,
-        isDemo: false,
-        isOwner: false,
-        rows: some,
-      }),
-    ).toBe(true);
-    expect(
-      trackerShows({
-        moderated: false,
-        isDemo: false,
-        isOwner: false,
-        rows: some,
-      }),
-    ).toBe(false);
-    expect(
-      trackerShows({
-        moderated: true,
-        isDemo: false,
-        isOwner: false,
-        rows: [],
-      }),
-    ).toBe(false);
+  it("only where she has something sent at an event where what she adds waits", () => {
+    expect(trackerShows({ waits: true, isDemo: false, rows: some })).toBe(true);
+    expect(trackerShows({ waits: false, isDemo: false, rows: some })).toBe(
+      false,
+    );
+    expect(trackerShows({ waits: true, isDemo: false, rows: [] })).toBe(false);
   });
 
-  it("never in the demo, never for the host", () => {
-    expect(
-      trackerShows({
-        moderated: true,
-        isDemo: true,
-        isOwner: false,
-        rows: some,
-      }),
-    ).toBe(false);
-    expect(
-      trackerShows({
-        moderated: true,
-        isDemo: false,
-        isOwner: true,
-        rows: some,
-      }),
-    ).toBe(false);
+  it("never in the demo", () => {
+    expect(trackerShows({ waits: true, isDemo: true, rows: some })).toBe(false);
   });
+
+  // RESHAPED (crumbs-76): this pinned "never for the host", since her own uploads never wait. They do where a develop
+  // is ahead (`create_media_as_host` seals them with everyone's), and the album draws nothing of them there, so a host
+  // adding on her own guest page saw nothing of hers in the air or landed. The scar kept: she is never shown a wait
+  // that is not hers (an approve-each album approves her own at once). `waits` is the wait as it falls on the viewer
+  // (the page's `addsWaitFor`), so no viewer's identity reaches this rule; the component's own pins hold the host's
+  // two cases (`upload-tracker.test.tsx`).
 });
 
 describe("the words each status wears", () => {

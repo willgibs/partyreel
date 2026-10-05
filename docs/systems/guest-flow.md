@@ -60,7 +60,7 @@ album a stranger has not seen yet.
 account; then follow the host. Its copy says "in your account", never "on your profile", since a profile publishes
 nothing until its owner chooses. It is due the instant a signed-out guest's first file lands this visit (from the
 door's upload step or the album's Add; never in the demo or for the host) and held while the album's camera is open
-(`keepDue`, `onCameraOpenChange`). The door reopens on Sent over what went, named as it is (`keepSent`; where what
+(`keepDue`, `onCameraOpenChange`; the door's own camera holds it itself, below). The door reopens on Sent over what went, named as it is (`keepSent`; where what
 she adds waits, how it develops, `keepWaitLine`, never "joined"), then the ask (`keepCopy`, `KEEP_TITLE`): Confirm
 your email (the account door in the same held sheet, its `keep` wear, carrying the product's one newsletter opt-in
 through `/api/guests/capture-email`) or Maybe later (put down for that event on that device, `pr_save_prompt_<qr>`,
@@ -159,11 +159,28 @@ read beside it so its Follow starts on Following; no card means no host row, nev
   - **The failure sheet** ([`upload/failure-sheet.tsx`](../../src/components/guest/upload/failure-sheet.tsx)): nothing
     interrupts while files go; when the run ends with anything refused it opens once, a line per file (its name, the
     server's sentence, Retry; a dropped connection's line wears a signal mark, told by the queue's `cause`, never its
-    words; a file she stopped is never listed, it left the queue) over one `Retry all`, under a line on the rest that
-    is true where it is said (`uploadFailureElsewhere`). A refused file draws no tile and nothing toasts, except the join's own failure
+    words; a file she stopped is never listed, it left the queue) over one `Retry all`. It heads on the door's own scale
+    (`DoorHeading` in its `announce` mode, so the heading IS the dialog's title: the door's upload step says this very
+    failure on it too) with "N of SENT didn't upload", where SENT is the run's own files (`useRunSent`,
+    [`use-upload-queue.ts`](../../src/lib/guest/use-upload-queue.ts)): the queue's own `inRun` (every file not settled
+    when the run began, a Retry included) plus any failure the heading lists that an earlier try left, read off the
+    items by id and never off how many the queue holds (a Retry adds no item). A run that begins with failures still
+    listed (one of three Retried while the sheet stands over the other two) is their go continuing, so the whole keeps
+    its meaning; one that begins with none (Retry all, the next pick) is a go of its own, and a slot mounted mid-run
+    counts everything it holds. Under it is a line on the rest that is true where it is said
+    (`uploadFailureElsewhere`), said only where the run sent more than failed: a run that failed whole has no "Everything
+    else". A refused file draws no tile and nothing toasts, except the join's own failure
     (nothing was queued). Every close drops what it listed from the queue (`dismiss`), not just from the screen, so a
     dismissed failure never comes back at a later run's end. While the door's upload step shows, it owns the run's
     failures (`suppressFailures`).
+  - **The camera over a refusal of the album** ([`camera/album-camera.tsx`](../../src/components/guest/camera/album-camera.tsx)):
+    a refusal the host can lift (uploads closed, the album full) stops the shutter in the server's words, and nothing
+    tells this page when the host's switch moves (it reads it at render and the sync carries no word of it), so the
+    camera asks again by itself, calmly: after 10 s, then 20, 40 and every minute, never while the page is hidden, at
+    once as it comes back and when the connection does, and only for those two refusals (a lock, a gone event or a
+    ticket that is not hers are never asked again). The ask is the shots' own Retry through the queue, and a shot being
+    asked stands as the refusal it was while its ask is in the air, so the banner, the stopped shutter and the reel's
+    caption never flicker for it; an answer of yes takes the banner and the stopped shutter away with the refusal.
   - **The flip, mid-run**: a host turning An email first on answers 403 `verification_required`, one of the refusals
     the queue reads as the session's, never one file's (its header names them). A confirmed viewer re-joins silently
     once (the queue reads its ticket per file); a name-only guest's queued files fail in place with the server's
@@ -554,6 +571,17 @@ colour, it is the house five. The open doorway registers as a lamp, so its light
   (`waitingOnArrival` is a full-access read) and how uploads wait is true over either. Elsewhere the album is already
   open, and a ghost skip shows once per pass, never on the failure view. With A photo first on there is no skip, and `computeDoor` ignores `skipped`
   and `returning`, so a stale flag cannot open an album.
+  ★ **On an album whose host chose the camera the first photograph is taken with the album's camera, never chosen from
+  the library** (`camera`, the page's `{rollSize}` for a camera album; never the demo's): the album's own Add opens its
+  camera in place of the add sheet and offers no library, so the step offers one Take a photo, no picker, no terms line,
+  in the camera's verb ("Take your photos", "Take another photo"). The door holds that camera itself
+  (`AlbumCamera`, its own lazy chunk fetched as the step shows), beside the sheet and never inside a step: at A photo
+  first the album's own slot, which carries a camera, is not mounted yet (it stands only at `full`), and the step drops
+  the moment her first shot lands while she goes on shooting. While it is open the keep waits (`keepDue && !cameraOpen`)
+  and the door owns the run's failures (`onUploadStepActive`, so the album's failure sheet never opens over it); it is
+  handed the queue only as a shot's standing moves, never for a tick of a bar (the door's queue ticks about once a
+  frame while a file goes up), and what it reads of the album comes from what the door already holds (`CameraEvent`).
+  The held door's wait chooser (`door/wait-picks.tsx`) still offers the library.
 - **The flip and the drift.** The completion route writes the session cookie on its own response, every landing's
   `notifyUploaded` refetches the poll, and the poll's looser decision refreshes the page onto `full` (`key={access}`
   remounts the gallery). `GalleryLiveProvider` raises `onAccessDrift` once per changed `access`/`gate` from the poll: a
@@ -902,7 +930,11 @@ a Change. The typed name also rides the code request as `DOOR_NAME_KEY`, so a ma
     presigns for her alone (`ownUploadOf`); it publishes her waiting shots to the album's contact sheet (`herShotsOf`).
     It stands wherever what she adds waits, which is the host's approval OR the album's develop time ahead
     (`uploadsWait`, read by the page's server through `developState`; read as approval alone, a develop album's shots
-    would say "joined" and vanish on a reload). The page holds that reading live (`useLiveUploadsWait`): the develop
+    would say "joined" and vanish on a reload), as it falls on the viewer (`addsWaitFor`): the host's own ride her pair,
+    approved, so only a develop ahead keeps hers back, and then her tracker stands on her own guest page too (the album
+    draws nothing of what waits, in the air or landed, and her hub is the only other place hers show), listing this
+    visit's alone (hers are no guest's rows, so nothing is read for her), "Sending…" then "Developing", lit on the
+    contact sheet as a guest's are, and with no Remove (her hub takes hers back). The page holds that reading live (`useLiveUploadsWait`): the develop
     time arriving on the device's clock ends it, and every full sync's word on the develop moves it (`developsAtOf`: a
     Develop now, a time set, moved or taken away), so the album's rule, the camera, the head, the tracker, the keep and
     the failure sheet all follow it with no reload. A shot approved and sealed for the develop (her rows' read says

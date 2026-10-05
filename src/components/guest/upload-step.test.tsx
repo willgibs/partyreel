@@ -302,6 +302,112 @@ describe("the failure heading", () => {
   });
 });
 
+/**
+ * ★ A CAMERA ALBUM'S FIRST PHOTOGRAPH IS THE ALBUM'S CAMERA, NEVER THE LIBRARY (crumbs-76; ROADMAP: "on a camera album the
+ * door's first-photo step still offers Take a photo and Choose from your album, so a library photo reaches the roll").
+ * The album's own Add opens its camera in place of the add sheet and offers no library; this step shared that sheet's
+ * body and did. Its one primary opens the camera the door holds (`camera.onOpen`), and nothing asks for a file.
+ */
+describe("on an album whose host chose the camera", () => {
+  const onOpen = vi.fn();
+  const camera = { onOpen };
+
+  it("★ offers the camera alone: one primary that opens it, and no picker of any kind", () => {
+    const { container } = mount({ camera });
+    fireEvent.click(screen.getByRole("button", { name: "Take a photo" }));
+    expect(onOpen).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByRole("button", { name: "Choose from your album" }),
+    ).toBeNull();
+    expect(container.querySelector('input[type="file"]')).toBeNull();
+    // The facts of the library act (its kinds and its cap) are not said where the library is not offered.
+    expect(container.querySelector("[data-upload-terms]")).toBeNull();
+  });
+
+  it("asks in the camera's verb, as the album's own Add does", () => {
+    mount({ camera });
+    expect(screen.getByText("Take your photos")).toBeInTheDocument();
+    expect(screen.queryByText("Add your photos")).toBeNull();
+    expect(
+      screen.getByText("Take one now, or look around first."),
+    ).toBeInTheDocument();
+    expect(
+      uploadStepReason({
+        isDemo: false,
+        requireUpload: true,
+        albumEmpty: true,
+        camera: true,
+      }),
+    ).toBe("Nothing here yet. Take the first photo and the album opens.");
+    expect(
+      uploadStepReason({
+        isDemo: false,
+        requireUpload: true,
+        albumEmpty: false,
+        camera: true,
+      }),
+    ).toBe(
+      "The host has asked everyone to take a photo before the album opens.",
+    );
+    expect(
+      uploadStepReason({
+        isDemo: false,
+        requireUpload: false,
+        albumEmpty: true,
+        camera: true,
+      }),
+    ).toBe("Nothing here yet. Take the first photo.");
+    expect(uploadStepChooseAgain(true, true)).toBe(
+      "Take another and the album opens.",
+    );
+    expect(uploadStepChooseAgain(false, true)).toBe("Take another to add one.");
+    // A free-upload album says what it always said.
+    expect(
+      uploadStepReason({
+        isDemo: false,
+        requireUpload: true,
+        albumEmpty: true,
+      }),
+    ).toBe("Nothing here yet. Add the first photo and the album opens.");
+  });
+
+  it("keeps its skip under the camera's primary where the host asked for none", () => {
+    mount({ camera, onSkip: vi.fn() });
+    expect(
+      screen.getByRole("button", { name: "Skip for now" }),
+    ).toBeInTheDocument();
+  });
+
+  it("the failure view takes another photograph, and clears what failed", () => {
+    const { onDismiss } = mount({
+      camera,
+      queue: [
+        item({
+          id: "q9",
+          errorCode: "invalid_image",
+          error: "That photo could not be read.",
+        }),
+      ],
+    });
+    expect(
+      screen.queryByRole("button", { name: "Choose other photos" }),
+    ).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Take another photo" }));
+    expect(onDismiss).toHaveBeenCalledWith(["q9"]);
+  });
+
+  it("is a free-upload album's step where there is none: the two rows, the picker, the terms", () => {
+    const { container } = mount({ camera: null });
+    expect(
+      screen.getByRole("button", { name: "Choose from your album" }),
+    ).toBeInTheDocument();
+    expect(
+      container.querySelector('input[type="file"][multiple]'),
+    ).not.toBeNull();
+    expect(container.querySelector("[data-upload-terms]")).not.toBeNull();
+  });
+});
+
 describe("the surface", () => {
   it("offers the two named acts, and Send hands the picks up", () => {
     const { container, onSend } = mount();

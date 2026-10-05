@@ -1324,6 +1324,8 @@ export function EventExperience({
         gate={gate}
         doorGate={doorGate}
         acceptsVideo={event.accepts_video}
+        // The album's camera, where its host chose one: the door's first photograph is taken with it (crumbs-76).
+        camera={cameraAlbum ? { rollSize: event.roll_size ?? null } : null}
         capBytes={hostCap}
         hasContributed={serverContributed}
         contributed={clientContributed}
