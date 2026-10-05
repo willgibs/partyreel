@@ -28,7 +28,6 @@ below hold the rest by surface.
 - Design: when identity's `edge` ask picks a reach for layers, a layer's bright edge reads `--display-light`, and `[data-lit]`'s falloff takes its light as a colour the host sets (r4's `edge.ts` draws it so), so one falloff serves media and layers.
 - Guests: a per-tile cancel for an in-flight upload (the guest's pending tile, the host's batch row in `host-upload.tsx`) that asks first and offers Try again, passing `uploadFile`'s `signal`; no control passes one today.
 - Guests: presign and complete have no client ceiling (a retry re-runs the whole upload, so a timed-out complete that had recorded its row would duplicate it); make the retry idempotent on `media_id` (`readRecordedUpload` already answers a replayed complete) so these can time out and say "Your connection dropped." too.
-- Host: nowhere in the app says a host's uploads this month against her plan's allowance (Free's 300 MB a month is stated nowhere in-app); the storage ring's popover or the Plan card could say it beside the plan's number.
 - Host (clip): the hub's reel view has no Make your own (its seam wants the host's plan and her own Add to event); wire it from the hub so she can make a clip before the develop.
 - Dashboard: a guest album she opened is in neither Recent nor Last opened (only a host's own event is stamped); stamping one wants a table of its own.
 - Dashboard: delete `seasonsOf`, `HomeView.events.seasons` and `src/lib/dashboard/seasons.ts` once the host-dashboard board retires (its drawings still compose them).
