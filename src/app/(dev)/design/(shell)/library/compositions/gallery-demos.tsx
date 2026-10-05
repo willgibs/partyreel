@@ -36,6 +36,8 @@ import {
   InvitedDemo,
   SettingsDemo,
 } from "./composition-demos";
+import { DownloadToastDemo } from "./download-toast-demo";
+import { PlanLimitsDemo } from "./plan-limits-demo";
 
 /**
  * THE PRODUCT COMPOSITIONS, declared (the gallery round, 2026-09-12).
@@ -212,6 +214,49 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
         label: "A trend and a distribution, past 1,000",
         hint: "hover a point or a bar for the exact count; every tick reads whole at any width",
         node: <AdminMetricsChartsDemo />,
+      },
+    ],
+  },
+  {
+    id: "plan-limits",
+    badge: "new",
+    family: "compositions",
+    section: "The operations portal",
+    file: "src/app/admin/jobs/limits-card.tsx",
+    test: "src/app/admin/jobs/limits-card.test.tsx",
+    title: "The Plan limits card",
+    for: "every vendor's meter against its plan's limit on /admin/jobs, the spend watch's last run as a bar and its words, never as a number a meter is not",
+    lede: "The real PlanLimitsCard over runs written by hand, so every state the portal can show is here, none of it behind an operator's sign-in. A meter is drawn as what it is: a bar and its words under a level's chip, `at least` for a floor, `estimated` for a computed meter, what breaking it costs once past a threshold. One that could not be read says No reading and why and has no bar (a failed read in the failure tone; a gap, a credential the app does not hold or a vendor that reports none, in words and no tone), and a run that is missing or unreadable says so in words rather than drawing a calm card. Built from the real `METERS`: a meter added there appears on every card.",
+    specimens: [
+      {
+        label: "Every meter read, a few percent in",
+        hint: "the one card that may say a plain OK; each bar is the share of the plan's limit and each row says how fast it climbs",
+        node: <PlanLimitsDemo state="healthy" />,
+      },
+      {
+        label: "Past a threshold",
+        hint: "Active CPU critical, CDN requests warning, R2 storage a floor: the chip takes the worst, and a critical meter says what breaking it costs",
+        node: <PlanLimitsDemo state="critical" />,
+      },
+      {
+        label: "A failed read",
+        hint: "Vercel refused the token: its four meters have no bar and no number, only No reading and why in the failure tone, and the chip says it",
+        node: <PlanLimitsDemo state="failed" />,
+      },
+      {
+        label: "Gaps: Not wired",
+        hint: "a meter with no reader says Not wired (or that the vendor reports none), in words and no tone; the chip says Partly read and the header counts them",
+        node: <PlanLimitsDemo state="gaps" />,
+      },
+      {
+        label: "Nothing to show",
+        hint: "no run has carried the limits yet, and a run that could not be read: said in words, never a calm card",
+        node: (
+          <div className="flex w-full flex-col gap-4">
+            <PlanLimitsDemo state="never" />
+            <PlanLimitsDemo state="unreadable" />
+          </div>
+        ),
       },
     ],
   },
@@ -629,6 +674,24 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
         label: "Invited",
         hint: "type one and press Enter, or paste a list with a bad entry in it",
         node: <InvitedDemo />,
+      },
+    ],
+  },
+  {
+    id: "download-toast",
+    badge: "new",
+    family: "compositions",
+    section: "Downloads",
+    file: "src/components/app/export/export-toast.tsx",
+    test: "src/components/app/export/export-toast.test.tsx",
+    title: "The download's toast",
+    for: "the one toast a download, updated in place through every state the walk passes: a question, a cancel, a dropped connection, a line lost mid-stream, saved",
+    lede: "The real toast on the product's own toaster, which is a call and not a drawing: each button hands `exportToasts` the view the download's walk builds for that state and the toast appears at the top of the page, under the header. A press replaces the last by its one id, as a walk does. The x, a question's answers and Try again walk the fixture between the states they lead to in production (Cancel asks first, Keep going goes back, Cancel ends it with a way back), and nothing is minted, fetched or posted. The words are the walk's own (`lib/export/walk.ts`).",
+    specimens: [
+      {
+        label: "Every state, one toast",
+        hint: "press a state and look up: the cancel question, Download cancelled., a dropped connection, a line lost mid-stream, saved, and the rest of the nine tones",
+        node: <DownloadToastDemo />,
       },
     ],
   },
