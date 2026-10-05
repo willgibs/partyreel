@@ -768,6 +768,18 @@ describe("a picker's choice saves a beat after it, with no leaving", () => {
     });
   });
 
+  it("a time the beat saved is not saved again by the leaving or the close that follows it", async () => {
+    const onSave = mountWaiting();
+    const field = developField();
+    fireEvent.change(field, { target: { value: "2026-10-05T10:30" } });
+    await rest(PICK_SETTLE_MS + 100);
+    expect(onSave).toHaveBeenCalledTimes(1);
+    leave(field);
+    pressReturn(field);
+    cleanup();
+    expect(onSave).toHaveBeenCalledTimes(1);
+  });
+
   it("a wheel's every notch is one save, the time it rests on", async () => {
     const onSave = mountWaiting();
     const field = developField();
