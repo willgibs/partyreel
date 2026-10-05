@@ -1,7 +1,7 @@
 ---
 track: orchestrator
 status: open
-cut: "958b6ee7"          # the launch-prep SHA this state was written at
+cut: "94d66338"          # the launch-prep SHA this state was written at
 owns:                    # the standing claims no lane touches
   - src/app/(dev)/design/rules/bible.ts
   - src/app/(dev)/design/rules/bible.test.ts
@@ -25,150 +25,115 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 ## In flight
 
-Round 15 (2026-10-04), on Will's desk answers on build 31b7c65 and his brand note. Milestone 35 is live. Every wiring
-of the round is merged on launch-prep for milestone 36 (Ladder A, trash in storage, the reel's tap, the camera's clip,
-the dashboard, the hub's strip, graphite, Create's styles, small fixes, red-team 52's fixes, the arrival), and build 53
-(`31a73a46`) serves them on the alias. The boards below are parked at their handoffs for their desks.
+Round 15 continues (2026-10-05), seated on willg97. Milestone 36 is live. `launch-prep` holds 17 merged lanes for
+milestone 37 (below), which waits on red-team 54 and Will's yes. Desk 2 (Drive alone) is on his local desk at
+`94d66338`. Desk 3's four boards are integrated into `launch-prep` one at a time while his desk stays pinned to Drive
+alone, so desk 3 serves the moment he pastes desk 2.
 
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
-| `customize-r1` | board customize r1 (desk 15): the roll (film's 12/24/36 or 1 to 99), where options live, "use for new parties", the album's order; Linear's lessons and the audit in `_scratch/customize/` | HANDED OFF at `97a8d62b9`, parked for desk 3 (integrated with the foundation boards) | Opus, 3133 | `a1ba7927eb8a90754` |
-| `identity-r4` | board identity r4 (desk 10): Will's mix as seven trait asks (field, button, focus, selected, press, loading, toggles), each on real screens wearing the picks before it, and the edge on ten places on paper beside the room; A1 to A4 and H3 as carried calls; form, never hue | HANDED OFF at `204bd7970` (synced to `18b6bb784`; gates green, lab:demo 8 steps at 1440 and 375), parked for desk 3; its edge-under-scale fix routed to graphite-wiring, the reel dock's open fill to crumbs-64 | Opus, 3132 | `a4152d141563a9a7d` |
-| `event-header-r4` | board event-header r4 (desk 20): one ask, the doors (glass recommended: counts as badges on its icons, a tab bar under her thumb on a phone; cards owning the phone; windows lit only where something waits), each refined by its own helper then once from fresh eyes; G1, G2, G4 drawn on production's panel in every option; the waiting colour left to the brand | HANDED OFF at `bf44a50f4` (gates green on `2d6f692d5`, unsynced: launch-prep touched none of its imports), parked for desk 3 | Opus, 3134 | `a4eaf6f839b991e91` |
-| `brand-r1` | board brand r1 (desk 5, desk 4 alone): what the agency returned, three visions as 14-slide decks at a desk and on a phone: Afterglow (recommended: light is the brand, sampled from the photographs, a Ring, a Seam or a Bloom one per screen), Contact Sheet (the print is the brand: paper and ink, film edges, a photo lab's marks), Everyone's Color (people are the brand: every guest a seeded orb, an event the mix of its people); the creative director's pass and one refinement; Will's motion study used | HANDED OFF at `82e262385` (gates green on `2858bbfd6`), parked for desk 4 after desk 3; its Higgsfield asks (nine, by slot and theme) go to ASSETS.md for the picked vision at its integration | Opus, 3135 | `aab7f784008cbcfeb` |
-| `host-dashboard-r4` | board host-dashboard r4 (desk 25): two asks, `chooser` (how she chooses what leads her stage: corner, words recommended, deck; each on production's wired lit stage, every rule saying the fact it read) and `details` (H6, as built or each the other way) | HANDED OFF at `bd75f406a` (synced to `e5cad2fb4`; gates green, lab:demo at 1440 and 375), parked for desk 3: integrated after Will answers desk 2 | Opus, 3136 | `a2252d0ff7db3ba6f` |
-| `redteam-53` | build 53's red-team (`31a73a4`) | STOPPED at 15:40Z mid-walk 6 (the Vercel CPU limit): W1 dashboard, W2 Create, W3 hub before the develop, W4 develop and arrival, W5 downloads and uploads and W9's guest upload PASS; **1 MEDIUM** (a download whose line drops after the mint posts its form anyway: Chrome's error page, never "Your connection dropped"), LOWs (offline, the drop line turns to "Your download is starting." as `heard(null)` resets `lineLost`; the Reel card hides "Guests get it later" at 375) and NITs (Reset drops focus; the Style key's open fill loses to hover; her header disc flashes uncoloured; the camera never says a dropped connection; "and try again" against ", then try again"): all to `crumbs-65`. Not walked: the strip going quiet, Q2 on the tile and table, red-team 52's fixes, graphite, the host's upload, /admin/jobs. Ledger `../partyreel-wt/_scratch/redteam-53/ledger.txt` | Opus, Will's Chrome | `a74c0224d08c09800` |
-| `compute-model` | Phase 1: what Partyreel costs Vercel per user action, projected onto real events, a standing budget | MERGED at `cbcf7a6e4` (gate 212 green); report `../partyreel-wt/_scratch/compute-model/report.md` (a wedding 56,000 to 85,000 calls; the proxy half of every count; six levers, -93% calls and -71% CPU together); Will's calls X4, X5 in the calls lab; pruned | Opus, 3131 | `a097c42685f2fa292` |
-| `crumbs-65` | red-team 53's findings before milestone 36 | MERGED at `3e7e6ec53` (gate 210 green; no migration); his calls in the calls lab (Z); pruned | Sonnet, 3132 | `a986701b02f98a735` |
-| `limits-watch` | every vendor's plan meter against its limit, a "Plan limits" card on /admin/jobs and an email at 60% and 85%, inside the spend watch's daily run | MERGED at `42745a7dd` (gate 211 green); its migration APPLIED (`limits_watch_readings`, 20261004174457, Q33 safe as written, md5 f44a2828, advisors 19/4/36); types and the seam dropped (`8578c1cf0`); his questions X2 (a Vercel token for the cron) and X3 (a read-only Cloudflare analytics token) in the calls lab; pruned | Sonnet, 3138 | `addb8c6edba9adbff` |
-| `compute-levers` | levers 1 and 2: the proxy only where a session matters, polls that rest | MERGED at `227849c9c` (gate 213 green); measured: a heavy wedding's calls -66% (80,599 to 27,479), the budget rebased; his calls in the calls lab (AB); pruned | Opus, 3131 | `aa924f52363c4607c` |
-| `redteam-53b` | the local red-team of launch-prep at `1c8a981bd` (the desk build at port 3000; never Vercel) | DONE: every walk PASS (sessions across an expired token after the proxy change, page and API routes refreshing their own; crumbs-65's fixes; polls at rest, 60 s for ten lit minutes then 5 minutes, a new photo in 5 s; red-team 53's unwalked walks; regressions); no HIGH, MEDIUM or LOW; 2 NITs to ROADMAP; not drivable: the admin portal, a checkout's webhook, a real phone; ledger `../partyreel-wt/_scratch/redteam-53b/ledger.txt` | Opus, Will's Chrome and its own headless | `acc14cd8bde6e2fba` |
-| `compute-uploads` | lever 4: a burst of uploads is one presign and as few completes as its landing allows, every per-file check kept | MERGED at `3915071ca` (gate 216 green; no migration; a guest's join and ten photos 59 calls to 17, a wedding -65%); his call in the calls lab (AC); pruned | Opus, 3131 | `a1127664b1a59539e` |
-| `crumbs-66` | red-team 53b's NITs (the hub's door words; the cover's srcset not built: a cover variant deferred), Reset's focus, the hub reel's develop words, the compute harness's join wait | MERGED at `53e1e8fb2` (gate 215 red on a flake, then the full suite green: 11,160; no migration); pruned | Sonnet, 3132 | `aa18239db9c002762` |
-| `crumbs-67` | two jsdom tests that flaked under load wait on what they mean | MERGED at `b6cabeb35` (gate 217 green; tests only; 30 runs in a row under a concurrent build); pruned | Sonnet, 3132 | `a07bf3008e5deabd3` |
-| `crumbs-68` | the door's upload bar, the album's one ask a burst, the cause of a drop on the queue | MERGED at `e85312ba4` (gate 218 green; a guest's join and ten photos 20 calls to 18); pruned | Sonnet, 3131 | `ab8e4ad3cf9714ba1` |
-| `compute-presign` | the guest page's next CPU lever: R2 presigns signed by hand (SigV4), byte-identical to the SDK's | MERGED at `84d9a62ab` (gate 220 green after a re-run: the first merge met a stray `.git/index.lock` and was aborted clean; 257 links 12x cheaper, about 25 ms off each guest page render); pruned | Opus, 3132 | `ae54afeec77675ece` |
-| `crumbs-69` | the hub counts as an open; the old reel route before the develop | MERGED at `c5828d84c` (gate 219 green); pruned | Sonnet, 3131 | `ab9453e19fea9242a` |
-| `library-specimens` | three Library specimens: the download toast's states, the Plan limits card, TapTooltip | MERGED at `bb3942afc` (gate 221 green); pruned | Sonnet, 3131 | `a5c2f78ccd20a3030` |
-| `compute-lazy-sdk` | the S3 SDK loaded on the first send | MERGED at `365274760` (gate 222 green; the guest page's cold load 175 to 123 ms of CPU); pruned | Sonnet, 3132 | `a99654d8427f34e53` |
-| `crumbs-70` | the /pricing hop's uploads sentence, the floating gutter's name, the lamp's ignition from Create | MERGED at `6ef4b3d92` (gate 223 green); pruned | Sonnet, 3131 | `ac83ec59db2e60df5` |
-| `crumbs-71` | a download's Try again waits for the line; the disc's per-ticket colour in profiles-social.md | MERGED at `c754b3d68` (gate 224 green); pruned | Sonnet, 3132 | `abe6516c311e72a70` |
-| `uploads-meter-ui` | this month's uploads against her allowance in the storage ring's popover | MERGED at `c00b1f5b0` (gate 225 green); his calls in the calls lab (AD); pruned | Sonnet, 3131 | `a5d19501a15912cc1` |
-| `upload-cancel` | E6 for uploads: an in-flight upload's x asks first, then offers Try again | MERGED at `4a064993f` (gate 226 green); his calls in the calls lab (AE); pruned | Sonnet, 3132 | `a80a1b7990acf514c` |
-| `crumbs-72` | Settings' develop time never lost, the host's storage refusal with its numbers, the teaser's waiting words, the reel's dead viewer path | MERGED at `d26e7d69a` (gate 227 green; the develop time's picker on a real iPhone is Will's walk); pruned | Sonnet, 3131 | `acf51d0ab0fa56db8` |
-| `admin-uploads` | the operator sees a host's uploads against her allowance and her Deleted beside her active bytes; read-only | MERGED at `41405f36a` (gate 228 green); the reset is the calls lab's X6; pruned | Sonnet, 3132 | `a92c83ecc3155933c` |
-| `crumbs-73` | the hub develops too; how-it-works' four hairlines | MERGED at `32a286c3b` (gate 229 green); pruned | Sonnet, 3131 | `a386ace618c2b7342` |
-| `library-specimens-2` | the hub-head specimens' real strip; Create's whole room as a Library composition | MERGED at `4ce8c5561` (gate 230 green); pruned | Sonnet, 3131 | `a84adf5b16e812599` |
-| `crumbs-74` | the album cover's count names its kinds from the first byte | MERGED at `ea92dd3c6` (gate 231 green); pruned | Sonnet, 3131 | `afd144fc61505e0de` |
+| `redteam-54` | the local red-team of `94d663383` (the desk build at port 3000; never Vercel): uploads in bursts, hand-signed links, upload-cancel, the uploads line, crumbs-66 to 74, regressions; brief and ledger `../partyreel-wt/_scratch/redteam-54/` | RUNNING: guest walks headless; host walks WAITING ON CHROME (Claude in Chrome not connected to willg97) | Opus, its own headless and Will's Chrome | `aad2547f8dbb570b6` |
+| `crumbs-75` | the jobs fail loudly: a released notice retried, deletes in event-id order, the prune's `primary_missing` an alert, a silent export at the bell, the over-capacity sweep exact (maybe a migration), the palette's switches | RUNNING | Opus, 3131 | `a2428ae853740682b` |
+| `crumbs-76` | the guest's upload counts and words ("1 of 0", "Everything else", the camera hearing uploads reopen, the host on her guest page, one heading scale, a camera album's door) | RUNNING | Sonnet, 3132 | `af667c9e8c7ed6f87` |
+| `crumbs-77` | the gate's flakes and guards (two tests under load, help labels, one drop-aware migration reader, three migration files recovered, two scripts, two testing-doc facts) | RUNNING | Sonnet, 3133 | `a5625f1475a561cab` |
+| `library-specimens-3` | Library specimens for what lab:smoke cannot reach (popup kinds, the stepper, toggle-group, the pricing pieces over a stubbed door, ContactReceipt, HostMediaGrid's arrival, RouteErrorMock, plate sizes) | RUNNING | Sonnet, 3134 | `a227bf5ce904530be` |
+| `identity-r4` | board identity r4 (desk 10): Will's mix as seven trait asks (field, button, focus, selected, press, loading, toggles), each on real screens wearing the picks before it, and the edge on ten places on paper beside the room; A1 to A4 and H3 as carried calls; form, never hue | HANDED OFF at `204bd7970` (gated on `d9654688d`), integrating first | Opus (its session gone) | old session's `a4152d141563a9a7d` |
+| `customize-r1` | board customize r1 (desk 15): the roll (film's 12/24/36 or 1 to 99), where options live, "use for new parties", the album's order; Linear's lessons and the audit in `_scratch/customize/` | HANDED OFF at `97a8d62b9` (gated on `bfcc63e1e`), integrating second | Opus (gone) | `a1ba7927eb8a90754` |
+| `event-header-r4` | board event-header r4 (desk 20): one ask, the doors (glass recommended: counts as badges on its icons, a tab bar under her thumb on a phone; cards owning the phone; windows lit only where something waits); G1, G2, G4 drawn on production's panel; the waiting colour left to the brand | HANDED OFF at `bf44a50f4` (gated on `2d6f692d5`), integrating third | Opus (gone) | `a4eaf6f839b991e91` |
+| `host-dashboard-r4` | board host-dashboard r4 (desk 25): two asks, `chooser` (corner, words recommended, deck) and `details` (H6) | HANDED OFF at `bd75f406a` (gated on `ce77dc1a5`), integrating fourth; its captures re-read by `lab:demo` (the capture incident) | Opus (gone) | `a2252d0ff7db3ba6f` |
+| `brand-r1` | board brand r1 (desk 4 alone): Afterglow (recommended), Contact Sheet, Everyone's Color, as 14-slide decks at a desk and on a phone | HANDED OFF at `82e262385` (gated on `2858bbfd6`), parked for desk 4 after desk 3's answers; its nine Higgsfield asks go to ASSETS.md for the picked vision | Opus (gone) | `aab7f784008cbcfeb` |
 
-**The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Its
-model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`. From another session, respawn it from
-`usher/kit/advisor-prompt.txt`.
+The parked boards' agents lived in the old session (`2ba90542`): a board asked for more work is respawned from its
+transcript, `~/.claude/projects/-Users-gibby-local-ai-partyreel/2ba90542-62d6-487c-8c79-3657619f9133/subagents/agent-<id>.jsonl`.
+
+**Merged since milestone 36, for milestone 37** (gates 215 to 231, each green; no migration): compute-uploads,
+compute-presign, compute-lazy-sdk, crumbs-66 to crumbs-74, library-specimens and library-specimens-2,
+uploads-meter-ui, upload-cancel, admin-uploads. Their calls are in the calls lab (AC to AE).
+
+**The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): not spawned yet this session; spawned from
+`usher/kit/advisor-prompt.txt` at its first consult (crumbs-75's migration, billing-locks', or milestone 37's risk
+read). Its model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`.
 
 **Handoff across accounts** (Will's rule: wind down near the weekly limit; the other account resumes at once). This
-session (`2ba90542-62d6-487c-8c79-3657619f9133`, hi@willgibs.com, weekly 92% at 21:15Z 2026-10-04, resets Tuesday
-2026-10-06 21:00Z) ran to 99% on Will's word (no token wasted). Since milestone 36 it merged compute-uploads,
-compute-presign, compute-lazy-sdk, crumbs-66 to crumbs-72, library-specimens, uploads-meter-ui, upload-cancel and
-admin-uploads, crumbs-73 and library-specimens-2 (gates 215 to 230, every one green); launch-prep holds them for
-milestone 37, which needs a local red-team (54) and Will's yes. crumbs-74 merged too (gate 231). No lane is in flight:
-the account stopped clean. The next Orchestrator runs on willg97 (its weekly reset 2026-10-04 13:00Z,
-0% then). Its first steps:
-- for each `lp/*` whose manifest is not `handed-off`, resume it per the runbook's "Resume a lane" (its pushed WIP, its
-  predecessor's transcript under `subagents/agent-<id>.jsonl`, the same port); one whose manifest says handed-off is
-  ready to integrate;
-- read this pickup, then STATUS; recreate the hourly heartbeat (`CronCreate`, session-only; the old one died with this
-  session);
+session: `f2c62c71-9c33-49f4-9fd5-d48376be9824` on willg97@gmail.com, weekly 0% at 04:10Z 2026-10-05, resetting
+Sunday 2026-10-11 13:00Z (hi@willgibs.com resets Tuesday 2026-10-06 21:00Z). If it ends, the next Orchestrator:
+- resumes each `lp/*` whose manifest is not `handed-off` per the runbook's "Resume a lane" (its pushed WIP, its
+  predecessor's transcript under `~/.claude/projects/-Users-gibby-local-ai-partyreel/f2c62c71-9c33-49f4-9fd5-d48376be9824/subagents/agent-<id>.jsonl`,
+  the same port); one whose manifest says handed-off is ready to integrate;
+- reads this pickup, then STATUS; recreates the hourly heartbeat (`CronCreate`, session-only; this session's is
+  `d5139e32` at :17);
 - Will's desk: `http://localhost:3000/design/lab?key=fiesta` is served by `pnpm start -p 3000` in
-  `../partyreel-wt/desk` (nohup; a restart of the machine needs it restarted: checkout `origin/launch-prep`, build with
-  `NEXT_PUBLIC_SITE_URL=http://localhost:3000`, start);
+  `../partyreel-wt/desk` (nohup), pinned at `94d66338` (Drive alone) until he pastes desk 2. A refresh: checkout the
+  SHA detached, `pnpm install`, stop port 3000, `rm -rf .next`, build with `NEXT_PUBLIC_SITE_URL=http://localhost:3000`
+  through `scripts/build-lock.sh`, `nohup pnpm start -p 3000`, then the `sentry-release` in `/design/lab` names it
+  (about a minute; `../partyreel-wt/_scratch/desk/desk-refresh.sh <sha>` does it all);
 - the specs of round 15 and its later lanes are in `../partyreel-wt/_scratch/specs/`;
-- the parked boards keep their worktrees: identity-r4, event-header-r4, host-dashboard-r4, customize-r1, brand-r1;
-- MCP tool ids change with the account; Claude in Chrome, the Supabase MCP on `ddafaemglzmuekbtjwzn` and the Vercel
-  token in `.env.local` are what the work needs (the Vercel MCP needs the partyreel team re-authorized).
+- MCP tool ids change with the account; Claude in Chrome (connected per account by Will), the Supabase MCP on
+  `ddafaemglzmuekbtjwzn` and the Vercel token in `.env.local` are what the work needs.
 
 If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` holds a merge made after this note (push
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
 staged, uncommitted merge is finished by `usher/kit/merge-lane.sh`'s own steps or reset with `git merge --abort`.
-This session's scratchpad holds the specs (`specs-r15/`) and gate logs (the next gate is 210); nothing there is needed that these lines and the manifests do not carry. Everything a successor reads lives
-in the repo or in `../partyreel-wt/_scratch/` (the calls lab, the red-team briefs and ledgers, the Drive research).
+Everything a successor reads lives in the repo or in `../partyreel-wt/_scratch/` (the calls lab, the red-team briefs
+and ledgers, the Drive research).
 
 ## Next, in order
 
-Round 15, on Will's desk answers of 2026-10-04 06:00Z and his brand note; the approved plan, whole, is
-`../partyreel-wt/_scratch/desk/round-15-plan.md`.
+Round 15, on Will's desk answers of 2026-10-04 and his brand note; the approved plan, whole, is
+`../partyreel-wt/_scratch/desk/round-15-plan.md`; this session's opening plan is
+`~/.claude/plans/please-resume-your-role-delightful-cascade.md`.
 
-00. **Milestone 36 SHIPPED** on Will's yes (2026-10-04 21:00Z, `28bd6d62`, tag `milestone-36`): production's pass prices
-   set to Ladder A's first, both projects READY, the read-only walk PASS, launch-prep fast-forwarded.
-0a. **Phase 2 of the compute fix:** compute-levers (levers 1 and 2) MERGED (-66% of a heavy wedding's calls); next
-   batched presign and complete (lever 4, `compute-uploads`) MERGED (a guest's ten photos 59 calls to 17); next the CDN version (lever 3, 3b) only on Will's privacy call X5. An auth red-team of lever 1 runs on the local
-   desk before it ships; the fix reaches partyreel.com only through a milestone on Will's yes.
-0. **★ VERCEL'S HOBBY ACTIVE CPU (Will, 2026-10-04 15:30Z: almost maxed; breaking it again may cost the hosting, since
-   Vercel unlocked his account once already).** Hobby allows 4 CPU-hours a rolling 30 days and pauses functions past it.
-   Function calls grew from about 3,000 a day (early September) to 57,400 (2026-10-03), nearly all ours: red-team walks
-   and `lab:demo` desk checks on the alias (about 5,000 to 6,000 an hour each), album and hub tabs left polling. Until
-   he decides (Pro now, or Hobby with the fixes): **nothing runs against the alias or partyreel.com** (no red-team, no
-   `lab:demo --base` the alias, no `[preview]`). Built: the kit's guard, `usher/kit/vercel-usage.mjs` (30-day function
-   calls from `GET /v2/usage?type=requests`; Active CPU itself is Pro's Observability Plus; 320,789 calls, about 87% by
-   count at 15:37Z), in front of `alias-ensure.mjs` and every remote `lab:*` run (`d41b1ea3f`). Next: calibrate it from
-   his dashboard figure; the spend watch reading it daily into `/admin`; desk checks and red-teams on a local production
-   build (the alias only for sign-in, upload and checkout); polls rest when idle (`use-live-poll.ts` is 12 s without the
-   doorbell and 60 s with it, paused only when hidden, and a headless tab is never hidden: about 300 calls an hour each).
-   Vercel's fair-use rules confine Hobby to non-commercial use, so Pro at launch stays a launch switch regardless (it
-   bills Active CPU from $0.128 an hour: today's month would be about $0.50); the foundational work is cost and
-   behaviour at scale, which compute-model prices on both plans.
-1. **Red-team 53** (stopped for the CPU limit): its findings fixed by `crumbs-65` (merged, gate 210); next a local red-team 53b
-   on the desk build at port 3000 (the walks not taken: the strip going quiet, Q2 on the tile and table, red-team 52's
-   fixes, graphite, the host's upload, /admin/jobs, plus crumbs-65's "Look at first"); then milestone 36 on Will's yes
-   (the runbook's "Milestone"), which is also the first deploy since the CPU limit: run `vercel-usage.mjs` first.
-   Red-team 53b waits for the weekly (88% at 17:33Z) after compute-model and limits-watch hand off; refresh the desk
-   build to launch-prep's head first (`../partyreel-wt/desk`: checkout, build with the localhost site URL, restart).
-2. **Desk 2 is Drive alone** (on the alias since build 52). After his answers: the Drive wiring lane (his Google Cloud
-   step relayed: the design note's section 11; the way-in now lives in production's Display menu and the download toast
-   tells a cancel from a dropped line, so the lane reconciles both), and desk 3's four boards integrated (customize-r1,
-   identity-r4, event-header-r4, host-dashboard-r4, one at a time), the desk pass (`board-card.mjs --desk`, PREMISE
-   re-reads, any two asks asking one decision merged), a `[preview]`, `lab:demo` on the alias at 1440 and 375, then
-   tell him desk 3 is ready.
-3. **Desk 4 is brand r1 alone**, integrated after desk 3's answers; its nine Higgsfield asks go to ASSETS.md for the
-   picked vision only.
-4. **Desk 5**, the moments boards (host-moments: B1, Q6, B2, L3; guest-moments: C7, D3 with the flat 3, Q3, G6;
-   account-moments: I4, I5; create-wizard r4: the styles' polish, F1, F2), cut after desk 3's identity and customize
-   picks. **Desk 6**, the brand applied (brand-marks with the status set, aurora, marketing-themes with N4, N7, N9,
-   demo-framing r6, presence r1, moments-in-motion), cut after brand r1's pick.
-5. **The calls lab's open question X1** (a Disposable's develop time when the date comes later): its recommended fix
-   is a small lane on his word.
-6. **A capture incident:** brand-r1's capture drove host-dashboard-r4's headless Chrome for about 16 s at
-   04:47 local; the desk pass re-reads host-dashboard r4 by `lab:demo` before desk 3.
-7. **Will's motion inspirations, studied** (`../partyreel-wt/_scratch/inspiration/2026-10-04-motion.md`; his six links
-   and words beside it): sent to brand-r1 at 08:10Z as material for its visions' signature ("the aurora that answers":
-   light answering a real signal), the aurora as ink on paper, the motion principles and "the code develops". After
-   brand r1's pick, a `moments-in-motion` board joins desk 6, drawn in the chosen brand: the product's verbs as one
-   family (take back as smoke in Your shots and the bin's Delete permanently, never a soft Remove; set aside; open, with
-   a weighted pull to dismiss and the full flight only for rare launches; arrive; develop as a cell reveal), the
-   camera's filming glow, Create's code flipping only the modules that differ. Skipped: gooey as a language, the tilt on
-   every photo. ★ The smoke reads pixels: an album tile's presigned image taints the canvas.
-8. **The heartbeat:** cron `11f7f524`, hourly at :17 local, session-only (it dies with this session; recreate it in a
-   new one). A fail-safe: it acts only on ready work and otherwise ends in a line (Will: stalls are rare, needless
-   wakeups cost context).
-9. **Pacing (Will: never pause overnight; he switches accounts at a weekly limit):** the night's twelve board helpers
-   burned the 5-hour window about 30 points an hour; Sonnet wirings and one Opus lane burn about 8. The weekly was 85%
-   at 14:18Z (this account's resets Tuesday 21:00Z; willg97's reset today at 13:00Z). From 96% weekly nothing new
-   starts and every lane parks at a commit; `get_usage` at every wake.
-10. **The close of the day:** STATUS, this pickup, the calls lab. Moltbook hourly only on his word.
+1. **Red-team 54, then milestone 37.** Red-team 54 walks `94d663383` locally; its findings go to a crumbs lane; then
+   milestone 37 on Will's yes (the runbook's "Milestone": `FULL=1` gate, `pnpm compute:model`, merge, tag, the deploy
+   he asked for by name, a short read-only walk). What merges after `94d663383` gets red-team 54b on the refreshed desk
+   build before the milestone.
+2. **Desk 3 integrated now** (identity-r4, customize-r1, event-header-r4, host-dashboard-r4, one at a time;
+   `negative.sh` before the day's first), then the desk pass: `board-card.mjs --desk`, PREMISE re-reads, any two asks
+   asking one decision merged, host-dashboard r4 re-read by `lab:demo`, `lab:demo` at 1440 and 375 on a local build.
+   Served by a desk refresh the moment he pastes desk 2.
+3. **Lanes as seats free**, off the parked boards' surfaces (the hub's doors, the dashboard's stage, Settings'
+   options, `ui/` atoms, marketing): `billing-locks` (Opus: pass consumption takes `profiles` first, the presign
+   refuses a lapsed pass, `/admin/accounts`' 50 `uploads_used` calls as one read, a lapsed pass's "0 B"; migrations
+   through the Advisor); `uploads-idempotent` (Opus: a retried complete idempotent on `media_id`, so presign and
+   complete get ceilings; the next file prepared while one sends); `compute-hub-links` (Sonnet: the hub's delta carries
+   its links, the cover keeps its playing stills); `help-words` (Sonnet, facts only); the spend watch card's specimen
+   after crumbs-75; then ROADMAP "Now" in batches: data integrity, bugs a person can hit, cost, accessibility, hygiene.
+4. **When he pastes desk 2:** transcribe (`review-sheet.mjs`, `pnpm lab:review --dry`, then for real); the Drive
+   wiring lane (Opus; his Google Cloud step relayed: the design note's section 11; the way-in lives in production's
+   Display menu and the download toast tells a cancel from a dropped line, so the lane reconciles both); the desk
+   refresh (desk 3 served); tell him.
+5. **Desk 4 is brand r1 alone**, integrated after desk 3's answers. **Desk 5**, the moments boards (host-moments: B1,
+   Q6, B2, L3; guest-moments: C7, D3 with the flat 3, Q3, G6; account-moments: I4, I5; create-wizard r4: the styles'
+   polish, F1, F2), cut after desk 3's identity and customize picks. **Desk 6**, the brand applied (brand-marks with
+   the status set, aurora, marketing-themes with N4, N7, N9, demo-framing r6, presence r1, moments-in-motion), cut
+   after brand r1's pick; Will's motion study (`../partyreel-wt/_scratch/inspiration/2026-10-04-motion.md`) feeds
+   moments-in-motion (★ the smoke reads pixels: an album tile's presigned image taints the canvas).
+6. **Compute:** lever 3 and 3b (the CDN-cached album version) only on Will's X5; the guest page's next CPU levers
+   (AsyncLocalStorage on Node 24, a lighter first paint) measured locally first; `pnpm compute:model` at every
+   milestone.
+7. **★ Vercel's Hobby Active CPU** (`node usher/kit/vercel-usage.mjs` before any Vercel work): REFUSE at 04:09Z
+   2026-10-05 (320,513 calls in 30 days, about 3.92 of 4 CPU-hours; the 2026-10-03 peak of 57,400 rolls off in early
+   November; qrcdn, a non-Partyreel project on the team, shares the budget). Nothing runs against the alias or
+   partyreel.com but what Will asks for by name; desks and red-teams run on the local desk build. Pro is a launch switch
+   regardless (Hobby is non-commercial); whether it comes sooner is his.
+8. **Pacing:** weekly 0% on 2026-10-05; full speed, at most six agents (36 GB; memory 82% free at the seat-in).
+   `get_usage` at every wake; from 96% weekly nothing new starts and every lane parks at a commit.
+9. **The close of the day:** STATUS (stale since 2026-10-03), this pickup, the calls lab. Moltbook only on his word.
 
 ## Waiting on Will
 
-- **Desk 2, Drive alone** (nine asks), on his local desk (Vercel's CPU): `http://localhost:3000/design/lab?key=fiesta`,
-  served from `../partyreel-wt/desk` (launch-prep at `08f6c8cd5`, built with `NEXT_PUBLIC_SITE_URL=http://localhost:3000`,
-  `pnpm start -p 3000`; refresh: checkout, build, restart). Sign-in works there through the chooser.
-- **The calls lab** (`../partyreel-wt/_scratch/calls/calls-lab.md`): one open question (X1, a Disposable's develop time
-  when the date comes later), then the text calls built and his to overrule (the night's wirings added S to Y). He asks
-  direct questions in chat; answer in chat, never only in a file.
-- **Milestone 36** on his yes, after red-team 53.
+- **Claude in Chrome on willg97:** red-team 54's host walks need it (resume that agent by SendMessage once connected).
+- **Desk 2, Drive alone** (nine asks), on his local desk: `http://localhost:3000/design/lab?key=fiesta` (launch-prep at
+  `94d66338`). Sign-in works there through the chooser. "Stack desk 3" is his to say; otherwise one desk at a time.
+- **The calls lab** (`../partyreel-wt/_scratch/calls/calls-lab.md`): open questions X1 (a Disposable's develop time
+  when the date comes later), X2 (a Vercel token for the limits watch), X3 (a read-only Cloudflare analytics token),
+  X5 (the CDN-cached album version), X6 (the operator's uploads credit); X4 is built. Then the text calls built and
+  his to overrule. He asks direct questions in chat; answer in chat, never only in a file.
+- **Milestone 37** on his yes, after red-team 54.
+- **Vercel:** Pro now, or Hobby until the window clears in early November.
+- **The 26 policy tests, GUARD or TASTE** (`../partyreel-wt/_scratch/docs-prune/policy-tests.md`).
 - **His six motion links, a note:** libraries.dev is blocked on his home network (the ISP's CUJO filter), so three of
-  the six (voice, image, gooey) were read from their MIT source on GitHub, never watched; the study says what each is
-  worth.
-- **The 26 policy tests, GUARD or TASTE** (`../partyreel-wt/_scratch/docs-prune/policy-tests.md`): which taste rules he
-  keeps as his voice and which go.
+  the six (voice, image, gooey) were read from their MIT source on GitHub, never watched.
 - **His walks:** Settings' develop time on his iPhone (type a time, then Back or the picker's close: it holds;
   crumbs-72), the camera on his iPhone (a held-shutter video on a waiting sheet), Save into Photos, Record Video's
   size, a deletion and its Cancel deletion on hi@willgibs.com, the spend watch's uploads switch off and on; and
