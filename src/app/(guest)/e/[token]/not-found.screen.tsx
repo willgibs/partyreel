@@ -27,9 +27,10 @@ import { DEMO_EVENT_URL } from "@/lib/demo";
  *
  * Real guests hit this from a mistyped or stale QR, so the copy reassures (double-check the link, ask the host)
  * and softly introduces Partyreel (the growth loop).
- * ★ It must never say an event "ended": there is no end date in this product, by design (the anti-abuse core in
- * constants/tiers.ts), so deletion, a typo, or a changed custom slug are the only three ways a link stops
- * resolving. The help article content/help/the-qr-wont-scan-or-the-link-wont-open.mdx quotes this sentence.
+ * ★ It must never say an event "ended": an event never ends, by design (the anti-abuse core in constants/tiers.ts).
+ * The end date Settings offers only says when it happens and closes nothing, so deletion, a typo, or a changed custom
+ * slug are the only three ways a link stops resolving. The help article
+ * content/help/the-qr-wont-scan-or-the-link-wont-open.mdx quotes this sentence.
  * Renders in (guest)/layout.tsx (narrow mobile column); GuestHeader needs a real qrToken/eventId, which a 404
  * has none of, so the session-less GuestBar stands in: its own module, so the guest CRASH wears the same row.
  *

@@ -1,4 +1,4 @@
-import { Download } from "lucide-react";
+import { Download, ListChecks } from "lucide-react";
 import type { CSSProperties } from "react";
 
 import { MediaSplit } from "@/components/marketing/system/media-split";
@@ -8,18 +8,23 @@ import { SectionShell } from "@/components/marketing/system/section-shell";
 
 import { ZipModalDemo } from "./zip-modal-demo";
 
-/** The two REAL entry points, with the surface each one lives on. */
+/** The two REAL entry points, with the surface each one lives on and the icon the product draws on it. */
 const DOWNLOAD_TRIGGERS = [
-  { label: "Download", where: "in your gallery" },
-  { label: "Download all", where: "in the guest album" },
+  { label: "Download", where: "in your gallery", Icon: Download },
+  { label: "Select", where: "in the guest album", Icon: ListChecks },
 ];
 
 /**
  * Sharing page section 3 (paper): the full-quality truth + THE ZIP moment.
  * The copy states the ratified download facts (originals, no re-compression,
  * photos never watermarked on any tier); the trigger chips quote the two real
- * entry points (the host gallery's "Download" button, the guest album's
- * "Download all"). The interactive modal is the page's signature.
+ * entry points (the host gallery's "Download" button, which opens Take it home,
+ * and the guest album's "Select", whose Save takes a pick home). The
+ * interactive modal is the page's signature.
+ *
+ * ★ THE MODAL BESIDE IT STILL DRAWS THE RETIRED "DOWNLOAD ALBUM" MENU (`zip-modal-demo.tsx`, owed a redraw on Take it
+ * home with `features/album/take-home-section.tsx`: ROADMAP), so this copy says what the product does today and the
+ * picture is the one part of the section that does not.
  */
 export function DownloadsSection() {
   const rise = (i: number) => ({
@@ -31,7 +36,7 @@ export function DownloadsSection() {
     <SectionShell
       eyebrow="Downloads"
       heading="Everything comes back out at full quality."
-      subhead="Downloads are the original files: the same resolution they went in at, no re-compression, and no watermarks on photos, ever."
+      subhead="The originals come back exactly as they went in: the same resolution, no re-compression, and no watermarks on photos, ever."
       /* THE PAPER CHAPTER'S OPENER (the attention arc): the heading a tier up,
          the hard cut, and real air, so the morning-after desk opens with
          weight; who-gets-what below stays at the body tier and closes quiet. */
@@ -54,14 +59,15 @@ export function DownloadsSection() {
           <div className="flex flex-col gap-4">
             <p {...rise(4)} className="text-pretty text-muted-foreground">
               Save one favorite from the lightbox, or take the whole album home
-              at once: Download all bundles everything into a single zip of the
-              untouched originals.
+              at once: Download, in your gallery, opens Take it home, with the
+              untouched originals as a single zip beside a lighter phone-size
+              set for posting tonight.
             </p>
             <p {...rise(5)} className="text-pretty text-muted-foreground">
-              It works for hosts and for guests with access to the album. Pick
-              everything, photos only, or videos only. Hosts can fold hidden
-              items into the zip, or select shots in the gallery and use
-              Download selected for just those.
+              Guests take photos home too. They Select what they want, or All of
+              it, then Save: to Photos at phone size, or to Files as a zip of
+              the originals. Hosts can fold hidden items in, or select shots in
+              the gallery and Download just those.
             </p>
             {/* The two real triggers, quoted. R4 / review B4: one used to be a
                 bordered button and the other bare text, which read as a rank
@@ -75,7 +81,7 @@ export function DownloadsSection() {
               {DOWNLOAD_TRIGGERS.map((trigger) => (
                 <div key={trigger.label} className="flex flex-col gap-1.5">
                   <span className="inline-flex h-7 w-fit items-center gap-1.5 rounded-lg border bg-background px-2.5 text-caption font-medium">
-                    <Download className="size-3.5" /> {trigger.label}
+                    <trigger.Icon className="size-3.5" /> {trigger.label}
                   </span>
                   <Caption>{trigger.where}</Caption>
                 </div>
