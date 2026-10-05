@@ -20,10 +20,12 @@
  *    one read (cut at 1,000) nor an offset loop (which skips rows while it deletes them).
  *  - Right before the event rows go, the holds are asked again, and the media read itself leaves held
  *    rows out: a hold placed while the sweep runs keeps its row, and its event.
+ *  - ★ The event rows go one a statement, in event-id order (`deleteEventsInIdOrder`, crumbs-75), so their
+ *    cascade into the album rows never takes two albums at once against the album log's prune.
  */
 import "server-only";
 
-import { mustCount, QueryFailedError } from "@/lib/db/must-query";
+import { mustCount } from "@/lib/db/must-query";
 import {
   IN_CHUNK,
   inChunks,
@@ -49,6 +51,7 @@ import {
   type Deadline,
   type StoppedEarly,
 } from "@/lib/lifecycle/sweep-budget";
+import { deleteEventsInIdOrder } from "@/lib/lifecycle/sweeps/delete-events";
 
 export type ExpiredEventsTally = Reclaimed & {
   events: number;
@@ -157,8 +160,8 @@ export async function sweepExpiredEvents(
 
 /**
  * Purge one batch of hold-free expired events (at most `IN_CHUNK`, so the whole batch is one chunk):
- * every media page reclaimed, then the event rows. False when the deadline stopped it before the
- * event rows could go.
+ * every media page reclaimed, then the event rows, one a statement in id order. False when the deadline
+ * stopped it before every event row could go.
  */
 async function purgeEventBatch(
   admin: AdminClient,
@@ -207,16 +210,15 @@ async function purgeEventBatch(
       tally.hold_blocked_events += chunk.length - doomed.length;
       if (doomed.length === 0) return [true];
 
-      const { error } = await admin
-        .from("events")
-        .delete()
-        .in(
-          "id",
-          chunk.filter((id) => !stillHeld.has(id)),
-        );
-      if (error) throw new QueryFailedError("cron/purge: delete events", error);
-      tally.events += doomed.length;
-      return [true];
+      // One event a statement, in event-id order, against the album log's prune (delete-events.ts).
+      const gone = await deleteEventsInIdOrder(
+        admin,
+        doomed,
+        deadline,
+        "cron/purge: delete events",
+      );
+      tally.events += gone.deleted;
+      return [gone.done];
     },
     { concurrency: 1 },
   );

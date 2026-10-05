@@ -38,6 +38,7 @@ import { readLatestWatchRun } from "@/lib/jobs/spend-watch-run";
 import { readSwitches } from "@/lib/jobs/spend-watch-switches";
 import { RESUME_KEY } from "@/lib/jobs/sweep-tally";
 
+import { AttentionLine } from "./attention-line";
 import {
   JOBS,
   JOB_RUN_NOW_NOTE,
@@ -56,6 +57,7 @@ import {
   RunJobNowButton,
 } from "./job-controls";
 import { PlanLimitsCard, type LatestLimits } from "./limits-card";
+import { owedWords } from "./owed-words";
 import { readLastPruneReport, readPruneHoldReleasedAtMs } from "./prune-hold";
 import { pruneHoldView, type PruneHoldView } from "./prune-hold-view";
 import {
@@ -107,20 +109,32 @@ const SIGNAL_LABEL: Partial<Record<JobId, { ok: string; failed: string }>> = {
   export_delivery: { ok: "downloads finished", failed: "failed" },
 };
 
-/** What a `derived` reading counts, and the remedy to say when it is not zero. */
-const READING_LABEL: Partial<Record<JobId, { unit: string; remedy: string }>> =
-  {
-    backup_queue: {
-      unit: "waiting to copy",
-      remedy:
-        "A backlog drains on its own; the daily reconcile copies anything the live queue never reached.",
-    },
-    backup_dead_letters: {
-      unit: "given up on",
-      remedy:
-        "The daily backup reconcile copies anything the live queue missed, so a dead letter clears on its next run.",
-    },
-  };
+/**
+ * What a `derived` reading counts (and the term its number takes, "Depth" when none is named), and the remedy to say
+ * when it is not zero.
+ */
+const READING_LABEL: Partial<
+  Record<JobId, { unit: string; remedy: string; term?: string }>
+> = {
+  backup_queue: {
+    unit: "waiting to copy",
+    remedy:
+      "A backlog drains on its own; the daily reconcile copies anything the live queue never reached.",
+  },
+  backup_dead_letters: {
+    unit: "given up on",
+    remedy:
+      "The daily backup reconcile copies anything the live queue missed, so a dead letter clears on its next run.",
+  },
+  // crumbs-75: the restore path, said where the alert is. Nothing copies a lone backup back on its own: the prune
+  // cannot tell a lost object from one its row no longer names, and a blind copy would be deleted again as an orphan.
+  backup_primary_missing: {
+    term: "Keys",
+    unit: "held by the backup alone",
+    remedy:
+      'Restore each from the backup: copy it from partyreel-backup into partyreel at the same key (durability-backups.md, Restore), then check its row still names it. The prune\'s own log names every one ("held by the backup alone", Workers Logs for partyreel-backup), and it never deletes one while its row lives.',
+  },
+};
 
 function formatDuration(ms: number | null): string {
   if (ms === null) return "";
@@ -367,6 +381,7 @@ export default async function JobsPage() {
         const counts = summarizeCounts(last?.counts ?? null);
         const signal = signals[def.id] ?? null;
         const signalWords = SIGNAL_LABEL[def.id];
+        const owed = def.kind === "signal" ? owedWords(def.id, signal) : null;
         const reading = readingById.get(def.id) ?? null;
         const readingWords = READING_LABEL[def.id];
         // The age rides the SAME run that carried the depth, so find that run rather than the
@@ -448,10 +463,23 @@ export default async function JobsPage() {
                     </div>
                   ) : null}
 
+                  {/* What the path still owes past its grace (crumbs-75): a notice waiting to send, a download
+                    with no end. Nothing failed in the window, so this line is what says it. */}
+                  {owed ? (
+                    <div className="flex gap-2 sm:col-span-2">
+                      <dt className="text-muted-foreground">{owed.term}</dt>
+                      <dd className="min-w-0 flex-1">
+                        <AttentionLine>{owed.line}</AttentionLine>
+                      </dd>
+                    </div>
+                  ) : null}
+
                   {def.kind === "derived" ? (
                     <>
                       <div className="flex gap-2">
-                        <dt className="text-muted-foreground">Depth</dt>
+                        <dt className="text-muted-foreground">
+                          {readingWords?.term ?? "Depth"}
+                        </dt>
                         <dd>
                           {!reading || reading.value === null ? (
                             <span className="text-muted-foreground">
@@ -560,8 +588,12 @@ export default async function JobsPage() {
                     <RunJobNowButton jobId={def.id} label={def.label} />
                   ) : null}
                   <p className="text-xs text-muted-foreground">
-                    {/* The remedy, said where the problem is: a dead letter is not stuck forever. */}
-                    {def.kind === "derived" && health !== "ok" && readingWords
+                    {/* The remedy, said where the problem is: a dead letter is not stuck forever. Only beside a count
+                      to act on (crumbs-75): "No reading" is no lone copy to restore, so it keeps the host's note. */}
+                    {def.kind === "derived" &&
+                    health !== "ok" &&
+                    readingWords &&
+                    (reading?.value ?? 0) > 0
                       ? readingWords.remedy
                       : (JOB_RUN_NOW_NOTE[def.host] ??
                         "Pausing takes effect on the next scheduled run.")}
