@@ -80,8 +80,8 @@ Sunday 2026-10-11 13:00Z (hi@willgibs.com resets Tuesday 2026-10-06 21:00Z). If 
 - resumes each `lp/*` whose manifest is not `handed-off` per the runbook's "Resume a lane" (its pushed WIP, its
   predecessor's transcript under `~/.claude/projects/-Users-gibby-local-ai-partyreel/f2c62c71-9c33-49f4-9fd5-d48376be9824/subagents/agent-<id>.jsonl`,
   the same port); one whose manifest says handed-off is ready to integrate;
-- reads this pickup, then STATUS; recreates the hourly heartbeat (`CronCreate`, session-only; this session's is
-  `d5139e32` at :17);
+- reads this pickup, then STATUS; recreates the hourly heartbeat only for an unattended run (`CronCreate`, session-only; Will: off while he works
+  actively; this session's was deleted 2026-10-05 when he returned);
 - Will's desk: `http://localhost:3000/design/lab?key=fiesta` is served by `pnpm start -p 3000` in
   `../partyreel-wt/desk` (nohup), pinned at `94d66338` (Drive alone) until he pastes desk 2. A refresh: checkout the
   SHA detached, `pnpm install`, stop port 3000, `rm -rf .next`, build with `NEXT_PUBLIC_SITE_URL=http://localhost:3000`
