@@ -129,6 +129,8 @@ Round 15, on Will's desk answers of 2026-10-04 and his brand note; the approved 
   his to overrule. He asks direct questions in chat; answer in chat, never only in a file.
 - **Milestone 37** on his yes, after red-team 54.
 - **Vercel:** Pro now, or Hobby until the window clears in early November.
+- **Six retired env names** (`STRIPE_PRICE_PRO_100` to `_2TB_YR`) to delete from both Vercel projects and `.env.local`:
+  unread by any code, their Stripe TEST prices archived; the classifier refuses an agent's secret-store write.
 - **The 26 policy tests, GUARD or TASTE** (`../partyreel-wt/_scratch/docs-prune/policy-tests.md`).
 - **His six motion links, a note:** libraries.dev is blocked on his home network (the ISP's CUJO filter), so three of
   the six (voice, image, gooey) were read from their MIT source on GitHub, never watched.

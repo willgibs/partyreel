@@ -17,6 +17,7 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Pricing (Will's hand): drop the six retired price names `STRIPE_PRICE_PRO_100`, `_100_YR`, `_500`, `_500_YR`, `_2TB`, `_2TB_YR` from Vercel (both projects) and `.env.local`; no code reads them and their Stripe TEST prices are archived (2026-10-05), but an agent's write to the secret store is refused.
 - Dashboard: Last opened could say when ("opened yesterday") from production's `openedAt` once the stage's chooser is wired (host-dashboard r4's idea).
 - Host: the picked hub door at a tablet's width (640 to 1024), undrawn on event-header r4 (five cards there are about 190px and cut "Highlight reel"; the capsule and the windows' row each need their own step).
 - Host: "Max size per upload" stands only under the Videos switch (`videos-switch.tsx`), unreachable on Free though it caps photos too: its own row in What guests can add (customize r1's audit).
@@ -50,7 +51,6 @@ below hold the rest by surface.
 - Pricing: consume passes for Pro credit through an RPC that takes the host's `profiles` row first: `consumePassesForProCredit` (`src/lib/db/mutations/event-passes.ts`) writes `event_passes` then `profiles` while the completes take `profiles` then the pass's row, a cycle Postgres detects (one side retried, never corruption).
 - Pricing: the presign's meter refuses a lapsed pass up front as the completes do (until the nightly recompute, a lapsed pass's upload is presigned and sent, then refused at the complete).
 - Pricing, after milestone 36: rename the uploads meter's wire names to window-neutral ones (`at_monthly_cap`, the presign meter's `'monthly'` reason), which milestone 35 reads by name.
-- Pricing, after milestone 36 ships Ladder A: archive the six retired Pro prices and the two old pass prices in Stripe TEST, drop `STRIPE_PRICE_PRO_100` to `_2TB_YR` from Vercel (both projects), and give Production the pass's new ids.
 - Upkeep: once a milestone takes the current build to partyreel.com (whose `standby-budget.ts` still calls it), a contract migration drops `standby_hosts` with its test pins and renames `host_storage_summary.standby_bytes` to `deleted_bytes` (DROP + CREATE) with `readHostStorageSummary`.
 - Host app: a deleted event's card in the dashboard's Deleted gets its own Delete forever beside Restore (`events-section.tsx`'s per-row actions); today Empty Deleted takes every deleted event at once, or she restores one first.
 - Cost: rows asked to leave (`empty_deleted`, `leave_deleted`) keep their R2 objects until the night's purge, so a refill day's R2 peak holds the old set beside the new (PRICING.md prices it under Deleted); reclaim them at once, R2 first.
