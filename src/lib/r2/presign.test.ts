@@ -12,7 +12,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
  * ★ THE PRESIGNS ARE BYTE-IDENTICAL TO THE SDK'S (compute-presign, 2026-10-04). `presign.ts` signs by hand
  * (`sigv4.ts`) what the AWS SDK's `getSignedUrl` used to sign, and every URL here is compared with the one the SDK
  * mints for the same inputs on the same frozen clock: the SDK calls below are presign.ts's own as they stood before
- * the change (the real `getR2Client()`, its checksum settings included), with presign.ts's defaults written in.
+ * the change (the real client of `getR2()`, its checksum settings included), with presign.ts's defaults written in.
  * So a stable gallery link is the same link it was, and the browser's cache and the bucket's CORS see no change.
  * `@aws-sdk/s3-request-presigner` is a dev dependency for this file alone.
  *
@@ -33,7 +33,7 @@ const R2 = vi.hoisted(() => ({
 }));
 vi.mock("@/lib/env", () => ({ assertR2Env: () => R2 }));
 
-import { getR2Client } from "./client";
+import { getR2 } from "./client";
 import {
   mediaObjectKey,
   phoneKeyFor,
@@ -52,14 +52,14 @@ const SDK_UPLOAD_TTL = 2 * 60 * 60; // presign.ts's DEFAULT_UPLOAD_TTL_SECONDS
 const SDK_DOWNLOAD_TTL = 60 * 60; // presign.ts's DEFAULT_DOWNLOAD_TTL_SECONDS
 
 const sdk = {
-  upload: (p: {
+  upload: async (p: {
     key: string;
     contentType: string;
     contentLength: number;
     expiresInSeconds?: number;
   }) =>
     getSignedUrl(
-      getR2Client(),
+      (await getR2()).client,
       new PutObjectCommand({
         Bucket: R2.R2_BUCKET,
         Key: p.key,
@@ -71,7 +71,7 @@ const sdk = {
         signableHeaders: new Set(["content-type", "content-length"]),
       },
     ),
-  part: (p: {
+  part: async (p: {
     key: string;
     uploadId: string;
     partNumber: number;
@@ -79,7 +79,7 @@ const sdk = {
     expiresInSeconds?: number;
   }) =>
     getSignedUrl(
-      getR2Client(),
+      (await getR2()).client,
       new UploadPartCommand({
         Bucket: R2.R2_BUCKET,
         Key: p.key,
@@ -92,14 +92,14 @@ const sdk = {
         signableHeaders: new Set(["content-length"]),
       },
     ),
-  download: (p: {
+  download: async (p: {
     key: string;
     expiresInSeconds?: number;
     downloadFilename?: string;
     stable?: boolean;
   }) =>
     getSignedUrl(
-      getR2Client(),
+      (await getR2()).client,
       new GetObjectCommand({
         Bucket: R2.R2_BUCKET,
         Key: p.key,
