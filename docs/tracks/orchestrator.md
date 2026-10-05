@@ -52,6 +52,7 @@ the dashboard, the hub's strip, graphite, Create's styles, small fixes, red-team
 | `library-specimens` | three Library specimens: the download toast's states, the Plan limits card, TapTooltip | MERGED at `bb3942afc` (gate 221 green); pruned | Sonnet, 3131 | `a5c2f78ccd20a3030` |
 | `compute-lazy-sdk` | the S3 SDK loaded on the first send | MERGED at `365274760` (gate 222 green; the guest page's cold load 175 to 123 ms of CPU); pruned | Sonnet, 3132 | `a99654d8427f34e53` |
 | `crumbs-70` | the /pricing hop's uploads sentence, two menus reading the floating gutter's name, the lit stage's lamp igniting once from Create | RUNNING (cut at `1b7f7bace`; may be cut off: resume from its WIP) | Sonnet, 3131 | `ac83ec59db2e60df5` |
+| `crumbs-71` | a download's Try again waits for the line and says so; the disc's per-ticket colour in profiles-social.md | RUNNING (cut at `e7b405278`; may be cut off: resume from its WIP) | Sonnet, 3132 | `abe6516c311e72a70` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Its
 model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`. From another session, respawn it from
