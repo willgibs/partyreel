@@ -241,3 +241,51 @@ describe("people at the door (the doors, event-settings r1)", () => {
     expect(r.badgeCount).toBe(4);
   });
 });
+
+describe("Send to Google Drive's stops (drive-wiring)", () => {
+  const stop = (reason: string, over: Record<string, unknown> = {}) => ({
+    jobId: `j-${reason}`,
+    eventId: "e1",
+    albumName: "Maya & Jay",
+    reason,
+    ...over,
+  });
+
+  it("carries each stop that waits on her as an alert, in the strip's own words, counted in the badge", () => {
+    const r = buildNotifications(
+      signals({ driveStops: [stop("drive_full"), stop("folder_gone")] }),
+    );
+    const rows = r.items.filter((i) => i.kind === "drive");
+    expect(rows.map((i) => i.title)).toEqual([
+      "Your Google Drive is full",
+      "The Maya & Jay folder is in your Drive's bin",
+    ]);
+    expect(rows.every((i) => i.unread && i.href === "/dashboard/e1")).toBe(
+      true,
+    );
+    expect(r.badgeCount).toBe(2);
+  });
+
+  it("sends a lost connection to Account's card, and a send with files short to its album", () => {
+    const r = buildNotifications(
+      signals({
+        driveStops: [
+          stop("disconnected"),
+          stop("partly_done", { eventId: null }),
+        ],
+      }),
+    );
+    const [lost, short] = r.items.filter((i) => i.kind === "drive");
+    expect(lost).toMatchObject({ href: "/account#google-drive" });
+    expect(short).toMatchObject({
+      title: "Some files didn't reach your Google Drive",
+      href: "/dashboard",
+    });
+  });
+
+  it("draws nothing for a host who never used Drive", () => {
+    expect(
+      buildNotifications(signals()).items.some((i) => i.kind === "drive"),
+    ).toBe(false);
+  });
+});

@@ -136,6 +136,33 @@ export function resumeWords(
 
 const n = (value: number) => formatCount(value);
 
+/**
+ * A STOP THAT WAITS ON HER, IN ITS TITLE: the strip's title and the bell's row are one string (her Drive full, the
+ * access lost, the folder in her bin, her admin's policy; a send that ended with files short).
+ */
+export function stopTitle(reason: string, albumName: string): string {
+  switch (reason) {
+    case "drive_full":
+      return "Your Google Drive is full";
+    case "disconnected":
+      return "Partyreel lost access to your Google Drive";
+    case "folder_gone":
+      return `The ${albumName} folder is in your Drive's bin`;
+    case "domain_policy":
+      return "Your organization's Google admin doesn't let Partyreel add files";
+    default:
+      return "Some files didn't reach your Google Drive";
+  }
+}
+
+/** The stops the bell carries while they stand (a pause that resumes by itself, or ours to fix, never). */
+export const BELL_STOPS = [
+  "drive_full",
+  "disconnected",
+  "folder_gone",
+  "domain_policy",
+] as const;
+
 /** The moment one send is at, in its words and its acts. */
 export function momentOf(
   send: SendView,
@@ -269,7 +296,7 @@ function pausedMoment(
       return {
         ...base,
         word: "Paused",
-        title: "Your Google Drive is full",
+        title: stopTitle("drive_full", send.albumName),
         facts: `${sentOf} sent · ${left} still to send`,
         line: "Make room in your Drive, or get more from Google, then check again. Nothing is lost.",
         acts: [
@@ -290,7 +317,7 @@ function pausedMoment(
       return {
         ...base,
         word: "Paused",
-        title: "Partyreel lost access to your Google Drive",
+        title: stopTitle("disconnected", send.albumName),
         facts: `${sentOf} sent`,
         line: "Connect again and it carries on where it stopped.",
         acts: [
@@ -302,7 +329,7 @@ function pausedMoment(
       return {
         ...base,
         word: "Paused",
-        title: `The ${send.albumName} folder is in your Drive's bin`,
+        title: stopTitle("folder_gone", send.albumName),
         facts: `${sentOf} sent`,
         line: "Restore it in Drive and check again, or send the rest to a new folder.",
         acts: [
@@ -315,8 +342,7 @@ function pausedMoment(
       return {
         ...base,
         word: "Paused",
-        title:
-          "Your organization's Google admin doesn't let Partyreel add files",
+        title: stopTitle("domain_policy", send.albumName),
         facts: `${sentOf} sent`,
         line: "Ask them to allow it, or connect another Google account.",
         acts: [

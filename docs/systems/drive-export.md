@@ -109,11 +109,12 @@ that very write (`CreatedFolder` and the Worker's `CreatedFile` are branded so n
   duplicates are counted from one listing of the album's folder, signalled (`drive_transfer`), never deleted (a copy
   she made on purpose carries our properties too). Then `done` ("every one checked") or `partly_done`.
 - **Stops, each its own act in place** (`moments.ts`, the one table every place reads): Drive full (Check again, Get
-  more space; its room is asked again every six hours for a week), lost access (Reconnect), the folder in her bin
-  (Check again, Send to a new folder), her admin's policy, files that would not go (Retry, See which). A stop that needs
-  her flags itself once app-wide (`attention_at`, acknowledged by her app as `seen`, so another device does not say it
-  again) and mails once; Google's day (we stop at 700 GB of its 750) resumes by itself, quietly in place, with its
-  mail. Ours to fix (a dying lane, the breaker, an operator) says we are on it and asks nothing.
+  more space; its room is asked again every six hours for a week), lost access (Reconnect), the folder in her bin (Check
+  again, Send to a new folder), her admin's policy, files that would not go (Retry, See which). A stop that needs her
+  flags itself once app-wide (`attention_at`, acknowledged by her app as `seen`, so another device does not say it
+  again), stands in the host's bell while it lasts (read only where the `pr_drive` hint is), and mails once; Google's
+  day (we stop at 700 GB of its 750) resumes by itself, quietly in place, with its mail. Ours to fix (a dying lane, the
+  breaker, an operator) says we are on it and asks nothing.
 - **Nothing runs for ever:** 14 days sending or 30 paused ends it (`expired`, with its mail); a press that never got its
   folder ends in ten minutes (`failed_to_start`); an hour with work and no progress marks it stuck for /admin (never
   while the switch is off). Finished sends fold into one done mail an hour.
