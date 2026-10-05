@@ -6,6 +6,7 @@
  * and that the rows under it are never remounted. The album's store and its neighbours stand in: pinned is the director.
  */
 import { act, fireEvent, render, screen } from "@testing-library/react";
+import { readFileSync } from "node:fs";
 import { useEffect } from "react";
 import { renderToString } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -473,11 +474,48 @@ describe("what it never plays", () => {
     expect(localStorage.getItem(markKey)).toBeNull();
   });
 
+  it("a develop time it cannot read opens plainly: no hold, no sheet, no mark", async () => {
+    const { container } = render(<Hub develops_at="not a time" />);
+    await advance(50);
+    expect(stage(container)).toBeNull();
+    expect(root().hasAttribute("data-develop")).toBe(false);
+    expect(localStorage.getItem(markKey)).toBeNull();
+  });
+
+  it("★ a phone that refuses storage (a private window) still plays it, and nothing throws", async () => {
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+      throw new Error("denied");
+    });
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new Error("denied");
+    });
+    const { container } = render(<Hub />);
+    await playIt();
+    expect(stage(container)).toBe("play");
+    await advance(developLength("full", 5) + 50);
+    expect(stage(container)).toBeNull();
+    expect(root().hasAttribute("data-develop")).toBe(false);
+  });
+
   it("an album with no develop time has nothing here at all: its rows in a box that holds nothing", () => {
     const { container } = render(<Hub develops_at={null} />);
     expect(stage(container)).toBeNull();
     expect(root().hasAttribute("data-develop")).toBe(false);
     expect(container.querySelector("[data-develop-rows]")).not.toBeNull();
+  });
+});
+
+describe("★ the box is the guests' stylesheet's own", () => {
+  it("names the hooks `gallery-empty-state.css` holds the rows and the box's height by, so the guests' rules are the hub's", () => {
+    const css = readFileSync(
+      "src/components/guest/gallery-empty-state.css",
+      "utf8",
+    );
+    const { container } = render(<Hub develops_at={null} />);
+    for (const hook of ["data-develop-rows", "data-develop-album"]) {
+      expect(css).toContain(`[${hook}]`);
+      expect(container.querySelector(`[${hook}]`)).not.toBeNull();
+    }
   });
 });
 
