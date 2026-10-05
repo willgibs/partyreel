@@ -154,18 +154,43 @@ describe("when it asks", () => {
 });
 
 describe("★ when the line is back, or the page is looked at again", () => {
-  it("asks at once when the browser says it is online, and never twice inside a few seconds", () => {
+  it("asks at once when the browser says it is online", () => {
     const { heal } = mount([lostRow("a")]);
     act(() => {
       window.dispatchEvent(new Event("online"));
     });
     expect(heal).toHaveBeenCalledTimes(1);
     expect(heal).toHaveBeenCalledWith(["a"]);
-    // A line that flaps fires `online` again at once: that is not a second set of asks.
+  });
+
+  it("★ asks nothing while the browser says it is offline and spends no ask on it: the line coming back is the ask that counts", () => {
+    const row = lostRow("a");
+    const online = vi.spyOn(navigator, "onLine", "get");
+    online.mockReturnValue(false);
+    const { heal } = mount([row]);
+    // The timed ask meets a line still down: skipped, unspent.
+    act(() => void vi.advanceTimersByTime(HEAL_AFTER_MS[0]));
+    expect(heal).not.toHaveBeenCalled();
+    // A second after, the line is back: asked at once (walked: a gap held this back and the sheet stood 25 s more).
+    online.mockReturnValue(true);
+    act(() => void vi.advanceTimersByTime(1_000));
     act(() => {
       window.dispatchEvent(new Event("online"));
     });
     expect(heal).toHaveBeenCalledTimes(1);
+    expect(heal).toHaveBeenCalledWith(["a"]);
+    online.mockRestore();
+  });
+
+  it("never more asks than a file has, however a flapping line fires online", () => {
+    const row = lostRow("a");
+    const { heal } = mount([row]);
+    for (let k = 0; k < 10; k++) {
+      act(() => {
+        window.dispatchEvent(new Event("online"));
+      });
+    }
+    expect(heal).toHaveBeenCalledTimes(HEAL_AFTER_MS.length);
   });
 
   it("asks when the page comes back to the screen, not when it leaves", () => {

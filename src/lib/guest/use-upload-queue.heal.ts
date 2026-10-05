@@ -9,9 +9,14 @@
  *
  * The ask is cheap (no presign, no byte) and safe to repeat, so the queue makes it for her, quietly: for a file that
  * failed as a dropped connection AND whose complete is kept, after a few seconds, when the page is looked at again, and
- * when the browser says the line is back. A row the server had written is told as landed (and the sheet that listed
- * it lets it go, the album draws it as her own upload lands); one it had not is written now. An ask that still gets
- * no answer changes nothing she sees, and the sheet stands as it did.
+ * the moment the browser says the line is back. A row the server had written is told as landed (and the sheet that
+ * listed it lets it go, the album draws it as her own upload lands); one it had not is written now. An ask that still
+ * gets no answer changes nothing she sees, and the sheet stands as it did.
+ *
+ * ★ NOTHING IS ASKED WHILE THE BROWSER SAYS IT IS OFFLINE, AND NOTHING IS SPENT ON IT. A timed ask that met a line still
+ * down failed at once (walked: the sheet blinked, an ask used up) and the `online` that followed a second later was
+ * held back by the gap that guarded against a flapping line, so the sheet stood 25 s more. An offline ask is skipped
+ * unspent, and `online` is the ask that counts; a flapping line is bounded by the few asks a file has, not by a gap.
  *
  * ★ A FEW ASKS A FILE, NEVER A LOOP. Each file is healed at most `HEAL_AFTER_MS.length` times in the page's life (a
  * WeakMap by the File, as the kept complete is): her own Retry does not give them back, and a line that stays down ends
@@ -25,9 +30,6 @@ import { hasKeptComplete, type UploadCause } from "@/lib/upload/uploader";
 
 /** How long after a lost answer each ask waits: a few seconds (a blip), then longer (a venue's signal coming back). */
 export const HEAL_AFTER_MS = [5_000, 20_000, 60_000] as const;
-
-/** Never two sets of asks closer than this (a line that flaps would fire the browser's `online` over and over). */
-const HEAL_MIN_GAP_MS = 3_000;
 
 /** The asks made for a file, however they were triggered. */
 const asked = new WeakMap<File, number>();
@@ -65,16 +67,14 @@ export function useHealLostAnswers(
   useEffect(() => {
     latest.current = { items, heal };
   });
-  const lastAt = useRef(0);
 
-  /** One set of asks for what has lost its answer and has asks left, now. */
+  /** One set of asks for what has lost its answer and has asks left, now (none while the browser says it is offline). */
   const askNow = useCallback(() => {
+    if (typeof navigator !== "undefined" && navigator.onLine === false) return;
     const due = latest.current.items.filter(
       (it) => isLostAnswer(it) && asksLeft(it) > 0,
     );
     if (due.length === 0) return;
-    if (Date.now() - lastAt.current < HEAL_MIN_GAP_MS) return;
-    lastAt.current = Date.now();
     for (const it of due) asked.set(it.file, (asked.get(it.file) ?? 0) + 1);
     latest.current.heal(due.map((it) => it.id));
   }, []);

@@ -178,9 +178,9 @@ read beside it so its Follow starts on Following; no card means no host row, nev
     landed (`useRunCounts`, one baseline for both numbers): a run that failed whole has no "Everything else", and a
     row's Retry, which takes its file out of the list while it goes, says nothing of the rest until that file lands. A
     file that failed as a dropped connection with its complete kept (`hasKeptComplete`: the row may stand, and the album
-    may already show it) is asked again for her by the queue (`use-upload-queue.heal.ts`: 5, 20 and 60 s on, when the
-    browser says the line is back and when the page is looked at again; three asks a File, never a loop; a Retry's own
-    runner, so the two never race), so the sheet lets its row go when the server answers instead of saying "didn't
+    may already show it) is asked again for her by the queue (`use-upload-queue.heal.ts`: 5, 20 and 60 s on, the moment
+    the browser says the line is back and when the page is looked at again, none while it says it is offline and none
+    spent on it; three asks a File, never a loop; a Retry's own runner, so the two never race), so the sheet lets its row go when the server answers instead of saying "didn't
     upload" over a photograph in the album. A refusal of the file itself (`retryCanPass`: a type nobody takes, a file over the ceiling, a video where the
     album takes none) lists with no Retry, and where every line is one the sheet says the way on
     (`uploadFailureChooseAgain`, which the door's step says too, and whose failure view lists each file and its reason
