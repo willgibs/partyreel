@@ -57,6 +57,7 @@ export const OPERATOR_KINDS = [
   "job_application",
   "report_proof",
   "spend_watch",
+  "drive_breaker",
 ] as const;
 
 /**

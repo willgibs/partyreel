@@ -10,10 +10,12 @@
 import "server-only";
 
 import { DRIVE_ACCOUNT_PATH, albumPath } from "@/lib/drive/links";
-import { SITE_URL } from "@/lib/constants/site";
+import { ADMIN_HOST } from "@/lib/auth/admin-host";
+import { SITE_URL, SUPPORT_EMAIL } from "@/lib/constants/site";
 import { mustCount, mustQuery } from "@/lib/db/must-query";
 import { sendOnce, sendOncePerWindow } from "@/lib/email/send";
 import {
+  driveBreakerEmail,
   driveConnectedEmail,
   driveExportDoneEmail,
   driveExportPausedEmail,
@@ -23,6 +25,7 @@ import {
   type DrivePauseReason,
   type DriveReconnectWhy,
 } from "@/lib/email/templates";
+import { serverEnv } from "@/lib/env";
 import { captureError } from "@/lib/observability/sentry";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatBytes } from "@/lib/utils";
@@ -304,5 +307,34 @@ export async function notifyReconnect(input: {
       action: "drive_mail",
       kind: "drive_reconnect",
     });
+  }
+}
+
+/**
+ * AN ACCOUNT BREAKER TRIPPED: the ops mail (Sentry and the `drive_transfer` signal ride the sweep route), once a day an
+ * account, naming the account by its address so the operator finds it on /admin/exports#drive.
+ */
+export async function notifyBreaker(input: {
+  userId: string;
+  sent30: number;
+}): Promise<void> {
+  try {
+    const account = (await accountEmail(input.userId)) ?? input.userId;
+    const adminUrl = ADMIN_HOST
+      ? `https://${ADMIN_HOST}/admin/exports#drive`
+      : url("/admin/exports#drive");
+    const mail = driveBreakerEmail({
+      account,
+      sent30: formatBytes(input.sent30),
+      adminUrl,
+    });
+    await sendOnce({
+      kind: "drive_breaker",
+      dedupeKey: `breaker:${input.userId}:${new Date().toISOString().slice(0, 10)}`,
+      to: serverEnv.CONTACT_NOTIFY_EMAIL ?? SUPPORT_EMAIL,
+      ...mail,
+    });
+  } catch (e) {
+    captureError("export", e, { action: "drive_mail", kind: "drive_breaker" });
   }
 }

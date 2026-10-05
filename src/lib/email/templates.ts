@@ -865,6 +865,44 @@ export function pruneHoldEmail(opts: {
  * left for a person (guest uploads, since a false alarm there would stop a real party). No button (an operator
  * alert's shape); the jobs console rides the foot. Sent at most once a day per set of readings through sendOnce.
  */
+/**
+ * SEND TO GOOGLE DRIVE'S ACCOUNT BREAKER TRIPPED (drive-export.md, "Cost and guards"), to us: an account sent past ten
+ * times its plan's storage (never under 5 GB) to Drive in 30 days, which no real host reaches, so its sends wait until
+ * an operator looks and lifts it. At most once a day an account.
+ */
+export function driveBreakerEmail(opts: {
+  /** The account's own address, or its id where it has none. */
+  account: string;
+  /** What reached Drive in the 30 days that tripped it, in words. */
+  sent30: string;
+  adminUrl: string;
+}): Mail {
+  return composeMail({
+    subject: `${OPERATOR_TAG} Drive breaker: ${opts.account}'s sends paused`,
+    heading: "An account's Drive sends paused on the breaker",
+    blocks: [
+      p(
+        "It sent more to Google Drive in 30 days than ten times its plan's storage (never under 5 GB): ",
+        strong("the shape of one album sent, deleted from Drive and sent again, not of a host taking her photos home."),
+      ),
+      {
+        kind: "fields",
+        rows: [
+          { label: "Account", value: opts.account },
+          { label: "Sent to Drive, 30 days", value: opts.sent30 },
+        ],
+      },
+      p(
+        "Its sends wait where they stand and lose nothing; she reads that we are looking within a day. Lift it on the Drive section if it is a real host, or pause the connection if it is not.",
+      ),
+    ],
+    foot: {
+      line: "Partyreel operations alert (Send to Google Drive's account breaker, drive-export.md). Sent at most once a day an account.",
+      link: { href: opts.adminUrl, label: "Open the Drive section" },
+    },
+  });
+}
+
 export function spendWatchEmail(opts: {
   tripped: { label: string; reading: string; ceiling: string }[];
   /** What it paused on its own, in the console's words. */

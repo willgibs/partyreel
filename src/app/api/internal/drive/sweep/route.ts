@@ -14,6 +14,7 @@ import { after } from "next/server";
 import { driveRoom } from "@/lib/drive/google";
 import { internalJson, readDriveWord } from "@/lib/drive/internal.server";
 import {
+  notifyBreaker,
   notifyDone,
   notifyReconnect,
   notifyStopped,
@@ -82,6 +83,7 @@ async function followUp(
       error: new Error("drive breaker"),
       extra: { userId: b.userId, sent30: b.sent30 },
     });
+    await notifyBreaker({ userId: b.userId, sent30: b.sent30 });
   }
   if (outcome.stuck > 0) {
     await recordSignalFailure({
