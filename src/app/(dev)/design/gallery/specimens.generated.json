@@ -187,6 +187,11 @@
     "route-skeleton": [
       "<RouteSkeletonDemo />"
     ],
+    "create-room": [
+      "<CreateRoomDemo screen=\"phone\" />",
+      "<CreateRoomDemo screen=\"desk\" />",
+      "<CreateRoomDemo atCap />"
+    ],
     "album-cover": [
       "<AlbumCoverDemo />",
       "<AlbumCoverDemo empty />"
