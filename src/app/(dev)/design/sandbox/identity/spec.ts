@@ -17,17 +17,21 @@ import { GROUND, SCREEN, SHOW, WHERE } from "./knobs";
  * distinctly from the others that all presented options feel *too* themed
  * ... The best option may be a few magic touches from a similar option."
  *
- * ★ ONE ASK, FOUR WHOLE SETS (`sheet/sets/`), each drawn by one hand, differing
+ * ★ ONE ASK, THREE WHOLE SETS (`sheet/sets/`), each drawn by one hand, differing
  * in a few load-bearing constructions (how a field holds a value, how a key
  * stands, how a chosen thing reads, what a toggle is) and sharing everything
  * else (`sheet/base.ts`): the 40px field, the corner ladder, the ink and tone
  * steps, spacing, his three picks (`sheet/settled.ts`). Each set's costs name
- * the touch worth borrowing from a neighbour.
+ * the touch worth borrowing from a neighbour. They stand in order of depth:
+ * keys and wells (every key up, every field down), the house's mix (only the
+ * field down, only what is chosen up), ink and tone (no depth at all). A
+ * fourth, lit edges, was drawn and cut (`model.ts`, the fresh-eyes pass).
  *
- * ★ REAL SCREENS FIRST, EACH SET'S FIRST FRAME A COMPOSITE: Settings' door,
- * every family on one screen, then its dates, Account's billing row, Create's
- * foot, the guest's door, the album's toolbar and Settings' dense first page,
- * at 1440 and 375, on paper beside the room; every state one press away.
+ * ★ REAL SCREENS FIRST, EACH SET'S FIRST FRAME A COMPOSITE: Settings' door
+ * beside Account's billing row (between them every family), then the dates,
+ * Create's foot, the guest's door, the album's toolbar and Settings' dense
+ * first page, at 1440 and 375, on paper beside the room; every state one
+ * press away.
  *
  * ★ AFTERGLOW, AND PAPER AS FINISHED AS THE ROOM (desk 4, relayed while this
  * round was drawn: brand r1 is Afterglow; his note, "it is very tough to nail
@@ -52,7 +56,7 @@ export const IDENTITY = defineExploration({
     n: 5,
     date: "2026-10-05",
     changed:
-      "Your four skipped atoms as one ask: four whole sets drawn fresh (keys and wells finished, lit edges, ink and tone, the house's own mix), each on real screens on paper and in the room, wearing your three picks; then working again.",
+      "Your four skipped atoms as one ask: three whole sets drawn fresh (keys and wells finished, the house's own mix, ink and tone), each on real screens on paper and in the room, wearing your three picks; then working again.",
   },
   history: [
     {
@@ -82,7 +86,7 @@ export const IDENTITY = defineExploration({
   ],
   opening: {
     about:
-      "Round five: the field, the buttons, what is chosen and the toggles as one set, four drawn whole on real screens; then what a key shows while it works.",
+      "Round five: the field, the buttons, what is chosen and the toggles as one set, three drawn whole on real screens; then what a key shows while it works.",
     settled: [
       "Your r4 picks, worn by every set: focus is the halo, a press shrinks, and every pop-out takes the bright edge.",
       "Shared by all four: the 40px field, the corner ladder (8px fields, keys at 0.4 of their height), the ink and tone steps, spacing.",
@@ -149,9 +153,9 @@ export const IDENTITY = defineExploration({
         "A third of a ring turning round a faint whole ring, in a working key's icon place beside its words.",
     },
     {
-      term: "beam",
+      term: "readout",
       means:
-        "The house's light for a live subject: here it runs round a key's edge and ends when the work lands.",
+        "The camera's voice for a figure: small, tabular, as a camera prints its count or its timer.",
     },
     {
       term: "Afterglow",
@@ -163,10 +167,10 @@ export const IDENTITY = defineExploration({
     {
       id: "door-composite",
       question:
-        "Is Settings' door each set's first frame, with its dates one press away?",
+        "Is each set's first frame Settings' door beside Account, its dates one press away?",
       taken:
-        "Yes: the door holds every family at once; the dates are their own page, so they are their own screen beside it.",
-      overrule: "Draw the two dates inside the door's frame as one composite.",
+        "Yes: no one real screen holds every family; the door has the field and the chosen, Account the quiet keys.",
+      overrule: "One screen alone, or the two dates drawn into the door's frame.",
     },
     {
       id: "create-wait",
@@ -206,7 +210,7 @@ export const IDENTITY = defineExploration({
       lands:
         "Input, Textarea and Select, Button's variants, chips, segments, tabs, radio cards, Switch, and the check, radio and slider to come.",
       context:
-        "Each set on Settings' door, the composite: her new password typed beside Set password and Cancel, a gate chosen, a switch on; paper beside the room. Five more real screens at 1440 and 375, and every state, one press away.",
+        "Each set first on the composite: Settings' door (her new password typed, Set password and Cancel, a gate chosen) beside Account's billing row, paper beside the room; more real screens and every state one press away.",
       options: [
         {
           id: "keys",
@@ -214,46 +218,36 @@ export const IDENTITY = defineExploration({
           means:
             "A field is sunk a step under the page; every key stands a step above it, one hairline round it and a soft shade under; what is chosen rises.",
           gains:
-            "The most tactile, and crisp on paper: a field is never mistaken for a key.",
+            "The most tactile and the crispest on paper: a field is never mistaken for a key.",
           costs:
             "Relief on every key, where Afterglow draws keys flat; borrow the house's flat keys.",
-        },
-        {
-          id: "lit",
-          label: "Lit edges: light draws every edge",
-          means:
-            "No hairline, no shadow: a key's edge catches the bright edge's light in the room and its shade on paper; a field catches light on its lip.",
-          gains:
-            "Your floating edge carried down to every control: ours alone.",
-          costs:
-            "A light on every key rivals Afterglow's one a screen; borrow keys' hairline on paper.",
-        },
-        {
-          id: "tone",
-          label: "Ink and tone: values only, flat as a print",
-          means:
-            "No line, no shadow, no light: a field is the faintest tone, a key a firmer one, the primary ink, and what is chosen turns to ink.",
-          gains:
-            "The calmest page, and it leaves every light on the screen to Afterglow.",
-          costs:
-            "Chosen goes dark on paper, against your lean; borrow the house's float for it.",
         },
         {
           id: "house",
           label: "The house mix: sunk, flat, afloat",
           means:
-            "A field is a well; every key, track and card is a flat tone; what is chosen and all you flip float: white on its lift on paper, graphite lit in the room.",
+            "A field is a well; every key, track and card is a flat tone; what is chosen floats: white on its lift on paper, graphite lit in the room.",
           gains:
-            "Each depth says one part's job, and its keys are flat as Afterglow draws them.",
+            "Each depth says one part's job, and its keys lie flat as Afterglow draws them.",
           costs:
-            "Three constructions to hold in step; borrow keys' hairline if a flat key reads soft.",
+            "A flat key is quieter beside a well; borrow keys' hairline if one reads soft.",
+        },
+        {
+          id: "tone",
+          label: "Ink and tone: values only, flat as a print",
+          means:
+            "No line, no shadow, no light: a field is the faintest tone, a key a firmer one, the primary ink, and what is chosen a firmer tone, pressed in.",
+          gains:
+            "The calmest page, and it leaves every light on the screen to Afterglow.",
+          costs:
+            "Chosen reads pressed in, against your lighter lean; borrow the house's float.",
         },
       ],
       recommended: "house",
       because:
         "Each depth earns its place: a well says type here, a flat key matches Afterglow's own, and the chosen floats as every pop-out does.",
       overrule:
-        "If every key should stand up, keys and wells; if the page must be as flat as a print, ink and tone.",
+        "If every key should stand up, keys and wells (your favourite foundation); if the page must be flat, ink and tone.",
       configs: [SHOW, SCREEN, GROUND],
     },
 
@@ -269,7 +263,7 @@ export const IDENTITY = defineExploration({
       lands:
         "A working action's busy state, on every key and on a field checking what was typed.",
       context:
-        "Drawn on the three it works on (a primary, a quiet key, a field checking a link), each moving beside its still, on paper and in the room, wearing the set; Create, the door, Account and Settings one press away.",
+        "Drawn on what it works on (a primary, a quiet key, the call to action, a field checking a link), each moving beside its still, paper and room, wearing the set; Create, the door, Account, Settings one press away.",
       options: [
         {
           id: "arc",
@@ -278,34 +272,27 @@ export const IDENTITY = defineExploration({
             "A third of a ring turns round a faint whole ring in the key's own ink, in its icon's place beside its words; still, a ring a third filled.",
           gains:
             "Your pick, cleaner: its still reads as working too, and a key with an icon keeps its width.",
-          costs: "The plainest of the four: it says working, never what.",
+          costs: "The plainest of the three: it says working, never what.",
         },
         {
           id: "words",
-          label: "The words say it: Unlocking, with the arc",
+          label: "The words say it: Saving, with the arc",
           means:
-            "The arc, and the key's words turn to what it is doing (Unlocking, Saving, Creating your event), as production's own Saving already does.",
+            "The arc, and the key's words turn to what it is doing (Saving, Unlocking, Creating your event), as production's own Saving already does.",
           gains:
             "Says why it is held, in words a guest reads at a glance.",
           costs:
             "Words to write for every key, and a key grows a little while it says them.",
         },
         {
-          id: "edge",
-          label: "A beam round its edge",
+          id: "time",
+          label: "The words keep time: Saving 0:04",
           means:
-            "A light runs round the key's own edge while it works and ends as the work lands: the house's beam, drawn in the key's ink.",
-          gains: "The hardest to miss, and its words stay whole.",
+            "The arc and the working words, and past two seconds the wait as a readout after them, in the figures a camera prints.",
+          gains:
+            "Says what and how long, so a slow wait on party wifi reads alive, never stuck.",
           costs:
-            "A moving light on the busiest key: a second light beside Afterglow's.",
-        },
-        {
-          id: "held",
-          label: "Held down until it lands",
-          means:
-            "The key keeps the press you gave it, shrunk and a shade down, with the arc in its icon's place, until the work lands.",
-          gains: "Shows plainly why it will not take another press.",
-          costs: "A key still down can read as stuck if the wait runs long.",
+            "The most to read on a key, and a counting clock can make a wait feel longer.",
         },
       ],
       recommended: "words",

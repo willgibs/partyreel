@@ -89,15 +89,17 @@ const KEY_TOKENS = `
   --kw-ink: oklch(0.25 0.005 286); --kw-ink-foot: oklch(0.15 0.004 286); --kw-ink-up: oklch(0.31 0.005 286);
   --kw-ink-rim: oklch(0.1 0.004 286); --kw-ink-top: oklch(1 0 0 / 17%); --kw-ink-drop: oklch(0 0 0 / 22%);
   --kw-thumb: oklch(1 0 0); --kw-thumb-on: oklch(1 0 0);
+  --kw-socket-rim: oklch(0.14 0.004 286 / 28%); --kw-track-rim: oklch(0.14 0.004 286 / 15%);
 }
 .dark {
   --kw-face: oklch(0.285 0.004 286); --kw-face-foot: oklch(0.245 0.004 286); --kw-face-up: oklch(0.305 0.004 286);
   --kw-line: oklch(0 0 0 / 60%); --kw-line-up: oklch(0 0 0 / 75%);
   --kw-top: oklch(1 0 0 / 11%); --kw-drop: oklch(0 0 0 / 50%);
   --kw-grey: oklch(0.225 0.004 286); --kw-grey-foot: oklch(0.2 0.004 286); --kw-grey-up: oklch(0.25 0.004 286);
-  --kw-ink: oklch(0.99 0.001 286); --kw-ink-foot: oklch(0.915 0.002 286); --kw-ink-up: oklch(1 0 0);
-  --kw-ink-rim: oklch(0 0 0 / 45%); --kw-ink-top: oklch(1 0 0 / 0%); --kw-ink-drop: oklch(0 0 0 / 55%);
+  --kw-ink: oklch(0.985 0.001 286); --kw-ink-foot: oklch(0.955 0.002 286); --kw-ink-up: oklch(1 0 0);
+  --kw-ink-rim: oklch(0 0 0 / 30%); --kw-ink-top: oklch(1 0 0 / 0%); --kw-ink-drop: oklch(0 0 0 / 55%);
   --kw-thumb: oklch(0.72 0.004 286); --kw-thumb-on: oklch(0.16 0.004 286);
+  --kw-socket-rim: oklch(1 0 0 / 28%); --kw-track-rim: oklch(1 0 0 / 16%);
 }
 .surface-display {
   --kw-face: color-mix(in oklab, var(--display-step), oklch(1 0 0) 6%); --kw-face-foot: var(--display-step);
@@ -109,6 +111,7 @@ const KEY_TOKENS = `
   --kw-ink: var(--display-foreground); --kw-ink-foot: color-mix(in oklab, var(--display-foreground), oklch(0 0 0) 8%);
   --kw-ink-up: oklch(1 0 0); --kw-ink-rim: oklch(0 0 0 / 40%); --kw-ink-top: oklch(1 0 0 / 0%); --kw-ink-drop: oklch(0 0 0 / 45%);
   --kw-thumb: oklch(0.78 0.004 286); --kw-thumb-on: var(--display);
+  --kw-socket-rim: oklch(1 0 0 / 30%); --kw-track-rim: oklch(1 0 0 / 18%);
 }
 `;
 
@@ -131,7 +134,7 @@ export const WELL_FIELD = `
 ${FIELDS} { background-color: var(--kw-well); --i-body: ${SUNK()}; }
 ${each(FIELDS, HOVER + LIVE)} { --i-body: ${SUNK("var(--kw-well-rim-up)")}; }
 ${each(FIELDS, FOCUS)} { background-color: var(--kw-well-in); --i-body: ${SUNK("var(--kw-well-rim-up)")}; }
-${each(FIELDS, ERROR)} { --i-body: ${SUNK("color-mix(in oklab, var(--destructive) 70%, transparent)")}; }
+${each(FIELDS, ERROR)} { --i-body: ${SUNK("var(--destructive)")}; }
 `;
 
 /* ── the button family: keys ─────────────────────────────────────────── */
@@ -155,13 +158,22 @@ ${btn("destructive")} {
 }
 ${btn("destructive")}${HOVER}${LIVE} { background-image: linear-gradient(color-mix(in oklab, var(--destructive) 7%, var(--kw-face)), color-mix(in oklab, var(--destructive) 7%, var(--kw-face))); }
 
-/* Off, a key settles flush: no light on it, no shade under it. */
-${BTN}${OFF}:not(${btn("ghost", "link")}) { --i-body: 0 0 0 1px var(--kw-line); }
+/* Off, a key settles flush and recedes: the grey face, its words quiet, no light on it and no shade
+   under it (the fresh-eyes pass: an ink key at 40% read as a slab heavier than the live keys). */
+${BTN}${OFF}:not(${btn("ghost", "link")}) {
+  opacity: 1; background-image: none; background-color: var(--kw-grey); color: var(--faint);
+  --i-body: inset 0 1px 0 0 transparent, 0 0 0 1px var(--kw-line), 0 1px 2px 0 transparent;
+}
 ${BTN}${ERROR} { --i-body: inset 0 1px 0 0 var(--kw-top), 0 0 0 1.5px var(--destructive), 0 1px 2px 0 var(--kw-drop); }
 
-${CHIP} { background-image: ${FACE}; background-color: var(--kw-face-foot); --i-body: ${KEYED()}; }
-${CHIP}${HOVER}${LIVE} { color: var(--foreground); --i-body: ${KEYED("var(--kw-line-up)")}; }
-${CHIP}${ON} { background-image: ${INK}; background-color: var(--kw-ink-foot); color: var(--ink-fg); --i-body: ${INKED}; }
+/* A chip waits in a small well of its own and rises as a lighter key when it is on: the one language
+   for what is chosen, as a segment rises from its track (never ink beside a segment's white key). */
+${CHIP} { background: var(--kw-well); --i-body: ${SUNK()}; }
+${CHIP}${HOVER}${LIVE} { color: var(--foreground); --i-body: ${SUNK("var(--kw-well-rim-up)")}; }
+${CHIP}${ON} {
+  background-image: ${FACE}; background-color: var(--kw-face-foot); color: var(--foreground);
+  --i-body: inset 0 1px 0 0 var(--kw-top), 0 0 0 1px var(--kw-line), 0 1px 2px 0 var(--kw-drop);
+}
 
 /* On a photograph the white Add keeps its surface (the head's own), machined as a key. */
 ${btn("on-photo")} {
@@ -178,10 +190,15 @@ const RISEN = (on: boolean) =>
   on
     ? `inset 0 1px 0 0 var(--kw-top), 0 0 0 1px var(--kw-line), 0 1px 2px 0 var(--kw-drop)`
     : `inset 0 1px 0 0 transparent, 0 0 0 1px transparent, 0 1px 2px 0 transparent`;
+/**
+ * A card's key: its hairline INSIDE its box and its lift only below it. A radio card stands in a
+ * wrapper that clips (the door's dormant steps collapse with `overflow: hidden`), and an edge drawn
+ * outside the box was cut away there (the fresh-eyes pass: a white card on white, with no edge).
+ */
 const CARD_RISEN = (on: boolean) =>
   on
-    ? `inset 0 1px 0 0 var(--kw-top), 0 0 0 1px var(--kw-line), 0 1px 2px 0 var(--kw-drop), 0 6px 14px -8px var(--kw-drop)`
-    : `inset 0 1px 0 0 transparent, 0 0 0 1px transparent, 0 1px 2px 0 transparent, 0 6px 14px -8px transparent`;
+    ? `inset 0 1px 0 0 var(--kw-top), inset 0 0 0 1px var(--kw-line), 0 1px 2px 0 var(--kw-drop), 0 5px 7px -6px var(--kw-drop)`
+    : `inset 0 1px 0 0 transparent, inset 0 0 0 1px transparent, 0 1px 2px 0 transparent, 0 5px 7px -6px transparent`;
 
 const PICKED = [`${SEGMENT}${ON}`, `${TAB}${TAB_ON}`].join(", ");
 
@@ -202,14 +219,14 @@ ${RADIO_CARD}${CARD_ON} {
 /* ── the toggles: wells that fill with ink, thumbs that are keys ─────── */
 
 const TOGGLES = `
-${SWITCH} { background: var(--kw-well-deep); --i-body: ${SUNK()}; }
+${SWITCH} { background: var(--kw-well-deep); --i-body: ${SUNK("var(--kw-track-rim)")}; }
 ${SWITCH}${HOVER}${LIVE}:not(${SWITCH_ON}) { --i-body: ${SUNK("var(--kw-well-rim-up)")}; }
 ${SWITCH}${SWITCH_ON} { background: var(--ink); --i-body: inset 0 1px 2px 0 oklch(0 0 0 / 28%), inset 0 0 0 1px transparent, inset 0 -1px 0 0 oklch(1 0 0 / 14%); }
 ${SWITCH}${ERROR} { --i-body: ${SUNK("var(--destructive)")}; }
 ${THUMB} { background: var(--kw-thumb); box-shadow: 0 0 0 1px var(--kw-line), 0 1px 2px 0 var(--kw-drop), inset 0 1px 0 0 var(--kw-top); }
 ${SWITCH}${SWITCH_ON} ${THUMB} { background: var(--kw-thumb-on); }
 
-${CHECK}, ${RADIO} { background: var(--kw-well-in); --i-body: ${SUNK("var(--kw-well-rim-up)")}; }
+${CHECK}, ${RADIO} { background: var(--kw-well-in); --i-body: ${SUNK("var(--kw-socket-rim)")}; }
 ${CHECK}${HOVER}${LIVE}:not(${CHECKED}), ${RADIO}${HOVER}${LIVE}:not(${CHECKED}) { --i-body: ${SUNK("color-mix(in oklab, var(--foreground) 32%, transparent)")}; }
 ${CHECK}${CHECKED}, ${RADIO}${CHECKED} {
   background: var(--ink); color: var(--ink-fg);
@@ -217,7 +234,7 @@ ${CHECK}${CHECKED}, ${RADIO}${CHECKED} {
 }
 ${CHECK}${ERROR}, ${RADIO}${ERROR} { --i-body: ${SUNK("var(--destructive)")}; }
 
-[data-slot="slider-track"] { background: var(--kw-well-deep); box-shadow: ${SUNK()}; }
+[data-slot="slider-track"] { background: var(--kw-well-deep); box-shadow: ${SUNK("var(--kw-track-rim)")}; }
 [data-slot="slider-range"] { background: var(--ink); box-shadow: inset 0 1px 1px 0 oklch(0 0 0 / 25%); }
 ${SLIDER_THUMB} { background: var(--kw-thumb); --i-body: ${KEYED()}; }
 ${SLIDER_THUMB}${HOVER} { --i-body: ${KEYED("var(--kw-line-up)")}; }

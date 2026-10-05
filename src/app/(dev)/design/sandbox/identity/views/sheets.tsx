@@ -450,7 +450,7 @@ export function Checking({
   return (
     <div data-slot="field-wrap">
       <Input defaultValue={value} aria-busy aria-label={label} />
-      <span data-slot="field-status" data-working="Checking" aria-hidden />
+      <span data-slot="field-status" aria-hidden />
     </div>
   );
 }
@@ -656,9 +656,10 @@ function WorkRow({
 
 /**
  * THE LOADING ASK'S THREE (the r5 brief: "on a primary, a quiet key, and a
- * field checking what was typed"): Account's Save on the name she typed,
- * Manage billing opening Stripe beside Change plan at rest, and a custom link
- * being checked. Each carries the words it would say (`data-working`).
+ * field checking what was typed"), and the call to action: Account's Save on
+ * the name she typed, Manage billing opening the billing portal beside Change
+ * plan at rest, the door's Unlock at the 44px size, and a custom link being
+ * checked. Each key carries the words it would say (`data-working`).
  */
 function WorkingSheet({ w }: { w: Width }) {
   return (
@@ -690,6 +691,15 @@ function WorkingSheet({ w }: { w: Width }) {
               Manage billing
             </Button>
           </div>
+        )}
+      />
+      <WorkRow
+        w={w}
+        title="The call to action: Unlock, at the guest's door"
+        draw={() => (
+          <Button size="cta" className="w-full" aria-busy data-working="Unlocking">
+            Unlock
+          </Button>
         )}
       />
       <WorkRow

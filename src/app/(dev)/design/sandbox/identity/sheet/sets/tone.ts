@@ -11,6 +11,7 @@ import {
   FOCUS,
   HOVER,
   LIVE,
+  OFF,
   ON,
   RADIO,
   RADIO_CARD,
@@ -29,7 +30,7 @@ import {
  * INK AND TONE (value): no line, no shadow and no light on any control.
  * Every part is a value of its ground's own ink, and the stronger the value,
  * the more it acts: a field is the faintest tone, a quiet key a firmer one,
- * the primary solid ink, and what is chosen the strongest value in its place.
+ * the primary solid ink, and what is chosen a firmer tone than its neighbours.
  * The calmest page, as flat as a print, the way a phone's own settings are,
  * and the one set that leaves every light on a screen to Afterglow.
  *
@@ -40,12 +41,14 @@ import {
  * action ladder at 0.4 of its height. Type: a field's words sit left in the
  * body's weight, a key's are centred in its own.
  *
- * ★ WHAT IS CHOSEN IS THE STRONGER VALUE: the chosen segment and a chip that
- * is on are ink, a chosen card a firmer tone than the cards beside it, its
- * inner panel the card's own white. A lighter chosen with no edge and no
- * shadow washed out on paper (the first pass: a white card melted into the
- * white card it sat on), so this set gives his lighter lean up for a value
- * that reads at arm's length, and names it in its costs.
+ * ★ WHAT IS CHOSEN IS A FIRMER TONE, AND THE PRIMARY ALONE IS INK: the chosen
+ * segment, tab, chip and card are each a step firmer than their neighbours,
+ * so a choice reads pressed in, as a latched key does. A lighter chosen with
+ * no edge and no shadow washed out on paper (the first pass: a white card
+ * melted into the white card it sat on), and an ink chosen weighed as much as
+ * the page's one ink key (the fresh-eyes pass: the ink "Private" beside Set
+ * password), so this set gives his lighter lean up for a value that reads at
+ * arm's length, and names it in its costs.
  *
  * ★ OFF IS A RING OF TONE, NEVER A DISC: a check and a radio that are off are
  * a ring of the ground's ink (a value drawn round, not a line), since a grey
@@ -62,12 +65,12 @@ import {
  */
 export const KEY_TOKENS = `
 :root, .surface-paper {
-  --tn-key: color-mix(in oklab, var(--foreground) 10%, transparent);
-  --tn-key-up: color-mix(in oklab, var(--foreground) 14%, transparent);
-}
-.dark {
   --tn-key: color-mix(in oklab, var(--foreground) 11%, transparent);
   --tn-key-up: color-mix(in oklab, var(--foreground) 15%, transparent);
+}
+.dark {
+  --tn-key: color-mix(in oklab, var(--foreground) 12%, transparent);
+  --tn-key-up: color-mix(in oklab, var(--foreground) 16%, transparent);
 }
 .surface-display {
   --tn-key: color-mix(in oklab, var(--foreground) 13%, transparent);
@@ -77,9 +80,10 @@ export const KEY_TOKENS = `
 
 const TOKENS = `
 :root, .surface-paper {
-  --tn-field: color-mix(in oklab, var(--foreground) 5.5%, transparent);
-  --tn-field-up: color-mix(in oklab, var(--foreground) 8%, transparent);
-  --tn-track: color-mix(in oklab, var(--foreground) 7%, transparent);
+  --tn-field: color-mix(in oklab, var(--foreground) 4.5%, transparent);
+  --tn-field-up: color-mix(in oklab, var(--foreground) 7%, transparent);
+  --tn-track: color-mix(in oklab, var(--foreground) 6%, transparent);
+  --tn-chosen: color-mix(in oklab, var(--foreground) 13%, var(--card));
   --tn-card: color-mix(in oklab, var(--foreground) 4.5%, var(--card));
   --tn-card-up: color-mix(in oklab, var(--foreground) 7%, var(--card));
   --tn-card-on: color-mix(in oklab, var(--foreground) 11%, var(--card));
@@ -91,9 +95,10 @@ const TOKENS = `
   --tn-band: var(--card);
 }
 .dark {
-  --tn-field: color-mix(in oklab, var(--foreground) 6.5%, transparent);
-  --tn-field-up: color-mix(in oklab, var(--foreground) 9.5%, transparent);
-  --tn-track: color-mix(in oklab, var(--foreground) 7%, transparent);
+  --tn-field: color-mix(in oklab, var(--foreground) 6%, transparent);
+  --tn-field-up: color-mix(in oklab, var(--foreground) 9%, transparent);
+  --tn-track: color-mix(in oklab, var(--foreground) 6%, transparent);
+  --tn-chosen: color-mix(in oklab, var(--foreground) 20%, var(--card));
   --tn-card: color-mix(in oklab, var(--foreground) 4%, var(--card));
   --tn-card-up: color-mix(in oklab, var(--foreground) 6.5%, var(--card));
   --tn-card-on: color-mix(in oklab, var(--foreground) 11%, var(--card));
@@ -108,6 +113,7 @@ const TOKENS = `
   --tn-field: color-mix(in oklab, var(--foreground) 8%, transparent);
   --tn-field-up: color-mix(in oklab, var(--foreground) 11%, transparent);
   --tn-track: color-mix(in oklab, var(--foreground) 8%, transparent);
+  --tn-chosen: color-mix(in oklab, var(--foreground) 22%, var(--display));
   --tn-card: color-mix(in oklab, var(--foreground) 5%, var(--display));
   --tn-card-up: color-mix(in oklab, var(--foreground) 8%, var(--display));
   --tn-card-on: color-mix(in oklab, var(--foreground) 13%, var(--display));
@@ -137,7 +143,7 @@ const QUIET = btn("outline", "secondary");
 
 export const TONE_BUTTONS = `
 ${btn("default")} { background: var(--ink); color: var(--ink-fg); }
-${btn("default")}${HOVER}${LIVE} { background: color-mix(in oklab, var(--ink) 86%, var(--background)); }
+${btn("default")}${HOVER}${LIVE} { background: var(--ink-up); }
 ${QUIET} { background: var(--tn-key); color: var(--foreground); }
 ${QUIET}${HOVER}${LIVE} { background: var(--tn-key-up); }
 ${btn("ghost")} { background: transparent; color: var(--foreground); }
@@ -145,10 +151,11 @@ ${btn("ghost")}${HOVER}${LIVE} { background: var(--tone-2); }
 ${btn("destructive")} { background: color-mix(in oklab, var(--destructive) 11%, transparent); color: var(--destructive); }
 ${btn("destructive")}${HOVER}${LIVE} { background: color-mix(in oklab, var(--destructive) 17%, transparent); }
 ${BTN}${ERROR} { --i-body: ${WRONG}; }
+/* Off, a key recedes: the faintest tone and quiet words (an ink key at 40% read as a heavy slab). */
+${BTN}${OFF}:not(${btn("ghost", "link")}) { opacity: 1; background: var(--tone-1); color: var(--faint); }
 
 ${CHIP} { background: var(--tn-key); }
 ${CHIP}${HOVER}${LIVE} { background: var(--tn-key-up); color: var(--foreground); }
-${CHIP}${ON} { background: var(--ink); color: var(--ink-fg); }
 
 /* On a photograph the white Add keeps its surface, flat. */
 ${btn("on-photo")} { background: oklch(1 0 0); color: oklch(0.13 0.004 286); --i-body: 0 1px 3px 0 oklch(0 0 0 / 24%); }
@@ -161,7 +168,7 @@ const PICKED = [`${SEGMENT}${ON}`, `${TAB}${TAB_ON}`].join(", ");
 
 const CHOSEN = `
 ${SEGMENTS}, ${TABS} { background: var(--tn-track); box-shadow: none; }
-${PICKED} { background: var(--ink); color: var(--ink-fg); }
+${PICKED}, ${CHIP}${ON} { background: var(--tn-chosen); color: var(--foreground); }
 ${RADIO_CARD} { background: var(--tn-card) !important; }
 ${RADIO_CARD}${HOVER} { background: var(--tn-card-up) !important; }
 /* A chosen card is a firmer tone; its inner panel is the card's own surface, so it reads as set into it. */

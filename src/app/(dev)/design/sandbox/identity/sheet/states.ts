@@ -11,7 +11,12 @@
  * `disabled` (or Radix's `data-disabled`), loading is `aria-busy="true"` and an
  * error is `aria-invalid="true"`, which is what a wired atom would set.
  */
-export const HOVER = ':is(:hover,[data-demo~="hover"])';
+/**
+ * Under a pointer, pinned, or open: a key whose menu stands open (`aria-expanded`) holds its
+ * hover's look while it is open (the fresh-eyes pass: the View key showed nothing of its open menu).
+ */
+export const HOVER =
+  ':is(:hover,[data-demo~="hover"],[aria-expanded="true"])';
 export const PRESS = ':is(:active,[data-demo~="press"])';
 export const FOCUS = ':is(:focus-visible,[data-demo~="focus"])';
 export const OFF = ":is(:disabled,[data-disabled])";

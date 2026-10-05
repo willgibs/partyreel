@@ -217,7 +217,11 @@ export function RowsScreen({ w }: ScreenProps) {
       </HostFrame>
       <Over>
         <Panel page="rows">
-          <SettingsRows onOpenPage={() => {}} ready={READY} />
+          <SettingsRows
+            onOpenPage={() => {}}
+            ready={READY}
+            onOpenCode={() => {}}
+          />
         </Panel>
       </Over>
     </>

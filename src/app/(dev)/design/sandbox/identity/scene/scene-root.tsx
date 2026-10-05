@@ -62,7 +62,7 @@ export function SceneRoot({
   // A desk's sheet draws both grounds inside a room document; a phone's draws its own.
   useHeldGround(sheet && w === 1440 ? "room" : ground);
   useAdopt(!sheet);
-  useWorkingWords(choice.loading === "words");
+  useWorkingWords(choice.loading);
 
   useEffect(() => {
     let last = "";

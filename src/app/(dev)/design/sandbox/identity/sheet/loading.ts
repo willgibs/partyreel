@@ -12,29 +12,35 @@ import { BTN, BUSY, ICON } from "./states";
  * the foot. `aria-busy="true"` is the atom contract's hook, what a wired atom
  * sets while it works.
  *
+ * ★ THREE DENSITIES OF ONE ARC: that it works (the arc), what it is doing (the
+ * arc and its working words), and how long it has been at it (those words
+ * keeping time). The arc is the same in all three, so the choice is how much a
+ * waiting key says, never how it spins.
+ *
  * ★ EVERY OPTION KEEPS ITS WORDS IN VIEW (r4's direction: a wait that hides
  * what is working reads as broken on party wifi), and every one draws inside
  * the key, so nothing it does reaches the band the halo stands in round it.
+ * The words are the scene's to change (a wired key renders its own;
+ * `scene/working-words.ts` hands a key the words it carries in
+ * `data-working`, and its time).
  *
  * ★ STILL, EACH STILL SAYS "WORKING". Under reduced motion every loop plays
  * once and rests on its base style (globals.css's guard, and `.identity-still`
- * for a frame's twin), so each base is drawn to read as working on its own: an
- * arc a third of the way round its faint ring, a beam stopped a third of the
- * way round the key's edge, a key still held down.
+ * for a frame's twin), so the arc is drawn to read as working stopped: a ring
+ * a third filled, on its faint whole ring.
  *
  * ★ ONE PSEUDO-ELEMENT: a button's `::before` is the working state's, alone
  * (a set's light stands on `::after`, and the halo draws no element). A field
  * takes no pseudo-element, so a field checking what was typed draws in its
  * status slot (`[data-slot="field-status"]`, the proposed hook a wired field
- * puts where its answer will be, a tick or a cross) and its wrapper
- * (`[data-slot="field-wrap"]`).
+ * puts where its answer will be, a tick or a cross), and its line under it
+ * says what it checks.
  */
 
 const WORKING = `${BTN}${BUSY}:not([data-variant="link"])`;
 const ROUND = `:is(${ICON},[data-size="icon-cta"])`;
 const FIELD_BUSY = '[data-slot="input"][aria-busy="true"]';
 const STATUS = `${FIELD_BUSY} ~ [data-slot="field-status"]`;
-const WRAP = '[data-slot="field-wrap"]';
 
 /** A ring's mask: the box less its content box, so a background is drawn as a ring. */
 const RING_MASK = `
@@ -60,89 +66,39 @@ const arcBody = (size = "var(--arc)") => `
 
 const BASE = `
 @keyframes id-spin { to { rotate: 1turn; } }
-@property --id-orbit { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
-@keyframes id-orbit { to { --id-orbit: 1turn; } }
 ${BTN} { --arc: 14px; }
 ${BTN}:is([data-size="xs"],[data-size="sm"],[data-size="icon-xs"],[data-size="icon-sm"]) { --arc: 12px; --arc-w: 1.5px; }
 ${BTN}:is([data-size="cta"],[data-size="icon-cta"]) { --arc: 16px; --arc-w: 2px; }
 ${BTN}${BUSY} { cursor: progress; }
-${WRAP} { position: relative; }
+[data-slot="field-wrap"] { position: relative; }
 [data-slot="field-status"] {
   position: absolute; top: 0; bottom: 0; right: 12px; display: none; align-items: center; gap: 6px;
-  color: var(--muted-foreground); font-size: 12px; pointer-events: none;
+  color: var(--muted-foreground); pointer-events: none;
 }
 ${STATUS} { display: flex; }
-`;
-
-/** The arc before the words, in a leading icon's place. */
-const ARC_ON_KEYS = `
 ${WORKING}::before { ${arcBody()} order: -1; }
 ${WORKING} > svg:first-child { display: none; }
 ${BTN}${BUSY}${ROUND} > * { display: none; }
 ${STATUS}::after { ${arcBody("14px")} }
 `;
 
-const ARC = BASE + ARC_ON_KEYS;
-
 /**
- * THE WORDS SAY IT: the same arc, and the key's words turn to what it is
- * doing ("Unlocking", "Saving", "Creating your event"), as production's own
- * keys already say "Saving…" and "Removing…" while they wait. The words are
- * the scene's to change (a wired key renders its working words; the scene
- * swaps them where the key carries `data-working`); a field says what it is
- * checking in its status slot, beside the arc.
+ * KEEPING TIME, IN THE CAMERA'S VOICE: past two seconds a working key adds its
+ * wait as a readout after its words ("Saving 0:04"), the label step's tabular
+ * figures a camera prints (design-system.md: "a readout is the camera's
+ * voice"), a step quieter than the words; a field checking prints it before
+ * its arc. A quick save never shows it.
  */
-const WORDS = `
-${BASE}
-${ARC_ON_KEYS}
-${STATUS}::before { content: attr(data-working); }
-`;
-
-/**
- * A BEAM ROUND ITS EDGE: a light runs round the key's own edge while it
- * works, a comet's tail into a bright head, over a faint ring of the same
- * light, and ends when the work lands: the house's beam (the light doctrine's
- * "a beam marks the live subject ... and ends when the state ends"), drawn in
- * the key's own ink, never a lamp's hue. Its words stay whole; stopped, it is
- * a ring of light a third of the way round. A field checking runs it round
- * the field.
- */
-const beam = (w = "1.5px") => `
-  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: ${w}; pointer-events: none; z-index: 2;
-  background: conic-gradient(from var(--id-orbit),
-    color-mix(in oklab, currentColor 16%, transparent) 0 52%,
-    color-mix(in oklab, currentColor 45%, transparent) 76%,
-    currentColor 93%,
-    color-mix(in oklab, currentColor 16%, transparent) 96% 100%);
-  ${RING_MASK}
-  animation: id-orbit 1.5s linear infinite;
-`;
-const EDGE = `
-${BASE}
-${WORKING}::before { ${beam()} }
-${BTN}${BUSY}:is([data-size="cta"],[data-size="icon-cta"])::before { padding: 2px; }
-${WRAP}:has(> ${FIELD_BUSY})::after { ${beam()} border-radius: 8px; color: var(--foreground); }
-`;
-
-/**
- * HELD DOWN UNTIL IT LANDS: the key keeps the press it was given (its shrink,
- * held, and its face a shade down) for as long as it works, with the arc in
- * its icon's place: the key you pressed is visibly still down, which is the
- * plainest way to say why it will not take another press. A field checking
- * holds its words a step quieter, the arc at its end.
- */
-const HELD = `
-${BASE}
-${ARC_ON_KEYS}
-${WORKING} { --i-press-s: 0.96; --i-press: inset 0 0 0 999px color-mix(in oklab, var(--foreground) 7%, transparent); }
-${WORKING}:is([data-size="xs"],[data-size="sm"]) { --i-press-s: 0.95; }
-${WORKING}[data-size="cta"] { --i-press-s: 0.98; }
-${FIELD_BUSY} { color: var(--muted-foreground); }
+const TIME = `
+[data-working-time] {
+  font-size: 11px; line-height: 1; letter-spacing: 0.04em; font-variant-numeric: tabular-nums;
+  font-weight: 600; opacity: 0.62; margin-inline-start: 2px;
+}
+[data-slot="field-status"] [data-working-time] { margin-inline-start: 0; opacity: 0.8; }
 `;
 
 export const LOADING_CSS: Record<LoadingId, string> = {
-  arc: ARC,
-  words: WORDS,
-  edge: EDGE,
-  held: HELD,
+  arc: BASE,
+  words: BASE,
+  time: BASE + TIME,
 };

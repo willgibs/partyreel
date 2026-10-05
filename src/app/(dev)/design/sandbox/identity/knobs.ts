@@ -5,13 +5,14 @@ import type { Control } from "@/components/lab/exploration";
  * declare them without importing React into a module the registry hands to a
  * server page.
  *
- * ★ A SET OPENS ON A COMPOSITE REAL SCREEN (the r5 brief: "Each option's
+ * ★ A SET OPENS ON A COMPOSITE OF REAL SCREENS (the r5 brief: "Each option's
  * first frame is a composite real screen; its specimen sheet is one press
- * away"). Settings' door holds every family a set answers at once: a field
+ * away"). No one real screen holds every family: Settings' door holds a field
  * typed in, the ink key and the quietest Cancel, the segments and radio cards
- * that are chosen, a switch; at a desk it stands over the hub, whose album
- * toolbar is a row of quiet keys. The other five real screens and the two
- * sheets of every state are one press away.
+ * that are chosen; Account's billing row the quiet keys, a field with Save
+ * off. So the composite is the two side by side at a phone, a ground's pair
+ * together (at a desk, Settings over the hub). The other real screens and the
+ * two sheets of every state are one press away.
  *
  * ★ PAPER AND THE ROOM SIDE BY SIDE, AT A PHONE, BY DEFAULT. Two phones stand
  * at the scale one does, so both grounds cost nothing; a laptop is one press
@@ -21,7 +22,7 @@ export const SHOW: Control = {
   id: "show",
   label: "Show",
   options: [
-    { id: "door", label: "Settings' door" },
+    { id: "door", label: "Settings' door and Account" },
     { id: "dates", label: "Settings' dates" },
     { id: "account", label: "Account" },
     { id: "create", label: "Create" },

@@ -5,7 +5,6 @@ import { CALLS_CSS } from "./calls";
 import { LOADING_CSS } from "./loading";
 import { HOUSE_CSS } from "./sets/house";
 import { KEYS_CSS } from "./sets/keys";
-import { LIT_CSS } from "./sets/lit";
 import { TONE_CSS } from "./sets/tone";
 import { SETTLED_CSS } from "./settled";
 import { PHOTO } from "./states";
@@ -43,9 +42,8 @@ ${PHOTO} { color: oklch(1 0 0); --foreground: oklch(1 0 0); --muted-foreground: 
 /** Each set's sheet, by its id. */
 export const SET_CSS: Record<SetId, string> = {
   keys: KEYS_CSS,
-  lit: LIT_CSS,
-  tone: TONE_CSS,
   house: HOUSE_CSS,
+  tone: TONE_CSS,
 };
 
 /** Each working state's sheet, by its id. */

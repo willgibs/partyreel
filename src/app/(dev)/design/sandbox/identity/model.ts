@@ -21,19 +21,30 @@
  */
 
 /**
- * THE SETS, each named by its principle: keys and wells finished (relief),
- * lit edges (light), ink and tone (value), and the house's own mix (sunk where
- * you type, flat where you press, lifted where it floats).
+ * THE SETS, each named by its principle, from the most depth to none: keys and
+ * wells finished (relief: every key stands up, every field sinks), the house's
+ * own mix (sunk where you type, flat where you press, afloat where it moves),
+ * and ink and tone (values only, flat as a print).
+ *
+ * ★ LIT EDGES WAS DRAWN AND CUT (the fresh-eyes pass, measured in the
+ * captures: in the room it was keys and wells under another light, on paper a
+ * weaker thing, its sunk parts at 1:1, its graded edge a double outline; and a
+ * light on every key is a second light beside Afterglow's one a screen). Its
+ * one good touch, the bright edge on what floats, lives in the house's mix.
  */
-export const SET_IDS = ["keys", "lit", "tone", "house"] as const;
+export const SET_IDS = ["keys", "house", "tone"] as const;
 export type SetId = (typeof SET_IDS)[number];
 
 /**
- * WHAT A KEY SHOWS WHILE IT WORKS: his arc, refined; the words saying what it
- * does beside it; a light running round the key's own edge; and the key held
- * down until the work lands.
+ * WHAT A KEY SHOWS WHILE IT WORKS, at three densities: his arc, refined (that
+ * it works); the arc and the words saying what it does (what); and those words
+ * keeping time in the camera's own readout as the wait runs on (how long).
+ *
+ * ★ A BEAM ROUND ITS EDGE AND THE KEY HELD DOWN WERE DRAWN AND CUT (the
+ * fresh-eyes pass: stopped, the beam read as a smear or as the halo; a held
+ * ink key cannot go darker, and two pixels of shrink vanish in a still).
  */
-export const LOADING_IDS = ["arc", "words", "edge", "held"] as const;
+export const LOADING_IDS = ["arc", "words", "time"] as const;
 export type LoadingId = (typeof LOADING_IDS)[number];
 
 /** The whole of what a frame wears. */

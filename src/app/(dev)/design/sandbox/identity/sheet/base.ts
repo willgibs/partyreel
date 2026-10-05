@@ -46,12 +46,18 @@ import {
 
 /**
  * THE INK AND TONE STEPS: ink is the house's one strong value (near-black on
- * paper, white in the room); a tone is the ground's own ink at a few percent,
- * four steps. Every set reads these and no other grey.
+ * paper, white in the room), with its one hover step; a tone is the ground's
+ * own ink at a few percent, four steps. Every set reads these and no other
+ * grey.
  */
 const TOKENS = `
+:root, .surface-paper { --ink-lift: oklch(1 0 0); --ink-lift-by: 12%; }
+.dark, .surface-display { --ink-lift: oklch(0 0 0); --ink-lift-by: 7%; }
 :where(${ATOMS}, ${CHIPS}, ${SEGMENTS}, ${TABS}, ${SLIDER}, ${THUMB}, [data-slot="slider-track"]) {
   --ink: var(--primary); --ink-fg: var(--primary-foreground);
+  /* Ink under a pointer: a step toward the page's light on paper, a breath darker in the room, never
+     the grey a white key mixed with the room's black turned to (it read as held off). */
+  --ink-up: color-mix(in oklab, var(--ink), var(--ink-lift) var(--ink-lift-by));
   --tone-1: color-mix(in oklab, var(--foreground) 4%, transparent);
   --tone-2: color-mix(in oklab, var(--foreground) 7%, transparent);
   --tone-3: color-mix(in oklab, var(--foreground) 11%, transparent);
@@ -121,7 +127,7 @@ ${TAB} { position: relative; flex: none; }
  */
 const GEOMETRY = `
 ${FIELDS} {
-  border: 0; border-radius: 8px; padding-left: 12px; background-image: none;
+  border: 0; border-radius: 8px; padding-left: 12px; background-image: none; text-overflow: ellipsis;
   transition: background-color 140ms linear, box-shadow 140ms linear, color 140ms linear;
 }
 [data-slot="input"], [data-slot="select-trigger"] { min-height: 40px; }

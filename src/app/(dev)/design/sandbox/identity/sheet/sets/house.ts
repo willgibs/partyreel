@@ -3,6 +3,7 @@ import {
   CARD_ON,
   CHECK,
   CHECKED,
+  CHIP,
   ERROR,
   HOVER,
   LIVE,
@@ -34,12 +35,13 @@ import { KEY_TOKENS, TONE_BUTTONS } from "./tone";
  *    and the tracks and cards a choice stands in are flat tones too (his
  *    shrink is the press a flat key wants, and Afterglow's own decks draw
  *    every key flat). Its depth is the press itself.
- *  - WHAT MOVES FLOATS: the chosen segment and tab, a chosen card, a switch's
- *    thumb, a slider's, a check and a radio, each an object standing over its
- *    track. The edge's own rule (r4, edge=floating) at the atom's scale: on
- *    paper the lighter surface he leans to, on the house's own lift; in the
- *    room graphite with the bright edge, a small pop-out, exactly as every
- *    menu stands over the room.
+ *  - WHAT IS CHOSEN FLOATS: the chosen segment, tab, chip and card, each an
+ *    object standing over its track. The edge's own rule (r4, edge=floating)
+ *    at the atom's scale: on paper the lighter surface he leans to, on the
+ *    house's own lift; in the room graphite with the bright edge, a small
+ *    pop-out, exactly as every menu stands over the room. A thumb is a white
+ *    object on both grounds (its seam keeps it whole on an inked track), and
+ *    a check and a radio wait as a ring of tone and fill with ink.
  *
  * ★ BORROWED, NEVER RETYPED: the well and the keys are imported from their own
  * sets, so the mix is literally those parts, and a change to either reaches it.
@@ -52,9 +54,11 @@ const TOKENS = `
   --hs-card-up: color-mix(in oklab, var(--foreground) 7%, var(--card));
   --hs-off: color-mix(in oklab, var(--foreground) 15%, transparent);
   --hs-off-up: color-mix(in oklab, var(--foreground) 21%, transparent);
-  --hs-float: oklch(1 0 0); --hs-float-line: oklch(0.14 0.004 286 / 6%);
+  --hs-float: oklch(1 0 0); --hs-float-line: oklch(0.14 0.004 286 / 9%);
   --hs-lift-near: oklch(0 0 0 / 8%); --hs-lift-far: oklch(0 0 0 / 14%);
-  --hs-light: oklch(1 0 0 / 0%); --hs-thumb-on: oklch(1 0 0);
+  --hs-light: oklch(1 0 0 / 0%); --hs-thumb: oklch(1 0 0); --hs-seam: oklch(0.14 0.004 286 / 9%);
+  --hs-ring: color-mix(in oklab, var(--foreground) 28%, transparent);
+  --hs-ring-up: color-mix(in oklab, var(--foreground) 45%, transparent);
 }
 .dark {
   --hs-track: color-mix(in oklab, var(--foreground) 7%, transparent);
@@ -64,7 +68,9 @@ const TOKENS = `
   --hs-off-up: color-mix(in oklab, var(--foreground) 22%, transparent);
   --hs-float: var(--display); --hs-float-line: oklch(0 0 0 / 0%);
   --hs-lift-near: oklch(0 0 0 / 50%); --hs-lift-far: oklch(0 0 0 / 55%);
-  --hs-light: var(--display-light); --hs-thumb-on: var(--display);
+  --hs-light: var(--display-light); --hs-thumb: oklch(0.96 0.002 286); --hs-seam: oklch(0 0 0 / 25%);
+  --hs-ring: color-mix(in oklab, var(--foreground) 32%, transparent);
+  --hs-ring-up: color-mix(in oklab, var(--foreground) 50%, transparent);
 }
 .surface-display {
   --hs-track: color-mix(in oklab, var(--foreground) 9%, transparent);
@@ -74,7 +80,9 @@ const TOKENS = `
   --hs-off-up: color-mix(in oklab, var(--foreground) 24%, transparent);
   --hs-float: var(--display-step); --hs-float-line: oklch(0 0 0 / 0%);
   --hs-lift-near: oklch(0 0 0 / 40%); --hs-lift-far: oklch(0 0 0 / 45%);
-  --hs-light: var(--display-light); --hs-thumb-on: var(--display-step);
+  --hs-light: var(--display-light); --hs-thumb: oklch(0.96 0.002 286); --hs-seam: oklch(0 0 0 / 25%);
+  --hs-ring: color-mix(in oklab, var(--foreground) 34%, transparent);
+  --hs-ring-up: color-mix(in oklab, var(--foreground) 52%, transparent);
 }
 `;
 
@@ -83,6 +91,18 @@ const LIFT = (on: boolean) =>
   on
     ? `0 0 0 1px var(--hs-float-line), 0 1px 2px 0 var(--hs-lift-near), 0 3px 10px -1px var(--hs-lift-far)`
     : `0 0 0 1px transparent, 0 1px 2px 0 transparent, 0 3px 10px -1px transparent`;
+
+/**
+ * A card afloat: its line INSIDE its box and its lift only below it, since a radio card stands in a
+ * wrapper that clips (the door's dormant steps), which cut an edge drawn outside the box away.
+ */
+const CARD_LIFT = (on: boolean) =>
+  on
+    ? `inset 0 0 0 1px var(--hs-float-line), 0 1px 2px 0 var(--hs-lift-near), 0 6px 8px -6px var(--hs-lift-far)`
+    : `inset 0 0 0 1px transparent, 0 1px 2px 0 transparent, 0 6px 8px -6px transparent`;
+
+/** A thumb: white on both grounds, its seam keeping it whole on an inked track, on its lift. */
+const THUMBED = `0 0 0 1px var(--hs-seam), 0 1px 2px 0 var(--hs-lift-near), 0 3px 8px -1px var(--hs-lift-far)`;
 
 /** The bright edge on what floats: clear on paper, the display's light in the room. */
 const LIT = LIGHT_ON("1px", `radial-gradient(135% 100% at 50% 0%,
@@ -99,38 +119,35 @@ ${SEGMENT}, ${TAB} { --i-sel: ${LIFT(false)}; }
 ${PICKED} { background: var(--hs-float); color: var(--foreground); --i-sel: ${LIFT(true)}; }
 ${SEGMENT}${ON}::before, ${TAB}${TAB_ON}::after { ${LIT} display: block; }
 
-${RADIO_CARD} { background: var(--hs-card) !important; --i-sel: ${LIFT(false)}; }
+${RADIO_CARD} { background: var(--hs-card) !important; --i-sel: ${CARD_LIFT(false)}; }
 ${RADIO_CARD}${HOVER} { background: var(--hs-card-up) !important; }
 /* Afloat, a card stands over the rest: what stands on it reads its face. */
-${RADIO_CARD}${CARD_ON} { background: var(--hs-float) !important; --background: var(--hs-float); --i-sel: ${LIFT(true)}; }
+${RADIO_CARD}${CARD_ON} { background: var(--hs-float) !important; --background: var(--hs-float); --i-sel: ${CARD_LIFT(true)}; }
 ${RADIO_CARD}${CARD_ON}::after { ${LIT} }
+
+/* A chip that is on floats as the chosen segment does: one language for what is chosen. */
+${CHIP}${ON} { background: var(--hs-float); color: var(--foreground); --i-body: ${LIFT(true)}; }
+${CHIP}${ON}::after { ${LIT} }
 `;
 
-/* ── the toggles: flat tracks, and what you flip floats ──────────────── */
+/* ── the toggles: flat tracks, white thumbs, rings that fill with ink ── */
 
 const TOGGLES = `
 ${SWITCH} { background: var(--hs-off); }
 ${SWITCH}${HOVER}${LIVE}:not(${SWITCH_ON}) { background: var(--hs-off-up); }
 ${SWITCH}${SWITCH_ON} { background: var(--ink); }
 ${SWITCH}${ERROR} { --i-body: inset 0 0 0 1.5px var(--destructive); }
-${THUMB} { background: var(--hs-float); box-shadow: ${LIFT(true)}; }
-${SWITCH}${SWITCH_ON} ${THUMB} { background: var(--hs-thumb-on); }
-${THUMB}::after { ${LIT} }
+${THUMB} { background: var(--hs-thumb); box-shadow: ${THUMBED}; }
 
-/* A check and a radio float off, and fill with ink on. */
-${CHECK}, ${RADIO} { background: var(--hs-float); --i-body: ${LIFT(true)}; }
-${CHECK}::after, ${RADIO}::after { ${LIT} }
-${CHECK}${HOVER}${LIVE}:not(${CHECKED}), ${RADIO}${HOVER}${LIVE}:not(${CHECKED}) {
-  --i-body: 0 0 0 1px color-mix(in oklab, var(--foreground) 22%, transparent), 0 1px 2px 0 var(--hs-lift-near), 0 3px 10px -1px var(--hs-lift-far);
-}
-${CHECK}${CHECKED}, ${RADIO}${CHECKED} { background: var(--ink); color: var(--ink-fg); }
-${CHECK}${CHECKED}::after, ${RADIO}${CHECKED}::after { opacity: 0; }
-${CHECK}${ERROR}, ${RADIO}${ERROR} { --i-body: 0 0 0 1.5px var(--destructive), 0 1px 2px 0 var(--hs-lift-near), 0 3px 10px -1px transparent; }
+/* A check and a radio wait as a ring of tone, never a floating disc (which read as on), and fill with ink. */
+${CHECK}, ${RADIO} { background: transparent; --i-body: inset 0 0 0 2px var(--hs-ring); }
+${CHECK}${HOVER}${LIVE}:not(${CHECKED}), ${RADIO}${HOVER}${LIVE}:not(${CHECKED}) { --i-body: inset 0 0 0 2px var(--hs-ring-up); }
+${CHECK}${CHECKED}, ${RADIO}${CHECKED} { background: var(--ink); color: var(--ink-fg); --i-body: inset 0 0 0 2px transparent; }
+${CHECK}${ERROR}, ${RADIO}${ERROR} { --i-body: inset 0 0 0 2px var(--destructive); }
 
 [data-slot="slider-track"] { background: var(--hs-off); box-shadow: none; }
 [data-slot="slider-range"] { background: var(--ink); }
-${SLIDER_THUMB} { background: var(--hs-float); --i-body: ${LIFT(true)}; }
-${SLIDER_THUMB}::after { ${LIT} }
+${SLIDER_THUMB} { background: var(--hs-thumb); --i-body: ${THUMBED}; }
 `;
 
 export const HOUSE_CSS =

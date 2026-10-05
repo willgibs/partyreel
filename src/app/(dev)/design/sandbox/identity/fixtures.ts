@@ -95,8 +95,9 @@ export const STILLS: HeadStill[] = [PHOTO.toast, PHOTO.hall, PHOTO.golden].map(
 
 /**
  * THE WEDDING'S READINESS, as the hub reads it for Settings' first page: a
- * password at the door, 31 in, the album full, its date and note written and
- * the code opened, so the rail is ticked but for one step still open.
+ * password at the door, 31 in, the album full, its date and note written, and
+ * the code never opened, so the rail is ticked but for its last step, which
+ * carries its two keys (Invite, the ink key, and Print, a quiet one).
  */
 export const READY: ReadyFacts = {
   door: "password",
@@ -112,6 +113,6 @@ export const READY: ReadyFacts = {
   eventEndDate: END_DATE,
   description:
     "Everything from tonight, in one place. Add what you take, whenever you get to it.",
-  opened: 46,
+  opened: 0,
   storagePct: 33,
 };

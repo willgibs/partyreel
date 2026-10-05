@@ -55,7 +55,7 @@ const NAME = (ask: AskId, option: string): string => {
 
 /** What each place is called in a frame's title. */
 const WHAT: Record<ViewId, string> = {
-  door: "Settings' door, the composite",
+  door: "Settings' door",
   dates: "Settings' dates",
   account: "Account's billing row",
   create: "Create's foot, Create event working, the room in both themes",
@@ -73,17 +73,33 @@ const GROUNDS: Record<"both" | GroundId, readonly GroundId[]> = {
   room: ["room"],
 };
 
-/** A set's option, on the place Show holds (Settings' door by default). */
+/**
+ * The views Show holds: the composite is Settings' door beside Account's
+ * billing row at a phone (no one real screen holds every family: the door
+ * holds the field, the chosen and the ink key, Account the quiet keys), and
+ * Settings over the hub at a desk, where two laptops a ground would be too
+ * small to judge.
+ */
+function shown(view: ShowId, w: 1440 | 375) {
+  if (view === "door" && w === 375)
+    return [
+      { view: "door" as const, what: WHAT.door },
+      { view: "account" as const, what: WHAT.account },
+    ];
+  return [{ view, what: WHAT[view] }];
+}
+
+/** A set's option, on the place Show holds (the composite by default). */
 function set(id: SetId, s: BoardState): ReactNode {
   const view: ShowId = showOf(s.show);
+  const w = screenOf(s.screen);
   return (
     <OptionFrames
       // The arc is working's stand-in while working is asked on its own.
       choice={{ set: id, loading: "arc" }}
-      view={view}
+      views={shown(view, w)}
       moment={view === "create" ? "working" : "use"}
-      what={WHAT[view]}
-      w={screenOf(s.screen)}
+      w={w}
       grounds={GROUNDS[groundsOf(s.ground)]}
       name={NAME("set", id)}
     />
@@ -96,9 +112,8 @@ function working(id: LoadingId, s: BoardState): ReactNode {
   return (
     <OptionFrames
       choice={{ set: choiceOf(s).set, loading: id }}
-      view={view}
+      views={[{ view, what: WHAT[view] }]}
       moment="working"
-      what={WHAT[view]}
       w={screenOf(s.screen)}
       grounds={GROUNDS[groundsOf(s.ground)]}
       name={NAME("loading", id)}
@@ -108,13 +123,11 @@ function working(id: LoadingId, s: BoardState): ReactNode {
 
 const PREVIEWS: PreviewsFor<typeof IDENTITY> = {
   "set.keys": (s) => set("keys", s),
-  "set.lit": (s) => set("lit", s),
-  "set.tone": (s) => set("tone", s),
   "set.house": (s) => set("house", s),
+  "set.tone": (s) => set("tone", s),
   "loading.arc": (s) => working("arc", s),
   "loading.words": (s) => working("words", s),
-  "loading.edge": (s) => working("edge", s),
-  "loading.held": (s) => working("held", s),
+  "loading.time": (s) => working("time", s),
 };
 
 export function IdentityBoard() {

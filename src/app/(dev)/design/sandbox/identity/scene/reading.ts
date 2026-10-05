@@ -4,7 +4,7 @@ import { type MomentId, READING_MESSAGE, type ViewId } from "../model";
  * WHAT A FRAME SAYS UNDER ITSELF, READ OFF ITS OWN DOCUMENT.
  *
  * An option's words claim things a reader can check ("a well", "a key",
- * "lit edges", "a tone", "a halo", "an arc", "a beam"), so each caption is the
+ * "a tone", "a halo", "an arc", "keeping time"), so each caption is the
  * computed style of the parts those words are about, never the words
  * themselves. If a caption and an option's words disagree, the caption is the
  * truth. (A step hides the captions from the reviewer; `lab:demo --verbose`
@@ -28,19 +28,30 @@ function corner(el: Element): string {
   return `${r}px corners`;
 }
 
-/** Whether a pseudo-element draws the bright edge's light (a masked radial falloff). */
-function lit(el: Element): boolean {
-  return ["::after", "::before"].some((p) => {
+/**
+ * What a pseudo-element draws on a part's one-pixel edge (the bright edge's
+ * mask): "the light edge" (a falloff with light left in it), "a graded edge"
+ * (ink graded down the edge, lit edges on paper), or nothing.
+ */
+function lit(el: Element): string | null {
+  for (const p of ["::after", "::before"]) {
     const cs = getComputedStyle(el, p);
-    return (
-      cs.content !== "none" &&
-      /radial-gradient/.test(cs.backgroundImage) &&
-      /exclude|xor/.test(
-        cs.getPropertyValue("mask-composite") ||
-          cs.getPropertyValue("-webkit-mask-composite"),
-      )
+    const masked = /exclude|xor/.test(
+      cs.getPropertyValue("mask-composite") ||
+        cs.getPropertyValue("-webkit-mask-composite"),
     );
-  });
+    if (cs.content === "none" || !masked || cs.opacity === "0") continue;
+    if (/linear-gradient/.test(cs.backgroundImage)) return "a graded edge";
+    // A falloff whose light is all clear (paper's floating parts) draws nothing.
+    if (
+      /radial-gradient/.test(cs.backgroundImage) &&
+      !/radial-gradient\([^)]*?(rgba\(0, 0, 0, 0\)|\/ 0\))/.test(
+        cs.backgroundImage.split(",").slice(0, 3).join(","),
+      )
+    )
+      return "the light edge";
+  }
+  return null;
 }
 
 type Shadow = {
@@ -70,7 +81,8 @@ function shadowsOf(el: Element): Shadow[] {
 /** How a box ends: the light edge, a ring, a hairline, a bevel, a shade, a shadow, its tone. */
 function edge(el: Element): string {
   const parts: string[] = [];
-  if (lit(el)) parts.push("the light edge");
+  const light = lit(el);
+  if (light) parts.push(light);
   const shadows = shadowsOf(el).filter((s) => !s.clear);
   const ring = shadows.filter(
     (s) => s.inset && !s.x && !s.y && !s.blur && s.spread > 0,
@@ -128,30 +140,21 @@ function focusMark(el: Element | null): string {
   return outer.length ? "a ring outside" : "not drawn";
 }
 
-/** What a working control draws: an arc beside its words, a beam round its edge, the key held down. */
+/** What a working control draws: the arc beside its words, its working words, and its time. */
 function working(el: Element | null): string {
   if (!el) return "not drawn";
   const before = getComputedStyle(el, "::before");
-  const own = getComputedStyle(el);
   const words = (el as HTMLElement).innerText?.trim().replace(/\s+/g, " ");
   const said = el.getAttribute("data-working-shown")
     ? "its working words"
     : "its own words";
-  const parts: string[] = [];
+  const time = el.querySelector("[data-working-time]") ? ", keeping time" : "";
   if (
-    before.content !== "none" &&
-    /conic-gradient/.test(before.backgroundImage)
+    before.content === "none" ||
+    !/conic-gradient/.test(before.backgroundImage)
   )
-    parts.push(
-      before.position === "absolute"
-        ? "a beam runs round its edge"
-        : `an arc runs round, ${px(before.width)}px`,
-    );
-  const s = Number.parseFloat(own.scale);
-  if (own.scale !== "none" && s < 1)
-    parts.push(`held down at ${Math.round(s * 100)}%`);
-  if (!parts.length) return "not drawn";
-  return `${parts.join(", ")}, saying "${words}" (${said})`;
+    return "not drawn";
+  return `an arc runs round, ${px(before.width)}px, saying "${words}" (${said}${time})`;
 }
 
 const ROOM = '[data-ground="room"]';

@@ -130,30 +130,35 @@ const GROUND_NAME: Record<GroundId, string> = {
 };
 
 /**
- * AN OPTION, DRAWN: one view at the width the knobs hold, on each ground
- * asked for, side by side. A desk's sheet holds both grounds in one frame; a
- * phone's sheet of every state is two phone pages a ground (the working sheet
- * is one). A screen that is the room in both themes (Create) is drawn once.
+ * AN OPTION, DRAWN: one or more views at the width the knobs hold, on each
+ * ground asked for, side by side, a ground's views together (the composite is
+ * two real screens a ground). A desk's sheet holds both grounds in one frame;
+ * a phone's sheet of every state is two phone pages a ground (the working
+ * sheet is one). A screen that is the room in both themes (Create) is drawn
+ * once.
  */
 export function OptionFrames({
   choice,
-  view,
+  views,
   moment,
-  what,
   w,
   grounds,
   name,
 }: {
   choice: Choice;
-  view: ViewId;
+  /** The views, each with what it is called in words, for the frames' titles. */
+  views: readonly { view: ViewId; what: string }[];
   moment: MomentId;
-  /** What the view is, in words, for the frame's title. */
-  what: string;
   w: Width;
   grounds: readonly GroundId[];
   name: string;
 }) {
-  const frame = (g: GroundId, words: string, page: PageNo = 1) => (
+  const frame = (
+    view: ViewId,
+    g: GroundId,
+    words: string,
+    page: PageNo = 1,
+  ) => (
     <SceneFrame
       key={`${view}-${g}-${page}`}
       choice={choice}
@@ -165,26 +170,36 @@ export function OptionFrames({
       title={`${name}: ${words}`}
     />
   );
-  if (isSheet(view))
+  const [first] = views;
+  if (first && isSheet(first.view)) {
+    const { view, what } = first;
     return (
       <Story>
         {w === 1440
-          ? frame("room", `${what}, on paper and in the room`)
+          ? frame(view, "room", `${what}, on paper and in the room`)
           : view === "working"
-            ? grounds.map((g) => frame(g, `${what}, ${GROUND_NAME[g]}`))
+            ? grounds.map((g) => frame(view, g, `${what}, ${GROUND_NAME[g]}`))
             : grounds.flatMap((g) =>
                 ([1, 2] as const).map((p) =>
-                  frame(g, `${what}, ${p} of 2, ${GROUND_NAME[g]}`, p),
+                  frame(view, g, `${what}, ${p} of 2, ${GROUND_NAME[g]}`, p),
                 ),
               )}
       </Story>
     );
-  // Create is a room of its own in both themes: one frame says it.
-  const on: readonly GroundId[] = view === "create" ? ["room"] : grounds;
+  }
   return (
     <Story>
-      {on.map((g) =>
-        frame(g, view === "create" ? what : `${what}, ${GROUND_NAME[g]}`),
+      {grounds.flatMap((g) =>
+        views
+          // Create is a room of its own in both themes: one frame says it.
+          .filter(({ view }) => view !== "create" || g === grounds[0])
+          .map(({ view, what }) =>
+            frame(
+              view,
+              view === "create" ? "room" : g,
+              view === "create" ? what : `${what}, ${GROUND_NAME[g]}`,
+            ),
+          ),
       )}
     </Story>
   );
