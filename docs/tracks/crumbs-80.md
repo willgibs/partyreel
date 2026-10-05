@@ -76,10 +76,12 @@ Calls made inside the lane that the Orchestrator may want in front of Will (each
   the alternatives were failing the stuck file at 8 s or letting a second presign go beside it and sending bytes out of
   order. Once a file, only with a prepared file waiting behind it; a presign nobody waits behind keeps the whole 30 s;
   a phantom presign stores nothing and tallies the hour breaker (20,000) once more.
-- **A lost answer heals itself through the queue's own runner** (5, 20 and 60 s on, when the browser says the line is
-  back, when the page is looked at again; three asks a File), where the alternative, settling a row when the album's
-  sync draws its photograph, needs the page's files (`event-experience.tsx`, `gallery-live.tsx`), which this lane does
-  not own. The host panel's row is not covered (Deferred).
+- **A lost answer heals itself through the owner's own runner** (5, 20 and 60 s on, the moment the browser says the line
+  is back, when the page is looked at again, none while it says it is offline; three asks a File), where the
+  alternative, settling a row when the album's sync draws its photograph, needs the page's files
+  (`event-experience.tsx`, `gallery-live.tsx`), which this lane does not own. One generic hook
+  (`use-upload-queue.heal.ts`) serves the guest's queue and the host panel's rows (`host-upload.tsx`: about ten lines
+  and its test, the lane check's second exception beside `gallery-rows.tsx` and `spec-shared.tsx`).
 - **A chip over 44 characters wraps on a phone, whole from `sm` up** (`UI_LABEL_WRAPS_FROM`): the fix is in the shared
   `UiLabel`, so the five more messages `/help/messages-guests-might-see` cut at 375 (one 173 px off) are mended too.
 - **Your events' list reads Drive's status once when it opens** (hint or no), to say "not set up" before any choice and to
@@ -97,9 +99,6 @@ Calls made inside the lane that the Orchestrator may want in front of Will (each
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- Now: the host panel's rows (`host-upload.tsx`) have the same lost-answer gap (a dropped row over a tile the hub's album
-  already drew); `use-upload-queue.heal.ts` is generic over its rows and is the rule, wired in about ten lines of the
-  panel (its items keep `cause`, its retry re-queues).
 - Now: if Will overrules Question 3, hold the door's Sending step while files go and the keep is due (the entry-modal
   line is in the Question).
 

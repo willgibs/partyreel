@@ -96,9 +96,10 @@ shapes.
   file's next try starts afresh. The guest's queue makes that try itself for a file that failed as a dropped connection
   (`use-upload-queue.heal.ts`, `hasKeptComplete`: 5, 20 and 60 s on, on the browser's `online` and when the page is
   looked at again, none while it says it is offline, three asks a File, through the queue's own runner so her Retry
-  never races it), so a row the server
-  wrote is told as landed and the sheet that listed it lets it go. `complete` is never aborted by a cancel: a stop pressed once it is asked, or on a
-  file going again on its kept complete, is ignored (the file lands as it would have). Nothing is counted for a
+  never races it), so a row the server wrote is told as landed and the sheet that listed it lets it go; the host
+  panel's rows (`host-upload.tsx`) read the same hook, and a row that said dropped reads "Added to the album".
+  `complete` is never aborted by a cancel: a stop pressed once it is asked, or on a file going again on its kept
+  complete, is ignored (the file lands as it would have). Nothing is counted for a
   cancelled file (the meter counts at complete); its R2 bytes, if any, are the orphan sweep's, a started multipart the
   bucket's abort rule's. ★ It is ONE SENTENCE everywhere: the downloads say it as a title and its detail
   (`WALK_COPY`), and the album's camera says this very string where it used to count ("2 shots didn’t send.") when a
