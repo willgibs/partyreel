@@ -12,7 +12,7 @@
  * its own, because what they pin is the queue's side of a server rule rather than a sheet.
  */
 import { act, renderHook, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   landedAs,
@@ -30,11 +30,13 @@ import {
   type QueueProgress,
 } from "@/lib/guest/use-upload-queue";
 import {
+  hasKeptComplete,
   uploadBurst,
   uploadFile,
   type BurstFile,
   type UploadOutcome,
 } from "@/lib/upload/uploader";
+import { HEAL_AFTER_MS } from "@/lib/guest/use-upload-queue.heal";
 
 vi.mock("@/lib/upload/uploader", () => {
   const uploadFile = vi.fn();
@@ -87,7 +89,9 @@ vi.mock("@/lib/upload/uploader", () => {
       return out;
     },
   );
-  return { uploadFile, uploadBurst };
+  // Whether a file's complete lost its answer and is kept: no file's, until a case says so (the heal's own pins).
+  const hasKeptComplete = vi.fn((_file: File) => false);
+  return { uploadFile, uploadBurst, hasKeptComplete };
 });
 vi.mock("sonner", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
 
@@ -574,6 +578,167 @@ describe("a join nobody at the door could fix", () => {
  * `cause: "cancelled"`; since upload-cancel it is no failure at all: the file leaves the queue and the failure sheet
  * never lists it, `use-upload-queue.stop.test.tsx`.)
  */
+/**
+ * ★ A LOST ANSWER IS ASKED AGAIN FOR HER (red-team 55's LOW). A file that failed as a dropped connection with its complete
+ * kept may be in the album already (its row stands, only the answer was lost): the queue asks that very complete again,
+ * as her Retry does, a few seconds on, and tells the file as landed when the server's own row answers, so the sheet that
+ * listed it as failed lets it go and the album's tile is the queue's own landing. The ask is the hook's
+ * (`use-upload-queue.heal.test.tsx` pins when); this is what it does to the queue.
+ */
+describe("★ a lost answer heals itself", () => {
+  const DROPPED = "Your connection dropped. Check your signal, then try again.";
+  const droppedOutcome: UploadOutcome = {
+    ok: false,
+    message: DROPPED,
+    cause: "dropped",
+  };
+
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+    // What a case queued for the uploader and the kept complete it named go with it, whatever it ended on.
+    mockUploadFile.mockReset();
+    vi.mocked(hasKeptComplete).mockReset();
+  });
+
+  /** A file whose complete is kept, sent once and failed: the queue at the moment the guest is shown the failure. */
+  async function lostOnce(
+    props: Props = { sessionToken: STALE, isVerified: false },
+  ) {
+    answer({});
+    const file = makeFile("lost.jpg");
+    vi.mocked(hasKeptComplete).mockImplementation((f) => f === file);
+    mockUploadFile.mockResolvedValueOnce(droppedOutcome);
+    const q = mountQueue(props);
+    act(() => q.result.current.addFiles([file]));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(q.items()).toEqual([
+      expect.objectContaining({ status: "error", cause: "dropped" }),
+    ]);
+    return { q, file };
+  }
+
+  it("★ asks the kept complete again a few seconds on, and tells the file as landed when the row answers", async () => {
+    const { q, file } = await lostOnce();
+    mockUploadFile.mockResolvedValueOnce(landed("med-1"));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[0]);
+    });
+    // The very same File went again (the uploader sends its kept complete, never a presign or a byte), once.
+    expect(mockUploadFile).toHaveBeenCalledTimes(2);
+    expect(mockUploadFile.mock.calls[1]![0].file).toBe(file);
+    expect(q.items()).toEqual([
+      expect.objectContaining({
+        status: "done",
+        mediaId: "med-1",
+        error: undefined,
+        cause: undefined,
+      }),
+    ]);
+    // Told as any landing is: the album draws it as her own upload, once.
+    expect(q.onUploaded).toHaveBeenCalledTimes(1);
+    expect(q.onUploaded).toHaveBeenCalledWith(
+      expect.objectContaining({ file, mediaId: "med-1", status: "approved" }),
+    );
+  });
+
+  it("★ an ask that finds the line still down changes nothing she sees: the failure stands as it was, and the next ask is longer", async () => {
+    const { q } = await lostOnce();
+    mockUploadFile.mockResolvedValueOnce(droppedOutcome);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[0]);
+    });
+    expect(mockUploadFile).toHaveBeenCalledTimes(2);
+    expect(q.items()).toEqual([
+      expect.objectContaining({
+        status: "error",
+        cause: "dropped",
+        error: DROPPED,
+      }),
+    ]);
+    expect(q.onUploaded).not.toHaveBeenCalled();
+    // Not again after the same wait, but after the longer one.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[1] - 1);
+    });
+    expect(mockUploadFile).toHaveBeenCalledTimes(2);
+    mockUploadFile.mockResolvedValueOnce(landed("med-2"));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1);
+    });
+    expect(q.items()).toEqual([expect.objectContaining({ status: "done" })]);
+  });
+
+  it("★ leaves a failure that is not a lost answer to her Retry: a refusal, and a drop whose bytes never went", async () => {
+    answer({});
+    mockUploadFile
+      .mockResolvedValueOnce({
+        ok: false,
+        code: "too_large",
+        message: "Files for this event are capped at 500 MB.",
+      })
+      .mockResolvedValueOnce(droppedOutcome);
+    // Neither file's complete is kept: the first was refused outright, the second dropped before its complete.
+    vi.mocked(hasKeptComplete).mockReturnValue(false);
+    const q = mountQueue({ sessionToken: STALE, isVerified: false });
+    act(() =>
+      q.result.current.addFiles([makeFile("a.jpg"), makeFile("b.jpg")]),
+    );
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[2]);
+    });
+    expect(mockUploadFile).toHaveBeenCalledTimes(2);
+    expect(q.items().map((it) => it.status)).toEqual(["error", "error"]);
+  });
+
+  it("asks nothing on a device with no ticket, or while a door holds her: the join and the door are not this to make", async () => {
+    const { q } = await lostOnce({ sessionToken: STALE, isVerified: false });
+    q.rerender({ sessionToken: null, isVerified: false });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[0]);
+    });
+    expect(mockUploadFile).toHaveBeenCalledTimes(1);
+    q.rerender({ sessionToken: STALE, isVerified: false, doorOpen: false });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[1]);
+    });
+    expect(mockUploadFile).toHaveBeenCalledTimes(1);
+    expect(q.items()).toEqual([expect.objectContaining({ status: "error" })]);
+  });
+
+  it("asks through the host's own pair for the album's owner, as her Retry does", async () => {
+    const { q } = await lostOnce({
+      sessionToken: null,
+      isVerified: true,
+      ownerEventId: "evt-own",
+    });
+    mockUploadFile.mockResolvedValueOnce(landed("med-own"));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[0]);
+    });
+    expect(mockUploadFile.mock.calls[1]![0].identity).toEqual({
+      event_id: "evt-own",
+    });
+    expect(q.items()).toEqual([expect.objectContaining({ status: "done" })]);
+  });
+
+  it("is the file's complete asked again and no more: no join is made and no ticket is touched", async () => {
+    // Not her Retry in one thing: it never gives the silent join back (the head note), so a ticket that keeps being
+    // refused can never turn it into a row factory.
+    const { q } = await lostOnce();
+    mockUploadFile.mockResolvedValueOnce(landed("med-1"));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[0]);
+    });
+    expect(fetchUrls()).toEqual([]);
+    expect(q.onSession).not.toHaveBeenCalled();
+  });
+});
+
 describe("★ the cause of a failure rides the queue", () => {
   const DROPPED = "Your connection dropped. Check your signal, then try again.";
 

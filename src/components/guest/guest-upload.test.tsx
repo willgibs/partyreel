@@ -26,7 +26,7 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { toast } from "sonner";
 import {
   createRef,
@@ -44,10 +44,12 @@ import {
   type UploadedItem,
 } from "@/lib/guest/use-upload-queue";
 import {
+  hasKeptComplete,
   uploadFile,
   type BurstFile,
   type UploadOutcome,
 } from "@/lib/upload/uploader";
+import { HEAL_AFTER_MS } from "@/lib/guest/use-upload-queue.heal";
 import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
 import { formatBytes } from "@/lib/utils";
 
@@ -101,7 +103,9 @@ vi.mock("@/lib/upload/uploader", () => {
     }
     return out;
   };
-  return { uploadFile, uploadBurst };
+  // Whether a file's complete lost its answer and is kept: no file's, until a case says so (the heal's own pins).
+  const hasKeptComplete = vi.fn((_file: File) => false);
+  return { uploadFile, uploadBurst, hasKeptComplete };
 });
 // The claim prompt OWNS the post-upload slot: it resolves the viewer and
 // decides which single card stands, which is its own contract
@@ -852,6 +856,110 @@ describe("GuestUpload: a run that ends badly opens the failure sheet", () => {
    the queue rather than only closing the sheet, or the same errored item would
    sit there forever and the NEXT run's end - however clean - would see it and
    reopen on it. ── */
+
+/**
+ * ★ A SHEET THAT LISTS A LOST ANSWER LETS IT GO WHEN THE ROW ANSWERS (red-team 55's LOW). The complete's answer was lost
+ * after the server wrote the row, so the album drew the photograph while this sheet still said "didn't upload" over it,
+ * until the guest pressed Retry. The queue asks that kept complete again for her (`use-upload-queue.heal.ts`): the
+ * moment it answers the file is landed, its row leaves the sheet, and the sheet with nothing left to list closes.
+ */
+describe("GuestUpload: a lost answer settles as landed", () => {
+  const DROPPED = "Your connection dropped. Check your signal, then try again.";
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+    // What a case queued for the uploader and the kept complete it named go with it, whatever it ended on.
+    mockUploadFile.mockReset();
+    vi.mocked(hasKeptComplete).mockReset();
+  });
+
+  it("★ takes the row down, closes the sheet that had nothing else to list, and tells the album the photograph landed", async () => {
+    const file = makeFile("lost.jpg");
+    vi.mocked(hasKeptComplete).mockImplementation((f) => f === file);
+    mockUploadFile
+      .mockResolvedValueOnce({ ok: false, message: DROPPED, cause: "dropped" })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: "approved",
+        mediaId: "med-lost",
+        kind: "photo",
+      });
+    const { addFiles, onUploaded } = mount();
+    addFiles([file]);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    // The failure as the guest is first shown it, over a photograph the album may already hold.
+    expect(screen.getByText("1 of 1 didn't upload")).toBeInTheDocument();
+    expect(screen.getByText(DROPPED)).toBeInTheDocument();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[0]);
+    });
+    expect(screen.queryByText(/didn't upload/)).toBeNull();
+    expect(screen.queryByText(DROPPED)).toBeNull();
+    expect(onUploaded).toHaveBeenCalledTimes(1);
+    expect(onUploaded).toHaveBeenCalledWith(
+      expect.objectContaining({ file, mediaId: "med-lost" }),
+    );
+  });
+
+  it("★ takes one row of several down and counts the rest by what landed: the sheet goes on listing what did not", async () => {
+    const lost = makeFile("lost.jpg");
+    vi.mocked(hasKeptComplete).mockImplementation((f) => f === lost);
+    mockUploadFile
+      .mockResolvedValueOnce({ ok: false, message: DROPPED, cause: "dropped" })
+      .mockResolvedValueOnce({ ok: false, message: "Nope B." })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: "approved",
+        mediaId: "med-lost",
+        kind: "photo",
+      });
+    const { addFiles } = mount();
+    addFiles([lost, makeFile("b.jpg")]);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(screen.getByText("2 of 2 didn't upload")).toBeInTheDocument();
+    expect(screen.queryByText(/Everything else/)).toBeNull();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[0]);
+    });
+    // One of the two has landed, so the other stays listed under a count that says so, and the rest is in the album.
+    expect(screen.getByText("1 of 2 didn't upload")).toBeInTheDocument();
+    expect(screen.getByText("b.jpg")).toBeInTheDocument();
+    expect(screen.queryByText("lost.jpg")).toBeNull();
+    expect(
+      screen.getByText("Everything else is in Maya’s album."),
+    ).toBeInTheDocument();
+  });
+
+  it("leaves the sheet as it was when the ask finds the line still down: nothing flickers away for good", async () => {
+    const file = makeFile("lost.jpg");
+    vi.mocked(hasKeptComplete).mockImplementation((f) => f === file);
+    mockUploadFile.mockResolvedValue({
+      ok: false,
+      message: DROPPED,
+      cause: "dropped",
+    });
+    const { addFiles, onUploaded } = mount();
+    addFiles([file]);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[0]);
+    });
+    expect(mockUploadFile).toHaveBeenCalledTimes(2);
+    expect(screen.getByText("1 of 1 didn't upload")).toBeInTheDocument();
+    expect(screen.getByText(DROPPED)).toBeInTheDocument();
+    expect(onUploaded).not.toHaveBeenCalled();
+  });
+});
 
 describe("GuestUpload: dismissing a failure retires it for good", () => {
   it("Not now drops it: a later clean run never resurrects it", async () => {

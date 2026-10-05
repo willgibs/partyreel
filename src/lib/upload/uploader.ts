@@ -218,6 +218,15 @@ type Unanswered = {
 const UNANSWERED = new WeakMap<File, Unanswered>();
 
 /**
+ * Whether this file's complete lost its answer and is kept (`UNANSWERED`): its row may already stand, and its next try asks
+ * that very complete again, never a presign or a byte. A caller reads it to tell a file that failed from a file whose
+ * fate is merely unknown (`use-upload-queue.heal.ts`).
+ */
+export function hasKeptComplete(file: File): boolean {
+  return UNANSWERED.has(file);
+}
+
+/**
  * The server's own "couldn't finish" (a failure it threw, a database it could not reach): a row may stand behind it,
  * so its complete is kept for the next try as a lost answer's is. Every other refusal is the server's settled word on
  * the file, and its next try starts afresh.

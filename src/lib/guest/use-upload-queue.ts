@@ -49,6 +49,7 @@ import { toast } from "sonner";
 import { joinEvent, type JoinedGuest } from "@/lib/guest/join";
 import { SESSION_OTHER_ACCOUNT } from "@/lib/guest/session-owner";
 import { dropGuestTicket } from "@/lib/guest/use-stored-session";
+import { useHealLostAnswers } from "@/lib/guest/use-upload-queue.heal";
 import { HOST_CLIP_ENDPOINTS } from "@/lib/reel/clip-add";
 import { classifyMime, validateUpload } from "@/lib/media/validators";
 import { takeBurst } from "@/lib/upload/burst";
@@ -1308,6 +1309,39 @@ export function useUploadQueue({
     },
     [patch, runQueue],
   );
+
+  /**
+   * ★ A LOST ANSWER IS ASKED AGAIN FOR HER (`use-upload-queue.heal.ts`): the files that failed as a dropped connection
+   * with their complete kept (the row may stand: the album may already show the photograph) go again the way her Retry
+   * sends them, which asks that very complete and nothing else, so a row the server wrote lands now and one it did not is
+   * written. Not her Retry in one thing: it never gives the silent join back (`silentJoinSpentRef`), so a ticket that
+   * keeps being refused can never turn this into a row factory. Nothing is asked of a demo, a door that holds her
+   * (`doorOpenRef`) or a device with no ticket: the join is not this to make.
+   */
+  const healLost = useCallback(
+    (ids: string[]) => {
+      if (isDemo || !doorOpenRef.current) return;
+      if (!(ownerEventId || sessionRef.current)) return;
+      const lost = new Set(ids);
+      sync(
+        itemsRef.current.map((it) =>
+          lost.has(it.id) && it.status === "error"
+            ? {
+                ...it,
+                status: "queued" as const,
+                progress: 0,
+                error: undefined,
+                errorCode: undefined,
+                cause: undefined,
+              }
+            : it,
+        ),
+      );
+      void runQueue();
+    },
+    [isDemo, ownerEventId, runQueue, sync],
+  );
+  useHealLostAnswers(items, healLost);
 
   /**
    * Drop the named ERRORED items from the queue for good (the failure sheet's
