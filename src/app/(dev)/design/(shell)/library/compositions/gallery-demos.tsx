@@ -248,11 +248,11 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
     test: "src/components/admin/moderation-grid.test.tsx",
     title: "The Albums browser's grid",
     for: "the operator's grid of an album's items: Remove on what is up, Restore on what was removed, and the worst kinds covered, a tile with no picture at all that opens nothing",
-    lede: "The real ModerationGrid over four tiles: a seen photograph, a removed one, a video, and a covered one. A report of the worst kinds names a covered item, so nothing of it is signed (no url of any kind), its tile draws the reports inbox's own cover, the viewer steps only through what is seen, and Remove and Restore stay on it since neither needs a look. The portal's own writes (Remove behind its sheet, Restore) and the album caption's link are held here: they go nowhere.",
+    lede: "The real ModerationGrid over four tiles: a seen photograph, a removed one, a video, and a covered one. A report of the worst kinds names a covered item, so nothing of it is signed (no url of any kind), its tile draws the reports inbox's own cover, the viewer steps only through what is seen, and Remove and Restore stay on it since neither needs a look. The portal's two writes come in as props, so the Library hands the grid its own: Remove asks through the portal's sheet and each write answers after a round trip, moving the tile in the specimen's own list, so the whole flow is pressed here and nothing is written. The album caption's link is held: it goes nowhere.",
     specimens: [
       {
         label: "The feed, with the album's caption",
-        hint: "Covered tile has no picture to open · tap a seen tile for the viewer · Remove and Restore are held",
+        hint: "Covered tile has no picture to open · tap a seen tile for the viewer · Remove asks through the sheet, Restore brings it back, both over a stand-in write",
         node: <ModerationGridDemo />,
       },
       {

@@ -1,8 +1,11 @@
 "use client";
 
-import type { MouseEvent } from "react";
+import { useState, type MouseEvent } from "react";
 
-import { ModerationGrid } from "@/components/admin/moderation-grid";
+import {
+  ModerationGrid,
+  type ModerationActions,
+} from "@/components/admin/moderation-grid";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import type { ModerationTile } from "@/lib/moderation/operator-actions";
 
@@ -16,9 +19,11 @@ import type { ModerationTile } from "@/lib/moderation/operator-actions";
  * opens nothing, and the viewer steps only through what is seen. Remove and Restore stay on a covered tile, since neither
  * needs a look.
  *
- * ★ REMOVE AND RESTORE ARE HELD. They are the portal's writes (a Server Function behind the destructive sheet), so a press
- * on either, and the album caption's link into the portal, goes nowhere here: the sheet is its own specimen, and the
- * writes are not the Library's. Everything else is the grid's: a tile opens the one viewer.
+ * ★ THE WRITES ARE STAND-INS. Remove and Restore are the portal's writes (a Server Function behind the destructive sheet), and
+ * the grid takes them as props (crumbs-78: it imports no Server Action), so the Library hands it its own: each waits a
+ * round trip, as the real one does, then moves the tile in this specimen's own list and answers ok. The whole flow is
+ * pressed here (the portal's sheet, the pending beat, the toast, the way back) and the project is never written. The album
+ * caption's link into the portal is held: it goes nowhere. Everything else is the grid's: a tile opens the one viewer.
  */
 
 const ALBUM = {
@@ -60,8 +65,8 @@ const TILES: ModerationTile[] = [
   },
 ];
 
-/** The portal's writes and its links: a press on them goes nowhere in the Library. */
-const HELD = '[aria-label="Remove"], [aria-label="Restore"], a[href]';
+/** The album caption's link into the portal: a press on it goes nowhere in the Library. */
+const HELD = "a[href]";
 
 function hold(event: MouseEvent) {
   if ((event.target as Element | null)?.closest?.(HELD)) {
@@ -70,14 +75,37 @@ function hold(event: MouseEvent) {
   }
 }
 
+/** What a Server Function takes before it answers, so the pending beat is seen (the spend watch's specimen waits the same). */
+const ROUND_TRIP_MS = 700;
+
 export function ModerationGridDemo({
   mode = "feed",
 }: {
   mode?: "feed" | "album";
 }) {
+  const [tiles, setTiles] = useState<ModerationTile[]>(TILES);
+
+  /** A write that answers after a round trip and moves the tile in this list, never the project's. */
+  const moveTo =
+    (status: "removed" | "approved"): ModerationActions["removeAction"] =>
+    async (id) => {
+      await new Promise((resolve) => setTimeout(resolve, ROUND_TRIP_MS));
+      setTiles((now) =>
+        now.map((tile) =>
+          tile.id === id ? ({ ...tile, status } as ModerationTile) : tile,
+        ),
+      );
+      return { ok: true };
+    };
+
   return (
     <div onClickCapture={hold} data-library-demo={`moderation-grid-${mode}`}>
-      <ModerationGrid items={TILES} mode={mode} />
+      <ModerationGrid
+        items={tiles}
+        mode={mode}
+        removeAction={moveTo("removed")}
+        restoreAction={moveTo("approved")}
+      />
     </div>
   );
 }

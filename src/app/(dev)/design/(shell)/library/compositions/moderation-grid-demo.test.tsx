@@ -1,6 +1,6 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -8,8 +8,9 @@ import { ModerationGridDemo } from "./moderation-grid-demo";
 
 /**
  * THE ALBUMS GRID'S SPECIMEN DRAWS FOUR STATES AND WRITES NOTHING (`moderation-grid-demo.tsx`): a seen photograph, a removed
- * one, a video and a covered one, with the portal's own writes (Remove behind its sheet, Restore) and the caption's link
- * held. The grid is the real one; the Server Functions behind it are spies that must never be called.
+ * one, a video and a covered one. The grid is the real one and takes its two writes as props, so the specimen hands it
+ * stand-ins that move a tile in its own list after a round trip, and holds the caption's link. The Server Functions the
+ * portal's pages hand the grid are spies that must never be called.
  */
 const actions = vi.hoisted(() => ({
   removeMediaByOperatorAction: vi.fn(async () => ({ ok: true })),
@@ -23,6 +24,9 @@ vi.mock("@/components/shared/media-lightbox.lazy", () => ({
 
 beforeEach(() => {
   Object.values(actions).forEach((fn) => fn.mockClear());
+});
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 const grid = (mode: "feed" | "album" = "feed") =>
@@ -67,17 +71,33 @@ describe("the four states of a tile", () => {
   });
 });
 
-describe("the portal's writes are held", () => {
-  it("★ Remove opens no sheet and Restore calls nothing: not one Server Function is reached", async () => {
+describe("the portal's writes are stand-ins", () => {
+  it("★ Remove asks through the sheet and the tile goes removed after a round trip, and Restore brings it back: no Server Function is reached", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     grid();
-    const [seen, removed] = [
+    const [seen] = [
       ...document.querySelectorAll("[data-media-tile]"),
     ] as HTMLElement[];
-    await userEvent.click(within(seen).getByRole("button", { name: "Remove" }));
-    expect(screen.queryByRole("alertdialog")).toBeNull();
-    await userEvent.click(
-      within(removed).getByRole("button", { name: "Restore" }),
-    );
+    await user.click(within(seen).getByRole("button", { name: "Remove" }));
+    const sheet = await screen.findByRole("alertdialog");
+    await user.click(within(sheet).getByRole("button", { name: "Remove" }));
+    // Not yet: a round trip's wait, as the real write takes.
+    expect(within(seen).queryByRole("button", { name: "Restore" })).toBeNull();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(800);
+    });
+    expect(
+      await within(seen).findByRole("button", { name: "Restore" }),
+    ).toBeInTheDocument();
+    // And the way back, through the other stand-in.
+    await user.click(within(seen).getByRole("button", { name: "Restore" }));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(800);
+    });
+    expect(
+      await within(seen).findByRole("button", { name: "Remove" }),
+    ).toBeInTheDocument();
     expect(actions.removeMediaByOperatorAction).not.toHaveBeenCalled();
     expect(actions.restoreMediaAction).not.toHaveBeenCalled();
   });
