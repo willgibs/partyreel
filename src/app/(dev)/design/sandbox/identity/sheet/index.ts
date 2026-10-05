@@ -1,30 +1,28 @@
-import type { AskId, Choice } from "../model";
+import type { Choice, LoadingId, SetId } from "../model";
 
 import { BASE_CSS } from "./base";
-import { BUTTON_CSS } from "./button";
 import { CALLS_CSS } from "./calls";
-import { EDGE_CSS } from "./edge";
-import { FIELD_CSS } from "./field";
-import { FOCUS_CSS } from "./focus";
 import { LOADING_CSS } from "./loading";
-import { PRESS_CSS } from "./press";
-import { ROOM_CSS } from "./room";
-import { SELECTED_CSS } from "./selected";
+import { HOUSE_CSS } from "./sets/house";
+import { KEYS_CSS } from "./sets/keys";
+import { LIT_CSS } from "./sets/lit";
+import { TONE_CSS } from "./sets/tone";
+import { SETTLED_CSS } from "./settled";
 import { PHOTO } from "./states";
-import { TOGGLES_CSS } from "./toggles";
 
 /**
- * ONE MIX, ONE STYLESHEET OVER PRODUCTION: the tokens and the composition the
- * traits share, then each trait's pick, then the room's pop-out (graphite, as
- * picked), the carried calls the lane takes other than as built (`calls.ts`)
- * and the light edge's reach. Nothing in `src/components/` is touched:
- * a frame mounts production's own components wearing this, which is what
- * wiring a pick at the source does (`globals.css` and `src/components/ui/`).
+ * ONE FRAME, ONE STYLESHEET OVER PRODUCTION: the base every set stands on,
+ * then the set (its field, buttons, chosen things and toggles, drawn by one
+ * hand), then his r4 picks (the halo, the shrink, the floating edge), then the
+ * working state, then the carried call this board takes other than as built
+ * (`calls.ts`). Nothing in `src/components/` is touched: a frame mounts
+ * production's own components wearing this, which is what wiring a pick at
+ * the source does (`globals.css` and `src/components/ui/`).
  *
- * ★ THE ORDER IS THE COMPOSITION'S (`states.ts`): a body (the field, the
- * button), then toggles, then what is chosen, then a press, then working,
- * then focus last, so where two traits want one plain property the later,
- * more transient state wins, as it does under a finger.
+ * ★ THE ORDER IS THE COMPOSITION'S: the set's bodies first, then the settled
+ * marks over them, then working last of the transient states, so where two
+ * want one plain property the more transient state wins, as it does under a
+ * finger.
  *
  * ★ IT STYLES ATOMS ONLY, BY THE HOOKS THEIR PRIMITIVES WRITE (`data-slot`,
  * `data-variant`, `data-size`, `data-state`, and the atom contract's hooks),
@@ -42,33 +40,24 @@ const ON_PHOTO = `
 ${PHOTO} { color: oklch(1 0 0); --foreground: oklch(1 0 0); --muted-foreground: oklch(1 0 0 / 80%); }
 `;
 
-/** Each ask's sheets, by option, in the order they are laid down. */
-export const SHEETS_BY_ASK: {
-  readonly [A in AskId]: Record<Choice[A], string>;
-} = {
-  field: FIELD_CSS,
-  button: BUTTON_CSS,
-  toggles: TOGGLES_CSS,
-  selected: SELECTED_CSS,
-  press: PRESS_CSS,
-  loading: LOADING_CSS,
-  focus: FOCUS_CSS,
-  edge: EDGE_CSS,
+/** Each set's sheet, by its id. */
+export const SET_CSS: Record<SetId, string> = {
+  keys: KEYS_CSS,
+  lit: LIT_CSS,
+  tone: TONE_CSS,
+  house: HOUSE_CSS,
 };
+
+/** Each working state's sheet, by its id. */
+export const WORKING_CSS: Record<LoadingId, string> = LOADING_CSS;
 
 export function sheetFor(c: Choice): string {
   return [
     BASE_CSS,
-    FIELD_CSS[c.field],
-    BUTTON_CSS[c.button],
-    TOGGLES_CSS[c.toggles],
-    SELECTED_CSS[c.selected],
-    PRESS_CSS[c.press],
-    LOADING_CSS[c.loading],
-    FOCUS_CSS[c.focus],
-    ROOM_CSS,
+    SET_CSS[c.set],
+    SETTLED_CSS,
+    WORKING_CSS[c.loading],
     CALLS_CSS,
-    EDGE_CSS[c.edge],
     ON_PHOTO,
   ].join("\n");
 }

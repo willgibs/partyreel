@@ -1,134 +1,148 @@
 import type { LoadingId } from "../model";
 
-import { BTN, BUSY, each, FIELDS, ICON } from "./states";
+import { BTN, BUSY, ICON } from "./states";
 
 /**
- * WHAT WORKING LOOKS LIKE: a key pressed and waiting on the server (Save,
- * Unlock, Create), and a field checking what was typed (a custom link being
- * looked up). `aria-busy="true"` is the atom contract's hook, what a wired atom
+ * WHAT A KEY SHOWS WHILE IT WORKS ON WHAT YOU PRESSED (round five's own ask:
+ * Will, r4: "Leaning towards option 2, the arc running round ... The arc
+ * looping is an intuitive state, looks clean beside the copy, harder to miss
+ * and clearly shows why the button is being held. Each option should try to
+ * cleanly communicate that state, at whatever level of creativity or
+ * information-density they'd like"). Never three lights, never a track along
+ * the foot. `aria-busy="true"` is the atom contract's hook, what a wired atom
  * sets while it works.
  *
- * ★ NEVER THE VIEWFINDER'S HUNT (Will, r2: the corners "and loading state"
- * read as a dev tool): no mark searches, nothing frames or circles the
- * control. Every option is drawn INSIDE the key it works in, so nothing it
- * does reaches the lane a focus mark stands in round the key.
+ * ★ EVERY OPTION KEEPS ITS WORDS IN VIEW (r4's direction: a wait that hides
+ * what is working reads as broken on party wifi), and every one draws inside
+ * the key, so nothing it does reaches the band the halo stands in round it.
  *
- * ★ THE WORDS STAY (the round's direction: "anything taking longer should
- * provide clear state feedback"): a wait that hides what is working reads as
- * broken on party wifi, so every option keeps the key's words, and a wired key
- * says what it is doing in them ("Saving", "Unlocking").
+ * ★ STILL, EACH STILL SAYS "WORKING". Under reduced motion every loop plays
+ * once and rests on its base style (globals.css's guard, and `.identity-still`
+ * for a frame's twin), so each base is drawn to read as working on its own: an
+ * arc a third of the way round its faint ring, a beam stopped a third of the
+ * way round the key's edge, a key still held down.
  *
- * ★ STILL, IT STILL READS AS WORKING. Under reduced motion every loop plays
- * once and rests on its base style (globals.css's guard), so each base style
- * is drawn to say "working" on its own: three lights, an arc a third round, a
- * segment part way along its track.
+ * ★ ONE PSEUDO-ELEMENT: a button's `::before` is the working state's, alone
+ * (a set's light stands on `::after`, and the halo draws no element). A field
+ * takes no pseudo-element, so a field checking what was typed draws in its
+ * status slot (`[data-slot="field-status"]`, the proposed hook a wired field
+ * puts where its answer will be, a tick or a cross) and its wrapper
+ * (`[data-slot="field-wrap"]`).
  */
 
-const BUSY_BTN = `${BTN}${BUSY}:not([data-variant="link"])`;
+const WORKING = `${BTN}${BUSY}:not([data-variant="link"])`;
 const ROUND = `:is(${ICON},[data-size="icon-cta"])`;
+const FIELD_BUSY = '[data-slot="input"][aria-busy="true"]';
+const STATUS = `${FIELD_BUSY} ~ [data-slot="field-status"]`;
+const WRAP = '[data-slot="field-wrap"]';
 
-/** Laid out once: the loops every option may run. */
-const BASE = `
-${BTN}${BUSY} { cursor: progress; }
-@property --vf-breath { syntax: "<number>"; inherits: false; initial-value: 1; }
-@property --vf-spin { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
-@keyframes vf-breathe-dots { from { opacity: 0.35; } to { opacity: 1; } }
-@keyframes vf-breathe-num { from { --vf-breath: 0.35; } to { --vf-breath: 1; } }
-@keyframes vf-spin { to { --vf-spin: 1turn; } }
-@keyframes vf-slide { from { background-position: -43% 100%, 0 100%; } to { background-position: 143% 100%, 0 100%; } }
-@keyframes vf-slide-floor { from { background-position: -43% 100%; } to { background-position: 143% 100%; } }
-@keyframes vf-fill-round { from { background-size: 0 2px, 12px 2px; } to { background-size: 12px 2px, 12px 2px; } }
-`;
-
-/** Three lights in a row, in an ink, `size` each with `gap` between. */
-const lights = (ink: string, size: number, gap: number) =>
-  [0, 1, 2]
-    .map(
-      (i) =>
-        `radial-gradient(circle closest-side, ${ink} 90%, transparent) ${i * (size + gap)}px 50% / ${size}px ${size}px no-repeat`,
-    )
-    .join(", ");
-
-/**
- * THREE LIGHTS BREATHING (keys): its words stay and three small lights breathe
- * after them in the key's own ink, a key saying "Save..." while it saves (a
- * round key, too small for its words and its lights, gives its glyph to them);
- * a field checking what was typed breathes three lights at its end, where its
- * answer will be.
- */
-const DOTS = `
-${BUSY_BTN}::before {
-  content: ""; order: 2; flex: none; width: 16px; height: 4px; pointer-events: none;
-  background: ${lights("var(--k-ink, var(--foreground))", 4, 2)};
-  animation: vf-breathe-dots 700ms ease-in-out infinite alternate;
-}
-${BTN}${BUSY}${ROUND} > * { display: none; }
-${each(FIELDS, BUSY)} {
-  --vf-dot: color-mix(in oklab, var(--foreground) calc(var(--vf-breath) * 70%), transparent);
-  background-image:
-    radial-gradient(circle closest-side, var(--vf-dot) 90%, transparent),
-    radial-gradient(circle closest-side, var(--vf-dot) 90%, transparent),
-    radial-gradient(circle closest-side, var(--vf-dot) 90%, transparent);
-  background-size: 4px 4px; background-repeat: no-repeat;
-  background-position: right 26px center, right 20px center, right 14px center;
-  animation: vf-breathe-num 700ms ease-in-out infinite alternate;
-}
-`;
-
-/**
- * AN ARC RUNNING ROUND (all rings): a small arc turns inside the key before
- * its words, which dim a little while it works, as a phone's own control
- * does; a round key's glyph gives way to it. A field checking what was typed
- * runs a light along its floor.
- */
-const ARC = `
-${BUSY_BTN} { color: color-mix(in oklab, var(--k-ink, var(--foreground)) 70%, transparent); }
-${BUSY_BTN}::before {
-  content: ""; order: -1; flex: none; width: 14px; height: 14px; border-radius: 999px; padding: 1.75px; pointer-events: none;
-  background: conic-gradient(from var(--vf-spin), var(--k-ink, var(--foreground)) 0 32%, transparent 32% 100%);
+/** A ring's mask: the box less its content box, so a background is drawn as a ring. */
+const RING_MASK = `
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor; mask-composite: exclude;
-  animation: vf-spin 900ms linear infinite;
-}
-${BTN}${BUSY}${ROUND} > * { display: none; }
-${each(FIELDS, BUSY)} {
-  background-image: linear-gradient(90deg, transparent, var(--foreground), transparent);
-  background-size: 30% 2px; background-repeat: no-repeat; background-position: 35% 100%;
-  animation: vf-slide-floor 1.1s linear infinite;
-}
 `;
 
 /**
- * A TRACK FILLING (ink): the key keeps its words and a segment of its own ink
- * runs along a faint track at its foot, edge to edge and clipped by its
- * corners, the meters' line worn by a key; it slides rather than fills, so it
- * never claims a progress the server is not sending. A round key's track is
- * short and centred under its glyph. A field checking what was typed runs the
- * same segment along its floor.
+ * THE ARC, REFINED: a third of a ring in the key's own ink running round a
+ * faint full ring of the same ink, so its still is a ring a third filled
+ * rather than a fragment; sized to the icon step of its key (12, 14, 16, as
+ * every icon pairs with its text), and standing where a leading icon stands,
+ * which it replaces, so a key with an icon keeps its width. One turn in 800ms,
+ * linear: a spinner that eases reads as stalling between turns.
  */
-const TRACK = `
-${BUSY_BTN} {
-  --vf-track: color-mix(in oklab, currentColor 26%, transparent);
-  background-image: linear-gradient(currentColor 0 0), linear-gradient(var(--vf-track) 0 0);
-  background-repeat: no-repeat;
-  background-size: 30% 3px, 100% 3px;
-  background-position: 35% 100%, 0 100%;
-  animation: vf-slide 1.3s var(--ease-in-out-strong) infinite;
+const arcBody = (size = "var(--arc)") => `
+  content: ""; flex: none; width: ${size}; height: ${size}; border-radius: 999px; padding: var(--arc-w, 1.75px);
+  pointer-events: none; box-sizing: border-box;
+  background: conic-gradient(currentColor 0 30%, color-mix(in oklab, currentColor 22%, transparent) 30% 100%);
+  ${RING_MASK}
+  animation: id-spin 800ms linear infinite;
+`;
+
+const BASE = `
+@keyframes id-spin { to { rotate: 1turn; } }
+@property --id-orbit { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+@keyframes id-orbit { to { --id-orbit: 1turn; } }
+${BTN} { --arc: 14px; }
+${BTN}:is([data-size="xs"],[data-size="sm"],[data-size="icon-xs"],[data-size="icon-sm"]) { --arc: 12px; --arc-w: 1.5px; }
+${BTN}:is([data-size="cta"],[data-size="icon-cta"]) { --arc: 16px; --arc-w: 2px; }
+${BTN}${BUSY} { cursor: progress; }
+${WRAP} { position: relative; }
+[data-slot="field-status"] {
+  position: absolute; top: 0; bottom: 0; right: 12px; display: none; align-items: center; gap: 6px;
+  color: var(--muted-foreground); font-size: 12px; pointer-events: none;
 }
-${BTN}${BUSY}${ROUND} {
-  background-size: 5px 2px, 12px 2px;
-  background-position: calc(50% - 6px) calc(100% - 6px), calc(50% - 6px) calc(100% - 6px);
-  animation: vf-fill-round 1.3s var(--ease-in-out-strong) infinite;
-}
-${each(FIELDS, BUSY)} {
-  background-image: linear-gradient(var(--foreground) 0 0);
-  background-repeat: no-repeat; background-size: 30% 2px; background-position: 35% 100%;
-  animation: vf-slide-floor 1.3s var(--ease-in-out-strong) infinite;
-}
+${STATUS} { display: flex; }
+`;
+
+/** The arc before the words, in a leading icon's place. */
+const ARC_ON_KEYS = `
+${WORKING}::before { ${arcBody()} order: -1; }
+${WORKING} > svg:first-child { display: none; }
+${BTN}${BUSY}${ROUND} > * { display: none; }
+${STATUS}::after { ${arcBody("14px")} }
+`;
+
+const ARC = BASE + ARC_ON_KEYS;
+
+/**
+ * THE WORDS SAY IT: the same arc, and the key's words turn to what it is
+ * doing ("Unlocking", "Saving", "Creating your event"), as production's own
+ * keys already say "Saving…" and "Removing…" while they wait. The words are
+ * the scene's to change (a wired key renders its working words; the scene
+ * swaps them where the key carries `data-working`); a field says what it is
+ * checking in its status slot, beside the arc.
+ */
+const WORDS = `
+${BASE}
+${ARC_ON_KEYS}
+${STATUS}::before { content: attr(data-working); }
+`;
+
+/**
+ * A BEAM ROUND ITS EDGE: a light runs round the key's own edge while it
+ * works, a comet's tail into a bright head, over a faint ring of the same
+ * light, and ends when the work lands: the house's beam (the light doctrine's
+ * "a beam marks the live subject ... and ends when the state ends"), drawn in
+ * the key's own ink, never a lamp's hue. Its words stay whole; stopped, it is
+ * a ring of light a third of the way round. A field checking runs it round
+ * the field.
+ */
+const beam = (w = "1.5px") => `
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: ${w}; pointer-events: none; z-index: 2;
+  background: conic-gradient(from var(--id-orbit),
+    color-mix(in oklab, currentColor 16%, transparent) 0 52%,
+    color-mix(in oklab, currentColor 45%, transparent) 76%,
+    currentColor 93%,
+    color-mix(in oklab, currentColor 16%, transparent) 96% 100%);
+  ${RING_MASK}
+  animation: id-orbit 1.5s linear infinite;
+`;
+const EDGE = `
+${BASE}
+${WORKING}::before { ${beam()} }
+${BTN}${BUSY}:is([data-size="cta"],[data-size="icon-cta"])::before { padding: 2px; }
+${WRAP}:has(> ${FIELD_BUSY})::after { ${beam()} border-radius: 8px; color: var(--foreground); }
+`;
+
+/**
+ * HELD DOWN UNTIL IT LANDS: the key keeps the press it was given (its shrink,
+ * held, and its face a shade down) for as long as it works, with the arc in
+ * its icon's place: the key you pressed is visibly still down, which is the
+ * plainest way to say why it will not take another press. A field checking
+ * holds its words a step quieter, the arc at its end.
+ */
+const HELD = `
+${BASE}
+${ARC_ON_KEYS}
+${WORKING} { --i-press-s: 0.96; --i-press: inset 0 0 0 999px color-mix(in oklab, var(--foreground) 7%, transparent); }
+${WORKING}:is([data-size="xs"],[data-size="sm"]) { --i-press-s: 0.95; }
+${WORKING}[data-size="cta"] { --i-press-s: 0.98; }
+${FIELD_BUSY} { color: var(--muted-foreground); }
 `;
 
 export const LOADING_CSS: Record<LoadingId, string> = {
-  dots: BASE + DOTS,
-  arc: BASE + ARC,
-  track: BASE + TRACK,
+  arc: ARC,
+  words: WORDS,
+  edge: EDGE,
+  held: HELD,
 };

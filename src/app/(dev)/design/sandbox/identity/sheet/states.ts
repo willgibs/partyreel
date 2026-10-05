@@ -59,12 +59,16 @@ export const FIELDS = [
   '[data-slot="select-trigger"]',
 ].join(",");
 
-/** A list of selectors, each with a suffix (`each(FIELDS, FOCUS)`). */
+/**
+ * A list of selectors, each with a suffix (`each(FIELDS, FOCUS)`), split on
+ * the commas outside any parentheses: a button by its variants is one
+ * selector with an `:is(a,b)` inside it, never two.
+ */
 export const each = (list: string, suffix: string): string =>
   list
-    .split(",")
+    .split(/,(?![^(]*\))/)
     .map((s) => `${s.trim()}${suffix}`)
-    .join(",");
+    .join(", ");
 
 /** The quick layers: what opens dozens of times an hour and closes on the next press. */
 export const QUICK = [
@@ -151,9 +155,9 @@ export const SHUTTER = '[data-slot="shutter"]';
 export const CODE_CHIP = '[data-slot="code-chip"]';
 
 /**
- * EVERY ATOM THE TRAITS DRAW ON, as one list: what you press, what holds a
- * value, what you flip and what you choose. A trait styles these by their
- * hooks alone (`identity.test.ts` refuses a screen's own selector).
+ * EVERY ATOM A SET DRAWS ON, as one list: what you press, what holds a value,
+ * what you flip and what you choose. A set styles these by their hooks alone
+ * (`identity.test.ts` refuses a screen's own selector).
  */
 export const ATOMS = [
   BTN,
@@ -171,29 +175,32 @@ export const ATOMS = [
 ].join(", ");
 
 /**
- * ★ THE TRAITS COMPOSE, THEY NEVER OVERWRITE ONE ANOTHER (r4: the mix). Seven
- * sheets style the same atoms, and a `box-shadow`, a `translate` or a `scale`
- * is ONE property each would otherwise take whole from the others, so each
- * trait writes its own layer into a variable and `base.ts` composes them:
+ * ★ THE LAYERS COMPOSE, THEY NEVER OVERWRITE ONE ANOTHER. A set's body, what
+ * is chosen, a press (and a key held working), and the halo all style the
+ * same atoms, and a `box-shadow`, a `translate` or a `scale` is ONE property
+ * each would otherwise take whole from the others, so each writes its own
+ * layer into a variable and `base.ts` composes them:
  *
  *   box-shadow  var(--i-focus), var(--i-sel), var(--i-press), var(--i-body)
  *   translate   0 calc(var(--i-press-y) + var(--i-focus-y))
  *   scale       var(--i-press-s)
  *
  * The variables are registered `inherits: false`, so a chosen radio card's
- * layer never reaches the radio inside it. A trait still owns its plain
- * properties outright (a field its height and fill, a focus mark its
- * `outline`), and where two traits want one (`background-color`), the sheet's
- * order decides: body, then toggles, then chosen, then press, then working,
- * then focus (`index.ts`).
+ * layer never reaches the radio inside it. A set still owns its plain
+ * properties outright (a field's fill, a key's face), and where two want one,
+ * the sheet's order decides: the set, then the settled marks, then working
+ * (`index.ts`).
  *
- * THE PSEUDO-ELEMENTS, BY TRAIT, so two never fight for one:
- *   a button, the shutter, the code chip   ::before working (dots, arc)   ::after focus
- *   a chip, a segment, a radio card        ::before chosen                ::after focus
- *   a tab        ::before focus    ::after chosen (production's own underline)
- *   a switch     ::before focus    ::after is production's hit area: never touched
- *   a check, a radio, a slider's thumb     ::after focus
- *   a field      none (an <input> takes none): its marks are background layers
+ * THE PSEUDO-ELEMENTS, BY JOB, so two never fight for one (the halo is a
+ * shadow and draws none):
+ *   a button        ::before working (the arc, the beam)    ::after a set's light
+ *   a chip          ::after a set's light
+ *   a segment       ::before what is chosen's light
+ *   a tab           ::after what is chosen's light (production's underline, retired in every set)
+ *   a radio card    ::after what is chosen's light
+ *   a switch        ::after is production's hit area: never touched (its thumb carries the light)
+ *   a slider thumb  ::after a set's light
+ *   a field         none (an <input> takes none): its checking draws in its status slot and wrapper
  */
 export const LAYER = {
   focus: "--i-focus",

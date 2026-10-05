@@ -35,7 +35,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 
 import { PHOTO } from "../fixtures";
-import type { GroundId, MomentId, SheetView, Width } from "../model";
+import type { GroundId, SheetView, Width } from "../model";
 
 import { Check, PhotoSurface, Radio, RadioCard, Slider } from "./atoms";
 import { Ground } from "./ground";
@@ -79,8 +79,12 @@ type StateId = (typeof STATES)[number];
 type Page = 0 | 1 | 2;
 const shows = (page: Page, half: 1 | 2) => page === 0 || page === half;
 
-/** The attributes that pin a state on any atom. */
-function pin(s: StateId): Record<string, unknown> {
+/**
+ * The attributes that pin a state on any atom; a working key carries the
+ * words it would say while it works (`data-working`), which the scene shows
+ * where the working state is the one that says them.
+ */
+function pin(s: StateId, working?: string): Record<string, unknown> {
   switch (s) {
     case "hover":
     case "press":
@@ -89,7 +93,7 @@ function pin(s: StateId): Record<string, unknown> {
     case "off":
       return { disabled: true };
     case "loading":
-      return { "aria-busy": true };
+      return { "aria-busy": true, "data-working": working };
     case "error":
       return { "aria-invalid": true };
     default:
@@ -190,11 +194,14 @@ function ActionsSheet({ w, page }: { w: Width; page: Page }) {
         <StateGrid
           w={w}
           rows={[
-            { name: "primary", draw: (s) => <Button {...pin(s)}>Add</Button> },
+            {
+              name: "primary",
+              draw: (s) => <Button {...pin(s, "Adding")}>Add</Button>,
+            },
             {
               name: "outline",
               draw: (s) => (
-                <Button variant="outline" {...pin(s)}>
+                <Button variant="outline" {...pin(s, "Inviting")}>
                   Invite
                 </Button>
               ),
@@ -202,7 +209,7 @@ function ActionsSheet({ w, page }: { w: Width; page: Page }) {
             {
               name: "secondary",
               draw: (s) => (
-                <Button variant="secondary" {...pin(s)}>
+                <Button variant="secondary" {...pin(s, "Printing")}>
                   Print
                 </Button>
               ),
@@ -210,7 +217,7 @@ function ActionsSheet({ w, page }: { w: Width; page: Page }) {
             {
               name: "ghost",
               draw: (s) => (
-                <Button variant="ghost" {...pin(s)}>
+                <Button variant="ghost" {...pin(s, "Skipping")}>
                   Skip
                 </Button>
               ),
@@ -218,7 +225,7 @@ function ActionsSheet({ w, page }: { w: Width; page: Page }) {
             {
               name: "delete",
               draw: (s) => (
-                <Button variant="destructive" {...pin(s)}>
+                <Button variant="destructive" {...pin(s, "Deleting")}>
                   Delete
                 </Button>
               ),
@@ -428,6 +435,26 @@ function Field({
   );
 }
 
+/**
+ * A field checking what was typed: the field itself busy, in the wrapper and
+ * beside the status slot a wired field draws where its answer will be (the
+ * proposed hooks `field-wrap` and `field-status`, `sheet/loading.ts`).
+ */
+export function Checking({
+  value,
+  label,
+}: {
+  value: string;
+  label?: string;
+}) {
+  return (
+    <div data-slot="field-wrap">
+      <Input defaultValue={value} aria-busy aria-label={label} />
+      <span data-slot="field-status" data-working="Checking" aria-hidden />
+    </div>
+  );
+}
+
 function FieldsSheet({ w, page }: { w: Width; page: Page }) {
   const desk = w === 1440;
   const [door, setDoor] = useState("password");
@@ -458,7 +485,7 @@ function FieldsSheet({ w, page }: { w: Width; page: Page }) {
               <Input disabled defaultValue="partyreel.com/e/maya-and-jay" />
             </Field>
             <Field label="Custom link" line="Checking it is free…">
-              <Input defaultValue="mayajay" aria-busy />
+              <Checking value="mayajay" />
             </Field>
             <Field label="Custom link" error="That link is taken. Try another.">
               <Input aria-invalid defaultValue="maya-jay" />
@@ -588,14 +615,109 @@ function FieldsSheet({ w, page }: { w: Width; page: Page }) {
   );
 }
 
+/* ── WORKING ──────────────────────────────────────────────────────────── */
+
+/**
+ * One thing working, twice: moving, and still as reduced motion leaves it
+ * (`.identity-still`, the global guard on a subtree), so every option's still
+ * is judged beside its loop. At a desk the two stand side by side; in a hand
+ * the still sits under the loop.
+ */
+function WorkRow({
+  title,
+  w,
+  draw,
+}: {
+  title: string;
+  w: Width;
+  draw: () => ReactNode;
+}) {
+  const desk = w === 1440;
+  return (
+    <Part title={title}>
+      <div
+        className={cn(
+          "grid gap-x-6 gap-y-3",
+          desk ? "grid-cols-2" : "grid-cols-1",
+        )}
+      >
+        <div className="flex min-w-0 flex-col gap-1.5">
+          <Note>moving</Note>
+          {draw()}
+        </div>
+        <div className="identity-still flex min-w-0 flex-col gap-1.5">
+          <Note>still, as reduced motion leaves it</Note>
+          {draw()}
+        </div>
+      </div>
+    </Part>
+  );
+}
+
+/**
+ * THE LOADING ASK'S THREE (the r5 brief: "on a primary, a quiet key, and a
+ * field checking what was typed"): Account's Save on the name she typed,
+ * Manage billing opening Stripe beside Change plan at rest, and a custom link
+ * being checked. Each carries the words it would say (`data-working`).
+ */
+function WorkingSheet({ w }: { w: Width }) {
+  return (
+    <div className="flex flex-col gap-6">
+      <WorkRow
+        w={w}
+        title="A primary: Save, on the name she typed"
+        draw={() => (
+          <div className="flex gap-2">
+            <Input defaultValue="Maya Okafor-Reyes" aria-label="Display name" />
+            <Button aria-busy data-working="Saving">
+              Save
+            </Button>
+          </div>
+        )}
+      />
+      <WorkRow
+        w={w}
+        title="A quiet key: Manage billing, opening the billing portal"
+        draw={() => (
+          <div className="flex flex-wrap items-center gap-2">
+            <Button size="sm">Change plan</Button>
+            <Button
+              size="sm"
+              variant="outline"
+              aria-busy
+              data-working="Opening billing"
+            >
+              Manage billing
+            </Button>
+          </div>
+        )}
+      />
+      <WorkRow
+        w={w}
+        title="A field checking what was typed: a custom link"
+        draw={() => (
+          <div className="flex flex-col gap-1.5">
+            <Checking value="maya-and-jay" label="Custom link" />
+            <p className="text-caption text-muted-foreground">
+              Checking it is free…
+            </p>
+          </div>
+        )}
+      />
+    </div>
+  );
+}
+
 /* ── the sheet, on its grounds ────────────────────────────────────────── */
 
 const TITLE: Record<SheetView, string> = {
   actions: "Actions, every state",
   fields: "Fields and toggles, every state",
+  working: "Working, moving and still",
 };
 
 function SheetOn({ view, w, page }: { view: SheetView; w: Width; page: Page }) {
+  if (view === "working") return <WorkingSheet w={w} />;
   return view === "actions" ? (
     <ActionsSheet w={w} page={page} />
   ) : (
@@ -605,7 +727,8 @@ function SheetOn({ view, w, page }: { view: SheetView; w: Width; page: Page }) {
 
 /**
  * At a desk, paper and the room side by side in one frame; in a hand, one
- * page of the sheet on the frame's own ground.
+ * page of the sheet on the frame's own ground (the working sheet is one
+ * page).
  */
 export function Sheet({
   view,
@@ -617,12 +740,11 @@ export function Sheet({
   w: Width;
   ground: GroundId;
   page: 1 | 2;
-  /** The trait being asked: every state is drawn whatever it is, so the sheet reads it for nothing yet. */
-  moment?: MomentId;
 }) {
   const desk = w === 1440;
   const grounds: GroundId[] = desk ? ["paper", "room"] : [ground];
   const at: Page = desk ? 0 : page;
+  const paged = !desk && view !== "working";
   return (
     <main
       className="grid min-h-screen"
@@ -642,7 +764,7 @@ export function Sheet({
             style={{ marginBottom: 20 }}
           >
             <span className="text-[11px] leading-4 font-medium text-foreground">
-              {desk ? TITLE[view] : `${TITLE[view]}, ${page} of 2`}
+              {paged ? `${TITLE[view]}, ${page} of 2` : TITLE[view]}
             </span>
             <span className="text-[11px] leading-4 text-faint">
               {g === "paper" ? "On paper" : "In the room"}

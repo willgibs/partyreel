@@ -21,28 +21,27 @@ import { formatBytes } from "@/lib/utils";
 import { ACCOUNT } from "../fixtures";
 
 import { useInUse } from "./in-use";
-import { bring, busy, byText, pin } from "./pins";
+import { HostFrame } from "./host";
+import { bring, busy, byText } from "./pins";
 import type { ScreenProps } from "./screen-props";
-import { HostFrame } from "./settings";
 
 /**
  * ACCOUNT AND BILLING: Maya's Account on an Event Pass, its Plan card first
  * (billing's home: there is no billing page, and the user menu's Plan row
- * opens this card), caught IN USE: she is renaming herself, the field in
- * focus and Save ready. With `menu`, her account menu stands open over it
- * instead (the room ask's host pop-out).
+ * opens this card), its billing row the set's to draw: Change plan, the ink
+ * key, beside Manage billing and Renew, two quiet ones; then her profile (a
+ * photo's keys, her name with Save, off until she types, her address with
+ * Change) and her email preferences (two switches).
  *
  * ★ THE PAGE IS QUOTED, NOT MOUNTED. `account/page.tsx` is a server component
  * reading a session, and its forms write to the signed-in account (a name, an
  * address, a password, a photo, a Stripe session), so the page's own
  * composition is drawn here with production's atoms, line for line in its
- * order and its words, and every press goes nowhere. What the frame proves is
- * the atoms on a real page: cards, fields, buttons, switches, a face.
+ * order and its words, and every press goes nowhere.
  *
- * ★ CAUGHT IN THE TRAIT'S MOMENT: the name typed in (a field, a focus), Save
- * working on it (loading), Change plan held down (a press), her email
- * preferences in view (toggles), at rest for the rest; the account menu open
- * over it is the edge's place (`AccountMenuScreen`).
+ * ★ IN USE, AS SHE OPENS IT: nothing typed, so Save rests off beside her
+ * name (the off state on a real screen). WORKING, she has typed a new name and
+ * Save works on it.
  */
 
 /** A switch row as `notification-prefs-form.tsx` draws it: the name and its line beside the switch. */
@@ -74,70 +73,29 @@ function Pref({
   );
 }
 
-/** Opens the account menu the way a mouse does: Radix's trigger answers a pointer's press. */
-function openAccountMenu() {
-  const trigger = document.querySelector<HTMLElement>(
-    'header [data-slot="dropdown-menu-trigger"]',
-  );
-  trigger?.dispatchEvent(
-    new PointerEvent("pointerdown", {
-      bubbles: true,
-      button: 0,
-      pointerType: "mouse",
-    }),
-  );
-}
-
-/** Each trait's moment on Account. */
+/** Account working: a new name typed, Save working on it. */
 function accountScript(
   moment: ScreenProps["moment"],
-  menu: boolean,
 ): readonly (readonly [number, () => void])[] {
-  if (menu) return [[800, openAccountMenu]];
-  switch (moment) {
-    case "field":
-    case "focus":
-      // The name being typed stands clear of the frame's foot, its mark whole.
-      return [
-        [
-          700,
-          () =>
-            bring(document.getElementById("identity-display-name"), "center"),
-        ],
-      ];
-    case "press":
-      return [[700, () => pin(byText("button", "Change plan"), "press")]];
-    case "loading":
-      return [
-        [
-          700,
-          () => {
-            bring(document.getElementById("identity-display-name"), "center");
-            busy(byText("button", "Save"));
-          },
-        ],
-      ];
-    case "toggles":
-      return [
-        [700, () => bring(document.getElementById("identity-prefs"), "center")],
-      ];
-    default:
-      return [];
-  }
+  if (moment !== "working") return [];
+  return [
+    [
+      700,
+      () => {
+        bring(document.getElementById("identity-display-name"), "center");
+        busy(byText("button", "Save"), "Saving");
+      },
+    ],
+  ];
 }
 
-function AccountPage({
-  moment,
-  menu,
-}: {
-  moment: ScreenProps["moment"];
-  menu: boolean;
-}) {
+/** Account, caught as she opens it, or with Save working on a new name. */
+export function AccountScreen({ moment }: ScreenProps) {
   const pass = planById("event_pass");
-  const [name, setName] = useState("Maya Okafor-Reyes");
-  useInUse(accountScript(moment, menu));
-  // In use: a field is typed in for a field or a focus; Save works on what was typed.
-  const typing = !menu && (moment === "field" || moment === "focus");
+  const [name, setName] = useState<string>(
+    moment === "working" ? "Maya Okafor-Reyes" : ACCOUNT.displayName,
+  );
+  useInUse(accountScript(moment));
   return (
     <HostFrame>
       <div className="mx-auto max-w-2xl space-y-6">
@@ -219,7 +177,6 @@ function AccountPage({
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   autoComplete="off"
-                  data-demo={typing ? "focus" : undefined}
                 />
                 <Button disabled={name === ACCOUNT.displayName}>Save</Button>
               </div>
@@ -265,14 +222,4 @@ function AccountPage({
       </div>
     </HostFrame>
   );
-}
-
-/** Account, caught in the trait being asked. */
-export function AccountScreen({ moment }: ScreenProps) {
-  return <AccountPage moment={moment} menu={false} />;
-}
-
-/** Account with her menu open over it: the edge's place for a host's own pop-out. */
-export function AccountMenuScreen({ moment }: ScreenProps) {
-  return <AccountPage moment={moment} menu />;
 }

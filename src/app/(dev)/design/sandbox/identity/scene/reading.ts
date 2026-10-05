@@ -4,11 +4,11 @@ import { type MomentId, READING_MESSAGE, type ViewId } from "../model";
  * WHAT A FRAME SAYS UNDER ITSELF, READ OFF ITS OWN DOCUMENT.
  *
  * An option's words claim things a reader can check ("a well", "a key",
- * "a halo", "it sinks a pixel", "three lights", "the light edge"), so each
- * caption is the computed style of the parts those words are about, never the
- * words themselves. If a caption and an option's words disagree, the caption
- * is the truth. (A step hides the captions from the reviewer; `lab:demo
- * --verbose` prints them.)
+ * "lit edges", "a tone", "a halo", "an arc", "a beam"), so each caption is the
+ * computed style of the parts those words are about, never the words
+ * themselves. If a caption and an option's words disagree, the caption is the
+ * truth. (A step hides the captions from the reviewer; `lab:demo --verbose`
+ * prints them.)
  */
 
 const px = (v: string) => Math.round(Number.parseFloat(v) * 10) / 10 || 0;
@@ -28,16 +28,7 @@ function corner(el: Element): string {
   return `${r}px corners`;
 }
 
-/** Whether a box's background (or a pseudo-element's) draws the four corner marks, visibly. */
-function marked(el: Element, pseudo?: string): boolean {
-  const cs = getComputedStyle(el, pseudo);
-  const layers = (cs.backgroundImage.match(/linear-gradient/g) ?? []).length;
-  if (layers < 8 || cs.opacity === "0") return false;
-  const ink = cs.getPropertyValue("--m-c").trim();
-  return ink !== "" && ink !== "transparent" && !/rgba\(0, 0, 0, 0\)/.test(ink);
-}
-
-/** Whether a pseudo-element draws production's light edge: a masked radial falloff. */
+/** Whether a pseudo-element draws the bright edge's light (a masked radial falloff). */
 function lit(el: Element): boolean {
   return ["::after", "::before"].some((p) => {
     const cs = getComputedStyle(el, p);
@@ -70,37 +61,36 @@ function shadowsOf(el: Element): Shadow[] {
       one.replace(/^\s*\S*\([^)]*\)\s*/, "").match(/-?[\d.]+px/g) ?? [];
     const [x = 0, y = 0, blur = 0, spread = 0] = lengths.map((l) => px(l));
     const clear =
-      /rgba\(0, 0, 0, 0\)|transparent/.test(one) ||
+      /rgba\(0, 0, 0, 0\)|transparent|\/ 0\)/.test(one) ||
       (x === 0 && y === 0 && blur === 0 && spread === 0);
     return { x, y, blur, spread, inset: /inset/.test(one), clear };
   });
 }
 
-/** How a box ends: the light edge, marks, a ring, a hairline, a bevel, a shadow, its tone. */
+/** How a box ends: the light edge, a ring, a hairline, a bevel, a shade, a shadow, its tone. */
 function edge(el: Element): string {
   const parts: string[] = [];
   if (lit(el)) parts.push("the light edge");
-  if (marked(el) || marked(el, "::before")) parts.push("four corner marks");
   const shadows = shadowsOf(el).filter((s) => !s.clear);
   const ring = shadows.filter(
     (s) => s.inset && !s.x && !s.y && !s.blur && s.spread > 0,
   );
-  const widest = Math.max(0, ...ring.map((s) => s.spread));
-  const outside = shadows.some(
+  const outside = shadows.filter(
     (s) => !s.inset && !s.x && !s.y && !s.blur && s.spread > 0,
   );
+  const widest = Math.max(0, ...ring.map((s) => s.spread));
+  if (widest >= 1.4) parts.push(`a ${widest}px ring`);
+  else if (widest > 0) parts.push("a hairline inside");
+  if (outside.some((s) => s.spread <= 1.2)) parts.push("a hairline round it");
   const above = shadows.some((s) => s.inset && s.y > 0 && !s.blur);
   const below = shadows.some((s) => s.inset && s.y < 0 && !s.blur);
   const shade = shadows.some((s) => s.inset && s.blur > 0);
-  if (widest >= 1.4) parts.push(`a ${widest}px ring`);
-  else if (widest > 0) parts.push("a hairline");
-  else if (outside) parts.push("a hairline ring outside");
-  if (above && below) parts.push("a bevel");
-  else if (above) parts.push("a light line above");
-  else if (below) parts.push("a line underneath");
+  if (above && below) parts.push("a line above and below");
+  else if (above) parts.push("a line along its top");
+  else if (below) parts.push("a line along its foot");
   if (shade) parts.push("a shade inside");
   if (shadows.some((s) => !s.inset && (s.blur > 0 || s.y !== 0)))
-    parts.push("a shadow");
+    parts.push("a shadow under it");
   if (!parts.length) parts.push("its tone alone");
   return parts.join(", ");
 }
@@ -116,95 +106,59 @@ function lightness(colour: string): { l: number; a: number } | null {
   return { l, a };
 }
 
-/** Light, dark, graphite or clear, off a background colour. */
+/** Light, dark, graphite, a tone or clear, off a background colour. */
 function tone(el: Element): string {
-  const t = lightness(getComputedStyle(el).backgroundColor);
-  if (!t || t.a < 0.2) return "clear";
+  const cs = getComputedStyle(el);
+  const t = lightness(cs.backgroundColor);
+  if (/gradient/.test(cs.backgroundImage) && (!t || t.a < 0.2))
+    return "a lit face";
+  if (!t || t.a < 0.03) return "clear";
+  if (t.a < 0.5) return "a tone";
   if (t.l < 0.22) return "near-black";
   if (t.l < 0.45) return "graphite";
   return t.l > 0.75 ? "white" : "mid-grey";
 }
 
-/** The vertical travel a box wears, off its computed translate. */
-function travel(el: Element): number {
-  const t = getComputedStyle(el).translate;
-  if (!t || t === "none") return 0;
-  const parts = t.split(/\s+/).map((v) => px(v));
-  return parts[1] ?? 0;
-}
-
-/** The focus mark a pinned focus draws: the lock, a ring, the cursor, a halo, a lift. */
+/** The focus mark a pinned focus draws: a halo, or none. */
 function focusMark(el: Element | null): string {
   if (!el) return "not drawn";
-  for (const p of ["::after", "::before"]) {
-    const cs = getComputedStyle(el, p);
-    if (marked(el, p) && cs.opacity !== "0")
-      return `the lock, four marks ${-px(cs.top)}px out`;
-  }
-  if (marked(el)) return "the lock's four marks on its corners";
-  const cs = getComputedStyle(el);
-  const words: string[] = [];
-  if (
-    cs.outlineStyle !== "none" &&
-    px(cs.outlineWidth) > 0 &&
-    !/0\)$/.test(cs.outlineColor)
-  )
-    words.push(
-      `a ${px(cs.outlineWidth)}px outline ${px(cs.outlineOffset)}px out`,
-    );
-  const shadows = shadowsOf(el).filter((s) => !s.clear);
-  const outer = shadows.filter((s) => !s.inset && s.spread > 0 && !s.blur);
-  const inner = shadows.filter((s) => s.inset && !s.blur && !s.x && !s.y);
-  const at = (n: number) => inner.some((s) => Math.abs(s.spread - n) < 0.2);
-  // The cursor is ink with its inverse two pixels in (2px, then 3.5px); lit is
-  // a rim of light with a keyline inside it (1.5px, then 3px), on any fill.
-  if (at(2) && at(3.5)) words.push(`it turns ${tone(el)}, the cursor inside`);
-  else if (at(1.5) && at(3)) words.push("its edge lit, a keyline inside");
-  if (outer.length)
-    words.push(
-      `a ring of light ${Math.max(...outer.map((s) => s.spread))}px out`,
-    );
-  const rise = travel(el);
-  if (rise < 0) words.push(`it lifts ${-rise}px`);
-  return words.length ? words.join(", ") : "not drawn";
+  const outer = shadowsOf(el).filter((s) => !s.inset && s.spread > 0);
+  if (outer.some((s) => s.blur > 0))
+    return `a halo ${Math.max(...outer.map((s) => s.spread))}px out`;
+  return outer.length ? "a ring outside" : "not drawn";
 }
 
-/** What a busy control draws: three lights, an arc, a track. */
+/** What a working control draws: an arc beside its words, a beam round its edge, the key held down. */
 function working(el: Element | null): string {
   if (!el) return "not drawn";
   const before = getComputedStyle(el, "::before");
   const own = getComputedStyle(el);
-  const kept = own.color !== "rgba(0, 0, 0, 0)";
+  const words = (el as HTMLElement).innerText?.trim().replace(/\s+/g, " ");
+  const said = el.getAttribute("data-working-shown")
+    ? "its working words"
+    : "its own words";
+  const parts: string[] = [];
   if (
     before.content !== "none" &&
     /conic-gradient/.test(before.backgroundImage)
   )
-    return `an arc runs round it, its words ${kept ? "kept" : "hidden"}`;
-  if (
-    before.content !== "none" &&
-    (before.backgroundImage.match(/radial-gradient/g) ?? []).length >= 3
-  )
-    return `three lights, its words ${kept ? "kept" : "hidden"}`;
-  if ((own.backgroundImage.match(/linear-gradient/g) ?? []).length >= 2)
-    return `a track fills along its floor, its words ${kept ? "kept" : "hidden"}`;
-  return "not drawn";
-}
-
-/** What a held press draws: its travel, its scale, its fill. */
-function pressed(el: Element | null): string {
-  if (!el) return "not drawn";
-  const cs = getComputedStyle(el);
-  const words: string[] = [];
-  const down = travel(el);
-  if (down > 0) words.push(`it sinks ${down}px`);
-  const s = Number.parseFloat(cs.scale);
-  if (cs.scale !== "none" && s < 1)
-    words.push(`it shrinks to ${Math.round(s * 100)}%`);
-  words.push(`${tone(el)}, ending in ${edge(el)}`);
-  return words.join(", ");
+    parts.push(
+      before.position === "absolute"
+        ? "a beam runs round its edge"
+        : `an arc runs round, ${px(before.width)}px`,
+    );
+  const s = Number.parseFloat(own.scale);
+  if (own.scale !== "none" && s < 1)
+    parts.push(`held down at ${Math.round(s * 100)}%`);
+  if (!parts.length) return "not drawn";
+  return `${parts.join(", ")}, saying "${words}" (${said})`;
 }
 
 const ROOM = '[data-ground="room"]';
+
+/** A key's or a field's reading: its height, its corner, its tone and how it ends. */
+const body = (el: Element) =>
+  `${(el as HTMLElement).offsetHeight}px, ${corner(el)}, ${tone(el)}, ending in ${edge(el)}`;
 
 /** The reading for one view in one moment, or null while it has not settled. */
 export function readView(
@@ -212,8 +166,17 @@ export function readView(
   moment: MomentId,
   doc: Document,
 ): string | null {
+  const parts: string[] = [];
+  const say = (
+    what: string,
+    el: Element | null,
+    words: (el: Element) => string,
+  ) => {
+    if (el) parts.push(`${what}: ${words(el)}`);
+  };
+  const within = q(doc, ROOM) ? ROOM : undefined;
+
   if (view === "actions") {
-    const within = q(doc, ROOM) ? ROOM : undefined;
     const primary = q(
       doc,
       '[data-variant="default"][data-size="default"]',
@@ -224,108 +187,110 @@ export function readView(
       '[data-variant="outline"][data-size="default"]',
       within,
     );
-    const focus = q(
-      doc,
-      '[data-variant="outline"][data-demo~="focus"]',
-      within,
-    );
     if (!primary || !outline) return null;
-    return `Primary ${primary.offsetHeight}px, ${corner(primary)}, ending in ${edge(primary)}; outline ends in ${edge(outline)}; focus: ${focusMark(focus)}`;
+    say("primary", primary, body);
+    say("outline", outline, body);
+    say(
+      "focus",
+      q(doc, '[data-variant="outline"][data-demo~="focus"]', within),
+      focusMark,
+    );
+    return parts.join("; ");
   }
   if (view === "fields") {
-    const within = q(doc, ROOM) ? ROOM : undefined;
     const input = q(doc, '[data-slot="input"]', within);
-    const focused = q(doc, '[data-slot="input"][data-demo~="focus"]', within);
     const sw = q(doc, '[data-slot="switch"]', within);
-    const check = q(doc, '[data-slot="checkbox"]', within);
-    if (!input || !sw || !check) return null;
-    return `A field ${input.offsetHeight}px, ${corner(input)}, ${tone(input) === "clear" ? "open" : "filled"}, ending in ${edge(input)}; focus: ${focusMark(focused)}; a switch ${sw.offsetWidth}×${sw.offsetHeight}, ${corner(sw)}; a check ${corner(check)}`;
-  }
-
-  // A screen, read for the trait it is caught in.
-  const parts: string[] = [];
-  const say = (
-    what: string,
-    el: Element | null,
-    words: (el: Element) => string,
-  ) => {
-    if (el) parts.push(`${what}: ${words(el)}`);
-  };
-  if (moment === "field") {
-    const field =
-      q(doc, '[data-slot="input"][data-demo~="focus"]') ??
-      q(doc, '[data-slot="input"]');
-    if (!field) return null;
+    if (!input || !sw) return null;
+    say("a field", input, body);
     say(
-      "a field",
-      field,
-      (el) =>
-        `${(el as HTMLElement).offsetHeight}px, ${corner(el)}, ${tone(el)}, ending in ${edge(el)}`,
+      "focus",
+      q(doc, '[data-slot="input"][data-demo~="focus"]', within),
+      focusMark,
     );
-  } else if (moment === "button") {
-    const primary = q(doc, '[data-slot="button"][data-variant="default"]');
-    const quiet = q(
-      doc,
-      '[data-slot="button"]:is([data-variant="outline"],[data-variant="secondary"])',
-    );
-    if (!primary) return null;
-    say(
-      "the primary",
-      primary,
-      (el) =>
-        `${(el as HTMLElement).offsetHeight}px, ${corner(el)}, ending in ${edge(el)}`,
-    );
-    say(
-      "a quiet one",
-      quiet,
-      (el) => `${corner(el)}, ${tone(el)}, ending in ${edge(el)}`,
-    );
-  } else if (moment === "focus") {
-    const on = q(doc, '[data-demo~="focus"]');
-    if (!on) return null;
-    say("focus", on, focusMark);
-  } else if (moment === "selected") {
-    const chosen =
-      q(doc, '[data-slot="toggle-group-item"][data-state="on"]') ??
-      q(doc, '[data-slot="radio-card"][data-state="on"]');
-    if (!chosen) return null;
-    say(
-      "the chosen one",
-      chosen,
-      (el) => `${corner(el)}, ${tone(el)}, ending in ${edge(el)}`,
-    );
-  } else if (moment === "press") {
-    const held = q(doc, '[data-demo~="press"]');
-    if (!held) return null;
-    say("held down", held, pressed);
-  } else if (moment === "loading") {
-    const on = q(
-      doc,
-      '[aria-busy="true"]:is([data-slot="button"],[data-variant])',
-    );
-    if (!on) return null;
-    say("working", on, working);
-  } else if (moment === "toggles") {
-    const sw = q(doc, '[data-slot="switch"]');
-    if (!sw) return null;
     say(
       "a switch",
       sw,
       (el) =>
         `${(el as HTMLElement).offsetWidth}×${(el as HTMLElement).offsetHeight}, ${tone(el)}, ending in ${edge(el)}`,
     );
-  } else {
-    const layer = q(
-      doc,
-      '[data-slot="dropdown-menu-content"], [data-slot="popover-content"], [data-slot="tooltip-content"], [data-slot="responsive-menu"], [data-slot="responsive-menu-rows"] > *, [data-slot="popup-content"], [data-slot="dialog-content"], [data-slot="sheet-content"], [data-sonner-toast]',
-    );
-    if (!layer) return null;
     say(
-      "the layer",
-      layer,
-      (el) => `${tone(el)}, ${corner(el)}, ending in ${edge(el)}`,
+      "the chosen tab",
+      q(doc, '[data-slot="tabs-trigger"][data-state="active"]', within),
+      body,
     );
+    return parts.join("; ");
   }
+  if (view === "working") {
+    const keys = [
+      ...doc.querySelectorAll(
+        '[aria-busy="true"]:is([data-slot="button"],[data-variant])',
+      ),
+    ];
+    if (!keys.length) return null;
+    say("a primary working", keys[0] ?? null, working);
+    say(
+      "a quiet key working",
+      keys.find((k) => k.getAttribute("data-variant") === "outline") ?? null,
+      working,
+    );
+    const status = q(doc, '[data-slot="field-status"]');
+    if (status)
+      parts.push(
+        `a field checking: its slot ${getComputedStyle(status).display === "none" ? "empty" : "drawn"}`,
+      );
+    return parts.join("; ");
+  }
+  if (moment === "working") {
+    const on = q(
+      doc,
+      '[aria-busy="true"]:is([data-slot="button"],[data-variant])',
+    );
+    if (!on) return null;
+    say("working", on, working);
+    return parts.join("; ");
+  }
+
+  // A screen in use, read for the families the set draws on it.
+  const typed =
+    q(doc, '[data-slot="input"][data-demo~="focus"]') ??
+    q(doc, '[data-slot="input"]');
+  say("a field", typed, body);
+  if (typed?.getAttribute("data-demo")?.includes("focus"))
+    say("focus", typed, focusMark);
+  say(
+    "the primary",
+    q(doc, '[data-variant="default"]:not([data-size="cta"])') ??
+      q(doc, '[data-variant="default"]'),
+    body,
+  );
+  say(
+    "a quiet key",
+    q(doc, '[data-variant="outline"], [data-variant="secondary"]'),
+    body,
+  );
+  say(
+    "the chosen segment",
+    q(doc, '[data-slot="toggle-group-item"][data-state="on"]'),
+    body,
+  );
+  say(
+    "the chosen card",
+    q(doc, '[data-slot="radio-card"][data-state="checked"]'),
+    (el) => `${tone(el)}, ending in ${edge(el)}`,
+  );
+  say(
+    "a switch",
+    q(doc, '[data-slot="switch"]'),
+    (el) => `${tone(el)}, ending in ${edge(el)}`,
+  );
+  say(
+    "the pop-out",
+    q(
+      doc,
+      '[data-slot="dropdown-menu-content"], [data-slot="popover-content"], [data-slot="responsive-menu"]',
+    ),
+    (el) => `${tone(el)}, ending in ${edge(el)}`,
+  );
   return parts.length ? parts.join("; ") : null;
 }
 
