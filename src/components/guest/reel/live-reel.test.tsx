@@ -63,7 +63,6 @@ vi.mock("@/components/guest/reel/live-reel-view", () => ({
     idle: boolean;
     isOwner?: boolean;
     eventName?: string;
-    creatorAsked?: boolean;
     onSetForEveryone?: (look: {
       styleId: string;
       holdSec: number;
@@ -78,7 +77,6 @@ vi.mock("@/components/guest/reel/live-reel-view", () => ({
         data-idle={String(props.idle)}
         data-owner={String(Boolean(props.isOwner))}
         data-event-name={props.eventName}
-        data-creator-asked={String(Boolean(props.creatorAsked))}
       >
         <button type="button" onClick={props.onClose}>
           Close the view

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -246,5 +246,183 @@ describe("what it says of everything else", () => {
       screen.getByText("Everything else develops as Maya lets it in."),
     ).toBeInTheDocument();
     expect(screen.queryByText(/in Maya’s album/)).toBeNull();
+  });
+});
+
+/**
+ * ★ A RUN THAT FAILED WHOLE HAS NO "EVERYTHING ELSE" TO SAY (crumbs-76; ROADMAP: the sheet "speaks of 'Everything else'
+ * when a send failed whole ('1 of 1 didn't upload')"). The line speaks of the rest of the run, and a run that sent only
+ * what failed has none: it said the rest was in Maya's album (or developing with everyone's) over a heading that said
+ * nothing had gone. It is said where the run sent more than failed, and the dialog is described by it only then.
+ */
+describe("a run that failed whole", () => {
+  const AT = "2026-10-04T02:00:00.000Z";
+  const WAITS = [
+    undefined,
+    { waits: false, developsAt: null },
+    { waits: true, developsAt: AT },
+    { waits: true, developsAt: null },
+  ];
+  const sheet = (
+    failed: number,
+    sent: number,
+    waits?: { waits: boolean; developsAt: string | null },
+  ) =>
+    render(
+      <UploadFailureSheet
+        open
+        onOpenChange={vi.fn()}
+        failures={Array.from({ length: failed }, (_, i) =>
+          failure(`${i}.jpg`, "This event isn't accepting uploads."),
+        )}
+        sent={sent}
+        hostName="Maya"
+        onRetry={vi.fn()}
+        waits={waits}
+      />,
+    );
+
+  it("★ says nothing of the rest, however the album shows what is added", () => {
+    for (const waits of WAITS) {
+      const { unmount } = sheet(1, 1, waits);
+      expect(screen.getByText("1 of 1 didn't upload")).toBeInTheDocument();
+      expect(screen.queryByText(/Everything else/)).toBeNull();
+      unmount();
+    }
+    sheet(2, 2);
+    expect(screen.getByText("2 of 2 didn't upload")).toBeInTheDocument();
+    expect(screen.queryByText(/Everything else/)).toBeNull();
+  });
+
+  it("still says it where something else went", () => {
+    sheet(1, 3);
+    expect(
+      screen.getByText("Everything else is in Maya’s album."),
+    ).toBeInTheDocument();
+  });
+
+  it("describes the dialog by that line only where there is one", () => {
+    const whole = sheet(1, 1);
+    const wholeDialog = screen.getByRole("dialog");
+    expect(wholeDialog).not.toHaveAttribute("aria-describedby");
+    whole.unmount();
+
+    sheet(1, 3);
+    expect(screen.getByRole("dialog")).toHaveAccessibleDescription(
+      "Everything else is in Maya’s album.",
+    );
+  });
+});
+
+/**
+ * ★ ONE HEADING SCALE FOR ONE FAILURE (crumbs-76; ROADMAP: the album's sheet "heads with a Sheet's card title" while
+ * the same failure in the door's upload step "heads on the door's scale"). The sheet's heading is the door's own
+ * (`door/heading.tsx`), and its words are the dialog's title and description themselves: one node each, named once.
+ */
+describe("the heading", () => {
+  it("★ is the door's heading, and names the dialog, once", () => {
+    mount(
+      [failure("a.jpg", "That upload did not finish.")],
+      undefined,
+      undefined,
+      3,
+    );
+    const dialog = screen.getByRole("dialog", {
+      name: "1 of 3 didn't upload",
+    });
+    const title = within(dialog).getByText("1 of 3 didn't upload");
+    // The door's own heading (the scale lives there, and so does its reveal), not a Sheet's card title.
+    expect(title.closest("[data-door-heading]")).not.toBeNull();
+    expect(title).toHaveAttribute("data-door-line");
+    expect(dialog.querySelector('[data-slot="sheet-title"]')).toBeNull();
+    // Said once for the eye and the ear alike: the same words are not hidden in a second copy.
+    expect(within(dialog).getAllByText("1 of 3 didn't upload")).toHaveLength(1);
+    expect(dialog).toHaveAccessibleDescription(
+      "Everything else is in Maya’s album.",
+    );
+  });
+});
+
+/**
+ * ★ A REFUSAL THAT CANNOT SUCCEED ON RETRY OFFERS NONE, AND SAYS WHAT SHE CAN DO (red-team 54's LOW: "the failure sheet
+ * offers Retry and 'Retry both' on the uploader's own refusals (a wrong type, a file over 10 GB), which carry no code, so
+ * pressing Retry sends nothing"). The queue tells those refusals as the codes the ladder knows (`localRefusalCode`), the
+ * ladder offers no Retry for them (`retryCanPass`), and where nothing listed can be retried the sheet says the way on:
+ * another file, in the door's own words (`uploadStepChooseAgain`).
+ */
+describe("a failure no retry could pass", () => {
+  const WRONG_TYPE = "That file type isn't supported.";
+  const wrongType = (name: string) =>
+    failure(name, WRONG_TYPE, "unsupported_type");
+  const sheet = (
+    failures: ReturnType<typeof failure>[],
+    sent = failures.length,
+    camera = false,
+  ) =>
+    render(
+      <UploadFailureSheet
+        open
+        onOpenChange={vi.fn()}
+        failures={failures}
+        sent={sent}
+        hostName="Maya"
+        camera={camera}
+        onRetry={vi.fn()}
+      />,
+    );
+
+  it("★ offers no Retry, says why in the refusal's own sentence, and says what she can do", () => {
+    sheet([wrongType("notes.txt"), wrongType("scan.tiff")]);
+    expect(screen.queryByRole("button", { name: /Retry/ })).toBeNull();
+    expect(screen.getAllByText(WRONG_TYPE)).toHaveLength(2);
+    expect(screen.getByText("Pick something else to add.")).toBeInTheDocument();
+    // "Not now" would promise a later go; with nothing a retry could pass there is none.
+    expect(screen.getByRole("button", { name: "Done" })).toBeInTheDocument();
+    expect(screen.getByRole("dialog")).toHaveAccessibleDescription(
+      "Pick something else to add.",
+    );
+  });
+
+  it("says it in the camera's verb on a camera album", () => {
+    sheet([wrongType("clip.avi")], 1, true);
+    expect(screen.getByText("Take another to add one.")).toBeInTheDocument();
+    expect(screen.queryByText("Pick something else to add.")).toBeNull();
+  });
+
+  it("joins it to the rest where something else went, one paragraph", () => {
+    sheet([wrongType("notes.txt")], 3);
+    expect(
+      screen.getByText(
+        "Everything else is in Maya’s album. Pick something else to add.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("says nothing of another file where one of the failures could go again, whose Retry stands for it alone", () => {
+    const { container } = sheet([
+      wrongType("notes.txt"),
+      failure("b.jpg", "That upload did not finish."),
+    ]);
+    expect(screen.queryByText(/Pick something else/)).toBeNull();
+    // Retry takes only what could go: one file, so the primary is its Retry and no second one is drawn.
+    expect(screen.getAllByRole("button", { name: "Retry" })).toHaveLength(1);
+    expect(
+      screen.getByText("notes.txt").closest("li")!.querySelector("button"),
+    ).toBeNull();
+    expect(
+      container.ownerDocument.querySelectorAll("[data-upload-failures] > li"),
+    ).toHaveLength(2);
+  });
+
+  it("is a refusal of the file by whatever code the ladder reads as one, and not one by none", () => {
+    sheet([
+      failure(
+        "too-big.mp4",
+        "Files for this event are capped at 500 MB.",
+        "too_large",
+      ),
+    ]);
+    expect(screen.queryByRole("button", { name: /Retry/ })).toBeNull();
+    expect(screen.getByText("Pick something else to add.")).toBeInTheDocument();
   });
 });

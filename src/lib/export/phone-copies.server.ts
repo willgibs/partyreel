@@ -10,10 +10,9 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { mustQuery, QueryFailedError } from "@/lib/db/must-query";
+import { mustQuery } from "@/lib/db/must-query";
 import { inChunks } from "@/lib/db/read-all";
 import type { Database } from "@/lib/db/types";
-import { captureError } from "@/lib/observability/sentry";
 
 type Admin = SupabaseClient<Database>;
 
@@ -21,46 +20,28 @@ type Admin = SupabaseClient<Database>;
 export type PhoneCopyRow = { key: string; bytes: number };
 
 /**
- * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: the two columns arrive with migration 20261003110000. The rows are
- * typed here, and a database without the columns yet (42703) answers that no photograph has a copy, captured, so
- * a Save or a Download before the migration lands serves the originals rather than failing; drop the fallback and
- * the override once `src/lib/db/types.ts` knows the columns.
+ * A failed read throws (`mustQuery`), never reads as "no photograph has a copy": that would hand every Save and
+ * Download its original at full size, in silence.
  */
 export async function readPhoneCopies(
   admin: Admin,
   ids: readonly string[],
 ): Promise<Map<string, PhoneCopyRow>> {
-  try {
-    const rows = await inChunks("export: phone copies", ids, async (chunk) =>
-      (
-        (await mustQuery(
-          admin
-            .from("media")
-            .select("id, phone_key, phone_bytes")
-            .in("id", chunk)
-            .overrideTypes<
-              {
-                id: string;
-                phone_key: string | null;
-                phone_bytes: number | null;
-              }[],
-              { merge: false }
-            >(),
-          "export: phone copies",
-        )) ?? []
-      ).filter((row) => row.phone_key !== null && row.phone_bytes !== null),
-    );
-    return new Map(
-      rows.map((row) => [
-        row.id,
-        { key: row.phone_key as string, bytes: Number(row.phone_bytes) },
-      ]),
-    );
-  } catch (error) {
-    if (error instanceof QueryFailedError && error.code === "42703") {
-      captureError("export", error, { seam: "phone_schema_missing" });
-      return new Map();
-    }
-    throw error;
-  }
+  const rows = await inChunks("export: phone copies", ids, async (chunk) =>
+    (
+      (await mustQuery(
+        admin
+          .from("media")
+          .select("id, phone_key, phone_bytes")
+          .in("id", chunk),
+        "export: phone copies",
+      )) ?? []
+    ).filter((row) => row.phone_key !== null && row.phone_bytes !== null),
+  );
+  return new Map(
+    rows.map((row) => [
+      row.id,
+      { key: row.phone_key as string, bytes: Number(row.phone_bytes) },
+    ]),
+  );
 }

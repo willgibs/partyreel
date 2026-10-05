@@ -75,11 +75,7 @@ export function dueRemovedMediaPage(
       `purge_at.gt.${after.at},and(purge_at.eq.${after.at},id.gt.${after.id})`,
     );
   }
-  // The typed seam (`MEDIA_KEY_COLUMNS`): the rows typed here until the types know `phone_key`.
-  return query.overrideTypes<
-    (MediaKeyRow & { purge_at: string | null })[],
-    { merge: false }
-  >();
+  return query;
 }
 
 /**
@@ -100,8 +96,7 @@ export function askedMediaPage(
     .order("id", { ascending: true })
     .limit(limit);
   if (after) query = query.gt("id", after);
-  // The typed seam (`MEDIA_KEY_COLUMNS`): the rows typed here until the types know `phone_key`.
-  return query.overrideTypes<MediaKeyRow[], { merge: false }>();
+  return query;
 }
 
 /** Every removed row still due (a head count): what a stopped sweep left. */

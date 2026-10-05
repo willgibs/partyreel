@@ -54,6 +54,7 @@ import {
   refusalOf,
   shotState,
   type CameraShot,
+  type ShotState,
 } from "@/lib/guest/camera/shots";
 import {
   reelCaption,
@@ -73,8 +74,34 @@ const JUST_MS = 900;
 /** The frozen frames kept: the reel only ever shows the newest few sealing. */
 const FROZEN_KEPT = 3;
 
+/**
+ * ★ AN ALBUM THAT REFUSES FOR A REASON ITS HOST CAN LIFT MAY SAY YES LATER, AND NOTHING TELLS THIS PAGE WHEN: uploads
+ * closed (the host reopens them) or the album full (she makes room). The page reads the host's switch at render and
+ * the album's sync carries no word of it, so a camera left open over such a refusal would keep its banner and its
+ * stopped shutter until she closed it (the ROADMAP's "the camera never hears uploads reopen"). It asks again by itself
+ * instead, on a calm and slowing cadence (each ask is a real presign, and the longer it has been shut the likelier it
+ * stays so), and at once when the page comes back to the screen. Any other refusal of the album (a lock, a gone
+ * event, a ticket that is not hers) is not the host's to lift in a minute, and is never asked again.
+ */
+const LIFTABLE_REFUSALS: ReadonlySet<string> = new Set([
+  "uploads_closed",
+  "cap_reached",
+]);
+const REASK_MS = [10_000, 20_000, 40_000, 60_000] as const;
+
 const isActive = (it: QueueItem) =>
   it.status === "queued" || it.status === "uploading";
+
+/**
+ * WHAT THE CAMERA READS OF ITS ALBUM, and no more: its name, the roll's size, the develop time (the page's live
+ * reading of it, not the event's stored one), how the album is moderated and whether it takes a video. Narrow so the
+ * door, which holds the camera for the album's first photograph before the album's own slot has mounted, can hand it
+ * what it knows without a whole event.
+ */
+export type CameraEvent = Pick<
+  GuestEvent,
+  "name" | "roll_size" | "develops_at" | "moderation_mode" | "accepts_video"
+>;
 
 export function AlbumCamera({
   open,
@@ -94,7 +121,7 @@ export function AlbumCamera({
   /** When Add opened it (its own press): the clock its words start from. */
   openedAt: number;
   onOpenChange: (open: boolean) => void;
-  event: GuestEvent;
+  event: CameraEvent;
   qrToken: string;
   /** The page's one queue: where each shot goes, and where each stands. */
   queue: readonly QueueItem[];
@@ -147,9 +174,45 @@ export function AlbumCamera({
      yet (her first shot's silent join still out) is on its way. Which shots the queue has held is remembered the
      render it is first seen (the sanctioned adjust-state-during-render pattern). */
   const [held, setHeld] = useState<ReadonlySet<string>>(() => new Set());
-  const raw = useMemo(
-    () => shots.map((shot) => ({ shot, state: shotState(shot, queue) })),
+  /* ★ A SHOT BEING ASKED FOR AGAIN AGAINST A REFUSAL THAT MAY HAVE LIFTED (`LIFTABLE_REFUSALS`) STANDS AS THE REFUSAL IT
+     WAS until the album answers: the queue says it is sending (waiting its turn, being prepared, asking for its place),
+     and shown so the banner would leave, the shutter come back and the reel's caption say "sending 1" for the instant
+     each ask takes, and then all go again when the album still says no. The answer is the file going up (the album said
+     yes: a refusal comes before a byte moves), the shot landing, or its refusal again, or its leaving the queue; one
+     shot's answer is every shot's, since what is asked together goes as one burst. */
+  const [asking, setAsking] = useState<ReadonlyMap<string, ShotState>>(
+    () => new Map(),
+  );
+  const lives = useMemo(
+    () => shots.map((shot) => ({ shot, live: shotState(shot, queue) })),
     [shots, queue],
+  );
+  const stillAsking = (key: string) => {
+    const live = lives.find((l) => l.shot.key === key)?.live;
+    return (
+      live !== undefined &&
+      live.status === "sending" &&
+      live.queueId !== undefined &&
+      queue.find((it) => it.id === live.queueId)?.status === "queued"
+    );
+  };
+  // The sanctioned adjust-state-during-render pattern: once any ask is answered they all let go of what they were held as.
+  const asksAnswered =
+    asking.size > 0 && [...asking.keys()].some((key) => !stillAsking(key));
+  if (asksAnswered) setAsking(new Map());
+  const raw = useMemo(
+    () =>
+      lives.map(({ shot, live }) => {
+        const was = asking.get(shot.key);
+        return {
+          shot,
+          state:
+            was && !asksAnswered && live.status === "sending" && live.queueId
+              ? was
+              : live,
+        };
+      }),
+    [lives, asking, asksAnswered],
   );
   const newlyHeld = raw.filter(
     ({ shot, state }) => state.queueId && !held.has(shot.key),
@@ -284,6 +347,11 @@ export function AlbumCamera({
   const toRetry = failed.filter(
     ({ state }) => refusalOf(state.code) === "retry" && state.queueId,
   );
+  // What the album refused for a reason its host can lift: asked again below, by itself (`LIFTABLE_REFUSALS`).
+  const reopenable = failed.filter(
+    ({ state }) =>
+      state.queueId && state.code && LIFTABLE_REFUSALS.has(state.code),
+  );
   const blocked =
     [...failed]
       .reverse()
@@ -298,18 +366,72 @@ export function AlbumCamera({
   const droppedUnsent = toRetry.some(({ state }) => state.cause === "dropped");
   const retryUnsent = useCallback(() => {
     const at = Date.now();
-    const keys = new Set(toRetry.map(({ shot }) => shot.key));
+    const again = [...toRetry, ...reopenable];
+    const keys = new Set(again.map(({ shot }) => shot.key));
     setShots((prev) =>
       prev.map((s) => (keys.has(s.key) ? { ...s, retriedAt: at } : s)),
     );
-    for (const { state } of toRetry) onRetry(state.queueId as string);
-  }, [toRetry, onRetry]);
+    // What the album refused stands as that refusal while it is asked again (`asking`).
+    if (reopenable.length > 0) {
+      setAsking((prev) => {
+        const next = new Map(prev);
+        for (const { shot, state } of reopenable) next.set(shot.key, state);
+        return next;
+      });
+    }
+    for (const { state } of again) onRetry(state.queueId as string);
+  }, [toRetry, reopenable, onRetry]);
   // The connection back: what did not send goes again, by itself, while the camera is open.
+  const unsentCount = toRetry.length + reopenable.length;
   useEffect(() => {
-    if (!open || toRetry.length === 0) return;
+    if (!open || unsentCount === 0) return;
     window.addEventListener("online", retryUnsent);
     return () => window.removeEventListener("online", retryUnsent);
-  }, [open, toRetry.length, retryUnsent]);
+  }, [open, unsentCount, retryUnsent]);
+  // ★ AND THE ALBUM THAT MAY HAVE REOPENED IS ASKED, by itself and calmly (`LIFTABLE_REFUSALS`): after 10 s, then 20,
+  // 40 and every minute, never while the page is hidden, and at once when it comes back. Answered yes, the shot goes,
+  // and the banner and the stopped shutter go with the refusal; answered no, the camera never moved.
+  const reaskNow = useRef(retryUnsent);
+  useEffect(() => {
+    reaskNow.current = retryUnsent;
+  });
+  const reopenableCount = reopenable.length;
+  useEffect(() => {
+    if (!open || reopenableCount === 0) return;
+    let asked = 0;
+    let lastAsk = Date.now();
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const ask = () => {
+      lastAsk = Date.now();
+      reaskNow.current();
+    };
+    const schedule = () => {
+      timer = setTimeout(
+        () => {
+          asked += 1;
+          if (document.visibilityState === "visible") ask();
+          schedule();
+        },
+        REASK_MS[Math.min(asked, REASK_MS.length - 1)],
+      );
+    };
+    const returned = () => {
+      if (document.visibilityState !== "visible") return;
+      // Never closer to the last ask than the cadence's first step: flicking between apps over a closed album must not
+      // turn each return into a presign of its own, nor wind the calm cadence back to its start.
+      if (Date.now() - lastAsk < REASK_MS[0]) return;
+      clearTimeout(timer);
+      asked = 0;
+      ask();
+      schedule();
+    };
+    schedule();
+    document.addEventListener("visibilitychange", returned);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("visibilitychange", returned);
+    };
+  }, [open, reopenableCount]);
 
   /* ── her shots: this visit's, then what the server knows of the rest ──────────────────────── */
   const thumbEntries = useMemo(

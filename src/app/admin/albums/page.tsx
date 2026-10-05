@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import {
+  removeMediaByOperatorAction,
+  restoreMediaAction,
+} from "@/app/admin/albums/actions";
 import { ModerationGrid } from "@/components/admin/moderation-grid";
 import {
   Card,
@@ -70,7 +74,12 @@ export default async function AdminAlbumsPage({
       </nav>
 
       {items.length > 0 ? (
-        <ModerationGrid items={items} mode="feed" />
+        <ModerationGrid
+          items={items}
+          mode="feed"
+          removeAction={removeMediaByOperatorAction}
+          restoreAction={restoreMediaAction}
+        />
       ) : (
         <Card>
           <CardHeader>

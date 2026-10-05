@@ -118,8 +118,10 @@ export function MfaEnroll() {
           alt="Two-factor authentication QR code"
           className="size-44 rounded-lg bg-white p-2"
         />
+        {/* font-sans: a bare <code> falls to the preflight's mono stack, and the product has no mono face
+            (a value that has to look like one gets this muted plate, in the body face). */}
         {secret && (
-          <code className="rounded bg-muted px-2 py-1 text-center text-xs break-all">
+          <code className="rounded bg-muted px-2 py-1 text-center font-sans text-xs break-all">
             {secret}
           </code>
         )}

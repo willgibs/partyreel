@@ -60,14 +60,9 @@ function jobRunsDb() {
 }
 
 /**
- * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `notice_retries` arrives with migration 20261005060000, so its two
- * reads go through this untyped client (drop the cast then).
+ * ★ THE TYPED SEAM FOR SEND TO GOOGLE DRIVE'S TABLES, UNTIL THE TYPES REGENERATE: they arrive with migration
+ * 20261005120000, so their reads go through this untyped client (drop the cast then).
  */
-function noticeRetriesDb(db: ReturnType<typeof createAdminClient>) {
-  return db as unknown as SupabaseClient;
-}
-
-/** The same seam for Send to Google Drive's tables (20261005120000): drop it when the types regenerate. */
 function untypedDb(db: ReturnType<typeof createAdminClient>) {
   return db as unknown as SupabaseClient;
 }
@@ -518,13 +513,13 @@ export async function getJobSignals(nowMs = Date.now()): Promise<JobSignals> {
     // The one-time notices kept for a retry (`sendOnce`): each one a host not yet told what happened to her event
     // or her plan, however long ago its send failed.
     mustCount(
-      noticeRetriesDb(db)
+      db
         .from("notice_retries")
         .select("*", { count: "exact", head: true }),
       "admin/jobs: one-time notices kept for a retry",
     ),
     mustQuery(
-      noticeRetriesDb(db)
+      db
         .from("notice_retries")
         .select("first_failed_at")
         .order("first_failed_at", { ascending: true })

@@ -36,7 +36,6 @@
  */
 import "server-only";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { getResend } from "@/lib/email/client";
 import {
@@ -56,14 +55,6 @@ const UNIQUE_VIOLATION = "23505";
 const DAY_MS = 86_400_000;
 
 type AdminClient = ReturnType<typeof createAdminClient>;
-
-/**
- * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `notice_retries` arrives with migration 20261005060000, so the reads
- * and writes that name it go through this untyped client (drop the cast then).
- */
-function untyped(admin: AdminClient): SupabaseClient {
-  return admin as unknown as SupabaseClient;
-}
 
 export type SendOnceArgs = {
   /** Stable category, e.g. "over_cap_grace_start". */
@@ -204,7 +195,7 @@ async function keepNotice(
     return;
   }
   try {
-    const { error } = await untyped(admin).from("notice_retries").upsert(
+    const { error } = await admin.from("notice_retries").upsert(
       {
         kind,
         dedupe_key: args.dedupeKey,
@@ -305,7 +296,7 @@ export async function retryParkedNotices(opts: {
 
   /** Let a kept notice go: it went, a claim says it already had, or it is given up. */
   const letGo = async (n: KeptNotice) => {
-    const { error } = await untyped(admin)
+    const { error } = await admin
       .from("notice_retries")
       .delete()
       .eq("kind", n.kind)
@@ -369,7 +360,7 @@ export async function retryParkedNotices(opts: {
     if (opts.stopWhen?.()) break;
     // A night's retries of one kind, the oldest first; the rest wait for the next night, and /admin/jobs counts every
     // kept notice with a head count (`getJobSignals`).
-    const { data, error } = await untyped(admin)
+    const { data, error } = await admin
       .from("notice_retries")
       .select(
         "kind, dedupe_key, profile_id, subject, html, text, first_failed_at",

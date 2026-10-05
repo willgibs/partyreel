@@ -26,10 +26,18 @@ vi.mock("@/lib/r2/grid-items", () => ({
   toModerationFeedItems: (items: { id: string }[]) =>
     toModerationFeedItems(items),
 }));
+// The albums' own Server Actions: the page hands them to the grid as props, and the real module's `server-only`
+// chain does not resolve in jsdom.
+vi.mock("@/app/admin/albums/actions", () => ({
+  removeMediaByOperatorAction: vi.fn(),
+  restoreMediaAction: vi.fn(),
+}));
+const gridProps = vi.fn();
 vi.mock("@/components/admin/moderation-grid", () => ({
-  ModerationGrid: ({ items }: { items: unknown[] }) => (
-    <div data-testid="grid" data-count={items.length} />
-  ),
+  ModerationGrid: (props: { items: unknown[] }) => {
+    gridProps(props);
+    return <div data-testid="grid" data-count={props.items.length} />;
+  },
 }));
 vi.mock("next/link", () => ({
   default: ({
@@ -49,6 +57,7 @@ vi.mock("next/link", () => ({
 }));
 
 const page = await import("./page");
+const actions = await import("@/app/admin/albums/actions");
 
 const EVENT = "736ead6a-5b1c-4d2e-9f30-4a5b6c7d8e9f";
 const AT = "2026-09-23T12:00:00.123456+00:00";
@@ -100,6 +109,18 @@ beforeEach(() => {
 });
 
 describe("the album drill-in, a page at a time", () => {
+  // ★ THE WRITES ARE THE PAGE'S TO HAND (crumbs-78): the grid imports no Server Action, so the page names its two,
+  // each on the prop of its own name (a swap would remove what the operator restores).
+  it("★ hands the grid the albums' own Server Actions, each as its own prop", async () => {
+    getAlbumForModeration.mockResolvedValue(detail(12, { next: null }));
+    await draw();
+    expect(gridProps).toHaveBeenCalledTimes(1);
+    const props = gridProps.mock.calls[0][0];
+    expect(props.mode).toBe("album");
+    expect(props.removeAction).toBe(actions.removeMediaByOperatorAction);
+    expect(props.restoreAction).toBe(actions.restoreMediaAction);
+  });
+
   it("★ signs ONE page, never the album, and says which items these are", async () => {
     getAlbumForModeration.mockResolvedValue(detail(500));
     await draw();

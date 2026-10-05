@@ -37,6 +37,12 @@ vi.mock("@/lib/lifecycle/account-deletion", () => ({
 vi.mock("@/components/admin/moderation-grid", () => ({
   ModerationGrid: () => null,
 }));
+// The album page hands the grid its Server Actions as props (crumbs-78); their module's `server-only` chain does not
+// resolve in jsdom, like the account control's below.
+vi.mock("@/app/admin/albums/actions", () => ({
+  removeMediaByOperatorAction: vi.fn(),
+  restoreMediaAction: vi.fn(),
+}));
 vi.mock("@/app/admin/accounts/[id]/delete-account-control", () => ({
   DeleteAccountControl: () => null,
 }));

@@ -62,6 +62,7 @@ const DISPLAY_ONLY: Readonly<Record<string, string>> = {
   "src/lib/db/queries/guest-events.ts": "the guest gallery's rows, for tiles",
   "src/lib/db/queries/media.ts":
     "the host's column list (`MEDIA_HOST_COLUMNS`, pinned to her SELECT grant, which holds no phone column) and the hub's tiles",
+  "src/lib/db/queries/moderation.ts": "the operator's Albums tiles",
   "src/lib/db/queries/my-likes.ts": "the Likes feed's tiles",
   "src/lib/db/queries/my-uploads.ts": "the Uploads feed's tiles",
   "src/lib/db/queries/reports.ts": "the operator's report pictures",

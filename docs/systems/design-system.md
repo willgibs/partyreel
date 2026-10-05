@@ -523,10 +523,14 @@ house bounce inline, since `--mkt-ease-pop` lives on `[data-mkt]`.
   (an error's message can carry internals, a client-side one unredacted).
 - **Try again is Next's `unstable_retry`** (the router's refresh with the reset, `TryAgain`) on every crash screen,
   `global-error`'s included, since a bare `reset` re-renders the payload that crashed (`route-error.test.tsx`).
-- **The root `error.tsx`** catches a crash in a group's own layout, which no group boundary can; `global-error.tsx`,
-  dependency-free (its own html, inline styles), covers the root layout's death.
+- **The root `error.tsx`** (`render:root`) catches a crash in a group's own layout, which no group boundary can;
+  `global-error.tsx` (`render:global`), dependency-free (its own html, inline styles), covers the root layout's death.
+  Two failures, told apart by area in Sentry, never by the stack.
 - **`captureError` lives in the crash wrappers only**, never in `NotFoundScreen`, where it would file every real 404.
-- **Verify the chain on a production build** with the gated `/design/lab/tools/boom` probe (dev shows the overlay).
+- **Verify the chain on a production build** with the gated `/design/lab/tools/boom` probe (dev shows the overlay): bare,
+  it crashes the page into the root `error.tsx`; `?boundary=global` crashes the root layout itself into
+  `global-error.tsx`, by a toast whose element throws, which the layout's own `<Toaster />` draws beside `{children}`
+  (`root-layout-crash.tsx`; the toast waits a beat after mount, since the Toaster subscribes after the page's effect).
 - The 404 pages are [marketing-content.md](marketing-content.md)'s.
 
 ## The craft guidance stack

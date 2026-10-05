@@ -234,6 +234,180 @@ describe("the step over an album that waits", () => {
   });
 });
 
+/**
+ * ★ THE FAILURE HEADING COUNTS THE RUN'S OWN FILES (crumbs-76; ROADMAP: "a Retry that fails again, or a slot mounted
+ * mid-run, reads '1 of 0 didn't upload'"). The step's "SENT" was the queue's length less a baseline taken at the run's
+ * start, and its own Retry adds no item: counted that way a failure that failed again read "1 of 0".
+ */
+describe("the failure heading", () => {
+  const step = (queue: QueueItem[]) => (
+    <UploadStep
+      isDemo={false}
+      requireUpload={false}
+      albumEmpty={false}
+      queue={queue}
+      onSend={vi.fn()}
+      onRetry={vi.fn()}
+      onDismiss={vi.fn()}
+      onContinueWithout={vi.fn()}
+    />
+  );
+
+  it("★ a Retry in place that fails again reads the run it was, never '1 of 0'", () => {
+    const view = render(step([item({ id: "a" })]));
+    expect(screen.getByText("1 of 1 didn't upload")).toBeInTheDocument();
+    // Retry: the very item goes up again (no item is added), and fails again.
+    view.rerender(step([item({ id: "a", status: "queued" })]));
+    view.rerender(step([item({ id: "a" })]));
+    expect(screen.getByText("1 of 1 didn't upload")).toBeInTheDocument();
+  });
+
+  it("★ a step that mounts mid-run reads the whole run it ends with", () => {
+    const view = render(
+      step([
+        item({ id: "a", status: "done", progress: 100 }),
+        item({ id: "b", status: "uploading", progress: 30 }),
+        item({ id: "c", status: "queued" }),
+      ]),
+    );
+    view.rerender(
+      step([
+        item({ id: "a", status: "done", progress: 100 }),
+        item({ id: "b" }),
+        item({ id: "c" }),
+      ]),
+    );
+    expect(screen.getByText("2 of 3 didn't upload")).toBeInTheDocument();
+  });
+
+  it("counts the run it ends and leaves out what an earlier run landed", () => {
+    const view = render(
+      step([item({ id: "old", status: "done", progress: 100 })]),
+    );
+    view.rerender(
+      step([
+        item({ id: "old", status: "done", progress: 100 }),
+        item({ id: "x", status: "queued" }),
+        item({ id: "y", status: "queued" }),
+      ]),
+    );
+    view.rerender(
+      step([
+        item({ id: "old", status: "done", progress: 100 }),
+        item({ id: "x" }),
+        item({ id: "y" }),
+      ]),
+    );
+    expect(screen.getByText("2 of 2 didn't upload")).toBeInTheDocument();
+  });
+});
+
+/**
+ * ★ A CAMERA ALBUM'S FIRST PHOTOGRAPH IS THE ALBUM'S CAMERA, NEVER THE LIBRARY (crumbs-76; ROADMAP: "on a camera album the
+ * door's first-photo step still offers Take a photo and Choose from your album, so a library photo reaches the roll").
+ * The album's own Add opens its camera in place of the add sheet and offers no library; this step shared that sheet's
+ * body and did. Its one primary opens the camera the door holds (`camera.onOpen`), and nothing asks for a file.
+ */
+describe("on an album whose host chose the camera", () => {
+  const onOpen = vi.fn();
+  const camera = { onOpen };
+
+  it("★ offers the camera alone: one primary that opens it, and no picker of any kind", () => {
+    const { container } = mount({ camera });
+    fireEvent.click(screen.getByRole("button", { name: "Take a photo" }));
+    expect(onOpen).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByRole("button", { name: "Choose from your album" }),
+    ).toBeNull();
+    expect(container.querySelector('input[type="file"]')).toBeNull();
+    // The facts of the library act (its kinds and its cap) are not said where the library is not offered.
+    expect(container.querySelector("[data-upload-terms]")).toBeNull();
+  });
+
+  it("asks in the camera's verb, as the album's own Add does", () => {
+    mount({ camera });
+    expect(screen.getByText("Take your photos")).toBeInTheDocument();
+    expect(screen.queryByText("Add your photos")).toBeNull();
+    expect(
+      screen.getByText("Take one now, or look around first."),
+    ).toBeInTheDocument();
+    expect(
+      uploadStepReason({
+        isDemo: false,
+        requireUpload: true,
+        albumEmpty: true,
+        camera: true,
+      }),
+    ).toBe("Nothing here yet. Take the first photo and the album opens.");
+    expect(
+      uploadStepReason({
+        isDemo: false,
+        requireUpload: true,
+        albumEmpty: false,
+        camera: true,
+      }),
+    ).toBe(
+      "The host has asked everyone to take a photo before the album opens.",
+    );
+    expect(
+      uploadStepReason({
+        isDemo: false,
+        requireUpload: false,
+        albumEmpty: true,
+        camera: true,
+      }),
+    ).toBe("Nothing here yet. Take the first photo.");
+    expect(uploadStepChooseAgain(true, true)).toBe(
+      "Take another and the album opens.",
+    );
+    expect(uploadStepChooseAgain(false, true)).toBe("Take another to add one.");
+    // A free-upload album says what it always said.
+    expect(
+      uploadStepReason({
+        isDemo: false,
+        requireUpload: true,
+        albumEmpty: true,
+      }),
+    ).toBe("Nothing here yet. Add the first photo and the album opens.");
+  });
+
+  it("keeps its skip under the camera's primary where the host asked for none", () => {
+    mount({ camera, onSkip: vi.fn() });
+    expect(
+      screen.getByRole("button", { name: "Skip for now" }),
+    ).toBeInTheDocument();
+  });
+
+  it("the failure view takes another photograph, and clears what failed", () => {
+    const { onDismiss } = mount({
+      camera,
+      queue: [
+        item({
+          id: "q9",
+          errorCode: "invalid_image",
+          error: "That photo could not be read.",
+        }),
+      ],
+    });
+    expect(
+      screen.queryByRole("button", { name: "Choose other photos" }),
+    ).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Take another photo" }));
+    expect(onDismiss).toHaveBeenCalledWith(["q9"]);
+  });
+
+  it("is a free-upload album's step where there is none: the two rows, the picker, the terms", () => {
+    const { container } = mount({ camera: null });
+    expect(
+      screen.getByRole("button", { name: "Choose from your album" }),
+    ).toBeInTheDocument();
+    expect(
+      container.querySelector('input[type="file"][multiple]'),
+    ).not.toBeNull();
+    expect(container.querySelector("[data-upload-terms]")).not.toBeNull();
+  });
+});
+
 describe("the surface", () => {
   it("offers the two named acts, and Send hands the picks up", () => {
     const { container, onSend } = mount();
