@@ -13,7 +13,7 @@ import {
   floatingPopupShapes,
   floatingScrim,
 } from "@/components/ui/floating-layer"
-import { EPHEMERAL_ROLES } from "@/components/ui/layer-is-up"
+import { EPHEMERAL_ROLES, layerIsUp } from "@/components/ui/layer-is-up"
 import { useBackCloses } from "@/components/ui/popup-back"
 import {
   DESK_QUERY,
@@ -284,9 +284,22 @@ function PopupContent({
       : "sheet"
 
   const state = React.useContext(PopupStateContext)
+  // ★ IN A HAND, A PLACE HOLDS A HISTORY ENTRY, AND A QUESTION HOLDS ONE ONLY
+  // OVER ANOTHER LAYER (back-layers; `ui/popup-back.ts` says why): asked as it
+  // opens, never during a render, and never counting its own element.
+  const ownLayer = React.useId()
   useBackCloses(
-    Boolean(state?.open) && !routed && !desk && isPlaceShape(shape),
-    () => state?.setOpen(false)
+    Boolean(state?.open) && !routed && !desk,
+    () => state?.setOpen(false),
+    {
+      holdsIf: isPlaceShape(shape)
+        ? undefined
+        : () =>
+            layerIsUp({
+              dialogsOnly: true,
+              except: `[data-popup-layer="${ownLayer}"]`,
+            }),
+    }
   )
 
   // The element itself, as state: Radix mounts the content a render after its
@@ -331,6 +344,7 @@ function PopupContent({
           data-kind={kind}
           data-shape={shape}
           data-size={size}
+          data-popup-layer={ownLayer}
           onOpenAutoFocus={(event) => {
             returnTo.current = lastOpener
             onOpenAutoFocus?.(event)

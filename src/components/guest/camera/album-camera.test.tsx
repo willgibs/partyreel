@@ -414,6 +414,69 @@ describe("the album's camera", () => {
     expect(screen.queryByText("That’s your roll")).toBeNull();
   });
 
+  /* ★ BACK PEELS ONE LAYER A PRESS, AS ESCAPE DOES (back-layers; from `disposable-camera`): only the camera held a
+     history entry, so the phone's Back from her shots closed the whole camera. Her shots hold one of their own. */
+  it("★ the phone's Back from her shots goes back to the camera, and the next Back closes the camera", async () => {
+    // A Back the test before left on its way lands first (`ui/popup-back.ts`: a push waits for it).
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 60));
+    });
+    rolls = [{ used: 24, cap: 24, taken: 24, ceiling: 72 }];
+    const onOpenChange = vi.fn();
+    render(<Page onOpenChange={onOpenChange} />);
+    await screen.findByText("That’s your roll");
+    const atCamera = window.history.length;
+    fireEvent.click(screen.getByRole("button", { name: "See your shots" }));
+    await screen.findByRole("heading", { name: "Your shots" });
+    expect(window.history.length).toBe(atCamera + 1);
+
+    await act(async () => {
+      window.history.back();
+      await new Promise((resolve) => setTimeout(resolve, 60));
+    });
+    // The old code closed the camera here, her shots with it.
+    expect(screen.queryByRole("heading", { name: "Your shots" })).toBeNull();
+    expect(onOpenChange).not.toHaveBeenCalled();
+    expect(document.querySelector("[data-album-camera]")).not.toBeNull();
+
+    await act(async () => {
+      window.history.back();
+      await new Promise((resolve) => setTimeout(resolve, 60));
+    });
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+    expect(document.querySelector("[data-album-camera]")).toBeNull();
+  });
+
+  it("her shots' own Back arrow takes their entry back: the camera stands on its own, and one Back closes it", async () => {
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 60));
+    });
+    rolls = [{ used: 24, cap: 24, taken: 24, ceiling: 72 }];
+    const onOpenChange = vi.fn();
+    render(<Page onOpenChange={onOpenChange} />);
+    await screen.findByText("That’s your roll");
+    const marker = () =>
+      (window.history.state as Record<string, unknown> | null)?.prPopup;
+    const camera = marker();
+    expect(camera).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "See your shots" }));
+    await screen.findByRole("heading", { name: "Your shots" });
+    expect(marker()).not.toBe(camera);
+    fireEvent.click(screen.getByRole("button", { name: "Back to the camera" }));
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 60));
+    });
+    expect(screen.queryByRole("heading", { name: "Your shots" })).toBeNull();
+    expect(marker()).toBe(camera);
+    expect(onOpenChange).not.toHaveBeenCalled();
+
+    await act(async () => {
+      window.history.back();
+      await new Promise((resolve) => setTimeout(resolve, 60));
+    });
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
   it("★ stops the shutter when the album itself refuses, in the server's own words", async () => {
     render(<Page />);
     await opened();
