@@ -4,29 +4,19 @@ import type { Door } from "@/lib/event/door/door";
 import type { ReadyFacts } from "@/lib/events/readiness";
 
 /**
- * SIX ALBUMS, FROM THE HOST'S SIDE OF THEIR CODES: Maya and Jay's wedding
- * (the party every head board stands at, tonight and the week before) and
- * the four shapes his note named, where a head that leans on a timeline
- * breaks: a weekend over three days, a morning ceremony whose photographs all
- * land before lunch, a party with no date set, and a slow trickle that runs
- * for months.
+ * MAYA AND JAY'S WEDDING, FROM THE HOST'S SIDE OF ITS CODE, AT THE THREE
+ * MOMENTS THE DOORS ARE DRAWN AT:
  *
- *  - TONIGHT the wedding is on: 214 photos from 31 guests, the code opened 486
- *    times, 8 uploads held in Review and 2 people at the door;
- *  - THE WEEK BEFORE nothing is in the album and the checklist stands at the
- *    head of the hub (production's own);
- *  - A WEEKEND, October 2 to 4 (a range of days, no times: the end date
- *    `event-dates` wires), its third day on now: 312 photos from 18 people;
- *  - A MORNING, October 3, 9 to 11:40, and it is now evening: 148 photos, the
- *    newest nine hours old;
- *  - NO DATE: a 90th birthday whose host never set one, 64 photos;
- *  - A TRICKLE, Sunday dinners since June, two or three photos a week: 41.
+ *  - TONIGHT the wedding is on: 214 photos from 31 guests, 8 uploads held in
+ *    Review and 2 people at the door (every door has something in it);
+ *  - THE WEEK BEFORE nothing is in the album, the checklist stands at the head
+ *    of the hub (production's own) and Settings has steps left;
+ *  - THE WEEK AFTER she has paused uploads: 236 photos, nothing waits, and
+ *    Settings says Paused (the call G4), the code's corner its pause.
  *
- * ★ EVERY ALBUM'S ARRIVALS ARE DRAWN, NOT DESCRIBED: each photograph has the
- * minute it landed (`arrivals`), dealt from the album's own busy moments by a
- * seeded generator, so every frame draws the same album on every render and
- * an option that reads the album reads a real one. A host's real arrivals are
- * her manifest's own times (`album-wire.ts`: every entry carries `t`).
+ * ★ THE ALBUM'S ARRIVALS ARE DRAWN, NOT DESCRIBED: each photograph has the
+ * minute it landed (`arrivals`), dealt from the night's busy moments by a
+ * seeded generator, so the cover's strip draws the same album on every render.
  *
  * ★ A SEPARATE FILE, NEVER AN IMPORT FROM ANOTHER BOARD: a board's folder
  * leaves whole when it retires. NOTHING HERE IS A REAL PERSON, and every
@@ -93,25 +83,6 @@ export const ALBUM: readonly Still[] = [
 
 const cover = (ids: readonly string[]): HeadStill[] =>
   ids.map((id) => ({ id, tile: marketingImage(id).src }));
-
-/** An album of a few stills, their declared ratios varied as a real album's are. */
-const albumOf = (ids: readonly string[]): Still[] => {
-  const ratios: readonly (readonly [number, number] | null)[] = [
-    null,
-    [4, 5],
-    null,
-    [1, 1],
-    [3, 4],
-    null,
-  ];
-  return Array.from({ length: 12 }, (_, i) => {
-    const r = ratios[i % ratios.length];
-    const id = ids[(i * 5 + (i >> 1)) % ids.length] as Parameters<
-      typeof marketingImage
-    >[0];
-    return r ? still(id, r[0], r[1]) : still(id);
-  });
-};
 
 /**
  * THE WEDDING'S COVER: the reel's opening stills, which is the rule the hub's
@@ -198,29 +169,12 @@ const hm = (h: number, m = 0) => h * 60 + m;
 
 /* ── the six albums ───────────────────────────────────────────────────────── */
 
-export type CaseId =
-  | "tonight"
-  | "before"
-  | "weekend"
-  | "morning"
-  | "undated"
-  | "trickle";
-
-/** The order the facts' frames stand in: the wedding at both ends of its life, then his four shapes. */
-export const CASE_ORDER: readonly CaseId[] = [
-  "tonight",
-  "before",
-  "weekend",
-  "morning",
-  "undated",
-  "trickle",
-];
+/** The three moments the doors are drawn at. */
+export type CaseId = "tonight" | "before" | "after";
 
 export type HostFacts = {
   photos: number;
   guests: number;
-  /** The code's opens and the album's views: production's "views" (`linkStats`). */
-  views: number;
   /** People at the door waiting for her yes. */
   waiting: number;
   /** Uploads held in Review. */
@@ -231,16 +185,18 @@ export type HostFacts = {
   reelHave: number;
   /** The days until the event's date (0 once it has come). */
   daysToGo: number;
+  /**
+   * From the day after the event's date the checklist steps aside and the
+   * Settings door stops counting (production's `checklistOver`).
+   */
+  over: boolean;
   /** The checklist's facts (`lib/events/readiness.ts`), as the server reads them. */
   ready: ReadyFacts;
 };
 
-/** Who added photos, newest first: a name and the seed production colours a face by. */
-export type Face = { name: string; seed: string };
-
 export type Case = HostFacts & {
   id: CaseId;
-  /** The frame's own title: which album, at which moment. */
+  /** The frame's own title: which moment. */
   title: string;
   name: string;
   /** Her claimed link's last part, read under the code. */
@@ -257,12 +213,8 @@ export type Case = HostFacts & {
   arrivals: readonly number[];
   /** The cover's photographs. */
   stills: readonly HeadStill[];
-  /** The album under the cover, newest first (its colours are its photographs'). */
+  /** The album under the cover, newest first. */
   album: readonly Still[];
-  /** Who added, newest first (`guests` of them, the first few named). */
-  faces: readonly Face[];
-  /** The newest drop: who, how many, how long ago, and its first photograph. */
-  latest: { who: string; n: number; ago: string; src: string } | null;
 };
 
 const READY_BASE = {
@@ -291,51 +243,6 @@ const ready = (
   opened,
 });
 
-/** A crowd's first names, dealt to whoever is not named: placeholder, judged for size. */
-const NAMES = [
-  "Theo",
-  "Priya",
-  "Noor",
-  "Ade",
-  "Grace",
-  "Jonah",
-  "Mila",
-  "Omar",
-  "Sam",
-  "Lena",
-  "Ines",
-  "Rui",
-  "Jo",
-  "Luca",
-  "Ana",
-  "Kofi",
-  "Hana",
-  "Eli",
-  "Zara",
-  "Ben",
-  "Maren",
-  "Tomas",
-  "Yuki",
-  "Ravi",
-  "Clara",
-  "Felix",
-  "Nia",
-  "Oskar",
-  "Leah",
-  "Dev",
-  "Ruth",
-  "Ivo",
-];
-
-/** `n` faces, newest first, starting from the named ones (each seeded by its album and place). */
-function facesOf(album: string, n: number, first: readonly string[]): Face[] {
-  const pool = [...first, ...NAMES.filter((x) => !first.includes(x))];
-  return Array.from({ length: n }, (_, i) => ({
-    name: pool[i % pool.length],
-    seed: `eh-${album}-${i}`,
-  }));
-}
-
 const WEDDING = cover([
   "wedding-toast",
   "reception-hall",
@@ -345,10 +252,42 @@ const WEDDING = cover([
   "reception-table",
 ]);
 
+/** The wedding night's arrivals: 7:04 pm to 10:40 pm, the drinks, dinner, the toasts, the first dance, the floor. */
+const NIGHT = arrivalsOf(
+  12,
+  214,
+  [
+    { at: hm(19, 40), spread: 16, weight: 1 },
+    { at: hm(20, 20), spread: 10, weight: 0.5 },
+    { at: hm(20, 55), spread: 6, weight: 1.4 },
+    { at: hm(21, 30), spread: 5, weight: 1.6 },
+    { at: hm(22, 8), spread: 14, weight: 1.3 },
+    { at: hm(22, 34), spread: 4, weight: 0.8 },
+  ],
+  hm(19, 4),
+  hm(22, 40),
+);
+
+/** The week after: the night, then the stragglers' photos over the next days, until she paused uploads. */
+const AFTER = [
+  ...NIGHT,
+  ...arrivalsOf(
+    44,
+    22,
+    [
+      { at: DAY + hm(11, 0), spread: 90, weight: 1 },
+      { at: 2 * DAY + hm(20, 0), spread: 60, weight: 0.6 },
+      { at: 4 * DAY + hm(13, 0), spread: 120, weight: 0.4 },
+    ],
+    DAY + hm(9, 0),
+    5 * DAY,
+  ),
+].sort((a, b) => a - b);
+
 export const CASES: Record<CaseId, Case> = {
   tonight: {
     id: "tonight",
-    title: "Tonight, the wedding on",
+    title: "Tonight, the party on",
     name: EVENT.name,
     slug: "maya-and-jay",
     date: EVENT.date,
@@ -356,42 +295,21 @@ export const CASES: Record<CaseId, Case> = {
     live: true,
     photos: 214,
     guests: 31,
-    views: 486,
     waiting: 2,
     review: 8,
     door: "approve",
     reel: "live",
     reelHave: 2,
     daysToGo: 0,
+    over: false,
     ready: ready(EVENT.date, "approve", 31, 214, 486),
-    // 7:04 pm to 10:40 pm: the drinks, dinner, the toasts, the first dance, the floor.
-    arrivals: arrivalsOf(
-      12,
-      214,
-      [
-        { at: hm(19, 40), spread: 16, weight: 1 },
-        { at: hm(20, 20), spread: 10, weight: 0.5 },
-        { at: hm(20, 55), spread: 6, weight: 1.4 },
-        { at: hm(21, 30), spread: 5, weight: 1.6 },
-        { at: hm(22, 8), spread: 14, weight: 1.3 },
-        { at: hm(22, 34), spread: 4, weight: 0.8 },
-      ],
-      hm(19, 4),
-      hm(22, 40),
-    ),
+    arrivals: NIGHT,
     stills: WEDDING,
     album: ALBUM,
-    faces: facesOf("tonight", 31, ["Theo", "Priya", "Noor", "Ade"]),
-    latest: {
-      who: "Theo",
-      n: 3,
-      ago: "just now",
-      src: marketingImage("party-dj").src,
-    },
   },
   before: {
     id: "before",
-    title: "The week before, nothing in it",
+    title: "The week before",
     name: EVENT.name,
     slug: "maya-and-jay",
     date: EVENT.date,
@@ -399,201 +317,47 @@ export const CASES: Record<CaseId, Case> = {
     live: false,
     photos: 0,
     guests: 0,
-    views: 0,
     waiting: 0,
     review: 0,
     door: "open",
     reel: "short",
     reelHave: 0,
     daysToGo: 6,
+    over: false,
     ready: ready(EVENT.date, "open", 0, 0, 0),
     arrivals: [],
     stills: [],
     album: ALBUM,
-    faces: [],
-    latest: null,
   },
-  weekend: {
-    id: "weekend",
-    title: "A weekend, its third day on",
-    name: "Lakeside weekend",
-    slug: "lakeside-weekend",
-    date: "2026-10-02",
-    end: "2026-10-04",
-    day: 3,
-    live: true,
-    photos: 312,
-    guests: 18,
-    views: 140,
-    waiting: 0,
-    review: 0,
-    door: "open",
-    reel: "live",
-    reelHave: 2,
-    daysToGo: 0,
-    ready: ready("2026-10-02", "open", 18, 312, 140),
-    // Friday night's arrival, Saturday's lake and long night, Sunday's slow morning, on now.
-    arrivals: arrivalsOf(
-      31,
-      312,
-      [
-        { at: hm(19, 30), spread: 50, weight: 0.8 },
-        { at: hm(22, 40), spread: 30, weight: 0.5 },
-        { at: DAY + hm(11, 30), spread: 70, weight: 0.9 },
-        { at: DAY + hm(15, 0), spread: 40, weight: 1.1 },
-        { at: DAY + hm(21, 20), spread: 60, weight: 1.3 },
-        { at: 2 * DAY + hm(11, 0), spread: 60, weight: 0.6 },
-        { at: 2 * DAY + hm(15, 40), spread: 20, weight: 0.5 },
-      ],
-      hm(17, 50),
-      2 * DAY + hm(16, 6),
-    ),
-    stills: cover([
-      "festival-lights",
-      "festival-crowd",
-      "concert-confetti",
-      "party-dj",
-      "party-balloons",
-    ]),
-    album: albumOf(["festival-lights", "festival-crowd", "concert-confetti", "party-dj", "party-balloons"]),
-    faces: facesOf("weekend", 18, ["Jo", "Kofi", "Hana"]),
-    latest: {
-      who: "Jo",
-      n: 8,
-      ago: "4 min ago",
-      src: marketingImage("festival-crowd").src,
-    },
-  },
-  morning: {
-    id: "morning",
-    title: "A morning, its photos all before lunch",
-    name: "Ines & Rui",
-    slug: "ines-and-rui",
-    date: "2026-10-03",
+  after: {
+    id: "after",
+    title: "The week after, uploads paused",
+    name: EVENT.name,
+    slug: "maya-and-jay",
+    date: EVENT.date,
     end: null,
     live: false,
-    photos: 148,
-    guests: 22,
-    views: 260,
+    photos: 236,
+    guests: 34,
     waiting: 0,
     review: 0,
-    door: "open",
+    door: "approve",
     reel: "live",
     reelHave: 2,
     daysToGo: 0,
-    ready: ready("2026-10-03", "open", 22, 148, 260),
-    // 9 to 11:40 in the morning; it is now a quarter past nine at night.
-    arrivals: arrivalsOf(
-      47,
-      148,
-      [
-        { at: hm(9, 15), spread: 8, weight: 0.6 },
-        { at: hm(10, 5), spread: 6, weight: 1.2 },
-        { at: hm(10, 40), spread: 12, weight: 1 },
-        { at: hm(11, 20), spread: 10, weight: 0.7 },
-      ],
-      hm(9, 0),
-      hm(11, 40),
-    ),
-    stills: cover(["wedding-arch", "wedding-petals", "wedding-rings"]),
-    album: albumOf(["wedding-arch", "wedding-petals", "wedding-rings", "wedding-golden"]),
-    faces: facesOf("morning", 22, ["Ana", "Clara", "Rui"]),
-    latest: {
-      who: "Ana",
-      n: 5,
-      ago: "9 hours ago",
-      src: marketingImage("wedding-petals").src,
+    over: true,
+    ready: {
+      ...ready(EVENT.date, "approve", 34, 236, 612),
+      acceptingUploads: false,
     },
-  },
-  undated: {
-    id: "undated",
-    title: "No date set",
-    name: "Rosa turns 90",
-    slug: "rosa-turns-90",
-    date: null,
-    end: null,
-    live: false,
-    photos: 64,
-    guests: 15,
-    views: 92,
-    waiting: 0,
-    review: 0,
-    door: "open",
-    reel: "live",
-    reelHave: 2,
-    daysToGo: 0,
-    ready: ready(null, "open", 15, 64, 92),
-    // One evening, then a few late arrivals over the week after.
-    arrivals: arrivalsOf(
-      90,
-      64,
-      [
-        { at: hm(19, 30), spread: 50, weight: 1 },
-        { at: 2 * DAY + hm(12, 0), spread: 200, weight: 0.12 },
-        { at: 6 * DAY + hm(20, 0), spread: 100, weight: 0.1 },
-      ],
-      hm(18, 0),
-      7 * DAY,
-    ),
-    stills: cover(["party-balloons", "reception-table", "wedding-toast"]),
-    album: albumOf(["party-balloons", "reception-table", "wedding-toast", "reception-hall"]),
-    faces: facesOf("undated", 15, ["Luca", "Ruth", "Ivo"]),
-    latest: {
-      who: "Luca",
-      n: 4,
-      ago: "2 days ago",
-      src: marketingImage("party-balloons").src,
-    },
-  },
-  trickle: {
-    id: "trickle",
-    title: "A trickle, two or three a week",
-    name: "Sunday dinners",
-    slug: "sunday-dinners",
-    date: "2026-06-07",
-    end: null,
-    live: false,
-    photos: 41,
-    guests: 7,
-    views: 58,
-    waiting: 0,
-    review: 0,
-    door: "open",
-    reel: "live",
-    reelHave: 2,
-    daysToGo: 0,
-    ready: ready("2026-06-07", "open", 7, 41, 58),
-    // A Sunday most weeks since June, a few photos from whoever cooked.
-    arrivals: arrivalsOf(
-      7,
-      41,
-      Array.from({ length: 16 }, (_, w) => ({
-        at: w * 7 * DAY + hm(20, 30),
-        spread: 30,
-        weight: w % 4 === 2 ? 0.3 : 1,
-      })),
-      hm(19, 0),
-      16 * 7 * DAY,
-    ),
-    stills: cover(["reception-table", "wedding-toast", "reception-hall"]),
-    album: albumOf(["reception-table", "wedding-toast", "reception-hall", "wedding-golden"]),
-    faces: facesOf("trickle", 7, ["Sam", "Lena", "Eli"]),
-    latest: {
-      who: "Sam",
-      n: 2,
-      ago: "3 days ago",
-      src: marketingImage("reception-table").src,
-    },
+    arrivals: AFTER,
+    stills: WEDDING,
+    album: ALBUM,
   },
 };
 
-/** The two moments the doors are drawn at: the wedding tonight, and the week before. */
-export type Moment = "tonight" | "before";
-
-export const MOMENTS: Record<Moment, Case> = {
-  tonight: CASES.tonight,
-  before: CASES.before,
-};
+/** The Moment knob's ids: the case each one draws. */
+export type Moment = CaseId;
 
 /* ── when the event is ───────────────────────────────────────────────────── */
 
