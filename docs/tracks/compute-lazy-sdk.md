@@ -39,11 +39,18 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **Should a failed SDK load throw from `headObject`, the HEAD that never throws, rather than read as "absent"?
+  Recommended: throw (built).** Its try wraps R2's answer alone (a 404 or 403 is `null`: still rendering, not there);
+  the client and the SDK come before it, so a load that fails is a failed send like the others, reaches the complete
+  route's own handling and Sentry, and never tells the render check its object is missing.
+- **Is `getR2()` (the client and the command classes in one call) the right shape, replacing `getR2Client()`?
+  Recommended: yes (built).** A command built from an import would put the SDK back on every cold start; one call that
+  hands out both makes the lazy way the only way, and `lazy-sdk.test.ts` fails the other.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `uploads-and-r2.md`, "R2 and presigns": a ★ line, the S3 SDK loads on the first send (`getR2()`), never on an import,
+  with what holds it (`lazy-sdk.test.ts`); and the checksum line names the one client's home.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 

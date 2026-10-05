@@ -7,7 +7,9 @@
  * every cold start of every such page pay for sends it rarely makes (a guest's own delete, a multipart, a HEAD, a
  * COPY). So nothing in `src/` imports the SDK except as a TYPE (`import type`), and every send takes its client AND
  * its command classes from `getR2()` below: `lazy-sdk.test.ts` holds both, and that no module graph reaches the SDK.
- * A failed load is a failed send: it throws from the function that asked, like any R2 error, and is never remembered.
+ * A failed load is a failed send: it throws from the function that asked, like any R2 error (and `headObject` never
+ * reads it as an absent object). This file remembers no failure; the bundler's own module cache may keep a failed
+ * `require`, which then fails each send the same way until the instance is replaced.
  *
  * ⚠️ THE CHECKSUM GOTCHA — do NOT remove the two `*ChecksumCalculation` /
  * `*ChecksumValidation` options below. Recent @aws-sdk/client-s3 versions

@@ -149,7 +149,7 @@ it.
   and no-cors alike. What loads first is a choice the viewer makes (below).
 - **Any S3 client pointed at R2 sets `requestChecksumCalculation` and `responseChecksumValidation` to
   `WHEN_REQUIRED`:** the SDK's automatic CRC checksums make R2 write 0-byte objects or answer
-  `SignatureDoesNotMatch`.
+  `SignatureDoesNotMatch`. The one client is `getR2()`'s (`r2/client.ts`).
 - **Raw keys never reach the browser:** every read is presigned server-side (`toGridItems`; the paged album's
   `album-guest-links.ts` and `album-host-links.ts`), and the render routes are dynamic. A guest's own items the album
   cannot show her (held, or sealed for the develop) are presigned for her alone by her tracker's read
@@ -160,6 +160,14 @@ it.
   lengths, expiries and clocks (the SDK's presigner is a dev dependency for it alone), so a change to what is signed
   is proved there first. It refuses what the SDK signed silently: an empty key (the SDK signs the bucket's root, a
   listing), an empty type, a length or part number that is no whole count, a bucket name R2 would not take.
+- ★ **The S3 SDK loads on the first send, never on an import:** `@aws-sdk/client-s3` is about 50 ms of CPU a cold
+  start, and a page that only reads (its links are signed by hand) never sends, so no file in `src/` imports it except
+  as a type. Every send takes the client and the command classes from `const { client, sdk } = await getR2()`
+  (`new sdk.HeadObjectCommand(...)`), so the guest page and every presign-only route load none of it, and the first
+  send of an instance pays it once. `lazy-sdk.test.ts` holds that nothing imports it statically (a new
+  `import { XCommand } from "@aws-sdk/client-s3"` puts it back on every cold start), that the guest page's module
+  graph reaches none of it, and each send's command. A failed load throws from the send like any R2 error, and
+  `headObject` keeps it outside its try so it never reads as an absent object.
 - **Gallery read presigns are stable:** `presignDownload({ stable: true })` pins the signing date to the current
   30-minute bucket (`r2/presign-bucket.ts`), so two presigns of one key in a bucket are byte-identical: the image
   cache works across refetches and the gallery's ETag rolls with the bucket. They live 90 minutes (two buckets and
