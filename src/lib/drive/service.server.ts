@@ -384,7 +384,7 @@ export async function leaseItemsFor(input: {
 
 /**
  * WAKE THE WORKER FOR A CONNECTION: as many lanes as are missing (at most once a minute), as a signed POST to its
- * `/kick`. Best-effort by design: a kick that does not land is the sweep's to make within five minutes, so a failure
+ * `/kick`. Best-effort by design: a kick that does not land is the sweep's to make within fifteen minutes, so a failure
  * is a warning, never a refusal of her press.
  */
 export async function kickConnection(connectionId: string): Promise<number> {

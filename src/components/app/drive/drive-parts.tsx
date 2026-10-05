@@ -80,9 +80,18 @@ export function DriveMeter({
   );
 }
 
+/** The fan: three photographs sliding in, their feet behind the folder's front. */
+const FAN = [
+  { turn: -8, left: "13%", top: "12%" },
+  { turn: -1, left: "33%", top: "6%" },
+  { turn: 7, left: "53%", top: "12%" },
+] as const;
+
 /**
  * THE ALBUM AS A FOLDER: three of its photographs fanned as they slide in, their feet behind the folder's front, which
- * names where they land. In a desk's 3:2, or a hand's short strip; muted tiles where the album has no pictures to give.
+ * names where they land. ★ Three DIFFERENT photographs, the album's first: one with fewer leaves the rest as muted
+ * tiles rather than showing one twice (the walk saw a photo repeated). A desk's 3:2, a hand's 16:9: the same fan, so at
+ * a phone's width each photograph is as tall as it is wide and reads as a photograph, never a strip cropped thin.
  */
 export function FolderPicture({
   pictures,
@@ -93,47 +102,22 @@ export function FolderPicture({
   wide: boolean;
   label: string;
 }) {
-  const fan = wide
-    ? [
-        { turn: -8, left: "13%", top: "12%" },
-        { turn: -1, left: "33%", top: "6%" },
-        { turn: 7, left: "53%", top: "12%" },
-      ]
-    : [
-        { turn: -7, left: "16%", top: "14%" },
-        { turn: 0, left: "36%", top: "6%" },
-        { turn: 6, left: "56%", top: "14%" },
-      ];
+  const picks = [...new Set(pictures)].slice(0, FAN.length);
   return (
     <span
       aria-hidden
       data-drive-folder=""
       className={cn(
         "relative block overflow-hidden rounded-[calc(var(--radius-float)-4px)] bg-muted",
-        wide ? "aspect-[3/2]" : "h-16",
+        wide ? "aspect-[3/2]" : "aspect-[16/9]",
       )}
     >
-      <span
-        className={cn(
-          "absolute rounded-t-md bg-foreground/15",
-          wide
-            ? "top-[20%] left-[8%] h-[10%] w-[30%]"
-            : "top-[22%] left-[8%] h-3 w-[28%]",
-        )}
-      />
-      <span
-        className={cn(
-          "absolute inset-x-[8%] bottom-0 rounded-t-lg bg-foreground/15",
-          wide ? "top-[28%]" : "top-[32%]",
-        )}
-      />
-      {fan.map(({ turn, left, top }, i) => {
-        const src =
-          pictures.length > 0 ? pictures[(i * 2) % pictures.length] : null;
-        const shape = cn(
-          "absolute rounded-[3px] shadow-lg ring-2 ring-card motion-safe:transition-transform motion-safe:duration-300",
-          wide ? "h-[60%] w-[34%]" : "h-[74%] w-[30%]",
-        );
+      <span className="absolute top-[20%] left-[8%] h-[10%] w-[30%] rounded-t-md bg-foreground/15" />
+      <span className="absolute inset-x-[8%] top-[28%] bottom-0 rounded-t-lg bg-foreground/15" />
+      {FAN.map(({ turn, left, top }, i) => {
+        const src = picks[i] ?? null;
+        const shape =
+          "absolute h-[60%] w-[34%] rounded-[3px] shadow-lg ring-2 ring-card motion-safe:transition-transform motion-safe:duration-300";
         return src ? (
           // eslint-disable-next-line @next/next/no-img-element -- a presigned tile, never next/image (media-cost-policy)
           <img
@@ -152,19 +136,9 @@ export function FolderPicture({
           />
         );
       })}
-      <span
-        className={cn(
-          "absolute inset-x-[6%] bottom-0 flex items-end rounded-t-lg bg-card shadow-[0_-12px_24px_-16px_rgb(0_0_0/0.7)] ring-1 ring-foreground/10",
-          wide ? "h-[34%] px-3 pb-2.5" : "h-[40%] px-2 pb-1",
-        )}
-      >
-        <span
-          className={cn(
-            "flex min-w-0 items-center gap-1.5 text-muted-foreground",
-            wide ? "text-xs" : "text-[11px]",
-          )}
-        >
-          <DriveGlyph className={wide ? "size-3.5" : "size-3"} />
+      <span className="absolute inset-x-[6%] bottom-0 flex h-[34%] items-end rounded-t-lg bg-card px-3 pb-2.5 shadow-[0_-12px_24px_-16px_rgb(0_0_0/0.7)] ring-1 ring-foreground/10">
+        <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+          <DriveGlyph className="size-3.5" />
           <span className="truncate">{label}</span>
         </span>
       </span>

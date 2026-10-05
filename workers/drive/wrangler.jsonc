@@ -44,8 +44,10 @@
     ],
   },
 
-  // The sweep, every five minutes: the backstop of every kick (src/sweep.ts).
-  "triggers": { "crons": ["*/5 * * * *"] },
+  // The sweep, every fifteen minutes: the backstop of every kick (src/sweep.ts). Each sweep is a Vercel function, so its
+  // cadence is set by its measured cost against Hobby's CPU (drive-export.md, "The sweep"): fifteen keeps a stalled
+  // send's recovery inside about twenty minutes and the hourly heartbeat on time.
+  "triggers": { "crons": ["*/15 * * * *"] },
 
   // Waiting on the network is not CPU; the ceiling is for hashing a 10 GB clip natively (`crypto.DigestStream`) when R2
   // kept no MD5. Each R2 read, Google call and report is a subrequest: a slice keeps its own count under 9,000
