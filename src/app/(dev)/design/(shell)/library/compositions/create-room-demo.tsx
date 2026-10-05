@@ -3,9 +3,7 @@
 import {
   type ComponentProps,
   type MouseEvent,
-  type ReactNode,
   useEffect,
-  useRef,
   useState,
 } from "react";
 import { RotateCcw } from "lucide-react";
@@ -15,6 +13,8 @@ import { forgetJustMade } from "@/components/app/create-event-wizard/just-made";
 import { Button } from "@/components/ui/button";
 import { Frame } from "@/components/lab";
 import { DEFAULT_QR_PRESET } from "@/lib/constants/qr-presets";
+
+import { FitToWell } from "../device-frames";
 
 /**
  * CREATE'S WHOLE ROOM, PRESSED THROUGH WITH NO SESSION (the Library's composition of `create-event-wizard.tsx`).
@@ -127,36 +127,6 @@ export function CreateRoomScene({
         storagePct={12}
         create={standInCreate}
       />
-    </div>
-  );
-}
-
-/**
- * The frame, scaled to the well it stands in: a laptop's 1440 does not fit the Library's column, so it is zoomed down to
- * it (a zoom scales the picture and leaves the frame's own viewport alone, so its breakpoints and its `vw` stay the
- * laptop's), and a phone stands in the middle at its own size.
- */
-function FitToWell({ w, children }: { w: number; children: ReactNode }) {
-  const box = useRef<HTMLDivElement | null>(null);
-  const [k, setK] = useState(1);
-  useEffect(() => {
-    const el = box.current;
-    if (!el) return;
-    // A well that is not laid out (a hidden tab) has no width to fit to: it stays whole until it has one.
-    const sync = () => {
-      const room = el.getBoundingClientRect().width;
-      setK(room > 0 ? Math.min(1, room / w) : 1);
-    };
-    sync();
-    const observer = new ResizeObserver(sync);
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [w]);
-  return (
-    <div ref={box} className="min-w-0 overflow-hidden">
-      <div style={{ width: w, zoom: k }} className="mx-auto">
-        {children}
-      </div>
     </div>
   );
 }

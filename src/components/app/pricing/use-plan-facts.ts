@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { usePricingDoors } from "@/components/app/pricing/pricing-doors";
 import { parsePlanFacts, type PlanFacts } from "@/lib/billing/plan-facts";
 
 /**
@@ -29,6 +30,9 @@ import { parsePlanFacts, type PlanFacts } from "@/lib/billing/plan-facts";
  * bumps it as it closes after a removal or an Undo, so the rows she returns to
  * are marked on what she stores now.
  *
+ * ★ THE READ GOES THROUGH THE SURFACE'S DOORS (`pricing-doors.tsx`): the server's route by default, and what a specimen
+ * hands in where there is no server to ask.
+ *
  * State is set only in the fetch's callbacks, never synchronously in the effect
  * (the repo's `react-hooks/set-state-in-effect`), and a reply that lands after the
  * sheet closed or remounted is dropped by the abort.
@@ -40,6 +44,7 @@ export function usePlanFacts(
   open: boolean,
   reads = 0,
 ): { facts: PlanFacts | null; settled: boolean; readAt: Date | null } {
+  const { readFacts } = usePricingDoors();
   const [facts, setFacts] = useState<PlanFacts | null>(null);
   const [settled, setSettled] = useState(false);
   const [readAt, setReadAt] = useState<Date | null>(null);
@@ -50,11 +55,7 @@ export function usePlanFacts(
     const patience = setTimeout(() => {
       if (!controller.signal.aborted) setSettled(true);
     }, READ_PATIENCE_MS);
-    fetch("/api/stripe/plan-facts", {
-      cache: "no-store",
-      signal: controller.signal,
-    })
-      .then((res) => (res.ok ? res.json() : null))
+    readFacts(controller.signal)
       .then((data) => {
         if (controller.signal.aborted) return;
         const next = parsePlanFacts(data);
@@ -74,7 +75,7 @@ export function usePlanFacts(
       clearTimeout(patience);
       controller.abort();
     };
-  }, [open, reads]);
+  }, [open, reads, readFacts]);
 
   return { facts, settled, readAt };
 }

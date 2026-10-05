@@ -3,17 +3,22 @@ import {
   Clapperboard,
   Compass,
   Eye,
+  EyeOff,
   Heart,
   ImageUp,
   Images,
+  LayoutGrid,
   ListChecks,
   Play,
   Plus,
   QrCode,
+  Rows3,
   Settings,
   Share2,
+  Table2,
   Trash2,
   Users,
+  Video,
 } from "lucide-react";
 
 import {
@@ -25,7 +30,6 @@ import {
   LiveAlbumStage,
 } from "@/components/marketing/sections/features/album/live-album-stage";
 import { AlbumStream } from "@/components/shared/album-stream/album-stream";
-import { PhotoSection } from "@/components/shared/backdrop/photo-section";
 import {
   QR_DOOR_FRAMES,
   QR_DOOR_SIZES,
@@ -60,16 +64,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -109,14 +103,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -129,6 +115,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   Tooltip,
   TooltipContent,
@@ -154,6 +141,14 @@ import {
   TapTooltipDemo,
   ToastDemo,
 } from "./interactive-demos";
+import { DialogSheetDemo } from "./overlay-demos";
+import { PhotoSectionDemo } from "./photo-section-demos";
+import {
+  ArrivalGuardDemo,
+  PopupKindDemo,
+  PopupSizeSample,
+} from "./popup-demos";
+import { DisplayMenuDemo } from "./toggle-group-demo";
 
 /**
  * THE PRIMITIVES, declared (the gallery round, 2026-09-12).
@@ -1088,6 +1083,141 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
     ],
   },
   {
+    id: "toggle-group",
+    file: "src/components/ui/toggle-group.tsx",
+    for: "the segmented choice: the dashboard's display menu (its layout tiles and its sort, whose and when pills) and the profile wizard's one-time show-all choice",
+    family: "components",
+    section: "Inputs",
+    badge: "new",
+    lede: "One press picks one (type single: the pressed item stays pressed) or any number of them (type multiple), each item a button with `aria-pressed`, the group one tab stop with arrow keys between. It wears its caller's shape through className (a tray of pills, a row of tiles, an outlined pair); the two axes are the stock ones. Four callers today: the display menu's three groups and the profile wizard's pair.",
+    variants: [
+      {
+        prop: "variant",
+        source: "cva",
+        fallback: "default",
+        options: ["default", "outline"],
+        sample: (o) => (
+          <ToggleGroup
+            type="single"
+            variant={o as "default" | "outline"}
+            defaultValue="all"
+            aria-label={`Show, ${o}`}
+          >
+            <ToggleGroupItem value="all">All</ToggleGroupItem>
+            <ToggleGroupItem value="mine">Mine</ToggleGroupItem>
+          </ToggleGroup>
+        ),
+      },
+      {
+        prop: "size",
+        source: "cva",
+        fallback: "default",
+        options: ["default", "sm"],
+        sample: (o) => (
+          <ToggleGroup
+            type="single"
+            variant="outline"
+            size={o as "default" | "sm"}
+            defaultValue="all"
+            aria-label={`Show, ${o}`}
+          >
+            <ToggleGroupItem value="all">All</ToggleGroupItem>
+            <ToggleGroupItem value="mine">Mine</ToggleGroupItem>
+          </ToggleGroup>
+        ),
+      },
+    ],
+    specimens: [
+      {
+        label: "One choice, drawn as the state it leaves",
+        hint: "the profile wizard's pair: type single, outline, sm; press the one already pressed and nothing changes",
+        node: (
+          <ToggleGroup
+            type="single"
+            variant="outline"
+            size="sm"
+            defaultValue="none"
+            aria-label="Show your events on your page"
+          >
+            <ToggleGroupItem value="all">Show all 12</ToggleGroupItem>
+            <ToggleGroupItem value="none">Keep all private</ToggleGroupItem>
+          </ToggleGroup>
+        ),
+      },
+      {
+        label: "Several at once",
+        hint: "type multiple: each item is its own switch; none is a valid state",
+        node: (
+          <ToggleGroup
+            type="multiple"
+            variant="outline"
+            defaultValue={["photos", "videos"]}
+            aria-label="Show"
+          >
+            <ToggleGroupItem value="photos">
+              <Images /> Photos
+            </ToggleGroupItem>
+            <ToggleGroupItem value="videos">
+              <Video /> Videos
+            </ToggleGroupItem>
+            <ToggleGroupItem value="hidden">
+              <EyeOff /> Hidden
+            </ToggleGroupItem>
+          </ToggleGroup>
+        ),
+      },
+      {
+        label: "Tiles",
+        hint: "the display menu's layout: a grid of three, each an icon over its word, the pressed one outlined in ink",
+        node: (
+          <ToggleGroup
+            type="single"
+            defaultValue="gallery"
+            aria-label="Layout"
+            className="grid w-full max-w-xs grid-cols-3 gap-1.5"
+          >
+            {[
+              { id: "gallery", label: "Gallery", icon: <LayoutGrid /> },
+              { id: "table", label: "Table", icon: <Table2 /> },
+              { id: "list", label: "List", icon: <Rows3 /> },
+            ].map((l) => (
+              <ToggleGroupItem
+                key={l.id}
+                value={l.id}
+                className="flex h-14 flex-col gap-1 rounded-xl border border-border text-xs data-[state=on]:border-foreground data-[state=on]:bg-muted"
+              >
+                {l.icon}
+                {l.label}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+        ),
+      },
+      {
+        label: "In the dashboard's display menu",
+        hint: "the real menu over a state of its own: press Display, then any tile or pill; the badge counts what is set, Reset clears it",
+        node: <DisplayMenuDemo />,
+      },
+      {
+        label: "Disabled",
+        hint: "a group a host cannot change right now: every item dims and takes no press",
+        node: (
+          <ToggleGroup
+            type="single"
+            variant="outline"
+            size="sm"
+            defaultValue="all"
+            disabled
+            aria-label="Show your events on your page (unavailable)"
+          >
+            <ToggleGroupItem value="all">Show all 12</ToggleGroupItem>
+            <ToggleGroupItem value="none">Keep all private</ToggleGroupItem>
+          </ToggleGroup>
+        ),
+      },
+    ],
+  },
+  {
     id: "dormant",
     file: "src/components/ui/dormant.tsx",
     for: "a setting with no effect right now, tucked under the switch that controls it as one quiet line, unfolding into its controls when that switch wakes it",
@@ -1335,35 +1465,23 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
     badge: "new",
     family: "components",
     section: "Surfaces",
-    lede: "A section that stands on a full-bleed photograph and switches it as the reader moves, with its copy on a glass plate. It is a page device: a full-image section can close a chapter, open one, or separate two, so a page turns through a picture instead of over a hairline. Today it closes the home page's first chapter.",
+    lede: "A section that stands on a full-bleed photograph and switches it as the reader moves, with its copy on a glass plate. It is a page device: a full-image section can close a chapter, open one, or separate two, so a page turns through a picture instead of over a hairline. Today it closes the home page's first chapter. Each specimen stands in a laptop-wide viewport, which is what the section is full-bleed in (its plates say `sizes=\"100vw\"` and load lazily, because it is never a page's first screen), zoomed down to the column.",
     specimens: [
       {
         label: "The room, under a cursor",
         hint: "move across it: the pool is indexed by WHERE you are, so going back brings back the photograph you just left. The rail at the foot is that readout, and it is drawn for a cursor and for nothing else.",
-        node: (
-          <PhotoSection source="pointer">
-            <PlateCopy />
-          </PhotoSection>
-        ),
+        node: <PhotoSectionDemo source="pointer" />,
       },
       {
-        // ★ `source` is forced HERE and nowhere else. Production asks the
-        // reader's own device; this is the only way to put both rules on one
-        // screen for a reviewer sitting at a laptop.
+        // ★ `source` is forced in these, and nowhere else (the demo says why).
         label: "and under a thumb",
-        hint: "scroll THIS page: five of the six pass at steps as the section goes by, never all six and never a tap. Stop scrolling and everything stops, which is the whole point of the rule.",
-        node: (
-          <div style={{ width: 375 }}>
-            <PhotoSection source="scroll">
-              <PlateCopy />
-            </PhotoSection>
-          </div>
-        ),
+        hint: "source=scroll: scroll THIS page and five of the six pass at steps as the section goes by, never all six and never a tap. Stop scrolling and everything stops, which is the whole point of the rule.",
+        node: <PhotoSectionDemo source="scroll" />,
       },
       {
         label: "With no copy at all",
         hint: "no children, no plate: the instance that exists to separate two chapters. It is also what a crawler, a tab with scripting off and a reader who asked for less motion get, standing on the pool's first photograph with no loop anywhere.",
-        node: <PhotoSection className="min-h-56" />,
+        node: <PhotoSectionDemo source="pointer" copy={false} />,
       },
     ],
   },
@@ -1587,98 +1705,143 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
   },
 
   {
-    id: "dialog",
-    file: "src/components/ui/dialog.tsx",
-    for: "the modal, plus the fullScreen takeover a whole-screen surface asks for",
+    id: "popup-kinds",
+    file: "src/components/ui/popup-kinds.ts",
+    test: "src/components/ui/popup-kinds.test.ts",
+    title: "Popup kinds",
+    for: "the one table that says where each kind of popup opens, at a desk and in a hand: eight kinds, and a call site only ever names its kind",
+    badge: "new",
     family: "components",
     section: "Overlays",
-    lede: "Trigger-anchored where it belongs; the live components, fully interactive.",
+    lede: "Every popup in the product is one of eight kinds, and each kind has one answer at a desk and one in a hand (the product's one breakpoint, 640 px), so a call site says `kind=\"confirm\"` and never spells a posture. Each is drawn open in a real viewport at a laptop and a phone over a stand-in album, closed by its own control, with the captions read off the popup standing in each frame. The five that `PopupContent` draws wear stand-in words; the choice, the share and the peek are primitives of their own and are the real ones (the responsive menu, the code card, the look), and the plan is the real plans' sheet over inert doors. The kinds with a field (the form, the settings' name) take the keyboard on the phone.",
+    variants: [
+      {
+        prop: "kind",
+        source: "declared",
+        options: [
+          "list",
+          "confirm",
+          "form",
+          "choice",
+          "share",
+          "plan",
+          "settings",
+          "peek",
+        ],
+        note: "A row of the table is a kind: a shape for a desk, a shape for a hand, where focus lands at a desk, and how a screen reader announces it. The edge shapes (panel, screen, cover, sheet) and the centred ones (dialog, wide) are one Radix element; a menu, the code card and a card at a name are primitives of their own.",
+      },
+    ],
+    specimens: [
+      {
+        label: "list",
+        hint: "lists=panel · a panel beside the screen at a desk, the whole screen under a back arrow in a hand",
+        node: <PopupKindDemo kind="list" />,
+      },
+      {
+        label: "confirm",
+        hint: "confirm=dialog · a centred alertdialog on its safe answer, wider when it lists what leaves",
+        node: <PopupKindDemo kind="confirm" />,
+      },
+      {
+        label: "form",
+        hint: "forms=dialog · one question with a field, standing in the band the keyboard leaves",
+        node: <PopupKindDemo kind="form" />,
+      },
+      {
+        label: "choice",
+        hint: "choices=menu · ResponsiveMenu: under the button that asked, at the thumb with Cancel beneath in a hand",
+        node: <PopupKindDemo kind="choice" />,
+      },
+      {
+        label: "share",
+        hint: "share=card · the code card: white for a scanner, a card at a desk and the whole screen in a hand",
+        node: <PopupKindDemo kind="share" />,
+      },
+      {
+        label: "plan",
+        hint: "plans=wide · the plans' sheet: stacked cards in a wide dialog, the whole screen under a close in a hand",
+        node: <PopupKindDemo kind="plan" />,
+      },
+      {
+        label: "settings",
+        hint: "settings=panel · a panel at a desk, the whole screen in a hand; the name's field takes the keyboard",
+        node: <PopupKindDemo kind="settings" />,
+      },
+      {
+        label: "peek",
+        hint: "peek=card · the look: a card beside the name at a desk, the sheet in a hand",
+        node: <PopupKindDemo kind="peek" />,
+      },
+    ],
+  },
+  {
+    id: "popup",
+    file: "src/components/ui/popup.tsx",
+    test: "src/components/ui/popup.test.tsx",
+    for: "the one element every dialog-shaped popup is: it names its kind and the table picks the shape for the width it opens at, one structure at every shape (a header, a body that scrolls, a footer that stays), keyboard-safe, and a layer a tap opened takes no tap until it has settled",
+    badge: "new",
+    family: "components",
+    section: "Overlays",
+    lede: "The Dialog and the Sheet as one element: `<PopupContent kind=\"confirm\">` is the whole of a call site's answer to where it opens, and the kind's row in the table (`popup-kinds.ts`, drawn on its own entry) picks the shape. A centred dialog, a side panel and a phone's whole screen are the same three parts at different sizes, so the parts read the shape they stand in. Two things are worth pressing: how wide a centred shape is (by what it says), and what a layer does with a tap that lands while it is still arriving.",
+    variants: [
+      {
+        prop: "size",
+        source: "prop",
+        fallback: "sm",
+        options: ["sm", "md", "lg"],
+        note: "How wide a centred shape is, by what it says: sm a question, md one that lists what leaves, lg a long form. The edge shapes ignore it. Each sample opens the live layer in this window.",
+        sample: (o) => <PopupSizeSample size={o as "sm" | "md" | "lg"} />,
+      },
+    ],
+    specimens: [
+      {
+        label: "A tap that lands while it arrives",
+        hint: "the second tap of a double tap lands inside the layer the first one opened: the guard takes no press until the entrance has run out",
+        node: <ArrivalGuardDemo />,
+      },
+    ],
+  },
+  {
+    id: "dialog",
+    file: "src/components/ui/dialog.tsx",
+    test: "src/components/ui/dialog.test.tsx",
+    for: "the dialog primitive: the centred shape under the confirm and form kinds, and the dialogs the popups board left alone (Welcome to Pro, the avatar cropper, the demo modal, the photograph viewer's own), plus the fullScreen takeover a whole-screen surface asks for",
+    badge: "updated",
+    family: "components",
+    section: "Overlays",
+    lede: "A kind of popup opens through `PopupContent` (see Popup kinds), which wears this primitive's centred shape for the confirm and the form; the Dialog itself stays what the dialogs outside the table draw with. Each is drawn open in a real viewport at a laptop and a phone, closed by its own control, the captions read off what stands in each frame.",
     specimens: [
       {
         label: "Dialog",
-        node: (
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm">
-                Open dialog
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Delete this event?</DialogTitle>
-                <DialogDescription>
-                  This removes the event and everything in it. There is no undo.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter showCloseButton>
-                <Button variant="destructive" size="sm">
-                  Delete
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        ),
+        hint: "the centred shape · a press on X, Cancel or the scrim closes it · Replay opens it again",
+        node: <DialogSheetDemo variant="dialog" />,
       },
       {
         label: "Takeover",
         hint: "fullScreen: an edge-to-edge room that holds the page still behind it",
-        node: (
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm">
-                Open takeover
-              </Button>
-            </DialogTrigger>
-            <DialogContent fullScreen showCloseButton={false}>
-              <div className="flex shrink-0 items-start justify-between gap-3 border-b px-4 py-3">
-                <DialogHeader>
-                  <DialogTitle>Review</DialogTitle>
-                  <DialogDescription>
-                    The page behind cannot scroll, and its scrollbar does not
-                    stay beside this room.
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogClose asChild>
-                  <Button variant="ghost" size="sm">
-                    Done
-                  </Button>
-                </DialogClose>
-              </div>
-              <div className="flex-1 overflow-y-auto p-4 text-sm text-muted-foreground">
-                What scrolls is this body.
-              </div>
-            </DialogContent>
-          </Dialog>
-        ),
+        node: <DialogSheetDemo variant="takeover" />,
       },
     ],
   },
   {
     id: "sheet",
     file: "src/components/ui/sheet.tsx",
-    for: "the edge panel; the marketing mobile menu is what it carries today",
+    test: "src/components/ui/sheet.test.tsx",
+    for: "the edge sheet: the guest door's one sheet (a bottom sheet in a hand, a panel from the right at a desk, standing on the keyboard), the failure and email sheets, and at a fixed side the marketing phone menu and the design shell's panel",
+    badge: "updated",
     family: "components",
     section: "Overlays",
+    lede: "The product's popups open through `PopupContent` by kind (see Popup kinds); the Sheet stays the guest door's surface and the edge panel of two shells. `responsive` is the door's: one surface that is a bottom sheet in a hand and a full-height panel at a desk, with no centred float anywhere, and it stands on the keyboard while a field in it holds focus. A fixed side is for a surface with no desk posture.",
     specimens: [
       {
-        label: "Sheet",
-        node: (
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="sm">
-                Open sheet
-              </Button>
-            </SheetTrigger>
-            <SheetContent>
-              <SheetHeader>
-                <SheetTitle>Share this event</SheetTitle>
-                <SheetDescription>
-                  Your guests scan one QR code to join and upload.
-                </SheetDescription>
-              </SheetHeader>
-            </SheetContent>
-          </Sheet>
-        ),
+        label: "Responsive, the guest door's",
+        hint: "responsive · a bottom sheet in a hand, a panel at a desk · switch the keyboard up on the phone",
+        node: <DialogSheetDemo variant="responsive" />,
+      },
+      {
+        label: "A fixed side",
+        hint: "side=right (the default) · the phone menu's and the shell's posture",
+        node: <DialogSheetDemo variant="side" />,
       },
     ],
   },
@@ -1828,34 +1991,3 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
     ],
   },
 ];
-
-/**
- * The copy a plate specimen carries. Deliberately NOT a real marketing section:
- * the collector derives a component's specimen route from which library module
- * imports it, so pulling `full-quality.tsx` in here would make the index claim
- * a home-page section lives in the component gallery.
- *
- * The muted line is in it on purpose: over a photograph the plate takes the
- * body copy off the muted tier (the measured rule in photo-section.css), and
- * this is where that is visible rather than described.
- */
-function PlateCopy() {
-  return (
-    <div className="mx-auto max-w-xl px-6 py-12 text-center">
-      <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
-        The room
-      </p>
-      {/* A <p>, not a heading: a specimen's own words are not part of the
-          library page's outline, and an h3 here lands in its "on this page"
-          list once per specimen under the same text. */}
-      <p className="mt-3 font-heading text-section">
-        The picture changes as you move through it.
-      </p>
-      <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-        Six photographs, one plate, and a rail at the foot that says where you
-        are. Nothing fades: the next one arrives from the side you came from and
-        the one underneath stays exactly where it was.
-      </p>
-    </div>
-  );
-}

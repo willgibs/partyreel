@@ -664,6 +664,35 @@ const QUEUE_ENTRIES: ReviewEntry[] = [
     queueReport(6, { reason: "please delete this one", signedIn: true }),
     queueReport(7, { reason: "I look awful in this one, can you delete it" }),
   ]),
+  // A report whose item is gone is still that item's (crumbs-21): a dismissal reopened after the purge took its row.
+  // Its tile says what became of it, its chip says Deleted, and there is nothing left to take down.
+  queueEntry(
+    7,
+    "other",
+    [
+      queueReport(9, {
+        reason: "this one should not have been posted",
+        signedIn: true,
+      }),
+    ],
+    {
+      key: "item:gone-photo",
+      media: null,
+      uploader: null,
+      deleted: { id: "library-gone-photo", type: "photo" },
+    },
+  ),
+  queueEntry(
+    8,
+    "other",
+    [queueReport(10, { reason: "posted without asking" })],
+    {
+      key: "item:gone-video",
+      media: null,
+      uploader: null,
+      deleted: { id: "library-gone-video", type: "video" },
+    },
+  ),
   queueEntry(6, "other", [queueReport(8)], {
     key: "album:e-shower",
     subject: "album",

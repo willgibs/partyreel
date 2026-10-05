@@ -35,6 +35,11 @@ describe("the marketing library page", () => {
       // The reference kit and the gallery model, reached through the alias
       // since the family pages moved under the shell (2026-09-15).
       /^@\/app\/\(dev\)\/design\/(reference|gallery|_data|\(shell\)\/_shell)\//,
+      // A production page's own component (the contact receipt lives beside its route, not under components/).
+      /^@\/app\/\(marketing\)\//,
+      // The Library's real viewports (`library/device-frames.tsx`): lab infrastructure for a section that answers to the
+      // screen, never a component a specimen declares, so it is the one lab-local import a demo may make.
+      /^\.\.\/device-frames$/,
       /^\.\/marketing-demos$/,
       /^\.\/gallery-demos$/,
     ];

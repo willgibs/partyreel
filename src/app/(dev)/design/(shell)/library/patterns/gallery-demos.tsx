@@ -7,7 +7,7 @@ import { Kbd } from "@/components/shared/kbd";
 import { LegalConsentLine } from "@/components/shared/legal-consent-line";
 import { Logo } from "@/components/shared/logo";
 import { CornerPlayBadge } from "@/components/shared/masonry";
-import { NotFoundScreen } from "@/components/shared/not-found-screen";
+import { HelpLine, NotFoundScreen } from "@/components/shared/not-found-screen";
 import { PageHeading } from "@/components/shared/page-heading";
 import { PlayBadge } from "@/components/shared/play-badge";
 import { Button } from "@/components/ui/button";
@@ -236,12 +236,17 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
     badge: "updated",
     family: "patterns",
     section: "Dead ends",
-    lede: "The route error boundary, shown as a static mirror and never live: the real one reports to Sentry in a mount effect, so a specimen would file an error on every load of this page. Same chrome, no reset and no reporting.",
+    lede: "The route error boundary, shown as a static mirror and never live: the real one reports to Sentry in a mount effect, so a specimen would file an error on every load of this page. The mirror draws what the boundary draws, the shared dead-end screen with the crash's title and its way out, the quiet line worded for the surface that crashed (the portal's has no link: no runbook page exists to point at) and the digest as the support code, copyable; Try again here does nothing and nothing is reported. `route-error-mirror.test.ts` reads both sources, so the mirror cannot drift from the boundary.",
     specimens: [
       {
-        label: "Route error",
-        hint: "static preview",
+        label: "Route error, the app",
+        hint: "the help center line · the digest, copyable · no reset, no reporting",
         node: <RouteErrorMock />,
+      },
+      {
+        label: "Route error, the operations portal",
+        hint: "the quiet line carries no link",
+        node: <RouteErrorMock area="admin" />,
       },
     ],
   },
@@ -384,37 +389,36 @@ function Poster({ children }: { children: React.ReactNode }) {
 }
 
 // A STATIC mirror of shared/route-error.tsx. The real component fires
-// captureError(Sentry) in a mount effect, so we never render it live; this shows
-// the same chrome (no reset, no reporting). It deliberately does NOT import
-// RouteError: the collector reads this file's imports, and an import here would
-// claim the boundary has a specimen it does not have.
-function RouteErrorMock() {
+// captureError(Sentry) in a mount effect, so we never render it live; this draws what it
+// draws (NotFoundScreen with the crash's words, the surface's quiet line and the digest), with
+// no reset and no reporting. It deliberately does NOT import RouteError (nor its TryAgain): the
+// collector reads this file's imports, and an import here would claim the boundary has a
+// specimen it does not have. route-error-mirror.test.ts holds the two to the same words.
+// A <div>, not the boundary's <main>: the Library page has its own landmark.
+function RouteErrorMock({ area = "app" }: { area?: "app" | "admin" }) {
   return (
-    <div className="flex flex-col items-center gap-5 text-center">
-      <div className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
-        <CircleAlert className="size-6" aria-hidden />
-      </div>
-      <div className="flex flex-col gap-3">
-        <h3 className="font-heading text-2xl text-balance">
-          Something went wrong
-        </h3>
-        <p className="text-sm text-pretty text-muted-foreground">
-          That&apos;s on us, not you. Try again, and if it keeps happening, let
-          us know.
-        </p>
-      </div>
-      <div className="flex gap-3">
-        <Button size="sm">Try again</Button>
-        <Button size="sm" variant="outline">
-          Back home
-        </Button>
-      </div>
-      <p className="text-xs text-muted-foreground/70">
-        Error code:{" "}
-        <span className="rounded bg-muted px-1.5 py-0.5 text-foreground/80 tabular-nums select-all">
-          a1b2c3
-        </span>
-      </p>
+    <div className="flex justify-center px-6 py-10">
+      <NotFoundScreen
+        icon={CircleAlert}
+        title="Something went wrong"
+        description="That's on us, not you. Try again, and if it keeps happening, let us know."
+        actions={
+          <>
+            <Button size="cta">Try again</Button>
+            <Button asChild size="cta" variant="outline">
+              <Link href="#">Back home</Link>
+            </Button>
+          </>
+        }
+        help={
+          area === "admin" ? (
+            <HelpLine>Check the runbook</HelpLine>
+          ) : (
+            <HelpLine href="/help">Visit the help center</HelpLine>
+          )
+        }
+        digest="2093847561"
+      />
     </div>
   );
 }

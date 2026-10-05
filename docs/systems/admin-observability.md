@@ -141,7 +141,9 @@ guard is a circuit breaker, not a budget: `spend_watch` (a scheduled job, its ow
 its own cron, never a ride on the purge's, since it must run while the purge is paused and may be the one pausing it)
 reads our own counters, judges each against a ceiling, and pauses the switch that stops its vector where a false alarm
 costs no guest's moment. The rules are pure (`lib/jobs/spend-watch.ts`); the run reads, writes and tells
-(`spend-watch-run.ts`); the card is `app/admin/jobs/spend-watch-card.tsx`.
+(`spend-watch-run.ts`); the card is `app/admin/jobs/spend-watch-card.tsx`, whose switches take an optional `toggle`
+(default the Server Function) so the Library draws a whole press over a stand-in write, since the real one pauses guest
+uploads for every album.
 - **The readings** come in one call (`spend_watch_readings`, INVOKER and service-role only; its one DEFINER helper,
   `spend_watch_sign_ins`, counts `auth.users`): our own counters (the uploads meter, every album's change counters,
   the day's lifecycle mail, sign-ins, zips and purge runs), the snapshots diffed into rates an hour, and the one vendor
