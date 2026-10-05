@@ -1,6 +1,6 @@
 ---
 track: drive-fixes
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "d753fde5"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -39,6 +39,11 @@ reads:                  # single-sources you depend on: never duplicate, never e
 6. **NIT: the canceled strip said 10 of 60 when 14 landed** (files in flight at the cancel landed and a later Send again kept 14): the strip and the counts tell what landed, never a number frozen at the press.
 7. **NIT: the promise picture repeats a photo, and at 375 it is cropped thin:** distinct photos, and a shape that reads at a phone's width.
 8. **Cost (a check, not a finding):** the Worker's sweep (`*/5 * * * *`, `workers/drive/src/sweep.ts`) calls the app's `/api/internal/drive/sweep` 8,640 times a month, every call a Vercel function, while Vercel Hobby's 4 Active CPU-hours are nearly spent (`node usher/kit/vercel-usage.mjs`, read-only). Measure the route's CPU on a local production build (a few hundred signed calls, the median and p95 in ms), write the month's projection into `drive-export.md`, and set the cadence by it: keep five minutes if it is a sliver of the budget; otherwise the slowest cadence the sends' recovery and `/admin/jobs`' Overdue line tolerate (the Overdue threshold moves with it). Recommended answer built, listed under Questions.
+9. **LOW (ROADMAP "Now", relayed by the Orchestrator): a `lanefail` word is the one internal word whose replay is not a no-op** (three inside five minutes pause the connection until an operator's Resume, so a replayed signed word inside its window counts again). Make it idempotent: bind it to the Queue message id (one count per message) or to the connection per minute (the Advisor's Q32; recommended: the message id), built and listed under Questions, pinned by a test that fails on the old code (the same word said twice counts once). The Orchestrator retires that ROADMAP line at the merge.
+
+**Decided by Will (2026-10-05), relayed by the Orchestrator:**
+- **KEEP ONE Google project for sign-in and Drive** (item 2): no new setup, one "Partyreel" entry in a person's Google account; the accepted cost: after a Disconnect, that Google account sees Google's consent screen once more at its next sign-in. `drive-export.md` states the truth and this decision; "whether Drive moves to a project of its own" is no longer open.
+- **A Google entry never feels scary to a first-time user:** a Google sign-up asks only what sign-in needs; Drive's permission is asked only when a host first sends or presses Connect on Account, after our promise screen, never at sign-up. Written into `drive-export.md`'s connection section with its reason, and pinned by `google-urls.test.ts`'s scan (no file but the Drive connect names a Drive scope; sign-in's `signInWithOAuth` asks no extra scope), each check failing on a planted violation.
 
 Wiring rigor: the whole gate (light lab steps: `lab:smoke` on your port); the SQL's transitions as a rolled-back check (settle on a `checking` send leaves it checking; `check_page` closes it; disconnect clears the ids; the sent bytes counted once); the Worker's own tests (`cd workers/drive && npx vitest run`, and its typecheck). A live re-walk needs Drive's callback, which only port 3000 has: the Orchestrator re-walks on the desk after your merge, so list in your Handoff exactly what that walk must watch.
 
@@ -49,25 +54,115 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **The sweep's clock (item 8): fifteen minutes, built.** Measured on a local production build (300 signed calls,
+  `_scratch/drive-fixes/cost/`): a warm call 6.2 ms of CPU (median; p95 19, mean 8.9), the route's first call 164 ms,
+  a fresh server's boot with it 1.1 s. A month at five minutes is 77 s warm, 24 min route-cold, 2.6 h if every call
+  boots (0.5% to 65% of Hobby's 4 h, already at 3.91); at fifteen 26 s, 8 min, 52 min (0.2% to 22%), with a stalled
+  send kicked within about twenty minutes, the done mail within fifteen, the hourly heartbeat inside the Overdue line
+  unmoved. Overrule to five (faster mails and recovery, the worst case eats the budget) or thirty (the Overdue threshold
+  to two hours). Vercel's Usage page after a week of sweeps on partyreel.com says which bound is real.
+- **Disconnect forgets every Drive id (item 4): the code meets the doc, built.** No reason to keep them was found: the
+  only reader (`prior_file_id`) keys on the connection, whose id leaves with its row. It needed `forgotten_at` on
+  `cloud_export_items` and the `sent_with_file` CHECK restated (a sent item holds no file id only once forgotten), and
+  another account's connect forgets the same way. Overrule: keep the ids and correct the doc.
+- **Account's "Sent" (item 3): an album's largest ended send, canceled and stopped ones included, built.** Exact for
+  every re-send (each takes the whole album and counts its kept files); an album that lost originals between sends
+  reads its largest send, not its every file (exact per file needs an items read on the service role, not worth it
+  now). Overrule: done sends only.
+- **What landed (item 6): while a lane still holds a stopped send's files, the strip's light says Stopping, its facts
+  "N of M reached your Drive so far", and it offers no Send again, built** (a Send again pressed then would send them
+  twice); a big file hears the stop at its next chunk. Overrule: Send again at once.
+- **A dying lane (item 9): bound to its Queue message id, built** (the last twenty ride the connection; the
+  two-argument word dropped). Overrule: once per connection per minute (no Worker change, but three lanes dying in one
+  minute would count as one).
+- **A done send that sent nothing (item 1's words): "Nothing of {album} was left to send", never "every one checked",
+  and no tile light, built.** Overrule: other words.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/drive-export.md`, The connection: the first-time-user rule (Will) and its pin; the one-project client,
+  its reason and its accepted cost (Will), replacing the false "never touches a sign-in grant"; another account's
+  connect forgets the old Drive; Disconnect's forgetting (`cloud_connection_forget`, `forgotten_at`).
+- A send: Lanes (a batch's last file in its closing word; a stop ends a big file at its next chunk); The closing check
+  (only the check closes a checking send; `checkedAll`); What landed is said as it lands (`landing`; Account's Sent each
+  file once).
+- The Worker: the cron at fifteen minutes; the protocol's replay note and the poison lane's message binding; the
+  sweep's measured cost and the month's bounds; the local walk's wrangler noise and what the deployed logs must show.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: "Drive Worker: a 'slow down' on an upload PUT retries with the R2 stream it already spent (`transfer.ts`'s
+  `withRate` around `putWhole` and `putChunk`), so each throttled PUT fails as a runtime error and spends one of the
+  file's five attempts; re-read the range and ask the session where it stands before the retry. And cancel the Google
+  answers it never reads (`getFile`'s 404, `startSession`, `undo`), or a check's eight lanes meet workerd's
+  six-connection stall warning in the deployed logs."
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits:** the work `b26e234dd`, then this manifest alone (the head in the chat line), both on `origin/lp/drive-fixes`.
+  launch-prep moved 11 commits since the cut (`4c11a0ad3..246f5ea5d`): none touches an owned path, one touches a read
+  (`usher/kit/vercel-usage.mjs`, a label), `git merge-tree` clean: no sync.
+- **Gates on `b26e234dd`, each its own exit code:** `pnpm typecheck` 0; `pnpm lint` 0 (no warning); `pnpm test` 0
+  (993 files, 12,263 tests); `zsh scripts/build-lock.sh pnpm build` 0; `pnpm lab:smoke --base http://localhost:3131`
+  0 (170 checks; a first run timed out on the Library's cold compile, the rerun clean); the Worker's `npx vitest run`
+  0 (9 files, 59 tests) and `npx tsc --noEmit` 0.
+- **The SQL, proved on the live schema BEFORE the apply** (one `execute_sql` each: `begin;` the file's statements, the
+  check as a trapped temp function, `rollback;`; `_scratch/drive-fixes/proof/results.txt`): the file's own check held
+  (`ROLLED BACK: every cloud_export_fixes check held {"in_drive": 12078, "lane_failures": 3}`), 20261005120000's 24
+  sections held after it (its lane words given message ids), and against the live OLD settle the walk's finding
+  reproduced (`the closing report: done, confirmed 0 of 5, check leases 0`), so FAIL 2 fires on the old code. After
+  each run nothing persisted (no new column, the two-argument word standing, the 93 ids still there).
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = owned paths and this file, but three lines of
+  `src/app/admin/jobs/catalog.ts`'s `drive_export` entry (its cron, cadence and description, so the missed-run rule
+  judges the sweep's real clock; `sweep-cadence.test.ts` pins it to `wrangler.jsonc`) and one line of
+  `src/app/admin/jobs/owed-words.ts` (the Stuck line's "every fifteen minutes").
+- **Items:**
+  1. ★ `cloud_export_settle` closes a checking send only once its walk is through (`20261005180000`, pinned by
+     `drive-fixes-migration.test.ts` and the rolled-back check); the Worker says a batch's last file in its closing
+     word (`lane.ts`; `lane.test.ts`'s closing-word test fails on the old code); a model of the app's transitions
+     (`testing/fake-app.ts`) proves the next lease is the check's first page, every file confirmed, then done;
+     "every one checked" only of a send that sent something (`checkedAll`, in the strip, What's using space and the
+     done toast).
+  2. The doc's Google line is true and records Will's one-project decision and cost; no product or admin word promised
+     otherwise (grep of the Drive surfaces and the admin); the first-time-user rule written and pinned
+     (`google-urls.test.ts`, planted violations included).
+  3. Account's Sent: `sent-totals.ts` (the walk's rows give 4,488,290 B, the old sum 6,167,537 B: `sent-totals.test.ts`).
+  4. Disconnect and another account's connect forget every Google id (`cloud_connection_forget`); the walk's 93 items
+     forgotten by the migration itself.
+  5. The local Worker's 477 lines are wrangler's remote-binding proxy, not ours: reproduced on my own `wrangler dev`
+     (8788, sink on 3131) with bare R2 `head()`s, about two lines a remote call, in the fetch context too, nothing
+     failing (`_scratch/drive-fixes/repro/findings.txt`); said in `drive-export.md` with what the deployed logs must
+     show (neither line).
+  6. A stopped send tells what landed (`landing` in the status route, `use-drive-status.ts` keeps polling;
+     `use-drive-status.test.tsx` fails on the old code); a stop ends a big file at its next chunk (`transfer.ts`;
+     `lane.test.ts`'s chunk test fails on the old code).
+  7. The promise's folder: three different photographs, 16:9 in a hand (`drive-parts.tsx`, `drive-parts.test.tsx`);
+     before and after rendered with the built CSS and real photos: `_scratch/drive-fixes/picture/{before,after}.png`.
+  8. The sweep every fifteen minutes (above; `drive-export.md`, "The sweep").
+  9. ★ A dying lane counts once a Queue message (`lanefail` route, both protocol twins with a pinned vector, the queue
+     handler's `index.test.ts`, `route.test.ts`: the same word said twice counts once). Done: retire ROADMAP's
+     `lanefail` line.
+- **Assets requested from Will:** none.
+- **Board ideas:** the closing check of a big album sits at "Checking every file in your Drive" with the meter at 99%
+  for its whole walk; its cursor could say "Checking 1,200 of 5,000" (a progress column for the walk).
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** ★ apply `20261005180000_cloud_export_fixes.sql`
+  BEFORE this merge's code reaches a build (the lanefail route sends `p_message`; nothing deployed calls the dropped
+  two-argument word: only the undeployed Worker's dying lane), then regenerate `src/lib/db/types.ts` and drop the
+  typed seam in `recordLaneFailed` (`queries/drive.ts`, the cast); advisors expect no delta (25 / 4 / 36). The Worker's
+  cron becomes `*/15 * * * *` at its deploy. No Vercel, Stripe or env change.
+- **Calls his to overrule:** the sweep at fifteen minutes; Send again held while files land; Sent as each album's
+  largest ended send; forgetting the ids at Disconnect; the words for a done send that sent nothing.
+- **The desk re-walk must watch (after the apply and the merge):** (1) a small send's strip goes Sending, Checking,
+  In your Drive, and the DB holds a `check` lease for it and every item `confirmed_at`, closed after that lease;
+  (2) a re-send where all are kept: `items_kept` = `items_sent`, Account's Sent counts the album once; (3) Cancel
+  mid-send: Stopping with "N of M reached your Drive so far", then the landed count with Send again, equal to
+  `items_sent`; (4) Disconnect: no `drive_file_id`, `drive_md5` or `session_uri` left on her sends, `forgotten_at`
+  set, counts unchanged, and P3 meets Google's consent at her next sign-in (accepted); (5) the promise at 375: three
+  different photographs; (6) the local Worker still prints wrangler's lines with nothing failing; (7) /admin/jobs'
+  Drive card says "Every 15 minutes". This lane's own trace in the live data: one `drive_export` heartbeat from the
+  cost run (`job_runs` 18:50:44Z, the real sweep with nothing to do: no connection, no send unfinished, no done mail
+  owed); its counts carry the cost driver's depth names (`drive_queue`, `drive_dead_letters`), not the Worker's
+  (`queue_backlog`, `dead_letter_backlog`), so the Drive queue cards read nothing from it until the deployed Worker's
+  first sweep writes the next.
+- **Look at first:** `supabase/migrations/20261005180000_cloud_export_fixes.sql` (the settle's guard, the forget
+  helper, the lane word), then `workers/drive/src/lane.ts`'s closing word and the cadence Question.
