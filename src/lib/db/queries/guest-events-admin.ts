@@ -102,6 +102,21 @@ export async function getApprovedMediaForUnlock(
 }
 
 /**
+ * ★ WHETHER THIS REQUEST IS PAST THE ALBUM'S LOCK, the one posture every read here that shows more than the
+ * entry tease keeps: an open album, a password album this request has unlocked (the signed cookie), or an album
+ * whose door let it through (its pass, the doors: a guest past a gate who still owes the email step sees what a
+ * password album's unlocked guest sees; without one a gated album reads as private). Anything else, a locked
+ * password album and a private one, is shut, and a careless caller can never get a locked album's contents.
+ */
+async function pastTheLock(
+  event: Pick<GuestEvent, "id" | "visibility" | "doorPass">,
+): Promise<boolean> {
+  if (holdsDoorPass(event)) return true;
+  if (event.visibility === "password") return isUnlocked(event.id);
+  return event.visibility === "open";
+}
+
+/**
  * Server-capped TEASER for the gated gallery: the newest `limit` approved PHOTOS plus the TOTAL count
  * of approved photos (for the "+N more" affordance), in ONE round trip via PostgREST `count: "exact"`.
  *
@@ -114,15 +129,7 @@ export async function getApprovedPhotoTeaser(
   event: Pick<GuestEvent, "id" | "visibility" | "doorPass">,
   limit: number,
 ): Promise<{ rows: GuestMediaRow[]; total: number }> {
-  // ★ THE DOOR'S PASS first (the doors): a guest past a gate who still owes the email step sees the
-  // teaser a password album's unlocked guest sees; without one a gated album reads as private.
-  if (holdsDoorPass(event)) {
-    // Past the door: the teaser is the album's own, whatever its visibility.
-  } else if (event.visibility === "password") {
-    if (!(await isUnlocked(event.id))) return { rows: [], total: 0 };
-  } else if (event.visibility !== "open") {
-    return { rows: [], total: 0 };
-  }
+  if (!(await pastTheLock(event))) return { rows: [], total: 0 };
 
   const { data, count, error } = await createAdminClient()
     .from("media")
@@ -204,20 +211,79 @@ const approvedCount = cache(async function approvedCount(
  * The total is `countApprovedMedia`, a HEAD count, so an album past PostgREST's row cap still says
  * its real size.
  *
+ * ★ `kinds` IS WHAT THE ALBUM HOLDS BY KIND, so the cover's count names it from the first byte
+ * ("12 photos", "3 videos") instead of both nouns until the live album has told (crumbs-74;
+ * `albumCountWords` words both from one function, so the first paint and the live source agree).
+ * It costs ONE more head count, of the videos, in the round the page already waits on (an album
+ * mostly holds photographs, so the videos are the small side), and photos are what the total holds
+ * besides them: the two always add up to the total the header shows, and the total stays the one
+ * request-scoped answer the gallery payload shares. Never a list, never a per-row scan. The two
+ * heads are not one snapshot, so a video count past the total (an approval landed between them) is
+ * no answer: `kinds` is then null, and so is a failed read (reported, never the page's failure:
+ * the words are cosmetic, and both nouns are what the cover always said).
+ *
  * Visibility posture: open events are public; a LOCKED password event still gets counts — that's
  * the entry tease ("N photos are waiting" over the ghosted river; cardinality only, zero
  * media URLs pre-unlock). Private never reaches here (the page early-returns), but returns zeros
- * defensively.
+ * defensively. ★ The tease is a NAME and a SIZE, and the kinds are more than that, so they ride
+ * only where this request is past the lock (`pastTheLock`): a locked page's payload carries the
+ * count alone, as it always has.
  */
 export async function getGalleryStats(
   event: Pick<GuestEvent, "id" | "visibility" | "door" | "doorPass">,
-): Promise<{ approvedTotal: number; guestCount: number }> {
-  if (!countsVisible(event)) return { approvedTotal: 0, guestCount: 0 };
-  const [approvedTotal, guests] = await Promise.all([
+): Promise<{
+  approvedTotal: number;
+  guestCount: number;
+  kinds: AlbumKinds | null;
+}> {
+  if (!countsVisible(event)) {
+    return { approvedTotal: 0, guestCount: 0, kinds: null };
+  }
+  const [approvedTotal, guests, videos] = await Promise.all([
     countApprovedMedia(event),
     getGuestCount(event),
+    countApprovedVideos(event),
   ]);
-  return { approvedTotal, guestCount: guests };
+  return {
+    approvedTotal,
+    guestCount: guests,
+    // Photos are what the total holds besides the videos; a video count past the total is no answer.
+    kinds:
+      videos === null || videos > approvedTotal
+        ? null
+        : { photos: approvedTotal - videos, videos },
+  };
+}
+
+/** What an album holds by kind: the two add up to its size. */
+export type AlbumKinds = { photos: number; videos: number };
+
+/**
+ * The album's VIDEOS, a HEAD count on the very predicate the total counts (approved, unsealed), or null where this
+ * request is not past the lock or the read failed. SELF-GUARDED, and never a throw: the words it feeds are cosmetic.
+ * Only the first paint asks (`getGalleryStats`): the poll's payload carries the total alone, so the steady poll's
+ * one head count is untouched.
+ */
+async function countApprovedVideos(
+  event: Pick<GuestEvent, "id" | "visibility" | "doorPass">,
+): Promise<number | null> {
+  if (!(await pastTheLock(event))) return null;
+  const { count, error } = await createAdminClient()
+    .from("media")
+    .select("id", { count: "exact", head: true })
+    .eq("event_id", event.id)
+    .eq("status", "approved")
+    .eq("type", "video")
+    // ★ THE SEAL, as the total's own head count has it: the kinds name exactly the items the total counts.
+    .or(unsealedFilter(nowIso()));
+  if (error) {
+    captureWarning("media", "guest album: the kinds could not be counted", {
+      eventId: event.id,
+      code: error.code,
+    });
+    return null;
+  }
+  return count ?? 0;
 }
 
 /**
@@ -354,7 +420,8 @@ export async function getUploaderIdentities(
   );
 
   const map = new Map<string, UploaderIdentity>();
-  for (const row of rows) map.set(row.id, resolveUploaderIdentity(row, hostName));
+  for (const row of rows)
+    map.set(row.id, resolveUploaderIdentity(row, hostName));
   return map;
 }
 

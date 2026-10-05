@@ -24,6 +24,7 @@ import {
   type FakeRow,
 } from "@/lib/db/testing/fake-postgrest";
 import { MAX_ROWS } from "@/lib/db/read-all";
+import { issueDoorPass } from "@/lib/event/door/pass.server";
 
 vi.mock("server-only", () => ({}));
 const isUnlocked = vi.fn();
@@ -246,9 +247,9 @@ describe("getApprovedMediaForUnlock: the unlocked password album, read whole", (
     seed(album(4));
     const { issueDoorPass } = await import("@/lib/event/door/pass.server");
     const doorPass = issueDoorPass(EVENT);
-    expect(await getApprovedMediaForUnlock({ id: EVENT, doorPass })).toHaveLength(
-      4,
-    );
+    expect(
+      await getApprovedMediaForUnlock({ id: EVENT, doorPass }),
+    ).toHaveLength(4);
     expect(isUnlocked).not.toHaveBeenCalled();
   });
 
@@ -352,7 +353,196 @@ describe("countApprovedMedia: the album's size is counted, never listed", () => 
     expect(await getGalleryStats({ id: EVENT, visibility: "open" })).toEqual({
       approvedTotal: 1500,
       guestCount: 0,
+      kinds: { photos: 1500, videos: 0 },
     });
+  });
+});
+
+/**
+ * ★ THE COVER NAMES ITS KINDS FROM THE FIRST BYTE (crumbs-74): the first paint's stats carry what the album holds by
+ * kind, so "12 photos" is said before the live album has told, in the words the live source says it in. The cost is
+ * pinned here with the answer: one more head count (the videos), never a row read.
+ */
+describe("getGalleryStats: the album's kinds ride the first paint", () => {
+  const open = { id: EVENT, visibility: "open" } as const;
+  const mixed = (i: number) => (i % 2 === 0 ? "video" : "photo");
+  const mediaReads = () => fake.requests.filter((r) => r.name === "media");
+
+  beforeEach(() => {
+    captureWarning.mockReset();
+  });
+
+  it("★ names photos and videos, counted never listed, and they add up to the total the header shows", async () => {
+    // 2,400 rows past the cap: every fourth removed, every seventh a clip.
+    const media = album(2400, {
+      status: (i) => (i % 4 === 0 ? "removed" : "approved"),
+      type: (i) => (i % 7 === 0 ? "video" : "photo"),
+    });
+    seed(media);
+    const approved = media.filter((r) => r.status === "approved");
+    const videos = approved.filter((r) => r.type === "video").length;
+    expect(approved.length).toBeGreaterThan(MAX_ROWS);
+    expect(videos).toBeGreaterThan(0);
+
+    const stats = await getGalleryStats(open);
+
+    expect(stats.approvedTotal).toBe(approved.length);
+    expect(stats.kinds).toEqual({ photos: approved.length - videos, videos });
+    expect(stats.kinds!.photos + stats.kinds!.videos).toBe(stats.approvedTotal);
+    // The cost: the total's head count and ONE more (the videos): two heads, no row read, no per-row scan.
+    expect(mediaReads()).toHaveLength(2);
+    expect(
+      mediaReads().every(
+        (r) => r.method === "HEAD" && r.returned === 0 && !r.failed,
+      ),
+    ).toBe(true);
+    // The videos' head asks the very predicate the total does, and one more (each reads its own clock: the seal's
+    // timestamp is the one thing that may differ by a millisecond).
+    const asked = (r: (typeof fake.requests)[number]) =>
+      r.filters.map((f) =>
+        `${f.column}.${f.op}.${String(f.value)}`.replace(
+          /\d{4}-\d\d-\d\dT[\d:.]+Z/,
+          "<now>",
+        ),
+      );
+    const [totalRead, videoRead] = mediaReads();
+    expect(asked(videoRead)).toEqual(expect.arrayContaining(asked(totalRead)));
+    expect(asked(videoRead)).toContain("type.eq.video");
+  });
+
+  it("names an album of photographs alone, and one of clips alone", async () => {
+    seed(album(12));
+    expect((await getGalleryStats(open)).kinds).toEqual({
+      photos: 12,
+      videos: 0,
+    });
+    seed(album(3, { type: () => "video" }));
+    expect((await getGalleryStats(open)).kinds).toEqual({
+      photos: 0,
+      videos: 3,
+    });
+    seed([]);
+    expect(await getGalleryStats(open)).toEqual({
+      approvedTotal: 0,
+      guestCount: 0,
+      kinds: { photos: 0, videos: 0 },
+    });
+  });
+
+  it("★ names exactly the items the total counts: a sealed shot (the develop) is in neither", async () => {
+    const media = album(10, { type: (i) => (i < 4 ? "video" : "photo") });
+    // Rows 0 (a clip) and 9 (a photograph) are sealed until the develop: nobody's to see yet.
+    media[0].sealed_until = "2999-01-01T00:00:00.000Z";
+    media[9].sealed_until = "2999-01-01T00:00:00.000Z";
+    seed(media);
+
+    expect(await getGalleryStats(open)).toMatchObject({
+      approvedTotal: 8,
+      kinds: { photos: 5, videos: 3 },
+    });
+  });
+
+  it("★ a locked password page carries the count alone: no kinds, and no kinds read", async () => {
+    seed(album(6, { type: mixed }));
+    isUnlocked.mockResolvedValue(false);
+
+    const stats = await getGalleryStats({ id: EVENT, visibility: "password" });
+
+    expect(stats).toEqual({ approvedTotal: 6, guestCount: 0, kinds: null });
+    expect(mediaReads()).toHaveLength(1);
+  });
+
+  it("a password album this request has unlocked names them", async () => {
+    seed(album(6, { type: mixed }));
+    isUnlocked.mockResolvedValue(true);
+
+    expect(
+      (await getGalleryStats({ id: EVENT, visibility: "password" })).kinds,
+    ).toEqual({ photos: 3, videos: 3 });
+  });
+
+  it("a gated album names them to someone its door let through (the pass), and only to her", async () => {
+    seed(album(6, { type: mixed }));
+    // A gated album reads as private; the door's pass is what opens it.
+    const gated = {
+      id: EVENT,
+      visibility: "private",
+      door: "approve",
+    } as const;
+
+    const through = await getGalleryStats({
+      ...gated,
+      doorPass: issueDoorPass(EVENT),
+    });
+    expect(through.kinds).toEqual({ photos: 3, videos: 3 });
+
+    // A pass is an object the door made: a literal that looks like one opens nothing.
+    const forged = await getGalleryStats({
+      ...gated,
+      doorPass: { eventId: EVENT },
+    });
+    expect(forged).toMatchObject({ approvedTotal: 6, kinds: null });
+    // A newcomer at the door hears how much is inside, never what it holds.
+    expect(await getGalleryStats(gated)).toMatchObject({
+      approvedTotal: 6,
+      kinds: null,
+    });
+  });
+
+  it("says nothing of a private album", async () => {
+    seed(album(6));
+    expect(await getGalleryStats({ id: EVENT, visibility: "private" })).toEqual(
+      {
+        approvedTotal: 0,
+        guestCount: 0,
+        kinds: null,
+      },
+    );
+    expect(fake.requests).toHaveLength(0);
+  });
+
+  it("★ a failed kinds read is the cover's old words, reported, never the page's failure", async () => {
+    // The videos' request is the total's plus one filter, so a URL limit at the total's own length lets the total
+    // through and fails only the videos' read, the way a fetch that never completes would.
+    const media = album(5, { type: mixed });
+    seed(media);
+    await getGalleryStats(open);
+    const limit = mediaReads()[0].urlLength;
+    fake = createFakePostgrest({
+      tables: { media, events: [], profiles: [] },
+      urlLengthLimit: limit,
+    });
+
+    const stats = await getGalleryStats(open);
+
+    expect(stats).toEqual({ approvedTotal: 5, guestCount: 0, kinds: null });
+    expect(captureWarning).toHaveBeenCalledWith(
+      "media",
+      "guest album: the kinds could not be counted",
+      expect.objectContaining({ eventId: EVENT }),
+    );
+  });
+
+  it("★ clips counted past the total are no answer: the two heads are not one snapshot", async () => {
+    // Between the total's head and the videos' (the unlock check the videos' read waits on), five clips are approved.
+    const media = album(2);
+    seed(media);
+    isUnlocked.mockImplementation(async () => {
+      // A tick on: the total's head has been read by now, and the videos' is still to come.
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      media.push(
+        ...album(5, { type: () => "video" }).map((r, i) => ({
+          ...r,
+          id: uid(100 + i),
+        })),
+      );
+      return true;
+    });
+
+    const stats = await getGalleryStats({ id: EVENT, visibility: "password" });
+
+    expect(stats.approvedTotal).toBe(2);
+    expect(stats.kinds).toBeNull();
   });
 });
 
@@ -376,6 +566,34 @@ describe("getApprovedPhotoTeaser: the nine newest photographs, in the album's or
     expect(teaser.rows[0].created_at).toBe(photos[0].created_at);
     expect(teaser.total).toBe(photos.length);
   });
+
+  it("★ keeps the lock's posture (`pastTheLock`, the kinds' too): a locked password album and a private one answer nothing; an unlocked one, or one the door passed, its photographs", async () => {
+    seed(album(12));
+    isUnlocked.mockResolvedValue(false);
+    const none = { rows: [], total: 0 };
+    expect(
+      await getApprovedPhotoTeaser({ id: EVENT, visibility: "password" }, 9),
+    ).toEqual(none);
+    expect(
+      await getApprovedPhotoTeaser({ id: EVENT, visibility: "private" }, 9),
+    ).toEqual(none);
+    expect(fake.requests).toHaveLength(0);
+
+    isUnlocked.mockResolvedValue(true);
+    expect(
+      (await getApprovedPhotoTeaser({ id: EVENT, visibility: "password" }, 9))
+        .total,
+    ).toBe(12);
+    isUnlocked.mockResolvedValue(false);
+    expect(
+      (
+        await getApprovedPhotoTeaser(
+          { id: EVENT, visibility: "private", doorPass: issueDoorPass(EVENT) },
+          9,
+        )
+      ).total,
+    ).toBe(12);
+  });
 });
 
 describe("getLiveReelServerFacts: the lever and the plan behind the live reel", () => {
@@ -395,7 +613,12 @@ describe("getLiveReelServerFacts: the lever and the plan behind the live reel", 
           opts.flag === null
             ? []
             : [{ key: "live_reel_enabled", enabled: opts.flag ?? true }],
-        events: [{ id: EVENT, host_id: opts.host === undefined ? "host-1" : opts.host }],
+        events: [
+          {
+            id: EVENT,
+            host_id: opts.host === undefined ? "host-1" : opts.host,
+          },
+        ],
         profiles:
           opts.tier === null
             ? []
