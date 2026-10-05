@@ -13,8 +13,9 @@
  *     its own to carry the words) shows it and holds one reading before Stripe's page,
  *     with a way to stay (the wait is hers to stop).
  */
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -232,7 +233,7 @@ describe("a switch below this month's uploads says so before it leaves", () => {
       action: { label: string; onClick: () => void };
     };
     expect(options.action.label).toBe("Stay here");
-    options.action.onClick();
+    act(() => options.action.onClick());
     await vi.advanceTimersByTimeAsync(10_000);
     // The button is hers again, and nothing left the page.
     await waitFor(() => expect(screen.getByRole("button")).toBeEnabled());
@@ -245,6 +246,7 @@ describe("a switch below this month's uploads says so before it leaves", () => {
       status: 200,
       body: { ok: true, url: URL, notice: NOTICE },
     };
+    vi.mocked(toast).mockReturnValueOnce("held-sentence");
     const { unmount } = render(
       <CheckoutButton planId="pro_50">Get Pro</CheckoutButton>,
     );
@@ -252,6 +254,45 @@ describe("a switch below this month's uploads says so before it leaves", () => {
     await waitFor(() => expect(toast).toHaveBeenCalledTimes(1));
     unmount();
     await vi.advanceTimersByTimeAsync(10_000);
+    expect(assigned).toBe(null);
+    // And its sentence goes with the page, rather than lingering beside a Stay here that now stays nothing.
+    expect(toast.dismiss).toHaveBeenCalledWith("held-sentence");
+  });
+
+  it("★ never holds the app's own navigation: another transition commits while the sentence is held", async () => {
+    // React entangles every transition with an async one still pending, the router's included: a hold awaited inside
+    // the press's transition left every link in the app dead until Stripe's page had already taken over (measured in
+    // a browser). The probe is a transition of its own, which is what a Link press is.
+    function Probe() {
+      const [n, setN] = useState(0);
+      const [, startTransition] = useTransition();
+      return (
+        <button onClick={() => startTransition(() => setN((c) => c + 1))}>
+          probe {n}
+        </button>
+      );
+    }
+    replies["/api/stripe/checkout"] = subscribed;
+    replies["/api/stripe/change-plan"] = {
+      status: 200,
+      body: { ok: true, url: URL, notice: NOTICE },
+    };
+    render(
+      <>
+        <CheckoutButton planId="pro_50">Get Pro</CheckoutButton>
+        <Probe />
+      </>,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Get Pro" }));
+    await waitFor(() => expect(toast).toHaveBeenCalledTimes(1));
+    expect(assigned).toBe(null);
+    await userEvent.click(screen.getByRole("button", { name: /probe/ }));
+    // Well inside the hold (a second of it, of five), and it has committed.
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "probe 1" }),
+      ).toBeInTheDocument(),
+    );
     expect(assigned).toBe(null);
   });
 
