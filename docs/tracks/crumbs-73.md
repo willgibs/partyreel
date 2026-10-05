@@ -9,7 +9,7 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/marketing/sections/how-it-works/host-pictures.tsx
 reads:                  # single-sources you depend on: never duplicate, never edit
   - src/components/guest/gallery-empty-state-sheet.tsx
-  - src/lib/disposable/contact-sheet
+  - src/lib/disposable/contact-sheet-develop.ts
 ---
 
 # lp/crumbs-73
