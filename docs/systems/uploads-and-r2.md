@@ -85,12 +85,21 @@ shapes.
   complete (a PUT in the air is aborted, a presign in the air lets its entry go, a landed file waiting for its
   siblings is simply not recorded), and a burst's own `signal` ends everything not recorded. ★ Presign and complete
   each end past a ceiling (30 s and 60 s, `PRESIGN_CEILING_MS`, `COMPLETE_CEILING_MS`, their clocks restarting when
-  the page is looked at again) as a dropped connection, never a spinner. A complete whose answer never came (none, one
+  the page is looked at again) as a dropped connection, never a spinner. A presign out past 8 s
+  (`PRESIGN_REASK_MS`) with a prepared file waiting behind it is taken back and its files asked again as one request
+  with the waiting ones, once a file (the second ask has the ceiling to itself, so a line that is truly down ends the
+  burst a presign later; one nobody waits behind keeps the whole ceiling; a phantom presign stores nothing), so a hung
+  first presign never holds its siblings for the ceiling. A complete whose answer never came (none, one
   the phone cannot read, or the server's own `complete_failed` or `unknown`) is kept by its File (`UNANSWERED`), and
   that file's next try sends that very complete again (its media id, key and parts), never a presign or a byte: a row
   the first wrote answers `recorded`, so no row or byte is counted twice; any other answer settles it, and a refused
-  file's next try starts afresh. `complete` is never aborted by a cancel: a stop pressed once it is asked, or on a
-  file going again on its kept complete, is ignored (the file lands as it would have). Nothing is counted for a
+  file's next try starts afresh. The guest's queue makes that try itself for a file that failed as a dropped connection
+  (`use-upload-queue.heal.ts`, `hasKeptComplete`: 5, 20 and 60 s on, on the browser's `online` and when the page is
+  looked at again, none while it says it is offline, three asks a File, through the queue's own runner so her Retry
+  never races it), so a row the server wrote is told as landed and the sheet that listed it lets it go; the host
+  panel's rows (`host-upload.tsx`) read the same hook, and a row that said dropped reads "Added to the album".
+  `complete` is never aborted by a cancel: a stop pressed once it is asked, or on a file going again on its kept
+  complete, is ignored (the file lands as it would have). Nothing is counted for a
   cancelled file (the meter counts at complete); its R2 bytes, if any, are the orphan sweep's, a started multipart the
   bucket's abort rule's. ★ It is ONE SENTENCE everywhere: the downloads say it as a title and its detail
   (`WALK_COPY`), and the album's camera says this very string where it used to count ("2 shots didn’t send.") when a

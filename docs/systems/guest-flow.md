@@ -155,8 +155,8 @@ read beside it so its Follow starts on Following; no card means no host row, nev
     go on and are recorded together) and the toast says "Upload cancelled." with Try again, which puts the same file
     back. A stopped file is no failure: it leaves the queue (the failure sheet, the shutter's ring and her uploads never
     count it) and nothing is recorded or metered. The x is drawn only while the file can still be stopped (going up, or
-    not yet begun; gone once its bytes are up and its complete is coming), a question whose file left the stack is
-    withdrawn, and a stop too late to take says nothing (the file lands) and says it at once: with every file of its burst
+    not yet begun; gone once its bytes are up and its complete is coming), a question whose file left the stack, or whose
+    x went, is withdrawn (a Stop it offered could only answer too late), and a stop too late to take says nothing (the file lands) and says it at once: with every file of its burst
     up (so its complete is asked and an abort would be ignored) the queue answers too late on the press, aborting
     nothing, where an answer that waited for the landing left the question on screen, unchanged, for as long as the
     complete took (seconds, longer for a burst) and read as an unheard press; a file up while a sibling still goes only
@@ -174,10 +174,17 @@ read beside it so its Follow starts on Following; no card means no host row, nev
     listed (one of three Retried while the sheet stands over the other two) is their go continuing, so the whole keeps
     its meaning; one that begins with none (Retry all, the next pick) is a go of its own, and a slot mounted mid-run
     counts everything it holds. Under it is a line on the rest that is true where it is said
-    (`uploadFailureElsewhere`), said only where the run sent more than failed: a run that failed whole has no "Everything
-    else". A refusal of the file itself (`retryCanPass`: a type nobody takes, a file over the ceiling, a video where the
+    (`uploadFailureElsewhere`), said only where the run sent more than failed and every file the sheet does not list has
+    landed (`useRunCounts`, one baseline for both numbers): a run that failed whole has no "Everything else", and a
+    row's Retry, which takes its file out of the list while it goes, says nothing of the rest until that file lands. A
+    file that failed as a dropped connection with its complete kept (`hasKeptComplete`: the row may stand, and the album
+    may already show it) is asked again for her by the queue (`use-upload-queue.heal.ts`: 5, 20 and 60 s on, the moment
+    the browser says the line is back and when the page is looked at again, none while it says it is offline and none
+    spent on it; three asks a File, never a loop; a Retry's own runner, so the two never race), so the sheet lets its row go when the server answers instead of saying "didn't
+    upload" over a photograph in the album. A refusal of the file itself (`retryCanPass`: a type nobody takes, a file over the ceiling, a video where the
     album takes none) lists with no Retry, and where every line is one the sheet says the way on
-    (`uploadFailureChooseAgain`, which the door's step says too). The uploader refuses a wrong type or a file over its
+    (`uploadFailureChooseAgain`, which the door's step says too, and whose failure view lists each file and its reason
+    whatever the verdict, with no Retry on a refusal and "Choose other photos" the way on). The uploader refuses a wrong type or a file over its
     ceiling itself, before any request, so those carry no server code: the queue gives them one from the file
     (`localRefusalCode`) and they meet the same rule. A refused file draws no tile and nothing toasts, except the join's own failure
     (nothing was queued). Every close drops what it listed from the queue (`dismiss`), not just from the screen, so a
@@ -561,7 +568,9 @@ colour, it is the house five. The open doorway registers as a lamp, so its light
   renders the add sheet's own body (`UploadIntentBody`), so the hidden inputs sit inside the open dialog and Safari's
   synchronous `.click()` still opens a picker (a sheet over a held sheet would be two things to dismiss, one
   impossible). It sends into the page's one queue; the first completed item (approved or held) flips the client's own
-  `contributed`, and the run finishes behind the album's head. That client flag stands only until the server has
+  `contributed`, and the run finishes behind the album's head (the step is not held for the rest of the run, by
+  choice, Will's to overrule: she is let into the album at the first landing, where the stack carries the rest with its
+  count and its x, the one place a file can be stopped, and the keep waits for the whole count). That client flag stands only until the server has
   answered since it (`contributionAnswered`, [`entry-steps.ts`](../../src/lib/guest/entry-steps.ts)): the server can
   take a contribution back (the guest's own delete), and from the first gate seen off `upload` the server's gate alone
   decides, so a later `upload` gate puts the door back with its upload step, never a teaser with no way through. The

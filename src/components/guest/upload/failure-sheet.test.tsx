@@ -315,6 +315,57 @@ describe("a run that failed whole", () => {
 });
 
 /**
+ * ★ NOTHING OF THE REST UNTIL EVERY FILE IT DOES NOT LIST HAS LANDED (red-team 54b's NIT): a row's Retry takes its file out
+ * of the list while it goes, so on a run that failed whole "2 of 2" became "1 of 2 / Everything else is in Maya's album"
+ * for as long as that file was in the air, over a rest that was not in the album.
+ */
+describe("the rest, until it has landed", () => {
+  const sheet = (failed: number, sent: number, landed?: number) =>
+    render(
+      <UploadFailureSheet
+        open
+        onOpenChange={vi.fn()}
+        failures={Array.from({ length: failed }, (_, i) =>
+          failure(`${i}.jpg`, "Your connection dropped.", undefined, "dropped"),
+        )}
+        sent={sent}
+        landed={landed}
+        hostName="Maya"
+        onRetry={vi.fn()}
+      />,
+    );
+
+  it("★ says nothing of the rest while a retried file is in the air and nothing has landed", () => {
+    sheet(1, 2, 0);
+    expect(screen.getByText("1 of 2 didn't upload")).toBeInTheDocument();
+    expect(screen.queryByText(/Everything else/)).toBeNull();
+    expect(screen.getByRole("dialog")).not.toHaveAttribute("aria-describedby");
+  });
+
+  it("★ nor while one of the others has landed and another is still going", () => {
+    sheet(1, 3, 1);
+    expect(screen.queryByText(/Everything else/)).toBeNull();
+  });
+
+  it("says it once every file it does not list has landed", () => {
+    sheet(1, 2, 1);
+    expect(
+      screen.getByText("Everything else is in Maya’s album."),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("dialog")).toHaveAccessibleDescription(
+      "Everything else is in Maya’s album.",
+    );
+  });
+
+  it("takes everything not listed for landed where no count is handed: a run that has just ended", () => {
+    sheet(1, 3);
+    expect(
+      screen.getByText("Everything else is in Maya’s album."),
+    ).toBeInTheDocument();
+  });
+});
+
+/**
  * ★ ONE HEADING SCALE FOR ONE FAILURE (crumbs-76; ROADMAP: the album's sheet "heads with a Sheet's card title" while
  * the same failure in the door's upload step "heads on the door's scale"). The sheet's heading is the door's own
  * (`door/heading.tsx`), and its words are the dialog's title and description themselves: one node each, named once.

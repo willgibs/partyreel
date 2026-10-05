@@ -37,6 +37,7 @@ vi.mock("@/lib/upload/uploader", () => {
   };
   return {
     UPLOAD_WORDS: { cancelled: "That upload was cancelled." },
+    hasKeptComplete: () => false,
     // The engine's contract for one file's stop: a file whose signal is aborted settles cancelled (never started, or
     // aborted in the air), unless its complete is already asked; its siblings go on.
     uploadBurst: vi.fn(

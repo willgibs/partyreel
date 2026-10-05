@@ -1,8 +1,9 @@
 /**
  * ACCOUNT'S GOOGLE DRIVE CARD (Will, desk 2: `account = card`): under Plan, everything about the connection in one
  * place: which Google account (the address only when Google verified it), since when, the Partyreel folder in her
- * Drive, what has been sent, and Disconnect. Without a connection, what connecting does and its one press. Absent where
- * Send to Google Drive is not set up on this deployment.
+ * Drive, what has been sent, and Disconnect. Without a connection, what connecting does and its one press. Where Send to
+ * Google Drive is not set up on this deployment it says so in words, as the three doors do (`NOT_SET_UP`), and offers no
+ * press: a Connect there could only come back as "isn't set up yet".
  */
 import { ExternalLink } from "lucide-react";
 
@@ -29,6 +30,7 @@ import { formatBytes } from "@/lib/utils";
 
 import { DriveDisconnect } from "./drive-disconnect";
 import { DriveName } from "./drive-parts";
+import { NOT_SET_UP } from "./not-set-up";
 
 export async function DriveAccountCard({
   userId,
@@ -37,7 +39,36 @@ export async function DriveAccountCard({
   userId: string;
   zone: string;
 }) {
-  if (!driveConfigured()) return null;
+  if (!driveConfigured()) {
+    return (
+      <Card
+        id={DRIVE_ACCOUNT_ANCHOR}
+        className="scroll-mt-6"
+        data-drive-card="unavailable"
+      >
+        <CardHeader>
+          <CardTitle>
+            <DriveName className="gap-2" />
+          </CardTitle>
+          <CardDescription>
+            Where Send to Drive puts your albums. Partyreel sees only what it
+            puts there.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p
+            role="status"
+            className="text-sm text-pretty text-muted-foreground"
+          >
+            <span className="font-medium text-foreground">
+              {NOT_SET_UP.title}
+            </span>{" "}
+            {NOT_SET_UP.detail}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
   const [connection, totals, sends] = await Promise.all([
     readConnection(userId),
     readMySentTotals(),

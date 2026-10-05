@@ -213,9 +213,11 @@ export function UploadStep({
           </Button>
         ) : (
           <>
-            {verdict !== "choose" && (
-              <UploadFailureList failures={failureItems} onRetry={onRetry} />
-            )}
+            {/* ★ THE FILES AND THEIR REASONS STAND WHATEVER THE VERDICT (red-team 54b's LOW). Where every file was
+                refused for itself the list was left out, so the step named no file and no reason, only "Pick something
+                else"; the album's failure sheet names them, and so does this. The list itself offers no Retry on a file
+                no retry could pass (`retryCanPass`), so "Choose other photos" stays the one way on. */}
+            <UploadFailureList failures={failureItems} onRetry={onRetry} />
             <Button
               type="button"
               variant={verdict === "choose" ? "default" : "outline"}

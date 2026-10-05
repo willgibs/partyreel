@@ -35,7 +35,8 @@
  * KEPT, by the very File (`UNANSWERED`): the next try of that file sends that same complete again, its media id and
  * all, and never the upload, so a row the first one wrote answers `recorded` (`readRecordedUpload`), one it never wrote
  * lands now, and no row or byte is ever counted twice. Any other answer settles it, and a refused file's next try
- * starts afresh.
+ * starts afresh. A presign out past `PRESIGN_REASK_MS` with files waiting behind it is taken back and asked again as
+ * one request with them, so a hung first presign never holds its siblings for the whole ceiling.
  *
  * XHR (not fetch) because only XHR exposes upload progress events. Reading a
  * multipart part's ETag requires the R2 bucket CORS to expose the ETag header.
@@ -180,6 +181,18 @@ export const UPLOAD_ANSWER_MS = 90_000;
 export const PRESIGN_CEILING_MS = 30_000;
 
 /**
+ * HOW LONG A PRESIGN MAY BE OUT BEFORE THE FILES WAITING BEHIND IT ARE NOT HELD FOR IT (red-team 55's NIT: a presign held
+ * past its ceiling kept its burst's other files from asking for their own for the whole thirty seconds, "2 to go" with
+ * no bytes moving and no word). A presign answers within a second; one still out at this is a socket that died under
+ * it, and the files in it are taken back and asked again beside the ones waiting, in one request (a presign that never
+ * reached a server stores nothing, and one that did is a phantom: `billing-caps.md`'s staging), so the rest go on at
+ * once. Once a file: the second ask has the ceiling to itself, so a line that is truly down still ends the burst as
+ * a dropped connection, `PRESIGN_REASK_MS` later than before; a presign with nobody waiting behind it is not asked
+ * again, and keeps the whole ceiling.
+ */
+export const PRESIGN_REASK_MS = 8_000;
+
+/**
  * HOW LONG A COMPLETE MAY TAKE before it is a dropped connection. Measured, a burst's complete records its files in a
  * few seconds (their copies landed four at a time, their rows one after another); a minute is a line that died. Its
  * clock restarts as the presign's does. Ending it is safe only because the complete is kept for the next try
@@ -203,6 +216,15 @@ type Unanswered = {
  * takes its entry with it; one page's, as the queue is.
  */
 const UNANSWERED = new WeakMap<File, Unanswered>();
+
+/**
+ * Whether this file's complete lost its answer and is kept (`UNANSWERED`): its row may already stand, and its next try asks
+ * that very complete again, never a presign or a byte. A caller reads it to tell a file that failed from a file whose
+ * fate is merely unknown (`use-upload-queue.heal.ts`).
+ */
+export function hasKeptComplete(file: File): boolean {
+  return UNANSWERED.has(file);
+}
 
 /**
  * The server's own "couldn't finish" (a failure it threw, a database it could not reach): a row may stand behind it,
@@ -667,11 +689,18 @@ async function runBurst(
   /** The last presign's round trip (`endsSoon`). */
   let presignMs = 0;
   let presigning = false;
+  /** The presign in the air: when it went (the page's time, `onVisibility`), and the way to take it back (`maybeReask`). */
+  let out: { began: number; files: number[]; again: AbortController } | null =
+    null;
+  /** The files whose presign was taken back and asked again: the second ask is never taken back. */
+  const reasked: boolean[] = files.map(() => false);
+  let reaskTimer: ReturnType<typeof setTimeout> | undefined;
   let recording = false;
   const page = pageEvents();
   let hidden = page?.visibilityState === "hidden";
   let timer: ReturnType<typeof setTimeout> | undefined;
   const poke = () => {
+    maybeReask();
     maybePresign();
     maybeRecord();
     const due = waiters;
@@ -767,6 +796,26 @@ async function runBurst(
    */
   const endsSoon = () =>
     air?.handedOffAt != null && air.handedOffAt - air.startedAt >= presignMs;
+  /**
+   * ★ A PRESIGN THAT HANGS DOES NOT HOLD THE FILES BEHIND IT (`PRESIGN_REASK_MS`): once it has been out that long with a
+   * prepared file waiting, it is taken back, and its files go into the next request with the ones waiting. Never one
+   * that carries a file already asked twice, and never while the page is hidden (a phone freezes its timers there, and
+   * a request that finished meanwhile must not be ended by one that fires late).
+   */
+  function maybeReask() {
+    if (!out || stopped || hidden) return;
+    if (out.files.some((i) => reasked[i])) return;
+    if (!stage.some((s) => s === "prepared")) return;
+    const age = Date.now() - out.began;
+    if (age >= PRESIGN_REASK_MS) {
+      out.again.abort();
+      return;
+    }
+    reaskTimer ??= setTimeout(() => {
+      reaskTimer = undefined;
+      poke();
+    }, PRESIGN_REASK_MS - age);
+  }
   function maybePresign() {
     if (presigning || stopped) return;
     const ready: number[] = [];
@@ -788,6 +837,10 @@ async function runBurst(
   async function presign(ready: number[]) {
     for (const i of ready) stage[i] = "presigning";
     const began = Date.now();
+    // Hers (the burst's cancel) and ours (taking it back, `maybeReask`) end it alike; which it was is read below.
+    const again = new AbortController();
+    out = { began, files: ready, again };
+    const own = eitherSignal(signal, again.signal);
     let answer: BurstAnswer<PresignedFile>;
     try {
       answer = await postJson<BurstAnswer<PresignedFile>>(
@@ -805,12 +858,26 @@ async function runBurst(
             };
           }),
         },
-        { signal, ceilingMs: PRESIGN_CEILING_MS },
+        { signal: own.signal, ceilingMs: PRESIGN_CEILING_MS },
       );
     } catch (e) {
+      if (again.signal.aborted && !signal?.aborted) {
+        // Taken back, not failed: nothing was settled, and each file that is still the burst's is asked for again, with
+        // the ones waiting behind it, as the next request (the poke that follows this call's end).
+        for (const i of ready) {
+          reasked[i] = true;
+          if (!outcomes[i]) stage[i] = "prepared";
+        }
+        return;
+      }
       const failed = failureOf(e);
       for (const i of ready) settle(i, failed);
       return;
+    } finally {
+      own.dispose();
+      out = null;
+      clearTimeout(reaskTimer);
+      reaskTimer = undefined;
     }
     presignMs = Date.now() - began;
     if (answer.ok === false) {
@@ -1058,6 +1125,8 @@ async function runBurst(
   // A page leaving the screen records what landed now (a phone may never come back to it).
   const onVisibility = () => {
     hidden = page?.visibilityState === "hidden";
+    // The page is looked at again: the presign in the air is out from now (the ceiling's own clock restarts the same way).
+    if (!hidden && out) out.began = Date.now();
     poke();
   };
   signal?.addEventListener("abort", onAbort, { once: true });
@@ -1072,6 +1141,7 @@ async function runBurst(
     }
   } finally {
     clearTimeout(timer);
+    clearTimeout(reaskTimer);
     signal?.removeEventListener("abort", onAbort);
     for (const off of offFile) off();
     page?.removeEventListener("visibilitychange", onVisibility);

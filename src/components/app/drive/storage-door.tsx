@@ -6,13 +6,14 @@
  * promise and final press as Take it home's. Nothing here deletes or suggests deleting (`done = done-only`, the exit
  * dropped): deleting stays this list's own, as it always was.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ExternalLink, FolderUp } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Popup, PopupContent } from "@/components/ui/popup";
 import { DESK_QUERY } from "@/components/ui/popup-kinds";
+import { hasDriveHint } from "@/lib/drive/links";
 import { sendForAlbum, tileLight } from "@/lib/drive/moments";
 import { useMediaQuery } from "@/lib/use-media-query";
 
@@ -20,7 +21,21 @@ import { DriveName } from "./drive-parts";
 import { DriveSendSteps, type SendDone } from "./send-steps";
 import { useDriveStatus } from "./use-drive-status";
 
+/**
+ * An album's send, said under the door, for a host who uses Drive only: the hint cookie (`links.ts`) gates the status
+ * read here as it does in the strip, the tile's light and the flag, so filtering What's using space to one album costs a
+ * host who never sent nothing (red-team 55's NIT: it asked at every mount, hint or no).
+ */
 function SentLine({ eventId }: { eventId: string }) {
+  const [active, setActive] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the hint is the browser's cookie, read after mount
+    setActive(hasDriveHint());
+  }, []);
+  return active ? <SentLineListening eventId={eventId} /> : null;
+}
+
+function SentLineListening({ eventId }: { eventId: string }) {
   const { status } = useDriveStatus();
   const send = status ? sendForAlbum(status.sends, eventId) : null;
   const light = send ? tileLight(send) : null;

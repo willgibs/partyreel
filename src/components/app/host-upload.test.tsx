@@ -1,7 +1,9 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { HEAL_AFTER_MS } from "@/lib/guest/use-upload-queue.heal";
 import {
+  hasKeptComplete,
   uploadFile,
   type BurstFile,
   type UploadOutcome,
@@ -48,7 +50,9 @@ vi.mock("@/lib/upload/uploader", () => {
     }
     return out;
   };
-  return { uploadFile, uploadBurst };
+  // Whether a file's complete lost its answer and is kept: no file's, until a case says so (the heal's own pin).
+  const hasKeptComplete = vi.fn((_file: File) => false);
+  return { uploadFile, uploadBurst, hasKeptComplete };
 });
 const refresh = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh }) }));
@@ -95,6 +99,91 @@ describe("a drained batch", () => {
     );
     await drop([file("a.jpg")]);
     expect(landed).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * ★ A ROW WHOSE ANSWER WAS LOST HEALS ITSELF (red-team 55's LOW, the host's side): the complete's answer was lost after
+ * the server wrote the row, so the hub's album drew the photograph's tile while its row said "Your connection
+ * dropped. Check your signal, then try again." with Retry, until she pressed it. The panel asks that kept complete
+ * again for her (`use-upload-queue.heal.ts`, as the guest's queue does), and the row reads "Added to the album" when
+ * the server's own row answers, the page told as a landing is.
+ */
+describe("a lost answer", () => {
+  const DROPPED = "Your connection dropped. Check your signal, then try again.";
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.mocked(hasKeptComplete).mockReset();
+  });
+
+  it("★ is asked again a few seconds on, and the row that said dropped says Added to the album, the page told once", async () => {
+    const lost = file("lost.jpg");
+    vi.mocked(hasKeptComplete).mockImplementation((f) => f === lost);
+    upload
+      .mockResolvedValueOnce({ ok: false, message: DROPPED, cause: "dropped" })
+      .mockResolvedValueOnce({ ok: true } as UploadOutcome);
+    const landed = vi.fn();
+    render(
+      <HostUpload eventId="event-1" videosAllowed onBatchLanded={landed} />,
+    );
+    const input = document.querySelector<HTMLInputElement>("input[type=file]")!;
+    await act(async () => {
+      fireEvent.change(input, { target: { files: [lost] } });
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    // As she is first shown it: dropped, with its Retry, and nothing of the page told.
+    expect(screen.getByText(DROPPED)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Retry/ })).toBeInTheDocument();
+    expect(landed).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[0]);
+    });
+    expect(upload).toHaveBeenCalledTimes(2);
+    expect(upload.mock.calls[1]![0].file).toBe(lost);
+    expect(screen.queryByText(DROPPED)).toBeNull();
+    expect(screen.getByText("Added to the album")).toBeInTheDocument();
+    expect(landed).toHaveBeenCalledTimes(1);
+  });
+
+  it("leaves the row as it was when the ask finds the line still down", async () => {
+    const lost = file("lost.jpg");
+    vi.mocked(hasKeptComplete).mockImplementation((f) => f === lost);
+    upload.mockResolvedValue({ ok: false, message: DROPPED, cause: "dropped" });
+    const landed = vi.fn();
+    render(
+      <HostUpload eventId="event-1" videosAllowed onBatchLanded={landed} />,
+    );
+    const input = document.querySelector<HTMLInputElement>("input[type=file]")!;
+    await act(async () => {
+      fireEvent.change(input, { target: { files: [lost] } });
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[0]);
+    });
+    expect(upload).toHaveBeenCalledTimes(2);
+    expect(screen.getByText(DROPPED)).toBeInTheDocument();
+    expect(landed).not.toHaveBeenCalled();
+  });
+
+  it("asks nothing for a refusal, or for a drop whose bytes never went (no kept complete)", async () => {
+    vi.mocked(hasKeptComplete).mockReturnValue(false);
+    upload.mockResolvedValue({ ok: false, message: DROPPED, cause: "dropped" });
+    render(<HostUpload eventId="event-1" videosAllowed />);
+    const input = document.querySelector<HTMLInputElement>("input[type=file]")!;
+    await act(async () => {
+      fireEvent.change(input, { target: { files: [file("a.jpg")] } });
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[2]);
+    });
+    expect(upload).toHaveBeenCalledTimes(1);
+    expect(screen.getByText(DROPPED)).toBeInTheDocument();
   });
 });
 

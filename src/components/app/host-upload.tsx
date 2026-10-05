@@ -16,9 +16,10 @@ import { FileDropzone } from "@/components/guest/file-dropzone";
 import { UploadThumbnail } from "@/components/shared/upload-thumbnail";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { useHealLostAnswers } from "@/lib/guest/use-upload-queue.heal";
 import { takeBurst } from "@/lib/upload/burst";
 import { STOP_COPY } from "@/lib/upload/stop-upload";
-import { uploadBurst } from "@/lib/upload/uploader";
+import { uploadBurst, type UploadCause } from "@/lib/upload/uploader";
 
 // The host's own upload panel: a dropzone + per-file queue, reusing the shared
 // uploadBurst orchestrator pointed at the authenticated /api/host/r2/* routes. This is
@@ -51,6 +52,8 @@ type Item = {
   status: ItemStatus;
   progress: number;
   error?: string;
+  /** Why the transport ended it (`dropped` is the line: a complete whose answer was lost may stand as a row already). */
+  cause?: UploadCause;
   /** Its bytes (and its copies) are up and it waits to be recorded with its batch: no stop can take that back. */
   sent?: boolean;
 };
@@ -132,7 +135,13 @@ export function HostUpload({
             stopsRef.current.delete(it.id);
             if (outcome.ok) {
               anySucceeded = true;
-              patch(it.id, { status: "done", progress: 100, sent: undefined });
+              patch(it.id, {
+                status: "done",
+                progress: 100,
+                error: undefined,
+                cause: undefined,
+                sent: undefined,
+              });
             } else if (outcome.cause === "cancelled") {
               // Hers: neutral, never an error, with its way back in the row. Nothing was recorded or counted.
               patch(it.id, {
@@ -145,6 +154,7 @@ export function HostUpload({
               patch(it.id, {
                 status: "error",
                 error: outcome.message,
+                cause: outcome.cause,
                 sent: undefined,
               });
             }
@@ -171,6 +181,23 @@ export function HostUpload({
     },
     [runQueue, sync],
   );
+
+  // ★ A LOST ANSWER HEALS ITSELF HERE AS IN THE GUEST'S QUEUE (`use-upload-queue.heal.ts`, red-team 55's LOW): a row that
+  // failed as a dropped connection with its complete kept may stand as a row already, and the hub's album drew its tile
+  // while the row said "dropped" until Retry. It is asked again, quietly (the kept complete and nothing else), through this
+  // panel's own runner as its Retry is, and reads "Added to the album" once the server's row answers.
+  useHealLostAnswers(items, (ids) => {
+    for (const id of ids) {
+      patch(id, {
+        status: "queued",
+        progress: 0,
+        error: undefined,
+        cause: undefined,
+        sent: undefined,
+      });
+    }
+    void runQueue();
+  });
 
   /**
    * Stop one row, confirmed. A file in a burst is stopped through its own signal, so the uploader tells its outcome
@@ -199,6 +226,7 @@ export function HostUpload({
         status: "queued",
         progress: 0,
         error: undefined,
+        cause: undefined,
         sent: undefined,
       });
       void runQueue();
@@ -310,6 +338,7 @@ export function HostUpload({
                         status: "queued",
                         progress: 0,
                         error: undefined,
+                        cause: undefined,
                       });
                       void runQueue();
                     }}

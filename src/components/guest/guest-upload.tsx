@@ -28,7 +28,7 @@ import {
 // The queue MACHINE lives in `event-experience.tsx`; only its types, and the run's own count, are read
 // here.
 import {
-  useRunSent,
+  useRunCounts,
   type FileExtra,
   type QueueItem,
 } from "@/lib/guest/use-upload-queue";
@@ -251,12 +251,16 @@ export function GuestUpload({
     (it) => it.status === "error" && !carried.has(it),
   );
   /**
-   * ★ THE HEADING'S "SENT" IS THE RUN'S OWN FILES (`useRunSent`), never how many items the queue holds beyond a
+   * ★ THE HEADING'S "SENT" IS THE RUN'S OWN FILES (`useRunCounts`), never how many items the queue holds beyond a
    * baseline: a Retry adds no item, so counted by length a failure that failed again read "1 of 0", and so did a slot
    * mounted mid-run (this one can mount under `key={access}` with the door's run already going). The count lives with
-   * the queue's own definition of a run (`inRun`), and the door's step reads the same one.
+   * the queue's own definition of a run (`inRun`), and the door's step reads the same one. `landed` is how many of those
+   * are in the album: the sheet says nothing of the rest until every file it does not list is.
    */
-  const sentThisRun = useRunSent(items, failures);
+  const { sent: sentThisRun, landed: landedThisRun } = useRunCounts(
+    items,
+    failures,
+  );
   useEffect(() => {
     const running = items.some(
       (it) => it.status === "queued" || it.status === "uploading",
@@ -393,6 +397,7 @@ export function GuestUpload({
           cause: it.cause,
         }))}
         sent={sentThisRun}
+        landed={landedThisRun}
         hostName={hostName}
         waits={addsWaitFor({ uploadsWait: wait, isOwner, isDemo })}
         camera={camera}

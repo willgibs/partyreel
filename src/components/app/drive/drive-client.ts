@@ -16,6 +16,8 @@ import { connectHref } from "@/lib/drive/links";
 import type { PressAnswer, PressRefusal } from "@/lib/drive/press";
 import { formatBytes } from "@/lib/utils";
 
+import { NOT_SET_UP } from "./not-set-up";
+
 export type { AlbumPreview };
 export { connectHref };
 
@@ -27,6 +29,11 @@ export type DriveIntent = {
   source: "panel" | "picker" | "storage";
   events: string[];
   includeHidden: boolean;
+  /**
+   * The page Google sends her back to (the press's `returnPath`): where the place that owns this intent stands. Absent
+   * on an intent an older page wrote, which then stands for any page, as every intent did.
+   */
+  path?: string;
   at: number;
 };
 
@@ -66,6 +73,7 @@ export function takeIntent(): DriveIntent | null {
       source: i.source,
       events: i.events,
       includeHidden: i.includeHidden === true,
+      ...(typeof i.path === "string" ? { path: i.path } : {}),
       at: i.at,
     };
   } catch {
@@ -85,7 +93,14 @@ export function peekIntent(): DriveIntent | null {
   }
 }
 
-/** The connect's address, landing back on `next` (one of the sign-in return shapes, checked on the server). */
+/**
+ * Whether the place that owns this intent stands on the page she has landed on. The intent outlives an abandoned send
+ * (a quarter of an hour, in this tab), so one for another page is stale here: nobody on this page takes its word, and a
+ * flag that waited for its owner would let a Connect from Account say nothing.
+ */
+export function intentIsHere(intent: DriveIntent, pathname: string): boolean {
+  return intent.path === undefined || intent.path === pathname;
+}
 
 /** Her browser's zone, for the files' names (when each arrived, in her own time). */
 function zone(): string {
@@ -180,7 +195,7 @@ export function refusalWords(answer: Extract<PressAnswer, { ok: false }>): {
   const words: Record<PressRefusal, { title: string; detail?: string }> = {
     bad_request: { title: "Couldn't start that send." },
     unauthorized: { title: "Sign in again to send." },
-    unavailable: { title: "Send to Google Drive isn't set up yet." },
+    unavailable: { title: NOT_SET_UP.title },
     rate_limited: {
       title: "That's a lot of sends at once.",
       detail: "Try again in a minute.",
@@ -267,7 +282,7 @@ export function returnWords(word: DriveReturn): {
         good: false,
       };
     case "unavailable":
-      return { title: "Send to Google Drive isn't set up yet.", good: false };
+      return { title: NOT_SET_UP.title, good: false };
     default:
       return {
         title: "Couldn't connect Google Drive.",

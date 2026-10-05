@@ -49,6 +49,7 @@ import { toast } from "sonner";
 import { joinEvent, type JoinedGuest } from "@/lib/guest/join";
 import { SESSION_OTHER_ACCOUNT } from "@/lib/guest/session-owner";
 import { dropGuestTicket } from "@/lib/guest/use-stored-session";
+import { useHealLostAnswers } from "@/lib/guest/use-upload-queue.heal";
 import { HOST_CLIP_ENDPOINTS } from "@/lib/reel/clip-add";
 import { classifyMime, validateUpload } from "@/lib/media/validators";
 import { takeBurst } from "@/lib/upload/burst";
@@ -431,11 +432,31 @@ export function runSentOf(
 }
 
 /**
+ * How many of the run's files have landed (`done`): the rest a failure's sheet may say is in the album is only what has.
+ * A file settled before the run began is not the run's, however it ended.
+ */
+export function runLandedOf(
+  items: readonly QueueItem[],
+  before: ReadonlySet<string>,
+): number {
+  return items.filter((it) => it.status === "done" && inRun(it, before)).length;
+}
+
+/** The run's own files, counted for a failure's heading (`useRunCounts` says what a run is). */
+export function useRunSent(
+  items: readonly QueueItem[],
+  listed: readonly Pick<QueueItem, "id">[],
+): number {
+  return useRunCounts(items, listed).sent;
+}
+
+/**
  * ★ THE RUN'S OWN COUNT, FOR WHOEVER HEADS A FAILURE WITH IT (the album's slot and the door's step: both read the
  * page's one queue, and either may be the one standing when a run ends). The ids already settled when the run began,
  * taken in the render where something goes where nothing was (the sanctioned adjust-state-during-render pattern, as
- * `useRunProgress` takes its own: an effect would count the new files in their own baseline); `runSentOf` does the
- * rest.
+ * `useRunProgress` takes its own: an effect would count the new files in their own baseline); `runSentOf` and
+ * `runLandedOf` do the rest, off the one baseline, so the heading's whole and the files of it that landed (which the
+ * sheet reads before it says anything of the rest in the album) always speak of the same files.
  *
  * ★ A RUN THAT BEGINS WITH FAILURES STILL LISTED IS THEIR GO CONTINUING, not a new one: one of three Retried while the
  * sheet stands over the other two sends a file of the same go, and the whole it counts stays what it was ("2 of 3"
@@ -446,10 +467,10 @@ export function runSentOf(
  * never saw the run begin (the slot mounts under `key={access}` with the door's run already going), so nothing may be
  * taken for outside it, and the heading reads the whole run it ends with.
  */
-export function useRunSent(
+export function useRunCounts(
   items: readonly QueueItem[],
   listed: readonly Pick<QueueItem, "id">[],
-): number {
+): { sent: number; landed: number } {
   const running = items.some(isActive);
   const [before, setBefore] = useState<ReadonlySet<string>>(NOTHING_BEFORE);
   const [wasRunning, setWasRunning] = useState(running);
@@ -461,7 +482,10 @@ export function useRunSent(
       );
     }
   }
-  return runSentOf(items, before, listed);
+  return {
+    sent: runSentOf(items, before, listed),
+    landed: runLandedOf(items, before),
+  };
 }
 
 export type UploadedItem = {
@@ -1285,6 +1309,39 @@ export function useUploadQueue({
     },
     [patch, runQueue],
   );
+
+  /**
+   * ★ A LOST ANSWER IS ASKED AGAIN FOR HER (`use-upload-queue.heal.ts`): the files that failed as a dropped connection
+   * with their complete kept (the row may stand: the album may already show the photograph) go again the way her Retry
+   * sends them, which asks that very complete and nothing else, so a row the server wrote lands now and one it did not is
+   * written. Not her Retry in one thing: it never gives the silent join back (`silentJoinSpentRef`), so a ticket that
+   * keeps being refused can never turn this into a row factory. Nothing is asked of a demo, a door that holds her
+   * (`doorOpenRef`) or a device with no ticket: the join is not this to make.
+   */
+  const healLost = useCallback(
+    (ids: string[]) => {
+      if (isDemo || !doorOpenRef.current) return;
+      if (!(ownerEventId || sessionRef.current)) return;
+      const lost = new Set(ids);
+      sync(
+        itemsRef.current.map((it) =>
+          lost.has(it.id) && it.status === "error"
+            ? {
+                ...it,
+                status: "queued" as const,
+                progress: 0,
+                error: undefined,
+                errorCode: undefined,
+                cause: undefined,
+              }
+            : it,
+        ),
+      );
+      void runQueue();
+    },
+    [isDemo, ownerEventId, runQueue, sync],
+  );
+  useHealLostAnswers(items, healLost);
 
   /**
    * Drop the named ERRORED items from the queue for good (the failure sheet's

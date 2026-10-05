@@ -538,6 +538,44 @@ describe("the surface", () => {
     ).toBeInTheDocument();
   });
 
+  it("★ names each file refused for itself and its reason, as the failure sheet does, with no Retry on any (red-team 54b's LOW)", () => {
+    const named = (name: string, type: string) =>
+      new File([new Uint8Array([1])], name, { type });
+    mount({
+      queue: [
+        item({
+          id: "a",
+          file: named("party.gif", "image/gif"),
+          errorCode: "unsupported_type",
+          error: "That file type isn't supported.",
+        }),
+        item({
+          id: "b",
+          file: named("huge.mp4", "video/mp4"),
+          errorCode: "too_large",
+          error: "This file is larger than the 10 GB maximum.",
+        }),
+      ],
+    });
+    // The run's own heading and the way on, and under them each file with the sentence that refused it.
+    expect(screen.getByText("2 of 2 didn't upload")).toBeInTheDocument();
+    expect(screen.getByText("Pick something else to add.")).toBeInTheDocument();
+    expect(screen.getByText("party.gif")).toBeInTheDocument();
+    expect(
+      screen.getByText("That file type isn't supported."),
+    ).toBeInTheDocument();
+    expect(screen.getByText("huge.mp4")).toBeInTheDocument();
+    expect(
+      screen.getByText("This file is larger than the 10 GB maximum."),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Retry/ }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Choose other photos" }),
+    ).toBeInTheDocument();
+  });
+
   it("Choose other photos drops the failures so the next pass starts clean", () => {
     const { onDismiss } = mount({
       queue: [item({ id: "q9", errorCode: "too_large", error: "Too large." })],
