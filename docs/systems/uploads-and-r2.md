@@ -47,8 +47,10 @@ shapes.
   whose row carries an account uploads only for that signed-in account, and a signed-in account only through a row of
   its own (`checkSessionOwner`, at presign AND complete: [guest-flow.md](guest-flow.md)). Refusals are framed per
   identity: a guest's video refusal names the EVENT so a guest never learns the host's plan, a host's names the tier,
-  and a host's `not_owner` is a 404, so existence never leaks; the guest failure sheet prints each refusal verbatim,
-  which makes its wording user-facing copy. The one request limiter on the four routes is a guest's clip into the
+  a cap refusal names the line it met (her uploads line or storage) in the album's words or her plan's, the same at
+  the complete as at the presign (`upload/cap-words.ts`: [billing-caps.md](billing-caps.md)), and a host's `not_owner`
+  is a 404, so existence never leaks; the guest failure sheet prints each refusal verbatim, which makes its wording
+  user-facing copy. The one request limiter on the four routes is a guest's clip into the
   album (a `reelEligible: false` completion), which spends `reel_clip_add`, a daily budget per guest session
   ([reel.md](reel.md)), asked before a byte of the clip lands; otherwise the capability, the caps and the meter
   ([billing-caps.md](billing-caps.md)), the per-part Content-Length binding and the multipart abort are the abuse

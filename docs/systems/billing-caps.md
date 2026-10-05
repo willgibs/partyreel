@@ -36,11 +36,15 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   `event_passes.uploaded_bytes`, which the two completes alone increment, on the live pass that ends soonest, under
   the profiles lock: so the year is the one she paid for, a renewal's year opens on its own row at zero, and a pass
   that ends takes its count with it (generous at a stack's edge, never a false refusal). Every upload still lands on
-  the month's row too (spend-watch and the hour's breaker read it). ★ A pass the nightly recompute has not caught up
-  with (her profile still a pass's, no window live) is refused in the allowance's words at the completes (the
-  Advisor's Q26 F1) and, by the same predicate over the same rows, at the presign's meter, so nothing is sent to be
-  refused and nothing lands counted nowhere; the three upload advisories still read her as not full, so the door is
-  open until the presign refuses. A Pro profile with no cap on record is unmetered.
+  the month's row too (spend-watch and the hour's breaker read it). A Pro profile with no cap on record is unmetered.
+- ★ **"May this account still add" has one home, `uploads_refused(host, tier, cap, bytes)`** (20261005181000): her
+  plan's own number over its window, a strict line, or a pass the nightly recompute has not caught up with
+  (`pass_lapsed`: her profile still a pass's, no window of hers live, so a count would land on no row; the Advisor's
+  Q26 F1). Every body that judges an upload asks it: both completes with the HEAD's size, the presign's meter with the
+  declared size, the three upload advisories with one byte (at the allowance is full), and the operator's
+  `uploads_windows` asks `pass_lapsed`; so the door, the presign, the complete and `/admin/accounts` agree by
+  construction (the advisories read a lapsed pass as room while the presign refused it).
+  `uploads-line-migration.test.ts` refuses a copy of either predicate outside its home.
 - **The allowance is published; only the breakers are not.** The pricing table's Uploads row prints each plan's
   number with its window (`uploadsLabel`); `content-policy.test.ts` fences the backstop's old name ("ingress") and the
   unpublished breakers' numbers, read from the SQL that sets them. The meter's wire keeps its names
@@ -67,14 +71,21 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   grief needs real bytes: declaring a size spends nothing.
 - **The presign's meter refuses early, and counts no month** (`meter_upload`, 20261003210500, through
   `upload/server-pipeline-meter.ts`): after every gate of its route and before any URL exists, it refuses past the
-  hour's breaker, past the allowance (the complete's own line over the same window, read early, a lapsed pass's whole
-  allowance included) or past the room (`host_room_used`; the
+  hour's breaker, past the uploads line (`uploads_refused`, the completes' own question) or past the room
+  (`host_room_used`; the
   refusal carries `needed_bytes`, `deleted_bytes` and `makes_room`), each in the route's own words (a guest's name the
   album, never the plan: `meterRefusal`), and tallies the hour for an upload it admits. The host's route lets a full
   account go on to that refusal, never saying "full" at the context: its `at_storage_cap` is a bare flag with none of
   those numbers (the month's early refusal there stays, one sentence both say alike). No profiles
   lock: its reads are advisory and the tally is one atomic upsert. It fails OPEN, as the limiters do, since the
   complete's count and caps stand behind it.
+- ★ **Each refusal names the line it met, in its identity's voice** (`upload/cap-words.ts`, the one home for the
+  context's early answer, the meter's exact one and the complete's backstop): a guest's name the album ("This album has
+  hit its upload limit for now.", "This album is full right now..."), the owner's her plan ("You've hit this plan's
+  upload limit for now."; storage "Storage is full for your plan..." at the complete, which the help center quotes, and
+  `roomRefusalWords` at the presign, which knows the room the file needs). The completes' wrappers read the line off
+  the SQL's two sentences (`capLineOf`), and a cap sentence they do not know reads `unknown`, never a guessed line: a
+  host's complete said "Storage is full" for her uploads line, and a guest's the SQL's own "...for this plan".
 - **Two breakers far past any party, unpublished, refused in words,** so "no guest limit" and "unlimited events" stay
   true. An account's uploads a clock hour, 20,000 (`c_uploads_an_hour`), every guest's and her own into all her events,
   tallied on the month's row (`hour_started_at`, `hour_uploads`) by `meter_upload` and refused at presign (429 with
@@ -117,8 +128,8 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   second subscription double-bills one cap, a size or cadence change is change-plan's, and cancelling is the
   portal's. `resolveEntitlement()` decides from `profiles`, never the request body. Another pass is another ledger row
   (one more event slot and another pass's storage and uploads, for its own year), and a pass holder may start Pro, the prorated
-  credit consuming their passes. A pass write never flattens a Pro cap (the recompute's WHERE carries
-  `.neq("tier","pro")`). Pro caps never stack, as a max or a sum: every webhook would resolve two live entitlements,
+  credit consuming their passes. A pass write never flattens a Pro cap (the recompute reads the tier under her profiles
+  lock and writes in the same transaction). Pro caps never stack, as a max or a sum: every webhook would resolve two live entitlements,
   and "whose media survives when one plan ends?" has no honest answer.
 - ★ **No plan change leaves a host storing more than the new cap,** so we never remove a host's media or carry their
   excess ourselves. One check, `checkPlanChange`, guards every purchase that REPLACES the cap: any Pro checkout (a
@@ -157,15 +168,23 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   capture), never falling back to the default configuration; a stale id is forgotten and looked up once more. The
   general portal keeps the card, the invoices and cancelling, with its plan switching OFF: its quantity stepper has no
   maximum and could bill two or three times for one cap.
-- **The prorated pass-to-Pro credit is honoured in the webhook, idempotently:** a customer-balance grant keyed
-  `pass-credit-<sessionId>` (a Stripe idempotency key, which holds for at least 24 hours, so a retry inside that window
-  never double-grants; a delivery retries for three days, so a conversion still failing a day on grants again), then
-  ONE call, `consume_passes_for_pro_credit`, that consumes every unconsumed pass (zero rows on replay) and clears
-  `tier_expires_at` and `event_slots` in one transaction. ★ It takes her profiles row first, the capacity bodies' order
-  (an upload's complete holds that row while it counts on her live pass, so the reverse order, in one transaction,
-  deadlocks with it), and nobody reads her passes consumed with her chain still set. A balance carries from invoice to
-  invoice (Checkout's own first invoice never takes it), where an `amount_off` coupon would silently eat any credit
-  above one invoice's total.
+- ★ **The prorated pass-to-Pro credit is granted once ever and converts only what it credited**
+  (`webhook/pass-credit.ts`, 20261005181000). The checkout stamps the credit with every pass it counted
+  (`passCreditMetadata`: `credited_pass_ids`, `_2`... with `credited_pass_count`; the credit covers exactly the passes
+  named), and the webhook: (1) takes a claim of our own keyed by the session (`claim_pass_credit`, `pass_credits`,
+  deny-all) before any grant and reads it on every retry, since Stripe's idempotency key holds a day while a failing
+  delivery retries for three: a claim granted answers granted, one another delivery holds (a 10-minute lease, longer
+  than the webhook's `maxDuration`) answers busy, a 409 that Stripe retries (the two TEST endpoints both receive every
+  event); (2) grants the customer balance under the key `pass-credit-<session>` with the session in its metadata, so a
+  lapsed claim with no grant on record finds a grant lost mid-call on Stripe's side before granting, and puts it on
+  record (`record_pass_credit_grant`); (3) converts exactly the passes the claim names (`convert_pass_credit`), never
+  one bought after the checkout, and clears `tier_expires_at` and `event_slots` only when it converted any. ★ A pass is
+  credited once ever: a claim whose passes were converted, or are named by another checkout's claim that granted or
+  holds its lease (two Checkout tabs), answers overlap, grants nothing and raises `stripe_pass_credit_overlap`. ★ Each
+  call takes her profiles row first, the capacity bodies' order (an upload's complete holds that row while it counts on
+  her live pass). A credited session naming no pass is a 500, never a guess. A balance carries from invoice to invoice
+  (Checkout's own first invoice never takes it), where an `amount_off` coupon would silently eat any credit above one
+  invoice's total.
 - **A subscription write nulls `event_slots` and `tier_expires_at` every time:** nothing banks behind Pro, and a stale
   stacked-pass slot count would cap a Pro host inside `enforce_event_limit`'s coalesce. The downgrade path then runs
   `recomputePassEntitlement`, so a live uncredited pass resurfaces instead of evaporating.
@@ -182,10 +201,12 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
 
 ## The webhook
 
-- **The Stripe webhook, with the pass recompute (`recomputePassEntitlement`, which the webhook and the cron's
-  `sweepExpiredPasses` call), is the SOLE writer** of `tier`, `storage_cap_bytes`, `stripe_subscription_id`,
-  `event_slots` and `tier_expires_at`, always through the admin client (the credit's clear of the last two through
-  `consume_passes_for_pro_credit`, the service role's alone). Checkout only persists `stripe_customer_id`
+- **The Stripe webhook, with the pass recompute (`recompute_pass_entitlement` through `recomputePassEntitlement`,
+  which the webhook and the cron's `sweepExpiredPasses` call), is the SOLE writer** of `tier`, `storage_cap_bytes`,
+  `stripe_subscription_id`, `event_slots` and `tier_expires_at`, always through the admin client (the credit's clear of
+  the last two through `convert_pass_credit`, the service role's alone). ★ The recompute is ONE statement under her
+  profiles lock, deriving the four from her unconsumed windows: read in one request and written in another, a
+  conversion landing between them had its cleared chain put back until the subscription event came. Checkout only persists `stripe_customer_id`
   and stamps credit metadata. None of these columns is client-writable ([database-security.md](database-security.md)).
 - **Every entitlement write asserts exactly one matched row** (`applyEntitlement`) and throws otherwise, so a paid but
   unprovisioned host becomes a 5xx and a Stripe retry, never a silent 200. Nothing reconciles Stripe against

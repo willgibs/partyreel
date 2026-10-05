@@ -3,17 +3,12 @@ import { NextResponse } from "next/server";
 import { roomRefusalWords } from "@/components/app/storage/storage-figures";
 import { getHostUploadContext } from "@/lib/db/mutations/host-media";
 import { createClient } from "@/lib/supabase/server";
+import { PLAN_UPLOADS_SPENT } from "@/lib/upload/cap-words";
 import {
   runPresignPipeline,
   type PresignStrategy,
 } from "@/lib/upload/server-pipeline";
 import { hostPresignUploadSchema } from "@/lib/validation/upload";
-
-/**
- * The plan's uploads spent: one home for the context's early answer and the meter's exact one (upload-meter). "For
- * now", never "for the month": a pass counts its uploads over its own year (Ladder A, 20261004100000).
- */
-const PLAN_MONTH_SPENT = "You've hit this plan's upload limit for now.";
 
 // Host twin of /api/r2/presign-upload, now a thin strategy over the shared
 // pipeline engine. The auth gate stays HERE, before the engine runs (the
@@ -66,7 +61,7 @@ const hostPresignStrategy: PresignStrategy<typeof hostPresignUploadSchema> = {
         refusal: {
           status: 409,
           code: "cap_reached",
-          message: PLAN_MONTH_SPENT,
+          message: PLAN_UPLOADS_SPENT,
         },
       };
     }
@@ -86,7 +81,11 @@ const hostPresignStrategy: PresignStrategy<typeof hostPresignUploadSchema> = {
           message: roomRefusalWords(refusal),
         };
       case "monthly":
-        return { status: 409, code: "cap_reached", message: PLAN_MONTH_SPENT };
+        return {
+          status: 409,
+          code: "cap_reached",
+          message: PLAN_UPLOADS_SPENT,
+        };
       case "hourly":
         return {
           status: 429,

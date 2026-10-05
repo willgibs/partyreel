@@ -20,6 +20,11 @@ import "server-only";
 import type { Database } from "@/lib/db/types";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import {
+  capLineOf,
+  PLAN_STORAGE_FULL,
+  PLAN_UPLOADS_SPENT,
+} from "@/lib/upload/cap-words";
 
 type MediaType = Database["public"]["Enums"]["media_type"];
 type MediaStatus = Database["public"]["Enums"]["media_status"];
@@ -32,10 +37,10 @@ const UNIQUE_VIOLATION = "23505";
 
 export type HostUploadContext = {
   event_id: string;
-  // Account-level (storage-cap model), same meaning as the guest UploadContext:
-  // at_storage_cap = host's total bytes are at/over cap; at_monthly_cap = host hit
-  // the monthly ingress meter. Coarse pre-checks — create_media_as_host is
-  // authoritative.
+  // Account-level, same meaning as the guest UploadContext: at_storage_cap = what she
+  // keeps is at her cap and its 10%; at_monthly_cap = her uploads line is met (her plan's
+  // own number over its window, or a lapsed pass: `uploads_refused`). Coarse pre-checks —
+  // create_media_as_host is authoritative.
   at_storage_cap: boolean;
   at_monthly_cap: boolean;
   // Phase 2: true when this is a video request on a FREE host (video is paid-only).
@@ -194,11 +199,16 @@ function mapHostCheckViolation(message: string): CreateHostMediaResult {
       message: "Video uploads come with Pro and the Event Pass.",
     };
   }
-  if (m.includes("limit") || m.includes("capacity")) {
+  // ★ THE LINE IT MET, IN HER PLAN'S WORDS (billing-integrity): her uploads line in the presign's own sentence for it,
+  // storage in the plan's (`cap-words.ts`). It said "Storage is full" for both, so a host at her uploads allowance was
+  // told to free space that would not lower her count. A cap sentence this code does not know reads as `unknown`,
+  // which the engine reports, never as a guess at a line.
+  const line = capLineOf(message);
+  if (line) {
     return {
       ok: false,
       code: "cap_reached",
-      message: "Storage is full for your plan. Free up space or upgrade.",
+      message: line === "uploads" ? PLAN_UPLOADS_SPENT : PLAN_STORAGE_FULL,
     };
   }
   return {

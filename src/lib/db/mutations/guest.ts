@@ -16,6 +16,11 @@ import { rollRefusalSentence } from "@/lib/disposable/roll";
 import { FALLBACK_MESSAGES } from "@/lib/errors/codes";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import {
+  ALBUM_STORAGE_FULL,
+  ALBUM_UPLOADS_SPENT,
+  capLineOf,
+} from "@/lib/upload/cap-words";
 
 type MediaType = Database["public"]["Enums"]["media_type"];
 type MediaStatus = Database["public"]["Enums"]["media_status"];
@@ -434,9 +439,10 @@ export type UploadContext =
       // same sense `visibility` is — create_media stays authoritative.
       require_verified_email: boolean;
       guest_verified: boolean;
-      // Account-level (storage-cap model): at_storage_cap = host's total bytes are
-      // at/over cap; at_monthly_cap = host hit the monthly ingress meter. Both coarse
-      // pre-checks — create_media is authoritative (see get_upload_context).
+      // Account-level: at_storage_cap = what the host keeps is at her cap and its 10%;
+      // at_monthly_cap = her uploads line is met (her plan's own number over its window, or a
+      // lapsed pass: `uploads_refused`, the completes' own question), whatever the window. Both
+      // coarse pre-checks — create_media is authoritative (see get_upload_context).
       at_storage_cap: boolean;
       at_monthly_cap: boolean;
       // Phase 2: true when this is a video request on a FREE host (video is paid-only).
@@ -647,8 +653,16 @@ function mapCheckViolation(message: string): CreateMediaResult {
       message: "This event doesn't accept videos.",
     };
   }
-  if (m.includes("limit") || m.includes("capacity")) {
-    return { ok: false, code: "cap_reached", message };
+  // ★ THE LINE IT MET, IN THE ALBUM'S WORDS (billing-integrity): the uploads line or storage, each the sentence the
+  // presign says for it (`cap-words.ts`), never the SQL's own, which names the host's plan to her guest. A cap sentence
+  // this code does not know reads as `unknown`, which the engine reports, never as a guess at a line.
+  const line = capLineOf(message);
+  if (line) {
+    return {
+      ok: false,
+      code: "cap_reached",
+      message: line === "uploads" ? ALBUM_UPLOADS_SPENT : ALBUM_STORAGE_FULL,
+    };
   }
   return {
     ok: false,

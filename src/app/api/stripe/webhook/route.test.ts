@@ -12,7 +12,10 @@
  *    from Stripe once, instead of landing Free (crumbs-41); a grant that re-points a profile away from
  *    a subscription it still follows warns the operator, who settles the double billing;
  *  - a subscription billed more than once for one cap raises a Sentry warning while the profile is
- *    written exactly as a quantity of one would write it.
+ *    written exactly as a quantity of one would write it;
+ *  - ★ the pass-to-Pro credit replayed as Stripe replays it (a retry inside and past the idempotency key's day, a grant
+ *    whose record was lost, a second delivery while the first holds the claim, a replay after a later pass, two
+ *    Checkout tabs crediting one pass), against a model of the claim's SQL and of Stripe's own key window.
  *
  * (Reshaped from a hand-rolled builder stub that matched one row whatever the filters said: it
  * could not have shown the subscription guard declining anything.)
@@ -34,16 +37,31 @@ vi.mock("@/lib/env", () => ({
   assertStripeEnv: () => ({ STRIPE_WEBHOOK_SECRET: "whsec_test" }),
 }));
 
-// The customer's subscriptions as Stripe lists them (the one read a downgrade makes), and every list asked.
+// The customer's subscriptions as Stripe lists them (the one read a downgrade makes), and every list asked. And the
+// credit's side of Stripe AS STRIPE BEHAVES: a customer-balance grant under an idempotency key answers the first grant's
+// transaction for 24 hours (the key's window) and makes a NEW one after it; a key reused inside the window with other
+// parameters is refused; the customer's transactions list newest first with their metadata, from `created.gte` on.
 const stripe = vi.hoisted(() => ({
   subscriptions: [] as unknown[],
   listed: [] as unknown[],
   fails: false,
+  /** The clock (ms) the key window and the claim model's lease read; a test moves it. */
+  now: 1_790_000_000_000,
+  keys: new Map<string, { at: number; params: string; id: string }>(),
+  transactions: [] as {
+    id: string;
+    customer: string;
+    amount: number;
+    created: number;
+    metadata: Record<string, string>;
+  }[],
   /** Every customer-balance grant asked: the customer, the params and the request options (its idempotency key). */
   balances: [] as unknown[][],
-  /** Each step the credit path took, in order: the balance grant, then the conversion. */
+  /** Each step the credit path took, in order. */
   steps: [] as string[],
 }));
+
+const DAY_MS = 86_400_000;
 
 // The signature check is Stripe's; here the body IS the event.
 vi.mock("@/lib/stripe/client", () => ({
@@ -57,10 +75,47 @@ vi.mock("@/lib/stripe/client", () => ({
       },
     },
     customers: {
-      createBalanceTransaction: async (...args: unknown[]) => {
-        stripe.balances.push(args);
+      createBalanceTransaction: async (
+        customer: string,
+        params: { amount: number; metadata?: Record<string, string> },
+        options?: { idempotencyKey?: string },
+      ) => {
+        stripe.balances.push([customer, params, options]);
         stripe.steps.push("balance");
-        return { id: "cbtxn_1" };
+        const key = options?.idempotencyKey;
+        const asked = JSON.stringify(params);
+        const held = key ? stripe.keys.get(key) : undefined;
+        if (held && stripe.now - held.at < DAY_MS) {
+          if (held.params !== asked) {
+            throw new Error(
+              "Keys for idempotent requests can only be used with the same parameters they were first used with.",
+            );
+          }
+          return { id: held.id };
+        }
+        const id = `cbtxn_${stripe.transactions.length + 1}`;
+        stripe.transactions.unshift({
+          id,
+          customer,
+          amount: params.amount,
+          created: Math.floor(stripe.now / 1000),
+          metadata: params.metadata ?? {},
+        });
+        if (key) stripe.keys.set(key, { at: stripe.now, params: asked, id });
+        return { id };
+      },
+      listBalanceTransactions: (
+        customer: string,
+        params?: { created?: { gte?: number } },
+      ) => {
+        stripe.steps.push("list");
+        const rows = stripe.transactions.filter(
+          (t) =>
+            t.customer === customer && t.created >= (params?.created?.gte ?? 0),
+        );
+        return (async function* () {
+          yield* rows;
+        })();
       },
     },
   }),
@@ -76,17 +131,129 @@ vi.mock("@/lib/stripe/plans", () => ({
 }));
 
 const recomputePassEntitlement = vi.fn(async (_profileId: string) => {});
-// The credit's conversion (`consume_passes_for_pro_credit`, one SQL transaction): the route only calls it.
-const consumeLivePassesForProCredit = vi.fn(async (_profileId: string) => {
-  stripe.steps.push("consume");
-  return 2;
-});
+
+/**
+ * THE CREDIT'S SQL, MODELLED (claim_pass_credit, record_pass_credit_grant, convert_pass_credit; 20261005181000, whose
+ * rolled-back check proves the real ones): the route only calls them, in order, and this model is what lets a test
+ * replay deliveries across days. A claim is keyed by the session and names its passes; a lease of 10 minutes while a
+ * delivery grants; a grant on record answers granted forever; a pass is credited once ever.
+ */
+const ledger = vi.hoisted(() => ({
+  passes: new Map<string, { host: string; consumed: boolean }>(),
+  claims: new Map<
+    string,
+    {
+      host: string;
+      credit: number;
+      ids: string[];
+      leaseUntil: number | null;
+      txn: string | null;
+      converted: number;
+    }
+  >(),
+  /** How many of the next calls of each step fail (a connection reset, a lock timeout). */
+  failNext: { record: 0, convert: 0 },
+}));
+const LEASE_MS = 10 * 60_000;
+
 vi.mock("@/lib/db/mutations/event-passes", () => ({
-  consumeLivePassesForProCredit: (profileId: string) =>
-    consumeLivePassesForProCredit(profileId),
   insertPassPurchase: vi.fn(async () => {}),
   recomputePassEntitlement: (profileId: string) =>
     recomputePassEntitlement(profileId),
+  claimPassCredit: async (input: {
+    sessionId: string;
+    hostId: string;
+    creditCents: number;
+    passIds: string[];
+  }) => {
+    stripe.steps.push("claim");
+    if (!db.fake?.tables.profiles.some((p) => p.id === input.hostId)) {
+      return { state: "no_host" };
+    }
+    const ids = [...new Set(input.passIds)].sort();
+    const claim = ledger.claims.get(input.sessionId);
+    if (claim) {
+      if (
+        claim.host !== input.hostId ||
+        claim.credit !== input.creditCents ||
+        claim.ids.join() !== ids.join()
+      ) {
+        throw new Error(
+          "claim_pass_credit: This checkout's credit disagrees with its claim.",
+        );
+      }
+      if (claim.txn)
+        return { state: "granted", balanceTransactionId: claim.txn };
+      if (claim.leaseUntil !== null && claim.leaseUntil > stripe.now) {
+        return {
+          state: "busy",
+          retryAfterSec: Math.ceil((claim.leaseUntil - stripe.now) / 1000),
+        };
+      }
+    }
+    const overlap =
+      ids.some((id) => ledger.passes.get(id)?.consumed) ||
+      [...ledger.claims].some(
+        ([session, other]) =>
+          session !== input.sessionId &&
+          other.host === input.hostId &&
+          other.ids.some((id) => ids.includes(id)) &&
+          (other.txn !== null ||
+            (other.leaseUntil !== null && other.leaseUntil > stripe.now)),
+      );
+    if (overlap) return { state: "overlap" };
+    if (claim) {
+      claim.leaseUntil = stripe.now + LEASE_MS;
+      return { state: "claimed", resumed: true };
+    }
+    ledger.claims.set(input.sessionId, {
+      host: input.hostId,
+      credit: input.creditCents,
+      ids,
+      leaseUntil: stripe.now + LEASE_MS,
+      txn: null,
+      converted: 0,
+    });
+    return { state: "claimed", resumed: false };
+  },
+  recordPassCreditGrant: async (
+    sessionId: string,
+    _hostId: string,
+    txn: string,
+  ) => {
+    stripe.steps.push("record");
+    if (ledger.failNext.record > 0) {
+      ledger.failNext.record -= 1;
+      throw new Error("record_pass_credit_grant: connection reset");
+    }
+    const claim = ledger.claims.get(sessionId);
+    if (!claim) throw new Error("record_pass_credit_grant: no claim");
+    if (claim.txn) return claim.txn;
+    claim.txn = txn;
+    claim.leaseUntil = null;
+    return txn;
+  },
+  convertPassCredit: async (sessionId: string) => {
+    stripe.steps.push("convert");
+    if (ledger.failNext.convert > 0) {
+      ledger.failNext.convert -= 1;
+      throw new Error(
+        "convert_pass_credit: canceling statement due to lock timeout",
+      );
+    }
+    const claim = ledger.claims.get(sessionId);
+    if (!claim?.txn) throw new Error("convert_pass_credit: not granted yet");
+    let converted = 0;
+    for (const id of claim.ids) {
+      const pass = ledger.passes.get(id);
+      if (pass && !pass.consumed) {
+        pass.consumed = true;
+        converted += 1;
+      }
+    }
+    claim.converted += converted;
+    return converted;
+  },
 }));
 vi.mock("@/lib/db/queries/event-passes", () => ({
   getLivePasses: vi.fn(async () => []),
@@ -203,20 +370,38 @@ function passCheckoutEvent(created: number): Stripe.Event {
   } as unknown as Stripe.Event;
 }
 
-/** A Pro subscription checkout carrying a prorated pass credit, completed. */
-function creditedProCheckoutEvent(created: number): Stripe.Event {
+/** Two of her passes (live ones), and a third bought after going Pro: real ids, as a checkout names them. */
+const PASS_A = "00000000-0000-4000-8000-00000000000a";
+const PASS_B = "00000000-0000-4000-8000-00000000000b";
+const PASS_LATER = "00000000-0000-4000-8000-00000000000c";
+
+/** A Pro subscription checkout carrying a prorated pass credit over `passIds`, completed. */
+function creditedProCheckoutEvent(
+  created: number,
+  opts: {
+    sessionId?: string;
+    passIds?: string[];
+    metadata?: Record<string, string>;
+  } = {},
+): Stripe.Event {
+  const passIds = opts.passIds ?? [PASS_A, PASS_B];
   return {
     id: "evt_credit",
     type: "checkout.session.completed",
     created,
     data: {
       object: {
-        id: "cs_pro_credit_1",
+        id: opts.sessionId ?? "cs_pro_credit_1",
         client_reference_id: "host-1",
         customer: "cus_1",
         created,
         mode: "subscription",
-        metadata: { plan_id: "pro_200", pass_credit_cents: "1850" },
+        metadata: opts.metadata ?? {
+          plan_id: "pro_200",
+          pass_credit_cents: "1850",
+          credited_pass_count: String(passIds.length),
+          credited_pass_ids: passIds.join(","),
+        },
       },
     },
   } as unknown as Stripe.Event;
@@ -237,12 +422,18 @@ beforeEach(() => {
   captureWarning.mockClear();
   captureError.mockClear();
   recomputePassEntitlement.mockClear();
-  consumeLivePassesForProCredit.mockClear();
   stripe.subscriptions = [];
   stripe.listed = [];
   stripe.fails = false;
+  // A minute after the checkouts below were made: no grant for a session predates it.
+  stripe.now = (T0 + 60) * 1000;
+  stripe.keys = new Map();
+  stripe.transactions = [];
   stripe.balances = [];
   stripe.steps = [];
+  ledger.passes = new Map();
+  ledger.claims = new Map();
+  ledger.failNext = { record: 0, convert: 0 };
 });
 
 /** A subscription as Stripe lists it: its status, its one item's price, and when it began. */
@@ -760,10 +951,13 @@ describe("a grant that re-points a profile", () => {
 });
 
 /**
- * ★ THE PASS-TO-PRO CREDIT (billing-locks): the route grants the balance, keyed so a retry never grants twice, then
- * makes ONE call that converts her passes and clears her chain fields in one SQL transaction taking her profiles row
- * first (`consume_passes_for_pro_credit`). It wrote the passes, then patched the profile itself, two requests in the
- * reverse of an upload's lock order, with a host left between them.
+ * ★ THE PASS-TO-PRO CREDIT, GRANTED ONCE EVER, CONVERTING ONLY WHAT IT CREDITED (billing-integrity). The route takes a
+ * claim of our own keyed by the session before it grants, so a retry reads what already happened: the grant used to rest
+ * on Stripe's idempotency key alone, which holds a day while a failing delivery retries for three. The grant carries the
+ * session in its metadata, so a claim whose record was lost finds it on Stripe's side. And the conversion takes exactly
+ * the passes the session names, where it took every unconsumed pass, a pass bought after going Pro included.
+ * (Reshaped from billing-locks' "grants the balance once (its idempotency key), then converts in ONE call": its scar,
+ * the balance before the conversion and the chain the SQL's to clear, stays; "once" now outlives the key's day.)
  */
 describe("the pass-to-Pro credit", () => {
   function passHolder(): FakeRow {
@@ -774,10 +968,18 @@ describe("the pass-to-Pro credit", () => {
       tier_expires_at: at(T0 + 300 * 86_400),
     });
   }
+  function seedPasses(...ids: string[]) {
+    for (const id of ids)
+      ledger.passes.set(id, { host: "host-1", consumed: false });
+  }
+  const consumed = (id: string) => ledger.passes.get(id)?.consumed;
 
-  it("★ grants the balance once (its idempotency key), then converts in ONE call, and never patches the chain itself", async () => {
+  it("★ claims, grants once with the session in its metadata, records it, then converts exactly the passes named", async () => {
     seed(passHolder());
-    const response = await deliver(creditedProCheckoutEvent(T0 + 10));
+    seedPasses(PASS_A, PASS_B, PASS_LATER);
+    const response = await deliver(
+      creditedProCheckoutEvent(T0 + 10, { passIds: [PASS_A, PASS_B] }),
+    );
     expect(response.status).toBe(200);
     expect(stripe.balances).toEqual([
       [
@@ -786,17 +988,20 @@ describe("the pass-to-Pro credit", () => {
           amount: -1850,
           currency: "usd",
           description: "Event Pass credit (prorated)",
+          metadata: { pass_credit_session: "cs_pro_credit_1" },
         },
         { idempotencyKey: "pass-credit-cs_pro_credit_1" },
       ],
     ]);
-    expect(consumeLivePassesForProCredit).toHaveBeenCalledTimes(1);
-    expect(consumeLivePassesForProCredit).toHaveBeenCalledWith("host-1");
-    // The balance first, so a failed conversion retries behind a grant that cannot repeat.
-    expect(stripe.steps).toEqual(["balance", "consume"]);
-    // ★ The chain fields are the conversion's to clear, inside its transaction: the route writes neither, and touches
-    // no pass row. (It patched tier_expires_at and event_slots itself, a request after the passes'.)
-    // The one profile write left here is the customer binding, guarded on a customer not yet bound.
+    // The claim before the grant, the grant before the conversion: a failure anywhere resumes behind what is recorded.
+    expect(stripe.steps).toEqual(["claim", "balance", "record", "convert"]);
+    expect([consumed(PASS_A), consumed(PASS_B), consumed(PASS_LATER)]).toEqual([
+      true,
+      true,
+      false,
+    ]);
+    // ★ The chain fields are the conversion's to clear, inside its transaction: the route writes neither. The one profile
+    // write left here is the customer binding, guarded on a customer not yet bound.
     const patches = profilePatches();
     expect(patches).toHaveLength(1);
     expect(patches[0]!.filters).toContainEqual({
@@ -807,35 +1012,138 @@ describe("the pass-to-Pro credit", () => {
     expect(
       (db.fake?.requests ?? []).filter((r) => r.name === "event_passes"),
     ).toEqual([]);
-    expect(row()).toMatchObject({
-      tier: "event_pass",
-      event_slots: 2,
-      tier_expires_at: at(T0 + 300 * 86_400),
-    });
   });
 
-  it("★ a conversion that fails is a 500, so Stripe retries the delivery (never a silent 200)", async () => {
+  it("★ a conversion failing past the key's day never grants again: the claim remembers the grant", async () => {
     seed(passHolder());
-    consumeLivePassesForProCredit.mockRejectedValueOnce(
-      new Error(
-        "consume_passes_for_pro_credit: canceling statement due to lock timeout",
-      ),
-    );
-    const response = await deliver(creditedProCheckoutEvent(T0 + 10));
-    expect(response.status).toBe(500);
+    seedPasses(PASS_A, PASS_B);
+    ledger.failNext.convert = 1;
+    const first = await deliver(creditedProCheckoutEvent(T0 + 10));
+    expect(first.status).toBe(500);
     expect(captureError).toHaveBeenCalledTimes(1);
+
+    // Inside the key's day, and then two days on (Stripe retries a failing delivery for three).
+    stripe.now += 2 * 3600_000;
+    expect((await deliver(creditedProCheckoutEvent(T0 + 10))).status).toBe(200);
+    stripe.now += 2 * DAY_MS;
+    expect((await deliver(creditedProCheckoutEvent(T0 + 10))).status).toBe(200);
+
     expect(stripe.balances).toHaveLength(1);
+    expect(stripe.transactions).toHaveLength(1);
+    expect([consumed(PASS_A), consumed(PASS_B)]).toEqual([true, true]);
   });
 
-  it("a replay converts nothing more and still answers 200", async () => {
+  it("★ a grant whose record was lost is found on Stripe's side by its session, never granted again", async () => {
     seed(passHolder());
-    consumeLivePassesForProCredit.mockResolvedValueOnce(0);
+    seedPasses(PASS_A, PASS_B);
+    // Stripe granted; the record of it never landed (the delivery died between the two).
+    ledger.failNext.record = 1;
+    expect((await deliver(creditedProCheckoutEvent(T0 + 10))).status).toBe(500);
+    expect(stripe.transactions).toHaveLength(1);
+
+    // A day and a half on: the claim's lease has lapsed with no grant on record, and the key's day is over.
+    stripe.now += 1.5 * DAY_MS;
+    expect((await deliver(creditedProCheckoutEvent(T0 + 10))).status).toBe(200);
+    expect(stripe.transactions).toHaveLength(1);
+    expect(stripe.balances).toHaveLength(1);
+    expect(stripe.steps.slice(-4)).toEqual([
+      "claim",
+      "list",
+      "record",
+      "convert",
+    ]);
+    expect(ledger.claims.get("cs_pro_credit_1")?.txn).toBe("cbtxn_1");
+  });
+
+  it("★ a second delivery while the first holds the claim is busy (non-2xx, so Stripe retries) and grants nothing", async () => {
+    seed(passHolder());
+    seedPasses(PASS_A, PASS_B);
+    // The other TEST endpoint's delivery of the same event, mid-grant.
+    ledger.claims.set("cs_pro_credit_1", {
+      host: "host-1",
+      credit: 1850,
+      ids: [PASS_A, PASS_B].sort(),
+      leaseUntil: stripe.now + 60_000,
+      txn: null,
+      converted: 0,
+    });
     const response = await deliver(creditedProCheckoutEvent(T0 + 10));
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(409);
+    expect(stripe.balances).toEqual([]);
+    expect(stripe.steps).toEqual(["claim"]);
     expect(captureError).not.toHaveBeenCalled();
   });
 
-  it("a Pro checkout with no credit converts nothing", async () => {
+  it("★ a replay after a later pass converts only what its checkout credited", async () => {
+    seed(passHolder());
+    seedPasses(PASS_A, PASS_B);
+    expect((await deliver(creditedProCheckoutEvent(T0 + 10))).status).toBe(200);
+    // A pass checkout opened before going Pro, paid a day after it.
+    stripe.now += DAY_MS;
+    seedPasses(PASS_LATER);
+    expect((await deliver(creditedProCheckoutEvent(T0 + 10))).status).toBe(200);
+    expect(consumed(PASS_LATER)).toBe(false);
+    expect(stripe.balances).toHaveLength(1);
+    expect(ledger.claims.get("cs_pro_credit_1")?.converted).toBe(2);
+  });
+
+  it("★ two Checkout tabs crediting the same passes credit them once: the second grants nothing, and the operator hears", async () => {
+    seed(passHolder());
+    seedPasses(PASS_A, PASS_B);
+    expect((await deliver(creditedProCheckoutEvent(T0 + 10))).status).toBe(200);
+    const second = await deliver(
+      creditedProCheckoutEvent(T0 + 20, { sessionId: "cs_pro_credit_2" }),
+    );
+    expect(second.status).toBe(200);
+    expect(stripe.balances).toHaveLength(1);
+    expect(ledger.claims.has("cs_pro_credit_2")).toBe(false);
+    expect(captureWarning).toHaveBeenCalledWith(
+      "billing",
+      "stripe_pass_credit_overlap",
+      expect.objectContaining({ sessionId: "cs_pro_credit_2", passes: 2 }),
+    );
+  });
+
+  it("★ a credit that names no pass is a 500 that grants nothing: never a guess at which passes it meant", async () => {
+    seed(passHolder());
+    seedPasses(PASS_A, PASS_B);
+    const response = await deliver(
+      creditedProCheckoutEvent(T0 + 10, {
+        metadata: { plan_id: "pro_200", pass_credit_cents: "1850" },
+      }),
+    );
+    expect(response.status).toBe(500);
+    expect(captureError).toHaveBeenCalledTimes(1);
+    expect(stripe.balances).toEqual([]);
+    expect([consumed(PASS_A), consumed(PASS_B)]).toEqual([false, false]);
+  });
+
+  it("an older checkout's one key of ids (no count) is held to the ids it wrote", async () => {
+    seed(passHolder());
+    seedPasses(PASS_A, PASS_B);
+    const response = await deliver(
+      creditedProCheckoutEvent(T0 + 10, {
+        metadata: {
+          plan_id: "pro_200",
+          pass_credit_cents: "1850",
+          credited_pass_ids: PASS_A,
+        },
+      }),
+    );
+    expect(response.status).toBe(200);
+    expect([consumed(PASS_A), consumed(PASS_B)]).toEqual([true, false]);
+  });
+
+  it("a host with no profile has nothing credited, and the delivery is done", async () => {
+    seed(profile({ id: "someone-else" }));
+    seedPasses(PASS_A, PASS_B);
+    const response = await deliver(creditedProCheckoutEvent(T0 + 10));
+    expect(response.status).toBe(200);
+    expect(stripe.balances).toEqual([]);
+    expect(stripe.steps).toEqual(["claim"]);
+  });
+
+  it("a Pro checkout with no credit claims and converts nothing", async () => {
     seed(passHolder());
     const event = creditedProCheckoutEvent(T0 + 10);
     (event.data.object as { metadata: Record<string, string> }).metadata = {
@@ -844,7 +1152,7 @@ describe("the pass-to-Pro credit", () => {
     const response = await deliver(event);
     expect(response.status).toBe(200);
     expect(stripe.balances).toEqual([]);
-    expect(consumeLivePassesForProCredit).not.toHaveBeenCalled();
+    expect(stripe.steps).toEqual([]);
   });
 });
 
