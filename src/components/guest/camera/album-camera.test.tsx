@@ -219,6 +219,21 @@ function Page({
           setQueue((prev) =>
             prev.map((it) => ({
               ...it,
+              status: "error" as const,
+              error: "This album is full right now.",
+              errorCode: "cap_reached",
+            })),
+          )
+        }
+      >
+        Refuse them as full
+      </button>
+      <button
+        type="button"
+        onClick={() =>
+          setQueue((prev) =>
+            prev.map((it) => ({
+              ...it,
               status: "uploading" as const,
               progress: 10,
             })),
@@ -691,6 +706,16 @@ describe("the album's camera, over an album that refuses for a reason its host c
       document.dispatchEvent(new Event("visibilitychange"));
     });
     expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it("asks again over a full album too: it is the host's to make room, and the album may say yes later", async () => {
+    const onRetry = await refused("Refuse them as full");
+    expect(
+      screen.getByText("This album is full right now."),
+    ).toBeInTheDocument();
+    await wait(10_000);
+    expect(onRetry).toHaveBeenCalledTimes(1);
+    expect(shutter().disabled).toBe(true);
   });
 
   it("★ never asks again over a refusal that is not the host's to lift (a lock, a gone event, a ticket that is not hers)", async () => {
