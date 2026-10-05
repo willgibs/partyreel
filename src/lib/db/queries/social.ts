@@ -40,7 +40,7 @@ import {
   sortGuestEventCards,
   type GuestEventCardData,
 } from "@/lib/dashboard/guest-events";
-import { mustQuery } from "@/lib/db/must-query";
+import { mustCount, mustQuery } from "@/lib/db/must-query";
 import {
   getBlockedEventsFor,
   getBlockedGuestIds,
@@ -812,6 +812,70 @@ export async function getMyAttendedEventPicks(): Promise<AttendedEventPick[]> {
 }
 
 /**
+ * WHICH EVENTS ARE THE GUEST CARDS' CANDIDATES, with the time that places each: every event this account holds a live
+ * upload in (the newest one's time), and the events that blocked it, which keep their card. The one home of the rule,
+ * read by the cards (`getMyGuestEventCards`) and by their count (`countMyGuestEventCards`), so the two can never
+ * disagree about which events a person has put something into. A candidate is still a card only once the events read
+ * says it is somebody else's and not deleted.
+ *
+ * ★ A BLOCKED EVENT'S CARD STAYS, READING AS A PRIVATE ALBUM'S (the per-event block,
+ * 20260928120000; the locked-door board's finding): a private album keeps its card, its uploads
+ * still live, while a block moves hers to Deleted, so a card that vanished would tell her what the
+ * door hides. The block keeps the card's place, the newest upload it removed, for as long as it
+ * stands.
+ */
+async function myGuestEventLatest(userId: string) {
+  const [uploads, blocked] = await Promise.all([
+    myLiveUploads(userId),
+    getBlockedEventsFor(userId),
+  ]);
+  const latest = new Map<string, string>();
+  for (const u of uploads) {
+    const seen = latest.get(u.eventId);
+    if (!seen || u.createdAt > seen) latest.set(u.eventId, u.createdAt);
+  }
+  for (const [eventId, b] of blocked) {
+    if (!b.own || !b.lastUploadAt) continue;
+    const seen = latest.get(eventId);
+    if (!seen || b.lastUploadAt > seen) latest.set(eventId, b.lastUploadAt);
+  }
+  return { latest, blocked };
+}
+
+/**
+ * HOW MANY GUEST CARDS THERE ARE, COUNTED, NEVER BUILT (compute-reads): `getMyGuestEventCards().length` without its
+ * hosts, its covers (a request and a presign each), its gates and its masks, for a caller that only asks whether the
+ * account holds any (`/welcome`: `isGuestFirstVisit`). The same candidates (`myGuestEventLatest`) and the same
+ * filter the cards' events read applies (not hosted by this account, not deleted), counted in the database with
+ * `head: true`, since a list's length is no count past the row cap and no card is wanted.
+ */
+export async function countMyGuestEventCards(): Promise<number> {
+  const { user } = await getRequestAuth();
+  if (!user) return 0;
+
+  const { latest } = await myGuestEventLatest(user.id);
+  if (latest.size === 0) return 0;
+
+  const admin = createAdminClient();
+  const counts = await inChunks(
+    "social: guest cards, count",
+    [...latest.keys()],
+    async (chunk) => [
+      await mustCount(
+        admin
+          .from("events")
+          .select("id", { count: "exact", head: true })
+          .in("id", chunk)
+          .neq("host_id", user.id)
+          .is("deleted_at", null),
+        "social: guest cards, count",
+      ),
+    ],
+  );
+  return counts.reduce((sum, n) => sum + n, 0);
+}
+
+/**
  * THE EVENTS YOU ADDED TO, as the dashboard's Guest cards (guest by upload, Will 2026-09-22:
  * "uploading to an event is now effectively saving"). Every event where this account holds a live
  * upload, excluding deleted events and events it hosts (those are its own cards), newest first by
@@ -828,25 +892,7 @@ export async function getMyGuestEventCards(): Promise<GuestEventCardData[]> {
   if (!user) return [];
 
   const admin = createAdminClient();
-  const [uploads, blocked] = await Promise.all([
-    myLiveUploads(user.id),
-    getBlockedEventsFor(user.id),
-  ]);
-  const latest = new Map<string, string>();
-  for (const u of uploads) {
-    const seen = latest.get(u.eventId);
-    if (!seen || u.createdAt > seen) latest.set(u.eventId, u.createdAt);
-  }
-  // ★ A BLOCKED EVENT'S CARD STAYS, READING AS A PRIVATE ALBUM'S (the per-event block,
-  // 20260928120000; the locked-door board's finding): a private album keeps its card, its uploads
-  // still live, while a block moves hers to Deleted, so a card that vanished would tell her what the
-  // door hides. The block keeps the card's place, the newest upload it removed, for as long as it
-  // stands.
-  for (const [eventId, b] of blocked) {
-    if (!b.own || !b.lastUploadAt) continue;
-    const seen = latest.get(eventId);
-    if (!seen || b.lastUploadAt > seen) latest.set(eventId, b.lastUploadAt);
-  }
+  const { latest, blocked } = await myGuestEventLatest(user.id);
   if (latest.size === 0) return [];
 
   // Every id list rides `inChunks` (at most 150 ids a request): a keen guest's events, and

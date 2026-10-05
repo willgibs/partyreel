@@ -239,6 +239,8 @@ async function mount({
   welcomePending = false,
   isOwner = false,
   approvalNews,
+  seedLinks = true,
+  canDeleteIds = [],
 }: {
   items?: GalleryItem[];
   reel?: GalleryReel | null;
@@ -249,6 +251,10 @@ async function mount({
   isOwner?: boolean;
   /** The server's news, as her tracker's store hands it on (crumbs-38). */
   approvalNews?: ReturnType<typeof createUploadTrackerStore>["news"];
+  /** Whether the page's seed embeds the links (the default), or none, so every still's link is the network's. */
+  seedLinks?: boolean;
+  /** The ids this device may delete: her own uploads (`GalleryLive.ownIds`). */
+  canDeleteIds?: string[];
 } = {}) {
   latest = new Map(items.map((it) => [it.id, it]));
   nextSync = null;
@@ -279,13 +285,14 @@ async function mount({
             gate: null,
             b: Math.floor(Date.now() / 1_800_000),
             now: Date.now(),
-            links: approved(items).map(toLink),
+            links: seedLinks ? approved(items).map(toLink) : [],
             missing: [],
           },
         };
   const galleryPromise = Promise.resolve(payload);
   // The head's bridge, read from OUTSIDE the live source, where the page's cover stands.
   const bridge = createHeadBridge();
+  let own = canDeleteIds;
   const tree = (q: QueueItem[], pending = welcomePending) => (
     <>
       <HeadProbe bridge={bridge} />
@@ -296,6 +303,7 @@ async function mount({
           access={access}
           isDemo={false}
           pendingUploads={q}
+          canDeleteIds={own}
         >
           <LiveReel
             eventId="event-1"
@@ -326,6 +334,13 @@ async function mount({
   return {
     ...utils,
     rerenderWith: (q: QueueItem[]) => utils.rerender(tree(q)),
+    /** The ids this device now owns (an upload of hers landed). */
+    setOwn: async (ids: string[]) => {
+      own = ids;
+      await act(async () => {
+        utils.rerender(tree(queue));
+      });
+    },
     /** The door reports the visitor through (EntryModal's `onPendingChange(false)`). */
     passWelcome: async () => {
       await act(async () => {
@@ -480,6 +495,171 @@ describe("the cover's photographs", () => {
       "m1",
       "m2",
     ]);
+  });
+});
+
+/**
+ * ★ THE COVER KEEPS THE STILLS IT IS PLAYING (compute-reads). The reel's opening is the take's first pass, a seeded
+ * shuffle of the WHOLE album, so one arrival changed nearly every still the cover was dealt from: it swapped its
+ * pictures on every batch and asked the links route for the new ones, a call behind every delta. The fixture's lower
+ * numbers are the newer photographs, so the arrivals below are m1 to m5 and the party before them is m11 to m50.
+ */
+describe("the cover keeps the photographs it is dealing (compute-reads)", () => {
+  const stills = (container: HTMLElement) =>
+    [...container.querySelectorAll<HTMLImageElement>("[data-probe-still]")].map(
+      (img) => img.dataset.probeStill,
+    );
+  const range = (from: number, to: number) =>
+    Array.from({ length: to - from + 1 }, (_, i) => item(from + i));
+  const party = range(11, 50);
+  /** Every links request so far, by the ids it asked for. */
+  const linkAsks = () =>
+    vi
+      .mocked(global.fetch)
+      .mock.calls.filter(([url]) => url === "/api/album/guest/media")
+      .map(([, init]) => JSON.parse((init as { body: string }).body).ids);
+  /**
+   * The page as it stands a moment after it opened. The cover's first links are asked before the first sync lands (the
+   * link store's attribution moves from 0 to the album's with it), so the next poll re-asks them once, as it would any
+   * link read under the old attribution: an idle poll flushes that, and what is counted after it is the arrivals' own.
+   */
+  async function opened(
+    items: GalleryItem[],
+    over: { reel?: GalleryReel } = {},
+  ) {
+    const view = await mount({ items, seedLinks: false, ...over });
+    await settle();
+    await pollWith(items, over.reel ?? REEL);
+    await settle();
+    return view;
+  }
+
+  it("★ an arrival keeps the six it is playing, and sends for no link", async () => {
+    // No links in the page's seed: every still's link is the network's, so a re-deal costs a request.
+    const { container } = await opened(party);
+    const before = stills(container);
+    expect(before).toHaveLength(6);
+    const asked = linkAsks().length;
+    expect(asked).toBeGreaterThan(0); // the first deal's own links, asked once
+
+    // Five photographs arrive in one batch, each newer than the party.
+    await pollWith([...range(1, 5), ...party]);
+    await settle();
+
+    expect(stills(container)).toEqual(before);
+    expect(linkAsks()).toHaveLength(asked);
+  });
+
+  it("★ a batch after a batch still keeps them, and the cover is told nothing new", async () => {
+    const { container } = await opened(party);
+    const before = stills(container);
+    const asked = linkAsks().length;
+    await pollWith([...range(4, 5), ...party]);
+    await pollWith([...range(1, 5), ...party]);
+    await pollWith([...range(1, 5), ...party, ...range(51, 60)]);
+    await settle();
+    expect(stills(container)).toEqual(before);
+    expect(linkAsks()).toHaveLength(asked);
+  });
+
+  it("★ a still the album loses is replaced alone: the other five stay, and one link is sent for", async () => {
+    const { container } = await opened(party);
+    const before = stills(container);
+    const asked = linkAsks().length;
+    const gone = before[1]!;
+
+    await pollWith(party.filter((it) => it.id !== gone));
+    await settle();
+
+    const after = stills(container);
+    expect(after).toHaveLength(6);
+    expect(after).not.toContain(gone);
+    expect(after.filter((id) => before.includes(id))).toEqual(
+      before.filter((id) => id !== gone),
+    );
+    // Exactly one link was sent for: the still that took its place.
+    const sent = linkAsks().slice(asked);
+    expect(sent).toHaveLength(1);
+    expect(sent[0]).toHaveLength(1);
+    expect(sent[0][0]).toBe(after.find((id) => !before.includes(id)));
+  });
+
+  it("★ her own newest upload still leads her cover, the others where they were", async () => {
+    const { container, setOwn } = await mount({
+      items: party,
+      seedLinks: false,
+    });
+    await settle();
+    const before = stills(container);
+
+    // She adds m1: it lands in the album, and the device knows it is hers.
+    await pollWith([...range(1, 1), ...party]);
+    await setOwn(["m1"]);
+    await settle();
+
+    expect(stills(container)).toEqual(["m1", ...before.slice(0, 5)]);
+  });
+
+  it("★ every still hidden at once is six new ones, each link asked for once, in one request", async () => {
+    const { container } = await opened(party);
+    const before = stills(container);
+    const asked = linkAsks().length;
+
+    await pollWith(party.filter((it) => !before.includes(it.id)));
+    await settle();
+
+    const after = stills(container);
+    expect(after).toHaveLength(6);
+    expect(after.some((id) => before.includes(id))).toBe(false);
+    const sent = linkAsks().slice(asked);
+    expect(sent).toHaveLength(1);
+    expect([...sent[0]].sort()).toEqual([...after].sort());
+  });
+
+  it("an album that falls under the reel's minimum and comes back deals afresh: nothing is kept across the gap", async () => {
+    const { container } = await opened(party);
+    const before = stills(container);
+    // One photograph left: no reel, so the cover is the newest alone (and nothing is kept for it).
+    await pollWith([party[0]]);
+    await settle();
+    expect(stills(container)).toEqual([party[0].id]);
+    // The album refills, with an arrival: the take deals afresh, and is the deal the same album gets on a first load.
+    await pollWith([...range(1, 5), ...party]);
+    await settle();
+    const refilled = stills(container);
+    expect(refilled).toHaveLength(6);
+    const fresh = await mount({
+      items: [...range(1, 5), ...party],
+      seedLinks: false,
+    });
+    await settle();
+    expect(refilled).toEqual(stills(fresh.container));
+    expect(refilled).not.toEqual(before);
+  });
+
+  it("deals the take afresh when the page does (a reload is a first deal)", async () => {
+    const first = await mount({ items: party, seedLinks: false });
+    await settle();
+    const dealt = stills(first.container);
+    first.unmount();
+    // The same album, mounted again: the same deal, since nothing was kept across the page.
+    const again = await mount({ items: party, seedLinks: false });
+    await settle();
+    expect(stills(again.container)).toEqual(dealt);
+  });
+
+  it("with the reel off the cover is the album's newest, and follows each arrival (its new still is the arrival itself)", async () => {
+    const off = { ...REEL, showReel: false };
+    const { container } = await mount({
+      items: range(11, 20),
+      reel: off,
+      seedLinks: false,
+    });
+    await settle();
+    expect(stills(container).slice(0, 2)).toEqual(["m11", "m12"]);
+    await pollWith([...range(1, 2), ...range(11, 20)], off);
+    await settle();
+    expect(stills(container).slice(0, 2)).toEqual(["m1", "m2"]);
   });
 });
 
