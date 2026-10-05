@@ -156,7 +156,7 @@ export default async function AdminAccountsPage({
                     <TableCell className="text-right text-muted-foreground tabular-nums">
                       {capLabel(cap)}
                     </TableCell>
-                    <TableCell className="text-right tabular-nums">
+                    <TableCell className="text-right whitespace-nowrap tabular-nums">
                       {state === "unread" ? (
                         <span className="text-destructive">
                           {usedLabel(held)}

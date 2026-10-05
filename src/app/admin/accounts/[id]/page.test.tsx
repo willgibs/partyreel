@@ -26,11 +26,13 @@ const state = vi.hoisted(() => ({
   used: { ok: true, value: 0 } as Reading,
   hour: { ok: true, value: 0 } as Reading,
   warnings: [] as unknown[][],
+  aal: "aal2",
+  reads: 0,
 }));
 
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/auth/admin-context", () => ({
-  requireAdmin: async () => ({ aal: "aal2" }),
+  requireAdmin: async () => ({ aal: state.aal }),
 }));
 vi.mock("@/lib/observability/sentry", () => ({
   captureWarning: (...args: unknown[]) => state.warnings.push(args),
@@ -53,12 +55,16 @@ vi.mock("./delete-account-control", () => ({
   CancelDeletionControl: () => null,
 }));
 vi.mock("@/lib/db/queries/accounts", () => ({
-  getAccountDetail: async () => state.detail,
+  getAccountDetail: async () => {
+    state.reads += 1;
+    return state.detail;
+  },
   // The real tier rules over canned reads: only the two answers are stubbed.
   readAccountUploads: async (profile: {
     tier: string;
     storage_cap_bytes: number | null;
   }) => {
+    state.reads += 1;
     const tier = toBillingTier(profile.tier);
     return {
       window: UPLOADS_WINDOW[tier],
@@ -66,7 +72,10 @@ vi.mock("@/lib/db/queries/accounts", () => ({
       used: state.used,
     };
   },
-  readAccountHourUploads: async () => state.hour,
+  readAccountHourUploads: async () => {
+    state.reads += 1;
+    return state.hour;
+  },
 }));
 
 const { default: AdminAccountDetailPage } = await import("./page");
@@ -128,6 +137,8 @@ beforeEach(() => {
   state.used = { ok: true, value: 0 };
   state.hour = { ok: true, value: 0 };
   state.warnings = [];
+  state.aal = "aal2";
+  state.reads = 0;
   account({});
 });
 
@@ -261,5 +272,27 @@ describe("the uploads card", () => {
   it("raises nothing when both reads came back", async () => {
     await draw();
     expect(state.warnings).toEqual([]);
+  });
+});
+
+describe("the portal's gate and the page's id", () => {
+  it("★ below AAL2 the page draws nothing and reads nothing, her uploads and her hour included", async () => {
+    state.aal = "aal1";
+    const out = await AdminAccountDetailPage({
+      params: Promise.resolve({ id: HOST }),
+    });
+    expect(out).toBeNull();
+    expect(state.reads).toBe(0);
+    expect(state.warnings).toEqual([]);
+  });
+
+  it("★ an id that is not one names no account and reads nothing (a not-found, never a read of a malformed id)", async () => {
+    render(
+      await AdminAccountDetailPage({
+        params: Promise.resolve({ id: "not-a-uuid'; drop table profiles;--" }),
+      }),
+    );
+    expect(screen.getByText("Not found")).toBeInTheDocument();
+    expect(state.reads).toBe(0);
   });
 });

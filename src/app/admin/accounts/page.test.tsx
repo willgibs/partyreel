@@ -26,16 +26,21 @@ const usage = vi.hoisted(() => ({
   byName: {} as Record<string, number | string>,
 }));
 const sentry = vi.hoisted(() => ({ warnings: [] as unknown[][] }));
+/** The admin gate's answer, and how many reads were made behind it. */
+const gate = vi.hoisted(() => ({ aal: "aal2", reads: 0 }));
 
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/auth/admin-context", () => ({
-  requireAdmin: async () => ({ aal: "aal2" }),
+  requireAdmin: async () => ({ aal: gate.aal }),
 }));
 vi.mock("@/lib/observability/sentry", () => ({
   captureWarning: (...args: unknown[]) => sentry.warnings.push(args),
 }));
 vi.mock("@/lib/db/queries/accounts", () => ({
-  searchAccounts: async () => accounts.rows,
+  searchAccounts: async () => {
+    gate.reads += 1;
+    return accounts.rows;
+  },
   accountTierLabel: (tier: string) =>
     tier === "pro" ? "Pro" : tier === "event_pass" ? "Event Pass" : "Free",
   // The real tier rules over a stubbed read: only `uploads_used`'s answer is canned.
@@ -43,6 +48,7 @@ vi.mock("@/lib/db/queries/accounts", () => ({
     tier: string;
     storage_cap_bytes: number | null;
   }) => {
+    gate.reads += 1;
     const tier = toBillingTier(profile.tier);
     const name = (profile as unknown as { display_name: string }).display_name;
     const used = usage.byName[name] ?? 0;
@@ -84,6 +90,8 @@ beforeEach(() => {
   accounts.rows = [];
   usage.byName = {};
   sentry.warnings = [];
+  gate.aal = "aal2";
+  gate.reads = 0;
 });
 
 describe("the Cap column", () => {
@@ -228,6 +236,17 @@ describe("the Uploads and Allowance columns", () => {
     accounts.rows = [row({ display_name: "Fine" })];
     await draw();
     expect(screen.queryByRole("alert")).toBeNull();
+    expect(sentry.warnings).toEqual([]);
+  });
+});
+
+describe("the portal's gate", () => {
+  it("★ below AAL2 the page draws nothing and reads nothing, the account's uploads included", async () => {
+    gate.aal = "aal1";
+    accounts.rows = [row({ display_name: "Hidden" })];
+    const out = await AdminAccountsPage({ searchParams: Promise.resolve({}) });
+    expect(out).toBeNull();
+    expect(gate.reads).toBe(0);
     expect(sentry.warnings).toEqual([]);
   });
 });
