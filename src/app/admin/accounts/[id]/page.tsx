@@ -32,6 +32,8 @@ import { capLabel } from "../cap";
 import {
   hourLabel,
   hourState,
+  lapsedBadge,
+  lapsedSentence,
   NO_READING,
   uploadsState,
   usedOfLabel,
@@ -47,6 +49,16 @@ export const dynamic = "force-dynamic";
 /** When tonight's purge has run, as the operator reads it (the window's end, `purge-time.ts`). */
 function nextPurgeBy(): string {
   return formatAdminTimestamp(nextPurgeWindow(Date.now()).end);
+}
+
+/**
+ * The pass's expiry row says the tense it is in: a lapsed pass (ended, the nightly recompute not yet run) keeps a
+ * past `tier_expires_at`, which "Pass expires" told as a date still ahead.
+ */
+function passExpiryLabel(tierExpiresAt: string): string {
+  return Date.parse(tierExpiresAt) <= Date.now()
+    ? "Pass expired"
+    : "Pass expires";
 }
 
 /** The account, read once a request for the page and its title (React's cache shares it within the render). */
@@ -167,7 +179,7 @@ export default async function AdminAccountDetailPage({
           </Row>
           <Row label="Subscription">{subscriptionLabel}</Row>
           {profile.tier_expires_at ? (
-            <Row label="Pass expires">
+            <Row label={passExpiryLabel(profile.tier_expires_at)}>
               <span>{formatAdminDate(profile.tier_expires_at)}</span>
             </Row>
           ) : null}
@@ -214,9 +226,9 @@ export default async function AdminAccountDetailPage({
         </CardContent>
       </Card>
 
-      {/* The refusals an upload meets before the room: the plan's allowance over its window and the hour's breaker
-          (the same reads the presign makes, `uploads_used` and the month's ledger row). Read-only: nothing here
-          lifts a count (admin-observability.md). */}
+      {/* The refusals an upload meets before the room: the plan's allowance over its window (refused whole while a
+          pass has lapsed) and the hour's breaker (the same reads the presign makes, `uploads_used` and the month's
+          ledger row). Read-only: nothing here lifts a count (admin-observability.md). */}
       <Card>
         <CardHeader>
           <CardTitle>Uploads</CardTitle>
@@ -227,17 +239,25 @@ export default async function AdminAccountDetailPage({
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
           <Row label={windowLabel(uploads.window)}>
-            {uploads.used.ok ? (
+            {!uploads.used.ok ? (
+              <NoReading reading={uploads.used} />
+            ) : uploadsAt === "lapsed" && uploads.lapsed ? (
+              // ★ No "0 B of 50 GB": her pass year is over, and every upload is refused until her plan moves.
+              <Badge variant="warning">{lapsedBadge(uploads.lapsed)}</Badge>
+            ) : (
               <span className="inline-flex flex-wrap items-center justify-end gap-2">
                 {uploadsAt === "at" ? (
                   <Badge variant="warning">At limit</Badge>
                 ) : null}
                 {usedOfLabel(uploads)}
               </span>
-            ) : (
-              <NoReading reading={uploads.used} />
             )}
           </Row>
+          {uploadsAt === "lapsed" && uploads.lapsed ? (
+            <p className="text-caption text-muted-foreground">
+              {lapsedSentence(uploads.lapsed)}
+            </p>
+          ) : null}
           {uploadsAt === "at" ? (
             <p className="text-caption text-muted-foreground">
               At her allowance: new uploads, hers and her guests&apos;, are

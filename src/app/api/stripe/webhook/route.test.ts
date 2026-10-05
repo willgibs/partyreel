@@ -39,6 +39,10 @@ const stripe = vi.hoisted(() => ({
   subscriptions: [] as unknown[],
   listed: [] as unknown[],
   fails: false,
+  /** Every customer-balance grant asked: the customer, the params and the request options (its idempotency key). */
+  balances: [] as unknown[][],
+  /** Each step the credit path took, in order: the balance grant, then the conversion. */
+  steps: [] as string[],
 }));
 
 // The signature check is Stripe's; here the body IS the event.
@@ -50,6 +54,13 @@ vi.mock("@/lib/stripe/client", () => ({
         stripe.listed.push(params);
         if (stripe.fails) throw new Error("Stripe is unreachable");
         return { data: stripe.subscriptions, has_more: false };
+      },
+    },
+    customers: {
+      createBalanceTransaction: async (...args: unknown[]) => {
+        stripe.balances.push(args);
+        stripe.steps.push("balance");
+        return { id: "cbtxn_1" };
       },
     },
   }),
@@ -65,8 +76,14 @@ vi.mock("@/lib/stripe/plans", () => ({
 }));
 
 const recomputePassEntitlement = vi.fn(async (_profileId: string) => {});
+// The credit's conversion (`consume_passes_for_pro_credit`, one SQL transaction): the route only calls it.
+const consumeLivePassesForProCredit = vi.fn(async (_profileId: string) => {
+  stripe.steps.push("consume");
+  return 2;
+});
 vi.mock("@/lib/db/mutations/event-passes", () => ({
-  consumeLivePassesForProCredit: vi.fn(),
+  consumeLivePassesForProCredit: (profileId: string) =>
+    consumeLivePassesForProCredit(profileId),
   insertPassPurchase: vi.fn(async () => {}),
   recomputePassEntitlement: (profileId: string) =>
     recomputePassEntitlement(profileId),
@@ -186,6 +203,25 @@ function passCheckoutEvent(created: number): Stripe.Event {
   } as unknown as Stripe.Event;
 }
 
+/** A Pro subscription checkout carrying a prorated pass credit, completed. */
+function creditedProCheckoutEvent(created: number): Stripe.Event {
+  return {
+    id: "evt_credit",
+    type: "checkout.session.completed",
+    created,
+    data: {
+      object: {
+        id: "cs_pro_credit_1",
+        client_reference_id: "host-1",
+        customer: "cus_1",
+        created,
+        mode: "subscription",
+        metadata: { plan_id: "pro_200", pass_credit_cents: "1850" },
+      },
+    },
+  } as unknown as Stripe.Event;
+}
+
 function deliver(event: Stripe.Event) {
   return POST(
     new Request("http://localhost/api/stripe/webhook", {
@@ -201,9 +237,12 @@ beforeEach(() => {
   captureWarning.mockClear();
   captureError.mockClear();
   recomputePassEntitlement.mockClear();
+  consumeLivePassesForProCredit.mockClear();
   stripe.subscriptions = [];
   stripe.listed = [];
   stripe.fails = false;
+  stripe.balances = [];
+  stripe.steps = [];
 });
 
 /** A subscription as Stripe lists it: its status, its one item's price, and when it began. */
@@ -717,6 +756,95 @@ describe("a grant that re-points a profile", () => {
     );
     expect(row().stripe_subscription_id).toBe("sub_a");
     expect(captureWarning).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * ★ THE PASS-TO-PRO CREDIT (billing-locks): the route grants the balance, keyed so a retry never grants twice, then
+ * makes ONE call that converts her passes and clears her chain fields in one SQL transaction taking her profiles row
+ * first (`consume_passes_for_pro_credit`). It wrote the passes, then patched the profile itself, two requests in the
+ * reverse of an upload's lock order, with a host left between them.
+ */
+describe("the pass-to-Pro credit", () => {
+  function passHolder(): FakeRow {
+    return profile({
+      tier: "event_pass",
+      storage_cap_bytes: 50 * 1024 ** 3,
+      event_slots: 2,
+      tier_expires_at: at(T0 + 300 * 86_400),
+    });
+  }
+
+  it("★ grants the balance once (its idempotency key), then converts in ONE call, and never patches the chain itself", async () => {
+    seed(passHolder());
+    const response = await deliver(creditedProCheckoutEvent(T0 + 10));
+    expect(response.status).toBe(200);
+    expect(stripe.balances).toEqual([
+      [
+        "cus_1",
+        {
+          amount: -1850,
+          currency: "usd",
+          description: "Event Pass credit (prorated)",
+        },
+        { idempotencyKey: "pass-credit-cs_pro_credit_1" },
+      ],
+    ]);
+    expect(consumeLivePassesForProCredit).toHaveBeenCalledTimes(1);
+    expect(consumeLivePassesForProCredit).toHaveBeenCalledWith("host-1");
+    // The balance first, so a failed conversion retries behind a grant that cannot repeat.
+    expect(stripe.steps).toEqual(["balance", "consume"]);
+    // ★ The chain fields are the conversion's to clear, inside its transaction: the route writes neither, and touches
+    // no pass row. (It patched tier_expires_at and event_slots itself, a request after the passes'.)
+    // The one profile write left here is the customer binding, guarded on a customer not yet bound.
+    const patches = profilePatches();
+    expect(patches).toHaveLength(1);
+    expect(patches[0]!.filters).toContainEqual({
+      column: "stripe_customer_id",
+      op: "is",
+      value: null,
+    });
+    expect(
+      (db.fake?.requests ?? []).filter((r) => r.name === "event_passes"),
+    ).toEqual([]);
+    expect(row()).toMatchObject({
+      tier: "event_pass",
+      event_slots: 2,
+      tier_expires_at: at(T0 + 300 * 86_400),
+    });
+  });
+
+  it("★ a conversion that fails is a 500, so Stripe retries the delivery (never a silent 200)", async () => {
+    seed(passHolder());
+    consumeLivePassesForProCredit.mockRejectedValueOnce(
+      new Error(
+        "consume_passes_for_pro_credit: canceling statement due to lock timeout",
+      ),
+    );
+    const response = await deliver(creditedProCheckoutEvent(T0 + 10));
+    expect(response.status).toBe(500);
+    expect(captureError).toHaveBeenCalledTimes(1);
+    expect(stripe.balances).toHaveLength(1);
+  });
+
+  it("a replay converts nothing more and still answers 200", async () => {
+    seed(passHolder());
+    consumeLivePassesForProCredit.mockResolvedValueOnce(0);
+    const response = await deliver(creditedProCheckoutEvent(T0 + 10));
+    expect(response.status).toBe(200);
+    expect(captureError).not.toHaveBeenCalled();
+  });
+
+  it("a Pro checkout with no credit converts nothing", async () => {
+    seed(passHolder());
+    const event = creditedProCheckoutEvent(T0 + 10);
+    (event.data.object as { metadata: Record<string, string> }).metadata = {
+      plan_id: "pro_200",
+    };
+    const response = await deliver(event);
+    expect(response.status).toBe(200);
+    expect(stripe.balances).toEqual([]);
+    expect(consumeLivePassesForProCredit).not.toHaveBeenCalled();
   });
 });
 
