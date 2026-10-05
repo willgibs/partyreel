@@ -14,7 +14,6 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/app/api/r2/presign-upload/
   - src/app/api/host/r2/complete-upload/
   - src/app/api/host/r2/presign-upload/
-  - docs/systems/uploads-and-r2.md
 reads:                  # single-sources you depend on: never duplicate, never edit
   - src/lib/upload/server-pipeline-meter.ts
   - src/lib/media/limits.ts
@@ -38,7 +37,7 @@ reads:                  # single-sources you depend on: never duplicate, never e
 2. **Prepare the next file while one sends.** Each file is prepared only when its turn comes (`runUpload`: strip, measure, preview, phone copy; about 523 ms from pick to presign at 4x CPU on a 12 MP photo): prepare the next while the current one uploads, bounded so memory never holds more than one prepared file beyond the one sending, and a cancel or a refusal discards it.
 3. **Typed seams:** the args objects beside `rpc("create_media*")` in the upload routes are typed seams the generated types no longer need: drop them.
 
-Measure 2 (the gap from one file's end to the next's start, before and after) in your own headless Chrome on your port with CPU throttling. Wiring rigor: the whole gate, and a guest's burst walked at 375 and 1440 on your port with the line cut mid-complete (CDP) to prove 1.
+Measure 2 (the gap from one file's end to the next's start, before and after) in your own headless Chrome on your port with CPU throttling. `docs/systems/uploads-and-r2.md` is drive-wiring's until it merges: put your fact lines for it in your Handoff under System-doc edits (proposed), and the Orchestrator writes them at your merge. Wiring rigor: the whole gate, and a guest's burst walked at 375 and 1440 on your port with the line cut mid-complete (CDP) to prove 1.
 
 **Starts from.** CLAUDE.md's working loop, the bible's ten and production as it is; the tests say what has to keep
 working.
