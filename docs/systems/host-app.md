@@ -145,9 +145,15 @@ hub and closes back to it.
 - **The head is the guests' cover, hers** (`event-feed/event-hub-head.tsx`'s `HubCover` in the album's own frame,
   `EventHead`, [guest-flow.md](guest-flow.md)): the album's photographs under the name, the date, her guests and views
   and the Live mark, the link, and the code on its mat (`ui/code-mat.tsx`) in the cover's corner, so she sees her party
-  as her guests do. Its photographs are the guests' cover's rule (`event-hub-head-stills.ts`, pure, read on both
-  sides): the reel's opening stills while it plays (`readHubReel`'s), else the newest a guest can see (approved, never
-  hidden, held or a clip), so a still she hides, removes or sends back leaves it the moment the album's store has it.
+  as her guests do. Its photographs are the guests' cover's rule (`event-hub-head-stills.ts`, pure, read on both sides):
+  the reel's opening stills while it plays (`readHubReel`'s), else the newest a guest can see (approved, never hidden,
+  held or a clip), so a still she hides, removes or sends back leaves it the moment the album's store has it. ★ **Its
+  foot is a seam** (`event-hub-head-seam.css`): the photograph dissolves into the page and the cards row stands across
+  it. The cover and the row read one set of numbers (`--hub-rise`, how far the cards stand up into the photograph, which
+  the foot's own padding clears, and `--hub-fade`) at the three widths the hub meets, since they are siblings in the
+  hub's `space-y-6` (whose 24px the row takes back as `--hub-gap`) and cannot read each other's box. The fade is the
+  page's own colour, read outside the cover (always the room), and the cover grows (`min-h`) rather than clips a long
+  name.
 - **The album's facts are the strip along the cover's foot** (`event-hub-head-strip.tsx`, its maths in
   `event-hub-head-strip-marks.ts`): a mark a photograph in the album's own order, so no shape of event leans on a
   timeline. It reads the page's store: its marks are what the hub's album holds (approved and hidden, never Review's) on
@@ -164,14 +170,22 @@ hub and closes back to it.
   pressing the code opens the card and asking what a corner means must not, and it sits outside the mat, so nothing
   lands on the modules; the tooltip primitive refuses a tap on purpose, so the mark opens its own words on a tap.
 - **The cards row** (Highlight reel, Guests, Review, Settings, then See it as a guest, `AS_GUEST_DOOR`, which is never
-  one of `EVENT_ROOMS`, so every drawing that maps the four rooms keeps drawing four) is a group of links, never tabs,
-  since nothing switches a panel in place: each door is the room's real address (`roomHref`), its ordinary press
-  opening the room in place and a modified click a tab of its own. A room's code is a chunk of its own, asked for on
-  intent with what the room shows first (`share/room-chunks.ts`), so a panel opens on its room. The row is sticky and
-  condenses in place, because a remount would drop the code chip's `view-transition-name` mid-morph, and it condenses
-  inside the resting row's footprint (`useStuckBand`), because a band that moved the album let scroll anchoring flip
-  it across the threshold and back for ever. Stuck, it carries the code as a chip (`ui/code-chip.tsx`) while the
-  head's code is off screen.
+  one of `EVENT_ROOMS`, so every drawing that maps the four rooms keeps drawing four) is cards over the seam
+  (event-header r4): one door element (`room-card-door.tsx`) that is a card at rest and a pill under the bar, the same
+  DOM in both. It is a group of links, never tabs, since nothing switches a panel in place: each door is the room's real
+  address (`roomHref`), its ordinary press opening the room in place and a modified click a tab of its own; a room's
+  code is a chunk of its own, asked for on intent with what the room shows first (`share/room-chunks.ts`). ★ Every door
+  is in sight at every width, so the row never scrolls sideways: a hand's two by two with See it as a guest the width
+  under it, a tablet's five tiles from 640px, a desk's five cards from 1100px, and stuck, pills of a glyph and its count
+  under 800px (sized for a 320px phone) and a glyph, its word and its count from it, all CSS (`room-card.css`) so the
+  server's paint is right at every width. Each door's words are `room-card.ts`'s (`reviewCardFace`, `guestsCardFace`,
+  `settingsCardFace`), the page's first paint and the row's live counts alike, and a count from 1,000 reads `1.2K` on
+  the door and whole in its name. ★ The row condenses in place (a remount would drop the code chip's
+  `view-transition-name` mid-morph), written as one `data-stuck` by the fold (`event-cards-row-fold.ts`: FLIP between
+  two reads, so a fold reversed mid-flight starts from where each piece is; reduced motion and a first report below the
+  bar flip at once), and inside the resting row's footprint (`useStuckBand`), because a band that moved the album let
+  scroll anchoring flip it across the threshold and back for ever. Stuck, it carries the cover's face (and from 1100px
+  its name) and, while the head's code is off screen, the code as a chip (`ui/code-chip.tsx`).
 - **Every room is a place over the hub, one way in and out**: Review, Guests and Settings stand in one panel
   (`share/room-panel.tsx` for the first two, Settings' own kind and head), the share kit, See it as a guest in a phone
   over the dimmed hub (below), and the Highlight reel is a door: the guests' own view at `?reel` ([reel.md](reel.md)),
@@ -321,13 +335,16 @@ so the profile's visitor-facing "Private" never collides. The six-door menu is `
   declined newcomer waits through a Public trip for Let back in rather than walking into an album its host never let
   her into; a password ends every ask (`events_door_to_password`, [guest-flow.md](guest-flow.md)), so those asks leave
   At the door, the dashboard and the bell.
-- ★ **The Guests room is one read, after `getEvent` has proved the host** (`guests/room.server.ts`: the door's lists
-  are the service role's, and a confirmed guest's address re-proves inside its own read). The hub's render reads it
-  whenever the address names the room, and the room's own ask (`readGuestsRoomAction`) when a card opens it in place;
-  the panel draws the newer of the two, and a read that fails says so with Try again, never an empty room. ★ A sealed
-  album's list is empty while its roll is shot (a guest joins it at the develop), so the read carries `waiting`, the
-  shots the seal holds, and the room says "N shots are developing" in the list's place, never "Nobody has added photos
-  yet" (a room holding a roll is not empty: Invite stays its quiet action).
+- ★ **The Guests room is one read, after `getEvent` has proved the host** (`guests/room.server.ts`: the door's lists are
+  the service role's, and a confirmed guest's address re-proves inside its own read). The hub's render reads it whenever
+  the address names the room, and the room's own ask (`readGuestsRoomAction`) when a card opens it in place; the panel
+  draws the newer of the two, and a read that fails says so with Try again, never an empty room. ★ A sealed album's list
+  is empty while its roll is shot (a guest joins it at the develop), so the read carries `waiting`, the shots the seal
+  holds, and the room says "N shots are developing" in the list's place, never "Nobody has added photos yet" (a room
+  holding a roll is not empty: Invite stays its quiet action). The hub's Guests card says the same (`guestsCardFace`:
+  who waits at the door first, then "N shots developing" while the list is empty only for the seal, else the guests),
+  from `countWaitingGuestShots`, which the hub reads only while a develop time is ahead (`hubCovered`), after
+  `getEvent`, and never worth the page (a failed read leaves the guests' count, captured).
 - **The Guests room's At the door** heads it: Let in (`let_in_at_door`) opens her door on every device, and her held
   door opens by itself at its next check-in. ★ Decline is a block (the account where there is one, else the row), with
   Undo on its toast and Let back in under Blocked, so a declined newcomer meets the one shut screen and cannot keep
@@ -426,11 +443,12 @@ so the profile's visitor-facing "Private" never collides. The six-door menu is `
 
 ## The highlight reel, the host's side
 
-The Reel card, the band's reel step, the old route's redirect, Settings' Highlight reel section and the card's door
-into the guests' album at `?reel` are [reel.md](reel.md)'s, with the rest of the reel and the clip. What the hub owes
-it: the card rides the cards row (the Highlight reel is a door, never a room), its threshold reads the album's
-manifest (`isPlayableEntry`), and its stills are the reel's take, planned on the server (`readHubReel`) on her own scope
-and asked again when its state moves. ★ **The card is hers before the develop** (Will's Q5): it draws her photographs,
-sealed shots included, says guests get it later, and a press plays her own reel over the hub (`event-feed/hub-reel.tsx`,
-mounted inside the album's store: a reel outside it never finds its manifest), while the head, its band and the album's
-cover stay her guests' view; after the develop a press opens the guests' view.
+The Reel card, the band's reel step, the old route's redirect, Settings' Highlight reel section and the card's door into
+the guests' album at `?reel` are [reel.md](reel.md)'s, with the rest of the reel and the clip. What the hub owes it: the
+card rides the cards row (the Highlight reel is a door, never a room), its threshold reads the album's manifest
+(`isPlayableEntry`), and it is a plain card among the doors: its state and count follow the album live and Settings'
+switch wins (it holds no face of its own), and it draws no stills (the reel's take, planned on the server by
+`readHubReel` on her own scope, is the cover's and Settings' alone). ★ **The card is hers before the develop** (Will's
+Q5): it says guests get it later, and a press plays her own reel over the hub (`event-feed/hub-reel.tsx`, mounted inside
+the album's store: a reel outside it never finds its manifest), while the head, its band and the album's cover stay her
+guests' view; after the develop a press opens the guests' view.

@@ -208,10 +208,10 @@ develops without asking.
 **The host's cover** (`event-hub-head-cover.tsx`, mounted by `event-gallery.tsx`): while a develop time is ahead, her
 hub's album is the contact sheet her guests meet, counted from her own manifest (`lib/disposable/host-cover.ts`), until
 Look lifts it for the visit. Her hub's head and its band wear only what her guests can see meanwhile
-(`useHubCoverStills`), following the develop, never Look; the Reel card is the one place that is hers, drawing and
-playing her own scope with the sealed shots in it ([reel.md](reel.md)). What waits on it is read by the seal, the
-period only its floor: the held photos a switch put in the roll (and a camera's shots between a develop time and its
-restamped period) are sealed yet created before `sealed_from`, so the page reads them off the rows
+(`useHubCoverStills`), following the develop, never Look; the Reel card is the one door that is hers: a press plays her
+own scope over the hub, sealed shots included (the card draws none of them) ([reel.md](reel.md)). What waits on it is
+read by the seal, the period only its floor: the held photos a switch put in the roll (and a camera's shots between a
+develop time and its restamped period) are sealed yet created before `sealed_from`, so the page reads them off the rows
 (`host-cover.server.ts`'s `readJoinedIds`) and hands them down as `joined`; `waitsOf` is the one test the count and the
 head share.
 
