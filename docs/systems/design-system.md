@@ -591,6 +591,8 @@ board, its own sheet and scenes), found by the registry and the board route and 
   (the `Kbd` atom is the model), and a prose container `prose-code:font-sans`.
 - **Two mask layers on one element never intersect in Chrome**: `mask-composite: intersect` composites the last layer
   against transparent black, so the pair resolves to the union. Split the masks across two nested elements.
+- **Chrome draws an `outline` or a border width in whole CSS pixels**: 1.5px is drawn 1px at every device scale, so a
+  line that must read 1.5px is a `box-shadow` spread.
 - **Radix's `Portal` renders its children one commit after it mounts**, so an effect keyed on a dialog opening finds
   no element: the viewer binds its stage and media through callback refs held in state, and keys its effects on those.
 - **A tap never opens a tooltip on an icon control** (`ui/tooltip`'s `TooltipTrigger` refuses a focus a finger or a pen

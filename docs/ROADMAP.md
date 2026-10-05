@@ -17,6 +17,12 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Design: a `swatch` atom for a picture chosen among pictures (Create's looks, the reel's moods, the code's styles) wearing the selected trait, instead of each picker drawing its own ring (identity r4's idea; after desk 3's picks).
+- Design: the live reel's Style menu draws "Set for everyone" as a hand-drawn pill row, not the key atom (`live-reel-view.tsx`).
+- Design: the Display menu's group names (LAYOUT, ORDER, SHOW, GROUP, COVERS) and the door's "ALMOST IN" are spaced capitals outside the camera voice's counts, live and times.
+- Design: Settings' date range at a phone: its two rows share no gutter (the end indented by "to", the × outside).
+- Design: the door's password panel inside a chosen gate reads `--background`, so a lit chosen card (identity's raised or lighter) needs it on the card's own ground.
+- Design: the account menu's "Plan and storage · Event Pass" wraps to two lines at both widths.
 - Host: the host's view-as-guest cover (`as-guest-view.tsx`) never names its kinds, where the guest's first paint now does (crumbs-74).
 - Admin: the operator's uploads credit (the calls lab's X6, on Will's word): a `credit_bytes` column `uploads_used` subtracts, one definer RPC, the `admin_actions` log, a control behind AAL2 and `destructive-sheet`, bounded credits; a migration (admin-uploads' Question).
 - Admin: `/admin/accounts` makes 50 `uploads_used` calls a page view; one batched read wants a migration; and a lapsed pass reads "0 B" of its allowance while its uploads are refused.
