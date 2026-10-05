@@ -390,7 +390,10 @@ so the profile's visitor-facing "Private" never collides. The six-door menu is `
   and the reel card's opens the same panel and scrolls it into view (`HostAddProvider.openAdd`); its pipeline is
   [uploads-and-r2.md](uploads-and-r2.md)'s. A drained batch asks the album's store once (`onBatchLanded`), never
   refreshes the router: the store brings the batch as a delta, where a refresh re-ran every read and presign on the
-  hub.
+  hub. A row going up (or waiting its turn) has an x that asks in the row ("Stop this upload?", Keep going first) and
+  stops that file alone through its own signal; its siblings land and are recorded together, and the stopped row reads
+  "Upload cancelled." with Try again (a Ban mark, muted, never the failure's red or its Retry) and counts nothing. A row
+  whose bytes are up has no x (its complete is coming; its way out is the album's Remove).
 - ★ **Block puts one person out of one event, with their uploads** (`block_from_event` on the host's own client, free
   on every plan). It is the quiet last line of every person's look (a name in the Guests room, the uploader's credit in
   the host's viewer and on Review's peek, `event-blocks/`), opening one confirm whose count is the act's own preview

@@ -74,14 +74,21 @@ shapes.
   `UPLOAD_STALL_MS` (45 s, restarting on every byte and when the page comes back to the screen; 90 s for R2's answer
   after the last byte), all say "Your connection dropped. Check your signal, then try again." with `cause: "dropped"`;
   an error answer says it "didn't go through" (the status goes to the console, never the guest); an abort `signal`
-  says cancelled (`cause: "cancelled"`; no guest control passes one yet). `complete` is never aborted by a cancel and
-  has no client timeout: a retry re-runs the whole upload, so a timed-out complete that had recorded its row would
-  duplicate it. ★ It is ONE SENTENCE everywhere: the downloads say it as a title and its detail (`WALK_COPY`), and
+  says cancelled (`cause: "cancelled"`). A cancel is one file's or the burst's: `BurstFile.signal` stops that file
+  alone (the guest's tile and the host's row each stop the one file she means), settling it `cancelled` at once while
+  its siblings go on and are recorded together, wherever it stands short of its complete (a PUT in the air is aborted,
+  a presign in the air lets its entry go, a landed file waiting for its siblings is simply not recorded), and a
+  burst's own `signal` ends everything not recorded. `complete` is never aborted by either and has no client
+  timeout: a retry re-runs the whole upload, so a timed-out complete that had recorded its row would duplicate it,
+  and a stop pressed once the complete is asked is ignored (the file lands as it would have). Nothing is counted for a
+  cancelled file (the meter counts at complete); its R2 bytes, if any, are the orphan sweep's, a started multipart the
+  bucket's abort rule's. ★ It is ONE SENTENCE everywhere: the downloads say it as a title and its detail (`WALK_COPY`), and
   the album's camera says this very string where it used to count ("2 shots didn’t send.") when a shot failed that
   way; `uploader.transport.test.ts` holds the three to one wording. ★ **The cause, never the words, says which it was:**
-  the queue keeps the outcome's `cause` beside the message (`QueueItem.cause`: `dropped`, `cancelled`, absent for a
-  refusal, cleared by a Retry), and what draws a drop apart from a refusal reads it: the camera's line, and the failure
-  sheet's row for a dropped connection (a signal mark before its sentence).
+  the queue keeps the outcome's `cause` beside the message (`QueueItem.cause`: `dropped`, absent for a refusal,
+  cleared by a Retry), and what draws a drop apart from a refusal reads it: the camera's line, and the failure
+  sheet's row for a dropped connection (a signal mark before its sentence). A cancelled file is no failure and never
+  stays in the guest queue (`stop`), so the sheet has nothing of it to draw.
 - **The size is the R2 HEAD's** at complete, never the client's claim ([database-security.md](database-security.md));
   `duration_seconds`, `width` and `height` stay client-supplied and non-authoritative, the byte cap being the cost
   boundary.
@@ -303,7 +310,10 @@ The zips go off Vercel, on the streaming export Worker (`partyreel-export`, on `
   and clear when one answers; a line still down keeps those words, and the walk keeps listening (its silence past the
   stream's start means the Worker's word cannot reach the app only while her own line is up), so a drop is never
   replaced by "starting". The take-home Save follows the same two rules (`take-home-save.ts`: `cancel()` asks and
-  is the guest's foot control, `stop()` is the page leaving and says nothing).
+  is the guest's foot control, `stop()` is the page leaving and says nothing). ★ **Uploads say it alike**
+  (`lib/upload/stop-upload.ts`, the words and the question): "Stop this upload?" (Keep going first), then "Upload
+  cancelled." with Try again for `DONE_MS.cancelled`, on the same toast port for the guest's tile and in the row for
+  the host's; a stop too late to take says nothing.
 - ★ **Past one zip's ceilings (2,000 items or 20 GB) an album comes home in parts**, oldest first: each mint
   (`part`, `after`) takes the next part from a position cursor, never a page index, so nothing is skipped or taken
   twice while the album moves, and each part is its own tap (a browser holds back a second download a page starts
