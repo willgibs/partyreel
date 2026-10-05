@@ -59,6 +59,20 @@ export const OPERATOR_KINDS = [
   "spend_watch",
 ] as const;
 
+/**
+ * Mail about a host's own Google Drive (drive-export.md): a connection made, sends that finished (an hour's folded into
+ * one), a send paused or stopped, a connection that lost its access. Never held: each is about something she started,
+ * or a stop that needs her, which a pause of lifecycle mail must not silence. Never counted as lifecycle mail (no
+ * sweep re-sends them) and not kept for a retry: the send's own place in the app says the same, at once.
+ */
+export const DRIVE_KINDS = [
+  "drive_connected",
+  "drive_export_done",
+  "drive_export_paused",
+  "drive_export_stopped",
+  "drive_reconnect",
+] as const;
+
 /** The mail the lifecycle sweeps send hosts: the spend watch's `lifecycle_mail` reading counts exactly these. */
 export const LIFECYCLE_KINDS: readonly string[] = [
   ...HELD_WHILE_PAUSED,

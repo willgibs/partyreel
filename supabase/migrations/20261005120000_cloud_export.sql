@@ -201,6 +201,8 @@ create table public.cloud_exports (
   -- A stop that needs her flags itself app-wide once (Will, desk 2): set at the stop, acknowledged by her app.
   attention_at timestamptz,
   attention_seen_at timestamptz,
+  -- When the done mail that named this send went (the sweep folds an hour's finished sends into one mail).
+  done_mailed_at timestamptz,
   constraint cloud_exports_kind_known check (kind in ('export')),
   constraint cloud_exports_status_known check (
     status in ('preparing', 'sending', 'paused', 'checking', 'done', 'partly_done', 'canceled', 'stopped')
@@ -602,23 +604,23 @@ begin
     return jsonb_build_object('state', 'missing');
   end if;
   if v_conn.status = 'revoked' then
-    return jsonb_build_object('state', 'revoked');
+    return jsonb_build_object('state', 'revoked', 'user_id', v_conn.user_id);
   end if;
   if v_conn.access_ct is not null and v_conn.access_expires_at > now() + interval '20 minutes' then
     return jsonb_build_object('state', 'cached', 'access_ct', v_conn.access_ct,
-                              'expires_at', v_conn.access_expires_at);
+                              'expires_at', v_conn.access_expires_at, 'user_id', v_conn.user_id);
   end if;
   if v_conn.refresh_claimed_until > now() then
     if v_conn.access_ct is not null and v_conn.access_expires_at > now() + interval '2 minutes' then
       return jsonb_build_object('state', 'cached', 'access_ct', v_conn.access_ct,
-                                'expires_at', v_conn.access_expires_at);
+                                'expires_at', v_conn.access_expires_at, 'user_id', v_conn.user_id);
     end if;
-    return jsonb_build_object('state', 'wait');
+    return jsonb_build_object('state', 'wait', 'user_id', v_conn.user_id);
   end if;
   update public.cloud_connections
      set refresh_claimed_until = now() + interval '30 seconds'
    where id = p_connection;
-  return jsonb_build_object('state', 'refresh', 'refresh_ct', v_conn.refresh_ct);
+  return jsonb_build_object('state', 'refresh', 'refresh_ct', v_conn.refresh_ct, 'user_id', v_conn.user_id);
 end;
 $$;
 
@@ -800,6 +802,40 @@ begin
 end;
 $$;
 
+-- A LANE THAT DIED (`/api/internal/drive/lanefail`, a lane's last attempt, said before it throws): the day's dead lanes
+-- are counted on the connection, and at three in a day its sends pause `failing` (ours to fix: an operator's Resume),
+-- so a poison connection pauses itself and never loops. The sweep re-kicks a connection whose lane died at most once
+-- an hour.
+create function public.cloud_connection_lane_failed(p_connection uuid, p_error text)
+returns jsonb
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_conn public.cloud_connections%rowtype;
+  v_paused integer := 0;
+begin
+  select * into v_conn from public.cloud_connections c where c.id = p_connection for update;
+  if not found then
+    return jsonb_build_object('found', false);
+  end if;
+  update public.cloud_connections
+     set lane_failures = case when lane_failures_on is distinct from current_date then 1 else lane_failures + 1 end,
+         lane_failures_on = current_date,
+         last_error = left(p_error, 500),
+         updated_at = now()
+   where id = p_connection
+   returning * into v_conn;
+  if v_conn.lane_failures >= 3 then
+    v_paused := public.cloud_export_pause(p_connection, null, 'failing', null);
+  end if;
+  return jsonb_build_object('found', true, 'failures', v_conn.lane_failures, 'paused', v_paused,
+                            'user_id', v_conn.user_id);
+end;
+$$;
+
 -- An operator's hand on a connection (/admin/exports): pause it whole (every lease answers `paused`), resume it
 -- (and what paused on it for a dying lane or the operator), or lift the account breaker (the 30-day sum restarts).
 create function public.cloud_connection_operator(p_connection uuid, p_act text, p_note text default null)
@@ -932,6 +968,7 @@ declare
   v_conn public.cloud_connections%rowtype;
   v_event record;
   v_existing uuid;
+  v_existing_status text;
   v_job uuid;
   v_items integer;
   v_bytes bigint;
@@ -964,11 +1001,22 @@ begin
     return jsonb_build_object('ok', false, 'code', 'not_found');
   end if;
 
-  select j.id into v_existing from public.cloud_exports j
+  select j.id, j.status into v_existing, v_existing_status from public.cloud_exports j
    where j.user_id = p_user and j.event_id = p_event
      and j.status in ('preparing', 'sending', 'paused', 'checking');
   if found then
-    return jsonb_build_object('ok', true, 'job_id', v_existing, 'existing', true);
+    -- A send still waiting for its folder (a press whose Google call failed) gets the folder facts again, so this
+    -- press makes the folder and starts it; any other opens as it stands.
+    return jsonb_build_object(
+      'ok', true, 'job_id', v_existing, 'existing', true, 'status', v_existing_status,
+      'connection_id', v_conn.id,
+      'items', (select j.items_total from public.cloud_exports j where j.id = v_existing),
+      'bytes', (select j.bytes_total from public.cloud_exports j where j.id = v_existing),
+      'album_name', v_event.name, 'event_date', v_event.event_date, 'event_end_date', v_event.event_end_date,
+      'root_folder_id', v_conn.root_folder_id,
+      'folder_id', (select f.folder_id from public.cloud_event_folders f
+                     where f.connection_id = v_conn.id and f.event_id = p_event)
+    );
   end if;
 
   -- THE ACCOUNT BREAKER (PRICING's rule 2): ten times her plan's room, never under 5 GB, in any 30 days, since an
@@ -1389,7 +1437,8 @@ $$;
 -- Each item: sent (Drive's file id and MD5; `kept` when an earlier send's file was confirmed instead), progress (a big
 -- file's session and Google's offset, which also keeps the lease), failed (backed off 1, 5, 30, 60 minutes; failed
 -- for good after 5 attempts), skipped (gone, or its original missing in R2), released (back to pending, the attempt
--- not counted). A connection-level finding rides it and pauses or slows every send of the connection. Answers `stop`
+-- not counted). A connection-level finding rides it and pauses or slows every send of the connection (a dying lane says
+-- so on its own word, `cloud_connection_lane_failed`, since it may hold no lease). Answers `stop`
 -- once the send is no longer sending (canceled, paused, switched off), so a lane stops within ten seconds.
 create function public.cloud_export_report(p_lease uuid, p_items jsonb, p_finding text default null, p_done boolean default false)
 returns jsonb
@@ -1554,17 +1603,6 @@ begin
     perform public.cloud_export_pause(v_conn.id, v_job.id, 'folder_gone', null);
   elsif p_finding = 'domain_policy' then
     perform public.cloud_export_pause(v_conn.id, null, 'domain_policy', null);
-  elsif p_finding = 'lane_failed' then
-    update public.cloud_connections
-       set lane_failures = case when lane_failures_on is distinct from current_date then 1 else lane_failures + 1 end,
-           lane_failures_on = current_date
-     where id = v_conn.id
-     returning * into v_conn;
-    v_signal := 'lane_failed';
-    if v_conn.lane_failures >= 3 then
-      perform public.cloud_export_pause(v_conn.id, null, 'failing', null);
-      v_signal := 'lane_paused';
-    end if;
   end if;
 
   if p_done then
@@ -1876,6 +1914,7 @@ declare
   v_reconnect jsonb := '[]'::jsonb;
   v_breakers jsonb := '[]'::jsonb;
   v_expired jsonb := '[]'::jsonb;
+  v_done jsonb := '[]'::jsonb;
   v_resumed integer := 0;
   v_n integer;
   v_stuck integer := 0;
@@ -2022,6 +2061,23 @@ begin
 
   -- ── Reads and housekeeping ──
 
+  -- The sends finished and not yet in a done mail (a minute on, so her page says done first), an account's together:
+  -- the route folds them into one mail an hour and marks what it named (`cloud_export_mailed`).
+  select coalesce(jsonb_agg(jsonb_build_object('user_id', d.user_id, 'jobs', d.jobs)), '[]'::jsonb) into v_done
+    from (
+      select j.user_id,
+             jsonb_agg(jsonb_build_object(
+               'job_id', j.id, 'album_name', j.album_name, 'status', j.status, 'items_total', j.items_total,
+               'items_sent', j.items_sent, 'items_kept', j.items_kept, 'items_failed', j.items_failed,
+               'items_skipped', j.items_skipped, 'bytes_sent', j.bytes_sent, 'folder_url', j.folder_url
+             ) order by j.closed_at) as jobs
+        from public.cloud_exports j
+       where j.status in ('done', 'partly_done') and j.done_mailed_at is null and j.items_total > 0
+         and j.closed_at < c_now - interval '1 minute' and j.closed_at > c_now - interval '7 days'
+       group by j.user_id
+       limit 200
+    ) d;
+
   -- A full Drive's room, asked again every 6 hours for 7 days (the route asks Google and resumes on room).
   select coalesce(jsonb_agg(c.id), '[]'::jsonb) into v_recheck
     from public.cloud_connections c
@@ -2040,8 +2096,28 @@ begin
     'expired', v_expired,
     'resumed', v_resumed,
     'stuck', v_stuck,
-    'failed_to_start', v_failed_start
+    'failed_to_start', v_failed_start,
+    'done_mail', v_done
   );
+end;
+$$;
+
+-- The done mail went for these sends (the route, after the mail it folded them into was sent).
+create function public.cloud_export_mailed(p_jobs uuid[])
+returns jsonb
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_n integer;
+begin
+  update public.cloud_exports j
+     set done_mailed_at = now()
+   where j.id = any (coalesce(p_jobs, '{}')) and j.done_mailed_at is null;
+  get diagnostics v_n = row_count;
+  return jsonb_build_object('marked', v_n);
 end;
 $$;
 
@@ -2183,6 +2259,8 @@ revoke all on function public.cloud_connection_root(uuid, text, text) from publi
 grant execute on function public.cloud_connection_root(uuid, text, text) to service_role;
 revoke all on function public.cloud_connection_kick(uuid) from public, anon, authenticated;
 grant execute on function public.cloud_connection_kick(uuid) to service_role;
+revoke all on function public.cloud_connection_lane_failed(uuid, text) from public, anon, authenticated;
+grant execute on function public.cloud_connection_lane_failed(uuid, text) to service_role;
 revoke all on function public.cloud_connection_operator(uuid, text, text) from public, anon, authenticated;
 grant execute on function public.cloud_connection_operator(uuid, text, text) to service_role;
 revoke all on function public.cloud_export_preview(uuid, uuid[], boolean) from public, anon, authenticated;
@@ -2205,6 +2283,8 @@ revoke all on function public.cloud_export_refolder(uuid, uuid, text) from publi
 grant execute on function public.cloud_export_refolder(uuid, uuid, text) to service_role;
 revoke all on function public.cloud_export_sweep() from public, anon, authenticated;
 grant execute on function public.cloud_export_sweep() to service_role;
+revoke all on function public.cloud_export_mailed(uuid[]) from public, anon, authenticated;
+grant execute on function public.cloud_export_mailed(uuid[]) to service_role;
 
 revoke all on function public.spend_watch_readings(timestamptz, text[]) from public, anon, authenticated;
 grant execute on function public.spend_watch_readings(timestamptz, text[]) to service_role;
@@ -2240,6 +2320,7 @@ grant execute on function public.spend_watch_readings(timestamptz, text[]) to se
 --     'public.cloud_connection_room(uuid, bigint, bigint, boolean)',
 --     'public.cloud_connection_root(uuid, text, text)',
 --     'public.cloud_connection_kick(uuid)',
+--     'public.cloud_connection_lane_failed(uuid, text)',
 --     'public.cloud_connection_operator(uuid, text, text)',
 --     'public.cloud_export_preview(uuid, uuid[], boolean)',
 --     'public.cloud_export_create(uuid, uuid, boolean, text)',
@@ -2250,7 +2331,8 @@ grant execute on function public.spend_watch_readings(timestamptz, text[]) to se
 --     'public.cloud_export_check_page(uuid, jsonb, integer, text)',
 --     'public.cloud_export_act(uuid, uuid, text, boolean)',
 --     'public.cloud_export_refolder(uuid, uuid, text)',
---     'public.cloud_export_sweep()'
+--     'public.cloud_export_sweep()',
+--     'public.cloud_export_mailed(uuid[])'
 --   ];
 --   c_helpers constant text[] := array[
 --     'public.cloud_export_pause(uuid, uuid, text, timestamptz)',
@@ -2726,10 +2808,20 @@ grant execute on function public.spend_watch_readings(timestamptz, text[]) to se
 --     raise exception 'FAIL 17: a kick is not three lanes once a minute';
 --   end if;
 --
---   -- ── 18. The sweep runs whole; the spend watch's readings carry the day's Drive bytes ──
+--   -- ── 18. The sweep runs whole, and names the finished send for its done mail once; the spend watch's readings carry
+--   --        the day's Drive bytes ──
+--   update public.cloud_exports set closed_at = now() - interval '5 minutes' where id = v_job;
 --   v_r := public.cloud_export_sweep();
---   if not (v_r ? 'kick' and v_r ? 'recheck' and v_r ? 'breakers' and v_r ? 'expired') then
+--   if not (v_r ? 'kick' and v_r ? 'recheck' and v_r ? 'breakers' and v_r ? 'expired')
+--      or not exists (select 1 from jsonb_array_elements(v_r -> 'done_mail') d, jsonb_array_elements(d -> 'jobs') j
+--                      where (j ->> 'job_id')::uuid = v_job) then
 --     raise exception 'FAIL 18: sweep: %', v_r;
+--   end if;
+--   perform public.cloud_export_mailed(array[v_job]);
+--   v_r := public.cloud_export_sweep();
+--   if exists (select 1 from jsonb_array_elements(v_r -> 'done_mail') d, jsonb_array_elements(d -> 'jobs') j
+--               where (j ->> 'job_id')::uuid = v_job) then
+--     raise exception 'FAIL 18: a mailed send named again: %', v_r;
 --   end if;
 --   v_r := public.spend_watch_readings(now(), array['inactivity_warning']);
 --   if (v_r ->> 'drive_bytes')::bigint <= 0 or v_r -> 'errors' <> '{}'::jsonb then
@@ -2797,6 +2889,18 @@ grant execute on function public.spend_watch_readings(timestamptz, text[]) to se
 --   v_r := public.cloud_connection_operator(v_conn, 'resume', null);
 --   if (select j.status from public.cloud_exports j where j.id = v_job2) <> 'sending' then
 --     raise exception 'FAIL 21: the operator''s resume: %', v_r;
+--   end if;
+--
+--   -- ── 22. A lane that keeps dying pauses its connection's sends at three in a day (ours to resume), never loops ──
+--   perform public.cloud_connection_lane_failed(v_conn, 'boom 1');
+--   perform public.cloud_connection_lane_failed(v_conn, 'boom 2');
+--   if (select j.status from public.cloud_exports j where j.id = v_job2) <> 'sending' then
+--     raise exception 'FAIL 22: two dead lanes paused the send';
+--   end if;
+--   v_r := public.cloud_connection_lane_failed(v_conn, 'boom 3');
+--   if (v_r ->> 'failures')::integer <> 3 or (select j.pause_reason from public.cloud_exports j where j.id = v_job2) <> 'failing'
+--      or (select j.attention_at from public.cloud_exports j where j.id = v_job2) is not null then
+--     raise exception 'FAIL 22: the third dead lane: %', v_r;
 --   end if;
 --
 --   raise exception 'ROLLED BACK: every cloud_export check held %', v_report;

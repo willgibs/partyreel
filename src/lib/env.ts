@@ -120,6 +120,20 @@ const serverSchema = z.object({
   // uses for one GET of /v2/usage. A Vercel token can deploy and delete, so it is its own variable (never the kit's
   // personal VERCEL_TOKEN) and `.optional()`: unset, the Vercel meters read "No reading" (Not wired) and nothing fails.
   VERCEL_USAGE_TOKEN: z.string().min(1).optional(),
+  // Send to Google Drive (drive-export.md). GOOGLE_DRIVE_CLIENT_ID / _SECRET are the second Web client, "Partyreel
+  // Drive", in the project that holds sign-in's (never Supabase's own client: Disconnect revokes a whole grant).
+  // DRIVE_TOKEN_KEY seals the refresh and access tokens in the app (32 random bytes, base64: `openssl rand -base64
+  // 32`); DRIVE_TOKEN_KEY_PREVIOUS opens rows sealed before a rotation, and every write re-seals with the current key.
+  // DRIVE_WORKER_URL is the `partyreel-drive` Worker's origin (the kick goes there) and DRIVE_WORKER_SECRET signs every
+  // word between the two (equal to the Worker's `wrangler secret put DRIVE_WORKER_SECRET`). All `.optional()` so the
+  // app builds before Google's client and the Worker exist; assertDriveEnv() asserts them at request time, and
+  // driveConfigured() lets a page say "not set up yet" in words instead of throwing.
+  GOOGLE_DRIVE_CLIENT_ID: z.string().min(1).optional(),
+  GOOGLE_DRIVE_CLIENT_SECRET: z.string().min(1).optional(),
+  DRIVE_TOKEN_KEY: z.string().min(1).optional(),
+  DRIVE_TOKEN_KEY_PREVIOUS: z.string().min(1).optional(),
+  DRIVE_WORKER_URL: z.url().optional(),
+  DRIVE_WORKER_SECRET: z.string().min(1).optional(),
 });
 
 function formatIssues(error: z.ZodError): string {
@@ -176,6 +190,12 @@ function parseServer() {
     EXPORT_SIGNING_SECRET: process.env.EXPORT_SIGNING_SECRET,
     EXPORT_WORKER_URL: process.env.EXPORT_WORKER_URL,
     VERCEL_USAGE_TOKEN: process.env.VERCEL_USAGE_TOKEN,
+    GOOGLE_DRIVE_CLIENT_ID: process.env.GOOGLE_DRIVE_CLIENT_ID,
+    GOOGLE_DRIVE_CLIENT_SECRET: process.env.GOOGLE_DRIVE_CLIENT_SECRET,
+    DRIVE_TOKEN_KEY: process.env.DRIVE_TOKEN_KEY,
+    DRIVE_TOKEN_KEY_PREVIOUS: process.env.DRIVE_TOKEN_KEY_PREVIOUS,
+    DRIVE_WORKER_URL: process.env.DRIVE_WORKER_URL,
+    DRIVE_WORKER_SECRET: process.env.DRIVE_WORKER_SECRET,
   });
   if (!parsed.success) {
     throw new Error(
@@ -360,4 +380,66 @@ export function assertExportEnv(): {
     );
   }
   return { EXPORT_SIGNING_SECRET, EXPORT_WORKER_URL };
+}
+
+/** Every Send to Google Drive value, required. */
+export type DriveEnv = {
+  GOOGLE_DRIVE_CLIENT_ID: string;
+  GOOGLE_DRIVE_CLIENT_SECRET: string;
+  DRIVE_TOKEN_KEY: string;
+  DRIVE_TOKEN_KEY_PREVIOUS: string | undefined;
+  DRIVE_WORKER_URL: string;
+  DRIVE_WORKER_SECRET: string;
+};
+
+/**
+ * Is Send to Google Drive set up on this deployment? False until Will's Google client and the Worker exist, so the
+ * panel, the dashboard and Account say "not set up yet" in words rather than offering a press that would throw.
+ */
+export function driveConfigured(): boolean {
+  const e = serverEnv;
+  return Boolean(
+    e.GOOGLE_DRIVE_CLIENT_ID &&
+    e.GOOGLE_DRIVE_CLIENT_SECRET &&
+    e.DRIVE_TOKEN_KEY &&
+    e.DRIVE_WORKER_URL &&
+    e.DRIVE_WORKER_SECRET,
+  );
+}
+
+/**
+ * Assert the Drive values and return them. Call at REQUEST time (the connect and callback routes, a press, the
+ * Worker's internal routes): a missing client cannot connect, a missing key cannot seal or open a token, a missing
+ * Worker secret cannot sign or verify a word, so each of those fails closed rather than half-working.
+ */
+export function assertDriveEnv(): DriveEnv {
+  const {
+    GOOGLE_DRIVE_CLIENT_ID,
+    GOOGLE_DRIVE_CLIENT_SECRET,
+    DRIVE_TOKEN_KEY,
+    DRIVE_TOKEN_KEY_PREVIOUS,
+    DRIVE_WORKER_URL,
+    DRIVE_WORKER_SECRET,
+  } = serverEnv;
+  if (
+    !GOOGLE_DRIVE_CLIENT_ID ||
+    !GOOGLE_DRIVE_CLIENT_SECRET ||
+    !DRIVE_TOKEN_KEY ||
+    !DRIVE_WORKER_URL ||
+    !DRIVE_WORKER_SECRET
+  ) {
+    throw new Error(
+      "Send to Google Drive is not configured. Set GOOGLE_DRIVE_CLIENT_ID and GOOGLE_DRIVE_CLIENT_SECRET (the " +
+        "Partyreel Drive client), DRIVE_TOKEN_KEY (openssl rand -base64 32), DRIVE_WORKER_URL and " +
+        "DRIVE_WORKER_SECRET (matching the partyreel-drive Worker's secret) in Vercel + .env.local.",
+    );
+  }
+  return {
+    GOOGLE_DRIVE_CLIENT_ID,
+    GOOGLE_DRIVE_CLIENT_SECRET,
+    DRIVE_TOKEN_KEY,
+    DRIVE_TOKEN_KEY_PREVIOUS,
+    DRIVE_WORKER_URL,
+    DRIVE_WORKER_SECRET,
+  };
 }
