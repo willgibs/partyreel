@@ -142,3 +142,17 @@ describe("a guest sends a photograph", () => {
     expect(screen.getByRole("button", { name: /five at once/i })).toBeEnabled();
   });
 });
+
+describe("nothing is written", () => {
+  it("★ a press on a tile's verb (Like, Save, Hide) is held: the host's writes go nowhere here", () => {
+    const { getByTestId } = render(<HostGridArrivalDemo />);
+    // The grid is a spy, so a verb of its pane stands in as one the grid would draw.
+    const verb = document.createElement("button");
+    verb.setAttribute("data-tile-action", "hide");
+    getByTestId("grid").appendChild(verb);
+    const proceeded = verb.dispatchEvent(
+      new MouseEvent("click", { bubbles: true, cancelable: true }),
+    );
+    expect(proceeded).toBe(false);
+  });
+});

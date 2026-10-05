@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type MouseEvent } from "react";
 import { Camera } from "lucide-react";
 
 import { HostMediaGrid } from "@/components/app/host-media-grid";
@@ -22,8 +22,9 @@ import { marketingImage } from "@/lib/constants/marketing-media";
  * ★ THE FIRST RENDER MARKS NOTHING: the album opens with eight photographs and none of them lights. Only what turns up
  * afterwards does, which is the line `useAlbumArrivals` draws.
  *
- * Nothing is written, and the store is the page's: the album's tile verbs (Like, Save, Hide) are the grid's own, pointed
- * at ids no event owns, as the family's other specimen of this grid has always had them.
+ * ★ NOTHING IS WRITTEN: the tile's verbs (Like, Save, Hide) are the host's writes, pointed at ids no event owns, so a press
+ * on one is held here and goes nowhere; the arrival is the only thing this specimen is about. (The family's other specimen
+ * of this grid leaves them live, as it always has.)
  */
 
 /** The pool the album's photographs and the guests' come from: the site's own stills, each at a shape of its own. */
@@ -67,6 +68,16 @@ const IDS = [
   ...START.map((m) => m.id),
   ...Array.from({ length: MOST }, (_, i) => `sent-${i}`),
 ];
+
+/** The tile's verbs, drawn in its pane: a press on one goes nowhere here. */
+const VERBS = "[data-tile-action]";
+
+function hold(event: MouseEvent) {
+  if ((event.target as Element | null)?.closest?.(VERBS)) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+}
 
 export function HostGridArrivalDemo() {
   const [items, setItems] = useState<GridMedia[]>(START);
@@ -113,9 +124,11 @@ export function HostGridArrivalDemo() {
         </p>
       </div>
       {/* The likes' seed is asked for these ids once (a stable list), never once per arrival. */}
-      <LikesProvider mediaIds={IDS}>
-        <HostMediaGrid eventId="demo" items={items} />
-      </LikesProvider>
+      <div onClickCapture={hold}>
+        <LikesProvider mediaIds={IDS}>
+          <HostMediaGrid eventId="demo" items={items} />
+        </LikesProvider>
+      </div>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -327,6 +327,91 @@ describe("with a provider, nothing reaches the network or the app's router", () 
       scroll: false,
     });
     expect(router.replace).not.toHaveBeenCalled();
+  });
+});
+
+describe("a door's read is as forgiving as the route's was", () => {
+  const sheet = (
+    plan: { tier: "free" | "pro"; hasBilling: boolean },
+    open = true,
+  ) => (
+    <PricingSheet
+      open={open}
+      onOpenChange={() => {}}
+      trigger={{ kind: "plan" }}
+      plan={plan}
+    />
+  );
+
+  it("★ a read that cannot be made keeps the plan the door passed, and says nothing", async () => {
+    const own = doors({
+      readFacts: vi.fn(async () => {
+        throw new TypeError("Failed to fetch");
+      }),
+    });
+    render(
+      <PricingDoorsProvider doors={own}>
+        {sheet({ tier: "pro", hasBilling: true })}
+      </PricingDoorsProvider>,
+    );
+    const dialog = screen.getByRole("dialog");
+    await waitFor(() => expect(own.readFacts).toHaveBeenCalled());
+    // The first paint stands: a Pro host's sheet, her sizes listed (the list is quiet only until the read settles).
+    await waitFor(() =>
+      expect(dialog.querySelectorAll("[data-price-row]")).toHaveLength(3),
+    );
+    expect(
+      within(dialog).getByRole("button", { name: /manage billing/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("★ an answer the reader refuses is ignored, never drawn", async () => {
+    const own = doors({
+      readFacts: vi.fn(async () => ({ ok: true, facts: { tier: "gold" } })),
+    });
+    render(
+      <PricingDoorsProvider doors={own}>
+        {sheet({ tier: "free", hasBilling: false })}
+      </PricingDoorsProvider>,
+    );
+    const dialog = screen.getByRole("dialog");
+    await waitFor(() => expect(own.readFacts).toHaveBeenCalled());
+    // Still a Free host's sheet: the Pro card, and no list of sizes.
+    expect(dialog.querySelector("[data-plan]")).toBeTruthy();
+    expect(dialog.querySelector("[data-price-row]")).toBeNull();
+  });
+
+  it("★ closing the sheet aborts its read, and an answer that lands later changes nothing", async () => {
+    let answer: (value: unknown) => void = () => {};
+    let seen: AbortSignal | undefined;
+    const own = doors({
+      readFacts: vi.fn(
+        (signal: AbortSignal) =>
+          new Promise<unknown>((resolve) => {
+            seen = signal;
+            answer = resolve;
+          }),
+      ),
+    });
+    const { rerender } = render(
+      <PricingDoorsProvider doors={own}>
+        {sheet({ tier: "free", hasBilling: false })}
+      </PricingDoorsProvider>,
+    );
+    await waitFor(() => expect(seen).toBeDefined());
+    expect(seen!.aborted).toBe(false);
+    rerender(
+      <PricingDoorsProvider doors={own}>
+        {sheet({ tier: "free", hasBilling: false }, false)}
+      </PricingDoorsProvider>,
+    );
+    expect(seen!.aborted).toBe(true);
+    // The Pro answer arrives after the sheet has gone: it is dropped, and nothing throws.
+    await act(async () => {
+      answer({ ok: true, facts: PRO_FACTS });
+      await Promise.resolve();
+    });
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 });
 
