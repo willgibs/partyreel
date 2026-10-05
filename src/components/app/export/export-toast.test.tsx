@@ -575,6 +575,21 @@ describe("a Try again waits for the line", () => {
     act(() => exportToasts.dismiss("dl3"));
   });
 
+  it("drawing the same waiting toast again stacks nothing: every listener it added is taken off with it", () => {
+    const add = vi.spyOn(window, "addEventListener");
+    const remove = vi.spyOn(window, "removeEventListener");
+    line(false);
+    act(() => exportToasts.show("dl", dropped()));
+    act(() => exportToasts.show("dl", dropped()));
+    act(() => exportToasts.show("dl", dropped()));
+    flush();
+    act(() => exportToasts.dismiss("dl"));
+    const online = (spy: typeof add) =>
+      spy.mock.calls.filter(([type]) => type === "online").length;
+    expect(online(add)).toBe(3);
+    expect(online(remove)).toBe(3);
+  });
+
   it("only a Try again that a failed press would repeat waits: a cancel's, a next part's and a refusal with no button are drawn as they are", () => {
     line(false);
     act(() =>

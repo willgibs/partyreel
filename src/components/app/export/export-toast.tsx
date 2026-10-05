@@ -112,19 +112,20 @@ function Answers({
 }
 
 /**
- * ★ A TRY AGAIN WAITS FOR THE LINE (crumbs-71; ROADMAP: "Try again is offered while the browser says it is offline").
- * While the browser says it is offline a press on one can only fail the same way (the mint is refused at once and the
- * toast says the connection dropped again), so a toast whose way back is a Try again, a refusal or a short zip, is drawn
- * WITHOUT it, with what it waits for ("Waiting for your connection…") in its detail's place and the x still there, and
- * is drawn again as it was when `online` fires: its own words, its button, nothing pressed. It is held here, in the
- * toast, so the walk's Try again and the take-home Save's are one rule (both draw on this port), and so the toast's own
- * life ends the wait: a replacement, `dismiss` and sonner's own (a swipe) each stop listening, and a toast that is gone
- * is never drawn back by the line.
+ * ★ A TRY AGAIN WAITS FOR THE LINE (crumbs-71). While the browser says it is offline a press on one can only fail the
+ * same way (the mint is refused at once and the toast says the connection dropped again), so a toast whose way back is a
+ * Try again (a refusal, a short zip) is drawn WITHOUT it, says what it waits for ("Waiting for your connection…") in its
+ * detail's place, keeps its x, and is drawn again as it was when `online` fires: its own words and its button, nothing
+ * pressed.
  *
- * "Offline" is the browser's certain word (`navigator.onLine === false`); "online" says only that a network is attached.
- * So a line that merely stalls keeps its Try again (a press there is a real try), and nothing listens unless the browser
+ * ★ IT IS HELD HERE, ON THE PORT, NOT IN AN ENGINE: the walk's Try again and the take-home Save's both draw through
+ * `exportToasts`, so one rule serves both, and the toast's own life ends the wait. A replacement, `dismiss` and sonner's
+ * own dismissal (a swipe) each stop the listening, so a toast that is gone is never drawn back by the line.
+ *
+ * "Offline" is the browser's certain word (`navigator.onLine === false`); "online" says only that a network is attached,
+ * so a line that merely stalls keeps its Try again (a press there is a real try) and nothing listens unless the browser
  * says offline. A phone's browser freezes a tab it is left for another app and can miss the event, so looking at the tab
- * again asks too. A cancel's Try again is hers and "Get part N" is a next step: both are left as they are, and a press on
+ * again asks too. A cancel's Try again is hers and "Get part N" is a next step, so both are left as they are: a press on
  * either that meets a dead line lands on this toast, which then waits.
  */
 type Again = Extract<ToastView, { tone: "refused" | "short" }> & {
