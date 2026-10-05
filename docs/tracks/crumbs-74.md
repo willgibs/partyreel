@@ -32,15 +32,20 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each is built as recommended and is Will's to overrule (all two-way doors).
+
+- **A mix on the cover: "12 photos · 3 videos" (the brief's example) or "15 photos & videos"?** Recommended and built: "15 photos & videos", the one home's word for a mix (`setNoun`, which the live album, the album's own line, the Save sheet and the dock already say). The brief's split would flash into "15 photos & videos" the moment the live album arrives (the goal is that the two agree), and its accessible name would no longer hold the visible number (15). The kinds a first paint now names are the photographs-only and clips-only albums ("12 photos", "1 video"), which is where both nouns was wrong. If Will wants a mix split on the cover, it is one edit to `albumCountWords`'s mix branch (`lib/export/take-home.ts`): the first paint and the live album both say it through that, but so do the album's own line and (via `setNoun`) the Save sheet, which he should see together.
+- **Kinds withheld at a lock.** Recommended and built: `stats.kinds` is null unless this request is past the lock (`pastTheLock`: an open album, a password album it unlocked, or a door's pass), so a locked page's payload still carries the name and the count alone (the lock's rule; the page's redaction note says props serialize into the flight payload). Verified on the real flight payload of a password album's locked page: `"stats":{"approvedTotal":1,"guestCount":0,"kinds":null}`.
+- **A teaser's first paint says both nouns.** Recommended and built: the live album cannot see into a teaser's nine and says both nouns, so a first paint that named the kinds there would flash the other way. To name kinds at a teaser too, `gallery-live.tsx`'s `countWords` would take the page's `stats.kinds` as the teaser's fallback; not worth a change to the live source for a teaser's tooltip.
+- **The cost is one more head request.** Recommended and built (measured below, in the Handoff): no per-row scan, no change to the poll. If Will wants the first paint exactly as light as before, a SQL function returning the album's approved count and its videos in one statement (a migration, the Orchestrator's) would replace both heads, and `approvedCount` would read it; not proposed here: +1 request is within the noise of a page whose guest scan alone is two row pages.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/guest-flow.md`: the Stats bullet (`{approvedTotal, guestCount, kinds}`, what `kinds` costs, where it is null) and "One true count" (the first paint names its kinds through the one `albumCountWords`, now in `lib/export/take-home.ts`).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Guests: the host's view-as-guest cover (`as-guest-view.tsx`) wires no live words, so its count says both nouns for good; `getGalleryStats` already reads `kinds` for it (its `stats` types name only the two numbers), so type them in and pass them as the cover's `mediaKinds`.
 
 ## Handoff (replaces the chat report)
 
