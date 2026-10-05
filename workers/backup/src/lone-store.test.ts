@@ -106,3 +106,174 @@ describe("the lone copies' table", () => {
     expect(again.tally()).toEqual({ keys: 1, oldestMs: T0 });
   });
 });
+
+/**
+ * ★ TWO JUDGES, SPLIT BY AGE (backup-reconcile): the weekly prune judges the keys past its 36-day gate, the daily
+ * reconcile the younger ones, and each walk settles only its own side of the gate, by when the backup took the key.
+ * On the old code a walk settled every row in its range, so the prune's next walk dropped a young lone copy the
+ * reconcile had found (it never judges young keys), and the card read it gone while the backup still held it alone.
+ */
+describe("the lone copies' two judges", () => {
+  const GATE = 36 * DAY;
+  /** The prune's walk at `at`: the old side of the gate. */
+  const prune = (at: number) => ({ side: "old", cutMs: at - GATE }) as const;
+  /** The reconcile's walk at `at`: the young side. */
+  const reconcile = (at: number) =>
+    ({ side: "young", cutMs: at - GATE }) as const;
+  const young = (n: number, takenAt = T0 - 3 * DAY) => ({
+    key: k(n),
+    uploadedMs: takenAt,
+  });
+
+  it("★ never lets the prune's walk drop a young lone copy the reconcile holds", () => {
+    store.settle(
+      { after: null, through: null, found: [young(2)], judged: reconcile(T0) },
+      T0,
+    );
+    // The prune's whole-range walk the next morning finds an old lone copy and judges nothing young.
+    const after = store.walk(
+      { after: null, through: null, found: [k(7)], judged: prune(T0 + DAY) },
+      T0 + DAY,
+    );
+    expect(after.keys).toBe(2);
+    expect(store.page(null, 10)).toEqual([k(2), k(7)]);
+  });
+
+  it("never lets the reconcile's walk drop an old lone copy the prune holds", () => {
+    store.walk(
+      { after: null, through: null, found: [k(4)], judged: prune(T0) },
+      T0,
+    );
+    store.settle(
+      { after: null, through: null, found: [], judged: reconcile(T0 + DAY) },
+      T0 + DAY,
+    );
+    expect(store.page(null, 10)).toEqual([k(4)]);
+  });
+
+  it("drops a young copy its own judge no longer finds: back in the primary, or named by no row now", () => {
+    store.settle(
+      {
+        after: null,
+        through: null,
+        found: [young(1), young(3)],
+        judged: reconcile(T0),
+      },
+      T0,
+    );
+    store.settle(
+      {
+        after: null,
+        through: null,
+        found: [young(3)],
+        judged: reconcile(T0 + DAY),
+      },
+      T0 + DAY,
+    );
+    expect(store.page(null, 10)).toEqual([k(3)]);
+  });
+
+  it("★ holds a copy that aged past the gate between walks until the prune's walk judges it, never dropping it unseen", () => {
+    const taken = T0 - 35 * DAY; // young today, past the gate the day after tomorrow
+    store.settle(
+      {
+        after: null,
+        through: null,
+        found: [young(5, taken)],
+        judged: reconcile(T0),
+      },
+      T0,
+    );
+    // Two days on the reconcile no longer judges it (it is old): its walk leaves it held.
+    store.settle(
+      {
+        after: null,
+        through: null,
+        found: [],
+        judged: reconcile(T0 + 2 * DAY),
+      },
+      T0 + 2 * DAY,
+    );
+    expect(store.page(null, 10)).toEqual([k(5)]);
+    // The prune's walk finds it still lone: kept, with its first-found time.
+    expect(
+      store.walk(
+        {
+          after: null,
+          through: null,
+          found: [k(5)],
+          judged: prune(T0 + 3 * DAY),
+        },
+        T0 + 3 * DAY,
+      ),
+    ).toEqual({ keys: 1, oldestMs: T0 });
+    // A week on its row is gone and the primary still lacks it (prunable, not lone): the prune's walk drops it.
+    store.walk(
+      { after: null, through: null, found: [], judged: prune(T0 + 10 * DAY) },
+      T0 + 10 * DAY,
+    );
+    expect(store.tally().keys).toBe(0);
+  });
+
+  it("keeps a found key only on the side of the gate its walk judged", () => {
+    store.settle(
+      {
+        after: null,
+        through: null,
+        // An old key handed to the reconcile's walk is the prune's to judge, never the reconcile's to keep.
+        found: [young(1), { key: k(2), uploadedMs: T0 - 40 * DAY }],
+        judged: reconcile(T0),
+      },
+      T0,
+    );
+    expect(store.page(null, 10)).toEqual([k(1)]);
+  });
+
+  it("says how many of the keys it kept were new to the table, so a restore pass is asked for only then", () => {
+    const first = store.settle(
+      {
+        after: null,
+        through: null,
+        found: [young(1), young(2)],
+        judged: reconcile(T0),
+      },
+      T0,
+    );
+    expect(first).toEqual({ keys: 2, oldestMs: T0, added: 2 });
+    const again = store.settle(
+      {
+        after: null,
+        through: null,
+        found: [young(1), young(2), young(3)],
+        judged: reconcile(T0 + DAY),
+      },
+      T0 + DAY,
+    );
+    expect(again).toEqual({ keys: 3, oldestMs: T0, added: 1 });
+  });
+
+  it("gives the table the restore's first deploy made an age column, its rows the prune's", () => {
+    // The table as durability-restore created it: no uploaded_ms.
+    db.exec("DROP TABLE lone_copies");
+    db.exec(
+      "CREATE TABLE lone_copies (key TEXT PRIMARY KEY, found_at INTEGER NOT NULL, seen INTEGER NOT NULL DEFAULT 0)",
+    );
+    db.exec(
+      `INSERT INTO lone_copies (key, found_at, seen) VALUES ('${k(8)}', ${T0}, 0)`,
+    );
+    const upgraded = createLoneStore(sqlOf(db), transactionOf(db));
+    // Its row is the prune's: the reconcile's walk leaves it, the prune's judges it.
+    upgraded.settle(
+      { after: null, through: null, found: [], judged: reconcile(T0 + DAY) },
+      T0 + DAY,
+    );
+    expect(upgraded.page(null, 10)).toEqual([k(8)]);
+    upgraded.walk(
+      { after: null, through: null, found: [], judged: prune(T0 + DAY) },
+      T0 + DAY,
+    );
+    expect(upgraded.tally().keys).toBe(0);
+    // Built again over it, the column is there already: nothing throws.
+    expect(() => createLoneStore(sqlOf(db), transactionOf(db))).not.toThrow();
+  });
+});
