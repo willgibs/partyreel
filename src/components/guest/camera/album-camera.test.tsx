@@ -219,6 +219,20 @@ function Page({
           setQueue((prev) =>
             prev.map((it) => ({
               ...it,
+              status: "uploading" as const,
+              progress: 10,
+            })),
+          )
+        }
+      >
+        Put them in the air
+      </button>
+      <button
+        type="button"
+        onClick={() =>
+          setQueue((prev) =>
+            prev.map((it) => ({
+              ...it,
               status: "error" as const,
               // A request that never reached the network, as the queue keeps it: the transport's cause, and no
               // `errorCode` (the server never answered). The words are not the camera's to match: they differ here.
@@ -594,12 +608,23 @@ describe("the album's camera, over an album that refuses for a reason its host c
 
     await wait(1_000);
     expect(onRetry).toHaveBeenCalledTimes(1);
-    // The ask is in the air: the camera has not moved (no banner gone, no shutter back, no "sending" in the caption).
+    // The ask is out, the album has not answered: the camera has not moved (no banner gone, no shutter back, no
+    // "sending" in the caption).
     expect(screen.getByText(CLOSED)).toBeInTheDocument();
     expect(shutter().disabled).toBe(true);
     expect(screen.queryByText(/sending/)).toBeNull();
 
-    // The host reopened: the shot goes, and the refusal's banner and stopped shutter go with it.
+    // The host reopened: the album says yes the moment the file goes up (a refusal comes before a byte moves), and the
+    // refusal's banner and stopped shutter go with it, before the shot has landed.
+    fireEvent.click(
+      screen.getByRole("button", { name: "Put them in the air", hidden: true }),
+    );
+    await wait(0);
+    expect(screen.queryByText(CLOSED)).toBeNull();
+    expect(shutter().disabled).toBe(false);
+    expect(screen.getByText(/sending 1/)).toBeInTheDocument();
+
+    // And it lands.
     fireEvent.click(
       screen.getByRole("button", { name: "Land them", hidden: true }),
     );

@@ -179,8 +179,9 @@ read beside it so its Follow starts on Following; no card means no host row, nev
     camera asks again by itself, calmly: after 10 s, then 20, 40 and every minute, never while the page is hidden, at
     once as it comes back and when the connection does, and only for those two refusals (a lock, a gone event or a
     ticket that is not hers are never asked again). The ask is the shots' own Retry through the queue, and a shot being
-    asked stands as the refusal it was while its ask is in the air, so the banner, the stopped shutter and the reel's
-    caption never flicker for it; an answer of yes takes the banner and the stopped shutter away with the refusal.
+    asked stands as the refusal it was until the album answers, so the banner, the stopped shutter and the reel's
+    caption never flicker for it; the answer is the file going up (a refusal comes before a byte moves), and a yes takes
+    the banner and the stopped shutter away with the refusal while the shot is still on its way.
   - **The flip, mid-run**: a host turning An email first on answers 403 `verification_required`, one of the refusals
     the queue reads as the session's, never one file's (its header names them). A confirmed viewer re-joins silently
     once (the queue reads its ticket per file); a name-only guest's queued files fail in place with the server's

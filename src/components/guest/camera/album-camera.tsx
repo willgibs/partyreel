@@ -175,9 +175,11 @@ export function AlbumCamera({
      render it is first seen (the sanctioned adjust-state-during-render pattern). */
   const [held, setHeld] = useState<ReadonlySet<string>>(() => new Set());
   /* ★ A SHOT BEING ASKED FOR AGAIN AGAINST A REFUSAL THAT MAY HAVE LIFTED (`LIFTABLE_REFUSALS`) STANDS AS THE REFUSAL IT
-     WAS while its ask is in the air: the queue says it is sending, and shown so the banner would leave, the shutter
-     come back and the reel's caption say "sending 1" for the instant each ask takes, and then all go again when the
-     album still says no. Only an answer moves it (the shot lands, or is refused again, or leaves the queue). */
+     WAS until the album answers: the queue says it is sending (waiting its turn, being prepared, asking for its place),
+     and shown so the banner would leave, the shutter come back and the reel's caption say "sending 1" for the instant
+     each ask takes, and then all go again when the album still says no. The answer is the file going up (the album said
+     yes: a refusal comes before a byte moves), the shot landing, or its refusal again, or its leaving the queue; one
+     shot's answer is every shot's, since what is asked together goes as one burst. */
   const [asking, setAsking] = useState<ReadonlyMap<string, ShotState>>(
     () => new Map(),
   );
@@ -185,29 +187,33 @@ export function AlbumCamera({
     () => shots.map((shot) => ({ shot, live: shotState(shot, queue) })),
     [shots, queue],
   );
+  const stillAsking = (key: string) => {
+    const live = lives.find((l) => l.shot.key === key)?.live;
+    return (
+      live !== undefined &&
+      live.status === "sending" &&
+      live.queueId !== undefined &&
+      queue.find((it) => it.id === live.queueId)?.status === "queued"
+    );
+  };
+  // The sanctioned adjust-state-during-render pattern: once any ask is answered they all let go of what they were held as.
+  const asksAnswered =
+    asking.size > 0 && [...asking.keys()].some((key) => !stillAsking(key));
+  if (asksAnswered) setAsking(new Map());
   const raw = useMemo(
     () =>
       lives.map(({ shot, live }) => {
         const was = asking.get(shot.key);
         return {
           shot,
-          state: was && live.status === "sending" && live.queueId ? was : live,
+          state:
+            was && !asksAnswered && live.status === "sending" && live.queueId
+              ? was
+              : live,
         };
       }),
-    [lives, asking],
+    [lives, asking, asksAnswered],
   );
-  // An ask answered (or its shot gone) lets go of what it was held as: the sanctioned adjust-state-during-render pattern.
-  const answered = [...asking.keys()].filter((key) => {
-    const live = lives.find((l) => l.shot.key === key)?.live;
-    return !live || !(live.status === "sending" && live.queueId);
-  });
-  if (answered.length > 0) {
-    setAsking((prev) => {
-      const next = new Map(prev);
-      for (const key of answered) next.delete(key);
-      return next;
-    });
-  }
   const newlyHeld = raw.filter(
     ({ shot, state }) => state.queueId && !held.has(shot.key),
   );
