@@ -28,7 +28,7 @@ import { clientHealth, connectionActs, connectionWord, sendActs, sendWord } from
 
 /** The four jobs Send to Google Drive reports through (`app/admin/jobs/catalog.ts`). */
 const HEALTH_OF: { id: JobId; what: string }[] = [
-  { id: "drive_sweep", what: "The Worker" },
+  { id: "drive_export", what: "The Worker" },
   { id: "drive_transfer", what: "Transfers, 24h" },
   { id: "drive_queue", what: "Queue" },
   { id: "drive_dead_letters", what: "Dead letters" },
@@ -138,7 +138,7 @@ export async function DriveSection({ search, health }: { search: string | null; 
             })}
             <div>
               <Link
-                href="/admin/jobs#job-drive_sweep"
+                href="/admin/jobs#job-drive_export"
                 prefetch={false}
                 className="text-muted-foreground underline-offset-4 hover:underline"
               >

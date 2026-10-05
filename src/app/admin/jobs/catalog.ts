@@ -59,7 +59,7 @@ export type JobId =
   | "export"
   // Send to Google Drive (drive-wiring): the Worker's sweep (its heartbeat, hourly), its queue and dead letters (read
   // by the Worker on each sweep), and the transfer's own failures, a rolling signal.
-  | "drive_sweep"
+  | "drive_export"
   | "drive_queue"
   | "drive_dead_letters"
   | "drive_transfer"
@@ -429,11 +429,11 @@ export const JOBS: JobDef[] = [
     canRunNow: false,
   },
   // --- Send to Google Drive (drive-export.md) ---------------------------------------------------
-  // The switch is Drive's own (`drive_export_enabled`, the one /admin/exports flips): read inside the lease's own
-  // transaction, so a paused switch leases nothing and the card says Paused.
+  // The switch is Drive's own (`drive_export_enabled`, the one /admin/exports flips, as `export` and Download all):
+  // read inside the lease's own transaction, so a paused switch leases nothing and the card says Paused.
   {
-    id: "drive_sweep",
-    label: "Drive sweep",
+    id: "drive_export",
+    label: "Send to Google Drive",
     description:
       "The Send to Google Drive Worker's sweep, every five minutes: it kicks a send that stopped moving, resumes a pause whose time came, ends what ran too long, and reports its queue. Its heartbeat is written once an hour from the Worker's signed call, so a Worker whose secret drifted reads Overdue.",
     kind: "scheduled",
@@ -456,7 +456,7 @@ export const JOBS: JobDef[] = [
     expectedEveryMs: 0,
     flagKey: null,
     canRunNow: false,
-    readFrom: ["drive_sweep"],
+    readFrom: ["drive_export"],
   },
   {
     id: "drive_dead_letters",
@@ -470,7 +470,7 @@ export const JOBS: JobDef[] = [
     expectedEveryMs: 0,
     flagKey: null,
     canRunNow: false,
-    readFrom: ["drive_sweep"],
+    readFrom: ["drive_export"],
   },
   {
     id: "db_backup",

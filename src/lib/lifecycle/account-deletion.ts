@@ -52,6 +52,7 @@
 import "server-only";
 
 import { mustCount, mustQuery, QueryFailedError } from "@/lib/db/must-query";
+import { disconnectDrive } from "@/lib/drive/disconnect.server";
 import {
   IN_CHUNK,
   inChunks,
@@ -443,6 +444,14 @@ export async function purgeAccount(
     // Only a forensic hold can leave events standing here. The account keeps
     // its anonymised profile and stays in the queue for the next run.
     return result;
+  }
+
+  // Her Google Drive before the account holding its key goes (the row would cascade away unrevoked). ISOLATED: a
+  // grant Google keeps listing is inert without the key, and must never hold a person who asked to be forgotten.
+  try {
+    await disconnectDrive(userId);
+  } catch (error) {
+    captureError("cron", error, { sweep: "deleted_accounts", step: "drive_disconnect", user_id: userId });
   }
 
   const { error: authErr } = await admin.auth.admin.deleteUser(userId);

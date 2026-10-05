@@ -914,7 +914,7 @@ export async function lastSweepHeartbeatAt(): Promise<number | null> {
     admin()
       .from("job_runs")
       .select("started_at")
-      .eq("job", "drive_sweep")
+      .eq("job", "drive_export")
       .order("started_at", { ascending: false })
       .limit(1)
       .maybeSingle(),

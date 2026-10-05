@@ -99,6 +99,7 @@ const quietDb = {
   sign_ins: 2,
   downloads: 3,
   purge_runs: 1,
+  drive_bytes: 0,
   errors: {},
 };
 
@@ -491,6 +492,7 @@ describe("a reading it could not take", () => {
       "sign_ins",
       "downloads",
       "purge_runs",
+      "drive_bytes",
     ]);
     expect(outcome.tripped).toEqual([]);
     const run = finished();

@@ -4,7 +4,7 @@
  *
  * The lanes waiting and, more to the point, the DEAD LETTERS (a lane that died on every retry) are visible only on the
  * Cloudflare dashboard, and the only process that can see them is this Worker. The sweep carries them to the app's
- * heartbeat (`drive_sweep`), where /admin/jobs reads `drive_queue` and `drive_dead_letters`.
+ * heartbeat (`drive_export`), where /admin/jobs reads `drive_queue` and `drive_dead_letters`.
  *
  * HOW: `Queue.metrics()` (Cloudflare, April 2026) returns the realtime backlog of a queue through an
  * ordinary producer binding — `backlogCount`, `backlogBytes` and the oldest unacknowledged message's

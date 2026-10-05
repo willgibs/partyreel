@@ -97,6 +97,11 @@ const SWITCH_LINE: Record<
     href: "/admin/jobs#job-purge_cron",
     place: "Open its card",
   },
+  drive_export_enabled: {
+    line: "The watch pauses it on its own. Paused sends wait and lose nothing.",
+    href: "/admin/exports#drive",
+    place: "Open its section",
+  },
 };
 
 function NowCell({

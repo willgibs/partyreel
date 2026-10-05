@@ -6,7 +6,7 @@
  *
  * After the answer, what needs a person or Google: a full Drive asked again (and resumed on room), the reconnect
  * mails, the stopped mails, the done mail (an hour's finished sends folded into one), the breakers and the stuck in
- * the `drive_transfer` signal, and once an hour the heartbeat (`drive_sweep` on /admin/jobs) with the Worker's queue
+ * the `drive_transfer` signal, and once an hour the heartbeat (`drive_export` on /admin/jobs) with the Worker's queue
  * depths, so a Worker whose secret drifted, or whose cron stopped, reads Overdue.
  */
 import { after } from "next/server";
@@ -81,7 +81,7 @@ async function followUp(outcome: SweepOutcome, word: { mode: "on" | "off"; depth
   // The heartbeat, once an hour, with the Worker's own readings.
   const last = await lastSweepHeartbeatAt().catch(() => null);
   if (last === null || Date.now() - last >= HEARTBEAT_EVERY_MS) {
-    await recordClosedRun("drive_sweep", "schedule", {
+    await recordClosedRun("drive_export", "schedule", {
       status: "ok",
       counts: {
         ...word.depths,

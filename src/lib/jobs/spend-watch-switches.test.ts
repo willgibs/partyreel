@@ -160,6 +160,7 @@ describe("reading the switches whole", () => {
         enabled: true,
         updatedAtMs: Date.parse("2026-09-02T00:00:00Z"),
       },
+      drive_export_enabled: { enabled: true, updatedAtMs: null },
     });
   });
 
