@@ -46,13 +46,16 @@ import {
 /** The photograph the room's screen shows behind the code (the look step's own stand-in). */
 const ROOM_SCREEN = marketingImage("party-dj");
 
-/** The steppers' three hairlines at the commit moment: the name done, the look she is on, the beat to come. */
-const ROOM_STEPS = [true, true, false] as const;
+/**
+ * The steppers' four hairlines at the commit moment (the room's `STEPS`: name, add, look, beat): the name and the add
+ * done, the look she is on, the beat to come.
+ */
+const ROOM_STEPS = [true, true, true, false] as const;
 
 /**
  * THE ROOM CREATE IS, drawn small (`create-event-wizard.tsx`, its parts in `create-event-wizard/`): the whole
  * screen in his layout, so the picture is the same four places. The subtle steppers on top (the name she gave
- * over three hairlines, the screens done and the one she is on filled, Back and the close at the sides), the
+ * over four hairlines, the screens done and the one she is on filled, Back and the close at the sides), the
  * question just under them, the answer in the centre, one button at the foot.
  *
  * ★ DRAWN AT THE COMMIT MOMENT ON PURPOSE, because that is the fact the step's copy corrects: "Create event" is
