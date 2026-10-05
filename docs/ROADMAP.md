@@ -17,6 +17,8 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- The lab: the stage pauses a hidden option with `[data-lab-view][data-paused] *`, which cannot reach inside a `Frame`'s own document, so every board with loops or video in frames keeps running when hidden; the brand deck bridges it itself (`deck/deck.tsx`, `data-bd-paused`), and a bridge in `Frame` would cover every board (brand-r1).
+- The lab: `lab-demo.mjs` and `lab-smoke.mjs` pick a DevTools port by pid and never check it is free, so on a busy machine a lane can drive another lane's headless Chrome (brand-r1 did once); refuse a port that already answers, as brand-r1's `shoot.mjs` does.
 - Pricing: drop `consume_passes_for_pro_credit(uuid)` once no deployed build calls it (milestone 38 runs the claim), with `event-passes-migration.test.ts`'s pins on it; a contract migration (billing-integrity).
 - Host: the hub's Guests card reads "0 guests" while a sealed roll waits, where the Guests room now says its shots are developing; say it on the card too (`event-cards-row.tsx`), in the doors board's next round (crumbs-81's idea).
 - Host: `countWaitingGuestShots` (`queries/social.ts`) counts shots on a guest ticket the host later claimed (`guests.user_id` is the host), whom no list shows, so her own claimed-ticket shots read as "their guests join"; leave that ticket out (a join on the ticket's account) when it earns the read.
