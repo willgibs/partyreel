@@ -431,11 +431,31 @@ export function runSentOf(
 }
 
 /**
+ * How many of the run's files have landed (`done`): the rest a failure's sheet may say is in the album is only what has.
+ * A file settled before the run began is not the run's, however it ended.
+ */
+export function runLandedOf(
+  items: readonly QueueItem[],
+  before: ReadonlySet<string>,
+): number {
+  return items.filter((it) => it.status === "done" && inRun(it, before)).length;
+}
+
+/** The run's own files, counted for a failure's heading (`useRunCounts` says what a run is). */
+export function useRunSent(
+  items: readonly QueueItem[],
+  listed: readonly Pick<QueueItem, "id">[],
+): number {
+  return useRunCounts(items, listed).sent;
+}
+
+/**
  * ★ THE RUN'S OWN COUNT, FOR WHOEVER HEADS A FAILURE WITH IT (the album's slot and the door's step: both read the
  * page's one queue, and either may be the one standing when a run ends). The ids already settled when the run began,
  * taken in the render where something goes where nothing was (the sanctioned adjust-state-during-render pattern, as
- * `useRunProgress` takes its own: an effect would count the new files in their own baseline); `runSentOf` does the
- * rest.
+ * `useRunProgress` takes its own: an effect would count the new files in their own baseline); `runSentOf` and
+ * `runLandedOf` do the rest, off the one baseline, so the heading's whole and the files of it that landed (which the
+ * sheet reads before it says anything of the rest in the album) always speak of the same files.
  *
  * ★ A RUN THAT BEGINS WITH FAILURES STILL LISTED IS THEIR GO CONTINUING, not a new one: one of three Retried while the
  * sheet stands over the other two sends a file of the same go, and the whole it counts stays what it was ("2 of 3"
@@ -446,10 +466,10 @@ export function runSentOf(
  * never saw the run begin (the slot mounts under `key={access}` with the door's run already going), so nothing may be
  * taken for outside it, and the heading reads the whole run it ends with.
  */
-export function useRunSent(
+export function useRunCounts(
   items: readonly QueueItem[],
   listed: readonly Pick<QueueItem, "id">[],
-): number {
+): { sent: number; landed: number } {
   const running = items.some(isActive);
   const [before, setBefore] = useState<ReadonlySet<string>>(NOTHING_BEFORE);
   const [wasRunning, setWasRunning] = useState(running);
@@ -461,7 +481,10 @@ export function useRunSent(
       );
     }
   }
-  return runSentOf(items, before, listed);
+  return {
+    sent: runSentOf(items, before, listed),
+    landed: runLandedOf(items, before),
+  };
 }
 
 export type UploadedItem = {

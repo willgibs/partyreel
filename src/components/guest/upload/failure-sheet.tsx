@@ -217,6 +217,7 @@ export function UploadFailureSheet({
   onOpenChange,
   failures,
   sent,
+  landed,
   hostName,
   waits,
   camera = false,
@@ -227,6 +228,12 @@ export function UploadFailureSheet({
   failures: readonly UploadFailure[];
   /** The whole run's count (failed + landed), for the exact heading's denominator. */
   sent: number;
+  /**
+   * How many of the run's files have landed (`useRunCounts`). What it says of everything else is true only when every
+   * file not listed has: a row's Retry takes its file out of the list while it goes, and that file is not in the album
+   * until it lands. Absent, everything not listed is taken to have landed, as it has when a run has just ended.
+   */
+  landed?: number;
   hostName: string;
   /** What her adds wait for (the page's `addsWaitFor`): what the sheet says of the rest (`uploadFailureElsewhere`). */
   waits?: UploadsWait;
@@ -255,18 +262,24 @@ export function UploadFailureSheet({
   const [latched, setLatched] = useState<{
     failures: readonly UploadFailure[];
     sent: number;
-  }>({ failures, sent });
+    landed: number | undefined;
+  }>({ failures, sent, landed });
   if (open && failures.length > 0 && failures !== latched.failures) {
-    setLatched({ failures, sent });
+    setLatched({ failures, sent, landed });
   }
-  const shown = open && failures.length > 0 ? { failures, sent } : latched;
+  const shown =
+    open && failures.length > 0 ? { failures, sent, landed } : latched;
   const nowMs = useWaitClock();
   const heading = uploadFailureHeading(shown.failures.length, shown.sent);
   /* ★ A RUN THAT FAILED WHOLE HAS NO "EVERYTHING ELSE" TO SAY (crumbs-76): "1 of 1 didn't upload" under "Everything
      else is in Maya's album" spoke of a rest that does not exist. The line is said only where the run sent more than
-     failed, and the dialog is described by it only then. */
+     failed, and the dialog is described by it only then.
+     ★ AND NOTHING OF THE REST UNTIL IT HAS LANDED (red-team 54b's NIT): a row's Retry takes its file out of the list while
+     it goes, so on a run that failed whole "2 of 2" became "1 of 2 / Everything else is in Maya's album" for as long as
+     that file was in the air, over a rest that was not in it. The rest is said when every file not listed has landed. */
+  const others = shown.sent - shown.failures.length;
   const rest =
-    shown.sent > shown.failures.length
+    others > 0 && (shown.landed ?? others) === others
       ? uploadFailureElsewhere({ hostName, waits, nowMs })
       : null;
   // Nothing a retry could pass: every line is a refusal of the file itself, so the way on is another file.

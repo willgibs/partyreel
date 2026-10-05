@@ -1172,6 +1172,52 @@ describe("GuestUpload: a failure the slot never reported is not the next run's (
     ).toBeInTheDocument();
   });
 
+  /* ★ RED-TEAM 54b'S NIT: on a run that failed whole, a row's Retry put "Everything else is in Will Gibson's album." under
+     the sheet for as long as that file was going (while nothing of the run had landed, for 6.4 s on its line): the retried
+     file leaves the list while it is in the air, so "2 of 2" became "1 of 2" over a rest that is not in the album. Nothing
+     of the rest is said until every file the sheet does not list has landed. */
+  it("★ says nothing of the rest while a row's retried file is in the air, and says it once that file has landed", async () => {
+    mockUploadFile.mockReset();
+    let land: (outcome: typeof LANDED) => void = () => {};
+    mockUploadFile
+      .mockResolvedValueOnce({ ok: false, message: "Nope A." })
+      .mockResolvedValueOnce({ ok: false, message: "Nope B." })
+      // a.jpg's own Retry goes up and is held there: its answer is ours to give.
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            land = resolve as typeof land;
+          }),
+      );
+    const gated = mountGated();
+    sendThroughSheet(gated.handleRef, [makeFile("a.jpg"), makeFile("b.jpg")]);
+    await screen.findByText("2 of 2 didn't upload");
+    expect(screen.queryByText(/Everything else/)).toBeNull();
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Retry" })[0]);
+    await waitFor(() => expect(mockUploadFile).toHaveBeenCalledTimes(3));
+    await waitFor(() =>
+      expect(last(gated).map((it) => it.status)).toEqual([
+        "uploading",
+        "error",
+      ]),
+    );
+    // The sheet lists b.jpg alone, of a run of two; a.jpg is going, so nothing is yet in the album.
+    expect(await screen.findByText("1 of 2 didn't upload")).toBeInTheDocument();
+    expect(screen.queryByText(/Everything else/)).toBeNull();
+    expect(screen.getByRole("dialog")).not.toHaveAttribute("aria-describedby");
+
+    // It lands: now the rest is in the album, and the sheet says so.
+    await act(async () => land(LANDED));
+    await waitFor(() =>
+      expect(last(gated).map((it) => it.status)).toEqual(["done", "error"]),
+    );
+    expect(
+      await screen.findByText("Everything else is in Maya’s album."),
+    ).toBeInTheDocument();
+    expect(screen.getByText("1 of 2 didn't upload")).toBeInTheDocument();
+  });
+
   /* ★ A REFUSAL OF THE FILE ITSELF THAT THE UPLOADER MADE LOCALLY HAS NO RETRY (red-team 54's LOW): the uploader refuses a
      wrong type before any request and says no code, so the queue read it as a transport failure, and the sheet offered a
      Retry whose press sent nothing. The queue tells it as the file's own refusal now (`localRefusalCode`). */

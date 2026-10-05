@@ -86,6 +86,12 @@ function LiveStackTile({
   const askId = `stop-upload-${lead.queueId}`;
   // The file leaves the stack (landed, failed, stopped): a question still standing about it goes with it.
   useEffect(() => () => withdrawStopQuestion(exportToasts, askId), [askId]);
+  // ★ AND SO DOES THE x'S GOING (red-team 54b's NIT): once the bytes are up its complete is coming, the x is gone, and an
+  // unanswered "Stop this upload?" outlived it by the complete's whole length (7 s on a held line) still offering a Stop
+  // upload that could only answer too late. Nothing is said: the file landing is the answer.
+  useEffect(() => {
+    if (!stoppable) withdrawStopQuestion(exportToasts, askId);
+  }, [stoppable, askId]);
   return (
     <UploadStackTile
       file={lead.file}

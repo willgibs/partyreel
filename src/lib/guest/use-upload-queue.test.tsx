@@ -17,10 +17,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   landedAs,
   localRefusalCode,
+  runLandedOf,
   runProgressOf,
   runSentOf,
   useLiveQueue,
   useQueueProgress,
+  useRunCounts,
   useRunProgress,
   useRunSent,
   useUploadQueue,
@@ -1261,6 +1263,75 @@ describe("runSentOf", () => {
     expect(
       runSentOf([old, left, again], new Set(["old", "left"]), [again]),
     ).toBe(1);
+  });
+});
+
+/**
+ * ★ HOW MANY OF THE RUN'S FILES HAVE LANDED (red-team 54b's NIT), the other half of "N of SENT didn't upload": the sheet
+ * may say the rest is in the album only when every file it does not list has landed, and a file going again after a Retry
+ * is not one of them until it does.
+ */
+describe("runLandedOf", () => {
+  const NONE: ReadonlySet<string> = new Set();
+
+  it("counts the files that landed, not the ones going or refused", () => {
+    const items = [
+      flying("a", { status: "done", progress: 100 }),
+      flying("b", { status: "uploading", progress: 40 }),
+      flying("c", { status: "error" }),
+      flying("d", { status: "queued" }),
+    ];
+    expect(runLandedOf(items, NONE)).toBe(1);
+  });
+
+  it("leaves out what landed before the run began", () => {
+    const items = [
+      flying("old", { status: "done", progress: 100 }),
+      flying("a", { status: "done", progress: 100 }),
+    ];
+    expect(runLandedOf(items, new Set(["old"]))).toBe(1);
+  });
+});
+
+describe("useRunCounts", () => {
+  const failuresOf = (items: readonly QueueItem[]) =>
+    items.filter((it) => it.status === "error");
+  const countsOf = (items: readonly QueueItem[]) =>
+    renderHook(({ items }) => useRunCounts(items, failuresOf(items)), {
+      initialProps: { items },
+    });
+
+  it("★ a row's Retry on a run that failed whole is a run of two with none landed while it goes, then one landed", () => {
+    const failed = [
+      flying("a", { status: "error" }),
+      flying("b", { status: "error" }),
+    ];
+    const { result, rerender } = countsOf([
+      flying("a", { status: "queued" }),
+      flying("b", { status: "queued" }),
+    ]);
+    rerender({ items: failed });
+    expect(result.current).toEqual({ sent: 2, landed: 0 });
+    // a's own Retry: it goes up again, b stays listed.
+    rerender({
+      items: [flying("a", { status: "uploading" }), failed[1]!],
+    });
+    expect(result.current).toEqual({ sent: 2, landed: 0 });
+    // ...and lands.
+    rerender({
+      items: [flying("a", { status: "done", progress: 100 }), failed[1]!],
+    });
+    expect(result.current).toEqual({ sent: 2, landed: 1 });
+  });
+
+  it("agrees with useRunSent on what the run is", () => {
+    const items = [
+      flying("a", { status: "done", progress: 100 }),
+      flying("b", { status: "error" }),
+    ];
+    const counts = countsOf(items);
+    const sent = renderHook(() => useRunSent(items, failuresOf(items)));
+    expect(counts.result.current.sent).toBe(sent.result.current);
   });
 });
 

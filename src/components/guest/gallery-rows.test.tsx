@@ -369,6 +369,42 @@ describe("GalleryRows: the stack's x", () => {
     expect(dismiss).toHaveBeenCalledWith("stop-upload-x8");
   });
 
+  it("★ a question still standing when the x goes (its bytes are up, its complete is coming) goes with it, saying nothing", () => {
+    const { rerender } = render(
+      <GalleryRows
+        {...REST}
+        items={SEED}
+        pending={[pending("x11", "uploading", 30)]}
+        progress={store(async () => null, 30)}
+      />,
+    );
+    fireEvent.click(xButton()!);
+    expect(show.mock.calls.map(([, view]) => view.tone)).toEqual(["confirm"]);
+    // Still going up, a render later: the question stands.
+    rerender(
+      <GalleryRows
+        {...REST}
+        items={SEED}
+        pending={[pending("x11", "uploading", 60)]}
+        progress={store(async () => null, 60)}
+      />,
+    );
+    expect(dismiss).not.toHaveBeenCalled();
+    // Its last byte is up and nothing else goes: the same file leads, its x is gone, and so is the question.
+    rerender(
+      <GalleryRows
+        {...REST}
+        items={SEED}
+        pending={[pending("x11", "queued", 100)]}
+        progress={store(async () => null, 100)}
+      />,
+    );
+    expect(xButton()).toBeNull();
+    expect(dismiss).toHaveBeenCalledWith("stop-upload-x11");
+    // Nothing was said in its place: no cancel, no "too late".
+    expect(show.mock.calls.map(([, view]) => view.tone)).toEqual(["confirm"]);
+  });
+
   it("★ a question about a file that left the stack is withdrawn with it", () => {
     const { rerender } = render(
       <GalleryRows
