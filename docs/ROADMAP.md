@@ -17,6 +17,10 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Host: "Max size per upload" stands only under the Videos switch (`videos-switch.tsx`), unreachable on Free though it caps photos too: its own row in What guests can add (customize r1's audit).
+- Camera: turning the camera off and back on writes the roll back to 24 (`events_reveal_stamp`'s coalesce): keep her size, or her usual once account defaults exist.
+- Guests: a password's unlock lasts 12 hours (`UNLOCK_TTL_SECONDS`, `lib/events/unlock-token.ts`), so a weekend's guests re-type it twice a day: the party's days plus a night.
+- Host: the develop's 9 am is the host's browser zone: keep the zone it was picked in beside the time, so a destination wedding set from home develops in the party's own morning.
 - Design: a `swatch` atom for a picture chosen among pictures (Create's looks, the reel's moods, the code's styles) wearing the selected trait, instead of each picker drawing its own ring (identity r4's idea; after desk 3's picks).
 - Design: the live reel's Style menu draws "Set for everyone" as a hand-drawn pill row, not the key atom (`live-reel-view.tsx`).
 - Design: the Display menu's group names (LAYOUT, ORDER, SHOW, GROUP, COVERS) and the door's "ALMOST IN" are spaced capitals outside the camera voice's counts, live and times.
