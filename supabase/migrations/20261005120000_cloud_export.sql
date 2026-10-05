@@ -67,7 +67,7 @@
 --         select key from public.ops_flags where key = 'drive_export_enabled';                          -- no rows
 --       and spend_watch_readings is still 20261003190000's body (hash its prosrc against that file's).
 --   (2) Apply verbatim.
---   (3) get_advisors (security): EXPECTED DELTA `rls_enabled_no_policy` 19 -> 24 (cloud_connections,
+--   (3) get_advisors (security): EXPECTED DELTA `rls_enabled_no_policy` 20 -> 25 (cloud_connections,
 --       cloud_event_folders, cloud_export_items, cloud_export_leases, cloud_export_sent_hours), nothing in 0028 or
 --       0029 (every function is the service role's or the owner's alone).
 --   (4) Regenerate src/lib/db/types.ts (six tables and the functions join it), then drop the typed seam in
@@ -1855,6 +1855,11 @@ $$;
 -- connection at most once an hour), what to ask again (a full Drive's room, every 6 hours for a week), what ended
 -- (14 days running, 30 paused, a press that never got its folder), what stuck (an hour with work and no progress),
 -- the breakers, the connections failing past a day or near a time-based grant's end, and the old leases and hours.
+--
+-- ★ ITS LOCK ORDER IS EVERY BODY'S: whatever changes a send's state through its connection takes the connection row
+-- first (the first half below), and what touches sends alone takes only the rows no lane is holding (`for update skip
+-- locked`, the second half), so the sweep never holds a send while it waits on a connection a lane's report holds; a
+-- send it skipped is taken by the next sweep, five minutes on.
 create function public.cloud_export_sweep()
 returns jsonb
 language plpgsql
@@ -1872,32 +1877,105 @@ declare
   v_breakers jsonb := '[]'::jsonb;
   v_expired jsonb := '[]'::jsonb;
   v_resumed integer := 0;
+  v_n integer;
   v_stuck integer := 0;
   v_failed_start integer := 0;
   v_user record;
   v_job record;
 begin
+  -- ── Through the connection, its row first ──
+
+  -- A time-based grant a day from its end reads failing now, with the reconnect mail, so it never dies as a silent
+  -- invalid_grant.
+  for v_conn in
+    update public.cloud_connections c
+       set status = 'failing', failing_since = coalesce(c.failing_since, c_now), updated_at = c_now
+     where c.status = 'connected' and c.refresh_expires_at is not null and c.refresh_expires_at < c_now + interval '1 day'
+    returning c.id, c.user_id
+  loop
+    v_reconnect := v_reconnect || jsonb_build_array(jsonb_build_object(
+      'connection_id', v_conn.id, 'user_id', v_conn.user_id, 'why', 'grant_ending'));
+  end loop;
+
+  -- A connection failing past a day: its sends pause `disconnected`, with the reconnect mail.
+  for v_conn in
+    select c.id, c.user_id from public.cloud_connections c
+     where c.status = 'failing' and c.failing_since < c_now - interval '24 hours'
+       and exists (select 1 from public.cloud_exports j where j.connection_id = c.id and j.status in ('sending', 'checking'))
+  loop
+    perform 1 from public.cloud_connections c where c.id = v_conn.id for update;
+    perform public.cloud_export_pause(v_conn.id, null, 'disconnected', null);
+    v_reconnect := v_reconnect || jsonb_build_array(jsonb_build_object(
+      'connection_id', v_conn.id, 'user_id', v_conn.user_id, 'why', 'failing'));
+  end loop;
+
+  -- A pause whose time came (Google's day): sending again, kicked below in this same sweep.
+  for v_conn in
+    select distinct j.connection_id as id from public.cloud_exports j
+     where j.status = 'paused' and j.pause_reason = 'daily_limit' and j.resume_at <= c_now and j.connection_id is not null
+  loop
+    perform 1 from public.cloud_connections c where c.id = v_conn.id for update;
+    update public.cloud_exports j
+       set status = 'sending', pause_reason = null, resume_at = null, resumed_at = c_now
+     where j.connection_id = v_conn.id and j.status = 'paused' and j.pause_reason = 'daily_limit'
+       and j.resume_at <= c_now;
+    get diagnostics v_n = row_count;
+    v_resumed := v_resumed + v_n;
+  end loop;
+
+  -- What to kick: a running send with work and no live lane and no progress for 5 minutes (or just resumed), or a
+  -- check with no live lane; a connection whose lane died today, at most once an hour (a poison lane never loops).
+  for v_conn in
+    select c.id, c.lane_failures, c.lane_failures_on, c.lane_rekicked_at
+      from public.cloud_connections c
+     where c.status <> 'revoked' and c.operator_paused_at is null
+       and (c.throttled_until is null or c.throttled_until <= c_now)
+       and not exists (select 1 from public.cloud_export_leases l where l.connection_id = c.id and l.leased_until > c_now)
+       and exists (
+         select 1 from public.cloud_exports j
+          where j.connection_id = c.id
+            and ((j.status = 'sending'
+                  and (coalesce(j.last_progress_at, j.resumed_at, j.started_at) < c_now - interval '5 minutes'
+                       or j.resumed_at > c_now - interval '6 minutes')
+                  and exists (select 1 from public.cloud_export_items i
+                               where i.job_id = j.id and i.status in ('pending', 'leased')
+                                 and (i.not_before is null or i.not_before <= c_now)))
+                 or j.status = 'checking')
+       )
+  loop
+    if v_conn.lane_failures_on = current_date and v_conn.lane_failures > 0
+       and v_conn.lane_rekicked_at is not null and v_conn.lane_rekicked_at > c_now - interval '1 hour' then
+      continue;
+    end if;
+    v_lanes := public.cloud_connection_kick(v_conn.id);
+    if (v_lanes ->> 'lanes')::integer > 0 then
+      if v_conn.lane_failures_on = current_date and v_conn.lane_failures > 0 then
+        update public.cloud_connections set lane_rekicked_at = c_now where id = v_conn.id;
+      end if;
+      v_kick := v_kick || jsonb_build_array(jsonb_build_object(
+        'connection_id', v_conn.id, 'lanes', (v_lanes ->> 'lanes')::integer));
+    end if;
+  end loop;
+
+  -- ── The sends alone, only the rows no lane holds ──
+
   -- A press that never got its folder.
   update public.cloud_exports j
      set status = 'stopped', stop_reason = 'failed_to_start', closed_at = c_now
-   where j.status = 'preparing' and j.created_at < c_now - interval '10 minutes';
+   where j.id in (select x.id from public.cloud_exports x
+                   where x.status = 'preparing' and x.created_at < c_now - interval '10 minutes'
+                   for update skip locked);
   get diagnostics v_failed_start = row_count;
 
-  -- A pause whose time came (Google's day): sending again.
-  update public.cloud_exports j
-     set status = 'sending', pause_reason = null, resume_at = null, resumed_at = c_now
-   where j.status = 'paused' and j.resume_at is not null and j.resume_at <= c_now
-     and j.pause_reason = 'daily_limit';
-  get diagnostics v_resumed = row_count;
-
-  -- By construction nothing runs for ever: 14 days running, 30 paused.
+  -- By construction nothing runs for ever: 14 days running (from its start or its last resume), 30 paused.
   for v_job in
     update public.cloud_exports j
-       set status = 'stopped', stop_reason = 'expired', pause_reason = null, closed_at = c_now,
-           attention_at = c_now
-     where (j.status in ('sending', 'checking')
-            and greatest(j.started_at, coalesce(j.resumed_at, j.started_at)) < c_now - interval '14 days')
-        or (j.status = 'paused' and j.paused_at < c_now - interval '30 days')
+       set status = 'stopped', stop_reason = 'expired', pause_reason = null, closed_at = c_now, attention_at = c_now
+     where j.id in (select x.id from public.cloud_exports x
+                     where (x.status in ('sending', 'checking')
+                            and greatest(x.started_at, coalesce(x.resumed_at, x.started_at)) < c_now - interval '14 days')
+                        or (x.status = 'paused' and x.paused_at < c_now - interval '30 days')
+                     for update skip locked)
     returning j.id, j.user_id
   loop
     v_expired := v_expired || jsonb_build_array(jsonb_build_object('job_id', v_job.id, 'user_id', v_job.user_id));
@@ -1906,16 +1984,20 @@ begin
   -- An hour with work and no progress: stuck (the /admin signal), cleared by the next progress.
   update public.cloud_exports j
      set stuck_since = c_now
-   where j.status = 'sending' and j.stuck_since is null
-     and coalesce(j.last_progress_at, j.started_at) < c_now - interval '1 hour'
-     and exists (select 1 from public.cloud_export_items i where i.job_id = j.id and i.status in ('pending', 'leased'));
+   where j.id in (select x.id from public.cloud_exports x
+                   where x.status = 'sending' and x.stuck_since is null
+                     and coalesce(x.last_progress_at, x.resumed_at, x.started_at) < c_now - interval '1 hour'
+                     and exists (select 1 from public.cloud_export_items i
+                                  where i.job_id = x.id and i.status in ('pending', 'leased'))
+                   for update skip locked);
   get diagnostics v_stuck = row_count;
 
-  -- The account breakers: running sends of an account past ten times its plan's room in 30 days pause.
+  -- The account breakers (PRICING's rule 2): ten times her plan's room in any 30 days, never under 5 GB, since an
+  -- operator's last Lift; a plan with no cap on record is unmetered. Past it her running sends pause, quietly in her
+  -- words ("we've been told"), loudly for us (the route's Sentry and ops mail).
   for v_user in
     select h.user_id, sum(h.bytes)::bigint as sent30
       from public.cloud_export_sent_hours h
-      join public.profiles pr on pr.id = h.user_id
       left join public.cloud_connections c on c.user_id = h.user_id and c.provider = 'google_drive'
      where h.hour > greatest(c_now - interval '30 days', coalesce(c.breaker_lifted_at, '-infinity'::timestamptz))
        and exists (select 1 from public.cloud_exports j where j.user_id = h.user_id and j.status in ('sending', 'checking'))
@@ -1928,32 +2010,17 @@ begin
          5::bigint * 1024 * 1024 * 1024) then
       update public.cloud_exports j
          set status = 'paused', pause_reason = 'breaker', paused_at = c_now
-       where j.user_id = v_user.user_id and j.status in ('sending', 'checking');
-      v_breakers := v_breakers || jsonb_build_array(jsonb_build_object('user_id', v_user.user_id, 'sent30', v_user.sent30));
+       where j.id in (select x.id from public.cloud_exports x
+                       where x.user_id = v_user.user_id and x.status in ('sending', 'checking')
+                       for update skip locked);
+      get diagnostics v_n = row_count;
+      if v_n > 0 then
+        v_breakers := v_breakers || jsonb_build_array(jsonb_build_object('user_id', v_user.user_id, 'sent30', v_user.sent30));
+      end if;
     end if;
   end loop;
 
-  -- Connections failing past a day: their sends pause `disconnected`; a time-based grant a day from its end reads
-  -- failing now, with the reconnect mail, so it never dies as a silent invalid_grant.
-  for v_conn in
-    update public.cloud_connections c
-       set status = 'failing', failing_since = coalesce(c.failing_since, c_now), updated_at = c_now
-     where c.status = 'connected' and c.refresh_expires_at is not null and c.refresh_expires_at < c_now + interval '1 day'
-    returning c.id, c.user_id
-  loop
-    v_reconnect := v_reconnect || jsonb_build_array(jsonb_build_object('connection_id', v_conn.id, 'user_id', v_conn.user_id,
-                                                                       'why', 'grant_ending'));
-  end loop;
-  for v_conn in
-    select c.id, c.user_id from public.cloud_connections c
-     where c.status = 'failing' and c.failing_since < c_now - interval '24 hours'
-       and exists (select 1 from public.cloud_exports j where j.connection_id = c.id and j.status in ('sending', 'checking'))
-  loop
-    perform 1 from public.cloud_connections c where c.id = v_conn.id for update;
-    perform public.cloud_export_pause(v_conn.id, null, 'disconnected', null);
-    v_reconnect := v_reconnect || jsonb_build_array(jsonb_build_object('connection_id', v_conn.id, 'user_id', v_conn.user_id,
-                                                                       'why', 'failing'));
-  end loop;
+  -- ── Reads and housekeeping ──
 
   -- A full Drive's room, asked again every 6 hours for 7 days (the route asks Google and resumes on room).
   select coalesce(jsonb_agg(c.id), '[]'::jsonb) into v_recheck
@@ -1961,38 +2028,6 @@ begin
    where c.full_since is not null and c.full_since > c_now - interval '7 days'
      and (c.full_checked_at is null or c.full_checked_at < c_now - interval '6 hours')
      and c.status <> 'revoked';
-
-  -- What to kick: a running send with work and no live lane and no progress for 5 minutes, or a check with no live
-  -- lane; a connection whose lane died today, at most once an hour.
-  for v_conn in
-    select c.id, c.lane_failures, c.lane_failures_on, c.lane_rekicked_at
-      from public.cloud_connections c
-     where c.status <> 'revoked' and c.operator_paused_at is null
-       and (c.throttled_until is null or c.throttled_until <= c_now)
-       and not exists (select 1 from public.cloud_export_leases l where l.connection_id = c.id and l.leased_until > c_now)
-       and exists (
-         select 1 from public.cloud_exports j
-          where j.connection_id = c.id
-            and ((j.status = 'sending' and coalesce(j.last_progress_at, j.resumed_at, j.started_at) < c_now - interval '5 minutes'
-                  and exists (select 1 from public.cloud_export_items i
-                               where i.job_id = j.id and i.status in ('pending', 'leased')
-                                 and (i.not_before is null or i.not_before <= c_now)))
-                 or j.status = 'checking'
-                 or (j.status = 'sending' and j.resumed_at > c_now - interval '6 minutes'))
-       )
-  loop
-    if v_conn.lane_failures_on = current_date and v_conn.lane_failures > 0
-       and v_conn.lane_rekicked_at is not null and v_conn.lane_rekicked_at > c_now - interval '1 hour' then
-      continue;
-    end if;
-    v_lanes := public.cloud_connection_kick(v_conn.id);
-    if (v_lanes ->> 'lanes')::integer > 0 then
-      if v_conn.lane_failures_on = current_date and v_conn.lane_failures > 0 then
-        update public.cloud_connections set lane_rekicked_at = c_now where id = v_conn.id;
-      end if;
-      v_kick := v_kick || jsonb_build_array(jsonb_build_object('connection_id', v_conn.id, 'lanes', (v_lanes ->> 'lanes')::integer));
-    end if;
-  end loop;
 
   delete from public.cloud_export_leases l where l.leased_until < c_now - interval '1 day';
   delete from public.cloud_export_sent_hours h where h.hour < c_now - interval '31 days';
@@ -2173,3 +2208,597 @@ grant execute on function public.cloud_export_sweep() to service_role;
 
 revoke all on function public.spend_watch_readings(timestamptz, text[]) from public, anon, authenticated;
 grant execute on function public.spend_watch_readings(timestamptz, text[]) to service_role;
+
+-- =============================================================================================
+-- THE ROLLED-BACK CHECK (section 12's list, minus the exit). Run it AFTER the apply, in one execute_sql call; it ends
+-- in a deliberate raise, so nothing it touches persists (database-security.md, Workflow). Every function's class, pin
+-- and grants; RLS on every table, the deny-all five closed to both client roles, the one client read exactly the
+-- progress columns; the switch seeded on; a press with no connection refused; a connection new, then the same Google
+-- account again (its id kept, nothing revoked); the preview and the snapshot equal to chosenRows over media_host_all
+-- (a quietly held row and a sealed one IN, her Deleted, an operator's removal and an asked purge OUT); a second press
+-- opening the first; a lease that locks the connection row first, skips a row removed after the press, and refuses a
+-- fourth lane; the names' " (2)" and a kept name never changing; a report's sent, kept, backed-off, progress and
+-- skipped items, a dead lease's word ignored and a replay changing nothing; another host reading zero rows, the
+-- owner reading hers, the deny-all tables and the lease 42501 for authenticated and anon; acts not hers not found; a
+-- full Drive pausing every send with its flag and room resuming them; the closing check sending a missing file once
+-- more and ending done; a second send carrying every prior file; Disconnect forgetting the Drive and keeping the
+-- breaker's hours; another Google account replacing the row; invalid_grant wiping the tokens and the same account back
+-- resuming; the switch off leasing and kicking nothing and a kick being three lanes once a minute; the sweep whole;
+-- the spend watch's drive_bytes; the breaker at the press and in the sweep, and an operator's Lift; the token claim;
+-- an operator's pause and resume. The error it ends on must read `ROLLED BACK: every cloud_export check held {...}`.
+-- The lane ran it on a local stand-in (postgresql@17, the Supabase roles, handle_new_user's shape) and on the live
+-- project BEFORE the apply: the file's statements at the head of the same transaction, rolled back (the Handoff).
+-- =============================================================================================
+-- do $check$
+-- declare
+--   c_fns constant text[] := array[
+--     'public.cloud_connection_upsert(uuid, text, text, boolean, text, text[], text, text, timestamptz, timestamptz)',
+--     'public.cloud_connection_disconnect(uuid)',
+--     'public.cloud_connection_token(uuid)',
+--     'public.cloud_connection_refreshed(uuid, text, timestamptz, text)',
+--     'public.cloud_connection_refresh_failed(uuid, text, boolean)',
+--     'public.cloud_connection_room(uuid, bigint, bigint, boolean)',
+--     'public.cloud_connection_root(uuid, text, text)',
+--     'public.cloud_connection_kick(uuid)',
+--     'public.cloud_connection_operator(uuid, text, text)',
+--     'public.cloud_export_preview(uuid, uuid[], boolean)',
+--     'public.cloud_export_create(uuid, uuid, boolean, text)',
+--     'public.cloud_export_ready(uuid, text)',
+--     'public.cloud_export_lease(uuid)',
+--     'public.cloud_export_name_items(uuid, jsonb)',
+--     'public.cloud_export_report(uuid, jsonb, text, boolean)',
+--     'public.cloud_export_check_page(uuid, jsonb, integer, text)',
+--     'public.cloud_export_act(uuid, uuid, text, boolean)',
+--     'public.cloud_export_refolder(uuid, uuid, text)',
+--     'public.cloud_export_sweep()'
+--   ];
+--   c_helpers constant text[] := array[
+--     'public.cloud_export_pause(uuid, uuid, text, timestamptz)',
+--     'public.cloud_export_settle(uuid)'
+--   ];
+--   c_deny constant text[] := array[
+--     'public.cloud_connections', 'public.cloud_event_folders', 'public.cloud_export_items',
+--     'public.cloud_export_leases', 'public.cloud_export_sent_hours'
+--   ];
+--   c_progress constant text[] := array[
+--     'id', 'event_id', 'album_name', 'kind', 'status', 'pause_reason', 'stop_reason', 'resume_at', 'include_hidden',
+--     'items_total', 'items_sent', 'items_kept', 'items_skipped', 'items_failed', 'items_duplicated', 'bytes_total',
+--     'bytes_sent', 'folder_url', 'created_at', 'started_at', 'last_progress_at', 'closed_at', 'attention_at',
+--     'attention_seen_at'
+--   ];
+--   v_fn text;
+--   v_tab text;
+--   v_col record;
+--   v_host uuid;
+--   v_other uuid;
+--   v_event uuid;
+--   v_other_event uuid;
+--   v_held uuid;
+--   v_removed_later uuid;
+--   v_r jsonb;
+--   v_conn uuid;
+--   v_job uuid;
+--   v_job2 uuid;
+--   v_lease1 uuid;
+--   v_lease2 uuid;
+--   v_lease3 uuid;
+--   v_lease uuid;
+--   v_ids uuid[];
+--   v_n integer;
+--   v_expected integer;
+--   v_items jsonb;
+--   v_first uuid;
+--   v_second uuid;
+--   v_report jsonb := '{}'::jsonb;
+--   v_status text;
+--   v_third uuid;
+--   v_lockee uuid;
+-- begin
+--   -- ── 1. Every function's class, pin and grants ──
+--   foreach v_fn in array c_fns || c_helpers loop
+--     if not exists (select 1 from pg_proc p where p.oid = to_regprocedure(v_fn)
+--                     and p.prosecdef and p.proconfig @> array['search_path=""']) then
+--       raise exception 'FAIL 1: % is not SECURITY DEFINER with an empty search_path', v_fn;
+--     end if;
+--     if has_function_privilege('anon', v_fn, 'execute') or has_function_privilege('authenticated', v_fn, 'execute') then
+--       raise exception 'FAIL 1: a client role can execute %', v_fn;
+--     end if;
+--   end loop;
+--   foreach v_fn in array c_fns loop
+--     if not has_function_privilege('service_role', v_fn, 'execute') then
+--       raise exception 'FAIL 1: the service role cannot execute %', v_fn;
+--     end if;
+--   end loop;
+--   foreach v_fn in array c_helpers loop
+--     if has_function_privilege('service_role', v_fn, 'execute') then
+--       raise exception 'FAIL 1: the helper % is not the owner''s alone', v_fn;
+--     end if;
+--   end loop;
+--
+--   -- ── 2. The tables: RLS on everywhere, the deny-all set closed to both client roles, the one client read exactly
+--   --       the progress columns ──
+--   foreach v_tab in array c_deny || array['public.cloud_exports'] loop
+--     if not (select c.relrowsecurity from pg_class c where c.oid = v_tab::regclass) then
+--       raise exception 'FAIL 2: % has RLS off', v_tab;
+--     end if;
+--   end loop;
+--   foreach v_tab in array c_deny loop
+--     if has_table_privilege('anon', v_tab, 'select') or has_table_privilege('authenticated', v_tab, 'select')
+--        or has_table_privilege('authenticated', v_tab, 'insert') or has_table_privilege('authenticated', v_tab, 'update')
+--        or has_table_privilege('authenticated', v_tab, 'delete') then
+--       raise exception 'FAIL 2: a client role holds a privilege on the deny-all %', v_tab;
+--     end if;
+--     if exists (select 1 from pg_policy pol where pol.polrelid = v_tab::regclass) then
+--       raise exception 'FAIL 2: the deny-all % has a policy', v_tab;
+--     end if;
+--   end loop;
+--   if has_table_privilege('anon', 'public.cloud_exports', 'select')
+--      or has_table_privilege('authenticated', 'public.cloud_exports', 'insert')
+--      or has_table_privilege('authenticated', 'public.cloud_exports', 'update')
+--      or has_table_privilege('authenticated', 'public.cloud_exports', 'delete') then
+--     raise exception 'FAIL 2: cloud_exports grants a client role more than its read';
+--   end if;
+--   for v_col in select a.attname::text as name from pg_attribute a
+--                 where a.attrelid = 'public.cloud_exports'::regclass and a.attnum > 0 and not a.attisdropped loop
+--     if (v_col.name = any (c_progress)) <> has_column_privilege('authenticated', 'public.cloud_exports', v_col.name, 'select') then
+--       raise exception 'FAIL 2: authenticated''s SELECT on cloud_exports.% is not the progress list', v_col.name;
+--     end if;
+--     if has_column_privilege('anon', 'public.cloud_exports', v_col.name, 'select') then
+--       raise exception 'FAIL 2: anon reads cloud_exports.%', v_col.name;
+--     end if;
+--   end loop;
+--
+--   -- ── 3. The switch, seeded on ──
+--   if not coalesce((select f.enabled from public.ops_flags f where f.key = 'drive_export_enabled'), false) then
+--     raise exception 'FAIL 3: drive_export_enabled is not seeded on';
+--   end if;
+--
+--   -- ── Fixtures: two hosts, an album in every state the predicate weighs ──
+--   -- An auth user gets its profile from handle_new_user; Pro before her album, so the events limit lets both in.
+--   v_host := gen_random_uuid();
+--   v_other := gen_random_uuid();
+--   insert into auth.users (id, aud, role, email, email_confirmed_at) values
+--     (v_host, 'authenticated', 'authenticated', 'drive-check-a-' || v_host || '@example.com', now()),
+--     (v_other, 'authenticated', 'authenticated', 'drive-check-b-' || v_other || '@example.com', now());
+--   update public.profiles set display_name = 'Maya', tier = 'pro', storage_cap_bytes = 50::bigint * 1024 * 1024 * 1024
+--    where id = v_host;
+--   update public.profiles set display_name = 'Ben', tier = 'free', storage_cap_bytes = null where id = v_other;
+--   insert into public.events (host_id, name, event_date) values (v_host, 'Maya & Jay', '2026-09-12') returning id into v_event;
+--   insert into public.events (host_id, name) values (v_other, 'Ben''s party') returning id into v_other_event;
+--   -- 33 shown photographs, oldest first.
+--   insert into public.media (event_id, type, status, original_key, file_size_bytes, created_at)
+--   select v_event, 'photo', 'approved', 'events/' || v_event || '/photo/' || gen_random_uuid() || '/original.jpg',
+--          4000000 + g, now() - make_interval(mins => 100 - g)
+--     from generate_series(1, 33) g;
+--   -- A quietly held one and a sealed one: in her scope, so in the send.
+--   insert into public.media (event_id, type, status, original_key, file_size_bytes, legal_hold_at, legal_hold_reason)
+--   values (v_event, 'photo', 'approved', 'events/' || v_event || '/photo/held/original.jpg', 3000000, now(), 'quiet')
+--   returning id into v_held;
+--   insert into public.media (event_id, type, status, original_key, file_size_bytes, sealed_until)
+--   values (v_event, 'video', 'approved', 'events/' || v_event || '/video/sealed/original.mp4', 90000000, now() + interval '1 day');
+--   -- Hidden and waiting: only with Include hidden items.
+--   insert into public.media (event_id, type, status, original_key, file_size_bytes)
+--   values (v_event, 'photo', 'hidden', 'events/' || v_event || '/photo/h1/original.jpg', 1000),
+--          (v_event, 'photo', 'hidden', 'events/' || v_event || '/photo/h2/original.jpg', 1000),
+--          (v_event, 'photo', 'pending', 'events/' || v_event || '/photo/p1/original.jpg', 1000);
+--   -- Never: her Deleted, an operator's removal, a permanent delete she asked.
+--   insert into public.media (event_id, type, status, original_key, file_size_bytes, removed_at)
+--   values (v_event, 'photo', 'removed', 'events/' || v_event || '/photo/r1/original.jpg', 1000, now());
+--   insert into public.media (event_id, type, status, original_key, file_size_bytes, removed_at, removed_by_admin)
+--   values (v_event, 'photo', 'removed', 'events/' || v_event || '/photo/r2/original.jpg', 1000, now(), true);
+--   insert into public.media (event_id, type, status, original_key, file_size_bytes, removed_at, purge_asked_at)
+--   values (v_event, 'photo', 'removed', 'events/' || v_event || '/photo/pa/original.jpg', 1000, now(), now());
+--   -- Another host's album.
+--   insert into public.media (event_id, type, status, original_key, file_size_bytes)
+--   values (v_other_event, 'photo', 'approved', 'events/' || v_other_event || '/photo/x/original.jpg', 1000);
+--
+--   -- ── 4. The connection: new, the same account again (resumes, keeps its id), and an unconnected press refused ──
+--   v_r := public.cloud_export_create(v_host, v_event, false, 'Europe/London');
+--   if v_r ->> 'code' is distinct from 'not_connected' then raise exception 'FAIL 4: a press with no connection: %', v_r; end if;
+--   v_r := public.cloud_connection_upsert(v_host, 'sub-a', 'host-a@example.com', true, 'Maya', array['openid', 'email',
+--            'https://www.googleapis.com/auth/drive.file'], 'v1.k.r1.ct', 'v1.k.a1.ct', now() + interval '1 hour', null);
+--   if v_r ->> 'outcome' <> 'new' then raise exception 'FAIL 4: first connect: %', v_r; end if;
+--   v_conn := (v_r ->> 'connection_id')::uuid;
+--   v_r := public.cloud_connection_upsert(v_host, 'sub-a', 'host-a@example.com', true, 'Maya', array['openid'],
+--            'v1.k.r2.ct', 'v1.k.a2.ct', now() + interval '1 hour', null);
+--   if v_r ->> 'outcome' <> 'same' or (v_r ->> 'connection_id')::uuid <> v_conn or v_r ? 'old_refresh_ct' then
+--     raise exception 'FAIL 4: same-account reconnect: %', v_r;
+--   end if;
+--
+--   -- ── 5. The preview and the snapshot are chosenRows over media_host_all ──
+--   v_r := public.cloud_export_preview(v_host, array[v_event, v_other_event], false);
+--   if (v_r -> 'albums' -> v_event::text ->> 'items')::integer <> 35
+--      or (v_r -> 'albums' -> v_event::text ->> 'new_items')::integer <> 35
+--      or v_r -> 'albums' ? v_other_event::text then
+--     raise exception 'FAIL 5: preview (shown): %', v_r;
+--   end if;
+--   v_r := public.cloud_export_preview(v_host, array[v_event], true);
+--   if (v_r -> 'albums' -> v_event::text ->> 'items')::integer <> 38 then
+--     raise exception 'FAIL 5: preview (hidden included): %', v_r;
+--   end if;
+--   v_r := public.cloud_export_create(v_host, v_event, false, 'Not/AZone');
+--   if not (v_r ->> 'ok')::boolean or (v_r ->> 'items')::integer <> 35 then raise exception 'FAIL 5: create: %', v_r; end if;
+--   v_job := (v_r ->> 'job_id')::uuid;
+--   if (select j.tz from public.cloud_exports j where j.id = v_job) <> 'UTC' then
+--     raise exception 'FAIL 5: an unknown zone was kept';
+--   end if;
+--   if not exists (select 1 from public.cloud_export_items i where i.job_id = v_job and i.media_id = v_held) then
+--     raise exception 'FAIL 5: the quietly held item is missing from the snapshot (a hold would show)';
+--   end if;
+--   if exists (select 1 from public.cloud_export_items i join public.media m on m.id = i.media_id
+--               where i.job_id = v_job and (m.status <> 'approved' or m.purge_asked_at is not null)) then
+--     raise exception 'FAIL 5: the snapshot took a row chosenRows leaves out';
+--   end if;
+--   v_r := public.cloud_export_create(v_host, v_event, true, 'UTC');
+--   if not coalesce((v_r ->> 'existing')::boolean, false) or (v_r ->> 'job_id')::uuid <> v_job then
+--     raise exception 'FAIL 5: a second press did not open the first: %', v_r;
+--   end if;
+--   v_r := public.cloud_export_create(v_host, v_other_event, false, 'UTC');
+--   if v_r ->> 'code' <> 'not_found' then raise exception 'FAIL 5: another host''s album: %', v_r; end if;
+--
+--   -- ── 6. Ready, then the lease: the connection lock first, a removed item skipped, at most three lanes ──
+--   if public.cloud_export_lease(v_conn) ->> 'state' <> 'idle' then
+--     raise exception 'FAIL 6: a preparing send was leased';
+--   end if;
+--   v_r := public.cloud_export_ready(v_job, 'folder-1');
+--   if not (v_r ->> 'ok')::boolean then raise exception 'FAIL 6: ready: %', v_r; end if;
+--   select i.media_id into v_removed_later from public.cloud_export_items i where i.job_id = v_job order by i.position limit 1;
+--   update public.media set status = 'removed', removed_at = now() where id = v_removed_later;
+--
+--   -- ★ The lease takes the connection row for update before anything else: a row never locked carries no locker, and
+--   -- a lease that finds nothing to do still leaves its own on it.
+--   v_third := gen_random_uuid();
+--   insert into auth.users (id, aud, role, email, email_confirmed_at)
+--   values (v_third, 'authenticated', 'authenticated', 'drive-check-c-' || v_third || '@example.com', now());
+--   v_lockee := (public.cloud_connection_upsert(v_third, 'sub-c', null, false, null, '{}', 'v1.k.rc.ct', null, null, null)
+--                ->> 'connection_id')::uuid;
+--   if (select c.xmax::text from public.cloud_connections c where c.id = v_lockee) <> '0' then
+--     raise exception 'FAIL 6: the new connection row was locked before the lease';
+--   end if;
+--   if public.cloud_export_lease(v_lockee) ->> 'state' <> 'idle'
+--      or (select c.xmax::text from public.cloud_connections c where c.id = v_lockee) = '0' then
+--     raise exception 'FAIL 6: the lease did not lock the connection row';
+--   end if;
+--   v_r := public.cloud_export_lease(v_conn);
+--   -- Ten were taken and the removed one skipped on the spot, so nine go.
+--   if v_r ->> 'state' <> 'work' or jsonb_array_length(v_r -> 'items') <> 9 or v_r -> 'access' ->> 'state' <> 'cached' then
+--     raise exception 'FAIL 6: first lease: %', v_r;
+--   end if;
+--   v_lease1 := (v_r ->> 'lease')::uuid;
+--   if (select i.status from public.cloud_export_items i where i.job_id = v_job and i.media_id = v_removed_later) <> 'skipped'
+--      or (select j.items_skipped from public.cloud_exports j where j.id = v_job) <> 1 then
+--     raise exception 'FAIL 6: an item removed after the press was not skipped';
+--   end if;
+--   if exists (select 1 from jsonb_array_elements(v_r -> 'items') e where (e ->> 'media_id')::uuid = v_removed_later) then
+--     raise exception 'FAIL 6: the removed item was handed out';
+--   end if;
+--   v_r := public.cloud_export_lease(v_conn);
+--   v_lease2 := (v_r ->> 'lease')::uuid;
+--   v_r := public.cloud_export_lease(v_conn);
+--   v_lease3 := (v_r ->> 'lease')::uuid;
+--   if v_lease2 is null or v_lease3 is null then raise exception 'FAIL 6: lanes two and three: %', v_r; end if;
+--   v_r := public.cloud_export_lease(v_conn);
+--   if v_r ->> 'state' <> 'wait' or v_r ->> 'why' <> 'lanes' then
+--     raise exception 'FAIL 6: a fourth lane was not refused: %', v_r;
+--   end if;
+--   v_report := v_report || jsonb_build_object('lanes', 3);
+--
+--   -- ── 7. The names: one stem twice takes " (2)", and a name never changes ──
+--   select array_agg(e.media_id order by e.ord) into v_ids
+--     from (select (x ->> 'media_id')::uuid as media_id, row_number() over () as ord
+--             from jsonb_array_elements((select jsonb_agg(jsonb_build_object('media_id', i.media_id))
+--                                          from public.cloud_export_items i where i.lease_token = v_lease1)) x) e;
+--   v_r := public.cloud_export_name_items(v_lease1, jsonb_build_array(
+--            jsonb_build_object('media_id', v_ids[1], 'stem', '2026-09-12 21.14.05 · Priya', 'ext', 'jpg'),
+--            jsonb_build_object('media_id', v_ids[2], 'stem', '2026-09-12 21.14.05 · Priya', 'ext', 'jpg'),
+--            jsonb_build_object('media_id', v_ids[3], 'stem', '', 'ext', 'jpg'),
+--            jsonb_build_object('media_id', v_ids[4], 'stem', 'x', 'ext', '../exe')));
+--   if v_r -> 'names' ->> v_ids[1]::text <> '2026-09-12 21.14.05 · Priya.jpg'
+--      or v_r -> 'names' ->> v_ids[2]::text <> '2026-09-12 21.14.05 · Priya (2).jpg'
+--      or v_r -> 'names' ? v_ids[3]::text or v_r -> 'names' ? v_ids[4]::text then
+--     raise exception 'FAIL 7: names: %', v_r;
+--   end if;
+--   v_r := public.cloud_export_name_items(v_lease1, jsonb_build_array(
+--            jsonb_build_object('media_id', v_ids[1], 'stem', 'renamed', 'ext', 'jpg')));
+--   if v_r -> 'names' ? v_ids[1]::text then raise exception 'FAIL 7: a kept name changed'; end if;
+--
+--   -- ── 8. The report: sent, kept, failed with a backoff, a progress, a dead lease's word ignored ──
+--   v_r := public.cloud_export_report(v_lease1, jsonb_build_array(
+--            jsonb_build_object('media_id', v_ids[1], 'outcome', 'sent', 'file_id', 'f1', 'md5', repeat('a', 32)),
+--            jsonb_build_object('media_id', v_ids[2], 'outcome', 'sent', 'file_id', 'f2', 'kept', true),
+--            jsonb_build_object('media_id', v_ids[3], 'outcome', 'failed', 'reason', '503', 'retry', true),
+--            jsonb_build_object('media_id', v_ids[4], 'outcome', 'progress', 'session_uri', 'https://up/1', 'offset', 1024),
+--            jsonb_build_object('media_id', v_ids[5], 'outcome', 'skipped', 'reason', 'missing_object')), null, false);
+--   if v_r ->> 'state' <> 'ok' or v_r ->> 'signal' <> 'missing_object' then raise exception 'FAIL 8: report: %', v_r; end if;
+--   select j.items_sent, j.items_kept, j.items_skipped into v_n, v_expected, v_status
+--     from public.cloud_exports j where j.id = v_job;
+--   if v_n <> 2 or v_expected <> 1 then raise exception 'FAIL 8: counters sent %, kept %', v_n, v_expected; end if;
+--   if (select h.bytes from public.cloud_export_sent_hours h where h.connection_id = v_conn)
+--      <> (select i.bytes from public.cloud_export_items i where i.job_id = v_job and i.media_id = v_ids[1]) then
+--     raise exception 'FAIL 8: the hour counted a kept file, or missed the upload';
+--   end if;
+--   if (select i.not_before from public.cloud_export_items i where i.job_id = v_job and i.media_id = v_ids[3]) is null
+--      or (select i.status from public.cloud_export_items i where i.job_id = v_job and i.media_id = v_ids[3]) <> 'pending' then
+--     raise exception 'FAIL 8: a retryable failure did not back off';
+--   end if;
+--   if (select i.session_offset from public.cloud_export_items i where i.job_id = v_job and i.media_id = v_ids[4]) <> 1024 then
+--     raise exception 'FAIL 8: the session was not kept';
+--   end if;
+--   -- A dead lease's word is ignored, a replay changes nothing.
+--   -- A lease runs out with its items (the two are stamped together everywhere a lease is taken or kept).
+--   update public.cloud_export_leases set leased_until = now() - interval '1 second' where token = v_lease2;
+--   update public.cloud_export_items set leased_until = now() - interval '1 second' where lease_token = v_lease2;
+--   select i.media_id into v_first from public.cloud_export_items i where i.lease_token = v_lease2 limit 1;
+--   v_r := public.cloud_export_report(v_lease2, jsonb_build_array(
+--            jsonb_build_object('media_id', v_first, 'outcome', 'sent', 'file_id', 'forged')), null, false);
+--   if v_r ->> 'state' <> 'stop' or (select i.status from public.cloud_export_items i
+--                                     where i.job_id = v_job and i.media_id = v_first) <> 'leased' then
+--     raise exception 'FAIL 8: a dead lease''s report was taken: %', v_r;
+--   end if;
+--   v_r := public.cloud_export_report(v_lease1, jsonb_build_array(
+--            jsonb_build_object('media_id', v_ids[1], 'outcome', 'sent', 'file_id', 'f1-again')), null, false);
+--   if (select i.drive_file_id from public.cloud_export_items i where i.job_id = v_job and i.media_id = v_ids[1]) <> 'f1' then
+--     raise exception 'FAIL 8: a replayed report moved a sent item';
+--   end if;
+--
+--   -- ── 9. Another host cannot read the send; its owner reads the progress columns; the deny-all set is 42501 ──
+--   perform set_config('request.jwt.claim.sub', v_other::text, true);
+--   set local role authenticated;
+--   select count(*) into v_n from public.cloud_exports j where j.id = v_job;
+--   if v_n <> 0 then raise exception 'FAIL 9: another host read the send'; end if;
+--   begin
+--     perform 1 from public.cloud_connections limit 1;
+--     raise exception 'FAIL 9: authenticated read cloud_connections';
+--   exception when insufficient_privilege then null;
+--   end;
+--   begin
+--     perform 1 from public.cloud_export_items limit 1;
+--     raise exception 'FAIL 9: authenticated read cloud_export_items';
+--   exception when insufficient_privilege then null;
+--   end;
+--   begin
+--     perform j.folder_id from public.cloud_exports j limit 1;
+--     raise exception 'FAIL 9: authenticated read a folder id';
+--   exception when insufficient_privilege then null;
+--   end;
+--   begin
+--     perform public.cloud_export_lease(v_conn);
+--     raise exception 'FAIL 9: authenticated called the lease';
+--   exception when insufficient_privilege then null;
+--   end;
+--   reset role;
+--   perform set_config('request.jwt.claim.sub', v_host::text, true);
+--   set local role authenticated;
+--   select count(*) into v_n from public.cloud_exports j where j.id = v_job and j.items_sent = 2;
+--   if v_n <> 1 then raise exception 'FAIL 9: the owner did not read her send'; end if;
+--   reset role;
+--   set local role anon;
+--   begin
+--     perform 1 from public.cloud_exports limit 1;
+--     raise exception 'FAIL 9: anon read cloud_exports';
+--   exception when insufficient_privilege then null;
+--   end;
+--   begin
+--     perform 1 from public.cloud_export_leases limit 1;
+--     raise exception 'FAIL 9: anon read cloud_export_leases';
+--   exception when insufficient_privilege then null;
+--   end;
+--   reset role;
+--
+--   -- ── 10. Her acts: not hers is not found; a cancel answers the lanes' next report with stop ──
+--   v_r := public.cloud_export_act(v_other, v_job, 'cancel', false);
+--   if v_r ->> 'code' <> 'not_found' then raise exception 'FAIL 10: another host''s cancel: %', v_r; end if;
+--   v_r := public.cloud_export_act(v_host, v_job, 'resume', false);
+--   if v_r ->> 'code' <> 'not_paused' then raise exception 'FAIL 10: resume of a running send: %', v_r; end if;
+--
+--   -- ── 11. A finding pauses every send of the connection, with its flag; Check again resumes on room ──
+--   v_r := public.cloud_export_report(v_lease3, '[]'::jsonb, 'drive_full', false);
+--   if v_r ->> 'state' <> 'stop' or v_r ->> 'status' <> 'paused' then raise exception 'FAIL 11: drive_full: %', v_r; end if;
+--   if (select j.pause_reason from public.cloud_exports j where j.id = v_job) <> 'drive_full'
+--      or (select j.attention_at from public.cloud_exports j where j.id = v_job) is null then
+--     raise exception 'FAIL 11: drive_full did not pause with its flag';
+--   end if;
+--   if public.cloud_export_lease(v_conn) ->> 'state' not in ('idle', 'wait') then
+--     raise exception 'FAIL 11: a paused send was leased';
+--   end if;
+--   v_r := public.cloud_connection_room(v_conn, 15::bigint * 1024 * 1024 * 1024, 15::bigint * 1024 * 1024 * 1024, true);
+--   if (v_r ->> 'resumed')::integer <> 0 then raise exception 'FAIL 11: resumed with no room: %', v_r; end if;
+--   v_r := public.cloud_connection_room(v_conn, 200::bigint * 1024 * 1024 * 1024, 1, true);
+--   if (v_r ->> 'resumed')::integer <> 1 or (select j.status from public.cloud_exports j where j.id = v_job) <> 'sending' then
+--     raise exception 'FAIL 11: room did not resume: %', v_r;
+--   end if;
+--
+--   -- ── 12. To the end: every lease drained, the closing check, done; a missing file goes back once ──
+--   update public.cloud_export_leases set leased_until = now() - interval '1 second' where connection_id = v_conn;
+--   update public.cloud_export_items set leased_until = now() - interval '1 second' where job_id = v_job and status = 'leased';
+--   update public.cloud_export_items set not_before = null where job_id = v_job;
+--   for v_n in 1..20 loop
+--     v_r := public.cloud_export_lease(v_conn);
+--     exit when v_r ->> 'state' <> 'work';
+--     v_lease := (v_r ->> 'lease')::uuid;
+--     select jsonb_agg(jsonb_build_object('media_id', e ->> 'media_id', 'outcome', 'sent',
+--                                         'file_id', 'file-' || (e ->> 'media_id'), 'md5', repeat('b', 32)))
+--       into v_items from jsonb_array_elements(v_r -> 'items') e;
+--     v_r := public.cloud_export_report(v_lease, v_items, null, true);
+--   end loop;
+--   if (select j.status from public.cloud_exports j where j.id = v_job) <> 'checking' then
+--     raise exception 'FAIL 12: not checking once everything went: %', (select row_to_json(j) from public.cloud_exports j where j.id = v_job);
+--   end if;
+--   -- The drain's last lease found the check (the send settled into it on the last report).
+--   if v_r ->> 'state' <> 'check' or not (v_r ->> 'first')::boolean then raise exception 'FAIL 12: check lease: %', v_r; end if;
+--   v_lease := (v_r ->> 'lease')::uuid;
+--   select (e ->> 'media_id')::uuid into v_second from jsonb_array_elements(v_r -> 'items') e limit 1;
+--   select jsonb_agg(jsonb_build_object('media_id', e ->> 'media_id',
+--                                       'state', case when (e ->> 'media_id')::uuid = v_second then 'missing' else 'ok' end))
+--     into v_items from jsonb_array_elements(v_r -> 'items') e;
+--   v_r := public.cloud_export_check_page(v_lease, v_items, 0, null);
+--   if v_r ->> 'status' <> 'sending' or (v_r ->> 'back')::integer <> 1 then raise exception 'FAIL 12: check page: %', v_r; end if;
+--   v_r := public.cloud_export_lease(v_conn);
+--   if v_r ->> 'state' <> 'work' or jsonb_array_length(v_r -> 'items') <> 1 then raise exception 'FAIL 12: the missing one again: %', v_r; end if;
+--   v_lease := (v_r ->> 'lease')::uuid;
+--   v_r := public.cloud_export_report(v_lease, jsonb_build_array(jsonb_build_object(
+--            'media_id', v_second, 'outcome', 'sent', 'file_id', 'file-again')), null, true);
+--   v_r := public.cloud_export_lease(v_conn);
+--   v_lease := (v_r ->> 'lease')::uuid;
+--   select jsonb_agg(jsonb_build_object('media_id', e ->> 'media_id', 'state', 'ok')) into v_items
+--     from jsonb_array_elements(v_r -> 'items') e;
+--   v_r := public.cloud_export_check_page(v_lease, v_items, 0, null);
+--   -- One item failed for good in 8 (missing_object was skipped; the 503 one went in the drain): done.
+--   v_status := (select j.status from public.cloud_exports j where j.id = v_job);
+--   if v_status <> 'done' then
+--     raise exception 'FAIL 12: did not end done: % %', v_r, (select row_to_json(j) from public.cloud_exports j where j.id = v_job);
+--   end if;
+--   v_report := v_report || jsonb_build_object('job', (select jsonb_build_object('sent', j.items_sent, 'kept', j.items_kept,
+--       'skipped', j.items_skipped, 'failed', j.items_failed, 'total', j.items_total) from public.cloud_exports j where j.id = v_job));
+--
+--   -- ── 13. Sending again keeps what is there: every item carries its prior file but the one whose original was
+--   --        missing in R2 (it never reached her Drive, so it is the one new item) ──
+--   v_r := public.cloud_export_preview(v_host, array[v_event], false);
+--   if (v_r -> 'albums' -> v_event::text ->> 'new_items')::integer <> 1
+--      or (v_r -> 'albums' -> v_event::text ->> 'items')::integer <> 34 then
+--     raise exception 'FAIL 13: the preview after a whole send: %', v_r;
+--   end if;
+--   v_r := public.cloud_export_create(v_host, v_event, false, 'UTC');
+--   v_job2 := (v_r ->> 'job_id')::uuid;
+--   perform public.cloud_export_ready(v_job2, 'folder-1');
+--   v_r := public.cloud_export_lease(v_conn);
+--   if v_r ->> 'state' <> 'work' or exists (select 1 from jsonb_array_elements(v_r -> 'items') e
+--                                            where e ->> 'prior_file_id' is null and (e ->> 'media_id')::uuid <> v_ids[5])
+--      or not exists (select 1 from jsonb_array_elements(v_r -> 'items') e
+--                      where (e ->> 'prior_file_id') = 'file-' || (e ->> 'media_id') or e ->> 'prior_file_id' in ('f1', 'f2', 'file-again')) then
+--     raise exception 'FAIL 13: a second send''s items lack their prior files: %', v_r;
+--   end if;
+--
+--   -- ── 14. Disconnect: the row and its folders go, the running send ends, the finished one forgets its folder ──
+--   v_r := public.cloud_connection_disconnect(v_host);
+--   if not (v_r ->> 'found')::boolean or v_r ->> 'refresh_ct' <> 'v1.k.r2.ct' or (v_r ->> 'ended')::integer <> 1 then
+--     raise exception 'FAIL 14: disconnect: %', v_r;
+--   end if;
+--   if exists (select 1 from public.cloud_connections c where c.id = v_conn)
+--      or exists (select 1 from public.cloud_event_folders f where f.connection_id = v_conn)
+--      or (select j.folder_url from public.cloud_exports j where j.id = v_job) is not null
+--      or (select j.status from public.cloud_exports j where j.id = v_job2) <> 'canceled'
+--      or (select j.stop_reason from public.cloud_exports j where j.id = v_job2) <> 'disconnected'
+--      or (select j.items_sent from public.cloud_exports j where j.id = v_job) = 0 then
+--     raise exception 'FAIL 14: disconnect left something behind';
+--   end if;
+--   if not exists (select 1 from public.cloud_export_sent_hours h where h.user_id = v_host) then
+--     raise exception 'FAIL 14: the breaker''s history left with the connection';
+--   end if;
+--
+--   -- ── 15. Another Google account replaces the row whole, its unfinished sends ended ──
+--   v_r := public.cloud_connection_upsert(v_host, 'sub-a', 'host-a@example.com', true, null, '{}', 'v1.k.r3.ct', null, null, null);
+--   v_conn := (v_r ->> 'connection_id')::uuid;
+--   v_r := public.cloud_export_create(v_host, v_event, false, 'UTC');
+--   v_job2 := (v_r ->> 'job_id')::uuid;
+--   v_r := public.cloud_connection_upsert(v_host, 'sub-b', 'new@example.com', false, null, '{}', 'v1.k.r4.ct', null, null, null);
+--   if v_r ->> 'outcome' <> 'other' or (v_r ->> 'connection_id')::uuid = v_conn or v_r ->> 'old_refresh_ct' <> 'v1.k.r3.ct'
+--      or (v_r ->> 'ended')::integer <> 1
+--      or (select j.stop_reason from public.cloud_exports j where j.id = v_job2) <> 'account_changed' then
+--     raise exception 'FAIL 15: another account: %', v_r;
+--   end if;
+--   v_conn := (v_r ->> 'connection_id')::uuid;
+--
+--   -- ── 16. invalid_grant wipes the tokens at once and pauses what runs; the same account back resumes it ──
+--   v_r := public.cloud_export_create(v_host, v_event, false, 'UTC');
+--   v_job2 := (v_r ->> 'job_id')::uuid;
+--   perform public.cloud_export_ready(v_job2, 'folder-2');
+--   v_r := public.cloud_connection_refresh_failed(v_conn, 'invalid_grant', true);
+--   if not (v_r ->> 'first')::boolean
+--      or (select c.refresh_ct from public.cloud_connections c where c.id = v_conn) is not null
+--      or (select j.pause_reason from public.cloud_exports j where j.id = v_job2) <> 'disconnected' then
+--     raise exception 'FAIL 16: invalid_grant: %', v_r;
+--   end if;
+--   v_r := public.cloud_connection_upsert(v_host, 'sub-b', 'new@example.com', true, null, '{}', 'v1.k.r5.ct', null, null, null);
+--   if (v_r ->> 'resumed')::integer <> 1 or (select j.status from public.cloud_exports j where j.id = v_job2) <> 'sending' then
+--     raise exception 'FAIL 16: the same account back did not resume: %', v_r;
+--   end if;
+--
+--   -- ── 17. The switch: off leases nothing and kicks nothing ──
+--   update public.ops_flags set enabled = false where key = 'drive_export_enabled';
+--   if public.cloud_export_lease(v_conn) ->> 'why' <> 'switch'
+--      or (public.cloud_connection_kick(v_conn) ->> 'lanes')::integer <> 0 then
+--     raise exception 'FAIL 17: the switch off still leased or kicked';
+--   end if;
+--   update public.ops_flags set enabled = true where key = 'drive_export_enabled';
+--   if (public.cloud_connection_kick(v_conn) ->> 'lanes')::integer <> 3
+--      or (public.cloud_connection_kick(v_conn) ->> 'lanes')::integer <> 0 then
+--     raise exception 'FAIL 17: a kick is not three lanes once a minute';
+--   end if;
+--
+--   -- ── 18. The sweep runs whole; the spend watch's readings carry the day's Drive bytes ──
+--   v_r := public.cloud_export_sweep();
+--   if not (v_r ? 'kick' and v_r ? 'recheck' and v_r ? 'breakers' and v_r ? 'expired') then
+--     raise exception 'FAIL 18: sweep: %', v_r;
+--   end if;
+--   v_r := public.spend_watch_readings(now(), array['inactivity_warning']);
+--   if (v_r ->> 'drive_bytes')::bigint <= 0 or v_r -> 'errors' <> '{}'::jsonb then
+--     raise exception 'FAIL 18: spend watch drive_bytes: %', v_r;
+--   end if;
+--   v_report := v_report || jsonb_build_object('drive_bytes', (v_r ->> 'drive_bytes')::bigint);
+--
+--   -- ── 19. The account breaker: a Free account past 5 GB in 30 days is refused at the press and paused by the sweep;
+--   --        an operator's Lift restarts its 30 days ──
+--   v_r := public.cloud_connection_upsert(v_other, 'sub-x', 'host-b@example.com', true, null, '{}', 'v1.k.rb.ct',
+--            'v1.k.ab.ct', now() + interval '1 hour', null);
+--   v_conn := (v_r ->> 'connection_id')::uuid;
+--   v_r := public.cloud_export_create(v_other, v_other_event, false, 'UTC');
+--   v_job2 := (v_r ->> 'job_id')::uuid;
+--   perform public.cloud_export_ready(v_job2, 'folder-x');
+--   insert into public.cloud_export_sent_hours (connection_id, hour, user_id, bytes, files)
+--   values (v_conn, date_trunc('hour', now()) - interval '2 hours', v_other, 6::bigint * 1024 * 1024 * 1024, 1500);
+--   v_r := public.cloud_export_sweep();
+--   if not exists (select 1 from jsonb_array_elements(v_r -> 'breakers') b where (b ->> 'user_id')::uuid = v_other)
+--      or (select j.pause_reason from public.cloud_exports j where j.id = v_job2) <> 'breaker' then
+--     raise exception 'FAIL 19: the sweep''s breaker: %', v_r;
+--   end if;
+--   perform public.cloud_export_act(v_other, v_job2, 'cancel', false);
+--   v_r := public.cloud_export_create(v_other, v_other_event, false, 'UTC');
+--   if v_r ->> 'code' <> 'breaker' then raise exception 'FAIL 19: the press past the breaker: %', v_r; end if;
+--   v_r := public.cloud_export_act(v_other, v_job2, 'resume', false);
+--   if v_r ->> 'code' is distinct from 'not_paused' then raise exception 'FAIL 19: %', v_r; end if;
+--   -- The Lift sets the 30 days' start after the hours already sent, so the sum restarts: the press goes.
+--   update public.cloud_export_sent_hours set hour = hour - interval '1 hour' where user_id = v_other;
+--   v_r := public.cloud_connection_operator(v_conn, 'lift_breaker', null);
+--   v_r := public.cloud_export_create(v_other, v_other_event, false, 'UTC');
+--   if not coalesce((v_r ->> 'ok')::boolean, false) then raise exception 'FAIL 19: the press after a Lift: %', v_r; end if;
+--
+--   -- ── 20. The token claim: cached while 20 minutes remain, else one caller wins the refresh for 30 seconds and the
+--   --        rest wait; a refresh that worked clears the claim; one that failed for another reason reads failing ──
+--   update public.cloud_connections set access_expires_at = now() + interval '5 minutes' where id = v_conn;
+--   v_r := public.cloud_connection_token(v_conn);
+--   if v_r ->> 'state' <> 'refresh' or v_r ->> 'refresh_ct' <> 'v1.k.rb.ct' then raise exception 'FAIL 20: claim: %', v_r; end if;
+--   v_r := public.cloud_connection_token(v_conn);
+--   if v_r ->> 'state' <> 'cached' then raise exception 'FAIL 20: a second caller during the claim: %', v_r; end if;
+--   update public.cloud_connections set access_expires_at = now() + interval '1 minute' where id = v_conn;
+--   v_r := public.cloud_connection_token(v_conn);
+--   if v_r ->> 'state' <> 'wait' then raise exception 'FAIL 20: a second caller with no usable token: %', v_r; end if;
+--   v_r := public.cloud_export_lease(v_conn);
+--   if v_r ->> 'state' <> 'wait' or v_r ->> 'why' <> 'refresh' then raise exception 'FAIL 20: a lease during the claim: %', v_r; end if;
+--   perform public.cloud_connection_refreshed(v_conn, 'v1.k.ab2.ct', now() + interval '1 hour', null);
+--   v_r := public.cloud_connection_token(v_conn);
+--   if v_r ->> 'state' <> 'cached' or v_r ->> 'access_ct' <> 'v1.k.ab2.ct' then raise exception 'FAIL 20: after refresh: %', v_r; end if;
+--   v_r := public.cloud_connection_refresh_failed(v_conn, 'HTTP 500', false);
+--   if (select c.status from public.cloud_connections c where c.id = v_conn) <> 'failing'
+--      or (select c.refresh_ct from public.cloud_connections c where c.id = v_conn) is null then
+--     raise exception 'FAIL 20: a failing refresh: %', v_r;
+--   end if;
+--
+--   -- ── 21. An operator's pause stops the connection whole; its resume brings back what it paused ──
+--   v_job2 := (select j.id from public.cloud_exports j where j.user_id = v_other and j.status = 'preparing');
+--   perform public.cloud_export_ready(v_job2, 'folder-x');
+--   v_r := public.cloud_connection_operator(v_conn, 'pause', 'runaway');
+--   if public.cloud_export_lease(v_conn) ->> 'why' <> 'operator'
+--      or (select j.pause_reason from public.cloud_exports j where j.id = v_job2) <> 'operator' then
+--     raise exception 'FAIL 21: the operator''s pause: %', v_r;
+--   end if;
+--   v_r := public.cloud_export_act(v_other, v_job2, 'resume', false);
+--   if v_r ->> 'code' <> 'not_hers' then raise exception 'FAIL 21: her resume of an operator''s pause: %', v_r; end if;
+--   v_r := public.cloud_connection_operator(v_conn, 'resume', null);
+--   if (select j.status from public.cloud_exports j where j.id = v_job2) <> 'sending' then
+--     raise exception 'FAIL 21: the operator''s resume: %', v_r;
+--   end if;
+--
+--   raise exception 'ROLLED BACK: every cloud_export check held %', v_report;
+-- end
+-- $check$;
