@@ -17,6 +17,10 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Guests: an undated album never turns: a host's "in order now" for it (no column now) (album-order).
+- Host: See it as a guest lays the album newest first after the turn (`as-guest-view.tsx` hands `LiveGallery` no order); hand it the guests' order from its server read (album-order).
+- Host: the develop's 9 am is the host's browser zone, and the album's turn each reader's own: keep the zone the develop time was picked in beside it, so a destination wedding set from home develops, and its album turns for every reader, in the party's own morning (`albumTurnAt` takes the zone).
+- Design: the album's arrivals pill (`album-window-news.tsx`) and the Review room's "N new" (`review-section.tsx`) are one idea drawn twice: one atom, perhaps leading with the newest arrival's own picture beside its count (album-order).
 - Host: delete `refreshHubReelAction` (`dashboard/[eventId]/actions.ts`) and its tests in `actions.test.ts`: the reel card no longer asks for the reel's own take, so nothing calls it, and a Server Action is a public endpoint (event-header-wiring).
 - Help: `help/step-screens/desk-screens.tsx`'s `ReelCardPicture` still draws the retired tile and the living reel card (`mock-parity.test.ts` and `step-screens.test.ts` quote "Live for guests" from `reel-card.tsx`); redraw it as the cards' reel card once the polish pick lands, then drop `ROOM_CARD_BASE` and `ROOM_CARD_QUIET` from `room-card.ts` (kept only for it) (event-header-wiring).
 - Design: the Reel card's words are one pure function now (`reelCardFace`, `reel-card.tsx`) but sit in a client module, and the two pins that quote "Live for guests" read that file; move it to `room-card.ts` (server-safe) and repoint both pins, so `desk-screens.tsx` and the board's `facesOf` import it instead of re-typing it (what is left of the ROADMAP's line on the Reel card's words) (event-header-wiring).
@@ -74,7 +78,6 @@ below hold the rest by surface.
 - Host: the picked hub door at a tablet's width (640 to 1024), undrawn on event-header r4 (five cards there are about 190px and cut "Highlight reel"; the capsule and the windows' row each need their own step).
 - Host: "Max size per upload" stands only under the Videos switch (`videos-switch.tsx`), unreachable on Free though it caps photos too: its own row in What guests can add (customize r1's audit).
 - Guests: a password's unlock lasts 12 hours (`UNLOCK_TTL_SECONDS`, `lib/events/unlock-token.ts`), so a weekend's guests re-type it twice a day: the party's days plus a night.
-- Host: the develop's 9 am is the host's browser zone: keep the zone it was picked in beside the time, so a destination wedding set from home develops in the party's own morning.
 - Design: a `swatch` atom for a picture chosen among pictures (Create's looks, the reel's moods, the code's styles) wearing the selected trait, instead of each picker drawing its own ring (identity r4's idea; after desk 3's picks).
 - Design: the live reel's Style menu draws "Set for everyone" as a hand-drawn pill row, not the key atom (`live-reel-view.tsx`).
 - Design: the Display menu's group names (LAYOUT, ORDER, SHOW, GROUP, COVERS) and the door's "ALMOST IN" are spaced capitals outside the camera voice's counts, live and times.

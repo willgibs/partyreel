@@ -355,7 +355,8 @@ production build with `scripts/album-perf.mjs` at `/design/album-scale` (the gri
   arrival or a hide re-solves a pinned window of at most four old rows, and a change outside the rows in view never
   re-lays them (`rowsInView`); and the window pays a change by scrolling exactly as far as the photograph at the view's
   top moved (`overflow-anchor: none`, since the browser cannot anchor through a spacer and Safari has no anchoring),
-  waiting out a touch flick, since a scroll written mid-flick stops it.
+  waiting out a touch flick, since a scroll written mid-flick stops it. What lands out of sight is said by one glass
+  pill (`album-window-news.tsx`).
 - **The rows mount only around the view** (`lib/shared/album-window.ts`), the keyboard's row pinned; a scroll reads the
   view by arithmetic on a cached offset, never a rect, since a rect read mid-frame forces a layout every frame.
 - **An arrival pushes**: the rows write `data-entering` on what their reflow brought in, in the same render (a

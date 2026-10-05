@@ -287,7 +287,8 @@ hub and closes back to it.
   choosing Deleted reads its list again (`/api/events/<id>/bin`: ids, shapes and countdowns, no links) so what was
   just deleted is there, its rows mint links per window (`bin/media`) and re-mint them while it is open, and bin items
   never count in the album. Restore (at once) and Delete permanently (behind a confirm) are one `useBinActions` for the
-  tile's pane and the viewer.
+  tile's pane and the viewer. An arrival out of her sight wears the album's pill under the stuck band
+  (`event-gallery-news.ts`; [guest-flow.md](guest-flow.md)'s arrival grammar).
 - **The View menu** (`shared/view-menu.tsx`) holds Tile size (the rows' density steps, also a pinch, ctrl and the
   wheel, kept in the per-device `pr_tile_size` cookie the hub paints with, since localStorage would repaint after
   hydration), Sort (Newest or Oldest first, reset each visit) and Filter (All, Deleted).
