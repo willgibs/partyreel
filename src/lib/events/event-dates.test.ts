@@ -276,16 +276,20 @@ describe("the migration (20261003120000)", () => {
 /* ── ★ the lifecycle ───────────────────────────────────────────────────── */
 
 describe("★ an end date never touches the lifecycle (no end, no lock, no archive, no purge)", () => {
-  it("no executable SQL names the column but its own statements and the two reads that say it", () => {
+  it("no executable SQL names the column but its own statements and the reads that say it", () => {
     const allowed = [
       "alter table public.events add column event_end_date date;",
       "add constraint events_end_date_on_or_after",
       "comment on column public.events.event_end_date",
       "grant insert (event_end_date), update (event_end_date) on public.events to authenticated;",
     ];
-    const readers = ["get_event_by_qr_token", "get_public_profile"].map(
-      (name) => latest(name).body,
-    );
+    // Send to Google Drive's preview and press read it to SAY when (a folder's name, the picker's line): drive-wiring.
+    const readers = [
+      "get_event_by_qr_token",
+      "get_public_profile",
+      "cloud_export_preview",
+      "cloud_export_create",
+    ].map((name) => latest(name).body);
     const offenders: string[] = [];
     for (const file of migrationFiles()) {
       let sql = executable(file);

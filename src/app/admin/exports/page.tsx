@@ -34,6 +34,7 @@ import { formatAdminTimestamp } from "@/lib/format/admin-time";
 import { formatCount } from "@/lib/format/count";
 import { formatBytes } from "@/lib/utils";
 
+import { DriveSection } from "./drive-section";
 import { ExportKillSwitch } from "./export-kill-switch";
 import { LiveReelKillSwitch } from "./live-reel-kill-switch";
 import { getLiveReelEnabled } from "./live-reel-status";
@@ -52,9 +53,14 @@ const HEALTH_OF: { id: JobId; what: string }[] = [
 // (`export-ends`) what the Worker saw: each row's outcome is the furthest anyone saw (`outcome-word.ts`), and
 // the card carries the Worker's daily heartbeat and the downloads' signal, the same verdicts /admin/jobs
 // draws (`readPendingWork`, read once per request with the layout's).
-export default async function ExportsPage() {
+export default async function ExportsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ drive?: string | string[] }>;
+}) {
   const ctx = await requireAdmin();
   if (ctx.aal !== "aal2") return null;
+  const { drive } = await searchParams;
 
   const [enabled, rejections, recent, liveReelEnabled, pending] =
     await Promise.all([
@@ -71,7 +77,8 @@ export default async function ExportsPage() {
       <div>
         <PageHeading>Exports</PageHeading>
         <p className="text-sm text-muted-foreground">
-          Recent album downloads and the platform kill-switch.
+          Recent album downloads, Send to Google Drive, and their platform
+          kill-switches.
         </p>
       </div>
 
@@ -143,6 +150,11 @@ export default async function ExportsPage() {
           <LiveReelKillSwitch enabled={liveReelEnabled} />
         </CardContent>
       </Card>
+
+      <DriveSection
+        search={typeof drive === "string" ? drive : null}
+        health={health}
+      />
 
       <Card>
         <CardHeader>

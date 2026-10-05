@@ -6,6 +6,9 @@ import { toast } from "sonner";
 
 import { setEventsDisplayAction } from "@/app/(app)/dashboard/actions";
 import { CoverCycleProvider } from "@/components/app/dashboard/cover-cycle";
+import { AlbumPicker } from "@/components/app/drive/album-picker";
+import { DriveGlyph } from "@/components/app/drive/drive-parts";
+import { DriveTileMark } from "@/components/app/drive/drive-tile-mark";
 import { DisplayMenu } from "@/components/app/dashboard/display-menu";
 import {
   EventTile,
@@ -241,7 +244,8 @@ export function EventsSection({
   const searchable = counts.all >= EVENTS_SEARCH_FROM;
 
   // The bin's Restore is the list's one per-row act. A Guest tile has none: it stays while the account
-  // holds a live upload there and leaves with the last one.
+  // holds a live upload there and leaves with the last one. A hosted tile wears its Google Drive send's light
+  // (drive-wiring, Will's `progress = album`), nothing when it has none.
   const actions = new Map<string, React.ReactNode>();
   for (const g of groups)
     for (const row of g.rows)
@@ -250,6 +254,14 @@ export function EventsSection({
           `deleted-${row.id}`,
           <RestoreEventButton eventId={row.id} />,
         );
+      else if (row.kind === "hosted")
+        actions.set(`hosted-${row.id}`, <DriveTileMark eventId={row.id} />);
+
+  // Your events' door to Google Drive (Will's `doors = both`): several albums in one press, the covers it knows.
+  const hostsAny = rows.some((r) => r.kind === "hosted");
+  const covers = new Map(
+    rows.filter((r) => r.kind === "hosted").map((r) => [r.id, r.coverUrl]),
+  );
 
   function search(next: string) {
     setQuery(next);
@@ -339,6 +351,25 @@ export function EventsSection({
                     className="h-8 rounded-full pl-8 text-xs md:text-xs"
                   />
                 </label>
+              )}
+              {hostsAny && (
+                <AlbumPicker
+                  covers={covers}
+                  trigger={(open) => (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={open}
+                      aria-label="Send albums to Google Drive"
+                      data-drive-door=""
+                      className="shrink-0"
+                    >
+                      <DriveGlyph />
+                      <span className="hidden sm:inline">Send to Drive</span>
+                    </Button>
+                  )}
+                />
               )}
               {offersDisplay(rows) && (
                 <DisplayMenu

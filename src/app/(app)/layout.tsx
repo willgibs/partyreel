@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { after } from "next/server";
 
+import { DriveFlag } from "@/components/app/drive/drive-flag";
 import { NotificationBell } from "@/components/app/notification-bell";
 import { UserMenu } from "@/components/app/user-menu";
 import { AppDesignIsland } from "@/components/dev/app-design-island";
@@ -87,6 +88,8 @@ export default async function AppLayout({
           Self-guards + self-dedupes; the welcome/name gate lives in the page, not here, so it still fires
           during onboarding. */}
       <ClaimUploadsOnAuth />
+      {/* A Google Drive send's stop that needs her flags itself here, on any page, once (drive-wiring). */}
+      <DriveFlag />
       {children}
       {/* Key-gated (server-validated ?key=), inert for every host: the rounding
           knobs and a board's candidate block on the app's own pages, so a

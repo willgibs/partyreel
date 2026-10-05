@@ -49,6 +49,13 @@ export function owedWords(
           `${one ? "it" : "they"} ended, ${EXPORT_END_GRACE_MS / HOUR_MS} hours on: a lost report or a Worker ` +
           "that died mid-stream (a walk left right after its check reads the same). Each row is on /admin/exports.",
       };
+    case "drive_transfer":
+      return {
+        term: "Stuck",
+        line:
+          `${formatCount(owed)} ${one ? "send" : "sends"} to Google Drive with work left and no progress for an hour. ` +
+          "The sweep kicks each every five minutes; past that, the Worker or its queue is down. Each is on /admin/exports, with Cancel.",
+      };
     default:
       return null;
   }

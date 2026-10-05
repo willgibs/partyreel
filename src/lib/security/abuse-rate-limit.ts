@@ -35,10 +35,12 @@ export type AbuseKind =
   | "contact"
   | "careers"
   | "email_change"
-  | "help_feedback";
+  | "help_feedback"
+  | "drive_connect"
+  | "drive_send";
 
 /** The kinds keyed on a signed-in account rather than an IP (see the header's second ★). */
-export type AccountAbuseKind = Extract<AbuseKind, "email_change">;
+export type AccountAbuseKind = Extract<AbuseKind, "email_change" | "drive_connect" | "drive_send">;
 
 type Limit = {
   /** # of DISTINCT events one IP may touch in `breadthWindowMin` before it reads as a scraper. */
@@ -186,6 +188,26 @@ export const ABUSE_LIMITS: Record<AbuseKind, Limit> = {
     breadthWindowMin: 60,
     breadthMax: 40,
     scopeWindowMin: 60,
+    scopeMax: 10,
+  },
+  // Send to Google Drive's connect (GET /api/drive/connect), scope = the signed-in ACCOUNT (drive-export.md). Each one
+  // sets a state cookie and sends her to Google's consent; a few a minute is a person who declined, changed her mind
+  // or picked the wrong account, and more is a script. Fails closed like every account kind: a press refused for a
+  // minute costs her one retry.
+  drive_connect: {
+    breadthWindowMin: 60,
+    breadthMax: Infinity,
+    scopeWindowMin: 1,
+    scopeMax: 5,
+  },
+  // Its press (POST /api/drive/exports, one album or a season of them in one request), scope = the ACCOUNT. A press
+  // asks Google her Drive's room and writes one snapshot statement; about ten a minute is far past a host pressing
+  // Send on album after album, and the bound means a script pressing Send costs one limiter row a press, never a
+  // Google call or a snapshot apiece. The account breaker, not this, bounds what a send can cost.
+  drive_send: {
+    breadthWindowMin: 60,
+    breadthMax: Infinity,
+    scopeWindowMin: 1,
     scopeMax: 10,
   },
 };

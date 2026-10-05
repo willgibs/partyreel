@@ -5,7 +5,7 @@ Open this before you:
 - add an R2 key, a variant or a client, or anything that fetches a presigned URL;
 - touch the EXIF strip;
 - change how media renders (tiles, previews, video posters, the viewer) or how photos are taken home (Save, a
-  guest's Select then Save, a host's two sets, the zips).
+  guest's Select then Save, a host's two sets, the zips, Send to Google Drive).
 
 Elsewhere: the cap and the uploads allowance ([billing-caps.md](billing-caps.md)), the purge and reclaim ([lifecycle-recovery.md](lifecycle-recovery.md)), the backups
 ([durability-backups.md](durability-backups.md)), the grants and the server-mediated RPCs ([database-security.md](database-security.md)), forensic capture
@@ -342,3 +342,17 @@ The zips go off Vercel, on the streaming export Worker (`partyreel-export`, on `
   Worker's daily heartbeat (the `export` job: the Worker reads the bucket and signs a ping to `HEARTBEAT_URLS`) and the
   downloads' signal (`export_delivery`). The Worker also logs what it saw (`export-check`, `export-stream`,
   `export-report`).
+
+### Send to Google Drive
+
+The Originals card's second way home (and Your events' and What's using space's): the same set as her Originals zip,
+`chosenRows` over what she can read, sent into her own Google Drive. The system is [drive-export.md](drive-export.md);
+what it means for R2:
+- ★ **No presigned URL and no byte through Vercel.** The `partyreel-drive` Worker reads originals through its own
+  read-only binding to the primary bucket, by the keys the app hands it in a signed lease; the app never reads media
+  bytes (`media-cost-policy.test.ts` holds), and a key never reaches a browser.
+- **One GET an original, a second only to check a clip:** each lands verified against R2's own MD5
+  (`checksums.md5`), and an object R2 kept none for (a multipart clip) is hashed by a second, verification-only read.
+  A send reads the phone copy and the preview never.
+- An original gone from R2 mid-send is skipped and named on the send (never retried for ever), and an album item
+  removed after the press is skipped at its lease.

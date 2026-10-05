@@ -57,6 +57,12 @@ export type JobId =
   | "backup_primary_missing"
   // The "Download all" zip Worker's daily self-check (`export-ends`), on the exports' own switch.
   | "export"
+  // Send to Google Drive (drive-wiring): the Worker's sweep (its heartbeat, hourly), its queue and dead letters (read
+  // by the Worker on each sweep), and the transfer's own failures, a rolling signal.
+  | "drive_export"
+  | "drive_queue"
+  | "drive_dead_letters"
+  | "drive_transfer"
   // Rolling 24h signals over work that has no schedule of its own.
   | "email_delivery"
   | "abuse_limiter"
@@ -137,6 +143,9 @@ export const MISSED_GRACE_MULTIPLIER = 1.5;
 export const DEPTH_COUNT_KEYS = {
   backup_queue: "queue_backlog",
   backup_dead_letters: "dead_letter_backlog",
+  // The Drive Worker reports its own queue's depths under the same keys (workers/drive/src/queue-metrics.ts).
+  drive_queue: "queue_backlog",
+  drive_dead_letters: "dead_letter_backlog",
   backup_primary_missing: "primary_missing",
 } as const;
 
@@ -148,12 +157,17 @@ export const DEPTH_COUNT_KEYS = {
 export const ZERO_TOLERANCE_READINGS: readonly JobId[] = [
   "backup_dead_letters",
   "backup_primary_missing",
+  // A Drive lane that died three times over (a poison connection): its connection pauses itself at three a day, and
+  // the dead letter waits here for a look (nothing drains the dead-letter queue).
+  "drive_dead_letters",
 ];
 
 /** The matching "how old is the oldest unacknowledged message" keys, in whole minutes. */
 export const DEPTH_AGE_COUNT_KEYS = {
   backup_queue: "queue_oldest_min",
   backup_dead_letters: "dead_letter_oldest_min",
+  drive_queue: "queue_oldest_min",
+  drive_dead_letters: "dead_letter_oldest_min",
 } as const;
 
 /**
@@ -414,6 +428,50 @@ export const JOBS: JobDef[] = [
     flagKey: "export_enabled",
     canRunNow: false,
   },
+  // --- Send to Google Drive (drive-export.md) ---------------------------------------------------
+  // The switch is Drive's own (`drive_export_enabled`, the one /admin/exports flips, as `export` and Download all):
+  // read inside the lease's own transaction, so a paused switch leases nothing and the card says Paused.
+  {
+    id: "drive_export",
+    label: "Send to Google Drive",
+    description:
+      "The Send to Google Drive Worker's sweep, every five minutes: it kicks a send that stopped moving, resumes a pause whose time came, ends what ran too long, and reports its queue. Its heartbeat is written once an hour from the Worker's signed call, so a Worker whose secret drifted reads Overdue.",
+    kind: "scheduled",
+    host: "cloudflare_worker",
+    cron: "*/5 * * * *",
+    cadence: "Every 5 minutes (a heartbeat an hour)",
+    expectedEveryMs: 60 * 60 * 1000,
+    flagKey: "drive_export_enabled",
+    canRunNow: false,
+  },
+  {
+    id: "drive_queue",
+    label: "Drive queue",
+    description:
+      "Lanes waiting to run: each one a connection's turn to send. A backlog that grows means sends are waiting behind each other longer than a slice.",
+    kind: "derived",
+    host: "cloudflare_worker",
+    cron: null,
+    cadence: "Read on every Drive sweep",
+    expectedEveryMs: 0,
+    flagKey: null,
+    canRunNow: false,
+    readFrom: ["drive_export"],
+  },
+  {
+    id: "drive_dead_letters",
+    label: "Drive dead letters",
+    description:
+      "Lanes that died on every retry. The connection they ran for pauses itself at three in a day (Resume on /admin/exports), so a dead letter is a bug worth reading, never a stalled send.",
+    kind: "derived",
+    host: "cloudflare_worker",
+    cron: null,
+    cadence: "Read on every Drive sweep",
+    expectedEveryMs: 0,
+    flagKey: null,
+    canRunNow: false,
+    readFrom: ["drive_export"],
+  },
   {
     id: "db_backup",
     label: "Database backup",
@@ -475,6 +533,20 @@ export const JOBS: JobDef[] = [
     label: "Help feedback",
     description:
       "Every Yes and No a reader leaves on a help article, counted at /admin/help-feedback. The reader sees the same thank-you whether the click was recorded or not, so a failing write is silent everywhere but here.",
+    kind: "signal",
+    host: "app",
+    cron: null,
+    cadence: "Rolling 24 hours",
+    expectedEveryMs: 0,
+    flagKey: null,
+    canRunNow: false,
+  },
+  {
+    // drive-wiring: what reached hosts' Drives, read at /admin/exports.
+    id: "drive_transfer",
+    label: "Sends to Google Drive",
+    description:
+      "Every file a send put in a host's Google Drive in the last day, and every one that failed for good, every original missing in R2, every dying lane, every refresh refused for a reason other than revocation, every duplicate a closing check counted, every breaker that tripped, and every send stuck an hour. The host sees her send's own place; nothing else would tell us.",
     kind: "signal",
     host: "app",
     cron: null,

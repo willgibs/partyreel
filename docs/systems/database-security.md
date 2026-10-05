@@ -14,7 +14,7 @@ semantics live in its doc.
 
 ## The RPC inventory and the advisor set
 
-`get_advisors` (security) after every schema change reads 20 `rls_enabled_no_policy`, 4 in lint `0028` and 36 in
+`get_advisors` (security) after every schema change reads 25 `rls_enabled_no_policy`, 4 in lint `0028` and 36 in
 `0029`. Leaked Password Protection is on, so its WARN never shows. A function in the wrong list means a grant slipped.
 
 - **Anon capability reads (`0028`, and `0029` too; by design, never revoke):** `get_event_by_qr_token`,
@@ -95,13 +95,16 @@ semantics live in its doc.
   page call after their `getEvent` check), the per-event block's reads (`event_ticket_blocked` and
   `event_blocked_guest_ids`, INVOKER; `blocked_events_for`, DEFINER because it reads `auth.users`, which the service
   role cannot) and its four predicates (INVOKER, run inside the guest paths' DEFINER bodies), the claims'
-  `whose_ticket` (the same shape), and the trigger functions, whose EXECUTE is revoked from the client roles and
+  `whose_ticket` (the same shape), Send to Google Drive's `cloud_*` functions (DEFINER, one jsonb each, every Drive
+  write and the Worker's lease and report behind the app's signed routes: [drive-export.md](drive-export.md)), and the
+  trigger functions, whose EXECUTE is revoked from the client roles and
   which still fire (EXECUTE is checked when a trigger is created, never when it fires).
 - **The owner's alone** (revoked from the service role too, so no role PostgREST serves can call them): helpers only
   a definer body reads, `event_door_asks` (a set no request can page) and `event_account_ticket` (a whole guest row,
   its ticket in it), Deleted's one definition `host_deleted_media` and the upload's line `host_room_used` (both
   SECURITY INVOKER, read only by the four capacity bodies), and the develop's five (`album_bits`, `album_doorbell`,
-  `seal_disagrees`, `guest_roll`, `develop_rows`).
+  `seal_disagrees`, `guest_roll`, `develop_rows`), and Send to Google Drive's two helpers (`cloud_export_pause`,
+  `cloud_export_settle`).
 - ★ **Every SECURITY DEFINER function pins `set search_path = ''` and fully qualifies every name** (`public.events`,
   `auth.users`, `extensions.crypt`): an unpinned path lets a caller shadow a name and run it as the owner. No
   DEFINER body uses dynamic SQL.
@@ -114,8 +117,11 @@ semantics live in its doc.
   prune alone), `camera_rolls` (the camera's ledger, service_role SELECT only, written by `create_media` alone),
   `article_feedback` (the help center's feedback beacon, no identity of any kind), and
   `storage_ledger` (Free's and Pro's monthly uploads meter, a pass's year counting on its own
-  `event_passes.uploaded_bytes`: its readers are the upload gates, DEFINER, and the service role), and
-  `notice_retries` (a one-time notice kept rendered until a retry sends it, never the address: `sendOnce`).
+  `event_passes.uploaded_bytes`: its readers are the upload gates, DEFINER, and the service role),
+  `notice_retries` (a one-time notice kept rendered until a retry sends it, never the address: `sendOnce`), and Send to
+  Google Drive's five (`cloud_connections`, the sealed tokens; `cloud_event_folders`; `cloud_export_items`, whose live
+  `session_uri` is a week-long upload capability; `cloud_export_leases`; `cloud_export_sent_hours`:
+  [drive-export.md](drive-export.md)).
 
 ## Grants
 
@@ -128,6 +134,9 @@ Gotchas). A new table starts with no client grant, so its migration grants exact
   holds SELECT and its writes only on a table a policy serves, and TRUNCATE, REFERENCES, TRIGGER and MAINTAIN
   (Supabase's latent default; PostgREST issues none) on none.
 
+- **`cloud_exports`:** its owner SELECTs her own sends (RLS on `user_id`) through a column grant of the progress columns
+  alone, never the connection, a folder id or the zone; every write is a `cloud_*` function on the service role. The
+  grant is whole in 20261005120000, so a later table-level SELECT revoke from `authenticated` would cascade it away.
 - **`profiles`:** hosts write `announcements_seen_at`, `welcomed_at`, `make_room_from_deleted` and `events_display` (her
   Display choices: sparse jsonb under an envelope CHECK, an object within 512 bytes, narrowed by the app on every read),
   nothing else.

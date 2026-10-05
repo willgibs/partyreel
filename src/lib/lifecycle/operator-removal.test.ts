@@ -46,6 +46,8 @@ vi.mock("@/lib/r2/delete", () => ({
   }),
   listR2Objects: vi.fn(),
 }));
+// account-deletion.ts's module asks Drive's disconnect (drive-export.md); nothing here reaches it.
+vi.mock("@/lib/drive/disconnect.server", () => ({ disconnectDrive: vi.fn() }));
 
 const { sweepRemovedMedia } =
   await import("@/lib/lifecycle/sweeps/removed-media");

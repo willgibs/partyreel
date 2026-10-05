@@ -168,6 +168,14 @@ describe("the sweep's destruction order (source text)", () => {
     expect(body).toContain("const { purgeable, blocked }");
   });
 
+  it("revokes her Google Drive before the auth user goes, and never lets it hold the account", () => {
+    // drive-wiring: the connection row cascades away with the profile, so the revoke must come first.
+    const drive = body.indexOf("await disconnectDrive(userId);");
+    expect(drive).toBeGreaterThan(body.indexOf("if (remaining > 0)"));
+    expect(drive).toBeLessThan(authDelete);
+    expect(body.slice(drive - 200, drive)).toContain("try {");
+  });
+
   it("scrubs the guest rows in the re-anonymise, before anything is deleted and before the profile", () => {
     // lp/identity-email: a failed scrub throws out of reanonymise, which runs first, so the purge
     // stops before an R2 delete, an event delete or deleteUser. It is also the only pass that
@@ -316,6 +324,10 @@ vi.mock("@/lib/r2/delete", () => ({
     return { deleted: keys.length, errored: [] };
   }),
   listR2Objects: vi.fn(),
+}));
+// Her Google Drive's disconnect is its own system's (drive-export.md); the purge only has to ask for it in order.
+vi.mock("@/lib/drive/disconnect.server", () => ({
+  disconnectDrive: vi.fn(async () => ({ found: false, revoked: true, ended: 0 })),
 }));
 
 const { getAccountDeletionState, purgeAccount, sweepDeletedAccounts } =

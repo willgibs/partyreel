@@ -22,6 +22,8 @@
  * Adding a new signal later (e.g. co-host invites — see ROADMAP) = one new field here + one
  * read in `getNotificationData`. Keep it that simple.
  */
+import { DRIVE_ACCOUNT_PATH } from "@/lib/drive/links";
+import { stopTitle } from "@/lib/drive/moments";
 import { peopleWaiting } from "@/lib/event/door/words";
 import { roomHref } from "@/lib/event/sections";
 import { RECOVERY_PURGE_NUDGE_DAYS } from "@/lib/lifecycle/recently-deleted";
@@ -35,6 +37,7 @@ export type NotificationKind =
   | "over_capacity"
   | "pass_expiring"
   | "recovery_clearing"
+  | "drive"
   | "announcement";
 
 export type NotificationItem = {
@@ -75,6 +78,14 @@ export type AnnouncementInput = {
   published_at: string;
 };
 
+/** One Send to Google Drive stop that waits on her (the strip's own title; `partly_done` for files left short). */
+export type DriveStopSignal = {
+  jobId: string;
+  eventId: string | null;
+  albumName: string;
+  reason: string;
+};
+
 export type NotificationSignals = {
   /** Count of media awaiting approval across the host's live events (RLS-scoped upstream). */
   pendingCount: number;
@@ -95,6 +106,8 @@ export type NotificationSignals = {
   /** Recent published announcements (already filtered/limited upstream). */
   announcements: AnnouncementInput[];
   announcementsSeenAt: string | null;
+  /** Send to Google Drive's stops that wait on her (drive-export.md); absent for a host who never used Drive. */
+  driveStops?: DriveStopSignal[];
   now?: Date;
 };
 
@@ -167,6 +180,25 @@ export function buildNotifications(
       });
       alertCount++;
     }
+  }
+
+  // Send to Google Drive's stops that wait on her: a stop she cannot miss reaches the bell too, standing while the
+  // stop does and opening the album it sends (Account, for a lost connection).
+  for (const stop of signals.driveStops ?? []) {
+    items.push({
+      key: `drive:${stop.jobId}`,
+      kind: "drive",
+      title: stopTitle(stop.reason, stop.albumName),
+      body: stop.albumName,
+      href:
+        stop.reason === "disconnected"
+          ? DRIVE_ACCOUNT_PATH
+          : stop.eventId
+            ? `/dashboard/${stop.eventId}`
+            : "/dashboard",
+      unread: true,
+    });
+    alertCount++;
   }
 
   // ★ PEOPLE AT THE DOOR, FIRST OF THE QUEUES (the doors, event-settings r1: a waiting newcomer
