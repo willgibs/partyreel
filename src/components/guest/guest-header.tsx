@@ -34,6 +34,8 @@ type MenuData = {
   email: string | null;
   displayName: string | null;
   avatarUrl: string | null;
+  /** Her claimed handle, from /api/me/menu: Your profile's page (`/me` while it is null or not yet asked). */
+  slug: string | null;
   ownsThisEvent: boolean;
   /** seedFor(user.id), from /api/me/menu — null in phase 1 (see below). */
   seed: string | null;
@@ -286,6 +288,7 @@ export function GuestHeader({
         email: user.email ?? null,
         displayName: null,
         avatarUrl: null,
+        slug: null,
         ownsThisEvent: false,
         seed: null,
       });
@@ -310,6 +313,7 @@ export function GuestHeader({
         email?: string | null;
         displayName?: string | null;
         avatarUrl?: string | null;
+        slug?: string | null;
         seed?: string | null;
         ownsThisEvent?: boolean;
       };
@@ -319,6 +323,7 @@ export function GuestHeader({
         email: body.email ?? user.email ?? null,
         displayName: body.displayName ?? null,
         avatarUrl: body.avatarUrl ?? null,
+        slug: body.slug ?? null,
         seed: body.seed ?? null,
         ownsThisEvent: Boolean(body.ownsThisEvent),
       });
@@ -466,6 +471,7 @@ export function GuestHeader({
             email={menu.email}
             displayName={menu.displayName}
             avatarUrl={menu.avatarUrl}
+            slug={menu.slug}
             seed={menu.seed}
             // Both false and "" on an event-less page, and the menu reads the
             // id only behind the ownership flag, so the "Manage event" row is

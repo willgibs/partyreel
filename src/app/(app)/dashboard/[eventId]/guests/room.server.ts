@@ -6,7 +6,10 @@ import { seedFor } from "@/lib/avatar/seed";
 import { getDoorQueue, getInviteList } from "@/lib/db/queries/event-doors";
 import { getEventBlocks } from "@/lib/db/queries/event-blocks";
 import { getConfirmedGuestAddresses } from "@/lib/db/queries/guest-addresses";
-import { getEventGuestList } from "@/lib/db/queries/social";
+import {
+  countWaitingGuestShots,
+  getEventGuestList,
+} from "@/lib/db/queries/social";
 import { askedAgo } from "@/lib/event/door/words";
 import {
   blockedSince,
@@ -26,6 +29,11 @@ import { splitGuestList, withAvatarUrls } from "@/lib/social/cards";
  * ★ EVERY CALLER HAS PROVED THE HOST FIRST (`getEvent`, RLS): the door's two lists are the service role's, and the
  * addresses re-prove inside `getConfirmedGuestAddresses`; the blocks are the host's own RLS read.
  *
+ * ★ A SEALED ALBUM'S LIST IS EMPTY WHILE ITS ROLL IS SHOT (crumbs-81): a guest whose only approved shots wait for the
+ * develop joins the list at the develop, not before (the one count's rule, `getEventGuests`), so the room reads the
+ * number of shots that wait beside it (`waiting`) and says so, in place of telling a host whose guests have filled a
+ * roll that nobody has added a photo. One read with the rest, so the two can never describe different rooms.
+ *
  * ★ PLAIN DATA ALL THE WAY DOWN, because it crosses to the client as a Server Function's answer as well as a page's
  * prop: the addresses ride as pairs and become the list's Map in the room, and every time is said here, in the
  * host's zone, so the room's first paint and its client agree.
@@ -34,6 +42,11 @@ export type GuestsRoomData = {
   /** When this was read (the server's clock, ms): the room keeps the newer of two reads. */
   readAt: number;
   items: GuestListItem[];
+  /**
+   * Approved shots of guests still under their seal (an album with a develop time ahead): their guests join `items` when
+   * it develops. Zero for an album that holds nothing back.
+   */
+  waiting: number;
   /** A confirmed guest's address by card id, as pairs (`GuestList`'s `emails`, a Map once it lands). */
   emails: [string, string][];
   atTheDoor: DoorPerson[];
@@ -47,10 +60,11 @@ export async function readGuestsRoom(
   eventId: string,
   zone: string,
 ): Promise<GuestsRoomData> {
-  const [entries, blocked, queue, invited] = await Promise.all([
+  const [entries, waiting, blocked, queue, invited] = await Promise.all([
     // Opts INTO the unverified union: this room is the host's own full read, unlike the album's guest-facing caller
     // (the identity reshape, 2026-09-21: unproven=shown-marked, never hidden from the one person the mark exists for).
     getEventGuestList(eventId, { includeUnverified: true }),
+    countWaitingGuestShots(eventId),
     getEventBlocks(eventId, {
       since: (iso) => blockedSince(iso, zone),
       until: (iso) => deletedUntil(iso, zone),
@@ -87,6 +101,7 @@ export async function readGuestsRoom(
   return {
     readAt,
     items: [...hydrated, ...unverified],
+    waiting,
     emails: [...emails],
     atTheDoor,
     doorTotal: queue.total,

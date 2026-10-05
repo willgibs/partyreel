@@ -16,12 +16,16 @@ vi.mock("@/lib/supabase/avatar-storage", () => ({
 
 const reads = vi.hoisted(() => ({
   list: vi.fn(),
+  waiting: vi.fn(),
   blocks: vi.fn(),
   queue: vi.fn(),
   invites: vi.fn(),
   addresses: vi.fn(),
 }));
-vi.mock("@/lib/db/queries/social", () => ({ getEventGuestList: reads.list }));
+vi.mock("@/lib/db/queries/social", () => ({
+  getEventGuestList: reads.list,
+  countWaitingGuestShots: reads.waiting,
+}));
 vi.mock("@/lib/db/queries/event-blocks", () => ({
   getEventBlocks: reads.blocks,
 }));
@@ -37,8 +41,13 @@ const { readGuestsRoom } = await import("./room.server");
 
 const seed = (id: string) => createHash("sha256").update(id).digest("hex");
 
-function reading({ list = [] as unknown[], people = [] as unknown[] } = {}) {
+function reading({
+  list = [] as unknown[],
+  people = [] as unknown[],
+  waiting = 0,
+} = {}) {
   reads.list.mockResolvedValue(list);
+  reads.waiting.mockResolvedValue(waiting);
   reads.blocks.mockResolvedValue([]);
   reads.queue.mockResolvedValue({ total: people.length, people });
   reads.invites.mockResolvedValue([]);
@@ -91,5 +100,30 @@ describe("the Guests room's colours", () => {
     const room = await readGuestsRoom("ev-1", "UTC");
     expect(room.atTheDoor[0].seed).toMatch(/^[0-9a-f]{64}$/);
     expect(room.atTheDoor[0].seed).not.toBe("g-ask");
+  });
+});
+
+// ★ A SEALED ALBUM'S ROOM TELLS WHAT WAITS (crumbs-81). A guest whose only approved shots wait for the develop is on no
+// list yet (the one count's rule), so the list alone reads as an album nobody has added to; the room carries the number
+// of shots that wait beside it, read in the same one read so the two can never describe different rooms.
+describe("the Guests room's waiting shots", () => {
+  it("★ carries the count of shots a sealed album holds, beside the list that cannot show their guests", async () => {
+    reading({ waiting: 42 });
+    const room = await readGuestsRoom("ev-1", "UTC");
+    expect(room.items).toEqual([]);
+    expect(room.waiting).toBe(42);
+  });
+
+  it("reads it for the event the room is read for, and says none for an album that holds nothing", async () => {
+    reading();
+    const room = await readGuestsRoom("ev-7", "UTC");
+    expect(reads.waiting).toHaveBeenCalledWith("ev-7");
+    expect(room.waiting).toBe(0);
+  });
+
+  it("★ a count that fails fails the room's read, never an empty room that says nobody has added a photo", async () => {
+    reading();
+    reads.waiting.mockRejectedValue(new Error("down"));
+    await expect(readGuestsRoom("ev-1", "UTC")).rejects.toThrow("down");
   });
 });

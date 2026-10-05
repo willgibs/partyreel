@@ -8,6 +8,11 @@ import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/constants/site";
 // URLs expire and the gallery is conditional-request driven, so offline caching
 // is a deliberate post-launch decision (not this phase). The icons are the ink
 // aperture mark; the maskable variant keeps it inside the safe zone.
+//
+// ★ THE ADMIN HOST SERVES IT TOO (crumbs-81). The shared root layout links it from every page of both deployments, so
+// the proxy's every-path rule for the admin host leaves this one path alone (`src/proxy.ts`'s matcher, as it leaves the
+// icons), where it used to refuse it and answer a 404 on every portal page view. That is why it stays static and global:
+// nothing here may read a request (a session, a host), since the proxy never runs for it and the CDN answers.
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: SITE_NAME,

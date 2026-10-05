@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
+import { Dialog as DialogPrimitive } from "radix-ui";
 
 import { AddsPage } from "@/components/app/event-settings/adds-page";
 import { DoorPage } from "@/components/app/event-settings/door-page";
@@ -238,20 +239,24 @@ function SettingsPanel({
 
   return (
     <Popup open={open} onOpenChange={changeOpen}>
-      {/* ★ A PAGE'S HEAD NAMES NO DESCRIPTION (crumbs-59, red-team 47's NIT): the rows' head says the event's name under
-          "Settings", and Radix points the dialog at it whether or not one is drawn, so a panel that mounted at a page
-          (`?room=settings&setting=event`, a link, a reload) warned "Missing `Description`", and one that moved onto a page
-          left its `aria-describedby` on an element that had just gone. A page says so, as every popup without one does. */}
-      <PopupContent
-        kind="settings"
-        routed
-        {...(shown ? { "aria-describedby": undefined } : {})}
-      >
+      <PopupContent kind="settings" routed>
         {shown ? (
+          // ★ A PAGE'S HEAD IS DESCRIBED BY THE EVENT'S NAME, OUT OF SIGHT (crumbs-81). The rows' head says it under
+          // "Settings" (a hand's bar drops it, since the arrow says it), and Radix points the dialog at a description
+          // whether or not one is drawn, so a page with none warned "Missing `Description`" when a panel mounted at it
+          // (`?room=settings&setting=event`, a link, a reload) and, once moved onto, left `aria-describedby` on an
+          // element that had just gone (crumbs-59's red-team NIT). That was answered by naming no description at all,
+          // which left a screen reader opening "What guests can add" with nothing of whose event it is. So the page
+          // carries the same name as the dialog's description, never drawn (a page's head has no line for it), in the
+          // head's own children so it mounts and goes with the head and `aria-describedby` always names a live element.
           <PopupHeader
             title={PAGE_TITLE[shown]}
             up={{ label: "Settings", onUp: () => move(null) }}
-          />
+          >
+            <DialogPrimitive.Description className="sr-only">
+              {eventName}
+            </DialogPrimitive.Description>
+          </PopupHeader>
         ) : (
           <PopupHeader
             title="Settings"

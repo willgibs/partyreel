@@ -8,8 +8,13 @@
  * (the dialog's description), and a page's head (This event, the door, what guests can add, the reel) says only its title
  * under a back arrow. Radix points the dialog at its description whether or not one is drawn, so a panel that MOUNTED at
  * a page (`?room=settings&setting=event`, a link, a reload) warned at once, and one that moved onto a page left its
- * `aria-describedby` on an element that had just gone. The page's head names no description, so it says so (an explicit
- * `aria-describedby={undefined}`, as every popup without one does) and the rows' head keeps the one it has.
+ * `aria-describedby` on an element that had just gone.
+ *
+ * ★ RESHAPED ON PURPOSE (crumbs-81; the scar kept: the dialog never points at an element that is not on the page, and
+ * Radix warns of nothing, at the rows, at any page and moving between them). Its expired reason was the answer to that
+ * NIT: a page's head named no description and said so (`aria-describedby={undefined}`), which left a screen reader
+ * opening a page with nothing of whose event it is. A page's head now carries the event's name, out of sight, as the
+ * rows' head says it under "Settings", so the dialog is described at the rows and at every page.
  */
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -91,7 +96,7 @@ afterEach(() => {
 });
 
 describe("Settings' panel, at the rows and at each page", () => {
-  it("★ opens at the rows with its description, and at any page with none to point at, warning nothing, at a desk and in a hand", async () => {
+  it("★ opens at the rows and at any page described by the event's name, warning nothing, at a desk and in a hand", async () => {
     for (const width of [1024, 375]) {
       setViewportWidth(width);
       for (const page of [null, "door", "adds", "reel", "event"] as const) {
@@ -101,6 +106,10 @@ describe("Settings' panel, at the rows and at each page", () => {
         const where = `${page} at ${width}`;
         expect(missingDescription(warn.mock.calls), where).toEqual([]);
         expect(describedByResolves(), where).toBe(true);
+        expect(
+          document.querySelector('[role="dialog"]'),
+          where,
+        ).toHaveAccessibleDescription("Maya's 30th");
         warn.mockRestore();
         cleanup();
       }
@@ -116,7 +125,9 @@ describe("Settings' panel, at the rows and at each page", () => {
     expect(describedByResolves()).toBe(true);
     view.rerender(sheet("event"));
     expect(describedByResolves()).toBe(true);
-    expect(dialog.getAttribute("aria-describedby")).toBeNull();
+    // The page is described too: by the same name, out of sight.
+    expect(dialog.getAttribute("aria-describedby")).not.toBeNull();
+    expect(dialog).toHaveAccessibleDescription("Maya's 30th");
     view.rerender(sheet(null));
     expect(dialog.getAttribute("aria-describedby")).not.toBeNull();
     expect(describedByResolves()).toBe(true);

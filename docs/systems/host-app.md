@@ -210,7 +210,8 @@ hub and closes back to it.
   function (`settingsReadiness`: the server's facts, the album's live counts over them, Settings' optimistic values
   over both, so a step ticks the moment its choice is made). Every control saves itself (no form, no Save):
   `SettingsProvider` lays an optimistic overlay over the server row, a key dropped once the row catches up, with a
-  sequence per key so a late answer never undoes a newer choice; a text field saves when it is left. `/settings`
+  sequence per key so a late answer never undoes a newer choice (a save that throws, a dropped connection, settles as a
+  refusal does: put back, freed, said, and `run` never rejects); a text field saves when it is left. `/settings`
   survives as a redirect, because it is a published URL.
 - ★ **A date field saves once she has finished it, never on its change**: Chrome's date input fires a complete date on
   every keystroke that makes one (a year typed digit by digit passes 0002, 0020 and 0202 on its way to 2027), so a
@@ -321,7 +322,10 @@ so the profile's visitor-facing "Private" never collides. The six-door menu is `
 - ★ **The Guests room is one read, after `getEvent` has proved the host** (`guests/room.server.ts`: the door's lists
   are the service role's, and a confirmed guest's address re-proves inside its own read). The hub's render reads it
   whenever the address names the room, and the room's own ask (`readGuestsRoomAction`) when a card opens it in place;
-  the panel draws the newer of the two, and a read that fails says so with Try again, never an empty room.
+  the panel draws the newer of the two, and a read that fails says so with Try again, never an empty room. ★ A sealed
+  album's list is empty while its roll is shot (a guest joins it at the develop), so the read carries `waiting`, the
+  shots the seal holds, and the room says "N shots are developing" in the list's place, never "Nobody has added photos
+  yet" (a room holding a roll is not empty: Invite stays its quiet action).
 - **The Guests room's At the door** heads it: Let in (`let_in_at_door`) opens her door on every device, and her held
   door opens by itself at its next check-in. ★ Decline is a block (the account where there is one, else the row), with
   Undo on its toast and Let back in under Blocked, so a declined newcomer meets the one shut screen and cannot keep

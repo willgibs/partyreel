@@ -129,6 +129,71 @@ describe("the host's account menu", () => {
 });
 
 describe("the signed-in guest's account menu", () => {
+  // ★ HER PROFILE IS A DOOR IN THIS MENU TOO (crumbs-81). The host's menu opens it in its first row; this one reached
+  // her account only through Dashboard and Account, so a guest who confirmed an email and added photos could reach her
+  // own uploads, likes and connections only through the app's own menu. It is the host menu's one rule, said once more:
+  // her page where she has a handle, `/me` (which sends her on the day she has one) where she has none.
+  it("★ carries Your profile: her page where she has a handle, /me where she has none", async () => {
+    const { unmount } = render(
+      <GuestAccountMenu
+        email="priya@example.com"
+        displayName="Priya"
+        avatarUrl={null}
+        ownsThisEvent={false}
+        eventId="evt-1"
+        onSignOut={() => {}}
+      />,
+    );
+    openMenu();
+    expect(
+      await screen.findByRole("menuitem", { name: /your profile/i }),
+    ).toHaveAttribute("href", "/me");
+    unmount();
+
+    render(
+      <GuestAccountMenu
+        email="priya@example.com"
+        displayName="Priya"
+        avatarUrl={null}
+        slug="priya"
+        ownsThisEvent={false}
+        eventId="evt-1"
+        onSignOut={() => {}}
+      />,
+    );
+    openMenu();
+    expect(
+      await screen.findByRole("menuitem", { name: /your profile/i }),
+    ).toHaveAttribute("href", "/u/priya");
+  });
+
+  it("carries Your profile once, in the same tab, after the event's own door and ahead of the app's two", async () => {
+    render(
+      <GuestAccountMenu
+        email="priya@example.com"
+        displayName="Priya"
+        avatarUrl={null}
+        slug="priya"
+        ownsThisEvent
+        eventId="evt-1"
+        onSignOut={() => {}}
+      />,
+    );
+    openMenu();
+    const rows = await screen.findAllByRole("menuitem");
+    const names = rows.map((row) => row.textContent?.trim());
+    expect(names.filter((n) => /your profile/i.test(n ?? ""))).toHaveLength(1);
+    const profile = rows[names.findIndex((n) => /your profile/i.test(n ?? ""))];
+    expect(profile).not.toHaveAttribute("target");
+    // The event's own door first when she hosts it, then her profile, then the app's two.
+    expect(names.slice(0, 4)).toEqual([
+      "Manage event",
+      "Your profile",
+      "Dashboard",
+      "Account",
+    ]);
+  });
+
   it("carries the same one row, to the help center in a new tab", async () => {
     render(
       <GuestAccountMenu

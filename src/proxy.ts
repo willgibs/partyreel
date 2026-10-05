@@ -153,6 +153,13 @@ export async function proxy(request: NextRequest) {
  * same writes land on an action's response). What the first matcher always skipped (Next's build output, the Vercel
  * beacons, static images) stays skipped on BOTH surfaces: the portal's own JS, CSS and icons come out of /_next.
  *
+ * ★ AND THE MANIFEST, ON THE ADMIN HOST TOO (crumbs-81). The shared layout links `/manifest.webmanifest` from every
+ * page of both deployments, and the admin host's every-path rule used to take it, refuse it by the allow-list (it is
+ * not the portal's, nor its sign-in's) and answer a 404 on every portal page view. It is a static route that renders no
+ * session, the same kind of file as the icons beside it, so the second matcher leaves it alone, as it does them: the
+ * CDN answers, no function runs, and the allow-list (`src/lib/surface`) still refuses every other path. Only the path
+ * itself (`$`): one that merely starts like it is still the allow-list's to refuse.
+ *
  * ★ LITERALS ONLY. Next reads this object statically at build, and one value it cannot read (a variable, an import, a
  * spread) drops the WHOLE config, so the proxy silently runs on everything again; `proxy.test.ts` reads it the
  * build's way and holds the two readings equal.
@@ -162,7 +169,7 @@ export const config = {
     "/(dashboard|account|me|welcome|login|auth|e|u|report|admin|design)/:path*",
     {
       source:
-        "/((?!_next/static|_next/image|_vercel|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+        "/((?!_next/static|_next/image|_vercel|favicon.ico|manifest\\.webmanifest$|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
       has: [
         {
           type: "host",
