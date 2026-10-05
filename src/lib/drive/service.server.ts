@@ -26,7 +26,12 @@ import {
   undoFolder,
   type CreatedFolder,
 } from "@/lib/drive/google";
-import { needsReseal, openToken, sealToken, type TokenKeys } from "@/lib/drive/tokens.server";
+import {
+  needsReseal,
+  openToken,
+  sealToken,
+  type TokenKeys,
+} from "@/lib/drive/tokens.server";
 import {
   claimRoot,
   claimToken,
@@ -59,7 +64,10 @@ import { captureError, captureWarning } from "@/lib/observability/sentry";
 /** The token keys, from the env (asserted). */
 export function tokenKeys(): TokenKeys {
   const env = assertDriveEnv();
-  return { current: env.DRIVE_TOKEN_KEY, previous: env.DRIVE_TOKEN_KEY_PREVIOUS ?? null };
+  return {
+    current: env.DRIVE_TOKEN_KEY,
+    previous: env.DRIVE_TOKEN_KEY_PREVIOUS ?? null,
+  };
 }
 
 export type AccessResult =
@@ -69,7 +77,11 @@ export type AccessResult =
    * the refresh (ask again in a moment); failing: Google could not be reached or refused for another reason;
    * missing: no connection.
    */
-  | { ok: false; why: "revoked" | "wait" | "failing" | "missing"; firstRevoked?: boolean };
+  | {
+      ok: false;
+      why: "revoked" | "wait" | "failing" | "missing";
+      firstRevoked?: boolean;
+    };
 
 /** What a refresh that failed does, and says: the row's state, and whether it is news (one reconnect mail). */
 async function refreshFailed(
@@ -78,7 +90,9 @@ async function refreshFailed(
   revoked: boolean,
 ): Promise<AccessResult> {
   const r = await recordRefreshFailed({ connectionId, error, revoked });
-  return revoked ? { ok: false, why: "revoked", firstRevoked: r.first } : { ok: false, why: "failing" };
+  return revoked
+    ? { ok: false, why: "revoked", firstRevoked: r.first }
+    : { ok: false, why: "failing" };
 }
 
 /**
@@ -90,22 +104,38 @@ export async function resolveAccess(
   claim: TokenClaim,
   keys: TokenKeys = tokenKeys(),
 ): Promise<AccessResult> {
-  if (claim.state !== "cached" && claim.state !== "refresh") return { ok: false, why: claim.state };
+  if (claim.state !== "cached" && claim.state !== "refresh")
+    return { ok: false, why: claim.state };
   const userId = claim.userId;
 
   if (claim.state === "cached") {
-    const token = openToken(claim.accessCt, { userId, provider: "google_drive", purpose: "access" }, keys);
+    const token = openToken(
+      claim.accessCt,
+      { userId, provider: "google_drive", purpose: "access" },
+      keys,
+    );
     if (token) return { ok: true, token, expiresAt: claim.expiresAt };
     // The access slot did not open (a key rotated away): the refresh token decides, through its own claim.
     const again = await claimToken(connectionId);
     if (again.state !== "refresh") {
-      return again.state === "cached" ? refreshFailed(connectionId, "token key", true) : resolveAccess(connectionId, again, keys);
+      return again.state === "cached"
+        ? refreshFailed(connectionId, "token key", true)
+        : resolveAccess(connectionId, again, keys);
     }
     return resolveAccess(connectionId, again, keys);
   }
 
-  const refresh = openToken(claim.refreshCt, { userId, provider: "google_drive", purpose: "refresh" }, keys);
-  if (!refresh) return refreshFailed(connectionId, "no key of ours opens the refresh token", true);
+  const refresh = openToken(
+    claim.refreshCt,
+    { userId, provider: "google_drive", purpose: "refresh" },
+    keys,
+  );
+  if (!refresh)
+    return refreshFailed(
+      connectionId,
+      "no key of ours opens the refresh token",
+      true,
+    );
 
   const env = assertDriveEnv();
   const answer = await refreshAccess({
@@ -113,25 +143,53 @@ export async function resolveAccess(
     clientSecret: env.GOOGLE_DRIVE_CLIENT_SECRET,
     refreshToken: refresh,
   });
-  if (!answer.ok) return refreshFailed(connectionId, answer.error, answer.revoked);
+  if (!answer.ok)
+    return refreshFailed(connectionId, answer.error, answer.revoked);
 
-  const expiresAt = new Date(Date.now() + answer.expiresIn * 1000).toISOString();
-  const accessCt = sealToken(answer.accessToken, { userId, provider: "google_drive", purpose: "access" }, keys);
-  const rotated = answer.refreshToken && answer.refreshToken !== refresh ? answer.refreshToken : null;
+  const expiresAt = new Date(
+    Date.now() + answer.expiresIn * 1000,
+  ).toISOString();
+  const accessCt = sealToken(
+    answer.accessToken,
+    { userId, provider: "google_drive", purpose: "access" },
+    keys,
+  );
+  const rotated =
+    answer.refreshToken && answer.refreshToken !== refresh
+      ? answer.refreshToken
+      : null;
   const refreshCt =
     rotated !== null
-      ? sealToken(rotated, { userId, provider: "google_drive", purpose: "refresh" }, keys)
+      ? sealToken(
+          rotated,
+          { userId, provider: "google_drive", purpose: "refresh" },
+          keys,
+        )
       : needsReseal(claim.refreshCt, keys)
-        ? sealToken(refresh, { userId, provider: "google_drive", purpose: "refresh" }, keys)
+        ? sealToken(
+            refresh,
+            { userId, provider: "google_drive", purpose: "refresh" },
+            keys,
+          )
         : null;
-  await recordRefreshed({ connectionId, accessCt, accessExpiresAt: expiresAt, refreshCt });
+  await recordRefreshed({
+    connectionId,
+    accessCt,
+    accessExpiresAt: expiresAt,
+    refreshCt,
+  });
   return { ok: true, token: answer.accessToken, expiresAt };
 }
 
 /** An access token for a caller outside a lease (a press, Check again, an operator): a brief wait for a claim. */
-export async function accessTokenFor(connectionId: string): Promise<AccessResult> {
+export async function accessTokenFor(
+  connectionId: string,
+): Promise<AccessResult> {
   for (let attempt = 0; attempt < 4; attempt++) {
-    const result = await resolveAccess(connectionId, await claimToken(connectionId));
+    const result = await resolveAccess(
+      connectionId,
+      await claimToken(connectionId),
+    );
     if (result.ok || result.why !== "wait") return result;
     await new Promise((resolve) => setTimeout(resolve, 750));
   }
@@ -139,7 +197,11 @@ export async function accessTokenFor(connectionId: string): Promise<AccessResult
 }
 
 /** The lease's own token answer, resolved: the claim rode inside the lease's transaction. */
-export async function accessFromLease(connectionId: string, access: unknown, userId: string): Promise<AccessResult> {
+export async function accessFromLease(
+  connectionId: string,
+  access: unknown,
+  userId: string,
+): Promise<AccessResult> {
   return resolveAccess(connectionId, tokenClaimOf(access, userId));
 }
 
@@ -157,7 +219,11 @@ export async function makeSendFolders(input: {
   accessToken: string;
 }): Promise<{ folderId: string }> {
   const { facts, accessToken } = input;
-  const root = await ensureRoot(accessToken, facts.connectionId, facts.rootFolderId);
+  const root = await ensureRoot(
+    accessToken,
+    facts.connectionId,
+    facts.rootFolderId,
+  );
 
   let folderId = root.changed ? null : facts.folderId;
   if (folderId) {
@@ -167,7 +233,11 @@ export async function makeSendFolders(input: {
   let made: CreatedFolder | null = null;
   if (!folderId) {
     made = await createFolder(accessToken, {
-      name: driveFolderName({ name: facts.albumName, eventDate: facts.eventDate, endDate: facts.eventEndDate }),
+      name: driveFolderName({
+        name: facts.albumName,
+        eventDate: facts.eventDate,
+        endDate: facts.eventEndDate,
+      }),
       parentId: root.id,
     });
     folderId = made.id;
@@ -192,8 +262,15 @@ async function ensureRoot(
 ): Promise<{ id: string; changed: boolean }> {
   const state = known ? await driveFileState(accessToken, known) : null;
   if (known && state && !state.trashed) return { id: known, changed: false };
-  const made: CreatedFolder = await createFolder(accessToken, { name: DRIVE_ROOT_FOLDER_NAME, colored: true });
-  const claim = await claimRoot({ connectionId, candidate: made.id, expected: known });
+  const made: CreatedFolder = await createFolder(accessToken, {
+    name: DRIVE_ROOT_FOLDER_NAME,
+    colored: true,
+  });
+  const claim = await claimRoot({
+    connectionId,
+    candidate: made.id,
+    expected: known,
+  });
   if (!claim.won) await undoFolder(accessToken, made);
   const id = claim.root ?? made.id;
   return { id, changed: id !== known };
@@ -213,7 +290,11 @@ export async function makeNewAlbumFolder(input: {
   fallbackName: string;
   accessToken: string;
 }): Promise<boolean> {
-  const root = await ensureRoot(input.accessToken, input.connectionId, input.rootFolderId);
+  const root = await ensureRoot(
+    input.accessToken,
+    input.connectionId,
+    input.rootFolderId,
+  );
   const album = await readAlbumNaming(input.eventId);
   const made = await createFolder(input.accessToken, {
     name: driveFolderName({
@@ -223,7 +304,11 @@ export async function makeNewAlbumFolder(input: {
     }),
     parentId: root.id,
   });
-  const ok = await refolderSend({ userId: input.userId, jobId: input.jobId, folderId: made.id });
+  const ok = await refolderSend({
+    userId: input.userId,
+    jobId: input.jobId,
+    folderId: made.id,
+  });
   if (!ok) await undoFolder(input.accessToken, made).catch(() => undefined);
   return ok;
 }
@@ -253,7 +338,12 @@ export async function leaseItemsFor(input: {
           input.lease,
           unnamed.map((i) => ({
             mediaId: i.mediaId,
-            stem: driveFileStem({ arrivedAt: i.createdAt, capturedAt: null, tz: input.tz, who: senders.get(i.mediaId) }),
+            stem: driveFileStem({
+              arrivedAt: i.createdAt,
+              capturedAt: null,
+              tz: input.tz,
+              who: senders.get(i.mediaId),
+            }),
             ext: driveFileExt({ originalKey: i.key, type: i.type }),
           })),
         )
@@ -276,10 +366,15 @@ export async function leaseItemsFor(input: {
           capturedAt: null,
           tz: input.tz,
         }),
-        modifiedTime: driveModifiedTime({ arrivedAt: i.createdAt, capturedAt: null }),
+        modifiedTime: driveModifiedTime({
+          arrivedAt: i.createdAt,
+          capturedAt: null,
+        }),
         attempts: i.attempts,
         priorFileId: i.priorFileId,
-        session: i.sessionUri ? { uri: i.sessionUri, offset: i.sessionOffset ?? 0 } : null,
+        session: i.sessionUri
+          ? { uri: i.sessionUri, offset: i.sessionOffset ?? 0 }
+          : null,
       };
     })
     .filter((i): i is LeaseItem => i !== null);
@@ -313,7 +408,10 @@ export async function kickConnection(connectionId: string): Promise<number> {
       cache: "no-store",
     });
     if (!res.ok) {
-      captureWarning("export", "drive_kick_refused", { status: res.status, lanes });
+      captureWarning("export", "drive_kick_refused", {
+        status: res.status,
+        lanes,
+      });
     }
     return lanes;
   } catch (e) {
@@ -323,12 +421,22 @@ export async function kickConnection(connectionId: string): Promise<number> {
 }
 
 /** The ciphertexts of a connection, opened (the Disconnect's revoke). Null where no key of ours opens them. */
-export async function openConnectionTokens(connectionId: string): Promise<{ refresh: string | null; access: string | null } | null> {
+export async function openConnectionTokens(
+  connectionId: string,
+): Promise<{ refresh: string | null; access: string | null } | null> {
   const row = await readTokenRow(connectionId);
   if (!row) return null;
   const keys = tokenKeys();
   return {
-    refresh: openToken(row.refreshCt, { userId: row.userId, provider: "google_drive", purpose: "refresh" }, keys),
-    access: openToken(row.accessCt, { userId: row.userId, provider: "google_drive", purpose: "access" }, keys),
+    refresh: openToken(
+      row.refreshCt,
+      { userId: row.userId, provider: "google_drive", purpose: "refresh" },
+      keys,
+    ),
+    access: openToken(
+      row.accessCt,
+      { userId: row.userId, provider: "google_drive", purpose: "access" },
+      keys,
+    ),
   };
 }

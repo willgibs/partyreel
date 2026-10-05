@@ -8,8 +8,19 @@ import { describe, expect, it } from "vitest";
 
 import type { AppClient, ReportAnswer, Unreachable } from "./app-client";
 import { driveAdapter } from "./google-drive";
-import { REPORT_EVERY_MS, runSlice, SLICE_MS, type LaneDeps, type LaneMessage } from "./lane";
-import type { CheckResult, LeaseAnswer, LeaseItem, ReportItem } from "./protocol";
+import {
+  REPORT_EVERY_MS,
+  runSlice,
+  SLICE_MS,
+  type LaneDeps,
+  type LaneMessage,
+} from "./lane";
+import type {
+  CheckResult,
+  LeaseAnswer,
+  LeaseItem,
+  ReportItem,
+} from "./protocol";
 import { FakeBucket, bytesOf, md5OfStream } from "./testing/fake-bucket";
 import { FakeDrive } from "./testing/fake-drive";
 
@@ -17,7 +28,8 @@ const SECRET = "drive-vector-secret";
 const CONNECTION = "33333333-4444-4555-8666-777777777777";
 const LEASE = "11111111-2222-4333-8444-555555555555";
 // The pinned vector's sealed token, for LEASE (protocol.test.ts).
-const SEALED = "AAECAwQFBgcICQoL.aMw-A8qgcjRVADPQGL_vMXpkVNCx3Mg9YHD3mtjp2jtfY1kX6Hnq53bRVA";
+const SEALED =
+  "AAECAwQFBgcICQoL.aMw-A8qgcjRVADPQGL_vMXpkVNCx3Mg9YHD3mtjp2jtfY1kX6Hnq53bRVA";
 
 function item(n: number, bucket: FakeBucket): LeaseItem {
   const mediaId = `66666666-7777-4888-9999-${String(n).padStart(12, "0")}`;
@@ -46,8 +58,17 @@ type Scripted = {
 function harness(script: Scripted) {
   const drive = new FakeDrive();
   const bucket = new FakeBucket();
-  const reports: { lease: string; items: ReportItem[]; finding?: string; done?: boolean }[] = [];
-  const checks: { results: CheckResult[]; duplicates?: number; finding?: string }[] = [];
+  const reports: {
+    lease: string;
+    items: ReportItem[];
+    finding?: string;
+    done?: boolean;
+  }[] = [];
+  const checks: {
+    results: CheckResult[];
+    duplicates?: number;
+    finding?: string;
+  }[] = [];
   const requeued: { delay?: number }[] = [];
   let clock = 5_000_000;
   const app: AppClient = {
@@ -80,13 +101,29 @@ function harness(script: Scripted) {
     random: () => 0.5,
     spent: () => 0,
   };
-  return { drive, bucket, reports, checks, requeued, deps, tick: (ms: number) => (clock += ms) };
+  return {
+    drive,
+    bucket,
+    reports,
+    checks,
+    requeued,
+    deps,
+    tick: (ms: number) => (clock += ms),
+  };
 }
 
 const message: LaneMessage = { v: 1, connectionId: CONNECTION };
 
 function work(items: LeaseItem[]): LeaseAnswer {
-  return { state: "work", lease: LEASE, until: "x", jobId: "job", folderId: "album", token: SEALED, items };
+  return {
+    state: "work",
+    lease: LEASE,
+    until: "x",
+    jobId: "job",
+    folderId: "album",
+    token: SEALED,
+    items,
+  };
 }
 
 describe("a lane's slice", () => {
@@ -99,7 +136,14 @@ describe("a lane's slice", () => {
   });
 
   it("re-queues itself delayed when Google said slow down, and 60 s on when the app cannot answer", async () => {
-    const slow = harness({ leases: [{ state: "throttled", until: new Date(5_000_000 + 90_000).toISOString() }] });
+    const slow = harness({
+      leases: [
+        {
+          state: "throttled",
+          until: new Date(5_000_000 + 90_000).toISOString(),
+        },
+      ],
+    });
     expect(await runSlice(slow.deps, message)).toBe("throttled");
     expect(slow.requeued).toEqual([{ delay: 90 }]);
 
@@ -110,20 +154,30 @@ describe("a lane's slice", () => {
 
   it("sends a batch, reports what went with the lease ended, and leases again", async () => {
     const h = harness({ leases: [] });
-    h.deps.app.lease = async () => (h.reports.length === 0 ? work([item(1, h.bucket), item(2, h.bucket)]) : { state: "idle" });
+    h.deps.app.lease = async () =>
+      h.reports.length === 0
+        ? work([item(1, h.bucket), item(2, h.bucket)])
+        : { state: "idle" };
     expect(await runSlice(h.deps, message)).toBe("idle");
     const last = h.reports.at(-1)!;
     expect(last.done).toBe(true);
-    expect(h.reports.flatMap((r) => r.items).filter((i) => i.outcome === "sent")).toHaveLength(2);
+    expect(
+      h.reports.flatMap((r) => r.items).filter((i) => i.outcome === "sent"),
+    ).toHaveLength(2);
     expect(h.drive.files.size).toBe(2);
   });
 
   it("reports at least every 10 seconds while a batch runs", async () => {
     const h = harness({ leases: [] });
     const items = [item(1, h.bucket), item(2, h.bucket), item(3, h.bucket)];
-    h.deps.app.lease = async () => (h.reports.length === 0 ? work(items) : { state: "idle" });
+    h.deps.app.lease = async () =>
+      h.reports.length === 0 ? work(items) : { state: "idle" };
     const inner = h.deps.bucket.head.bind(h.deps.bucket);
-    h.deps.bucket = { ...h.deps.bucket, read: h.bucket.read.bind(h.bucket), head: async (k: string) => (h.tick(REPORT_EVERY_MS), inner(k)) };
+    h.deps.bucket = {
+      ...h.deps.bucket,
+      read: h.bucket.read.bind(h.bucket),
+      head: async (k: string) => (h.tick(REPORT_EVERY_MS), inner(k)),
+    };
     await runSlice(h.deps, message);
     expect(h.reports.length).toBeGreaterThanOrEqual(3);
   });
@@ -133,7 +187,11 @@ describe("a lane's slice", () => {
     const items = [item(1, h.bucket), item(2, h.bucket), item(3, h.bucket)];
     h.deps.app.lease = async () => work(items);
     const inner = h.deps.bucket.head.bind(h.deps.bucket);
-    h.deps.bucket = { ...h.deps.bucket, read: h.bucket.read.bind(h.bucket), head: async (k: string) => (h.tick(REPORT_EVERY_MS), inner(k)) };
+    h.deps.bucket = {
+      ...h.deps.bucket,
+      read: h.bucket.read.bind(h.bucket),
+      head: async (k: string) => (h.tick(REPORT_EVERY_MS), inner(k)),
+    };
     expect(await runSlice(h.deps, message)).toBe("stop");
     expect(h.requeued).toEqual([]);
     expect(h.reports.at(-1)!.done).toBe(true);
@@ -155,7 +213,10 @@ describe("a lane's slice", () => {
     h.drive.failures.quota = true;
     h.deps.app.lease = async () => work([item(1, h.bucket), item(2, h.bucket)]);
     expect(await runSlice(h.deps, message)).toBe("finding");
-    expect(h.reports.at(-1)).toMatchObject({ finding: "drive_full", done: true });
+    expect(h.reports.at(-1)).toMatchObject({
+      finding: "drive_full",
+      done: true,
+    });
     expect(h.requeued).toEqual([]);
   });
 
@@ -164,12 +225,19 @@ describe("a lane's slice", () => {
     h.drive.failures.rate = 1000;
     h.deps.app.lease = async () => work([item(1, h.bucket)]);
     expect(await runSlice(h.deps, message)).toBe("throttled");
-    expect(h.reports.at(-1)).toMatchObject({ finding: "throttled", done: true });
+    expect(h.reports.at(-1)).toMatchObject({
+      finding: "throttled",
+      done: true,
+    });
     expect(h.requeued).toEqual([{ delay: 120 }]);
   });
 
   it("gives the batch back when a lease's token does not open (a secret that drifted)", async () => {
-    const h = harness({ leases: [{ ...work([]), token: "AAECAwQFBgcICQoL.broken" } as LeaseAnswer] });
+    const h = harness({
+      leases: [
+        { ...work([]), token: "AAECAwQFBgcICQoL.broken" } as LeaseAnswer,
+      ],
+    });
     expect(await runSlice(h.deps, message)).toBe("app_down");
     expect(h.reports).toEqual([{ lease: LEASE, items: [], done: true }]);
   });
@@ -193,6 +261,12 @@ describe("a lane's slice", () => {
           }
         : { state: "idle" };
     expect(await runSlice(h.deps, message)).toBe("idle");
-    expect(h.checks).toEqual([{ lease: LEASE, results: [{ mediaId: "m1", state: "ok" }], duplicates: 0 }]);
+    expect(h.checks).toEqual([
+      {
+        lease: LEASE,
+        results: [{ mediaId: "m1", state: "ok" }],
+        duplicates: 0,
+      },
+    ]);
   });
 });

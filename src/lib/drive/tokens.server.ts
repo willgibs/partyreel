@@ -43,7 +43,9 @@ const VERSION = "v1";
 function keyBytes(b64: string): Buffer {
   const key = Buffer.from(b64, "base64");
   if (key.length !== 32) {
-    throw new Error("DRIVE_TOKEN_KEY must be 32 bytes, base64 (openssl rand -base64 32)");
+    throw new Error(
+      "DRIVE_TOKEN_KEY must be 32 bytes, base64 (openssl rand -base64 32)",
+    );
   }
   return key;
 }
@@ -54,29 +56,51 @@ export function keyId(b64: string): string {
 }
 
 function aad(ctx: TokenContext): Buffer {
-  return Buffer.from(`drive:${VERSION}:${ctx.userId}:${ctx.provider}:${ctx.purpose}`, "utf8");
+  return Buffer.from(
+    `drive:${VERSION}:${ctx.userId}:${ctx.provider}:${ctx.purpose}`,
+    "utf8",
+  );
 }
 
 /** Seal a token under the current key. */
-export function sealToken(plaintext: string, ctx: TokenContext, keys: TokenKeys): string {
+export function sealToken(
+  plaintext: string,
+  ctx: TokenContext,
+  keys: TokenKeys,
+): string {
   const key = keyBytes(keys.current);
   const iv = randomBytes(12);
   const cipher = createCipheriv("aes-256-gcm", key, iv);
   cipher.setAAD(aad(ctx));
-  const sealed = Buffer.concat([cipher.update(plaintext, "utf8"), cipher.final(), cipher.getAuthTag()]);
-  return [VERSION, keyId(keys.current), iv.toString("base64url"), sealed.toString("base64url")].join(".");
+  const sealed = Buffer.concat([
+    cipher.update(plaintext, "utf8"),
+    cipher.final(),
+    cipher.getAuthTag(),
+  ]);
+  return [
+    VERSION,
+    keyId(keys.current),
+    iv.toString("base64url"),
+    sealed.toString("base64url"),
+  ].join(".");
 }
 
 /**
  * Open a sealed token, or null: an unknown shape, a key id neither key carries, a tag that does not hold (another
  * row's ciphertext, another slot's, a byte changed) all read as "this connection is broken", never a throw.
  */
-export function openToken(sealed: string | null | undefined, ctx: TokenContext, keys: TokenKeys): string | null {
+export function openToken(
+  sealed: string | null | undefined,
+  ctx: TokenContext,
+  keys: TokenKeys,
+): string | null {
   if (!sealed) return null;
   const parts = sealed.split(".");
   if (parts.length !== 4 || parts[0] !== VERSION) return null;
   const [, id, ivPart, bodyPart] = parts;
-  const candidates = [keys.current, keys.previous].filter((k): k is string => Boolean(k));
+  const candidates = [keys.current, keys.previous].filter((k): k is string =>
+    Boolean(k),
+  );
   const keyB64 = candidates.find((k) => {
     try {
       return keyId(k) === id;
@@ -94,14 +118,20 @@ export function openToken(sealed: string | null | undefined, ctx: TokenContext, 
     const decipher = createDecipheriv("aes-256-gcm", keyBytes(keyB64), iv);
     decipher.setAAD(aad(ctx));
     decipher.setAuthTag(tag);
-    return Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString("utf8");
+    return Buffer.concat([
+      decipher.update(ciphertext),
+      decipher.final(),
+    ]).toString("utf8");
   } catch {
     return null;
   }
 }
 
 /** True when a sealed value was sealed by a key other than the current one: the next write re-seals it. */
-export function needsReseal(sealed: string | null | undefined, keys: TokenKeys): boolean {
+export function needsReseal(
+  sealed: string | null | undefined,
+  keys: TokenKeys,
+): boolean {
   if (!sealed) return false;
   const id = sealed.split(".")[1];
   return id !== keyId(keys.current);

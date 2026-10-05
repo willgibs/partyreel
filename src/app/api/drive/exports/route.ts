@@ -19,10 +19,23 @@ import { z } from "zod";
 
 import { driveRoom, DriveCallError } from "@/lib/drive/google";
 import { DRIVE_HINT_COOKIE, DRIVE_HINT_MAX_AGE_S } from "@/lib/drive/links";
-import { MAX_ALBUMS_A_PRESS, type PressRefusal, type PressResult } from "@/lib/drive/press";
+import {
+  MAX_ALBUMS_A_PRESS,
+  type PressRefusal,
+  type PressResult,
+} from "@/lib/drive/press";
 import { notifyReconnect } from "@/lib/drive/mail.server";
-import { accessTokenFor, kickConnection, makeSendFolders } from "@/lib/drive/service.server";
-import { createSend, previewAlbums, readConnection, recordRoom } from "@/lib/db/queries/drive";
+import {
+  accessTokenFor,
+  kickConnection,
+  makeSendFolders,
+} from "@/lib/drive/service.server";
+import {
+  createSend,
+  previewAlbums,
+  readConnection,
+  recordRoom,
+} from "@/lib/db/queries/drive";
 import { driveConfigured } from "@/lib/env";
 import { captureError } from "@/lib/observability/sentry";
 import { checkAccountAbuseRate } from "@/lib/security/abuse-rate-limit-store";
@@ -42,8 +55,15 @@ const bodySchema = z.object({
   tz: z.string().min(1).max(64).default("UTC"),
 });
 
-function refuse(code: PressRefusal, status: number, extra: Record<string, unknown> = {}) {
-  return NextResponse.json({ ok: false, code, ...extra }, { status, headers: { "Cache-Control": "private, no-store" } });
+function refuse(
+  code: PressRefusal,
+  status: number,
+  extra: Record<string, unknown> = {},
+) {
+  return NextResponse.json(
+    { ok: false, code, ...extra },
+    { status, headers: { "Cache-Control": "private, no-store" } },
+  );
 }
 
 /** A Google refusal at the press, in the code the panel words. */
@@ -75,7 +95,8 @@ export async function POST(request: Request) {
   if (!driveConfigured()) return refuse("unavailable", 503);
 
   const gate = await checkAccountAbuseRate("drive_send", user.id);
-  if (!gate.allowed) return refuse("rate_limited", 429, { retryAfterSec: gate.retryAfterSec });
+  if (!gate.allowed)
+    return refuse("rate_limited", 429, { retryAfterSec: gate.retryAfterSec });
 
   const connection = await readConnection(user.id);
   if (!connection) return refuse("not_connected", 409);
@@ -83,7 +104,11 @@ export async function POST(request: Request) {
   if (connection.operatorPausedAt) return refuse("paused", 409);
 
   // What the press would put in her Drive: the new bytes of every album not already under way.
-  const { albums } = await previewAlbums({ userId: user.id, eventIds: event_ids, includeHidden: include_hidden });
+  const { albums } = await previewAlbums({
+    userId: user.id,
+    eventIds: event_ids,
+    includeHidden: include_hidden,
+  });
   const newBytes = event_ids.reduce((n, id) => {
     const a = albums.get(id);
     return a && !a.unfinished ? n + a.newBytes : n;
@@ -92,30 +117,56 @@ export async function POST(request: Request) {
   const access = await accessTokenFor(connection.id);
   if (!access.ok) {
     if (access.why === "revoked" && access.firstRevoked) {
-      after(() => notifyReconnect({ connectionId: connection.id, userId: user.id, why: "revoked" }));
+      after(() =>
+        notifyReconnect({
+          connectionId: connection.id,
+          userId: user.id,
+          why: "revoked",
+        }),
+      );
     }
-    return refuse(access.why === "revoked" ? "disconnected" : access.why === "wait" ? "busy" : "google_unreachable", 409);
+    return refuse(
+      access.why === "revoked"
+        ? "disconnected"
+        : access.why === "wait"
+          ? "busy"
+          : "google_unreachable",
+      409,
+    );
   }
 
   if (newBytes > 0) {
     try {
       // about.get's answer is kept a minute on the connection: a second press in quick succession asks Google nothing.
-      const askedAt = connection.quota.at ? Date.parse(connection.quota.at) : Number.NaN;
+      const askedAt = connection.quota.at
+        ? Date.parse(connection.quota.at)
+        : Number.NaN;
       const cached =
-        Number.isFinite(askedAt) && Date.now() - askedAt < ROOM_CACHE_MS && connection.quota.usage !== null
+        Number.isFinite(askedAt) &&
+        Date.now() - askedAt < ROOM_CACHE_MS &&
+        connection.quota.usage !== null
           ? { limit: connection.quota.limit, usage: connection.quota.usage }
           : null;
       const room = cached ?? (await driveRoom(access.token));
       if (!cached) {
         after(() =>
-          recordRoom({ connectionId: connection.id, limit: room.limit, usage: room.usage, resume: false }).then(
-            () => undefined,
-          ),
+          recordRoom({
+            connectionId: connection.id,
+            limit: room.limit,
+            usage: room.usage,
+            resume: false,
+          }).then(() => undefined),
         );
       }
       // Plus 1% for what Drive counts that we do not. No limit (unlimited, or a Workspace's pooled one): it holds it.
-      if (room.limit !== null && room.limit - room.usage < newBytes + Math.ceil(newBytes / 100)) {
-        return refuse("drive_full", 409, { free: Math.max(room.limit - room.usage, 0), needs: newBytes });
+      if (
+        room.limit !== null &&
+        room.limit - room.usage < newBytes + Math.ceil(newBytes / 100)
+      ) {
+        return refuse("drive_full", 409, {
+          free: Math.max(room.limit - room.usage, 0),
+          needs: newBytes,
+        });
       }
     } catch (e) {
       return refuse(googleCode(e), 409);
@@ -126,9 +177,19 @@ export async function POST(request: Request) {
   let started = false;
   for (const eventId of event_ids) {
     try {
-      const created = await createSend({ userId: user.id, eventId, includeHidden: include_hidden, tz });
+      const created = await createSend({
+        userId: user.id,
+        eventId,
+        includeHidden: include_hidden,
+        tz,
+      });
       if (!created.ok) {
-        results.push({ eventId, jobId: null, state: "refused", code: created.code });
+        results.push({
+          eventId,
+          jobId: null,
+          state: "refused",
+          code: created.code,
+        });
         continue;
       }
       if (created.existing === false && created.empty) {
@@ -140,13 +201,26 @@ export async function POST(request: Request) {
         continue;
       }
       try {
-        await makeSendFolders({ jobId: created.jobId, facts: created.facts, accessToken: access.token });
+        await makeSendFolders({
+          jobId: created.jobId,
+          facts: created.facts,
+          accessToken: access.token,
+        });
         started = true;
-        results.push({ eventId, jobId: created.jobId, state: created.existing ? "open" : "started" });
+        results.push({
+          eventId,
+          jobId: created.jobId,
+          state: created.existing ? "open" : "started",
+        });
       } catch (e) {
         // The send waits for its folder; the next press makes it (or the sweep stops it in ten minutes).
         captureError("export", e, { action: "drive_folders", eventId });
-        results.push({ eventId, jobId: created.jobId, state: "failed", code: googleCode(e) });
+        results.push({
+          eventId,
+          jobId: created.jobId,
+          state: "failed",
+          code: googleCode(e),
+        });
       }
     } catch (e) {
       captureError("export", e, { action: "drive_press", eventId });
@@ -155,7 +229,10 @@ export async function POST(request: Request) {
   }
 
   if (started) after(() => kickConnection(connection.id).then(() => undefined));
-  const response = NextResponse.json({ ok: true, results }, { headers: { "Cache-Control": "private, no-store" } });
+  const response = NextResponse.json(
+    { ok: true, results },
+    { headers: { "Cache-Control": "private, no-store" } },
+  );
   // This browser's host uses Drive: her pages listen for her sends (`links.ts`), on this device too.
   response.cookies.set(DRIVE_HINT_COOKIE, "1", {
     path: "/",

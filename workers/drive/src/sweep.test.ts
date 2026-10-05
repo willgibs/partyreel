@@ -17,7 +17,12 @@ describe("the sweep", () => {
   it("enqueues the lanes the app answers, at most three a connection", async () => {
     const sent: LaneMessage[] = [];
     const n = await sweep({
-      app: app({ kick: [{ connectionId: "a", lanes: 2 }, { connectionId: "b", lanes: 9 }] }),
+      app: app({
+        kick: [
+          { connectionId: "a", lanes: 2 },
+          { connectionId: "b", lanes: 9 },
+        ],
+      }),
       mode: "on",
       depths: { queue_backlog: 0 },
       enqueue: async (m) => void sent.push(...m),
@@ -28,8 +33,18 @@ describe("the sweep", () => {
 
   it("enqueues nothing switched off, or when the app cannot answer", async () => {
     const sent: LaneMessage[] = [];
-    await sweep({ app: app({ kick: [{ connectionId: "a", lanes: 3 }] }), mode: "off", depths: {}, enqueue: async (m) => void sent.push(...m) });
-    await sweep({ app: app({ state: "unreachable", status: 0 }), mode: "on", depths: {}, enqueue: async (m) => void sent.push(...m) });
+    await sweep({
+      app: app({ kick: [{ connectionId: "a", lanes: 3 }] }),
+      mode: "off",
+      depths: {},
+      enqueue: async (m) => void sent.push(...m),
+    });
+    await sweep({
+      app: app({ state: "unreachable", status: 0 }),
+      mode: "on",
+      depths: {},
+      enqueue: async (m) => void sent.push(...m),
+    });
     expect(sent).toEqual([]);
   });
 });

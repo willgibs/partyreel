@@ -9,7 +9,10 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import type { ActionResult } from "@/app/(app)/dashboard/actions";
-import { DestructiveSheet, GuardedSwitch } from "@/components/admin/destructive-sheet";
+import {
+  DestructiveSheet,
+  GuardedSwitch,
+} from "@/components/admin/destructive-sheet";
 import { Button } from "@/components/ui/button";
 import { formatCount } from "@/lib/format/count";
 
@@ -20,7 +23,11 @@ import {
   driveSendAction,
   toggleDriveExportsAction,
 } from "./drive-actions";
-import { REVOKE_ALL_PHRASE, type ConnectionActId, type SendActId } from "./drive-words";
+import {
+  REVOKE_ALL_PHRASE,
+  type ConnectionActId,
+  type SendActId,
+} from "./drive-words";
 
 export function DriveKillSwitch({ enabled }: { enabled: boolean }) {
   return (
@@ -81,18 +88,40 @@ export function DriveSendActs({
   return (
     <div className="flex flex-wrap justify-end gap-1.5">
       {acts.includes("resume") ? (
-        <Button size="xs" variant="outline" disabled={pending} onClick={() => press(() => driveSendAction(jobId, "resume"), "Sending again.")}>
+        <Button
+          size="xs"
+          variant="outline"
+          disabled={pending}
+          onClick={() =>
+            press(() => driveSendAction(jobId, "resume"), "Sending again.")
+          }
+        >
           Resume
         </Button>
       ) : null}
       {acts.includes("retry") ? (
-        <Button size="xs" variant="outline" disabled={pending} onClick={() => press(() => driveSendAction(jobId, "retry"), "Retrying what failed.")}>
+        <Button
+          size="xs"
+          variant="outline"
+          disabled={pending}
+          onClick={() =>
+            press(
+              () => driveSendAction(jobId, "retry"),
+              "Retrying what failed.",
+            )
+          }
+        >
           Retry failed
         </Button>
       ) : null}
       {acts.includes("cancel") ? (
         <>
-          <Button size="xs" variant="ghost" disabled={pending} onClick={() => setCanceling(true)}>
+          <Button
+            size="xs"
+            variant="ghost"
+            disabled={pending}
+            onClick={() => setCanceling(true)}
+          >
             Cancel
           </Button>
           <DestructiveSheet
@@ -103,7 +132,9 @@ export function DriveSendActs({
             verb="Cancel the send"
             touches={[
               `${host}'s send of ${albumName}`,
-              left > 0 ? `${formatCount(left)} ${left === 1 ? "file" : "files"} not sent` : "Nothing left to send",
+              left > 0
+                ? `${formatCount(left)} ${left === 1 ? "file" : "files"} not sent`
+                : "Nothing left to send",
               "Her album reads “We stopped this send”; she is not emailed",
             ]}
             severity="reversible"
@@ -130,7 +161,9 @@ export function DriveConnectionActs({
   acts: ConnectionActId[];
 }) {
   const { pending, press } = usePress();
-  const [asking, setAsking] = useState<"pause" | "lift_breaker" | "disconnect" | null>(null);
+  const [asking, setAsking] = useState<
+    "pause" | "lift_breaker" | "disconnect" | null
+  >(null);
   const drive = connectedAs ?? "her Google Drive";
   return (
     <div className="flex flex-wrap justify-end gap-1.5">
@@ -139,23 +172,43 @@ export function DriveConnectionActs({
           size="xs"
           variant="outline"
           disabled={pending}
-          onClick={() => press(() => driveConnectionAction(connectionId, "resume", ""), "Connection resumed.")}
+          onClick={() =>
+            press(
+              () => driveConnectionAction(connectionId, "resume", ""),
+              "Connection resumed.",
+            )
+          }
         >
           Resume
         </Button>
       ) : null}
       {acts.includes("lift_breaker") ? (
-        <Button size="xs" variant="outline" disabled={pending} onClick={() => setAsking("lift_breaker")}>
+        <Button
+          size="xs"
+          variant="outline"
+          disabled={pending}
+          onClick={() => setAsking("lift_breaker")}
+        >
           Lift breaker
         </Button>
       ) : null}
       {acts.includes("pause") ? (
-        <Button size="xs" variant="ghost" disabled={pending} onClick={() => setAsking("pause")}>
+        <Button
+          size="xs"
+          variant="ghost"
+          disabled={pending}
+          onClick={() => setAsking("pause")}
+        >
           Pause
         </Button>
       ) : null}
       {acts.includes("disconnect") ? (
-        <Button size="xs" variant="ghost" disabled={pending} onClick={() => setAsking("disconnect")}>
+        <Button
+          size="xs"
+          variant="ghost"
+          disabled={pending}
+          onClick={() => setAsking("disconnect")}
+        >
           Disconnect
         </Button>
       ) : null}
@@ -165,11 +218,22 @@ export function DriveConnectionActs({
         title="Pause this connection?"
         lede="Every lease for it answers paused: her running sends stop at their next batch and wait, and a new press is refused, until an operator resumes it."
         verb="Pause the connection"
-        touches={[`${host}, sending to ${drive}`, "Every send on it, running or pressed later", "Her album reads “Sending stopped on our side”; she is not emailed"]}
+        touches={[
+          `${host}, sending to ${drive}`,
+          "Every send on it, running or pressed later",
+          "Her album reads “Sending stopped on our side”; she is not emailed",
+        ]}
         severity="reversible"
-        note={{ label: "Why", placeholder: "What you saw", hint: "Kept on the connection until it is resumed.", maxLength: 500 }}
+        note={{
+          label: "Why",
+          placeholder: "What you saw",
+          hint: "Kept on the connection until it is resumed.",
+          maxLength: 500,
+        }}
         successMessage="Connection paused."
-        onConfirm={(_typed, note) => driveConnectionAction(connectionId, "pause", note)}
+        onConfirm={(_typed, note) =>
+          driveConnectionAction(connectionId, "pause", note)
+        }
       />
       <DestructiveSheet
         open={asking === "lift_breaker"}
@@ -186,7 +250,9 @@ export function DriveConnectionActs({
         ]}
         severity="reversible"
         successMessage="Breaker lifted."
-        onConfirm={() => driveConnectionAction(connectionId, "lift_breaker", "")}
+        onConfirm={() =>
+          driveConnectionAction(connectionId, "lift_breaker", "")
+        }
       />
       <DestructiveSheet
         open={asking === "disconnect"}
@@ -216,9 +282,15 @@ export function DriveRevokeAll({ connections }: { connections: number }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
       <p className="min-w-0 flex-1 basis-64 text-caption text-muted-foreground">
-        If the token key or the client secret leaks: rotate them (the runbook), then revoke every connection here.
+        If the token key or the client secret leaks: rotate them (the runbook),
+        then revoke every connection here.
       </p>
-      <Button size="sm" variant="destructive" onClick={() => setAsking(true)} disabled={connections === 0}>
+      <Button
+        size="sm"
+        variant="destructive"
+        onClick={() => setAsking(true)}
+        disabled={connections === 0}
+      >
         Revoke every connection
       </Button>
       <DestructiveSheet

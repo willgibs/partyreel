@@ -11,7 +11,10 @@ import { describe, expect, it } from "vitest";
 import { chosenRows } from "@/lib/export/build-manifest";
 
 const MIGRATIONS = join(process.cwd(), "supabase", "migrations");
-const sql = readFileSync(join(MIGRATIONS, "20261005120000_cloud_export.sql"), "utf8")
+const sql = readFileSync(
+  join(MIGRATIONS, "20261005120000_cloud_export.sql"),
+  "utf8",
+)
   .split("\n")
   .filter((line) => !line.trimStart().startsWith("--"))
   .join("\n");
@@ -23,8 +26,15 @@ function bodyOf(name: string): string {
 }
 
 /** The SQL's predicate, as a function: what the snapshot takes of one row the host can read. */
-function sqlTakes(row: { status: string; purge_asked_at: string | null }, includeHidden: boolean): boolean {
-  return row.status !== "removed" && row.purge_asked_at === null && (includeHidden || row.status === "approved");
+function sqlTakes(
+  row: { status: string; purge_asked_at: string | null },
+  includeHidden: boolean,
+): boolean {
+  return (
+    row.status !== "removed" &&
+    row.purge_asked_at === null &&
+    (includeHidden || row.status === "approved")
+  );
 }
 
 describe("the snapshot's predicate", () => {
@@ -33,7 +43,9 @@ describe("the snapshot's predicate", () => {
       const body = bodyOf(name);
       expect(body, name).toContain("m.status <> 'removed'");
       expect(body, name).toContain("m.purge_asked_at is null");
-      expect(body, name).toMatch(/\(coalesce\(p_include_hidden, false\) or m\.status = 'approved'\)/);
+      expect(body, name).toMatch(
+        /\(coalesce\(p_include_hidden, false\) or m\.status = 'approved'\)/,
+      );
       // ★ A quiet legal hold is not a filter (trust-safety-forensics.md): her zip includes a held row.
       expect(body, name).not.toContain("legal_hold_at");
     }
@@ -45,14 +57,26 @@ describe("the snapshot's predicate", () => {
         .split("\n")
         .filter((line) => !line.trimStart().startsWith("--"))
         .join("\n");
-    const files = readdirSync(MIGRATIONS).filter((f) => f.endsWith(".sql")).sort();
-    const last = files.filter((f) => /(alter|create) policy media_host_all on public\.media/.test(executable(f))).pop();
+    const files = readdirSync(MIGRATIONS)
+      .filter((f) => f.endsWith(".sql"))
+      .sort();
+    const last = files
+      .filter((f) =>
+        /(alter|create) policy media_host_all on public\.media/.test(
+          executable(f),
+        ),
+      )
+      .pop();
     expect(last).toBeDefined();
     const text = executable(last!);
-    const at = text.search(/(alter|create) policy media_host_all on public\.media[\s\S]*$/);
+    const at = text.search(
+      /(alter|create) policy media_host_all on public\.media[\s\S]*$/,
+    );
     const policy = text.slice(at, text.indexOf(";", at));
     expect(policy).toContain("and media.purge_asked_at is null");
-    expect(policy).toContain("not (media.status = 'removed' and media.removed_by_admin)");
+    expect(policy).toContain(
+      "not (media.status = 'removed' and media.removed_by_admin)",
+    );
   });
 
   it("★ chooses the rows chosenRows chooses, over every status and either choice of hidden", () => {
@@ -67,8 +91,12 @@ describe("the snapshot's predicate", () => {
       purge_asked_at: null as string | null,
     }));
     for (const includeHidden of [false, true]) {
-      const zip = chosenRows(rows as never, "all", includeHidden).map((r) => r.id);
-      const send = rows.filter((r) => sqlTakes(r, includeHidden)).map((r) => r.id);
+      const zip = chosenRows(rows as never, "all", includeHidden).map(
+        (r) => r.id,
+      );
+      const send = rows
+        .filter((r) => sqlTakes(r, includeHidden))
+        .map((r) => r.id);
       expect(send, `include hidden: ${includeHidden}`).toEqual(zip);
     }
   });

@@ -49,7 +49,9 @@ const mac = (secret: string, body: string) =>
 
 /** Sign a word as the Worker does (the tests' half of the vector) and as the app's kick does. */
 export function signDriveWord(secret: string, payload: unknown): string {
-  const body = Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
+  const body = Buffer.from(JSON.stringify(payload), "utf8").toString(
+    "base64url",
+  );
   return `${body}.${mac(secret, body)}`;
 }
 
@@ -67,9 +69,11 @@ export function verifyDriveWord<T extends { at: number }>(
   schema: z.ZodType<T>,
   nowMs: number,
 ): DriveVerdict<T> {
-  if (!secret || !wire || wire.length > 1_000_000) return { ok: false, reason: "malformed" };
+  if (!secret || !wire || wire.length > 1_000_000)
+    return { ok: false, reason: "malformed" };
   const dot = wire.indexOf(".");
-  if (dot < 1 || dot !== wire.lastIndexOf(".")) return { ok: false, reason: "malformed" };
+  if (dot < 1 || dot !== wire.lastIndexOf("."))
+    return { ok: false, reason: "malformed" };
   const body = wire.slice(0, dot);
   if (!constantTimeEquals(wire.slice(dot + 1), mac(secret, body))) {
     return { ok: false, reason: "bad_signature" };
@@ -82,25 +86,43 @@ export function verifyDriveWord<T extends { at: number }>(
   }
   const parsed = schema.safeParse(raw);
   if (!parsed.success) return { ok: false, reason: "malformed" };
-  if (Math.abs(nowMs - parsed.data.at) > DRIVE_FRESH_MS) return { ok: false, reason: "stale" };
+  if (Math.abs(nowMs - parsed.data.at) > DRIVE_FRESH_MS)
+    return { ok: false, reason: "stale" };
   return { ok: true, word: parsed.data };
 }
 
 // ── The sealed token ────────────────────────────────────────────────────────────────────────────
 
 function tokenKey(secret: string): Buffer {
-  return Buffer.from(hkdfSync("sha256", Buffer.from(secret, "utf8"), Buffer.alloc(0), "drive:token", 32));
+  return Buffer.from(
+    hkdfSync(
+      "sha256",
+      Buffer.from(secret, "utf8"),
+      Buffer.alloc(0),
+      "drive:token",
+      32,
+    ),
+  );
 }
 
 /**
  * Seal an access token for one lease: `${iv}.${ciphertext and tag}`, base64url. `iv` is for the pinned vector alone;
  * every real seal draws a fresh one.
  */
-export function sealForLease(secret: string, accessToken: string, leaseToken: string, iv?: Buffer): string {
+export function sealForLease(
+  secret: string,
+  accessToken: string,
+  leaseToken: string,
+  iv?: Buffer,
+): string {
   const nonce = iv ?? randomBytes(12);
   const cipher = createCipheriv("aes-256-gcm", tokenKey(secret), nonce);
   cipher.setAAD(Buffer.from(`drive:lease:${leaseToken}`, "utf8"));
-  const sealed = Buffer.concat([cipher.update(accessToken, "utf8"), cipher.final(), cipher.getAuthTag()]);
+  const sealed = Buffer.concat([
+    cipher.update(accessToken, "utf8"),
+    cipher.final(),
+    cipher.getAuthTag(),
+  ]);
   return `${nonce.toString("base64url")}.${sealed.toString("base64url")}`;
 }
 
@@ -109,7 +131,11 @@ export function sealForLease(secret: string, accessToken: string, leaseToken: st
 const uuid = z.uuid();
 const at = z.number().int().positive();
 const v = z.literal(DRIVE_PROTOCOL_VERSION);
-const fileId = z.string().min(1).max(200).regex(/^[A-Za-z0-9_-]+$/);
+const fileId = z
+  .string()
+  .min(1)
+  .max(200)
+  .regex(/^[A-Za-z0-9_-]+$/);
 const md5 = z.string().regex(/^[0-9a-f]{32}$/);
 const reason = z.string().max(300);
 
@@ -215,7 +241,9 @@ export const sweepWordSchema = z.object({
   kind: z.literal("sweep"),
   at,
   mode: z.enum(["on", "off"]),
-  depths: z.record(z.string().max(40), z.number().int().min(0)).refine((d) => Object.keys(d).length <= 8),
+  depths: z
+    .record(z.string().max(40), z.number().int().min(0))
+    .refine((d) => Object.keys(d).length <= 8),
 });
 export type SweepWord = z.infer<typeof sweepWordSchema>;
 
@@ -239,7 +267,12 @@ export type LeaseItem = {
   session: { uri: string; offset: number } | null;
 };
 
-export type CheckItem = { mediaId: string; fileId: string; bytes: number; md5: string | null };
+export type CheckItem = {
+  mediaId: string;
+  fileId: string;
+  bytes: number;
+  md5: string | null;
+};
 
 export type LeaseAnswer =
   | {

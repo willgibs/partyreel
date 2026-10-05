@@ -15,7 +15,14 @@ const MEDIA = "66666666-7777-4888-9999-aaaaaaaaaaaa";
 const JOB = "11111111-2222-4333-8444-555555555555";
 const KEY = `events/e/photo/${MEDIA}/original.jpg`;
 
-function setup(opts: { size?: number; multipart?: boolean; chunkBytes?: number; deadlineMs?: number } = {}) {
+function setup(
+  opts: {
+    size?: number;
+    multipart?: boolean;
+    chunkBytes?: number;
+    deadlineMs?: number;
+  } = {},
+) {
   const drive = new FakeDrive();
   const bucket = new FakeBucket();
   const bytes = bytesOf(opts.size ?? 3000);
@@ -49,13 +56,23 @@ function setup(opts: { size?: number; multipart?: boolean; chunkBytes?: number; 
     bytes: bytes.length,
     contentType: "image/jpeg",
     name: "2026-09-12 21.14.05 · Priya.jpg",
-    description: "From Priya at Maya & Jay, 12 Sep 2026, 21:14. Sent from Partyreel.",
+    description:
+      "From Priya at Maya & Jay, 12 Sep 2026, 21:14. Sent from Partyreel.",
     modifiedTime: "2026-09-12T20:14:05.000Z",
     attempts: 1,
     priorFileId: null,
     session: null,
   };
-  return { drive, bucket, bytes, ctx, item, progress, slept, advance: (ms: number) => (clock += ms) };
+  return {
+    drive,
+    bucket,
+    bytes,
+    ctx,
+    item,
+    progress,
+    slept,
+    advance: (ms: number) => (clock += ms),
+  };
 }
 
 describe("one original into her Drive", () => {
@@ -84,16 +101,33 @@ describe("one original into her Drive", () => {
 
   it("keeps an earlier send's file that is still there and whole, with no byte read", async () => {
     const { drive, ctx, item, bytes, bucket } = setup();
-    const prior = drive.add({ size: bytes.length, md5: (await bucket.head(KEY))!.md5!, appProperties: { pr_media: MEDIA } });
+    const prior = drive.add({
+      size: bytes.length,
+      md5: (await bucket.head(KEY))!.md5!,
+      appProperties: { pr_media: MEDIA },
+    });
     const result = await sendOne(ctx, { ...item, priorFileId: prior.id });
-    expect(result.item).toEqual({ mediaId: MEDIA, outcome: "sent", fileId: prior.id, kept: true, md5: prior.md5 });
+    expect(result.item).toEqual({
+      mediaId: MEDIA,
+      outcome: "sent",
+      fileId: prior.id,
+      kept: true,
+      md5: prior.md5,
+    });
     expect(bucket.reads).toBe(0);
   });
 
   it("sends again a file she deleted or binned since (the prior one is no longer whole and hers)", async () => {
     const { drive, ctx, item, bytes } = setup();
-    const binned = drive.add({ size: bytes.length, trashed: true, appProperties: { pr_media: MEDIA } });
-    const gone = await sendOne(ctx, { ...item, priorFileId: "a-file-she-deleted" });
+    const binned = drive.add({
+      size: bytes.length,
+      trashed: true,
+      appProperties: { pr_media: MEDIA },
+    });
+    const gone = await sendOne(ctx, {
+      ...item,
+      priorFileId: "a-file-she-deleted",
+    });
     expect(gone.item.outcome).toBe("sent");
     expect((gone.item as { kept?: boolean }).kept).toBeUndefined();
     const again = await sendOne(ctx, { ...item, priorFileId: binned.id });
@@ -110,20 +144,36 @@ describe("one original into her Drive", () => {
       appProperties: { pr_media: MEDIA, pr_job: JOB },
     });
     const result = await sendOne(ctx, { ...item, attempts: 2 });
-    expect(result.item).toMatchObject({ outcome: "sent", fileId: landed.id, kept: false });
-    expect([...drive.files.values()].filter((f) => f.appProperties.pr_media === MEDIA)).toHaveLength(1);
+    expect(result.item).toMatchObject({
+      outcome: "sent",
+      fileId: landed.id,
+      kept: false,
+    });
+    expect(
+      [...drive.files.values()].filter(
+        (f) => f.appProperties.pr_media === MEDIA,
+      ),
+    ).toHaveLength(1);
   });
 
   it("writes a big file's session ahead, sends it in chunks, and reports where it stands after each", async () => {
-    const { drive, ctx, item, progress } = setup({ size: 10_000, chunkBytes: 4096 });
+    const { drive, ctx, item, progress } = setup({
+      size: 10_000,
+      chunkBytes: 4096,
+    });
     const result = await sendOne(ctx, item);
     expect(result.item.outcome).toBe("sent");
     expect(progress.map((p) => p.offset)).toEqual([0, 4096, 8192]);
-    expect(drive.files.get((result.item as { fileId: string }).fileId)!.size).toBe(10_000);
+    expect(
+      drive.files.get((result.item as { fileId: string }).fileId)!.size,
+    ).toBe(10_000);
   });
 
   it("stops at a chunk boundary when the slice is nearly out, releasing the item with its session", async () => {
-    const { ctx, item, progress, advance } = setup({ size: 10_000, chunkBytes: 4096 });
+    const { ctx, item, progress, advance } = setup({
+      size: 10_000,
+      chunkBytes: 4096,
+    });
     let chunks = 0;
     const inner = ctx.progress;
     ctx.progress = async (it, uri, offset) => {
@@ -140,7 +190,10 @@ describe("one original into her Drive", () => {
     // A first lane: one chunk, then out of time.
     let uri = "";
     let n = 0;
-    const first: TransferContext = { ...ctx, deadlineMs: Number.MAX_SAFE_INTEGER };
+    const first: TransferContext = {
+      ...ctx,
+      deadlineMs: Number.MAX_SAFE_INTEGER,
+    };
     first.progress = async (_i: LeaseItem, u: string, offset: number) => {
       uri = u;
       if (offset > 0 && ++n === 1) first.deadlineMs = 0;
@@ -148,25 +201,40 @@ describe("one original into her Drive", () => {
     const stopped = await sendOne(first, item);
     expect(stopped.item.outcome).toBe("released");
     // A second lane, told an older offset than Google holds: Google's word wins.
-    const resumed = await sendOne(ctx, { ...item, attempts: 2, session: { uri, offset: 0 } });
+    const resumed = await sendOne(ctx, {
+      ...item,
+      attempts: 2,
+      session: { uri, offset: 0 },
+    });
     expect(resumed.item.outcome).toBe("sent");
   });
 
   it("starts over when a session has expired", async () => {
     const { drive, ctx, item } = setup({ size: 10_000, chunkBytes: 4096 });
-    drive.sessions.set("https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&upload_id=old", {
-      uri: "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&upload_id=old",
-      meta: { name: "x", parents: [], mimeType: "image/jpeg", appProperties: {} },
-      total: 10_000,
-      received: [],
-      receivedBytes: 0,
-      done: null,
-      expired: true,
-    });
+    drive.sessions.set(
+      "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&upload_id=old",
+      {
+        uri: "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&upload_id=old",
+        meta: {
+          name: "x",
+          parents: [],
+          mimeType: "image/jpeg",
+          appProperties: {},
+        },
+        total: 10_000,
+        received: [],
+        receivedBytes: 0,
+        done: null,
+        expired: true,
+      },
+    );
     const result = await sendOne(ctx, {
       ...item,
       attempts: 2,
-      session: { uri: "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&upload_id=old", offset: 4096 },
+      session: {
+        uri: "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&upload_id=old",
+        offset: 4096,
+      },
     });
     expect(result.item.outcome).toBe("sent");
   });
@@ -182,7 +250,10 @@ describe("one original into her Drive", () => {
 
   it("never deletes a file it did not just make (an earlier send's, or hers)", async () => {
     const { drive, ctx, item, bytes } = setup();
-    const hers = drive.add({ size: bytes.length + 1, appProperties: { pr_media: MEDIA } });
+    const hers = drive.add({
+      size: bytes.length + 1,
+      appProperties: { pr_media: MEDIA },
+    });
     drive.failures.corruptMd5 = "e".repeat(32);
     await sendOne(ctx, { ...item, priorFileId: hers.id });
     expect(drive.files.has(hers.id)).toBe(true);
@@ -192,7 +263,10 @@ describe("one original into her Drive", () => {
   it("says Drive full as a finding, the item released and its attempt not counted", async () => {
     const { drive, ctx, item } = setup();
     drive.failures.quota = true;
-    expect(await sendOne(ctx, item)).toEqual({ item: { mediaId: MEDIA, outcome: "released" }, finding: "drive_full" });
+    expect(await sendOne(ctx, item)).toEqual({
+      item: { mediaId: MEDIA, outcome: "released" },
+      finding: "drive_full",
+    });
   });
 
   it("says Google's day, a lost grant and an admin's policy as findings", async () => {
@@ -230,6 +304,10 @@ describe("one original into her Drive", () => {
   it("skips an original missing in R2 (a row without its object is a bug worth seeing)", async () => {
     const { ctx, item, bucket } = setup();
     bucket.objects.clear();
-    expect((await sendOne(ctx, item)).item).toEqual({ mediaId: MEDIA, outcome: "skipped", reason: "missing_object" });
+    expect((await sendOne(ctx, item)).item).toEqual({
+      mediaId: MEDIA,
+      outcome: "skipped",
+      reason: "missing_object",
+    });
   });
 });

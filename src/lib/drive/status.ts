@@ -19,4 +19,3 @@ export type DriveStatus = {
   sends: SendView[];
   now: string;
 };
-

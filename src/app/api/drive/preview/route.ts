@@ -19,13 +19,23 @@ const ids = z.array(z.uuid()).min(1).max(MAX_ALBUMS_A_PRESS);
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const parsed = ids.safeParse((url.searchParams.get("events") ?? "").split(",").filter(Boolean));
-  if (!parsed.success) return NextResponse.json({ ok: false, code: "bad_request" }, { status: 400 });
+  const parsed = ids.safeParse(
+    (url.searchParams.get("events") ?? "").split(",").filter(Boolean),
+  );
+  if (!parsed.success)
+    return NextResponse.json(
+      { ok: false, code: "bad_request" },
+      { status: 400 },
+    );
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ ok: false, code: "unauthorized" }, { status: 401 });
+  if (!user)
+    return NextResponse.json(
+      { ok: false, code: "unauthorized" },
+      { status: 401 },
+    );
 
   const { albums } = await previewAlbums({
     userId: user.id,

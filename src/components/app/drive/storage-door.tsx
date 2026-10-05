@@ -27,7 +27,11 @@ function SentLine({ eventId }: { eventId: string }) {
   if (!send || !light) return null;
   return (
     <span className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground tabular-nums">
-      <span>{light.tone === "done" ? "In your Drive, every one checked" : light.label}</span>
+      <span>
+        {light.tone === "done"
+          ? "In your Drive, every one checked"
+          : light.label}
+      </span>
       {send.status === "done" && send.folderUrl ? (
         <a
           href={send.folderUrl}
@@ -42,7 +46,13 @@ function SentLine({ eventId }: { eventId: string }) {
   );
 }
 
-export function DriveStorageDoor({ eventId, albumName }: { eventId: string; albumName: string }) {
+export function DriveStorageDoor({
+  eventId,
+  albumName,
+}: {
+  eventId: string;
+  albumName: string;
+}) {
   const desk = useMediaQuery(DESK_QUERY);
   const [open, setOpen] = useState(false);
   const done = (result: SendDone) => {
@@ -50,7 +60,8 @@ export function DriveStorageDoor({ eventId, albumName }: { eventId: string; albu
     if (result.started.some((r) => r.state === "started")) {
       toast.success("Sending to Google Drive", {
         id: `drive-started-${eventId}`,
-        description: "You can close this page: we'll email you when every file is in your Drive.",
+        description:
+          "You can close this page: we'll email you when every file is in your Drive.",
       });
     }
   };
@@ -64,7 +75,12 @@ export function DriveStorageDoor({ eventId, albumName }: { eventId: string; albu
           <DriveName className="text-sm font-medium text-foreground" />
           <p className="text-xs text-pretty text-muted-foreground">{`Keep every original of ${albumName} in your own Drive.`}</p>
         </div>
-        <Button type="button" size="sm" variant="outline" onClick={() => setOpen(true)}>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => setOpen(true)}
+        >
           <FolderUp /> Send to Drive
         </Button>
       </div>

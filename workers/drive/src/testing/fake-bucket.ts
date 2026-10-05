@@ -13,10 +13,16 @@ export class FakeBucket implements Bucket {
   heads = 0;
 
   /** Put an object; `multipart` keeps no MD5, as R2 keeps none for a multipart upload. */
-  put(key: string, bytes: Uint8Array, opts: { multipart?: boolean } = {}): void {
+  put(
+    key: string,
+    bytes: Uint8Array,
+    opts: { multipart?: boolean } = {},
+  ): void {
     this.objects.set(key, {
       bytes,
-      md5: opts.multipart ? null : createHash("md5").update(bytes).digest("hex"),
+      md5: opts.multipart
+        ? null
+        : createHash("md5").update(bytes).digest("hex"),
     });
   }
 
@@ -30,7 +36,9 @@ export class FakeBucket implements Bucket {
     this.reads++;
     const o = this.objects.get(key);
     if (!o) return null;
-    const bytes = range ? o.bytes.slice(range.offset, range.offset + range.length) : o.bytes;
+    const bytes = range
+      ? o.bytes.slice(range.offset, range.offset + range.length)
+      : o.bytes;
     return new Response(bytes).body!;
   }
 }

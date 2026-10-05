@@ -12,7 +12,11 @@
  */
 import { NextResponse, type NextRequest } from "next/server";
 
-import { authorizationUrl, pkceChallenge, randomToken } from "@/lib/drive/google";
+import {
+  authorizationUrl,
+  pkceChallenge,
+  randomToken,
+} from "@/lib/drive/google";
 import {
   connectLanding,
   DRIVE_CALLBACK_PATH,
@@ -31,14 +35,20 @@ export const dynamic = "force-dynamic";
 
 /** Plain http only for a local dev host (the desk build); everywhere else the cookie is Secure. */
 function isLocalHttp(url: URL): boolean {
-  return url.protocol === "http:" && (url.hostname === "localhost" || url.hostname === "127.0.0.1");
+  return (
+    url.protocol === "http:" &&
+    (url.hostname === "localhost" || url.hostname === "127.0.0.1")
+  );
 }
 
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const next = connectLanding(url.searchParams.get("next"));
   const back = (word: Parameters<typeof withDriveReturn>[1]) =>
-    NextResponse.redirect(new URL(withDriveReturn(next, word), url.origin), 303);
+    NextResponse.redirect(
+      new URL(withDriveReturn(next, word), url.origin),
+      303,
+    );
 
   if (!driveConfigured()) return back("unavailable");
 
@@ -46,7 +56,8 @@ export async function GET(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return NextResponse.redirect(new URL(loginPath(next), url.origin), 303);
+  if (!user)
+    return NextResponse.redirect(new URL(loginPath(next), url.origin), 303);
 
   const gate = await checkAccountAbuseRate("drive_connect", user.id);
   if (!gate.allowed) return back("failed");

@@ -17,7 +17,13 @@ import type { AppClient, Unreachable } from "./app-client";
 import { checkPage } from "./check";
 import type { DriveAdapter } from "./google-drive";
 import { log } from "./log";
-import { openLeaseToken, type Finding, type LeaseAnswer, type LeaseItem, type ReportItem } from "./protocol";
+import {
+  openLeaseToken,
+  type Finding,
+  type LeaseAnswer,
+  type LeaseItem,
+  type ReportItem,
+} from "./protocol";
 import { sendOne, type Bucket, type TransferContext } from "./transfer";
 
 /** A slice's length: a Queue consumer gets 15 minutes of wall clock; the last reports fit in the rest. */
@@ -65,10 +71,15 @@ export type LaneEnd =
   | "finding";
 
 const isUnreachable = (v: unknown): v is Unreachable =>
-  typeof v === "object" && v !== null && (v as { state?: unknown }).state === "unreachable";
+  typeof v === "object" &&
+  v !== null &&
+  (v as { state?: unknown }).state === "unreachable";
 
 /** Run one slice of a lane. Throws only on a bug; every expected end is a `LaneEnd`. */
-export async function runSlice(deps: LaneDeps, message: LaneMessage): Promise<LaneEnd> {
+export async function runSlice(
+  deps: LaneDeps,
+  message: LaneMessage,
+): Promise<LaneEnd> {
   const start = deps.now();
   const deadline = start + SLICE_MS;
   const { connectionId } = message;
@@ -78,19 +89,31 @@ export async function runSlice(deps: LaneDeps, message: LaneMessage): Promise<La
   for (;;) {
     if (deps.now() >= deadline || deps.spent() >= SUBREQUEST_BUDGET) {
       await deps.requeue(message);
-      log("drive-lane", { connectionId, end: "sliced", sent, ms: deps.now() - start });
+      log("drive-lane", {
+        connectionId,
+        end: "sliced",
+        sent,
+        ms: deps.now() - start,
+      });
       return "sliced";
     }
 
     const answer = await deps.app.lease(connectionId);
     if (isUnreachable(answer)) {
       await deps.requeue(message, APP_DOWN_DELAY_S);
-      log("drive-lane", { connectionId, end: "app_down", status: answer.status, sent });
+      log("drive-lane", {
+        connectionId,
+        end: "app_down",
+        status: answer.status,
+        sent,
+      });
       return "app_down";
     }
     if (answer.state === "throttled") {
       const until = Date.parse(answer.until);
-      const delay = Number.isFinite(until) ? Math.ceil((until - deps.now()) / 1000) : THROTTLE_DELAY_S;
+      const delay = Number.isFinite(until)
+        ? Math.ceil((until - deps.now()) / 1000)
+        : THROTTLE_DELAY_S;
       await deps.requeue(message, Math.min(Math.max(delay, 1), 86_400));
       log("drive-lane", { connectionId, end: "throttled", sent });
       return "throttled";
@@ -105,7 +128,11 @@ export async function runSlice(deps: LaneDeps, message: LaneMessage): Promise<La
       // A seal this lane cannot open: a secret that drifted between the app and this Worker. Give the batch back.
       await deps.app.report({ lease: answer.lease, items: [], done: true });
       await deps.requeue(message, APP_DOWN_DELAY_S);
-      log("drive-error", { connectionId, what: "a lease token that does not open", sent });
+      log("drive-error", {
+        connectionId,
+        what: "a lease token that does not open",
+        sent,
+      });
       return "app_down";
     }
 
@@ -120,7 +147,9 @@ export async function runSlice(deps: LaneDeps, message: LaneMessage): Promise<La
       const said = await deps.app.check({
         lease: answer.lease,
         results: outcome.results,
-        ...(outcome.duplicates !== undefined ? { duplicates: outcome.duplicates } : {}),
+        ...(outcome.duplicates !== undefined
+          ? { duplicates: outcome.duplicates }
+          : {}),
         ...(outcome.finding ? { finding: outcome.finding } : {}),
       });
       if (isUnreachable(said)) {
@@ -128,7 +157,12 @@ export async function runSlice(deps: LaneDeps, message: LaneMessage): Promise<La
         return "app_down";
       }
       if (outcome.finding) {
-        log("drive-lane", { connectionId, end: "finding", finding: outcome.finding, sent });
+        log("drive-lane", {
+          connectionId,
+          end: "finding",
+          finding: outcome.finding,
+          sent,
+        });
         return "finding";
       }
       continue;
@@ -155,7 +189,8 @@ export async function runSlice(deps: LaneDeps, message: LaneMessage): Promise<La
     log("drive-lane", {
       connectionId,
       end: end.kind === "stop" ? "stop" : "finding",
-      finding: end.kind === "finding" || end.kind === "auth" ? end.finding : null,
+      finding:
+        end.kind === "finding" || end.kind === "auth" ? end.finding : null,
       sent,
     });
     return end.kind === "stop" ? "stop" : "finding";
@@ -187,7 +222,12 @@ async function runBatch(
     const items = buffer;
     buffer = [];
     lastReport = deps.now();
-    const said = await deps.app.report({ lease: lease.lease, items, ...(finding ? { finding } : {}), ...(done ? { done } : {}) });
+    const said = await deps.app.report({
+      lease: lease.lease,
+      items,
+      ...(finding ? { finding } : {}),
+      ...(done ? { done } : {}),
+    });
     if (isUnreachable(said)) {
       unreachable = true;
       // What was not said is said again by the next lease's lookups: a sent file is found by its mark, never sent twice.
@@ -209,20 +249,32 @@ async function runBatch(
     sleep: deps.sleep,
     random: deps.random,
     progress: async (item: LeaseItem, sessionUri: string, offset: number) => {
-      buffer.push({ mediaId: item.mediaId, outcome: "progress", sessionUri, offset });
+      buffer.push({
+        mediaId: item.mediaId,
+        outcome: "progress",
+        sessionUri,
+        offset,
+      });
       await flush(false);
     },
   };
 
   for (const item of lease.items) {
-    if (stopped || unreachable || deps.now() >= deadline || deps.spent() >= SUBREQUEST_BUDGET) break;
+    if (
+      stopped ||
+      unreachable ||
+      deps.now() >= deadline ||
+      deps.spent() >= SUBREQUEST_BUDGET
+    )
+      break;
     const result = await sendOne(ctx, item);
     buffer.push(result.item);
     if (result.item.outcome === "sent") sent++;
     if (result.finding) {
       await flush(true, result.finding);
       if (result.finding === "throttled") return { kind: "throttled", sent };
-      if (result.finding === "auth") return { kind: "auth", sent, finding: "auth" };
+      if (result.finding === "auth")
+        return { kind: "auth", sent, finding: "auth" };
       return { kind: "finding", sent, finding: result.finding };
     }
     if (deps.now() - lastReport >= REPORT_EVERY_MS) await flush(false);

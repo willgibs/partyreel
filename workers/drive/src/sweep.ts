@@ -17,7 +17,10 @@ export async function sweep(input: {
   depths: Record<string, number>;
   enqueue(messages: LaneMessage[]): Promise<void>;
 }): Promise<number> {
-  const answer = await input.app.sweep({ mode: input.mode, depths: input.depths });
+  const answer = await input.app.sweep({
+    mode: input.mode,
+    depths: input.depths,
+  });
   if ("state" in answer) {
     log("drive-sweep", { ok: false, status: answer.status });
     return 0;
@@ -25,9 +28,14 @@ export async function sweep(input: {
   if (input.mode === "off") return 0;
   const messages: LaneMessage[] = [];
   for (const k of answer.kick) {
-    for (let i = 0; i < Math.min(Math.max(k.lanes, 0), 3); i++) messages.push({ v: 1, connectionId: k.connectionId });
+    for (let i = 0; i < Math.min(Math.max(k.lanes, 0), 3); i++)
+      messages.push({ v: 1, connectionId: k.connectionId });
   }
   if (messages.length > 0) await input.enqueue(messages);
-  log("drive-sweep", { ok: true, kicked: answer.kick.length, lanes: messages.length });
+  log("drive-sweep", {
+    ok: true,
+    kicked: answer.kick.length,
+    lanes: messages.length,
+  });
   return messages.length;
 }

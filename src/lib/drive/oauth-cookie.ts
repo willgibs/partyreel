@@ -39,12 +39,18 @@ const mac = (secret: string, body: string) =>
   createHmac("sha256", secret).update(`drive-oauth:${body}`).digest("hex");
 
 export function sealIntent(secret: string, intent: DriveOAuthIntent): string {
-  const body = Buffer.from(JSON.stringify(intent), "utf8").toString("base64url");
+  const body = Buffer.from(JSON.stringify(intent), "utf8").toString(
+    "base64url",
+  );
   return `${body}.${mac(secret, body)}`;
 }
 
 /** The intent a cookie holds, or null for anything absent, unsigned, malformed or past its ten minutes. */
-export function openIntent(secret: string, value: string | undefined | null, nowMs: number): DriveOAuthIntent | null {
+export function openIntent(
+  secret: string,
+  value: string | undefined | null,
+  nowMs: number,
+): DriveOAuthIntent | null {
   if (!secret || !value || value.length > 4096) return null;
   const dot = value.indexOf(".");
   if (dot < 1 || dot !== value.lastIndexOf(".")) return null;
@@ -68,7 +74,13 @@ export function openIntent(secret: string, value: string | undefined | null, now
   ) {
     return null;
   }
-  return { state: r.state, verifier: r.verifier, uid: r.uid, next: r.next as string, exp: r.exp };
+  return {
+    state: r.state,
+    verifier: r.verifier,
+    uid: r.uid,
+    next: r.next as string,
+    exp: r.exp,
+  };
 }
 
 /** Where a connect may land: a sign-in return shape, else her dashboard. */

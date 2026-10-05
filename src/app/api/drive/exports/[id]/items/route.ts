@@ -21,7 +21,10 @@ const querySchema = z.object({
 
 const PAGE = 100;
 
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
   const { id } = await params;
   const url = new URL(request.url);
   const parsed = querySchema.safeParse({
@@ -29,17 +32,30 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     after: url.searchParams.get("after") ?? undefined,
   });
   if (!z.uuid().safeParse(id).success || !parsed.success) {
-    return NextResponse.json({ ok: false, code: "bad_request" }, { status: 400 });
+    return NextResponse.json(
+      { ok: false, code: "bad_request" },
+      { status: 400 },
+    );
   }
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ ok: false, code: "unauthorized" }, { status: 401 });
+  if (!user)
+    return NextResponse.json(
+      { ok: false, code: "unauthorized" },
+      { status: 401 },
+    );
   const send = await readMySend(id);
-  if (!send) return NextResponse.json({ ok: false, code: "not_found" }, { status: 404 });
+  if (!send)
+    return NextResponse.json({ ok: false, code: "not_found" }, { status: 404 });
 
-  const items = await readSendItems({ jobId: id, state: parsed.data.state, after: parsed.data.after ?? null, limit: PAGE });
+  const items = await readSendItems({
+    jobId: id,
+    state: parsed.data.state,
+    after: parsed.data.after ?? null,
+    limit: PAGE,
+  });
   return NextResponse.json(
     {
       ok: true,

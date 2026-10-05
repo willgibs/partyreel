@@ -13,7 +13,11 @@ import { after } from "next/server";
 
 import { driveRoom } from "@/lib/drive/google";
 import { internalJson, readDriveWord } from "@/lib/drive/internal.server";
-import { notifyDone, notifyReconnect, notifyStopped } from "@/lib/drive/mail.server";
+import {
+  notifyDone,
+  notifyReconnect,
+  notifyStopped,
+} from "@/lib/drive/mail.server";
 import { sweepWordSchema, type SweepAnswer } from "@/lib/drive/protocol";
 import { accessTokenFor, kickConnection } from "@/lib/drive/service.server";
 import {
@@ -34,14 +38,22 @@ export const maxDuration = 60;
 /** The heartbeat's cadence: one row an hour, though the sweep runs every five minutes. */
 const HEARTBEAT_EVERY_MS = 55 * 60 * 1000;
 
-async function followUp(outcome: SweepOutcome, word: { mode: "on" | "off"; depths: Record<string, number> }) {
+async function followUp(
+  outcome: SweepOutcome,
+  word: { mode: "on" | "off"; depths: Record<string, number> },
+) {
   // A full Drive, asked again: room for what is left resumes its sends, kicked at once.
   for (const connectionId of outcome.recheck) {
     try {
       const access = await accessTokenFor(connectionId);
       if (!access.ok) continue;
       const room = await driveRoom(access.token);
-      const r = await recordRoom({ connectionId, limit: room.limit, usage: room.usage, resume: true });
+      const r = await recordRoom({
+        connectionId,
+        limit: room.limit,
+        usage: room.usage,
+        resume: true,
+      });
       if (r.resumed > 0) await kickConnection(connectionId);
     } catch (e) {
       captureError("export", e, { action: "drive_recheck_room", connectionId });
@@ -57,13 +69,16 @@ async function followUp(outcome: SweepOutcome, word: { mode: "on" | "off"; depth
   for (const e of outcome.expired) await notifyStopped(e.jobId);
   for (const d of outcome.doneMail) {
     const named = await notifyDone(d.userId, d.sends);
-    await markMailed(named).catch((e) => captureError("export", e, { action: "drive_mark_mailed" }));
+    await markMailed(named).catch((e) =>
+      captureError("export", e, { action: "drive_mark_mailed" }),
+    );
   }
   for (const b of outcome.breakers) {
     await recordSignalFailure({
       job: "drive_transfer",
       area: "export",
-      operation: "an account breaker tripped: its sends paused (Lift on /admin/exports)",
+      operation:
+        "an account breaker tripped: its sends paused (Lift on /admin/exports)",
       error: new Error("drive breaker"),
       extra: { userId: b.userId, sent30: b.sent30 },
     });
@@ -91,7 +106,10 @@ async function followUp(outcome: SweepOutcome, word: { mode: "on" | "off"; depth
         expired: outcome.expired.length,
         breakers: outcome.breakers.length,
       },
-      note: word.mode === "off" ? "The Worker is switched off (DRIVE_MODE): it sweeps and sends nothing." : undefined,
+      note:
+        word.mode === "off"
+          ? "The Worker is switched off (DRIVE_MODE): it sweeps and sends nothing."
+          : undefined,
     });
   }
 }
@@ -105,13 +123,24 @@ export async function POST(request: Request) {
   try {
     outcome = await sweepSends();
   } catch (e) {
-    await recordSignalFailure({ job: "drive_transfer", area: "export", operation: "sweep", error: e });
+    await recordSignalFailure({
+      job: "drive_transfer",
+      area: "export",
+      operation: "sweep",
+      error: e,
+    });
     return internalJson({ ok: false, code: "sweep_failed" }, 500);
   }
 
-  after(() => followUp(outcome, word).catch((e) => captureError("export", e, { action: "drive_sweep_follow_up" })));
+  after(() =>
+    followUp(outcome, word).catch((e) =>
+      captureError("export", e, { action: "drive_sweep_follow_up" }),
+    ),
+  );
   // A Worker switched off sends nothing, so it is handed no lanes (the SQL stamped their kick; the next sweep after
   // it is switched back on kicks again).
-  const answer: SweepAnswer = { kick: word.mode === "off" ? [] : outcome.kick.filter((k) => k.lanes > 0) };
+  const answer: SweepAnswer = {
+    kick: word.mode === "off" ? [] : outcome.kick.filter((k) => k.lanes > 0),
+  };
   return internalJson(answer);
 }

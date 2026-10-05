@@ -37,12 +37,20 @@ export async function POST(request: Request) {
   try {
     raw = await leaseWork(connectionId);
   } catch (e) {
-    await recordSignalFailure({ job: "drive_transfer", area: "export", operation: "lease", error: e });
+    await recordSignalFailure({
+      job: "drive_transfer",
+      area: "export",
+      operation: "lease",
+      error: e,
+    });
     return internalJson({ ok: false, code: "lease_failed" }, 500);
   }
 
   if (raw.state !== "work" && raw.state !== "check") {
-    const answer: LeaseAnswer = raw.state === "throttled" ? { state: "throttled", until: raw.until } : { state: raw.state };
+    const answer: LeaseAnswer =
+      raw.state === "throttled"
+        ? { state: "throttled", until: raw.until }
+        : { state: raw.state };
     return internalJson(answer);
   }
 
@@ -51,7 +59,10 @@ export async function POST(request: Request) {
     if (raw.state === "work") {
       await reportWork({
         lease: raw.lease,
-        items: raw.items.map((i) => ({ media_id: i.mediaId, outcome: "released" })),
+        items: raw.items.map((i) => ({
+          media_id: i.mediaId,
+          outcome: "released",
+        })),
         finding: null,
         done: true,
       }).catch(() => undefined);
@@ -59,8 +70,17 @@ export async function POST(request: Request) {
   };
 
   const userId = raw.state === "work" ? raw.userId : null;
-  const access = await accessFromLease(connectionId, raw.access, userId ?? "").catch(async (e) => {
-    await recordSignalFailure({ job: "drive_transfer", area: "export", operation: "lease token", error: e });
+  const access = await accessFromLease(
+    connectionId,
+    raw.access,
+    userId ?? "",
+  ).catch(async (e) => {
+    await recordSignalFailure({
+      job: "drive_transfer",
+      area: "export",
+      operation: "lease token",
+      error: e,
+    });
     return { ok: false as const, why: "failing" as const };
   });
   if (!access.ok) {
@@ -77,7 +97,9 @@ export async function POST(request: Request) {
         extra: { connectionId },
       });
     }
-    return internalJson({ state: access.why === "wait" ? "wait" : "paused" } satisfies LeaseAnswer);
+    return internalJson({
+      state: access.why === "wait" ? "wait" : "paused",
+    } satisfies LeaseAnswer);
   }
 
   const secret = assertDriveEnv().DRIVE_WORKER_SECRET;
@@ -96,7 +118,12 @@ export async function POST(request: Request) {
   }
 
   if (raw.state === "check") {
-    const items: CheckItem[] = raw.items.map((i) => ({ mediaId: i.mediaId, fileId: i.fileId, bytes: i.bytes, md5: i.md5 }));
+    const items: CheckItem[] = raw.items.map((i) => ({
+      mediaId: i.mediaId,
+      fileId: i.fileId,
+      bytes: i.bytes,
+      md5: i.md5,
+    }));
     return internalJson({
       state: "check",
       lease: raw.lease,
@@ -120,7 +147,12 @@ export async function POST(request: Request) {
     });
   } catch (e) {
     await giveBack();
-    await recordSignalFailure({ job: "drive_transfer", area: "export", operation: "naming a lease", error: e });
+    await recordSignalFailure({
+      job: "drive_transfer",
+      area: "export",
+      operation: "naming a lease",
+      error: e,
+    });
     return internalJson({ state: "wait" } satisfies LeaseAnswer);
   }
   return internalJson({

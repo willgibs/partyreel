@@ -13,7 +13,11 @@
  */
 import { NextResponse } from "next/server";
 
-import { readConnection, readMySends, type SendRow } from "@/lib/db/queries/drive";
+import {
+  readConnection,
+  readMySends,
+  type SendRow,
+} from "@/lib/db/queries/drive";
 import { driveConfigured } from "@/lib/env";
 import type { SendView } from "@/lib/drive/moments";
 import type { DriveStatus } from "@/lib/drive/status";
@@ -31,7 +35,10 @@ const stalledSaid = new Set<string>();
 /** Is her stop's flag due? Set at a stop that needs her, and not yet shown by her app. */
 function flagDue(row: SendRow): boolean {
   if (!row.attentionAt) return false;
-  return !row.attentionSeenAt || Date.parse(row.attentionSeenAt) < Date.parse(row.attentionAt);
+  return (
+    !row.attentionSeenAt ||
+    Date.parse(row.attentionSeenAt) < Date.parse(row.attentionAt)
+  );
 }
 
 function viewOf(row: SendRow): SendView {
@@ -60,23 +67,37 @@ function viewOf(row: SendRow): SendView {
   };
 }
 
-
 export async function GET() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ ok: false, code: "unauthorized" }, { status: 401 });
+  if (!user)
+    return NextResponse.json(
+      { ok: false, code: "unauthorized" },
+      { status: 401 },
+    );
 
   const nowMs = Date.now();
-  const [connection, rows] = await Promise.all([readConnection(user.id), readMySends(nowMs)]);
+  const [connection, rows] = await Promise.all([
+    readConnection(user.id),
+    readMySends(nowMs),
+  ]);
   const sends = rows.map(viewOf);
 
   for (const s of sends) {
     const moved = Date.parse(s.lastProgressAt ?? s.startedAt ?? s.createdAt);
-    if (s.status === "sending" && Number.isFinite(moved) && nowMs - moved > STALLED_AFTER_MS && !stalledSaid.has(s.id)) {
+    if (
+      s.status === "sending" &&
+      Number.isFinite(moved) &&
+      nowMs - moved > STALLED_AFTER_MS &&
+      !stalledSaid.has(s.id)
+    ) {
       stalledSaid.add(s.id);
-      captureWarning("export", "drive_stalled", { jobId: s.id, minutes: Math.round((nowMs - moved) / 60_000) });
+      captureWarning("export", "drive_stalled", {
+        jobId: s.id,
+        minutes: Math.round((nowMs - moved) / 60_000),
+      });
     }
   }
 
@@ -87,7 +108,9 @@ export async function GET() {
           email: connection.email,
           status: connection.status,
           connectedAt: connection.createdAt,
-          folderUrl: connection.rootFolderId ? `https://drive.google.com/drive/folders/${connection.rootFolderId}` : null,
+          folderUrl: connection.rootFolderId
+            ? `https://drive.google.com/drive/folders/${connection.rootFolderId}`
+            : null,
           free:
             connection.quota.limit !== null && connection.quota.usage !== null
               ? Math.max(connection.quota.limit - connection.quota.usage, 0)
@@ -97,5 +120,7 @@ export async function GET() {
     sends,
     now: new Date(nowMs).toISOString(),
   };
-  return NextResponse.json(status, { headers: { "Cache-Control": "private, no-store" } });
+  return NextResponse.json(status, {
+    headers: { "Cache-Control": "private, no-store" },
+  });
 }

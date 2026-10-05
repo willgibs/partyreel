@@ -22,18 +22,36 @@ describe("wrangler.walk.jsonc", () => {
   const walk = readJsonc("wrangler.walk.jsonc");
 
   it("runs the same Worker the same way", () => {
-    for (const key of ["main", "compatibility_date", "queues", "triggers", "limits"]) {
+    for (const key of [
+      "main",
+      "compatibility_date",
+      "queues",
+      "triggers",
+      "limits",
+    ]) {
       expect(walk[key], key).toEqual(deployed[key]);
     }
-    expect((walk.vars as Record<string, string>).DRIVE_MODE).toBe((deployed.vars as Record<string, string>).DRIVE_MODE);
+    expect((walk.vars as Record<string, string>).DRIVE_MODE).toBe(
+      (deployed.vars as Record<string, string>).DRIVE_MODE,
+    );
   });
 
   it("reads the real bucket from the laptop, leases from the desk build, and is never the deployed name", () => {
-    const [bucket] = walk.r2_buckets as { binding: string; bucket_name: string; remote?: boolean }[];
-    const [real] = deployed.r2_buckets as { binding: string; bucket_name: string; remote?: boolean }[];
+    const [bucket] = walk.r2_buckets as {
+      binding: string;
+      bucket_name: string;
+      remote?: boolean;
+    }[];
+    const [real] = deployed.r2_buckets as {
+      binding: string;
+      bucket_name: string;
+      remote?: boolean;
+    }[];
     expect(bucket).toEqual({ ...real, remote: true });
     expect(real!.remote).toBeUndefined();
-    expect((walk.vars as Record<string, string>).DRIVE_APP_URL).toBe("http://localhost:3000");
+    expect((walk.vars as Record<string, string>).DRIVE_APP_URL).toBe(
+      "http://localhost:3000",
+    );
     expect(walk.name).not.toBe(deployed.name);
   });
 });

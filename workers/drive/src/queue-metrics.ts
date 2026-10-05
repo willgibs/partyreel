@@ -81,7 +81,11 @@ export async function readQueue(
       : null;
     return { backlog, oldestMinutes: oldest };
   } catch (err) {
-    log("drive-error", { queue: label, error: String(err).slice(0, 200), what: "queue metrics" });
+    log("drive-error", {
+      queue: label,
+      error: String(err).slice(0, 200),
+      what: "queue metrics",
+    });
     return null;
   }
 }

@@ -34,4 +34,7 @@ export const GOOGLE_URLS = {
 } as const;
 
 /** The issuers an ID token from Google's own token endpoint may name. */
-export const GOOGLE_ISSUERS = ["https://accounts.google.com", "accounts.google.com"] as const;
+export const GOOGLE_ISSUERS = [
+  "https://accounts.google.com",
+  "accounts.google.com",
+] as const;

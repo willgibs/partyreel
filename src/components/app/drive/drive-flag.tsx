@@ -18,7 +18,13 @@ import { toast } from "sonner";
 import { albumPath, hasDriveHint } from "@/lib/drive/links";
 import { isUnfinished, momentOf, type SendView } from "@/lib/drive/moments";
 
-import { actOn, connectHref, peekIntent, returnWords, takeReturnWord } from "./drive-client";
+import {
+  actOn,
+  connectHref,
+  peekIntent,
+  returnWords,
+  takeReturnWord,
+} from "./drive-client";
 import { useDriveStatus } from "./use-drive-status";
 
 /** Stops this page already flagged (the server's `seen` makes it once across her devices; this, once in a page). */
@@ -46,8 +52,16 @@ function DriveReturnWord() {
     const word = takeReturnWord();
     if (!word) return;
     const said = returnWords(word);
-    if (said.good) toast.success(said.title, { description: said.detail, id: "drive-return" });
-    else toast.warning(said.title, { description: said.detail, id: "drive-return" });
+    if (said.good)
+      toast.success(said.title, {
+        description: said.detail,
+        id: "drive-return",
+      });
+    else
+      toast.warning(said.title, {
+        description: said.detail,
+        id: "drive-return",
+      });
   }, []);
   return null;
 }
@@ -63,8 +77,16 @@ function DriveFlagListening() {
     const word = takeReturnWord();
     if (!word) return;
     const said = returnWords(word);
-    if (said.good) toast.success(said.title, { description: said.detail, id: "drive-return" });
-    else toast.warning(said.title, { description: said.detail, id: "drive-return" });
+    if (said.good)
+      toast.success(said.title, {
+        description: said.detail,
+        id: "drive-return",
+      });
+    else
+      toast.warning(said.title, {
+        description: said.detail,
+        id: "drive-return",
+      });
   }, []);
 
   useEffect(() => {
@@ -75,12 +97,20 @@ function DriveFlagListening() {
       previous.current.set(send.id, send.status);
 
       // Finished in front of her: said once, never on a later visit (the strip says done for a day).
-      if (before && isUnfinished({ status: before }) && send.status === "done") {
+      if (
+        before &&
+        isUnfinished({ status: before }) &&
+        send.status === "done"
+      ) {
         toast.success(`${send.albumName} is in your Google Drive`, {
           id: `drive-done-${send.id}`,
           description: "Every one checked against ours.",
           action: send.folderUrl
-            ? { label: "Open in Drive", onClick: () => window.open(send.folderUrl!, "_blank", "noopener,noreferrer") }
+            ? {
+                label: "Open in Drive",
+                onClick: () =>
+                  window.open(send.folderUrl!, "_blank", "noopener,noreferrer"),
+              }
             : undefined,
         });
       }
@@ -95,7 +125,10 @@ function DriveFlagListening() {
         description: moment.line ?? moment.facts,
         duration: Infinity,
         action: reconnect
-          ? { label: reconnect.label, onClick: () => window.location.assign(connectHref(album)) }
+          ? {
+              label: reconnect.label,
+              onClick: () => window.location.assign(connectHref(album)),
+            }
           : { label: "Open the album", onClick: () => router.push(album) },
       });
       // Said: her app tells the server, so it flags once across her devices.

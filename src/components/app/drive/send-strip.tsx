@@ -54,7 +54,11 @@ const ICONS: Partial<Record<DriveActId, React.ReactNode>> = {
 };
 
 /** What a failed act says, in her words. */
-function actWords(code: string | null | undefined, free?: number | null, needs?: number): string {
+function actWords(
+  code: string | null | undefined,
+  free?: number | null,
+  needs?: number,
+): string {
   switch (code) {
     case "still_full":
       return free !== null && free !== undefined && needs !== undefined
@@ -77,11 +81,15 @@ function actWords(code: string | null | undefined, free?: number | null, needs?:
 
 /** Which of an album's failed or skipped files these were: a page at a time, the names her Drive would have given. */
 function WhichList({ send }: { send: SendView }) {
-  const [items, setItems] = useState<{ name: string | null; reason: string | null }[] | null>(null);
+  const [items, setItems] = useState<
+    { name: string | null; reason: string | null }[] | null
+  >(null);
   const [failed, setFailed] = useState(false);
   useEffect(() => {
     let alive = true;
-    void fetch(`/api/drive/exports/${send.id}/items?state=failed`, { cache: "no-store" })
+    void fetch(`/api/drive/exports/${send.id}/items?state=failed`, {
+      cache: "no-store",
+    })
       .then(async (res) => {
         const body = (await res.json().catch(() => null)) as {
           ok?: boolean;
@@ -96,13 +104,24 @@ function WhichList({ send }: { send: SendView }) {
       alive = false;
     };
   }, [send.id]);
-  if (failed) return <p className="text-xs text-muted-foreground">Couldn&rsquo;t list them just now.</p>;
-  if (items === null) return <p className="text-xs text-muted-foreground">Listing them</p>;
+  if (failed)
+    return (
+      <p className="text-xs text-muted-foreground">
+        Couldn&rsquo;t list them just now.
+      </p>
+    );
+  if (items === null)
+    return <p className="text-xs text-muted-foreground">Listing them</p>;
   return (
-    <ul data-drive-which="" className="flex flex-col gap-1 text-xs text-muted-foreground">
+    <ul
+      data-drive-which=""
+      className="flex flex-col gap-1 text-xs text-muted-foreground"
+    >
       {items.map((i, n) => (
         <li key={n} className="flex flex-wrap gap-x-2">
-          <span className="font-medium text-foreground">{i.name ?? "A file"}</span>
+          <span className="font-medium text-foreground">
+            {i.name ?? "A file"}
+          </span>
           <span>{i.reason ?? "Google wouldn't take it"}</span>
         </li>
       ))}
@@ -110,7 +129,13 @@ function WhichList({ send }: { send: SendView }) {
   );
 }
 
-export function SendStripFor({ send, nowMs }: { send: SendView; nowMs: number }) {
+export function SendStripFor({
+  send,
+  nowMs,
+}: {
+  send: SendView;
+  nowMs: number;
+}) {
   const moment = momentOf(send, nowMs);
   const [busy, setBusy] = useState<DriveActId | null>(null);
   const [asking, setAsking] = useState(false);
@@ -119,13 +144,16 @@ export function SendStripFor({ send, nowMs }: { send: SendView; nowMs: number })
   const run = async (act: DriveAct) => {
     switch (act.id) {
       case "open":
-        if (send.folderUrl) window.open(send.folderUrl, "_blank", "noopener,noreferrer");
+        if (send.folderUrl)
+          window.open(send.folderUrl, "_blank", "noopener,noreferrer");
         return;
       case "more_space":
         window.open(GOOGLE_STORAGE_URL, "_blank", "noopener,noreferrer");
         return;
       case "reconnect":
-        window.location.assign(connectHref(send.eventId ? albumPath(send.eventId) : "/dashboard"));
+        window.location.assign(
+          connectHref(send.eventId ? albumPath(send.eventId) : "/dashboard"),
+        );
         return;
       case "see_which":
         setWhich((w) => !w);
@@ -138,7 +166,10 @@ export function SendStripFor({ send, nowMs }: { send: SendView; nowMs: number })
         setBusy(act.id);
         const answer = await pressSend([send.eventId], send.includeHidden);
         setBusy(null);
-        if (!answer.ok) toast.error(refusalWords(answer).title, { description: refusalWords(answer).detail });
+        if (!answer.ok)
+          toast.error(refusalWords(answer).title, {
+            description: refusalWords(answer).detail,
+          });
         void refreshDriveStatus();
         return;
       }
@@ -146,7 +177,8 @@ export function SendStripFor({ send, nowMs }: { send: SendView; nowMs: number })
         setBusy(act.id);
         const answer = await actOn(send.id, act.id);
         setBusy(null);
-        if (!answer.ok) toast.warning(actWords(answer.code, answer.free, answer.needs));
+        if (!answer.ok)
+          toast.warning(actWords(answer.code, answer.free, answer.needs));
         void refreshDriveStatus();
       }
     }
@@ -168,8 +200,12 @@ export function SendStripFor({ send, nowMs }: { send: SendView; nowMs: number })
     >
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <DriveLight tone={moment.tone}>{moment.word}</DriveLight>
-        <span className="min-w-0 text-sm font-medium text-pretty">{moment.title}</span>
-        <span className="hidden min-w-0 truncate text-xs text-muted-foreground sm:inline">{moment.where}</span>
+        <span className="min-w-0 text-sm font-medium text-pretty">
+          {moment.title}
+        </span>
+        <span className="hidden min-w-0 truncate text-xs text-muted-foreground sm:inline">
+          {moment.where}
+        </span>
         {moment.acts.length > 0 ? (
           <span className="flex flex-wrap items-center gap-1.5 sm:ml-auto">
             {moment.acts.map((act) => (
@@ -177,11 +213,24 @@ export function SendStripFor({ send, nowMs }: { send: SendView; nowMs: number })
                 key={act.id}
                 type="button"
                 size="sm"
-                variant={act.lead ? "default" : act.id === "cancel" ? "ghost" : "outline"}
+                variant={
+                  act.lead
+                    ? "default"
+                    : act.id === "cancel"
+                      ? "ghost"
+                      : "outline"
+                }
                 disabled={busy !== null}
                 onClick={() => void run(act)}
               >
-                {busy === act.id ? <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden /> : ICONS[act.id]}
+                {busy === act.id ? (
+                  <Loader2
+                    className="animate-spin motion-reduce:animate-none"
+                    aria-hidden
+                  />
+                ) : (
+                  ICONS[act.id]
+                )}
                 {act.label}
               </Button>
             ))}
@@ -191,7 +240,9 @@ export function SendStripFor({ send, nowMs }: { send: SendView; nowMs: number })
       {moment.meter !== undefined ? <DriveMeter value={moment.meter} /> : null}
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-xs text-muted-foreground tabular-nums">
         <span>{moment.facts}</span>
-        {moment.line ? <span className="text-pretty">{moment.line}</span> : null}
+        {moment.line ? (
+          <span className="text-pretty">{moment.line}</span>
+        ) : null}
       </div>
       {which ? <WhichList send={send} /> : null}
       <Popup open={asking} onOpenChange={setAsking}>
@@ -232,6 +283,7 @@ function DriveSendStripListening({ eventId }: { eventId: string }) {
   const send = status ? sendForAlbum(status.sends, eventId) : null;
   if (!send || !status) return null;
   // A send canceled because the album was deleted, or one that failed to start long ago, says nothing on the album.
-  if (send.status === "canceled" && send.stopReason === "album_deleted") return null;
+  if (send.status === "canceled" && send.stopReason === "album_deleted")
+    return null;
   return <SendStripFor send={send} nowMs={Date.parse(status.now)} />;
 }

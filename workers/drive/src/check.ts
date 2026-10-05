@@ -18,28 +18,52 @@ export const CHECK_CONCURRENCY = 8;
 /** At most this many folder pages are listed for duplicates (a million files). */
 export const LIST_PAGE_CAP = 1000;
 
-export type CheckOutcome = { results: CheckResult[]; duplicates?: number; finding?: "folder_gone" };
+export type CheckOutcome = {
+  results: CheckResult[];
+  duplicates?: number;
+  finding?: "folder_gone";
+};
 
-async function confirm(drive: DriveAdapter, token: string, item: CheckItem): Promise<CheckResult> {
+async function confirm(
+  drive: DriveAdapter,
+  token: string,
+  item: CheckItem,
+): Promise<CheckResult> {
   try {
     const file = await drive.getFile(token, item.fileId);
     if (!file) return { mediaId: item.mediaId, state: "missing" };
     if (file.trashed) return { mediaId: item.mediaId, state: "trashed" };
-    if (file.size !== null && file.size !== item.bytes) return { mediaId: item.mediaId, state: "mismatch" };
-    if (item.md5 && file.md5 && item.md5 !== file.md5) return { mediaId: item.mediaId, state: "mismatch" };
+    if (file.size !== null && file.size !== item.bytes)
+      return { mediaId: item.mediaId, state: "mismatch" };
+    if (item.md5 && file.md5 && item.md5 !== file.md5)
+      return { mediaId: item.mediaId, state: "mismatch" };
     return { mediaId: item.mediaId, state: "ok" };
   } catch (e) {
-    return { mediaId: item.mediaId, state: e instanceof DriveError && e.kind === "not_found" ? "missing" : "unknown" };
+    return {
+      mediaId: item.mediaId,
+      state:
+        e instanceof DriveError && e.kind === "not_found"
+          ? "missing"
+          : "unknown",
+    };
   }
 }
 
 /** Count the originals that have more than one file in the folder (one list, every page, our marks only). */
-async function countDuplicates(drive: DriveAdapter, token: string, folderId: string): Promise<number | undefined> {
+async function countDuplicates(
+  drive: DriveAdapter,
+  token: string,
+  folderId: string,
+): Promise<number | undefined> {
   const seen = new Map<string, number>();
   let pageToken: string | null = null;
   try {
     for (let page = 0; page < LIST_PAGE_CAP; page++) {
-      const { media, next } = await drive.listFolderMedia(token, folderId, pageToken);
+      const { media, next } = await drive.listFolderMedia(
+        token,
+        folderId,
+        pageToken,
+      );
       for (const m of media) seen.set(m, (seen.get(m) ?? 0) + 1);
       if (!next) break;
       pageToken = next;
@@ -60,7 +84,9 @@ export async function checkPage(input: {
   items: CheckItem[];
 }): Promise<CheckOutcome> {
   const { drive, token, folderId } = input;
-  const folder = await drive.folderState(token, folderId).catch(() => "ok" as const);
+  const folder = await drive
+    .folderState(token, folderId)
+    .catch(() => "ok" as const);
   if (folder !== "ok") return { results: [], finding: "folder_gone" };
 
   const results: CheckResult[] = new Array(input.items.length);
@@ -71,8 +97,15 @@ export async function checkPage(input: {
       results[index] = await confirm(drive, token, input.items[index]!);
     }
   };
-  await Promise.all(Array.from({ length: Math.min(CHECK_CONCURRENCY, input.items.length) }, worker));
+  await Promise.all(
+    Array.from(
+      { length: Math.min(CHECK_CONCURRENCY, input.items.length) },
+      worker,
+    ),
+  );
 
-  const duplicates = input.first ? await countDuplicates(drive, token, folderId) : undefined;
+  const duplicates = input.first
+    ? await countDuplicates(drive, token, folderId)
+    : undefined;
   return { results, ...(duplicates !== undefined ? { duplicates } : {}) };
 }

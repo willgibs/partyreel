@@ -35,11 +35,27 @@ export const DRIVE_ROOT_FOLDER_NAME = "Partyreel";
  */
 export const DRIVE_FOLDER_COLOR = "#cd74e6";
 
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] as const;
+const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+] as const;
 
 /** "2026-09-12" as "12 Sep 2026", and its parts for a range. Null for anything that is no calendar day. */
-function dayParts(day: string | null | undefined): { d: number; m: string; y: string } | null {
-  const match = typeof day === "string" ? /^(\d{4})-(\d{2})-(\d{2})$/.exec(day) : null;
+function dayParts(
+  day: string | null | undefined,
+): { d: number; m: string; y: string } | null {
+  const match =
+    typeof day === "string" ? /^(\d{4})-(\d{2})-(\d{2})$/.exec(day) : null;
   if (!match) return null;
   const month = MONTHS[Number(match[2]) - 1];
   const d = Number(match[3]);
@@ -50,7 +66,6 @@ function dayParts(day: string | null | undefined): { d: number; m: string; y: st
 /** Control characters, and the ones a file system refuses in a name, read as a hyphen; runs of space as one. */
 function cleanForFiles(text: string, max: number): string {
   const cleaned = text
-    // eslint-disable-next-line no-control-regex -- stripping control characters is the point
     .replace(/[\u0000-\u001f\u007f]/g, " ")
     .replace(/[\\/:*?"<>|]/g, "-")
     .replace(/\s+/g, " ")
@@ -73,12 +88,15 @@ export function driveFolderName(album: {
   const first = dayParts(album.eventDate);
   if (!first) return name;
   const last = dayParts(album.endDate);
-  const one = (p: { d: number; m: string; y: string }) => `${p.d} ${p.m} ${p.y}`;
+  const one = (p: { d: number; m: string; y: string }) =>
+    `${p.d} ${p.m} ${p.y}`;
   let when = one(first);
   if (last && album.endDate! > album.eventDate!) {
     if (last.y !== first.y) when = dashRange(one(first), one(last));
-    else if (last.m !== first.m) when = `${dashRange(`${first.d} ${first.m}`, `${last.d} ${last.m}`)} ${first.y}`;
-    else when = `${dashRange(String(first.d), String(last.d))} ${first.m} ${first.y}`;
+    else if (last.m !== first.m)
+      when = `${dashRange(`${first.d} ${first.m}`, `${last.d} ${last.m}`)} ${first.y}`;
+    else
+      when = `${dashRange(String(first.d), String(last.d))} ${first.m} ${first.y}`;
   }
   return `${name} · ${when}`;
 }
@@ -107,7 +125,8 @@ function wallClock(at: string | Date, tz: string | null | undefined) {
     second: "2-digit",
     hourCycle: "h23",
   }).formatToParts(date);
-  const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? "00";
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((p) => p.type === type)?.value ?? "00";
   return {
     year: get("year"),
     month: get("month"),
@@ -119,7 +138,10 @@ function wallClock(at: string | Date, tz: string | null | undefined) {
 }
 
 /** The moment a name says: when it was taken, once that is known; when it reached the album until then. */
-export function driveMoment(times: { arrivedAt: string; capturedAt?: string | null }): string {
+export function driveMoment(times: {
+  arrivedAt: string;
+  capturedAt?: string | null;
+}): string {
   return times.capturedAt ?? times.arrivedAt;
 }
 
@@ -147,8 +169,13 @@ export function driveFileStem(input: {
 }
 
 /** The original's own extension (the key's, which the upload derived from its validated type), or its kind's. */
-export function driveFileExt(item: { originalKey: string; type: "photo" | "video" }): string {
-  return parseExtFromKey(item.originalKey) ?? (item.type === "video" ? "mp4" : "jpg");
+export function driveFileExt(item: {
+  originalKey: string;
+  type: "photo" | "video";
+}): string {
+  return (
+    parseExtFromKey(item.originalKey) ?? (item.type === "video" ? "mp4" : "jpg")
+  );
 }
 
 const EXT_TO_MIME: Record<string, string> = Object.fromEntries(
@@ -164,12 +191,19 @@ export function driveContentType(ext: string, type: "photo" | "video"): string {
  * The name the SQL keeps: the stem, " (n)" from the second of one name on, the extension. MIRRORS
  * `cloud_export_name_items` (drive-names.test.ts reads the migration and holds the two to one shape).
  */
-export function driveFileName(stem: string, ext: string, ordinal: number): string {
+export function driveFileName(
+  stem: string,
+  ext: string,
+  ordinal: number,
+): string {
   return `${stem}${ordinal > 1 ? ` (${ordinal})` : ""}.${ext}`;
 }
 
 /** Drive's `modifiedTime`: the same moment the name says, so Drive's own sort agrees with the names. */
-export function driveModifiedTime(times: { arrivedAt: string; capturedAt?: string | null }): string {
+export function driveModifiedTime(times: {
+  arrivedAt: string;
+  capturedAt?: string | null;
+}): string {
   return new Date(driveMoment(times)).toISOString();
 }
 

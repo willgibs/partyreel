@@ -9,9 +9,19 @@ import { ExternalLink } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { connectHref, DRIVE_ACCOUNT_ANCHOR } from "@/lib/drive/links";
-import { readConnection, readMySends, readMySentTotals } from "@/lib/db/queries/drive";
+import {
+  readConnection,
+  readMySends,
+  readMySentTotals,
+} from "@/lib/db/queries/drive";
 import { driveConfigured } from "@/lib/env";
 import { formatCount } from "@/lib/format/count";
 import { formatDateInZone } from "@/lib/format/date-in-zone";
@@ -20,7 +30,13 @@ import { formatBytes } from "@/lib/utils";
 import { DriveDisconnect } from "./drive-disconnect";
 import { DriveName } from "./drive-parts";
 
-export async function DriveAccountCard({ userId, zone }: { userId: string; zone: string }) {
+export async function DriveAccountCard({
+  userId,
+  zone,
+}: {
+  userId: string;
+  zone: string;
+}) {
   if (!driveConfigured()) return null;
   const [connection, totals, sends] = await Promise.all([
     readConnection(userId),
@@ -28,22 +44,32 @@ export async function DriveAccountCard({ userId, zone }: { userId: string; zone:
     readMySends(),
   ]);
   const connect = connectHref("/account");
-  const running = sends.filter((s) => ["preparing", "sending", "paused", "checking"].includes(s.status)).length;
+  const running = sends.filter((s) =>
+    ["preparing", "sending", "paused", "checking"].includes(s.status),
+  ).length;
 
   return (
-    <Card id={DRIVE_ACCOUNT_ANCHOR} className="scroll-mt-6" data-drive-card={connection ? connection.status : "none"}>
+    <Card
+      id={DRIVE_ACCOUNT_ANCHOR}
+      className="scroll-mt-6"
+      data-drive-card={connection ? connection.status : "none"}
+    >
       <CardHeader>
         <CardTitle>
           <DriveName className="gap-2" />
         </CardTitle>
-        <CardDescription>Where Send to Drive puts your albums. Partyreel sees only what it puts there.</CardDescription>
+        <CardDescription>
+          Where Send to Drive puts your albums. Partyreel sees only what it puts
+          there.
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {!connection ? (
           <>
             <p className="text-sm text-pretty text-muted-foreground">
-              Send an album&rsquo;s originals to your own Google Drive, a folder an album, from its Download. Disconnect any
-              time: what was sent stays yours.
+              Send an album&rsquo;s originals to your own Google Drive, a folder
+              an album, from its Download. Disconnect any time: what was sent
+              stays yours.
             </p>
             <Button asChild size="sm">
               <a href={connect}>Connect Google Drive</a>
@@ -53,10 +79,14 @@ export async function DriveAccountCard({ userId, zone }: { userId: string; zone:
           <>
             <div className="flex items-center gap-3">
               <Avatar size="sm">
-                <AvatarFallback className="text-[10px]">{(connection.email ?? "G").slice(0, 1).toUpperCase()}</AvatarFallback>
+                <AvatarFallback className="text-[10px]">
+                  {(connection.email ?? "G").slice(0, 1).toUpperCase()}
+                </AvatarFallback>
               </Avatar>
               <span className="flex min-w-0 flex-1 flex-col">
-                <span className="truncate text-sm font-medium">{connection.email ?? "Your Google account"}</span>
+                <span className="truncate text-sm font-medium">
+                  {connection.email ?? "Your Google account"}
+                </span>
                 <span className="text-xs text-muted-foreground">{`Connected ${formatDateInZone(connection.createdAt, zone)}`}</span>
               </span>
               {connection.status === "connected" ? (
@@ -85,10 +115,15 @@ export async function DriveAccountCard({ userId, zone }: { userId: string; zone:
                     className="inline-flex min-w-0 items-center gap-1.5 underline-offset-4 hover:underline"
                   >
                     <span className="truncate">My Drive › Partyreel</span>
-                    <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
+                    <ExternalLink
+                      className="size-3.5 shrink-0 text-muted-foreground"
+                      aria-hidden
+                    />
                   </a>
                 ) : (
-                  <span className="text-muted-foreground">Made at your first send</span>
+                  <span className="text-muted-foreground">
+                    Made at your first send
+                  </span>
                 )}
               </dd>
               <dt className="text-muted-foreground">Sent</dt>
@@ -96,7 +131,9 @@ export async function DriveAccountCard({ userId, zone }: { userId: string; zone:
                 {totals.albums === 0
                   ? "Nothing yet"
                   : `${formatCount(totals.albums)} ${totals.albums === 1 ? "album" : "albums"} · ${formatBytes(totals.bytes)}${
-                      totals.lastAt ? ` · the last on ${formatDateInZone(totals.lastAt, zone)}` : ""
+                      totals.lastAt
+                        ? ` · the last on ${formatDateInZone(totals.lastAt, zone)}`
+                        : ""
                     }`}
               </dd>
             </dl>
@@ -114,4 +151,3 @@ export async function DriveAccountCard({ userId, zone }: { userId: string; zone:
     </Card>
   );
 }
-

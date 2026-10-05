@@ -20,7 +20,11 @@ export async function GET(request: Request) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ ok: false, code: "unauthorized" }, { status: 401 });
+  if (!user)
+    return NextResponse.json(
+      { ok: false, code: "unauthorized" },
+      { status: 401 },
+    );
 
   // row-cap: her newest 200 live albums, the picker's whole list (a planner past it sends the rest from each album)
   const events = await mustQuery(
@@ -40,7 +44,11 @@ export async function GET(request: Request) {
     includeHidden: new URL(request.url).searchParams.get("hidden") === "1",
   });
   return NextResponse.json(
-    { ok: true, albums: ids.map((id) => albums.get(id)).filter(Boolean), more: ids.length === NEWEST },
+    {
+      ok: true,
+      albums: ids.map((id) => albums.get(id)).filter(Boolean),
+      more: ids.length === NEWEST,
+    },
     { headers: { "Cache-Control": "private, no-store" } },
   );
 }

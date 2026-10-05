@@ -22,7 +22,14 @@ export type FakeFile = {
 
 type Session = {
   uri: string;
-  meta: { name: string; parents: string[]; mimeType: string; appProperties: Record<string, string>; modifiedTime?: string; description?: string };
+  meta: {
+    name: string;
+    parents: string[];
+    mimeType: string;
+    appProperties: Record<string, string>;
+    modifiedTime?: string;
+    description?: string;
+  };
   total: number;
   received: Uint8Array[];
   receivedBytes: number;
@@ -47,17 +54,30 @@ export type FakeDriveFailures = {
   corruptMd5?: string;
 };
 
-const md5 = (bytes: Uint8Array) => createHash("md5").update(bytes).digest("hex");
+const md5 = (bytes: Uint8Array) =>
+  createHash("md5").update(bytes).digest("hex");
 
-function json(body: unknown, status = 200, headers: Record<string, string> = {}): Response {
-  return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json", ...headers } });
+function json(
+  body: unknown,
+  status = 200,
+  headers: Record<string, string> = {},
+): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "content-type": "application/json", ...headers },
+  });
 }
 
 function googleError(status: number, reason: string): Response {
-  return json({ error: { code: status, errors: [{ reason, message: reason }] } }, status);
+  return json(
+    { error: { code: status, errors: [{ reason, message: reason }] } },
+    status,
+  );
 }
 
-async function bodyBytes(body: BodyInit | null | undefined): Promise<Uint8Array> {
+async function bodyBytes(
+  body: BodyInit | null | undefined,
+): Promise<Uint8Array> {
   if (!body) return new Uint8Array(0);
   return new Uint8Array(await new Response(body as BodyInit).arrayBuffer());
 }
@@ -97,7 +117,13 @@ export class FakeDrive {
 
   /** The stub to hand the adapter. */
   fetch: typeof fetch = async (input, init) => {
-    const url = new URL(typeof input === "string" ? input : input instanceof URL ? input.href : input.url);
+    const url = new URL(
+      typeof input === "string"
+        ? input
+        : input instanceof URL
+          ? input.href
+          : input.url,
+    );
     const method = (init?.method ?? "GET").toUpperCase();
     this.calls.push({ method, url: url.href });
     if (this.failures.auth) return googleError(401, "authError");
@@ -110,12 +136,19 @@ export class FakeDrive {
     const session = this.sessions.get(url.href);
     if (session && method === "PUT") return this.put(session, init);
 
-    if (url.hostname === "www.googleapis.com" && url.pathname === "/upload/drive/v3/files" && method === "POST") {
+    if (
+      url.hostname === "www.googleapis.com" &&
+      url.pathname === "/upload/drive/v3/files" &&
+      method === "POST"
+    ) {
       if (this.failures.quota) return googleError(403, "storageQuotaExceeded");
       if (this.failures.daily) return googleError(403, "dailyLimitExceeded");
       if (this.failures.domain) return googleError(403, "domainPolicy");
       const meta = JSON.parse(String(init?.body ?? "{}"));
-      if (this.failures.goneParent && meta.parents?.includes(this.failures.goneParent)) {
+      if (
+        this.failures.goneParent &&
+        meta.parents?.includes(this.failures.goneParent)
+      ) {
         return googleError(404, "notFound");
       }
       const uri = `https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&upload_id=s${this.next++}`;
@@ -139,8 +172,13 @@ export class FakeDrive {
       return new Response(null, { status: 200, headers: { location: uri } });
     }
 
-    if (url.hostname === "www.googleapis.com" && url.pathname.startsWith("/drive/v3/files/")) {
-      const id = decodeURIComponent(url.pathname.slice("/drive/v3/files/".length));
+    if (
+      url.hostname === "www.googleapis.com" &&
+      url.pathname.startsWith("/drive/v3/files/")
+    ) {
+      const id = decodeURIComponent(
+        url.pathname.slice("/drive/v3/files/".length),
+      );
       const file = this.files.get(id);
       if (method === "DELETE") {
         if (!file) return googleError(404, "notFound");
@@ -152,12 +190,17 @@ export class FakeDrive {
       return json(this.view(file));
     }
 
-    if (url.hostname === "www.googleapis.com" && url.pathname === "/drive/v3/files" && method === "GET") {
+    if (
+      url.hostname === "www.googleapis.com" &&
+      url.pathname === "/drive/v3/files" &&
+      method === "GET"
+    ) {
       const q = url.searchParams.get("q") ?? "";
       const byMedia = /key='pr_media' and value='([^']+)'/.exec(q);
       const byParent = /'([^']+)' in parents/.exec(q);
       let list = [...this.files.values()].filter((f) => !f.trashed);
-      if (byMedia) list = list.filter((f) => f.appProperties.pr_media === byMedia[1]);
+      if (byMedia)
+        list = list.filter((f) => f.appProperties.pr_media === byMedia[1]);
       if (byParent) list = list.filter((f) => f.parents.includes(byParent[1]!));
       return json({ files: list.map((f) => this.view(f)) });
     }
@@ -173,19 +216,26 @@ export class FakeDrive {
     if (range && range.startsWith("bytes */")) {
       if (session.done) return json(this.view(session.done), 200);
       return session.receivedBytes > 0
-        ? new Response(null, { status: 308, headers: { range: `bytes=0-${session.receivedBytes - 1}` } })
+        ? new Response(null, {
+            status: 308,
+            headers: { range: `bytes=0-${session.receivedBytes - 1}` },
+          })
         : new Response(null, { status: 308 });
     }
     if (range) {
       const match = /bytes (\d+)-(\d+)\/(\d+)/.exec(range);
-      if (!match || Number(match[1]) !== session.receivedBytes) return googleError(400, "badContentRange");
+      if (!match || Number(match[1]) !== session.receivedBytes)
+        return googleError(400, "badContentRange");
     } else if (session.receivedBytes !== 0) {
       return googleError(400, "badContentRange");
     }
     session.received.push(bytes);
     session.receivedBytes += bytes.length;
     if (session.receivedBytes < session.total) {
-      return new Response(null, { status: 308, headers: { range: `bytes=0-${session.receivedBytes - 1}` } });
+      return new Response(null, {
+        status: 308,
+        headers: { range: `bytes=0-${session.receivedBytes - 1}` },
+      });
     }
     const all = new Uint8Array(session.receivedBytes);
     let at = 0;

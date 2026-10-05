@@ -62,9 +62,18 @@ export async function notifyConnected(input: {
       replacedEmail: input.replaced,
       accountUrl: url(DRIVE_ACCOUNT_PATH),
     });
-    await sendOnce({ kind: "drive_connected", dedupeKey: `connection:${input.connectionId}`, profileId: input.userId, to, ...mail });
+    await sendOnce({
+      kind: "drive_connected",
+      dedupeKey: `connection:${input.connectionId}`,
+      profileId: input.userId,
+      to,
+      ...mail,
+    });
   } catch (e) {
-    captureError("export", e, { action: "drive_mail", kind: "drive_connected" });
+    captureError("export", e, {
+      action: "drive_mail",
+      kind: "drive_connected",
+    });
   }
 }
 
@@ -86,7 +95,10 @@ export type FinishedSend = {
  * the sends it named are marked, so none is named twice. Held by the window: nothing is marked, and the next sweep
  * after the hour folds them with whatever finished meanwhile. Answers the job ids the mail named.
  */
-export async function notifyDone(userId: string, sends: FinishedSend[]): Promise<string[]> {
+export async function notifyDone(
+  userId: string,
+  sends: FinishedSend[],
+): Promise<string[]> {
   if (sends.length === 0) return [];
   try {
     const to = await accountEmail(userId);
@@ -111,12 +123,20 @@ export async function notifyDone(userId: string, sends: FinishedSend[]): Promise
     });
     return sent ? sends.map((s) => s.jobId) : [];
   } catch (e) {
-    captureError("export", e, { action: "drive_mail", kind: "drive_export_done" });
+    captureError("export", e, {
+      action: "drive_mail",
+      kind: "drive_export_done",
+    });
     return [];
   }
 }
 
-const PAUSE_MAILED: ReadonlySet<string> = new Set(["drive_full", "daily_limit", "folder_gone", "domain_policy"]);
+const PAUSE_MAILED: ReadonlySet<string> = new Set([
+  "drive_full",
+  "daily_limit",
+  "folder_gone",
+  "domain_policy",
+]);
 
 /**
  * A SEND THAT PAUSED, once a send, a reason and a pause: Drive full, Google's day (quiet in the app, so its mail says
@@ -128,19 +148,29 @@ export async function notifyPaused(jobId: string): Promise<void> {
     const row = await mustQuery(
       admin()
         .from("cloud_exports")
-        .select("id, user_id, event_id, album_name, status, pause_reason, paused_at, resume_at, bytes_total, bytes_sent, tz")
+        .select(
+          "id, user_id, event_id, album_name, status, pause_reason, paused_at, resume_at, bytes_total, bytes_sent, tz",
+        )
         .eq("id", jobId)
         .maybeSingle(),
       "drive mail: a paused send",
     );
     const job = row as Record<string, unknown> | null;
-    if (!job || job.status !== "paused" || typeof job.pause_reason !== "string" || !PAUSE_MAILED.has(job.pause_reason)) {
+    if (
+      !job ||
+      job.status !== "paused" ||
+      typeof job.pause_reason !== "string" ||
+      !PAUSE_MAILED.has(job.pause_reason)
+    ) {
       return;
     }
     const userId = String(job.user_id);
     const to = await accountEmail(userId);
     if (!to) return;
-    const left = Math.max(Number(job.bytes_total ?? 0) - Number(job.bytes_sent ?? 0), 0);
+    const left = Math.max(
+      Number(job.bytes_total ?? 0) - Number(job.bytes_sent ?? 0),
+      0,
+    );
     const resumesAt =
       typeof job.resume_at === "string"
         ? new Intl.DateTimeFormat("en-US", {
@@ -155,7 +185,11 @@ export async function notifyPaused(jobId: string): Promise<void> {
       reason: job.pause_reason as DrivePauseReason,
       left: formatBytes(left),
       resumesAt,
-      albumUrl: url(typeof job.event_id === "string" ? albumPath(job.event_id) : "/dashboard"),
+      albumUrl: url(
+        typeof job.event_id === "string"
+          ? albumPath(job.event_id)
+          : "/dashboard",
+      ),
       accountUrl: url(DRIVE_ACCOUNT_PATH),
     });
     await sendOnce({
@@ -166,7 +200,10 @@ export async function notifyPaused(jobId: string): Promise<void> {
       ...mail,
     });
   } catch (e) {
-    captureError("export", e, { action: "drive_mail", kind: "drive_export_paused" });
+    captureError("export", e, {
+      action: "drive_mail",
+      kind: "drive_export_paused",
+    });
   }
 }
 
@@ -176,13 +213,16 @@ export async function notifyStopped(jobId: string): Promise<void> {
     const row = await mustQuery(
       admin()
         .from("cloud_exports")
-        .select("id, user_id, event_id, album_name, status, stop_reason, items_sent, items_total")
+        .select(
+          "id, user_id, event_id, album_name, status, stop_reason, items_sent, items_total",
+        )
         .eq("id", jobId)
         .maybeSingle(),
       "drive mail: a stopped send",
     );
     const job = row as Record<string, unknown> | null;
-    if (!job || job.status !== "stopped" || job.stop_reason !== "expired") return;
+    if (!job || job.status !== "stopped" || job.stop_reason !== "expired")
+      return;
     const userId = String(job.user_id);
     const to = await accountEmail(userId);
     if (!to) return;
@@ -190,11 +230,24 @@ export async function notifyStopped(jobId: string): Promise<void> {
       albumName: String(job.album_name ?? "Your album"),
       sent: Number(job.items_sent ?? 0),
       total: Number(job.items_total ?? 0),
-      albumUrl: url(typeof job.event_id === "string" ? albumPath(job.event_id) : "/dashboard"),
+      albumUrl: url(
+        typeof job.event_id === "string"
+          ? albumPath(job.event_id)
+          : "/dashboard",
+      ),
     });
-    await sendOnce({ kind: "drive_export_stopped", dedupeKey: `${jobId}:stopped`, profileId: userId, to, ...mail });
+    await sendOnce({
+      kind: "drive_export_stopped",
+      dedupeKey: `${jobId}:stopped`,
+      profileId: userId,
+      to,
+      ...mail,
+    });
   } catch (e) {
-    captureError("export", e, { action: "drive_mail", kind: "drive_export_stopped" });
+    captureError("export", e, {
+      action: "drive_mail",
+      kind: "drive_export_stopped",
+    });
   }
 }
 
@@ -215,8 +268,14 @@ export async function notifyReconnect(input: {
         .maybeSingle(),
       "drive mail: the connection",
     );
-    const c = conn as { account_email?: unknown; email_verified?: unknown } | null;
-    const googleEmail = c?.email_verified === true && typeof c.account_email === "string" ? c.account_email : null;
+    const c = conn as {
+      account_email?: unknown;
+      email_verified?: unknown;
+    } | null;
+    const googleEmail =
+      c?.email_verified === true && typeof c.account_email === "string"
+        ? c.account_email
+        : null;
     const waiting = await mustCount(
       admin()
         .from("cloud_exports")
@@ -241,6 +300,9 @@ export async function notifyReconnect(input: {
       ...mail,
     });
   } catch (e) {
-    captureError("export", e, { action: "drive_mail", kind: "drive_reconnect" });
+    captureError("export", e, {
+      action: "drive_mail",
+      kind: "drive_reconnect",
+    });
   }
 }

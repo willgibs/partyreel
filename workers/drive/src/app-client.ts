@@ -22,7 +22,12 @@ export type SweepAnswer = { kick: { connectionId: string; lanes: number }[] };
 
 export type AppClient = {
   lease(connectionId: string): Promise<LeaseAnswer | Unreachable>;
-  report(input: { lease: string; items: ReportItem[]; finding?: Finding; done?: boolean }): Promise<ReportAnswer | Unreachable>;
+  report(input: {
+    lease: string;
+    items: ReportItem[];
+    finding?: Finding;
+    done?: boolean;
+  }): Promise<ReportAnswer | Unreachable>;
   check(input: {
     lease: string;
     results: CheckResult[];
@@ -30,7 +35,10 @@ export type AppClient = {
     finding?: "folder_gone";
   }): Promise<ReportAnswer | Unreachable>;
   laneFail(connectionId: string, error: string): Promise<boolean>;
-  sweep(input: { mode: "on" | "off"; depths: Record<string, number> }): Promise<SweepAnswer | Unreachable>;
+  sweep(input: {
+    mode: "on" | "off";
+    depths: Record<string, number>;
+  }): Promise<SweepAnswer | Unreachable>;
 };
 
 export type AppEnv = { DRIVE_APP_URL?: string; DRIVE_WORKER_SECRET?: string };
@@ -38,11 +46,23 @@ export type AppEnv = { DRIVE_APP_URL?: string; DRIVE_WORKER_SECRET?: string };
 /** Each call's ceiling. */
 export const APP_TIMEOUT_MS = 20_000;
 
-export function appClient(env: AppEnv, fetchImpl: typeof fetch = fetch, now: () => number = Date.now): AppClient {
-  async function post(path: string, payload: Record<string, unknown>): Promise<unknown | Unreachable> {
-    if (!env.DRIVE_APP_URL || !env.DRIVE_WORKER_SECRET) return { state: "unreachable", status: 0 };
+export function appClient(
+  env: AppEnv,
+  fetchImpl: typeof fetch = fetch,
+  now: () => number = Date.now,
+): AppClient {
+  async function post(
+    path: string,
+    payload: Record<string, unknown>,
+  ): Promise<unknown | Unreachable> {
+    if (!env.DRIVE_APP_URL || !env.DRIVE_WORKER_SECRET)
+      return { state: "unreachable", status: 0 };
     try {
-      const body = await signWord(env.DRIVE_WORKER_SECRET, { v: DRIVE_PROTOCOL_VERSION, at: now(), ...payload });
+      const body = await signWord(env.DRIVE_WORKER_SECRET, {
+        v: DRIVE_PROTOCOL_VERSION,
+        at: now(),
+        ...payload,
+      });
       const res = await fetchImpl(new URL(path, env.DRIVE_APP_URL).toString(), {
         method: "POST",
         headers: { "content-type": "text/plain;charset=UTF-8" },
@@ -61,11 +81,16 @@ export function appClient(env: AppEnv, fetchImpl: typeof fetch = fetch, now: () 
   }
 
   const isUnreachable = (v: unknown): v is Unreachable =>
-    typeof v === "object" && v !== null && (v as { state?: unknown }).state === "unreachable";
+    typeof v === "object" &&
+    v !== null &&
+    (v as { state?: unknown }).state === "unreachable";
 
   return {
     async lease(connectionId) {
-      const answer = await post(APP_PATHS.lease, { kind: "lease", connectionId });
+      const answer = await post(APP_PATHS.lease, {
+        kind: "lease",
+        connectionId,
+      });
       if (isUnreachable(answer)) return answer;
       const state = (answer as { state?: unknown })?.state;
       if (
@@ -90,25 +115,39 @@ export function appClient(env: AppEnv, fetchImpl: typeof fetch = fetch, now: () 
         ...(input.done ? { done: true } : {}),
       });
       if (isUnreachable(answer)) return answer;
-      return { state: (answer as { state?: unknown })?.state === "ok" ? "ok" : "stop" };
+      return {
+        state: (answer as { state?: unknown })?.state === "ok" ? "ok" : "stop",
+      };
     },
     async check(input) {
       const answer = await post(APP_PATHS.check, {
         kind: "check",
         lease: input.lease,
         results: input.results,
-        ...(input.duplicates !== undefined ? { duplicates: input.duplicates } : {}),
+        ...(input.duplicates !== undefined
+          ? { duplicates: input.duplicates }
+          : {}),
         ...(input.finding ? { finding: input.finding } : {}),
       });
       if (isUnreachable(answer)) return answer;
-      return { state: (answer as { state?: unknown })?.state === "ok" ? "ok" : "stop" };
+      return {
+        state: (answer as { state?: unknown })?.state === "ok" ? "ok" : "stop",
+      };
     },
     async laneFail(connectionId, error) {
-      const answer = await post(APP_PATHS.lanefail, { kind: "lanefail", connectionId, error: error.slice(0, 300) });
+      const answer = await post(APP_PATHS.lanefail, {
+        kind: "lanefail",
+        connectionId,
+        error: error.slice(0, 300),
+      });
       return !isUnreachable(answer);
     },
     async sweep(input) {
-      const answer = await post(APP_PATHS.sweep, { kind: "sweep", mode: input.mode, depths: input.depths });
+      const answer = await post(APP_PATHS.sweep, {
+        kind: "sweep",
+        mode: input.mode,
+        depths: input.depths,
+      });
       if (isUnreachable(answer)) return answer;
       const kick = (answer as { kick?: unknown })?.kick;
       return {
@@ -117,7 +156,8 @@ export function appClient(env: AppEnv, fetchImpl: typeof fetch = fetch, now: () 
               (k): k is { connectionId: string; lanes: number } =>
                 typeof k === "object" &&
                 k !== null &&
-                typeof (k as { connectionId?: unknown }).connectionId === "string" &&
+                typeof (k as { connectionId?: unknown }).connectionId ===
+                  "string" &&
                 typeof (k as { lanes?: unknown }).lanes === "number",
             )
           : [],

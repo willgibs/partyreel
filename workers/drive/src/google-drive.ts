@@ -58,8 +58,10 @@ export function classify(status: number, reason: string | null): ErrorKind {
   if (status === 429) return "rate";
   if (status === 403) {
     if (reason === "storageQuotaExceeded") return "quota";
-    if (reason === "dailyLimitExceeded" || reason === "uploadLimitExceeded") return "daily";
-    if (reason === "userRateLimitExceeded" || reason === "rateLimitExceeded") return "rate";
+    if (reason === "dailyLimitExceeded" || reason === "uploadLimitExceeded")
+      return "daily";
+    if (reason === "userRateLimitExceeded" || reason === "rateLimitExceeded")
+      return "rate";
     if (reason === "domainPolicy") return "domain";
     if (reason === "numChildrenInNonRootLimitExceeded") return "folder_full";
     return "client";
@@ -70,9 +72,16 @@ export function classify(status: number, reason: string | null): ErrorKind {
 }
 
 async function errorOf(res: Response, what: string): Promise<DriveError> {
-  const body = (await res.json().catch(() => null)) as { error?: { errors?: { reason?: string }[] } } | null;
+  const body = (await res.json().catch(() => null)) as {
+    error?: { errors?: { reason?: string }[] };
+  } | null;
   const reason = body?.error?.errors?.[0]?.reason ?? null;
-  return new DriveError(classify(res.status, reason), res.status, reason, `${what}: HTTP ${res.status}${reason ? ` ${reason}` : ""}`);
+  return new DriveError(
+    classify(res.status, reason),
+    res.status,
+    reason,
+    `${what}: HTTP ${res.status}${reason ? ` ${reason}` : ""}`,
+  );
 }
 
 function fileOf(raw: unknown): DriveFile | null {
@@ -85,23 +94,35 @@ function fileOf(raw: unknown): DriveFile | null {
     appProperties?: { pr_job?: unknown };
   };
   if (typeof r.id !== "string" || !r.id) return null;
-  const size = typeof r.size === "string" || typeof r.size === "number" ? Number(r.size) : null;
+  const size =
+    typeof r.size === "string" || typeof r.size === "number"
+      ? Number(r.size)
+      : null;
   return {
     id: r.id,
     size: size !== null && Number.isFinite(size) ? size : null,
     md5: typeof r.md5Checksum === "string" ? r.md5Checksum.toLowerCase() : null,
     trashed: r.trashed === true,
-    job: typeof r.appProperties?.pr_job === "string" ? r.appProperties.pr_job : null,
+    job:
+      typeof r.appProperties?.pr_job === "string"
+        ? r.appProperties.pr_job
+        : null,
   };
 }
 
 const CREATED = Symbol("created by this upload");
 
 /** A file this very upload created: the one thing `undo` accepts. */
-export type CreatedFile = DriveFile & { readonly [CREATED]: true; readonly createdAtMs: number };
+export type CreatedFile = DriveFile & {
+  readonly [CREATED]: true;
+  readonly createdAtMs: number;
+};
 
 function created(file: DriveFile, nowMs: number): CreatedFile {
-  return Object.assign({}, file, { [CREATED]: true as const, createdAtMs: nowMs });
+  return Object.assign({}, file, {
+    [CREATED]: true as const,
+    createdAtMs: nowMs,
+  });
 }
 
 /** What a new file says about itself in her Drive (the lease's name, description, moment, and our private marks). */
@@ -115,17 +136,30 @@ export type FileMeta = {
   jobId: string;
 };
 
-export type ChunkResult = { done: false; next: number } | { done: true; file: CreatedFile };
+export type ChunkResult =
+  | { done: false; next: number }
+  | { done: true; file: CreatedFile };
 
 export type SessionState = ChunkResult | { gone: true };
 
 export type DriveAdapter = ReturnType<typeof driveAdapter>;
 
-export function driveAdapter(fetchImpl: typeof fetch = fetch, now: () => number = Date.now) {
-  const call = (url: string, token: string, init: RequestInit = {}, ms = DRIVE_CALL_MS) =>
+export function driveAdapter(
+  fetchImpl: typeof fetch = fetch,
+  now: () => number = Date.now,
+) {
+  const call = (
+    url: string,
+    token: string,
+    init: RequestInit = {},
+    ms = DRIVE_CALL_MS,
+  ) =>
     fetchImpl(url, {
       ...init,
-      headers: { authorization: `Bearer ${token}`, ...((init.headers as Record<string, string>) ?? {}) },
+      headers: {
+        authorization: `Bearer ${token}`,
+        ...((init.headers as Record<string, string>) ?? {}),
+      },
       signal: AbortSignal.timeout(ms),
     });
 
@@ -137,8 +171,14 @@ export function driveAdapter(fetchImpl: typeof fetch = fetch, now: () => number 
   };
 
   /** A file of ours by its id, or null when Google no longer has it. */
-  async function getFile(token: string, fileId: string): Promise<DriveFile | null> {
-    const res = await call(`${FILES}/${encodeURIComponent(fileId)}?fields=id,size,md5Checksum,trashed`, token);
+  async function getFile(
+    token: string,
+    fileId: string,
+  ): Promise<DriveFile | null> {
+    const res = await call(
+      `${FILES}/${encodeURIComponent(fileId)}?fields=id,size,md5Checksum,trashed`,
+      token,
+    );
     if (res.status === 404) return null;
     if (!res.ok) throw await errorOf(res, "files.get");
     return fileOf(await res.json());
@@ -151,7 +191,10 @@ export function driveAdapter(fetchImpl: typeof fetch = fetch, now: () => number 
      * A file this media already has in her Drive, wherever she moved it (our private `pr_media` mark, no parent
      * clause), out of the bin. How a re-leased item whose report was lost is recorded instead of sent twice.
      */
-    async findByMedia(token: string, mediaId: string): Promise<DriveFile | null> {
+    async findByMedia(
+      token: string,
+      mediaId: string,
+    ): Promise<DriveFile | null> {
       const q = `appProperties has { key='pr_media' and value='${mediaId.replace(/[^0-9a-f-]/gi, "")}' } and trashed = false`;
       const url = `${FILES}?q=${encodeURIComponent(q)}&fields=${encodeURIComponent("files(id,size,md5Checksum,trashed,appProperties)")}&pageSize=10&spaces=drive`;
       const res = await call(url, token);
@@ -165,39 +208,70 @@ export function driveAdapter(fetchImpl: typeof fetch = fetch, now: () => number 
     },
 
     /** Open a resumable session for a new file: its URI (a capability for a week). */
-    async startSession(token: string, meta: FileMeta, size: number): Promise<string> {
-      const res = await call(`${UPLOAD}?uploadType=resumable&fields=id,size,md5Checksum,trashed`, token, {
-        method: "POST",
-        headers: {
-          "content-type": "application/json; charset=UTF-8",
-          "x-upload-content-type": meta.mimeType,
-          "x-upload-content-length": String(size),
+    async startSession(
+      token: string,
+      meta: FileMeta,
+      size: number,
+    ): Promise<string> {
+      const res = await call(
+        `${UPLOAD}?uploadType=resumable&fields=id,size,md5Checksum,trashed`,
+        token,
+        {
+          method: "POST",
+          headers: {
+            "content-type": "application/json; charset=UTF-8",
+            "x-upload-content-type": meta.mimeType,
+            "x-upload-content-length": String(size),
+          },
+          body: JSON.stringify({
+            name: meta.name,
+            parents: [meta.parentId],
+            mimeType: meta.mimeType,
+            modifiedTime: meta.modifiedTime,
+            description: meta.description,
+            appProperties: { pr_media: meta.mediaId, pr_job: meta.jobId },
+          }),
         },
-        body: JSON.stringify({
-          name: meta.name,
-          parents: [meta.parentId],
-          mimeType: meta.mimeType,
-          modifiedTime: meta.modifiedTime,
-          description: meta.description,
-          appProperties: { pr_media: meta.mediaId, pr_job: meta.jobId },
-        }),
-      });
+      );
       if (!res.ok) throw await errorOf(res, "files.create (resumable)");
       const uri = res.headers.get("location");
-      if (!uri) throw new DriveError("server", res.status, null, "files.create (resumable): no session");
+      if (!uri)
+        throw new DriveError(
+          "server",
+          res.status,
+          null,
+          "files.create (resumable): no session",
+        );
       return uri;
     },
 
     /** The whole file in one PUT (Google's own advice up to a chunk's size). */
-    async putWhole(sessionUri: string, token: string, body: ReadableStream, size: number): Promise<CreatedFile> {
-      const res = await call(sessionUri, token, {
-        method: "PUT",
-        headers: { "content-length": String(size) },
-        body,
-      }, DRIVE_CHUNK_MS);
-      if (res.status !== 200 && res.status !== 201) throw await errorOf(res, "upload (whole)");
+    async putWhole(
+      sessionUri: string,
+      token: string,
+      body: ReadableStream,
+      size: number,
+    ): Promise<CreatedFile> {
+      const res = await call(
+        sessionUri,
+        token,
+        {
+          method: "PUT",
+          headers: { "content-length": String(size) },
+          body,
+        },
+        DRIVE_CHUNK_MS,
+      );
+      if (res.status !== 200 && res.status !== 201)
+        throw await errorOf(res, "upload (whole)");
       const file = fileOf(await res.json());
-      if (!file) throw new DriveError("server", res.status, null, "upload (whole): no file");
+      if (!file)
+        throw new DriveError(
+          "server",
+          res.status,
+          null,
+          "upload (whole): no file",
+        );
       return created(file, now());
     },
 
@@ -210,21 +284,33 @@ export function driveAdapter(fetchImpl: typeof fetch = fetch, now: () => number 
       length: number,
       total: number,
     ): Promise<ChunkResult> {
-      const res = await call(sessionUri, token, {
-        method: "PUT",
-        headers: {
-          "content-length": String(length),
-          "content-range": `bytes ${offset}-${offset + length - 1}/${total}`,
+      const res = await call(
+        sessionUri,
+        token,
+        {
+          method: "PUT",
+          headers: {
+            "content-length": String(length),
+            "content-range": `bytes ${offset}-${offset + length - 1}/${total}`,
+          },
+          body,
         },
-        body,
-      }, DRIVE_CHUNK_MS);
+        DRIVE_CHUNK_MS,
+      );
       if (res.status === 308) {
         await res.body?.cancel();
         return { done: false, next: nextFrom(res) };
       }
-      if (res.status !== 200 && res.status !== 201) throw await errorOf(res, "upload (chunk)");
+      if (res.status !== 200 && res.status !== 201)
+        throw await errorOf(res, "upload (chunk)");
       const file = fileOf(await res.json());
-      if (!file) throw new DriveError("server", res.status, null, "upload (chunk): no file");
+      if (!file)
+        throw new DriveError(
+          "server",
+          res.status,
+          null,
+          "upload (chunk): no file",
+        );
       return { done: true, file: created(file, now()) };
     },
 
@@ -232,7 +318,11 @@ export function driveAdapter(fetchImpl: typeof fetch = fetch, now: () => number 
      * Where a session stands, asked of Google (`Content-Range: bytes * /size`), never trusted from our own offset: the
      * next byte it wants, the file if it already finished, or gone (a week passed, or it was abandoned: start over).
      */
-    async querySession(sessionUri: string, token: string, total: number): Promise<SessionState> {
+    async querySession(
+      sessionUri: string,
+      token: string,
+      total: number,
+    ): Promise<SessionState> {
       const res = await call(sessionUri, token, {
         method: "PUT",
         headers: { "content-length": "0", "content-range": `bytes */${total}` },
@@ -253,7 +343,10 @@ export function driveAdapter(fetchImpl: typeof fetch = fetch, now: () => number 
     },
 
     /** The album folder's own state: still there, in her bin, or gone. */
-    async folderState(token: string, folderId: string): Promise<"ok" | "trashed" | "gone"> {
+    async folderState(
+      token: string,
+      folderId: string,
+    ): Promise<"ok" | "trashed" | "gone"> {
       const file = await getFile(token, folderId);
       if (!file) return "gone";
       return file.trashed ? "trashed" : "ok";
@@ -287,9 +380,17 @@ export function driveAdapter(fetchImpl: typeof fetch = fetch, now: () => number 
      * reason to fail the item twice.
      */
     async undo(token: string, file: CreatedFile): Promise<boolean> {
-      if (!(file as { [CREATED]?: true })[CREATED] || now() - file.createdAtMs > 30 * 60_000) return false;
+      if (
+        !(file as { [CREATED]?: true })[CREATED] ||
+        now() - file.createdAtMs > 30 * 60_000
+      )
+        return false;
       try {
-        const res = await call(`${FILES}/${encodeURIComponent(file.id)}`, token, { method: "DELETE" });
+        const res = await call(
+          `${FILES}/${encodeURIComponent(file.id)}`,
+          token,
+          { method: "DELETE" },
+        );
         return res.ok || res.status === 404;
       } catch {
         return false;

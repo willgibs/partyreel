@@ -15,7 +15,13 @@ import { Check, FolderUp, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Popup, PopupBody, PopupContent, PopupFooter, PopupHeader } from "@/components/ui/popup";
+import {
+  Popup,
+  PopupBody,
+  PopupContent,
+  PopupFooter,
+  PopupHeader,
+} from "@/components/ui/popup";
 import { DESK_QUERY } from "@/components/ui/popup-kinds";
 import { Switch } from "@/components/ui/switch";
 import type { DriveReturn } from "@/lib/drive/oauth-cookie";
@@ -30,10 +36,14 @@ import { DriveSendSteps, type SendDone } from "./send-steps";
 
 type Albums = { albums: AlbumPreview[]; more: boolean };
 
-function stateOf(a: AlbumPreview): { label: string; tone: "info" | "success" | "muted" } | null {
+function stateOf(
+  a: AlbumPreview,
+): { label: string; tone: "info" | "success" | "muted" } | null {
   if (a.unfinished) return { label: "Sending", tone: "info" };
-  if (a.sentBefore && a.newItems === 0) return { label: "In your Drive", tone: "success" };
-  if (a.sentBefore) return { label: `${formatCount(a.newItems)} new`, tone: "muted" };
+  if (a.sentBefore && a.newItems === 0)
+    return { label: "In your Drive", tone: "success" };
+  if (a.sentBefore)
+    return { label: `${formatCount(a.newItems)} new`, tone: "muted" };
   return null;
 }
 
@@ -58,16 +68,24 @@ export function AlbumPicker({
   const load = (hidden: boolean) => {
     setList(null);
     setFailed(false);
-    void fetch(`/api/drive/albums?hidden=${hidden ? 1 : 0}`, { cache: "no-store" })
+    void fetch(`/api/drive/albums?hidden=${hidden ? 1 : 0}`, {
+      cache: "no-store",
+    })
       .then(async (res) => {
-        const body = (await res.json().catch(() => null)) as ({ ok?: boolean } & Albums) | null;
+        const body = (await res.json().catch(() => null)) as
+          | ({ ok?: boolean } & Albums)
+          | null;
         if (body?.ok) setList({ albums: body.albums, more: body.more });
         else setFailed(true);
       })
       .catch(() => setFailed(true));
   };
 
-  const openPicker = (preset?: { events: string[]; includeHidden: boolean; returned: DriveReturn | null }) => {
+  const openPicker = (preset?: {
+    events: string[];
+    includeHidden: boolean;
+    returned: DriveReturn | null;
+  }) => {
     setOpen(true);
     setStep(preset ? "drive" : "pick");
     setPicked(new Set(preset?.events ?? []));
@@ -79,17 +97,25 @@ export function AlbumPicker({
   // Back from Google with albums she meant to send from here (or from the storage door): the final press again.
   useEffect(() => {
     const intent = peekIntent();
-    if (!intent || (intent.source !== "picker" && intent.source !== "storage")) return;
+    if (!intent || (intent.source !== "picker" && intent.source !== "storage"))
+      return;
     const word = takeReturnWord();
     if (!word) return;
     takeIntent();
     // eslint-disable-next-line react-hooks/set-state-in-effect -- the tab's sessionStorage, read once after mount
-    openPicker({ events: intent.events, includeHidden: intent.includeHidden, returned: word });
+    openPicker({
+      events: intent.events,
+      includeHidden: intent.includeHidden,
+      returned: word,
+    });
     // Once, on the paint after the return.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const chosen = useMemo(() => (list?.albums ?? []).filter((a) => picked.has(a.eventId)), [list, picked]);
+  const chosen = useMemo(
+    () => (list?.albums ?? []).filter((a) => picked.has(a.eventId)),
+    [list, picked],
+  );
   const bytes = chosen.reduce((n, a) => n + (a.unfinished ? 0 : a.newBytes), 0);
   const full = picked.size >= MAX_ALBUMS_A_PRESS;
 
@@ -105,10 +131,16 @@ export function AlbumPicker({
     setOpen(false);
     const n = result.started.filter((r) => r.state === "started").length;
     if (n > 0) {
-      toast.success(n === 1 ? "Sending to Google Drive" : `Sending ${formatCount(n)} albums to Google Drive`, {
-        id: "drive-started-picker",
-        description: "You can close this page: we'll email you when they're in your Drive.",
-      });
+      toast.success(
+        n === 1
+          ? "Sending to Google Drive"
+          : `Sending ${formatCount(n)} albums to Google Drive`,
+        {
+          id: "drive-started-picker",
+          description:
+            "You can close this page: we'll email you when they're in your Drive.",
+        },
+      );
     }
   };
 
@@ -142,17 +174,29 @@ export function AlbumPicker({
               <PopupBody className="flex flex-col gap-1 pt-2">
                 {failed ? (
                   <div className="flex flex-col items-start gap-3 py-6">
-                    <p className="text-sm text-muted-foreground">Couldn&rsquo;t list your albums.</p>
-                    <Button variant="outline" size="sm" onClick={() => load(includeHidden)}>
+                    <p className="text-sm text-muted-foreground">
+                      Couldn&rsquo;t list your albums.
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => load(includeHidden)}
+                    >
                       Try again
                     </Button>
                   </div>
                 ) : !list ? (
                   <p className="flex items-center gap-2 py-8 text-sm text-muted-foreground">
-                    <Loader2 className="size-4 animate-spin motion-reduce:animate-none" aria-hidden /> Adding up your albums
+                    <Loader2
+                      className="size-4 animate-spin motion-reduce:animate-none"
+                      aria-hidden
+                    />{" "}
+                    Adding up your albums
                   </p>
                 ) : list.albums.length === 0 ? (
-                  <p className="py-8 text-sm text-muted-foreground">No albums to send yet.</p>
+                  <p className="py-8 text-sm text-muted-foreground">
+                    No albums to send yet.
+                  </p>
                 ) : (
                   <ul className="flex flex-col">
                     {list.albums.map((a) => {
@@ -174,15 +218,23 @@ export function AlbumPicker({
                               aria-hidden
                               className={cn(
                                 "flex size-5 shrink-0 items-center justify-center rounded-full border",
-                                on ? "border-transparent bg-success text-success-foreground" : "border-border bg-background",
+                                on
+                                  ? "border-transparent bg-success text-success-foreground"
+                                  : "border-border bg-background",
                               )}
                             >
-                              {on ? <Check className="size-3.5" strokeWidth={3} /> : null}
+                              {on ? (
+                                <Check className="size-3.5" strokeWidth={3} />
+                              ) : null}
                             </span>
                             <span className="relative size-11 shrink-0 overflow-hidden rounded-md bg-muted">
                               {cover ? (
                                 // eslint-disable-next-line @next/next/no-img-element -- a presigned cover, never next/image
-                                <img src={cover} alt="" className="absolute inset-0 size-full object-cover" />
+                                <img
+                                  src={cover}
+                                  alt=""
+                                  className="absolute inset-0 size-full object-cover"
+                                />
                               ) : (
                                 <span className="absolute inset-0 flex items-center justify-center text-muted-foreground">
                                   <DriveGlyph />
@@ -191,12 +243,18 @@ export function AlbumPicker({
                             </span>
                             <span className="min-w-0 flex-1">
                               <span className="flex items-baseline justify-between gap-2">
-                                <span className="truncate font-medium text-foreground">{a.name}</span>
+                                <span className="truncate font-medium text-foreground">
+                                  {a.name}
+                                </span>
                                 {state ? (
                                   <span
                                     className={cn(
                                       "shrink-0 text-xs",
-                                      state.tone === "success" ? "text-success" : state.tone === "info" ? "text-info" : "text-muted-foreground",
+                                      state.tone === "success"
+                                        ? "text-success"
+                                        : state.tone === "info"
+                                          ? "text-info"
+                                          : "text-muted-foreground",
                                     )}
                                   >
                                     {state.label}
@@ -204,10 +262,19 @@ export function AlbumPicker({
                                 ) : null}
                               </span>
                               <span className="mt-0.5 flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground tabular-nums">
-                                <span className="truncate">{a.eventDate ? formatEventDate(a.eventDate, a.eventEndDate) : "No date"}</span>
+                                <span className="truncate">
+                                  {a.eventDate
+                                    ? formatEventDate(
+                                        a.eventDate,
+                                        a.eventEndDate,
+                                      )
+                                    : "No date"}
+                                </span>
                                 <span aria-hidden>·</span>
                                 <span className="shrink-0">
-                                  {a.items === 0 ? "Nothing yet" : `${formatCount(a.items)} · ${formatBytes(a.bytes)}`}
+                                  {a.items === 0
+                                    ? "Nothing yet"
+                                    : `${formatCount(a.items)} · ${formatBytes(a.bytes)}`}
                                 </span>
                               </span>
                             </span>
@@ -218,10 +285,14 @@ export function AlbumPicker({
                   </ul>
                 )}
                 {list?.more ? (
-                  <p className="px-2 pt-2 text-xs text-muted-foreground">Your newest 200. Send an older one from its own album.</p>
+                  <p className="px-2 pt-2 text-xs text-muted-foreground">
+                    Your newest 200. Send an older one from its own album.
+                  </p>
                 ) : null}
                 <label className="mt-2 flex items-center justify-between gap-3 px-2 text-sm">
-                  <span className="text-muted-foreground">Include hidden items</span>
+                  <span className="text-muted-foreground">
+                    Include hidden items
+                  </span>
                   <Switch
                     checked={includeHidden}
                     onCheckedChange={(next) => {
@@ -241,7 +312,10 @@ export function AlbumPicker({
                 <Button variant="outline" onClick={() => setOpen(false)}>
                   Cancel
                 </Button>
-                <Button disabled={picked.size === 0} onClick={() => setStep("drive")}>
+                <Button
+                  disabled={picked.size === 0}
+                  onClick={() => setStep("drive")}
+                >
                   <FolderUp /> Send to Drive
                 </Button>
               </PopupFooter>

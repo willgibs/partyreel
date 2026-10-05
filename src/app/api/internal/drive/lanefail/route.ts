@@ -21,13 +21,25 @@ export async function POST(request: Request) {
     await recordSignalFailure({
       job: "drive_transfer",
       area: "export",
-      operation: r.paused > 0 ? "a lane died a third time today: its connection paused" : "a lane died",
+      operation:
+        r.paused > 0
+          ? "a lane died a third time today: its connection paused"
+          : "a lane died",
       error: new Error(error),
       extra: { connectionId, failures: r.failures },
     });
-    return internalJson({ ok: true, failures: r.failures, paused: r.paused > 0 });
+    return internalJson({
+      ok: true,
+      failures: r.failures,
+      paused: r.paused > 0,
+    });
   } catch (e) {
-    await recordSignalFailure({ job: "drive_transfer", area: "export", operation: "lane failure", error: e });
+    await recordSignalFailure({
+      job: "drive_transfer",
+      area: "export",
+      operation: "lane failure",
+      error: e,
+    });
     return internalJson({ ok: false }, 500);
   }
 }

@@ -3,7 +3,10 @@
  * by hand so the package keeps the one types root a Worker has (`@cloudflare/workers-types`), as its siblings do.
  */
 declare module "node:fs" {
-  export function readdirSync(path: string, options?: { recursive?: boolean }): string[];
+  export function readdirSync(
+    path: string,
+    options?: { recursive?: boolean },
+  ): string[];
   export function readFileSync(path: string, encoding: "utf8"): string;
 }
 declare module "node:path" {

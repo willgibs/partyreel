@@ -41,7 +41,10 @@ type SendFacts = {
 };
 
 export function sendWord(send: SendFacts): AdminWord {
-  if (send.stuckSince && (send.status === "sending" || send.status === "checking")) {
+  if (
+    send.stuckSince &&
+    (send.status === "sending" || send.status === "checking")
+  ) {
     return { label: "Stuck", badge: "destructive", row: "destructive" };
   }
   switch (send.status) {
@@ -55,18 +58,31 @@ export function sendWord(send: SendFacts): AdminWord {
       const label = PAUSE_WORDS[send.pauseReason ?? ""] ?? "Paused";
       // A pause that carries on by itself is no operator's business; one an operator or the breaker made is a
       // decision; the rest wait on her, and any of them can be the one to look at.
-      if (send.pauseReason === "daily_limit" || send.pauseReason === "operator") return { label, badge: "outline" };
-      if (send.pauseReason === "breaker" || send.pauseReason === "failing") return { label, badge: "warning", row: "warning" };
+      if (send.pauseReason === "daily_limit" || send.pauseReason === "operator")
+        return { label, badge: "outline" };
+      if (send.pauseReason === "breaker" || send.pauseReason === "failing")
+        return { label, badge: "warning", row: "warning" };
       return { label, badge: "warning" };
     }
     case "done":
       return { label: "Done", badge: "success" };
     case "partly_done":
-      return { label: `${send.itemsFailed} failed`, badge: "warning", row: "warning" };
+      return {
+        label: `${send.itemsFailed} failed`,
+        badge: "warning",
+        row: "warning",
+      };
     case "canceled":
-      return { label: STOP_WORDS[send.stopReason ?? ""] ?? "Canceled", badge: "secondary" };
+      return {
+        label: STOP_WORDS[send.stopReason ?? ""] ?? "Canceled",
+        badge: "secondary",
+      };
     case "stopped":
-      return { label: STOP_WORDS[send.stopReason ?? ""] ?? "Stopped", badge: "warning", row: "warning" };
+      return {
+        label: STOP_WORDS[send.stopReason ?? ""] ?? "Stopped",
+        badge: "warning",
+        row: "warning",
+      };
     default:
       return { label: send.status, badge: "secondary" };
   }
@@ -79,7 +95,8 @@ export function sendActs(send: { status: string }): SendActId[] {
   const acts: SendActId[] = [];
   if (send.status === "paused") acts.push("resume");
   if (send.status === "partly_done") acts.push("retry");
-  if (["preparing", "sending", "paused", "checking"].includes(send.status)) acts.push("cancel");
+  if (["preparing", "sending", "paused", "checking"].includes(send.status))
+    acts.push("cancel");
   return acts;
 }
 
@@ -91,15 +108,24 @@ type ConnectionFacts = {
 };
 
 export function connectionWord(c: ConnectionFacts): AdminWord {
-  if (c.operatorPausedAt) return { label: "Paused by an operator", badge: "outline" };
-  if (c.breakerSends > 0) return { label: "Breaker standing", badge: "warning", row: "warning" };
-  if (c.laneFailures >= 3) return { label: "Lanes dying", badge: "destructive", row: "destructive" };
-  if (c.status === "revoked") return { label: "Lost access", badge: "secondary" };
-  if (c.status === "failing") return { label: "Refresh failing", badge: "warning" };
+  if (c.operatorPausedAt)
+    return { label: "Paused by an operator", badge: "outline" };
+  if (c.breakerSends > 0)
+    return { label: "Breaker standing", badge: "warning", row: "warning" };
+  if (c.laneFailures >= 3)
+    return { label: "Lanes dying", badge: "destructive", row: "destructive" };
+  if (c.status === "revoked")
+    return { label: "Lost access", badge: "secondary" };
+  if (c.status === "failing")
+    return { label: "Refresh failing", badge: "warning" };
   return { label: "Connected", badge: "success" };
 }
 
-export type ConnectionActId = "pause" | "resume" | "lift_breaker" | "disconnect";
+export type ConnectionActId =
+  | "pause"
+  | "resume"
+  | "lift_breaker"
+  | "disconnect";
 
 /**
  * What an operator can do to a connection: pause a runaway one whole; resume what an operator or dying lanes paused;
@@ -121,9 +147,14 @@ export function connectionActs(c: ConnectionFacts): ConnectionActId[] {
  */
 export const CLIENT_IDLE_ATTENTION_DAYS = 150;
 
-export function clientHealth(lastUsedAt: string | null, nowMs: number): { attention: boolean; days: number | null } {
+export function clientHealth(
+  lastUsedAt: string | null,
+  nowMs: number,
+): { attention: boolean; days: number | null } {
   if (!lastUsedAt) return { attention: false, days: null };
-  const days = Math.floor((nowMs - Date.parse(lastUsedAt)) / (24 * 60 * 60 * 1000));
+  const days = Math.floor(
+    (nowMs - Date.parse(lastUsedAt)) / (24 * 60 * 60 * 1000),
+  );
   return { attention: days >= CLIENT_IDLE_ATTENTION_DAYS, days };
 }
 

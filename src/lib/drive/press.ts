@@ -35,7 +35,13 @@ export type PressRefusal =
 
 export type PressAnswer =
   | { ok: true; results: PressResult[] }
-  | { ok: false; code: PressRefusal; free?: number; needs?: number; retryAfterSec?: number };
+  | {
+      ok: false;
+      code: PressRefusal;
+      free?: number;
+      needs?: number;
+      retryAfterSec?: number;
+    };
 
 /** What a send of one album would take (the final press's facts, `GET /api/drive/preview`). */
 export type AlbumPreview = {
@@ -54,4 +60,3 @@ export type AlbumPreview = {
   /** An unfinished send of this album (a press opens it). */
   unfinished: string | null;
 };
-

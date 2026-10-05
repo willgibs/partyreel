@@ -35,7 +35,13 @@ function Listening({ eventId }: { eventId: string }) {
         GLASS_MARK,
       )}
     >
-      <span aria-hidden className={cn("inline-block size-1.5 shrink-0 rounded-full", DOT[light.tone])} />
+      <span
+        aria-hidden
+        className={cn(
+          "inline-block size-1.5 shrink-0 rounded-full",
+          DOT[light.tone],
+        )}
+      />
       {light.label}
     </span>
   );

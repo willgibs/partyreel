@@ -25,9 +25,11 @@ function filesUnder(dir: string): string[] {
   const out: string[] = [];
   for (const name of readdirSync(dir)) {
     const path = join(dir, name);
-    if (name === "node_modules" || name === "dist" || name === ".wrangler") continue;
+    if (name === "node_modules" || name === "dist" || name === ".wrangler")
+      continue;
     if (statSync(path).isDirectory()) out.push(...filesUnder(path));
-    else if (/\.(ts|tsx)$/.test(name) && !/\.test\.tsx?$/.test(name)) out.push(path);
+    else if (/\.(ts|tsx)$/.test(name) && !/\.test\.tsx?$/.test(name))
+      out.push(path);
   }
   return out;
 }
@@ -56,8 +58,12 @@ describe("Google's addresses", () => {
       for (const match of text.matchAll(/https:\/\/([a-z0-9.-]+)/gi)) {
         const host = match[1]!.toLowerCase();
         // Comments may cite Google's docs; code may not call them.
-        if (host === "developers.google.com" || host === "support.google.com") continue;
-        expect(ALLOWED_HOSTS.has(host), `${file.replace(ROOT, "")}: ${host}`).toBe(true);
+        if (host === "developers.google.com" || host === "support.google.com")
+          continue;
+        expect(
+          ALLOWED_HOSTS.has(host),
+          `${file.replace(ROOT, "")}: ${host}`,
+        ).toBe(true);
       }
     }
   });
@@ -66,7 +72,9 @@ describe("Google's addresses", () => {
     expect(DRIVE_SCOPES).toEqual(["openid", "email", DRIVE_FILE_SCOPE]);
     expect(DRIVE_FILE_SCOPE).toBe("https://www.googleapis.com/auth/drive.file");
     for (const file of SCANNED) {
-      expect(readFileSync(file, "utf8"), file).not.toMatch(/auth\/drive(?:\.readonly|\.metadata|\.appdata)?["'`\s]/);
+      expect(readFileSync(file, "utf8"), file).not.toMatch(
+        /auth\/drive(?:\.readonly|\.metadata|\.appdata)?["'`\s]/,
+      );
     }
   });
 });

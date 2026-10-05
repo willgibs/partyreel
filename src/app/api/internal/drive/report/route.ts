@@ -13,7 +13,11 @@ import { after } from "next/server";
 
 import { internalJson, readDriveWord } from "@/lib/drive/internal.server";
 import { notifyPaused } from "@/lib/drive/mail.server";
-import { reportWordSchema, type ReportAnswer, type ReportItem } from "@/lib/drive/protocol";
+import {
+  reportWordSchema,
+  type ReportAnswer,
+  type ReportItem,
+} from "@/lib/drive/protocol";
 import { readJustPaused, reportWork } from "@/lib/db/queries/drive";
 import { recordSignalFailure } from "@/lib/jobs/failure-log";
 
@@ -33,7 +37,12 @@ function sqlItem(item: ReportItem): Record<string, unknown> {
         kept: item.kept ?? false,
       };
     case "progress":
-      return { media_id: item.mediaId, outcome: "progress", session_uri: item.sessionUri, offset: item.offset };
+      return {
+        media_id: item.mediaId,
+        outcome: "progress",
+        session_uri: item.sessionUri,
+        offset: item.offset,
+      };
     case "failed":
       return {
         media_id: item.mediaId,
@@ -43,14 +52,22 @@ function sqlItem(item: ReportItem): Record<string, unknown> {
         keep_session: item.keepSession ?? false,
       };
     case "skipped":
-      return { media_id: item.mediaId, outcome: "skipped", reason: item.reason };
+      return {
+        media_id: item.mediaId,
+        outcome: "skipped",
+        reason: item.reason,
+      };
     case "released":
       return { media_id: item.mediaId, outcome: "released" };
   }
 }
 
 /** The findings that pause every running send of the connection, not only the lease's. */
-const CONNECTION_WIDE: ReadonlySet<string> = new Set(["drive_full", "daily_limit", "domain_policy"]);
+const CONNECTION_WIDE: ReadonlySet<string> = new Set([
+  "drive_full",
+  "daily_limit",
+  "domain_policy",
+]);
 
 const SIGNALS: Record<string, string> = {
   file_failed: "a file failed for good",
@@ -71,7 +88,12 @@ export async function POST(request: Request) {
       done: word.done ?? false,
     });
   } catch (e) {
-    await recordSignalFailure({ job: "drive_transfer", area: "export", operation: "report", error: e });
+    await recordSignalFailure({
+      job: "drive_transfer",
+      area: "export",
+      operation: "report",
+      error: e,
+    });
     return internalJson({ ok: false, code: "report_failed" }, 500);
   }
 
@@ -83,9 +105,16 @@ export async function POST(request: Request) {
     const reason = word.finding;
     const since = Date.now() - 60_000;
     after(async () => {
-      for (const id of await readJustPaused(connectionId, reason, since).catch(() => [])) await notifyPaused(id);
+      for (const id of await readJustPaused(connectionId, reason, since).catch(
+        () => [],
+      ))
+        await notifyPaused(id);
     });
-  } else if (jobId && outcome.status === "paused" && outcome.before !== "paused") {
+  } else if (
+    jobId &&
+    outcome.status === "paused" &&
+    outcome.before !== "paused"
+  ) {
     after(() => notifyPaused(jobId));
   }
   if (outcome.signal && SIGNALS[outcome.signal]) {

@@ -17,23 +17,42 @@ import { after, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { driveFileState, driveRoom, DriveCallError } from "@/lib/drive/google";
-import { accessTokenFor, kickConnection, makeNewAlbumFolder } from "@/lib/drive/service.server";
-import { actOnSend, readConnection, readMySend, readSendFolderId, recordRoom } from "@/lib/db/queries/drive";
+import {
+  accessTokenFor,
+  kickConnection,
+  makeNewAlbumFolder,
+} from "@/lib/drive/service.server";
+import {
+  actOnSend,
+  readConnection,
+  readMySend,
+  readSendFolderId,
+  recordRoom,
+} from "@/lib/db/queries/drive";
 import { captureError } from "@/lib/observability/sentry";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const bodySchema = z.object({ act: z.enum(["cancel", "check", "refolder", "retry", "seen"]) });
+const bodySchema = z.object({
+  act: z.enum(["cancel", "check", "refolder", "retry", "seen"]),
+});
 
 function answer(body: Record<string, unknown>, status = 200) {
-  return NextResponse.json(body, { status, headers: { "Cache-Control": "private, no-store" } });
+  return NextResponse.json(body, {
+    status,
+    headers: { "Cache-Control": "private, no-store" },
+  });
 }
 
-export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
   const { id } = await params;
-  if (!z.uuid().safeParse(id).success) return answer({ ok: false, code: "not_found" }, 404);
+  if (!z.uuid().safeParse(id).success)
+    return answer({ ok: false, code: "not_found" }, 404);
   let body: unknown;
   try {
     body = await request.json();
@@ -60,23 +79,42 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       const connectionId = r.connectionId;
       after(() => kickConnection(connectionId).then(() => undefined));
     }
-    return answer({ ok: r.ok, code: r.code, status: r.status }, r.ok ? 200 : 409);
+    return answer(
+      { ok: r.ok, code: r.code, status: r.status },
+      r.ok ? 200 : 409,
+    );
   }
 
   const connection = await readConnection(user.id);
-  if (!connection || connection.status === "revoked") return answer({ ok: false, code: "disconnected" }, 409);
+  if (!connection || connection.status === "revoked")
+    return answer({ ok: false, code: "disconnected" }, 409);
   const access = await accessTokenFor(connection.id);
-  if (!access.ok) return answer({ ok: false, code: access.why === "revoked" ? "disconnected" : "busy" }, 409);
+  if (!access.ok)
+    return answer(
+      { ok: false, code: access.why === "revoked" ? "disconnected" : "busy" },
+      409,
+    );
 
-  if (act === "check" && send.status === "paused" && send.pauseReason === "folder_gone") {
+  if (
+    act === "check" &&
+    send.status === "paused" &&
+    send.pauseReason === "folder_gone"
+  ) {
     // She restored the folder in Drive: out of the bin, the send goes on into it.
     try {
       const folderId = await readSendFolderId(id);
-      const state = folderId ? await driveFileState(access.token, folderId) : null;
-      if (!state || state.trashed) return answer({ ok: false, code: "still_in_bin" }, 409);
+      const state = folderId
+        ? await driveFileState(access.token, folderId)
+        : null;
+      if (!state || state.trashed)
+        return answer({ ok: false, code: "still_in_bin" }, 409);
       const r = await actOnSend({ userId: user.id, jobId: id, act: "resume" });
-      if (r.ok) after(() => kickConnection(connection.id).then(() => undefined));
-      return answer({ ok: r.ok, code: r.code, status: r.status }, r.ok ? 200 : 409);
+      if (r.ok)
+        after(() => kickConnection(connection.id).then(() => undefined));
+      return answer(
+        { ok: r.ok, code: r.code, status: r.status },
+        r.ok ? 200 : 409,
+      );
     } catch (e) {
       captureError("export", e, { action: "drive_check_folder" });
       return answer({ ok: false, code: "google_unreachable" }, 409);
@@ -89,17 +127,26 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     }
     try {
       const room = await driveRoom(access.token);
-      const r = await recordRoom({ connectionId: connection.id, limit: room.limit, usage: room.usage, resume: true });
+      const r = await recordRoom({
+        connectionId: connection.id,
+        limit: room.limit,
+        usage: room.usage,
+        resume: true,
+      });
       if (r.resumed > 0) {
         after(() => kickConnection(connection.id).then(() => undefined));
         return answer({ ok: true, status: "sending" });
       }
-      return answer({
-        ok: false,
-        code: "still_full",
-        free: room.limit === null ? null : Math.max(room.limit - room.usage, 0),
-        needs: r.left,
-      }, 409);
+      return answer(
+        {
+          ok: false,
+          code: "still_full",
+          free:
+            room.limit === null ? null : Math.max(room.limit - room.usage, 0),
+          needs: r.left,
+        },
+        409,
+      );
     } catch (e) {
       captureError("export", e, { action: "drive_check_again" });
       return answer({ ok: false, code: "google_unreachable" }, 409);
@@ -107,8 +154,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   }
 
   // refolder: a new folder for the album, under the Partyreel folder (made again if it went to the bin too).
-  if (send.status !== "paused" || send.pauseReason !== "folder_gone" || !send.eventId) {
-    return answer({ ok: false, code: "not_folder_gone", status: send.status }, 409);
+  if (
+    send.status !== "paused" ||
+    send.pauseReason !== "folder_gone" ||
+    !send.eventId
+  ) {
+    return answer(
+      { ok: false, code: "not_folder_gone", status: send.status },
+      409,
+    );
   }
   try {
     const ok = await makeNewAlbumFolder({
@@ -125,7 +179,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   } catch (e) {
     captureError("export", e, { action: "drive_refolder" });
     return answer(
-      { ok: false, code: e instanceof DriveCallError && e.reason === "storageQuotaExceeded" ? "drive_full" : "google_unreachable" },
+      {
+        ok: false,
+        code:
+          e instanceof DriveCallError && e.reason === "storageQuotaExceeded"
+            ? "drive_full"
+            : "google_unreachable",
+      },
       409,
     );
   }

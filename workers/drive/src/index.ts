@@ -41,7 +41,10 @@ type Env = {
 /** The queue consumer's retries (wrangler.jsonc): the attempt after the last retry is the lane's last. */
 const MAX_RETRIES = 3;
 
-const hex = (buffer: ArrayBuffer) => [...new Uint8Array(buffer)].map((b) => b.toString(16).padStart(2, "0")).join("");
+const hex = (buffer: ArrayBuffer) =>
+  [...new Uint8Array(buffer)]
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 
 function wiring(env: Env) {
   let spent = 0;
@@ -54,7 +57,10 @@ function wiring(env: Env) {
       spent++;
       const object = await env.PRIMARY.head(key);
       if (!object) return null;
-      return { size: object.size, md5: object.checksums.md5 ? hex(object.checksums.md5) : null };
+      return {
+        size: object.size,
+        md5: object.checksums.md5 ? hex(object.checksums.md5) : null,
+      };
     },
     async read(key, range) {
       spent++;
@@ -70,25 +76,43 @@ function wiring(env: Env) {
   };
 }
 
-async function enqueue(env: Env, messages: LaneMessage[], delaySeconds?: number): Promise<void> {
+async function enqueue(
+  env: Env,
+  messages: LaneMessage[],
+  delaySeconds?: number,
+): Promise<void> {
   if (!env.DRIVE_QUEUE || messages.length === 0) return;
   await env.DRIVE_QUEUE.sendBatch(
-    messages.map((body) => ({ body, ...(delaySeconds ? { delaySeconds } : {}) })),
+    messages.map((body) => ({
+      body,
+      ...(delaySeconds ? { delaySeconds } : {}),
+    })),
   );
 }
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
-    if (request.method !== "POST" || url.pathname !== "/kick") return new Response("Not found", { status: 404 });
-    if (!env.DRIVE_WORKER_SECRET) return new Response("Not configured", { status: 503 });
-    const verdict = await verifyWord(env.DRIVE_WORKER_SECRET, (await request.text()).trim(), Date.now());
+    if (request.method !== "POST" || url.pathname !== "/kick")
+      return new Response("Not found", { status: 404 });
+    if (!env.DRIVE_WORKER_SECRET)
+      return new Response("Not configured", { status: 503 });
+    const verdict = await verifyWord(
+      env.DRIVE_WORKER_SECRET,
+      (await request.text()).trim(),
+      Date.now(),
+    );
     const kick = verdict.ok ? readKick(verdict.word) : null;
-    if (!kick) return new Response("Refused", { status: verdict.ok ? 400 : 401 });
-    if (env.DRIVE_MODE === "off") return new Response("Switched off", { status: 503 });
+    if (!kick)
+      return new Response("Refused", { status: verdict.ok ? 400 : 401 });
+    if (env.DRIVE_MODE === "off")
+      return new Response("Switched off", { status: 503 });
     await enqueue(
       env,
-      Array.from({ length: kick.lanes }, () => ({ v: 1 as const, connectionId: kick.connectionId })),
+      Array.from({ length: kick.lanes }, () => ({
+        v: 1 as const,
+        connectionId: kick.connectionId,
+      })),
     );
     log("drive-kick", { connectionId: kick.connectionId, lanes: kick.lanes });
     return new Response(null, { status: 202 });
@@ -98,7 +122,10 @@ export default {
     for (const message of batch.messages) {
       const body = message.body;
       if (!body || body.v !== 1 || typeof body.connectionId !== "string") {
-        log("drive-error", { what: "a message that is no lane", id: message.id });
+        log("drive-error", {
+          what: "a message that is no lane",
+          id: message.id,
+        });
         message.ack();
         continue;
       }
@@ -115,7 +142,8 @@ export default {
             bucket: w.bucket,
             secret: env.DRIVE_WORKER_SECRET,
             requeue: (m, delay) => enqueue(env, [m], delay),
-            fixedLength: (stream, length) => stream.pipeThrough(new FixedLengthStream(length)),
+            fixedLength: (stream, length) =>
+              stream.pipeThrough(new FixedLengthStream(length)),
             md5Of: async (stream) => {
               const digest = new crypto.DigestStream("MD5");
               await stream.pipeTo(digest);
@@ -131,15 +159,25 @@ export default {
         message.ack();
       } catch (e) {
         const error = String(e).slice(0, 300);
-        log("drive-error", { what: "a lane threw", connectionId: body.connectionId, attempt: message.attempts, error });
+        log("drive-error", {
+          what: "a lane threw",
+          connectionId: body.connectionId,
+          attempt: message.attempts,
+          error,
+        });
         // ★ The last attempt says so before it throws, so the app counts the connection's dead lanes.
-        if (message.attempts > MAX_RETRIES) await w.app.laneFail(body.connectionId, error).catch(() => false);
+        if (message.attempts > MAX_RETRIES)
+          await w.app.laneFail(body.connectionId, error).catch(() => false);
         message.retry();
       }
     }
   },
 
-  async scheduled(_controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+  async scheduled(
+    _controller: ScheduledController,
+    env: Env,
+    ctx: ExecutionContext,
+  ): Promise<void> {
     ctx.waitUntil(
       (async () => {
         const depths = await readQueueDepths(env);
@@ -149,7 +187,12 @@ export default {
           depths,
           enqueue: (messages) => enqueue(env, messages),
         });
-      })().catch((e) => log("drive-error", { what: "the sweep threw", error: String(e).slice(0, 300) })),
+      })().catch((e) =>
+        log("drive-error", {
+          what: "the sweep threw",
+          error: String(e).slice(0, 300),
+        }),
+      ),
     );
   },
 } satisfies ExportedHandler<Env, LaneMessage>;

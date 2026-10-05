@@ -24,7 +24,8 @@ const PAYLOAD = {
 };
 const WORD =
   "eyJ2IjoxLCJraW5kIjoicmVwb3J0IiwiYXQiOjE5MDAwMDAwMDAwMDAsImxlYXNlIjoiMTExMTExMTEtMjIyMi00MzMzLTg0NDQtNTU1NTU1NTU1NTU1IiwiaXRlbXMiOlt7Im1lZGlhSWQiOiI2NjY2NjY2Ni03Nzc3LTQ4ODgtOTk5OS1hYWFhYWFhYWFhYWEiLCJvdXRjb21lIjoic2VudCIsImZpbGVJZCI6IjFBYkNfZEVmLTIiLCJtZDUiOiIwMTIzNDU2Nzg5YWJjZGVmMDEyMzQ1Njc4OWFiY2RlZiJ9XSwiZG9uZSI6dHJ1ZX0.f42995b2a015f8b667d7e9ad087ab68807a5ba3558c0809e9d76cb0951de4616";
-const SEALED = "AAECAwQFBgcICQoL.aMw-A8qgcjRVADPQGL_vMXpkVNCx3Mg9YHD3mtjp2jtfY1kX6Hnq53bRVA";
+const SEALED =
+  "AAECAwQFBgcICQoL.aMw-A8qgcjRVADPQGL_vMXpkVNCx3Mg9YHD3mtjp2jtfY1kX6Hnq53bRVA";
 const LEASE = "11111111-2222-4333-8444-555555555555";
 
 describe("the Drive protocol's twin", () => {
@@ -35,24 +36,49 @@ describe("the Drive protocol's twin", () => {
   });
 
   it("refuses another secret, a changed body, a stale word and a malformed one", async () => {
-    expect((await verifyWord("not-the-secret", WORD, PAYLOAD.at)).ok).toBe(false);
+    expect((await verifyWord("not-the-secret", WORD, PAYLOAD.at)).ok).toBe(
+      false,
+    );
     const [body, mac] = WORD.split(".");
-    expect(await verifyWord(SECRET, `${body}x.${mac}`, PAYLOAD.at)).toMatchObject({ ok: false, reason: "bad_signature" });
-    expect(await verifyWord(SECRET, WORD, PAYLOAD.at + 5 * 60_000 + 1)).toMatchObject({ ok: false, reason: "stale" });
-    expect(await verifyWord(SECRET, "a.b.c", PAYLOAD.at)).toMatchObject({ ok: false, reason: "malformed" });
+    expect(
+      await verifyWord(SECRET, `${body}x.${mac}`, PAYLOAD.at),
+    ).toMatchObject({ ok: false, reason: "bad_signature" });
+    expect(
+      await verifyWord(SECRET, WORD, PAYLOAD.at + 5 * 60_000 + 1),
+    ).toMatchObject({ ok: false, reason: "stale" });
+    expect(await verifyWord(SECRET, "a.b.c", PAYLOAD.at)).toMatchObject({
+      ok: false,
+      reason: "malformed",
+    });
   });
 
   it("opens the pinned sealed token for its own lease alone", async () => {
-    expect(await openLeaseToken(SECRET, SEALED, LEASE)).toBe("ya29.a0-vector-access-token");
-    expect(await openLeaseToken(SECRET, SEALED, "22222222-2222-4333-8444-555555555555")).toBeNull();
+    expect(await openLeaseToken(SECRET, SEALED, LEASE)).toBe(
+      "ya29.a0-vector-access-token",
+    );
+    expect(
+      await openLeaseToken(
+        SECRET,
+        SEALED,
+        "22222222-2222-4333-8444-555555555555",
+      ),
+    ).toBeNull();
     expect(await openLeaseToken("not-the-secret", SEALED, LEASE)).toBeNull();
   });
 
   it("reads a kick: a connection and one to three lanes, nothing else", () => {
     const id = "33333333-4444-4555-8666-777777777777";
-    expect(readKick({ v: 1, kind: "kick", at: 1, connectionId: id, lanes: 3 })).toEqual({ connectionId: id, lanes: 3 });
-    expect(readKick({ v: 1, kind: "kick", at: 1, connectionId: id, lanes: 4 })).toBeNull();
-    expect(readKick({ v: 1, kind: "lease", at: 1, connectionId: id, lanes: 1 })).toBeNull();
-    expect(readKick({ v: 1, kind: "kick", at: 1, connectionId: "x", lanes: 1 })).toBeNull();
+    expect(
+      readKick({ v: 1, kind: "kick", at: 1, connectionId: id, lanes: 3 }),
+    ).toEqual({ connectionId: id, lanes: 3 });
+    expect(
+      readKick({ v: 1, kind: "kick", at: 1, connectionId: id, lanes: 4 }),
+    ).toBeNull();
+    expect(
+      readKick({ v: 1, kind: "lease", at: 1, connectionId: id, lanes: 1 }),
+    ).toBeNull();
+    expect(
+      readKick({ v: 1, kind: "kick", at: 1, connectionId: "x", lanes: 1 }),
+    ).toBeNull();
   });
 });

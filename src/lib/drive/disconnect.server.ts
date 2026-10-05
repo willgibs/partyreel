@@ -24,7 +24,9 @@ export type DisconnectResult = {
   ended: number;
 };
 
-export async function disconnectDrive(userId: string): Promise<DisconnectResult> {
+export async function disconnectDrive(
+  userId: string,
+): Promise<DisconnectResult> {
   const r = await disconnectConnection(userId);
   if (!r.found) return { found: false, revoked: true, ended: 0 };
   let revoked = false;
@@ -33,7 +35,8 @@ export async function disconnectDrive(userId: string): Promise<DisconnectResult>
     const ctx = { userId, provider: "google_drive" as const };
     // The refresh token revokes the whole grant; the access token is the fallback where only it opens.
     const token =
-      openToken(r.refreshCt, { ...ctx, purpose: "refresh" }, keys) ?? openToken(r.accessCt, { ...ctx, purpose: "access" }, keys);
+      openToken(r.refreshCt, { ...ctx, purpose: "refresh" }, keys) ??
+      openToken(r.accessCt, { ...ctx, purpose: "access" }, keys);
     revoked = token ? await revokeToken(token) : false;
   } catch (e) {
     captureError("export", e, { action: "drive_disconnect_revoke" });

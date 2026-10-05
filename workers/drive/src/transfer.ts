@@ -32,7 +32,9 @@ import type { Finding, LeaseItem, ReportItem } from "./protocol";
 export const CHUNK_BYTES = 128 * 1024 * 1024;
 
 /** "Slow down", inside the slice: 1, 2, 4 ... 64 s with jitter, about two minutes in all, then the lane slows. */
-export const RATE_BACKOFF_MS = [1_000, 2_000, 4_000, 8_000, 16_000, 32_000, 64_000];
+export const RATE_BACKOFF_MS = [
+  1_000, 2_000, 4_000, 8_000, 16_000, 32_000, 64_000,
+];
 
 /** A chunk is not started unless this much of the slice is left (a 128 MiB chunk at 10 Mbps is about two minutes). */
 export const CHUNK_HEADROOM_MS = 3 * 60_000;
@@ -44,7 +46,10 @@ export type ObjectFacts = { size: number; md5: string | null };
 export type Bucket = {
   head(key: string): Promise<ObjectFacts | null>;
   /** The whole object, or a range of it, as a stream; null when it is gone. */
-  read(key: string, range?: { offset: number; length: number }): Promise<ReadableStream | null>;
+  read(
+    key: string,
+    range?: { offset: number; length: number },
+  ): Promise<ReadableStream | null>;
 };
 
 export type TransferContext = {
@@ -93,18 +98,30 @@ function findingOf(error: DriveError): Finding | null {
 }
 
 /** A file in her Drive matches ours: its size equal, and its MD5 equal wherever both are known. */
-function matches(file: DriveFile, facts: ObjectFacts, md5: string | null): boolean {
+function matches(
+  file: DriveFile,
+  facts: ObjectFacts,
+  md5: string | null,
+): boolean {
   if (file.trashed || file.size !== facts.size) return false;
   return !md5 || !file.md5 || file.md5 === md5;
 }
 
 /** Retry a Google call through "slow down", then give up as `rate` (the lane's slow-down finding). */
-async function withRate<T>(ctx: TransferContext, run: () => Promise<T>): Promise<T> {
+async function withRate<T>(
+  ctx: TransferContext,
+  run: () => Promise<T>,
+): Promise<T> {
   for (let attempt = 0; ; attempt++) {
     try {
       return await run();
     } catch (e) {
-      if (!(e instanceof DriveError) || e.kind !== "rate" || attempt >= RATE_BACKOFF_MS.length) throw e;
+      if (
+        !(e instanceof DriveError) ||
+        e.kind !== "rate" ||
+        attempt >= RATE_BACKOFF_MS.length
+      )
+        throw e;
       await ctx.sleep(RATE_BACKOFF_MS[attempt]! * (0.75 + ctx.random() / 2));
     }
   }
@@ -120,12 +137,20 @@ async function sendChunks(
 ): Promise<{ file: CreatedFile } | { stoppedAt: number }> {
   let offset = from;
   while (offset < total) {
-    if (ctx.now() > ctx.deadlineMs - CHUNK_HEADROOM_MS) return { stoppedAt: offset };
+    if (ctx.now() > ctx.deadlineMs - CHUNK_HEADROOM_MS)
+      return { stoppedAt: offset };
     const length = Math.min(ctx.chunkBytes ?? CHUNK_BYTES, total - offset);
     const body = await ctx.bucket.read(item.key, { offset, length });
     if (!body) throw new MissingObject();
     const result = await withRate(ctx, () =>
-      ctx.drive.putChunk(sessionUri, ctx.token, ctx.fixedLength(body, length), offset, length, total),
+      ctx.drive.putChunk(
+        sessionUri,
+        ctx.token,
+        ctx.fixedLength(body, length),
+        offset,
+        length,
+        total,
+      ),
     );
     if (result.done) return { file: result.file };
     offset = result.next;
@@ -133,7 +158,8 @@ async function sendChunks(
   }
   // Every byte went and Google did not close it: ask once where it stands.
   const state = await ctx.drive.querySession(sessionUri, ctx.token, total);
-  if ("gone" in state) throw new DriveError("server", 404, null, "session gone at its end");
+  if ("gone" in state)
+    throw new DriveError("server", 404, null, "session gone at its end");
   if (state.done) return { file: state.file };
   return { stoppedAt: state.next };
 }
@@ -148,27 +174,47 @@ class MissingObject extends Error {
 const hex = (s: string | null) => (s && /^[0-9a-f]{32}$/.test(s) ? s : null);
 
 /** Send one original. Never throws: every end is a report item (and maybe a finding). */
-export async function sendOne(ctx: TransferContext, item: LeaseItem): Promise<TransferResult> {
+export async function sendOne(
+  ctx: TransferContext,
+  item: LeaseItem,
+): Promise<TransferResult> {
   // A session Google holds for this item (resumed, or written ahead in this run): a failure keeps it, so the next
   // lease resumes rather than starts over.
   let liveSession: string | null = item.session?.uri ?? null;
   try {
     const facts = await ctx.bucket.head(item.key);
-    if (!facts) return { item: { mediaId: item.mediaId, outcome: "skipped", reason: "missing_object" } };
+    if (!facts)
+      return {
+        item: {
+          mediaId: item.mediaId,
+          outcome: "skipped",
+          reason: "missing_object",
+        },
+      };
 
     // 2. An earlier send's file, still hers and whole: kept.
     if (item.priorFileId) {
-      const prior = await withRate(ctx, () => ctx.drive.getFile(ctx.token, item.priorFileId!));
+      const prior = await withRate(ctx, () =>
+        ctx.drive.getFile(ctx.token, item.priorFileId!),
+      );
       if (prior && matches(prior, facts, facts.md5)) {
         return {
-          item: { mediaId: item.mediaId, outcome: "sent", fileId: prior.id, kept: true, ...(hex(prior.md5) ? { md5: prior.md5! } : {}) },
+          item: {
+            mediaId: item.mediaId,
+            outcome: "sent",
+            fileId: prior.id,
+            kept: true,
+            ...(hex(prior.md5) ? { md5: prior.md5! } : {}),
+          },
         };
       }
     }
 
     // 3. A re-leased item: Google may already hold it (a report lost after the upload).
     if (item.attempts > 1 || item.session) {
-      const found = await withRate(ctx, () => ctx.drive.findByMedia(ctx.token, item.mediaId));
+      const found = await withRate(ctx, () =>
+        ctx.drive.findByMedia(ctx.token, item.mediaId),
+      );
       if (found && matches(found, facts, facts.md5)) {
         return {
           item: {
@@ -187,7 +233,9 @@ export async function sendOne(ctx: TransferContext, item: LeaseItem): Promise<Tr
     let sessionUri: string | null = null;
     let from = 0;
     if (item.session) {
-      const state = await withRate(ctx, () => ctx.drive.querySession(item.session!.uri, ctx.token, facts.size));
+      const state = await withRate(ctx, () =>
+        ctx.drive.querySession(item.session!.uri, ctx.token, facts.size),
+      );
       if (!("gone" in state)) {
         sessionUri = item.session.uri;
         if (state.done) file = state.file;
@@ -216,7 +264,8 @@ export async function sendOne(ctx: TransferContext, item: LeaseItem): Promise<Tr
           );
         } catch (e) {
           // ★ A parent Google no longer has is the album's folder gone (deleted, not merely in the bin).
-          if (e instanceof DriveError && e.kind === "not_found") return released(item, "folder_gone");
+          if (e instanceof DriveError && e.kind === "not_found")
+            return released(item, "folder_gone");
           throw e;
         }
       }
@@ -224,7 +273,14 @@ export async function sendOne(ctx: TransferContext, item: LeaseItem): Promise<Tr
         const body = await ctx.bucket.read(item.key);
         if (!body) throw new MissingObject();
         const uri = sessionUri;
-        file = await withRate(ctx, () => ctx.drive.putWhole(uri, ctx.token, ctx.fixedLength(body, facts.size), facts.size));
+        file = await withRate(ctx, () =>
+          ctx.drive.putWhole(
+            uri,
+            ctx.token,
+            ctx.fixedLength(body, facts.size),
+            facts.size,
+          ),
+        );
       } else {
         // Written ahead: whoever leases this item next resumes this very session.
         if (from === 0) await ctx.progress(item, sessionUri, 0);
@@ -247,7 +303,10 @@ export async function sendOne(ctx: TransferContext, item: LeaseItem): Promise<Tr
       workerMd5 = await ctx.md5Of(again);
       expected = workerMd5;
     }
-    if (file.size !== facts.size || (file.md5 && expected && file.md5 !== expected)) {
+    if (
+      file.size !== facts.size ||
+      (file.md5 && expected && file.md5 !== expected)
+    ) {
       await ctx.drive.undo(ctx.token, file);
       return {
         item: {
@@ -269,7 +328,13 @@ export async function sendOne(ctx: TransferContext, item: LeaseItem): Promise<Tr
     };
   } catch (e) {
     if (e instanceof MissingObject) {
-      return { item: { mediaId: item.mediaId, outcome: "skipped", reason: "missing_object" } };
+      return {
+        item: {
+          mediaId: item.mediaId,
+          outcome: "skipped",
+          reason: "missing_object",
+        },
+      };
     }
     if (e instanceof DriveError) {
       const finding = findingOf(e);
@@ -277,7 +342,12 @@ export async function sendOne(ctx: TransferContext, item: LeaseItem): Promise<Tr
       if (e.kind === "rate") return released(item, "throttled");
       if (e.kind === "folder_full") {
         return {
-          item: { mediaId: item.mediaId, outcome: "failed", reason: "the album's folder holds 500,000 files", retry: false },
+          item: {
+            mediaId: item.mediaId,
+            outcome: "failed",
+            reason: "the album's folder holds 500,000 files",
+            retry: false,
+          },
         };
       }
       return {
@@ -292,7 +362,13 @@ export async function sendOne(ctx: TransferContext, item: LeaseItem): Promise<Tr
     }
     // The network or the runtime: worth another try.
     return {
-      item: { mediaId: item.mediaId, outcome: "failed", reason: String(e).slice(0, 300), retry: true, keepSession: Boolean(liveSession) },
+      item: {
+        mediaId: item.mediaId,
+        outcome: "failed",
+        reason: String(e).slice(0, 300),
+        retry: true,
+        keepSession: Boolean(liveSession),
+      },
     };
   }
 }

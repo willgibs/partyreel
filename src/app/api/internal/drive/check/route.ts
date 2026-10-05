@@ -31,17 +31,29 @@ export async function POST(request: Request) {
       // "unknown" (Drive could not answer for one) stays sent and unconfirmed: the walk moves on, nothing is resent.
       results: word.results
         .filter((r) => r.state !== "unknown")
-        .map((r) => ({ media_id: r.mediaId, state: r.state === "ok" ? "ok" : "missing" })),
+        .map((r) => ({
+          media_id: r.mediaId,
+          state: r.state === "ok" ? "ok" : "missing",
+        })),
       duplicates: word.duplicates ?? null,
       finding: word.finding ?? null,
     });
   } catch (e) {
-    await recordSignalFailure({ job: "drive_transfer", area: "export", operation: "closing check", error: e });
+    await recordSignalFailure({
+      job: "drive_transfer",
+      area: "export",
+      operation: "closing check",
+      error: e,
+    });
     return internalJson({ ok: false, code: "check_failed" }, 500);
   }
 
   const { jobId, connectionId } = outcome;
-  if (outcome.status === "sending" && outcome.before === "checking" && connectionId) {
+  if (
+    outcome.status === "sending" &&
+    outcome.before === "checking" &&
+    connectionId
+  ) {
     after(() => kickConnection(connectionId).then(() => undefined));
   }
   if (jobId && outcome.status === "paused" && outcome.before !== "paused") {

@@ -6,7 +6,10 @@
  */
 export type LogFields = Record<string, string | number | boolean | null>;
 
-export function log(event: "drive-lane" | "drive-kick" | "drive-sweep" | "drive-error", fields: LogFields): void {
+export function log(
+  event: "drive-lane" | "drive-kick" | "drive-sweep" | "drive-error",
+  fields: LogFields,
+): void {
   // eslint-disable-next-line no-console -- the Worker's one logging seam
   console.log(JSON.stringify({ at: event, ...fields }));
 }

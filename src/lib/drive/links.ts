@@ -32,5 +32,8 @@ export const DRIVE_HINT_MAX_AGE_S = 365 * 24 * 60 * 60;
 
 /** Whether this browser has the hint (client only). */
 export function hasDriveHint(): boolean {
-  return typeof document !== "undefined" && document.cookie.split(/;\s*/).includes(`${DRIVE_HINT_COOKIE}=1`);
+  return (
+    typeof document !== "undefined" &&
+    document.cookie.split(/;\s*/).includes(`${DRIVE_HINT_COOKIE}=1`)
+  );
 }

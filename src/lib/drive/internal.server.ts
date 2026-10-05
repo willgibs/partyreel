@@ -22,17 +22,37 @@ export async function readDriveWord<T extends { at: number }>(
   route: string,
 ): Promise<{ ok: true; word: T } | { ok: false; response: NextResponse }> {
   if (!driveConfigured() || !serverEnv.DRIVE_WORKER_SECRET) {
-    return { ok: false, response: NextResponse.json({ ok: false, code: "unavailable" }, { status: 503 }) };
+    return {
+      ok: false,
+      response: NextResponse.json(
+        { ok: false, code: "unavailable" },
+        { status: 503 },
+      ),
+    };
   }
   const text = await request.text().catch(() => "");
   if (!text || text.length > MAX_BODY) {
-    return { ok: false, response: NextResponse.json({ ok: false, code: "malformed" }, { status: 400 }) };
+    return {
+      ok: false,
+      response: NextResponse.json(
+        { ok: false, code: "malformed" },
+        { status: 400 },
+      ),
+    };
   }
-  const verdict = verifyDriveWord(serverEnv.DRIVE_WORKER_SECRET, text.trim(), schema, Date.now());
+  const verdict = verifyDriveWord(
+    serverEnv.DRIVE_WORKER_SECRET,
+    text.trim(),
+    schema,
+    Date.now(),
+  );
   if (!verdict.ok) {
     if (verdict.reason !== "malformed") {
       // A bad signature or a stale word is someone else's request, or a Worker whose secret drifted: worth a look.
-      captureWarning("security", "drive_internal_refused", { route, reason: verdict.reason });
+      captureWarning("security", "drive_internal_refused", {
+        route,
+        reason: verdict.reason,
+      });
     }
     return {
       ok: false,
@@ -47,5 +67,8 @@ export async function readDriveWord<T extends { at: number }>(
 
 /** Every internal answer: JSON, never cached. */
 export function internalJson(body: unknown, status = 200): NextResponse {
-  return NextResponse.json(body, { status, headers: { "Cache-Control": "private, no-store" } });
+  return NextResponse.json(body, {
+    status,
+    headers: { "Cache-Control": "private, no-store" },
+  });
 }

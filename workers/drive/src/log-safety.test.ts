@@ -11,13 +11,18 @@ import { describe, expect, it } from "vitest";
 const SRC = join(__dirname);
 const files = readdirSync(SRC, { recursive: true })
   .map(String)
-  .filter((f: string) => f.endsWith(".ts") && !f.endsWith(".test.ts") && !f.startsWith("testing"));
+  .filter(
+    (f: string) =>
+      f.endsWith(".ts") && !f.endsWith(".test.ts") && !f.startsWith("testing"),
+  );
 
 describe("the Worker's logs", () => {
   it("call console only through log.ts", () => {
     for (const file of files) {
       if (file === "log.ts") continue;
-      expect(readFileSync(join(SRC, file), "utf8"), file).not.toMatch(/\bconsole\./);
+      expect(readFileSync(join(SRC, file), "utf8"), file).not.toMatch(
+        /\bconsole\./,
+      );
     }
   });
 
@@ -26,7 +31,9 @@ describe("the Worker's logs", () => {
       const text = readFileSync(join(SRC, file), "utf8");
       for (const call of text.matchAll(/\blog\(\s*"[^"]+",\s*\{([^}]*)\}/g)) {
         const fields = call[1]!;
-        expect(fields, `${file}: ${call[0]}`).not.toMatch(/\b(token|secret|access|refresh|sessionUri|session|answer|lease)\b\s*[:,}]/i);
+        expect(fields, `${file}: ${call[0]}`).not.toMatch(
+          /\b(token|secret|access|refresh|sessionUri|session|answer|lease)\b\s*[:,}]/i,
+        );
         expect(fields, `${file}: ${call[0]}`).not.toMatch(/\.\.\./);
       }
     }

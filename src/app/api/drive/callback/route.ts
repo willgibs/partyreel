@@ -47,15 +47,25 @@ export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const intent = (() => {
     try {
-      return openIntent(assertUnlockEnv().UNLOCK_COOKIE_SECRET, request.cookies.get(DRIVE_OAUTH_COOKIE)?.value, Date.now());
+      return openIntent(
+        assertUnlockEnv().UNLOCK_COOKIE_SECRET,
+        request.cookies.get(DRIVE_OAUTH_COOKIE)?.value,
+        Date.now(),
+      );
     } catch {
       return null;
     }
   })();
   const land = (word: DriveReturn, next = intent?.next ?? "/dashboard") => {
-    const response = NextResponse.redirect(new URL(withDriveReturn(next, word), url.origin), 303);
+    const response = NextResponse.redirect(
+      new URL(withDriveReturn(next, word), url.origin),
+      303,
+    );
     // The cookie is single-use: cleared on every answer, whatever it was.
-    response.cookies.set(DRIVE_OAUTH_COOKIE, "", { path: DRIVE_CALLBACK_PATH, maxAge: 0 });
+    response.cookies.set(DRIVE_OAUTH_COOKIE, "", {
+      path: DRIVE_CALLBACK_PATH,
+      maxAge: 0,
+    });
     response.headers.set("Cache-Control", "private, no-store");
     return response;
   };
@@ -75,7 +85,9 @@ export async function GET(request: NextRequest) {
   } = await supabase.auth.getUser();
   if (!user || user.id !== intent.uid) {
     // ★ The lock: a callback carried into another account's session connects nothing.
-    captureWarning("security", "drive_callback_wrong_account", { signedIn: Boolean(user) });
+    captureWarning("security", "drive_callback_wrong_account", {
+      signedIn: Boolean(user),
+    });
     return land("failed");
   }
 
@@ -93,12 +105,19 @@ export async function GET(request: NextRequest) {
     verifier: intent.verifier,
   });
   if (!granted.ok) {
-    captureWarning("export", "drive_code_exchange_failed", { error: granted.error, status: granted.status });
+    captureWarning("export", "drive_code_exchange_failed", {
+      error: granted.error,
+      status: granted.status,
+    });
     return land("failed");
   }
   if (!grantsDriveFile(granted.scopes)) {
     // She unticked the box: the half-grant is no connection, and it is not left standing at Google.
-    after(() => revokeToken(granted.refreshToken ?? granted.accessToken).then(() => undefined));
+    after(() =>
+      revokeToken(granted.refreshToken ?? granted.accessToken).then(
+        () => undefined,
+      ),
+    );
     return land("needs_permission");
   }
   if (!granted.refreshToken) {
@@ -106,7 +125,11 @@ export async function GET(request: NextRequest) {
     after(() => revokeToken(granted.accessToken).then(() => undefined));
     return land("failed");
   }
-  const identity = readIdToken(granted.idToken, env.GOOGLE_DRIVE_CLIENT_ID, Date.now());
+  const identity = readIdToken(
+    granted.idToken,
+    env.GOOGLE_DRIVE_CLIENT_ID,
+    Date.now(),
+  );
   if (!identity) {
     captureWarning("export", "drive_id_token_refused", {});
     after(() => revokeToken(granted.refreshToken!).then(() => undefined));
@@ -124,11 +147,23 @@ export async function GET(request: NextRequest) {
       emailVerified: identity.emailVerified,
       name: identity.name,
       scopes: granted.scopes,
-      refreshCt: sealToken(granted.refreshToken, { ...ctx, purpose: "refresh" }, keys),
-      accessCt: sealToken(granted.accessToken, { ...ctx, purpose: "access" }, keys),
-      accessExpiresAt: new Date(Date.now() + granted.expiresIn * 1000).toISOString(),
+      refreshCt: sealToken(
+        granted.refreshToken,
+        { ...ctx, purpose: "refresh" },
+        keys,
+      ),
+      accessCt: sealToken(
+        granted.accessToken,
+        { ...ctx, purpose: "access" },
+        keys,
+      ),
+      accessExpiresAt: new Date(
+        Date.now() + granted.expiresIn * 1000,
+      ).toISOString(),
       refreshExpiresAt:
-        granted.refreshExpiresIn !== null ? new Date(Date.now() + granted.refreshExpiresIn * 1000).toISOString() : null,
+        granted.refreshExpiresIn !== null
+          ? new Date(Date.now() + granted.refreshExpiresIn * 1000).toISOString()
+          : null,
     });
   } catch (e) {
     captureError("export", e, { action: "drive_connect_upsert" });
@@ -147,7 +182,12 @@ export async function GET(request: NextRequest) {
     // Her Drive's room, once, for the first free-space line (best-effort: the press asks again).
     try {
       const room = await driveRoom(granted.accessToken);
-      await recordRoom({ connectionId, limit: room.limit, usage: room.usage, resume: false });
+      await recordRoom({
+        connectionId,
+        limit: room.limit,
+        usage: room.usage,
+        resume: false,
+      });
     } catch {
       // The press asks again.
     }
