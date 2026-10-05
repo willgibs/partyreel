@@ -564,13 +564,15 @@ describe("a join nobody at the door could fix", () => {
 
 /*
  * ★ WHY A FILE DID NOT GO RIDES THE QUEUE (the failure sheet and the camera draw a dropped connection apart from a
- * refusal by the transport's `cause`, never by matching its words): a drop and her own cancel carry theirs, a refusal
- * carries none, and a Retry gives it back with the rest of the failure.
+ * refusal by the transport's `cause`, never by matching its words): a drop carries its own, a refusal carries none, and a
+ * Retry gives it back with the rest of the failure. (Her own cancel used to be a third failure that carried
+ * `cause: "cancelled"`; since upload-cancel it is no failure at all: the file leaves the queue and the failure sheet
+ * never lists it, `use-upload-queue.stop.test.tsx`.)
  */
 describe("★ the cause of a failure rides the queue", () => {
   const DROPPED = "Your connection dropped. Check your signal, then try again.";
 
-  it("a dropped connection and a cancel carry their cause beside the sentence; a refusal carries none", async () => {
+  it("a dropped connection carries its cause beside the sentence, a refusal none, and a cancel is no failure here", async () => {
     answer({});
     mockUploadFile
       .mockResolvedValueOnce({ ok: false, message: DROPPED, cause: "dropped" })
@@ -593,21 +595,17 @@ describe("★ the cause of a failure rides the queue", () => {
         makeFile("c.jpg"),
       ]),
     );
+    // The cancelled one (b) left the queue: the sheet lists what did not go, and a cancel is not that.
     await waitFor(() =>
-      expect(q.items().map((it) => it.status)).toEqual([
-        "error",
-        "error",
-        "error",
+      expect(q.items().map((it) => [it.file.name, it.status])).toEqual([
+        ["a.jpg", "error"],
+        ["c.jpg", "error"],
       ]),
     );
-    expect(q.items().map((it) => it.cause)).toEqual([
-      "dropped",
-      "cancelled",
-      undefined,
-    ]);
+    expect(q.items().map((it) => it.cause)).toEqual(["dropped", undefined]);
     expect(q.items()[0]).toMatchObject({ error: DROPPED });
     expect(q.items()[0].errorCode).toBeUndefined();
-    expect(q.items()[2]).toMatchObject({ errorCode: "too_large" });
+    expect(q.items()[1]).toMatchObject({ errorCode: "too_large" });
   });
 
   it("a Retry gives the cause back with the rest of the failure", async () => {

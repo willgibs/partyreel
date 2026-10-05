@@ -15,6 +15,13 @@
  * waits `queued` at 100 once they are up, until it is recorded with its siblings (`done`). The session's three
  * refusals below are read once the burst is over, for every file of it they reached.
  *
+ * ★ A FILE IN FLIGHT CAN BE STOPPED, ONE AT A TIME (`stop`, upload-cancel: E6 for uploads). Each file of a burst carries
+ * a stop of its own (`BurstFile.signal`), so the burst's other files go on and are recorded together as ever. A stopped
+ * file is NOT a failure: the uploader settles it `cause: "cancelled"` and it leaves the queue (nothing for the failure
+ * sheet, the shutter's ring or her uploads to count, and nothing recorded, so the meter counts nothing), and `stop`
+ * hands back the way to send it again. One not yet in a burst (waiting for the next, for a door, for a ticket) leaves
+ * at once. Too late once its complete is asked: it lands, and `stop` says so by handing back nothing.
+ *
  * ★ THE ALBUM'S OWNER IS NEVER HER OWN GUEST (`ownerEventId`, crumbs-29's
  * Deferred). Her Add on her own album's guest page went through the guest
  * pair, minting her a guest row at her own door, and `create_guest` never
@@ -42,7 +49,9 @@ import { SESSION_OTHER_ACCOUNT } from "@/lib/guest/session-owner";
 import { dropGuestTicket } from "@/lib/guest/use-stored-session";
 import { HOST_CLIP_ENDPOINTS } from "@/lib/reel/clip-add";
 import { takeBurst } from "@/lib/upload/burst";
+import type { StopResult } from "@/lib/upload/stop-upload";
 import {
+  UPLOAD_WORDS,
   uploadBurst,
   type UploadCause,
   type UploadOutcome,
@@ -130,7 +139,8 @@ export type QueueItem = {
   errorCode?: string;
   /**
    * ★ WHY THE TRANSPORT ENDED IT, beside the sentence (`UploadOutcome.cause`): `dropped` is the connection (the same
-   * file goes again once the line is back) and `cancelled` is her own abort (nothing is wrong). Absent for a refusal
+   * file goes again once the line is back) and `cancelled` is her own stop (nothing is wrong; such a file leaves the
+   * queue, `stop`, so no item stays `error` with it). Absent for a refusal
    * (an answer that was an error: the server's own code is `errorCode`) and for a local validation. A surface that draws
    * a dropped connection apart from a refusal (the failure sheet, the camera) reads this and never the message, whose
    * words are free to change.
@@ -385,14 +395,12 @@ export type UploadedItem = {
 async function simulateUpload(
   file: File,
   onProgress: (fraction: number) => void,
-): Promise<{
-  ok: true;
-  status: "approved";
-  mediaId: string;
-  kind: "photo" | "video";
-}> {
+  signal?: AbortSignal,
+): Promise<UploadOutcome> {
   for (const fraction of [0.3, 0.6, 0.85, 1]) {
     await new Promise((resolve) => setTimeout(resolve, 120));
+    // Hers: the demo says what a real upload does (`uploader.ts`), so the stop is rehearsed too.
+    if (signal?.aborted) return cancelledOutcome();
     onProgress(fraction);
   }
   return {
@@ -403,6 +411,13 @@ async function simulateUpload(
   };
 }
 
+/** What a stopped file is told as, in the transport's own words (`uploader.ts`: a cancel is never a drop). */
+const cancelledOutcome = (): UploadOutcome => ({
+  ok: false,
+  message: UPLOAD_WORDS.cancelled,
+  cause: "cancelled",
+});
+
 /** The demo's burst: each file faked in turn (`simulateUpload`), told as `uploadBurst` tells a real one. */
 async function simulateBurst(
   files: Parameters<typeof uploadBurst>[0]["files"],
@@ -410,8 +425,17 @@ async function simulateBurst(
 ): Promise<UploadOutcome[]> {
   const out: UploadOutcome[] = [];
   for (const [i, one] of files.entries()) {
-    one.onSending?.();
-    const outcome = await simulateUpload(one.file, (f) => one.onProgress?.(f));
+    let outcome: UploadOutcome;
+    if (one.signal?.aborted) {
+      outcome = cancelledOutcome();
+    } else {
+      one.onSending?.();
+      outcome = await simulateUpload(
+        one.file,
+        (f) => one.onProgress?.(f),
+        one.signal,
+      );
+    }
     out.push(outcome);
     onOutcome(i, outcome);
   }
@@ -505,6 +529,11 @@ export function useUploadQueue({
   // Ref mirror so the sequential queue runner reads current state synchronously.
   const itemsRef = useRef<QueueItem[]>([]);
   const processingRef = useRef(false);
+  /* ★ EACH FILE OF A BURST'S STOP, by queue id, from the burst's start until the file is told (`stop` aborts it), and
+     who is waiting to hear what a stop came to (`true`: it was cancelled; `false`: it was too late and landed or
+     failed as it would have). */
+  const stopsRef = useRef(new Map<string, AbortController>());
+  const asksRef = useRef(new Map<string, (cancelled: boolean) => void>());
   // The session can flip null→token WHILE mounted (just-in-time join), so the
   // queue reads a ref, not the prop, to avoid a stale closure.
   const sessionRef = useRef(sessionToken);
@@ -698,11 +727,26 @@ export function useUploadQueue({
           (it) => it.file.size,
         );
         if (burst.length === 0) break;
+        // Each file's stop, made before anything is awaited: a press from here on finds it (`stop`).
+        for (const it of burst)
+          stopsRef.current.set(it.id, new AbortController());
         /** Each file's outcome as it is known, once: a landing drawn at once, a file's own refusal in its sheet. */
         const told = new Map<string, UploadOutcome>();
         const settle = (it: QueueItem, outcome: UploadOutcome) => {
           if (told.has(it.id)) return;
           told.set(it.id, outcome);
+          // Told: there is nothing left to stop, and whoever asked what their stop came to hears it.
+          stopsRef.current.delete(it.id);
+          const asked = asksRef.current.get(it.id);
+          asksRef.current.delete(it.id);
+          if (!outcome.ok && outcome.cause === "cancelled") {
+            // ★ HER STOP IS NO FAILURE: the file leaves the queue, so the failure sheet, the shutter's ring and her
+            // uploads never count it, and nothing was recorded (`stop` hands back the way to send it again).
+            sync(itemsRef.current.filter((q) => q.id !== it.id));
+            asked?.(true);
+            return;
+          }
+          asked?.(false);
           if (outcome.ok) {
             // A file landed on this ticket: any later refusal is a new chain.
             silentJoinSpentRef.current = false;
@@ -743,6 +787,8 @@ export function useUploadQueue({
             patch(it.id, { progress: Math.round(f * 100) }),
           // Its bytes are up: it waits, whole, to be recorded with its burst.
           onSent: () => patch(it.id, { status: "queued", progress: 100 }),
+          // Its own stop (`stop`): it alone ends, its siblings go on.
+          signal: stopsRef.current.get(it.id)!.signal,
         }));
         // BELT AND BRACES with uploadBurst's never-reject contract. If anything
         // ever DOES reject here, the throw would escape this for(;;) loop: the
@@ -1175,6 +1221,40 @@ export function useUploadQueue({
     [sync],
   );
 
+  /**
+   * ★ STOP ONE FILE (upload-cancel, E6): the album's x, asked of her already (`stop-upload.ts`). Resolves with the way to
+   * send the file again once it is cancelled (it has left the queue, no failure and nothing counted), or null when it was
+   * too late (its complete was asked, so it landed or failed as it would have: the album and the failure sheet say so).
+   * A file in a burst is stopped through its own signal and its siblings carry on; one still waiting for a burst has
+   * started nothing and simply leaves.
+   */
+  const stop = useCallback(
+    (id: string): Promise<StopResult> => {
+      const it = itemsRef.current.find((q) => q.id === id);
+      if (!it || !isActive(it)) return Promise.resolve(null);
+      /** As a Retry does: her own fresh try, so the silent join is given back too. */
+      const again: StopResult = () => {
+        silentJoinSpentRef.current = false;
+        enqueue([it.file], {
+          reelEligible: it.reelEligible,
+          poster: it.poster,
+        });
+      };
+      const own = stopsRef.current.get(id);
+      if (!own) {
+        sync(itemsRef.current.filter((q) => q.id !== id));
+        return Promise.resolve(again);
+      }
+      return new Promise<StopResult>((resolve) => {
+        asksRef.current.set(id, (cancelled) =>
+          resolve(cancelled ? again : null),
+        );
+        own.abort();
+      });
+    },
+    [enqueue, sync],
+  );
+
   return {
     items,
     progress: progress as QueueProgress,
@@ -1183,5 +1263,6 @@ export function useUploadQueue({
     holdAtDoor,
     retry,
     dismiss,
+    stop,
   };
 }
