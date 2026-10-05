@@ -1,6 +1,6 @@
 ---
 track: compute-presign
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "f5d933cb"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -45,30 +45,99 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **Should the signer refuse what the SDK signed without a word? Recommended: yes (built).** Byte-identity holds for
+  every input a caller sends; on inputs none sends, the SDK signed and this refuses: an empty key (the SDK signs the
+  bucket's ROOT, whose GET is a listing of every key: `presign.test.ts` shows it), an empty content type (bound as an
+  empty header), a length or part number that is no whole count, a part outside 1 to 10,000, an empty upload id, a
+  life of no whole seconds, a bucket name R2 would not take. Each is a fail-closed throw, never a different URL.
+- **Keep `@aws-sdk/s3-request-presigner` at all? Recommended: as a dev dependency (built).** The corpus is its last
+  user, and it re-proves byte-identity on every SDK bump; if it ever blocks an upgrade, drop it with the corpus's SDK
+  half, since `sigv4.test.ts` pins four URLs as literals that hold without it. `@aws-sdk/client-s3` stays a
+  dependency: it still sends the multipart, HEAD, COPY, list and delete calls.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `uploads-and-r2.md`, "R2 and presigns": a ★ line, presigns are signed by hand (`r2/sigv4.ts`), byte-identical to
+  the SDK's, proved by `presign.test.ts`'s corpus, with what it refuses that the SDK signed.
+- `uploads-and-r2.md`, the cost rule: "no `GetObjectCommand` in `src/`: a read is a URL signed in `r2/sigv4.ts`" in
+  place of "`GetObjectCommand` only signed, in `r2/presign.ts`".
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: Compute: the guest page's cold start still loads `@aws-sdk/client-s3` (about 52 ms of CPU locally, once an
+  instance: `_scratch/compute-presign/`, `require` timed three times) for sends it rarely makes (a guest's own delete
+  through `my-uploads` → `lifecycle/reclaim.ts` → `r2/delete.ts`; `r2/presign.ts`'s multipart, HEAD and COPY); a lazy
+  `import()` of the SDK in `r2/client.ts`'s users would spare every cold start of every page that only reads.
 
 ## Handoff (replaces the chat report)
 
-**WIP (resumable):** the signer, the corpus and the doc lines are committed at `32b1e0c3e` (typecheck, lint and the
-R2 tests green); the live R2 round trip passed (`_scratch/compute-presign/r2-live-check.mts`). Next: `pnpm
-compute:model --port 3132 --scenarios guest-hour-live,guest-join-upload` before (the base, detached) and after, into
-`_scratch/compute-presign/{before,after}`; budget.json if the CPU falls; the whole gate; the Handoff below.
+Scratch (every log named below): `../partyreel-wt/_scratch/compute-presign/`.
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits**, on `origin/lp/compute-presign`: `32b1e0c3e` (the signer, the corpus, the policy test, the dev
+  dependency, the doc lines), `ea6125ce9` (a WIP note, superseded here), `ef0979523` (the budget line), `32259e0f9`
+  (the sync: launch-prep at `85ae56043`, crumbs-68's merge, which touched `budget.json`, a read, and
+  `uploads-and-r2.md`, owned; no conflict), then this manifest alone (the head is in the chat line). Since the sync
+  launch-prep took crumbs-69's merge and the library-specimens cut (the hub, the reel route, `dashboard.md`,
+  `reel.md`): nothing of mine or my reads, and `git merge-tree` against `1d1afe8cc` is clean, so no second sync.
+- **Gates** on `32259e0f9`, each on its own exit code: `zsh scripts/build-lock.sh pnpm typecheck` 0
+  (`gate-typecheck.log`); `pnpm lint` 0, no warnings (`gate-lint.log`); `zsh scripts/build-lock.sh pnpm test` 0,
+  914 files and 11,258 tests (`gate-test.log`); `zsh scripts/build-lock.sh pnpm build` 0 (`gate-build.log`);
+  `pnpm lab:smoke --base http://localhost:3132` 0, 188 checks, scope all since `package.json` changed
+  (`gate-smoke.log`). No board, so no `lab:demo`. Its PREMISE note (drive-export's nine open asks describe
+  `uploads-and-r2.md`): my two lines there are about signing, and change no premise of those asks.
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): the owned `src/lib/r2/{presign,presign.test,
+  sigv4,sigv4.test}.ts` and `uploads-and-r2.md`, this file, and four exceptions: `src/lib/media-cost-policy.test.ts`
+  (its presigner check matched `getSignedUrl(getR2Client(), new GetObjectCommand(`, which no longer exists: reshaped
+  to its real scar, no function streams R2 bytes; `GetObjectCommand` is now refused anywhere in `src/`, and the check
+  proves `presign.ts` signs its reads by hand and `sigv4.ts` holds no client and sends nothing); `package.json` and
+  `pnpm-lock.yaml` (`@aws-sdk/s3-request-presigner` to devDependencies, the brief's ask; the lockfile moves only
+  that importer entry); `scripts/compute-model/budget.json` (the brief's ask, below).
+- **The items**
+  1. **The signer** (`src/lib/r2/sigv4.ts`): SigV4's query presign on `node:crypto` alone (the canonical request, the
+     string to sign, the derived key cached per day, region and service, at most four days held), behind
+     `presign.ts`'s three functions unchanged in signature, so no caller changed. Its header holds the why, the
+     byte-identity contract and the secret rule (no error, log or return carries a credential).
+  2. **Byte-identical, proved**: `presign.test.ts` holds every URL equal to the SDK's (presign.ts's own old calls on
+     the real `getR2Client()`) for 274 cases (26 key shapes from the app's own builders to unicode, spaces, `+`,
+     `//`, `./`, `..`, `%41`, `?#&=`, controls and 1,024-byte and longer keys; GET inline, stable and save; PUT over
+     8 types and 7 lengths; parts over 4 upload ids, 4 part numbers, 3 lengths; 7 expiries) on 5 frozen clocks.
+     Five deliberate signer bugs (escaping, trimming, path normalizing, query order, the payload hash) each fail it,
+     and a sixth (the host not lowercased) fails `sigv4.test.ts`'s configurations (each run by hand, reverted).
+     `sigv4.test.ts` pins four URLs as literals, matches the SDK over six bucket and account shapes, refuses the
+     bucket names the SDK would address by path, counts the HMACs (four a day, one a link) and shows no refusal
+     carries the secret.
+  3. **Live against R2** (`r2-live-check.mts`, its output `r2-live-check.txt`, 21 of 21): with the real keys, the
+     stable and fresh GETs equal the SDK's URLs and R2 serves the object whole; the save answers with the signed
+     disposition; R2 refuses a flipped signature, a longer life, an expired link, another key, an added
+     `response-content-type`, a swapped save name, a read link used to PUT and a write link used to GET; a PUT of
+     the wrong type or one byte more is refused and the signed one stores exactly its bytes and type; a part URL
+     equals the SDK's on a real upload id, refuses one byte more and takes its own; all on `staging/` keys, deleted
+     and aborted, nothing left. The app's own links: the test event's guest page rendered on 3132 read from R2 16 of
+     16 sampled (inline and save, `page-links-check.txt`); both after-runs' joins uploaded 10 photos each through
+     the presigned PUTs (complete-upload 200 x 2 each run; 20 media rows with previews in the test event).
+  4. **The lever**: 257 album links in 2.31 to 2.33 ms against the SDK's 27.9 to 28.4 ms, 12x (`bench.log`; the race
+     is in `presign.test.ts` with 4x as its floor). The guest page itself on the measuring server (`page-ab.mjs`: the
+     test event's open album, 272 to 287 R2 links a render, renders one at a time): median 188.3 ms over 39 renders
+     and 183.3 over 59 on the base (`page-before.txt`), 160.7 over 39 on this tree (`page-after.txt`): about 25 ms a
+     render, as the race predicts.
+  5. **`pnpm compute:model --port 3132 --scenarios guest-hour-live,guest-join-upload`** (`before.log`, `after.log`,
+     `after2.log`; per route by `compare.py`): guest-hour-live 671 ms, then 594 and 448 (its page 391, then 178 and
+     148); guest-join-upload 831 ms, then 1,176 and 964, the rise on calls that sign little or nothing (its two
+     complete-upload calls 143, then 424 and 211 ms; its polls 189, then 173 and 269). What the change moved there: the page's presigns no longer warm the SDK's send
+     path, worth about 18 ms over a cold process's first 20 sends (`send-warmth.txt`: 116 to 126 against 97 to
+     106 ms); the rest is the shared machine (the join's page render alone moved 353 to 398 ms between the two runs
+     of this tree). Calls: 20, then 17 and 17 (the join's polls, 7 then 5: the compressed hour's phase; nothing here
+     makes or saves a call), and 24, then 23 and 24, within the budget's 18 and 26.
+  6. **budget.json**: guest-hour-live's CPU line 1540 → 1190 (the file's own rule over the larger after-run, 594
+     ms); guest-join-upload's left at 2620, since it did not fall.
+- **Assets requested from Will**: none.
+- **Board ideas**: none (no UI moved).
+- **Proposed migrations / Worker / Vercel / Stripe / env changes**: none (the same four R2 variables).
+- **Calls his to overrule**: the refusals where the SDK signed (Questions 1); the SDK's presigner kept as a dev
+  dependency (Questions 2); guest-join-upload's budget line left where it is.
+- **Not run, by the brief**: the live red-team on the alias (★ local only: nothing of this lane requested the alias,
+  partyreel.com or a `*.vercel.app`); R2 itself stood in for it (item 3).
+- **For the record** (the Orchestrator's): PRICING.md's lever 5 lines (the "≈100 ms of the SDK's presigning a 200",
+  "Better: … a lean presigner") now describe a lever that landed.
+- **Look at first**: `src/lib/r2/sigv4.ts` (about 200 lines), then `presign.test.ts`'s first describe and its
+  fails-closed case.
