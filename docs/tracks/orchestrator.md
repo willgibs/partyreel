@@ -81,7 +81,7 @@ Sunday 2026-10-11 13:00Z (hi@willgibs.com resets Tuesday 2026-10-06 21:00Z). If 
   `../partyreel-wt/desk` (nohup), pinned at `94d66338` (Drive alone) until he pastes desk 2. A refresh: checkout the
   SHA detached, `pnpm install`, stop port 3000, `rm -rf .next`, build with `NEXT_PUBLIC_SITE_URL=http://localhost:3000`
   through `scripts/build-lock.sh`, `nohup pnpm start -p 3000`, then the `sentry-release` in `/design/lab` names it
-  (about a minute; `../partyreel-wt/_scratch/desk/desk-refresh.sh <sha>` does it all);
+  (about a minute; `../partyreel-wt/_scratch/desk/desk-refresh.sh <sha>` does it all; its `.env.local` is a symlink to the root's, so Will's env lands there too);
 - the specs of round 15 and its later lanes are in `../partyreel-wt/_scratch/specs/`;
 - MCP tool ids change with the account; Claude in Chrome (connected per account by Will), the Supabase MCP on
   `ddafaemglzmuekbtjwzn` and the Vercel token in `.env.local` are what the work needs.
