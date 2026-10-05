@@ -3,7 +3,7 @@
 import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime"
 import { useContext, useEffect, useRef } from "react"
 
-import { useOwnedEntry } from "@/lib/history-entry"
+import { useOwnedEntry, type OwnedEntry } from "@/lib/history-entry"
 
 /**
  * THE PHONE'S OWN BACK CLOSES A POPUP THAT IS A PLACE (`lists=panel`: "in a
@@ -23,15 +23,50 @@ import { useOwnedEntry } from "@/lib/history-entry"
  * own, a look with none made one Back close the viewer with the look standing on
  * it. Back peels one layer a press: the look, then the viewer.
  *
+ * ★ AND A QUESTION OVER ANOTHER LAYER HOLDS ONE (back-layers; crumbs-47 found the
+ * viewer's Delete and Remove confirms closing with the viewer in one press). A
+ * question is no place, but over a place it is the top layer, and with no entry
+ * of its own the Back took the place's. So a popup asks as it opens whether it
+ * holds an entry at all (`holdsIf`): `PopupContent` holds one for a place, and for
+ * a question only over another layer (`layerIsUp`). A question over the bare page
+ * holds none, as before: Back there leaves the page, as a page's Back does.
+ *
+ * ★ THE ENTRIES ARE A STACK, TAKEN BACK IN ITS ORDER (back-layers). A question
+ * over a place is two entries of ours that can go at once: its act closing the
+ * place too, or a look closing as the Block screen it opened takes its place (a
+ * swap, in one commit). Each popup taking its own entry back by its own marker
+ * left the lower one standing under the upper's marker, one dead Back. So the
+ * entries are kept in push order (`stack`): a popup that goes marks its entry
+ * `closing`, and the closing run at the top goes Back one entry a landing, each
+ * only while the window still stands on it; a closing entry under an open one
+ * waits for it (the swap: when the question goes, both go, and a Back over the
+ * question steps over the look's entry too); and a push waits for a Back of ours
+ * still on its way, which would otherwise take the new entry instead.
+ *
+ * ★ ONE PRESS POPS ONE ENTRY, THE STACK'S TOP. A person's Back is read once, here
+ * (`onPopState`), never by each popup against its own marker: a refresh takes the
+ * marker of the entry the window stands on (the claims review and the storage
+ * list refresh while open), so a question over one going Back landed on the
+ * place's stripped entry, which read to the place as its own entry gone.
+ *
+ * ★ A RELOAD STRANDS NO ENTRY (back-layers; crumbs-47). A reload keeps the open
+ * popup's entry and its marker and forgets the popup, so one Back landed on the
+ * same page and closed nothing, and a viewer reopened from its address read the
+ * dead marker as a popup over it and wrote no address (`shared/masonry.tsx`). An
+ * entry cannot be deleted, only stepped over: whenever a popup's hook mounts, and
+ * the album as it mounts (`stepOverDeadEntries`), an entry whose marker this page
+ * life never wrote is gone Back over, a landing at a time, until the window
+ * stands on a live one (the same address, so nothing moves; the reopened viewer
+ * then stands on its own entry and takes it up).
+ *
  * ★ WHOSE THE ENTRY IS LIVES IN `lib/history-entry.ts`, which every place that
  * pushes an entry stands on (its header says what Next does to one: the marker
  * is a field on the state Next merges, never the state itself, and a router
  * refresh takes it). A popup is the helper's `many` kind: every popup shares one
  * key, so a marker is its own only by its id, and an entry a refresh stripped
  * is its own only at the address it was pushed at (crumbs-18: opened at entry 4,
- * refreshed, closed by its arrow, still standing on entry 5; the claims review
- * and the storage list refresh while they are open). No URL is passed, so
- * Next's patched `pushState` has no route to apply and the router never
+ * refreshed, closed by its arrow, still standing on entry 5). No URL is passed,
+ * so Next's patched `pushState` has no route to apply and the router never
  * re-renders. Never taken back at another address, and never over another
  * entry's marker: a popup that goes because the page navigated on (a link inside
  * it) has no entry to undo, and taking one back would undo the navigation.
@@ -40,7 +75,7 @@ import { useOwnedEntry } from "@/lib/history-entry"
  * StrictMode runs every effect's cleanup and body twice on mount; a `back()`
  * in that simulated cleanup followed by a fresh `pushState` would queue a
  * traversal onto the NEW entry and close the popup the moment it opened. So a
- * cleanup schedules its `back()`, and a body that runs again first cancels it
+ * cleanup schedules its `closing`, and a body that runs again first cancels it
  * and keeps the entry it already has.
  *
  * ★ AND A LINK INSIDE IT TAKES ITS ENTRY WITH IT (crumbs-32, from
@@ -86,15 +121,164 @@ export function pageLinkHref(event: MouseEvent): string | null {
   return `${to.pathname}${to.search}${to.hash}`
 }
 
-export function useBackCloses(active: boolean, close: () => void) {
+/* ── THE STACK (the head's notes) ───────────────────────────────────────────── */
+
+/** How long a Back of ours is taken to be on its way when no `popstate` says it landed (the helper's own floor). */
+const TRAVEL_FLOOR_MS = 1000
+
+type Held = {
+  entry: OwnedEntry
+  /** Its popup went another way than Back: the entry is to be taken back, in the stack's order. */
+  closing: boolean
+  /** A person's Back popped it: nothing is left to take back. */
+  gone: boolean
+  /** The popup's own close, for the Back that pops its entry. */
+  popped: () => void
+}
+
+/** The entries this page's popups pushed that still stand in its history, oldest first. */
+const stack: Held[] = []
+/** Every marker this page life wrote: one it never wrote is a popup a reload forgot. */
+const written = new Set<string>()
+/** A Back this module asked for, until a `popstate` says it landed. */
+let travelling = false
+let travelFloor = 0
+/** Pushes waiting for that Back to land. */
+const waiting: (() => void)[] = []
+let listening = false
+
+const markerHere = (): unknown =>
+  (window.history.state as Record<string, unknown> | null)?.[
+    POPUP_HISTORY_MARKER
+  ]
+
+/** The window stands on an entry whose marker this page life never wrote. */
+function onDeadEntry(): boolean {
+  const seen = markerHere()
+  return typeof seen === "string" && !written.has(seen)
+}
+
+function listen() {
+  if (listening) return
+  listening = true
+  window.addEventListener("popstate", onPopState)
+}
+
+function onPopState() {
+  if (travelling) {
+    endTravel()
+    // A reload's sweep goes on while the window still stands on a dead entry.
+    if (onDeadEntry()) {
+      travel(() => window.history.back())
+      return
+    }
+  } else {
+    // A person's press: it popped the top entry, if the window has left it, and nothing under it.
+    const top = stack[stack.length - 1]
+    if (top && !top.entry.stands()) {
+      stack.pop()
+      top.gone = true
+      top.entry.forget()
+      if (!top.closing) top.popped()
+    }
+  }
+  settle()
+}
+
+function travel(back: () => void) {
+  travelling = true
+  window.clearTimeout(travelFloor)
+  travelFloor = window.setTimeout(() => {
+    endTravel()
+    settle()
+  }, TRAVEL_FLOOR_MS)
+  back()
+}
+
+function endTravel() {
+  travelling = false
+  window.clearTimeout(travelFloor)
+}
+
+/**
+ * The closing run at the top of the stack goes Back one entry a landing, each only while the window stands on
+ * it (else the page moved on, or something else pushed over it: nothing of ours to undo); then the pushes that
+ * waited go, a tick late, so a landing's other listeners (Next's own restore) have read it first.
+ */
+function settle() {
+  if (travelling) return
+  while (stack.length > 0) {
+    const top = stack[stack.length - 1]
+    if (!top.closing) break
+    stack.pop()
+    if (top.entry.isOurs()) {
+      travel(() => top.entry.back())
+      return
+    }
+    top.entry.forget()
+  }
+  if (waiting.length > 0) window.setTimeout(pushWaiting, 0)
+}
+
+function pushWaiting() {
+  while (!travelling && waiting.length > 0) waiting.shift()?.()
+}
+
+/** `push` now, or once a Back of ours still on its way has landed; returns its cancel. */
+function whenSettled(push: () => void): () => void {
+  if (!travelling) {
+    push()
+    return () => {}
+  }
+  waiting.push(push)
+  return () => {
+    const at = waiting.indexOf(push)
+    if (at >= 0) waiting.splice(at, 1)
+  }
+}
+
+/**
+ * ★ A RELOAD STRANDS NO ENTRY (the head's note): step Back over every entry whose popup marker this page life
+ * never wrote. Cheap and idempotent, for every popup hook's mount and for a place that reads the marker (the
+ * album's address, `shared/masonry.tsx`), so the album steps over it before any popup of its own has mounted.
+ */
+export function stepOverDeadEntries() {
+  if (typeof window === "undefined") return
+  listen()
+  if (travelling || !onDeadEntry()) return
+  travel(() => window.history.back())
+}
+
+export type BackClosesOptions = {
+  /**
+   * Whether this open holds an entry at all, asked once as it opens: a question holds one only over another
+   * layer (`PopupContent`). Left off, every open holds one.
+   */
+  holdsIf?: () => boolean
+}
+
+export function useBackCloses(
+  active: boolean,
+  close: () => void,
+  options: BackClosesOptions = {},
+) {
   const closeRef = useRef(close)
+  const holdsIfRef = useRef(options.holdsIf)
   useEffect(() => {
     closeRef.current = close
+    holdsIfRef.current = options.holdsIf
   })
   const entry = useOwnedEntry(POPUP_HISTORY_MARKER, { many: true })
   // Read off Next's context, not `useRouter()`, which throws where there is none (the history helper's own note).
   const router = useContext(AppRouterContext)
+  /** This popup's place in the stack while its entry stands. */
+  const heldRef = useRef<Held | null>(null)
   const pendingRef = useRef<number | null>(null)
+
+  // A reload's dead entries go first: declared before the push below, so a popup open on mount pushes after it.
+  useEffect(() => {
+    stepOverDeadEntries()
+  }, [])
 
   useEffect(() => {
     if (!active) return
@@ -103,33 +287,48 @@ export function useBackCloses(active: boolean, close: () => void) {
       pendingRef.current = null
     }
     // The entry it already holds, if any: StrictMode's second run keeps the one the first pushed.
-    if (!entry.held()) entry.push()
-    let popped = false
-    const onPop = () => {
-      if (entry.stands()) return
-      popped = true
-      entry.forget()
-      closeRef.current()
+    let cancelPush = () => {}
+    if (heldRef.current === null) {
+      if (holdsIfRef.current && !holdsIfRef.current()) return
+      cancelPush = whenSettled(() => {
+        entry.push()
+        const id = markerHere()
+        if (typeof id === "string") written.add(id)
+        const held: Held = {
+          entry,
+          closing: false,
+          gone: false,
+          popped: () => closeRef.current(),
+        }
+        heldRef.current = held
+        stack.push(held)
+      })
     }
     // A link inside takes the place's entry with it (the head's note). Only while the window stands on
     // it: a place stacked over this one owns the entry on top, and the click is its to take.
     const onClick = (event: MouseEvent) => {
-      if (!router || !entry.isOurs()) return
+      if (!router || heldRef.current === null || !entry.isOurs()) return
       const href = pageLinkHref(event)
       if (href === null) return
       event.preventDefault()
       router.replace(href)
     }
-    window.addEventListener("popstate", onPop)
     document.addEventListener("click", onClick, true)
     return () => {
-      window.removeEventListener("popstate", onPop)
       document.removeEventListener("click", onClick, true)
-      if (popped) return
+      cancelPush()
+      const held = heldRef.current
+      if (held === null) return
+      if (held.gone) {
+        heldRef.current = null
+        return
+      }
       pendingRef.current = window.setTimeout(() => {
         pendingRef.current = null
-        if (entry.isOurs()) entry.back()
-        else entry.forget()
+        heldRef.current = null
+        if (held.gone) return
+        held.closing = true
+        settle()
       }, 0)
     }
   }, [active, entry, router])

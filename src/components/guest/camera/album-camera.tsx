@@ -21,7 +21,9 @@
  * shots this visit, her roll and her list stay here, so the reel opens again where she left it.
  *
  * ★ A PLACE THE PHONE'S BACK CLOSES (`useBackCloses`), with Escape and its own close: a full-screen layer looks like a
- * page, so the one gesture a phone has for leaving a page leaves it. Her shots, open over it, close first.
+ * page, so the one gesture a phone has for leaving a page leaves it. Her shots, open over it, are a place of their own
+ * with an entry of their own (back-layers; from `disposable-camera`: with the camera's the only entry, Back from her
+ * shots closed the whole camera), so Back peels them first and the next Back the camera, as Escape already did.
  */
 import { Dialog as DialogPrimitive } from "radix-ui";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -521,6 +523,8 @@ export function AlbumCamera({
     setView("camera");
     window.requestAnimationFrame(() => shutterRef.current?.focus());
   }, []);
+  // Her shots hold their own entry, over the camera's (the head's note): Back peels them, then the camera.
+  useBackCloses(open && view === "shots", backToCamera);
   useEffect(() => {
     if (view === "shots") shotsBackRef.current?.focus();
   }, [view]);

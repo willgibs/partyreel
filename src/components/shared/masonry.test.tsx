@@ -966,28 +966,35 @@ describe("the phone's Back peels the credit's look, then the photograph (crumbs-
     expect(here()).toBe("/e/tok");
   });
 
-  it("★ stepping the viewer while the look is open (an arrow key behind the scrim) takes the look away and keeps the viewer on the next photograph", async () => {
+  /* RESHAPED (back-layers): this pin read "stepping the viewer while the look is open (an arrow key behind the
+     scrim) takes the look away and keeps the viewer on the next photograph". The key landed inside the look and
+     bubbled to the viewer's window listener, which stepped the photograph behind the scrim; the credit re-keyed and
+     took the look away with its entry, and crumbs-47 pinned that the Back afterwards still landed right. The scar
+     it keeps: one key reaching the layer under the one it was pressed in. Keys now act on the top layer
+     (`insideAnotherLayer` in `media-lightbox.tsx`), so the step never happens and the look stays with its entry. */
+  it("★ an arrow key inside the look steps nothing behind it: the look keeps its entry, and Back peels it, then the viewer", async () => {
     await openLook();
-    // The key lands inside the look (focus is trapped there) and bubbles to the viewer's window listener, which
-    // steps; the credit re-keys for the next photograph, so the look goes with its entry. That Back lands on the
-    // viewer's own entry, whose address still names the photograph left (its write waits behind a popup).
     fireEvent.keyDown(look() as HTMLElement, { key: "ArrowRight" });
     await act(async () => {
       await new Promise((r) => setTimeout(r, 450));
     });
+    expect(look()).not.toBeNull();
+    expect(viewerUp()).toBe(true);
+    expect(here()).toBe("/e/tok?photo=a");
+    expect(entryOf("prPopup")).toBeDefined();
+
+    await traverse(() => window.history.back());
     expect(look()).toBeNull();
     expect(viewerUp()).toBe(true);
-    expect(here()).toBe("/e/tok?photo=b");
-    expect(entryOf("prPopup")).toBeUndefined();
-    expect(entryOf("prPhoto")).toBeDefined();
+    expect(here()).toBe("/e/tok?photo=a");
 
-    // The viewer still holds exactly its one entry: one Back closes it onto the album.
     await traverse(() => window.history.back());
     expect(viewerUp()).toBe(false);
     expect(here()).toBe("/e/tok");
   });
 
-  it("the same over a photograph a shared link opened: the step keeps the viewer, and its close leaves the album in place", async () => {
+  // RESHAPED (back-layers) with the pin above: it stepped the viewer from inside the look on a shared link's photograph.
+  it("the same over a photograph a shared link opened: the key steps nothing, Back peels the look, and the close leaves the album in place", async () => {
     window.history.replaceState(null, "", "/e/tok?photo=a");
     setViewportWidth(375);
     render(tree());
@@ -1001,9 +1008,12 @@ describe("the phone's Back peels the credit's look, then the photograph (crumbs-
     await act(async () => {
       await new Promise((r) => setTimeout(r, 450));
     });
+    expect(look()).not.toBeNull();
+    expect(here()).toBe("/e/tok?photo=a");
+
+    await traverse(() => window.history.back());
     expect(look()).toBeNull();
     expect(viewerUp()).toBe(true);
-    expect(here()).toBe("/e/tok?photo=b");
 
     fireEvent.click(screen.getByRole("button", { name: "Close" }));
     await frame();
@@ -1062,6 +1072,168 @@ describe("the phone's Back peels the credit's look, then the photograph (crumbs-
     } finally {
       next.uninstall();
     }
+  });
+});
+
+/**
+ * ★ A QUESTION OVER THE VIEWER HOLDS ITS OWN ENTRY, AND A RELOAD LEAVES NONE DEAD (back-layers; crumbs-47). On a
+ * phone, Back over the viewer's Delete or Remove confirm closed the confirm and the viewer in one press, since only a
+ * place held an entry; and a reload with a popup open over the viewer left the window on the popup's entry, so one
+ * Back closed nothing and the reopened viewer's walk never wrote its address (`standsOnAPopup`).
+ */
+describe("a question over the viewer, and a reload under a popup (back-layers)", () => {
+  const photos: GridMedia[] = [
+    { id: "a", type: "photo", url: "/a.jpg", width: 800, height: 1200 },
+    { id: "b", type: "photo", url: "/b.jpg", width: 800, height: 1200 },
+  ];
+  const frame = () =>
+    act(async () => {
+      await new Promise((r) => setTimeout(r, 40));
+    });
+  const here = () => `${window.location.pathname}${window.location.search}`;
+  const traverse = (go: () => void) =>
+    act(async () => {
+      const landed = new Promise<void>((resolve) => {
+        window.addEventListener("popstate", () => resolve(), { once: true });
+      });
+      go();
+      await Promise.race([landed, new Promise((r) => setTimeout(r, 400))]);
+      await new Promise((r) => setTimeout(r, 0));
+    });
+  const viewerUp = () =>
+    document.querySelector("[data-lightbox-content]") !== null;
+  const confirm = () =>
+    screen.queryByRole("alertdialog", { name: /delete this upload/i });
+  const entryOf = (key: "prPhoto" | "prPopup") =>
+    (window.history.state as Record<string, unknown> | null)?.[key];
+
+  /** A guest's own photographs: each carries the viewer's Delete. The caller keeps the item when asked to delete it
+   *  (no optimistic removal), the case in which a photograph reopened from the address it was still listed at. */
+  function tree(onDeleteItem: (id: string) => void = () => {}) {
+    return (
+      <TooltipProvider>
+        <MasonryColumns
+          items={photos}
+          onDeleteItem={onDeleteItem}
+          canDelete={() => true}
+        />
+      </TooltipProvider>
+    );
+  }
+
+  async function openDelete() {
+    setViewportWidth(375);
+    fireEvent.click(screen.getAllByLabelText("View photo")[0]);
+    await frame();
+    expect(viewerUp()).toBe(true);
+    const atViewer = window.history.length;
+    fireEvent.click(screen.getByRole("button", { name: "Delete" }));
+    await frame();
+    expect(confirm()).not.toBeNull();
+    return { atViewer };
+  }
+
+  beforeEach(async () => {
+    // A Back the test before left on its way lands first (`ui/popup-back.ts`: a push waits for it).
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 60));
+    });
+    window.history.pushState(null, "", "/e/tok");
+  });
+  afterEach(() => {
+    setViewportWidth(1024);
+    window.history.replaceState(null, "", "/");
+  });
+
+  it("★ Back over the viewer's Delete confirm closes the confirm alone, and the next Back closes the viewer", async () => {
+    render(tree());
+    const { atViewer } = await openDelete();
+    // The confirm stands on an entry of its own, over the viewer's: the old code held none here.
+    expect(window.history.length).toBe(atViewer + 1);
+    expect(entryOf("prPopup")).toBeDefined();
+    expect(here()).toBe("/e/tok?photo=a");
+
+    await traverse(() => window.history.back());
+    expect(confirm()).toBeNull();
+    expect(viewerUp()).toBe(true);
+    expect(here()).toBe("/e/tok?photo=a");
+    expect(entryOf("prPhoto")).toBeDefined();
+
+    await traverse(() => window.history.back());
+    expect(viewerUp()).toBe(false);
+    expect(here()).toBe("/e/tok");
+  });
+
+  it("its Cancel takes the confirm's entry back: the viewer stays on its own, and one Back closes it", async () => {
+    render(tree());
+    await openDelete();
+    fireEvent.click(
+      within(confirm() as HTMLElement).getByRole("button", { name: "Cancel" }),
+    );
+    await waitFor(() => expect(entryOf("prPopup")).toBeUndefined());
+    expect(confirm()).toBeNull();
+    expect(viewerUp()).toBe(true);
+    expect(entryOf("prPhoto")).toBeDefined();
+
+    await traverse(() => window.history.back());
+    expect(viewerUp()).toBe(false);
+    expect(here()).toBe("/e/tok");
+  });
+
+  it("★ confirming Delete closes both, and the album stands on its own entry: the photograph never reopens", async () => {
+    const onDelete = vi.fn();
+    render(tree(onDelete));
+    await openDelete();
+    fireEvent.click(
+      within(confirm() as HTMLElement).getByRole("button", { name: "Delete" }),
+    );
+    // The confirm's entry goes first (a tick late), then the viewer's: a Back the viewer took at once would have
+    // popped the confirm's and landed on its own, a photograph's address with no viewer, read as a Forward.
+    await frame();
+    await frame();
+    await frame();
+    expect(onDelete).toHaveBeenCalledWith("a");
+    expect(confirm()).toBeNull();
+    expect(viewerUp()).toBe(false);
+    expect(here()).toBe("/e/tok");
+    expect(entryOf("prPopup")).toBeUndefined();
+    expect(entryOf("prPhoto")).toBeUndefined();
+  });
+
+  it("★ a reload with a popup open over the viewer: its dead entry is stepped over, the viewer stands on its own, and its walk writes the address", async () => {
+    // What a reload leaves when the credit's look stood over the viewer: the viewer's entry (its marker from the page
+    // life before) and the look's over it, where the window stands.
+    window.history.replaceState(null, "", "/e/tok");
+    window.history.pushState(
+      { prPhoto: "prPhoto-before-the-reload" },
+      "",
+      "/e/tok?photo=a",
+    );
+    window.history.pushState(
+      { prPopup: "prPopup-before-the-reload" },
+      "",
+      "/e/tok?photo=a",
+    );
+    setViewportWidth(375);
+    render(tree());
+    await frame();
+    await frame();
+    expect(viewerUp()).toBe(true);
+    // The old code stood on the look's dead entry: one Back landed on the same photograph, and the walk below waited
+    // for a popup that was never coming back.
+    expect(entryOf("prPopup")).toBeUndefined();
+    expect(entryOf("prPhoto")).toBeDefined();
+
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 450));
+    });
+    expect(here()).toBe("/e/tok?photo=b");
+    expect(entryOf("prPhoto")).toBeDefined();
+
+    await traverse(() => window.history.back());
+    expect(viewerUp()).toBe(false);
+    expect(here()).toBe("/e/tok");
   });
 });
 
