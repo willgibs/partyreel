@@ -145,7 +145,7 @@ function buildGroups(): MatrixGroup[] {
         {
           // One row for how long each plan keeps an album, Free's rest included: a reader compares keeping, once.
           label: "Kept",
-          tip: `A Free event rests in Deleted after about ${INACTIVE_MONTHS} months with no activity, and we email ${WARN_BEFORE_DAYS} days before. An album stays exactly where its QR points: no end dates.`,
+          tip: `A Free event rests in Deleted after about ${INACTIVE_MONTHS} months with no activity, and we email ${WARN_BEFORE_DAYS} days before. An album stays exactly where its QR points: no date ever ends it.`,
           values: [
             "While in use",
             `A year, renew for ${EVENT_PASS_RENEWAL_PRICE_LABEL}`,

@@ -24,48 +24,40 @@
  * Both sources are parsed as TEXT because the truth lives in files, not runtime exports - the
  * same style as the tiers.ts <-> tier_limits() parity guard.
  */
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import {
+  executableMigrations,
+  liveFunction,
+} from "@/lib/db/testing/migrations";
+
 const ROOT = join(__dirname, "..", "..", "..");
-const MIGRATIONS_DIR = join(ROOT, "supabase/migrations");
-const migration = readFileSync(
-  join(MIGRATIONS_DIR, "20260707150000_upload_forensics_legal_hold.sql"),
-  "utf8",
-);
+const FORENSICS = "20260707150000_upload_forensics_legal_hold.sql";
+/** The forensics migration as code (comments gone, whitespace collapsed): a clause quoted in prose is no clause. */
+const migration = (() => {
+  const found = executableMigrations().find(({ file }) => file === FORENSICS);
+  if (!found) throw new Error(`${FORENSICS} is gone`);
+  return found.sql;
+})();
 const mediaQueries = readFileSync(
   join(ROOT, "src/lib/db/queries/media.ts"),
   "utf8",
 );
 
 /**
- * The restore_media definition that actually WINS on the live DB: the last CREATE OR REPLACE
- * across the migration set in timestamp order, NOT this file's copy. Resolving it dynamically is
- * the point of the guard — pinning it to one migration is how the invariant silently drifts the
- * next time some other migration replaces the function (QA Q3 did exactly that).
+ * The restore_media definition that actually WINS on the live DB, as code (comments gone): the last
+ * definition standing after `testing/migrations.ts` replays the whole set's creates AND drops in
+ * timestamp order, NOT this file's copy. Resolving it dynamically is the point of the guard —
+ * pinning it to one migration is how the invariant silently drifts the next time some other
+ * migration replaces the function (QA Q3 did exactly that) — and a replay that knows drops throws,
+ * naming the file, if a later one takes the function away, where a reader of creates alone would
+ * answer with the body it had before.
  */
 function restoreMediaBlock(): string {
-  const files = readdirSync(MIGRATIONS_DIR)
-    .filter((f) => f.endsWith(".sql"))
-    .sort();
-  let latest: string | null = null;
-  for (const file of files) {
-    const sql = readFileSync(join(MIGRATIONS_DIR, file), "utf8");
-    const start = sql.indexOf(
-      "create or replace function public.restore_media",
-    );
-    if (start === -1) continue;
-    const end = sql.indexOf(
-      "grant execute on function public.restore_media",
-      start,
-    );
-    expect(end).toBeGreaterThan(start);
-    latest = sql.slice(start, end);
-  }
-  expect(latest).not.toBeNull();
-  return latest!;
+  return liveFunction("restore_media").code;
 }
 
 describe("restore_media replacement (finding: superseded-body revert)", () => {
@@ -103,13 +95,7 @@ function migrationGrantColumns(): string[] {
   const namesMedia = (objects: string) =>
     /(?:^|[\s,])public\.media(?=$|[\s,])/.test(objects) ||
     /\ball tables in schema public\b/.test(objects);
-  const files = readdirSync(MIGRATIONS_DIR)
-    .filter((f) => f.endsWith(".sql"))
-    .sort();
-  for (const file of files) {
-    const sql = readFileSync(join(MIGRATIONS_DIR, file), "utf8")
-      .replace(/--[^\n]*/g, "")
-      .replace(/\s+/g, " ");
+  for (const { sql } of executableMigrations()) {
     for (const [
       ,
       verb,

@@ -150,9 +150,30 @@ phone's camera is let go whenever the page hides or the camera closes (`use-came
 - **The count is the server's roll** (`roll-view.ts`): `/api/guests/mine` with `statuses` (never `tell`, which would
   spend her approval news), read only while nothing of hers is in the air, so no shot is counted twice. The host's own
   camera keeps no roll (`isOwner`) and asks nothing.
-- The camera's page half is `event-experience.tsx`'s: the door's keep waits while she shoots (`onCameraOpenChange`),
-  and a shot taken back inside the camera is the page's removal (`onOwnRemoved`), so a require-an-upload album re-asks
-  its door.
+- **The camera over a refusal of the album** (`album-camera.tsx`): a refusal the host can lift (uploads closed, the
+  album full) stops the shutter in the server's words, and nothing tells this page when the host's switch moves (it
+  reads it at render and the sync carries no word of it), so the camera asks again by itself, calmly: after 10 s, then
+  20, 40 and every minute, never while the page is hidden, at once as it comes back (never closer than 10 s to the last
+  ask, so flicking between apps is no presign a return) and when the connection does, and only for those two refusals
+  (a lock, a gone event or a ticket that is not hers are never asked again). The ask is the shots' own Retry through
+  the queue, and a shot being asked stands as the refusal it was until the album answers, so the banner, the stopped
+  shutter and the reel's caption never flicker for it; the answer is the file going up (a refusal comes before a byte
+  moves), and a yes takes the banner and the stopped shutter away with the refusal while the shot is still on its way.
+- ★ **At the door the first photograph is taken with the album's camera, never chosen from the library** (`camera`,
+  the page's `{rollSize}` for a camera album; never the demo's): the album's own Add offers no library, so the door's
+  upload step offers one Take a photo, no picker, no terms line, in the camera's verb ("Take your photos", "Take
+  another photo"). The door holds that camera itself (`AlbumCamera`, its own lazy chunk fetched as the step shows),
+  beside the sheet and never inside a step: at A photo first the album's own slot, which carries a camera, is not
+  mounted yet (it stands only at `full`), and the step drops the moment her first shot lands while she goes on
+  shooting. The held door's wait chooser (`door/wait-picks.tsx`) still offers the library.
+- The camera's page half is `event-experience.tsx`'s, the door's camera included: while one is open the keep waits
+  (`keepDue && !cameraOpen`) and the page holds the album's failure sheet for as long (`onCameraOpenChange`, said by the
+  door's camera as by the slot's own; `onUploadStepActive` is the step's alone, since the page folds the queue's live
+  progress while a step that draws a bar shows, which a camera reading standings must not pay for), and a shot she
+  takes back in its Your shots goes through the page's own removal (`removedIds`, `onOwnRemoved`), so the keep stops
+  counting it and a require-an-upload door asks the server whether her upload still stands. The door's camera is
+  handed the queue only as a shot's standing moves, never for a tick of a bar (the door's queue ticks about once a
+  frame while a file goes up), and what it reads of the album comes from what the door already holds (`CameraEvent`).
 
 ## The host's control, and her cover
 

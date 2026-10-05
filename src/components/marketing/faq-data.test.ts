@@ -37,11 +37,14 @@ describe("the home FAQ's keep answer", () => {
     );
   });
 
-  it("no FAQ answer says there is no expiry clock, or that a pass keeps the event for a year", () => {
+  it("no FAQ answer says there is no expiry clock or no end date, or that a pass keeps the event for a year", () => {
     // A pass COVERS its event for about a year; when it ends the account settles to Free and
     // nothing is deleted, so "kept for about a year" read as a retention window it is not.
+    // And Settings offers "Add an end date", which only says when the event happens and ends
+    // nothing: an answer says an event never expires, never that it "has no end date".
     for (const item of FAQ_ITEMS) {
       expect(item.a, item.q).not.toMatch(/expiry clock/i);
+      expect(item.a, item.q).not.toMatch(/no end date/i);
       expect(item.a, item.q).not.toMatch(/kept for about a year/i);
     }
   });

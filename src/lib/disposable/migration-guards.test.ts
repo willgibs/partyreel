@@ -16,61 +16,38 @@
  *      ledger, a withdrawn camera shot's fast purge, the camera video's two bounds, the seal decided at insert.
  *   5. THE READS that answer the develop time, the capture and the roll, and who may call what.
  */
-import { readFileSync, readdirSync } from "node:fs";
-import { join } from "node:path";
-
 import { describe, expect, it } from "vitest";
 
-const MIGRATIONS_DIR = join(process.cwd(), "supabase", "migrations");
+import {
+  executableMigrations,
+  liveFunction,
+} from "@/lib/db/testing/migrations";
+
 const FILE = "20261002200000_disposable_foundation.sql";
 
-const collapse = (sql: string) => sql.replace(/\s+/g, " ");
-const strip = (sql: string) => sql.replace(/--[^\n]*/g, "");
-
-function files(): { file: string; sql: string }[] {
-  return readdirSync(MIGRATIONS_DIR)
-    .filter((f) => f.endsWith(".sql"))
-    .sort()
-    .map((file) => ({
-      file,
-      sql: readFileSync(join(MIGRATIONS_DIR, file), "utf8"),
-    }));
-}
-
-/** The winning definition of `public.<name>(`: the last create across the set, with the file it won in. */
+/**
+ * The winning definition of `public.<name>(`, as code (comments gone, whitespace collapsed), with the file it won in:
+ * the one standing after `testing/migrations.ts` replays the set's creates AND drops in file order, so a function a
+ * later file drops throws here, naming the file, instead of reading as the body it had before.
+ */
 function latest(name: string): { body: string; file: string } {
-  let found: { body: string; file: string } | null = null;
-  for (const { file, sql } of files()) {
-    const code = strip(sql);
-    const re = new RegExp(
-      `create (?:or replace )?function public\\.${name}\\(`,
-      "g",
-    );
-    let m: RegExpExecArray | null;
-    while ((m = re.exec(code))) {
-      const rest = code.slice(m.index);
-      const opener = rest.match(/\bas (\$[a-z_]*\$)/);
-      if (!opener) continue;
-      const tag = opener[1];
-      const start = m.index + opener.index! + opener[0].length;
-      const close = code.indexOf(`${tag};`, start);
-      found = {
-        body: collapse(code.slice(m.index, close + tag.length + 1)),
-        file,
-      };
-    }
-  }
-  expect(found, `${name} defined nowhere`).not.toBeNull();
-  return found!;
+  const { code, file } = liveFunction(name);
+  return { body: code, file };
 }
 
 const code = (name: string) => latest(name).body;
-const fileSql = () =>
-  collapse(strip(readFileSync(join(MIGRATIONS_DIR, FILE), "utf8")));
+/** This lane's own migration as code: what the file itself says (its triggers, CHECKs, grants and seeds). */
+const fileSql = () => {
+  const found = executableMigrations().find((m) => m.file === FILE);
+  expect(found, `${FILE} is gone`).toBeDefined();
+  return found!.sql;
+};
+/** The whole set as code, one string: a pin on what no later file may write (a grant, a write of a column). */
+let all: string | undefined;
 const everything = () =>
-  files()
-    .map(({ sql }) => collapse(strip(sql)))
-    .join(" ");
+  (all ??= executableMigrations()
+    .map(({ sql }) => sql)
+    .join(" "));
 
 /** The predicate's visible half, as every home writes it; the host's exemption follows it in one of three spellings. */
 const VISIBLE = "m.sealed_until is null or m.sealed_until <= now() or ";

@@ -8,46 +8,29 @@
  * What the file may not do is pinned too: the function's shape, its guard and its owner-only grants are the foundation's
  * (20261002200000), and nothing else moves (the trigger's own ping, the tables, the other functions).
  */
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { describe, expect, it } from "vitest";
 
+import {
+  executableMigrations,
+  liveFunction,
+} from "@/lib/db/testing/migrations";
 import { isMoment } from "@/lib/guest/refresh-coalescer";
 
-const MIGRATIONS_DIR = join(process.cwd(), "supabase", "migrations");
 const FILE = "20261003211000_doorbell_moment.sql";
 
-const code = (sql: string) => sql.replace(/--[^\n]*/g, "").replace(/\s+/g, " ");
-const migration = () =>
-  code(readFileSync(join(MIGRATIONS_DIR, FILE), "utf8")).trim();
-
-/** The winning body of `public.<name>(`: its last definition across the whole migration set (latest wins). */
-function latestBody(name: string): string {
-  let found: string | null = null;
-  for (const file of readdirSync(MIGRATIONS_DIR)
-    .filter((f) => f.endsWith(".sql"))
-    .sort()) {
-    const sql = code(readFileSync(join(MIGRATIONS_DIR, file), "utf8"));
-    const re = new RegExp(
-      `create (?:or replace )?function public\\.${name}\\(`,
-      "g",
-    );
-    let m: RegExpExecArray | null;
-    while ((m = re.exec(sql))) {
-      const opener = sql.slice(m.index).match(/\bas (\$[a-z_]*\$)/);
-      if (!opener) continue;
-      const tag = opener[1];
-      const start = m.index + opener.index! + opener[0].length;
-      found = sql.slice(
-        m.index,
-        sql.indexOf(`${tag};`, start) + tag.length + 1,
-      );
-    }
-  }
-  expect(found, `${name} defined nowhere`).not.toBeNull();
-  return found!;
+/** This one migration as code (comments gone, whitespace collapsed): what the file itself may and may not do. */
+function migration(): string {
+  const found = executableMigrations().find(({ file }) => file === FILE);
+  expect(found, `${FILE} is gone`).toBeDefined();
+  return found!.sql.trim();
 }
+
+/**
+ * The winning body of `public.<name>(`, as code: the definition that wins across the whole migration set
+ * (`testing/migrations.ts` replays its creates AND drops in order), so a function a later file drops throws here,
+ * naming the file, rather than reading as the body it had before.
+ */
+const latestBody = (name: string): string => liveFunction(name).code;
 
 /** The JSON a body hands `realtime.send` as its payload. */
 function sentPayload(body: string): unknown {

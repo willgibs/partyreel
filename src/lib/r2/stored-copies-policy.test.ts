@@ -4,6 +4,8 @@ import { join } from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
+import { liveFunctions } from "@/lib/db/testing/migrations";
+
 /**
  * NOTHING IS EVER ORPHANED IN R2: the static guard of the third stored copy (take-home-wiring, 2026-10-03).
  *
@@ -25,8 +27,10 @@ import { describe, expect, it } from "vitest";
  *  C. THE SAME IN SQL: the winning definition of every function that reads `preview_key` names `phone_key`, or is
  *     listed in `SQL_DISPLAY_ONLY` with why. Drops count: a function dropped later is gone.
  *
- * It reads CODE: comments are trivia to the TypeScript scanner (and stripped from the SQL), so a comment that
- * names a column never stands in for reading it.
+ * It reads CODE, so a comment that names a column never stands in for reading it. ★ The TypeScript is PARSED, not
+ * scanned (`codeOf`): only the parser knows where a template's text resumes after a `${}`, a regular expression from
+ * a division and JSX text from code, and a bare scanner that meets one loses its place and reads the rest of the file
+ * inverted, comments as code. The SQL is `testing/migrations.ts`' replay, comments gone.
  */
 
 const ROOT = process.cwd();
@@ -112,27 +116,44 @@ const SOURCES = [
 ];
 
 /**
- * A file's CODE as the scanner reads it: every token's text but the trivia (comments and whitespace), so a word
- * inside a string (a select list) counts and a word inside a comment never does.
+ * A source's CODE as the parser reads it: the file is parsed and walked token by token, and every token's text counts
+ * (so a word inside a string, a select list or a template's text does) but a comment never does, nor the JSDoc the
+ * parser hangs on a declaration. ★ A BARE SCANNER IS NOT A READER: `ts.createScanner` knows no context, so after the
+ * first template literal with a `${}` in it (it takes the text after the `}` for code and the closing backtick for
+ * an opening one) or a regular expression holding a backtick, it reads the rest of the file inverted, the comments in
+ * what it takes for a string: a comment naming `preview_key` then fails the policy for a file that never reads it, and
+ * one naming `phone_key` excuses a purge that forgets it.
  */
-function codeOf(rel: string): string {
-  const text = readFileSync(join(ROOT, rel), "utf8");
-  const scanner = ts.createScanner(
-    ts.ScriptTarget.Latest,
-    /* skipTrivia */ true,
-    rel.endsWith(".tsx") ? ts.LanguageVariant.JSX : ts.LanguageVariant.Standard,
+function codeOfText(rel: string, text: string): string {
+  const kind = rel.endsWith(".tsx")
+    ? ts.ScriptKind.TSX
+    : rel.endsWith(".mjs")
+      ? ts.ScriptKind.JS
+      : ts.ScriptKind.TS;
+  const file = ts.createSourceFile(
+    rel,
     text,
+    ts.ScriptTarget.Latest,
+    /* setParentNodes */ false,
+    kind,
   );
   const out: string[] = [];
-  for (
-    let token = scanner.scan();
-    token !== ts.SyntaxKind.EndOfFileToken;
-    token = scanner.scan()
-  ) {
-    out.push(scanner.getTokenText());
-  }
+  const walk = (node: ts.Node) => {
+    const children = node.getChildren(file);
+    if (children.length === 0) {
+      // A token (or an empty list between two parens, whose text is nothing).
+      const token = node.getText(file);
+      if (token !== "") out.push(token);
+      return;
+    }
+    for (const child of children) if (!ts.isJSDoc(child)) walk(child);
+  };
+  walk(file);
   return out.join(" ");
 }
+
+const codeOf = (rel: string) =>
+  codeOfText(rel, readFileSync(join(ROOT, rel), "utf8"));
 
 const CODE = new Map(SOURCES.map((rel) => [rel, codeOf(rel)]));
 
@@ -142,37 +163,6 @@ const DELETES =
 const KNOWS_THE_THIRD =
   /\bphone_key\b|\bphoneKey\b|\bMEDIA_KEY_COLUMNS\b|\bmediaKeysOf\b|\bcopyOf\b/;
 const READS_PREVIEW = /\bpreview_key\b/;
-
-/* ───────────────────────────── the migrations ──────────────────────────── */
-
-/** Every public function's winning body after the whole set, drops replayed (`row-cap-policy.test.ts`' reading). */
-function winningBodies(): Map<string, string> {
-  const dir = join(ROOT, "supabase/migrations");
-  const live = new Map<string, string>();
-  for (const file of readdirSync(dir)
-    .filter((f) => f.endsWith(".sql"))
-    .sort()) {
-    const sql = readFileSync(join(dir, file), "utf8")
-      .replace(/\/\*[\s\S]*?\*\//g, " ")
-      .replace(/--[^\n]*/g, "");
-    const statement =
-      /\b(create(?:\s+or\s+replace)?|drop)\s+function\s+(?:if\s+exists\s+)?(?:public\.)?"?([a-z_][a-z0-9_]*)"?\s*\(/gi;
-    for (const m of sql.matchAll(statement)) {
-      const name = m[2].toLowerCase();
-      if (m[1].toLowerCase() === "drop") {
-        live.delete(name);
-        continue;
-      }
-      const rest = sql.slice(m.index);
-      const opener = /\bas\s+(\$[a-z_]*\$)/i.exec(rest);
-      if (!opener) continue;
-      const start = opener.index + opener[0].length;
-      const close = rest.indexOf(opener[1], start);
-      live.set(name, rest.slice(0, close === -1 ? undefined : close));
-    }
-  }
-  return live;
-}
 
 /* ─────────────────────────────── the rules ─────────────────────────────── */
 
@@ -240,31 +230,126 @@ describe("B. every reader of preview_key knows the phone copy, or only draws", (
 });
 
 describe("C. in SQL too", () => {
-  const bodies = winningBodies();
+  // Every `public` function standing after the whole set, as code (comments gone), one entry per overload: the reader
+  // is `testing/migrations.ts`' (creates and drops replayed in file order), so a function a later file drops is gone
+  // and a name two overloads share is two bodies, each held to the rules below.
+  const live = liveFunctions();
+  const standing = (name: string) => live.filter((fn) => fn.name === name);
 
   it("the writers record the phone copy beside the preview (create_media and create_media_as_host)", () => {
     for (const name of ["create_media", "create_media_as_host"]) {
-      expect(bodies.get(name), name).toMatch(/\bphone_key\b/);
+      const writers = standing(name);
+      expect(writers.length, `${name} is not live`).toBeGreaterThan(0);
+      for (const writer of writers) {
+        expect(writer.code, name).toMatch(/\bphone_key\b/);
+      }
     }
   });
 
   it("every function that reads preview_key names phone_key, or is display-only with its reason", () => {
-    const offenders = [...bodies]
-      .filter(([, body]) => /\bpreview_key\b/.test(body))
-      .filter(([, body]) => !/\bphone_key\b/.test(body))
-      .filter(([name]) => !(name in SQL_DISPLAY_ONLY))
-      .map(([name]) => name);
+    const offenders = live
+      .filter((fn) => /\bpreview_key\b/.test(fn.code))
+      .filter((fn) => !/\bphone_key\b/.test(fn.code))
+      .filter((fn) => !(fn.name in SQL_DISPLAY_ONLY))
+      .map((fn) => fn.name);
     expect(offenders).toEqual([]);
   });
 
   it("every SQL display-only entry still reads preview_key, and deletes nothing", () => {
     for (const name of Object.keys(SQL_DISPLAY_ONLY)) {
-      const body = bodies.get(name);
-      expect(body, `${name} is gone: drop its entry`).toBeDefined();
-      expect(/\bpreview_key\b/.test(body!), name).toBe(true);
-      expect(/\bdelete\s+from\s+public\.media\b/i.test(body!), name).toBe(
-        false,
-      );
+      const defs = standing(name);
+      expect(defs.length, `${name} is gone: drop its entry`).toBeGreaterThan(0);
+      expect(
+        defs.some((fn) => /\bpreview_key\b/.test(fn.code)),
+        name,
+      ).toBe(true);
+      expect(
+        defs.some((fn) => /\bdelete\s+from\s+public\.media\b/i.test(fn.code)),
+        name,
+      ).toBe(false);
     }
+  });
+});
+
+/**
+ * THE READER'S OWN CONTRACT (a policy that reads code is only as good as its idea of code): a comment is never a
+ * token, whatever the text before it holds, and a word in a string, a template's text or a call still is one. The
+ * sources below are ones a bare scanner reads wrong (a template with a `${}`, nested, then a comment; a regular
+ * expression holding a backtick), beside the plain cases any reader gets right.
+ */
+describe("the reader reads code, never a comment (a parse, not a scan)", () => {
+  const COMMENTS =
+    "// names preview_key and phone_key\n/* and deleteR2Objects( */\n";
+  const seesNothingOfTheComments = (code: string) => {
+    expect(READS_PREVIEW.test(code), code).toBe(false);
+    expect(KNOWS_THE_THIRD.test(code), code).toBe(false);
+    expect(DELETES.test(code), code).toBe(false);
+  };
+
+  it("a comment after a template literal with a substitution is no code", () => {
+    const code = codeOfText(
+      "a.ts",
+      `const a = \`x \${y} z\`;\n${COMMENTS}const b = 1;\n`,
+    );
+    seesNothingOfTheComments(code);
+    expect(code).toContain("const b = 1");
+  });
+
+  it("nor after templates nested in a substitution, or several in a row", () => {
+    const code = codeOfText(
+      "a.ts",
+      `const a = \`a \${\`b \${c} d\`} e \${f}\`;\nconst g = \`h \${i}\`;\n${COMMENTS}const b = 1;\n`,
+    );
+    seesNothingOfTheComments(code);
+    expect(code).toContain("const b = 1");
+  });
+
+  it("nor after a regular expression holding a backtick", () => {
+    const code = codeOfText(
+      "a.ts",
+      `const r = /\`/g;\n${COMMENTS}const b = 1;\n`,
+    );
+    seesNothingOfTheComments(code);
+    expect(code).toContain("const b = 1");
+  });
+
+  it("nor is the JSDoc the parser hangs on a declaration, in a .tsx or an .mjs either", () => {
+    for (const name of ["a.ts", "a.tsx", "a.mjs"]) {
+      const code = codeOfText(
+        name,
+        `/**\n * names preview_key and phone_key, and calls reclaimMedia(\n */\nexport function f() { return \`\${1}\`; }\n${COMMENTS}`,
+      );
+      seesNothingOfTheComments(code);
+      expect(code, name).toContain("export function f");
+    }
+  });
+
+  it("a word in code still counts: an identifier, a select list, a template's text, a call", () => {
+    expect(
+      READS_PREVIEW.test(codeOfText("a.ts", `const s = "id, preview_key";`)),
+    ).toBe(true);
+    // Both sides of a substitution are the template's text.
+    expect(
+      READS_PREVIEW.test(codeOfText("a.ts", "const s = `${a}, preview_key`;")),
+    ).toBe(true);
+    expect(
+      KNOWS_THE_THIRD.test(
+        codeOfText("a.ts", "const s = `id, ${a} phone_key`;"),
+      ),
+    ).toBe(true);
+    expect(
+      KNOWS_THE_THIRD.test(codeOfText("a.ts", "const k = row.phoneKey;")),
+    ).toBe(true);
+    expect(
+      DELETES.test(codeOfText("a.mjs", "await deleteR2Objects(keys);")),
+    ).toBe(true);
+    expect(
+      DELETES.test(codeOfText("a.tsx", "const n = await reclaimMedia (ids);")),
+    ).toBe(true);
+    expect(
+      DELETES.test(
+        codeOfText("a.ts", "new DeleteObjectsCommand({ Bucket: b });"),
+      ),
+    ).toBe(true);
   });
 });

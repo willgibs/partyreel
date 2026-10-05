@@ -14,41 +14,9 @@
  * ★ AND THE NUMBER RIDES ONLY AN EMPTY PAGE. An anon read never discloses more than the page it
  * backs (database-security.md), and the page says the count only when it has nothing else to say.
  */
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { describe, expect, it } from "vitest";
 
-const MIGRATIONS_DIR = join(process.cwd(), "supabase", "migrations");
-
-/** The winning body: the last migration in timestamp order that (re)defines the function. */
-function latestBody(): { file: string; body: string } {
-  let latest: { file: string; body: string } | null = null;
-  for (const file of readdirSync(MIGRATIONS_DIR)
-    .filter((f) => f.endsWith(".sql"))
-    .sort()) {
-    const sql = readFileSync(join(MIGRATIONS_DIR, file), "utf8");
-    const start = sql.indexOf(
-      "create or replace function public.get_public_profile(",
-    );
-    if (start === -1) continue;
-    const open = sql.indexOf("as $$", start);
-    const close = sql.indexOf("$$;", open + 5);
-    expect(open, `${file}: no body opener`).toBeGreaterThan(start);
-    expect(close, `${file}: the body never closes`).toBeGreaterThan(open);
-    latest = { file, body: sql.slice(open + 5, close) };
-  }
-  expect(latest, "get_public_profile is defined nowhere").not.toBeNull();
-  return latest!;
-}
-
-/** Code only (a comment may quote a clause), on one line. */
-function code(sql: string): string {
-  return sql
-    .replace(/--[^\n]*/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
+import { liveFunction } from "@/lib/db/testing/migrations";
 
 const CHOICE =
   "exists ( select 1 from public.profile_shown_events s where s.user_id = p.id and s.event_id = e.id )";
@@ -62,8 +30,9 @@ function between(text: string, from: string, to: string): string {
 }
 
 describe("get_public_profile's private_event_count", () => {
-  const { file, body } = latestBody();
-  const sql = code(body);
+  // The winning definition, as code (a comment may quote a clause) on one line: `testing/migrations.ts` replays the
+  // set's creates and drops in order, so a function a later file drops throws here instead of reading as defined.
+  const { file, code: sql } = liveFunction("get_public_profile");
 
   it("is in the winning definition (a canary for the reader)", () => {
     expect(file >= "20260927100000", file).toBe(true);
