@@ -25,35 +25,15 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 ## In flight
 
-Round 15 continues (2026-10-05), seated on willg97. Milestone 36 is live. `launch-prep` holds 17 merged lanes for
-milestone 37 (below) and this session's merges, which wait on red-team 54 (54b for the rest) and Will's yes. Desk 2 at
-`94d66338` was answered (desk 2 transcribed at `952b9cce2`: the Drive wiring cut); his desk now serves desk 3 at
-`18e075a30` (identity r4, customize r1, event-header r4, host-dashboard r4: 15 asks, the desk pass clean).
+Round 15 continues (2026-10-05, evening), seated on willg97. Milestone 37 is live (`b67cdc1f2`). Since then
+launch-prep holds twelve merged lanes and three applied migrations (billing_integrity, cloud_export_fixes,
+roll_size_range) for milestone 38, plus the Orchestrator's StrictMode tile fix (`d6bfc64a0`). Desks 3 and 4 are
+answered and transcribed; his desk (`localhost:3000`, launch-prep `5104a5d05`) holds no open ask until desk 5 lands.
+Lanes merged before milestone 37 left this table: their summaries are their merge commits (`git log`).
 
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
-| `redteam-54` | the local red-team of `94d663383` (guest walks) and `18e075a30` (host walks in Will's Chrome) | DONE: every walk PASS but the hub's develop play (NOT DRIVEN: a hidden tab) and /pricing's hop (Stripe); no HIGH or MEDIUM; its three LOWs and three NITs all fixed by crumbs-76 (`f52d6b6df`); still owed: four name-only guest rows on "Reel lane probe one" (test data); ledger `../partyreel-wt/_scratch/redteam-54/ledger.txt` | Opus, its own headless and Will's Chrome | `aad2547f8dbb570b6` |
-| `crumbs-75` | the jobs fail loudly: a kept notice retried, deletes in id order, the prune's lone copies an alert, a silent export at the bell, the over-capacity sweep exact, the palette's switches | MERGED at `a21790e95` (gate 7 green); migration `over_capacity_read` APPLIED (20261005060204, md5 bf001b53 = the file's; advisors 20/4/36 as expected); types regenerated and the three seams dropped (`a391fcf57`), `database-security.md` at 20 and `notice_retries` listed, the `partyreel-backup` Worker deployed (version `465c32a7`, PRUNE_MODE still dryrun); pruned | Opus, 3131 | `a2428ae853740682b` |
-| `crumbs-76` | the guest's upload counts and words, with red-team 54's upload findings | MERGED at `f52d6b6df` (gate green); test data left: four "crumbs-76 ... (disposable)" events on willg97, to delete through Settings; pruned | Sonnet, 3132 | `af667c9e8c7ed6f87` |
-| `crumbs-77` | the gate's flakes and guards (two tests under load, help labels, one drop-aware migration reader, three migration files recovered, two scripts, two testing-doc facts) | MERGED at `4be0b5a1b` (gate 5 green, the whole lab: its tsconfig line reaches every page); pruned | Sonnet, 3133 | `a5625f1475a561cab` |
-| `library-specimens-3` | Library specimens for what lab:smoke could not reach (popup kinds, the stepper, toggle-group, the pricing pieces over a stubbed door, ContactReceipt, HostMediaGrid's arrival, RouteErrorMock, the spend watch card, plate sizes) | MERGED at `2be06c461` (FULL gate green); pruned | Sonnet, 3134 | `a227bf5ce904530be` |
-| `drive-wiring` | Send to Google Drive as Will picked it on desk 2 | MERGED at `1e9ad9c51` (its full gate red on one test where it met crumbs-79: the spend watch's migration test now counts the winning body's sections, `f2ba8249d`, the whole suite green after); migration `cloud_export` applied (20261005100151); types and seams done (types-seams), Will's secrets set, the desk walk PASS with findings (drive-walk, drive-fixes); the deployed Worker at Drive's milestone; pruned | Opus, 3136 | `a60bf71bcb1402618` |
-| `help-words` | the help center, the blog and two marketing sections say what the product does today (end dates, Select then Save, the reel's place, a live-demo article, audiences, three stale labels) | MERGED at `b36ba3cf4` (gate green); pruned | Sonnet, 3137 | `a2033d03d542634ca` |
-| `billing-locks` | the webhook's pass conversion takes the profile row first, the presign refuses a lapsed pass up front, /admin/accounts reads its hosts' uploads in one call | MERGED at `aa66e86f6` (gate green; migration `billing_locks` applied at 20261005095005, md5 91c83a93); types and the seams `passCreditDb`, `uploadsWindowsDb` after drive-wiring's merge; pruned | Opus, 3131 | `a341a16f8ff0e2a1e` |
-| `crumbs-78` | nine small crumbs off the boards (phone_key seams, a person report's signed-in flag, LiveReelView's dead props, a tooltip comment, render:root and a global-boundary probe, moderation previews, ModerationGrid's props, the MFA key's face) | MERGED at `934ac2003` (gate green; PREMISE on identity re-read: its asks stand); pruned | Sonnet, 3138 | `aad11494823d72f0e` |
-| `redteam-54b` | the short pre-milestone walk of `21118e59e` on the desk build: crumbs-76's fixes at 375 and 1440, help-words' pages, a regression skim; brief and ledger `../partyreel-wt/_scratch/redteam-54b/` | DONE: every walk PASS (crumbs-76's fixes at 375 and 1440, help-words' pages, the regression skim); no HIGH or MEDIUM; LOWs: the door names no file and no reason when every file is refused for itself; /help/notifications-and-emails cuts two subject chips at 375 (pre-existing); NITs: a whole-failed run's row Retry says \"Everything else is in…\" before anything lands; the door's Sending step closes at the first recorded group (a call); an unanswered Stop question lingers 7 s (a call): to a crumbs lane after milestone 37; its RT54b events in Deleted | Opus, its own headless and Will's Chrome | `a84b138b0cbcceb62` |
-| `uploads-idempotent` | a retried complete idempotent on media_id, presign and complete with client ceilings, the next file prepared while one sends, the create_media args seams | MERGED at `c79852c3f` (gate green); its uploads-and-r2.md lines written at the record; test data: 84 photos on willg97's "crumbs-76 free (disposable)"; pruned | Opus, 3132 | `a22e76674a8415d69` |
-| `crumbs-79` | five marketing "no end date" lines, the migration readers through liveFunction, the stored-copies scanner's parse, the boom tool's callout, the camera's paragraphs to disposable-mode.md | MERGED at `ef0da48c3` (gate green; PREMISE on customize re-read: a docs move, its asks stand); pruned | Sonnet, 3133 | `a3da58d3869d3d549` |
-| `types-seams` | drop the five typed seams billing-locks and drive-wiring left (types regenerated at `9fd2bccb2`) | MERGED at `dc459fd4b` (gate green); pruned | Sonnet, 3131 | `aba8e5f0237321a55` |
-| `redteam-55` | the pre-milestone walk of `0833b00b1` on the refreshed desk: Drive without its secrets ("not set up yet" everywhere, nothing breaks), uploads-idempotent's retry and ceilings, the pricing seam, crumbs-79's words, a regression skim; brief and ledger `../partyreel-wt/_scratch/redteam-55/` | DONE: every walk PASS (Drive "not set up yet" everywhere with no 5xx; uploads-idempotent: 21 rows once, the meter exact, the held presign ended at 30 s; the pricing seam; crumbs-79's words; the regression skim); billing-locks NOT DRIVEN; ONE MEDIUM (latent until Drive's secrets: the `?drive=` return toast never shows on a full page load), a LOW and NITs: all to crumbs-80 before milestone 37 | Opus, its own headless and Will's Chrome | `ab8fcb7a389702aaf` |
-| `crumbs-80` | red-team 55's MEDIUM (the Drive return toast on a full load) and the two red-teams' small findings | MERGED at `40fba6ed3` (gate green; the MEDIUM re-walked by the lane: the toast shows on `/account?drive=unavailable` loaded whole); pruned | Sonnet, 3134 | `a2baa5a9ae09857d7` |
-| `identity-r4` | board identity r4 (desk 10): Will's mix as seven trait asks (field, button, focus, selected, press, loading, toggles), each on real screens wearing the picks before it, and the edge on ten places on paper beside the room; A1 to A4 and H3 as carried calls; form, never hue | MERGED at `eed3f3d30` (gate 1 green, lab:demo 8 steps), waiting for desk 3; its scratch kept for the desk | Opus (gone) | `a4152d141563a9a7d` |
-| `customize-r1` | board customize r1 (desk 15): the roll (film's 12/24/36 or 1 to 99), where options live, "use for new parties", the album's order; Linear's lessons and the audit in `_scratch/customize/` | MERGED at `386f4fd4a` (gate 2 green), waiting for desk 3; its scratch kept for the desk | Opus (gone) | `a1ba7927eb8a90754` |
-| `event-header-r4` | board event-header r4 (desk 20): one ask, the doors (glass recommended: counts as badges on its icons, a tab bar under her thumb on a phone; cards owning the phone; windows lit only where something waits); G1, G2, G4 drawn on production's panel; the waiting colour left to the brand | MERGED at `66aec24fa` (gate 3 green), waiting for desk 3; its scratch kept for the desk (captures) | Opus (gone) | `a4eaf6f839b991e91` |
-| `host-dashboard-r4` | board host-dashboard r4 (desk 25): two asks, `chooser` (corner, words recommended, deck) and `details` (H6) | MERGED at `76e479272` (gate 4 green), waiting for desk 3; its captures re-read by `lab:demo` in the desk pass | Opus (gone) | `a2252d0ff7db3ba6f` |
 | `brand-r1` | board brand r1 (desk 4 alone): Afterglow (recommended), Contact Sheet, Everyone's Color, as 14-slide decks at a desk and on a phone | MERGED at `30f790d1f` (gate 14 green), served as desk 4; its nine Higgsfield asks go to ASSETS.md for the picked vision; pruned | Opus (gone) | `aab7f784008cbcfeb` |
-| `compute-reads` | fewer calls: the hub's delta carries its links, the cover keeps its six, stable cover presigns, /welcome counts, the demo's header on intent | MERGED at `d59612754` (gate 6 green; a hub batch 2 calls to 1, a guest's burst 17 to 14; PREMISE on customize and event-header re-read: their asks stand); pruned | Sonnet, 3135 | `afec6648610e18c5d` |
-| `drive-walk` | Drive's first live walk on the desk build (`1b49495cb`) with the local Worker (`wrangler dev`, walk config) and P3's Google account (Will's yes) | DONE: 6 of 6 steps PASS; MEDIUMs: a send closed "every one checked" with no check run (`cloud_export_settle` closes a `checking` send), and Drive's client shares sign-in's Google project so Disconnect's revoke also removed P3's sign-in approval (the doc said never); LOWs: sent bytes count re-sent kept files, Disconnect keeps Drive file ids on 93 items, 477 `internal error` lines in the local Worker's log; NITs: the canceled strip's count, the promise picture: all to drive-fixes. Left: P3's Drive holds Partyreel/ (4 folders, 74 files), 6 send rows, RT-Drive walk in Deleted; P3 sees Google's consent at her next sign-in; ledger `../partyreel-wt/_scratch/drive-walk/ledger.txt` | Opus, Will's Chrome | `a840f4f1590e89119` |
 | `drive-rewalk` | Drive's re-walk on the desk (`5104a5d05`) after drive-fixes, the seven watches; the local Worker on :8787 (log `../partyreel-wt/_scratch/drive-rewalk/wrangler-dev.log`); P3's consent (Will's yes); brief and ledger `../partyreel-wt/_scratch/drive-rewalk/` | RUNNING | Opus, Will's Chrome | `a623313be9e7d1503` |
 | `drive-fixes` | the Drive walk's findings before the Worker deploys | MERGED at `28a0b8e73` (gate 16 green); migration `cloud_export_fixes` APPLIED (20261005193047, md5 8ff68cd5 = the file's; the Advisor's Q35: APPLY; advisors 26/4/36); types and `recordLaneFailed`'s seam at `eecf67ef6`; the sweep every fifteen minutes at the Worker's deploy; NEXT: the desk re-walk (the Handoff's seven watches; P3's consent, Will's yes), then the Worker deploys with milestone 38 (never against milestone 37's build); pruned | Opus, 3131 | `ac344602a4d093794` |
 | `billing-integrity` | money and the meter tell one truth: the pass-to-Pro credit once ever, a replay never consuming a later pass, the recompute one SQL under the profiles lock, the upload advisories on the completes' predicate, each allowance refusal's true words | MERGED at `87b7e69fd` (gate 13 green); migration `billing_integrity` APPLIED (20261005191959, md5 b20b0090 = the file's; the Advisor's Q33: APPLY; advisors 26/4/36); types regenerated and `creditDb` dropped (`78d1ffd47`); the Advisor's three after-steps: (a) overlap answers busy while the other claim is only leased, (b) an /admin/accounts line from `pass_credits`, (c) milestone 38 soon (milestone 37's build re-grants past a day); (a), (b) and two of its Deferred lines to credit-watch; pruned | Opus, 3132 | `ac63625bc3241384d` |
@@ -72,25 +52,8 @@ milestone 37 (below) and this session's merges, which wait on red-team 54 (54b f
 | `credit-watch` | the Advisor's Q33 after-steps: a leased claim answers busy, a stuck credit on /admin/accounts, the recompute's seconds, the expired-passes sweep's cost, a change-plan configuration missing a price caught (migration `20261005201000_credit_watch.sql`) | RUNNING (cut at `0ff67f0a`) | Opus, 3138 | `a4aacf9c3fb29b068` |
 | `identity-wiring` | Will's three settled identity traits into production: the halo on every focusable atom, the shrink on every action, the bright edge on everything that floats (one home each; forms untouched: identity r5 asks the set; light: brand r2) | RUNNING (cut at `6a1d56f5`) | Opus, 3136 | `af513bd6bed4eeaef` |
 
-The parked boards' agents lived in the old session (`2ba90542`): a board asked for more work is respawned from its
-transcript, `~/.claude/projects/-Users-gibby-local-ai-partyreel/2ba90542-62d6-487c-8c79-3657619f9133/subagents/agent-<id>.jsonl`.
-
-**Merged since milestone 36, for milestone 37** (gates 215 to 231, each green; no migration): compute-uploads,
-compute-presign, compute-lazy-sdk, crumbs-66 to crumbs-74, library-specimens and library-specimens-2,
-uploads-meter-ui, upload-cancel, admin-uploads. Their calls are in the calls lab (AC to AE).
-
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a22be0c2878d7ab19`, this session, spawned
 for Q31 (billing-locks' migration against the live schema and milestone 36's callers). Its model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`.
-
-**Will's laptop restart (2026-10-05 06:05Z).** Chrome would not relaunch for him (likely why Claude in Chrome never
-connected). Resumed 06:43Z after the restart: the desk restarted at `18e075a30`, the four lanes resumed by message.
-The original order: (1) the desk: `cd ../partyreel-wt/desk && nohup pnpm start -p 3000` (its build of
-`18e075a30` stands; refresh to the head with `../partyreel-wt/_scratch/desk/desk-refresh.sh <sha>` once crumbs-75's
-types land); (2) every parked agent by SendMessage to its id above (from a fresh session, respawn from its
-transcript per the runbook); (3) crumbs-75's three leftovers: DONE; (4) `list_connected_browsers`: once Chrome
-answers, Will asked me to do the Google Cloud step for Drive myself (the P3 account through Google's chooser; he copies
-the client secret into `.env.local` and Vercel himself), then red-team 54's host walks; (5) the heartbeat if the
-session restarted fresh.
 
 **Handoff across accounts** (Will's rule: wind down near the weekly limit; the other account resumes at once). This
 session: `f2c62c71-9c33-49f4-9fd5-d48376be9824` on willg97@gmail.com, weekly 0% at 04:10Z 2026-10-05, resetting
@@ -121,28 +84,30 @@ Round 15, on Will's desk answers of 2026-10-04 and his brand note; the approved 
 `../partyreel-wt/_scratch/desk/round-15-plan.md`; this session's opening plan is
 `~/.claude/plans/please-resume-your-role-delightful-cascade.md`.
 
-1. **Milestone 37 SHIPPED** (2026-10-05 16:25Z, `b67cdc1f2`). Since then merged: crumbs-81, durability-restore,
-   billing-integrity (migration applied), brand-r1, pricing-doors (TEST portal configuration fixed), drive-fixes
-   (migration applied), back-layers (merging). Desks 3 and 4 answered and transcribed.
-2. **Drive's road to live:** refresh the desk to the head; the desk re-walk (drive-fixes' Handoff, its seven watches;
-   the local Worker `cd workers/drive && npx wrangler dev -c wrangler.walk.jsonc --port 8787 --test-scheduled`; P3's
-   consent, Will's yes 2026-10-05); then red-team 56 and milestone 38 on his yes, where Drive's Worker deploys (never
+1. **Milestone 37 SHIPPED** (2026-10-05 16:25Z, `b67cdc1f2`). Merged since, for milestone 38 (gates 11 to 20, each
+   green): crumbs-81, durability-restore, billing-integrity, brand-r1, pricing-doors, drive-fixes, back-layers,
+   backup-reconcile, settings-wiring, event-header-wiring, and the Orchestrator's StrictMode tile fix (`d6bfc64a0`, gate
+   by hand: typecheck, lint, 12,572 tests, the build). Applied: `billing_integrity` (20261005191959),
+   `cloud_export_fixes` (20261005193047), `roll_size_range` (20261005205744); advisors 26/4/36; types current
+   (`78d1ffd47`, then drive's seam at the drive-fixes record).
+2. **Drive's road to live:** the desk re-walk is RUNNING (agent `a623313be9e7d1503`, brief and ledger
+   `../partyreel-wt/_scratch/drive-rewalk/`, the desk at `5104a5d05`, the local Worker on :8787 started by the
+   Orchestrator: `wrangler dev -c wrangler.walk.jsonc --port 8787 --test-scheduled` in `workers/drive`; stop it by its
+   port when the walk reports). Then red-team 56 and milestone 38 on Will's yes, where Drive's Worker deploys (never
    against milestone 37's build: `npm ci`, `wrangler queues create partyreel-drive-dlq --message-retention-period-secs
    1209600`, `wrangler deploy`, `DRIVE_APP_URL` partyreel.com, the cron every fifteen minutes) and Vercel's non-secret
    `DRIVE_WORKER_URL` (production holds Drive's four secrets but not the URL, so it reads "not set up" until then);
-   `partyreel-backup` deploys at 38 too (RESTORE_MODE dryrun; then `BACKUP_WORKER_URL` on partyreel-admin). The
-   Advisor wants 38 soon: milestone 37's build re-grants a Pro credit past a day (TEST money).
+   `partyreel-backup` deploys at 38 too (the reconcile's listing merge, RESTORE_MODE dryrun; then `BACKUP_WORKER_URL`
+   on partyreel-admin). The Advisor wants 38 soon: milestone 37's build re-grants a Pro credit past a day (TEST money).
 3. **Desk 5 = identity r5 + event-header r5 + brand r2** (all running): integrate each at its handoff, the desk pass,
    refresh the desk, tell him. **Desk 6** = the brand applied (after brand r2's pick); **desk 7** = the moments boards
    (host-, guest-, account-moments, create-wizard r4; after identity r5's set pick).
-4. **Lanes queued, specs written in `_scratch/specs/` (PORT to fill at the cut), each as a seat frees:** capture-time
-   (Will's X7: keep the capture time, never place or device; owns `src/lib/drive/` and `workers/drive/`), credit-watch
-   (the Advisor's Q33 after-steps and the change-plan configuration check), crumbs-82 (host-dashboard's chooser=words
-   and two crumbs), identity-wiring (halo, shrink, the floating edge into `src/components/ui/`, once back-layers' merge
-   frees `ui/popup*`). Running: backup-reconcile, settings-wiring, album-order, identity-r5, event-header-r5,
-   event-header-wiring, brand-r2 (seven; memory 58% free at the seventh). Weekly 48% at 20:25Z: no more than seven.
-5. **The calls lab:** AF to AP added today; X7 answered and routed (capture-time). billing-integrity's, back-layers',
-   pricing-doors', drive-fixes' and durability-restore's calls to add at the close of the day.
+4. **Lanes running** (eight agents with the re-walk; memory 61% free at the eighth, weekly 51% at 20:50Z): album-order,
+   identity-r5, event-header-r5, brand-r2, capture-time, credit-watch, identity-wiring (their rows above). **Queued:**
+   crumbs-82 (host-dashboard's chooser=words and two crumbs; spec `_scratch/specs/crumbs-82.json`, port 3139), cut as a
+   seat frees. Each lane's migration goes through the Advisor (`a22be0c2878d7ab19`, this session) before the apply.
+5. **The calls lab:** AF to AP added today; X7 answered and routed (capture-time); a helper adds the later merges'
+   calls (AQ onward).
 6. **Compute:** lever 3 and 3b (the CDN-cached album version) only on Will's X5; the guest page's next CPU levers
    (AsyncLocalStorage on Node 24, a lighter first paint) measured locally first; `pnpm compute:model` at every
    milestone.
@@ -163,15 +128,14 @@ Round 15, on Will's desk answers of 2026-10-04 and his brand note; the approved 
   2026-06-21, before the 2026-07-03 EXIF backfill stripped their primaries, so they still carry EXIF (GPS where the
   photo had it). Once deleted, the next reconcile copies the stripped originals; until then the deployed reconcile
   reads Needs a look and mails daily (backup-reconcile's Q1).
-- **Drive's Google client** (done 2026-10-05 by the Orchestrator in Chrome as P3: the Drive API enabled on `partyreel-498522`, `drive.file` in Data Access, the audience already External and In production, a web client "Partyreel Drive" with the callbacks `https://partyreel.com/api/drive/callback` and `http://localhost:3000/api/drive/callback`; the alias's callback left out while Vercel holds): Will copies its ID and secret from the creation dialog into `.env.local` (`GOOGLE_DRIVE_CLIENT_ID`, `GOOGLE_DRIVE_CLIENT_SECRET`) and Vercel's `partyreel` project; a lost secret is re-minted on the client's page.
-- **Desk 2, Drive alone** (nine asks), on his local desk: `http://localhost:3000/design/lab?key=fiesta` (launch-prep at
-  `94d66338`). Sign-in works there through the chooser. "Stack desk 3" is his to say; otherwise one desk at a time.
 - **The calls lab** (`../partyreel-wt/_scratch/calls/calls-lab.md`): open questions X1 (a Disposable's develop time
   when the date comes later), X2 (a Vercel token for the limits watch), X3 (a read-only Cloudflare analytics token),
   X5 (the CDN-cached album version), X6 (the operator's uploads credit), X7 (keep a photo's capture time); X4 is
   built. Then the text calls built and his to overrule (AF to AP: today's merges, added 2026-10-05). He asks direct questions in chat; answer in chat, never only in a file.
-- **Milestone 37** on his yes, after red-team 54.
-- **Vercel:** Pro now, or Hobby until the window clears in early November.
+- **Milestone 38** on his yes, after the Drive re-walk and red-team 56 (Drive's Worker and `partyreel-backup` deploy
+  with it).
+- **Vercel:** Pro now, or Hobby until the window clears in early November (he said hold, 2026-10-05). 79% of one
+  day's calls were qrcdn's (his other project on the team).
 - **Six retired env names** (`STRIPE_PRICE_PRO_100` to `_2TB_YR`) to delete from both Vercel projects and `.env.local`:
   unread by any code, their Stripe TEST prices archived; the classifier refuses an agent's secret-store write.
 - **The 26 policy tests, GUARD or TASTE** (`../partyreel-wt/_scratch/docs-prune/policy-tests.md`).
