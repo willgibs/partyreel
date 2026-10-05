@@ -19,7 +19,13 @@
  *    drops every name read under the old one, and a fresh manifest, a teaser or a lock drops them all.
  *  - BOUNDED: a reader deep in the album may never ask for a batch at the head, so the oldest held go first.
  *
- * Pure and isomorphic (no server import): the sync route and the browser both read it.
+ * ★ THE HUB'S DELTA CARRIES TOO (compute-reads): the host's poll (`/api/album/host/<id>/sync`) answers a delta with its
+ * approved arrivals' links exactly as the guest's does, so a batch of photographs on the hub is one call where it was
+ * two. The host's links answer also carries each item's like count (a host-only figure that rides the links by id), so
+ * a carried link brings its count with it (`HostCarriedLinks.likes`) and this layer hands it on in the answer it gives
+ * the link store's ask, where the hub's like counts read it (`hub-album.ts`'s `seedingTransport`, which sits above).
+ *
+ * Pure and isomorphic (no server import): the sync routes and the browser both read it.
  */
 import type { AlbumTransport, SyncResult } from "@/lib/album/store";
 import {
@@ -27,8 +33,12 @@ import {
   ALBUM_LINK_REMINT_MS,
   compareEntries,
   entryId,
+  isApprovedEntry,
+  type AlbumCarriedLinks,
   type AlbumLinkTuple,
   type AlbumLinksBody,
+  type HostSyncBody,
+  type HostWhoTuple,
   type ManifestEntry,
 } from "@/lib/events/album-wire";
 import { PRESIGN_BUCKET_MS } from "@/lib/r2/presign-bucket";
@@ -40,6 +50,34 @@ export function carriedIds(
 ): string[] {
   return [...upsert].sort(compareEntries).slice(0, max).map(entryId);
 }
+
+/**
+ * THE HOST'S HALF OF THE SAME CHOICE: which of the hub's upserts carry their links. The approved ones, newest first, at
+ * most the same screenful: the arrivals the hub's grid draws and asks for at once (the arrival gate, the window).
+ * ★ A held upload carries none (the hub draws nothing for it; Review asks for its queue's links by id when it opens,
+ * `warmReviewQueue`), and a hidden one carries none (the host's own Hide is an upsert too, and the link its tile
+ * already holds is the one it keeps drawing), so a moderated party's arrivals and a host's every hide cost the answer
+ * nothing but the delta itself. A restored hidden item and anything past the screenful ask the links route, as ever.
+ */
+export function hostCarriedIds(
+  upsert: readonly ManifestEntry[],
+  max: number = ALBUM_DELTA_LINKS_MAX,
+): string[] {
+  return carriedIds(upsert.filter(isApprovedEntry), max);
+}
+
+/**
+ * A HOST DELTA'S CARRIED LINKS: the guest's (`AlbumCarriedLinks`, the host's who tuples) and each linked item's like
+ * count, the one thing the host's links answer adds (`HostAlbumLinksBody.likes`). An item nobody liked is ABSENT and
+ * reads as 0, the convention every count reader keeps: so `likes` is present on every host delta that carries links
+ * (empty when nothing carried was ever liked), which is how a reader tells a host's carry from a guest's.
+ */
+export type HostCarriedLinks = AlbumCarriedLinks<HostWhoTuple> & {
+  likes: Record<string, number>;
+};
+
+/** The host's poll's answer when its delta carries links (`links` is absent from a manifest and from a quiet delta). */
+export type HostCarriedSync = HostSyncBody & { links?: HostCarriedLinks };
 
 /** Held at most: a few batches' worth for a reader who never reaches them. */
 const HELD_MAX = ALBUM_DELTA_LINKS_MAX * 3;
@@ -54,7 +92,21 @@ type Held<Who> = {
   receivedAt: number;
   /** Past this (this device's clock) it answers nothing: its re-mint is due. */
   freshUntil: number;
+  /**
+   * The host's like count for it (0 when the delta's counts name none), or null where the delta carried no counts at
+   * all, which is every guest's.
+   */
+  likes: number | null;
 };
+
+/** What a delta's `links` hold as this layer reads them: the guest's body, and the host's counts where they ride. */
+type CarriedBody<Who> = Pick<AlbumLinksBody<Who>, "b" | "now"> & {
+  links: AlbumLinkTuple<Who>[];
+  likes?: Record<string, number>;
+};
+
+/** A links answer that may carry the host's like counts (`HostAlbumLinksBody`): what this layer gives and merges. */
+type WithLikes<Who> = AlbumLinksBody<Who> & { likes?: Record<string, number> };
 
 /** The transport, plus the one thing a caller may ask of it: to let ids go (a re-mint is due). */
 export type CarryingTransport<Who> = AlbumTransport<Who> & {
@@ -85,13 +137,15 @@ export function carryingTransport<Who>(
     for (const id of body.remove) held.delete(id);
     if (heldAttr !== null && body.attr !== heldAttr) held.clear();
     heldAttr = body.attr;
-    const carried = "links" in body ? body.links : undefined;
+    // A wire value is data: the guest's `links` and the host's (with its counts) are read through one shape.
+    const raw: unknown = "links" in body ? body.links : undefined;
+    const carried = raw as CarriedBody<Who> | undefined;
     if (!carried || carried.links.length === 0) return;
     const receivedAt = now();
     const freshUntil =
       receivedAt +
       (carried.b * PRESIGN_BUCKET_MS + ALBUM_LINK_REMINT_MS - carried.now);
-    for (const tuple of carried.links as AlbumLinkTuple<Who>[]) {
+    for (const tuple of carried.links) {
       held.delete(tuple[0]); // the newest answer is the last word, and the youngest in the bound's order
       held.set(tuple[0], {
         tuple,
@@ -99,6 +153,7 @@ export function carryingTransport<Who>(
         served: carried.now,
         receivedAt,
         freshUntil,
+        likes: carried.likes ? (carried.likes[tuple[0]] ?? 0) : null,
       });
     }
     while (held.size > HELD_MAX) {
@@ -140,7 +195,16 @@ export function carryingTransport<Who>(
       const soonest = dated.reduce((a, b) =>
         deathOffset(b) < deathOffset(a) ? b : a,
       );
-      const mine: AlbumLinksBody<Who> = {
+      // The host's like counts, where the delta carried them: a count above zero rides, an absent one reads as 0.
+      const counted = local.some((h) => h.likes !== null);
+      const likes = counted
+        ? Object.fromEntries(
+            local.flatMap((h): [string, number][] =>
+              h.likes ? [[h.tuple[0], h.likes]] : [],
+            ),
+          )
+        : undefined;
+      const mine: WithLikes<Who> = {
         ok: true,
         access: "full",
         gate: null,
@@ -148,9 +212,10 @@ export function carryingTransport<Who>(
         now: soonest.now,
         links: local.map((h) => h.tuple),
         missing: [],
+        ...(likes ? { likes } : {}),
       };
       if (remote.length === 0) return mine;
-      let theirs: AlbumLinksBody<Who>;
+      let theirs: WithLikes<Who>;
       try {
         theirs = await inner.links(remote);
       } catch {
@@ -158,6 +223,10 @@ export function carryingTransport<Who>(
         return mine;
       }
       const timing = deathOffset(mine) <= deathOffset(theirs) ? mine : theirs;
+      const counts =
+        mine.likes || theirs.likes
+          ? { likes: { ...mine.likes, ...theirs.likes } }
+          : {};
       return {
         ok: true,
         access: theirs.access,
@@ -166,6 +235,7 @@ export function carryingTransport<Who>(
         now: timing.now,
         links: [...mine.links, ...theirs.links],
         missing: theirs.missing,
+        ...counts,
       };
     },
   };

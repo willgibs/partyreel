@@ -23,6 +23,12 @@
  * still the take's, and the caller resolves it by id. Leaving it out instead would hide the very ids
  * the caller needs to ask for.
  *
+ * ★ AND THE DEAL IS KEPT WHILE IT PLAYS (`keepStills`, compute-reads). The take is re-planned over the whole album, and
+ * its first pass is a seeded shuffle of it, so ONE arrival changes nearly every still it picks: re-dealing the cover
+ * on every batch swapped its pictures under the viewer and sent for the links of the new ones, a links call behind
+ * every delta. A cover now keeps the stills it is playing and changes only what must: a still the album lost gives its
+ * place to the take's next, and her own newest leads. A reload deals the take afresh.
+ *
  * Pure: no DOM, no React.
  */
 import {
@@ -73,4 +79,49 @@ export function playableSignature(items: readonly LiveMediaItem[]): string {
     .map((item) => item.id)
     .sort()
     .join(",");
+}
+
+/**
+ * THE COVER'S DEAL, KEPT: the unique ids the cover dissolves through after the album moved, from the ones it is playing
+ * (`playing`), what a cold deal would pick now (`fresh`, the take's first pass with her own newest leading) and whether
+ * a still may still be drawn (`stands`: in the album, and playable).
+ *
+ *  - Every still still playing stays, in its place: an arrival changes nothing here, so a batch re-deals nothing and
+ *    asks for no link (the new stills of a re-deal were the links call behind every delta).
+ *  - A still that left (hidden, removed, withdrawn) gives its place, and so does a place never filled (a small album
+ *    that grew, the first deal), to the next of `fresh` that is not already playing.
+ *  - The device's own newest upload (`lead`: the head of `fresh` when it is hers) leads, as it does in a cold deal
+ *    ("yours first"); the one it displaces from the tail is the one the take had placed last.
+ *
+ * Answers `playing` itself when nothing changed, so a caller can tell by identity and the links it asks for are asked
+ * once. With nothing playing it is the cold deal exactly.
+ */
+export function keepStills(opts: {
+  playing: readonly string[];
+  fresh: readonly string[];
+  stands: (id: string) => boolean;
+  lead?: string | null;
+  slots?: number;
+}): readonly string[] {
+  const { playing, fresh, stands } = opts;
+  const slots = opts.slots ?? TILE_SLOTS;
+  const lead = opts.lead && stands(opts.lead) ? opts.lead : null;
+  const kept = [...new Set(playing)].filter(stands);
+  const out = (lead ? [lead, ...kept.filter((id) => id !== lead)] : kept).slice(
+    0,
+    slots,
+  );
+  if (out.length < slots) {
+    const have = new Set(out);
+    for (const id of fresh) {
+      if (out.length >= slots) break;
+      if (have.has(id)) continue;
+      have.add(id);
+      out.push(id);
+    }
+  }
+  return out.length === playing.length &&
+    out.every((id, i) => id === playing[i])
+    ? playing
+    : out;
 }

@@ -1,31 +1,37 @@
 import { type Control, defineExploration } from "@/components/lab/exploration";
 
 /**
- * THE HUB'S HEAD, ROUND THREE (the event-header-r3 track, cut 2026-10-03).
+ * THE HUB'S DOORS, ROUND FOUR (the event-header-r4 track, cut 2026-10-04).
  *
- * Round two's picks: the facts' strip, on his condition that nothing spanning
- * the cover leans on a timeline; every room over the hub (wired by
- * `rooms-wiring`, so this round draws the hub as it now is and asks nothing of
- * the rooms); and a second iteration of each of the three doors before he
- * decides. The dial is banked as an analytics idea and drawn nowhere here.
+ * Round three's answers: the strip for the cover's facts (wired by
+ * `hub-strip-wiring`, so drawn here as settled), the guest row he loved sent
+ * to a board of its own after the brand round (drawn nowhere here), and the
+ * doors undecided: all three again, each to its best version, glass leading.
  *
- * ★ TWO DECISIONS, NEITHER STAGED. `facts` is what the cover says under the
- * name, `doors` what opens her rooms, at rest and in its sticky form. Neither
- * ask has an option that is production any more (`today` is undeclared on
- * both), so each is drawn wearing the other's recommendation until he picks,
- * and his pick from then on (`exploration.ts`'s `Decision.today`).
+ * ★ ONE DECISION. `doors` is what opens her rooms, at rest and in its sticky
+ * form, each option refined whole in its own file (`glass.tsx`, `cards.tsx`,
+ * `windows.tsx`) through one contract (`door-kit.tsx`). No option is
+ * production (production's cards row is round one's), so none is `today`.
  *
- * ★ EVERY FACTS OPTION STANDS ON SIX ALBUMS AT ONCE (`fixtures.ts`): the
- * wedding tonight and the week before, then his four shapes: a weekend over a
- * range of days, a morning, an album with no date, and a slow trickle. A fact
- * that breaks on one of them shows it in the same view as the five it holds
- * on.
+ * ★ FORM AND BEHAVIOUR ONLY. The waiting light's hue is the brand's question
+ * (brand-marks' status set), so every door wears today's light and adds none.
+ *
+ * ★ THE CALLS G1, G2 AND G4 ARE DRAWN IN EVERY OPTION (never asked here or
+ * elsewhere): See it as a guest is a door opening an inert phone over the
+ * dimmed hub; Review and Guests open in Settings' own panel (production's), a
+ * room's link opens another room in it, the reel full screen; Settings' count
+ * is plain, never amber, and paused uploads read Paused (the Moment knob's
+ * week after, where the lane's call puts the word on Settings' door too).
+ *
+ * ★ EACH OPTION WAS DRAWN BY ITS OWN DESIGNER, THEN REFINED ONCE FROM A FRESH
+ * PAIR OF EYES (the round's method): no door moves when a count comes or goes,
+ * in any option, at either size.
  *
  * ★ EVERY FRAME IS PRODUCTION'S HUB, NOT A PICTURE OF IT: the app's bar, the
  * album's own head (`EventHead`, its photographs dissolving in the real
  * keyframes), the code (`EventCodeDoor`), the checklist, the album's section
- * header and every room are production's components on identity's wired
- * atoms; what a decision redraws is drawn beside them in those atoms.
+ * header, the rooms' panel and every room are production's components on
+ * identity's wired atoms; the doors are drawn beside them in those atoms.
  */
 
 /** A host runs her party from her laptop first; the phone is on the knob. */
@@ -50,13 +56,14 @@ const GROUND: Control = {
   default: "room",
 };
 
-/** Tonight every door has something in it; the week before, every room is empty. */
+/** Tonight every door has something in it; the week before Settings has steps left; the week after, uploads paused. */
 const MOMENT: Control = {
   id: "moment",
   label: "The moment",
   options: [
     { id: "tonight", label: "Tonight, the party on" },
     { id: "before", label: "The week before" },
+    { id: "after", label: "The week after, paused" },
   ],
   default: "tonight",
 };
@@ -65,7 +72,7 @@ export const EVENT_HEADER = defineExploration({
   id: "event-header",
   title: "The event headers",
   surface: "host",
-  desk: 50,
+  desk: 20,
   lives: [
     "docs/systems/host-app.md",
     "src/app/(app)/dashboard/[eventId]/page.tsx",
@@ -76,12 +83,18 @@ export const EVENT_HEADER = defineExploration({
     "src/components/app/event-feed/edge-fade-scroller.tsx",
   ],
   round: {
-    n: 3,
-    date: "2026-10-03",
+    n: 4,
+    date: "2026-10-04",
     changed:
-      "Round three: the facts made free of a timeline (your strip, laid photo by photo, beside three new ideas, each on six albums), and round two's three doors refined as you asked, each with its sticky form.",
+      "Round four: the three doors again, each refined to its best version by its own designer, then once from fresh eyes: glass with its counts as badges and a phone's tab bar, cards owning the phone, windows lit where something waits.",
   },
   history: [
+    {
+      n: 3,
+      date: "2026-10-03",
+      changed:
+        "The facts free of a timeline beside three new ideas, and each door refined with its sticky form. You picked the strip (wired) and asked for all three doors again, leaning glass.",
+    },
     {
       n: 2,
       date: "2026-10-03",
@@ -96,27 +109,24 @@ export const EVENT_HEADER = defineExploration({
     },
   ],
   context:
-    "Round three, on the hub as rooms-wiring left it: the cover, the code and the album are production's, and only the facts and the doors are redrawn. Each facts option stands on six albums at once; each doors option opens on Try it, the hub running. Every caption is read off its frame.",
+    "Round four, on the hub as built: the cover, its strip, the code, the album and every room are production's; only the doors are redrawn. Each option opens on Try it, the hub running; every caption is read off its frame.",
   opening: {
     about:
-      "Round three of the hub's head: its facts made free of a timeline, beside three new ideas, and each of round two's doors refined with its sticky form.",
+      "Round four of the hub's doors: glass, cards over the seam and windows, each refined to its best version, each with its sticky form.",
     settled: [
-      "Every room opens over the hub (your rooms=over, wired): one panel for Review, Guests and Settings, the reel full screen, See it as a guest a phone.",
-      "The cover, the code on its white mat and the album stay as built; the checklist stands at the hub's head until the event is ready.",
-      "The dial is banked as an analytics idea: it is drawn nowhere on the hub.",
-      "An event gets an optional end date, a range of days with no times (event-dates wires it); the board draws ranges as settled.",
+      "The cover's facts are the strip, your round-three pick, now wired: every frame here stands on it.",
+      "Every room opens over the hub (wired): Review and Guests in Settings' panel, the reel full screen, As a guest an inert phone.",
+      "In every option a room's link opens another room in its panel: in Settings, Who can get in, then Let them in from Guests.",
+      "The waiting light's colour is the brand's question (its status set): every door here wears today's light and adds no hue.",
       "The atoms are identity's, wired: the camera's voice, the display's layers, every state a light.",
     ],
     earlier: [
-      "Round two: the strip, 'super cool... more alive while reducing the crowded UI', if nothing spanning the card leans on a timeline.",
-      "The cases you named: a multi-day trip with a slow trickle, an event with no date set, a morning whose uploads all land early.",
-      "Today's line and the name alone 'felt too bland'; the dial had 'a weird sundial feel in that spot', though you love it as analytics.",
-      "On the doors: 'a second-round iteration of each before deciding', and the reel card no longer filled with stills: 'this crowds it too much.'",
-      "Cards: 'a very apple tv UI-esque way... gradient overlay fades, cards covering seams, beautiful almost app store display.'",
-      "Windows 'helps visualize the idea of each card much better than the icons', but subtler, the reel's card in line with its own design.",
-      "Glass on the cover, 'my favorite safe option': minimal, good info conveyance, and it slides right into the sticky menu. Polish it.",
-      "For every door option, its own version of sliding cleanly into the sticky band on scroll.",
-      "Rooms over the hub: 'phenomenally more fluid, natural, and intuitive. As a guest screen is a really cool idea.'",
+      "Round three: 'all three are well-designed and stand on their own merits, but I'm currently leaning toward one glass capsule.'",
+      "For glass, 'stacking the counts on the icons as badges', and 'total freedom' beyond it.",
+      "'Cards over seam probably works best on mobile right now.'",
+      "On the yellow: 'don't love our yellow color, makes the page feel dull' (the brand round asks it).",
+      "'We're defining core experience here, if hosts have a bad UX using an event we'll lose them.'",
+      "Round two, windows: they help 'visualize the idea of each card much better than the icons', but subtler.",
     ],
   },
   terms: [
@@ -131,19 +141,14 @@ export const EVENT_HEADER = defineExploration({
         "The album's photographs dissolving edge to edge at the top of the hub, the event's name over them.",
     },
     {
-      term: "sticky band",
-      means:
-        "The slim bar the doors fold into once she scrolls past the cover, the code's chip at its end.",
-    },
-    {
       term: "doors",
       means:
         "What opens her rooms: the Highlight reel, Guests, Review, Settings and See it as a guest.",
     },
     {
-      term: "strip",
+      term: "sticky form",
       means:
-        "A line of marks along the cover's foot, one for each stretch of the album, tallest where most landed together.",
+        "What the doors become once she scrolls past the cover: held under the app's bar, one press away.",
     },
     {
       term: "seam",
@@ -155,149 +160,92 @@ export const EVENT_HEADER = defineExploration({
         "One rounded glass bar holding all five doors, the way a phone's tab bar holds its tabs.",
     },
     {
-      term: "glass",
+      term: "badge",
       means:
-        "The see-through material every control on a photograph wears, as a guest's Invite does on her cover.",
-    },
-    {
-      term: "lit",
-      means:
-        "Photos landing now (the newest within a quarter of an hour): its mark, face or colour held bright.",
+        "A count sitting on a door's icon's corner, the way an app's icon carries its unread number.",
     },
     {
       term: "Try it",
       means:
-        "A doors option's first frame: the hub running. Scroll it, then press any door.",
+        "An option's first frame: the hub running. Scroll it, then press any door.",
     },
   ],
   carried: [
     {
-      id: "strip-axis",
-      question: "What does the strip lay out, if not the night's hours?",
-      taken:
-        "The album's own order, photo by photo: its first photo at the left, the newest at the right, each mark as tall as how many landed with it.",
-      overrule:
-        "One mark per drop (a guest's one press of Add), in the order they came.",
-    },
-    {
-      id: "glass-dock",
+      id: "glass-stuck",
       question: "Where does the glass capsule go once she scrolls?",
       taken:
-        "It floats on under the bar itself, the cover's face leading it and the code's chip closing it, over the album.",
-      overrule: "A full-width sticky band holds it, as the cards' band does.",
+        "At a desk it stops under the bar where it reached it, the code joining its end; on a phone it is a tab bar at the screen's foot from the first screen.",
+      overrule:
+        "A full-width band under the bar holds it, the cover's face leading, at both sizes, as the cards' band does.",
+    },
+    {
+      id: "cards-phone",
+      question: "How do the cards stand on a phone?",
+      taken:
+        "A two by two grid over the seam with As a guest the width under it: every door and its count in sight at rest.",
+      overrule:
+        "Round three's shelf: larger cards in a row she scrolls sideways, two and a half in sight.",
+    },
+    {
+      id: "settings-paused",
+      question: "What does Settings' door say while uploads are paused?",
+      taken:
+        "Paused, the uploads' own word, plain and never amber, in place of the door's word; the code's corner keeps its pause.",
+      overrule:
+        "The door's word stays (Private · You let in) and only the code's corner says paused, as production does now.",
     },
   ],
   asks: [
-    {
-      id: "facts",
-      label: "The facts",
-      question: "What should carry the cover's facts, for any shape of event?",
-      where: ["Host", "Her event's hub", "The cover's foot"],
-      when: "She checks her hub: a wedding tonight and the week before, a weekend on its third day, a morning, no date, a trickle.",
-      matters:
-        "It is the first thing she reads each visit, and it must read true for every kind of event, not one night.",
-      lands:
-        "What the cover says under the name on every hub: the album's count, whether photos are landing now, and its shape.",
-      context:
-        "Six frames each, the same six albums: the wedding tonight and the week before, a weekend over three days, a morning, no date set and a slow trickle, each the top of the hub, its doors the doors' pick.",
-      options: [
-        {
-          id: "strip",
-          label: "The strip, photo by photo",
-          means:
-            "Your strip with no clock under it: the album laid photo by photo along the foot, each mark as tall as how many landed with it, the newest end lit.",
-          gains:
-            "Your pick kept whole: alive, roomy, and true for a morning, a weekend, no date or a trickle.",
-          costs:
-            "An abstract line: a mark says how busy, never what, and a very small album gathers at its end.",
-        },
-        {
-          id: "faces",
-          label: "The faces along the foot",
-          means:
-            "Everyone who added, as faces in a row under the name, the newest first and lit while they add, then the album's count.",
-          gains:
-            "Her party as its people: warm at a glance, and true for any event's shape.",
-          costs:
-            "A guest with no photo of themselves is a colour and an initial, and a crowd past a dozen is a count.",
-        },
-        {
-          id: "latest",
-          label: "The newest, in a line",
-          means:
-            "The photo that landed last as a small print, who sent it and how long ago, then the totals in a few words.",
-          gains:
-            "Says what just happened in plain words: a trickle's 3 days ago reads as true as tonight's just now.",
-          costs:
-            "Words where the others draw: the least to look at, and it changes with every arrival.",
-        },
-        {
-          id: "colours",
-          label: "The album's colours",
-          means:
-            "A strip of colour chips along the foot, each a run of photos in its own colour, in the order they landed, the count at its end.",
-          gains:
-            "The cleanest head: the album's own light, distilled, with nothing to read but the count.",
-          costs:
-            "Says the least, and needs each photo's colour read as it is made (a field the album would carry).",
-        },
-      ],
-      recommended: "strip",
-      because:
-        "It keeps what you loved in the strip and fixes what you named: laid by the album, never the clock, it fills true for every event.",
-      overrule:
-        "If the cover should say what just happened in words, the newest in a line.",
-      configs: [SCREEN, GROUND],
-    },
     {
       id: "doors",
       label: "The doors",
       question: "Which of the three refined doors should open her rooms?",
       where: ["Host", "Her event's hub", "The doors"],
-      when: "Tonight 8 uploads wait in Review and 2 people at her door; the week before nothing waits and Settings has steps left.",
+      when: "Tonight 8 uploads wait in Review and 2 people at her door; the week before Settings has steps left; the week after, uploads paused.",
       matters:
         "She presses them all night, so they must read at a glance and stay one press away however far she scrolls.",
       lands:
         "The hub's doors at rest and in their sticky form, at a desk and in a hand.",
       context:
-        "Two frames each: Try it, the hub running (scroll it and the doors take their sticky form; press any door and its room opens over the hub), then scrolled into the album. The Moment knob draws the week before.",
+        "Two frames each: Try it, the hub running (scroll it and the doors take their sticky form; press any door and its room opens over the hub), then scrolled into the album. The Moment knob draws the week before and the week after.",
       options: [
-        {
-          id: "cards",
-          label: "Cards over the seam",
-          means:
-            "The cover fades into the page and the cards stand over that seam on a soft lift, the reel's card like the rest; stuck, pills under a band that fades.",
-          gains:
-            "App Store depth: the cover and its doors read as one composition, each card roomy and calm.",
-          costs:
-            "A deep row that pushes the album down, and a phone's shelf of cards scrolls sideways.",
-        },
-        {
-          id: "windows",
-          label: "Quiet windows",
-          means:
-            "Each door a small inset picture of its room in grey, taking its colour under the pointer, the reel's a small player; stuck, the picture is the pill's glyph.",
-          gains:
-            "Each door shows what is inside it, and the row stays quiet between the cover and the album.",
-          costs:
-            "Five small pictures to read, the album starts lowest, and a grey photo is a step from the real one.",
-        },
         {
           id: "glass",
           label: "One glass capsule",
           means:
-            "All five doors in one glass capsule at the cover's foot, the waiting counts as amber lights; stuck, the same capsule floats on under the bar.",
+            "All five doors in one glass capsule, each count a badge on its icon: on the cover at a desk, stopping under the bar as she scrolls; on a phone, its tab bar.",
           gains:
-            "The calmest hub: one object on the cover, the album highest, and the capsule docks as itself.",
+            "One object that never jumps: under the bar at a desk, under her thumb on a phone.",
           costs:
-            "Doors on a moving photograph, and a phone's capsule is five small segments.",
+            "Five doors share one bar, and on a phone it covers the album's foot all night.",
+        },
+        {
+          id: "cards",
+          label: "Cards over the seam",
+          means:
+            "The cover dissolves into the page and five cards stand across the seam, every one in sight on a phone; stuck, they fold into pills under the bar.",
+          gains:
+            "Every door and its count in sight at rest, phone included; a waiting count reads across the room.",
+          costs:
+            "The deepest row: on a phone the album starts lowest, and the band sits out of her thumb's reach.",
+        },
+        {
+          id: "windows",
+          label: "Quiet windows, lit where something waits",
+          means:
+            "Each door a small picture of its room on the page, in grey until something in it waits on her; stuck, the same windows shrink into the band.",
+          gains:
+            "The calmest middle: the cover and album stay the pictures, colour landing only where she is needed.",
+          costs:
+            "Five small pictures to learn, and a row of its own under the cover starts the album low.",
         },
       ],
       recommended: "glass",
       because:
-        "One object holds every door on the cover and docks as itself under the bar: your safe favourite, polished, with the album highest.",
+        "Your lean, refined: one object that never moves, its counts on its icons, the album highest, and on a phone it waits under her thumb all night.",
       overrule:
-        "If the doors should feel like a shelf of their own, the cards over the seam.",
+        "If every door should be big and readable across the room at rest, the cards over the seam.",
       configs: [SCREEN, GROUND, MOMENT],
     },
   ],

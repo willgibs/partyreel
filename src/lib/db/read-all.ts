@@ -41,10 +41,16 @@
  *
  * Sentry stays OUT of `src/lib/db` (`src/lib/observability/sentry.ts`): a failed page THROWS a
  * `QueryFailedError` carrying the label, and the route or action that called in captures it.
+ *
+ * ★ THE MAINTENANCE SCRIPTS IMPORT THIS FILE (`scripts/seed-demo-event.mjs`, `scripts/backfill-strip-exif.mjs`), under
+ * Node's own type stripping, which resolves neither the `@/` alias nor an extensionless path. So its one runtime
+ * import names its file in full (`./must-query.ts`; `tsconfig.json` allows it) and every other import here is
+ * `import type`, which is erased: add a runtime import in either spelling the scripts cannot read and the scripts
+ * go back to keeping a copy of these helpers. `testing/script-imports.test.ts` loads what they import under Node.
  */
 import type { PostgrestError } from "@supabase/supabase-js";
 
-import { QueryFailedError } from "@/lib/db/must-query";
+import { QueryFailedError } from "./must-query.ts";
 
 /** PostgREST's `max_rows` on this project: the most rows any one request can return. */
 export const MAX_ROWS = 1000;

@@ -2,14 +2,22 @@ import type { Metadata } from "next";
 
 import { requireDesignKey } from "@/lib/design-gate/server";
 
-import { choiceOf, groundOf, pageOf, viewOf, widthOf } from "../model";
+import {
+  choiceOf,
+  groundOf,
+  momentOf,
+  pageOf,
+  viewOf,
+  widthOf,
+} from "../model";
 
 import { SceneRoot } from "./scene-root";
 
 /**
  * THE IDENTITY BOARD'S SCENE ROUTE: the document every one of its frames
- * loads, `?system=&room=&edge=&view=&w=&ground=&page=&id=`
- * (built by `sceneSrc`, `model.ts`).
+ * loads, the mix's seven traits and the edge
+ * (`?field=&button=&focus=&selected=&press=&loading=&toggles=&edge=`), then
+ * `&view=&moment=&w=&ground=&page=&id=` (built by `sceneSrc`, `model.ts`).
  *
  * It renders bare (the design root layout carries no chrome; the lab's lives
  * in `(shell)`), so the frame is the page and nothing else. Gated like every
@@ -35,11 +43,17 @@ export default async function IdentityScenePage({
   return (
     <SceneRoot
       choice={choiceOf({
-        system: one("system"),
-        room: one("room"),
+        field: one("field"),
+        button: one("button"),
+        focus: one("focus"),
+        selected: one("selected"),
+        press: one("press"),
+        loading: one("loading"),
+        toggles: one("toggles"),
         edge: one("edge"),
       })}
       view={viewOf(one("view"))}
+      moment={momentOf(one("moment"))}
       w={widthOf(one("w"))}
       ground={groundOf(one("ground"))}
       page={pageOf(one("page"))}

@@ -6,8 +6,7 @@
  * layout treatment (verified live, `testing-verification.md`'s blind spot),
  * never a class name this file should freeze.
  */
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import type { ComponentProps, ReactNode, Ref } from "react";
 
 import {
   act,
@@ -22,6 +21,27 @@ import { claimAnonymousUploads } from "@/lib/guest/claim-uploads";
 
 const refresh = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh }) }));
+/* `next/link` runs no prefetch in jsdom, so what is held is what the header ASKS of it: an anchor that says it
+   (`data-prefetch`, as the chrome link's own test stands it in). */
+vi.mock("next/link", () => ({
+  useLinkStatus: () => ({ pending: false }),
+  default: ({
+    prefetch,
+    href,
+    children,
+    ref,
+    ...rest
+  }: Omit<ComponentProps<"a">, "href"> & {
+    prefetch?: boolean | null;
+    href: string;
+    children?: ReactNode;
+    ref?: Ref<HTMLAnchorElement>;
+  }) => (
+    <a ref={ref} href={href} data-prefetch={String(prefetch)} {...rest}>
+      {children}
+    </a>
+  ),
+}));
 
 /* The name menu's door, reduced to the one act it hands back (`onVerified`),
    so the pin is what the MENU does with a confirmation. The door's own
@@ -78,15 +98,49 @@ import { publishCoverUnderHeader } from "@/components/guest/guest-header-cover";
 import { setStoredName } from "@/lib/guest/use-stored-name";
 
 describe("GuestHeader: the way home", () => {
-  it("★ prefetches the marketing home only on the demo, whose visitor is a prospective host (compute-levers)", () => {
-    const src = readFileSync(
-      join(process.cwd(), "src/components/guest/guest-header.tsx"),
-      "utf8",
-    );
-    const home = src.match(/<Link\b[^>]*href="\/"[^>]*>/g) ?? [];
-    expect(home).toHaveLength(2);
-    for (const link of home)
-      expect(link).toContain("prefetch={isDemo ? undefined : false}");
+  /** The two doors to the marketing home the header draws: the wordmark, and Start for free. */
+  const homeLinks = () =>
+    screen
+      .getAllByRole("link")
+      .filter((link) => link.getAttribute("href") === "/");
+  const prefetchOf = (link: HTMLElement) => link.getAttribute("data-prefetch");
+
+  it("★ a real album's visitor never fetches the marketing home: not on sight, not on a hover (compute-levers)", () => {
+    render(<GuestHeader qrToken="tok-1" eventId="evt-1" />);
+    const links = homeLinks();
+    expect(links).toHaveLength(2);
+    for (const link of links) {
+      expect(prefetchOf(link)).toBe("false");
+      fireEvent.pointerEnter(link);
+      fireEvent.focus(link);
+      expect(prefetchOf(link)).toBe("false");
+    }
+  });
+
+  /**
+   * ★ THE DEMO FETCHES THE HOME ON INTENT, NEVER ON SIGHT (compute-reads). Its visitor is a prospective host, so a
+   * pointer or a finger on the wordmark takes `next/link`'s own prefetch before the press; but the wordmark is in view
+   * from the first paint, and a prefetch on sight fetched the home's payload and preloaded its three sheets into a page
+   * that draws none of them ("preloaded but not used", about 17 KB a load: `chrome-link.tsx`).
+   */
+  it("★ the demo's two doors fetch the home on intent, never on sight", () => {
+    render(<GuestHeader qrToken="tok-1" eventId="evt-1" isDemo />);
+    const links = homeLinks();
+    expect(links).toHaveLength(2);
+    for (const link of links) {
+      expect(prefetchOf(link)).toBe("false");
+      fireEvent.pointerEnter(link);
+      expect(prefetchOf(link)).toBe("undefined");
+    }
+  });
+
+  it("★ and for the keyboard, when focus lands", () => {
+    render(<GuestHeader qrToken="tok-1" eventId="evt-1" isDemo />);
+    for (const link of homeLinks()) {
+      expect(prefetchOf(link)).toBe("false");
+      fireEvent.focus(link);
+      expect(prefetchOf(link)).toBe("undefined");
+    }
   });
 });
 

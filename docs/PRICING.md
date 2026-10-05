@@ -90,6 +90,11 @@ working.
   three sizes under one Monthly / Yearly toggle, the saving tagged beside Yearly and computed from these labels;
   `/api/stripe/change-plan`, `proration_behavior: always_invoice`), and a pass holder's prorated credit lands as
   customer balance, which pays the NEXT invoice: on yearly, that is a year out (never lost).
+- **Export is an off-ramp, never a one-click exit** (Will, 2026-10-05). Download and Send to Google Drive take every
+  original home, so a month of Pro for one wedding is an easy opt-in with no fear of lock-in ("$9 for a month, export
+  everything, don't renew", against the $29+ platforms); but nothing in an export suggests deleting what it sent:
+  deleting stays where it already is (select and delete in an album, Delete event in Settings, What's using space),
+  because stored media is what the storage tiers are paid for.
 - **A plan change never leaves a host storing more than the new cap** (Will, 2026-09-22). Any Pro purchase or Pro
   size change must hold what the host already stores (her albums and her Deleted against the plan's plain cap); a
   smaller one is refused with the numbers ("You're storing 70 GB. Pro 50 GB holds 50 GB, so free 20 GB first, or

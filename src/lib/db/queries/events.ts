@@ -158,6 +158,14 @@ export async function countActiveEvents(): Promise<number> {
  * events through RLS; the service-role client (the profile and Guest cards in `social.ts`) reads
  * the events a caller has already gated. Keys never reach the browser: every one is presigned here.
  *
+ * ★ EVERY COVER IS PRESIGNED `stable`, AS THE DASHBOARD CARDS' STILLS ARE (`getEventCardStills`): a
+ * stable presign pins its signing date to the half hour's start, so a second visit inside it is
+ * handed the very same URL and the browser serves the cover it already holds, where a fresh
+ * signature on every render re-downloaded every card's picture on every visit (the profile's
+ * hosted and attended cards, the Guest cards, the Deleted tab's covers). The lifetime is the
+ * stable presign's 90 minutes, a leaked cover URL living a half hour past the old hour (the
+ * trade-off `presign-bucket.ts` records for every album link).
+ *
  * PHOTO-only is load-bearing: the card renders the cover in an <img>, which
  * cannot display a video file, so a newest-upload-is-a-video event would get a
  * broken (0x0) cover if videos were eligible. (A video-poster cover for
@@ -180,7 +188,10 @@ export async function readCoverUrls(
   const entries = await Promise.all(
     [...parseEventCovers(data)].map(
       async ([id, keys]) =>
-        [id, await presignDownload({ key: coverKey(keys) })] as const,
+        [
+          id,
+          await presignDownload({ key: coverKey(keys), stable: true }),
+        ] as const,
     ),
   );
   for (const [id, url] of entries) urls.set(id, url);
