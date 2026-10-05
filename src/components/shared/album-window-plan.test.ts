@@ -5,9 +5,11 @@
  */
 import { describe, expect, it } from "vitest";
 
+import type { ManifestEntry } from "@/lib/events/album-wire";
 import { layoutRows, ROW_CLASSES } from "@/lib/shared/album-rows";
 
 import {
+  albumFirstPaintIds,
   classWidths,
   decodeFirstPaint,
   encodeFirstPaint,
@@ -63,6 +65,61 @@ describe("firstPaintIds", () => {
     expect(
       firstPaintIds([], { step: 1, rhythm: "double", seed: 0, width: null }),
     ).toEqual([]);
+  });
+});
+
+/**
+ * ★ THE SEED LINKS THE FIRST PAINT OF THE ORDER THE ALBUM OPENS IN (album-order): from the manifest's newest-first
+ * entries, an album in order draws its OLDEST first, laid from its start, so those are the photographs the page links.
+ * The old seed linked the newest whatever the order, and a morning-after album's first rows shimmered.
+ */
+describe("albumFirstPaintIds", () => {
+  const T = 1_790_000_000_000_000;
+  // Newest first, the wire's order: e0 is the newest.
+  const entries: ManifestEntry[] = Array.from({ length: 300 }, (_, i) => [
+    `e${i}`,
+    640,
+    480,
+    4,
+    T - i,
+  ]);
+  const opts = { step: 1 as const, rhythm: "double" as const, seed: 7 };
+
+  it("newest first links the album's head: the newest", () => {
+    const ids = albumFirstPaintIds(entries, { ...opts, width: null });
+    expect(ids[0]).toBe("e0");
+    expect(ids).toEqual(
+      firstPaintIds(
+        entries.map(([id, width, height]) => ({ id, width, height })),
+        { ...opts, width: null },
+      ),
+    );
+  });
+
+  it("★ the night in order links its first rows: the oldest, laid from the start", () => {
+    const ids = albumFirstPaintIds(entries, {
+      ...opts,
+      width: null,
+      sort: "oldest",
+    });
+    expect(ids[0]).toBe("e299");
+    expect(ids).not.toContain("e0");
+    const night = [...entries].reverse();
+    const plan = firstPaintPlan(
+      rowItemsFor(
+        night.map(([id, width, height]) => ({ id, width, height })),
+        false,
+        null,
+        [],
+        "start",
+      ),
+      opts.step,
+      opts.rhythm,
+      opts.seed,
+      "start",
+      "double",
+    );
+    expect(ids).toEqual(night.slice(0, plan.count).map((e) => e[0]));
   });
 });
 

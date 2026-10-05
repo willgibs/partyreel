@@ -58,6 +58,7 @@ import {
 } from "@/components/guest/gallery-empty-state-wait";
 import { GallerySkeleton } from "@/components/guest/gallery-skeleton";
 import { GalleryLiveProvider } from "@/components/guest/gallery-live";
+import { useGuestAlbumOrder } from "@/components/guest/gallery-order";
 import { GuestShare } from "@/components/guest/guest-share";
 import {
   GuestUpload,
@@ -92,6 +93,7 @@ import {
 import type { GalleryAccess, GalleryGate } from "@/lib/events/gallery-access";
 import { formatCount } from "@/lib/format/count";
 import { useInViewSentinel } from "@/lib/shared/use-in-view-sentinel";
+import type { GuestAlbumOrder } from "@/lib/shared/album-order";
 import { DEFAULT_ROW_STEP, type RowStep } from "@/lib/shared/album-rows";
 import { developMs } from "@/lib/disposable/contact-sheet-develop";
 import { useWaitClock } from "@/lib/disposable/use-wait-clock";
@@ -206,6 +208,7 @@ export function EventExperience({
   arrival = NO_ARRIVAL,
   doorPhase,
   uploadsWait,
+  albumOrder,
 }: {
   event: GuestEvent;
   qrToken: string;
@@ -315,6 +318,13 @@ export function EventExperience({
    * The page's first word only: the page holds it live from here (`useLiveUploadsWait`, red-team 44).
    */
   uploadsWait: UploadsWait;
+  /**
+   * ★ THE ALBUM'S ORDER AT THE FIRST PAINT (album-order, `guestAlbumOrder`): the album's own order at the render (the
+   * turn read in the reader's zone, which rides along) and her remembered choice, decided by the page's server so the
+   * seed links what the first paint draws and the hydration lays the same rows. The page keeps it live from here
+   * (`useGuestAlbumOrder`). Absent (a stand-in page), the album stays newest first.
+   */
+  albumOrder?: GuestAlbumOrder;
 }) {
   const router = useRouter();
   // ONE resolution of the step for both boxes the album occupies: the skeleton
@@ -707,6 +717,18 @@ export function EventExperience({
     moderationMode: event.moderation_mode,
   });
   const addsWait = addsWaitFor({ uploadsWait: liveWait, isOwner, isDemo });
+  /* ★ THE ALBUM'S ORDER, LIVE (album-order): the page's word at the first paint, then the turn on this device's clock
+     (a Develop now moves it: the develop time as the page holds it, ahead or reached) and her choice in View's Sort. */
+  const albumOrderNow = useGuestAlbumOrder({
+    eventId: event.id,
+    initial: albumOrder,
+    facts: {
+      eventDate: event.event_date,
+      eventEndDate: event.event_end_date ?? null,
+      developsAt: liveDevelopsAt ?? event.develops_at ?? null,
+    },
+    isDemo,
+  });
   /* ★ THE WAIT, ONE QUESTION OF TIME (the-wait r1, Will's `model=time`): the album's live reading as a clock, the host's
      approval or a develop time ahead, so the album's contact sheet, her tracker and the slot all say one wait,
      "Developing", told apart by its clock alone ("As Maya lets them in", "All at once at 9 am"). */
@@ -1734,6 +1756,8 @@ export function EventExperience({
                             closesOnLastRemoval={closesOnLastRemoval}
                             // Where hers wait, nothing of hers in the air stands at the album's head (red-team 44).
                             addsWait={addsWait.waits}
+                            // The album's order (the turn, or hers), and View's Sort to choose one (album-order).
+                            order={albumOrderNow}
                             develop={{
                               eventId: event.id,
                               developsAt:

@@ -60,6 +60,13 @@
  * can see (`--arrival-glide-ms`). A step change glides the same way; a resize,
  * a filter and the first layout land at once, and reduced motion lands
  * everything at once.
+ *
+ * ★ AN ARRIVAL SHE CANNOT SEE IS SAID, NEVER SHOWN BY MOVING HER (album-order,
+ * `album-window-news.tsx`). Where a surface tells the rows what arrived
+ * (`AlbumNews`), each arrival is judged once as it first stands in the rows,
+ * against what she can see once the change's scroll is paid, and those that
+ * landed out of sight wear one pill under the bar ("12 new", the arrow the way
+ * they lie), cleared a landing at a time as she reaches it.
  */
 import {
   Children,
@@ -67,6 +74,7 @@ import {
   Fragment,
   isValidElement,
   useCallback,
+  useContext,
   useEffect,
   useId,
   useImperativeHandle,
@@ -96,9 +104,22 @@ import {
   type RowRhythm,
 } from "@/components/shared/album-window-plan";
 import {
+  AlbumNewsContext,
+  AlbumNewsPill,
+  barBottom,
+  landingReached,
+  landingsOf,
+  pastHead,
+  pillFor,
+  rowInView,
+  type Band,
+  type Pill,
+} from "@/components/shared/album-window-news";
+import {
   useDensityGestures,
   type FocalPoint,
 } from "@/components/shared/density-control";
+import { layerIsUp } from "@/components/ui/layer-is-up";
 import {
   DEFAULT_ROW_STEP,
   perRowFor,
@@ -185,6 +206,24 @@ export const CLASS_BREAKS = [
 ] as const;
 
 const NONE: ReadonlySet<string> = new Set();
+
+/** How often the bar is read again while there is news (a select bar comes and goes), ms. */
+const BAR_REREAD_MS = 500;
+
+/** The air a press leaves between the bar and the landing it brings up, px. */
+const NEWS_LANDING_AIR_PX = 8;
+
+/** Two pills that say the same thing and go to the same place. */
+function samePill(a: Pill | null, b: Pill | null): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return (
+    a.count === b.count &&
+    a.dir === b.dir &&
+    a.to.first === b.to.first &&
+    a.to.last === b.to.last
+  );
+}
 
 /** Every drawn tile and head slot in a rows grid, by its key, as the DOM has them now. */
 function rowNodes(grid: HTMLElement | null): Map<string, HTMLElement> {
@@ -850,6 +889,150 @@ export function AlbumRows<
     return () => clearTimeout(t);
   }, [laid]);
 
+  /* ★ WHAT LANDED OUT OF SIGHT (see the head note, `album-window-news.tsx`): the
+     surface's arrivals, each judged once as it first stands in the rows, and one
+     pill for the landings she has not reached. Off where no surface asks. */
+  const news = useContext(AlbumNewsContext);
+  const newsRef = useRef({
+    /** Every arrival already judged: an id is judged once, ever. */
+    judged: new Set<string>(),
+    /** Each arrival that landed out of sight and has not been reached, by the row it sits in now. */
+    unseen: new Map<string, number>(),
+    /** The lens the last judging saw: a new one reveals, it brings nothing in. */
+    lens: undefined as string | undefined,
+    /** Whether the rows have been judged once: what stood in the first rows is the album, not news. */
+    primed: false,
+    /** When the bar was last read (`performance.now()`). */
+    barAt: Number.NEGATIVE_INFINITY,
+  });
+  const [bar, setBar] = useState(0);
+  const [pill, setPill] = useState<Pill | null>(null);
+  const [layerUp, setLayerUp] = useState(false);
+
+  /** Where the stuck chrome ends over the album, read by hit-testing (`barBottom`). */
+  const measureBar = useCallback((el: HTMLElement) => {
+    const r = el.getBoundingClientRect();
+    const inset = barBottom(el.ownerDocument, r.left + r.width / 2);
+    newsRef.current.barAt = performance.now();
+    setBar((prev) => (prev === inset ? prev : inset));
+    return inset;
+  }, []);
+  /** What she can see of the album now, read off the layout: under the bar, to the screen's foot. */
+  const measureBand = useCallback(
+    (el: HTMLElement): Band => {
+      const root = rootRef.current ?? el.ownerDocument.defaultView ?? window;
+      const v = readViewAt(el, root);
+      const inset = measureBar(el);
+      return { top: v.top + inset, bottom: v.top + v.height };
+    },
+    [readViewAt, measureBar],
+  );
+  /** Reached landings clear whole; the pill is what is left, once she is past the album's head. */
+  const settleNews = useCallback((l: RowsLaid, band: Band) => {
+    const s = newsRef.current;
+    const gap = l.layout.gap;
+    const left = landingsOf(s.unseen).filter((landing) => {
+      if (!landingReached(landing, l.tops, gap, band)) return true;
+      for (const id of landing.ids) s.unseen.delete(id);
+      return false;
+    });
+    const next = pastHead(l.tops, gap, band)
+      ? pillFor(left, l.tops, gap, band)
+      : null;
+    setPill((prev) => (samePill(prev, next) ? prev : next));
+  }, []);
+
+  // THE JUDGING: after every written change (and every new word from the
+  // surface), where each new arrival landed against the view as it now is, the
+  // change's scroll already paid. One held at the door, or outside the lens,
+  // waits to be judged until it stands in the rows.
+  useEffect(() => {
+    const s = newsRef.current;
+    const el = gridEl.current;
+    if (!news || !laid || !el) return;
+    const primed = s.primed;
+    const lensMoved = primed && news.lens !== s.lens;
+    s.lens = news.lens;
+    s.primed = true;
+    const rows = rowIndex(laid.layout.rows);
+    // A reflow moves rows; one that left the rows (hidden, removed, outside the lens) is no news now.
+    for (const id of [...s.unseen.keys()]) {
+      const r = rows.get(id);
+      if (r === undefined) s.unseen.delete(id);
+      else s.unseen.set(id, r);
+    }
+    let band: Band | null = null;
+    for (const id of news.arrivals) {
+      if (s.judged.has(id)) continue;
+      const r = rows.get(id);
+      if (r === undefined) continue;
+      s.judged.add(id);
+      if (!primed || lensMoved) continue;
+      band ??= measureBand(el);
+      if (!rowInView(laid.tops, laid.layout.gap, r, band)) s.unseen.set(id, r);
+    }
+    if (s.unseen.size === 0) {
+      setPill(null);
+      return;
+    }
+    settleNews(laid, band ?? measureBand(el));
+  }, [news, laid, measureBand, settleNews]);
+
+  // THE REACHING: as she scrolls, by arithmetic (the view the scroll already
+  // reads), and only once a change's scroll has been paid, so a view from before
+  // the change never reaches a landing it brought. The bar is read again now and
+  // then while there is news (a select bar comes and goes), never every frame.
+  useEffect(() => {
+    const s = newsRef.current;
+    if (!news || !laid || !view || s.unseen.size === 0) return;
+    if (laid.version !== appliedVersion) return;
+    const el = gridEl.current;
+    const inset =
+      el && performance.now() - s.barAt > BAR_REREAD_MS ? measureBar(el) : bar;
+    settleNews(laid, { top: view.top + inset, bottom: view.top + view.height });
+  }, [news, laid, view, bar, appliedVersion, measureBar, settleNews]);
+
+  // A layer over the album (the viewer, a dialog) hides the pill until it goes.
+  useEffect(() => {
+    if (!news || !gridNode) return;
+    const read = () => setLayerUp(layerIsUp({ dialogsOnly: true }));
+    read();
+    const mo = new MutationObserver(read);
+    mo.observe(gridNode.ownerDocument.body, { childList: true });
+    return () => mo.disconnect();
+  }, [news, gridNode]);
+
+  // THE PRESS: to the top of the nearest landing, just under the bar, smoothly
+  // (at once under reduced motion); a keyboard lands at once, on its first
+  // photograph. Reaching it clears it, as her own scroll would.
+  const goToNews = useCallback(
+    (p: Pill, viaKeyboard: boolean) => {
+      const el = gridEl.current;
+      const l = laid;
+      if (!el || !l || p.to.first >= l.layout.rows.length) return;
+      const win = el.ownerDocument.defaultView ?? window;
+      const root = rootRef.current ?? win;
+      const v = readViewAt(el, root);
+      const inset = measureBar(el);
+      const still =
+        viaKeyboard ||
+        !!win.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      root.scrollBy({
+        top: l.tops[p.to.first] - inset - NEWS_LANDING_AIR_PX - v.top,
+        behavior: still ? "instant" : "smooth",
+      });
+      if (!viaKeyboard) return;
+      flushSync(() => setView(readViewAt(el, root)));
+      const ids = new Set(p.to.ids);
+      const first = l.layout.rows[p.to.first].ids.find((id) => ids.has(id));
+      const open = first
+        ? tileAt(el, first)?.querySelector<HTMLElement>("[data-tile-open]")
+        : null;
+      open?.focus({ preventScroll: true });
+    },
+    [laid, readViewAt, measureBar],
+  );
+
   const slotByKey = useMemo(
     () => new Map(slots.map((h) => [HEAD_ID + h.key, h.node])),
     [slots],
@@ -1164,6 +1347,14 @@ export function AlbumRows<
         {children}
       </div>
       <RowsSnapshot version={version} armed={glide} capture={capture} />
+      {pill && !layerUp && gridNode ? (
+        <AlbumNewsPill
+          doc={gridNode.ownerDocument}
+          pill={pill}
+          top={bar}
+          onGo={goToNews}
+        />
+      ) : null}
     </div>
   );
 }

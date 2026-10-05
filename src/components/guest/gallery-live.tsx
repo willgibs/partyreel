@@ -100,6 +100,11 @@ import { readStoredSession } from "@/lib/guest/use-stored-session";
 import type { QueueItem, QueueProgress } from "@/lib/guest/use-upload-queue";
 import { captureError, captureWarning } from "@/lib/observability/sentry";
 import type { LiveMediaItem } from "@/lib/reel/live/items";
+import {
+  carriesCaptureTimes,
+  happenedAt,
+  inOrder,
+} from "@/lib/shared/album-order";
 import { useLivePoll } from "@/lib/shared/use-live-poll";
 
 /** A screen at the party (`?reel=screen`) is watched untouched: its album's net rests but never stops. */
@@ -210,6 +215,9 @@ const ACCESS_RANK: Record<GalleryAccess, number> = {
 /** The watchdog's floor: one re-mint of an id a minute, however many times its picture fails. */
 const EXPIRY_REMINT_FLOOR_MS = 60_000;
 
+/** The night in order where no item carries a capture time: arrival's own, the newest-first list reversed. */
+const turnByArrival = (list: readonly GalleryItem[]) => inOrder(list);
+
 /** How long a file's shape is waited for before its optimistic tile goes in as a square. */
 const MEASURE_TIMEOUT_MS = 400;
 
@@ -276,6 +284,13 @@ export type GalleryLive = {
   serverItems: GalleryItem[];
   /** The album as this device draws it: its own approved uploads (optimistic) over the server's. */
   items: GalleryItem[];
+  /**
+   * A list of the album's items (newest first, as `items` runs) in the NIGHT'S ORDER (album-order's `inOrder`): by
+   * when each happened as the manifest says it (`happenedAt`: its capture time where it carries one, else its
+   * arrival), her own landing not in the manifest yet the newest of all. Optional so a stand-in source (a test's,
+   * the lab's) need not name it: absent reads as the list reversed, which is arrival's own order.
+   */
+  inOrder?: (items: readonly GalleryItem[]) => GalleryItem[];
   /** The ids the server holds (the album's membership, for "is this in the album yet"). */
   serverIds: ReadonlySet<string>;
   /** The header's number (`albumCount`). */
@@ -959,6 +974,17 @@ export function GalleryLiveProvider({
     });
   }, [linkRev, serverIds, store]);
 
+  // ★ THE NIGHT IN ORDER, BY WHEN EACH HAPPENED (album-order): read off the manifest once per answer, so the album's
+  // view can turn any list of its items without a second copy of the order. With no capture time on the wire it is
+  // arrival's own order, the list reversed (exact, the server's ties included).
+  const shownEntries = shown.entries;
+  const itemsInOrder = useMemo(() => {
+    if (!carriesCaptureTimes(shownEntries)) return turnByArrival;
+    const when = new Map(shownEntries.map((e) => [entryId(e), happenedAt(e)]));
+    return (list: readonly GalleryItem[]) =>
+      inOrder(list, (item) => when.get(item.id));
+  }, [shownEntries]);
+
   const reelItems = useMemo<readonly LiveMediaItem[]>(() => {
     const fromManifest = buildReelItems(shown.entries);
     // The demo's uploads never reach a server, so its optimistic tiles play too.
@@ -1074,6 +1100,7 @@ export function GalleryLiveProvider({
       teaserTotal: shown.teaser?.teaserTotal ?? null,
       serverItems,
       items,
+      inOrder: itemsInOrder,
       serverIds,
       count,
       countWords,
@@ -1103,6 +1130,7 @@ export function GalleryLiveProvider({
       shown.teaser,
       serverItems,
       items,
+      itemsInOrder,
       serverIds,
       count,
       countWords,

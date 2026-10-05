@@ -6,9 +6,10 @@
 import "server-only";
 
 import {
-  firstPaintIds,
+  albumFirstPaintIds,
   type RowRhythm,
 } from "@/components/shared/album-window-plan";
+import type { AlbumSort } from "@/lib/shared/album-order";
 import {
   planGuestAlbumSync,
   readGuestAlbumMedia,
@@ -267,6 +268,8 @@ export async function loadGallerySeed(
     seed: number;
     /** The width the album last laid its rows at (`pr_album_w`), or null cold. */
     width: number | null;
+    /** The order the album opens in (album-order's `guestAlbumOrder`), newest first when absent. */
+    sort?: AlbumSort;
   },
 ): Promise<GallerySeed> {
   if (decision.access === "none") return { kind: "locked" };
@@ -329,13 +332,11 @@ export async function loadGallerySeed(
   // No version was sent, so the plan is always a manifest (album-sync.ts, the first rule).
   const part = plan.part as AlbumManifestPart;
 
-  // The first paint's photographs get their links in the render, and so do the Highlight reel
-  // tile's stills (the reel's own first pass, `tileStills`), so the tile stands with its pictures
-  // from the first byte rather than arriving late and pushing the album down.
-  const ids = firstPaintIds(
-    part.entries.map(([id, width, height]) => ({ id, width, height })),
-    firstPaint,
-  );
+  // The first paint's photographs get their links in the render, in the order the album opens in
+  // (album-order), and so do the Highlight reel tile's stills (the reel's own first pass,
+  // `tileStills`), so the tile stands with its pictures from the first byte rather than arriving late
+  // and pushing the album down.
+  const ids = albumFirstPaintIds(part.entries, firstPaint);
   const reelItems = createReelItems()(part.entries);
   if (liveReelAvailable(reel, reelItems)) {
     const have = new Set(ids);
