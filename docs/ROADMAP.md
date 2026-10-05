@@ -17,6 +17,7 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Host: the host's view-as-guest cover (`as-guest-view.tsx`) never names its kinds, where the guest's first paint now does (crumbs-74).
 - Admin: the operator's uploads credit (the calls lab's X6, on Will's word): a `credit_bytes` column `uploads_used` subtracts, one definer RPC, the `admin_actions` log, a control behind AAL2 and `destructive-sheet`, bounded credits; a migration (admin-uploads' Question).
 - Admin: `/admin/accounts` makes 50 `uploads_used` calls a page view; one batched read wants a migration; and a lapsed pass reads "0 B" of its allowance while its uploads are refused.
 - Guests: drop the one-file presign and complete bodies (`server-pipeline.ts`'s `splitBurst(...) === null` arms, kept for a tab loaded before bursts) a milestone after compute-uploads ships.
@@ -41,7 +42,6 @@ below hold the rest by surface.
 - Upkeep: once a milestone takes the current build to partyreel.com (whose `standby-budget.ts` still calls it), a contract migration drops `standby_hosts` with its test pins and renames `host_storage_summary.standby_bytes` to `deleted_bytes` (DROP + CREATE) with `readHostStorageSummary`.
 - Host app: a deleted event's card in the dashboard's Deleted gets its own Delete forever beside Restore (`events-section.tsx`'s per-row actions); today Empty Deleted takes every deleted event at once, or she restores one first.
 - Cost: rows asked to leave (`empty_deleted`, `leave_deleted`) keep their R2 objects until the night's purge, so a refill day's R2 peak holds the old set beside the new (PRICING.md prices it under Deleted); reclaim them at once, R2 first.
-- Guests: the cover's count glyph says both nouns until the album's live source names its kinds, since the first paint's `getGalleryStats` (`guest-events-admin.ts`) knows only `approvedTotal`; carry the photo and video counts there to name them from the first byte.
 - Uploads: keep per-event byte sums in SQL (PRICING.md's lever "The dashboard and the storage list page"), so an upload's three reads of the host's bytes through `host_storage_summary` (the context, `meter_upload`, then `create_media*` under her lock) and the size list's per-event totals (`readStorageEvents`, `db/queries/storage-list.ts`) stop walking every item.
 - Admin: the prune's `primary_missing` (rows alive, primary objects gone, the backup the only copy) closes its run `ok` with a note (`workers/backup/src/prune-run.ts`); raise it as a durability alert with a restore path beside the dead letters in `/admin/jobs`.
 - Accessibility: Settings' page-level head carries no description (`event-settings-sheet.tsx` sets `aria-describedby` undefined); `PopupHeader` could draw the event's name there as a screen-reader-only description.

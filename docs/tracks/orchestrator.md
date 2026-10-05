@@ -59,7 +59,7 @@ the dashboard, the hub's strip, graphite, Create's styles, small fixes, red-team
 | `admin-uploads` | the operator sees a host's uploads against her allowance and her Deleted beside her active bytes; read-only | MERGED at `41405f36a` (gate 228 green); the reset is the calls lab's X6; pruned | Sonnet, 3132 | `a92c83ecc3155933c` |
 | `crumbs-73` | the hub develops too; how-it-works' four hairlines | MERGED at `32a286c3b` (gate 229 green); pruned | Sonnet, 3131 | `a386ace618c2b7342` |
 | `library-specimens-2` | the hub-head specimens' real strip; Create's whole room as a Library composition | MERGED at `4ce8c5561` (gate 230 green); pruned | Sonnet, 3131 | `a84adf5b16e812599` |
-| `crumbs-74` | the album cover's count names its kinds from the first byte | RUNNING (cut at `439aa8899`; resume from its WIP) | Sonnet, 3131 | `afd144fc61505e0de` |
+| `crumbs-74` | the album cover's count names its kinds from the first byte | MERGED at `ea92dd3c6` (gate 231 green); pruned | Sonnet, 3131 | `afd144fc61505e0de` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Its
 model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`. From another session, respawn it from
@@ -70,8 +70,8 @@ session (`2ba90542-62d6-487c-8c79-3657619f9133`, hi@willgibs.com, weekly 92% at 
 2026-10-06 21:00Z) ran to 99% on Will's word (no token wasted). Since milestone 36 it merged compute-uploads,
 compute-presign, compute-lazy-sdk, crumbs-66 to crumbs-72, library-specimens, uploads-meter-ui, upload-cancel and
 admin-uploads, crumbs-73 and library-specimens-2 (gates 215 to 230, every one green); launch-prep holds them for
-milestone 37, which needs a local red-team (54) and Will's yes. One lane may be in flight when this account stops:
-crumbs-74 (the cover's count names its kinds from the first byte; resume it from its WIP or integrate its handoff). The next Orchestrator runs on willg97 (its weekly reset 2026-10-04 13:00Z,
+milestone 37, which needs a local red-team (54) and Will's yes. crumbs-74 merged too (gate 231). No lane is in flight:
+the account stopped clean. The next Orchestrator runs on willg97 (its weekly reset 2026-10-04 13:00Z,
 0% then). Its first steps:
 - for each `lp/*` whose manifest is not `handed-off`, resume it per the runbook's "Resume a lane" (its pushed WIP, its
   predecessor's transcript under `subagents/agent-<id>.jsonl`, the same port); one whose manifest says handed-off is
