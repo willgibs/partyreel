@@ -17,6 +17,12 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Trust & safety: "Delete our copy from her Drive", an audited operator act for a takedown of an item a send delivered (it needs the connection's key at the time; written to `forensic_audit_log`).
+- Product: keep a capture time at upload, so a Drive file's name and `modifiedTime` say when it was taken (`driveFileStem`'s `capturedAt` waits for it).
+- Admin: the account view (`/admin/accounts/[id]`) shows its Drive connection with Pause and Disconnect (today on `/admin/exports#drive`, found by address).
+- Admin: the command palette jumps to `/admin/exports#drive` (`lib/admin/palette.ts`).
+- Drive v2: live sync, then Dropbox (the design note's sections 9 and 10).
+- Drive: a `lanefail` word is the one internal word whose replay is not a no-op (three inside five minutes pause the connection until an operator's Resume); bind it to the Queue message id or make it idempotent per connection per minute (the Advisor's Q32).
 - Engineering: the rest of the tests that read `supabase/migrations/` by hand (`grep -l "supabase/migrations" src`, less `testing/migrations.*`, the six this lane moved and the three guard tests that already use it) read each function's winning body through `testing/migrations.ts`'s `liveFunction`, so a dropped function never reads as defined. (Replaces the line that names the five.)
 - Lab: nothing links to `/design/lab/tools` (the nav's Tools section has no `href`), so the index is reached by its URL alone and `lab:smoke` never visits it; give the section the index as its `href`.
 - Code hygiene: comments in `constants/tiers.ts` (the anti-abuse why), `event-settings/delete-event-row.tsx`, `constants/events.test.ts`, `content/blog-keep-lines.test.ts` and `app/group-not-found.lazy.test.tsx` still say events have "no end date" in the lifecycle sense; say "never expires", since Settings' end date only says when.
