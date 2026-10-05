@@ -79,3 +79,21 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am
+
+- **Done (3b9b56fdc, WIP):** items 1, 2, 3, 5 and 6's pins. The migration file (unapplied; its rolled-back check not
+  yet run on the live schema); `src/lib/event/zone.ts` + `zone-morning.ts` + `zone.server.ts`; the guest page reads the
+  party's zone and hands the browser the instant (`AlbumOpening.morningAfter`), never a zone; the hook turns at it;
+  See it as a guest gets the guests' order; Create captures the browser zone; Settings captures it where the row has
+  none (`captured_zone`, filled under `time_zone is null`); `time_zone` on the update is the chosen city (strict); the
+  develop's 9 am reads the party's zone (camera page, Create). Typecheck, lint and the touched tests green at 3b9b56fdc
+  (77 files, 1,029 tests); the full suite not yet run.
+- **Next:** item 4 (Settings: a time names its place when the party's zone is not hers; the quiet city choice under
+  the dates); the rolled-back SQL check RED then GREEN via the Supabase MCP; the docs (guest-flow, disposable-mode,
+  host-app); the full gate (test, build, lab:smoke); the guest-page walk on 3133 at 375 and 1440 from two emulated
+  zones; Questions, Deferred, Handoff.
+- **Exceptions so far (outside `owns`, each a few lines):** `src/components/guest/event-experience.tsx` (the
+  `albumOrder` prop's type and the hook call), `src/app/(as-guest)/dashboard/[eventId]/as-guest/page.tsx` (one prop),
+  `src/app/(guest)/e/[token]/card/card.test.tsx` and `src/lib/db/mutations/events.test.ts` (one mock line each).
+- **Mid-flight:** nothing uncommitted.
