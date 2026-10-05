@@ -17,6 +17,7 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Compute: the guest page's cold start still loads `@aws-sdk/client-s3` (about 52 ms of CPU locally, once an instance) for sends it rarely makes (a guest's own delete through `my-uploads`, `lifecycle/reclaim.ts`, `r2/delete.ts`; `r2/presign.ts`'s multipart, HEAD and COPY); a lazy `import()` of the SDK in `r2/client.ts`'s users would spare every cold start of a page that only reads.
 - Guests: drop the one-file presign and complete bodies (`server-pipeline.ts`'s `splitBurst(...) === null` arms, kept for a tab loaded before bursts) a milestone after compute-uploads ships.
 - Guests: a sharper album cover: a purpose-made cover variant (about 1,280 px) made in the browser at upload beside the preview (`upload/preview.ts`, no transform), carried on the wire for the cover's ids only and drawn as the second `srcset` candidate of `HeadStills` (the phone copy, 2,048 px and about 330 KB, would cost a phone about 2 MB on the first screen).
 - Host: the host's dashboard session in `pnpm compute:model` (`--host-cookie-env NAME`, a fresh session cookie from the environment), measured once on the local desk; until then `model.mjs` prices a session as five guest-page loads (0.4% of a wedding's calls).
