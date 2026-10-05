@@ -22,8 +22,6 @@
  */
 import "server-only";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-
 import {
   EXPORT_END_GRACE_MS,
   JOBS,
@@ -57,14 +55,6 @@ export type JobRunRow = {
 
 function jobRunsDb() {
   return createAdminClient();
-}
-
-/**
- * ★ THE TYPED SEAM FOR SEND TO GOOGLE DRIVE'S TABLES, UNTIL THE TYPES REGENERATE: they arrive with migration
- * 20261005120000, so their reads go through this untyped client (drop the cast then).
- */
-function untypedDb(db: ReturnType<typeof createAdminClient>) {
-  return db as unknown as SupabaseClient;
 }
 
 /**
@@ -547,7 +537,7 @@ export async function getJobSignals(nowMs = Date.now()): Promise<JobSignals> {
     // Send to Google Drive (drive-wiring): the files that reached a host's Drive in the day (kept ones included:
     // each was confirmed in her Drive), its failures, and the sends stuck an hour with work and no progress.
     mustCount(
-      untypedDb(db)
+      db
         .from("cloud_export_items")
         .select("*", { count: "exact", head: true })
         .eq("status", "sent")
@@ -556,7 +546,7 @@ export async function getJobSignals(nowMs = Date.now()): Promise<JobSignals> {
     ),
     failuresOf("drive_transfer"),
     mustCount(
-      untypedDb(db)
+      db
         .from("cloud_exports")
         .select("*", { count: "exact", head: true })
         .eq("status", "sending")

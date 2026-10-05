@@ -7,17 +7,13 @@
  * THE RULES OF THE HEARTBEAT STORE HOLD HERE TOO: a read a page or a route acts on THROWS when it fails (`mustQuery`),
  * so "not connected" or "nothing running" is never what a failed read says; the functions answer jsonb, read
  * defensively (a field this code does not know reads as absent, never as a zero).
- *
- * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: the tables and functions arrive with 20261005120000, so every call goes
- * through `untyped` (drop the cast then).
  */
 import "server-only";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-
 import { mustCount, mustQuery } from "@/lib/db/must-query";
 import type { AlbumPreview } from "@/lib/drive/press";
-import { inChunks, readAllPages, type PageResult } from "@/lib/db/read-all";
+import { inChunks, readAllPages } from "@/lib/db/read-all";
+import type { Database, Json } from "@/lib/db/types";
 import { isSealed } from "@/lib/disposable/seal";
 import {
   resolveUploaderIdentity,
@@ -28,12 +24,8 @@ import { createClient } from "@/lib/supabase/server";
 
 type AdminClient = ReturnType<typeof createAdminClient>;
 
-function untyped(client: unknown): SupabaseClient {
-  return client as SupabaseClient;
-}
-
-function admin(): SupabaseClient {
-  return untyped(createAdminClient());
+function admin(): AdminClient {
+  return createAdminClient();
 }
 
 const str = (v: unknown): string | null => (typeof v === "string" ? v : null);
@@ -49,14 +41,26 @@ const obj = (v: unknown): Record<string, unknown> =>
     ? (v as Record<string, unknown>)
     : {};
 
+type Functions = Database["public"]["Functions"];
+
 /** One `cloud_*` function, its jsonb answer, a failure thrown with its name. */
-async function rpc(
-  fn: string,
-  args: Record<string, unknown>,
+async function rpc<F extends keyof Functions & `cloud_${string}`>(
+  fn: F,
+  args: Functions[F]["Args"],
 ): Promise<Record<string, unknown>> {
   const data = await mustQuery(admin().rpc(fn, args), `drive: ${fn}`);
   return obj(data);
 }
+
+/**
+ * ★ A NULL THE GENERATED ARGS CANNOT SAY. Postgres keeps no nullability for a function's arguments, so the generator
+ * types `p_email text` as `string` whether or not the function takes null, and makes optional only an argument with a
+ * default. An argument WITHOUT one must still ride the wire (PostgREST finds the function by the names it is sent, so
+ * a key left out is a 404, PGRST202, never a null): the null such a function takes is cast here and sent as the
+ * `null` it is. An argument WITH a default takes `?? undefined` instead, which leaves the key out and so the default
+ * (null) applies.
+ */
+const nullableArg = <T>(value: T | null): T => value as T;
 
 // ── The connection ──────────────────────────────────────────────────────────────────────────────
 
@@ -158,14 +162,14 @@ export async function upsertConnection(input: {
   const r = await rpc("cloud_connection_upsert", {
     p_user: input.userId,
     p_sub: input.sub,
-    p_email: input.email,
+    p_email: nullableArg(input.email),
     p_email_verified: input.emailVerified,
-    p_name: input.name,
+    p_name: nullableArg(input.name),
     p_scopes: input.scopes,
     p_refresh_ct: input.refreshCt,
     p_access_ct: input.accessCt,
     p_access_expires_at: input.accessExpiresAt,
-    p_refresh_expires_at: input.refreshExpiresAt,
+    p_refresh_expires_at: nullableArg(input.refreshExpiresAt),
   });
   const outcome = str(r.outcome);
   return {
@@ -248,7 +252,7 @@ export async function recordRefreshed(input: {
     p_connection: input.connectionId,
     p_access_ct: input.accessCt,
     p_access_expires_at: input.accessExpiresAt,
-    p_refresh_ct: input.refreshCt ?? null,
+    p_refresh_ct: input.refreshCt ?? undefined,
   });
 }
 
@@ -277,7 +281,7 @@ export async function recordRoom(input: {
 }): Promise<{ left: number; resumed: number }> {
   const r = await rpc("cloud_connection_room", {
     p_connection: input.connectionId,
-    p_limit: input.limit,
+    p_limit: nullableArg(input.limit),
     p_usage: input.usage,
     p_resume: input.resume,
   });
@@ -291,8 +295,8 @@ export async function claimRoot(input: {
 }): Promise<{ root: string | null; won: boolean }> {
   const r = await rpc("cloud_connection_root", {
     p_connection: input.connectionId,
-    p_candidate: input.candidate,
-    p_expected: input.expected,
+    p_candidate: nullableArg(input.candidate),
+    p_expected: nullableArg(input.expected),
   });
   return { root: str(r.root), won: bool(r.won) };
 }
@@ -325,7 +329,7 @@ export async function operatorOnConnection(
   const r = await rpc("cloud_connection_operator", {
     p_connection: connectionId,
     p_act: act,
-    p_note: note ?? null,
+    p_note: note ?? undefined,
   });
   return { ok: bool(r.ok), jobs: num(r.jobs) ?? 0, userId: str(r.user_id) };
 }
@@ -510,7 +514,7 @@ export async function actOnSend(input: {
   reason: string | null;
 }> {
   const r = await rpc("cloud_export_act", {
-    p_user: input.userId,
+    p_user: nullableArg(input.userId),
     p_job: input.jobId,
     p_act: input.act,
     p_operator: input.operator ?? false,
@@ -720,8 +724,9 @@ export async function reportWork(input: {
   return reportOutcomeOf(
     await rpc("cloud_export_report", {
       p_lease: input.lease,
-      p_items: input.items,
-      p_finding: input.finding,
+      // The report route builds each item from the Worker's own JSON: plain strings, numbers, booleans and nulls.
+      p_items: input.items as Json,
+      p_finding: input.finding ?? undefined,
       p_done: input.done,
     }),
   );
@@ -738,8 +743,8 @@ export async function reportCheckPage(input: {
   const r = await rpc("cloud_export_check_page", {
     p_lease: input.lease,
     p_results: input.results,
-    p_duplicates: input.duplicates,
-    p_finding: input.finding,
+    p_duplicates: input.duplicates ?? undefined,
+    p_finding: input.finding ?? undefined,
   });
   return {
     ...reportOutcomeOf(r),
@@ -775,7 +780,13 @@ export type SweepOutcome = {
 };
 
 export async function sweepSends(): Promise<SweepOutcome> {
-  const r = await rpc("cloud_export_sweep", {});
+  // The one function with no arguments: its generated Args say `never`, so it is called with none.
+  const r = obj(
+    await mustQuery(
+      admin().rpc("cloud_export_sweep"),
+      "drive: cloud_export_sweep",
+    ),
+  );
   const list = (v: unknown) => (Array.isArray(v) ? v.map(obj) : []);
   return {
     doneMail: list(r.done_mail).map((d) => ({
@@ -968,7 +979,7 @@ export function sendRowOf(row: Record<string, unknown>): SendRow | null {
 export async function readMySends(
   nowMs: number = Date.now(),
 ): Promise<SendRow[]> {
-  const supabase = untyped(await createClient());
+  const supabase = await createClient();
   const since = new Date(nowMs - 24 * 60 * 60 * 1000).toISOString();
   const month = new Date(nowMs - 30 * 24 * 60 * 60 * 1000).toISOString();
   const rows = await mustQuery(
@@ -989,7 +1000,7 @@ export async function readMySends(
 
 /** Her one send by id, through her own session: null when it is not hers (nothing leaks). */
 export async function readMySend(jobId: string): Promise<SendRow | null> {
-  const supabase = untyped(await createClient());
+  const supabase = await createClient();
   const row = await mustQuery(
     supabase
       .from("cloud_exports")
@@ -1010,7 +1021,7 @@ export async function readMySentTotals(): Promise<{
   bytes: number;
   lastAt: string | null;
 }> {
-  const supabase = untyped(await createClient());
+  const supabase = await createClient();
   const { rows } = await readAllPages(
     "drive: her sent totals",
     (after: string | null, limit) => {
@@ -1022,7 +1033,7 @@ export async function readMySentTotals(): Promise<{
         .order("id", { ascending: true })
         .limit(limit);
       if (after !== null) q = q.gt("id", after);
-      return q as unknown as PromiseLike<PageResult<Record<string, unknown>>>;
+      return q;
     },
     (row) => str(row.id) ?? "",
   );

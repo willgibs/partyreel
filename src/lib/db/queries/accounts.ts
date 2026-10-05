@@ -8,8 +8,6 @@
  */
 import "server-only";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-
 import {
   effectiveStorageCap,
   toBillingTier,
@@ -191,7 +189,11 @@ export type AccountUploads = {
   lapsed: { since: string | null; converted: boolean } | null;
 };
 
-/** One row of `uploads_windows` (20261005130000), as PostgREST answers it: checked before a field is believed. */
+/**
+ * One row of `uploads_windows` (20261005130000), as PostgREST answers it: checked before a field is believed. Not the
+ * generated row: a `returns table` column carries no nullability, so it types `storage_cap_bytes` and `pass_lapsed_at`
+ * as a size and a date, and both come back null (a plan with no cap, a host who has not lapsed).
+ */
 type UploadsWindowRow = {
   host_id: string;
   tier: unknown;
@@ -201,14 +203,6 @@ type UploadsWindowRow = {
   pass_lapsed_at: unknown;
   pass_converted: unknown;
 };
-
-/**
- * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `uploads_windows` arrives with migration 20261005130000, so its call
- * goes through this untyped client (drop the cast then).
- */
-function uploadsWindowsDb(db: ReturnType<typeof createAdminClient>) {
-  return db as unknown as SupabaseClient;
-}
 
 /** What a listed account says when its row did not come back: the account was not found by the read. */
 const NO_ROW = "uploads_windows answered no row for this account";
@@ -257,14 +251,15 @@ export async function readAccountsUploads(
   );
   if (profiles.length === 0) return [];
   try {
-    const db = uploadsWindowsDb(createAdminClient());
+    const db = createAdminClient();
     const ids = [...new Set(profiles.map((profile) => profile.id))];
     const { rows } = await readAllPages(
       "accounts: uploads windows",
       (after: string | null, limit) =>
         db.rpc("uploads_windows", {
           p_host_ids: ids,
-          p_after_id: after,
+          // The generated Args take no null: an absent p_after_id is the SQL default (null), the first page.
+          p_after_id: after ?? undefined,
           p_limit: limit,
         }),
       (row: UploadsWindowRow) => row.host_id,

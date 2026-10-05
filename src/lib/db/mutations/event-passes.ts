@@ -22,21 +22,11 @@
  */
 import "server-only";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-
 import { derivePassEntitlement } from "@/lib/billing/passes";
 import { getLivePasses } from "@/lib/db/queries/event-passes";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const UNIQUE_VIOLATION = "23505";
-
-/**
- * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `consume_passes_for_pro_credit` arrives with migration
- * 20261005130000, so its call goes through this untyped client (drop the cast then).
- */
-function passCreditDb(db: ReturnType<typeof createAdminClient>) {
-  return db as unknown as SupabaseClient;
-}
 
 export type PassPurchaseInsert = {
   profileId: string;
@@ -85,7 +75,7 @@ export async function insertPassPurchase(
 export async function consumeLivePassesForProCredit(
   profileId: string,
 ): Promise<number> {
-  const { data, error } = await passCreditDb(createAdminClient()).rpc(
+  const { data, error } = await createAdminClient().rpc(
     "consume_passes_for_pro_credit",
     { p_host_id: profileId },
   );
