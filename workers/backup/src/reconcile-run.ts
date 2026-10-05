@@ -445,9 +445,12 @@ export async function runReconcile(
         if (outcome === "copied") {
           tally.copied += 1;
           if (tally.copied <= LOGGED) {
+            // Its time beside its bytes: the copy rate a run can count on, measured where the copies run, which
+            // decides what is past one run's reach.
             console.log("reconcile: copied a key the live queue missed", {
               key: item.key,
               bytes: item.size,
+              ms: elapsed() - startedAt,
             });
           }
         } else if (outcome === "exists") tally.exists += 1;
