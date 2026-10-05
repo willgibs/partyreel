@@ -4,15 +4,25 @@ import {
   filterEventRows,
   searchEventRows,
 } from "@/lib/dashboard/events-view";
+import { itemFor, quietLine } from "@/lib/dashboard/attention";
 import {
   buildHomeView,
   type HomeInput,
   type HomeView,
   type HostedEvent,
+  type WeekCard,
 } from "@/lib/dashboard/home-view";
 import { momentEvent } from "@/lib/dashboard/moment";
-import { dayOf, daysFrom, phaseOfEvent, whenOf } from "@/lib/dashboard/when";
+import {
+  dayOf,
+  daysFrom,
+  phaseOfEvent,
+  WEEK_DAYS,
+  whenOf,
+} from "@/lib/dashboard/when";
+import { MAX_EVENTS } from "@/lib/constants/tiers";
 import { eventUrl } from "@/lib/events/share-urls";
+import { formatCount } from "@/lib/format/count";
 
 import type { Host } from "./fixtures";
 
@@ -21,10 +31,11 @@ import type { Host } from "./fixtures";
  *
  * The page is production's composition (`buildHomeView`) over production's
  * rules (`momentEvent`, `seasonsOf`, `weekEvents`, `marksOf`); this file adds
- * only what a round-three option changes: which event the stage features by
- * the host's rule, how her events lay out (filtered, sorted, grouped, in a
- * gallery, a table or a list), the Recent row, and the words of a range of
- * days (`event-dates`, drawn as settled). `model.test.ts` holds that the page
+ * only what the board draws that production does not have yet: which event
+ * the stage features by the host's rule and the fact that picked it (round
+ * four's chooser), how her events lay out (round three's Display menu, drawn
+ * as settled), the Recent row, the words of a range of days (`event-dates`),
+ * and the details H6 draws the other way. `model.test.ts` holds that the page
  * around production's own lead is production's to the byte.
  */
 
@@ -32,14 +43,15 @@ export const SITE = "https://partyreel.com";
 
 /* ── the answers a frame is drawn in ──────────────────────────────────── */
 
-/** How her events are customized (`events`). */
-export type EventsWay = "menu" | "bar" | "views" | "find";
-/** How the stage of an event with no photographs is drawn (`stage`). */
-export type StageWay = "lit" | "album" | "card" | "guest";
-/** Where the feature's rule is set (`rule`). */
-export type RuleWay = "corner" | "tabs" | "head" | "settings";
+/**
+ * How a host chooses what leads her stage (`chooser`, round four): the
+ * corner's glass, the stage's own words, or a deck she turns.
+ */
+export type ChooserWay = "corner" | "words" | "deck";
+/** The dashboard's details as built, or one of them the other way (`details`, H6). */
+export type DetailsWay = "built" | "week" | "count" | "limit" | "ring";
 
-export type Answers = { events: EventsWay; stage: StageWay; rule: RuleWay };
+export type Answers = { chooser: ChooserWay; details: DetailsWay };
 
 /* ── the feature's rule ───────────────────────────────────────────────── */
 
@@ -73,9 +85,40 @@ const newestMade = (a: HostedEvent, b: HostedEvent) =>
 const AFTER = 30;
 
 /**
- * THE STAGE'S EVENT UNDER A RULE. A party on its own day always leads (a host
- * date first, then an undated album landing today: `momentEvent`'s first
- * step); every other day, the rule:
+ * WHAT A RULE READ TO PICK ITS EVENT: the step of `leadWhyOf` that decided,
+ * kept beside the event so every drawing of the chooser says the same true
+ * thing about why an event leads (the fresh-eyes pass, round four: "one false
+ * reason breaks the idea").
+ */
+export type Why =
+  /** A party on its own day: it leads whatever the rule. */
+  | "live"
+  /** Newest: a party within a month, by its nearest day. */
+  | "near"
+  /** The event she made last: Newest's own, and every rule's fallback. */
+  | "made"
+  /** Upcoming: the soonest dated party ahead. */
+  | "next"
+  /** Last opened: the event she was in last. */
+  | "opened"
+  /** Latest photos: the album photographs last landed in. */
+  | "photos";
+
+export type Lead = {
+  /** The rule that read it. */
+  rule: RuleId;
+  event: HostedEvent;
+  why: Why;
+  /** The rule found nothing of its own kind and led with her newest. */
+  fellBack: boolean;
+  /** The day the fact is about (the party's nearest day, its date, the photos' day), else null. */
+  day: string | null;
+};
+
+/**
+ * THE STAGE'S EVENT UNDER A RULE, AND WHY. A party on its own day always
+ * leads (a host date first, then an undated album landing today:
+ * `momentEvent`'s first step); every other day, the rule:
  *  - `newest`: production's moment within a month (the nearest party either
  *    way), else the newest made (`lead=made`, settled);
  *  - `upcoming`: the soonest dated party ahead, else the newest made;
@@ -83,102 +126,146 @@ const AFTER = 30;
  *    new event counts as opened), else the newest made;
  *  - `photos`: the album photographs last landed in, else the newest made.
  */
-export function leadOf(
+export function leadWhyOf(
   host: Pick<Host, "hosted" | "ctx">,
   rule: RuleId,
   trail: readonly string[],
-): HostedEvent | null {
+): Lead | null {
   const { hosted, ctx } = host;
   if (hosted.length === 0) return null;
   const moment = momentEvent(hosted, ctx.today);
-  if (moment?.phase === "live") return moment.event;
+  if (moment?.phase === "live")
+    return {
+      rule,
+      event: moment.event,
+      why: "live",
+      fellBack: false,
+      day: ctx.today,
+    };
   const newest = [...hosted].sort(newestMade)[0]!;
+  const made: Lead = {
+    rule,
+    event: newest,
+    why: "made",
+    fellBack: rule !== "newest",
+    day: newest.createdAt.slice(0, 10),
+  };
   if (rule === "newest") {
     const day = moment ? dayOf(moment.event) : null;
     const near = day !== null && Math.abs(daysFrom(ctx.today, day)) <= AFTER;
-    return near ? moment!.event : newest;
+    return near
+      ? { rule, event: moment!.event, why: "near", fellBack: false, day }
+      : made;
   }
   if (rule === "upcoming") {
     const next = hosted
       .filter((e) => e.date !== null && daysFrom(ctx.today, e.date) > 0)
       .sort((a, b) => a.date!.localeCompare(b.date!))[0];
-    return next ?? newest;
+    return next
+      ? { rule, event: next, why: "next", fellBack: false, day: next.date }
+      : made;
   }
   if (rule === "opened") {
     const last = trail
       .map((id) => hosted.find((e) => e.id === id))
       .find((e): e is HostedEvent => Boolean(e));
-    return last ?? newest;
+    return last
+      ? { rule, event: last, why: "opened", fellBack: false, day: null }
+      : made;
   }
   const latest = hosted
     .filter((e) => e.lastArrival !== null)
     .sort((a, b) => b.lastArrival!.at.localeCompare(a.lastArrival!.at))[0];
-  return latest ?? newest;
+  return latest
+    ? {
+        rule,
+        event: latest,
+        why: "photos",
+        fellBack: false,
+        day: latest.lastArrival!.day,
+      }
+    : made;
 }
+
+/** The stage's event under a rule (`leadWhyOf`'s event). */
+export function leadOf(
+  host: Pick<Host, "hosted" | "ctx">,
+  rule: RuleId,
+  trail: readonly string[],
+): HostedEvent | null {
+  return leadWhyOf(host, rule, trail)?.event ?? null;
+}
+
+const SHORT = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  timeZone: "UTC",
+});
+const SHORT_YEAR = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  year: "numeric",
+  timeZone: "UTC",
+});
+
+/** A day either side of today in a row's fewest words: today, tomorrow, yesterday, in 18 days, 10 days ago. */
+export function nearWords(day: string, today: string): string {
+  const d = daysFrom(today, day);
+  if (d === 0) return "today";
+  if (d === 1) return "tomorrow";
+  if (d === -1) return "yesterday";
+  return d > 0 ? `in ${d} days` : `${-d} days ago`;
+}
+
+/** A day behind today: today, yesterday, else its date (its year once that has gone). */
+function pastWords(day: string, today: string): string {
+  const d = daysFrom(today, day);
+  if (d === 0) return "today";
+  if (d === -1) return "yesterday";
+  const [y, m, n] = day.split("-").map(Number);
+  const at = new Date(Date.UTC(y!, m! - 1, n!));
+  return day.slice(0, 4) === today.slice(0, 4)
+    ? SHORT.format(at)
+    : SHORT_YEAR.format(at);
+}
+
+/**
+ * THE FACT A RULE READ, in a row's few words after its event's name (the
+ * fresh-eyes pass: "the event plus the fact its rule read"): "made yesterday",
+ * "in 18 days", "Sat, Dec 12", "opened last", "photos Sep 26", and where the
+ * rule found nothing of its own kind, that: "nothing dated ahead".
+ */
+export function factOf(lead: Lead, today: string): string {
+  if (lead.fellBack)
+    return lead.rule === "upcoming"
+      ? "nothing dated ahead"
+      : lead.rule === "photos"
+        ? "no photos yet"
+        : "nothing opened yet";
+  if (lead.why === "live") return "on today";
+  if (lead.why === "near") return nearWords(lead.day!, today);
+  if (lead.why === "next") return whenFor(lead.event, today);
+  if (lead.why === "opened") return "opened last";
+  if (lead.why === "photos") return `photos ${pastWords(lead.day!, today)}`;
+  return `made ${pastWords(lead.event.createdAt.slice(0, 10), today)}`;
+}
+
+/** A rule's row under its name: the event it leads with today, and the fact it read. */
+export const leadLine = (lead: Lead, today: string): string =>
+  `${lead.event.name} · ${factOf(lead, today)}`;
 
 /** Whether a party is on its own day: the one thing no rule overrides. */
 export function partyOnItsDay(host: Pick<Host, "hosted" | "ctx">): boolean {
   return host.hosted.some((e) => phaseOfEvent(e, host.ctx.today) === "live");
 }
 
-/* ── a range of days (`event-dates`, drawn as settled) ────────────────── */
+/* ── an event's when ──────────────────────────────────────────────────── */
 
-const fmt = (o: Intl.DateTimeFormatOptions) =>
-  new Intl.DateTimeFormat("en-US", { ...o, timeZone: "UTC" });
-const WD = fmt({ weekday: "short" });
-const WD_LONG = fmt({ weekday: "long" });
-const MD = fmt({ month: "short", day: "numeric" });
-const D = fmt({ day: "numeric" });
-const MY = fmt({ month: "short", year: "numeric" });
-const MDY_LONG = fmt({ month: "long", day: "numeric", year: "numeric" });
-const MD_LONG = fmt({ month: "long", day: "numeric" });
-const LONG = fmt({ weekday: "long", month: "long", day: "numeric" });
-
-const at = (day: string) => {
-  const [y, m, d] = day.split("-").map(Number);
-  return new Date(Date.UTC(y!, m! - 1, d!));
-};
-const sameMonth = (a: string, b: string) => a.slice(0, 7) === b.slice(0, 7);
-
-/**
- * A RANGE'S WHEN, IN THE TILE'S FEWEST WORDS (`whenOf`'s ladder, widened to two
- * days): "Sat – Sun" inside the week, "Nov 14 – 15" inside the month or this
- * year, "May 2025" once its year has gone (its days no longer matter).
- */
-export function rangeWhen(start: string, end: string, today: string): string {
-  const d = daysFrom(today, start);
-  const span = sameMonth(start, end)
-    ? `${MD.format(at(start))} – ${D.format(at(end))}`
-    : `${MD.format(at(start))} – ${MD.format(at(end))}`;
-  if (d > 1 && d < 7)
-    return `${WD.format(at(start))} – ${WD.format(at(end))}`;
-  if (start.slice(0, 4) === today.slice(0, 4) || d > 0) return span;
-  return MY.format(at(start));
-}
-
-/** A range in full, the rows' and the table's date: "October 6 – 7, 2026". */
-export function rangeLabel(start: string, end: string): string {
-  if (sameMonth(start, end))
-    return `${MD_LONG.format(at(start))} – ${D.format(at(end))}, ${start.slice(0, 4)}`;
-  return `${MD_LONG.format(at(start))} – ${MDY_LONG.format(at(end))}`;
-}
-
-/** The stage's date line for a range: "Saturday, November 14 to Sunday, November 15". */
-export const rangeLine = (start: string, end: string): string =>
-  `${LONG.format(at(start))} to ${LONG.format(at(end))}`;
-
-/** The weekday words of a range a week out: "Saturday to Sunday". */
-export const rangeDays = (start: string, end: string): string =>
-  `${WD_LONG.format(at(start))} to ${WD_LONG.format(at(end))}`;
-
-/** An event's when, a range's where it has one: what every drawing of the board says. */
+/** An event's when in a row's fewest words, a range's included: production's own (`whenOf`). */
 export function whenFor(
-  e: Pick<HostedEvent, "id" | "date">,
-  ends: Record<string, string>,
+  e: Pick<HostedEvent, "date" | "endDate">,
   today: string,
 ): string {
-  const end = ends[e.id];
-  return e.date && end ? rangeWhen(e.date, end, today) : whenOf(e.date, today);
+  return whenOf(e.date, today, false, e.endDate);
 }
 
 /* ── the page, around a lead ──────────────────────────────────────────── */
@@ -213,15 +300,12 @@ export function homeInput(host: Host, leadId?: string | null): HomeInput {
  * and busier than any, so production's moment always leads with it), which
  * draws every real event as a row, a week card and a group member through
  * production's own rules; the chosen lead is then lifted out of the rows, the
- * week and its group, exactly as production leaves its own lead out. A range's
- * words are then laid over the rows and the week (`ranged`).
+ * week and its group, exactly as production leaves its own lead out.
  */
 export function homeAround(host: Host, leadId: string | null): HomeView {
   const base = buildHomeView(homeInput(host, leadId));
   const lead = host.hosted.find((e) => e.id === leadId);
-  const view =
-    !lead || base.stage?.event.id === lead.id ? base : lifted(host, lead);
-  return ranged(view, host);
+  return !lead || base.stage?.event.id === lead.id ? base : lifted(host, lead);
 }
 
 /** The page with `lead` on the stage, by way of the decoy. Exported for the test that holds it to production. */
@@ -260,32 +344,90 @@ export function lifted(host: Host, lead: HostedEvent): HomeView {
   };
 }
 
-/** A range's words over production's rows and week cards (production has no end date yet). */
-function ranged(view: HomeView, host: Host): HomeView {
-  if (Object.keys(host.ends).length === 0) return view;
+/* ── the dashboard's details, as built or one the other way (H6) ────────── */
+
+/**
+ * THE ALBUM COUNT'S WORD: "in the album" as built (`stageNumbersOf`,
+ * `quietLine`), since the count holds videos too; the other way names both.
+ */
+export const COUNT_WORDS = {
+  built: "in the album",
+  other: "photos and videos",
+} as const;
+
+/**
+ * THE HEAD'S LINE: how many events and the plan, as built ("1 event · Event
+ * Pass": the plan's cap is the ring's and Create's to say); the other way
+ * counts against a plan's own limit where it has one ("1 of 1 event").
+ */
+export function headLine(
+  host: Pick<Host, "hosted" | "plan">,
+  limit: boolean,
+): string {
+  const n = host.hosted.length;
+  const max = MAX_EVENTS[host.plan.tier];
+  const events =
+    limit && max !== null
+      ? `${formatCount(n)} of ${formatCount(max)} ${max === 1 ? "event" : "events"}`
+      : n > 0
+        ? `${formatCount(n)} ${n === 1 ? "event" : "events"}`
+        : "No events yet";
+  return `${events} · ${host.plan.name}`;
+}
+
+/**
+ * THE WEEK THE OTHER WAY: an album nobody dated whose photos landed within the
+ * week joins it, said by its photos' day ("Photos Sun, Nov 8"), beside the dated parties production
+ * holds (`weekEvents`: "the week holds dated parties only"), in the week's own
+ * order: the nearest first, a day ahead before the same day behind.
+ */
+export function weekWithUndated(view: HomeView, host: Host): HomeView {
   const today = host.ctx.today;
-  const startOf = new Map(host.hosted.map((e) => [e.id, e.date]));
+  const lead = view.stage?.event.id;
+  const held = new Set(view.week.map((c) => c.id));
+  const joining: WeekCard[] = host.hosted
+    .filter(
+      (e) =>
+        e.date === null &&
+        e.lastArrival !== null &&
+        e.id !== lead &&
+        !held.has(e.id) &&
+        Math.abs(daysFrom(today, e.lastArrival.day)) <= WEEK_DAYS,
+    )
+    .map((e) => ({
+      id: e.id,
+      name: e.name,
+      href: `/dashboard/${e.id}`,
+      // Said as its photos' day, never as a date she set (its tile says "No date").
+      when: `Photos ${whenOf(e.lastArrival!.day, today)}`,
+      coverUrl: e.stills[0] ?? null,
+      face: null,
+      live: false,
+      item: itemFor(e, host.ctx),
+      quiet: quietLine(e, host.ctx),
+      share: { joinUrl: eventUrl(SITE, e.qrToken), qrStyle: e.qrStyle },
+    }));
+  if (joining.length === 0) return view;
+  const dayOfCard = (id: string) => {
+    const e = host.hosted.find((x) => x.id === id);
+    return e ? (e.date ?? e.lastArrival?.day ?? today) : today;
+  };
+  const near = (id: string) => daysFrom(today, dayOfCard(id));
+  const week = [...view.week, ...joining].sort(
+    (a, b) =>
+      Math.abs(near(a.id)) - Math.abs(near(b.id)) || near(b.id) - near(a.id),
+  );
+  return { ...view, week };
+}
+
+/** The count's word the other way, wherever the page says it: the week's quiet lines. */
+export function countSaid(view: HomeView, word: string): HomeView {
   return {
     ...view,
-    week: view.week.map((c) => {
-      const start = startOf.get(c.id);
-      const end = host.ends[c.id];
-      return start && end ? { ...c, when: rangeWhen(start, end, today) } : c;
-    }),
-    events: {
-      ...view.events,
-      rows: view.events.rows.map((r) => {
-        const start = r.kind === "hosted" ? startOf.get(r.id) : null;
-        const end = host.ends[r.id];
-        return start && end
-          ? {
-              ...r,
-              when: rangeWhen(start, end, today),
-              dateLabel: rangeLabel(start, end),
-            }
-          : r;
-      }),
-    },
+    week: view.week.map((c) => ({
+      ...c,
+      quiet: c.quiet.replace(COUNT_WORDS.built, word),
+    })),
   };
 }
 
@@ -522,64 +664,6 @@ export function changed(p: Prefs): string[] {
   return out;
 }
 
-/* ── one field that finds (`find`) ────────────────────────────────────── */
-
-/**
- * WHAT A WORD IN THE FIELD MEANS: a year is a filter, the words upcoming,
- * past, waiting and undated are filters, and every other word is part of a
- * name (production's own folded search, `searchEventRows`).
- */
-export function findIn(
-  rows: readonly EventListRow[],
-  query: string,
-  f: Facts,
-): { rows: EventListRow[]; chips: string[] } {
-  const words = query.toLowerCase().split(/\s+/).filter(Boolean);
-  const chips: string[] = [];
-  let kept = filterEventRows([...rows], "all");
-  const rest: string[] = [];
-  for (const w of words) {
-    if (/^(19|20)\d\d$/.test(w)) {
-      chips.push(w);
-      kept = kept.filter((r) => yearOf(r, f) === w);
-    } else if (w === "upcoming" || w === "past" || w === "undated") {
-      chips.push(w[0]!.toUpperCase() + w.slice(1));
-      kept = kept.filter((r) => passesWhen(r, w as WhenFilter, f));
-    } else if (w === "waiting") {
-      chips.push("Waiting");
-      kept = kept.filter((r) => r.pending + r.waiting > 0);
-    } else rest.push(w);
-  }
-  return { rows: searchEventRows(kept, rest.join(" ")), chips };
-}
-
-/* ── saved views (`views`) ────────────────────────────────────────────── */
-
-export type View = {
-  id: string;
-  label: string;
-  prefs: Prefs;
-  /** A view she made, rather than one every host starts with. */
-  hers?: boolean;
-  /** Words her view finds in a name (a wedding planner's "Weddings"). */
-  query?: string;
-};
-
-/** Every host's views: all of them, what is coming, and what has been. */
-export const STARTER_VIEWS: readonly View[] = [
-  { id: "all", label: "All", prefs: PREFS_DEFAULT },
-  {
-    id: "upcoming",
-    label: "Upcoming",
-    prefs: { ...PREFS_DEFAULT, when: "upcoming", sort: "date", desc: false },
-  },
-  {
-    id: "past",
-    label: "Past",
-    prefs: { ...PREFS_DEFAULT, when: "past", sort: "date", desc: true },
-  },
-];
-
 /* ── an event's own light ─────────────────────────────────────────────── */
 
 /**
@@ -593,3 +677,10 @@ export function lampOf(id: string): 1 | 2 | 3 | 4 | 5 {
   for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0;
   return ((h % 5) + 1) as 1 | 2 | 3 | 4 | 5;
 }
+
+/** A lamp as light: a gradient's colour, never a class (the lamp set is not in `@theme`). */
+export const lampLight = (n: number, alpha: number): string =>
+  `color-mix(in oklch, var(--lamp-${n}) ${alpha}%, transparent)`;
+
+/** The lamp beside a lamp: the second, softer light a stage's corner carries. */
+export const nextLamp = (n: number): number => (n % 5) + 1;

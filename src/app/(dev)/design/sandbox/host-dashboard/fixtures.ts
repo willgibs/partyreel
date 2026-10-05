@@ -24,20 +24,21 @@ import { type CropId, photo } from "./crops";
  *  - MAYA has one event, her 30th ten days ago, and a friend's wedding she
  *    added photos to.
  *  - NIA has three and dated none: a wedding she made last night, still empty,
- *    and two older albums. NIA A WEEK ON is the same wedding dated (a weekend,
- *    Saturday to Sunday), its code opened and its door set: the week before.
+ *    and two older albums.
  *  - ARI has ten, a family's two years: birthdays, a lake weekend, a book club
  *    nobody dated, a housewarming she made last night.
  *  - JO plans parties for a living: forty since New Year's Day 2025, saving
  *    three 2025 weddings for their couples' anniversaries.
  *  - RAE runs a venue: two hundred events since January 2023, made by a seeded
  *    generator so the count is real and every name reads like an event's.
+ *  - LENA has five and a full week (`details`, H6): her 40th last Saturday,
+ *    a team lunch on Thursday, and Sunday's pancakes, an album nobody dated
+ *    whose photos landed this week.
  *
- * ★ RANGES AND THE NEWEST LEAD ARE DRAWN AS SETTLED (`event-dates` wires them
- * this round): an event may carry a last day (`end`, a range of days, no
- * times), and on a quiet day the newest event leads the stage. Production's
- * types hold no end date yet, so a range lives here (`Host.ends`) and the
- * board's own words say it (`model.ts`, `rangeWords`).
+ * ★ RANGES ARE PRODUCTION'S (`event-dates`): an event may carry a last day
+ * (`end`, a range of days, no times), handed to production as its `endDate`,
+ * so every word a range takes on the page is production's own; and on a
+ * quiet day the newest event leads the stage.
  *
  * ★ THE DAY IS TUESDAY 10 NOVEMBER 2026, MID-MORNING, AND NO PARTY IS ON ITS
  * DAY: a live stage listens to its album's doorbell (a Realtime socket) and a
@@ -48,7 +49,13 @@ import { type CropId, photo } from "./crops";
 
 export const TODAY = "2026-11-10";
 
-export type HostId = "maya" | "nia" | "nia-week" | "ari" | "jo" | "rae";
+export type HostId =
+  | "maya"
+  | "nia"
+  | "ari"
+  | "jo"
+  | "rae"
+  | "lena";
 
 export type Host = {
   id: HostId;
@@ -66,8 +73,6 @@ export type Host = {
   people: Record<string, number>;
   /** Each event's album, newest first: the stand-in event page draws it. */
   albums: Record<string, string[]>;
-  /** A ranged event's last day, `YYYY-MM-DD` (`event-dates`, drawn as settled). */
-  ends: Record<string, string>;
   /** Her opens, newest first, as Try it opens the page: Recent and Last opened read them. */
   trail: string[];
 };
@@ -136,7 +141,7 @@ type Spec = {
   name: string;
   /** The host's date, `YYYY-MM-DD`, or none. */
   date: string | null;
-  /** A range's last day (`event-dates`, drawn as settled). */
+  /** A range's last day, `YYYY-MM-DD` (production's `endDate`). */
   end?: string;
   /** The day she made it. */
   made: string;
@@ -195,7 +200,8 @@ function event(s: Spec): HostedEvent {
     qrStyle: s.qrStyle ?? "classic",
     stills,
     uploadsLabel: uploadsLabel(!s.paused),
-    dateLabel: s.date ? formatEventDate(s.date) : "No date set",
+    dateLabel: s.date ? formatEventDate(s.date, s.end ?? null) : "No date set",
+    endDate: s.end ?? null,
   });
 }
 
@@ -226,7 +232,7 @@ function guest(
 }
 
 function host(
-  base: Omit<Host, "hosted" | "albums" | "ctx" | "people" | "ends"> & {
+  base: Omit<Host, "hosted" | "albums" | "ctx" | "people"> & {
     specs: Spec[];
     storagePct: number;
   },
@@ -241,9 +247,6 @@ function host(
     albums: Object.fromEntries(specs.map((s) => [s.id, albumOf(s)])),
     people: Object.fromEntries(
       specs.map((s) => [s.id, Math.round((s.approved ?? 0) / 7)]),
-    ),
-    ends: Object.fromEntries(
-      specs.filter((s) => s.end).map((s) => [s.id, s.end!]),
     ),
   };
 }
@@ -286,7 +289,7 @@ const MAYA = host({
   trail: ["maya-30th"],
 });
 
-/* ── Nia: three events, none dated; and the same three a week on ──────── */
+/* ── Nia: three events, none dated ───────────────────────────────────── */
 
 const NIA_OLDER: Spec[] = [
   {
@@ -338,31 +341,6 @@ const NIA = host({
       made: "2026-11-09",
       description: null,
       qrStyle: "rounded",
-    },
-    ...NIA_OLDER,
-  ],
-});
-
-/**
- * THE WEEK BEFORE: the same wedding dated (a weekend, Saturday to Sunday, so a
- * range is drawn as settled), its door an invite list, its welcome written and
- * its code opened twelve times; still not one photograph.
- */
-const NIA_WEEK = host({
-  ...NIA_BASE,
-  id: "nia-week",
-  specs: [
-    {
-      id: "nia-wedding",
-      name: "Nia & Alex's Wedding",
-      date: "2026-11-14",
-      end: "2026-11-15",
-      made: "2026-11-09",
-      door: "invite",
-      opened: 12,
-      qrStyle: "rounded",
-      description:
-        "Welcome! Add every photo you take this weekend, from the ceremony to Sunday's brunch.",
     },
     ...NIA_OLDER,
   ],
@@ -1163,13 +1141,81 @@ const RAE = host({
   trail: ["rae-winter-gala", "rae-tasting", "rae-holiday", "rae-staff"],
 });
 
+/* ── Lena: five events and a full week (H6) ──────────────────────────── */
+
+/**
+ * THE WEEK'S OWN CASE (`details`, H6): two dated parties either side of
+ * today, and an album she never dated whose photos landed on Sunday, which
+ * the week as built leaves out ("the week holds dated parties only").
+ */
+const LENA = host({
+  id: "lena",
+  name: "Lena",
+  email: "lena@example.com",
+  seed: "hd-lena",
+  plan: {
+    name: "Pro",
+    tier: "pro",
+    capBytes: 100 * GIGABYTE,
+    usedBytes: 3.1 * GIGABYTE,
+  },
+  storagePct: 3,
+  specs: [
+    {
+      id: "lena-lunch",
+      name: "Team Lunch",
+      date: "2026-11-12",
+      made: "2026-10-22",
+      opened: 3,
+      qrStyle: "dots",
+    },
+    {
+      id: "lena-pancakes",
+      name: "Sunday Pancakes",
+      date: null,
+      made: "2026-11-08",
+      look: ["evening", 3],
+      approved: 23,
+      last: "2026-11-08",
+    },
+    {
+      id: "lena-40th",
+      name: "Lena's 40th",
+      date: "2026-11-07",
+      made: "2026-10-10",
+      look: ["party", 2],
+      approved: 128,
+    },
+    {
+      id: "lena-halloween",
+      name: "Halloween at Ours",
+      date: "2026-10-31",
+      made: "2026-10-01",
+      look: ["party", 8],
+      approved: 96,
+    },
+    {
+      id: "lena-book-club",
+      name: "Book Club",
+      date: null,
+      made: "2026-06-02",
+      look: ["evening", 6],
+      approved: 14,
+      last: "2026-06-02",
+    },
+  ],
+  guests: [],
+  deleted: [],
+  trail: ["lena-pancakes", "lena-40th", "lena-lunch"],
+});
+
 export const HOSTS: Record<HostId, Host> = {
   maya: MAYA,
   nia: NIA,
-  "nia-week": NIA_WEEK,
   ari: ARI,
   jo: JO,
   rae: RAE,
+  lena: LENA,
 };
 
 /** An event's day as the page places it (`dayOf`), or a guest album's: what a sort by date reads. */
