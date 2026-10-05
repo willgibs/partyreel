@@ -918,6 +918,47 @@ export type Database = {
           },
         ]
       }
+      notice_retries: {
+        Row: {
+          dedupe_key: string
+          first_failed_at: string
+          html: string
+          kind: string
+          last_failed_at: string
+          profile_id: string
+          subject: string
+          text: string
+        }
+        Insert: {
+          dedupe_key: string
+          first_failed_at?: string
+          html: string
+          kind: string
+          last_failed_at?: string
+          profile_id: string
+          subject: string
+          text: string
+        }
+        Update: {
+          dedupe_key?: string
+          first_failed_at?: string
+          html?: string
+          kind?: string
+          last_failed_at?: string
+          profile_id?: string
+          subject?: string
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notice_retries_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_prefs: {
         Row: {
           created_at: string
@@ -1895,6 +1936,19 @@ export type Database = {
         Returns: Json
       }
       my_liked_media_ids: { Args: { p_media_ids: string[] }; Returns: string[] }
+      over_capacity_candidates: {
+        Args: { p_after?: string; p_limit?: number }
+        Returns: {
+          active_bytes: number
+          deleted_bytes: number
+          email: string
+          id: string
+          storage_cap_bytes: number
+          storage_grace_until: string
+          system_bytes: number
+          tier: Database["public"]["Enums"]["tier_type"]
+        }[]
+      }
       purge_media_now: { Args: { p_media_ids: string[] }; Returns: Json }
       purge_media_rows: {
         Args: { p_media_ids: string[] }
