@@ -25,7 +25,8 @@ vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => asSupabase(fake),
 }));
 
-const { getAlbumForModeration } = await import("@/lib/db/queries/moderation");
+const { getAlbumForModeration, listRecentMedia } =
+  await import("@/lib/db/queries/moderation");
 const { ALBUM_DRILL_IN_PAGE } = await import("@/lib/moderation/album-pages");
 
 const EVENT = "e0000000-0000-4000-8000-000000000001";
@@ -222,5 +223,69 @@ describe("getAlbumForModeration", () => {
       },
     });
     await expect(getAlbumForModeration(EVENT)).rejects.toThrow(/admin album/);
+  });
+});
+
+/**
+ * ★ THE TILE'S PREVIEW RIDES EVERY ROW (crumbs-78): both reads selected `original_key` alone, so the operator's
+ * tiles could only ever draw originals (a full-size photograph, or a clip's first frame, per tile). The
+ * preview's key rides each item now, null on a row with none, for `toModerationFeedItems` to sign.
+ */
+describe("the preview key on the operator's items", () => {
+  const AT = "2026-09-23T12:00:00.000000+00:00";
+  const row = (i: number, over: FakeRow = {}): FakeRow => ({
+    id: uuid(i),
+    event_id: EVENT,
+    type: "photo",
+    status: "approved",
+    created_at: AT,
+    original_key: `k-${i}`,
+    ...over,
+  });
+
+  it("★ the drill-in's items carry preview_key as previewKey, and null where the row has none", async () => {
+    fake = createFakePostgrest({
+      tables: {
+        events: [
+          { id: EVENT, host_id: "host-1", name: "Big one", deleted_at: null },
+        ],
+        media: [row(1, { preview_key: "p-1" }), row(2)],
+        profiles: [],
+      },
+    });
+    const detail = await getAlbumForModeration(EVENT);
+    expect(
+      [...(detail?.media ?? [])]
+        .map((m) => [m.originalKey, m.previewKey])
+        .sort(),
+    ).toEqual([
+      ["k-1", "p-1"],
+      ["k-2", null],
+    ]);
+  });
+
+  it("★ the feed's items carry it too", async () => {
+    const event = {
+      id: EVENT,
+      name: "Big one",
+      host_id: "host-1",
+      deleted_at: null,
+    };
+    fake = createFakePostgrest({
+      tables: {
+        media: [
+          row(1, { preview_key: "p-1", events: event }),
+          row(2, { events: event }),
+        ],
+        profiles: [
+          { id: "host-1", email: "host@example.com", display_name: "Maya" },
+        ],
+      },
+    });
+    const items = await listRecentMedia();
+    expect(items.map((m) => [m.originalKey, m.previewKey]).sort()).toEqual([
+      ["k-1", "p-1"],
+      ["k-2", null],
+    ]);
   });
 });

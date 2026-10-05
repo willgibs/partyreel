@@ -8,7 +8,12 @@ import { captureError } from "@/lib/observability/sentry";
 // so it must supply its own <html>/<body> and depend on nothing that layout
 // loaded. Inline styles only (globals.css may not exist here), no UI-kit
 // imports, system font stack. captureError is the one dependency: it no-ops
-// without a DSN and a reporting failure can't break the screen.
+// without a DSN and a reporting failure can't break the screen. It reports
+// `render:global`, this screen's area alone: the root error.tsx, which catches a
+// crash in a group's own layout, reports `render:root`.
+//
+// Exercise it on a production build with `/design/lab/tools/boom?boundary=global`
+// (that probe's page says how it reaches here; dev shows Next's overlay instead).
 //
 // ★ AND IT HAS A WAY HOME NOW (Will, `global-crash=home`, 2026-09-19). Try
 // again cannot fix a genuinely broken deploy, and the one thing this screen can

@@ -21,10 +21,9 @@ import {
 // ★ IT IS NOT global-error's TWIN. This one renders INSIDE app/layout.tsx, so
 // it brings no <html>/<body> and the stylesheet, the fonts and the theme are
 // all live. global-error still backstops the case this cannot reach: the ROOT
-// layout itself crashing. Both tag `render:global`, because both mean "the
-// crash escaped every group": they are told apart by the stack, and a distinct
-// `render:root` area is on the ROADMAP (SentryArea is single-sourced in
-// lib/observability/sentry.ts and out of this lane's paths).
+// layout itself crashing. They are two different failures, and Sentry tells them
+// apart by area, never by the stack: this one reports `render:root`, global-error
+// `render:global`.
 //
 // notFound() is NOT caught here: Next routes its HTTP-fallback throw to
 // not-found.tsx past every error boundary, which surface.test.ts's sentinel and
@@ -33,7 +32,5 @@ export default function RootError({
   error,
   unstable_retry,
 }: CrashBoundaryProps) {
-  return (
-    <RouteError area="render:global" error={error} retry={unstable_retry} />
-  );
+  return <RouteError area="render:root" error={error} retry={unstable_retry} />;
 }

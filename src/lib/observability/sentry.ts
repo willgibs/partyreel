@@ -19,6 +19,9 @@ import { env } from "@/lib/env";
 // Coarse source area for filtering issues. Extend as new capture sites land.
 // The render:* areas are the route-group error boundaries (error.tsx /
 // global-error.tsx) so render crashes filter separately from handled flows.
+// ★ `render:root` is the app's root error.tsx (a crash in a group's own layout, which no group boundary
+// reaches) and `render:global` is global-error.tsx alone (the root layout itself died): two different
+// failures, told apart here rather than by their stacks.
 export type SentryArea =
   | "upload"
   | "webhook"
@@ -38,6 +41,7 @@ export type SentryArea =
   | "render:marketing"
   | "render:admin"
   | "render:auth"
+  | "render:root"
   | "render:global";
 
 const dsn = env.NEXT_PUBLIC_SENTRY_DSN;

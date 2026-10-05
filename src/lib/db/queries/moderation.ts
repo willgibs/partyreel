@@ -32,6 +32,7 @@ type FeedRow = {
   status: MediaStatus;
   created_at: string;
   original_key: string;
+  preview_key: string | null;
   events: {
     id: string;
     name: string;
@@ -71,7 +72,7 @@ export async function listRecentMedia(
   let query = admin
     .from("media")
     .select(
-      "id, type, status, created_at, original_key, events!media_event_id_fkey!inner(id, name, host_id, deleted_at)",
+      "id, type, status, created_at, original_key, preview_key, events!media_event_id_fkey!inner(id, name, host_id, deleted_at)",
     )
     .is("events.deleted_at", null)
     .order("created_at", { ascending: false })
@@ -96,6 +97,7 @@ export async function listRecentMedia(
     status: r.status,
     createdAt: r.created_at,
     originalKey: r.original_key,
+    previewKey: r.preview_key,
     eventId: r.events.id,
     eventName: r.events.name,
     hostId: r.events.host_id,
@@ -169,7 +171,7 @@ export async function getAlbumForModeration(
   const pageQuery = () => {
     let q = admin
       .from("media")
-      .select("id, type, status, created_at, original_key")
+      .select("id, type, status, created_at, original_key, preview_key")
       .eq("event_id", eventId)
       .order("created_at", { ascending: false })
       .order("id", { ascending: false })
@@ -228,6 +230,7 @@ export async function getAlbumForModeration(
     status: m.status,
     createdAt: m.created_at,
     originalKey: m.original_key,
+    previewKey: m.preview_key,
     eventId: event.id,
     eventName: event.name,
     hostId: event.host_id,
