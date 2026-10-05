@@ -17,6 +17,7 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Dashboard: Last opened could say when ("opened yesterday") from production's `openedAt` once the stage's chooser is wired (host-dashboard r4's idea).
 - Host: the picked hub door at a tablet's width (640 to 1024), undrawn on event-header r4 (five cards there are about 190px and cut "Highlight reel"; the capsule and the windows' row each need their own step).
 - Host: "Max size per upload" stands only under the Videos switch (`videos-switch.tsx`), unreachable on Free though it caps photos too: its own row in What guests can add (customize r1's audit).
 - Camera: turning the camera off and back on writes the roll back to 24 (`events_reveal_stamp`'s coalesce): keep her size, or her usual once account defaults exist.
