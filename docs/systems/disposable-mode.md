@@ -69,6 +69,9 @@ m.status = 'approved' and (m.sealed_until is null or m.sealed_until <= now() or 
 - `album_bits` (mirrored by `AlbumSim`) splits a row's move into the host's scope (1), what a guest sees (2: approved
   and unsealed, the only bit that stamps an `album_version`) and **what waits** (4: held, or approved and sealed). Bit 4
   moves `album_max` and stamps nothing, so no waiting id rides the guest's log, nor its tombstone.
+- The host's Guests room asks what waits as one number too, `countWaitingGuestShots` (`social.ts`: approved guest shots
+  under their seal, a head count on `media_sealed_idx`, never an id), to say "N shots are developing" where its list,
+  which a guest joins at the develop, is empty ([host-app.md](host-app.md)).
 - `album_changes_since` (scope `album`) answers what waits as numbers, `waiting: {count, minutes}`, in its one
   snapshot; the sync's full answer carries it as `GuestFullSync.waiting` with the develop time (`waitingFor`), only at
   full access (never the teaser, `require_upload_to_view` or a blocked viewer, which answer before it), and only when

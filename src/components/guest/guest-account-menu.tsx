@@ -6,6 +6,7 @@ import {
   LogOut,
   Settings,
   SlidersHorizontal,
+  UserRound,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -25,7 +26,8 @@ import { HELP_CENTER_HREF } from "@/lib/content/help-links";
 // swap of the "Start for free" CTA (see guest-header.tsx). It deliberately differs from the host
 // UserMenu in two ways:
 //   1. it adds a "Dashboard" entry (the guest page has no app nav) + an owner-only "Manage event"
-//      deep link, so a signed-in visitor can get back into the app;
+//      deep link, so a signed-in visitor can get back into the app, and Your profile, the door the host
+//      menu opens its account group with (her uploads, likes and connections: crumbs-81);
 //   2. Sign out runs CLIENT-side (the onSignOut prop), so the visitor STAYS on the event page and
 //      an account-required event re-gates, the job the removed "Not you? Switch guest" button did.
 // It reuses the host menu's ThemeSubmenu (next-themes + hydration wiring) + initial() so the
@@ -34,6 +36,7 @@ export function GuestAccountMenu({
   email,
   displayName,
   avatarUrl,
+  slug = null,
   seed,
   ownsThisEvent,
   eventId,
@@ -43,6 +46,12 @@ export function GuestAccountMenu({
   displayName: string | null;
   /** Presigned avatar URL (server-side via /api/me/menu), or null for the initial-letter fallback. */
   avatarUrl: string | null;
+  /**
+   * Her claimed handle, from /api/me/menu, or null (not claimed, or not asked yet). It decides where Your profile
+   * GOES, not whether it exists: `/u/<handle>` is a page only once a handle is claimed, so an account without one
+   * opens `/me`, which holds the same sections and sends her on the day she has one (`UserMenu`'s own rule).
+   */
+  slug?: string | null;
   /** seedFor(user.id), from /api/me/menu — null until phase 2 resolves (GuestHeader). */
   seed?: string | null;
   /** True only when /api/me/menu confirmed ownership (RLS-scoped) — never inferred on the client. */
@@ -90,6 +99,13 @@ export function GuestAccountMenu({
             </Link>
           </DropdownMenuItem>
         )}
+        {/* DOOR ONE, the person (as the host menu's first row): her uploads, likes and the people she follows,
+            and the page everyone else sees. The same tab, like the app's two entry points below. */}
+        <DropdownMenuItem asChild>
+          <Link href={slug ? `/u/${slug}` : "/me"}>
+            <UserRound /> Your profile
+          </Link>
+        </DropdownMenuItem>
         {/* The app entry points the guest page otherwise lacks. */}
         <DropdownMenuItem asChild>
           <Link href="/dashboard">

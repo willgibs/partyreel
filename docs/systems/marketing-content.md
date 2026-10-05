@@ -140,8 +140,9 @@ hide-on-scroll in `header-shell.tsx`, desktop panels in `marketing-nav.tsx`, a f
   `/pricing`, so a price change never falsifies a contract. **The fences read the legal text and its comments**, so
   their patterns cannot be quoted even in a comment: write "working days", "public authorities", "content that
   sexually exploits minors", "reasonable limits on upload volume". Acceptance is the one `LegalConsentLine`, shown once
-  per surface (in place on `/login`, a new tab elsewhere, none where the surface already carries it): no checkbox,
-  nothing recorded. The reading pieces shared with the articles live in `marketing/reading/`; `ArticleToc` measures the
+  per surface (in place on `/login`, a new tab elsewhere, none where the surface already carries it; on the admin
+  deployment, which 404s both pages, its links are the app's own, absolute and in a new tab): no checkbox, nothing
+  recorded. The reading pieces shared with the articles live in `marketing/reading/`; `ArticleToc` measures the
   first `<header>` for its scroll offset, so the meta card straddling the cut is a `<div>`.
 - **`/about`**: copy in `constants/about.ts`, a `CLAIM_FILES` entry because the page file itself is reached only by the
   weaker neutralization fence. The press kit is a band on it (`about/press-kit-band.tsx`, copy in `ABOUT_PRESS_KIT`,

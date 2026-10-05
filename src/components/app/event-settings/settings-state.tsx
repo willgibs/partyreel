@@ -137,6 +137,9 @@ function developValuesOf(
 
 type Key = keyof SettingsValues;
 
+/** What a save that threw says under its title: it is a refusal that carries no message of the server's. */
+const NEVER_ANSWERED = "Check your connection and try again.";
+
 /** What the rows, the pages and the door's lines read, and the one way each setting is written. */
 type SettingsState = {
   eventId: string;
@@ -312,6 +315,12 @@ export function SettingsProvider({
    * One save: lay the change over the row, write it, and settle. `write` answers whether the database
    * took it (with the values it kept, where the write says). A refused save puts every key it laid
    * back (unless a newer save of that key is already on its way) and says why.
+   *
+   * ★ A WRITE THAT THROWS IS A REFUSAL (crumbs-81). A dropped connection rejects the call rather than
+   * answering it, and a rejection that left here kept the key busy for good and the value she never saved
+   * on the page, with a rejected promise for a caller that has no catch. So a throw settles as any refusal
+   * does: put back (the newest save of a key only), freed, and said. It never rejects out of here, so no
+   * caller needs a catch of its own.
    */
   const run = useCallback(
     async (
@@ -341,6 +350,10 @@ export function SettingsProvider({
       let answer: Awaited<ReturnType<typeof write>>;
       try {
         answer = await call;
+      } catch {
+        // The call never answered (the network, or a server that fell over): the neighbours' own words for a round
+        // trip that did not come back (the bin's Restore, her uploads' Remove).
+        answer = { ok: false, message: NEVER_ANSWERED };
       } finally {
         flying.current -= 1;
         flushLanded();

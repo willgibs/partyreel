@@ -1012,7 +1012,8 @@ a Change. The typed name also rides the code request as `DOOR_NAME_KEY`, so a ma
 SSR default, so the anonymous majority sees no flash); logged in → the visitor's account menu
 ([`guest-account-menu.tsx`](../../src/components/guest/guest-account-menu.tsx)), fetched via
 `GET /api/me/menu?event=<id>` only when a session exists (event ownership is an RLS-scoped select, behind the
-owner-only "Manage event" link). The island reads its session locally (`getSession()`: it gates no data, and every
+owner-only "Manage event" link; her handle rides the same answer, so Your profile is `/u/<handle>`, and `/me`, which
+sends her on the day she has one, until it lands or while she has none). The island reads its session locally (`getSession()`: it gates no data, and every
 route still asks `getUser()`). ★ **It follows the device's session, never reads it once** (a `router.refresh()` does
 not re-run a client island): a look at the cookie on the SDK's sign-in and sign-out, the Cookie Store API's `change`
 (it reaches a tab nobody is looking at, where a response that cleared the cookie elsewhere is otherwise unheard), the

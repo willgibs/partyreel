@@ -10,7 +10,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // The data the guest event-page header island needs to render a logged-in visitor's account
-// menu (avatar + name) and the owner-only "Manage event" link. It is fetched ONLY after the
+// menu (avatar + name), the owner-only "Manage event" link and the handle her profile lives
+// at (Your profile: `/u/<handle>`, or `/me` while she has none). It is fetched ONLY after the
 // island detects a local session (getSession), so anonymous event crowds never hit it — that's
 // what keeps the page's zero-server-getUser() invariant on the common path.
 //
@@ -57,6 +58,10 @@ export async function GET(request: Request) {
     email: user.email ?? null,
     displayName: menu.displayName,
     avatarUrl,
+    // Her own handle (crumbs-81), null while she has none: the menu's Your profile is a link
+    // that leads to a page that exists, as the host menu's is (`UserMenu`'s `slug`). It is the
+    // viewer's own row (getProfileMenu(user.id)) and a handle is public by existence anyway.
+    slug: menu.slug,
     // seedFor(user.id) — the visitor's OWN colour, hashed server-side before
     // it reaches their browser (never the raw id itself: seed.ts). This is
     // the same rule the "host_id never leaks to the client" comment above

@@ -53,6 +53,7 @@ const room = (n: number, readAt: number): GuestsRoomData => ({
     id: `g${i}`,
     displayName: `Guest ${i}`,
   })) as unknown as GuestsRoomData["items"],
+  waiting: 0,
   emails: [],
   atTheDoor: [],
   doorTotal: 0,
