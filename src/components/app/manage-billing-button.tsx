@@ -1,9 +1,12 @@
 "use client";
 
 import { useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
+import {
+  usePricingDoors,
+  usePricingRouter,
+} from "@/components/app/pricing/pricing-doors";
 import { Button } from "@/components/ui/button";
 import { loginPath } from "@/lib/auth/return-path";
 
@@ -12,6 +15,10 @@ import { loginPath } from "@/lib/auth/return-path";
 // (has been through checkout). It is NOT the way to change a Pro size or cadence:
 // that is the plan sheet's price list through /api/stripe/change-plan, which checks
 // what the host stores first (the storage guard, billing-caps.md).
+//
+// ★ IT REACHES NOTHING ITSELF: the portal and the way out are the surface's doors
+// (`pricing/pricing-doors.tsx`), the real ones on every page of the app and a
+// specimen's own in the Library, so what a reviewer there presses is this very button.
 //
 // Rest props pass through to the Button (like CheckoutButton's) so the pricing sheet
 // can give a Pro host a full-width portal door without a second component; the default
@@ -22,27 +29,24 @@ export function ManageBillingButton({
   React.ComponentProps<typeof Button>,
   "onClick" | "disabled" | "asChild" | "children"
 > = {}) {
-  const router = useRouter();
+  const router = usePricingRouter();
+  const { openPortal, leave } = usePricingDoors();
   const [isPending, startTransition] = useTransition();
 
-  function openPortal() {
+  function open() {
     startTransition(async () => {
-      try {
-        const res = await fetch("/api/stripe/portal", { method: "POST" });
-        if (res.status === 401) {
+      const outcome = await openPortal();
+      switch (outcome.kind) {
+        case "redirect":
+          leave(outcome.url);
+          return;
+        case "signin":
           router.push(loginPath(window.location.pathname));
           return;
-        }
-        const data = await res.json();
-        if (!res.ok || !data?.url) {
+        case "error":
           toast.error("Couldn't open billing.", {
-            description: data?.message ?? "Please try again.",
+            description: outcome.message,
           });
-          return;
-        }
-        window.location.href = data.url as string;
-      } catch {
-        toast.error("Couldn't open billing. Please try again.");
       }
     });
   }
@@ -52,7 +56,7 @@ export function ManageBillingButton({
       variant="outline"
       size="sm"
       {...buttonProps}
-      onClick={openPortal}
+      onClick={open}
       disabled={isPending}
     >
       {isPending ? "Opening…" : "Manage billing"}

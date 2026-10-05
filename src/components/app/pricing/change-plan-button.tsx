@@ -23,8 +23,9 @@ import type { ProPlanId } from "@/lib/validation/checkout";
  * A storage refusal goes to `onRefused` so the surface can print the numbers where
  * the host is looking; without one it falls back to a toast that carries them.
  *
- * Its route and its router are the surface's doors (`pricing-doors.tsx`): the real ones by default, a specimen's own
- * where pressing Switch must not reach Stripe. Every caller, `RefusalFace`'s included, is door-aware without a prop.
+ * Its route, its way out and its router are the surface's doors (`pricing-doors.tsx`): the real ones by default, a
+ * specimen's own where pressing Switch must not reach Stripe. Every caller, `RefusalFace`'s included, is door-aware
+ * without a prop.
  */
 export function ChangePlanButton({
   planId,
@@ -42,7 +43,7 @@ export function ChangePlanButton({
   onRefused?: (refusal: StorageRefusal) => void;
 }) {
   const router = usePricingRouter();
-  const { changePlan } = usePricingDoors();
+  const { changePlan, leave } = usePricingDoors();
   const [isPending, startTransition] = useTransition();
 
   function change() {
@@ -50,7 +51,7 @@ export function ChangePlanButton({
       const outcome = await changePlan(planId, next);
       switch (outcome.kind) {
         case "redirect":
-          window.location.href = outcome.url;
+          leave(outcome.url);
           return;
         case "signin":
           router.push(loginPath(window.location.pathname));

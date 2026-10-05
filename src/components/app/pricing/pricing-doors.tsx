@@ -3,9 +3,10 @@
 import { createContext, useContext, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
-import { CheckoutButton } from "@/components/app/checkout-button";
-import { ManageBillingButton } from "@/components/app/manage-billing-button";
 import { requestChangePlan } from "@/components/app/pricing/change-plan-request";
+import { requestCheckout } from "@/components/app/pricing/checkout-request";
+import { leaveForStripe } from "@/components/app/pricing/leave";
+import { requestPortal } from "@/components/app/pricing/portal-request";
 
 /**
  * THE PRICING SURFACE'S DOORS: every place its presses and its one read reach outside the app, as one value a surface
@@ -18,6 +19,12 @@ import { requestChangePlan } from "@/components/app/pricing/change-plan-request"
  * prop threaded through the sheet, and the Library's specimens wrap their own inert doors around the surface
  * (`PricingDoorsProvider`), so a reviewer there can press Get Pro, Manage billing and Switch and never reach Stripe, and
  * the sheet opens on the facts the specimen is about, not on whoever happens to be signed in to the lab.
+ *
+ * ★ EVERY DOOR IS A VERB, AND THE BUTTONS ARE THE APP'S OWN. Checkout, the portal and the plan switch each ask their
+ * route and answer an outcome, the way out is a function, and the real buttons (`CheckoutButton`,
+ * `ManageBillingButton`, `ChangePlanButton`) press whichever the nearest provider names: a specimen swaps a verb, never a
+ * button, so what a reviewer sees pending, refused or leaving is the product's own, and the button a stand-in used to
+ * redraw cannot drift from the one it stood for.
  *
  * ★ A SURFACE NEVER SWAPS ITS OWN DOORS. The provider is imported by the lab and by tests only
  * (`pricing-doors.test.tsx` scans for it): a product page that handed itself an inert door would sell nothing and read
@@ -44,15 +51,20 @@ export type PricingDoors = {
    * `parsePlanFacts`), or null when it cannot be read. Rejects on an abort or a network that is down, as `fetch` does.
    */
   readFacts: (signal: AbortSignal) => Promise<unknown>;
+  /** Checkout for a plan: the checkout route's one client. It never rejects; its outcomes are `CheckoutOutcome`'s. */
+  startCheckout: typeof requestCheckout;
+  /** Stripe's billing portal: the portal route's one client. It never rejects; its outcomes are `PortalOutcome`'s. */
+  openPortal: typeof requestPortal;
   /** A Pro host's switch to one of the six prices: the change-plan route's one client. */
   changePlan: typeof requestChangePlan;
-  /** The button that starts Checkout for a plan, and with it leaves the app for Stripe's page. */
-  CheckoutButton: typeof CheckoutButton;
-  /** The button that opens Stripe's billing portal. */
-  ManageBillingButton: typeof ManageBillingButton;
   /**
-   * The router the receipt and the switch's sign-in fallback use. Absent, the app's own: there is nothing to hand in
-   * where the router is the app's (every page), and a specimen that must not navigate names one.
+   * The way out, taken when one of the three above answers `redirect`: leave the app for that address, Stripe's page.
+   * The real one leaves without a history entry of the sheet's behind it (`leave.ts`), so one Back returns to the page.
+   */
+  leave: (url: string) => void;
+  /**
+   * The router the receipt, the switch and the presses' sign-in fallback use. Absent, the app's own: there is nothing
+   * to hand in where the router is the app's (every page), and a specimen that must not navigate names one.
    */
   router?: PricingRouter;
 };
@@ -65,12 +77,13 @@ function readFactsFromServer(signal: AbortSignal): Promise<unknown> {
   }).then((res) => (res.ok ? res.json() : null));
 }
 
-/** Production's doors: the real buttons, the real routes and the app's own router. */
+/** Production's doors: the real routes, the real way out and the app's own router. */
 const SERVER: PricingDoors = {
   readFacts: readFactsFromServer,
+  startCheckout: requestCheckout,
+  openPortal: requestPortal,
   changePlan: requestChangePlan,
-  CheckoutButton,
-  ManageBillingButton,
+  leave: leaveForStripe,
 };
 
 const PricingDoorsContext = createContext<PricingDoors>(SERVER);

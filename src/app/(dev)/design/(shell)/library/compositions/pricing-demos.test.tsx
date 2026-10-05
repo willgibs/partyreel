@@ -196,7 +196,8 @@ describe("a press that would leave for Stripe never does", () => {
         .click();
     });
     await advance(1000);
-    // The real ChangePlanButton announces the refusal it was handed in its own toast.
+    // The real ChangePlanButton takes the address its route answered through the doors' way out, which is where
+    // the Library says it stops (pricing-doors: the switch used to answer a refusal to get the same toast).
     expect(toast).toHaveBeenCalledWith(
       expect.stringMatching(/library stops here/i),
     );
