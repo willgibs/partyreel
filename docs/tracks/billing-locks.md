@@ -55,11 +55,15 @@ working.
 - **How does the operator read a lapsed pass?** Built: the list's Uploads cell says `PASS LAPSED` and the day it ended,
   its Allowance cell "Uploads refused", the row tinted as an account at its limit; the account's page says "Her pass
   ended <minute UTC>: new uploads, hers and her guests', are refused until the nightly recompute moves her to Free.",
-  and its Billing row "Pass expired" where it said "Pass expires" of a past date. Recommended: as built.
+  and its Billing row "Pass expired" where it said "Pass expires" of a past date. A pass converted to Pro credit whose
+  Pro plan has not landed (her uploads refused too) reads `PRO PENDING` and "Her passes became Pro credit <minute UTC>
+  and her Pro plan has not landed yet: new uploads, hers and her guests', are refused until it does." Recommended: as
+  built.
 - **Where does "lapsed, since when" come from?** Built: the ledger, by the completes' own predicate (her tier a pass's,
   no unconsumed pass live now), never `profiles.tier_expires_at`; since is when her last pass stopped being live (its
-  expiry, or its conversion to Pro credit when that came first). A credited host whose subscription event has not
-  landed reads lapsed for those seconds, which is true (her uploads are refused then). Recommended: as built.
+  expiry, or its conversion to Pro credit when that came first, which the read says apart). Each row also answers the
+  tier and cap its figure was read with, and the page holds the figure to that plan's allowance, so a plan that moved
+  since the list's read never pairs one plan's figure with another's allowance. Recommended: as built.
 
 ## System-doc edits (in place, owned facts only)
 
@@ -69,8 +73,10 @@ working.
 - `docs/systems/database-security.md` (the lane's fact, a read in the frontmatter): the profiles-first rule now covers
   every writer of a pass's row (the "one cycle outside them" sentence deleted, the measured reason in its place); the
   service-role-only inventory names `uploads_windows` and `consume_passes_for_pro_credit`.
-- `docs/systems/admin-observability.md` (the lane's fact): the accounts list and page ask one keyset read; a lapsed
-  pass reads Pass lapsed, since when, Uploads refused.
+- `docs/systems/admin-observability.md` (the lane's fact): the accounts list and page ask one keyset read, each row
+  held to the plan it was read with; a lapsed pass reads Pass lapsed (or Pro pending), since when, Uploads refused.
+- `docs/systems/billing-caps.md` also says the credit grant's idempotency as Stripe keeps it (at least 24 hours,
+  against a delivery's three-day retry), where it said a retry never double-grants.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
@@ -80,6 +86,15 @@ working.
 - Uploads: the completes' allowance refusal reaches a host as "Storage is full for your plan" (`mapHostCheckViolation`,
   `db/mutations/host-media.ts`, maps every "limit" to the room's words) and a guest as the SQL's own "Upload limit
   reached for this plan.", where the presign says each route's allowance sentence.
+- Pricing: the pass-to-Pro credit's balance grant is idempotent only for Stripe's key window (at least 24 hours) while a
+  delivery retries for three days, so a conversion that fails for more than a day grants the balance again; dedupe on
+  Stripe's side (`metadata.pass_credit_session` on the grant, read back with `customers.listBalanceTransactions`
+  before granting).
+- Pricing: a replay of a credit delivery consumes a pass bought after the conversion (a day-old pass checkout paid
+  after going Pro) with no credit for it; the conversion should take only the passes the checkout credited.
+- Pricing: `recomputePassEntitlement` reads the ledger and writes the profile in two requests, so a recompute racing a
+  conversion can put back the chain fields it just cleared until the subscription event lands; one SQL recompute under
+  the profiles lock would close it.
 
 ## Handoff (replaces the chat report)
 

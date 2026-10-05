@@ -298,7 +298,7 @@ comment on function public.uploads_windows(uuid[], uuid, integer) is
 -- through dynamic SQL, so it fails on what it lacks, never on a parse.
 --
 -- RESULT, 2026-10-05 against the live schema (the drift read above clean first: meter_upload at 00a25a03, the two new
--- functions absent):
+-- functions absent), both INVOKER bodies called as the service role (`set local role`, as their caller runs them):
 --   RED  0/6: 1 no consume_passes_for_pro_credit; 2 the meter admits the lapsed pass ('ok') while both writers refuse
 --        it ("23514 Upload limit reached for this plan."), and the credited one too; 3-4 no uploads_windows; 5 the two
 --        functions' ACLs and shapes absent (the meter's as named); 6 the meter at its 20261004100000 hash.
