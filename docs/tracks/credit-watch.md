@@ -65,3 +65,23 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am
+
+- Done and pushed: `42f3ac00d` (the five items: the claim's busy rule and settled overlap, the stuck credits on
+  /admin/accounts with Retry and the `pass_credit` signal, the recompute's Pro-pending skip, the sweep's live-or-ahead
+  candidates, the change-plan configuration check), `e13380c01` (billing-caps.md, one pointer line in
+  admin-observability.md), `927db4ce3` (the configuration check streams; each stuck half one request). Gates green on
+  `927db4ce3`: typecheck, lint, test (1014 files, 12,575 tests); lab:smoke 149/0 on `42f3ac00d`; the rolled-back proof
+  RED 0/5, GREEN 5/5 and the pre-flight's five lock races on the SQL as of `42f3ac00d`.
+- Mid-flight (on disk, uncommitted): a fresh-eyes red-team found a HIGH: the busy rule widens a double grant when a dead
+  holder's grant reached Stripe but its record was lost (the other tab's retry claims past the lapsed lease and grants
+  without looking). Fixing at the source: the claim names the orphans it is taken past (other checkouts' lapsed,
+  ungranted, unreleased claims on its passes) and the route looks on Stripe's side for their grants before granting
+  (found: record and convert that checkout's, release this one; none: grant, then release the orphans). The migration
+  is edited for it (orphans; released grants kept out of the overlap; the release's lease refusal dropped).
+- Next: the TS for the orphans (`parseClaim`, `honorPassCredit`, a `findGrants` over several sessions), the webhook and
+  SQL-facts tests, the MEDIUM (credited-twice claims on the Accounts check, 30 days), the LOWs (the delivery's credited
+  flag cleared after the credit, honoured excludes a conversion of none, the released words, the header's
+  before-apply line), then the rolled-back proof and pre-flight again (new hashes), the whole gate, and this manifest's
+  Questions, Deferred and Handoff.
