@@ -315,7 +315,7 @@ function putWithProgress(args: {
   body: Blob;
   headers?: Record<string, string>;
   onProgress?: (fraction: number) => void;
-  /** Every progress report as it comes (never one a frame): the burst's own pace reading, which no paint waits on. */
+  /** Every progress report as it comes (never one a frame): the burst hears its last byte handed off (`endsSoon`). */
   onBytes?: (fraction: number) => void;
   /** Her cancel: aborts the transfer, said as a cancel and never as a drop. */
   signal?: AbortSignal;
@@ -1145,7 +1145,7 @@ async function sendBytes(
   p: Prepared,
   presign: PresignedFile,
   signal: AbortSignal | undefined,
-  /** Its original's every progress report (the burst's pace reading), 0 to 1 across all its parts. */
+  /** Its original's every progress report, 0 to 1 across all its parts (`endsSoon` hears the 1). */
   onBytes?: (fraction: number) => void,
 ): Promise<{ ok: true; sent: Sent } | { ok: false; outcome: UploadOutcome }> {
   const { file } = p;
