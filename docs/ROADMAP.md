@@ -17,6 +17,9 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Host: her usual for new parties (the style, the roll, the develop's hour), set in Account, only if hosts ask; never offered in Create (customize r1's `mine`, read as not built: "available in settings at best, but not ensuring it's included") (settings-wiring).
+- Guests: what a host lets guests take home (everything, as today; their own photos; just to look), a new export permission (customize r1's carried `take-home`, not built) (settings-wiring).
+- Camera: a roll of one is refused as "You've taken all 1 shots on your roll." (`create_media`'s raise, mirrored by `rollSpentMessage` under `roll.test.ts`); say one shot as one the next time `create_media` is redefined (settings-wiring).
 - Durability: a copy past one invocation's reach never completes (the queue's copy and the reconcile's each have 15 minutes; the DR drill copied about 1 MB/s, and the reconcile now logs each copy's `ms`), so a multi-GB video may have no backup; a multipart copy resumable across invocations (its upload id and parts in the Durable Object) closes it (backup-reconcile).
 - Durability: a maintenance script that rewrites a stored object in place (the EXIF backfill) refreshes the backup's copy past its lock too, or the reconcile reads the difference forever (backup-reconcile).
 - Guests: a photograph opened from a shared link (`?photo=`) has no entry under it, so the phone's Back leaves the album with the photograph open; a base entry written under a deep-linked viewer (the album's address replaced, the photograph's pushed) would make Back close the photograph first (`masonry.tsx`; Will's call, since the close already lands in the album in place) (back-layers).
@@ -66,7 +69,6 @@ below hold the rest by surface.
 - Dashboard: Last opened could say when ("opened yesterday") from production's `openedAt` once the stage's chooser is wired (host-dashboard r4's idea).
 - Host: the picked hub door at a tablet's width (640 to 1024), undrawn on event-header r4 (five cards there are about 190px and cut "Highlight reel"; the capsule and the windows' row each need their own step).
 - Host: "Max size per upload" stands only under the Videos switch (`videos-switch.tsx`), unreachable on Free though it caps photos too: its own row in What guests can add (customize r1's audit).
-- Camera: turning the camera off and back on writes the roll back to 24 (`events_reveal_stamp`'s coalesce): keep her size, or her usual once account defaults exist.
 - Guests: a password's unlock lasts 12 hours (`UNLOCK_TTL_SECONDS`, `lib/events/unlock-token.ts`), so a weekend's guests re-type it twice a day: the party's days plus a night.
 - Host: the develop's 9 am is the host's browser zone: keep the zone it was picked in beside the time, so a destination wedding set from home develops in the party's own morning.
 - Design: a `swatch` atom for a picture chosen among pictures (Create's looks, the reel's moods, the code's styles) wearing the selected trait, instead of each picker drawing its own ring (identity r4's idea; after desk 3's picks).
