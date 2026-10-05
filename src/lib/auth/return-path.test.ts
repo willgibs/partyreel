@@ -53,6 +53,8 @@ describe("the pages a sign-in may return to", () => {
     // with none, so a session that ended under an open menu comes back to the page it asked for.
     "/me",
     "/welcome",
+    // The one marketing page (pricing-doors): a signed-out Get Pro presses from it and comes back to it signed in.
+    "/pricing",
     // A guest's door comes back to the album (a token or a custom link) or a profile page.
     "/e/0123456789abcdef0123456789abcdef",
     "/e/sarahs-wedding",
@@ -81,6 +83,66 @@ describe("the pages a sign-in may return to", () => {
       expect(login.pathname).toBe("/login");
       expect(login.searchParams.get(NEXT_PARAM)).toBe(page);
     }
+  });
+});
+
+/**
+ * ★ A SIGNED-OUT GET PRO COMES BACK TO THE PRICING PAGE (pricing-doors). The page is the one marketing page on the list
+ * (ROADMAP: "returning her to /pricing means allowing that one marketing page"), and it stands for one exact path: the
+ * button hands the router `loginPath(window.location.pathname)`, so before this a visitor pressing Get Pro there met the
+ * bare `/login` and landed on the dashboard, with the plan she came for a page away. Nothing on it is private and
+ * nothing on it reads a query, so no mark rides: a query would be one more thing a link could be made to say.
+ */
+describe("the pricing page, which a signed-out Get Pro comes back to (pricing-doors)", () => {
+  it("is what the signed-out press sends to sign in, and where the sign-in lands", () => {
+    expect(loginPath("/pricing")).toBe("/login?next=%2Fpricing");
+    expect(signInLanding("/pricing", false)).toBe("/pricing");
+    // Every road back: the callback's `next`, which Google and the email's link carry whole.
+    const callback = new URL(
+      withReturn("https://partyreel.com/auth/callback", "/pricing"),
+    );
+    expect(signInReturn(callback.searchParams.get(NEXT_PARAM))).toBe(
+      "/pricing",
+    );
+  });
+
+  it("is the app host's alone: the admin deployment serves no pricing page", () => {
+    expect(signInReturn("/pricing", true)).toBeNull();
+    expect(signInLanding("/pricing", true)).toBe("/admin");
+    expect(loginPath("/pricing", true)).toBe("/login");
+  });
+
+  // Shaped like the page, and not it: each is refused whole, and the sign-in lands where it always did.
+  const lookalikes: [string, string][] = [
+    ["a trailing slash", "/pricing/"],
+    ["a longer word", "/pricingx"],
+    ["a page under it", "/pricing/compare"],
+    ["another case", "/Pricing"],
+    ["a query", "/pricing?plan=pro_200"],
+    ["a nested next", "/pricing?next=https://evil.example"],
+    ["a fragment", "/pricing#plans"],
+    ["two slashes before it", "//pricing"],
+    ["a host dressed as it", "//evil.example/pricing"],
+    ["the absolute address", "https://partyreel.com/pricing"],
+    ["an encoded slash", "%2Fpricing"],
+    ["an encoded letter", "/pric%69ng"],
+    ["a traversal into it", "/dashboard/../pricing"],
+    ["a dot segment", "/./pricing"],
+    ["a backslash", "/pricing\\"],
+    ["a leading space", " /pricing"],
+    ["a trailing space", "/pricing "],
+    ["a newline splice", "/pricing\r\nLocation: https://evil.example"],
+  ];
+
+  it.each(lookalikes)("refuses %s", (_, value) => {
+    expect(signInReturn(value)).toBeNull();
+    expect(signInLanding(value, false)).toBe("/dashboard");
+    expect(loginPath(value)).toBe("/login");
+  });
+
+  it("takes no fragment, since only a mail's named anchors do", () => {
+    expect(returnWithAnchor("/pricing", "#plans")).toBe("/pricing");
+    expect(returnWithAnchor("/pricing", "#compare")).toBe("/pricing");
   });
 });
 
