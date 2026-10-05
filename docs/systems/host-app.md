@@ -211,9 +211,11 @@ hub and closes back to it.
   survives as a redirect, because it is a published URL.
 - ★ **A date field saves once she has finished it, never on its change**: Chrome's date input fires a complete date on
   every keystroke that makes one (a year typed digit by digit passes 0002, 0020 and 0202 on its way to 2027), so a
-  keyboard's edit waits to be left or Entered, a picker's choice saves a beat after the last, a cleared field only on
-  leaving, and a day outside 1900 to 2100 (`isSaneDay`) or a half-filled date never saves, said under the field in
-  words (`event-page.tsx`'s `EventDatesField`; its tests type keystroke by keystroke in Chrome's own order).
+  keyboard's edit waits to be left or Entered, a picker's choice saves a beat after the last, the panel's close saves a
+  finished one (it leaves the field too), a cleared field only on leaving, and a day outside 1900 to 2100 (`isSaneDay`)
+  or a half-filled date never saves, said under the field in words (`event-page.tsx`'s `EventDatesField`; its tests type
+  keystroke by keystroke in Chrome's own order). The develop time is finished the same way, by the one hook the two
+  share (`useFinishedFields`, `camera-settings-finish.ts`; [disposable-mode.md](disposable-mode.md) for what it writes).
 - **A setting with no effect right now stays in view** as one quiet line under the switch that governs it
   (`ui/dormant.tsx`, `inert` while asleep), and a change that affects people already in says so in its own place
   before it happens (`ui/consequence-line.tsx`).
