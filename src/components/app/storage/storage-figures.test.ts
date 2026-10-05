@@ -309,7 +309,7 @@ describe("the uploads line", () => {
     expect(uploadsLine(pro)).toBe("Uploads this month: 0 GB of 200 GB");
   });
 
-  it("at the line, names what pauses, the day it resumes and that a delete gives nothing back", () => {
+  it("at the line, names what pauses, the day it resumes and that a delete does not lower the count", () => {
     const words = uploadsPausedWords(new Date("2026-10-15T12:00:00Z"));
     expect(words).toMatch(/new uploads/i);
     expect(words).toMatch(/guests/);

@@ -271,6 +271,8 @@ function UploadsLine({
       data-paused={reading?.paused ? "" : undefined}
       aria-live="polite"
       aria-busy={waiting || undefined}
+      // One text line tall either way (the placeholder sits centred in it), so the figure replaces it without a jump.
+      className="flex min-h-4 flex-col justify-center"
     >
       {reading ? (
         <>
@@ -289,7 +291,7 @@ function UploadsLine({
           ) : null}
         </>
       ) : (
-        <Skeleton aria-hidden className="my-0.5 h-3 w-44" />
+        <Skeleton aria-hidden className="h-3 w-44" />
       )}
     </div>
   );

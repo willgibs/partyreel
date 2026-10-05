@@ -218,9 +218,9 @@ export function uploadsLine(r: UploadsReading): string {
 /**
  * What a line at its allowance adds: what pauses (her new uploads and her guests', the ones the plan's own number
  * refuses), when it resumes (the month turns, UTC: `nextMonthStart`, read on the clock of the figure's own read) and the
- * one thing the storage bar above it does not teach, that a delete never gives an upload back. A problem arrives with
+ * one thing the storage bar above it does not teach, that a delete never lowers the count. A problem arrives with
  * its fix: the wait is named here, and a bigger plan is the popover's own "Need more?" beneath.
  */
 export function uploadsPausedWords(now?: Date): string {
-  return `New uploads, yours and your guests', are paused until ${nextMonthStart(now)}. Deleting doesn't give uploads back.`;
+  return `New uploads, yours and your guests', are paused until ${nextMonthStart(now)}. Deleting doesn't lower the count.`;
 }

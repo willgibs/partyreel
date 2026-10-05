@@ -246,6 +246,17 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   again, and its button deletes what is only selected first ("Delete and switch", the same confirm), because a
   selection has freed nothing yet; it counts from what she stored before this visit's deletions, so nothing is counted
   twice, and a refused switch re-bases it on the refusal's fresher figure.
+- ★ **The storage ring's popover says this month's uploads against her plan's allowance** (`readUploads`,
+  `uploadsLine`, `uploadsPausedWords` in `components/app/storage/storage-figures.ts`, drawn by `storage-meter.tsx`
+  under the storage figures): one quiet line, the plan's own number (`uploadAllowance`) over the figure the plan
+  sheet's read already carries (`monthUploadedBytes`). It is read ONLY while the popover is open (`usePlanFacts`:
+  never on the dashboard's load, never a poll; a Pro host's read includes Stripe's subscription, so her line may take
+  a beat, held by a breathing placeholder), and the last figure stays for the next open. At or past the allowance (the
+  line the advisories read, `used >= allowance`) it turns amber and names what pauses, hers and her guests', the day
+  the month turns and that a delete does not lower the count. ★ It says nothing rather than a guess: a failed read, a
+  Pro with no cap on record (unmetered) and a pass, whose year is counted on the pass (`uploads_used(host,
+  'event_pass')`), which the month's ledger is not; no client read carries that figure yet, so a pass holder's line
+  waits on one.
 
 ## Verifying billing
 
