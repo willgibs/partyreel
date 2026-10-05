@@ -129,10 +129,10 @@ describe("every listed host's uploads against her allowance, in one read", () =>
     const uploads = await readAccountsUploads(profiles);
     expect(rpc).toHaveBeenCalledTimes(1);
     expect(rpc.mock.calls[0]![0]).toBe("uploads_windows");
-    expect(rpc.mock.calls[0]![1]).toMatchObject({
-      p_after_id: null,
-      p_limit: 1000,
-    });
+    expect(rpc.mock.calls[0]![1]).toMatchObject({ p_limit: 1000 });
+    // The first page names no p_after_id: the generated Args take no null, so it is omitted and the SQL default
+    // (null) starts the walk.
+    expect(rpc.mock.calls[0]![1].p_after_id).toBeUndefined();
     expect([...(rpc.mock.calls[0]![1].p_host_ids as string[])].sort()).toEqual(
       profiles.map((p) => p.id).sort(),
     );
@@ -239,7 +239,7 @@ describe("every listed host's uploads against her allowance, in one read", () =>
     const uploads = await readAccountsUploads(profiles);
     expect(rpc).toHaveBeenCalledTimes(3);
     expect(rpc.mock.calls.map((c) => c[1].p_after_id)).toEqual([
-      null,
+      undefined,
       id(1000),
       id(2000),
     ]);

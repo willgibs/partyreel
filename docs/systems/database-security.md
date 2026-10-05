@@ -260,6 +260,11 @@ Gotchas). A new table starts with no client grant, so its migration grants exact
   (`events_develops_at_finite`, `media_sealed_until_finite`, `events_event_date_finite`, and
   `events_end_date_on_or_after` for the end); how far a day may be from today is the app's window
   (`lib/events/dates.ts`), never the column's.
+- ★ **A typed RPC call cannot say null.** The generated Args mark an argument with a default optional and none
+  nullable, and PostgREST finds a function by the names it is sent: an argument whose default is null takes
+  `?? undefined` (the key is left out and the default applies), but one with no default stays on the wire, its null
+  cast to the argument's type and sent as null (`nullableArg`, `queries/drive.ts`), because a key left out is a 404
+  (PGRST202), not a null.
 
 ## Rate limits
 
