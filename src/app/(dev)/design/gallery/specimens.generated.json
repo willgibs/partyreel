@@ -108,9 +108,9 @@
       "<div style={{ width: 335 }}>\n  <River frames={GUEST_GHOST_FRAMES} />\n</div>"
     ],
     "photo-section": [
-      "<PhotoSection source=\"pointer\">\n  <PlateCopy />\n</PhotoSection>",
-      "<div style={{ width: 375 }}>\n  <PhotoSection source=\"scroll\">\n    <PlateCopy />\n  </PhotoSection>\n</div>",
-      "<PhotoSection className=\"min-h-56\" />"
+      "<PhotoSectionDemo source=\"pointer\" />",
+      "<PhotoSectionDemo source=\"scroll\" />",
+      "<PhotoSectionDemo source=\"pointer\" copy={false} />"
     ],
     "tabs": [
       "<Tabs defaultValue=\"all\">\n  <TabsList>\n    <TabsTrigger value=\"all\">All</TabsTrigger>\n    <TabsTrigger value=\"photos\">Photos</TabsTrigger>\n    <TabsTrigger value=\"videos\">Videos</TabsTrigger>\n  </TabsList>\n  <TabsContent\n    value=\"all\"\n    className=\"pt-3 text-sm text-muted-foreground\"\n  >\n    Everything, interleaved.\n  </TabsContent>\n  <TabsContent\n    value=\"photos\"\n    className=\"pt-3 text-sm text-muted-foreground\"\n  >\n    Photos only.\n  </TabsContent>\n  <TabsContent\n    value=\"videos\"\n    className=\"pt-3 text-sm text-muted-foreground\"\n  >\n    Videos only.\n  </TabsContent>\n</Tabs>"
@@ -234,6 +234,10 @@
     "admin-report-cards": [
       "<AdminReportCardDemo />"
     ],
+    "admin-albums-grid": [
+      "<ModerationGridDemo />",
+      "<ModerationGridDemo mode=\"album\" />"
+    ],
     "admin-metrics-charts": [
       "<AdminMetricsChartsDemo />"
     ],
@@ -278,7 +282,8 @@
       "<FeedSection heading=\"Your likes\">\n  <p className=\"text-sm text-muted-foreground\">\n    The labeled section the feed uses for each content group.\n  </p>\n</FeedSection>"
     ],
     "host-media-grid": [
-      "<LikesProvider mediaIds={SAMPLE_MEDIA.map((m) => m.id)}>\n  <HostMediaGrid eventId=\"demo\" items={SAMPLE_MEDIA} />\n</LikesProvider>"
+      "<LikesProvider mediaIds={SAMPLE_MEDIA.map((m) => m.id)}>\n  <HostMediaGrid eventId=\"demo\" items={SAMPLE_MEDIA} />\n</LikesProvider>",
+      "<HostGridArrivalDemo />"
     ],
     "recently-deleted-grid": [
       "<RecentlyDeletedGrid eventId=\"demo\" items={SAMPLE_BIN} />"
@@ -372,17 +377,17 @@
       "<RevealDemo />"
     ],
     "card-grid": [
-      "<CardGrid tilt columns={3}>\n  {cards.map((image) => (\n    <div\n      key={image.id}\n      className=\"overflow-hidden rounded-2xl bg-card\"\n    >\n      <Image\n        src={image.src}\n        alt=\"\"\n        width={image.width}\n        height={image.height}\n        sizes=\"(min-width: 640px) 33vw, 100vw\"\n        className=\"aspect-4/3 w-full object-cover\"\n      />\n      <p className=\"px-4 py-3 text-sm font-medium\">{image.subject}</p>\n    </div>\n  ))}\n</CardGrid>"
+      "<CardGrid tilt columns={3}>\n  {cards.map((image) => (\n    <div\n      key={image.id}\n      className=\"overflow-hidden rounded-2xl bg-card\"\n    >\n      <Image\n        src={image.src}\n        alt=\"\"\n        width={image.width}\n        height={image.height}\n        sizes=\"(min-width: 640px) 33vw, 100vw\"\n        loading=\"eager\"\n        className=\"aspect-4/3 w-full object-cover\"\n      />\n      <p className=\"px-4 py-3 text-sm font-medium\">{image.subject}</p>\n    </div>\n  ))}\n</CardGrid>"
     ],
     "tilt-card": [
       "<div className=\"max-w-xs\">\n  <TiltCard className=\"rounded-2xl\" maxTiltDeg={6}>\n    <div className=\"rounded-2xl border border-border bg-card p-5 text-sm\">\n      A card that leans toward the pointer.\n    </div>\n  </TiltCard>\n</div>"
     ],
     "media-split": [
-      "<MediaSplit\n  media={\n    <Image\n      src={split.src}\n      alt=\"\"\n      width={split.width}\n      height={split.height}\n      sizes=\"(min-width: 1024px) 58vw, 100vw\"\n      className=\"w-full rounded-xl object-cover\"\n    />\n  }\n>\n  <Eyebrow>One link</Eyebrow>\n  <p className=\"mt-3 text-lg font-medium\">\n    Copy sits beside the media.\n  </p>\n  <p className=\"mt-2 text-sm text-muted-foreground\">\n    Seven columns of media, five of copy; one column on a phone.\n  </p>\n</MediaSplit>",
+      "<MediaSplit\n  media={\n    <Image\n      src={split.src}\n      alt=\"\"\n      width={split.width}\n      height={split.height}\n      sizes=\"(min-width: 1024px) 58vw, 100vw\"\n      loading=\"eager\"\n      className=\"w-full rounded-xl object-cover\"\n    />\n  }\n>\n  <Eyebrow>One link</Eyebrow>\n  <p className=\"mt-3 text-lg font-medium\">\n    Copy sits beside the media.\n  </p>\n  <p className=\"mt-2 text-sm text-muted-foreground\">\n    Seven columns of media, five of copy; one column on a phone.\n  </p>\n</MediaSplit>",
       "<MediaSplit\n  mediaSide=\"end\"\n  media={\n    <Image\n      src={split.src}\n      alt=\"\"\n      width={split.width}\n      height={split.height}\n      sizes=\"(min-width: 1024px) 58vw, 100vw\"\n      className=\"w-full rounded-xl object-cover\"\n    />\n  }\n>\n  <Eyebrow>Mirrored</Eyebrow>\n  <p className=\"mt-3 text-lg font-medium\">The same split, flipped.</p>\n</MediaSplit>"
     ],
     "conveyor": [
-      "<Conveyor>\n  {strip.map((image) => (\n    <Image\n      key={image.id}\n      src={image.src}\n      alt=\"\"\n      width={image.width}\n      height={image.height}\n      sizes=\"240px\"\n      className=\"h-36 w-auto shrink-0 rounded-lg object-cover\"\n    />\n  ))}\n</Conveyor>"
+      "<Conveyor>\n  {strip.map((image) => (\n    <Image\n      key={image.id}\n      src={image.src}\n      alt=\"\"\n      width={image.width}\n      height={image.height}\n      sizes=\"240px\"\n      loading=\"eager\"\n      className=\"h-36 w-auto shrink-0 rounded-lg object-cover\"\n    />\n  ))}\n</Conveyor>"
     ],
     "inline-reel-player": [
       "<InlineReelPlayer reelId={LIBRARY_REEL_ID} />"
@@ -423,7 +428,7 @@
       "<div className=\"mx-auto max-w-xl\">\n  <ReelPlayScreen reelId={LIBRARY_REEL_ID} source=\"library\" />\n</div>"
     ],
     "morph-delegate": [
-      "<>\n  <MorphDelegate\n    name=\"blog-cover\"\n    linkAttr=\"data-cover-morph\"\n    plateAttr=\"data-cover-plate\"\n  />\n  <Link\n    href={`/blog/${LIBRARY_MORPH_SLUG}`}\n    data-cover-morph=\"\"\n    className=\"group relative block aspect-4/5 max-w-[14rem] overflow-hidden rounded-lg bg-muted\"\n  >\n    <span data-cover-plate=\"\" className=\"absolute inset-0\">\n      <Image\n        src={morphCover.src}\n        alt=\"\"\n        fill\n        sizes=\"224px\"\n        className=\"object-cover\"\n      />\n    </span>\n  </Link>\n  <p className=\"mt-3 text-xs text-muted-foreground\">\n    Click the cover: the plate grows into the article&rsquo;s own\n    plate where the browser supports view transitions, and navigates\n    plainly where it does not.\n  </p>\n</>"
+      "<>\n  <MorphDelegate\n    name=\"blog-cover\"\n    linkAttr=\"data-cover-morph\"\n    plateAttr=\"data-cover-plate\"\n  />\n  <Link\n    href={`/blog/${LIBRARY_MORPH_SLUG}`}\n    data-cover-morph=\"\"\n    className=\"group relative block aspect-4/5 max-w-[14rem] overflow-hidden rounded-lg bg-muted\"\n  >\n    <span data-cover-plate=\"\" className=\"absolute inset-0\">\n      <Image\n        src={morphCover.src}\n        alt=\"\"\n        fill\n        sizes=\"224px\"\n        loading=\"eager\"\n        className=\"object-cover\"\n      />\n    </span>\n  </Link>\n  <p className=\"mt-3 text-xs text-muted-foreground\">\n    Click the cover: the plate grows into the article&rsquo;s own\n    plate where the browser supports view transitions, and navigates\n    plainly where it does not.\n  </p>\n</>"
     ],
     "how-it-works-stepper": [
       "<HowItWorksStepperDemo />",

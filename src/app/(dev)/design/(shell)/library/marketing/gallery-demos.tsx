@@ -690,6 +690,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
                   width={image.width}
                   height={image.height}
                   sizes="(min-width: 640px) 33vw, 100vw"
+                  loading="eager"
                   className="aspect-4/3 w-full object-cover"
                 />
                 <p className="px-4 py-3 text-sm font-medium">{image.subject}</p>
@@ -751,6 +752,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
                 width={split.width}
                 height={split.height}
                 sizes="(min-width: 1024px) 58vw, 100vw"
+                loading="eager"
                 className="w-full rounded-xl object-cover"
               />
             }
@@ -812,6 +814,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
                 width={image.width}
                 height={image.height}
                 sizes="240px"
+                loading="eager"
                 className="h-36 w-auto shrink-0 rounded-lg object-cover"
               />
             ))}
@@ -1072,6 +1075,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
                   alt=""
                   fill
                   sizes="224px"
+                  loading="eager"
                   className="object-cover"
                 />
               </span>
@@ -1235,7 +1239,6 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
       },
     ],
   },
-
 
   {
     id: "contact-receipt",

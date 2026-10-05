@@ -55,6 +55,13 @@ import { cn } from "@/lib/utils";
 import { Row } from "@/app/(dev)/design/reference/reference-ui";
 
 /**
+ * WHAT A SPECIMEN'S PHOTOGRAPH RENDERS AT: the well it fills, which is the Library's column (about 1200 px at a laptop's
+ * window, the window's own width in a hand). A plate that said a fixed 640 asked for a file narrower than the picture it
+ * filled, and a `fill` image told `100vw` that renders narrower than the window is what Next warns about.
+ */
+const PLATE_SIZES = "(min-width: 1024px) 1200px, 100vw";
+
+/**
  * The interactive corner of the components gallery: the primitives that need
  * client state or a handler (toast is imperative, OTP and the strength meter
  * are controlled). All imported from production source, so these are the live
@@ -514,7 +521,10 @@ export function OnAPhoto({
         src={marketingImage(still).src}
         alt=""
         fill
-        sizes="640px"
+        sizes={PLATE_SIZES}
+        // Eager: a specimen's photograph is its first thing on the entry's own page, and a lazy plate at the top of a
+        // page is what Next flags as the Largest Contentful Paint. The file is one the page already holds.
+        loading="eager"
         className="-z-10 object-cover"
       />
       <div
@@ -590,7 +600,10 @@ export function AtTheFoot({
         src={marketingImage(still).src}
         alt=""
         fill
-        sizes="640px"
+        sizes={PLATE_SIZES}
+        // Eager: a specimen's photograph is its first thing on the entry's own page, and a lazy plate at the top of a
+        // page is what Next flags as the Largest Contentful Paint. The file is one the page already holds.
+        loading="eager"
         className="-z-10 object-cover"
       />
       <div

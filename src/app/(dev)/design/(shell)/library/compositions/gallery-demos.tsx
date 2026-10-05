@@ -38,8 +38,14 @@ import {
 } from "./composition-demos";
 import { CreateRoomDemo } from "./create-room-demo";
 import { DownloadToastDemo } from "./download-toast-demo";
+import { HostGridArrivalDemo } from "./host-grid-arrival-demo";
+import { ModerationGridDemo } from "./moderation-grid-demo";
 import { PlanLimitsDemo } from "./plan-limits-demo";
-import { LockChipDemo, PricingSheetDemo, WelcomeToProDemo } from "./pricing-demos";
+import {
+  LockChipDemo,
+  PricingSheetDemo,
+  WelcomeToProDemo,
+} from "./pricing-demos";
 
 /**
  * THE PRODUCT COMPOSITIONS, declared (the gallery round, 2026-09-12).
@@ -223,12 +229,35 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
     test: "src/components/admin/report-queue.test.tsx",
     title: "Reports' own queue",
     for: "the review grid an operator works the night's reports in: the harm in front, worst first and the worst covered, the sweep's one Dismiss, the report whole with every verb, and a phone's two acts",
-    lede: "The real ReportQueue over a Saturday night of reports and writes that answer after a round trip and change nothing, so a reviewer here can never touch anyone's report. Space or a press opens a report whole; Remove…'s note is optional, Hold for forensics' reason is required and its Take it down too starts on; Ask for proof opens its question. At phone width each report carries Take it down and Hold for forensics, one press each.",
+    lede: "The real ReportQueue over a Saturday night of reports and writes that answer after a round trip and change nothing, so a reviewer here can never touch anyone's report. Space or a press opens a report whole; Remove…'s note is optional, Hold for forensics' reason is required and its Take it down too starts on; Ask for proof opens its question. At phone width each report carries Take it down and Hold for forensics, one press each. A report whose item has since been deleted is still that item's: its tile says the photo or the video was deleted, its chip says Deleted, and with nothing left to take down its verdict only closes.",
     specimens: [
       {
         label: "The front, the sweep, and the closed log under them",
-        hint: "View shows a covered photo · Space opens the report whole · at 375 the two acts",
+        hint: "View shows a covered photo · Space opens the report whole · two reports name an item since deleted · at 375 the two acts",
         node: <AdminReportCardDemo />,
+      },
+    ],
+  },
+  {
+    id: "admin-albums-grid",
+    badge: "new",
+    family: "compositions",
+    section: "The operations portal",
+    file: "src/components/admin/moderation-grid.tsx",
+    test: "src/components/admin/moderation-grid.test.tsx",
+    title: "The Albums browser's grid",
+    for: "the operator's grid of an album's items: Remove on what is up, Restore on what was removed, and the worst kinds covered, a tile with no picture at all that opens nothing",
+    lede: "The real ModerationGrid over four tiles: a seen photograph, a removed one, a video, and a covered one. A report of the worst kinds names a covered item, so nothing of it is signed (no url of any kind), its tile draws the reports inbox's own cover, the viewer steps only through what is seen, and Remove and Restore stay on it since neither needs a look. The portal's own writes (Remove behind its sheet, Restore) and the album caption's link are held here: they go nowhere.",
+    specimens: [
+      {
+        label: "The feed, with the album's caption",
+        hint: "Covered tile has no picture to open · tap a seen tile for the viewer · Remove and Restore are held",
+        node: <ModerationGridDemo />,
+      },
+      {
+        label: "Inside one album",
+        hint: "mode=album · the caption is gone, since the page already says which album",
+        node: <ModerationGridDemo mode="album" />,
       },
     ],
   },
@@ -579,6 +608,11 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
             <HostMediaGrid eventId="demo" items={SAMPLE_MEDIA} />
           </LikesProvider>
         ),
+      },
+      {
+        label: "A guest sends a photo",
+        hint: "the album's arrival: the new one waits for its picture, the row opens where it lands, it glows for one length · five at once is a burst · the rows follow this window's width",
+        node: <HostGridArrivalDemo />,
       },
     ],
   },

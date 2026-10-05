@@ -51,13 +51,7 @@ export type Device = keyof typeof DEVICES;
  * it (a zoom scales the picture and leaves the frame's own viewport alone, so its breakpoints and its `vw` stay the
  * laptop's), and a phone stands in the middle at its own size.
  */
-export function FitToWell({
-  w,
-  children,
-}: {
-  w: number;
-  children: ReactNode;
-}) {
+export function FitToWell({ w, children }: { w: number; children: ReactNode }) {
   const box = useRef<HTMLDivElement | null>(null);
   const [k, setK] = useState(1);
   useEffect(() => {
@@ -321,6 +315,8 @@ export function DevicePair({
   keyboard = false,
   replay = true,
   captions,
+  heights,
+  only,
   note,
 }: {
   /** Names the frames (`<id>-desk`, `<id>-hand`): unique on its page. */
@@ -334,6 +330,10 @@ export function DevicePair({
   replay?: boolean;
   /** A caption per screen, shown until the scene says what it measured. */
   captions?: Partial<Record<Device, ReactNode>>;
+  /** A viewport shorter than the screen's own, for a scene that is a band and not a whole screen. */
+  heights?: Partial<Record<Device, number>>;
+  /** Draw one screen only: a scene whose other screen would warn or say nothing the first does not. */
+  only?: Device;
   /** A line under the controls. */
   note?: ReactNode;
 }) {
@@ -358,6 +358,7 @@ export function DevicePair({
       key={`${device}-${run}`}
       id={`${id}-${device}`}
       device={device}
+      height={heights?.[device]}
       caption={captions?.[device]}
     >
       {(onRead) => (
@@ -375,13 +376,16 @@ export function DevicePair({
         // One column that may shrink below its content (a bare `auto` track grows to the phone's 375 and runs past a
         // narrower well), or the laptop beside the phone.
         style={{
-          gridTemplateColumns: wide
-            ? `minmax(0, 1fr) ${DEVICES.hand.w}px`
-            : "minmax(0, 1fr)",
+          gridTemplateColumns:
+            wide && !only
+              ? `minmax(0, 1fr) ${DEVICES.hand.w}px`
+              : "minmax(0, 1fr)",
         }}
       >
-        {frame("desk")}
-        <div className="mx-auto w-fit max-w-full">{frame("hand")}</div>
+        {only !== "hand" ? frame("desk") : null}
+        {only !== "desk" ? (
+          <div className="mx-auto w-fit max-w-full">{frame("hand")}</div>
+        ) : null}
       </div>
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
         {replay ? (
@@ -413,15 +417,18 @@ export function DevicePair({
 function DeviceFrameCaptioned({
   id,
   device,
+  height,
   caption,
   children,
 }: {
   id: string;
   device: Device;
+  height?: number;
   caption?: ReactNode;
   children: (read: (line: string) => void) => ReactNode;
 }) {
-  const { w, h } = DEVICES[device];
+  const { w } = DEVICES[device];
+  const h = height ?? DEVICES[device].h;
   const [read, setRead] = useState<string | null>(null);
   return (
     <FitToWell w={w}>
