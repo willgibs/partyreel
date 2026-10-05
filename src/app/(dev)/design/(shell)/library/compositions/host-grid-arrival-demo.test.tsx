@@ -155,4 +155,26 @@ describe("nothing is written", () => {
     );
     expect(proceeded).toBe(false);
   });
+
+  it("★ so is a press on the viewer's own Like, Hide or Remove, and the viewer's way out is not", () => {
+    const { getByTestId } = render(<HostGridArrivalDemo />);
+    // The viewer opens in a portal, a React child of the demo: a dialog with its toolbar stands in for it.
+    const viewer = document.createElement("div");
+    viewer.setAttribute("role", "dialog");
+    getByTestId("grid").appendChild(viewer);
+    const button = (label: string) => {
+      const el = document.createElement("button");
+      el.setAttribute("aria-label", label);
+      viewer.appendChild(el);
+      return el;
+    };
+    const click = (el: HTMLElement) =>
+      el.dispatchEvent(
+        new MouseEvent("click", { bubbles: true, cancelable: true }),
+      );
+    for (const label of ["Like", "Hide", "Remove"])
+      expect(click(button(label)), `${label} is held`).toBe(false);
+    for (const label of ["Close", "Next", "Previous"])
+      expect(click(button(label)), `${label} is not`).toBe(true);
+  });
 });

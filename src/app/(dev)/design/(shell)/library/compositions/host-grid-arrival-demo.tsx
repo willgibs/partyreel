@@ -22,9 +22,10 @@ import { marketingImage } from "@/lib/constants/marketing-media";
  * ★ THE FIRST RENDER MARKS NOTHING: the album opens with eight photographs and none of them lights. Only what turns up
  * afterwards does, which is the line `useAlbumArrivals` draws.
  *
- * ★ NOTHING IS WRITTEN: the tile's verbs (Like, Save, Hide) are the host's writes, pointed at ids no event owns, so a press
- * on one is held here and goes nowhere; the arrival is the only thing this specimen is about. (The family's other specimen
- * of this grid leaves them live, as it always has.)
+ * ★ NOTHING IS WRITTEN: the tile's verbs (Like, Save, Hide) and the viewer's own (Like, Hide, Remove in its toolbar) are the
+ * host's writes, pointed at ids no event owns, so a press on one is held here and goes nowhere (a signed-out reader's Like
+ * would otherwise open the real sign-in, whose Continue with Google leaves the Library); the arrival is the only thing this
+ * specimen is about. (The family's other specimen of this grid leaves them live, as it always has.)
  */
 
 /** The pool the album's photographs and the guests' come from: the site's own stills, each at a shape of its own. */
@@ -69,11 +70,21 @@ const IDS = [
   ...Array.from({ length: MOST }, (_, i) => `sent-${i}`),
 ];
 
-/** The tile's verbs, drawn in its pane: a press on one goes nowhere here. */
-const VERBS = "[data-tile-action]";
+/** The tile's verbs, drawn in its pane. */
+const TILE_VERBS = "[data-tile-action]";
+/** The same verbs in the viewer's toolbar, which the grid opens in a portal (a React child of this wrapper, so it sees them). */
+const VIEWER_VERBS = /^(like|unlike|approve|hide|unhide|remove|restore)\b/i;
 
+/** A press on a host's write, from a tile or from the viewer: it goes nowhere here. */
 function hold(event: MouseEvent) {
-  if ((event.target as Element | null)?.closest?.(VERBS)) {
+  const target = event.target as Element | null;
+  const button = target?.closest?.('[role="dialog"] button');
+  const viewerVerb =
+    !!button &&
+    VIEWER_VERBS.test(
+      (button.getAttribute("aria-label") ?? button.textContent ?? "").trim(),
+    );
+  if (viewerVerb || target?.closest?.(TILE_VERBS)) {
     event.preventDefault();
     event.stopPropagation();
   }

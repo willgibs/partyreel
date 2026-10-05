@@ -650,7 +650,7 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
       },
       {
         label: "A guest sends a photo",
-        hint: "the album's arrival: the new one waits for its picture, the row opens where it lands, it glows for one length · five at once is a burst · the tile's verbs are held · the rows follow this window's width",
+        hint: "the album's arrival: the new one waits for its picture, the row opens where it lands, it glows for one length · five at once is a burst · the tile's verbs and the viewer's are held · the rows follow this window's width",
         node: <HostGridArrivalDemo />,
       },
     ],
