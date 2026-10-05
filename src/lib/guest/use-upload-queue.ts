@@ -187,16 +187,32 @@ export type QueueProgress = {
   /** An item's progress, 0-100 (0 for one this store has not heard of). */
   get(id: string): number;
   subscribe(listener: () => void): () => void;
+  /**
+   * ★ THE STOP RIDES THE STORE THE STACK ALREADY READS (upload-cancel). The page hands the album's head this one object
+   * (`uploadProgress`), and the head is the one place that asks the queue anything of a file, so the x needs no prop
+   * through the three files between the queue and the stack. Absent on a store that is only a reading (a test's, the
+   * Library's). Resolves with the way to send the file again once it is cancelled, or null when it was too late
+   * (`useUploadQueue`'s `stop`, which this is).
+   */
+  stop?(id: string): Promise<StopResult>;
 };
 
 type WritableQueueProgress = QueueProgress & {
   set(id: string, value: number): void;
+  /** The queue's live `stop`, bound once per render of it (its closure changes with the page's callbacks). */
+  bindStop(stop: (id: string) => Promise<StopResult>): void;
 };
 
 function createQueueProgress(): WritableQueueProgress {
   const values = new Map<string, number>();
   const listeners = new Set<() => void>();
+  // Nothing is stoppable until the queue binds its own: a store only read answers "too late" to a stop.
+  let stopper: ((id: string) => Promise<StopResult>) | undefined;
   return {
+    stop: (id) => stopper?.(id) ?? Promise.resolve(null),
+    bindStop(next) {
+      stopper = next;
+    },
     get: (id) => values.get(id) ?? 0,
     subscribe(listener) {
       listeners.add(listener);
@@ -1254,6 +1270,11 @@ export function useUploadQueue({
     },
     [enqueue, sync],
   );
+
+  // The store the album's stack reads carries this stop (`QueueProgress.stop`): always the live one.
+  useEffect(() => {
+    progress.bindStop(stop);
+  }, [progress, stop]);
 
   return {
     items,

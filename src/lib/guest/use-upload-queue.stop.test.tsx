@@ -205,6 +205,25 @@ describe("a burst of three, the middle one stopped", () => {
   });
 });
 
+describe("the store the album's stack reads", () => {
+  it("★ carries the queue's own stop: a stop through it ends that file alone, and an unbound store answers too late", async () => {
+    const q = mount();
+    await act(async () =>
+      q.result.current.addFiles([file("a.jpg"), file("b.jpg")]),
+    );
+    const { progress } = q.result.current;
+    expect(progress.stop).toBeTypeOf("function");
+    let result: Awaited<ReturnType<NonNullable<typeof progress.stop>>> = null;
+    await act(async () => {
+      result = await progress.stop!(q.idOf("a.jpg"));
+    });
+    expect(result).toBeTypeOf("function");
+    expect(q.statuses()).toEqual([["b.jpg", "uploading"]]);
+    await land("b.jpg", landed("m-b"));
+    expect(q.onUploaded).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe("a stop that cannot be one", () => {
   it("too late (its complete is asked): it lands as it would have, and stop hands back nothing", async () => {
     tooLate.add("a.jpg");
