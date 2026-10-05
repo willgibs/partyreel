@@ -1,5 +1,6 @@
 import {
   act,
+  cleanup,
   fireEvent,
   render,
   screen,
@@ -131,11 +132,15 @@ describe("the button", () => {
     expect(tracker()).toBeNull();
   });
 
-  it("never at an event that does not hold uploads, in the demo, or for the host; and asks nothing there", () => {
+  // RESHAPED (crumbs-76): this pinned "never for the host", whose own uploads never wait. They do where a develop is
+  // ahead (the host's own describe, below); the scar kept is that she is never shown a wait that is not hers: an album
+  // that only approves each guest's upload approves hers at once, so it holds nothing of hers back.
+  it("never at an event that does not hold uploads, in the demo, or for the host where nothing keeps hers back; and asks nothing there", () => {
     for (const props of [
       { moderated: false },
       { isDemo: true },
       { isOwner: true },
+      { isOwner: true, moderated: true, developsAt: null },
     ]) {
       const { unmount } = mount(props);
       expect(tracker()).toBeNull();
@@ -648,5 +653,128 @@ describe("her news", () => {
     store.news.add(["m1"]);
     // The same list object while nothing changed: a reader's snapshot holds still.
     expect(store.news.get()).toBe(before);
+  });
+});
+
+/**
+ * ★ THE HOST ON HER OWN GUEST PAGE SEES WHAT WAITS FOR HER THERE (crumbs-76; ROADMAP: "the host adding from her own
+ * guest page on a develop album sees nothing of hers there, in the air or landed (the tracker skips the owner), while her
+ * hub shows every one"). Her files ride her own pair, approved and sealed with everyone's until the album develops, and
+ * the album draws nothing of what waits, so with no tracker she had no word of any of it. Where a develop is ahead her
+ * list stands as a guest's does, from the press, this visit's alone (hers are no guest's rows, so nothing is read), and
+ * hers to take back only in her hub.
+ */
+describe("the host's own, where a develop keeps hers back", () => {
+  const AHEAD = "2026-12-03T13:00:00.000Z";
+  const file = (name: string) => new File(["x"], name, { type: "image/jpeg" });
+  const inTheAir: QueueItem = {
+    id: "q1",
+    file: file("a.jpg"),
+    kind: "photo",
+    status: "uploading",
+    progress: 40,
+  };
+  const landedSealed: QueueItem = {
+    id: "q2",
+    file: file("b.jpg"),
+    kind: "photo",
+    status: "done",
+    progress: 100,
+    mediaStatus: "sealed",
+    mediaId: "m2",
+  };
+
+  it("★ stands from the press and counts what has landed sealed, asking the server nothing", () => {
+    mount({
+      isOwner: true,
+      isAuthed: true,
+      developsAt: AHEAD,
+      queue: [inTheAir],
+    });
+    expect(tracker()).toHaveAccessibleName("Your uploads");
+    expect(document.querySelector("[data-upload-tracker-count]")).toBeNull();
+    cleanup();
+
+    mount({
+      isOwner: true,
+      isAuthed: true,
+      developsAt: AHEAD,
+      queue: [inTheAir, landedSealed],
+    });
+    expect(tracker()).toHaveAccessibleName("Your uploads, 1 developing");
+    expect(
+      document.querySelector("[data-upload-tracker-count]")?.textContent,
+    ).toBe("1");
+    // Her uploads are no guest's rows: there is nothing of hers on the server's list to read.
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it("★ lists this visit's files, Sending then Developing, and offers no Remove (her hub is where hers are taken back)", () => {
+    mount({
+      isOwner: true,
+      isAuthed: true,
+      developsAt: AHEAD,
+      queue: [inTheAir, landedSealed],
+      open: true,
+    });
+    const rows = [
+      ...document.querySelectorAll("[data-upload-tracker-row]"),
+    ].map((row) => row.getAttribute("data-upload-tracker-row"));
+    // Newest first: the one still in the air stands above the one that landed.
+    expect(rows).toEqual(["waiting", "sending"]);
+    expect(screen.getByText("Developing")).toBeInTheDocument();
+    expect(screen.getByText("Sending…")).toBeInTheDocument();
+    expect(screen.queryByText("In the album")).toBeNull();
+    expect(document.querySelector("[data-upload-tracker-remove]")).toBeNull();
+    // The album's one rule, in the wait's words.
+    expect(
+      screen.getByText(
+        waitRule({ kind: "develop", developsAt: AHEAD }, Date.now()),
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("★ lights her shots on the album's contact sheet, as a guest's are lit", () => {
+    const view = mount({
+      isOwner: true,
+      isAuthed: true,
+      developsAt: AHEAD,
+      queue: [inTheAir, landedSealed],
+    });
+    expect(view.store.hers.get().map((s) => [s.key, s.sending])).toEqual([
+      ["m2", false],
+      ["q1", true],
+    ]);
+  });
+
+  it("is gone once the develop has come: what she added is in the album then", () => {
+    const view = mount({
+      isOwner: true,
+      isAuthed: true,
+      developsAt: AHEAD,
+      queue: [landedSealed],
+    });
+    expect(tracker()).not.toBeNull();
+    view.rerender(
+      <>
+        <UploadTrackerButton store={view.store} onOpen={() => {}} />
+        <UploadTracker
+          store={view.store}
+          queue={[landedSealed]}
+          qrToken={QR}
+          sessionToken={null}
+          isAuthed
+          moderated
+          developsAt={null}
+          isDemo={false}
+          isOwner
+          removedIds={new Set()}
+          open={false}
+          onOpenChange={() => {}}
+        />
+      </>,
+    );
+    expect(tracker()).toBeNull();
+    expect(view.store.hers.get()).toEqual([]);
   });
 });

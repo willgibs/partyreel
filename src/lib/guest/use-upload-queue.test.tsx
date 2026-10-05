@@ -16,10 +16,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   landedAs,
+  localRefusalCode,
   runProgressOf,
+  runSentOf,
   useLiveQueue,
   useQueueProgress,
   useRunProgress,
+  useRunSent,
   useUploadQueue,
   type QueueItem,
   type QueueProgress,
@@ -984,6 +987,79 @@ describe("★ what waits goes as one burst (compute-uploads)", () => {
   });
 });
 
+/**
+ * ★ A REFUSAL OF THE FILE ITSELF, MADE ON THE PHONE, IS TOLD AS THE CODE THE LADDER KNOWS (red-team 54's LOW): the
+ * uploader refuses a wrong type and a file over the ceiling before any request, so it has no `code`, and the failure
+ * sheet offered a Retry whose press sent nothing (the same check refused the same file at once). The queue asks the file
+ * again with the uploader's own validators, so no surface offers a Retry that cannot pass.
+ */
+describe("a refusal of the file itself that the uploader made locally", () => {
+  const file = (name: string, type: string, size?: number) => {
+    const f = new File([new Uint8Array([1, 2, 3])], name, { type });
+    if (size !== undefined) Object.defineProperty(f, "size", { value: size });
+    return f;
+  };
+
+  it("localRefusalCode reads the file the way the uploader does: a type nobody takes, a file over the ceiling, else nothing", () => {
+    expect(localRefusalCode(file("notes.txt", "text/plain"))).toBe(
+      "unsupported_type",
+    );
+    expect(localRefusalCode(file("noname", ""))).toBe("unsupported_type");
+    expect(
+      localRefusalCode(file("big.mov", "video/quicktime", 11 * 1024 ** 3)),
+    ).toBe("too_large");
+    expect(localRefusalCode(file("a.jpg", "image/jpeg"))).toBeUndefined();
+  });
+
+  it("★ is given its code, so no surface offers it a Retry; a file that passes keeps its code-less failure", async () => {
+    mockUploadFile.mockResolvedValue({
+      ok: false,
+      message: "That upload didn't go through. Please try again.",
+    });
+    const q = mountQueue({ sessionToken: "ticket-1", isVerified: false });
+    act(() =>
+      q.result.current.addFiles([
+        file("notes.txt", "text/plain"),
+        file("big.mov", "video/quicktime", 11 * 1024 ** 3),
+        file("a.jpg", "image/jpeg"),
+      ]),
+    );
+    await waitFor(() =>
+      expect(q.items().every((it) => it.status === "error")).toBe(true),
+    );
+    // The sentences are the uploader's, untouched; only what a surface may do about them has a code now.
+    expect(q.items().map((it) => it.errorCode)).toEqual([
+      "unsupported_type",
+      "too_large",
+      undefined,
+    ]);
+  });
+
+  it("never speaks for the line: a connection that dropped stays a failure worth another go, whatever the file", async () => {
+    mockUploadFile.mockResolvedValue({
+      ok: false,
+      message: "Your connection dropped.",
+      cause: "dropped",
+    });
+    const q = mountQueue({ sessionToken: "ticket-1", isVerified: false });
+    act(() => q.result.current.addFiles([file("notes.txt", "text/plain")]));
+    await waitFor(() => expect(q.items()[0]?.status).toBe("error"));
+    expect(q.items()[0]?.errorCode).toBeUndefined();
+  });
+
+  it("leaves the server's own code as it spoke it", async () => {
+    mockUploadFile.mockResolvedValue({
+      ok: false,
+      code: "cap_reached",
+      message: "This album is full right now.",
+    });
+    const q = mountQueue({ sessionToken: "ticket-1", isVerified: false });
+    act(() => q.result.current.addFiles([file("notes.txt", "text/plain")]));
+    await waitFor(() => expect(q.items()[0]?.status).toBe("error"));
+    expect(q.items()[0]?.errorCode).toBe("cap_reached");
+  });
+});
+
 describe("useQueueProgress", () => {
   it("reads one item's live progress and re-renders on its ticks", () => {
     const progress = fakeProgress({ q1: 10 });
@@ -1140,6 +1216,166 @@ describe("useRunProgress", () => {
     expect(result.current.sending).toBe(1);
     expect(result.current.landed).toBe(0);
     expect(result.current.progress).toBe(0);
+  });
+});
+
+/**
+ * ★ THE RUN'S OWN COUNT, FOR A FAILURE'S HEADING (crumbs-76; ROADMAP: "a Retry that fails again, or a slot mounted
+ * mid-run, reads '1 of 0 didn't upload'"). The heading's "SENT" was how many items the queue held beyond a baseline
+ * taken at the run's start, and a Retry adds no item: the baseline was the whole queue and the count nothing. The count
+ * is now the run's own files by their ids (`inRun`, the queue's one definition of a run), plus any failure the heading
+ * lists that an earlier try left, so what it lists is always part of what it counts.
+ */
+describe("runSentOf", () => {
+  const NONE: ReadonlySet<string> = new Set();
+
+  it("counts every file when nothing is known to be outside the run", () => {
+    const items = [
+      flying("a", { status: "done", progress: 100 }),
+      flying("b", { status: "error" }),
+    ];
+    expect(runSentOf(items, NONE, [items[1]!])).toBe(2);
+  });
+
+  it("★ a file going again is the run's, so a Retry is a run of one, never of none", () => {
+    // `a` failed in an earlier try and is queued again: it is in the run whatever else the queue holds.
+    const items = [
+      flying("old", { status: "done", progress: 100 }),
+      flying("a", { status: "queued" }),
+    ];
+    expect(runSentOf(items, new Set(["old"]), [])).toBe(1);
+    // ...and it is still the run's once it has failed again.
+    const again = [items[0]!, flying("a", { status: "error" })];
+    expect(runSentOf(again, new Set(["old"]), [again[1]!])).toBe(1);
+  });
+
+  it("★ leaves out what settled before the run began, and counts what the heading lists that did not go with it", () => {
+    const old = flying("old", { status: "done", progress: 100 });
+    const left = flying("left", { status: "error" });
+    const again = flying("again", { status: "error" });
+    // `left` failed in an earlier try and was not retried: listed, so counted (never "2 of 1").
+    expect(
+      runSentOf([old, left, again], new Set(["old", "left"]), [left, again]),
+    ).toBe(2);
+    // Not listed (dismissed to the next surface, say), it is outside the run.
+    expect(
+      runSentOf([old, left, again], new Set(["old", "left"]), [again]),
+    ).toBe(1);
+  });
+});
+
+describe("useRunSent", () => {
+  /** The queue as the failure heading reads it: the items, and the failures it lists. */
+  const failuresOf = (items: readonly QueueItem[]) =>
+    items.filter((it) => it.status === "error");
+  const sentOf = (items: readonly QueueItem[]) =>
+    renderHook(({ items }) => useRunSent(items, failuresOf(items)), {
+      initialProps: { items },
+    });
+
+  it("★ a Retry that fails again reads the run it was, never 1 of 0", () => {
+    const first = [flying("a", { status: "error" })];
+    const { result, rerender } = sentOf(first);
+    expect(result.current).toBe(1);
+    // Retry: the very item goes queued, no item is added.
+    rerender({ items: [flying("a", { status: "queued" })] });
+    // ...and it fails again.
+    rerender({ items: [flying("a", { status: "error" })] });
+    expect(result.current).toBe(1);
+  });
+
+  it("★ a run begun here counts its own files and leaves out what an earlier run landed", () => {
+    const earlier = [flying("old", { status: "done", progress: 100 })];
+    const { result, rerender } = sentOf(earlier);
+    rerender({
+      items: [...earlier, flying("a"), flying("b", { status: "queued" })],
+    });
+    rerender({
+      items: [
+        ...earlier,
+        flying("a", { status: "done", progress: 100 }),
+        flying("b", { status: "error" }),
+      ],
+    });
+    expect(result.current).toBe(2);
+  });
+
+  it("★ a mount mid-run counts everything it holds: it never saw the run begin", () => {
+    // The door's run is going when the slot mounts: two landed, one in the air, one waiting.
+    const held = [
+      flying("a", { status: "done", progress: 100 }),
+      flying("b", { status: "done", progress: 100 }),
+      flying("c"),
+      flying("d", { status: "queued" }),
+    ];
+    const { result, rerender } = sentOf(held);
+    rerender({
+      items: [
+        held[0]!,
+        held[1]!,
+        flying("c", { status: "error" }),
+        flying("d", { status: "error" }),
+      ],
+    });
+    expect(result.current).toBe(4);
+  });
+
+  it("★ a single Retry beside failures still listed is that go continuing: the whole stays what it was", () => {
+    // Five went out together and three did not (the whole is five); the first of the three is retried, the other two
+    // stay listed, and the retry's run is a file of the same go.
+    const first = [
+      flying("a", { status: "uploading" }),
+      flying("b", { status: "queued" }),
+      flying("c", { status: "queued" }),
+      flying("d", { status: "queued" }),
+      flying("e", { status: "queued" }),
+    ];
+    const { result, rerender } = sentOf(first);
+    const ended = [
+      flying("a", { status: "error" }),
+      flying("b", { status: "error" }),
+      flying("c", { status: "error" }),
+      flying("d", { status: "done", progress: 100 }),
+      flying("e", { status: "done", progress: 100 }),
+    ];
+    rerender({ items: ended });
+    expect(result.current).toBe(5);
+    rerender({ items: [flying("a", { status: "queued" }), ...ended.slice(1)] });
+    // Two listed beside the one going again, in the same five: never "2 of 1", and never a whole that shrank to three.
+    expect(result.current).toBe(5);
+    rerender({ items: [flying("a", { status: "error" }), ...ended.slice(1)] });
+    expect(result.current).toBe(5);
+  });
+
+  it("★ a Retry of everything listed is a go of its own: the files going again, and nothing that landed before", () => {
+    const first = [
+      flying("a", { status: "uploading" }),
+      flying("b", { status: "queued" }),
+      flying("c", { status: "queued" }),
+    ];
+    const { result, rerender } = sentOf(first);
+    const ended = [
+      flying("a", { status: "error" }),
+      flying("b", { status: "error" }),
+      flying("c", { status: "done", progress: 100 }),
+    ];
+    rerender({ items: ended });
+    expect(result.current).toBe(3);
+    rerender({
+      items: [
+        flying("a", { status: "queued" }),
+        flying("b", { status: "queued" }),
+        ended[2]!,
+      ],
+    });
+    rerender({
+      items: [
+        flying("a", { status: "error" }),
+        flying("b", { status: "error" }),
+        ended[2]!,
+      ],
+    });
+    expect(result.current).toBe(2);
   });
 });
 

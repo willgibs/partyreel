@@ -19,9 +19,13 @@ import {
   type UploadOutcome,
 } from "@/lib/upload/uploader";
 
-/** What lets a file in the air land, by name; and the files whose abort comes too late to count (a complete asked). */
-const { landing, tooLate } = vi.hoisted(() => ({
+/**
+ * What lets a file in the air land, by name; what says its bytes are up (the engine's `onSent`: it now waits, whole, to
+ * be recorded); and the files whose abort comes too late to count (a complete asked).
+ */
+const { landing, bytesUp, tooLate } = vi.hoisted(() => ({
   landing: new Map<string, (outcome: UploadOutcome) => void>(),
+  bytesUp: new Map<string, () => void>(),
   tooLate: new Set<string>(),
 }));
 
@@ -47,6 +51,7 @@ vi.mock("@/lib/upload/uploader", () => {
             outcome = cancelled;
           } else {
             one.onSending?.();
+            bytesUp.set(one.file.name, () => one.onSent?.());
             outcome = await new Promise<UploadOutcome>((resolve) => {
               landing.set(one.file.name, resolve);
               one.signal?.addEventListener(
@@ -106,9 +111,18 @@ async function land(name: string, outcome: UploadOutcome) {
   });
 }
 
+/** Its bytes are up: the file waits, whole, to be recorded (the queue holds it `queued` at 100). */
+async function up(name: string) {
+  await act(async () => {
+    bytesUp.get(name)!();
+    await Promise.resolve();
+  });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   landing.clear();
+  bytesUp.clear();
   tooLate.clear();
 });
 afterEach(() => {
@@ -234,6 +248,54 @@ describe("a stop that cannot be one", () => {
     await expect(asked).resolves.toBeNull();
     expect(q.statuses()).toEqual([["a.jpg", "done"]]);
     expect(q.onUploaded).toHaveBeenCalledTimes(1);
+  });
+
+  it("★ too late is answered AT ONCE, not at the landing: a file whose bytes are up with nothing left to send has its complete coming, so the press closes its question now and aborts nothing", async () => {
+    // The engine ignores the abort of a file whose complete is asked (the stand-in, as `tooLate` says).
+    tooLate.add("a.jpg");
+    const q = mount();
+    await act(async () => q.result.current.addFiles([file("a.jpg")]));
+    const id = q.idOf("a.jpg");
+    await up("a.jpg");
+    expect(q.statuses()).toEqual([["a.jpg", "queued"]]);
+
+    // The answer is in hand before anything lands (the old stop waited for the landing, which on a real complete is
+    // seconds: the question stood there unchanged and the press read as unheard).
+    let answer: unknown = "waiting";
+    await act(async () => {
+      void q.result.current.stop(id).then((r) => {
+        answer = r;
+      });
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(answer).toBeNull();
+    // Nothing was aborted: the file lands exactly as it would have, and is told to the album once.
+    expect(burst.mock.calls[0]![0].files[0]!.signal?.aborted).toBe(false);
+    expect(q.statuses()).toEqual([["a.jpg", "queued"]]);
+    await land("a.jpg", landed("m-a"));
+    expect(q.statuses()).toEqual([["a.jpg", "done"]]);
+    expect(q.onUploaded.mock.calls.map(([u]) => u.mediaId)).toEqual(["m-a"]);
+  });
+
+  it("a file whose bytes are up while a sibling still goes is only waiting for it: nothing is asked yet, so its stop still takes it back", async () => {
+    const q = mount();
+    await act(async () =>
+      q.result.current.addFiles([file("a.jpg"), file("b.jpg")]),
+    );
+    await up("a.jpg");
+    expect(q.statuses()).toEqual([
+      ["a.jpg", "queued"],
+      ["b.jpg", "queued"],
+    ]);
+    let result: Awaited<ReturnType<typeof q.result.current.stop>> = null;
+    await act(async () => {
+      result = await q.result.current.stop(q.idOf("a.jpg"));
+    });
+    // Cancelled, with the way to send it again; it left the queue and b goes on.
+    expect(result).toBeTypeOf("function");
+    expect(burst.mock.calls[0]![0].files[0]!.signal?.aborted).toBe(true);
+    expect(q.statuses()).toEqual([["b.jpg", "uploading"]]);
   });
 
   it("a file that is done, or none at all: nothing to stop", async () => {
