@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { Images } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -41,6 +42,7 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { Label } from "@/components/ui/label";
+import { TapTooltip } from "@/components/ui/tooltip";
 import { PasswordStrengthMeter } from "@/components/shared/password-strength-meter";
 import {
   RelationToggle,
@@ -394,6 +396,44 @@ export function ConsequenceLineDemo() {
         open it again.
       </ConsequenceLine>
     </div>
+  );
+}
+
+/**
+ * TAPTOOLTIP, ON THE TWO FACES IT WAS DRAWN FOR (`ui/tooltip.tsx`'s own doc names both): a glyph and a number with
+ * no label beside them (GlyphCount and the code's corner mark wear it) and a row's fine print (the pricing matrix's
+ * `RowTip`). Each face is the caller's one button and names itself, so the words only say more.
+ *
+ * ★ A CLIENT DEMO, NEVER A SERVER MODULE'S SPECIMEN. TapTooltip reads its face as an element (`children.props`), and a
+ * server component hands a client one its children as a lazy reference, so the entry's own module drawing it
+ * returned a 500 ("Cannot read properties of undefined (reading 'title')"). Every production caller is a client atom
+ * for the same reason; this is one more.
+ */
+export function TapTooltipDemo() {
+  return (
+    <Row>
+      <TapTooltip words="214 photos & videos" side="bottom">
+        <button
+          type="button"
+          aria-label="214 photos & videos"
+          className="inline-flex items-center gap-1.5 rounded-full text-label font-semibold tabular-nums outline-none focus-visible:outline-[1.5px] focus-visible:outline-offset-2 focus-visible:outline-foreground focus-visible:outline-solid"
+        >
+          <Images className="size-3.5 text-muted-foreground" aria-hidden />
+          214
+        </button>
+      </TapTooltip>
+      <TapTooltip
+        words="A tap opens these words and the next tap on the face puts them away."
+        side="top"
+      >
+        <button
+          type="button"
+          className="cursor-help rounded-sm text-sm font-medium underline decoration-muted-foreground/40 decoration-dotted underline-offset-4 outline-none focus-visible:outline-[1.5px] focus-visible:outline-offset-2 focus-visible:outline-foreground focus-visible:outline-solid"
+        >
+          Fine print on a row
+        </button>
+      </TapTooltip>
+    </Row>
   );
 }
 

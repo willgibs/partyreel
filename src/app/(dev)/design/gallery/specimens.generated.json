@@ -142,7 +142,8 @@
       "<DropdownMenu>\n  <DropdownMenuTrigger asChild>\n    <Button variant=\"outline\" size=\"sm\">\n      Download\n    </Button>\n  </DropdownMenuTrigger>\n  <DropdownMenuContent>\n    <DropdownMenuItem>SVG (best for print)</DropdownMenuItem>\n    <DropdownMenuItem>PNG (best for screens)</DropdownMenuItem>\n  </DropdownMenuContent>\n</DropdownMenu>"
     ],
     "tooltip": [
-      "<Tooltip>\n  <TooltipTrigger asChild>\n    <Button variant=\"outline\" size=\"sm\">\n      Hover me\n    </Button>\n  </TooltipTrigger>\n  <TooltipContent>Tooltips keep skip-delay</TooltipContent>\n</Tooltip>"
+      "<Tooltip>\n  <TooltipTrigger asChild>\n    <Button variant=\"outline\" size=\"sm\">\n      Hover me\n    </Button>\n  </TooltipTrigger>\n  <TooltipContent>Tooltips keep skip-delay</TooltipContent>\n</Tooltip>",
+      "<TapTooltipDemo />"
     ],
     "logo": [
       "<div className=\"flex flex-col gap-px overflow-hidden rounded-lg border\">\n  <div className=\"dark flex h-14 items-center bg-background px-5 text-foreground\">\n    <Logo />\n  </div>\n  <div className=\"surface-paper flex h-14 items-center bg-background px-5 text-foreground\">\n    <Logo />\n  </div>\n</div>",
