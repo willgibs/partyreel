@@ -5,17 +5,8 @@
  */
 import "server-only";
 
-import {
-  CompleteMultipartUploadCommand,
-  CopyObjectCommand,
-  CreateMultipartUploadCommand,
-  HeadObjectCommand,
-  PutObjectCommand,
-  UploadPartCopyCommand,
-} from "@aws-sdk/client-s3";
-
 import { assertR2Env } from "@/lib/env";
-import { getR2Client } from "@/lib/r2/client";
+import { getR2 } from "@/lib/r2/client";
 
 // S3/R2 cap a single CopyObject at 5 GB; our per-upload ceiling is 10 GB, so big videos must be
 // copied as ranged UploadPartCopy parts. Stay comfortably under the cap.
@@ -34,10 +25,10 @@ export async function copyObject(params: {
 }): Promise<void> {
   const { sourceKey, destKey } = params;
   const { R2_BUCKET } = assertR2Env();
-  const client = getR2Client();
+  const { client, sdk } = await getR2();
 
   const head = await client.send(
-    new HeadObjectCommand({ Bucket: R2_BUCKET, Key: sourceKey }),
+    new sdk.HeadObjectCommand({ Bucket: R2_BUCKET, Key: sourceKey }),
   );
   const size = head.ContentLength ?? 0;
   if (size <= 0)
@@ -47,7 +38,7 @@ export async function copyObject(params: {
 
   if (size <= SINGLE_COPY_LIMIT_BYTES) {
     await client.send(
-      new CopyObjectCommand({
+      new sdk.CopyObjectCommand({
         Bucket: R2_BUCKET,
         Key: destKey,
         CopySource: copySource,
@@ -57,7 +48,7 @@ export async function copyObject(params: {
   }
 
   const { UploadId: uploadId } = await client.send(
-    new CreateMultipartUploadCommand({
+    new sdk.CreateMultipartUploadCommand({
       Bucket: R2_BUCKET,
       Key: destKey,
       ContentType: head.ContentType,
@@ -73,7 +64,7 @@ export async function copyObject(params: {
   ) {
     const end = Math.min(start + COPY_PART_BYTES, size) - 1; // byte range is INCLUSIVE
     const out = await client.send(
-      new UploadPartCopyCommand({
+      new sdk.UploadPartCopyCommand({
         Bucket: R2_BUCKET,
         Key: destKey,
         UploadId: uploadId,
@@ -88,7 +79,7 @@ export async function copyObject(params: {
   }
 
   await client.send(
-    new CompleteMultipartUploadCommand({
+    new sdk.CompleteMultipartUploadCommand({
       Bucket: R2_BUCKET,
       Key: destKey,
       UploadId: uploadId,
@@ -104,8 +95,9 @@ export async function putJsonObject(params: {
 }): Promise<void> {
   const { key, body } = params;
   const { R2_BUCKET } = assertR2Env();
-  await getR2Client().send(
-    new PutObjectCommand({
+  const { client, sdk } = await getR2();
+  await client.send(
+    new sdk.PutObjectCommand({
       Bucket: R2_BUCKET,
       Key: key,
       Body: JSON.stringify(body, null, 2),

@@ -20,22 +20,16 @@
  *   • ★ The three presigns below are signed by hand (sigv4.ts, compute-presign
  *     2026-10-04), byte-identical to the SDK's getSignedUrl for the same inputs
  *     (presign.test.ts holds the corpus) at a fraction of its CPU; the SDK still
- *     SENDS the multipart, HEAD and COPY calls through client.ts.
+ *     SENDS the multipart, HEAD and COPY calls, and loads on the first of them
+ *     (client.ts), never when this module is imported: a page that only presigns
+ *     never pays for it.
  */
 import "server-only";
 
-import {
-  AbortMultipartUploadCommand,
-  CompleteMultipartUploadCommand,
-  CopyObjectCommand,
-  CreateMultipartUploadCommand,
-  HeadObjectCommand,
-  ListPartsCommand,
-  type ListPartsCommandOutput,
-} from "@aws-sdk/client-s3";
+import type { ListPartsCommandOutput } from "@aws-sdk/client-s3";
 
 import { assertR2Env } from "@/lib/env";
-import { getR2Client } from "@/lib/r2/client";
+import { getR2 } from "@/lib/r2/client";
 import {
   STABLE_DOWNLOAD_TTL_SECONDS,
   presignBucketStart,
@@ -128,9 +122,10 @@ export async function createMultipartUpload(params: {
 }): Promise<{ uploadId: string }> {
   const { key, contentType } = params;
   const { R2_BUCKET } = assertR2Env();
+  const { client, sdk } = await getR2();
 
-  const out = await getR2Client().send(
-    new CreateMultipartUploadCommand({
+  const out = await client.send(
+    new sdk.CreateMultipartUploadCommand({
       Bucket: R2_BUCKET,
       Key: key,
       ContentType: contentType,
@@ -192,12 +187,13 @@ export async function completeMultipartUpload(params: {
 }): Promise<void> {
   const { key, uploadId, parts } = params;
   const { R2_BUCKET } = assertR2Env();
+  const { client, sdk } = await getR2();
 
   // S3/R2 require parts in ascending PartNumber order; ETags pass through verbatim.
   const ordered = [...parts].sort((a, b) => a.partNumber - b.partNumber);
 
-  await getR2Client().send(
-    new CompleteMultipartUploadCommand({
+  await client.send(
+    new sdk.CompleteMultipartUploadCommand({
       Bucket: R2_BUCKET,
       Key: key,
       UploadId: uploadId,
@@ -221,13 +217,13 @@ export async function sumMultipartParts(params: {
 }): Promise<number> {
   const { key, uploadId } = params;
   const { R2_BUCKET } = assertR2Env();
-  const client = getR2Client();
+  const { client, sdk } = await getR2();
   let total = 0;
   let partNumberMarker: string | undefined = undefined;
   // Bounded: at the 10 GB ceiling that's 640 parts (1 page); the cap is a runaway backstop.
   for (let page = 0; page < 50; page++) {
     const out: ListPartsCommandOutput = await client.send(
-      new ListPartsCommand({
+      new sdk.ListPartsCommand({
         Bucket: R2_BUCKET,
         Key: key,
         UploadId: uploadId,
@@ -248,8 +244,9 @@ export async function abortMultipartUpload(params: {
 }): Promise<void> {
   const { key, uploadId } = params;
   const { R2_BUCKET } = assertR2Env();
-  await getR2Client().send(
-    new AbortMultipartUploadCommand({
+  const { client, sdk } = await getR2();
+  await client.send(
+    new sdk.AbortMultipartUploadCommand({
       Bucket: R2_BUCKET,
       Key: key,
       UploadId: uploadId,
@@ -269,9 +266,10 @@ export async function abortMultipartUpload(params: {
 export async function headObjectSize(params: { key: string }): Promise<number> {
   const { key } = params;
   const { R2_BUCKET } = assertR2Env();
+  const { client, sdk } = await getR2();
 
-  const out = await getR2Client().send(
-    new HeadObjectCommand({ Bucket: R2_BUCKET, Key: key }),
+  const out = await client.send(
+    new sdk.HeadObjectCommand({ Bucket: R2_BUCKET, Key: key }),
   );
   const size = out.ContentLength;
   if (typeof size !== "number" || size <= 0) {
@@ -299,8 +297,9 @@ export async function copyObject(params: {
     );
   }
   const { R2_BUCKET } = assertR2Env();
-  await getR2Client().send(
-    new CopyObjectCommand({
+  const { client, sdk } = await getR2();
+  await client.send(
+    new sdk.CopyObjectCommand({
       Bucket: R2_BUCKET,
       Key: destinationKey,
       CopySource: `${R2_BUCKET}/${sourceKey}`,
@@ -320,9 +319,12 @@ export async function headObject(params: {
 }): Promise<{ size: number; lastModified: Date | null } | null> {
   const { key } = params;
   const { R2_BUCKET } = assertR2Env();
+  // Outside the try: only R2's answer reads as "absent". A client that cannot be made (no credentials, an SDK that
+  // would not load) throws, like every other send, rather than telling the render check its object is not there.
+  const { client, sdk } = await getR2();
   try {
-    const out = await getR2Client().send(
-      new HeadObjectCommand({ Bucket: R2_BUCKET, Key: key }),
+    const out = await client.send(
+      new sdk.HeadObjectCommand({ Bucket: R2_BUCKET, Key: key }),
     );
     return {
       size: out.ContentLength ?? 0,

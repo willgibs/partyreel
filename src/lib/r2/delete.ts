@@ -9,10 +9,8 @@
  */
 import "server-only";
 
-import { DeleteObjectsCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
-
 import { assertR2Env } from "@/lib/env";
-import { getR2Client } from "@/lib/r2/client";
+import { getR2 } from "@/lib/r2/client";
 
 /** S3/R2 hard cap: at most 1000 keys per DeleteObjects request. */
 const MAX_DELETE_KEYS = 1000;
@@ -37,12 +35,12 @@ export async function deleteR2Objects(
   if (keys.length === 0) return result;
 
   const { R2_BUCKET } = assertR2Env();
-  const client = getR2Client();
+  const { client, sdk } = await getR2();
 
   for (let i = 0; i < keys.length; i += MAX_DELETE_KEYS) {
     const chunk = keys.slice(i, i + MAX_DELETE_KEYS);
     const out = await client.send(
-      new DeleteObjectsCommand({
+      new sdk.DeleteObjectsCommand({
         Bucket: R2_BUCKET,
         Delete: { Objects: chunk.map((Key) => ({ Key })), Quiet: true },
       }),
@@ -81,9 +79,10 @@ export async function listR2Objects(params: {
 }): Promise<{ objects: R2Object[]; nextToken: string | null }> {
   const { prefix, continuationToken, startAfter, maxKeys } = params;
   const { R2_BUCKET } = assertR2Env();
+  const { client, sdk } = await getR2();
 
-  const out = await getR2Client().send(
-    new ListObjectsV2Command({
+  const out = await client.send(
+    new sdk.ListObjectsV2Command({
       Bucket: R2_BUCKET,
       Prefix: prefix,
       ContinuationToken: continuationToken,
