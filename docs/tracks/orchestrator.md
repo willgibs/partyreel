@@ -164,7 +164,8 @@ Round 15, on Will's desk answers of 2026-10-04 06:00Z and his brand note; the ap
   worth.
 - **The 26 policy tests, GUARD or TASTE** (`../partyreel-wt/_scratch/docs-prune/policy-tests.md`): which taste rules he
   keeps as his voice and which go.
-- **His walks:** the camera on his iPhone (a held-shutter video on a waiting sheet), Save into Photos, Record Video's
+- **His walks:** Settings' develop time on his iPhone (type a time, then Back or the picker's close: it holds;
+  crumbs-72), the camera on his iPhone (a held-shutter video on a waiting sheet), Save into Photos, Record Video's
   size, a deletion and its Cancel deletion on hi@willgibs.com, the spend watch's uploads switch off and on; and
   trash-in-storage's permanent deletes, which no agent may press (on hi@willgibs.com: the size list's Delete for good
   on "RT51 free", Make room from Deleted back on and one upload past the line, Empty Deleted, a guest's own removal
