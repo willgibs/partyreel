@@ -151,6 +151,7 @@ import {
   OtpDemo,
   PasswordStrengthDemo,
   RelationToggleDemo,
+  TapTooltipDemo,
   ToastDemo,
 } from "./interactive-demos";
 
@@ -1795,15 +1796,18 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
   {
     id: "tooltip",
     file: "src/components/ui/tooltip.tsx",
-    for: "the hover and focus label; useless on touch, where a Popover is the honest answer",
+    for: "the hover and focus label for a control that names itself, which refuses a finger on purpose; TapTooltip is the one press model where the words are what a finger asks for",
+    test: "src/components/ui/tooltip.test.tsx",
+    badge: "updated",
     family: "components",
     section: "Overlays",
+    lede: "Two components in one file, drawn side by side. `Tooltip` labels a control whose own name is its label: a cursor's hover and a key's focus open it, and a tap never does (its arrow would land under the finger and take the click). `TapTooltip` is for a control whose words are the thing asked for, a glyph with no label beside it or a table row's fine print: a tap toggles the words, a cursor's hover opens them and its click keeps them open, a key toggles them.",
     specimens: [
       {
         // No local TooltipProvider: the root one (providers.tsx, delay 200 /
         // skip 300) is in scope here, so this is the REAL shipped timing.
         label: "Tooltip",
-        hint: "the root provider's delay, not a local one",
+        hint: "the root provider's delay, not a local one; a tap on its face opens nothing",
         node: (
           <Tooltip>
             <TooltipTrigger asChild>
@@ -1814,6 +1818,12 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
             <TooltipContent>Tooltips keep skip-delay</TooltipContent>
           </Tooltip>
         ),
+      },
+      {
+        // A client demo (`interactive-demos.tsx`): TapTooltip cannot be drawn from this server module.
+        label: "TapTooltip",
+        hint: "tap a face to open its words and again to shut them; hover and focus open them and a cursor's click keeps them; Escape or a tap elsewhere puts them away",
+        node: <TapTooltipDemo />,
       },
     ],
   },

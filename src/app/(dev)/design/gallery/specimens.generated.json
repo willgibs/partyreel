@@ -142,7 +142,8 @@
       "<DropdownMenu>\n  <DropdownMenuTrigger asChild>\n    <Button variant=\"outline\" size=\"sm\">\n      Download\n    </Button>\n  </DropdownMenuTrigger>\n  <DropdownMenuContent>\n    <DropdownMenuItem>SVG (best for print)</DropdownMenuItem>\n    <DropdownMenuItem>PNG (best for screens)</DropdownMenuItem>\n  </DropdownMenuContent>\n</DropdownMenu>"
     ],
     "tooltip": [
-      "<Tooltip>\n  <TooltipTrigger asChild>\n    <Button variant=\"outline\" size=\"sm\">\n      Hover me\n    </Button>\n  </TooltipTrigger>\n  <TooltipContent>Tooltips keep skip-delay</TooltipContent>\n</Tooltip>"
+      "<Tooltip>\n  <TooltipTrigger asChild>\n    <Button variant=\"outline\" size=\"sm\">\n      Hover me\n    </Button>\n  </TooltipTrigger>\n  <TooltipContent>Tooltips keep skip-delay</TooltipContent>\n</Tooltip>",
+      "<TapTooltipDemo />"
     ],
     "logo": [
       "<div className=\"flex flex-col gap-px overflow-hidden rounded-lg border\">\n  <div className=\"dark flex h-14 items-center bg-background px-5 text-foreground\">\n    <Logo />\n  </div>\n  <div className=\"surface-paper flex h-14 items-center bg-background px-5 text-foreground\">\n    <Logo />\n  </div>\n</div>",
@@ -209,6 +210,13 @@
     "admin-metrics-charts": [
       "<AdminMetricsChartsDemo />"
     ],
+    "plan-limits": [
+      "<PlanLimitsDemo state=\"healthy\" />",
+      "<PlanLimitsDemo state=\"critical\" />",
+      "<PlanLimitsDemo state=\"failed\" />",
+      "<PlanLimitsDemo state=\"gaps\" />",
+      "<div className=\"flex w-full flex-col gap-4\">\n  <PlanLimitsDemo state=\"never\" />\n  <PlanLimitsDemo state=\"unreadable\" />\n</div>"
+    ],
     "event-card": [
       "<EventCard\n  variant=\"hosted\"\n  href=\"#\"\n  name={SAMPLE.eventName}\n  coverUrl={SAMPLE.cover}\n  dateLabel={SAMPLE.dateLabel}\n  itemsLabel=\"128 items\"\n  statusLabel=\"Open\"\n  pendingCount={3}\n  qrSlot={qrSlot}\n/>",
       "<EventCard\n  variant=\"hosted\"\n  href=\"#\"\n  name=\"Office Summer Party\"\n  coverUrl={null}\n  dateLabel=\"Aug 2\"\n  itemsLabel=\"0 items\"\n  statusLabel=\"Open\"\n  pendingCount={0}\n/>",
@@ -267,6 +275,9 @@
     "guests-door": [
       "<AtTheDoorDemo />",
       "<InvitedDemo />"
+    ],
+    "download-toast": [
+      "<DownloadToastDemo />"
     ],
     "glow": [
       "<div className=\"dark\">\n  <div className=\"h-16 bg-muted\" />\n  <div className=\"surface-ink relative isolate bg-background\">\n    <Glow\n      shape=\"seam\"\n      vars={{\n        \"--glw-h\": \"210px\",\n        \"--glw-dur\": \"var(--spill-cadence)\",\n      }}\n    />\n    <div data-glw-seamline aria-hidden />\n    <div className=\"relative px-8 py-16 text-sm text-muted-foreground\">\n      The ink slab, lit from the cut above it.\n    </div>\n  </div>\n</div>",
