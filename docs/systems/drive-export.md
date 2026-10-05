@@ -33,11 +33,20 @@ that very write (`CreatedFolder` and the Worker's `CreatedFile` are branded so n
 - **Scopes `openid email https://www.googleapis.com/auth/drive.file`, never wider.** `drive.file` reaches only what
   Partyreel made (non-sensitive: brand verification only, no CASA). Every https address the Drive code and the Worker
   name is Google's own and in one list (`google-urls.ts`, pinned by `google-urls.test.ts` over every file).
-- **Its own Web client, "Partyreel Drive"** (project partyreel-498522, apart from sign-in's client, which lives in
-  Supabase), so revoking Drive never touches a sign-in grant. Redirect URIs exactly `https://partyreel.com/api/drive/callback`
-  and `http://localhost:3000/api/drive/callback`; the alias has none, so a connect there answers Google's
-  redirect_uri_mismatch. Its publishing status must stay **In production**: in Testing every refresh token dies in seven
-  days.
+- ★ **A Google entry never feels scary to a first-time user** (Will): signing up with Google asks only what sign-in
+  needs (`account-door.tsx`'s `signInWithOAuth`: no scope, at most the chooser), and Drive's permission is asked only
+  when she first sends or presses Connect on Account, after our promise screen, never at sign-up: Google's "see, edit,
+  create and delete" lands on someone who chose Drive, not on someone signing up. `google-urls.test.ts` holds no file
+  but the connect's own to a Drive scope and every `signInWithOAuth` to no scope, offline access or consent.
+- **Its own Web client, "Partyreel Drive", in sign-in's Google Cloud project** (partyreel-498522, number 401819547646;
+  sign-in's client lives in Supabase). Kept one project on purpose (Will): no second setup, and one "Partyreel" entry
+  in a person's Google account. ★ Google keeps ONE grant a Google account and project, so Google's revoke (Disconnect,
+  another account's connect, Revoke every connection) removes sign-in's approval too: nothing locks out (her Supabase
+  session is its own), but that Google account sees Google's consent screen once more at its next Continue with
+  Google, the accepted cost; and her removing Partyreel at Google ends Drive too (`invalid_grant`, below). Redirect
+  URIs exactly `https://partyreel.com/api/drive/callback` and `http://localhost:3000/api/drive/callback`; the alias
+  has none, so a connect there answers Google's redirect_uri_mismatch. Its publishing status must stay **In
+  production**: in Testing every refresh token dies in seven days.
 - ★ **The callback's lock is `getUser()`.** `/api/drive/connect` (signed in, limiter `drive_connect`) writes
   `pr_drive_oauth` (HttpOnly, `Path=/api/drive/callback`, ten minutes, HMAC under `UNLOCK_COOKIE_SECRET` in its own
   `drive-oauth:` domain) with the state, the PKCE verifier, the account it was started for and where to land (one of
@@ -48,12 +57,15 @@ that very write (`CreatedFolder` and the Worker's `CreatedFile` are branded so n
 - **Identity is `sub`, never the address;** "connected as" prints the address only when Google verified it.
 - ★ **A same-account reconnect never revokes the token it replaces;** a different account's does. Google's revoke
   removes the whole grant (its docs: "invalidating the permissions previously granted"), and the new token rides that
-  very grant. Another Google account replaces the row whole and ends its unfinished sends (`account_changed`). Every
-  new connection mails the account's own address (`drive_connected`): a stolen session could otherwise point her sends
-  at a stranger's Drive in silence.
+  very grant. Another Google account replaces the row whole, ends its unfinished sends (`account_changed`) and forgets
+  the old Drive as Disconnect does. Every new connection mails the account's own address (`drive_connected`): a stolen
+  session could otherwise point her sends at a stranger's Drive in silence.
 - **Disconnect** (Account, an operator, account deletion): the row and its folders go first (running sends end
-  `disconnected`; finished ones keep their counts and lose every Google id), then the grant is revoked, three tries.
-  Google not answering keeps no key here; the words say so with myaccount.google.com/connections. Account deletion
+  `disconnected`), then the grant is revoked, three tries. ★ Every send of the connection forgets every Google id
+  before the row goes (`cloud_connection_forget`: the files' ids, Drive's MD5s, upload sessions, folders; a file on
+  its way is given back) and keeps its states and counts, so nothing a later connection reads names another Drive's
+  file; a sent item holds no file id only once forgotten (`forgotten_at`). Google not answering keeps no key here; the
+  words say so with myaccount.google.com/connections. Account deletion
   disconnects at the request (an isolated step after the stamp) and again before `deleteUser` (isolated: a grant
   Google keeps listing is inert without the key and never holds a person who asked to be forgotten).
 - **`invalid_grant`** on a refresh wipes the tokens at once (`revoked`), pauses her sends `disconnected` and mails her
@@ -108,9 +120,11 @@ that very write (`CreatedFolder` and the Worker's `CreatedFile` are branded so n
 - **Lanes.** A Queue message is a lane (`{ v, connectionId }`); a connection runs at most three (two for half an hour
   after Google says slow down), however many albums she sends: they share them, oldest first, so whole albums finish in
   order. A kick enqueues only what is missing, once a minute. A lane leases a batch (at most 10 items or 1 GiB),
-  sends, reports every 10 seconds, and after an 11-minute slice sends itself to the back of the queue, so a 1 TB host
-  never blocks anyone. A lease answering `wait`, `paused` or `stopped` ends the lane (a paused connection costs
-  nothing); only Google's slow down (a delay to `throttled_until`) and an app that cannot answer (60 seconds) re-queue.
+  sends, reports every 10 seconds (a batch's last file in its closing word, never a timed one before it: one settle),
+  and after an 11-minute slice sends itself to the back of the queue, so a 1 TB host never blocks anyone. A lease
+  answering `wait`, `paused` or `stopped` ends the lane (a paused connection costs nothing); only Google's slow down (a
+  delay to `throttled_until`) and an app that cannot answer (60 seconds) re-queue. A report answering `stop` (her
+  Cancel, a pause) ends it after the file in hand, a big one at its next chunk, its session kept.
 - **One file:** a resumable upload; up to 128 MiB one PUT through a `FixedLengthStream`, past it 128 MiB chunks with
   the session reported before the first byte, so a resume asks Google where it stands (`bytes */size`) and never
   trusts our own count. Each lands checked against R2's MD5 (or one the Worker computes over a second read, for a
@@ -118,7 +132,15 @@ that very write (`CreatedFolder` and the Worker's `CreatedFile` are branded so n
   1, 5, 30 and 60 minutes, and fails for good on its fifth attempt (Retry on the album).
 - **The closing check** confirms every sent file by its id, a page of 100 at a time: a missing one goes once more;
   duplicates are counted from one listing of the album's folder, signalled (`drive_transfer`), never deleted (a copy
-  she made on purpose carries our properties too). Then `done` ("every one checked") or `partly_done`.
+  she made on purpose carries our properties too). Then `done` ("every one checked") or `partly_done`. ★ Only the
+  check closes a checking send (`cloud_export_settle`: its walk through, no sent file past its cursor), so "every one
+  checked" follows a check that ran (the walk's first send was closed by a report with none run); a send that sent
+  nothing had nothing to check and never says it (`checkedAll`).
+- **What landed is said as it lands:** files already on their way at her Cancel still land, so a canceled or stopped
+  send a lane still holds files of (`landing`: items leased under a live lease, asked by the status route for sends
+  stopped inside a lease's 15 minutes) says "so far" and keeps her page polling, and offers Send again once they have
+  landed (sooner would send them twice). Account's "Sent" counts each file once: an album's largest ended send
+  (`sent-totals.ts`), never sends added up (a re-send counts the files it kept).
 - **Stops, each its own act in place** (`moments.ts`, the one table every place reads): Drive full (Check again, Get
   more space; its room is asked again every six hours for a week), lost access (Reconnect), the folder in her bin (Check
   again, Send to a new folder), her admin's policy, files that would not go (Retry, See which). A stop that needs her
@@ -146,20 +168,32 @@ that very write (`CreatedFolder` and the Worker's `CreatedFile` are branded so n
 
 `workers/drive/` (`partyreel-drive`): its own tests against a fake Drive and a fake bucket, deployed apart from the app
 and from `partyreel-export` (a Drive fault never touches Download). Bindings: `PRIMARY` (R2, read), the queue
-`partyreel-drive` (consumer and producer) and `partyreel-drive-dlq` (producer, for its depth), a cron every five
+`partyreel-drive` (consumer and producer) and `partyreel-drive-dlq` (producer, for its depth), a cron every fifteen
 minutes, `DRIVE_MODE` (the redeploy kill switch), `DRIVE_APP_URL` and the secret `DRIVE_WORKER_SECRET` (equal to the
 app's). ★ **Retention is the queue's own setting** (14 days, at create or update): the default four would expire a
 lane waiting out an outage.
 - **The protocol has a twin on each side** (`src/lib/drive/protocol.ts`, `workers/drive/src/protocol.ts`): every word
   is `base64url(json).hmac("drive:" + body)` under the shared secret, refused past five minutes, and both suites pin
   the same vectors. A replay is harmless by construction (every write is a transition keyed by its lease token, and a
-  `sent` stays sent), so there is no nonce table.
+  `sent` stays sent; a dying lane counts once its Queue message), so there is no nonce table.
 - **A poison lane pauses its connection, never loops:** on its last attempt a lane reports itself dead
-  (`/api/internal/drive/lanefail`); three in a day pause the connection's sends (`failing`) until an operator resumes.
-- **The sweep** (`/api/internal/drive/sweep`, every five minutes): kicks a send that stopped moving, resumes Google's
-  day, asks a full Drive's room again, ends what ran too long, trips breakers, folds the done mails, and once an hour
-  writes the `drive_export` heartbeat with the queue's depths (`drive_queue`, `drive_dead_letters`).
-- Its logs never carry a token, a secret, a lease or a session address (`log-safety.test.ts`).
+  (`/api/internal/drive/lanefail`, naming its Queue message: the last twenty counted ride the connection, so a word
+  said again counts nothing); three in a day pause the connection's sends (`failing`) until an operator resumes.
+- **The sweep** (`/api/internal/drive/sweep`, every fifteen minutes): kicks a send that stopped moving, resumes
+  Google's day, asks a full Drive's room again, ends what ran too long, trips breakers, folds the done mails, and once
+  an hour writes the `drive_export` heartbeat with the queue's depths (`drive_queue`, `drive_dead_letters`). ★ Each
+  sweep is a Vercel function, so its clock is its measured cost: on a local production build (2026-10-05, 300 signed
+  calls) a warm call costs 6.2 ms of CPU (median; p95 19, mean 8.9), its route's first call 164 ms (121 to 183), a
+  fresh server's boot with it 1.1 s. At five minutes (8,640 calls a month) that is 77 s warm, 24 min if every route
+  starts cold, 2.6 h if every call boots: 0.5% to 65% of Hobby's 4 h. At fifteen (2,880): 26 s, 8 min, 52 min, 0.2%
+  to 22%, while a stalled send is kicked within about twenty minutes (its 5-minute stall and the next sweep), the done
+  mail goes within fifteen and the hourly heartbeat stays inside /admin/jobs' Overdue line (`sweep-cadence.test.ts`
+  holds the clocks to one). Vercel's Usage page after a week of sweeps says which bound is real.
+- Its logs never carry a token, a secret, a lease or a session address (`log-safety.test.ts`). ★ A local walk's
+  `wrangler dev` prints `Error: internal error; reference = …` about 15 s after each remote R2 call (two a call,
+  HEADs included, the fetch context as much as the queue's) and an occasional `Network connection lost.`, nothing
+  failing: wrangler's remote-binding proxy closing its idle connections, reproduced with bare `head()`s (the lane's
+  2026-10-05 repro). The deployed Worker's logs (`wrangler tail partyreel-drive`) show neither; one there is a finding.
 
 ## What a leak gives away
 

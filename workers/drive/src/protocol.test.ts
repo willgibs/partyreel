@@ -4,9 +4,13 @@
  */
 import { describe, expect, it } from "vitest";
 
+import { appClient } from "./app-client";
 import { openLeaseToken, readKick, signWord, verifyWord } from "./protocol";
 
 const SECRET = "drive-vector-secret";
+/** A dying lane's word, bound to its Queue message: exactly what `appClient().laneFail` signs (the app's suite verifies it). */
+const LANEFAIL_WORD =
+  "eyJ2IjoxLCJhdCI6MTkwMDAwMDAwMDAwMCwia2luZCI6ImxhbmVmYWlsIiwiY29ubmVjdGlvbklkIjoiMzMzMzMzMzMtNDQ0NC00NTU1LTg2NjYtNzc3Nzc3Nzc3Nzc3IiwibWVzc2FnZUlkIjoiMDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWYiLCJlcnJvciI6IlR5cGVFcnJvcjogYm9vbSJ9.d1b6c914c0721948c6b8404894d405e51ef4b011e100b97dbb9ea67f5497d8bf";
 const PAYLOAD = {
   v: 1,
   kind: "report",
@@ -80,5 +84,30 @@ describe("the Drive protocol's twin", () => {
     expect(
       readKick({ v: 1, kind: "kick", at: 1, connectionId: "x", lanes: 1 }),
     ).toBeNull();
+  });
+
+  it("★ signs a dying lane's word with its Queue message, byte for byte the pinned vector", async () => {
+    const posted: { url: string; body: string }[] = [];
+    const app = appClient(
+      { DRIVE_APP_URL: "https://app.test", DRIVE_WORKER_SECRET: SECRET },
+      async (input, init) => {
+        posted.push({ url: String(input), body: String(init?.body) });
+        return new Response(JSON.stringify({ ok: true }), { status: 200 });
+      },
+      () => 1_900_000_000_000,
+    );
+    expect(
+      await app.laneFail({
+        connectionId: "33333333-4444-4555-8666-777777777777",
+        messageId: "0123456789abcdef0123456789abcdef",
+        error: "TypeError: boom",
+      }),
+    ).toBe(true);
+    expect(posted).toEqual([
+      {
+        url: "https://app.test/api/internal/drive/lanefail",
+        body: LANEFAIL_WORD,
+      },
+    ]);
   });
 });

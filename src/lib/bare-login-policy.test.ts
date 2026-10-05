@@ -13,7 +13,8 @@ import { describe, expect, it } from "vitest";
  * and whatever they were doing is gone (a mail's Renew button, the storage list, a plan switch).
  * `loginPath(window.location.pathname)` (`lib/auth/return-path.ts`) carries the page, on the same
  * allow-list the gate's own redirect uses, and is the bare `/login` itself for a page no sign-in may
- * return to (the public pricing page), so it costs nothing where there is nothing to carry.
+ * return to (the help center, say; the public pricing page is on the list since pricing-doors), so it costs nothing
+ * where there is nothing to carry.
  *
  * WHAT IS REFUSED: `router.push("/login")`, `router.replace("/login")`, `location.assign("/login")`,
  * `location.replace("/login")` and `location.href = "/login"`, the literal and nothing else. A

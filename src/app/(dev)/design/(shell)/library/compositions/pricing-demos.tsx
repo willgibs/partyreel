@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ComponentProps,
-  type ReactNode,
-} from "react";
+import { useMemo, useState, type ComponentProps, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { LockChip } from "@/components/app/pricing/lock-chip";
@@ -21,9 +14,6 @@ import {
 } from "@/components/app/pricing/pricing-sheet";
 import type { PricingTrigger } from "@/components/app/pricing/triggers";
 import { WelcomeToPro } from "@/components/app/pricing/welcome-to-pro";
-import type { CheckoutButton } from "@/components/app/checkout-button";
-import type { ManageBillingButton } from "@/components/app/manage-billing-button";
-import { Button } from "@/components/ui/button";
 import type { PlanFacts } from "@/lib/billing/plan-facts";
 import { GIGABYTE, MEGABYTE, planById } from "@/lib/constants/tiers";
 
@@ -41,6 +31,11 @@ import { InertStorage } from "./composition-demos";
  * Switch, and meets the surface's real states, none of which localhost can reach signed in (a Pro host's three sizes,
  * a pass holder's note, the receipt in the webhook's race).
  *
+ * ★ THE BUTTONS ARE THE PRODUCT'S OWN, OVER INERT VERBS. Checkout, the portal and the switch each wait a route's round
+ * trip and answer an address to go to, and the way out (`leave`) is where the Library stops: so the pending words, the
+ * disabled button and the order of things are the real buttons' (a stand-in redrawn by hand drifts from the button it
+ * stands for), and the only thing replaced is Stripe.
+ *
  * ★ THE SHEET'S SIZE LIST AND ITS REFUSAL FACE STAND OVER THE SAME INERT STORAGE the storage meter's specimens use
  * (`InertStorage`), so "See what's using space" and its deletes answer after a pause and change nothing.
  *
@@ -56,6 +51,9 @@ const ROUND_TRIP_MS = 900;
 const STOPS_HERE =
   "The Library stops here: in the product this opens Stripe's page.";
 
+/** The address every stand-in route answers: a reserved name (`.invalid`), so it is never one a browser could follow. */
+const STAND_IN_URL = "https://stripe.invalid/the-library-stops-here";
+
 function afterPause<T>(value: T, ms: number, signal?: AbortSignal): Promise<T> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => resolve(value), ms);
@@ -67,74 +65,28 @@ function afterPause<T>(value: T, ms: number, signal?: AbortSignal): Promise<T> {
 }
 
 /**
- * A press that would leave the app: pending for a route's wait, then the note, then at rest again. The pending words are
- * the real buttons' own ("Starting…", "Opening…"), so what a reviewer sees until the note is what the host sees until
- * Stripe's page.
+ * A route that would answer Stripe's page: a round trip's wait, then the address it would have made. The real button is
+ * pending ("Starting…", "Opening…") for exactly that wait, as it is for the real route, and then takes the way out.
  */
-function useInertPress() {
-  const [pending, setPending] = useState(false);
-  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  useEffect(() => () => clearTimeout(timer.current), []);
-  const press = () => {
-    setPending(true);
-    timer.current = setTimeout(() => {
-      setPending(false);
-      toast(STOPS_HERE);
-    }, ROUND_TRIP_MS);
-  };
-  return { pending, press };
+function stripeAnswers() {
+  return afterPause(
+    { kind: "redirect" as const, url: STAND_IN_URL },
+    ROUND_TRIP_MS,
+  );
 }
-
-/** `CheckoutButton`'s contract (its props are its type), drawn without the route behind it. */
-const InertCheckoutButton: typeof CheckoutButton = ({
-  planId: _planId,
-  renewal: _renewal,
-  next: _next,
-  onRefused: _onRefused,
-  children,
-  ...buttonProps
-}) => {
-  const { pending, press } = useInertPress();
-  return (
-    <Button onClick={press} disabled={pending} {...buttonProps}>
-      {pending ? "Starting…" : children}
-    </Button>
-  );
-};
-
-/** `ManageBillingButton`'s contract, drawn without the portal behind it. */
-const InertManageBillingButton: typeof ManageBillingButton = (buttonProps) => {
-  const { pending, press } = useInertPress();
-  return (
-    <Button
-      variant="outline"
-      size="sm"
-      {...buttonProps}
-      onClick={press}
-      disabled={pending}
-    >
-      {pending ? "Opening…" : "Manage billing"}
-    </Button>
-  );
-};
 
 /** The doors for a host the fixture describes: its facts after a read's pause, and every other door inert. */
 function doorsFor(facts: PlanFacts | null, readMs: number): PricingDoors {
   return {
     readFacts: (signal) =>
       afterPause(facts ? { ok: true, facts } : null, readMs, signal),
-    // Stripe's confirm page stands behind this; the real button announces the note in its own toast.
-    changePlan: () =>
-      afterPause(
-        {
-          kind: "error" as const,
-          code: "already_on_plan",
-          message: STOPS_HERE,
-        },
-        ROUND_TRIP_MS,
-      ),
-    CheckoutButton: InertCheckoutButton,
-    ManageBillingButton: InertManageBillingButton,
+    startCheckout: stripeAnswers,
+    openPortal: stripeAnswers,
+    changePlan: stripeAnswers,
+    // Where the product would have left, the Library says so: the note is the way out, so it follows the wait.
+    leave: () => {
+      toast(STOPS_HERE);
+    },
     router: { push: () => {}, replace: () => {}, refresh: () => {} },
   };
 }

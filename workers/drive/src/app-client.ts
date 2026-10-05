@@ -34,7 +34,15 @@ export type AppClient = {
     duplicates?: number;
     finding?: "folder_gone";
   }): Promise<ReportAnswer | Unreachable>;
-  laneFail(connectionId: string, error: string): Promise<boolean>;
+  /**
+   * A lane's last attempt says it died, bound to its Queue message: the app counts one death a message, so this word
+   * said again (a retried post, a replay inside its five minutes) adds nothing.
+   */
+  laneFail(input: {
+    connectionId: string;
+    messageId: string;
+    error: string;
+  }): Promise<boolean>;
   sweep(input: {
     mode: "on" | "off";
     depths: Record<string, number>;
@@ -134,10 +142,11 @@ export function appClient(
         state: (answer as { state?: unknown })?.state === "ok" ? "ok" : "stop",
       };
     },
-    async laneFail(connectionId, error) {
+    async laneFail({ connectionId, messageId, error }) {
       const answer = await post(APP_PATHS.lanefail, {
         kind: "lanefail",
         connectionId,
+        messageId,
         error: error.slice(0, 300),
       });
       return !isUnreachable(answer);

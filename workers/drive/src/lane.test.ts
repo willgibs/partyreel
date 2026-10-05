@@ -2,7 +2,10 @@
  * A LANE'S SLICE AND HOW EACH ONE ENDS (drive-export.md, "Lanes, per connection"), against a scripted app, a fake
  * Drive and a fake bucket: a lane told to wait, pause, stop or idle acks and ends without re-queuing itself (a busy or
  * paused connection costs nothing); only Google's "slow down" and an app that cannot answer re-queue, each delayed; a
- * stop mid-batch ends the lane within its next report; a slice's end sends the lane to the back of the queue.
+ * stop mid-batch ends the lane within its next report, a big file's at its next chunk; a slice's end sends the lane to
+ * the back of the queue. ★ And against a model of the app's own transitions (`testing/fake-app.ts`): a batch's end is
+ * one word, and the closing check really runs before a send is done (the walk's first send said "every one checked"
+ * of a check that never ran).
  */
 import { describe, expect, it } from "vitest";
 
@@ -21,6 +24,7 @@ import type {
   LeaseItem,
   ReportItem,
 } from "./protocol";
+import { FakeApp } from "./testing/fake-app";
 import { FakeBucket, bytesOf, md5OfStream } from "./testing/fake-bucket";
 import { FakeDrive } from "./testing/fake-drive";
 
@@ -268,5 +272,118 @@ describe("a lane's slice", () => {
         duplicates: 0,
       },
     ]);
+  });
+
+  it("★ says a batch's last file in its closing word, never in a timed word just before it", async () => {
+    // Each file takes a report's beat, so a timed word falls due after every one, the last included.
+    const h = harness({ leases: [] });
+    const items = [item(1, h.bucket), item(2, h.bucket), item(3, h.bucket)];
+    h.deps.app.lease = async () =>
+      h.reports.length === 0 ? work(items) : { state: "idle" };
+    const inner = h.deps.bucket.head.bind(h.deps.bucket);
+    h.deps.bucket = {
+      ...h.deps.bucket,
+      read: h.bucket.read.bind(h.bucket),
+      head: async (k: string) => (h.tick(REPORT_EVERY_MS), inner(k)),
+    };
+    expect(await runSlice(h.deps, message)).toBe("idle");
+    const last = items.at(-1)!.mediaId;
+    const carrying = h.reports.filter((r) =>
+      r.items.some((i) => i.mediaId === last),
+    );
+    expect(carrying).toHaveLength(1);
+    expect(carrying[0]).toMatchObject({ done: true });
+    expect(h.reports.at(-1)).toBe(carrying[0]);
+    // The old shape: a timed word with the last file, then an empty closing word (two settles).
+    expect(h.reports.some((r) => r.done && r.items.length === 0)).toBe(false);
+  });
+
+  it("★ runs the closing check after a batch ends: the next lease is its first page, every file confirmed, then done", async () => {
+    const h = harness({ leases: [] });
+    h.drive.add({ id: "album", size: 0 });
+    const items = [item(1, h.bucket), item(2, h.bucket), item(3, h.bucket)];
+    const app = new FakeApp(items);
+    h.deps.app = app;
+    const inner = h.deps.bucket.head.bind(h.deps.bucket);
+    h.deps.bucket = {
+      ...h.deps.bucket,
+      read: h.bucket.read.bind(h.bucket),
+      head: async (k: string) => (h.tick(REPORT_EVERY_MS), inner(k)),
+    };
+    expect(await runSlice(h.deps, message)).toBe("idle");
+    expect(app.status).toBe("done");
+    // Two leases: the batch, then the check's first page (and an idle one to end).
+    expect(app.leases).toBe(2);
+    const lastReport = app.said.reduce(
+      (at, w, i) => (w.kind === "report" ? i : at),
+      -1,
+    );
+    const checks = app.said.flatMap((w, i) =>
+      w.kind === "check" ? [{ i, w }] : [],
+    );
+    expect(checks).toHaveLength(1);
+    expect(checks[0]!.i).toBeGreaterThan(lastReport);
+    expect(checks[0]!.w.results.map((r) => r.state)).toEqual([
+      "ok",
+      "ok",
+      "ok",
+    ]);
+    expect([...app.items.values()].every((s) => s.confirmedAt !== null)).toBe(
+      true,
+    );
+  });
+
+  it("the model holds the database's rule: a closing word after the timed one leaves the send checking (the old settle closed it)", async () => {
+    for (const guard of [true, false]) {
+      const bucket = new FakeBucket();
+      const items = [item(1, bucket), item(2, bucket)];
+      const app = new FakeApp(items, { guard });
+      await app.lease();
+      await app.report({
+        lease: LEASE,
+        items: items.map((i) => ({
+          mediaId: i.mediaId,
+          outcome: "sent" as const,
+          fileId: `f${i.mediaId.slice(-1)}`,
+        })),
+      });
+      expect(app.status).toBe("checking");
+      await app.report({ lease: LEASE, items: [], done: true });
+      // The walk's first send, on the old settle: done with nothing confirmed.
+      expect(app.status).toBe(guard ? "checking" : "done");
+      expect(
+        [...app.items.values()].filter((s) => s.confirmedAt !== null),
+      ).toHaveLength(0);
+    }
+  });
+
+  it("★ stops a big file at its next chunk when her Cancel is heard on its chunk report, the session kept", async () => {
+    const h = harness({
+      leases: [],
+      // The session written ahead (offset 0) answers ok; the first chunk's report hears the cancel.
+      reportAnswers: [{ state: "ok" }, { state: "stop" }],
+    });
+    h.deps.chunkBytes = 4096;
+    const big = item(9, h.bucket);
+    h.bucket.put(big.key, bytesOf(10_000, 9));
+    h.deps.app.lease = async () =>
+      h.reports.length === 0
+        ? work([{ ...big, bytes: 10_000 }])
+        : { state: "idle" };
+    expect(await runSlice(h.deps, message)).toBe("stop");
+    const puts = h.drive.calls.filter((c) => c.method === "PUT");
+    expect(puts).toHaveLength(1);
+    expect(h.drive.files.size).toBe(0);
+    const words = h.reports.flatMap((r) => r.items);
+    expect(words.filter((w) => w.outcome === "progress").at(-1)).toMatchObject({
+      offset: 4096,
+    });
+    expect(h.reports.at(-1)).toMatchObject({
+      done: true,
+      items: expect.arrayContaining([
+        { mediaId: big.mediaId, outcome: "released" },
+      ]),
+    });
+    expect(h.requeued).toEqual([]);
   });
 });

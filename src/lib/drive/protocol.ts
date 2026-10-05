@@ -14,7 +14,8 @@
  * ★ FRESH OR NOTHING, AND A REPLAY IS HARMLESS BY CONSTRUCTION, so there is no nonce table: every word's `at` must sit
  * within five minutes of the app's clock; a replayed report is a no-op (every write is a transition keyed by its lease
  * token, and a `sent` stays sent), a replayed lease only holds a batch idle until it runs out, a replayed kick
- * enqueues lanes that find nothing to lease. What a forged report CAN do is mark items sent that are not in her
+ * enqueues lanes that find nothing to lease, a replayed dying lane counts once (its Queue message is in the word).
+ * What a forged report CAN do is mark items sent that are not in her
  * Drive: nothing that deletes anything ever reads that word (there is no exit, and the closing check asks Drive).
  *
  * ★ A LEASE'S ACCESS TOKEN TRAVELS SEALED, under a key derived from the same secret (HKDF-SHA256, info
@@ -226,11 +227,20 @@ export const checkWordSchema = z.object({
 });
 export type CheckWord = z.infer<typeof checkWordSchema>;
 
+/**
+ * ★ A dying lane's word names its Queue message (`messageId`): the one word whose replay was no no-op (three of it
+ * inside its five minutes paused her sends) is counted once a message by `cloud_connection_lane_failed`.
+ */
 export const laneFailWordSchema = z.object({
   v,
   kind: z.literal("lanefail"),
   at,
   connectionId: uuid,
+  messageId: z
+    .string()
+    .min(1)
+    .max(128)
+    .regex(/^[A-Za-z0-9_-]+$/),
   error: z.string().max(300),
 });
 export type LaneFailWord = z.infer<typeof laneFailWordSchema>;

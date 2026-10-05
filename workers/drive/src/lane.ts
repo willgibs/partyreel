@@ -57,6 +57,8 @@ export type LaneDeps = {
   random(): number;
   /** Counted on every subrequest the lane's own code makes (the adapter's and the bucket's are counted by the wiring). */
   spent(): number;
+  /** A test's own chunk size (the runtime's is `CHUNK_BYTES`), as `TransferContext.chunkBytes`. */
+  chunkBytes?: number;
 };
 
 export type LaneEnd =
@@ -248,6 +250,7 @@ async function runBatch(
     now: deps.now,
     sleep: deps.sleep,
     random: deps.random,
+    ...(deps.chunkBytes ? { chunkBytes: deps.chunkBytes } : {}),
     progress: async (item: LeaseItem, sessionUri: string, offset: number) => {
       buffer.push({
         mediaId: item.mediaId,
@@ -257,9 +260,12 @@ async function runBatch(
       });
       await flush(false);
     },
+    // Her Cancel (or a pause, the switch, an operator) heard on a big file's chunk report: it stops at the next chunk
+    // boundary with its session kept, rather than sending the gigabytes left of a file she asked to stop.
+    stopping: () => stopped,
   };
 
-  for (const item of lease.items) {
+  for (const [index, item] of lease.items.entries()) {
     if (
       stopped ||
       unreachable ||
@@ -277,7 +283,14 @@ async function runBatch(
         return { kind: "auth", sent, finding: "auth" };
       return { kind: "finding", sent, finding: result.finding };
     }
-    if (deps.now() - lastReport >= REPORT_EVERY_MS) await flush(false);
+    // ★ The batch's last file rides its closing word below, never a timed word just before it: the two were two
+    // settles, and the second closed a send the first had just moved to its check (the walk's "every one checked" of a
+    // check that never ran; the database refuses that now too, and one word less a batch is one call less).
+    if (
+      index < lease.items.length - 1 &&
+      deps.now() - lastReport >= REPORT_EVERY_MS
+    )
+      await flush(false);
   }
   // The batch's end: what is left goes back to pending (the lease ends, the attempts not counted).
   await flush(true);

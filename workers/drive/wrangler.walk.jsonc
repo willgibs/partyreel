@@ -25,7 +25,7 @@
       },
     ],
   },
-  "triggers": { "crons": ["*/5 * * * *"] },
+  "triggers": { "crons": ["*/15 * * * *"] },
   "limits": { "cpu_ms": 120000, "subrequests": 20000 },
   // DRIVE_WORKER_SECRET comes from .dev.vars (the app's value), never this file.
   "vars": {

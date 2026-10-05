@@ -150,7 +150,21 @@ describe("a kind is announced as what it is (crumbs-20)", () => {
   })
 })
 
+/**
+ * The test before may have left a place taking its entry back as it unmounted (a tick late, then a traversal):
+ * a push made while that Back is on its way waits for it to land (`ui/popup-back.ts`, the stack's note), so a
+ * test that counts entries starts once it has.
+ */
+const historySettles = () =>
+  act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 30))
+  })
+
 describe("a screen in a hand is a place", () => {
+  // And the Back left a forward entry, which this test's push would drop: stand on the stack's tip first.
+  beforeEach(historySettles)
+  beforeEach(() => window.history.pushState(null, ""))
+
   it("heads itself with a back arrow that says where Back returns, and no corner close", () => {
     setViewportWidth(375)
     mount("list")
@@ -211,14 +225,15 @@ describe("a screen in a hand is a place", () => {
  * and the cover took the phone's Back, so a look opened over the photograph viewer (which holds an entry of its own)
  * took none: the Back popped the viewer's, and the viewer closed with the look standing on it. A layer that rises
  * from the foot over a place holds its entry as a screen does, so Back peels one layer a press. A dialog (a question)
- * is not a place and holds none, in a hand as at a desk.
+ * is not a place: over the bare page it holds none, in a hand as at a desk (over another layer, below, it holds one).
  */
 describe("a sheet in a hand is a place too: the look (crumbs-47)", () => {
   const marker = () =>
     (window.history.state as Record<string, unknown> | null)?.[POPUP_HISTORY_MARKER]
 
   // The window's stack outlives a test: one that went Back left a forward entry, which the next push would drop,
-  // so a count of entries would read one short. Stand on its tip first.
+  // so a count of entries would read one short. Stand on its tip first, once a Back still on its way has landed.
+  beforeEach(historySettles)
   beforeEach(() => window.history.pushState(null, ""))
 
   it("★ holds one history entry while open, and the phone's Back closes it", async () => {
@@ -259,7 +274,7 @@ describe("a sheet in a hand is a place too: the look (crumbs-47)", () => {
     expect(window.history.length).toBe(before)
   })
 
-  it("a question is no place: a confirm and a form hold none in a hand", async () => {
+  it("a question is no place: over the bare page a confirm and a form hold none in a hand", async () => {
     setViewportWidth(375)
     for (const kind of ["confirm", "form"] as const) {
       const before = window.history.length
@@ -268,6 +283,91 @@ describe("a sheet in a hand is a place too: the look (crumbs-47)", () => {
       expect(window.history.length, kind).toBe(before)
       unmount()
     }
+  })
+})
+
+/**
+ * ★ A QUESTION OVER ANOTHER LAYER HOLDS AN ENTRY OF ITS OWN (back-layers; crumbs-47: on a phone, Back over the viewer's
+ * Delete or Remove confirm closed the confirm AND the viewer, since only a place held an entry). Over a place a
+ * question is the top layer, so Back closes it and leaves the place; the stack's own rules (who goes first, a refresh,
+ * a reload) are `popup-back.test.tsx`'s.
+ */
+describe("a question over another layer holds an entry of its own (back-layers)", () => {
+  const marker = () =>
+    (window.history.state as Record<string, unknown> | null)?.[POPUP_HISTORY_MARKER]
+
+  beforeEach(historySettles)
+  beforeEach(() => window.history.pushState(null, ""))
+
+  /** A place in a hand, open, with a question over it that opens when asked. */
+  function QuestionOverPlace({ kind }: { kind: "confirm" | "form" }) {
+    const [asked, setAsked] = useState(false)
+    return (
+      <>
+        <Popup defaultOpen>
+          <PopupContent kind="list" aria-describedby={undefined}>
+            <PopupHeader title="Claims" back="Dashboard" />
+            <PopupBody>
+              <Button onClick={() => setAsked(true)}>Ask</Button>
+            </PopupBody>
+          </PopupContent>
+        </Popup>
+        <Popup open={asked} onOpenChange={setAsked}>
+          <PopupContent kind={kind} aria-describedby={undefined}>
+            <PopupHeader title="Delete this?" />
+          </PopupContent>
+        </Popup>
+      </>
+    )
+  }
+
+  it.each(["confirm", "form"] as const)(
+    "★ a %s over a place: one entry more, and the phone's Back closes it and leaves the place",
+    async (kind) => {
+      setViewportWidth(375)
+      render(<QuestionOverPlace kind={kind} />)
+      await act(async () => {})
+      const place = marker()
+      expect(place).toBeTruthy()
+      const depth = window.history.length
+
+      fireEvent.click(screen.getByRole("button", { name: "Ask" }))
+      await act(async () => {})
+      const question = () => screen.queryByRole(kind === "confirm" ? "alertdialog" : "dialog", { name: "Delete this?" })
+      expect(question()).not.toBeNull()
+      // The old code held none here, so the Back below popped the place's entry and closed the place under it.
+      expect(window.history.length).toBe(depth + 1)
+      expect(marker()).not.toBe(place)
+
+      act(() => window.history.back())
+      await waitFor(() => expect(question()).toBeNull())
+      expect(marker()).toBe(place)
+      expect(screen.getByRole("dialog", { name: "Claims" })).toBeInTheDocument()
+    },
+  )
+
+  it("its own close takes its entry back, landing on the place's", async () => {
+    setViewportWidth(375)
+    render(<QuestionOverPlace kind="confirm" />)
+    await act(async () => {})
+    const place = marker()
+    fireEvent.click(screen.getByRole("button", { name: "Ask" }))
+    await act(async () => {})
+    expect(marker()).not.toBe(place)
+
+    fireEvent.click(within(screen.getByRole("alertdialog")).getByRole("button", { name: "Close" }))
+    await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull())
+    await waitFor(() => expect(marker()).toBe(place))
+    expect(screen.getByRole("dialog", { name: "Claims" })).toBeInTheDocument()
+  })
+
+  it("at a desk, over a panel, it holds none (no phone Back to answer)", async () => {
+    setViewportWidth(1024)
+    const before = window.history.length
+    render(<QuestionOverPlace kind="confirm" />)
+    fireEvent.click(screen.getByRole("button", { name: "Ask" }))
+    await act(async () => {})
+    expect(window.history.length).toBe(before)
   })
 })
 

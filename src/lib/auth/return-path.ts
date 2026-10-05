@@ -1,7 +1,8 @@
 /**
  * WHERE A SIGN-IN MAY SEND SOMEONE BACK (crumbs-11): the page a signed-out visitor asked for,
  * carried through the gate, `/login`, both sign-in methods and back, so a mail's button
- * (Renew Event Pass to /account/renew, Manage storage to /dashboard) lands where it points.
+ * (Renew Event Pass to /account/renew, Manage storage to /dashboard) lands where it points, and
+ * a signed-out Get Pro on /pricing, the one marketing page here, comes back to /pricing.
  *
  *   gate ((app) or (print) layout, or the portal's `requireAdmin`, a signed-out request)
  *     -> /login?next=<path>                         (the proxy hands the gate its path: a layout
@@ -103,6 +104,10 @@ const APP_RETURNS: readonly RegExp[] = [
   // The owner mode at an address that needs no handle: the user menu's Your profile for an account without one.
   /^\/me$/,
   /^\/welcome$/,
+  // The one marketing page: a signed-out Get Pro presses from it (the CheckoutButton hands the router
+  // `loginPath(window.location.pathname)`), so the sign-in comes back to the page she came from rather than
+  // the dashboard (pricing-doors). Nothing on it is private and nothing on it reads a query or a fragment.
+  /^\/pricing$/,
   // The album and the profile page, which a guest's door (a like, the confirm door, a named
   // guest's sign-in) comes back to through the callback.
   new RegExp(`^/e/${NAME}$`),

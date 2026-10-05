@@ -1,5 +1,5 @@
 /**
- * THE SWEEP, EVERY FIVE MINUTES (drive-export.md): the backstop of every kick. The Worker reads its own queue's depths,
+ * THE SWEEP, EVERY FIFTEEN MINUTES (drive-export.md): the backstop of every kick. The Worker reads its own queue's depths,
  * tells the app its switch and those readings in one signed word, and enqueues the lanes the app answers (a send that
  * stopped moving, a pause whose time came, a dying lane's connection at most once an hour). The app does every other
  * piece of the sweep (`cloud_export_sweep`, then the mails, the rechecks and the hourly heartbeat), so a Worker whose

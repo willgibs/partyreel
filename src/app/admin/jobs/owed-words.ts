@@ -54,7 +54,7 @@ export function owedWords(
         term: "Stuck",
         line:
           `${formatCount(owed)} ${one ? "send" : "sends"} to Google Drive with work left and no progress for an hour. ` +
-          "The sweep kicks each every five minutes; past that, the Worker or its queue is down. Each is on /admin/exports, with Cancel.",
+          "The sweep kicks each every fifteen minutes; past that, the Worker or its queue is down. Each is on /admin/exports, with Cancel.",
       };
     default:
       return null;
