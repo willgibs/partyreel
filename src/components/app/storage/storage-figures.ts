@@ -6,9 +6,17 @@
  *
  * The bytes are the server's (`host_storage_summary`, through `getHostStorageSummary`), printed through the storage
  * flow's one rounding (`formatBytesUp`) so a figure here reads as the plan's refusal and the size list read it.
+ * The uploads line (below) is the other counter's and prints through `formatBytes`, as the plan sheet's pause note
+ * does: it is a tally of what landed, never an instruction to free some.
  */
-import { formatBytesUp } from "@/lib/billing/storage-guard";
+import { formatBytesUp, nextMonthStart } from "@/lib/billing/storage-guard";
+import {
+  UPLOADS_WINDOW,
+  uploadAllowance,
+  type Tier,
+} from "@/lib/constants/tiers";
 import type { Tables } from "@/lib/db/types";
+import { formatBytes } from "@/lib/utils";
 
 /** The share of the cap past which the ring and the chart turn amber: near enough that it matters. */
 export const NEAR_FULL = 0.85;
@@ -157,4 +165,62 @@ export function roomRefusalWords(refusal: {
       : `This file needs ${room} more room. Deleted holds ${held}: empty it and delete the rest for good, or upgrade.`;
   }
   return `This file needs ${room} more room. Delete something for good, or upgrade.`;
+}
+
+export type UploadsReading = {
+  /** What her plan's window has taken in uploads, deletions never given back. */
+  usedBytes: number;
+  /** Her plan's own published number over that window (`uploadAllowance`). */
+  allowanceBytes: number;
+  /** At or past the line: `create_media*` refuse a file whose bytes would pass it, so from here every file. */
+  paused: boolean;
+};
+
+/**
+ * THE UPLOADS LINE'S READING (uploads-meter-ui): this month's uploads against her plan's own allowance, the other
+ * counter beside what she stores (billing-caps.md: four counters, deliberately different). The figure is the ledger's
+ * month (`PlanFacts.monthUploadedBytes`), which is exactly the window Free and Pro count over, so only those read here.
+ *
+ * ★ IT SAYS NOTHING RATHER THAN A GUESS: a figure that is not known (a failed read answers null, never a zero), a pass
+ * (it counts its own year on the pass, which the month's ledger is not, so no figure here is its figure) and a Pro
+ * profile with no cap on record (unmetered, `uploadAllowance`'s null) all read null.
+ */
+export function readUploads(f: {
+  tier: Tier;
+  capBytes: number | null;
+  monthUploadedBytes: number | null | undefined;
+}): UploadsReading | null {
+  const used = f.monthUploadedBytes;
+  if (typeof used !== "number" || !Number.isFinite(used) || used < 0) {
+    return null;
+  }
+  if (UPLOADS_WINDOW[f.tier] !== "month") return null;
+  const allowance = uploadAllowance(f.tier, f.capBytes);
+  if (allowance === null) return null;
+  return {
+    usedBytes: used,
+    allowanceBytes: allowance,
+    paused: used >= allowance,
+  };
+}
+
+/**
+ * "Uploads this month: 1.2 GB of 300 MB". Nothing uploaded prints in the allowance's own unit, never as bytes
+ * (`formatStored`'s rule), and the allowance is the plan's size, exact either way.
+ */
+export function uploadsLine(r: UploadsReading): string {
+  const allowance = formatBytes(r.allowanceBytes);
+  const used =
+    r.usedBytes > 0 ? formatBytes(r.usedBytes) : formatStored(0, allowance);
+  return `Uploads this month: ${used} of ${allowance}`;
+}
+
+/**
+ * What a line at its allowance adds: what pauses (her new uploads and her guests', the ones the plan's own number
+ * refuses), when it resumes (the month turns, UTC: `nextMonthStart`, read on the clock of the figure's own read) and the
+ * one thing the storage bar above it does not teach, that a delete never gives an upload back. A problem arrives with
+ * its fix: the wait is named here, and a bigger plan is the popover's own "Need more?" beneath.
+ */
+export function uploadsPausedWords(now?: Date): string {
+  return `New uploads, yours and your guests', are paused until ${nextMonthStart(now)}. Deleting doesn't give uploads back.`;
 }

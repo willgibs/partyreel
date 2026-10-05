@@ -1,12 +1,19 @@
 "use client";
 
+import { useState } from "react";
+
 import { CheckoutButton } from "@/components/app/checkout-button";
 import { ManageBillingButton } from "@/components/app/manage-billing-button";
 import { PricingSheet } from "@/components/app/pricing/pricing-sheet";
+import { usePlanFacts } from "@/components/app/pricing/use-plan-facts";
 import { StorageChart } from "@/components/app/storage/storage-chart";
 import {
   formatStored,
   readStorage,
+  readUploads,
+  uploadsLine,
+  uploadsPausedWords,
+  type UploadsReading,
 } from "@/components/app/storage/storage-figures";
 import { StorageList } from "@/components/app/storage/storage-list";
 import {
@@ -14,6 +21,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   DEFAULT_TIER,
   formatCapacity,
@@ -37,6 +45,12 @@ const RING_C = 2 * Math.PI * RING_R;
  * ★ THE RING IS WHAT THE PLAN HOLDS, AMBER WHEN IT MATTERS (`readStorage`): its percent is everything she
  * stores against the cap, her Deleted included, and it turns amber only when what an upload must fit
  * beside nears the cap, so a full Deleted that would make room on its own never reads as trouble.
+ *
+ * ★ THE UPLOADS LINE IS THE OTHER COUNTER, READ WHEN THE POPOVER OPENS (uploads-meter-ui): this month's uploads
+ * against her plan's own allowance, so Free's 300 MB a month is never a surprise. It rides the plan sheet's read
+ * (`usePlanFacts`, `/api/stripe/plan-facts`), asked only while the popover is open: never on the page's load,
+ * never a poll (the compute budget counts every call). It says nothing rather than guess (`readUploads`: a read
+ * that failed, a pass, an unmetered Pro) and never a zero, and the ring stays storage's alone.
  */
 export function StorageMeter({
   activeBytes,
@@ -87,8 +101,30 @@ export function StorageMeter({
     ? formatCapacity(storageCap, { video: videosAllowedForTier(billingTier) })
     : null;
 
+  // The popover's open is the only moment the uploads figure is read (`usePlanFacts` asks nothing while it is closed),
+  // and what it read stays for the next open, so a second look is instant and refreshes behind it.
+  const [open, setOpen] = useState(false);
+  const { facts, settled, readAt } = usePlanFacts(open);
+  // The line is drawn from the read alone (its plan and its figure came together); the props only say whether to hold
+  // its place while the read is out: a plan that meters uploads by the month, whatever the figure turns out to be.
+  const uploads = facts
+    ? readUploads({
+        tier: facts.tier,
+        capBytes: facts.capBytes,
+        monthUploadedBytes: facts.monthUploadedBytes,
+      })
+    : null;
+  const waiting =
+    !facts &&
+    !settled &&
+    readUploads({
+      tier: billingTier,
+      capBytes: storageCap,
+      monthUploadedBytes: 0,
+    }) !== null;
+
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
           type="button"
@@ -139,30 +175,37 @@ export function StorageMeter({
           capBytes={storageCap}
           makeRoom={makeRoom}
           door={
-            /* THE SIZE LIST'S DOOR (host-storage r1): everything she stores,
-               largest first, to see what is filling the plan and delete it for
-               good from one place (`popups`' `lists=panel`: a side panel at a
-               desk, its own screen in a hand whose Back returns to the
-               dashboard). Over her cap, it counts down to it, as the grace
-               banner's does. */
-            stored > 0 ? (
-              <StorageList
-                back="Dashboard"
-                goal={
-                  storageCap && stored > storageCap
-                    ? { kind: "fit", capBytes: storageCap }
-                    : null
-                }
-              >
-                <button
-                  type="button"
-                  data-storage-door=""
-                  className="block text-left text-xs font-medium text-foreground underline underline-offset-4"
+            <>
+              <UploadsLine
+                reading={uploads}
+                waiting={waiting}
+                readAt={readAt}
+              />
+              {/* THE SIZE LIST'S DOOR (host-storage r1): everything she stores,
+                  largest first, to see what is filling the plan and delete it for
+                  good from one place (`popups`' `lists=panel`: a side panel at a
+                  desk, its own screen in a hand whose Back returns to the
+                  dashboard). Over her cap, it counts down to it, as the grace
+                  banner's does. */}
+              {stored > 0 ? (
+                <StorageList
+                  back="Dashboard"
+                  goal={
+                    storageCap && stored > storageCap
+                      ? { kind: "fit", capBytes: storageCap }
+                      : null
+                  }
                 >
-                  See what&rsquo;s using space
-                </button>
-              </StorageList>
-            ) : null
+                  <button
+                    type="button"
+                    data-storage-door=""
+                    className="block text-left text-xs font-medium text-foreground underline underline-offset-4"
+                  >
+                    See what&rsquo;s using space
+                  </button>
+                </StorageList>
+              ) : null}
+            </>
           }
         />
         {capacity && (
@@ -201,5 +244,53 @@ export function StorageMeter({
         )}
       </PopoverContent>
     </Popover>
+  );
+}
+
+/**
+ * THE UPLOADS LINE, one quiet line under her storage figures: "Uploads this month: 240 MB of 300 MB". At or past the
+ * allowance it takes the warning tone and says what pauses and when it resumes (`uploadsPausedWords`). While the read
+ * is out, a plan that meters uploads holds the line's place with the breathing placeholder, so what sits below it
+ * does not jump when the figure lands; a read that comes back empty takes the place away (never a zero), and a plan
+ * that does not meter by the month (a pass, an unmetered Pro) never draws one.
+ */
+function UploadsLine({
+  reading,
+  waiting,
+  readAt,
+}: {
+  reading: UploadsReading | null;
+  waiting: boolean;
+  /** When the figure was read: the month the pause's resume day is counted from. */
+  readAt: Date | null;
+}) {
+  if (!reading && !waiting) return null;
+  return (
+    <div
+      data-uploads={reading ? "" : "waiting"}
+      data-paused={reading?.paused ? "" : undefined}
+      aria-live="polite"
+      aria-busy={waiting || undefined}
+    >
+      {reading ? (
+        <>
+          <p
+            className={cn(
+              "text-xs tabular-nums",
+              reading.paused ? "text-warning" : "text-muted-foreground",
+            )}
+          >
+            {uploadsLine(reading)}
+          </p>
+          {reading.paused ? (
+            <p className="mt-1 text-xs text-pretty text-muted-foreground">
+              {uploadsPausedWords(readAt ?? undefined)}
+            </p>
+          ) : null}
+        </>
+      ) : (
+        <Skeleton aria-hidden className="my-0.5 h-3 w-44" />
+      )}
+    </div>
   );
 }
