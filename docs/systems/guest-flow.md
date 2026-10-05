@@ -532,8 +532,10 @@ colour, it is the house five. The open doorway registers as a lamp, so its light
   fail-open is the server's: when a run ends with nothing completed and every refusal is one the guest cannot fix
   (`classifyRun`), the step shows the server's sentence and "Continue without adding", which refreshes and trusts the
   decision that comes back, never a local skip (the server would still answer `upload`: a loop). Its words promise the
-  album only where the upload opens it (A photo first); elsewhere the album is already open, and a ghost skip shows
-  once per pass, never on the failure view. With A photo first on there is no skip, and `computeDoor` ignores `skipped`
+  album only where the upload opens it (A photo first); over an album that shows nothing and waits they say the wait's
+  own rule (`waitRule`, the host unnamed) in place of "the first photo", since a teaser never reads whether photos wait
+  (`waitingOnArrival` is a full-access read) and how uploads wait is true over either. Elsewhere the album is already
+  open, and a ghost skip shows once per pass, never on the failure view. With A photo first on there is no skip, and `computeDoor` ignores `skipped`
   and `returning`, so a stale flag cannot open an album.
 - **The flip and the drift.** The completion route writes the session cookie on its own response, every landing's
   `notifyUploaded` refetches the poll, and the poll's looser decision refreshes the page onto `full` (`key={access}`
