@@ -116,6 +116,34 @@
           "choice": "floating",
           "by": "Will",
           "at": "2026-10-05T19:21:47Z"
+        },
+        {
+          "ask": "field",
+          "choice": null,
+          "note": "skipped on purpose: per-atom questions fall out of sync, so r5 asks the atoms as one set (Will, desk 3)",
+          "by": "Will",
+          "at": "2026-10-05T19:42:47Z"
+        },
+        {
+          "ask": "button",
+          "choice": null,
+          "note": "skipped on purpose: per-atom questions fall out of sync, so r5 asks the atoms as one set (Will, desk 3)",
+          "by": "Will",
+          "at": "2026-10-05T19:42:47Z"
+        },
+        {
+          "ask": "selected",
+          "choice": null,
+          "note": "skipped on purpose: per-atom questions fall out of sync, so r5 asks the atoms as one set (Will, desk 3)",
+          "by": "Will",
+          "at": "2026-10-05T19:42:47Z"
+        },
+        {
+          "ask": "toggles",
+          "choice": null,
+          "note": "skipped on purpose: per-atom questions fall out of sync, so r5 asks the atoms as one set (Will, desk 3)",
+          "by": "Will",
+          "at": "2026-10-05T19:42:47Z"
         }
       ],
       "notes": [],
