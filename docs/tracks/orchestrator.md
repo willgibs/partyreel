@@ -52,6 +52,7 @@ Lanes merged before milestone 37 left this table: their summaries are their merg
 | `credit-watch` | the Advisor's Q33 after-steps: a leased claim answers busy, a stuck credit on /admin/accounts, the recompute's seconds, the expired-passes sweep's cost, a change-plan configuration missing a price caught (migration `20261005201000_credit_watch.sql`) | RUNNING (cut at `0ff67f0a`) | Opus, 3138 | `a4aacf9c3fb29b068` |
 | `identity-wiring` | Will's three settled identity traits into production: the halo on every focusable atom, the shrink on every action, the bright edge on everything that floats (one home each; forms untouched: identity r5 asks the set; light: brand r2) | RUNNING (cut at `6a1d56f5`) | Opus, 3136 | `af513bd6bed4eeaef` |
 | `crumbs-82` | host-dashboard r4's chooser = words, `/account`'s trail, FollowButton's slug, the Drive re-walk's small findings (the unticked box named, "deletes" gone, Sent's counts per connection, the strip's beat) and /admin's title on a non-admin 404 | RUNNING (cut at `9d64fe3f`) | Sonnet, 3139 | `a76ed48484e49ddad` |
+| `event-zone` | Will's ask: one moment for every guest: the party keeps its own zone (`events.time_zone`, migration `20261005220000_event_zone.sql`, the Advisor first), the album's turn computed once on the server, the develop's 9 am in it, See it as a guest in the guests' order, a far-from-home choice in Settings (a call) | RUNNING (cut at `8bb4e103`) | Opus, 3133 | `a284a0c6386c75127` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a22be0c2878d7ab19`, this session, spawned
 for Q31 (billing-locks' migration against the live schema and milestone 36's callers). Its model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`.
@@ -92,8 +93,8 @@ Round 15, on Will's desk answers of 2026-10-04 and his brand note; the approved 
    `cloud_export_fixes` (20261005193047), `roll_size_range` (20261005205744); advisors 26/4/36; types current
    (`78d1ffd47`, then drive's seam at the drive-fixes record).
 2. **Drive's road to live:** the desk re-walk PASSED (no HIGH or MEDIUM; the local Worker stopped). Next: red-team 56
-   (local, the desk refreshed to the head) once album-order, capture-time, credit-watch and identity-wiring land, so one
-   walk covers milestone 38; then and milestone 38 on Will's yes, where Drive's Worker deploys (never
+   (local, the desk refreshed to the head) once capture-time, credit-watch, identity-wiring and event-zone land (album-order merged,
+   gate 21), so one walk covers milestone 38; then and milestone 38 on Will's yes, where Drive's Worker deploys (never
    against milestone 37's build: `npm ci`, `wrangler queues create partyreel-drive-dlq --message-retention-period-secs
    1209600`, `wrangler deploy`, `DRIVE_APP_URL` partyreel.com, the cron every fifteen minutes) and Vercel's non-secret
    `DRIVE_WORKER_URL` (production holds Drive's four secrets but not the URL, so it reads "not set up" until then);
@@ -102,10 +103,10 @@ Round 15, on Will's desk answers of 2026-10-04 and his brand note; the approved 
 3. **Desk 5 = identity r5 + event-header r5 + brand r2** (all running): integrate each at its handoff, the desk pass,
    refresh the desk, tell him. **Desk 6** = the brand applied (after brand r2's pick); **desk 7** = the moments boards
    (host-, guest-, account-moments, create-wizard r4; after identity r5's set pick).
-4. **Lanes running** (eight agents with the re-walk; memory 61% free at the eighth, weekly 51% at 20:50Z): album-order,
-   identity-r5, event-header-r5, brand-r2, capture-time, credit-watch, identity-wiring (their rows above). Queued: none (crumbs-82 cut when the re-walk ended). Each lane's migration goes through the Advisor (`a22be0c2878d7ab19`, this session) before the apply.
-5. **The calls lab:** AF to AP added today; X7 answered and routed (capture-time); a helper adds the later merges'
-   calls (AQ onward).
+4. **Lanes running** (eight agents; memory 68% free at the eighth): identity-r5, event-header-r5, brand-r2,
+   capture-time, credit-watch, identity-wiring, crumbs-82, event-zone (their rows above). Queued: none. Each lane's migration goes through the Advisor (`a22be0c2878d7ab19`, this session) before the apply.
+5. **The calls lab:** runs to AX (AF to AX added today; AF4 and AJ3 retired as built); X7 answered and routed
+   (capture-time); album-order's calls next (AY), then each merge's.
 6. **Compute:** lever 3 and 3b (the CDN-cached album version) only on Will's X5; the guest page's next CPU levers
    (AsyncLocalStorage on Node 24, a lighter first paint) measured locally first; `pnpm compute:model` at every
    milestone.
@@ -114,8 +115,10 @@ Round 15, on Will's desk answers of 2026-10-04 and his brand note; the approved 
    November; qrcdn, a non-Partyreel project on the team, shares the budget). Nothing runs against the alias or
    partyreel.com but what Will asks for by name; desks and red-teams run on the local desk build. Pro is a launch switch
    regardless (Hobby is non-commercial); whether it comes sooner is his.
-8. **Pacing:** weekly 0% on 2026-10-05; full speed, at most six agents (36 GB; memory 82% free at the seat-in).
-   `get_usage` at every wake; from 96% weekly nothing new starts and every lane parks at a commit.
+8. **Pacing (Will, 2026-10-05):** weekly usage is no constraint (two Claude accounts, about $500 of cloud usage
+   untapped, a third account at worst): the fastest pace I am comfortable with, the machine's memory the limit (eight
+   agents at 61 to 68% free). Weekly 59% at 21:32Z (resets 2026-10-11 13:00Z): near 95% the handoff block is current
+   so the other account's Orchestrator takes over.
 9. **The close of the day:** STATUS (stale since 2026-10-03), this pickup, the calls lab. Moltbook only on his word.
 
 ## Waiting on Will
