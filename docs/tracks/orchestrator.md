@@ -27,8 +27,8 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 Round 15 continues (2026-10-05), seated on willg97. Milestone 36 is live. `launch-prep` holds 17 merged lanes for
 milestone 37 (below), which waits on red-team 54 and Will's yes. Desk 2 (Drive alone) is on his local desk at
-`94d66338`. Desk 3's four boards are integrated into `launch-prep` one at a time while his desk stays pinned to Drive
-alone, so desk 3 serves the moment he pastes desk 2.
+`94d66338`. Desk 3's four boards are merged on `launch-prep` (gates 1 to 4 green, the desk pass clean at `23b6461bd`)
+while his desk stays pinned to Drive alone: desk 3 serves the moment he pastes desk 2, by a desk refresh.
 
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
@@ -87,10 +87,8 @@ Round 15, on Will's desk answers of 2026-10-04 and his brand note; the approved 
    milestone 37 on Will's yes (the runbook's "Milestone": `FULL=1` gate, `pnpm compute:model`, merge, tag, the deploy
    he asked for by name, a short read-only walk). What merges after `94d663383` gets red-team 54b on the refreshed desk
    build before the milestone.
-2. **Desk 3 integrated now** (identity-r4, customize-r1, event-header-r4, host-dashboard-r4, one at a time;
-   `negative.sh` before the day's first), then the desk pass: `board-card.mjs --desk`, PREMISE re-reads, any two asks
-   asking one decision merged, host-dashboard r4 re-read by `lab:demo`, `lab:demo` at 1440 and 375 on a local build.
-   Served by a desk refresh the moment he pastes desk 2.
+2. **Desk 3 is ready** (merged, gates 1 to 4, the desk pass clean: no two asks ask one decision, no PREMISE,
+   `lab:demo` green at 1440 and 375): served by a desk refresh the moment he pastes desk 2.
 3. **Lanes as seats free**, off the parked boards' surfaces (the hub's doors, the dashboard's stage, Settings'
    options, `ui/` atoms, marketing): `billing-locks` (Opus: pass consumption takes `profiles` first, the presign
    refuses a lapsed pass, `/admin/accounts`' 50 `uploads_used` calls as one read, a lapsed pass's "0 B"; migrations
