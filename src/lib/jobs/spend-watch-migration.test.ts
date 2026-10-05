@@ -4,33 +4,31 @@
  * INVOKER read that never lets one failed section take the rest, and the three switches seeded ON under the keys the
  * code reads.
  */
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { describe, expect, it } from "vitest";
 
 import { jobById } from "@/app/admin/jobs/catalog";
+import {
+  executableMigrations,
+  liveFunction,
+} from "@/lib/db/testing/migrations";
 import { SWITCH_KEYS } from "@/lib/jobs/spend-watch";
 
-const FILE = join(
-  process.cwd(),
-  "supabase",
-  "migrations",
-  "20261003190000_spend_watch.sql",
-);
+const FILE = "20261003190000_spend_watch.sql";
 
-/** The file's executable SQL: the rolled-back check at its foot is commented out. */
-const sql = readFileSync(FILE, "utf8")
-  .split("\n")
-  .filter((line) => !line.trimStart().startsWith("--"))
-  .join("\n");
+/** The file as code (comments gone, whitespace collapsed): the rolled-back check at its foot is commented out. */
+const sql = (() => {
+  const found = executableMigrations().find(({ file }) => file === FILE);
+  if (!found) throw new Error(`${FILE} is gone`);
+  return found.sql;
+})();
 
-function bodyOf(name: string): string {
-  const start = sql.indexOf(`create or replace function public.${name}(`);
-  expect(start, name).toBeGreaterThanOrEqual(0);
-  const end = sql.indexOf("$$;", sql.indexOf("as $$", start));
-  return sql.slice(start, end);
-}
+/**
+ * A function's winning body, as code: the definition that wins across the whole migration set
+ * (`testing/migrations.ts` replays its creates AND drops in order), so a function a later file drops throws here,
+ * naming the file, instead of reading as the body this file gave it. The grants and the seeds below are this
+ * migration's own statements, read from `sql`.
+ */
+const bodyOf = (name: string): string => liveFunction(name).code;
 
 describe("the spend watch's migration", () => {
   it("★ reads auth.users only inside a pinned SECURITY DEFINER count", () => {
@@ -86,7 +84,7 @@ describe("the spend watch's migration", () => {
 
   it("seeds the three switches ON under the keys the code reads, never overwriting a set one", () => {
     expect(sql).toContain(
-      "insert into public.ops_flags (key, enabled) values\n  ('spend_watch_enabled', true),\n  ('uploads_enabled', true),\n  ('lifecycle_mail_enabled', true)\non conflict (key) do nothing;",
+      "insert into public.ops_flags (key, enabled) values ('spend_watch_enabled', true), ('uploads_enabled', true), ('lifecycle_mail_enabled', true) on conflict (key) do nothing;",
     );
     expect(jobById("spend_watch")?.flagKey).toBe("spend_watch_enabled");
     expect(SWITCH_KEYS).toEqual(

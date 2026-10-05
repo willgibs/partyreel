@@ -40,11 +40,12 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     q: "How long do you keep my photos?",
     // The help center's one reconciled lifecycle sentence (help/AUTHORING.md rule 7,
-    // how-long-media-is-kept.mdx): no end date on any plan, EXCEPT that a Free event nobody
-    // touches is warned about, then moved to Deleted. A line that says an event "stays up"
-    // carries that exception in the same breath (`faq-data.test.ts` holds it), and an
-    // Event Pass covers its event for about a year.
-    a: `Until you delete them: an event has no end date. The one exception is a Free event untouched for about ${INACTIVE_MONTHS} months, which gets a warning email before it moves to Deleted, where you can restore it for ${RECENTLY_DELETED_WINDOW_DAYS} days; any activity resets the clock. An Event Pass covers its event for about a year.`,
+    // how-long-media-is-kept.mdx): an event never expires on any plan (its date, an end date
+    // too, only says when it happens), EXCEPT that a Free event nobody touches is warned
+    // about, then moved to Deleted. A line that says an event "stays up" carries that
+    // exception in the same breath (`faq-data.test.ts` holds it), and an Event Pass covers
+    // its event for about a year.
+    a: `Until you delete them: an event never expires. The one exception is a Free event untouched for about ${INACTIVE_MONTHS} months, which gets a warning email before it moves to Deleted, where you can restore it for ${RECENTLY_DELETED_WINDOW_DAYS} days; any activity resets the clock. An Event Pass covers its event for about a year.`,
   },
   {
     q: "What does it cost?",
