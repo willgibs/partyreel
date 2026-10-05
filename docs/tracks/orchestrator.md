@@ -69,7 +69,8 @@ session (`2ba90542-62d6-487c-8c79-3657619f9133`, hi@willgibs.com, weekly 92% at 
 2026-10-06 21:00Z) ran to 99% on Will's word (no token wasted). Since milestone 36 it merged compute-uploads,
 compute-presign, compute-lazy-sdk, crumbs-66 to crumbs-72, library-specimens, uploads-meter-ui, upload-cancel and
 admin-uploads, crumbs-73 and library-specimens-2 (gates 215 to 230, every one green); launch-prep holds them for
-milestone 37, which needs a local red-team (54) and Will's yes. No lane is in flight: the account stopped clean. The next Orchestrator runs on willg97 (its weekly reset 2026-10-04 13:00Z,
+milestone 37, which needs a local red-team (54) and Will's yes. One lane may be in flight when this account stops:
+crumbs-74 (the cover's count names its kinds from the first byte; resume it from its WIP or integrate its handoff). The next Orchestrator runs on willg97 (its weekly reset 2026-10-04 13:00Z,
 0% then). Its first steps:
 - for each `lp/*` whose manifest is not `handed-off`, resume it per the runbook's "Resume a lane" (its pushed WIP, its
   predecessor's transcript under `subagents/agent-<id>.jsonl`, the same port); one whose manifest says handed-off is
