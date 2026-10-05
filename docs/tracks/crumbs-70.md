@@ -39,15 +39,38 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **Where does the ignition ride, when Create has no landing on `/dashboard`?** After the event exists Create leaves by
+  Get it ready (into the event's Settings) or the room's close, "Go to your event" (the hub); `/dashboard` is reached
+  later, by the hub's breadcrumb or the app's header. A parameter on a landing has nothing to ride. **Recommended, built:**
+  Create leaves the new event's id in the tab (`sessionStorage`, `create-event-wizard/just-made.ts`, written the moment
+  the event exists); the first lit stage that draws that event plays the ignition and spends the flag, so it fires the
+  first time she goes home in that tab and never after. It is read as a store, so the server never draws it (hydration
+  matches) and a client navigation paints the lamp dark from its first frame. Will's to overrule: if the close should
+  land on `/dashboard` (it duplicates Get it ready's destination today), change that one `href`, and the flag becomes a
+  parameter `LampLight` reads once; I did not move an exit the verdicts settled (`landing=beat`, `create=hand`).
+- **How long does the hop hold the way to Stripe for the sentence?** **Recommended, built:** the sentence as a plain toast
+  and the redirect held 5 s (one reading of 22 words), the button saying it is working meanwhile: never a refusal and
+  never a confirm (the webhook allows the switch, and Stripe's page is the confirm). Will's to overrule: a Continue
+  action on the toast instead (a click more, and the page never leaves mid-sentence), or no hold.
+- **The route says the sentence only for a step down in the uploads allowance** (`target.uploadsBytes <
+  current.uploadsBytes`), so an upgrade and her own size at the other billing never pay the ledger read and never warn;
+  the sheet's card says it for any size at or below this month's uploads that is not her own size. They differ only for a
+  bigger size already at or below what she has uploaded (she is paused already): there the sheet says "would pause" and
+  the hop says nothing. Left as is.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/billing-caps.md`: the uploads-sentence fact gains the hop's half (change-plan answers `notice`, the
+  CheckoutButton shows it and holds one reading).
+- `docs/systems/dashboard.md`: the lit stage's fact gains the ignition (the tab flag Create leaves, the one read, reduced
+  motion).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Design: the Library draws no production `Stage` in its lit state (the host-dashboard board draws its own `EmptyStage`), so
+  the ignition has no specimen `lab:smoke` renders or Will can replay; one specimen with a replay key would.
+- At the record, delete the three ROADMAP lines this lane finished: Design's two menus (`collisionPadding={8}`), Billing's
+  `/pricing` hop sentence, and Create's flag for the lit stage's lamp.
 
 ## Handoff (replaces the chat report)
 

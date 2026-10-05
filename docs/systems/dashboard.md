@@ -27,6 +27,12 @@ composition is `components/app/dashboard/home.tsx`.
     Settings' five steps laid flat under the name (`stageRailOf`: `settingsSteps` and the checklist's own head, so a
     tick here is a tick in the hub). Where readiness was not read (its day, after it) the numbers say it in the rail's
     place, so a party's day never loses its counts. Its first photograph takes the light over.
+  - ★ **The lamp ignites once, as she meets the event she just made** (`LampLight`'s `eventId`): Create leaves the new
+    event's id in `sessionStorage` (`create-event-wizard/just-made.ts`; a tab flag, not a parameter, since Create's
+    exits lead to the event and never to `/dashboard`), and the first lit stage that draws that event plays the
+    ignition and spends the flag. It is read as a store (the server never draws it, so hydration matches, and a client
+    navigation paints the lamp dark from its first frame) and latched, every utility is `motion-safe:` so reduced
+    motion lands lit at once, and storage that throws is no ignition.
 - **The live wall listens and never refreshes the page** (a refresh per photograph would presign every event's covers
   again): on its day the stage hears the album's doorbell and asks `readStageLiveAction`
   (`lib/dashboard/stage-action.ts`) for its wall and counts on `useLivePoll`'s cadence, re-running the same pure rules.
