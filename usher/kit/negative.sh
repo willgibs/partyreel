@@ -44,6 +44,9 @@ env -u LAB_BASE node scripts/lab-smoke.mjs > "$T/smoke.out" 2>&1; R1=$?; env -u 
 # 11. cut-lane.py refuses a board lane that owns a shared list (a board is its folder), and writes nothing
 mkdir -p "$T/cut/docs/tracks"; printf '%s' '{"track":"t","board":"b","owns":["src/app/(dev)/design/sandbox/registry.ts"],"goal":"g","brief":"b"}' > "$T/cut/s.json"
 (cd "$T/cut" && python3 "$KIT/cut-lane.py" deadbeef s.json > "$T/cut.out" 2>&1); [ $? != 0 ] && grep -q "never a shared list" "$T/cut.out" && [ ! -f "$T/cut/docs/tracks/t.md" ] && ok "cut-lane.py refuses a board lane owning a shared list" || bad "cut-lane.py cut a board lane onto a shared list"
+#     and a read outside the repo (a scratch path resolves only from the primary checkout, never from a lane's worktree)
+printf '%s' '{"track":"t","board":"none","owns":["src/lib/zz-negative/"],"reads":["../partyreel-wt/_scratch/x.txt"],"goal":"g","brief":"b"}' > "$T/cut/r.json"
+(cd "$T/cut" && python3 "$KIT/cut-lane.py" deadbeef r.json > "$T/cutr.out" 2>&1); [ $? != 0 ] && grep -q "a read is repo-relative" "$T/cutr.out" && [ ! -f "$T/cut/docs/tracks/t.md" ] && ok "cut-lane.py refuses a read outside the repo" || bad "cut-lane.py cut a lane whose read resolves only from the primary checkout"
 # 12. new-board.mjs refuses a board that exists, a surface that does not and a missing desk place, and writes nothing (a
 #     board is one folder, and the scaffold never overwrites one). The board it tries is read from the tree at each run:
 #     a named one decays when its board retires (locked-door did, and the scaffold then wrote a real folder, 2026-10-04).
