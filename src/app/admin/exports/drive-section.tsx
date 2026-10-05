@@ -198,7 +198,8 @@ export async function DriveSection({ search, health }: { search: string | null; 
                     {data.sends.map((s) => {
                       const word = sendWord(s);
                       const host = hostOf(s.host, s.userId);
-                      const done = s.itemsSent + s.itemsKept;
+                      // Kept files (confirmed from an earlier send) are counted inside items_sent already.
+                      const done = s.itemsSent;
                       return (
                         <TableRow key={s.id} tone={word.row}>
                           <TableCell className="max-w-48 truncate">{s.albumName}</TableCell>

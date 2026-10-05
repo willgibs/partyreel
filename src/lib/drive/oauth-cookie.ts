@@ -89,5 +89,9 @@ export type DriveReturn = (typeof DRIVE_RETURNS)[number];
 
 /** `next` with `?drive=<word>` (its own marker, never carried from the input). */
 export function withDriveReturn(next: string, word: DriveReturn): string {
-  return `${next}${next.includes("?") ? "&" : "?"}drive=${word}`;
+  // Before any fragment: "/account#google-drive" lands as "/account?drive=connected#google-drive".
+  const hash = next.indexOf("#");
+  const path = hash === -1 ? next : next.slice(0, hash);
+  const fragment = hash === -1 ? "" : next.slice(hash);
+  return `${path}${path.includes("?") ? "&" : "?"}drive=${word}${fragment}`;
 }

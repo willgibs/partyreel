@@ -941,7 +941,7 @@ begin
          -- ★ chosenRows over media_host_all (drive-snapshot.test.ts holds the two equal).
          and m.status <> 'removed'
          and m.purge_asked_at is null
-         and (p_include_hidden or m.status = 'approved')
+         and (coalesce(p_include_hidden, false) or m.status = 'approved')
         left join lateral (
           select i.media_id
             from public.cloud_export_items i
@@ -1416,6 +1416,7 @@ begin
     if not found then
       continue;
     end if;
+    -- The first name no OTHER original of the album's folder holds: the same original sent again keeps its name.
     v_n := 1;
     loop
       v_name := v_stem || case when v_n = 1 then '' else ' (' || v_n || ')' end || '.' || v_ext;
@@ -1426,6 +1427,7 @@ begin
          where oj.connection_id = v_lease.connection_id
            and oj.event_id is not distinct from v_job.event_id
            and oi.name = v_name
+           and oi.media_id <> v_media
       );
       v_n := v_n + 1;
     end loop;
