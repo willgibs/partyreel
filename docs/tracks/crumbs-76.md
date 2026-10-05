@@ -1,6 +1,6 @@
 ---
 track: crumbs-76
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "94d66338"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -43,83 +43,53 @@ working.
 
 **Verify on.** The gate on the synced tree (CLAUDE.md's four steps), each step on its own exit code; `pnpm lab:smoke --base http://localhost:<port>` when the lane changes anything under `src/` but tests (it crawls what the change reaches: the Library, and every board whose drawings import a changed file); and the surfaces the Handoff is judged on, local and live.
 
-## Where I am
-
-**Parked for a laptop restart (2026-10-05).** All six fixes are built and pushed, each pinned by tests that fail on the old code
-(proved by swapping the old file in); the whole gate was green at `f098b8d08`: typecheck 0, lint 0, test 0 (936 files, 11,617
-tests), `zsh scripts/build-lock.sh pnpm build` 0, `pnpm lab:smoke --base http://localhost:3132` 0 (163 checks, 0 failing; scope:
-create-wizard, event-header, host-dashboard, identity, the-wait, the Library). Logs and exit codes:
-`../partyreel-wt/_scratch/crumbs-76/gate-*.log`, `gate-exits.txt`. Commits on `origin/lp/crumbs-76`: `ce56c474c` (fixes 1, 2, 5),
-`f5482d086` (3, 4, 6 and guest-flow.md), `1d603a036` (the camera hears the album's yes at the file going up), `f098b8d08`
-(a full album is asked again too). The tree was clean at the park.
-
-**Walked live** in my own headless Chrome on 3132 against disposable events (scripts `s1.mjs` to `s5.mjs` and `lib.mjs`, shots in
-`shots/`, in the scratch folder), at 375 touch and 1440: fixes 1, 2 and 5 (S1 the album's sheet, S2 the door's step), 3 (S3),
-6 (S3 at an OFF door, S4 at A photo first), and the camera's failure path (S5). Fix 4 (the host on her own guest page) is
-component-tested only: it needs her Google session; hand Will the smallest action (open a develop album's guest page as the host,
-add one photo, look for the round "Your uploads" button beside Add).
-
-**Measured:** the album's sheet on a whole failure reads "1 of 1 didn't upload" with no "Everything else" line, its Retry with the
-line still cut reads "1 of 1" again (the old code read "1 of 0"), and three files with every R2 PUT after the first failed read "2
-of 3 didn't upload / Everything else is in Will Gibson's album." The sheet's title and the door step's failure heading are the same
-size: 24.017px at 375 and 28px at 1440. The camera over a closed album kept its banner, stopped shutter and caption steady for 30.6 s
-across two asks (354 samples at 100 ms, no gap), and was free again 7.4 s (phone) and 16.4 s (desk) after the host's reopen (asks
-at 10 s and 30 s). At A photo first on a camera album the step has one Take a photo and 0 file inputs; the door's camera stays
-open after the first shot lands and the keep arrives only once she closes it ("Your 2 shots joined Will Gibson's album").
-
-**Fresh-eyes review** (a read-only helper): no HIGH. To do, in order:
-1. (MED) The door's camera is not wired to the page's own-removal bookkeeping: add `removedIds` and `onOwnRemoved` to `EntryModal`,
-   pass `removedIds` and `handleOwnRemoved` from `event-experience.tsx` (two more one-line exceptions, listed in the lane check),
-   hand both to the door's `<AlbumCamera>`; pin that removing her shot inside the door's camera reaches `onOwnRemoved`.
-2. (MED/LOW) `EntryModal` ORs the door camera's open state into `onUploadStepActive`, which feeds `useLiveQueue(queue,
-   uploadProgress, uploadStepActive)` in the shell, so progress ticks re-render `EventExperience` while the camera is open; and
-   `onSend`/`onRetry` (the page's `addFiles`/`retry`) change identity per shell render, so the camera's `memo` does not hold (my test
-   passes only because it hands stable functions). Report the camera's open state apart from the step's (a second callback to the
-   page, one more line there, which also lets the page hold the keep), keep `uploadStepActive` for the step, give the camera
-   ref-backed stable `onSend`/`onRetry`, and make the test hand fresh functions each render.
-3. (LOW) Gate `cameraOpen` by `doorHasCamera` (move `doorHasCamera` above its first use): a host switching capture away mid-visit
-   would strand the keep and the failure suppression.
-4. (LOW, a11y) Pass `titleAs="h2"` in the failure sheet's `DoorHeading announce` (its title was an h2 `SheetTitle`).
-5. (LOW) The camera's `visibilitychange` re-ask has no minimum gap: skip it if the last ask was under about 10 s ago.
-
-**Remaining, in order:** the five fixes above with tests; re-run the gate (typecheck, lint, test, build, then the dev server on 3132
-and lab:smoke) and re-walk S3 and S4 (`node s3.mjs phone`, `node s4.mjs phone`) if the camera or the door changed; fill the
-Questions, System-doc edits, Deferred and Handoff below (drafts are in the transcript; guest-flow.md is already edited in place);
-the lane check (`git diff --name-only origin/launch-prep...HEAD` is the owned paths, this file and `event-experience.tsx`'s one
-line, three once finding 1 is done); **clean up the disposable test data**; set `status: handed-off`, commit the manifest alone,
-push, "handed off at <sha>". launch-prep moved since the cut (crumbs-77 merged, tests only, no overlap with my files), so no
-sync is owed unless a conflict appears.
-
-**State:** no dev server (3132 closed), no Chrome of mine open, no migration, no Worker, Vercel or Stripe change.
-
-**Disposable data to remove before the handoff** (mine, in the live Supabase and R2): four events on Will's profile, ids
-`dc74eb95-fd0d-41b2-9139-c971a54ad4dd`, `f201f89d-a5f9-408a-9390-0b5493df8cb0`, `ffbb5ed3-5086-4606-9af1-6873d517f1c7`,
-`5fc018ea-0894-4fcb-a184-7f1466b13b3b` (named "crumbs-76 ... (disposable)"; their tokens are in
-`../partyreel-wt/_scratch/crumbs-76/events.json`), with about twenty guest uploads (the fixtures and the fake camera's shots) in R2
-under `events/<id>/`. Delete the event rows (cascades the guests and media), then the R2 prefixes with `src/lib/r2/delete.ts`, then
-confirm nothing is left. Their `accepting_uploads` is true.
-
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each is built as recommended; Will's to overrule, and each says what the other answer costs.
+
+1. **What does "of N" count after a Retry?** Recommended, built: the run's own files. A Retry that begins while earlier failures still stand is their go continuing, so one of three Retried over the other two still heads "2 of 3" (the whole is what she sent); a run that begins with nothing listed (Retry all, the next pick) is a go of its own, so a Retry that fails again heads "1 of 1"; a slot that mounts mid-run counts everything it holds. The other answer (count only the files going this time) makes the first read "1 of 1" over two other lines.
+2. **What does the sheet say under its heading?** Recommended, built: nothing of the rest when the run failed whole (no "Everything else" under "1 of 1"); "Everything else is in HOST's album." only where the run sent more than failed. Where no line could pass on a Retry (every line a refusal of the file itself: a wrong type, a file over the ceiling, a video where the album takes none) the lines carry no Retry and one more line says the way on: "Pick something else to add.", "Take another to add one." at a camera album. The other answer is the old sheet, which promised a rest that did not exist and offered a Retry that sent nothing.
+3. **How does the camera hear the host reopen uploads?** Recommended, built: it asks the album again by itself, since nothing tells the page when the host's switch moves (the sync carries access, gate and waiting, never `accepting_uploads`): after 10 s, then 20, 40 and every minute while it is open and the page visible, at once on coming back to the page (never closer than 10 s to the last ask) and when the connection does, and only for the two refusals a host lifts (uploads closed, album full). An ask is a shot's own Retry, a presign refused before a byte moves, so the cost is at most one presign a minute from a camera held open over a closed album. The other answer carries `accepting_uploads` in the sync (a migration and the sync reader: Deferred below) and the asking goes; I did not build it because the sync is outside this lane.
+4. **What is the host told on her own guest page on a develop album?** Recommended, built: her tracker stands there as a guest's does (the round Your uploads button beside Add, "Sending…" then "Developing" for this visit's files, lit on the contact sheet), only where a develop is ahead of her (`addsWaitFor`: her files ride her own pair and are approved, so approval never keeps hers back), and with no Remove (her hub takes hers back; the tracker's server read is a guest's). The other answer is a one-line note under Add, which cannot list or light anything.
+5. **How does the failure sheet reach the door's scale?** Recommended, built: through `DoorHeading` in a new `announce` mode, so the heading IS the dialog's title and description (one node, an h2, clear of the sheet's X), at 24px at 375 and 28px at 1440, equal to the door step's failure heading. The other answer keeps the card title and the two surfaces disagree.
+6. **What does a camera album's door offer for the first photograph?** Recommended, built: the album's camera alone (one "Take a photo", no picker, no terms line; "Take your photos", "Take another photo"), wherever the host chose the camera and never in the demo. The door holds the camera itself (its own lazy chunk, beside the sheet) so it outlives the step: her first landed shot drops the step and she goes on shooting, the keep waits until she closes it, and a shot she takes back in Your shots goes through the page's own removal. The held door's wait chooser still offers the library (Deferred). The other answer (skip the step on a camera album) sends her to the album's own Add, which opens the same camera, and loses the door's one request for a first photograph.
+7. **Red-team 54's two NITs that were calls.** The keep rises once nothing is queued or in the air, with its whole count, where it rose at a burst's first complete and said five over six files still going; the other answer keeps it prompt and wrong. A Stop pressed once every file of its burst is up answers "too late" on the press (the question closes at once, nothing is aborted, the photo lands unsaid), where it waited for the complete and the question stood unchanged for as long as that took (4 s on one photo, 8 s on five); a file up while a sibling still goes can still be taken back. The other answer says "Too late" in words, which the downloads' cancel does not.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/guest-flow.md`: the keep (held for the camera and for files still going, and why), the stack's x (too late answered on the press), the failure sheet (the door's scale, `useRunSent`'s count and its continuing go, the rest line only where something else went, a refusal of the file itself with no Retry and the way on, `localRefusalCode`), the camera over a refusal of the album (the asking cadence), the door's camera (its wiring: `onCameraOpenChange`, `removedIds`, `onOwnRemoved`, step-only `onUploadStepActive`), and the tracker for the host on a develop album (`addsWaitFor`).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: Guests: the album's sync carries no `accepting_uploads`, so the camera asks a closed album again by itself (10 s, 20, 40, then each minute); carry it in the sync (a migration and the sync's reader) and the asking goes.
+- Now: Guests: the held door's wait chooser (`door/wait-picks.tsx`) still offers the photo library on a camera album, so a library photo can wait for the roll; offer the album's camera there, as the door's step now does.
+- Now: Guests: the uploader refuses a wrong type and a file over its ceiling with no code (`prepare()` and `validateUpload` in `uploader.ts`), so the queue gives them one from the file (`localRefusalCode`); tag them at the source and drop the queue's copy.
+- Now: Docs: the camera's asking and the door's camera paragraphs in `guest-flow.md` belong in `disposable-mode.md` (the camera's one home, not owned here); move them.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed to `origin/lp/crumbs-76`:** `ce56c474c` (fixes 1, 2, 5), `f5482d086` (3, 4, 6 and guest-flow.md), `1d603a036` and `f098b8d08` (the camera hears the album's yes at the file going up; a full album is asked too), `34f330ee3` (the park note), `6b9825df8` (the fresh-eyes review's five and red-team 54's five, with guest-flow.md refined); this manifest alone on top (its sha is the chat line's). launch-prep moved (crumbs-75, crumbs-77, compute-reads, help-words merged) with nothing under my files or my read: `comm -12` of the two changed-file lists is empty, `src/lib/upload/uploader.ts` is untouched there, and `git merge-tree --write-tree HEAD origin/launch-prep` is clean, so no sync is owed.
+- **Gates on `6b9825df8`** (the tree every src change sits in; the manifest is docs only), each on its own exit code, logs and codes in `../partyreel-wt/_scratch/crumbs-76/gate-*.log` and `gate-exits.txt`: `pnpm typecheck` 0; `pnpm lint` 0 (no warnings); `pnpm test` through the build lock 0 (936 files, 11,635 tests); `zsh scripts/build-lock.sh pnpm build` 0; `pnpm lab:smoke --base http://localhost:3132 --timeout 90000` 0 (163 checks, 0 failing).
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): every line is under an `owns` prefix (`src/components/guest/` `camera/album-camera`, `door/heading`, `entry-modal`, `guest-upload`, `upload-step`, `upload-tracker`, `upload/failure-sheet`; `src/lib/guest/` `use-upload-queue`, `upload-tracker`; `docs/systems/guest-flow.md`, listed above), this manifest, or one exception: `src/components/guest/event-experience.tsx`, five one-line wirings on the page that holds the queue (`camera={...}` for the door's camera, `onCameraOpenChange={setCameraOpen}`, `removedIds={removedIds}`, `onOwnRemoved={handleOwnRemoved}` on `<EntryModal>`, whose why is one comment there, and `|| cameraOpen` in `suppressFailures`).
+- **The items, each pinned by a test that fails on the old code** (proved by swapping the old file in; names are `it` titles):
+  1. "1 of 0": `use-upload-queue.test.tsx` `runSentOf` and `useRunSent` ("a Retry that fails again reads the run it was, never 1 of 0", "a mount mid-run counts everything it holds"), `guest-upload.test.tsx`, `upload-step.test.tsx` ("the failure heading"). One count, `useRunSent`, replaces both indexed baselines.
+  2. "Everything else": `failure-sheet.test.tsx` "a run that failed whole" ("says nothing of the rest, however the album shows what is added").
+  3. The camera hears the reopen: `album-camera.test.tsx` "over an album that refuses for a reason its host can lift" (seven tests: asks after ten seconds and keeps its banner steady through the ask, the calmer cadence, nothing while hidden, never closer than the first step, a full album too, never over a refusal that is not the host's, nothing once closed).
+  4. The host's tracker: `upload-tracker.test.tsx` "the host's own, where a develop keeps hers back" and `upload-tracker.test.ts` (`trackerShows`).
+  5. One heading scale: `door/heading.test.tsx` ("announce" mode) and `failure-sheet.test.tsx` "the heading" ("is the door's heading, and names the dialog, once").
+  6. The camera album's door: `upload-step.test.tsx` "on an album whose host chose the camera" and `entry-modal.test.tsx` "a camera album's door" (eleven tests besides R4's: the camera alone, outlives the step, the keep waits, a shot taken back through the page's removal, nothing held once the host switched the camera away, not re-rendered for a tick of a bar).
+  7. Red-team 54 R1 (a refusal the uploader makes itself offered a Retry that sent nothing): `use-upload-queue.test.tsx` "a refusal of the file itself that the uploader made locally", `failure-sheet.test.tsx` "a failure no retry could pass", `guest-upload.test.tsx` "offers no Retry on a file the uploader refused itself". R2 and R3 (one row's Retry "N of 0"; "Everything else" under "5 of 5"): `guest-upload.test.tsx` "five files that all failed read '5 of 5' ... one row's Retry reads '4 of 5', never '4 of 0'", covered by items 1 and 2. R4 (the keep over files still going): `entry-modal.test.tsx` "waits while her files are still going, then comes with the whole count". R5 (a too-late Stop's question): `use-upload-queue.stop.test.tsx` "too late is answered AT ONCE, not at the landing" and its sibling "a file whose bytes are up while a sibling still goes ... its stop still takes it back".
+- **Walked live** in my own headless Chrome on 3132 (no Vercel, no live origin), against four disposable events, at 375 touch and 1440, final-tree re-walks on `6b9825df8`; scripts `s1.mjs` to `s8.mjs`, results and shots in `../partyreel-wt/_scratch/crumbs-76/shots/`:
+  - S1/S2 (items 1, 2, 5; the line cut by CDP): "1 of 1 didn't upload" with no "Everything else"; its Retry with the line still cut "1 of 1" again (old: "1 of 0"); three files with every R2 PUT after the first failed "2 of 3 didn't upload / Everything else is in Will Gibson's album."; the door step's failure heading and the sheet's title are the same size, 24.017px at 375 and 28px at 1440.
+  - S3 (item 3, and item 6 at an OFF door): the step offers Take a photo alone (0 file inputs); over a closed album the banner and stopped shutter never flickered (0 gaps in 355 samples at 100 ms), and the camera was free again 16.4 s after the host's reopen. S4 (item 6, A photo first): one Take a photo, the camera stays open after the first shot lands, the keep comes when she closes it ("Your 2 shots joined Will Gibson's album"). S5: the camera's failure path, then closing it opens the sheet ("2 of 2 didn't upload", Retry both lands them).
+  - S7 (R1): a text file refused by the uploader reads "1 of 1 didn't upload / Pick something else to add." with no Retry; beside a photo that went, "1 of 2 didn't upload / Everything else is in Will Gibson's album. Pick something else to add." (buttons: Done and Close only).
+  - S8 (R4): six photos on a 90 KB/s uplink: the first complete (three files) answered at 19.2 s with "3 to go" still, where the old rule raised the keep; it rose at 29.3 s, "Your 6 photos joined".
+  - S6 (R5): the complete held 5 s by CDP; Stop upload pressed 0.5 s after it was asked: the question was gone 0.3 s later while the complete was still held, the photo landed at 15.3 s unsaid (before the change, same walk: the question stood to 15.7 s, 4.8 s after the press, about when the complete answered).
+  - Item 4 is component-tested only (it needs her Google session; nothing of mine signs in).
+- **Assets requested from Will:** none.
+- **Board ideas:** walk a camera album as a guest end to end as one board (scan, name, the door's camera, the keep, the album's camera): the door's camera, the keep and the slot's camera now share a page and a queue but never had one design pass together.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none.
+- **Calls his to overrule:** the seven under Questions. The ROADMAP's Guests lines for these crumbs ("the failure heading counts a run by index", "the failure sheet speaks of "Everything else"..." which also names the camera's banner, "the host adding from her own guest page...", "on a camera album the door's first-photo step...", "the album's upload-failure sheet heads with a Sheet's card title...") are done, and for the Orchestrator to delete (ROADMAP.md is not owned).
+- **Look at first:** (1) Item 4, which only Will can: sign in as the host, open a develop album's guest page, add one photo, and look for the round Your uploads button beside Add ("Sending…" then "Developing", no Remove). (2) On a phone, a camera album's door at A photo first: one Take a photo, shoot two, close the camera, read the keep. (3) The album's upload-failure sheet on a phone after turning the line off mid-send: the heading is the same size as the door's.
+- **Test data left, mine, live (not deleted: a hard deletion is not an action I take):** four events on Will's profile, named "crumbs-76 ... (disposable)", `accepting_uploads` true, none soft-deleted: `dc74eb95-fd0d-41b2-9139-c971a54ad4dd` (25 media, 19 guests), `f201f89d-a5f9-408a-9390-0b5493df8cb0` (3, 4), `ffbb5ed3-5086-4606-9af1-6873d517f1c7` (12, 7), `5fc018ea-0894-4fcb-a184-7f1466b13b3b` (6, 3); 46 media rows (6,756,067 metered bytes, counted in her `storage_used_bytes`) and 92 R2 objects (7,693,110 bytes) under `events/<id>/`. Cleanest is her dashboard's own Delete on each (the product's lifecycle: Deleted, then the nightly purge deletes R2 then rows and releases the meter). By hand: `node ../partyreel-wt/_scratch/crumbs-76/r2clean.mjs delete` (prefix-guarded to those four, `list` first), then in one statement `update public.media set purge_asked_at = now() where event_id in (the four) and purge_asked_at is null and not removed_by_admin; delete from public.events where id in (the four);` (the update first, since `media_release_meter` fires on `purge_asked_at`, never on a delete, and a bare delete would leave her meter high).
+- **State:** no dev server (3132 closed), no Chrome of mine open, no helper agent running, no migration, Worker, Vercel or Stripe change, nothing requested from any Vercel or live origin.
