@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { type ActionResult } from "@/app/(app)/dashboard/actions";
 import { jobById } from "@/app/admin/jobs/catalog";
 import { stampPruneHoldRelease } from "@/app/admin/jobs/prune-hold";
+import { askRestoreNow } from "@/app/admin/jobs/restore-now";
 import { requireAdminAction } from "@/lib/auth/admin-context";
 import { setJobEnabled } from "@/lib/db/queries/jobs";
 import { assertCronEnv } from "@/lib/env";
@@ -106,6 +107,31 @@ export async function releasePruneHoldAction(): Promise<ActionResult> {
       code: "unknown",
       message: "Couldn't release it, so it is still held. Please try again.",
     };
+  }
+
+  revalidatePath("/admin/jobs");
+  return { ok: true };
+}
+
+/**
+ * RESTORE NOW, on the backup restore's card (durability-backups.md, "The restore"): asks the backup Worker's door for
+ * a pass at once (restore-now.ts), which copies the backup's lone copies back exactly as the daily pass does. The one
+ * start the app has for a Cloudflare job, behind the same admin and AAL2 check as every control here; the pass reports
+ * on the card, so the press only says whether it began. A refusing or unreachable Worker is a Sentry event; the
+ * restore switched off is a state, said in words.
+ */
+export async function restoreNowAction(): Promise<ActionResult> {
+  const auth = await requireAdminAction();
+  if (!auth.ok) return auth.result;
+
+  const answer = await askRestoreNow();
+  if (!answer.ok) {
+    if (answer.fault) {
+      captureError("admin", new Error(answer.message), {
+        action: "restore_now",
+      });
+    }
+    return { ok: false, code: "unknown", message: answer.message };
   }
 
   revalidatePath("/admin/jobs");

@@ -24,8 +24,12 @@
  * anything nor disclose user data). A dedicated JOB_API_SECRET would still be cleaner post-launch.
  *
  * Note what this route CANNOT do by design: it never starts a job. Pausing is the only control that
- * reaches a Cloudflare or GitHub job from here, because the app has no authenticated way to trigger
- * either one (see JOB_RUN_NOW_NOTE in the catalog).
+ * reaches a Cloudflare or GitHub job from here (see JOB_RUN_NOW_NOTE in the catalog); the one start the
+ * app has, the backup restore's Restore now, goes to the Worker's own door instead (restore-now.ts).
+ *
+ * WHAT IT RAISES, where each report lands (the Worker reaches neither Sentry nor the mail): a dead letter
+ * or a deep queue (a warning), a held prune (a warning and the ops mail), and the backup's lone copies
+ * (`primary_missing`, from the prune's run or the restore's pass: a warning and the ops mail, once a day).
  */
 import { z } from "zod";
 
@@ -51,6 +55,8 @@ import { sendOnce } from "@/lib/email/send";
 import { pruneHoldEmail } from "@/lib/email/templates";
 import { assertPruneApiEnv, serverEnv } from "@/lib/env";
 import { captureError, captureWarning } from "@/lib/observability/sentry";
+
+import { loneCopiesEmail } from "./lone-copies-mail";
 
 // The service-role admin client requires the Node runtime; never edge.
 export const runtime = "nodejs";
@@ -129,6 +135,67 @@ function alertOnDepths(
 /** The one job a hold can stop, and so the one whose start answer carries a release. */
 const HELD_JOB = "backup_prune";
 
+/** A job's card on the jobs console, on the admin host where there is one. */
+function jobsUrlFor(job: string): string {
+  return ADMIN_HOST
+    ? `https://${ADMIN_HOST}/admin/jobs#job-${job}`
+    : `${SITE_URL}/admin/jobs#job-${job}`;
+}
+
+/**
+ * The jobs whose reports carry the backup's lone copies: the catalog's reading names them (the prune and the
+ * restore), so what raises and what the card reads can never part.
+ */
+const LONE_SOURCES: readonly string[] =
+  jobById("backup_primary_missing")?.readFrom ?? [];
+
+/**
+ * THE BACKUP'S LONE COPIES, RAISED WHERE THE REPORT LANDS (durability-restore), as the dead letters and a held prune
+ * raise theirs: a key held by the backup alone is a host's media with one copy left, and its card and the bell are
+ * read only by someone already looking. Any count at all raises a Sentry warning, on every report that carries one
+ * (the prune's weekly run, the restore's daily pass, its skipped one with the mode off included); the ops mail goes at
+ * most once a day (deduplicated on the run's day across both jobs), so lone copies that stand are mailed each day
+ * until they are copied back. Numbers only, the restore's mode and the run's own note. A mail that fails never costs
+ * the run its row.
+ */
+async function alertOnLoneCopies(
+  job: string,
+  startedAtMs: number,
+  counts: Record<string, number | string | boolean> | undefined,
+  note: string | undefined,
+): Promise<void> {
+  if (!counts || !LONE_SOURCES.includes(job)) return;
+  const raw = counts[DEPTH_COUNT_KEYS.backup_primary_missing];
+  const keys = typeof raw === "number" && Number.isFinite(raw) ? raw : null;
+  if (keys === null || keys <= 0) return;
+  const restoreMode =
+    typeof counts.restore_mode === "string" ? counts.restore_mode : null;
+  captureWarning("cron", "backup_primary_missing", {
+    job,
+    keys,
+    restore_mode: restoreMode,
+  });
+  try {
+    const mail = loneCopiesEmail({
+      keys,
+      reportedBy: jobById(job)?.label ?? job,
+      restoreMode,
+      runNote: note ?? null,
+      jobsUrl: jobsUrlFor("backup_restore"),
+    });
+    await sendOnce({
+      kind: "prune_breaker",
+      dedupeKey: `lone:${new Date(startedAtMs).toISOString().slice(0, 10)}`,
+      to: serverEnv.CONTACT_NOTIFY_EMAIL ?? SUPPORT_EMAIL,
+      subject: mail.subject,
+      html: mail.html,
+      text: mail.text,
+    });
+  } catch (e) {
+    captureError("cron", e, { job, phase: "lone_alert" });
+  }
+}
+
 /**
  * The last "Release the hold" pressed, for the prune's start answer. An unreadable stamp reads as none, and says
  * so: a release that cannot be read leaves the hold standing (the safe side, a week of backup storage), never a
@@ -179,9 +246,7 @@ async function alertOnHold(
       heldKeys,
       threshold,
       runNote: note ?? null,
-      jobsUrl: ADMIN_HOST
-        ? `https://${ADMIN_HOST}/admin/jobs#job-${HELD_JOB}`
-        : `${SITE_URL}/admin/jobs#job-${HELD_JOB}`,
+      jobsUrl: jobsUrlFor(HELD_JOB),
     });
     await sendOnce({
       kind: "prune_breaker",
@@ -276,11 +341,12 @@ export async function POST(request: Request): Promise<Response> {
     });
   }
 
-  // Alert BEFORE the write, so a depth reading or a hold still pages even if the heartbeat row cannot
-  // be stored: the Cloudflare queue's state, and the hold, are the facts; the row is how the console
-  // shows them.
+  // Alert BEFORE the write, so a depth reading, a hold or a lone copy still pages even if the heartbeat
+  // row cannot be stored: the Cloudflare queue's state, the hold and the backup's lone copies are the
+  // facts; the row is how the console shows them.
   alertOnDepths(job, body.counts);
   await alertOnHold(job, body.startedAtMs, body.counts, body.note);
+  await alertOnLoneCopies(job, body.startedAtMs, body.counts, body.note);
 
   const done = await finishJobRun(
     { runId: body.runId, startedAtMs: body.startedAtMs, heartbeatError: null },

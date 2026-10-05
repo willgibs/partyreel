@@ -7,6 +7,10 @@
   "compatibility_date": "2026-06-01",
   "observability": { "enabled": true },
 
+  // The Worker's one door, Restore now (src/restore-door.ts), is its workers.dev origin: the app's BACKUP_WORKER_URL.
+  // Explicit, so a deploy can never quietly close it; every request but an authorized POST /restore is a 404 or a 401.
+  "workers_dev": true,
+
   // Native R2 bindings (no S3 creds in the Worker). PRIMARY is the live bucket; BACKUP is the
   // different-region, IA, Bucket-Locked copy. The human creates `partyreel-backup` first (README).
   "r2_buckets": [
@@ -42,8 +46,9 @@
   },
 
   // The prune's ledger (src/prune-state.ts): its cursor through the backup's listing, its last runs and its hold,
-  // in one SQLite-backed Durable Object. The migration below creates the class on the first deploy that carries it;
-  // a later change to the class needs a new tag, never an edit of this one.
+  // in one SQLite-backed Durable Object, beside the lone copies' table (src/lone-store.ts) and the restore's alarm.
+  // The migration below creates the class on the first deploy that carries it; a later change to the class needs a
+  // new tag, never an edit of this one (a new method, a table or an alarm is no change to the class's existence).
   "durable_objects": {
     "bindings": [{ "name": "PRUNE_STATE", "class_name": "PruneState" }],
   },
@@ -62,10 +67,14 @@
 
   // Plain vars (NOT secrets). PRUNE_MODE gates the prune: "dryrun" (default) runs the full pipeline but
   // deletes NOTHING; a human flips it to "live" post-launch (redeploy) once the primary is populated.
+  // RESTORE_MODE gates the restore (src/restore-run.ts): "dryrun" (default) asks and reads everything and copies
+  // NOTHING back; "on" copies the backup's lone copies into the primary (only keys a live row names, never over an
+  // object that is there); "off" does nothing at all.
   // PRUNE_API_URL is the app endpoint the prune calls to row-confirm gone media + run its breaker. The
   // matching PRUNE_API_SECRET is a SECRET — set it with `wrangler secret put PRUNE_API_SECRET`.
   "vars": {
     "PRUNE_MODE": "dryrun",
+    "RESTORE_MODE": "dryrun",
     "PRUNE_API_URL": "https://partyreel.com/api/internal/backup-prune",
   },
 }

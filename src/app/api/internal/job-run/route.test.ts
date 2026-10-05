@@ -207,3 +207,104 @@ describe("a held prune raises, where its report lands", () => {
     );
   });
 });
+
+/**
+ * ★ THE BACKUP'S LONE COPIES, RAISED AT THEIR SOURCE (durability-restore): a report carrying `primary_missing` (the
+ * prune's run or the restore's pass, the catalog's reading names both) raises a Sentry warning every time and the ops
+ * mail at most once a day, where it lands, as the dead letters and a held prune raise theirs; before, only the card
+ * and the bell carried them.
+ */
+describe("the backup's lone copies raise where their report lands", () => {
+  it("★ raises a Sentry warning and the ops mail from the prune's run, the mail once a day", async () => {
+    const res = await finish(
+      "backup_prune",
+      { primary_missing: 3, scanned: 4_000, restore_mode: "dryrun" },
+      "Dry run, deleted nothing.",
+    );
+    expect(res.status).toBe(200);
+    expect(sentry.captureWarning).toHaveBeenCalledWith(
+      "cron",
+      "backup_primary_missing",
+      { job: "backup_prune", keys: 3, restore_mode: "dryrun" },
+    );
+    expect(mail.sendOnce).toHaveBeenCalledTimes(1);
+    const sent = mail.sendOnce.mock.calls[0][0];
+    expect(sent).toMatchObject({
+      kind: "prune_breaker",
+      dedupeKey: "lone:2026-10-12",
+    });
+    expect(sent.subject).toBe("[Partyreel] 3 keys held by the backup alone");
+    expect(sent.text).toContain("Dry run: the restore copies nothing");
+    expect(sent.text).toContain("Dry run, deleted nothing.");
+    expect(sent.text).toContain("/admin/jobs#job-backup_restore");
+    expect(jobs.finishJobRun).toHaveBeenCalledTimes(1);
+  });
+
+  it("raises them from the restore's pass too, its skipped one with the mode off included", async () => {
+    await call({
+      phase: "finish",
+      job: "backup_restore",
+      runId: RUN_ID,
+      startedAtMs: STARTED,
+      status: "skipped",
+      counts: { restore_mode: "off", primary_missing: 1 },
+    });
+    expect(sentry.captureWarning).toHaveBeenCalledWith(
+      "cron",
+      "backup_primary_missing",
+      { job: "backup_restore", keys: 1, restore_mode: "off" },
+    );
+    expect(mail.sendOnce.mock.calls[0][0].subject).toBe(
+      "[Partyreel] 1 key held by the backup alone",
+    );
+  });
+
+  it("raises nothing for a zero, a report without the count, or a job whose reports never carry it", async () => {
+    await finish("backup_prune", { primary_missing: 0, scanned: 4_000 });
+    await finish("backup_restore", {
+      restore_mode: "on",
+      restored: 2,
+      primary_missing: 0,
+    });
+    await finish("backup_prune", { scanned: 12, deleted: 0 });
+    await finish("backup_reconcile", { primary_missing: 5 });
+    expect(sentry.captureWarning).not.toHaveBeenCalledWith(
+      "cron",
+      "backup_primary_missing",
+      expect.anything(),
+    );
+    expect(mail.sendOnce).not.toHaveBeenCalled();
+  });
+
+  it("never lets a failed mail cost the run its row", async () => {
+    mail.sendOnce.mockRejectedValue(new Error("Resend is down"));
+    const res = await finish("backup_restore", {
+      primary_missing: 2,
+      failed: 2,
+    });
+    expect(res.status).toBe(200);
+    expect(jobs.finishJobRun).toHaveBeenCalledTimes(1);
+    expect(sentry.captureError).toHaveBeenCalledWith(
+      "cron",
+      expect.any(Error),
+      expect.objectContaining({ job: "backup_restore", phase: "lone_alert" }),
+    );
+  });
+
+  it("opens the restore's run as manual for an operator's press, and carries no release stamp", async () => {
+    const res = await call({
+      phase: "start",
+      job: "backup_restore",
+      triggeredBy: "manual",
+    });
+    const body = await res.json();
+    expect(body).toEqual({
+      ok: true,
+      paused: false,
+      runId: RUN_ID,
+      startedAtMs: STARTED,
+    });
+    expect(jobs.startJobRun).toHaveBeenCalledWith("backup_restore", "manual");
+    expect(hold.releasedAtMs).not.toHaveBeenCalled();
+  });
+});

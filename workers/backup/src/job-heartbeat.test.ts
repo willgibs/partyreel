@@ -107,6 +107,20 @@ describe("jobStart", () => {
     }
   });
 
+  it("opens a scheduled run by default, and an operator's press as manual (the restore's Restore now)", async () => {
+    const spy = stubFetch(() => ({
+      body: { ok: true, paused: false, runId: "r", startedAtMs: 1 },
+    }));
+    await jobStart(CONFIGURED, "backup_reconcile");
+    await jobStart(CONFIGURED, "backup_restore", "manual");
+    expect(
+      spy.mock.calls.map(([, init]) => JSON.parse(String(init.body))),
+    ).toEqual([
+      { phase: "start", job: "backup_reconcile", triggeredBy: "schedule" },
+      { phase: "start", job: "backup_restore", triggeredBy: "manual" },
+    ]);
+  });
+
   it("reports not-ok on a non-2xx so the caller can pick its own posture", async () => {
     // The reconcile runs anyway on this; the prune refuses. That choice belongs to the caller,
     // which is why this returns an error rather than defaulting either way.

@@ -14,7 +14,7 @@
  * and the alerting scan can never hold two definitions of healthy:
  *
  *   scheduled — fires on a clock and writes its own `job_runs` rows. The cadence + the missed-run
- *               rule apply. The purge cron, the backup Worker's two jobs and the export Worker's
+ *               rule apply. The purge cron, the backup Worker's three jobs and the export Worker's
  *               heartbeat, the DB-backup Action, and the six purge SUB-SWEEPS, each of which opens
  *               and closes a row of its own.
  *   signal    — no clock. Something else does the work (a transactional email, a rate-limiter read)
@@ -55,6 +55,9 @@ export type JobId =
   | "backup_dead_letters"
   // What the backup prune found held by the backup alone (crumbs-75): rows alive, primary objects gone.
   | "backup_primary_missing"
+  // The restore that copies those lone copies back (durability-restore): only keys a live row names, never over an
+  // object that is there, under the Worker's RESTORE_MODE.
+  | "backup_restore"
   // The "Download all" zip Worker's daily self-check (`export-ends`), on the exports' own switch.
   | "export"
   // Send to Google Drive (drive-wiring): the Worker's sweep (its heartbeat, hourly), its queue and dead letters (read
@@ -136,9 +139,10 @@ export const MISSED_GRACE_MULTIPLIER = 1.5;
 /**
  * The `counts` keys the Worker reports its Cloudflare depths under. Named HERE, in the pure module,
  * because the Worker writes them and the console reads them back: a string typed twice in two
- * packages is exactly how a health signal quietly stops resolving. `primary_missing` is the backup
- * prune's own count of keys the backup alone holds (`workers/backup/src/prune-run.ts`, which writes it
- * on every run that judged its candidates, zero included).
+ * packages is exactly how a health signal quietly stops resolving. `primary_missing` is the count of
+ * keys the backup alone holds, the whole backup's (the Worker's lone copies' table): the prune writes
+ * it on every run that judged its candidates, zero included (`workers/backup/src/prune-run.ts`), and
+ * the restore on every pass (`workers/backup/src/restore-pass.ts`).
  */
 export const DEPTH_COUNT_KEYS = {
   backup_queue: "queue_backlog",
@@ -396,20 +400,39 @@ export const JOBS: JobDef[] = [
     readFrom: ["backup_reconcile", "backup_prune"],
   },
   // The prune's own finding (crumbs-75): the inverse of a dead letter, a primary object gone while its row lives.
-  // Only the prune reads both buckets against the rows, so only its runs carry it.
+  // The prune finds them and carries them across its pass (the Worker's lone copies' table); the restore copies them
+  // back and reports what it leaves, so the reading is the freshest of the two.
   {
     id: "backup_primary_missing",
     label: "Held by the backup alone",
     description:
-      "Media files whose row still lives while the primary bucket lost the object: the backup is the only copy, and the photo will not open for its host until it is restored. The weekly prune finds them among the backup keys past its 36-day gate and never deletes one.",
+      "Media files whose row still names them while the primary bucket lost the object: the backup is the only copy, and the photo will not open for its host until it is restored. The weekly prune finds them among the backup keys past its 36-day gate and keeps them across its pass, and never deletes one; the backup restore below copies them back.",
     kind: "derived",
     host: "cloudflare_worker",
     cron: null,
-    cadence: "Read on every prune run",
+    cadence: "Read on every prune run and restore pass",
     expectedEveryMs: 0,
     flagKey: null,
     canRunNow: false,
-    readFrom: ["backup_prune"],
+    readFrom: ["backup_prune", "backup_restore"],
+  },
+  // The remedy for the card above, a job of its own (durability-restore): a pass is the Worker's Durable Object
+  // alarm, asked for by the daily cron (the reconcile's), by each prune's end and by Restore now, so it reports daily.
+  // Its Restore now is no generic Run now: the app asks the Worker's own door (restore-now.ts), so `canRunNow` stays
+  // for the jobs the app starts itself.
+  {
+    id: "backup_restore",
+    label: "Backup restore",
+    description:
+      "Copies the backup's lone copies back into the primary bucket: only keys a live row still names, never over an object that is there. Off, dry run or on by its Worker's RESTORE_MODE, a dry run until it is switched on. Stopping silently leaves a host's photo with one copy and unopenable.",
+    kind: "scheduled",
+    host: "cloudflare_worker",
+    cron: "0 5 * * *",
+    cadence:
+      "Daily with the backup reconcile, after each prune, and on Restore now",
+    expectedEveryMs: DAY_MS,
+    flagKey: "backup_restore_enabled",
+    canRunNow: false,
   },
   // --- the "Download all" Worker --------------------------------------------------------------
   // Its switch is the exports' own kill switch (`export_enabled`, the one /admin/exports flips): pausing
