@@ -16,7 +16,7 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/marketing/help/step-screens/registry.ts
 reads:                  # single-sources you depend on: never duplicate, never edit
   - src/lib/content/help-links.ts
-  - src/lib/marketing-voice.ts
+  - src/lib/constants/marketing-voice.ts
 ---
 
 # lp/help-words
@@ -29,7 +29,7 @@ reads:                  # single-sources you depend on: never duplicate, never e
 
 **★ Local only:** nothing of yours requests the Vercel alias, partyreel.com or any *.vercel.app (Vercel's Hobby CPU is at its limit). Port 3136 is yours; 3000 is Will's desk and red-team 54's, never touched; 3130 is the Orchestrator's gate.
 
-**Why this lane:** a help article that walks a button the product no longer has is a support ticket waiting to happen. Facts only: the words follow the voice (`src/lib/marketing-voice.ts`, both `AUTHORING.md` guides) and change only where the product changed; no page is redesigned (the marketing pages' look is the brand boards' to come).
+**Why this lane:** a help article that walks a button the product no longer has is a support ticket waiting to happen. Facts only: the words follow the voice (`src/lib/constants/marketing-voice.ts`, both `AUTHORING.md` guides) and change only where the product changed; no page is redesigned (the marketing pages' look is the brand boards' to come).
 
 **The fixes:**
 1. **End dates.** The help center and blog say "Events have no end date" (`create-your-first-event.mdx`, `how-long-media-is-kept.mdx`, `pro-vs-event-pass.mdx`, `turn-off-uploads-or-cap-file-size.mdx`, `what-the-free-plan-includes.mdx`, `event-album-no-expiry-date.mdx`, `family-reunion-photo-sharing.mdx`, both `AUTHORING.md` guides; `git grep -i 'end date' content` for the rest) where Settings offers "Add an end date". Say an end date only says when and never ends anything (the anti-abuse core: an event never expires; deletion is the only exit). `src/app/(guest)/e/[token]/not-found.screen.tsx`'s comment says the same old fact: correct it, its words unchanged.
