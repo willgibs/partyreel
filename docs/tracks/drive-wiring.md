@@ -1,6 +1,6 @@
 ---
 track: drive-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "46682654"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -70,79 +70,181 @@ working.
 
 **Verify on.** The gate on the synced tree (CLAUDE.md's four steps), each step on its own exit code; `pnpm lab:smoke --base http://localhost:<port>` when the lane changes anything under `src/` but tests (it crawls what the change reaches: the Library, and every board whose drawings import a changed file); and the surfaces the Handoff is judged on, local and live.
 
-## Where I am (parked 2026-10-05 for the laptop restart; resume from here)
-
-**Done.** Booted (worktree `../partyreel-wt/drive-wiring`, `lp/drive-wiring` pushed, `.env.local` copied, install
-clean). Read whole: the design note, q25/q27, research, the board's spec and drawings, Will's ledger, and the
-production surfaces each pick lands on (take-home-panel, event-gallery's album head, events-section and its Display
-menu, storage-list-body, account page, export-toast, admin/exports, spend-watch, env, email templates and send,
-account-deletion, database-security, uploads-and-r2). **Drafted, NOT yet preflighted:**
-`supabase/migrations/20261005120000_cloud_export.sql` (six tables, ~20 functions, the switch seed, spend_watch_readings
-restated with `drive_bytes`). No dev server, no wrangler running.
-
-**Next, in order.**
-1. Fix the migration's `cloud_export_sweep` lock order before anything else: do the connection-locking parts first
-   (grant-ending -> failing, failing past a day -> pause, the kick loop), THEN the job-only updates (preparing ->
-   stopped, daily_limit resume, expiry, stuck, breakers) as `update ... where id in (select ... for update skip
-   locked)`, so the sweep never holds a job row while waiting on a connection row a lane's report holds.
-2. Preflight on a throwaway Homebrew postgresql@17 cluster (database-security.md's recipe): stand-ins for profiles,
-   events, media, ops_flags, tier_limits, storage_ledger/album_state/sent_emails/export_log/job_runs (for
-   spend_watch_readings), the Supabase roles, an auth.uid() stub; apply verbatim; write and run the rolled-back
-   contract check (the section-12 list minus the exit) and append it commented at the file's foot.
-3. App lib (`src/lib/drive/`): tokens.server.ts (AES-256-GCM, AAD `drive:v1:<user>:<provider>:<purpose>`, key id in
-   the sealed string, DRIVE_TOKEN_KEY + _PREVIOUS), google.ts (auth URL with PKCE S256, exchange, refresh, revoke x3,
-   ID-token decode, about.get, folders; one URL allowlist), protocol.ts (`${b64url(json)}.${hmacHex("drive:"+body)}`,
-   5-minute freshness; the lease's token sealed with HKDF(DRIVE_WORKER_SECRET, "drive:token") + AES-GCM),
-   oauth-cookie (`pr_drive_oauth`, HMAC under UNLOCK_COOKIE_SECRET in a `drive-oauth:` domain), moments.ts (a job ->
-   the board's MOMENTS words), the status store; `src/lib/export/drive-names.ts`; `src/lib/db/queries/drive.ts`; env.
-4. Routes: `api/drive/connect`, `callback`, `exports` (POST, one or many albums), `exports/[id]` (cancel, resume
-   with a room check, retry, seen, refolder), `exports/[id]/items` (failed/skipped, keyset), `status` (GET);
-   `api/internal/drive/lease|report|check|sweep`; Disconnect as a Server Action.
-5. Worker `workers/drive/` (index, lane, google-drive adapter with handle-only undo, protocol twin pinned by a shared
-   vector, queue-metrics), vitest with a fake Drive and a fake R2; wrangler.jsonc per section 3.
-6. UI: the Originals card's Send to Drive + the promise and final-press steps; the album strip (a one-line exception
-   in event-gallery.tsx); dashboard tile lights + a picker popup beside Display; the storage-list door (no "then free
-   it"); Account's Google Drive card; the app-wide flag toast (a one-line exception in the (app) layout).
-7. After crumbs-75 merges (sync first): send-kinds (a new never-held list for the Drive mails), the jobs catalog
-   (drive_sweep, drive_transfer, drive_queue, drive_dead_letters), account-deletion's purge step, the spend-watch
-   card's line, admin-observability facts; the request's revoke in `src/lib/db/mutations/account.ts` (an exception).
-8. /admin/exports' Drive section; the emails; the docs (drive-export.md new, SYSTEMS.md, database-security,
-   uploads-and-r2, trust-safety-forensics); the gate; the walk script; the Handoff.
-
-**Decisions so far (each goes under Questions or Calls with its reason).** Disconnect and a different-account
-reconnect revoke at Google; a SAME-account reconnect does NOT revoke the replaced token (Google's revoke removes the
-whole grant the new token rides; its docs: "invalidating the permissions previously granted to the application"). A
-send takes the whole album and each item carries `prior_file_id` from an earlier send on the connection, which the
-Worker confirms and records as kept, so sending again never duplicates and a file she deleted in Drive goes again (Q27
-N2 without the exit). A leases table and an hourly sent-bytes table (both deny-all: the advisor count goes 19 -> 24,
-not 22). The app makes the folders at the press (`cloud_export_ready`), the root by compare-and-set. Names: the TS
-stem and extension, the " (n)" ordinal assigned in SQL under the connection lock. The breaker is checked at the press
-and by the sweep (not every lease); Google's day by the hourly table at every lease. The closing check confirms by
-file id with bounded concurrency; duplicates counted from one folder listing. The spend watch's reading is per day
-(`drive_bytes`, a last_day window) to fit the watch's machinery. Your events' door is a picker popup (it works over
-gallery, table and list and scales to hundreds) rather than in-tile picking.
-
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **Which plans have Send to Google Drive?** Built: every plan. It costs about $0.0003 a GB, it is the honest way
+  out, and it cannibalizes nothing (live sync, the automatic copy competitors charge for, is where a plan line would
+  belong). One-way in practice: PRICING's rule that a marketed number only moves up keeps it on Free once it is there.
+- **Your events: one list, or checks on the tiles (the board drew checks)?** Built: one list beside Display
+  (`album-picker.tsx`): it reads the same over the gallery, the table and the list, and a host with two hundred albums
+  picks from rows. Will's to overrule.
+- **Keep a capture time at upload?** The names and Drive's `modifiedTime` say when each file reached the album (the
+  app keeps no capture time: the EXIF strip removes it on purpose); `driveFileStem` takes `capturedAt` the moment one
+  is kept. Recommend deciding it apart, as a privacy question (capture time is what the strip removes).
+- **A takedown's copy already in her Drive:** it stays hers (Partyreel deletes nothing in her Drive, and `drive.file`
+  reaches only our files). Recommend the audited operator act "Delete our copy from her Drive" before launch, beside
+  the CSAM runbook (Deferred).
+- **The guards' numbers:** the account breaker `max(10 x plan storage, 5 GB)` in 30 days (unpublished), and the spend
+  watch's `drive_bytes` floor of 1 TB a day. Built on those; Will's to tune.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/drive-export.md` (new): the connection, the tokens, a send, cost and guards, the Worker, the leak
+  table, operating it and the leak runbook, the choices with their reasons.
+- `docs/SYSTEMS.md`: its row.
+- `docs/systems/database-security.md`: the advisor reads 25 `rls_enabled_no_policy`; Drive's five deny-all tables, its
+  two owner-only helpers, the `cloud_*` functions service-role only, `cloud_exports`' column grant.
+- `docs/systems/uploads-and-r2.md`: "Send to Google Drive" (no presign and no byte through Vercel, a read an original
+  plus a verification read, gone and missing items skipped).
+- `docs/systems/trust-safety-forensics.md`: a quiet hold goes in her send as in her zip; a copy already in her Drive is
+  out of our reach.
+- `docs/systems/admin-observability.md` (crumbs-75's, freed): the Drive switch's direction, the `drive_export`
+  heartbeat and its readings, the spend watch's Drive reading and its pause.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Trust & safety: "Delete our copy from her Drive", an audited operator act for a takedown of an item a send delivered
+  (it needs the connection's key at the time; written to `forensic_audit_log`).
+- Product: keep a capture time at upload, so a Drive file's name and `modifiedTime` say when it was taken
+  (`driveFileStem`'s `capturedAt` waits for it).
+- Admin: the account view (`/admin/accounts/[id]`) shows its Drive connection with Pause and Disconnect (today on
+  `/admin/exports#drive`, found by address).
+- Admin: the command palette jumps to `/admin/exports#drive` (`lib/admin/palette.ts`).
+- Drive v2: live sync, then Dropbox (the design note's sections 9 and 10).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits.** Code head `866d30f9b`; syncs `06638c20e` (launch-prep `164fb5b8d`), `737d7a9ac` (`102f64379`: types
+  regenerated after crumbs-75; its seam in `queries/jobs.ts` dropped, Drive's kept), `c22697e04` (`3cfd7ae27`) and
+  `74fe2bd81` (`f271601bd`), the last two pickup commits alone (`docs/tracks/orchestrator.md`). The chat line's sha is
+  this manifest's commit.
+- **Gates on `866d30f9b`** (the synced code; the syncs after it carried `orchestrator.md` alone), each its own exit:
+  `zsh scripts/build-lock.sh pnpm typecheck` 0; `pnpm lint` 0; `zsh scripts/build-lock.sh pnpm test` 0 (960 files,
+  11,974 tests); `zsh scripts/build-lock.sh pnpm build` 0; `pnpm lab:smoke --base http://localhost:3136` 0 (198
+  checks). The Worker (`workers/drive`, unchanged since `31b93f51f`): `npm test` 52/52, `npx tsc --noEmit -p .` 0,
+  `npx wrangler deploy --dry-run` 38.67 KiB. Logs: `_scratch/drive-wiring/gate-*.log`.
+- **The migration** `20261005120000_cloud_export.sql` (md5 `f2f9cafea54bbe6f75ecc6545ac482c2`). Drift on
+  `ddafaemglzmuekbtjwzn` (read-only, before): no `cloud_` table or function, no `drive_export_enabled` row,
+  `spend_watch_readings` md5 `54b229ac1c20aa05143f0d119ec086df` = 20261003190000's body. Preflight on a local
+  postgresql@17 stand-in: its 24 checks hold (`_scratch/drive-wiring/pg/run.sh`). **Live rolled-back proof through
+  the Supabase MCP**: the file's statements and the check in one transaction ending `rollback;`, outcome `ROLLED BACK:
+  every cloud_export check held {"job": {"kept": 1, "sent": 33, "total": 35, "failed": 0, "skipped": 2}, "lanes": 3,
+  "drive_bytes": 217000576}`; read-only after: 0 tables, 0 functions, no flag row, the readings' md5 unchanged, no
+  check users (`_scratch/drive-wiring/pg/live-proof.compact.sql`). Apply per its header (advisor delta 20 -> 25
+  `rls_enabled_no_policy`, nothing in 0028 or 0029), regenerate the types, then drop three typed seams: `untyped` in
+  `src/lib/db/queries/drive.ts`, the cast in `src/lib/db/queries/drive-stops.ts`, `untypedDb` in
+  `src/lib/db/queries/jobs.ts`. ★ Apply before this code deploys: nothing deployed today names a new object, but this
+  code's jobs console signal and spend-watch reading read the new tables, and would read as unreadable (loudly, never
+  as a calm zero) until it applies.
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = 124 files: the owned prefixes, this file, and 25
+  exceptions: `.env.example` (Drive's six keys, the env parity test); `docs/systems/admin-observability.md` (freed by
+  crumbs-75: the switch, the heartbeat, the readings); `src/app/(app)/layout.tsx` (`<DriveFlag />`, 3 lines);
+  `src/components/app/event-feed/event-gallery.tsx` (the album's strip, 4 lines); `src/app/admin/jobs/catalog.ts`,
+  `owed-words.ts`, `page.tsx` (the four Drive jobs and their labels; catalog freed by crumbs-75);
+  `src/app/admin/jobs/spend-watch-card.tsx` (the Drive switch's line); `src/lib/db/queries/jobs.ts` and `jobs.test.ts`
+  (the `drive_transfer` signal; the fixtures carry Drive's tables, two tests); `src/lib/db/queries/notifications.ts`,
+  `src/lib/notifications/build.ts` and `build.test.ts` (the bell's Drive rows); `src/lib/db/mutations/account.ts`,
+  `src/lib/lifecycle/account-deletion.ts`, `account-deletion.test.ts`, `operator-removal.test.ts` (Drive revoked at the
+  request and before `deleteUser`; the tests mock it and pin the order; account-deletion freed by crumbs-75);
+  `src/lib/email/send-kinds.ts` and its test (the Drive kinds and `drive_breaker`, never held; freed by crumbs-75);
+  `src/lib/events/event-dates.test.ts` (the end-date guard names Drive's two readers that say when);
+  `src/lib/jobs/spend-watch-switches.ts` and `spend-watch.test.ts`, `spend-watch-run.test.ts`,
+  `spend-watch-switches.test.ts` (the switches read whole from `SWITCH_KEYS`; each list gains the Drive switch and
+  reading); `src/lib/security/abuse-rate-limit.ts` (`drive_connect`, `drive_send`).
+- **The items.**
+  - The migration: six tables (five deny-all), 23 functions under one lock order (the connection row first), the
+    switch seeded on, `spend_watch_readings` restated with `drive_bytes`; its rolled-back check at the foot.
+  - `src/lib/drive/`: the token seal, the signed protocol (twin pinned by shared vectors), Google's calls under one
+    allowlist, the state cookie, the moments (one table of words), the service (folders, leases, kicks, tokens), the
+    mails, the disconnect; `src/lib/export/drive-names.ts` (when, then who; the SQL ordinal mirrored).
+  - Routes: connect, callback, the press, her acts (cancel, check, refolder, retry, seen), items, status, preview,
+    albums; the Worker's lease, report, check, lanefail, sweep.
+  - `workers/drive/`: kick, lanes in 11-minute slices and their ends, the transfer (resumable, 128 MiB chunks, MD5,
+    handle-only undo, identity by file id then `appProperties`), the closing check, the sweep, queue readings, the
+    local-walk config pinned to the deployed one.
+  - The UI: Send to Drive beside Download on Originals with our promise and the final press; the album's strip; the
+    app-wide flag, once a stop; Your events' picker and tile lights; What's using space's door; Account's Google Drive
+    card; the bell's rows.
+  - Operators: `/admin/exports#drive` (the switch and four readings, every send with Resume, Retry failed and Cancel,
+    the connections that need someone with Pause, Resume, Lift breaker and Disconnect, any account's by address, the
+    client's idle clock, Revoke every connection); the jobs console's `drive_export`, `drive_queue`,
+    `drive_dead_letters`, `drive_transfer`; the spend watch's `drive_bytes`; the breaker's ops mail.
+  - Mail: `drive_connected`, `drive_export_done` (an hour's folded), `drive_export_paused`, `drive_export_stopped`,
+    `drive_reconnect`, `drive_breaker` (to us).
+  - Tests: the Drive library, the migration's load-bearing facts, the snapshot equal to `chosenRows`, the URL
+    allowlist, the return word against the router stand-in, the operator's words, the signals, the bell, the Worker's
+    52.
+- **Assets requested from Will:** Google Drive's product mark · SVG, 24 and 48 px, the official mark unaltered per
+  Google's Drive branding guidelines, beside the words "Google Drive" · replaces the stand-in `DriveGlyph` (lucide
+  FolderUp) in `src/components/app/drive/drive-parts.tsx`.
+- **Board ideas:** "In your Drive since 3 Oct" as a quiet line on Take it home's Originals card and the album head after
+  the strip's day; the Library could carry a specimen of the strip's every moment (`moments.ts` is pure).
+- **Proposed migrations / Worker / Vercel / env changes:**
+  - The migration above.
+  - The Worker, once (`workers/drive/README.md`, "Setup"): `npm ci`; `npx wrangler queues create partyreel-drive
+    --message-retention-period-secs 1209600`; the same for `partyreel-drive-dlq`; `npx wrangler secret put
+    DRIVE_WORKER_SECRET`; `npx wrangler deploy`. Its `DRIVE_APP_URL` (wrangler.jsonc) is the alias until the milestone
+    that ships Drive, then partyreel.com.
+  - Vercel env (both projects, non-sensitive until launch): `GOOGLE_DRIVE_CLIENT_ID` and `GOOGLE_DRIVE_CLIENT_SECRET`
+    (Will's, set); `DRIVE_TOKEN_KEY` (`openssl rand -base64 32`); `DRIVE_WORKER_URL` (the Worker's workers.dev
+    origin); `DRIVE_WORKER_SECRET` (`openssl rand -base64 48`, equal to the Worker's). `DRIVE_TOKEN_KEY_PREVIOUS` only
+    at a rotation.
+  - The desk build's `.env.local` for the walk: the same, with `DRIVE_WORKER_URL=http://localhost:8787` and the
+    Worker run locally (README, "A local walk"; `wrangler login` for the real bucket).
+- **Calls his to overrule:**
+  - A same-account reconnect never revokes the token it replaces (Google's revoke removes the whole grant the new
+    token rides); another account's grant is revoked.
+  - Disconnect deletes our row first and revokes after, three tries: Google not answering never keeps a key here.
+  - Account deletion disconnects at the request and again before `deleteUser`, both isolated: a grant Google keeps
+    listing is inert without our key and never holds a person who asked to be forgotten.
+  - An operator's cancel, pause or disconnect mails her nothing; her album says "We stopped this send" or "Sending
+    stopped on our side".
+  - Google's day is counted by the hour (`cloud_export_sent_hours`), which also carries the breaker's 30 days and the
+    spend watch's day and outlives a disconnect.
+  - The spend watch reads a day (floor 1 TB), not the design's hour, to ride its `last_day` machinery.
+  - The jobs console's Drive job is `drive_export`, named for its switch (the catalog's id-equals-flag rule).
+  - Her Drive's room is kept a minute on the connection; a later press asks Google again.
+  - A stop that waits on her stands in the host's bell, read only where the `pr_drive` hint cookie is; the same hint
+    gates every poll of `/api/drive/status`, so a host who never used Drive costs no Vercel CPU.
+  - Revoke every connection (the leak runbook's act) wipes keys but keeps rows as `revoked`, so each host's sends
+    resume when she reconnects.
+- **Look at first:** the migration's lock order and the live proof above; `src/app/api/drive/callback/route.ts` (the
+  `getUser()` lock); the protocol twin (`src/lib/drive/protocol.ts`, `workers/drive/src/protocol.ts`);
+  `workers/drive/src/transfer.ts` (one file, its undo); `send-strip.tsx` and `drive-flag.tsx` (the strip and the
+  flag).
+- **The walk** (the Orchestrator's, on the desk build at :3000, after the apply, the types and the merge; a disposable
+  Google account Will signs into in the chooser; an album of about 20 photos and one clip past 128 MiB). Drive full,
+  Google's day and the breaker are proved by the Worker's suite and the SQL check (no account fills 15 GB on demand).
+  1. Account, Google Drive card, Connect: the chooser, consent naming only "the specific Google Drive files you use
+     with this app", back on `/account?drive=connected` with "Connected as" and the toast; `drive_connected` arrives.
+  2. Connect, then Cancel at Google: "Nothing was connected". Again, untick the Drive box: the permission words, no
+     row, and no new grant at myaccount.google.com/connections.
+  3. Start Connect as the host, sign in as the admin account in another tab, finish Google's screen: `?drive=failed`,
+     nothing connected to either. A bare `/api/drive/callback?code=x&state=y`: failed.
+  4. An album, Download, Originals, Send to Drive: the final press (count, size, her free space, "<album> · <day>"),
+     Send. The strip moves; close the tab and reopen; done says every one checked, with Open in Drive. In Drive:
+     `My Drive / Partyreel` (coloured) `/ <album> · <day> /` files named `YYYY-MM-DD HH.MM.SS · Name.ext`, each
+     modified at that moment. The done mail within the hour.
+  5. Send it again: nothing new; pressed anyway, every file kept, no duplicate. Bin one file in Drive and send again:
+     that one goes again, same name.
+  6. A bigger album: Cancel mid-send (asked first), "You canceled this send"; Send again: only the rest.
+  7. The clip past 128 MiB crosses chunks (the Worker's `drive-file` log, MD5 matched); stop the local Worker mid-clip
+     and start it again: the session resumes.
+  8. Move a sent file out of the album's folder in Drive and send again: kept, not sent again.
+  9. Bin the album's folder mid-send: "folder is in your Drive's bin" with Check again and Send to a new folder; the
+     flag on another page, once; restore and Check again carries on (or Send to a new folder).
+  10. Remove Partyreel at myaccount.google.com/connections mid-send: "Partyreel lost access", the flag, the bell's row
+      and the reconnect mail; Reconnect the same account: it carries on.
+  11. Your events, Send to Drive, ten albums: at most three lanes (the Worker's log), the oldest album first, tile
+      lights in percent.
+  12. What's using space, one album: its Drive door sends it.
+  13. As another host: `POST /api/drive/exports/<the first host's send id>` `{"act":"cancel"}` and `GET .../items`: 404.
+  14. `node _scratch/drive-wiring/probe.mjs` with `B` and the secret set to the desk's: malformed 400; wrong secret,
+      stale, future and tampered 401; an oversized report 400.
+  15. PostgREST with the publishable key and with a host's JWT: `cloud_connections`, `cloud_export_items`,
+      `cloud_export_leases` 42501; `cloud_exports` her rows only, and `folder_id` 42501.
+  16. The admin host's `/admin/exports#drive`: Pause her connection (her strip: "Sending stopped on our side"),
+      Resume; the switch off (sends wait) and on; after a sweep (`curl "http://localhost:8787/__scheduled?cron=*/5+*+*+*+*"`),
+      `/admin/jobs` shows `drive_export` and the queue readings.
+  17. Disconnect on Account (asked first, naming what stops): "Google Drive is disconnected", the card offers Connect,
+      Google's connections page no longer lists Partyreel Drive.
