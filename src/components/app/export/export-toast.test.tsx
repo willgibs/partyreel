@@ -7,7 +7,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 // with the download's toast (sonner.test.tsx's own escape hatch).
 vi.unmock("sonner");
 
+import { toast } from "sonner";
+
 import { exportToasts } from "@/components/app/export/export-toast";
+import { createExportWalker } from "@/components/app/export/export-walk";
 import { Toaster } from "@/components/ui/sonner";
 
 /**
@@ -388,5 +391,306 @@ describe("the download's toast", () => {
     expect(
       within(el).getByRole("button", { name: "Dismiss" }),
     ).toBeInTheDocument();
+  });
+});
+
+/**
+ * A TRY AGAIN WAITS FOR THE LINE (crumbs-71): while the browser says it is offline a press on it can only fail the
+ * same way, so the toast is drawn without it, says what it waits for, and gets it back when `online` fires.
+ */
+describe("a Try again waits for the line", () => {
+  /** The browser's own word on its line, as a test sets it (jsdom's is always online). */
+  const line = (online: boolean) =>
+    vi.spyOn(window.navigator, "onLine", "get").mockReturnValue(online);
+  const back = () => {
+    act(() => {
+      window.dispatchEvent(new Event("online"));
+    });
+    flush();
+  };
+  /** A dismissed toast finishing its leave: two frames, then its exit, which is more than one act's worth of time. */
+  const gone = () => {
+    for (let i = 0; i < 3; i++) {
+      act(() => {
+        vi.advanceTimersByTime(300);
+      });
+    }
+  };
+  const dropped = (again = vi.fn()) =>
+    ({
+      tone: "refused",
+      title: "Your connection dropped.",
+      detail: "Check your signal, then try again.",
+      action: { label: "Try again", run: again },
+      close: { label: "Dismiss", run: vi.fn() },
+    }) as const;
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("★ offline by the browser's word, it says what it waits for and offers no Try again; `online` brings the toast's own words and button back", () => {
+    line(false);
+    const again = vi.fn();
+    act(() => exportToasts.show("dl", dropped(again)));
+    flush();
+
+    let el = toastEl();
+    expect(el).toHaveAttribute("data-type", "error");
+    expect(el).toHaveTextContent("Your connection dropped.");
+    expect(el).toHaveTextContent("Waiting for your connection…");
+    expect(el).not.toHaveTextContent("Check your signal");
+    expect(within(el).queryByRole("button", { name: "Try again" })).toBeNull();
+    // The x is still there, and the toast is still one toast.
+    expect(
+      within(el).getByRole("button", { name: "Dismiss" }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByRole("listitem")).toHaveLength(1);
+
+    line(true);
+    back();
+    el = toastEl();
+    expect(el).toHaveTextContent("Check your signal, then try again.");
+    expect(el).not.toHaveTextContent("Waiting for your connection");
+    fireEvent.click(within(el).getByRole("button", { name: "Try again" }));
+    expect(again).toHaveBeenCalledTimes(1);
+    expect(screen.getAllByRole("listitem")).toHaveLength(1);
+  });
+
+  it("a short zip's Try again for the ones it missed waits too, and its count stays", () => {
+    line(false);
+    act(() =>
+      exportToasts.show("dl", {
+        tone: "short",
+        title: "142 of 148 are in your download.",
+        action: { label: "Try again for the 6", run: vi.fn() },
+        close: { label: "Dismiss", run: vi.fn() },
+      }),
+    );
+    flush();
+    let el = toastEl();
+    expect(el).toHaveAttribute("data-type", "warning");
+    expect(el).toHaveTextContent("142 of 148 are in your download.");
+    expect(el).toHaveTextContent("Waiting for your connection…");
+    expect(within(el).queryByRole("button", { name: /Try again/ })).toBeNull();
+
+    line(true);
+    back();
+    el = toastEl();
+    expect(el).not.toHaveTextContent("Waiting for your connection");
+    expect(
+      within(el).getByRole("button", { name: "Try again for the 6" }),
+    ).toBeInTheDocument();
+  });
+
+  it("an `online` event the browser does not stand behind changes nothing", () => {
+    line(false);
+    act(() => exportToasts.show("dl", dropped()));
+    flush();
+    back();
+    expect(toastEl()).toHaveTextContent("Waiting for your connection…");
+    expect(
+      within(toastEl()).queryByRole("button", { name: "Try again" }),
+    ).toBeNull();
+  });
+
+  it("a tab that missed the event (a phone's browser freezes one it leaves) is asked again when it is looked at", () => {
+    line(false);
+    act(() => exportToasts.show("dl", dropped()));
+    flush();
+    expect(toastEl()).toHaveTextContent("Waiting for your connection…");
+    line(true);
+    act(() => {
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+    flush();
+    expect(
+      within(toastEl()).getByRole("button", { name: "Try again" }),
+    ).toBeInTheDocument();
+    expect(toastEl()).not.toHaveTextContent("Waiting for your connection");
+  });
+
+  it("a line that only stalls keeps its Try again, and nothing is left listening", () => {
+    const add = vi.spyOn(window, "addEventListener");
+    act(() => exportToasts.show("dl", dropped()));
+    flush();
+    expect(
+      within(toastEl()).getByRole("button", { name: "Try again" }),
+    ).toBeInTheDocument();
+    expect(toastEl()).not.toHaveTextContent("Waiting for your connection");
+    expect(add).not.toHaveBeenCalledWith("online", expect.anything());
+  });
+
+  it("★ the wait ends with the toast: put away by the walk, by a swipe, or replaced, the line coming back draws nothing over it", () => {
+    const none = () =>
+      expect(document.querySelector("[data-sonner-toast]")).toBeNull();
+
+    // Put away by the walk (the x, an end).
+    line(false);
+    act(() => exportToasts.show("dl", dropped()));
+    flush();
+    expect(toastEl()).toHaveTextContent("Waiting for your connection…");
+    act(() => exportToasts.dismiss("dl"));
+    gone();
+    none();
+    line(true);
+    back();
+    gone();
+    none();
+
+    // Put away by sonner itself (a swipe takes this route), the walk never told.
+    line(false);
+    act(() => exportToasts.show("dl2", dropped()));
+    flush();
+    expect(toastEl()).toHaveTextContent("Waiting for your connection…");
+    act(() => {
+      toast.dismiss("dl2");
+    });
+    gone();
+    none();
+    line(true);
+    back();
+    gone();
+    none();
+
+    // Replaced by what the walk says next: the stale Try again never comes back over it.
+    line(false);
+    act(() => exportToasts.show("dl3", dropped()));
+    flush();
+    expect(toastEl()).toHaveTextContent("Waiting for your connection…");
+    act(() =>
+      exportToasts.show("dl3", {
+        tone: "wait",
+        title: "Preparing your download…",
+        close: { label: "Cancel download", run: vi.fn() },
+      }),
+    );
+    flush();
+    line(true);
+    back();
+    expect(toastEl()).toHaveTextContent("Preparing your download…");
+    expect(
+      within(toastEl()).queryByRole("button", { name: "Try again" }),
+    ).toBeNull();
+    act(() => exportToasts.dismiss("dl3"));
+  });
+
+  it("drawing the same waiting toast again stacks nothing: every listener it added is taken off with it", () => {
+    const add = vi.spyOn(window, "addEventListener");
+    const remove = vi.spyOn(window, "removeEventListener");
+    line(false);
+    act(() => exportToasts.show("dl", dropped()));
+    act(() => exportToasts.show("dl", dropped()));
+    act(() => exportToasts.show("dl", dropped()));
+    flush();
+    act(() => exportToasts.dismiss("dl"));
+    const online = (spy: typeof add) =>
+      spy.mock.calls.filter(([type]) => type === "online").length;
+    expect(online(add)).toBe(3);
+    expect(online(remove)).toBe(3);
+  });
+
+  it("only a Try again that a failed press would repeat waits: a cancel's, a next part's and a refusal with no button are drawn as they are", () => {
+    line(false);
+    act(() =>
+      exportToasts.show("dl", {
+        tone: "cancelled",
+        title: "Download cancelled.",
+        action: { label: "Try again", run: vi.fn() },
+        close: { label: "Dismiss", run: vi.fn() },
+        duration: Infinity,
+      }),
+    );
+    flush();
+    expect(
+      within(toastEl()).getByRole("button", { name: "Try again" }),
+    ).toBeInTheDocument();
+    expect(toastEl()).not.toHaveTextContent("Waiting for your connection");
+
+    act(() =>
+      exportToasts.show("dl", {
+        tone: "between",
+        title: "Part 1 of 3 is downloading.",
+        action: { label: "Get part 2", run: vi.fn() },
+        close: { label: "Stop after this part", run: vi.fn() },
+      }),
+    );
+    flush();
+    expect(
+      within(toastEl()).getByRole("button", { name: "Get part 2" }),
+    ).toBeInTheDocument();
+    expect(toastEl()).not.toHaveTextContent("Waiting for your connection");
+
+    act(() =>
+      exportToasts.show("dl", {
+        tone: "refused",
+        title: "Downloads are paused right now. Please try again later.",
+        close: { label: "Dismiss", run: vi.fn() },
+      }),
+    );
+    flush();
+    expect(toastEl()).toHaveTextContent("Downloads are paused right now.");
+    expect(toastEl()).not.toHaveTextContent("Waiting for your connection");
+  });
+
+  it("★ end to end: a walk that finds the browser offline says it dropped and waits; back online its Try again takes the part from a fresh mint", async () => {
+    const minted = () =>
+      new Response(
+        JSON.stringify({
+          ok: true,
+          token: "tok-1",
+          workerUrl: "https://worker.example/zip",
+          checkUrl: "https://worker.example/check",
+          part: 1,
+          parts: 1,
+          next: null,
+          items: 3,
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      );
+    const checked = () =>
+      new Response(
+        JSON.stringify({ ok: true, items: 3, found: 3, missing: [] }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      );
+    const fetchFn = vi
+      .fn()
+      // Offline: the mint's request is refused outright.
+      .mockRejectedValueOnce(new TypeError("Failed to fetch"))
+      // Back online: the mint, then the Worker's check.
+      .mockImplementationOnce(async () => minted())
+      .mockImplementationOnce(async () => checked());
+    const post = vi.fn();
+    const walker = createExportWalker({
+      fetch: fetchFn as unknown as typeof fetch,
+      post,
+      toast: exportToasts,
+      place: () => "desk",
+      online: () => navigator.onLine !== false,
+      sleep: async () => {},
+      newId: () => "dl",
+    });
+
+    line(false);
+    await act(async () => {
+      await walker.start("host", { event_id: "e" });
+    });
+    flush();
+    let el = toastEl();
+    expect(el).toHaveTextContent("Your connection dropped.");
+    expect(el).toHaveTextContent("Waiting for your connection…");
+    expect(within(el).queryByRole("button", { name: "Try again" })).toBeNull();
+    // Nothing was posted into the dead line.
+    expect(post).not.toHaveBeenCalled();
+
+    line(true);
+    back();
+    el = toastEl();
+    fireEvent.click(within(el).getByRole("button", { name: "Try again" }));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(fetchFn).toHaveBeenCalledTimes(3);
+    expect(post).toHaveBeenCalledWith("https://worker.example/zip", "tok-1");
   });
 });

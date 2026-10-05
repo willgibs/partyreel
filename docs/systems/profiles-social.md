@@ -50,6 +50,11 @@ A one-way door; `/privacy` and the Terms word it, so a change here changes them 
   (`splitGuestList`) and their look, the credit (`faceOwner: { kind: "row" }`, `uploader-faces.ts`, no read), At the
   door for a newcomer with no account, the Blocked list, and her own header's disc, which asks the server because her
   browser holds her ticket and never the row's id (`/api/guests/mine`'s `seed`, `lib/avatar/ticket-seed.server.ts`).
+  The disc keeps the answer per ticket (`pr_guest_seed_<album>` in `localStorage`, `guest-header.tsx`): the value is a
+  hash of the ticket beside the colour, never the ticket, so a later load paints it at once and asks nothing, and a
+  phone handed to the next guest, with a new ticket, finds no entry of its own and never wears the last guest's colour.
+  A first load holds the disc back (its place kept) and fades it in already coloured, plain only where no answer comes
+  within 2 s, rather than flashing it plain first.
   No raw id reaches a browser that did not already hold it: the entry's row id already rode the list, and the hash is
   all that is new. A colour is never a claim: no photograph, no door, and the Unverified mark still stands beside her
   name; a blocked row keeps the plain disc on a guest's view like any blocked face.
