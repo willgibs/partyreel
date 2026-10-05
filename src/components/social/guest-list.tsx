@@ -332,11 +332,7 @@ function Chips({
               </button>
             </GuestPeek>
             {canFollow && item.slug && (
-              <FollowButton
-                profileId={item.id}
-                slug={item.slug}
-                initialFollowing={false}
-              />
+              <FollowButton profileId={item.id} initialFollowing={false} />
             )}
           </li>
         );
