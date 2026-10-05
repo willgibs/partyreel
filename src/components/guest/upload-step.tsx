@@ -34,6 +34,7 @@ import {
 } from "@/components/guest/upload/intent-sheet";
 import {
   UploadFailureList,
+  uploadFailureChooseAgain,
   uploadFailureHeading,
   type UploadFailure,
 } from "@/components/guest/upload/failure-sheet";
@@ -386,12 +387,8 @@ export function uploadStepChooseAgain(
   requireUpload: boolean,
   camera = false,
 ): string {
-  if (camera) {
-    return requireUpload
-      ? "Take another and the album opens."
-      : "Take another to add one.";
-  }
-  return requireUpload
-    ? "Pick something else and the album opens."
-    : "Pick something else to add.";
+  if (!requireUpload) return uploadFailureChooseAgain(camera);
+  return camera
+    ? "Take another and the album opens."
+    : "Pick something else and the album opens.";
 }

@@ -399,12 +399,17 @@ export function AlbumCamera({
   useEffect(() => {
     if (!open || reopenableCount === 0) return;
     let asked = 0;
+    let lastAsk = Date.now();
     let timer: ReturnType<typeof setTimeout> | undefined;
+    const ask = () => {
+      lastAsk = Date.now();
+      reaskNow.current();
+    };
     const schedule = () => {
       timer = setTimeout(
         () => {
           asked += 1;
-          if (document.visibilityState === "visible") reaskNow.current();
+          if (document.visibilityState === "visible") ask();
           schedule();
         },
         REASK_MS[Math.min(asked, REASK_MS.length - 1)],
@@ -412,9 +417,12 @@ export function AlbumCamera({
     };
     const returned = () => {
       if (document.visibilityState !== "visible") return;
+      // Never closer to the last ask than the cadence's first step: flicking between apps over a closed album must not
+      // turn each return into a presign of its own, nor wind the calm cadence back to its start.
+      if (Date.now() - lastAsk < REASK_MS[0]) return;
       clearTimeout(timer);
       asked = 0;
-      reaskNow.current();
+      ask();
       schedule();
     };
     schedule();

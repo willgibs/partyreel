@@ -124,6 +124,8 @@ const camera = vi.hoisted(() => ({
     event: Record<string, unknown>;
     isDemo: boolean;
     isOwner: boolean;
+    removedIds?: ReadonlySet<string>;
+    onOwnRemoved?: (mediaId: string, remaining: number) => void;
   },
   renders: 0,
 }));
@@ -1369,18 +1371,22 @@ describe("a camera album's door", () => {
       onDismissFailures: vi.fn(),
     };
     const active = vi.fn();
+    const cameraOpen = vi.fn();
     const view = render(
       <EntryModal
         {...props}
         hasContributed={false}
         contributed={false}
         onUploadStepActive={active}
+        onCameraOpenChange={cameraOpen}
       />,
     );
     await vi.dynamicImportSettled();
     fireEvent.click(screen.getByRole("button", { name: "Take a photo" }));
     await screen.findByTestId("album-camera");
+    // The step is showing behind the camera, and the camera says itself apart from it.
     expect(active).toHaveBeenLastCalledWith(true);
+    expect(cameraOpen).toHaveBeenLastCalledWith(true);
 
     // Her first shot lands: the step is what she was asked for, and it drops; the keep is due, and waits.
     view.rerender(
@@ -1391,19 +1397,88 @@ describe("a camera album's door", () => {
         keepDue
         keepCount={1}
         onUploadStepActive={active}
+        onCameraOpenChange={cameraOpen}
       />,
     );
     expect(screen.getByTestId("album-camera")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Take a photo" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Maybe later" })).toBeNull();
-    // The door's camera still owns the run's failures, in its own words.
-    expect(active).toHaveBeenLastCalledWith(true);
+    // ★ The door's camera still owns the run's failures, in its own words, and says so as the camera: the step's flag is
+    // the step's alone (the page folds the queue's live progress for as long as it is true, which a camera never reads).
+    expect(active).toHaveBeenLastCalledWith(false);
+    expect(cameraOpen).toHaveBeenLastCalledWith(true);
 
     fireEvent.click(screen.getByText("Close the camera"));
     expect(
       await screen.findByRole("button", { name: "Maybe later" }),
     ).toBeInTheDocument();
-    expect(active).toHaveBeenLastCalledWith(false);
+    expect(cameraOpen).toHaveBeenLastCalledWith(false);
+  });
+
+  it("★ takes a shot back through the page's own removal, as the album's camera does", async () => {
+    const removedIds = new Set(["m-gone"]);
+    const onOwnRemoved = vi.fn();
+    atTheStep({ removedIds, onOwnRemoved });
+    await takeAPhoto();
+    await screen.findByTestId("album-camera");
+    // The keep counts what is still in the album and a require-an-upload door asks the server whether it stands: both
+    // are the page's, so the camera is handed the page's own set and its own handler.
+    expect(camera.props?.removedIds).toBe(removedIds);
+    expect(camera.props?.onOwnRemoved).toBe(onOwnRemoved);
+  });
+
+  it("★ holds nothing once the album's host has switched the camera away mid-visit", async () => {
+    seeWelcome();
+    const props = {
+      qrToken: QR,
+      eventName: "Test Wedding",
+      access: "full" as const,
+      gate: null,
+      returning: false,
+      uploadsOpen: true,
+      requireUpload: false,
+      albumEmpty: false,
+      isOwner: false,
+      isDemo: false,
+      isVerified: false,
+      hasProfileName: false,
+      storedName: "Priya",
+      queue: [] as QueueItem[],
+      onSend: vi.fn(),
+      onRetry: vi.fn(),
+      onDismissFailures: vi.fn(),
+      hasContributed: false,
+    };
+    const cameraOpen = vi.fn();
+    const view = render(
+      <EntryModal
+        {...props}
+        camera={CAMERA}
+        contributed={false}
+        onCameraOpenChange={cameraOpen}
+      />,
+    );
+    await vi.dynamicImportSettled();
+    fireEvent.click(screen.getByRole("button", { name: "Take a photo" }));
+    await screen.findByTestId("album-camera");
+    expect(cameraOpen).toHaveBeenLastCalledWith(true);
+
+    // A refresh brings the album without a camera: the camera is no longer drawn, and must not hold the keep for good.
+    view.rerender(
+      <EntryModal
+        {...props}
+        camera={null}
+        contributed
+        keepDue
+        keepCount={1}
+        onCameraOpenChange={cameraOpen}
+      />,
+    );
+    expect(screen.queryByTestId("album-camera")).toBeNull();
+    expect(cameraOpen).toHaveBeenLastCalledWith(false);
+    expect(
+      await screen.findByRole("button", { name: "Maybe later" }),
+    ).toBeInTheDocument();
   });
 
   it("★ is not re-rendered for a tick of a bar: the door's queue ticks about once a frame, and the camera reads standings", async () => {
@@ -1428,29 +1503,40 @@ describe("a camera album's door", () => {
       contributed: false,
       storedName: "Priya",
       camera: CAMERA,
-      onSend: vi.fn(),
-      onRetry: vi.fn(),
       onDismissFailures: vi.fn(),
     };
+    // ★ THE PAGE'S OWN DOORS INTO ITS QUEUE CHANGE IDENTITY WITH ITS RENDERS (`addFiles` and `retry` follow the shell's
+    // callbacks), so each render hands the modal fresh ones, as the page does.
+    const send = vi.fn();
+    const retry = vi.fn();
+    const page = (queue: QueueItem[]) => (
+      <EntryModal
+        {...base}
+        queue={queue}
+        onSend={(files, extra) => send(files, extra)}
+        onRetry={(id) => retry(id)}
+      />
+    );
     const at = (
       progress: number,
       status: QueueItem["status"] = "uploading",
     ) => [{ id: "q1", file, kind: "photo" as const, status, progress }];
-    const view = render(<EntryModal {...base} queue={[]} />);
+    const view = render(page([]));
     await vi.dynamicImportSettled();
     fireEvent.click(screen.getByRole("button", { name: "Take a photo" }));
     await screen.findByTestId("album-camera");
     // Her shot goes up.
-    view.rerender(<EntryModal {...base} queue={at(0)} />);
+    view.rerender(page(at(0)));
     const rendered = camera.renders;
 
-    // The same file going up, a tick later: a new queue array and a new number, and nothing the camera reads.
-    view.rerender(<EntryModal {...base} queue={at(40)} />);
-    view.rerender(<EntryModal {...base} queue={at(80)} />);
+    // The same file going up, a tick later: a new queue array and a new number, new callbacks from the page, and nothing
+    // the camera reads.
+    view.rerender(page(at(40)));
+    view.rerender(page(at(80)));
     expect(camera.renders).toBe(rendered);
 
     // Its standing moving (it landed) is something it reads.
-    view.rerender(<EntryModal {...base} queue={at(100, "done")} />);
+    view.rerender(page(at(100, "done")));
     expect(camera.renders).toBeGreaterThan(rendered);
   });
 
@@ -1509,6 +1595,76 @@ describe("the keep: the door's last screen", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Maybe later" }),
+    ).toBeInTheDocument();
+  });
+
+  /* ★ THE KEEP RISES WHEN HER FILES HAVE LANDED, WITH ITS WHOLE COUNT (red-team 54's NIT): a burst records its files in
+     groups, so the keep rose at the first group's complete, "Your 5 photos joined" over six files still going, and a beat
+     later said eleven. It waits for nothing queued or in the air. */
+  it("★ waits while her files are still going, then comes with the whole count", () => {
+    const file = (name: string) =>
+      new File([new Uint8Array([1])], name, { type: "image/jpeg" });
+    const item = (id: string, status: QueueItem["status"]): QueueItem => ({
+      id,
+      file: file(`${id}.jpg`),
+      kind: "photo",
+      status,
+      progress: status === "done" ? 100 : 0,
+    });
+    seeWelcome();
+    const props = {
+      qrToken: QR,
+      eventName: "Test Wedding",
+      access: "full" as const,
+      gate: null,
+      returning: true,
+      uploadsOpen: true,
+      requireUpload: false,
+      albumEmpty: false,
+      isOwner: false,
+      isDemo: false,
+      isVerified: false,
+      hasProfileName: false,
+      storedName: "Priya",
+      hasContributed: false,
+      contributed: true,
+      keepDue: true,
+      hostName: "Maya",
+      onSend: vi.fn(),
+      onRetry: vi.fn(),
+      onDismissFailures: vi.fn(),
+    };
+    const five = ["a", "b", "c", "d", "e"].map((id) => item(id, "done"));
+    const view = render(
+      <EntryModal
+        {...props}
+        keepCount={5}
+        queue={[
+          ...five,
+          item("f", "uploading"),
+          ...["g", "h", "i", "j", "k"].map((id) => item(id, "queued")),
+        ]}
+      />,
+    );
+    // Five landed and six are going: nothing is asked yet.
+    expect(screen.queryByRole("button", { name: "Maybe later" })).toBeNull();
+    expect(screen.queryByText(/joined Maya/)).toBeNull();
+
+    // The burst has landed: the keep rises once, over all eleven.
+    view.rerender(
+      <EntryModal
+        {...props}
+        keepCount={11}
+        queue={["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"].map(
+          (id) => item(id, "done"),
+        )}
+      />,
+    );
+    expect(
+      screen.getByRole("button", { name: "Maybe later" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Your 11 photos joined Maya\u2019s album."),
     ).toBeInTheDocument();
   });
 

@@ -395,6 +395,7 @@ export function GuestUpload({
         sent={sentThisRun}
         hostName={hostName}
         waits={addsWaitFor({ uploadsWait: wait, isOwner, isDemo })}
+        camera={camera}
         onRetry={onRetry}
       />
 

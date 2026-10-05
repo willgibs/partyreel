@@ -1128,6 +1128,94 @@ describe("GuestUpload: a failure the slot never reported is not the next run's (
   /* ★ THE FAILURE HEADING COUNTS THE RUN'S OWN FILES (crumbs-76; ROADMAP: "a Retry that fails again, or a slot mounted
      mid-run, reads '1 of 0 didn't upload'"). The count was the queue's length less a baseline taken at the run's
      start, and a Retry adds no item. */
+  /* ★ RED-TEAM 54 ON THE SAME SHEET: "after one row's Retry the sheet reads 'N of 0 didn't upload'" and "'Everything else
+     is in Will Gibson's album.' under '5 of 5 didn't upload'". Five files that all failed are a run that failed whole (no
+     rest to speak of), and one row's Retry goes on the same go: the whole stays five. */
+  it("★ five files that all failed read '5 of 5' with no 'Everything else', and one row's Retry reads '4 of 5', never '4 of 0'", async () => {
+    mockUploadFile.mockReset();
+    mockUploadFile
+      .mockResolvedValueOnce({ ok: false, message: "Nope 1." })
+      .mockResolvedValueOnce({ ok: false, message: "Nope 2." })
+      .mockResolvedValueOnce({ ok: false, message: "Nope 3." })
+      .mockResolvedValueOnce({ ok: false, message: "Nope 4." })
+      .mockResolvedValueOnce({ ok: false, message: "Nope 5." })
+      .mockResolvedValue(LANDED);
+    const gated = mountGated();
+    sendThroughSheet(
+      gated.handleRef,
+      ["a", "b", "c", "d", "e"].map((n) => makeFile(`${n}.jpg`)),
+    );
+    await screen.findByText("5 of 5 didn't upload");
+    expect(screen.queryByText(/Everything else/)).toBeNull();
+
+    // The first row's own Retry (the primary above them is Retry all 5).
+    const rowRetries = screen
+      .getAllByRole("button", { name: "Retry" })
+      .filter((b) => b.closest("li"));
+    expect(rowRetries).toHaveLength(5);
+    fireEvent.click(rowRetries[0]!);
+    await waitFor(() => expect(mockUploadFile).toHaveBeenCalledTimes(6));
+    await waitFor(() =>
+      expect(last(gated).map((it) => it.status)).toEqual([
+        "done",
+        "error",
+        "error",
+        "error",
+        "error",
+      ]),
+    );
+    expect(await screen.findByText("4 of 5 didn't upload")).toBeInTheDocument();
+    expect(screen.queryByText(/ of 0 /)).toBeNull();
+    // One of the five did go, so the rest line is true now.
+    expect(
+      screen.getByText("Everything else is in Maya’s album."),
+    ).toBeInTheDocument();
+  });
+
+  /* ★ A REFUSAL OF THE FILE ITSELF THAT THE UPLOADER MADE LOCALLY HAS NO RETRY (red-team 54's LOW): the uploader refuses a
+     wrong type before any request and says no code, so the queue read it as a transport failure, and the sheet offered a
+     Retry whose press sent nothing. The queue tells it as the file's own refusal now (`localRefusalCode`). */
+  it("★ offers no Retry on a file the uploader refused itself, and says what she can do; a file that was only the line's keeps its Retry", async () => {
+    mockUploadFile.mockReset();
+    mockUploadFile.mockResolvedValue({
+      ok: false,
+      message: "That file type isn't supported.",
+    });
+    const gated = mountGated();
+    act(() => gated.handleRef.current!.openAdd());
+    const album = document.querySelector(
+      'input[type="file"][multiple]',
+    ) as HTMLInputElement;
+    fireEvent.change(album, {
+      target: {
+        files: [
+          new File([new Uint8Array([1])], "notes.txt", { type: "text/plain" }),
+        ],
+      },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send 1" }));
+    await screen.findByText("1 of 1 didn't upload");
+    expect(
+      screen.getByText("That file type isn't supported."),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Retry/ })).toBeNull();
+    expect(screen.getByText("Pick something else to add.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Done" })).toBeInTheDocument();
+  });
+
+  it("keeps its Retry for a valid file whose failure carries no code (the server's error answer, a line that was not quite down)", async () => {
+    mockUploadFile.mockReset();
+    mockUploadFile.mockResolvedValue({
+      ok: false,
+      message: "That upload didn't go through. Please try again.",
+    });
+    const gated = mountGated();
+    sendThroughSheet(gated.handleRef, [makeFile("a.jpg")]);
+    await screen.findByText("1 of 1 didn't upload");
+    expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
+    expect(screen.queryByText(/Pick something else/)).toBeNull();
+  });
+
   it("★ a Retry that fails again says '1 of 1 didn't upload', never '1 of 0'", async () => {
     mockUploadFile.mockReset();
     mockUploadFile.mockResolvedValue({ ok: false, message: "Nope." });

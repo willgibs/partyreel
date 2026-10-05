@@ -94,6 +94,16 @@ export function uploadFailureElsewhere(input: {
   return `Everything else is in ${hostName}’s album.`;
 }
 
+/**
+ * ★ WHAT SHE CAN DO ABOUT A FAILURE NO RETRY COULD PASS (red-team 54's LOW): the file itself was refused (`retryCanPass`:
+ * a type nobody takes, a file over the ceiling, a video where the album takes none), so the same file is refused again.
+ * Its line says why, in the refusal's own sentence, and this says the way on: another file. The door's upload step says
+ * the same words on its failure view (`uploadStepChooseAgain`), one home for them.
+ */
+export function uploadFailureChooseAgain(camera = false): string {
+  return camera ? "Take another to add one." : "Pick something else to add.";
+}
+
 /** The list's one retry-everything button, in one place (`UploadFailureList` below). */
 export function uploadFailureRetryLabel(failed: number): string {
   if (failed === 1) return "Retry";
@@ -209,6 +219,7 @@ export function UploadFailureSheet({
   sent,
   hostName,
   waits,
+  camera = false,
   onRetry,
 }: {
   open: boolean;
@@ -219,6 +230,8 @@ export function UploadFailureSheet({
   hostName: string;
   /** What her adds wait for (the page's `addsWaitFor`): what the sheet says of the rest (`uploadFailureElsewhere`). */
   waits?: UploadsWait;
+  /** The album's host chose the camera: what she can do about a refusal of the file itself says Take, not Pick. */
+  camera?: boolean;
   /** Re-queues one file (the queue's own `retry`). */
   onRetry: (id: string) => void;
 }) {
@@ -256,14 +269,20 @@ export function UploadFailureSheet({
     shown.sent > shown.failures.length
       ? uploadFailureElsewhere({ hostName, waits, nowMs })
       : null;
+  // Nothing a retry could pass: every line is a refusal of the file itself, so the way on is another file.
+  const nothingToRetry = !shown.failures.some((f) => retryCanPass(f.code));
+  const reason =
+    [rest, nothingToRetry ? uploadFailureChooseAgain(camera) : null]
+      .filter(Boolean)
+      .join(" ") || null;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         responsive
         className="overflow-y-auto"
-        // No rest to say, so nothing describes the dialog (Radix reads an explicit undefined as that choice).
-        {...(rest ? {} : { "aria-describedby": undefined })}
+        // Nothing to say under the heading, so nothing describes the dialog (Radix reads an explicit undefined as that choice).
+        {...(reason ? {} : { "aria-describedby": undefined })}
       >
         <SheetHeader>
           {/* The door's own heading scale (one failure, one size of heading: the door's upload step says this very
@@ -271,8 +290,9 @@ export function UploadFailureSheet({
               which stands in the first line's corner. */}
           <DoorHeading
             announce
+            titleAs="h2"
             title={heading}
-            reason={rest ?? undefined}
+            reason={reason ?? undefined}
             className="pr-8"
           />
         </SheetHeader>

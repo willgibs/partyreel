@@ -16,6 +16,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   landedAs,
+  localRefusalCode,
   runProgressOf,
   runSentOf,
   useLiveQueue,
@@ -983,6 +984,79 @@ describe("★ what waits goes as one burst (compute-uploads)", () => {
     expect(burstMock.mock.calls[1]![0].files.map((f) => f.file.name)).toEqual([
       "late.jpg",
     ]);
+  });
+});
+
+/**
+ * ★ A REFUSAL OF THE FILE ITSELF, MADE ON THE PHONE, IS TOLD AS THE CODE THE LADDER KNOWS (red-team 54's LOW): the
+ * uploader refuses a wrong type and a file over the ceiling before any request, so it has no `code`, and the failure
+ * sheet offered a Retry whose press sent nothing (the same check refused the same file at once). The queue asks the file
+ * again with the uploader's own validators, so no surface offers a Retry that cannot pass.
+ */
+describe("a refusal of the file itself that the uploader made locally", () => {
+  const file = (name: string, type: string, size?: number) => {
+    const f = new File([new Uint8Array([1, 2, 3])], name, { type });
+    if (size !== undefined) Object.defineProperty(f, "size", { value: size });
+    return f;
+  };
+
+  it("localRefusalCode reads the file the way the uploader does: a type nobody takes, a file over the ceiling, else nothing", () => {
+    expect(localRefusalCode(file("notes.txt", "text/plain"))).toBe(
+      "unsupported_type",
+    );
+    expect(localRefusalCode(file("noname", ""))).toBe("unsupported_type");
+    expect(
+      localRefusalCode(file("big.mov", "video/quicktime", 11 * 1024 ** 3)),
+    ).toBe("too_large");
+    expect(localRefusalCode(file("a.jpg", "image/jpeg"))).toBeUndefined();
+  });
+
+  it("★ is given its code, so no surface offers it a Retry; a file that passes keeps its code-less failure", async () => {
+    mockUploadFile.mockResolvedValue({
+      ok: false,
+      message: "That upload didn't go through. Please try again.",
+    });
+    const q = mountQueue({ sessionToken: "ticket-1", isVerified: false });
+    act(() =>
+      q.result.current.addFiles([
+        file("notes.txt", "text/plain"),
+        file("big.mov", "video/quicktime", 11 * 1024 ** 3),
+        file("a.jpg", "image/jpeg"),
+      ]),
+    );
+    await waitFor(() =>
+      expect(q.items().every((it) => it.status === "error")).toBe(true),
+    );
+    // The sentences are the uploader's, untouched; only what a surface may do about them has a code now.
+    expect(q.items().map((it) => it.errorCode)).toEqual([
+      "unsupported_type",
+      "too_large",
+      undefined,
+    ]);
+  });
+
+  it("never speaks for the line: a connection that dropped stays a failure worth another go, whatever the file", async () => {
+    mockUploadFile.mockResolvedValue({
+      ok: false,
+      message: "Your connection dropped.",
+      cause: "dropped",
+    });
+    const q = mountQueue({ sessionToken: "ticket-1", isVerified: false });
+    act(() => q.result.current.addFiles([file("notes.txt", "text/plain")]));
+    await waitFor(() => expect(q.items()[0]?.status).toBe("error"));
+    expect(q.items()[0]?.errorCode).toBeUndefined();
+  });
+
+  it("leaves the server's own code as it spoke it", async () => {
+    mockUploadFile.mockResolvedValue({
+      ok: false,
+      code: "cap_reached",
+      message: "This album is full right now.",
+    });
+    const q = mountQueue({ sessionToken: "ticket-1", isVerified: false });
+    act(() => q.result.current.addFiles([file("notes.txt", "text/plain")]));
+    await waitFor(() => expect(q.items()[0]?.status).toBe("error"));
+    expect(q.items()[0]?.errorCode).toBe("cap_reached");
   });
 });
 

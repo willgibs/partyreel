@@ -266,9 +266,22 @@ export const EntryModal = forwardRef<
     /**
      * The door's upload step is the surface a run's failures belong to right now. The album's own
      * failure sheet stands down while it is, and a mid-run `verification_required` refreshes at
-     * once instead of waiting for a sheet that is not there (see event-experience's own note).
+     * once instead of waiting for a sheet that is not there (see event-experience's own note). The step alone: the
+     * page folds the queue's live progress for as long as it is, which only a step that draws a bar needs.
      */
     onUploadStepActive?: (active: boolean) => void;
+    /**
+     * The door's own camera opened or closed (`camera`), as the album's slot says its own (`GuestUpload`): the page holds
+     * what would rise over it while she shoots, and the album's failure sheet stands down, until she closes it.
+     */
+    onCameraOpenChange?: (open: boolean) => void;
+    /**
+     * What this visit's removals took back out of the album (the page keeps them), and the page's handler for one taken
+     * back inside the door's camera (its Your shots): so the keep stops counting it and a require-an-upload door asks the
+     * server whether it stands, as her tracker's Remove does.
+     */
+    removedIds?: ReadonlySet<string>;
+    onOwnRemoved?: (mediaId: string, remaining: number) => void;
     /* ── the keep, the door's last screen (`guest-capture` r1; the page decides when it is due) ── */
     /** The ask to keep what she added is due (`computeDoor`'s rule 7). */
     keepDue?: boolean;
@@ -352,6 +365,9 @@ export const EntryModal = forwardRef<
     onRetry,
     onDismissFailures,
     onUploadStepActive,
+    onCameraOpenChange,
+    removedIds,
+    onOwnRemoved,
     keepDue = false,
     keepCount = 0,
     keepSent = null,
@@ -398,11 +414,14 @@ export const EntryModal = forwardRef<
      held HERE, beside the sheet and never inside a step, because the door's step drops the moment her first shot lands
      (it is what she was asked for) while she goes on shooting. Mounted at its first opening and kept (its shots and
      roll outlive a close, as the album's own do). */
+  const doorHasCamera = camera !== null && !isDemo;
   const [doorCamera, setDoorCamera] = useState<{
     open: boolean;
     openedAt: number;
   } | null>(null);
-  const cameraOpen = doorCamera?.open ?? false;
+  // Open only while the album still has one: the host can switch the capture away mid-visit, and a camera that is no
+  // longer drawn must not hold the keep or the failures for good.
+  const cameraOpen = doorHasCamera && (doorCamera?.open ?? false);
   const sheetRef = useRef<HTMLDivElement>(null);
   // The SHEET opens only AFTER hydration: it is the browser's own (the name this device typed, the way
   // in it picked), which no server render knows. The door's page is the server's (below).
@@ -415,6 +434,9 @@ export const EntryModal = forwardRef<
      only of an account that has none), whatever an old ticket's name says. */
   const hasName = isVerified ? hasProfileName : Boolean(storedName);
 
+  const filesGoing = queue.some(
+    (it) => it.status === "queued" || it.status === "uploading",
+  );
   const { steps, autoOpen } = computeDoor({
     gate,
     access,
@@ -432,8 +454,10 @@ export const EntryModal = forwardRef<
     isDemo,
     // ★ NOT OVER A CAMERA SHE IS SHOOTING WITH (the album's own camera holds it through the page: `onCameraOpenChange`):
     // her first landed shot makes the keep due, and its sheet would open over the camera mid-shoot. It comes the
-    // moment she closes the camera.
-    keepDue: keepDue && !cameraOpen,
+    // moment she closes the camera. ★ AND NOT WHILE HER FILES ARE STILL GOING (red-team 54's NIT): a burst records its
+    // files in groups, so the keep rose at the first group's complete ("Your 5 photos joined") over six files still
+    // going and then said eleven. It comes once nothing is queued or in the air, with its whole count.
+    keepDue: keepDue && !cameraOpen && !filesGoing,
   });
   const current: EntryStep | null = steps[0] ?? null;
   // ★ "YOU'RE IN" ONLY WHERE THE ALBUM IS BEHIND THE STEP: at a gate the host answers, confirming an
@@ -545,13 +569,18 @@ export const EntryModal = forwardRef<
     onPendingChange?.(pending);
   }, [hydrated, pending, onPendingChange]);
   // And mirror which surface owns a run's failures (see the prop's own note). Same shape.
-  // The door's camera is the step's own surface while it is open: its steps may have dropped (her first shot landed)
-  // and it still owns the run's failures, in its own words, until she closes it.
-  const uploadStepShowing = (current === "upload" && !holding) || cameraOpen;
+  const uploadStepShowing = current === "upload" && !holding;
   useEffect(() => {
     onUploadStepActive?.(uploadStepShowing);
     return () => onUploadStepActive?.(false);
   }, [uploadStepShowing, onUploadStepActive]);
+  // ★ THE DOOR'S CAMERA SAYS ITSELF, APART FROM THE STEP: its steps may have dropped (her first shot landed) and it still
+  // owns the run's failures, in its own words, until she closes it. It is not the step: the page folds the queue's live
+  // progress while the step shows (the step draws a bar a pick), and a camera that reads standings must not pay for that.
+  useEffect(() => {
+    onCameraOpenChange?.(cameraOpen);
+    return () => onCameraOpenChange?.(false);
+  }, [cameraOpen, onCameraOpenChange]);
 
   /**
    * ★ THE BEAT BELONGS TO THE LAST STEP ALONE. A password unlock on an event that still wants a
@@ -1033,7 +1062,6 @@ export const EntryModal = forwardRef<
   /* THE DOOR'S CAMERA: whether this album has one for the first photograph (never the demo's, which is free uploads),
      what it reads of the album (the door's own readings of how it waits, in the camera's own shape), and the press that
      opens it. The camera's code is fetched as the step shows (`loadCamera`), so the press has nothing left to download. */
-  const doorHasCamera = camera !== null && !isDemo;
   const cameraEvent = useMemo<CameraEvent>(
     () => ({
       name: eventName,
@@ -1048,9 +1076,22 @@ export const EntryModal = forwardRef<
   const openCamera = useCallback(() => {
     setDoorCamera({ open: true, openedAt: Date.now() });
   }, []);
-  const onCameraOpenChange = useCallback((next: boolean) => {
+  const setDoorCameraOpen = useCallback((next: boolean) => {
     setDoorCamera((was) => (was ? { ...was, open: next } : was));
   }, []);
+  // The camera's two doors into the page's queue, stable across the shell's renders (the page's own change identity with
+  // its callbacks), so the memoized camera is re-rendered for what it reads and not for a render of the page.
+  const sendRef = useRef(onSend);
+  const retryRef = useRef(onRetry);
+  useEffect(() => {
+    sendRef.current = onSend;
+    retryRef.current = onRetry;
+  });
+  const cameraSend = useCallback(
+    (files: File[], extra?: FileExtra) => sendRef.current(files, extra),
+    [],
+  );
+  const cameraRetry = useCallback((id: string) => retryRef.current(id), []);
   // The queue as the camera reads it: handed on only when a shot's standing moves, never for a tick of a bar.
   const cameraQueueKey = queue
     .map(
@@ -1262,12 +1303,14 @@ export const EntryModal = forwardRef<
           <AlbumCamera
             open={doorCamera.open}
             openedAt={doorCamera.openedAt}
-            onOpenChange={onCameraOpenChange}
+            onOpenChange={setDoorCameraOpen}
             event={cameraEvent}
             qrToken={qrToken}
             queue={cameraQueue}
-            onAddFiles={onSend}
-            onRetry={onRetry}
+            onAddFiles={cameraSend}
+            onRetry={cameraRetry}
+            removedIds={removedIds}
+            onOwnRemoved={onOwnRemoved}
             isOwner={false}
             isDemo={isDemo}
           />

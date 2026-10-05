@@ -604,7 +604,13 @@ describe("the album's camera, over an album that refuses for a reason its host c
     await screen.findByText("Frame 7 of 24");
     await act(async () => press());
     vi.useFakeTimers({
-      toFake: ["setTimeout", "clearTimeout", "setInterval", "clearInterval"],
+      toFake: [
+        "setTimeout",
+        "clearTimeout",
+        "setInterval",
+        "clearInterval",
+        "Date",
+      ],
     });
     fireEvent.click(screen.getByRole("button", { name: button, hidden: true }));
     return onRetry;
@@ -705,6 +711,32 @@ describe("the album's camera, over an album that refuses for a reason its host c
       });
       document.dispatchEvent(new Event("visibilitychange"));
     });
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it("★ never asks closer to the last ask than the cadence's first step, however often the page comes back", async () => {
+    const onRetry = await refused();
+    const toggle = async (visible: boolean) =>
+      act(async () => {
+        Object.defineProperty(document, "visibilityState", {
+          configurable: true,
+          get: () => (visible ? "visible" : "hidden"),
+        });
+        document.dispatchEvent(new Event("visibilitychange"));
+      });
+    // Flicking between apps over a closed album: each return is not a presign of its own.
+    await wait(1_000);
+    await toggle(false);
+    await toggle(true);
+    await wait(2_000);
+    await toggle(false);
+    await toggle(true);
+    expect(onRetry).not.toHaveBeenCalled();
+    // Past the first step it asks at once, and the calm cadence starts over from there.
+    await wait(8_000);
+    expect(onRetry).toHaveBeenCalledTimes(1);
+    await toggle(false);
+    await toggle(true);
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
 

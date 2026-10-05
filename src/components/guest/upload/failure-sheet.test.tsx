@@ -342,3 +342,87 @@ describe("the heading", () => {
     );
   });
 });
+
+/**
+ * ★ A REFUSAL THAT CANNOT SUCCEED ON RETRY OFFERS NONE, AND SAYS WHAT SHE CAN DO (red-team 54's LOW: "the failure sheet
+ * offers Retry and 'Retry both' on the uploader's own refusals (a wrong type, a file over 10 GB), which carry no code, so
+ * pressing Retry sends nothing"). The queue tells those refusals as the codes the ladder knows (`localRefusalCode`), the
+ * ladder offers no Retry for them (`retryCanPass`), and where nothing listed can be retried the sheet says the way on:
+ * another file, in the door's own words (`uploadStepChooseAgain`).
+ */
+describe("a failure no retry could pass", () => {
+  const WRONG_TYPE = "That file type isn't supported.";
+  const wrongType = (name: string) =>
+    failure(name, WRONG_TYPE, "unsupported_type");
+  const sheet = (
+    failures: ReturnType<typeof failure>[],
+    sent = failures.length,
+    camera = false,
+  ) =>
+    render(
+      <UploadFailureSheet
+        open
+        onOpenChange={vi.fn()}
+        failures={failures}
+        sent={sent}
+        hostName="Maya"
+        camera={camera}
+        onRetry={vi.fn()}
+      />,
+    );
+
+  it("★ offers no Retry, says why in the refusal's own sentence, and says what she can do", () => {
+    sheet([wrongType("notes.txt"), wrongType("scan.tiff")]);
+    expect(screen.queryByRole("button", { name: /Retry/ })).toBeNull();
+    expect(screen.getAllByText(WRONG_TYPE)).toHaveLength(2);
+    expect(screen.getByText("Pick something else to add.")).toBeInTheDocument();
+    // "Not now" would promise a later go; with nothing a retry could pass there is none.
+    expect(screen.getByRole("button", { name: "Done" })).toBeInTheDocument();
+    expect(screen.getByRole("dialog")).toHaveAccessibleDescription(
+      "Pick something else to add.",
+    );
+  });
+
+  it("says it in the camera's verb on a camera album", () => {
+    sheet([wrongType("clip.avi")], 1, true);
+    expect(screen.getByText("Take another to add one.")).toBeInTheDocument();
+    expect(screen.queryByText("Pick something else to add.")).toBeNull();
+  });
+
+  it("joins it to the rest where something else went, one paragraph", () => {
+    sheet([wrongType("notes.txt")], 3);
+    expect(
+      screen.getByText(
+        "Everything else is in Maya’s album. Pick something else to add.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("says nothing of another file where one of the failures could go again, whose Retry stands for it alone", () => {
+    const { container } = sheet([
+      wrongType("notes.txt"),
+      failure("b.jpg", "That upload did not finish."),
+    ]);
+    expect(screen.queryByText(/Pick something else/)).toBeNull();
+    // Retry takes only what could go: one file, so the primary is its Retry and no second one is drawn.
+    expect(screen.getAllByRole("button", { name: "Retry" })).toHaveLength(1);
+    expect(
+      screen.getByText("notes.txt").closest("li")!.querySelector("button"),
+    ).toBeNull();
+    expect(
+      container.ownerDocument.querySelectorAll("[data-upload-failures] > li"),
+    ).toHaveLength(2);
+  });
+
+  it("is a refusal of the file by whatever code the ladder reads as one, and not one by none", () => {
+    sheet([
+      failure(
+        "too-big.mp4",
+        "Files for this event are capped at 500 MB.",
+        "too_large",
+      ),
+    ]);
+    expect(screen.queryByRole("button", { name: /Retry/ })).toBeNull();
+    expect(screen.getByText("Pick something else to add.")).toBeInTheDocument();
+  });
+});
