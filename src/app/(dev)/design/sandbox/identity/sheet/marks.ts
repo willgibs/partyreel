@@ -1,10 +1,11 @@
 /**
  * THE FOUR CORNER MARKS: the frame a camera puts round what it focuses on, and
  * since round two only that (Will: "the viewfinder's corners survive only as a
- * focus mark, never a style"), so the one build that wears them wears them on
- * focus alone (`keys.ts`, `identity.test.ts`). Eight background layers (an arm
- * along each edge at each corner), driven by three variables so a state only
- * swaps a variable: `--m-c` the colour, `--m-a` the arm, `--m-w` the weight.
+ * focus mark, never a style"), so the one option that wears them, the r3 mark,
+ * wears them on focus alone (`focus.ts`, `identity.test.ts`). Eight background
+ * layers (an arm along each edge at each corner), driven by three variables so
+ * a state only swaps a variable: `--m-c` the colour, `--m-a` the arm, `--m-w`
+ * the weight.
  *
  * ★ BACKGROUNDS, NOT BORDERS OR PSEUDO-ELEMENTS, WHERE THE ATOM IS A FIELD. An
  * `<input>` takes no `::before` or `::after`, so a field's marks are its own

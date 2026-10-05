@@ -5,101 +5,114 @@ import type { Control } from "@/components/lab/exploration";
  * declare them without importing React into a module the registry hands to a
  * server page.
  *
- * ★ IN USE FIRST (Will: "including a couple in UI examples to get a feel for
- * both in use"). The system is shown on a real screen by default, caught in
- * use, and its atoms in every state are one press away; the room and the edge
- * open on the sheet of every pop-out and surface, paper beside the room, and
- * their screens are one press away, in the room. Every frame comes at 1440
- * and at 375; Ground picks the system's screens' one (a desk's sheet draws
- * both).
+ * ★ A TRAIT OPENS WHERE IT LIVES (Will, r2: "including a couple in UI
+ * examples to get a feel for both in use"; r4's brief: every trait on real
+ * screens, never specimens alone). Show's first place is each trait's own
+ * screen, caught in its moment (a field typed in on Settings' dates, a key
+ * held down at Create's foot, the door's Unlock working); the five real
+ * screens and the two sheets of every state are one press away, each caught
+ * in the same trait's moment.
  *
- * ★ ONE PLACES KNOB PER ASK, EACH UNDER ITS OWN ID AND NAME (Show, At night,
- * Lit): the three ask about different things, so each shows its own places,
- * and the kit refuses two different knobs under one id (`exploration.ts`).
+ * ★ PAPER AND THE ROOM SIDE BY SIDE, AT A PHONE, BY DEFAULT. A step draws the
+ * whole option on the first screen: two phones stand at the same scale one
+ * does (the stage is as tall as a phone allows, and two are narrower than the
+ * room), so both grounds cost nothing; a laptop is one press away, one ground
+ * at a time unless both are asked for.
  */
 export const SHOW: Control = {
   id: "show",
   label: "Show",
   options: [
-    { id: "account", label: "Account and billing" },
-    { id: "door", label: "Settings' door" },
-    { id: "gate", label: "The guest's door" },
+    { id: "home", label: "Its own screen" },
+    { id: "settings", label: "Settings" },
+    { id: "create", label: "Create" },
+    { id: "add", label: "The Add" },
+    { id: "door", label: "The door" },
+    { id: "account", label: "Account" },
     { id: "actions", label: "Every action" },
     { id: "fields", label: "Every field" },
   ],
-  default: "account",
+  default: "home",
 };
 
 export const SHOW_IDS = [
-  "account",
+  "home",
+  "settings",
+  "create",
+  "add",
   "door",
-  "gate",
+  "account",
   "actions",
   "fields",
 ] as const;
 export type ShowId = (typeof SHOW_IDS)[number];
 export const showOf = (v: unknown): ShowId =>
-  (SHOW_IDS as readonly unknown[]).includes(v) ? (v as ShowId) : "account";
-
-/** The room's places: every pop-out (paper beside it), the guest's Add at night, a host's menu. */
-export const NIGHT: Control = {
-  id: "night",
-  label: "At night",
-  options: [
-    { id: "layers", label: "Every pop-out" },
-    { id: "add", label: "The guest's Add" },
-    { id: "menu", label: "A host's menu" },
-  ],
-  default: "layers",
-};
-
-export const NIGHT_IDS = ["layers", "add", "menu"] as const;
-export type NightId = (typeof NIGHT_IDS)[number];
-export const nightOf = (v: unknown): NightId =>
-  (NIGHT_IDS as readonly unknown[]).includes(v) ? (v as NightId) : "layers";
+  (SHOW_IDS as readonly unknown[]).includes(v) ? (v as ShowId) : "home";
 
 /**
- * The edge's places, both in the room (a light surface takes no edge, so paper
- * has only the display's pop-outs to show, and the sheet draws those beside
- * the room): every surface with its loupes, and a host's menu over Account's
- * cards. ★ ONE PIXEL NEEDS ITS SCALE: a whole screen at a desk is drawn at
- * about half size on a step, where an edge is under a pixel, so the loupes
- * carry the comparison and the screen its overall feel (`lab:demo` read the
- * guest's Add at 1440 as one picture under all three, and it left).
+ * THE EDGE'S NINE SCREENS (Will, r3: "Could you give me more real UI to see
+ * examples of each? The host menu gives me exactly one instance"): every
+ * place a layer stands over the page, each drawn on paper and in the room;
+ * and a tenth, a new host's dashboard, where the carried call `hand-cards`
+ * (A4) is seen (its teaser is lit in no option).
  */
 export const LIT: Control = {
   id: "lit",
   label: "Lit",
   options: [
-    { id: "layers", label: "Every surface" },
-    { id: "menu", label: "A host's menu" },
+    { id: "dashboard", label: "The dashboard's Display" },
+    { id: "settings", label: "Settings over the hub" },
+    { id: "add", label: "The guest's Add" },
+    { id: "confirm", label: "A delete confirm" },
+    { id: "toasts", label: "Toasts over the album" },
+    { id: "door", label: "The door's held sheet" },
+    { id: "style", label: "The reel's Style menu" },
+    { id: "menu", label: "The account menu" },
+    { id: "tooltip", label: "A tooltip" },
+    { id: "start", label: "A new host's dashboard" },
   ],
-  default: "layers",
+  default: "dashboard",
 };
 
-export const LIT_IDS = ["layers", "menu"] as const;
+export const LIT_IDS = [
+  "dashboard",
+  "settings",
+  "add",
+  "confirm",
+  "toasts",
+  "door",
+  "style",
+  "menu",
+  "tooltip",
+  "start",
+] as const;
 export type LitId = (typeof LIT_IDS)[number];
 export const litOf = (v: unknown): LitId =>
-  (LIT_IDS as readonly unknown[]).includes(v) ? (v as LitId) : "layers";
+  (LIT_IDS as readonly unknown[]).includes(v) ? (v as LitId) : "dashboard";
 
 export const SCREEN: Control = {
   id: "screen",
   label: "Screen",
   options: [
-    { id: "1440", label: "1440, a laptop" },
     { id: "375", label: "375, a phone" },
+    { id: "1440", label: "1440, a laptop" },
   ],
-  default: "1440",
+  default: "375",
 };
 
-export const screenOf = (v: unknown): 1440 | 375 => (v === "375" ? 375 : 1440);
+export const screenOf = (v: unknown): 1440 | 375 => (v === "1440" ? 1440 : 375);
 
 export const GROUND: Control = {
   id: "ground",
   label: "Ground",
   options: [
-    { id: "room", label: "Room" },
+    { id: "both", label: "Both" },
     { id: "paper", label: "Paper" },
+    { id: "room", label: "Room" },
   ],
-  default: "room",
+  default: "both",
 };
+
+export type GroundsId = "both" | "paper" | "room";
+export const groundsOf = (v: unknown): GroundsId =>
+  v === "paper" || v === "room" ? v : "both";
