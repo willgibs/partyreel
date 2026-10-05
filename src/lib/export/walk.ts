@@ -418,6 +418,12 @@ export const WALK_COPY = {
   cancelled: "Download cancelled.",
   dropped: "Your connection dropped.",
   droppedDetail: "Check your signal, then try again.",
+  /**
+   * ★ A TRY AGAIN WAITS FOR THE LINE (crumbs-71). While the browser says it is offline a press on it could only fail
+   * the same way, so the toast is drawn without the button and says what it is waiting for, in its detail's place; the
+   * button comes back when `online` fires (`export-toast.tsx`, which holds it for the walk's toasts and the Save's).
+   */
+  waiting: "Waiting for your connection…",
   /** A part of a walk that ended without all of it, told apart the same way. */
   partCancelled: (part: number, parts: number) =>
     `Part ${part} of ${parts} was cancelled.`,

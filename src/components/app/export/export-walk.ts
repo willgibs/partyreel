@@ -37,7 +37,9 @@
  * fresh mint); a zip the Worker saw the client leave (`stopped`: her cancel in the browser's own list, or a dead
  * line, which it cannot tell apart) is read by what the page's own line did while it streamed
  * (`HandedPart.dropped`); a line that stops answering is said under "Downloading…" (`lineLost`), never left
- * reading as if all were well, and never replaced by "starting" while it is still down.
+ * reading as if all were well, and never replaced by "starting" while it is still down. Every Try again drawn here
+ * while the browser says it is offline is held by the toast, which says it waits for the line and offers the button
+ * again when `online` fires (`export-toast.tsx`): this engine draws the same view either way.
  *
  * ★ A BIG ALBUM IS A WALK, ONE TAP A PART. Each part is minted when it is asked for (a token lives
  * two minutes), and each is a download a person pressed, because a browser holds back a second
