@@ -17,6 +17,10 @@ import {
 } from "@/lib/validation/event";
 
 vi.mock("server-only", () => ({}));
+vi.mock("@/lib/observability/sentry", () => ({
+  captureError: vi.fn(),
+  captureWarning: vi.fn(),
+}));
 
 const patches: Record<string, unknown>[] = [];
 const inserts: Record<string, unknown>[] = [];

@@ -13,6 +13,7 @@ import {
   CoverGround,
   createHeadBridge,
 } from "@/components/guest/event-experience-head";
+import { useGuestAlbumOrder } from "@/components/guest/gallery-order";
 import { GallerySkeleton } from "@/components/guest/gallery-skeleton";
 import { GuestActionDock } from "@/components/guest/guest-action-dock";
 import {
@@ -39,6 +40,7 @@ import { Button } from "@/components/ui/button";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import { useWaitClock } from "@/lib/disposable/use-wait-clock";
 import { coverEyebrow, waitWords } from "@/lib/disposable/wait-words";
+import type { AlbumOpening } from "@/lib/event/zone-morning";
 import { addWords } from "@/lib/guest/camera/words";
 import { useDoorHues } from "@/lib/guest/door-light";
 import { uploadsWait } from "@/lib/guest/upload-tracker";
@@ -91,6 +93,7 @@ export function AsGuestView({
   event,
   joinUrl,
   galleryPromise,
+  albumOrder,
   stats,
   host,
   guests,
@@ -103,6 +106,8 @@ export function AsGuestView({
   event: AsGuestEvent;
   joinUrl: string;
   galleryPromise: Promise<GalleryPayload>;
+  /** The order a guest's album opens in (`readAsGuest`'s, the guest page's own answer); absent, newest first. */
+  albumOrder?: AlbumOpening;
   stats: { approvedTotal: number; guestCount: number };
   host: { avatarUrl: string | null; seed: string | null } | null;
   guests: GuestListItem[];
@@ -134,6 +139,7 @@ export function AsGuestView({
       event={event}
       joinUrl={joinUrl}
       galleryPromise={galleryPromise}
+      albumOrder={albumOrder}
       stats={stats}
       host={host}
       guests={guests}
@@ -162,6 +168,7 @@ function AlbumAsGuest({
   event,
   joinUrl,
   galleryPromise,
+  albumOrder,
   stats,
   host,
   guests,
@@ -173,6 +180,7 @@ function AlbumAsGuest({
   event: AsGuestEvent;
   joinUrl: string;
   galleryPromise: Promise<GalleryPayload>;
+  albumOrder: AlbumOpening | undefined;
   stats: { approvedTotal: number; guestCount: number };
   host: { avatarUrl: string | null; seed: string | null } | null;
   guests: GuestListItem[];
@@ -224,6 +232,16 @@ function AlbumAsGuest({
   );
   // The reel's round, on the guest page's own first guess (the host's switch and two photographs).
   const reelRound = event.show_reel && mediaCount >= 2;
+  /* ★ THE ORDER EVERY GUEST MEETS (album-order, event-zone): the guest page's own hook over the server's word, so the
+     album turns at the party's morning after (an instant, the same for every reader) and the view turns with it while
+     she looks. Nothing here is hers to choose: the album is inert, and a choice would write a guest's remembered order
+     on her own device, so Sort shows the turn's order and answers nothing. */
+  const order = useGuestAlbumOrder({
+    eventId: event.id,
+    initial: albumOrder,
+    developsAt: event.develops_at ?? null,
+    isDemo: false,
+  });
   const listSaysCount = guests.length > GUEST_LIST_FACES_THRESHOLD;
 
   return (
@@ -353,6 +371,7 @@ function AlbumAsGuest({
                     initialRowStep={rowStep}
                     firstPaintWidth={firstPaintWidth}
                     rhythmSeed={rhythmSeed}
+                    order={{ sort: order.sort, choose: noop }}
                   />
                 </div>
               </AlbumWaitSource>

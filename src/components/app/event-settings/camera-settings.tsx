@@ -45,14 +45,11 @@ import {
 } from "@/lib/disposable/album-style";
 import { developTimeWords } from "@/lib/disposable/develop-words";
 import type { Capture } from "@/lib/disposable/facts";
-import {
-  defaultDevelopAt,
-  developState,
-  revealOf,
-  type Reveal,
-} from "@/lib/disposable/reveal";
+import { developState, revealOf, type Reveal } from "@/lib/disposable/reveal";
 import { ROLL_SHOTS } from "@/lib/disposable/roll";
 import { useWaitClock } from "@/lib/disposable/use-wait-clock";
+import { hostPartyZone } from "@/lib/event/zone";
+import { developToKeep } from "@/lib/event/zone-morning";
 import { developsWhen } from "@/lib/guest/camera/words";
 import { useHydrated } from "@/lib/shared/use-hydrated";
 import { cn } from "@/lib/utils";
@@ -111,6 +108,7 @@ export function AlbumStyleSettings({ children }: { children?: ReactNode }) {
       rollSize={s.values.rollSize}
       eventDate={s.values.eventDate || null}
       eventEndDate={s.values.eventEndDate || null}
+      partyZone={s.values.timeZone}
       heldCount={s.pendingCount}
       savingCapture={s.saving("capture")}
       savingReveal={s.saving("review") || s.saving("developsAt")}
@@ -206,6 +204,7 @@ export function CameraSettings() {
       rollSize={s.values.rollSize}
       eventDate={s.values.eventDate || null}
       eventEndDate={s.values.eventEndDate || null}
+      partyZone={s.values.timeZone}
       heldCount={s.pendingCount}
       savingCapture={s.saving("capture")}
       savingReveal={s.saving("review") || s.saving("developsAt")}
@@ -224,6 +223,12 @@ type ControlProps = {
   eventDate: string | null;
   /** A range's last day, which it follows instead (9 am the morning after it); absent reads as one day. */
   eventEndDate?: string | null;
+  /**
+   * The party's own zone as stored (`events.time_zone`), or null for none: the default develop's 9 am is read in it
+   * (event-zone), so it is the morning the album turns; a party with none reads hers (`hostPartyZone`). Absent where a
+   * frame mounts the control alone: hers.
+   */
+  partyZone?: string | null;
   /** Uploads held for the host's approval now: leaving approval releases them, so it asks first. */
   heldCount: number;
   savingCapture: boolean;
@@ -270,6 +275,7 @@ export function AlbumStyles({
   rollSize,
   eventDate,
   eventEndDate,
+  partyZone = null,
   heldCount,
   savingCapture,
   savingReveal,
@@ -313,7 +319,19 @@ export function AlbumStyles({
   const choose = (to: AlbumStyle) => {
     setPending(null);
     if (to === style) return;
-    const patch = patchForStyle(to, value, { eventDate, eventEndDate });
+    // ★ THE PARTY'S 9 AM (event-zone): a time still ahead is kept, else the party's own morning after is the one handed
+    // in to keep, since `patchForStyle`'s own offer reads the browser's zone (`developToKeep`).
+    const patch = patchForStyle(
+      to,
+      {
+        ...value,
+        developsAt: developToKeep(value.developsAt, hostPartyZone(partyZone), {
+          eventDate,
+          eventEndDate,
+        }),
+      },
+      { eventDate, eventEndDate },
+    );
     const consequence = styleSwitchConsequence({
       from: value,
       to: patch,
@@ -406,6 +424,7 @@ export function AlbumStyles({
             rollSize={rollSize}
             eventDate={eventDate}
             eventEndDate={eventEndDate}
+            partyZone={partyZone}
             heldCount={heldCount}
             savingCapture={savingCapture}
             savingReveal={savingReveal}
@@ -541,6 +560,7 @@ export function CaptureAndReveal({
   rollSize,
   eventDate,
   eventEndDate,
+  partyZone = null,
   heldCount,
   savingCapture,
   savingReveal,
@@ -568,12 +588,13 @@ export function CaptureAndReveal({
   const patchFor = (to: Reveal): Partial<CaptureAndRevealValue> => {
     if (to === "right-away") return { review: false, developsAt: null };
     if (to === "approve") return { review: true, developsAt: null };
-    // A develop keeps a time still ahead, or offers 9 am the day after the party.
+    // A develop keeps a time still ahead, or offers 9 am the day after the party, in the party's own zone (event-zone).
     return {
       review: false,
-      developsAt: waiting
-        ? value.developsAt
-        : defaultDevelopAt({ eventDate, eventEndDate }).toISOString(),
+      developsAt: developToKeep(value.developsAt, hostPartyZone(partyZone), {
+        eventDate,
+        eventEndDate,
+      }),
     };
   };
 

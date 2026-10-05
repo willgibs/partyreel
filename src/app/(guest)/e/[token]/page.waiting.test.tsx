@@ -14,6 +14,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * viewer is through the door of, at full access.
  */
 vi.mock("server-only", () => ({}));
+// The party's zone (event-zone) is the page's one read beside the door's; none here, so the one fallback.
+vi.mock("@/lib/event/zone.server", () => ({ readPartyZone: async () => null }));
 const albumWaits = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/disposable/waiting.server", () => ({ albumWaits }));
 vi.mock("next/headers", () => ({

@@ -353,3 +353,46 @@ describe("★ the cover's Add says what a newcomer's does", () => {
     expect(add()).toHaveTextContent(/^Add photos$/);
   });
 });
+
+/* ★ THE ORDER EVERY GUEST MEETS (event-zone; the ROADMAP's "as-guest-view.tsx hands LiveGallery no order"): the album is
+   handed the guest page's own order over the server's word, the turn an instant, and turns with it while she looks;
+   nothing here can choose one, so a choice writes nothing on her device. */
+describe("★ the album in the order every guest meets", () => {
+  const MORNING = Date.parse("2026-10-03T20:00:00Z");
+
+  it("after the party's morning the album is handed the night in order", () => {
+    view({
+      albumOrder: { morningAfter: MORNING, own: "oldest", chosen: null },
+    });
+    const order = (live.gallery.at(-1) as { order?: { sort: string } }).order;
+    expect(order?.sort).toBe("oldest");
+  });
+
+  it("before it, newest first; and with no word from the server, newest first as before", () => {
+    view({
+      albumOrder: {
+        morningAfter: Date.now() + 86_400_000,
+        own: "newest",
+        chosen: null,
+      },
+    });
+    expect(
+      (live.gallery.at(-1) as { order?: { sort: string } }).order?.sort,
+    ).toBe("newest");
+    view();
+    expect(
+      (live.gallery.at(-1) as { order?: { sort: string } }).order?.sort,
+    ).toBe("newest");
+  });
+
+  it("a choice from the inert album writes nothing: no guest's remembered order lands on her device", () => {
+    view({
+      albumOrder: { morningAfter: MORNING, own: "oldest", chosen: null },
+    });
+    const order = (
+      live.gallery.at(-1) as { order: { choose: (s: string) => void } }
+    ).order;
+    order.choose("newest");
+    expect(document.cookie).not.toContain("pr_album_sort");
+  });
+});

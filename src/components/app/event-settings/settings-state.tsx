@@ -27,6 +27,7 @@ import { rollSizeOf } from "@/lib/disposable/roll";
 import type { DoorCounts } from "@/lib/db/queries/event-doors";
 import type { HostEvent } from "@/lib/db/queries/events";
 import type { Door } from "@/lib/event/door/door";
+import { deviceZone, zoneOfRow } from "@/lib/event/zone";
 import type { SettingsFacts } from "@/lib/events/guest-experience-summary";
 import { setReelDefaults } from "@/lib/reel/defaults-action";
 import { REEL_MOOD_IDS, resolveHoldSec } from "@/lib/reel/defaults";
@@ -86,6 +87,12 @@ export type SettingsValues = {
    */
   rollSize: number | null;
   developsAt: string | null;
+  /**
+   * The party's own zone as stored (`events.time_zone`, event-zone), or null for an event from before the column (it
+   * takes her own zone with its next save of a time). Its album's turn and its develop's 9 am read it; a host who never
+   * travels never sees it, and only the far-from-home choice writes it here.
+   */
+  timeZone: string | null;
 };
 
 /** A control a live word sends her to: its page opens at it ("Another number" opens the roll's stepper, in focus). */
@@ -126,6 +133,7 @@ function valuesOf(
     displayInProfile: social ? social.displayInProfile : null,
     // The develop time in one spelling (ISO), so a save the row agrees with lets its overlay go.
     ...developValuesOf(event),
+    timeZone: zoneOfRow(event),
   };
 }
 
@@ -227,7 +235,28 @@ function eventPatch(patch: Partial<SettingsValues>) {
   // Her roll, written only as a count: nothing in Settings clears it (the database keeps it for the camera's return).
   if (patch.rollSize != null) out.roll_size = patch.rollSize;
   if (patch.developsAt !== undefined) out.develops_at = patch.developsAt;
+  // The party's city, chosen: the one save that moves its zone (event-zone).
+  if (patch.timeZone != null) out.time_zone = patch.timeZone;
   return out;
+}
+
+/** The settings that say when the party happens: a save of one carries her own zone to an event that has none. */
+const TIME_KEYS: readonly Key[] = ["eventDate", "eventEndDate", "developsAt"];
+
+/**
+ * ★ HER OWN ZONE, CAPTURED WITH A SAVE OF A TIME (event-zone): an event from before the column (no zone stored) takes
+ * the zone she saves its dates or its develop time from, so its turn and its develop's 9 am become the morning she
+ * meant. The server writes it only where the row still has none (`updateEvent`), so a date saved from another zone
+ * never moves a party's zone: only the chosen city does. Read in the handler, never a render (`deviceZone`).
+ */
+function capturedZoneFor(
+  patch: Partial<SettingsValues>,
+  stored: string | null,
+): { captured_zone?: string } {
+  if (stored !== null || patch.timeZone != null) return {};
+  if (!TIME_KEYS.some((k) => patch[k] !== undefined)) return {};
+  const zone = deviceZone();
+  return zone ? { captured_zone: zone } : {};
 }
 
 /**
@@ -425,14 +454,17 @@ export function SettingsProvider({
       run(
         patch,
         async () => {
-          const result = await writes.updateEvent(event.id, eventPatch(patch));
+          const result = await writes.updateEvent(event.id, {
+            ...eventPatch(patch),
+            ...capturedZoneFor(patch, zoneOfRow(event)),
+          });
           return !result || result.ok
             ? { ok: true as const }
             : { ok: false as const, message: result.message };
         },
         "Couldn't save that setting.",
       ),
-    [event.id, run, writes],
+    [event, run, writes],
   );
 
   const saveDoor = useCallback(
