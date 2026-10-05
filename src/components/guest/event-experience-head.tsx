@@ -17,9 +17,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { GlyphCount } from "@/components/ui/glyph-count";
 import { liveReelAvailable } from "@/lib/events/gallery-reel";
 import type { GallerySeed } from "@/lib/events/gallery-seed";
+import { albumCountWords } from "@/lib/export/take-home";
 import { createReelItems } from "@/lib/guest/reconcile-album-items";
 import { tileStills } from "@/lib/guest/reel-tile";
-import { formatCount, formatMediaCount } from "@/lib/format/count";
+import { formatCount } from "@/lib/format/count";
 import { RangeText } from "@/lib/format/range-text";
 import type { LiveMediaItem } from "@/lib/reel/live/items";
 import { cn, formatEventDate } from "@/lib/utils";
@@ -208,6 +209,12 @@ export type CoverHost = {
  * only at a desk: at a phone the album's own label under the cover says the count, and a cover is not
  * the place to say it twice. The note keeps two lines at a phone, three at a desk.
  *
+ * ★ THE COUNT'S WORDS NAME WHAT THE ALBUM HOLDS FROM THE FIRST BYTE (crumbs-74): the live album's own words
+ * (`mediaWords`) once it has told, and until then the server's own count of the kinds (`mediaKinds`, the page's
+ * `stats.kinds`), through the one function both say it with (`albumCountWords`), so "12 photos" is never "12
+ * photos & videos" for the beat before the live album arrives. Neither: both nouns, as a cover with no word of
+ * its kinds always said.
+ *
  * Every word arrives on the page's reveal (`data-arrive`, `data-reveal`), so a door's success beat
  * holds them with the album's tiles and they rise as the door leaves (globals.css's reveal curtain).
  */
@@ -222,6 +229,7 @@ export function AlbumCover({
   description,
   mediaCount,
   mediaWords,
+  mediaKinds,
   guestCount,
   actions,
   actionsRef,
@@ -244,10 +252,16 @@ export function AlbumCover({
   description: string | null;
   mediaCount: number;
   /**
-   * What the count holds, said as the album's source names it ("12 photos": `albumCountWords`); both nouns where it has
-   * not told, since the first paint knows a total and never its kinds.
+   * What the count holds, said as the album's live source names it ("12 photos": `albumCountWords`), once it has told;
+   * until then `mediaKinds` says it, and with neither, both nouns.
    */
   mediaWords?: string;
+  /**
+   * What the album holds by kind, as the server counted it for the first paint (`getGalleryStats`'s `kinds`): the
+   * count's words before the live album has told, in the words the live album says them in. Null where the live
+   * album names none either (a teaser's nine cannot see in) or the server could not say.
+   */
+  mediaKinds?: { photos: number; videos: number } | null;
   guestCount: number;
   /** The cover's actions (Add photos white on it, the glass rounds beside). */
   actions: ReactNode;
@@ -313,7 +327,13 @@ export function AlbumCover({
                   <GlyphCount
                     icon={<Images />}
                     count={mediaCount}
-                    label={mediaWords ?? formatMediaCount(mediaCount)}
+                    label={
+                      mediaWords ??
+                      albumCountWords({
+                        count: mediaCount,
+                        kinds: mediaKinds ?? null,
+                      })
+                    }
                   />
                   {guestCount > 0 && (
                     <GlyphCount

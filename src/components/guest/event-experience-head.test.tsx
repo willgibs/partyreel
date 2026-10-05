@@ -1,10 +1,17 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  AlbumCover,
   CoverGround,
   createHeadBridge,
   HeadStills,
@@ -12,6 +19,7 @@ import {
   stillsFromSeed,
   type HeadBridgeState,
 } from "@/components/guest/event-experience-head";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import type { GallerySeed } from "@/lib/events/gallery-seed";
 import type { GalleryReel } from "@/lib/events/gallery-reel";
 import type { LiveMediaItem } from "@/lib/reel/live/items";
@@ -208,6 +216,78 @@ describe("the cover's photographs, drawn", () => {
     );
     fireEvent.error(container.querySelector("img")!);
     expect(onStillError).toHaveBeenCalledWith("m1");
+  });
+});
+
+/**
+ * ★ THE COVER'S COUNT, IN THE WORDS OF WHAT THE ALBUM HOLDS (crumbs-74): its glyph's words are the live album's once it has
+ * told them (`mediaWords`), and until then the server's own count of the kinds (`mediaKinds`), through the one function
+ * both say them with (`albumCountWords`); with neither, both nouns, as a cover with no word of its kinds always said.
+ */
+describe("the album's cover: its count's words", () => {
+  function cover(
+    over: {
+      mediaCount?: number;
+      mediaWords?: string;
+      mediaKinds?: { photos: number; videos: number } | null;
+    } = {},
+  ) {
+    return render(
+      <TooltipProvider>
+        <AlbumCover
+          name="Maya's 30th"
+          host={null}
+          date="2026-10-03"
+          description={null}
+          mediaCount={over.mediaCount ?? 12}
+          mediaWords={over.mediaWords}
+          mediaKinds={over.mediaKinds}
+          guestCount={3}
+          actions={null}
+        />
+      </TooltipProvider>,
+    );
+  }
+  const label = () =>
+    document.querySelector<HTMLElement>('[data-slot="glyph-count"]')?.ariaLabel;
+
+  it("★ names the kinds it is told from the first byte, in the live album's own words", () => {
+    cover({ mediaCount: 12, mediaKinds: { photos: 12, videos: 0 } });
+    expect(label()).toBe("12 photos");
+    cleanup();
+    cover({ mediaCount: 3, mediaKinds: { photos: 0, videos: 3 } });
+    expect(label()).toBe("3 videos");
+    cleanup();
+    cover({ mediaCount: 1, mediaKinds: { photos: 0, videos: 1 } });
+    expect(label()).toBe("1 video");
+    cleanup();
+    cover({ mediaCount: 15, mediaKinds: { photos: 12, videos: 3 } });
+    expect(label()).toBe("15 photos & videos");
+  });
+
+  it("says both nouns with no kinds to name, a lone item by neither", () => {
+    cover({ mediaCount: 12 });
+    expect(label()).toBe("12 photos & videos");
+    cleanup();
+    cover({ mediaCount: 12, mediaKinds: null });
+    expect(label()).toBe("12 photos & videos");
+    cleanup();
+    cover({ mediaCount: 1 });
+    expect(label()).toBe("1 photo or video");
+  });
+
+  it("never names a number the kinds do not make", () => {
+    cover({ mediaCount: 13, mediaKinds: { photos: 12, videos: 0 } });
+    expect(label()).toBe("13 photos & videos");
+  });
+
+  it("★ the live album's words, once told, are the ones it says", () => {
+    cover({
+      mediaCount: 13,
+      mediaWords: "13 photos & videos",
+      mediaKinds: { photos: 12, videos: 0 },
+    });
+    expect(label()).toBe("13 photos & videos");
   });
 });
 

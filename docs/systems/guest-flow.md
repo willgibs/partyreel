@@ -100,16 +100,21 @@ copy would be one list twice on one screen. Its card is `getHostCard(eventId)` f
 read beside it so its Follow starts on Following; no card means no host row, never a stub.
 
 - **Stats**: `getGalleryStats(event)` ([`guest-events-admin.ts`](../../src/lib/db/queries/guest-events-admin.ts))
-  → `{approvedTotal, guestCount}`: a head count of approved media (`countApprovedMedia`, request-scoped, so the
-  stats and the gallery payload share one answer), and the one count of guests (`getEventGuests`, the same
-  function the host's hub reads, so the album and the hub never say two numbers for one party; never the host).
+  → `{approvedTotal, guestCount, kinds}`: a head count of approved media (`countApprovedMedia`, request-scoped, so the
+  stats and the gallery payload share one answer), the one count of guests (`getEventGuests`, the same
+  function the host's hub reads, so the album and the hub never say two numbers for one party; never the host), and
+  what N holds by kind (`kinds`, `{photos, videos}`: ONE more head count, of the videos, in the same round, and photos
+  are the total less them, so the two always add up to the number beside them; the poll never asks). `kinds` is
+  null where this request is not past the lock (`pastTheLock`: a locked page's tease is a name and a size, so its
+  payload carries the count alone), where the read failed (reported, never the page's failure) and where the videos
+  outrun the total (the two heads are no one snapshot).
   ★ **NUMBERS ONLY ever leave the server**, never a guest_id or an identity. N goes live through
   `GalleryLiveProvider`'s `onCountChange` ("One true count" below); M is seeded by the page RSC and kept current by the
   album's sync (`/api/album/guest/sync`), which carries `guestCount` on a 200 only (read after its 304 check, so the
   steady poll pays nothing, and never on a locked page) and hands it up through `onGuestCountChange`, since only the
   server can tell a guest's first upload from a returning contributor's. M stays outside the ETag: whatever moves it
   changes the payload the ETag already hashes. The album's own label and the cover's glyph say N in the source's words
-  (`albumCountWords`), so the page never counts one album two ways.
+  (`albumCountWords`), the cover's from the first byte out of `kinds`, so the page never counts one album two ways.
 - **The album, in justified rows** ([`gallery-rows.tsx`](../../src/components/guest/gallery-rows.tsx) over the
   shared `MasonryColumns` `layout="rows"`, [design-system.md](design-system.md)'s `rows`, windowed by
   [`album-window.tsx`](../../src/components/shared/album-window.tsx)): only the rows around the view are mounted; a
@@ -418,8 +423,11 @@ is the album's size. Every gallery payload (the render's and each poll's 200) ca
 unchanged nine moves nothing else. `GalleryLiveProvider` reports that number plus what this device changed since it
 arrived (`albumCount`) through `onCountChange`, at `teaser` and `full`, and the CTA ("See all N photos & videos") and
 the door (its `mediaTotal`) say the same number. The count names what the album holds where the source sees all of it
-(a full answer: `albumCountWords` over `setNoun`, the one home every set shares, "12 photos", "58 photos & videos");
-where it cannot see in (a teaser, a lock, an unread album) it says both, and one such item reads "1 photo or video"
+(a full answer: `albumCountWords`, in `lib/export/take-home.ts` over `setNoun`, the one home every set shares, "12
+photos", "58 photos & videos"), and the page's first paint names it the same way at `full` from the server's own count
+of the kinds (`stats.kinds` into the cover's `mediaKinds`, through that one function), so the cover never says both
+nouns for the beat before the live album tells; where it cannot see in (a teaser, a lock, an unread album) it says
+both, the first paint included, and one such item reads "1 photo or video"
 (`formatMediaCount`), never a "photo" that may be a video. A payload without `approvedTotal` (an older server
 mid-deploy) falls back to the shell's `stats.approvedTotal` at `teaser`, then the photo-only `teaserTotal`. At `none`
 no gallery mounts and no poll runs: the lock line says the render's head count.

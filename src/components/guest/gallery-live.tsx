@@ -87,8 +87,7 @@ import {
   type GallerySeed,
   type PrimedTransport,
 } from "@/lib/events/gallery-seed";
-import { setNoun } from "@/lib/export/take-home";
-import { formatMediaCount } from "@/lib/format/count";
+import { albumCountWords } from "@/lib/export/take-home";
 import {
   albumOnScreen,
   createAlbumItems,
@@ -184,28 +183,10 @@ export function albumCount({
 }
 
 /**
- * ★ THE COUNT'S WORDS NAME WHAT THE ALBUM HOLDS (crumbs-61, red-team 48's NIT: "12 photos & videos" over twelve
- * photographs, where the host's Download panel said "12 photos"). Where the source can see into the album (`kinds`: a
- * full answer, whose manifest is the whole album) the number is worded by what is in it, from the one home every
- * surface that counts a set shares (`setNoun`: photos, videos, or both). Where it cannot (a teaser's nine, a lock, an
- * album not yet read) it says both, as it always has (`formatMediaCount`: a lone "photo" would lie when the one item is
- * a video). ★ THE WORDS ALWAYS NAME EXACTLY THE NUMBER BESIDE THEM: kinds that do not add up to `count` (a transient
- * the integrity check heals) say both nouns rather than a number the kinds do not make.
+ * What a list of items holds, by kind: the live source's side of the count's words (`albumCountWords`, whose home is
+ * `lib/export/take-home.ts`, shared with the page's first paint). Only a full answer, whose manifest is the whole album,
+ * can say it; a teaser's nine and a lock cannot, and say both nouns.
  */
-export function albumCountWords({
-  count,
-  kinds,
-}: {
-  count: number;
-  /** What the album holds by kind, where all of it can be seen; null where it cannot. */
-  kinds: { photos: number; videos: number } | null;
-}): string {
-  return kinds && count > 0 && kinds.photos + kinds.videos === count
-    ? setNoun(kinds.photos, kinds.videos)
-    : formatMediaCount(count);
-}
-
-/** What a list of items holds, by kind. */
 function kindsOf(items: readonly Pick<GalleryItem, "type">[]): {
   photos: number;
   videos: number;
