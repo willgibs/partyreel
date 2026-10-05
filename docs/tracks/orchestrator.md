@@ -54,7 +54,7 @@ the dashboard, the hub's strip, graphite, Create's styles, small fixes, red-team
 | `crumbs-70` | the /pricing hop's uploads sentence, the floating gutter's name, the lamp's ignition from Create | MERGED at `6ef4b3d92` (gate 223 green); pruned | Sonnet, 3131 | `ac83ec59db2e60df5` |
 | `crumbs-71` | a download's Try again waits for the line; the disc's per-ticket colour in profiles-social.md | MERGED at `c754b3d68` (gate 224 green); pruned | Sonnet, 3132 | `abe6516c311e72a70` |
 | `uploads-meter-ui` | this month's uploads against her allowance in the storage ring's popover | MERGED at `c00b1f5b0` (gate 225 green); his calls in the calls lab (AD); pruned | Sonnet, 3131 | `a5d19501a15912cc1` |
-| `upload-cancel` | E6 for uploads: an in-flight upload's x (the guest's pending tile, the host's batch row) asks first, then offers Try again, through the uploader's signal; a burst's siblings carry on | RUNNING (cut at `3f1915cbd`; may be cut off: resume from its WIP) | Sonnet, 3132 | `a80a1b7990acf514c` |
+| `upload-cancel` | E6 for uploads: an in-flight upload's x asks first, then offers Try again | MERGED at `4a064993f` (gate 226 green); his calls in the calls lab (AE); pruned | Sonnet, 3132 | `a80a1b7990acf514c` |
 | `crumbs-72` | Settings' develop time never lost (one hook with the date field's close-save), the host's storage refusal with its numbers, the teaser's waiting words, the reel's dead viewer path removed | RUNNING (cut at `192a09666`; may be cut off: resume from its WIP) | Sonnet, 3131 | `acf51d0ab0fa56db8` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Its

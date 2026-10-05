@@ -26,6 +26,8 @@ The local-first-then-live policy, the gate's steps, the account chooser and the 
 - ★ **R2's CORS lists localhost only on 3000 and 3131 to 3139** (beside partyreel.com, admin and the alias): a script's
   read of R2 bytes (the reel's canvas, a clip's render) and a browser's presigned PUT work on those ports and fail on
   any other.
+- ★ **`/demo` redirects to `SITE_URL`'s demo event** (`src/lib/demo.ts`), so on a dev server built with `.env.local`'s
+  partyreel.com it lands on production (Hobby's CPU): open `/e/<NEXT_PUBLIC_DEMO_QR_TOKEN>` on your own port instead.
 - **A signed-in walk runs locally** on a production build at port 3000 built with
   `NEXT_PUBLIC_SITE_URL=http://localhost:3000` (sign-in prefers that variable over the page's origin, and Supabase
   allows `http://localhost:3000/**`): Google's chooser returns there. Will's desk is the same build in
