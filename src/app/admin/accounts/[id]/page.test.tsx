@@ -24,6 +24,8 @@ const state = vi.hoisted(() => ({
   profile: {} as Record<string, unknown>,
   detail: {} as Record<string, unknown>,
   used: { ok: true, value: 0 } as Reading,
+  /** A lapsed pass's end (null: no pass of hers ever live), or undefined for an account that is not lapsed. */
+  lapsedSince: undefined as string | null | undefined,
   hour: { ok: true, value: 0 } as Reading,
   warnings: [] as unknown[][],
   aal: "aal2",
@@ -70,6 +72,10 @@ vi.mock("@/lib/db/queries/accounts", () => ({
       window: UPLOADS_WINDOW[tier],
       allowanceBytes: uploadAllowance(tier, profile.storage_cap_bytes),
       used: state.used,
+      lapsed:
+        state.used.ok && state.lapsedSince !== undefined
+          ? { since: state.lapsedSince }
+          : null,
     };
   },
   readAccountHourUploads: async () => {
@@ -85,6 +91,7 @@ function account(over: {
   cap?: number | null;
   active?: number;
   deleted?: number;
+  expires?: string | null;
 }) {
   const tier = over.tier ?? "free";
   const cap = over.cap ?? null;
@@ -94,7 +101,7 @@ function account(over: {
     display_name: "A host",
     tier,
     storage_cap_bytes: cap,
-    tier_expires_at: null,
+    tier_expires_at: over.expires ?? null,
     storage_grace_until: null,
     created_at: "2026-09-01T00:00:00Z",
     last_active_at: "2026-10-04T00:00:00Z",
@@ -135,6 +142,7 @@ const card = (title: string) =>
 
 beforeEach(() => {
   state.used = { ok: true, value: 0 };
+  state.lapsedSince = undefined;
   state.hour = { ok: true, value: 0 };
   state.warnings = [];
   state.aal = "aal2";
@@ -272,6 +280,61 @@ describe("the uploads card", () => {
   it("raises nothing when both reads came back", async () => {
     await draw();
     expect(state.warnings).toEqual([]);
+  });
+});
+
+describe("a lapsed pass (billing-locks)", () => {
+  it("★ says Pass lapsed and what it means, never 0 B of an allowance no live pass holds", async () => {
+    account({
+      tier: "event_pass",
+      cap: 25 * GIGABYTE,
+      expires: "2026-10-03T14:05:00+00:00",
+    });
+    state.lapsedSince = "2026-10-03T14:05:00+00:00";
+    await draw();
+    const uploads = within(card("Uploads"));
+    expect(uploads.getByText("Pass year").nextElementSibling?.textContent).toBe(
+      "Pass lapsed",
+    );
+    expect(uploads.queryByText(/0 B/)).toBeNull();
+    expect(
+      uploads.getByText(
+        "Her pass ended Oct 3, 2026, 14:05 UTC: new uploads, hers and her guests', are refused until the nightly recompute moves her to Free.",
+      ),
+    ).toBeInTheDocument();
+    expect(uploads.queryByText("At limit")).toBeNull();
+    // Her billing card tells the expiry in its tense: it is past.
+    const billing = within(card("Billing"));
+    expect(billing.getByText("Pass expired")).toBeInTheDocument();
+    expect(billing.queryByText("Pass expires")).toBeNull();
+  });
+
+  it("with no pass of hers ever live, it says so and invents no date", async () => {
+    account({ tier: "event_pass" });
+    state.lapsedSince = null;
+    await draw();
+    expect(
+      within(card("Uploads")).getByText(
+        "She holds no live pass: new uploads, hers and her guests', are refused until the nightly recompute moves her to Free.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("a live pass still reads its year against its allowance, and an expiry ahead says expires", async () => {
+    account({
+      tier: "event_pass",
+      cap: 25 * GIGABYTE,
+      expires: "2099-01-01T00:00:00+00:00",
+    });
+    state.used = { ok: true, value: 31 * GIGABYTE };
+    await draw();
+    expect(
+      within(card("Uploads")).getByText("Pass year").nextElementSibling
+        ?.textContent,
+    ).toBe("31 GB of 50 GB");
+    expect(
+      within(card("Billing")).getByText("Pass expires"),
+    ).toBeInTheDocument();
   });
 });
 

@@ -24,10 +24,12 @@ const accounts = vi.hoisted(() => ({ rows: [] as Record<string, unknown>[] }));
 /** What each account's window has used, by display name; an account not named here has used nothing. A string fails its read. */
 const usage = vi.hoisted(() => ({
   byName: {} as Record<string, number | string>,
+  /** A lapsed pass's end, by display name (null: no pass of hers ever live); an account not named here is not lapsed. */
+  lapsedByName: {} as Record<string, string | null>,
 }));
 const sentry = vi.hoisted(() => ({ warnings: [] as unknown[][] }));
 /** The admin gate's answer, and how many reads were made behind it. */
-const gate = vi.hoisted(() => ({ aal: "aal2", reads: 0 }));
+const gate = vi.hoisted(() => ({ aal: "aal2", reads: 0, uploadsCalls: 0 }));
 
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/auth/admin-context", () => ({
@@ -43,23 +45,29 @@ vi.mock("@/lib/db/queries/accounts", () => ({
   },
   accountTierLabel: (tier: string) =>
     tier === "pro" ? "Pro" : tier === "event_pass" ? "Event Pass" : "Free",
-  // The real tier rules over a stubbed read: only `uploads_used`'s answer is canned.
-  readAccountUploads: async (profile: {
-    tier: string;
-    storage_cap_bytes: number | null;
-  }) => {
+  // The real tier rules over a stubbed read: only `uploads_windows`' answers are canned. ONE call for the whole page.
+  readAccountsUploads: async (
+    profiles: { tier: string; storage_cap_bytes: number | null }[],
+  ) => {
     gate.reads += 1;
-    const tier = toBillingTier(profile.tier);
-    const name = (profile as unknown as { display_name: string }).display_name;
-    const used = usage.byName[name] ?? 0;
-    return {
-      window: UPLOADS_WINDOW[tier],
-      allowanceBytes: uploadAllowance(tier, profile.storage_cap_bytes),
-      used:
-        typeof used === "number"
-          ? { ok: true, value: used }
-          : { ok: false, message: used },
-    };
+    gate.uploadsCalls += 1;
+    return profiles.map((profile) => {
+      const tier = toBillingTier(profile.tier);
+      const name = (profile as unknown as { display_name: string })
+        .display_name;
+      const used = usage.byName[name] ?? 0;
+      const since = usage.lapsedByName[name];
+      return {
+        window: UPLOADS_WINDOW[tier],
+        allowanceBytes: uploadAllowance(tier, profile.storage_cap_bytes),
+        used:
+          typeof used === "number"
+            ? { ok: true, value: used }
+            : { ok: false, message: used },
+        lapsed:
+          typeof used === "number" && since !== undefined ? { since } : null,
+      };
+    });
   },
 }));
 
@@ -89,9 +97,11 @@ const rowOf = (name: string) =>
 beforeEach(() => {
   accounts.rows = [];
   usage.byName = {};
+  usage.lapsedByName = {};
   sentry.warnings = [];
   gate.aal = "aal2";
   gate.reads = 0;
+  gate.uploadsCalls = 0;
 });
 
 describe("the Cap column", () => {
@@ -237,6 +247,58 @@ describe("the Uploads and Allowance columns", () => {
     await draw();
     expect(screen.queryByRole("alert")).toBeNull();
     expect(sentry.warnings).toEqual([]);
+  });
+});
+
+describe("one read for the page, and a lapsed pass said truly (billing-locks)", () => {
+  it("★ reads every listed account's uploads in ONE call, never one a row", async () => {
+    accounts.rows = Array.from({ length: 50 }, (_, i) =>
+      row({ display_name: `Host ${i}` }),
+    );
+    await draw();
+    expect(gate.uploadsCalls).toBe(1);
+  });
+
+  it("★ a lapsed pass reads Pass lapsed since when, its allowance refused, its row tinted, and never 0 B", async () => {
+    usage.lapsedByName = { Lapsed: "2026-10-03T14:00:00+00:00", Unknown: null };
+    accounts.rows = [
+      // Storage is not zero, so a "0 B" in the row could only be the uploads cell.
+      row({
+        display_name: "Lapsed",
+        tier: "event_pass",
+        storage_used_bytes: 3 * GIGABYTE,
+      }),
+      row({
+        display_name: "Unknown",
+        tier: "event_pass",
+        storage_used_bytes: 1 * GIGABYTE,
+      }),
+      row({
+        display_name: "Live pass",
+        tier: "event_pass",
+        storage_used_bytes: 2 * GIGABYTE,
+      }),
+    ];
+    await draw();
+    const lapsed = rowOf("Lapsed");
+    expect(within(lapsed).getByText("Pass lapsed")).toBeInTheDocument();
+    expect(within(lapsed).getByText("Oct 3, 2026 UTC")).toBeInTheDocument();
+    expect(within(lapsed).getByText("Uploads refused")).toBeInTheDocument();
+    expect(within(lapsed).queryByText("0 B")).toBeNull();
+    expect(within(lapsed).queryByText("50 GB / yr")).toBeNull();
+    expect(lapsed.getAttribute("data-tone")).toBe("warning");
+    // Lapsed with no pass ever live: the badge and the refusal, and no invented date.
+    const unknown = rowOf("Unknown");
+    expect(within(unknown).getByText("Pass lapsed")).toBeInTheDocument();
+    expect(within(unknown).getByText("Uploads refused")).toBeInTheDocument();
+    // The one date in its row is its Last seen.
+    expect(within(unknown).getAllByText(/UTC$/)).toHaveLength(1);
+    // A live pass is as it was: its year's figure against its allowance, no tint.
+    const live = rowOf("Live pass");
+    expect(within(live).getByText("0 B")).toBeInTheDocument();
+    expect(within(live).getByText("50 GB / yr")).toBeInTheDocument();
+    expect(within(live).queryByText("Pass lapsed")).toBeNull();
+    expect(live.getAttribute("data-tone")).toBeNull();
   });
 });
 

@@ -15,8 +15,12 @@ import {
   allowanceLabel,
   hourLabel,
   hourState,
+  lapsedSentence,
+  lapsedSinceDate,
   NO_READING,
+  PASS_LAPSED,
   UPLOADS_AN_HOUR,
+  UPLOADS_REFUSED,
   uploadsState,
   usedLabel,
   windowLabel,
@@ -24,13 +28,15 @@ import {
 
 /**
  * ★ THE OPERATOR READS THE REFUSALS THE PRODUCT MAKES, in one set of words: a host's window against her plan's
- * allowance, and the hour against the breaker. A reading that was not taken is "No reading", never a zero.
+ * allowance, and the hour against the breaker. A reading that was not taken is "No reading", never a zero, and a pass
+ * that has lapsed is lapsed, never "0 B" of an allowance she cannot use.
  */
 
 const free = (usedBytes: number): AccountUploads => ({
   window: "month",
   allowanceBytes: planById("free").uploadsBytes,
   used: { ok: true, value: usedBytes },
+  lapsed: null,
 });
 
 describe("the breaker's ceiling is the SQL's, read off the migrations", () => {
@@ -92,10 +98,57 @@ describe("a window against its allowance", () => {
       window: "month",
       allowanceBytes: uploadAllowance("pro", null),
       used: { ok: true, value: 900 * GIGABYTE },
+      lapsed: null,
     };
     expect(unmetered.allowanceBytes).toBeNull();
     expect(uploadsState(unmetered)).toBe("unmetered");
     expect(allowanceLabel(unmetered)).toBe("Unmetered");
+  });
+});
+
+describe("a lapsed pass (billing-locks): every upload refused until the recompute, never 0 B of room", () => {
+  /** A pass holder whose last pass ended: her window is no window, so `uploads_used` reads 0 over it. */
+  const lapsed = (since: string | null): AccountUploads => ({
+    window: "year",
+    allowanceBytes: planById("event_pass").uploadsBytes,
+    used: { ok: true, value: 0 },
+    lapsed: { since },
+  });
+
+  it("★ is lapsed, never within: her 0 B of 50 GB was room she could not use", () => {
+    expect(uploadsState(lapsed("2026-10-03T14:00:00+00:00"))).toBe("lapsed");
+    // The figure a lapsed pass reads, without the flag, is exactly the calm row this replaces.
+    expect(uploadsState({ ...lapsed(null), lapsed: null })).toBe("within");
+  });
+
+  it("★ its allowance says uploads are refused, not the plan's number no live pass holds", () => {
+    expect(allowanceLabel(lapsed("2026-10-03T14:00:00+00:00"))).toBe(
+      UPLOADS_REFUSED,
+    );
+    expect(UPLOADS_REFUSED).toBe("Uploads refused");
+    expect(PASS_LAPSED).toBe("Pass lapsed");
+  });
+
+  it("says since when: the day in the list, the minute on the page, and nothing it does not know", () => {
+    const since = "2026-10-03T14:05:00+00:00";
+    expect(lapsedSinceDate({ since })).toBe("Oct 3, 2026 UTC");
+    expect(lapsedSentence({ since })).toBe(
+      "Her pass ended Oct 3, 2026, 14:05 UTC: new uploads, hers and her guests', are refused until the nightly recompute moves her to Free.",
+    );
+    // No pass of hers ever was live (a tier set by hand): no date is invented.
+    expect(lapsedSinceDate({ since: null })).toBeNull();
+    expect(lapsedSentence({ since: null })).toBe(
+      "She holds no live pass: new uploads, hers and her guests', are refused until the nightly recompute moves her to Free.",
+    );
+  });
+
+  it("★ a failed read outranks it: No reading, and the plan's own number, never a refusal it did not read", () => {
+    const failed: AccountUploads = {
+      ...lapsed("2026-10-03T14:00:00+00:00"),
+      used: { ok: false, message: "boom" },
+    };
+    expect(uploadsState(failed)).toBe("unread");
+    expect(allowanceLabel(failed)).toBe("50 GB / yr");
   });
 });
 
@@ -107,6 +160,7 @@ describe("the allowance as a table says it", () => {
         window: "month",
         allowanceBytes: planById("pro_200").uploadsBytes,
         used: { ok: true, value: 0 },
+        lapsed: null,
       }),
     ).toBe("200 GB / mo");
     expect(
@@ -114,6 +168,7 @@ describe("the allowance as a table says it", () => {
         window: "year",
         allowanceBytes: planById("event_pass").uploadsBytes,
         used: { ok: true, value: 0 },
+        lapsed: null,
       }),
     ).toBe("50 GB / yr");
   });

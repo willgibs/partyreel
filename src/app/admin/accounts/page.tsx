@@ -21,7 +21,7 @@ import {
 import { requireAdmin } from "@/lib/auth/admin-context";
 import {
   accountTierLabel,
-  readAccountUploads,
+  readAccountsUploads,
   searchAccounts,
 } from "@/lib/db/queries/accounts";
 import { formatAdminDate } from "@/lib/format/admin-time";
@@ -30,7 +30,14 @@ import { formatBytes } from "@/lib/utils";
 import { PageHeading } from "@/components/shared/page-heading";
 
 import { accountCap, capLabel } from "./cap";
-import { allowanceLabel, NO_READING, uploadsState, usedLabel } from "./uploads";
+import {
+  allowanceLabel,
+  lapsedSinceDate,
+  NO_READING,
+  PASS_LAPSED,
+  uploadsState,
+  usedLabel,
+} from "./uploads";
 
 export const dynamic = "force-dynamic";
 
@@ -46,10 +53,11 @@ export default async function AdminAccountsPage({
 
   const { q } = await searchParams;
   const accounts = await searchAccounts(q);
-  // ★ Each account's uploads are read through `uploads_used`, the function the upload refusals read, so no row can
-  // disagree with the refusal it warns of. One small read a row (at most the list's 50), each its own: a failed one
-  // answers No reading for its row and never fails the page, never a zero.
-  const uploads = await Promise.all(accounts.map((a) => readAccountUploads(a)));
+  // ★ Every listed account's uploads in ONE read (`uploads_windows`, billing-locks: it was one `uploads_used` call a
+  // row, 50 a page view), each figure still `uploads_used` asked with her own tier, the function the upload refusals
+  // read, so no row can disagree with the refusal it warns of, and a pass holder with no live pass reads lapsed. A
+  // failed read answers No reading for the rows it could not read and never fails the page, never a zero.
+  const uploads = await readAccountsUploads(accounts);
   const unread = uploads.flatMap((u) => (u.used.ok ? [] : [u.used.message]));
   if (unread.length > 0) {
     captureWarning("admin", "accounts: uploads read failed", {
@@ -117,13 +125,22 @@ export default async function AdminAccountsPage({
                 const cap = accountCap(account.tier, account.storage_cap_bytes);
                 const over = cap !== null && account.storage_used_bytes > cap;
                 // Her window against her plan's number: `at` is where every next upload is refused until the
-                // window turns, so the row takes the same warning as an account past its cap.
+                // window turns, and `lapsed` (a pass holder with no live pass) refuses every upload now, so
+                // either takes the same warning as an account past its cap.
                 const held = uploads[index];
                 const state = uploadsState(held);
+                const lapsedSince =
+                  state === "lapsed" && held.lapsed
+                    ? lapsedSinceDate(held.lapsed)
+                    : null;
                 return (
                   <TableRow
                     key={account.id}
-                    tone={over || state === "at" ? "warning" : undefined}
+                    tone={
+                      over || state === "at" || state === "lapsed"
+                        ? "warning"
+                        : undefined
+                    }
                   >
                     <TableCell className="max-w-0">
                       {/* The name cell is the door, and the row is not: a `<tr>`
@@ -160,6 +177,13 @@ export default async function AdminAccountsPage({
                       {state === "unread" ? (
                         <span className="text-destructive">
                           {usedLabel(held)}
+                        </span>
+                      ) : state === "lapsed" ? (
+                        // ★ No figure: a lapsed pass's window is no window, and its "0 B" read as room to spare
+                        // while every upload was refused. The badge says why and the date since when.
+                        <span className="inline-flex items-center justify-end gap-2">
+                          <Badge variant="warning">{PASS_LAPSED}</Badge>
+                          {lapsedSince}
                         </span>
                       ) : (
                         <span className="inline-flex items-center justify-end gap-2">

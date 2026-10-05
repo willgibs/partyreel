@@ -3,9 +3,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GIGABYTE, MEGABYTE } from "@/lib/constants/tiers";
 
 /**
- * ★ WHAT THE OPERATOR'S ACCOUNT READS SAY, against a stubbed service-role client: a host's uploads are asked of
- * `uploads_used` WITH HER OWN TIER (the refusals' own question), her hour from the month's ledger row, and her Deleted
- * rides beside her albums. These tests live beside the pages because `queries/accounts.ts` is claimed as one file.
+ * ★ WHAT THE OPERATOR'S ACCOUNT READS SAY, against a stubbed service-role client: every listed host's uploads in one
+ * `uploads_windows` read (each figure `uploads_used` asked with HER OWN tier, the refusals' own question, and a lapsed
+ * pass said as one), her hour from the month's ledger row, and her Deleted beside her albums.
  */
 
 const rpc = vi.fn();
@@ -52,8 +52,12 @@ vi.mock("@/lib/db/queries/storage", () => ({
   readHostStorageSummary: async () => summary.value,
 }));
 
-const { getAccountDetail, readAccountHourUploads, readAccountUploads } =
-  await import("@/lib/db/queries/accounts");
+const {
+  getAccountDetail,
+  readAccountHourUploads,
+  readAccountsUploads,
+  readAccountUploads,
+} = await import("@/lib/db/queries/accounts");
 
 const HOST = "11111111-1111-4111-8111-111111111111";
 
@@ -66,111 +70,219 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe("a host's uploads against her allowance", () => {
-  it("★ asks uploads_used with HER OWN tier, as the refusals do, and carries the Free allowance over a month", async () => {
-    rpc.mockResolvedValue({ data: 212 * MEGABYTE, error: null });
-    const uploads = await readAccountUploads({
-      id: HOST,
+/** One `uploads_windows` row as PostgREST answers it. */
+function windowRow(
+  hostId: string,
+  usedBytes: unknown,
+  lapsedAt: string | null | undefined = undefined,
+) {
+  return {
+    host_id: hostId,
+    used_bytes: usedBytes,
+    pass_lapsed: lapsedAt !== undefined,
+    pass_lapsed_at: lapsedAt ?? null,
+  };
+}
+
+/**
+ * Answer `uploads_windows` the way the SQL does over a canned set of rows: only the asked ids, in id order, after the
+ * keyset cursor, at most `p_limit` and never more than PostgREST's 1,000.
+ */
+function answerWindows(rows: ReturnType<typeof windowRow>[]) {
+  rpc.mockImplementation(
+    async (name: string, args: Record<string, unknown>) => {
+      if (name !== "uploads_windows") {
+        return { data: null, error: { message: `unexpected rpc ${name}` } };
+      }
+      const asked = new Set(args.p_host_ids as string[]);
+      const after = (args.p_after_id as string | null) ?? null;
+      const limit = Math.min(Number(args.p_limit ?? 1000), 1000);
+      const data = rows
+        .filter(
+          (r) => asked.has(r.host_id) && (after === null || r.host_id > after),
+        )
+        .sort((a, b) => (a.host_id < b.host_id ? -1 : 1))
+        .slice(0, limit);
+      return { data, error: null };
+    },
+  );
+}
+
+const id = (n: number) =>
+  `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
+
+/** A listed account as the read takes it. */
+type Listed = Parameters<typeof readAccountsUploads>[0][number];
+
+describe("every listed host's uploads against her allowance, in one read", () => {
+  it("★ reads the whole page's hosts in ONE call (it was one uploads_used call a row), each in the order asked", async () => {
+    const profiles: Listed[] = Array.from({ length: 50 }, (_, i) => ({
+      id: id(50 - i), // listed newest-active first, never in id order
       tier: "free",
       storage_cap_bytes: null,
+    }));
+    answerWindows(profiles.map((p, i) => windowRow(p.id, i * MEGABYTE)));
+    const uploads = await readAccountsUploads(profiles);
+    expect(rpc).toHaveBeenCalledTimes(1);
+    expect(rpc.mock.calls[0]![0]).toBe("uploads_windows");
+    expect(rpc.mock.calls[0]![1]).toMatchObject({
+      p_after_id: null,
+      p_limit: 1000,
     });
-    expect(rpc).toHaveBeenCalledWith("uploads_used", {
-      p_host_id: HOST,
-      p_tier: "free",
+    expect([...(rpc.mock.calls[0]![1].p_host_ids as string[])].sort()).toEqual(
+      profiles.map((p) => p.id).sort(),
+    );
+    expect(uploads).toHaveLength(50);
+    uploads.forEach((u, i) => {
+      expect(u.used).toEqual({ ok: true, value: i * MEGABYTE });
+      expect(u.lapsed).toBeNull();
     });
-    expect(uploads).toEqual({
+  });
+
+  it("★ carries each host's own window and allowance: Free's month, a stack's year, a Pro's size, the retired max a Pro", async () => {
+    const profiles: Listed[] = [
+      { id: id(1), tier: "free", storage_cap_bytes: null },
+      { id: id(2), tier: "event_pass", storage_cap_bytes: 50 * GIGABYTE }, // two stacked passes' rooms
+      { id: id(3), tier: "pro", storage_cap_bytes: 200 * GIGABYTE },
+      { id: id(4), tier: "max", storage_cap_bytes: 1024 * GIGABYTE },
+      { id: id(5), tier: "pro", storage_cap_bytes: null },
+    ];
+    answerWindows([
+      windowRow(id(1), 212 * MEGABYTE),
+      windowRow(id(2), 61 * GIGABYTE),
+      windowRow(id(3), 0),
+      windowRow(id(4), 0),
+      windowRow(id(5), 5 * GIGABYTE),
+    ]);
+    const [free, pass, pro, max, unmetered] =
+      await readAccountsUploads(profiles);
+    expect(free).toEqual({
       window: "month",
       allowanceBytes: 300 * MEGABYTE,
       used: { ok: true, value: 212 * MEGABYTE },
+      lapsed: null,
+    });
+    expect(pass).toMatchObject({
+      window: "year",
+      allowanceBytes: 100 * GIGABYTE,
+      used: { ok: true, value: 61 * GIGABYTE },
+    });
+    expect(pro).toMatchObject({
+      window: "month",
+      allowanceBytes: 200 * GIGABYTE,
+    });
+    expect(max!.allowanceBytes).toBe(500 * GIGABYTE);
+    // A Pro with no cap on record is unmetered (null), the SQL's fail-open.
+    expect(unmetered).toMatchObject({
+      allowanceBytes: null,
+      used: { ok: true, value: 5 * GIGABYTE },
     });
   });
 
-  it("★ a pass holder is read over her pass's year, never the month's ledger: asked as event_pass, one pass's allowance per pass her room holds", async () => {
-    rpc.mockResolvedValue({ data: 61 * GIGABYTE, error: null });
-    const uploads = await readAccountUploads({
-      id: HOST,
-      tier: "event_pass",
-      storage_cap_bytes: 50 * GIGABYTE, // two stacked passes' rooms
-    });
-    expect(rpc).toHaveBeenCalledWith("uploads_used", {
-      p_host_id: HOST,
-      p_tier: "event_pass",
-    });
-    expect(uploads.window).toBe("year");
-    expect(uploads.allowanceBytes).toBe(100 * GIGABYTE);
-    expect(uploads.used).toEqual({ ok: true, value: 61 * GIGABYTE });
+  it("★ a lapsed pass reads lapsed, with when her pass ended, never a calm 0 B", async () => {
+    answerWindows([
+      windowRow(id(1), 0, "2026-10-03T14:00:00+00:00"),
+      windowRow(id(2), 0, null), // lapsed, no pass of hers ever live
+    ]);
+    const [ended, neverLive] = await readAccountsUploads([
+      { id: id(1), tier: "event_pass", storage_cap_bytes: 25 * GIGABYTE },
+      { id: id(2), tier: "event_pass", storage_cap_bytes: null },
+    ]);
+    expect(ended!.lapsed).toEqual({ since: "2026-10-03T14:00:00+00:00" });
+    expect(ended!.used).toEqual({ ok: true, value: 0 });
+    expect(neverLive!.lapsed).toEqual({ since: null });
   });
 
-  it("a Pro's allowance is her size's, and the retired max is a Pro to both the SQL and the page", async () => {
-    rpc.mockResolvedValue({ data: 0, error: null });
-    const pro = await readAccountUploads({
-      id: HOST,
-      tier: "pro",
-      storage_cap_bytes: 200 * GIGABYTE,
-    });
-    expect(pro.allowanceBytes).toBe(200 * GIGABYTE);
-    expect(pro.window).toBe("month");
-
-    const max = await readAccountUploads({
-      id: HOST,
-      tier: "max",
-      storage_cap_bytes: 1024 * GIGABYTE,
-    });
-    expect(rpc).toHaveBeenLastCalledWith("uploads_used", {
-      p_host_id: HOST,
-      p_tier: "max",
-    });
-    expect(max.allowanceBytes).toBe(500 * GIGABYTE);
-  });
-
-  it("a Pro with no cap on record is unmetered (null), the SQL's fail-open", async () => {
-    rpc.mockResolvedValue({ data: 5 * GIGABYTE, error: null });
-    const uploads = await readAccountUploads({
-      id: HOST,
-      tier: "pro",
-      storage_cap_bytes: null,
-    });
-    expect(uploads.allowanceBytes).toBeNull();
-    expect(uploads.used).toEqual({ ok: true, value: 5 * GIGABYTE });
-  });
-
-  it("★ a failed read never throws and never reads as zero: it says why, and still carries the plan's number", async () => {
-    rpc.mockResolvedValue({
-      data: null,
-      error: { message: "permission denied for function uploads_used" },
-    });
-    const uploads = await readAccountUploads({
-      id: HOST,
+  it("pages past 1,000 hosts on the keyset, so no host is cut at PostgREST's cap", async () => {
+    const profiles: Listed[] = Array.from({ length: 2300 }, (_, i) => ({
+      id: id(i + 1),
       tier: "free",
       storage_cap_bytes: null,
+    }));
+    answerWindows(profiles.map((p) => windowRow(p.id, 7)));
+    const uploads = await readAccountsUploads(profiles);
+    expect(rpc).toHaveBeenCalledTimes(3);
+    expect(rpc.mock.calls.map((c) => c[1].p_after_id)).toEqual([
+      null,
+      id(1000),
+      id(2000),
+    ]);
+    expect(uploads.every((u) => u.used.ok && u.used.value === 7)).toBe(true);
+  });
+
+  it("asks nothing for an empty list", async () => {
+    await expect(readAccountsUploads([])).resolves.toEqual([]);
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("★ a failed read never throws and never reads as zero: every row says why, and still carries its plan's number", async () => {
+    rpc.mockResolvedValue({
+      data: null,
+      error: {
+        code: "PGRST202",
+        message:
+          "Could not find the function public.uploads_windows(p_after_id, p_host_ids, p_limit) in the schema cache",
+      },
     });
-    expect(uploads.used).toEqual({
-      ok: false,
-      message: "permission denied for function uploads_used",
-    });
-    expect(uploads.allowanceBytes).toBe(300 * MEGABYTE);
+    const uploads = await readAccountsUploads([
+      { id: id(1), tier: "free", storage_cap_bytes: null },
+      { id: id(2), tier: "event_pass", storage_cap_bytes: null },
+    ]);
+    for (const u of uploads) {
+      expect(u.used.ok).toBe(false);
+      expect(u.used.ok ? "" : u.used.message).toMatch(
+        /^accounts: uploads windows: Could not find the function/,
+      );
+      expect(u.lapsed).toBeNull();
+    }
+    expect(uploads[0]!.allowanceBytes).toBe(300 * MEGABYTE);
   });
 
   it("★ a thrown read (a dropped connection) is the same No reading, not a failed page", async () => {
     rpc.mockRejectedValue(new Error("fetch failed"));
-    const uploads = await readAccountUploads({
-      id: HOST,
-      tier: "free",
-      storage_cap_bytes: null,
-    });
-    expect(uploads.used).toEqual({ ok: false, message: "fetch failed" });
+    const [uploads] = await readAccountsUploads([
+      { id: id(1), tier: "free", storage_cap_bytes: null },
+    ]);
+    expect(uploads!.used).toEqual({ ok: false, message: "fetch failed" });
   });
 
-  it("★ an answer that is not a size is a broken read, never an empty month", async () => {
-    for (const data of [null, undefined, "12", Number.NaN, -1]) {
-      rpc.mockResolvedValue({ data, error: null });
-      const uploads = await readAccountUploads({
-        id: HOST,
-        tier: "free",
-        storage_cap_bytes: null,
-      });
-      expect(uploads.used.ok, String(data)).toBe(false);
+  it("★ an account the read did not answer (deleted since the list) is No reading for its row alone", async () => {
+    answerWindows([windowRow(id(1), 3 * MEGABYTE)]);
+    const [found, gone] = await readAccountsUploads([
+      { id: id(1), tier: "free", storage_cap_bytes: null },
+      { id: id(2), tier: "free", storage_cap_bytes: null },
+    ]);
+    expect(found!.used).toEqual({ ok: true, value: 3 * MEGABYTE });
+    expect(gone!.used.ok).toBe(false);
+  });
+
+  it("★ an answer that is not a size, or no lapsed flag, is a broken read, never an empty month", async () => {
+    for (const used of [null, undefined, "12", Number.NaN, -1]) {
+      rpc.mockReset();
+      answerWindows([windowRow(id(1), used)]);
+      const [uploads] = await readAccountsUploads([
+        { id: id(1), tier: "free", storage_cap_bytes: null },
+      ]);
+      expect(uploads!.used.ok, String(used)).toBe(false);
     }
+    rpc.mockReset();
+    answerWindows([{ ...windowRow(id(1), 0), pass_lapsed: "yes" as never }]);
+    const [noFlag] = await readAccountsUploads([
+      { id: id(1), tier: "event_pass", storage_cap_bytes: null },
+    ]);
+    expect(noFlag!.used.ok).toBe(false);
+  });
+
+  it("the account's page asks the same read for its one host", async () => {
+    answerWindows([windowRow(id(9), 1, "2026-10-01T00:00:00+00:00")]);
+    const uploads = await readAccountUploads({
+      id: id(9),
+      tier: "event_pass",
+      storage_cap_bytes: 25 * GIGABYTE,
+    });
+    expect(rpc).toHaveBeenCalledTimes(1);
+    expect(rpc.mock.calls[0]![1].p_host_ids).toEqual([id(9)]);
+    expect(uploads.lapsed).toEqual({ since: "2026-10-01T00:00:00+00:00" });
   });
 });
 

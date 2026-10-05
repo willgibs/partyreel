@@ -8,6 +8,8 @@
  */
 import "server-only";
 
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 import {
   effectiveStorageCap,
   toBillingTier,
@@ -15,6 +17,7 @@ import {
   UPLOADS_WINDOW,
   type Tier,
 } from "@/lib/constants/tiers";
+import { readAllPages } from "@/lib/db/read-all";
 import { readHostStorageSummary } from "@/lib/db/queries/storage";
 import type { Tables } from "@/lib/db/types";
 import { serverEnv } from "@/lib/env";
@@ -177,44 +180,137 @@ export type AccountUploads = {
   allowanceBytes: number | null;
   /** What her window has used, as the upload RPCs read it (`uploads_used`). */
   used: Reading<number>;
+  /**
+   * ★ A PASS WITH NO LIVE YEAR (the completes' Q26 F1 refusal): her profile still says Event Pass, but no pass of hers
+   * is live, so every upload, hers and her guests', is refused in the allowance's words until the nightly recompute
+   * moves her to Free, and `used` is a figure over no window at all. `since` is when her last pass stopped being live
+   * (null when no pass of hers ever was). Null for every account holding a live window, and whenever `used` was not
+   * read, since a reading that was not taken says nothing.
+   */
+  lapsed: { since: string | null } | null;
+};
+
+/** One row of `uploads_windows` (20261005130000), as PostgREST answers it. */
+type UploadsWindowRow = {
+  host_id: string;
+  used_bytes: unknown;
+  pass_lapsed: unknown;
+  pass_lapsed_at: unknown;
 };
 
 /**
- * ★ A HOST'S UPLOADS AGAINST HER ALLOWANCE, AS THE PRODUCT ENFORCES THEM. The figure is `uploads_used(host, tier)`
- * asked with HER OWN tier, exactly as `create_media*` and `meter_upload` ask it: this calendar month's ledger for
- * Free and Pro, her live passes' own year for a pass holder. (`readHostMonthUploads` asks as `pro` on purpose, for
- * the plan sheet's "what a switch to Pro is measured against", so it would show a pass holder the month's ledger her
- * allowance never reads.) The number it is held to is `uploadAllowance`, the one home in tiers.ts, which mirrors the
- * SQL `upload_allowance()` under the parity test.
- *
- * ★ A FAILED READ IS "NO READING", NEVER A ZERO: this never throws, so one account's failure cannot take the page
- * from an operator who came to read something else (the delete beside it), and it carries its words for the
- * caller's Sentry capture (Sentry never enters `src/lib/db`). Service-role, so the CALLER proves the id came from an
- * admin-gated read.
+ * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `uploads_windows` arrives with migration 20261005130000, so its call
+ * goes through this untyped client (drop the cast then).
  */
+function uploadsWindowsDb(db: ReturnType<typeof createAdminClient>) {
+  return db as unknown as SupabaseClient;
+}
+
+/** What a listed account says when its row did not come back: the account was not found by the read. */
+const NO_ROW = "uploads_windows answered no row for this account";
+
+/**
+ * ★ EVERY LISTED HOST'S UPLOADS AGAINST HER ALLOWANCE, AS THE PRODUCT ENFORCES THEM, IN ONE READ (`uploads_windows`,
+ * 20261005130000). It was one `uploads_used` call a row, 50 a page view. Each figure is still `uploads_used(host,
+ * tier)` asked with HER OWN tier, exactly as `create_media*` and `meter_upload` ask it (the SQL calls it per row: this
+ * calendar month's ledger for Free and Pro, her live passes' own year for a pass holder), so no row can disagree with
+ * the refusal it warns of; and beside it whether she is a pass holder with no live window (`lapsed`), which a figure
+ * of 0 B could only hide. (`readHostMonthUploads` asks as `pro` on purpose, for the plan sheet's "what a switch to Pro
+ * is measured against", so it would show a pass holder the month's ledger her allowance never reads.) The number each
+ * is held to is `uploadAllowance`, the one home in tiers.ts, which mirrors the SQL `upload_allowance()` under the
+ * parity test. Answers in the order asked; the ids ride the POST body, keyset-paged on the profile id.
+ *
+ * ★ A FAILED READ IS "NO READING", NEVER A ZERO: this never throws, so the failure cannot take the page from an
+ * operator who came to read something else (the delete beside it), and it carries its words for the caller's Sentry
+ * capture (Sentry never enters `src/lib/db`). A failed call fails every row it was asked for, and an account the read
+ * did not answer (deleted since the list was read) fails its own. Service-role, so the CALLER proves the ids came
+ * from an admin-gated read.
+ */
+export async function readAccountsUploads(
+  profiles: readonly Pick<
+    Tables<"profiles">,
+    "id" | "tier" | "storage_cap_bytes"
+  >[],
+): Promise<AccountUploads[]> {
+  const held = profiles.map((profile) => {
+    const tier = toBillingTier(profile.tier);
+    return {
+      window: UPLOADS_WINDOW[tier],
+      allowanceBytes: uploadAllowance(tier, profile.storage_cap_bytes),
+    };
+  });
+  if (profiles.length === 0) return [];
+  let rows: UploadsWindowRow[];
+  try {
+    const db = uploadsWindowsDb(createAdminClient());
+    const ids = [...new Set(profiles.map((profile) => profile.id))];
+    ({ rows } = await readAllPages(
+      "accounts: uploads windows",
+      (after: string | null, limit) =>
+        db.rpc("uploads_windows", {
+          p_host_ids: ids,
+          p_after_id: after,
+          p_limit: limit,
+        }),
+      (row: UploadsWindowRow) => row.host_id,
+    ));
+  } catch (error) {
+    const unread = failure(error);
+    return held.map((h) => ({ ...h, used: unread, lapsed: null }));
+  }
+  const byId = new Map(rows.map((row) => [row.host_id, row]));
+  return profiles.map((profile, index) => {
+    const row = byId.get(profile.id);
+    const read = row
+      ? readWindow(row)
+      : { used: { ok: false as const, message: NO_ROW }, lapsed: null };
+    return { ...held[index], ...read };
+  });
+}
+
+/**
+ * One row's reading, or why it is none. `uploads_used` coalesces to 0, so a figure that is not a size is a broken
+ * read, never an empty month, and a lapsed flag that is not a boolean is no flag at all.
+ */
+function readWindow(
+  row: UploadsWindowRow,
+): Pick<AccountUploads, "used" | "lapsed"> {
+  const used = row.used_bytes;
+  if (typeof used !== "number" || !Number.isFinite(used) || used < 0) {
+    return {
+      used: {
+        ok: false,
+        message: "uploads_windows answered something other than a size",
+      },
+      lapsed: null,
+    };
+  }
+  if (typeof row.pass_lapsed !== "boolean") {
+    return {
+      used: {
+        ok: false,
+        message: "uploads_windows answered no lapsed flag",
+      },
+      lapsed: null,
+    };
+  }
+  const since =
+    typeof row.pass_lapsed_at === "string" &&
+    Number.isFinite(Date.parse(row.pass_lapsed_at))
+      ? row.pass_lapsed_at
+      : null;
+  return {
+    used: { ok: true, value: used },
+    lapsed: row.pass_lapsed ? { since } : null,
+  };
+}
+
+/** One host's uploads, through the same read as the list's (the account's page), so a row and its card agree. */
 export async function readAccountUploads(
   profile: Pick<Tables<"profiles">, "id" | "tier" | "storage_cap_bytes">,
 ): Promise<AccountUploads> {
-  const tier = toBillingTier(profile.tier);
-  const held = {
-    window: UPLOADS_WINDOW[tier],
-    allowanceBytes: uploadAllowance(tier, profile.storage_cap_bytes),
-  };
-  try {
-    const { data, error } = await createAdminClient().rpc("uploads_used", {
-      p_host_id: profile.id,
-      // The raw column, as the SQL callers pass it (`v_profile.tier`): the retired `max` is a Pro to both.
-      p_tier: profile.tier,
-    });
-    if (error) throw error;
-    // The function coalesces to 0, so an answer that is not a number is a broken read, not an empty month.
-    if (typeof data !== "number" || !Number.isFinite(data) || data < 0) {
-      throw new Error("uploads_used answered something other than a size");
-    }
-    return { ...held, used: { ok: true, value: data } };
-  } catch (error) {
-    return { ...held, used: failure(error) };
-  }
+  const [uploads] = await readAccountsUploads([profile]);
+  return uploads!;
 }
 
 const HOUR_MS = 60 * 60 * 1000;
