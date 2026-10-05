@@ -16,6 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { floatingGutter } from "@/components/ui/floating-layer";
 import { Label } from "@/components/ui/label";
 import {
   Popup,
@@ -144,14 +145,14 @@ export function ProfileActionsMenu({
             end-aligned panel hung 77px off the screen: Radix pushed it back to
             the glass's very edge, under Follow rather than its own trigger, with
             no gutter at all (measured at 375: left 0, the trigger at 115). So a
-            phone aligns it to the trigger's start, and the 8px collision pad,
-            the sub-menu's and the responsive menu's, keeps it off the edge
-            wherever it lands. (The board that found it drew the panel over the
-            name, in a frame with nothing under the row; on the page it opens
-            down.) */}
+            phone aligns it to the trigger's start, and the floating layer's
+            gutter (`floatingGutter`, the sub-menu's and the responsive menu's
+            too) keeps it off the edge wherever it lands. (The board that found
+            it drew the panel over the name, in a frame with nothing under the
+            row; on the page it opens down.) */}
         <DropdownMenuContent
           align={actionsBesideName ? "end" : "start"}
-          collisionPadding={8}
+          collisionPadding={floatingGutter}
           className="w-56"
         >
           <DropdownMenuItem onSelect={() => setReportOpen(true)}>

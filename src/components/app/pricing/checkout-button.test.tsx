@@ -8,9 +8,14 @@
  *     `already_subscribed` sends the same plan to /api/stripe/change-plan, and
  *     the general billing portal is never opened for it (its switcher cannot
  *     know what a host stores). A Pro host's pass click keeps checkout's words.
+ *  3. A switch below this month's uploads says so BEFORE it leaves (crumbs-70): the route
+ *     answers the sentence beside the url, and the hop (a tier-blind page with no card of
+ *     its own to carry the words) shows it and holds one reading before Stripe's page,
+ *     with a way to stay (the wait is hers to stop).
  */
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -181,6 +186,125 @@ describe("a Pro host choosing a Pro plan", () => {
     await userEvent.click(screen.getByRole("button", { name: "Buy a pass" }));
     await waitFor(() => expect(toast.error).toHaveBeenCalledTimes(1));
     expect(calls.map((c) => c.url)).toEqual(["/api/stripe/checkout"]);
+  });
+});
+
+describe("a switch below this month's uploads says so before it leaves", () => {
+  const NOTICE =
+    "You've uploaded 150 GB this month. At 100 GB a month, new uploads, yours and your guests', would pause until November 1.";
+  const URL = "https://billing.stripe.com/p/session/x";
+  const subscribed = {
+    status: 409,
+    body: { ok: false, code: "already_subscribed", message: "On Pro." },
+  };
+
+  // Real time moves the clock too (userEvent and waitFor lean on timers); the hold itself is stepped.
+  beforeEach(() => vi.useFakeTimers({ shouldAdvanceTime: true }));
+  afterEach(() => vi.useRealTimers());
+
+  it("shows the route's sentence, then holds one reading before it goes to Stripe", async () => {
+    replies["/api/stripe/checkout"] = subscribed;
+    replies["/api/stripe/change-plan"] = {
+      status: 200,
+      body: { ok: true, url: URL, notice: NOTICE },
+    };
+    await press();
+    await waitFor(() =>
+      expect(toast).toHaveBeenCalledWith(NOTICE, expect.anything()),
+    );
+    // Still here, and saying it is working: she has not had a moment to read it yet.
+    expect(assigned).toBe(null);
+    expect(screen.getByRole("button")).toBeDisabled();
+    await vi.advanceTimersByTimeAsync(5_000);
+    await waitFor(() => expect(assigned).toBe(URL));
+    // Words, never an error: the webhook allows the switch.
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it("★ stays on the page when she says so during the hold: the wait is hers to stop", async () => {
+    replies["/api/stripe/checkout"] = subscribed;
+    replies["/api/stripe/change-plan"] = {
+      status: 200,
+      body: { ok: true, url: URL, notice: NOTICE },
+    };
+    await press();
+    await waitFor(() => expect(toast).toHaveBeenCalledTimes(1));
+    const options = vi.mocked(toast).mock.calls[0][1] as {
+      action: { label: string; onClick: () => void };
+    };
+    expect(options.action.label).toBe("Stay here");
+    act(() => options.action.onClick());
+    await vi.advanceTimersByTimeAsync(10_000);
+    // The button is hers again, and nothing left the page.
+    await waitFor(() => expect(screen.getByRole("button")).toBeEnabled());
+    expect(assigned).toBe(null);
+  });
+
+  it("★ does not take her to Stripe from another page once she has left this one during the hold", async () => {
+    replies["/api/stripe/checkout"] = subscribed;
+    replies["/api/stripe/change-plan"] = {
+      status: 200,
+      body: { ok: true, url: URL, notice: NOTICE },
+    };
+    vi.mocked(toast).mockReturnValueOnce("held-sentence");
+    const { unmount } = render(
+      <CheckoutButton planId="pro_50">Get Pro</CheckoutButton>,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Get Pro" }));
+    await waitFor(() => expect(toast).toHaveBeenCalledTimes(1));
+    unmount();
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(assigned).toBe(null);
+    // And its sentence goes with the page, rather than lingering beside a Stay here that now stays nothing.
+    expect(toast.dismiss).toHaveBeenCalledWith("held-sentence");
+  });
+
+  it("★ never holds the app's own navigation: another transition commits while the sentence is held", async () => {
+    // React entangles every transition with an async one still pending, the router's included: a hold awaited inside
+    // the press's transition left every link in the app dead until Stripe's page had already taken over (measured in
+    // a browser). The probe is a transition of its own, which is what a Link press is.
+    function Probe() {
+      const [n, setN] = useState(0);
+      const [, startTransition] = useTransition();
+      return (
+        <button onClick={() => startTransition(() => setN((c) => c + 1))}>
+          probe {n}
+        </button>
+      );
+    }
+    replies["/api/stripe/checkout"] = subscribed;
+    replies["/api/stripe/change-plan"] = {
+      status: 200,
+      body: { ok: true, url: URL, notice: NOTICE },
+    };
+    render(
+      <>
+        <CheckoutButton planId="pro_50">Get Pro</CheckoutButton>
+        <Probe />
+      </>,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Get Pro" }));
+    await waitFor(() => expect(toast).toHaveBeenCalledTimes(1));
+    expect(assigned).toBe(null);
+    await userEvent.click(screen.getByRole("button", { name: /probe/ }));
+    // Well inside the hold (a second of it, of five), and it has committed.
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "probe 1" }),
+      ).toBeInTheDocument(),
+    );
+    expect(assigned).toBe(null);
+  });
+
+  it("goes at once, with nothing said, when the route answers no sentence", async () => {
+    replies["/api/stripe/checkout"] = subscribed;
+    replies["/api/stripe/change-plan"] = {
+      status: 200,
+      body: { ok: true, url: URL },
+    };
+    await press();
+    await waitFor(() => expect(assigned).toBe(URL));
+    expect(toast).not.toHaveBeenCalled();
   });
 });
 

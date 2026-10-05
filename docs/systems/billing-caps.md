@@ -136,7 +136,13 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   her own plan counts) have reached the target size's allowance reads, on that size's card, that new uploads (her
   guests' too) would pause until the month turns (`uploadsPauseNote`): the webhook allows the switch, so
   `checkPlanChange` stays storage's alone. Only a real change of allowance she may press carries it, and a failed
-  read omits the sentence, never the sheet.
+  read omits the sentence, never the sheet. `/pricing`'s hop has no card to carry it (the page is tier-blind), so
+  change-plan answers it beside the url as `notice` (only for a step down in the allowance, read after the storage
+  check and while the portal session is made, a failed read answering none) and the CheckoutButton shows it, holding
+  one reading before it leaves, with a Stay here on the toast; the sheet's own switch ignores it, having said it on
+  the card. ★ The hold is a timer and a state of its own, never an `await` inside the press's transition: React
+  entangles the router's transitions with a pending async one, so every link in the app sat dead until Stripe's page
+  took over (found in a browser); leaving the page ends the hold and takes its sentence.
 - **A Pro switch goes through `/api/stripe/change-plan`, never the general portal.** `/pricing` is static and
   tier-blind, so a Pro host's tap on a Pro size is refused at checkout (`already_subscribed`) and the button re-posts
   the same plan id to change-plan. After the subscription and storage checks, the route opens a portal session on
