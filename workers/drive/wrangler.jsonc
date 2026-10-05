@@ -1,0 +1,64 @@
+{
+  // Partyreel's Send to Google Drive Worker (drive-export.md). Deployed SEPARATELY via `wrangler deploy` from this
+  // directory; NOT part of the Next app or the Vercel build, and not a part of `partyreel-export` (a Drive fault must
+  // never touch Download, and a queue consumer, a cron and an outbound OAuth client do not belong under that Worker's
+  // compat contract).
+  //
+  // The app is the one authorization oracle: this Worker holds no database credential, no refresh token, no key and
+  // no Google client secret. It leases work and an hour of access (sealed for the lease) from the app's signed
+  // internal routes, streams each original from R2 into Google, and reports back the same way.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "partyreel-drive",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-06-22",
+  "observability": { "enabled": true },
+  // The kick comes from the app over the internet, so the Worker has a public address; everything it answers is a
+  // signed word or a 404.
+  "workers_dev": true,
+
+  // The live bucket, read only in use (get, head): the originals a send streams.
+  "r2_buckets": [{ "binding": "PRIMARY", "bucket_name": "partyreel" }],
+
+  // A Queue message is a LANE: { v: 1, connectionId }. One message an invocation, so a lane is one slice; 25 at once
+  // to start (75 Google accounts' worth of lanes in flight is far past launch); three retries, then the dead-letter
+  // queue (a poison lane says so on its last attempt and its connection pauses itself at three a day). The two
+  // producer bindings send lanes back (a slice's end, Google's "slow down", an app that cannot answer) and read both
+  // queues' depths on every sweep (`Queue.metrics()`, as the backup Worker reads its own).
+  //
+  // ★ RETENTION IS THE QUEUE'S OWN SETTING, not this file's: create it with 14 days (`--message-retention-period-secs
+  // 1209600`, the README), since the default is four and a lane waiting out an outage must not expire.
+  "queues": {
+    "producers": [
+      { "binding": "DRIVE_QUEUE", "queue": "partyreel-drive" },
+      { "binding": "DRIVE_DLQ", "queue": "partyreel-drive-dlq" },
+    ],
+    "consumers": [
+      {
+        "queue": "partyreel-drive",
+        "max_batch_size": 1,
+        "max_batch_timeout": 1,
+        "max_retries": 3,
+        "max_concurrency": 25,
+        "dead_letter_queue": "partyreel-drive-dlq",
+      },
+    ],
+  },
+
+  // The sweep, every five minutes: the backstop of every kick (src/sweep.ts).
+  "triggers": { "crons": ["*/5 * * * *"] },
+
+  // Waiting on the network is not CPU; the ceiling is for hashing a 10 GB clip natively (`crypto.DigestStream`) when R2
+  // kept no MD5. Each R2 read, Google call and report is a subrequest: a slice keeps its own count under 9,000
+  // (src/lane.ts), this is the platform's backstop above it.
+  "limits": { "cpu_ms": 120000, "subrequests": 20000 },
+
+  // DRIVE_MODE is the redeploy kill switch ("on"; "off" + redeploy: lanes end at once, the sweep sends nothing); the
+  // app's `drive_export_enabled` switch pauses without a redeploy. DRIVE_APP_URL is the app every lane leases from and
+  // reports to: the launch-prep alias until the milestone that ships Drive, then partyreel.com (both apps share one
+  // database, so a send started on either is leased by whichever this names). DRIVE_WORKER_SECRET is a SECRET:
+  // `wrangler secret put DRIVE_WORKER_SECRET` (equal to the app's), `.dev.vars` for a local `wrangler dev`.
+  "vars": {
+    "DRIVE_MODE": "on",
+    "DRIVE_APP_URL": "https://partyreel-git-launch-prep-partyreel.vercel.app",
+  },
+}
