@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { ExportSummary } from "@/lib/export/build-manifest";
 import {
+  albumCountWords,
   fitsOneSave,
   packSheets,
   SAVE_MAX_ITEMS,
@@ -110,6 +111,53 @@ describe("takeHomeSizes and saveHints: each choice shows its size", () => {
     expect(setNoun(0, 1)).toBe("1 video");
     expect(setNoun(0, 3)).toBe("3 videos");
     expect(setNoun(2000, 0)).toBe("2,000 photos");
+  });
+});
+
+/**
+ * ★ THE ALBUM COUNT'S WORDS (crumbs-61, crumbs-74): one function for the live source and the page's first paint, so the
+ * two can never word one album two ways. Where the kinds are known it names them; where they are not, or do not add up
+ * to the number beside them, it says both nouns.
+ */
+describe("albumCountWords: the album's count, in the words of what it holds", () => {
+  it("names the kinds it is told, from the one home every set shares", () => {
+    expect(
+      albumCountWords({ count: 12, kinds: { photos: 12, videos: 0 } }),
+    ).toBe("12 photos");
+    expect(albumCountWords({ count: 3, kinds: { photos: 0, videos: 3 } })).toBe(
+      "3 videos",
+    );
+    expect(albumCountWords({ count: 1, kinds: { photos: 1, videos: 0 } })).toBe(
+      "1 photo",
+    );
+    expect(albumCountWords({ count: 1, kinds: { photos: 0, videos: 1 } })).toBe(
+      "1 video",
+    );
+    expect(
+      albumCountWords({ count: 15, kinds: { photos: 12, videos: 3 } }),
+    ).toBe("15 photos & videos");
+    expect(
+      albumCountWords({ count: 2_400, kinds: { photos: 2_400, videos: 0 } }),
+    ).toBe("2,400 photos");
+  });
+
+  it("says both nouns where it cannot see in, and one such item is never a lone 'photo'", () => {
+    expect(albumCountWords({ count: 1, kinds: null })).toBe("1 photo or video");
+    expect(albumCountWords({ count: 1_249, kinds: null })).toBe(
+      "1,249 photos & videos",
+    );
+  });
+
+  it("the words name exactly the count they stand beside: kinds that do not add up to it say both nouns", () => {
+    expect(
+      albumCountWords({ count: 13, kinds: { photos: 12, videos: 0 } }),
+    ).toBe("13 photos & videos");
+    expect(
+      albumCountWords({ count: 11, kinds: { photos: 12, videos: 0 } }),
+    ).toBe("11 photos & videos");
+    expect(albumCountWords({ count: 0, kinds: { photos: 0, videos: 0 } })).toBe(
+      "0 photos & videos",
+    );
   });
 });
 

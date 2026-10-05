@@ -50,8 +50,7 @@ vi.mock("@/lib/observability/sentry", () => ({
   captureError: (...args: unknown[]) => captureError(...args),
 }));
 
-const { albumCountWords, GalleryLiveProvider, useGalleryLive } =
-  await import("./gallery-live");
+const { GalleryLiveProvider, useGalleryLive } = await import("./gallery-live");
 type LiveGalleryHandle = import("./gallery-live").LiveGalleryHandle;
 type Live = NonNullable<ReturnType<typeof useGalleryLive>>;
 
@@ -848,19 +847,6 @@ describe("★ the count names what the album holds", () => {
     await mount(false, { first: teaserSeed(), access: "teaser" });
     expect(seen.live?.count).toBe(2);
     expect(seen.live?.countWords).toBe("2 photos & videos");
-  });
-
-  it("the words name exactly the count they stand beside: kinds that do not add up to it say both nouns", () => {
-    expect(
-      albumCountWords({ count: 12, kinds: { photos: 12, videos: 0 } }),
-    ).toBe("12 photos");
-    expect(
-      albumCountWords({ count: 13, kinds: { photos: 12, videos: 0 } }),
-    ).toBe("13 photos & videos");
-    expect(albumCountWords({ count: 1, kinds: null })).toBe("1 photo or video");
-    expect(albumCountWords({ count: 1_249, kinds: null })).toBe(
-      "1,249 photos & videos",
-    );
   });
 });
 

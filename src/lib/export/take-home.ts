@@ -17,7 +17,7 @@ import {
   type ExportSummary,
   MAX_EXPORT_ITEMS,
 } from "@/lib/export/build-manifest";
-import { formatCount } from "@/lib/format/count";
+import { formatCount, formatMediaCount } from "@/lib/format/count";
 import {
   canShareFileNamed,
   detectPlatform,
@@ -128,6 +128,34 @@ export function setNoun(photos: number, clips: number): string {
   if (clips > 0)
     return clips === 1 ? "1 video" : `${formatCount(clips)} videos`;
   return photos === 1 ? "1 photo" : `${formatCount(photos)} photos`;
+}
+
+/**
+ * ★ THE ALBUM COUNT'S WORDS NAME WHAT THE ALBUM HOLDS (crumbs-61, red-team 48's NIT: "12 photos & videos" over twelve
+ * photographs, where the host's Download panel said "12 photos"). Where the kinds are known (`kinds`: the live source's
+ * full answer, whose manifest is the whole album, or the server's own count of them at the first paint,
+ * `getGalleryStats`'s `kinds`) the number is worded by what is in it, from the one home every surface that counts a set
+ * shares (`setNoun`: photos, videos, or both). Where they are not (a teaser's nine, a lock, an album not yet read) it
+ * says both, as it always has (`formatMediaCount`: a lone "photo" would lie when the one item is a video).
+ *
+ * ★ ONE FUNCTION FOR BOTH SOURCES OF THE SAME WORDS (crumbs-74): the first paint and the live source say the count
+ * through this, so their words can never disagree and flash. It lives here, light and client-safe, because the live
+ * source is a heavy client module that the album's head (which the host's hub wears too) must not pull in.
+ *
+ * ★ THE WORDS ALWAYS NAME EXACTLY THE NUMBER BESIDE THEM: kinds that do not add up to `count` (a transient the
+ * integrity check heals) say both nouns rather than a number the kinds do not make.
+ */
+export function albumCountWords({
+  count,
+  kinds,
+}: {
+  count: number;
+  /** What the album holds by kind, where all of it can be seen; null where it cannot. */
+  kinds: { photos: number; videos: number } | null;
+}): string {
+  return kinds && count > 0 && kinds.photos + kinds.videos === count
+    ? setNoun(kinds.photos, kinds.videos)
+    : formatMediaCount(count);
 }
 
 /** Whether one Save can carry the whole set: its photographs and clips together, at most `SAVE_MAX_ITEMS`. */
