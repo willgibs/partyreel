@@ -50,6 +50,7 @@ the dashboard, the hub's strip, graphite, Create's styles, small fixes, red-team
 | `compute-presign` | the guest page's next CPU lever: R2 presigns signed by hand (SigV4), byte-identical to the SDK's | MERGED at `84d9a62ab` (gate 220 green after a re-run: the first merge met a stray `.git/index.lock` and was aborted clean; 257 links 12x cheaper, about 25 ms off each guest page render); pruned | Opus, 3132 | `ae54afeec77675ece` |
 | `crumbs-69` | the hub counts as an open; the old reel route before the develop | MERGED at `c5828d84c` (gate 219 green); pruned | Sonnet, 3131 | `ab9453e19fea9242a` |
 | `library-specimens` | three Library specimens so lab:smoke renders them: the download toast's states, the Plan limits card, TapTooltip; the light gate (dev-only) | RUNNING (cut at `e9ec0ca37`; may be cut off: resume from its WIP) | Sonnet, 3131 | `a5c2f78ccd20a3030` |
+| `compute-lazy-sdk` | the S3 SDK loaded only when a send needs it, so a read-only page's cold start never pays it (about 52 ms) | RUNNING (cut at `1f594af68`; may be cut off: resume from its WIP) | Sonnet, 3132 | `a99654d8427f34e53` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Its
 model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`. From another session, respawn it from
