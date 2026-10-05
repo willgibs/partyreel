@@ -68,6 +68,8 @@ function actWords(code: string | null | undefined, free?: number | null, needs?:
       return "Your Drive connection is busy for a moment. Try again.";
     case "dropped":
       return "Your connection dropped. Check your signal, then try again.";
+    case "already_sending":
+      return "This album is already sending again, and that send takes these files too.";
     default:
       return "Couldn't do that just now. Try again in a moment.";
   }

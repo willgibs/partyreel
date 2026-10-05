@@ -16,20 +16,9 @@ import { after, NextResponse } from "next/server";
 
 import { z } from "zod";
 
-import { createFolder, driveRoom, DriveCallError } from "@/lib/drive/google";
-import { accessTokenFor, kickConnection } from "@/lib/drive/service.server";
-import { driveFolderName } from "@/lib/export/drive-names";
-import {
-  actOnSend,
-  claimRoot,
-  readConnection,
-  readMySend,
-  readSendFolderId,
-  recordRoom,
-  refolderSend,
-} from "@/lib/db/queries/drive";
-import { driveFileState } from "@/lib/drive/google";
-import { DRIVE_ROOT_FOLDER_NAME } from "@/lib/export/drive-names";
+import { driveFileState, driveRoom, DriveCallError } from "@/lib/drive/google";
+import { accessTokenFor, kickConnection, makeNewAlbumFolder } from "@/lib/drive/service.server";
+import { actOnSend, readConnection, readMySend, readSendFolderId, recordRoom } from "@/lib/db/queries/drive";
 import { captureError } from "@/lib/observability/sentry";
 import { createClient } from "@/lib/supabase/server";
 
@@ -118,22 +107,19 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   }
 
   // refolder: a new folder for the album, under the Partyreel folder (made again if it went to the bin too).
-  if (send.status !== "paused" || send.pauseReason !== "folder_gone") {
+  if (send.status !== "paused" || send.pauseReason !== "folder_gone" || !send.eventId) {
     return answer({ ok: false, code: "not_folder_gone", status: send.status }, 409);
   }
   try {
-    let root = connection.rootFolderId;
-    const rootState = root ? await driveFileState(access.token, root) : null;
-    if (!root || !rootState || rootState.trashed) {
-      const made = await createFolder(access.token, { name: DRIVE_ROOT_FOLDER_NAME, colored: true });
-      const claim = await claimRoot({ connectionId: connection.id, candidate: made.id, expected: root });
-      root = claim.root ?? made.id;
-    }
-    const folder = await createFolder(access.token, {
-      name: driveFolderName({ name: send.albumName }),
-      parentId: root,
+    const ok = await makeNewAlbumFolder({
+      userId: user.id,
+      jobId: id,
+      eventId: send.eventId,
+      connectionId: connection.id,
+      rootFolderId: connection.rootFolderId,
+      fallbackName: send.albumName,
+      accessToken: access.token,
     });
-    const ok = await refolderSend({ userId: user.id, jobId: id, folderId: folder.id });
     if (ok) after(() => kickConnection(connection.id).then(() => undefined));
     return answer({ ok, status: ok ? "sending" : send.status }, ok ? 200 : 409);
   } catch (e) {

@@ -12,7 +12,13 @@
  */
 import "server-only";
 
-import { kickWordSchema, signDriveWord, DRIVE_PATHS, DRIVE_PROTOCOL_VERSION } from "@/lib/drive/protocol";
+import {
+  kickWordSchema,
+  signDriveWord,
+  DRIVE_PATHS,
+  DRIVE_PROTOCOL_VERSION,
+  type LeaseItem,
+} from "@/lib/drive/protocol";
 import {
   createFolder,
   driveFileState,
@@ -26,10 +32,13 @@ import {
   claimToken,
   lanesToKick,
   markReady,
+  nameItems,
+  readAlbumNaming,
   readSenders,
   readTokenRow,
   recordRefreshed,
   recordRefreshFailed,
+  refolderSend,
   tokenClaimOf,
   type FolderFacts,
   type RawLeaseItem,
@@ -46,8 +55,6 @@ import {
 } from "@/lib/export/drive-names";
 import { assertDriveEnv } from "@/lib/env";
 import { captureError, captureWarning } from "@/lib/observability/sentry";
-import type { LeaseItem } from "@/lib/drive/protocol";
-import { nameItems } from "@/lib/db/queries/drive";
 
 /** The token keys, from the env (asserted). */
 export function tokenKeys(): TokenKeys {
@@ -150,32 +157,75 @@ export async function makeSendFolders(input: {
   accessToken: string;
 }): Promise<{ folderId: string }> {
   const { facts, accessToken } = input;
-  let root = facts.rootFolderId;
-  let rootChanged = false;
-  const rootState = root ? await driveFileState(accessToken, root) : null;
-  if (!root || !rootState || rootState.trashed) {
-    const made: CreatedFolder = await createFolder(accessToken, { name: DRIVE_ROOT_FOLDER_NAME, colored: true });
-    const claim = await claimRoot({ connectionId: facts.connectionId, candidate: made.id, expected: root });
-    if (!claim.won) await undoFolder(accessToken, made);
-    rootChanged = claim.root !== root;
-    root = claim.root ?? made.id;
-  }
+  const root = await ensureRoot(accessToken, facts.connectionId, facts.rootFolderId);
 
-  let folderId = rootChanged ? null : facts.folderId;
+  let folderId = root.changed ? null : facts.folderId;
   if (folderId) {
     const state = await driveFileState(accessToken, folderId);
     if (!state || state.trashed) folderId = null;
   }
+  let made: CreatedFolder | null = null;
   if (!folderId) {
-    const made = await createFolder(accessToken, {
+    made = await createFolder(accessToken, {
       name: driveFolderName({ name: facts.albumName, eventDate: facts.eventDate, endDate: facts.eventEndDate }),
-      parentId: root,
+      parentId: root.id,
     });
     folderId = made.id;
   }
   const ok = await markReady(input.jobId, folderId);
-  if (!ok) throw new Error("drive: the send was no longer waiting for its folder");
+  if (!ok) {
+    // Canceled while the folder was being made: the empty folder made for it goes, by the id Google just returned.
+    if (made) await undoFolder(accessToken, made).catch(() => undefined);
+    throw new Error("drive: the send was no longer waiting for its folder");
+  }
   return { folderId };
+}
+
+/**
+ * THE PARTYREEL FOLDER, THERE AND OUT OF THE BIN: asked again (she may have binned or deleted it), made again when it
+ * is not, compare-and-set, the loser undoing its own empty folder.
+ */
+async function ensureRoot(
+  accessToken: string,
+  connectionId: string,
+  known: string | null,
+): Promise<{ id: string; changed: boolean }> {
+  const state = known ? await driveFileState(accessToken, known) : null;
+  if (known && state && !state.trashed) return { id: known, changed: false };
+  const made: CreatedFolder = await createFolder(accessToken, { name: DRIVE_ROOT_FOLDER_NAME, colored: true });
+  const claim = await claimRoot({ connectionId, candidate: made.id, expected: known });
+  if (!claim.won) await undoFolder(accessToken, made);
+  const id = claim.root ?? made.id;
+  return { id, changed: id !== known };
+}
+
+/**
+ * "SEND TO A NEW FOLDER" (the album's folder went to her bin): a new folder under the Partyreel folder, named for the
+ * album as it is now, and the paused send goes on into it; the album's next send lands there too. A send that could
+ * not take it (canceled meanwhile) leaves no empty folder behind.
+ */
+export async function makeNewAlbumFolder(input: {
+  userId: string;
+  jobId: string;
+  eventId: string;
+  connectionId: string;
+  rootFolderId: string | null;
+  fallbackName: string;
+  accessToken: string;
+}): Promise<boolean> {
+  const root = await ensureRoot(input.accessToken, input.connectionId, input.rootFolderId);
+  const album = await readAlbumNaming(input.eventId);
+  const made = await createFolder(input.accessToken, {
+    name: driveFolderName({
+      name: album?.name || input.fallbackName,
+      eventDate: album?.eventDate ?? null,
+      endDate: album?.eventEndDate ?? null,
+    }),
+    parentId: root.id,
+  });
+  const ok = await refolderSend({ userId: input.userId, jobId: input.jobId, folderId: made.id });
+  if (!ok) await undoFolder(input.accessToken, made).catch(() => undefined);
+  return ok;
 }
 
 // ── A lease's items ─────────────────────────────────────────────────────────────────────────────

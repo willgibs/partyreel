@@ -1840,6 +1840,12 @@ begin
     if v_conn is null or v_job.event_id is null then
       return jsonb_build_object('ok', false, 'code', 'gone');
     end if;
+    -- A newer send of the album already going takes these files too (one unfinished send an album: the index).
+    if exists (select 1 from public.cloud_exports o
+                where o.user_id = v_job.user_id and o.event_id = v_job.event_id and o.id <> p_job
+                  and o.status in ('preparing', 'sending', 'paused', 'checking')) then
+      return jsonb_build_object('ok', false, 'code', 'already_sending');
+    end if;
     update public.cloud_export_items
        set status = 'pending', attempts = 0, not_before = null, last_error = null, missing_once = false
      where job_id = p_job and status = 'failed';
@@ -2026,10 +2032,12 @@ begin
     v_expired := v_expired || jsonb_build_array(jsonb_build_object('job_id', v_job.id, 'user_id', v_job.user_id));
   end loop;
 
-  -- An hour with work and no progress: stuck (the /admin signal), cleared by the next progress.
+  -- An hour with work and no progress: stuck (the /admin signal), cleared by the next progress. Not while the switch
+  -- is off: every send then waits on purpose.
   update public.cloud_exports j
      set stuck_since = c_now
-   where j.id in (select x.id from public.cloud_exports x
+   where coalesce((select f.enabled from public.ops_flags f where f.key = 'drive_export_enabled'), true)
+     and j.id in (select x.id from public.cloud_exports x
                    where x.status = 'sending' and x.stuck_since is null
                      and coalesce(x.last_progress_at, x.resumed_at, x.started_at) < c_now - interval '1 hour'
                      and exists (select 1 from public.cloud_export_items i

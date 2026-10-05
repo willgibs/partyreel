@@ -15,7 +15,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { mustQuery } from "@/lib/db/must-query";
+import { mustCount, mustQuery } from "@/lib/db/must-query";
 import type { AlbumPreview } from "@/lib/drive/press";
 import { inChunks, readAllPages, type PageResult } from "@/lib/db/read-all";
 import { isSealed } from "@/lib/disposable/seal";
@@ -421,6 +421,19 @@ export async function actOnSend(input: {
     connectionId: str(r.connection_id),
     reason: str(r.reason),
   };
+}
+
+/** An album's name and dates now, for a folder made after the press ("Send to a new folder"). */
+export async function readAlbumNaming(
+  eventId: string,
+): Promise<{ name: string; eventDate: string | null; eventEndDate: string | null } | null> {
+  const row = await mustQuery(
+    admin().from("events").select("name, event_date, event_end_date").eq("id", eventId).maybeSingle(),
+    "drive: an album's name and dates",
+  );
+  if (!row) return null;
+  const r = obj(row);
+  return { name: str(r.name) ?? "", eventDate: str(r.event_date), eventEndDate: str(r.event_end_date) };
 }
 
 export async function refolderSend(input: { userId: string; jobId: string; folderId: string }): Promise<boolean> {
@@ -918,4 +931,233 @@ export async function readSendFolderId(jobId: string): Promise<string | null> {
     "drive: a send's folder",
   );
   return str(obj(row).folder_id);
+}
+
+// ── The operator's view (/admin/exports#drive) ──────────────────────────────────────────────────
+
+/** Whose a send or a connection is, as the operator reads it. */
+export type AdminHost = { email: string | null; name: string | null };
+
+/** A send as the operator sees it: her progress columns, whose it is, its connection and its stall. */
+export type AdminSend = SendRow & { userId: string; connectionId: string | null; stuckSince: string | null; host: AdminHost };
+
+/** A connection as the operator sees it (never a token). */
+export type AdminConnection = {
+  id: string;
+  userId: string;
+  host: AdminHost;
+  connectedAs: string | null;
+  status: ConnectionStatus;
+  failingSince: string | null;
+  operatorPausedAt: string | null;
+  operatorNote: string | null;
+  laneFailures: number;
+  laneFailuresOn: string | null;
+  lastRefreshAt: string | null;
+  lastError: string | null;
+  createdAt: string;
+  /** Her sends paused on the account breaker (what Lift restarts). */
+  breakerSends: number;
+};
+
+export type DriveAdmin = {
+  /** `drive_export_enabled`, read as the lease reads it (a missing row is on). */
+  enabled: boolean;
+  /** Every unfinished send (oldest first: the longest waiting on top), then the last week's that ended short. */
+  sends: AdminSend[];
+  /** More unfinished sends than drawn. */
+  sendsMore: boolean;
+  /** Connections an operator may need: failing or revoked, paused by an operator, dying lanes, a standing breaker. */
+  attention: AdminConnection[];
+  /** An account search's connections (`?drive=`), or null when nothing was searched. */
+  found: AdminConnection[] | null;
+  /** Google deletes an OAuth client unused for six months: the last connect or refresh any connection made. */
+  clientLastUsedAt: string | null;
+  connections: number;
+  /** When this was read (what "days ago" counts from). */
+  readAtMs: number;
+};
+
+const ADMIN_SEND_COLUMNS = `${SEND_COLUMNS}, user_id, connection_id, stuck_since`;
+const ADMIN_CONNECTION_COLUMNS =
+  "id, user_id, account_email, status, failing_since, operator_paused_at, operator_note, lane_failures, lane_failures_on, last_refresh_at, last_error, created_at";
+const ADMIN_SENDS = 100;
+const ADMIN_CLOSED = 50;
+const ADMIN_ATTENTION = 100;
+const ADMIN_FOUND = 20;
+
+function adminConnectionOf(r: Record<string, unknown>, hosts: Map<string, AdminHost>, breakers: Map<string, number>): AdminConnection {
+  const userId = str(r.user_id) ?? "";
+  const status = str(r.status);
+  return {
+    id: str(r.id) ?? "",
+    userId,
+    host: hosts.get(userId) ?? { email: null, name: null },
+    connectedAs: str(r.account_email),
+    status: status === "failing" || status === "revoked" ? status : "connected",
+    failingSince: str(r.failing_since),
+    operatorPausedAt: str(r.operator_paused_at),
+    operatorNote: str(r.operator_note),
+    laneFailures: num(r.lane_failures) ?? 0,
+    laneFailuresOn: str(r.lane_failures_on),
+    lastRefreshAt: str(r.last_refresh_at),
+    lastError: str(r.last_error),
+    createdAt: str(r.created_at) ?? "",
+    breakerSends: breakers.get(userId) ?? 0,
+  };
+}
+
+/**
+ * EVERYTHING THE DRIVE SECTION DRAWS, in one read (service role; /admin/exports re-checked admin and AAL2). Every list
+ * is bounded and says so (`sendsMore`); every read throws on failure, so an unreadable console is an error page, never
+ * an empty "nothing running".
+ */
+export async function readDriveAdmin(input: { search?: string | null; nowMs?: number } = {}): Promise<DriveAdmin> {
+  const db = admin();
+  const nowMs = input.nowMs ?? Date.now();
+  const week = new Date(nowMs - 7 * 24 * 60 * 60 * 1000).toISOString();
+  // The account search's term, stripped of what would break the or() filter (as /admin/accounts' search does).
+  const term = (input.search ?? "").trim().replace(/[,()*%\\]/g, "").slice(0, 120);
+
+  const [flag, running, ended, attentionRows, refreshed, newest, connections] = await Promise.all([
+    mustQuery(db.from("ops_flags").select("enabled").eq("key", "drive_export_enabled").maybeSingle(), "drive admin: the switch"),
+    mustQuery(
+      db
+        .from("cloud_exports")
+        .select(ADMIN_SEND_COLUMNS)
+        .in("status", ["preparing", "sending", "paused", "checking"])
+        .order("created_at", { ascending: true })
+        .limit(ADMIN_SENDS + 1),
+      "drive admin: unfinished sends",
+    ),
+    mustQuery(
+      db
+        .from("cloud_exports")
+        .select(ADMIN_SEND_COLUMNS)
+        .in("status", ["partly_done", "stopped"])
+        .gte("closed_at", week)
+        .order("closed_at", { ascending: false })
+        .limit(ADMIN_CLOSED),
+      "drive admin: sends that ended short",
+    ),
+    mustQuery(
+      db
+        .from("cloud_connections")
+        .select(ADMIN_CONNECTION_COLUMNS)
+        .or("status.neq.connected,operator_paused_at.not.is.null,lane_failures.gte.3")
+        .order("updated_at", { ascending: false })
+        .limit(ADMIN_ATTENTION),
+      "drive admin: connections that need an operator",
+    ),
+    mustQuery(
+      db
+        .from("cloud_connections")
+        .select("last_refresh_at")
+        .not("last_refresh_at", "is", null)
+        .order("last_refresh_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      "drive admin: the last refresh",
+    ),
+    mustQuery(
+      db.from("cloud_connections").select("created_at").order("created_at", { ascending: false }).limit(1).maybeSingle(),
+      "drive admin: the last connect",
+    ),
+    mustCount(db.from("cloud_connections").select("id", { count: "exact", head: true }), "drive admin: connections"),
+  ]);
+
+  const runningRows = (Array.isArray(running) ? running : []) as Record<string, unknown>[];
+  const endedRows = (Array.isArray(ended) ? ended : []) as Record<string, unknown>[];
+  const sendRows = [...runningRows.slice(0, ADMIN_SENDS), ...endedRows];
+
+  // The breaker's sends, by account (the unfinished read holds every paused one up to its bound).
+  const breakers = new Map<string, number>();
+  for (const r of runningRows) {
+    if (str(r.status) === "paused" && str(r.pause_reason) === "breaker" && str(r.user_id)) {
+      breakers.set(str(r.user_id)!, (breakers.get(str(r.user_id)!) ?? 0) + 1);
+    }
+  }
+  const attention = (Array.isArray(attentionRows) ? attentionRows : []) as Record<string, unknown>[];
+  const seen = new Set(attention.map((r) => str(r.id)));
+  const breakerUsers = [...breakers.keys()];
+  const breakerRows = breakerUsers.length
+    ? await inChunks("drive admin: breaker connections", breakerUsers, async (chunk) => {
+        const rows = await mustQuery(
+          db.from("cloud_connections").select(ADMIN_CONNECTION_COLUMNS).in("user_id", chunk),
+          "drive admin: breaker connections",
+        );
+        return (Array.isArray(rows) ? rows : []) as Record<string, unknown>[];
+      })
+    : [];
+  for (const r of breakerRows) if (!seen.has(str(r.id))) attention.push(r);
+
+  let foundRows: Record<string, unknown>[] | null = null;
+  if (term.length >= 3) {
+    const people = await mustQuery(
+      db.from("profiles").select("id").ilike("email", `%${term}%`).limit(ADMIN_FOUND),
+      "drive admin: accounts by address",
+    );
+    const ids = ((Array.isArray(people) ? people : []) as Record<string, unknown>[]).map((p) => str(p.id)).filter(Boolean);
+    const filter = ids.length ? `account_email.ilike.%${term}%,user_id.in.(${ids.join(",")})` : `account_email.ilike.%${term}%`;
+    const rows = await mustQuery(
+      db.from("cloud_connections").select(ADMIN_CONNECTION_COLUMNS).or(filter).limit(ADMIN_FOUND),
+      "drive admin: connections by address",
+    );
+    foundRows = (Array.isArray(rows) ? rows : []) as Record<string, unknown>[];
+  }
+
+  // Whose each is, read once for all of them.
+  const userIds = [
+    ...new Set([...sendRows, ...attention, ...(foundRows ?? [])].map((r) => str(r.user_id)).filter((v): v is string => !!v)),
+  ];
+  const hosts = new Map<string, AdminHost>();
+  const people = await inChunks("drive admin: hosts", userIds, async (chunk) => {
+    const rows = await mustQuery(
+      db.from("profiles").select("id, email, display_name").in("id", chunk),
+      "drive admin: hosts",
+    );
+    return (Array.isArray(rows) ? rows : []) as Record<string, unknown>[];
+  });
+  for (const p of people) {
+    if (str(p.id)) hosts.set(str(p.id)!, { email: str(p.email), name: str(p.display_name) });
+  }
+
+  const sends: AdminSend[] = [];
+  for (const r of sendRows) {
+    const row = sendRowOf(r);
+    if (!row) continue;
+    const userId = str(r.user_id) ?? "";
+    sends.push({
+      ...row,
+      userId,
+      connectionId: str(r.connection_id),
+      stuckSince: str(r.stuck_since),
+      host: hosts.get(userId) ?? { email: null, name: null },
+    });
+  }
+
+  const lastRefresh = str(obj(refreshed).last_refresh_at);
+  const lastConnect = str(obj(newest).created_at);
+  const clientLastUsedAt =
+    lastRefresh && lastConnect ? (Date.parse(lastRefresh) > Date.parse(lastConnect) ? lastRefresh : lastConnect) : (lastRefresh ?? lastConnect);
+
+  return {
+    enabled: obj(flag).enabled === false ? false : true,
+    sends,
+    sendsMore: runningRows.length > ADMIN_SENDS,
+    attention: attention.map((r) => adminConnectionOf(r, hosts, breakers)),
+    found: foundRows ? foundRows.map((r) => adminConnectionOf(r, hosts, breakers)) : null,
+    clientLastUsedAt,
+    connections,
+    readAtMs: nowMs,
+  };
+}
+
+/** One connection's account (the operator's Disconnect acts on the account, as hers does). */
+export async function readConnectionUser(connectionId: string): Promise<string | null> {
+  const row = await mustQuery(
+    admin().from("cloud_connections").select("user_id").eq("id", connectionId).maybeSingle(),
+    "drive admin: a connection's account",
+  );
+  return str(obj(row).user_id);
 }
