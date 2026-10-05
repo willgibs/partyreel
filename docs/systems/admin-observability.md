@@ -311,8 +311,8 @@ a row and its card never disagree.
 - ★ **A read that fails says "No reading" and why, never a zero, and never takes the page:** the readers answer
   `{ ok: false, message }` and the page raises one Sentry warning (Sentry never enters `lib/db`). A real zero is a reading.
 - ★ **Nothing here lifts a host's uploads count.** The ledger sits behind billing enforcement, and `cumulative_bytes`
-  is also the spend watch's meter of what the platform pays for, so zeroing it would both lift the guard and blind the
-  watch: a lift must be additive and audited, never an edit of the ledger.
+  is also the spend watch's meter of what the platform pays for (it diffs snapshots of its sum), so zeroing it would
+  both lift the guard and skew the watch: a lift must be additive and audited, never an edit of the ledger.
 
 ## Sentry
 
