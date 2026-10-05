@@ -18,8 +18,9 @@
  * ★ THE REPLAY CHECKS ITSELF AGAINST THE FILES' OWN HISTORY. Every file applied cleanly once, so a `create function`
  * (no `or replace`) over an overload the replay holds live, or a `drop function` (no `if exists`) of one it does
  * not, means the replay disagrees with the database: a type the normaliser spells two ways, a statement it could not
- * read. They come back as `conflicts` and `strayDrops`, which `migrations.test.ts` holds empty over the real set, so
- * a reader bug fails there, loudly, instead of leaving a guard quietly reading a stale function.
+ * read. They come back as `conflicts` and `strayDrops`, which `migrations.test.ts` holds to nothing over the real set
+ * (but the two `if exists` drops it names), so a reader bug fails there, loudly, instead of leaving a guard quietly
+ * reading a stale function.
  *
  * Pure but for the folder read: `replayFunctions` takes the files it replays, so a test hands it fixtures.
  */
@@ -111,7 +112,7 @@ type Span =
   | { kind: "dollar"; from: number; to: number; open: number; close: number };
 
 /** `$tag$` or `$$`: a tag starts like a name and holds no `$`, so `$1` (a parameter) is never one. */
-const DOLLAR_TAG = /\$(?:[A-Za-z_\u0080-￿][A-Za-z0-9_\u0080-￿]*)?\$/y;
+const DOLLAR_TAG = /\$(?:[A-Za-z_\u0080-\uffff][A-Za-z0-9_\u0080-\uffff]*)?\$/y;
 
 const lineOf = (sql: string, at: number) => sql.slice(0, at).split("\n").length;
 
@@ -526,8 +527,8 @@ export function replayFunctions(
           hit = live.get(identity(name, typesOf(rest.slice(1, close))));
         } else {
           // `drop function f;` names the one overload there is.
-          const named1 = [...live.values()].filter((f) => f.name === name);
-          if (named1.length === 1) hit = named1[0];
+          const overloads = [...live.values()].filter((f) => f.name === name);
+          if (overloads.length === 1) hit = overloads[0];
         }
         if (hit) {
           live.delete(identity(hit.name, hit.types));
