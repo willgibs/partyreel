@@ -4,7 +4,7 @@
 > [`systems/`](systems); what might be next is [`ROADMAP.md`](ROADMAP.md); what runs this minute is
 > [`tracks/orchestrator.md`](tracks/orchestrator.md); what shipped is `git log`.
 
-**Updated:** 2026-10-03
+**Updated:** 2026-10-05
 
 ## The era
 
@@ -18,16 +18,19 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 - **Milestone 36 is live** (`28bd6d62`, 2026-10-04 21:00Z): round 15's Ladder A, trash in storage, the round's wirings,
   the plan limits watch and the compute fixes, red-teamed on builds 52 and 53 and locally (53b). The legal text is
   rewritten once, right before launch (his word).
-- **Round 15 continues on `launch-prep`**: desk 2 (Drive), then desks 3 and 4; the compute fixes' next levers (batched
-  uploads; the CDN-cached album on his privacy call).
-- **Vercel's Hobby Active CPU** read 3h 56m of 4h (2026-10-04): nothing of ours runs on Vercel until milestone 36; desks
-  and red-teams run on a local production build at port 3000 (`CLAUDE.md`, "Local dev vs. live testing").
+- **`launch-prep` holds milestone 37's work**: 17 lanes since milestone 36 (uploads in bursts, hand-signed links, the S3
+  SDK loaded on first send, upload cancel, the uploads line, the admin's uploads view, crumbs-66 to 74), red-team 54
+  walking it locally; desk 3's four boards merged behind desk 2.
+- **Vercel's Hobby Active CPU** reads about 3.92 of 4 hours over 30 days (2026-10-05; the 2026-10-03 peak rolls off in
+  early November): nothing of ours runs on Vercel but what Will asks for by name; desks and red-teams run on a local
+  production build at port 3000 (`CLAUDE.md`, "Local dev vs. live testing").
 
 ## The desk
 
-Desk 2 is Send to Google Drive alone (nine asks), on Will's local desk (`http://localhost:3000/design/lab?key=fiesta`).
-Desk 3's four boards are handed off and parked (identity r4, customize r1, event-header r4, host-dashboard r4), integrated
-once desk 2 is answered; desk 4 is brand r1 alone; then the small moments and the brand applied:
+Desk 2 is Send to Google Drive alone (nine asks), on Will's local desk (`http://localhost:3000/design/lab?key=fiesta`,
+pinned at `94d66338`). Desk 3's four boards (identity r4, customize r1, event-header r4, host-dashboard r4) are merged on
+`launch-prep`, the desk pass clean, served the moment desk 2 is answered; desk 4 is brand r1 alone; then the small
+moments and the brand applied:
 `../partyreel-wt/_scratch/desk/round-15-plan.md`.
 
 ## Live state
@@ -37,7 +40,7 @@ once desk 2 is answered; desk 4 is brand r1 alone; then the small moments and th
   "ingress", HSTS, nosniff and frame-ancestors, the admin domain at its login). Production's pass prices are Ladder A's
   TEST prices. Its crons: the purge at 04:00 UTC and the spend watch (now with the plan limits) at 05:00.
 - **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 53 (`31a73a46`, 2026-10-04
-  14:35Z): round 15's wirings on Ladder A and trash in storage, desk 2's Drive board unchanged; red-team 53 walks it.
+  14:35Z), idle under the CPU limit; the desk build at port 3000 is the working copy of `launch-prep`.
   Vercel installs with pnpm 9.14.4, `package.json`'s `packageManager`.
 - **The shared database** runs every migration through 2026-10-04, each by protocol: round 13's
   (`approval_never_with_a_develop`, `phone_copy`, `event_end_date`, `spend_watch`, `event_dates_finite`,
@@ -71,6 +74,7 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-- Milestone 36's yes; desk 2 (Drive, on the local desk); the calls lab's open questions (X1 to X5: the develop time, a
-  Vercel token for the limits watch, a Cloudflare analytics token, a resting album's staleness, the CDN-cached album)
-  and the calls built for him to overrule; the 26 policy tests; the walks only he can drive (`tracks/orchestrator.md`).
+- Desk 2 (Drive, on the local desk); Claude in Chrome on willg97 (red-team 54's host walks); milestone 37's yes after
+  red-team 54; the calls lab's open questions (X1 the develop time, X2 a Vercel token for the limits watch, X3 a
+  Cloudflare analytics token, X5 the CDN-cached album, X6 the operator's uploads credit) and the calls built for him to
+  overrule; Vercel Pro or the window; the 26 policy tests; the walks only he can drive (`tracks/orchestrator.md`).

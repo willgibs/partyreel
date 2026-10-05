@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -7,9 +8,16 @@ import {
   readAlbumVersions,
 } from "@/lib/db/queries/album-state";
 import { getEvent } from "@/lib/db/queries/events";
+import type { Database } from "@/lib/db/types";
+import { readHostLinksBody } from "@/lib/event/host-links.server";
 import { planAlbumSync } from "@/lib/events/album-sync";
 import { hostAlbumEtag } from "@/lib/events/album-validator";
-import type { HostSyncBody } from "@/lib/events/album-wire";
+import {
+  hostCarriedIds,
+  type HostCarriedLinks,
+  type HostCarriedSync,
+} from "@/lib/events/album-wire-carry";
+import { captureError } from "@/lib/observability/sentry";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -25,6 +33,14 @@ export const dynamic = "force-dynamic";
  * A 200 carries the manifest (first load, or more than 500 changes behind) or the delta, and the two
  * numbers the hub says, the album (approved + hidden) and Review (held), counted in the same snapshot
  * as the version.
+ *
+ * ★ A DELTA CARRIES ITS NEW ITEMS' LINKS (compute-reads, as the guest's does: album-calm, PRICING lever 1c): the
+ * newest approved upserts' (`hostCarriedIds`: a held or hidden one carries none, since the hub draws nothing for a
+ * held upload and the host's own Hide is an upsert whose tile already holds its link), minted exactly as the links
+ * route mints them (`readHostLinksBody`, the one builder of the host's links answer, like counts included), so a batch
+ * of photographs arrives on the hub in this one call where it took two. A failed read is reported and costs the delta
+ * nothing (the hub then asks the links route, as it always has), and the validator never moves for them: a 304 carries
+ * nothing.
  *
  * AUTH: `getUser()` re-validates the JWT (the proxy is no boundary), and the event comes back through
  * `getEvent`, RLS-scoped and filtered on `deleted_at`: a foreign, missing or deleted event is a 404,
@@ -106,13 +122,46 @@ export async function POST(
       attrVersion: plan.read.attrVersion,
     }),
   );
-  const payload: HostSyncBody = {
+  const carry =
+    plan.part.kind === "delta" ? hostCarriedIds(plan.part.upsert) : [];
+  const links =
+    carry.length > 0 ? await carriedLinks(supabase, event, carry) : null;
+  const payload: HostCarriedSync = {
     ...plan.part,
     ok: true,
     counts: {
       album: plan.read.approved + (plan.read.hidden ?? 0),
       pending: plan.read.pending ?? 0,
     },
+    ...(links ? { links } : {}),
   };
   return NextResponse.json(payload, { headers });
+}
+
+/**
+ * A delta's carried links (see the head note), or null for none: the read found none of them, or it FAILED, which is
+ * reported and never takes the delta down with it (the hub then asks the links route, as it always has). It runs after
+ * the caller's own check (`getUser()`, then the event through RLS), which is what `readHostLinksBody` requires.
+ */
+async function carriedLinks(
+  supabase: SupabaseClient<Database>,
+  event: { id: string; name: string },
+  ids: string[],
+): Promise<HostCarriedLinks | null> {
+  try {
+    const minted = await readHostLinksBody(supabase, event, ids);
+    if (minted.links.length === 0) return null;
+    return {
+      b: minted.b,
+      now: minted.now,
+      links: minted.links,
+      likes: minted.likes,
+    };
+  } catch (error) {
+    captureError("media", error, {
+      eventId: event.id,
+      seam: "host album sync: a delta's carried links",
+    });
+    return null;
+  }
 }

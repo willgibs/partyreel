@@ -256,4 +256,67 @@ describe("sweepExpiredEvents", () => {
       freed_bytes: 0,
     });
   });
+
+  // ★ crumbs-75: one DELETE of a batch cascaded into its albums' rows in whatever order its plan visited them, and the
+  // album log's prune takes those rows in event-id order, so overlapping runs could deadlock. Each event now goes in
+  // a statement of its own, in event-id order.
+  it("★ deletes the event rows one a statement, in event-id order, after every one's media", async () => {
+    const expired = {
+      deleted_at: "2026-08-20T00:00:00.000000+00:00",
+      purge_at: PAST,
+    };
+    // Stored highest id first, so no order of the table's own can pass for the ids' order.
+    const events = [5, 3, 4, 1, 2].map((n) =>
+      eventRow(uuidOf("e6", n), HOST, expired),
+    );
+    const world = createCronWorld({
+      events,
+      media: events.map((e, i) => mediaRow(uuidOf("m9", i), e)),
+    });
+    state.world = world;
+
+    const tally = await sweepExpiredEvents(world.client, NOW, new Set());
+    expect(tally).toMatchObject({ events: 5, media_rows: 5 });
+    const deletes = world.fake.requests.filter(
+      (r) => r.name === "events" && r.method === "DELETE",
+    );
+    expect(deletes.map((r) => r.filters)).toEqual(
+      [1, 2, 3, 4, 5].map((n) => [
+        { column: "id", op: "eq", value: uuidOf("e6", n) },
+      ]),
+    );
+    // Every media row went before the first event row did.
+    const firstDelete = world.fake.requests.indexOf(deletes[0]);
+    const lastPurge = world.fake.requests.findLastIndex(
+      (r) => r.name === "purge_media_rows",
+    );
+    expect(lastPurge).toBeLessThan(firstDelete);
+  });
+
+  it("stops between two event rows at its deadline, and the next run takes the rest", async () => {
+    const expired = {
+      deleted_at: "2026-08-20T00:00:00.000000+00:00",
+      purge_at: PAST,
+    };
+    const events = [1, 2, 3].map((n) =>
+      eventRow(uuidOf("e7", n), HOST, expired),
+    );
+    const world = createCronWorld({ events, media: [] });
+    state.world = world;
+    // Asked before the batch, before its (empty) media page, then before each event row: the third row is refused.
+    const first = await sweepExpiredEvents(world.client, NOW, new Set(), {
+      deadline: passesAfter(4),
+    });
+    expect(first).toMatchObject({
+      events: 2,
+      stopped_early: true,
+      remaining: 1,
+    });
+    expect(world.fake.tables.events.map((e) => e.id)).toEqual([
+      uuidOf("e7", 3),
+    ]);
+    const next = await sweepExpiredEvents(world.client, NOW, new Set());
+    expect(next).toMatchObject({ events: 1 });
+    expect(world.fake.tables.events).toEqual([]);
+  });
 });

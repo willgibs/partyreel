@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties, RefObject } from "react";
 import { Copy } from "lucide-react";
 
 import { EventCodeDoor } from "@/components/app/share/event-code-door";
@@ -11,19 +11,20 @@ import {
 import { PageHeading } from "@/components/shared/page-heading";
 import { cn } from "@/lib/utils";
 
-import { SEAM_RISE, type DoorsId } from "./doors";
-import { Facts, type FactsId } from "./facts";
-import { type Case, EVENT, whenOf } from "./fixtures";
-import type { ScreenId } from "./scene";
+import type { DoorDraw, DoorOption } from "./door-kit";
+import { FactsStrip } from "./facts";
+import { EVENT, whenOf } from "./fixtures";
+import type { Case } from "./fixtures";
 
 /**
  * HER COVER: production's own frame and ground (`EventHead side="hub"`, the
  * photographs dissolving in `HeadStills`' keyframes over the house light),
  * bled to the window's edges and reaching up to the app's bar as the hub
- * draws it (`event-hub-head.tsx`'s `HubCover`). What the two decisions redraw
- * stands at its foot: the facts under the name (`facts.tsx`), and where the
- * doors are glass, their capsule; where they are cards over the seam, the
- * cover fades into the page under them.
+ * draws it (`event-hub-head.tsx`'s `HubCover`). Its foot is the settled strip
+ * (`facts.tsx`) and whatever the door option draws on the photograph
+ * (`DoorOption.CoverFoot`); where a door rises over the seam, the cover's
+ * words clear it and the photograph fades into the page under it
+ * (`DoorOption.seam`).
  *
  * ★ THE WHEN IS ONE QUIET LINE OVER THE NAME, in every option: a day
  * ("September 12, 2026"), a range ("October 2–4, 2026", which day of it
@@ -108,35 +109,27 @@ function CodeWithAddress({ c, desk }: { c: Case; desk: boolean }) {
   );
 }
 
-/** At a desk a fact that is a base line spans the cover's foot; one that is a line of words stands under the name. */
-const BASE: Record<FactsId, boolean> = {
-  strip: true,
-  colours: true,
-  faces: false,
-  latest: false,
-};
-
 export function HubHead({
-  facts,
-  doors,
-  c,
-  screen,
-  doorsOnCover,
+  id,
+  door,
+  d,
+  mark,
 }: {
-  facts: FactsId;
-  doors: DoorsId;
-  c: Case;
-  screen: ScreenId;
-  /** The doors, where they stand on the photograph in glass (`doors=glass`). */
-  doorsOnCover?: ReactNode;
+  /** The door option's id: its seam's fade is styled by `[data-eh-seam="<id>"]` in the door's own sheet. */
+  id: string;
+  /** The door option the hub is drawn in. */
+  door: DoorOption;
+  d: DoorDraw;
+  /** What the live frame reads its stuck state off, where the door marks the cover. */
+  mark: RefObject<HTMLDivElement | null>;
 }) {
+  const { c, screen } = d;
   const desk = screen === "1440";
-  const seam = doors === "cards";
-  // In a hand the name's column is the code's neighbour, so every fact takes the cover's whole width.
-  const base = BASE[facts] || !desk;
-  const fact = <Facts facts={facts} c={c} narrow={!desk} />;
-  // Over the seam, the words clear the cards' rise and stand on the photograph above it.
-  const pad = seam ? SEAM_RISE[screen] + (desk ? 22 : 16) : desk ? 28 : 16;
+  const seam = door.seam[screen];
+  const fact = <FactsStrip c={c} narrow={!desk} />;
+  // Where the doors rise into the cover, its words clear them and stand on the photograph above.
+  const pad = seam.rise > 0 ? seam.rise + (desk ? 22 : 16) : desk ? 28 : 16;
+  const Foot = door.CoverFoot;
   return (
     <EventHead
       side="hub"
@@ -146,11 +139,12 @@ export function HubHead({
       ground={
         <>
           {c.photos > 0 ? <HeadStills stills={c.stills} /> : null}
-          {seam ? (
+          {seam.fade > 0 ? (
             <div
               aria-hidden
+              data-eh-seam={id}
               className="eh-seam-fade absolute inset-x-0 bottom-0"
-              style={{ height: SEAM_RISE[screen] + (desk ? 56 : 40) }}
+              style={{ height: seam.fade }}
             />
           ) : null}
         </>
@@ -164,12 +158,10 @@ export function HubHead({
           <div className="min-w-0 flex-1">
             <When c={c} desk={desk} />
             <Name name={c.name} desk={desk} />
-            {base ? null : <div className="mt-3.5">{fact}</div>}
           </div>
           <CodeWithAddress c={c} desk={desk} />
         </div>
-        {doorsOnCover}
-        {base ? fact : null}
+        <Foot {...d} fact={fact} mark={mark} />
       </div>
     </EventHead>
   );

@@ -20,14 +20,19 @@
  *                           not an upload: nothing she kept is touched while her own Deleted can cover
  *                           it), then her largest files move to Deleted as the system's removals (the
  *                           removed_media sweep reclaims them after the window), + the reduced email.
- * Every email goes through `sendOnce`, so a re-run never re-sends.
+ * Every email goes through `sendOnce`, so a re-run never re-sends; the two one-time notices (the grace's
+ * start, the reduce) a send failed on are kept and retried here first thing each run (`retryParkedNotices`).
  *
- * WHOLE (the 1,000-row round, 2026-09-23; H9 and H10):
- *  - The candidates (every profile past the smallest cap) are read whole by keyset, then taken in
- *    rotation from the last run's cursor under the deadline (`forEachInRotation`): they were one read
- *    cut at 1,000, and an account past the cut was never looked at.
- *  - An account's figures are ONE aggregate, `host_storage_summary` through `readHostStorageSummary`,
- *    the same numbers the dashboard meter and the storage guard read. They used to be summed in
+ * WHOLE (the 1,000-row round, 2026-09-23; H9 and H10; crumbs-75):
+ *  - ★ THE CANDIDATES ARE EXACTLY THE ACCOUNTS THERE IS SOMETHING TO DO FOR (crumbs-75), read by one SQL
+ *    function a page (`over_capacity_candidates`, 20261005060000): every account in a grace, or keeping more
+ *    than her own write line, each with the `host_storage_summary` it was judged on. They were every profile
+ *    past the smallest plan's cap (every paying host), each asked for that summary in a call of its own, so
+ *    past a few hundred paying hosts a night's share reached only some and an account that had just gone
+ *    over waited nights for its turn. They are still taken in rotation from the last run's cursor under the
+ *    deadline (`forEachInRotation`), so a list longer than a night (a mass downgrade) is still whole in turn.
+ *  - An account's figures are ONE aggregate, `host_storage_summary`, the same numbers the dashboard meter
+ *    and the storage guard read, here as the candidate read hands them over. They used to be summed in
  *    TypeScript from a media list cut at 1,000 rows, so a large account read as under its cap.
  *  - The soft-remove is chunked (`inChunks`): the whole id list rode one URL.
  *
@@ -42,23 +47,31 @@
  */
 import "server-only";
 
-import type { PostgrestError } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 import {
   capWithWriteHeadroom,
   effectiveStorageCap,
-  PLANS,
   toBillingTier,
 } from "@/lib/constants/tiers";
 import { QueryFailedError } from "@/lib/db/must-query";
-import { readHostStorageSummary } from "@/lib/db/queries/storage";
-import { inChunks, MAX_ROWS, readAllPages } from "@/lib/db/read-all";
+import {
+  inChunks,
+  MAX_ROWS,
+  readAllPages,
+  type AllPages,
+  type PageResult,
+} from "@/lib/db/read-all";
 import {
   overCapGraceStartEmail,
   overCapReducedEmail,
   overCapReminderEmail,
 } from "@/lib/email/templates";
-import { sendOnce } from "@/lib/email/send";
+import {
+  retryParkedNotices,
+  sendOnce,
+  type NoticeRetryTally,
+} from "@/lib/email/send";
 import { tallyNote } from "@/lib/jobs/isolate";
 import {
   OVER_CAP_GRACE_DAYS,
@@ -83,22 +96,6 @@ import { captureError } from "@/lib/observability/sentry";
 import { getSiteUrl } from "@/lib/site-url";
 import { formatBytes } from "@/lib/utils";
 
-/**
- * The candidate floor: the SMALLEST cap any plan grants (Free's 100 MB today), read from
- * `tiers.ts`. `storage_used_bytes` is at least the active bytes, so an account at or under the
- * smallest cap cannot be over any cap. An account in grace is over its cap, so it is over the
- * floor until its removed media purges (by then its grace is cleared): the floor covers the
- * in-grace rows too.
- *
- * ★ DERIVED, NEVER TYPED (the free/pro shift). It was a literal 2 GB, Free's old cap, and the day
- * Free became 100 MB that literal would have skipped every downgraded account storing between the
- * two: no grace, no emails, no reduce, a free host keeping up to 2 GB for good. A downgrade now
- * lands far over Free's cap, so this is the line the grace path starts at.
- */
-export const CANDIDATE_FLOOR_BYTES = Math.min(
-  ...PLANS.map((plan) => plan.storageBytes),
-);
-
 export type OverCapacityTally = {
   candidates: number;
   grace_opened: number;
@@ -114,35 +111,80 @@ export type OverCapacityTally = {
   rows_not_attempted: number;
   rows_note?: string;
   resume_after?: string;
-} & Partial<StoppedEarly>;
+} & NoticeRetryTally &
+  Partial<StoppedEarly>;
 
+/**
+ * One account the sweep has something to do for, as `over_capacity_candidates` answers it: her plan, her grace, and
+ * the `host_storage_summary` she was judged on (`deleted_bytes` is the summary's `standby_bytes`, her Deleted).
+ */
 export type OverCapCandidate = {
   id: string;
   email: string | null;
   tier: string;
   storage_cap_bytes: number | null;
   storage_grace_until: string | null;
+  active_bytes: number;
+  deleted_bytes: number;
+  system_bytes: number;
 };
 
-/** THE READ HALF: every account that could be over a cap, whole, by keyset on id. */
+/**
+ * Candidates a call. Each is a whole storage aggregate summed inside the call, which runs under PostgREST's 8 s
+ * statement_timeout (the service role's too), so a page stays small enough that its sums never could; the SQL stops
+ * at this many, and the read loops while a page comes back full.
+ */
+export const CANDIDATE_PAGE = 100;
+
+/**
+ * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `over_capacity_candidates` arrives with migration 20261005060000, so
+ * the call that names it goes through this untyped client (drop the cast then).
+ */
+function untyped(admin: AdminClient): SupabaseClient {
+  return admin as unknown as SupabaseClient;
+}
+
+/** One page of candidates after `after`, ascending by id: PostgREST's answer as `readAllPages` takes it. */
+function candidatesPage(
+  admin: AdminClient,
+  after: string | null,
+  limit: number,
+): PromiseLike<PageResult<OverCapCandidate>> {
+  return untyped(admin).rpc("over_capacity_candidates", {
+    p_after: after,
+    p_limit: limit,
+  });
+}
+
+/**
+ * THE READ HALF: every account in a grace or keeping past her own write line, whole, a page of `CANDIDATE_PAGE` at a
+ * time by keyset on id. A bigint arrives as a JSON number; each is read as one, so a figure is never a string.
+ */
 export async function readOverCapCandidates(
   admin: AdminClient,
 ): Promise<OverCapCandidate[]> {
-  const { rows } = await readAllPages(
-    "cron/purge: over-cap candidates",
-    (after: string | null, limit) => {
-      let query = admin
-        .from("profiles")
-        .select("id, email, tier, storage_cap_bytes, storage_grace_until")
-        .gt("storage_used_bytes", CANDIDATE_FLOOR_BYTES)
-        .order("id", { ascending: true })
-        .limit(limit);
-      if (after) query = query.gt("id", after);
-      return query;
-    },
-    (row) => row.id,
-  );
-  return rows;
+  const rows: OverCapCandidate[] = [];
+  let after: string | null = null;
+  for (;;) {
+    const page: AllPages<OverCapCandidate, string> = await readAllPages(
+      "cron/purge: over-cap candidates",
+      (cursor: string | null, limit) => candidatesPage(admin, cursor, limit),
+      (row) => row.id,
+      { budget: CANDIDATE_PAGE, after },
+    );
+    for (const row of page.rows) {
+      rows.push({
+        ...row,
+        storage_cap_bytes:
+          row.storage_cap_bytes === null ? null : Number(row.storage_cap_bytes),
+        active_bytes: Number(row.active_bytes),
+        deleted_bytes: Number(row.deleted_bytes),
+        system_bytes: Number(row.system_bytes),
+      });
+    }
+    if (!page.more) return rows;
+    after = page.after;
+  }
 }
 
 /** Where a page of the reduce ends: its smallest item's size and id (the keyset is size desc, id asc). */
@@ -248,14 +290,48 @@ export async function reduceToCap(
   return { done: true, removed };
 }
 
+/**
+ * IS A KEPT GRACE-START NOTICE STILL SO? Its key names the grace it announced (`<profile>:<the grace's end>`, as the
+ * sweep opens one), so it goes only while that very grace stands and she still keeps past her write line, by this
+ * run's candidate read: a grace cleared since (she upgraded, or freed room for good), or one she has come back inside
+ * (which this very run then clears), is never announced late.
+ */
+export function graceNoticeStillTrue(
+  notice: { dedupeKey: string; profileId: string },
+  candidates: readonly OverCapCandidate[],
+): boolean {
+  const c = candidates.find((row) => row.id === notice.profileId);
+  if (!c?.storage_grace_until) return false;
+  const announced = `${c.id}:${new Date(c.storage_grace_until).toISOString()}`;
+  if (notice.dedupeKey !== announced) return false;
+  const cap = effectiveStorageCap(toBillingTier(c.tier), c.storage_cap_bytes);
+  return (
+    cap !== null &&
+    c.active_bytes + c.deleted_bytes - c.system_bytes >
+      capWithWriteHeadroom(cap)
+  );
+}
+
 export async function sweepOverCapacity(
   admin: AdminClient,
   now: Date,
   opts: { deadline?: Deadline; resumeAfter?: string | null } = {},
 ): Promise<OverCapacityTally> {
-  const candidates = await readOverCapCandidates(admin);
-  const dashboardUrl = `${await getSiteUrl()}/dashboard`;
   const deadline = opts.deadline ?? NO_DEADLINE;
+  const candidates = await readOverCapCandidates(admin);
+  // Then the grace and reduce notices an earlier run could not send. It never throws, and its failures are the mail
+  // signal's (`email_delivery`), so they ride the tally without failing the sweep. A grace's start goes only while
+  // that grace still stands and she still keeps past her line (`graceNoticeStillTrue`, judged on this run's read);
+  // the reduce's always goes, since it says what was done.
+  const notices = await retryParkedNotices({
+    kinds: ["over_cap_grace_start", "over_cap_reduced"],
+    now,
+    stopWhen: () => deadline.passed(),
+    stillTrue: (notice) =>
+      notice.kind !== "over_cap_grace_start" ||
+      graceNoticeStillTrue(notice, candidates),
+  });
+  const dashboardUrl = `${await getSiteUrl()}/dashboard`;
   let graceOpened = 0;
   let reminded = 0;
   let reduced = 0;
@@ -289,18 +365,11 @@ export async function sweepOverCapacity(
       );
       if (cap === null) return; // an unlimited tier is not subject to the cap
 
-      // It throws the raw PostgREST error (a plain object): wrap it, so the run's note reads it.
-      const { activeBytes, deletedBytes, systemBytes } =
-        await readHostStorageSummary(p.id).catch((error: unknown) => {
-          throw error instanceof Error
-            ? error
-            : new QueryFailedError(
-                "cron/purge: storage summary",
-                error as PostgrestError,
-              );
-        });
-      // What she keeps by choice: her albums and her own Deleted, the reduce's own removals left out.
-      let kept = activeBytes + deletedBytes - systemBytes;
+      // What she keeps by choice: her albums and her own Deleted, the reduce's own removals left out, from the one
+      // aggregate the candidate read judged her on (`host_storage_summary`).
+      const deletedBytes = p.deleted_bytes;
+      const systemBytes = p.system_bytes;
+      let kept = p.active_bytes + deletedBytes - systemBytes;
       const graceDue =
         p.storage_grace_until !== null &&
         now >= new Date(p.storage_grace_until);
@@ -452,6 +521,7 @@ export async function sweepOverCapacity(
     items_reduced: itemsReduced,
     deleted_left: deletedLeft,
     cleared,
+    ...notices,
     // The isolation tally travels WITH the result: `rows_failed` is what makes this sub-sweep's run
     // close as an error, so keeping the accounts behind a bad row alive never buys a green night.
     rows_failed: tally.failed,

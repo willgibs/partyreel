@@ -88,6 +88,40 @@ const pressAndWaitForPopstate = (name: string, times = 1) =>
     // A second Back, if one was called, lands a beat after the first.
     await new Promise((r) => setTimeout(r, 60));
   });
+/**
+ * HOW LONG A TRAVERSAL MAY TAKE TO LAND UNDER THE FULL SUITE'S LOAD. A budget, not a timing claim: one that never
+ * lands still fails, only later (and with its own words, before the runner's generic timeout).
+ */
+const LANDING_BUDGET_MS = 3000;
+
+/**
+ * ★ A TRAVERSAL HAS LANDED WHEN ITS `popstate` HAS, AND THAT IS THE EVENT LOOP'S TO SAY, NEVER A CLOCK'S (crumbs-77; the
+ * lesson of `history-entry.test.tsx`'s `settle()`, crumbs-49: gate 117, a full run under four lanes). jsdom lands a
+ * traversal two timer hops after the call, and the Forward test slept a fixed 40 ms after the phone's Back and again
+ * after its Forward: a loop starved for longer, once the sleep's timer existed, ran the sleep before the second hop was
+ * due, and the mode was read before the traversal had moved the address. The listener goes on the window before the
+ * traversal is asked for, and the page's own (the store's, Next's stand-in) were added at mount, so each has run by the
+ * time this one does and the render waits only for the `act`.
+ */
+const traverse = (ask: () => void) =>
+  act(async () => {
+    await new Promise<void>((resolve, reject) => {
+      const floor = window.setTimeout(() => {
+        window.removeEventListener("popstate", landed);
+        reject(
+          new Error(
+            `no traversal landed within ${LANDING_BUDGET_MS} ms: none was asked for, or its popstate never came`,
+          ),
+        );
+      }, LANDING_BUDGET_MS);
+      function landed() {
+        window.clearTimeout(floor);
+        resolve();
+      }
+      window.addEventListener("popstate", landed, { once: true });
+      ask();
+    });
+  });
 const ourKey = () =>
   (window.history.state as Record<string, unknown> | null)?.prReelPushed;
 
@@ -191,20 +225,29 @@ describe("a reel this page opened", () => {
     mount();
     press("open");
     // The phone's Back closes it (the address leaves the parameter behind), and Forward opens it again.
-    await act(async () => {
-      window.history.back();
-      await new Promise((r) => setTimeout(r, 40));
-    });
+    await traverse(() => window.history.back());
     expect(mode()).toBe("none");
-    await act(async () => {
-      window.history.forward();
-      await new Promise((r) => setTimeout(r, 40));
-    });
+    await traverse(() => window.history.forward());
     expect(mode()).toBe("hand");
     const back = vi.spyOn(window.history, "back");
     await pressAndWaitForPopstate("close");
     expect(back).toHaveBeenCalledTimes(1);
     expect(window.location.search).toBe("");
+  });
+
+  it("★ a traversal is waited for, not timed: a loop starved past a fixed wait still reads the address after the Back moved it", async () => {
+    landOnAlbum();
+    mount();
+    press("open");
+    const landing = traverse(() => window.history.back());
+    // A busy wait standing in for a starved process: once it ends, the Back's first timer hop and any fixed wait set
+    // before it are all overdue, and the timers run the wait first (the second hop is queued only when the first runs).
+    // A 40 ms sleep here read `?reel` where `''` was due, which is what the Forward test did before it waited.
+    const until = Date.now() + 80;
+    while (Date.now() < until) continue;
+    await landing;
+    expect(window.location.search).toBe("");
+    expect(mode()).toBe("none");
   });
 });
 

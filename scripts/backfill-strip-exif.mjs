@@ -3,9 +3,11 @@
  *
  * New uploads are stripped client-side at the upload seam (src/lib/upload/uploader.ts
  * step 0); this script sweeps the objects uploaded BEFORE that shipped. It imports the
- * SAME pure stripper (src/lib/media/strip-metadata.ts) - never fork the logic. Node
- * >= 22.18 type-strips .ts imports natively (the repo pins 22.21.1 via .nvmrc), so no
- * tsx/esbuild step is needed.
+ * SAME pure stripper (src/lib/media/strip-metadata.ts) - never fork the logic - and the
+ * app's own `inChunks` (src/lib/db/read-all.ts). Node >= 22.18 type-strips .ts imports
+ * natively (the repo pins 22.21.1 via .nvmrc), so no tsx/esbuild step is needed; only a
+ * module whose runtime imports are `.ts` files named in full loads that way
+ * (src/lib/db/testing/script-imports.test.ts holds the ones imported here).
  *
  * Usage:
  *   node scripts/backfill-strip-exif.mjs             # DRY-RUN (default): report only
@@ -83,7 +85,7 @@ const SUPABASE_SECRET_KEY = LIVE
 
 // --- shared stripper (the ONE implementation; see module docblock) ----------
 
-let stripMetadataBytes, hasGpsMetadata, MIME_TO_EXT;
+let stripMetadataBytes, hasGpsMetadata, MIME_TO_EXT, inChunks;
 try {
   ({ stripMetadataBytes, hasGpsMetadata } = await import(
     new URL("../src/lib/media/strip-metadata.ts", import.meta.url)
@@ -91,9 +93,13 @@ try {
   ({ MIME_TO_EXT } = await import(
     new URL("../src/lib/media/limits.ts", import.meta.url)
   ));
+  // The app's own `inChunks` (the 1,000-row round): `read-all.ts` names its one runtime import in full so Node can load it.
+  ({ inChunks } = await import(
+    new URL("../src/lib/db/read-all.ts", import.meta.url)
+  ));
 } catch (e) {
   console.error(
-    "Couldn't import the TypeScript stripper. This script relies on Node's native type\n" +
+    "Couldn't import the TypeScript single-sources. This script relies on Node's native type\n" +
       "stripping (default since 22.18; repo pins 22.21.1 in .nvmrc). Run `nvm use` or\n" +
       "retry with: node --experimental-strip-types scripts/backfill-strip-exif.mjs",
   );
@@ -164,23 +170,6 @@ async function listOriginals() {
 
 const fmt = (n) => n.toLocaleString("en-US");
 
-/**
- * The script's `inChunks` (the app's is `src/lib/db/read-all.ts`): this script runs on Node's own
- * type stripping, which cannot resolve that module's `@/` import, so it keeps a local copy of the
- * same rule (the 1,000-row round). A runtime id list rides the request URL, so it goes `IN_CHUNK`
- * ids at a time (read-all's value), deduped, one chunk after another; a chunk that fails throws, so
- * a lookup is whole or it is nothing. By id, a chunk also bounds its read: one row an id.
- */
-const IN_CHUNK = 150;
-async function inChunks(ids, run) {
-  const unique = [...new Set(ids)];
-  const rows = [];
-  for (let i = 0; i < unique.length; i += IN_CHUNK) {
-    rows.push(...(await run(unique.slice(i, i + IN_CHUNK))));
-  }
-  return rows;
-}
-
 // --- main -----------------------------------------------------------------------
 
 console.log(
@@ -204,6 +193,7 @@ if (LIVE) {
   }
   try {
     const rows = await inChunks(
+      "backfill: media rows",
       objects.map((o) => o.mediaId),
       async (chunk) => {
         const { data, error } = await supabase
@@ -216,6 +206,7 @@ if (LIVE) {
     );
     rowById = new Map(rows.map((r) => [r.id, r]));
     const events = await inChunks(
+      "backfill: events",
       rows.map((r) => r.event_id),
       async (chunk) => {
         const { data, error } = await supabase

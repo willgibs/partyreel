@@ -68,6 +68,23 @@ const RULES: Rule[] = [
     sel: "label[for]:not([data-slot])",
     adopt: (el) => set(el, "data-slot", "label"),
   },
+  {
+    // Create's four looks: a picture chosen among pictures, the swatch atom
+    // once wired (its tile and its name), wearing what is chosen.
+    sel: "[data-look]",
+    adopt: (el) => {
+      set(el, "data-slot", "swatch");
+      set(el.firstElementChild, "data-slot", "swatch-tile");
+      set(el.lastElementChild, "data-slot", "swatch-label");
+    },
+  },
+  {
+    // Create's name is the name at its size on a rule, never a field in a box
+    // (create-wizard's `asks=one`): wired, its own className outranks the field
+    // atom's, so here it is no field atom at all.
+    sel: "input[data-room-name-input]",
+    adopt: (el) => set(el, "data-slot", "room-name"),
+  },
 ];
 
 function adoptAll(root: ParentNode) {

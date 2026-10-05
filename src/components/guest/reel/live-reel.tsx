@@ -41,6 +41,7 @@ import {
   useEffect,
   useMemo,
   useRef,
+  useState,
   useSyncExternalStore,
 } from "react";
 import type { ReactNode } from "react";
@@ -62,7 +63,12 @@ import type { ApprovalNews } from "@/components/guest/upload-tracker";
 import type { ClipResolver } from "@/lib/album/resolver";
 import { liveReelAvailable } from "@/lib/events/gallery-reel";
 import { setReelDefaults } from "@/lib/reel/defaults-action";
-import { stillUrlFor, type LiveMediaItem } from "@/lib/reel/live/items";
+import { keepStills } from "@/lib/guest/reel-tile";
+import {
+  isReelEligible,
+  stillUrlFor,
+  type LiveMediaItem,
+} from "@/lib/reel/live/items";
 import {
   reelOfAddress,
   useReelParam,
@@ -290,6 +296,11 @@ export function LiveReel({
 /* ── the cover's photographs ────────────────────────────────────────────────────────────────── */
 
 const NO_STILLS: readonly HeadStill[] = [];
+const NO_STILLS_IDS: readonly string[] = [];
+
+/** The cover's standing deal: the ids it dissolves through, kept only while the reel plays (`useCoverStills`). */
+type Deal = { on: boolean; ids: readonly string[] };
+const NO_DEAL: Deal = { on: false, ids: NO_STILLS_IDS };
 
 /**
  * An item as a still is drawn: its own urls where it carries them (the demo's optimistic tiles), else
@@ -314,6 +325,13 @@ function linkedStill(
  *
  * The picks' links are asked for once per set of picks: a reel switched off never minted them with the
  * page's seed, and the cover draws previews only.
+ *
+ * ★ WHILE THE REEL PLAYS, THE COVER KEEPS THE STILLS IT IS PLAYING (compute-reads, `keepStills`). The take's first
+ * pass is a seeded shuffle of the whole album, so one arrival changed nearly all six picks: the cover swapped its
+ * pictures under the viewer on every batch and asked for the links of the new ones, a links call behind every delta.
+ * The first deal is the take's, and after it a still stays until the album loses it (then the take's next takes the
+ * place) or her own newest upload leads; a reload deals afresh. The newest-six rule below the reel's minimum keeps
+ * nothing: each arrival IS its new newest, whose link rode the delta.
  */
 function useCoverStills(
   live: GalleryLive,
@@ -322,18 +340,47 @@ function useCoverStills(
   reelOn: boolean,
 ): readonly HeadStill[] {
   const ownIds = live.ownIds;
-  const picked = useMemo(
+  // What a cold deal would pick now.
+  const fresh = useMemo(
     () => pickCoverIds(playable, { eventId, ownIds, reelOn }),
     [playable, eventId, ownIds, reelOn],
   );
-  const ensureLinks = live.ensureLinks;
-  useEffect(() => {
-    ensureLinks(picked);
-  }, [ensureLinks, picked]);
   const byId = useMemo(
     () => new Map(playable.map((item) => [item.id, item])),
     [playable],
   );
+  // The deal that stands, kept in state beside the render that made it (React's own pattern for a value that depends on
+  // the render before: a conditional set while rendering, which re-renders before anything is drawn or any effect runs).
+  const [deal, setDeal] = useState<Deal>(NO_DEAL);
+  const picked = useMemo(() => {
+    if (!reelOn) return fresh;
+    const lead =
+      fresh[0] !== undefined && ownIds.has(fresh[0]) ? fresh[0] : null;
+    return keepStills({
+      playing: deal.on ? deal.ids : NO_STILLS_IDS,
+      fresh,
+      lead,
+      stands: (id) => {
+        const item = byId.get(id);
+        return item !== undefined && isReelEligible(item);
+      },
+    });
+  }, [reelOn, deal, fresh, byId, ownIds]);
+  const next: Deal = reelOn
+    ? deal.on && deal.ids === picked
+      ? deal
+      : { on: true, ids: picked }
+    : NO_DEAL;
+  if (next !== deal) setDeal(next);
+  const ensureLinks = live.ensureLinks;
+  // ★ THE SIX ARE ASKED FOR AGAIN WHENEVER THE ALBUM MOVES, not only when the deal changes: a kept still's link is
+  // asked for here again, which costs nothing while it is fresh and re-mints it once it has aged. The link store
+  // remembers only the ids it was recently asked for (its `interestSize`), so a cover kept through a busy party would
+  // otherwise fall out of what `refreshAged` keeps lit, and its pictures would vanish when their presigns died. (A
+  // re-deal asked on every arrival by accident, which is how this healed before the cover kept its stills.)
+  useEffect(() => {
+    ensureLinks(picked);
+  }, [ensureLinks, picked, playable]);
   const drawn: HeadStill[] = [];
   if (live.access === "teaser") {
     for (const item of live.serverItems) {

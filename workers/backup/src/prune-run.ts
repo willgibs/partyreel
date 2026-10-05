@@ -149,6 +149,20 @@ const PAGE = 1000;
 /** R2's binding `delete()` takes at most 1,000 keys a call. */
 const MAX_DELETE_KEYS = 1000;
 
+/**
+ * ★ THE BACKUP'S LONE COPIES (crumbs-75). A candidate whose row lives while the primary lost its object is kept, and
+ * it is the one finding here that is about the PRIMARY: a host's photo that will not open, the backup its last copy.
+ * It used to close the run `ok` with a note line nobody was told about. The run now always reports the count under
+ * this key (zero included, on every run that judged its candidates, so a quiet week reads as a reading and not as
+ * none), which the app reads as a card of its own beside the dead letters (`/admin/jobs`, a failure at any count,
+ * the bell), and logs each item's keys for the restore. A cross-package contract: the app's catalog names the same
+ * string (`DEPTH_COUNT_KEYS.backup_primary_missing`), and each side's suite asserts it.
+ */
+export const PRIMARY_MISSING_KEY = "primary_missing";
+
+/** At most this many lone copies are logged by key a run (Workers Logs keeps them for the restore); the count is whole. */
+const PRIMARY_MISSING_LOGGED = 200;
+
 type Stop = "deadline" | "subrequests" | "delete_cap";
 
 const STOP_WORDS: Record<Stop, string> = {
@@ -211,6 +225,8 @@ export async function runPrune(
     scanned: 0,
     absent: 0,
     primaryMissing: 0,
+    /** Media items behind `primaryMissing` (its keys): what the log names, at most PRIMARY_MISSING_LOGGED. */
+    primaryMissingItems: 0,
     keptOnHead: 0,
     checksFailed: 0,
     leftKeys: 0,
@@ -313,8 +329,16 @@ export async function runPrune(
       while (halt === null && next < batch.length) {
         const candidate = batch[next];
         if (!gone.has(candidate.mediaId)) {
-          // Its row lives while the primary lost the object: the backup alone holds it. Kept, and counted.
+          // Its row lives while the primary lost the object: the backup alone holds it. Kept, counted, and named in
+          // the log for the restore (PRIMARY_MISSING_KEY).
           tally.primaryMissing += candidate.keys.length;
+          tally.primaryMissingItems += 1;
+          if (tally.primaryMissingItems <= PRIMARY_MISSING_LOGGED) {
+            console.error(
+              "prune: held by the backup alone (its row lives, its primary object is gone); restore it from the backup",
+              { mediaId: candidate.mediaId, keys: candidate.keys },
+            );
+          }
           next += 1;
           continue;
         }
@@ -485,6 +509,8 @@ export async function runPrune(
         scanned: tally.scanned,
         mode,
         hold_threshold: decision.threshold,
+        // A held run judged its candidates all the same, so what it found the backup alone holds stands.
+        [PRIMARY_MISSING_KEY]: tally.primaryMissing,
         ...holdCounts(decision.nextHold),
         breaker_tripped: true,
         ...(stop ? { stopped_early: true } : {}),
@@ -533,7 +559,8 @@ export async function runPrune(
   counts.pass_complete = passComplete;
   if (stop) counts.stopped_early = true;
   if (tally.absent > 0) counts.absent_from_primary = tally.absent;
-  if (tally.primaryMissing > 0) counts.primary_missing = tally.primaryMissing;
+  // Always, zero included: the app reads a missing count as no reading, never as none missing.
+  counts[PRIMARY_MISSING_KEY] = tally.primaryMissing;
   if (tally.keptOnHead > 0) counts.kept_on_recheck = tally.keptOnHead;
   if (tally.checksFailed > 0) counts.checks_failed = tally.checksFailed;
   if (!live && decision.verdict === "hold") {
@@ -548,6 +575,13 @@ export async function runPrune(
       ? `Deleted ${fmt(deleted)} keys of ${fmt(goneMedia)} items.`
       : `Dry run, deleted nothing: ${fmt(deleteKeys.length)} keys of ${fmt(goneMedia)} items would go.`,
   ];
+  // Second, so a long note's truncation never takes it: the one line about the primary.
+  if (tally.primaryMissing > 0) {
+    lines.push(
+      `${fmt(tally.primaryMissing)} keys of ${fmt(tally.primaryMissingItems)} items are held by the backup alone: ` +
+        "their rows live, their primary objects are gone. Restore them from the backup; this run's log names each.",
+    );
+  }
   if (decision.verdict === "released") {
     lines.push("The hold was released on /admin/jobs, so this run went ahead.");
   }
@@ -561,11 +595,6 @@ export async function runPrune(
   if (tally.checksFailed > 0) {
     lines.push(
       `${fmt(tally.checksFailed)} items could not be re-checked and were kept.`,
-    );
-  }
-  if (tally.primaryMissing > 0) {
-    lines.push(
-      `${fmt(tally.primaryMissing)} keys are held by the backup alone: their rows live, their primary objects are gone.`,
     );
   }
   if (!live && decision.verdict === "hold") {

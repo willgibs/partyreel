@@ -1,0 +1,74 @@
+{
+  "board": "drive-export",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-10-05",
+      "answers": [
+        {
+          "ask": "way-in",
+          "choice": "originals",
+          "note": "I like this option because it pairs with \"Download\" as an action underneath the original's quality. If you want original quality, you can either download or export. Phone size is second separate option. Feels weird to make export its own distinct third here.",
+          "by": "Will",
+          "at": "2026-10-05T05:23:04Z"
+        },
+        {
+          "ask": "doors",
+          "choice": "both",
+          "by": "Will",
+          "at": "2026-10-05T05:23:04Z"
+        },
+        {
+          "ask": "connect",
+          "choice": "promise",
+          "by": "Will",
+          "at": "2026-10-05T05:23:04Z"
+        },
+        {
+          "ask": "progress",
+          "choice": "album",
+          "by": "Will",
+          "at": "2026-10-05T05:23:04Z"
+        },
+        {
+          "ask": "hard",
+          "choice": "in-place",
+          "note": "Since this is a fixed position, would it help to have a toast or something to find and flag them elsewhere in the site to get their attention? I always get nervous when warning or danger notices get tucked into a location that can easily be navigated away from and never seen.",
+          "by": "Will",
+          "at": "2026-10-05T05:23:04Z"
+        },
+        {
+          "ask": "done",
+          "choice": "done-only",
+          "note": "As I mentioned before, keeping media on Partyreel incentivizes hosts to upgrade to the next storage tier and is what gets us paid. Though export is an amazing feature to *begin* offramping media, adding a 1-click deletion to remove everything is a big hit to us. I'm almost always in favor of user-first, but this is one place we can add a little friction to select all and delete media, or delete events in settings directly, so hosts hopefully take the easy path and keep media on partyreel while continuing to upgrade to higher storage tiers.",
+          "by": "Will",
+          "at": "2026-10-05T05:23:04Z"
+        },
+        {
+          "ask": "exit",
+          "choice": null,
+          "note": "As I said in last answer, don't want to make it this easy to get out of Partyreel. Just streamlining offramping media so they don't feel locked in. Idea is \"oh, if I go with partyreel it'll only cost $9 for a month, i can have my wedding in the first week, export everything to google drive and not renew my subscription, that's an amazing deal, $9 versus all the $29+ platforms\" so it's an easy opt in.",
+          "by": "Will",
+          "at": "2026-10-05T05:23:04Z"
+        },
+        {
+          "ask": "account",
+          "choice": "card",
+          "note": "I think drive export justifies with enough information, configs, etc., for its own card, but I do like option 2's design for the line for more subtle actions in other settings if you have any ideas. Not specific to drive export, just seems like useful UI for something.",
+          "by": "Will",
+          "at": "2026-10-05T05:23:04Z"
+        },
+        {
+          "ask": "naming",
+          "choice": null,
+          "note": "Wanted to provide a small thought of my own before answering. Since uploads will likely come in batches from guests, therefore mostly ordering a time-based naming by guest anyway, do you still recommend this is the best solution? I think I agree with you. Just wanted to check if any better ideas pop up.",
+          "by": "Will",
+          "at": "2026-10-05T05:23:04Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
+    }
+  ]
+}

@@ -7,14 +7,10 @@ import {
   ArrowUp,
   ChevronDown,
   LayoutGrid,
-  ListFilter,
-  Plus,
   Rows3,
   Search,
   SlidersHorizontal,
-  Star,
   Table2,
-  X,
 } from "lucide-react";
 
 import { CoverCycleProvider } from "@/components/app/dashboard/cover-cycle";
@@ -25,15 +21,6 @@ import {
 import { EventsRowList } from "@/components/app/dashboard/events-row-list";
 import { StateDot } from "@/components/app/dashboard/marks";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
   Popover,
@@ -55,9 +42,7 @@ import { cn } from "@/lib/utils";
 import {
   arrange,
   changed,
-  type EventsWay,
   type Facts,
-  findIn,
   type Group,
   type Layout,
   PREFS_DEFAULT,
@@ -66,28 +51,19 @@ import {
   recentRows,
   type SortKey,
   SORTS,
-  sortLabel,
-  STARTER_VIEWS,
   type TileScale,
-  type View,
   WHENS,
   yearsOf,
 } from "./model";
 
 /**
- * YOUR EVENTS, ROUND THREE (his r2 note on `events`: "a recent row as
- * collapsible (keeps last few quickly accessible), then simply a
- * gallery/table/list with deep sort/filter/display customization for how hosts
- * prefer to organize the rest of their events").
- *
- * ★ ONE COLLECTION, FOUR WAYS TO SHAPE IT. Every option draws the same Recent
- * row and the same three layouts (production's tile in a gallery, a table,
- * production's rows view as the list) over the same filter, sort and group
- * (`model.ts`); what an option changes is where her choices live:
- *  - `menu`: one Display menu, quiet until she opens it;
- *  - `bar`: the layout, the sort and the filters in the open, as chips;
- *  - `views`: her ways of seeing them saved as tabs;
- *  - `find`: one field that takes a name, a year or a word.
+ * YOUR EVENTS, AS ROUND THREE SETTLED THEM (`events=menu`, Will 2026-10-04;
+ * built by `dashboard-wiring`): the Recent row over one collection, quiet
+ * until she opens its one Display menu (the layout, the order, what shows, the
+ * groups and the covers' size), a line saying what is set. The board's drawing
+ * of production's, because production's keeps each choice for her account
+ * through a Server Function, which a frame must never call; the three ways it
+ * beat retired with round three.
  *
  * ★ QUIET BY DEFAULT: covers, the newest first, nothing grouped (his "over-
  * organizing"); the Recent row from seven events (`RECENT_FROM`), and the
@@ -547,8 +523,7 @@ function Section({ label, children }: { label: string; children: ReactNode }) {
 
 /**
  * EVERY CHOICE IN ONE PLACE: the layout, the order and its direction, what
- * shows (her lens, a time, a year), the groups, the covers' size. Drawn in the
- * Display menu (`menu`) and in a view's own editor (`views`).
+ * shows (her lens, a time, a year), the groups, the covers' size.
  */
 function Choices({
   prefs,
@@ -670,7 +645,7 @@ function Choices({
   );
 }
 
-/* ── 1. one Display menu ──────────────────────────────────────────────── */
+/* ── the Display menu ─────────────────────────────────────────────────── */
 
 function DisplayMenu({
   prefs,
@@ -728,366 +703,16 @@ function DisplayMenu({
   );
 }
 
-/* ── 2. everything in the open ────────────────────────────────────────── */
-
-function Chip({ label, onClear }: { label: string; onClear: () => void }) {
-  return (
-    <span
-      data-hd-chip=""
-      className="flex h-7 items-center gap-1 rounded-full border border-border bg-background pr-1 pl-3 text-xs"
-    >
-      {label}
-      <button
-        type="button"
-        aria-label={`Clear ${label}`}
-        onClick={onClear}
-        className="flex size-5 items-center justify-center rounded-full text-muted-foreground outline-none hover:bg-muted hover:text-foreground"
-      >
-        <X className="size-3" aria-hidden />
-      </button>
-    </span>
-  );
-}
-
-function Toolbar({
-  prefs,
-  onPrefs,
-  counts,
-  years,
-  open,
-  onOpen,
-}: {
-  prefs: Prefs;
-  onPrefs: (p: Prefs) => void;
-  counts: Record<EventsFilter, number>;
-  years: readonly string[];
-  open: string | null;
-  onOpen: (open: string | null) => void;
-}) {
-  const set = (patch: Partial<Prefs>) => onPrefs({ ...prefs, ...patch });
-  const chips: { label: string; clear: Partial<Prefs> }[] = [];
-  if (prefs.lens !== "all")
-    chips.push({
-      label:
-        EVENTS_FILTER_OPTIONS.find((o) => o.value === prefs.lens)?.label ?? "",
-      clear: { lens: "all" },
-    });
-  if (prefs.when !== "any")
-    chips.push({
-      label: WHENS.find((w) => w.id === prefs.when)!.label,
-      clear: { when: "any" },
-    });
-  if (prefs.year) chips.push({ label: prefs.year, clear: { year: null } });
-  return (
-    <div
-      data-hd-toolbar={chips.length}
-      className="flex flex-wrap items-center gap-1.5"
-    >
-      <ToggleGroup
-        type="single"
-        value={prefs.layout}
-        onValueChange={(v) => v && set({ layout: v as Layout })}
-        variant="outline"
-        size="sm"
-        aria-label="Layout"
-      >
-        {LAYOUTS.map((l) => (
-          <ToggleGroupItem
-            key={l.id}
-            value={l.id}
-            aria-label={l.label}
-            className="gap-1 px-2.5"
-          >
-            {l.icon}
-            <span className="max-sm:hidden">{l.label}</span>
-          </ToggleGroupItem>
-        ))}
-      </ToggleGroup>
-      <DropdownMenu
-        open={open === "sort"}
-        onOpenChange={(o) => onOpen(o ? "sort" : null)}
-        modal={false}
-      >
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" data-hd-sort={prefs.sort}>
-            {prefs.desc ? <ArrowDown /> : <ArrowUp />}
-            {sortLabel(prefs.sort)}
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent
-          align="start"
-          onCloseAutoFocus={(e) => e.preventDefault()}
-        >
-          <DropdownMenuLabel>Sort by</DropdownMenuLabel>
-          <DropdownMenuRadioGroup
-            value={prefs.sort}
-            onValueChange={(v) =>
-              set({ sort: v as SortKey, desc: naturalDesc(v as SortKey) })
-            }
-          >
-            {SORTS.map((s) => (
-              <DropdownMenuRadioItem key={s.id} value={s.id}>
-                {s.label}
-              </DropdownMenuRadioItem>
-            ))}
-          </DropdownMenuRadioGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuRadioGroup
-            value={prefs.desc ? "desc" : "asc"}
-            onValueChange={(v) => set({ desc: v === "desc" })}
-          >
-            <DropdownMenuRadioItem value="desc">
-              {directionWords(prefs.sort, true)}
-            </DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="asc">
-              {directionWords(prefs.sort, false)}
-            </DropdownMenuRadioItem>
-          </DropdownMenuRadioGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
-      <Popover
-        open={open === "filter"}
-        onOpenChange={(o) => onOpen(o ? "filter" : null)}
-        modal={false}
-      >
-        <PopoverTrigger asChild>
-          <Button variant="outline" size="sm" data-hd-filter="">
-            <ListFilter /> Filter
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent
-          align="start"
-          className="w-80 space-y-3 p-4"
-          onOpenAutoFocus={(e) => e.preventDefault()}
-        >
-          <Section label="Whose">
-            <Pills
-              label="Whose"
-              value={prefs.lens}
-              options={EVENTS_FILTER_OPTIONS.filter(
-                (o) => o.value === "all" || counts[o.value] > 0,
-              ).map((o) => ({
-                id: o.value,
-                label: `${o.label} ${formatCount(counts[o.value])}`,
-              }))}
-              onChange={(lens) => set({ lens })}
-            />
-          </Section>
-          <Section label="When">
-            <Pills
-              label="When"
-              value={prefs.when}
-              options={WHENS}
-              onChange={(when) => set({ when })}
-            />
-          </Section>
-          {years.length > 1 && (
-            <Section label="Year">
-              <Pills
-                label="Year"
-                value={prefs.year ?? "all"}
-                options={[
-                  { id: "all", label: "Every year" },
-                  ...years.map((y) => ({ id: y, label: y })),
-                ]}
-                onChange={(y) => set({ year: y === "all" ? null : y })}
-              />
-            </Section>
-          )}
-        </PopoverContent>
-      </Popover>
-      <Button
-        variant={prefs.group === "year" ? "secondary" : "ghost"}
-        size="sm"
-        aria-pressed={prefs.group === "year"}
-        onClick={() => set({ group: prefs.group === "year" ? "none" : "year" })}
-      >
-        By year
-      </Button>
-      {chips.map((c) => (
-        <Chip key={c.label} label={c.label} onClear={() => set(c.clear)} />
-      ))}
-    </div>
-  );
-}
-
-/* ── 3. views as tabs ─────────────────────────────────────────────────── */
-
-function ViewTabs({
-  views,
-  active,
-  onActive,
-  countOf,
-  editOpen,
-  onEditOpen,
-  prefs,
-  onPrefs,
-  counts,
-  years,
-}: {
-  views: readonly View[];
-  active: string;
-  onActive: (id: string) => void;
-  countOf: (v: View) => number;
-  editOpen: boolean;
-  onEditOpen: (open: boolean) => void;
-  prefs: Prefs;
-  onPrefs: (p: Prefs) => void;
-  counts: Record<EventsFilter, number>;
-  years: readonly string[];
-}) {
-  return (
-    <div className="flex items-center gap-2">
-      <div
-        role="tablist"
-        aria-label="Your views"
-        data-hd-views={views.length}
-        className="flex min-w-0 flex-1 [scrollbar-width:none] items-center gap-1 overflow-x-auto border-b border-border"
-      >
-        {views.map((v) => (
-          <button
-            key={v.id}
-            type="button"
-            role="tab"
-            aria-selected={v.id === active}
-            onClick={() => onActive(v.id)}
-            className={cn(
-              "-mb-px flex h-9 shrink-0 items-center gap-1.5 border-b-2 px-2.5 text-sm outline-none focus-visible:bg-muted",
-              v.id === active
-                ? "border-foreground font-medium text-foreground"
-                : "border-transparent text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {v.hers && <Star className="size-3" aria-hidden />}
-            {v.label}
-            <span className="text-xs text-muted-foreground tabular-nums">
-              {formatCount(countOf(v))}
-            </span>
-          </button>
-        ))}
-        <button
-          type="button"
-          className="-mb-px flex h-9 shrink-0 items-center gap-1 border-b-2 border-transparent px-2 text-sm text-muted-foreground outline-none hover:text-foreground"
-        >
-          <Plus className="size-3.5" aria-hidden /> New view
-        </button>
-      </div>
-      <Popover open={editOpen} onOpenChange={onEditOpen} modal={false}>
-        <PopoverTrigger asChild>
-          <Button variant="ghost" size="sm" data-hd-edit-view="">
-            <SlidersHorizontal /> <span className="max-sm:hidden">Edit view</span>
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent
-          align="end"
-          className="w-[22rem] space-y-4 p-4"
-          onOpenAutoFocus={(e) => e.preventDefault()}
-        >
-          <Choices
-            prefs={prefs}
-            onPrefs={onPrefs}
-            counts={counts}
-            years={years}
-          />
-          <div className="flex items-center justify-end gap-2 border-t border-border pt-3">
-            <Button variant="ghost" size="sm">
-              Save as a new view
-            </Button>
-            <Button size="sm" onClick={() => onEditOpen(false)}>
-              Save
-            </Button>
-          </div>
-        </PopoverContent>
-      </Popover>
-    </div>
-  );
-}
-
-/* ── 4. one field that finds ──────────────────────────────────────────── */
-
-function FindField({
-  query,
-  onQuery,
-  chips,
-  suggestions,
-  count,
-  found,
-}: {
-  query: string;
-  onQuery: (q: string) => void;
-  chips: readonly string[];
-  suggestions: readonly string[];
-  count: number;
-  found: number;
-}) {
-  const add = (word: string) =>
-    onQuery(`${query.trim()} ${word.toLowerCase()}`.trim());
-  const searching = query.trim().length > 0;
-  return (
-    <div data-hd-find={found} className="space-y-2">
-      <label className="relative flex items-center">
-        <Search
-          className="pointer-events-none absolute left-4 size-4 text-muted-foreground"
-          aria-hidden
-        />
-        <span className="sr-only">Find an event</span>
-        <Input
-          type="search"
-          value={query}
-          onChange={(e) => onQuery(e.target.value)}
-          placeholder={`Find any of ${formatCount(count)} by name, year or word`}
-          className="h-11 rounded-full pr-24 pl-11 text-sm md:text-sm"
-        />
-        {searching && (
-          <span className="pointer-events-none absolute right-4 text-xs text-muted-foreground tabular-nums">
-            {`${formatCount(found)} of ${formatCount(count)}`}
-          </span>
-        )}
-      </label>
-      <div className="flex flex-wrap items-center gap-1.5">
-        {chips.map((c) => (
-          <span
-            key={c}
-            data-hd-chip=""
-            className="flex h-7 items-center rounded-full bg-foreground px-3 text-xs font-medium text-background"
-          >
-            {c}
-          </span>
-        ))}
-        {suggestions
-          .filter((s) => !chips.some((c) => c.toLowerCase() === s.toLowerCase()))
-          .map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => add(s)}
-              className="flex h-7 items-center gap-1 rounded-full border border-dashed border-border px-3 text-xs text-muted-foreground outline-none hover:border-foreground/40 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50"
-            >
-              <Plus className="size-3" aria-hidden />
-              {s}
-            </button>
-          ))}
-      </div>
-    </div>
-  );
-}
-
-/* ── the collection ───────────────────────────────────────────────────── */
-
 export type CollectionStart = {
   prefs?: Partial<Prefs>;
   query?: string;
   /** The Recent row folded, as she left it. */
   recentFolded?: boolean;
-  /** A control drawn open as the frame opens. */
-  open?: "display" | "sort" | "filter" | "edit";
-  /** `views`: the view on, and the views she made. */
-  view?: string;
-  views?: readonly View[];
+  /** The Display menu drawn open as the frame opens. */
+  open?: "display";
 };
 
 export function Collection({
-  way,
   view,
   facts,
   trail,
@@ -1095,7 +720,6 @@ export function Collection({
   wide,
   start = {},
 }: {
-  way: EventsWay;
   view: HomeView;
   facts: Facts;
   trail: readonly string[];
@@ -1104,19 +728,13 @@ export function Collection({
   wide: boolean;
   start?: CollectionStart;
 }) {
-  const views = [...STARTER_VIEWS, ...(start.views ?? [])];
-  const [active, setActive] = useState(start.view ?? "all");
-  const [own, setOwn] = useState<Prefs>({ ...PREFS_DEFAULT, ...start.prefs });
-  // A view she edited keeps its edit for the visit; a frame may open on one already edited.
-  const [edits, setEdits] = useState<Record<string, Prefs>>(() => {
-    const on = views.find((v) => v.id === start.view);
-    return way === "views" && on && start.prefs
-      ? { [on.id]: { ...on.prefs, ...start.prefs } }
-      : {};
+  const [prefs, setPrefs] = useState<Prefs>({
+    ...PREFS_DEFAULT,
+    ...start.prefs,
   });
   const [query, setQuery] = useState(start.query ?? "");
   const [recentOpen, setRecentOpen] = useState(!start.recentFolded);
-  const [open, setOpen] = useState<string | null>(start.open ?? null);
+  const [open, setOpen] = useState(start.open === "display");
 
   const rows = view.events.rows;
   if (rows.length === 0) return null;
@@ -1126,12 +744,6 @@ export function Collection({
     facts,
   );
   const lately = total >= RECENT_FROM ? recentRows(view, trail) : [];
-
-  // Each way's prefs: her own (menu, bar, find), or the view's on (views).
-  const shown = views.find((v) => v.id === active) ?? views[0]!;
-  const prefs = way === "views" ? (edits[shown.id] ?? shown.prefs) : own;
-  const setPrefs = (p: Prefs) =>
-    way === "views" ? setEdits((e) => ({ ...e, [shown.id]: p })) : setOwn(p);
   const onSort = (s: SortKey) =>
     setPrefs(
       prefs.sort === s
@@ -1140,21 +752,10 @@ export function Collection({
     );
 
   const searchable = counts.all >= EVENTS_SEARCH_FROM;
-  let groups: Group[];
-  let chips: string[] = [];
-  if (way === "find") {
-    const found = findIn(rows, query, facts);
-    chips = found.chips;
-    groups = arrange(found.rows, { ...prefs, lens: "all" }, facts);
-  } else if (way === "views") {
-    groups = arrange(rows, prefs, facts, query || (shown.query ?? ""));
-  } else {
-    groups = arrange(rows, prefs, facts, query);
-  }
-  const found = groups.reduce((n, g) => n + g.rows.length, 0);
+  const groups: Group[] = arrange(rows, prefs, facts, query);
   const reset = () => {
     setQuery("");
-    setPrefs(way === "views" ? shown.prefs : PREFS_DEFAULT);
+    setPrefs(PREFS_DEFAULT);
   };
   const empty = (
     <Empty
@@ -1168,203 +769,10 @@ export function Collection({
       onClear={reset}
     />
   );
-
-  let head: ReactNode;
-  if (way === "menu") {
-    const said = changed(prefs);
-    head = (
-      <div className="space-y-2">
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-          <Title count={counts.all} />
-          <div
-            className={cn(
-              "flex items-center gap-1.5",
-              searchable ? "w-full sm:w-auto" : "ml-auto",
-            )}
-          >
-            {searchable && (
-              <SearchField
-                query={query}
-                onQuery={setQuery}
-                count={counts.all}
-              />
-            )}
-            {counts.all > 1 && (
-              <DisplayMenu
-                prefs={prefs}
-                onPrefs={setPrefs}
-                counts={counts}
-                years={years}
-                open={open === "display"}
-                onOpen={(o) => setOpen(o ? "display" : null)}
-              />
-            )}
-          </div>
-        </div>
-        {said.length > 0 && (
-          <p
-            data-hd-said=""
-            className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground"
-          >
-            <span>{said.join(" · ")}</span>
-            <button
-              type="button"
-              onClick={() => setPrefs(PREFS_DEFAULT)}
-              className="font-medium text-foreground outline-none hover:underline"
-            >
-              Reset
-            </button>
-          </p>
-        )}
-      </div>
-    );
-  } else if (way === "bar") {
-    head = (
-      <div className="space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-          <Title count={counts.all} />
-          {searchable && (
-            <SearchField
-              query={query}
-              onQuery={setQuery}
-              count={counts.all}
-              className="max-sm:w-full"
-            />
-          )}
-        </div>
-        {counts.all > 1 && (
-          <Toolbar
-            prefs={prefs}
-            onPrefs={setPrefs}
-            counts={counts}
-            years={years}
-            open={open}
-            onOpen={setOpen}
-          />
-        )}
-      </div>
-    );
-  } else if (way === "views") {
-    const countOf = (v: View) =>
-      arrange(rows, edits[v.id] ?? v.prefs, facts, v.query ?? "").reduce(
-        (n, g) => n + g.rows.length,
-        0,
-      );
-    const shownViews = views.filter((v) => v.id === "all" || countOf(v) > 0);
-    head = (
-      <div className="space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-          <Title count={counts.all} />
-          {searchable && (
-            <SearchField
-              query={query}
-              onQuery={setQuery}
-              count={counts.all}
-              className="max-sm:w-full"
-            />
-          )}
-        </div>
-        {counts.all > 1 && (
-          <ViewTabs
-            views={shownViews}
-            active={shown.id}
-            onActive={(id) => {
-              setActive(id);
-              setOpen(null);
-            }}
-            countOf={countOf}
-            editOpen={open === "edit"}
-            onEditOpen={(o) => setOpen(o ? "edit" : null)}
-            prefs={prefs}
-            onPrefs={setPrefs}
-            counts={counts}
-            years={years}
-          />
-        )}
-      </div>
-    );
-  } else {
-    const suggestions = [
-      ...years.slice(0, wide ? 4 : 2),
-      "Upcoming",
-      "Waiting",
-      "Undated",
-    ];
-    head = (
-      <div className="space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-          <Title count={counts.all} />
-          {counts.all > 1 && (
-            <div className="flex items-center gap-1.5">
-              <ToggleGroup
-                type="single"
-                value={prefs.layout}
-                onValueChange={(v) =>
-                  v && setPrefs({ ...prefs, layout: v as Layout })
-                }
-                variant="outline"
-                size="sm"
-                aria-label="Layout"
-              >
-                {LAYOUTS.map((l) => (
-                  <ToggleGroupItem key={l.id} value={l.id} aria-label={l.label}>
-                    {l.icon}
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
-              <DropdownMenu
-                open={open === "sort"}
-                onOpenChange={(o) => setOpen(o ? "sort" : null)}
-                modal={false}
-              >
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm">
-                    {prefs.desc ? <ArrowDown /> : <ArrowUp />}
-                    {sortLabel(prefs.sort)}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="end"
-                  onCloseAutoFocus={(e) => e.preventDefault()}
-                >
-                  <DropdownMenuLabel>Sort by</DropdownMenuLabel>
-                  <DropdownMenuRadioGroup
-                    value={prefs.sort}
-                    onValueChange={(v) =>
-                      setPrefs({
-                        ...prefs,
-                        sort: v as SortKey,
-                        desc: naturalDesc(v as SortKey),
-                      })
-                    }
-                  >
-                    {SORTS.map((s) => (
-                      <DropdownMenuRadioItem key={s.id} value={s.id}>
-                        {s.label}
-                      </DropdownMenuRadioItem>
-                    ))}
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          )}
-        </div>
-        {counts.all >= EVENTS_SEARCH_FROM && (
-          <FindField
-            query={query}
-            onQuery={setQuery}
-            chips={chips}
-            suggestions={suggestions}
-            count={counts.all}
-            found={found}
-          />
-        )}
-      </div>
-    );
-  }
+  const said = changed(prefs);
 
   return (
-    <div data-hd-collection="" data-hd-way={way} className="space-y-7">
+    <div data-hd-collection="" className="space-y-7">
       {lately.length > 0 && (
         <RecentRow
           rows={lately}
@@ -1378,7 +786,50 @@ export function Collection({
         aria-label="Your events"
         className="space-y-5"
       >
-        {head}
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+            <Title count={counts.all} />
+            <div
+              className={cn(
+                "flex items-center gap-1.5",
+                searchable ? "w-full sm:w-auto" : "ml-auto",
+              )}
+            >
+              {searchable && (
+                <SearchField
+                  query={query}
+                  onQuery={setQuery}
+                  count={counts.all}
+                />
+              )}
+              {counts.all > 1 && (
+                <DisplayMenu
+                  prefs={prefs}
+                  onPrefs={setPrefs}
+                  counts={counts}
+                  years={years}
+                  open={open}
+                  onOpen={setOpen}
+                />
+              )}
+            </div>
+          </div>
+          {said.length > 0 && (
+            <p
+              data-hd-said=""
+              className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground"
+            >
+              <span>{said.join(" · ")}</span>
+              <button
+                type="button"
+                onClick={() => setPrefs(PREFS_DEFAULT)}
+                className="font-medium text-foreground outline-none hover:underline"
+              >
+                Reset
+              </button>
+            </p>
+          )}
+        </div>
         <Arranged
           groups={groups}
           prefs={prefs}

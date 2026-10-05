@@ -35,6 +35,27 @@ describe("the index", () => {
     }
   });
 
+  // ★ crumbs-75: the spend watch's two switches are reached by name, each on its own row of the watch's card
+  // (`spend-watch-card.test.tsx` holds the rows to these anchors).
+  it("★ names the spend watch's two switches, each jumping to its own row", () => {
+    const byId = new Map(PALETTE_ACTIONS.map((a) => [a.id, a]));
+    expect(byId.get("action-guest-uploads")?.href).toBe(
+      "/admin/jobs#switch-uploads_enabled",
+    );
+    expect(byId.get("action-lifecycle-mail")?.href).toBe(
+      "/admin/jobs#switch-lifecycle_mail_enabled",
+    );
+    expect(
+      matchPalette(PALETTE_ACTIONS, "guest uploads").map((e) => e.id),
+    ).toEqual(["action-guest-uploads"]);
+    expect(
+      matchPalette(PALETTE_ACTIONS, "lifecycle mail").map((e) => e.id),
+    ).toEqual(["action-lifecycle-mail"]);
+    expect(
+      matchPalette(PALETTE_ACTIONS, "spend watch").map((e) => e.id),
+    ).toEqual(["action-guest-uploads", "action-lifecycle-mail"]);
+  });
+
   it("makes every action a DESTINATION and never a call", () => {
     // The whole module is data: no function on an entry means there is nothing
     // for a palette row to invoke even by accident.

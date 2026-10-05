@@ -87,7 +87,10 @@ reports through one heartbeat table, `job_runs` (deny-all, like the `ops_flags` 
 app can start them. Three kinds share one pure `jobHealth`, so the page, the bell and the cron's scan never hold
 three definitions of healthy: **scheduled** (fires on a clock, judged by its cadence), **signal** (work with no
 schedule, such as a send or a limiter read: only its failure rows over a rolling 24 hours, and nothing at all reads
-"No activity", never green) and **derived** (a reading only a Worker can take, riding another job's `counts`).
+"No activity", never green; work it still OWES past its grace reads Needs a look, since no failure in the window
+would show it: a one-time notice kept for its retry, a download the Worker checked or began but never said ended,
+six hours on, the card's owed line saying which) and **derived** (a reading only a Worker can take, riding another
+job's `counts`; a dead letter and a key the backup alone holds each fail at any count).
 - **A run opens a row and closes it** (`running`, then `ok`, `error` or `skipped`, with a duration and free-form
   `counts`). A paused job logs a skipped run, never nothing, so a pause never reads as a missed run.
 - **The kill switches fail differently on purpose.** The purge cron and its sub-sweeps fail CLOSED on an unreadable
@@ -101,7 +104,8 @@ schedule, such as a send or a limiter read: only its failure rows over a rolling
   the purge cron: each run checks every job for a terminal row within 1.5 times its cadence and raises one
   `job_missed_run` warning per silent job. A depth reading raises `job_dead_letters_pending` or `job_queue_backlog`
   inside `/api/internal/job-run` as the Worker hands it over, as does a held backup prune (`backup_prune_held` and the
-  ops mail), and a signal failure raises where it happens (`jobs/failure-log.ts`). `jobHealth` without its inputs
+  ops mail), and a signal failure raises where it happens (`jobs/failure-log.ts`). The prune's lone copies
+  (`primary_missing`) ring the bell from their card alone so far (ROADMAP). `jobHealth` without its inputs
   answers `never`, not `missed`, so the scan never pages on a number it did not take.
 - **A sub-sweep can be a job of its own** (which, and why, is [lifecycle-recovery.md](lifecycle-recovery.md)'s): it
   opens and closes its own row inside the parent run through `createSweepRunner`, with its own switch and card; the

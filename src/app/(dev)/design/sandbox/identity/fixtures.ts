@@ -8,7 +8,8 @@ import { marketingImage } from "@/lib/constants/marketing-media";
 /**
  * ONE WEDDING, ON ITS NIGHT, BEHIND EVERY FRAME.
  *
- * Maya and Jay marry today, 2 October 2026. Maya opens Settings on the door
+ * Maya and Jay marry today, 2 October 2026, and the weekend runs to the
+ * Sunday brunch on the 4th. Maya opens Settings on the door
  * (a password, 31 guests already in, two at the door) and changes the
  * password; a guest, Sam, holds the album open on his phone and presses Add;
  * Maya's Account is on an Event Pass, and she is renaming herself.
@@ -23,11 +24,14 @@ import { marketingImage } from "@/lib/constants/marketing-media";
 export const NAME = "Maya & Jay's Wedding";
 export const HOST = "Maya Okafor";
 export const DATE = "2026-10-02";
+/** The wedding runs into the weekend: the Sunday brunch closes it (Settings' range, H3). */
+export const END_DATE = "2026-10-04";
 
 export const EVENT = hostEvent({
   id: "7d0f3c9a-5b1e-4f6a-9c2d-8e7f6a5b4c3d",
   name: NAME,
   event_date: DATE,
+  event_end_date: END_DATE,
   description:
     "Everything from tonight, in one place. Add what you take, whenever you get to it.",
   door: "password",
