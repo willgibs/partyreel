@@ -309,8 +309,7 @@ export async function lanesToKick(connectionId: string): Promise<number> {
 
 /**
  * A lane that died, counted once a Queue message (`repeat`: this message was counted already, so a word said again
- * adds nothing). ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `p_message` arrives with 20261005180000 (drop the cast
- * then).
+ * adds nothing).
  */
 export async function recordLaneFailed(input: {
   connectionId: string;
@@ -326,7 +325,7 @@ export async function recordLaneFailed(input: {
     p_connection: input.connectionId,
     p_error: input.error.slice(0, 500),
     p_message: input.messageId,
-  } as Functions["cloud_connection_lane_failed"]["Args"]);
+  });
   return {
     failures: num(r.failures) ?? 0,
     paused: num(r.paused) ?? 0,
