@@ -24,12 +24,15 @@ import {
   readAccountsUploads,
   searchAccounts,
 } from "@/lib/db/queries/accounts";
+import { readStuckPassCredits } from "@/lib/db/queries/pass-credits";
 import { formatAdminDate } from "@/lib/format/admin-time";
 import { captureWarning } from "@/lib/observability/sentry";
 import { formatBytes } from "@/lib/utils";
 import { PageHeading } from "@/components/shared/page-heading";
 
+import { BillingChecks } from "./billing-checks";
 import { accountCap, capLabel } from "./cap";
+import { checkChangePlanConfiguration } from "./portal-check";
 import {
   allowanceLabel,
   lapsedBadge,
@@ -52,7 +55,27 @@ export default async function AdminAccountsPage({
   if (ctx.aal !== "aal2") return null;
 
   const { q } = await searchParams;
-  const accounts = await searchAccounts(q);
+  // ★ The two billing checks (credit-watch) beside the search, each its own read that never fails the page: the
+  // credits stuck past their hour, and Stripe's change-plan configuration against every Pro price we sell.
+  const [accounts, stuck, portal] = await Promise.all([
+    searchAccounts(q),
+    readStuckPassCredits(),
+    checkChangePlanConfiguration(),
+  ]);
+  if (!stuck.ok) {
+    captureWarning("admin", "accounts: stuck credits read failed", {
+      message: stuck.message,
+    });
+  }
+  if (portal.state === "unread") {
+    captureWarning(
+      "admin",
+      "accounts: change-plan configuration check failed",
+      {
+        message: portal.message,
+      },
+    );
+  }
   // ★ Every listed account's uploads in ONE read (`uploads_windows`, billing-locks: it was one `uploads_used` call a
   // row, 50 a page view), each figure still `uploads_used` asked with her own tier, the function the upload refusals
   // read, so no row can disagree with the refusal it warns of, and a pass holder with no live pass reads lapsed. A
@@ -76,6 +99,8 @@ export default async function AdminAccountsPage({
           billing changes in Stripe.
         </p>
       </div>
+
+      <BillingChecks stuck={stuck} portal={portal} />
 
       {/* Server-rendered GET search (no client JS). */}
       <form method="get" className="flex max-w-md gap-2">

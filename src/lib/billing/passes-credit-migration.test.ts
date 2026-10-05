@@ -1,17 +1,23 @@
 /**
- * ★ THE PASS-TO-PRO CREDIT AND THE PASS RECOMPUTE, THE SQL FACTS (billing-integrity, 20261005181000), pinned latest-wins
- * through the one reader (`testing/migrations.ts`), beside the math (`passes.ts`) and the calls (`event-passes.ts`). The
- * behaviour is proved by the migration's rolled-back check (live) and its two-session lock runs (a throwaway cluster);
- * these hold the facts that check proved so a later `create or replace` cannot quietly drop one:
- *   1. the claim's table: deny-all, gone with the account, its grant whole and its lease cleared once granted;
- *   2. the four functions' shapes and grants: INVOKER with an empty search_path, the service role's alone;
+ * ★ THE PASS-TO-PRO CREDIT AND THE PASS RECOMPUTE, THE SQL FACTS (billing-integrity, 20261005181000; credit-watch,
+ * 20261005201000), pinned latest-wins through the one reader (`testing/migrations.ts`), beside the math (`passes.ts`)
+ * and the calls (`event-passes.ts`). The behaviour is proved by each migration's rolled-back check (live) and
+ * billing-integrity's two-session lock runs (a throwaway cluster); these hold the facts those checks proved so a later
+ * `create or replace` cannot quietly drop one:
+ *   1. the claim's table: deny-all, gone with the account, its grant whole and its lease cleared once granted or
+ *      released, a released claim never converted;
+ *   2. the five functions' shapes and grants: INVOKER with an empty search_path, the service role's alone;
  *   3. ★ her profiles row first in each, the one lock order (database-security.md), before anything else is read;
- *   4. ★ the claim: a grant on record answers granted forever, a live lease answers busy, a pass is credited once ever,
- *      and the lease outlasts any delivery the webhook can run;
+ *   4. ★ the claim: a released claim answers overlap before anything, a grant on record answers granted forever, a live
+ *      lease answers busy, a pass is credited once ever and refused only by what is settled (another checkout's mere
+ *      lease is busy, after it), and the lease outlasts any delivery the webhook can run;
  *   5. ★ the conversion: exactly the claim's passes, only after the grant, the chain cleared only when it converted;
- *   6. the recompute: never a Pro profile, the four fields from her unconsumed windows at one instant, one pass's room
- *      from tier_limits (tiers.ts' own number), written in the same transaction as the lock;
- *   7. the route calls the three in order and the old one-arg conversion nowhere.
+ *   6. the recompute: never a Pro profile, nor one whose Pro plan is seconds behind her credited checkout (real time),
+ *      the four fields from her unconsumed windows at one instant, one pass's room from tier_limits (tiers.ts' own
+ *      number), written in the same transaction as the lock;
+ *   7. the route calls the three in order, settles an unsettled overlap with the release, and the old one-arg
+ *      conversion nowhere;
+ *   8. ★ the release: only a claim another checkout's credit overtook, never one still owed, granted or leased.
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -24,19 +30,27 @@ import {
 } from "@/lib/db/testing/migrations";
 
 const FILE = "20261005181000_billing_integrity.sql";
+const WATCH = "20261005201000_credit_watch.sql";
 const CREDIT = [
   "claim_pass_credit",
   "record_pass_credit_grant",
   "convert_pass_credit",
 ] as const;
-const ALL = [...CREDIT, "recompute_pass_entitlement"] as const;
+const ALL = [
+  ...CREDIT,
+  "recompute_pass_entitlement",
+  "release_pass_credit",
+] as const;
 
 /** A function's executable body, from its `as $$` on. */
 const bodyOf = (name: string) => {
   const { code } = liveFunction(name);
   return code.slice(code.indexOf("as $$"));
 };
-const fileCode = () => executableMigrations().find((m) => m.file === FILE)!.sql;
+const fileCode = (file: string = FILE) =>
+  executableMigrations().find((m) => m.file === file)!.sql;
+/** The executable file a function's live definition is in: its grants live beside it. */
+const liveFileCode = (name: string) => fileCode(liveFunction(name).file);
 
 /** Where a needle sits, failing loudly when it is absent. */
 function at(code: string, needle: string): number {
@@ -79,6 +93,19 @@ describe("1. the claim's table", () => {
       "constraint pass_credits_converted_after_grant check (converted_at is null or granted_at is not null)",
     );
   });
+
+  it("★ a released claim is settled for good: never leased, never converted (credit-watch)", () => {
+    const sql = fileCode(WATCH);
+    expect(sql).toContain(
+      "alter table public.pass_credits add column released_at timestamptz;",
+    );
+    expect(sql).toContain(
+      "add constraint pass_credits_released_unleased check (released_at is null or claimed_until is null),",
+    );
+    expect(sql).toContain(
+      "add constraint pass_credits_released_unconverted check (released_at is null or converted_at is null);",
+    );
+  });
 });
 
 describe("2. shapes and grants", () => {
@@ -97,15 +124,16 @@ describe("2. shapes and grants", () => {
     },
   );
 
-  it("★ each is the service role's alone, in its file and in every file", () => {
-    const sql = fileCode();
+  it("★ each is the service role's alone, in its live definition's file and in every file", () => {
     const signatures: Record<(typeof ALL)[number], string> = {
       claim_pass_credit: "text, uuid, integer, uuid[]",
       record_pass_credit_grant: "text, uuid, text",
       convert_pass_credit: "text, uuid",
       recompute_pass_entitlement: "uuid, timestamptz",
+      release_pass_credit: "text, uuid, text",
     };
     for (const name of ALL) {
+      const sql = liveFileCode(name);
       const fn = `public.${name}(${signatures[name]})`;
       expect(sql).toContain(
         `revoke all on function ${fn} from public, anon, authenticated;`,
@@ -170,11 +198,18 @@ describe("4. the claim", () => {
     );
   });
 
-  it("★ a pass is credited once ever: converted already, or another checkout's granted or leased claim, is overlap", () => {
+  // Reshaped on purpose (credit-watch): the scar it keeps is "a pass is credited once ever" (a converted pass, or one
+  // another checkout's claim GRANTED, is overlap, asked before any claim is written); the reason it dropped is "or
+  // holds its lease", which refused for good a checkout whose rival's holder could still die and never grant.
+  it("★ a pass is credited once ever: converted already, or another checkout's granted claim, is overlap, saying whether its own claim is unsettled", () => {
     const body = claim();
     const overlap = at(
       body,
-      "if exists (select 1 from public.event_passes q where q.id = any(v_ids) and q.consumed_at is not null) or exists ( select 1 from public.pass_credits c where c.profile_id = p_host_id and c.stripe_session_id <> p_session_id and c.pass_ids && v_ids and (c.granted_at is not null or c.claimed_until > now())) then return jsonb_build_object('state', 'overlap'); end if;",
+      "if exists (select 1 from public.event_passes q where q.id = any(v_ids) and q.consumed_at is not null) or exists ( select 1 from public.pass_credits c where c.profile_id = p_host_id and c.stripe_session_id <> p_session_id and c.pass_ids && v_ids and c.granted_at is not null) then return jsonb_build_object('state', 'overlap', 'unsettled', v_claim.stripe_session_id is not null); end if;",
+    );
+    // ★ Never a lease: the once-ever check names no claimed_until at all.
+    expect(body.slice(overlap, body.indexOf("end if;", overlap))).not.toContain(
+      "claimed_until",
     );
     // Asked before a first claim is written and before a lapsed one is taken over, never after.
     expect(overlap).toBeLessThan(at(body, "insert into public.pass_credits"));
@@ -187,6 +222,44 @@ describe("4. the claim", () => {
     // And every pass a first claim names is hers.
     expect(body).toContain(
       "select count(*) into v_owned from public.event_passes q where q.id = any(v_ids) and q.profile_id = p_host_id;",
+    );
+  });
+
+  it("★ another checkout's live lease is busy, never overlap: asked after the once-ever check, before any claim is written (credit-watch)", () => {
+    const body = claim();
+    const overlap = at(
+      body,
+      "return jsonb_build_object('state', 'overlap', 'unsettled',",
+    );
+    const lease = at(
+      body,
+      "select max(c.claimed_until) into v_held_until from public.pass_credits c where c.profile_id = p_host_id and c.stripe_session_id <> p_session_id and c.pass_ids && v_ids and c.claimed_until > now(); if v_held_until is not null then return jsonb_build_object('state', 'busy', 'held_by', 'another_checkout', 'retry_after_sec', greatest(1, ceil(extract(epoch from (v_held_until - now()))))::integer); end if;",
+    );
+    expect(overlap).toBeLessThan(lease);
+    expect(lease).toBeLessThan(at(body, "insert into public.pass_credits"));
+    expect(lease).toBeLessThan(
+      at(
+        body,
+        "update public.pass_credits set claimed_until = now() + c_lease",
+      ),
+    );
+    // This checkout's own live lease says which it is, too.
+    expect(body).toContain(
+      "if v_claim.claimed_until > now() then return jsonb_build_object('state', 'busy', 'held_by', 'this_checkout',",
+    );
+  });
+
+  it("★ a released claim answers overlap, settled, before its grant: one released beside a grant never converts (credit-watch)", () => {
+    const body = claim();
+    const released = at(
+      body,
+      "if v_claim.released_at is not null then return jsonb_build_object('state', 'overlap', 'unsettled', false); end if;",
+    );
+    expect(released).toBeLessThan(
+      at(
+        body,
+        "if v_claim.granted_at is not null then return jsonb_build_object('state', 'granted',",
+      ),
     );
   });
 
@@ -267,6 +340,25 @@ describe("6. the recompute", () => {
     );
     expect(body).not.toMatch(/\d+::bigint \* 1024/);
   });
+
+  it("★ writes nothing for a profile with no live window whose pass became Pro credit within the hour, in real time (credit-watch)", () => {
+    const body = recompute();
+    expect(body).toContain(
+      "c_pro_pending constant interval := interval '1 hour';",
+    );
+    const windows = at(body, "into v_live, v_chain from public.event_passes q");
+    const pending = at(
+      body,
+      "if v_live = 0 and exists ( select 1 from public.event_passes q where q.profile_id = p_host_id and q.consumed_reason = 'pro_credit' and q.consumed_at > now() - c_pro_pending and q.consumed_at < q.expires_at) then return 'skipped_pro_pending'; end if;",
+    );
+    const write = at(body, "update public.profiles set tier = v_tier");
+    expect(windows).toBeLessThan(pending);
+    expect(pending).toBeLessThan(write);
+    // Real time: what is in flight is in flight now, whatever instant the sweep asks at.
+    expect(body.slice(pending, body.indexOf("end if;", pending))).not.toContain(
+      "v_now",
+    );
+  });
 });
 
 describe("7. the calls", () => {
@@ -286,8 +378,63 @@ describe("7. the calls", () => {
       "utf8",
     );
     expect(mutations).not.toContain("consume_passes_for_pro_credit");
-    for (const name of CREDIT) {
+    for (const name of [...CREDIT, "release_pass_credit"]) {
       expect(mutations).toContain(`"${name}"`);
     }
+    // ★ An unsettled overlap is looked for on Stripe's side before it is released (credit-watch), never released blind.
+    const overlapCase = credit.slice(at(credit, 'case "overlap": {'));
+    expect(at(overlapCase, "if (claim.unsettled) {")).toBeLessThan(
+      at(overlapCase, "await findGrant(input)"),
+    );
+    expect(at(overlapCase, "await findGrant(input)")).toBeLessThan(
+      at(overlapCase, "await releasePassCredit("),
+    );
+  });
+});
+
+describe("8. the release (credit-watch)", () => {
+  const release = () => bodyOf("release_pass_credit");
+
+  it("★ releases only a claim another checkout's credit overtook: a converted pass, or another checkout's granted claim", () => {
+    const body = release();
+    const owed = at(
+      body,
+      "if not exists (select 1 from public.event_passes q where q.id = any(v_claim.pass_ids) and q.consumed_at is not null) and not exists ( select 1 from public.pass_credits c where c.profile_id = p_host_id and c.stripe_session_id <> p_session_id and c.pass_ids && v_claim.pass_ids and c.granted_at is not null) then raise exception 'This checkout''s passes are not another checkout''s to credit: it is still owed.'",
+    );
+    expect(owed).toBeLessThan(at(body, "update public.pass_credits"));
+  });
+
+  it("★ never a granted claim (it converts) nor one a delivery holds right now, refused before the write", () => {
+    const body = release();
+    const write = at(body, "update public.pass_credits");
+    expect(
+      at(
+        body,
+        "if v_claim.granted_at is not null then raise exception 'This checkout''s credit is granted: it converts, never releases.'",
+      ),
+    ).toBeLessThan(write);
+    expect(
+      at(
+        body,
+        "if v_claim.claimed_until > now() then raise exception 'This checkout''s credit is held by a delivery right now.'",
+      ),
+    ).toBeLessThan(write);
+    // A replay answers what is on record, before any refusal.
+    expect(
+      at(
+        body,
+        "if v_claim.released_at is not null then return case when v_claim.granted_at is null then 'released' else 'released_granted' end; end if;",
+      ),
+    ).toBeLessThan(at(body, "if v_claim.granted_at is not null then raise"));
+  });
+
+  it("writes only its own claim: released and unleased, with the grant Stripe holds on record beside it when one is named", () => {
+    const body = release();
+    expect(body).toContain(
+      "update public.pass_credits set released_at = now(), claimed_until = null, balance_transaction_id = p_balance_transaction_id, granted_at = case when p_balance_transaction_id is null then null else now() end where stripe_session_id = p_session_id;",
+    );
+    expect(
+      body.match(/\b(?:update|insert into|delete from) public\.\w+/g),
+    ).toEqual(["update public.pass_credits"]);
   });
 });

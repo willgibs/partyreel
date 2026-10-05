@@ -1,5 +1,7 @@
 /**
- * ★ THE PASS LEDGER'S WRITES ARE EACH ONE SQL CALL (billing-locks 20261005130000; billing-integrity 20261005181000).
+ * ★ THE PASS LEDGER'S WRITES ARE EACH ONE SQL CALL (billing-locks 20261005130000; billing-integrity 20261005181000;
+ * credit-watch 20261005201000: the claim's two busy holders and its unsettled overlap, the release, the recompute's
+ * Pro-pending answer).
  *
  * The credit (claim, record, convert) and the recompute each ask one function that takes her profiles row first and does
  * its whole job in one transaction; the TypeScript touches no table itself. The recompute read the ledger and wrote the
@@ -32,6 +34,7 @@ const {
   parseClaim,
   recomputePassEntitlement,
   recordPassCreditGrant,
+  releasePassCredit,
 } = await import("@/lib/db/mutations/event-passes");
 
 const HOST = "44444444-4444-4444-8444-444444444444";
@@ -79,16 +82,41 @@ describe("the credit's claim", () => {
     expect(
       parseClaim({ state: "granted", balance_transaction_id: "cbtxn_1" }),
     ).toEqual({ state: "granted", balanceTransactionId: "cbtxn_1" });
-    expect(parseClaim({ state: "busy", retry_after_sec: 42.2 })).toEqual({
-      state: "busy",
-      retryAfterSec: 43,
-    });
-    // A busy without a usable hint still says busy, with the lease's whole length.
+    expect(
+      parseClaim({
+        state: "busy",
+        held_by: "this_checkout",
+        retry_after_sec: 42.2,
+      }),
+    ).toEqual({ state: "busy", heldBy: "this_checkout", retryAfterSec: 43 });
+    // ★ Another checkout's lease on its passes is busy too (credit-watch): the retry meets its grant or its lapse.
+    expect(
+      parseClaim({
+        state: "busy",
+        held_by: "another_checkout",
+        retry_after_sec: 90,
+      }),
+    ).toEqual({ state: "busy", heldBy: "another_checkout", retryAfterSec: 90 });
+    // A busy without a usable hint still says busy, with the lease's whole length; one with no holder is the
+    // billing-integrity function's, whose busy was always this checkout's own lease.
     expect(parseClaim({ state: "busy" })).toEqual({
       state: "busy",
+      heldBy: "this_checkout",
       retryAfterSec: 600,
     });
-    expect(parseClaim({ state: "overlap" })).toEqual({ state: "overlap" });
+    expect(parseClaim({ state: "overlap", unsettled: true })).toEqual({
+      state: "overlap",
+      unsettled: true,
+    });
+    expect(parseClaim({ state: "overlap", unsettled: false })).toEqual({
+      state: "overlap",
+      unsettled: false,
+    });
+    // An overlap with no word on it is the older function's, which left nothing of its own to settle.
+    expect(parseClaim({ state: "overlap" })).toEqual({
+      state: "overlap",
+      unsettled: false,
+    });
     expect(parseClaim({ state: "no_host" })).toEqual({ state: "no_host" });
   });
 
@@ -101,6 +129,11 @@ describe("the credit's claim", () => {
       { state: "granted" },
       { state: "granted", balance_transaction_id: "" },
       { state: "maybe" },
+      // A holder or a settlement it never names is no answer either.
+      { state: "busy", held_by: "somebody" },
+      { state: "busy", held_by: null },
+      { state: "overlap", unsettled: "yes" },
+      { state: "overlap", unsettled: null },
     ]) {
       expect(() => parseClaim(data), JSON.stringify(data)).toThrow(
         "claim_pass_credit answered something it never answers",
@@ -187,6 +220,56 @@ describe("the conversion", () => {
   });
 });
 
+describe("the release (credit-watch)", () => {
+  it("★ is one call naming the session, the host and the grant Stripe holds for it, and writes no table itself", async () => {
+    rpc.mockResolvedValue({ data: "released_granted", error: null });
+    await expect(releasePassCredit("cs_1", HOST, "cbtxn_lost")).resolves.toBe(
+      "released_granted",
+    );
+    expect(rpc).toHaveBeenCalledTimes(1);
+    expect(rpc).toHaveBeenCalledWith("release_pass_credit", {
+      p_session_id: "cs_1",
+      p_host_id: HOST,
+      p_balance_transaction_id: "cbtxn_lost",
+    });
+    expect(from).not.toHaveBeenCalled();
+  });
+
+  it("with no grant found, leaves the grant's key out, so the function's own null applies", async () => {
+    rpc.mockResolvedValue({ data: "released", error: null });
+    await expect(releasePassCredit("cs_1", HOST, null)).resolves.toBe(
+      "released",
+    );
+    expect(rpc).toHaveBeenCalledWith("release_pass_credit", {
+      p_session_id: "cs_1",
+      p_host_id: HOST,
+      p_balance_transaction_id: undefined,
+    });
+  });
+
+  it("a refusal (a claim still owed, granted, or held) throws, and an answer it never gives is a broken call", async () => {
+    rpc.mockResolvedValue({
+      data: null,
+      error: {
+        message:
+          "This checkout's passes are not another checkout's to credit: it is still owed.",
+      },
+    });
+    await expect(releasePassCredit("cs_1", HOST, null)).rejects.toThrow(
+      /^release_pass_credit: This checkout's passes are not another checkout's/,
+    );
+    for (const data of [null, "", "granted", 1, {}]) {
+      rpc.mockResolvedValue({ data, error: null });
+      await expect(
+        releasePassCredit("cs_1", HOST, null),
+        JSON.stringify(data),
+      ).rejects.toThrow(
+        "release_pass_credit answered something it never answers",
+      );
+    }
+  });
+});
+
 describe("the recompute", () => {
   it("★ is ONE call under her profiles lock: no ledger read and no profile write of its own for a conversion to land between", async () => {
     rpc.mockResolvedValue({ data: "updated", error: null });
@@ -216,6 +299,11 @@ describe("the recompute", () => {
   it("reads each answer it gives, and throws on any other or on a failed call", async () => {
     rpc.mockResolvedValue({ data: "skipped_pro", error: null });
     await expect(recomputePassEntitlement(HOST)).resolves.toBe("skipped_pro");
+    // ★ Her Pro plan seconds behind its credited checkout (credit-watch): written nothing, said so.
+    rpc.mockResolvedValue({ data: "skipped_pro_pending", error: null });
+    await expect(recomputePassEntitlement(HOST)).resolves.toBe(
+      "skipped_pro_pending",
+    );
     for (const data of [null, "", "free", 1]) {
       rpc.mockResolvedValue({ data, error: null });
       await expect(

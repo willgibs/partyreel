@@ -1,6 +1,6 @@
 /**
  * Event Pass ledger writes (billing-caps.md) — service-role only, called by the Stripe
- * webhook and the nightly sweeps. Four invariants live here:
+ * webhook, the operator's Retry and the nightly sweeps. Four invariants live here:
  *
  *   1. INSERTS ARE THE IDEMPOTENCY BOUNDARY: one Checkout session mints at most
  *      one row (unique partial index on stripe_session_id); a Stripe re-delivery
@@ -17,14 +17,26 @@
  *   4. ★ THE PASS-TO-PRO CREDIT IS GRANTED ONCE EVER AND CONVERTS ONLY WHAT IT CREDITED
  *      (billing-integrity, 20261005181000): a claim of our own keyed by the checkout
  *      session (`claim_pass_credit`), the grant put on record (`record_pass_credit_grant`),
- *      then exactly the passes the session named converted (`convert_pass_credit`). Each
- *      is one SQL transaction that takes her profiles row first, the one lock order every
- *      capacity body keeps (database-security.md): an upload's complete holds that row
- *      while it counts on her live pass.
+ *      then exactly the passes the session named converted (`convert_pass_credit`); and a
+ *      claim that lost its passes to another checkout's credit settled for good
+ *      (`release_pass_credit`, credit-watch 20261005201000). Each is one SQL transaction
+ *      that takes her profiles row first, the one lock order every capacity body keeps
+ *      (database-security.md): an upload's complete holds that row while it counts on her
+ *      live pass.
  */
 import "server-only";
 
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 import { createAdminClient } from "@/lib/supabase/admin";
+
+/**
+ * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `release_pass_credit` arrives with migration 20261005201000, so its
+ * call goes through this untyped client (drop the cast then, as billing-integrity's was).
+ */
+function creditDb(db: ReturnType<typeof createAdminClient>) {
+  return db as unknown as SupabaseClient;
+}
 
 const UNIQUE_VIOLATION = "23505";
 
@@ -56,26 +68,43 @@ export async function insertPassPurchase(
   return "inserted";
 }
 
+/** Whose live lease a busy claim met: another delivery of this checkout, or another checkout's claim on its passes. */
+export type ClaimHolder = "this_checkout" | "another_checkout";
+
 /** What a credit's claim answers (`claim_pass_credit`, read on every delivery before any grant). */
 export type PassCreditClaim =
   /** This delivery holds the claim; `resumed` when it took over a lapsed one, so look on Stripe's side first. */
   | { state: "claimed"; resumed: boolean }
   /** The grant is on record: never grant again, whenever the retry comes. */
   | { state: "granted"; balanceTransactionId: string }
-  /** Another delivery holds the claim's lease: answer non-2xx and let Stripe retry. */
-  | { state: "busy"; retryAfterSec: number }
-  /** A pass it names was converted already, or is another checkout's to credit: grant and convert nothing. */
-  | { state: "overlap" }
+  /**
+   * A live lease holds it, this checkout's own (another delivery of it) or another checkout's on a pass it names (two
+   * Checkout tabs): answer non-2xx and let Stripe retry, which meets that claim's grant or its lapse (credit-watch).
+   */
+  | { state: "busy"; heldBy: ClaimHolder; retryAfterSec: number }
+  /**
+   * A pass it names was converted already, or is named by another checkout's granted claim: grant and convert nothing.
+   * `unsettled` when this checkout's own claim is still open beside it: its holder died before its grant was on record,
+   * and may have granted on Stripe's side, so the caller looks there and settles it (`releasePassCredit`).
+   */
+  | { state: "overlap"; unsettled: boolean }
   /** No profile holds the host: nothing to credit. */
   | { state: "no_host" };
 
-/** Read `claim_pass_credit`'s answer, or throw: an answer it does not know is a broken call, never a guess. */
+/**
+ * Read `claim_pass_credit`'s answer, or throw: an answer it does not know is a broken call, never a guess. A key the
+ * function answers only since credit-watch (`held_by`, `unsettled`) reads absent as the one meaning it had before
+ * (busy was always this checkout's own lease; an overlap left nothing of its own to settle), so the route reads both
+ * definitions alike; a value it never gives is a broken call like any other.
+ */
 export function parseClaim(data: unknown): PassCreditClaim {
   const answer = (typeof data === "object" && data !== null ? data : {}) as {
     state?: unknown;
     resumed?: unknown;
     balance_transaction_id?: unknown;
     retry_after_sec?: unknown;
+    held_by?: unknown;
+    unsettled?: unknown;
   };
   switch (answer.state) {
     case "claimed":
@@ -95,14 +124,29 @@ export function parseClaim(data: unknown): PassCreditClaim {
       }
       break;
     case "busy": {
+      const heldBy =
+        answer.held_by === undefined || answer.held_by === "this_checkout"
+          ? "this_checkout"
+          : answer.held_by === "another_checkout"
+            ? "another_checkout"
+            : null;
+      if (heldBy === null) break;
       const secs = Number(answer.retry_after_sec);
       return {
         state: "busy",
+        heldBy,
         retryAfterSec:
           Number.isFinite(secs) && secs >= 1 ? Math.ceil(secs) : 600,
       };
     }
     case "overlap":
+      if (
+        answer.unsettled === undefined ||
+        typeof answer.unsettled === "boolean"
+      ) {
+        return { state: "overlap", unsettled: answer.unsettled === true };
+      }
+      break;
     case "no_host":
       return { state: answer.state };
   }
@@ -119,15 +163,12 @@ export async function claimPassCredit(input: {
   creditCents: number;
   passIds: string[];
 }): Promise<PassCreditClaim> {
-  const { data, error } = await createAdminClient().rpc(
-    "claim_pass_credit",
-    {
-      p_session_id: input.sessionId,
-      p_host_id: input.hostId,
-      p_credit_cents: input.creditCents,
-      p_pass_ids: input.passIds,
-    },
-  );
+  const { data, error } = await createAdminClient().rpc("claim_pass_credit", {
+    p_session_id: input.sessionId,
+    p_host_id: input.hostId,
+    p_credit_cents: input.creditCents,
+    p_pass_ids: input.passIds,
+  });
   if (error) throw new Error(`claim_pass_credit: ${error.message}`);
   return parseClaim(data);
 }
@@ -168,10 +209,10 @@ export async function convertPassCredit(
   sessionId: string,
   hostId: string,
 ): Promise<number> {
-  const { data, error } = await createAdminClient().rpc(
-    "convert_pass_credit",
-    { p_session_id: sessionId, p_host_id: hostId },
-  );
+  const { data, error } = await createAdminClient().rpc("convert_pass_credit", {
+    p_session_id: sessionId,
+    p_host_id: hostId,
+  });
   if (error) throw new Error(`convert_pass_credit: ${error.message}`);
   // The function answers a row count; anything else is a broken call, never "nothing to convert".
   if (typeof data !== "number" || !Number.isInteger(data) || data < 0) {
@@ -182,12 +223,53 @@ export async function convertPassCredit(
   return data;
 }
 
-export type RecomputeResult = "updated" | "unchanged" | "skipped_pro";
+/** What settling a claim that lost its passes came to: released, and with a grant its dead holder made on record. */
+export type PassCreditRelease = "released" | "released_granted";
+
+/**
+ * ★ SETTLE A CLAIM THAT LOST ITS PASSES (credit-watch, 20261005201000): its holder died before its grant was on record,
+ * and another checkout then credited the passes it names. Released for good, so it never reads stuck; with the grant
+ * Stripe holds for it on record beside it when the caller found one there (two grants for one set of passes, the
+ * operator's to reverse one of in Stripe). The SQL refuses a claim still owed (no other checkout credited its passes),
+ * one granted and one a delivery holds, so a wrong call cannot drop a host's credit. A failed call throws, so the
+ * webhook answers 500 and Stripe retries.
+ */
+export async function releasePassCredit(
+  sessionId: string,
+  hostId: string,
+  balanceTransactionId: string | null,
+): Promise<PassCreditRelease> {
+  const { data, error } = await creditDb(createAdminClient()).rpc(
+    "release_pass_credit",
+    {
+      p_session_id: sessionId,
+      p_host_id: hostId,
+      // A null grant is the function's default: the key is left out (database-security.md, a typed call cannot say null).
+      p_balance_transaction_id: balanceTransactionId ?? undefined,
+    },
+  );
+  if (error) throw new Error(`release_pass_credit: ${error.message}`);
+  if (data !== "released" && data !== "released_granted") {
+    throw new Error("release_pass_credit answered something it never answers");
+  }
+  return data;
+}
+
+/**
+ * What the recompute did. `skipped_pro_pending` (credit-watch): she has no live window and a pass of hers became Pro
+ * credit within the hour, so her Pro plan is seconds behind its checkout and nothing is written.
+ */
+export type RecomputeResult =
+  | "updated"
+  | "unchanged"
+  | "skipped_pro"
+  | "skipped_pro_pending";
 
 const RECOMPUTE_RESULTS: readonly unknown[] = [
   "updated",
   "unchanged",
   "skipped_pro",
+  "skipped_pro_pending",
 ] satisfies RecomputeResult[];
 
 /**
@@ -195,7 +277,8 @@ const RECOMPUTE_RESULTS: readonly unknown[] = [
  * transaction under her profiles row lock (`recompute_pass_entitlement`). It read the ledger and wrote the profile in
  * two requests, so a conversion landing between them had its cleared chain put back until the subscription event came.
  * Safe to call any time (webhook, sweeps, drift healing): a pure function of the ledger and the instant, the sweep's
- * `now` when it passes one, the database's otherwise. Never a Pro profile (`skipped_pro`).
+ * `now` when it passes one, the database's otherwise. Never a Pro profile (`skipped_pro`), nor one whose Pro plan is
+ * seconds behind her credited checkout (`skipped_pro_pending`), which it would have moved to Free for those seconds.
  */
 export async function recomputePassEntitlement(
   profileId: string,

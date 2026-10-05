@@ -71,7 +71,9 @@ export type JobId =
   | "abuse_limiter"
   | "unlock_limiter"
   | "help_feedback"
-  | "export_delivery";
+  | "export_delivery"
+  // The pass-to-Pro credit (credit-watch): what the webhook honoured, what failed, and what is stuck.
+  | "pass_credit";
 
 /** Where the job actually executes. Decides what an operator can do about it from /admin. */
 export type JobHost =
@@ -574,6 +576,21 @@ export const JOBS: JobDef[] = [
     label: "Sends to Google Drive",
     description:
       "Every file a send put in a host's Google Drive in the last day, and every one that failed for good, every original missing in R2, every dying lane, every refresh refused for a reason other than revocation, every duplicate a closing check counted, every breaker that tripped, and every send stuck an hour. The host sees her send's own place; nothing else would tell us.",
+    kind: "signal",
+    host: "app",
+    cron: null,
+    cadence: "Rolling 24 hours",
+    expectedEveryMs: 0,
+    flagKey: null,
+    canRunNow: false,
+  },
+  {
+    // credit-watch: the pass-to-Pro credit (billing-caps.md), its claims read at /admin/accounts, each stuck one with
+    // its Retry on the account's page.
+    id: "pass_credit",
+    label: "Pass-to-Pro credits",
+    description:
+      "Every pass-to-Pro credit honoured in the last day (granted as Stripe balance, its passes converted), every credited checkout's delivery that failed, and every credit stuck an hour: a claim never granted, or a grant whose passes never converted. The host sees her Pro plan either way; only this says her passes' credit did not land.",
     kind: "signal",
     host: "app",
     cron: null,

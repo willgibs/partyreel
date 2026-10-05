@@ -46,6 +46,14 @@ vi.mock("@/app/admin/albums/actions", () => ({
 vi.mock("@/app/admin/accounts/[id]/delete-account-control", () => ({
   DeleteAccountControl: () => null,
 }));
+// (credit-watch) The account page's credits: their read, their Retry and the page's clock, each a `server-only` chain.
+vi.mock("@/lib/db/queries/pass-credits", () => ({
+  readAccountPassCredits: later,
+}));
+vi.mock("@/app/admin/accounts/[id]/credit-retry-control", () => ({
+  CreditRetryControl: () => null,
+}));
+vi.mock("@/lib/admin/pending", () => ({ serverNow: () => Date.now() }));
 
 const album = await import("./albums/[eventId]/page");
 const account = await import("./accounts/[id]/page");

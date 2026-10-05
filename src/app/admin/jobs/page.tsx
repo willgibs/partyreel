@@ -112,6 +112,7 @@ const SIGNAL_LABEL: Partial<Record<JobId, { ok: string; failed: string }>> = {
   help_feedback: { ok: "clicks recorded", failed: "clicks dropped" },
   export_delivery: { ok: "downloads finished", failed: "failed" },
   drive_transfer: { ok: "files in hosts' Drives", failed: "failures" },
+  pass_credit: { ok: "credits honoured", failed: "deliveries failed" },
 };
 
 /**
