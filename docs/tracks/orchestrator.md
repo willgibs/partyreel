@@ -57,7 +57,7 @@ the dashboard, the hub's strip, graphite, Create's styles, small fixes, red-team
 | `upload-cancel` | E6 for uploads: an in-flight upload's x asks first, then offers Try again | MERGED at `4a064993f` (gate 226 green); his calls in the calls lab (AE); pruned | Sonnet, 3132 | `a80a1b7990acf514c` |
 | `crumbs-72` | Settings' develop time never lost, the host's storage refusal with its numbers, the teaser's waiting words, the reel's dead viewer path | MERGED at `d26e7d69a` (gate 227 green; the develop time's picker on a real iPhone is Will's walk); pruned | Sonnet, 3131 | `acf51d0ab0fa56db8` |
 | `admin-uploads` | the operator sees a host's uploads against her allowance and her Deleted beside her active bytes; read-only | MERGED at `41405f36a` (gate 228 green); the reset is the calls lab's X6; pruned | Sonnet, 3132 | `a92c83ecc3155933c` |
-| `crumbs-73` | the hub develops too (her first open after the develop develops the cover in place, once per phone); how-it-works' four hairlines | RUNNING (cut at `1de8681a2`; may be cut off: resume from its WIP) | Sonnet, 3131 | `a386ace618c2b7342` |
+| `crumbs-73` | the hub develops too; how-it-works' four hairlines | MERGED at `32a286c3b` (gate 229 green); pruned | Sonnet, 3131 | `a386ace618c2b7342` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Its
 model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`. From another session, respawn it from
@@ -67,8 +67,8 @@ model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`.
 session (`2ba90542-62d6-487c-8c79-3657619f9133`, hi@willgibs.com, weekly 92% at 21:15Z 2026-10-04, resets Tuesday
 2026-10-06 21:00Z) ran to 99% on Will's word (no token wasted). Since milestone 36 it merged compute-uploads,
 compute-presign, compute-lazy-sdk, crumbs-66 to crumbs-72, library-specimens, uploads-meter-ui, upload-cancel and
-admin-uploads (gates 215 to 228, every one green); launch-prep holds them for milestone 37, which needs a local red-team
-(54) and Will's yes. Only crumbs-73 may be mid-flight when this account stops (resume it from its WIP). The next Orchestrator runs on willg97 (its weekly reset 2026-10-04 13:00Z,
+admin-uploads and crumbs-73 (gates 215 to 229, every one green); launch-prep holds them for milestone 37, which needs a
+local red-team (54) and Will's yes. No lane is in flight: the account stopped clean. The next Orchestrator runs on willg97 (its weekly reset 2026-10-04 13:00Z,
 0% then). Its first steps:
 - for each `lp/*` whose manifest is not `handed-off`, resume it per the runbook's "Resume a lane" (its pushed WIP, its
   predecessor's transcript under `subagents/agent-<id>.jsonl`, the same port); one whose manifest says handed-off is
