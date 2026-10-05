@@ -25,6 +25,8 @@ export type SendView = {
   pauseReason: string | null;
   stopReason: string | null;
   resumeAt: string | null;
+  /** Hidden and waiting ones went too (her choice at the press). */
+  includeHidden: boolean;
   itemsTotal: number;
   itemsSent: number;
   itemsKept: number;

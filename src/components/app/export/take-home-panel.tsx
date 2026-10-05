@@ -19,9 +19,27 @@
  * ★ THE PRODUCT'S PLAN POPUP is where it opens (`popup-kinds.ts`: wide at a desk, the whole screen in a hand), the
  * nearest kind the table has to the board's panel; the sizes and pictures are the server's (`step: "summary"`),
  * asked as it opens.
+ *
+ * ★ ORIGINALS GO HOME TWO WAYS (drive-wiring, Will's desk-2 `way-in = originals`: "If you want original quality, you can
+ * either download or export"): Download, and Send to Drive beside it, the same full-size set kept in her own Google
+ * Drive. Phone size stays its own card. Send to Drive opens the panel's next page (`DriveSendSteps`): our promise
+ * before Google's screen when she has no connection, the final press when she has one, and the same page when Google
+ * sends her back here (the album she meant waits in the tab: `drive-client.ts`).
  */
-import { useCallback, useRef, useState } from "react";
-import { Download, ImageDown } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Download, FolderUp, ImageDown } from "lucide-react";
+import { toast } from "sonner";
+
+import {
+  peekIntent,
+  takeIntent,
+  takeReturnWord,
+} from "@/components/app/drive/drive-client";
+import {
+  DriveSendSteps,
+  type SendDone,
+} from "@/components/app/drive/send-steps";
+import type { DriveReturn } from "@/lib/drive/oauth-cookie";
 
 import { exportToasts } from "@/components/app/export/export-toast";
 import {
@@ -82,6 +100,9 @@ export function TakeHomePanel({
   const [canSheet, setCanSheet] = useState(false);
   const ask = useRef(0);
   const saverRef = useRef<TakeHomeSaver | null>(null);
+  // Which page of the panel shows: her two sets, or Send to Google Drive's steps (a level in).
+  const [step, setStep] = useState<"sets" | "drive">("sets");
+  const [driveReturned, setDriveReturned] = useState<DriveReturn | null>(null);
 
   const saver = useCallback((): TakeHomeSaver => {
     saverRef.current ??= createTakeHomeSaver({
@@ -99,6 +120,8 @@ export function TakeHomePanel({
   function changeOpen(next: boolean) {
     setOpen(next);
     if (!next) return;
+    setStep("sets");
+    setDriveReturned(null);
     setIncludeHidden(false);
     setRead(null);
     setFailed(false);
@@ -124,6 +147,36 @@ export function TakeHomePanel({
         if (ask.current === id) setFailed(true);
       });
   }
+
+  // BACK FROM GOOGLE, ON THIS ALBUM: the album she meant waits in the tab, so the panel opens again at the final press
+  // (or at the words of what happened at Google). Read once, on the first paint after the return.
+  useEffect(() => {
+    const intent = peekIntent();
+    if (!intent || intent.source !== "panel" || intent.events[0] !== eventId)
+      return;
+    const word = takeReturnWord();
+    if (!word) return;
+    takeIntent();
+    // A state set from the return, once: the panel opens at Send to Drive's page with what Google said.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the return is read from the address after mount
+    changeOpen(true);
+    setIncludeHidden(intent.includeHidden);
+    setDriveReturned(word);
+    setStep("drive");
+    // Once, for this album, on the paint after the return.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventId]);
+
+  const sentToDrive = (done: SendDone) => {
+    setOpen(false);
+    if (done.started.some((r) => r.state === "started")) {
+      toast.success("Sending to Google Drive", {
+        id: `drive-started-${eventId}`,
+        description:
+          "You can close this page: we'll email you when every file is in your Drive.",
+      });
+    }
+  };
 
   const sizes = read ? takeHomeSizes(read.summary, includeHidden) : null;
   const hasHidden =
@@ -170,15 +223,30 @@ export function TakeHomePanel({
       lead={desk}
       wide={desk}
       act={
-        <Button
-          type="button"
-          variant={desk ? "default" : "outline"}
-          size="sm"
-          disabled={!sizes || sizes.photos + sizes.clips === 0}
-          onClick={originals}
-        >
-          <Download /> Download
-        </Button>
+        <>
+          <Button
+            type="button"
+            variant={desk ? "default" : "outline"}
+            size="sm"
+            disabled={!sizes || sizes.photos + sizes.clips === 0}
+            onClick={originals}
+          >
+            <Download /> Download
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            data-drive-send=""
+            disabled={!!sizes && sizes.photos + sizes.clips === 0}
+            onClick={() => {
+              setDriveReturned(null);
+              setStep("drive");
+            }}
+          >
+            <FolderUp /> Send to Drive
+          </Button>
+        </>
       }
     />
   );
@@ -216,39 +284,64 @@ export function TakeHomePanel({
   return (
     <Popup open={open} onOpenChange={changeOpen}>
       <PopupTrigger asChild>{children}</PopupTrigger>
-      <PopupContent kind="plan" data-take-home="">
-        <PopupHeader
-          title="Take it home"
-          // ★ WHAT THE ALBUM HOLDS, BY ITS KINDS (red-team 46's NIT): "28 photos & videos" stood over 28 photos and no
-          // video. The summary counts photographs and clips apart, so the set is named as the rest of the app names one.
-          description={
-            sizes ? setNoun(sizes.photos, sizes.clips) : "Your album, two ways"
-          }
-        />
-        <PopupBody className="flex flex-col gap-3">
-          <div
-            className={cn("gap-3", desk ? "grid grid-cols-2" : "flex flex-col")}
-          >
-            {desk ? [originalsCard, phoneCard] : [phoneCard, originalsCard]}
-          </div>
-          {sizes && sizes.clips > 0 && (
-            <p className="text-xs text-pretty text-muted-foreground">
-              {`Clips come as they were taken: ${formatCount(sizes.clips)} · ${formatBytes(sizes.clipBytes)}, with the originals.`}
-            </p>
-          )}
-          {hasHidden && (
-            <label className="flex items-center justify-between gap-3 text-sm">
-              <span className="text-muted-foreground">
-                Include hidden items
-              </span>
-              <Switch
-                checked={includeHidden}
-                onCheckedChange={setIncludeHidden}
-                aria-label="Include hidden items"
-              />
-            </label>
-          )}
-        </PopupBody>
+      <PopupContent kind="plan" data-take-home="" data-step={step}>
+        {step === "drive" ? (
+          <DriveSendSteps
+            eventIds={[eventId]}
+            includeHidden={includeHidden}
+            source="panel"
+            returnPath={`/dashboard/${eventId}`}
+            pictures={read?.pictures ?? []}
+            upLabel="Take it home"
+            onBack={() => {
+              setDriveReturned(null);
+              setStep("sets");
+            }}
+            onDone={sentToDrive}
+            returned={driveReturned}
+            desk={desk}
+          />
+        ) : (
+          <>
+            <PopupHeader
+              title="Take it home"
+              // ★ WHAT THE ALBUM HOLDS, BY ITS KINDS (red-team 46's NIT): "28 photos & videos" stood over 28 photos and no
+              // video. The summary counts photographs and clips apart, so the set is named as the rest of the app names one.
+              description={
+                sizes
+                  ? setNoun(sizes.photos, sizes.clips)
+                  : "Your album, two ways"
+              }
+            />
+            <PopupBody className="flex flex-col gap-3">
+              <div
+                className={cn(
+                  "gap-3",
+                  desk ? "grid grid-cols-2" : "flex flex-col",
+                )}
+              >
+                {desk ? [originalsCard, phoneCard] : [phoneCard, originalsCard]}
+              </div>
+              {sizes && sizes.clips > 0 && (
+                <p className="text-xs text-pretty text-muted-foreground">
+                  {`Clips come as they were taken: ${formatCount(sizes.clips)} · ${formatBytes(sizes.clipBytes)}, with the originals.`}
+                </p>
+              )}
+              {hasHidden && (
+                <label className="flex items-center justify-between gap-3 text-sm">
+                  <span className="text-muted-foreground">
+                    Include hidden items
+                  </span>
+                  <Switch
+                    checked={includeHidden}
+                    onCheckedChange={setIncludeHidden}
+                    aria-label="Include hidden items"
+                  />
+                </label>
+              )}
+            </PopupBody>
+          </>
+        )}
       </PopupContent>
     </Popup>
   );
@@ -303,7 +396,14 @@ function SetCard({
             {facts}
           </span>
         </div>
-        <div className={cn("shrink-0", wide && "mt-3 self-start")}>{act}</div>
+        <div
+          className={cn(
+            "flex shrink-0 gap-1.5",
+            wide ? "mt-3 flex-wrap self-start" : "flex-col items-stretch",
+          )}
+        >
+          {act}
+        </div>
       </div>
     </div>
   );

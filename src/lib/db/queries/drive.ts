@@ -16,6 +16,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { mustQuery } from "@/lib/db/must-query";
+import type { AlbumPreview } from "@/lib/drive/press";
 import { inChunks, readAllPages, type PageResult } from "@/lib/db/read-all";
 import { isSealed } from "@/lib/disposable/seal";
 import {
@@ -289,22 +290,7 @@ export async function readTokenRow(
 
 // ── The send ────────────────────────────────────────────────────────────────────────────────────
 
-export type AlbumPreview = {
-  eventId: string;
-  name: string;
-  eventDate: string | null;
-  eventEndDate: string | null;
-  items: number;
-  bytes: number;
-  photos: number;
-  clips: number;
-  newItems: number;
-  newBytes: number;
-  /** When an earlier send of this album reached this Drive, if one did. */
-  sentBefore: string | null;
-  /** An unfinished send of this album (a press opens it). */
-  unfinished: string | null;
-};
+export type { AlbumPreview };
 
 export async function previewAlbums(input: {
   userId: string;

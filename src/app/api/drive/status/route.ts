@@ -43,6 +43,7 @@ function viewOf(row: SendRow): SendView {
     pauseReason: row.pauseReason,
     stopReason: row.stopReason,
     resumeAt: row.resumeAt,
+    includeHidden: row.includeHidden,
     itemsTotal: row.itemsTotal,
     itemsSent: row.itemsSent,
     itemsKept: row.itemsKept,

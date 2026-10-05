@@ -18,6 +18,7 @@ import { after, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { driveRoom, DriveCallError } from "@/lib/drive/google";
+import { DRIVE_HINT_COOKIE, DRIVE_HINT_MAX_AGE_S } from "@/lib/drive/links";
 import { MAX_ALBUMS_A_PRESS, type PressRefusal, type PressResult } from "@/lib/drive/press";
 import { notifyReconnect } from "@/lib/drive/mail.server";
 import { accessTokenFor, kickConnection, makeSendFolders } from "@/lib/drive/service.server";
@@ -143,8 +144,14 @@ export async function POST(request: Request) {
   }
 
   if (started) after(() => kickConnection(connection.id).then(() => undefined));
-  return NextResponse.json(
-    { ok: true, results },
-    { headers: { "Cache-Control": "private, no-store" } },
-  );
+  const response = NextResponse.json({ ok: true, results }, { headers: { "Cache-Control": "private, no-store" } });
+  // This browser's host uses Drive: her pages listen for her sends (`links.ts`), on this device too.
+  response.cookies.set(DRIVE_HINT_COOKIE, "1", {
+    path: "/",
+    maxAge: DRIVE_HINT_MAX_AGE_S,
+    sameSite: "lax",
+    secure: new URL(request.url).protocol === "https:",
+    httpOnly: false,
+  });
+  return response;
 }

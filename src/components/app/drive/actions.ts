@@ -6,8 +6,10 @@
  * Google confirmed it, so the card can say "to be sure, remove Partyreel in your Google account" when it did not.
  */
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 
 import { disconnectDrive } from "@/lib/drive/disconnect.server";
+import { DRIVE_HINT_COOKIE } from "@/lib/drive/links";
 import { captureError } from "@/lib/observability/sentry";
 import { createClient } from "@/lib/supabase/server";
 
@@ -23,10 +25,15 @@ export async function disconnectDriveAction(): Promise<DisconnectAnswer> {
   if (!user) return { ok: false, message: "Sign in again to disconnect." };
   try {
     const r = await disconnectDrive(user.id);
+    // Nothing of hers to listen for now: the hint goes with the connection.
+    (await cookies()).delete(DRIVE_HINT_COOKIE);
     revalidatePath("/account");
     return { ok: true, revoked: r.revoked, ended: r.ended };
   } catch (e) {
     captureError("export", e, { action: "drive_disconnect" });
-    return { ok: false, message: "Couldn't disconnect just now. Please try again." };
+    return {
+      ok: false,
+      message: "Couldn't disconnect just now. Please try again.",
+    };
   }
 }

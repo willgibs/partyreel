@@ -31,6 +31,7 @@ import {
   withDriveReturn,
   type DriveReturn,
 } from "@/lib/drive/oauth-cookie";
+import { DRIVE_HINT_COOKIE, DRIVE_HINT_MAX_AGE_S } from "@/lib/drive/links";
 import { notifyConnected } from "@/lib/drive/mail.server";
 import { tokenKeys } from "@/lib/drive/service.server";
 import { openToken, sealToken } from "@/lib/drive/tokens.server";
@@ -158,5 +159,14 @@ export async function GET(request: NextRequest) {
     });
   });
 
-  return land(outcome.outcome === "other" ? "switched" : "connected");
+  const response = land(outcome.outcome === "other" ? "switched" : "connected");
+  // The hint that this browser's host uses Drive (her pages listen for her sends only where it stands: `links.ts`).
+  response.cookies.set(DRIVE_HINT_COOKIE, "1", {
+    path: "/",
+    maxAge: DRIVE_HINT_MAX_AGE_S,
+    sameSite: "lax",
+    secure: url.protocol === "https:",
+    httpOnly: false,
+  });
+  return response;
 }
