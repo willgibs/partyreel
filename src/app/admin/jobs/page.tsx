@@ -588,8 +588,12 @@ export default async function JobsPage() {
                     <RunJobNowButton jobId={def.id} label={def.label} />
                   ) : null}
                   <p className="text-xs text-muted-foreground">
-                    {/* The remedy, said where the problem is: a dead letter is not stuck forever. */}
-                    {def.kind === "derived" && health !== "ok" && readingWords
+                    {/* The remedy, said where the problem is: a dead letter is not stuck forever. Only beside a count
+                      to act on (crumbs-75): "No reading" is no lone copy to restore, so it keeps the host's note. */}
+                    {def.kind === "derived" &&
+                    health !== "ok" &&
+                    readingWords &&
+                    (reading?.value ?? 0) > 0
                       ? readingWords.remedy
                       : (JOB_RUN_NOW_NOTE[def.host] ??
                         "Pausing takes effect on the next scheduled run.")}
