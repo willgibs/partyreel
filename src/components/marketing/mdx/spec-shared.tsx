@@ -564,9 +564,28 @@ export function Steps({ children }: { children: ReactNode }) {
 // ── UiLabel — a quoted app string ("Approve all") as a chip (R6) ───────────────
 // The mock-fidelity rule made visible: readers should recognize these exact
 // words in the product.
+//
+// ★ A CHIP STAYS WHOLE UNLESS IT COULD NEVER FIT A LINE (red-team 54b's LOW). It was `whitespace-nowrap`, so a quoted
+// message longer than a phone's line ran past the screen's edge and was cut mid-word ("Your Partyreel event was removed
+// (recoverable fo", 54 px off at 375; the Messages guests might see article cut five, one 173 px off). A label longer
+// than `UI_LABEL_WRAPS_FROM` characters, about what one line holds at the chip's size, wraps ON A PHONE like the value
+// plate (`InlineCode`): each line of it boxed in turn (`box-decoration-clone`). From `sm` up the column holds the
+// longest label whole, so it stays exactly what it was there, and every shorter one is what it was everywhere.
+const UI_LABEL_WRAPS_FROM = 44;
+
 export function UiLabel({ children }: { children: ReactNode }) {
+  const wraps =
+    typeof children === "string" && children.length > UI_LABEL_WRAPS_FROM;
   return (
-    <span className="rounded-md border bg-muted px-1.5 py-0.5 text-[0.85em] font-medium whitespace-nowrap text-foreground">
+    <span
+      data-ui-label={wraps ? "wraps" : "whole"}
+      className={cn(
+        "rounded-md border bg-muted px-1.5 py-0.5 text-[0.85em] font-medium text-foreground",
+        wraps
+          ? "box-decoration-clone whitespace-normal sm:whitespace-nowrap"
+          : "whitespace-nowrap",
+      )}
+    >
       {children}
     </span>
   );
