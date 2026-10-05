@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  checkedAll,
   isUnfinished,
   momentOf,
   sendForAlbum,
@@ -63,6 +64,9 @@ const EVERY: SendView[] = [
   ].map((stopReason) => send({ status: "canceled", stopReason })),
   send({ status: "stopped", stopReason: "expired" }),
   send({ status: "stopped", stopReason: "failed_to_start", itemsSent: 0 }),
+  send({ status: "canceled", stopReason: "canceled", landing: true }),
+  send({ status: "stopped", stopReason: "expired", landing: true }),
+  send({ status: "done", itemsSent: 0, itemsSkipped: 3 }),
 ];
 
 describe("every moment", () => {
@@ -124,6 +128,79 @@ describe("every moment", () => {
     expect(m.title).toBe("Maya & Jay is in your Google Drive");
     expect(m.facts).toContain("every one checked");
     expect(m.acts).toEqual([{ id: "open", label: "Open in Drive" }]);
+  });
+
+  it("★ never says every one checked of a send that sent nothing (nothing was checked)", () => {
+    const nothing = send({
+      status: "done",
+      itemsTotal: 3,
+      itemsSent: 0,
+      itemsSkipped: 3,
+      bytesSent: 0,
+    });
+    const m = momentOf(nothing, NOW, "UTC");
+    expect(m.facts).not.toContain("checked");
+    expect(m.title).toBe("Nothing of Maya & Jay was left to send");
+    expect(m.facts).toBe("3 left the album while sending");
+    expect(checkedAll(nothing)).toBe(false);
+    expect(tileLight(nothing)).toBeNull();
+    expect(checkedAll(send({ status: "done", itemsSent: 1 }))).toBe(true);
+    expect(checkedAll(send({ status: "checking", itemsSent: 9 }))).toBe(false);
+  });
+
+  it("★ tells what a canceled send landed: so far while its files land, what stayed once they have, Send again only then", () => {
+    const landing = momentOf(
+      send({
+        status: "canceled",
+        stopReason: "canceled",
+        itemsTotal: 60,
+        itemsSent: 10,
+        landing: true,
+      }),
+      NOW,
+      "UTC",
+    );
+    expect(landing).toMatchObject({
+      word: "Stopping",
+      title: "You canceled this send",
+      facts: "10 of 60 reached your Drive so far",
+      line: "The files already on their way are still landing.",
+      acts: [],
+    });
+    const landed = momentOf(
+      send({
+        status: "canceled",
+        stopReason: "canceled",
+        itemsTotal: 60,
+        itemsSent: 14,
+      }),
+      NOW,
+      "UTC",
+    );
+    expect(landed.facts).toBe(
+      "14 of 60 reached your Drive and stay there. Sending again takes only the rest.",
+    );
+    expect(landed.acts).toEqual([{ id: "send_again", label: "Send again" }]);
+    // A send that ran too long lands its last files the same way; one that never started has none on their way.
+    expect(
+      momentOf(
+        send({ status: "stopped", stopReason: "expired", landing: true }),
+        NOW,
+        "UTC",
+      ).word,
+    ).toBe("Stopping");
+    expect(
+      momentOf(
+        send({
+          status: "stopped",
+          stopReason: "failed_to_start",
+          itemsSent: 0,
+          landing: true,
+        }),
+        NOW,
+        "UTC",
+      ).word,
+    ).toBe("Stopped");
   });
 
   it("says a send that stopped moving is slow, without a guess at the time left", () => {

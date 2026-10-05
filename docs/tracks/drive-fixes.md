@@ -17,8 +17,6 @@ reads:                  # single-sources you depend on: never duplicate, never e
   - supabase/migrations/20261005120000_cloud_export.sql
   - docs/systems/database-security.md
   - usher/kit/vercel-usage.mjs
-  - ../partyreel-wt/_scratch/drive-walk/ledger.txt
-  - ../partyreel-wt/_scratch/drive-wiring/wrangler-dev.log
 ---
 
 # lp/drive-fixes
