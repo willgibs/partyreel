@@ -10,7 +10,8 @@
  *     know what a host stores). A Pro host's pass click keeps checkout's words.
  *  3. A switch below this month's uploads says so BEFORE it leaves (crumbs-70): the route
  *     answers the sentence beside the url, and the hop (a tier-blind page with no card of
- *     its own to carry the words) shows it and holds one reading before Stripe's page.
+ *     its own to carry the words) shows it and holds one reading before Stripe's page,
+ *     with a way to stay (the wait is hers to stop).
  */
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -217,6 +218,25 @@ describe("a switch below this month's uploads says so before it leaves", () => {
     await waitFor(() => expect(assigned).toBe(URL));
     // Words, never an error: the webhook allows the switch.
     expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it("★ stays on the page when she says so during the hold: the wait is hers to stop", async () => {
+    replies["/api/stripe/checkout"] = subscribed;
+    replies["/api/stripe/change-plan"] = {
+      status: 200,
+      body: { ok: true, url: URL, notice: NOTICE },
+    };
+    await press();
+    await waitFor(() => expect(toast).toHaveBeenCalledTimes(1));
+    const options = vi.mocked(toast).mock.calls[0][1] as {
+      action: { label: string; onClick: () => void };
+    };
+    expect(options.action.label).toBe("Stay here");
+    options.action.onClick();
+    await vi.advanceTimersByTimeAsync(10_000);
+    // The button is hers again, and nothing left the page.
+    await waitFor(() => expect(screen.getByRole("button")).toBeEnabled());
+    expect(assigned).toBe(null);
   });
 
   it("goes at once, with nothing said, when the route answers no sentence", async () => {

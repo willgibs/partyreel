@@ -43,7 +43,7 @@ type CheckoutButtonProps = Omit<
 /**
  * How long a sentence the host has not read yet holds the way to Stripe's confirm page: one reading, then she goes on
  * (and it is still her page to confirm or leave there). 22 words at a reader's pace, so the page never leaves
- * mid-sentence; the toast outlasts it by a beat.
+ * mid-sentence; the toast outlasts it by a beat and carries the way to stop it.
  */
 const NOTICE_HOLD_MS = 5_000;
 
@@ -119,12 +119,23 @@ export function CheckoutButton({
             // ★ A SWITCH BELOW THIS MONTH'S UPLOADS SAYS SO BEFORE IT LEAVES (crumbs-70). The plan sheet says it on the
             // size's own card before the press; this page is tier-blind and has no card, so the route answers the
             // sentence (`uploadsPauseNote`) and it is shown here, held one reading while the button still says it is
-            // working. Words, never a refusal and never a confirm: the webhook allows the switch.
+            // working, and hers to stop (a wait with no way out is not one the brief allows). Words, never a refusal and
+            // never a confirm: the webhook allows the switch, and she goes on unless she says otherwise.
             if (outcome.notice) {
-              toast(outcome.notice, { duration: NOTICE_HOLD_MS + 1_000 });
+              const hold = { stay: false };
+              toast(outcome.notice, {
+                duration: NOTICE_HOLD_MS + 1_000,
+                action: {
+                  label: "Stay here",
+                  onClick: () => {
+                    hold.stay = true;
+                  },
+                },
+              });
               await new Promise((resolve) =>
                 setTimeout(resolve, NOTICE_HOLD_MS),
               );
+              if (hold.stay) return;
             }
             window.location.href = outcome.url;
             return;

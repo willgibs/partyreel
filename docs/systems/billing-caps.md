@@ -139,7 +139,8 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   read omits the sentence, never the sheet. `/pricing`'s hop has no card to carry it (the page is tier-blind), so
   change-plan answers it beside the url as `notice` (only for a step down in the allowance, read after the storage
   check and while the portal session is made, a failed read answering none) and the CheckoutButton shows it, holding
-  one reading before it leaves; the sheet's own switch ignores it, having said it on the card.
+  one reading before it leaves, with a Stay here on the toast; the sheet's own switch ignores it, having said it on
+  the card.
 - **A Pro switch goes through `/api/stripe/change-plan`, never the general portal.** `/pricing` is static and
   tier-blind, so a Pro host's tap on a Pro size is refused at checkout (`already_subscribed`) and the button re-posts
   the same plan id to change-plan. After the subscription and storage checks, the route opens a portal session on

@@ -14,7 +14,7 @@
  * stands lit, which is all it ever did before.
  */
 
-const KEY = "partyreel:just-made-event";
+const KEY = "pr-just-made-event";
 
 /** Create made this event just now: the next lit stage that draws it plays its ignition. */
 export function rememberJustMade(eventId: string): void {

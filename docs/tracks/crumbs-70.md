@@ -49,9 +49,10 @@ working.
   land on `/dashboard` (it duplicates Get it ready's destination today), change that one `href`, and the flag becomes a
   parameter `LampLight` reads once; I did not move an exit the verdicts settled (`landing=beat`, `create=hand`).
 - **How long does the hop hold the way to Stripe for the sentence?** **Recommended, built:** the sentence as a plain toast
-  and the redirect held 5 s (one reading of 22 words), the button saying it is working meanwhile: never a refusal and
-  never a confirm (the webhook allows the switch, and Stripe's page is the confirm). Will's to overrule: a Continue
-  action on the toast instead (a click more, and the page never leaves mid-sentence), or no hold.
+  and the redirect held 5 s (one reading of 22 words), the button saying it is working meanwhile and the toast carrying
+  a "Stay here" that stops it (the round's standing "potential interruptibility"): never a refusal and never a confirm
+  (the webhook allows the switch, and Stripe's page is the confirm). Will's to overrule: a Continue action on the toast
+  instead (a click more, and the page never leaves mid-sentence), or no hold.
 - **The route says the sentence only for a step down in the uploads allowance** (`target.uploadsBytes <
   current.uploadsBytes`), so an upgrade and her own size at the other billing never pay the ledger read and never warn;
   the sheet's card says it for any size at or below this month's uploads that is not her own size. They differ only for a
