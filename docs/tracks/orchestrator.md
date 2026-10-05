@@ -63,8 +63,9 @@ model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`.
 
 **Handoff across accounts** (Will's rule: wind down near the weekly limit; the other account resumes at once). This
 session (`2ba90542-62d6-487c-8c79-3657619f9133`, hi@willgibs.com, weekly 92% at 21:15Z 2026-10-04, resets Tuesday
-2026-10-06 21:00Z) runs to 100% on Will's word (no token wasted): compute-uploads (lever 4) and crumbs-66 were cut at
-21:30Z and may be mid-flight when it stops. The next Orchestrator runs on willg97 (its weekly reset 2026-10-04 13:00Z,
+2026-10-06 21:00Z) runs to 100% on Will's word (no token wasted). Since milestone 36 it merged compute-uploads,
+compute-presign, compute-lazy-sdk, crumbs-66 to crumbs-71, library-specimens, uploads-meter-ui and upload-cancel (98%
+weekly at 02:12Z 2026-10-05); crumbs-72 may be mid-flight when it stops. The next Orchestrator runs on willg97 (its weekly reset 2026-10-04 13:00Z,
 0% then). Its first steps:
 - for each `lp/*` whose manifest is not `handed-off`, resume it per the runbook's "Resume a lane" (its pushed WIP, its
   predecessor's transcript under `subagents/agent-<id>.jsonl`, the same port); one whose manifest says handed-off is
