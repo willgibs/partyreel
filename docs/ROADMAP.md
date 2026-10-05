@@ -17,6 +17,8 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Now: "Guests: the failure sheet's Retry all re-queues its files one at a time and each call runs the queue (`use-upload-queue.ts`'s `retry`), so the first run takes a burst of one: a dropped burst's Try again is two completes where one would do (walked, uploads-idempotent); re-queue the list, then run the queue once."
+- Now: "Uploads: a burst boundary (past 20 files, 1 GiB, or a pick made while a burst goes) waits for the last burst's complete before the next burst's first file prepares and presigns (the queue awaits `uploadBurst` whole); start the next burst once the last one's bytes are up."
 - Trust & safety: "Delete our copy from her Drive", an audited operator act for a takedown of an item a send delivered (it needs the connection's key at the time; written to `forensic_audit_log`).
 - Product: keep a capture time at upload, so a Drive file's name and `modifiedTime` say when it was taken (`driveFileStem`'s `capturedAt` waits for it).
 - Admin: the account view (`/admin/accounts/[id]`) shows its Drive connection with Pause and Disconnect (today on `/admin/exports#drive`, found by address).
@@ -41,7 +43,6 @@ below hold the rest by surface.
 - Guests: the album's sync carries no `accepting_uploads`, so the camera asks a closed album again by itself (10 s, 20, 40, then each minute); carry it in the sync (a migration and the sync's reader) and the asking goes.
 - Guests: the held door's wait chooser (`door/wait-picks.tsx`) still offers the photo library on a camera album, so a library photo can wait for the roll; offer the album's camera there, as the door's step now does.
 - Guests: the uploader refuses a wrong type and a file over its ceiling with no code (`prepare()` and `validateUpload` in `uploader.ts`), so the queue gives them one from the file (`localRefusalCode`); tag them at the source and drop the queue's copy.
-- Code hygiene: the args objects beside `rpc("create_media*")` in the upload routes are typed seams the generated types no longer need (the rest of the phone_key seams went with crumbs-78).
 - UI: the Library's tooltip specimen (`library/components/gallery-demos.tsx`, its comment above "Tooltip") says the root provider's delay is 200 ms; it is 0.
 - Admin: the Library can draw the operator's `ModerationGrid` now that it takes its writes as props (a specimen on fixture items with no-op writes, as `ReportQueue`'s `writes` already allows).
 - Marketing: /reel's live section (`sections/reel/live-section.tsx`) draws the retired reel tile (`live-tile.tsx`, `PosterCard`'s last caller) at the top of the album; show it as the cover's play button opens it, and drop `PosterCard` but not the format helpers `clip-creator.tsx` imports (the two blog posts now say it right).
@@ -74,7 +75,6 @@ below hold the rest by surface.
 - Billing: the plan limits' Cloudflare reader `[eng+human]`: R2 operations and Workers requests through the GraphQL Analytics API, once Will mints a `CLOUDFLARE_ANALYTICS_TOKEN` (Account Analytics: Read) (the calls lab's X3).
 - Guests: the guest's read carries the period's start (`sealed_from`), so an album turned disposable mid-party develops only its roll (today its photos from before the switch develop on the sheet too: `rollOfEntries`'s note).
 - Design: when identity's `edge` ask picks a reach for layers, a layer's bright edge reads `--display-light`, and `[data-lit]`'s falloff takes its light as a colour the host sets (r4's `edge.ts` draws it so), so one falloff serves media and layers.
-- Guests: presign and complete have no client ceiling (a retry re-runs the whole upload, so a timed-out complete that had recorded its row would duplicate it); make the retry idempotent on `media_id` (`readRecordedUpload` already answers a replayed complete) so these can time out and say "Your connection dropped." too.
 - Host (clip): the hub's reel view has no Make your own (its seam wants the host's plan and her own Add to event); wire it from the hub so she can make a clip before the develop.
 - Dashboard: a guest album she opened is in neither Recent nor Last opened (only a host's own event is stamped); stamping one wants a table of its own.
 - Dashboard: delete `seasonsOf`, `HomeView.events.seasons` and `src/lib/dashboard/seasons.ts` once the host-dashboard board retires (its drawings still compose them).
@@ -97,7 +97,6 @@ below hold the rest by surface.
 - Guests: the account's other lists say a range's first day alone: the claims card (`list_guest_rows_by_email`), the As a guest cards (`getMyGuestEventCards`) and the credits on Yours and likes (`get_my_uploads`, `get_my_likes`); each read carries `event_end_date` to `formatEventDate`.
 - Guests: the waiting sheet decodes a camera video's file for its picture where the queue already holds its first frame (`QueueItem.poster`); carry it through `HerShot`, `herShotsOf` (`lib/guest/upload-tracker.ts`) and `gallery-live.tsx`'s object-URL ledger.
 - Code hygiene: `src/components/app/export/export-dialog.tsx` has no caller but its test, and `mock-parity.test.ts` reads it for five quotes of the retired Download album menu, held in its comment, for two mocks that still draw that menu (`features/album/take-home-section.tsx`, `features/sharing/zip-modal-demo.tsx`); redraw both on today's take-home (Select, then Save) and delete the file, its test and those pins.
-- Uploads: each file is prepared only when its turn comes (`uploader.ts`'s `runUpload`: strip, measure, preview, phone copy; 523 ms from pick to presign at 4x CPU on a 12 MP photo); preparing the next file while the current one uploads hides it.
 - Uploads: two narrow races at a switch from Review to a develop time: an upload that read the old event row stays pending on an album that no longer reviews, and a second tab's approve at the save's instant shows before the develop; the proposed heal is a nightly pass approving any pending row on a live album.
 - Design: Settings' step list and cards (`settings-rows.tsx`, `settings-furniture.tsx`, `delete-event-row.tsx`), the hub's checklist (`checklist.tsx`) and `attended-events-visibility.tsx` hand-roll a ringed card; each becomes the flat `Card`.
 - Design: the help center's pictured menus (`help/step-screens/desk-screens.tsx`) draw the body's `floatingPanel`; draw them on `floatingDisplayPanel`, the display the real menus wear.

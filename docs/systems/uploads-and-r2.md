@@ -33,12 +33,15 @@ shapes.
   strategy's `budget` hook, met one clip after another. The one-file body still answers as it did, for a tab loaded
   before bursts (until the next milestone); a rollback past bursts refuses a newer tab's bodies until it reloads.
 - ★ **In the browser a byte never waits for batching** (`uploadBurst`): preparing (the strip, the preview, the phone
-  copy) runs ahead of the network at most 64 MB, presigning asks for every prepared file at once when the network needs
-  its next file or everything is prepared (the first file goes alone), the bytes go one file at a time, and the landed
-  files are recorded together when the last has gone up, 10 s after the first landed (`BURST_RECORD_WAIT_MS`), or at
-  once when the page is hidden (that complete `keepalive`). Meanwhile a landed file stands full: the guest's queue
-  keeps it `queued` at 100 (only the file in the air is `uploading`, which the album's stack follows) and the host's
-  panel `uploading` at 100. Callers take a burst with `takeBurst` (20 files, 1 GiB declared: presigns live 2 h).
+  copy) runs ahead of the network, the network's next file always and the rest within 64 MB; presigning asks for every
+  prepared file at once, the first file alone, then the rest once the file in the air hands off its last byte (the
+  browser's progress runs about a second ahead of the line, so only that moment says a file is ending; one handed off
+  quicker than a presign's round trip waits for need, so a small file never splits the batch), or at once when
+  preparing is held by the budget or done, the bytes go one file at a time, and the landed files are recorded together
+  when the last has gone up, 10 s after the first landed (`BURST_RECORD_WAIT_MS`), or at once when the page is hidden
+  (that complete `keepalive`). Meanwhile a landed file stands full: the guest's queue keeps it `queued` at 100 (only
+  the file in the air is `uploading`, which the album's stack follows) and the host's panel `uploading` at 100.
+  Callers take a burst with `takeBurst` (20 files, 1 GiB declared: presigns live 2 h).
 - **The guest/host asymmetries are deliberate, so the shared engine keeps them.** The host's `getUser()` gates in the
   route before the engine (401 before the body is parsed); a guest's token is validated inside the RPCs, and a token
   whose row carries an account uploads only for that signed-in account, and a signed-in account only through a row of
@@ -67,28 +70,35 @@ shapes.
   fails takes nothing, left to the orphan sweep). A phone replays a complete whose answer it lost, and anyone who knows
   the key a tile's link shows can send one on any ticket: re-landed, it would meet each gate as it stands now (the roll
   its own shot filled, the album closed, a cap its own bytes reached) and the refusal would withdraw the files the row
-  names. A recorded clip's replay neither meets nor spends `reel_clip_add`.
+  names. A recorded clip's replay neither meets nor spends `reel_clip_add`. A multipart its first complete assembled
+  and never recorded lands on the replay as assembled (only that complete can have put an object at its server-built
+  key, after the parts' sum); with nothing at the key the failure stays `complete_failed`, which the phone keeps.
 - ★ **A cancel and a dropped connection are told apart, and a dropped one is never hidden** (E6): the failure sheet and
   the host's rows print each message as it is, so a transport's words are the uploader's (`UPLOAD_WORDS`). A
-  request that never reached the network (presign, complete or the byte PUT), and a PUT whose bytes stop moving for
-  `UPLOAD_STALL_MS` (45 s, restarting on every byte and when the page comes back to the screen; 90 s for R2's answer
-  after the last byte), all say "Your connection dropped. Check your signal, then try again." with `cause: "dropped"`;
-  an error answer says it "didn't go through" (the status goes to the console, never the guest); an abort `signal`
-  says cancelled (`cause: "cancelled"`). A cancel is one file's or the burst's: `BurstFile.signal` stops that file
-  alone (the guest's tile and the host's row each stop the one file she means), settling it `cancelled` at once while
-  its siblings go on and are recorded together, wherever it stands short of its complete (a PUT in the air is aborted,
-  a presign in the air lets its entry go, a landed file waiting for its siblings is simply not recorded), and a
-  burst's own `signal` ends everything not recorded. `complete` is never aborted by either and has no client
-  timeout: a retry re-runs the whole upload, so a timed-out complete that had recorded its row would duplicate it,
-  and a stop pressed once the complete is asked is ignored (the file lands as it would have). Nothing is counted for a
+  request that never reached the network (presign, complete or the byte PUT), a presign or complete past its ceiling,
+  and a PUT whose bytes stop moving for `UPLOAD_STALL_MS` (45 s, restarting on every byte and when the page comes back
+  to the screen; 90 s for R2's answer after the last byte), all say "Your connection dropped. Check your signal, then
+  try again." with `cause: "dropped"`; an error answer says it "didn't go through" (the status goes to the console,
+  never the guest); an abort `signal` says cancelled (`cause: "cancelled"`). A cancel is one file's or the burst's:
+  `BurstFile.signal` stops that file alone (the guest's tile and the host's row each stop the one file she means),
+  settling it `cancelled` at once while its siblings go on and are recorded together, wherever it stands short of its
+  complete (a PUT in the air is aborted, a presign in the air lets its entry go, a landed file waiting for its
+  siblings is simply not recorded), and a burst's own `signal` ends everything not recorded. ★ Presign and complete
+  each end past a ceiling (30 s and 60 s, `PRESIGN_CEILING_MS`, `COMPLETE_CEILING_MS`, their clocks restarting when
+  the page is looked at again) as a dropped connection, never a spinner. A complete whose answer never came (none, one
+  the phone cannot read, or the server's own `complete_failed` or `unknown`) is kept by its File (`UNANSWERED`), and
+  that file's next try sends that very complete again (its media id, key and parts), never a presign or a byte: a row
+  the first wrote answers `recorded`, so no row or byte is counted twice; any other answer settles it, and a refused
+  file's next try starts afresh. `complete` is never aborted by a cancel: a stop pressed once it is asked, or on a
+  file going again on its kept complete, is ignored (the file lands as it would have). Nothing is counted for a
   cancelled file (the meter counts at complete); its R2 bytes, if any, are the orphan sweep's, a started multipart the
-  bucket's abort rule's. ★ It is ONE SENTENCE everywhere: the downloads say it as a title and its detail (`WALK_COPY`), and
-  the album's camera says this very string where it used to count ("2 shots didn’t send.") when a shot failed that
-  way; `uploader.transport.test.ts` holds the three to one wording. ★ **The cause, never the words, says which it was:**
-  the queue keeps the outcome's `cause` beside the message (`QueueItem.cause`: `dropped`, absent for a refusal,
-  cleared by a Retry), and what draws a drop apart from a refusal reads it: the camera's line, and the failure
-  sheet's row for a dropped connection (a signal mark before its sentence). A cancelled file is no failure and never
-  stays in the guest queue (`stop`), so the sheet has nothing of it to draw.
+  bucket's abort rule's. ★ It is ONE SENTENCE everywhere: the downloads say it as a title and its detail
+  (`WALK_COPY`), and the album's camera says this very string where it used to count ("2 shots didn’t send.") when a
+  shot failed that way; `uploader.transport.test.ts` holds the three to one wording. ★ **The cause, never the words,
+  says which it was:** the queue keeps the outcome's `cause` beside the message (`QueueItem.cause`: `dropped`, absent
+  for a refusal, cleared by a Retry), and what draws a drop apart from a refusal reads it: the camera's line, and the
+  failure sheet's row for a dropped connection (a signal mark before its sentence). A cancelled file is no failure and
+  never stays in the guest queue (`stop`), so the sheet has nothing of it to draw.
 - **The size is the R2 HEAD's** at complete, never the client's claim ([database-security.md](database-security.md));
   `duration_seconds`, `width` and `height` stay client-supplied and non-authoritative, the byte cap being the cost
   boundary.
