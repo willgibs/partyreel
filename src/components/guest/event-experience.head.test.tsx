@@ -1,5 +1,5 @@
 import { Suspense, use, type ReactNode } from "react";
-import { act, render, screen } from "@testing-library/react";
+import { act, cleanup, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { uploadsWait } from "@/lib/guest/upload-tracker";
 
@@ -21,16 +21,28 @@ vi.mock("@/lib/observability/sentry", () => ({ captureError: vi.fn() }));
 vi.mock("@/lib/supabase/client", () => ({ createClient: vi.fn() }));
 
 const part = vi.hoisted(() => () => null);
+// What the live source is handed to tell the page: its count and the count's words.
+const live = vi.hoisted(() => ({
+  told: null as null | {
+    count?: (n: number) => void;
+    words?: (words: string) => void;
+  },
+}));
 vi.mock("@/components/guest/gallery-live", () => ({
   // A live source that suspends on its promise, then draws what it holds.
   GalleryLiveProvider: ({
     galleryPromise,
+    onCountChange,
+    onCountWordsChange,
     children,
   }: {
     galleryPromise: Promise<unknown>;
+    onCountChange?: (n: number) => void;
+    onCountWordsChange?: (words: string) => void;
     children: ReactNode;
   }) => {
     use(galleryPromise);
+    live.told = { count: onCountChange, words: onCountWordsChange };
     return <div data-testid="album">{children}</div>;
   },
 }));
@@ -161,6 +173,9 @@ async function page(
   over: {
     reelAsked?: boolean;
     approvedTotal?: number;
+    /** What the server counted the album holds by kind (`getGalleryStats`'s `kinds`); absent for a stand-in page. */
+    kinds?: { photos: number; videos: number } | null;
+    access?: "full" | "teaser";
     event?: GuestEvent;
   } = {},
 ) {
@@ -177,9 +192,13 @@ async function page(
             galleryPromise={
               Promise.resolve({ kind: "locked" }) as Promise<never>
             }
-            stats={{ approvedTotal: over.approvedTotal ?? 3, guestCount: 2 }}
+            stats={{
+              approvedTotal: over.approvedTotal ?? 3,
+              guestCount: 2,
+              ...(over.kinds !== undefined && { kinds: over.kinds }),
+            }}
             isDemo={false}
-            access="full"
+            access={over.access ?? "full"}
             gate={null}
             needsName={false}
             hostAvatarUrl={null}
@@ -218,6 +237,7 @@ class NoIntersections {
 beforeEach(() => {
   vi.clearAllMocks();
   reel.bridge = null;
+  live.told = null;
   vi.stubGlobal("IntersectionObserver", NoIntersections);
 });
 
@@ -246,6 +266,75 @@ describe("the reel's round on the cover", () => {
     expect(round()).toBeNull();
     await publish({ available: true, viewAsked: false });
     expect(round()).not.toBeNull();
+  });
+});
+
+/**
+ * ★ THE COVER'S COUNT NAMES WHAT THE ALBUM HOLDS FROM THE FIRST BYTE (crumbs-74): the glyph's words ("12 photos") are
+ * the server's own count of the kinds (`stats.kinds`) until the live album has told them, and then the live album's, by
+ * the one function both say them with, so there is no beat of "12 photos & videos" over twelve photographs.
+ */
+describe("the cover's count words", () => {
+  const words = (label: string) => screen.queryByLabelText(label);
+
+  it("★ names photographs from the first paint, before the live album has told a word", async () => {
+    await page({ approvedTotal: 12, kinds: { photos: 12, videos: 0 } });
+    expect(live.told).not.toBeNull();
+    expect(words("12 photos")).not.toBeNull();
+    expect(words("12 photos & videos")).toBeNull();
+  });
+
+  it("names clips alone, and a lone item by what it is", async () => {
+    await page({ approvedTotal: 3, kinds: { photos: 0, videos: 3 } });
+    expect(words("3 videos")).not.toBeNull();
+    cleanup();
+    await page({ approvedTotal: 1, kinds: { photos: 1, videos: 0 } });
+    expect(words("1 photo")).not.toBeNull();
+    expect(words("1 photo or video")).toBeNull();
+  });
+
+  it("a mix says what the live album says of one: photos & videos, counted together", async () => {
+    await page({ approvedTotal: 15, kinds: { photos: 12, videos: 3 } });
+    expect(words("15 photos & videos")).not.toBeNull();
+  });
+
+  it("says both nouns where the page names no kinds (a stand-in page) or the server could not", async () => {
+    await page({ approvedTotal: 12 });
+    expect(words("12 photos & videos")).not.toBeNull();
+    cleanup();
+    await page({ approvedTotal: 12, kinds: null });
+    expect(words("12 photos & videos")).not.toBeNull();
+  });
+
+  it("★ says both nouns at a teaser, as its live album does (a teaser's nine cannot see in): no flash either way", async () => {
+    await page({
+      access: "teaser",
+      approvedTotal: 12,
+      kinds: { photos: 12, videos: 0 },
+    });
+    expect(words("12 photos & videos")).not.toBeNull();
+    expect(words("12 photos")).toBeNull();
+  });
+
+  it("★ hands over to the live album's own words once it has told them, and follows them", async () => {
+    await page({ approvedTotal: 12, kinds: { photos: 12, videos: 0 } });
+    expect(words("12 photos")).not.toBeNull();
+    // A clip lands: the live album counts 13 and says the mix.
+    await act(async () => {
+      live.told!.count!(13);
+      live.told!.words!("13 photos & videos");
+    });
+    expect(words("13 photos & videos")).not.toBeNull();
+    expect(words("12 photos")).toBeNull();
+  });
+
+  it("the server's kinds never name a number they do not add up to", async () => {
+    // A count the live album moved (13) beside kinds counted at render (12): both nouns, never a stale kind.
+    await page({ approvedTotal: 12, kinds: { photos: 12, videos: 0 } });
+    await act(async () => {
+      live.told!.count!(13);
+    });
+    expect(words("13 photos & videos")).not.toBeNull();
   });
 });
 
