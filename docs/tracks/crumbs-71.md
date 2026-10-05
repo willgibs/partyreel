@@ -30,11 +30,28 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Built on each recommendation; every one is Will's to overrule.
+
+1. **Where does the hold live?** Recommended, and built: in the toast port (`exportToasts`, `export-toast.tsx`), not in
+   either engine. The walk's Try again and the take-home Save's both draw there, so one rule serves both (and the
+   Library's specimen), the toast's own lifetime (a swipe, the x, a replacement) ends the wait, and the engines stay as
+   they are.
+2. **Which Try agains wait?** Recommended: a refused or short toast's (what a press can only fail again while the browser
+   says it is offline). A cancel's Try again (hers) and Get part N are left alone: a press on either meets the same
+   dropped toast, which then waits.
+3. **What the held toast says.** Recommended: its own title, with "Waiting for your connection…" in its detail's place and
+   no Try again; the x stays. When `online` fires (or the tab is looked at again with the browser online, for a phone
+   that froze the tab and missed the event) it is the same toast again, its own detail and its Try again.
+4. **Does it run Try again by itself when the line returns?** Recommended: no. A download is a press (a token lives two
+   minutes and a part is a tap), and one that starts unasked after a long wait would surprise her; it is offered, not run.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/profiles-social.md`: the name-only guest's own header disc gains that its colour is kept per ticket
+  (`pr_guest_seed_<album>`, bound to the ticket by a hash of it) and that a first load holds the disc back and fades it
+  in.
+- `docs/systems/uploads-and-r2.md` (the walk's E6 fact, not in `owns`): one clause, that the toast withholds a Try again
+  while the browser says it is offline.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
