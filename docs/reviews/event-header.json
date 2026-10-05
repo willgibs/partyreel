@@ -82,6 +82,22 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 4,
+      "opened": "2026-10-05",
+      "answers": [
+        {
+          "ask": "doors",
+          "choice": "cards",
+          "note": "This feels a bit more pronounced than the glass capsule, without shouting like the quiet windows with their more media-forward visuals do. Let's carry this version forward, but run another exploration to see what some of your ideas of polish look like.",
+          "by": "Will",
+          "at": "2026-10-05T19:21:47Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }

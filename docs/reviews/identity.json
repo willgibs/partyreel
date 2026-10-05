@@ -87,6 +87,40 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 4,
+      "opened": "2026-10-05",
+      "answers": [
+        {
+          "ask": "focus",
+          "choice": "halo",
+          "by": "Will",
+          "at": "2026-10-05T19:21:47Z"
+        },
+        {
+          "ask": "press",
+          "choice": "shrink",
+          "by": "Will",
+          "at": "2026-10-05T19:21:47Z"
+        },
+        {
+          "ask": "loading",
+          "choice": null,
+          "note": "Leaning towards option 2, the arc running round, but would like to see another round of exploration on this. Three lights feels unnatural in the button, the track filling is easy to miss as a quick swipe across the bottom of the button. The arc looping is an intuitive state, looks clean beside the copy, harder to miss and clearly shows why the button is being held. Each option should should try to cleanly communicate that state, at whatever level of creativity of information-density they'd like for each.",
+          "by": "Will",
+          "at": "2026-10-05T19:21:47Z"
+        },
+        {
+          "ask": "edge",
+          "choice": "floating",
+          "by": "Will",
+          "at": "2026-10-05T19:21:47Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }

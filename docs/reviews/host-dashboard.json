@@ -95,6 +95,27 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 4,
+      "opened": "2026-10-05",
+      "answers": [
+        {
+          "ask": "chooser",
+          "choice": "words",
+          "by": "Will",
+          "at": "2026-10-05T19:21:47Z"
+        },
+        {
+          "ask": "details",
+          "choice": "built",
+          "by": "Will",
+          "at": "2026-10-05T19:21:47Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }

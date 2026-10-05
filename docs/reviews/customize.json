@@ -1,0 +1,42 @@
+{
+  "board": "customize",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-10-05",
+      "answers": [
+        {
+          "ask": "roll",
+          "choice": "both",
+          "note": "When the +/- selector becomes visible below, let's stretch it with the - left and + right and count center. Looks weird aligned more tightly left here, with empty space to its right.",
+          "by": "Will",
+          "at": "2026-10-05T19:21:47Z"
+        },
+        {
+          "ask": "home",
+          "choice": "words",
+          "note": "I absolutely love the live words as a natural way to check the current event settings and quickly swap anything that looks weird, but these live words are still meant to be more of an overview concept. Each individual control/config/toggle/etc should have its own, more focused UI within its nested page. For example, for the 'Highlight reel' group, I can easily preview what's happening reading the live words, make quick adjustments by clicking those, or click into the highlight reel group to adjust/understand each setting individually, such as seeing the reel styles and what 3 seconds feels like versus other options. Best of both worlds.",
+          "by": "Will",
+          "at": "2026-10-05T19:21:47Z"
+        },
+        {
+          "ask": "mine",
+          "choice": "account",
+          "note": "I'd like new event creation to feel a bit more focused and streamlined, so adding a way to set defaults within the flow feels like a feature that adds crowding more than a useful benefit. The wizard is pretty fast as is, so presets don't really accelerate the process a ton. Thinking it's available in settings at best, but not ensuring it's included. Seems only a couple clicks per creation, which are already going to be fairly custom per event anyway, so users may be fighting presets more often than just working off through our streamlined creation wizard each time.",
+          "by": "Will",
+          "at": "2026-10-05T19:21:47Z"
+        },
+        {
+          "ask": "order",
+          "choice": "turns",
+          "note": "I like this, but it would feel weird to scroll backwards through time if we have a good idea of when the event is over to flip, which we usually do. However, guests should always have sort/filter available to browse the gallery as they'd like, doesn't need to be overcomplicated. However, this does open one pending question of mine - for any gallery not sorted by most recent, when a new media item/batch lands not first into the gallery, what is that animation and how does it does constantly impact a user's gallery experience when they are scrolled down? Don't want anything new to push out what they're looking at, especially at big events with more frequent uploads. You're in the gallery looking at a group of photos, then 200 new ones come in and you have to scroll for ages to find what you were looking at again.",
+          "by": "Will",
+          "at": "2026-10-05T19:21:47Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
+    }
+  ]
+}
