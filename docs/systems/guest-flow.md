@@ -142,11 +142,20 @@ read beside it so its Follow starts on Following; no card means no host row, nev
     run. A file the browser cannot draw (an iPhone `.mov`, a HEIC outside Safari) is a named stand-in with its size
     ([`upload/pick-preview.tsx`](../../src/components/guest/upload/pick-preview.tsx): `onError` is the only honest
     test); the picks' object URLs have one owner ([`use-pick-urls.ts`](../../src/components/guest/upload/use-pick-urls.ts)).
+  - **The stack's x** (`upload/stack-tile.tsx`, asked through `gallery-rows.tsx`): the stack at the album's head stops
+    the file in the air, one at a time (E6). It asks first on the product's toast ("Stop this upload?", Keep going
+    first), then the queue's `stop` aborts that file alone (each file of a burst carries its own signal: its siblings
+    go on and are recorded together) and the toast says "Upload cancelled." with Try again, which puts the same file
+    back. A stopped file is no failure: it leaves the queue (the failure sheet, the shutter's ring and her uploads never
+    count it) and nothing is recorded or metered. The x is drawn only while the file can still be stopped (going up, or
+    not yet begun; gone once its bytes are up and its complete is coming), a question whose file left the stack is
+    withdrawn, and a stop too late to take says nothing (the file lands). The stop reaches the stack on the progress
+    store it already reads (`QueueProgress.stop`), so no prop runs through the page, the provider and the gallery.
   - **The failure sheet** ([`upload/failure-sheet.tsx`](../../src/components/guest/upload/failure-sheet.tsx)): nothing
     interrupts while files go; when the run ends with anything refused it opens once, a line per file (its name, the
     server's sentence, Retry; a dropped connection's line wears a signal mark, told by the queue's `cause`, never its
-    words) over one `Retry all`, under a line on the rest that is true where it is said
-    (`uploadFailureElsewhere`). A refused file draws no tile and nothing toasts, except the join's own failure
+    words; a file she stopped is never listed, it left the queue) over one `Retry all`, under a line on the rest that
+    is true where it is said (`uploadFailureElsewhere`). A refused file draws no tile and nothing toasts, except the join's own failure
     (nothing was queued). Every close drops what it listed from the queue (`dismiss`), not just from the screen, so a
     dismissed failure never comes back at a later run's end. While the door's upload step shows, it owns the run's
     failures (`suppressFailures`).

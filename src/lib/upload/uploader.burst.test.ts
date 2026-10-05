@@ -5,7 +5,8 @@
  * refused at either step never stops its siblings; a refusal of who is sending is every unasked file's, never asked
  * again; a dropped PUT fails its file alone; a landed file waits at most `BURST_RECORD_WAIT_MS` for its siblings, and
  * the page leaving the screen records what landed at once, in a complete that outlives the page; preparing runs at
- * most `PREP_AHEAD_BYTES` ahead of the network; her cancel ends everything not recorded; each file settles once.
+ * most `PREP_AHEAD_BYTES` ahead of the network; her cancel ends everything not recorded, and one file's own cancel
+ * ends that file alone (its siblings are recorded together as ever); each file settles once.
  * Stood in: the strip (a pass-through), the derivatives (none), the image measure, the network (fetch for the two
  * routes, a timed XHR for the PUTs) and the clock.
  */
@@ -54,6 +55,10 @@ const presigned = (f: Entry) => ({
   url: `https://r2.example/${f.name}`,
   headers: {},
 });
+
+/** A request held in the air until a case lets it go (the second presign, the first complete). */
+let presignGate: Promise<void> | null;
+let completeGate: Promise<void> | null;
 
 /** How long a PUT takes (by its file's name), and whether it drops. */
 let putMs: (name: string) => number;
@@ -135,6 +140,8 @@ beforeEach(() => {
   page.listeners.clear();
   putMs = () => 50;
   drops = () => false;
+  presignGate = null;
+  completeGate = null;
   presignAnswer = (files) => ({ ok: true, files: files.map(presigned) });
   completeAnswer = (files) => ({
     ok: true,
@@ -162,6 +169,8 @@ beforeEach(() => {
       const body = JSON.parse(init.body) as { files: Entry[] };
       calls.push({ url, body, keepalive: init.keepalive });
       log.push(url.includes("presign") ? "presign" : "complete");
+      if (url.includes("presign") && presigns().length > 1) await presignGate;
+      if (url.includes("complete")) await completeGate;
       // The presign's entries carry no name (none leaves the phone): the stand-in names them by size.
       const files = body.files.map((f) => ({
         ...f,
@@ -442,5 +451,176 @@ describe("her cancel", () => {
     const { out } = await send(burstOf(3), { signal: ctl.signal });
     expect(calls).toHaveLength(0);
     expect(out.every((o) => !o.ok && o.cause === "cancelled")).toBe(true);
+  });
+});
+
+describe("one file's own cancel: a burst of three, the middle one", () => {
+  /** Three files, each with a stop of its own, and what each was told, in the order it was told. */
+  function three() {
+    const stops = [0, 1, 2].map(() => new AbortController());
+    const told: { i: number; ok: boolean; cause?: string }[] = [];
+    const going = uploadBurst({
+      files: burstOf(3).map((file, i) => ({ file, signal: stops[i]!.signal })),
+      endpoints: { presign: "/p/presign", complete: "/p/complete" },
+      identity: { session_token: "t" },
+      onOutcome: (i, o) =>
+        told.push({ i, ok: o.ok, cause: o.ok ? undefined : o.cause }),
+    });
+    return { stops, told, going };
+  }
+  const ids = (call: Call | undefined) =>
+    call?.body.files.map((f) => f.media_id);
+
+  it("★ the middle one, in the air: it alone is cancelled, its siblings go on and are recorded together without it", async () => {
+    putMs = () => 1_000;
+    const { stops, told, going } = three();
+    // The first has landed and waits for its siblings; the second is in the air.
+    await vi.advanceTimersByTimeAsync(1_500);
+    expect(log).toContain("put f1001");
+    stops[1]!.abort();
+    // Told at once, before any sibling is recorded, and only that file.
+    await vi.advanceTimersByTimeAsync(0);
+    expect(told).toEqual([{ i: 1, ok: false, cause: "cancelled" }]);
+    await vi.advanceTimersByTimeAsync(10_000);
+    const out = await going;
+    expect(out[0]!.ok).toBe(true);
+    expect(out[1]).toEqual({
+      ok: false,
+      message: UPLOAD_WORDS.cancelled,
+      cause: "cancelled",
+    });
+    expect(out[2]!.ok).toBe(true);
+    // Its bytes never landed; the third went up after it.
+    expect(log).not.toContain("landed f1001");
+    expect(log).toContain("landed f1002");
+    // The burst is recorded together, one complete, and it never names the cancelled file (nothing is counted).
+    expect(completes()).toHaveLength(1);
+    expect(ids(completes()[0])).toEqual([idOf("f1000"), idOf("f1002")]);
+    // Each file settled once.
+    expect(told.map((t) => t.i).sort()).toEqual([0, 1, 2]);
+  });
+
+  it("before its turn (presigned, waiting for the file in the air): its bytes never go", async () => {
+    putMs = () => 1_000;
+    const { stops, going } = three();
+    await vi.advanceTimersByTimeAsync(500);
+    stops[1]!.abort();
+    await vi.advanceTimersByTimeAsync(10_000);
+    const out = await going;
+    expect(out.map((o) => o.ok)).toEqual([true, false, true]);
+    expect(log).not.toContain("put f1001");
+    expect(ids(completes()[0])).toEqual([idOf("f1000"), idOf("f1002")]);
+  });
+
+  it("while its presign is in the air: the answer's entry for it is let go, and nothing is sent for it", async () => {
+    putMs = () => 1_000;
+    let release!: () => void;
+    presignGate = new Promise<void>((resolve) => (release = resolve));
+    const { stops, going } = three();
+    // The first went alone; the second and third ride one presign, held.
+    await vi.advanceTimersByTimeAsync(500);
+    expect(presigns()).toHaveLength(2);
+    stops[1]!.abort();
+    release();
+    await vi.advanceTimersByTimeAsync(10_000);
+    const out = await going;
+    expect(out.map((o) => o.ok)).toEqual([true, false, true]);
+    expect(log).not.toContain("put f1001");
+    expect(ids(completes()[0])).toEqual([idOf("f1000"), idOf("f1002")]);
+  });
+
+  it("while it is prepared: it is never presigned, and the files after it are not held up for good", async () => {
+    putMs = () => 100;
+    generatePreview.mockImplementation(async (file: File) => {
+      log.push(`prepared ${file.name}`);
+      if (file.name === "f1001") await new Promise((r) => setTimeout(r, 500));
+      return null;
+    });
+    const { stops, going } = three();
+    await vi.advanceTimersByTimeAsync(200);
+    stops[1]!.abort();
+    await vi.advanceTimersByTimeAsync(10_000);
+    const out = await going;
+    expect(out.map((o) => o.ok)).toEqual([true, false, true]);
+    expect(log).not.toContain("put f1001");
+    // No presign carried the cancelled file's size (f1001 is named for it).
+    const sizes = presigns().flatMap((c) =>
+      c.body.files.map((f) => f.size_bytes),
+    );
+    expect(sizes).not.toContain(1001);
+  });
+
+  it("landed and waiting to be recorded with its siblings: it is cancelled, never recorded", async () => {
+    // The first lands at once; the second is long in the air, so the first waits.
+    putMs = (name) => (name === "f1001" ? 20_000 : 100);
+    const { stops, going } = three();
+    await vi.advanceTimersByTimeAsync(2_000);
+    expect(log).toContain("landed f1000");
+    stops[0]!.abort();
+    await vi.advanceTimersByTimeAsync(60_000);
+    const out = await going;
+    expect(out.map((o) => o.ok)).toEqual([false, true, true]);
+    expect(ids(completes()[0])).toEqual([idOf("f1001"), idOf("f1002")]);
+  });
+
+  it("once its complete is asked it cannot be stopped: the abort is ignored and the answer stands", async () => {
+    putMs = () => 100;
+    let release!: () => void;
+    completeGate = new Promise<void>((resolve) => (release = resolve));
+    const { stops, going } = three();
+    await vi.advanceTimersByTimeAsync(5_000);
+    expect(completes()).toHaveLength(1);
+    // The row may be recorded: the cancel is no longer hers to make.
+    stops[1]!.abort();
+    release();
+    await vi.advanceTimersByTimeAsync(1_000);
+    const out = await going;
+    expect(out.map((o) => o.ok)).toEqual([true, true, true]);
+  });
+
+  it("a stop already pressed: that file never starts, its siblings are none the wiser", async () => {
+    const stops = [0, 1, 2].map(() => new AbortController());
+    stops[1]!.abort();
+    const going = uploadBurst({
+      files: burstOf(3).map((file, i) => ({ file, signal: stops[i]!.signal })),
+      endpoints: { presign: "/p/presign", complete: "/p/complete" },
+      identity: { session_token: "t" },
+    });
+    await vi.advanceTimersByTimeAsync(60_000);
+    const out = await going;
+    expect(out.map((o) => o.ok)).toEqual([true, false, true]);
+    expect(log).not.toContain("prepared f1001");
+    expect(ids(completes()[0])).toEqual([idOf("f1000"), idOf("f1002")]);
+  });
+
+  it("a stop after its file settled is nothing: no second word is said", async () => {
+    const { stops, told, going } = three();
+    await vi.advanceTimersByTimeAsync(60_000);
+    await going;
+    const before = told.length;
+    for (const stop of stops) stop.abort();
+    expect(told).toHaveLength(before);
+  });
+
+  it("the burst's own cancel still ends everything, and a file's stop beside it changes nothing", async () => {
+    putMs = () => 1_000;
+    const all = new AbortController();
+    const one = new AbortController();
+    const going = uploadBurst({
+      files: burstOf(3).map((file, i) => ({
+        file,
+        signal: i === 1 ? one.signal : undefined,
+      })),
+      endpoints: { presign: "/p/presign", complete: "/p/complete" },
+      identity: { session_token: "t" },
+      signal: all.signal,
+    });
+    await vi.advanceTimersByTimeAsync(1_500);
+    one.abort();
+    all.abort();
+    await vi.advanceTimersByTimeAsync(5_000);
+    const out = await going;
+    expect(out.every((o) => !o.ok && o.cause === "cancelled")).toBe(true);
+    expect(completes()).toHaveLength(0);
   });
 });

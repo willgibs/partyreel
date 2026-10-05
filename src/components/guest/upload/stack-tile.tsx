@@ -28,16 +28,24 @@
  * ★ THE EDGE IS TWO BOXES, NOT A SHADOW. Lift is kept for one object really
  * sitting on another, and this IS eleven photographs sitting under one.
  *
+ * ★ THE x STOPS THE FILE IN THE AIR (upload-cancel, E6 for uploads). Round glass on the photograph's own corner, the
+ * material every control on a photograph wears and the reading pane's own tint, overhanging the tile's edge as the
+ * review step's remove does, with a 44px target around its 24px. It only asks: the question and what follows are
+ * `stop-upload.ts`'s, drawn on the toast, because a tile this small has no room to ask on. Absent once the file
+ * can no longer be stopped (its bytes are up and its complete is coming).
+ *
  * ★ THE TILE CARRIES `data-lit`, AND THAT IS THE WHOLE POINT OF BINDING IT TO
  * THE ALBUM'S RULE. A photograph must not gain or lose an edge at the moment it
  * finishes uploading, so this box wears the bright edge the landed tile wears
  * (`lit-edge-contract.test.ts` holds the closed list).
  */
 import type { CSSProperties } from "react";
+import { X } from "lucide-react";
 
 import { PickPreview } from "@/components/guest/upload/pick-preview";
 import { formatCount } from "@/lib/format/count";
 import { GLASS_MARK, GLASS_MARK_LIT } from "@/lib/glass";
+import { STOP_COPY } from "@/lib/upload/stop-upload";
 import { cn } from "@/lib/utils";
 
 /**
@@ -71,6 +79,7 @@ export function UploadStackTile({
   url,
   progress,
   remaining,
+  onStop,
 }: {
   /** The file actually in the air (the queue runs one at a time). */
   file: File;
@@ -80,6 +89,8 @@ export function UploadStackTile({
   progress: number;
   /** How many of this pick are still to go, this one included. */
   remaining: number;
+  /** Her x on this file: ask whether to stop it. Absent where it can no longer be stopped, and then no x is drawn. */
+  onStop?: () => void;
 }) {
   return (
     <div
@@ -140,6 +151,25 @@ export function UploadStackTile({
           </span>
         </div>
       </div>
+      {onStop && (
+        <button
+          type="button"
+          data-stop-upload
+          onClick={onStop}
+          style={READING_PANE}
+          className={cn(
+            GLASS_MARK,
+            "absolute top-0 right-0 flex size-6 items-center justify-center rounded-full text-white transition-transform duration-150 ease-emphasis outline-none before:absolute before:-inset-2.5 before:content-[''] focus-visible:ring-2 focus-visible:ring-white/70 active:scale-[0.88] motion-reduce:active:scale-100",
+          )}
+        >
+          <X
+            aria-hidden
+            className={cn(GLASS_MARK_LIT, "size-3.5")}
+            strokeWidth={2.5}
+          />
+          <span className="sr-only">{STOP_COPY.stop}</span>
+        </button>
+      )}
     </div>
   );
 }

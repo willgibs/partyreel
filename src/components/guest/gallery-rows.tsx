@@ -18,6 +18,12 @@
  * it shows only in her uploads, the badge beside Add counting it. ★ THE STACK SUBSCRIBES TO ITS OWN
  * PROGRESS (`useQueueProgress`): a tick re-renders the stack's bar and nothing else, never the album.
  *
+ * ★ THE STACK'S x STOPS THE FILE IN THE AIR (upload-cancel, E6 for uploads). It asks first, on the product's toast,
+ * and a stopped file is no failure: it says "Upload cancelled." with Try again (`stop-upload.ts`), the file's siblings
+ * go on, and nothing was recorded or counted. The stop is the queue's, reached through the progress store this stack
+ * already reads (`QueueProgress.stop`); the x is drawn only while the file can still be stopped (going up, or not yet
+ * begun: once its bytes are up its complete is coming), and a question about a file that left the stack is withdrawn.
+ *
  * ★ A FILE THAT DID NOT GO IS DRAWN NOWHERE (the failure sheet reads it at the run's end), and no Add
  * lives here: the album's Add is the page's (the action row, then the dock).
  *
@@ -25,9 +31,10 @@
  * held out of the rows until its link has landed and its photograph is decoded, then pushed in as a
  * photograph the browser already holds; the glow is written here, when it lands.
  */
-import type { Ref } from "react";
+import { useEffect, type Ref } from "react";
 import { Download } from "lucide-react";
 
+import { exportToasts } from "@/components/app/export/export-toast";
 import type { GridMedia } from "@/components/app/media-grid";
 import { UploadStackTile } from "@/components/guest/upload/stack-tile";
 import { useLikeAction } from "@/components/likes/like-button";
@@ -43,6 +50,7 @@ import {
   type QueueProgress,
 } from "@/lib/guest/use-upload-queue";
 import type { RowStep } from "@/lib/shared/album-rows";
+import { askToStop, withdrawStopQuestion } from "@/lib/upload/stop-upload";
 
 /**
  * A FILE THIS DEVICE IS SENDING, drawn at the album's head. `url` is the object URL the live
@@ -70,12 +78,30 @@ function LiveStackTile({
   progress: QueueProgress | null;
 }) {
   const live = useQueueProgress(progress, lead.queueId);
+  const now = progress ? live : lead.progress;
+  // ★ THE x IS FOR A FILE THAT CAN STILL BE STOPPED: going up (even at 100, while R2 answers), or not begun. Once its
+  // bytes are up it waits to be recorded with its burst and its complete is coming, which no stop could take back.
+  const stoppable = lead.status === "uploading" || now < 100;
+  const stop = progress?.stop;
+  const askId = `stop-upload-${lead.queueId}`;
+  // The file leaves the stack (landed, failed, stopped): a question still standing about it goes with it.
+  useEffect(() => () => withdrawStopQuestion(exportToasts, askId), [askId]);
   return (
     <UploadStackTile
       file={lead.file}
       url={lead.url}
-      progress={progress ? live : lead.progress}
+      progress={now}
       remaining={remaining}
+      onStop={
+        stop && stoppable
+          ? () =>
+              askToStop({
+                port: exportToasts,
+                id: askId,
+                stop: () => stop(lead.queueId),
+              })
+          : undefined
+      }
     />
   );
 }

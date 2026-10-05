@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 
 import { UploadStackTile } from "@/components/guest/upload/stack-tile";
 
@@ -71,5 +71,63 @@ describe("one pick is one object", () => {
     expect(
       container.querySelector("[data-media-tile][data-lit]"),
     ).not.toBeNull();
+  });
+});
+
+describe("the x stops the file in the air (upload-cancel)", () => {
+  it("is drawn only when the file can still be stopped, and says what it does", () => {
+    const { container, rerender } = render(
+      <UploadStackTile
+        file={file()}
+        url="blob:x"
+        progress={20}
+        remaining={1}
+      />,
+    );
+    expect(container.querySelector("[data-stop-upload]")).toBeNull();
+    rerender(
+      <UploadStackTile
+        file={file()}
+        url="blob:x"
+        progress={20}
+        remaining={1}
+        onStop={() => {}}
+      />,
+    );
+    expect(
+      screen.getByRole("button", { name: "Stop upload" }),
+    ).toBeInTheDocument();
+  });
+
+  it("only asks: a press calls the tile's handler once, and nothing is stopped here", () => {
+    const onStop = vi.fn();
+    render(
+      <UploadStackTile
+        file={file()}
+        url="blob:x"
+        progress={20}
+        remaining={3}
+        onStop={onStop}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Stop upload" }));
+    expect(onStop).toHaveBeenCalledTimes(1);
+  });
+
+  it("sits outside the photograph's own box, so the bar and the count still read", () => {
+    const { container } = render(
+      <UploadStackTile
+        file={file()}
+        url="blob:x"
+        progress={20}
+        remaining={3}
+        onStop={() => {}}
+      />,
+    );
+    const tile = container.querySelector("[data-media-tile]")!;
+    expect(tile.contains(container.querySelector("[data-stop-upload]"))).toBe(
+      false,
+    );
+    expect(screen.getByText("3 to go")).toBeInTheDocument();
   });
 });

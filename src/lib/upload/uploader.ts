@@ -37,6 +37,13 @@
  * very thing she needs to know), an answer that is an error says the upload did not go through, and a `signal` she
  * aborts says it was cancelled. `cause` carries which, beside the words, for a surface that draws them apart.
  *
+ * ★ A CANCEL IS ONE FILE'S, OR THE WHOLE BURST'S (upload-cancel, E6 for uploads). `BurstFile.signal` is one file's own
+ * stop (the guest's tile and the host's row each stop the one file she means), `signal` on the burst is everything's.
+ * A file stopped alone settles `cause: "cancelled"` at once and its siblings carry on, recorded together as ever: what
+ * has not asked for a row is simply not recorded (a PUT in the air is aborted, a presign in the air meets its own
+ * answer and the file's entry is let go), and a file whose complete is already asked is the record's, never the
+ * cancel's: a row may exist, and its answer is what the caller reads.
+ *
  * ★ ONE SENTENCE FOR THE DROP, EVERYWHERE (crumbs-65): the downloads say it as a title and its detail
  * (`WALK_COPY.dropped` and `droppedDetail`), the camera's hint says this very string, and
  * `uploader.transport.test.ts` holds the three to one wording.
@@ -224,6 +231,29 @@ function pageEvents(): Document | null {
     : null;
 }
 
+/**
+ * A signal that aborts when either of two does: one file's own stop and the burst's. (`AbortSignal.any` is newer than
+ * the phones this runs on, so it is two listeners and a controller; `dispose` lets both go once the request is over.)
+ */
+function eitherSignal(
+  a: AbortSignal | undefined,
+  b: AbortSignal | undefined,
+): { signal: AbortSignal | undefined; dispose: () => void } {
+  if (!a || !b) return { signal: a ?? b, dispose: () => {} };
+  const either = new AbortController();
+  const stop = () => either.abort();
+  if (a.aborted || b.aborted) either.abort();
+  a.addEventListener("abort", stop, { once: true });
+  b.addEventListener("abort", stop, { once: true });
+  return {
+    signal: either.signal,
+    dispose: () => {
+      a.removeEventListener("abort", stop);
+      b.removeEventListener("abort", stop);
+    },
+  };
+}
+
 function putWithProgress(args: {
   url: string;
   body: Blob;
@@ -399,6 +429,11 @@ export type BurstFile = {
   onSending?: () => void;
   /** Its bytes (and its copies) are up: it waits to be recorded with its siblings. */
   onSent?: () => void;
+  /**
+   * HER CANCEL OF THIS ONE FILE: it settles `cause: "cancelled"` (nothing recorded, nothing counted) and its siblings go
+   * on. Too late once its complete is asked (a row may be recorded): the abort is then ignored and its answer stands.
+   */
+  signal?: AbortSignal;
 };
 
 /**
@@ -507,6 +542,10 @@ async function runBurst(
     for (let i = 0; i < n; i++) settle(i, cancelled);
     return;
   }
+  // Hers, one file, before a byte moved: it never starts, and its siblings are none the wiser.
+  files.forEach((one, i) => {
+    if (one.signal?.aborted) settle(i, cancelled);
+  });
 
   // ── The stages' one clock: every change pokes, and a stage waiting on another waits for the next poke ──
   let waiters: (() => void)[] = [];
@@ -628,6 +667,8 @@ async function runBurst(
     }
     const list = filesOf(answer, ready.length);
     ready.forEach((i, k) => {
+      // Hers, one file, while the request was in the air: its entry is nobody's now (nothing was sent for it).
+      if (outcomes[i]) return;
       const one = list?.[k];
       if (!one) settle(i, { ok: false, message: SOMETHING_WRONG });
       else if (one.ok) {
@@ -655,12 +696,19 @@ async function runBurst(
       if (outcomes[i]) continue;
       stage[i] = "sending";
       files[i].onSending?.();
-      const landed = await sendBytes(
-        files[i],
-        prepared[i]!,
-        presigned[i]!,
-        signal,
-      );
+      // Its bytes stop for the burst's cancel or its own (a PUT in the air is aborted: said as a cancel, never a drop).
+      const own = eitherSignal(signal, files[i].signal);
+      let landed: Awaited<ReturnType<typeof sendBytes>>;
+      try {
+        landed = await sendBytes(
+          files[i],
+          prepared[i]!,
+          presigned[i]!,
+          own.signal,
+        );
+      } finally {
+        own.dispose();
+      }
       // Its bytes are up (or never will be): its blobs are let go, so preparing may run on (`aheadBytes`).
       prepared[i] = undefined;
       if (outcomes[i]) continue;
@@ -800,6 +848,22 @@ async function runBurst(
     }
     poke();
   };
+  // Hers, one file (`BurstFile.signal`): that file alone is cancelled wherever it stands short of its complete, and
+  // everything else goes on. A PUT in the air is aborted by the signal it carries (`sendAll`); a presign in the air
+  // meets its own answer, which lets this file's entry go (`presign`); a file being recorded is the record's.
+  const cancelOne = (i: number) => {
+    const s = stage[i];
+    if (s === "recording" || s === "settled") return;
+    settle(i, cancelled);
+    poke();
+  };
+  const offFile = files.map((one, i) => {
+    const own = one.signal;
+    if (!own || outcomes[i]) return () => {};
+    const onFileAbort = () => cancelOne(i);
+    own.addEventListener("abort", onFileAbort, { once: true });
+    return () => own.removeEventListener("abort", onFileAbort);
+  });
   // A page leaving the screen records what landed now (a phone may never come back to it).
   const onVisibility = () => {
     hidden = page?.visibilityState === "hidden";
@@ -816,6 +880,7 @@ async function runBurst(
   } finally {
     clearTimeout(timer);
     signal?.removeEventListener("abort", onAbort);
+    for (const off of offFile) off();
     page?.removeEventListener("visibilitychange", onVisibility);
   }
 }
