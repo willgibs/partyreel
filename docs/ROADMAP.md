@@ -17,6 +17,8 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Durability: a copy past one invocation's reach never completes (the queue's copy and the reconcile's each have 15 minutes; the DR drill copied about 1 MB/s, and the reconcile now logs each copy's `ms`), so a multi-GB video may have no backup; a multipart copy resumable across invocations (its upload id and parts in the Durable Object) closes it (backup-reconcile).
+- Durability: a maintenance script that rewrites a stored object in place (the EXIF backfill) refreshes the backup's copy past its lock too, or the reconcile reads the difference forever (backup-reconcile).
 - Guests: a photograph opened from a shared link (`?photo=`) has no entry under it, so the phone's Back leaves the album with the photograph open; a base entry written under a deep-linked viewer (the album's address replaced, the photograph's pushed) would make Back close the photograph first (`masonry.tsx`; Will's call, since the close already lands in the album in place) (back-layers).
 - Engineering: a popup whose act navigates (a server action's redirect, `router.push`) leaves its entry under the next page, so Back from there lands on a same-address entry with nothing open (one dead Back) (back-layers).
 - Engineering: Forward onto a closed popup's history entry closes the popup beneath it (before back-layers too) (back-layers).
@@ -216,7 +218,6 @@ The app:
   - When the privacy hero's photograph lands (ASSETS 38), re-measure the words' contrast over the pane's loop at each width (the pools were sized on the stand-in), and look at the pane's four rests on it.
 - **QA hardening: the remaining fix queue.**
   - #13: a per-guest `presign` abuse kind (`src/lib/security/abuse-rate-limit.ts`), so one script cannot spend a host's hourly breaker (20,000 uploads across her albums, `meter_upload`) for every other guest; the pipeline already answers 429 with `Retry-After` (`src/lib/upload/server-pipeline.ts`).
-  - #37: the backup reconcile (`reconcileSweep`, `workers/backup/src/index.ts`) restarts at the bucket head every run and HEADs each key, so past its 5,000-key cap nothing is ever examined (its "next run continues" log is false); give it the prune's merge-join (both buckets listed over one range) and a stored cursor.
   - Replay a dead letter from `/admin/jobs`: the backup's dead-letter queue has no consumer (`workers/backup/wrangler.jsonc`), and adding one changes delivery semantics.
   - A dedicated `JOB_API_SECRET` for `/api/internal/job-run`, whose callers (the backup Worker's heartbeat, the DB-backup Action) send `PRUNE_API_SECRET` today, so one leaked copy also opens the prune's confirm route; it needs the three env homes, a Worker secret and a GitHub secret.
   - #44: legal-hold evidence under `preservation/` has no backup copy (the Worker copies `events/` only, `MEDIA_PREFIX`); decide whether a year of held evidence needs a second one.
