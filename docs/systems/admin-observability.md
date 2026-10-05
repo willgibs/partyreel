@@ -6,6 +6,7 @@ Open this before you:
 - add a backend job, a kill switch or anything else that must report its health;
 - change a spend guard: a reading, a floor, a ceiling or a switch the spend watch pauses;
 - change a vendor's plan or a plan limit the watch measures (a plan cutover, a new meter, a credential for one);
+- change what the Accounts pages read of a host (her uploads, her storage);
 - add a Sentry capture.
 
 Elsewhere: host-side moderation ([host-app.md](host-app.md)), the forensic surface and the CSAM runbook
@@ -86,7 +87,10 @@ reports through one heartbeat table, `job_runs` (deny-all, like the `ops_flags` 
 app can start them. Three kinds share one pure `jobHealth`, so the page, the bell and the cron's scan never hold
 three definitions of healthy: **scheduled** (fires on a clock, judged by its cadence), **signal** (work with no
 schedule, such as a send or a limiter read: only its failure rows over a rolling 24 hours, and nothing at all reads
-"No activity", never green) and **derived** (a reading only a Worker can take, riding another job's `counts`).
+"No activity", never green; work it still OWES past its grace reads Needs a look, since no failure in the window
+would show it: a one-time notice kept for its retry, a download the Worker checked or began but never said ended,
+six hours on, the card's owed line saying which) and **derived** (a reading only a Worker can take, riding another
+job's `counts`; a dead letter and a key the backup alone holds each fail at any count).
 - **A run opens a row and closes it** (`running`, then `ok`, `error` or `skipped`, with a duration and free-form
   `counts`). A paused job logs a skipped run, never nothing, so a pause never reads as a missed run.
 - **The kill switches fail differently on purpose.** The purge cron and its sub-sweeps fail CLOSED on an unreadable
@@ -95,12 +99,15 @@ schedule, such as a send or a limiter read: only its failure rows over a rolling
   live reel's platform lever fails OPEN (a flaky read must not take the reel off every album, [reel.md](reel.md));
   guest uploads (`uploads_enabled`) fail OPEN (a switch nobody can read never stops a party); lifecycle mail
   (`lifecycle_mail_enabled`) fails CLOSED for the mail it holds (held mail goes the next night); the spend watch's own
-  switch fails to the middle (unreadable, it reads and alerts but pauses nothing). A row not seeded yet reads as on.
+  switch fails to the middle (unreadable, it reads and alerts but pauses nothing); Send to Google Drive's
+  (`drive_export_enabled`) is read inside each lease's own transaction, so a database that cannot answer leases nothing
+  ([drive-export.md](drive-export.md)). A row not seeded yet reads as on.
 - ★ **The missed-run scan pages only on silence, so a job that is never silent alerts at its source.** The scan rides
   the purge cron: each run checks every job for a terminal row within 1.5 times its cadence and raises one
   `job_missed_run` warning per silent job. A depth reading raises `job_dead_letters_pending` or `job_queue_backlog`
   inside `/api/internal/job-run` as the Worker hands it over, as does a held backup prune (`backup_prune_held` and the
-  ops mail), and a signal failure raises where it happens (`jobs/failure-log.ts`). `jobHealth` without its inputs
+  ops mail), and a signal failure raises where it happens (`jobs/failure-log.ts`). The prune's lone copies
+  (`primary_missing`) ring the bell from their card alone so far (ROADMAP). `jobHealth` without its inputs
   answers `never`, not `missed`, so the scan never pages on a number it did not take.
 - **A sub-sweep can be a job of its own** (which, and why, is [lifecycle-recovery.md](lifecycle-recovery.md)'s): it
   opens and closes its own row inside the parent run through `createSweepRunner`, with its own switch and card; the
@@ -127,7 +134,10 @@ schedule, such as a send or a limiter read: only its failure rows over a rolling
   ([durability-backups.md](durability-backups.md)).
   ★ The export Worker's daily heartbeat (the `export` job) rides its own signed report instead (`/api/export/report`,
   [uploads-and-r2.md](uploads-and-r2.md)), written as one closed row, so a Worker whose export secret drifted from the
-  app's reads Missed, where the shared bearer would have let it check in healthy.
+  app's reads Missed, where the shared bearer would have let it check in healthy. The Drive Worker's sweep does the
+  same (the `drive_export` job, written hourly by `/api/internal/drive/sweep` from its signed call), carrying its queue
+  and dead-letter depths (`drive_queue`, `drive_dead_letters`) beside the transfers' signal (`drive_transfer`: a file
+  failed for good, a stuck send, a dead lane); its controls are `/admin/exports#drive`.
 
 ## The spend watch
 
@@ -136,10 +146,13 @@ guard is a circuit breaker, not a budget: `spend_watch` (a scheduled job, its ow
 its own cron, never a ride on the purge's, since it must run while the purge is paused and may be the one pausing it)
 reads our own counters, judges each against a ceiling, and pauses the switch that stops its vector where a false alarm
 costs no guest's moment. The rules are pure (`lib/jobs/spend-watch.ts`); the run reads, writes and tells
-(`spend-watch-run.ts`); the card is `app/admin/jobs/spend-watch-card.tsx`.
+(`spend-watch-run.ts`); the card is `app/admin/jobs/spend-watch-card.tsx`, whose switches take an optional `toggle`
+(default the Server Function) so the Library draws a whole press over a stand-in write, since the real one pauses guest
+uploads for every album.
 - **The readings** come in one call (`spend_watch_readings`, INVOKER and service-role only; its one DEFINER helper,
   `spend_watch_sign_ins`, counts `auth.users`): our own counters (the uploads meter, every album's change counters,
-  the day's lifecycle mail, sign-ins, zips and purge runs), the snapshots diffed into rates an hour, and the one vendor
+  the day's lifecycle mail, sign-ins, zips, purge runs and bytes sent to Google Drive), the snapshots diffed into rates
+  an hour, and the one vendor
   reading our tokens can take, Resend's own sent-mail list (every sender, Supabase Auth's sign-in codes included).
 - ★ **What could not be read:** Supabase's usage (Realtime messages, MAU, egress) needs a Management API personal token,
   which the app holds none of; R2 and Workers need a Cloudflare API token (the app holds R2's S3 keys only, which read
@@ -152,7 +165,8 @@ costs no guest's moment. The rules are pure (`lib/jobs/spend-watch.ts`); the run
   never trips and never feeds a ceiling, and a missing one fails the run.
 - ★ **A trip never raises its own ceiling:** the week's busiest leaves out every reading that tripped, so a runaway is
   never the new normal.
-- **What a trip does** (`planActions`): it pauses lifecycle mail, Download all or the purge sweep on its own, but only on
+- **What a trip does** (`planActions`): it pauses lifecycle mail, Download all, the purge sweep or Send to Google Drive
+  (its sends wait where they stand and lose nothing) on its own, but only on
   a NEW trip, so a person who turns a switch back on mid-trip is not overridden every hour; for uploads it alerts and
   the card offers the switch, since a false alarm would stop a real party; sign-ins, album changes and Resend's count
   only alert. Every trip raises one Sentry error a run and the ops mail at most once a day per set of readings.
@@ -289,6 +303,33 @@ test. The open queue is the review grid (`components/admin/report-queue.tsx`), i
 `/api/help/feedback` reports every click it drops (the limiter could not answer, or the insert failed), because the
 reader sees the same thank-you either way and nothing else would ever show it. A failed read says so in words, never
 "No feedback yet".
+
+## Accounts
+
+`/admin/accounts` and an account's page are read-only (billing changes go through Stripe: the webhook is the sole writer
+of tier and cap), and they say what the product enforces on an upload, so "why was this host refused" needs no SQL. The
+reads are `lib/db/queries/accounts.ts`; the words are `app/admin/accounts/uploads.ts`, shared by the list and the page so
+a row and its card never disagree.
+- ★ **A host's uploads are `uploads_used` asked with HER OWN tier,** as `create_media*` and `meter_upload` ask it (this
+  calendar month's ledger for Free and Pro, her live passes' own year for a pass holder), against `uploadAllowance` (the
+  one home, tiers.ts). `readHostMonthUploads` asks as `pro` on purpose, for the plan sheet's "what a switch to Pro is
+  measured against", so reusing it would show a pass holder a ledger her allowance never reads. The list and the page
+  ask one keyset read for every host they show (`uploads_windows`), which calls `uploads_used` per row in SQL instead of
+  recomputing the window in TypeScript, so no figure can disagree with a refusal, and answers the tier and cap it asked
+  with, so a row holds its figure to that plan's allowance even when the plan moved since the list was read; a Pro with
+  no cap on record reads Unmetered, the SQL's fail-open. ★ A pass holder with no live pass (the completes' own refusal)
+  reads Pass lapsed, since when, and Uploads refused (Pro pending when her last pass became Pro credit and her Pro plan
+  has not landed), never "0 B" of an allowance no pass holds.
+- **The hour is the month's ledger row** (`hour_started_at`, `hour_uploads`: the uploads started in the current UTC clock
+  hour; a row from an earlier hour counts zero). Its ceiling is the SQL's `c_uploads_an_hour`, mirrored as `UPLOADS_AN_HOUR`
+  under a parity test that reads the newest migration setting it. Unpublished: it shows here and nowhere a host reads.
+- **The cap holds her albums and her Deleted together** (`host_storage_summary`), so the page draws both and the total
+  against the cap; the list's Storage column is still the physical counter, which gates nothing.
+- ★ **A read that fails says "No reading" and why, never a zero, and never takes the page:** the readers answer
+  `{ ok: false, message }` and the page raises one Sentry warning (Sentry never enters `lib/db`). A real zero is a reading.
+- ★ **Nothing here lifts a host's uploads count.** The ledger sits behind billing enforcement, and `cumulative_bytes`
+  is also the spend watch's meter of what the platform pays for (it diffs snapshots of its sum), so zeroing it would
+  both lift the guard and skew the watch: a lift must be additive and audited, never an edit of the ledger.
 
 ## Sentry
 

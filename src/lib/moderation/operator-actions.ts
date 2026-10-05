@@ -141,6 +141,8 @@ export type ModerationMediaItem = {
   status: MediaStatus;
   createdAt: string;
   originalKey: string;
+  /** The key of the tile's small WebP; null on a row with none, whose tile draws the original instead. */
+  previewKey: string | null;
   eventId: string;
   eventName: string;
   hostId: string;

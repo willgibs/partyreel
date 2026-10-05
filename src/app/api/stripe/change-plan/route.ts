@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
 
 import { safeReturnPath } from "@/components/app/pricing/return-path";
-import { checkPlanChange } from "@/lib/billing/storage-guard";
-import { planById, toBillingTier, DEFAULT_TIER } from "@/lib/constants/tiers";
+import { checkPlanChange, uploadsPauseNote } from "@/lib/billing/storage-guard";
+import {
+  planById,
+  toBillingTier,
+  DEFAULT_TIER,
+  type Plan,
+} from "@/lib/constants/tiers";
 import { mustQuery } from "@/lib/db/must-query";
+import { readHostMonthUploads } from "@/lib/db/queries/month-uploads";
 import { getHostStorageSummary } from "@/lib/db/queries/storage";
-import { captureError } from "@/lib/observability/sentry";
+import { captureError, captureWarning } from "@/lib/observability/sentry";
 import {
   CHANGE_REFUSAL_MESSAGES,
   assessSubscription,
@@ -35,6 +41,12 @@ import { changePlanSchema } from "@/lib/validation/checkout";
  * page for exactly that one price at quantity 1, on the portal configuration
  * tagged for this job. It writes nothing to the profile: the webhook applies the
  * new cap when Stripe confirms, exactly as it always has.
+ *
+ * ★ A SWITCH BELOW THIS MONTH'S UPLOADS ANSWERS ITS SENTENCE BESIDE THE URL (`notice`, crumbs-70). A smaller size
+ * also carries a smaller uploads allowance, and the plan sheet says so on the size's own card before the press
+ * (`uploadsPauseNote`, red-team 52's LOW); /pricing's hop is tier-blind (a static page cannot know what a host
+ * uploaded), so it learns on the press and shows the route's words before it leaves. Words only: the webhook allows
+ * the switch, so nothing here is ever a refusal, and a failed read answers no sentence rather than no switch.
  */
 export const runtime = "nodejs";
 
@@ -54,6 +66,27 @@ function stripeErrorIs(error: unknown, code: string, param?: string): boolean {
   if (!error || typeof error !== "object") return false;
   const e = error as { code?: unknown; param?: unknown };
   return e.code === code && (param === undefined || e.param === param);
+}
+
+/**
+ * The sentence a switch earns, or null. Only a real step DOWN in the uploads allowance can pause anything (her own size
+ * at the other billing carries the same one, a bigger size a bigger one), so those never pay the read. Words only:
+ * a failed read is said aloud and answers nothing, never a failed switch. It never rejects.
+ */
+async function uploadsNoticeFor(
+  hostId: string,
+  current: Plan,
+  target: Plan,
+): Promise<string | null> {
+  if (target.uploadsBytes >= current.uploadsBytes) return null;
+  try {
+    return uploadsPauseNote(await readHostMonthUploads(hostId), target);
+  } catch (error) {
+    captureWarning("billing", "change-plan: month uploads read failed", {
+      message: error instanceof Error ? error.message : String(error),
+    });
+    return null;
+  }
 }
 
 export async function POST(request: Request) {
@@ -152,6 +185,8 @@ export async function POST(request: Request) {
   // same exact-shape allow-list Checkout uses (never the welcome marker: this host
   // has been on Pro all along).
   const returnUrl = `${siteUrl}${safeReturnPath((body as { next?: unknown })?.next)}`;
+  // Started now, read after Stripe's page is made: the sentence rides the answer without delaying it.
+  const notice = uploadsNoticeFor(user.id, assessed.currentPlan, target);
 
   const sessionFor = (configurationId: string) =>
     stripe.billingPortal.sessions.create(
@@ -178,7 +213,12 @@ export async function POST(request: Request) {
       forgetChangePlanConfiguration();
       session = await sessionFor(await changePlanConfigurationId());
     }
-    return NextResponse.json({ ok: true, url: session.url });
+    const sentence = await notice;
+    return NextResponse.json({
+      ok: true,
+      url: session.url,
+      ...(sentence ? { notice: sentence } : {}),
+    });
   } catch (error) {
     if (error instanceof ChangePlanConfigurationMissingError) {
       // Fail CLOSED, loudly: never fall back to the default configuration, which

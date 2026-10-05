@@ -23,6 +23,7 @@
 import "server-only";
 
 import {
+  EXPORT_END_GRACE_MS,
   JOBS,
   SIGNAL_WINDOW_MS,
   countsBreakerTripped,
@@ -400,23 +401,31 @@ export async function readSweepCursor(
 export type JobSignals = Partial<Record<JobId, JobSignal>>;
 
 /**
- * The 24h windows for the five signal jobs, as TEN head-counts in parallel.
+ * The 24h windows for the five signal jobs, as ten head-counts in parallel, and what two of them still OWE
+ * (crumbs-75): the one-time notices kept for a retry, and the downloads with no end.
  *
  * A QUERY, not a stored daily aggregate, and the cost is why: every one of these is a bounded
  * count over a table that is either tiny by construction (`action_attempts` and `unlock_attempts`
- * are pruned to 24h by the purge cron's own sweeps) or tiny by budget (`sent_emails` tops out near
- * the 3,000/month Resend free tier). A row-per-day aggregate would need a table, a migration, a
- * writer, its own backfill and its own failure mode, to save six index-or-small-table counts on a
- * page only an operator opens. Revisit if `sent_emails` ever outgrows a seq scan; the additive
- * `sent_emails (sent_at desc)` index in this round's migration is the first step of that.
+ * are pruned to 24h by the purge cron's own sweeps; `notice_retries` holds only failed notices, each
+ * for at most 30 days) or tiny by budget (`sent_emails` tops out near the 3,000/month Resend free
+ * tier). A row-per-day aggregate would need a table, a migration, a writer, its own backfill and its
+ * own failure mode, to save a handful of index-or-small-table counts on a page only an operator opens.
+ * Revisit if `sent_emails` ever outgrows a seq scan; the additive `sent_emails (sent_at desc)` index
+ * is the first step of that.
  *
  * THE FAILURE half is always `job_runs` (the error rows `recordJobFailure` writes); the SUCCESS half
  * is each path's own evidence, so "nothing failed" can never be printed without saying whether
- * anything happened at all.
+ * anything happened at all. What is OWED is neither: work not done yet that no failure in the window
+ * would ever show, read off its own rows.
  */
 export async function getJobSignals(nowMs = Date.now()): Promise<JobSignals> {
   const db = jobRunsDb();
   const sinceIso = new Date(nowMs - SIGNAL_WINDOW_MS).toISOString();
+  // A download is owed its end once its grace has passed; each counts for the day after that, as a failure does.
+  const endOwedBeforeIso = new Date(nowMs - EXPORT_END_GRACE_MS).toISOString();
+  const endOwedSinceIso = new Date(
+    nowMs - EXPORT_END_GRACE_MS - SIGNAL_WINDOW_MS,
+  ).toISOString();
 
   const failuresOf = (job: JobId) =>
     mustCount(
@@ -440,6 +449,12 @@ export async function getJobSignals(nowMs = Date.now()): Promise<JobSignals> {
     feedbackFailures,
     exportsFinished,
     exportFailures,
+    noticesKept,
+    oldestNotice,
+    exportsUnended,
+    driveFilesSent,
+    driveFailures,
+    driveStuck,
   ] = await Promise.all([
     mustCount(
       db
@@ -485,13 +500,82 @@ export async function getJobSignals(nowMs = Date.now()): Promise<JobSignals> {
       "admin/jobs: 24h downloads the Worker finished",
     ),
     failuresOf("export_delivery"),
+    // The one-time notices kept for a retry (`sendOnce`): each one a host not yet told what happened to her event
+    // or her plan, however long ago its send failed.
+    mustCount(
+      db
+        .from("notice_retries")
+        .select("*", { count: "exact", head: true }),
+      "admin/jobs: one-time notices kept for a retry",
+    ),
+    mustQuery(
+      db
+        .from("notice_retries")
+        .select("first_failed_at")
+        .order("first_failed_at", { ascending: true })
+        .limit(1)
+        .maybeSingle(),
+      "admin/jobs: the oldest kept notice",
+    ),
+    // ★ The downloads owed an end (crumbs-75): a mint the Worker spoke of (its check, or its stream's start) that
+    // never said how it ended past the grace. A check that found nothing sends no zip, so it is owed nothing; a mint
+    // the Worker never spoke of at all is left out, since a local build's or an older Worker's is never reported on,
+    // and a Worker whose reports stopped reaching the app at all reads Missed on its own signed heartbeat.
+    mustCount(
+      db
+        .from("export_log")
+        .select("*", { count: "exact", head: true })
+        .eq("outcome", "minted")
+        .is("stream_ended_at", null)
+        .gt("created_at", endOwedSinceIso)
+        .lte("created_at", endOwedBeforeIso)
+        .or(
+          "stream_started_at.not.is.null,and(checked_at.not.is.null,or(check_found.is.null,check_found.gt.0))",
+        ),
+      "admin/jobs: downloads with no end",
+    ),
+    // Send to Google Drive (drive-wiring): the files that reached a host's Drive in the day (kept ones included:
+    // each was confirmed in her Drive), its failures, and the sends stuck an hour with work and no progress.
+    mustCount(
+      db
+        .from("cloud_export_items")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "sent")
+        .gt("sent_at", sinceIso),
+      "admin/jobs: 24h files sent to Drive",
+    ),
+    failuresOf("drive_transfer"),
+    mustCount(
+      db
+        .from("cloud_exports")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "sending")
+        .not("stuck_since", "is", null),
+      "admin/jobs: Drive sends stuck",
+    ),
   ]);
 
+  const oldestFailedAt = (oldestNotice as { first_failed_at?: string } | null)
+    ?.first_failed_at;
   return {
-    email_delivery: { ok24h: emailsSent, failed24h: emailFailures },
+    email_delivery: {
+      ok24h: emailsSent,
+      failed24h: emailFailures,
+      owed: noticesKept,
+      owedSinceMs: oldestFailedAt ? Date.parse(oldestFailedAt) : null,
+    },
     abuse_limiter: { ok24h: abuseAttempts, failed24h: abuseFailures },
     unlock_limiter: { ok24h: unlockAttempts, failed24h: unlockFailures },
     help_feedback: { ok24h: feedbackRecorded, failed24h: feedbackFailures },
-    export_delivery: { ok24h: exportsFinished, failed24h: exportFailures },
+    export_delivery: {
+      ok24h: exportsFinished,
+      failed24h: exportFailures,
+      owed: exportsUnended,
+    },
+    drive_transfer: {
+      ok24h: driveFilesSent,
+      failed24h: driveFailures,
+      owed: driveStuck,
+    },
   };
 }

@@ -11,6 +11,13 @@
  * still opens a picker. Nothing here owns a queue: the queue is lifted to `event-experience.tsx`
  * and shared with the album's Add, so a run started at the door keeps going after the door is gone.
  *
+ * ★ ON AN ALBUM WHOSE HOST CHOSE THE CAMERA (`camera`), THE FIRST PHOTOGRAPH IS THE ALBUM'S CAMERA, NEVER THE LIBRARY
+ * (crumbs-76). The album's own Add opens that camera in place of the add sheet, so the album never offers a guest her photo
+ * library; this step shared the add sheet's body and offered it ("Choose from your album"), so a library photo reached the
+ * roll the camera exists to keep to what was taken in the moment. There is one primary here, which opens the camera
+ * (`camera.onOpen`: the door owns it, since at "A photo first" the album's own slot, which carries its camera, is not
+ * mounted yet), and nothing else asks for a file.
+ *
  * ★ THE FAIL-OPEN IS THE SERVER'S, NEVER A LOCAL SKIP. When a run ends with nothing completed and
  * every refusal is one the guest cannot fix, the step shows the server's own sentence and a primary
  * that REFRESHES. It does not set a local "skipped" flag, because the server would still answer
@@ -18,7 +25,8 @@
  * the guest would be walked back to the step they just left. The decision that comes back from the
  * refresh is the only thing that can open the album, and `canContribute` is what opens it.
  */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
+import { Camera } from "lucide-react";
 
 import {
   UploadIntentBody,
@@ -26,14 +34,17 @@ import {
 } from "@/components/guest/upload/intent-sheet";
 import {
   UploadFailureList,
+  uploadFailureChooseAgain,
   uploadFailureHeading,
   type UploadFailure,
 } from "@/components/guest/upload/failure-sheet";
 import type { Pick } from "@/components/guest/upload/review-step";
 import { DoorHeading } from "@/components/guest/door/heading";
 import { Button } from "@/components/ui/button";
+import { useWaitClock } from "@/lib/disposable/use-wait-clock";
+import { type WaitClock, waitRule } from "@/lib/disposable/wait-words";
 import { classifyRefusal, type RefusalClass } from "@/lib/guest/upload-refusal";
-import type { QueueItem } from "@/lib/guest/use-upload-queue";
+import { useRunSent, type QueueItem } from "@/lib/guest/use-upload-queue";
 
 /** The whole run's verdict: what the step should show once nothing is queued or uploading. */
 export function classifyRun(failures: readonly QueueItem[]): RefusalClass {
@@ -48,10 +59,25 @@ export function classifyRun(failures: readonly QueueItem[]): RefusalClass {
   return classes.length > 0 ? "choose" : "retry";
 }
 
+/**
+ * ★ HOW FAR A PICK'S BAR IS FILLED, IN PERCENT: THE QUEUE'S OWN 0 TO 100 (`QueueItem.progress`, written as
+ * `Math.round(fraction * 100)`), never a fraction: scaled by 100 again, a bar stands full from its first percent and
+ * says nothing of the bytes going. A pick still waiting its turn shows a sliver (a bar of nothing reads as no bar at
+ * all), and a landed one is whole.
+ */
+export function uploadBarPercent(it: {
+  status: QueueItem["status"];
+  progress: QueueItem["progress"];
+}): number {
+  const floor = it.status === "done" ? 100 : 4;
+  return Math.round(Math.min(100, Math.max(it.progress, floor)));
+}
+
 export function UploadStep({
   isDemo,
   requireUpload,
   albumEmpty,
+  wait = null,
   capBytes,
   acceptsVideo = true,
   queue,
@@ -60,6 +86,7 @@ export function UploadStep({
   onDismiss,
   onSkip,
   onContinueWithout,
+  camera = null,
 }: {
   isDemo: boolean;
   /** The host's switch: ON there is no skip, and the ON line says so (never whose ask it is —
@@ -67,6 +94,11 @@ export function UploadStep({
   requireUpload: boolean;
   /** Nothing in the album yet: the line offers the first photograph instead of a queue. */
   albumEmpty: boolean;
+  /**
+   * How uploads wait on this album (the page's `uploadsWait`, as `waitWords` reads it, the host unnamed), or null where
+   * they do not: what an empty album says of itself, since photos that wait are photos nobody here can see yet.
+   */
+  wait?: WaitClock | null;
   capBytes?: number | null;
   /** Whether this album takes a video from a guest (the picker's own note). */
   acceptsVideo?: boolean;
@@ -80,6 +112,11 @@ export function UploadStep({
   onSkip?: () => void;
   /** The server-owned fail-open: refresh and trust the decision that comes back. */
   onContinueWithout: () => void;
+  /**
+   * The album's host chose the camera: the first photograph is taken with it, so the step offers that and no picker
+   * (`onOpen` opens the album's camera, which the door holds). Absent on a free-upload album, which keeps the two rows.
+   */
+  camera?: { onOpen: () => void } | null;
 }) {
   const [picks, setPicks] = useState<Pick[]>([]);
   const heading = uploadIntentHeading(picks.length);
@@ -95,32 +132,12 @@ export function UploadStep({
   const showFailures = !sending && failures.length > 0;
 
   /**
-   * THE RUN'S OWN "SENT" (voice-guest r1 `failed=exact`'s "the whole run in its count"): the
-   * failure heading reads "N of SENT didn't upload", and `queue` can hold more than one run's
-   * worth of settled files (nothing here ever prunes a `done` item). `runBaseline` is `queue`'s
-   * length from the render just BEFORE this run's files were appended — captured the first time
-   * `sending` goes true, one render lagged so the new files are not already counted in it — so
-   * `sent = queue.length - runBaseline` is exactly this run's own total, never a prior run's
-   * carried-over successes.
-   *
-   * ★ STARTS AT 0, NOT `queue.length`: a mount that never observed its run START (an already-
-   * failed `queue` handed straight in, as a remount after `key={access}` can do, and as this
-   * file's own pins do) must count everything already there as THIS run, or `sent` reads short.
-   * 0 is exactly that: nothing subtracted until a LATER run's start is actually witnessed.
-   *
-   * ★ STATE, NOT A REF: `sent` reads it during render, and a ref's `.current` may only be read
-   * inside an effect or a handler (React Compiler's own rule) — a render-time read would not
-   * necessarily see a change, and would not re-render when it did.
+   * THE RUN'S OWN "SENT" (voice-guest r1 `failed=exact`'s "the whole run in its count"): the failure heading reads "N
+   * of SENT didn't upload", and `queue` can hold more than one run's worth of settled files (nothing here ever prunes
+   * a `done` item), so it is counted off the run's own files (`useRunSent`, the queue's one definition of a run),
+   * never off how many items the queue holds: a Retry in place adds no item, and counted by length it read "1 of 0".
    */
-  const [runBaseline, setRunBaseline] = useState(0);
-  const prevQueueLen = useRef(queue.length);
-  const wasSending = useRef(false);
-  useEffect(() => {
-    if (sending && !wasSending.current) setRunBaseline(prevQueueLen.current);
-    wasSending.current = sending;
-    prevQueueLen.current = queue.length;
-  }, [sending, queue.length]);
-  const sent = queue.length - runBaseline;
+  const sent = useRunSent(queue, failures);
   // The fail-open: nothing this guest can do about any of it.
   const stuck = showFailures && verdict === "refresh";
 
@@ -129,6 +146,7 @@ export function UploadStep({
     file: it.file,
     error: it.error,
     code: it.errorCode,
+    cause: it.cause,
   }));
 
   if (sending) {
@@ -152,9 +170,7 @@ export function UploadStep({
                 >
                   <span
                     className="block h-full rounded-full bg-primary transition-[width] duration-300 ease-out motion-reduce:transition-none"
-                    style={{
-                      width: `${Math.round(Math.max(it.progress, it.status === "done" ? 1 : 0.04) * 100)}%`,
-                    }}
+                    style={{ width: `${uploadBarPercent(it)}%` }}
                   />
                 </span>
               </li>
@@ -180,7 +196,7 @@ export function UploadStep({
             stuck
               ? undefined
               : verdict === "choose"
-                ? uploadStepChooseAgain(requireUpload)
+                ? uploadStepChooseAgain(requireUpload, camera !== null)
                 : "Give it one more go."
           }
         />
@@ -197,9 +213,11 @@ export function UploadStep({
           </Button>
         ) : (
           <>
-            {verdict !== "choose" && (
-              <UploadFailureList failures={failureItems} onRetry={onRetry} />
-            )}
+            {/* ★ THE FILES AND THEIR REASONS STAND WHATEVER THE VERDICT (red-team 54b's LOW). Where every file was
+                refused for itself the list was left out, so the step named no file and no reason, only "Pick something
+                else"; the album's failure sheet names them, and so does this. The list itself offers no Retry on a file
+                no retry could pass (`retryCanPass`), so "Choose other photos" stays the one way on. */}
+            <UploadFailureList failures={failureItems} onRetry={onRetry} />
             <Button
               type="button"
               variant={verdict === "choose" ? "default" : "outline"}
@@ -210,13 +228,25 @@ export function UploadStep({
                 setPicks([]);
               }}
             >
-              Choose other photos
+              {camera ? "Take another photo" : "Choose other photos"}
             </Button>
           </>
         )}
       </div>
     );
   }
+
+  // OFF only: the soft skip under the picker (or the camera's one primary).
+  const skip = onSkip ? (
+    <Button
+      type="button"
+      variant="ghost"
+      className="w-full text-muted-foreground"
+      onClick={onSkip}
+    >
+      {isDemo ? "Look around" : "Skip for now"}
+    </Button>
+  ) : null;
 
   return (
     <div data-upload-step="pick" className="flex flex-col gap-4 pt-1">
@@ -229,35 +259,59 @@ export function UploadStep({
       <DoorHeading
         key={heading.reviewing ? "review" : "pick"}
         hidden
-        title={heading.reviewing ? heading.title : "Add your photos"}
-        reason={
+        title={
           heading.reviewing
-            ? heading.description
-            : uploadStepReason({ isDemo, requireUpload, albumEmpty })
+            ? heading.title
+            : camera
+              ? "Take your photos"
+              : "Add your photos"
+        }
+        reason={
+          heading.reviewing ? (
+            heading.description
+          ) : wait ? (
+            <WaitedReason
+              isDemo={isDemo}
+              requireUpload={requireUpload}
+              albumEmpty={albumEmpty}
+              wait={wait}
+              camera={camera !== null}
+            />
+          ) : (
+            uploadStepReason({
+              isDemo,
+              requireUpload,
+              albumEmpty,
+              camera: camera !== null,
+            })
+          )
         }
       />
-      <UploadIntentBody
-        picks={picks}
-        onPicks={setPicks}
-        capBytes={capBytes}
-        acceptsVideo={acceptsVideo}
-        onSend={(files) => {
-          setPicks([]);
-          onSend(files);
-        }}
-        footer={
-          onSkip ? (
-            <Button
-              type="button"
-              variant="ghost"
-              className="w-full text-muted-foreground"
-              onClick={onSkip}
-            >
-              {isDemo ? "Look around" : "Skip for now"}
-            </Button>
-          ) : null
-        }
-      />
+      {camera ? (
+        <div className="flex flex-col gap-2">
+          <Button
+            type="button"
+            size="cta"
+            className="w-full justify-start active:scale-[0.99] motion-reduce:active:scale-100"
+            onClick={camera.onOpen}
+          >
+            <Camera /> Take a photo
+          </Button>
+          {skip}
+        </div>
+      ) : (
+        <UploadIntentBody
+          picks={picks}
+          onPicks={setPicks}
+          capBytes={capBytes}
+          acceptsVideo={acceptsVideo}
+          onSend={(files) => {
+            setPicks([]);
+            onSend(files);
+          }}
+          footer={skip}
+        />
+      )}
     </div>
   );
 }
@@ -273,29 +327,70 @@ export function UploadStep({
  * The name step's own lede still names the host (with "the host" as its fallback) — this is the
  * ONE line on the door that deliberately never does, so no host's name is ever the reason this
  * sentence wraps or overflows a small screen.
+ *
+ * ★ OVER AN ALBUM THAT WAITS, THE DOOR SAYS WHAT WAITS (crumbs-72). Behind "A photo first" a newcomer stands at
+ * `teaser`, where the page never reads whether photos wait (`waitingOnArrival` is a full-access read), so an album
+ * showing nothing reads empty at the door whether it is, or holds photos nobody can see yet: "Nothing here yet. Add
+ * the first photo" was untrue over the second. What the door does know at every level is how uploads wait on this
+ * album (`wait`, the page's `uploadsWait`), true over either, and the wait's own rule is the one home for saying it
+ * (`waitRule`, the contact sheet's and her tracker's). The host stays unnamed in it too.
  */
 export function uploadStepReason(input: {
   isDemo: boolean;
   requireUpload: boolean;
   albumEmpty: boolean;
+  /** How uploads wait on this album, where they do: said over an album that shows nothing, in place of "the first photo". */
+  wait?: WaitClock | null;
+  /** Her own clock, once it is known: a develop time is said in it, and the sentence reads whole without it. */
+  nowMs?: number | null;
+  /** The album's host chose the camera: the photograph is taken, never added (the album's own Add says Take too). */
+  camera?: boolean;
 }): string {
   if (input.isDemo) {
     return "Add a photo the way a guest would. Nothing you add is saved.";
   }
+  const take = input.camera ? "Take" : "Add";
   if (input.requireUpload) {
-    return input.albumEmpty
-      ? "Nothing here yet. Add the first photo and the album opens."
-      : "The host has asked everyone to add a photo before the album opens.";
+    if (!input.albumEmpty) {
+      return `The host has asked everyone to ${take.toLowerCase()} a photo before the album opens.`;
+    }
+    if (input.wait) {
+      const clock: WaitClock =
+        input.wait.kind === "held"
+          ? { kind: "held", hostName: null }
+          : input.wait;
+      return `${waitRule(clock, input.nowMs ?? null)} ${take} yours and the album opens.`;
+    }
+    return `Nothing here yet. ${take} the first photo and the album opens.`;
   }
   return input.albumEmpty
-    ? "Nothing here yet. Add the first photo."
-    : "Add one now, or look around first.";
+    ? `Nothing here yet. ${take} the first photo.`
+    : `${take} one now, or look around first.`;
+}
+
+/**
+ * The step's sentence where an album waits, which may say a time: in her own clock, so only once hydrated
+ * (`useWaitClock`). Mounted only for such an album, so a door with nothing waiting runs no clock at all.
+ */
+function WaitedReason(input: {
+  isDemo: boolean;
+  requireUpload: boolean;
+  albumEmpty: boolean;
+  wait: WaitClock;
+  camera: boolean;
+}) {
+  const nowMs = useWaitClock();
+  return <>{uploadStepReason({ ...input, nowMs })}</>;
 }
 
 /** The failure view's line when only a different file can help: the album-opens promise is the
  *  require-upload door's alone, as above. */
-export function uploadStepChooseAgain(requireUpload: boolean): string {
-  return requireUpload
-    ? "Pick something else and the album opens."
-    : "Pick something else to add.";
+export function uploadStepChooseAgain(
+  requireUpload: boolean,
+  camera = false,
+): string {
+  if (!requireUpload) return uploadFailureChooseAgain(camera);
+  return camera
+    ? "Take another and the album opens."
+    : "Pick something else and the album opens.";
 }

@@ -129,7 +129,7 @@ export function HowMuchFits() {
             rows={[
               { text: "Photos only", included: false },
               { text: `${MAX_EVENTS.free} event`, included: true },
-              { text: "No end date", included: true },
+              { text: "Never expires", included: true },
             ]}
             index={0}
           />

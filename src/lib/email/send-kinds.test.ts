@@ -11,6 +11,7 @@ import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
 import {
+  DRIVE_KINDS,
   HELD_WHILE_PAUSED,
   LIFECYCLE_KINDS,
   OPERATOR_KINDS,
@@ -82,6 +83,7 @@ const LISTED = [
   ...HELD_WHILE_PAUSED,
   ...STATE_NOTICES,
   ...OPERATOR_KINDS,
+  ...DRIVE_KINDS,
 ] as string[];
 
 describe("every mail's kind, classified", () => {
@@ -121,7 +123,7 @@ describe("every mail's kind, classified", () => {
   it("holds only the mail its sweep sends again, never a notice or an operator's", () => {
     for (const kind of HELD_WHILE_PAUSED)
       expect(heldWhilePaused(kind)).toBe(true);
-    for (const kind of [...STATE_NOTICES, ...OPERATOR_KINDS]) {
+    for (const kind of [...STATE_NOTICES, ...OPERATOR_KINDS, ...DRIVE_KINDS]) {
       expect(heldWhilePaused(kind), kind).toBe(false);
     }
     expect(heldWhilePaused("a kind nobody wrote")).toBe(false);

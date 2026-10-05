@@ -446,6 +446,237 @@ export function inactivityRemovedEmail(opts: {
   });
 }
 
+// ── Host mail: Send to Google Drive (drive-export.md) ────────────────────────────────────────────
+
+/**
+ * A Google Drive connected to her account: a one-time notice that always sends, to the account's own address, at every
+ * new connection. A stolen session could otherwise point her future sends at a stranger's Drive in silence, so it
+ * names the Google account and says what to do if it was not her.
+ */
+export function driveConnectedEmail(opts: {
+  /** The Google account's address, only when Google said it is verified. */
+  googleEmail: string | null;
+  /** The Google account it replaced, when it replaced one (its unfinished sends stopped). */
+  replacedEmail: string | null;
+  accountUrl: string;
+}): Mail {
+  const which = opts.googleEmail ?? "A Google account";
+  return composeMail({
+    subject: "Google Drive was connected to your Partyreel account",
+    heading: "Google Drive is connected",
+    blocks: [
+      p(
+        opts.googleEmail ? strong(which) : which,
+        " can now take your albums' originals. Partyreel sees only the files it puts in that Drive, never anything else there.",
+      ),
+      ...(opts.replacedEmail
+        ? [p("It replaced ", strong(opts.replacedEmail), ": a send to that Drive that was still going has stopped.")]
+        : []),
+      p("Not you? Disconnect it in Account, then change your password."),
+    ],
+    cta: { href: opts.accountUrl, label: "Open Account" },
+    foot: { line: "You're receiving this because a Google Drive was connected to your Partyreel account." },
+  });
+}
+
+/** One finished send, as the done mail names it. */
+export type DriveDoneAlbum = {
+  name: string;
+  /** In her Drive now, kept ones included. */
+  sent: number;
+  /** Of `sent`, already there from an earlier send and kept. */
+  kept: number;
+  failed: number;
+  total: number;
+  /** "7.4 GB", already worded. */
+  size: string;
+  folderUrl: string | null;
+};
+
+/**
+ * Her sends that finished, an hour's folded into one mail (the sweep's fold): one album says its folder and its count,
+ * several say each. "Every one checked" is literal: each file's size and fingerprint matched ours as it landed, and
+ * the send asked Drive again for each at its end. Nothing here suggests deleting what was sent (Will, desk 2).
+ */
+export function driveExportDoneEmail(opts: { albums: DriveDoneAlbum[]; albumsUrl: string }): Mail {
+  const one = opts.albums.length === 1 ? opts.albums[0]! : null;
+  const line = (a: DriveDoneAlbum): Block =>
+    a.failed > 0
+      ? p(
+          strong(a.name),
+          `: ${a.sent.toLocaleString("en-US")} of ${a.total.toLocaleString("en-US")} are in your Drive. ${a.failed.toLocaleString("en-US")} couldn't be sent: open the album to try ${a.failed === 1 ? "it" : "them"} again.`,
+        )
+      : p(
+          strong(a.name),
+          `: all ${a.sent.toLocaleString("en-US")}, ${a.size}, every one checked against ours${a.kept > 0 ? ` (${a.kept.toLocaleString("en-US")} already there from an earlier send, kept as they were)` : ""}.`,
+        );
+  return composeMail({
+    subject: one ? `${one.name} is in your Google Drive` : `${opts.albums.length} albums are in your Google Drive`,
+    heading: one ? `${one.name} is in your Google Drive` : `${opts.albums.length} albums are in your Google Drive`,
+    blocks: [
+      p("Your photos and videos are in My Drive, in the Partyreel folder, an album to a folder."),
+      ...opts.albums.map(line),
+    ],
+    cta:
+      one && one.folderUrl ? { href: one.folderUrl, label: "Open in Drive" } : { href: opts.albumsUrl, label: "Open Partyreel" },
+    foot: { line: "You're receiving this because you sent an album to Google Drive." },
+  });
+}
+
+/** Why a send paused, as the paused mail says it (a lost connection is the reconnect mail, said once a connection). */
+export type DrivePauseReason = "drive_full" | "daily_limit" | "folder_gone" | "domain_policy";
+
+/** A send that paused: once a send and reason, each with its one act (or the promise that it carries on by itself). */
+export function driveExportPausedEmail(opts: {
+  albumName: string;
+  reason: DrivePauseReason;
+  /** What it has left to send, worded ("2.8 GB"). */
+  left: string;
+  /** When Google's day lets it go on, worded in her zone ("9:14 pm tomorrow"). */
+  resumesAt?: string | null;
+  albumUrl: string;
+  accountUrl: string;
+}): Mail {
+  const parts: Record<DrivePauseReason, { subject: string; heading: string; body: Block[]; cta: Link }> = {
+    drive_full: {
+      subject: `Your Google Drive is full: ${opts.albumName} is paused`,
+      heading: "Your Google Drive is full",
+      body: [
+        p(
+          "Sending ",
+          strong(opts.albumName),
+          ` paused with ${opts.left} still to send. Make room in your Drive, or get more from Google, then press Check again on the album. Nothing is lost, and we check again on our own every few hours.`,
+        ),
+      ],
+      cta: { href: opts.albumUrl, label: "Open the album" },
+    },
+    daily_limit: {
+      subject: `${opts.albumName} carries on tomorrow`,
+      heading: "Paused until tomorrow",
+      body: [
+        p(
+          "Google takes 750 GB a day per account, so ",
+          strong(opts.albumName),
+          opts.resumesAt
+            ? ` paused with ${opts.left} to go. The rest goes at ${opts.resumesAt}, by itself.`
+            : ` paused with ${opts.left} to go. The rest goes tomorrow, by itself.`,
+        ),
+        p("Nothing to do: we'll email you when it's done."),
+      ],
+      cta: { href: opts.albumUrl, label: "Open the album" },
+    },
+    folder_gone: {
+      subject: `The ${opts.albumName} folder is in your Drive's bin`,
+      heading: "The album's folder is in your bin",
+      body: [
+        p(
+          "Sending ",
+          strong(opts.albumName),
+          " paused because its folder went to your Google Drive's bin. Restore it in Drive, or send to a new folder from the album.",
+        ),
+      ],
+      cta: { href: opts.albumUrl, label: "Open the album" },
+    },
+    domain_policy: {
+      subject: `Your Google admin stopped ${opts.albumName}`,
+      heading: "Your organization's Google admin said no",
+      body: [
+        p(
+          "Your organization's Google admin doesn't let Partyreel add files to this Drive, so ",
+          strong(opts.albumName),
+          " paused. Ask them to allow it, or disconnect and connect another Google account in Account.",
+        ),
+      ],
+      cta: { href: opts.accountUrl, label: "Open Account" },
+    },
+  };
+  const chosen = parts[opts.reason];
+  return composeMail({
+    subject: chosen.subject,
+    heading: chosen.heading,
+    blocks: chosen.body,
+    cta: chosen.cta,
+    foot: { line: "You're receiving this because you sent an album to Google Drive." },
+  });
+}
+
+/** A send that gave up (by construction nothing runs for ever: 14 days running, 30 paused). */
+export function driveExportStoppedEmail(opts: {
+  albumName: string;
+  sent: number;
+  total: number;
+  albumUrl: string;
+}): Mail {
+  return composeMail({
+    subject: `Sending ${opts.albumName} to Google Drive stopped`,
+    heading: "The send stopped",
+    blocks: [
+      p(
+        "Sending ",
+        strong(opts.albumName),
+        ` stopped after too long: ${opts.sent.toLocaleString("en-US")} of ${opts.total.toLocaleString("en-US")} are in your Drive. Send it again from the album and only the rest goes.`,
+      ),
+    ],
+    cta: { href: opts.albumUrl, label: "Open the album" },
+    foot: { line: "You're receiving this because you sent an album to Google Drive." },
+  });
+}
+
+/** Why a connection needs her: Google said it is gone, it kept failing for a day, or a time-limited grant is ending. */
+export type DriveReconnectWhy = "revoked" | "failing" | "grant_ending";
+
+/** A connection that needs her again: once a connection, a reason and a day. */
+export function driveReconnectEmail(opts: {
+  why: DriveReconnectWhy;
+  googleEmail: string | null;
+  /** How many of her sends wait on it. */
+  waiting: number;
+  accountUrl: string;
+}): Mail {
+  const drive = opts.googleEmail ?? "your Google Drive";
+  const waiting =
+    opts.waiting > 0
+      ? [p(`${opts.waiting === 1 ? "1 send is" : `${opts.waiting.toLocaleString("en-US")} sends are`} paused until you do. Each carries on where it stopped.`)]
+      : [];
+  const words: Record<DriveReconnectWhy, { subject: string; heading: string; first: Block }> = {
+    revoked: {
+      subject: "Partyreel lost access to your Google Drive",
+      heading: "Partyreel lost access to your Google Drive",
+      first: p(
+        "Google says Partyreel can no longer add files to ",
+        opts.googleEmail ? strong(drive) : drive,
+        " (it was removed in your Google account, or went unused for six months). Reconnect to keep sending.",
+      ),
+    },
+    failing: {
+      subject: "We can't reach your Google Drive",
+      heading: "We can't reach your Google Drive",
+      first: p(
+        "For a day now, Google hasn't let Partyreel renew its access to ",
+        opts.googleEmail ? strong(drive) : drive,
+        ". Reconnect to keep sending.",
+      ),
+    },
+    grant_ending: {
+      subject: "Your Google Drive connection ends tomorrow",
+      heading: "Your Google Drive connection ends tomorrow",
+      first: p(
+        "You gave Partyreel time-limited access to ",
+        opts.googleEmail ? strong(drive) : drive,
+        ", and it ends tomorrow. Reconnect to keep sending.",
+      ),
+    },
+  };
+  const chosen = words[opts.why];
+  return composeMail({
+    subject: chosen.subject,
+    heading: chosen.heading,
+    blocks: [chosen.first, ...waiting],
+    cta: { href: opts.accountUrl, label: "Reconnect" },
+    foot: { line: "You're receiving this because a Google Drive is connected to your Partyreel account." },
+  });
+}
+
 // ── Operator mail: the four alerts to the ops inbox ──────────────────────────────────────────────
 
 /** A /contact submission. Sent with Reply-To = the submitter, so a reply goes straight back to them. */
@@ -634,6 +865,44 @@ export function pruneHoldEmail(opts: {
  * left for a person (guest uploads, since a false alarm there would stop a real party). No button (an operator
  * alert's shape); the jobs console rides the foot. Sent at most once a day per set of readings through sendOnce.
  */
+/**
+ * SEND TO GOOGLE DRIVE'S ACCOUNT BREAKER TRIPPED (drive-export.md, "Cost and guards"), to us: an account sent past ten
+ * times its plan's storage (never under 5 GB) to Drive in 30 days, which no real host reaches, so its sends wait until
+ * an operator looks and lifts it. At most once a day an account.
+ */
+export function driveBreakerEmail(opts: {
+  /** The account's own address, or its id where it has none. */
+  account: string;
+  /** What reached Drive in the 30 days that tripped it, in words. */
+  sent30: string;
+  adminUrl: string;
+}): Mail {
+  return composeMail({
+    subject: `${OPERATOR_TAG} Drive breaker: ${opts.account}'s sends paused`,
+    heading: "An account's Drive sends paused on the breaker",
+    blocks: [
+      p(
+        "It sent more to Google Drive in 30 days than ten times its plan's storage (never under 5 GB): ",
+        strong("the shape of one album sent, deleted from Drive and sent again, not of a host taking her photos home."),
+      ),
+      {
+        kind: "fields",
+        rows: [
+          { label: "Account", value: opts.account },
+          { label: "Sent to Drive, 30 days", value: opts.sent30 },
+        ],
+      },
+      p(
+        "Its sends wait where they stand and lose nothing; she reads that we are looking within a day. Lift it on the Drive section if it is a real host, or pause the connection if it is not.",
+      ),
+    ],
+    foot: {
+      line: "Partyreel operations alert (Send to Google Drive's account breaker, drive-export.md). Sent at most once a day an account.",
+      link: { href: opts.adminUrl, label: "Open the Drive section" },
+    },
+  });
+}
+
 export function spendWatchEmail(opts: {
   tripped: { label: string; reading: string; ceiling: string }[];
   /** What it paused on its own, in the console's words. */

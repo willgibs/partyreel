@@ -1,6 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
+import { PALETTE_ACTIONS } from "@/lib/admin/palette";
 import type {
   StoredReading,
   StoredRun,
@@ -278,5 +279,24 @@ describe("what it can stop", () => {
       ),
     ).toBeInTheDocument();
     expect(screen.queryByRole("switch")).toBeNull();
+  });
+
+  // ★ crumbs-75: the palette jumps to each switch this card holds itself, by the row's own id, so a palette entry
+  // whose anchor the card stopped rendering fails here rather than landing an operator at the top of the page.
+  it("★ renders the row every palette jump to a switch lands on, and holds that switch there", () => {
+    const { container } = render(
+      <SpendWatchSwitches switches={allOn} latest={null} unreadable={null} />,
+    );
+    const jumps = PALETTE_ACTIONS.filter((a) =>
+      a.href.startsWith("/admin/jobs#switch-"),
+    ).map((a) => a.href.split("#")[1]);
+    expect(jumps.sort()).toEqual(
+      ["switch-lifecycle_mail_enabled", "switch-uploads_enabled"].sort(),
+    );
+    for (const id of jumps) {
+      const row = container.querySelector(`#${id}`);
+      expect(row, id).not.toBeNull();
+      expect(within(row as HTMLElement).getByRole("switch")).toBeTruthy();
+    }
   });
 });

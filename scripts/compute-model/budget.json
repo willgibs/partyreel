@@ -8,17 +8,18 @@
     "node": "v22.21.1",
     "mergedFrom": [
       "/Users/gibby/local/ai/partyreel-wt/_scratch/compute-levers/after-join",
-      "/Users/gibby/local/ai/partyreel-wt/_scratch/compute-levers/after"
+      "/Users/gibby/local/ai/partyreel-wt/_scratch/compute-levers/after",
+      "/Users/gibby/local/ai/partyreel-wt/_scratch/compute-reads/after"
     ]
   },
   "scenarios": {
     "guest-join-upload": {
-      "calls": 68,
-      "vercelCpuMs": 5430
+      "calls": 16,
+      "vercelCpuMs": 1550
     },
     "guest-hour-live": {
       "calls": 26,
-      "vercelCpuMs": 1540
+      "vercelCpuMs": 1190
     },
     "guest-hour-down": {
       "calls": 74,

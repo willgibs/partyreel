@@ -27,7 +27,11 @@ import {
 } from "@/lib/jobs/spend-watch";
 
 import { AttentionLine } from "./attention-line";
-import { WatchSwitch, type WatchSwitchCopy } from "./switch-controls";
+import {
+  WatchSwitch,
+  type WatchSwitchCopy,
+  type WatchToggle,
+} from "./switch-controls";
 
 /**
  * THE SPEND WATCH'S CARD, BELOW ITS JOB LINE (admin-observability.md, "The spend watch"): every reading of its last
@@ -96,6 +100,11 @@ const SWITCH_LINE: Record<
     line: "The watch pauses it on its own.",
     href: "/admin/jobs#job-purge_cron",
     place: "Open its card",
+  },
+  drive_export_enabled: {
+    line: "The watch pauses it on its own. Paused sends wait and lose nothing.",
+    href: "/admin/exports#drive",
+    place: "Open its section",
   },
 };
 
@@ -267,11 +276,14 @@ export function SpendWatchSwitches({
   switches,
   latest,
   unreadable,
+  toggle,
 }: {
   switches: SwitchStates | null;
   /** The watch's last run: what it paused (`paused_at`) and what its trips left for a person. */
   latest: StoredRun | null;
   unreadable: string | null;
+  /** The write behind the two switches this card holds; omitted, the Server Function (the page never passes one). */
+  toggle?: WatchToggle;
 }) {
   const pausedAt = latest?.pausedAt ?? {};
   const offered = latest ? offeredSwitches(latest) : [];
@@ -332,6 +344,7 @@ export function SpendWatchSwitches({
                     label={SWITCH_LABEL[key]}
                     enabled={on}
                     copy={SWITCH_COPY[key]}
+                    toggle={toggle}
                   />
                 ) : (
                   <span className="flex items-center gap-3 text-caption">

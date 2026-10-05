@@ -34,7 +34,15 @@
  *
  * LAZY (live-reel.tsx): this module reaches the whole canvas engine, and nobody who never opens the
  * view downloads it.
+ *
+ * ★ THE VIEW IMPORTS ITS OWN STYLESHEET (crumbs-66). The dock's classes (`lr-pane`, `lr-bar-content`, `lr-dock-content`,
+ * `lr-follow`) live in `live-reel.css`, which only the guests' controller (`live-reel.tsx`) imported, and the hub's reel
+ * (`event-feed/hub-reel.tsx`) mounts this view without that controller: the built hub route's CSS list did not hold the
+ * sheet, so the host's dock drew with no clip to the bar's pill, the bar's glyphs and the dock's controls on screen at
+ * once, and the Close key never leaving. A component imports the sheet it is drawn by.
  */
+import "./live-reel.css";
+
 import {
   Clock3,
   ImagePlus,
@@ -167,14 +175,6 @@ export type ReelViewProps = {
   addClipToAlbum: ((file: File, poster: Blob) => void) | null;
   /** The album holds guests' uploads for the host's review (the creator's Add to event says so). */
   moderated?: boolean;
-  /**
-   * The creator was asked for before the view opened (a door that opens the reel straight into Make
-   * your own; none asks today): it opens the moment this browser is known to make clips, or the greyed
-   * button explains why not.
-   */
-  creatorAsked?: boolean;
-  /** The ask is spent (read once, on arrival). */
-  onCreatorAskSpent?: () => void;
   /** The event's owner is watching (the host's extras: Play on a screen, Set for everyone). */
   isOwner?: boolean;
   /**
@@ -190,6 +190,14 @@ export type ReelViewProps = {
    * turns it off: a screen that is not hers cannot open her hub, so it plays the reel cast from her own device.
    */
   screenLink?: boolean;
+  /**
+   * ★ A LINE THE DOCK CARRIES FOR THE PAGE THAT MOUNTED THE VIEW (red-team 53b's deferred line, crumbs-66), for what the page
+   * knows and the view does not. The hub's reel plays her own scope while her album develops, when her guests have no
+   * reel yet, and the dock, where she reads what this view is, said nothing of it: the hub hands "Guests get it at the
+   * develop." for as long as the develop is ahead. It stands under the controls and rises with them, so it is read where
+   * she looks and never drawn over the picture; absent, as on every guest's page, the dock has no such line.
+   */
+  dockNote?: string;
   /**
    * The owner's "Set for everyone": the look and hold this device shows become the event's defaults
    * (reel-defaults-migration's `setReelDefaults`, bound by the controller). Resolves whether it took.
@@ -235,11 +243,10 @@ export function LiveReelView({
   creator,
   addClipToAlbum,
   moderated = false,
-  creatorAsked = false,
-  onCreatorAskSpent,
   isOwner = false,
   standIn,
   screenLink = true,
+  dockNote,
   onSetForEveryone,
   onClose,
 }: ReelViewProps) {
@@ -584,28 +591,6 @@ export function LiveReelView({
       else explainNoEncoder();
     });
   }, [support, enterCreator, explainNoEncoder]);
-  // The tile's own line asked for the creator before the view existed: answered once the device
-  // has, with the dock up so a greyed door is where the explanation points. The ask is spent only
-  // when the answer lands, so a remount on the way (React's own double run) never drops it.
-  const askRef = useRef(creatorAsked);
-  useEffect(() => {
-    if (!askRef.current || !creatorOffered) return;
-    let alive = true;
-    void probeClipSupport().then((ok) => {
-      if (!alive || !askRef.current) return;
-      askRef.current = false;
-      onCreatorAskSpent?.();
-      if (ok) {
-        enterCreator();
-      } else {
-        setChrome("up");
-        explainNoEncoder();
-      }
-    });
-    return () => {
-      alive = false;
-    };
-  }, [creatorOffered, enterCreator, explainNoEncoder, onCreatorAskSpent]);
 
   // The dock's pane: the greyed door's reason is placed above it (the pane clips what it holds).
   const dockRef = useRef<HTMLDivElement>(null);
@@ -894,6 +879,7 @@ export function LiveReelView({
                 onMenuOpenChange={setMenuOpen}
                 onFocusWithin={setDockFocus}
                 addLabel={isDemo ? "Add yours (a demo upload)" : "Add yours"}
+                note={dockNote}
               />
             )}
 
@@ -1598,6 +1584,7 @@ function ReelDock({
   onMenuOpenChange,
   onFocusWithin,
   addLabel,
+  note,
 }: {
   state: "up" | "rest";
   playing: boolean;
@@ -1632,6 +1619,8 @@ function ReelDock({
   onMenuOpenChange: (open: boolean) => void;
   onFocusWithin: (focused: boolean) => void;
   addLabel: string;
+  /** The page's line under the controls (`ReelViewProps.dockNote`). */
+  note?: string;
 }) {
   const up = state === "up";
   let i = 0;
@@ -1842,6 +1831,17 @@ function ReelDock({
                 Make your own
               </button>
             </div>
+          )}
+
+          {note && (
+            <p
+              data-reel-note=""
+              data-lr-stagger=""
+              style={{ "--lr-i": i++ } as CSSProperties}
+              className="px-2 pb-1 text-center text-caption font-medium text-pretty text-white"
+            >
+              <span className={GLASS_MARK_LIT}>{note}</span>
+            </p>
           )}
         </div>
 

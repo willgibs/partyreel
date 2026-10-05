@@ -1,8 +1,9 @@
-/* THE BOARD'S OWN SHEET: the cover's four facts (`facts.tsx`), the doors'
-   three materials and their bands (`doors.tsx`), and how a room arrives over
-   the hub (`hub.tsx`). Every other rule is production's own: the cover and its
-   light (`event-experience-head.css`), the glass (`globals.css`), the atoms,
-   the ladder.
+/* THE BOARD'S OWN SHEET: the cover's settled strip (`facts.tsx`), what every
+   door shares (its lights, the seam's fade, a phone's shelf) and how a room
+   arrives over the hub (`hub.tsx`). Each door's own rules live in its own
+   sheet (`glass.css`, `cards.css`, `windows.css`); every other rule is
+   production's: the cover and its light (`event-experience-head.css`), the
+   glass (`globals.css`), the atoms, the ladder.
 
    ★ EVERY KEYFRAME CARRIES THE BOARD'S PREFIX (`eh-`): keyframe names are
    document-global, and `keyframe-uniqueness.test.ts` reads every sheet.
@@ -47,66 +48,6 @@
   box-shadow: 0 0 0 4px rgb(255 255 255 / 0.2);
 }
 
-/* The faces: parted from each other by the room's own black, the newest lit
-   by a ring of light while they add. */
-.eh-faces > [data-slot="avatar"],
-.eh-faces > [data-slot="avatar-group-count"] {
-  --tw-ring-color: rgb(0 0 0 / 0.45);
-}
-.eh-faces > [data-slot="avatar"][data-lit] {
-  box-shadow:
-    0 0 0 2px rgb(0 0 0 / 0.45),
-    0 0 0 4px #fff,
-    0 0 12px 4px rgb(255 255 255 / 0.35);
-}
-.eh-faces > [data-slot="avatar-group-count"] {
-  box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 0.55);
-  background: rgb(0 0 0 / 0.25);
-}
-
-/* The newest photo, a print: a white border a photograph wears in the hand,
-   lifted off the cover by the lift shadow; lit, a little light round it. */
-.eh-print {
-  padding: 2px;
-  background: #fff;
-  border-radius: 3px;
-  box-shadow: var(--shadow-lift);
-  rotate: -3deg;
-}
-.eh-print[data-lit] {
-  box-shadow:
-    var(--shadow-lift),
-    0 0 14px 2px rgb(255 255 255 / 0.3);
-}
-.eh-now {
-  display: block;
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: #fff;
-  box-shadow: 0 0 0 3px rgb(255 255 255 / 0.22);
-}
-
-/* The album's colours: a chip a run of photos, at a tile's own 2px, each on a
-   hairline of light so it reads over any photograph; the newest lit while
-   photos land. */
-.eh-chip {
-  flex-basis: 0;
-  min-width: 2px;
-  border-radius: 2px;
-  box-shadow:
-    inset 0 0 0 1px rgb(255 255 255 / 0.16),
-    0 1px 6px rgb(0 0 0 / 0.35);
-}
-.eh-chip[data-lit] {
-  box-shadow:
-    inset 0 0 0 1.5px rgb(255 255 255 / 0.9),
-    0 0 12px 2px rgb(255 255 255 / 0.45);
-}
-.eh-ribbon-empty {
-  border: 1.5px dashed rgb(255 255 255 / 0.4);
-}
-
 /* ══ THE DOORS ═════════════════════════════════════════════════════════════ */
 
 /* A state as a light (status=lights): the amber LED a waiting count wears. */
@@ -131,17 +72,8 @@
   opacity: 0.6;
 }
 
-/* The reel's own violet, on its glyph alone. */
-.eh-chip-reel {
-  background: color-mix(in oklab, var(--reel) 13%, transparent);
-  color: var(--reel);
-}
-.eh-reel-ink {
-  color: var(--reel);
-}
-
 /* Cards over the seam: the cover's photograph fades into the page it meets,
-   so the cards stand on one continuous ground. */
+   so the doors stand on one continuous ground. */
 .eh-seam-fade {
   background: linear-gradient(
     to bottom,
@@ -151,18 +83,7 @@
   );
 }
 
-/* Stuck, the cards' band fades into the album rather than ending on a line. */
-.eh-fade-band {
-  padding-bottom: 1.25rem;
-  background: linear-gradient(
-    to bottom,
-    var(--background) 0%,
-    color-mix(in oklab, var(--background) 92%, transparent) 62%,
-    transparent 100%
-  );
-}
-
-/* A phone's shelf of cards runs off the screen's right edge, faded there. */
+/* A phone's shelf runs off the screen's right edge, faded there. */
 .eh-shelf {
   scrollbar-width: none;
   mask-image: linear-gradient(to left, transparent, black 2.5rem);
@@ -171,78 +92,9 @@
   display: none;
 }
 
-/* A window's photographs and faces wait in grey, and take their colour under
-   the pointer (and on a keyboard's focus). */
-.eh-mono {
-  filter: grayscale(1) contrast(0.92);
-  opacity: 0.85;
-}
-.eh-window:hover .eh-mono,
-.eh-window:focus-visible .eh-mono {
-  filter: none;
-  opacity: 1;
-}
-.eh-well {
-  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.08);
-}
-
-/* In the room a card over the seam catches the light along its top edge (the
-   room's depth is light first: bible 6), where paper's lift does the work. */
-[data-eh-ground="room"] .eh-lift,
-[data-eh-ground="room"] .eh-pill-lift {
-  box-shadow:
-    var(--shadow-lift),
-    inset 0 1px 0 rgb(255 255 255 / 0.07);
-}
-
-/* The reel's small player: its line stands two fifths in, and stays (a line
-   that ran all night would pull her eye to the one door he asked to quieten). */
-.eh-reel-line {
-  width: 40%;
-}
-
-/* A capsule's segment lights under the pointer. */
-.eh-seg:hover,
-.eh-seg:focus-visible {
-  background: rgb(255 255 255 / 0.12);
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  /* A card over the seam lifts under the pointer (a hover: quick). */
-  .eh-lift {
-    transition:
-      translate 160ms var(--ease-emphasis),
-      box-shadow 160ms var(--ease-emphasis);
-  }
-  .eh-lift:hover {
-    translate: 0 -2px;
-    box-shadow: var(--shadow-layer);
-  }
-  .eh-mono {
-    transition:
-      filter 200ms var(--ease-emphasis),
-      opacity 200ms var(--ease-emphasis);
-  }
-  .eh-seg {
-    transition: background-color 120ms var(--ease-emphasis);
-  }
-  /* The capsule arrives under the bar as the cover's goes under it. ★ ON THE
-     CAPSULE ITSELF, AND ONLY WHILE IT RUNS (`backwards`): an ancestor holding
-     an opacity animation is a backdrop root, and the glass inside it would
-     blur nothing but its own empty wrapper, for as long as the fill held. */
-  .eh-dock-glass {
-    animation: eh-dock-in 220ms var(--ease-emphasis) backwards;
-  }
-}
-
-@keyframes eh-dock-in {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-}
-
-/* ══ HOW A ROOM ARRIVES (as wired: every room over the hub) ═══════════════ */
+/* ══ HOW A ROOM ARRIVES (as wired: every room over the hub) ═══════════════
+   The panel is production's own `Popup` and arrives on its own clocks; the
+   reel and the guest's phone are drawn here. */
 
 /* Her album in a phone: the frame inside the frame shows its viewport only,
    at four fifths of its size so it fits a laptop's screen whole. */
@@ -256,31 +108,23 @@
   gap: 0;
 }
 
+/* On production's floating clocks (`floating-layer.ts`): the scrim at the
+   standard beat, a whole surface from an edge at the edge's 300ms. */
 @media (prefers-reduced-motion: no-preference) {
   .eh-layer .eh-scrim {
     animation: eh-fade 200ms var(--ease-emphasis) both;
   }
-  .eh-panel {
-    animation: eh-from-right 300ms var(--ease-drawer) both;
-  }
   .eh-cover {
-    animation: eh-from-foot 360ms var(--ease-drawer) both;
+    animation: eh-from-foot 300ms var(--ease-drawer) both;
   }
   .eh-phone {
-    animation: eh-phone-in 420ms var(--ease-emphasis) both;
+    animation: eh-phone-in 300ms var(--ease-emphasis) both;
   }
 }
 
 @keyframes eh-fade {
   from {
     opacity: 0;
-  }
-}
-
-@keyframes eh-from-right {
-  from {
-    opacity: 0;
-    transform: translateX(40px);
   }
 }
 

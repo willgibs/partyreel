@@ -9,6 +9,7 @@ import { HostCreditLookProvider } from "@/components/app/event-blocks/credit-loo
 import { EventChecklist } from "@/components/app/event-feed/checklist";
 import { EventCardsRow } from "@/components/app/event-feed/event-cards-row";
 import { HubCover } from "@/components/app/event-feed/event-hub-head";
+import { HubOpened } from "@/components/app/event-feed/hub-opened";
 import { HubReel } from "@/components/app/event-feed/hub-reel";
 import {
   newestCoverStills,
@@ -327,6 +328,9 @@ export default async function EventDetailPage({
     hasPassword: event.has_password,
     guestsIn: doorCounts.in,
     invited: doorCounts.invited,
+    // What the album's own gates ask after the door, so the list says what Settings says (`doorGuestLine`).
+    requireVerifiedEmail: event.require_verified_email,
+    requireUploadToView: event.require_upload_to_view,
     acceptingUploads: event.accepting_uploads,
     approved: seed.sync.counts.album,
     playable: reelFace.have,
@@ -438,6 +442,10 @@ export default async function EventDetailPage({
           { label: event.name },
         ]}
       />
+      {/* ★ THE HUB COUNTS AS AN OPEN (crumbs-69): a deep link, the bell or an email never passed the dashboard's
+          press, so the hub stamps `host_opened_at` itself, once on mount (`hub-opened.tsx`). Drawn only for an event
+          found, so a gone or foreign one is never asked after. */}
+      <HubOpened eventId={event.id} />
 
       <EventShareProvider initialSheet={place} eventId={event.id}>
         {/* THE ALBUM'S STORE wraps everything on the page that shows the album
@@ -487,6 +495,7 @@ export default async function EventDetailPage({
               styleId: event.reel_style_id,
               holdSec: event.reel_hold_sec,
             }}
+            developsAt={event.develops_at}
           />
 
           {/* A photograph's credit in the host's viewer opens its sender's look, with its quiet Block

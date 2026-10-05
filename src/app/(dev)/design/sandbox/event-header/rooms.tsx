@@ -11,6 +11,12 @@ import {
 import { GuestsInvite } from "@/app/(app)/dashboard/[eventId]/guests/guests-invite";
 import { ReviewRoom } from "@/components/app/event-feed/review-room";
 import type { ReviewWrites } from "@/components/app/event-feed/use-review-triage";
+import { AddsPage } from "@/components/app/event-settings/adds-page";
+import { DoorPage } from "@/components/app/event-settings/door-page";
+import { EventPage } from "@/components/app/event-settings/event-page";
+import { SettingsNext } from "@/components/app/event-settings/event-settings-sheet";
+import { ReelPage } from "@/components/app/event-settings/reel-page";
+import type { SettingsPage } from "@/components/app/event-settings/settings-pages";
 import { SettingsRows } from "@/components/app/event-settings/settings-rows";
 import {
   SettingsProvider,
@@ -30,11 +36,12 @@ import {
 } from "@/components/guest/event-experience-head";
 import { GalleryEmptyState } from "@/components/guest/gallery-empty-state";
 import { Logo } from "@/components/shared/logo";
-import { PageHeading } from "@/components/shared/page-heading";
 import { GuestList } from "@/components/social/guest-list";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { PopupBody, PopupHeader } from "@/components/ui/popup";
 import { resolveQrPreset } from "@/lib/constants/qr-presets";
+import { SETTINGS_GROUP_TITLES } from "@/lib/events/guest-experience-summary";
 import { formatMediaCount } from "@/lib/format/count";
 import { cn } from "@/lib/utils";
 
@@ -57,11 +64,12 @@ import type { ScreenId } from "./scene";
  * The rooms are production's own components, the way the Library draws them
  * (`composition-demos.tsx`), over writes that answer after a round trip and
  * change nothing, so a press in a frame can never approve anyone's upload or
- * let anyone in: Review is `ReviewRoom` (its own heading, the queue's count,
- * Select and Approve all, the note and the grid), Guests is the room's own
- * page (`AtTheDoor` with Let in and Decline, then `GuestList`), and Settings
- * is `SettingsRows` under `SettingsProvider`. What a rooms option decides is
- * the CONTAINER each one stands in (`hub.tsx`), never the room.
+ * let anyone in: Review is `ReviewRoom` (the queue's count, Select and Approve
+ * all, the note and the grid), Guests the room as it stands over the hub
+ * (`AtTheDoor` with Let in and Decline, then `GuestList`), and Settings its
+ * rows and its four pages under `SettingsProvider`, exactly as
+ * `event-settings-sheet.tsx` composes them. Each stands in the one panel
+ * (`hub.tsx`), whose head titles it, so no room draws a heading of its own.
  *
  * The two rooms with no page of their own are quoted here: the reel's view
  * (`live-reel-view.tsx`: the photograph full-bleed, one slim glass bar at the
@@ -71,7 +79,10 @@ import type { ScreenId } from "./scene";
  */
 
 /** One wedding's id in every room, the Library's own way of saying "nothing is wired". */
-const EVENT_ID = "eh-maya-and-jay";
+export const EVENT_ID = "eh-maya-and-jay";
+
+/** The Guests room's own address, as Settings' door page links into it (`roomOfHref` reads it back). */
+export const GUESTS_HREF = `/dashboard/${EVENT_ID}/guests`;
 
 const answered = <T,>(value: T) =>
   new Promise<T>((resolve) => setTimeout(() => resolve(value), 320));
@@ -136,6 +147,7 @@ export function ReviewBody({ f }: { f: HostFacts }) {
       pendingItems={f.review > 0 ? PENDING : []}
       writes={REVIEW_WRITES}
       claimPage={false}
+      titled={false}
     />
   );
 }
@@ -143,7 +155,7 @@ export function ReviewBody({ f }: { f: HostFacts }) {
 /* ── Guests ───────────────────────────────────────────────────────────────── */
 
 export function GuestsBody({ f }: { f: HostFacts }) {
-  const empty = f.guests === 0;
+  const empty = f.guests === 0 && f.waiting === 0;
   const invite = (
     <GuestsInvite
       eventId={EVENT_ID}
@@ -153,12 +165,11 @@ export function GuestsBody({ f }: { f: HostFacts }) {
       prominent={empty}
     />
   );
+  // Production's order (`guests-room.tsx`): Invite a quiet action at the top once anyone is in, At the door, then
+  // everyone in, or the empty room's own words and Invite as its main action.
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between gap-3">
-        <PageHeading>Guests</PageHeading>
-        {empty ? null : invite}
-      </div>
+    <div data-guests-room="" className="space-y-6">
+      {empty ? null : <div className="flex justify-end">{invite}</div>}
       <AtTheDoor
         eventId={EVENT_ID}
         people={f.waiting > 0 ? DOOR : []}
@@ -191,7 +202,22 @@ export function GuestsBody({ f }: { f: HostFacts }) {
 
 /* ── Settings ─────────────────────────────────────────────────────────────── */
 
-export function SettingsBody({ f }: { f: HostFacts }) {
+/**
+ * SETTINGS IN THE ONE PANEL, as `event-settings-sheet.tsx` composes it: its
+ * rows under "Settings" and the event's name, or one of its four pages a
+ * level in (the head's way up names Settings), each page ending in its Next.
+ * Its door page links into Guests, which opens in this same panel (the
+ * hub's `roomOfHref` reads the link): a room opening another room.
+ */
+export function SettingsRoom({
+  f,
+  page,
+  onPage,
+}: {
+  f: HostFacts;
+  page: SettingsPage | null;
+  onPage: (page: SettingsPage | null) => void;
+}) {
   return (
     <SettingsProvider
       event={hostEvent({
@@ -199,6 +225,7 @@ export function SettingsBody({ f }: { f: HostFacts }) {
         event_date: EVENT.date,
         description: EVENT.description,
         door: f.door,
+        accepting_uploads: f.ready.acceptingUploads,
       })}
       tier="pro"
       counts={{ ...NO_COUNTS, in: f.guests, waiting: f.waiting }}
@@ -207,10 +234,32 @@ export function SettingsBody({ f }: { f: HostFacts }) {
       reelSample={f.photos > 0 ? REEL[0] : null}
       writes={SETTINGS_WRITES}
     >
-      <div className="space-y-5">
-        <PageHeading>Settings</PageHeading>
-        <SettingsRows onOpenPage={() => {}} ready={f.ready} />
-      </div>
+      {page ? (
+        <PopupHeader
+          title={SETTINGS_GROUP_TITLES[page]}
+          up={{ label: "Settings", onUp: () => onPage(null) }}
+        />
+      ) : (
+        <PopupHeader
+          title="Settings"
+          description={EVENT.name}
+          back={EVENT.name}
+        />
+      )}
+      <PopupBody className="space-y-6 pb-6" data-settings-page={page ?? "rows"}>
+        {page === "door" ? (
+          <DoorPage guestsHref={GUESTS_HREF} />
+        ) : page === "adds" ? (
+          <AddsPage />
+        ) : page === "reel" ? (
+          <ReelPage />
+        ) : page === "event" ? (
+          <EventPage />
+        ) : (
+          <SettingsRows onOpenPage={onPage} ready={f.ready} />
+        )}
+        {page ? <SettingsNext page={page} onNext={onPage} /> : null}
+      </PopupBody>
     </SettingsProvider>
   );
 }

@@ -6,9 +6,9 @@
  * (`server-pipeline-meter.ts`).
  *
  * What they hold:
- *   1. THE METER: `meter_upload` refuses past the hour's breaker, the month (the complete's own line) and the room, and
- *      tallies the hour in one atomic upsert; it counts NOTHING of the month and takes no profiles lock; it is the
- *      service role's alone.
+ *   1. THE METER: `meter_upload` refuses past the hour's breaker, the month (the complete's own line), a lapsed pass (the
+ *      completes' own refusal, billing-locks) and the room, and tallies the hour in one atomic upsert; it counts NOTHING
+ *      of the month and takes no profiles lock; it is the service role's alone.
  *   2. THE MONTH IS THE COMPLETE'S: `create_media*` are 20261003110000's, untouched, still the only writers of the
  *      month's bytes and items; the meter writes the hour's columns alone.
  *   3. THE BREAKERS: an account's uploads a clock hour (20,000) and its creations a day (100), the second on a creation
@@ -149,6 +149,39 @@ describe("1. the meter", () => {
         "if v_active + v_deleted + p_file_size_bytes > v_cap + (v_cap / 10) then raise exception 'Storage capacity exceeded for this plan.'",
       );
     }
+  });
+
+  // ★ billing-locks (20261005130000): until the nightly recompute moved a lapsed pass holder to Free, the meter admitted
+  // her upload, its bytes went up, and the complete refused them (the Advisor's Q26 F1). The meter now refuses it first,
+  // with the completes' own predicate over the same rows, in the allowance's words (the wire's 'monthly', which both
+  // presign routes say as their allowance sentence), after the allowance and before the room, with no lock.
+  it("★ refuses a lapsed pass as both completes do: their predicate, the allowance's words, after the allowance and before the room", () => {
+    const body = latest("meter_upload").body;
+    const lapsed = body.match(
+      /if v_tier = 'event_pass' and not exists \( (select 1 from public\.event_passes q where .*?)\) then return jsonb_build_object\('ok', false, 'reason', 'monthly'\); end if;/,
+    );
+    expect(lapsed, "the meter's lapsed pass refusal").not.toBeNull();
+    for (const name of ["create_media", "create_media_as_host"]) {
+      const complete = latest(name).body;
+      const theirs = complete.match(
+        /if v_profile\.tier = 'event_pass' and not exists \( (select 1 from public\.event_passes q where .*?)\) then raise exception 'Upload limit reached for this plan\.'/,
+      );
+      expect(theirs, `${name}'s lapsed pass refusal`).not.toBeNull();
+      // The same predicate, the host named the way each body names her.
+      expect(lapsed![1], name).toBe(
+        theirs![1].replace(
+          "q.profile_id = v_event.host_id",
+          "q.profile_id = v_host",
+        ),
+      );
+    }
+    const allowance = body.indexOf(
+      "if v_allowance is not null and public.uploads_used(v_host, v_tier) + p_bytes > v_allowance then",
+    );
+    const room = body.indexOf("v_used := public.host_room_used(v_host);");
+    expect(allowance).toBeGreaterThan(-1);
+    expect(lapsed!.index!).toBeGreaterThan(allowance);
+    expect(lapsed!.index!).toBeLessThan(room);
   });
 
   it("★ the hour's tally is one upsert, atomic on its row: its WHERE refuses the 20,001st even past a raced early read", () => {

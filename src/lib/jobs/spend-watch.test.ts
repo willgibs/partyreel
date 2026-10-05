@@ -690,11 +690,13 @@ describe("the reading RPC's answer", () => {
 });
 
 describe("the readings themselves", () => {
-  it("only ever offer guest uploads, and pause only the three switches whose false alarm costs no guest", () => {
+  it("only ever offer guest uploads, and pause only the switches whose false alarm costs no guest", () => {
     const paused = READINGS.filter((r) => r.stop.kind === "pause").map((r) =>
       r.stop.kind === "pause" ? r.stop.switch : null,
     );
+    // Send to Google Drive joined them (drive-wiring): a paused send waits and loses nothing, and no guest is in it.
     expect(paused.sort()).toEqual([
+      "drive_export_enabled",
       "export_enabled",
       "lifecycle_mail_enabled",
       "purge_cron_enabled",

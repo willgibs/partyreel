@@ -52,6 +52,7 @@ import { softDeleteEvent } from "@/lib/db/mutations/events";
 import { removeMyUpload } from "@/lib/db/mutations/my-uploads";
 import { mustCount, mustQuery } from "@/lib/db/must-query";
 import { readAllPages } from "@/lib/db/read-all";
+import { disconnectDrive } from "@/lib/drive/disconnect.server";
 import {
   ANONYMISED_PROFILE_PATCH,
   scrubAccountGuestRows,
@@ -228,6 +229,13 @@ export async function requestAccountDeletion(
   let newsletterRemoved = 0;
   try {
     eventsBinned = await binHostedEvents(userId, actor);
+    // Her Google Drive: revoked at Google and its key deleted, her sends stopped (what she sent stays hers). ISOLATED:
+    // the purge disconnects again before the auth user goes.
+    try {
+      await disconnectDrive(userId);
+    } catch (error) {
+      captureError("account", error, { step: "account_deletion_drive", user_id: userId, actor });
+    }
     newsletterRemoved = await deleteNewsletterSignups(profile.email);
     await removeAvatar(userId);
     // The account's rows in other hosts' events lose its addresses (and a typed name) before the

@@ -176,6 +176,451 @@ export type Database = {
           },
         ]
       }
+      cloud_connections: {
+        Row: {
+          access_ct: string | null
+          access_expires_at: string | null
+          account_email: string | null
+          account_name: string | null
+          account_sub: string
+          breaker_lifted_at: string | null
+          concurrency: number
+          concurrency_until: string | null
+          created_at: string
+          email_verified: boolean
+          failing_since: string | null
+          full_checked_at: string | null
+          full_since: string | null
+          id: string
+          kicked_at: string | null
+          lane_failures: number
+          lane_failures_on: string | null
+          lane_rekicked_at: string | null
+          last_error: string | null
+          last_refresh_at: string | null
+          operator_note: string | null
+          operator_paused_at: string | null
+          provider: string
+          quota_at: string | null
+          quota_limit: number | null
+          quota_usage: number | null
+          refresh_claimed_until: string | null
+          refresh_ct: string | null
+          refresh_expires_at: string | null
+          root_folder_id: string | null
+          scopes: string[]
+          status: string
+          throttled_since: string | null
+          throttled_until: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_ct?: string | null
+          access_expires_at?: string | null
+          account_email?: string | null
+          account_name?: string | null
+          account_sub: string
+          breaker_lifted_at?: string | null
+          concurrency?: number
+          concurrency_until?: string | null
+          created_at?: string
+          email_verified?: boolean
+          failing_since?: string | null
+          full_checked_at?: string | null
+          full_since?: string | null
+          id?: string
+          kicked_at?: string | null
+          lane_failures?: number
+          lane_failures_on?: string | null
+          lane_rekicked_at?: string | null
+          last_error?: string | null
+          last_refresh_at?: string | null
+          operator_note?: string | null
+          operator_paused_at?: string | null
+          provider?: string
+          quota_at?: string | null
+          quota_limit?: number | null
+          quota_usage?: number | null
+          refresh_claimed_until?: string | null
+          refresh_ct?: string | null
+          refresh_expires_at?: string | null
+          root_folder_id?: string | null
+          scopes?: string[]
+          status?: string
+          throttled_since?: string | null
+          throttled_until?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_ct?: string | null
+          access_expires_at?: string | null
+          account_email?: string | null
+          account_name?: string | null
+          account_sub?: string
+          breaker_lifted_at?: string | null
+          concurrency?: number
+          concurrency_until?: string | null
+          created_at?: string
+          email_verified?: boolean
+          failing_since?: string | null
+          full_checked_at?: string | null
+          full_since?: string | null
+          id?: string
+          kicked_at?: string | null
+          lane_failures?: number
+          lane_failures_on?: string | null
+          lane_rekicked_at?: string | null
+          last_error?: string | null
+          last_refresh_at?: string | null
+          operator_note?: string | null
+          operator_paused_at?: string | null
+          provider?: string
+          quota_at?: string | null
+          quota_limit?: number | null
+          quota_usage?: number | null
+          refresh_claimed_until?: string | null
+          refresh_ct?: string | null
+          refresh_expires_at?: string | null
+          root_folder_id?: string | null
+          scopes?: string[]
+          status?: string
+          throttled_since?: string | null
+          throttled_until?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloud_connections_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cloud_event_folders: {
+        Row: {
+          connection_id: string
+          created_at: string
+          event_id: string
+          folder_id: string
+        }
+        Insert: {
+          connection_id: string
+          created_at?: string
+          event_id: string
+          folder_id: string
+        }
+        Update: {
+          connection_id?: string
+          created_at?: string
+          event_id?: string
+          folder_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloud_event_folders_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "cloud_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cloud_event_folders_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cloud_export_items: {
+        Row: {
+          attempts: number
+          bytes: number
+          confirmed_at: string | null
+          drive_file_id: string | null
+          drive_md5: string | null
+          job_id: string
+          kept: boolean
+          last_error: string | null
+          lease_token: string | null
+          leased_until: string | null
+          media_id: string
+          missing_once: boolean
+          name: string | null
+          not_before: string | null
+          position: number
+          sent_at: string | null
+          session_offset: number | null
+          session_uri: string | null
+          skip_reason: string | null
+          status: string
+          worker_md5: string | null
+        }
+        Insert: {
+          attempts?: number
+          bytes: number
+          confirmed_at?: string | null
+          drive_file_id?: string | null
+          drive_md5?: string | null
+          job_id: string
+          kept?: boolean
+          last_error?: string | null
+          lease_token?: string | null
+          leased_until?: string | null
+          media_id: string
+          missing_once?: boolean
+          name?: string | null
+          not_before?: string | null
+          position: number
+          sent_at?: string | null
+          session_offset?: number | null
+          session_uri?: string | null
+          skip_reason?: string | null
+          status?: string
+          worker_md5?: string | null
+        }
+        Update: {
+          attempts?: number
+          bytes?: number
+          confirmed_at?: string | null
+          drive_file_id?: string | null
+          drive_md5?: string | null
+          job_id?: string
+          kept?: boolean
+          last_error?: string | null
+          lease_token?: string | null
+          leased_until?: string | null
+          media_id?: string
+          missing_once?: boolean
+          name?: string | null
+          not_before?: string | null
+          position?: number
+          sent_at?: string | null
+          session_offset?: number | null
+          session_uri?: string | null
+          skip_reason?: string | null
+          status?: string
+          worker_md5?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloud_export_items_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "cloud_exports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cloud_export_leases: {
+        Row: {
+          connection_id: string
+          created_at: string
+          job_id: string
+          kind: string
+          leased_until: string
+          token: string
+        }
+        Insert: {
+          connection_id: string
+          created_at?: string
+          job_id: string
+          kind: string
+          leased_until: string
+          token?: string
+        }
+        Update: {
+          connection_id?: string
+          created_at?: string
+          job_id?: string
+          kind?: string
+          leased_until?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloud_export_leases_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "cloud_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cloud_export_leases_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "cloud_exports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cloud_export_sent_hours: {
+        Row: {
+          bytes: number
+          connection_id: string
+          files: number
+          hour: string
+          user_id: string
+        }
+        Insert: {
+          bytes?: number
+          connection_id: string
+          files?: number
+          hour: string
+          user_id: string
+        }
+        Update: {
+          bytes?: number
+          connection_id?: string
+          files?: number
+          hour?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloud_export_sent_hours_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cloud_exports: {
+        Row: {
+          album_name: string
+          attention_at: string | null
+          attention_seen_at: string | null
+          bytes_sent: number
+          bytes_total: number
+          check_after: string | null
+          closed_at: string | null
+          connection_id: string | null
+          created_at: string
+          done_mailed_at: string | null
+          event_id: string | null
+          folder_id: string | null
+          folder_url: string | null
+          id: string
+          include_hidden: boolean
+          items_duplicated: number
+          items_failed: number
+          items_kept: number
+          items_sent: number
+          items_skipped: number
+          items_total: number
+          kind: string
+          last_progress_at: string | null
+          pause_reason: string | null
+          paused_at: string | null
+          resume_at: string | null
+          resumed_at: string | null
+          started_at: string | null
+          status: string
+          stop_reason: string | null
+          stuck_since: string | null
+          tz: string
+          user_id: string
+        }
+        Insert: {
+          album_name: string
+          attention_at?: string | null
+          attention_seen_at?: string | null
+          bytes_sent?: number
+          bytes_total?: number
+          check_after?: string | null
+          closed_at?: string | null
+          connection_id?: string | null
+          created_at?: string
+          done_mailed_at?: string | null
+          event_id?: string | null
+          folder_id?: string | null
+          folder_url?: string | null
+          id?: string
+          include_hidden?: boolean
+          items_duplicated?: number
+          items_failed?: number
+          items_kept?: number
+          items_sent?: number
+          items_skipped?: number
+          items_total?: number
+          kind?: string
+          last_progress_at?: string | null
+          pause_reason?: string | null
+          paused_at?: string | null
+          resume_at?: string | null
+          resumed_at?: string | null
+          started_at?: string | null
+          status?: string
+          stop_reason?: string | null
+          stuck_since?: string | null
+          tz?: string
+          user_id: string
+        }
+        Update: {
+          album_name?: string
+          attention_at?: string | null
+          attention_seen_at?: string | null
+          bytes_sent?: number
+          bytes_total?: number
+          check_after?: string | null
+          closed_at?: string | null
+          connection_id?: string | null
+          created_at?: string
+          done_mailed_at?: string | null
+          event_id?: string | null
+          folder_id?: string | null
+          folder_url?: string | null
+          id?: string
+          include_hidden?: boolean
+          items_duplicated?: number
+          items_failed?: number
+          items_kept?: number
+          items_sent?: number
+          items_skipped?: number
+          items_total?: number
+          kind?: string
+          last_progress_at?: string | null
+          pause_reason?: string | null
+          paused_at?: string | null
+          resume_at?: string | null
+          resumed_at?: string | null
+          started_at?: string | null
+          status?: string
+          stop_reason?: string | null
+          stuck_since?: string | null
+          tz?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloud_exports_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "cloud_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cloud_exports_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cloud_exports_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_submissions: {
         Row: {
           created_at: string
@@ -918,6 +1363,47 @@ export type Database = {
           },
         ]
       }
+      notice_retries: {
+        Row: {
+          dedupe_key: string
+          first_failed_at: string
+          html: string
+          kind: string
+          last_failed_at: string
+          profile_id: string
+          subject: string
+          text: string
+        }
+        Insert: {
+          dedupe_key: string
+          first_failed_at?: string
+          html: string
+          kind: string
+          last_failed_at?: string
+          profile_id: string
+          subject: string
+          text: string
+        }
+        Update: {
+          dedupe_key?: string
+          first_failed_at?: string
+          html?: string
+          kind?: string
+          last_failed_at?: string
+          profile_id?: string
+          subject?: string
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notice_retries_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_prefs: {
         Row: {
           created_at: string
@@ -1525,6 +2011,127 @@ export type Database = {
       claim_ticket_asks: { Args: { p_session_tokens: string[] }; Returns: Json }
       clear_event_password: { Args: { p_event_id: string }; Returns: undefined }
       clear_event_slug: { Args: { p_event_id: string }; Returns: undefined }
+      cloud_connection_disconnect: { Args: { p_user: string }; Returns: Json }
+      cloud_connection_kick: { Args: { p_connection: string }; Returns: Json }
+      cloud_connection_lane_failed: {
+        Args: { p_connection: string; p_error: string }
+        Returns: Json
+      }
+      cloud_connection_operator: {
+        Args: { p_act: string; p_connection: string; p_note?: string }
+        Returns: Json
+      }
+      cloud_connection_refresh_failed: {
+        Args: { p_connection: string; p_error: string; p_revoked: boolean }
+        Returns: Json
+      }
+      cloud_connection_refreshed: {
+        Args: {
+          p_access_ct: string
+          p_access_expires_at: string
+          p_connection: string
+          p_refresh_ct?: string
+        }
+        Returns: Json
+      }
+      cloud_connection_room: {
+        Args: {
+          p_connection: string
+          p_limit: number
+          p_resume: boolean
+          p_usage: number
+        }
+        Returns: Json
+      }
+      cloud_connection_root: {
+        Args: { p_candidate: string; p_connection: string; p_expected: string }
+        Returns: Json
+      }
+      cloud_connection_token: { Args: { p_connection: string }; Returns: Json }
+      cloud_connection_upsert: {
+        Args: {
+          p_access_ct: string
+          p_access_expires_at: string
+          p_email: string
+          p_email_verified: boolean
+          p_name: string
+          p_refresh_ct: string
+          p_refresh_expires_at: string
+          p_scopes: string[]
+          p_sub: string
+          p_user: string
+        }
+        Returns: Json
+      }
+      cloud_export_act: {
+        Args: {
+          p_act: string
+          p_job: string
+          p_operator?: boolean
+          p_user: string
+        }
+        Returns: Json
+      }
+      cloud_export_check_page: {
+        Args: {
+          p_duplicates?: number
+          p_finding?: string
+          p_lease: string
+          p_results: Json
+        }
+        Returns: Json
+      }
+      cloud_export_create: {
+        Args: {
+          p_event: string
+          p_include_hidden: boolean
+          p_tz: string
+          p_user: string
+        }
+        Returns: Json
+      }
+      cloud_export_lease: { Args: { p_connection: string }; Returns: Json }
+      cloud_export_mailed: { Args: { p_jobs: string[] }; Returns: Json }
+      cloud_export_name_items: {
+        Args: { p_lease: string; p_names: Json }
+        Returns: Json
+      }
+      cloud_export_pause: {
+        Args: {
+          p_connection: string
+          p_job: string
+          p_reason: string
+          p_resume_at: string
+        }
+        Returns: number
+      }
+      cloud_export_preview: {
+        Args: { p_events: string[]; p_include_hidden: boolean; p_user: string }
+        Returns: Json
+      }
+      cloud_export_ready: {
+        Args: { p_folder_id: string; p_job: string }
+        Returns: Json
+      }
+      cloud_export_refolder: {
+        Args: { p_folder_id: string; p_job: string; p_user: string }
+        Returns: Json
+      }
+      cloud_export_report: {
+        Args: {
+          p_done?: boolean
+          p_finding?: string
+          p_items: Json
+          p_lease: string
+        }
+        Returns: Json
+      }
+      cloud_export_settle: { Args: { p_job: string }; Returns: string }
+      cloud_export_sweep: { Args: never; Returns: Json }
+      consume_passes_for_pro_credit: {
+        Args: { p_host_id: string }
+        Returns: number
+      }
       create_guest: {
         Args: {
           p_display_name?: string
@@ -1895,6 +2502,19 @@ export type Database = {
         Returns: Json
       }
       my_liked_media_ids: { Args: { p_media_ids: string[] }; Returns: string[] }
+      over_capacity_candidates: {
+        Args: { p_after?: string; p_limit?: number }
+        Returns: {
+          active_bytes: number
+          deleted_bytes: number
+          email: string
+          id: string
+          storage_cap_bytes: number
+          storage_grace_until: string
+          system_bytes: number
+          tier: Database["public"]["Enums"]["tier_type"]
+        }[]
+      }
       purge_media_now: { Args: { p_media_ids: string[] }; Returns: Json }
       purge_media_rows: {
         Args: { p_media_ids: string[] }
@@ -1987,6 +2607,18 @@ export type Database = {
           p_tier: Database["public"]["Enums"]["tier_type"]
         }
         Returns: number
+      }
+      uploads_windows: {
+        Args: { p_after_id?: string; p_host_ids: string[]; p_limit?: number }
+        Returns: {
+          host_id: string
+          pass_converted: boolean
+          pass_lapsed: boolean
+          pass_lapsed_at: string
+          storage_cap_bytes: number
+          tier: Database["public"]["Enums"]["tier_type"]
+          used_bytes: number
+        }[]
       }
       verify_current_password: {
         Args: { p_password: string }

@@ -16,7 +16,7 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { useState } from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import type { FileExtra, QueueItem } from "@/lib/guest/use-upload-queue";
@@ -104,11 +104,16 @@ function Page({
   initialQueue = [],
   onOpenChange,
   isOwner = false,
+  onRetry,
+  answerRetries = false,
 }: {
   onAdd?: (files: File[], extra?: FileExtra) => void;
   initialQueue?: QueueItem[];
   onOpenChange?: (open: boolean) => void;
   isOwner?: boolean;
+  onRetry?: (queueId: string) => void;
+  /** The page's queue takes a Retry as the real one does: the item goes back to waiting, its refusal forgotten. */
+  answerRetries?: boolean;
 }) {
   const [open, setOpen] = useState(true);
   const [queue, setQueue] = useState<QueueItem[]>(initialQueue);
@@ -137,7 +142,23 @@ function Page({
             })),
           ]);
         }}
-        onRetry={vi.fn()}
+        onRetry={(queueId) => {
+          onRetry?.(queueId);
+          if (!answerRetries) return;
+          setQueue((prev) =>
+            prev.map((it) =>
+              it.id === queueId
+                ? {
+                    ...it,
+                    status: "queued" as const,
+                    error: undefined,
+                    errorCode: undefined,
+                    cause: undefined,
+                  }
+                : it,
+            ),
+          );
+        }}
         isDemo={false}
         isOwner={isOwner}
       />
@@ -184,10 +205,55 @@ function Page({
             prev.map((it) => ({
               ...it,
               status: "error" as const,
-              // The uploader's own sentence for a request that never reached the network, as the queue keeps it
-              // (no `errorCode`: the server never answered).
-              error: UPLOAD_WORDS.dropped,
+              error: "This event is private.",
+              errorCode: "unauthorized",
+            })),
+          )
+        }
+      >
+        Refuse them for good
+      </button>
+      <button
+        type="button"
+        onClick={() =>
+          setQueue((prev) =>
+            prev.map((it) => ({
+              ...it,
+              status: "error" as const,
+              error: "This album is full right now.",
+              errorCode: "cap_reached",
+            })),
+          )
+        }
+      >
+        Refuse them as full
+      </button>
+      <button
+        type="button"
+        onClick={() =>
+          setQueue((prev) =>
+            prev.map((it) => ({
+              ...it,
+              status: "uploading" as const,
+              progress: 10,
+            })),
+          )
+        }
+      >
+        Put them in the air
+      </button>
+      <button
+        type="button"
+        onClick={() =>
+          setQueue((prev) =>
+            prev.map((it) => ({
+              ...it,
+              status: "error" as const,
+              // A request that never reached the network, as the queue keeps it: the transport's cause, and no
+              // `errorCode` (the server never answered). The words are not the camera's to match: they differ here.
+              error: "The line went quiet.",
               errorCode: undefined,
+              cause: "dropped" as const,
             })),
           )
         }
@@ -201,9 +267,10 @@ function Page({
             prev.map((it) => ({
               ...it,
               status: "error" as const,
-              // An answer that was an error: not the line's fault, and no code the camera reads as a refusal.
+              // An answer that was an error: not the line's fault (no cause), and no code the camera reads as a refusal.
               error: UPLOAD_WORDS.refused,
               errorCode: "storage_error",
+              cause: undefined,
             })),
           )
         }
@@ -417,8 +484,9 @@ describe("the album's camera", () => {
   // ★ RED-TEAM 53's NIT (crumbs-65): a shot cut mid-PUT said "1 shot didn’t send." and never the E6 sentence the
   // uploader carries, so a stadium's dropped signal read as a broken camera. It still re-sends by itself when the
   // line returns (`online`); what it says now is why, in the one sentence the uploads and the downloads say. The press
-  // said "Shot 7 taken." first, which stands for a moment (`SAID_MS`) before the standing line comes back.
-  it("★ says the connection dropped when that is why a shot did not send, with its Retry beside; an answered error is only counted", async () => {
+  // said "Shot 7 taken." first, which stands for a moment (`SAID_MS`) before the standing line comes back. The queue's
+  // `cause` says it was the line's, so the camera never matches the words of the failure.
+  it("★ says the connection dropped when the queue's cause says that is why a shot did not send, with its Retry beside; an answered error is only counted", async () => {
     render(<Page />);
     await opened();
     await screen.findByText("Frame 7 of 24");
@@ -504,5 +572,196 @@ describe("the album's camera", () => {
     expect(onOpenChange).toHaveBeenCalledWith(false);
     await waitFor(() => expect(media.stop).toHaveBeenCalled());
     expect(document.querySelector("[data-cam-screen]")).toBeNull();
+  });
+});
+
+/**
+ * ★ THE CAMERA HEARS THE HOST REOPEN (crumbs-76; ROADMAP: "the camera keeps its closed-uploads banner and disabled
+ * shutter after the host reopens uploads, until she closes it"). Nothing tells the page when the host's switch moves (it
+ * reads it at render, and the album's sync carries no word of it), so a camera that stopped for a refusal the host can
+ * lift (closed, full) asks the album again by itself, calmly, and its banner and its stopped shutter go with the
+ * refusal once the album says yes. Pinned as a guest sees it: the banner stays through each ask (no flicker), the next
+ * ask waits longer, a hidden page asks nothing, and a refusal that is not the host's to lift is never asked again.
+ */
+describe("the album's camera, over an album that refuses for a reason its host can lift", () => {
+  const CLOSED = "This event isn't accepting uploads right now.";
+  const shutter = () =>
+    document.querySelector("[data-cam-shutter]") as HTMLButtonElement;
+
+  afterEach(() => {
+    vi.useRealTimers();
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      get: () => "visible",
+    });
+  });
+
+  /** The camera open over her first shot, the album refusing it, and the clock the camera's asks run on held still. */
+  async function refused(button = "Refuse them") {
+    const onRetry = vi.fn();
+    render(<Page answerRetries onRetry={onRetry} />);
+    await opened();
+    await screen.findByText("Frame 7 of 24");
+    await act(async () => press());
+    vi.useFakeTimers({
+      toFake: [
+        "setTimeout",
+        "clearTimeout",
+        "setInterval",
+        "clearInterval",
+        "Date",
+      ],
+    });
+    fireEvent.click(screen.getByRole("button", { name: button, hidden: true }));
+    return onRetry;
+  }
+  const wait = (ms: number) =>
+    act(async () => {
+      await vi.advanceTimersByTimeAsync(ms);
+    });
+
+  it("★ asks again after ten seconds, keeps its banner and stopped shutter through the ask, and hears the album say yes", async () => {
+    const onRetry = await refused();
+    expect(screen.getByText(CLOSED)).toBeInTheDocument();
+    expect(shutter().disabled).toBe(true);
+    await wait(9_000);
+    expect(onRetry).not.toHaveBeenCalled();
+
+    await wait(1_000);
+    expect(onRetry).toHaveBeenCalledTimes(1);
+    // The ask is out, the album has not answered: the camera has not moved (no banner gone, no shutter back, no
+    // "sending" in the caption).
+    expect(screen.getByText(CLOSED)).toBeInTheDocument();
+    expect(shutter().disabled).toBe(true);
+    expect(screen.queryByText(/sending/)).toBeNull();
+
+    // The host reopened: the album says yes the moment the file goes up (a refusal comes before a byte moves), and the
+    // refusal's banner and stopped shutter go with it, before the shot has landed.
+    fireEvent.click(
+      screen.getByRole("button", { name: "Put them in the air", hidden: true }),
+    );
+    await wait(0);
+    expect(screen.queryByText(CLOSED)).toBeNull();
+    expect(shutter().disabled).toBe(false);
+    expect(screen.getByText(/sending 1/)).toBeInTheDocument();
+
+    // And it lands.
+    fireEvent.click(
+      screen.getByRole("button", { name: "Land them", hidden: true }),
+    );
+    await wait(0);
+    expect(screen.queryByText(CLOSED)).toBeNull();
+    expect(shutter().disabled).toBe(false);
+    // Nothing left to ask: the clock stands down.
+    await wait(120_000);
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it("★ asks again calmer while the album still says no: ten seconds, then twenty, then forty, then every minute", async () => {
+    const onRetry = await refused();
+    const refuseAgain = async () => {
+      fireEvent.click(
+        screen.getByRole("button", { name: "Refuse them", hidden: true }),
+      );
+      await wait(0);
+    };
+    await wait(10_000);
+    expect(onRetry).toHaveBeenCalledTimes(1);
+    await refuseAgain();
+    // The banner stood the whole time.
+    expect(screen.getByText(CLOSED)).toBeInTheDocument();
+
+    await wait(19_000);
+    expect(onRetry).toHaveBeenCalledTimes(1);
+    await wait(1_000);
+    expect(onRetry).toHaveBeenCalledTimes(2);
+    await refuseAgain();
+
+    await wait(39_000);
+    expect(onRetry).toHaveBeenCalledTimes(2);
+    await wait(1_000);
+    expect(onRetry).toHaveBeenCalledTimes(3);
+    await refuseAgain();
+
+    // A minute is as slow as it gets.
+    await wait(60_000);
+    expect(onRetry).toHaveBeenCalledTimes(4);
+    await refuseAgain();
+    await wait(60_000);
+    expect(onRetry).toHaveBeenCalledTimes(5);
+    expect(shutter().disabled).toBe(true);
+  });
+
+  it("★ asks nothing while the page is hidden, and asks at once when it comes back", async () => {
+    const onRetry = await refused();
+    await act(async () => {
+      Object.defineProperty(document, "visibilityState", {
+        configurable: true,
+        get: () => "hidden",
+      });
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+    await wait(60_000);
+    expect(onRetry).not.toHaveBeenCalled();
+
+    await act(async () => {
+      Object.defineProperty(document, "visibilityState", {
+        configurable: true,
+        get: () => "visible",
+      });
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it("★ never asks closer to the last ask than the cadence's first step, however often the page comes back", async () => {
+    const onRetry = await refused();
+    const toggle = async (visible: boolean) =>
+      act(async () => {
+        Object.defineProperty(document, "visibilityState", {
+          configurable: true,
+          get: () => (visible ? "visible" : "hidden"),
+        });
+        document.dispatchEvent(new Event("visibilitychange"));
+      });
+    // Flicking between apps over a closed album: each return is not a presign of its own.
+    await wait(1_000);
+    await toggle(false);
+    await toggle(true);
+    await wait(2_000);
+    await toggle(false);
+    await toggle(true);
+    expect(onRetry).not.toHaveBeenCalled();
+    // Past the first step it asks at once, and the calm cadence starts over from there.
+    await wait(8_000);
+    expect(onRetry).toHaveBeenCalledTimes(1);
+    await toggle(false);
+    await toggle(true);
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it("asks again over a full album too: it is the host's to make room, and the album may say yes later", async () => {
+    const onRetry = await refused("Refuse them as full");
+    expect(
+      screen.getByText("This album is full right now."),
+    ).toBeInTheDocument();
+    await wait(10_000);
+    expect(onRetry).toHaveBeenCalledTimes(1);
+    expect(shutter().disabled).toBe(true);
+  });
+
+  it("★ never asks again over a refusal that is not the host's to lift (a lock, a gone event, a ticket that is not hers)", async () => {
+    const onRetry = await refused("Refuse them for good");
+    expect(screen.getByText("This event is private.")).toBeInTheDocument();
+    await wait(300_000);
+    expect(onRetry).not.toHaveBeenCalled();
+    expect(shutter().disabled).toBe(true);
+  });
+
+  it("asks nothing once she has closed the camera (the failure sheet is hers then)", async () => {
+    const onRetry = await refused();
+    fireEvent.click(screen.getByRole("button", { name: "Back to the album" }));
+    await wait(300_000);
+    expect(onRetry).not.toHaveBeenCalled();
   });
 });

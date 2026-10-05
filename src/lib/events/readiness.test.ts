@@ -105,6 +105,42 @@ describe("ready", () => {
     expect(readiness(empty).ready).toBe(true);
   });
 
+  // ★ RED-TEAM 53b's NIT (crumbs-66): the hub's list said "Anyone with the link or the code comes in." at a Public door
+  // whose album asks for a confirmed email first, where Settings said "after confirming an email". The line is the
+  // door's words from the facts Settings reads (`doorGuestLine`), so the list says what a guest will meet.
+  it("★ says what the door asks of a guest, from the facts Settings reads, never that she walks in", () => {
+    const line = (over: Partial<ReadyFacts>) =>
+      readiness({ ...FRESH, ...over }).items.find((i) => i.id === "door")!.line;
+    expect(line({ requireVerifiedEmail: true })).toBe(
+      "Anyone with the link, after confirming an email.",
+    );
+    expect(line({ requireVerifiedEmail: false })).toBe(
+      "Anyone with the link, after typing a name.",
+    );
+    expect(line({ requireUploadToView: true })).toBe(
+      "Anyone with the link, after confirming an email and adding a photo.",
+    );
+    // A photo first waits on uploads being open, as Settings' sentence does.
+    expect(line({ requireUploadToView: true, acceptingUploads: false })).toBe(
+      "Anyone with the link, after confirming an email.",
+    );
+    expect(
+      line({
+        door: "password",
+        hasPassword: true,
+        requireVerifiedEmail: false,
+      }),
+    ).toBe("Anyone with the password, after typing a name.");
+    // A gate keeps its own line, which already says the email it keys on.
+    expect(line({ door: "approve" })).toBe(GATE_LINES.approve);
+  });
+
+  it("reads a surface that carries neither fact as a new event's defaults: an email, and no photo first", () => {
+    const door = readiness(FRESH).items.find((i) => i.id === "door")!;
+    expect(FRESH.requireVerifiedEmail).toBeUndefined();
+    expect(door.line).toBe("Anyone with the link, after confirming an email.");
+  });
+
   // ★ THE SCAR: the door item read an empty invite list as "nobody can get in yet" while production lets
   // anyone else ask to be let in. The decision a guest actually meets is `decideDoor`'s, so the checklist
   // is held to it.

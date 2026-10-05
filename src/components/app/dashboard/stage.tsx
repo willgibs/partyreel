@@ -267,7 +267,13 @@ export function Stage({
     >
       {/* The light: the event's own lamp until its first photograph, then the lead photograph, blurred into the dark
           behind the words. */}
-      {plate && <LampLight lamp={lamp} near={lampNear(event, ctx.today)} />}
+      {plate && (
+        <LampLight
+          lamp={lamp}
+          near={lampNear(event, ctx.today)}
+          eventId={event.id}
+        />
+      )}
       {lead && (
         <div
           aria-hidden

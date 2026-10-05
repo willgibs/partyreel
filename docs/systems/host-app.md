@@ -120,7 +120,10 @@ than redrawing them, so a host's first minute looks like the site that sold them
   navigating, or the guard bounces the host straight back; `/welcome` itself gates on neither, or it loops.
 - **A guest-made account never takes the tour** (`isGuestFirstVisit`, `lib/welcome.ts`): an account that hosts no live
   event and already holds a Guest card lands on its dashboard, marked welcomed there by `MarkWelcomedOnMount` (a client
-  effect, since `after()` in a server component cannot read cookies).
+  effect, since `after()` in a server component cannot read cookies). ★ **The page counts the cards, never builds
+  them** (`countMyGuestEventCards`: the cards' own candidates, `myGuestEventLatest`, counted in the database, so a
+  guest-made account's first visit makes no cover request, presign or host read), and reads the viewer from the
+  request's cached `getRequestAuth`, never a `getUser()` of its own.
 
 ## The event page
 
@@ -153,8 +156,8 @@ hub and closes back to it.
   own box picks one**: a count chosen from a measured width would paint a desk's 160 marks into a phone and correct
   itself after hydration. ★ **Lit is photographs landing now**, the newest within a quarter of an hour on the reader's
   clock: one timeout for the moment it turns, never a poll, and never lit in the server's paint or the hydrating
-  render (they have no clock of hers). With no store and no `arrivals` (the Library's specimen) it draws a flat quiet
-  line, never a shape it does not know.
+  render (they have no clock of hers). With no store and no `arrivals` it draws a flat quiet line, never a shape it does
+  not know.
 - **The code stands beside the h1**, never inside it (an h1 holding a control stops being the page's accessible name).
   It wears the door on its corner (`share/event-code-door.tsx`, its words `codeMark` in `visibility-labels.ts`) and
   dims where a guest who scans cannot add (paused, Only me). The mark is its own button beside the code's, since
@@ -211,9 +214,11 @@ hub and closes back to it.
   survives as a redirect, because it is a published URL.
 - ★ **A date field saves once she has finished it, never on its change**: Chrome's date input fires a complete date on
   every keystroke that makes one (a year typed digit by digit passes 0002, 0020 and 0202 on its way to 2027), so a
-  keyboard's edit waits to be left or Entered, a picker's choice saves a beat after the last, a cleared field only on
-  leaving, and a day outside 1900 to 2100 (`isSaneDay`) or a half-filled date never saves, said under the field in
-  words (`event-page.tsx`'s `EventDatesField`; its tests type keystroke by keystroke in Chrome's own order).
+  keyboard's edit waits to be left or Entered, a picker's choice saves a beat after the last, the panel's close saves a
+  finished one (it leaves the field too), a cleared field only on leaving, and a day outside 1900 to 2100 (`isSaneDay`)
+  or a half-filled date never saves, said under the field in words (`event-page.tsx`'s `EventDatesField`; its tests type
+  keystroke by keystroke in Chrome's own order). The develop time is finished the same way, by the one hook the two
+  share (`useFinishedFields`, `camera-settings-finish.ts`; [disposable-mode.md](disposable-mode.md) for what it writes).
 - **A setting with no effect right now stays in view** as one quiet line under the switch that governs it
   (`ui/dormant.tsx`, `inert` while asleep), and a change that affects people already in says so in its own place
   before it happens (`ui/consequence-line.tsx`).
@@ -229,7 +234,9 @@ hub and closes back to it.
   read, never stored and never shown to a guest; ready waits only on what a guest needs (a door she can pass, uploads
   open, the code opened once, room once the shelf is full), and the first photos and the welcome are worth doing,
   never a gate. Every fact is one the hub already reads (the code's first open is the header's Views number; the first
-  photos ride the album store's live counts, `useLiveReadyFacts`). It never leaves under her eyes, and from the day
+  photos ride the album store's live counts, `useLiveReadyFacts`; the door's line at a Public or password door is
+  Settings' own sentence, `doorGuestLine`, from the identity step and the photo first the page hands over, so the list
+  never says a guest walks in where Settings says she confirms an email). It never leaves under her eyes, and from the day
   after the event's date it is not drawn (`checklistOver`, on the viewer's day, as [dashboard.md](dashboard.md) reads
   it): an album paused after the party is finished, not unready. A held-only album says "Everything's in Review",
   since it is full, not empty.
@@ -242,7 +249,16 @@ hub and closes back to it.
   any move while the socket is down, reaches the store by the poll alone. The album's writes never revalidate the hub:
   each asks the store to catch up. `HostMediaGrid` marks arrivals by diffing ids, never links (they roll every half hour), and the guest
   album's own gate lets an arrival into the rows (`shared/use-arrival-gate.ts`, [guest-flow.md](guest-flow.md)), asking
-  for its link itself (`HubRows.onNeedLinks`), since a delta brings none.
+  for its link itself (`HubRows.onNeedLinks`), which the delta's own carry answers (next).
+- ★ **A batch is one call on the hub, as on the guest's album** ([guest-flow.md](guest-flow.md)'s carry): the delta
+  carries its APPROVED arrivals' links and their like counts (`hostCarriedIds`, newest first, at most
+  `ALBUM_DELTA_LINKS_MAX`, minted by `readHostLinksBody`, the links route's own builder), and the hub's transport
+  answers the link store's ask for them itself (`events/album-wire-carry.ts`; it sits UNDER `seedingTransport`, so a
+  carried link's count reaches `likeCounts` like any links answer's). A held upload carries none (Review asks its
+  queue's links by id when it opens) and neither does a hidden one (the host's own Hide is an upsert whose tile already
+  holds its link), so a moderated party's arrivals and every Hide cost only the delta; a failed carry is reported and
+  the arrival asks the links route, as it always did. An approval or a Show of an item the hub already holds carries a
+  link it will not use: bounded by the screenful, and the price of the server not knowing what the hub holds.
 - **The hub's album is the paged album, and its numbers are counted**: the page plans the host's first sync (every
   item but the bin, each status in its flags) and mints links for the newest window (`FIRST_WINDOW`,
   `readHostLinksBody`, which also carries each item's like count, a host-only figure); the windowed rows ask for the
@@ -388,7 +404,10 @@ so the profile's visitor-facing "Private" never collides. The six-door menu is `
   and the reel card's opens the same panel and scrolls it into view (`HostAddProvider.openAdd`); its pipeline is
   [uploads-and-r2.md](uploads-and-r2.md)'s. A drained batch asks the album's store once (`onBatchLanded`), never
   refreshes the router: the store brings the batch as a delta, where a refresh re-ran every read and presign on the
-  hub.
+  hub. A row going up (or waiting its turn) has an x that asks in the row ("Stop this upload?", Keep going first) and
+  stops that file alone through its own signal; its siblings land and are recorded together, and the stopped row reads
+  "Upload cancelled." with Try again (a Ban mark, muted, never the failure's red or its Retry) and counts nothing. A row
+  whose bytes are up has no x (its complete is coming; its way out is the album's Remove).
 - ★ **Block puts one person out of one event, with their uploads** (`block_from_event` on the host's own client, free
   on every plan). It is the quiet last line of every person's look (a name in the Guests room, the uploader's credit in
   the host's viewer and on Review's peek, `event-blocks/`), opening one confirm whose count is the act's own preview

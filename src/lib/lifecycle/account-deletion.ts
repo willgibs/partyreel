@@ -52,6 +52,7 @@
 import "server-only";
 
 import { mustCount, mustQuery, QueryFailedError } from "@/lib/db/must-query";
+import { disconnectDrive } from "@/lib/drive/disconnect.server";
 import {
   IN_CHUNK,
   inChunks,
@@ -79,6 +80,7 @@ import {
   type Deadline,
   type StoppedEarly,
 } from "@/lib/lifecycle/sweep-budget";
+import { deleteEventsInIdOrder } from "@/lib/lifecycle/sweeps/delete-events";
 import { captureError, captureWarning } from "@/lib/observability/sentry";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { removeAvatar } from "@/lib/supabase/avatar-storage";
@@ -366,8 +368,7 @@ export async function purgeAccount(
                 .order("id", { ascending: true })
                 .limit(limit);
               if (cursor) query = query.gt("id", cursor);
-              // The typed seam (`MEDIA_KEY_COLUMNS`), until the types know `phone_key`.
-              return query.overrideTypes<MediaKeyRow[], { merge: false }>();
+              return query;
             },
             (media) => media.id,
             { budget: MAX_ROWS, after },
@@ -393,22 +394,19 @@ export async function purgeAccount(
         if (doomed.length === 0) return [true];
 
         // Safe now: the media is gone, so the FK cascade has nothing of value
-        // left to destroy.
-        const { error: delErr } = await admin
-          .from("events")
-          .delete()
-          .in(
-            "id",
-            chunk.filter((id) => !stillHeld.has(id)),
-          );
-        if (delErr) {
-          throw new QueryFailedError("account deletion: delete events", delErr);
-        }
-        result.events += doomed.length;
-        return [true];
+        // left to destroy. One event a statement, in event-id order, so the cascade into the album
+        // rows never holds two albums against the album log's prune (sweeps/delete-events.ts).
+        const gone = await deleteEventsInIdOrder(
+          admin,
+          doomed,
+          deadline,
+          "account deletion: delete events",
+        );
+        result.events += gone.deleted;
+        return [gone.done];
       },
       // One chunk at a time, `IN_CHUNK` events each: the deletes are R2-first and ordered, and the
-      // deadline is checked between pages.
+      // deadline is checked between pages and between event rows.
       { size: IN_CHUNK, concurrency: 1 },
     );
 
@@ -445,6 +443,14 @@ export async function purgeAccount(
     // Only a forensic hold can leave events standing here. The account keeps
     // its anonymised profile and stays in the queue for the next run.
     return result;
+  }
+
+  // Her Google Drive before the account holding its key goes (the row would cascade away unrevoked). ISOLATED: a
+  // grant Google keeps listing is inert without the key, and must never hold a person who asked to be forgotten.
+  try {
+    await disconnectDrive(userId);
+  } catch (error) {
+    captureError("cron", error, { sweep: "deleted_accounts", step: "drive_disconnect", user_id: userId });
   }
 
   const { error: authErr } = await admin.auth.admin.deleteUser(userId);

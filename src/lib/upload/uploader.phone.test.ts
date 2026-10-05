@@ -26,7 +26,7 @@ type Put = { url: string; size: number; headers: Record<string, string> };
 const puts: Put[] = [];
 /** URLs whose PUT fails (a dropped connection). */
 const failing = new Set<string>();
-const posts: { url: string; body: Record<string, unknown> }[] = [];
+const posts: { url: string; body: { files: Record<string, unknown>[] } }[] = [];
 
 class FakeXhr {
   status = 0;
@@ -113,18 +113,29 @@ beforeEach(() => {
       revokeObjectURL: () => {},
     }),
   );
-  vi.stubGlobal(
-    "fetch",
-    vi.fn(async (url: string, init: { body: string }) => {
-      const body = JSON.parse(init.body) as Record<string, unknown>;
-      posts.push({ url, body });
-      const answer = url.includes("presign")
-        ? presignAnswer(body)
-        : { ok: true, status: "approved" };
-      return new Response(JSON.stringify(answer), { status: 200 });
-    }),
-  );
+  vi.stubGlobal("fetch", answering(presignAnswer));
 });
+
+/** The network, answering the burst's wire (`burst.ts`): each file's own answer, in order. */
+function answering(
+  presigned: (file: Record<string, unknown>) => Record<string, unknown>,
+) {
+  return vi.fn(async (url: string, init: { body: string }) => {
+    const body = JSON.parse(init.body) as {
+      files: Record<string, unknown>[];
+    };
+    posts.push({ url, body });
+    const answer = {
+      ok: true,
+      files: body.files.map((file) =>
+        url.includes("presign")
+          ? presigned(file)
+          : { ok: true, status: "approved" },
+      ),
+    };
+    return new Response(JSON.stringify(answer), { status: 200 });
+  });
+}
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -144,8 +155,11 @@ async function upload(file: File) {
   });
 }
 
-const presignBody = () => posts.find((p) => p.url.includes("presign"))!.body;
-const completeBody = () => posts.find((p) => p.url.includes("complete"))!.body;
+/** The one file's own entry in each request (a burst of one). */
+const presignBody = () =>
+  posts.find((p) => p.url.includes("presign"))!.body.files[0]!;
+const completeBody = () =>
+  posts.find((p) => p.url.includes("complete"))!.body.files[0]!;
 
 describe("uploadFile: a photograph's phone-size copy", () => {
   it("is made from the photograph it uploads, declared at presign, PUT where the presign said, and named at complete", async () => {
@@ -194,14 +208,7 @@ describe("uploadFile: a photograph's phone-size copy", () => {
     });
     vi.stubGlobal(
       "fetch",
-      vi.fn(async (url: string, init: { body: string }) => {
-        const body = JSON.parse(init.body) as Record<string, unknown>;
-        posts.push({ url, body });
-        const answer = url.includes("presign")
-          ? { ...presignAnswer(body), phone: undefined }
-          : { ok: true, status: "approved" };
-        return new Response(JSON.stringify(answer), { status: 200 });
-      }),
+      answering((file) => ({ ...presignAnswer(file), phone: undefined })),
     );
     await upload(photo());
     expect(puts.map((p) => p.url)).toEqual(["https://r2.example/original"]);

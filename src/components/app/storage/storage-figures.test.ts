@@ -7,15 +7,18 @@
 import { describe, expect, it } from "vitest";
 
 import { formatBytesUp } from "@/lib/billing/storage-guard";
-import { GIGABYTE } from "@/lib/constants/tiers";
+import { GIGABYTE, MEGABYTE, planById } from "@/lib/constants/tiers";
 
 import {
   formatStored,
   makeRoomFrom,
   readStorage,
+  readUploads,
   roomRefusalWords,
   storageHeadline,
   storageNote,
+  uploadsLine,
+  uploadsPausedWords,
   type StorageFigures,
 } from "./storage-figures";
 
@@ -221,5 +224,100 @@ describe("the owner's words when an upload won't fit", () => {
     });
     expect(none).toMatch(/for good/);
     expect(none).not.toMatch(/Deleted holds/);
+  });
+});
+
+describe("the uploads line", () => {
+  // The other counter (billing-caps.md: four counters, never reconciled): what her window has taken in uploads against
+  // her plan's own published number. Words are read for their facts (a figure, the day), never their phrasing.
+  const free = (monthUploadedBytes: number | null | undefined) =>
+    readUploads({
+      tier: "free",
+      capBytes: planById("free").storageBytes,
+      monthUploadedBytes,
+    });
+
+  it("reads Free's month against its own number, from tiers.ts", () => {
+    const r = free(240 * MEGABYTE);
+    expect(r).toEqual({
+      usedBytes: 240 * MEGABYTE,
+      allowanceBytes: planById("free").uploadsBytes,
+      paused: false,
+    });
+  });
+
+  it("reads Pro against its size's number: the smallest Ladder A size that holds her cap", () => {
+    for (const id of ["pro_50", "pro_200", "pro_1tb"] as const) {
+      const plan = planById(id);
+      expect(
+        readUploads({
+          tier: "pro",
+          capBytes: plan.storageBytes,
+          monthUploadedBytes: GIGABYTE,
+        })?.allowanceBytes,
+      ).toBe(plan.uploadsBytes);
+    }
+  });
+
+  it("★ is paused AT the line, as the upload advisories read it, and not a byte before", () => {
+    const line = planById("free").uploadsBytes;
+    expect(free(line - 1)?.paused).toBe(false);
+    expect(free(line)?.paused).toBe(true);
+    expect(free(4 * line)?.paused).toBe(true);
+  });
+
+  it("★ says nothing rather than a guess: no figure, a pass's year, a Pro with no cap on record", () => {
+    // A failed read is null (never a zero that would say nothing is wrong); an older server's answer is absent.
+    expect(free(null)).toBeNull();
+    expect(free(undefined)).toBeNull();
+    expect(free(Number.NaN)).toBeNull();
+    expect(free(-1)).toBeNull();
+    // A pass counts its own year on the pass; the month's ledger is not that figure.
+    expect(
+      readUploads({
+        tier: "event_pass",
+        capBytes: planById("event_pass").storageBytes,
+        monthUploadedBytes: GIGABYTE,
+      }),
+    ).toBeNull();
+    // Unmetered: a paid profile the webhook has not written a cap for fails open.
+    expect(
+      readUploads({
+        tier: "pro",
+        capBytes: null,
+        monthUploadedBytes: GIGABYTE,
+      }),
+    ).toBeNull();
+    // Nothing uploaded is a figure, and it reads.
+    expect(free(0)).toMatchObject({ usedBytes: 0, paused: false });
+  });
+
+  it("prints the figure against the allowance through the plain rounding, never as bytes", () => {
+    expect(uploadsLine(free(Math.round(1.2 * GIGABYTE))!)).toBe(
+      "Uploads this month: 1.2 GB of 300 MB",
+    );
+    expect(uploadsLine(free(240 * MEGABYTE)!)).toBe(
+      "Uploads this month: 240 MB of 300 MB",
+    );
+    // Nothing uploaded reads in the allowance's own unit.
+    expect(uploadsLine(free(0)!)).toBe("Uploads this month: 0 MB of 300 MB");
+    const pro = readUploads({
+      tier: "pro",
+      capBytes: planById("pro_200").storageBytes,
+      monthUploadedBytes: 0,
+    })!;
+    expect(uploadsLine(pro)).toBe("Uploads this month: 0 GB of 200 GB");
+  });
+
+  it("at the line, names what pauses, the day it resumes and that a delete does not lower the count", () => {
+    const words = uploadsPausedWords(new Date("2026-10-15T12:00:00Z"));
+    expect(words).toMatch(/new uploads/i);
+    expect(words).toMatch(/guests/);
+    expect(words).toContain("November 1");
+    expect(words).toMatch(/deleting/i);
+    // The month turns at UTC midnight and a year turns with it.
+    expect(uploadsPausedWords(new Date("2026-12-31T23:30:00Z"))).toContain(
+      "January 1",
+    );
   });
 });

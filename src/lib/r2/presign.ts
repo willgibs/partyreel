@@ -8,7 +8,7 @@
  * complete). Bytes NEVER pass through a Vercel function.
  *
  * ⚠️ GOTCHAS (kept honored below):
- *   • Single PUT: sign `content-type` (signableHeaders) and the browser MUST send
+ *   • Single PUT: sign `content-type` (a bound header) and the browser MUST send
  *     the exact same Content-Type, or R2 returns SignatureDoesNotMatch.
  *   • Multipart completion needs each part's ETag → bucket CORS must expose ETag
  *     (ExposeHeaders: ["ETag"]). Parts must be sorted ascending on complete.
@@ -17,29 +17,24 @@
  *   • Read URLs (gallery) presign STABLE (signing date pinned to 30-min buckets
  *     — see presign-bucket.ts + presignDownload's `stable` flag); a per-media
  *     proxy for very large galleries stays deferred (ROADMAP).
+ *   • ★ The three presigns below are signed by hand (sigv4.ts, compute-presign
+ *     2026-10-04), byte-identical to the SDK's getSignedUrl for the same inputs
+ *     (presign.test.ts holds the corpus) at a fraction of its CPU; the SDK still
+ *     SENDS the multipart, HEAD and COPY calls, and loads on the first of them
+ *     (client.ts), never when this module is imported: a page that only presigns
+ *     never pays for it.
  */
 import "server-only";
 
-import {
-  AbortMultipartUploadCommand,
-  CompleteMultipartUploadCommand,
-  CopyObjectCommand,
-  CreateMultipartUploadCommand,
-  GetObjectCommand,
-  HeadObjectCommand,
-  ListPartsCommand,
-  type ListPartsCommandOutput,
-  PutObjectCommand,
-  UploadPartCommand,
-} from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import type { ListPartsCommandOutput } from "@aws-sdk/client-s3";
 
 import { assertR2Env } from "@/lib/env";
-import { getR2Client } from "@/lib/r2/client";
+import { getR2 } from "@/lib/r2/client";
 import {
   STABLE_DOWNLOAD_TTL_SECONDS,
   presignBucketStart,
 } from "@/lib/r2/presign-bucket";
+import { type R2Presigner, createR2Presigner } from "@/lib/r2/sigv4";
 
 // 2 h. A multipart upload presigns ALL its part URLs up front (in the presign route's
 // Promise.all), so the whole transfer must finish before they expire. At the 10 GB ceiling
@@ -48,6 +43,30 @@ import {
 // still gated by the authoritative complete-upload RPC, so a longer window is low-risk.
 const DEFAULT_UPLOAD_TTL_SECONDS = 2 * 60 * 60;
 const DEFAULT_DOWNLOAD_TTL_SECONDS = 60 * 60; // 1 h — gallery read URLs
+
+// Memoized across requests in a warm lambda (as client.ts memoizes the S3 client), so its derived signing key is
+// made once a day; built lazily so the app still boots without R2 creds.
+let presigner: R2Presigner | null = null;
+
+function getPresigner(): R2Presigner {
+  if (presigner) return presigner;
+  const { R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET } =
+    assertR2Env();
+  presigner = createR2Presigner({
+    accountId: R2_ACCOUNT_ID,
+    accessKeyId: R2_ACCESS_KEY_ID,
+    secretAccessKey: R2_SECRET_ACCESS_KEY,
+    bucket: R2_BUCKET,
+  });
+  return presigner;
+}
+
+/** A bound Content-Length is a whole, non-negative byte count, written as plain digits. */
+function assertByteCount(contentLength: number, where: string): void {
+  if (!Number.isSafeInteger(contentLength) || contentLength < 0) {
+    throw new Error(`${where}: ${contentLength} is not a byte count.`);
+  }
+}
 
 export type PresignedUpload = {
   url: string;
@@ -75,21 +94,23 @@ export async function presignUpload(params: {
     contentLength,
     expiresInSeconds = DEFAULT_UPLOAD_TTL_SECONDS,
   } = params;
-  const { R2_BUCKET } = assertR2Env();
+  // The SDK silently left an empty type unbound (and signed any length it was handed); a PUT that binds no type, or
+  // a length that is no byte count, is refused here instead. The pipeline never sends either (an allow-listed MIME,
+  // a schema-capped size), so this only fails closed.
+  if (!contentType) throw new Error("presignUpload: an empty content type.");
+  assertByteCount(contentLength, "presignUpload");
 
-  const url = await getSignedUrl(
-    getR2Client(),
-    new PutObjectCommand({
-      Bucket: R2_BUCKET,
-      Key: key,
-      ContentType: contentType,
-      ContentLength: contentLength,
-    }),
-    {
-      expiresIn: expiresInSeconds,
-      signableHeaders: new Set(["content-type", "content-length"]),
+  const url = getPresigner()({
+    method: "PUT",
+    key,
+    query: { "x-id": "PutObject" },
+    headers: {
+      "content-length": String(contentLength),
+      "content-type": contentType,
     },
-  );
+    expiresInSeconds,
+    signingDate: new Date(),
+  });
 
   return { url, headers: { "Content-Type": contentType } };
 }
@@ -101,9 +122,10 @@ export async function createMultipartUpload(params: {
 }): Promise<{ uploadId: string }> {
   const { key, contentType } = params;
   const { R2_BUCKET } = assertR2Env();
+  const { client, sdk } = await getR2();
 
-  const out = await getR2Client().send(
-    new CreateMultipartUploadCommand({
+  const out = await client.send(
+    new sdk.CreateMultipartUploadCommand({
       Bucket: R2_BUCKET,
       Key: key,
       ContentType: contentType,
@@ -134,22 +156,25 @@ export async function presignUploadPart(params: {
     contentLength,
     expiresInSeconds = DEFAULT_UPLOAD_TTL_SECONDS,
   } = params;
-  const { R2_BUCKET } = assertR2Env();
+  // S3 numbers parts 1 to 10,000; the SDK signed whatever it was handed, this refuses anything else.
+  if (!Number.isInteger(partNumber) || partNumber < 1 || partNumber > 10_000) {
+    throw new Error(`presignUploadPart: no part ${partNumber}.`);
+  }
+  if (!uploadId) throw new Error("presignUploadPart: an empty upload id.");
+  assertByteCount(contentLength, "presignUploadPart");
 
-  const url = await getSignedUrl(
-    getR2Client(),
-    new UploadPartCommand({
-      Bucket: R2_BUCKET,
-      Key: key,
-      UploadId: uploadId,
-      PartNumber: partNumber,
-      ContentLength: contentLength,
-    }),
-    {
-      expiresIn: expiresInSeconds,
-      signableHeaders: new Set(["content-length"]),
+  const url = getPresigner()({
+    method: "PUT",
+    key,
+    query: {
+      "x-id": "UploadPart",
+      partNumber: String(partNumber),
+      uploadId,
     },
-  );
+    headers: { "content-length": String(contentLength) },
+    expiresInSeconds,
+    signingDate: new Date(),
+  });
 
   return { url };
 }
@@ -162,12 +187,13 @@ export async function completeMultipartUpload(params: {
 }): Promise<void> {
   const { key, uploadId, parts } = params;
   const { R2_BUCKET } = assertR2Env();
+  const { client, sdk } = await getR2();
 
   // S3/R2 require parts in ascending PartNumber order; ETags pass through verbatim.
   const ordered = [...parts].sort((a, b) => a.partNumber - b.partNumber);
 
-  await getR2Client().send(
-    new CompleteMultipartUploadCommand({
+  await client.send(
+    new sdk.CompleteMultipartUploadCommand({
       Bucket: R2_BUCKET,
       Key: key,
       UploadId: uploadId,
@@ -191,13 +217,13 @@ export async function sumMultipartParts(params: {
 }): Promise<number> {
   const { key, uploadId } = params;
   const { R2_BUCKET } = assertR2Env();
-  const client = getR2Client();
+  const { client, sdk } = await getR2();
   let total = 0;
   let partNumberMarker: string | undefined = undefined;
   // Bounded: at the 10 GB ceiling that's 640 parts (1 page); the cap is a runaway backstop.
   for (let page = 0; page < 50; page++) {
     const out: ListPartsCommandOutput = await client.send(
-      new ListPartsCommand({
+      new sdk.ListPartsCommand({
         Bucket: R2_BUCKET,
         Key: key,
         UploadId: uploadId,
@@ -218,8 +244,9 @@ export async function abortMultipartUpload(params: {
 }): Promise<void> {
   const { key, uploadId } = params;
   const { R2_BUCKET } = assertR2Env();
-  await getR2Client().send(
-    new AbortMultipartUploadCommand({
+  const { client, sdk } = await getR2();
+  await client.send(
+    new sdk.AbortMultipartUploadCommand({
       Bucket: R2_BUCKET,
       Key: key,
       UploadId: uploadId,
@@ -239,9 +266,10 @@ export async function abortMultipartUpload(params: {
 export async function headObjectSize(params: { key: string }): Promise<number> {
   const { key } = params;
   const { R2_BUCKET } = assertR2Env();
+  const { client, sdk } = await getR2();
 
-  const out = await getR2Client().send(
-    new HeadObjectCommand({ Bucket: R2_BUCKET, Key: key }),
+  const out = await client.send(
+    new sdk.HeadObjectCommand({ Bucket: R2_BUCKET, Key: key }),
   );
   const size = out.ContentLength;
   if (typeof size !== "number" || size <= 0) {
@@ -269,8 +297,9 @@ export async function copyObject(params: {
     );
   }
   const { R2_BUCKET } = assertR2Env();
-  await getR2Client().send(
-    new CopyObjectCommand({
+  const { client, sdk } = await getR2();
+  await client.send(
+    new sdk.CopyObjectCommand({
       Bucket: R2_BUCKET,
       Key: destinationKey,
       CopySource: `${R2_BUCKET}/${sourceKey}`,
@@ -290,9 +319,12 @@ export async function headObject(params: {
 }): Promise<{ size: number; lastModified: Date | null } | null> {
   const { key } = params;
   const { R2_BUCKET } = assertR2Env();
+  // Outside the try: only R2's answer reads as "absent". A client that cannot be made (no credentials, an SDK that
+  // would not load) throws, like every other send, rather than telling the render check its object is not there.
+  const { client, sdk } = await getR2();
   try {
-    const out = await getR2Client().send(
-      new HeadObjectCommand({ Bucket: R2_BUCKET, Key: key }),
+    const out = await client.send(
+      new sdk.HeadObjectCommand({ Bucket: R2_BUCKET, Key: key }),
     );
     return {
       size: out.ContentLength ?? 0,
@@ -339,22 +371,17 @@ export async function presignDownload(params: {
     downloadFilename,
     stable = false,
   } = params;
-  const { R2_BUCKET } = assertR2Env();
 
-  return getSignedUrl(
-    getR2Client(),
-    new GetObjectCommand({
-      Bucket: R2_BUCKET,
-      Key: key,
+  return getPresigner()({
+    method: "GET",
+    key,
+    query: {
+      "x-id": "GetObject",
       ...(downloadFilename && {
-        ResponseContentDisposition: `attachment; filename="${downloadFilename}"`,
+        "response-content-disposition": `attachment; filename="${downloadFilename}"`,
       }),
-    }),
-    stable
-      ? {
-          expiresIn: STABLE_DOWNLOAD_TTL_SECONDS,
-          signingDate: new Date(presignBucketStart(Date.now())),
-        }
-      : { expiresIn: expiresInSeconds },
-  );
+    },
+    expiresInSeconds: stable ? STABLE_DOWNLOAD_TTL_SECONDS : expiresInSeconds,
+    signingDate: stable ? new Date(presignBucketStart(Date.now())) : new Date(),
+  });
 }

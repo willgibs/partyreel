@@ -8,8 +8,8 @@
  * - The controls: one row of icon buttons, Add yours an icon, "Make your own" the one primary
  *   beneath, only with a creator AND the host's plan in hand (on a browser that cannot encode it
  *   stays, greyed, and a tap bubbles up why); Include videos only where the album holds a video.
- * - The creator: opened from Make your own, or on arrival when the tile's line asked for it, and
- *   handed everything it needs (the event's name, who is making it, the plan's facts).
+ * - The creator: opened from Make your own, and handed everything it needs (the event's name, who is
+ *   making it, the plan's facts).
  * - The keyboard: Space pauses, Escape closes, the arrows step, Enter brings the controls up.
  * - The page under it cannot scroll while it is open.
  * - The hold (3 s default) and the style are the viewer's own, kept on this device and handed to the
@@ -23,6 +23,9 @@
  *
  * The canvas engine is stubbed (player-live.test.tsx pins it); the code's renderer too.
  */
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { useEffect, useImperativeHandle } from "react";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -503,35 +506,6 @@ describe("the chrome (the thin bar)", () => {
       vi.advanceTimersByTime(4300);
     });
     expect(screen.queryByRole("status")).toBeNull();
-  });
-
-  it("opens the creator on arrival when the tile's line asked for it, once", async () => {
-    const Creator = () => <div data-testid="creator" />;
-    const spent = vi.fn();
-    renderView({
-      creator: Creator,
-      creatorAsked: true,
-      onCreatorAskSpent: spent,
-    });
-    await act(async () => {});
-    expect(screen.getByTestId("creator")).toBeInTheDocument();
-    expect(spent).toHaveBeenCalledTimes(1);
-  });
-
-  it("asked for on a browser that cannot encode, it opens on the reel with the door explaining", async () => {
-    h.support = "no";
-    const Creator = () => <div data-testid="creator" />;
-    renderView({
-      creator: Creator,
-      creatorAsked: true,
-      onCreatorAskSpent: vi.fn(),
-    });
-    await act(async () => {});
-    expect(screen.queryByTestId("creator")).toBeNull();
-    expect(dock()).toHaveAttribute("data-state", "up");
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "This browser can't make clips.",
-    );
   });
 });
 
@@ -1166,6 +1140,39 @@ describe("never silent", () => {
 });
 
 /**
+ * ★ THE VIEW CARRIES ITS OWN STYLESHEET (crumbs-66). The dock's classes live in `live-reel.css`, which only the guests'
+ * controller imported; the hub mounts the view without that controller, and its built route held no such sheet, so the
+ * host's dock drew unclipped (the bar's glyphs over the dock's controls, the Close key never leaving).
+ */
+describe("the view's own stylesheet", () => {
+  const read = (file: string) =>
+    readFileSync(
+      join(process.cwd(), "src/components/guest/reel", file),
+      "utf8",
+    );
+
+  it("★ imports the sheet its dock's classes are drawn by, so any page that mounts it has them", () => {
+    expect(read("live-reel-view.tsx")).toMatch(
+      /^import "\.\/live-reel\.css";$/m,
+    );
+  });
+
+  it("draws only classes that sheet defines (the dock's pane, its two contents and the corner that follows it)", () => {
+    const view = read("live-reel-view.tsx");
+    const sheet = read("live-reel.css");
+    for (const name of [
+      "lr-pane",
+      "lr-bar-content",
+      "lr-dock-content",
+      "lr-follow",
+    ]) {
+      expect(view, name).toContain(name);
+      expect(sheet, name).toContain(`.${name}`);
+    }
+  });
+});
+
+/**
  * ★ PLAYED FROM THE HOST'S OWN PAGE (hub-strip-wiring, Will's Q5: "the live reel is the host's to play from her own event
  * page as soon as she opens it, even while the album develops"). The hub has no guest album's live source (its album is
  * the host's own scope), so it hands the view the four things the view reads off one, as `standIn`: the links by id, the
@@ -1221,6 +1228,31 @@ describe("played from the host's own page", () => {
     renderView({ playable, standIn: hostPage });
     act(() => (h.player?.onExpired as (id: string) => void)("m2"));
     expect(hostPage.reportPossibleExpiry).toHaveBeenCalledWith(["m2"]);
+  });
+
+  // ★ THE HUB'S REEL BEFORE THE DEVELOP SAID NOTHING OF IT (red-team 53b's deferred line, crumbs-66): she plays her own scope
+  // while her guests have no reel yet, and the dock, which is where she reads what this view is, carried no word of
+  // that. The page that mounts the view says what it knows (`dockNote`); the guests' own page knows nothing to say.
+  it("★ carries the page's note in its dock, and nothing where the page has none", () => {
+    h.live = null;
+    const { unmount } = renderView({
+      playable,
+      standIn: standIn(),
+      isOwner: true,
+      screenLink: false,
+      dockNote: "Guests get it at the develop.",
+    });
+    expect(dock()).toHaveTextContent("Guests get it at the develop.");
+    // In the dock's own controls, which are inert at rest: never over the picture, never a second line drawn on it.
+    expect(
+      document
+        .querySelector(".lr-dock-content")
+        ?.contains(screen.getByText("Guests get it at the develop.")),
+    ).toBe(true);
+    unmount();
+    renderView({ playable, standIn: standIn(), isOwner: true });
+    expect(dock()).not.toHaveTextContent("Guests get it");
+    expect(document.querySelector("[data-reel-note]")).toBeNull();
   });
 
   it("offers no creator without the host's plan in hand: the stand-in names none", () => {

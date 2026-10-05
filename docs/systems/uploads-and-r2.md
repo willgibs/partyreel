@@ -5,7 +5,7 @@ Open this before you:
 - add an R2 key, a variant or a client, or anything that fetches a presigned URL;
 - touch the EXIF strip;
 - change how media renders (tiles, previews, video posters, the viewer) or how photos are taken home (Save, a
-  guest's Select then Save, a host's two sets, the zips).
+  guest's Select then Save, a host's two sets, the zips, Send to Google Drive).
 
 Elsewhere: the cap and the uploads allowance ([billing-caps.md](billing-caps.md)), the purge and reclaim ([lifecycle-recovery.md](lifecycle-recovery.md)), the backups
 ([durability-backups.md](durability-backups.md)), the grants and the server-mediated RPCs ([database-security.md](database-security.md)), forensic capture
@@ -17,8 +17,31 @@ The browser uploads straight to R2 (one PUT under 100 MB, multipart above), so n
 function; a presign route mints the URLs and a complete route records the row through `create_media*`, which writes the
 ledger and enforces the caps (a single PUT lands at its key's `staging/` twin, which the complete copies into
 `events/`: [billing-caps.md](billing-caps.md)). Guests (the session-token capability) and hosts (a signed-in batch)
-share one engine, `upload/server-pipeline.ts`, behind four thin strategy routes, and one client, `uploadFile()` (the
-caller passes its endpoints and an identity), whose contract is the routes' response shapes.
+share one engine, `upload/server-pipeline.ts`, behind four thin strategy routes, and one client, `uploadBurst()` (the
+caller passes its endpoints and an identity; `uploadFile()` is a burst of one), whose contract is the routes' response
+shapes.
+- ★ **The files a phone sends together are a BURST: one presign, and as few completes as their landing allows**
+  (compute-uploads, the compute model's lever 4; the wire and its limits are `upload/burst.ts`'s: `{ ...identity,
+  files: [...] }`, at most 20 files a request, one answer a file in order). The engine runs each file through the very
+  spine its own request ran, in order, for every strategy (the host's routes took bursts unchanged): every check and
+  word a file met alone it meets, and a file refused never stops its siblings. A burst shares only what cannot differ
+  between its files (`Burst.memo`: the switch, the ticket's context, its owner, the lock, read once) and tells each file
+  what its earlier siblings took: the meter judges it with their declared bytes added (held to one upload's ceiling)
+  and the roll counts their shots, as one-at-a-time presigns saw them already landed; each file is metered once. A
+  presign refusal of WHO is sending (`scope: "burst"`) refuses the whole request in the one-file words, and the client
+  gives it to every file not yet asked for; a complete names an upload once a request. The guest's clip budget is the
+  strategy's `budget` hook, met one clip after another. The one-file body still answers as it did, for a tab loaded
+  before bursts (until the next milestone); a rollback past bursts refuses a newer tab's bodies until it reloads.
+- ★ **In the browser a byte never waits for batching** (`uploadBurst`): preparing (the strip, the preview, the phone
+  copy) runs ahead of the network, the network's next file always and the rest within 64 MB; presigning asks for every
+  prepared file at once, the first file alone, then the rest once the file in the air hands off its last byte (the
+  browser's progress runs about a second ahead of the line, so only that moment says a file is ending; one handed off
+  quicker than a presign's round trip waits for need, so a small file never splits the batch), or at once when
+  preparing is held by the budget or done, the bytes go one file at a time, and the landed files are recorded together
+  when the last has gone up, 10 s after the first landed (`BURST_RECORD_WAIT_MS`), or at once when the page is hidden
+  (that complete `keepalive`). Meanwhile a landed file stands full: the guest's queue keeps it `queued` at 100 (only
+  the file in the air is `uploading`, which the album's stack follows) and the host's panel `uploading` at 100.
+  Callers take a burst with `takeBurst` (20 files, 1 GiB declared: presigns live 2 h).
 - **The guest/host asymmetries are deliberate, so the shared engine keeps them.** The host's `getUser()` gates in the
   route before the engine (401 before the body is parsed); a guest's token is validated inside the RPCs, and a token
   whose row carries an account uploads only for that signed-in account, and a signed-in account only through a row of
@@ -27,8 +50,9 @@ caller passes its endpoints and an identity), whose contract is the routes' resp
   and a host's `not_owner` is a 404, so existence never leaks; the guest failure sheet prints each refusal verbatim,
   which makes its wording user-facing copy. The one request limiter on the four routes is a guest's clip into the
   album (a `reelEligible: false` completion), which spends `reel_clip_add`, a daily budget per guest session
-  ([reel.md](reel.md)); otherwise the capability, the caps and the meter ([billing-caps.md](billing-caps.md)), the
-  per-part Content-Length binding and the multipart abort are the abuse control.
+  ([reel.md](reel.md)), asked before a byte of the clip lands; otherwise the capability, the caps and the meter
+  ([billing-caps.md](billing-caps.md)), the per-part Content-Length binding and the multipart abort are the abuse
+  control.
 - **`create_media*` is the only write into `media`.** A host's RLS insert would bypass the ledger,
   `storage_used_bytes` and the cap: unmetered storage. The RPC re-checks both keys' event prefix (`events/<event_id>/%`,
   else `bad_key`), so a valid session can never record a row in another event's namespace, nor plant a victim's preview
@@ -46,19 +70,44 @@ caller passes its endpoints and an identity), whose contract is the routes' resp
   fails takes nothing, left to the orphan sweep). A phone replays a complete whose answer it lost, and anyone who knows
   the key a tile's link shows can send one on any ticket: re-landed, it would meet each gate as it stands now (the roll
   its own shot filled, the album closed, a cap its own bytes reached) and the refusal would withdraw the files the row
-  names. A recorded clip's replay neither meets nor spends `reel_clip_add`.
+  names. A recorded clip's replay neither meets nor spends `reel_clip_add`. A multipart its first complete assembled
+  and never recorded lands on the replay as assembled (only that complete can have put an object at its server-built
+  key, after the parts' sum); with nothing at the key the failure stays `complete_failed`, which the phone keeps.
 - ★ **A cancel and a dropped connection are told apart, and a dropped one is never hidden** (E6): the failure sheet and
-  the host's rows print `uploadFile`'s message as it is, so a transport's words are the uploader's (`UPLOAD_WORDS`). A
-  request that never reached the network (presign, complete or the byte PUT), and a PUT whose bytes stop moving for
-  `UPLOAD_STALL_MS` (45 s, restarting on every byte and when the page comes back to the screen; 90 s for R2's answer
-  after the last byte), all say "Your connection dropped. Check your signal, then try again." with `cause: "dropped"`;
-  an error answer says it "didn't go through" (the status goes to the console, never the guest); an abort `signal`
-  says cancelled (`cause: "cancelled"`; no guest control passes one yet). `complete` is never aborted by a cancel and
-  has no client timeout: a retry re-runs the whole upload, so a timed-out complete that had recorded its row would
-  duplicate it. ★ It is ONE SENTENCE everywhere: the downloads say it as a title and its detail (`WALK_COPY`), and
-  the album's camera says this very string where it used to count ("2 shots didn’t send.") when a shot failed that
-  way (the queue keeps the uploader's message as it came, so the camera reads it by `UPLOAD_WORDS.dropped`);
-  `uploader.transport.test.ts` holds the three to one wording.
+  the host's rows print each message as it is, so a transport's words are the uploader's (`UPLOAD_WORDS`). A
+  request that never reached the network (presign, complete or the byte PUT), a presign or complete past its ceiling,
+  and a PUT whose bytes stop moving for `UPLOAD_STALL_MS` (45 s, restarting on every byte and when the page comes back
+  to the screen; 90 s for R2's answer after the last byte), all say "Your connection dropped. Check your signal, then
+  try again." with `cause: "dropped"`; an error answer says it "didn't go through" (the status goes to the console,
+  never the guest); an abort `signal` says cancelled (`cause: "cancelled"`). A cancel is one file's or the burst's:
+  `BurstFile.signal` stops that file alone (the guest's tile and the host's row each stop the one file she means),
+  settling it `cancelled` at once while its siblings go on and are recorded together, wherever it stands short of its
+  complete (a PUT in the air is aborted, a presign in the air lets its entry go, a landed file waiting for its
+  siblings is simply not recorded), and a burst's own `signal` ends everything not recorded. ★ Presign and complete
+  each end past a ceiling (30 s and 60 s, `PRESIGN_CEILING_MS`, `COMPLETE_CEILING_MS`, their clocks restarting when
+  the page is looked at again) as a dropped connection, never a spinner. A presign out past 8 s
+  (`PRESIGN_REASK_MS`) with a prepared file waiting behind it is taken back and its files asked again as one request
+  with the waiting ones, once a file (the second ask has the ceiling to itself, so a line that is truly down ends the
+  burst a presign later; one nobody waits behind keeps the whole ceiling; a phantom presign stores nothing), so a hung
+  first presign never holds its siblings for the ceiling. A complete whose answer never came (none, one
+  the phone cannot read, or the server's own `complete_failed` or `unknown`) is kept by its File (`UNANSWERED`), and
+  that file's next try sends that very complete again (its media id, key and parts), never a presign or a byte: a row
+  the first wrote answers `recorded`, so no row or byte is counted twice; any other answer settles it, and a refused
+  file's next try starts afresh. The guest's queue makes that try itself for a file that failed as a dropped connection
+  (`use-upload-queue.heal.ts`, `hasKeptComplete`: 5, 20 and 60 s on, on the browser's `online` and when the page is
+  looked at again, none while it says it is offline, three asks a File, through the queue's own runner so her Retry
+  never races it), so a row the server wrote is told as landed and the sheet that listed it lets it go; the host
+  panel's rows (`host-upload.tsx`) read the same hook, and a row that said dropped reads "Added to the album".
+  `complete` is never aborted by a cancel: a stop pressed once it is asked, or on a file going again on its kept
+  complete, is ignored (the file lands as it would have). Nothing is counted for a
+  cancelled file (the meter counts at complete); its R2 bytes, if any, are the orphan sweep's, a started multipart the
+  bucket's abort rule's. ★ It is ONE SENTENCE everywhere: the downloads say it as a title and its detail
+  (`WALK_COPY`), and the album's camera says this very string where it used to count ("2 shots didn’t send.") when a
+  shot failed that way; `uploader.transport.test.ts` holds the three to one wording. ★ **The cause, never the words,
+  says which it was:** the queue keeps the outcome's `cause` beside the message (`QueueItem.cause`: `dropped`, absent
+  for a refusal, cleared by a Retry), and what draws a drop apart from a refusal reads it: the camera's line, and the
+  failure sheet's row for a dropped connection (a signal mark before its sentence). A cancelled file is no failure and
+  never stays in the guest queue (`stop`), so the sheet has nothing of it to draw.
 - **The size is the R2 HEAD's** at complete, never the client's claim ([database-security.md](database-security.md));
   `duration_seconds`, `width` and `height` stay client-supplied and non-authoritative, the byte cap being the cost
   boundary.
@@ -103,7 +152,7 @@ caller passes its endpoints and an identity), whose contract is the routes' resp
 ## The EXIF strip
 
 Originals are served byte-for-byte (the viewer, Save, the zip), so a phone's GPS and device EXIF would leak a location.
-`uploadFile()` strips identifying metadata at step 0, BEFORE any size is read, because the presigned PUT binds
+The uploader strips identifying metadata at step 0, BEFORE any size is read, because the presigned PUT binds
 Content-Length to the declared size and every later step must see the stripped bytes; guests and hosts pass the same
 seam. The stripper (`media/strip-metadata.ts`, whose header carries the per-format rules) is pure and lossless, never
 a pixel re-encode, and the browser and the Node backfill (`scripts/backfill-strip-exif.mjs`) share it rather than fork
@@ -126,11 +175,25 @@ it.
   and no-cors alike. What loads first is a choice the viewer makes (below).
 - **Any S3 client pointed at R2 sets `requestChecksumCalculation` and `responseChecksumValidation` to
   `WHEN_REQUIRED`:** the SDK's automatic CRC checksums make R2 write 0-byte objects or answer
-  `SignatureDoesNotMatch`.
+  `SignatureDoesNotMatch`. The one client is `getR2()`'s (`r2/client.ts`).
 - **Raw keys never reach the browser:** every read is presigned server-side (`toGridItems`; the paged album's
   `album-guest-links.ts` and `album-host-links.ts`), and the render routes are dynamic. A guest's own items the album
   cannot show her (held, or sealed for the develop) are presigned for her alone by her tracker's read
   (`/api/guests/mine`, as far as the ticket is hers), never a refused one's.
+- ★ **Presigns are signed by hand, byte-identical to the SDK's** (`r2/sigv4.ts` behind `r2/presign.ts`): SigV4's
+  query presign on Node's `crypto`, about a twelfth of `getSignedUrl`'s CPU (257 links in 2 ms, not 28), its derived
+  key made once a day. `presign.test.ts` holds every URL equal to the SDK's over a corpus of keys, operations, types,
+  lengths, expiries and clocks (the SDK's presigner is a dev dependency for it alone), so a change to what is signed
+  is proved there first. It refuses what the SDK signed silently: an empty key (the SDK signs the bucket's root, a
+  listing), an empty type, a length or part number that is no whole count, a bucket name R2 would not take.
+- ★ **The S3 SDK loads on the first send, never on an import:** `@aws-sdk/client-s3` is about 50 ms of CPU a cold
+  start, and a page that only reads (its links are signed by hand) never sends, so no file in `src/` imports it except
+  as a type. Every send takes the client and the command classes from `const { client, sdk } = await getR2()`
+  (`new sdk.HeadObjectCommand(...)`), so the guest page and every presign-only route load none of it, and the first
+  send of an instance pays it once. `lazy-sdk.test.ts` holds that nothing imports it statically (a new
+  `import { XCommand } from "@aws-sdk/client-s3"` puts it back on every cold start), that the guest page's module
+  graph reaches none of it, and each send's command. A failed load throws from the send like any R2 error, and
+  `headObject` keeps it outside its try so it never reads as an absent object.
 - **Gallery read presigns are stable:** `presignDownload({ stable: true })` pins the signing date to the current
   30-minute bucket (`r2/presign-bucket.ts`), so two presigns of one key in a bucket are byte-identical: the image
   cache works across refetches and the gallery's ETag rolls with the bucket. They live 90 minutes (two buckets and
@@ -195,8 +258,8 @@ it.
   it cannot hold (a large or stalled original, a refused read), is drawn and saved the plain way, and two refused
   reads before any success (an origin R2's CORS does not list, localhost among them) turn holding off for the page.
 - ★ **No guest byte is billed by Vercel** (`media-cost-policy.test.ts`): no remote pattern, domain or loader for the
-  image optimizer, no `next/image` fed a link or beside a presigner, and `GetObjectCommand` only signed, in
-  `r2/presign.ts`.
+  image optimizer, no `next/image` fed a link or beside a presigner, and no `GetObjectCommand` in `src/`: a read is a
+  URL signed in `r2/sigv4.ts`, which holds no client and sends nothing.
 
 ## Taking photos home
 
@@ -256,14 +319,20 @@ The zips go off Vercel, on the streaming export Worker (`partyreel-export`, on `
   download?", "Stop after part 1 of 3?" with what it leaves) and nothing is posted while it stands; a confirmed cancel
   says so, neutral and never an error, with Try again (past part 1 it stops where she stood with Get part N, and is not
   offered again after a reload). A mint that never reached the app says "Your connection dropped." and what to do (an
-  app that answered an error keeps "Couldn't start that download."). The Worker's `stopped` cannot tell her cancel in
+  app that answered an error keeps "Couldn't start that download."). While the browser says it is offline the toast
+  withholds its Try again (a refusal's or a short zip's) and says "Waiting for your connection…" in its detail's place,
+  then shows it again when `online` fires or the tab is looked at again (`exportToasts`, so the walk's and the Save's
+  alike): a press could only fail the same way. The Worker's `stopped` cannot tell her cancel in
   the browser's own list from a dead line, so the page reads its own: a zip streamed while its status polls failed (a
   rejected request, or two stalls) is a drop, one streamed with every poll answered is a cancel, and a walk from an
   older build that recorded neither says "didn't finish". Three polls in a row that fail are said under "Downloading…"
   and clear when one answers; a line still down keeps those words, and the walk keeps listening (its silence past the
   stream's start means the Worker's word cannot reach the app only while her own line is up), so a drop is never
   replaced by "starting". The take-home Save follows the same two rules (`take-home-save.ts`: `cancel()` asks and
-  is the guest's foot control, `stop()` is the page leaving and says nothing).
+  is the guest's foot control, `stop()` is the page leaving and says nothing). ★ **Uploads say it alike**
+  (`lib/upload/stop-upload.ts`, the words and the question): "Stop this upload?" (Keep going first), then "Upload
+  cancelled." with Try again for `DONE_MS.cancelled`, on the same toast port for the guest's tile and in the row for
+  the host's; a stop too late to take says nothing.
 - ★ **Past one zip's ceilings (2,000 items or 20 GB) an album comes home in parts**, oldest first: each mint
   (`part`, `after`) takes the next part from a position cursor, never a page index, so nothing is skipped or taken
   twice while the album moves, and each part is its own tap (a browser holds back a second download a page starts
@@ -292,3 +361,17 @@ The zips go off Vercel, on the streaming export Worker (`partyreel-export`, on `
   Worker's daily heartbeat (the `export` job: the Worker reads the bucket and signs a ping to `HEARTBEAT_URLS`) and the
   downloads' signal (`export_delivery`). The Worker also logs what it saw (`export-check`, `export-stream`,
   `export-report`).
+
+### Send to Google Drive
+
+The Originals card's second way home (and Your events' and What's using space's): the same set as her Originals zip,
+`chosenRows` over what she can read, sent into her own Google Drive. The system is [drive-export.md](drive-export.md);
+what it means for R2:
+- ★ **No presigned URL and no byte through Vercel.** The `partyreel-drive` Worker reads originals through its own
+  read-only binding to the primary bucket, by the keys the app hands it in a signed lease; the app never reads media
+  bytes (`media-cost-policy.test.ts` holds), and a key never reaches a browser.
+- **One GET an original, a second only to check a clip:** each lands verified against R2's own MD5
+  (`checksums.md5`), and an object R2 kept none for (a multipart clip) is hashed by a second, verification-only read.
+  A send reads the phone copy and the preview never.
+- An original gone from R2 mid-send is skipped and named on the send (never retried for ever), and an album item
+  removed after the press is skipped at its lease.

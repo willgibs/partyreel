@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 
 import { removeMyUploadGuestAction } from "@/app/(guest)/e/[token]/actions";
+import { addsWaitFor } from "@/components/guest/event-experience-wait";
 import { useGalleryLive } from "@/components/guest/gallery-live";
 import { PickPreview } from "@/components/guest/upload/pick-preview";
 import { Button } from "@/components/ui/button";
@@ -271,7 +272,10 @@ export function UploadTracker({
   sessionToken: string | null;
   /** Signed in: the account speaks for its own rows (the route asks `getUser()`). */
   isAuthed: boolean;
-  /** What she adds waits (`uploadsWait`'s `waits`): for the host's approval, or for a develop time ahead. */
+  /**
+   * What a guest adds waits (`uploadsWait`'s `waits`): for the host's approval, or for a develop time ahead. The host's
+   * own do not wait for her approval, so for her it is `developsAt` alone that reads (`addsWaitFor`).
+   */
   moderated: boolean;
   /** The album's develop time while it is ahead (`uploadsWait`'s `developsAt`): what she adds is sealed until then. */
   developsAt?: string | null;
@@ -291,10 +295,18 @@ export function UploadTracker({
 }) {
   const live = useGalleryLive();
   const album = live?.serverIds ?? EMPTY;
+  /* ★ WHETHER WHAT SHE ADDS WAITS, AS IT FALLS ON HER (`addsWaitFor`, the page's one answer): a guest's wait is the
+     album's; the host's own ride her pair, approved, so only a develop ahead keeps hers back, and then the tracker
+     stands for her too (crumbs-76), listing this visit's alone. Never the demo's, which lands at once. */
+  const waits = addsWaitFor({
+    uploadsWait: { waits: moderated, developsAt },
+    isOwner,
+    isDemo,
+  }).waits;
 
   /* ── her own rows, read on demand (mount, and each opening) ─────────────────────────────────── */
-  const canAsk =
-    moderated && !isDemo && !isOwner && (Boolean(sessionToken) || isAuthed);
+  // ★ NEVER THE HOST'S: her uploads are no guest's rows (`create_media_as_host`), so there is nothing here to read.
+  const canAsk = waits && !isOwner && (Boolean(sessionToken) || isAuthed);
   const [own, setOwn] = useState<OwnUploadWire[] | null>(null);
   const loaded = own !== null;
   useEffect(() => {
@@ -343,7 +355,7 @@ export function UploadTracker({
   // The album's one rule, in the wait's own words (`model=time`: "Uploads develop all at once at 9 am" or "as Maya lets
   // each one in"), the time said in her own clock once hydrated (the list opens only after it anyway).
   const nowMs = useWaitClock();
-  const clock = waitWords({ waits: moderated, developsAt }, hostName);
+  const clock = waitWords({ waits, developsAt }, hostName);
   const rule = clock ? waitRule(clock, nowMs) : null;
   const rows = useMemo(
     () =>
@@ -359,7 +371,7 @@ export function UploadTracker({
   );
   const waiting = waitingCount(rows);
   const sealed = rows.filter((row) => row.sealed).length;
-  const show = trackerShows({ moderated, isDemo, isOwner, rows });
+  const show = trackerShows({ waits, isDemo, rows });
   useEffect(() => {
     store.set({ show, waiting, sealed });
   }, [store, show, waiting, sealed]);
@@ -372,14 +384,14 @@ export function UploadTracker({
   const pendingUrls = live?.pendingUrls;
   const hers = useMemo(
     () =>
-      moderated && !isDemo && !isOwner
+      waits
         ? herShotsOf({
             rows,
             own,
             localUrl: (queueId) => pendingUrls?.get(queueId),
           })
         : [],
-    [moderated, isDemo, isOwner, rows, own, pendingUrls],
+    [waits, rows, own, pendingUrls],
   );
   useEffect(() => {
     store.hers.set(hers);
@@ -500,7 +512,8 @@ export function UploadTracker({
                     row.mediaId ? (removing.get(row.mediaId) ?? null) : null
                   }
                   onRemove={
-                    removable(row) && row.mediaId
+                    // The host's own are the hub's to take back (her Delete, with its window), never this list's.
+                    !isOwner && removable(row) && row.mediaId
                       ? () => void remove(row.mediaId as string)
                       : undefined
                   }

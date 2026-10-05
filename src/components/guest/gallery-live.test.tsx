@@ -50,8 +50,7 @@ vi.mock("@/lib/observability/sentry", () => ({
   captureError: (...args: unknown[]) => captureError(...args),
 }));
 
-const { albumCountWords, GalleryLiveProvider, useGalleryLive } =
-  await import("./gallery-live");
+const { GalleryLiveProvider, useGalleryLive } = await import("./gallery-live");
 type LiveGalleryHandle = import("./gallery-live").LiveGalleryHandle;
 type Live = NonNullable<ReturnType<typeof useGalleryLive>>;
 
@@ -849,19 +848,6 @@ describe("★ the count names what the album holds", () => {
     expect(seen.live?.count).toBe(2);
     expect(seen.live?.countWords).toBe("2 photos & videos");
   });
-
-  it("the words name exactly the count they stand beside: kinds that do not add up to it say both nouns", () => {
-    expect(
-      albumCountWords({ count: 12, kinds: { photos: 12, videos: 0 } }),
-    ).toBe("12 photos");
-    expect(
-      albumCountWords({ count: 13, kinds: { photos: 12, videos: 0 } }),
-    ).toBe("13 photos & videos");
-    expect(albumCountWords({ count: 1, kinds: null })).toBe("1 photo or video");
-    expect(albumCountWords({ count: 1_249, kinds: null })).toBe(
-      "1,249 photos & videos",
-    );
-  });
 });
 
 /**
@@ -1084,6 +1070,66 @@ describe("★ the album, calmed", () => {
       expect(seen.live?.items.find((m) => m.id === uuid(9))?.url).toBe(
         `https://r2.test/fresh/${uuid(9)}`,
       );
+    });
+
+    /** A burst's files settle in one run (`uploadBurst` records them together): every one of them in one tick. */
+    const landBurst = (
+      handle: RefObject<LiveGalleryHandle | null>,
+      ids: number[],
+    ) =>
+      act(async () => {
+        for (const i of ids) handle.current!.notifyUploaded(own(i));
+      });
+
+    it("★ a burst that lands together asks the album once: one sync, never a delta and then a 304", async () => {
+      const handle = createRef<LiveGalleryHandle>();
+      await windowed(handle);
+      answer(
+        slow(
+          delta({
+            v: 11,
+            upsert: [fresh(9), fresh(10), fresh(11)],
+            total: 5,
+            links: carrying([9, 10, 11]),
+          }),
+        ),
+      );
+      await landBurst(handle, [9, 10, 11]);
+      // Her three tiles are in the grid at once, optimistic, before any answer.
+      expect(seen.live?.items.slice(0, 3).map((m) => m.id)).toEqual([
+        uuid(11),
+        uuid(10),
+        uuid(9),
+      ]);
+      await act(async () => {
+        await sleep(80);
+      });
+      // One ask for the three (a sync asked while one is in the air runs again when it lands), and each tile is drawn
+      // from the one delta's own link: the links route is never asked.
+      expect(syncs()).toHaveLength(1);
+      expect(asked()).toEqual([]);
+      for (const i of [9, 10, 11])
+        expect(seen.live?.items.find((m) => m.id === uuid(i))?.url).toBe(
+          `https://r2.test/carried/${i}`,
+        );
+    });
+
+    it("what her window asked for while a burst was owed goes in one request once the one answer is in", async () => {
+      const handle = createRef<LiveGalleryHandle>();
+      await windowed(handle);
+      // The sync brings her three photographs and no links: every ask held back for the answer goes, together.
+      answer(
+        slow(
+          delta({ v: 11, upsert: [fresh(9), fresh(10), fresh(11)], total: 5 }),
+        ),
+      );
+      await landBurst(handle, [9, 10, 11]);
+      await act(async () => {
+        await sleep(80);
+      });
+      expect(syncs()).toHaveLength(1);
+      expect([...asked()].sort()).toEqual([uuid(9), uuid(10), uuid(11)].sort());
+      expect(media()).toHaveLength(1);
     });
 
     it("a photograph she takes back before the answer lands is owed nothing: no ask is made for it afterwards", async () => {

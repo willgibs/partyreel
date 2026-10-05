@@ -6,9 +6,15 @@
  * ★ AND THE REDUCE PAGED UNDER THE DEADLINE (crumbs-37): it reads a lapsed host's active set largest first a
  * page at a time and stops reading once what is left fits; a deadline that passes between its pages stops it
  * there, the grace kept and no mail sent, and the next run starts AT that account and finishes it.
+ *
+ * ★ AND THE CANDIDATES EXACT (crumbs-75): one SQL read a page (`over_capacity_candidates`, answered here over the
+ * world's own tables as its SQL answers: a grace standing, or a meter past her own line and what she keeps past it
+ * too) hands over exactly the accounts there is something to do for, each with her summary, so no account costs a
+ * call of its own; and the sweep's two one-time notices a send failed on are retried first.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { defaultCapForTier, toBillingTier } from "@/lib/constants/tiers";
 import type { FakeRow } from "@/lib/db/testing/fake-postgrest";
 import type { Deadline } from "@/lib/lifecycle/sweep-budget";
 import {
@@ -23,6 +29,9 @@ import {
 const state = vi.hoisted(() => ({
   world: null as CronWorld | null,
   sent: [] as { kind: string; profileId?: string }[],
+  retried: { notices_resent: 0, notices_failed: 0, notices_dropped: 0 },
+  /** Every candidate read's arguments, in order. */
+  candidateArgs: [] as { p_after: unknown; p_limit: unknown }[],
 }));
 
 vi.mock("server-only", () => ({}));
@@ -43,20 +52,84 @@ vi.mock("@/lib/email/send", () => ({
     state.sent.push({ kind: input.kind, profileId: input.profileId });
     return true;
   }),
+  retryParkedNotices: vi.fn(async () => state.retried),
 }));
 
-const { sweepOverCapacity } =
+const { retryParkedNotices, sendOnce } = await import("@/lib/email/send");
+const { CANDIDATE_PAGE, graceNoticeStillTrue, sweepOverCapacity } =
   await import("@/lib/lifecycle/sweeps/over-capacity");
+type OverCapCandidate =
+  import("@/lib/lifecycle/sweeps/over-capacity").OverCapCandidate;
 
 const NOW = new Date("2026-09-23T04:00:00.000Z");
 const MB = 1024 ** 2;
 const GB = 1024 ** 3;
 const CAP = 10_000; // an explicit cap, so a few thousand bytes is "over"
+/** A grace far from its deadline (and from its reminder): an account in it is examined and left be. */
+const FAR_GRACE = "2026-12-30T00:00:00.000000+00:00";
 
 function passesAfter(n: number): Deadline {
   let asked = 0;
   return { at: 0, passed: () => asked++ >= n };
 }
+
+/**
+ * `over_capacity_candidates` (20261005060000) over the world's own tables, as its SQL answers: a grace standing, or a
+ * meter past her own write line (her cap, else her tier's default, plus a tenth) AND what she keeps past it too, each
+ * with the summary she was judged on; keyset on id, `p_limit` clamped to 1,000. The SQL itself is proved live by the
+ * migration's rolled-back check; this lets the sweep's paging and every branch run whole on the fake.
+ */
+function withCandidates(world: CronWorld): CronWorld {
+  const summary = world.fake.functions.host_storage_summary;
+  state.candidateArgs = [];
+  world.fake.functions.over_capacity_candidates = (args) => {
+    state.candidateArgs.push({ p_after: args.p_after, p_limit: args.p_limit });
+    const after = (args.p_after as string | null) ?? null;
+    const limit =
+      args.p_limit == null ? null : Math.min(Number(args.p_limit), 1_000);
+    const out: FakeRow[] = [];
+    const profiles = [...(world.fake.tables.profiles ?? [])].sort((a, b) =>
+      String(a.id) < String(b.id) ? -1 : 1,
+    );
+    for (const p of profiles) {
+      if (limit !== null && out.length >= limit) break;
+      if (after !== null && String(p.id) <= after) continue;
+      const cap =
+        p.storage_cap_bytes == null
+          ? defaultCapForTier(toBillingTier(String(p.tier)))
+          : Number(p.storage_cap_bytes);
+      const grace = p.storage_grace_until != null;
+      const line = cap === null ? null : cap + Math.floor(cap / 10);
+      if (!grace && (line === null || Number(p.storage_used_bytes) <= line)) {
+        continue;
+      }
+      const [s] = summary({ p_host_id: p.id }) as FakeRow[];
+      const kept =
+        Number(s.active_bytes) +
+        Number(s.standby_bytes) -
+        Number(s.system_bytes);
+      if (!grace && kept <= (line as number)) continue;
+      out.push({
+        id: p.id,
+        email: p.email,
+        tier: p.tier,
+        storage_cap_bytes: p.storage_cap_bytes,
+        storage_grace_until: p.storage_grace_until,
+        active_bytes: s.active_bytes,
+        deleted_bytes: s.standby_bytes,
+        system_bytes: s.system_bytes,
+      });
+    }
+    return out;
+  };
+  return world;
+}
+
+/** The candidate read's requests, in order, as the fake saw them. */
+const candidateRequests = (world: CronWorld) =>
+  world.fake.requests.filter(
+    (r) => r.target === "rpc" && r.name === "over_capacity_candidates",
+  );
 
 function account(id: string, over: Partial<FakeRow> = {}): FakeRow {
   return {
@@ -71,13 +144,22 @@ function account(id: string, over: Partial<FakeRow> = {}): FakeRow {
 }
 
 /**
- * 1,295 candidates with nothing live, plus four that each take one branch: over with no grace, under
- * with a grace to clear, past their grace with 2,500 active items, and inside the reminder window.
- * Twenty accounts under the floor (the smallest plan's cap, Free's 100 MB) are no candidates at all.
+ * 1,295 candidates in a grace far from its end, each keeping past her line (examined, and left be), plus four that
+ * each take one branch: over with no grace, under with a grace to clear, past their grace with 2,500 active items,
+ * and inside the reminder window. Twenty accounts whose meter passes their line while they keep nothing are no
+ * candidates at all: the summary decides, never the meter alone.
  */
 function fixture() {
   const profiles: FakeRow[] = [];
-  for (let i = 0; i < 1_295; i++) profiles.push(account(uuidOf("a", i)));
+  const events: FakeRow[] = [];
+  const media: FakeRow[] = [];
+  for (let i = 0; i < 1_295; i++) {
+    const host = account(uuidOf("a", i), { storage_grace_until: FAR_GRACE });
+    const event = eventRow(uuidOf("ea", i), String(host.id));
+    profiles.push(host);
+    events.push(event);
+    media.push(mediaRow(uuidOf("ma", i), event, { file_size_bytes: 2 * CAP }));
+  }
   for (let i = 0; i < 20; i++) {
     profiles.push(account(uuidOf("s", i), { storage_used_bytes: 50 * MB }));
   }
@@ -93,33 +175,36 @@ function fixture() {
   });
   profiles.push(opens, clears, reduces, reminded);
 
-  const events = [
+  const branchEvents = [
     eventRow(uuidOf("e", 1), String(opens.id)),
     eventRow(uuidOf("e", 3), String(reduces.id)),
     eventRow(uuidOf("e", 4), String(reminded.id)),
   ];
-  const media = [
+  events.push(...branchEvents);
+  media.push(
     ...Array.from({ length: 20 }, (_, i) =>
-      mediaRow(uuidOf("mo", i), events[0], { file_size_bytes: 1_000 }),
+      mediaRow(uuidOf("mo", i), branchEvents[0], { file_size_bytes: 1_000 }),
     ),
     // 2,500 active items: the reduce must see all of them to choose largest-first.
     ...Array.from({ length: 2_500 }, (_, i) =>
-      mediaRow(uuidOf("mr", i), events[1], {
+      mediaRow(uuidOf("mr", i), branchEvents[1], {
         file_size_bytes: 1_000 + (i % 7),
       }),
     ),
     ...Array.from({ length: 20 }, (_, i) =>
-      mediaRow(uuidOf("mm", i), events[2], { file_size_bytes: 1_000 }),
+      mediaRow(uuidOf("mm", i), branchEvents[2], { file_size_bytes: 1_000 }),
     ),
-  ];
-  const world = createCronWorld({ profiles, events, media });
+  );
+  const world = withCandidates(createCronWorld({ profiles, events, media }));
   state.world = world;
   return { world, opens, clears, reduces, reminded };
 }
 
 beforeEach(() => {
+  vi.clearAllMocks();
   state.world = null;
   state.sent = [];
+  state.retried = { notices_resent: 0, notices_failed: 0, notices_dropped: 0 };
 });
 
 describe("sweepOverCapacity", () => {
@@ -148,6 +233,20 @@ describe("sweepOverCapacity", () => {
     expect(state.sent.map((s) => s.kind).sort()).toEqual(
       ["over_cap_grace_start", "over_cap_reduced", "over_cap_reminder"].sort(),
     );
+
+    // ★ crumbs-75: the candidates came in pages of CANDIDATE_PAGE, past 1,000, each page after the last one's id,
+    // and no account cost a summary call of its own.
+    const calls = state.candidateArgs;
+    expect(calls).toHaveLength(Math.ceil(1_299 / CANDIDATE_PAGE));
+    expect(candidateRequests(world)).toHaveLength(calls.length);
+    expect(calls.every((c) => c.p_limit === CANDIDATE_PAGE)).toBe(true);
+    // The first page names no p_after: the generated Args take no null, so it is omitted and the SQL default (null)
+    // starts the walk.
+    expect(calls[0].p_after).toBeUndefined();
+    expect(calls[1].p_after).toBe(uuidOf("a", CANDIDATE_PAGE - 1));
+    expect(
+      world.fake.requests.filter((r) => r.name === "host_storage_summary"),
+    ).toHaveLength(0);
   });
 
   // ★ RESHAPED ON PURPOSE (crumbs-37; scar kept: the choice is over the whole active set, largest first, and
@@ -195,18 +294,24 @@ describe("sweepOverCapacity", () => {
       deadline: passesAfter(300),
     });
     expect(first).toMatchObject({ stopped_early: true, remaining: 999 });
-    expect(first.resume_after).toMatch(/^[0-9a-f-]{36}$/);
+    expect(first.resume_after).toBe(uuidOf("a", 299));
+    // Nothing of the four the first run never reached was touched.
+    expect(state.sent).toEqual([]);
 
-    const summaries = () =>
-      world.fake.requests.filter((r) => r.name === "host_storage_summary")
-        .length;
-    const before = summaries();
+    // ★ RESHAPED ON PURPOSE (crumbs-75; scar kept: the next run resumes after the cursor and examines every
+    // candidate in turn). The expired reason: each account was counted by its own summary call, and the summaries
+    // now arrive with the candidates; the deadline's own asks count the accounts examined instead.
+    let asked = 0;
+    const counting: Deadline = { at: 0, passed: () => (asked++, false) };
     const second = await sweepOverCapacity(world.client, NOW, {
       resumeAfter: first.resume_after,
+      deadline: counting,
     });
+    expect(second).toMatchObject({ candidates: 1_299, reduced: 1 });
     expect(second.stopped_early).toBeUndefined();
-    // Every candidate asked once more (pro accounts with an explicit cap are all capped).
-    expect(summaries() - before).toBe(1_299);
+    expect(second.resume_after).toBeUndefined();
+    // One ask before each of the 1,299 accounts, plus one before each page of the one reduce (three pages).
+    expect(asked).toBe(1_299 + 3);
   });
 
   it("★ reads only the pages it needs: a reduce its first page settles reads one page of a 2,500-item set", async () => {
@@ -225,11 +330,13 @@ describe("sweepOverCapacity", () => {
       ),
     ];
     lapsed.storage_cap_bytes = 3_000_000;
-    const world = createCronWorld({
-      profiles: [lapsed],
-      events: [event],
-      media,
-    });
+    const world = withCandidates(
+      createCronWorld({
+        profiles: [lapsed],
+        events: [event],
+        media,
+      }),
+    );
     state.world = world;
 
     const tally = await sweepOverCapacity(world.client, NOW);
@@ -250,25 +357,43 @@ describe("sweepOverCapacity", () => {
   });
 
   it("★ a deadline between its pages stops the reduce there: grace kept, no mail, the account left, and the next run starts AT it and finishes", async () => {
-    // Two quiet accounts before it and one after, so the cursor has somewhere to point.
-    const quiet = (n: number) =>
-      account(uuidOf("q", n), { storage_cap_bytes: 10 * GB });
+    // Two quiet candidates before it and one after, so the cursor has somewhere to point: each keeps past her line in
+    // a grace far from its end, so the sweep examines her and leaves her be.
+    const quietEvents: FakeRow[] = [];
+    const quietMedia: FakeRow[] = [];
+    const quiet = (prefix: string) => {
+      const host = account(uuidOf(prefix, 1), {
+        storage_grace_until: FAR_GRACE,
+      });
+      const event = eventRow(uuidOf(`e${prefix}`, 1), String(host.id));
+      quietEvents.push(event);
+      quietMedia.push(
+        mediaRow(uuidOf(`m${prefix}`, 1), event, { file_size_bytes: 2 * CAP }),
+      );
+      return host;
+    };
+    const q1 = quiet("q");
+    const q2 = quiet("qq");
     const lapsed = account(uuidOf("r", 1), {
       storage_grace_until: "2026-09-20T00:00:00.000000+00:00",
     });
-    const after = account(uuidOf("t", 1), { storage_cap_bytes: 10 * GB });
+    const after = quiet("t");
     const event = eventRow(uuidOf("e", 8), String(lapsed.id));
     const media = Array.from({ length: 2_500 }, (_, i) =>
       mediaRow(uuidOf("rm", i), event, { file_size_bytes: 1_000 + (i % 7) }),
     );
-    const world = createCronWorld({
-      profiles: [quiet(1), quiet(2), lapsed, after],
-      events: [event],
-      media,
-    });
+    const world = withCandidates(
+      createCronWorld({
+        profiles: [q1, q2, lapsed, after],
+        events: [...quietEvents, event],
+        media: [...quietMedia, ...media],
+      }),
+    );
     state.world = world;
-    const active = () =>
-      world.fake.tables.media.filter((m) => m.status !== "removed");
+    // r1's own items (the quiet candidates' are not hers).
+    const hers = () =>
+      world.fake.tables.media.filter((m) => m.event_id === event.id);
+    const active = () => hers().filter((m) => m.status !== "removed");
 
     // Asked before each account (q1, q2, r1), then before each page of r1's reduce: the second page is refused.
     const first = await sweepOverCapacity(world.client, NOW, {
@@ -281,7 +406,7 @@ describe("sweepOverCapacity", () => {
       // r1 part way, and t1 never reached.
       remaining: 2,
       // The candidate before r1: the next run starts AT it.
-      resume_after: uuidOf("q", 2),
+      resume_after: q2.id,
     });
     expect(active()).toHaveLength(1_500);
     expect(
@@ -305,15 +430,19 @@ describe("sweepOverCapacity", () => {
     ).toBeNull();
     expect(state.sent.map((s) => s.kind)).toEqual(["over_cap_reduced"]);
     // Across the two runs, exactly the whole-set choice: every survivor no bigger than any removed item.
-    const removed = world.fake.tables.media.filter(
-      (m) => m.status === "removed",
-    );
+    const removed = hers().filter((m) => m.status === "removed");
     const smallestRemoved = Math.min(
       ...removed.map((m) => Number(m.file_size_bytes)),
     );
     expect(
       active().every((m) => Number(m.file_size_bytes) <= smallestRemoved),
     ).toBe(true);
+    // The quiet candidates were examined and left be, in both runs.
+    expect(
+      world.fake.tables.media.filter(
+        (m) => m.event_id !== event.id && m.status === "removed",
+      ),
+    ).toEqual([]);
   });
 
   // The free/pro shift (2026-09-28): the floor was a typed 2 GB, Free's old cap. At Free's 100 MB a
@@ -326,17 +455,227 @@ describe("sweepOverCapacity", () => {
       storage_used_bytes: GB,
     });
     const event = eventRow(uuidOf("e", 9), String(lapsed.id));
-    const world = createCronWorld({
-      profiles: [lapsed],
-      events: [event],
-      media: [mediaRow(uuidOf("mf", 1), event, { file_size_bytes: GB })],
-    });
+    const world = withCandidates(
+      createCronWorld({
+        profiles: [lapsed],
+        events: [event],
+        media: [mediaRow(uuidOf("mf", 1), event, { file_size_bytes: GB })],
+      }),
+    );
     state.world = world;
 
     const tally = await sweepOverCapacity(world.client, NOW);
     expect(tally).toMatchObject({ candidates: 1, grace_opened: 1 });
     expect(world.fake.tables.profiles[0].storage_grace_until).toBeTruthy();
     expect(state.sent.map((s) => s.kind)).toEqual(["over_cap_grace_start"]);
+  });
+
+  // ★ crumbs-75: every paying host stores past Free's 100 MB, so the old floor made every one a candidate, each with a
+  // summary call of its own, and past a few hundred a night's share reached only some. The read now answers exactly
+  // the accounts there is something to do for.
+  it("★ reads exactly the accounts there is something to do for, and no account costs a call of its own", async () => {
+    const profiles: FakeRow[] = [];
+    const events: FakeRow[] = [];
+    const media: FakeRow[] = [];
+    const host = (
+      prefix: string,
+      over: Partial<FakeRow>,
+      bytes: number | null,
+    ) => {
+      const p = account(uuidOf(prefix, 1), over);
+      profiles.push(p);
+      if (bytes !== null) {
+        const e = eventRow(uuidOf(`e${prefix}`, 1), String(p.id));
+        events.push(e);
+        media.push(
+          mediaRow(uuidOf(`m${prefix}`, 1), e, { file_size_bytes: bytes }),
+        );
+      }
+      return p;
+    };
+    // 300 paying hosts well inside their plan, each storing far past Free's 100 MB: the old floor's candidates.
+    for (let i = 0; i < 300; i++) {
+      const p = account(uuidOf("pa", i), { storage_cap_bytes: 50 * GB });
+      const e = eventRow(uuidOf("epa", i), String(p.id));
+      profiles.push(p);
+      events.push(e);
+      media.push(mediaRow(uuidOf("mpa", i), e, { file_size_bytes: 200 * MB }));
+    }
+    const over = host("ov", {}, 2 * CAP);
+    // Inside the tenth over her cap: exactly where the product admits uploads, never a candidate.
+    host("hd", {}, CAP + CAP / 10);
+    const inGrace = host("gr", { storage_grace_until: FAR_GRACE }, null);
+    // A meter far past a tiny cap with nothing kept: the summary decides, never the meter alone.
+    host("mt", { storage_cap_bytes: 1, storage_used_bytes: 10 * GB }, null);
+    // Pro with no cap on record yet: unlimited, never over.
+    host("ul", { storage_cap_bytes: null }, 10 * GB);
+    // A downgrade to Free keeps her plan's default cap.
+    const freed = host(
+      "fr",
+      { tier: "free", storage_cap_bytes: null },
+      200 * MB,
+    );
+    const world = withCandidates(createCronWorld({ profiles, events, media }));
+    state.world = world;
+
+    const tally = await sweepOverCapacity(world.client, NOW);
+    expect(tally).toMatchObject({
+      candidates: 3,
+      grace_opened: 2,
+      cleared: 1,
+      rows_failed: 0,
+    });
+    const byId = new Map(world.fake.tables.profiles.map((p) => [p.id, p]));
+    expect(byId.get(over.id)?.storage_grace_until).toBeTruthy();
+    expect(byId.get(freed.id)?.storage_grace_until).toBeTruthy();
+    expect(byId.get(inGrace.id)?.storage_grace_until).toBeNull();
+    expect(state.sent.map((s) => s.profileId).sort()).toEqual(
+      [over.id, freed.id].sort(),
+    );
+    // One read, and no summary call of the sweep's own for any of the 306 accounts.
+    expect(candidateRequests(world)).toHaveLength(1);
+    expect(
+      world.fake.requests.filter((r) => r.name === "host_storage_summary"),
+    ).toHaveLength(0);
+  });
+
+  // ★ crumbs-75: the grace's start and the reduce are mailed after the state moved, so a send that failed is kept and
+  // this sweep, their only sender, retries them before any mail of its own, under its own switch and deadline.
+  it("★ retries its two kept notices before its own mail, under its deadline, and carries their tally without failing", async () => {
+    const { world } = fixture();
+    state.retried = {
+      notices_resent: 1,
+      notices_failed: 2,
+      notices_dropped: 0,
+    };
+    const tally = await sweepOverCapacity(world.client, NOW);
+
+    expect(retryParkedNotices).toHaveBeenCalledTimes(1);
+    const [args] = vi.mocked(retryParkedNotices).mock.calls[0];
+    expect(args.kinds).toEqual(["over_cap_grace_start", "over_cap_reduced"]);
+    expect(args.now).toBe(NOW);
+    expect(typeof args.stopWhen).toBe("function");
+    // Before any of the run's own mail.
+    expect(
+      vi.mocked(retryParkedNotices).mock.invocationCallOrder[0],
+    ).toBeLessThan(Math.min(...vi.mocked(sendOnce).mock.invocationCallOrder));
+    expect(tally).toMatchObject({
+      notices_resent: 1,
+      notices_failed: 2,
+      notices_dropped: 0,
+      rows_failed: 0,
+    });
+  });
+
+  // ★ A late grace-start must still be so: "you are over your plan" to a host who upgraded the day after is a wrong
+  // mail. The retry asks this run's own candidate read, before the run clears what it clears.
+  it("★ announces a kept grace's start only while that very grace stands and she still keeps past her line", async () => {
+    const { world, reminded, clears, opens } = fixture();
+    await sweepOverCapacity(world.client, NOW);
+    const [args] = vi.mocked(retryParkedNotices).mock.calls[0];
+    const ask = (
+      kind: Parameters<NonNullable<typeof args.stillTrue>>[0]["kind"],
+      profileId: unknown,
+      at: string,
+    ) =>
+      args.stillTrue?.({
+        kind,
+        dedupeKey: `${String(profileId)}:${new Date(at).toISOString()}`,
+        profileId: String(profileId),
+      });
+    // In a grace and keeping 20,000 past an 11,000 line: still so.
+    expect(
+      await ask(
+        "over_cap_grace_start",
+        reminded.id,
+        "2026-09-26T00:00:00.000000+00:00",
+      ),
+    ).toBe(true);
+    // A grace other than the one announced (a later one opened since): not this notice's.
+    expect(
+      await ask(
+        "over_cap_grace_start",
+        reminded.id,
+        "2026-09-27T00:00:00.000000+00:00",
+      ),
+    ).toBe(false);
+    // In a grace but keeping nothing (she freed room for good; this run clears it): no longer so.
+    expect(
+      await ask(
+        "over_cap_grace_start",
+        clears.id,
+        "2026-10-30T00:00:00.000000+00:00",
+      ),
+    ).toBe(false);
+    // No grace on the read at all (this run's read came before it opened one): nothing to announce late.
+    expect(
+      await ask("over_cap_grace_start", opens.id, "2026-11-07T04:00:00.000Z"),
+    ).toBe(false);
+    // The reduce's notice says what was done, so it always goes.
+    expect(
+      await ask(
+        "over_cap_reduced",
+        clears.id,
+        "2026-10-30T00:00:00.000000+00:00",
+      ),
+    ).toBe(true);
+  });
+});
+
+describe("graceNoticeStillTrue", () => {
+  const G = "2026-10-30T04:00:00.123+00:00";
+  const host = (over: Partial<OverCapCandidate>): OverCapCandidate => ({
+    id: "11111111-1111-4111-8111-111111111111",
+    email: "h@example.com",
+    tier: "pro",
+    storage_cap_bytes: CAP,
+    storage_grace_until: G,
+    active_bytes: 2 * CAP,
+    deleted_bytes: 0,
+    system_bytes: 0,
+    ...over,
+  });
+  const key = (c: OverCapCandidate, at = G) => ({
+    dedupeKey: `${c.id}:${new Date(at).toISOString()}`,
+    profileId: c.id,
+  });
+
+  it("reads the grace it announced to the millisecond, as the sweep keyed it", () => {
+    const c = host({});
+    expect(graceNoticeStillTrue(key(c), [c])).toBe(true);
+    expect(graceNoticeStillTrue(key(c, "2026-10-30T04:00:00.124Z"), [c])).toBe(
+      false,
+    );
+  });
+
+  it("judges what she keeps, the reduce's own removals left out, against her write line", () => {
+    // 11,000 of her own on a 10,000 cap: inside the tenth, so no longer over.
+    expect(
+      graceNoticeStillTrue(key(host({ active_bytes: 11_000 })), [
+        host({ active_bytes: 11_000 }),
+      ]),
+    ).toBe(false);
+    // Over only by the system's removals: not hers to be told about.
+    const reduced = host({
+      active_bytes: 9_000,
+      deleted_bytes: 5_000,
+      system_bytes: 5_000,
+    });
+    expect(graceNoticeStillTrue(key(reduced), [reduced])).toBe(false);
+    // Her own Deleted counts.
+    const deleted = host({ active_bytes: 9_000, deleted_bytes: 5_000 });
+    expect(graceNoticeStillTrue(key(deleted), [deleted])).toBe(true);
+  });
+
+  it("never announces a grace that cleared, an unlimited plan, or an account not on the read", () => {
+    const c = host({});
+    expect(
+      graceNoticeStillTrue(key(c), [host({ storage_grace_until: null })]),
+    ).toBe(false);
+    expect(
+      graceNoticeStillTrue(key(c), [host({ storage_cap_bytes: null })]),
+    ).toBe(false);
+    expect(graceNoticeStillTrue(key(c), [])).toBe(false);
   });
 });
 
@@ -358,9 +697,11 @@ describe("Deleted counts in what she keeps", () => {
   ) {
     const host = account(HOST, over);
     const event = eventRow(uuidOf("e", 7), HOST);
-    const world = createCronWorld(
-      { profiles: [host], events: [event], media: build(event) },
-      { now: NOW },
+    const world = withCandidates(
+      createCronWorld(
+        { profiles: [host], events: [event], media: build(event) },
+        { now: NOW },
+      ),
     );
     state.world = world;
     return world;

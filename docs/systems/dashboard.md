@@ -27,6 +27,12 @@ composition is `components/app/dashboard/home.tsx`.
     Settings' five steps laid flat under the name (`stageRailOf`: `settingsSteps` and the checklist's own head, so a
     tick here is a tick in the hub). Where readiness was not read (its day, after it) the numbers say it in the rail's
     place, so a party's day never loses its counts. Its first photograph takes the light over.
+  - ★ **The lamp ignites once, as she meets the event she just made** (`LampLight`'s `eventId`): Create leaves the new
+    event's id in `sessionStorage` (`create-event-wizard/just-made.ts`; a tab flag, not a parameter, since Create's
+    exits lead to the event and never to `/dashboard`), and the first lit stage that draws that event plays the
+    ignition and spends the flag. It is read as a store (the server never draws it, so hydration matches, and a client
+    navigation paints the lamp dark from its first frame) and latched, every utility is `motion-safe:` so reduced
+    motion lands lit at once, and storage that throws is no ignition.
 - **The live wall listens and never refreshes the page** (a refresh per photograph would presign every event's covers
   again): on its day the stage hears the album's doorbell and asks `readStageLiveAction`
   (`lib/dashboard/stage-action.ts`) for its wall and counts on `useLivePoll`'s cadence, re-running the same pure rules.
@@ -61,8 +67,10 @@ composition is `components/app/dashboard/home.tsx`.
     stage's or this week's (`recentRowsOf`, decided on the server), folding to small covers. Opens are
     `events.host_opened_at`, stamped by `HomeShell`'s one listener on every press into an event
     (`noteEventOpenedAction`, at most once a minute an event, as her under RLS); a navigation takes priority over a
-    pending Server Function in Next 16, so a press never waits for its stamp. A deep link (the bell, an email) is not
-    counted until the hub mounts the same stamp.
+    pending Server Function in Next 16, so a press never waits for its stamp. The hub stamps itself too (`HubOpened`,
+    the same action, on mount), so a deep link (the bell, an email) counts: ★ one Server Function call a hub visit,
+    never a poll (the minute's filter spares the write, not the call), so a press from here asks twice, the second
+    finding no row to move.
   - The groups by when (`seasonsOf`, `HomeView.events.seasons`) are still composed because the host-dashboard board's
     drawings read them; the section does not.
 - **A tile** (`event-tile.tsx`) is the dashboard's own atom; `EventCard` draws a profile's public cards. Every range's

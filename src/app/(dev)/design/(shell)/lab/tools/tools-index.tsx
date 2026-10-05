@@ -7,6 +7,22 @@ import {
 import { Tag } from "@/app/(dev)/design/(shell)/_shell/tag";
 
 /**
+ * A note's words, each run with a `?` or a `-` inside it held in one piece (`?boundary=global`, `global-error`): a
+ * line would otherwise end on the `?` or the hyphen and strand half of a name from the other.
+ */
+function Words({ text }: { text: string }) {
+  return text.split(/(\S*[?-]\S*)/).map((part, i) =>
+    i % 2 === 1 ? (
+      <span key={i} className="whitespace-nowrap">
+        {part}
+      </span>
+    ) : (
+      part
+    ),
+  );
+}
+
+/**
  * THE TOOLS, FROM THE NAV (the Library x Lab round, 2026-09-15). The tools and
  * their one-line notes are declared once, in `_data/nav.ts`, and the sidebar
  * reads them from there. This index reads the same list through the shell's
@@ -46,7 +62,7 @@ export function ToolsIndex() {
             </span>
             {t.note && (
               <span className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                {t.note}
+                <Words text={t.note} />
               </span>
             )}
           </LabLink>

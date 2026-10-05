@@ -1,25 +1,78 @@
 import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { GIGABYTE, MEGABYTE, planById } from "@/lib/constants/tiers";
+import {
+  GIGABYTE,
+  MEGABYTE,
+  planById,
+  toBillingTier,
+  uploadAllowance,
+  UPLOADS_WINDOW,
+} from "@/lib/constants/tiers";
 
 /**
  * ★ THE ACCOUNTS LIST SAYS EACH ACCOUNT'S REAL CAP (red-team 52's LOW: "reads a null storage_cap_bytes as 'Unlimited' for
  * every account, Free included ... an operator scanning the list for over-cap accounts sees none"). The real page,
  * its reads stubbed beneath it: a Free profile's null column is the Free cap and a Free account past it is marked,
  * a pass holder's is her pass's room, and only a Pro with no cap on record reads Unlimited.
+ *
+ * ★ AND EACH ACCOUNT'S UPLOADS AGAINST ITS ALLOWANCE (admin-uploads): what her window has used beside the number her plan
+ * holds her to, a row at the allowance marked, and a failed read saying No reading rather than zero.
  */
 
 const accounts = vi.hoisted(() => ({ rows: [] as Record<string, unknown>[] }));
+/** What each account's window has used, by display name; an account not named here has used nothing. A string fails its read. */
+const usage = vi.hoisted(() => ({
+  byName: {} as Record<string, number | string>,
+  /** A lapsed pass's end, by display name (null: no pass of hers ever live); an account not named here is not lapsed. */
+  lapsedByName: {} as Record<string, string | null>,
+  /** The lapsed accounts whose last pass became Pro credit (her Pro plan not landed yet). */
+  convertedNames: [] as string[],
+}));
+const sentry = vi.hoisted(() => ({ warnings: [] as unknown[][] }));
+/** The admin gate's answer, and how many reads were made behind it. */
+const gate = vi.hoisted(() => ({ aal: "aal2", reads: 0, uploadsCalls: 0 }));
 
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/auth/admin-context", () => ({
-  requireAdmin: async () => ({ aal: "aal2" }),
+  requireAdmin: async () => ({ aal: gate.aal }),
+}));
+vi.mock("@/lib/observability/sentry", () => ({
+  captureWarning: (...args: unknown[]) => sentry.warnings.push(args),
 }));
 vi.mock("@/lib/db/queries/accounts", () => ({
-  searchAccounts: async () => accounts.rows,
+  searchAccounts: async () => {
+    gate.reads += 1;
+    return accounts.rows;
+  },
   accountTierLabel: (tier: string) =>
     tier === "pro" ? "Pro" : tier === "event_pass" ? "Event Pass" : "Free",
+  // The real tier rules over a stubbed read: only `uploads_windows`' answers are canned. ONE call for the whole page.
+  readAccountsUploads: async (
+    profiles: { tier: string; storage_cap_bytes: number | null }[],
+  ) => {
+    gate.reads += 1;
+    gate.uploadsCalls += 1;
+    return profiles.map((profile) => {
+      const tier = toBillingTier(profile.tier);
+      const name = (profile as unknown as { display_name: string })
+        .display_name;
+      const used = usage.byName[name] ?? 0;
+      const since = usage.lapsedByName[name];
+      return {
+        window: UPLOADS_WINDOW[tier],
+        allowanceBytes: uploadAllowance(tier, profile.storage_cap_bytes),
+        used:
+          typeof used === "number"
+            ? { ok: true, value: used }
+            : { ok: false, message: used },
+        lapsed:
+          typeof used === "number" && since !== undefined
+            ? { since, converted: usage.convertedNames.includes(name) }
+            : null,
+      };
+    });
+  },
 }));
 
 const { default: AdminAccountsPage } = await import("./page");
@@ -47,6 +100,13 @@ const rowOf = (name: string) =>
 
 beforeEach(() => {
   accounts.rows = [];
+  usage.byName = {};
+  usage.lapsedByName = {};
+  usage.convertedNames = [];
+  sentry.warnings = [];
+  gate.aal = "aal2";
+  gate.reads = 0;
+  gate.uploadsCalls = 0;
 });
 
 describe("the Cap column", () => {
@@ -94,5 +154,185 @@ describe("the Cap column", () => {
     const unwritten = rowOf("Unwritten");
     expect(within(unwritten).getByText("Unlimited")).toBeInTheDocument();
     expect(unwritten.getAttribute("data-tone")).toBeNull();
+  });
+});
+
+describe("the Uploads and Allowance columns", () => {
+  it("reads what each window has used beside its plan's number, with the window named", async () => {
+    usage.byName = {
+      "Free host": 120 * MEGABYTE,
+      "Pass host": 31 * GIGABYTE,
+      "Pro host": 40 * GIGABYTE,
+    };
+    accounts.rows = [
+      row({ display_name: "Free host" }),
+      row({ display_name: "Pass host", tier: "event_pass" }),
+      row({
+        display_name: "Pro host",
+        tier: "pro",
+        storage_cap_bytes: planById("pro_200").storageBytes,
+      }),
+    ];
+    await draw();
+    const free = rowOf("Free host");
+    expect(within(free).getByText("120 MB")).toBeInTheDocument();
+    expect(within(free).getByText("300 MB / mo")).toBeInTheDocument();
+    // A pass holder's allowance counts her pass's own year, so the table says so.
+    const pass = rowOf("Pass host");
+    expect(within(pass).getByText("31 GB")).toBeInTheDocument();
+    expect(within(pass).getByText("50 GB / yr")).toBeInTheDocument();
+    const pro = rowOf("Pro host");
+    expect(within(pro).getByText("40 GB")).toBeInTheDocument();
+    expect(within(pro).getByText("200 GB / mo")).toBeInTheDocument();
+    for (const name of ["Free host", "Pass host", "Pro host"]) {
+      expect(rowOf(name).getAttribute("data-tone")).toBeNull();
+      expect(within(rowOf(name)).queryByText("At limit")).toBeNull();
+    }
+  });
+
+  it("★ marks the account at its allowance, the line where guests' uploads are refused, and tints its row", async () => {
+    usage.byName = { "At it": 300 * MEGABYTE, "Under it": 299 * MEGABYTE };
+    accounts.rows = [
+      row({ display_name: "At it" }),
+      row({ display_name: "Under it" }),
+    ];
+    await draw();
+    const at = rowOf("At it");
+    expect(within(at).getByText("At limit")).toBeInTheDocument();
+    expect(at.getAttribute("data-tone")).toBe("warning");
+    expect(within(rowOf("Under it")).queryByText("At limit")).toBeNull();
+    expect(rowOf("Under it").getAttribute("data-tone")).toBeNull();
+  });
+
+  it("an unmetered Pro (no cap on record yet) reads Unmetered, never at its limit", async () => {
+    usage.byName = { Unwritten: 900 * GIGABYTE };
+    accounts.rows = [row({ display_name: "Unwritten", tier: "pro" })];
+    await draw();
+    const unwritten = rowOf("Unwritten");
+    expect(within(unwritten).getByText("Unmetered")).toBeInTheDocument();
+    expect(within(unwritten).queryByText("At limit")).toBeNull();
+    expect(unwritten.getAttribute("data-tone")).toBeNull();
+  });
+
+  it("★ a failed read says No reading in its row and never 0 B, tells the operator, and never fails the page", async () => {
+    usage.byName = { Broken: "permission denied for function uploads_used" };
+    accounts.rows = [
+      // Storage is not zero here, so a "0 B" in the row could only be the uploads cell.
+      row({ display_name: "Broken", storage_used_bytes: 7 * MEGABYTE }),
+      row({ display_name: "Fine", storage_used_bytes: 1 * MEGABYTE }),
+    ];
+    await draw();
+    const broken = rowOf("Broken");
+    expect(within(broken).getByText("No reading")).toBeInTheDocument();
+    expect(within(broken).queryByText("0 B")).toBeNull();
+    // Her allowance is the plan's number, which no read can fail.
+    expect(within(broken).getByText("300 MB / mo")).toBeInTheDocument();
+    expect(broken.getAttribute("data-tone")).toBeNull();
+    // The other row still reads.
+    expect(within(rowOf("Fine")).getByText("0 B")).toBeInTheDocument();
+    expect(screen.getByRole("alert").textContent).toBe(
+      "Uploads could not be read for 1 of 2 accounts (marked No reading in their rows). Check Sentry.",
+    );
+    // Said aloud once, with the first reason, never one event a row.
+    expect(sentry.warnings).toEqual([
+      [
+        "admin",
+        "accounts: uploads read failed",
+        {
+          unread: 1,
+          of: 2,
+          message: "permission denied for function uploads_used",
+        },
+      ],
+    ]);
+  });
+
+  it("raises nothing when every row read", async () => {
+    accounts.rows = [row({ display_name: "Fine" })];
+    await draw();
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(sentry.warnings).toEqual([]);
+  });
+});
+
+describe("one read for the page, and a lapsed pass said truly (billing-locks)", () => {
+  it("★ reads every listed account's uploads in ONE call, never one a row", async () => {
+    accounts.rows = Array.from({ length: 50 }, (_, i) =>
+      row({ display_name: `Host ${i}` }),
+    );
+    await draw();
+    expect(gate.uploadsCalls).toBe(1);
+  });
+
+  it("★ a lapsed pass reads Pass lapsed since when, its allowance refused, its row tinted, and never 0 B", async () => {
+    usage.lapsedByName = { Lapsed: "2026-10-03T14:00:00+00:00", Unknown: null };
+    accounts.rows = [
+      // Storage is not zero, so a "0 B" in the row could only be the uploads cell.
+      row({
+        display_name: "Lapsed",
+        tier: "event_pass",
+        storage_used_bytes: 3 * GIGABYTE,
+      }),
+      row({
+        display_name: "Unknown",
+        tier: "event_pass",
+        storage_used_bytes: 1 * GIGABYTE,
+      }),
+      row({
+        display_name: "Live pass",
+        tier: "event_pass",
+        storage_used_bytes: 2 * GIGABYTE,
+      }),
+    ];
+    await draw();
+    const lapsed = rowOf("Lapsed");
+    expect(within(lapsed).getByText("Pass lapsed")).toBeInTheDocument();
+    expect(within(lapsed).getByText("Oct 3, 2026 UTC")).toBeInTheDocument();
+    expect(within(lapsed).getByText("Uploads refused")).toBeInTheDocument();
+    expect(within(lapsed).queryByText("0 B")).toBeNull();
+    expect(within(lapsed).queryByText("50 GB / yr")).toBeNull();
+    expect(lapsed.getAttribute("data-tone")).toBe("warning");
+    // Lapsed with no pass ever live: the badge and the refusal, and no invented date.
+    const unknown = rowOf("Unknown");
+    expect(within(unknown).getByText("Pass lapsed")).toBeInTheDocument();
+    expect(within(unknown).getByText("Uploads refused")).toBeInTheDocument();
+    // The one date in its row is its Last seen.
+    expect(within(unknown).getAllByText(/UTC$/)).toHaveLength(1);
+    // A live pass is as it was: its year's figure against its allowance, no tint.
+    const live = rowOf("Live pass");
+    expect(within(live).getByText("0 B")).toBeInTheDocument();
+    expect(within(live).getByText("50 GB / yr")).toBeInTheDocument();
+    expect(within(live).queryByText("Pass lapsed")).toBeNull();
+    expect(live.getAttribute("data-tone")).toBeNull();
+  });
+
+  it("★ a pass converted to Pro credit whose Pro plan has not landed reads Pro pending, its uploads refused", async () => {
+    usage.lapsedByName = { Converting: "2026-10-05T09:30:00+00:00" };
+    usage.convertedNames = ["Converting"];
+    accounts.rows = [
+      row({
+        display_name: "Converting",
+        tier: "event_pass",
+        storage_used_bytes: 2 * GIGABYTE,
+      }),
+    ];
+    await draw();
+    const converting = rowOf("Converting");
+    expect(within(converting).getByText("Pro pending")).toBeInTheDocument();
+    expect(within(converting).queryByText("Pass lapsed")).toBeNull();
+    expect(within(converting).getByText("Oct 5, 2026 UTC")).toBeInTheDocument();
+    expect(within(converting).getByText("Uploads refused")).toBeInTheDocument();
+    expect(converting.getAttribute("data-tone")).toBe("warning");
+  });
+});
+
+describe("the portal's gate", () => {
+  it("★ below AAL2 the page draws nothing and reads nothing, the account's uploads included", async () => {
+    gate.aal = "aal1";
+    accounts.rows = [row({ display_name: "Hidden" })];
+    const out = await AdminAccountsPage({ searchParams: Promise.resolve({}) });
+    expect(out).toBeNull();
+    expect(gate.reads).toBe(0);
+    expect(sentry.warnings).toEqual([]);
   });
 });

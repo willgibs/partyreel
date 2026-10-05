@@ -77,6 +77,14 @@ The reel stores nothing, so the server says only WHETHER a viewer's album has on
   still plans over a spread of the album (`TAKE_POOL`), and the cover's six stills, while the album has a reel, are
   the take's first pass, its head alone (`passes: 1`, `tileStills` in
   [`reel-tile.ts`](../../src/lib/guest/reel-tile.ts)), never the album's newest, which sit right beneath it.
+  ★ **They are dealt once and kept while they play** (`keepStills`, `useCoverStills`): the first pass is a seeded
+  shuffle of the whole album, so one arrival used to change nearly all six, swapping the cover under the viewer and
+  sending for the new stills' links, a call behind every delta. An arrival now changes nothing; a still the album loses
+  gives its place to the take's next, her own newest upload leads her cover, and a reload deals afresh. Below the
+  reel's minimum (the newest-six rule) nothing is kept: each arrival is its own new still, and its link rides the
+  delta. ★ **The six's links are asked for again whenever the album moves** (free while fresh, a re-mint once aged):
+  the link store keeps lit only the ids it was recently asked for (600), so a kept cover that fell out of them would
+  lose its pictures when their presigns died, which the old re-deal on every arrival had been healing by accident.
 
 ## The cover, the view and the screen (the guest's side)
 
@@ -174,7 +182,8 @@ A host has no reel to create, only a state to read and a few defaults to set.
   inside the album's server render and the curtain's black is a beat, [guest-flow.md](guest-flow.md)), or, while the
   develop is ahead, plays her own reel over the hub (next); off, it opens Settings. The dashboard's item for an event
   on its day says "1 more photo starts the reel" while one short and is gone once it plays; `/dashboard/<id>/reel` is a
-  redirect for old links (into the view once it plays, else the hub).
+  redirect for old links (once the reel plays: into the view, or into her own reel over the hub while the develop is
+  ahead, as the card does; else the hub).
 - ★ **Before the develop she plays her own reel over her own hub** (`event-feed/hub-reel.tsx`, mounted by the hub's
   page inside the album's store): the guests' own view (`LiveReelView`) on `?reel` of the hub's address, fed her
   scope, the hub's manifest with sealed shots included (hidden and held left out), its links by id from the hub store's
@@ -183,7 +192,9 @@ A host has no reel to create, only a state to read and a few defaults to set.
   no reel, and stands no curtain for her on `?reel` (`reelAsked`); after it, the card goes on opening that page. There is
   no screen link on the hub's view (`screenLink`: a screen that is not hers cannot open her hub, so a wall plays the
   reel cast from her own device), no Make your own and no Add yours, and a `?reel` that cannot play (the switch or the
-  lever off, under two photographs that can) is dropped quietly, as the guests' page drops one.
+  lever off, under two photographs that can) is dropped quietly, as the guests' page drops one. Its dock carries the one
+  line a guest's never does, "Guests get it at the develop." (`dockNote`, handed in by `hub-reel.tsx` while the develop
+  time the Reel card reads is ahead, on the develop clock every reader shares, so it stops at the develop itself).
 - **Settings' Highlight reel page** ([`event-settings/reel-page.tsx`](../../src/components/app/event-settings/reel-page.tsx))
   saves each choice the moment it changes: Show the reel, the look every guest starts on (each shown on the event's own
   photo under that mood's `grade`) and the hold; optimistic, put back with a sentence when refused, and a slow answer

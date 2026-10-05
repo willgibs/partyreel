@@ -65,7 +65,7 @@ The gate, each step on its own exit code: `pnpm typecheck`, `pnpm lint` (a warni
 `pnpm test`, `zsh scripts/build-lock.sh pnpm build` (builds take turns across lanes; parallel builds strain the
 machine), then `pnpm lab:smoke --base <your dev server>` and, for a board,
 `pnpm lab:demo --board <id> --base <your dev server>`. Typecheck, lint and test before every commit; the whole gate
-before a handoff. CI is not the gate.
+before a handoff, except a board lane's light gate (PROGRAM.md, "Speed over proof in exploration"). CI is not the gate.
 
 An Agent commits only to its own `lp/<track>`. Stage explicitly, never `git add -A`; never `--no-verify`, a force-push
 or an amend of a pushed commit; never a secret. Every commit ends with the `Co-Authored-By` trailer naming the model

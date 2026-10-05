@@ -14,7 +14,7 @@ semantics live in its doc.
 
 ## The RPC inventory and the advisor set
 
-`get_advisors` (security) after every schema change reads 19 `rls_enabled_no_policy`, 4 in lint `0028` and 36 in
+`get_advisors` (security) after every schema change reads 25 `rls_enabled_no_policy`, 4 in lint `0028` and 36 in
 `0029`. Leaked Password Protection is on, so its WARN never shows. A function in the wrong list means a grant slipped.
 
 - **Anon capability reads (`0028`, and `0029` too; by design, never revoke):** `get_event_by_qr_token`,
@@ -85,7 +85,9 @@ semantics live in its doc.
 - **Service-role only, never in either list:** the server-mediated set above, `action_rate`,
   `article_feedback_summary` (an INVOKER read, one jsonb, behind the admin seam), `purge_media_rows`,
   `record_link_hit`, `host_active_bytes`, `host_storage_summary`, `leave_deleted` (the over-capacity deadline's first
-  step), `tier_limits`, `upload_allowance` and `uploads_used` (INVOKER; every other caller is a DEFINER body), the paged album's
+  step), `tier_limits`, `upload_allowance` and `uploads_used` (INVOKER; every other caller is a DEFINER body),
+  `uploads_windows` (an INVOKER read behind the admin seam, every listed host's `uploads_used` in one call) and
+  `consume_passes_for_pro_credit` (INVOKER, the webhook's pass-to-Pro conversion), the paged album's
   reader `album_changes_since` (an INVOKER read the Next routes call after their own capability check) and its log's
   prune `album_prune_tombstones` (DEFINER: the tables grant the service role SELECT only), the develop's
   `develop_due` and `develop_due_sweep` (DEFINER: they write `sealed_until`, which no role holds;
@@ -93,13 +95,16 @@ semantics live in its doc.
   page call after their `getEvent` check), the per-event block's reads (`event_ticket_blocked` and
   `event_blocked_guest_ids`, INVOKER; `blocked_events_for`, DEFINER because it reads `auth.users`, which the service
   role cannot) and its four predicates (INVOKER, run inside the guest paths' DEFINER bodies), the claims'
-  `whose_ticket` (the same shape), and the trigger functions, whose EXECUTE is revoked from the client roles and
+  `whose_ticket` (the same shape), Send to Google Drive's `cloud_*` functions (DEFINER, one jsonb each, every Drive
+  write and the Worker's lease and report behind the app's signed routes: [drive-export.md](drive-export.md)), and the
+  trigger functions, whose EXECUTE is revoked from the client roles and
   which still fire (EXECUTE is checked when a trigger is created, never when it fires).
 - **The owner's alone** (revoked from the service role too, so no role PostgREST serves can call them): helpers only
   a definer body reads, `event_door_asks` (a set no request can page) and `event_account_ticket` (a whole guest row,
   its ticket in it), Deleted's one definition `host_deleted_media` and the upload's line `host_room_used` (both
   SECURITY INVOKER, read only by the four capacity bodies), and the develop's five (`album_bits`, `album_doorbell`,
-  `seal_disagrees`, `guest_roll`, `develop_rows`).
+  `seal_disagrees`, `guest_roll`, `develop_rows`), and Send to Google Drive's two helpers (`cloud_export_pause`,
+  `cloud_export_settle`).
 - ★ **Every SECURITY DEFINER function pins `set search_path = ''` and fully qualifies every name** (`public.events`,
   `auth.users`, `extensions.crypt`): an unpinned path lets a caller shadow a name and run it as the owner. No
   DEFINER body uses dynamic SQL.
@@ -112,7 +117,11 @@ semantics live in its doc.
   prune alone), `camera_rolls` (the camera's ledger, service_role SELECT only, written by `create_media` alone),
   `article_feedback` (the help center's feedback beacon, no identity of any kind), and
   `storage_ledger` (Free's and Pro's monthly uploads meter, a pass's year counting on its own
-  `event_passes.uploaded_bytes`: its readers are the upload gates, DEFINER, and the service role).
+  `event_passes.uploaded_bytes`: its readers are the upload gates, DEFINER, and the service role),
+  `notice_retries` (a one-time notice kept rendered until a retry sends it, never the address: `sendOnce`), and Send to
+  Google Drive's five (`cloud_connections`, the sealed tokens; `cloud_event_folders`; `cloud_export_items`, whose live
+  `session_uri` is a week-long upload capability; `cloud_export_leases`; `cloud_export_sent_hours`:
+  [drive-export.md](drive-export.md)).
 
 ## Grants
 
@@ -125,6 +134,9 @@ Gotchas). A new table starts with no client grant, so its migration grants exact
   holds SELECT and its writes only on a table a policy serves, and TRUNCATE, REFERENCES, TRIGGER and MAINTAIN
   (Supabase's latent default; PostgREST issues none) on none.
 
+- **`cloud_exports`:** its owner SELECTs her own sends (RLS on `user_id`) through a column grant of the progress columns
+  alone, never the connection, a folder id or the zone; every write is a `cloud_*` function on the service role. The
+  grant is whole in 20261005120000, so a later table-level SELECT revoke from `authenticated` would cascade it away.
 - **`profiles`:** hosts write `announcements_seen_at`, `welcomed_at`, `make_room_from_deleted` and `events_display` (her
   Display choices: sparse jsonb under an envelope CHECK, an object within 512 bytes, narrowed by the app on every read),
   nothing else.
@@ -179,11 +191,12 @@ Gotchas). A new table starts with no client grant, so its migration grants exact
   checks are check-then-act over aggregates no row lock can hold, so two concurrent uploads, restores or creates
   would each read N-1 and both admit. `create_media`, `create_media_as_host`, `restore_media`, `restore_event` and
   `enforce_event_limit` each take exactly ONE profiles lock, the host's, as their first lock, so no deadlock is
-  constructible among them; never lock a second host's row in these bodies. The one cycle outside them: a pass
-  consumed for Pro credit takes `event_passes` before `profiles` (Postgres detects the deadlock and one side is
-  retried; a ROADMAP line puts it in order). `leave_deleted` and `empty_deleted` take the host's
-  row first too, and the restores take it before the item's, so a restore and an upload making room never act on one
-  row at once.
+  constructible among them; never lock a second host's row in these bodies. `leave_deleted` and `empty_deleted` take
+  the host's row first too, and the restores take it before the item's, so a restore and an upload making room never
+  act on one row at once. ★ So does every writer of a pass's row (`event-passes-migration.test.ts`): the completes
+  count on her live pass under her profiles lock, and `consume_passes_for_pro_credit`, the pass-to-Pro credit, takes
+  that lock before it converts her passes, since the reverse order in one transaction deadlocks with a complete
+  (measured, 20261005130000).
 - ★ **A mint of an ask reads the door under the event row's share lock** (`create_guest`, `ask_to_join`). Every move
   of the door writes that row (`set_event_door` locks it `for no key update`, `set_event_password`'s update takes the
   same lock), and the triggers that end or admit the asks read only what has committed, so a join minted unlocked in
@@ -247,6 +260,11 @@ Gotchas). A new table starts with no client grant, so its migration grants exact
   (`events_develops_at_finite`, `media_sealed_until_finite`, `events_event_date_finite`, and
   `events_end_date_on_or_after` for the end); how far a day may be from today is the app's window
   (`lib/events/dates.ts`), never the column's.
+- ★ **A typed RPC call cannot say null.** The generated Args mark an argument with a default optional and none
+  nullable, and PostgREST finds a function by the names it is sent: an argument whose default is null takes
+  `?? undefined` (the key is left out and the default applies), but one with no default stays on the wire, its null
+  cast to the argument's type and sent as null (`nullableArg`, `queries/drive.ts`), because a key left out is a 404
+  (PGRST202), not a null.
 
 ## Rate limits
 

@@ -10,6 +10,14 @@ import { Switch } from "@/components/ui/switch";
 import { toggleWatchSwitchAction } from "./actions";
 
 /**
+ * The write behind a switch: the Server Function, which every caller gets unless it hands in another. Only the Library
+ * does (`library/compositions/spend-watch-demo.tsx`), so a specimen of the card can be pressed through its whole flow (the
+ * sheet, the pause, the way back) without a platform switch moving: the action pauses guest uploads for every album, and the
+ * lab runs against the real project.
+ */
+export type WatchToggle = typeof toggleWatchSwitchAction;
+
+/**
  * THE TWO SWITCHES WHOSE HOME IS THE SPEND WATCH'S CARD (guest uploads, lifecycle mail): one press, and its OFF edge
  * opens the portal's one sheet (`destructive=sheet`), which says what pausing reaches before it does. ON is
  * immediate: turning a guard back off is never the expensive act.
@@ -29,11 +37,14 @@ export function WatchSwitch({
   label,
   enabled,
   copy,
+  toggle = toggleWatchSwitchAction,
 }: {
   switchKey: "uploads_enabled" | "lifecycle_mail_enabled";
   label: string;
   enabled: boolean;
   copy: WatchSwitchCopy;
+  /** The write behind the switch. Omitted, the Server Function (every page of the portal). */
+  toggle?: WatchToggle;
 }) {
   const [on, setOn] = useState(enabled);
   const [asking, setAsking] = useState(false);
@@ -42,7 +53,7 @@ export function WatchSwitch({
   function resume() {
     setOn(true);
     startTransition(async () => {
-      const res = await toggleWatchSwitchAction(switchKey, true);
+      const res = await toggle(switchKey, true);
       if (!res.ok) {
         setOn(false);
         toast.error(res.message ?? "Couldn't update the switch.");
@@ -73,7 +84,7 @@ export function WatchSwitch({
         severity="reversible"
         successMessage={`${label} paused.`}
         onConfirm={async () => {
-          const res = await toggleWatchSwitchAction(switchKey, false);
+          const res = await toggle(switchKey, false);
           if (res.ok) setOn(false);
           return res;
         }}

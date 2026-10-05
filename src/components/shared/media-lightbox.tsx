@@ -73,12 +73,12 @@ export type { CreditFace, ViewerMedia } from "./media-lightbox-parts/credit";
 // closed.
 //
 // ★ media-viewer r1 (2026-09-24): the photograph GROWS out of
-// the tile it was tapped on (or out of the reel's frame) and drops back into it
-// on the way out; a face-led credit at the top left; the floating action capsule
-// at the foot; the neighbours PEEK at the edges (a subtle filmstrip at a desk);
-// PINCH to get close; a video plays muted with a scrubber; a pull DOWN or a tap
-// on blank space closes; Share sends the file and Save reaches Photos first on
-// iOS. The geometry is `media-lightbox-parts/geometry.ts` (pure, unit-tested);
+// the tile it was tapped on and drops back into it on the way out; a face-led
+// credit at the top left; the floating action capsule at the foot; the
+// neighbours PEEK at the edges (a subtle filmstrip at a desk); PINCH to get
+// close; a video plays muted with a scrubber; a pull DOWN or a tap on blank
+// space closes; Share sends the file and Save reaches Photos first on iOS. The
+// geometry is `media-lightbox-parts/geometry.ts` (pure, unit-tested);
 // the chrome is the parts beside it.
 //
 // MOBILE SWIPE (peek-the-neighbor, kept): on touch, the media area is a 3-slot
@@ -119,16 +119,18 @@ const SLOT_CLASS = "relative h-full shrink-0 grow-0 basis-full";
 export type ViewerRect = Rect;
 
 /**
- * WHERE A PHOTOGRAPH OPENED FROM (`opening=grow`): the box it grows out of and
- * what kind of box that is. A tile in an album passes its own rect and a way to
- * find the tile of whichever photograph is showing at close (the viewer may have
- * moved on), so the photograph drops into ITS tile; the live reel passes its
- * frame's rect and no `returnTo`, so the way out lands back in the frame. Focus
- * returns to the element `returnTo` finds. A null `rect` grew from nowhere on
- * screen (the grid opening `?photo=` on load): it fades in, and still returns.
+ * WHERE A PHOTOGRAPH OPENED FROM (`opening=grow`): the box it grows out of. A
+ * tile in an album passes its own rect and a way to find the tile of whichever
+ * photograph is showing at close (the viewer may have moved on), so the
+ * photograph drops into ITS tile; with no `returnTo` the way out lands back in
+ * the rect it grew from. Focus returns to the element `returnTo` finds. A null
+ * `rect` grew from nowhere on screen (the grid opening `?photo=` on load): it
+ * fades in, and still returns. A tile is the only box a photograph opens from:
+ * the reel never opens the viewer (a tap on its picture is the bar's, never the
+ * photograph's).
  */
 export type ViewerOrigin = {
-  kind: "tile" | "reel";
+  kind: "tile";
   rect: ViewerRect | null;
   returnTo?: (item: GridMedia) => HTMLElement | null;
 };
@@ -460,7 +462,6 @@ export function MediaLightbox({
   onRestore,
   onPurge,
   origin,
-  startAt,
   onNeedLinks,
   closeRequest = null,
 }: {
@@ -506,8 +507,6 @@ export function MediaLightbox({
   onPurge?: (item: GridMedia) => void;
   /** Where it opened from, so it grows out of it and drops back in (omitted = a plain fade). */
   origin?: ViewerOrigin;
-  /** Opened from the reel on a video: carry on from the reel's moment (seconds) instead of the start. */
-  startAt?: number;
   /**
    * THE LINK SOURCE, for a surface that hands the whole album with most of it unlinked (`url` "").
    * Called with the ids, nearest first, of the items about to be drawn that have no link yet: the
@@ -571,14 +570,11 @@ export function MediaLightbox({
   // were measured (the item's own width/height win whenever they exist).
   const [measured, setMeasured] = useState<Record<string, Size>>({});
 
-  // One open = one session: whether it flew in and from where, where a reel's
-  // clip carries on.
+  // One open = one session: whether it flew in and from where.
   const [session, setSession] = useState<{
-    id: string | null;
     flew: boolean;
     from: ViewerRect | null;
-    startAt?: number;
-  }>({ id: null, flew: false, from: null });
+  }>({ flew: false, from: null });
   const [phase, setPhase] = useState<"opening" | "open" | "closing">("open");
 
   // Reset the per-item view when the viewer moves to another item, and open a
@@ -655,10 +651,8 @@ export function MediaLightbox({
         typeof Element !== "undefined" &&
         typeof Element.prototype.animate === "function";
       setSession({
-        id: current.id,
         flew: flies,
         from: flies ? (origin?.rect ?? null) : null,
-        startAt,
       });
       setPhase(flies ? "opening" : "open");
     }
@@ -699,7 +693,6 @@ export function MediaLightbox({
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const lastTapRef = useRef<{ t: number; x: number; y: number } | null>(null);
   const pointerTypeRef = useRef("mouse");
-  const startUsedRef = useRef<string | null>(null);
   // The latest render's layout, for the listeners that outlive a render.
   const layoutRef = useRef({ fit: curFit, stage, canZoom });
   const soundRef = useRef(soundOn);
@@ -826,28 +819,11 @@ export function MediaLightbox({
 
   // `video=auto`: the clip plays muted and looping the moment it is centre
   // stage, and stops the moment it is not. Under reduced motion it waits for
-  // Play (the reduced-motion rule: honoured by not playing). Opened from the reel, it carries
-  // on from the reel's moment.
+  // Play (the reduced-motion rule: honoured by not playing).
   const clipKey = current?.type === "video" ? current.id : null;
   useEffect(() => {
     const v = clipKey ? centerVideoRef.current : null;
     if (!v) return;
-    let seek: (() => void) | null = null;
-    if (
-      session.startAt !== undefined &&
-      clipKey === session.id &&
-      startUsedRef.current !== session.id
-    ) {
-      startUsedRef.current = session.id;
-      const t = session.startAt;
-      seek = () => {
-        try {
-          v.currentTime = t;
-        } catch {}
-      };
-      if (v.readyState >= 1) seek();
-      else v.addEventListener("loadedmetadata", seek, { once: true });
-    }
     if (!prefersReducedMotion()) {
       setMuted(v, !soundRef.current);
       const played = v.play();
@@ -863,11 +839,10 @@ export function MediaLightbox({
     }
     return () => {
       v.pause();
-      if (seek) v.removeEventListener("loadedmetadata", seek);
     };
     // `videoEl`, not just the key: radix's Portal renders the clip one commit
     // after the viewer opens, and the effect has to meet the element.
-  }, [clipKey, session, videoEl]);
+  }, [clipKey, videoEl]);
 
   // The filmstrip's jump: instant, like the keys (stable, so the strip does not
   // re-render with every frame of a swipe).
@@ -916,10 +891,10 @@ export function MediaLightbox({
   };
 
   /**
-   * THE WAY OUT (`wayout=down`): the photograph drops back into its tile (or the
-   * reel's frame), from wherever it is seen now (mid-pull, pinched, at rest), as
-   * the ground thins to the album. With nowhere to land (no origin, a tile
-   * scrolled off, reduced motion) it fades, as it always has.
+   * THE WAY OUT (`wayout=down`): the photograph drops back into its tile, from
+   * wherever it is seen now (mid-pull, pinched, at rest), as the ground thins to
+   * the album. With nowhere to land (no origin, a tile scrolled off, reduced
+   * motion) it fades, as it always has.
    */
   const requestClose = () => {
     if (closingRef.current) return;
@@ -1030,9 +1005,9 @@ export function MediaLightbox({
   /* ── opening ───────────────────────────────────────────────────────────── */
 
   // THE GROWING PHOTOGRAPH (`opening=grow`): out of its tile, the tile expands
-  // to fill the screen; out of the reel, the frame lets go of its crop. The
-  // element is already laid out at its fit rect; the flight scales and clips it
-  // back onto the tile's exact crop and plays forward to rest.
+  // to fill the screen. The element is already laid out at its fit rect; the
+  // flight scales and clips it back onto the tile's exact crop and plays forward
+  // to rest.
   //
   // ★ IT FLIES FROM WHERE IT OPENED, READ AT THE OPEN (`session.from`), never
   // from the live `origin` prop: the paged album re-renders the viewer inside

@@ -79,6 +79,7 @@ const props = (over: Partial<HubReelProps> = {}): HubReelProps => ({
   qrToken: "token",
   reelOn: true,
   look: { styleId: "mono", holdSec: 5 },
+  developsAt: null,
   ...over,
 });
 
@@ -256,6 +257,73 @@ describe("her reel on her own hub", () => {
     act(() => lastView()!.onClose());
     await waitFor(() => expect(window.location.search).toBe("?room=settings"));
     expect(screen.queryByTestId("reel-view")).toBeNull();
+  });
+});
+
+/**
+ * ★ HER REEL BEFORE THE DEVELOP SAYS WHAT HER GUESTS HAVE (red-team 53b's deferred line, crumbs-66). She plays her own
+ * scope while the album develops and her guests have no reel yet; the Reel card says so ("Guests get it later"), and the
+ * dock of the view she plays said nothing. The page's `developsAt` is the card's own time; the view's dock carries the
+ * line for as long as it is ahead, and stops saying it the moment the develop comes (the clock every develop reader
+ * shares), so a hub left open across it never tells her what stopped being true.
+ */
+describe("her reel before the develop", () => {
+  beforeEach(() => chunk.release());
+  const ahead = () => new Date(Date.now() + 6 * 3_600_000).toISOString();
+  const WORDS = "Guests get it at the develop.";
+
+  it("★ tells the dock her guests get it at the develop, while the develop is ahead", async () => {
+    open();
+    render(<HubReel {...props({ developsAt: ahead() })} />);
+    await screen.findByTestId("reel-view");
+    expect(lastView()!.dockNote).toBe(WORDS);
+  });
+
+  it("says nothing with no develop, nor of one that has come", async () => {
+    open();
+    const { unmount } = render(<HubReel {...props({ developsAt: null })} />);
+    await screen.findByTestId("reel-view");
+    expect(lastView()!.dockNote).toBeUndefined();
+    unmount();
+    seen.props = [];
+    render(
+      <HubReel
+        {...props({
+          developsAt: new Date(Date.now() - 3_600_000).toISOString(),
+        })}
+      />,
+    );
+    await screen.findByTestId("reel-view");
+    expect(lastView()!.dockNote).toBeUndefined();
+  });
+
+  it("★ stops saying it at the develop itself, with the reel open", async () => {
+    vi.useFakeTimers();
+    // Saturday 7:42:00 am, on the clock's own half minute; the develop is the minute after.
+    vi.setSystemTime(new Date(2026, 9, 10, 7, 42, 0));
+    try {
+      open();
+      const { unmount } = render(
+        <HubReel
+          {...props({
+            developsAt: new Date(2026, 9, 10, 7, 43, 0).toISOString(),
+          })}
+        />,
+      );
+      await settle();
+      expect(lastView()!.dockNote).toBe(WORDS);
+      await act(async () => {
+        vi.advanceTimersByTime(60_000 - 1);
+      });
+      expect(lastView()!.dockNote).toBe(WORDS);
+      await act(async () => {
+        vi.advanceTimersByTime(1);
+      });
+      expect(lastView()!.dockNote).toBeUndefined();
+      unmount();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 

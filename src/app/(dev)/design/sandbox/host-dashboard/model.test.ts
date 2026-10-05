@@ -13,17 +13,21 @@ import {
 import {
   arrange,
   changed,
+  COUNT_WORDS,
+  countSaid,
+  factOf,
   factsOf,
-  findIn,
+  headLine,
   homeAround,
   homeInput,
+  leadLine,
   leadOf,
+  leadWhyOf,
   lifted,
   PREFS_DEFAULT,
-  rangeLabel,
-  rangeLine,
-  rangeWhen,
   recentRows,
+  RULES,
+  weekWithUndated,
 } from "./model";
 
 /**
@@ -34,7 +38,8 @@ import {
  * lead the board's page is `buildHomeView`'s, and moving the stage to another
  * event changes nothing but the stage, where its event is left out, and a
  * range's words. The second half pins the rules to the frames' words: the four
- * rules, a range's when, and the collection's filter, sort and find.
+ * rules and the fact each read, a range's when, the collection's filter and
+ * sort, and the details H6 draws the other way.
  */
 
 const ALL = Object.values(HOSTS);
@@ -44,17 +49,10 @@ describe("the page the frames draw", () => {
     for (const host of ALL) {
       const lead = momentEvent(host.hosted, host.ctx.today)!.event;
       const production = buildHomeView(homeInput(host, lead.id));
-      // The decoy's route to the same lead draws the same page, to the byte.
+      // The decoy's route to the same lead draws the same page, to the byte,
+      // and so does the board's (a range's words are production's own now).
       expect(lifted(host, lead)).toEqual(production);
-      // And the board's page differs from it only in a range's words.
-      const drawn = homeAround(host, lead.id);
-      expect(drawn.stage).toEqual(production.stage);
-      expect(drawn.events.seasons).toEqual(production.events.seasons);
-      drawn.events.rows.forEach((row, i) => {
-        const was = production.events.rows[i]!;
-        if (host.ends[row.id]) expect(row.dateLabel).not.toBe(was.dateLabel);
-        else expect(row).toEqual(was);
-      });
+      expect(homeAround(host, lead.id)).toEqual(production);
     }
   });
 
@@ -127,34 +125,80 @@ describe("the stage's rule", () => {
   });
 });
 
+describe("why a rule leads", () => {
+  const { nia, jo, lena } = HOSTS;
+  const say = (host: (typeof HOSTS)[keyof typeof HOSTS]) =>
+    Object.fromEntries(
+      RULES.map((r) => {
+        const lead = leadWhyOf(host, r.id, host.trail)!;
+        return [r.id, leadLine(lead, host.ctx.today)];
+      }),
+    );
+
+  it("says the fact each rule read, so three agreeing on Nia's wedding read as three reasons", () => {
+    expect(say(nia)).toEqual({
+      newest: "Nia & Alex's Wedding · made yesterday",
+      upcoming: "Nia & Alex's Wedding · nothing dated ahead",
+      opened: "Nia & Alex's Wedding · opened last",
+      photos: "Our Engagement Party · photos Sep 26",
+    });
+  });
+
+  it("names Newest's party within a month by its day, never as her newest", () => {
+    // Lena's newest made is Sunday's pancakes; Thursday's lunch leads by being near.
+    const lead = leadWhyOf(lena, "newest", lena.trail)!;
+    expect(lead.event.id).toBe("lena-lunch");
+    expect(lead.why).toBe("near");
+    expect(factOf(lead, lena.ctx.today)).toBe("in 2 days");
+  });
+
+  it("agrees with leadOf on every host and rule", () => {
+    for (const host of ALL)
+      for (const r of RULES)
+        expect(leadWhyOf(host, r.id, host.trail)?.event.id).toBe(
+          leadOf(host, r.id, host.trail)?.id,
+        );
+    expect(leadWhyOf(jo, "upcoming", jo.trail)?.why).toBe("next");
+  });
+});
+
+describe("the dashboard's details the other way (H6)", () => {
+  const { maya, lena } = HOSTS;
+
+  it("counts a capped plan's events against its limit only the other way", () => {
+    expect(headLine(maya, false)).toBe("1 event · Event Pass");
+    expect(headLine(maya, true)).toBe("1 of 1 event · Event Pass");
+    // A plan with no cap says the same either way.
+    expect(headLine(lena, true)).toBe(headLine(lena, false));
+  });
+
+  it("holds an undated album in the week by its photos' day only the other way", () => {
+    const built = homeAround(lena, leadOf(lena, "newest", lena.trail)!.id);
+    expect(built.week.map((c) => c.id)).toEqual(["lena-40th"]);
+    const other = weekWithUndated(built, lena);
+    // The nearest first: Sunday's photos before Saturday's party.
+    expect(other.week.map((c) => c.id)).toEqual(["lena-pancakes", "lena-40th"]);
+    expect(other.week[0]!.when).toMatch(/^Photos /);
+  });
+
+  it("says the count's other word wherever the week says it", () => {
+    const built = homeAround(lena, leadOf(lena, "newest", lena.trail)!.id);
+    const said = countSaid(built, COUNT_WORDS.other);
+    expect(said.week[0]!.quiet).toBe("128 photos and videos");
+  });
+});
+
+// Round three drew a range's words of its own (production held no end date
+// then); `event-dates` gave production its `endDate`, so the board hands it
+// over and every range is said by production's own words. What stays to hold
+// is that the hand-over reaches the page.
 describe("a range of days", () => {
-  const today = "2026-11-10";
-
-  it("says a range in the tile's fewest words", () => {
-    expect(rangeWhen("2026-11-14", "2026-11-15", today)).toBe("Sat – Sun");
-    expect(rangeWhen("2026-05-01", "2026-05-03", today)).toBe("May 1 – 3");
-    expect(rangeWhen("2026-10-30", "2026-11-01", today)).toBe(
-      "Oct 30 – Nov 1",
-    );
-    expect(rangeWhen("2025-06-07", "2025-06-08", today)).toBe("Jun 2025");
-  });
-
-  it("says it in full for the table and the stage", () => {
-    expect(rangeLabel("2026-10-06", "2026-10-07")).toBe("October 6 – 7, 2026");
-    expect(rangeLabel("2026-10-31", "2026-11-01")).toBe(
-      "October 31 – November 1, 2026",
-    );
-    expect(rangeLine("2026-11-14", "2026-11-15")).toBe(
-      "Saturday, November 14 to Sunday, November 15",
-    );
-  });
-
-  it("reaches the rows of a ranged event", () => {
+  it("is said by production's own words on the rows and the stage", () => {
     const jo = HOSTS.jo;
-    const view = homeAround(jo, "jo-spring-launch");
+    const view = homeAround(jo, "jo-offsite");
+    expect(view.stage?.event.endDate).toBe("2026-10-07");
     const hen = view.events.rows.find((r) => r.id === "jo-hen")!;
-    expect(hen.when).toBe("May 1 – 3");
-    expect(hen.dateLabel).toBe("May 1 – 3, 2026");
+    expect(hen.dateLabel).toBe("May 1–3, 2026");
   });
 });
 
@@ -172,13 +216,9 @@ describe("her events, laid out", () => {
     expect(changed(PREFS_DEFAULT)).toEqual([]);
   });
 
-  it("finds Jo's three weddings by event date, and Rae's 2023 wedding by its year", () => {
-    const joView = homeAround(jo, "jo-spring-launch");
-    const joFacts = factsOf(jo, jo.trail);
-    const found = findIn(joView.events.rows, "2025 wedding", joFacts);
-    expect(found.chips).toEqual(["2025"]);
-    expect(found.rows.map((r) => r.id).sort()).toEqual([...JO_THREE].sort());
-
+  // Round three's field that found by a word (`find`) retired with its round;
+  // the Display menu's year is how the planner reaches an old party now.
+  it("finds Rae's 2023 wedding by its year in the Display menu", () => {
     const raeView = homeAround(rae, leadOf(rae, "newest", rae.trail)!.id);
     const raeFacts = factsOf(rae, rae.trail);
     const groups = arrange(
@@ -189,7 +229,6 @@ describe("her events, laid out", () => {
     const ids = groups.flatMap((g) => g.rows.map((r) => r.id));
     expect(ids).toContain(RAE_TARGET);
     expect(ids.length).toBeLessThan(70);
-    expect(findIn(raeView.events.rows, "2023 wedding", raeFacts).rows.map((r) => r.id)).toContain(RAE_TARGET);
   });
 
   it("keeps the undated last when sorted by date, either way", () => {

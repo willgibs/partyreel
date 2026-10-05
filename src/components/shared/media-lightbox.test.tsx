@@ -484,19 +484,6 @@ describe("MediaLightbox: video behavior", () => {
     ) as HTMLVideoElement;
     expect(video.muted).toBe(false);
   });
-
-  it("opened from the reel, it carries on from the reel's moment", () => {
-    mount(WITH_VIDEO, 1, { startAt: 2.4 });
-    const video = document.querySelector(
-      "video[data-center-media]",
-    ) as HTMLVideoElement;
-    Object.defineProperty(video, "readyState", {
-      value: 1,
-      configurable: true,
-    });
-    fireEvent.loadedMetadata(video);
-    expect(video.currentTime).toBeCloseTo(2.4, 5);
-  });
 });
 
 /*

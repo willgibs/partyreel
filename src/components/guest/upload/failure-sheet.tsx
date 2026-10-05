@@ -30,18 +30,17 @@
  * (`retryCanPass`, the refusal ladder the door's step reads too).
  */
 import { useState } from "react";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, WifiOff } from "lucide-react";
 
+import { DoorHeading } from "@/components/guest/door/heading";
 import { PickPreview } from "@/components/guest/upload/pick-preview";
 import { usePickUrls } from "@/components/guest/upload/use-pick-urls";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
   SheetFooter,
   SheetHeader,
-  SheetTitle,
 } from "@/components/ui/sheet";
 import { UPLOAD_FAILED_HELP_HREF } from "@/lib/content/help-links";
 import { formatCount } from "@/lib/format/count";
@@ -49,6 +48,7 @@ import { retryCanPass } from "@/lib/guest/upload-refusal";
 import { useWaitClock } from "@/lib/disposable/use-wait-clock";
 import { restWaitLine, waitWords } from "@/lib/disposable/wait-words";
 import { NOTHING_WAITS, type UploadsWait } from "@/lib/guest/upload-tracker";
+import type { UploadCause } from "@/lib/upload/uploader";
 
 /** One file that did not go: the queue's id, its file, the server's words and their code. */
 export type UploadFailure = {
@@ -57,6 +57,11 @@ export type UploadFailure = {
   error?: string;
   /** The refusal's code, which says whether the same file could go on a retry. */
   code?: string;
+  /**
+   * Why the transport ended it (`QueueItem.cause`): `dropped` is the connection, and its row says so apart from a
+   * refusal, which is the server's own sentence and never a mark of the line's.
+   */
+  cause?: UploadCause;
 };
 
 /**
@@ -87,6 +92,16 @@ export function uploadFailureElsewhere(input: {
   const clock = waitWords(waits, hostName);
   if (clock) return restWaitLine(clock, nowMs);
   return `Everything else is in ${hostName}’s album.`;
+}
+
+/**
+ * ★ WHAT SHE CAN DO ABOUT A FAILURE NO RETRY COULD PASS (red-team 54's LOW): the file itself was refused (`retryCanPass`:
+ * a type nobody takes, a file over the ceiling, a video where the album takes none), so the same file is refused again.
+ * Its line says why, in the refusal's own sentence, and this says the way on: another file. The door's upload step says
+ * the same words on its failure view (`uploadStepChooseAgain`), one home for them.
+ */
+export function uploadFailureChooseAgain(camera = false): string {
+  return camera ? "Take another to add one." : "Pick something else to add.";
 }
 
 /** The list's one retry-everything button, in one place (`UploadFailureList` below). */
@@ -136,7 +151,11 @@ export function UploadFailureList({
       )}
       <ul data-upload-failures className="flex flex-col gap-3">
         {failures.map((f) => (
-          <li key={f.id} className="flex items-center gap-3">
+          <li
+            key={f.id}
+            data-cause={f.cause}
+            className="flex items-center gap-3"
+          >
             <PickPreview
               file={f.file}
               url={urls.get(f.id)}
@@ -147,6 +166,14 @@ export function UploadFailureList({
                 {f.file.name}
               </span>
               <span className="block text-reading text-pretty text-muted-foreground">
+                {/* ★ A DROPPED CONNECTION IS DRAWN APART FROM A REFUSAL: the line's, never the file's, so it wears the
+                    signal's mark before its sentence (the cause, never the words, says which). */}
+                {f.cause === "dropped" && (
+                  <WifiOff
+                    aria-hidden
+                    className="mr-1.5 inline size-4 align-text-bottom"
+                  />
+                )}
                 {f.error ?? "That upload did not finish."}
               </span>
             </span>
@@ -190,8 +217,10 @@ export function UploadFailureSheet({
   onOpenChange,
   failures,
   sent,
+  landed,
   hostName,
   waits,
+  camera = false,
   onRetry,
 }: {
   open: boolean;
@@ -199,9 +228,17 @@ export function UploadFailureSheet({
   failures: readonly UploadFailure[];
   /** The whole run's count (failed + landed), for the exact heading's denominator. */
   sent: number;
+  /**
+   * How many of the run's files have landed (`useRunCounts`). What it says of everything else is true only when every
+   * file not listed has: a row's Retry takes its file out of the list while it goes, and that file is not in the album
+   * until it lands. Absent, everything not listed is taken to have landed, as it has when a run has just ended.
+   */
+  landed?: number;
   hostName: string;
   /** What her adds wait for (the page's `addsWaitFor`): what the sheet says of the rest (`uploadFailureElsewhere`). */
   waits?: UploadsWait;
+  /** The album's host chose the camera: what she can do about a refusal of the file itself says Take, not Pick. */
+  camera?: boolean;
   /** Re-queues one file (the queue's own `retry`). */
   onRetry: (id: string) => void;
 }) {
@@ -225,23 +262,52 @@ export function UploadFailureSheet({
   const [latched, setLatched] = useState<{
     failures: readonly UploadFailure[];
     sent: number;
-  }>({ failures, sent });
+    landed: number | undefined;
+  }>({ failures, sent, landed });
   if (open && failures.length > 0 && failures !== latched.failures) {
-    setLatched({ failures, sent });
+    setLatched({ failures, sent, landed });
   }
-  const shown = open && failures.length > 0 ? { failures, sent } : latched;
+  const shown =
+    open && failures.length > 0 ? { failures, sent, landed } : latched;
   const nowMs = useWaitClock();
+  const heading = uploadFailureHeading(shown.failures.length, shown.sent);
+  /* ★ A RUN THAT FAILED WHOLE HAS NO "EVERYTHING ELSE" TO SAY (crumbs-76): "1 of 1 didn't upload" under "Everything
+     else is in Maya's album" spoke of a rest that does not exist. The line is said only where the run sent more than
+     failed, and the dialog is described by it only then.
+     ★ AND NOTHING OF THE REST UNTIL IT HAS LANDED (red-team 54b's NIT): a row's Retry takes its file out of the list while
+     it goes, so on a run that failed whole "2 of 2" became "1 of 2 / Everything else is in Maya's album" for as long as
+     that file was in the air, over a rest that was not in it. The rest is said when every file not listed has landed. */
+  const others = shown.sent - shown.failures.length;
+  const rest =
+    others > 0 && (shown.landed ?? others) === others
+      ? uploadFailureElsewhere({ hostName, waits, nowMs })
+      : null;
+  // Nothing a retry could pass: every line is a refusal of the file itself, so the way on is another file.
+  const nothingToRetry = !shown.failures.some((f) => retryCanPass(f.code));
+  const reason =
+    [rest, nothingToRetry ? uploadFailureChooseAgain(camera) : null]
+      .filter(Boolean)
+      .join(" ") || null;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent responsive className="overflow-y-auto">
+      <SheetContent
+        responsive
+        className="overflow-y-auto"
+        // Nothing to say under the heading, so nothing describes the dialog (Radix reads an explicit undefined as that choice).
+        {...(reason ? {} : { "aria-describedby": undefined })}
+      >
         <SheetHeader>
-          <SheetTitle>
-            {uploadFailureHeading(shown.failures.length, shown.sent)}
-          </SheetTitle>
-          <SheetDescription>
-            {uploadFailureElsewhere({ hostName, waits, nowMs })}
-          </SheetDescription>
+          {/* The door's own heading scale (one failure, one size of heading: the door's upload step says this very
+              failure on it too), and its words ARE the dialog's title and description. Clear of the sheet's own X,
+              which stands in the first line's corner. */}
+          <DoorHeading
+            announce
+            titleAs="h2"
+            title={heading}
+            reason={reason ?? undefined}
+            className="pr-8"
+          />
         </SheetHeader>
 
         <div className="px-4">

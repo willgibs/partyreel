@@ -493,6 +493,20 @@ describe("signalHealth", () => {
   it("reports nothing at all when the window could not be read", () => {
     expect(signalHealth(null)).toBe("never");
   });
+
+  // ★ crumbs-75: a notice kept for its retry, or a download the Worker never said ended, failed nothing inside the
+  // window, which is exactly how it stayed off the bell; owed work is a look, under a failure, over a quiet day.
+  it("★ reads owed work as Needs a look: under a failure, over sends that went and over a quiet day", () => {
+    expect(signalHealth({ ok24h: 40, failed24h: 0, owed: 1 })).toBe(
+      "attention",
+    );
+    expect(signalHealth({ ok24h: 0, failed24h: 0, owed: 2 })).toBe("attention");
+    expect(signalHealth({ ok24h: 0, failed24h: 1, owed: 2 })).toBe("failed");
+    expect(signalHealth({ ok24h: 3, failed24h: 0, owed: 0 })).toBe("ok");
+    expect(isUnhealthy(signalHealth({ ok24h: 0, failed24h: 0, owed: 1 }))).toBe(
+      true,
+    );
+  });
 });
 
 describe("jobHealth, across the three kinds", () => {
@@ -696,6 +710,73 @@ describe("readDepth and the reading rules", () => {
     ).toBe(45);
     expect(readDepthAgeMinutes(defOf("backup_dead_letters"), {})).toBeNull();
     expect(readDepthAgeMinutes(defOf("purge_cron"), { x: 1 })).toBeNull();
+  });
+});
+
+/**
+ * ★ HELD BY THE BACKUP ALONE (crumbs-75; ROADMAP: the prune's `primary_missing` closed its run ok with a note). A key
+ * whose row lives while the primary lost its object is a host's photo with one copy left, so it is a failure on a
+ * card of its own beside the dead letters, read off the prune's own run (which writes the count, zero included).
+ */
+describe("the backup's lone copies (crumbs-75)", () => {
+  const def = () => defOf("backup_primary_missing");
+  const at = (
+    counts: unknown,
+    health: DepthSource["health"] = "ok",
+  ): DepthSource => ({
+    job: "backup_prune",
+    counts,
+    startedAtMs: NOW - 3_600_000,
+    health,
+  });
+  const verdict = (sources: DepthSource[]) =>
+    jobHealth({
+      def: def(),
+      enabled: true,
+      lastRun: null,
+      lastFinishedAtMs: null,
+      nowMs: NOW,
+      reading: readDepth(def(), sources),
+    });
+
+  it("is a reading of the prune's own runs, beside the dead letters, with nothing to pause or run", () => {
+    expect(def()).toMatchObject({
+      kind: "derived",
+      host: "cloudflare_worker",
+      readFrom: ["backup_prune"],
+      flagKey: null,
+      canRunNow: false,
+    });
+    const ids = JOBS.map((j) => j.id);
+    expect(ids.indexOf("backup_primary_missing")).toBe(
+      ids.indexOf("backup_dead_letters") + 1,
+    );
+  });
+
+  it("pins the key the prune writes (the Worker's suite asserts the same string)", () => {
+    expect(DEPTH_COUNT_KEYS.backup_primary_missing).toBe("primary_missing");
+  });
+
+  it("★ makes any lone copy a failure, and a judged zero healthy", () => {
+    expect(verdict([at({ primary_missing: 2, scanned: 900 })])).toBe("failed");
+    expect(verdict([at({ primary_missing: 0, scanned: 900 })])).toBe("ok");
+  });
+
+  it("reads no number as no reading, never as none missing, and lets an unwell prune outrank it", () => {
+    // An aborted run (a doubt) carries no count: no reading.
+    expect(verdict([at({ scanned: 12, deleted: 0 })])).toBe("never");
+    expect(verdict([at({ primary_missing: 0 }, "missed")])).toBe("missed");
+    // The reconcile's runs never carry it.
+    expect(
+      readDepth(def(), [
+        {
+          job: "backup_reconcile",
+          counts: { primary_missing: 5 },
+          startedAtMs: NOW,
+          health: "ok",
+        },
+      ]),
+    ).toBeNull();
   });
 });
 

@@ -1,13 +1,22 @@
 "use client";
 
-import { useId, useState, type ReactNode } from "react";
+import {
+  type ChangeEvent,
+  type FocusEvent,
+  type KeyboardEvent,
+  useId,
+  useState,
+  type ReactNode,
+} from "react";
 import { Check, ChevronDown } from "lucide-react";
 
 import {
   DEVELOP_NOW_QUESTION,
   judgeDevelopTime,
+  TIME_UNFINISHED,
   toLocalInput,
 } from "@/components/app/event-settings/camera-settings-develop-time";
+import { useFinishedFields } from "@/components/app/event-settings/camera-settings-finish";
 import { StylePicture } from "@/components/app/event-settings/camera-settings-style-picture";
 import {
   SettingsCard,
@@ -197,6 +206,20 @@ export function AlbumStyles({
   const labelId = useId();
   const style = styleOf(value);
   const [pending, setPending] = useState<PendingStyle | null>(null);
+  // ★ THE TIME'S FIELD STATE STANDS HERE, not in the row that comes and goes with the time: a style switch that clears
+  // the time removes the row, and what she had typed over it must go with the time, never write itself back at the close.
+  const time = useDevelopTime({
+    developsAt: value.developsAt,
+    hydrated,
+    onSave: (developsAt) => onSave({ developsAt }),
+  });
+  /** Every write but the time's own: one that changes when everyone sees makes whatever she was typing moot. */
+  const save = (patch: Partial<CaptureAndRevealValue>) => {
+    if (patch.review !== undefined || patch.developsAt !== undefined) {
+      time.drop();
+    }
+    onSave(patch);
+  };
   // Customize stands open where the album holds a mix outside the styles; a host opens it otherwise.
   const [customizeOpen, setCustomizeOpen] = useState(false);
   const saving = savingCapture || savingReveal;
@@ -216,7 +239,7 @@ export function AlbumStyles({
       setPending({ style: to, patch, consequence });
       return;
     }
-    onSave(patch);
+    save(patch);
   };
 
   const words = pending
@@ -250,7 +273,7 @@ export function AlbumStyles({
             confirmLabel={words.confirm}
             onConfirm={() => {
               setPending(null);
-              onSave(pending.patch);
+              save(pending.patch);
             }}
             onCancel={() => setPending(null)}
             busy={saving}
@@ -267,11 +290,11 @@ export function AlbumStyles({
             line="Everyone's photos appear at once."
           >
             <DevelopTimeControl
+              time={time}
               developsAt={value.developsAt}
               review={value.review}
               hydrated={hydrated}
               saving={savingReveal}
-              onSave={(developsAt) => onSave({ developsAt })}
             />
           </StackSetting>
         ) : null}
@@ -301,7 +324,7 @@ export function AlbumStyles({
             heldCount={heldCount}
             savingCapture={savingCapture}
             savingReveal={savingReveal}
-            onSave={onSave}
+            onSave={save}
             timeElsewhere
           />
         </SettingsCard>
@@ -444,6 +467,12 @@ export function CaptureAndReveal({
 }) {
   const hydrated = useHydrated();
   const [pending, setPending] = useState<Pending>(null);
+  // The develop time standing in this control's own card (`timeElsewhere` leaves it to the page's row, where it is idle).
+  const time = useDevelopTime({
+    developsAt: value.developsAt,
+    hydrated,
+    onSave: (developsAt) => onSave({ developsAt }),
+  });
   const reveal = revealOf(value);
   const develop = developState(value.developsAt);
   const waiting = develop.kind === "waiting";
@@ -474,11 +503,13 @@ export function CaptureAndReveal({
       setPending({ kind: "approve-held", to });
       return;
     }
+    time.drop();
     onSave(patchFor(to));
   };
 
   const confirm = (patch: Partial<CaptureAndRevealValue>) => {
     setPending(null);
+    time.drop();
     onSave(patch);
   };
 
@@ -548,11 +579,11 @@ export function CaptureAndReveal({
           >
             {reveal === "develop" && !timeElsewhere ? (
               <DevelopTimeControl
+                time={time}
                 developsAt={value.developsAt}
                 review={value.review}
                 hydrated={hydrated}
                 saving={savingReveal}
-                onSave={(developsAt) => onSave({ developsAt })}
               />
             ) : null}
           </Choice>
@@ -654,35 +685,41 @@ function Choice({
 
 /* ── the develop time, in one place ──────────────────────────────────── */
 
+/** The develop time is one field, so the one key `useFinishedFields` holds a draft under. */
+const TIME_FIELD = ["time"] as const;
+
 /**
- * THE DEVELOP TIME, picked in her own zone and saved once she has finished it, and Develop now while it waits (asking
- * first: every photo added so far shows at once). It still moves whenever she needs longer (Will's `both=never`: "the
- * date can always be pushed back by the host if more review time is needed").
+ * THE DEVELOP TIME'S FIELD, picked in her own zone and saved once she has finished it. It still moves whenever she
+ * needs longer (Will's `both=never`: "the date can always be pushed back by the host if more review time is needed").
  *
  * ★ A DEVELOP CANNOT BE UNDONE, SO A TIME REACHES THE WRITE ONLY WHEN IT IS PLAINLY MEANT (crumbs-60, the date field's
  * twin): the database stores a time at or before its own now as now and opens every sealed row in that same save, so a
  * year left half typed (Chrome types 2027 as 0002, 0020, 0202, each a whole time) or any past time was Develop now with
  * no question asked. What she types is a draft the field shows and nothing sends; it is judged once, when she has finished
- * it (leaving the field, or Return), by `judgeDevelopTime`:
+ * it, by `judgeDevelopTime`:
  *   - A year outside the date's window (`isSaneDay`), a blank or half filled field, a time beyond a year ahead, and a
  *     past time on an album that has already developed are said under the field in words and never written.
  *   - A time the database would store as now, on an album that still waits, asks Develop now's own question (the button's,
  *     the hub's: one sentence, one answer), and Develop now writes now, never the time she typed.
- * Unlike the date, closing the panel with a time typed and not left drops it: a develop time moves what guests see, a
- * close could not ask, and the field also goes when another control clears the time (a style switch), where a late write
- * would put a time back over her choice.
+ *   - A time plainly meant (ahead, within reach) is saved.
+ *
+ * ★ WHEN SHE HAS FINISHED IT IS THE DATE'S OWN (crumbs-72: `useFinishedFields`, the one beat and the one close-save of
+ * both): leaving the field, Return, a picker's choice resting a beat (a phone's picker may never blur it), or the panel
+ * closing (Escape or Back must not drop a typed time). A close judges the same way and writes only what it would write
+ * unasked: a time plainly meant is saved, and one that would ask, or is refused in words, writes nothing, since a close
+ * cannot ask and there is nobody left to read the words.
+ *
+ * ★ ITS STATE STANDS IN THE COMPONENT THAT STAYS MOUNTED while the time comes and goes (`AlbumStyles`, `CaptureAndReveal`):
+ * another control clears the time (a style switch), the field goes with it, and a typed time still pending would write
+ * itself back over her choice at the close. So every write that changes when everyone sees `drop`s the draft first.
  */
-function DevelopTimeControl({
+function useDevelopTime({
   developsAt,
-  review,
   hydrated,
-  saving,
   onSave,
 }: {
   developsAt: string | null;
-  review: boolean;
   hydrated: boolean;
-  saving: boolean;
   onSave: (developsAt: string) => void;
 }) {
   const shown = hydrated && developsAt ? toLocalInput(developsAt) : "";
@@ -692,19 +729,11 @@ function DevelopTimeControl({
   const [refusal, setRefusal] = useState<string | null>(null);
   // Develop now's question: the button's own, or the one a time that would develop the album at once brings.
   const [asking, setAsking] = useState<"button" | "time" | null>(null);
-  const value = draft ?? shown;
-  const state = hydrated ? developState(developsAt).kind : "none";
-  const fieldId = useId();
-  const lineId = `${fieldId}-line`;
-  const refusalId = `${fieldId}-refusal`;
-  // Said in her own zone, so only after hydration: the server cannot know what "9 am" means to her.
-  const when = hydrated ? developTimeWords(developsAt) : null;
 
-  /** She has left the field, or pressed Return in it: what it holds is finished, and is judged. */
-  const finish = () => {
-    if (draft === null) return;
+  /** She has finished the field: what it holds is judged, once. */
+  const finished = (typed: string) => {
     const verdict = judgeDevelopTime({
-      typed: draft,
+      typed,
       shown,
       developsAt,
       nowMs: Date.now(),
@@ -723,19 +752,72 @@ function DevelopTimeControl({
     if (verdict.kind === "save") onSave(verdict.iso);
   };
 
-  const developNow = () => {
-    setAsking(null);
+  const fields = useFinishedFields(
+    TIME_FIELD,
+    (_key, typed) => finished(typed),
+    () => setRefusal(TIME_UNFINISHED),
+  );
+
+  /** The draft, its words and its question are moot: another control moved the time, or Develop now wrote now. */
+  const drop = () => {
+    fields.settle("time");
     setDraft(null);
     setRefusal(null);
-    // The database stores a develop time this close to its own clock as its own now: it writes now, never the time she typed.
-    onSave(new Date().toISOString());
-  };
-
-  /** Keep it as it is: the question goes, and a time it asked about goes with it, back to what is saved. */
-  const keepAsItIs = () => {
-    if (asking === "time") setDraft(null);
     setAsking(null);
   };
+
+  return {
+    value: draft ?? shown,
+    refusal,
+    asking,
+    onChange: (e: ChangeEvent<HTMLInputElement>) => {
+      // A new time is a new question: the old words and the old question go.
+      setRefusal(null);
+      setAsking((a) => (a === "time" ? null : a));
+      setDraft(e.target.value);
+      fields.draft("time", e.target);
+    },
+    onBlur: (e: FocusEvent<HTMLInputElement>) =>
+      fields.finish("time", e.currentTarget),
+    onKeyDown: (e: KeyboardEvent<HTMLInputElement>) =>
+      fields.keyDown("time", e),
+    ask: () => setAsking("button"),
+    developNow: () => {
+      drop();
+      // The database stores a develop time this close to its own clock as its own now: it writes now, never the time she typed.
+      onSave(new Date().toISOString());
+    },
+    /** Keep it as it is: the question goes, and a time it asked about goes with it, back to what is saved. */
+    keepAsItIs: () => {
+      if (asking === "time") setDraft(null);
+      setAsking(null);
+    },
+    drop,
+  };
+}
+
+type DevelopTimeField = ReturnType<typeof useDevelopTime>;
+
+/** The develop time's field, and Develop now while it waits (asking first: every photo added so far shows at once). */
+function DevelopTimeControl({
+  time,
+  developsAt,
+  review,
+  hydrated,
+  saving,
+}: {
+  time: DevelopTimeField;
+  developsAt: string | null;
+  review: boolean;
+  hydrated: boolean;
+  saving: boolean;
+}) {
+  const state = hydrated ? developState(developsAt).kind : "none";
+  const fieldId = useId();
+  const lineId = `${fieldId}-line`;
+  const refusalId = `${fieldId}-refusal`;
+  // Said in her own zone, so only after hydration: the server cannot know what "9 am" means to her.
+  const when = hydrated ? developTimeWords(developsAt) : null;
 
   return (
     <div className="space-y-2">
@@ -743,23 +825,18 @@ function DevelopTimeControl({
         <label className="sr-only" htmlFor={fieldId}>
           Develop time
         </label>
+        {/* ★ A SAVE NEVER DISABLES THE FIELD: a picker's choice saves a beat after it (`useFinishedFields`), and a field that
+            went dead as that save went out would close the picker under her mid-pick (a calendar's day, then its time). */}
         <Input
           id={fieldId}
           type="datetime-local"
-          value={value}
-          disabled={!hydrated || saving}
-          aria-invalid={refusal ? true : undefined}
-          aria-describedby={refusal ? `${lineId} ${refusalId}` : lineId}
-          onChange={(e) => {
-            // A new time is a new question: the old words and the old question go.
-            setRefusal(null);
-            setAsking((a) => (a === "time" ? null : a));
-            setDraft(e.target.value);
-          }}
-          onBlur={finish}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") finish();
-          }}
+          value={time.value}
+          disabled={!hydrated}
+          aria-invalid={time.refusal ? true : undefined}
+          aria-describedby={time.refusal ? `${lineId} ${refusalId}` : lineId}
+          onChange={time.onChange}
+          onBlur={time.onBlur}
+          onKeyDown={time.onKeyDown}
           className="max-w-60"
         />
         <p id={lineId} className="text-caption text-muted-foreground">
@@ -774,15 +851,15 @@ function DevelopTimeControl({
           aria-live="polite"
           className="text-caption text-pretty text-destructive empty:hidden"
         >
-          {refusal ?? ""}
+          {time.refusal ?? ""}
         </p>
       </div>
       {state === "waiting" ? (
-        asking ? (
+        time.asking ? (
           <ConsequenceLine
             confirmLabel="Develop now"
-            onConfirm={developNow}
-            onCancel={keepAsItIs}
+            onConfirm={time.developNow}
+            onCancel={time.keepAsItIs}
             busy={saving}
           >
             {DEVELOP_NOW_QUESTION}
@@ -793,7 +870,7 @@ function DevelopTimeControl({
             variant="outline"
             disabled={saving}
             data-develop-now=""
-            onClick={() => setAsking("button")}
+            onClick={time.ask}
           >
             Develop now
           </Button>

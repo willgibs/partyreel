@@ -12,21 +12,87 @@
  * its own, because what they pin is the queue's side of a server rule rather than a sheet.
  */
 import { act, renderHook, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   landedAs,
+  localRefusalCode,
+  runLandedOf,
   runProgressOf,
+  runSentOf,
   useLiveQueue,
   useQueueProgress,
+  useRunCounts,
   useRunProgress,
+  useRunSent,
   useUploadQueue,
   type QueueItem,
   type QueueProgress,
 } from "@/lib/guest/use-upload-queue";
-import { uploadFile, type UploadOutcome } from "@/lib/upload/uploader";
+import {
+  hasKeptComplete,
+  uploadBurst,
+  uploadFile,
+  type BurstFile,
+  type UploadOutcome,
+} from "@/lib/upload/uploader";
+import { HEAL_AFTER_MS } from "@/lib/guest/use-upload-queue.heal";
 
-vi.mock("@/lib/upload/uploader", () => ({ uploadFile: vi.fn() }));
+vi.mock("@/lib/upload/uploader", () => {
+  const uploadFile = vi.fn();
+  // ★ THE BURST OVER THE ONE-FILE STAND-IN (compute-uploads): the queue sends what waits as one burst
+  // (`uploadBurst`, whose own engine `uploader.burst.test.ts` holds); here it drives `uploadFile` file by file,
+  // each in the air then told, and a refusal of the session is every later file's, never asked again (the burst's
+  // own rule for a refusal of who is sending).
+  const session = new Set([
+    "session_other_account",
+    "invalid_session",
+    "verification_required",
+  ]);
+  const uploadBurst = vi.fn(
+    async (args: {
+      files: readonly BurstFile[];
+      endpoints: { presign: string; complete: string };
+      identity: Record<string, string>;
+      onOutcome?: (index: number, outcome: UploadOutcome) => void;
+    }) => {
+      const out: UploadOutcome[] = [];
+      let stop: UploadOutcome | null = null;
+      for (const [i, one] of args.files.entries()) {
+        let outcome: UploadOutcome;
+        if (stop) {
+          outcome = stop;
+        } else {
+          one.onSending?.();
+          try {
+            outcome = (await uploadFile({
+              file: one.file,
+              endpoints: args.endpoints,
+              identity: args.identity,
+              onProgress: one.onProgress,
+              reelEligible: one.reelEligible,
+              poster: one.poster,
+            })) as UploadOutcome;
+          } catch {
+            // uploadBurst never rejects: one file's throw is that file's alone.
+            outcome = {
+              ok: false,
+              message:
+                "Something went wrong with that upload. Please try again.",
+            };
+          }
+          if (!outcome.ok && session.has(outcome.code ?? "")) stop = outcome;
+        }
+        out.push(outcome);
+        args.onOutcome?.(i, outcome);
+      }
+      return out;
+    },
+  );
+  // Whether a file's complete lost its answer and is kept: no file's, until a case says so (the heal's own pins).
+  const hasKeptComplete = vi.fn((_file: File) => false);
+  return { uploadFile, uploadBurst, hasKeptComplete };
+});
 vi.mock("sonner", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
 
 const mockUploadFile = vi.mocked(uploadFile);
@@ -505,6 +571,237 @@ describe("a join nobody at the door could fix", () => {
   });
 });
 
+/*
+ * ★ WHY A FILE DID NOT GO RIDES THE QUEUE (the failure sheet and the camera draw a dropped connection apart from a
+ * refusal by the transport's `cause`, never by matching its words): a drop carries its own, a refusal carries none, and a
+ * Retry gives it back with the rest of the failure. (Her own cancel used to be a third failure that carried
+ * `cause: "cancelled"`; since upload-cancel it is no failure at all: the file leaves the queue and the failure sheet
+ * never lists it, `use-upload-queue.stop.test.tsx`.)
+ */
+/**
+ * ★ A LOST ANSWER IS ASKED AGAIN FOR HER (red-team 55's LOW). A file that failed as a dropped connection with its complete
+ * kept may be in the album already (its row stands, only the answer was lost): the queue asks that very complete again,
+ * as her Retry does, a few seconds on, and tells the file as landed when the server's own row answers, so the sheet that
+ * listed it as failed lets it go and the album's tile is the queue's own landing. The ask is the hook's
+ * (`use-upload-queue.heal.test.tsx` pins when); this is what it does to the queue.
+ */
+describe("★ a lost answer heals itself", () => {
+  const DROPPED = "Your connection dropped. Check your signal, then try again.";
+  const droppedOutcome: UploadOutcome = {
+    ok: false,
+    message: DROPPED,
+    cause: "dropped",
+  };
+
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+    // What a case queued for the uploader and the kept complete it named go with it, whatever it ended on.
+    mockUploadFile.mockReset();
+    vi.mocked(hasKeptComplete).mockReset();
+  });
+
+  /** A file whose complete is kept, sent once and failed: the queue at the moment the guest is shown the failure. */
+  async function lostOnce(
+    props: Props = { sessionToken: STALE, isVerified: false },
+  ) {
+    answer({});
+    const file = makeFile("lost.jpg");
+    vi.mocked(hasKeptComplete).mockImplementation((f) => f === file);
+    mockUploadFile.mockResolvedValueOnce(droppedOutcome);
+    const q = mountQueue(props);
+    act(() => q.result.current.addFiles([file]));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(q.items()).toEqual([
+      expect.objectContaining({ status: "error", cause: "dropped" }),
+    ]);
+    return { q, file };
+  }
+
+  it("★ asks the kept complete again a few seconds on, and tells the file as landed when the row answers", async () => {
+    const { q, file } = await lostOnce();
+    mockUploadFile.mockResolvedValueOnce(landed("med-1"));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[0]);
+    });
+    // The very same File went again (the uploader sends its kept complete, never a presign or a byte), once.
+    expect(mockUploadFile).toHaveBeenCalledTimes(2);
+    expect(mockUploadFile.mock.calls[1]![0].file).toBe(file);
+    expect(q.items()).toEqual([
+      expect.objectContaining({
+        status: "done",
+        mediaId: "med-1",
+        error: undefined,
+        cause: undefined,
+      }),
+    ]);
+    // Told as any landing is: the album draws it as her own upload, once.
+    expect(q.onUploaded).toHaveBeenCalledTimes(1);
+    expect(q.onUploaded).toHaveBeenCalledWith(
+      expect.objectContaining({ file, mediaId: "med-1", status: "approved" }),
+    );
+  });
+
+  it("★ an ask that finds the line still down changes nothing she sees: the failure stands as it was, and the next ask is longer", async () => {
+    const { q } = await lostOnce();
+    mockUploadFile.mockResolvedValueOnce(droppedOutcome);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[0]);
+    });
+    expect(mockUploadFile).toHaveBeenCalledTimes(2);
+    expect(q.items()).toEqual([
+      expect.objectContaining({
+        status: "error",
+        cause: "dropped",
+        error: DROPPED,
+      }),
+    ]);
+    expect(q.onUploaded).not.toHaveBeenCalled();
+    // Not again after the same wait, but after the longer one.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[1] - 1);
+    });
+    expect(mockUploadFile).toHaveBeenCalledTimes(2);
+    mockUploadFile.mockResolvedValueOnce(landed("med-2"));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1);
+    });
+    expect(q.items()).toEqual([expect.objectContaining({ status: "done" })]);
+  });
+
+  it("★ leaves a failure that is not a lost answer to her Retry: a refusal, and a drop whose bytes never went", async () => {
+    answer({});
+    mockUploadFile
+      .mockResolvedValueOnce({
+        ok: false,
+        code: "too_large",
+        message: "Files for this event are capped at 500 MB.",
+      })
+      .mockResolvedValueOnce(droppedOutcome);
+    // Neither file's complete is kept: the first was refused outright, the second dropped before its complete.
+    vi.mocked(hasKeptComplete).mockReturnValue(false);
+    const q = mountQueue({ sessionToken: STALE, isVerified: false });
+    act(() =>
+      q.result.current.addFiles([makeFile("a.jpg"), makeFile("b.jpg")]),
+    );
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[2]);
+    });
+    expect(mockUploadFile).toHaveBeenCalledTimes(2);
+    expect(q.items().map((it) => it.status)).toEqual(["error", "error"]);
+  });
+
+  it("asks nothing on a device with no ticket, or while a door holds her: the join and the door are not this to make", async () => {
+    const { q } = await lostOnce({ sessionToken: STALE, isVerified: false });
+    q.rerender({ sessionToken: null, isVerified: false });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[0]);
+    });
+    expect(mockUploadFile).toHaveBeenCalledTimes(1);
+    q.rerender({ sessionToken: STALE, isVerified: false, doorOpen: false });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[1]);
+    });
+    expect(mockUploadFile).toHaveBeenCalledTimes(1);
+    expect(q.items()).toEqual([expect.objectContaining({ status: "error" })]);
+  });
+
+  it("asks through the host's own pair for the album's owner, as her Retry does", async () => {
+    const { q } = await lostOnce({
+      sessionToken: null,
+      isVerified: true,
+      ownerEventId: "evt-own",
+    });
+    mockUploadFile.mockResolvedValueOnce(landed("med-own"));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[0]);
+    });
+    expect(mockUploadFile.mock.calls[1]![0].identity).toEqual({
+      event_id: "evt-own",
+    });
+    expect(q.items()).toEqual([expect.objectContaining({ status: "done" })]);
+  });
+
+  it("is the file's complete asked again and no more: no join is made and no ticket is touched", async () => {
+    // Not her Retry in one thing: it never gives the silent join back (the head note), so a ticket that keeps being
+    // refused can never turn it into a row factory.
+    const { q } = await lostOnce();
+    mockUploadFile.mockResolvedValueOnce(landed("med-1"));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[0]);
+    });
+    expect(fetchUrls()).toEqual([]);
+    expect(q.onSession).not.toHaveBeenCalled();
+  });
+});
+
+describe("★ the cause of a failure rides the queue", () => {
+  const DROPPED = "Your connection dropped. Check your signal, then try again.";
+
+  it("a dropped connection carries its cause beside the sentence, a refusal none, and a cancel is no failure here", async () => {
+    answer({});
+    mockUploadFile
+      .mockResolvedValueOnce({ ok: false, message: DROPPED, cause: "dropped" })
+      .mockResolvedValueOnce({
+        ok: false,
+        message: "That upload was cancelled.",
+        cause: "cancelled",
+      })
+      .mockResolvedValueOnce({
+        ok: false,
+        code: "too_large",
+        message: "Files for this event are capped at 500 MB.",
+      });
+    const q = mountQueue({ sessionToken: STALE, isVerified: false });
+
+    act(() =>
+      q.result.current.addFiles([
+        makeFile("a.jpg"),
+        makeFile("b.jpg"),
+        makeFile("c.jpg"),
+      ]),
+    );
+    // The cancelled one (b) left the queue: the sheet lists what did not go, and a cancel is not that.
+    await waitFor(() =>
+      expect(q.items().map((it) => [it.file.name, it.status])).toEqual([
+        ["a.jpg", "error"],
+        ["c.jpg", "error"],
+      ]),
+    );
+    expect(q.items().map((it) => it.cause)).toEqual(["dropped", undefined]);
+    expect(q.items()[0]).toMatchObject({ error: DROPPED });
+    expect(q.items()[0].errorCode).toBeUndefined();
+    expect(q.items()[1]).toMatchObject({ errorCode: "too_large" });
+  });
+
+  it("a Retry gives the cause back with the rest of the failure", async () => {
+    answer({});
+    mockUploadFile.mockResolvedValueOnce({
+      ok: false,
+      message: DROPPED,
+      cause: "dropped",
+    });
+    const q = mountQueue({ sessionToken: STALE, isVerified: false });
+
+    act(() => q.result.current.addFiles([makeFile()]));
+    await waitFor(() =>
+      expect(q.items()[0]).toMatchObject({ status: "error", cause: "dropped" }),
+    );
+
+    // The second go stays in the air (queued only now, so a failure above never leaves it for the next test), and
+    // what the item holds is exactly what the Retry left it.
+    mockUploadFile.mockReturnValueOnce(new Promise<UploadOutcome>(() => {}));
+    act(() => q.result.current.retry(q.items()[0].id));
+    await waitFor(() => expect(q.items()[0].status).toBe("uploading"));
+    expect(q.items()[0].cause).toBeUndefined();
+    expect(q.items()[0].error).toBeUndefined();
+  });
+});
+
 describe("the ticket is read per file, never once per run", () => {
   it("★ the verified re-join after a mid-run flip sends the refused file on the NEW ticket", async () => {
     // A run that captured its ticket once would re-send this file on the SPENT ticket and fail
@@ -768,6 +1065,168 @@ const flying = (id: string, over: Partial<QueueItem> = {}): QueueItem => ({
   ...over,
 });
 
+describe("★ what waits goes as one burst (compute-uploads)", () => {
+  const burstMock = vi.mocked(uploadBurst);
+
+  it("picks waiting together are one burst, on one ticket, each told as it lands", async () => {
+    let n = 0;
+    mockUploadFile.mockImplementation(async () => landed(`med-${++n}`));
+    const q = mountQueue({ sessionToken: "ticket-1", isVerified: false });
+    act(() =>
+      q.result.current.addFiles([
+        makeFile("a.jpg"),
+        makeFile("b.jpg"),
+        makeFile("c.jpg"),
+      ]),
+    );
+    await waitFor(() =>
+      expect(q.items().map((it) => it.status)).toEqual([
+        "done",
+        "done",
+        "done",
+      ]),
+    );
+    expect(burstMock).toHaveBeenCalledTimes(1);
+    expect(burstMock.mock.calls[0]![0].files).toHaveLength(3);
+    expect(burstMock.mock.calls[0]![0].identity).toEqual({
+      session_token: "ticket-1",
+    });
+    expect(q.onUploaded).toHaveBeenCalledTimes(3);
+  });
+
+  it("★ only the file in the air is `uploading`; one whose bytes are up waits `queued` at 100 for its burst's record", async () => {
+    let release!: () => void;
+    const recorded = new Promise<void>((resolve) => (release = resolve));
+    burstMock.mockImplementationOnce(async ({ files, onOutcome }) => {
+      files[0]!.onSending?.();
+      files[0]!.onSent?.();
+      files[1]!.onSending?.();
+      await recorded;
+      const out = [landed("med-a"), landed("med-b")];
+      out.forEach((o, i) => onOutcome?.(i, o));
+      return out;
+    });
+    const q = mountQueue({ sessionToken: "ticket-1", isVerified: false });
+    act(() =>
+      q.result.current.addFiles([makeFile("a.jpg"), makeFile("b.jpg")]),
+    );
+    await waitFor(() =>
+      expect(q.items().map((it) => [it.status, it.progress])).toEqual([
+        ["queued", 100],
+        ["uploading", 0],
+      ]),
+    );
+    expect(q.onUploaded).not.toHaveBeenCalled();
+    await act(async () => release());
+    await waitFor(() =>
+      expect(q.items().map((it) => it.status)).toEqual(["done", "done"]),
+    );
+  });
+
+  it("a pick made while a burst goes rides the next burst", async () => {
+    let release!: () => void;
+    const first = new Promise<void>((resolve) => (release = resolve));
+    burstMock.mockImplementationOnce(async ({ files, onOutcome }) => {
+      await first;
+      const out = files.map((_, i) => landed(`med-${i}`));
+      out.forEach((o, i) => onOutcome?.(i, o));
+      return out;
+    });
+    mockUploadFile.mockResolvedValue(landed("med-late"));
+    const q = mountQueue({ sessionToken: "ticket-1", isVerified: false });
+    act(() =>
+      q.result.current.addFiles([makeFile("a.jpg"), makeFile("b.jpg")]),
+    );
+    await waitFor(() => expect(burstMock).toHaveBeenCalledTimes(1));
+    act(() => q.result.current.addFiles([makeFile("late.jpg")]));
+    await act(async () => release());
+    await waitFor(() =>
+      expect(q.items().map((it) => it.status)).toEqual([
+        "done",
+        "done",
+        "done",
+      ]),
+    );
+    expect(burstMock).toHaveBeenCalledTimes(2);
+    expect(burstMock.mock.calls[1]![0].files.map((f) => f.file.name)).toEqual([
+      "late.jpg",
+    ]);
+  });
+});
+
+/**
+ * ★ A REFUSAL OF THE FILE ITSELF, MADE ON THE PHONE, IS TOLD AS THE CODE THE LADDER KNOWS (red-team 54's LOW): the
+ * uploader refuses a wrong type and a file over the ceiling before any request, so it has no `code`, and the failure
+ * sheet offered a Retry whose press sent nothing (the same check refused the same file at once). The queue asks the file
+ * again with the uploader's own validators, so no surface offers a Retry that cannot pass.
+ */
+describe("a refusal of the file itself that the uploader made locally", () => {
+  const file = (name: string, type: string, size?: number) => {
+    const f = new File([new Uint8Array([1, 2, 3])], name, { type });
+    if (size !== undefined) Object.defineProperty(f, "size", { value: size });
+    return f;
+  };
+
+  it("localRefusalCode reads the file the way the uploader does: a type nobody takes, a file over the ceiling, else nothing", () => {
+    expect(localRefusalCode(file("notes.txt", "text/plain"))).toBe(
+      "unsupported_type",
+    );
+    expect(localRefusalCode(file("noname", ""))).toBe("unsupported_type");
+    expect(
+      localRefusalCode(file("big.mov", "video/quicktime", 11 * 1024 ** 3)),
+    ).toBe("too_large");
+    expect(localRefusalCode(file("a.jpg", "image/jpeg"))).toBeUndefined();
+  });
+
+  it("★ is given its code, so no surface offers it a Retry; a file that passes keeps its code-less failure", async () => {
+    mockUploadFile.mockResolvedValue({
+      ok: false,
+      message: "That upload didn't go through. Please try again.",
+    });
+    const q = mountQueue({ sessionToken: "ticket-1", isVerified: false });
+    act(() =>
+      q.result.current.addFiles([
+        file("notes.txt", "text/plain"),
+        file("big.mov", "video/quicktime", 11 * 1024 ** 3),
+        file("a.jpg", "image/jpeg"),
+      ]),
+    );
+    await waitFor(() =>
+      expect(q.items().every((it) => it.status === "error")).toBe(true),
+    );
+    // The sentences are the uploader's, untouched; only what a surface may do about them has a code now.
+    expect(q.items().map((it) => it.errorCode)).toEqual([
+      "unsupported_type",
+      "too_large",
+      undefined,
+    ]);
+  });
+
+  it("never speaks for the line: a connection that dropped stays a failure worth another go, whatever the file", async () => {
+    mockUploadFile.mockResolvedValue({
+      ok: false,
+      message: "Your connection dropped.",
+      cause: "dropped",
+    });
+    const q = mountQueue({ sessionToken: "ticket-1", isVerified: false });
+    act(() => q.result.current.addFiles([file("notes.txt", "text/plain")]));
+    await waitFor(() => expect(q.items()[0]?.status).toBe("error"));
+    expect(q.items()[0]?.errorCode).toBeUndefined();
+  });
+
+  it("leaves the server's own code as it spoke it", async () => {
+    mockUploadFile.mockResolvedValue({
+      ok: false,
+      code: "cap_reached",
+      message: "This album is full right now.",
+    });
+    const q = mountQueue({ sessionToken: "ticket-1", isVerified: false });
+    act(() => q.result.current.addFiles([file("notes.txt", "text/plain")]));
+    await waitFor(() => expect(q.items()[0]?.status).toBe("error"));
+    expect(q.items()[0]?.errorCode).toBe("cap_reached");
+  });
+});
+
 describe("useQueueProgress", () => {
   it("reads one item's live progress and re-renders on its ticks", () => {
     const progress = fakeProgress({ q1: 10 });
@@ -826,6 +1285,19 @@ describe("runProgressOf", () => {
       progress: 0.625,
       landed: 1,
       failed: 1,
+    });
+  });
+
+  it("★ a file whose bytes are up waits for its burst's record whole, never back at nothing (compute-uploads)", () => {
+    const progress = fakeProgress({ q1: 100, q2: 40 });
+    const items = [
+      flying("q1", { status: "queued", progress: 100 }),
+      flying("q2"),
+      flying("q3", { status: "queued" }),
+    ];
+    expect(runProgressOf(items, progress, NONE)).toMatchObject({
+      sending: 3,
+      progress: 0.467,
     });
   });
 
@@ -911,6 +1383,235 @@ describe("useRunProgress", () => {
     expect(result.current.sending).toBe(1);
     expect(result.current.landed).toBe(0);
     expect(result.current.progress).toBe(0);
+  });
+});
+
+/**
+ * ★ THE RUN'S OWN COUNT, FOR A FAILURE'S HEADING (crumbs-76; ROADMAP: "a Retry that fails again, or a slot mounted
+ * mid-run, reads '1 of 0 didn't upload'"). The heading's "SENT" was how many items the queue held beyond a baseline
+ * taken at the run's start, and a Retry adds no item: the baseline was the whole queue and the count nothing. The count
+ * is now the run's own files by their ids (`inRun`, the queue's one definition of a run), plus any failure the heading
+ * lists that an earlier try left, so what it lists is always part of what it counts.
+ */
+describe("runSentOf", () => {
+  const NONE: ReadonlySet<string> = new Set();
+
+  it("counts every file when nothing is known to be outside the run", () => {
+    const items = [
+      flying("a", { status: "done", progress: 100 }),
+      flying("b", { status: "error" }),
+    ];
+    expect(runSentOf(items, NONE, [items[1]!])).toBe(2);
+  });
+
+  it("★ a file going again is the run's, so a Retry is a run of one, never of none", () => {
+    // `a` failed in an earlier try and is queued again: it is in the run whatever else the queue holds.
+    const items = [
+      flying("old", { status: "done", progress: 100 }),
+      flying("a", { status: "queued" }),
+    ];
+    expect(runSentOf(items, new Set(["old"]), [])).toBe(1);
+    // ...and it is still the run's once it has failed again.
+    const again = [items[0]!, flying("a", { status: "error" })];
+    expect(runSentOf(again, new Set(["old"]), [again[1]!])).toBe(1);
+  });
+
+  it("★ leaves out what settled before the run began, and counts what the heading lists that did not go with it", () => {
+    const old = flying("old", { status: "done", progress: 100 });
+    const left = flying("left", { status: "error" });
+    const again = flying("again", { status: "error" });
+    // `left` failed in an earlier try and was not retried: listed, so counted (never "2 of 1").
+    expect(
+      runSentOf([old, left, again], new Set(["old", "left"]), [left, again]),
+    ).toBe(2);
+    // Not listed (dismissed to the next surface, say), it is outside the run.
+    expect(
+      runSentOf([old, left, again], new Set(["old", "left"]), [again]),
+    ).toBe(1);
+  });
+});
+
+/**
+ * ★ HOW MANY OF THE RUN'S FILES HAVE LANDED (red-team 54b's NIT), the other half of "N of SENT didn't upload": the sheet
+ * may say the rest is in the album only when every file it does not list has landed, and a file going again after a Retry
+ * is not one of them until it does.
+ */
+describe("runLandedOf", () => {
+  const NONE: ReadonlySet<string> = new Set();
+
+  it("counts the files that landed, not the ones going or refused", () => {
+    const items = [
+      flying("a", { status: "done", progress: 100 }),
+      flying("b", { status: "uploading", progress: 40 }),
+      flying("c", { status: "error" }),
+      flying("d", { status: "queued" }),
+    ];
+    expect(runLandedOf(items, NONE)).toBe(1);
+  });
+
+  it("leaves out what landed before the run began", () => {
+    const items = [
+      flying("old", { status: "done", progress: 100 }),
+      flying("a", { status: "done", progress: 100 }),
+    ];
+    expect(runLandedOf(items, new Set(["old"]))).toBe(1);
+  });
+});
+
+describe("useRunCounts", () => {
+  const failuresOf = (items: readonly QueueItem[]) =>
+    items.filter((it) => it.status === "error");
+  const countsOf = (items: readonly QueueItem[]) =>
+    renderHook(({ items }) => useRunCounts(items, failuresOf(items)), {
+      initialProps: { items },
+    });
+
+  it("★ a row's Retry on a run that failed whole is a run of two with none landed while it goes, then one landed", () => {
+    const failed = [
+      flying("a", { status: "error" }),
+      flying("b", { status: "error" }),
+    ];
+    const { result, rerender } = countsOf([
+      flying("a", { status: "queued" }),
+      flying("b", { status: "queued" }),
+    ]);
+    rerender({ items: failed });
+    expect(result.current).toEqual({ sent: 2, landed: 0 });
+    // a's own Retry: it goes up again, b stays listed.
+    rerender({
+      items: [flying("a", { status: "uploading" }), failed[1]!],
+    });
+    expect(result.current).toEqual({ sent: 2, landed: 0 });
+    // ...and lands.
+    rerender({
+      items: [flying("a", { status: "done", progress: 100 }), failed[1]!],
+    });
+    expect(result.current).toEqual({ sent: 2, landed: 1 });
+  });
+
+  it("agrees with useRunSent on what the run is", () => {
+    const items = [
+      flying("a", { status: "done", progress: 100 }),
+      flying("b", { status: "error" }),
+    ];
+    const counts = countsOf(items);
+    const sent = renderHook(() => useRunSent(items, failuresOf(items)));
+    expect(counts.result.current.sent).toBe(sent.result.current);
+  });
+});
+
+describe("useRunSent", () => {
+  /** The queue as the failure heading reads it: the items, and the failures it lists. */
+  const failuresOf = (items: readonly QueueItem[]) =>
+    items.filter((it) => it.status === "error");
+  const sentOf = (items: readonly QueueItem[]) =>
+    renderHook(({ items }) => useRunSent(items, failuresOf(items)), {
+      initialProps: { items },
+    });
+
+  it("★ a Retry that fails again reads the run it was, never 1 of 0", () => {
+    const first = [flying("a", { status: "error" })];
+    const { result, rerender } = sentOf(first);
+    expect(result.current).toBe(1);
+    // Retry: the very item goes queued, no item is added.
+    rerender({ items: [flying("a", { status: "queued" })] });
+    // ...and it fails again.
+    rerender({ items: [flying("a", { status: "error" })] });
+    expect(result.current).toBe(1);
+  });
+
+  it("★ a run begun here counts its own files and leaves out what an earlier run landed", () => {
+    const earlier = [flying("old", { status: "done", progress: 100 })];
+    const { result, rerender } = sentOf(earlier);
+    rerender({
+      items: [...earlier, flying("a"), flying("b", { status: "queued" })],
+    });
+    rerender({
+      items: [
+        ...earlier,
+        flying("a", { status: "done", progress: 100 }),
+        flying("b", { status: "error" }),
+      ],
+    });
+    expect(result.current).toBe(2);
+  });
+
+  it("★ a mount mid-run counts everything it holds: it never saw the run begin", () => {
+    // The door's run is going when the slot mounts: two landed, one in the air, one waiting.
+    const held = [
+      flying("a", { status: "done", progress: 100 }),
+      flying("b", { status: "done", progress: 100 }),
+      flying("c"),
+      flying("d", { status: "queued" }),
+    ];
+    const { result, rerender } = sentOf(held);
+    rerender({
+      items: [
+        held[0]!,
+        held[1]!,
+        flying("c", { status: "error" }),
+        flying("d", { status: "error" }),
+      ],
+    });
+    expect(result.current).toBe(4);
+  });
+
+  it("★ a single Retry beside failures still listed is that go continuing: the whole stays what it was", () => {
+    // Five went out together and three did not (the whole is five); the first of the three is retried, the other two
+    // stay listed, and the retry's run is a file of the same go.
+    const first = [
+      flying("a", { status: "uploading" }),
+      flying("b", { status: "queued" }),
+      flying("c", { status: "queued" }),
+      flying("d", { status: "queued" }),
+      flying("e", { status: "queued" }),
+    ];
+    const { result, rerender } = sentOf(first);
+    const ended = [
+      flying("a", { status: "error" }),
+      flying("b", { status: "error" }),
+      flying("c", { status: "error" }),
+      flying("d", { status: "done", progress: 100 }),
+      flying("e", { status: "done", progress: 100 }),
+    ];
+    rerender({ items: ended });
+    expect(result.current).toBe(5);
+    rerender({ items: [flying("a", { status: "queued" }), ...ended.slice(1)] });
+    // Two listed beside the one going again, in the same five: never "2 of 1", and never a whole that shrank to three.
+    expect(result.current).toBe(5);
+    rerender({ items: [flying("a", { status: "error" }), ...ended.slice(1)] });
+    expect(result.current).toBe(5);
+  });
+
+  it("★ a Retry of everything listed is a go of its own: the files going again, and nothing that landed before", () => {
+    const first = [
+      flying("a", { status: "uploading" }),
+      flying("b", { status: "queued" }),
+      flying("c", { status: "queued" }),
+    ];
+    const { result, rerender } = sentOf(first);
+    const ended = [
+      flying("a", { status: "error" }),
+      flying("b", { status: "error" }),
+      flying("c", { status: "done", progress: 100 }),
+    ];
+    rerender({ items: ended });
+    expect(result.current).toBe(3);
+    rerender({
+      items: [
+        flying("a", { status: "queued" }),
+        flying("b", { status: "queued" }),
+        ended[2]!,
+      ],
+    });
+    rerender({
+      items: [
+        flying("a", { status: "error" }),
+        flying("b", { status: "error" }),
+        ended[2]!,
+      ],
+    });
+    expect(result.current).toBe(2);
   });
 });
 

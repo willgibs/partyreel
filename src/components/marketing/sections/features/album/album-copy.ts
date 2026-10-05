@@ -153,7 +153,7 @@ export const STAYS = {
     "An album is for after, not just the day. Here is how long it stays.",
   steps: [
     { title: "Created", body: "It exists the moment you name the event." },
-    { title: "Stays", body: "No end date. Up until you say otherwise." },
+    { title: "Stays", body: "Never expires. Up until you say otherwise." },
     {
       title: "You delete",
       body: `Waits ${RECENTLY_DELETED_WINDOW_DAYS} days in Deleted. Restores as it was.`,

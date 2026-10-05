@@ -36,6 +36,17 @@ import {
   InvitedDemo,
   SettingsDemo,
 } from "./composition-demos";
+import { CreateRoomDemo } from "./create-room-demo";
+import { DownloadToastDemo } from "./download-toast-demo";
+import { HostGridArrivalDemo } from "./host-grid-arrival-demo";
+import { ModerationGridDemo } from "./moderation-grid-demo";
+import { PlanLimitsDemo } from "./plan-limits-demo";
+import { SpendWatchDemo } from "./spend-watch-demo";
+import {
+  LockChipDemo,
+  PricingSheetDemo,
+  WelcomeToProDemo,
+} from "./pricing-demos";
 
 /**
  * THE PRODUCT COMPOSITIONS, declared (the gallery round, 2026-09-12).
@@ -74,6 +85,37 @@ const qrSlot = (
 );
 
 export const COMPOSITION_ENTRIES: GalleryEntry[] = [
+  /* CREATE'S ROOM (library-specimens-2): the real wizard over the stand-in its `create` prop is for, in a real viewport
+     (the room is the whole screen, `fixed` and read against the viewport), so every screen can be pressed through with no
+     session and no row written. */
+  {
+    id: "create-room",
+    badge: "new",
+    family: "compositions",
+    section: "Create",
+    file: "src/components/app/create-event-wizard.tsx",
+    test: "src/components/app/create-event-wizard.test.tsx",
+    title: "Create's room",
+    for: "the whole screen a host makes an event in: her event's name, the album's style, the code's look, then her code developing, one question and one button to a screen, and the door before it at a plan's limit",
+    lede: "The real wizard in a real viewport, over the stand-in its `create` prop is for: Create event answers after a round trip with an event nobody wrote, so every screen can be pressed through with no session. Type a name and it rises into the head; the album's style plays its night once as the step opens (Live, Review and Disposable, each a small album moving through it); the code's look dresses her phone and the room's screen; Create event develops the sample into her code, with Print and Share and Settings' steps beneath. The frame is the viewport, so the room reads its width and height: a phone and a laptop are the room each is. Get it ready, See Pro and the close are held, since each leaves the room, and the name's field does not take focus as the room opens, which production's does.",
+    specimens: [
+      {
+        label: "At a phone",
+        hint: "375 by 812: type a name, Continue, pick a style, Continue, pick a look, Create event; Back or a hairline walks back",
+        node: <CreateRoomDemo screen="phone" />,
+      },
+      {
+        label: "At a laptop",
+        hint: "1440 by 900, zoomed down to the page's column: the frame's own viewport is still the laptop's",
+        node: <CreateRoomDemo screen="desk" />,
+      },
+      {
+        label: "At the plan's limit",
+        hint: "Free holds one event: the door arrives before the work and names the event holding the slot",
+        node: <CreateRoomDemo atCap />,
+      },
+    ],
+  },
   /* THE EVENT'S HEAD (added by lp/header-wiring at the HEAD of the list, under a heading of its own, so
      it lands on its own hunk): `event-header` r1's three picks as production composes them. */
   {
@@ -107,18 +149,18 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
     section: "The event's head",
     file: "src/components/app/event-feed/event-hub-head.tsx",
     title: "The hub's head",
-    for: "Maya's hub wearing her album's cover, her numbers and link on it and the code on its white mat",
-    lede: "One head on both sides of the code (`host=shared`): Maya sees her party as her guests do. The facts and the link under the title are today's (r2 redraws them); the code stands on its mat in the cover's corner, scannable from across a table, wearing its door on its corner. Once it has scrolled away the room cards' band carries its face and the code as a chip.",
+    for: "Maya's hub wearing her album's cover, her numbers and link on it, the facts strip along its foot and the code on its white mat",
+    lede: "One head on both sides of the code (`host=shared`): Maya sees her party as her guests do. Under the title stand the date, the guests, the views and the link; along the cover's foot runs the facts strip (`facts=strip`), one mark a photograph, each as tall as the photographs that landed within ten minutes of it, the newest lit while photographs land and the line ending in the album's number. The code stands on its mat in the cover's corner, scannable from across a table, wearing its door on its corner. Once it has scrolled away the room cards' band carries its face and the code as a chip.",
     specimens: [
       {
         label: "Tonight",
-        hint: "two people at her door, the lock's count on the code's corner",
+        hint: "two people at her door, the lock's count on the code's corner; the strip's newest marks stay lit for a quarter-hour after this page loads, as they do while photographs land",
         bleed: true,
         node: <HubCoverDemo />,
       },
       {
         label: "The week before",
-        hint: "nothing in the album: the house light",
+        hint: "nothing in the album: the house light, and the strip a quiet line that says No photos yet",
         bleed: true,
         node: <HubCoverDemo before />,
       },
@@ -188,12 +230,35 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
     test: "src/components/admin/report-queue.test.tsx",
     title: "Reports' own queue",
     for: "the review grid an operator works the night's reports in: the harm in front, worst first and the worst covered, the sweep's one Dismiss, the report whole with every verb, and a phone's two acts",
-    lede: "The real ReportQueue over a Saturday night of reports and writes that answer after a round trip and change nothing, so a reviewer here can never touch anyone's report. Space or a press opens a report whole; Remove…'s note is optional, Hold for forensics' reason is required and its Take it down too starts on; Ask for proof opens its question. At phone width each report carries Take it down and Hold for forensics, one press each.",
+    lede: "The real ReportQueue over a Saturday night of reports and writes that answer after a round trip and change nothing, so a reviewer here can never touch anyone's report. Space or a press opens a report whole; Remove…'s note is optional, Hold for forensics' reason is required and its Take it down too starts on; Ask for proof opens its question. At phone width each report carries Take it down and Hold for forensics, one press each. A report whose item has since been deleted is still that item's: its tile says the photo or the video was deleted, its chip says Deleted, and with nothing left to take down its verdict only closes.",
     specimens: [
       {
         label: "The front, the sweep, and the closed log under them",
-        hint: "View shows a covered photo · Space opens the report whole · at 375 the two acts",
+        hint: "View shows a covered photo · Space opens the report whole · two reports name an item since deleted · at 375 the two acts",
         node: <AdminReportCardDemo />,
+      },
+    ],
+  },
+  {
+    id: "admin-albums-grid",
+    badge: "new",
+    family: "compositions",
+    section: "The operations portal",
+    file: "src/components/admin/moderation-grid.tsx",
+    test: "src/components/admin/moderation-grid.test.tsx",
+    title: "The Albums browser's grid",
+    for: "the operator's grid of an album's items: Remove on what is up, Restore on what was removed, and the worst kinds covered, a tile with no picture at all that opens nothing",
+    lede: "The real ModerationGrid over four tiles: a seen photograph, a removed one, a video, and a covered one. A report of the worst kinds names a covered item, so nothing of it is signed (no url of any kind), its tile draws the reports inbox's own cover, the viewer steps only through what is seen, and Remove and Restore stay on it since neither needs a look. The portal's two writes come in as props, so the Library hands the grid its own: Remove asks through the portal's sheet and each write answers after a round trip, moving the tile in the specimen's own list, so the whole flow is pressed here and nothing is written. The album caption's link is held: it goes nowhere.",
+    specimens: [
+      {
+        label: "The feed, with the album's caption",
+        hint: "Covered tile has no picture to open · tap a seen tile for the viewer · Remove asks through the sheet, Restore brings it back, both over a stand-in write",
+        node: <ModerationGridDemo />,
+      },
+      {
+        label: "Inside one album",
+        hint: "mode=album · the caption is gone, since the page already says which album",
+        node: <ModerationGridDemo mode="album" />,
       },
     ],
   },
@@ -212,6 +277,87 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
         label: "A trend and a distribution, past 1,000",
         hint: "hover a point or a bar for the exact count; every tick reads whole at any width",
         node: <AdminMetricsChartsDemo />,
+      },
+    ],
+  },
+  {
+    id: "plan-limits",
+    badge: "new",
+    family: "compositions",
+    section: "The operations portal",
+    file: "src/app/admin/jobs/limits-card.tsx",
+    test: "src/app/admin/jobs/limits-card.test.tsx",
+    title: "The Plan limits card",
+    for: "every vendor's meter against its plan's limit on /admin/jobs, the spend watch's last run as a bar and its words, never as a number a meter is not",
+    lede: "The real PlanLimitsCard over runs written by hand, so every state the portal can show is here without an operator's sign-in. A meter is drawn as what it is: a bar and its words under a level's chip, never as a number it is not. One that could not be read says No reading and why, a missing or unreadable run says so in words, and nothing draws a calm card over a gap. Built from the real `METERS`, so a meter added there reaches every card.",
+    specimens: [
+      {
+        label: "Every meter read, a few percent in",
+        hint: "the one card that may say a plain OK; each bar is the share of the plan's limit and each row says how fast it climbs",
+        node: <PlanLimitsDemo state="healthy" />,
+      },
+      {
+        label: "Past a threshold",
+        hint: "Active CPU critical, CDN requests warning, R2 storage a floor: the chip takes the worst, and a critical meter says what breaking it costs",
+        node: <PlanLimitsDemo state="critical" />,
+      },
+      {
+        label: "A failed read",
+        hint: "Vercel refused the token: its four meters have no bar and no number, only No reading and why in the failure tone, and the chip says it",
+        node: <PlanLimitsDemo state="failed" />,
+      },
+      {
+        label: "Gaps: Not wired",
+        hint: "a meter with no reader says Not wired (or that the vendor reports none), in words and no tone; the chip says Partly read and the header counts them",
+        node: <PlanLimitsDemo state="gaps" />,
+      },
+      {
+        label: "Nothing to show",
+        hint: "no run has carried the limits yet, and a run that could not be read: said in words, never a calm card",
+        node: (
+          <div className="flex w-full flex-col gap-4">
+            <PlanLimitsDemo state="never" />
+            <PlanLimitsDemo state="unreadable" />
+          </div>
+        ),
+      },
+    ],
+  },
+  {
+    id: "spend-watch-card",
+    badge: "new",
+    family: "compositions",
+    section: "The operations portal",
+    file: "src/app/admin/jobs/spend-watch-card.tsx",
+    test: "src/app/admin/jobs/spend-watch-card.test.tsx",
+    title: "The spend watch's card",
+    for: "every reading of the spend watch's last run against its ceiling on /admin/jobs, and the switches it can stop: a number against its ceiling, Tripped with what to check, No reading with why, never a number a reading is not",
+    lede: "The real card over runs written by hand, drawn as the page draws it: the readings above the switches it can stop. A quiet night reads as numbers under their ceilings with every switch on; a runaway night marks Tripped with what to check where the source stood, tints the row, offers the uploads switch (only a person pauses it) and shows a pause the watch made itself, still the watch's until someone turns it back on; a reading the watch could not take says No reading and why in the failure tone, and one warming up says so; and a missing or unreadable run says it in words, with no switch drawn as on. The two switches this card holds are pressed through their whole flow here (the portal's one sheet saying what pausing reaches, the pause, the way back) over a stand-in write: pausing guest uploads is a platform-wide act and the lab runs against the real project, so nothing is written.",
+    specimens: [
+      {
+        label: "A quiet night",
+        hint: "the one card that may say nothing is wrong: every reading under its ceiling, every switch on · press a switch off for the sheet, then Pause",
+        node: <SpendWatchDemo state="healthy" />,
+      },
+      {
+        label: "A runaway night",
+        hint: "uploads, bytes and downloads past their ceilings: Tripped, the row tinted, what to check in place of the source · Guest uploads offered, Download all paused by the watch itself",
+        node: <SpendWatchDemo state="tripped" />,
+      },
+      {
+        label: "A reading missing",
+        hint: "Accounts signed in has No reading and why, in the failure tone; Uploads is warming up: neither is drawn as a number",
+        node: <SpendWatchDemo state="missing" />,
+      },
+      {
+        label: "Nothing to show",
+        hint: "the watch has not run: said in words, never a calm table",
+        node: <SpendWatchDemo state="none" />,
+      },
+      {
+        label: "Unreadable",
+        hint: "the run and the switches could not be read: both say so, and no switch is shown as on",
+        node: <SpendWatchDemo state="unreadable" />,
       },
     ],
   },
@@ -502,6 +648,11 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
           </LikesProvider>
         ),
       },
+      {
+        label: "A guest sends a photo",
+        hint: "the album's arrival: the new one waits for its picture, the row opens where it lands, it glows for one length · five at once is a burst · the tile's verbs and the viewer's are held · the rows follow this window's width",
+        node: <HostGridArrivalDemo />,
+      },
     ],
   },
   {
@@ -629,6 +780,101 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
         label: "Invited",
         hint: "type one and press Enter, or paste a list with a bad entry in it",
         node: <InvitedDemo />,
+      },
+    ],
+  },
+  /* THE PLANS' SURFACE (library-specimens-3): the real sheet, chip and receipt over the doors the surface names
+     (`pricing-doors.tsx`), so Checkout, the billing portal and Stripe's confirm page are nowhere in reach and the
+     sheet opens on a fixture's facts, in a real viewport at a laptop and a phone. */
+  {
+    id: "pricing-sheet",
+    file: "src/components/app/pricing/pricing-sheet.tsx",
+    test: "src/components/app/pricing/pricing-sheet.test.tsx",
+    title: "PricingSheet",
+    for: "the plans, inside the app: led by the reason it opened (a locked control, no room, a look at the plan), two cards and a price for a host choosing a first plan, her three sizes under one Monthly / Yearly toggle for a Pro host, the pass on one line, a quiet foot to the full page",
+    badge: "new",
+    family: "compositions",
+    section: "Plans and billing",
+    lede: "The real sheet over the doors the surface names, so the buttons that leave for Stripe do what they do until they would leave and then say the Library stops there, and it opens on a fixture's facts after the pause a real read takes. A popup of the plan kind: a wide dialog at a laptop, the whole screen under a close in a hand. Four hosts: a Free host who pressed the video lock, a pass holder whose albums outgrew the smallest size, a pass holder looking at the plan, and a Pro host with three sizes (one too small for what she stores, one a switch). Nothing is fetched, posted or opened.",
+    specimens: [
+      {
+        label: "A locked control, on Free",
+        hint: "trigger=locked · opens on the feature's own words, Free beside one Pro card, the pass on one line",
+        node: <PricingSheetDemo state="locked" />,
+      },
+      {
+        label: "Out of room, a pass holder",
+        hint: "trigger=room · the read moves the card to the smallest size that fits and says which it skipped",
+        node: <PricingSheetDemo state="room" />,
+      },
+      {
+        label: "A look at the plan, a pass holder",
+        hint: "trigger=plan · the Pro card and Add a pass, never Free",
+        node: <PricingSheetDemo state="pass" />,
+      },
+      {
+        label: "A Pro host's three sizes",
+        hint: "a quiet list until her plan is read · her size held, one too small, one a switch · Manage billing",
+        node: <PricingSheetDemo state="pro" />,
+      },
+    ],
+  },
+  {
+    id: "lock-chip",
+    file: "src/components/app/pricing/lock-chip.tsx",
+    test: "src/components/app/pricing/lock-chip.test.tsx",
+    title: "LockChip",
+    for: "the one component behind every locked control: the control's own name and the plan that opens it, a tooltip saying why it is locked, a press that opens the plans' sheet led by that feature. Convert, not block",
+    badge: "new",
+    family: "compositions",
+    section: "Plans and billing",
+    lede: "A locked control is a button, never a dead label: it wears its own name and the plan, says why in its tooltip, and opens the sheet on the feature it stands for. Three chips over a Free host; press one and the sheet opens in this window over the inert doors (a laptop's wide dialog, a phone's whole screen).",
+    specimens: [
+      {
+        label: "Three locked controls",
+        hint: "hover or focus a chip for why it is locked · press it for the sheet, led by its feature",
+        node: <LockChipDemo />,
+      },
+    ],
+  },
+  {
+    id: "welcome-to-pro",
+    file: "src/components/app/pricing/welcome-to-pro.tsx",
+    test: "src/components/app/pricing/welcome-to-pro.test.tsx",
+    title: "WelcomeToPro",
+    for: "the door out of Checkout: a receipt that says the plan only once the server has it, and heals itself when the webhook is late",
+    badge: "new",
+    family: "compositions",
+    section: "Plans and billing",
+    lede: "What a host lands on after paying. Stripe redirects the instant payment succeeds, routinely seconds before the webhook writes the tier, so the receipt decides which of two true things to say: the plan is on (its three facts and the way on), or the payment is in and the plan is being applied. A pending receipt re-reads the server a bounded number of times and flips to the real one. Over a router that goes nowhere, at a laptop and a phone.",
+    specimens: [
+      {
+        label: "The plan is on",
+        hint: "applied · the room it holds, video, no watermark · Go to your dashboard closes it",
+        node: <WelcomeToProDemo state="applied" />,
+      },
+      {
+        label: "The webhook is late",
+        hint: "Payment received, then, after its first re-read, Welcome to Pro · Replay plays the race again",
+        node: <WelcomeToProDemo state="race" />,
+      },
+    ],
+  },
+  {
+    id: "download-toast",
+    badge: "new",
+    family: "compositions",
+    section: "Downloads",
+    file: "src/components/app/export/export-toast.tsx",
+    test: "src/components/app/export/export-toast.test.tsx",
+    title: "The download's toast",
+    for: "the one toast a download, updated in place through every state the walk passes: a question, a cancel, a dropped connection, a line lost mid-stream, saved",
+    lede: "The real toast on the product's own toaster, fired and not drawn: each button hands `exportToasts` the view the download's walk builds for that state, and the toast appears at the top of the page, under the header, replacing the last by its one id as a walk does. Its x, a question's answers and Try again walk the fixture where they lead in production; nothing is minted, fetched or posted. The words are the walk's own (`lib/export/walk.ts`).",
+    specimens: [
+      {
+        label: "Every state, one toast",
+        hint: "press a state and look up: the cancel question, Download cancelled., a dropped connection, a line lost mid-stream, saved, and the rest of the nine tones",
+        node: <DownloadToastDemo />,
       },
     ],
   },

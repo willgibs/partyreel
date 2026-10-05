@@ -121,82 +121,42 @@
  *      own form, keeps a row the new address already had without ever raising, still returns first for an account
  *      being deleted, and stays trivial and uncallable by a client role.
  */
-import { readFileSync, readdirSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
 import { DOOR_NAME_KEY } from "@/app/(auth)/door-name-key";
 import { QR_STYLE_KEYS } from "@/lib/constants/qr-presets";
+import {
+  allMigrations,
+  executableMigrations,
+  liveFunction,
+  liveFunctions,
+  MIGRATIONS_DIR,
+} from "@/lib/db/testing/migrations";
 import { createEventSchema, updateEventSchema } from "@/lib/validation/event";
 import { DISPLAY_NAME_MAX_LENGTH } from "@/lib/validation/profile";
 
 const ROOT = join(__dirname, "..", "..", "..");
-const MIGRATIONS_DIR = join(ROOT, "supabase/migrations");
 
 /** Whitespace-tolerant: the shape is the contract, never the SQL's line breaks. */
 function collapse(sql: string): string {
   return sql.replace(/\s+/g, " ");
 }
 
-/** Every migration, in timestamp order, as one string — for facts that are not a function body. */
-function allMigrations(): string {
-  return readdirSync(MIGRATIONS_DIR)
-    .filter((f) => f.endsWith(".sql"))
-    .sort()
-    .map((f) => readFileSync(join(MIGRATIONS_DIR, f), "utf8"))
-    .join("\n");
-}
-
 /**
- * The definition that actually WINS on the live DB: the LAST `create [or replace] function
- * public.<name>(` across the migration set in timestamp order, sliced to its closing dollar-quote
- * (bodies use `$$` and `$function$`; the tag is read from the `as $tag$` opener so either works).
- * Returns the winning body and the whole winning FILE (grants live outside the body).
+ * The definition that actually WINS on the live DB: the last `create [or replace] function public.<name>(`
+ * of the overloads still standing after the whole set is replayed, creates AND drops, in timestamp order
+ * (`testing/migrations.ts`, shared with the two row-cap tests). ★ A function a later file drops is not
+ * defined: this throws, naming the file that drops it, where it used to answer with the body it had before
+ * (the old reader scanned creates alone), so a pin on a dropped function failed nowhere and guarded nothing.
+ * Returns the winning statement, `create` to its closing dollar-quote and `;`, comments kept, and the whole
+ * winning FILE (grants live outside the body).
  */
 function latestDefinition(name: string): { body: string; file: string } {
-  const files = readdirSync(MIGRATIONS_DIR)
-    .filter((f) => f.endsWith(".sql"))
-    .sort();
-  let latest: { body: string; file: string } | null = null;
-  for (const file of files) {
-    const sql = readFileSync(join(MIGRATIONS_DIR, file), "utf8");
-    // The open paren keeps create_media from matching create_media_as_host.
-    const starts = [
-      sql.indexOf(`create or replace function public.${name}(`),
-      sql.indexOf(`create function public.${name}(`),
-    ].filter((i) => i !== -1);
-    if (starts.length === 0) continue;
-    const start = Math.min(...starts);
-    const opener = sql.slice(start).match(/as \$([a-z_]*)\$/);
-    expect(opener, `${file}: ${name} has no dollar-quoted body`).not.toBeNull();
-    const tag = `$${opener![1]}$`;
-    const bodyStart = start + opener!.index! + opener![0].length;
-    const close = sql.indexOf(`${tag};`, bodyStart);
-    expect(close, `${file}: ${name} body never closes`).toBeGreaterThan(start);
-    latest = { body: sql.slice(start, close + tag.length + 1), file: sql };
-  }
-  expect(latest, `${name} defined nowhere`).not.toBeNull();
-  return latest!;
-}
-
-/**
- * Every migration's EXECUTABLE SQL, one entry per file in timestamp order: line comments stripped
- * first (a grant or a policy quoted in prose is not a grant or a policy), then whitespace collapsed.
- */
-function executableMigrations(): { file: string; sql: string }[] {
-  return readdirSync(MIGRATIONS_DIR)
-    .filter((f) => f.endsWith(".sql"))
-    .sort()
-    .map((file) => ({
-      file,
-      sql: collapse(
-        readFileSync(join(MIGRATIONS_DIR, file), "utf8").replace(
-          /--[^\n]*/g,
-          "",
-        ),
-      ),
-    }));
+  const { raw, fileSql } = liveFunction(name);
+  return { body: raw, file: fileSql };
 }
 
 /** Does a GRANT/REVOKE object list name the guests table (alone, in a list, or schema-wide)? */
@@ -2720,20 +2680,9 @@ describe("the per-event block and the always-on guest list (20260928120000)", ()
   it("no winning function body reads the retired guest-list switch", () => {
     // The guest list is always on (Will, `room=always`). 20260929160000 drops the column; no function
     // body read it before, and none may name it again.
-    const names = new Set<string>();
-    for (const file of readdirSync(MIGRATIONS_DIR).filter((f) =>
-      f.endsWith(".sql"),
-    )) {
-      const text = readFileSync(join(MIGRATIONS_DIR, file), "utf8");
-      for (const m of text.matchAll(
-        /create (?:or replace )?function public\.([a-z0-9_]+)\(/g,
-      )) {
-        names.add(m[1]);
-      }
-    }
-    const readers = [...names].filter((name) =>
-      code(name).includes("show_guest_list"),
-    );
+    const readers = liveFunctions()
+      .map((fn) => fn.name)
+      .filter((name) => code(name).includes("show_guest_list"));
     expect(readers).toEqual([]);
   });
 });
@@ -3776,27 +3725,9 @@ describe("the join waits for the door (crumbs-24, 20260930100000)", () => {
   const READ =
     "select * into v_event from public.events where qr_token = p_qr_token and deleted_at is null for share;";
 
-  /** Every function's winning body, comments stripped, read in one pass over the set. */
+  /** Every live function's winning body, as code (comments stripped, whitespace collapsed), in one pass over the set. */
   function latestBodies(): Map<string, string> {
-    const bodies = new Map<string, string>();
-    for (const file of readdirSync(MIGRATIONS_DIR)
-      .filter((f) => f.endsWith(".sql"))
-      .sort()) {
-      const text = readFileSync(join(MIGRATIONS_DIR, file), "utf8").replace(
-        /--[^\n]*/g,
-        "",
-      );
-      for (const m of text.matchAll(
-        /create (?:or replace )?function public\.([a-z_]+)\(/g,
-      )) {
-        const opener = text.slice(m.index).match(/as \$([a-z_]*)\$/);
-        if (!opener) continue;
-        const tag = `$${opener[1]}$`;
-        const start = m.index + opener.index! + opener[0].length;
-        bodies.set(m[1], text.slice(m.index, text.indexOf(`${tag};`, start)));
-      }
-    }
-    return bodies;
+    return new Map(liveFunctions().map((fn) => [fn.name, fn.code]));
   }
 
   it("★ both mints of an ask read the door under its row's share lock, before anything else", () => {
@@ -3968,30 +3899,9 @@ describe("no door's opening admits a blocked ask, and the door's asks are read o
     collapse(latestDefinition(name).body.replace(/--[^\n]*/g, ""));
   const ASKS = "public.event_door_asks(";
 
-  /** Every function's winning body, comments stripped and collapsed, in one pass over the set. */
+  /** Every live function's winning body, as code (comments stripped, whitespace collapsed), in one pass over the set. */
   function winningBodies(): Map<string, string> {
-    const bodies = new Map<string, string>();
-    for (const file of readdirSync(MIGRATIONS_DIR)
-      .filter((f) => f.endsWith(".sql"))
-      .sort()) {
-      const text = readFileSync(join(MIGRATIONS_DIR, file), "utf8").replace(
-        /--[^\n]*/g,
-        "",
-      );
-      for (const m of text.matchAll(
-        /create (?:or replace )?function public\.([a-z_]+)\(/g,
-      )) {
-        const opener = text.slice(m.index).match(/as \$([a-z_]*)\$/);
-        if (!opener) continue;
-        const tag = `$${opener[1]}$`;
-        const start = m.index + opener.index! + opener[0].length;
-        bodies.set(
-          m[1],
-          collapse(text.slice(m.index, text.indexOf(`${tag};`, start))),
-        );
-      }
-    }
-    return bodies;
+    return new Map(liveFunctions().map((fn) => [fn.name, fn.code]));
   }
 
   it("★ the asks a door may let in, read once: every waiting row of a live event no block holds, and whether the list names it", () => {

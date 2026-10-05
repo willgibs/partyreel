@@ -1,7 +1,7 @@
 # Guest flow — the `/e/[token]` event page
 
 > ROLE: what a guest (or a signed-in visitor) experiences on the one event link, and how joining/uploading is gated.
-> BELONGS HERE: the `/e/[token]` page, WHO A GUEST IS (the definition every surface counts by), the door (six of them, `visibility` + `gate`, one decision a request: the shut, held and ask doors), capability tokens, the password gate + unlock cookie, the gated view (`none` / `teaser` / `full`), the door's steps (the `require_verified_email` switch, An email first, with its name-only door; A photo first), silent join, the confirm doors and the return after one, the auth-aware header island, the live gallery (the one live source, doorbell + conditional poll), the link card, demo mode. · NOT HERE: the highlight reel and the clip (the tile, the view that is also the wall, the approval toast, the creator's seam → [reel.md](reel.md)), the upload pipeline + R2 + lightbox mechanics (→ [uploads-and-r2.md](uploads-and-r2.md)), the dashboard and its claims review (→ [dashboard.md](dashboard.md)), host-side event config and the Guest cards (→ [host-app.md](host-app.md)), why a rule was chosen and what shipped when (→ git).
+> BELONGS HERE: the `/e/[token]` page, WHO A GUEST IS (the definition every surface counts by), the door (six of them, `visibility` + `gate`, one decision a request: the shut, held and ask doors), capability tokens, the password gate + unlock cookie, the gated view (`none` / `teaser` / `full`), the door's steps (the `require_verified_email` switch, An email first, with its name-only door; A photo first), silent join, the confirm doors and the return after one, the auth-aware header island, the live gallery (the one live source, doorbell + conditional poll), the link card, demo mode. · NOT HERE: the highlight reel and the clip (the tile, the view that is also the wall, the approval toast, the creator's seam → [reel.md](reel.md)), the upload pipeline + R2 + lightbox mechanics (→ [uploads-and-r2.md](uploads-and-r2.md)), the dashboard and its claims review (→ [dashboard.md](dashboard.md)), host-side event config and the Guest cards (→ [host-app.md](host-app.md)), the album's camera (→ [disposable-mode.md](disposable-mode.md)), why a rule was chosen and what shipped when (→ git).
 > GROWS BY: integrate-in-place.
 
 ## What it does
@@ -59,8 +59,10 @@ album a stranger has not seen yet.
 **The keep is the capture flow**: confirm an email and the uploads, with the event they went into, stay in the
 account; then follow the host. Its copy says "in your account", never "on your profile", since a profile publishes
 nothing until its owner chooses. It is due the instant a signed-out guest's first file lands this visit (from the
-door's upload step or the album's Add; never in the demo or for the host) and held while the album's camera is open
-(`keepDue`, `onCameraOpenChange`). The door reopens on Sent over what went, named as it is (`keepSent`; where what
+door's upload step or the album's Add; never in the demo or for the host), and held while a camera is open
+(`keepDue`, `onCameraOpenChange`, the door's own camera's too: [disposable-mode.md](disposable-mode.md)) and while any
+of her files is still going: a burst records in groups, so the keep would rise at the first group over files in the air and count too few,
+where it now comes once nothing is queued or going, with the whole count. The door reopens on Sent over what went, named as it is (`keepSent`; where what
 she adds waits, how it develops, `keepWaitLine`, never "joined"), then the ask (`keepCopy`, `KEEP_TITLE`): Confirm
 your email (the account door in the same held sheet, its `keep` wear, carrying the product's one newsletter opt-in
 through `/api/guests/capture-email`) or Maybe later (put down for that event on that device, `pr_save_prompt_<qr>`,
@@ -100,16 +102,21 @@ copy would be one list twice on one screen. Its card is `getHostCard(eventId)` f
 read beside it so its Follow starts on Following; no card means no host row, never a stub.
 
 - **Stats**: `getGalleryStats(event)` ([`guest-events-admin.ts`](../../src/lib/db/queries/guest-events-admin.ts))
-  → `{approvedTotal, guestCount}`: a head count of approved media (`countApprovedMedia`, request-scoped, so the
-  stats and the gallery payload share one answer), and the one count of guests (`getEventGuests`, the same
-  function the host's hub reads, so the album and the hub never say two numbers for one party; never the host).
+  → `{approvedTotal, guestCount, kinds}`: a head count of approved media (`countApprovedMedia`, request-scoped, so the
+  stats and the gallery payload share one answer), the one count of guests (`getEventGuests`, the same
+  function the host's hub reads, so the album and the hub never say two numbers for one party; never the host), and
+  what N holds by kind (`kinds`, `{photos, videos}`: ONE more head count, of the videos, in the same round, and photos
+  are the total less them, so the two always add up to the number beside them; the poll never asks). `kinds` is
+  null where this request is not past the lock (`pastTheLock`: a locked page's tease is a name and a size, so its
+  payload carries the count alone), where the read failed (reported, never the page's failure) and where the videos
+  outrun the total (the two heads are no one snapshot).
   ★ **NUMBERS ONLY ever leave the server**, never a guest_id or an identity. N goes live through
   `GalleryLiveProvider`'s `onCountChange` ("One true count" below); M is seeded by the page RSC and kept current by the
   album's sync (`/api/album/guest/sync`), which carries `guestCount` on a 200 only (read after its 304 check, so the
   steady poll pays nothing, and never on a locked page) and hands it up through `onGuestCountChange`, since only the
   server can tell a guest's first upload from a returning contributor's. M stays outside the ETag: whatever moves it
   changes the payload the ETag already hashes. The album's own label and the cover's glyph say N in the source's words
-  (`albumCountWords`), so the page never counts one album two ways.
+  (`albumCountWords`), the cover's from the first byte out of `kinds`, so the page never counts one album two ways.
 - **The album, in justified rows** ([`gallery-rows.tsx`](../../src/components/guest/gallery-rows.tsx) over the
   shared `MasonryColumns` `layout="rows"`, [design-system.md](design-system.md)'s `rows`, windowed by
   [`album-window.tsx`](../../src/components/shared/album-window.tsx)): only the rows around the view are mounted; a
@@ -142,10 +149,44 @@ read beside it so its Follow starts on Following; no card means no host row, nev
     run. A file the browser cannot draw (an iPhone `.mov`, a HEIC outside Safari) is a named stand-in with its size
     ([`upload/pick-preview.tsx`](../../src/components/guest/upload/pick-preview.tsx): `onError` is the only honest
     test); the picks' object URLs have one owner ([`use-pick-urls.ts`](../../src/components/guest/upload/use-pick-urls.ts)).
+  - **The stack's x** (`upload/stack-tile.tsx`, asked through `gallery-rows.tsx`): the stack at the album's head stops
+    the file in the air, one at a time (E6). It asks first on the product's toast ("Stop this upload?", Keep going
+    first), then the queue's `stop` aborts that file alone (each file of a burst carries its own signal: its siblings
+    go on and are recorded together) and the toast says "Upload cancelled." with Try again, which puts the same file
+    back. A stopped file is no failure: it leaves the queue (the failure sheet, the shutter's ring and her uploads never
+    count it) and nothing is recorded or metered. The x is drawn only while the file can still be stopped (going up, or
+    not yet begun; gone once its bytes are up and its complete is coming), a question whose file left the stack, or whose
+    x went, is withdrawn (a Stop it offered could only answer too late), and a stop too late to take says nothing (the file lands) and says it at once: with every file of its burst
+    up (so its complete is asked and an abort would be ignored) the queue answers too late on the press, aborting
+    nothing, where an answer that waited for the landing left the question on screen, unchanged, for as long as the
+    complete took (seconds, longer for a burst) and read as an unheard press; a file up while a sibling still goes only
+    waits for it, so its stop still takes it back. The stop reaches the stack on the progress
+    store it already reads (`QueueProgress.stop`), so no prop runs through the page, the provider and the gallery.
   - **The failure sheet** ([`upload/failure-sheet.tsx`](../../src/components/guest/upload/failure-sheet.tsx)): nothing
     interrupts while files go; when the run ends with anything refused it opens once, a line per file (its name, the
-    server's sentence, Retry) over one `Retry all`, under a line on the rest that is true where it is said
-    (`uploadFailureElsewhere`). A refused file draws no tile and nothing toasts, except the join's own failure
+    server's sentence, Retry; a dropped connection's line wears a signal mark, told by the queue's `cause`, never its
+    words; a file she stopped is never listed, it left the queue) over one `Retry all`. It heads on the door's own scale
+    (`DoorHeading` in its `announce` mode, so the heading IS the dialog's title: the door's upload step says this very
+    failure on it too) with "N of SENT didn't upload", where SENT is the run's own files (`useRunSent`,
+    [`use-upload-queue.ts`](../../src/lib/guest/use-upload-queue.ts)): the queue's own `inRun` (every file not settled
+    when the run began, a Retry included) plus any failure the heading lists that an earlier try left, read off the
+    items by id and never off how many the queue holds (a Retry adds no item). A run that begins with failures still
+    listed (one of three Retried while the sheet stands over the other two) is their go continuing, so the whole keeps
+    its meaning; one that begins with none (Retry all, the next pick) is a go of its own, and a slot mounted mid-run
+    counts everything it holds. Under it is a line on the rest that is true where it is said
+    (`uploadFailureElsewhere`), said only where the run sent more than failed and every file the sheet does not list has
+    landed (`useRunCounts`, one baseline for both numbers): a run that failed whole has no "Everything else", and a
+    row's Retry, which takes its file out of the list while it goes, says nothing of the rest until that file lands. A
+    file that failed as a dropped connection with its complete kept (`hasKeptComplete`: the row may stand, and the album
+    may already show it) is asked again for her by the queue (`use-upload-queue.heal.ts`: 5, 20 and 60 s on, the moment
+    the browser says the line is back and when the page is looked at again, none while it says it is offline and none
+    spent on it; three asks a File, never a loop; a Retry's own runner, so the two never race), so the sheet lets its row go when the server answers instead of saying "didn't
+    upload" over a photograph in the album. A refusal of the file itself (`retryCanPass`: a type nobody takes, a file over the ceiling, a video where the
+    album takes none) lists with no Retry, and where every line is one the sheet says the way on
+    (`uploadFailureChooseAgain`, which the door's step says too, and whose failure view lists each file and its reason
+    whatever the verdict, with no Retry on a refusal and "Choose other photos" the way on). The uploader refuses a wrong type or a file over its
+    ceiling itself, before any request, so those carry no server code: the queue gives them one from the file
+    (`localRefusalCode`) and they meet the same rule. A refused file draws no tile and nothing toasts, except the join's own failure
     (nothing was queued). Every close drops what it listed from the queue (`dismiss`), not just from the screen, so a
     dismissed failure never comes back at a later run's end. While the door's upload step shows, it owns the run's
     failures (`suppressFailures`).
@@ -408,8 +449,11 @@ is the album's size. Every gallery payload (the render's and each poll's 200) ca
 unchanged nine moves nothing else. `GalleryLiveProvider` reports that number plus what this device changed since it
 arrived (`albumCount`) through `onCountChange`, at `teaser` and `full`, and the CTA ("See all N photos & videos") and
 the door (its `mediaTotal`) say the same number. The count names what the album holds where the source sees all of it
-(a full answer: `albumCountWords` over `setNoun`, the one home every set shares, "12 photos", "58 photos & videos");
-where it cannot see in (a teaser, a lock, an unread album) it says both, and one such item reads "1 photo or video"
+(a full answer: `albumCountWords`, in `lib/export/take-home.ts` over `setNoun`, the one home every set shares, "12
+photos", "58 photos & videos"), and the page's first paint names it the same way at `full` from the server's own count
+of the kinds (`stats.kinds` into the cover's `mediaKinds`, through that one function), so the cover never says both
+nouns for the beat before the live album tells; where it cannot see in (a teaser, a lock, an unread album) it says
+both, the first paint included, and one such item reads "1 photo or video"
 (`formatMediaCount`), never a "photo" that may be a video. A payload without `approvedTotal` (an older server
 mid-deploy) falls back to the shell's `stats.approvedTotal` at `teaser`, then the photo-only `teaserTotal`. At `none`
 no gallery mounts and no poll runs: the lock line says the render's head count.
@@ -524,17 +568,22 @@ colour, it is the house five. The open doorway registers as a lamp, so its light
   renders the add sheet's own body (`UploadIntentBody`), so the hidden inputs sit inside the open dialog and Safari's
   synchronous `.click()` still opens a picker (a sheet over a held sheet would be two things to dismiss, one
   impossible). It sends into the page's one queue; the first completed item (approved or held) flips the client's own
-  `contributed`, and the run finishes behind the album's head. That client flag stands only until the server has
+  `contributed`, and the run finishes behind the album's head (the step is not held for the rest of the run, by
+  choice, Will's to overrule: she is let into the album at the first landing, where the stack carries the rest with its
+  count and its x, the one place a file can be stopped, and the keep waits for the whole count). That client flag stands only until the server has
   answered since it (`contributionAnswered`, [`entry-steps.ts`](../../src/lib/guest/entry-steps.ts)): the server can
   take a contribution back (the guest's own delete), and from the first gate seen off `upload` the server's gate alone
   decides, so a later `upload` gate puts the door back with its upload step, never a teaser with no way through. The
   fail-open is the server's: when a run ends with nothing completed and every refusal is one the guest cannot fix
   (`classifyRun`), the step shows the server's sentence and "Continue without adding", which refreshes and trusts the
   decision that comes back, never a local skip (the server would still answer `upload`: a loop). Its words promise the
-  album only where the upload opens it (A photo first); elsewhere the album is already open, and a ghost skip shows
-  once per pass, never on the failure view. With A photo first on there is no skip, and `computeDoor` ignores `skipped`
-  and `returning`, so a stale flag cannot open an album.
-- **The flip and the drift.** The completion route writes the session cookie on its own response, every completion's
+  album only where the upload opens it (A photo first); over an album that shows nothing and waits they say the wait's
+  own rule (`waitRule`, the host unnamed) in place of "the first photo", since a teaser never reads whether photos wait
+  (`waitingOnArrival` is a full-access read) and how uploads wait is true over either. Elsewhere the album is already
+  open, and a ghost skip shows once per pass, never on the failure view. With A photo first on there is no skip, and `computeDoor` ignores `skipped`
+  and `returning`, so a stale flag cannot open an album. On a camera album the step is the camera's
+  ([disposable-mode.md](disposable-mode.md)).
+- **The flip and the drift.** The completion route writes the session cookie on its own response, every landing's
   `notifyUploaded` refetches the poll, and the poll's looser decision refreshes the page onto `full` (`key={access}`
   remounts the gallery). `GalleryLiveProvider` raises `onAccessDrift` once per changed `access`/`gate` from the poll: a
   looser drift refreshes at once; a stricter one (a switch turned on while the guest is inside) never yanks an open
@@ -804,7 +853,10 @@ a Change. The typed name also rides the code request as `DOOR_NAME_KEY`, so a ma
   each). The links route stays for windows, the reel tile's stills and re-mints; a failed carry is reported and costs
   the delta nothing. Her own upload's link rides the delta of the sync it triggered: an id is owed from
   `notifyUploaded` until that sync has answered (`owedLinks`), and an ask for it meanwhile waits for the answer, so her
-  upload costs no links call of its own.
+  upload costs no links call of its own. ★ **A burst asks the album once:** the files a complete records together
+  settle in one tick, each landing keeps its own optimistic tile and its own owed link, and the one sync is asked a
+  microtask after the last of them (a sync asked while one is in the air runs again when it lands: an ask a file would
+  make every burst a delta and then a 304); the links they were asked for meanwhile go together once it has answered.
 - **The doorbell:** the `media_gallery_doorbell` DB trigger sends a contentless `ping` on the PUBLIC
   Realtime broadcast channel `gallery:<qr_token>` whenever what a guest's album shows changes: the visible set
   (uploads, moderation flips, restores, purges) or what waits (a held upload, its approval or refusal, a row sealed
@@ -879,7 +931,11 @@ a Change. The typed name also rides the code request as `DOOR_NAME_KEY`, so a ma
     presigns for her alone (`ownUploadOf`); it publishes her waiting shots to the album's contact sheet (`herShotsOf`).
     It stands wherever what she adds waits, which is the host's approval OR the album's develop time ahead
     (`uploadsWait`, read by the page's server through `developState`; read as approval alone, a develop album's shots
-    would say "joined" and vanish on a reload). The page holds that reading live (`useLiveUploadsWait`): the develop
+    would say "joined" and vanish on a reload), as it falls on the viewer (`addsWaitFor`): the host's own ride her pair,
+    approved, so only a develop ahead keeps hers back, and then her tracker stands on her own guest page too (the album
+    draws nothing of what waits, in the air or landed, and her hub is the only other place hers show), listing this
+    visit's alone (hers are no guest's rows, so nothing is read for her), "Sending…" then "Developing", lit on the
+    contact sheet as a guest's are, and with no Remove (her hub takes hers back). The page holds that reading live (`useLiveUploadsWait`): the develop
     time arriving on the device's clock ends it, and every full sync's word on the develop moves it (`developsAtOf`: a
     Develop now, a time set, moved or taken away), so the album's rule, the camera, the head, the tracker, the keep and
     the failure sheet all follow it with no reload. A shot approved and sealed for the develop (her rows' read says

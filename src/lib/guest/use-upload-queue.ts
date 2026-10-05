@@ -8,6 +8,22 @@
  * owns it, so the door's upload step and the album's `GuestUpload` both read
  * one snapshot.
  *
+ * ★ WHAT WAITS GOES AS ONE BURST (compute-uploads, the compute model's lever 4): a run takes the files waiting
+ * (`takeBurst`: up to 20, and 1 GiB) and sends them with one presign and as few completes as their landing allows
+ * (`uploadBurst`), the bytes still one file at a time; the camera's shots and a second pick join the next burst. A
+ * file stays `queued` until its bytes go (`uploading`: the file in the air, which the album's stack shows), and
+ * waits `queued` at 100 once they are up, until it is recorded with its siblings (`done`). The session's three
+ * refusals below are read once the burst is over, for every file of it they reached.
+ *
+ * ★ A FILE IN FLIGHT CAN BE STOPPED, ONE AT A TIME (`stop`, upload-cancel: E6 for uploads). Each file of a burst carries
+ * a stop of its own (`BurstFile.signal`), so the burst's other files go on and are recorded together as ever. A stopped
+ * file is NOT a failure: the uploader settles it `cause: "cancelled"` and it leaves the queue (nothing for the failure
+ * sheet, the shutter's ring or her uploads to count, and nothing recorded, so the meter counts nothing), and `stop`
+ * hands back the way to send it again. One not yet in a burst (waiting for the next, for a door, for a ticket) leaves
+ * at once. Too late once its complete is asked: it lands, and `stop` says so by handing back nothing, AT ONCE (a press
+ * that waited for the landing left its question standing, unchanged, for as long as the complete took, so it read as
+ * unheard).
+ *
  * ★ THE ALBUM'S OWNER IS NEVER HER OWN GUEST (`ownerEventId`, crumbs-29's
  * Deferred). Her Add on her own album's guest page went through the guest
  * pair, minting her a guest row at her own door, and `create_guest` never
@@ -33,8 +49,17 @@ import { toast } from "sonner";
 import { joinEvent, type JoinedGuest } from "@/lib/guest/join";
 import { SESSION_OTHER_ACCOUNT } from "@/lib/guest/session-owner";
 import { dropGuestTicket } from "@/lib/guest/use-stored-session";
+import { useHealLostAnswers } from "@/lib/guest/use-upload-queue.heal";
 import { HOST_CLIP_ENDPOINTS } from "@/lib/reel/clip-add";
-import { uploadFile, type UploadOutcome } from "@/lib/upload/uploader";
+import { classifyMime, validateUpload } from "@/lib/media/validators";
+import { takeBurst } from "@/lib/upload/burst";
+import type { StopResult } from "@/lib/upload/stop-upload";
+import {
+  UPLOAD_WORDS,
+  uploadBurst,
+  type UploadCause,
+  type UploadOutcome,
+} from "@/lib/upload/uploader";
 
 /**
  * The three refusal codes this queue reads by name. Everything else is a file's
@@ -76,9 +101,35 @@ const GUEST_ENDPOINTS = {
 
 /** Where a file goes and as whom: a guest's pair on her ticket, or the host's on her event (the head note). */
 type UploadRoute = Pick<
-  Parameters<typeof uploadFile>[0],
+  Parameters<typeof uploadBurst>[0],
   "endpoints" | "identity"
 >;
+
+/**
+ * ★ A REFUSAL OF THE FILE ITSELF THAT THE UPLOADER MADE ON THE PHONE CARRIES NO CODE (red-team 54's LOW). A wrong type
+ * ("That file type isn't supported.") and a file over the ceiling ("This file is larger than the 10 GB maximum.") are
+ * refused before any request, so unlike the server's they have no `code`, and a refusal with none reads as a transport
+ * failure worth another go: the failure sheet offered Retry and Retry all, and a press sent nothing, since the same check
+ * refused the same file again at once. Asked of the file again here, with the very validators the uploader asks
+ * (`media/validators`, never a rule of its own), a refusal no code speaks for is told as the code the refusal ladder
+ * already knows for it, so no surface offers a Retry that cannot pass (`classifyRefusal`: "choose"). A file that passes is
+ * none of this: its code-less failure is the line's or the server's, and keeps its Retry.
+ */
+export function localRefusalCode(
+  file: Pick<File, "type" | "size">,
+): "unsupported_type" | "too_large" | undefined {
+  if (!classifyMime(file.type)) return "unsupported_type";
+  return validateUpload({ mime: file.type, sizeBytes: file.size }).ok
+    ? undefined
+    : "too_large";
+}
+
+/** The three refusals that are the session's, never the file's (the note above): read once a burst is over. */
+const isSessionRefusal = (outcome: UploadOutcome) =>
+  !outcome.ok &&
+  (outcome.code === SESSION_OTHER_ACCOUNT ||
+    outcome.code === DEAD_TICKET ||
+    outcome.code === VERIFICATION_REQUIRED);
 
 export type QueueItemStatus = "queued" | "uploading" | "done" | "error";
 
@@ -89,6 +140,7 @@ export type QueueItem = {
    *  video badge before the server confirms anything. */
   kind: "photo" | "video";
   status: QueueItemStatus;
+  /** A PERCENT, 0 to 100, never a fraction: the bytes' own `Math.round(fraction * 100)`, as every bar reads it. */
   progress: number;
   mediaStatus?: string;
   /**
@@ -105,9 +157,19 @@ export type QueueItem = {
    * the words, but the door's upload step has no exit, so what a guest can DO about a refusal has
    * to be derivable: `uploads_closed` and `cap_reached` open the album (the fail-open),
    * `invalid_session` goes back to the name, and only the rest may offer a Retry. Absent for a
-   * local validation or a transport failure, which `classifyRefusal` reads as "worth another go".
+   * transport failure, which `classifyRefusal` reads as "worth another go"; a local refusal of the file
+   * itself is told as the code the ladder knows for it (`localRefusalCode`), so it never is.
    */
   errorCode?: string;
+  /**
+   * ★ WHY THE TRANSPORT ENDED IT, beside the sentence (`UploadOutcome.cause`): `dropped` is the connection (the same
+   * file goes again once the line is back) and `cancelled` is her own stop (nothing is wrong; such a file leaves the
+   * queue, `stop`, so no item stays `error` with it). Absent for a refusal
+   * (an answer that was an error: the server's own code is `errorCode`) and for a local validation. A surface that draws
+   * a dropped connection apart from a refusal (the failure sheet, the camera) reads this and never the message, whose
+   * words are free to change.
+   */
+  cause?: UploadCause;
   /**
    * A CUT the on-device creator is adding to the album: the row is written `reel_eligible = false`,
    * so the live reel never plays a reel. Absent for every other file. It rides the queue like any
@@ -149,16 +211,32 @@ export type QueueProgress = {
   /** An item's progress, 0-100 (0 for one this store has not heard of). */
   get(id: string): number;
   subscribe(listener: () => void): () => void;
+  /**
+   * ★ THE STOP RIDES THE STORE THE STACK ALREADY READS (upload-cancel). The page hands the album's head this one object
+   * (`uploadProgress`), and the head is the one place that asks the queue anything of a file, so the x needs no prop
+   * through the three files between the queue and the stack. Absent on a store that is only a reading (a test's, the
+   * Library's). Resolves with the way to send the file again once it is cancelled, or null when it was too late
+   * (`useUploadQueue`'s `stop`, which this is).
+   */
+  stop?(id: string): Promise<StopResult>;
 };
 
 type WritableQueueProgress = QueueProgress & {
   set(id: string, value: number): void;
+  /** The queue's live `stop`, bound once per render of it (its closure changes with the page's callbacks). */
+  bindStop(stop: (id: string) => Promise<StopResult>): void;
 };
 
 function createQueueProgress(): WritableQueueProgress {
   const values = new Map<string, number>();
   const listeners = new Set<() => void>();
+  // Nothing is stoppable until the queue binds its own: a store only read answers "too late" to a stop.
+  let stopper: ((id: string) => Promise<StopResult>) | undefined;
   return {
+    stop: (id) => stopper?.(id) ?? Promise.resolve(null),
+    bindStop(next) {
+      stopper = next;
+    },
     get: (id) => values.get(id) ?? 0,
     subscribe(listener) {
       listeners.add(listener);
@@ -270,7 +348,9 @@ export function runProgressOf(
       gone += 1;
     } else {
       sending += 1;
-      if (it.status === "uploading") gone += progress.get(it.id) / 100;
+      // Its own share: the file in the air as far as it has gone, one whose bytes are up whole while it waits to be
+      // recorded with its burst (`queued` at 100), one still waiting nothing (the store holds 0 for it).
+      gone += progress.get(it.id) / 100;
     }
   }
   // Rounded to a thousandth, so a tick that moves nothing the ring can draw re-renders nothing.
@@ -334,6 +414,80 @@ export function useRunProgress(
   return { ...counts, progress: fraction };
 }
 
+/**
+ * ★ THE RUN'S OWN FILES, COUNTED FOR A FAILURE'S HEADING ("N of SENT didn't upload", `failure-sheet.tsx`). The whole
+ * run: every file `inRun` (not already settled when the run began, or going again: a Retry), and any failure the
+ * heading lists that is not among them, so what is listed is always part of what is counted and a heading never
+ * reads "2 of 1". Counted off the items by their ids, never by how many the queue held (a Retry adds no item: counted
+ * by length, "1 of 1 didn't upload" read "1 of 0" once it failed again).
+ */
+export function runSentOf(
+  items: readonly QueueItem[],
+  before: ReadonlySet<string>,
+  listed: readonly Pick<QueueItem, "id">[],
+): number {
+  const alsoListed = new Set(listed.map((it) => it.id));
+  return items.filter((it) => inRun(it, before) || alsoListed.has(it.id))
+    .length;
+}
+
+/**
+ * How many of the run's files have landed (`done`): the rest a failure's sheet may say is in the album is only what has.
+ * A file settled before the run began is not the run's, however it ended.
+ */
+export function runLandedOf(
+  items: readonly QueueItem[],
+  before: ReadonlySet<string>,
+): number {
+  return items.filter((it) => it.status === "done" && inRun(it, before)).length;
+}
+
+/** The run's own files, counted for a failure's heading (`useRunCounts` says what a run is). */
+export function useRunSent(
+  items: readonly QueueItem[],
+  listed: readonly Pick<QueueItem, "id">[],
+): number {
+  return useRunCounts(items, listed).sent;
+}
+
+/**
+ * ★ THE RUN'S OWN COUNT, FOR WHOEVER HEADS A FAILURE WITH IT (the album's slot and the door's step: both read the
+ * page's one queue, and either may be the one standing when a run ends). The ids already settled when the run began,
+ * taken in the render where something goes where nothing was (the sanctioned adjust-state-during-render pattern, as
+ * `useRunProgress` takes its own: an effect would count the new files in their own baseline); `runSentOf` and
+ * `runLandedOf` do the rest, off the one baseline, so the heading's whole and the files of it that landed (which the
+ * sheet reads before it says anything of the rest in the album) always speak of the same files.
+ *
+ * ★ A RUN THAT BEGINS WITH FAILURES STILL LISTED IS THEIR GO CONTINUING, not a new one: one of three Retried while the
+ * sheet stands over the other two sends a file of the same go, and the whole it counts stays what it was ("2 of 3"
+ * before and after), so a heading never changes its meaning under her thumb. A run that begins with nothing listed (a
+ * Retry of all of them, or the next pick) is a go of its own, whose files are the ones going.
+ *
+ * ★ A MOUNT MID-RUN COUNTS EVERYTHING HELD, where `useRunProgress` leaves out what settled before it mounted: this
+ * never saw the run begin (the slot mounts under `key={access}` with the door's run already going), so nothing may be
+ * taken for outside it, and the heading reads the whole run it ends with.
+ */
+export function useRunCounts(
+  items: readonly QueueItem[],
+  listed: readonly Pick<QueueItem, "id">[],
+): { sent: number; landed: number } {
+  const running = items.some(isActive);
+  const [before, setBefore] = useState<ReadonlySet<string>>(NOTHING_BEFORE);
+  const [wasRunning, setWasRunning] = useState(running);
+  if (running !== wasRunning) {
+    setWasRunning(running);
+    if (running && listed.length === 0) {
+      setBefore(
+        new Set(items.filter((it) => !isActive(it)).map((it) => it.id)),
+      );
+    }
+  }
+  return {
+    sent: runSentOf(items, before, listed),
+    landed: runLandedOf(items, before),
+  };
+}
+
 export type UploadedItem = {
   mediaId: string;
   /** The queue item that produced this upload - lets the gallery re-key its
@@ -355,14 +509,12 @@ export type UploadedItem = {
 async function simulateUpload(
   file: File,
   onProgress: (fraction: number) => void,
-): Promise<{
-  ok: true;
-  status: "approved";
-  mediaId: string;
-  kind: "photo" | "video";
-}> {
+  signal?: AbortSignal,
+): Promise<UploadOutcome> {
   for (const fraction of [0.3, 0.6, 0.85, 1]) {
     await new Promise((resolve) => setTimeout(resolve, 120));
+    // Hers: the demo says what a real upload does (`uploader.ts`), so the stop is rehearsed too.
+    if (signal?.aborted) return cancelledOutcome();
     onProgress(fraction);
   }
   return {
@@ -371,6 +523,37 @@ async function simulateUpload(
     mediaId: crypto.randomUUID(),
     kind: file.type.startsWith("video/") ? "video" : "photo",
   };
+}
+
+/** What a stopped file is told as, in the transport's own words (`uploader.ts`: a cancel is never a drop). */
+const cancelledOutcome = (): UploadOutcome => ({
+  ok: false,
+  message: UPLOAD_WORDS.cancelled,
+  cause: "cancelled",
+});
+
+/** The demo's burst: each file faked in turn (`simulateUpload`), told as `uploadBurst` tells a real one. */
+async function simulateBurst(
+  files: Parameters<typeof uploadBurst>[0]["files"],
+  onOutcome: (index: number, outcome: UploadOutcome) => void,
+): Promise<UploadOutcome[]> {
+  const out: UploadOutcome[] = [];
+  for (const [i, one] of files.entries()) {
+    let outcome: UploadOutcome;
+    if (one.signal?.aborted) {
+      outcome = cancelledOutcome();
+    } else {
+      one.onSending?.();
+      outcome = await simulateUpload(
+        one.file,
+        (f) => one.onProgress?.(f),
+        one.signal,
+      );
+    }
+    out.push(outcome);
+    onOutcome(i, outcome);
+  }
+  return out;
 }
 
 /** One picked file as the queue holds it: waiting its turn. */
@@ -460,6 +643,11 @@ export function useUploadQueue({
   // Ref mirror so the sequential queue runner reads current state synchronously.
   const itemsRef = useRef<QueueItem[]>([]);
   const processingRef = useRef(false);
+  /* ★ EACH FILE OF A BURST'S STOP, by queue id, from the burst's start until the file is told (`stop` aborts it), and
+     who is waiting to hear what a stop came to (`true`: it was cancelled; `false`: it was too late and landed or
+     failed as it would have). */
+  const stopsRef = useRef(new Map<string, AbortController>());
+  const asksRef = useRef(new Map<string, (cancelled: boolean) => void>());
   // The session can flip null→token WHILE mounted (just-in-time join), so the
   // queue reads a ref, not the prop, to avoid a stale closure.
   const sessionRef = useRef(sessionToken);
@@ -620,7 +808,7 @@ export function useUploadQueue({
     joinsSilently,
   ]);
 
-  // One file at a time — robust on flaky mobile connections.
+  // What waits goes as one burst (the head note), its bytes one file at a time — robust on flaky mobile connections.
   const runQueue = useCallback(async () => {
     if (processingRef.current) return;
     processingRef.current = true;
@@ -628,12 +816,11 @@ export function useUploadQueue({
       for (;;) {
         // The owner never meets a door; anyone else waits for hers to open (the note above).
         if (!ownerEventId && !doorOpenRef.current) break;
-        const next = itemsRef.current.find((it) => it.status === "queued");
-        if (!next) break;
-        /* ★ THE TICKET IS READ PER FILE, NEVER ONCE PER RUN. Both re-joins
-           below swap it mid-run, and the file after a swap must go up on the NEW
+        if (!itemsRef.current.some((it) => it.status === "queued")) break;
+        /* ★ THE TICKET IS READ PER BURST, NEVER ONCE PER RUN. Both re-joins
+           below swap it mid-run, and the burst after a swap must go up on the NEW
            one. (Read once at the top, the verified re-join after a mid-run flip
-           would re-send the refused file on the SPENT ticket and fail the run it
+           would re-send the refused files on the SPENT ticket and fail the run it
            exists to save.) */
         // The owner sends as the host, on no ticket at all (the head note); anyone else on the ticket.
         const token = ownerEventId
@@ -648,52 +835,114 @@ export function useUploadQueue({
             ? { endpoints: GUEST_ENDPOINTS, identity: { session_token: token } }
             : null;
         if (!route) break;
-        patch(next.id, { status: "uploading", progress: 0, error: undefined });
-        const onProgress = (f: number) =>
-          patch(next.id, { progress: Math.round(f * 100) });
-        // BELT AND BRACES with uploadFile's never-reject contract. If anything
+        // The burst is taken AFTER the ticket: a join may have failed what waited, or the door taken it.
+        const burst = takeBurst(
+          itemsRef.current.filter((it) => it.status === "queued"),
+          (it) => it.file.size,
+        );
+        if (burst.length === 0) break;
+        // Each file's stop, made before anything is awaited: a press from here on finds it (`stop`).
+        for (const it of burst)
+          stopsRef.current.set(it.id, new AbortController());
+        /** Each file's outcome as it is known, once: a landing drawn at once, a file's own refusal in its sheet. */
+        const told = new Map<string, UploadOutcome>();
+        const settle = (it: QueueItem, outcome: UploadOutcome) => {
+          if (told.has(it.id)) return;
+          told.set(it.id, outcome);
+          // Told: there is nothing left to stop, and whoever asked what their stop came to hears it.
+          stopsRef.current.delete(it.id);
+          const asked = asksRef.current.get(it.id);
+          asksRef.current.delete(it.id);
+          if (!outcome.ok && outcome.cause === "cancelled") {
+            // ★ HER STOP IS NO FAILURE: the file leaves the queue, so the failure sheet, the shutter's ring and her
+            // uploads never count it, and nothing was recorded (`stop` hands back the way to send it again).
+            sync(itemsRef.current.filter((q) => q.id !== it.id));
+            asked?.(true);
+            return;
+          }
+          asked?.(false);
+          if (outcome.ok) {
+            // A file landed on this ticket: any later refusal is a new chain.
+            silentJoinSpentRef.current = false;
+            // A row the album keeps until it develops lands as `sealed` (`landedAs`), drawn nowhere.
+            const landed = landedAs(outcome.status, outcome.sealed);
+            patch(it.id, {
+              status: "done",
+              progress: 100,
+              mediaStatus: landed,
+              mediaId: outcome.mediaId,
+            });
+            onUploaded({
+              mediaId: outcome.mediaId,
+              queueId: it.id,
+              file: it.file,
+              kind: outcome.kind,
+              status: landed,
+            });
+            return;
+          }
+          // The session's three wait for the burst's end (below); everything else is this file's own.
+          if (isSessionRefusal(outcome)) return;
+          patch(it.id, {
+            status: "error",
+            progress: 0,
+            error: outcome.message,
+            // The server's own code where it spoke; else, for a refusal that was not the line's, the file's own (above).
+            errorCode:
+              outcome.code ??
+              (outcome.cause ? undefined : localRefusalCode(it.file)),
+            cause: outcome.cause,
+          });
+        };
+        const files = burst.map((it) => ({
+          file: it.file,
+          reelEligible: it.reelEligible,
+          poster: it.poster,
+          // Its bytes go: it is the file in the air (the album's stack follows it).
+          onSending: () => patch(it.id, { status: "uploading", progress: 0 }),
+          onProgress: (f: number) =>
+            patch(it.id, { progress: Math.round(f * 100) }),
+          // Its bytes are up: it waits, whole, to be recorded with its burst.
+          onSent: () => patch(it.id, { status: "queued", progress: 100 }),
+          // Its own stop (`stop`): it alone ends, its siblings go on.
+          signal: stopsRef.current.get(it.id)!.signal,
+        }));
+        // BELT AND BRACES with uploadBurst's never-reject contract. If anything
         // ever DOES reject here, the throw would escape this for(;;) loop: the
-        // current file would be left at "uploading" with no error and no retry
-        // affordance, and every file still queued behind it would be silently
-        // abandoned. One file's failure must only ever fail THAT file.
-        let outcome: UploadOutcome;
+        // burst's files would be left with no error and no retry affordance,
+        // and every file still queued behind them would be silently abandoned.
+        // One file's failure must only ever fail THAT file: a file the burst
+        // never told is failed in place, and every other keeps what it was told.
         try {
-          outcome = isDemo
-            ? await simulateUpload(next.file, onProgress)
-            : await uploadFile({
-                file: next.file,
-                ...route,
-                onProgress,
-                reelEligible: next.reelEligible,
-                poster: next.poster,
-              });
+          if (isDemo) {
+            await simulateBurst(files, (i, o) => settle(burst[i]!, o));
+          } else {
+            await uploadBurst({
+              files,
+              ...route,
+              onOutcome: (i, o) => settle(burst[i]!, o),
+            });
+          }
         } catch (e) {
           console.error("upload queue: unexpected failure", e);
-          outcome = {
+        }
+        for (const it of burst) {
+          settle(it, {
             ok: false,
             message: "Something went wrong with that upload. Please try again.",
-          };
-        }
-        if (outcome.ok) {
-          // A file landed on this ticket: any later refusal is a new chain.
-          silentJoinSpentRef.current = false;
-          // A row the album keeps until it develops lands as `sealed` (`landedAs`), drawn nowhere.
-          const landed = landedAs(outcome.status, outcome.sealed);
-          patch(next.id, {
-            status: "done",
-            progress: 100,
-            mediaStatus: landed,
-            mediaId: outcome.mediaId,
           });
-          onUploaded({
-            mediaId: outcome.mediaId,
-            queueId: next.id,
-            file: next.file,
-            kind: outcome.kind,
-            status: landed,
-          });
-          continue;
         }
+        const spent = burst.filter((it) => isSessionRefusal(told.get(it.id)!));
+        if (spent.length === 0) continue;
+        // The burst's first session refusal decides the branch, for every file of it the session cost.
+        const first = told.get(spent[0]!.id) as Extract<
+          UploadOutcome,
+          { ok: false }
+        >;
+        const requeue = () => {
+          for (const it of spent)
+            patch(it.id, { status: "queued", progress: 0 });
+        };
         /* ──────────────────────────────────────────────────────────────────
            SOMEBODY ELSE'S TICKET.
 
@@ -705,11 +954,11 @@ export function useUploadQueue({
            the routes refuse it (lib/guest/session-owner.ts), at presign or,
            when a sign-in or a sign-out overtook a presign, at completion. The
            ticket is put down (the token, the name and address flag beside it,
-           the cookie) and this file goes back in the queue rather than into
-           the failure sheet; the next pass finds no ticket and `acquireTicket`
-           joins as the viewer the server says this is. So nothing is lost and
-           nothing is credited to the ticket's owner, and a guest who is signed
-           in never learns it happened.
+           the cookie) and the burst's files it cost go back in the queue rather
+           than into the failure sheet; the next pass finds no ticket and
+           `acquireTicket` joins as the viewer the server says this is. So
+           nothing is lost and nothing is credited to the ticket's owner, and a
+           guest who is signed in never learns it happened.
 
            ★ A DEAD TICKET IS PUT DOWN THE SAME WAY (`invalid_session`): a token
            whose row is gone (an ask the door's move to a password ended) can
@@ -728,11 +977,11 @@ export function useUploadQueue({
            (`ticketDown`); the files wait for the door's ticket.
            ────────────────────────────────────────────────────────────────── */
         if (
-          outcome.code === SESSION_OTHER_ACCOUNT ||
-          outcome.code === DEAD_TICKET
+          first.code === SESSION_OTHER_ACCOUNT ||
+          first.code === DEAD_TICKET
         ) {
           sessionRef.current = null;
-          patch(next.id, { status: "queued", progress: 0 });
+          requeue();
           if (!joinsSilently()) {
             let down = () => {};
             onDoorNeeded?.(
@@ -756,7 +1005,7 @@ export function useUploadQueue({
            through twelve files. The route answers 403 `verification_required`,
            and the difference this branch draws is between one refused FILE and
            a spent SESSION: if the session is spent, every file still queued
-           behind this one will be refused for the same reason, and letting the
+           behind this burst will be refused for the same reason, and letting the
            loop discover that twelve times over means twelve identical lines in
            the failure sheet and twelve pointless round trips.
 
@@ -781,39 +1030,33 @@ export function useUploadQueue({
            Every upload asks the switch again (`get_upload_context`), so a kept
            ticket can never send past it.
            ────────────────────────────────────────────────────────────────── */
-        if (outcome.code === VERIFICATION_REQUIRED) {
-          if (isVerifiedRef.current && !rejoinedRef.current) {
-            rejoinedRef.current = true;
-            const rejoined = await joinEvent({ qrToken });
-            if (rejoined.ok) {
-              const ticket = takeJoin(rejoined.guest);
-              // Re-queue the file this refusal cost; go round again on the new ticket, or, with the
-              // door holding her (the join landed waiting), wait for it.
-              patch(next.id, { status: "queued", progress: 0 });
-              if (ticket === null) break;
-              continue;
-            }
+        if (isVerifiedRef.current && !rejoinedRef.current) {
+          rejoinedRef.current = true;
+          const rejoined = await joinEvent({ qrToken });
+          if (rejoined.ok) {
+            const ticket = takeJoin(rejoined.guest);
+            // Re-queue the files this refusal cost; go round again on the new ticket, or, with the
+            // door holding her (the join landed waiting), wait for it.
+            requeue();
+            if (ticket === null) break;
+            continue;
           }
-          const refused = itemsRef.current.map((it) =>
-            it.id === next.id || it.status === "queued"
-              ? {
-                  ...it,
-                  status: "error" as const,
-                  progress: 0,
-                  error: outcome.message,
-                  errorCode: outcome.code,
-                }
-              : it,
-          );
-          sync(refused);
-          onVerificationRequired?.(outcome.message, true);
-          break;
         }
-        patch(next.id, {
-          status: "error",
-          error: outcome.message,
-          errorCode: outcome.code,
-        });
+        const cost = new Set(spent.map((it) => it.id));
+        const refused = itemsRef.current.map((it) =>
+          cost.has(it.id) || it.status === "queued"
+            ? {
+                ...it,
+                status: "error" as const,
+                progress: 0,
+                error: first.message,
+                errorCode: first.code,
+              }
+            : it,
+        );
+        sync(refused);
+        onVerificationRequired?.(first.message, true);
+        break;
       }
     } finally {
       processingRef.current = false;
@@ -1060,11 +1303,45 @@ export function useUploadQueue({
         progress: 0,
         error: undefined,
         errorCode: undefined,
+        cause: undefined,
       });
       void runQueue();
     },
     [patch, runQueue],
   );
+
+  /**
+   * ★ A LOST ANSWER IS ASKED AGAIN FOR HER (`use-upload-queue.heal.ts`): the files that failed as a dropped connection
+   * with their complete kept (the row may stand: the album may already show the photograph) go again the way her Retry
+   * sends them, which asks that very complete and nothing else, so a row the server wrote lands now and one it did not is
+   * written. Not her Retry in one thing: it never gives the silent join back (`silentJoinSpentRef`), so a ticket that
+   * keeps being refused can never turn this into a row factory. Nothing is asked of a demo, a door that holds her
+   * (`doorOpenRef`) or a device with no ticket: the join is not this to make.
+   */
+  const healLost = useCallback(
+    (ids: string[]) => {
+      if (isDemo || !doorOpenRef.current) return;
+      if (!(ownerEventId || sessionRef.current)) return;
+      const lost = new Set(ids);
+      sync(
+        itemsRef.current.map((it) =>
+          lost.has(it.id) && it.status === "error"
+            ? {
+                ...it,
+                status: "queued" as const,
+                progress: 0,
+                error: undefined,
+                errorCode: undefined,
+                cause: undefined,
+              }
+            : it,
+        ),
+      );
+      void runQueue();
+    },
+    [isDemo, ownerEventId, runQueue, sync],
+  );
+  useHealLostAnswers(items, healLost);
 
   /**
    * Drop the named ERRORED items from the queue for good (the failure sheet's
@@ -1094,6 +1371,58 @@ export function useUploadQueue({
     [sync],
   );
 
+  /**
+   * ★ STOP ONE FILE (upload-cancel, E6): the album's x, asked of her already (`stop-upload.ts`). Resolves with the way to
+   * send the file again once it is cancelled (it has left the queue, no failure and nothing counted), or null when it was
+   * too late (its complete was asked, so it landed or failed as it would have: the album and the failure sheet say so).
+   * A file in a burst is stopped through its own signal and its siblings carry on; one still waiting for a burst has
+   * started nothing and simply leaves.
+   *
+   * ★ TOO LATE IS ANSWERED AT ONCE, NOT AT THE LANDING (red-team 54): the question her press answers is on screen until
+   * `stop` resolves, so a late press that waited for the complete (4 s on one photo, 8 s on five) left it standing
+   * unchanged and read as unheard. The complete is asked the moment a burst has nothing left to send (the uploader's
+   * `sendDone`: every file of it up), after which an abort is ignored and its answer stands, so a file whose bytes are up
+   * with no sibling still going is past stopping and says so now, aborting nothing (the file lands exactly as it would
+   * have). A file whose bytes are up while a sibling still goes only waits for it (`BURST_RECORD_WAIT_MS`): nothing is
+   * asked yet, so the stop still takes it back.
+   */
+  const stop = useCallback(
+    (id: string): Promise<StopResult> => {
+      const it = itemsRef.current.find((q) => q.id === id);
+      if (!it || !isActive(it)) return Promise.resolve(null);
+      /** As a Retry does: her own fresh try, so the silent join is given back too. */
+      const again: StopResult = () => {
+        silentJoinSpentRef.current = false;
+        enqueue([it.file], {
+          reelEligible: it.reelEligible,
+          poster: it.poster,
+        });
+      };
+      const own = stopsRef.current.get(id);
+      if (!own) {
+        sync(itemsRef.current.filter((q) => q.id !== id));
+        return Promise.resolve(again);
+      }
+      // Every file of the burst not yet told holds a stop of its own, so these are the burst still in play: all of them
+      // up (`queued` at 100, which `onSent` sets) is the uploader's `sendDone`, its complete asked or being asked.
+      const inPlay = itemsRef.current.filter((q) => stopsRef.current.has(q.id));
+      if (inPlay.every((q) => q.status === "queued" && q.progress === 100))
+        return Promise.resolve(null);
+      return new Promise<StopResult>((resolve) => {
+        asksRef.current.set(id, (cancelled) =>
+          resolve(cancelled ? again : null),
+        );
+        own.abort();
+      });
+    },
+    [enqueue, sync],
+  );
+
+  // The store the album's stack reads carries this stop (`QueueProgress.stop`): always the live one.
+  useEffect(() => {
+    progress.bindStop(stop);
+  }, [progress, stop]);
+
   return {
     items,
     progress: progress as QueueProgress,
@@ -1102,5 +1431,6 @@ export function useUploadQueue({
     holdAtDoor,
     retry,
     dismiss,
+    stop,
   };
 }

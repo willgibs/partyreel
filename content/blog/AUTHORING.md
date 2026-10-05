@@ -110,7 +110,7 @@ replaces them by id.
    co-hosts, no custom branding, no comments, no native app, no email-the-album, no upload-time
    scanning.
 5. **Quote the app exactly.** A control is named by its shipped string inside `<UiLabel>`:
-   "Require verified emails", "Approve all", "Download all", "Include hidden items". Verify in `src/components`
+   "An email first", "Approve all", "Save to Files", "Include hidden items". Verify in `src/components`
    and `src/app/(app)`; never invent UI.
 6. **Commit to outcomes, never to who or what delivers them** (the promise-neutralization doctrine,
    `docs/systems/marketing-content.md`). A report gets reviewed; a note gets a reply; the host
@@ -195,14 +195,15 @@ here too; `../help/AUTHORING.md` lists them.
   upload "anonymous" (reporting an event is anonymous, and saying so is fine): a host may require
   a verified email and the setting is ON by default; every upload carries a name either way,
   verified or marked. By default guests confirm their email with a six-digit code from their inbox
-  (the same email carries a sign-in link; the "Require verified emails" setting, free on every
+  (the same email carries a sign-in link; the "An email first" setting, free on every
   plan, on by default); the host can allow a typed display name instead, shown with a small
   unverified mark, per event. The album fills live. The host approves, hides or removes
   anything, in review mode (uploads wait for approval) or live mode. The same link is the shared
   album afterwards, and from its second photo the album plays as a live highlight reel.
 - **Quality.** Originals are stored as uploaded and never recompressed (the in-browser metadata
   strip aside). Tiles show a small preview for speed; the lightbox, the per-item save, and the zip
-  all serve the original. Accepted: JPEG, PNG, WebP, HEIC/HEIF, AVIF; MP4, MOV, WebM. One per-file
+  all serve the original (the one lighter choice, a guest's Save to Photos and a host's Phone size,
+  is a phone-size copy and says so). Accepted: JPEG, PNG, WebP, HEIC/HEIF, AVIF; MP4, MOV, WebM. One per-file
   size ceiling (a host may set a lower one per event), no duration cap. No watermark on
   photos, the album or the live reel on any plan; only a free event's clips carry a small mark.
 - **Privacy.** Location data is stripped in the browser before a photo ever uploads, in every
@@ -220,19 +221,25 @@ here too; `../help/AUTHORING.md` lists them.
   no per-guest fee on any plan: pricing is by storage. Moving from a pass to Pro converts the
   unused part to credit. A handle and a public profile page (the events a host chooses to list on
   it included) are free on every plan.
-- **Lifecycle.** An event has no end date; deleting it is the only exit (the anti-abuse reason:
-  otherwise fill, end, repeat would be free storage). Deleted events and media wait in Deleted
+- **Lifecycle.** An event never expires: its date, and the optional end date for a run of days,
+  only say when it happens, and deleting it is the only exit (the anti-abuse reason: otherwise
+  fill, end, repeat would be free storage). Never write that an event "has no end date": Settings
+  offers "Add an end date". Deleted events and media wait in Deleted
   (one word everywhere: the app, the marketing pages and the posts; never "trash" or "bin") for
   the recovery window, then are purged. A free event with no activity (the host's, an edit, a new
   upload) for about six months gets a warning email, then removal. An Event Pass covers about a
   year; a nudge goes out before it lapses, a renewal extends it, and a lapsed pass drops the event
   to Free with a grace window before anything is reduced.
-- **Sharing and download.** One link per event. Per-item originals; a full-quality zip for hosts
-  and guests, with type filters and the host's "include hidden" option. Likes from anyone with an
+- **Sharing and download.** One link per event. Per-item originals. A guest takes photos home by
+  Select, then Save: Save to Photos (phone size) or Save to Files (Save to Downloads on Android),
+  the originals as one zip, and at a computer Save is the zip. A host's Download opens Take it
+  home: Originals (one zip, full size) and Phone size (the photographs, light enough to post),
+  with the "include hidden" option. There is no Download all and no type filter. Likes from anyone with an
   account (a signed-out tap asks for an email first); the per-event like count is host-only.
   Profiles are free, and a guest's events reach their dashboard through their own uploads
   (there is no separate save).
-- **The reel.** Every album plays as a live highlight reel from its second photo, composed on
+- **The reel.** Every album plays as a live highlight reel from its second photo (the cover's
+  round play button opens it; it does not sit at the top of the album), composed on
   each viewer's own device and on any screen in the room (the host's Play on a screen), taking in
   uploads as they land and dropping what the host hides. Nobody makes, renders or publishes it,
   it obeys the album's gate, and it is never a file. It starts on the host's default mood and

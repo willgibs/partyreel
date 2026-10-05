@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Download, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
+import { DriveStorageDoor } from "@/components/app/drive/storage-door";
 import {
   BulkBar,
   type BulkBarAction,
@@ -401,6 +402,11 @@ export function StorageListBody({
       ) : null}
 
       <PopupBody className="pt-2" data-storage-body="">
+        {/* Filtered to one album, Google Drive keeps every original of it in her own Drive (drive-wiring,
+            Will's `doors = both`); deleting stays this list's own. */}
+        {filter !== "all" && filterName ? (
+          <DriveStorageDoor eventId={filter} albumName={filterName} />
+        ) : null}
         {/* ★ DELETED HEADS THE LIST (trash-in-storage): what she already deleted still counts toward her
             plan, so it is the first room to free, in one press, before anything she kept. */}
         {state.overview && filter === "all" && deleted > 0 ? (

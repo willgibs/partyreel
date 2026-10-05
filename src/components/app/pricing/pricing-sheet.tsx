@@ -3,8 +3,6 @@
 import { useState, type ReactNode } from "react";
 import { ArrowUpRight, Check } from "lucide-react";
 
-import { CheckoutButton } from "@/components/app/checkout-button";
-import { ManageBillingButton } from "@/components/app/manage-billing-button";
 import { holdsPhrase } from "@/components/app/pricing/holds";
 import {
   HeldChip,
@@ -12,6 +10,7 @@ import {
   UploadsPause,
   planCardClass,
 } from "@/components/app/pricing/plan-card";
+import { usePricingDoors } from "@/components/app/pricing/pricing-doors";
 import { ProPriceList } from "@/components/app/pricing/pro-price-list";
 import {
   LOCKED_FEATURES,
@@ -96,6 +95,11 @@ import { formatBytes } from "@/lib/utils";
  * ★ EVERY ESTIMATE SAYS ITS CAMERA (host-storage r2): the cards print "about N
  * photos", and one line under them says what that assumes
  * (`ESTIMATE_BASIS_NOTE`, an iPhone at its default settings).
+ *
+ * ★ ITS PRESSES AND ITS READ ARE THE SURFACE'S DOORS (`pricing-doors.tsx`): the Checkout and billing-portal buttons it
+ * draws and the read it makes when it opens are whatever the nearest `PricingDoorsProvider` says, and the real ones
+ * without one, which is every page of the app. Only the Library hands in others, so the sheet there can be pressed
+ * through every state with Stripe nowhere in reach.
  *
  * ★ NOTHING HERE DECIDES AN ENTITLEMENT, AND IT COULD NOT IF IT TRIED
  * (billing-caps.md). The tier, the bytes and the current price only pick which
@@ -270,6 +274,7 @@ export function PricingSheet({
   open,
   onOpenChange,
 }: PricingSheetProps) {
+  const { CheckoutButton, ManageBillingButton } = usePricingDoors();
   // Uncontrolled when a trigger child is given; the caller's state otherwise.
   const [selfOpen, setSelfOpen] = useState(false);
   const controlled = open !== undefined;

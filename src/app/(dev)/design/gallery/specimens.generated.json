@@ -70,6 +70,13 @@
     "confirm-switch": [
       "<ConfirmSwitchDemo />"
     ],
+    "toggle-group": [
+      "<ToggleGroup\n  type=\"single\"\n  variant=\"outline\"\n  size=\"sm\"\n  defaultValue=\"none\"\n  aria-label=\"Show your events on your page\"\n>\n  <ToggleGroupItem value=\"all\">Show all 12</ToggleGroupItem>\n  <ToggleGroupItem value=\"none\">Keep all private</ToggleGroupItem>\n</ToggleGroup>",
+      "<ToggleGroup\n  type=\"multiple\"\n  variant=\"outline\"\n  defaultValue={[\"photos\", \"videos\"]}\n  aria-label=\"Show\"\n>\n  <ToggleGroupItem value=\"photos\">\n    <Images /> Photos\n  </ToggleGroupItem>\n  <ToggleGroupItem value=\"videos\">\n    <Video /> Videos\n  </ToggleGroupItem>\n  <ToggleGroupItem value=\"hidden\">\n    <EyeOff /> Hidden\n  </ToggleGroupItem>\n</ToggleGroup>",
+      "<ToggleGroup\n  type=\"single\"\n  defaultValue=\"gallery\"\n  aria-label=\"Layout\"\n  className=\"grid w-full max-w-xs grid-cols-3 gap-1.5\"\n>\n  {[\n    { id: \"gallery\", label: \"Gallery\", icon: <LayoutGrid /> },\n    { id: \"table\", label: \"Table\", icon: <Table2 /> },\n    { id: \"list\", label: \"List\", icon: <Rows3 /> },\n  ].map((l) => (\n    <ToggleGroupItem\n      key={l.id}\n      value={l.id}\n      className=\"flex h-14 flex-col gap-1 rounded-xl border border-border text-xs data-[state=on]:border-foreground data-[state=on]:bg-muted\"\n    >\n      {l.icon}\n      {l.label}\n    </ToggleGroupItem>\n  ))}\n</ToggleGroup>",
+      "<DisplayMenuDemo />",
+      "<ToggleGroup\n  type=\"single\"\n  variant=\"outline\"\n  size=\"sm\"\n  defaultValue=\"all\"\n  disabled\n  aria-label=\"Show your events on your page (unavailable)\"\n>\n  <ToggleGroupItem value=\"all\">Show all 12</ToggleGroupItem>\n  <ToggleGroupItem value=\"none\">Keep all private</ToggleGroupItem>\n</ToggleGroup>"
+    ],
     "dormant": [
       "<DormantDemo />"
     ],
@@ -101,9 +108,9 @@
       "<div style={{ width: 335 }}>\n  <River frames={GUEST_GHOST_FRAMES} />\n</div>"
     ],
     "photo-section": [
-      "<PhotoSection source=\"pointer\">\n  <PlateCopy />\n</PhotoSection>",
-      "<div style={{ width: 375 }}>\n  <PhotoSection source=\"scroll\">\n    <PlateCopy />\n  </PhotoSection>\n</div>",
-      "<PhotoSection className=\"min-h-56\" />"
+      "<PhotoSectionDemo source=\"pointer\" />",
+      "<PhotoSectionDemo source=\"scroll\" />",
+      "<PhotoSectionDemo source=\"pointer\" copy={false} />"
     ],
     "tabs": [
       "<Tabs defaultValue=\"all\">\n  <TabsList>\n    <TabsTrigger value=\"all\">All</TabsTrigger>\n    <TabsTrigger value=\"photos\">Photos</TabsTrigger>\n    <TabsTrigger value=\"videos\">Videos</TabsTrigger>\n  </TabsList>\n  <TabsContent\n    value=\"all\"\n    className=\"pt-3 text-sm text-muted-foreground\"\n  >\n    Everything, interleaved.\n  </TabsContent>\n  <TabsContent\n    value=\"photos\"\n    className=\"pt-3 text-sm text-muted-foreground\"\n  >\n    Photos only.\n  </TabsContent>\n  <TabsContent\n    value=\"videos\"\n    className=\"pt-3 text-sm text-muted-foreground\"\n  >\n    Videos only.\n  </TabsContent>\n</Tabs>"
@@ -127,12 +134,26 @@
     "sonner": [
       "<ToastDemo />"
     ],
+    "popup-kinds": [
+      "<PopupKindDemo kind=\"list\" />",
+      "<PopupKindDemo kind=\"confirm\" />",
+      "<PopupKindDemo kind=\"form\" />",
+      "<PopupKindDemo kind=\"choice\" />",
+      "<PopupKindDemo kind=\"share\" />",
+      "<PopupKindDemo kind=\"plan\" />",
+      "<PopupKindDemo kind=\"settings\" />",
+      "<PopupKindDemo kind=\"peek\" />"
+    ],
+    "popup": [
+      "<ArrivalGuardDemo />"
+    ],
     "dialog": [
-      "<Dialog>\n  <DialogTrigger asChild>\n    <Button variant=\"outline\" size=\"sm\">\n      Open dialog\n    </Button>\n  </DialogTrigger>\n  <DialogContent>\n    <DialogHeader>\n      <DialogTitle>Delete this event?</DialogTitle>\n      <DialogDescription>\n        This removes the event and everything in it. There is no undo.\n      </DialogDescription>\n    </DialogHeader>\n    <DialogFooter showCloseButton>\n      <Button variant=\"destructive\" size=\"sm\">\n        Delete\n      </Button>\n    </DialogFooter>\n  </DialogContent>\n</Dialog>",
-      "<Dialog>\n  <DialogTrigger asChild>\n    <Button variant=\"outline\" size=\"sm\">\n      Open takeover\n    </Button>\n  </DialogTrigger>\n  <DialogContent fullScreen showCloseButton={false}>\n    <div className=\"flex shrink-0 items-start justify-between gap-3 border-b px-4 py-3\">\n      <DialogHeader>\n        <DialogTitle>Review</DialogTitle>\n        <DialogDescription>\n          The page behind cannot scroll, and its scrollbar does not\n          stay beside this room.\n        </DialogDescription>\n      </DialogHeader>\n      <DialogClose asChild>\n        <Button variant=\"ghost\" size=\"sm\">\n          Done\n        </Button>\n      </DialogClose>\n    </div>\n    <div className=\"flex-1 overflow-y-auto p-4 text-sm text-muted-foreground\">\n      What scrolls is this body.\n    </div>\n  </DialogContent>\n</Dialog>"
+      "<DialogSheetDemo variant=\"dialog\" />",
+      "<DialogSheetDemo variant=\"takeover\" />"
     ],
     "sheet": [
-      "<Sheet>\n  <SheetTrigger asChild>\n    <Button variant=\"outline\" size=\"sm\">\n      Open sheet\n    </Button>\n  </SheetTrigger>\n  <SheetContent>\n    <SheetHeader>\n      <SheetTitle>Share this event</SheetTitle>\n      <SheetDescription>\n        Your guests scan one QR code to join and upload.\n      </SheetDescription>\n    </SheetHeader>\n  </SheetContent>\n</Sheet>"
+      "<DialogSheetDemo variant=\"responsive\" />",
+      "<DialogSheetDemo variant=\"side\" />"
     ],
     "popover": [
       "<Popover>\n  <PopoverTrigger asChild>\n    <Button variant=\"outline\" size=\"sm\">\n      Open popover\n    </Button>\n  </PopoverTrigger>\n  <PopoverContent>\n    <p className=\"text-sm font-medium\">Storage</p>\n    <p className=\"mt-1 text-sm text-muted-foreground\">\n      1.2 GB of 5 GB used.\n    </p>\n  </PopoverContent>\n</Popover>"
@@ -142,7 +163,8 @@
       "<DropdownMenu>\n  <DropdownMenuTrigger asChild>\n    <Button variant=\"outline\" size=\"sm\">\n      Download\n    </Button>\n  </DropdownMenuTrigger>\n  <DropdownMenuContent>\n    <DropdownMenuItem>SVG (best for print)</DropdownMenuItem>\n    <DropdownMenuItem>PNG (best for screens)</DropdownMenuItem>\n  </DropdownMenuContent>\n</DropdownMenu>"
     ],
     "tooltip": [
-      "<Tooltip>\n  <TooltipTrigger asChild>\n    <Button variant=\"outline\" size=\"sm\">\n      Hover me\n    </Button>\n  </TooltipTrigger>\n  <TooltipContent>Tooltips keep skip-delay</TooltipContent>\n</Tooltip>"
+      "<Tooltip>\n  <TooltipTrigger asChild>\n    <Button variant=\"outline\" size=\"sm\">\n      Hover me\n    </Button>\n  </TooltipTrigger>\n  <TooltipContent>Tooltips keep skip-delay</TooltipContent>\n</Tooltip>",
+      "<TapTooltipDemo />"
     ],
     "logo": [
       "<div className=\"flex flex-col gap-px overflow-hidden rounded-lg border\">\n  <div className=\"dark flex h-14 items-center bg-background px-5 text-foreground\">\n    <Logo />\n  </div>\n  <div className=\"surface-paper flex h-14 items-center bg-background px-5 text-foreground\">\n    <Logo />\n  </div>\n</div>",
@@ -163,7 +185,8 @@
       "<div className=\"flex justify-center\">\n  <NotFoundScreen\n    icon={Compass}\n    eyebrow=\"404\"\n    title=\"Event not found\"\n    description=\"This link may have expired or the event was removed.\"\n    actions={\n      <Button asChild size=\"sm\">\n        <Link href=\"#\">Back home</Link>\n      </Button>\n    }\n  />\n</div>"
     ],
     "route-error": [
-      "<RouteErrorMock />"
+      "<RouteErrorMock />",
+      "<RouteErrorMock area=\"admin\" />"
     ],
     "set-name-step": [
       "<SetNameStepDemo />"
@@ -186,6 +209,11 @@
     "route-skeleton": [
       "<RouteSkeletonDemo />"
     ],
+    "create-room": [
+      "<CreateRoomDemo screen=\"phone\" />",
+      "<CreateRoomDemo screen=\"desk\" />",
+      "<CreateRoomDemo atCap />"
+    ],
     "album-cover": [
       "<AlbumCoverDemo />",
       "<AlbumCoverDemo empty />"
@@ -206,8 +234,26 @@
     "admin-report-cards": [
       "<AdminReportCardDemo />"
     ],
+    "admin-albums-grid": [
+      "<ModerationGridDemo />",
+      "<ModerationGridDemo mode=\"album\" />"
+    ],
     "admin-metrics-charts": [
       "<AdminMetricsChartsDemo />"
+    ],
+    "plan-limits": [
+      "<PlanLimitsDemo state=\"healthy\" />",
+      "<PlanLimitsDemo state=\"critical\" />",
+      "<PlanLimitsDemo state=\"failed\" />",
+      "<PlanLimitsDemo state=\"gaps\" />",
+      "<div className=\"flex w-full flex-col gap-4\">\n  <PlanLimitsDemo state=\"never\" />\n  <PlanLimitsDemo state=\"unreadable\" />\n</div>"
+    ],
+    "spend-watch-card": [
+      "<SpendWatchDemo state=\"healthy\" />",
+      "<SpendWatchDemo state=\"tripped\" />",
+      "<SpendWatchDemo state=\"missing\" />",
+      "<SpendWatchDemo state=\"none\" />",
+      "<SpendWatchDemo state=\"unreadable\" />"
     ],
     "event-card": [
       "<EventCard\n  variant=\"hosted\"\n  href=\"#\"\n  name={SAMPLE.eventName}\n  coverUrl={SAMPLE.cover}\n  dateLabel={SAMPLE.dateLabel}\n  itemsLabel=\"128 items\"\n  statusLabel=\"Open\"\n  pendingCount={3}\n  qrSlot={qrSlot}\n/>",
@@ -243,7 +289,8 @@
       "<FeedSection heading=\"Your likes\">\n  <p className=\"text-sm text-muted-foreground\">\n    The labeled section the feed uses for each content group.\n  </p>\n</FeedSection>"
     ],
     "host-media-grid": [
-      "<LikesProvider mediaIds={SAMPLE_MEDIA.map((m) => m.id)}>\n  <HostMediaGrid eventId=\"demo\" items={SAMPLE_MEDIA} />\n</LikesProvider>"
+      "<LikesProvider mediaIds={SAMPLE_MEDIA.map((m) => m.id)}>\n  <HostMediaGrid eventId=\"demo\" items={SAMPLE_MEDIA} />\n</LikesProvider>",
+      "<HostGridArrivalDemo />"
     ],
     "recently-deleted-grid": [
       "<RecentlyDeletedGrid eventId=\"demo\" items={SAMPLE_BIN} />"
@@ -267,6 +314,22 @@
     "guests-door": [
       "<AtTheDoorDemo />",
       "<InvitedDemo />"
+    ],
+    "pricing-sheet": [
+      "<PricingSheetDemo state=\"locked\" />",
+      "<PricingSheetDemo state=\"room\" />",
+      "<PricingSheetDemo state=\"pass\" />",
+      "<PricingSheetDemo state=\"pro\" />"
+    ],
+    "lock-chip": [
+      "<LockChipDemo />"
+    ],
+    "welcome-to-pro": [
+      "<WelcomeToProDemo state=\"applied\" />",
+      "<WelcomeToProDemo state=\"race\" />"
+    ],
+    "download-toast": [
+      "<DownloadToastDemo />"
     ],
     "glow": [
       "<div className=\"dark\">\n  <div className=\"h-16 bg-muted\" />\n  <div className=\"surface-ink relative isolate bg-background\">\n    <Glow\n      shape=\"seam\"\n      vars={{\n        \"--glw-h\": \"210px\",\n        \"--glw-dur\": \"var(--spill-cadence)\",\n      }}\n    />\n    <div data-glw-seamline aria-hidden />\n    <div className=\"relative px-8 py-16 text-sm text-muted-foreground\">\n      The ink slab, lit from the cut above it.\n    </div>\n  </div>\n</div>",
@@ -321,17 +384,17 @@
       "<RevealDemo />"
     ],
     "card-grid": [
-      "<CardGrid tilt columns={3}>\n  {cards.map((image) => (\n    <div\n      key={image.id}\n      className=\"overflow-hidden rounded-2xl bg-card\"\n    >\n      <Image\n        src={image.src}\n        alt=\"\"\n        width={image.width}\n        height={image.height}\n        sizes=\"(min-width: 640px) 33vw, 100vw\"\n        className=\"aspect-4/3 w-full object-cover\"\n      />\n      <p className=\"px-4 py-3 text-sm font-medium\">{image.subject}</p>\n    </div>\n  ))}\n</CardGrid>"
+      "<CardGrid tilt columns={3}>\n  {cards.map((image) => (\n    <div\n      key={image.id}\n      className=\"overflow-hidden rounded-2xl bg-card\"\n    >\n      <Image\n        src={image.src}\n        alt=\"\"\n        width={image.width}\n        height={image.height}\n        sizes=\"(min-width: 640px) 33vw, 100vw\"\n        loading=\"eager\"\n        className=\"aspect-4/3 w-full object-cover\"\n      />\n      <p className=\"px-4 py-3 text-sm font-medium\">{image.subject}</p>\n    </div>\n  ))}\n</CardGrid>"
     ],
     "tilt-card": [
       "<div className=\"max-w-xs\">\n  <TiltCard className=\"rounded-2xl\" maxTiltDeg={6}>\n    <div className=\"rounded-2xl border border-border bg-card p-5 text-sm\">\n      A card that leans toward the pointer.\n    </div>\n  </TiltCard>\n</div>"
     ],
     "media-split": [
-      "<MediaSplit\n  media={\n    <Image\n      src={split.src}\n      alt=\"\"\n      width={split.width}\n      height={split.height}\n      sizes=\"(min-width: 1024px) 58vw, 100vw\"\n      className=\"w-full rounded-xl object-cover\"\n    />\n  }\n>\n  <Eyebrow>One link</Eyebrow>\n  <p className=\"mt-3 text-lg font-medium\">\n    Copy sits beside the media.\n  </p>\n  <p className=\"mt-2 text-sm text-muted-foreground\">\n    Seven columns of media, five of copy; one column on a phone.\n  </p>\n</MediaSplit>",
+      "<MediaSplit\n  media={\n    <Image\n      src={split.src}\n      alt=\"\"\n      width={split.width}\n      height={split.height}\n      sizes=\"(min-width: 1024px) 58vw, 100vw\"\n      loading=\"eager\"\n      className=\"w-full rounded-xl object-cover\"\n    />\n  }\n>\n  <Eyebrow>One link</Eyebrow>\n  <p className=\"mt-3 text-lg font-medium\">\n    Copy sits beside the media.\n  </p>\n  <p className=\"mt-2 text-sm text-muted-foreground\">\n    Seven columns of media, five of copy; one column on a phone.\n  </p>\n</MediaSplit>",
       "<MediaSplit\n  mediaSide=\"end\"\n  media={\n    <Image\n      src={split.src}\n      alt=\"\"\n      width={split.width}\n      height={split.height}\n      sizes=\"(min-width: 1024px) 58vw, 100vw\"\n      className=\"w-full rounded-xl object-cover\"\n    />\n  }\n>\n  <Eyebrow>Mirrored</Eyebrow>\n  <p className=\"mt-3 text-lg font-medium\">The same split, flipped.</p>\n</MediaSplit>"
     ],
     "conveyor": [
-      "<Conveyor>\n  {strip.map((image) => (\n    <Image\n      key={image.id}\n      src={image.src}\n      alt=\"\"\n      width={image.width}\n      height={image.height}\n      sizes=\"240px\"\n      className=\"h-36 w-auto shrink-0 rounded-lg object-cover\"\n    />\n  ))}\n</Conveyor>"
+      "<Conveyor>\n  {strip.map((image) => (\n    <Image\n      key={image.id}\n      src={image.src}\n      alt=\"\"\n      width={image.width}\n      height={image.height}\n      sizes=\"240px\"\n      loading=\"eager\"\n      className=\"h-36 w-auto shrink-0 rounded-lg object-cover\"\n    />\n  ))}\n</Conveyor>"
     ],
     "inline-reel-player": [
       "<InlineReelPlayer reelId={LIBRARY_REEL_ID} />"
@@ -372,7 +435,11 @@
       "<div className=\"mx-auto max-w-xl\">\n  <ReelPlayScreen reelId={LIBRARY_REEL_ID} source=\"library\" />\n</div>"
     ],
     "morph-delegate": [
-      "<>\n  <MorphDelegate\n    name=\"blog-cover\"\n    linkAttr=\"data-cover-morph\"\n    plateAttr=\"data-cover-plate\"\n  />\n  <Link\n    href={`/blog/${LIBRARY_MORPH_SLUG}`}\n    data-cover-morph=\"\"\n    className=\"group relative block aspect-4/5 max-w-[14rem] overflow-hidden rounded-lg bg-muted\"\n  >\n    <span data-cover-plate=\"\" className=\"absolute inset-0\">\n      <Image\n        src={morphCover.src}\n        alt=\"\"\n        fill\n        sizes=\"224px\"\n        className=\"object-cover\"\n      />\n    </span>\n  </Link>\n  <p className=\"mt-3 text-xs text-muted-foreground\">\n    Click the cover: the plate grows into the article&rsquo;s own\n    plate where the browser supports view transitions, and navigates\n    plainly where it does not.\n  </p>\n</>"
+      "<>\n  <MorphDelegate\n    name=\"blog-cover\"\n    linkAttr=\"data-cover-morph\"\n    plateAttr=\"data-cover-plate\"\n  />\n  <Link\n    href={`/blog/${LIBRARY_MORPH_SLUG}`}\n    data-cover-morph=\"\"\n    className=\"group relative block aspect-4/5 max-w-[14rem] overflow-hidden rounded-lg bg-muted\"\n  >\n    <span data-cover-plate=\"\" className=\"absolute inset-0\">\n      <Image\n        src={morphCover.src}\n        alt=\"\"\n        fill\n        sizes=\"224px\"\n        loading=\"eager\"\n        className=\"object-cover\"\n      />\n    </span>\n  </Link>\n  <p className=\"mt-3 text-xs text-muted-foreground\">\n    Click the cover: the plate grows into the article&rsquo;s own\n    plate where the browser supports view transitions, and navigates\n    plainly where it does not.\n  </p>\n</>"
+    ],
+    "how-it-works-stepper": [
+      "<HowItWorksStepperDemo />",
+      "<HowItWorksStepperDemo perspective=\"guest\" />"
     ],
     "cta-band": [
       "<CtaBand\n  heading=\"Your next event starts here.\"\n  subhead=\"A sample band: the primary defaults to the marketing CTA.\"\n  demoLink\n  className=\"py-12\"\n/>",
@@ -387,6 +454,10 @@
     ],
     "demo-door": [
       "<DemoDoor\n  href={DEMO_EVENT_URL ?? \"/demo\"}\n  source=\"library\"\n  className=\"mkt-learn inline-flex items-center gap-2 text-label font-medium text-muted-foreground uppercase hover:text-foreground\"\n>\n  <LiveDot />\n  <span className=\"inline-flex items-center gap-1\">\n    Try our demo event\n    <LearnChevron />\n  </span>\n</DemoDoor>"
+    ],
+    "contact-receipt": [
+      "<ContactReceiptDemo kind=\"named\" />",
+      "<ContactReceiptDemo kind=\"plain\" />"
     ],
     "feature-door": [
       "<div className=\"max-w-sm\">\n  <FeatureDoor slug=\"album\" copy=\"long\" />\n</div>",

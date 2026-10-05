@@ -58,20 +58,23 @@ export type ReadingId =
   | "resend_mail"
   | "sign_ins"
   | "downloads"
-  | "purge_runs";
+  | "purge_runs"
+  | "drive_bytes";
 
 /** The `ops_flags` rows a trip can act on, each failing in its own direction (admin-observability.md). */
 export type SwitchKey =
   | "uploads_enabled"
   | "lifecycle_mail_enabled"
   | "export_enabled"
-  | "purge_cron_enabled";
+  | "purge_cron_enabled"
+  | "drive_export_enabled";
 
 export const SWITCH_KEYS: readonly SwitchKey[] = [
   "uploads_enabled",
   "lifecycle_mail_enabled",
   "export_enabled",
   "purge_cron_enabled",
+  "drive_export_enabled",
 ];
 
 /** Each switch in the console's and the alert's words. */
@@ -80,6 +83,7 @@ export const SWITCH_LABEL: Record<SwitchKey, string> = {
   lifecycle_mail_enabled: "Lifecycle mail",
   export_enabled: "Download all",
   purge_cron_enabled: "The purge sweep",
+  drive_export_enabled: "Send to Google Drive",
 };
 
 /**
@@ -227,6 +231,19 @@ export const READINGS: readonly ReadingDef[] = [
     source: "the purge sweep's runs that did work (job_runs)",
     remedy:
       "The cron fires once a day. More is a Run now pressed again and again, a schedule set too often, or the cron secret in someone else's hands.",
+  },
+  {
+    id: "drive_bytes",
+    label: "Sent to Google Drive",
+    unit: "day",
+    window: "last_day",
+    measure: "bytes",
+    // More than one account at its whole day (we stop each at 700 GB, under Google's 750): a crowd, not a host.
+    floor: 1024 * GB,
+    stop: { kind: "pause", switch: "drive_export_enabled" },
+    source: "what every connection's lanes uploaded, an hour a row (cloud_export_sent_hours)",
+    remedy:
+      "Each send reads every original once. The vector is an album sent, deleted from Drive and sent again; the account breaker stops one account, this a crowd. Paused sends wait and lose nothing. /admin/exports#drive shows who.",
   },
 ];
 
@@ -453,6 +470,7 @@ export type DbReadings = {
   sign_ins?: number;
   downloads?: number;
   purge_runs?: number;
+  drive_bytes?: number;
   /** Per section, the error that section met: that reading is missing, the rest stand. */
   errors: Record<string, string>;
 };
@@ -479,6 +497,7 @@ export function parseDbReadings(data: unknown): DbReadings {
     "sign_ins",
     "downloads",
     "purge_runs",
+    "drive_bytes",
   ] as const) {
     if (!(key in data)) continue;
     const value = finiteOrNull(data[key]);
@@ -586,6 +605,7 @@ export function takeReadings(input: {
     sign_ins: dayCount("sign_ins"),
     downloads: dayCount("downloads"),
     purge_runs: dayCount("purge_runs"),
+    drive_bytes: dayCount("drive_bytes"),
   };
 }
 

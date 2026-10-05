@@ -37,9 +37,10 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   the profiles lock: so the year is the one she paid for, a renewal's year opens on its own row at zero, and a pass
   that ends takes its count with it (generous at a stack's edge, never a false refusal). Every upload still lands on
   the month's row too (spend-watch and the hour's breaker read it). ★ A pass the nightly recompute has not caught up
-  with (her profile still a pass's, no window live) is refused at the completes in the allowance's words (the
-  Advisor's Q26 F1), so nothing lands counted nowhere; the presign's meter still admits it for that day at most. A Pro
-  profile with no cap on record is unmetered.
+  with (her profile still a pass's, no window live) is refused in the allowance's words at the completes (the
+  Advisor's Q26 F1) and, by the same predicate over the same rows, at the presign's meter, so nothing is sent to be
+  refused and nothing lands counted nowhere; the three upload advisories still read her as not full, so the door is
+  open until the presign refuses. A Pro profile with no cap on record is unmetered.
 - **The allowance is published; only the breakers are not.** The pricing table's Uploads row prints each plan's
   number with its window (`uploadsLabel`); `content-policy.test.ts` fences the backstop's old name ("ingress") and the
   unpublished breakers' numbers, read from the SQL that sets them. The meter's wire keeps its names
@@ -66,10 +67,12 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   grief needs real bytes: declaring a size spends nothing.
 - **The presign's meter refuses early, and counts no month** (`meter_upload`, 20261003210500, through
   `upload/server-pipeline-meter.ts`): after every gate of its route and before any URL exists, it refuses past the
-  hour's breaker, past the allowance (the complete's own line over the same window, read early) or past the room
-  (`host_room_used`; the
+  hour's breaker, past the allowance (the complete's own line over the same window, read early, a lapsed pass's whole
+  allowance included) or past the room (`host_room_used`; the
   refusal carries `needed_bytes`, `deleted_bytes` and `makes_room`), each in the route's own words (a guest's name the
-  album, never the plan: `meterRefusal`), and tallies the hour for an upload it admits. No profiles
+  album, never the plan: `meterRefusal`), and tallies the hour for an upload it admits. The host's route lets a full
+  account go on to that refusal, never saying "full" at the context: its `at_storage_cap` is a bare flag with none of
+  those numbers (the month's early refusal there stays, one sentence both say alike). No profiles
   lock: its reads are advisory and the tally is one atomic upsert. It fails OPEN, as the limiters do, since the
   complete's count and caps stand behind it.
 - **Two breakers far past any party, unpublished, refused in words,** so "no guest limit" and "unlimited events" stay
@@ -136,7 +139,13 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   her own plan counts) have reached the target size's allowance reads, on that size's card, that new uploads (her
   guests' too) would pause until the month turns (`uploadsPauseNote`): the webhook allows the switch, so
   `checkPlanChange` stays storage's alone. Only a real change of allowance she may press carries it, and a failed
-  read omits the sentence, never the sheet.
+  read omits the sentence, never the sheet. `/pricing`'s hop has no card to carry it (the page is tier-blind), so
+  change-plan answers it beside the url as `notice` (only for a step down in the allowance, read after the storage
+  check and while the portal session is made, a failed read answering none) and the CheckoutButton shows it, holding
+  one reading before it leaves, with a Stay here on the toast; the sheet's own switch ignores it, having said it on
+  the card. ★ The hold is a timer and a state of its own, never an `await` inside the press's transition: React
+  entangles the router's transitions with a pending async one, so every link in the app sat dead until Stripe's page
+  took over (found in a browser); leaving the page ends the hold and takes its sentence.
 - **A Pro switch goes through `/api/stripe/change-plan`, never the general portal.** `/pricing` is static and
   tier-blind, so a Pro host's tap on a Pro size is refused at checkout (`already_subscribed`) and the button re-posts
   the same plan id to change-plan. After the subscription and storage checks, the route opens a portal session on
@@ -149,10 +158,14 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   general portal keeps the card, the invoices and cancelling, with its plan switching OFF: its quantity stepper has no
   maximum and could bill two or three times for one cap.
 - **The prorated pass-to-Pro credit is honoured in the webhook, idempotently:** a customer-balance grant keyed
-  `pass-credit-<sessionId>` (a Stripe idempotency key, so a retry never double-grants), then every live pass consumed
-  (zero rows on replay), then `tier_expires_at` and `event_slots` cleared. A balance carries from invoice to invoice
-  (Checkout's own first invoice never takes it), where an `amount_off` coupon would silently eat any credit above one
-  invoice's total.
+  `pass-credit-<sessionId>` (a Stripe idempotency key, which holds for at least 24 hours, so a retry inside that window
+  never double-grants; a delivery retries for three days, so a conversion still failing a day on grants again), then
+  ONE call, `consume_passes_for_pro_credit`, that consumes every unconsumed pass (zero rows on replay) and clears
+  `tier_expires_at` and `event_slots` in one transaction. ★ It takes her profiles row first, the capacity bodies' order
+  (an upload's complete holds that row while it counts on her live pass, so the reverse order, in one transaction,
+  deadlocks with it), and nobody reads her passes consumed with her chain still set. A balance carries from invoice to
+  invoice (Checkout's own first invoice never takes it), where an `amount_off` coupon would silently eat any credit
+  above one invoice's total.
 - **A subscription write nulls `event_slots` and `tier_expires_at` every time:** nothing banks behind Pro, and a stale
   stacked-pass slot count would cap a Pro host inside `enforce_event_limit`'s coalesce. The downgrade path then runs
   `recomputePassEntitlement`, so a live uncredited pass resurfaces instead of evaporating.
@@ -171,7 +184,8 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
 
 - **The Stripe webhook, with the pass recompute (`recomputePassEntitlement`, which the webhook and the cron's
   `sweepExpiredPasses` call), is the SOLE writer** of `tier`, `storage_cap_bytes`, `stripe_subscription_id`,
-  `event_slots` and `tier_expires_at`, always through the admin client. Checkout only persists `stripe_customer_id`
+  `event_slots` and `tier_expires_at`, always through the admin client (the credit's clear of the last two through
+  `consume_passes_for_pro_credit`, the service role's alone). Checkout only persists `stripe_customer_id`
   and stamps credit metadata. None of these columns is client-writable ([database-security.md](database-security.md)).
 - **Every entitlement write asserts exactly one matched row** (`applyEntitlement`) and throws otherwise, so a paid but
   unprovisioned host becomes a 5xx and a Stripe retry, never a silent 200. Nothing reconciles Stripe against
@@ -216,6 +230,13 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   never a permission. The receipt's `applied` is `tier !== "free"` read at render, never the URL marker: Stripe redirects the instant
   payment succeeds, routinely a second or two before the webhook, so the modal re-reads a bounded number of times.
   Every price on the surface comes from `tiers.ts`.
+- **The surface's presses and its read are `PricingDoors`** (`components/app/pricing/pricing-doors.tsx`): the Checkout and
+  billing-portal buttons the sheet draws, change-plan, the plan-facts read and the router the receipt and the switch use,
+  as one context value whose default is production's own. Only the Library hands in others (`PricingDoorsProvider`;
+  `pricing-doors.test.tsx` pins both halves and fails on any other importer), so the sheet, the lock chip and the receipt
+  are drawn there with Stripe out of reach. The type is named in full (a door added to it fails every stand-in at compile
+  time), and the two buttons that live outside `pricing/` (`CheckoutButton`, `ManageBillingButton`) still fetch inline,
+  which is why they are swapped as components while change-plan and the read are swapped as verbs.
 - ★ **The account page's Plan card (`#plan`) is billing's one home in the app,** and every fact on it is
   server-derived: the columns only the webhook and the pass recompute write, read through the RLS-scoped profile row.
   Its only search params are `?reset` and `?welcome` (Stripe's return marker, which opens the receipt and decides no
@@ -240,6 +261,17 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   again, and its button deletes what is only selected first ("Delete and switch", the same confirm), because a
   selection has freed nothing yet; it counts from what she stored before this visit's deletions, so nothing is counted
   twice, and a refused switch re-bases it on the refusal's fresher figure.
+- ★ **The storage ring's popover says this month's uploads against her plan's allowance** (`readUploads`,
+  `uploadsLine`, `uploadsPausedWords` in `components/app/storage/storage-figures.ts`, drawn by `storage-meter.tsx`
+  under the storage figures): one quiet line, the plan's own number (`uploadAllowance`) over the figure the plan
+  sheet's read already carries (`monthUploadedBytes`). It is read ONLY while the popover is open (`usePlanFacts`:
+  never on the dashboard's load, never a poll; a Pro host's read includes Stripe's subscription, so her line may take
+  a beat, held by a breathing placeholder), and the last figure stays for the next open. At or past the allowance (the
+  line the advisories read, `used >= allowance`) it turns amber and names what pauses, hers and her guests', the day
+  the month turns and that a delete does not lower the count. ★ It says nothing rather than a guess: a failed read, a
+  Pro with no cap on record (unmetered) and a pass, whose year is counted on the pass (`uploads_used(host,
+  'event_pass')`), which the month's ledger is not; no client read carries that figure yet, so a pass holder's line
+  waits on one.
 
 ## Verifying billing
 

@@ -115,7 +115,8 @@ describe("the sweep's destruction order (source text)", () => {
   const holdFilter = body.indexOf('.filter("legal_hold_at", "is", null)');
   const reclaim = body.indexOf("reclaimMedia(");
   const recheck = body.indexOf("readHeldEventIds(admin, chunk)");
-  const eventDelete = body.search(/\.from\("events"\)\s*\.delete\(\)/);
+  // crumbs-75: the event rows go one a statement in event-id order, through the shared helper.
+  const eventDelete = body.indexOf("deleteEventsInIdOrder(");
   const authDelete = body.indexOf("auth.admin.deleteUser(");
 
   it("finds every step it means to order", () => {
@@ -142,12 +143,17 @@ describe("the sweep's destruction order (source text)", () => {
     expect(reclaim).toBeLessThan(eventDelete);
   });
 
+  // ★ RESHAPED ON PURPOSE (crumbs-75; scar kept: the rows that go are exactly the ones the second hold read cleared).
+  // The expired reason: the delete was one `.in("id", chunk.filter(...))`; the cleared ids are now handed to
+  // `deleteEventsInIdOrder`, one event a statement in event-id order.
   it("asks the holds again right before the event rows go", () => {
     expect(recheck).toBeGreaterThan(reclaim);
     expect(recheck).toBeLessThan(eventDelete);
     expect(body).toMatch(
-      /\.in\(\s*"id",\s*chunk\.filter\(\(id\) => !stillHeld\.has\(id\)\)/,
+      /const doomed = chunk\.filter\(\(id\) => !stillHeld\.has\(id\)\);/,
     );
+    expect(body).toMatch(/deleteEventsInIdOrder\(\s*admin,\s*doomed,/);
+    expect(body).not.toMatch(/\.from\("events"\)\s*\.delete\(\)/);
   });
 
   it("deletes the auth user last of all, after an honest count", () => {
@@ -160,6 +166,14 @@ describe("the sweep's destruction order (source text)", () => {
 
   it("keeps the account whole when a hold blocks an event", () => {
     expect(body).toContain("const { purgeable, blocked }");
+  });
+
+  it("revokes her Google Drive before the auth user goes, and never lets it hold the account", () => {
+    // drive-wiring: the connection row cascades away with the profile, so the revoke must come first.
+    const drive = body.indexOf("await disconnectDrive(userId);");
+    expect(drive).toBeGreaterThan(body.indexOf("if (remaining > 0)"));
+    expect(drive).toBeLessThan(authDelete);
+    expect(body.slice(drive - 200, drive)).toContain("try {");
   });
 
   it("scrubs the guest rows in the re-anonymise, before anything is deleted and before the profile", () => {
@@ -310,6 +324,10 @@ vi.mock("@/lib/r2/delete", () => ({
     return { deleted: keys.length, errored: [] };
   }),
   listR2Objects: vi.fn(),
+}));
+// Her Google Drive's disconnect is its own system's (drive-export.md); the purge only has to ask for it in order.
+vi.mock("@/lib/drive/disconnect.server", () => ({
+  disconnectDrive: vi.fn(async () => ({ found: false, revoked: true, ended: 0 })),
 }));
 
 const { getAccountDeletionState, purgeAccount, sweepDeletedAccounts } =
@@ -472,6 +490,34 @@ describe("purgeAccount on the clamping fake", () => {
 
     const again = await purgeAccount(w.client, user);
     expect(again).toMatchObject({ outcome: "deleted", media_rows: 1_500 });
+    expect(state.deletedUsers).toEqual([user]);
+  });
+
+  // ★ crumbs-75: one DELETE of a chunk cascaded into its albums' rows in whatever order its plan visited them, against
+  // the album log's prune, which takes them in event-id order. Each event now goes in a statement of its own, in order.
+  it("★ deletes the account's event rows one a statement, in event-id order, before the auth user", async () => {
+    const user = uuidOf("u", 4);
+    // Stored highest id first, so no order of the table's own can pass for the ids' order.
+    const events = [4, 2, 3, 1].map((n) =>
+      eventRow(uuidOf("eo", n), user, { deleted_at: HELD }),
+    );
+    const w = world({
+      profiles: [profile(user, HELD)],
+      events,
+      media: events.map((e, i) => mediaRow(uuidOf("mo", i), e)),
+    });
+
+    const result = await purgeAccount(w.client, user);
+
+    expect(result).toMatchObject({ outcome: "deleted", events: 4 });
+    const deletes = w.fake.requests.filter(
+      (r) => r.name === "events" && r.method === "DELETE",
+    );
+    expect(deletes.map((r) => r.filters)).toEqual(
+      [1, 2, 3, 4].map((n) => [
+        { column: "id", op: "eq", value: uuidOf("eo", n) },
+      ]),
+    );
     expect(state.deletedUsers).toEqual([user]);
   });
 });

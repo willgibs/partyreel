@@ -58,6 +58,29 @@ export const PALETTE_ACTIONS: PaletteEntry[] = [
     meta: "Jobs",
     keywords: ["trigger", "manual", "reclaim"],
   },
+  // The spend watch's two switches (crumbs-75): each lands on its own row of the watch's card, where the switch and
+  // the sheet that guards it live (`spend-watch-card.tsx` renders `switch-<key>`).
+  {
+    id: "action-guest-uploads",
+    label: "Pause or resume guest uploads",
+    href: "/admin/jobs#switch-uploads_enabled",
+    meta: "Jobs",
+    keywords: ["kill switch", "spend watch", "guests", "runaway", "presign"],
+  },
+  {
+    id: "action-lifecycle-mail",
+    label: "Pause or resume lifecycle mail",
+    href: "/admin/jobs#switch-lifecycle_mail_enabled",
+    meta: "Jobs",
+    keywords: [
+      "kill switch",
+      "spend watch",
+      "email",
+      "resend",
+      "reminders",
+      "warnings",
+    ],
+  },
   {
     id: "action-downloads",
     label: "Pause or resume downloads",

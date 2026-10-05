@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -40,6 +40,18 @@ type CheckoutButtonProps = Omit<
   onRefused?: (refusal: StorageRefusal) => void;
 };
 
+/**
+ * How long a sentence the host has not read yet holds the way to Stripe's confirm page: one reading, then she goes on
+ * (and it is still her page to confirm or leave there). 22 words at a reader's pace, so the page never leaves
+ * mid-sentence; the toast outlasts it by a beat and carries the way to stop it.
+ *
+ * ★ THE HOLD IS A TIMER OF ITS OWN, NEVER AWAITED INSIDE THE TRANSITION. React entangles every transition with an
+ * async one that is still pending, the router's included, so a press on any link in the app during a held `await` did
+ * nothing for the whole hold (measured in a browser: the click landed and the page stayed put until the redirect won).
+ * The transition ends when the route has answered; the hold is a state, a timer and a cleanup, so she can leave.
+ */
+const NOTICE_HOLD_MS = 5_000;
+
 // Starts a Stripe Checkout session for a Pro plan and redirects to Stripe. Signed-out
 // visitors (the public pricing page) are sent to /login first. The server route is
 // authoritative — this is just the trigger.
@@ -58,6 +70,24 @@ export function CheckoutButton({
 }: CheckoutButtonProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  // The sentence's hold before Stripe's page (below): a timer she can stop, by Stay here or by leaving the page.
+  const [holding, setHolding] = useState(false);
+  const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const holdToast = useRef<string | number | undefined>(undefined);
+  function stopHold() {
+    if (holdTimer.current) clearTimeout(holdTimer.current);
+    holdTimer.current = null;
+    setHolding(false);
+  }
+  // Leaving the page ends it: a hold that outlived the button would take her to Stripe from somewhere else, and its
+  // sentence would linger over the page she went to, beside a Stay here that now stays nothing.
+  useEffect(
+    () => () => {
+      if (holdTimer.current) clearTimeout(holdTimer.current);
+      if (holdToast.current !== undefined) toast.dismiss(holdToast.current);
+    },
+    [],
+  );
 
   /** The numbers where the host is looking, or in a toast that carries them. */
   function showRefusal(refusal: StorageRefusal) {
@@ -109,6 +139,25 @@ export function CheckoutButton({
         ) {
           const outcome = await requestChangePlan(planId, next);
           if (outcome.kind === "redirect") {
+            // ★ A SWITCH BELOW THIS MONTH'S UPLOADS SAYS SO BEFORE IT LEAVES (crumbs-70). The plan sheet says it on the
+            // size's own card before the press; this page is tier-blind and has no card, so the route answers the
+            // sentence (`uploadsPauseNote`) and it is shown here, held one reading while the button still says it is
+            // working, and hers to stop (Stay here, or simply leaving the page: a wait with no way out is not one the
+            // brief allows). Words, never a refusal and never a confirm: the webhook allows the switch, and she goes on
+            // unless she says otherwise.
+            if (outcome.notice) {
+              const url = outcome.url;
+              setHolding(true);
+              holdToast.current = toast(outcome.notice, {
+                duration: NOTICE_HOLD_MS + 1_000,
+                action: { label: "Stay here", onClick: stopHold },
+              });
+              holdTimer.current = setTimeout(() => {
+                holdTimer.current = null;
+                window.location.href = url;
+              }, NOTICE_HOLD_MS);
+              return;
+            }
             window.location.href = outcome.url;
             return;
           }
@@ -138,8 +187,12 @@ export function CheckoutButton({
   }
 
   return (
-    <Button onClick={startCheckout} disabled={isPending} {...buttonProps}>
-      {isPending ? "Starting…" : children}
+    <Button
+      onClick={startCheckout}
+      disabled={isPending || holding}
+      {...buttonProps}
+    >
+      {isPending || holding ? "Starting…" : children}
     </Button>
   );
 }

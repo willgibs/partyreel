@@ -92,6 +92,8 @@ import type { JobHealthReport } from "@/lib/jobs/health-summary";
 
 import { SAMPLE, SAMPLE_MEDIA } from "@/app/(dev)/design/reference/sample-data";
 
+import { nightArrivals, TONIGHT_AGE_MINUTES } from "./hub-night";
+
 // A pending set for the review-surface probe (force pending + unique ids to fill the queue).
 const SAMPLE_PENDING = [...SAMPLE_MEDIA, ...SAMPLE_MEDIA].map((m, i) => ({
   ...m,
@@ -662,6 +664,35 @@ const QUEUE_ENTRIES: ReviewEntry[] = [
     queueReport(6, { reason: "please delete this one", signedIn: true }),
     queueReport(7, { reason: "I look awful in this one, can you delete it" }),
   ]),
+  // A report whose item is gone is still that item's (crumbs-21): a dismissal reopened after the purge took its row.
+  // Its tile says what became of it, its chip says Deleted, and there is nothing left to take down.
+  queueEntry(
+    7,
+    "other",
+    [
+      queueReport(9, {
+        reason: "this one should not have been posted",
+        signedIn: true,
+      }),
+    ],
+    {
+      key: "item:gone-photo",
+      media: null,
+      uploader: null,
+      deleted: { id: "library-gone-photo", type: "photo" },
+    },
+  ),
+  queueEntry(
+    8,
+    "other",
+    [queueReport(10, { reason: "posted without asking" })],
+    {
+      key: "item:gone-video",
+      media: null,
+      uploader: null,
+      deleted: { id: "library-gone-video", type: "video" },
+    },
+  ),
   queueEntry(6, "other", [queueReport(8)], {
     key: "album:e-shower",
     subject: "album",
@@ -1239,9 +1270,20 @@ export function AlbumCoverDemo({ empty = false }: { empty?: boolean }) {
 }
 
 /**
+ * TONIGHT: the wedding's night (`hub-night.ts`) with its newest photograph a few minutes old on this page's own clock, so the
+ * strip's newest marks are lit as they are while photographs land (a quarter-hour, then quiet, as on the hub).
+ * Read when the page's script loads: only its distances are drawn, so the server's copy and the browser's
+ * paint the same marks and the browser alone decides what is lit.
+ */
+const TONIGHT = nightArrivals(
+  Math.floor(Date.now() / 60_000) - TONIGHT_AGE_MINUTES,
+);
+
+/**
  * MAYA'S HEAD: the real composition (`HubCover`) on the same stills, under the share provider its code
- * reads (a press opens nothing here), with her numbers on it and the code on its white mat. `before` is
- * the week before: nothing in the album, the house light.
+ * reads (a press opens nothing here), with her numbers on it and the code on its white mat. The facts
+ * strip along its foot draws the night's own arrivals, since a specimen has no album store to read them
+ * off (`arrivals`). `before` is the week before: nothing in the album, the house light.
  */
 export function HubCoverDemo({ before = false }: { before?: boolean }) {
   return (
@@ -1253,8 +1295,9 @@ export function HubCoverDemo({ before = false }: { before?: boolean }) {
           counts={
             before
               ? { album: 0, guests: 0, views: 0 }
-              : { album: 214, guests: 31, views: 486 }
+              : { album: TONIGHT.length, guests: 31, views: 486 }
           }
+          arrivals={before ? [] : TONIGHT}
           prettyUrl="https://partyreel.com/e/maya-and-jay"
           eventLink="https://partyreel.com/e/3f0c1d2e4a5b6c7d8e9f0a1b2c3d4e5f"
           code={{
@@ -1369,7 +1412,8 @@ export function HubBandDemo() {
           <HubCover
             name="Maya & Jay"
             date="2026-09-12"
-            counts={{ album: 214, guests: 31, views: 486 }}
+            counts={{ album: TONIGHT.length, guests: 31, views: 486 }}
+            arrivals={TONIGHT}
             prettyUrl="https://partyreel.com/e/maya-and-jay"
             eventLink="https://partyreel.com/e/3f0c1d2e4a5b6c7d8e9f0a1b2c3d4e5f"
             code={{

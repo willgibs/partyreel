@@ -14,6 +14,8 @@ import {
   type GroundId,
   isReading,
   isSheet,
+  type MomentId,
+  OPTIONS,
   type PageNo,
   sceneSrc,
   type ViewId,
@@ -42,20 +44,33 @@ function useLabKey(): string | null | undefined {
 /**
  * A frame's viewport: a laptop's canvas and a phone's. A desk's atom sheet
  * ends above a laptop's fold, so its frame stops there (the stage draws it
- * larger); a phone's sheet is two phone pages, each a whole screen.
+ * larger); a phone is an iPhone's whole 812.
  */
 const DESK_SHEET_H = 820;
-/** A phone's whole screen (an iPhone's 812, as every phone frame on the board). */
 const PHONE_H = 812;
 function heightOf(view: ViewId, w: Width): number {
   if (w === 375) return PHONE_H;
   return isSheet(view) ? DESK_SHEET_H : CANVAS.desktop.h;
 }
 
-/** One frame: an identity's view at a width, captioned by what it read. */
+/** A frame's id: every fact it draws, so two frames never answer for each other. */
+function frameId(
+  choice: Choice,
+  view: ViewId,
+  moment: MomentId,
+  w: Width,
+  ground: GroundId,
+  page: PageNo,
+): string {
+  const mix = (Object.keys(OPTIONS) as (keyof Choice)[]).map((k) => choice[k]);
+  return ["identity", view, moment, w, ground, page, ...mix].join("-");
+}
+
+/** One frame: a mix's view at a width, caught in a moment, captioned by what it read. */
 export function SceneFrame({
   choice,
   view,
+  moment,
   w,
   ground,
   page = 1,
@@ -63,22 +78,14 @@ export function SceneFrame({
 }: {
   choice: Choice;
   view: ViewId;
+  moment: MomentId;
   w: Width;
   ground: GroundId;
   page?: PageNo;
   title: string;
 }) {
   const key = useLabKey();
-  const id = [
-    "identity",
-    view,
-    w,
-    ground,
-    page,
-    choice.system,
-    choice.room,
-    choice.edge,
-  ].join("-");
+  const id = frameId(choice, view, moment, w, ground, page);
   const [caption, setCaption] = useState("reading the frame");
   useEffect(() => {
     const hear = (event: MessageEvent) => {
@@ -93,7 +100,7 @@ export function SceneFrame({
     <Fit w={w}>
       <Frame
         id={id}
-        src={sceneSrc({ ...choice, view, w, ground, page, id }, key)}
+        src={sceneSrc({ ...choice, view, moment, w, ground, page, id }, key)}
         gated
         w={w}
         h={heightOf(view, w)}
@@ -116,31 +123,45 @@ const GROUND_NAME: Record<GroundId, string> = {
 };
 
 /**
- * AN OPTION, DRAWN: one view at the width and on the ground the knobs hold.
- * A sheet is paper and the room in one desk's frame, or two phone pages on
- * one ground; a screen is one frame.
+ * AN OPTION, DRAWN: one view at the width the knobs hold, on each ground
+ * asked for, side by side. A desk's sheet holds both grounds in one frame; a
+ * phone's sheet is two phone pages a ground. A screen that is the room in
+ * both themes (Create) is drawn once. A press is drawn beside its key at rest
+ * (`beside`), each ground a pair: a still shows a press only against the
+ * instant before it.
  */
 export function OptionFrames({
   choice,
   view,
+  moment,
   what,
   w,
-  ground,
+  grounds,
   name,
+  beside,
 }: {
   choice: Choice;
   view: ViewId;
+  moment: MomentId;
   /** What the view is, in words, for the frame's title. */
   what: string;
   w: Width;
-  ground: GroundId;
+  grounds: readonly GroundId[];
   name: string;
+  /** A moment drawn before each frame on the same ground, and what it is called. */
+  beside?: { moment: MomentId; words: string; held: string };
 }) {
-  const frame = (g: GroundId, words: string, page: PageNo = 1) => (
+  const frame = (
+    g: GroundId,
+    words: string,
+    page: PageNo = 1,
+    at: MomentId = moment,
+  ) => (
     <SceneFrame
-      key={`${view}-${g}-${page}`}
+      key={`${view}-${g}-${page}-${at}`}
       choice={choice}
       view={view}
+      moment={at}
       w={w}
       ground={g}
       page={page}
@@ -151,11 +172,28 @@ export function OptionFrames({
     return (
       <Story>
         {w === 1440
-          ? frame(ground, `${what}, on paper and in the room`)
-          : ([1, 2] as const).map((p) =>
-              frame(ground, `${what}, ${p} of 2, ${GROUND_NAME[ground]}`, p),
+          ? frame("room", `${what}, on paper and in the room`)
+          : grounds.flatMap((g) =>
+              ([1, 2] as const).map((p) =>
+                frame(g, `${what}, ${p} of 2, ${GROUND_NAME[g]}`, p),
+              ),
             )}
       </Story>
     );
-  return <Story>{frame(ground, `${what}, ${GROUND_NAME[ground]}`)}</Story>;
+  // Create is a room of its own in both themes: one frame says it.
+  const on: readonly GroundId[] = view === "create" ? ["room"] : grounds;
+  const called = (g: GroundId) =>
+    view === "create" ? what : `${what}, ${GROUND_NAME[g]}`;
+  return (
+    <Story>
+      {on.flatMap((g) =>
+        beside
+          ? [
+              frame(g, `${called(g)}, ${beside.words}`, 1, beside.moment),
+              frame(g, `${called(g)}, ${beside.held}`),
+            ]
+          : [frame(g, called(g))],
+      )}
+    </Story>
+  );
 }

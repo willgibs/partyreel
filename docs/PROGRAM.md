@@ -76,6 +76,14 @@ decides and why it matters, the recommendation's reason, the words it coins) one
 still writes all of it, a line each: it is what lets him place any question the moment he wants to. He should never
 have to click through the options to learn what he is being asked, nor read a screen of words to reach them.
 
+**Speed over proof in exploration** (Will, 2026-10-04: four rounds in the time of one beats one perfect round). A board
+is dev-only (its folder never ships; the lab is a 404 in production), so its lane spends its hours on the question and
+its options, never on proving them. Its handoff gate is the light one: typecheck, lint, the board's own tests,
+`lab:smoke` and `lab:demo --board <id>` (every option renders, fits the lab and differs, at a desk and a phone). There
+is no full test run, no production build and no multi-theme capture round unless the question is about a theme; the
+Orchestrator's merge gate is the one full check. The helpers per option and the fresh-eyes pass stay: they are the
+thinking. A bug found at the desk is fixed then. Wiring lanes keep the whole gate and a local red-team: they ship.
+
 - Build a board as the toolbox page (`/design/lab/kit`) teaches:
   `pnpm new-board <id> "<title>" --surface <s> --desk <n>` writes its folder, the newest board on the desk is the
   worked example, and `registry.test.ts` and `lab:demo` name whatever a board still owes.

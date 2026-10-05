@@ -486,6 +486,11 @@ One `Toaster` (`ui/sonner.tsx`) in the root layout: top centre, clear of every f
 expanded, since a phone has no hover to open sonner's pile. Its offset cannot read `--mkt-header-h`, which is scoped
 to `[data-mkt]`, a sibling scope.
 
+- ★ **A toast published from a mount effect on a full page load is never seen**: the root layout draws `<Toaster />`
+  after `{children}`, effects run in tree order, and sonner shows a toast only to a Toaster subscribed when it is
+  published (it keeps a history and replays nothing). Say it a beat later, from a timer that outlives the effect (Strict
+  Mode runs the effect twice, so a timer cancelled on cleanup loses a word taken once): `drive-flag.tsx`'s return word
+  and the boom probe's crash are the two that met it, and a client navigation, with the Toaster already there, hides it.
 - **An error waits for a press**, since a failure that vanishes unread repeats itself (sonner has no per-type
   duration, so `ui/sonner.tsx` patches `toast.error` once at load).
 - **A toast is pressable over an open modal, and a press on one is inside every layer**: an open Radix modal sets
@@ -523,10 +528,14 @@ house bounce inline, since `--mkt-ease-pop` lives on `[data-mkt]`.
   (an error's message can carry internals, a client-side one unredacted).
 - **Try again is Next's `unstable_retry`** (the router's refresh with the reset, `TryAgain`) on every crash screen,
   `global-error`'s included, since a bare `reset` re-renders the payload that crashed (`route-error.test.tsx`).
-- **The root `error.tsx`** catches a crash in a group's own layout, which no group boundary can; `global-error.tsx`,
-  dependency-free (its own html, inline styles), covers the root layout's death.
+- **The root `error.tsx`** (`render:root`) catches a crash in a group's own layout, which no group boundary can;
+  `global-error.tsx` (`render:global`), dependency-free (its own html, inline styles), covers the root layout's death.
+  Two failures, told apart by area in Sentry, never by the stack.
 - **`captureError` lives in the crash wrappers only**, never in `NotFoundScreen`, where it would file every real 404.
-- **Verify the chain on a production build** with the gated `/design/lab/tools/boom` probe (dev shows the overlay).
+- **Verify the chain on a production build** with the gated `/design/lab/tools/boom` probe (dev shows the overlay): bare,
+  it crashes the page into the root `error.tsx`; `?boundary=global` crashes the root layout itself into
+  `global-error.tsx`, by a toast whose element throws, which the layout's own `<Toaster />` draws beside `{children}`
+  (`root-layout-crash.tsx`; the toast waits a beat after mount, since the Toaster subscribes after the page's effect).
 - The 404 pages are [marketing-content.md](marketing-content.md)'s.
 
 ## The craft guidance stack
@@ -583,6 +592,20 @@ board, its own sheet and scenes), found by the registry and the board route and 
   in production, radix's focus trap, and history (a place popup drawn open at a hand's width costs the tab's Back one
   press); and a frame's elements wear the frame's own prototypes, so production's `instanceof HTMLElement` answers false
   there.
+- **The Library draws what answers to the screen in a frame pair** (`library/device-frames.tsx`: a laptop's 1440 zoomed
+  to the column and a phone's 375 beside it, each a portalled `Frame`), and four things follow that no frame tells you.
+  ★ `lab:smoke` reads server HTML and a frame mounts on the client when the reader nears it, so a scene in a frame is
+  never rendered by the crawl: the demo's own test and a real Chrome are its proof. ★ A popup focuses what it opens and a
+  frame is a window of its own, so a scene drawn open took the keyboard into the frame as the reader scrolled toward it
+  (the arrow keys and the space bar stopped scrolling the page): the frame's body stands inert for the arrival
+  (`QuietArrival`), then lets go. ★ `useKeyboardInset` reads the LAB's window, so a field focused in a frame lifts
+  nothing: the keyboard is a stand-in that writes the hook's four things (`--kb-inset`, `--vv-h`, `--vv-top`,
+  `data-keyboard`) and holds them against the hook's own clearing. ★ Next's dev check for a `fill` image told
+  `sizes="100vw"` compares its width with the LAB's window, so a full-bleed plate (`PhotoSection`) is drawn in a frame as
+  wide as the window (a phone-wide frame in a laptop's window warns; so does a plate in the Library's column), and an
+  image in a frame is never the lab's largest paint (no LCP warning). A frame wears the lab's own theme class, so the
+  Specimen's light and dark split draws its scene twice in one theme; and two popovers drawn open in one jsdom document
+  leave neither standing, so a test draws one screen at a time.
 
 ## Gotchas / don't-revert
 
@@ -591,6 +614,8 @@ board, its own sheet and scenes), found by the registry and the board route and 
   (the `Kbd` atom is the model), and a prose container `prose-code:font-sans`.
 - **Two mask layers on one element never intersect in Chrome**: `mask-composite: intersect` composites the last layer
   against transparent black, so the pair resolves to the union. Split the masks across two nested elements.
+- **Chrome draws an `outline` or a border width in whole CSS pixels**: 1.5px is drawn 1px at every device scale, so a
+  line that must read 1.5px is a `box-shadow` spread.
 - **Radix's `Portal` renders its children one commit after it mounts**, so an effect keyed on a dialog opening finds
   no element: the viewer binds its stage and media through callback refs held in state, and keys its effects on those.
 - **A tap never opens a tooltip on an icon control** (`ui/tooltip`'s `TooltipTrigger` refuses a focus a finger or a pen
@@ -599,6 +624,8 @@ board, its own sheet and scenes), found by the registry and the board route and 
   thing asked for (a glyph with no label, a table row's fine print) wears `TapTooltip` instead, the one press model: a
   tap toggles the words, a cursor's click keeps them open (Radix dismisses at the press of its own trigger, so a click
   would blink them), a key toggles, and the rich tooltip mounts after hydration with the words as the `title` until then.
+  It reads its face as an element, which a server component hands a client one as a lazy reference (`children.props` is
+  undefined: a 500), so it is drawn from a client component, as `GlyphCount`, `RowTip` and the Library's demo are.
 - **A full-width `inset-x-0` overlay above a gesture track eats the gesture** across its flanks, killing swipe
   navigation on every viewer at once: the box takes `pointer-events-none`, its controls `pointer-events-auto`.
 - **`src/components/ui/*` keeps the shadcn generator's style** (no semicolons, `.prettierignore`d) while app code uses

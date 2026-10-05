@@ -160,18 +160,26 @@ beforeEach(() => {
           void presignGate!.then(resolve);
         });
       }
-      const body = JSON.parse(init.body) as Record<string, unknown>;
-      const answer = url.includes("presign")
-        ? {
-            ok: true,
-            strategy: "single",
-            media_id: MEDIA,
-            key: `events/e/photo/${MEDIA}/original.jpg`,
-            content_type: body.content_type,
-            url: "https://r2.example/original",
-            headers: {},
-          }
-        : { ok: true, status: "approved" };
+      // The burst's wire (`burst.ts`): each file's own answer, in order.
+      const body = JSON.parse(init.body) as {
+        files: Record<string, unknown>[];
+      };
+      const answer = {
+        ok: true,
+        files: body.files.map((file) =>
+          url.includes("presign")
+            ? {
+                ok: true,
+                strategy: "single",
+                media_id: MEDIA,
+                key: `events/e/photo/${MEDIA}/original.jpg`,
+                content_type: file.content_type,
+                url: "https://r2.example/original",
+                headers: {},
+              }
+            : { ok: true, status: "approved" },
+        ),
+      };
       return new Response(JSON.stringify(answer), { status: 200 });
     }),
   );

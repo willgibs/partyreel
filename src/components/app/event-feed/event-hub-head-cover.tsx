@@ -56,12 +56,53 @@ const OWN_LINKS = SHEET_CAP;
 const noSubscription = () => () => {};
 const noRevision = () => 0;
 
-function useLinksRevision(album: HubAlbum | null): number {
+/** The album's link revision, live: a window of links landing re-renders what reads them (nothing off the hub). */
+export function useLinksRevision(album: HubAlbum | null): number {
   return useSyncExternalStore(
     album ? album.store.links.subscribe : noSubscription,
     album ? album.store.links.revision : noRevision,
     noRevision,
   );
+}
+
+/**
+ * ★ HER OWN, LIT: of `ids` (the newest of a roll, newest first), the ones she took herself, with the tile each wears.
+ * The links of the newest `OWN_LINKS` say whose each is (`WHO_HOST`), so they are asked for once (the album's own link
+ * store, the rows' when she looks), and the cover and the develop that follows it (`hub-develop.tsx`) light the same
+ * squares by one reading of them.
+ */
+export function useHerShots(ids: readonly string[]): HerShot[] {
+  const album = useHostAlbum();
+  const entries = useHubEntries(album);
+  const asked = useMemo(() => ids.slice(0, OWN_LINKS), [ids]);
+  const askedKey = asked.join(",");
+  useEffect(() => {
+    if (!album || asked.length === 0) return;
+    void album.store.links.ensure(asked);
+    // `askedKey` stands for the ids asked.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [album, askedKey]);
+  const linksRevision = useLinksRevision(album);
+  return useMemo<HerShot[]>(() => {
+    if (!album || !entries) return [];
+    const byId = new Map(entries.map((e) => [e[0], e]));
+    const out: HerShot[] = [];
+    for (const id of asked) {
+      const link = album.linkOf(id);
+      const e = byId.get(id);
+      if (!link || !e || !((link.who?.[1] ?? 0) & WHO_HOST)) continue;
+      out.push({
+        key: id,
+        at: Math.floor(e[4] / 1000),
+        src: link.tile,
+        video: (e[3] & ENTRY_VIDEO) !== 0,
+        sending: false,
+      });
+    }
+    return out;
+    // `linksRevision` stands for the links `linkOf` reads.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [album, entries, asked, linksRevision]);
 }
 
 /** The cover, standing in her album's place until she looks. */
@@ -93,35 +134,7 @@ export function HostAlbumCover({
   );
 
   // Her own among the newest that wait: their links say whose each is, asked for once (the album's own store).
-  const asked = useMemo(() => facts.ids.slice(0, OWN_LINKS), [facts.ids]);
-  const askedKey = asked.join(",");
-  useEffect(() => {
-    if (!album || asked.length === 0) return;
-    void album.store.links.ensure(asked);
-    // `askedKey` stands for the ids asked.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [album, askedKey]);
-  const linksRevision = useLinksRevision(album);
-  const hers = useMemo<HerShot[]>(() => {
-    if (!album || !entries) return [];
-    const byId = new Map(entries.map((e) => [e[0], e]));
-    const out: HerShot[] = [];
-    for (const id of asked) {
-      const link = album.linkOf(id);
-      const e = byId.get(id);
-      if (!link || !e || !((link.who?.[1] ?? 0) & WHO_HOST)) continue;
-      out.push({
-        key: id,
-        at: Math.floor(e[4] / 1000),
-        src: link.tile,
-        video: (e[3] & ENTRY_VIDEO) !== 0,
-        sending: false,
-      });
-    }
-    return out;
-    // `linksRevision` stands for the links `linkOf` reads.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [album, entries, asked, linksRevision]);
+  const hers = useHerShots(facts.ids);
 
   const nowMs = useWaitClock();
   const when = nowMs !== null ? developsWhen(developsAt, nowMs) : null;

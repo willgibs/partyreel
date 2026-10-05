@@ -216,8 +216,15 @@ export function EventExperience({
   /** Header stats: numbers only, never identities. N goes live via
    *  LiveGallery's onCountChange; M is THE ONE COUNT of guests (getEventGuests,
    *  the same the host's hub reads; never the host), seeded here and kept
-   *  current by the gallery poll (`onGuestCountChange`). */
-  stats: { approvedTotal: number; guestCount: number };
+   *  current by the gallery poll (`onGuestCountChange`). `kinds` is what N holds by
+   *  kind where the server may say it (never at a lock), the cover's words from the
+   *  first byte (`albumCountWords`); optional so a stand-in page (a test's, the lab's)
+   *  need not name it: absent reads as both nouns. */
+  stats: {
+    approvedTotal: number;
+    guestCount: number;
+    kinds?: { photos: number; videos: number } | null;
+  };
   /** The demo event: "uploads" are simulated locally + nothing is polled/persisted. */
   isDemo: boolean;
   /** Server-resolved gallery access (none/teaser/full), driving the entry modal's gate. `none` =
@@ -376,7 +383,8 @@ export function EventExperience({
   const [mediaCount, setMediaCount] = useState(stats.approvedTotal);
   // ★ WHAT THAT COUNT SAYS IT HOLDS (`albumCountWords`, crumbs-61): the album's source names the kinds it can see ("12
   // photos"), told with each count so the cover and the album's own line say one thing. Null until the album has
-  // told it, and the cover then says both nouns, as the server's first paint does (it knows a total, never its kinds).
+  // told it, and the cover then says it from the server's own count of the kinds (`stats.kinds`, crumbs-74), by the
+  // same function, so the first paint and the live album agree.
   const [mediaWords, setMediaWords] = useState<string | null>(null);
   // ★ WHETHER ANYTHING WAITS IN THE ALBUM, AS ITS SYNC LAST SAID IT (`onWaitingChange`): the server's read at render
   // (`waitingOnArrival`) is the first paint's word, and this is the live one, so the cover's Add stops asking for "the
@@ -1316,6 +1324,13 @@ export function EventExperience({
         gate={gate}
         doorGate={doorGate}
         acceptsVideo={event.accepts_video}
+        // The album's camera, where its host chose one: the door's first photograph is taken with it (crumbs-76), and the
+        // door says when it is open (the keep waits, the album's failure sheet stands down) and takes a shot back
+        // through the page's own removal, as the slot's camera does.
+        camera={cameraAlbum ? { rollSize: event.roll_size ?? null } : null}
+        onCameraOpenChange={setCameraOpen}
+        removedIds={removedIds}
+        onOwnRemoved={handleOwnRemoved}
         capBytes={hostCap}
         hasContributed={serverContributed}
         contributed={clientContributed}
@@ -1447,6 +1462,9 @@ export function EventExperience({
             description={event.description}
             mediaCount={mediaCount}
             mediaWords={mediaWords ?? undefined}
+            // ★ Named only where the live album would name them too (a full answer: a teaser's nine cannot see in,
+            // and say both nouns), so the first paint's words and the live album's never flash.
+            mediaKinds={access === "full" ? (stats.kinds ?? null) : null}
             guestCount={guestCount}
             actionsRef={sentinelRef}
             actions={
@@ -1527,7 +1545,9 @@ export function EventExperience({
                       // The door's own step is showing this run's failures, or its keep stands in
                       // front of the album: one run never gets two surfaces, and the failure sheet
                       // waits for the keep to be answered (see the one queue's note above).
-                      suppressFailures={uploadStepActive || keepDue}
+                      suppressFailures={
+                        uploadStepActive || keepDue || cameraOpen
+                      }
                       onFailuresClosed={flushPendingVerification}
                       isDemo={isDemo}
                       host={hostCard}

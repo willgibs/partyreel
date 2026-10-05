@@ -10,7 +10,11 @@
  */
 import "server-only";
 
+import { cookies } from "next/headers";
+
+import { readMyDriveStops } from "@/lib/db/queries/drive-stops";
 import { getHostDoorWaiting } from "@/lib/db/queries/event-doors";
+import { DRIVE_HINT_COOKIE } from "@/lib/drive/links";
 import { getEventCardStats, listEvents } from "@/lib/db/queries/events";
 import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 import type {
@@ -147,6 +151,12 @@ export async function getNotificationData(): Promise<NotificationData> {
   const doorByEvent = user
     ? await readDoorByEvent(user.id).catch(() => [])
     : [];
+  // Send to Google Drive's stops: read only where the browser holds its hint (so a host who never used Drive pays
+  // nothing on every page), and, as every bell read, never able to take the page down.
+  const driveStops =
+    user && (await usesDrive())
+      ? await readMyDriveStops(supabase).catch(() => [])
+      : [];
 
   return {
     pendingCount,
@@ -158,5 +168,15 @@ export async function getNotificationData(): Promise<NotificationData> {
     recoverySoonestPurgeAt,
     announcements: announcementsRes.data ?? [],
     announcementsSeenAt: profile?.announcements_seen_at ?? null,
+    driveStops,
   };
+}
+
+/** Whether this browser's host uses Send to Google Drive (its hint cookie); no request scope reads as no. */
+async function usesDrive(): Promise<boolean> {
+  try {
+    return (await cookies()).get(DRIVE_HINT_COOKIE)?.value === "1";
+  } catch {
+    return false;
+  }
 }

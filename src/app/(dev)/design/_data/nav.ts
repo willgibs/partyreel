@@ -91,7 +91,7 @@ const TOOLS: NavItem[] = [
     href: "/design/lab/tools/boom",
     label: "Error boundary",
     badge: "tool",
-    note: "Throws on render, on purpose, to check the boundary.",
+    note: "Throws on render, on purpose: bare reaches the root boundary, ?boundary=global reaches global-error.",
   },
 ];
 

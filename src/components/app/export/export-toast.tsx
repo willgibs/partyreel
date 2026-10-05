@@ -8,6 +8,7 @@ import type {
   ToastPort,
   ToastView,
 } from "@/components/app/export/export-walk";
+import { WALK_COPY } from "@/lib/export/walk";
 
 /**
  * THE DOWNLOAD'S TOAST, ON THE PRODUCT'S TOASTER (`ui/sonner.tsx`: top centre, the state tones,
@@ -110,114 +111,181 @@ function Answers({
   );
 }
 
+/**
+ * ★ A TRY AGAIN WAITS FOR THE LINE (crumbs-71). While the browser says it is offline a press on one can only fail the
+ * same way (the mint is refused at once and the toast says the connection dropped again), so a toast whose way back is a
+ * Try again (a refusal, a short zip) is drawn WITHOUT it, says what it waits for ("Waiting for your connection…") in its
+ * detail's place, keeps its x, and is drawn again as it was when `online` fires: its own words and its button, nothing
+ * pressed.
+ *
+ * ★ IT IS HELD HERE, ON THE PORT, NOT IN AN ENGINE: the walk's Try again and the take-home Save's both draw through
+ * `exportToasts`, so one rule serves both, and the toast's own life ends the wait. A replacement, `dismiss` and sonner's
+ * own dismissal (a swipe) each stop the listening, so a toast that is gone is never drawn back by the line.
+ *
+ * "Offline" is the browser's certain word (`navigator.onLine === false`); "online" says only that a network is attached,
+ * so a line that merely stalls keeps its Try again (a press there is a real try) and nothing listens unless the browser
+ * says offline. A phone's browser freezes a tab it is left for another app and can miss the event, so looking at the tab
+ * again asks too. A cancel's Try again is hers and "Get part N" is a next step, so both are left as they are: a press on
+ * either that meets a dead line lands on this toast, which then waits.
+ */
+type Again = Extract<ToastView, { tone: "refused" | "short" }> & {
+  action: ToastAction;
+};
+
+const wantsTheLine = (view: ToastView): view is Again =>
+  (view.tone === "refused" || view.tone === "short") &&
+  view.action !== undefined;
+
+const lineIsDown = () =>
+  typeof navigator !== "undefined" && navigator.onLine === false;
+
+/** The toasts waiting for the line, by id: how each stops listening. */
+const waiting = new Map<string, () => void>();
+
+function stopWaiting(id: string) {
+  waiting.get(id)?.();
+}
+
+function waitForTheLine(id: string, view: Again): () => void {
+  const lineBack = () => {
+    if (lineIsDown()) return;
+    // The toast as it was before the wait, its Try again with it (`show` ends this wait first).
+    exportToasts.show(id, view);
+  };
+  window.addEventListener("online", lineBack);
+  document.addEventListener("visibilitychange", lineBack);
+  const stop = () => {
+    window.removeEventListener("online", lineBack);
+    document.removeEventListener("visibilitychange", lineBack);
+    if (waiting.get(id) === stop) waiting.delete(id);
+  };
+  waiting.set(id, stop);
+  return stop;
+}
+
+/** One state, drawn. `onDismiss` is what sonner calls when the toast goes (a swipe, the x, `dismiss`). */
+function draw(id: string, view: ToastView, onDismiss?: () => void) {
+  const base = {
+    id,
+    closeButton: false,
+    description: undefined,
+    cancel: undefined,
+    // Set on every draw like the rest: a held toast's hook must not outlive the state it was set for.
+    onDismiss,
+  };
+  switch (view.tone) {
+    case "wait":
+      toast.loading(view.title, {
+        ...base,
+        icon: undefined,
+        duration: Infinity,
+        dismissible: false,
+        action: <Controls close={view.close} />,
+      });
+      return;
+    case "ask":
+      // A question about her own selection: neutral, held until she answers or takes the x.
+      toast.info(view.title, {
+        ...base,
+        description: <Answers actions={view.actions} />,
+        icon: <EyeOff className="size-4" aria-hidden />,
+        duration: Infinity,
+        dismissible: false,
+        action: <Controls close={view.close} />,
+      });
+      return;
+    case "confirm":
+      // The x, asked before it is believed (E6): neutral, held until she answers, and no x of its own (the
+      // answers are the way out). Keep going is first, since it is what an unintended press means.
+      toast.info(view.title, {
+        ...base,
+        description: <Answers actions={view.actions} detail={view.detail} />,
+        icon: <Ban className="size-4" aria-hidden />,
+        duration: Infinity,
+        dismissible: false,
+        action: undefined,
+      });
+      return;
+    case "between":
+      // Neutral, not green: the walk is half done, and green says finished.
+      toast.info(view.title, {
+        ...base,
+        description: view.detail ? <Detail text={view.detail} /> : undefined,
+        icon: <Download className="size-4" aria-hidden />,
+        duration: Infinity,
+        dismissible: false,
+        action: <Controls action={view.action} close={view.close} />,
+      });
+      return;
+    case "downloading":
+      // Handed over and on its way; the Worker's word turns it to saved (`export-ends`). Neutral, as
+      // between parts, and held: the x only lets the toast go, the browser keeps the download. A line that
+      // has stopped answering is said under it.
+      toast.info(view.title, {
+        ...base,
+        description: view.detail ? <Detail text={view.detail} /> : undefined,
+        icon: <Download className="size-4" aria-hidden />,
+        duration: Infinity,
+        dismissible: false,
+        action: <Controls close={view.close} />,
+      });
+      return;
+    case "done":
+      toast.success(view.title, {
+        ...base,
+        icon: undefined,
+        duration: view.duration,
+        dismissible: true,
+        action: undefined,
+      });
+      return;
+    case "short":
+      toast.warning(view.title, {
+        ...base,
+        description: view.detail ? <Detail text={view.detail} /> : undefined,
+        icon: undefined,
+        duration: Infinity,
+        dismissible: true,
+        action: <Controls action={view.action} close={view.close} />,
+      });
+      return;
+    case "cancelled":
+      // Hers, so neutral and never an error: said once, with the way back, and gone by itself where she was
+      // looking (her own press), held where the Worker reported it after the fact.
+      toast.info(view.title, {
+        ...base,
+        icon: undefined,
+        duration: view.duration,
+        dismissible: true,
+        action: <Controls action={view.action} close={view.close} />,
+      });
+      return;
+    case "refused":
+      toast.error(view.title, {
+        ...base,
+        description: view.detail ? <Detail text={view.detail} /> : undefined,
+        icon: undefined,
+        duration: Infinity,
+        dismissible: true,
+        action: <Controls action={view.action} close={view.close} />,
+      });
+      return;
+  }
+}
+
 export const exportToasts: ToastPort = {
   show(id: string, view: ToastView) {
-    const base = {
-      id,
-      closeButton: false,
-      description: undefined,
-      cancel: undefined,
-    };
-    switch (view.tone) {
-      case "wait":
-        toast.loading(view.title, {
-          ...base,
-          icon: undefined,
-          duration: Infinity,
-          dismissible: false,
-          action: <Controls close={view.close} />,
-        });
-        return;
-      case "ask":
-        // A question about her own selection: neutral, held until she answers or takes the x.
-        toast.info(view.title, {
-          ...base,
-          description: <Answers actions={view.actions} />,
-          icon: <EyeOff className="size-4" aria-hidden />,
-          duration: Infinity,
-          dismissible: false,
-          action: <Controls close={view.close} />,
-        });
-        return;
-      case "confirm":
-        // The x, asked before it is believed (E6): neutral, held until she answers, and no x of its own (the
-        // answers are the way out). Keep going is first, since it is what an unintended press means.
-        toast.info(view.title, {
-          ...base,
-          description: <Answers actions={view.actions} detail={view.detail} />,
-          icon: <Ban className="size-4" aria-hidden />,
-          duration: Infinity,
-          dismissible: false,
-          action: undefined,
-        });
-        return;
-      case "between":
-        // Neutral, not green: the walk is half done, and green says finished.
-        toast.info(view.title, {
-          ...base,
-          description: view.detail ? <Detail text={view.detail} /> : undefined,
-          icon: <Download className="size-4" aria-hidden />,
-          duration: Infinity,
-          dismissible: false,
-          action: <Controls action={view.action} close={view.close} />,
-        });
-        return;
-      case "downloading":
-        // Handed over and on its way; the Worker's word turns it to saved (`export-ends`). Neutral, as
-        // between parts, and held: the x only lets the toast go, the browser keeps the download. A line that
-        // has stopped answering is said under it.
-        toast.info(view.title, {
-          ...base,
-          description: view.detail ? <Detail text={view.detail} /> : undefined,
-          icon: <Download className="size-4" aria-hidden />,
-          duration: Infinity,
-          dismissible: false,
-          action: <Controls close={view.close} />,
-        });
-        return;
-      case "done":
-        toast.success(view.title, {
-          ...base,
-          icon: undefined,
-          duration: view.duration,
-          dismissible: true,
-          action: undefined,
-        });
-        return;
-      case "short":
-        toast.warning(view.title, {
-          ...base,
-          description: view.detail ? <Detail text={view.detail} /> : undefined,
-          icon: undefined,
-          duration: Infinity,
-          dismissible: true,
-          action: <Controls action={view.action} close={view.close} />,
-        });
-        return;
-      case "cancelled":
-        // Hers, so neutral and never an error: said once, with the way back, and gone by itself where she was
-        // looking (her own press), held where the Worker reported it after the fact.
-        toast.info(view.title, {
-          ...base,
-          icon: undefined,
-          duration: view.duration,
-          dismissible: true,
-          action: <Controls action={view.action} close={view.close} />,
-        });
-        return;
-      case "refused":
-        toast.error(view.title, {
-          ...base,
-          description: view.detail ? <Detail text={view.detail} /> : undefined,
-          icon: undefined,
-          duration: Infinity,
-          dismissible: true,
-          action: <Controls action={view.action} close={view.close} />,
-        });
-        return;
+    // Whatever this toast was waiting for is over: it is being drawn again, or it is gone.
+    stopWaiting(id);
+    if (wantsTheLine(view) && lineIsDown()) {
+      const stop = waitForTheLine(id, view);
+      draw(id, { ...view, detail: WALK_COPY.waiting, action: undefined }, stop);
+      return;
     }
+    draw(id, view);
   },
   dismiss(id: string) {
+    stopWaiting(id);
     toast.dismiss(id);
   },
 };

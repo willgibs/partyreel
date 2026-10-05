@@ -16,10 +16,10 @@ import { describe, expect, it } from "vitest";
  *  B. `next/image` FED A PRESIGNED OR USER URL: a `src` built from a link (`url`, `previewUrl`, `downloadUrl`, a
  *     presign, an avatar's address) or a file that imports the presigner. A guest photograph is an `<img>` (the
  *     album's `MediaTile`), never `next/image`.
- *  C. R2 BYTES STREAMED THROUGH A FUNCTION: `GetObjectCommand` lives in `src/lib/r2/presign.ts` alone, and only ever
- *     signs a URL there (it is never sent), and nothing in `src/` reads an object's body
- *     (`transformToWebStream`, `transformToByteArray`, `transformToString`). A zip streams on the export Worker,
- *     never here.
+ *  C. R2 BYTES STREAMED THROUGH A FUNCTION: a read is a URL signed by hand in `src/lib/r2/sigv4.ts`, which holds no
+ *     client and sends nothing, so `GetObjectCommand` appears nowhere in `src/`, and nothing there reads an object's
+ *     body (`transformToWebStream`, `transformToByteArray`, `transformToString`). A zip streams on the export
+ *     Worker, never here.
  *
  * Each rule's detector is proved against a source that breaks it (the "refuses" cases), so a detector that went
  * blind fails here too.
@@ -137,12 +137,14 @@ export function nextImageOffences(rel: string, text: string): string[] {
 
 const READS_A_BODY = /\btransformTo(WebStream|ByteArray|String)\b/;
 
-/** `GetObjectCommand` outside the presigner, or sent from inside it; an object body read anywhere. */
+/** `GetObjectCommand` anywhere (a read is signed by hand), or sent; an object body read anywhere. */
 export function streamOffences(rel: string, text: string): string[] {
   const code = codeOf(text, rel.endsWith(".tsx"));
   const offences: string[] = [];
-  if (/\bGetObjectCommand\b/.test(code) && rel !== "src/lib/r2/presign.ts") {
-    offences.push(`${rel}: GetObjectCommand outside src/lib/r2/presign.ts`);
+  if (/\bGetObjectCommand\b/.test(code)) {
+    offences.push(
+      `${rel}: GetObjectCommand (a read is a URL signed in src/lib/r2/sigv4.ts)`,
+    );
   }
   if (/\.\s*send\s*\(\s*new\s+GetObjectCommand\b/.test(code)) {
     offences.push(
@@ -229,16 +231,22 @@ export const E = ({ frame }) => <Image src={frame.src} alt="" width={1} height={
 });
 
 describe("C. no function streams R2 bytes", () => {
-  it("GetObjectCommand stays in the presigner, never sent, and no body is read", () => {
+  it("no GetObjectCommand in src, none sent, and no body is read", () => {
     expect(FILES.flatMap(({ rel, text }) => streamOffences(rel, text))).toEqual(
       [],
     );
   });
 
-  it("the presigner still only SIGNS its GetObjectCommand", () => {
+  it("the presigner signs its reads by hand, and the signer holds no client and sends nothing", () => {
     const presign = readFileSync(join(ROOT, "src/lib/r2/presign.ts"), "utf8");
-    expect(presign).toMatch(
-      /getSignedUrl\(\s*getR2Client\(\),\s*new GetObjectCommand\(/,
+    expect(presign).toMatch(/getPresigner\(\)\(\{\s*method:\s*"GET",/);
+    const signer = codeOf(
+      readFileSync(join(ROOT, "src/lib/r2/sigv4.ts"), "utf8"),
+      false,
+    );
+    expect(signer).toMatch(/\bcreateHmac\b/);
+    expect(signer).not.toMatch(
+      /\bfetch\b|\.\s*send\b|\bS3Client\b|@aws-sdk|"node:(https?|net|tls)"/,
     );
   });
 
@@ -251,7 +259,7 @@ const out = await client.send(new GetObjectCommand({ Bucket, Key }));
 return new Response(out.Body.transformToWebStream());`,
       ),
     ).toEqual([
-      "src/app/api/media/[id]/route.ts: GetObjectCommand outside src/lib/r2/presign.ts",
+      "src/app/api/media/[id]/route.ts: GetObjectCommand (a read is a URL signed in src/lib/r2/sigv4.ts)",
       "src/app/api/media/[id]/route.ts: sends a GetObjectCommand (a byte read through a function)",
       "src/app/api/media/[id]/route.ts: reads an object's body",
     ]);

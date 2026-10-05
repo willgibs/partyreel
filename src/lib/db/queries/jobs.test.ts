@@ -215,8 +215,13 @@ describe("getJobSignals", () => {
         ],
       },
     });
-    // `export-ends`: the downloads' signal reads export_log too, so the fixture carries it (empty here).
+    // `export-ends`: the downloads' signal reads export_log too, so the fixture carries it (empty here), and
+    // (crumbs-75) the mail's reads the kept notices.
     state.fake.tables.export_log = [];
+    state.fake.tables.notice_retries = [];
+    // (drive-wiring) and Send to Google Drive's signal reads its items and its sends.
+    state.fake.tables.cloud_export_items = [];
+    state.fake.tables.cloud_exports = [];
     const signals = await getJobSignals(now);
     expect(signals.help_feedback).toEqual({ ok24h: 2, failed24h: 1 });
     expect(signals.abuse_limiter).toEqual({ ok24h: 0, failed24h: 1 });
@@ -230,6 +235,9 @@ describe("getJobSignals", () => {
         unlock_attempts: [],
         job_runs: [],
         export_log: [],
+        notice_retries: [],
+        cloud_export_items: [],
+        cloud_exports: [],
       },
     });
     await expect(getJobSignals()).rejects.toThrow(/help feedback/);
@@ -243,6 +251,8 @@ describe("getJobSignals", () => {
       outcome: "minted",
       created_at: created,
       stream_outcome: outcome,
+      // The CHECK holds an end time exactly beside an outcome.
+      stream_ended_at: outcome === null ? null : created,
     });
     state.fake = createFakePostgrest({
       tables: {
@@ -250,6 +260,9 @@ describe("getJobSignals", () => {
         action_attempts: [],
         unlock_attempts: [],
         article_feedback: [],
+        notice_retries: [],
+        cloud_export_items: [],
+        cloud_exports: [],
         export_log: [
           mint("2026-10-01T11:00:00.000000+00:00", "saved"),
           mint("2026-10-01T10:00:00.000000+00:00", "short"),
@@ -273,6 +286,192 @@ describe("getJobSignals", () => {
       },
     });
     const signals = await getJobSignals(now);
-    expect(signals.export_delivery).toEqual({ ok24h: 2, failed24h: 1 });
+    // ★ RESHAPED ON PURPOSE (crumbs-75; scar kept: two finished, one failure). The expired reason: the signal was
+    // two numbers; it now carries what it still owes too, none here (no mint is past its grace with no end).
+    expect(signals.export_delivery).toEqual({
+      ok24h: 2,
+      failed24h: 1,
+      owed: 0,
+    });
+  });
+
+  /**
+   * ★ A DOWNLOAD OWED ITS END (crumbs-75; ROADMAP: an export whose Worker reports never arrived stayed a Started or
+   * Checked row and never reached the bell). Owed: a mint the Worker spoke of (its check, or its stream's start) with
+   * no end past the six-hour grace, for the day after that. Not owed: an end of any kind, a check that found nothing
+   * (no zip is sent), a mint the Worker never spoke of (a local build's, an older Worker's), one still inside its
+   * grace, one past the day, a refusal.
+   */
+  it("★ counts a download the Worker spoke of but never said ended, past its grace, as owed", async () => {
+    const now = Date.parse("2026-10-05T12:00:00.000Z");
+    const hoursAgo = (h: number) =>
+      new Date(now - h * 3_600_000).toISOString().replace("Z", "000+00:00");
+    const row = (h: number, worker: Record<string, unknown>) => ({
+      outcome: "minted",
+      created_at: hoursAgo(h),
+      checked_at: null,
+      check_found: null,
+      stream_started_at: null,
+      stream_ended_at: null,
+      stream_outcome: null,
+      ...worker,
+    });
+    state.fake = createFakePostgrest({
+      tables: {
+        sent_emails: [],
+        action_attempts: [],
+        unlock_attempts: [],
+        article_feedback: [],
+        notice_retries: [],
+        cloud_export_items: [],
+        cloud_exports: [],
+        job_runs: [],
+        export_log: [
+          // Owed: checked and found something, never streamed or never said so.
+          row(8, { checked_at: hoursAgo(8), check_found: 12 }),
+          // Owed: its stream began and nothing ever said how it ended.
+          row(7, {
+            checked_at: hoursAgo(7),
+            check_found: 3,
+            stream_started_at: hoursAgo(7),
+          }),
+          // Owed: a check the bucket could not answer still sends the zip, and that zip never ended.
+          row(20, { checked_at: hoursAgo(20), check_found: null }),
+          // Not owed: it ended.
+          row(9, {
+            checked_at: hoursAgo(9),
+            check_found: 2,
+            stream_started_at: hoursAgo(9),
+            stream_ended_at: hoursAgo(9),
+            stream_outcome: "stopped",
+          }),
+          // Not owed: a check that found nothing sends no zip.
+          row(10, { checked_at: hoursAgo(10), check_found: 0 }),
+          // Not owed: the Worker never spoke of it (a local build's mint has no report address).
+          row(11, {}),
+          // Not owed: still inside its grace.
+          row(2, {
+            checked_at: hoursAgo(2),
+            check_found: 5,
+            stream_started_at: hoursAgo(2),
+          }),
+          // Not owed: owed for its day, and that day is over.
+          row(31, { checked_at: hoursAgo(31), check_found: 5 }),
+          // Not owed: a refusal is not a mint.
+          {
+            ...row(8, { checked_at: hoursAgo(8), check_found: 4 }),
+            outcome: "rejected_cap",
+          },
+        ],
+      },
+    });
+    const signals = await getJobSignals(now);
+    expect(signals.export_delivery).toMatchObject({
+      ok24h: 0,
+      failed24h: 0,
+      owed: 3,
+    });
+  });
+
+  // ★ crumbs-75: a one-time notice kept for its retry is a host not yet told, however long ago it failed.
+  it("★ counts the one-time notices kept for a retry, and when the oldest first failed", async () => {
+    const now = Date.parse("2026-10-05T12:00:00.000Z");
+    state.fake = createFakePostgrest({
+      tables: {
+        sent_emails: [],
+        action_attempts: [],
+        unlock_attempts: [],
+        article_feedback: [],
+        export_log: [],
+        job_runs: [],
+        notice_retries: [
+          {
+            kind: "inactivity_removed",
+            dedupe_key: "e1",
+            first_failed_at: "2026-10-04T04:00:00.000000+00:00",
+          },
+          {
+            kind: "over_cap_reduced",
+            dedupe_key: "h1",
+            first_failed_at: "2026-09-20T04:00:00.000000+00:00",
+          },
+        ],
+        cloud_export_items: [],
+        cloud_exports: [],
+      },
+    });
+    const signals = await getJobSignals(now);
+    expect(signals.email_delivery).toEqual({
+      ok24h: 0,
+      failed24h: 0,
+      owed: 2,
+      owedSinceMs: Date.parse("2026-09-20T04:00:00.000Z"),
+    });
+  });
+
+  it("★ throws when the kept notices cannot be read, never reading them as none", async () => {
+    state.fake = createFakePostgrest({
+      tables: {
+        sent_emails: [],
+        action_attempts: [],
+        unlock_attempts: [],
+        article_feedback: [],
+        export_log: [],
+        job_runs: [],
+        cloud_export_items: [],
+        cloud_exports: [],
+      },
+    });
+    await expect(getJobSignals()).rejects.toThrow(/kept/);
+  });
+
+  // drive-wiring: the transfers' signal. A file in her Drive in the day (a kept one too: it was confirmed there) is
+  // the success half, its failure rows the other, and a send stuck an hour with work and no progress is owed.
+  it("counts the day's files that reached a Drive, their failures, and the sends stuck", async () => {
+    const now = Date.parse("2026-10-05T12:00:00.000Z");
+    state.fake = createFakePostgrest({
+      tables: {
+        sent_emails: [],
+        action_attempts: [],
+        unlock_attempts: [],
+        article_feedback: [],
+        export_log: [],
+        notice_retries: [],
+        job_runs: [
+          runRow(1, "drive_transfer", "error", "2026-10-05T08:00:00.000000+00:00", null),
+        ],
+        cloud_export_items: [
+          { status: "sent", sent_at: "2026-10-05T11:00:00.000000+00:00" },
+          { status: "sent", sent_at: "2026-10-05T10:00:00.000000+00:00" },
+          // Yesterday's, and one still pending.
+          { status: "sent", sent_at: "2026-10-03T10:00:00.000000+00:00" },
+          { status: "pending", sent_at: null },
+        ],
+        cloud_exports: [
+          { status: "sending", stuck_since: "2026-10-05T10:00:00.000000+00:00" },
+          { status: "sending", stuck_since: null },
+          // A stuck mark left on a send that has since paused is not owed.
+          { status: "paused", stuck_since: "2026-10-05T09:00:00.000000+00:00" },
+        ],
+      },
+    });
+    const signals = await getJobSignals(now);
+    expect(signals.drive_transfer).toEqual({ ok24h: 2, failed24h: 1, owed: 1 });
+  });
+
+  it("throws when Drive's items cannot be read, never reading them as quiet", async () => {
+    state.fake = createFakePostgrest({
+      tables: {
+        sent_emails: [],
+        action_attempts: [],
+        unlock_attempts: [],
+        article_feedback: [],
+        export_log: [],
+        notice_retries: [],
+        job_runs: [],
+        cloud_exports: [],
+      },
+    });
+    await expect(getJobSignals()).rejects.toThrow(/sent to Drive/);
   });
 });

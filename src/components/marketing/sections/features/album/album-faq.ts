@@ -45,7 +45,7 @@ export const ALBUM_FAQ: FaqItem[] = [
   },
   {
     q: "Do I keep paying to keep the album?",
-    a: `No. Events have no end date. Leave Pro and everything stays; over the ${FREE_CAP} Free cap you get ${OVER_CAP_GRACE_DAYS} days to trim.`,
+    a: `No. Events never expire. Leave Pro and everything stays; over the ${FREE_CAP} Free cap you get ${OVER_CAP_GRACE_DAYS} days to trim.`,
   },
   {
     q: "Can I put the album on a big screen?",

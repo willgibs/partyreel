@@ -286,19 +286,22 @@ export function waitingCount(rows: readonly TrackerRow[]): number {
 
 /**
  * Whether the tracker shows at all: only where she has something sent at an event where what she adds waits
- * (`moderated`: `uploadsWait`'s `waits`, the host's approval or a develop ahead; everywhere else a sent photograph is
- * simply in the album, and the album already says so), never in the demo (nothing it sends is kept) and never for
- * the host (whose own uploads never wait).
+ * (`waits`: the wait as it falls on THIS viewer, the page's `addsWaitFor` over `uploadsWait`: a guest's is the host's
+ * approval or a develop ahead, the host's own only a develop ahead, since hers ride her own pair, approved; everywhere
+ * else a sent photograph is simply in the album, and the album already says so), and never in the demo (nothing it
+ * sends is kept, and its wait reads none).
+ *
+ * ★ THE HOST SEES HERS HERE TOO WHERE A DEVELOP KEEPS THEM BACK (crumbs-76): on her own guest page a develop album
+ * draws nothing of what she adds, in the air or landed (the head's stack and the album both leave out what waits), so
+ * with no tracker she saw nothing of hers there while her hub shows every one. She is the one viewer whose rows are
+ * this visit's alone (her uploads are no guest's rows, so there is no read of them to bring an earlier visit back).
  */
 export function trackerShows(input: {
-  moderated: boolean;
+  waits: boolean;
   isDemo: boolean;
-  isOwner: boolean;
   rows: readonly TrackerRow[];
 }): boolean {
-  return (
-    input.moderated && !input.isDemo && !input.isOwner && input.rows.length > 0
-  );
+  return input.waits && !input.isDemo && input.rows.length > 0;
 }
 
 /**

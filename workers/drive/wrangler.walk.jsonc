@@ -1,0 +1,35 @@
+{
+  // THE LOCAL WALK'S CONFIG, never deployed (`npx wrangler dev -c wrangler.walk.jsonc`): the Worker runs on this laptop
+  // beside the desk build at http://localhost:3000, which a deployed Worker cannot reach. It is wrangler.jsonc but for
+  // two things: the bucket is the REAL one (`"remote": true`: the Worker executes locally and its R2 calls reach the
+  // deployed bucket, read only in use), and the app it leases from is the desk build. The queue and the cron run in
+  // wrangler's local simulation. Keep the rest equal to wrangler.jsonc.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "partyreel-drive-walk",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-06-22",
+  "r2_buckets": [{ "binding": "PRIMARY", "bucket_name": "partyreel", "remote": true }],
+  "queues": {
+    "producers": [
+      { "binding": "DRIVE_QUEUE", "queue": "partyreel-drive" },
+      { "binding": "DRIVE_DLQ", "queue": "partyreel-drive-dlq" },
+    ],
+    "consumers": [
+      {
+        "queue": "partyreel-drive",
+        "max_batch_size": 1,
+        "max_batch_timeout": 1,
+        "max_retries": 3,
+        "max_concurrency": 25,
+        "dead_letter_queue": "partyreel-drive-dlq",
+      },
+    ],
+  },
+  "triggers": { "crons": ["*/5 * * * *"] },
+  "limits": { "cpu_ms": 120000, "subrequests": 20000 },
+  // DRIVE_WORKER_SECRET comes from .dev.vars (the app's value), never this file.
+  "vars": {
+    "DRIVE_MODE": "on",
+    "DRIVE_APP_URL": "http://localhost:3000",
+  },
+}

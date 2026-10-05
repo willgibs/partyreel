@@ -2,12 +2,17 @@
 
 import {
   forwardRef,
+  lazy,
+  memo,
+  Suspense,
   useCallback,
   useEffect,
   useImperativeHandle,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
+  type ComponentProps,
   type CSSProperties,
   type ReactNode,
 } from "react";
@@ -51,6 +56,7 @@ import {
 } from "@/components/guest/save-account-prompt";
 import { UploadStep, uploadStepReason } from "@/components/guest/upload-step";
 import { Button } from "@/components/ui/button";
+import { waitWords } from "@/lib/disposable/wait-words";
 import type { GalleryAccess, GalleryGate } from "@/lib/events/gallery-access";
 import { markPendingOffer } from "@/lib/guest/album-return";
 import { claimAnonymousUploads } from "@/lib/guest/claim-uploads";
@@ -75,7 +81,7 @@ import { ARRIVAL_BEAT_MS, useArrivalBeat } from "@/lib/guest/use-arrival-beat";
 import { setLastName, setStoredName } from "@/lib/guest/use-stored-name";
 import { useSuccessHold } from "@/lib/guest/use-success-hold";
 import { useWelcomeSeen } from "@/lib/guest/use-welcome-seen";
-import type { QueueItem } from "@/lib/guest/use-upload-queue";
+import type { FileExtra, QueueItem } from "@/lib/guest/use-upload-queue";
 import { useHydrated } from "@/lib/shared/use-hydrated";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -97,6 +103,20 @@ const SETTLE_AFTER_WALK_MS = 420;
 
 /** A door the page drew nothing for (the tests' default, and a page with no arrival to say). */
 const NO_ARRIVAL: DoorArrival = { face: null, scrim: false };
+
+/**
+ * ★ THE ALBUM'S CAMERA IS ITS OWN CHUNK, here as in the album's slot (`guest-upload.tsx`): fetched only where the
+ * door's first photograph is the camera's, as that step shows, so its Take a photo opens it with nothing left to
+ * download, and a free-upload album never downloads a byte of it.
+ */
+const loadCamera = () => import("@/components/guest/camera/album-camera");
+// Memoized: the door's queue ticks about once a frame while a file goes up (its step draws a bar a pick), and the camera
+// reads where each shot stands and never its bar, so it is re-rendered only when what it reads changes (below).
+const AlbumCamera = memo(
+  lazy(() => loadCamera().then((m) => ({ default: m.AlbumCamera }))),
+);
+/** What the camera reads of its album (`album-camera.tsx`'s own type, read through the lazy component). */
+type CameraEvent = ComponentProps<typeof AlbumCamera>["event"];
 
 export type EntryModalHandle = {
   /** The teaser's "See all N" re-asserts the sheet at whatever step it is on. */
@@ -232,15 +252,36 @@ export const EntryModal = forwardRef<
     capBytes?: number | null;
     /** Whether this album takes a video from a guest (the upload step's picker and line). */
     acceptsVideo?: boolean;
-    onSend: (files: File[]) => void;
+    /**
+     * The album's host chose the camera (`events.capture = 'camera'`): the facts the album's camera reads of the album
+     * that the door does not otherwise hold (its roll's size), or null for free uploads. The door's first photograph is
+     * then the album's camera, never the photo library, and the door holds that camera itself: at "A photo first" the
+     * album's own slot, which carries one, is not mounted yet.
+     */
+    camera?: { rollSize: number | null } | null;
+    /** The queue's `addFiles`: a camera's shot comes with its `FileExtra` (a video's first frame, its poster). */
+    onSend: (files: File[], extra?: FileExtra) => void;
     onRetry: (id: string) => void;
     onDismissFailures: (ids: string[]) => void;
     /**
      * The door's upload step is the surface a run's failures belong to right now. The album's own
      * failure sheet stands down while it is, and a mid-run `verification_required` refreshes at
-     * once instead of waiting for a sheet that is not there (see event-experience's own note).
+     * once instead of waiting for a sheet that is not there (see event-experience's own note). The step alone: the
+     * page folds the queue's live progress for as long as it is, which only a step that draws a bar needs.
      */
     onUploadStepActive?: (active: boolean) => void;
+    /**
+     * The door's own camera opened or closed (`camera`), as the album's slot says its own (`GuestUpload`): the page holds
+     * what would rise over it while she shoots, and the album's failure sheet stands down, until she closes it.
+     */
+    onCameraOpenChange?: (open: boolean) => void;
+    /**
+     * What this visit's removals took back out of the album (the page keeps them), and the page's handler for one taken
+     * back inside the door's camera (its Your shots): so the keep stops counting it and a require-an-upload door asks the
+     * server whether it stands, as her tracker's Remove does.
+     */
+    removedIds?: ReadonlySet<string>;
+    onOwnRemoved?: (mediaId: string, remaining: number) => void;
     /* ── the keep, the door's last screen (`guest-capture` r1; the page decides when it is due) ── */
     /** The ask to keep what she added is due (`computeDoor`'s rule 7). */
     keepDue?: boolean;
@@ -319,10 +360,14 @@ export const EntryModal = forwardRef<
     queue,
     capBytes,
     acceptsVideo = true,
+    camera = null,
     onSend,
     onRetry,
     onDismissFailures,
     onUploadStepActive,
+    onCameraOpenChange,
+    removedIds,
+    onOwnRemoved,
     keepDue = false,
     keepCount = 0,
     keepSent = null,
@@ -365,6 +410,18 @@ export const EntryModal = forwardRef<
   // The OFF state's soft skip, once per pass. ON there is no skip to press, and `computeDoor`
   // ignores this flag entirely in that state so a stale one can never open an album.
   const [skipped, setSkipped] = useState(false);
+  /* ★ THE DOOR'S OWN CAMERA, where the album's host chose one (`camera`): opened by the upload step's Take a photo and
+     held HERE, beside the sheet and never inside a step, because the door's step drops the moment her first shot lands
+     (it is what she was asked for) while she goes on shooting. Mounted at its first opening and kept (its shots and
+     roll outlive a close, as the album's own do). */
+  const doorHasCamera = camera !== null && !isDemo;
+  const [doorCamera, setDoorCamera] = useState<{
+    open: boolean;
+    openedAt: number;
+  } | null>(null);
+  // Open only while the album still has one: the host can switch the capture away mid-visit, and a camera that is no
+  // longer drawn must not hold the keep or the failures for good.
+  const cameraOpen = doorHasCamera && (doorCamera?.open ?? false);
   const sheetRef = useRef<HTMLDivElement>(null);
   // The SHEET opens only AFTER hydration: it is the browser's own (the name this device typed, the way
   // in it picked), which no server render knows. The door's page is the server's (below).
@@ -377,6 +434,9 @@ export const EntryModal = forwardRef<
      only of an account that has none), whatever an old ticket's name says. */
   const hasName = isVerified ? hasProfileName : Boolean(storedName);
 
+  const filesGoing = queue.some(
+    (it) => it.status === "queued" || it.status === "uploading",
+  );
   const { steps, autoOpen } = computeDoor({
     gate,
     access,
@@ -392,7 +452,12 @@ export const EntryModal = forwardRef<
     returning,
     isOwner,
     isDemo,
-    keepDue,
+    // ★ NOT OVER A CAMERA SHE IS SHOOTING WITH (the album's own camera holds it through the page: `onCameraOpenChange`):
+    // her first landed shot makes the keep due, and its sheet would open over the camera mid-shoot. It comes the
+    // moment she closes the camera. ★ AND NOT WHILE HER FILES ARE STILL GOING (red-team 54's NIT): a burst records its
+    // files in groups, so the keep rose at the first group's complete ("Your 5 photos joined") over six files still
+    // going and then said eleven. It comes once nothing is queued or in the air, with its whole count.
+    keepDue: keepDue && !cameraOpen && !filesGoing,
   });
   const current: EntryStep | null = steps[0] ?? null;
   // ★ "YOU'RE IN" ONLY WHERE THE ALBUM IS BEHIND THE STEP: at a gate the host answers, confirming an
@@ -509,6 +574,13 @@ export const EntryModal = forwardRef<
     onUploadStepActive?.(uploadStepShowing);
     return () => onUploadStepActive?.(false);
   }, [uploadStepShowing, onUploadStepActive]);
+  // ★ THE DOOR'S CAMERA SAYS ITSELF, APART FROM THE STEP: its steps may have dropped (her first shot landed) and it still
+  // owns the run's failures, in its own words, until she closes it. It is not the step: the page folds the queue's live
+  // progress while the step shows (the step draws a bar a pick), and a camera that reads standings must not pay for that.
+  useEffect(() => {
+    onCameraOpenChange?.(cameraOpen);
+    return () => onCameraOpenChange?.(false);
+  }, [cameraOpen, onCameraOpenChange]);
 
   /**
    * ★ THE BEAT BELONGS TO THE LAST STEP ALONE. A password unlock on an event that still wants a
@@ -982,6 +1054,57 @@ export const EntryModal = forwardRef<
     />
   );
 
+  // How uploads wait on this album, for the upload step's sentence (the page's `uploadsWait` as a clock; the host unnamed).
+  const uploadWait = waitWords(
+    { waits: keepHeld, developsAt: keepDevelopsAt },
+    null,
+  );
+  /* THE DOOR'S CAMERA: whether this album has one for the first photograph (never the demo's, which is free uploads),
+     what it reads of the album (the door's own readings of how it waits, in the camera's own shape), and the press that
+     opens it. The camera's code is fetched as the step shows (`loadCamera`), so the press has nothing left to download. */
+  const cameraEvent = useMemo<CameraEvent>(
+    () => ({
+      name: eventName,
+      roll_size: camera?.rollSize ?? null,
+      develops_at: keepDevelopsAt,
+      moderation_mode:
+        keepHeld && keepDevelopsAt === null ? "hold_for_approval" : "live",
+      accepts_video: acceptsVideo,
+    }),
+    [eventName, camera?.rollSize, keepDevelopsAt, keepHeld, acceptsVideo],
+  );
+  const openCamera = useCallback(() => {
+    setDoorCamera({ open: true, openedAt: Date.now() });
+  }, []);
+  const setDoorCameraOpen = useCallback((next: boolean) => {
+    setDoorCamera((was) => (was ? { ...was, open: next } : was));
+  }, []);
+  // The camera's two doors into the page's queue, stable across the shell's renders (the page's own change identity with
+  // its callbacks), so the memoized camera is re-rendered for what it reads and not for a render of the page.
+  const sendRef = useRef(onSend);
+  const retryRef = useRef(onRetry);
+  useEffect(() => {
+    sendRef.current = onSend;
+    retryRef.current = onRetry;
+  });
+  const cameraSend = useCallback(
+    (files: File[], extra?: FileExtra) => sendRef.current(files, extra),
+    [],
+  );
+  const cameraRetry = useCallback((id: string) => retryRef.current(id), []);
+  // The queue as the camera reads it: handed on only when a shot's standing moves, never for a tick of a bar.
+  const cameraQueueKey = queue
+    .map(
+      (it) =>
+        `${it.id}|${it.status}|${it.errorCode ?? ""}|${it.cause ?? ""}|${it.mediaId ?? ""}|${it.mediaStatus ?? ""}`,
+    )
+    .join(",");
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- `cameraQueueKey` stands for everything of `queue` it reads
+  const cameraQueue = useMemo(() => queue, [cameraQueueKey]);
+  const cameraStepShowing = doorHasCamera && current === "upload" && !holding;
+  useEffect(() => {
+    if (cameraStepShowing) void loadCamera();
+  }, [cameraStepShowing]);
   const sheetCopy = entrySheetCopy({
     holding,
     displayKey: sheetKey,
@@ -998,7 +1121,10 @@ export const EntryModal = forwardRef<
       isDemo,
       requireUpload,
       albumEmpty,
+      wait: uploadWait,
+      camera: doorHasCamera,
     }),
+    camera: doorHasCamera,
   });
   // The keep's confirm view has a way back to its offer; every other step's is the machine's.
   const showBack =
@@ -1165,6 +1291,31 @@ export const EntryModal = forwardRef<
         />
       )}
       {hydrated && renderSheet()}
+      {doorHasCamera && doorCamera && (
+        // Its own black stands at once while the camera's code arrives (only ever before the preload has).
+        <Suspense
+          fallback={
+            doorCamera.open ? (
+              <div aria-hidden className="fixed inset-0 z-50 bg-black" />
+            ) : null
+          }
+        >
+          <AlbumCamera
+            open={doorCamera.open}
+            openedAt={doorCamera.openedAt}
+            onOpenChange={setDoorCameraOpen}
+            event={cameraEvent}
+            qrToken={qrToken}
+            queue={cameraQueue}
+            onAddFiles={cameraSend}
+            onRetry={cameraRetry}
+            removedIds={removedIds}
+            onOwnRemoved={onOwnRemoved}
+            isOwner={false}
+            isDemo={isDemo}
+          />
+        </Suspense>
+      )}
     </>
   );
 
@@ -1291,8 +1442,12 @@ export const EntryModal = forwardRef<
                   isDemo={isDemo}
                   requireUpload={requireUpload}
                   albumEmpty={albumEmpty}
+                  wait={uploadWait}
                   capBytes={capBytes}
                   acceptsVideo={acceptsVideo}
+                  // ★ THE ALBUM'S HOST CHOSE THE CAMERA: the first photograph is taken with it, never chosen from the
+                  // library (the album's own Add offers no library there either).
+                  camera={camera && !isDemo ? { onOpen: openCamera } : null}
                   queue={queue}
                   onSend={onSend}
                   onRetry={onRetry}
@@ -1376,6 +1531,8 @@ export function entrySheetCopy(input: {
   keepCount?: number;
   keepSent?: KeepSent | null;
   uploadReason: string;
+  /** The first photograph is the album's camera's: the step asks for it to be taken. */
+  camera?: boolean;
 }): { title: string; description: string } {
   const {
     holding,
@@ -1390,6 +1547,7 @@ export function entrySheetCopy(input: {
     keepCount = 0,
     keepSent = null,
     uploadReason,
+    camera = false,
   } = input;
   if (holding) return { title: "You're in", description: "Opening the album." };
   if (displayKey.startsWith("name-")) {
@@ -1399,7 +1557,10 @@ export function entrySheetCopy(input: {
     return { title: copy.title, description: copy.reason };
   }
   if (displayKey === "upload") {
-    return { title: "Add your photos", description: uploadReason };
+    return {
+      title: camera ? "Take your photos" : "Add your photos",
+      description: uploadReason,
+    };
   }
   if (displayKey === "keep") {
     const copy = keepCopy(keepCount, eventName, keepSent);

@@ -265,14 +265,19 @@ export async function POST(request: Request) {
       }
 
       // A Pro checkout carrying a prorated pass credit (billing-caps.md): honor it BEFORE the
-      // generic customer binding. Three idempotent steps, each safe under Stripe's
-      // three-day retry window, ordered so a mid-flight failure can always resume:
-      //   1. grant the credit as Stripe customer balance (the idempotency key pins the
-      //      POST, so a retry never double-grants); balance auto-applies to upcoming
-      //      Pro invoices and Checkout's own first invoice never consumes balance;
-      //   2. consume every live pass ("nothing gets banked" — 0 rows on a replay);
-      //   3. clear the chain fields (tier/cap themselves arrive via the subscription
-      //      events, which also null event_slots).
+      // generic customer binding. Two idempotent steps, ordered so a mid-flight failure can
+      // always resume:
+      //   1. grant the credit as Stripe customer balance (the idempotency key pins the POST for
+      //      Stripe's key window, at least 24 hours, so a retry inside it never double-grants;
+      //      a delivery retries for three days, so a step 2 still failing a day on grants
+      //      again, a ROADMAP line); balance auto-applies to upcoming Pro invoices and
+      //      Checkout's own first invoice never consumes balance;
+      //   2. consume every live pass and clear the chain fields ("nothing gets banked":
+      //      0 rows on a replay), ONE transaction that takes her profiles row first, as an
+      //      upload's complete does, so the two never close a lock cycle and nothing reads
+      //      her passes consumed with her chain still set (`consume_passes_for_pro_credit`;
+      //      tier/cap themselves arrive via the subscription events, which also null
+      //      event_slots).
       const credit = proCreditSession(event);
       if (credit) {
         await getStripe().customers.createBalanceTransaction(
@@ -285,13 +290,6 @@ export async function POST(request: Request) {
           { idempotencyKey: `pass-credit-${credit.sessionId}` },
         );
         await consumeLivePassesForProCredit(credit.userId);
-        const { error: clearError } = await admin
-          .from("profiles")
-          .update({ tier_expires_at: null, event_slots: null })
-          .eq("id", credit.userId);
-        if (clearError) {
-          throw new Error(`pass credit clear: ${clearError.message}`);
-        }
       }
 
       // Otherwise (Pro subscription checkout) just bind the Stripe customer to the host;

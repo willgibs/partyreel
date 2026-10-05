@@ -45,8 +45,8 @@ below).
   a pass, then 2×, 1× and about ½× a month on Pro), because a big plan's month never re-fills it and the plan's worst
   month is what sizes its price ("What it costs us"). A pass counts its own year, on the pass, so its event can take
   the whole allowance in one night. Published, each number only moves up; a circuit breaker no real host meets stays
-  unpublished. The one outcome worth engineering against is still a false positive blocking a paying host; nothing in
-  `/admin` shows a host's meter, and there is no manual override.
+  unpublished. The one outcome worth engineering against is still a false positive blocking a paying host: `/admin/accounts`
+  shows each host's meter against her allowance (read-only), and the override is the calls lab's X6 (an audited credit).
 - **A marketed number can only ever move UP.** Grandfathering makes every published limit sticky, so each one lands at
   the conservative-but-generous end: raising a limit later is a gift, lowering it is a broken promise. That asymmetry,
   not precision, is what picks these numbers.
@@ -90,6 +90,11 @@ working.
   three sizes under one Monthly / Yearly toggle, the saving tagged beside Yearly and computed from these labels;
   `/api/stripe/change-plan`, `proration_behavior: always_invoice`), and a pass holder's prorated credit lands as
   customer balance, which pays the NEXT invoice: on yearly, that is a year out (never lost).
+- **Export is an off-ramp, never a one-click exit** (Will, 2026-10-05). Download and Send to Google Drive take every
+  original home, so a month of Pro for one wedding is an easy opt-in with no fear of lock-in ("$9 for a month, export
+  everything, don't renew", against the $29+ platforms); but nothing in an export suggests deleting what it sent:
+  deleting stays where it already is (select and delete in an album, Delete event in Settings, What's using space),
+  because stored media is what the storage tiers are paid for.
 - **A plan change never leaves a host storing more than the new cap** (Will, 2026-09-22). Any Pro purchase or Pro
   size change must hold what the host already stores (her albums and her Deleted against the plan's plain cap); a
   smaller one is refused with the numbers ("You're storing 70 GB. Pro 50 GB holds 50 GB, so free 20 GB first, or

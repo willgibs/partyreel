@@ -1,6 +1,6 @@
 /**
  * Event Pass ledger writes (billing-caps.md) — service-role only, called by the Stripe
- * webhook and the nightly sweeps. Three invariants live here:
+ * webhook and the nightly sweeps. Four invariants live here:
  *
  *   1. INSERTS ARE THE IDEMPOTENCY BOUNDARY: one Checkout session mints at most
  *      one row (unique partial index on stripe_session_id); a Stripe re-delivery
@@ -8,11 +8,17 @@
  *   2. THE PROFILE IS DERIVED STATE: recomputePassEntitlement is the ONLY writer
  *      of the pass-owned profile fields (tier/storage_cap_bytes/event_slots/
  *      tier_expires_at for non-Pro profiles), always writing the full set from
- *      derivePassEntitlement so a replayed recompute lands the same row.
+ *      derivePassEntitlement so a replayed recompute lands the same row; the one
+ *      other write is the credit's conversion (4), which only clears the chain.
  *   3. NEVER TOUCH A PRO PROFILE: the subscription webhook owns those fields for
  *      tier='pro'. The guard rides IN THE WHERE CLAUSE (atomic under READ
  *      COMMITTED, the applyEntitlement lesson) so a concurrent Pro provision
  *      can't be clobbered by a pass recompute that read a stale tier.
+ *   4. ★ THE CREDIT'S CONVERSION TAKES HER PROFILES ROW FIRST (billing-locks): it is one
+ *      SQL transaction (`consume_passes_for_pro_credit`), never two requests, in the one
+ *      lock order every capacity body keeps (database-security.md): an upload's complete
+ *      holds her profiles row while it counts on her live pass, so a conversion that took
+ *      the passes first, in one transaction, would close a cycle with it.
  */
 import "server-only";
 
@@ -51,26 +57,38 @@ export async function insertPassPurchase(
 }
 
 /**
- * Convert every live pass to consumed('pro_credit') — the "nothing gets banked"
- * write when a host starts Pro with a prorated credit. Consumes ALL unconsumed
- * rows (the credit was computed over all of them at checkout time). Returns how
- * many rows this call consumed: 0 = a replay (already consumed), which the
- * webhook treats as success.
+ * Convert every live pass to consumed('pro_credit') and clear the chain fields
+ * (`tier_expires_at`, `event_slots`): the "nothing gets banked" write when a host
+ * starts Pro with a prorated credit. Consumes ALL unconsumed rows (the credit was
+ * computed over all of them at checkout time). Returns how many rows this call
+ * consumed: 0 = a replay (already consumed), which the webhook treats as success.
+ *
+ * ★ ONE CALL, ONE TRANSACTION, HER PROFILES ROW FIRST (`consume_passes_for_pro_credit`,
+ * 20261005130000). It was two requests, the passes and then the profile: the reverse
+ * of an upload's complete (her profiles row, then the pass it counts on), held apart
+ * only because each request is its own transaction, so a host sat between them with
+ * her passes consumed and her chain still set. A failed call throws, so the webhook
+ * answers 500 and Stripe retries. The credit's balance grant runs before it, keyed, but
+ * a Stripe idempotency key holds for at least 24 hours while a delivery retries for three
+ * days: a conversion still failing a day on grants the balance again (a ROADMAP line).
  */
 export async function consumeLivePassesForProCredit(
   profileId: string,
 ): Promise<number> {
-  const { data, error } = await createAdminClient()
-    .from("event_passes")
-    .update({
-      consumed_at: new Date().toISOString(),
-      consumed_reason: "pro_credit",
-    })
-    .eq("profile_id", profileId)
-    .is("consumed_at", null)
-    .select("id");
-  if (error) throw new Error(`event_passes consume: ${error.message}`);
-  return (data ?? []).length;
+  const { data, error } = await createAdminClient().rpc(
+    "consume_passes_for_pro_credit",
+    { p_host_id: profileId },
+  );
+  if (error) {
+    throw new Error(`consume_passes_for_pro_credit: ${error.message}`);
+  }
+  // The function answers a row count; anything else is a broken call, never "nothing to consume".
+  if (typeof data !== "number" || !Number.isInteger(data) || data < 0) {
+    throw new Error(
+      "consume_passes_for_pro_credit answered something other than a count",
+    );
+  }
+  return data;
 }
 
 export type RecomputeResult = "updated" | "unchanged" | "skipped_pro";
