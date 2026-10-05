@@ -226,7 +226,7 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
     test: "src/app/admin/jobs/limits-card.test.tsx",
     title: "The Plan limits card",
     for: "every vendor's meter against its plan's limit on /admin/jobs, the spend watch's last run as a bar and its words, never as a number a meter is not",
-    lede: "The real PlanLimitsCard over runs written by hand, so every state the portal can show is here, none of it behind an operator's sign-in. A meter is drawn as what it is: a bar and its words under a level's chip, `at least` for a floor, `estimated` for a computed meter, what breaking it costs once past a threshold. One that could not be read says No reading and why and has no bar (a failed read in the failure tone; a gap, a credential the app does not hold or a vendor that reports none, in words and no tone), and a run that is missing or unreadable says so in words rather than drawing a calm card. Built from the real `METERS`: a meter added there appears on every card.",
+    lede: "The real PlanLimitsCard over runs written by hand, so every state the portal can show is here without an operator's sign-in. A meter is drawn as what it is: a bar and its words under a level's chip, never as a number it is not. One that could not be read says No reading and why, a missing or unreadable run says so in words, and nothing draws a calm card over a gap. Built from the real `METERS`, so a meter added there reaches every card.",
     specimens: [
       {
         label: "Every meter read, a few percent in",
@@ -686,7 +686,7 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
     test: "src/components/app/export/export-toast.test.tsx",
     title: "The download's toast",
     for: "the one toast a download, updated in place through every state the walk passes: a question, a cancel, a dropped connection, a line lost mid-stream, saved",
-    lede: "The real toast on the product's own toaster, which is a call and not a drawing: each button hands `exportToasts` the view the download's walk builds for that state and the toast appears at the top of the page, under the header. A press replaces the last by its one id, as a walk does. The x, a question's answers and Try again walk the fixture between the states they lead to in production (Cancel asks first, Keep going goes back, Cancel ends it with a way back), and nothing is minted, fetched or posted. The words are the walk's own (`lib/export/walk.ts`).",
+    lede: "The real toast on the product's own toaster, fired and not drawn: each button hands `exportToasts` the view the download's walk builds for that state, and the toast appears at the top of the page, under the header, replacing the last by its one id as a walk does. Its x, a question's answers and Try again walk the fixture where they lead in production; nothing is minted, fetched or posted. The words are the walk's own (`lib/export/walk.ts`).",
     specimens: [
       {
         label: "Every state, one toast",

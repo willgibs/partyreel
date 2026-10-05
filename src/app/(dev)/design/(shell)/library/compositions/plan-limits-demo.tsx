@@ -11,7 +11,9 @@ import { METERS, type MeterId } from "@/lib/jobs/limits-watch-limits";
  * drifts with the clock.
  *
  * ★ FOUR CARDS ON ONE PAGE REPEAT ITS DOM IDS (`#plan-limits`, `#limit-<meter>`, `#limits-<vendor>`): harmless in a
- * catalog (the headings they label read the same) and never in the portal, which draws one.
+ * catalog (the headings they label read the same) and never in the portal, which draws one. Its vendor headings are
+ * h3s with ids, which the shell's "On this page" would list as if they were sections of the entry, so each card
+ * stands in a `data-toc-skip` (the scan's own way out).
  */
 
 export type PlanLimitsState =
@@ -96,18 +98,20 @@ const RUNS: Record<PlanLimitsState, StoredLimits | null> = {
 export function PlanLimitsDemo({ state }: { state: PlanLimitsState }) {
   const limits = RUNS[state];
   return (
-    <PlanLimitsCard
-      latest={
-        limits
-          ? { limits, startedAt: new Date(AT).toISOString(), status: "ok" }
-          : null
-      }
-      unreadable={
-        state === "unreadable"
-          ? "plan limits: its own history: connection reset"
-          : null
-      }
-      nowMs={NOW}
-    />
+    <div data-toc-skip="">
+      <PlanLimitsCard
+        latest={
+          limits
+            ? { limits, startedAt: new Date(AT).toISOString(), status: "ok" }
+            : null
+        }
+        unreadable={
+          state === "unreadable"
+            ? "plan limits: its own history: connection reset"
+            : null
+        }
+        nowMs={NOW}
+      />
+    </div>
   );
 }

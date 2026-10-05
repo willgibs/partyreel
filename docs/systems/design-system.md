@@ -599,6 +599,8 @@ board, its own sheet and scenes), found by the registry and the board route and 
   thing asked for (a glyph with no label, a table row's fine print) wears `TapTooltip` instead, the one press model: a
   tap toggles the words, a cursor's click keeps them open (Radix dismisses at the press of its own trigger, so a click
   would blink them), a key toggles, and the rich tooltip mounts after hydration with the words as the `title` until then.
+  It reads its face as an element, which a server component hands a client one as a lazy reference (`children.props` is
+  undefined: a 500), so it is drawn from a client component, as `GlyphCount`, `RowTip` and the Library's demo are.
 - **A full-width `inset-x-0` overlay above a gesture track eats the gesture** across its flanks, killing swipe
   navigation on every viewer at once: the box takes `pointer-events-none`, its controls `pointer-events-auto`.
 - **`src/components/ui/*` keeps the shadcn generator's style** (no semicolons, `.prettierignore`d) while app code uses
