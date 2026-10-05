@@ -24,19 +24,9 @@
  */
 import "server-only";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const UNIQUE_VIOLATION = "23505";
-
-/**
- * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: the credit's three functions and the recompute arrive with migration
- * 20261005181000, so their calls go through this untyped client (drop the cast then).
- */
-function creditDb(db: ReturnType<typeof createAdminClient>) {
-  return db as unknown as SupabaseClient;
-}
 
 export type PassPurchaseInsert = {
   profileId: string;
@@ -129,7 +119,7 @@ export async function claimPassCredit(input: {
   creditCents: number;
   passIds: string[];
 }): Promise<PassCreditClaim> {
-  const { data, error } = await creditDb(createAdminClient()).rpc(
+  const { data, error } = await createAdminClient().rpc(
     "claim_pass_credit",
     {
       p_session_id: input.sessionId,
@@ -151,7 +141,7 @@ export async function recordPassCreditGrant(
   hostId: string,
   balanceTransactionId: string,
 ): Promise<string> {
-  const { data, error } = await creditDb(createAdminClient()).rpc(
+  const { data, error } = await createAdminClient().rpc(
     "record_pass_credit_grant",
     {
       p_session_id: sessionId,
@@ -178,7 +168,7 @@ export async function convertPassCredit(
   sessionId: string,
   hostId: string,
 ): Promise<number> {
-  const { data, error } = await creditDb(createAdminClient()).rpc(
+  const { data, error } = await createAdminClient().rpc(
     "convert_pass_credit",
     { p_session_id: sessionId, p_host_id: hostId },
   );
@@ -211,7 +201,7 @@ export async function recomputePassEntitlement(
   profileId: string,
   now?: Date,
 ): Promise<RecomputeResult> {
-  const { data, error } = await creditDb(createAdminClient()).rpc(
+  const { data, error } = await createAdminClient().rpc(
     "recompute_pass_entitlement",
     // A null instant is the database's own now(): the key is left out and the default applies.
     { p_host_id: profileId, p_now: now?.toISOString() },

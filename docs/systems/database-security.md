@@ -14,7 +14,7 @@ semantics live in its doc.
 
 ## The RPC inventory and the advisor set
 
-`get_advisors` (security) after every schema change reads 25 `rls_enabled_no_policy`, 4 in lint `0028` and 36 in
+`get_advisors` (security) after every schema change reads 26 `rls_enabled_no_policy`, 4 in lint `0028` and 36 in
 `0029`. Leaked Password Protection is on, so its WARN never shows. A function in the wrong list means a grant slipped.
 
 - **Anon capability reads (`0028`, and `0029` too; by design, never revoke):** `get_event_by_qr_token`,
@@ -87,7 +87,10 @@ semantics live in its doc.
   `record_link_hit`, `host_active_bytes`, `host_storage_summary`, `leave_deleted` (the over-capacity deadline's first
   step), `tier_limits`, `upload_allowance` and `uploads_used` (INVOKER; every other caller is a DEFINER body),
   `uploads_windows` (an INVOKER read behind the admin seam, every listed host's `uploads_used` in one call) and
-  `consume_passes_for_pro_credit` (INVOKER, the webhook's pass-to-Pro conversion), the paged album's
+  `consume_passes_for_pro_credit` (INVOKER, milestone 37's pass-to-Pro conversion, kept until no deployed build names
+  it), the credit's `claim_pass_credit`, `record_pass_credit_grant` and `convert_pass_credit` and the pass recompute
+  `recompute_pass_entitlement` (INVOKER, the webhook's and the nightly sweep's, each taking her profiles row first),
+  `pass_lapsed` (INVOKER, the operator's `uploads_windows` asks it), the paged album's
   reader `album_changes_since` (an INVOKER read the Next routes call after their own capability check) and its log's
   prune `album_prune_tombstones` (DEFINER: the tables grant the service role SELECT only), the develop's
   `develop_due` and `develop_due_sweep` (DEFINER: they write `sealed_until`, which no role holds;
@@ -102,7 +105,8 @@ semantics live in its doc.
 - **The owner's alone** (revoked from the service role too, so no role PostgREST serves can call them): helpers only
   a definer body reads, `event_door_asks` (a set no request can page) and `event_account_ticket` (a whole guest row,
   its ticket in it), Deleted's one definition `host_deleted_media` and the upload's line `host_room_used` (both
-  SECURITY INVOKER, read only by the four capacity bodies), and the develop's five (`album_bits`, `album_doorbell`,
+  SECURITY INVOKER, read only by the four capacity bodies), the uploads line `uploads_refused` (SECURITY INVOKER, read
+  only by the six definer bodies that judge an upload: the two completes, the meter and the three advisories), and the develop's five (`album_bits`, `album_doorbell`,
   `seal_disagrees`, `guest_roll`, `develop_rows`), and Send to Google Drive's two helpers (`cloud_export_pause`,
   `cloud_export_settle`).
 - ★ **Every SECURITY DEFINER function pins `set search_path = ''` and fully qualifies every name** (`public.events`,
@@ -110,7 +114,8 @@ semantics live in its doc.
   DEFINER body uses dynamic SQL.
 - **Deny-all tables** (RLS on, no policy, no client grant, service role only: the accepted `rls_enabled_no_policy`
   set): `guests`, `reports`, `sent_emails`, `newsletter_signups`, `unlock_attempts`, `action_attempts`,
-  `contact_submissions`, `job_applications`, `event_passes`, `job_runs`, `export_log` (an HMAC of the IP, never the
+  `contact_submissions`, `job_applications`, `event_passes`, `pass_credits` (the pass-to-Pro credit's claims, written by
+  the webhook's three functions alone), `job_runs`, `export_log` (an HMAC of the IP, never the
   IP), `ops_flags` (the kill switches), `upload_forensics` and `forensic_audit_log` (raw IP by design; the deny-all is
   the containment: [trust-safety-forensics.md](trust-safety-forensics.md)), `album_state` and `album_changes` (the
   paged album's versions and change log: service_role SELECT only, written by the deferred triggers and the log's

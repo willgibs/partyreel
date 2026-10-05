@@ -1454,6 +1454,53 @@ export type Database = {
         }
         Relationships: []
       }
+      pass_credits: {
+        Row: {
+          balance_transaction_id: string | null
+          claimed_until: string | null
+          converted_at: string | null
+          converted_count: number | null
+          created_at: string
+          credit_cents: number
+          granted_at: string | null
+          pass_ids: string[]
+          profile_id: string
+          stripe_session_id: string
+        }
+        Insert: {
+          balance_transaction_id?: string | null
+          claimed_until?: string | null
+          converted_at?: string | null
+          converted_count?: number | null
+          created_at?: string
+          credit_cents: number
+          granted_at?: string | null
+          pass_ids: string[]
+          profile_id: string
+          stripe_session_id: string
+        }
+        Update: {
+          balance_transaction_id?: string | null
+          claimed_until?: string | null
+          converted_at?: string | null
+          converted_count?: number | null
+          created_at?: string
+          credit_cents?: number
+          granted_at?: string | null
+          pass_ids?: string[]
+          profile_id?: string
+          stripe_session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pass_credits_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profile_shown_events: {
         Row: {
           created_at: string
@@ -2008,6 +2055,15 @@ export type Database = {
         Args: { p_event_ids?: string[] }
         Returns: number
       }
+      claim_pass_credit: {
+        Args: {
+          p_credit_cents: number
+          p_host_id: string
+          p_pass_ids: string[]
+          p_session_id: string
+        }
+        Returns: Json
+      }
       claim_ticket_asks: { Args: { p_session_tokens: string[] }; Returns: Json }
       clear_event_password: { Args: { p_event_id: string }; Returns: undefined }
       clear_event_slug: { Args: { p_event_id: string }; Returns: undefined }
@@ -2130,6 +2186,10 @@ export type Database = {
       cloud_export_sweep: { Args: never; Returns: Json }
       consume_passes_for_pro_credit: {
         Args: { p_host_id: string }
+        Returns: number
+      }
+      convert_pass_credit: {
+        Args: { p_host_id: string; p_session_id: string }
         Returns: number
       }
       create_guest: {
@@ -2515,6 +2575,13 @@ export type Database = {
           tier: Database["public"]["Enums"]["tier_type"]
         }[]
       }
+      pass_lapsed: {
+        Args: {
+          p_host_id: string
+          p_tier: Database["public"]["Enums"]["tier_type"]
+        }
+        Returns: boolean
+      }
       purge_media_now: { Args: { p_media_ids: string[] }; Returns: Json }
       purge_media_rows: {
         Args: { p_media_ids: string[] }
@@ -2523,12 +2590,24 @@ export type Database = {
           host_id: string
         }[]
       }
+      recompute_pass_entitlement: {
+        Args: { p_host_id: string; p_now?: string }
+        Returns: string
+      }
       record_link_hit: {
         Args: {
           p_event_id: string
           p_kind: Database["public"]["Enums"]["link_hit_kind"]
         }
         Returns: undefined
+      }
+      record_pass_credit_grant: {
+        Args: {
+          p_balance_transaction_id: string
+          p_host_id: string
+          p_session_id: string
+        }
+        Returns: string
       }
       remove_event_invite: {
         Args: { p_email: string; p_event_id: string }
@@ -2600,6 +2679,15 @@ export type Database = {
           p_tier: Database["public"]["Enums"]["tier_type"]
         }
         Returns: number
+      }
+      uploads_refused: {
+        Args: {
+          p_bytes: number
+          p_host_id: string
+          p_storage_cap_bytes: number
+          p_tier: Database["public"]["Enums"]["tier_type"]
+        }
+        Returns: boolean
       }
       uploads_used: {
         Args: {
