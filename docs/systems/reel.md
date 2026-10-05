@@ -77,6 +77,14 @@ The reel stores nothing, so the server says only WHETHER a viewer's album has on
   still plans over a spread of the album (`TAKE_POOL`), and the cover's six stills, while the album has a reel, are
   the take's first pass, its head alone (`passes: 1`, `tileStills` in
   [`reel-tile.ts`](../../src/lib/guest/reel-tile.ts)), never the album's newest, which sit right beneath it.
+  ★ **They are dealt once and kept while they play** (`keepStills`, `useCoverStills`): the first pass is a seeded
+  shuffle of the whole album, so one arrival used to change nearly all six, swapping the cover under the viewer and
+  sending for the new stills' links, a call behind every delta. An arrival now changes nothing; a still the album loses
+  gives its place to the take's next, her own newest upload leads her cover, and a reload deals afresh. Below the
+  reel's minimum (the newest-six rule) nothing is kept: each arrival is its own new still, and its link rides the
+  delta. ★ **The six's links are asked for again whenever the album moves** (free while fresh, a re-mint once aged):
+  the link store keeps lit only the ids it was recently asked for (600), so a kept cover that fell out of them would
+  lose its pictures when their presigns died, which the old re-deal on every arrival had been healing by accident.
 
 ## The cover, the view and the screen (the guest's side)
 

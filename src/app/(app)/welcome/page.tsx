@@ -4,8 +4,8 @@ import { WelcomeFlow } from "@/components/app/welcome-flow";
 import { getMyClaimableGuestRows } from "@/lib/db/queries/claims";
 import { countActiveEvents } from "@/lib/db/queries/events";
 import { getProfile } from "@/lib/db/queries/profile";
-import { getMyGuestEventCards } from "@/lib/db/queries/social";
-import { createClient } from "@/lib/supabase/server";
+import { countMyGuestEventCards } from "@/lib/db/queries/social";
+import { getRequestAuth } from "@/lib/supabase/request-auth";
 import {
   isGuestFirstVisit,
   needsDisplayName,
@@ -26,23 +26,21 @@ export const metadata: Metadata = { title: "Welcome" };
 // ★ A GUEST-MADE ACCOUNT IS OWED THE NAME, NEVER THE TOUR (`isGuestFirstVisit`, lib/welcome.ts): an account that hosts
 // nothing and holds a Guest card came for that card, so a nameless one names itself here and goes straight to its
 // dashboard, whose first visit marks it welcomed. The tour is a host's, and the dashboard keeps its host pitch.
+//
+// ★ IT COUNTS, AND IT READS THE VIEWER ONCE (compute-reads). The decision needs only HOW MANY Guest cards there are,
+// so it asks for the count (`countMyGuestEventCards`: the same candidates the cards are built from, counted in the
+// database) where it used to build every card, hosts and presigned covers and gates included, to read their
+// `length`; and the viewer is the request's cached one (`getRequestAuth`, which the (app) layout's gate and every
+// query already share), where a `getUser()` of its own was a second round trip to the auth server.
 export default async function WelcomePage() {
-  const supabase = await createClient();
-  const [
-    {
-      data: { user },
-    },
-    profile,
-    claimableRows,
-    hostedEvents,
-    guestCards,
-  ] = await Promise.all([
-    supabase.auth.getUser(),
-    getProfile(),
-    getMyClaimableGuestRows(),
-    countActiveEvents(),
-    getMyGuestEventCards(),
-  ]);
+  const [{ user }, profile, claimableRows, hostedEvents, guestCards] =
+    await Promise.all([
+      getRequestAuth(),
+      getProfile(),
+      getMyClaimableGuestRows(),
+      countActiveEvents(),
+      countMyGuestEventCards(),
+    ]);
 
   const meta = (user?.user_metadata ?? {}) as Record<string, unknown>;
   const oauthPrefill =
@@ -53,8 +51,7 @@ export default async function WelcomePage() {
         : "";
   // getMyClaimableGuestRows() is already ordered most-recently-active first
   // (the RPC's own order), so the first row carrying a name is the best guess.
-  const claimPrefill = claimableRows.find((r) => r.names.length > 0)
-    ?.names[0];
+  const claimPrefill = claimableRows.find((r) => r.names.length > 0)?.names[0];
   const namePrefill = oauthPrefill || claimPrefill || "";
 
   return (
@@ -65,7 +62,7 @@ export default async function WelcomePage() {
         !isGuestFirstVisit({
           welcomedAt: profile?.welcomed_at,
           hostedEvents,
-          guestCards: guestCards.length,
+          guestCards,
         })
       }
       namePrefill={namePrefill}

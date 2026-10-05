@@ -9,7 +9,7 @@
  * carries on where the last one stopped; its caps are its budget, never a fixed 500; a backlog far over the usual
  * waits a week.
  */
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   EMPTY_LEDGER,
@@ -17,6 +17,7 @@ import {
   type PruneLedger,
 } from "./prune-ledger";
 import {
+  PRIMARY_MISSING_KEY,
   readConfirmAnswer,
   runPrune,
   type ConfirmAnswer,
@@ -705,5 +706,92 @@ describe("readConfirmAnswer: the confirm route's answer, read strictly", () => {
         "unavailable",
       );
     }
+  });
+});
+
+/**
+ * ★ THE BACKUP'S LONE COPIES (crumbs-75; ROADMAP: `primary_missing` closed the run ok with a note nobody was told
+ * about). The count rides every run that judged its candidates, zero included, under the key the app's catalog reads
+ * as a card of its own (a failure at any count); the note says it second, so no truncation takes it; and the log names
+ * each item's keys for the restore.
+ */
+describe("what the backup alone holds", () => {
+  it("pins the key the app reads (the catalog's DEPTH_COUNT_KEYS.backup_primary_missing asserts the same string)", () => {
+    expect(PRIMARY_MISSING_KEY).toBe("primary_missing");
+  });
+
+  it("★ reports zero on a run that found none, so a quiet week is a reading, never a missing one", async () => {
+    const w = makeWorld();
+    addLive(w, uuid(1));
+    addGone(w, uuid(2));
+    const result = await run(w);
+    expect(result.counts[PRIMARY_MISSING_KEY]).toBe(0);
+    const quiet = makeWorld();
+    addLive(quiet, uuid(1));
+    const dry = await run(quiet, { mode: "dryrun" });
+    expect(dry.counts[PRIMARY_MISSING_KEY]).toBe(0);
+  });
+
+  it("★ says it second in the note, with its items, and logs every item's keys for the restore", async () => {
+    const w = makeWorld();
+    addLive(w, uuid(1));
+    const a = addMedia(w, uuid(2), { row: true });
+    const b = addMedia(w, uuid(3), { row: true, variants: ["original.jpg"] });
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const result = await run(w);
+      expect(result.counts[PRIMARY_MISSING_KEY]).toBe(a.length + b.length);
+      const lines = result.note.split(". ");
+      expect(lines[1]).toMatch(
+        /^3 keys of 2 items are held by the backup alone: their rows live, their primary objects are gone/,
+      );
+      expect(result.note).toMatch(
+        /Restore them from the backup; this run's log names each\./,
+      );
+      const named = logged.mock.calls
+        .filter(([message]) =>
+          String(message).startsWith("prune: held by the backup alone"),
+        )
+        .map(([, detail]) => detail);
+      expect(named).toEqual([
+        { mediaId: uuid(2), keys: a },
+        { mediaId: uuid(3), keys: b },
+      ]);
+      // Found, never deleted.
+      expect(deletedKeys(w.backup)).toEqual([]);
+      expect(result.status).toBe("ok");
+    } finally {
+      logged.mockRestore();
+    }
+  });
+
+  it("carries it on a held run too, which judged its candidates all the same", async () => {
+    const w = makeWorld();
+    addLive(w, uuid(1));
+    const lone = addMedia(w, uuid(2), { row: true });
+    for (let i = 3; i <= PRUNE_HOLD_FLOOR_MEDIA + 3; i++) {
+      addGone(w, uuid(i), { event: uuid(1, 0xf) });
+    }
+    const result = await run(w, {
+      ledger: {
+        ...EMPTY_LEDGER,
+        history: [{ atMs: NOW - 7 * DAY, goneMedia: 12, live: true }],
+      },
+    });
+    expect(result.counts.breaker_tripped).toBe(true);
+    expect(result.counts[PRIMARY_MISSING_KEY]).toBe(lone.length);
+  });
+
+  it("reports nothing at all on a run a doubt stopped, or one with no primary to compare: no reading, never a zero", async () => {
+    const w = makeWorld();
+    addLive(w, uuid(1));
+    addMedia(w, uuid(2), { row: true });
+    w.confirm = "down";
+    const aborted = await run(w);
+    expect(aborted.status).toBe("error");
+    expect(PRIMARY_MISSING_KEY in aborted.counts).toBe(false);
+
+    const empty = await run(makeWorld());
+    expect(PRIMARY_MISSING_KEY in empty.counts).toBe(false);
   });
 });

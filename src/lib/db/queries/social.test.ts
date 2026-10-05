@@ -53,6 +53,7 @@ vi.mock("@/lib/supabase/admin", () => ({
 }));
 
 const {
+  countMyGuestEventCards,
   getEventGuests,
   getMyAttendedEvents,
   getMyBlocks,
@@ -300,6 +301,70 @@ describe("the events you added to, past the row cap", () => {
       1,
     );
     expectChunked(fake.requests);
+  });
+
+  /**
+   * ★ THE COUNT IS THE CARDS' NUMBER, COUNTED, NEVER BUILT (compute-reads). `/welcome` asks only whether the account
+   * holds a Guest card, and built every card (its hosts, a covers request and a presign each, its gates) to read the
+   * list's length. The count reads the same candidates and counts what the cards' own events read would keep, in the
+   * database, with no card made.
+   */
+  it("★ counts the same 1,200 cards without making one: no host, cover or gate read for it", async () => {
+    fake = world();
+    const counted = await countMyGuestEventCards();
+    expect(counted).toBe(1200);
+
+    const names = fake.requests.map((r) => `${r.method} ${r.name}`);
+    // The candidates (the uploads, the blocks) and the events counted in chunks; never a card's own reads.
+    expect(names.filter((n) => n.includes("profiles"))).toEqual([]);
+    expect(names.filter((n) => n.includes("event_covers"))).toEqual([]);
+    const events = fake.requests.filter((r) => r.name === "events");
+    expect(events.length).toBeGreaterThan(0);
+    // Each is a head count: no event row travels for a number (so no gate is read either, which is a read of rows).
+    expect(events.every((r) => r.method === "HEAD" && r.returned === 0)).toBe(
+      true,
+    );
+    expectChunked(fake.requests);
+  });
+
+  it("★ and it is the list's length in every world: a hosted event, a deleted one and a blocked one's kept card", async () => {
+    const db = world();
+    // 10 of the events are hers (a guest's card is somebody else's album), 10 are deleted, and one that blocked
+    // her keeps its card though her upload there is gone.
+    for (let i = 0; i < 10; i++) db.tables.events[i].host_id = ME;
+    for (let i = 10; i < 20; i++) db.tables.events[i].deleted_at = at(50);
+    db.tables.events.push({
+      id: uuid("e", 5000),
+      name: "Blocked party",
+      event_date: null,
+      visibility: "private",
+      qr_token: "qr-blocked",
+      host_id: uuid("h", 1),
+      deleted_at: null,
+      show_guest_list: true,
+      created_at: at(80_000),
+    });
+    db.functions.blocked_events_for = () => ({
+      [uuid("e", 5000)]: {
+        own: true,
+        last_upload_at: at(2000),
+        profile_eligible: false,
+      },
+    });
+    fake = db;
+
+    const cards = await getMyGuestEventCards();
+    const counted = await countMyGuestEventCards();
+
+    expect(cards).toHaveLength(1200 - 20 + 1);
+    expect(counted).toBe(cards.length);
+  });
+
+  it("is zero, with no event counted, when the account holds no upload and no block", async () => {
+    fake = createFakePostgrest({ tables: { media: [], events: [] } });
+    fake.functions.blocked_events_for = () => ({});
+    expect(await countMyGuestEventCards()).toBe(0);
+    expect(fake.requests.filter((r) => r.name === "events")).toEqual([]);
   });
 
   it("★ the profile switches: 1,200 attended events, newest event first", async () => {

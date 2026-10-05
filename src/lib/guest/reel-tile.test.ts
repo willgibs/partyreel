@@ -9,7 +9,12 @@ import { describe, expect, it } from "vitest";
 import type { LiveMediaItem } from "@/lib/reel/live/items";
 import { planTake, TAKE_PASS } from "@/lib/reel/live/take";
 
-import { playableSignature, TILE_SLOTS, tileStills } from "./reel-tile";
+import {
+  keepStills,
+  playableSignature,
+  TILE_SLOTS,
+  tileStills,
+} from "./reel-tile";
 
 function item(i: number, over: Partial<LiveMediaItem> = {}): LiveMediaItem {
   return {
@@ -146,5 +151,142 @@ describe("playableSignature", () => {
         item(4, { status: "hidden" }),
       ]),
     ).toBe(playableSignature([item(1)]));
+  });
+});
+
+/**
+ * ★ THE COVER KEEPS THE STILLS IT IS PLAYING (compute-reads). The take is a seeded shuffle of the WHOLE album, so one
+ * arrival changed nearly every still the cover's six were dealt from, and the cover swapped its pictures on every batch
+ * and asked for the links of the new ones (a links call behind every delta). Re-dealing is only for what must change.
+ */
+describe("keepStills", () => {
+  const ids = (album: LiveMediaItem[], ownIds?: ReadonlySet<string>) => [
+    ...new Set(tileStills(album, { eventId: "e1", ownIds }).map((s) => s.id)),
+  ];
+  const everyone = () => true;
+
+  /** A party's album as it fills: n photographs, three guests, a minute apart, the newest last. */
+  const party = (n: number) => Array.from({ length: n }, (_, i) => item(i));
+
+  it("★ premise: a deal over the album after an arrival is not the deal over the album before it", () => {
+    const before = ids(party(40));
+    const after = ids(party(45));
+    expect(after).not.toEqual(before);
+    // Most of it moved, which is what made a re-deal swap the cover and send for the new stills' links.
+    expect(after.filter((id) => before.includes(id)).length).toBeLessThan(
+      TILE_SLOTS,
+    );
+  });
+
+  it("★ is the cold deal exactly when nothing plays yet", () => {
+    const fresh = ids(party(40));
+    expect(keepStills({ playing: [], fresh, stands: everyone })).toEqual(fresh);
+  });
+
+  it("★ an arrival changes nothing: the stills it plays stay, as the very array it holds", () => {
+    const playing = ids(party(40));
+    const fresh = ids(party(45));
+    const kept = keepStills({ playing, fresh, stands: everyone });
+    expect(kept).toBe(playing);
+  });
+
+  it("★ a still the album lost gives its place to the take's next, and the other five stay in theirs", () => {
+    const playing = ids(party(40));
+    const fresh = ids(party(45));
+    const gone = playing[2];
+    const kept = keepStills({
+      playing,
+      fresh,
+      stands: (id) => id !== gone,
+    });
+    expect(kept).toHaveLength(TILE_SLOTS);
+    expect(kept.slice(0, 5)).toEqual(playing.filter((id) => id !== gone));
+    // The place goes to the first of the cold deal that is not already playing, and it is not the one that left.
+    const next = fresh.find((id) => id !== gone && !playing.includes(id));
+    expect(kept[5]).toBe(next);
+    expect(kept).not.toContain(gone);
+  });
+
+  it("a hidden still and a removed one are the same thing here: neither stands", () => {
+    const playing = ids(party(40));
+    const fresh = ids(party(40));
+    const kept = keepStills({
+      playing,
+      fresh,
+      stands: (id) => id !== playing[0] && id !== playing[1],
+    });
+    expect(kept).toHaveLength(TILE_SLOTS);
+    expect(kept.slice(0, 4)).toEqual(playing.slice(2));
+  });
+
+  it("★ her own newest leads, as it does in a cold deal, and the tail it displaces is the last the cover held", () => {
+    const album = party(45);
+    const playing = ids(party(40));
+    // She adds a photograph (m44, the newest), and the take leads with it on her device.
+    const ownIds = new Set(["m44"]);
+    const fresh = ids(album, ownIds);
+    expect(fresh[0]).toBe("m44");
+    const kept = keepStills({
+      playing,
+      fresh,
+      lead: "m44",
+      stands: everyone,
+    });
+    expect(kept).toEqual(["m44", ...playing.slice(0, TILE_SLOTS - 1)]);
+  });
+
+  it("her own newest, already playing, comes to the front without anything else moving", () => {
+    const playing = ids(party(40));
+    const mine = playing[3];
+    const kept = keepStills({
+      playing,
+      fresh: [mine, ...playing.filter((id) => id !== mine)],
+      lead: mine,
+      stands: everyone,
+    });
+    expect(kept).toEqual([mine, ...playing.filter((id) => id !== mine)]);
+  });
+
+  it("a lead the cover may not draw leads nothing", () => {
+    const playing = ids(party(40));
+    const kept = keepStills({
+      playing,
+      fresh: ["m99", ...playing],
+      lead: "m99",
+      stands: (id) => id !== "m99",
+    });
+    expect(kept).toBe(playing);
+  });
+
+  it("fills a place that was never filled: a small album that grew", () => {
+    expect(
+      keepStills({
+        playing: ["m1", "m2"],
+        fresh: ["m3", "m1", "m2"],
+        stands: everyone,
+      }),
+    ).toEqual(["m1", "m2", "m3"]);
+  });
+
+  it("never more than six, never one twice", () => {
+    const kept = keepStills({
+      playing: ["m1", "m2", "m3", "m4", "m5", "m6", "m7"],
+      fresh: ["m8", "m1", "m9"],
+      stands: everyone,
+    });
+    expect(kept).toEqual(["m1", "m2", "m3", "m4", "m5", "m6"]);
+    expect(
+      keepStills({
+        playing: ["m1", "m1", "m2"],
+        fresh: ["m2", "m3", "m3"],
+        stands: everyone,
+      }),
+    ).toEqual(["m1", "m2", "m3"]);
+  });
+
+  it("an album that emptied deals nothing", () => {
+    expect(
+      keepStills({ playing: ["m1", "m2"], fresh: [], stands: () => false }),
+    ).toEqual([]);
   });
 });

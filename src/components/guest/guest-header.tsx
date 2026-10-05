@@ -8,12 +8,12 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { GuestAccountMenu } from "@/components/guest/guest-account-menu";
 import { useCoverUnderHeader } from "@/components/guest/guest-header-cover";
 import { GuestNameMenu } from "@/components/guest/guest-name-menu";
+import { ChromeLink } from "@/components/marketing/chrome/chrome-link";
 import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
 import {
@@ -425,11 +425,15 @@ export function GuestHeader({
         isDemo && "sticky top-0",
       )}
     >
-      {/* ★ The way home prefetches only on the demo, whose visitor is a prospective host (compute-levers):
-          on a real album it was three requests a join, for a page a guest seldom opens. */}
-      <Link
+      {/* ★ The way home is fetched by a real album's visitor never, and by the demo's on INTENT, never on sight
+          (compute-levers, compute-reads): the demo's visitor is a prospective host, so a pointer or a finger on the
+          wordmark gets the home's payload before the press, but the logo is in view from the first paint, and a
+          prefetch on sight fetched the home and preloaded its three sheets into a page that draws none of them
+          (`chrome-link.tsx` says why; on a real album it was three requests a join). */}
+      <ChromeLink
         href="/"
         prefetch={isDemo ? undefined : false}
+        prefetchOnIntent={isDemo}
         aria-label="Partyreel home"
         className="flex items-center gap-2.5"
       >
@@ -442,7 +446,7 @@ export function GuestHeader({
             Demo
           </span>
         )}
-      </Link>
+      </ChromeLink>
       {/* Fixed-height slot so the CTA↔avatar swap stays height-stable (Button sm = h-7, Avatar =
           size-8); both center within h-8, and justify-between pins the right edge so nothing reflows. */}
       <div
@@ -485,9 +489,13 @@ export function GuestHeader({
           />
         ) : (
           <Button asChild variant="ghost" size="sm">
-            <Link href="/" prefetch={isDemo ? undefined : false}>
+            <ChromeLink
+              href="/"
+              prefetch={isDemo ? undefined : false}
+              prefetchOnIntent={isDemo}
+            >
               Start for free
-            </Link>
+            </ChromeLink>
           </Button>
         )}
       </div>

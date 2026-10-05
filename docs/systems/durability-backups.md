@@ -59,6 +59,14 @@ guards are layered (`workers/backup/src/prune-run.ts`, a pure engine under test)
   wrong shape, the app's breaker, an id it was never asked about, or a listing that does not move forward aborts the
   whole run with nothing deleted and the cursor where it was; a failed HEAD keeps that one item while the run still
   deletes the others it confirmed, and closes as an error.
+- ★ **What the backup alone holds is an alert, never a note:** a candidate whose row lives while the primary lost its
+  object is a host's photo with one copy left. It is kept, counted on every run that judged its candidates
+  (`primary_missing`, zero included, so a quiet week is a reading), said second in the note and named key by key in
+  the run's log ("held by the backup alone", Workers Logs, the first 200 items a run); `/admin/jobs` reads it as a card
+  of its own beside the dead letters (`backup_primary_missing`, a failure at any count, the bell), whose remedy is the
+  restore below, key by key. Nothing copies one back by itself: the prune cannot tell a lost object from one its row no
+  longer names, and a blind copy would be deleted again as an orphan. It sees only keys past the 36-day gate, and a run
+  counts the range it walked, so a pass that spans runs reports each range in its turn.
 - **An app-side breaker** (`evaluatePrune`): an empty `media` table beside candidates deletes nothing and alerts. The
   orphan sweep's fractional cap is deliberately absent: the gone fraction is legitimately large after a clear-out.
 - **The hold is the clamp, sized to the deletions:** a run whose backlog passes ten times the usual (the median of its
