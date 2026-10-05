@@ -32,6 +32,8 @@ import {
 import type { Pick } from "@/components/guest/upload/review-step";
 import { DoorHeading } from "@/components/guest/door/heading";
 import { Button } from "@/components/ui/button";
+import { useWaitClock } from "@/lib/disposable/use-wait-clock";
+import { type WaitClock, waitRule } from "@/lib/disposable/wait-words";
 import { classifyRefusal, type RefusalClass } from "@/lib/guest/upload-refusal";
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
 
@@ -66,6 +68,7 @@ export function UploadStep({
   isDemo,
   requireUpload,
   albumEmpty,
+  wait = null,
   capBytes,
   acceptsVideo = true,
   queue,
@@ -81,6 +84,11 @@ export function UploadStep({
   requireUpload: boolean;
   /** Nothing in the album yet: the line offers the first photograph instead of a queue. */
   albumEmpty: boolean;
+  /**
+   * How uploads wait on this album (the page's `uploadsWait`, as `waitWords` reads it, the host unnamed), or null where
+   * they do not: what an empty album says of itself, since photos that wait are photos nobody here can see yet.
+   */
+  wait?: WaitClock | null;
   capBytes?: number | null;
   /** Whether this album takes a video from a guest (the picker's own note). */
   acceptsVideo?: boolean;
@@ -244,9 +252,18 @@ export function UploadStep({
         hidden
         title={heading.reviewing ? heading.title : "Add your photos"}
         reason={
-          heading.reviewing
-            ? heading.description
-            : uploadStepReason({ isDemo, requireUpload, albumEmpty })
+          heading.reviewing ? (
+            heading.description
+          ) : wait ? (
+            <WaitedReason
+              isDemo={isDemo}
+              requireUpload={requireUpload}
+              albumEmpty={albumEmpty}
+              wait={wait}
+            />
+          ) : (
+            uploadStepReason({ isDemo, requireUpload, albumEmpty })
+          )
         }
       />
       <UploadIntentBody
@@ -286,23 +303,56 @@ export function UploadStep({
  * The name step's own lede still names the host (with "the host" as its fallback) — this is the
  * ONE line on the door that deliberately never does, so no host's name is ever the reason this
  * sentence wraps or overflows a small screen.
+ *
+ * ★ OVER AN ALBUM THAT WAITS, THE DOOR SAYS WHAT WAITS (crumbs-72). Behind "A photo first" a newcomer stands at
+ * `teaser`, where the page never reads whether photos wait (`waitingOnArrival` is a full-access read), so an album
+ * showing nothing reads empty at the door whether it is, or holds photos nobody can see yet: "Nothing here yet. Add
+ * the first photo" was untrue over the second. What the door does know at every level is how uploads wait on this
+ * album (`wait`, the page's `uploadsWait`), true over either, and the wait's own rule is the one home for saying it
+ * (`waitRule`, the contact sheet's and her tracker's). The host stays unnamed in it too.
  */
 export function uploadStepReason(input: {
   isDemo: boolean;
   requireUpload: boolean;
   albumEmpty: boolean;
+  /** How uploads wait on this album, where they do: said over an album that shows nothing, in place of "the first photo". */
+  wait?: WaitClock | null;
+  /** Her own clock, once it is known: a develop time is said in it, and the sentence reads whole without it. */
+  nowMs?: number | null;
 }): string {
   if (input.isDemo) {
     return "Add a photo the way a guest would. Nothing you add is saved.";
   }
   if (input.requireUpload) {
-    return input.albumEmpty
-      ? "Nothing here yet. Add the first photo and the album opens."
-      : "The host has asked everyone to add a photo before the album opens.";
+    if (!input.albumEmpty) {
+      return "The host has asked everyone to add a photo before the album opens.";
+    }
+    if (input.wait) {
+      const clock: WaitClock =
+        input.wait.kind === "held"
+          ? { kind: "held", hostName: null }
+          : input.wait;
+      return `${waitRule(clock, input.nowMs ?? null)} Add yours and the album opens.`;
+    }
+    return "Nothing here yet. Add the first photo and the album opens.";
   }
   return input.albumEmpty
     ? "Nothing here yet. Add the first photo."
     : "Add one now, or look around first.";
+}
+
+/**
+ * The step's sentence where an album waits, which may say a time: in her own clock, so only once hydrated
+ * (`useWaitClock`). Mounted only for such an album, so a door with nothing waiting runs no clock at all.
+ */
+function WaitedReason(input: {
+  isDemo: boolean;
+  requireUpload: boolean;
+  albumEmpty: boolean;
+  wait: WaitClock;
+}) {
+  const nowMs = useWaitClock();
+  return <>{uploadStepReason({ ...input, nowMs })}</>;
 }
 
 /** The failure view's line when only a different file can help: the album-opens promise is the

@@ -51,6 +51,7 @@ import {
 } from "@/components/guest/save-account-prompt";
 import { UploadStep, uploadStepReason } from "@/components/guest/upload-step";
 import { Button } from "@/components/ui/button";
+import { waitWords } from "@/lib/disposable/wait-words";
 import type { GalleryAccess, GalleryGate } from "@/lib/events/gallery-access";
 import { markPendingOffer } from "@/lib/guest/album-return";
 import { claimAnonymousUploads } from "@/lib/guest/claim-uploads";
@@ -982,6 +983,11 @@ export const EntryModal = forwardRef<
     />
   );
 
+  // How uploads wait on this album, for the upload step's sentence (the page's `uploadsWait` as a clock; the host unnamed).
+  const uploadWait = waitWords(
+    { waits: keepHeld, developsAt: keepDevelopsAt },
+    null,
+  );
   const sheetCopy = entrySheetCopy({
     holding,
     displayKey: sheetKey,
@@ -998,6 +1004,7 @@ export const EntryModal = forwardRef<
       isDemo,
       requireUpload,
       albumEmpty,
+      wait: uploadWait,
     }),
   });
   // The keep's confirm view has a way back to its offer; every other step's is the machine's.
@@ -1291,6 +1298,7 @@ export const EntryModal = forwardRef<
                   isDemo={isDemo}
                   requireUpload={requireUpload}
                   albumEmpty={albumEmpty}
+                  wait={uploadWait}
                   capBytes={capBytes}
                   acceptsVideo={acceptsVideo}
                   queue={queue}

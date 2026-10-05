@@ -661,6 +661,26 @@ describe("the upload step", () => {
     ).toBeInTheDocument();
   });
 
+  it("★ over an album that waits, a newcomer behind A photo first hears how it waits, in the sheet's words and the step's", () => {
+    seeWelcome();
+    renderModal({
+      storedName: "Priya",
+      requireUpload: true,
+      access: "teaser",
+      gate: "upload",
+      albumEmpty: true,
+      // The page's `uploadsWait`: what she adds waits for the host's approval (the host stays unnamed).
+      keepHeld: true,
+      hostName: "Maya",
+    });
+    // The sheet announces it (its description) and the step draws it: both say what waits, neither "the first photo".
+    const line =
+      "Uploads develop as the host lets each one in. Add yours and the album opens.";
+    expect(screen.getAllByText(line).length).toBeGreaterThanOrEqual(2);
+    expect(screen.queryByText(/first photo/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Maya/)).not.toBeInTheDocument();
+  });
+
   it("the inputs live INSIDE the open sheet, so Safari's synchronous click reaches them", () => {
     seeWelcome();
     const { baseElement } = renderModal({ storedName: "Priya" });

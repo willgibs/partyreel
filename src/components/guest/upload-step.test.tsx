@@ -5,7 +5,7 @@
  * once as the function, once as the surface.
  */
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   UploadStep,
@@ -14,6 +14,7 @@ import {
   uploadStepChooseAgain,
   uploadStepReason,
 } from "@/components/guest/upload-step";
+import { type WaitClock, waitRule } from "@/lib/disposable/wait-words";
 // The ladder's one home since build 23's NIT-2, which the album's failure sheet reads too.
 import { classifyRefusal } from "@/lib/guest/upload-refusal";
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
@@ -141,6 +142,95 @@ describe("the step's one sentence", () => {
     expect(
       uploadStepReason({ ...base, isDemo: true, requireUpload: true }),
     ).toBe("Add a photo the way a guest would. Nothing you add is saved.");
+  });
+});
+
+/**
+ * ★ OVER AN ALBUM THAT WAITS, THE DOOR SAYS WHAT WAITS (crumbs-72). Behind "A photo first" a newcomer stands at
+ * `teaser`, where the page never reads whether photos wait, so an album showing nothing read "Nothing here yet. Add the
+ * first photo and the album opens." even over photos nobody could see yet. The door knows how uploads wait on the album
+ * at every level, which is true over an empty album and over one whose photos wait alike, and says it in the wait's
+ * own rule (`waitRule`: one home), never naming the host.
+ */
+describe("the step over an album that waits", () => {
+  const base = { isDemo: false, requireUpload: true, albumEmpty: true };
+  const DEVELOP: WaitClock = {
+    kind: "develop",
+    developsAt: "2026-10-03T16:00:00.000Z",
+  };
+  const HELD: WaitClock = { kind: "held", hostName: null };
+  const NOW = Date.parse("2026-10-02T20:00:00Z");
+
+  it("★ says how uploads wait, in the wait's own rule, where nothing shows behind A photo first", () => {
+    expect(uploadStepReason({ ...base, wait: HELD })).toBe(
+      "Uploads develop as the host lets each one in. Add yours and the album opens.",
+    );
+    expect(uploadStepReason({ ...base, wait: DEVELOP })).toBe(
+      "Uploads develop all at once. Add yours and the album opens.",
+    );
+    // The develop time is said in her own clock once it is known, by the same rule the sheet and her tracker read.
+    expect(uploadStepReason({ ...base, wait: DEVELOP, nowMs: NOW })).toBe(
+      `${waitRule(DEVELOP, NOW)} Add yours and the album opens.`,
+    );
+    expect(waitRule(DEVELOP, NOW)).not.toBe(waitRule(DEVELOP, null));
+  });
+
+  it("never says 'the first photo' or 'nothing here' over an album that waits, and never names the host", () => {
+    for (const wait of [
+      HELD,
+      DEVELOP,
+      { kind: "held", hostName: "Maya" },
+    ] as const) {
+      const line = uploadStepReason({ ...base, wait });
+      expect(line).not.toMatch(/first photo|Nothing here/);
+      expect(line).not.toMatch(/Maya/);
+      expect(line).toMatch(/the album opens/);
+    }
+  });
+
+  it("changes nothing where the album shows photos, the host asked for none, or it is the demo", () => {
+    expect(
+      uploadStepReason({ ...base, albumEmpty: false, wait: DEVELOP }),
+    ).toBe(
+      "The host has asked everyone to add a photo before the album opens.",
+    );
+    expect(
+      uploadStepReason({ ...base, requireUpload: false, wait: DEVELOP }),
+    ).toBe("Nothing here yet. Add the first photo.");
+    expect(uploadStepReason({ ...base, isDemo: true, wait: DEVELOP })).toBe(
+      "Add a photo the way a guest would. Nothing you add is saved.",
+    );
+    // And an album that holds nothing back still asks for its first photograph.
+    expect(uploadStepReason({ ...base, wait: null })).toBe(
+      "Nothing here yet. Add the first photo and the album opens.",
+    );
+  });
+
+  describe("on the surface", () => {
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ["Date"] });
+      vi.setSystemTime(NOW);
+    });
+    afterEach(() => vi.useRealTimers());
+
+    it("★ the door's sentence is the wait's rule, with the develop time in her own clock", () => {
+      mount({ requireUpload: true, albumEmpty: true, wait: DEVELOP });
+      expect(
+        screen.getByText(
+          `${waitRule(DEVELOP, NOW)} Add yours and the album opens.`,
+        ),
+      ).toBeInTheDocument();
+      expect(screen.queryByText(/first photo/)).toBeNull();
+    });
+
+    it("an album that holds nothing back keeps its own first-photo line", () => {
+      mount({ requireUpload: true, albumEmpty: true });
+      expect(
+        screen.getByText(
+          "Nothing here yet. Add the first photo and the album opens.",
+        ),
+      ).toBeInTheDocument();
+    });
   });
 });
 
