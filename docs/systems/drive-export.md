@@ -111,12 +111,13 @@ that very write (`CreatedFolder` and the Worker's `CreatedFile` are branded so n
   when it is still there, whole and out of the bin; a file she deleted in Drive goes again. A re-leased item (a lane
   that died after Google stored it) is found by our `appProperties` (`pr_media`, `pr_job`, no parent clause: she may
   move anything) and recorded instead of sent.
-- **Names: when, then who** (`src/lib/export/drive-names.ts`, the one naming function): the moment it reached the
-  album in her browser's zone at the press, then the album's credit for its sender (never an address, never a mark),
-  then the original's extension; Drive's `modifiedTime` is the same moment so Drive's own sort agrees. It takes a
-  capture time the moment one is kept (null today: the upload keeps none). The ` (2)` is assigned in SQL under the
-  connection's lock against the names other originals of the album hold, so two lanes never pick one name and the same
-  original sent again keeps its own; `driveFileName` mirrors it under a test.
+- **Names: when, then who** (`src/lib/export/drive-names.ts`, the one naming function): the moment it was taken (its
+  `captured_at`, which the lease carries: [uploads-and-r2.md](uploads-and-r2.md), the EXIF strip) or, for an upload
+  that kept none, the moment it reached the album, in her browser's zone at the press, then the album's credit for its
+  sender (never an address, never a mark), then the original's extension; Drive's `modifiedTime` is the same moment so
+  Drive's own sort agrees, and a batch sent the morning after sorts as the night happened. The ` (2)` is assigned in
+  SQL under the connection's lock against the names other originals of the album hold, so two lanes never pick one
+  name and the same original sent again keeps its own; `driveFileName` mirrors it under a test.
 - **Lanes.** A Queue message is a lane (`{ v, connectionId }`); a connection runs at most three (two for half an hour
   after Google says slow down), however many albums she sends: they share them, oldest first, so whole albums finish in
   order. A kick enqueues only what is missing, once a minute. A lane leases a batch (at most 10 items or 1 GiB),

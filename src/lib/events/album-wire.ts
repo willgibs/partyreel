@@ -22,6 +22,13 @@
  * integer: exact in a double until the year 2255, and the client's binary insertion on `(t, id)`
  * lands an upsert exactly where the server's order puts it. `timestampToMicros` is the one parser.
  *
+ * ★ `c` IS `captured_at`, THE SAME WAY (Will's X7: a photograph keeps when it was taken), a seventh
+ * element only where the upload kept one, after the duration (null where there is none). It orders
+ * nothing here: the wire stays `(t, id)`, and a view that reads the night in order reads it
+ * (`entryCaptureTime`). The contract's version does not move for it: no row carries a capture time
+ * before the build that writes one, so no validator can stand for a manifest missing one it should
+ * hold, and an older client reads the first six elements as it always did.
+ *
  * ★ ENTRIES ARE WRITE-ONCE PER ID. Geometry, type, the preview and `reel_eligible` are written once
  * at `create_media*`; only the status moves. So a guest's entry never changes while it is in the
  * album, and a host's changes only in its status flags, which is why a delta can say "upsert" and
@@ -57,9 +64,10 @@ export const ENTRY_HIDDEN = 8;
 export const ENTRY_PENDING = 16;
 
 /**
- * One album item: `[id, w, h, flags, t]`, plus the duration in seconds for a video that has one.
- * `w` and `h` are 0 when the upload was never measured (the grid falls back to a square), `t` is
- * `created_at` in microseconds since the epoch.
+ * One album item: `[id, w, h, flags, t]`, plus the duration in seconds for a video that has one,
+ * plus the capture time where the upload kept one (the duration slot then null when there is no
+ * duration). `w` and `h` are 0 when the upload was never measured (the grid falls back to a square),
+ * `t` is `created_at` and `c` is `captured_at`, both in microseconds since the epoch.
  */
 export type ManifestEntry =
   | readonly [id: string, w: number, h: number, flags: number, t: number]
@@ -70,6 +78,15 @@ export type ManifestEntry =
       flags: number,
       t: number,
       dur: number,
+    ]
+  | readonly [
+      id: string,
+      w: number,
+      h: number,
+      flags: number,
+      t: number,
+      dur: number | null,
+      c: number,
     ];
 
 /** Where the next manifest page resumes: the last entry's own `(t, id)`. */
@@ -79,6 +96,15 @@ export type AlbumCursor = readonly [t: number, id: string];
 export const entryId = (e: ManifestEntry): string => e[0];
 /** `created_at` of an entry, in microseconds. */
 export const entryTime = (e: ManifestEntry): number => e[4];
+/** A video's duration in seconds, or null (a photo, or a video never measured): read wherever the entry ends. */
+export const entryDuration = (e: ManifestEntry): number | null =>
+  e.length > 5 ? (e[5] ?? null) : null;
+/**
+ * `captured_at` of an entry, in microseconds, or null where the upload kept none: when it was taken, which a view of
+ * the night in order reads (album-order's `takenAtOf`) and nothing on the wire orders by.
+ */
+export const entryCaptureTime = (e: ManifestEntry): number | null =>
+  e.length > 6 ? (e[6] ?? null) : null;
 /** The cursor an entry hands the next page. */
 export const cursorOf = (e: ManifestEntry): AlbumCursor => [e[4], e[0]];
 
@@ -113,6 +139,8 @@ export type EntrySource = {
   reel_eligible: boolean | null;
   /** Microseconds (a SQL `extract(epoch)`) or the raw timestamp string PostgREST returned. */
   created_at: number | string;
+  /** `captured_at` the same two ways, or null/absent where the upload kept none (Will's X7). */
+  captured_at?: number | string | null;
   /** Host scope reads it into the flags; a guest's entries never carry a status. */
   status?: AlbumMediaStatus;
 };
@@ -141,12 +169,33 @@ export function toManifestEntry(
       : timestampToMicros(row.created_at);
   const w = positiveInt(row.width);
   const h = positiveInt(row.height);
-  if (row.type === "video" && isFiniteNumber(row.duration_seconds)) {
-    // Milliseconds are all a badge or a trim ever reads.
-    const dur = Math.round(row.duration_seconds * 1000) / 1000;
-    return [row.id, w, h, flags, t, dur];
-  }
+  // Milliseconds are all a badge or a trim ever reads.
+  const dur =
+    row.type === "video" && isFiniteNumber(row.duration_seconds)
+      ? Math.round(row.duration_seconds * 1000) / 1000
+      : null;
+  const c = captureMicros(row.captured_at);
+  // The capture time rides only where the upload kept one, so every other entry is the bytes it always was.
+  if (c !== null) return [row.id, w, h, flags, t, dur, c];
+  if (dur !== null) return [row.id, w, h, flags, t, dur];
   return [row.id, w, h, flags, t];
+}
+
+/**
+ * A capture time as microseconds, or null. Unlike `t`, never a throw: it orders nothing on the wire, so one that cannot
+ * be read is simply none (the arrival stands), never a manifest that fails for every client.
+ */
+function captureMicros(
+  value: number | string | null | undefined,
+): number | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "number")
+    return Number.isSafeInteger(value) ? value : null;
+  try {
+    return timestampToMicros(value);
+  } catch {
+    return null;
+  }
 }
 
 /** Whether an entry is part of the album a guest sees (host scope: approved, not hidden or held). */

@@ -10,11 +10,21 @@
  * the backfill loads it through Node's own type stripping, which cannot resolve the
  * extensionless relative import a split module would need.
  *
+ * ★ THE CAPTURE TIME SURVIVES, NEVER THE PLACE OR THE DEVICE (Will, 2026-10-05: "Yes, keep the capture time, never the
+ * place or device"). Each walk reads when the file says it was taken from the ORIGINAL's bytes, before a byte is
+ * rewritten, and nothing beside it (`CaptureStamp`, on every result as `captured`): a JPEG's or a HEIC's Exif
+ * `DateTimeOriginal` with its `OffsetTimeOriginal`, an MP4's or a MOV's QuickTime creation date or movie-header
+ * creation time, a WebM's `DateUTC`. What the instant is (a zone for a bare wall clock) and whether the server takes it
+ * are `capture-time.ts`'s. The stored file keeps it too, so a download and a Save into Photos land on the right day: a
+ * JPEG's and a HEIC's minimal Exif carry `DateTimeOriginal` and `OffsetTimeOriginal` beside the orientation, a video's
+ * movie header was never touched, and a WebM's Info stays whole.
+ *
  * Per-format policy (see each function for the WHY of every keep/drop):
  *   JPEG  - drop APP1 (Exif/XMP), APP13 (IPTC/Photoshop), COM, vendor APPn; keep APP0
  *           (JFIF), APP2 (ICC color profile / MPF), APP14 (Adobe color transform, load-
- *           bearing for decode). Orientation is LOAD-BEARING: a minimal one-tag Exif is
- *           rebuilt so sideways photos keep rendering upright everywhere. A kept MPF
+ *           bearing for decode). Orientation is LOAD-BEARING: a minimal Exif is rebuilt
+ *           so sideways photos keep rendering upright everywhere, carrying the capture
+ *           time beside it (`minimalTiff`) and nothing else. A kept MPF
  *           index (iPhone HDR gain maps) has its individual-image offsets/sizes REWRITTEN
  *           to match the shrunk output (they are relative to the MPF header, so dropping
  *           any segment between the MPF and SOS goes stale); an MPF we cannot fix fails
@@ -34,19 +44,20 @@
  *           ilst, xml, the XMP uuid) are blanked IN PLACE by renaming the box type to
  *           'free' AND zeroing the payload, so no offset ever moves. Big files are
  *           handled via a random-access reader + lazy Blob composition (the whole video
- *           is never pulled into memory in the browser).
+ *           is never pulled into memory in the browser). The capture time is read from the
+ *           moov before it is blanked (`moovCapture`); the movie header keeps its own.
  *   HEIC/HEIF/AVIF - item-based ISOBMFF: the metadata is an ITEM (iinf names it, iloc
  *           places its bytes, usually inside mdat), not a box, and blanking `meta` would
- *           destroy the image. Every Exif item is overwritten in place with a minimal
- *           orientation-only Exif and every XMP item that describes the picture with an
- *           empty packet, each padded to the item's exact length: no box, no iloc offset
- *           and no image byte changes. Orientation is irot/imir there (ipco, untouched).
+ *           destroy the image. Every Exif item is overwritten in place with the minimal
+ *           Exif (its orientation and capture time) and every XMP item that describes the
+ *           picture with an empty packet, each padded to the item's exact length: no box,
+ *           no iloc offset and no image byte changes. Orientation is irot/imir there (ipco, untouched).
  *           An XMP item that describes only an auxiliary image (the HDR gain map's version,
  *           a depth map's calibration) is rendering data and is kept, unless it carries GPS.
  *   WebM  - EBML: every Tags element (where a muxer writes LOCATION, the device's make and
  *           model, the encoder) becomes a Void element of exactly its size, zero-filled,
  *           so no SeekHead or Cues position moves. Info (title, dates, muxer names) and
- *           every Cluster stay byte-identical.
+ *           every Cluster stay byte-identical; Info's `DateUTC` is the capture time read.
  *
  * FAIL-OPEN CONTRACT: unknown/unparseable/truncated input returns the ORIGINAL bytes with
  * stripped:false. A corrupted upload is worse than the leak, so the caller uploads the
@@ -59,6 +70,19 @@
  * is documented in docs/systems/uploads-and-r2.md.
  */
 
+/**
+ * WHEN THE ORIGINAL SAYS IT WAS TAKEN, exactly as it says it (the module's head note). Read only, never judged here:
+ * `capture-time.ts` turns it into an instant and the server holds it to its bounds.
+ */
+export type CaptureStamp =
+  /**
+   * Exif's `DateTimeOriginal` ("YYYY:MM:DD HH:MM:SS", a wall clock) and its `OffsetTimeOriginal` ("+02:00", the
+   * zone that wall clock was in) when the camera wrote one; null leaves the zone to whoever reads it.
+   */
+  | { kind: "wall"; wall: string; offset: string | null }
+  /** A container's own instant (QuickTime's creation date, the movie header's, a WebM's `DateUTC`): epoch ms. */
+  | { kind: "instant"; ms: number };
+
 export type StripBytesResult = {
   /** The sanitized bytes (=== the input when nothing needed to change or on fail-open). */
   data: Uint8Array;
@@ -66,12 +90,16 @@ export type StripBytesResult = {
   stripped: boolean;
   /** true = `data` differs byte-for-byte from the input (callers PUT/replace only then). */
   changed: boolean;
+  /** When the input says it was taken, read before any byte was rewritten; absent when it says nothing we read. */
+  captured?: CaptureStamp;
 };
 
 export type StripFileResult = {
   /** The file to upload: a new Blob when bytes changed, else the ORIGINAL File object. */
   blob: Blob;
   stripped: boolean;
+  /** As `StripBytesResult.captured`: the original's own word on when it was taken. */
+  captured?: CaptureStamp;
 };
 
 // ---------------------------------------------------------------------------
@@ -184,7 +212,12 @@ type ByteRange = { start: number; end: number };
 type Walk<T> = Generator<ByteRange, T, Uint8Array>;
 
 /** What a container walk returns: in-place patches (lengths never change) + what it saw. */
-type WalkPlan = { ok: boolean; patches: IsobmffPatch[]; gps: boolean };
+type WalkPlan = {
+  ok: boolean;
+  patches: IsobmffPatch[];
+  gps: boolean;
+  captured?: CaptureStamp;
+};
 
 function walkBytes<T>(walk: Walk<T>, bytes: Uint8Array): T {
   let step = walk.next();
@@ -269,16 +302,32 @@ function orderedPatches(
  */
 function patchedOrOriginal(
   bytes: Uint8Array,
-  plan: { ok: boolean; patches: IsobmffPatch[] },
+  plan: { ok: boolean; patches: IsobmffPatch[]; captured?: CaptureStamp },
 ): StripBytesResult {
   const ordered = plan.ok ? orderedPatches(plan.patches, bytes.length) : null;
-  if (!ordered) return { data: bytes, stripped: false, changed: false };
+  if (!ordered) {
+    return withCapture(
+      { data: bytes, stripped: false, changed: false },
+      plan.captured,
+    );
+  }
   if (ordered.length === 0) {
-    return { data: bytes, stripped: true, changed: false };
+    return withCapture(
+      { data: bytes, stripped: true, changed: false },
+      plan.captured,
+    );
   }
   const data = bytes.slice();
   for (const p of ordered) data.set(p.bytes, p.offset);
-  return { data, stripped: true, changed: true };
+  return withCapture({ data, stripped: true, changed: true }, plan.captured);
+}
+
+/** A result with the capture time its walk read, the key present only when there is one. */
+function withCapture<T extends object>(
+  result: T,
+  captured: CaptureStamp | null | undefined,
+): T & { captured?: CaptureStamp } {
+  return captured ? { ...result, captured } : result;
 }
 
 /**
@@ -368,12 +417,119 @@ function tiffHasGps(tiff: Uint8Array): boolean {
   return findIfd0Tag(tiff, TAG_GPS_IFD) !== null;
 }
 
+// The capture time's tags (Exif 2.32): IFD0 points at the Exif IFD, which holds the time the shutter fired as a wall
+// clock and, since 2.31, the zone that clock was in.
+const TAG_EXIF_IFD = 0x8769;
+const TAG_EXIF_VERSION = 0x9000;
+const TAG_DATETIME_ORIGINAL = 0x9003;
+const TAG_OFFSET_TIME_ORIGINAL = 0x9011;
+
+/** The capture time an Exif states, in the exact shapes the standard gives (`exifWall`, `exifOffset`). */
+type ExifTime = { wall: string; offset: string | null };
+
+const EXIF_WALL = /^(\d{4}):(\d{2}):(\d{2}) (\d{2}):(\d{2}):(\d{2})$/;
+const EXIF_OFFSET = /^[+-](\d{2}):(\d{2})$/;
+
+/**
+ * A `DateTimeOriginal` that is a real wall clock ("2026:10:03 21:14:05"), trailing padding trimmed; null for anything
+ * else. ★ ONLY THIS SHAPE IS EVER COPIED into a stored file: the field is free ASCII to a writer, so anything that is
+ * not a date (a caption, an address typed into the wrong box) never survives the strip as one.
+ */
+function exifWall(raw: string | null): string | null {
+  if (raw === null) return null;
+  const s = raw.replace(/[ \t]+$/, "");
+  const m = EXIF_WALL.exec(s);
+  if (!m) return null;
+  const [y, mo, d, h, mi, sec] = m.slice(1).map(Number);
+  const leap = (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
+  const days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  if (y < 1 || mo < 1 || mo > 12 || d < 1 || d > days[mo - 1]) return null;
+  if (h > 23 || mi > 59 || sec > 59) return null;
+  return s;
+}
+
+/** An `OffsetTimeOriginal` that is a real zone ("+02:00", "-05:30", within ±14:00); null for anything else. */
+function exifOffset(raw: string | null): string | null {
+  if (raw === null) return null;
+  const s = raw.replace(/[ \t]+$/, "");
+  const m = EXIF_OFFSET.exec(s);
+  if (!m) return null;
+  const h = Number(m[1]);
+  const mi = Number(m[2]);
+  return mi <= 59 && h * 60 + mi <= 14 * 60 ? s : null;
+}
+
+/**
+ * The capture time a TIFF blob states: IFD0's Exif IFD pointer, then that IFD's `DateTimeOriginal` and
+ * `OffsetTimeOriginal` (an ASCII value inline when it fits four bytes, else at its offset). Null when there is no
+ * real one. Bounds-checked at every step, like everything that reads Exif: one hop, never a walk a lying pointer
+ * could loop.
+ */
+function tiffCaptureTime(tiff: Uint8Array): ExifTime | null {
+  if (tiff.length < 8) return null;
+  let le: boolean;
+  if (tiff[0] === 0x49 && tiff[1] === 0x49) le = true;
+  else if (tiff[0] === 0x4d && tiff[1] === 0x4d) le = false;
+  else return null;
+  const rd16 = (o: number) =>
+    le ? (tiff[o + 1] << 8) | tiff[o] : u16be(tiff, o);
+  const rd32 = (o: number) => (le ? u32le(tiff, o) : u32be(tiff, o));
+  if (rd16(2) !== 42) return null;
+  /** Where `tag`'s 12-byte entry sits in the IFD at `ifd`, or -1. */
+  const entryOf = (ifd: number, tag: number): number => {
+    if (ifd < 8 || ifd + 2 > tiff.length) return -1;
+    const count = rd16(ifd);
+    for (let i = 0; i < count; i++) {
+      const e = ifd + 2 + i * 12;
+      if (e + 12 > tiff.length) return -1;
+      if (rd16(e) === tag) return e;
+    }
+    return -1;
+  };
+  /** An ASCII entry's text up to its NUL, or null (not ASCII, empty, too long to be a time, out of bounds). */
+  const ascii = (e: number): string | null => {
+    if (e < 0 || rd16(e + 2) !== 2) return null;
+    const n = rd32(e + 4);
+    if (n === 0 || n > 32) return null;
+    const at = n <= 4 ? e + 8 : rd32(e + 8);
+    if (at + n > tiff.length) return null;
+    let s = "";
+    for (let i = 0; i < n && tiff[at + i] !== 0; i++) {
+      s += String.fromCharCode(tiff[at + i]);
+    }
+    return s;
+  };
+  const pointer = entryOf(rd32(4), TAG_EXIF_IFD);
+  if (pointer < 0) return null;
+  const type = rd16(pointer + 2); // LONG, or IFD (13) from a writer that says so
+  if ((type !== 4 && type !== 13) || rd32(pointer + 4) !== 1) return null;
+  const exifIfd = rd32(pointer + 8);
+  const wall = exifWall(ascii(entryOf(exifIfd, TAG_DATETIME_ORIGINAL)));
+  if (!wall) return null;
+  return {
+    wall,
+    offset: exifOffset(ascii(entryOf(exifIfd, TAG_OFFSET_TIME_ORIGINAL))),
+  };
+}
+
+/** A read Exif time as the stamp a result carries. */
+function wallStamp(time: ExifTime | null): CaptureStamp | null {
+  return time ? { kind: "wall", wall: time.wall, offset: time.offset } : null;
+}
+
 /**
  * The minimal TIFF every rebuilt Exif carries: a little-endian IFD0 with ONLY the
  * Orientation (26 bytes), or an empty IFD0 (14 bytes) when there is none. No sub-IFDs, no
- * GPS, no maker notes, no thumbnail.
+ * GPS, no maker notes, no thumbnail. With a capture time (Will, 2026-10-05: keep it, never
+ * the place or the device), IFD0 also points at an Exif IFD holding exactly `ExifVersion`
+ * ("0232", so a reader takes the block as Exif), `DateTimeOriginal` and, when the camera
+ * wrote one, `OffsetTimeOriginal`: 108 bytes at the most, every value word-aligned.
  */
-function minimalTiff(orientation: number | null): Uint8Array {
+function minimalTiff(
+  orientation: number | null,
+  time: ExifTime | null = null,
+): Uint8Array {
+  if (time) return minimalTiffWithTime(orientation, time);
   if (orientation === null) {
     // prettier-ignore
     return new Uint8Array([
@@ -393,18 +549,83 @@ function minimalTiff(orientation: number | null): Uint8Array {
 }
 
 /**
+ * `minimalTiff` with a capture time. Laid out, little-endian: the header; IFD0 (the Orientation when there is one,
+ * then the Exif IFD pointer; tags ascending, as TIFF requires); the Exif IFD (`ExifVersion` inline, then
+ * `DateTimeOriginal` and `OffsetTimeOriginal` by offset, their 20 and 7 bytes being past an entry's four); then the
+ * two values, the zone padded to an even length. Same input, same bytes, so a second strip is a no-op.
+ */
+function minimalTiffWithTime(
+  orientation: number | null,
+  time: ExifTime,
+): Uint8Array {
+  const ifd0Count = orientation === null ? 1 : 2;
+  const exifIfd = 8 + 2 + 12 * ifd0Count + 4;
+  const exifCount = time.offset === null ? 2 : 3;
+  const wallAt = exifIfd + 2 + 12 * exifCount + 4;
+  const offsetAt = wallAt + 20;
+  const out = new Uint8Array(time.offset === null ? offsetAt : offsetAt + 8);
+  const w16 = (o: number, v: number) => {
+    out[o] = v & 0xff;
+    out[o + 1] = (v >>> 8) & 0xff;
+  };
+  const w32 = (o: number, v: number) => {
+    w16(o, v & 0xffff);
+    w16(o + 2, (v >>> 16) & 0xffff);
+  };
+  /** One 12-byte entry: tag, type, count, then the value (a SHORT or a LONG; an ASCII's offset). */
+  const entry = (at: number, tag: number, type: number, count: number) => {
+    w16(at, tag);
+    w16(at + 2, type);
+    w32(at + 4, count);
+  };
+  out.set([0x49, 0x49, 0x2a, 0x00, 0x08, 0x00, 0x00, 0x00], 0); // "II", 42, IFD0 at 8
+  let p = 8;
+  w16(p, ifd0Count);
+  p += 2;
+  if (orientation !== null) {
+    entry(p, TAG_ORIENTATION, 3, 1); // SHORT
+    w16(p + 8, orientation);
+    p += 12;
+  }
+  entry(p, TAG_EXIF_IFD, 4, 1); // LONG
+  w32(p + 8, exifIfd);
+  p += 12 + 4; // and no next IFD (zeros)
+  w16(p, exifCount);
+  p += 2;
+  entry(p, TAG_EXIF_VERSION, 7, 4); // UNDEFINED, inline
+  out.set(asciiBytes("0232"), p + 8);
+  p += 12;
+  entry(p, TAG_DATETIME_ORIGINAL, 2, 20); // ASCII, 19 characters and the NUL
+  w32(p + 8, wallAt);
+  p += 12;
+  if (time.offset !== null) {
+    entry(p, TAG_OFFSET_TIME_ORIGINAL, 2, 7); // ASCII, 6 characters and the NUL
+    w32(p + 8, offsetAt);
+  }
+  out.set(asciiBytes(time.wall), wallAt);
+  if (time.offset !== null) out.set(asciiBytes(time.offset), offsetAt);
+  return out;
+}
+
+/**
  * Overwrite an Exif block IN PLACE: `prefix` (whatever must lead it, e.g. "Exif\0\0"),
- * then a minimal TIFF keeping only the original's orientation, then zeros to the original
- * length - the GPS, device, serial and maker-note bytes are gone, the length (which
- * something else points past) is not. When the block cannot even hold that, it is zeroed.
+ * then a minimal TIFF keeping only the original's orientation and capture time, then zeros
+ * to the original length - the GPS, device, serial and maker-note bytes are gone, the length
+ * (which something else points past) is not. A block too small for the time keeps the
+ * orientation alone; one that cannot even hold that is zeroed.
  */
 function blankExifBlock(
   length: number,
   prefix: readonly number[],
   orientation: number | null,
+  time: ExifTime | null = null,
 ): Uint8Array {
   const out = new Uint8Array(length);
-  for (const tiff of [minimalTiff(orientation), minimalTiff(null)]) {
+  for (const tiff of [
+    minimalTiff(orientation, time),
+    minimalTiff(orientation),
+    minimalTiff(null),
+  ]) {
     if (prefix.length + tiff.length <= length) {
       out.set(prefix, 0);
       out.set(tiff, prefix.length);
@@ -486,17 +707,23 @@ const JPEG_KEEP_APP = new Set([0xe0, 0xe2, 0xee]);
 const MPF_FOURCC = [0x4d, 0x50, 0x46, 0x00];
 
 /**
- * Build the minimal replacement APP1 Exif: one IFD0 with ONLY the Orientation tag.
- * 36 bytes total: FFE1 + len(0x0022) + "Exif\0\0" + the 26-byte minimal TIFF.
+ * Build the minimal replacement APP1 Exif: FFE1, its length (covering the length bytes themselves), "Exif\0\0", then
+ * the minimal TIFF (`minimalTiff`): the Orientation alone is 36 bytes in all, as it always was, and the capture time
+ * beside it at most 118.
  */
-function minimalOrientationExif(orientation: number): Uint8Array {
+function minimalExifSegment(
+  orientation: number | null,
+  time: ExifTime | null,
+): Uint8Array {
+  const tiff = minimalTiff(orientation, time);
+  const length = 2 + EXIF_HEADER.length + tiff.length;
   return Uint8Array.from([
     0xff,
     0xe1,
-    0x00,
-    0x22, // APP1, length 34 (covers the length bytes themselves)
+    (length >>> 8) & 0xff,
+    length & 0xff,
     ...EXIF_HEADER,
-    ...minimalTiff(orientation),
+    ...tiff,
   ]);
 }
 
@@ -513,6 +740,7 @@ function stripJpeg(bytes: Uint8Array): StripBytesResult {
   let pos = 2;
   let removedAny = false;
   let orientation: number | null = null;
+  let time: ExifTime | null = null;
   let sawExif = false;
   let exifInsertIndex = -1;
   let sosPos = -1;
@@ -554,10 +782,12 @@ function stripJpeg(bytes: Uint8Array): StripBytesResult {
       const payload = bytes.subarray(pos + 4, end);
       if (hasPrefix(payload, EXIF_HEADER)) {
         sawExif = true;
-        // Remember where the Exif sat so the rebuilt orientation-only segment lands in
-        // the same position (Exif belongs before other APPn per spec convention).
+        // Remember where the Exif sat so the rebuilt minimal segment lands in the same
+        // position (Exif belongs before other APPn per spec convention). Its capture time is
+        // read here, from the original, before the segment is dropped.
         exifInsertIndex = parts.length;
         orientation = tiffOrientation(payload.subarray(6));
+        time = tiffCaptureTime(payload.subarray(6));
       }
     }
 
@@ -578,14 +808,21 @@ function stripJpeg(bytes: Uint8Array): StripBytesResult {
   // planned on the ORIGINAL coordinates, applied after assembly at the shifted position.
   const trailerPatches = planJpegTrailerPatches(bytes, sosPos);
 
-  // Rebuild orientation ONLY when it does something (a value of 1 = "upright" = the
-  // decoder default, so emitting no Exif at all is byte-cheaper and equally correct).
-  if (orientation !== null && orientation !== 1 && exifInsertIndex >= 0) {
-    parts.splice(exifInsertIndex, 0, minimalOrientationExif(orientation));
+  // Rebuild the Exif ONLY when it carries something: the orientation when it does something
+  // (a value of 1 = "upright" = the decoder default, so it is never written), and the capture
+  // time. With neither, emitting no Exif at all is byte-cheaper and equally correct.
+  const kept = orientation !== null && orientation !== 1 ? orientation : null;
+  if ((kept !== null || time) && exifInsertIndex >= 0) {
+    parts.splice(exifInsertIndex, 0, minimalExifSegment(kept, time));
   }
+  // The capture time is the original's word whatever happens to the strip below.
+  const captured = wallStamp(time);
 
   if (!removedAny && trailerPatches.length === 0) {
-    return { data: bytes, stripped: true, changed: false };
+    return withCapture(
+      { data: bytes, stripped: true, changed: false },
+      captured,
+    );
   }
   const data = removedAny ? concatParts(parts) : bytes.slice();
   // Everything from SOS to EOF was kept as ONE block of the same length, so the whole
@@ -596,13 +833,16 @@ function stripJpeg(bytes: Uint8Array): StripBytesResult {
     // An MPF index we cannot keep valid means fail open: a structurally corrupt
     // multi-picture file (broken HDR gain map) is worse than the metadata leak.
     if (!fixupMpfIndexes(bytes, data, mpfOldStarts, sosPos, sosDelta)) {
-      return failOpen;
+      return withCapture(failOpen, captured);
     }
   }
   for (const p of trailerPatches) data.set(p.bytes, p.offset + sosDelta);
   // memcmp (not just removedAny) so a re-run over an already-stripped file - which drops
   // our minimal Exif and re-inserts an identical one - correctly reports changed:false.
-  return { data, stripped: true, changed: !bytesEqual(bytes, data) };
+  return withCapture(
+    { data, stripped: true, changed: !bytesEqual(bytes, data) },
+    captured,
+  );
 }
 
 /** First EOI marker in [from, to). Inside entropy-coded data 0xFF is always followed by
@@ -1188,14 +1428,246 @@ function blankMetadataChildren(
 function* blankMoov(
   pos: number,
   h: BoxHeader,
-): Walk<IsobmffPatch | null | "malformed"> {
+): Walk<
+  { patch: IsobmffPatch | null; captured: CaptureStamp | null } | "malformed"
+> {
   if (h.boxSize > MOOV_READ_CAP) return "malformed";
   const read = yield* readExactly(pos, pos + h.boxSize);
   if (!read) return "malformed";
+  // The capture time, from the ORIGINAL moov: its metadata box goes below.
+  const found = moovCapture(read, h.headerLen, h.boxSize);
   const moov = read.slice(); // own copy to patch
-  const changed = blankMetadataChildren(moov, h.headerLen, h.boxSize, 0);
+  let changed = blankMetadataChildren(moov, h.headerLen, h.boxSize, 0);
   if (changed === null) return "malformed";
-  return changed ? { offset: pos, bytes: moov } : null;
+  // ★ THE QUICKTIME DATE GOES WITH ITS METADATA BOX (the location, make and model share it), SO THE MOVIE HEADER KEEPS
+  // IT (Q4): an iPhone's own export writes the header at the moment it exported (AVFoundation does: measured), so a
+  // downloaded clip would read as made the day it was uploaded. One field rewritten in place, its width unchanged, and
+  // nothing points at a header's value; a second strip finds the header already saying it.
+  if (
+    found.quicktime !== null &&
+    found.header &&
+    setHeaderTime(moov, found.header, found.quicktime)
+  ) {
+    changed = true;
+  }
+  return {
+    patch: changed ? { offset: pos, bytes: moov } : null,
+    captured: found.captured,
+  };
+}
+
+/** The movie header's creation-time field: where it sits in its moov, its width (version 0 or 1), its value. */
+type HeaderTime = { at: number; width: 4 | 8; ms: number | null };
+
+/** Write `ms` (whole seconds) into the movie header's creation time; false when it says that already or cannot. */
+function setHeaderTime(
+  moov: Uint8Array,
+  field: HeaderTime,
+  ms: number,
+): boolean {
+  const seconds = Math.floor(ms / 1000) + MAC_EPOCH_OFFSET_S;
+  if (seconds <= 0 || (field.width === 4 && seconds > 0xffffffff)) return false;
+  if (
+    field.ms !== null &&
+    Math.floor(field.ms / 1000) === seconds - MAC_EPOCH_OFFSET_S
+  ) {
+    return false;
+  }
+  const high = Math.floor(seconds / 0x100000000);
+  const low = seconds % 0x100000000;
+  const put32 = (at: number, v: number) => {
+    moov[at] = (v >>> 24) & 0xff;
+    moov[at + 1] = (v >>> 16) & 0xff;
+    moov[at + 2] = (v >>> 8) & 0xff;
+    moov[at + 3] = v & 0xff;
+  };
+  if (field.width === 8) {
+    put32(field.at, high);
+    put32(field.at + 4, low);
+  } else put32(field.at, low);
+  return true;
+}
+
+// The movie header counts seconds from 1904-01-01 UTC; the epoch is 2,082,844,800 seconds later.
+const MAC_EPOCH_OFFSET_S = 2_082_844_800;
+// QuickTime's metadata key for when the capture began (an iPhone writes it, with its zone).
+const QUICKTIME_CREATION_KEY = "com.apple.quicktime.creationdate";
+const QUICKTIME_DATE =
+  /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(\.\d+)?(Z|[+-]\d{2}:?\d{2})$/;
+
+/**
+ * WHEN A MOVIE SAYS IT WAS TAKEN (Q4): QuickTime's `com.apple.quicktime.creationdate` where the moov's metadata holds
+ * one (an iPhone's: the capture's start, in its own zone; the movie header holds when the file was written, the end of
+ * the take or an export), else the movie header's creation time (UTC, a muxer's own clock; zero means never set). The
+ * metadata box sits in the moov (an iPhone's) or in its udta (ffmpeg's), so both are asked. Read only: a box this
+ * cannot place ends the read, never the strip, whose own walk decides what is malformed.
+ */
+function moovCapture(
+  moov: Uint8Array,
+  start: number,
+  end: number,
+): {
+  captured: CaptureStamp | null;
+  header: HeaderTime | null;
+  quicktime: number | null;
+} {
+  let header: HeaderTime | null = null;
+  let quicktime: number | null = null;
+  // The moov's children, then a udta's, one level down: the two places a metadata box sits.
+  const spans: ByteRange[] = [{ start, end }];
+  for (let s = 0; s < spans.length; s++) {
+    const { start: from, end: to } = spans[s];
+    for (let p = from; p < to; ) {
+      const h = parseBoxHeader(moov, p, to);
+      if (!h) break;
+      const body = p + h.headerLen;
+      const boxEnd = p + h.boxSize;
+      if (h.type === "mvhd" && s === 0) {
+        header = mvhdCreation(moov, body, boxEnd);
+      } else if (h.type === "meta") {
+        quicktime ??= quicktimeCreationDate(moov, body, boxEnd);
+      } else if (h.type === "udta" && s === 0) {
+        spans.push({ start: body, end: boxEnd });
+      }
+      p = boxEnd;
+    }
+  }
+  const ms = quicktime ?? header?.ms ?? null;
+  return {
+    captured: ms === null ? null : { kind: "instant", ms },
+    header,
+    quicktime,
+  };
+}
+
+/**
+ * The movie header's creation-time field (version 0: 32-bit seconds, version 1: 64-bit) and its value as epoch ms,
+ * null when unset; null for a header this cannot read.
+ */
+function mvhdCreation(
+  b: Uint8Array,
+  body: number,
+  end: number,
+): HeaderTime | null {
+  if (body + 4 > end) return null;
+  const version = b[body];
+  let seconds: number | null;
+  let width: 4 | 8;
+  if (version === 0 && body + 8 <= end) {
+    seconds = u32be(b, body + 4);
+    width = 4;
+  } else if (version === 1 && body + 12 <= end) {
+    seconds = u64be(b, body + 4);
+    width = 8;
+  } else return null;
+  const ms = seconds ? (seconds - MAC_EPOCH_OFFSET_S) * 1000 : null;
+  return {
+    at: body + 4,
+    width,
+    ms: ms !== null && Number.isSafeInteger(ms) ? ms : null,
+  };
+}
+
+/** A box header at `p` whose box lies wholly inside [p, end), without the type check (an ilst item's type is a number). */
+function rawBoxAt(
+  b: Uint8Array,
+  p: number,
+  end: number,
+): { size: number; type: number } | null {
+  if (p + 8 > end) return null;
+  const size = u32be(b, p);
+  if (size < 8 || p + size > end) return null;
+  return { size, type: u32be(b, p + 4) };
+}
+
+/**
+ * QuickTime's creation date in a moov-level `meta` (handler `mdta`: a `keys` box names each key, and each `ilst` item
+ * is typed by its key's 1-based index and holds `data` atoms), as epoch ms; null when it holds none. QuickTime's
+ * `meta` opens straight onto its boxes and an ISO one onto a version and flags first: the first child says which.
+ */
+function quicktimeCreationDate(
+  b: Uint8Array,
+  start: number,
+  end: number,
+): number | null {
+  let p = start;
+  if (!parseBoxHeader(b, p, end) && parseBoxHeader(b, p + 4, end)) p += 4;
+  let handler = "";
+  let keys: string[] | null = null;
+  let items: ByteRange | null = null;
+  while (p < end) {
+    const h = parseBoxHeader(b, p, end);
+    if (!h) return null;
+    const body = p + h.headerLen;
+    const boxEnd = p + h.boxSize;
+    if (h.type === "hdlr" && body + 12 <= boxEnd) handler = ascii4(b, body + 8);
+    else if (h.type === "keys") keys = quicktimeKeys(b, body, boxEnd);
+    else if (h.type === "ilst") items = { start: body, end: boxEnd };
+    p = boxEnd;
+  }
+  if (handler !== "mdta" || !keys || !items) return null;
+  const index = keys.indexOf(QUICKTIME_CREATION_KEY) + 1;
+  if (index === 0) return null;
+  for (let q = items.start; q < items.end; ) {
+    const item = rawBoxAt(b, q, items.end);
+    if (!item) return null;
+    if (item.type === index) return quicktimeDataDate(b, q + 8, q + item.size);
+    q += item.size;
+  }
+  return null;
+}
+
+/** A `keys` box's key names (a full box: version and flags, a count, then each key's size, namespace and name). */
+function quicktimeKeys(
+  b: Uint8Array,
+  body: number,
+  end: number,
+): string[] | null {
+  if (body + 8 > end) return null;
+  const count = u32be(b, body + 4);
+  if (count > 4096) return null;
+  const keys: string[] = [];
+  let p = body + 8;
+  for (let i = 0; i < count; i++) {
+    const key = rawBoxAt(b, p, end);
+    if (!key) return null;
+    let name = "";
+    for (let j = p + 8; j < p + key.size && name.length < 128; j++) {
+      name += String.fromCharCode(b[j]);
+    }
+    keys.push(name);
+    p += key.size;
+  }
+  return keys;
+}
+
+/** The first text `data` atom of an `ilst` item read as an ISO 8601 instant with its zone, as epoch ms; else null. */
+function quicktimeDataDate(
+  b: Uint8Array,
+  start: number,
+  end: number,
+): number | null {
+  for (let p = start; p < end; ) {
+    const atom = rawBoxAt(b, p, end);
+    if (!atom) return null;
+    // 'data', then a type (its first byte reserved; 1 is UTF-8) and a locale, then the value.
+    if (atom.type === 0x64617461 && atom.size >= 16 && u32be(b, p + 8) === 1) {
+      let text = "";
+      for (let j = p + 16; j < p + atom.size && text.length < 64; j++) {
+        text += String.fromCharCode(b[j]);
+      }
+      const m = QUICKTIME_DATE.exec(text.trim());
+      if (!m) return null;
+      const zone =
+        m[3] === "Z" || m[3].includes(":")
+          ? m[3]
+          : `${m[3].slice(0, 3)}:${m[3].slice(3)}`;
+      const ms = Date.parse(`${m[1]}${m[2] ?? ""}${zone}`);
+      return Number.isFinite(ms) ? ms : null;
+    }
+    p += atom.size;
+  }
+  return null;
 }
 
 /**
@@ -1236,9 +1708,10 @@ function* blankTopLevelMetadata(
  */
 function* isobmffWalk(
   size: number,
-): Walk<{ ok: boolean; patches: IsobmffPatch[] }> {
+): Walk<{ ok: boolean; patches: IsobmffPatch[]; captured?: CaptureStamp }> {
   const notOk = { ok: false, patches: [] as IsobmffPatch[] };
   const patches: IsobmffPatch[] = [];
+  let captured: CaptureStamp | null = null;
   let pos = 0;
   let sawMoov = false;
   while (pos < size) {
@@ -1256,9 +1729,10 @@ function* isobmffWalk(
       }
     } else if (h.type === "moov") {
       sawMoov = true;
-      const patch = yield* blankMoov(pos, h);
-      if (patch === "malformed") return notOk;
-      if (patch) patches.push(patch);
+      const moov = yield* blankMoov(pos, h);
+      if (moov === "malformed") return notOk;
+      if (moov.patch) patches.push(moov.patch);
+      captured ??= moov.captured;
     } else {
       // Top-level udta/meta/xml (some muxers hoist metadata out of moov), the XMP uuid.
       const patch = yield* blankTopLevelMetadata(pos, h, true);
@@ -1269,7 +1743,7 @@ function* isobmffWalk(
   }
   // A "video" with no moov is not something we understood - fail open.
   if (!sawMoov) return notOk;
-  return { ok: true, patches };
+  return withCapture({ ok: true, patches }, captured);
 }
 
 /** The MP4/MOV plan over any ByteReader (exported for tests + the trailer scan's shape). */
@@ -1643,7 +2117,11 @@ function* planHeifItems(
   meta: HeifMeta,
   mdats: ByteRange[],
   size: number,
-): Walk<{ patches: IsobmffPatch[]; gps: boolean } | null> {
+): Walk<{
+  patches: IsobmffPatch[];
+  gps: boolean;
+  captured: CaptureStamp | null;
+} | null> {
   const auxiliary = new Set(
     meta.refs.filter((r) => r.type === "auxl").map((r) => r.from),
   );
@@ -1653,6 +2131,8 @@ function* planHeifItems(
       .flatMap((r) => r.to);
 
   let gps = false;
+  // The first Exif item's time (iinf's order: the primary's, in every file an encoder wrote); each item keeps its own.
+  let captured: CaptureStamp | null = null;
   const rewrites: {
     ranges: ByteRange[];
     data: Uint8Array;
@@ -1691,10 +2171,13 @@ function* planHeifItems(
     if (isExif) {
       const tiff = exifItemTiff(data);
       if (tiff && tiffHasGps(tiff)) gps = true;
+      const time = tiff ? tiffCaptureTime(tiff) : null;
+      captured ??= wallStamp(time);
       blank = blankExifBlock(
         data.length,
         EXIF_ITEM_PREFIX,
         tiff ? tiffOrientation(tiff) : null,
+        time,
       );
     } else {
       const xmpGps = XMP_GPS_NEEDLES.some((n) => findBytes(data, n));
@@ -1745,7 +2228,7 @@ function* planHeifItems(
       at += len;
     }
   }
-  return { patches, gps };
+  return { patches, gps, captured };
 }
 
 /**
@@ -1771,9 +2254,10 @@ function* heifWalk(size: number): Walk<WalkPlan> {
     } else if (h.type === "mdat") {
       mdats.push({ start: pos + h.headerLen, end: pos + h.boxSize });
     } else if (h.type === "moov") {
-      const patch = yield* blankMoov(pos, h);
-      if (patch === "malformed") return notOk;
-      if (patch) patches.push(patch);
+      // An image sequence's movie: scrubbed as a video's. Its time is not the picture's (the Exif item is).
+      const moov = yield* blankMoov(pos, h);
+      if (moov === "malformed") return notOk;
+      if (moov.patch) patches.push(moov.patch);
     } else {
       const patch = yield* blankTopLevelMetadata(pos, h, false);
       if (patch === "malformed") return notOk;
@@ -1786,7 +2270,10 @@ function* heifWalk(size: number): Walk<WalkPlan> {
   if (!parsed || parsed.handler !== "pict") return notOk;
   const items = yield* planHeifItems(parsed, mdats, size);
   if (!items) return notOk;
-  return { ok: true, patches: [...patches, ...items.patches], gps: items.gps };
+  return withCapture(
+    { ok: true, patches: [...patches, ...items.patches], gps: items.gps },
+    items.captured,
+  );
 }
 
 function isItemBasedImage(mime: string): boolean {
@@ -1809,6 +2296,40 @@ const MKV_ID_TAGS = 0x1254c367;
 const MKV_ID_TAG = 0x7373;
 const MKV_ID_SIMPLETAG = 0x67c8;
 const MKV_ID_TAGNAME = 0x45a3;
+const MKV_ID_INFO = 0x1549a966;
+const MKV_ID_DATEUTC = 0x4461;
+// DateUTC counts nanoseconds from 2001-01-01T00:00:00Z, 978,307,200 seconds after the epoch.
+const MKV_EPOCH_MS = 978_307_200_000;
+// Info is a title, the muxer's names and a few numbers; anything past this is not one we read.
+const MKV_INFO_READ_CAP = 64 * 1024;
+
+/**
+ * An Info payload's `DateUTC` (a signed 8-byte count of nanoseconds since 2001) as epoch ms; null when there is none,
+ * it is zero (a muxer's unset clock), or it cannot be read. ffmpeg writes it from a creation time; a browser's
+ * MediaRecorder writes none.
+ */
+function infoDateUtc(info: Uint8Array): number | null {
+  let p = 0;
+  while (p < info.length) {
+    const el = parseEbmlHeader(info, p);
+    if (!el || el.dataSize === null) return null;
+    const body = p + el.headerLen;
+    const end = body + el.dataSize;
+    if (end > info.length) return null;
+    if (el.id === MKV_ID_DATEUTC) {
+      if (el.dataSize !== 8) return null;
+      // Two halves, the high one signed: a double holds the count to about a hundred nanoseconds, past what a
+      // millisecond needs (no BigInt below ES2020).
+      const high = u32be(info, body) | 0;
+      const nanoseconds = high * 0x100000000 + u32be(info, body + 4);
+      if (nanoseconds === 0) return null;
+      const ms = MKV_EPOCH_MS + Math.round(nanoseconds / 1e6);
+      return Number.isSafeInteger(ms) ? ms : null;
+    }
+    p = end;
+  }
+  return null;
+}
 
 // What may sit inside a Cluster: Timestamp, SilentTracks, Position, PrevSize, SimpleBlock,
 // BlockGroup, EncryptedBlock, and the two global elements.
@@ -1984,21 +2505,23 @@ function* skipUnknownCluster(
 /**
  * Walk a Segment's children in [start, limit), turning each Tags element into a Void of
  * its exact size. An unknown-sized Segment runs to EOF or to the next document's header.
- * Returns where the Segment ended and whether a Tags element named a location.
+ * Returns where the Segment ended, whether a Tags element named a location, and Info's
+ * `DateUTC` (epoch ms), the one thing Info is read for.
  */
 function* walkSegment(
   start: number,
   limit: number,
   unknownSize: boolean,
   patches: IsobmffPatch[],
-): Walk<{ end: number; gps: boolean } | null> {
+): Walk<{ end: number; gps: boolean; dateUtc: number | null } | null> {
   let gps = false;
+  let dateUtc: number | null = null;
   let p = start;
   while (p < limit) {
     const el = yield* readEbmlAt(p, limit);
     if (!el) return null;
     if (unknownSize && (el.id === EBML_ID_HEADER || el.id === MKV_ID_SEGMENT)) {
-      return { end: p, gps }; // the next document begins
+      return { end: p, gps, dateUtc }; // the next document begins
     }
     const body = p + el.headerLen;
     if (el.dataSize === null) {
@@ -2019,10 +2542,19 @@ function* walkSegment(
       const blank = voidElement(end - p);
       if (!blank) return null;
       patches.push({ offset: p, bytes: blank });
+    } else if (
+      el.id === MKV_ID_INFO &&
+      dateUtc === null &&
+      el.dataSize <= MKV_INFO_READ_CAP
+    ) {
+      // Read, never rewritten: Info stays byte-identical, its DateUTC with it.
+      const info = yield* readExactly(body, end);
+      if (!info) return null;
+      dateUtc = infoDateUtc(info);
     }
     p = end;
   }
-  return { end: limit, gps };
+  return { end: limit, gps, dateUtc };
 }
 
 /**
@@ -2044,6 +2576,7 @@ function* webmWalk(size: number): Walk<WalkPlan> {
 
   const patches: IsobmffPatch[] = [];
   let gps = false;
+  let dateUtc: number | null = null;
   let sawSegment = false;
   let pos = headerEnd;
   while (pos < size) {
@@ -2062,6 +2595,7 @@ function* webmWalk(size: number): Walk<WalkPlan> {
       );
       if (!seg) return notOk;
       gps = gps || seg.gps;
+      dateUtc ??= seg.dateUtc;
       pos = seg.end;
     } else if (el.id === EBML_ID_HEADER || el.id === EBML_ID_VOID) {
       // A chained document's header, or padding between documents.
@@ -2073,7 +2607,10 @@ function* webmWalk(size: number): Walk<WalkPlan> {
     }
   }
   if (!sawSegment) return notOk;
-  return { ok: true, patches, gps };
+  return withCapture(
+    { ok: true, patches, gps },
+    dateUtc === null ? null : { kind: "instant", ms: dateUtc },
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -2131,6 +2668,8 @@ export async function stripMetadataBytes(
  * open - a corrupted upload is worse than the leak).
  */
 export async function stripFileMetadata(file: File): Promise<StripFileResult> {
+  // The capture time, once read, is the original's word whatever the strip does after it.
+  let captured: CaptureStamp | undefined;
   try {
     const mime = file.type;
     if (
@@ -2140,25 +2679,41 @@ export async function stripFileMetadata(file: File): Promise<StripFileResult> {
     ) {
       const bytes = new Uint8Array(await file.arrayBuffer());
       const res = await stripMetadataBytes(bytes, mime);
-      if (!res.stripped) return { blob: file, stripped: false };
-      if (!res.changed) return { blob: file, stripped: true };
-      return {
-        blob: new Blob([res.data as BlobPart], { type: mime }),
-        stripped: true,
-      };
+      captured = res.captured;
+      if (!res.stripped)
+        return withCapture({ blob: file, stripped: false }, captured);
+      if (!res.changed)
+        return withCapture({ blob: file, stripped: true }, captured);
+      return withCapture(
+        {
+          blob: new Blob([res.data as BlobPart], { type: mime }),
+          stripped: true,
+        },
+        captured,
+      );
     }
-    let walk: Walk<{ ok: boolean; patches: IsobmffPatch[] }>;
+    let walk: Walk<{
+      ok: boolean;
+      patches: IsobmffPatch[];
+      captured?: CaptureStamp;
+    }>;
     if (isItemBasedImage(mime)) walk = heifWalk(file.size);
     else if (mime === "video/mp4" || mime === "video/quicktime") {
       walk = isobmffWalk(file.size);
     } else if (mime === "video/webm") walk = webmWalk(file.size);
     else return { blob: file, stripped: false };
     const plan = await walkReader(walk, readAhead(fileReader(file)));
-    if (!plan.ok) return { blob: file, stripped: false };
-    if (plan.patches.length === 0) return { blob: file, stripped: true };
-    return { blob: composePatched(file, plan.patches, mime), stripped: true };
+    captured = plan.captured;
+    if (!plan.ok) return withCapture({ blob: file, stripped: false }, captured);
+    if (plan.patches.length === 0) {
+      return withCapture({ blob: file, stripped: true }, captured);
+    }
+    return withCapture(
+      { blob: composePatched(file, plan.patches, mime), stripped: true },
+      captured,
+    );
   } catch {
-    return { blob: file, stripped: false };
+    return withCapture({ blob: file, stripped: false }, captured);
   }
 }
 

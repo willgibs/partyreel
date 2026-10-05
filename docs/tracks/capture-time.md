@@ -12,6 +12,7 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/db/mutations/guest.ts
   - src/lib/db/mutations/host-media.ts
   - src/lib/events/album-wire
+  - src/lib/shared/album-order
   - src/lib/export/drive-names
   - src/lib/drive/
   - workers/drive/
@@ -50,7 +51,42 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **Q1 A time with no zone.** Older Android phones and most cameras write `DateTimeOriginal` without
+  `OffsetTimeOriginal`: a wall clock and no zone. Recommended, built: read it in the uploader's own browser zone (she
+  is nearly always where she shot it, and uploads the same night); the stored file keeps exactly the camera's wall
+  clock, never an invented zone. (UTC would put a New York night five hours early; dropping it would lose most such
+  photos' times.)
+- **Q2 The bounds.** Recommended, built (one home, `src/lib/media/capture-time.ts`): a claim after the server's now
+  plus a day is dropped (a camera a zone ahead still counts), and so is one before 1 Jan 1990 (before any consumer
+  camera stamped a file: it catches the reset clocks, 1904, 1970 and 1980); the arrival stands, and the upload never
+  fails over it. Within the bounds a capture time is the uploader's word: a lie inside them reads like a truth, so the
+  bounds stop only the absurd (an album's head or foot held for ever by 1970 or 2099). Pinning a time outside the
+  album's own days to its edge would be album-order's presentation (a board idea below).
+- **Q3 What the stored photograph keeps.** Will's word: the capture time, never the place or the device. Recommended,
+  built: the minimal Exif a JPEG and a HEIC keep is the orientation (as before), `DateTimeOriginal`,
+  `OffsetTimeOriginal` when the camera wrote one, and `ExifVersion` (so a reader takes the block as Exif); never the
+  sub-second, the modify or digitize times, GPS, make, model, lens or serial. The zone offset rides with the time: it
+  names a band of the globe, never a place, and it is what lets Photos put the photo on the right day. An MPF
+  secondary image (a gain map, a large thumbnail) keeps orientation only, as before.
+- **Q4 A video's time.** Recommended, built: QuickTime's `com.apple.quicktime.creationdate` where a file carries it
+  (an iPhone's: the capture's start, with its zone), else the movie header's creation time (`mvhd`, UTC; zero means
+  none); a WebM's `DateUTC`; nothing else is read. The Apple key still goes with the metadata box it lives in (beside
+  the location, make and model), so when a file carried one, its movie header's creation time is set to it, one field
+  in place: measured, AVFoundation (an iPhone's export) stamps the header with the moment it WROTE the file, so without
+  this a clip picked the next morning would download as taken that morning. A header with no QuickTime date beside it
+  is untouched, as before.
+- **Q5 The wire.** Recommended, built: a seventh element on a manifest entry, the capture time in microseconds like
+  `t` (a video's duration, or null, before it); the contract's version stays `a1`, since no row carries a capture time
+  before the build that writes one, so no validator can answer 304 for a manifest that lacks one it should hold; an
+  older tab ignores the element. Measured bytes in the Handoff.
+- **Q6 The reads that feed the wire sit outside the owns.** The manifest's two reads (`album-guest.ts`,
+  `album-host.ts`), the delta's parser (`album-sync.ts`), the host's column list (`media.ts`'s `MEDIA_HOST_COLUMNS`,
+  pinned to her SELECT grant), the lease's mapper (`queries/drive.ts`) and the hub's duration read (`hub-album.ts`,
+  album-order's file, which read a duration only from a six-element entry). Recommended, built: the fewest lines in
+  each, every one listed in the lane check; the host's SELECT grant gains `captured_at` (her own album's times, which
+  her originals carry anyway).
+- **Q7 The backfill.** Recommended, built: it keeps a capture time in what it rewrites (the one shared strip) and
+  writes no `captured_at`: a hand-run script never writes the column `create_media*` writes once.
 
 ## System-doc edits (in place, owned facts only)
 

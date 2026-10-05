@@ -18,7 +18,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { mustQuery } from "@/lib/db/must-query";
-import { inChunks, readAllPages } from "@/lib/db/read-all";
+import { inChunks, readAllPages, type PageResult } from "@/lib/db/read-all";
 import type { Database, Tables } from "@/lib/db/types";
 import {
   RECENTLY_DELETED_WINDOW_DAYS,
@@ -41,10 +41,11 @@ type Client = SupabaseClient<Database>;
  * first, the drop, 20260929170000, once the milestone that stopped naming them was live).
  *
  * `sealed_until` (the develop, 20261002200000) joined the grant and this list together: the host is exempt from
- * the seal, and her own INVOKER reads (the cards' covers, stills and counts) name it.
+ * the seal, and her own INVOKER reads (the cards' covers, stills and counts) name it. So did `captured_at` (when it
+ * was taken, 20261005200000): her album's manifest carries it, read on her own RLS client.
  */
 export const MEDIA_HOST_COLUMNS =
-  "id, event_id, guest_id, type, original_key, preview_key, file_size_bytes, duration_seconds, width, height, status, created_at, updated_at, removed_at, purge_at, removed_by_uploader, reel_eligible, sealed_until";
+  "id, event_id, guest_id, type, original_key, preview_key, file_size_bytes, duration_seconds, width, height, status, created_at, updated_at, removed_at, purge_at, removed_by_uploader, reel_eligible, sealed_until, captured_at";
 
 // Strips every column the authenticated grant WITHHOLDS, keeping this type equal to what the
 // queries above can actually return. `removed_by_system` (QA #2) joins the hold columns here: a
@@ -134,7 +135,10 @@ export async function readEventMedia(
       else if (slice === "album") q = q.in("status", ["approved", "hidden"]);
       else q = q.neq("status", "removed");
       if (after) q = q.or(newestFirstAfter("created_at", after));
-      return q;
+      // ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE (migration 20261005200000): the list names `captured_at`, which
+      // the generated row does not hold yet, and a typed select naming a column it does not know types every row as an
+      // error; the row is `MediaRow` either way. A cast and nothing at run time; drop it with the regeneration.
+      return q as unknown as PromiseLike<PageResult<MediaRow>>;
     },
     (m) => ({ at: m.created_at, id: m.id }),
   );
@@ -197,7 +201,8 @@ export async function readRecentlyDeletedMedia(
         .order("id", { ascending: false })
         .limit(limit);
       if (after) q = q.or(newestFirstAfter("removed_at", after));
-      return q;
+      // ★ THE TYPED SEAM, as `readEventMedia`'s (migration 20261005200000).
+      return q as unknown as PromiseLike<PageResult<MediaRow>>;
     },
     // Never null in this read: the window filter above keeps no row without a `removed_at`.
     (m) => ({ at: m.removed_at ?? "", id: m.id }),

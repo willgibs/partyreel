@@ -131,15 +131,16 @@ read beside it so its Follow starts on Following; no card means no host row, nev
   customize r1's `order=turns`): newest first while it is on, the night in order from 9 am the morning after its last
   day or from its develop; an undated album and the demo never turn, and a teaser's nine stay newest first. It is
   presentation over the one wire (the manifest and its delta stay `created_at desc`): the view turns the live source's
-  list (`inOrder`) and the rows lay from the end it grows at, so an album in order only grows at its end. In order
-  reads `happenedAt`: when each was taken where the wire carries a capture time (`takenAtOf`, the capture-time lane's
-  one switch), else when it arrived; newest first is always by arrival, the live feed. ★ The 9 am is the reader's, as
-  no event keeps a zone yet: the page's server reads it from the request (`x-vercel-ip-timezone`, else its own) and
-  hands the browser that zone with the order it decided (`guestAlbumOrder`), so the seed links the first paint of that
-  order and the hydration lays the same rows; the page then turns it on the device's clock (`useGuestAlbumOrder`: a
-  timer, a return to the tab, a Develop now). Behind a gate the order knows no days, as the shell does not. Her Newest
-  or Oldest is remembered per album on the device only as a departure from the turn (`pr_album_sort`, which the page
-  reads; choosing the album's own order forgets it), her lens for the visit.
+  list (`inOrder`) and the rows lay from the end it grows at, so an album in order grows at its end, but where a late
+  upload's capture time lands it mid-album (the anchoring holds her place, the arrivals pill points there). In order
+  reads `happenedAt`: when each was taken where the wire carries a capture time (`takenAtOf`: `media.captured_at`, an
+  entry's seventh element), else when it arrived; newest first is always by arrival, the live feed. ★ The 9 am is the
+  reader's, as no event keeps a zone yet: the page's server reads it from the request (`x-vercel-ip-timezone`, else its
+  own) and hands the browser that zone with the order it decided (`guestAlbumOrder`), so the seed links the first paint
+  of that order and the hydration lays the same rows; the page then turns it on the device's clock
+  (`useGuestAlbumOrder`: a timer, a return to the tab, a Develop now). Behind a gate the order knows no days, as the
+  shell does not. Her Newest or Oldest is remembered per album on the device only as a departure from the turn
+  (`pr_album_sort`, which the page reads; choosing the album's own order forgets it), her lens for the visit.
   The page root is two boxes ([`event-experience.tsx`](../../src/components/guest/event-experience.tsx)): `COLUMN`,
   the reading measure, and `BLEED`, the gutter alone. The album alone takes `BLEED` and the cover runs the window's
   width; everything else the page says keeps `COLUMN`.

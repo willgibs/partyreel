@@ -114,13 +114,17 @@ export async function createMediaAsHost(input: {
    * the album, so the reel never plays itself. Omitted, the RPC's default (true) applies.
    */
   reelEligible?: boolean;
+  /** When the original says it was taken (Will's X7), already held to its bounds by the route; null for none. */
+  capturedAt?: string | null;
 }): Promise<CreateHostMediaResult> {
   // Server-mediated (H1): create_media_as_host is service-role-only now, so it can't be called directly via
   // PostgREST with a spoofed size. The admin client has no auth.uid(), so we pass the route's
   // getUser()-verified host id as the trusted p_host_id (the RPC's ownership join uses it).
   const supabase = createAdminClient();
   // The phone copy's two arguments are left out of the body when there is no copy (the RPC refuses one alone).
-  const { data, error } = await supabase.rpc("create_media_as_host", {
+  // ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `p_captured_at` arrives with migration 20261005200000 (guest.ts's
+  // createMedia says why the arguments are built beside the call); left out when there is none, so its default applies.
+  const args = {
     p_host_id: input.hostId,
     p_event_id: input.eventId,
     p_media_id: input.mediaId,
@@ -134,7 +138,9 @@ export async function createMediaAsHost(input: {
     p_reel_eligible: input.reelEligible ?? undefined,
     p_phone_key: input.phoneKey ?? undefined,
     p_phone_bytes: input.phoneBytes ?? undefined,
-  });
+    p_captured_at: input.capturedAt ?? undefined,
+  };
+  const { data, error } = await supabase.rpc("create_media_as_host", args);
 
   if (error) {
     // Retry idempotency: a duplicate media_id means create_media_as_host already ran
