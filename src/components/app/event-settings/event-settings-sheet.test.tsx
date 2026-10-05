@@ -753,6 +753,26 @@ describe("the roll: a live word, and its page's whole control", () => {
     expect(updateEventAction).toHaveBeenCalledWith(ID, { roll_size: 23 });
   });
 
+  it("a refused roll is put back to the row's own count, with a sentence", async () => {
+    updateEventAction.mockResolvedValue({
+      ok: false,
+      code: "unknown",
+      message: "Couldn't save your changes. Please try again.",
+    });
+    sheet({ page: "adds", event: disposable(24) });
+    const group = screen.getByRole("radiogroup", { name: "Shots each" });
+    await act(async () => {
+      fireEvent.click(within(group).getByRole("radio", { name: "36 shots" }));
+    });
+    expect(toast.error).toHaveBeenCalled();
+    expect(
+      within(group).getByRole("radio", { name: "24 shots" }),
+    ).toHaveAttribute("aria-checked", "true");
+    expect(
+      document.querySelector("[data-album-style='disposable']")?.textContent,
+    ).toContain("24 shots each");
+  });
+
   it("★ her roll is kept while the album takes free uploads: no roll row, and the Disposable card says her count", () => {
     sheet({
       page: "adds",

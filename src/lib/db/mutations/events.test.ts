@@ -10,7 +10,11 @@
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createEventSchema, updateEventSchema } from "@/lib/validation/event";
+import {
+  createEventSchema,
+  ROLL_SIZE_MESSAGE,
+  updateEventSchema,
+} from "@/lib/validation/event";
 
 vi.mock("server-only", () => ({}));
 
@@ -234,11 +238,14 @@ describe("updateEvent: approval never stands with a develop", () => {
     });
   });
 
+  // ★ RESHAPED ON PURPOSE (settings-wiring; scar kept: a CHECK no line reads by name stays the generic sentence, never
+  // a guess; reason dropped: the roll's CHECK was that example, and now a host names her roll, so its refusal is read by
+  // its name in the schema's words, below).
   it("another CHECK's refusal stays the generic sentence (a refusal is read by its name, never guessed)", async () => {
     nextError = {
       code: "23514",
       message:
-        'new row for relation "events" violates check constraint "events_roll_size_range"',
+        'new row for relation "events" violates check constraint "events_max_upload_bytes_range"',
     };
     const result = await updateEvent(
       "event-1",
@@ -249,6 +256,25 @@ describe("updateEvent: approval never stands with a develop", () => {
       code: "unknown",
       message: "Couldn't save your changes. Please try again.",
     });
+  });
+
+  it("★ the roll's CHECK reads by its name in the schema's words, on a save and at birth (never the plan's limit)", async () => {
+    const roll =
+      'new row for relation "events" violates check constraint "events_roll_size_range"';
+    nextError = { code: "23514", message: roll };
+    expect(
+      await updateEvent("event-1", updateEventSchema.parse({ roll_size: 50 })),
+    ).toEqual({ ok: false, code: "unknown", message: ROLL_SIZE_MESSAGE });
+    nextError = { code: "23514", message: roll };
+    expect(
+      await createEvent(
+        createEventSchema.parse({
+          name: "Dinner",
+          capture: "camera",
+          roll_size: 50,
+        }),
+      ),
+    ).toEqual({ ok: false, code: "unknown", message: ROLL_SIZE_MESSAGE });
   });
 });
 

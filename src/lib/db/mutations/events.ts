@@ -21,6 +21,7 @@ import { createClient } from "@/lib/supabase/server";
 import {
   type CreateEventValues,
   LAST_DAY_BEFORE_FIRST,
+  ROLL_SIZE_MESSAGE,
   type UpdateEventValues,
 } from "@/lib/validation/event";
 
@@ -74,6 +75,26 @@ function rangeRefusal(error: { code?: string; message?: string }): boolean {
     error.code === CHECK_VIOLATION &&
     typeof error.message === "string" &&
     error.message.includes(RANGE_CHECK)
+  );
+}
+
+/**
+ * ★ THE ROLL'S BOUNDS (20261005190000, `events_roll_size_range`): read by its name and said in the schema's words, since
+ * on an insert any other CHECK reads as the plan's event limit. The schema and the stepper keep a roll inside them, so
+ * this meets a build ahead of its migration (a roll past the old 24) or a crafted call.
+ */
+const ROLL_CHECK = "events_roll_size_range";
+const ROLL_REFUSED = {
+  ok: false as const,
+  code: "unknown" as const,
+  message: ROLL_SIZE_MESSAGE,
+};
+
+function rollRefusal(error: { code?: string; message?: string }): boolean {
+  return (
+    error.code === CHECK_VIOLATION &&
+    typeof error.message === "string" &&
+    error.message.includes(ROLL_CHECK)
   );
 }
 
@@ -149,6 +170,7 @@ export async function createEvent(
     if (rangeRefusal(error)) return RANGE_REFUSED;
     // Read by its name, ahead of the branch below: any other CHECK on an insert is taken for the plan's limit.
     if (approvalRefusal(error)) return APPROVAL_REFUSED;
+    if (rollRefusal(error)) return ROLL_REFUSED;
     if (breakerRefusal(error)) {
       return { ok: false, code: "unknown", message: error.message };
     }
@@ -296,6 +318,7 @@ export async function updateEvent(
   if (error) {
     if (approvalRefusal(error)) return APPROVAL_REFUSED;
     if (rangeRefusal(error)) return RANGE_REFUSED;
+    if (rollRefusal(error)) return ROLL_REFUSED;
     return {
       ok: false,
       code: "unknown",

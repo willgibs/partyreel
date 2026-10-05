@@ -193,6 +193,27 @@ export function RollSetting() {
   );
 }
 
+/** The two answers apart, bound to Settings (Customize's own control, standing alone). */
+export function CameraSettings() {
+  const s = useSettings();
+  return (
+    <CaptureAndReveal
+      value={{
+        capture: s.values.capture,
+        review: s.values.review,
+        developsAt: s.values.developsAt,
+      }}
+      rollSize={s.values.rollSize}
+      eventDate={s.values.eventDate || null}
+      eventEndDate={s.values.eventEndDate || null}
+      heldCount={s.pendingCount}
+      savingCapture={s.saving("capture")}
+      savingReveal={s.saving("review") || s.saving("developsAt")}
+      onSave={(patch) => void s.saveEvent(patch)}
+    />
+  );
+}
+
 /* ── album styles ────────────────────────────────────────────────────── */
 
 type ControlProps = {
