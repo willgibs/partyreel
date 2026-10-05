@@ -293,7 +293,10 @@ The zips go off Vercel, on the streaming export Worker (`partyreel-export`, on `
   download?", "Stop after part 1 of 3?" with what it leaves) and nothing is posted while it stands; a confirmed cancel
   says so, neutral and never an error, with Try again (past part 1 it stops where she stood with Get part N, and is not
   offered again after a reload). A mint that never reached the app says "Your connection dropped." and what to do (an
-  app that answered an error keeps "Couldn't start that download."). The Worker's `stopped` cannot tell her cancel in
+  app that answered an error keeps "Couldn't start that download."). While the browser says it is offline the toast
+  withholds its Try again (a refusal's or a short zip's) and says "Waiting for your connection…" in its detail's place,
+  then shows it again when `online` fires or the tab is looked at again (`exportToasts`, so the walk's and the Save's
+  alike): a press could only fail the same way. The Worker's `stopped` cannot tell her cancel in
   the browser's own list from a dead line, so the page reads its own: a zip streamed while its status polls failed (a
   rejected request, or two stalls) is a drop, one streamed with every poll answered is a cancel, and a walk from an
   older build that recorded neither says "didn't finish". Three polls in a row that fail are said under "Downloading…"
