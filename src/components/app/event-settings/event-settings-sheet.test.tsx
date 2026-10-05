@@ -243,6 +243,44 @@ describe("a live word changes its setting in place", () => {
       expect.objectContaining({ description: "That didn't save." }),
     );
   });
+
+  // ★ A WRITE THAT THROWS IS A REFUSAL TOO (crumbs-81). A dropped connection rejects the call instead of answering it,
+  // and `run` had no catch: the row stayed busy for good and the value she never saved stayed on the page. Every write
+  // here settles one way, so a throw is put back, freed and said exactly as a refusal is.
+  it("★ a save that throws (a dropped connection) is put back, its row freed, and says it did not save", async () => {
+    updateEventAction.mockRejectedValue(new TypeError("Failed to fetch"));
+    sheet();
+    fireEvent.click(screen.getByRole("button", { name: "Photos and videos" }));
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("menuitem", { name: /Nothing, for now/ }),
+      );
+    });
+    expect(
+      document.querySelector(
+        "[data-settings-row='adds'] [data-settings-sentence]",
+      )?.textContent,
+    ).toBe("Photos and videos, straight into the album.");
+    expect(toast.error).toHaveBeenCalledTimes(1);
+    expect(toast.error).toHaveBeenCalledWith(
+      "Couldn't save that setting.",
+      expect.objectContaining({
+        description: "Check your connection and try again.",
+      }),
+    );
+    // Free again: the word is not busy, and the next try goes out as any first one does.
+    const word = screen.getByRole("button", { name: "Photos and videos" });
+    expect(word).not.toHaveAttribute("aria-busy");
+    updateEventAction.mockResolvedValue({ ok: true });
+    fireEvent.click(word);
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("menuitem", { name: /Nothing, for now/ }),
+      );
+    });
+    expect(updateEventAction).toHaveBeenCalledTimes(2);
+    expect(toast.error).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("a page, one level in", () => {
@@ -255,6 +293,56 @@ describe("a page, one level in", () => {
     fireEvent.click(screen.getByRole("button", { name: "Settings" }));
     expect(onClosePage).toHaveBeenCalledTimes(1);
     expect(onOpenChange).not.toHaveBeenCalled();
+  });
+
+  // ★ A PAGE'S HEAD IS DESCRIBED (crumbs-81, carrying crumbs-59's NIT on): the rows' head says the event's name under
+  // "Settings", and a page's head said nothing of whose event it is, so a screen reader opened "What guests can add"
+  // with no description at all (`aria-describedby` was set to undefined to quiet Radix's warning). The name rides as the
+  // dialog's own description, out of sight, so a page reads as the rows do, and Radix's warning stays quiet because an
+  // element it names exists.
+  it("★ describes the dialog by the event's name on a page, out of sight, and warns of nothing", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    sheet({ page: "adds" });
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveAccessibleDescription("Maya's 30th");
+    const describer = document.getElementById(
+      dialog.getAttribute("aria-describedby") ?? "",
+    );
+    expect(describer, "the element the dialog names").not.toBeNull();
+    expect(describer).toHaveClass("sr-only");
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
+  it("describes the rows by the same name, drawn under Settings", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    sheet();
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveAccessibleDescription("Maya's 30th");
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
+  it("★ is still described when a page is drawn at once, ahead of its address (a move held for a save)", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    updateEventAction.mockImplementation(() => new Promise(() => {}));
+    sheet({ tier: "pro" });
+    fireEvent.click(screen.getByRole("button", { name: "Photos and videos" }));
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("menuitem", { name: /Nothing, for now/ }),
+      );
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Who can get in" }));
+    expect(
+      document
+        .querySelector("[data-settings-page]")
+        ?.getAttribute("data-settings-page"),
+    ).toBe("door");
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveAccessibleDescription("Maya's 30th");
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
   });
 
   it("★ closes from any page at once: nothing waits on a save, so nothing asks", () => {

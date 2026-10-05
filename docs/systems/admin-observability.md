@@ -40,7 +40,9 @@ never reachability.
 - ★ **The rule reaches every path only on the admin project's hosts.** The proxy's matcher takes the session pages
   everywhere and every path only where the host is `admin.<domain>` or a `partyreel-admin` vercel.app host (a matcher
   is literals read at build, so it cannot see `NEXT_PUBLIC_SURFACE`); an admin domain outside that pattern would serve
-  the app's static pages and API routes unrefused, so a new one joins it in `src/proxy.ts`.
+  the app's static pages and API routes unrefused, so a new one joins it in `src/proxy.ts`. Less the files the shared
+  layout links from every page: Next's build output, the beacons, static images and `/manifest.webmanifest` (that one
+  path, a static route that renders no session; the allow-list would 404 it on every portal page view).
 - **A cron runs on the app surface only.** `vercel.json` is one file, so both projects register every cron and Vercel
   calls each route once per project; a cron route stops on the admin surface before any read (`servesApp()`), because
   a second run a day would fake a cadence and mask a real missed run.
