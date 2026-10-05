@@ -53,15 +53,20 @@ const hostPresignStrategy: PresignStrategy<typeof hostPresignUploadSchema> = {
         },
       };
     }
-    if (ctx.data.at_storage_cap || ctx.data.at_monthly_cap) {
+    // ★ THE MONTH IS REFUSED HERE, THE ROOM NEVER IS (crumbs-72): the month is one sentence, so the context's early
+    // answer and the meter's exact one say it alike. The room is a number the context does not have: its
+    // `at_storage_cap` is a bare "full", and a full account is exactly what the meter refuses next (`host_room_used`
+    // at its cap and 10% leaves no room for any file, whatever the file), in her words with the room THIS file needs
+    // and the one way to make it (`meterRefusal`'s `roomRefusalWords`). So a full account goes on to that, and no bare
+    // "Storage is full" stands in front of it. The meter fails OPEN (`meterUpload`, reported every time), and the
+    // complete's cap stands behind it: a file presigned in that outage is refused at its complete, never stored.
+    if (ctx.data.at_monthly_cap) {
       return {
         ok: false,
         refusal: {
           status: 409,
           code: "cap_reached",
-          message: ctx.data.at_storage_cap
-            ? "Storage is full for your plan. Free up space or upgrade."
-            : PLAN_MONTH_SPENT,
+          message: PLAN_MONTH_SPENT,
         },
       };
     }
