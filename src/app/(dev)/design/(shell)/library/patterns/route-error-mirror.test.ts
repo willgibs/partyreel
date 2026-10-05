@@ -23,7 +23,9 @@ const MIRROR_SOURCE = readFileSync(
   "utf8",
 );
 /** The mirror's own function, so a word elsewhere in the module never satisfies a check. */
-const MIRROR = MIRROR_SOURCE.slice(MIRROR_SOURCE.indexOf("function RouteErrorMock"));
+const MIRROR = MIRROR_SOURCE.slice(
+  MIRROR_SOURCE.indexOf("function RouteErrorMock"),
+);
 
 /** A prop's string as a source writes it: `title="..."`. */
 function prop(source: string, name: string): string | undefined {
@@ -52,13 +54,14 @@ describe("the route-error mirror says what the boundary says", () => {
 
   it("words the quiet line for the surface, the portal's without a link", () => {
     // The real map: render:app is a link to /help, render:admin a bare line.
-    const app = /"render:app":\s*<HelpLine href="([^"]+)">([^<]+)<\/HelpLine>/.exec(
-      REAL,
-    );
+    const app =
+      /"render:app":\s*<HelpLine href="([^"]+)">([^<]+)<\/HelpLine>/.exec(REAL);
     const admin = /"render:admin":\s*<HelpLine>([^<]+)<\/HelpLine>/.exec(REAL);
     expect(app, "the boundary's render:app line").toBeTruthy();
     expect(admin, "the boundary's render:admin line").toBeTruthy();
-    expect(MIRROR).toContain(`<HelpLine href="${app![1]}">${app![2]}</HelpLine>`);
+    expect(MIRROR).toContain(
+      `<HelpLine href="${app![1]}">${app![2]}</HelpLine>`,
+    );
     expect(MIRROR).toContain(`<HelpLine>${admin![1]}</HelpLine>`);
   });
 
@@ -72,7 +75,9 @@ describe("the route-error mirror says what the boundary says", () => {
   });
 
   it("never mounts the boundary or reports: a specimen that did would file an error per load", () => {
-    expect(MIRROR_SOURCE).not.toMatch(/from "@\/components\/shared\/route-error"/);
+    expect(MIRROR_SOURCE).not.toMatch(
+      /from "@\/components\/shared\/route-error"/,
+    );
     expect(MIRROR).not.toMatch(/captureError|\bRouteError\b/);
   });
 });

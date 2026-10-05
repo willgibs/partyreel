@@ -321,8 +321,8 @@ function ReceiptCard({ kind }: { kind: ReceiptKind }) {
 const readReceipt: Probe = (root) => {
   const doc = root.ownerDocument;
   const heading = doc.querySelector<HTMLElement>("[data-note-receipt] h3");
-  const card = doc.querySelector<HTMLElement>("[data-note-receipt]")?.parentElement
-    ?.parentElement;
+  const card = doc.querySelector<HTMLElement>("[data-note-receipt]")
+    ?.parentElement?.parentElement;
   if (!heading || !card) return null;
   // The heading's own words, after the sentence only a screen reader hears ("Message sent.").
   const said = heading.lastChild?.textContent?.trim();
