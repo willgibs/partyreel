@@ -31,6 +31,16 @@ export function needsMultipart(sizeBytes: number): boolean {
   return sizeBytes > SINGLE_PUT_MAX_BYTES;
 }
 
+/**
+ * The most subrequests one copy can take (backupOne in index.ts): the backup's HEAD, the source's GET and the put; or,
+ * for a multipart copy, its create, a ranged GET and an upload a part, its complete, and an abort if it stops short.
+ * The reconcile budgets a copy at this before it starts one, so a run never dies of "Too many subrequests" mid-copy.
+ */
+export function copySubrequests(sizeBytes: number): number {
+  if (!needsMultipart(sizeBytes)) return 3;
+  return 5 + 2 * Math.ceil(sizeBytes / COPY_PART_BYTES);
+}
+
 export type PartRange = { partNumber: number; offset: number; length: number };
 
 /**

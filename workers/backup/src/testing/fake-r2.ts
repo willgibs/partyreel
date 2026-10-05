@@ -23,7 +23,12 @@ export type FakeObject = {
   /** Bytes, for a GET's body and a HEAD's size (0 when a fixture never says). */
   size?: number;
   contentType?: string;
+  /** The etag a listing and a GET report: an MD5's 32 hex digits for a single upload, `<hash>-<parts>` for a multipart. */
+  etag?: string;
 };
+
+/** What a listing reports of an object: R2's `R2Object` facts the reconcile merges on. */
+export type FakeListed = FakeObject & { size: number; etag: string };
 
 export type FakeR2Call =
   | { op: "list"; prefix: string; startAfter?: string; limit: number }
@@ -77,7 +82,7 @@ export type FakeR2 = {
     prefix: string;
     startAfter?: string;
     limit: number;
-  }): Promise<{ objects: FakeObject[]; truncated: boolean }>;
+  }): Promise<{ objects: FakeListed[]; truncated: boolean }>;
   head(key: string): Promise<FakeObject | null>;
   get(key: string): Promise<FakeBody | null>;
   put(
@@ -114,7 +119,7 @@ export function createFakeR2(
       const take = Math.min(limit, 1000, bucket.pageCap);
       const page = keys.slice(0, take);
       return {
-        objects: page.map((k) => bucket.objects.get(k)!),
+        objects: page.map((k) => listedOf(bucket.objects.get(k)!)),
         truncated: keys.length > take,
       };
     },
@@ -223,9 +228,17 @@ function bodyOf(size: number): ReadableStream<Uint8Array> {
   });
 }
 
-/** A stable etag per object, so a condition naming one can be judged. */
+/** A stable etag per object, so a condition naming one can be judged: the fixture's own when it gives one. */
 function etagOf(obj: FakeObject): string {
-  return `etag-${obj.key.length}-${obj.size ?? 0}-${obj.uploaded.getTime()}`;
+  return (
+    obj.etag ??
+    `etag-${obj.key.length}-${obj.size ?? 0}-${obj.uploaded.getTime()}`
+  );
+}
+
+/** An object as a listing reports it: its size and etag always there, as R2's `R2Object` carries them. */
+function listedOf(obj: FakeObject): FakeListed {
+  return { ...obj, size: obj.size ?? 0, etag: etagOf(obj) };
 }
 
 /** The put's condition as R2 reads it, or a throw for anything this fake would have to guess at. */
