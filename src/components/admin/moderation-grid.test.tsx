@@ -1,6 +1,8 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { ActionResult } from "@/app/(app)/dashboard/actions";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import type {
   ModerationGridItem,
@@ -16,12 +18,21 @@ import { ModerationGrid } from "./moderation-grid";
  * to grow from and a way back into the tile of whichever report is showing at
  * close; the viewer the portal gets carries no Share and no curate group (it
  * passes neither), and its Remove and Restore stay on the tiles.
+ *
+ * ★ NOTHING IN THIS FILE MOCKS `@/app/admin/albums/actions` (crumbs-78): the grid takes its two writes as props,
+ * and the albums pages hand it their Server Actions. A grid that imported that module again would fail to load
+ * here, since the module's `server-only` chain does not resolve in jsdom.
  */
 
-vi.mock("@/app/admin/albums/actions", () => ({
-  removeMediaByOperatorAction: vi.fn(async () => ({ ok: true })),
-  restoreMediaAction: vi.fn(async () => ({ ok: true })),
-}));
+/** The writes the pages hand the grid, here a test's own. */
+const removeAction = vi.fn(async (mediaId: string): Promise<ActionResult> => {
+  void mediaId;
+  return { ok: true };
+});
+const restoreAction = vi.fn(async (mediaId: string): Promise<ActionResult> => {
+  void mediaId;
+  return { ok: true };
+});
 
 // The lazy wrapper is next/dynamic, which resolves after a pin is over: mount
 // the real viewer synchronously.
@@ -66,6 +77,7 @@ let calls: Call[] = [];
 
 beforeEach(() => {
   calls = [];
+  vi.clearAllMocks();
   Object.defineProperty(Element.prototype, "animate", {
     configurable: true,
     value(this: Element, frames: Keyframe[]) {
@@ -85,10 +97,15 @@ afterEach(() => {
     .getAnimations;
 });
 
-function mount() {
+function mount(items: ModerationTile[] = ITEMS) {
   return render(
     <TooltipProvider>
-      <ModerationGrid items={ITEMS} mode="feed" />
+      <ModerationGrid
+        items={items}
+        mode="feed"
+        removeAction={removeAction}
+        restoreAction={restoreAction}
+      />
     </TooltipProvider>,
   );
 }
@@ -183,7 +200,12 @@ describe("a covered item in the albums grid", () => {
   function mountWithCovered() {
     return render(
       <TooltipProvider>
-        <ModerationGrid items={[ITEMS[0], COVERED, ITEMS[1]]} mode="album" />
+        <ModerationGrid
+          items={[ITEMS[0], COVERED, ITEMS[1]]}
+          mode="album"
+          removeAction={removeAction}
+          restoreAction={restoreAction}
+        />
       </TooltipProvider>,
     );
   }
@@ -212,5 +234,93 @@ describe("a covered item in the albums grid", () => {
         .querySelector("[data-lightbox-media] img")
         ?.getAttribute("src") ?? "",
     ).not.toContain("m3");
+  });
+});
+
+/**
+ * ★ THE OPERATOR'S TILES DRAW PREVIEWS (crumbs-78). The feed (60 tiles) and a drill-in page (500) fetched each
+ * original to draw a square. `toModerationFeedItems` signs each row's preview now, and a tile draws
+ * `previewUrl ?? url`, so the original is a tile's picture only on a row with no preview; the viewer still opens
+ * the original (`url`), and Save is its `downloadUrl`.
+ */
+describe("the operator's tiles draw previews", () => {
+  const PREVIEWED: ModerationGridItem[] = [
+    { ...ITEMS[0], previewUrl: "https://r2.test/m1.preview.webp" },
+    { ...ITEMS[1], previewUrl: null },
+  ];
+  const tileSrc = (id: string) =>
+    document.querySelector(`[data-media-id="${id}"] img`)?.getAttribute("src");
+
+  it("★ a tile with a preview draws it, never the original; one with none draws the original", () => {
+    mount(PREVIEWED);
+    expect(tileSrc("m1")).toBe("https://r2.test/m1.preview.webp");
+    expect(tileSrc("m2")).toBe("https://r2.test/m2.jpg");
+  });
+
+  it("a video's tile draws its preview picture, never a <video> that fetches the clip", () => {
+    mount([
+      {
+        ...ITEMS[0],
+        id: "v1",
+        type: "video",
+        url: "https://r2.test/v1.mp4",
+        previewUrl: "https://r2.test/v1.preview.webp",
+      },
+    ]);
+    const tile = document.querySelector('[data-media-id="v1"]')!;
+    expect(tile.querySelector("video")).toBeNull();
+    expect(tileSrc("v1")).toBe("https://r2.test/v1.preview.webp");
+  });
+});
+
+/**
+ * ★ THE WRITES COME IN AS PROPS (crumbs-78): Restore and Remove call the functions the page handed the grid, with
+ * the item's id, and say the result in the portal's toasts. Remove waits for the destructive sheet's confirm.
+ */
+describe("the writes the grid is handed", () => {
+  it("★ Restore asks the restore it was handed, with the item's id, and says it landed", async () => {
+    mount();
+    const tile = document.querySelector('[data-media-id="m2"]') as HTMLElement;
+    await act(async () => {
+      fireEvent.click(within(tile).getByRole("button", { name: "Restore" }));
+    });
+    expect(restoreAction).toHaveBeenCalledTimes(1);
+    expect(restoreAction).toHaveBeenCalledWith("m2");
+    expect(removeAction).not.toHaveBeenCalled();
+    expect(toast.success).toHaveBeenCalledWith(
+      "Restored to where it was before the removal.",
+    );
+  });
+
+  it("a restore the action refuses is told in the action's own words", async () => {
+    restoreAction.mockResolvedValueOnce({
+      ok: false,
+      code: "unknown",
+      message: "Couldn't restore that item. Please try again.",
+    });
+    mount();
+    const tile = document.querySelector('[data-media-id="m2"]') as HTMLElement;
+    await act(async () => {
+      fireEvent.click(within(tile).getByRole("button", { name: "Restore" }));
+    });
+    expect(toast.error).toHaveBeenCalledWith("Couldn't restore that item.", {
+      description: "Couldn't restore that item. Please try again.",
+    });
+    expect(toast.success).not.toHaveBeenCalled();
+  });
+
+  it("★ Remove asks the remove it was handed only once the sheet is confirmed", async () => {
+    mount();
+    const tile = document.querySelector('[data-media-id="m1"]') as HTMLElement;
+    fireEvent.click(within(tile).getByRole("button", { name: "Remove" }));
+    const dialog = await screen.findByRole("alertdialog");
+    // Asked, not done: the sheet says what it touches and waits.
+    expect(removeAction).not.toHaveBeenCalled();
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole("button", { name: "Remove" }));
+    });
+    expect(removeAction).toHaveBeenCalledTimes(1);
+    expect(removeAction).toHaveBeenCalledWith("m1");
+    expect(restoreAction).not.toHaveBeenCalled();
   });
 });

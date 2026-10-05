@@ -3,6 +3,10 @@ import Link from "next/link";
 import { cache } from "react";
 import { ArrowLeft } from "lucide-react";
 
+import {
+  removeMediaByOperatorAction,
+  restoreMediaAction,
+} from "@/app/admin/albums/actions";
 import { adminNotFoundMetadata } from "@/app/admin/not-found.metadata";
 import { AdminNotFoundPageScreen } from "@/app/admin/not-found.screen";
 import { ModerationGrid } from "@/components/admin/moderation-grid";
@@ -298,7 +302,12 @@ export default async function AdminAlbumDetailPage({
       {items.length > 0 ? (
         <>
           {pager}
-          <ModerationGrid items={items} mode="album" />
+          <ModerationGrid
+            items={items}
+            mode="album"
+            removeAction={removeMediaByOperatorAction}
+            restoreAction={restoreMediaAction}
+          />
           {pager}
         </>
       ) : total > 0 ? (

@@ -5,10 +5,6 @@ import { useCallback, useMemo, useRef, useState, useTransition } from "react";
 import { EyeOff, Trash2, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 
-import {
-  removeMediaByOperatorAction,
-  restoreMediaAction,
-} from "@/app/admin/albums/actions";
 import { type ActionResult } from "@/app/(app)/dashboard/actions";
 import { MediaTile } from "@/components/app/media-grid";
 import type { ViewerOrigin } from "@/components/shared/media-lightbox";
@@ -43,13 +39,27 @@ import {
 // signs it), so its tile draws the reports inbox's cover and opens nothing; the viewer steps only through
 // what is seen. The runbook keeps human viewing to a minimum, and the open queue's View once is the one
 // look an operator takes.
+//
+// ★ THE WRITES COME IN AS PROPS (crumbs-78), as `TriageStatusControl`'s do: this module imports no Server Action,
+// so the grid mounts wherever it is handed two functions (the albums pages hand it their Server Actions; a test
+// or the Library hands it its own). It used to import them at module scope and so mounted nowhere else.
+
+/** The portal's two writes on one item, as a page hands them in. */
+export type ModerationActions = {
+  /** Take the item down: out of the album and the host's Deleted, restorable here for the window. */
+  removeAction: (mediaId: string) => Promise<ActionResult>;
+  /** Put a removed item back where it was before the removal. */
+  restoreAction: (mediaId: string) => Promise<ActionResult>;
+};
 
 function ModerationTile({
   item,
   index,
   mode,
   onOpen,
-}: {
+  removeAction,
+  restoreAction,
+}: ModerationActions & {
   item: ModerationTileItem;
   /** Its place among the seen tiles (the viewer's list), or null for a covered one. */
   index: number | null;
@@ -123,7 +133,7 @@ function ModerationTile({
             title="Restore"
             onClick={() =>
               run(
-                () => restoreMediaAction(item.id),
+                () => restoreAction(item.id),
                 // Not "approved": the restore lands the item on the status it held before the
                 // removal (a hidden photo comes back hidden), so the toast says only that.
                 "Restored to where it was before the removal.",
@@ -160,7 +170,7 @@ function ModerationTile({
               })}
               severity="reversible"
               successMessage="Removed. It is out of the album and the host's Deleted."
-              onConfirm={() => removeMediaByOperatorAction(item.id)}
+              onConfirm={() => removeAction(item.id)}
             />
           </>
         )}
@@ -186,7 +196,9 @@ function ModerationTile({
 export function ModerationGrid({
   items,
   mode,
-}: {
+  removeAction,
+  restoreAction,
+}: ModerationActions & {
   items: ModerationTileItem[];
   mode: "feed" | "album";
 }) {
@@ -227,6 +239,8 @@ export function ModerationGrid({
             item={item}
             index={item.covered ? null : (seenIndex.get(item.id) ?? null)}
             mode={mode}
+            removeAction={removeAction}
+            restoreAction={restoreAction}
             onOpen={(i, tile) => {
               setOpenIndex(i);
               setOrigin(

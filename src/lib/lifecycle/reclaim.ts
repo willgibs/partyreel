@@ -50,10 +50,9 @@ export type MediaKeyRow = {
 /**
  * The columns every purge reads a row's objects by, and exactly the ones `mediaKeysOf` deletes.
  *
- * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `media.phone_key` arrives with migration 20261003110000,
- * so each purge read that names it types its rows itself (`.overrideTypes<MediaKeyRow[], { merge: false
- * }>()`, or the row type it reads beside them); drop the overrides once `src/lib/db/types.ts` knows the
- * column (the select's own type is the row again).
+ * ★ A READ OF THEM IS TYPED BY ITS OWN SELECT: no read overrides its rows' type, so a column left out of this list
+ * is a type error where the read hands its rows to a `MediaKeyRow`, never a key that quietly arrives `undefined`
+ * (an object no purge deletes, under a row that is gone).
  */
 export const MEDIA_KEY_COLUMNS = "id, original_key, preview_key, phone_key";
 
@@ -101,15 +100,7 @@ export async function readPhoneKeys(
   const rows = await inChunks("media: phone copies", ids, async (chunk) =>
     (
       (await mustQuery(
-        admin
-          .from("media")
-          .select("id, phone_key")
-          .in("id", chunk)
-          // The typed seam (`MEDIA_KEY_COLUMNS`), until the types know `phone_key`.
-          .overrideTypes<
-            { id: string; phone_key: string | null }[],
-            { merge: false }
-          >(),
+        admin.from("media").select("id, phone_key").in("id", chunk),
         "media: phone copies",
       )) ?? []
     ).filter((row): row is { id: string; phone_key: string } =>

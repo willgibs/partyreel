@@ -175,14 +175,6 @@ export type ReelViewProps = {
   addClipToAlbum: ((file: File, poster: Blob) => void) | null;
   /** The album holds guests' uploads for the host's review (the creator's Add to event says so). */
   moderated?: boolean;
-  /**
-   * The creator was asked for before the view opened (a door that opens the reel straight into Make
-   * your own; none asks today): it opens the moment this browser is known to make clips, or the greyed
-   * button explains why not.
-   */
-  creatorAsked?: boolean;
-  /** The ask is spent (read once, on arrival). */
-  onCreatorAskSpent?: () => void;
   /** The event's owner is watching (the host's extras: Play on a screen, Set for everyone). */
   isOwner?: boolean;
   /**
@@ -251,8 +243,6 @@ export function LiveReelView({
   creator,
   addClipToAlbum,
   moderated = false,
-  creatorAsked = false,
-  onCreatorAskSpent,
   isOwner = false,
   standIn,
   screenLink = true,
@@ -601,28 +591,6 @@ export function LiveReelView({
       else explainNoEncoder();
     });
   }, [support, enterCreator, explainNoEncoder]);
-  // The tile's own line asked for the creator before the view existed: answered once the device
-  // has, with the dock up so a greyed door is where the explanation points. The ask is spent only
-  // when the answer lands, so a remount on the way (React's own double run) never drops it.
-  const askRef = useRef(creatorAsked);
-  useEffect(() => {
-    if (!askRef.current || !creatorOffered) return;
-    let alive = true;
-    void probeClipSupport().then((ok) => {
-      if (!alive || !askRef.current) return;
-      askRef.current = false;
-      onCreatorAskSpent?.();
-      if (ok) {
-        enterCreator();
-      } else {
-        setChrome("up");
-        explainNoEncoder();
-      }
-    });
-    return () => {
-      alive = false;
-    };
-  }, [creatorOffered, enterCreator, explainNoEncoder, onCreatorAskSpent]);
 
   // The dock's pane: the greyed door's reason is placed above it (the pane clips what it holds).
   const dockRef = useRef<HTMLDivElement>(null);

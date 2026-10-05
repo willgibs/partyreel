@@ -189,8 +189,7 @@ async function purgeEventBatch(
               .order("id", { ascending: true })
               .limit(limit);
             if (cursor) query = query.gt("id", cursor);
-            // The typed seam (`MEDIA_KEY_COLUMNS`), until the types know `phone_key`.
-            return query.overrideTypes<MediaKeyRow[], { merge: false }>();
+            return query;
           },
           (media) => media.id,
           { budget: MAX_ROWS, after },
