@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import type { StuckCredit } from "@/lib/db/queries/pass-credits";
@@ -9,14 +9,17 @@ import type { PortalCheck } from "./portal-check";
 /**
  * ★ THE ACCOUNTS LIST'S TWO BILLING CHECKS (credit-watch), in each state they can stand in: quiet when whole; the
  * band's warning, with each account linked to its Retry or each missing price named, when something waits on the
- * operator; and No reading, with why, when a check could not run, never a calm line over a reading not taken.
+ * operator; and No reading, with why, when a check could not run, never a calm line over a reading not taken. The
+ * configuration's line streams (its check is handed over as a promise), saying it is asking until Stripe answers.
  */
 
-const WHOLE: PortalCheck = {
+const WHOLE: Promise<PortalCheck> = Promise.resolve({
   state: "whole",
   configurationId: "bpc_tagged",
   sold: 6,
-};
+});
+/** A check whose answer has come back. */
+const answered = (check: PortalCheck) => Promise.resolve(check);
 
 function stuck(over: Partial<StuckCredit>): StuckCredit {
   return {
@@ -123,39 +126,52 @@ describe("the stuck credits", () => {
 describe("the change-plan configuration", () => {
   const OK = { ok: true as const, value: { total: 0, rows: [] } };
 
-  it("says it lists all six, quietly, when whole", () => {
-    render(<BillingChecks stuck={OK} portal={WHOLE} />);
+  /** Draw the checks and let the configuration's answer stream in (React settles a suspended `use` inside `act`). */
+  async function drawAnswered(portal: Promise<PortalCheck>) {
+    await act(async () => {
+      render(<BillingChecks stuck={OK} portal={portal} />);
+    });
+    return section("Change plan in Stripe");
+  }
+
+  it("★ says it is asking Stripe until Stripe answers, and the stuck credits draw meanwhile", () => {
+    render(
+      <BillingChecks stuck={OK} portal={new Promise<PortalCheck>(() => {})} />,
+    );
     expect(
-      within(section("Change plan in Stripe")).getByText(
-        "Lists all 6 Pro prices",
-      ),
+      within(section("Change plan in Stripe")).getByRole("status").textContent,
+    ).toBe("Asking Stripe…");
+    expect(
+      within(section("Pass-to-Pro credits")).getByText("None stuck"),
     ).toBeTruthy();
   });
 
-  it("★ names each price missing, by its size, its price and its id, and what a host meets", () => {
-    render(
-      <BillingChecks
-        stuck={OK}
-        portal={{
-          state: "missing",
-          configurationId: "bpc_tagged",
-          sold: 6,
-          missing: [
-            {
-              planId: "pro_50_yr",
-              label: "Pro 50 GB, $90/yr",
-              priceId: "price_a",
-            },
-            {
-              planId: "pro_1tb_yr",
-              label: "Pro 1 TB, $990/yr",
-              priceId: "price_b",
-            },
-          ],
-        }}
-      />,
+  it("says it lists all six, quietly, when whole", async () => {
+    const change = await drawAnswered(WHOLE);
+    expect(within(change).getByText("Lists all 6 Pro prices")).toBeTruthy();
+    expect(within(change).queryByRole("status")).toBeNull();
+  });
+
+  it("★ names each price missing, by its size, its price and its id, and what a host meets", async () => {
+    const change = await drawAnswered(
+      answered({
+        state: "missing",
+        configurationId: "bpc_tagged",
+        sold: 6,
+        missing: [
+          {
+            planId: "pro_50_yr",
+            label: "Pro 50 GB, $90/yr",
+            priceId: "price_a",
+          },
+          {
+            planId: "pro_1tb_yr",
+            label: "Pro 1 TB, $990/yr",
+            priceId: "price_b",
+          },
+        ],
+      }),
     );
-    const change = section("Change plan in Stripe");
     expect(within(change).getByText("2 of 6 missing")).toBeTruthy();
     expect(
       within(change).getByText(
@@ -164,22 +180,17 @@ describe("the change-plan configuration", () => {
     ).toBeTruthy();
   });
 
-  it("says none tagged, and No reading with why", () => {
-    const { unmount } = render(
-      <BillingChecks stuck={OK} portal={{ state: "no_configuration" }} />,
+  it("says none tagged", async () => {
+    const change = await drawAnswered(answered({ state: "no_configuration" }));
+    expect(within(change).getByText("None tagged")).toBeTruthy();
+  });
+
+  it("★ says No reading with why when the check could not run, never a calm line", async () => {
+    const change = await drawAnswered(
+      answered({ state: "unread", message: "Stripe is unreachable" }),
     );
-    expect(
-      within(section("Change plan in Stripe")).getByText("None tagged"),
-    ).toBeTruthy();
-    unmount();
-    render(
-      <BillingChecks
-        stuck={OK}
-        portal={{ state: "unread", message: "Stripe is unreachable" }}
-      />,
-    );
-    const change = section("Change plan in Stripe");
     expect(within(change).getByText("No reading")).toBeTruthy();
     expect(within(change).getByText("Stripe is unreachable")).toBeTruthy();
+    expect(within(change).queryByText(/Lists all/)).toBeNull();
   });
 });

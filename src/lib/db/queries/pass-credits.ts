@@ -13,8 +13,6 @@
  */
 import "server-only";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-
 import {
   PASS_CREDIT_STUCK_AFTER_MS,
   STUCK_KINDS,
@@ -22,7 +20,9 @@ import {
   type CreditClaimState,
   type StuckKind,
 } from "@/lib/billing/passes-stuck";
-import { mustCount, mustQuery } from "@/lib/db/must-query";
+import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
+
+import { mustCount, mustQuery, QueryFailedError } from "@/lib/db/must-query";
 import type { Reading } from "@/lib/db/queries/accounts";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -87,6 +87,25 @@ const SINCE_COLUMN: Record<StuckKind, "created_at" | "granted_at"> = {
   never_converted: "granted_at",
 };
 
+/**
+ * A page of a stuck half AND its exact count in ONE request (PostgREST answers the count beside a limited page), so the
+ * list and the signal, which the portal's bell reads on every admin view, pay one request a half. A failed read throws
+ * (`QueryFailedError`, as `mustQuery`), and a count that did not come back is a broken read, never a zero.
+ */
+async function pageAndCount<T>(
+  query: PromiseLike<{
+    data: T[] | null;
+    count: number | null;
+    error: PostgrestError | null;
+  }>,
+  context: string,
+): Promise<{ rows: T[]; total: number }> {
+  const { data, count, error } = await query;
+  if (error) throw new QueryFailedError(context, error);
+  if (count === null) throw new Error(`${context}: no count came back`);
+  return { rows: data ?? [], total: count };
+}
+
 function failure(error: unknown): { ok: false; message: string } {
   const message =
     error instanceof Error
@@ -126,34 +145,23 @@ export async function readStuckPassCredits(
     const db = creditDb();
     const halves = await Promise.all(
       STUCK_KINDS.map(async (kind) => {
-        const [count, rows] = await Promise.all([
-          mustCount(
-            stuckFilter(
-              kind,
-              db
-                .from("pass_credits")
-                .select("*", { count: "exact", head: true }),
-              nowMs,
-            ),
-            `admin/accounts: stuck credits (${kind})`,
+        const { rows, total } = await pageAndCount(
+          stuckFilter(
+            kind,
+            db
+              .from("pass_credits")
+              .select(
+                `${COLUMNS}, profiles!pass_credits_profile_id_fkey(email, display_name)`,
+                { count: "exact" },
+              )
+              .order(SINCE_COLUMN[kind], { ascending: true })
+              .limit(STUCK_LIST_LIMIT),
+            nowMs,
           ),
-          mustQuery(
-            stuckFilter(
-              kind,
-              db
-                .from("pass_credits")
-                .select(
-                  `${COLUMNS}, profiles!pass_credits_profile_id_fkey(email, display_name)`,
-                )
-                .order(SINCE_COLUMN[kind], { ascending: true })
-                .limit(STUCK_LIST_LIMIT),
-              nowMs,
-            ),
-            `admin/accounts: the oldest stuck credits (${kind})`,
-          ),
-        ]);
+          `admin/accounts: stuck credits (${kind})`,
+        );
         return {
-          count,
+          count: total,
           // The embed is to-one (her profile, by the claim's own foreign key), which PostgREST answers as an object;
           // the untyped seam's parser cannot see the key and guesses a list.
           rows: ((rows ?? []) as unknown as StuckRead[]).map(
@@ -233,29 +241,6 @@ export async function readPassCreditSignal(
   sinceIso: string,
 ): Promise<{ ok24h: number; owed: number; owedSinceMs: number | null }> {
   const db = creditDb();
-  const stuck = (kind: StuckKind) =>
-    Promise.all([
-      mustCount(
-        stuckFilter(
-          kind,
-          db.from("pass_credits").select("*", { count: "exact", head: true }),
-          nowMs,
-        ),
-        `admin/jobs: stuck credits (${kind})`,
-      ),
-      mustQuery(
-        stuckFilter(
-          kind,
-          db
-            .from("pass_credits")
-            .select(SINCE_COLUMN[kind])
-            .order(SINCE_COLUMN[kind], { ascending: true })
-            .limit(1),
-          nowMs,
-        ).maybeSingle(),
-        `admin/jobs: the oldest stuck credit (${kind})`,
-      ) as Promise<Record<string, unknown> | null>,
-    ] as const);
   const [honoured, ...halves] = await Promise.all([
     mustCount(
       db
@@ -264,10 +249,27 @@ export async function readPassCreditSignal(
         .gt("converted_at", sinceIso),
       "admin/jobs: 24h credits honoured",
     ),
+    // Each half's count and its oldest in one request: the bell reads this on every admin page view.
     ...STUCK_KINDS.map(async (kind) => {
-      const [count, oldest] = await stuck(kind);
-      const at = oldest?.[SINCE_COLUMN[kind]];
-      return { count, sinceMs: typeof at === "string" ? Date.parse(at) : NaN };
+      const { rows, total } = await pageAndCount(
+        stuckFilter(
+          kind,
+          db
+            .from("pass_credits")
+            .select(SINCE_COLUMN[kind], { count: "exact" })
+            .order(SINCE_COLUMN[kind], { ascending: true })
+            .limit(1),
+          nowMs,
+        ),
+        `admin/jobs: stuck credits (${kind})`,
+      );
+      const at = (rows[0] as Record<string, unknown> | undefined)?.[
+        SINCE_COLUMN[kind]
+      ];
+      return {
+        count: total,
+        sinceMs: typeof at === "string" ? Date.parse(at) : NaN,
+      };
     }),
   ]);
   const sinces = halves

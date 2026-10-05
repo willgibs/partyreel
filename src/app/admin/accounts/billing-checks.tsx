@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import {
@@ -14,21 +15,23 @@ import { formatCount } from "@/lib/format/count";
 
 import { creditDollars, stuckLine } from "./credits";
 import type { PortalCheck } from "./portal-check";
+import { PortalCheckAsking, PortalCheckLine } from "./portal-check-line";
 import { NO_READING } from "./uploads";
 
 /**
  * THE ACCOUNTS LIST'S TWO BILLING CHECKS (credit-watch), each read live on the view: every pass-to-Pro credit stuck
  * past its hour, each linked to the account its Retry is on (`queries/pass-credits.ts`), and whether Stripe's
- * change-plan configuration lists every Pro price we sell (`portal-check.ts`). Quiet when whole, the band's warning when
- * something waits on the operator, and No reading, with why, when a check could not run: never a calm line over a
- * reading that was not taken.
+ * change-plan configuration lists every Pro price we sell (`portal-check.ts`), streamed in its own Suspense so Stripe's
+ * half second never holds the list. Quiet when whole, the band's warning when something waits on the operator, and No
+ * reading, with why, when a check could not run: never a calm line over a reading that was not taken.
  */
 export function BillingChecks({
   stuck,
   portal,
 }: {
   stuck: Reading<{ total: number; rows: StuckCredit[] }>;
-  portal: PortalCheck;
+  /** The configuration check, asked when the page began and not awaited: its line streams in when Stripe answers. */
+  portal: Promise<PortalCheck>;
 }) {
   return (
     <Card>
@@ -45,11 +48,9 @@ export function BillingChecks({
           <StuckList stuck={stuck} />
         </section>
         <section aria-label="Change plan in Stripe" className="space-y-1.5">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="text-muted-foreground">Change plan in Stripe</span>
-            <PortalSummary portal={portal} />
-          </div>
-          <PortalDetail portal={portal} />
+          <Suspense fallback={<PortalCheckAsking />}>
+            <PortalCheckLine check={portal} />
+          </Suspense>
         </section>
       </CardContent>
     </Card>
@@ -115,56 +116,4 @@ function StuckList({
       </p>
     </>
   );
-}
-
-function PortalSummary({ portal }: { portal: PortalCheck }) {
-  switch (portal.state) {
-    case "whole":
-      return (
-        <span className="text-muted-foreground">
-          {`Lists all ${formatCount(portal.sold)} Pro prices`}
-        </span>
-      );
-    case "missing":
-      return (
-        <Badge variant="warning">
-          {`${formatCount(portal.missing.length)} of ${formatCount(portal.sold)} missing`}
-        </Badge>
-      );
-    case "no_configuration":
-      return <Badge variant="warning">None tagged</Badge>;
-    case "unread":
-      return <span className="text-destructive">{NO_READING}</span>;
-  }
-}
-
-function PortalDetail({ portal }: { portal: PortalCheck }) {
-  switch (portal.state) {
-    case "whole":
-      return null;
-    case "missing":
-      return (
-        <p className="text-caption text-muted-foreground">
-          {`The tagged configuration (${portal.configurationId}) does not list ${portal.missing
-            .map((price) => `${price.label} (${price.priceId})`)
-            .join(
-              ", ",
-            )}. Stripe refuses a switch to ${portal.missing.length === 1 ? "it" : "each"}, a failure the host meets, until the configuration lists ${portal.missing.length === 1 ? "it" : "them"} (PRICING.md, Stripe setup).`}
-        </p>
-      );
-    case "no_configuration":
-      return (
-        <p className="text-caption text-muted-foreground">
-          No active portal configuration carries partyreel_purpose=change_plan
-          with subscription updates on, so every switch between Pro plans is
-          refused until one does (PRICING.md, Stripe setup).
-        </p>
-      );
-    case "unread":
-      return (
-        <p className="text-caption break-words text-muted-foreground">
-          {portal.message}
-        </p>
-      );
-  }
 }

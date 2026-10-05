@@ -32,7 +32,7 @@ import { PageHeading } from "@/components/shared/page-heading";
 
 import { BillingChecks } from "./billing-checks";
 import { accountCap, capLabel } from "./cap";
-import { checkChangePlanConfiguration } from "./portal-check";
+import { checkChangePlanConfiguration, type PortalCheck } from "./portal-check";
 import {
   allowanceLabel,
   lapsedBadge,
@@ -46,6 +46,21 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = { title: "Accounts" };
 
+/** The configuration check, told to Sentry when it could not run (its line says No reading; nothing else would). */
+async function checkedPortal(): Promise<PortalCheck> {
+  const check = await checkChangePlanConfiguration();
+  if (check.state === "unread") {
+    captureWarning(
+      "admin",
+      "accounts: change-plan configuration check failed",
+      {
+        message: check.message,
+      },
+    );
+  }
+  return check;
+}
+
 export default async function AdminAccountsPage({
   searchParams,
 }: {
@@ -56,25 +71,17 @@ export default async function AdminAccountsPage({
 
   const { q } = await searchParams;
   // ★ The two billing checks (credit-watch) beside the search, each its own read that never fails the page: the
-  // credits stuck past their hour, and Stripe's change-plan configuration against every Pro price we sell.
-  const [accounts, stuck, portal] = await Promise.all([
+  // credits stuck past their hour, read with the accounts, and Stripe's change-plan configuration against every Pro
+  // price we sell, asked now and NOT awaited (Stripe takes about half a second): its line streams in when it answers.
+  const portal = checkedPortal();
+  const [accounts, stuck] = await Promise.all([
     searchAccounts(q),
     readStuckPassCredits(),
-    checkChangePlanConfiguration(),
   ]);
   if (!stuck.ok) {
     captureWarning("admin", "accounts: stuck credits read failed", {
       message: stuck.message,
     });
-  }
-  if (portal.state === "unread") {
-    captureWarning(
-      "admin",
-      "accounts: change-plan configuration check failed",
-      {
-        message: portal.message,
-      },
-    );
   }
   // ★ Every listed account's uploads in ONE read (`uploads_windows`, billing-locks: it was one `uploads_used` call a
   // row, 50 a page view), each figure still `uploads_used` asked with her own tier, the function the upload refusals
