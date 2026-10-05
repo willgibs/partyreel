@@ -60,3 +60,16 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am
+
+- Done (pushed): the board's r5 rebuild in `src/app/(dev)/design/sandbox/identity/`: two asks, `set` (keys and wells,
+  the house mix, ink and tone; lit edges drawn and cut) and `loading` (arc, words, and a third density); the composite
+  first frame (Settings' door beside Account); two fresh-eyes passes taken (captures and reports in
+  `../partyreel-wt/_scratch/identity-r5/r1/`, `r2/`). Light gate green at `0bdfde262` (typecheck, lint, the board's and
+  the registry's tests, lab:smoke, lab:demo on the earlier lineup).
+- Mid-flight: the second fresh-eyes pass's fixes, keys done (room thumbs, wells, rail, off key), the rest next.
+- Next: the house's outline tier, room chips and delete contrast; tone's pressed chosen, thumbs and outline tier;
+  firmer rings at rest; the halo just inside a segment or a tab; the composite's Account scrolled to its profile and
+  switches; `time` replaced by `still` (words that say "Still saving" past four seconds); re-capture, the light gate,
+  then this manifest's Questions, Deferred and Handoff.

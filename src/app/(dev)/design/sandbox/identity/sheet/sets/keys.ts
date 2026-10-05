@@ -67,10 +67,10 @@ export const WELL_TOKENS = `
   --kw-well-in: oklch(0.985 0.001 286);
 }
 .dark {
-  --kw-well: oklch(0.105 0.003 286); --kw-well-deep: oklch(0.09 0.003 286);
-  --kw-well-shade: oklch(0 0 0 / 55%); --kw-well-rim: oklch(1 0 0 / 6%);
-  --kw-well-rim-up: oklch(1 0 0 / 12%); --kw-well-lip: oklch(1 0 0 / 7%);
-  --kw-well-in: oklch(0.125 0.003 286);
+  --kw-well: oklch(0.12 0.003 286); --kw-well-deep: oklch(0.105 0.003 286);
+  --kw-well-shade: oklch(0 0 0 / 55%); --kw-well-rim: oklch(1 0 0 / 7%);
+  --kw-well-rim-up: oklch(1 0 0 / 13%); --kw-well-lip: oklch(1 0 0 / 7%);
+  --kw-well-in: oklch(0.14 0.003 286);
 }
 .surface-display {
   --kw-well: color-mix(in oklab, var(--display), oklch(0 0 0) 32%); --kw-well-deep: color-mix(in oklab, var(--display), oklch(0 0 0) 40%);
@@ -88,8 +88,10 @@ const KEY_TOKENS = `
   --kw-grey: oklch(0.948 0.002 286); --kw-grey-foot: oklch(0.928 0.003 286); --kw-grey-up: oklch(0.92 0.003 286);
   --kw-ink: oklch(0.25 0.005 286); --kw-ink-foot: oklch(0.15 0.004 286); --kw-ink-up: oklch(0.31 0.005 286);
   --kw-ink-rim: oklch(0.1 0.004 286); --kw-ink-top: oklch(1 0 0 / 17%); --kw-ink-drop: oklch(0 0 0 / 22%);
-  --kw-thumb: oklch(1 0 0); --kw-thumb-on: oklch(1 0 0);
-  --kw-socket-rim: oklch(0.14 0.004 286 / 28%); --kw-track-rim: oklch(0.14 0.004 286 / 15%);
+  --kw-thumb: oklch(1 0 0); --kw-seam: oklch(0.14 0.004 286 / 14%);
+  --kw-socket-rim: oklch(0.14 0.004 286 / 44%); --kw-track-rim: oklch(0.14 0.004 286 / 15%);
+  --kw-rail: color-mix(in oklab, var(--foreground) 12%, transparent);
+  --kw-off-face: oklch(1 0 0); --kw-off-line: oklch(0.14 0.004 286 / 7%);
 }
 .dark {
   --kw-face: oklch(0.285 0.004 286); --kw-face-foot: oklch(0.245 0.004 286); --kw-face-up: oklch(0.305 0.004 286);
@@ -98,8 +100,10 @@ const KEY_TOKENS = `
   --kw-grey: oklch(0.225 0.004 286); --kw-grey-foot: oklch(0.2 0.004 286); --kw-grey-up: oklch(0.25 0.004 286);
   --kw-ink: oklch(0.985 0.001 286); --kw-ink-foot: oklch(0.955 0.002 286); --kw-ink-up: oklch(1 0 0);
   --kw-ink-rim: oklch(0 0 0 / 30%); --kw-ink-top: oklch(1 0 0 / 0%); --kw-ink-drop: oklch(0 0 0 / 55%);
-  --kw-thumb: oklch(0.72 0.004 286); --kw-thumb-on: oklch(0.16 0.004 286);
-  --kw-socket-rim: oklch(1 0 0 / 28%); --kw-track-rim: oklch(1 0 0 / 16%);
+  --kw-thumb: oklch(0.96 0.002 286); --kw-seam: oklch(0 0 0 / 35%);
+  --kw-socket-rim: oklch(1 0 0 / 34%); --kw-track-rim: oklch(1 0 0 / 16%);
+  --kw-rail: oklch(0.25 0.004 286);
+  --kw-off-face: oklch(0.2 0.004 286); --kw-off-line: oklch(0 0 0 / 40%);
 }
 .surface-display {
   --kw-face: color-mix(in oklab, var(--display-step), oklch(1 0 0) 6%); --kw-face-foot: var(--display-step);
@@ -110,8 +114,10 @@ const KEY_TOKENS = `
   --kw-grey-up: color-mix(in oklab, var(--display-step), oklch(1 0 0) 6%);
   --kw-ink: var(--display-foreground); --kw-ink-foot: color-mix(in oklab, var(--display-foreground), oklch(0 0 0) 8%);
   --kw-ink-up: oklch(1 0 0); --kw-ink-rim: oklch(0 0 0 / 40%); --kw-ink-top: oklch(1 0 0 / 0%); --kw-ink-drop: oklch(0 0 0 / 45%);
-  --kw-thumb: oklch(0.78 0.004 286); --kw-thumb-on: var(--display);
-  --kw-socket-rim: oklch(1 0 0 / 30%); --kw-track-rim: oklch(1 0 0 / 18%);
+  --kw-thumb: oklch(0.96 0.002 286); --kw-seam: oklch(0 0 0 / 35%);
+  --kw-socket-rim: oklch(1 0 0 / 36%); --kw-track-rim: oklch(1 0 0 / 18%);
+  --kw-rail: color-mix(in oklab, var(--display-step), oklch(1 0 0) 6%);
+  --kw-off-face: var(--display-step); --kw-off-line: oklch(0 0 0 / 35%);
 }
 `;
 
@@ -158,11 +164,12 @@ ${btn("destructive")} {
 }
 ${btn("destructive")}${HOVER}${LIVE} { background-image: linear-gradient(color-mix(in oklab, var(--destructive) 7%, var(--kw-face)), color-mix(in oklab, var(--destructive) 7%, var(--kw-face))); }
 
-/* Off, a key settles flush and recedes: the grey face, its words quiet, no light on it and no shade
-   under it (the fresh-eyes pass: an ink key at 40% read as a slab heavier than the live keys). */
+/* Off, a key settles flush and recedes: its face plain, its hairline half as firm, its words quiet, no
+   shade under it (the fresh-eyes passes: an ink key at 40% read as a slab heavier than the live keys,
+   and a grey face beside a well read as a second, empty field). */
 ${BTN}${OFF}:not(${btn("ghost", "link")}) {
-  opacity: 1; background-image: none; background-color: var(--kw-grey); color: var(--faint);
-  --i-body: inset 0 1px 0 0 transparent, 0 0 0 1px var(--kw-line), 0 1px 2px 0 transparent;
+  opacity: 1; background-image: none; background-color: var(--kw-off-face); color: var(--faint);
+  --i-body: inset 0 1px 0 0 transparent, 0 0 0 1px var(--kw-off-line), 0 1px 2px 0 transparent;
 }
 ${BTN}${ERROR} { --i-body: inset 0 1px 0 0 var(--kw-top), 0 0 0 1.5px var(--destructive), 0 1px 2px 0 var(--kw-drop); }
 
@@ -223,8 +230,9 @@ ${SWITCH} { background: var(--kw-well-deep); --i-body: ${SUNK("var(--kw-track-ri
 ${SWITCH}${HOVER}${LIVE}:not(${SWITCH_ON}) { --i-body: ${SUNK("var(--kw-well-rim-up)")}; }
 ${SWITCH}${SWITCH_ON} { background: var(--ink); --i-body: inset 0 1px 2px 0 oklch(0 0 0 / 28%), inset 0 0 0 1px transparent, inset 0 -1px 0 0 oklch(1 0 0 / 14%); }
 ${SWITCH}${ERROR} { --i-body: ${SUNK("var(--destructive)")}; }
-${THUMB} { background: var(--kw-thumb); box-shadow: 0 0 0 1px var(--kw-line), 0 1px 2px 0 var(--kw-drop), inset 0 1px 0 0 var(--kw-top); }
-${SWITCH}${SWITCH_ON} ${THUMB} { background: var(--kw-thumb-on); }
+/* One thumb on both grounds and both states: a white key, its seam keeping it whole on an inked track
+   (a grey thumb read as held off in the room, and a black one on white as a hole). */
+${THUMB} { background: var(--kw-thumb); box-shadow: 0 0 0 1px var(--kw-seam), 0 1px 2px 0 var(--kw-drop); }
 
 ${CHECK}, ${RADIO} { background: var(--kw-well-in); --i-body: ${SUNK("var(--kw-socket-rim)")}; }
 ${CHECK}${HOVER}${LIVE}:not(${CHECKED}), ${RADIO}${HOVER}${LIVE}:not(${CHECKED}) { --i-body: ${SUNK("color-mix(in oklab, var(--foreground) 32%, transparent)")}; }
@@ -234,10 +242,10 @@ ${CHECK}${CHECKED}, ${RADIO}${CHECKED} {
 }
 ${CHECK}${ERROR}, ${RADIO}${ERROR} { --i-body: ${SUNK("var(--destructive)")}; }
 
-[data-slot="slider-track"] { background: var(--kw-well-deep); box-shadow: ${SUNK("var(--kw-track-rim)")}; }
-[data-slot="slider-range"] { background: var(--ink); box-shadow: inset 0 1px 1px 0 oklch(0 0 0 / 25%); }
-${SLIDER_THUMB} { background: var(--kw-thumb); --i-body: ${KEYED()}; }
-${SLIDER_THUMB}${HOVER} { --i-body: ${KEYED("var(--kw-line-up)")}; }
+/* A slider's track is a rail, flat: a well six pixels tall drew two hairlines and nothing between. */
+[data-slot="slider-track"] { background: var(--kw-rail); box-shadow: none; }
+[data-slot="slider-range"] { background: var(--ink); }
+${SLIDER_THUMB} { background: var(--kw-thumb); --i-body: 0 0 0 1px var(--kw-seam), 0 1px 2px 0 var(--kw-drop); }
 `;
 
 export const KEYS_CSS =
