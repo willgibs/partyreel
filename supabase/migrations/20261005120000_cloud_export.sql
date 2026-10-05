@@ -116,7 +116,7 @@ create table public.cloud_connections (
   -- Drive full: since when, and when its room was last asked again (every 6 hours for 7 days).
   full_since timestamptz,
   full_checked_at timestamptz,
-  -- about.get, cached a minute (a script pressing Send costs one limiter row a press, never a Google call).
+  -- about.get's last answer, kept a minute (a press in quick succession takes it rather than asking Google again).
   quota_limit bigint,
   quota_usage bigint,
   quota_at timestamptz,

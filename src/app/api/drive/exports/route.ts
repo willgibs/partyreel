@@ -30,6 +30,9 @@ import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+/** How long her Drive's room (about.get) is taken from the connection rather than asked again. */
+const ROOM_CACHE_MS = 60_000;
 export const maxDuration = 60;
 
 const bodySchema = z.object({
@@ -96,12 +99,20 @@ export async function POST(request: Request) {
 
   if (newBytes > 0) {
     try {
-      const room = await driveRoom(access.token);
-      after(() =>
-        recordRoom({ connectionId: connection.id, limit: room.limit, usage: room.usage, resume: false }).then(
-          () => undefined,
-        ),
-      );
+      // about.get's answer is kept a minute on the connection: a second press in quick succession asks Google nothing.
+      const askedAt = connection.quota.at ? Date.parse(connection.quota.at) : Number.NaN;
+      const cached =
+        Number.isFinite(askedAt) && Date.now() - askedAt < ROOM_CACHE_MS && connection.quota.usage !== null
+          ? { limit: connection.quota.limit, usage: connection.quota.usage }
+          : null;
+      const room = cached ?? (await driveRoom(access.token));
+      if (!cached) {
+        after(() =>
+          recordRoom({ connectionId: connection.id, limit: room.limit, usage: room.usage, resume: false }).then(
+            () => undefined,
+          ),
+        );
+      }
       // Plus 1% for what Drive counts that we do not. No limit (unlimited, or a Workspace's pooled one): it holds it.
       if (room.limit !== null && room.limit - room.usage < newBytes + Math.ceil(newBytes / 100)) {
         return refuse("drive_full", 409, { free: Math.max(room.limit - room.usage, 0), needs: newBytes });

@@ -57,7 +57,15 @@ about content that is not harmful to show, where removing it would tip someone o
   permanently asks it (gone for her, off her meter, as any delete), and the purges skip it. Only a way back stays
   shut, in terms any item can meet: `restore_media` answers a held item in the vague default copy a missing row gets,
   and the block's let back in leaves one in Deleted (the list's count of what can come back leaves it out, as it
-  leaves out a withdrawal). Its uploader's own feed and delete read a held blocked upload as any other.
+  leaves out a withdrawal). Its uploader's own feed and delete read a held blocked upload as any other. Her Send to
+  Google Drive takes a quietly held row as her zip does: a send that skipped it would be the one number where a hold
+  shows ([drive-export.md](drive-export.md)).
+- ★ **A copy already in her Google Drive is out of our reach, by design.** `drive.file` reaches only what Partyreel
+  made there and Partyreel deletes nothing in her Drive, so a takedown removes an item from her album and from every
+  later send (the press and each lease leave an operator's removal out; one removed mid-send reads "left the album
+  while sending", the words her own delete gets, so nothing tips anyone off), but a file an earlier send delivered
+  stays hers. Deleting our copy from her Drive is an audited operator act not built yet (ROADMAP); until then a
+  takedown names, in its audit note, whether the item had reached a Drive (`cloud_export_items`, by media id).
 - ★ **An operator's removal keeps the runbook's window to hold and preserve** (`removed_by_admin`), because the
   runbook removes first and holds second. It leaves the host's view and her meter at once
   ([lifecycle-recovery.md](lifecycle-recovery.md); `media_release_meter` takes its bytes and an operator's restore

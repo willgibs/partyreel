@@ -99,7 +99,9 @@ job's `counts`; a dead letter and a key the backup alone holds each fail at any 
   live reel's platform lever fails OPEN (a flaky read must not take the reel off every album, [reel.md](reel.md));
   guest uploads (`uploads_enabled`) fail OPEN (a switch nobody can read never stops a party); lifecycle mail
   (`lifecycle_mail_enabled`) fails CLOSED for the mail it holds (held mail goes the next night); the spend watch's own
-  switch fails to the middle (unreadable, it reads and alerts but pauses nothing). A row not seeded yet reads as on.
+  switch fails to the middle (unreadable, it reads and alerts but pauses nothing); Send to Google Drive's
+  (`drive_export_enabled`) is read inside each lease's own transaction, so a database that cannot answer leases nothing
+  ([drive-export.md](drive-export.md)). A row not seeded yet reads as on.
 - ★ **The missed-run scan pages only on silence, so a job that is never silent alerts at its source.** The scan rides
   the purge cron: each run checks every job for a terminal row within 1.5 times its cadence and raises one
   `job_missed_run` warning per silent job. A depth reading raises `job_dead_letters_pending` or `job_queue_backlog`
@@ -132,7 +134,10 @@ job's `counts`; a dead letter and a key the backup alone holds each fail at any 
   ([durability-backups.md](durability-backups.md)).
   ★ The export Worker's daily heartbeat (the `export` job) rides its own signed report instead (`/api/export/report`,
   [uploads-and-r2.md](uploads-and-r2.md)), written as one closed row, so a Worker whose export secret drifted from the
-  app's reads Missed, where the shared bearer would have let it check in healthy.
+  app's reads Missed, where the shared bearer would have let it check in healthy. The Drive Worker's sweep does the
+  same (the `drive_export` job, written hourly by `/api/internal/drive/sweep` from its signed call), carrying its queue
+  and dead-letter depths (`drive_queue`, `drive_dead_letters`) beside the transfers' signal (`drive_transfer`: a file
+  failed for good, a stuck send, a dead lane); its controls are `/admin/exports#drive`.
 
 ## The spend watch
 
@@ -144,7 +149,8 @@ costs no guest's moment. The rules are pure (`lib/jobs/spend-watch.ts`); the run
 (`spend-watch-run.ts`); the card is `app/admin/jobs/spend-watch-card.tsx`.
 - **The readings** come in one call (`spend_watch_readings`, INVOKER and service-role only; its one DEFINER helper,
   `spend_watch_sign_ins`, counts `auth.users`): our own counters (the uploads meter, every album's change counters,
-  the day's lifecycle mail, sign-ins, zips and purge runs), the snapshots diffed into rates an hour, and the one vendor
+  the day's lifecycle mail, sign-ins, zips, purge runs and bytes sent to Google Drive), the snapshots diffed into rates
+  an hour, and the one vendor
   reading our tokens can take, Resend's own sent-mail list (every sender, Supabase Auth's sign-in codes included).
 - ★ **What could not be read:** Supabase's usage (Realtime messages, MAU, egress) needs a Management API personal token,
   which the app holds none of; R2 and Workers need a Cloudflare API token (the app holds R2's S3 keys only, which read
@@ -157,7 +163,8 @@ costs no guest's moment. The rules are pure (`lib/jobs/spend-watch.ts`); the run
   never trips and never feeds a ceiling, and a missing one fails the run.
 - ★ **A trip never raises its own ceiling:** the week's busiest leaves out every reading that tripped, so a runaway is
   never the new normal.
-- **What a trip does** (`planActions`): it pauses lifecycle mail, Download all or the purge sweep on its own, but only on
+- **What a trip does** (`planActions`): it pauses lifecycle mail, Download all, the purge sweep or Send to Google Drive
+  (its sends wait where they stand and lose nothing) on its own, but only on
   a NEW trip, so a person who turns a switch back on mid-trip is not overridden every hour; for uploads it alerts and
   the card offers the switch, since a false alarm would stop a real party; sign-ins, album changes and Resend's count
   only alert. Every trip raises one Sentry error a run and the ops mail at most once a day per set of readings.
