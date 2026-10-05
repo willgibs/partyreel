@@ -1,6 +1,6 @@
 ---
 track: billing-locks
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "75f3ce9f"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -98,13 +98,62 @@ working.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits:** the work is six commits on `lp/billing-locks`, `e1e24bec9` to `df035fa2b`, pushed; this Handoff is the
+  manifest alone on top. No sync: launch-prep moved (crumbs-76 and crumbs-78 merged, uploads-idempotent cut) but nothing
+  that landed touches this lane's paths or reads (`comm` of the two diffs empty; uploads-idempotent claims no path of
+  this lane and reads `server-pipeline-meter.ts`, which this lane left as it was).
+- **Gates on `df035fa2b`, each on its own exit code:** `pnpm typecheck` 0; `pnpm lint` 0 (no warning); `pnpm test` 0
+  (946 files, 11,817 tests); `zsh scripts/build-lock.sh pnpm build` 0; `pnpm lab:smoke --base http://localhost:3131` 0
+  (145 checks, 0 failing; dev server killed by port after). Logs in `../_scratch/billing-locks/gate2-*.log`.
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): every path under an `owns` prefix or this file,
+  but two system docs listed under System-doc edits: `docs/systems/admin-observability.md` (its accounts fact) and
+  `docs/systems/database-security.md`, a `reads` entry in the frontmatter, edited only where its facts were this lane's
+  (the "one cycle outside them" sentence, false once the conversion takes the profiles row first, and the inventory's
+  two new functions). `src/lib/db/queries/month-uploads` is owned and untouched.
+- **1. The conversion's lock order** (`supabase/migrations/20261005130000_billing_locks.sql` §1,
+  `src/lib/db/mutations/event-passes.ts`, `src/app/api/stripe/webhook/route.ts`): `consume_passes_for_pro_credit`
+  takes the host's profiles row FOR UPDATE, then consumes every unconsumed pass and clears `tier_expires_at` and
+  `event_slots`, one transaction; the webhook makes that one call and patches no chain itself. Pinned: the route test
+  "grants the balance once ... never patches the chain itself" fails on the old route (two profile patches), the
+  mutation test fails on it (`from("event_passes")`), and `event-passes-migration.test.ts` holds every SQL writer of a
+  pass's row to the same host's profiles lock first. ★ A finding: as shipped, the two writes NEVER deadlocked (two
+  PostgREST requests, two transactions); joined in their order they do (`40P01`, measured in the two-session run,
+  `../_scratch/billing-locks/pre/locks.log`); the present-day defect was the half state between them (a reader saw her
+  passes consumed with her chain still set). ROADMAP's line called it a cycle Postgres detects.
+- **2. The meter's lapsed pass** (§2): `meter_upload` refuses a pass holder with no live pass as the allowance
+  (`'monthly'`), the completes' predicate over the same rows, after the allowance and before the room, no lock; its
+  `pg_get_functiondef` diff against 20261004100000 is that one block. Pinned in `server-pipeline-meter-migration.test.ts`
+  (the predicate compared with both completes'), red without the file.
+- **3. The accounts read** (§3, `src/lib/db/queries/accounts.ts`, `src/app/admin/accounts/`): `uploads_windows` answers
+  every listed host in one keyset read (1 call a page view, was 50), each figure `uploads_used(host, her own tier)`
+  called per row, with the plan it was read with (the page holds the figure to that plan's allowance), the lapsed
+  flag, since when, and whether it was a conversion; 1,000 hosts in 22 ms on the stand-in. A lapsed pass reads
+  `PASS LAPSED` (or `PRO PENDING`), its date and "Uploads refused", never "0 B"; the account's page says what lifts it.
+  Pinned: `reads.test.ts` "in ONE call" and the page tests fail on the old code; `accounts-migration.test.ts` holds
+  parity by construction and the lapsed predicate to the completes'.
+- **The proofs:** the rolled-back proof at the file's foot, run on the live schema through the Supabase MCP with both
+  INVOKER bodies as the service role: RED 0/6 without the file's statements (the meter admits a lapsed pass both
+  writers refuse), GREEN 6/6 with them, nothing persisted (meter_upload still at `00a25a03`, no fixture row). The
+  pre-flight on a throwaway Postgres 17 cluster: RED 0/8, GREEN 8/8 (`../_scratch/billing-locks/pre/contract.sql`); a
+  grant slipped to authenticated still fails 42501 on event_passes. Before the apply, live PostgREST answers both new
+  names PGRST202 (`../_scratch/billing-locks/probe.mjs`), which the accounts read turns into "No reading" per row.
+- **Red-team** (a fresh-eyes agent over the diff): no HIGH; acted on its LOW and NIT findings (the row's own plan, Pro
+  pending, the proof as the service role, the writer rule broadened to delete and insert and tied to the same host,
+  the mapping inside the try) in `91efb046d`; its MEDIUM, the grant's idempotency window, is older than this lane, now
+  said truly in the code, the docs and the migration's apply note, and deferred with its fix; a negative `p_limit` stays
+  an error (the row-cap rule's exact clamp text).
+- Assets requested from Will: none.
+- Board ideas: the host's own surfaces could say a lapsed pass's truth as the operator's page now does (the Plan card,
+  and the storage ring's uploads line, which waits on a pass figure today: billing-caps.md).
+- **Proposed migration:** `supabase/migrations/20261005130000_billing_locks.sql`, ★ applied BEFORE the lane's code
+  deploys (a deploy ahead of it fails every credited delivery after the balance grant, and past a day a retry grants
+  again; every accounts row reads No reading). Then `get_advisors` (expected unchanged: both new functions INVOKER and
+  the service role's alone), regenerate `src/lib/db/types.ts`, and drop the two typed seams (`passCreditDb`,
+  `uploadsWindowsDb`). ROADMAP's line 42 (the accounts calls and the lapsed "0 B") and lines 58 and 59 are done. No
+  Worker, Vercel, Stripe or env change.
+- Calls his to overrule: both new functions are SECURITY INVOKER (least privilege), not DEFINER; the lapsed refusal at
+  the presign speaks the allowance's words (no new reason); the operator's words `PASS LAPSED`, `PRO PENDING` and
+  "Uploads refused"; the grant's Stripe-side dedupe left to a later crumb rather than added to this payment path.
+- **Look at first:** the migration file (the Advisor's read), then, after the apply, `/admin/accounts` and an account
+  page on the desk at 3000 under the operator's sign-in (its TOTP is Will's): one read for the page, and a lapsed row's
+  words (staging one needs an `event_pass` profile whose passes have ended; there is no pass row live today).
