@@ -17,6 +17,7 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- The lab and the kit: `pnpm compute:model`'s lab-demo scenario reads 182.8 calls and 707 ms of CPU a step against its budget of 9 and 210 (2026-10-05, after desk 3's boards merged): find the frames that call the API (production components fetching live data inside a board) and stub them, or re-baseline the line; the lab is dev-only, so production's cost is untouched, but a slow desk costs Will's sittings.
 - Guests: the album's sync carries no `accepting_uploads`, so the camera asks a closed album again by itself (10 s, 20, 40, then each minute); carry it in the sync (a migration and the sync's reader) and the asking goes.
 - Guests: the held door's wait chooser (`door/wait-picks.tsx`) still offers the photo library on a camera album, so a library photo can wait for the roll; offer the album's camera there, as the door's step now does.
 - Guests: the uploader refuses a wrong type and a file over its ceiling with no code (`prepare()` and `validateUpload` in `uploader.ts`), so the queue gives them one from the file (`localRefusalCode`); tag them at the source and drop the queue's copy.
