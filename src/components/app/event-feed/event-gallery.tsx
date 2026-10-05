@@ -15,6 +15,7 @@ import {
   type HubAlbum,
   type HubView,
 } from "@/components/app/event-feed/host-album";
+import { HubDevelop } from "@/components/app/event-feed/hub-develop";
 import { useHostAdd } from "@/components/app/host-add-provider";
 import { useHostSelection } from "@/components/app/host-selection-provider";
 import { HostUpload } from "@/components/app/host-upload";
@@ -287,7 +288,10 @@ export function EventGallery({
               } as React.CSSProperties
             }
           >
-            <HubViewProvider value={hubView}>{children}</HubViewProvider>
+            {/* Her first open after the develop develops the cover in place, over these rows (`hub-develop.tsx`). */}
+            <HubDevelop eventId={eventId} develop={develop}>
+              <HubViewProvider value={hubView}>{children}</HubViewProvider>
+            </HubDevelop>
           </div>
         </>
       )}
