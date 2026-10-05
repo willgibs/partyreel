@@ -84,9 +84,7 @@ export default async function AdminAccountsPage({
 
       {unread.length > 0 ? (
         <p role="alert" className="text-sm text-destructive">
-          Uploads could not be read for {unread.length} of {accounts.length}{" "}
-          {accounts.length === 1 ? "account" : "accounts"}: they say{" "}
-          {NO_READING}, not zero. Check Sentry.
+          {`Uploads could not be read for ${unread.length} of ${accounts.length} ${accounts.length === 1 ? "account" : "accounts"} (marked ${NO_READING} in their rows). Check Sentry.`}
         </p>
       ) : null}
 
@@ -100,7 +98,9 @@ export default async function AdminAccountsPage({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Account</TableHead>
+                {/* A share of its own: the name cell truncates (`max-w-0`), so left to the table's auto layout the column
+                  collapses to the width of its longest word once the numbers beside it grow. */}
+                <TableHead className="w-[30%] min-w-36">Account</TableHead>
                 <TableHead>Plan</TableHead>
                 <TableHead className="text-right">Storage</TableHead>
                 <TableHead className="text-right">Cap</TableHead>

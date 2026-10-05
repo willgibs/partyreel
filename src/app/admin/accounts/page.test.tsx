@@ -207,8 +207,8 @@ describe("the Uploads and Allowance columns", () => {
     expect(broken.getAttribute("data-tone")).toBeNull();
     // The other row still reads.
     expect(within(rowOf("Fine")).getByText("0 B")).toBeInTheDocument();
-    expect(screen.getByRole("alert").textContent).toMatch(
-      /could not be read for 1 of 2 accounts/,
+    expect(screen.getByRole("alert").textContent).toBe(
+      "Uploads could not be read for 1 of 2 accounts (marked No reading in their rows). Check Sentry.",
     );
     // Said aloud once, with the first reason, never one event a row.
     expect(sentry.warnings).toEqual([

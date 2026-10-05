@@ -240,8 +240,8 @@ export default async function AdminAccountDetailPage({
           </Row>
           {uploadsAt === "at" ? (
             <p className="text-caption text-muted-foreground">
-              At her allowance: her guests&apos; uploads are refused until the
-              window turns.
+              At her allowance: new uploads, hers and her guests&apos;, are
+              refused until the window turns.
             </p>
           ) : null}
           <Row label="Started this hour">

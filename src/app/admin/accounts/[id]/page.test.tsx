@@ -190,7 +190,7 @@ describe("the uploads card", () => {
     const uploads = within(card("Uploads"));
     expect(uploads.getByText("At limit")).toBeInTheDocument();
     expect(
-      uploads.getByText(/uploads are refused until the window turns/),
+      uploads.getByText(/are refused until the window turns/),
     ).toBeInTheDocument();
   });
 
