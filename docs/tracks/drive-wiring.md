@@ -70,6 +70,58 @@ working.
 
 **Verify on.** The gate on the synced tree (CLAUDE.md's four steps), each step on its own exit code; `pnpm lab:smoke --base http://localhost:<port>` when the lane changes anything under `src/` but tests (it crawls what the change reaches: the Library, and every board whose drawings import a changed file); and the surfaces the Handoff is judged on, local and live.
 
+## Where I am (parked 2026-10-05 for the laptop restart; resume from here)
+
+**Done.** Booted (worktree `../partyreel-wt/drive-wiring`, `lp/drive-wiring` pushed, `.env.local` copied, install
+clean). Read whole: the design note, q25/q27, research, the board's spec and drawings, Will's ledger, and the
+production surfaces each pick lands on (take-home-panel, event-gallery's album head, events-section and its Display
+menu, storage-list-body, account page, export-toast, admin/exports, spend-watch, env, email templates and send,
+account-deletion, database-security, uploads-and-r2). **Drafted, NOT yet preflighted:**
+`supabase/migrations/20261005120000_cloud_export.sql` (six tables, ~20 functions, the switch seed, spend_watch_readings
+restated with `drive_bytes`). No dev server, no wrangler running.
+
+**Next, in order.**
+1. Fix the migration's `cloud_export_sweep` lock order before anything else: do the connection-locking parts first
+   (grant-ending -> failing, failing past a day -> pause, the kick loop), THEN the job-only updates (preparing ->
+   stopped, daily_limit resume, expiry, stuck, breakers) as `update ... where id in (select ... for update skip
+   locked)`, so the sweep never holds a job row while waiting on a connection row a lane's report holds.
+2. Preflight on a throwaway Homebrew postgresql@17 cluster (database-security.md's recipe): stand-ins for profiles,
+   events, media, ops_flags, tier_limits, storage_ledger/album_state/sent_emails/export_log/job_runs (for
+   spend_watch_readings), the Supabase roles, an auth.uid() stub; apply verbatim; write and run the rolled-back
+   contract check (the section-12 list minus the exit) and append it commented at the file's foot.
+3. App lib (`src/lib/drive/`): tokens.server.ts (AES-256-GCM, AAD `drive:v1:<user>:<provider>:<purpose>`, key id in
+   the sealed string, DRIVE_TOKEN_KEY + _PREVIOUS), google.ts (auth URL with PKCE S256, exchange, refresh, revoke x3,
+   ID-token decode, about.get, folders; one URL allowlist), protocol.ts (`${b64url(json)}.${hmacHex("drive:"+body)}`,
+   5-minute freshness; the lease's token sealed with HKDF(DRIVE_WORKER_SECRET, "drive:token") + AES-GCM),
+   oauth-cookie (`pr_drive_oauth`, HMAC under UNLOCK_COOKIE_SECRET in a `drive-oauth:` domain), moments.ts (a job ->
+   the board's MOMENTS words), the status store; `src/lib/export/drive-names.ts`; `src/lib/db/queries/drive.ts`; env.
+4. Routes: `api/drive/connect`, `callback`, `exports` (POST, one or many albums), `exports/[id]` (cancel, resume
+   with a room check, retry, seen, refolder), `exports/[id]/items` (failed/skipped, keyset), `status` (GET);
+   `api/internal/drive/lease|report|check|sweep`; Disconnect as a Server Action.
+5. Worker `workers/drive/` (index, lane, google-drive adapter with handle-only undo, protocol twin pinned by a shared
+   vector, queue-metrics), vitest with a fake Drive and a fake R2; wrangler.jsonc per section 3.
+6. UI: the Originals card's Send to Drive + the promise and final-press steps; the album strip (a one-line exception
+   in event-gallery.tsx); dashboard tile lights + a picker popup beside Display; the storage-list door (no "then free
+   it"); Account's Google Drive card; the app-wide flag toast (a one-line exception in the (app) layout).
+7. After crumbs-75 merges (sync first): send-kinds (a new never-held list for the Drive mails), the jobs catalog
+   (drive_sweep, drive_transfer, drive_queue, drive_dead_letters), account-deletion's purge step, the spend-watch
+   card's line, admin-observability facts; the request's revoke in `src/lib/db/mutations/account.ts` (an exception).
+8. /admin/exports' Drive section; the emails; the docs (drive-export.md new, SYSTEMS.md, database-security,
+   uploads-and-r2, trust-safety-forensics); the gate; the walk script; the Handoff.
+
+**Decisions so far (each goes under Questions or Calls with its reason).** Disconnect and a different-account
+reconnect revoke at Google; a SAME-account reconnect does NOT revoke the replaced token (Google's revoke removes the
+whole grant the new token rides; its docs: "invalidating the permissions previously granted to the application"). A
+send takes the whole album and each item carries `prior_file_id` from an earlier send on the connection, which the
+Worker confirms and records as kept, so sending again never duplicates and a file she deleted in Drive goes again (Q27
+N2 without the exit). A leases table and an hourly sent-bytes table (both deny-all: the advisor count goes 19 -> 24,
+not 22). The app makes the folders at the press (`cloud_export_ready`), the root by compare-and-set. Names: the TS
+stem and extension, the " (n)" ordinal assigned in SQL under the connection lock. The breaker is checked at the press
+and by the sweep (not every lease); Google's day by the hourly table at every lease. The closing check confirms by
+file id with bounded concurrency; duplicates counted from one folder listing. The spend watch's reading is per day
+(`drive_bytes`, a last_day window) to fit the watch's machinery. Your events' door is a picker popup (it works over
+gallery, table and list and scales to hundreds) rather than in-tile picking.
+
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
 - none yet
