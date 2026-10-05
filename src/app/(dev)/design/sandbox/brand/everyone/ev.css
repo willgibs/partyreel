@@ -1,0 +1,524 @@
+/* EVERYONE'S COLOR: the vision's own sheet. Every selector is `.ev-` and every
+   keyframe `ev-`, so nothing here reaches the deck's head, another vision or
+   the lab around it.
+
+   ★ A GUEST ARRIVES ON A BREATH: QUICK TO RISE, SLOW TO SETTLE. `--ev-join`
+   is the motion study's envelope (the voice glow Will sent): a 330 ms rise to
+   7 percent past full, then an 860 ms settle with no second bounce, sampled
+   into `linear()` over 1.19 s. The row making room rides the same breath, so
+   the newcomer and the neighbour who steps aside are one gesture. It replaced
+   a 640 ms spring (damping 0.6, 9 percent), whose quick double wobble read as
+   a toy beside a soft black serif; a cubic bezier could not draw either,
+   since it overshoots once and cannot rest slowly.
+   `--ev-settle` (a damped spring, damping 0.78, 2 percent) stays the toss's.
+
+   ★ THE DESIGN STANDS COMPLETE AT REST: every motion below lives inside
+   `prefers-reduced-motion: no-preference`, and every animated element is
+   drawn whole and in place without it. Only transform and opacity move. */
+
+.ev-root {
+  --ev-join: linear(
+    0,
+    0.306,
+    0.547,
+    0.731,
+    0.866,
+    0.959,
+    1.019,
+    1.052,
+    1.066,
+    1.07,
+    1.07,
+    1.069,
+    1.068,
+    1.066,
+    1.064,
+    1.061,
+    1.058,
+    1.055,
+    1.051,
+    1.047,
+    1.043,
+    1.038,
+    1.034,
+    1.029,
+    1.025,
+    1.021,
+    1.017,
+    1.013,
+    1.01,
+    1.007,
+    1.004,
+    1.003,
+    1.001,
+    1,
+    1
+  );
+  --ev-settle: linear(
+    0,
+    0.07,
+    0.223,
+    0.401,
+    0.569,
+    0.711,
+    0.822,
+    0.902,
+    0.956,
+    0.99,
+    1.009,
+    1.018,
+    1.02,
+    1.019,
+    1.016,
+    1.012,
+    1.009,
+    1.006,
+    1.004,
+    1.002,
+    1.001,
+    1,
+    1,
+    1,
+    1
+  );
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── type ─────────────────────────────────────────────────────────────── */
+
+/* The display voice: Fraunces at its heaviest and softest, the 144 cut at any
+   size (`fonts.ts` says why). Its ascenders run tall, so a display line keeps
+   0.94 of leading: at 0.9 an l kisses the y above it. */
+.ev-display {
+  font-family:
+    var(--font-ev-display), var(--font-display), ui-serif, Georgia, serif;
+  font-weight: 900;
+  font-variation-settings:
+    "opsz" 144,
+    "SOFT" 100,
+    "WONK" 0;
+  letter-spacing: -0.03em;
+  line-height: 0.94;
+}
+/* A headline: the same face a step lighter, the 72 cut. */
+.ev-head {
+  font-family:
+    var(--font-ev-display), var(--font-display), ui-serif, Georgia, serif;
+  font-weight: 800;
+  font-variation-settings:
+    "opsz" 72,
+    "SOFT" 100,
+    "WONK" 0;
+  letter-spacing: -0.02em;
+  line-height: 1.04;
+}
+/* A small heading (an event's name, a card's title): the browser picks the
+   optical size from the font size, which opens the face up as it shrinks. */
+.ev-title {
+  font-family:
+    var(--font-ev-display), var(--font-display), ui-serif, Georgia, serif;
+  font-weight: 700;
+  font-variation-settings:
+    "SOFT" 100,
+    "WONK" 0;
+  letter-spacing: -0.004em;
+  line-height: 1.15;
+}
+.ev-body {
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 400;
+  letter-spacing: -0.006em;
+  line-height: 1.45;
+}
+/* The camera's readout: spaced capitals, tabular figures. */
+.ev-label {
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+.ev-num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── the orb, the row, the count ──────────────────────────────────────── */
+
+.ev-orb {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
+  line-height: 1;
+  user-select: none;
+}
+.ev-row {
+  display: flex;
+  align-items: center;
+}
+.ev-row > .ev-orb,
+.ev-row > .ev-count {
+  position: relative;
+}
+.ev-row > .ev-orb + .ev-orb,
+.ev-row > .ev-orb + .ev-count {
+  margin-left: var(--ev-row-overlap, -8px);
+}
+.ev-count {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.7em;
+  border-radius: 9999px;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+/* .ev-placed takes its position inline (relative unless the caller says
+   otherwise): this sheet is unlayered, so a rule here would beat any lab
+   utility on the same element. */
+
+/* ── status: a tag ────────────────────────────────────────────────────── */
+
+.ev-tag {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  overflow: hidden;
+  border-radius: 2px;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  white-space: nowrap;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+.ev-tag-word {
+  position: relative;
+}
+/* Waiting's hatch: the texture that says "not yet", with no colour in it. */
+.ev-tag-hatch::before {
+  content: "";
+  position: absolute;
+  inset: 0 -10px 0 -10px;
+  z-index: -1;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgb(255 255 255 / 0.16) 0 2px,
+    transparent 2px 7px
+  );
+}
+.ev-tag-room.ev-tag-hatch::before {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgb(9 9 11 / 0.1) 0 2px,
+    transparent 2px 7px
+  );
+}
+
+/* ── a credit ─────────────────────────────────────────────────────────── */
+
+.ev-credit {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+}
+.ev-credit-photo {
+  text-shadow: 0 1px 6px rgb(0 0 0 / 0.55);
+}
+
+/* ── a photograph: viewfinder's 2px corner ────────────────────────────── */
+
+.ev-photo {
+  position: relative;
+  overflow: hidden;
+  border-radius: 2px;
+}
+/* The light edge: one pixel of light on the photograph's top bevel, drawn
+   over the picture (an inset shadow would sit under the image). */
+.ev-photo-lit::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.28);
+  pointer-events: none;
+}
+/* The photograph's own scrim, for words that sit on it (never a colour). */
+.ev-scrim-bottom {
+  position: absolute;
+  inset: auto 0 0 0;
+  background: linear-gradient(to top, rgb(0 0 0 / 0.62), rgb(0 0 0 / 0));
+  pointer-events: none;
+}
+
+/* ── a phone ──────────────────────────────────────────────────────────── */
+
+.ev-phone {
+  position: relative;
+  flex: none;
+  background: #0d0d0f;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.14),
+    0 2px 6px rgb(0 0 0 / 0.12),
+    0 24px 60px -18px rgb(0 0 0 / 0.35);
+}
+.ev-phone-screen {
+  position: relative;
+  overflow: hidden;
+}
+.ev-phone-island {
+  position: absolute;
+  left: 50%;
+  z-index: 30;
+  transform: translateX(-50%);
+  border-radius: 9999px;
+  background: #000;
+}
+
+/* ── the lockup: it hugs its content, so a caption reads its true size ── */
+
+.ev-lockup {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* ── the icon tile, drawn as a picture of a home-screen icon ──────────── */
+
+.ev-icon {
+  display: block;
+  flex: none;
+}
+
+/* ── the touchpoints' furniture (`applied/kit.tsx`) ─────────────────── */
+
+/* A browser window, plain: grey bar, the page under it, a soft lift. */
+.ev-browser {
+  position: relative;
+  flex: none;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #fbfbfc;
+  box-shadow:
+    0 0 0 1px rgb(9 9 11 / 0.07),
+    0 2px 6px rgb(0 0 0 / 0.05),
+    0 34px 70px -30px rgb(0 0 0 / 0.3);
+}
+/* Paper that was printed: a card's own trimmed corner, and its lift off the
+   table (the table card and the share card, drawn as objects). */
+.ev-print {
+  border-radius: 5px;
+}
+.ev-print-lift {
+  border-radius: 5px;
+  box-shadow:
+    0 0 0 1px rgb(9 9 11 / 0.05),
+    0 1px 2px rgb(0 0 0 / 0.08),
+    0 26px 48px -26px rgb(0 0 0 / 0.38);
+}
+/* A home screen, drawn (slide 14): the phone's own red badge (its light, not
+   ours), the labels under the icons, and the light icon's edge on paper. */
+.ev-badge {
+  position: absolute;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.32em;
+  border-radius: 9999px;
+  background: #ff3b30;
+  color: #fff;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.ev-home-label {
+  color: #fff;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 500;
+  line-height: 1.1;
+  white-space: nowrap;
+  text-shadow: 0 1px 3px rgb(0 0 0 / 0.5);
+}
+.ev-home-label-light {
+  text-shadow:
+    0 1px 2px rgb(0 0 0 / 0.55),
+    0 0 8px rgb(0 0 0 / 0.25);
+}
+.ev-icon-on-paper {
+  box-shadow:
+    0 0 0 1px rgb(9 9 11 / 0.08),
+    0 8px 16px -10px rgb(0 0 0 / 0.35);
+}
+/* A round action: the house rule, sharp surfaces and round actions. */
+.ev-action {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 550;
+  letter-spacing: -0.006em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* ── a hairline rule and a swatch chip ───────────────────────────────── */
+
+.ev-rule {
+  height: 1px;
+  width: 100%;
+}
+.ev-chip {
+  flex: none;
+  border-radius: 2px;
+}
+
+/* ── motion: only where it IS the idea ───────────────────────────────── */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* A person arrives: up in a third of a second, settled by 1.19 s, once, in order. */
+  .ev-arrive {
+    animation: ev-pop 1190ms var(--ev-join) both;
+    animation-delay: calc(var(--ev-i, 0) * var(--ev-stagger, 0ms) + 200ms);
+  }
+  /* The newest guest, arriving again and again (the touchpoints' live rows). */
+  .ev-pop-loop {
+    animation: ev-pop-loop 6s linear infinite;
+  }
+  /* The row making room: the count steps aside on the newcomer's own breath. */
+  .ev-make-room {
+    animation: ev-make-room 6s linear infinite;
+  }
+  /* The toss: each person thrown from the moment's origin. */
+  .ev-tossed {
+    animation: ev-toss 1100ms var(--ev-settle) both;
+    animation-delay: calc(var(--ev-i, 0) * var(--ev-stagger, 0ms) + 300ms);
+  }
+  /* The toss on a loop, for the motion slide. */
+  .ev-toss-loop {
+    animation: ev-toss-loop 6s var(--ev-settle) infinite;
+    animation-delay: calc(var(--ev-i, 0) * var(--ev-stagger, 0ms));
+  }
+  /* Waiting's hatch travels while something is genuinely in progress. */
+  .ev-tag-hatch-run::before {
+    animation: ev-hatch 1.4s linear infinite;
+  }
+}
+
+@keyframes ev-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  12% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 8% to 27.8% of six seconds is the 1.19 s breath; the rest is the row at rest. */
+@keyframes ev-pop-loop {
+  0%,
+  8% {
+    opacity: 0;
+    transform: scale(0.3);
+    animation-timing-function: var(--ev-join);
+  }
+  27.8%,
+  92% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  98%,
+  100% {
+    opacity: 0;
+    transform: scale(0.86);
+  }
+}
+
+@keyframes ev-make-room {
+  0%,
+  8% {
+    transform: translateX(calc(var(--ev-shift, 12px) * -1));
+    animation-timing-function: var(--ev-join);
+  }
+  27.8%,
+  92% {
+    transform: none;
+  }
+  98%,
+  100% {
+    transform: translateX(calc(var(--ev-shift, 12px) * -1));
+  }
+}
+
+@keyframes ev-toss {
+  from {
+    opacity: 0;
+    transform: translate(var(--ev-dx, 0px), var(--ev-dy, 0px)) scale(0.2);
+  }
+  15% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ev-toss-loop {
+  0% {
+    opacity: 0;
+    transform: translate(var(--ev-dx, 0px), var(--ev-dy, 0px)) scale(0.2);
+  }
+  4% {
+    opacity: 1;
+  }
+  22%,
+  86% {
+    opacity: 1;
+    transform: none;
+  }
+  96%,
+  100% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.92);
+  }
+}
+
+@keyframes ev-hatch {
+  to {
+    transform: translateX(-9.9px);
+  }
+}
+
+/* The outlined tag (the creative director's pass): sentence case, the word in
+   ink, the outline drawn as an inset ring so the tag keeps its size. */
+.ev-tag.ev-tag-line {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 600;
+}
