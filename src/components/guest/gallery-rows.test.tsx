@@ -23,17 +23,25 @@ const { gridSpy } = vi.hoisted(() => ({ gridSpy: vi.fn() }));
 vi.mock("@/components/app/export/export-toast", () => ({
   exportToasts: { show: vi.fn(), dismiss: vi.fn() },
 }));
-vi.mock("@/components/shared/masonry", () => ({
-  MasonryColumns: (props: { prefix?: ReactNode }) => {
-    gridSpy(props);
-    return <div data-testid="grid">{props.prefix}</div>;
-  },
-}));
+vi.mock("@/components/shared/masonry", async () => {
+  const { use } = await import("react");
+  const { AlbumNewsContext } =
+    await import("@/components/shared/album-window-news");
+  return {
+    // The spy also reads what the rows are told is news (album-order): the context the real rows read.
+    MasonryColumns: (props: { prefix?: ReactNode }) => {
+      gridSpy({ ...props, news: use(AlbumNewsContext) });
+      return <div data-testid="grid">{props.prefix}</div>;
+    },
+  };
+});
 
 type GridProps = {
   items: GridMedia[];
   arrivedIds?: ReadonlySet<string>;
   landedIds?: ReadonlySet<string>;
+  rowAnchor?: "start" | "end";
+  news?: { arrivals: readonly string[]; lens?: string } | null;
 };
 const grid = () => gridSpy.mock.calls.at(-1)![0] as GridProps;
 const laid = () => grid().items.map((item) => item.id);
@@ -426,5 +434,32 @@ describe("GalleryRows: the stack's x", () => {
       />,
     );
     expect(dismiss).toHaveBeenCalledWith("stop-upload-x9");
+  });
+});
+
+/**
+ * THE ALBUM'S ORDER AND ITS NEWS (album-order): the rows lay from the end the page's order grows at (the night in
+ * order from its start, so an arrival lands at its end), and are told what arrived through her lens, so one landing
+ * out of sight wears the rows' pill. Before this lane the rows were always laid newest first and told nothing.
+ */
+describe("GalleryRows: the album's order and its news", () => {
+  it("★ lays from the end its order grows at, and tells the rows its arrivals through her lens", () => {
+    render(
+      <GalleryRows
+        items={SEED}
+        {...REST}
+        arrivals={["x"]}
+        anchor="start"
+        lens="videos"
+      />,
+    );
+    expect(grid().rowAnchor).toBe("start");
+    expect(grid().news).toEqual({ arrivals: ["x"], lens: "videos" });
+  });
+
+  it("is newest first by default, and an album handed no arrivals has news of nothing, never no news", () => {
+    render(<GalleryRows items={SEED} {...REST} />);
+    expect(grid().rowAnchor).toBe("end");
+    expect(grid().news).toEqual({ arrivals: [], lens: undefined });
   });
 });

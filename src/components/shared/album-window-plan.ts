@@ -9,7 +9,9 @@
  *
  * Pure: no DOM, no React.
  */
+import type { ManifestEntry } from "@/lib/events/album-wire";
 import { rowRatio } from "@/lib/media/tile-aspect";
+import { entriesInOrder, type AlbumSort } from "@/lib/shared/album-order";
 import {
   layoutRows,
   meanRatio,
@@ -333,11 +335,25 @@ export function decodeFirstPaint(
   };
 }
 
+/** What the first paint is laid with: the step, the rhythm and its seed, the remembered width, and the order. */
+export type FirstPaintOptions = {
+  step: RowStep;
+  rhythm: RowRhythm;
+  seed: number;
+  width?: number | null;
+  /**
+   * The album's order (album-order): newest first lays from the end, the night in order from the start. Absent reads
+   * as newest first.
+   */
+  sort?: AlbumSort;
+};
+
 /**
- * THE PHOTOGRAPHS THE FIRST PAINT DRAWS, for a newest-first album with no head
- * (the guest page's server render: the upload tiles exist only on the device
- * that is uploading). The page mints exactly these ids' links into the render,
- * so every tile the first paint draws has its picture from the first byte.
+ * THE PHOTOGRAPHS THE FIRST PAINT DRAWS, for an album with no head (the guest
+ * page's server render: the upload tiles exist only on the device that is
+ * uploading), from its items in the order the album shows them. The page mints
+ * exactly these ids' links into the render, so every tile the first paint draws
+ * has its picture from the first byte.
  */
 export function firstPaintIds(
   items: readonly {
@@ -345,30 +361,43 @@ export function firstPaintIds(
     width?: number | null;
     height?: number | null;
   }[],
-  opts: {
-    step: RowStep;
-    rhythm: RowRhythm;
-    seed: number;
-    width?: number | null;
-  },
+  opts: FirstPaintOptions,
 ): string[] {
   if (items.length === 0) return [];
   const feature: RowFeature = opts.rhythm === "plain" ? "double" : opts.rhythm;
   const widths = classWidths(opts.width);
+  const anchor: RowAnchor = opts.sort === "oldest" ? "start" : "end";
   // The rhythm's picks count photographs per row, which differs by class: the
   // plan picks per class itself, so the list goes in plain here, exactly as
   // the client's first paint hands it over.
-  const list = rowItemsFor(items, false, null, [], "end");
+  const list = rowItemsFor(items, false, null, [], anchor);
   const plan = firstPaintPlan(
     list,
     opts.step,
     opts.rhythm,
     opts.seed,
-    "end",
+    anchor,
     feature,
     widths,
   );
   return list.slice(0, plan.count).map((it) => it.id);
+}
+
+/**
+ * THE FIRST PAINT'S PHOTOGRAPHS FROM THE MANIFEST (the guest seed's one call): its entries, newest first as the wire
+ * keeps them, put in the order the album opens in (album-order: the night in order by when each happened), then
+ * `firstPaintIds`. So a morning-after album's seed links its first rows, the arch before the last dance, and its first
+ * paint draws pictures, never shimmers waiting on a window's ask.
+ */
+export function albumFirstPaintIds(
+  entries: readonly ManifestEntry[],
+  opts: FirstPaintOptions,
+): string[] {
+  const ordered = opts.sort === "oldest" ? entriesInOrder(entries) : entries;
+  return firstPaintIds(
+    ordered.map(([id, width, height]) => ({ id, width, height })),
+    opts,
+  );
 }
 
 /* ── The remembered width ─────────────────────────────────────────────────── */
