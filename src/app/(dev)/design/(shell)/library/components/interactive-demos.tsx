@@ -416,6 +416,23 @@ export function ConsequenceLineDemo() {
  * returned a 500 ("Cannot read properties of undefined (reading 'title')"). Every production caller is a client atom
  * for the same reason; this is one more.
  */
+/**
+ * A KEY AT WORK (Button's `working`): drawn here because a working key holds its own click (no second press), and a
+ * handler cannot cross from the gallery's server module into its client page.
+ */
+export function WorkingButtonDemo() {
+  return (
+    <Row>
+      <Button working workingLabel="Saving">
+        Save
+      </Button>
+      <Button variant="outline" working workingLabel="Saving">
+        Save
+      </Button>
+    </Row>
+  );
+}
+
 export function TapTooltipDemo() {
   return (
     <Row>

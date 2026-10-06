@@ -140,6 +140,7 @@ import {
   RelationToggleDemo,
   TapTooltipDemo,
   ToastDemo,
+  WorkingButtonDemo,
 } from "./interactive-demos";
 import { DialogSheetDemo } from "./overlay-demos";
 import { PhotoSectionDemo } from "./photo-section-demos";
@@ -931,16 +932,8 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
       {
         label: "Working",
         hint: "busy, never off: it keeps its face and its focus, the arc and its words in place of its own",
-        node: (
-          <Row>
-            <Button working workingLabel="Saving">
-              Save
-            </Button>
-            <Button variant="outline" working workingLabel="Saving">
-              Save
-            </Button>
-          </Row>
-        ),
+        // A client demo (`interactive-demos.tsx`): a working key holds its own click, which no server module can pass.
+        node: <WorkingButtonDemo />,
       },
     ],
   },
