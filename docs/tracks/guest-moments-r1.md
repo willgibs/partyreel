@@ -1,6 +1,6 @@
 ---
 track: guest-moments-r1
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "462cea3f"            # the launch-prep SHA the branch was cut from
 board: guest-moments
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -44,25 +44,54 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- The brief's "Settings now says the ceiling: up to 3 shots in all" does not match production: `cameraLine` says "up to
+  72 shots in all" on a roll of 24 (`ROLL_RETAKES = 3` rolls' worth, `src/lib/disposable/roll.ts:63`), while
+  customize r1's opening records Will's word as a flat 3 re-shoots at any roll. Recommended: ask it as the board's
+  `limit` (built: today's three rolls' worth vs his flat 3 vs one roll's worth), recommending his flat 3; a wiring lane
+  then changes `create_media`'s `c_roll_retakes` with `roll.ts` (a migration).
+- Should `where`'s reel take-back confirm? Recommended and drawn: a two-key sheet (Take it back / Keep it), since a
+  press on the reel today opens the list and a mis-press there must not delete; Your shots keeps its no-confirm X.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none (an exploration ships no production byte)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- none
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- Work commit `a0e2e342` (the board), pushed on `lp/guest-moments-r1`; no sync commit: launch-prep moved only by
+  record commits (`e74f8e07..d88494cd`, status and pickup lines), none in this lane's reads.
+- Gates on `a0e2e342`, each its own exit code, the light gate: `pnpm typecheck` 0; `eslint` on the board folder 0
+  warnings; `vitest run src/app/(dev)/design/sandbox src/components/lab` 213 passed; `pnpm lab:smoke --base
+  http://localhost:3131` 7 checks, 0 failing (522 words of 1200); `pnpm lab:demo --board guest-moments` 5 steps, 0
+  failing, at the default phone screen and again with `--state screen=1440` (0 failing; one warning: at 1440
+  `opening`'s black and mark held frames compare as the same picture by the threshold, the bar being small at a
+  laptop's scale; they differ at 375).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = the nine files under
+  `src/app/(dev)/design/sandbox/guest-moments/` + this file. No exceptions.
+- The board, desk 45, five asks (each option a moving frame plus its held instants, titled with their time; reduced
+  motion holds every loop at its end; every caption read off its frame):
+  - `own` (C7): her own photo landing: sweep (today) / glow / first one says "Yours is in" (rec.) / quiet.
+  - `batch` (Q3): six of others' photos at the top: push (today) / settle, whole from the first frame (rec.) / file,
+    one after another / pill, wait behind "6 new".
+  - `limit` (D3): three rolls' worth (today) / a flat 3 (rec., his word) / one roll's worth; Your shots' head counts
+    what is left; the roll's end says when they are spent.
+  - `where` (D3, after `limit`): Your shots' X (today) / the reel's newest frame opens a Take it back sheet (rec.).
+  - `opening` (G6): black (today) / the first photograph at once, Close beside it (rec.) / black with the reel's bar
+    and its running line.
+- Drawn on production: `AlbumCover`, `HeadStills`, the camera's parts (`CameraReel`, `CameraShutter`,
+  `RollDonePanel`, `YourShots`) and their words, `album-rows.ts`'s layout; the arrival lights are `arrival.css`'s
+  values and `arrival.ts`'s lives redrawn in `guest-moments.css`; the reel's resting bar is retyped from
+  `live-reel-view.tsx` (the view mounts only in its dialog and store). Stand-ins: the marketing stills.
+- Assets requested from Will: none.
+- Board ideas: the sweep at production's values (a 0.34-white band, 0.9 s) barely reads on a bright photo (measured:
+  its held frame differs from quiet's only inside the tile, faintly); worth a light-strength pass whichever `own` wins.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none (a `limit` pick other than today's is a
+  `create_media` constant change for its wiring lane).
+- Calls his to overrule: the take-back sheet's two keys (Questions); the `first` word "Yours is in" (from
+  `arrival.css`'s own name for the sweep); `settle` keeps the glow on others' photos.
+- Look at first: `/design/lab/guest-moments?session=guest-moments.batch` (the empty half second, held at 0.15 s), then
+  `limit` (production's 72 vs his 3).
