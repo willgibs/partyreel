@@ -1012,3 +1012,29 @@ rolls said first).
 **BN2. `decline` keeps today's answer as its recommendation:** Decline is a block, the one ask where production's
 built answer stands as recommended.
 - *Push back if* a decline should be a no for now, or her choice each time.
+
+## BO. The halo everywhere in reach, and captions you can read (a11y-halo)
+
+The halo and the working words now reach every call site in reach (pricing's three and Drive's one wait for their
+lanes), and the faint captions and paper's warning words read at 4.5:1 or better; these calls came with them, built
+and yours to overrule.
+
+**BO1. Paper's warning words are a bronze of the amber's hue** (oklch 0.53 0.12 70): Account's "1 of 1 used" reads
+5.30:1 on its card where it read 1.86; the amber's fills, borders and glyphs keep their colour, and the room keeps its
+bright amber. Built as the token's own fix (one line in `theme.css` beside it), so no call site moved.
+- *Push back if* the words should be a darker amber instead.
+
+**BO2. Every caption one step darker on every ground** (paper's body 3.64 to 4.95, the mat 3.39 to 4.61, the room
+3.92 to 5.06), each still a step under the muted grey; the room display's caption step stays at 3.88 (a third step
+would stop being one: a ROADMAP line for a design answer).
+- *Push back if* the captions should keep their lightness and the grounds move instead.
+
+**BO3. "Use a different email" says "Signing out" while it works,** and the other key waits off.
+- *Push back if* both keys should stay live.
+
+**BO4. The admin's confirm says "Working" where a caller names no word** (the jobs page's acts outside this lane).
+- *Push back if* those acts should name their own words first.
+
+**BO5. The report queue's Dismiss says nothing while it works:** the dismissal is optimistic, so the entry leaves at
+once and no key is left to speak.
+- *Push back if* a Dismiss should hold its entry until the server answers.

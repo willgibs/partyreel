@@ -33,7 +33,6 @@ check-in about every 40 minutes reads them (their status, pushed heads and cost)
 | --- | --- | --- | --- | --- |
 | `billing-orphans` | milestone 38's billing line: an orphan's grant as one SQL function under her profiles lock, the change-plan configuration watched at its source, the Plan card's words while a credited Pro lands; one migration (`20261006120000_billing_orphans.sql`) | HANDED OFF at `4a113e5d4`; waits on the morning's SQL (Waiting on Will) | Opus | `session_015JAkfLgeuTsZZMNJXrZVeV` |
 | `drive-crumbs` | Drive whole before it goes live: album folders and files found by their marks after a reconnect, the closing check held at the first unknown, Account's card naming her folder, the palette's jump; one migration (`20261006130000_drive_marks.sql`) | HANDED OFF at `6d1731c27`; waits on the morning's SQL (Waiting on Will) | Opus | `session_01AGJfN3zW3BvB8vPM7KSgbL` |
-| `a11y-halo` | the halo and the working words at the 27 files identity-r5-wiring could not own (the guest's pages, the hub, /admin, the create step, the menus, the lab's own five; pricing's and Drive's wait for their lanes), and `--faint` and paper's warning text lifted to 4.5:1 | RUNNING (cut at `462cea3f`) | Opus | `session_01PEB31d9qJAC99XBwktcpDY` |
 | `redteam-56b` | red-team 56b on its own build of `c5b16be7` at :3000 | BLOCKED, ended 11:22Z (about $1.20): its permission check refused `.env.local`, the `--no-sandbox` Chrome wrapper and a `useradd` for a sandboxed Chrome (tried before the correction; reported), so only the 404s' one noindex was walked (PASS) and every browser walk reads NOT DRIVEN; no findings, nothing created. It waits on Will's browser call (Waiting on Will), then a fresh session | Opus | `session_017cgyXnS3nnK35ifo2L6bEa` |
 | `uploads-bursts` | the upload queue's two throughput lines: a dropped burst's Retry all re-queued as one burst, the next burst started once the last one's bytes are up | RUNNING (cut at `e74f8e07`) | Opus | `session_01XYnfk95UWgKLYDRLebNNxH` |
 
@@ -74,9 +73,10 @@ local agents' transcripts.
    colour; aurora; marketing-themes with N4, N7 and N9; demo-framing r6; presence r1), cut after his brand r2 pick; and
    desk 7, the moments boards (host-, guest- and account-moments, create-wizard r4: each a ROADMAP line with its calls),
    guest-moments r1 (desk 45, five asks) and host-moments r1 (desk 40, seven asks) merged; account-moments and
-   create-wizard r4 after them. The PREMISE re-read
-   is done (11:15Z): gate 40 flagged event-header's two asks against crumbs-85's one line in the hub page (the develop
-   facts carry the zone), which moves nothing `card` or `attention` asks; no gate flagged brand's.
+   create-wizard r4 after them. The PREMISE re-reads
+   are done: gate 40 flagged event-header's asks against crumbs-85's line in the hub page (the develop facts carry the
+   zone), and gate 43 brand's and event-header's against a11y-halo's `globals.css` (captions a step darker, paper's
+   warning words in bronze, the halo on the hub's cards): neither moves what `take`, `card` or `attention` asks.
 3. **Red-team 56b** (its own cloud session, below: crumbs-85's MEDIUM re-walked, the house set, the album's time; its
    report is its last message, read with `list_events`), then **milestone 38** on
    Will's yes: the `FULL=1` gate here, `pnpm compute:model` (a lane, since it needs the real services), merge to
@@ -84,10 +84,8 @@ local agents' transcripts.
    a Cloudflare token in the environment) and `DRIVE_WORKER_URL` and `BACKUP_WORKER_URL` on Vercel; drive-hardening's
    live walk (P3's Google consent, Will's hand). The Advisor wants 38 soon: milestone 37's build re-grants a Pro credit
    past a day (TEST money).
-5. **The second wave**, from ROADMAP "Now" as owns free: accessibility after identity-r5-wiring (`--faint` at about
-   3.6:1, the paper warning token at 1.85:1, `dashRange`'s spoken twin), the rest of the halo sweep (the guest's pages,
-   the hub, `/admin`, pricing, Drive), uploads (Retry all re-queued once, the next burst on the last one's bytes,
-   per-event byte sums in SQL), code hygiene, marketing.
+5. **The second wave**, from ROADMAP "Now" as owns free: the halo's last four sites once pricing's and Drive's
+   lanes merge, uploads (per-event byte sums in SQL), code hygiene, marketing.
 6. **Compute:** lever 3 and 3b only on Will's X5; `pnpm compute:model` at every milestone.
 7. **★ Vercel's Hobby Active CPU** (about 3.89 of 4 hours over 30 days on 2026-10-06; the peak rolls off in early
    November): nothing runs against the alias or partyreel.com but what Will asks for by name.
@@ -131,7 +129,9 @@ local agents' transcripts.
   and now the cloud environment: unread by any code, their Stripe TEST prices archived.
 - **His six motion links, a note:** libraries.dev is blocked on his home network (the ISP's CUJO filter), so three of
   the six (voice, image, gooey) were read from their MIT source on GitHub, never watched.
-- **His walks:** Tab through Account and Settings on paper at 375 and 1440, Save and Create under a throttled
+- **His walks:** the halo's Tab walk a11y-halo could not drive (its browser refused): each changed control at 375 and
+  1440, light and dark, above all the live reel's bar, the moderation tile and the upload stop keys on a photograph and
+  the hub reel curtain's close; Tab through Account and Settings on paper at 375 and 1440, Save and Create under a throttled
   network (identity-r5-wiring); Settings' develop time on his iPhone (type a time, then Back or the picker's close: it holds;
   crumbs-72), the camera on his iPhone (a held-shutter video on a waiting sheet), Save into Photos, Record Video's
   size, a deletion and its Cancel deletion on hi@willgibs.com, the spend watch's uploads switch off and on; and
