@@ -90,12 +90,12 @@ working.
 
 ## Handoff (replaces the chat report)
 
-- Work `66a5eb59`, sync `3b2bf9a5` (launch-prep had moved to `e4c2d7c3`: merged, no conflict), the migration's hashes
-  and proof `2fe810e0`; this manifest commit is the head in the chat line.
-- Gates on the synced tree (`3b2bf9a5` + the proof's comment-only commit), each on its own exit code: `pnpm typecheck`
-  0, `pnpm lint` 0, `pnpm test` 0 (1,054 files, 13,191 passed, 2 skipped), `workers/drive` `npx vitest run` 0 (77) and
-  `npx tsc --noEmit` 0, `zsh scripts/build-lock.sh pnpm build` 0, `pnpm lab:smoke --base http://localhost:3131` 0
-  (138 checks, 0 failing; the first run timed out on the Library's cold compile, the second after a warm-up passed).
+- Work `66a5eb59`, sync `3b2bf9a5`, the migration's hashes and proof `2fe810e0`, handed off `6d1731c2`; the GREEN's
+  fix `a62584e5` (below); this manifest commit is the head in the chat line.
+- Gates on the fix (`a62584e5`; only the migration and a test changed, so no build or `lab:smoke`), each on its own
+  exit code: `pnpm typecheck` 0, `pnpm lint` 0 (no warnings), `pnpm test` 0 (1,054 files, 13,192 passed, 2 skipped).
+  The gates at `6d1731c2` (code unchanged since): build 0, `lab:smoke` 0 (138 checks), `workers/drive` vitest 0 (77)
+  and tsc 0.
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file: the four routes under
   `src/app/api/drive/` and `src/app/api/internal/drive/`, `src/lib/drive/*` (google, service.server, protocol and two
   tests), `src/lib/db/queries/drive.ts`, `src/lib/db/drive-marks.test.ts`, the palette and its test, `workers/drive/src/*`
@@ -120,20 +120,25 @@ working.
   4. Palette: `action-drive` → `/admin/exports#drive` (`palette.test.ts` "★ names Send to Google Drive").
 - ROADMAP lines to retire: the three Drive lines at ROADMAP.md 42 to 44 (re-send after a reconnect; the closing check's
   unknown; Account's card at reconnect). The palette line was not in the ROADMAP.
-- ★ SQL PROOFS NOT YET RUN (the Orchestrator's word: no Supabase SQL in this lane). Ready to run, in order:
+- ★ SQL: the Orchestrator's rolled-back GREEN (2026-10-06 17:20Z) passed steps 0 to 3, 5 and 7 and failed 4 and 6
+  with `42883 function min(uuid) does not exist`: `cloud_export_check_page`'s hold took `min(i.media_id)`, an aggregate
+  Postgres has no uuid for, so every closing check page would have errored. Fixed in `a62584e5`: the hold is
+  `select i.media_id ... order by i.media_id limit 1` (reads the same); the file's only other aggregate is
+  `min(h.hour)`, a timestamptz. `drive-marks.test.ts` now pins the ordered select and checks every migration for a
+  `min(` or `max(` over `id` or `*_id` (none elsewhere); both fail on the old file. Re-run, in order:
   1. Drift read (expected: the three hashes, and no rows for the column):
      `select proname, md5(btrim(regexp_replace(prosrc, '\s+', ' ', 'g'))) from pg_proc where pronamespace = 'public'::regnamespace and proname in ('cloud_export_ready', 'cloud_export_lease', 'cloud_export_check_page');`
      expecting `cloud_export_ready 998368c3d63a02382117a077f8f70668`, `cloud_export_lease c92cf0439d5b687adb6ca61da496c0aa`,
      `cloud_export_check_page 0172036645d31e4eefe10c8f5218a58b`; and
      `select 1 from information_schema.columns where table_schema = 'public' and table_name = 'cloud_exports' and column_name = 'folder_found';` → no rows.
-  2. The rolled-back proof at the migration's foot (uncomment it): one execute_sql of `begin;` + the file's statements
-     + that block + `rollback;`. Expected GREEN 7/7 (fixtures; the column, no client read; ready with `p_found`; the
-     lease's `folder_found`; a page held at the first unknown, the hi file confirmed, the lease kept a minute, the
-     connection slowed; a held page skipped by the next lease, idle; an hour of unanswered pages stuck, then a page
-     answering both closes it `done` and clears the mark; the grants and the old signature gone). RED without the
-     file's statements. Its fixtures insert `media` and `cloud_connections` rows directly (written from types.ts, never
-     run): if a trigger or CHECK refuses a fixture, adjust the fixture, not the assertions.
-  3. Applied, the bodies hash as the migration's header says; get_advisors: no delta expected.
+  2. The rolled-back proof at the migration's foot (unchanged, uncommented): one execute_sql of `begin;` + the file's
+     statements + that block + `rollback;`. Expected GREEN 7/7, steps 4 and 6 included (a page held at the first
+     unknown, the hi file confirmed, the lease kept a minute, the connection slowed; an hour of unanswered pages stuck,
+     then a page answering both closes it `done`). RED without the file's statements.
+  3. Applied, the bodies hash as the header now says: `cloud_export_ready 6985048e26eb27dd57dbf255ce76a708` and
+     `cloud_export_lease 7436838d4523f8cfc443f920f7dee196` (unchanged, and as the GREEN found them),
+     `cloud_export_check_page c1a74f6c28bb8d5d8d9677f0eaf13cac` (new; computed from the file's text the same way, a
+     method that reproduces the two the GREEN confirmed and the old check_page's `097f3c3a…`). get_advisors: no delta.
   ★ Apply before this lane's build is pushed: the build names `p_found` (PGRST202 without it) and sends `unknown`,
   which the old check_page would read as missing and send again. The reverse order is safe.
 - Account's Drive card at 375 and 1440 in the reconnect state: NOT walked. This container refused a no-sandbox Chrome
