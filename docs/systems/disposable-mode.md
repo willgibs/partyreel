@@ -158,11 +158,14 @@ phone's camera is let go whenever the page hides or the camera closes (`use-came
   spend her approval news), read only while nothing of hers is in the air, so no shot is counted twice. The host's own
   camera keeps no roll (`isOwner`) and asks nothing.
 - **The camera over a refusal of the album** (`album-camera.tsx`): a refusal the host can lift (uploads closed, the
-  album full) stops the shutter in the server's words, and nothing tells this page when the host's switch moves (it
-  reads it at render and the sync carries no word of it), so the camera asks again by itself, calmly: after 10 s, then
-  20, 40 and every minute, never while the page is hidden, at once as it comes back (never closer than 10 s to the last
-  ask, so flicking between apps is no presign a return) and when the connection does, and only for those two refusals
-  (a lock, a gone event or a ticket that is not hers are never asked again). The ask is the shots' own Retry through
+  album full) stops the shutter in the server's words. Closed, it hears the album's own word (`uploadsWord`: the
+  sync's `accepting`, each word the page hears counted) and asks again once, on the first word heard after the refusal
+  that says open, never by itself; a refusal over a word that said open asks the album afresh (`askUploadsWord`, one
+  sync with no validator, since that word's validator says open too). Full, and closed on the door's camera, which is
+  handed no word, it asks again by itself, calmly: after 10 s, then 20, 40 and every minute, never while the page is
+  hidden, at once as it comes back (never closer than 10 s to the last ask, so flicking between apps is no presign a
+  return) and when the connection does, and only for those two refusals (a lock, a gone event or a ticket that is not
+  hers are never asked again). The ask is the shots' own Retry through
   the queue, and a shot being asked stands as the refusal it was until the album answers, so the banner, the stopped
   shutter and the reel's caption never flicker for it; the answer is the file going up (a refusal comes before a byte
   moves), and a yes takes the banner and the stopped shutter away with the refusal while the shot is still on its way.

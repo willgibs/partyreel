@@ -848,8 +848,12 @@ a Change. The typed name also rides the code request as `DOOR_NAME_KEY`, so a ma
   attached the moment it exists (a seed that failed before React held it would be an unhandled rejection, and Vercel
   exits the function on one), and `use()` resolves it behind
   [`gallery-skeleton.tsx`](../../src/components/guest/gallery-skeleton.tsx), so the presign-heavy payload never
-  blocks the shell's paint; the store adopts it as its own first `sync()`, answered locally. `key={access}` remounts
-  it on an access flip (teaser → full): a clean re-seed, no resync effects.
+  blocks the shell's paint; the store adopts it as its own first `sync()`, answered locally. ★ Its link store starts
+  at the seed's attribution (`setAttr(seed.sync.attr)` where the store is built): the page mints the first window's
+  links after it reads that version, and the asks made as the album mounts (the reel's cover stills) go out before the
+  seed is adopted, so a store left at 0 would re-ask every embedded link on the first poll of an album whose
+  attribution ever moved. `key={access}` remounts it on an access flip (teaser → full): a clean re-seed, no resync
+  effects.
   A seed whose read fails (a refusal answers locked, never a throw) is the album's failure alone, and the live source
   stands through it: `readSeed` reads it rather than throwing it (Next's own throws still pass on; it adopts the
   promise with `Promise.resolve` first, since the page's promise is React Flight's thenable, whose `then` chains
@@ -915,7 +919,9 @@ a Change. The typed name also rides the code request as `DOOR_NAME_KEY`, so a ma
 - ★ **The gallery ETag never validates across access levels, nor across the gate behind one**: the validator
   (`guestAlbumEtag`, [`album-validator.ts`](../../src/lib/events/album-validator.ts)) hashes `access` + `gate` + the
   album's and the attribution's versions (never the item list itself, so a quiet poll costs one row) + the live reel's
-  facts (so a host's switch reaches an open page); the teaser's validator also carries the presign bucket, since its
+  facts (so a host's switch reaches an open page) + whether the album takes uploads, only while it is off (each full
+  answer carries the switch as `accepting`, from the route's one read of the event, and the page's seed hashes it too:
+  a close or a reopen moves no media row); the teaser's validator also carries the presign bucket, since its
   nine photographs travel inline with their links, while at full access a link rides its own ask. The
   not-found/private early return carries no ETag. A teaser validator replayed with full-access cookies must 200, and a
   guest whose gate moved from `account` to `upload` never 304s onto the step they passed.
