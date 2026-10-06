@@ -930,3 +930,20 @@ Your two identity picks are in production's atoms; these five calls came with th
 
 **BJ5. The camera's line names the retake ceiling:** "One shot each. Removing it frees the frame for another, up to 3 shots in all." (and "A roll of 12 shots each. Removing one frees its frame for another, up to 36 shots in all.")
 - *Push back if* the words should stay silent on the ceiling.
+
+## BK. The kit and the lab, at home in the cloud (lab-kit-3)
+
+Your yes of 2026-10-06 let a cloud walk sign in; these calls came with it, built and yours to overrule.
+
+**BK1. A cloud walk signs in by a minted magic link, for the two test hosts only and on a local base only**
+(`usher/kit/redteam/signin.mjs`): the link sends no mail, the session goes into the walk's own Chrome, and the operator,
+any stranger, partyreel.com and the alias are refused before any key is read.
+- *Push back if* a cloud walk should sign in on the alias too (it spends Hobby CPU).
+
+**BK2. The test media are synthetic:** gradients with drawn labels at a phone's size and bytes, a capture time in the
+Exif, a short clip with its creation time; never a real photograph.
+- *Push back if* the walks should use real photographs, uploaded once into the environment.
+
+**BK3. The lab's demo always walks the motion pass:** every step a second time with motion allowed, so the pause is
+proven on every step and a short loop per option names which options move (the whole desk took about 205 s).
+- *Push back if* the gate should take the loop only when a board asks for it.

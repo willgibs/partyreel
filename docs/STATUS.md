@@ -17,9 +17,9 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 
 - **Milestone 37 is live** (`b67cdc1f2`, 2026-10-05 16:25Z); the legal text is rewritten once, right before launch.
 - **`launch-prep` holds milestone 38**: the album turning at one moment for every guest (the party's zone), its Sort,
-  Filter and arrivals pill; a photo's capture time kept, never the place or device; the identity traits; the hub's doors
-  as cards; Settings' roll; Back a layer at a time; the dashboard's chooser; the pass credit's integrity and stuck watch;
-  the backup restoring and reconciling again; Drive's walk fixes and hardening; the lab's frames holding still.
+  Filter and arrivals pill; a photo's capture time kept, never the place or device; Will's house set and working words;
+  the hub's doors as cards; Settings' roll; Back a layer at a time; the dashboard's chooser; the pass credit's integrity
+  and stuck watch; the backup restoring and reconciling again; Drive's fixes and hardening; the lab's frames held still.
 - **Red-team 56** walked it (no HIGH, one MEDIUM, small findings): crumbs-85 fixes them while billing-orphans and
   drive-crumbs land the last of milestone 38's work; then a short re-walk and milestone 38 on Will's yes, where Drive's
   Worker and the `partyreel-backup` Worker deploy (`tracks/orchestrator.md`, Next).

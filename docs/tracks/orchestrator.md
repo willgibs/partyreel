@@ -31,20 +31,20 @@ check-in about every 40 minutes reads them (their status, pushed heads and cost)
 
 | lane | what | state | model | session |
 | --- | --- | --- | --- | --- |
-| `event-header-r6` | board event-header r6 (desk 20): the Seam made Afterglow's own (the brand's reach, its pools, the edge's own colours, the cards on the cover's foot), then `card` (`shoulder` recommended, 99+) and `attention` after it (`tally` recommended: one status token for the badges and the code's corner) | MERGED at `c224231e` (gate 37 green); on Will's desk at the next refresh; about $14.65 in 45 minutes | Opus | `session_01VLjzYrtjcchGMQBE92Cru5` |
-| `lab-kit-3` | the kit and the lab at home in the cloud: Mac paths gone, nvm optional, sign-in for the test hosts (`signin.mjs`), test media of its own, the red-team harness on Linux, the lab's open lines (fitStage, DevTools port 0, the pause at the gate, a motion capture) | RUNNING (cut at `da3c5471`) | Opus | `session_01GhmBokufroMNswQZeR2w3x` |
-| `identity-r5-wiring` | Will's house set (wells, flat keys, the chosen afloat) and working = words into production's atoms, the halo sweep inside its owns, Settings' roll-of-one words; the identity board retired | MERGED at `94534554` (gate 38 green); about $18.47; the halo at other lanes' call sites and their keys' working words a ROADMAP line; its calls are the lab's BJ; for Will's desk: Tab through Account and Settings on paper at 375 and 1440, Save and Create under a throttled network | Opus | `session_01T17fcgDtvANz1cvQAVCgnV` |
-| `crumbs-85` | red-team 56's findings (the MEDIUM: a guest's progress and Stop where she sends in an album in order) and the album's time made whole (event-zone's, capture-time's and guest-requests' follow-ups) | RUNNING (cut at `da3c5471`) | Opus | `session_017wo11hh57XYRiRaqk7T2dM` |
-| `billing-orphans` | milestone 38's billing line: an orphan's grant as one SQL function under her profiles lock, the change-plan configuration watched at its source, the Plan card's words while a credited Pro lands; one migration (`20261006120000_billing_orphans.sql`) | RUNNING (cut at `da3c5471`) | Opus | `session_015JAkfLgeuTsZZMNJXrZVeV` |
-| `drive-crumbs` | Drive whole before it goes live: album folders and files found by their marks after a reconnect, the closing check held at the first unknown, Account's card naming her folder, the palette's jump; one migration (`20261006130000_drive_marks.sql`) | RUNNING (cut at `da3c5471`) | Opus | `session_01AGJfN3zW3BvB8vPM7KSgbL` |
+| `crumbs-85` | red-team 56's findings (the MEDIUM: a guest's progress and Stop where she sends in an album in order) and the album's time made whole (event-zone's, capture-time's and guest-requests' follow-ups) | HANDED OFF at `98aa5b90`, then synced with identity-r5-wiring (`dc71e57f`) and re-gating there; integrate its head once the session is idle | Opus | `session_017wo11hh57XYRiRaqk7T2dM` |
+| `billing-orphans` | milestone 38's billing line: an orphan's grant as one SQL function under her profiles lock, the change-plan configuration watched at its source, the Plan card's words while a credited Pro lands; one migration (`20261006120000_billing_orphans.sql`) | HANDED OFF at `4a113e5d4`; waits on the morning's SQL (Waiting on Will) | Opus | `session_015JAkfLgeuTsZZMNJXrZVeV` |
+| `drive-crumbs` | Drive whole before it goes live: album folders and files found by their marks after a reconnect, the closing check held at the first unknown, Account's card naming her folder, the palette's jump; one migration (`20261006130000_drive_marks.sql`) | HANDED OFF at `6d1731c27`; waits on the morning's SQL (Waiting on Will) | Opus | `session_01AGJfN3zW3BvB8vPM7KSgbL` |
 
-**The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): spawned in this session for the first
-migration that lands; its agent id lives only here.
+**The Advisor** (Fable, read-only; the runbook's "Consult the Advisor") read both of tonight's migrations
+(2026-10-06): APPLY each, after its drift read and its proof's GREEN; the hashes and its caveats are under Waiting on
+Will. A successor respawns it from `usher/kit/advisor-prompt.txt` for the next migration.
 
-**The cloud seat.** This container holds no secret (it predates Will's environment change; its `.env.local` holds the
-public values) and runs the gates on 4 cores (`pnpm test` about 8.5 minutes). zsh is installed and `~/.nvm/nvm.sh` is a
-no-op stub (the kit sources nvm under `set -e`); an export lasts one command, so `S` and `CHROME_PATH` live in the
-shell snapshot (re-append after a worker restart; a background command reads none, so set `S` inside it). A restart
+**The cloud seat.** Since its restart at 09:52Z the container carries Will's environment (every app variable), and
+its `.env.local` is written from it by the spawn prompt's recipe (the site URL kept at `http://localhost:3000`); it runs
+the gates on 4 cores (`pnpm test` about 8.5 minutes). zsh is installed and `~/.nvm/nvm.sh` is a
+no-op stub (the kit sources nvm under `set -e`); an export lasts one command, so `S`, `CHROME_PATH`, `NODE_USE_ENV_PROXY` and the
+site URL's override live in the shell snapshot (re-append after a worker restart; a background command reads none, so
+set them inside it). A restart
 resumes in the session record's mode, so the mode stays Auto. The lanes' sessions carry the environment's variables
 and an open network. The Vercel connector sees Will's personal team, not P3's (`VERCEL_TOKEN` in the lanes' environment
 serves the kit's REST calls); no Cloudflare token is in the environment. ★ **The Supabase connector's SQL tools
@@ -64,8 +64,8 @@ local agents' transcripts.
 ## Next, in order
 
 1. **Integrate each handoff as it lands**, one at a time, each lane's migration through the Advisor before
-   `apply_migration` (its md5 against the file, advisors at 26/4/36, the types regenerated): milestone 38's three
-   first (crumbs-85, billing-orphans, drive-crumbs), then identity-r5-wiring and lab-kit-3.
+   `apply_migration` (its md5 against the file, advisors at 26/4/36, the types regenerated): crumbs-85 once its synced
+   gate settles, then billing-orphans and drive-crumbs after the morning's SQL.
 2. **Will's desk** holds brand r2's `take` (served at `2634388a8`, unanswered) and, at the next refresh, event-header
    r6's `card` and `attention`: he runs `git pull && S=/tmp zsh usher/kit/desk-refresh.sh <sha>` in his checkout.
    Then desk 6, the brand applied (brand-marks with the status set, which inherits his `attention` pick as its waiting
@@ -79,8 +79,6 @@ local agents' transcripts.
    a Cloudflare token in the environment) and `DRIVE_WORKER_URL` and `BACKUP_WORKER_URL` on Vercel; drive-hardening's
    live walk (P3's Google consent, Will's hand). The Advisor wants 38 soon: milestone 37's build re-grants a Pro credit
    past a day (TEST money).
-4. **test-slim's two Questions**, built here with the full gate: `pool: "threads"` in `vitest.config.ts` and
-   `@vitest/coverage-v8@4.1.7` with a `test:coverage` script (the calls lab's BH1 and BH2).
 5. **The second wave**, from ROADMAP "Now" as owns free: accessibility after identity-r5-wiring (`--faint` at about
    3.6:1, the paper warning token at 1.85:1, `dashRange`'s spoken twin), the rest of the halo sweep (the guest's pages,
    the hub, `/admin`, pricing, Drive), uploads (Retry all re-queued once, the next burst on the last one's bytes,
@@ -88,14 +86,23 @@ local agents' transcripts.
 6. **Compute:** lever 3 and 3b only on Will's X5; `pnpm compute:model` at every milestone.
 7. **★ Vercel's Hobby Active CPU** (about 3.89 of 4 hours over 30 days on 2026-10-06; the peak rolls off in early
    November): nothing runs against the alias or partyreel.com but what Will asks for by name.
-8. **Pacing:** the cloud credit (Will: $250, $17 spent by 06:00Z): full speed until he says it is spent; each lane's
-   cost reads from its `get_session` usage.
+8. **Pacing:** the cloud credit (Will: $250, $168 left at his good night, a gift: spend it): full speed until he says
+   it is spent. The account's seven-day limit read `allowed_warning` at 10:31Z (it resets about 2026-10-11 13:00Z).
 
 ## Waiting on Will
 
 - **His desk:** brand r2's take; event-header r6 at the next refresh.
-- **The SQL steps of tonight's two migrations** (billing-orphans', drive-crumbs'): their proofs, the applies and the
-  types each need his approval of the Supabase connector's prompt, so they wait for his morning.
+- **The SQL steps of tonight's two migrations** (billing-orphans', drive-crumbs'): each connector prompt needs his
+  approval. First the drift read, live `md5(btrim(regexp_replace(prosrc,'\s+',' ','g')))` against the Advisor's:
+  `record_pass_credit_grant` `8605ffe454f7e3ab41cdeaf8384edc6e`, `release_pass_credit`
+  `daf8070ceefe570939df3dd5965ecb5d`, `convert_pass_credit` `17dd8a3c42b8a3301206eb3de5462a9a`, `claim_pass_credit`
+  `608bb620d856a71389345ce194ddb6d4`, `cloud_export_ready` `998368c3d63a02382117a077f8f70668`, `cloud_export_lease`
+  `c92cf0439d5b687adb6ca61da496c0aa`, `cloud_export_check_page` `0172036645d31e4eefe10c8f5218a58b`;
+  `adopt_pass_credit_orphans` and `cloud_exports.folder_found` absent. Then each file's RED/GREEN proof (a GREEN
+  failing on a fixture is the fixture's; on an assertion, HOLD), the applies (either order), advisors at 26/4/36, the
+  types once after both, and the two integrations with the Advisor's words folded in: billing-caps' "all or nothing"
+  covers only the orphans that held grants; drive-export's closing check re-asks a non-rate unknown every 90 s with no
+  growth (a ROADMAP line for the Worker's cadence); adopt's orphan loop wants `and c.profile_id = p_host_id` (a nit).
 - **The calls lab** (`docs/calls.md`): the open questions X1, X2, X3, X5, X6 and X8, then each merge's calls, built and
   his to overrule. He asks direct questions in chat; answer in chat, never only in a file.
 - **Milestone 38** on his yes, after crumbs-85, billing-orphans, drive-crumbs and red-team 56b.
@@ -114,7 +121,8 @@ local agents' transcripts.
   and now the cloud environment: unread by any code, their Stripe TEST prices archived.
 - **His six motion links, a note:** libraries.dev is blocked on his home network (the ISP's CUJO filter), so three of
   the six (voice, image, gooey) were read from their MIT source on GitHub, never watched.
-- **His walks:** Settings' develop time on his iPhone (type a time, then Back or the picker's close: it holds;
+- **His walks:** Tab through Account and Settings on paper at 375 and 1440, Save and Create under a throttled
+  network (identity-r5-wiring); Settings' develop time on his iPhone (type a time, then Back or the picker's close: it holds;
   crumbs-72), the camera on his iPhone (a held-shutter video on a waiting sheet), Save into Photos, Record Video's
   size, a deletion and its Cancel deletion on hi@willgibs.com, the spend watch's uploads switch off and on; and
   trash-in-storage's permanent deletes, which no agent may press (on hi@willgibs.com: the size list's Delete for good
