@@ -1,4 +1,4 @@
-import { Check, Download, Wand2 } from "lucide-react";
+import { Check, Download, FolderDown, ImageDown, Wand2 } from "lucide-react";
 import Image from "next/image";
 import type { CSSProperties, ReactNode } from "react";
 
@@ -9,20 +9,21 @@ import {
   MARKETING_REELS,
   marketingImage,
 } from "@/lib/constants/marketing-media";
-import { formatBytes } from "@/lib/utils";
+import { saveHints, setNoun, type TakeHomeSizes } from "@/lib/export/take-home";
 
 import { TAKE_HOME } from "./album-copy";
 
 /**
  * EVERYONE LEAVES WITH EVERYTHING: three EQUAL photographic plates (the door
  * anatomy, no lamp), each carrying the real control the app draws: the Save
- * pill on a full-screen shot, the pinned "Download album" button over the
- * album with the export dialog's own count-and-size line, and the reel's frame
- * under the violet Make your own that starts a clip (reel/live-reel-view.tsx's
- * one primary, its label pinned by mock-parity). Hover lifts the photograph a touch
- * and swaps the pill's icon to a check (the icon-swap recipe), so "leaves
- * with" is felt rather than read. Below lg the plates go 2 + 1, never three
- * 170px columns.
+ * pill on a full-screen shot, the guest's take-home over the album (Select,
+ * every tile picked, then Save's quick choice: `guest/live-gallery-save.tsx`'s
+ * two rows, their sizes in the product's own words through `saveHints`, which
+ * mock-parity pins), and the reel's frame under the violet Make your own that
+ * starts a clip (reel/live-reel-view.tsx's one primary, its label pinned by
+ * mock-parity). Hover lifts the photograph a touch and swaps the pill's icon to
+ * a check (the icon-swap recipe), so "leaves with" is felt rather than read.
+ * Below lg the plates go 2 + 1, never three 170px columns.
  */
 
 const ALBUM_TILES = [
@@ -38,8 +39,15 @@ const ALBUM_TILES = [
 ];
 
 const MB = 1024 * 1024;
-const ALBUM_ITEMS = 228;
-const ALBUM_BYTES = 1338 * MB;
+/** Every tile picked (her All): 216 photographs and 12 clips, as the server would size them. */
+const PICKED: TakeHomeSizes = {
+  photos: 216,
+  clips: 12,
+  original: 1338 * MB,
+  phone: 452 * MB,
+  photosPhone: 134 * MB,
+  clipBytes: 318 * MB,
+};
 
 function Plate({
   index,
@@ -91,6 +99,38 @@ function Pill({ label }: { label: string }) {
   );
 }
 
+/**
+ * SAVE'S QUICK CHOICE, rising over her picks: the title names what she picked and each row its size, in the words
+ * `live-gallery-save.tsx` gives them (`setNoun`, `saveHints`), so a reader sees Photos is light and the originals
+ * whole.
+ */
+function SaveChoice({ sizes }: { sizes: TakeHomeSizes }) {
+  const hints = saveHints(sizes);
+  const rows = [
+    { Icon: ImageDown, label: "Save to Photos", hint: hints.photos },
+    { Icon: FolderDown, label: "Save to Files", hint: hints.originals },
+  ];
+  return (
+    <span className="absolute inset-x-3 bottom-3 flex flex-col gap-0.5 rounded-xl bg-popover p-1.5 text-popover-foreground shadow-layer">
+      <span className="px-2 pt-1 pb-1 font-heading text-sm">
+        Save {setNoun(sizes.photos, sizes.clips)}
+      </span>
+      {rows.map(({ Icon, label, hint }) => (
+        <span
+          key={label}
+          className="flex items-center gap-2 rounded-md px-2 py-1.5 text-xs"
+        >
+          <Icon className="size-3.5 shrink-0" />
+          <span className="min-w-0 flex-1 truncate">{label}</span>
+          <span className="shrink-0 text-micro text-muted-foreground tabular-nums">
+            {hint}
+          </span>
+        </span>
+      ))}
+    </span>
+  );
+}
+
 const LIFT =
   "object-cover transition-transform duration-500 ease-emphasis group-hover:scale-[1.02] motion-reduce:transition-none motion-reduce:group-hover:scale-100";
 
@@ -133,18 +173,15 @@ export function TakeHomeSection() {
                   sizes="110px"
                   className={LIFT}
                 />
+                {/* Picked: the album tile's own selection marks, the dim and the check. */}
+                <span className="absolute inset-0 bg-black/40" />
+                <span className="absolute top-1.5 right-1.5 flex size-5 items-center justify-center rounded-full bg-success text-success-foreground ring-2 ring-white">
+                  <Check className="size-3" />
+                </span>
               </span>
             ))}
           </span>
-          <span className="absolute inset-0 bg-black/35" />
-          <span className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-            <span className="inline-flex h-9 items-center gap-2 rounded-full bg-white px-4 text-xs font-medium text-neutral-900">
-              <Download className="size-3.5" /> Download album
-            </span>
-            <span className="text-micro font-medium text-white/85 tabular-nums">
-              {ALBUM_ITEMS} items · {formatBytes(ALBUM_BYTES)}
-            </span>
-          </span>
+          <SaveChoice sizes={PICKED} />
         </Plate>
 
         <Plate index={2} title={clip.title} body={clip.body}>

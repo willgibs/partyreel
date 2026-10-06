@@ -63,6 +63,7 @@ import {
   setNoun,
   sheetCanSave,
   takeHomeSizes,
+  type TakeHomeSizes,
 } from "@/lib/export/take-home";
 import { formatCount } from "@/lib/format/count";
 import { PHONE_MAX_EDGE } from "@/lib/media/preview-size";
@@ -207,21 +208,12 @@ export function TakeHomePanel({
   };
 
   const originalsCard = (
-    <SetCard
+    <OriginalsCard
       key="originals"
-      name="Originals"
-      purpose="Full size, to keep for good."
-      facts={
-        sizes
-          ? `${formatCount(sizes.photos + sizes.clips)} · ${formatBytes(sizes.original)} · a zip`
-          : failed
-            ? "Couldn't add it up"
-            : "Adding it up"
-      }
+      sizes={sizes}
+      failed={failed}
       pictures={read?.pictures ?? []}
-      from={0}
-      lead={desk}
-      wide={desk}
+      desk={desk}
       act={
         <>
           <Button
@@ -251,21 +243,12 @@ export function TakeHomePanel({
     />
   );
   const phoneCard = (
-    <SetCard
+    <PhoneSizeCard
       key="phone"
-      name="Phone size"
-      purpose="Light enough to post tonight."
-      facts={
-        sizes
-          ? `${formatCount(sizes.photos)} ${sizes.photos === 1 ? "photo" : "photos"} · ${formatBytes(sizes.photosPhone)} · ${formatCount(PHONE_MAX_EDGE)} px`
-          : failed
-            ? "Couldn't add it up"
-            : "Adding it up"
-      }
+      sizes={sizes}
+      failed={failed}
       pictures={read?.pictures ?? []}
-      from={1}
-      lead={!desk}
-      wide={desk}
+      desk={desk}
       act={
         <Button
           type="button"
@@ -322,11 +305,7 @@ export function TakeHomePanel({
               >
                 {desk ? [originalsCard, phoneCard] : [phoneCard, originalsCard]}
               </div>
-              {sizes && sizes.clips > 0 && (
-                <p className="text-xs text-pretty text-muted-foreground">
-                  {`Clips come as they were taken: ${formatCount(sizes.clips)} · ${formatBytes(sizes.clipBytes)}, with the originals.`}
-                </p>
-              )}
+              <ClipsLine sizes={sizes} />
               {hasHidden && (
                 <label className="flex items-center justify-between gap-3 text-sm">
                   <span className="text-muted-foreground">
@@ -344,6 +323,91 @@ export function TakeHomePanel({
         )}
       </PopupContent>
     </Popup>
+  );
+}
+
+/** What a set card says while the sizes are asked, or once they could not be. */
+const pendingFacts = (failed: boolean) =>
+  failed ? "Couldn't add it up" : "Adding it up";
+
+/**
+ * THE PANEL'S OWN PIECES, EXPORTED FOR THE PICTURES OF IT (retired-mocks): the marketing site draws Take it home by
+ * composing these two cards and the clips' line with a fictional album's sizes (`takeHomeSizes` over a summary of
+ * its own) and inert acts, so a rename, a fact's format or a card's shape here moves the picture with it. Each card
+ * owns its name, its purpose and its facts; the panel owns the acts and the order (originals first at a desk, phone
+ * size first in a hand).
+ */
+type SetCardProps = {
+  /** The server's sizes, null while they are asked. */
+  sizes: TakeHomeSizes | null;
+  /** The sizes could not be asked. */
+  failed?: boolean;
+  /** The album's newest photographs, which picture both sets. */
+  pictures: readonly string[];
+  /** A desk's panel: the cards side by side, the originals leading. */
+  desk: boolean;
+  act: React.ReactNode;
+};
+
+/** ORIGINALS, "full size, to keep for good": every photograph and clip as taken. */
+export function OriginalsCard({
+  sizes,
+  failed = false,
+  pictures,
+  desk,
+  act,
+}: SetCardProps) {
+  return (
+    <SetCard
+      name="Originals"
+      purpose="Full size, to keep for good."
+      facts={
+        sizes
+          ? `${formatCount(sizes.photos + sizes.clips)} · ${formatBytes(sizes.original)} · a zip`
+          : pendingFacts(failed)
+      }
+      pictures={pictures}
+      from={0}
+      lead={desk}
+      wide={desk}
+      act={act}
+    />
+  );
+}
+
+/** PHONE SIZE, "light enough to post tonight": the photographs at 2048 px. */
+export function PhoneSizeCard({
+  sizes,
+  failed = false,
+  pictures,
+  desk,
+  act,
+}: SetCardProps) {
+  return (
+    <SetCard
+      name="Phone size"
+      purpose="Light enough to post tonight."
+      facts={
+        sizes
+          ? `${formatCount(sizes.photos)} ${sizes.photos === 1 ? "photo" : "photos"} · ${formatBytes(sizes.photosPhone)} · ${formatCount(PHONE_MAX_EDGE)} px`
+          : pendingFacts(failed)
+      }
+      pictures={pictures}
+      from={1}
+      lead={!desk}
+      wide={desk}
+      act={act}
+    />
+  );
+}
+
+/** The clips, said once under both sets: they come as they were taken. Nothing when the set holds none. */
+export function ClipsLine({ sizes }: { sizes: TakeHomeSizes | null }) {
+  if (!sizes || sizes.clips === 0) return null;
+  return (
+    <p className="text-xs text-pretty text-muted-foreground">
+      {`Clips come as they were taken: ${formatCount(sizes.clips)} · ${formatBytes(sizes.clipBytes)}, with the originals.`}
+    </p>
   );
 }
 
