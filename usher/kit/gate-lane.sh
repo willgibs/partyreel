@@ -89,6 +89,14 @@ else
     case ",$DEMOBOARDS," in *,all,*) DEMOARGS=(--all) ;; *) DEMOARGS=(--board "$DEMOBOARDS") ;; esac
     if [ -z "$DEMOBOARDS" ]; then echo "lab:demo: the merge reached no board, so no step to press"
     else
+      # The demo gets a fresh server on this tree's own cache (gate 39, 2026-10-06: on the cloud seat's 15 GB container
+      # one server compiled the whole lab through lab:smoke --all, grew past 10 GB in lab:demo --all and was OOM-killed
+      # mid-step): the restart drops the crawl's compiled pages from memory, and the cache it keeps was warmed on this
+      # very tree.
+      lsof -ti tcp:$PORT | xargs -r kill 2>/dev/null; kit_free_port $PORT; sleep 1
+      (pnpm dev -p $PORT >>"$S/dev$PORT.log" 2>&1 &)
+      for j in $(seq 1 120); do curl -s -o /dev/null -w '%{http_code}' "http://localhost:$PORT/design/library?key=$DESIGN_PREVIEW_KEY" 2>/dev/null | grep -q '^200' && break; sleep 2; done
+      echo "dev restarted for the demo: lab ready after ${j}x2s"
       # a cold frame compile under load stalls CDP past its 60 s (gate 62, 2026-09-20: two TIMED OUT steps, green on the
       # warm re-run): one retry on the warm server; both logs kept; the exit is the last attempt's.
       t=$SECONDS; DEMO=1
