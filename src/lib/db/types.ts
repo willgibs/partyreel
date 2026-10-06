@@ -1195,6 +1195,7 @@ export type Database = {
       }
       media: {
         Row: {
+          captured_at: string | null
           created_at: string
           duration_seconds: number | null
           event_id: string
@@ -1226,6 +1227,7 @@ export type Database = {
           width: number | null
         }
         Insert: {
+          captured_at?: string | null
           created_at?: string
           duration_seconds?: number | null
           event_id: string
@@ -1257,6 +1259,7 @@ export type Database = {
           width?: number | null
         }
         Update: {
+          captured_at?: string | null
           created_at?: string
           duration_seconds?: number | null
           event_id?: string
@@ -2214,6 +2217,7 @@ export type Database = {
       }
       create_media: {
         Args: {
+          p_captured_at?: string
           p_duration_seconds?: number
           p_file_size_bytes: number
           p_height?: number
@@ -2231,6 +2235,7 @@ export type Database = {
       }
       create_media_as_host: {
         Args: {
+          p_captured_at?: string
           p_duration_seconds?: number
           p_event_id: string
           p_file_size_bytes: number

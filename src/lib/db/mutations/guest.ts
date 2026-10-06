@@ -531,12 +531,16 @@ export async function createMedia(input: {
   width?: number | null;
   height?: number | null;
   reelEligible?: boolean; // the live reel: false only for a clip added to the album
+  /** When the original says it was taken (Will's X7), already held to its bounds by the route; null for none. */
+  capturedAt?: string | null;
 }): Promise<CreateMediaResult> {
   // Server-mediated (H1): create_media is service-role-only (revoked from anon/authenticated), so it can't
   // be called directly via PostgREST with a spoofed size — the complete-upload route HEADs R2 for the real
   // size and calls here via the admin client. The session_token in the body remains the guest capability.
   const supabase = createAdminClient();
-  // The phone copy's two arguments are left out of the body when there is no copy (create_media refuses one alone).
+  // The phone copy's two arguments are left out of the body when there is no copy (create_media refuses one alone),
+  // and so is the capture time when the upload kept none: its default applies, so an upload without one resolves the
+  // same function either way.
   const { data, error } = await supabase.rpc("create_media", {
     p_session_token: input.sessionToken,
     p_media_id: input.mediaId,
@@ -550,6 +554,7 @@ export async function createMedia(input: {
     p_reel_eligible: input.reelEligible,
     p_phone_key: input.phoneKey ?? undefined,
     p_phone_bytes: input.phoneBytes ?? undefined,
+    p_captured_at: input.capturedAt ?? undefined,
   });
 
   if (error) {

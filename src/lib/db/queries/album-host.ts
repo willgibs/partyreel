@@ -48,7 +48,7 @@ export async function readHostManifestPage(
       let q = supabase
         .from("media")
         .select(
-          "id, type, width, height, duration_seconds, preview_key, reel_eligible, created_at, status",
+          "id, type, width, height, duration_seconds, preview_key, reel_eligible, created_at, captured_at, status",
         )
         .eq("event_id", eventId)
         .in("status", ["pending", "approved", "hidden"])
@@ -76,6 +76,7 @@ export async function readHostManifestPage(
           has_preview: m.preview_key !== null,
           reel_eligible: m.reel_eligible,
           created_at: m.created_at,
+          captured_at: m.captured_at,
           status: m.status,
         },
         "host",

@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import type { ManifestEntry } from "@/lib/events/album-wire";
+import { toManifestEntry, type ManifestEntry } from "@/lib/events/album-wire";
 import {
   albumTurnAt,
   ALBUM_SORT_KEEP,
@@ -204,6 +204,40 @@ describe("the night in order", () => {
     const list = [e("late", 500), ...wire];
     const night = inOrder(list, (x) => taken.get(x[0]) ?? x[4]);
     expect(night.map((x) => x[0])).toEqual(["a", "late", "b", "c1", "c2", "d"]);
+  });
+
+  it("★ reads the capture time the album's wire carries: a late upload's own `captured_at` puts it mid-album", () => {
+    // Built by the wire's own mapper from rows as the manifest reads return them (capture-time, Will's X7): were the
+    // wire to stop carrying `captured_at`, the late upload would fall back to its arrival and land at the end.
+    const row = (id: string, created: string, captured: string | null) =>
+      toManifestEntry(
+        {
+          id,
+          type: "photo",
+          width: 640,
+          height: 480,
+          duration_seconds: null,
+          has_preview: true,
+          reel_eligible: true,
+          created_at: created,
+          captured_at: captured,
+        },
+        "album",
+      );
+    // Newest first by arrival, the wire's own order: the late one arrived the next morning, taken at 21:10.
+    const night = [
+      row(
+        "late",
+        "2026-10-04T09:30:00.000000+00:00",
+        "2026-10-03T21:10:00+00:00",
+      ),
+      row("b", "2026-10-03T21:20:00.000000+00:00", null),
+      row("a", "2026-10-03T21:00:00.000000+00:00", null),
+    ];
+    expect(takenAtOf(night[0])).toBe(at("2026-10-03T21:10:00Z") * 1000);
+    expect(takenAtOf(night[1])).toBeNull();
+    expect(happenedAt(night[0])).toBe(at("2026-10-03T21:10:00Z") * 1000);
+    expect(entriesInOrder(night).map((x) => x[0])).toEqual(["a", "late", "b"]);
   });
 
   it("a tie goes to the earlier arrival, and one the manifest does not hold yet is the newest of all", () => {
