@@ -46,6 +46,7 @@ import { UPLOAD_FAILED_HELP_HREF } from "@/lib/content/help-links";
 import { formatCount } from "@/lib/format/count";
 import { retryCanPass } from "@/lib/guest/upload-refusal";
 import { useWaitClock } from "@/lib/disposable/use-wait-clock";
+import { usePartyZone } from "@/components/guest/party-zone";
 import { restWaitLine, waitWords } from "@/lib/disposable/wait-words";
 import { NOTHING_WAITS, type UploadsWait } from "@/lib/guest/upload-tracker";
 import type { UploadCause } from "@/lib/upload/uploader";
@@ -87,9 +88,11 @@ export function uploadFailureElsewhere(input: {
   waits?: UploadsWait;
   /** The reader's clock (`useWaitClock`), or null before it is known: then no time is said. */
   nowMs?: number | null;
+  /** The party's zone (`usePartyZone`), for a far party's two clocks. */
+  zone?: string | null;
 }): string {
-  const { hostName, waits = NOTHING_WAITS, nowMs = null } = input;
-  const clock = waitWords(waits, hostName);
+  const { hostName, waits = NOTHING_WAITS, nowMs = null, zone = null } = input;
+  const clock = waitWords(waits, hostName, zone);
   if (clock) return restWaitLine(clock, nowMs);
   return `Everything else is in ${hostName}’s album.`;
 }
@@ -270,6 +273,7 @@ export function UploadFailureSheet({
   const shown =
     open && failures.length > 0 ? { failures, sent, landed } : latched;
   const nowMs = useWaitClock();
+  const zone = usePartyZone();
   const heading = uploadFailureHeading(shown.failures.length, shown.sent);
   /* ★ A RUN THAT FAILED WHOLE HAS NO "EVERYTHING ELSE" TO SAY (crumbs-76): "1 of 1 didn't upload" under "Everything
      else is in Maya's album" spoke of a rest that does not exist. The line is said only where the run sent more than
@@ -280,7 +284,7 @@ export function UploadFailureSheet({
   const others = shown.sent - shown.failures.length;
   const rest =
     others > 0 && (shown.landed ?? others) === others
-      ? uploadFailureElsewhere({ hostName, waits, nowMs })
+      ? uploadFailureElsewhere({ hostName, waits, nowMs, zone })
       : null;
   // Nothing a retry could pass: every line is a refusal of the file itself, so the way on is another file.
   const nothingToRetry = !shown.failures.some((f) => retryCanPass(f.code));

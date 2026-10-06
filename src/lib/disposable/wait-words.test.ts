@@ -2,7 +2,9 @@
  * THE WAIT IN A GUEST'S WORDS (the-wait r1, `model=time`): one word for every wait, Developing, and the small
  * distinction between a reviewed album and a disposable said by the clock alone; the preset named on the cover.
  */
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+import { browserZone } from "@/lib/event/zone";
 
 import {
   countdownWords,
@@ -234,5 +236,37 @@ describe("waitWords: the page's one reading of what hers wait for", () => {
       hostName: "Maya",
     });
     expect(waitWords({ waits: false, developsAt: null }, "Maya")).toBeNull();
+  });
+});
+
+describe("★ a far party's wait, in both clocks (crumbs-85)", () => {
+  it("the clock carries the party's zone, and every line says the party's time and hers", () => {
+    const zone = vi
+      .spyOn(browserZone, "zoneName")
+      .mockReturnValue("America/Los_Angeles");
+    try {
+      const at = "2026-10-04T01:00:00.000Z";
+      const clock = waitWords(
+        { waits: true, developsAt: at },
+        "Maya",
+        "Asia/Makassar",
+      )!;
+      expect(clock).toEqual({
+        kind: "develop",
+        developsAt: at,
+        zone: "Asia/Makassar",
+      });
+      const now = Date.parse(at) - 3_600_000;
+      const both = "Sun, Oct 4 at 9 am in Makassar, Sat 6 pm yours";
+      expect(waitRule(clock, now)).toBe(`Uploads develop all at once ${both}.`);
+      expect(waitClockLine(clock, now)).toBe(`All at once ${both}`);
+      expect(restWaitLine(clock, now)).toBe(
+        `Everything else develops with everyone's ${both}.`,
+      );
+      // Before hydration no time is said at all, either clock.
+      expect(waitRule(clock, null)).toBe("Uploads develop all at once.");
+    } finally {
+      zone.mockRestore();
+    }
   });
 });

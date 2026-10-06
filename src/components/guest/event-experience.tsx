@@ -99,6 +99,7 @@ import { developMs } from "@/lib/disposable/contact-sheet-develop";
 import { useWaitClock } from "@/lib/disposable/use-wait-clock";
 import { coverEyebrow, waitWords } from "@/lib/disposable/wait-words";
 import type { GuestAlbumOrder } from "@/lib/shared/album-order";
+import { PartyZoneContext } from "@/components/guest/party-zone";
 import { addWords } from "@/lib/guest/camera/words";
 import { claimLeftForAnotherAddress } from "@/lib/guest/claim-uploads";
 import {
@@ -180,7 +181,21 @@ const deliveringPicks = new Set<string>();
 // upload slot render immediately; the presign-heavy gallery streams in behind
 // <Suspense> as LiveGallery (which owns all gallery state + the doorbell/poll
 // machine). Only rendered when the event is public (the server gates that).
-export function EventExperience({
+/**
+ * THE PAGE, with the party's zone handed to everything below that says a develop time (`party-zone.tsx`, crumbs-85): a far
+ * party's guest reads it in both clocks.
+ */
+export function EventExperience(
+  props: Parameters<typeof EventExperienceBody>[0],
+) {
+  return (
+    <PartyZoneContext value={props.partyZone ?? null}>
+      <EventExperienceBody {...props} />
+    </PartyZoneContext>
+  );
+}
+
+function EventExperienceBody({
   event,
   qrToken,
   joinUrl,
@@ -210,6 +225,7 @@ export function EventExperience({
   doorPhase,
   uploadsWait,
   albumOrder,
+  partyZone = null,
 }: {
   event: GuestEvent;
   qrToken: string;
@@ -327,6 +343,11 @@ export function EventExperience({
    * page), the album stays newest first.
    */
   albumOrder?: GuestAlbumOrder;
+  /**
+   * The party's zone (`events.time_zone`) for words only: a develop time is said in both clocks where the guest's zone is
+   * not the party's (`developsWhen`). Null where the page names none (a lock, the demo): her own clock.
+   */
+  partyZone?: string | null;
 }) {
   const router = useRouter();
   // ONE resolution of the step for both boxes the album occupies: the skeleton
@@ -739,8 +760,8 @@ export function EventExperience({
      approval or a develop time ahead, so the album's contact sheet, her tracker and the slot all say one wait,
      "Developing", told apart by its clock alone ("As Maya lets them in", "All at once at 9 am"). */
   const waitClock = useMemo(
-    () => waitWords(liveWait, event.host_display_name ?? null),
-    [liveWait, event.host_display_name],
+    () => waitWords(liveWait, event.host_display_name ?? null, partyZone),
+    [liveWait, event.host_display_name, partyZone],
   );
   /* ★ THE PRESET NAMED ON THE COVER (Will's `name=disposable`): "Disposable · develops at 9 am" over the event's name on
      an album with its camera and a develop time, "developed" the morning after; the time in her own clock, so only once

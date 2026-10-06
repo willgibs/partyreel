@@ -41,6 +41,7 @@ import { RoleWords, WelcomeWords } from "@/components/guest/door/welcome";
 import { EntryShell, type DismissMode } from "@/components/guest/entry-shell";
 import { EntryStepTransition } from "@/components/guest/entry-step-transition";
 import type { UploadsWord } from "@/components/guest/event-experience-open";
+import { usePartyZone } from "@/components/guest/party-zone";
 import {
   GuestNameStep,
   guestNameCopy,
@@ -396,6 +397,8 @@ export const EntryModal = forwardRef<
   ref,
 ) {
   const router = useRouter();
+  // The party's zone, for a far party's develop time in both clocks (`party-zone.tsx`).
+  const partyZone = usePartyZone();
   // The demo never persists "seen": every visit is fresh, even a returning one, so the hook
   // itself is told which visitor this is; and the page's word stands for the server and the hydration.
   const [seen, markSeen] = useWelcomeSeen(qrToken, isDemo, welcomeSeen);
@@ -1068,6 +1071,7 @@ export const EntryModal = forwardRef<
   const uploadWait = waitWords(
     { waits: keepHeld, developsAt: keepDevelopsAt },
     null,
+    partyZone,
   );
   /* THE DOOR'S CAMERA: whether this album has one for the first photograph (never the demo's, which is free uploads),
      what it reads of the album (the door's own readings of how it waits, in the camera's own shape), and the press that

@@ -4,8 +4,9 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
+import { browserZone } from "@/lib/event/zone";
 import { ROLL_MAX, ROLL_MIN, rollSpentMessage } from "@/lib/disposable/roll";
 
 import { reelCells } from "./reel";
@@ -219,6 +220,34 @@ describe("the lines", () => {
     expect(rollDoneLine({ held: 3, reveal: "door", developsAt: null })).toBe(
       "3 shots. They go in once you’re let in.",
     );
+  });
+
+  it("★ a far party's develop time is said in both clocks; a party in her own zone, or none, in hers (crumbs-85)", () => {
+    const zone = vi.spyOn(browserZone, "zoneName");
+    try {
+      zone.mockReturnValue("America/Los_Angeles");
+      const at = "2026-10-04T01:00:00.000Z";
+      expect(
+        developsWhen(at, Date.parse(at) - 3_600_000, "Asia/Makassar"),
+      ).toBe("Sun, Oct 4 at 9 am in Makassar, Sat 6 pm yours");
+      expect(
+        cameraSubLine({
+          reveal: "develop",
+          developsAt: at,
+          recording: false,
+          done: false,
+          zone: "Asia/Makassar",
+        }),
+      ).toBe("Develops Sun, Oct 4 at 9 am in Makassar, Sat 6 pm yours");
+      // Her own zone, or no zone at all: her own clock, as always.
+      const near = developsWhen(at, Date.parse(at) - 3_600_000);
+      expect(
+        developsWhen(at, Date.parse(at) - 3_600_000, "America/Los_Angeles"),
+      ).toBe(near);
+      expect(near).not.toMatch(/yours/);
+    } finally {
+      zone.mockRestore();
+    }
   });
 
   it("says what her shots are waiting for", () => {

@@ -29,6 +29,7 @@ import {
   AccessPanel,
   RollDonePanel,
 } from "@/components/guest/camera/camera-panels";
+import { usePartyZone } from "@/components/guest/party-zone";
 import { Button } from "@/components/ui/button";
 import { CameraReel } from "@/components/guest/camera/camera-reel";
 import { CameraShutter } from "@/components/guest/camera/camera-shutter";
@@ -196,6 +197,8 @@ export function CameraScreen({
   onClose: () => void;
 }) {
   const hintId = useId();
+  // The party's zone, for a far party's develop time in both clocks (`party-zone.tsx`).
+  const partyZone = usePartyZone();
   const visible = usePageVisible();
   const [facing, setFacing] = useState<Facing>("environment");
   const [attempt, setAttempt] = useState(0);
@@ -667,6 +670,7 @@ export function CameraScreen({
               developsAt,
               recording: filming !== null,
               done,
+              zone: partyZone,
             })}
           </p>
         </div>

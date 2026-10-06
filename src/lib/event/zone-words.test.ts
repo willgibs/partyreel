@@ -5,6 +5,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  bothClocksWhen,
   clockThere,
   fromZoneInput,
   toZoneInput,
@@ -91,5 +92,27 @@ describe("the field: the party's wall clock, both ways", () => {
       expect(fromZoneInput(typed, MX), typed).toBeNull();
     }
     expect(toZoneInput("soon", MX)).toBe("");
+  });
+});
+
+describe("★ both clocks, for a guest far from the party (crumbs-85)", () => {
+  it("says the party's clock with its day and place, then hers, her weekday named where her day is not the party's", () => {
+    // 01:00 UTC on 4 October: 9 am Sunday in Bali (UTC+8), 6 pm Saturday in Los Angeles (UTC-7).
+    expect(
+      bothClocksWhen(
+        "2026-10-04T01:00:00.000Z",
+        "Asia/Makassar",
+        "America/Los_Angeles",
+      ),
+    ).toBe("Sun, Oct 4 at 9 am in Makassar, Sat 6 pm yours");
+    // 08:00 UTC: 4 pm in Makassar, 9 am in London (BST): the same Sunday, so no weekday.
+    expect(
+      bothClocksWhen(
+        "2026-10-04T08:00:00.000Z",
+        "Asia/Makassar",
+        "Europe/London",
+      ),
+    ).toBe("Sun, Oct 4 at 4 pm in Makassar, 9 am yours");
+    expect(bothClocksWhen("soon", "Asia/Makassar", "Europe/London")).toBe("");
   });
 });

@@ -36,6 +36,7 @@ import { removeOwnShot } from "@/components/guest/camera/remove-shot";
 import { useBlobUrls } from "@/components/guest/camera/use-blob-urls";
 import { YourShots, type ShotTile } from "@/components/guest/camera/your-shots";
 import type { UploadsWord } from "@/components/guest/event-experience-open";
+import { usePartyZone } from "@/components/guest/party-zone";
 import { useBackCloses } from "@/components/ui/popup-back";
 import { usePortalContainer } from "@/components/ui/portal-container";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
@@ -163,6 +164,8 @@ export function AlbumCamera({
   onOwnRemoved?: (mediaId: string, remaining: number) => void;
 }) {
   const [sessionToken] = useStoredSession(qrToken);
+  // The party's zone, for a far party's develop time in both clocks (`party-zone.tsx`).
+  const partyZone = usePartyZone();
   const [shots, setShots] = useState<readonly CameraShot[]>([]);
   const [frozen, setFrozen] = useState<ReadonlyMap<string, HTMLCanvasElement>>(
     () => new Map(),
@@ -621,6 +624,7 @@ export function AlbumCamera({
         reveal,
         developsAt,
         nowMs: now,
+        zone: partyZone,
       });
 
   return (
@@ -724,7 +728,12 @@ export function AlbumCamera({
               <YourShots
                 headingRef={shotsBackRef}
                 tiles={tiles}
-                line={yourShotsLine({ reveal, developsAt, nowMs: now })}
+                line={yourShotsLine({
+                  reveal,
+                  developsAt,
+                  nowMs: now,
+                  zone: partyZone,
+                })}
                 count={
                   host ? `${counted.length} taken` : rollCount(guest.held, cap)
                 }

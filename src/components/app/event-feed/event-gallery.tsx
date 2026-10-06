@@ -281,6 +281,7 @@ export function EventGallery({
           {covered && looking && view === "album" && develop?.develops_at ? (
             <LookingEarly
               developsAt={develop.develops_at}
+              zone={develop.time_zone}
               onCover={() => setLooking(false)}
             />
           ) : null}

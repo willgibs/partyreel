@@ -120,3 +120,29 @@ export function fromZoneInput(typed: string, zone: string): Date | null {
   const at = wallTimeIn(m[1]!, hour, zone) + minute * 60_000 + second * 1_000;
   return Number.isFinite(at) ? new Date(at) : null;
 }
+
+/**
+ * "Sun, Oct 4 at 9 am in Bali, 6 pm yours": a time in BOTH clocks, for a guest whose zone is not the party's (crumbs-85):
+ * the party's wall clock with its day and its place (`zoneWhen`), then her own clock, its weekday named where her day is
+ * not the party's ("Sat 6 pm yours"). A phrase after a verb, as `developsWhen` is ("Develops …", "until they develop …").
+ */
+export function bothClocksWhen(
+  iso: string,
+  zone: string,
+  mine: string,
+): string {
+  const at = readable(iso);
+  if (!at) return "";
+  const party = zoneWhen(iso, zone);
+  const p = wallParts(at, zone);
+  const m = wallParts(at, mine);
+  const half = m.hour < 12 ? "am" : "pm";
+  const h = m.hour % 12 === 0 ? 12 : m.hour % 12;
+  const clock =
+    m.minute === 0 ? `${h} ${half}` : `${h}:${pad(m.minute)} ${half}`;
+  const sameDay = p.year === m.year && p.month === m.month && p.day === m.day;
+  const day = sameDay
+    ? ""
+    : `${new Intl.DateTimeFormat("en-US", { timeZone: mine, weekday: "short" }).format(at)} `;
+  return `${party}, ${day}${clock} yours`;
+}

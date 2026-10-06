@@ -17,6 +17,8 @@
  */
 
 import { daysBetween } from "@/lib/events/dates";
+import { deviceZone, farZone } from "@/lib/event/zone";
+import { bothClocksWhen } from "@/lib/event/zone-words";
 import {
   TRACKER_SEALED_WORDS,
   TRACKER_WORDS,
@@ -76,8 +78,20 @@ export function calendarDaysBetween(from: Date, to: Date): number {
 /**
  * When the roll develops, from now: "at 9 am" today, "tomorrow at 9 am", "Saturday at 9 am" inside the week, "Oct 14
  * at 9 am" beyond it. The week ends at six days on: a seventh would say today's own weekday.
+ *
+ * ★ A FAR PARTY IN BOTH CLOCKS (crumbs-85): where `zone` (the party's, `events.time_zone`) is not this browser's own
+ * (`farZone`), the time is the party's, its day and place named, then hers ("Sun, Oct 4 at 9 am in Bali, 6 pm yours",
+ * `bothClocksWhen`): a relative day across two zones is plainly neither. A browser's answer, so said only after
+ * hydration, as every caller already says a time.
  */
-export function developsWhen(iso: string, nowMs: number = Date.now()): string {
+export function developsWhen(
+  iso: string,
+  nowMs: number = Date.now(),
+  zone?: string | null,
+): string {
+  const far = zone ? farZone(zone) : null;
+  const mine = far ? deviceZone() : null;
+  if (far && mine) return bothClocksWhen(iso, far, mine);
   const at = new Date(iso);
   const clock = clockWords(at);
   const days = calendarDaysBetween(new Date(nowMs), at);
@@ -94,11 +108,13 @@ export function cameraSubLine(input: {
   recording: boolean;
   done: boolean;
   nowMs?: number;
+  /** The party's zone, for a far party's two clocks (`developsWhen`). */
+  zone?: string | null;
 }): string {
   if (input.recording) return "Filming";
   if (input.done) return "Your roll is done";
   if (input.reveal === "develop" && input.developsAt) {
-    return `Develops ${developsWhen(input.developsAt, input.nowMs)}`;
+    return `Develops ${developsWhen(input.developsAt, input.nowMs, input.zone)}`;
   }
   if (input.reveal === "door") return DOOR_HOLDS;
   return input.reveal === "approve"
@@ -171,10 +187,12 @@ export function rollDoneLine(input: {
   reveal: CameraReveal;
   developsAt: string | null | undefined;
   nowMs?: number;
+  /** The party's zone, for a far party's two clocks (`developsWhen`). */
+  zone?: string | null;
 }): string {
   const shots = `${input.held} ${input.held === 1 ? "shot" : "shots"}`;
   if (input.reveal === "develop" && input.developsAt) {
-    return `${shots}, developing with everyone’s. They’re back ${developsWhen(input.developsAt, input.nowMs)}.`;
+    return `${shots}, developing with everyone’s. They’re back ${developsWhen(input.developsAt, input.nowMs, input.zone)}.`;
   }
   if (input.reveal === "door") return `${shots}. ${DOOR_HOLDS}.`;
   return input.reveal === "approve"
@@ -199,9 +217,11 @@ export function yourShotsLine(input: {
   reveal: CameraReveal;
   developsAt: string | null | undefined;
   nowMs?: number;
+  /** The party's zone, for a far party's two clocks (`developsWhen`). */
+  zone?: string | null;
 }): string {
   if (input.reveal === "develop" && input.developsAt) {
-    return `Only you can see these until they develop ${developsWhen(input.developsAt, input.nowMs)}.`;
+    return `Only you can see these until they develop ${developsWhen(input.developsAt, input.nowMs, input.zone)}.`;
   }
   if (input.reveal === "door") return `${DOOR_HOLDS}.`;
   return input.reveal === "approve"
