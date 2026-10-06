@@ -3,12 +3,14 @@
 import type { CSSProperties, ReactNode } from "react";
 
 import type { ScreenId } from "../knobs";
-import { GROUND, type Ground, INK } from "./system";
+import type { Ground } from "./system";
+import { groundOf, inkOf, useTake } from "./take";
 
 /**
- * A SLIDE'S ROOT: the whole 1440 by 900 (or 375 wide) box on its ground,
- * painted in hex so the deck's contrast reader finds it, with the running
- * head's band (`HEAD`) left clear of words by each slide's own layout.
+ * A SLIDE'S ROOT: the whole 1440 by 900 (or 375 wide) box on its ground (the
+ * room, or the take's own paper), painted in hex so the deck's contrast reader
+ * finds it, with the running head's band (`HEAD`) left clear of words by each
+ * slide's own layout.
  */
 export function SlideRoot({
   screen,
@@ -23,14 +25,16 @@ export function SlideRoot({
   className?: string;
   style?: CSSProperties;
 }) {
+  const take = useTake();
   return (
     <div
       className={["ag-slide", className].filter(Boolean).join(" ")}
       data-screen={screen}
       data-ground={ground}
+      data-take={take.id}
       style={{
-        background: GROUND[ground].hex,
-        color: INK[ground].fg.hex,
+        background: groundOf(take, ground).hex,
+        color: inkOf(take, ground).fg,
         ...style,
       }}
     >
@@ -38,10 +42,3 @@ export function SlideRoot({
     </div>
   );
 }
-
-/** The ground's three text steps, as hex, for a slide's words. */
-export const ink = (g: Ground) => ({
-  fg: INK[g].fg.hex,
-  muted: INK[g].muted.hex,
-  faint: INK[g].faint.hex,
-});

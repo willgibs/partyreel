@@ -1,12 +1,14 @@
-/* AFTERGLOW'S OWN SHEET: the light's three forms (the Seam, the Bloom, the
-   Ring), the status point, the lit photograph, the phone, and the type. Every
-   selector is `.ag-…` (or a state on one); keyframes are `ag-…`.
+/* AFTERGLOW'S SHARED SHEET (round two): the slide and the type, the room's
+   light in its three forms (the Seam, the Bloom, the Ring), the status point,
+   the lit photograph, the phone, the browser, the controls. Every selector is
+   `.ag-…` (or a state on one); keyframes are `ag-…`. A take's own sheet sits
+   beside this one under its own prefix (`.ap-`, `.ik-`, `.ct-`).
 
-   ★ LIGHT MOVES SLOWLY, THE INTERFACE INSTANTLY. One clock for the light (the
-   aurora's 24 s), a bloom that ignites once in 1.4 s and rests lit, a standby
-   point that breathes at 2.4 s. Everything moves on transform or opacity, and
-   only inside `prefers-reduced-motion: no-preference`: the rest state below is
-   the whole design, lit and still. */
+   ★ LIGHT MOVES SLOWLY, THE INTERFACE INSTANTLY. A bloom ignites once in
+   1.4 s and rests lit, a standby point breathes at 2.4 s, a ring fills as files
+   send. Everything moves on transform or opacity, and only inside
+   `prefers-reduced-motion: no-preference`: the rest state is the whole design,
+   lit and still. */
 
 /* ── the slide and the type ─────────────────────────────────────────────── */
 
@@ -75,7 +77,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ── THE SEAM: light where two grounds meet ─────────────────────────────── */
+/* ── THE SEAM IN THE ROOM: light where two grounds meet ─────────────────── */
 
 .ag-seam {
   position: absolute;
@@ -94,9 +96,8 @@
 }
 
 /* The light: the band's colour, pooled along the edge in three soft ellipses
-   (unioned) with a hot core at the edge and a short fall, so it reads as
-   light gathering where it enters, never as a wash. Wider than its box, for
-   the drift. */
+   with a hot core at the edge and a short fall, so it reads as light gathering
+   where it enters, never as a wash. */
 .ag-seam-light {
   position: absolute;
   inset: 0 -14%;
@@ -148,49 +149,7 @@
     );
 }
 
-/* PAPER: a third of the reach, a fall that is spent within it. */
-.ag-seam[data-ground="paper"] .ag-seam-light {
-  -webkit-mask-image:
-    radial-gradient(
-      ellipse 36% 100% at 20% 0%,
-      #000 0%,
-      rgb(0 0 0 / 0.45) 26%,
-      transparent 100%
-    ),
-    radial-gradient(
-      ellipse 34% 92% at 50% 0%,
-      #000 0%,
-      rgb(0 0 0 / 0.42) 26%,
-      transparent 100%
-    ),
-    radial-gradient(
-      ellipse 36% 100% at 80% 0%,
-      #000 0%,
-      rgb(0 0 0 / 0.45) 26%,
-      transparent 100%
-    );
-  mask-image:
-    radial-gradient(
-      ellipse 36% 100% at 20% 0%,
-      #000 0%,
-      rgb(0 0 0 / 0.45) 26%,
-      transparent 100%
-    ),
-    radial-gradient(
-      ellipse 34% 92% at 50% 0%,
-      #000 0%,
-      rgb(0 0 0 / 0.42) 26%,
-      transparent 100%
-    ),
-    radial-gradient(
-      ellipse 36% 100% at 80% 0%,
-      #000 0%,
-      rgb(0 0 0 / 0.45) 26%,
-      transparent 100%
-    );
-}
-
-/* The source line: the edge itself, lit (1 px in the room, 1.5 on paper). */
+/* The source line: the edge itself, lit. */
 .ag-seam-line {
   position: absolute;
   inset: 0 0 auto 0;
@@ -211,11 +170,8 @@
     transparent 100%
   );
 }
-.ag-seam[data-ground="paper"] .ag-seam-line {
-  height: 1.5px;
-}
 
-/* ── THE BLOOM: light behind the one live subject ───────────────────────── */
+/* ── THE BLOOM IN THE ROOM: light behind the one live subject ───────────── */
 
 .ag-bloom {
   position: relative;
@@ -236,7 +192,7 @@
   height: 100%;
 }
 
-/* ── THE RING: light round what adds a photograph ───────────────────────── */
+/* ── THE RING IN THE ROOM: light round what adds a photograph ───────────── */
 
 .ag-ring {
   position: relative;
@@ -247,9 +203,6 @@
   border-radius: 9999px;
   isolation: isolate;
   --ag-shade: rgb(10 10 12 / 0.55);
-}
-.ag-ring[data-ground="paper"] {
-  --ag-shade: rgb(246 246 247 / 0.5);
 }
 .ag-ring-glow,
 .ag-ring-band {
@@ -264,9 +217,6 @@
   filter: blur(var(--ag-glow));
   opacity: 0.55;
 }
-.ag-ring[data-ground="paper"] .ag-ring-glow {
-  opacity: 0.6;
-}
 .ag-ring-band {
   -webkit-mask: radial-gradient(
     farthest-side,
@@ -279,8 +229,7 @@
     #000 calc(100% - var(--ag-band) + 0.5px)
   );
 }
-/* Lit from above: the band falls toward its ground on its underside, the way
-   the icon's ring does. */
+/* Lit from above: the band falls toward its ground on its underside. */
 .ag-ring-track,
 .ag-ring-fill {
   position: absolute;
@@ -304,8 +253,7 @@
 .ag-ring[data-state="sending"] .ag-ring-glow {
   opacity: 0.32;
 }
-/* The face: dark on both grounds (the display in the room, the ink on paper),
-   lit along its top edge like every surface in the product. */
+/* The face: dark on every ground, lit along its top edge. */
 .ag-ring-face {
   position: relative;
   display: flex;
@@ -325,7 +273,7 @@
     inset 0 1px 0 rgb(255 255 255 / 0.16),
     0 8px 20px -8px rgb(0 0 0 / 0.85);
 }
-.ag-ring[data-ground="paper"] .ag-ring-face {
+.ag-ring[data-face="paper"] .ag-ring-face {
   background: radial-gradient(
     120% 120% at 40% 18%,
     #34343a 0%,
@@ -395,7 +343,7 @@
     0 4px 10px -2px rgb(0 0 0 / 0.1);
 }
 
-/* ── the phone and the chips ────────────────────────────────────────────── */
+/* ── the phone ──────────────────────────────────────────────────────────── */
 
 .ag-phone {
   position: relative;
@@ -405,22 +353,18 @@
     inset 0 0 0 1px rgb(255 255 255 / 0.1),
     0 40px 80px -30px rgb(0 0 0 / 0.7);
 }
+.ag-phone[data-on="paper"] {
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.1),
+    0 2px 4px rgb(20 20 22 / 0.12),
+    0 40px 80px -34px rgb(20 20 22 / 0.45);
+}
 .ag-phone-screen {
   position: relative;
   width: 100%;
   height: 100%;
   overflow: hidden;
   isolation: isolate;
-}
-
-.ag-chips {
-  display: flex;
-  gap: 2px;
-  overflow: hidden;
-  border-radius: 2px;
-}
-.ag-chips > span {
-  min-width: 6px;
 }
 
 /* A cross for a never: two hairlines in the ground's own ink. */
@@ -446,78 +390,8 @@
   transform: translate(-50%, -50%) rotate(-30deg);
 }
 
-/* ── motion: only where it is welcome ───────────────────────────────────── */
+/* ── a browser window with no maker's marks ─────────────────────────────── */
 
-@media (prefers-reduced-motion: no-preference) {
-  .ag-seam[data-drift] .ag-seam-light {
-    animation: ag-drift var(--ag-clock, 24s) ease-in-out infinite alternate;
-  }
-  .ag-bloom[data-ignite] .ag-bloom-light {
-    animation: ag-ignite 1400ms cubic-bezier(0.23, 1, 0.32, 1) both;
-  }
-  .ag-ring[data-breathe][data-state="rest"] .ag-ring-glow {
-    animation: ag-breathe 4.8s ease-in-out infinite alternate;
-  }
-  .ag-ring-fill {
-    transition: opacity 240ms cubic-bezier(0.23, 1, 0.32, 1);
-  }
-  .ag-point[data-state="standby"] {
-    animation: ag-standby 2.4s ease-in-out infinite alternate;
-  }
-}
-
-@keyframes ag-drift {
-  from {
-    transform: translateX(-6%);
-  }
-  to {
-    transform: translateX(6%);
-  }
-}
-
-@keyframes ag-ignite {
-  0% {
-    opacity: 0;
-    transform: scale(0.94);
-  }
-  28% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  100% {
-    opacity: var(--ag-rest, 0.85);
-    transform: scale(1.015);
-  }
-}
-
-@keyframes ag-breathe {
-  to {
-    opacity: 0.32;
-  }
-}
-
-@keyframes ag-standby {
-  to {
-    opacity: 0.35;
-  }
-}
-
-/* Forced colours: the light is decoration; the faces and words carry it. */
-@media (forced-colors: active) {
-  .ag-seam,
-  .ag-bloom-light,
-  .ag-ring-glow,
-  .ag-ring-band {
-    display: none;
-  }
-}
-
-/* ══ THE APPLIED TOUCHPOINTS (slides 9 to 14) ═════════════════════════════
-   The browser, the buttons, the reel's answering Bloom and the Seam in place
-   under a wall: every selector `.ag-…`, every keyframe `ag-…`, and motion only
-   where it is welcome, the rest state complete. */
-
-/* A browser window with no maker's marks, in the page's ground family. */
 .ag-browser {
   position: relative;
   overflow: hidden;
@@ -578,7 +452,8 @@
   background: rgb(20 20 22 / 0.05);
 }
 
-/* A pill: the ground's opposite, or a quiet outline. Never a light's fill. */
+/* ── controls: achromatic, never lit ────────────────────────────────────── */
+
 .ag-btn {
   display: inline-flex;
   flex-shrink: 0;
@@ -616,7 +491,7 @@
     0 1px 2px rgb(20 20 22 / 0.05);
 }
 
-/* A segmented control in paper's greys: the chosen segment is lifted, never a hue. */
+/* A segmented control in paper's greys: the chosen segment lifted, never a hue. */
 .ag-seg {
   display: inline-flex;
   padding: 4px;
@@ -683,20 +558,30 @@
   left: 0;
   height: 1px;
 }
-.ag-wallseam[data-ground="paper"] .ag-wallseam-line {
-  height: 1.5px;
-}
 
 /* THE RING FILLING: its progress registered as a number, so a run's light can
-   arrive round the band rather than step; the Ring's own `--ag-p` is the value
-   it rests at. */
+   arrive round the band rather than step. */
 @property --ag-p {
   syntax: "<number>";
   inherits: true;
   initial-value: 1;
 }
 
+/* ── motion: only where it is welcome ───────────────────────────────────── */
+
 @media (prefers-reduced-motion: no-preference) {
+  .ag-bloom[data-ignite] .ag-bloom-light {
+    animation: ag-ignite 1400ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+  .ag-ring[data-breathe][data-state="rest"] .ag-ring-glow {
+    animation: ag-breathe 4.8s ease-in-out infinite alternate;
+  }
+  .ag-ring-fill {
+    transition: opacity 240ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .ag-point[data-state="standby"] {
+    animation: ag-standby 2.4s ease-in-out infinite alternate;
+  }
   .ag-ambient-lights {
     animation: ag-wake 1400ms cubic-bezier(0.23, 1, 0.32, 1) both;
   }
@@ -707,6 +592,33 @@
   }
   .ag-ambient-light {
     transition: opacity 1100ms cubic-bezier(0.45, 0, 0.2, 1);
+  }
+}
+
+@keyframes ag-ignite {
+  0% {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  28% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: var(--ag-rest, 0.85);
+    transform: scale(1.015);
+  }
+}
+
+@keyframes ag-breathe {
+  to {
+    opacity: 0.32;
+  }
+}
+
+@keyframes ag-standby {
+  to {
+    opacity: 0.35;
   }
 }
 
@@ -727,7 +639,12 @@
   }
 }
 
+/* Forced colours: the light is decoration; the faces and words carry it. */
 @media (forced-colors: active) {
+  .ag-seam,
+  .ag-bloom-light,
+  .ag-ring-glow,
+  .ag-ring-band,
   .ag-ambient-lights,
   .ag-wallseam {
     display: none;

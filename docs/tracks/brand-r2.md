@@ -36,7 +36,20 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- Three takes or four? **Three** (built): Aperture (light kept in dark pieces of the room on paper), Ink (one colour,
+  glowing in the room, printed on paper) and Cast (the photograph's own light, a glow in the room, a coloured shadow on
+  paper) are the three honest exits from the pale middle where round one washed out; a fourth drew as a weaker copy of
+  one of them (toned paper with white-hot light; glass objects), so it would have been a caricature.
+- Do the takes share one composition per slide? **Yes** (built): every slide is one drawing each take fills with its
+  constructions (`afterglow/take.tsx`), so pressing between takes compares like with like and they differ only where
+  their answers do. Overrule: each take art-directs its own deck.
+- The house light where there is no photograph and no seed? **One dusk sky in every take** (built, a carried call on
+  the board): the five lamps lit as the icon lights them, amber to violet from the top-left, never chips side by side.
+- May a take change its paper stock? **Yes** (built, carried): Aperture keeps production's gallery white, Ink a warm
+  uncoated stock, Cast a neutral daylight white.
+- Do Contact Sheet and Everyone's Color stay on the board? **No** (built, carried): retired with round one; their
+  touches live inside the takes (the rebate's film edge, the warm stock, the seed's orb).
+- Does a take redraw the wordmark? **No** (carried): Will's v1 stands; the brand-marks board owns it after this pick.
 
 ## System-doc edits (in place, owned facts only)
 
@@ -58,3 +71,13 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am
+
+- Done: the shared Afterglow r2 system (`afterglow/`: values, the take contract, the kit, marks), three takes wired as
+  the board's one ask (`aperture/`, `ink/`, `cast/`), slides 01 cover and 05 signature (mine); helpers drew 02 to 04
+  (finished), 06 to 08, 09 to 11, 12 to 14 and the Ink and Cast light (each nearly done when the usage limit cut them).
+- Next: re-run each helper's last step, capture all fourteen slides of all three takes at 1440 and 375, the creative
+  director's fresh-eyes pass (`_scratch/brand-r2/cd-brief.md`), one refinement on everything it names, the spec's
+  recommendation from the drawn decks, the light gate, the handoff.
+- Mid-flight: nothing uncommitted beyond this WIP; the dev server listens on 3137.

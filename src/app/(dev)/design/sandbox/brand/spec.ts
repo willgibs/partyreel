@@ -3,32 +3,32 @@ import { defineExploration } from "@/components/lab/exploration";
 import { SCREEN } from "./knobs";
 
 /**
- * THE BRAND, ROUND ONE: WHAT THE AGENCY RETURNED (the brand-r1 track, cut
- * 2026-10-04).
+ * THE BRAND, ROUND TWO: WHICH AFTERGLOW? (the brand-r2 track, cut 2026-10-05
+ * from desk 4's answer).
  *
- * Will's note of 2026-10-04 (in the manifest, verbatim): the warning amber
- * reads as the brand's colour and a dull one; the aurora is meant to be the
- * foundation of the visual identity but its use is half-baked; the logo is a
- * v1 with no icon; the hashvatar is the one thing that already feels right on
- * a screen with no media. No brand system sits above those, so every surface
- * invents its own. This board is the highest step: three cohesive visions,
- * each a complete system drawn by its own agency team, then one pick that
- * shapes every brand board after it (the marks, the aurora, the page themes,
- * the hero, presence).
+ * Will picked Afterglow at desk 4 (`docs/reviews/brand.json`, round 1) with a
+ * note that is this round's brief: polish it to world-class, never "a junior
+ * designer told to build a rainbow app", mine Contact Sheet and Everyone's
+ * Color for what would make it better, and above all solve paper ("it is very
+ * tough to nail on anything light. It's washed out easily").
  *
- * ★ THE ROUND'S METHOD (the brief's): each vision by its own agency team, a
- * brand designer for the system and an application designer for the six
- * touchpoints; then one creative director who saw only the brief and the
- * captures answered "of each direction, what is its best version?", and the
- * lane refined each deck once from that answer. The three answer one question
- * underneath: what gives Partyreel its colour (the photographs' light, paper
- * and prints, or the guests).
+ * ★ THREE TAKES, ONE COMPOSITION. Each take is a whole deck in round one's
+ * order, and every slide is one shared drawing (`afterglow/slides/`) the take
+ * fills with its own constructions (`afterglow/take.tsx`): its light in the
+ * room and on paper, its icon's paper form, its paper stock, what carries the
+ * light on a light page, its words. So the takes share the idea and differ in
+ * a few load-bearing constructions, and the stage compares like with like.
  *
- * ★ A DECK PER VISION, ONE ORDER FOR ALL THREE (`deck/contract.ts`): the
- * system first (the idea, the marks, color and status, the signature, the
- * screens without media, type and motion, dark and light), then six
- * touchpoints as sketches captioned "to judge the system, not the design".
- * The applied boards come after the pick and are not drawn here early.
+ * ★ EACH TAKE IS ONE ANSWER TO PAPER. Light only reads as light against
+ * something darker, and white has nothing darker, so a glow on paper can only
+ * add colour by taking brightness away: round one's pale stain. The way out is
+ * never the pale middle. Aperture keeps the light in the dark (pieces of the
+ * room on the page); Ink turns it into print (full-strength ink, small);
+ * Cast lets it fall (a coloured shadow, darker than the page).
+ *
+ * ★ ROUND TWO'S POLISH, EVERY TAKE: no spectrum (the five house lamps light as
+ * one dusk sky, never chips side by side), at most three hues a light, fewer
+ * and larger lights, Will's v1 wordmark untouched.
  *
  * ★ NOTHING HERE IS PRODUCTION: every slide is drawn in the board's own
  * folder, on the bootstrap stills and production's own hashvatar generator.
@@ -46,34 +46,38 @@ export const BRAND = defineExploration({
     "src/lib/avatar/gradient.ts",
     "public/icons/",
   ],
-  tracks: ["brand-r1"],
+  tracks: ["brand-r1", "brand-r2"],
   round: {
-    n: 1,
-    date: "2026-10-04",
+    n: 2,
+    date: "2026-10-05",
     changed:
-      "A new board from your brand note: three agency visions, each a whole system and six sketches, refined once from a creative director's fresh-eyes pass.",
+      "From your desk 4 pick: Afterglow as three complete takes, polished to a light page first, each keeping its light from washing out its own way.",
   },
+  history: [
+    {
+      n: 1,
+      date: "2026-10-04",
+      changed:
+        "A new board from your brand note: three agency visions, each a whole system and six sketches, refined once from a creative director's fresh-eyes pass.",
+    },
+  ],
   opening: {
     about:
-      "Partyreel's brand as three agency visions, each a whole system (marks, color, status, signature, type, pages) and six sketches on real photographs.",
+      "Afterglow, polished: three complete takes on the whole system, each answering how its light lives on a light page without washing out.",
     settled: [
-      "The chrome stays achromatic: no brand hue is painted on a control.",
-      "The five house lamps stay as light, re-keyable, never removed.",
-      "The hashvatar is the atmosphere of a screen with no media.",
-      "The touchpoints are sketches: the marks, the aurora, the page themes, the hero and presence each get a board after your pick.",
+      "Afterglow is the brand (your desk 4 pick): light, never paint; colour from the photographs, then the event's seed, then the house.",
+      "Drawn only as a Ring, a Seam or a Bloom, one to a screen, still until something happens.",
+      "Status is a point and its word (Standby half-lit with no hue, Ready, Fault); the room where photographs play, paper where people decide.",
+      "Every take: no spectrum (the house lamps light as one dusk sky, the house sky), at most three hues a light, your v1 wordmark.",
     ],
     earlier: [
-      "Your note: 'we should not present with that warning color feeling like our brand color.'",
-      "'the aurora is meant to be the foundation of our brand visual identity.'",
-      "'if we hired a $60k branding agency, what would they return? our logo is barely v1, no icon.'",
+      "Desk 4, you picked Afterglow: 'This feels so much more like a brand identity than just throwing Aurora everywhere.'",
+      "'Remember this should feel polished, not like a junior designer was told to build a rainbow app. We are world-class tastemakers.'",
+      "'While afterglow looks effortlessly beautiful on dark UI, it is very tough to nail on anything light. It's washed out easily.'",
+      "'The other options (Contact Sheet and Everyone's Color) could be checked to see if those explorations offered any additional ideas.'",
     ],
   },
   terms: [
-    {
-      term: "hashvatar",
-      means:
-        "Production's seeded avatar colour: one hue for each person, read at several soft depths.",
-    },
     {
       term: "Ring",
       means:
@@ -90,97 +94,108 @@ export const BRAND = defineExploration({
         "Afterglow's light behind the one live subject of a screen, such as the code or the reel.",
     },
     {
-      term: "film edge",
+      term: "house sky",
       means:
-        "The small type along a film's edge, frame numbers and names: Contact Sheet prints every event's own.",
+        "The five house lamps lit as one dusk sky, amber to violet, where there is no photograph and no seed.",
     },
     {
-      term: "latent image",
+      term: "pieces of the room",
       means:
-        "A seeded colour inside a print's border: the photograph about to be, before any photo lands.",
+        "Aperture's dark objects on a light page: the shutter's puck, the one lit plate, the foot's slab.",
     },
     {
-      term: "seeded orb",
+      term: "fine screen",
       means:
-        "One guest's own colour as a sphere, from the hashvatar: Everyone's Color's material.",
+        "Ink's printed glow: dots of the album's one colour, densest at the subject's edge, as a press prints light.",
+    },
+    {
+      term: "coloured shadow",
+      means:
+        "Cast's light on paper: the photograph's own colours falling down and right, darker than the page.",
     },
   ],
   carried: [
     {
-      id: "photos",
-      question: "Which photographs do the decks draw on?",
+      id: "house",
+      question: "Where there is no photograph and no seed, what is the light?",
       taken:
-        "The twelve bootstrap stills every board uses: the brief's fixtures folder is landscapes outside git, which the alias cannot serve.",
+        "The house sky in every take: the five lamps lit as one dusk sky, amber to violet from the top-left, never five chips side by side.",
       overrule:
-        "Put real party fixtures in the repo now, or redraw once the Higgsfield set lands.",
+        "Keep the five as separate lamps, as round one drew them, where there is no photograph.",
+    },
+    {
+      id: "stock",
+      question: "May a take change the paper it is printed on?",
+      taken:
+        "Yes: Aperture keeps production's gallery white, Ink argues a warm uncoated stock, Cast a neutral daylight white.",
+      overrule:
+        "Every take on production's paper, so only the light differs between them.",
+    },
+    {
+      id: "retired",
+      question: "Do Contact Sheet and Everyone's Color stay on the board?",
+      taken:
+        "No: retired with round one. What they offered lives inside the takes (the rebate's film edge, the warm stock, the seed's orb).",
+      overrule: "Bring a deck back beside the takes for reference.",
     },
     {
       id: "wordmark",
-      question: "Does Afterglow keep your v1 wordmark?",
+      question: "Does any take redraw the wordmark?",
       taken:
-        "Yes, untouched: that team honoured your drawing and gave the light to the icon. The other two draw their own.",
-      overrule:
-        "Afterglow draws its own wordmark too, on the brand-marks board.",
-    },
-    {
-      id: "faces",
-      question: "May a vision change the loud face?",
-      taken:
-        "Yes, as an agency would: Afterglow keeps Urbanist, Contact Sheet proposes Bricolage Grotesque, Everyone's Color Fraunces.",
-      overrule:
-        "Every vision keeps Urbanist, and only the system around it differs.",
+        "No: your v1 stands in all three; the brand-marks board redraws it, if at all, after this pick.",
+      overrule: "A take proposes its own wordmark now.",
     },
   ],
   asks: [
     {
-      id: "vision",
-      label: "The vision",
-      question: "Which vision should Partyreel's brand grow from?",
+      id: "take",
+      label: "Which Afterglow",
+      question: "Which Afterglow should every brand board after this one grow from?",
       where: ["Shared", "The brand", "Every surface"],
-      when: "Before the marks, the aurora, the page themes, the hero and presence are each drawn on a board of their own.",
+      when: "Before the brand marks, the signature across app and marketing, the page themes, demo framing and presence are drawn.",
       matters:
-        "Each answers what gives Partyreel its colour: the photographs' light, paper and prints, or the guests.",
+        "Each take answers paper its own way, the hard problem: how its light lives on a light page without washing out.",
       lands:
-        "The positioning, the marks, the palette and status set, the signature, and which pages are dark or light.",
+        "How the light is drawn in the room and on paper, what carries it on a light page, the icon's paper form and the paper stock.",
       context:
-        "Each option is an agency's deck of fourteen slides, at a desk or on a phone (the Read on knob): the system first, then six touchpoints as sketches on real photographs. Press f to read a slide at its true size.",
+        "Each option is a take's deck of fourteen slides in round one's order, at a desk or on a phone (the Read on knob): the system first, then six touchpoints, every paper form drawn beside its room form. Press f to read a slide at its true size.",
       options: [
         {
-          id: "afterglow",
-          label: "Afterglow: the photos' own light is the brand",
+          id: "aperture",
+          label: "Aperture: light kept in pieces of the room",
           means:
-            "All colour is the light the photographs give off, as a Ring, a Seam or a Bloom, one per screen; the seed glows first; the icon is the lit Add.",
+            "On paper the light never touches the page: it lives in pieces of the room the page holds (the shutter's puck, a plate, the foot), as bright as in the room.",
           gains:
-            "Keeps the aurora as the foundation, with rules: every album wears its own light.",
+            "Light always reads as light; closest to production's own dark well, display and footer.",
           costs:
-            "Needs a real per-photo sampler; the brand rests on light and form, with no hue to own.",
+            "Paper pages carry dark objects: one lit plate a screen, so restraint is the craft.",
         },
         {
-          id: "contact-sheet",
-          label: "Contact Sheet: prints on paper, each credited",
+          id: "ink",
+          label: "Ink: glows in the room, prints on paper",
           means:
-            "No brand hue: warm paper, deep ink and every event's own film edge; a photo is a print, status a photo lab's marks; the room is for the reel.",
+            "One colour per album, its strongest light: a glow in the room; on paper a printed rule, a band and a fine screen, never paler than ink.",
           gains:
-            "The photographs are always the brightest thing, and the edge credits every frame.",
+            "The calmest room and an editorial paper: every album prints in its own colour, like stationery.",
           costs:
-            "The aurora becomes the latent image; paper and type carry the brand alone.",
+            "On paper the light turns to print, not light; one colour an album sets its other hues aside.",
         },
         {
-          id: "everyone",
-          label: "Everyone's Color: guests' colors are the brand",
+          id: "cast",
+          label: "Cast: falls on paper as coloured shadow",
           means:
-            "Every guest is a seeded orb and an event wears its people: grey chrome, outlined status tags, a soft black serif, paper pages, the room for pictures.",
+            "The light is the photograph itself, blurred: a glow round it in the room; on paper a coloured shadow falling down and right, darker than the page.",
           gains:
-            "Every empty screen feels social and alive, and no photograph is ever touched.",
+            "The truest light: every part of a picture glows its own colour, on both grounds by one physics.",
           costs:
-            "Retires the aurora as the signature; its colour is wherever the seeds land.",
+            "A coloured shadow can read as a drop shadow; it asks a careful hand on every new surface.",
         },
       ],
-      recommended: "afterglow",
+      recommended: "aperture",
       because:
-        "The one vision that keeps the aurora as the foundation you named, gives it a source and rules, and makes the icon the product's own Add.",
+        "Aperture: its light never changes, so it never washes out, and production already half-does it; borrow Cast's coloured shadow for photographs on paper.",
       overrule:
-        "If the brand should be the people, Everyone's Color; if paper and type, Contact Sheet.",
+        "If paper should feel printed rather than lit, Ink; if light should land on the page itself, Cast.",
       configs: [SCREEN],
     },
   ],

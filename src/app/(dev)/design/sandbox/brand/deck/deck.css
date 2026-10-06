@@ -42,6 +42,12 @@
 .bd-head-name {
   white-space: nowrap;
 }
+/* A split slide (the room on the left, paper on the right, at a desk): each
+   half of the head in the ink that reads on the ground under it. On a phone
+   the cut runs across below the head, which stands on the room. */
+.bd-slide[data-bd-tone="split"][data-bd-screen="1440"] .bd-head-where {
+  color: rgb(20 20 22 / 0.58);
+}
 .bd-head-where {
   display: flex;
   align-items: baseline;
