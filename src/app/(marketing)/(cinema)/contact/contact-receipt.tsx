@@ -56,8 +56,10 @@ export function receiptFrom(
 
 /**
  * The postmark: a date stamp inked over the postage stamp's lower corner, so the note reads as posted (the
- * stationery identity FormCard already wears). Ink, not colour: `currentColor` at partial strength with
- * multiply, so the photograph shows through it the way ink sits on a print. It lands like a rubber stamp,
+ * stationery identity FormCard already wears). Ink, not colour: `currentColor` at partial strength, blended so the
+ * photograph shows through it the way ink sits on a print. ★ The blend follows the surface: multiply darkens, so it
+ * inks a paper card, and over the cinema room's dark card (where /contact lives) multiply of a light ink drew nothing;
+ * there the foreground is light and screen is multiply's mirror, a light ink that lifts the dark. It lands like a rubber stamp,
  * pressed in from larger and turned a little (the house bounce overshoots, then settles), after the check
  * has begun to draw.
  */
@@ -66,7 +68,7 @@ export function Postmark({ date }: { date: ContactReceiptData["postmark"] }) {
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute -top-2 right-[66px] -rotate-12 text-foreground/75 mix-blend-multiply transition-[opacity,scale,rotate] delay-200 duration-[260ms] ease-[var(--mkt-ease-pop)] motion-reduce:transition-none sm:right-[74px] motion-safe:starting:scale-[1.7] motion-safe:starting:-rotate-[26deg] motion-safe:starting:opacity-0"
+      className="pointer-events-none absolute -top-2 right-[66px] -rotate-12 text-foreground/75 mix-blend-multiply transition-[opacity,scale,rotate] delay-200 duration-[260ms] ease-[var(--mkt-ease-pop)] motion-reduce:transition-none sm:right-[74px] dark:mix-blend-screen motion-safe:starting:scale-[1.7] motion-safe:starting:-rotate-[26deg] motion-safe:starting:opacity-0"
     >
       <svg width="72" height="72" viewBox="0 0 72 72" fill="none">
         <defs>

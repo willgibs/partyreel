@@ -88,10 +88,11 @@ export function Curation() {
         <div
           data-mkt-reveal
           aria-hidden
-          className="relative mx-auto mb-5 w-full max-w-[21rem] rounded-2xl border bg-card p-4 ring-1 ring-foreground/5"
+          className="relative mx-auto w-full max-w-[21rem] rounded-2xl border bg-card p-4 ring-1 ring-foreground/5"
           style={{ "--i": 3 } as CSSProperties}
         >
-          <div className="grid grid-cols-2 gap-1.5">
+          <BulkBarMock count={selectedCount} total={MOCK_TILES.length} />
+          <div className="mt-2.5 grid grid-cols-2 gap-1.5">
             {MOCK_TILES.map((tile) => (
               <SelectTile
                 key={tile.id}
@@ -101,10 +102,6 @@ export function Curation() {
               />
             ))}
           </div>
-          {/* The bar the selection summons, riding the card's bottom edge. */}
-          <span className="absolute inset-x-0 -bottom-5 flex justify-center">
-            <BulkBarMock count={selectedCount} />
-          </span>
         </div>
         <div className="flex flex-col gap-8">
           {CONTROLS.map((item, i) => (

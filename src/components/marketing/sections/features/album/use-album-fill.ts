@@ -10,10 +10,11 @@ import type { AlbumFixture } from "./album-fill-fixtures";
  * `tick` runs at HALF-BEAT resolution. On an odd tick the next fixture mounts
  * at the head of its column as an "uploading" tile (the product's own in-flight
  * treatment, a thin progress strip at the tile's foot); on the following even
- * tick it LANDS: same key, so the strip-to-check swap is a prop change on one
+ * tick it LANDS: same key, so the strip-to-light swap is a prop change on one
  * mounted node and the photograph never remounts (the re-key rule the guest
- * gallery follows so a tile never flickers). The green check holds for
- * roughly 2.5 seconds, as it does in the app, then unmounts.
+ * gallery follows so a tile never flickers). The arrival light's window holds
+ * about 2.5 seconds, past the album's own glow (`ARRIVAL_GLOW_MS`), so the
+ * light goes out before its layer unmounts.
  *
  * Everything the grid needs is DERIVED from the tick by a pure function, which
  * is what makes reduced motion a derivation rather than an effect (t jumps to
@@ -38,7 +39,7 @@ export type AlbumTile = {
   key: string;
   fixture: AlbumFixture;
   status: "seed" | "uploading" | "landed";
-  /** Inside the green-check window. */
+  /** Inside the arrival light's window (the grid mounts `ArrivalLight`). */
   check: boolean;
 };
 

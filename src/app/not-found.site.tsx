@@ -45,8 +45,8 @@ function SiteNotFoundScreen() {
           photographs run behind them, which is also what makes the whole screen the surface a reader draws
           on. It yields inside the words' own box rather than wearing a scrim, it walks its own figure until
           a hand arrives, and below 640 px it walks and never waits for a finger (`phone=walks`). The two
-          GROUP 404s stay as they ship: a notFound() inside a marketing route, boxed at 60vh under their own
-          chapter's skin; the choice was for the 404 a lost visitor actually lands on. The trail is imported
+          site has this one 404 (the cinema group's retired in marketing-crumbs): a notFound() thrown inside a
+          marketing route lands here too, outside the group's layout, so its chrome never doubles. The trail is imported
           directly: this whole screen is the lazy chunk, so the trail's code and sheet arrive with it. */}
       <main className="flex flex-1 flex-col">
         <Trail className="flex flex-1 flex-col items-center justify-center px-6 py-24 sm:py-32">

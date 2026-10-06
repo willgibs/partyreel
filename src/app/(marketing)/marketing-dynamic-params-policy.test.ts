@@ -79,4 +79,15 @@ describe("the marketing site's dynamic pages", () => {
       expect(exportsFunction(file, "generateStaticParams"), file).toBe(true);
     },
   );
+
+  it("★ leaves the site ONE 404, the root's: no not-found of the marketing group's own", () => {
+    // marketing-crumbs: the cinema group's `not-found.tsx` retired. With every slug answered by routing (above),
+    // no marketing page throws a notFound() a reader can reach, so a group 404 never drew, and it still rode every
+    // cinema page's payload as a reference. A notFound() a page does throw falls to the root's boundary, which
+    // stands OUTSIDE the group's layout and brings its own chrome (the trail on paper), so nothing doubles.
+    const own = filesUnder("src/app/(marketing)").filter((file) =>
+      /\/not-found(\.screen)?\.tsx$/.test(file),
+    );
+    expect(own).toEqual([]);
+  });
 });

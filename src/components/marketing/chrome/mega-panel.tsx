@@ -276,7 +276,11 @@ function FeaturedDemo({ href, value }: { href: string; value: string }) {
         aria-label="Explore the live demo"
         returnFocus={openTrigger}
       >
-        <span className="flex aspect-[16/9] w-full items-center justify-center">
+        {/* ★ THE FRAME STANDS IN THE MIDDLE OF THE WHOLE PANE. The pane is a grid
+            item, stretched to the list's height beside it, so a 16:9 box drew the
+            frame in its top third over an empty well; the box now grows with the
+            pane (`flex-1`), the 16:9 kept only as its floor for a short list. */}
+        <span className="flex min-h-[153px] w-full flex-1 items-center justify-center p-4">
           <DemoFrame value={value} size="nav" />
         </span>
       </DemoDoor>

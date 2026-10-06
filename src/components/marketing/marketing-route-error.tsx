@@ -25,7 +25,7 @@ import { captureError } from "@/lib/observability/sentry";
  * ★ THE STRIP IS THE ICON NOW (Will, `picture=today` with his note,
  * 2026-09-19: "it does look weird beneath the content. It may look better as a
  * replacement for the icon above"). The RefreshCcw circle is gone and the 500
- * strip stands in its place, which keeps this screen and the group 404s reading
+ * strip stands in its place, which keeps this screen and the help palette's dead end reading
  * as one pair: on both, the photographs with one frame missing ARE the picture.
  *
  * ★ AND THE DIGEST PRINTS (Will, `code=always`). It never did on this screen:
