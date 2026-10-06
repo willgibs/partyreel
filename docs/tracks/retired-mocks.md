@@ -1,6 +1,6 @@
 ---
 track: retired-mocks
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "14a17e10"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -50,25 +50,81 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- The help center's `loop-keep` alt text lives outside my paths (`marketing/help/step-screens/registry.ts:54`) and still
+  reads "Download album: Everything, Photos or Videos" over the new picture. Recommended: the Orchestrator applies the
+  one line `"loop-keep": "Take it home: Originals to keep, or Phone size to post",` at integration (built: not
+  edited, since the path is forbidden; `curl /help/how-partyreel-works` shows it as the page's one retired phrase).
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- None made: `docs/systems/marketing-content.md` is a read here. Proposed, for the Orchestrator, line 122's first
+  clause: "**`/reel`**: the live chapter's laptop is the album's own cover (`AlbumCover` over `HeadStills`) with the
+  round that opens the reel, so the motion a visitor meets there is the one they meet on their album;" and, in the same
+  bullet, "(the pure `engine/style-registry` is the one engine module there)" refined to "(the pure
+  `engine/style-registry`, and the cover's take picker with `engine/seed`'s PRNG, are the engine's only modules there;
+  no canvas)".
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Marketing (copy): `features/album/album-copy.ts`'s "Take all of it" body still says "everything, photos, or videos"
+  (the retired menu's chips) over a plate that now draws Select, then Save; and the how-it-works keep step's body
+  (`constants/how-it-works.ts`) says only "the whole album as a single zip", where the host's panel offers Phone size
+  too (retired-mocks).
+- Code hygiene: stale comments naming deleted files: `features/sharing/downloads-section.tsx`'s ★ block (the modal "STILL
+  DRAWS THE RETIRED" menu: it no longer does), `lib/export/walk.ts:15` and `lib/content/help-ui-labels.test.ts:25`
+  (`export-dialog.tsx`) (retired-mocks).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits**: work `f87cc539` (pushed on `lp/retired-mocks`); no sync commit: `origin/launch-prep` (`ab6fec0b`) is an
+  ancestor of the work (`git merge-base --is-ancestor` true at handoff). This manifest is the commit after it.
+- **Gates on `f87cc539`**, each its own exit code: `pnpm typecheck` 0, `pnpm lint` 0 (no warnings), `pnpm test` 0
+  (1052 files, 13227 passed, 2 skipped), `zsh scripts/build-lock.sh pnpm build` 0 (built with
+  `NEXT_PUBLIC_SITE_URL=http://localhost:3000`), `pnpm lab:smoke --base http://localhost:3131` 0 (153 checks, 0
+  failing; scope: library and shell, no boards). Two earlier smoke runs failed only on a cold dev compile past its
+  20 s (`/design/library`, then `/design/lab/tools`); the third, warm, passed. `boom` answers 500 by design.
+- **Lane check**: `git diff --name-only origin/launch-prep...HEAD` = the eleven owned paths (three deleted) + this
+  file. No exceptions taken; one is asked (Questions: the help alt line).
+- **Items**:
+  - /reel's live section draws the album's own cover (`AlbumCover` over `HeadStills`, imported from
+    `guest/event-experience-head.tsx`) in the laptop, with Add photos, the reel's Play round (haloed: the door the
+    chapter is about) and Invite, the album under it; the name a ladder step down (`[&_h1]:text-page`) because the
+    frame is a laptop drawn under half size. `live-tile.tsx` deleted; `poster-card.tsx` keeps only
+    `formatReelDuration` and `formatReelMeta` (its one importer, `clip-creator.tsx`, is not mine to re-point, so the
+    file keeps its name and says why).
+  - `take-home-panel.tsx` exports `OriginalsCard`, `PhoneSizeCard` and `ClipsLine`; the panel renders through them
+    (no behaviour change: its 9 tests unchanged and green, plus 2 new ones proving a card outside the panel is the
+    panel's markup, and the pending and failed facts).
+  - `zip-modal-demo.tsx` is `TakeHomeFigure`: the host's Take it home composed of those pieces with a fictional
+    album's `ExportSummary` through the product's `takeHomeSizes`; `/features/sharing` works it (Include hidden items
+    re-sizes both sets, Download answers with the icon swap), and `KeepPicture` (/how-it-works and the help center's
+    `loop-keep`) holds it still. It lays out by its own width (`@min-[30rem]`: the desk pair, else the hand's stack,
+    phone size first). The caption is "the host's Take it home · guests pick with Select, then Save".
+  - The album page's "Take all of it" plate draws her Select, then Save: every tile picked (the tile's dim and check)
+    under Save's quick choice, its title and rows in `setNoun` and `saveHints`' words.
+  - `export-dialog.tsx` and its test deleted; `mock-parity.test.ts` drops its five retired quotes and the live tile's
+    pin, and pins today's words instead: Save to Photos, Save to Files (`live-gallery-save.tsx`); Take it home, Send
+    to Drive, Include hidden items (`take-home-panel.tsx`); Watch the highlight reel (`event-experience.tsx`);
+    `title="Invite"` (`guest-share.tsx`). 53 pins green.
+  - **Verified on my dev server (3131), `curl`**: `/reel` 200 with "Watch the highlight reel", 0 "Make your own clip
+    to share"; `/how-it-works` 200 with Take it home, Phone size, Send to Drive, 0 "Download album" and "Pick what to
+    bundle"; `/features/album` 200 with Save to Photos and Save to Files, 0 "Download album"; `/features/sharing` 200
+    with Take it home, Phone size, Send to Drive, 0 of the three retired phrases; `/help/how-partyreel-works` 200 with
+    the new picture's words and 0 "Pick what to bundle", but 2 "Download album": the step's alt in
+    `step-screens/registry.ts` (Questions). **Screenshots** at 1440 and 375 of all five, taken in this container's
+    Chromium and looked at (they die with the container; the look stays for Will's desk).
+  - **ROADMAP lines to retire**: Marketing's /reel live section (line 98), Design's `KeepPicture` (line 99), Code
+    hygiene's `export-dialog.tsx` (line 139).
+- **Assets requested from Will**: none.
+- **Board ideas**: `event-experience-head.tsx` could split the cover's frame (`EventHead`, `AlbumCover`, `HeadStills`)
+  from its data half (`pickCoverIds`, `stillsFromSeed`, the bridge), so a picture of the cover ships no take picker;
+  `album-tile.tsx`'s `SelectMark` exported would let the album plate compose the selection marks it draws by hand.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes**: none.
+- **Calls his to overrule**:
+  - /reel's first load now carries the cover's module (one ~17 KB chunk, 7 KB gzipped, with `live/take.ts`'s picker,
+    `quick-add` and `engine/seed`'s PRNG; no canvas, no player): the price of composing the product's cover rather
+    than copying it. The split above removes it.
+  - The figure keeps the old demo's lower-case caption register and drops the size's number-pop (the facts are the
+    card's own line now).
+- **Look at first**: the help alt line (Questions), then `/reel`'s laptop at 1440 (the cover's name size and the halo
+  on the Play round) and `/features/sharing`'s figure at 1440 and 375.
