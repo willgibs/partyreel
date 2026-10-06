@@ -33,3 +33,8 @@ src/components/vendor
 # The Library's specimen code is the collector's own output (`gallery-demos.tsx` → specimens.test.ts); prettier's
 # re-flow of it is a thousand lines of churn for any lane that touches a specimen.
 src/app/(dev)/design/gallery/specimens.generated.json
+
+# The kit's scripts are one statement a line on purpose, so a whole script reads on one screen, and
+# proxy.test.ts reads alias-ensure.mjs's TARGETS on its one line: prettier's rewrap broke both
+# (lab-kit-3, 2026-10-06: seven scripts rewrapped, one 400 lines longer, three tests red). Hand-formatted.
+usher/kit
