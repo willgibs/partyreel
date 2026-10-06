@@ -393,7 +393,8 @@ export function CameraScreen({
           type: "image/jpeg",
           lastModified: takenAt,
         }),
-        {},
+        // A canvas JPEG keeps no Exif: the moment the shutter fired is its capture time (crumbs-85).
+        { takenAt },
       );
     } catch {
       onShotLost(key);
@@ -453,7 +454,7 @@ export function CameraScreen({
           type: result.type,
           lastModified: takenAt,
         }),
-        result.poster ? { poster: result.poster } : {},
+        result.poster ? { poster: result.poster, takenAt } : { takenAt },
       );
     },
     [aspectNow, onShot, onShotFile, say, shoot],
@@ -609,7 +610,8 @@ export function CameraScreen({
     const key = crypto.randomUUID();
     const takenAt = Date.now();
     onShot({ key, kind: "photo", takenAt, frozen: null, thumb: file });
-    onShotFile(key, file, {});
+    // The phone's own camera writes its Exif, which wins; this is the fallback where it wrote none.
+    onShotFile(key, file, { takenAt });
     say(afterShotHint(frame));
   };
 

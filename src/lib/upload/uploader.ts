@@ -62,7 +62,11 @@
  * (`WALK_COPY.dropped` and `droppedDetail`), the camera's hint says this very string, and
  * `uploader.transport.test.ts` holds the three to one wording.
  */
-import { captureClaim } from "@/lib/media/capture-time";
+import {
+  captureClaim,
+  captureWall,
+  takenAtClaim,
+} from "@/lib/media/capture-time";
 import { stripFileMetadata } from "@/lib/media/strip-metadata";
 import { classifyMime, validateUpload } from "@/lib/media/validators";
 import {
@@ -532,6 +536,12 @@ export type BurstFile = {
   reelEligible?: boolean;
   /** The image the album shows for this upload, when the caller already has it (a clip's poster). */
   poster?: Blob;
+  /**
+   * WHEN THE CALLER KNOWS IT WAS TAKEN (epoch ms): the album's camera's own shot, a canvas JPEG that carries no Exif, so
+   * without it a shot sent long after it was taken sorts by its arrival (crumbs-85). The claim it makes is the file's
+   * own where the file states one (`captureClaim`), else this; the server holds either to the same bounds.
+   */
+  takenAt?: number;
   /** Its original's bytes going up, 0 to 1. */
   onProgress?: (fraction: number) => void;
   /** Its bytes began to go: it is the file in the air. */
@@ -600,6 +610,8 @@ type Prepared = {
   phone: { blob: Blob } | null;
   /** When the original says it was taken (the strip read it before rewriting a byte), as the complete's claim. */
   capturedAt?: string;
+  /** The original's zoneless wall clock as it is (`captureWall`), for the server to read in the party's zone. */
+  capturedWall?: string;
 };
 
 /** Where a file of the burst stands. `settled` once its outcome is out. */
@@ -938,6 +950,7 @@ async function runBurst(
         // When it was taken, where the original said (Will's X7): a claim the server holds to its bounds. A kept
         // complete carries it again as it was first asked.
         ...(p.capturedAt ? { captured_at: p.capturedAt } : {}),
+        ...(p.capturedWall ? { captured_wall: p.capturedWall } : {}),
         upload_id: put.strategy === "multipart" ? put.upload_id : null,
         parts: landed.parts,
       },
@@ -1195,7 +1208,9 @@ async function prepare(
     //    same walk, from the original before a byte is rewritten (Will's X7), and kept in the
     //    stored file's minimal Exif too.
     const cleaned = await stripFileMetadata(picked);
-    const capturedAt = captureClaim(cleaned.captured);
+    const capturedAt =
+      captureClaim(cleaned.captured) ?? takenAtClaim(one.takenAt);
+    const capturedWall = captureWall(cleaned.captured);
     const file =
       cleaned.blob === picked
         ? picked
@@ -1232,7 +1247,15 @@ async function prepare(
     const phone = await generatePhoneCopy(file, kind, measured);
     return {
       ok: true,
-      prepared: { file, kind, measured, preview, phone, capturedAt },
+      prepared: {
+        file,
+        kind,
+        measured,
+        preview,
+        phone,
+        capturedAt,
+        capturedWall,
+      },
     };
   } catch (e) {
     console.error("uploadBurst: unexpected failure preparing a file", e);

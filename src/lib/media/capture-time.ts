@@ -7,6 +7,11 @@
  *  - THE CLAIM, in the browser (`captureClaim`): an Exif wall clock with its zone is that instant; one with no zone is
  *    read in the uploader's own zone, since she is nearly always where she shot it (the lane's Q1); a container's
  *    instant is itself. It rides the complete (`captured_at`), never the presign, so the upload's hot path gains no call.
+ *  - ★ AND A ZONELESS WALL CLOCK AS IT IS (`captureWall`, crumbs-85): beside that reading the complete carries the bare
+ *    clock (`captured_wall`), and a guest's complete reads it in the PARTY's zone (`events.time_zone`, one read a burst
+ *    and only when one is carried: `wallInPartyZone`), so a guest whose phone is still on home time, or a camera that
+ *    wrote no zone, lands where the party lived it. The browser's reading stays the fallback (a party with no zone, the
+ *    host's route, which reads none).
  *  - THE WORD, on the server (`acceptCaptureTime`): the client's word is a claim. One after the server's now plus a
  *    day, or before 1990, is dropped and the arrival stands (Q2), as is one that is no instant at all; a capture time
  *    is a nicety, so it never refuses an upload. Inside the bounds it is the uploader's word: a lie there reads like a
@@ -16,6 +21,8 @@
  *
  * Pure and isomorphic: the uploader, the complete routes and the tests import it.
  */
+import { readableZone } from "@/lib/event/zone";
+import { fromZoneInput } from "@/lib/event/zone-words";
 import type { CaptureStamp } from "@/lib/media/strip-metadata";
 
 /**
@@ -77,6 +84,39 @@ export function captureClaim(
   return ms === null ? undefined : new Date(ms).toISOString();
 }
 
+/**
+ * THE CLAIM FOR A SHOT THE CALLER TIMED ITSELF (`BurstFile.takenAt`, the album's camera: a canvas JPEG carries no Exif),
+ * as the ISO string the server reads, or undefined for no time. Never judged here.
+ */
+export function takenAtClaim(ms: number | undefined): string | undefined {
+  return ms !== undefined && Number.isFinite(ms) && Math.abs(ms) <= MAX_DATE_MS
+    ? new Date(ms).toISOString()
+    : undefined;
+}
+
+/** A bare wall clock as a complete carries it: `YYYY-MM-DDTHH:mm:ss`, no zone. */
+const BARE_WALL = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/;
+
+/**
+ * THE BARE WALL CLOCK a complete carries beside its claim (`captured_wall`): an Exif wall clock that names no zone, as
+ * `YYYY-MM-DDTHH:mm:ss`, for the server to read in the party's own zone; undefined for a stamp that names its zone, a
+ * container's instant, or no time at all (the claim alone is the word then). Never judged here.
+ */
+export function captureWall(
+  stamp: CaptureStamp | null | undefined,
+): string | undefined {
+  if (!stamp || stamp.kind !== "wall" || stamp.offset !== null)
+    return undefined;
+  const m = WALL.exec(stamp.wall);
+  if (!m || Number(m[1]) < 100) return undefined;
+  return `${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}`;
+}
+
+/** The bare wall clock a complete carried, in its one shape, or null (anything else reads as none, never a refusal). */
+export function readCaptureWall(value: unknown): string | null {
+  return typeof value === "string" && BARE_WALL.test(value) ? value : null;
+}
+
 /** A claim's one shape: `Date.prototype.toISOString`'s, the browser's own. */
 const ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/;
 
@@ -100,4 +140,24 @@ export function acceptCaptureTime(
     return null;
   }
   return instant;
+}
+
+/**
+ * THE CAPTURE TIME A GUEST'S COMPLETE KEEPS, its bare wall clock read in the PARTY's zone (crumbs-85): `wall` (the
+ * complete's `captured_wall`, `readCaptureWall`'s) on the party's own clock (`zone`, `events.time_zone`; DST-safe,
+ * `fromZoneInput`), held to the same bounds as every claim. Where there is no wall clock, no zone this runtime can read
+ * (a party from before the column), or the party's reading falls outside the bounds, the browser's claim stands
+ * (`claim`, already judged by `acceptCaptureTime`).
+ */
+export function wallInPartyZone(
+  wall: string | null,
+  zone: string | null | undefined,
+  claim: string | null,
+  nowMs: number,
+): string | null {
+  if (!wall) return claim;
+  const party = readableZone(zone);
+  if (!party) return claim;
+  const at = fromZoneInput(wall, party);
+  return (at && acceptCaptureTime(at.toISOString(), nowMs)) ?? claim;
 }

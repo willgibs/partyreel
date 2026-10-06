@@ -63,7 +63,7 @@ import {
   captureUploadForensics,
   type ForensicIdentity,
 } from "@/lib/forensics/capture";
-import { acceptCaptureTime } from "@/lib/media/capture-time";
+import { acceptCaptureTime, readCaptureWall } from "@/lib/media/capture-time";
 import { MAX_UPLOAD_BYTES, extForMime } from "@/lib/media/limits";
 import type { MediaKind } from "@/lib/media/limits";
 import {
@@ -539,6 +539,11 @@ type CompleteCommon = {
    * The engine carries it to either strategy, and each writes it once through its create_media* call.
    */
   captured_at?: string | null;
+  /**
+   * The original's zoneless wall clock as it is (`captureWall`, `YYYY-MM-DDTHH:mm:ss`), or null: a guest's strategy reads
+   * it in the party's zone (`wallInPartyZone`), and the claim above is the fallback. The host's route takes none.
+   */
+  captured_wall?: string | null;
   upload_id: string | null;
   parts: { partNumber: number; eTag: string }[];
   /** Capture-only device UUID (trust-safety-forensics.md) — forwarded to the forensic record, nothing else. */
@@ -557,6 +562,12 @@ export const completeCaptureTime = z
   .unknown()
   .optional()
   .transform((claim) => acceptCaptureTime(claim, Date.now()));
+
+/** A complete's bare wall clock, as the guest's schema takes it: its one shape, or none, never a refusal. */
+export const completeCaptureWall = z
+  .unknown()
+  .optional()
+  .transform((wall) => readCaptureWall(wall));
 
 /** The shape both create-record mutations resolve to (guest + host results both fit). */
 type CreateRecordOutcome =

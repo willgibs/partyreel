@@ -11,7 +11,7 @@
  * Pure and isomorphic, in the product's pinned language (`en-US`), like `develop-words.ts`.
  */
 import { zonePlace } from "@/lib/event/zone";
-import { wallTimeIn } from "@/lib/shared/album-order";
+import { wallTimeIn } from "@/lib/event/wall-time";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -106,7 +106,7 @@ export function toZoneInput(iso: string, zone: string): string {
  * The instant a wall clock names on the party's clock (a `datetime-local` value, `YYYY-MM-DDTHH:mm`, its seconds kept
  * where it carries them), or null for a value that is no whole time (blank, half filled, an hour past 23). A wall time a
  * clock change skips lands within its hour, as the turn's own does (`wallTimeIn`). The one reading of a bare wall clock
- * in a zone: a zoneless Exif clock read in the party's zone would be this call (capture-time's Deferred line).
+ * in a zone: a zoneless Exif clock is read in the party's zone by this call (`wallInPartyZone`, a guest's complete).
  */
 export function fromZoneInput(typed: string, zone: string): Date | null {
   const m = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?$/.exec(

@@ -160,10 +160,18 @@ export type QueueItem = {
   reelEligible?: false;
   /** The clip's poster, drawn by its creator: the album's preview for it (uploader.ts). A camera video's first frame. */
   poster?: Blob;
+  /**
+   * When the album's camera took it (epoch ms): its shots are canvas JPEGs with no Exif, so this is the capture time the
+   * complete claims for them (`BurstFile.takenAt`, crumbs-85); a file that states its own keeps its own.
+   */
+  takenAt?: number;
 };
 
-/** What a caller may hand the queue with its files (`addFiles`): a camera video's first frame, as its poster. */
-export type FileExtra = Pick<QueueItem, "poster">;
+/**
+ * What a caller may hand the queue with its files (`addFiles`): a camera video's first frame, as its poster, and when
+ * the camera took it.
+ */
+export type FileExtra = Pick<QueueItem, "poster" | "takenAt">;
 
 /**
  * ★ THE STATUS A LANDING IS TOLD AS: the server's own, except an approved row SEALED until its album develops (any
@@ -540,7 +548,7 @@ async function simulateBurst(
 /** One picked file as the queue holds it: waiting its turn. */
 function queueItem(
   file: File,
-  extra: Pick<QueueItem, "reelEligible" | "poster"> = {},
+  extra: Pick<QueueItem, "reelEligible" | "poster" | "takenAt"> = {},
 ): QueueItem {
   return {
     id: crypto.randomUUID(),
@@ -877,6 +885,7 @@ export function useUploadQueue({
           file: it.file,
           reelEligible: it.reelEligible,
           poster: it.poster,
+          takenAt: it.takenAt,
           // Its bytes go: it is the file in the air (the album's stack follows it).
           onSending: () => patch(it.id, { status: "uploading", progress: 0 }),
           onProgress: (f: number) =>
@@ -1088,7 +1097,10 @@ export function useUploadQueue({
   }, [doorOpen]);
 
   const enqueue = useCallback(
-    (files: File[], extra: Pick<QueueItem, "reelEligible" | "poster"> = {}) => {
+    (
+      files: File[],
+      extra: Pick<QueueItem, "reelEligible" | "poster" | "takenAt"> = {},
+    ) => {
       sync([
         ...itemsRef.current,
         ...files.map((file) => queueItem(file, extra)),
@@ -1375,6 +1387,7 @@ export function useUploadQueue({
         enqueue([it.file], {
           reelEligible: it.reelEligible,
           poster: it.poster,
+          takenAt: it.takenAt,
         });
       };
       const own = stopsRef.current.get(id);

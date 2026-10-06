@@ -16,8 +16,13 @@ const getUser = vi.fn();
 const checkAbuseRate = vi.fn();
 const recordAbuseEvent = vi.fn();
 const meterUpload = vi.fn();
+const readPartyZone = vi.fn();
 
 vi.mock("server-only", () => ({}));
+// The party's zone, read on the complete only for a zoneless wall clock (crumbs-85).
+vi.mock("@/lib/event/zone.server", () => ({
+  readPartyZone: (...args: unknown[]) => readPartyZone(...args),
+}));
 // The presign's meter (upload-meter): stubbed only so the complete can be shown never to ask it.
 vi.mock("@/lib/upload/server-pipeline-meter", () => ({
   meterUpload: (...args: unknown[]) => meterUpload(...args),
@@ -792,5 +797,68 @@ describe("★ the capture time a guest's complete claims (capture-time, Will's X
     const { status } = await complete();
     expect(status).toBe(200);
     expect(recorded()).toBeNull();
+  });
+});
+
+/**
+ * ★ A ZONELESS WALL CLOCK IS READ IN THE PARTY'S ZONE (crumbs-85, capture-time's and event-zone's Deferred line): the
+ * complete carries the bare clock beside the browser's reading, and the server reads it on the party's own clock, so a
+ * guest whose phone is on home time, or a camera that wrote no zone, lands where the party lived it. Its cost: one read
+ * of the zone, only for a complete that carries such a clock.
+ */
+describe("★ a zoneless wall clock, read in the party's zone", () => {
+  beforeEach(() => {
+    vi.useFakeTimers({
+      now: new Date("2026-10-05T12:00:00Z"),
+      toFake: ["Date"],
+    });
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+  const recorded = () =>
+    (createMedia.mock.calls.at(-1) as [Record<string, unknown>])[0].capturedAt;
+
+  it("★ reads the bare clock on the party's clock, over the browser's reading", async () => {
+    readPartyZone.mockResolvedValue("Asia/Makassar");
+    const { status } = await complete({
+      // The browser read it in its own zone (London, BST): 20:14:05Z.
+      captured_at: "2026-10-03T20:14:05.000Z",
+      captured_wall: "2026-10-03T21:14:05",
+    });
+    expect(status).toBe(200);
+    expect(readPartyZone).toHaveBeenCalledWith(EVENT);
+    // 21:14:05 in Makassar (UTC+8).
+    expect(recorded()).toBe("2026-10-03T13:14:05.000Z");
+  });
+
+  it("keeps the browser's reading where the party names no zone, or the party's reading is out of bounds", async () => {
+    readPartyZone.mockResolvedValue(null);
+    await complete({
+      captured_at: "2026-10-03T20:14:05.000Z",
+      captured_wall: "2026-10-03T21:14:05",
+    });
+    expect(recorded()).toBe("2026-10-03T20:14:05.000Z");
+    readPartyZone.mockResolvedValue("Pacific/Kiritimati");
+    // A clock a day and more past now on the party's clock is no capture: the claim stands.
+    await complete({
+      captured_at: "2026-10-03T20:14:05.000Z",
+      captured_wall: "2026-10-07T21:14:05",
+    });
+    expect(recorded()).toBe("2026-10-03T20:14:05.000Z");
+  });
+
+  it("★ reads no zone for a complete that carries no bare clock, and a malformed one is none, never a refusal", async () => {
+    await complete({ captured_at: "2026-10-04T01:14:05.000Z" });
+    expect(readPartyZone).not.toHaveBeenCalled();
+    for (const bad of ["2026-10-03 21:14:05", "21:14", 7, { at: 1 }]) {
+      const { status } = await complete({
+        captured_at: "2026-10-04T01:14:05.000Z",
+        captured_wall: bad,
+      });
+      expect(status, JSON.stringify(bad)).toBe(200);
+      expect(recorded(), JSON.stringify(bad)).toBe("2026-10-04T01:14:05.000Z");
+    }
+    expect(readPartyZone).not.toHaveBeenCalled();
   });
 });

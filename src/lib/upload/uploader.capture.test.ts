@@ -202,3 +202,63 @@ describe("★ the complete carries each file's own capture time", () => {
     ]);
   });
 });
+
+/**
+ * ★ AND WHAT THE CLAIM CANNOT SAY ALONE (crumbs-85): a zoneless wall clock rides beside its browser reading as it is
+ * (`captured_wall`), for a guest's complete to read in the party's zone; and the album's camera, whose shots are canvas
+ * JPEGs with no Exif, hands the burst when its shutter fired (`takenAt`), which is the claim where the file states none.
+ */
+describe("★ the complete carries the bare wall clock, and the camera's own time", () => {
+  it("a zoneless wall clock rides as it is beside its reading; one with its zone, or an instant, carries none", async () => {
+    stamps.set("bare.jpg", {
+      kind: "wall",
+      wall: "2026:10:03 21:14:05",
+      offset: null,
+    });
+    stamps.set("zoned.jpg", {
+      kind: "wall",
+      wall: "2026:10:03 21:14:05",
+      offset: "-04:00",
+    });
+    const going = uploadBurst({
+      files: [photo("bare.jpg"), photo("zoned.jpg")].map((file) => ({ file })),
+      endpoints: ENDPOINTS,
+      identity: { session_token: "t" },
+    });
+    await vi.advanceTimersByTimeAsync(30_000);
+    expect((await going).every((o) => o.ok)).toBe(true);
+    const entries = completes().flatMap((c) => c.files);
+    expect(entries[0]).toMatchObject({ captured_wall: "2026-10-03T21:14:05" });
+    // The browser's own reading stays the claim, the fallback the server keeps where it reads no party zone.
+    expect(entries[0]!.captured_at).toBe(
+      new Date(2026, 9, 3, 21, 14, 5).toISOString(),
+    );
+    expect(entries[1]).not.toHaveProperty("captured_wall");
+    for (const p of presigns()) {
+      for (const f of p.files) expect(f).not.toHaveProperty("captured_wall");
+    }
+  });
+
+  it("★ a camera's shot claims the moment its shutter fired; a file that states its own keeps its own", async () => {
+    const fired = Date.parse("2026-10-04T02:30:00Z");
+    stamps.set("phone.jpg", {
+      kind: "instant",
+      ms: Date.parse("2026-10-04T01:20:00Z"),
+    });
+    const going = uploadBurst({
+      files: [
+        { file: photo("shot.jpg"), takenAt: fired },
+        { file: photo("phone.jpg"), takenAt: fired },
+      ],
+      endpoints: ENDPOINTS,
+      identity: { session_token: "t" },
+    });
+    await vi.advanceTimersByTimeAsync(30_000);
+    expect((await going).every((o) => o.ok)).toBe(true);
+    expect(
+      completes()
+        .flatMap((c) => c.files)
+        .map((e) => e.captured_at),
+    ).toEqual(["2026-10-04T02:30:00.000Z", "2026-10-04T01:20:00.000Z"]);
+  });
+});
