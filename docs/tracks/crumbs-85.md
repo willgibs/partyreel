@@ -135,10 +135,14 @@ The lane's `reads` docs are not its to edit; each line below is a proposed in-pl
 
 ## Handoff (replaces the chat report)
 
-- **Head and sync.** Work commits `09ec9049`..`62c01640`, synced with launch-prep at `55641d0e` (event-header-r6 and
-  test-slim's worker threads came in, no conflict), then `b8f0b6f3` (a pin reshaped by this lane's own change) and
-  `f4a8a5cc` (a stand-in fix from the walk). All pushed on `lp/crumbs-85`.
-- **Gates** on `f4a8a5cc` (the synced tree), each on its own exit code: `pnpm typecheck` 0, `pnpm lint` 0, `pnpm test` 0 (1,053 files, 13,203 passed, 2 skipped), `zsh scripts/build-lock.sh pnpm build` 0, `pnpm lab:smoke --base http://localhost:3131` 0 (202 checks, 0 failing; its PREMISE line: event-header's two open asks describe `dashboard/[eventId]/page.tsx`, which this lane touched by one line). No board, so no `lab:demo`. The Supabase connector was not used (no SQL in this lane).
+- **Head and sync.** Work commits `09ec9049`..`62c01640` and `f4a8a5cc` (a stand-in fix from the walk), with
+  `b8f0b6f3` (a pin reshaped by this lane's own change); synced with launch-prep twice, at `55641d0e` and at `dc71e57f`
+  (identity-r5-wiring merged; clean, no conflict). All pushed on `lp/crumbs-85`.
+- **Gates** on `dc71e57f` (the synced tree), each on its own exit code: `pnpm typecheck` 0 (its first run answered 2
+  on a stale `.next/dev/types` entry for a page the merged lane deleted; `rm -rf .next/dev`, then 0), `pnpm lint` 0,
+  `pnpm test` 0 (1,053 files, 13,197 passed, 2 skipped), `zsh scripts/build-lock.sh pnpm build` 0,
+  `pnpm lab:smoke --base http://localhost:3131` 0 (197 checks, 0 failing). No board, so no `lab:demo`. The Supabase
+  connector was not used (no SQL in this lane).
 - **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file, with these exceptions:
   `src/app/(app)/dashboard/[eventId]/page.tsx` (one line: the hub's develop facts carry `time_zone`, the hub NIT's only
   way in); `src/app/not-found.site.test.tsx` and `src/app/group-not-found.lazy.test.tsx` (each pinned the robots line
