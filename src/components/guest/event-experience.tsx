@@ -9,7 +9,6 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ArrowUp,
@@ -41,6 +40,7 @@ import {
   createHeadBridge,
   useHeadBridge,
 } from "@/components/guest/event-experience-head";
+import { useLiveUploadsWord } from "@/components/guest/event-experience-open";
 import {
   addsWaitFor,
   useLiveUploadsWait,
@@ -78,6 +78,7 @@ import {
   UploadTracker,
   UploadTrackerButton,
 } from "@/components/guest/upload-tracker";
+import { ChromeLink } from "@/components/marketing/chrome/chrome-link";
 import { Button } from "@/components/ui/button";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import {
@@ -718,6 +719,12 @@ export function EventExperience({
     moderationMode: event.moderation_mode,
   });
   const addsWait = addsWaitFor({ uploadsWait: liveWait, isOwner, isDemo });
+  /* ★ WHETHER THE ALBUM TAKES UPLOADS, AS THE PAGE HEARS IT (`useLiveUploadsWord`, guest-requests): the server's reading
+     at render, then each word the album's sync carries. The album's camera asks a closed album again once it says open,
+     and never by itself. */
+  const { word: uploadsWord, onWord: onUploadsWord } = useLiveUploadsWord(
+    event.accepting_uploads,
+  );
   /* ★ THE ALBUM'S ORDER, LIVE (album-order): the page's word at the first paint, then the turn on this device's clock
      (a Develop now moves it: the develop time as the page holds it, ahead or reached) and her choice in View's Sort. */
   const albumOrderNow = useGuestAlbumOrder({
@@ -1124,6 +1131,11 @@ export function EventExperience({
       pendingUploads.current.push(u);
     }
   }, []);
+  // The camera's ask for the album's word on uploads afresh (`askUploadsWord`): nothing to ask before the album mounts.
+  const askUploadsWord = useCallback(
+    () => galleryRef.current?.askUploadsWord(),
+    [],
+  );
 
   /* ────────────────────────────────────────────────────────────────────────
      THE PHONE PAIR: what the phone adds appears on the laptop's album a second
@@ -1526,7 +1538,9 @@ export function EventExperience({
                 />
                 {/* ★ THE DEMO'S CONVERSION OBJECT rides the same row (its visitor is a prospective
                     host, not a guest choosing whether to keep an album), on a line of its own at a
-                    phone, where the row has no room for its words. */}
+                    phone, where the row has no room for its words. ★ It fetches the home on intent,
+                    never on sight (guest-requests): in view from the first paint, a plain link
+                    prefetched the home and three sheets the album never draws on every demo load. */}
                 {isDemo && (
                   <Button
                     variant="glass"
@@ -1534,7 +1548,9 @@ export function EventExperience({
                     className="w-full md:w-auto"
                     asChild
                   >
-                    <Link href="/">Start your own</Link>
+                    <ChromeLink href="/" prefetchOnIntent>
+                      Start your own
+                    </ChromeLink>
                   </Button>
                 )}
               </>
@@ -1583,6 +1599,9 @@ export function EventExperience({
                       onCameraOpenChange={setCameraOpen}
                       // The album's live reading: its line, the camera's develop and the failure sheet's words.
                       uploadsWait={liveWait}
+                      // The album's word on uploads: the camera hears a reopen from it, never by asking.
+                      uploadsWord={uploadsWord}
+                      onAskUploadsWord={askUploadsWord}
                     />
                   </div>
                 ) : (
@@ -1660,6 +1679,8 @@ export function EventExperience({
                   onGuestCountChange={setGuestCount}
                   // The album's sync's word on its develop: the page's live reading follows it.
                   onDevelopsAtChange={onDevelopsAtChange}
+                  // And its word on uploads: the camera's closed refusal waits for it.
+                  onUploadsWord={onUploadsWord}
                 >
                   {/* ★ THE ALBUM'S WAIT READS HERE (the-wait r1, `wait=sheet`): what waits off the album's sync,
                   hers off her tracker, one reading for the sheet over the rows and the empty album under it. */}
@@ -1895,7 +1916,8 @@ function LampWhileShown() {
 
 /** The closing card at the demo's foot: "Yours would look like this" — the
  *  demo's second, patient conversion object, real numbers standing in for the
- *  fixture's. */
+ *  fixture's. Its link fetches the home on intent, like the demo's other doors to
+ *  it (guest-requests): reached by a scroll, it would fetch it on sight. */
 function ClosingCard({ guestCount }: { guestCount: number }) {
   return (
     <div className="mt-8 flex flex-col items-center gap-3 rounded-xl border border-border bg-card px-6 py-8 text-center">
@@ -1910,7 +1932,9 @@ function ClosingCard({ guestCount }: { guestCount: number }) {
         and every photo in one place. Free to start, nothing to install.
       </p>
       <Button size="lg" className="mt-1" asChild>
-        <Link href="/">Start your own</Link>
+        <ChromeLink href="/" prefetchOnIntent>
+          Start your own
+        </ChromeLink>
       </Button>
     </div>
   );

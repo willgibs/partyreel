@@ -35,6 +35,7 @@ import {
 import { removeOwnShot } from "@/components/guest/camera/remove-shot";
 import { useBlobUrls } from "@/components/guest/camera/use-blob-urls";
 import { YourShots, type ShotTile } from "@/components/guest/camera/your-shots";
+import type { UploadsWord } from "@/components/guest/event-experience-open";
 import { useBackCloses } from "@/components/ui/popup-back";
 import { usePortalContainer } from "@/components/ui/portal-container";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
@@ -77,13 +78,18 @@ const JUST_MS = 900;
 const FROZEN_KEPT = 3;
 
 /**
- * ★ AN ALBUM THAT REFUSES FOR A REASON ITS HOST CAN LIFT MAY SAY YES LATER, AND NOTHING TELLS THIS PAGE WHEN: uploads
- * closed (the host reopens them) or the album full (she makes room). The page reads the host's switch at render and
- * the album's sync carries no word of it, so a camera left open over such a refusal would keep its banner and its
- * stopped shutter until she closed it (the ROADMAP's "the camera never hears uploads reopen"). It asks again by itself
- * instead, on a calm and slowing cadence (each ask is a real presign, and the longer it has been shut the likelier it
- * stays so), and at once when the page comes back to the screen. Any other refusal of the album (a lock, a gone
- * event, a ticket that is not hers) is not the host's to lift in a minute, and is never asked again.
+ * ★ AN ALBUM THAT REFUSES FOR A REASON ITS HOST CAN LIFT MAY SAY YES LATER: uploads closed (the host reopens them) or
+ * the album full (she makes room). A camera left open over such a refusal would keep its banner and its stopped shutter
+ * until she closed it (the ROADMAP's "the camera never hears uploads reopen"), so it hears the album say yes:
+ *  - CLOSED, FROM THE ALBUM'S OWN WORD where the page has one (`uploadsWord`, guest-requests): the album's sync carries
+ *    the host's switch and its validator hashes it while it is off, so a reopen reaches the page on its next poll and
+ *    this camera asks once, on the first word heard after the refusal that says open, and never by itself: no presign
+ *    on a clock, at the page's return or when the line comes back, over an album that has said nothing new.
+ *  - FULL, and closed where the page has no word (the door's camera), BY ASKING AGAIN on a calm and slowing cadence
+ *    (each ask is a real presign, and the longer it has been shut the likelier it stays so), and at once when the page
+ *    comes back to the screen: no answer carries whether the host made room.
+ * Any other refusal of the album (a lock, a gone event, a ticket that is not hers) is not the host's to lift in a
+ * minute, and is never asked again.
  */
 const LIFTABLE_REFUSALS: ReadonlySet<string> = new Set([
   "uploads_closed",
@@ -118,8 +124,18 @@ export function AlbumCamera({
   isOwner = false,
   isDemo,
   onOwnRemoved,
+  uploadsWord,
+  onAskUploadsWord,
 }: {
   open: boolean;
+  /**
+   * The album's own word on whether it takes uploads, as the page hears it from the album's sync (`useLiveUploadsWord`,
+   * guest-requests): a closed refusal is asked again once a word heard after it says open (the head's note). Absent
+   * where the page has no such word (the door's camera), which asks a closed album again on the calm cadence.
+   */
+  uploadsWord?: UploadsWord;
+  /** Ask the album for its word afresh (its next sync carries no validator): a closed refusal over a word that said open. */
+  onAskUploadsWord?: () => void;
   /** When Add opened it (its own press): the clock its words start from. */
   openedAt: number;
   onOpenChange: (open: boolean) => void;
@@ -349,11 +365,19 @@ export function AlbumCamera({
   const toRetry = failed.filter(
     ({ state }) => refusalOf(state.code) === "retry" && state.queueId,
   );
-  // What the album refused for a reason its host can lift: asked again below, by itself (`LIFTABLE_REFUSALS`).
+  // What the album refused for a reason its host can lift (`LIFTABLE_REFUSALS`), by how it hears her lift it: a closed
+  // album by its own word where the page has one (`uploadsWord`), the rest by asking again on the calm cadence.
   const reopenable = failed.filter(
     ({ state }) =>
       state.queueId && state.code && LIFTABLE_REFUSALS.has(state.code),
   );
+  const hearsWord = uploadsWord !== undefined;
+  const wordLifts = hearsWord
+    ? reopenable.filter(({ state }) => state.code === "uploads_closed")
+    : [];
+  const cadenceAsks = hearsWord
+    ? reopenable.filter(({ state }) => state.code !== "uploads_closed")
+    : reopenable;
   const blocked =
     [...failed]
       .reverse()
@@ -366,40 +390,89 @@ export function AlbumCamera({
   // sentence (`UPLOAD_WORDS.dropped`, drawn by the screen) where a count ("2 shots didn’t send.") would read as a broken app
   // on a stadium's signal. The queue's `cause` says which it was, never the words, which are free to change.
   const droppedUnsent = toRetry.some(({ state }) => state.cause === "dropped");
-  const retryUnsent = useCallback(() => {
-    const at = Date.now();
-    const again = [...toRetry, ...reopenable];
-    const keys = new Set(again.map(({ shot }) => shot.key));
-    setShots((prev) =>
-      prev.map((s) => (keys.has(s.key) ? { ...s, retriedAt: at } : s)),
-    );
-    // What the album refused stands as that refusal while it is asked again (`asking`).
-    if (reopenable.length > 0) {
-      setAsking((prev) => {
-        const next = new Map(prev);
-        for (const { shot, state } of reopenable) next.set(shot.key, state);
-        return next;
-      });
-    }
-    for (const { state } of again) onRetry(state.queueId as string);
-  }, [toRetry, reopenable, onRetry]);
+  /** Sends these shots again; what the album refused stands as that refusal while it is asked again (`asking`). */
+  const sendAgain = useCallback(
+    (again: typeof failed) => {
+      const at = Date.now();
+      const keys = new Set(again.map(({ shot }) => shot.key));
+      setShots((prev) =>
+        prev.map((s) => (keys.has(s.key) ? { ...s, retriedAt: at } : s)),
+      );
+      const lifted = again.filter(
+        ({ state }) => state.code && LIFTABLE_REFUSALS.has(state.code),
+      );
+      if (lifted.length > 0) {
+        setAsking((prev) => {
+          const next = new Map(prev);
+          for (const { shot, state } of lifted) next.set(shot.key, state);
+          return next;
+        });
+      }
+      for (const { state } of again) onRetry(state.queueId as string);
+    },
+    [onRetry],
+  );
+  // Her own Retry, and the album's word turning open: everything that did not go.
+  const retryUnsent = useCallback(
+    () => sendAgain([...toRetry, ...reopenable]),
+    [sendAgain, toRetry, reopenable],
+  );
+  // What goes again BY ITSELF (the line back, the calm cadence): never a closed album with a word of its own to say.
+  const retryByItself = useCallback(
+    () => sendAgain([...toRetry, ...cadenceAsks]),
+    [sendAgain, toRetry, cadenceAsks],
+  );
   // The connection back: what did not send goes again, by itself, while the camera is open.
-  const unsentCount = toRetry.length + reopenable.length;
+  const unsentCount = toRetry.length + cadenceAsks.length;
   useEffect(() => {
     if (!open || unsentCount === 0) return;
-    window.addEventListener("online", retryUnsent);
-    return () => window.removeEventListener("online", retryUnsent);
-  }, [open, unsentCount, retryUnsent]);
-  // ★ AND THE ALBUM THAT MAY HAVE REOPENED IS ASKED, by itself and calmly (`LIFTABLE_REFUSALS`): after 10 s, then 20,
-  // 40 and every minute, never while the page is hidden, and at once when it comes back. Answered yes, the shot goes,
-  // and the banner and the stopped shutter go with the refusal; answered no, the camera never moved.
-  const reaskNow = useRef(retryUnsent);
+    window.addEventListener("online", retryByItself);
+    return () => window.removeEventListener("online", retryByItself);
+  }, [open, unsentCount, retryByItself]);
+  // ★ A CLOSED ALBUM IS ASKED ONCE IT SAYS IT IS OPEN (guest-requests): once, on the first word heard AFTER the newest
+  // closed refusal that says open, while the camera stands over it. A word heard before the refusal is older than it;
+  // and where that word said open, so does the validator the album's polls carry, so a host who reopened before the next
+  // poll would be answered 304 and never heard: the album is asked for its word afresh, once a refusal, instead.
+  const sendOnWord = useRef(retryUnsent);
   useEffect(() => {
-    reaskNow.current = retryUnsent;
+    sendOnWord.current = retryUnsent;
   });
-  const reopenableCount = reopenable.length;
+  /** The word heard when the newest closed refusal landed (`heard`), or null before one has. */
+  const heardAtRefusal = useRef<number | null>(null);
+  /** The page's queue items seen refused as closed (the queue replaces an item on every change: a new refusal is a new item). */
+  const seenClosed = useRef(new WeakSet<QueueItem>());
   useEffect(() => {
-    if (!open || reopenableCount === 0) return;
+    if (!uploadsWord) return;
+    let fresh = false;
+    for (const it of queue) {
+      if (it.status !== "error" || it.errorCode !== "uploads_closed") continue;
+      if (seenClosed.current.has(it)) continue;
+      seenClosed.current.add(it);
+      fresh = true;
+    }
+    if (!fresh) return;
+    heardAtRefusal.current = uploadsWord.heard;
+    if (uploadsWord.open) onAskUploadsWord?.();
+  }, [queue, uploadsWord, onAskUploadsWord]);
+  const wordLiftsCount = wordLifts.length;
+  useEffect(() => {
+    const at = heardAtRefusal.current;
+    if (!open || !uploadsWord || wordLiftsCount === 0 || at === null) return;
+    if (!uploadsWord.open || uploadsWord.heard <= at) return;
+    // One ask a word: the next is a word heard after this one.
+    heardAtRefusal.current = uploadsWord.heard;
+    sendOnWord.current();
+  }, [open, uploadsWord, wordLiftsCount]);
+  // ★ AND THE ALBUM THAT MAY HAVE REOPENED OR MADE ROOM IS ASKED, by itself and calmly, where no word will say it: after
+  // 10 s, then 20, 40 and every minute, never while the page is hidden, and at once when it comes back. Answered yes, the
+  // shot goes, and the banner and the stopped shutter go with the refusal; answered no, the camera never moved.
+  const reaskNow = useRef(retryByItself);
+  useEffect(() => {
+    reaskNow.current = retryByItself;
+  });
+  const cadenceCount = cadenceAsks.length;
+  useEffect(() => {
+    if (!open || cadenceCount === 0) return;
     let asked = 0;
     let lastAsk = Date.now();
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -433,7 +506,7 @@ export function AlbumCamera({
       clearTimeout(timer);
       document.removeEventListener("visibilitychange", returned);
     };
-  }, [open, reopenableCount]);
+  }, [open, cadenceCount]);
 
   /* ── her shots: this visit's, then what the server knows of the rest ──────────────────────── */
   const thumbEntries = useMemo(

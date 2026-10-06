@@ -508,6 +508,26 @@ describe("loadGallerySeed: the page's album seed", () => {
     );
   });
 
+  it("★ a closed album's seed carries the validator the sync route answers it with (guest-requests), so its first poll is a 304", async () => {
+    const closed = { ...EVENT, accepting_uploads: false };
+    const seed = await loadGallerySeed(
+      closed as typeof EVENT,
+      { access: "full", gate: null },
+      { ...FIRST, width: null },
+    );
+    if (seed.kind !== "full") throw new Error("expected a full seed");
+    const shape = {
+      eventId: EVENT.id,
+      access: "full" as const,
+      gate: null,
+      albumMax: 7,
+      attrVersion: 3,
+      reel: seed.sync.reel,
+    };
+    expect(seed.etag).toBe(guestAlbumEtag({ ...shape, accepting: false }));
+    expect(seed.etag).not.toBe(guestAlbumEtag(shape));
+  });
+
   it("mints links for exactly the first paint's photographs (the reel off), and reports the ones gone", async () => {
     getLiveReelServerFacts.mockResolvedValue({
       liveReelEnabled: false,

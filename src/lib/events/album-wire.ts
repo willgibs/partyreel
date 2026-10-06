@@ -424,6 +424,13 @@ export type GuestFullSync = (AlbumManifestPart | AlbumDeltaPart) & {
   reel: GalleryReel | null;
   guestCount?: number;
   /**
+   * WHETHER THE ALBUM TAKES UPLOADS (guest-requests): the host's switch (`events.accepting_uploads`) as this answer's own
+   * read of the event says it, which the validator hashes while it is off, so a close or a reopen reaches an open page
+   * on its next poll (the album's camera hears a reopen from it, never by asking). Absent from an older server, and from
+   * the page's own seed, whose word is the page's render.
+   */
+  accepting?: boolean;
+  /**
    * WHAT WAITS (`lib/disposable/facts.ts`, 20261002200000): the rows held for the host's approval and the rows sealed
    * for the develop, together, as numbers (the count and its minutes, read in the same snapshot as `v`), and when the
    * album develops. Never an id. Absent where nothing waits and no develop time is set, and from an older server; the

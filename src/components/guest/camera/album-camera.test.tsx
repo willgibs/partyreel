@@ -106,6 +106,8 @@ function Page({
   isOwner = false,
   onRetry,
   answerRetries = false,
+  word,
+  onAskWord,
 }: {
   onAdd?: (files: File[], extra?: FileExtra) => void;
   initialQueue?: QueueItem[];
@@ -114,12 +116,35 @@ function Page({
   onRetry?: (queueId: string) => void;
   /** The page's queue takes a Retry as the real one does: the item goes back to waiting, its refusal forgotten. */
   answerRetries?: boolean;
+  /**
+   * The album's own word on whether it takes uploads, as the page hears it from the album's sync (`uploadsWord`), from
+   * this first value (the page's render); absent, the camera has no word to hear (the door's camera).
+   */
+  word?: boolean;
+  /** The camera asked the album for its word afresh. */
+  onAskWord?: () => void;
 }) {
   const [open, setOpen] = useState(true);
   const [queue, setQueue] = useState<QueueItem[]>(initialQueue);
+  // Each word the album's sync carries is a word heard, the same one again included (`useLiveUploadsWord`).
+  const [uploadsWord, setUploadsWord] = useState(
+    word === undefined ? undefined : { open: word, heard: 0 },
+  );
+  const hear = (accepting: boolean) =>
+    setUploadsWord((prev) =>
+      prev ? { open: accepting, heard: prev.heard + 1 } : prev,
+    );
   return (
     <>
+      <button type="button" onClick={() => hear(false)}>
+        The album says closed
+      </button>
+      <button type="button" onClick={() => hear(true)}>
+        The album says open
+      </button>
       <AlbumCamera
+        uploadsWord={uploadsWord}
+        onAskUploadsWord={onAskWord}
         open={open}
         openedAt={OPENED_AT}
         onOpenChange={(next) => {
@@ -824,6 +849,184 @@ describe("the album's camera, over an album that refuses for a reason its host c
   it("asks nothing once she has closed the camera (the failure sheet is hers then)", async () => {
     const onRetry = await refused();
     fireEvent.click(screen.getByRole("button", { name: "Back to the album" }));
+    await wait(300_000);
+    expect(onRetry).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * ★ THE CAMERA HEARS THE ALBUM'S OWN WORD (guest-requests). Where the page hears the album's switch from its sync
+ * (`uploadsWord`: the sync carries `accepting`, its validator hashing it while closed, and the page counts each word it
+ * hears), a closed album is never asked again by the camera itself: no presign at ten seconds, twenty, forty or each
+ * minute, none at the page's return and none when the connection comes back. It asks once, on the first word heard after
+ * the refusal that says open, and its banner and stopped shutter go with the refusal as the album says yes. A refusal
+ * over a word that said open asks the album for its word afresh, since that word's validator says open too and a host
+ * who reopened before the next poll would be answered 304. A full album is not the switch's to lift, so it keeps the
+ * calm cadence, and a camera with no word to hear (the door's) keeps it for both.
+ */
+describe("the album's camera, hearing the album's word on uploads", () => {
+  const CLOSED = "This event isn't accepting uploads right now.";
+  const shutter = () =>
+    document.querySelector("[data-cam-shutter]") as HTMLButtonElement;
+
+  afterEach(() => {
+    vi.useRealTimers();
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      get: () => "visible",
+    });
+  });
+
+  /** The camera open over her first shot with the album's word beside it (the page's render: open), the album refusing it. */
+  async function refused(button = "Refuse them") {
+    const onRetry = vi.fn();
+    const onAskWord = vi.fn();
+    render(<Page answerRetries onRetry={onRetry} word onAskWord={onAskWord} />);
+    await opened();
+    await screen.findByText("Frame 7 of 24");
+    await act(async () => press());
+    vi.useFakeTimers({
+      toFake: [
+        "setTimeout",
+        "clearTimeout",
+        "setInterval",
+        "clearInterval",
+        "Date",
+      ],
+    });
+    fireEvent.click(screen.getByRole("button", { name: button, hidden: true }));
+    await wait(0);
+    return { onRetry, onAskWord };
+  }
+  const wait = (ms: number) =>
+    act(async () => {
+      await vi.advanceTimersByTimeAsync(ms);
+    });
+  const says = async (open: boolean) => {
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: open ? "The album says open" : "The album says closed",
+        hidden: true,
+      }),
+    );
+    await wait(0);
+  };
+  const toggle = async (visible: boolean) =>
+    act(async () => {
+      Object.defineProperty(document, "visibilityState", {
+        configurable: true,
+        get: () => (visible ? "visible" : "hidden"),
+      });
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+
+  it("★ never asks a closed album again by itself: not on the cadence, not at the page's return, not when the line comes back", async () => {
+    const { onRetry } = await refused();
+    await says(false);
+    await wait(10_000);
+    await wait(300_000);
+    await toggle(false);
+    await toggle(true);
+    await act(async () => {
+      window.dispatchEvent(new Event("online"));
+    });
+    expect(onRetry).not.toHaveBeenCalled();
+    // The banner and the stopped shutter stand the whole time: the album has said nothing new.
+    expect(screen.getByText(CLOSED)).toBeInTheDocument();
+    expect(shutter().disabled).toBe(true);
+  });
+
+  it("★ asks once, on the album's word that it is open, and the banner goes as the album says yes", async () => {
+    const { onRetry } = await refused();
+    await says(false);
+    await wait(120_000);
+    expect(onRetry).not.toHaveBeenCalled();
+
+    await says(true);
+    expect(onRetry).toHaveBeenCalledTimes(1);
+    // Asked, not answered: the camera has not moved (no banner gone, no shutter back) until the album says yes.
+    expect(screen.getByText(CLOSED)).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Put them in the air", hidden: true }),
+    );
+    await wait(0);
+    expect(screen.queryByText(CLOSED)).toBeNull();
+    expect(shutter().disabled).toBe(false);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Land them", hidden: true }),
+    );
+    await wait(300_000);
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it("★ a refusal over a word that said open asks the album afresh, once; the word it heard before the refusal lifts nothing", async () => {
+    const { onRetry, onAskWord } = await refused();
+    expect(onAskWord).toHaveBeenCalledTimes(1);
+    await wait(300_000);
+    expect(onRetry).not.toHaveBeenCalled();
+    expect(onAskWord).toHaveBeenCalledTimes(1);
+  });
+
+  it("★ a host who reopened before the next poll is heard: the fresh word says open, the same word as before, and the shot goes", async () => {
+    const { onRetry } = await refused();
+    await says(true);
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it("a refusal over a word that already said closed asks nothing afresh: that word's validator moves when the album reopens", async () => {
+    const onAskWord = vi.fn();
+    const onRetry = vi.fn();
+    render(<Page answerRetries onRetry={onRetry} word onAskWord={onAskWord} />);
+    await opened();
+    await screen.findByText("Frame 7 of 24");
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "The album says closed",
+        hidden: true,
+      }),
+    );
+    await act(async () => press());
+    fireEvent.click(
+      screen.getByRole("button", { name: "Refuse them", hidden: true }),
+    );
+    await act(async () => {});
+    expect(onAskWord).not.toHaveBeenCalled();
+    fireEvent.click(
+      screen.getByRole("button", { name: "The album says open", hidden: true }),
+    );
+    await act(async () => {});
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it("asks again on the next word: refused once more after a reopen, it waits for the album's word after that refusal", async () => {
+    const { onRetry, onAskWord } = await refused();
+    await says(false);
+    await says(true);
+    expect(onRetry).toHaveBeenCalledTimes(1);
+    // The host closed it again before the shot went: refused over a word that said open, so the album is asked afresh.
+    fireEvent.click(
+      screen.getByRole("button", { name: "Refuse them", hidden: true }),
+    );
+    await wait(0);
+    expect(onAskWord).toHaveBeenCalledTimes(2);
+    await says(false);
+    await wait(300_000);
+    expect(onRetry).toHaveBeenCalledTimes(1);
+    await says(true);
+    expect(onRetry).toHaveBeenCalledTimes(2);
+  });
+
+  it("★ a full album is not the switch's to lift: it keeps the calm cadence", async () => {
+    const { onRetry } = await refused("Refuse them as full");
+    await wait(10_000);
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it("asks nothing once she has closed the camera, whatever the album says (the failure sheet is hers then)", async () => {
+    const { onRetry } = await refused();
+    await says(false);
+    fireEvent.click(screen.getByRole("button", { name: "Back to the album" }));
+    await says(true);
     await wait(300_000);
     expect(onRetry).not.toHaveBeenCalled();
   });
