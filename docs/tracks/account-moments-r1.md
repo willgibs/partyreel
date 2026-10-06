@@ -59,12 +59,15 @@ working.
 
 ## Handoff (replaces the chat report)
 
-- Work commit `4520dad67`, pushed to `origin/lp/account-moments-r1`; no sync commit: launch-prep moved only by the
-  record commit `8769437f5` (docs/STATUS.md, docs/tracks/orchestrator.md), none of my reads.
-- Gates on `4520dad67` (the light gate), each on its own exit code: `pnpm typecheck` 0; `pnpm lint` 0 (no warning);
-  the board's tests `pnpm vitest run src/app/(dev)/design/sandbox/registry.test.ts` 56/56; `pnpm lab:smoke --base
-  http://localhost:3131` 7 checks, 0 failing (363 words of 1200); `pnpm lab:demo --board account-moments --base
-  http://localhost:3131` 5 steps, 0 failing, every step draws its options at 1440 and 375 (stage moves 21.6% to 100%).
+- Work commit `4520dad67` and fix commit `12b47ac13`, pushed to `origin/lp/account-moments-r1`; no sync commit:
+  launch-prep moved only by records, a cut and drive-crumbs' merge, none of my reads. The fix: gate 48's full test run
+  caught `relations.tsx` spelling a dialog selector by hand (`layer-is-up.test.tsx`, "the layer roles have one home");
+  Block's ask is now found through `MODAL_ROLES` from `@/components/ui/layer-is-up`.
+- Gates on `12b47ac13`, each on its own exit code: `pnpm typecheck` 0; `pnpm lint` 0 (no warning);
+  `pnpm vitest run src/components/ui/layer-is-up.test.tsx src/app/(dev)/design/sandbox/registry.test.ts` 71/71;
+  `pnpm lab:demo --board account-moments --base http://localhost:3131` 5 steps, 0 failing, every step draws its
+  options at 1440 and 375 (stage moves 21.6% to 100%). On `4520dad67`: `pnpm lab:smoke` 7 checks, 0 failing (363 words
+  of 1200); the fix changes one selector, no route or word.
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = the ten files under
   `src/app/(dev)/design/sandbox/account-moments/` + this file; no exception.
 - Measured on screen (Playwright over the dev server, reduced motion emulated): every tile at 375 and 1440, each
