@@ -39,14 +39,16 @@ vi.mock("@/lib/db/queries/drive", async (importOriginal) => ({
   refolderSend: (...args: unknown[]) => refolderSend(...args),
 }));
 
-const { makeSendFolders, makeNewAlbumFolder } =
+const { adoptRootFolder, makeSendFolders, makeNewAlbumFolder } =
   await import("@/lib/drive/service.server");
-const { findRootFolder, DriveCallError } = await import("@/lib/drive/google");
+const { findAlbumFolder, findRootFolder, DriveCallError } =
+  await import("@/lib/drive/google");
 const { DRIVE_FOLDER_COLOR, DRIVE_ROOT_FOLDER_NAME } =
   await import("@/lib/export/drive-names");
 
 const CONNECTION = "c0000000-0000-4000-8000-000000000001";
 const JOB = "j0000000-0000-4000-8000-000000000001";
+const EVENT = "e0000000-0000-4000-8000-000000000001";
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 /**
  * Our mark, as her Drive keeps it: pinned literally, since a later rename would orphan every Partyreel folder already
@@ -235,6 +237,7 @@ describe("★ the Partyreel folder, one a Google account", () => {
     // The new connection knows no folder: the Disconnect forgot it with the row.
     const { folderId } = await makeSendFolders({
       jobId: JOB,
+      eventId: EVENT,
       facts: facts({ rootFolderId: null, folderId: null }),
       accessToken: "access",
     });
@@ -258,7 +261,7 @@ describe("★ the Partyreel folder, one a Google account", () => {
       ),
     ).toHaveLength(1);
     expect(drive.folders.get(folderId)!.parents).toEqual(["ours"]);
-    expect(markReady).toHaveBeenCalledWith(JOB, folderId);
+    expect(markReady).toHaveBeenCalledWith(JOB, folderId, false);
     expect(drive.deleted).toEqual([]);
 
     // Found by our mark, wherever she moved it (no parent clause), never by its name.
@@ -281,7 +284,7 @@ describe("★ the Partyreel folder, one a Google account", () => {
       await makeNewAlbumFolder({
         userId: "u",
         jobId: JOB,
-        eventId: "e",
+        eventId: EVENT,
         connectionId: CONNECTION,
         rootFolderId: null,
         fallbackName: "Maya & Jay",
@@ -296,6 +299,7 @@ describe("★ the Partyreel folder, one a Google account", () => {
   it("makes it on her first send, marked and in our colour, in My Drive", async () => {
     await makeSendFolders({
       jobId: JOB,
+      eventId: EVENT,
       facts: facts(),
       accessToken: "access",
     });
@@ -307,7 +311,9 @@ describe("★ the Partyreel folder, one a Google account", () => {
       appProperties: { ...MARK },
     });
     expect(album).toEqual(expect.objectContaining({ parents: ["made-1"] }));
-    expect(album).not.toHaveProperty("appProperties");
+    // The album's folder carries its own mark (drive-crumbs), never the root's, and not our colour.
+    expect(album).toHaveProperty("appProperties", { pr_event: EVENT });
+    expect(album).not.toHaveProperty("folderColorRgb");
     expect(connectionRoot).toBe("made-1");
   });
 
@@ -321,6 +327,7 @@ describe("★ the Partyreel folder, one a Google account", () => {
     connectionRoot = "binned";
     await makeSendFolders({
       jobId: JOB,
+      eventId: EVENT,
       facts: facts({ rootFolderId: "binned", folderId: "album-in-the-bin" }),
       accessToken: "access",
     });
@@ -342,6 +349,7 @@ describe("★ the Partyreel folder, one a Google account", () => {
     connectionRoot = "known";
     const { folderId } = await makeSendFolders({
       jobId: JOB,
+      eventId: EVENT,
       facts: facts({ rootFolderId: "known", folderId: "album" }),
       accessToken: "access",
     });
@@ -362,6 +370,7 @@ describe("★ the Partyreel folder, one a Google account", () => {
     drive.add({ id: "the-winners", createdAt: 5 });
     await makeSendFolders({
       jobId: JOB,
+      eventId: EVENT,
       facts: facts(),
       accessToken: "access",
     });
@@ -378,6 +387,7 @@ describe("★ the Partyreel folder, one a Google account", () => {
     }));
     await makeSendFolders({
       jobId: JOB,
+      eventId: EVENT,
       facts: facts(),
       accessToken: "access",
     });
@@ -395,6 +405,7 @@ describe("★ the Partyreel folder, one a Google account", () => {
     });
     const { folderId } = await makeSendFolders({
       jobId: JOB,
+      eventId: EVENT,
       facts: facts(),
       accessToken: "access",
     });
@@ -408,6 +419,7 @@ describe("★ the Partyreel folder, one a Google account", () => {
     connectionRoot = "gone-root";
     await makeSendFolders({
       jobId: JOB,
+      eventId: EVENT,
       facts: facts({ rootFolderId: "gone-root", folderId: "album" }),
       accessToken: "access",
     });
@@ -424,7 +436,12 @@ describe("★ the Partyreel folder, one a Google account", () => {
   it("a connection gone while its folder was made (a Disconnect mid-press) undoes that folder and ends the press", async () => {
     claimRoot.mockImplementationOnce(async () => ({ root: null, won: false }));
     await expect(
-      makeSendFolders({ jobId: JOB, facts: facts(), accessToken: "access" }),
+      makeSendFolders({
+        jobId: JOB,
+        eventId: EVENT,
+        facts: facts(),
+        accessToken: "access",
+      }),
     ).rejects.toThrow(/connection went/);
     expect(drive.deleted).toEqual(["made-1"]);
     expect(markReady).not.toHaveBeenCalled();
@@ -438,9 +455,172 @@ describe("★ the Partyreel folder, one a Google account", () => {
     });
     drive.failLists = true;
     await expect(
-      makeSendFolders({ jobId: JOB, facts: facts(), accessToken: "access" }),
+      makeSendFolders({
+        jobId: JOB,
+        eventId: EVENT,
+        facts: facts(),
+        accessToken: "access",
+      }),
     ).rejects.toBeInstanceOf(DriveCallError);
     expect(drive.creates()).toEqual([]);
+    expect(claimRoot).not.toHaveBeenCalled();
+  });
+});
+
+/** The album's mark, as her Drive keeps it: pinned literally (a rename would orphan every album folder already made). */
+const ALBUM_MARK = { pr_event: EVENT } as const;
+
+// ★ drive-crumbs (the calls lab's BE3): after a same-account Disconnect and Connect, sending an album again sent it
+// whole into a second same-named album folder, the forget having dropped the first one's id with its files'.
+describe("★ the album's folder, found by its mark after a reconnect", () => {
+  it("sends into the folder an earlier connection made, and says it was found so each file is looked up first", async () => {
+    drive.add({ id: "ours", createdAt: 2, appProperties: { ...MARK } });
+    drive.add({
+      id: "first-album",
+      name: "Maya & Jay · 12 Sep 2026",
+      parents: ["ours"],
+      createdAt: 3,
+      appProperties: { ...ALBUM_MARK },
+    });
+    // A folder of hers sharing the name is never taken for it.
+    drive.add({
+      id: "hers",
+      name: "Maya & Jay · 12 Sep 2026",
+      parents: ["ours"],
+      createdAt: 1,
+    });
+
+    const result = await makeSendFolders({
+      jobId: JOB,
+      eventId: EVENT,
+      facts: facts({ rootFolderId: null, folderId: null }),
+      accessToken: "access",
+    });
+
+    expect(result).toEqual({ folderId: "first-album", found: true });
+    expect(drive.creates()).toEqual([]);
+    expect(markReady).toHaveBeenCalledWith(JOB, "first-album", true);
+    const q = drive.lists()[1]!.searchParams.get("q")!;
+    expect(q).toBe(
+      `appProperties has { key='pr_event' and value='${EVENT}' } and mimeType = '${FOLDER_MIME}' and trashed = false`,
+    );
+    expect(q).not.toContain("in parents");
+  });
+
+  it("makes a new one, marked, when hers is in the bin (never taking a binned folder back)", async () => {
+    drive.add({ id: "ours", createdAt: 2, appProperties: { ...MARK } });
+    drive.add({
+      id: "binned-album",
+      parents: ["ours"],
+      createdAt: 3,
+      trashed: true,
+      appProperties: { ...ALBUM_MARK },
+    });
+    const result = await makeSendFolders({
+      jobId: JOB,
+      eventId: EVENT,
+      facts: facts({ rootFolderId: null, folderId: null }),
+      accessToken: "access",
+    });
+    expect(result).toEqual({ folderId: "made-1", found: false });
+    expect(drive.creates()).toEqual([
+      expect.objectContaining({
+        parents: ["ours"],
+        appProperties: { ...ALBUM_MARK },
+      }),
+    ]);
+    expect(markReady).toHaveBeenCalledWith(JOB, "made-1", false);
+  });
+
+  it("never takes back the album folder it just found binned or gone, while Google's listing still shows it", async () => {
+    drive.add({ id: "known", createdAt: 2 });
+    connectionRoot = "known";
+    drive.ghosts = ["album-just-gone"];
+    const result = await makeSendFolders({
+      jobId: JOB,
+      eventId: EVENT,
+      facts: facts({ rootFolderId: "known", folderId: "album-just-gone" }),
+      accessToken: "access",
+    });
+    expect(result.found).toBe(false);
+    expect(result.folderId).toBe("made-1");
+  });
+
+  it("another album's folder is never this one's", async () => {
+    drive.add({ id: "ours", createdAt: 2, appProperties: { ...MARK } });
+    drive.add({
+      id: "other-album",
+      parents: ["ours"],
+      createdAt: 3,
+      appProperties: { pr_event: "e0000000-0000-4000-8000-000000000002" },
+    });
+    const result = await makeSendFolders({
+      jobId: JOB,
+      eventId: EVENT,
+      facts: facts(),
+      accessToken: "access",
+    });
+    expect(result).toEqual({ folderId: "made-1", found: false });
+  });
+
+  it("Send to a new folder marks the new folder too", async () => {
+    drive.add({ id: "ours", createdAt: 2, appProperties: { ...MARK } });
+    await makeNewAlbumFolder({
+      userId: "u",
+      jobId: JOB,
+      eventId: EVENT,
+      connectionId: CONNECTION,
+      rootFolderId: "ours",
+      fallbackName: "Maya & Jay",
+      accessToken: "access",
+    });
+    expect(drive.creates()).toEqual([
+      expect.objectContaining({ appProperties: { ...ALBUM_MARK } }),
+    ]);
+  });
+
+  it("findAlbumFolder strips anything but a uuid's letters from the query (nothing can close its quote)", async () => {
+    expect(
+      await findAlbumFolder("access", "x' or name contains 'y", drive.fetch),
+    ).toBeNull();
+    const q = drive.lists()[0]!.searchParams.get("q")!;
+    const value = /value='([^']*)' \}/.exec(q)?.[1];
+    expect(value).toMatch(/^[0-9a-f-]*$/);
+    expect(q).not.toContain("name contains");
+  });
+});
+
+// ★ drive-crumbs: Account's card said "Made at your first send" after a reconnect until her next press.
+describe("★ a reconnect names her Partyreel folder at once", () => {
+  it("takes the folder an earlier connection made, found by its mark, against a connection that knows none", async () => {
+    drive.add({ id: "ours", createdAt: 2, appProperties: { ...MARK } });
+    expect(await adoptRootFolder(CONNECTION, "access")).toBe("ours");
+    expect(claimRoot).toHaveBeenCalledWith({
+      connectionId: CONNECTION,
+      candidate: "ours",
+      expected: null,
+    });
+    expect(connectionRoot).toBe("ours");
+    expect(drive.creates()).toEqual([]);
+  });
+
+  it("keeps a folder the connection already holds, and makes none when there is none to find", async () => {
+    connectionRoot = "held";
+    drive.add({ id: "ours", createdAt: 2, appProperties: { ...MARK } });
+    expect(await adoptRootFolder(CONNECTION, "access")).toBe("held");
+    expect(connectionRoot).toBe("held");
+
+    drive = new FolderDrive();
+    vi.stubGlobal("fetch", drive.fetch);
+    claimRoot.mockClear();
+    expect(await adoptRootFolder(CONNECTION, "access")).toBeNull();
+    expect(claimRoot).not.toHaveBeenCalled();
+    expect(drive.creates()).toEqual([]);
+  });
+
+  it("Google not answering is no failure of the connect: the press finds it later", async () => {
+    drive.failLists = true;
+    expect(await adoptRootFolder(CONNECTION, "access")).toBeNull();
     expect(claimRoot).not.toHaveBeenCalled();
   });
 });

@@ -143,6 +143,7 @@ export async function POST(request: Request) {
       eventId: raw.eventId,
       albumName: raw.albumName,
       tz: raw.tz,
+      folderFound: raw.folderFound,
       items: raw.items,
     });
   } catch (e) {

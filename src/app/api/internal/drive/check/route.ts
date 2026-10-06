@@ -1,7 +1,7 @@
 /**
  * ONE PAGE OF A SEND'S CLOSING CHECK (`POST /api/internal/drive/check`; drive-export.md, "The closing check"): the
  * Worker asked Drive for each sent file by its id. `cloud_export_check_page` keeps what was confirmed, sends again
- * (once) what went missing or into the bin, counts the duplicates the first page's folder listing found, and ends the
+ * (once) what went missing or into the bin, holds its cursor at the first file Google did not answer for, counts the duplicates the first page's folder listing found, and ends the
  * send when the walk is through. It decides her page and nothing else: nothing anywhere deletes on its word.
  *
  * After the answer: what went back is kicked at once, a folder in her bin gets its paused mail, and a duplicate is
@@ -28,13 +28,12 @@ export async function POST(request: Request) {
   try {
     outcome = await reportCheckPage({
       lease: word.lease,
-      // "unknown" (Drive could not answer for one) stays sent and unconfirmed: the walk moves on, nothing is resent.
-      results: word.results
-        .filter((r) => r.state !== "unknown")
-        .map((r) => ({
-          media_id: r.mediaId,
-          state: r.state === "ok" ? "ok" : "missing",
-        })),
+      // ★ "unknown" (Google did not answer for one) holds the walk there (20261006130000): it stays sent, is asked
+      // again on a later page, and nothing is resent on a doubt; "every one checked" follows an answer for every one.
+      results: word.results.map((r) => ({
+        media_id: r.mediaId,
+        state: r.state === "ok" || r.state === "unknown" ? r.state : "missing",
+      })),
       duplicates: word.duplicates ?? null,
       finding: word.finding ?? null,
     });

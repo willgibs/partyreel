@@ -70,6 +70,7 @@ function setup(
     modifiedTime: "2026-09-12T20:14:05.000Z",
     attempts: 1,
     priorFileId: null,
+    lookUp: false,
     session: null,
   };
   return {
@@ -163,6 +164,46 @@ describe("one original into her Drive", () => {
         (f) => f.appProperties.pr_media === MEDIA,
       ),
     ).toHaveLength(1);
+  });
+
+  // ★ drive-crumbs: after a Disconnect and Connect the press finds the album's folder by its mark, and the files an
+  // earlier connection sent are there already, their ids forgotten: each is found by its own mark and kept.
+  it("★ a send whose folder was found by its mark keeps what an earlier connection sent, and sends what is missing", async () => {
+    const { drive, ctx, item, bytes, bucket } = setup();
+    const earlier = drive.add({
+      size: bytes.length,
+      md5: (await bucket.head(KEY))!.md5!,
+      parents: ["album-folder"],
+      appProperties: { pr_media: MEDIA, pr_job: "an-earlier-send" },
+    });
+    const result = await sendOne(ctx, { ...item, lookUp: true });
+    expect(result.item).toEqual({
+      mediaId: MEDIA,
+      outcome: "sent",
+      fileId: earlier.id,
+      kept: true,
+      md5: earlier.md5,
+    });
+    expect(bucket.reads).toBe(0);
+    expect(drive.files.size).toBe(1);
+
+    // One she deleted from Drive since goes again, into the found folder.
+    drive.files.delete(earlier.id);
+    const asked = drive.calls.length;
+    const again = await sendOne(ctx, { ...item, lookUp: true });
+    expect(
+      drive.calls.slice(asked).filter((c) => c.url.includes("pr_media")),
+    ).toHaveLength(1);
+    expect(again.item.outcome).toBe("sent");
+    expect((again.item as { kept?: boolean }).kept).toBeUndefined();
+    const sent = drive.files.get((again.item as { fileId: string }).fileId)!;
+    expect(sent.parents).toEqual(["album-folder"]);
+  });
+
+  it("asks nothing by mark on a first send that made its folder (no lookUp, first attempt)", async () => {
+    const { drive, ctx, item } = setup();
+    await sendOne(ctx, item);
+    expect(drive.calls.some((c) => c.url.includes("pr_media"))).toBe(false);
   });
 
   it("writes a big file's session ahead, sends it in chunks, and reports where it stands after each", async () => {

@@ -22,6 +22,7 @@ import {
 import {
   createFolder,
   driveFileState,
+  findAlbumFolder,
   findRootFolder,
   refreshAccess,
   undoFolder,
@@ -210,15 +211,18 @@ export async function accessFromLease(
 
 /**
  * THE FOLDERS A SEND LANDS IN, MADE AT THE PRESS: the Partyreel folder (asked again each press: she may have moved it
- * to her bin; found by our mark after a reconnect: `ensureRoot`), then the album's (kept for its next send; a new one
- * if hers went to the bin or is gone), and the send starts (`markReady`). Two presses at once leave one Partyreel
+ * to her bin; found by our mark after a reconnect: `ensureRoot`), then the album's (kept for its next send; ★ found by
+ * its own mark when the connection knows none live, `findAlbumFolder`; a new one, marked, only when none is out of the
+ * bin), and the send starts (`markReady`, saying whether the folder was found, so each file is looked up by its own
+ * mark before it goes: a re-send after a reconnect adds only what is missing). Two presses at once leave one Partyreel
  * folder: the root is compare-and-set, and the loser undoes its own empty folder by the id Google just returned.
  */
 export async function makeSendFolders(input: {
   jobId: string;
+  eventId: string;
   facts: FolderFacts;
   accessToken: string;
-}): Promise<{ folderId: string }> {
+}): Promise<{ folderId: string; found: boolean }> {
   const { facts, accessToken } = input;
   const root = await ensureRoot(
     accessToken,
@@ -227,9 +231,22 @@ export async function makeSendFolders(input: {
   );
 
   let folderId = root.changed ? null : facts.folderId;
+  let dead: string | null = null;
   if (folderId) {
     const state = await driveFileState(accessToken, folderId);
-    if (!state || state.trashed) folderId = null;
+    if (!state || state.trashed) {
+      dead = folderId;
+      folderId = null;
+    }
+  }
+  let found = false;
+  if (!folderId) {
+    // Google's listing can trail its files.get by moments: the very folder just found binned or gone is no answer.
+    const listed = await findAlbumFolder(accessToken, input.eventId);
+    if (listed && listed !== dead) {
+      folderId = listed;
+      found = true;
+    }
   }
   let made: CreatedFolder | null = null;
   if (!folderId) {
@@ -240,16 +257,17 @@ export async function makeSendFolders(input: {
         endDate: facts.eventEndDate,
       }),
       parentId: root.id,
+      eventId: input.eventId,
     });
     folderId = made.id;
   }
-  const ok = await markReady(input.jobId, folderId);
+  const ok = await markReady(input.jobId, folderId, found);
   if (!ok) {
     // Canceled while the folder was being made: the empty folder made for it goes, by the id Google just returned.
     if (made) await undoFolder(accessToken, made).catch(() => undefined);
     throw new Error("drive: the send was no longer waiting for its folder");
   }
-  return { folderId };
+  return { folderId, found };
 }
 
 /**
@@ -291,6 +309,34 @@ async function ensureRoot(
 }
 
 /**
+ * ★ HER PARTYREEL FOLDER, NAMED THE MOMENT SHE RECONNECTS (drive-crumbs): a connection that knows no folder (a new row:
+ * a Disconnect forgot every id) takes the one an earlier connection to this Google account made, found by its mark,
+ * so Account's card names it at once rather than "Made at your first send" until her next press. Compare-and-set
+ * against none (a press may have settled one first: it stands); nothing is made here, so nothing is ever undone.
+ * Best-effort: Google not answering leaves the press to find it, as it always did.
+ */
+export async function adoptRootFolder(
+  connectionId: string,
+  accessToken: string,
+): Promise<string | null> {
+  try {
+    const found = await findRootFolder(accessToken);
+    if (!found) return null;
+    const claim = await claimRoot({
+      connectionId,
+      candidate: found,
+      expected: null,
+    });
+    return claim.root;
+  } catch (e) {
+    captureWarning("export", "drive_root_adopt_failed", {
+      error: String(e).slice(0, 200),
+    });
+    return null;
+  }
+}
+
+/**
  * "SEND TO A NEW FOLDER" (the album's folder went to her bin): a new folder under the Partyreel folder, named for the
  * album as it is now, and the paused send goes on into it; the album's next send lands there too. A send that could
  * not take it (canceled meanwhile) leaves no empty folder behind.
@@ -317,6 +363,7 @@ export async function makeNewAlbumFolder(input: {
       endDate: album?.eventEndDate ?? null,
     }),
     parentId: root.id,
+    eventId: input.eventId,
   });
   const ok = await refolderSend({
     userId: input.userId,
@@ -340,6 +387,8 @@ export async function leaseItemsFor(input: {
   eventId: string;
   albumName: string;
   tz: string;
+  /** The press found the album's folder by its mark (a reconnect): its files may be there already. */
+  folderFound: boolean;
   items: RawLeaseItem[];
 }): Promise<LeaseItem[]> {
   const senders = await readSenders(
@@ -387,6 +436,7 @@ export async function leaseItemsFor(input: {
         }),
         attempts: i.attempts,
         priorFileId: i.priorFileId,
+        lookUp: input.folderFound,
         session: i.sessionUri
           ? { uri: i.sessionUri, offset: i.sessionOffset ?? 0 }
           : null,

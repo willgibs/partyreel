@@ -203,6 +203,7 @@ export async function POST(request: Request) {
       try {
         await makeSendFolders({
           jobId: created.jobId,
+          eventId,
           facts: created.facts,
           accessToken: access.token,
         });

@@ -420,6 +420,47 @@ export async function findRootFolder(
 }
 
 /**
+ * ★ OUR MARK ON AN ALBUM'S FOLDER (drive-crumbs): its album's id, private to Partyreel like `pr_root`, so a press after a
+ * reconnect (which knows no ids) finds the folder an earlier connection to the same Google account made, and adds only
+ * what is missing there, rather than a second folder of the same name holding the album again.
+ */
+export const ALBUM_FOLDER_MARK_KEY = "pr_event";
+
+/** An album id as it may stand inside a Drive query (a uuid: anything else is stripped, so nothing can close the quote). */
+const markValue = (id: string) => id.replace(/[^0-9a-f-]/gi, "");
+
+/**
+ * THE ALBUM'S FOLDER AN EARLIER CONNECTION MADE, by its mark: out of the bin (a folder inside a binned Partyreel folder
+ * reads binned too), wherever she moved it, the oldest when two were ever made. Null when there is none.
+ */
+export async function findAlbumFolder(
+  accessToken: string,
+  eventId: string,
+  fetchImpl: Fetch = fetch,
+): Promise<string | null> {
+  const value = markValue(eventId);
+  if (!value) return null;
+  const params = new URLSearchParams({
+    q:
+      `appProperties has { key='${ALBUM_FOLDER_MARK_KEY}' and value='${value}' }` +
+      ` and mimeType = '${FOLDER_MIME}' and trashed = false`,
+    fields: "files(id)",
+    orderBy: "createdTime",
+    pageSize: "1",
+    spaces: "drive",
+  });
+  const res = await driveCall(
+    fetchImpl,
+    accessToken,
+    `${GOOGLE_URLS.files}?${params}`,
+  );
+  if (!res.ok) throw await failure(res, "files.list (an album's folder)");
+  const body = (await res.json()) as { files?: { id?: unknown }[] };
+  const id = body.files?.[0]?.id;
+  return typeof id === "string" && id.length > 0 ? id : null;
+}
+
+/**
  * A folder we just made: its id, as a handle only `undoFolder` takes. ★ The app's one deletion in her Drive is
  * undoing its own write of seconds ago (a second Partyreel folder two presses made at once); a recorded folder or a
  * sent file is never passed here, by construction of the type.
@@ -431,12 +472,18 @@ export type CreatedFolder = {
 };
 
 /**
- * Make a folder: an album's under `parentId`, or (`root`) the Partyreel folder itself in My Drive, in our colour and
- * carrying our mark, so no Partyreel folder is ever made that a later connection could not find again.
+ * Make a folder: an album's under `parentId`, carrying its album's mark (`eventId`), or (`root`) the Partyreel folder
+ * itself in My Drive, in our colour and carrying our mark, so no folder is ever made that a later connection could not
+ * find again.
  */
 export async function createFolder(
   accessToken: string,
-  input: { name: string; parentId?: string | null; root?: boolean },
+  input: {
+    name: string;
+    parentId?: string | null;
+    root?: boolean;
+    eventId?: string;
+  },
   fetchImpl: Fetch = fetch,
 ): Promise<CreatedFolder> {
   const res = await driveCall(
@@ -457,7 +504,13 @@ export async function createFolder(
                 [ROOT_FOLDER_MARK.key]: ROOT_FOLDER_MARK.value,
               },
             }
-          : {}),
+          : input.eventId
+            ? {
+                appProperties: {
+                  [ALBUM_FOLDER_MARK_KEY]: markValue(input.eventId),
+                },
+              }
+            : {}),
       }),
     },
   );
