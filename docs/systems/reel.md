@@ -175,7 +175,7 @@ A host has no reel to create, only a state to read and a few defaults to set.
   plain card among the hub's doors (event-header r4), its violet glyph its one mark: "Starts at 2 photos" at none, "1
   more photo" at one, then "Live for guests" (or "Guests get it later" while the album's develop time is ahead, since no
   guest sees a photograph before it; the page hands `developsAt`, and the card turns the moment it comes), one pure
-  function (`reelCardFace`). It draws no stills: its state and count are read live off the album's store (`useLiveReel`,
+  function (`reelCardFace`, in `room-card.ts`). It draws no stills: its state and count are read live off the album's store (`useLiveReel`,
   which keeps no face of its own, so Settings' switch always wins). The card is hers from the first photograph (the reel
   plays on her own scope, sealed shots included), while the head, its band and the album's cover still wear her guests'
   view. Before two a press opens guidance (what is left, Add photos, and on a moderated event that a guest's photo
