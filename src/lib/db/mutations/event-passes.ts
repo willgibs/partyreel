@@ -19,14 +19,25 @@
  *      session (`claim_pass_credit`), the grant put on record (`record_pass_credit_grant`),
  *      then exactly the passes the session named converted (`convert_pass_credit`); and a
  *      claim that lost its passes to another checkout's credit settled for good
- *      (`release_pass_credit`, credit-watch 20261005201000). Each is one SQL transaction
+ *      (`release_pass_credit`, credit-watch 20261005201000); an orphan's grant adopted whole
+ *      (`adopt_pass_credit_orphans`, billing-orphans 20261006120000). Each is one SQL transaction
  *      that takes her profiles row first, the one lock order every capacity body keeps
  *      (database-security.md): an upload's complete holds that row while it counts on her
  *      live pass.
  */
 import "server-only";
 
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 import { createAdminClient } from "@/lib/supabase/admin";
+
+/**
+ * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `adopt_pass_credit_orphans` arrives with migration 20261006120000, so
+ * its call goes through this untyped client (drop the cast then, as credit-watch's `creditDb` was).
+ */
+function orphansDb(db: ReturnType<typeof createAdminClient>) {
+  return db as unknown as SupabaseClient;
+}
 
 const UNIQUE_VIOLATION = "23505";
 
@@ -223,8 +234,30 @@ export async function claimPassCredit(input: {
 }
 
 /**
+ * ★ The claim was released before its grant went on record (billing-orphans, 20261006120000): its holder outlived its
+ * lease, another checkout credited its passes and released it, and then this holder's grant landed on Stripe's side.
+ * `record_pass_credit_grant` refuses it (55000, in words naming the release), and the caller puts that grant on record
+ * beside the release (`releasePassCredit`) instead: granted twice, the operator's to reverse in Stripe.
+ */
+export class PassCreditReleasedError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "PassCreditReleasedError";
+  }
+}
+
+/** Is this PostgREST error `record_pass_credit_grant`'s refusal of a released claim? */
+export function isReleasedRefusal(error: {
+  code?: string;
+  message: string;
+}): boolean {
+  return error.code === "55000" && /\breleased\b/.test(error.message);
+}
+
+/**
  * Put a credit's customer-balance transaction on record, once. Answers the transaction on record: the one passed, or an
- * earlier one when there is one (two grants for one checkout, which the caller reports).
+ * earlier one when there is one (two grants for one checkout, which the caller reports). Throws
+ * `PassCreditReleasedError` for a claim released already.
  */
 export async function recordPassCreditGrant(
   sessionId: string,
@@ -239,7 +272,14 @@ export async function recordPassCreditGrant(
       p_balance_transaction_id: balanceTransactionId,
     },
   );
-  if (error) throw new Error(`record_pass_credit_grant: ${error.message}`);
+  if (error) {
+    if (isReleasedRefusal(error)) {
+      throw new PassCreditReleasedError(
+        `record_pass_credit_grant: ${error.message}`,
+      );
+    }
+    throw new Error(`record_pass_credit_grant: ${error.message}`);
+  }
   if (typeof data !== "string" || data === "") {
     throw new Error(
       "record_pass_credit_grant answered something other than a transaction",
@@ -288,20 +328,109 @@ export async function releasePassCredit(
   hostId: string,
   balanceTransactionId: string | null,
 ): Promise<PassCreditRelease> {
-  const { data, error } = await createAdminClient().rpc(
-    "release_pass_credit",
-    {
-      p_session_id: sessionId,
-      p_host_id: hostId,
-      // A null grant is the function's default: the key is left out (database-security.md, a typed call cannot say null).
-      p_balance_transaction_id: balanceTransactionId ?? undefined,
-    },
-  );
+  const { data, error } = await createAdminClient().rpc("release_pass_credit", {
+    p_session_id: sessionId,
+    p_host_id: hostId,
+    // A null grant is the function's default: the key is left out (database-security.md, a typed call cannot say null).
+    p_balance_transaction_id: balanceTransactionId ?? undefined,
+  });
   if (error) throw new Error(`release_pass_credit: ${error.message}`);
   if (data !== "released" && data !== "released_granted") {
     throw new Error("release_pass_credit answered something it never answers");
   }
   return data;
+}
+
+/** One orphan's grant as the adoption settled it (`adopt_pass_credit_orphans`). */
+export type AdoptedOrphan = {
+  session: string;
+  /** The grant on record for it. */
+  balanceTransactionId: string;
+  /** How many of its passes this adoption converted. */
+  converted: number;
+  /** Its passes were credited by an older orphan first: released beside its grant, the operator's to reverse. */
+  grantedTwice: boolean;
+};
+
+/** What adopting a claim's orphans came to: all of it, or nothing (an orphan's own delivery holds its lease again). */
+export type OrphanAdoption =
+  | { state: "adopted"; orphans: AdoptedOrphan[] }
+  | { state: "busy"; retryAfterSec: number };
+
+/** Read `adopt_pass_credit_orphans`' answer, or throw: an answer it does not know is a broken call. */
+export function parseAdoption(data: unknown): OrphanAdoption {
+  const answer = (typeof data === "object" && data !== null ? data : {}) as {
+    state?: unknown;
+    orphans?: unknown;
+    retry_after_sec?: unknown;
+  };
+  if (answer.state === "busy") {
+    const secs = Number(answer.retry_after_sec);
+    return {
+      state: "busy",
+      retryAfterSec: Number.isFinite(secs) && secs >= 1 ? Math.ceil(secs) : 600,
+    };
+  }
+  if (answer.state === "adopted" && Array.isArray(answer.orphans)) {
+    const orphans: AdoptedOrphan[] = [];
+    for (const item of answer.orphans) {
+      const o = (typeof item === "object" && item !== null ? item : {}) as {
+        session?: unknown;
+        balance_transaction_id?: unknown;
+        converted?: unknown;
+        granted_twice?: unknown;
+      };
+      if (
+        typeof o.session !== "string" ||
+        o.session === "" ||
+        typeof o.balance_transaction_id !== "string" ||
+        o.balance_transaction_id === "" ||
+        typeof o.converted !== "number" ||
+        !Number.isInteger(o.converted) ||
+        o.converted < 0 ||
+        typeof o.granted_twice !== "boolean"
+      ) {
+        break;
+      }
+      orphans.push({
+        session: o.session,
+        balanceTransactionId: o.balance_transaction_id,
+        converted: o.converted,
+        grantedTwice: o.granted_twice,
+      });
+    }
+    if (orphans.length === answer.orphans.length && orphans.length > 0) {
+      return { state: "adopted", orphans };
+    }
+  }
+  throw new Error(
+    "adopt_pass_credit_orphans answered something it never answers",
+  );
+}
+
+/**
+ * ★ ADOPT THE GRANTS STRIPE HOLDS FOR A CLAIM'S ORPHANS, IN ONE TRANSACTION (billing-orphans, 20261006120000): her
+ * profiles row first, then each orphan's grant on record and converted, oldest first (one whose passes an older orphan
+ * credited is released beside its grant: granted twice), then this checkout's claim released. All of it lands or none
+ * does: three calls left an orphan granted and unconverted when a failure fell between them. A failed call throws, so
+ * the webhook answers 500 and Stripe retries.
+ */
+export async function adoptPassCreditOrphans(
+  sessionId: string,
+  hostId: string,
+  grants: readonly { session: string; balanceTransactionId: string }[],
+): Promise<OrphanAdoption> {
+  const { data, error } = await orphansDb(createAdminClient()).rpc(
+    "adopt_pass_credit_orphans",
+    {
+      p_session_id: sessionId,
+      p_host_id: hostId,
+      p_orphan_sessions: grants.map((g) => g.session),
+      p_balance_transaction_ids: grants.map((g) => g.balanceTransactionId),
+    },
+  );
+  if (error) throw new Error(`adopt_pass_credit_orphans: ${error.message}`);
+  return parseAdoption(data);
 }
 
 /**

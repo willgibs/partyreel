@@ -29,7 +29,9 @@ vi.mock("@/lib/db/queries/event-passes", () => ({
 }));
 
 const {
+  adoptPassCreditOrphans,
   claimPassCredit,
+  PassCreditReleasedError,
   convertPassCredit,
   parseClaim,
   recomputePassEntitlement,
@@ -365,5 +367,130 @@ describe("the recompute", () => {
     await expect(recomputePassEntitlement(HOST)).rejects.toThrow(
       /^recompute_pass_entitlement: lock timeout/,
     );
+  });
+});
+
+describe("the orphans' adoption and a released claim's record (billing-orphans)", () => {
+  beforeEach(() => rpc.mockReset());
+
+  it("★ adopts in one call: the orphans and their grants index for index, the answer read strictly", async () => {
+    rpc.mockResolvedValueOnce({
+      data: {
+        state: "adopted",
+        orphans: [
+          {
+            session: "cs_a",
+            balance_transaction_id: "cbtxn_a",
+            converted: 2,
+            granted_twice: false,
+          },
+          {
+            session: "cs_b",
+            balance_transaction_id: "cbtxn_b",
+            converted: 0,
+            granted_twice: true,
+          },
+        ],
+      },
+      error: null,
+    });
+    const answer = await adoptPassCreditOrphans("cs_t", HOST, [
+      { session: "cs_b", balanceTransactionId: "cbtxn_b" },
+      { session: "cs_a", balanceTransactionId: "cbtxn_a" },
+    ]);
+    expect(rpc).toHaveBeenCalledWith("adopt_pass_credit_orphans", {
+      p_session_id: "cs_t",
+      p_host_id: HOST,
+      p_orphan_sessions: ["cs_b", "cs_a"],
+      p_balance_transaction_ids: ["cbtxn_b", "cbtxn_a"],
+    });
+    expect(answer).toEqual({
+      state: "adopted",
+      orphans: [
+        {
+          session: "cs_a",
+          balanceTransactionId: "cbtxn_a",
+          converted: 2,
+          grantedTwice: false,
+        },
+        {
+          session: "cs_b",
+          balanceTransactionId: "cbtxn_b",
+          converted: 0,
+          grantedTwice: true,
+        },
+      ],
+    });
+  });
+
+  it("reads busy with its wait, and throws on an error, an empty adoption or a malformed orphan", async () => {
+    rpc.mockResolvedValueOnce({
+      data: { state: "busy", retry_after_sec: 212 },
+      error: null,
+    });
+    expect(
+      await adoptPassCreditOrphans("cs_t", HOST, [
+        { session: "cs_a", balanceTransactionId: "x" },
+      ]),
+    ).toEqual({
+      state: "busy",
+      retryAfterSec: 212,
+    });
+    for (const data of [
+      { state: "adopted", orphans: [] },
+      {
+        state: "adopted",
+        orphans: [
+          {
+            session: "cs_a",
+            balance_transaction_id: "x",
+            converted: -1,
+            granted_twice: false,
+          },
+        ],
+      },
+      { state: "adopted" },
+      { state: "overlap" },
+      null,
+    ]) {
+      rpc.mockResolvedValueOnce({ data, error: null });
+      await expect(
+        adoptPassCreditOrphans("cs_t", HOST, [
+          { session: "cs_a", balanceTransactionId: "x" },
+        ]),
+      ).rejects.toThrow(/never answers/);
+    }
+    rpc.mockResolvedValueOnce({
+      data: null,
+      error: { message: "boom", code: "XX000" },
+    });
+    await expect(
+      adoptPassCreditOrphans("cs_t", HOST, [
+        { session: "cs_a", balanceTransactionId: "x" },
+      ]),
+    ).rejects.toThrow("adopt_pass_credit_orphans: boom");
+  });
+
+  it("★ a record refused for a released claim throws its own error; any other failure stays a plain one", async () => {
+    rpc.mockResolvedValueOnce({
+      data: null,
+      error: {
+        code: "55000",
+        message:
+          "This checkout's credit is released: its grant goes on record beside the release.",
+      },
+    });
+    await expect(
+      recordPassCreditGrant("cs_w", HOST, "cbtxn_w"),
+    ).rejects.toBeInstanceOf(PassCreditReleasedError);
+    rpc.mockResolvedValueOnce({
+      data: null,
+      error: { code: "55000", message: "something else not in state" },
+    });
+    const other = await recordPassCreditGrant("cs_w", HOST, "cbtxn_w").catch(
+      (e: unknown) => e,
+    );
+    expect(other).toBeInstanceOf(Error);
+    expect(other).not.toBeInstanceOf(PassCreditReleasedError);
   });
 });
