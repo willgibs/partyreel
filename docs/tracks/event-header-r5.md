@@ -31,15 +31,39 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **Q1, the four takes after desk 4's Afterglow (relayed mid-round).** Every take speaks Afterglow: a waiting count is
+  the half-lit Standby point and its word, no hue and no glow; colour is only the screen's one light. So the painted
+  badge take became `points` (the badge's place, a point's form: the point on the glyph, its word the line) and a
+  white-light "lit" take gave way to `seam` (Afterglow's Seam as the hub's one light, sampled from the cover).
+  Recommended and built: `keys`, `glass`, `seam`, `points`.
+- **Q2, both grounds in every frame.** His paper note ("very tough to nail on anything light") made paper a frame of
+  its own beside the room in every take, both live; the Ground knob retired for a Scroll knob (first screen, or both
+  scrolled into the album to compare bands). Recommended and built.
+- **Q3, the standby point holds still on the hub.** Afterglow's breathes (2.4 s); a host keeps her hub open all night,
+  the strip's own no-pulse rule. Recommended still: carried call `standby-still`, his to overrule.
+- **Q4, the tablet.** Drawn at 820 by 1180; every take's tiles hold from 640 to 1088 (a desk card needs 200px, so the
+  desk's cards start at a row of 1088, not Tailwind's `lg` 1024, where five are 187px). Read off the row's width
+  (a container query), never the knob. Carried call `tablet-tiles`.
+- **Q5, the band's ends.** The cover's face at the left end, the code at the right end where the cover's code stood,
+  the doors centred (Review folds straight up). Carried call `band-ends`, every take.
+- **Q6, reduced motion.** The fold dissolves in place (150 ms, opacity only) rather than snapping. Carried call
+  `reduced-fold`, every take.
+- **Q7, the seam's light values.** Copied from brand r1's Afterglow (`light.ts`: the cover stills' sampled hues and
+  intensity, its registers and corrections), one hue at three depths (never a spectrum). Brand r2 may retune them; the
+  wiring needs a per-photo sampler (Afterglow's own listed cost). Recommended as built.
+- **Q8, glass on a phone.** The cover grows to 452px so every pane stands on the photograph (glass over paper's pale
+  page greys its words). Recommended as built; a listed cost.
+- **Q9, round four's door files.** `glass.tsx`, `windows.tsx`, r4's `cards.tsx` and their sheets deleted from the board
+  folder (git keeps them); the four takes ride one row and fold (`card-kit.tsx`). Recommended as built.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none (a board ships no production byte)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: the hub code's corner count (`EventCodeDoor`) still wears the retired waiting amber; Afterglow's standby point
+  and its word would replace it (brand r2 or its wiring).
 
 ## Handoff (replaces the chat report)
 
@@ -53,3 +77,13 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am
+
+- Done (WIP commit): the round-5 board in Afterglow's language: four takes (`keys`, `glass`, `seam`, `points`) on one
+  row and fold (`card-kit.tsx`), both grounds side by side in every take, a tablet (820), the spec rewritten
+  (recommended `seam`), registry tests, lint, types, `lab:smoke` and `lab:demo --board event-header` green.
+- Mid-flight: the fresh-eyes pass returned (recommend Seam, borrow Points' phone; Glass not a contender as drawn;
+  shared fixes: the count's point beside its word, the band's opaque ground from the fold's first frame, a lighter
+  paper veil, the reel's violet to ink, the band's code a ground pill, a thinner halo on paper). Next: apply it, re-run
+  the light gate, fill the Handoff.

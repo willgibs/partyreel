@@ -50,7 +50,7 @@ import {
   ReviewBody,
   SettingsRoom,
 } from "./rooms";
-import type { Ground, ScreenId } from "./scene";
+import { type Ground, isPhone, type ScreenId } from "./scene";
 
 /**
  * HER HUB, AS ROOMS-WIRING WIRED IT: production's own order
@@ -250,7 +250,7 @@ const doorLineOf = (c: Case) =>
  * every room is in a hand.
  */
 function GuestLayer({ d, onClose }: { d: HubDraw; onClose?: () => void }) {
-  if (d.screen === "1440")
+  if (!isPhone(d.screen))
     return (
       <div className="eh-layer fixed inset-0 z-50 flex items-center justify-center">
         <div
@@ -326,7 +326,7 @@ function ReelLayer({ d, onClose }: { d: HubDraw; onClose?: () => void }) {
     <div data-room-panel="reel" className="eh-cover fixed inset-0 z-50">
       <ReelView
         f={d.c}
-        desk={d.screen === "1440"}
+        desk={!isPhone(d.screen)}
         closeTo="Back to your hub"
         onClose={onClose}
       />
@@ -455,18 +455,6 @@ function useStuckIn(
     return () => win.removeEventListener("scroll", read);
   }, [mark, at, key]);
   return stuck;
-}
-
-/**
- * A STILL FRAME SCROLLED INTO THE ALBUM: its doors in whatever form that
- * scroll really gives them, read off the frame as Try it reads it and never
- * forced, so a page too short to scroll the cover away (the week before, at a
- * desk) keeps its doors as they rest, as production would.
- */
-export function StillHub({ d }: { d: HubDraw }) {
-  const mark = useRef<HTMLDivElement | null>(null);
-  const stuck = useStuckIn(mark, DOORS[d.doors].stickAt, d.doors);
-  return <Hub d={d} stuck={stuck} mark={mark} />;
 }
 
 /**

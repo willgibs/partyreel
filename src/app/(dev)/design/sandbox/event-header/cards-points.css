@@ -1,0 +1,290 @@
+/* POINTS' OWN SHEET (`cards-points.tsx`): the calm card with its point on the
+   glyph and its readout line, a hand's one row, and the phone's foot bar. The
+   shapes are `card-kit.css`'s.
+
+   ★ EVERY CLASS AND KEYFRAME CARRIES THIS TAKE'S PREFIX (`eh-points-`), every
+   rule its look (`[data-look="points"]`): all four takes' sheets load into
+   every frame.
+   ★ THE POINT IS AFTERGLOW'S STANDBY (`card-kit.css`'s `.eh-ck-point`):
+   half-lit in the ground's ink, never a hue and never a glow; here it stands
+   where a badge would, cut out of the glyph's disc by a ring of the card. */
+
+/* ══ THE CARD ══════════════════════════════════════════════════════════════ */
+
+[data-look="points"] {
+  --eh-points-face: var(--card);
+}
+[data-look="points"] .eh-ck-skin {
+  border-radius: 12px;
+  background-color: var(--eh-points-face);
+  --eh-skin-shadow: var(--shadow-lift);
+}
+/* In the room a card over the seam is lit from above and edged where its tone
+   alone cannot part it from the photograph's dark foot. */
+[data-eh-ground="room"] [data-look="points"] .eh-ck-skin {
+  background-image: linear-gradient(oklch(1 0 0 / 4%), transparent 70%);
+  --eh-skin-shadow:
+    var(--shadow-lift), inset 0 1px 0 oklch(1 0 0 / 8%),
+    0 0 0 1px oklch(1 0 0 / 5%);
+}
+[data-look="points"][data-stuck] .eh-ck-skin {
+  border-radius: 999px;
+}
+[data-look="points"] .eh-ck-disc {
+  background-color: var(--secondary);
+}
+[data-eh-ground="room"] [data-look="points"] .eh-ck-disc {
+  background-color: var(--accent);
+}
+[data-look="points"] .eh-ck-glyph[data-reel] {
+  color: var(--reel);
+}
+[data-look="points"] .eh-ck-glyph[data-reel] > .eh-ck-disc {
+  background-color: color-mix(in oklab, var(--reel) 16%, var(--card));
+}
+
+/* The point on the glyph's shoulder, where a badge would sit, cut out of the
+   disc by a ring of the card's own face, so it reads as standing on its edge. */
+.eh-points-on {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  width: 10px;
+  height: 10px;
+  box-shadow:
+    inset 0 0 0 1.5px currentColor,
+    0 0 0 2.5px var(--eh-points-face);
+}
+[data-look="points"] .eh-ck-glyph .eh-points-on {
+  color: var(--foreground);
+}
+
+/* The line, a status's word: spaced capitals, the quiet ink, the ground's own
+   ink where something waits on her. */
+[data-look="points"] .eh-ck-line.eh-ck-readout {
+  margin-top: 3px;
+  font-size: 10.5px;
+  letter-spacing: 0.09em;
+}
+[data-look="points"]:not([data-stuck]) .eh-ck-count {
+  display: none;
+}
+/* A tile is too narrow for "PRIVATE · YOU LET IN" on one line: the word wraps,
+   balanced, and the tile takes the line it needs. */
+@container eh-row (640px <= width < 1088px) {
+  [data-look="points"]:not([data-stuck]) .eh-ck-line.eh-ck-readout {
+    white-space: normal;
+    text-wrap: balance;
+  }
+  [data-look="points"]:not([data-stuck]) .eh-ck-door {
+    height: 120px;
+  }
+}
+
+/* ══ A HAND: ONE ROW OF FIVE ═══════════════════════════════════════════════ */
+
+/* In a hand every door stands in one row: its glyph, the point on it, its
+   short word under, so the album starts highest of the four. */
+@container eh-row (width < 640px) {
+  [data-look="points"] .eh-ck-doors {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+  }
+  [data-look="points"] .eh-ck-door[data-eh-door="guest"] {
+    grid-column: auto;
+  }
+  [data-look="points"]:not([data-stuck]) .eh-ck-door {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    height: 76px;
+    padding: 0 2px;
+    text-align: center;
+  }
+  [data-look="points"]:not([data-stuck]) .eh-ck-door[data-eh-door="guest"] {
+    height: 76px;
+  }
+  [data-look="points"]:not([data-stuck]) .eh-ck-glyph {
+    width: 36px;
+    height: 36px;
+  }
+  [data-look="points"]:not([data-stuck]) .eh-ck-mark > svg {
+    width: 17px;
+    height: 17px;
+  }
+  [data-look="points"]:not([data-stuck]) .eh-ck-text {
+    align-items: center;
+    max-width: 100%;
+  }
+  [data-look="points"]:not([data-stuck]) .eh-ck-title {
+    font-family: var(--font-sans), ui-sans-serif, sans-serif;
+    font-size: 11.5px;
+    font-weight: 500;
+    line-height: 14px;
+    letter-spacing: 0;
+  }
+  [data-look="points"]:not([data-stuck]) .eh-ck-line {
+    display: none;
+  }
+}
+
+/* ══ THE PHONE'S FOOT BAR ══════════════════════════════════════════════════ */
+
+/* Fixed at the frame's foot, clear of a home indicator; the house glass,
+   steadier off the cover (round four's measure), the code a round beside it. */
+.eh-points-foot {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: oklch(1 0 0);
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(calc(100% + 24px));
+  pointer-events: none;
+}
+.eh-points-foot[data-shown] {
+  visibility: visible;
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+.eh-points-tabs {
+  display: grid;
+  flex: 1;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  height: 62px;
+  padding: 5px;
+  border-radius: 999px;
+  background-color: rgb(0 0 0 / 0.3);
+  -webkit-backdrop-filter: blur(var(--glass-blur))
+    brightness(var(--glass-brightness)) saturate(1.1);
+  backdrop-filter: blur(var(--glass-blur)) brightness(var(--glass-brightness))
+    saturate(1.1);
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / var(--glass-lip)),
+    inset 0 0 0 1px rgb(255 255 255 / var(--glass-hairline)),
+    var(--shadow-layer);
+}
+.eh-points-tab {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border-radius: 999px;
+  outline: none;
+  color: oklch(1 0 0 / 92%);
+  -webkit-tap-highlight-color: transparent;
+}
+.eh-points-tab .eh-ck-glyph {
+  width: 24px;
+  height: 24px;
+  color: inherit;
+}
+.eh-points-tab .eh-ck-disc {
+  display: none;
+}
+.eh-points-tab .eh-ck-mark > svg {
+  width: 19px;
+  height: 19px;
+}
+.eh-points-tab .eh-ck-glyph[data-reel] {
+  color: var(--reel);
+}
+.eh-points-tab .eh-points-on {
+  top: -2px;
+  right: -4px;
+  width: 9px;
+  height: 9px;
+  color: oklch(1 0 0);
+  box-shadow: inset 0 0 0 1.5px currentColor;
+}
+.eh-points-tab-word {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 12px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+/* While her room stands open its tab is the white lozenge, its words in ink. */
+.eh-points-tab[aria-pressed="true"] {
+  background-color: oklch(1 0 0);
+  color: oklch(0.14 0.004 286);
+}
+.eh-points-tab[aria-pressed="true"] .eh-points-on {
+  color: oklch(0.14 0.004 286);
+}
+.eh-points-tab:focus-visible {
+  box-shadow:
+    0 0 0 2px oklch(0.13 0.004 286),
+    0 0 0 3.5px oklch(1 0 0),
+    0 -1px 12px 3.5px oklch(1 0 0 / 26%);
+}
+.eh-points-code {
+  display: flex;
+  flex-shrink: 0;
+}
+
+/* It rises as the row leaves, on the drawer's curve at an edge's 300ms, and
+   sinks the same way; under reduced motion it develops in place. */
+@media (prefers-reduced-motion: no-preference) {
+  .eh-points-foot {
+    transition:
+      transform 300ms var(--ease-drawer),
+      opacity 200ms var(--ease-emphasis),
+      visibility 0s linear 300ms;
+  }
+  .eh-points-foot[data-shown] {
+    transition:
+      transform 300ms var(--ease-drawer),
+      opacity 160ms var(--ease-emphasis),
+      visibility 0s;
+  }
+  .eh-points-tab:active {
+    scale: 0.93;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .eh-points-foot {
+    transform: none;
+    transition: opacity 150ms linear !important;
+  }
+}
+
+/* ══ UNDER THE POINTER, PRESSED ════════════════════════════════════════════ */
+
+@media (hover: hover) {
+  [data-look="points"] .eh-ck-door:hover > .eh-ck-skin {
+    --eh-skin-shadow: var(--shadow-layer);
+  }
+  /* The point's cut-out follows the face it stands on. */
+  [data-eh-ground="room"] [data-look="points"] .eh-ck-door:hover {
+    --eh-points-face: var(--secondary);
+  }
+  [data-eh-ground="room"] [data-look="points"] .eh-ck-door:hover > .eh-ck-skin {
+    background-color: var(--secondary);
+    --eh-skin-shadow:
+      var(--shadow-layer), inset 0 1px 0 oklch(1 0 0 / 11%),
+      0 0 0 1px oklch(1 0 0 / 7%);
+  }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  [data-look="points"] .eh-ck-skin {
+    transition: background-color 160ms var(--ease-emphasis);
+  }
+}
+
+[data-look="points"] .eh-ck-door[aria-pressed="true"] > .eh-ck-skin {
+  --eh-skin-shadow: 0 0 0 2px var(--foreground), var(--shadow-lift);
+}

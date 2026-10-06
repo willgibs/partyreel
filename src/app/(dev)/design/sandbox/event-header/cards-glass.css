@@ -1,0 +1,230 @@
+/* GLASS'S OWN SHEET (`cards-glass.tsx`): the cover's soft foot and its seam,
+   the glass panes at rest, and the one capsule they merge into stuck. The
+   shapes are `card-kit.css`'s.
+
+   ★ EVERY CLASS AND KEYFRAME CARRIES THIS TAKE'S PREFIX (`eh-glass-`), every
+   rule its look (`[data-look="glass"]`): all four takes' sheets load into
+   every frame.
+   ★ ONE MATERIAL: production's Crystal, read through its own tokens
+   (`--glass-*`, globals.css), never a blur of this sheet's own; off the cover
+   it is steadier (more tint, less saturation), as round four's docked capsule
+   measured: over the album's rows the doubled saturation took each
+   photograph's colour as it passed. */
+
+/* ══ THE COVER'S FOOT ══════════════════════════════════════════════════════ */
+
+/* The photograph goes soft as it nears the row, a blur gathering toward the
+   seam (behind the strip's marks, which stand over it, never in it). */
+[data-eh-soften="glass"] {
+  -webkit-backdrop-filter: blur(22px) brightness(0.86);
+  backdrop-filter: blur(22px) brightness(0.86);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 62%);
+  mask-image: linear-gradient(to bottom, transparent, #000 62%);
+  pointer-events: none;
+}
+
+/* In the room the photograph dissolves into the room behind the panes' feet. */
+[data-eh-seam="glass"].eh-seam-fade {
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    color-mix(in oklab, var(--eh-page) 18%, transparent) 30%,
+    color-mix(in oklab, var(--eh-page) 55%, transparent) 62%,
+    color-mix(in oklab, var(--eh-page) 88%, transparent) 86%,
+    var(--eh-page) 100%
+  );
+}
+/* On paper it holds under the panes and meets the page just below them, so no
+   pane ever stands on the pale page. */
+[data-eh-ground="paper"] [data-eh-seam="glass"].eh-seam-fade {
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 74%,
+    color-mix(in oklab, var(--eh-page) 50%, transparent) 88%,
+    var(--eh-page) 100%
+  );
+}
+
+/* ══ THE PANES ═════════════════════════════════════════════════════════════ */
+
+[data-eh-ground] .eh-ck-band[data-look="glass"] {
+  /* On the photograph: a near-black band under the halo's white line (identity's photo grade). */
+  --eh-halo-gap: oklch(0.13 0.004 286);
+  --eh-halo-line: oklch(1 0 0);
+  --eh-halo-bloom: oklch(1 0 0 / 26%);
+}
+
+[data-look="glass"] .eh-ck-door {
+  color: oklch(1 0 0);
+}
+[data-look="glass"] .eh-ck-line {
+  color: oklch(1 0 0 / 72%);
+}
+[data-look="glass"] .eh-ck-line[data-strong] {
+  color: oklch(1 0 0);
+}
+[data-look="glass"] .eh-ck-num {
+  color: oklch(1 0 0);
+}
+
+/* Each card the house glass, lit along its top and edged all round, a soft
+   shadow under it where it floats over the softened photograph. */
+[data-look="glass"] .eh-ck-skin {
+  border-radius: 14px;
+  background-color: rgb(0 0 0 / var(--glass-tint));
+  -webkit-backdrop-filter: blur(var(--glass-blur))
+    brightness(var(--glass-brightness)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) brightness(var(--glass-brightness))
+    saturate(var(--glass-saturate));
+  --eh-skin-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / var(--glass-lip)),
+    inset 0 0 0 1px rgb(255 255 255 / var(--glass-hairline)),
+    0 10px 24px -10px rgb(0 0 0 / 0.55);
+}
+/* The light under the pointer: a soft highlight follows it across the pane,
+   the one delight here (a television's focus), costing nothing in clarity. */
+[data-look="glass"] .eh-ck-skin::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    200px circle at var(--eh-x, 50%) var(--eh-y, 0%),
+    rgb(255 255 255 / 0.14),
+    transparent 70%
+  );
+  opacity: 0;
+}
+
+/* The glyph on a disc of light. */
+[data-look="glass"] .eh-ck-glyph {
+  color: oklch(1 0 0 / 88%);
+}
+[data-look="glass"] .eh-ck-disc {
+  background-color: rgb(255 255 255 / 0.12);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.14);
+}
+/* The reel's own violet, on its glyph alone (one colour per action). */
+[data-look="glass"] .eh-ck-glyph[data-reel] {
+  color: var(--reel);
+}
+[data-look="glass"] .eh-ck-glyph[data-reel] > .eh-ck-disc {
+  background-color: color-mix(in oklab, var(--reel) 26%, transparent);
+}
+
+/* ══ STUCK: ONE CAPSULE ════════════════════════════════════════════════════ */
+
+/* No band ground: what is stuck floats over the album, as glass does. */
+[data-look="glass"] > .eh-ck-veil {
+  display: none !important;
+}
+[data-look="glass"][data-stuck] {
+  padding-bottom: 10px;
+}
+/* The face alone at the band's left end (the bar above names the event). */
+[data-look="glass"] .eh-ck-lead [data-band-lead] > span {
+  display: none;
+}
+[data-look="glass"] .eh-ck-lead img {
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.16),
+    0 4px 12px -4px rgb(0 0 0 / 0.5);
+}
+
+/* The capsule the panes merge into: under the doors in both forms, clear and
+   the row's own size at rest, glass and the doors' size stuck, so the fold
+   carries it from one to the other (`card-kit.tsx`, the `capsule` piece). */
+.eh-glass-capsule {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 14px;
+  opacity: 0;
+  pointer-events: none;
+  background-color: rgb(0 0 0 / 0.3);
+  -webkit-backdrop-filter: blur(var(--glass-blur))
+    brightness(var(--glass-brightness)) saturate(1.1);
+  backdrop-filter: blur(var(--glass-blur)) brightness(var(--glass-brightness))
+    saturate(1.1);
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / var(--glass-lip)),
+    inset 0 0 0 1px rgb(255 255 255 / var(--glass-hairline)),
+    var(--shadow-layer);
+}
+[data-look="glass"][data-stuck] .eh-glass-capsule {
+  opacity: 1;
+  border-radius: 999px;
+}
+[data-look="glass"][data-stuck] .eh-ck-doors {
+  gap: 0;
+  padding: 4px;
+}
+/* A segment is clear; its door's own surface comes up only under the pointer,
+   and as the white lozenge while its room stands open. */
+[data-look="glass"][data-stuck] .eh-ck-door {
+  width: 116px;
+}
+[data-look="glass"][data-stuck] .eh-ck-skin {
+  opacity: 0;
+  border-radius: 999px;
+  background-color: rgb(255 255 255 / 0.14);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  --eh-skin-shadow: none;
+}
+/* A key's focus brings its segment's surface up, so the halo has a face to stand round. */
+[data-look="glass"][data-stuck] .eh-ck-door:focus-visible > .eh-ck-skin {
+  opacity: 1;
+}
+@container eh-row (width < 640px) {
+  [data-look="glass"][data-stuck] .eh-ck-doors {
+    padding: 3px;
+  }
+  [data-look="glass"][data-stuck] .eh-ck-door {
+    width: auto;
+    height: 40px;
+  }
+}
+
+/* ══ UNDER THE POINTER, PRESSED ════════════════════════════════════════════ */
+
+@media (hover: hover) {
+  [data-look="glass"]:not([data-stuck]) .eh-ck-door:hover > .eh-ck-skin {
+    --glass-brightness: 0.78;
+  }
+  [data-look="glass"]:not([data-stuck]) .eh-ck-door:hover > .eh-ck-skin::after {
+    opacity: 1;
+  }
+  [data-look="glass"][data-stuck] .eh-ck-door:hover > .eh-ck-skin {
+    opacity: 1;
+  }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  [data-look="glass"] .eh-ck-skin::after {
+    transition: opacity 200ms var(--ease-emphasis);
+  }
+}
+
+/* While her room stands open: at rest the pane is ringed in white; stuck its
+   segment is the white lozenge, its words in ink. */
+[data-look="glass"]:not([data-stuck])
+  .eh-ck-door[aria-pressed="true"]
+  > .eh-ck-skin {
+  --eh-skin-shadow:
+    0 0 0 2px oklch(1 0 0),
+    inset 0 1px 0 0 rgb(255 255 255 / var(--glass-lip)),
+    0 10px 24px -10px rgb(0 0 0 / 0.55);
+}
+[data-look="glass"][data-stuck] .eh-ck-door[aria-pressed="true"] {
+  color: oklch(0.14 0.004 286);
+}
+[data-look="glass"][data-stuck] .eh-ck-door[aria-pressed="true"] > .eh-ck-skin {
+  opacity: 1;
+  background-color: oklch(1 0 0);
+}
+[data-look="glass"][data-stuck]
+  .eh-ck-door[aria-pressed="true"]
+  .eh-ck-glyph {
+  color: oklch(0.14 0.004 286);
+}

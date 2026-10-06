@@ -26,9 +26,10 @@ import type { Ground, ScreenId } from "./scene";
 
 /**
  * WHAT EVERY DOOR OPTION SHARES: the rooms, their faces, and the one contract
- * a door draws itself through, so each of the three lives whole in its own
- * file (`glass.tsx`, `cards.tsx`, `windows.tsx`) and the hub composes whichever
- * the board asks for (`doors.tsx`).
+ * a door draws itself through, so each take on the cards lives whole in its
+ * own file (`cards-keys.tsx`, `cards-glass.tsx`, `cards-badges.tsx`,
+ * `cards-lit.tsx`, on `card-kit.tsx`'s row and fold) and the hub composes
+ * whichever the board asks for (`doors.tsx`).
  *
  * The row is production's order (`EVENT_ROOMS`: the reel, Guests, Review,
  * Settings) with See it as a guest last, the payoff at the row's end
@@ -210,6 +211,18 @@ export type DoorOption = {
    * the photograph dissolves into the page under it (0: it ends on its edge).
    */
   seam: Record<ScreenId, { rise: number; fade: number }>;
+  /**
+   * How tall a band of the cover's foot goes soft behind the doors (a blur
+   * gathering toward the seam, the way a television's shelf softens its
+   * picture behind its rows), or none.
+   */
+  soften?: Record<ScreenId, number>;
+  /**
+   * The cover's own height where a take needs more photograph than
+   * production's (`h-[20.5rem] sm:h-[25rem]`): glass stands every card on the
+   * photograph, so a phone's grid needs a taller cover under it.
+   */
+  coverH?: Partial<Record<ScreenId, number>>;
   /** Where `mark`'s top flips the doors stuck, in px from the frame's top. */
   stickAt: number;
 };
