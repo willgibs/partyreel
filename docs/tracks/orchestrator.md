@@ -57,10 +57,6 @@ Lanes merged before milestone 37 left this table: their summaries are their merg
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a22be0c2878d7ab19`, this session, spawned
 for Q31 (billing-locks' migration against the live schema and milestone 36's callers). Its model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`.
 
-**The 5-hour cut (2026-10-05 ~21:55Z, Will: 98%; resets ~00:40Z 2026-10-06):** every lane was asked for a pushed WIP
-commit and a `## Where I am` in its manifest. In this session, resume each by SendMessage to its agent id (the In flight
-table); nothing was mid-merge (launch-prep `4a360eabe` and on, pushed).
-
 **Handoff across accounts** (Will's rule: wind down near the weekly limit; the other account resumes at once). This
 session: `f2c62c71-9c33-49f4-9fd5-d48376be9824` on willg97@gmail.com, weekly 0% at 04:10Z 2026-10-05, resetting
 Sunday 2026-10-11 13:00Z (hi@willgibs.com resets Tuesday 2026-10-06 21:00Z). If it ends, the next Orchestrator:
