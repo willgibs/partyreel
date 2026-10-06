@@ -6,8 +6,8 @@
 > everything else is opened when a task touches it.
 
 Partyreel is a guest-powered event media platform: a host creates an event and shares a **QR code**; guests scan it
-and upload photos and videos from their phones with no app required (an account, and a confirmed email, when the host
-asks for one); the host curates; the link doubles as the shareable album. It is live at partyreel.com with zero real
+and upload photos and videos from their phones with no app required (by default with an email confirmed by a code, which is their
+account); the host curates; the link doubles as the shareable album. It is live at partyreel.com with zero real
 users (Stripe in TEST mode, the launch switches unspent), in the **elevation program** ([`docs/PROGRAM.md`](docs/PROGRAM.md)).
 
 **Rising tides**, the bible's first principle (`/design/library`; Will owns the ten): nothing is protected or

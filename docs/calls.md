@@ -846,3 +846,27 @@ Your design desk's own fixes; these are the two calls in them.
 
 **BF2. The tools index is one press from every tool's crumbs, with no sidebar row of its own.** The Tools section now links the index, so every tool's crumbs read Lab, Tools, then the tool, and the smoke crawl visits it; a row would make the index list itself.
 - *Push back if* it should also stand in the sidebar and the palette.
+
+---
+
+## BG. Your scratch, kept in the repo (scratch-synthesis)
+
+Built so a cloud-seated Orchestrator sees what the Mac's saw; these are the lane's own calls.
+
+**BG1. This lab lives in the repo and stays mine to write.** Each merge's calls land here at its record, so any seat, local or cloud, reads what you read. The repo is public while the Actions budget needs it to be, so nothing here is a secret.
+- *Push back if* the lab should stay off the public repo (a private file you hand each new seat).
+
+**BG2. The red-team harness and the dollar model behind PRICING moved into the kit.** Five red-teams carried the harness by copy; it is `usher/kit/redteam/` now, beside a red-team brief with the walk's specifics as blanks, the desk refresh and `usher/kit/cost-model/` (its output identical to the runs PRICING quotes).
+- *Push back if* either should stay off the repo.
+
+**BG3. X4 left the questions and five more stale lines here were made true.** X4 is built (the poll lever, AB2 to AB5); F's and L's intros, AW6's desk, S1's bell link and AH3's "no capture time" were untrue.
+- *Push back if* X4 should come back as a question.
+
+**BG4. The docs' history cuts wait for a prune pass.** Only the stale lines in PRICING, PRD and billing-caps were fixed now; about 92 lines of history and restatement there and in reel.md wait for a docs lane (a ROADMAP line), since their snippets drift with every merge.
+- *Push back if* you want the cuts now.
+
+**BG5. The visual calls the desks still owe are ROADMAP lines, one per board.** Round 15's B1, Q6, B2, L3, C7, D3, Q3, G6, I4, I5, F1, F2, N4, N7 and N9 were written down nowhere since 2026-10-04; each moments board and desk 6's marketing-themes is cut from its line.
+- *Push back if* they should live only in the desk plan.
+
+**BG6. PRD names three of your standing principles in words from the round's brief.** Delight where it costs nothing in clarity; nothing depends on a timeline; immediate, or a clear state and a way to stop it.
+- *Push back if* any of the three isn't how you'd say it.

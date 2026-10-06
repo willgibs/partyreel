@@ -31,7 +31,7 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 Desk 5 is served on Will's local desk (`http://localhost:3000/design/lab?key=fiesta`, build `2c7423ca4`): identity r5
 (the atoms as whole sets, and working) and event-header r5 (the cards doors in Afterglow's language), three asks. Brand r2
 (Afterglow polished, above all its light on paper) joins at the next refresh, after red-team 56's walk. Then desk 6, the
-brand applied, and desk 7, the small moments (`../partyreel-wt/_scratch/desk/round-15-plan.md`).
+brand applied, and desk 7, the small moments (`tracks/orchestrator.md`, Next).
 
 ## Live state
 
