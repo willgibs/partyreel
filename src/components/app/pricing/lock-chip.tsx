@@ -84,7 +84,7 @@ export function LockChip({
             // on Pro. See plans." is the whole of what the sighted row says.
             aria-label={`${name}, on ${TIER_NAMES.pro}. See plans.`}
             className={cn(
-              "inline-flex h-7 items-center gap-1.5 rounded-action-sm border border-border bg-card px-2.5 text-xs font-medium text-muted-foreground outline-none transition-[transform,background-color,color] duration-150 ease-emphasis hover:bg-muted hover:text-foreground active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-ring/50",
+              "inline-flex h-7 items-center gap-1.5 rounded-action-sm border border-border bg-card px-2.5 text-xs font-medium text-muted-foreground outline-none transition-[transform,background-color,color] duration-150 ease-emphasis hover:bg-muted hover:text-foreground active:scale-[0.97] focus-halo",
               className,
             )}
             {...trackAttrs("cta_click", {

@@ -223,7 +223,7 @@ export function ProPriceList({
                       data-too-small={plan.id}
                       aria-label={`${plan.name}, ${plan.priceLabel}: too small for what you store. See why`}
                       onClick={() => setFlipped(plan.id)}
-                      className="-mr-1.5 inline-flex h-7 shrink-0 items-center rounded-action-sm px-1.5 text-xs text-muted-foreground underline-offset-4 transition-colors duration-150 ease-emphasis outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring/50"
+                      className="-mr-1.5 inline-flex h-7 shrink-0 items-center rounded-action-sm px-1.5 text-xs text-muted-foreground underline-offset-4 transition-colors duration-150 ease-emphasis outline-none hover:text-foreground hover:underline focus-halo"
                     >
                       Too small
                     </button>
