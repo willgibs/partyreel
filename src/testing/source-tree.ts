@@ -16,13 +16,14 @@
  * more than once), and a token filter takes it to the dozen files that matter. The token must be one the offending
  * shape cannot be written without (the call's name, the attribute's name), never a guess at a likely spelling.
  *
- * ★ A WALK THAT FINDS NOTHING THROWS. A guard over an empty list passes silently, and the cause is always a path (a
- * folder renamed, a checkout under a surprising root): `filesUnder` and `entries` refuse a missing or empty folder,
- * so no caller needs its own "the scan found files" count to learn the walk ran.
+ * ★ A WALK OF THE REPOSITORY THAT FINDS NOTHING THROWS. A guard over an empty list passes silently, and the cause is
+ * always a path (a folder renamed, a checkout under a surprising root): `filesUnder` and `entries` refuse a missing
+ * or empty folder of the repository, so no caller needs its own "the scan found files" count to learn the walk ran.
+ * A test's own temporary folder may be empty: that is a state its test reads, never a broken walk.
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { isAbsolute, relative, resolve, sep } from "node:path";
+import { isAbsolute, join, resolve, sep } from "node:path";
 
 import type * as TS from "typescript";
 
@@ -49,23 +50,32 @@ const remembered = <T>(
 
 const listings = new Map<string, readonly string[]>();
 
+/** Folders that are never the repository's own source: installed packages, build output, git's store. */
+const NOT_OURS = new Set(["node_modules", ".next", ".git"]);
+
+function walk(at: string, prefix: string, out: string[]): string[] {
+  for (const entry of readdirSync(at, { withFileTypes: true })) {
+    if (entry.isDirectory()) {
+      if (!NOT_OURS.has(entry.name))
+        walk(join(at, entry.name), `${prefix}/${entry.name}`, out);
+    } else if (entry.isFile()) {
+      out.push(`${prefix}/${entry.name}`);
+    }
+  }
+  return out;
+}
+
 /**
  * Every FILE under `dir`, at any depth, as `dir/<path>` with forward slashes, sorted. `dir` is relative to the
  * repository's root (`"src"`, `"supabase/migrations"`, `"src/components/marketing"`); an absolute folder comes back
- * as absolute paths.
+ * as absolute paths. A `node_modules`, `.next` or `.git` folder is never entered (a worker's installed packages
+ * would be thousands of files no test means).
  */
 export function filesUnder(dir: string): readonly string[] {
   const key = posix(dir);
   return remembered(listings, key, () => {
-    const at = resolve(ROOT, key);
-    const files = readdirSync(at, { recursive: true, withFileTypes: true })
-      .filter((entry) => entry.isFile())
-      .map(
-        (entry) =>
-          `${key}/${posix(relative(at, resolve(entry.parentPath, entry.name)))}`,
-      )
-      .sort();
-    if (files.length === 0)
+    const files = walk(resolve(ROOT, key), key, []).sort();
+    if (files.length === 0 && !isAbsolute(key))
       throw new Error(`source-tree: no files under ${key}`);
     return files;
   });
@@ -82,7 +92,8 @@ export function entries(dir: string): readonly Entry[] {
   const listed = readdirSync(resolve(ROOT, posix(dir)), { withFileTypes: true })
     .map((entry) => ({ name: entry.name, isDirectory: entry.isDirectory() }))
     .sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
-  if (listed.length === 0) throw new Error(`source-tree: nothing in ${dir}`);
+  if (listed.length === 0 && !isAbsolute(dir))
+    throw new Error(`source-tree: nothing in ${dir}`);
   return listed;
 }
 

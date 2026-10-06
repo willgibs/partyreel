@@ -1,8 +1,7 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import ts from "typescript";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
+
+import { read, sources } from "@/testing/source-tree";
 
 /**
  * NO FUNCTION REFRESHES THE ROUTER AND THEN MOVES THE ADDRESS (crumbs-22, the audit crumbs-16 asked for).
@@ -50,9 +49,6 @@ import { describe, expect, it, vi } from "vitest";
 /** File (repo-relative, forward slashes: `src/...`) -> why a refresh followed by a URL write is safe there. */
 const ALLOWED: Readonly<Record<string, string>> = {};
 
-const ROOT = process.cwd();
-const SKIP = /\.test\.tsx?$|\.d\.ts$|^src\/lib\/db\/types\.ts$/;
-
 /** Hooks whose callbacks end in a native URL write: hook -> [home file, the members that write]. */
 const ADDRESS_HOOKS: Readonly<
   Record<string, { home: string; members: readonly string[] }>
@@ -88,13 +84,6 @@ const SAYS_REFRESH = /\brefresh\b/;
 /** Callees whose function argument runs at once, so its body belongs to the caller's sequence. */
 const INLINE =
   /^(startTransition|flushSync|queueMicrotask|requestAnimationFrame|start[A-Z]\w*)$/;
-
-function filesUnder(dir: string): string[] {
-  return readdirSync(join(ROOT, dir), { recursive: true })
-    .map((f) => `${dir}/${String(f).replace(/\\/g, "/")}`)
-    .filter((rel) => /\.tsx?$/.test(rel) && !SKIP.test(rel))
-    .sort();
-}
 
 const isFunction = (
   node: ts.Node,
@@ -328,19 +317,7 @@ function census(text: string, fileName: string) {
 
 /* ── the policy ───────────────────────────────────────────────────────────── */
 
-/**
- * ★ THE TREE SCAN HAS A BUDGET OF ITS OWN (crumbs-83, the Orchestrator's gate 29). It reads and parses every file under
- * `src` (about 1,600, through the TypeScript parser), CPU work that grows with the tree: under half a second a test alone, 2.1 s beside
- * the other policy scans (measured), and the history scan's 5.4 s in gate 29 past vitest's 5 s default for a test that
- * waits on nothing, with another lane's build on the machine. Every test here gets the budget. A budget, not a timing
- * claim: a scan that finds an offender still fails at once on its own assertion, and one that hangs fails at the budget
- * (`no-em-dash-policy.test.ts`'s note: the first scan given one).
- */
-const SCAN_BUDGET_MS = 60_000;
-vi.setConfig({ testTimeout: SCAN_BUDGET_MS });
-
-const SOURCES = filesUnder("src");
-const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
+const SOURCES = sources();
 
 let saying: { rel: string; text: string }[] | undefined;
 /** The files that say `refresh`, read once and shared by the tests that scan the tree. */
@@ -429,7 +406,8 @@ describe("no function refreshes the router and then moves the address", () => {
       10,
     );
     const refreshing = sheets.filter(
-      (rel) => census(read(rel), rel).refreshes > 0,
+      (rel) =>
+        SAYS_REFRESH.test(read(rel)) && census(read(rel), rel).refreshes > 0,
     );
     expect(refreshing).toEqual([]);
   });

@@ -1,9 +1,7 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join, relative } from "node:path";
-
 import { describe, expect, it } from "vitest";
 
 import { REPORT_STATUSES, REPORT_STATUS_META } from "@/lib/admin/reports";
+import { filesUnder, read } from "@/testing/source-tree";
 
 /**
  * ★ EVERY REPORT IS REVIEWED, AND ITS VERDICT IS THE REVIEW (crumbs-41; ROADMAP: "`report_status`'s `reviewed` is
@@ -21,16 +19,11 @@ import { REPORT_STATUSES, REPORT_STATUS_META } from "@/lib/admin/reports";
  * The legal pages are not read here: they are rewritten once, before launch, and say the old clause until then
  * (the lane's Handoff names each line).
  */
-const ROOT = process.cwd();
 
 function sources(dir: string): string[] {
-  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) return sources(full);
-    return /\.(ts|tsx)$/.test(entry.name) && !/\.test\.tsx?$/.test(entry.name)
-      ? [full]
-      : [];
-  });
+  return filesUnder(dir).filter(
+    (path) => /\.(ts|tsx)$/.test(path) && !/\.test\.tsx?$/.test(path),
+  );
 }
 
 describe("a report's review is its verdict", () => {
@@ -43,13 +36,10 @@ describe("a report's review is its verdict", () => {
       // Generated from the database's enum.
       "src/lib/db/types.ts",
     ]);
-    const writers = sources(join(ROOT, "src")).filter((file) => {
-      const rel = relative(ROOT, file);
-      return (
-        !allowed.has(rel) && /["']reviewed["']/.test(readFileSync(file, "utf8"))
-      );
-    });
-    expect(writers.map((f) => relative(ROOT, f))).toEqual([]);
+    const writers = sources("src").filter(
+      (file) => !allowed.has(file) && /["']reviewed["']/.test(read(file)),
+    );
+    expect(writers).toEqual([]);
   });
 
   it("★ no marketing line promises review before ANY removal: each names the instant hide's one exception", () => {
@@ -59,7 +49,7 @@ describe("a report's review is its verdict", () => {
       "src/lib/constants/about.ts",
     ];
     for (const file of promises) {
-      const copy = readFileSync(join(ROOT, file), "utf8").replace(/\s+/g, " ");
+      const copy = read(file).replace(/\s+/g, " ");
       expect(copy, file).not.toMatch(
         /reviewed before anything (?:comes down|is removed)/i,
       );
@@ -67,17 +57,15 @@ describe("a report's review is its verdict", () => {
     }
     // And nowhere else in the marketing source or its copy constants.
     const marketing = [
-      ...sources(join(ROOT, "src/components/marketing")),
-      ...sources(join(ROOT, "src/app/(marketing)")),
-      ...sources(join(ROOT, "src/lib/constants")).filter(
-        (f) => !/legal-/.test(f),
-      ),
+      ...sources("src/components/marketing"),
+      ...sources("src/app/(marketing)"),
+      ...sources("src/lib/constants").filter((f) => !/legal-/.test(f)),
     ];
     const overclaims = marketing.filter((file) =>
       /reviewed before anything (?:comes down|is removed)/i.test(
-        readFileSync(file, "utf8").replace(/\s+/g, " "),
+        read(file).replace(/\s+/g, " "),
       ),
     );
-    expect(overclaims.map((f) => relative(ROOT, f))).toEqual([]);
+    expect(overclaims).toEqual([]);
   });
 });

@@ -1,8 +1,10 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join, relative } from "node:path";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
+
+import { filesUnder } from "@/testing/source-tree";
 
 /**
  * NO LINK THE LAB RENDERS ITSELF PREFETCHES, AND THE SHELL MOUNTS THE NET UNDER THE REST (lab-prefetch, from
@@ -37,15 +39,9 @@ const DIRS = [
  */
 const SPECIMENS = /\/library\/.*-demos\.tsx$/;
 
-function sources(dir: string): string[] {
-  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) return sources(full);
-    return /\.tsx$/.test(entry.name) && !/\.test\.tsx$/.test(entry.name)
-      ? [full]
-      : [];
-  });
-}
+/** Every component under `dir` (repo-relative), its tests aside. */
+const sources = (dir: string) =>
+  filesUnder(dir).filter((f) => /\.tsx$/.test(f) && !/\.test\.tsx$/.test(f));
 
 function parse(file: string): ts.SourceFile {
   return ts.createSourceFile(
@@ -133,9 +129,7 @@ function optingIn(file: string): number[] {
     .map((node) => lineOf(node, source));
 }
 
-const everything = DIRS.flatMap((dir) => sources(join(ROOT, dir))).map((full) =>
-  relative(ROOT, full),
-);
+const everything = DIRS.flatMap((dir) => sources(dir));
 const files = everything.filter((f) => !SPECIMENS.test(f));
 
 describe("the lab's own links never prefetch", () => {

@@ -1,7 +1,9 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
+
+import { entries } from "@/testing/source-tree";
 
 import { DISPLAY_DEFAULT, storedDisplay } from "./display";
 import { withLead } from "./lead";
@@ -123,9 +125,9 @@ describe("the display migration", () => {
   });
 
   it("keeps one version: no other file in the folder shares it", () => {
-    const same = readdirSync(DIR).filter((f) =>
-      f.startsWith("20261004130000_"),
-    );
+    const same = entries(DIR)
+      .map((entry) => entry.name)
+      .filter((f) => f.startsWith("20261004130000_"));
     expect(same).toEqual([FILE]);
   });
 });

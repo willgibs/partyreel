@@ -14,10 +14,13 @@
  * A recording fake stands in for the query builder: the thing worth pinning is the exact
  * PostgREST shape, which no amount of type-checking verifies.
  */
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { readMigrations } from "@/lib/db/testing/migrations";
+import { filesUnder, read } from "@/testing/source-tree";
 
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/r2/presign", () => ({ presignDownload: vi.fn() }));
@@ -194,23 +197,18 @@ describe("getEventGuestList: always on (Will, event-safety `room=always`)", () =
 describe("the retired key is read and written by nothing (Will, `room=always`)", () => {
   /** Every source file under a directory, recursively. */
   function sources(dir: string): string[] {
-    return readdirSync(dir).flatMap((entry) => {
-      const full = join(dir, entry);
-      if (statSync(full).isDirectory()) return sources(full);
-      return /\.(ts|tsx)$/.test(entry) && !/\.test\.tsx?$/.test(entry)
-        ? [full]
-        : [];
-    });
+    return filesUnder(dir).filter(
+      (file) => /\.(ts|tsx)$/.test(file) && !/\.test\.tsx?$/.test(file),
+    );
   }
 
   it("★ no code in the tree names `show_guest_list` or `showGuestList` outside a comment", () => {
     // The generated types keep the column until 20260929160000 is applied and they regenerate.
     const allowed = new Set(["src/lib/db/types.ts"]);
-    const naming = sources(join(process.cwd(), "src"))
-      .map((file) => relative(process.cwd(), file))
+    const naming = sources("src")
       .filter((file) => !allowed.has(file))
       .filter((file) => {
-        const code = readFileSync(join(process.cwd(), file), "utf8")
+        const code = read(file)
           .replace(/\/\*[\s\S]*?\*\//g, "")
           .replace(/(^|[^:])\/\/.*$/gm, "$1");
         return /show_guest_list|showGuestList/.test(code);
@@ -1132,19 +1130,11 @@ describe("queries/social.ts: no address leaves in any output", () => {
    cannot find fails rather than passes.
    ──────────────────────────────────────────────────────────────────────────── */
 describe("get_public_profile: no address in the payload, no address read", () => {
-  const MIGRATIONS = join(process.cwd(), "supabase", "migrations");
   const DEFINITION =
     /create\s+(?:or\s+replace\s+)?function\s+public\.get_public_profile\s*\(/i;
 
   function newestBody(): { file: string; body: string } {
-    const hits = readdirSync(MIGRATIONS)
-      .filter((file) => file.endsWith(".sql"))
-      .sort()
-      .map((file) => ({
-        file,
-        sql: readFileSync(join(MIGRATIONS, file), "utf8"),
-      }))
-      .filter(({ sql }) => DEFINITION.test(sql));
+    const hits = readMigrations().filter(({ sql }) => DEFINITION.test(sql));
     const newest = hits.at(-1);
     if (!newest) throw new Error("No migration defines get_public_profile.");
     const start = newest.sql.search(DEFINITION);
@@ -1207,11 +1197,7 @@ describe("the album never passes `emails` to GuestList", () => {
   const ALBUM = "src/app/(guest)/e/[token]/page.tsx";
 
   function files(dir: string): string[] {
-    return readdirSync(dir).flatMap((entry) => {
-      const full = join(dir, entry);
-      if (statSync(full).isDirectory()) return files(full);
-      return entry.endsWith(".tsx") ? [full] : [];
-    });
+    return filesUnder(dir).filter((file) => file.endsWith(".tsx"));
   }
 
   /** The attribute text of every `<GuestList ...>` opening tag in a source file (never `<GuestListCard` and kin). */
@@ -1241,36 +1227,29 @@ describe("the album never passes `emails` to GuestList", () => {
   });
 
   it("★ and no file in the tree but the Guests room passes it", () => {
-    const passing = files(join(process.cwd(), "src"))
+    const passing = files("src")
       .filter((file) => !file.endsWith(".test.tsx"))
       .filter((file) =>
-        guestListTags(readFileSync(file, "utf8")).some(
+        guestListTags(read(file)).some(
           (tag) => /\bemails\b/.test(tag) || tag.includes("{..."),
         ),
-      )
-      .map((file) => relative(process.cwd(), file));
+      );
     expect(passing).toEqual([ROOM]);
   });
 
   it("★ Block rides the same one room: no file but the Guests room passes `blockFrom`", () => {
-    const passing = files(join(process.cwd(), "src"))
+    const passing = files("src")
       .filter((file) => !file.endsWith(".test.tsx"))
       .filter((file) =>
-        guestListTags(readFileSync(file, "utf8")).some((tag) =>
-          /\bblockFrom\b/.test(tag),
-        ),
-      )
-      .map((file) => relative(process.cwd(), file));
+        guestListTags(read(file)).some((tag) => /\bblockFrom\b/.test(tag)),
+      );
     expect(passing).toEqual([ROOM]);
   });
 
   it("★ and the credit's look (with its Block) is mounted by the host's hub alone: its page, and Review over it", () => {
-    const mounting = files(join(process.cwd(), "src"))
+    const mounting = files("src")
       .filter((file) => !file.endsWith(".test.tsx"))
-      .filter((file) =>
-        /<HostCreditLookProvider\b/.test(readFileSync(file, "utf8")),
-      )
-      .map((file) => relative(process.cwd(), file))
+      .filter((file) => /<HostCreditLookProvider\b/.test(read(file)))
       .sort();
     // Reshaped on purpose (`rooms=over`): Review left its page for the hub's panel, where the hub's sheets mount
     // its look (`event-sheets.tsx`); both are the host's own hub.

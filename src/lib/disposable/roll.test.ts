@@ -6,11 +6,9 @@
  * the sentences the shot past the roll, past its ceiling and an over-long video meet are raised by `create_media` and
  * said by the presign. A change on one side alone fails here.
  */
-import { readFileSync, readdirSync } from "node:fs";
-import { join } from "node:path";
-
 import { describe, expect, it } from "vitest";
 
+import { readMigrations } from "@/lib/db/testing/migrations";
 import {
   clampRoll,
   FILM_ROLLS,
@@ -38,19 +36,11 @@ import {
   CAMERA_VIDEO_SECONDS,
 } from "@/lib/media/limits";
 
-const MIGRATIONS_DIR = join(process.cwd(), "supabase", "migrations");
-
 function migrations(): { file: string; sql: string }[] {
-  return readdirSync(MIGRATIONS_DIR)
-    .filter((f) => f.endsWith(".sql"))
-    .sort()
-    .map((file) => ({
-      file,
-      sql: readFileSync(join(MIGRATIONS_DIR, file), "utf8").replace(
-        /--[^\n]*/g,
-        "",
-      ),
-    }));
+  return readMigrations().map(({ file, sql }) => ({
+    file,
+    sql: sql.replace(/--[^\n]*/g, ""),
+  }));
 }
 
 /** The winning body of `public.<name>(`, comments stripped, whitespace collapsed. */

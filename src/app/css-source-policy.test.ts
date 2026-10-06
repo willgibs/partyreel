@@ -1,7 +1,9 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
+
+import { filesUnder } from "@/testing/source-tree";
 
 /**
  * Two Tailwind entries, one theme, two scans (the library round, 2026-09-02).
@@ -108,22 +110,12 @@ describe("the lab entry (design.css)", () => {
 
 describe("exactly two Tailwind entries", () => {
   it("no other stylesheet imports tailwindcss or its utilities", () => {
-    const entries: string[] = [];
-    const walk = (dir: string) => {
-      for (const entry of readdirSync(join(ROOT, dir), {
-        withFileTypes: true,
-      })) {
-        const rel = `${dir}/${entry.name}`;
-        if (entry.isDirectory()) walk(rel);
-        else if (entry.name.endsWith(".css")) {
-          const css = read(rel);
-          if (/^@import "tailwindcss(\/utilities\.css)?"/m.test(css))
-            entries.push(rel);
-        }
-      }
-    };
-    walk("src");
-    expect(entries.sort()).toEqual([
+    const entries = filesUnder("src").filter(
+      (rel) =>
+        rel.endsWith(".css") &&
+        /^@import "tailwindcss(\/utilities\.css)?"/m.test(read(rel)),
+    );
+    expect(entries).toEqual([
       "src/app/(dev)/design/design.css",
       "src/app/globals.css",
     ]);

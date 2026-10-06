@@ -10,8 +10,6 @@
  * helper answers": the guest page, the gallery poll, the export, the album reads, the guest uploads.
  */
 import { createHmac } from "node:crypto";
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -21,6 +19,7 @@ import {
   type FakePostgrest,
   type FakeRow,
 } from "@/lib/db/testing/fake-postgrest";
+import { filesUnder, read } from "@/testing/source-tree";
 
 const SECRET = "test-unlock-secret-please-rotate";
 
@@ -308,29 +307,27 @@ describe("readUnlockStateByToken (the unlock route's read, before the password c
  * module may use the token functions or the cookie's name (prose in a comment is fine).
  */
 describe("every unlock answer goes through isUnlocked", () => {
-  const SRC = join(process.cwd(), "src");
+  const SRC = "src";
   const OWNERS = [
     "src/lib/events/unlock-cookie.ts",
     "src/lib/events/unlock-token.ts",
   ];
 
   function sourceFiles(dir: string): string[] {
-    return readdirSync(dir).flatMap((name) => {
-      const path = join(dir, name);
-      if (statSync(path).isDirectory()) return sourceFiles(path);
-      return /\.tsx?$/.test(name) && !/\.test\.tsx?$/.test(name) ? [path] : [];
-    });
+    return filesUnder(dir).filter(
+      (path) => /\.tsx?$/.test(path) && !/\.test\.tsx?$/.test(path),
+    );
   }
 
   /** The code without its comments, so a doc line naming the cookie is not a use of it. */
   function codeOf(path: string): string {
-    return readFileSync(path, "utf8")
+    return read(path)
       .replace(/\/\*[\s\S]*?\*\//g, "")
       .replace(/(^|[^:])\/\/.*$/gm, "$1");
   }
 
   const files = sourceFiles(SRC).map((path) => ({
-    rel: relative(process.cwd(), path),
+    rel: path,
     code: codeOf(path),
   }));
 

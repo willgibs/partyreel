@@ -1,8 +1,7 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import ts from "typescript";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
+
+import { read, sources } from "@/testing/source-tree";
 
 /**
  * GUEST MEDIA IS NEVER BILLED BY VERCEL (take-home-wiring, 2026-10-03; Will's rule the night of build 45: "every
@@ -24,17 +23,6 @@ import { describe, expect, it, vi } from "vitest";
  * Each rule's detector is proved against a source that breaks it (the "refuses" cases), so a detector that went
  * blind fails here too.
  */
-
-const ROOT = process.cwd();
-
-const SKIP = /\.test\.tsx?$|\.d\.ts$|^src\/lib\/db\/types\.ts$/;
-
-function sources(): string[] {
-  return readdirSync(join(ROOT, "src"), { recursive: true })
-    .map((f) => `src/${String(f).replace(/\\/g, "/")}`)
-    .filter((rel) => /\.tsx?$/.test(rel) && !SKIP.test(rel))
-    .sort();
-}
 
 /** A source's tokens' text, comments and whitespace skipped (the TypeScript scanner's trivia). */
 function codeOf(text: string, jsx: boolean): string {
@@ -157,16 +145,11 @@ export function streamOffences(rel: string, text: string): string[] {
 
 /* ── the rules, over the code that ships ────────────────────────────────── */
 
-const FILES = sources().map((rel) => ({
-  rel,
-  text: readFileSync(join(ROOT, rel), "utf8"),
-}));
+const FILES = sources().map((rel) => ({ rel, text: read(rel) }));
 
 describe("A. the image optimizer reads this app's own files alone", () => {
   it("next.config names no remote pattern, domain or loader", () => {
-    expect(
-      configOffences(readFileSync(join(ROOT, "next.config.ts"), "utf8")),
-    ).toEqual([]);
+    expect(configOffences(read("next.config.ts"))).toEqual([]);
   });
 
   it("refuses each way of feeding it from outside (the detector is not blind)", () => {
@@ -190,17 +173,6 @@ describe("A. the image optimizer reads this app's own files alone", () => {
   });
 });
 
-/**
- * ★ THE TREE SCAN HAS A BUDGET OF ITS OWN (crumbs-83, the Orchestrator's gate 29). It reads and parses every file under
- * `src` (about 1,600, through the TypeScript parser), CPU work that grows with the tree: under a second alone, 3.8 s beside
- * the other policy scans (measured), and the history scan's 5.4 s in gate 29 past vitest's 5 s default for a test that
- * waits on nothing, with another lane's build on the machine. Every test here gets the budget. A budget, not a timing
- * claim: a scan that finds an offender still fails at once on its own assertion, and one that hangs fails at the budget
- * (`no-em-dash-policy.test.ts`'s note: the first scan given one).
- */
-const SCAN_BUDGET_MS = 60_000;
-vi.setConfig({ testTimeout: SCAN_BUDGET_MS });
-
 describe("B. next/image is never fed a presigned or user URL", () => {
   it("found the next/image files it holds (the census is not empty)", () => {
     const users = FILES.filter(({ text }) =>
@@ -210,8 +182,11 @@ describe("B. next/image is never fed a presigned or user URL", () => {
   });
 
   it("no next/image src reads a link, and no next/image file imports a presigner", () => {
+    // Only a file that imports next/image can offend, so only those are parsed.
     expect(
-      FILES.flatMap(({ rel, text }) => nextImageOffences(rel, text)),
+      FILES.filter(({ text }) => /next\/(?:legacy\/)?image/.test(text)).flatMap(
+        ({ rel, text }) => nextImageOffences(rel, text),
+      ),
     ).toEqual([]);
   });
 
@@ -243,18 +218,18 @@ export const E = ({ frame }) => <Image src={frame.src} alt="" width={1} height={
 
 describe("C. no function streams R2 bytes", () => {
   it("no GetObjectCommand in src, none sent, and no body is read", () => {
-    expect(FILES.flatMap(({ rel, text }) => streamOffences(rel, text))).toEqual(
-      [],
-    );
+    // Each offence spells its word, so only a file that holds one is tokenized.
+    expect(
+      FILES.filter(({ text }) =>
+        /GetObjectCommand|transformTo/.test(text),
+      ).flatMap(({ rel, text }) => streamOffences(rel, text)),
+    ).toEqual([]);
   });
 
   it("the presigner signs its reads by hand, and the signer holds no client and sends nothing", () => {
-    const presign = readFileSync(join(ROOT, "src/lib/r2/presign.ts"), "utf8");
+    const presign = read("src/lib/r2/presign.ts");
     expect(presign).toMatch(/getPresigner\(\)\(\{\s*method:\s*"GET",/);
-    const signer = codeOf(
-      readFileSync(join(ROOT, "src/lib/r2/sigv4.ts"), "utf8"),
-      false,
-    );
+    const signer = codeOf(read("src/lib/r2/sigv4.ts"), false);
     expect(signer).toMatch(/\bcreateHmac\b/);
     expect(signer).not.toMatch(
       /\bfetch\b|\.\s*send\b|\bS3Client\b|@aws-sdk|"node:(https?|net|tls)"/,

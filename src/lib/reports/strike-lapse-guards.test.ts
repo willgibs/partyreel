@@ -13,25 +13,18 @@
  *      calendar's), so a rule that moves to months must answer instants instead, and this says so first.
  *   3. It stays the service role's alone (the reads are the portal's, behind requireAdmin and AAL2).
  */
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { describe, expect, it } from "vitest";
 
-const MIGRATIONS_DIR = join(process.cwd(), "supabase", "migrations");
-
-const FILES = readdirSync(MIGRATIONS_DIR)
-  .filter((f) => f.endsWith(".sql"))
-  .sort();
+import { readMigrations } from "@/lib/db/testing/migrations";
 
 /** Strip `--` comments (a quoted example is not code) and collapse whitespace. */
 function executable(sql: string): string {
   return sql.replace(/--[^\n]*/g, "").replace(/\s+/g, " ");
 }
 
-const SQL = FILES.map((file) => ({
+const SQL = readMigrations().map(({ file, sql }) => ({
   file,
-  sql: executable(readFileSync(join(MIGRATIONS_DIR, file), "utf8")),
+  sql: executable(sql),
 }));
 
 /** The winning definition of `public.report_strikes`: the last file that creates it, and its body. */

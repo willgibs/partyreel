@@ -1,7 +1,6 @@
-import { readdirSync, readFileSync, statSync } from "node:fs"
-import { join, relative } from "node:path"
-
 import { describe, expect, it } from "vitest"
+
+import { filesUnder, read } from "@/testing/source-tree"
 
 import { POPUP_KINDS } from "./popup-kinds"
 
@@ -43,20 +42,12 @@ const LEFT_ALONE: Record<string, string> = {
     "the demo's own code card on the marketing site, its kind (`share`) named in its comment; moving it onto the card is marketing's line",
 }
 
-const ROOT = process.cwd()
-
 function sources(dir: string): string[] {
-  const out: string[] = []
-  for (const name of readdirSync(dir)) {
-    const full = join(dir, name)
-    if (statSync(full).isDirectory()) {
-      if (name === "(dev)" || name === "ui") continue
-      out.push(...sources(full))
-    } else if (/\.tsx$/.test(name) && !/\.test\.tsx$/.test(name)) {
-      out.push(full)
-    }
-  }
-  return out
+  return filesUnder(dir).filter((file) => {
+    const folders = file.slice(dir.length + 1).split("/").slice(0, -1)
+    if (folders.some((name) => name === "(dev)" || name === "ui")) return false
+    return /\.tsx$/.test(file) && !/\.test\.tsx$/.test(file)
+  })
 }
 
 describe("the one table", () => {
@@ -75,12 +66,8 @@ describe("the one table", () => {
   })
 
   it("is read at every product popup: a bare Sheet or Dialog is one the board left alone", () => {
-    const bare = [
-      ...sources(join(ROOT, "src/components")),
-      ...sources(join(ROOT, "src/app")),
-    ]
-      .map((file) => relative(ROOT, file))
-      .filter((file) => /<(SheetContent|DialogContent)[\s>]/.test(readFileSync(join(ROOT, file), "utf8")))
+    const bare = [...sources("src/components"), ...sources("src/app")]
+      .filter((file) => /<(SheetContent|DialogContent)[\s>]/.test(read(file)))
       .filter((file) => !(file in LEFT_ALONE))
     expect(
       bare,

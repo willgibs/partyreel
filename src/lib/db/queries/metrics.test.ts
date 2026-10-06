@@ -10,9 +10,6 @@
  * page's thirty days are drawn from the same counts, and a failed or drifted read throws rather than
  * drawing zeros. Then the snapshot's SQL, read off its migration: the operator is never a customer.
  */
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -22,18 +19,20 @@ import {
   type FakePostgrest,
   type FakeRow,
 } from "@/lib/db/testing/fake-postgrest";
+import { readMigrations } from "@/lib/db/testing/migrations";
 
 vi.mock("server-only", () => ({}));
-vi.mock("@/lib/stripe/revenue", () => ({ getPlatformRevenue: async () => null }));
+vi.mock("@/lib/stripe/revenue", () => ({
+  getPlatformRevenue: async () => null,
+}));
 
 let fake: FakePostgrest;
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => asSupabase(fake),
 }));
 
-const { getPlatformDbMetrics, getPlatformMetrics } = await import(
-  "@/lib/db/queries/metrics"
-);
+const { getPlatformDbMetrics, getPlatformMetrics } =
+  await import("@/lib/db/queries/metrics");
 
 const AS_OF = "2026-09-23T12:00:00.000000+00:00";
 
@@ -158,7 +157,10 @@ describe("getPlatformDbMetrics", () => {
     expect(m.asOf).toBe(AS_OF);
     // The metrics page's thirty days and the home's fourteen, on the database's clock.
     expect(m.accounts.signupTrend).toHaveLength(30);
-    expect(m.accounts.signupTrend.at(-1)).toEqual({ day: "2026-09-23", count: 40 });
+    expect(m.accounts.signupTrend.at(-1)).toEqual({
+      day: "2026-09-23",
+      count: 40,
+    });
     expect(m.accounts.signupTrend[0]).toEqual({ day: "2026-08-25", count: 90 });
     expect(m.fortnight.signupTrend).toHaveLength(14);
     expect(m.fortnight.signupTrend.reduce((s, d) => s + d.count, 0)).toBe(100);
@@ -186,7 +188,10 @@ describe("getPlatformDbMetrics", () => {
     );
 
     fake = world();
-    fake.functions.admin_metrics_snapshot = () => ({ ...snapshot(), accounts: {} });
+    fake.functions.admin_metrics_snapshot = () => ({
+      ...snapshot(),
+      accounts: {},
+    });
     await expect(getPlatformDbMetrics()).rejects.toThrow(
       /admin_metrics_snapshot/,
     );
@@ -214,16 +219,14 @@ describe("getPlatformDbMetrics", () => {
    ──────────────────────────────────────────────────────────────────────────── */
 describe("admin_metrics_snapshot's definition", () => {
   function newestBody(): string {
-    const dir = join(process.cwd(), "supabase", "migrations");
     const definition =
       /create\s+(?:or\s+replace\s+)?function\s+public\.admin_metrics_snapshot\s*\(/i;
-    const newest = readdirSync(dir)
-      .filter((file) => file.endsWith(".sql"))
-      .sort()
-      .map((file) => readFileSync(join(dir, file), "utf8"))
+    const newest = readMigrations()
+      .map(({ sql }) => sql)
       .filter((sql) => definition.test(sql))
       .at(-1);
-    if (!newest) throw new Error("No migration defines admin_metrics_snapshot.");
+    if (!newest)
+      throw new Error("No migration defines admin_metrics_snapshot.");
     const start = newest.search(definition);
     const open = newest.indexOf("$$", start);
     const close = newest.indexOf("$$", open + 2);

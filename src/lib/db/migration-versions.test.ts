@@ -5,10 +5,11 @@
  * test that replays these files sorts them by name, so two files on one version would order by their words rather
  * than their writing. The second lane's merge fails here: rename its file to a free version before it lands.
  */
-import { readdirSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
+
+import { entries } from "@/testing/source-tree";
 
 const MIGRATIONS_DIR = join(
   __dirname,
@@ -21,7 +22,8 @@ const MIGRATIONS_DIR = join(
 
 describe("migration files", () => {
   it("never share a version", () => {
-    const versions = readdirSync(MIGRATIONS_DIR)
+    const versions = entries(MIGRATIONS_DIR)
+      .map((entry) => entry.name)
       .filter((file) => file.endsWith(".sql"))
       .map((file) => file.split("_")[0]);
     const twice = versions.filter((v, i) => versions.indexOf(v) !== i);

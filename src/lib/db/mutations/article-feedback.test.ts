@@ -10,9 +10,6 @@
  *     no table access), the summary SECURITY INVOKER with an empty search_path and EXECUTE for the
  *     service role alone. The same facts were proved on the live schema, rolled back, before handoff.
  */
-import { readFileSync, readdirSync } from "node:fs";
-import { join } from "node:path";
-
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -20,6 +17,7 @@ import {
   createFakePostgrest,
   type FakePostgrest,
 } from "@/lib/db/testing/fake-postgrest";
+import { readMigrations } from "@/lib/db/testing/migrations";
 
 const state = vi.hoisted(() => ({ fake: null as FakePostgrest | null }));
 
@@ -68,28 +66,15 @@ describe("recordArticleFeedback", () => {
 
 /* ── The SQL, latest-wins ─────────────────────────────────────────────────────────────────── */
 
-const MIGRATIONS = join(
-  __dirname,
-  "..",
-  "..",
-  "..",
-  "..",
-  "supabase",
-  "migrations",
-);
-
 function files(): { name: string; sql: string }[] {
-  return readdirSync(MIGRATIONS)
-    .filter((f) => f.endsWith(".sql"))
-    .sort()
-    .map((name) => ({
-      name,
-      // Comments are not code: a quoted example must never satisfy (or trip) a guard.
-      sql: readFileSync(join(MIGRATIONS, name), "utf8")
-        .replace(/--[^\n]*/g, "")
-        .replace(/\s+/g, " ")
-        .toLowerCase(),
-    }));
+  return readMigrations().map(({ file, sql }) => ({
+    name: file,
+    // Comments are not code: a quoted example must never satisfy (or trip) a guard.
+    sql: sql
+      .replace(/--[^\n]*/g, "")
+      .replace(/\s+/g, " ")
+      .toLowerCase(),
+  }));
 }
 
 /** Every statement across the set that mentions the table, in order. */

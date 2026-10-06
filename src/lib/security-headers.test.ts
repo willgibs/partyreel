@@ -1,10 +1,11 @@
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { join, relative, sep } from "node:path";
+import { basename, join, relative, sep } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
 import { asGuestHref } from "@/lib/event/sections";
+import { filesUnder } from "@/testing/source-tree";
 
 import {
   FRAME_ANCESTORS,
@@ -74,22 +75,18 @@ function addressOf(file: string): string | null {
 
 /** Every page and route handler under `src/app`, as the address it answers at. */
 function routes(dir: string, found: { page: string[]; handler: string[] }) {
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    const path = join(dir, entry.name);
-    if (entry.isDirectory()) {
-      routes(path, found);
-    } else if (/^(page\.tsx|route\.tsx?)$/.test(entry.name)) {
+  for (const path of filesUnder(dir)) {
+    const name = basename(path);
+    if (/^(page\.tsx|route\.tsx?)$/.test(name)) {
       const address = addressOf(path);
       if (address)
-        (entry.name.startsWith("route") ? found.handler : found.page).push(
-          address,
-        );
+        (name.startsWith("route") ? found.handler : found.page).push(address);
     }
   }
   return found;
 }
 
-const found = routes(APP, { page: [], handler: [] });
+const found = routes("src/app", { page: [], handler: [] });
 
 const FRAMING = [
   ["content-security-policy", "frame-ancestors 'self'"],

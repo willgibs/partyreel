@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -18,6 +18,7 @@ import { RESERVED_PARAMS } from "@/components/lab/board-state";
 import { askTexts, openingTexts, termsIn } from "@/components/lab/terms";
 
 import { ITEMS_STEP } from "@/app/(dev)/design/(shell)/lab/_desk/step-id";
+import { entries, filesUnder } from "@/testing/source-tree";
 
 import {
   BOARD_FOLDERS,
@@ -313,12 +314,13 @@ describe("the board registry", () => {
   });
 
   it("registers every board that has a spec, and only those", () => {
-    const onDisk = readdirSync(join(ROOT, SANDBOX))
-      .filter((n) => {
-        const p = join(ROOT, SANDBOX, n);
-        return statSync(p).isDirectory() && readdirSync(p).includes("spec.ts");
-      })
-      .sort();
+    const files = new Set(filesUnder(SANDBOX));
+    const onDisk = entries(SANDBOX)
+      .filter(
+        (board) =>
+          board.isDirectory && files.has(`${SANDBOX}/${board.name}/spec.ts`),
+      )
+      .map((board) => board.name);
     expect(
       BOARDS.map((b) => b.id).sort(),
       "a spec.ts the registry does not find, or a board with no folder",

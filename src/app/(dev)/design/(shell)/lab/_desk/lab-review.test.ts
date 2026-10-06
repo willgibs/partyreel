@@ -4,7 +4,6 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
-  readdirSync,
   readFileSync,
   rmSync,
   writeFileSync,
@@ -15,6 +14,7 @@ import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { optionId } from "@/components/lab/board-spec";
+import { entries } from "@/testing/source-tree";
 
 import { BOARDS } from "@/app/(dev)/design/sandbox/registry";
 
@@ -1064,7 +1064,8 @@ describe("a note that names no board", () => {
 
   it("records nowhere: no ledger appears and the summary says so", () => {
     const reviews = join(root, "docs", "reviews");
-    const before = readdirSync(reviews).sort();
+    const listing = () => entries(reviews).map((entry) => entry.name);
+    const before = listing();
     const result = lab.run('note: "a thought for the whole program"', {
       root,
       at: "2026-09-29T12:00:00Z",
@@ -1076,7 +1077,7 @@ describe("a note that names no board", () => {
     expect(result.boards).toEqual([]);
     expect(result.unfiled).toBe(1);
     // Not the window, and not a ledger of a made-up name either.
-    expect(readdirSync(reviews).sort()).toEqual(before);
+    expect(listing()).toEqual(before);
     expect(existsSync(join(reviews, "_window.json"))).toBe(false);
   });
 

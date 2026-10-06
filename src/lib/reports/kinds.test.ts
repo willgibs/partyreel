@@ -1,8 +1,9 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { readMigrations } from "@/lib/db/testing/migrations";
 import {
   bySeverity,
   INSTANT_HIDE_KIND,
@@ -19,15 +20,10 @@ const MIGRATIONS = join(process.cwd(), "supabase", "migrations");
 
 /** The enum's labels as the newest migration that creates `public.report_kind` spells them. */
 function sqlKinds(): string[] {
-  const files = readdirSync(MIGRATIONS)
-    .filter((f) => f.endsWith(".sql"))
-    .sort();
+  const files = readMigrations();
   let labels: string[] | null = null;
   for (const file of files) {
-    const sql = readFileSync(join(MIGRATIONS, file), "utf8").replace(
-      /--[^\n]*/g,
-      "",
-    );
+    const sql = file.sql.replace(/--[^\n]*/g, "");
     const m = sql.match(/create type public\.report_kind as enum \(([^)]*)\);/);
     if (m) labels = [...m[1].matchAll(/'([a-z_]+)'/g)].map(([, l]) => l);
   }

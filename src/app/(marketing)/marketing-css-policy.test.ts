@@ -1,6 +1,8 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+
+import { filesUnder, read } from "@/testing/source-tree";
 
 /**
  * The marketing.css containment contract (see its header). Layout CSS persists app-wide once any
@@ -15,14 +17,10 @@ const css = readFileSync(
 );
 
 /** Every .tsx under components/marketing, for the CSS-to-delegate name check. */
-function marketingSources(
-  dir = join(process.cwd(), "src/components/marketing"),
-): string[] {
-  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) return marketingSources(full);
-    return entry.name.endsWith(".tsx") ? [full] : [];
-  });
+function marketingSources(): string[] {
+  return filesUnder("src/components/marketing").filter((f) =>
+    f.endsWith(".tsx"),
+  );
 }
 
 /**
@@ -138,7 +136,7 @@ describe("marketing.css containment policy", () => {
     );
     const configured = new Set(
       marketingSources()
-        .map((file) => readFileSync(file, "utf8"))
+        .map((file) => read(file))
         .filter((src) => src.includes("<MorphDelegate"))
         .flatMap((src) =>
           [...src.matchAll(/name="([\w-]+)"/g)].map((m) => m[1]),

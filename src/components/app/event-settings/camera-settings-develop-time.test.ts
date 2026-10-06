@@ -3,11 +3,12 @@
  * the two things it mirrors, held to their homes: the database's own minute (`events_reveal_stamp`) and the hub's
  * Develop now question.
  */
-import { readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { readMigrations } from "@/lib/db/testing/migrations";
 import { DEVELOP_MAX_AHEAD_DAYS } from "@/lib/disposable/reveal";
 import { DATE_OUT_OF_RANGE } from "@/lib/validation/event";
 
@@ -192,18 +193,11 @@ describe("a time past what a develop may reach", () => {
 
 /* ── what it mirrors ────────────────────────────────────────────────────────────────────────────────────────────── */
 
-const MIGRATIONS = join(process.cwd(), "supabase", "migrations");
-
 /** The winning body of `public.events_reveal_stamp`, comments stripped, whitespace collapsed (the roll's own reader). */
 function stampBody(): string {
   let found: string | null = null;
-  for (const file of readdirSync(MIGRATIONS)
-    .filter((f) => f.endsWith(".sql"))
-    .sort()) {
-    const sql = readFileSync(join(MIGRATIONS, file), "utf8").replace(
-      /--[^\n]*/g,
-      "",
-    );
+  for (const migration of readMigrations()) {
+    const sql = migration.sql.replace(/--[^\n]*/g, "");
     const re = /create (?:or replace )?function public\.events_reveal_stamp\(/g;
     let m: RegExpExecArray | null;
     while ((m = re.exec(sql))) {

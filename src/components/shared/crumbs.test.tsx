@@ -1,6 +1,3 @@
-import { readFileSync, readdirSync, statSync } from "node:fs";
-import { join } from "node:path";
-
 import { act, render, screen } from "@testing-library/react";
 import { Profiler, StrictMode, type ReactNode } from "react";
 import { describe, expect, it } from "vitest";
@@ -11,6 +8,7 @@ import {
   CrumbsProvider,
   SetCrumbs,
 } from "@/components/shared/crumbs";
+import { filesUnder, read } from "@/testing/source-tree";
 
 /**
  * ONE WAY BACK, ON EVERY ROUTE (Will's `nav=crumbs`, 2026-09-20: "Partyreel /
@@ -35,15 +33,10 @@ import {
  * on screen and the page lands later, so a bar that let go with the old page blinked for the whole wait).
  */
 
-const ROOT = process.cwd();
-const EVENT_ROUTES = join(ROOT, "src/app/(app)/dashboard/[eventId]");
+const EVENT_ROUTES = "src/app/(app)/dashboard/[eventId]";
 
 function routeFiles(dir: string): string[] {
-  return readdirSync(dir).flatMap((entry) => {
-    const full = join(dir, entry);
-    if (statSync(full).isDirectory()) return routeFiles(full);
-    return entry === "page.tsx" ? [full] : [];
-  });
+  return filesUnder(dir).filter((file) => file.endsWith("/page.tsx"));
 }
 
 function withTrail(trail: { label: string; href?: string }[]) {
@@ -123,7 +116,7 @@ describe("the trail in the bar", () => {
     const files = routeFiles(EVENT_ROUTES);
     expect(files.length, "found the event's routes at all").toBeGreaterThan(2);
     const offenders = files.filter((file) => {
-      const src = readFileSync(file, "utf8");
+      const src = read(file);
       // A route that only redirects has no page to be on, so it owes no trail.
       if (/^\s*redirect\(/m.test(src) && !/SetCrumbs/.test(src)) return false;
       if (!/<SetCrumbs/.test(src)) return true;
@@ -132,7 +125,7 @@ describe("the trail in the bar", () => {
       return !/href:\s*[`"']\/dashboard/.test(src);
     });
     expect(
-      offenders.map((f) => f.slice(ROOT.length + 1)),
+      offenders,
       "an event route with no trail, or a trail with nothing walkable behind it",
     ).toEqual([]);
   });

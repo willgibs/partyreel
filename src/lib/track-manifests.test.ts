@@ -1,8 +1,10 @@
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import matter from "gray-matter";
 import { describe, expect, it } from "vitest";
+
+import { entries } from "@/testing/source-tree";
 
 /**
  * THE LANE GUARD. Every parallel branch claims path prefixes in
@@ -41,7 +43,8 @@ type Manifest = {
   reads?: string[];
 };
 
-const manifests: Manifest[] = readdirSync(DIR)
+const manifests: Manifest[] = entries(DIR)
+  .map((entry) => entry.name)
   .filter((f) => f.endsWith(".md") && f !== "README.md")
   .map((f) => ({
     file: f,

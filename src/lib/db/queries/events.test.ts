@@ -15,9 +15,6 @@
  *     everywhere for the host). The pins media.test.ts held over the old list reads live here now,
  *     where the definition does.
  */
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -27,6 +24,7 @@ import {
   type FakePostgrest,
   type FakeRow,
 } from "@/lib/db/testing/fake-postgrest";
+import { readMigrations } from "@/lib/db/testing/migrations";
 
 vi.mock("server-only", () => ({}));
 // Every presign this module asks for, with how it asked (a cover's `stable` is pinned below).
@@ -380,15 +378,12 @@ describe("getEventCoverUrls: one cover per event, in one request", () => {
    Text-parsed from the NEWEST migration defining each (Vitest has no Postgres), fail-closed.
    ──────────────────────────────────────────────────────────────────────────── */
 function newestBody(fn: string): string {
-  const dir = join(process.cwd(), "supabase", "migrations");
   const definition = new RegExp(
     `create\\s+(?:or\\s+replace\\s+)?function\\s+public\\.${fn}\\s*\\(`,
     "i",
   );
-  const newest = readdirSync(dir)
-    .filter((file) => file.endsWith(".sql"))
-    .sort()
-    .map((file) => readFileSync(join(dir, file), "utf8"))
+  const newest = readMigrations()
+    .map(({ sql }) => sql)
     .filter((sql) => definition.test(sql))
     .at(-1);
   if (!newest) throw new Error(`No migration defines public.${fn}.`);

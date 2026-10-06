@@ -7,13 +7,11 @@
  * layout, so this pins the contract (which chips may wrap) over the real articles; the page at 375 and 1440 in a browser
  * is the other half.
  */
-import { readdirSync, readFileSync } from "node:fs";
-import path from "node:path";
-
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { UiLabel } from "@/components/marketing/mdx/spec-shared";
+import { entries, read } from "@/testing/source-tree";
 
 /** The chip as drawn, in a container of its own (many articles quote the same words). */
 const chip = (text: string) => {
@@ -55,15 +53,14 @@ describe("the chip", () => {
  * are said, and every label past the line is one the component lets wrap.
  */
 describe("the articles", () => {
-  const dir = path.join(process.cwd(), "content/help");
-  const labels = readdirSync(dir)
+  const dir = "content/help";
+  const labels = entries(dir)
+    .map((entry) => entry.name)
     .filter((f) => f.endsWith(".mdx"))
     .flatMap((f) =>
-      [
-        ...readFileSync(path.join(dir, f), "utf8").matchAll(
-          /<UiLabel>([\s\S]*?)<\/UiLabel>/g,
-        ),
-      ].map((m) => ({ file: f, text: m[1]!.replace(/\s+/g, " ").trim() })),
+      [...read(`${dir}/${f}`).matchAll(/<UiLabel>([\s\S]*?)<\/UiLabel>/g)].map(
+        (m) => ({ file: f, text: m[1]!.replace(/\s+/g, " ").trim() }),
+      ),
     );
 
   it("★ quotes the two email subjects red-team 54b saw cut, and both may wrap", () => {

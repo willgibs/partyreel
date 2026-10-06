@@ -1,7 +1,6 @@
 import {
   mkdirSync,
   mkdtempSync,
-  readdirSync,
   readFileSync,
   rmSync,
   writeFileSync,
@@ -22,6 +21,7 @@ import {
 } from "@/components/lab/board-spec";
 
 import { BOARDS } from "@/app/(dev)/design/sandbox/registry";
+import { entries } from "@/testing/source-tree";
 
 import {
   currentSitting,
@@ -45,9 +45,10 @@ import { boardStatus } from "./status";
 // The catalog's entry ids, read the way lab:review reads them (the TS parse
 // of the same files holds that reader in gallery.test.ts): importing the
 // registry itself would mount every production component in a node test.
-const { readLibraryEntries } = (await import(
-  "../../../../../scripts/lab-review.mjs"
-)) as { readLibraryEntries: (root: string) => Set<string> | null };
+const { readLibraryEntries } =
+  (await import("../../../../../scripts/lab-review.mjs")) as {
+    readLibraryEntries: (root: string) => Set<string> | null;
+  };
 const CATALOG_IDS = readLibraryEntries(process.cwd()) ?? new Set<string>();
 
 /**
@@ -70,7 +71,9 @@ const CATALOG_IDS = readLibraryEntries(process.cwd()) ?? new Set<string>();
  * whatever they contain.
  */
 const dir = join(process.cwd(), REVIEWS_DIR);
-const all = readdirSync(dir).filter((f) => f.endsWith(".json"));
+const all = entries(dir)
+  .map((entry) => entry.name)
+  .filter((f) => f.endsWith(".json"));
 // The Library's ledger is a second shape in the same directory (no board, no
 // rounds), so it is checked against its own schema rather than the board one.
 const files = all.filter((f) => f !== `${LIBRARY_LEDGER}.json`);

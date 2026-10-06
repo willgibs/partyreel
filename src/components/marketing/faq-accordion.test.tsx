@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { FaqAccordion } from "@/components/marketing/faq-accordion";
 import type { FaqItem } from "@/components/marketing/faq-data";
+import { filesUnder } from "@/testing/source-tree";
 
 /**
  * THE ONE FAQ (`loose-ends` r1, `faq-look=heading`). What fails here fails
@@ -229,10 +230,8 @@ describe("one look on every page", () => {
     // The home and pricing once went through `HomeFaqAccordion`, a wrapper that only took the top gap off
     // (kept for a test's sake). Every page renders `FaqAccordion` itself, so what one page draws is what
     // the others do.
-    const found = readdirSync(join(process.cwd(), "src/components/marketing"), {
-      recursive: true,
-    })
-      .map((f) => String(f).replace(/\\/g, "/"))
+    const found = filesUnder("src/components/marketing")
+      .map((f) => f.slice("src/components/marketing/".length))
       .filter((f) => /faq-accordion\.tsx$/.test(f));
     expect(found).toEqual(["faq-accordion.tsx"]);
   });

@@ -1,8 +1,10 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join, relative } from "node:path";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
+
+import { filesUnder } from "@/testing/source-tree";
 
 /**
  * NO LINK IN THE PORTAL PREFETCHES, WHEREVER IT SITS (crumbs-39, from the chrome's own rule in
@@ -30,15 +32,9 @@ const DIRS = ["src/components/admin", "src/app/admin"];
  */
 const PENDING: Record<string, string> = {};
 
-function sources(dir: string): string[] {
-  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) return sources(full);
-    return /\.tsx$/.test(entry.name) && !/\.test\.tsx$/.test(entry.name)
-      ? [full]
-      : [];
-  });
-}
+/** Every component under `dir` (repo-relative), its tests aside. */
+const sources = (dir: string) =>
+  filesUnder(dir).filter((f) => /\.tsx$/.test(f) && !/\.test\.tsx$/.test(f));
 
 /** The lines of every `next/link` element in a file that does not say `prefetch={false}`. */
 function prefetching(file: string): number[] {
@@ -85,9 +81,7 @@ function prefetching(file: string): number[] {
   return lines;
 }
 
-const files = DIRS.flatMap((dir) => sources(join(ROOT, dir))).map((full) =>
-  relative(ROOT, full),
-);
+const files = DIRS.flatMap((dir) => sources(dir));
 
 describe("the portal's links never prefetch", () => {
   it("scanned the portal's components and pages", () => {

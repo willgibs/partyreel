@@ -1,7 +1,9 @@
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
+
+import { filesUnder } from "@/testing/source-tree";
 
 /**
  * THE LIGHT ENGINE'S MECHANISMS. Nothing here pins how the light looks (the
@@ -139,12 +141,7 @@ describe("the spill engine CSS", () => {
     // under sandbox/ beside the board, and a sheet that moves must stay in
     // this net.
     const labDir = "src/app/(dev)/design";
-    const labSheets = readdirSync(join(process.cwd(), labDir), {
-      recursive: true,
-    })
-      .map(String)
-      .filter((f) => f.endsWith(".css"))
-      .map((f) => `${labDir}/${f}`);
+    const labSheets = filesUnder(labDir).filter((f) => f.endsWith(".css"));
     // The lab's own sheet is always there; a board's joins it while the board
     // stands. A floor counting boards' sheets went red as boards retired.
     expect(labSheets, "the net lost the lab's own sheet").toContain(

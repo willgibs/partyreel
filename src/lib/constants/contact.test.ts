@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -11,6 +11,7 @@ import {
   contactTopicLabel,
 } from "@/lib/constants/contact";
 import { getAllSlugs, HELP_CATEGORIES } from "@/lib/content/help";
+import { entries } from "@/testing/source-tree";
 
 const CINEMA = join(process.cwd(), "src/app/(marketing)/(cinema)");
 
@@ -28,7 +29,9 @@ function pageExists(path: string): boolean {
 function pageHasAnchor(path: string, fragment: string): boolean {
   const dir = join(CINEMA, path);
   const ids = new Set<string>();
-  for (const file of readdirSync(dir).filter((f) => f.endsWith(".tsx"))) {
+  for (const file of entries(dir)
+    .map((entry) => entry.name)
+    .filter((f) => f.endsWith(".tsx"))) {
     const src = readFileSync(join(dir, file), "utf8");
     for (const m of src.matchAll(/\bid="([\w-]+)"/g)) ids.add(m[1]);
     // The band writes its id from the constant the doors' address is built from.

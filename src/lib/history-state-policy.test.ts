@@ -1,8 +1,7 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import ts from "typescript";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
+
+import { read, sources } from "@/testing/source-tree";
 
 /**
  * A NATIVE HISTORY CALL IS NEVER HANDED THE ENTRY'S OWN STATE (crumbs-16: build 23's red-team, HIGH,
@@ -55,16 +54,6 @@ import { describe, expect, it, vi } from "vitest";
 
 /** File (repo-relative, forward slashes: `src/...`) -> why passing the entry's state through is safe there. */
 const ALLOWED: Readonly<Record<string, string>> = {};
-
-const ROOT = process.cwd();
-const SKIP = /\.test\.tsx?$|\.d\.ts$|^src\/lib\/db\/types\.ts$/;
-
-function filesUnder(dir: string): string[] {
-  return readdirSync(join(ROOT, dir), { recursive: true })
-    .map((f) => `${dir}/${String(f).replace(/\\/g, "/")}`)
-    .filter((rel) => /\.tsx?$/.test(rel) && !SKIP.test(rel))
-    .sort();
-}
 
 /* ── the scan ─────────────────────────────────────────────────────────────── */
 
@@ -263,27 +252,17 @@ function writesIn(text: string): number {
 
 /* ── the policy ───────────────────────────────────────────────────────────── */
 
-/**
- * ★ THE TREE SCAN HAS A BUDGET OF ITS OWN (crumbs-83, the Orchestrator's gate 29). It reads and parses every file under
- * `src` (about 1,600, through the TypeScript parser), CPU work that grows with the tree: about 2 s alone, 4.9 s beside
- * the other policy scans (measured), and the history scan's 5.4 s in gate 29 past vitest's 5 s default for a test that
- * waits on nothing, with another lane's build on the machine. Every test here gets the budget. A budget, not a timing
- * claim: a scan that finds an offender still fails at once on its own assertion, and one that hangs fails at the budget
- * (`no-em-dash-policy.test.ts`'s note: the first scan given one).
- */
-const SCAN_BUDGET_MS = 60_000;
-vi.setConfig({ testTimeout: SCAN_BUDGET_MS });
-
-const SOURCES = filesUnder("src");
+const SOURCES = sources();
+/** A write is a call named `pushState` or `replaceState`, so only a file that spells one is parsed. */
+const WRITING = SOURCES.filter((rel) =>
+  /pushState|replaceState/.test(read(rel)),
+);
 
 describe("no native history call is handed the entry's own state", () => {
   it("scans the tree, and sees the calls it exists for", () => {
     // A guard that scans nothing passes silently: pin that the walk found the tree and its writes.
     expect(SOURCES.length, "the scan found no files").toBeGreaterThan(500);
-    const writes = SOURCES.reduce(
-      (n, rel) => n + writesIn(readFileSync(join(ROOT, rel), "utf8")),
-      0,
-    );
+    const writes = WRITING.reduce((n, rel) => n + writesIn(read(rel)), 0);
     // 14 today (crumbs-19 folded the hub's four writes, the popup's one and the reel's two into the helper's
     // four): the floor stays a few under it, so a directory that stops being walked is still noticed.
     expect(
@@ -294,19 +273,16 @@ describe("no native history call is handed the entry's own state", () => {
     // them here): every place that pushes an entry of its own stands on them, so they are in the tree
     // and inspected.
     expect(
-      writesIn(readFileSync(join(ROOT, "src/lib/history-entry.ts"), "utf8")),
+      writesIn(read("src/lib/history-entry.ts")),
       "the shared history helper's writes are not being scanned",
     ).toBeGreaterThanOrEqual(3);
   });
 
   it("refuses a call handed the state, outside the reasoned exceptions", () => {
     const offenders: string[] = [];
-    for (const rel of SOURCES) {
+    for (const rel of WRITING) {
       if (rel in ALLOWED) continue;
-      for (const hit of stateHandedOver(
-        readFileSync(join(ROOT, rel), "utf8"),
-        rel,
-      )) {
+      for (const hit of stateHandedOver(read(rel), rel)) {
         offenders.push(`${rel}:${hit.line}  ${hit.call}`);
       }
     }
@@ -323,7 +299,7 @@ describe("no native history call is handed the entry's own state", () => {
     for (const [file, why] of Object.entries(ALLOWED)) {
       expect(why.trim().length, `${file} needs its reason`).toBeGreaterThan(20);
       expect(
-        stateHandedOver(readFileSync(join(ROOT, file), "utf8"), file).length,
+        stateHandedOver(read(file), file).length,
         `${file} is allowed but no longer hands the state through: drop the entry`,
       ).toBeGreaterThan(0);
     }

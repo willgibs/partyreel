@@ -1,9 +1,10 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
 import { marketingImage } from "@/lib/constants/marketing-media";
+import { filesUnder, read } from "@/testing/source-tree";
 
 import {
   bandPx,
@@ -554,10 +555,7 @@ describe("the sheet", () => {
 
 describe("the keyframes' names", () => {
   function cssFiles(dir: string): string[] {
-    return readdirSync(join(ROOT, dir), { recursive: true })
-      .map(String)
-      .filter((f) => f.endsWith(".css"))
-      .map((f) => `${dir}/${f}`);
+    return filesUnder(dir).filter((f) => f.endsWith(".css"));
   }
 
   it("are prefixed, distinct and declared nowhere else in the repo", () => {
@@ -569,7 +567,7 @@ describe("the keyframes' names", () => {
     const own = "pvl-stage-in";
     const owners = new Map<string, string[]>();
     for (const file of cssFiles("src")) {
-      const text = stripComments(readFileSync(join(ROOT, file), "utf8"));
+      const text = stripComments(read(file));
       for (const m of text.matchAll(/@keyframes\s+([\w-]+)/g))
         owners.set(m[1], [...(owners.get(m[1]) ?? []), file]);
     }

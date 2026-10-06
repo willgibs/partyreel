@@ -1,8 +1,7 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join, relative } from "node:path";
-
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
+
+import { read, sources } from "@/testing/source-tree";
 
 // Project-wide guard for the no-em-dash copy rule: user-facing copy must never contain
 // an em-dash (U+2014) — it reads as an "AI tell".
@@ -27,46 +26,33 @@ import { describe, expect, it } from "vitest";
 // render user-facing strings, wrap it rather than editing it, and the wrapper gets scanned.
 
 const FORBIDDEN = ["—", "&mdash;"];
-const SRC = join(process.cwd(), "src");
-
 /**
- * ★ THE SCAN HAS A BUDGET OF ITS OWN (crumbs-77). It reads and parses every file of the app through the TypeScript
- * parser (about 1,600 of them, a second alone), which is CPU work that grows with the tree, and vitest's 5 s default
- * is for a test that waits on nothing: a full run under other lanes' builds timed it out on a tree with no em-dash
- * in it. A budget, not a timing claim: a scan that finds one still fails at once, on its own assertion, and one
- * that hangs fails at the budget.
+ * ★ THE SCAN HAS A BUDGET OF ITS OWN (crumbs-77). It parses through the TypeScript parser every file of the app that
+ * holds the character at all (about 450, comments included, which the parse then exempts), CPU work that grows with
+ * the tree, and vitest's 5 s default is for a test that waits on nothing: a full run under other lanes' builds timed
+ * the whole-tree version out on a tree with no em-dash in it. A budget, not a timing claim: a scan that finds one
+ * still fails at once, on its own assertion, and one that hangs fails at the budget.
  */
 const SCAN_BUDGET_MS = 60_000;
 
-const SCAN_DIRS = ["app", "components", "lib"];
-const SCAN_FILES: string[] = [];
+const SCAN_DIRS = ["src/app", "src/components", "src/lib"];
 
-// ★ MATCHED AGAINST A SRC-RELATIVE PATH, never the absolute one (anchored at the
+// ★ MATCHED AGAINST A REPO-RELATIVE PATH (`src/...`), never the absolute one (anchored at the
 // glow merge, 2026-08-31). Unanchored, `[/\\]vendor[/\\]` exempted ANY directory
 // named vendor under app/components/lib, so a future src/app/(marketing)/vendor/
 // would have escaped the policy on real user-facing copy; worse, an absolute match
 // meant a checkout living under any path with a `vendor` segment silently skipped
 // EVERY file, with nothing asserting that the scan found anything at all. Both
 // holes are closed: the path is relative, the vendor clause is anchored to the one
-// folder it is for, and the test below asserts a non-empty file list.
-const SKIP = /\.test\.tsx?$|(?:^|[/\\])types\.ts$|^components[/\\]vendor[/\\]/;
-
-function collectFiles(dir: string): string[] {
-  const out: string[] = [];
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) out.push(...collectFiles(full));
-    else if (/\.tsx?$/.test(entry.name) && !SKIP.test(relative(SRC, full)))
-      out.push(full);
-  }
-  return out;
-}
+// folder it is for, and the test below asserts a non-empty file list. (Tests and the
+// generated db/types.ts are `sources()`'s own skips.)
+const VENDOR = /^src\/components\/vendor\//;
 
 // Returns the user-facing em-dash snippets in a file (comments excluded via the AST).
 function offenders(file: string): string[] {
   const source = ts.createSourceFile(
     file,
-    readFileSync(file, "utf8"),
+    read(file),
     ts.ScriptTarget.Latest,
     /* setParentNodes */ false,
     file.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
@@ -93,16 +79,16 @@ function offenders(file: string): string[] {
 
 describe("no-em-dash copy policy", { timeout: SCAN_BUDGET_MS }, () => {
   it("has no em-dashes in user-facing copy (comments are exempt)", () => {
-    const files = [
-      ...SCAN_DIRS.flatMap((d) => collectFiles(join(SRC, d))),
-      ...SCAN_FILES.map((f) => join(SRC, f)),
-    ];
-    // A guard that scans nothing passes silently. Pin that the walk found the
-    // tree: the SKIP regex above is the one thing that could empty this list.
-    expect(files.length, "the scan found no files").toBeGreaterThan(500);
-    const found = files.flatMap((file) =>
-      offenders(file).map((hit) => `src/${relative(SRC, file)}: "${hit}"`),
+    const files = SCAN_DIRS.flatMap((dir) => sources(dir)).filter(
+      (file) => !VENDOR.test(file),
     );
+    // A guard that scans nothing passes silently. Pin that the walk found the
+    // tree: the VENDOR regex above is the one thing that could empty this list.
+    expect(files.length, "the scan found no files").toBeGreaterThan(500);
+    // Only a file that holds the character (or its entity) anywhere is parsed.
+    const found = files
+      .filter((file) => FORBIDDEN.some((bad) => read(file).includes(bad)))
+      .flatMap((file) => offenders(file).map((hit) => `${file}: "${hit}"`));
     expect(
       found,
       `Found em-dashes in user-facing copy. Recast each naturally in context ` +

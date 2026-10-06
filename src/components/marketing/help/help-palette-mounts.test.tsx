@@ -1,8 +1,7 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
-
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { filesUnder, read } from "@/testing/source-tree";
 
 /**
  * WHERE THE HELP PALETTE LIVES (help-center r1 `search=visible`, Will: "admin can create its own
@@ -16,22 +15,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
  * makes here), and the bell does what it says in a real render.
  */
 
-const ROOT = process.cwd();
-const SRC = join(ROOT, "src");
+const SRC = "src";
 
-function walk(dir: string, out: string[] = []): string[] {
-  for (const name of readdirSync(dir)) {
-    const path = join(dir, name);
-    if (statSync(path).isDirectory()) walk(path, out);
-    else if (/\.(ts|tsx)$/.test(name) && !/\.test\.tsx?$/.test(name))
-      out.push(path);
-  }
-  return out;
+function walk(dir: string): string[] {
+  return filesUnder(dir).filter(
+    (path) => /\.(ts|tsx)$/.test(path) && !/\.test\.tsx?$/.test(path),
+  );
 }
 
 const SOURCES = walk(SRC).map((path) => ({
-  file: relative(ROOT, path),
-  text: readFileSync(path, "utf8"),
+  file: path,
+  text: read(path),
 }));
 
 /** Files that render the provider (a JSX use, not a mention in a comment). */

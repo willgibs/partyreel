@@ -1,8 +1,6 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
-
 import { afterEach, describe, expect, it } from "vitest";
 
+import { readMigrations } from "@/lib/db/testing/migrations";
 import {
   daysBetween,
   endForNewStart,
@@ -14,6 +12,7 @@ import {
 } from "@/lib/events/dates";
 import { runAsGermanRuntime } from "@/lib/test-utils/german-runtime";
 import { dashRange, formatEventDate } from "@/lib/utils";
+import { filesUnder, read } from "@/testing/source-tree";
 
 /**
  * AN EVENT'S OPTIONAL END DATE (lane `event-dates`, Will 2026-10-03): a range of days, no times, read everywhere a
@@ -187,26 +186,17 @@ describe("a range's dash", () => {
 
 /* ── the migration's facts ─────────────────────────────────────────────── */
 
-const ROOT = join(__dirname, "..", "..", "..");
-const MIGRATIONS = join(ROOT, "supabase", "migrations");
 const FILE = "20261003120000_event_end_date.sql";
 
 /** A migration's executable SQL: line comments stripped (prose is not a statement), whitespace collapsed. */
-const executable = (file: string) =>
-  readFileSync(join(MIGRATIONS, file), "utf8")
-    .replace(/--[^\n]*/g, "")
-    .replace(/\s+/g, " ");
-
-const migrationFiles = () =>
-  readdirSync(MIGRATIONS)
-    .filter((f) => f.endsWith(".sql"))
-    .sort();
+const executable = (raw: string) =>
+  raw.replace(/--[^\n]*/g, "").replace(/\s+/g, " ");
 
 /** The winning definition of a function, latest file first: its file and its body. */
 function latest(name: string): { file: string; body: string } {
   let found: { file: string; body: string } | null = null;
-  for (const file of migrationFiles()) {
-    const sql = executable(file);
+  for (const { file, sql: raw } of readMigrations()) {
+    const sql = executable(raw);
     const at = Math.max(
       sql.lastIndexOf(`create function public.${name}(`),
       sql.lastIndexOf(`create or replace function public.${name}(`),
@@ -221,7 +211,7 @@ function latest(name: string): { file: string; body: string } {
 }
 
 describe("the migration (20261003120000)", () => {
-  const sql = executable(FILE);
+  const sql = executable(read(`supabase/migrations/${FILE}`));
 
   it("adds a nullable date under a CHECK: on or after the date, and nothing without one", () => {
     expect(sql).toContain(
@@ -291,8 +281,8 @@ describe("★ an end date never touches the lifecycle (no end, no lock, no archi
       "cloud_export_create",
     ].map((name) => latest(name).body);
     const offenders: string[] = [];
-    for (const file of migrationFiles()) {
-      let sql = executable(file);
+    for (const { file, sql: raw } of readMigrations()) {
+      let sql = executable(raw);
       if (!sql.includes("event_end_date")) continue;
       for (const body of readers) sql = sql.split(body).join(" ");
       // Only the winning bodies are cut out: an older or later definition naming it is a new reader, and fails.
@@ -310,7 +300,6 @@ describe("★ an end date never touches the lifecycle (no end, no lock, no archi
   });
 
   it("no lifecycle home in the app reads an end date: the purge, the crons, the develop, the seal, deletion", () => {
-    const SRC = join(ROOT, "src");
     const homes = [
       "app/api/cron",
       "lib/lifecycle",
@@ -319,21 +308,18 @@ describe("★ an end date never touches the lifecycle (no end, no lock, no archi
       "lib/disposable/waiting.server.ts",
       "lib/r2/delete.ts",
       "lib/db/mutations/account.ts",
-    ].map((p) => join(SRC, p));
-    const files: string[] = [];
-    const walk = (path: string) => {
-      if (!statSync(path).isDirectory()) return void files.push(path);
-      for (const e of readdirSync(path)) walk(join(path, e));
-    };
-    for (const home of homes) walk(home);
+    ].map((p) => `src/${p}`);
+    // A home is a folder (every file under it) or one file (named with its extension, and read below, so a home
+    // that is gone fails the read).
+    const files = homes.flatMap((home) =>
+      /\.tsx?$/.test(home) ? [home] : filesUnder(home),
+    );
     const named = files
       .filter((f) => /\.tsx?$/.test(f) && !/\.test\.tsx?$/.test(f))
       .filter((f) =>
-        /event_end_date|eventEndDate|lastDayOf|eventDays/.test(
-          readFileSync(f, "utf8"),
-        ),
+        /event_end_date|eventEndDate|lastDayOf|eventDays/.test(read(f)),
       )
-      .map((f) => relative(SRC, f));
+      .map((f) => f.replace(/^src\//, ""));
     expect(files.length).toBeGreaterThan(5);
     expect(named).toEqual([]);
   });
