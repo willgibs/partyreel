@@ -23,7 +23,7 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 ## In flight
 
-Round 15 continues (2026-10-06), the Orchestrator seated in a claude.ai cloud session for the first time
+Round 15 wound down at 15:40Z on 2026-10-06 (Will: the cloud credit down to its last $10), nothing running; the Orchestrator seated in a claude.ai cloud session for the first time
 (`session_01CbMRwiSRndG3eAjNpzHAvJ`, willg97's account). Milestone 37 is live (`b67cdc1f2`); `launch-prep` holds
 milestone 38's work (each lane's summary is its merge commit), red-team 56's findings fixed by crumbs-85 among it. Every
 lane is a cloud session of its own (the runbook's "Cut a lane", step 4); none can message back, so a `send_later`
@@ -34,7 +34,6 @@ check-in about every 40 minutes reads them (their status, pushed heads and cost)
 | `billing-orphans` | milestone 38's billing line: an orphan's grant as one SQL function under her profiles lock, the change-plan configuration watched at its source, the Plan card's words while a credited Pro lands; one migration (`20261006120000_billing_orphans.sql`) | HANDED OFF at `4a113e5d4`; waits on the morning's SQL (Waiting on Will) | Opus | `session_015JAkfLgeuTsZZMNJXrZVeV` |
 | `drive-crumbs` | Drive whole before it goes live: album folders and files found by their marks after a reconnect, the closing check held at the first unknown, Account's card naming her folder, the palette's jump; one migration (`20261006130000_drive_marks.sql`) | HANDED OFF at `6d1731c27`; waits on the morning's SQL (Waiting on Will) | Opus | `session_01AGJfN3zW3BvB8vPM7KSgbL` |
 | `redteam-56b` | red-team 56b on its own build of `c5b16be7` at :3000 | BLOCKED, ended 11:22Z (about $1.20): its permission check refused `.env.local`, the `--no-sandbox` Chrome wrapper and a `useradd` for a sandboxed Chrome (tried before the correction; reported), so only the 404s' one noindex was walked (PASS) and every browser walk reads NOT DRIVEN; no findings, nothing created. It waits on Will's browser call (Waiting on Will), then a fresh session | Opus | `session_017cgyXnS3nnK35ifo2L6bEa` |
-| `retired-mocks` | the marketing pictures that still draw retired product (/reel's reel tile, How it works' Download album dialog, the album and sharing mocks' export menu) redrawn from today's own pieces, and the dead files they kept alive deleted | RUNNING (cut at `14a17e10`) | Opus | `session_01CUbN6NjxT5MS3ernjxK4Mo` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor") read both of tonight's migrations
 (2026-10-06): APPLY each, after its drift read and its proof's GREEN; the hashes and its caveats are under Waiting on
@@ -90,7 +89,7 @@ local agents' transcripts.
 7. **★ Vercel's Hobby Active CPU** (about 3.89 of 4 hours over 30 days on 2026-10-06; the peak rolls off in early
    November): nothing runs against the alias or partyreel.com but what Will asks for by name.
 8. **Pacing:** the cloud credit (Will: $250, $168 left at his good night, a gift: spend it): full speed until he says
-   it is spent; the night's lanes read about $128 by 14:00Z (crumbs-85 the most, $29). The account's seven-day limit read `allowed_warning` at 10:31Z (it resets about 2026-10-11 13:00Z).
+   it is spent; the night's lanes read about $128 by 14:00Z, and at 15:40Z Will called it spent (about $10 left). The account's seven-day limit read `allowed_warning` at 10:31Z (it resets about 2026-10-11 13:00Z).
 
 ## Waiting on Will
 
@@ -106,6 +105,12 @@ local agents' transcripts.
   types once after both, and the two integrations with the Advisor's words folded in: billing-caps' "all or nothing"
   covers only the orphans that held grants; drive-export's closing check re-asks a non-rate unknown every 90 s with no
   growth (a ROADMAP line for the Worker's cadence); adopt's orphan loop wants `and c.profile_id = p_host_id` (a nit).
+  Done at 15:35Z, Will approving: the drift read (all seven hashes match, both new objects absent) and drive-crumbs'
+  RED (fails where the migration is missing; its step 5 passes vacuously, nothing to lease). ★ Left: the Supabase
+  connector asks its own confirm for any DELETE or DROP, even inside a rolled-back proof, and it expires in 60 s
+  (three calls timed out on it): billing's RED and GREEN carry DELETEs in their fixtures, drive's GREEN and its apply
+  a DROP FUNCTION, billing's apply none. Run them with Will watching to confirm each; rebuild each proof from its
+  file's foot (`begin;` + the block + `rollback;`, GREEN with the file's statements before the block).
 - **The calls lab** (`docs/calls.md`): the open questions X1, X2, X3, X5, X6 and X8, then each merge's calls, built and
   his to overrule. He asks direct questions in chat; answer in chat, never only in a file.
 - **Milestone 38** on his yes, after billing-orphans, drive-crumbs and red-team 56b (blocked on the browser call).
@@ -113,7 +118,11 @@ local agents' transcripts.
   sometimes refuses the spawn prompt's wrapper for it (red-team 56b at 11:11Z, crumbs-85's first boot; event-header-r6
   and lab-kit-3 ran theirs). A refused step is never worked around, by the lane or from this seat: its walk reads NOT
   DRIVEN. ★ Red-team 56b, and so milestone 38, waits on it. His call: a permission rule in the environment's settings
-  allowing Chromium with `--no-sandbox` (then a fresh red-team session), or red-team 56b on his Mac's desk.
+  allowing Chromium with `--no-sandbox` (then a fresh red-team session), or red-team 56b on his Mac's desk. The fix
+  given him at 15:00Z: the environment's Setup script makes the wrapper (`printf '#!/bin/sh\nexec
+  /opt/pw-browsers/chromium --no-sandbox "$@"\n' > /usr/local/bin/chrome-ns && chmod +x /usr/local/bin/chrome-ns`,
+  and zsh), its variables set `CHROME_PATH`, `NODE_USE_ENV_PROXY=1` and `NEXT_PUBLIC_SITE_URL=http://localhost:3000`;
+  once set, the spawn prompt's own wrapper step drops.
 - **A Cloudflare API token** in the environment (`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`), only if the
   Workers should deploy from the cloud.
 - **The private note** scratch-synthesis wrote for this seat on his Mac (`CLOUD-ORCHESTRATOR-PRIVATE.md`): uploaded

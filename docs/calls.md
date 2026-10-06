@@ -1053,3 +1053,17 @@ onto the failure sheet in the same words (never counted, its staging swept).
 **BP2. Retry all is coalesced inside the queue** (one run a tick), not a new key on the sheet; a Retry all whose files
 take longer than the burst's own 10 s record wait still records in two completes, the burst's rule.
 - *Push back if* a Retry all should always be one complete.
+
+## BQ. The site's pictures, drawn from today's product (retired-mocks)
+
+The marketing pictures that drew retired product now compose today's own pieces; these calls came with them, built
+and yours to overrule.
+
+**BQ1. /reel's first load carries the album cover's module** (about 7 KB gzipped, no canvas, no player): the price of
+composing the product's own cover rather than copying it; splitting the cover's frame from its data half would remove
+it (a board idea).
+- *Push back if* /reel should load lighter and draw a still instead.
+
+**BQ2. The Take it home figure keeps the old demo's lower-case caption register,** and drops the size's number-pop
+(the facts are the cards' own lines now).
+- *Push back if* the caption should read in the site's sentence case.
