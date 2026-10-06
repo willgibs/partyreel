@@ -22,7 +22,6 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 
 ### Design system and accessibility
 
-- Design: the halo and the working words at the four call sites that waited on their lanes: pricing's three `focus-visible:ring` lines (`src/components/app/pricing/`, its key "Opening billing" in `checkout-button.tsx`) and Drive's album picker (`src/components/app/drive/`, its send steps' "Starting") (a11y-halo).
 - Design: `ContactReceipt`'s `Postmark` (`src/app/(marketing)/(cinema)/contact/contact-receipt.tsx`) is inked `text-foreground/75` with `mix-blend-multiply`, which draws nothing over the cinema room's dark card (computed in the frame: opacity 1, multiply, oklab 0.97), so the postmark is invisible on /contact; ink it for the dark.
 
 ### Marketing and content
@@ -107,7 +106,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Code hygiene: `EventCard`'s dashboard-only props (`qrSlot`, `pendingCount`, `itemsLabel`, `living`, the trash variant) and `event-card-qr.tsx` have no production caller; remove them with their Library specimens (`library/compositions/gallery-demos.tsx`).
 - Code hygiene: drop `resolveRowStep`'s legacy pixel-width mapping (`LEGACY_WIDTH_STEP`, `lib/shared/tile-size-cookie.ts`); nothing writes a width any more and only test devices hold one.
 - Code hygiene: drop drive-crumbs' `markReady` cast (`src/lib/db/queries/drive.ts`) now that `src/lib/db/types.ts` carries `cloud_export_ready`'s `p_found` (drive-crumbs).
-- Code hygiene: three comments crumbs-86 made stale: `zone-morning.ts`'s head about the seeding (both callers retired it), `server-pipeline.ts:544`'s "The host's route takes none" of `captured_wall`, and `zone.server.ts`'s head "for a guest's render" (the host's complete reads it too, by the body's id) (crumbs-86).
+- Code hygiene: five stale comments: `zone-morning.ts`'s head about the seeding (both callers retired it), `server-pipeline.ts:544`'s "The host's route takes none" of `captured_wall`, and `zone.server.ts`'s head "for a guest's render" (the host's complete reads it too, by the body's id) (crumbs-86); the Library's `pricing-demos.tsx` above `stripeAnswers` ("Starting…", "Opening…") and `pricing/leave.ts`'s "the button's "Starting…"", the key saying "Opening billing" now (halo-last).
 
 ## Upcoming
 

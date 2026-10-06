@@ -1165,3 +1165,12 @@ short address shows whole wherever the panel sits.
 **BV2. Create hands its style step the party's time zone too,** so a far party's Disposable proposes 9 am where the
 party is; a time already passed is refused before it could matter.
 - *Push back if* Create should propose times in your own clock.
+
+## BW. The last four halos and their working words (halo-last)
+
+The house's halo and working words reached the four call sites that waited on their lanes; this is the call built
+into them, yours to overrule.
+
+**BW1. The checkout key says "Opening billing" while it works,** the brief's word, on every press of it: a new plan's
+Checkout and an existing plan's change (Stripe's confirm page) alike.
+- *Push back if* a plan change should say its own word.
