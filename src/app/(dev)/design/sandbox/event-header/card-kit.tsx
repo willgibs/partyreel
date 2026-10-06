@@ -339,11 +339,11 @@ export function useFold(
     flights.current = [];
     if (!win.matchMedia("(prefers-reduced-motion: no-preference)").matches) {
       el.toggleAttribute("data-stuck", stuck);
-      for (const p of el.querySelectorAll<HTMLElement>(
-        ":scope > .eh-ck-veil, :scope > .eh-ck-bar",
-      ))
+      // The doors develop; the band's ground is there at once, as in the moving fold.
+      const bar = el.querySelector<HTMLElement>(":scope > .eh-ck-bar");
+      if (bar)
         flights.current.push(
-          p.animate([{ opacity: 0 }, { opacity: 1 }], {
+          bar.animate([{ opacity: 0 }, { opacity: 1 }], {
             duration: DISSOLVE_MS,
             easing: "linear",
           }),
