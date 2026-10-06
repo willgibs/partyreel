@@ -17,6 +17,9 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Accessibility: Account's "1 of 1 used" is `text-warning` amber on white, 1.85:1 on paper (11.9:1 in the room), measured on the identity board's Account frame; a paper warning-text token that reads at 4.5:1 (identity-r5).
+- Design: once identity r5's set is picked, its wiring also gives the door page's parts that are not atoms (the password's panel, "31 guests are already in", the consequence lines) the picked set's construction, and a working key holds the wider of its two widths from its first paint, so nothing beside it moves (identity-r5).
+- Design: the guest door's sheet wears three lamps (red, amber, green) along its top, a traffic light where Afterglow draws one light sampled from the cover's photograph; for the brand-applied boards (desk 6) (identity-r5).
 - Design: the product's hand-rolled controls move onto the halo (118 call-site lines spell `focus-visible:ring-*` on elements of their own beside the atoms' one mark: `grep -rn "focus-visible:ring" src --include=*.tsx`) (identity-wiring).
 - Design: Crystal's lip and hairline compose through Tailwind's inset slots, so a glass round keeps them under the halo (the halo replaces its `box-shadow` while it holds focus, as the old ring did) (identity-wiring).
 - Design: a quick layer that scrolls itself (the Display menu's popover, a long dropdown) scrolls an inner body, so its light stays whole when scrolled (identity-wiring).
