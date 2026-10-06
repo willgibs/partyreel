@@ -236,16 +236,20 @@ function useStandIn(active: boolean) {
   const [seen, setSeen] = useState(
     () => typeof IntersectionObserver === "undefined",
   );
-  const [away, setAway] = useState(false);
+  // Each loss of sight is its own count, and the beat's timer answers for the loss it began on, so a stack seen again
+  // (or a pick ended: its box going reports a loss) never lets an older timer draw the stand-in.
+  const [lost, setLost] = useState(0);
+  const [fired, setFired] = useState(-1);
+  const onSight = useCallback((inView: boolean) => {
+    setSeen(inView);
+    if (!inView) setLost((n) => n + 1);
+  }, []);
   useEffect(() => {
-    if (!active || seen) {
-      setAway(false);
-      return;
-    }
-    const t = setTimeout(() => setAway(true), STAND_IN_DELAY_MS);
+    if (!active || seen) return;
+    const t = setTimeout(() => setFired(lost), STAND_IN_DELAY_MS);
     return () => clearTimeout(t);
-  }, [active, seen]);
-  return { away: active && away, onSight: setSeen };
+  }, [active, seen, lost]);
+  return { away: active && !seen && fired === lost, onSight };
 }
 
 /** Whether a layer is over the album (the viewer, a dialog): the stand-in waits behind it, as the news pill does. */
