@@ -1993,6 +1993,15 @@ export type Database = {
         Args: { p_fortnight_days?: number; p_window_days?: number }
         Returns: Json
       }
+      adopt_pass_credit_orphans: {
+        Args: {
+          p_balance_transaction_ids: string[]
+          p_host_id: string
+          p_orphan_sessions: string[]
+          p_session_id: string
+        }
+        Returns: Json
+      }
       album_bits: {
         Args: {
           p_is: Database["public"]["Enums"]["media_status"]
