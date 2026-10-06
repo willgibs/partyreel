@@ -5,8 +5,10 @@
  *     outlived its object, a bug worth seeing: skipped, `missing_object`.
  *  2. An earlier send's file (`priorFileId`): asked for first, and KEPT when it is still there, out of the bin, its size
  *     ours and its MD5 ours where we know ours, so sending again never duplicates, and a file she deleted goes again.
- *  3. A re-leased item (its report may have been lost after Google stored it): looked up by our private `pr_media`
- *     mark, wherever she moved it, and recorded rather than sent twice.
+ *  3. A re-leased item (its report may have been lost after Google stored it), or ★ any item of a send whose album
+ *     folder the press found by its mark after a reconnect (`lookUp`: the Disconnect forgot every file's id): looked up
+ *     by our private `pr_media` mark, wherever she moved it, and recorded rather than sent twice (kept, when an
+ *     earlier send left it).
  *  4. A big file's session (`session`): Google asked where it stands (never our own offset), resumed from there; gone
  *     after its week, started over.
  *  5. Up to 128 MiB: one PUT of the whole object, streamed (nothing buffers; a Worker has 128 MB). Past it: chunks of
@@ -354,8 +356,8 @@ export async function sendOne(
       }
     }
 
-    // 3. A re-leased item: Google may already hold it (a report lost after the upload).
-    if (item.attempts > 1 || item.session) {
+    // 3. A re-leased item: Google may already hold it (a report lost after the upload); or a reconnect's re-send.
+    if (item.attempts > 1 || item.session || item.lookUp) {
       const found = await withRate(ctx, () =>
         ctx.drive.findByMedia(ctx.token, item.mediaId),
       );

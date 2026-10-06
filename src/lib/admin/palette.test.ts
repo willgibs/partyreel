@@ -56,6 +56,17 @@ describe("the index", () => {
     ).toEqual(["action-guest-uploads", "action-lifecycle-mail"]);
   });
 
+  // ★ drive-crumbs: Drive's admin section is reached by name, on the card `drive-section.tsx` renders as `drive`.
+  it("★ names Send to Google Drive, jumping to its card", () => {
+    const byId = new Map(PALETTE_ACTIONS.map((a) => [a.id, a]));
+    expect(byId.get("action-drive")?.href).toBe("/admin/exports#drive");
+    for (const query of ["drive", "google", "pause drive", "breaker"]) {
+      expect(matchPalette(PALETTE_ACTIONS, query)[0]?.id, query).toBe(
+        "action-drive",
+      );
+    }
+  });
+
   it("makes every action a DESTINATION and never a call", () => {
     // The whole module is data: no function on an entry means there is nothing
     // for a palette row to invoke even by accident.

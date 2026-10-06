@@ -32,7 +32,7 @@ export type AppClient = {
     lease: string;
     results: CheckResult[];
     duplicates?: number;
-    finding?: "folder_gone";
+    finding?: "folder_gone" | "throttled";
   }): Promise<ReportAnswer | Unreachable>;
   /**
    * A lane's last attempt says it died, bound to its Queue message: the app counts one death a message, so this word

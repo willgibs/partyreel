@@ -502,11 +502,15 @@ export async function createSend(input: {
 export async function markReady(
   jobId: string,
   folderId: string,
+  found = false,
 ): Promise<boolean> {
-  const r = await rpc("cloud_export_ready", {
+  // ★ A TYPED SEAM until 20261006130000 is applied and the types regenerated (`p_found`): drop the cast then.
+  const args = {
     p_job: jobId,
     p_folder_id: folderId,
-  });
+    p_found: found,
+  } as Functions["cloud_export_ready"]["Args"];
+  const r = await rpc("cloud_export_ready", args);
   return bool(r.ok);
 }
 
@@ -603,6 +607,8 @@ export type RawLease =
       albumName: string;
       tz: string;
       folderId: string | null;
+      /** The press found the album's folder by its mark (20261006130000): each file is looked up before it goes. */
+      folderFound: boolean;
       items: RawLeaseItem[];
       access: unknown;
     }
@@ -654,6 +660,7 @@ export async function leaseWork(connectionId: string): Promise<RawLease> {
       albumName: str(r.album_name) ?? "",
       tz: str(r.tz) ?? "UTC",
       folderId: str(r.folder_id),
+      folderFound: bool(r.folder_found),
       items,
       access: r.access,
     };
