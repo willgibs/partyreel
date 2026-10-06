@@ -125,3 +125,49 @@ describe("useLiveUploadsWait", () => {
     expect(result.current.reading).toEqual({ waits: true, developsAt: at });
   });
 });
+
+/**
+ * ★ A DEVELOP TAKEN AWAY IS TOLD FROM ONE NOT YET HEARD OF (event-zone's Deferred line, crumbs-85): the turn read the
+ * page's develop time wherever the live one was null, and the live one is null both before the sync speaks (a reached
+ * develop the server's reading leaves out) and for a develop the host took away, so an open page kept turning at a
+ * develop that no longer was until she reloaded.
+ */
+describe("useLiveUploadsWait: the develop the album turns at", () => {
+  const live = (initial: UploadsWait, pageDevelopsAt: string | null) =>
+    renderHook(() =>
+      useLiveUploadsWait({ initial, moderationMode: "live", pageDevelopsAt }),
+    );
+
+  it("is the page's own, ahead or reached, until the sync speaks", () => {
+    const reached = iso(T - 3_600_000);
+    expect(
+      live({ waits: false, developsAt: null }, reached).result.current
+        .turnDevelopsAt,
+    ).toBe(reached);
+    const ahead = iso(T + 60_000);
+    expect(
+      live({ waits: true, developsAt: ahead }, ahead).result.current
+        .turnDevelopsAt,
+    ).toBe(ahead);
+  });
+
+  it("★ is none once the sync says the develop was taken away, never the render's time", () => {
+    const reached = iso(T - 3_600_000);
+    const { result } = live({ waits: false, developsAt: null }, reached);
+    act(() => result.current.onSynced(null));
+    expect(result.current.turnDevelopsAt).toBeNull();
+  });
+
+  it("follows a develop moved by the sync, and keeps it once it is reached", () => {
+    const ahead = iso(T + 60_000);
+    const moved = iso(T + 120_000);
+    const { result } = live({ waits: true, developsAt: ahead }, ahead);
+    act(() => result.current.onSynced(moved));
+    expect(result.current.turnDevelopsAt).toBe(moved);
+    act(() => {
+      vi.advanceTimersByTime(121_000);
+    });
+    expect(result.current.reading.waits).toBe(false);
+    expect(result.current.turnDevelopsAt).toBe(moved);
+  });
+});

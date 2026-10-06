@@ -714,9 +714,11 @@ export function EventExperience({
     reading: liveWait,
     onSynced: onDevelopsAtChange,
     developsAt: liveDevelopsAt,
+    turnDevelopsAt,
   } = useLiveUploadsWait({
     initial: uploadsWait,
     moderationMode: event.moderation_mode,
+    pageDevelopsAt: event.develops_at ?? null,
   });
   const addsWait = addsWaitFor({ uploadsWait: liveWait, isOwner, isDemo });
   /* ★ WHETHER THE ALBUM TAKES UPLOADS, AS THE PAGE HEARS IT (`useLiveUploadsWord`, guest-requests): the server's reading
@@ -730,7 +732,7 @@ export function EventExperience({
   const albumOrderNow = useGuestAlbumOrder({
     eventId: event.id,
     initial: albumOrder,
-    developsAt: liveDevelopsAt ?? event.develops_at ?? null,
+    developsAt: turnDevelopsAt,
     isDemo,
   });
   /* ★ THE WAIT, ONE QUESTION OF TIME (the-wait r1, Will's `model=time`): the album's live reading as a clock, the host's
@@ -1778,8 +1780,7 @@ export function EventExperience({
                             order={albumOrderNow}
                             develop={{
                               eventId: event.id,
-                              developsAt:
-                                liveDevelopsAt ?? event.develops_at ?? null,
+                              developsAt: turnDevelopsAt,
                               seed: galleryPromise,
                               arrivedThroughDoor:
                                 arrival.face !== null || arrival.scrim,
