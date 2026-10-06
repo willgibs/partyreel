@@ -17,6 +17,8 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Design: the hub code's corner count (`EventCodeDoor`) still wears the retired waiting amber; Afterglow's standby point and its word would replace it (brand r2 or its wiring) (event-header-r5).
+- Design: the hub doors' voice: "Guests" beside "As a guest" invites a mis-tap ("Preview"?), "Guests · 34 guests" says its noun twice, and "1 left" and "You let in" read unclear out of context; for event-header's next round (event-header-r5).
 - Admin: the change-plan configuration check rings no bell; read it in the spend watch's daily run and raise at its source (it is read live on each /admin/accounts view today) (credit-watch).
 - Pricing (milestone 38): adopt an orphan's grant (record, convert, this claim's release) as one SQL function under her profiles lock, so a failure between them never leaves the orphan granted and unconverted until a retry or the operator's Retry; flag two orphans both holding grants, and have `record_pass_credit_grant` refuse a released claim (the Advisor's Q38 and credit-watch's second red-team pass).
 - Library: draw the Accounts' billing checks and the account page's credits card on the compositions page, the portal's one automated eye (AAL2 keeps `lab:smoke` off /admin) (credit-watch).
