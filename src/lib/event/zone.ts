@@ -58,8 +58,11 @@ export function partyZoneOf(stored: string | null | undefined): string {
   return readableZone(stored) ?? PARTY_ZONE_FALLBACK;
 }
 
-/** The runtime's own name for a readable zone ("Asia/Kolkata" and "Asia/Calcutta" are one zone), or null. */
-function resolvedZone(zone: string | null | undefined): string | null {
+/**
+ * The runtime's own name for a readable zone, the key two spellings of one zone share ("Asia/Kolkata" and
+ * "Asia/Calcutta"), or null. A formatter is built to answer it, so a list compares keys it resolved once.
+ */
+export function zoneKey(zone: string | null | undefined): string | null {
   const readable = readableZone(zone);
   if (!readable) return null;
   return new Intl.DateTimeFormat("en-US", {
@@ -72,8 +75,8 @@ export function sameZone(
   a: string | null | undefined,
   b: string | null | undefined,
 ): boolean {
-  const ra = resolvedZone(a);
-  return ra !== null && ra === resolvedZone(b);
+  const ra = zoneKey(a);
+  return ra !== null && ra === zoneKey(b);
 }
 
 /**
@@ -174,7 +177,7 @@ const RENAMED: Record<string, string> = {
  * whose sign POSIX inverts ("Etc/GMT+5" is UTC-5).
  */
 export function zonePlace(zone: string): string {
-  if (resolvedZone(zone) === "UTC") return "UTC";
+  if (zoneKey(zone) === "UTC") return "UTC";
   const offset = /^Etc\/GMT([+-])(\d{1,2})$/.exec(zone);
   if (offset) return `UTC${offset[1] === "+" ? "−" : "+"}${offset[2]}`;
   const city = zone.split("/").pop() ?? zone;

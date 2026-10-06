@@ -13,7 +13,7 @@ import {
   PopupTrigger,
 } from "@/components/ui/popup";
 import { useWaitClock } from "@/lib/disposable/use-wait-clock";
-import { deviceZone, farZone, sameZone, zonePlace } from "@/lib/event/zone";
+import { deviceZone, farZone, zoneKey, zonePlace } from "@/lib/event/zone";
 import {
   answeredAs,
   findPlaces,
@@ -124,16 +124,22 @@ function ZoneSearch({
   nowMs: number | null;
   onPick: (zone: string) => void;
 }) {
+  // The list and the two keys every row is compared by, resolved once: a formatter built per row per render would cost
+  // thousands at each hover, arrow and tick of the clock.
   const places = useMemo(() => zonePlaces(browserZones()), []);
+  const [own, ownKey, currentKey] = useMemo(() => {
+    const zone = deviceZone();
+    return [zone, zoneKey(zone), zoneKey(current)] as const;
+  }, [current]);
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
   const listId = useId();
-  const own = deviceZone();
 
   /** A zone said as a place, from the list where it stands there (else built from its name). */
-  const placeOf = (zone: string): ZonePlace =>
-    places.find((p) => sameZone(p.zone, zone)) ?? {
+  const placeOf = (zone: string, key: string): ZonePlace =>
+    places.find((p) => p.key === key) ?? {
       zone,
+      key,
       city: zonePlace(zone),
       region: "",
       also: [],
@@ -141,10 +147,13 @@ function ZoneSearch({
   const typed = query.trim().length > 0;
   const options: ZonePlace[] = typed
     ? findPlaces(places, query)
-    : [own, current]
-        .filter((z): z is string => z !== null)
-        .filter((z, i, all) => all.findIndex((y) => sameZone(y, z)) === i)
-        .map(placeOf);
+    : [
+        [own, ownKey],
+        [current, currentKey],
+      ]
+        .filter((pair): pair is [string, string] => !!pair[0] && !!pair[1])
+        .filter(([, key], i, all) => all.findIndex(([, k]) => k === key) === i)
+        .map(([zone, key]) => placeOf(zone, key));
   const at = Math.min(active, Math.max(options.length - 1, 0));
   const optionId = (i: number) => `${listId}-${i}`;
 
@@ -194,8 +203,8 @@ function ZoneSearch({
         className="space-y-0.5"
       >
         {options.map((place, i) => {
-          const isOwn = own !== null && sameZone(place.zone, own);
-          const isCurrent = current !== null && sameZone(place.zone, current);
+          const isOwn = ownKey !== null && place.key === ownKey;
+          const isCurrent = currentKey !== null && place.key === currentKey;
           // What she typed, where the city answered by another name ("Bali" under Makassar), then where it is.
           const where = [
             typed ? answeredAs(place, query) : null,

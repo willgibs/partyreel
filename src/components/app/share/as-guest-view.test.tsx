@@ -386,13 +386,24 @@ describe("★ the album in the order every guest meets", () => {
   });
 
   it("a choice from the inert album writes nothing: no guest's remembered order lands on her device", () => {
-    view({
-      albumOrder: { morningAfter: MORNING, own: "oldest", chosen: null },
-    });
-    const order = (
-      live.gallery.at(-1) as { order: { choose: (s: string) => void } }
-    ).order;
-    order.choose("newest");
-    expect(document.cookie).not.toContain("pr_album_sort");
+    // A guest's remembered order is a `Path=/e` cookie: read it from an album's own address, where it would show.
+    window.history.replaceState(null, "", `/e/${EVENT.qr_token}`);
+    try {
+      document.cookie = "pr_album_sort=; Path=/e; Max-Age=0";
+      view({
+        albumOrder: { morningAfter: MORNING, own: "oldest", chosen: null },
+      });
+      const order = (
+        live.gallery.at(-1) as { order: { choose: (s: string) => void } }
+      ).order;
+      order.choose("newest");
+      expect(document.cookie).not.toContain("pr_album_sort");
+      // The probe itself can see the cookie here: a guest's own choice would have shown.
+      document.cookie = "pr_album_sort=probe; Path=/e";
+      expect(document.cookie).toContain("pr_album_sort=probe");
+    } finally {
+      document.cookie = "pr_album_sort=; Path=/e; Max-Age=0";
+      window.history.replaceState(null, "", "/");
+    }
   });
 });

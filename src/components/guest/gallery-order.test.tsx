@@ -103,7 +103,7 @@ describe("the turn, at the server's instant, on this device's clock", () => {
     expect(result.current.sort).toBe("oldest");
   });
 
-  it("★ a develop wins over the morning after, and the morning after stands again when the develop is taken away", () => {
+  it("★ a develop wins over the morning after, and the morning after decides where the page hands no develop", () => {
     vi.setSystemTime(TURN + 60_000);
     // A develop a day after the party's morning: the album waits for it, past the morning after.
     const { result, rerender } = hook(

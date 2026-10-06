@@ -56,8 +56,12 @@ describe("the field: the party's wall clock, both ways", () => {
     expect(fromZoneInput("2026-10-04T09:45", MX)?.toISOString()).toBe(
       "2026-10-04T15:45:00.000Z",
     );
-    // A field that sends seconds is still a whole time.
+    // A clock that carries seconds keeps them (a field with a step, a bare Exif wall clock).
     expect(fromZoneInput("2026-10-04T09:00:00", MX)?.toISOString()).toBe(iso);
+    expect(fromZoneInput("2026-10-04T09:00:42.5", MX)?.toISOString()).toBe(
+      "2026-10-04T15:00:42.000Z",
+    );
+    expect(fromZoneInput("2026-10-04T09:00:60", MX)).toBeNull();
   });
 
   it("★ both clock changes in the party's zone: 9 am is 9 am by its wall clock", () => {

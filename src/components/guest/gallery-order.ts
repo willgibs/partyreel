@@ -12,8 +12,8 @@
  * 9 am wakes to the album in order). A turn under a reader moves nothing she is looking at: the rows hold her
  * photograph on its pixel (`album-window.tsx`), and the pill says where what landed out of sight now lies.
  *
- * ★ A DEVELOP TIME WINS, LIVE: the page holds it as the album's sync says it (a Develop now, a time set, moved or taken
- * away), so the turn follows it, and falls back to the party's morning after when it goes (`openingTurnAt`).
+ * ★ A DEVELOP TIME WINS: the page hands it as it holds it (a Develop now, or a time set or moved, turns the album at its
+ * moment), and where the page hands none, the party's morning after decides (`openingTurnAt`).
  *
  * ★ HER CHOICE IS A DEPARTURE, OR NOTHING. Choosing the album's own order forgets what she chose, so an album keeps
  * turning for a guest who only ever looked at the menu; choosing the other is remembered on this device, for this

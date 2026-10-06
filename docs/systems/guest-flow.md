@@ -143,7 +143,7 @@ read beside it so its Follow starts on Following; no card means no host row, nev
   zone (`albumOpening`'s `morningAfter`, `zone-morning.ts`), so no reader's clock, geography or browser's database of
   zones moves it, and the zone never leaves the server; the seed links the first paint of that order and the hydration
   lays the same rows; the page then turns it at that instant on the device's clock (`useGuestAlbumOrder`: a timer, a
-  return to the tab, a Develop now: a develop time, live, still wins and the morning after stands again when it goes).
+  return to the tab, a Develop now: a develop time the page holds still wins).
   Behind a gate the order knows no days, as the shell does not. Her Newest or Oldest is remembered per album on the
   device only as a departure from the turn (`pr_album_sort`, which the page reads; choosing the album's own order
   forgets it), her lens for the visit. See it as a guest is handed the same opening (`readAsGuest`), so it lays the

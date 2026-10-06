@@ -9,11 +9,13 @@
  *
  * Pure: the list is built from whatever zones the caller hands it (the browser's own, `Intl.supportedValuesOf`).
  */
-import { readableZone, zonePlace } from "@/lib/event/zone";
+import { zoneKey, zonePlace } from "@/lib/event/zone";
 
 export type ZonePlace = {
   /** The zone as the browser lists it (stored as given when she picks it). */
   zone: string;
+  /** The runtime's own name for it (`zoneKey`), resolved once here, so a list compares strings, never formatters. */
+  key: string;
   /** The city a host knows ("Mexico City"). */
   city: string;
   /** Enough of where it is to tell two cities apart ("Americas", "Argentina", "Indiana"). */
@@ -223,15 +225,6 @@ const ALSO_CALLED: Record<string, readonly string[]> = {
   "Pacific/Tahiti": ["Tahiti", "Bora Bora", "French Polynesia"],
 };
 
-/** The runtime's own name for a zone, the key two spellings of one zone share. */
-function resolved(zone: string): string | null {
-  const readable = readableZone(zone);
-  if (!readable) return null;
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: readable,
-  }).resolvedOptions().timeZone;
-}
-
 /** A word as the search compares it: lower case, no accents, punctuation as spaces. */
 export function searchable(text: string): string {
   return text
@@ -249,7 +242,7 @@ export function searchable(text: string): string {
 export function zonePlaces(zones: readonly string[]): ZonePlace[] {
   const also = new Map<string, readonly string[]>();
   for (const [zone, names] of Object.entries(ALSO_CALLED)) {
-    const key = resolved(zone);
+    const key = zoneKey(zone);
     if (key) also.set(key, names);
   }
   const places: ZonePlace[] = [];
@@ -257,10 +250,11 @@ export function zonePlaces(zones: readonly string[]): ZonePlace[] {
     const parts = zone.split("/");
     const area = AREAS[parts[0] ?? ""];
     if (!area || parts.length < 2) continue;
-    const key = resolved(zone);
+    const key = zoneKey(zone);
     if (!key) continue;
     places.push({
       zone,
+      key,
       city: zonePlace(zone),
       region: parts.length > 2 ? parts[1]!.replace(/_/g, " ") : area,
       also: also.get(key) ?? [],
