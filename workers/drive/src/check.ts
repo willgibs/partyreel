@@ -7,10 +7,17 @@
  * files of one original after a lost lease), counted and signalled, never binned: a copy she made on purpose carries
  * our marks too.
  *
+ * ★ PACED, AND HELD AT THE FIRST UNANSWERED (drive-crumbs): Google's slow down on an ask waits the next step of
+ * `RATE_BACKOFF_MS` (one pace for the page: every ask waits it, a confirmed answer starts the count again) and asks
+ * again; past the last step the page stops asking, its finding `throttled` (the connection slows, as a send's does),
+ * and what was not answered is `unknown`, where the app holds the walk (asked again on a later page: "every one
+ * checked" follows an answer for every one).
+ *
  * It decides her page and nothing else: nothing anywhere deletes on its word.
  */
 import { DriveError, type DriveAdapter } from "./google-drive";
 import type { CheckItem, CheckResult } from "./protocol";
+import { RATE_BACKOFF_MS } from "./transfer";
 
 /** How many Drive asks run at once (a page of 100 in about two seconds, well inside Google's per-user pace). */
 export const CHECK_CONCURRENCY = 8;
@@ -21,32 +28,84 @@ export const LIST_PAGE_CAP = 1000;
 export type CheckOutcome = {
   results: CheckResult[];
   duplicates?: number;
-  finding?: "folder_gone";
+  finding?: "folder_gone" | "throttled";
 };
+
+/** The page's one pace: Google's slow down on any ask waits the next step, for every ask; past the last, it gives up. */
+type PagePace = {
+  /** Wait out a slow down; false once the steps are spent (the page stops asking). */
+  slowed(): Promise<boolean>;
+  answered(): void;
+  spent: boolean;
+};
+
+function pagePace(sleep: (ms: number) => Promise<void>, random: () => number) {
+  let step = 0;
+  let waiting: Promise<void> | null = null;
+  const pace: PagePace = {
+    spent: false,
+    async slowed() {
+      if (pace.spent) return false;
+      // Asks slowed at once share one wait (eight asks are one slow down, not eight steps).
+      if (!waiting) {
+        if (step >= RATE_BACKOFF_MS.length) {
+          pace.spent = true;
+          return false;
+        }
+        const ms = RATE_BACKOFF_MS[step++]! * (0.75 + random() / 2);
+        waiting = sleep(ms).finally(() => {
+          waiting = null;
+        });
+      }
+      await waiting;
+      return !pace.spent;
+    },
+    answered() {
+      step = 0;
+    },
+  };
+  return pace;
+}
 
 async function confirm(
   drive: DriveAdapter,
   token: string,
   item: CheckItem,
+  pace: PagePace,
 ): Promise<CheckResult> {
-  try {
-    const file = await drive.getFile(token, item.fileId);
-    if (!file) return { mediaId: item.mediaId, state: "missing" };
-    if (file.trashed) return { mediaId: item.mediaId, state: "trashed" };
-    if (file.size !== null && file.size !== item.bytes)
-      return { mediaId: item.mediaId, state: "mismatch" };
-    if (item.md5 && file.md5 && item.md5 !== file.md5)
-      return { mediaId: item.mediaId, state: "mismatch" };
-    return { mediaId: item.mediaId, state: "ok" };
-  } catch (e) {
-    return {
-      mediaId: item.mediaId,
-      state:
-        e instanceof DriveError && e.kind === "not_found"
-          ? "missing"
-          : "unknown",
-    };
+  for (;;) {
+    if (pace.spent) return { mediaId: item.mediaId, state: "unknown" };
+    try {
+      const result = await ask(drive, token, item);
+      pace.answered();
+      return result;
+    } catch (e) {
+      if (e instanceof DriveError && e.kind === "rate" && (await pace.slowed()))
+        continue;
+      return {
+        mediaId: item.mediaId,
+        state:
+          e instanceof DriveError && e.kind === "not_found"
+            ? "missing"
+            : "unknown",
+      };
+    }
   }
+}
+
+async function ask(
+  drive: DriveAdapter,
+  token: string,
+  item: CheckItem,
+): Promise<CheckResult> {
+  const file = await drive.getFile(token, item.fileId);
+  if (!file) return { mediaId: item.mediaId, state: "missing" };
+  if (file.trashed) return { mediaId: item.mediaId, state: "trashed" };
+  if (file.size !== null && file.size !== item.bytes)
+    return { mediaId: item.mediaId, state: "mismatch" };
+  if (item.md5 && file.md5 && item.md5 !== file.md5)
+    return { mediaId: item.mediaId, state: "mismatch" };
+  return { mediaId: item.mediaId, state: "ok" };
 }
 
 /** Count the originals that have more than one file in the folder (one list, every page, our marks only). */
@@ -82,6 +141,9 @@ export async function checkPage(input: {
   folderId: string;
   first: boolean;
   items: CheckItem[];
+  sleep(ms: number): Promise<void>;
+  /** Jitter for the pace, 0..1. */
+  random(): number;
 }): Promise<CheckOutcome> {
   const { drive, token, folderId } = input;
   const folder = await drive
@@ -89,12 +151,13 @@ export async function checkPage(input: {
     .catch(() => "ok" as const);
   if (folder !== "ok") return { results: [], finding: "folder_gone" };
 
+  const pace = pagePace(input.sleep, input.random);
   const results: CheckResult[] = new Array(input.items.length);
   let next = 0;
   const worker = async () => {
     while (next < input.items.length) {
       const index = next++;
-      results[index] = await confirm(drive, token, input.items[index]!);
+      results[index] = await confirm(drive, token, input.items[index]!, pace);
     }
   };
   await Promise.all(
@@ -104,6 +167,7 @@ export async function checkPage(input: {
     ),
   );
 
+  if (pace.spent) return { results, finding: "throttled" };
   const duplicates = input.first
     ? await countDuplicates(drive, token, folderId)
     : undefined;

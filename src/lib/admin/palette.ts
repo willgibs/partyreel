@@ -95,6 +95,22 @@ export const PALETTE_ACTIONS: PaletteEntry[] = [
     meta: "Exports",
     keywords: ["kill switch", "highlight reel", "clip", "make your own"],
   },
+  // Send to Google Drive's card (`drive-section.tsx` renders `drive`): its switch, the sends still going and the
+  // connections that need someone, each with its own control and sheet there.
+  {
+    id: "action-drive",
+    label: "Pause or resume Send to Google Drive",
+    href: "/admin/exports#drive",
+    meta: "Exports",
+    keywords: [
+      "kill switch",
+      "google",
+      "breaker",
+      "connection",
+      "disconnect",
+      "stuck send",
+    ],
+  },
   {
     id: "action-announce",
     label: "Publish an announcement",

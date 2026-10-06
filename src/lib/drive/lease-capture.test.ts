@@ -119,6 +119,7 @@ describe("★ the lease carries each original's capture time, and its copy says 
       eventId: lease.eventId,
       albumName: lease.albumName,
       tz: lease.tz,
+      folderFound: lease.folderFound,
       items: lease.items,
     });
     const taken = items.find((i) => i.mediaId === TAKEN)!;

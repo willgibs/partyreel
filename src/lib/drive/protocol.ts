@@ -223,7 +223,8 @@ export const checkWordSchema = z.object({
   lease: uuid,
   results: z.array(checkResultSchema).max(100),
   duplicates: z.number().int().min(0).max(1_000_000).optional(),
-  finding: z.literal("folder_gone").optional(),
+  // throttled: Google's slow down on the check's own asks, past its pace (the connection slows, as a report's does).
+  finding: z.enum(["folder_gone", "throttled"]).optional(),
 });
 export type CheckWord = z.infer<typeof checkWordSchema>;
 
@@ -273,6 +274,11 @@ export type LeaseItem = {
   attempts: number;
   /** The file an earlier send on this connection left: asked first, kept when it is still there and whole. */
   priorFileId: string | null;
+  /**
+   * The press found the album's folder by its mark after a reconnect (which forgot every id): the file is looked up by
+   * its own `pr_media` mark before it goes, and kept when it is there and whole.
+   */
+  lookUp: boolean;
   /** A big file's session to resume (Google answers where it stands; we never trust our own offset). */
   session: { uri: string; offset: number } | null;
 };

@@ -199,6 +199,8 @@ export type LeaseItem = {
   modifiedTime: string;
   attempts: number;
   priorFileId: string | null;
+  /** The album's folder was found by its mark after a reconnect: look the file up by `pr_media` before sending it. */
+  lookUp: boolean;
   session: { uri: string; offset: number } | null;
 };
 
