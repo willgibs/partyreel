@@ -67,7 +67,7 @@ export function EventLinkRow({
         type="button"
         onClick={copy}
         aria-label="Copy the link to this event"
-        className="flex h-6 shrink-0 items-center gap-1 rounded-full px-1.5 text-xs text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.97]"
+        className="flex h-6 shrink-0 items-center gap-1 rounded-full px-1.5 text-xs text-muted-foreground outline-none transition-colors hover:text-foreground focus-halo active:scale-[0.97]"
         {...trackAttrs("cta_click", { cta: "copy-event-link", location: "hub" })}
       >
         <span data-copy-pop={copied ? "on" : undefined} className="flex">

@@ -84,8 +84,8 @@ export function ProfileBioForm({ bio }: { bio: string | null }) {
           </span>
         )}
       </div>
-      <Button type="submit" size="sm" disabled={saving || !dirty || over}>
-        {saving ? "Saving…" : "Save bio"}
+      <Button type="submit" size="sm" disabled={!dirty || over} working={saving} workingLabel="Saving">
+        Save bio
       </Button>
     </ClientForm>
   );

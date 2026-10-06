@@ -369,7 +369,7 @@ function EventDatesField() {
         ) : v.eventDate ? (
           <button
             type="button"
-            className="text-sm text-muted-foreground underline decoration-muted-foreground/40 underline-offset-4 outline-none hover:text-foreground focus-visible:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="text-sm text-muted-foreground underline decoration-muted-foreground/40 underline-offset-4 outline-none hover:text-foreground focus-visible:text-foreground focus-halo"
             onClick={() => setAdding(true)}
           >
             Add an end date

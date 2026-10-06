@@ -228,7 +228,7 @@ function BinTileOverlay({
 
 /** One glyph of the bin's pane: no surface of its own (`row=bar`). */
 const BIN_ACTION =
-  "flex size-6 cursor-pointer items-center justify-center rounded-full text-white outline-none transition-[color,transform] duration-150 ease-emphasis focus-visible:ring-2 focus-visible:ring-white/70 active:scale-90 motion-reduce:active:scale-100 disabled:pointer-events-none disabled:opacity-50";
+  "flex size-6 cursor-pointer items-center justify-center rounded-full text-white outline-none transition-[color,transform] duration-150 ease-emphasis focus-halo active:scale-90 motion-reduce:active:scale-100 disabled:pointer-events-none disabled:opacity-50";
 
 export function RecentlyDeletedGrid({
   eventId,

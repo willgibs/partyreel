@@ -208,7 +208,7 @@ export function RoomHead({
                   onClick={onName}
                   // The visible words stay inside the name a screen reader hears (label in name).
                   aria-label={`Back to the name, ${name}`}
-                  className="max-w-full cursor-pointer truncate rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                  className="max-w-full cursor-pointer truncate rounded-sm outline-none focus-halo"
                 >
                   {name}
                 </button>

@@ -71,7 +71,7 @@ export function AttendedEventTiles({
                 // ★ THE LIFT IS THE STATE (the drawn picker): a chosen tile rises and takes the lift,
                 // the one shadow for an object that truly sits above its own kind. An answer to a
                 // press, so the strong ease-out, well under 300ms; the press itself dips the tile.
-                "relative flex w-full flex-col overflow-hidden rounded-[var(--radius-tile)] bg-card text-left ring-1 ring-foreground/10 transition-[translate,scale,box-shadow] duration-200 ease-emphasis outline-none focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-[0.97] disabled:cursor-default disabled:opacity-60 motion-reduce:transition-none motion-reduce:active:scale-100",
+                "relative flex w-full flex-col overflow-hidden rounded-[var(--radius-tile)] bg-card text-left ring-1 ring-foreground/10 transition-[translate,scale,box-shadow] duration-200 ease-emphasis outline-none focus-halo active:scale-[0.97] disabled:cursor-default disabled:opacity-60 motion-reduce:transition-none motion-reduce:active:scale-100",
                 // Chosen, the tile's hairline becomes the accent: the one colour the interface keeps
                 // for itself marks what she has published.
                 shown && "-translate-y-1 shadow-lift ring-2 ring-brand",

@@ -19,6 +19,9 @@ import { Button } from "@/components/ui/button"
  *
  * ★ ANNOUNCED, NOT FOCUSED: a live region reads the sentence as it opens, and focus stays on the
  * control that asked, so a host tabbing through the choices is never pulled away from them.
+ *
+ * ★ FLAT, IN THE HOUSE SET (identity r5): a tone of the warning's own hue with no hairline, so it reads
+ * as a note set into the control's place and never as a field or a card; its key works in words.
  */
 function ConsequenceLine({
   children,
@@ -27,6 +30,7 @@ function ConsequenceLine({
   onConfirm,
   onCancel,
   busy = false,
+  workingLabel = "Saving",
   className,
 }: {
   /** What the change does to people, in a sentence or two. */
@@ -38,13 +42,15 @@ function ConsequenceLine({
   onCancel: () => void
   /** The change is being written. */
   busy?: boolean
+  /** What the confirming key says while it writes the change (working = words). */
+  workingLabel?: React.ReactNode
   className?: string
 }) {
   return (
     <div
       data-slot="consequence-line"
       className={cn(
-        "space-y-3 rounded-lg border border-warning/40 bg-warning/5 p-3",
+        "space-y-3 rounded-lg bg-warning/8 p-3",
         className
       )}
     >
@@ -59,7 +65,12 @@ function ConsequenceLine({
         <span>{children}</span>
       </p>
       <div className="flex flex-wrap gap-2">
-        <Button size="sm" disabled={busy} onClick={onConfirm}>
+        <Button
+          size="sm"
+          working={busy}
+          workingLabel={workingLabel}
+          onClick={onConfirm}
+        >
           {confirmLabel}
         </Button>
         <Button size="sm" variant="ghost" disabled={busy} onClick={onCancel}>

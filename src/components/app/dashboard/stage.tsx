@@ -336,7 +336,7 @@ export function Stage({
           ) : (
             <Link
               href={settingsPageHref(event.id, "event")}
-              className="mt-1.5 inline-block text-sm text-gallery-muted underline decoration-gallery-muted/40 underline-offset-4 outline-none hover:text-white focus-visible:ring-2 focus-visible:ring-white/50"
+              className="mt-1.5 inline-block text-sm text-gallery-muted underline decoration-gallery-muted/40 underline-offset-4 outline-none hover:text-white focus-halo"
             >
               Add the date
             </Link>
@@ -405,7 +405,7 @@ export function Stage({
           <Link
             href={`/dashboard/${event.id}`}
             aria-label={`Open ${event.name}`}
-            className="absolute inset-0 outline-none focus-visible:ring-3 focus-visible:ring-white/50 focus-visible:ring-inset"
+            className="absolute inset-0 outline-none focus-halo halo-inset"
           >
             {wall ? (
               <Wall photos={photos} fresh={event.arrivals.lastHour > 0} />

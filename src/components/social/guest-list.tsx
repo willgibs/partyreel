@@ -139,7 +139,7 @@ const PAGE = 24;
 
 /** A name, as the button that opens its look: the chip's own face and words. */
 const NAME_BUTTON =
-  "transition-transform duration-150 ease-emphasis outline-none hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.97] motion-reduce:active:scale-100";
+  "transition-transform duration-150 ease-emphasis outline-none hover:bg-muted/60 focus-halo active:scale-[0.97] motion-reduce:active:scale-100";
 
 const CHIP =
   "flex h-8 items-center gap-2 rounded-full border border-border py-1 pr-3 pl-1 text-sm";
@@ -432,7 +432,7 @@ function GuestListPanel({
       <PopupTrigger asChild>
         <button
           type="button"
-          className="flex items-center gap-3 rounded-full text-left transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.99] motion-reduce:active:scale-100"
+          className="flex items-center gap-3 rounded-full text-left transition-transform duration-150 ease-emphasis outline-none focus-halo active:scale-[0.99] motion-reduce:active:scale-100"
         >
           <AvatarGroup>
             {faces.map((item) => (
@@ -459,7 +459,7 @@ function GuestListPanel({
             <button
               type="button"
               onClick={() => setShown((n) => n + PAGE)}
-              className={`${CHIP} border-dashed pl-3 text-muted-foreground transition-transform duration-150 ease-emphasis outline-none hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.97] motion-reduce:active:scale-100`}
+              className={`${CHIP} border-dashed pl-3 text-muted-foreground transition-transform duration-150 ease-emphasis outline-none hover:bg-muted/60 focus-halo active:scale-[0.97] motion-reduce:active:scale-100`}
             >
               Show {rest > PAGE ? PAGE : rest} more
             </button>

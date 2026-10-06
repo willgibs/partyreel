@@ -604,7 +604,7 @@ export function HelpSearchTrigger({
         type="button"
         onClick={() => open()}
         className={cn(
-          "inline-flex h-9 items-center gap-2 rounded-full border bg-card px-3.5 text-sm text-muted-foreground transition-colors duration-150 hover:border-foreground/25 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none",
+          "inline-flex h-9 items-center gap-2 rounded-full border bg-card px-3.5 text-sm text-muted-foreground transition-colors duration-150 hover:border-foreground/25 hover:text-foreground focus-halo",
           className,
         )}
       >
@@ -626,7 +626,7 @@ export function HelpSearchTrigger({
         // carried the float shadow until the light ruling (2026-09-17): a
         // control lying flat takes none. On /help that shadow fell black on
         // black and was never seen; on /contact it was a flat field on paper.
-        "flex h-14 w-full max-w-xl items-center gap-3.5 rounded-full border bg-card px-6 pr-3 text-left ring-1 ring-foreground/5 transition-[border-color,transform] duration-150 hover:-translate-y-px hover:border-foreground/25 focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none motion-reduce:transition-none",
+        "flex h-14 w-full max-w-xl items-center gap-3.5 rounded-full border bg-card px-6 pr-3 text-left ring-1 ring-foreground/5 transition-[border-color,transform] duration-150 hover:-translate-y-px hover:border-foreground/25 focus-halo motion-reduce:transition-none",
         className,
       )}
     >

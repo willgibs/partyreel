@@ -5,7 +5,6 @@ import {
   ArrowLeft,
   Check,
   Download,
-  Loader2,
   Plus,
   RotateCcw,
   Share2,
@@ -137,10 +136,7 @@ export function FinishDoors({
           >
             {adding !== null ? (
               <>
-                <Loader2
-                  className="size-4 animate-spin motion-reduce:animate-none"
-                  aria-hidden
-                />
+                <span aria-hidden className="working-arc" />
                 <span className="tabular-nums">{`Adding ${Math.round(adding * 100)}%`}</span>
               </>
             ) : done.has("add") ? (

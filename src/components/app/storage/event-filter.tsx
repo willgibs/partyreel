@@ -66,7 +66,7 @@ export function EventFilter({
                 row.scrollLeft = right - row.clientWidth + 4;
             }}
             className={cn(
-              "flex h-8 max-w-[16rem] shrink-0 items-center gap-1.5 rounded-full px-3.5 text-sm font-medium transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.97]",
+              "flex h-8 max-w-[16rem] shrink-0 items-center gap-1.5 rounded-full px-3.5 text-sm font-medium transition-transform duration-150 ease-emphasis outline-none focus-halo active:scale-[0.97]",
               on
                 ? "border border-transparent bg-foreground text-background"
                 : "border border-border text-muted-foreground hover:text-foreground",

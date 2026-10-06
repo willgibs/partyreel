@@ -131,7 +131,7 @@ export function StorageMeter({
           data-storage-ring={reading.ringPct}
           aria-label={`Storage: ${usedLabel}${capLabel ? ` of ${capLabel}` : ""} used. View details.`}
           className={cn(
-            "flex h-8 shrink-0 items-center gap-2 rounded-full px-2.5 text-xs tabular-nums transition-[transform,background-color] duration-150 ease-emphasis outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.97] motion-reduce:active:scale-100",
+            "flex h-8 shrink-0 items-center gap-2 rounded-full px-2.5 text-xs tabular-nums transition-[transform,background-color] duration-150 ease-emphasis outline-none hover:bg-muted focus-halo active:scale-[0.97] motion-reduce:active:scale-100",
             warning ? "text-warning" : "text-muted-foreground",
           )}
         >

@@ -132,7 +132,7 @@ function PerspectiveToggle({
           onClick={() => onChange(p.id)}
           className={cn(
             "relative z-10 rounded-md px-7 py-1.5 text-sm font-medium transition-colors outline-none",
-            "focus-visible:ring-2 focus-visible:ring-ring/50",
+            "focus-halo",
             "active:scale-[0.98] motion-reduce:active:scale-100",
             value === p.id
               ? "text-foreground"
@@ -262,7 +262,7 @@ export function Spine() {
         <button
           type="button"
           onClick={flip}
-          className="mkt-learn inline-flex items-center gap-2 rounded-md border px-5 py-2.5 text-sm font-medium transition-[color,border-color,transform,scale] duration-150 ease-emphasis outline-none hover:border-foreground/40 focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.97] motion-reduce:active:scale-100"
+          className="mkt-learn inline-flex items-center gap-2 rounded-md border px-5 py-2.5 text-sm font-medium transition-[color,border-color,transform,scale] duration-150 ease-emphasis outline-none hover:border-foreground/40 focus-halo active:scale-[0.97] motion-reduce:active:scale-100"
         >
           Now read it as {other?.id === "guest" ? "a guest" : "the host"}
         </button>

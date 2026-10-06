@@ -157,7 +157,7 @@ function GateHelp({ gate }: { gate: PrivateGate }) {
         <button
           type="button"
           aria-label={`What ${GATE_LABELS[gate].toLowerCase()} is for`}
-          className="relative z-10 flex size-6 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors duration-150 outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 motion-reduce:transition-none"
+          className="relative z-10 flex size-6 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors duration-150 outline-none hover:text-foreground focus-halo motion-reduce:transition-none"
         >
           <Info className="size-4" aria-hidden />
         </button>
@@ -248,7 +248,8 @@ export function DoorPage({ guestsHref }: { guestsHref: string }) {
                 aria-label="What the link opens"
                 // ★ THE CONTROL MEASURES ITSELF (`@container`): what a choice can hold depends on the width the control
                 // is given (a phone's card is 220 to 280 px of it), so its icons answer to that width, below.
-                className="@container grid grid-cols-3 gap-1 rounded-lg bg-muted p-1"
+                // ★ A SEGMENTED CONTROL IN THE HOUSE SET (identity r5): a flat track, its chosen third afloat.
+                className="@container grid grid-cols-3 gap-0.5 rounded-[11px] bg-(--track) p-[3px]"
               >
                 {STEPS.map((st) => {
                   const Icon = STEP_ICON[st];
@@ -260,10 +261,9 @@ export function DoorPage({ guestsHref }: { guestsHref: string }) {
                       className={cn(
                         // ★ A CHOICE SITS ON ONE LINE (red-team 46's NIT: "Only me" wrapped beside "Public" and "Private"
                         // at 375): its words never wrap, and its small padding leaves them the whole third.
-                        "flex items-center justify-center gap-1 rounded-md px-1 py-1.5 text-sm font-medium whitespace-nowrap text-muted-foreground transition-colors outline-none motion-reduce:transition-none",
-                        "hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50",
-                        "data-[state=on]:bg-background data-[state=on]:text-foreground",
-                        "active:scale-[0.98] motion-reduce:active:scale-100",
+                        "flex items-center justify-center gap-1 rounded-lg px-1 py-1.5 text-sm font-medium whitespace-nowrap text-muted-foreground transition-[color,background-color,scale] duration-150 ease-emphasis outline-none",
+                        "hover:text-foreground focus-halo press-shrink [--press-scale:0.95]",
+                        "data-[state=on]:afloat",
                       )}
                     >
                       {/* The icon is for the room that has it: a third of a narrow control (a 320 phone's is 69 px) holds
@@ -317,11 +317,13 @@ export function DoorPage({ guestsHref }: { guestsHref: string }) {
                           key={g}
                           data-door-gate={g}
                           data-state={on ? "on" : "off"}
+                          // ★ A RADIO CARD IN THE HOUSE SET (identity r5): a flat tone that waits, the chosen
+                          // one afloat, its lift kept tight under it, since the dormant step's wrapper clips.
                           className={cn(
-                            "relative rounded-lg border px-3 py-2.5 transition-colors duration-150 motion-reduce:transition-none",
+                            "relative rounded-xl px-3 py-2.5 transition-[background-color] duration-150 motion-reduce:transition-none",
                             on
-                              ? "border-foreground/30 bg-muted/40"
-                              : "border-border hover:border-foreground/20",
+                              ? "afloat afloat-card"
+                              : "bg-(--choice) hover:bg-(--choice-up)",
                           )}
                         >
                           <div className="flex items-start gap-2.5">
@@ -330,21 +332,22 @@ export function DoorPage({ guestsHref }: { guestsHref: string }) {
                               role="radio"
                               aria-checked={on}
                               onClick={() => choose(candidate)}
-                              className="absolute inset-0 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                              className="absolute inset-0 rounded-xl outline-none focus-halo halo-inset"
                             >
                               <span className="sr-only">{GATE_LABELS[g]}</span>
                             </button>
                             <span
                               aria-hidden
+                              // A radio waits as a ring of tone and fills with ink (identity r5).
                               className={cn(
-                                "pointer-events-none relative mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border",
+                                "pointer-events-none relative mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full",
                                 on
-                                  ? "border-foreground"
-                                  : "border-muted-foreground/50",
+                                  ? "bg-primary"
+                                  : "inset-ring-2 inset-ring-foreground/45",
                               )}
                             >
                               {on ? (
-                                <span className="size-2 rounded-full bg-foreground" />
+                                <span className="size-1.5 rounded-full bg-primary-foreground" />
                               ) : null}
                             </span>
                             <span className="pointer-events-none relative min-w-0 flex-1">
@@ -377,7 +380,9 @@ export function DoorPage({ guestsHref }: { guestsHref: string }) {
                             </ConsequenceLine>
                           ) : null}
                           {on && g === "password" ? (
-                            <div className="relative z-10 mt-2.5 rounded-lg border border-border/60 bg-background p-3">
+                            // The password's panel stands on the chosen card: clear, inside a hairline, as a
+                            // clear key is (identity r5), so its well and keys read on the card's face.
+                            <div className="relative z-10 mt-2.5 rounded-lg p-3 inset-ring inset-ring-(--key-line)">
                               {passwordLocked && !v.hasPassword ? (
                                 <LockChip
                                   feature="password"
@@ -439,7 +444,8 @@ export function DoorPage({ guestsHref }: { guestsHref: string }) {
                   {gate && counts.in > 0 ? (
                     <p
                       data-door-inside=""
-                      className="mt-2.5 flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm"
+                      // A note, flat (identity r5): the track's tone with no line, never a field or a card.
+                      className="mt-2.5 flex items-center gap-2 rounded-lg bg-(--track) px-3 py-2 text-sm"
                     >
                       <UsersRound
                         className="size-4 shrink-0 text-muted-foreground"

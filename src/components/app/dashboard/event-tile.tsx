@@ -213,7 +213,7 @@ export function EventTile({
           data-lit={photo ? "" : undefined}
           className={cn(
             box,
-            "transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-[0.99] motion-reduce:active:scale-100",
+            "transition-transform duration-150 ease-emphasis outline-none focus-halo active:scale-[0.99] motion-reduce:active:scale-100",
           )}
         >
           {surface}

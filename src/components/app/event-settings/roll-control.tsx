@@ -73,7 +73,7 @@ function Strip({ shots }: { shots: number }) {
 }
 
 const BOX =
-  "group flex min-w-0 cursor-pointer flex-col items-start rounded-xl border border-border px-3 pt-2.5 pb-3 text-left outline-none transition-colors duration-150 hover:border-foreground/20 focus-visible:ring-2 focus-visible:ring-ring/50 data-[state=checked]:border-foreground/40 data-[state=checked]:bg-muted/40 data-[state=checked]:ring-1 data-[state=checked]:ring-foreground/15 motion-reduce:transition-none";
+  "group flex min-w-0 cursor-pointer flex-col items-start rounded-xl bg-(--choice) px-3 pt-2.5 pb-3 text-left outline-none transition-[background-color] duration-150 hover:bg-(--choice-up) focus-halo data-[state=checked]:afloat data-[state=checked]:afloat-card motion-reduce:transition-none";
 
 export function RollControl({
   value,
@@ -327,7 +327,7 @@ export function RollStepper({
         aria-valuenow={value}
         aria-valuetext={`${rollShots(value)} each`}
         onKeyDown={onKeyDown}
-        className="flex min-w-0 flex-col items-center rounded-lg py-0.5 leading-none outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+        className="flex min-w-0 flex-col items-center rounded-lg py-0.5 leading-none outline-none focus-halo"
       >
         <span className="font-heading text-page tabular-nums">{value}</span>
         <span className="mt-1 text-caption text-muted-foreground">

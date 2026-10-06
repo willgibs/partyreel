@@ -76,7 +76,7 @@ export const Filmstrip = memo(function Filmstrip({
               }}
               className={cn(
                 "absolute bottom-0 left-1/2 -ml-3 h-9 w-6 overflow-hidden rounded-[3px] bg-white/10 outline-none",
-                "transition-[transform,opacity,scale] duration-200 ease-emphasis focus-visible:ring-2 focus-visible:ring-white/70 active:scale-90 motion-reduce:active:scale-100",
+                "transition-[transform,opacity,scale] duration-200 ease-emphasis focus-halo active:scale-90 motion-reduce:active:scale-100",
                 current
                   ? "opacity-100 ring-2 ring-white"
                   : "opacity-45 hover:opacity-90",

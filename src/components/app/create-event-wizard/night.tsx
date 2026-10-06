@@ -96,7 +96,7 @@ export function Night({
             value={m}
             data-moment-word={m}
             className={cn(
-              "min-h-9 cursor-pointer rounded-md px-0.5 transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
+              "min-h-9 cursor-pointer rounded-md px-0.5 transition-colors duration-150 outline-none focus-halo",
               k === 0 ? "text-left" : k === 1 ? "text-center" : "text-right",
               "data-[state=checked]:font-medium data-[state=checked]:text-foreground data-[state=unchecked]:text-muted-foreground",
             )}

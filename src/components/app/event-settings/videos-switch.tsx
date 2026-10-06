@@ -52,7 +52,7 @@ export function VideosSwitch() {
             type="button"
             onClick={() => setPlansOpen(true)}
             aria-label={`Videos, on ${TIER_NAMES.pro}. See plans.`}
-            className="relative flex shrink-0 cursor-pointer rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+            className="relative flex shrink-0 cursor-pointer rounded-full outline-none focus-halo"
             {...trackAttrs("cta_click", {
               cta: "lock-switch",
               location: "video",

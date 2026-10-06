@@ -182,7 +182,7 @@ export default function SampleReelOverlay({
           className={cn(
             "absolute top-3 right-3 z-10 flex size-10 items-center justify-center rounded-full text-white outline-none",
             "transition-transform duration-150 ease-emphasis active:scale-[0.94] motion-reduce:active:scale-100",
-            "focus-visible:ring-2 focus-visible:ring-white/70",
+            "focus-halo",
             GLASS,
           )}
         >
