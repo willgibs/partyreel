@@ -1592,6 +1592,9 @@ function StageViews({
                 data-lab-view=""
                 data-option={option.id}
                 data-shown={on ? "" : undefined}
+                // A hidden option holds still: design.css freezes what is in
+                // this document, and a Frame mirrors the mark into the one it
+                // holds (`frame-pause.ts`).
                 data-paused={visible ? undefined : "true"}
                 inert={!visible}
                 aria-hidden={visible ? undefined : true}

@@ -135,6 +135,9 @@ function of elapsed time can be frozen at a chosen moment and shot.
   `javascript_tool`.
 - **A raw headless `--screenshot` cannot scroll** (a fragment URL paints black; a tall window stretches a 100vh hero),
   so a board is captured through `lab:demo` (`--save-shots`), whose scrolled capture is how subtle light is judged.
+- ★ **A headless Chrome of your own asks for port 0 and reads `DevToolsActivePort` off its own profile** (`lab:demo`;
+  `--chrome-port` pins one and refuses a port that answers). A port taken from a pid or a random number can land on
+  another lane's Chrome, which the script then connects to and drives (brand-r1 did).
 - **A dev server that never answers an image size** (`lab:demo`'s `Page.navigate did not answer`, or an `UNANSWERED`
   line under a step) is Next 16.2's image optimizer, not a hung page: a size whose first requester hung up is never
   answered again (`next dev` and `next start` alike; Vercel optimizes on its own platform), and six of them hold every
