@@ -463,3 +463,101 @@ describe("GalleryRows: the album's order and its news", () => {
     expect(grid().news).toEqual({ arrivals: [], lens: undefined });
   });
 });
+
+/**
+ * WHAT SHE IS SENDING, WHERE SHE IS (red-team 56's MEDIUM): the stack keeps the slot her photograph lands in (the end of
+ * an album in order), and while she cannot see it a stand-in carries its bar and its x in view. FUNCTION ONLY: the
+ * observer is a stub that says in view or not; the pill's placement is `sending-stand-in.tsx`'s.
+ */
+describe("GalleryRows: the stack out of her sight stands in view", () => {
+  let sight: ((inView: boolean) => void)[] = [];
+  class FakeObserver {
+    constructor(private cb: IntersectionObserverCallback) {
+      sight.push((inView) =>
+        this.cb(
+          [
+            {
+              isIntersecting: inView,
+              intersectionRatio: inView ? 1 : 0,
+            } as IntersectionObserverEntry,
+          ],
+          this as unknown as IntersectionObserver,
+        ),
+      );
+    }
+    observe() {}
+    disconnect() {}
+  }
+  const standIn = () => document.querySelector("[data-sending-stand-in]");
+  const store = (at: number): QueueProgress => ({
+    get: () => at,
+    subscribe: () => () => {},
+    stop: async () => null,
+  });
+
+  beforeEach(() => {
+    sight = [];
+    vi.stubGlobal("IntersectionObserver", FakeObserver);
+  });
+
+  it("★ stands in view with her bar and her x while the stack is out of sight, and goes when she sees it", () => {
+    render(
+      <GalleryRows
+        {...REST}
+        items={SEED}
+        anchor="start"
+        pending={[pending("s1", "uploading", 40), pending("s2", "queued")]}
+        progress={store(40)}
+      />,
+    );
+    act(() => sight.at(-1)!(false));
+    // A beat first: a lead handing over, or a row about to mount, never flashes the pill.
+    expect(standIn()).toBeNull();
+    act(() => vi.advanceTimersByTime(300));
+    const pill = standIn() as HTMLElement;
+    expect(pill).not.toBeNull();
+    expect(pill.textContent).toContain("2 to go");
+    expect(
+      (pill.querySelector("[data-stand-in-progress]") as HTMLElement).style
+        .width,
+    ).toBe("40%");
+    expect(pill.querySelector("[data-stop-upload]")).not.toBeNull();
+    // She scrolls the stack into view: the stand-in goes, the stack alone says it.
+    act(() => sight.at(-1)!(true));
+    expect(standIn()).toBeNull();
+  });
+
+  it("★ a stack the window never mounted is out of sight (the end of a long album in order)", () => {
+    // The head slot is not drawn at all, so no observer ever speaks.
+    render(
+      <GalleryRows
+        {...REST}
+        items={SEED}
+        anchor="start"
+        pending={[pending("s3", "uploading", 10)]}
+        progress={store(10)}
+      />,
+    );
+    sight = [];
+    act(() => vi.advanceTimersByTime(300));
+    expect(standIn()?.textContent).toContain("Sending");
+  });
+
+  it("goes with the pick", () => {
+    const view = render(
+      <GalleryRows
+        {...REST}
+        items={SEED}
+        pending={[pending("s4", "uploading", 10)]}
+        progress={store(10)}
+      />,
+    );
+    act(() => sight.at(-1)!(false));
+    act(() => vi.advanceTimersByTime(300));
+    expect(standIn()).not.toBeNull();
+    view.rerender(
+      <GalleryRows {...REST} items={SEED} pending={[]} progress={store(0)} />,
+    );
+    expect(standIn()).toBeNull();
+  });
+});
