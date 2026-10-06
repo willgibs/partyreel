@@ -4,11 +4,13 @@ import type { Door } from "@/lib/event/door/door";
 import type { ReadyFacts } from "@/lib/events/readiness";
 
 /**
- * MAYA AND JAY'S WEDDING, FROM THE HOST'S SIDE OF ITS CODE, AT THE THREE
+ * MAYA AND JAY'S WEDDING, FROM THE HOST'S SIDE OF ITS CODE, AT THE FOUR
  * MOMENTS THE DOORS ARE DRAWN AT:
  *
  *  - TONIGHT the wedding is on: 214 photos from 31 guests, 8 uploads held in
  *    Review and 2 people at the door (every door has something in it);
+ *  - AT ITS PEAK the floor is full: 140 uploads in Review and 12 at the door,
+ *    so a badge reaches its cap ("99+") and a two-figure count stands;
  *  - THE WEEK BEFORE nothing is in the album, the checklist stands at the head
  *    of the hub (production's own) and Settings has steps left;
  *  - THE WEEK AFTER she has paused uploads: 236 photos, nothing waits, and
@@ -169,8 +171,8 @@ const hm = (h: number, m = 0) => h * 60 + m;
 
 /* ── the six albums ───────────────────────────────────────────────────────── */
 
-/** The three moments the doors are drawn at. */
-export type CaseId = "tonight" | "before" | "after";
+/** The four moments the doors are drawn at. */
+export type CaseId = "tonight" | "peak" | "before" | "after";
 
 export type HostFacts = {
   photos: number;
@@ -297,6 +299,28 @@ export const CASES: Record<CaseId, Case> = {
     guests: 31,
     waiting: 2,
     review: 8,
+    door: "approve",
+    reel: "live",
+    reelHave: 2,
+    daysToGo: 0,
+    over: false,
+    ready: ready(EVENT.date, "approve", 31, 214, 486),
+    arrivals: NIGHT,
+    stills: WEDDING,
+    album: ALBUM,
+  },
+  peak: {
+    id: "peak",
+    title: "Tonight, at its peak",
+    name: EVENT.name,
+    slug: "maya-and-jay",
+    date: EVENT.date,
+    end: null,
+    live: true,
+    photos: 214,
+    guests: 31,
+    waiting: 12,
+    review: 140,
     door: "approve",
     reel: "live",
     reelHave: 2,

@@ -38,8 +38,8 @@ import { cn } from "@/lib/utils";
 import { Frame } from "@/components/lab";
 
 import { HubAlbum } from "./album";
+import { CARDS, type CardId } from "./cards";
 import { type DoorDraw, ROOM_LABEL, type RoomId } from "./door-kit";
-import { DOORS, type DoorsId } from "./doors";
 import { type Case, HOST } from "./fixtures";
 import { HubHead } from "./head";
 import {
@@ -51,6 +51,7 @@ import {
   SettingsRoom,
 } from "./rooms";
 import { type Ground, isPhone, type ScreenId } from "./scene";
+import type { PaperId } from "./seam";
 
 /**
  * HER HUB, AS ROOMS-WIRING WIRED IT: production's own order
@@ -58,7 +59,8 @@ import { type Ground, isPhone, type ScreenId } from "./scene";
  * the bell, her menu), the cover, the doors going sticky, the checklist while
  * the event is not ready (production's `EventChecklist`), and the album. A
  * frame is drawn in the door option the board asks for (`doors.tsx`), on the
- * cover's settled strip.
+ * cover's settled strip, over the Seam (`seam.tsx`), wearing the status
+ * token the board asks for (`data-eh-needs`, `cards.css`).
  *
  * ★ EVERY ROOM OPENS OVER THE HUB (his `rooms=over`, wired; the calls G1
  * and G2, drawn in every door option): Review and Guests in Settings' own
@@ -79,8 +81,13 @@ import { type Ground, isPhone, type ScreenId } from "./scene";
  * scrolled behind (`data-eh-behind`).
  */
 
+/** A count that needs her: the hueless ink, the recording red, or a new blue. */
+export type NeedsId = "ink" | "tally" | "cue";
+
 export type HubDraw = {
-  doors: DoorsId;
+  card: CardId;
+  needs: NeedsId;
+  paper: PaperId;
   c: Case;
   screen: ScreenId;
   ground: Ground;
@@ -91,12 +98,14 @@ export type HubDraw = {
 function HostApp({
   name,
   ground,
+  needs,
   children,
   layer,
   onLink,
 }: {
   name: string;
   ground: Ground;
+  needs: NeedsId;
   children: ReactNode;
   /** What stands over the page, outside the shell's stacking. */
   layer?: ReactNode;
@@ -109,6 +118,7 @@ function HostApp({
         <div
           onClickCapture={onLink}
           data-eh-ground={ground}
+          data-eh-needs={needs}
           className={cn(
             ground === "room" ? "dark" : "surface-paper",
             "relative min-h-screen bg-background text-foreground",
@@ -357,7 +367,7 @@ export function Hub({
   mark?: RefObject<HTMLDivElement | null>;
 }) {
   const c = d.c;
-  const door = DOORS[d.doors];
+  const door = CARDS[d.card];
   const Page = door.Page;
   const own = useRef<HTMLDivElement | null>(null);
   const ref = mark ?? own;
@@ -371,6 +381,7 @@ export function Hub({
     ground: d.ground,
     selected: open,
     onOpen: go ? (room) => go({ room, page: null }) : undefined,
+    paper: d.paper,
   };
   // A press on any link that names a room opens it over the hub, wherever it stands (a room's own link included).
   const onLink = go
@@ -394,6 +405,7 @@ export function Hub({
     <HostApp
       name={c.name}
       ground={d.ground}
+      needs={d.needs}
       onLink={onLink}
       layer={
         <>
@@ -414,7 +426,7 @@ export function Hub({
         data-eh-behind={open ? "" : undefined}
         className="space-y-6"
       >
-        <HubHead id={d.doors} door={door} d={draw} mark={ref} />
+        <HubHead door={door} d={draw} mark={ref} />
         <Page {...draw} stuck={stuck} mark={ref} />
         {c.photos === 0 ? (
           <EventChecklist
@@ -467,8 +479,8 @@ export function TryHub({ d }: { d: HubDraw }) {
   const mark = useRef<HTMLDivElement | null>(null);
   const stuck = useStuckIn(
     mark,
-    DOORS[d.doors].stickAt,
-    `${d.doors}-${nav?.room ?? ""}`,
+    CARDS[d.card].stickAt,
+    `${d.card}-${nav?.room ?? ""}`,
   );
   const root = useRef<HTMLSpanElement | null>(null);
   const go = useCallback((to: RoomNav) => setNav(to), []);
