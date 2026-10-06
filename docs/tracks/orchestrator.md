@@ -34,6 +34,7 @@ check-in about every 40 minutes reads them (their status, pushed heads and cost)
 | `billing-orphans` | milestone 38's billing line: an orphan's grant as one SQL function under her profiles lock, the change-plan configuration watched at its source, the Plan card's words while a credited Pro lands; one migration (`20261006120000_billing_orphans.sql`) | HANDED OFF at `4a113e5d4`; waits on the morning's SQL (Waiting on Will) | Opus | `session_015JAkfLgeuTsZZMNJXrZVeV` |
 | `drive-crumbs` | Drive whole before it goes live: album folders and files found by their marks after a reconnect, the closing check held at the first unknown, Account's card naming her folder, the palette's jump; one migration (`20261006130000_drive_marks.sql`) | HANDED OFF at `6d1731c27`; waits on the morning's SQL (Waiting on Will) | Opus | `session_01AGJfN3zW3BvB8vPM7KSgbL` |
 | `redteam-56b` | red-team 56b on its own build of `c5b16be7` at :3000 | BLOCKED, ended 11:22Z (about $1.20): its permission check refused `.env.local`, the `--no-sandbox` Chrome wrapper and a `useradd` for a sandboxed Chrome (tried before the correction; reported), so only the 404s' one noindex was walked (PASS) and every browser walk reads NOT DRIVEN; no findings, nothing created. It waits on Will's browser call (Waiting on Will), then a fresh session | Opus | `session_017cgyXnS3nnK35ifo2L6bEa` |
+| `retired-mocks` | the marketing pictures that still draw retired product (/reel's reel tile, How it works' Download album dialog, the album and sharing mocks' export menu) redrawn from today's own pieces, and the dead files they kept alive deleted | RUNNING (cut at `14a17e10`) | Opus | `session_01CUbN6NjxT5MS3ernjxK4Mo` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor") read both of tonight's migrations
 (2026-10-06): APPLY each, after its drift read and its proof's GREEN; the hashes and its caveats are under Waiting on
@@ -89,7 +90,7 @@ local agents' transcripts.
 7. **★ Vercel's Hobby Active CPU** (about 3.89 of 4 hours over 30 days on 2026-10-06; the peak rolls off in early
    November): nothing runs against the alias or partyreel.com but what Will asks for by name.
 8. **Pacing:** the cloud credit (Will: $250, $168 left at his good night, a gift: spend it): full speed until he says
-   it is spent. The account's seven-day limit read `allowed_warning` at 10:31Z (it resets about 2026-10-11 13:00Z).
+   it is spent; the night's lanes read about $128 by 14:00Z (crumbs-85 the most, $29). The account's seven-day limit read `allowed_warning` at 10:31Z (it resets about 2026-10-11 13:00Z).
 
 ## Waiting on Will
 
