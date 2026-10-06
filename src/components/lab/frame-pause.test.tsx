@@ -114,13 +114,13 @@ describe("Frame: a hidden option's frame holds still", () => {
     expect(rules()).toHaveLength(1);
   });
 
-  it("★ holds a routed frame's document too (identity's scenes are routes, and most loops live in them)", async () => {
+  it("★ holds a routed frame's document too (a scene served as its own route, where a board's loops would live)", async () => {
     const { container } = render(
-      <Option src="/design/sandbox/identity/scene" />,
+      <Option src="/design/sandbox/example/scene" />,
     );
     await act(async () => {});
     expect(container.querySelector("iframe")!.getAttribute("src")).toBe(
-      "/design/sandbox/identity/scene",
+      "/design/sandbox/example/scene",
     );
     expect(marked()).toBe(true);
     expect(rules()).toHaveLength(1);
@@ -178,7 +178,7 @@ describe("Frame: a hidden option's frame holds still", () => {
 
   it("★ holds the next document a frame loads: a navigation is a new page", async () => {
     const { container } = render(
-      <Option src="/design/sandbox/identity/scene" />,
+      <Option src="/design/sandbox/example/scene" />,
     );
     await act(async () => {});
     const first = committed;
@@ -197,7 +197,7 @@ describe("Frame: a hidden option's frame holds still", () => {
 
   it("holds a new document that arrives before the frame's load is heard, whatever mark wakes it", async () => {
     const { container } = render(
-      <Option src="/design/sandbox/identity/scene" />,
+      <Option src="/design/sandbox/example/scene" />,
     );
     await act(async () => {});
     const first = committed;

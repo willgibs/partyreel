@@ -18,7 +18,6 @@ New lines land at the head of this list (`usher/kit/record.py`); the cross-cutti
 below hold the rest by surface.
 
 - Marketing (copy): `features/album/album-copy.ts`'s "Take all of it" body still says "everything, photos, or videos" (the retired menu's chips) over a plate that now draws Select, then Save; and the how-it-works keep step's body (`constants/how-it-works.ts`) says only "the whole album as a single zip", where the host's panel offers Phone size too (retired-mocks).
-- Code hygiene: stale comments naming deleted files: `features/sharing/downloads-section.tsx`'s ★ block (the modal no longer draws the retired menu), `lib/export/walk.ts:15` and `lib/content/help-ui-labels.test.ts:25` (`export-dialog.tsx`) (retired-mocks).
 - Uploads: the heal re-asks a kept complete on the browser's `online` event at once, so a Retry all pressed as the line comes back is a second complete beside the heal's; `healLost` could ride the queue's `runSoon`, or wait a tick for a press (uploads-bursts).
 - Guests: in a 45-photo send the in-flight recorder counted the album's direct tiles dipping (21, then 18, then 21) mid-run, on the builds before and after uploads-bursts alike: a red-team look (uploads-bursts).
 - Design: the halo and the working words at the four call sites that waited on their lanes: pricing's three `focus-visible:ring` lines (`src/components/app/pricing/`, its key "Opening billing" in `checkout-button.tsx`) and Drive's album picker (`src/components/app/drive/`, its send steps' "Starting") (a11y-halo).
@@ -34,7 +33,6 @@ below hold the rest by surface.
 - The lab and the kit: `pnpm compute:model` has not run end to end on Linux (its fixtures now come from `$PARTYREEL_TEST_MEDIA` or `media-gen.mjs`, and `--event-name` is new); milestone 38's run is its first (lab-kit-3).
 - Library: the Button page shows no working specimen (`(shell)/library/components/gallery-demos.tsx`): add one beside Disabled (`working` with `workingLabel="Saving"`) (identity-r5-wiring).
 - Design: red-team 56's "Select shrinks over 150 ms" did not reproduce on the atom (an outline key reads `scale: 0.96` in a press's first frame); walk the album toolbar's own Select (`event-feed/gallery-actions.tsx`) (identity-r5-wiring).
-- The lab: `frame-pause.test.tsx` names `/design/sandbox/identity/scene` as a sample src (a string, no route); rename it to a living scene (identity-r5-wiring).
 - Design: the Seam's edge sampler as production code (each still's bottom edge read at upload, at the cover's crop per width, stored with the still), once Will's event-header r6 pick is wired; the board's runtime read (`sandbox/event-header/edge.ts`) is its reference (event-header-r6).
 - Testing: make the 51 files that leak under `--no-isolate` hermetic (19 unit, 32 component, each leaking a module mock or module state into the next file in its worker), then `isolate: false` for the unit project (31.6 s against 85 s measured) (test-slim).
 - Testing: a deterministic frame test for `trail.tsx:300`'s empty slot (its arm rides the animation clock: 78, 468, 3 and 0 hits in four full runs), so a per-directory coverage proof is exact run to run (test-slim).

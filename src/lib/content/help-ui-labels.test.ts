@@ -22,7 +22,7 @@ import { getAllArticles } from "./help";
  * template pieces and JSX text of its source, never a comment, an identifier
  * or a class name. The scan used to match the label as a substring of the raw
  * source, so a control the product had dropped still passed on the comment
- * that remembered it (`export-dialog.tsx` kept "Download album" "for what
+ * that remembered it (the retired export dialog kept "Download album" "for what
  * quotes it" after the menu left, and two articles walk a menu that is
  * gone) or on the marketing mock that draws it. What a control says to a
  * reader is read the way a reader gets it (`copyOf`): an element's own text
