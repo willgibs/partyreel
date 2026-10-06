@@ -88,11 +88,9 @@
 }
 [data-look="keys"] .eh-ck-code [data-slot="code-chip"] {
   background-image: linear-gradient(var(--eh-key-face), var(--eh-key-foot));
-  box-shadow:
-    inset 0 1px 0 var(--eh-key-hi),
-    inset 0 -1px 0 var(--eh-key-lo),
-    0 0 0 1px var(--eh-key-line),
-    var(--eh-key-drop);
+  --eh-pill-shadow:
+    inset 0 1px 0 var(--eh-key-hi), inset 0 -1px 0 var(--eh-key-lo),
+    0 0 0 1px var(--eh-key-line), var(--eh-key-drop);
 }
 
 /* The glyph sunk in its well, a key's engraved mark, in the ink. */

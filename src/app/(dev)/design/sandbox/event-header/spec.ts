@@ -4,7 +4,7 @@ import { type Control, defineExploration } from "@/components/lab/exploration";
  * THE HUB'S CARDS, ROUND FIVE (the event-header-r5 track, cut 2026-10-05).
  *
  * Round four's answer: the doors are the cards over the seam (wired by
- * `event-header-wiring` in parallel), and "let's carry this version forward,
+ * `event-header-wiring`, merged mid-round), and "let's carry this version forward,
  * but run another exploration to see what some of your ideas of polish look
  * like". So one decision: which polish the cards take.
  *
@@ -123,7 +123,7 @@ export const EVENT_HEADER = defineExploration({
     about:
       "Round five of the hub's doors: the cards over the seam you picked, polished three ways in Afterglow's language, each a whole take you could ship.",
     settled: [
-      "The doors are the cards over the seam, your round-four pick, being wired now: every take here is a polish of them.",
+      "The doors are the cards over the seam, your round-four pick, now wired: every take here is a polish of them.",
       "Afterglow is the brand (desk 4): a waiting count is its standby point and word, with no hue; colour is only the screen's one light.",
       "The press and the focus are identity's: a card shrinks under the finger and wears the halo on a key.",
       "Every room opens over the hub (wired): Review and Guests in Settings' panel, the reel full screen, As a guest an inert phone.",

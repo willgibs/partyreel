@@ -278,6 +278,7 @@
   display: flex;
   flex-shrink: 0;
 }
+/* Its shadow in the element's own slot, so production's halo composes with it. */
 .eh-points-code [data-slot="code-chip"] {
   width: 52px;
   height: 52px;
@@ -286,9 +287,11 @@
   -webkit-backdrop-filter: blur(16px) saturate(1.2);
   backdrop-filter: blur(16px) saturate(1.2);
   color: var(--foreground);
-  box-shadow:
-    inset 0 0 0 1px var(--border),
-    var(--shadow-layer);
+  --tw-shadow: inset 0 0 0 1px var(--border), var(--shadow-layer);
+  box-shadow: var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+.eh-points-code [data-slot="code-chip"]:not(:focus-visible) {
+  --tw-ring-shadow: 0 0 #0000;
 }
 
 /* It rises as the row leaves, on the drawer's curve at an edge's 300ms, and

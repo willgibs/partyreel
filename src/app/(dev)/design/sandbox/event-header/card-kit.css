@@ -94,13 +94,22 @@
    room's band after the photographs). At that size it is a button that opens
    the code, never a code that scans, so it needs no white plate; the cover's
    code keeps its plate. Each take gives it its pill's face. */
+/* ★ THE SHADOW COMPOSES WITH PRODUCTION'S HALO, NEVER REPLACES IT: the chip
+   wears `focus-halo`, whose mark rides Tailwind's ring slot, so the pill's own
+   shadow takes the element's shadow slot and the white chip's resting ring is
+   dropped only while it has no focus (a bare `box-shadow` would delete the
+   halo, as globals.css warns). */
 .eh-ck-code [data-slot="code-chip"] {
   width: 36px;
   height: 36px;
   border-radius: 999px;
   background-color: var(--card);
   color: var(--foreground);
-  box-shadow: var(--eh-pill-shadow, var(--shadow-lift));
+  --tw-shadow: var(--eh-pill-shadow, var(--shadow-lift));
+  box-shadow: var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+.eh-ck-code [data-slot="code-chip"]:not(:focus-visible) {
+  --tw-ring-shadow: 0 0 #0000;
 }
 @container eh-row (width < 640px) {
   .eh-ck-code [data-slot="code-chip"] {
