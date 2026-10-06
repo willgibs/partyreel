@@ -1,7 +1,7 @@
 ---
 track: orchestrator
 status: open
-cut: "c224231e"          # the launch-prep SHA this state was written at
+cut: "c02efdbc"          # the launch-prep SHA this state was written at
 owns:                    # the standing claims no lane touches
   - src/app/(dev)/design/rules/bible.ts
   - src/app/(dev)/design/rules/bible.test.ts
@@ -23,107 +23,111 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 ## In flight
 
-Round 15 wound down at 15:40Z on 2026-10-06 (Will: the cloud credit down to its last $10), nothing running; the Orchestrator seated in a claude.ai cloud session for the first time
-(`session_01CbMRwiSRndG3eAjNpzHAvJ`, willg97's account). Milestone 37 is live (`b67cdc1f2`); `launch-prep` holds
-milestone 38's work (each lane's summary is its merge commit), red-team 56's findings fixed by crumbs-85 among it. Every
-lane is a cloud session of its own (the runbook's "Cut a lane", step 4); none can message back, so a `send_later`
-check-in about every 40 minutes reads them (their status, pushed heads and cost) while any runs.
+Round 15 resumed at 15:55Z on 2026-10-06 on a new seat, the willg97 seat's cloud credit spent: a claude.ai cloud
+session on hi@willgibs.com's account (`session_01D1RcsL5Ejp5qbbtv1T7oUq`, environment "Default"), on Will's $250 cloud
+credit at full pace until he pauses for a desk round. Milestone 37 is live (`b67cdc1f2`); `launch-prep` holds milestone
+38's work (each lane's summary is its merge commit). Every lane is a cloud session of its own (the runbook's "Cut a
+lane", step 4); none can message back, so a `send_later` check-in about every 40 minutes reads them (their status,
+pushed heads and cost) while any runs. The willg97 seat's lane sessions are out of this account's reach; none was
+mid-work.
 
 | lane | what | state | model | session |
 | --- | --- | --- | --- | --- |
-| `billing-orphans` | milestone 38's billing line: an orphan's grant as one SQL function under her profiles lock, the change-plan configuration watched at its source, the Plan card's words while a credited Pro lands; one migration (`20261006120000_billing_orphans.sql`) | HANDED OFF at `4a113e5d4`; waits on the morning's SQL (Waiting on Will) | Opus | `session_015JAkfLgeuTsZZMNJXrZVeV` |
-| `drive-crumbs` | Drive whole before it goes live: album folders and files found by their marks after a reconnect, the closing check held at the first unknown, Account's card naming her folder, the palette's jump; one migration (`20261006130000_drive_marks.sql`) | HANDED OFF at `6d1731c27`; waits on the morning's SQL (Waiting on Will) | Opus | `session_01AGJfN3zW3BvB8vPM7KSgbL` |
-| `redteam-56b` | red-team 56b on its own build of `c5b16be7` at :3000 | BLOCKED, ended 11:22Z (about $1.20): its permission check refused `.env.local`, the `--no-sandbox` Chrome wrapper and a `useradd` for a sandboxed Chrome (tried before the correction; reported), so only the 404s' one noindex was walked (PASS) and every browser walk reads NOT DRIVEN; no findings, nothing created. It waits on Will's browser call (Waiting on Will), then a fresh session | Opus | `session_017cgyXnS3nnK35ifo2L6bEa` |
+| `billing-orphans` | milestone 38's billing line: an orphan's grant as one SQL function under her profiles lock, the change-plan configuration watched at its source, the Plan card's words while a credited Pro lands; one migration (`20261006120000_billing_orphans.sql`) | HANDED OFF at `4a113e5d4`; its lane check clean; waits on its SQL (Next 1) | Opus | willg97's `session_015JAkfLgeuTsZZMNJXrZVeV` |
+| `drive-crumbs` | Drive whole before it goes live: album folders and files found by their marks after a reconnect, the closing check held at the first unknown, Account's card naming her folder, the palette's jump; one migration (`20261006130000_drive_marks.sql`) | HANDED OFF at `6d1731c27`; its lane check clean; waits on its SQL (Next 1) | Opus | willg97's `session_01AGJfN3zW3BvB8vPM7KSgbL` |
+| `account-moments-r1` | board account-moments r1 (desk 50): I4 Follow and Block staying quiet, I5 a profile before a public page, each built answer drawn beside real alternatives | CUT at `6ccc5b4e`, not spawned: an auto lane spawns only under a session whose record is auto (Waiting on Will) | Opus | (to spawn) |
+| `create-wizard-r4` | board create-wizard r4 (desk 60): the styles' step polished on his round-3 note, F1 what is left as Settings' steps, F2 the develop playing while the event is made | CUT at `6ccc5b4e`, not spawned (as above) | Opus | (to spawn) |
+| `redteam-56b` | red-team 56b on the tip after both merges | to respawn once the environment holds the app's variables (Waiting on Will); the willg97 session `session_017cgyXnS3nnK35ifo2L6bEa` ended BLOCKED at 11:22Z, no findings | Opus | (to spawn) |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor") read both of tonight's migrations
-(2026-10-06): APPLY each, after its drift read and its proof's GREEN; the hashes and its caveats are under Waiting on
-Will. A successor respawns it from `usher/kit/advisor-prompt.txt` for the next migration.
+(2026-10-06): APPLY each, after its drift read and its proof's GREEN; its caveats are under Next. A successor respawns
+it from `usher/kit/advisor-prompt.txt` for the next migration.
 
-**The cloud seat.** Since its restart at 09:52Z the container carries Will's environment (every app variable), and
-its `.env.local` is written from it by the spawn prompt's recipe (the site URL kept at `http://localhost:3000`); it runs
-the gates on 4 cores (`pnpm test` about 8.5 minutes). zsh is installed and `~/.nvm/nvm.sh` is a
-no-op stub (the kit sources nvm under `set -e`); an export lasts one command, so `S`, `CHROME_PATH`, `NODE_USE_ENV_PROXY` and the
-site URL's override live in the shell snapshot (re-append after a worker restart; a background command reads none, so
-set them inside it). A restart
-resumes in the session record's mode, so the mode stays Auto. The lanes' sessions carry the environment's variables
-and an open network. The Vercel connector sees Will's personal team, not P3's (`VERCEL_TOKEN` in the lanes' environment
-serves the kit's REST calls); no Cloudflare token is in the environment. ★ **The Supabase connector's SQL tools
-(`execute_sql`, `apply_migration`) wait on a human approval in Auto mode** (billing-orphans and drive-crumbs each sat
-35 minutes on one, 2026-10-06): a lane never calls them and writes its rolled-back proofs into its Handoff, and the
-Orchestrator runs them, applies a migration and regenerates the types when Will can approve (his morning, or a word
-from him that he is watching).
+**The cloud seat.**
+- Its container holds no app variable yet; Will is adding them to the "Default" environment with a Setup script (zsh,
+  the Chrome wrapper). A new session picks an environment change up, a worker restart sometimes: the network change
+  he made at about 16:30Z reached this seat at its next restart (Supabase, Vercel and partyreel.com answer).
+- Seated here: zsh, `node_modules`, the `--no-sandbox` wrapper `/usr/local/bin/chrome-ns` (Will's yes, 16:41Z), and a
+  public-only `.env.local` (the Supabase URL and publishable key from the connector, the localhost site URL,
+  `DESIGN_PREVIEW_KEY`), rewritten from the environment by the spawn prompt's recipe once its variables arrive.
+- The four exports (`S`, `CHROME_PATH`, `NODE_USE_ENV_PROXY`, the site URL's override) live in `~/.zshrc` and
+  `~/.bashrc` as well as the snapshot, so a worker restart (every 15 to 60 minutes here) rebuilds them; the disk
+  survives one. A background command reads none, so set them inside it.
+- ★ The session's record was born in plan mode and stays `plan` until Will sets the mode picker to Auto: every worker
+  restart drops the seat back into plan mode, and `create_session` refuses an auto lane under a plan parent.
+- ★ The Supabase connector asks a form confirmation (an MCP elicitation) before SQL it detects as destructive (a
+  DELETE or DROP as a statement or inside a function body; comments and strings pass), and no client of Will's renders
+  it: the call times out at 60 s and nothing runs. The fix (Supabase's troubleshooting page "SQL confirmations do not
+  appear in your MCP client"): a custom connector at
+  `https://mcp.supabase.com/mcp?project_ref=ddafaemglzmuekbtjwzn&skip_elicitations=execute_sql,apply_migration`, which
+  Will is adding (16:50Z); every SQL call still waits on his Allow pop-up. Never reword or obfuscate a DELETE or DROP
+  past the detector.
+- The Vercel connector here sees the P3 team (`team_ht9qAVBQVZf60dpGNJUwmaj5`); Sentry and Stripe wait on their
+  authorization on this account.
+- This account's seven-day limit read `allowed_warning` (it resets 2026-10-06 21:00Z): this pickup is kept current
+  after every step.
 
 **Handoff, if this session ends:** the next Orchestrator reads this pickup, then STATUS; finds each lane's session
 (`list_sessions`, titled "partyreel lane: <track>") and resumes one that is mid-work by `send_message` to its id, or
 respawns it on its pushed branch (the runbook's "Resume a lane"); a lane whose manifest says handed-off is ready to
 integrate. A local `launch-prep` ahead of `origin` holds a merge made after this note: push it, then record it from its
-merge message and its lane's Handoff (`git show <merge>^2:docs/tracks/<track>.md`). Out of a cloud seat's reach: Will's
-desk at `localhost:3000` (he refreshes it himself), the Mac's old `../partyreel-wt/_scratch/` (history now) and the
-local agents' transcripts.
+merge message and its lane's Handoff (`git show <merge>^2:docs/tracks/<track>.md`). A migration's rolled-back proof is
+built from its file's foot: RED is `begin;` + the uncommented block + `rollback;`, GREEN puts the file's statements
+before the block. Out of a cloud seat's reach: Will's desk at `localhost:3000`, the Mac's old `../partyreel-wt/_scratch/`
+and another account's sessions.
 
 ## Next, in order
 
-1. **Integrate each handoff as it lands**, one at a time, each lane's migration through the Advisor before
-   `apply_migration` (its md5 against the file, advisors at 26/4/36, the types regenerated): billing-orphans and
-   drive-crumbs after the morning's SQL, then each lane below as it hands off.
-2. **Will's desk** holds brand r2's `take` (served at `2634388a8`, unanswered) and, at the next refresh, event-header
-   r6's `card` and `attention`: he runs `git pull && S=/tmp zsh usher/kit/desk-refresh.sh <sha>` in his checkout.
-   Then desk 6, the brand applied (brand-marks with the status set, which inherits his `attention` pick as its waiting
-   colour; aurora; marketing-themes with N4, N7 and N9; demo-framing r6; presence r1), cut after his brand r2 pick; and
-   desk 7, the moments boards (host-, guest- and account-moments, create-wizard r4: each a ROADMAP line with its calls),
-   guest-moments r1 (desk 45, five asks) and host-moments r1 (desk 40, seven asks) merged; account-moments and
-   create-wizard r4 after them. The PREMISE re-reads
-   are done: gate 40 flagged event-header's asks against crumbs-85's line in the hub page (the develop facts carry the
-   zone), and gate 43 brand's and event-header's against a11y-halo's `globals.css` (captions a step darker, paper's
-   warning words in bronze, the halo on the hub's cards): neither moves what `take`, `card` or `attention` asks.
-3. **Red-team 56b** (its own cloud session, below: crumbs-85's MEDIUM re-walked, the house set, the album's time; its
-   report is its last message, read with `list_events`), then **milestone 38** on
-   Will's yes: the `FULL=1` gate here, `pnpm compute:model` (a lane, since it needs the real services), merge to
-   `main`, tag, push (production deploys from the push); then the Drive and backup Workers (`wrangler`: Will's Mac, or
-   a Cloudflare token in the environment) and `DRIVE_WORKER_URL` and `BACKUP_WORKER_URL` on Vercel; drive-hardening's
-   live walk (P3's Google consent, Will's hand). The Advisor wants 38 soon: milestone 37's build re-grants a Pro credit
-   past a day (TEST money).
-5. **The second wave**, from ROADMAP "Now" as owns free: the halo's last four sites once pricing's and Drive's
-   lanes merge, uploads (per-event byte sums in SQL), code hygiene, marketing.
-6. **Compute:** lever 3 and 3b only on Will's X5; `pnpm compute:model` at every milestone.
-7. **★ Vercel's Hobby Active CPU** (about 3.89 of 4 hours over 30 days on 2026-10-06; the peak rolls off in early
+1. **Tonight's two migrations, through the scoped connector**, once its tools reach this session (a restart or a new
+   session; its server may carry a new name): the drift read re-run (it matched at 16:25Z: all seven hashes, both new
+   objects absent); billing-orphans' RED (1a true, 1b to 4 false) and GREEN (0 to 5 true); drive-crumbs' GREEN (7/7;
+   its RED passed at 15:35Z). A GREEN failing on a fixture is the fixture's; on an assertion, HOLD and consult the
+   Advisor. Then the applies (`apply_migration`, the whole file from the lane's head, `md5(statements[1])` against
+   `md5sum`), advisors at 26/4/36, and the types once after both.
+2. **Integrate billing-orphans, then drive-crumbs**, each record folding in the Advisor's words: billing-caps' "all or
+   nothing" covers only the orphans that held grants; drive-export's closing check re-asks a non-rate unknown every
+   90 s with no growth (a ROADMAP line for the Worker's cadence); adopt's orphan loop wants `and c.profile_id =
+   p_host_id` (a nit, a ROADMAP line); billing's `orphansDb` seam drops once the types carry the function (a
+   code-hygiene line).
+3. **Spawn desk 7's two boards** (account-moments-r1, create-wizard-r4) the moment this session's record reads auto;
+   they merge as they hand off (dev-only).
+4. **Red-team 56b** once the environment holds the app's variables: a fresh cloud session on the tip after both merges
+   (crumbs-85's MEDIUM re-walked, the house set, the album's time, billing's "Pro on its way" line at 375 and 1440, the
+   upload bursts); its report is its `result` event. Then **milestone 38** on Will's yes: the `FULL=1` gate here,
+   `pnpm compute:model` (a lane, since it needs the real services), merge to `main`, tag, push (production deploys
+   from the push); then the Drive and backup Workers (`wrangler`: Will's Mac, or a Cloudflare token in the
+   environment) and `DRIVE_WORKER_URL` and `BACKUP_WORKER_URL` on Vercel; Drive's live walk (P3's Google consent,
+   Will's hand: drive-crumbs' Handoff lists what to press). The Advisor wants 38 soon: milestone 37's build re-grants a
+   Pro credit past a day (TEST money).
+5. **The second wave**, cut as the environment allows and integrated after milestone 38's merge, so what ships is what
+   red-team 56b walked: halo-last (pricing's three focus rings and Drive's album picker, once both merges free them),
+   upload-sums (per-event byte sums in SQL, a migration through the Advisor), crumbs-86 (code hygiene: billing's seam,
+   the 404s' robots metadata, Create's zone seeding, the host's `captured_wall`), marketing-copy (retired-mocks' copy
+   line).
+6. **Will's desk** holds brand r2's `take` (served at `2634388a8`, unanswered) and, at the next refresh, event-header
+   r6's `card` and `attention` and desk 7's moments boards (host-moments r1 and guest-moments r1 merged;
+   account-moments r1 and create-wizard r4 when they land): he runs `git pull && S=/tmp zsh
+   usher/kit/desk-refresh.sh <sha>` in his checkout. Desk 6, the brand applied (brand-marks with the status set, which
+   inherits his `attention` pick as its waiting colour; aurora; marketing-themes with N4, N7 and N9; demo-framing r6;
+   presence r1), is cut after his brand r2 pick.
+7. **Compute:** lever 3 and 3b only on Will's X5; `pnpm compute:model` at every milestone.
+8. **★ Vercel's Hobby Active CPU** (about 3.89 of 4 hours over 30 days on 2026-10-06; the peak rolls off in early
    November): nothing runs against the alias or partyreel.com but what Will asks for by name.
-8. **Pacing:** the cloud credit (Will: $250, $168 left at his good night, a gift: spend it): full speed until he says
-   it is spent; the night's lanes read about $128 by 14:00Z, and at 15:40Z Will called it spent (about $10 left). The account's seven-day limit read `allowed_warning` at 10:31Z (it resets about 2026-10-11 13:00Z).
+9. **Pacing:** Will's $250 cloud credit on this account, full pace until he pauses for a desk round (a board lane ran
+   $9 to $15, a production lane $6 to $29).
 
 ## Waiting on Will
 
-- **His desk:** brand r2's take; event-header r6 at the next refresh.
-- **The SQL steps of tonight's two migrations** (billing-orphans', drive-crumbs'): each connector prompt needs his
-  approval. First the drift read, live `md5(btrim(regexp_replace(prosrc,'\s+',' ','g')))` against the Advisor's:
-  `record_pass_credit_grant` `8605ffe454f7e3ab41cdeaf8384edc6e`, `release_pass_credit`
-  `daf8070ceefe570939df3dd5965ecb5d`, `convert_pass_credit` `17dd8a3c42b8a3301206eb3de5462a9a`, `claim_pass_credit`
-  `608bb620d856a71389345ce194ddb6d4`, `cloud_export_ready` `998368c3d63a02382117a077f8f70668`, `cloud_export_lease`
-  `c92cf0439d5b687adb6ca61da496c0aa`, `cloud_export_check_page` `0172036645d31e4eefe10c8f5218a58b`;
-  `adopt_pass_credit_orphans` and `cloud_exports.folder_found` absent. Then each file's RED/GREEN proof (a GREEN
-  failing on a fixture is the fixture's; on an assertion, HOLD), the applies (either order), advisors at 26/4/36, the
-  types once after both, and the two integrations with the Advisor's words folded in: billing-caps' "all or nothing"
-  covers only the orphans that held grants; drive-export's closing check re-asks a non-rate unknown every 90 s with no
-  growth (a ROADMAP line for the Worker's cadence); adopt's orphan loop wants `and c.profile_id = p_host_id` (a nit).
-  Done at 15:35Z, Will approving: the drift read (all seven hashes match, both new objects absent) and drive-crumbs'
-  RED (fails where the migration is missing; its step 5 passes vacuously, nothing to lease). ★ Left: the Supabase
-  connector asks its own confirm for any DELETE or DROP, even inside a rolled-back proof, and it expires in 60 s
-  (three calls timed out on it): billing's RED and GREEN carry DELETEs in their fixtures, drive's GREEN and its apply
-  a DROP FUNCTION, billing's apply none. Run them with Will watching to confirm each; rebuild each proof from its
-  file's foot (`begin;` + the block + `rollback;`, GREEN with the file's statements before the block).
+- **This session's mode to Auto** (the app's mode picker): its record says `plan`, so restarts drop the seat into plan
+  mode and no lane spawns in auto.
+- **The scoped Supabase connector** (above): tonight's DELETE and DROP steps wait on it.
+- **The environment's app variables and Setup script** (zsh, the chrome-ns wrapper; `CHROME_PATH` and
+  `NODE_USE_ENV_PROXY=1` among its variables), as on willg97's: red-team 56b, `compute:model` and every lane that walks
+  the app need them. Sentry and Stripe to authorize on this account.
+- **His desk:** brand r2's take; event-header r6 and desk 7 at the next refresh.
 - **The calls lab** (`docs/calls.md`): the open questions X1, X2, X3, X5, X6 and X8, then each merge's calls, built and
   his to overrule. He asks direct questions in chat; answer in chat, never only in a file.
-- **Milestone 38** on his yes, after billing-orphans, drive-crumbs and red-team 56b (blocked on the browser call).
-- **A browser in a cloud lane:** headless Chrome as root needs `--no-sandbox`, and a lane's own permission check
-  sometimes refuses the spawn prompt's wrapper for it (red-team 56b at 11:11Z, crumbs-85's first boot; event-header-r6
-  and lab-kit-3 ran theirs). A refused step is never worked around, by the lane or from this seat: its walk reads NOT
-  DRIVEN. ★ Red-team 56b, and so milestone 38, waits on it. His call: a permission rule in the environment's settings
-  allowing Chromium with `--no-sandbox` (then a fresh red-team session), or red-team 56b on his Mac's desk. The fix
-  given him at 15:00Z: the environment's Setup script makes the wrapper (`printf '#!/bin/sh\nexec
-  /opt/pw-browsers/chromium --no-sandbox "$@"\n' > /usr/local/bin/chrome-ns && chmod +x /usr/local/bin/chrome-ns`,
-  and zsh), its variables set `CHROME_PATH`, `NODE_USE_ENV_PROXY=1` and `NEXT_PUBLIC_SITE_URL=http://localhost:3000`;
-  once set, the spawn prompt skips its own wrapper step (it makes one only where none is). Unverified at handoff (a
-  Haiku probe declined to run its checks): the next lane's boot shows it.
+- **Milestone 38** on his yes, after billing-orphans, drive-crumbs and red-team 56b.
 - **A Cloudflare API token** in the environment (`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`), only if the
   Workers should deploy from the cloud.
 - **The private note** scratch-synthesis wrote for this seat on his Mac (`CLOUD-ORCHESTRATOR-PRIVATE.md`): uploaded

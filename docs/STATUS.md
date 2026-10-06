@@ -21,9 +21,9 @@ Nothing is protected: every page, the host app and the guest pages are open to b
   the hub's doors as cards; Settings' roll; Back a layer at a time; the dashboard's chooser; the pass credit's integrity
   and stuck watch; the backup restoring and reconciling again; Drive's fixes and hardening; the lab's frames held still.
 - **Red-team 56** walked it (no HIGH, one MEDIUM, small findings) and crumbs-85 fixed them; billing-orphans and
-  drive-crumbs land the last of milestone 38's work once their SQL is approved, red-team 56b re-walks, then milestone 38
+  drive-crumbs land the last of milestone 38's work once their SQL runs, red-team 56b re-walks, then milestone 38
   on Will's yes, where Drive's Worker and the `partyreel-backup` Worker deploy (`tracks/orchestrator.md`, Next).
-- **The Orchestrator sits in a claude.ai cloud session** (2026-10-06); each lane is a cloud session of its own.
+- **The Orchestrator sits in a cloud session** on hi@willgibs.com's account (Will's $250 credit), each lane in its own.
 - **Vercel's Hobby Active CPU** reads about 3.89 of 4 hours over 30 days (2026-10-06; the peak rolls off in early
   November): nothing of ours runs on Vercel but what Will asks for by name; desks and red-teams run locally (`CLAUDE.md`).
 
@@ -71,8 +71,9 @@ project and its env; the backup Worker and Action secrets; the prune crons and `
 
 ## Waiting on Will
 
-- His desk (brand r2's take; event-header r6 at the next refresh); a browser for cloud walks (red-team 56b waits on it);
-  milestone 38's yes after its last lanes and red-team 56b; the calls lab's open questions (X1 the develop time, X2 a
+- This session's mode to Auto; the scoped Supabase connector (tonight's DELETE and DROP steps wait on it); the cloud
+  environment's app variables and Setup script (red-team 56b waits on them); his desk (brand r2's take; event-header r6
+  and desk 7 at the next refresh); milestone 38's yes after its last lanes and red-team 56b; the calls lab's open questions (X1 the develop time, X2 a
   Vercel token for the limits watch, X3 a Cloudflare analytics token, X5 the CDN-cached album, X6 the operator's uploads
   credit, X8 the policy tests' style picks) and the calls built for him to overrule; a Cloudflare token in the cloud
   environment if the Workers should deploy from there; the two backup copies with old EXIF to delete and the six retired
