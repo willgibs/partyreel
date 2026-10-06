@@ -165,6 +165,11 @@ export function createHubAlbum(
         ...detail,
       }),
   });
+  // ★ THE SEED'S LINKS ARE HELD AT THE SEED'S ATTRIBUTION (guest-requests). The page minted them after it read the
+  // album's attribution version, so each names its uploader as of `seed.sync.attr`; a store left at 0 dated them 0,
+  // since the window asks as it mounts, before the provider's first sync adopts the seed, and on any album whose
+  // attribution ever moved (a rename, a confirmation) the first poll re-asked every link the page had just minted.
+  store.links.setAttr(seed.sync.attr);
   return {
     eventId: seed.eventId,
     store,

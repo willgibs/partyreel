@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
-
 import { DOOR_FOOT, DoorWords } from "@/components/guest/door/door-page";
 import { LiveCount } from "@/components/guest/door/lit";
+import { ChromeLink } from "@/components/marketing/chrome/chrome-link";
 import { LegalConsentLine } from "@/components/shared/legal-consent-line";
 import { Button } from "@/components/ui/button";
 import { RangeText } from "@/lib/format/range-text";
@@ -192,7 +191,12 @@ export function RoleWords({
           variant="ghost"
           className="w-full text-muted-foreground"
         >
-          <Link href="/">Start your own</Link>
+          {/* ★ ON INTENT, NEVER ON SIGHT (guest-requests): this door is the demo's first screen, so a plain link
+              prefetched the home on every demo load (its tree, head and segments, and three sheets the album never
+              draws) for a press only some visitors make. `chrome-link.tsx` says why. */}
+          <ChromeLink href="/" prefetchOnIntent>
+            Start your own
+          </ChromeLink>
         </Button>
       </div>
     </div>

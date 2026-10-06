@@ -272,6 +272,13 @@ export type LiveGalleryHandle = {
    * last.
    */
   renameMine: (displayName: string) => void;
+  /**
+   * ★ ASK THE ALBUM FOR ITS WORD ON UPLOADS AFRESH (guest-requests): a sync now that carries no validator, so the album
+   * answers with what it says this moment (`accepting`, told through `onUploadsWord`) where it would answer 304. For an
+   * upload the album refused as closed while the page's last word said open: that word's validator says open too, so a
+   * host who reopened before the next poll would be answered 304 and never heard. The ask stands until an answer is in.
+   */
+  askUploadsWord: () => void;
 };
 
 export type GalleryLive = {
@@ -429,6 +436,12 @@ export type GalleryLiveProviderProps = {
    */
   onDevelopsAtChange?: (developsAt: string | null) => void;
   /**
+   * WHETHER THE ALBUM TAKES UPLOADS, as each full answer says it (`acceptingOf`, guest-requests): told with every answer
+   * that carries the host's switch, the same word again included, since an answer that says it is newer than an upload
+   * refused before it (the album's camera waits for one to hear a reopen). A 304, a teaser and a lock tell nothing.
+   */
+  onUploadsWord?: (accepting: boolean) => void;
+  /**
    * ★ WHETHER ANYTHING WAITS IN THE ALBUM, EVERYONE'S (crumbs-61, red-team 48's NIT): told at each change of it, never of
    * the count (at a busy party the count climbs every beat, and the page re-renders on a flip alone). The cover's Add says
    * "the first photo" only over an album nothing has been added to, visible or waiting; the page's server read of what
@@ -452,6 +465,19 @@ export function developsAtOf(answer: SyncResult): string | null | undefined {
   return body.waiting?.developsAt ?? null;
 }
 
+/**
+ * WHAT A SYNC ANSWER SAYS OF WHETHER THE ALBUM TAKES UPLOADS (guest-requests): a full album's answer (a manifest or a
+ * delta at full access) carries the host's switch, `accepting`, from the sync route's own read of the event. Anything
+ * else (a 304, a teaser, a lock, an answer from a server before it) says nothing of it.
+ */
+export function acceptingOf(answer: SyncResult): boolean | undefined {
+  if (answer.status !== 200) return undefined;
+  const body = answer.body as Partial<GuestFullSync>;
+  if (!body.ok || body.access !== "full") return undefined;
+  if (body.kind !== "manifest" && body.kind !== "delta") return undefined;
+  return typeof body.accepting === "boolean" ? body.accepting : undefined;
+}
+
 export function GalleryLiveProvider({
   ref,
   galleryPromise,
@@ -471,6 +497,7 @@ export function GalleryLiveProvider({
   onOwnRemoved,
   onGuestCountChange,
   onDevelopsAtChange,
+  onUploadsWord,
   onWaitingChange,
   children,
 }: GalleryLiveProviderProps) {
@@ -480,12 +507,15 @@ export function GalleryLiveProvider({
 
   /* ── when the album develops, as its sync says it (`developsAtOf`): told to the page, each new word once ── */
   const developsAtTold = useRef(onDevelopsAtChange);
+  /* ── whether the album takes uploads, as each full answer says it (`acceptingOf`): told to the page, every word ── */
+  const uploadsWordTold = useRef(onUploadsWord);
   useEffect(() => {
     developsAtTold.current = onDevelopsAtChange;
+    uploadsWordTold.current = onUploadsWord;
   });
 
   /* ── the store: the manifest, its version and the links, one sync for the doorbell and the poll ── */
-  const [{ store, transport, unread, seeded }] = useState(() => {
+  const [{ store, transport, unread, seeded, askAfresh }] = useState(() => {
     const inner = guestAlbumTransport({
       qrToken,
       // Read from the device's own storage at each ask, never baked in: a join mints a ticket
@@ -501,15 +531,23 @@ export function GalleryLiveProvider({
     // a time set, moved or taken away), so each answer is read for it here, the seed's included, and the page is
     // told each new word (never one read off a teaser, a lock or a 304, which say nothing of it).
     let lastTold: string | null | undefined;
+    // ★ AND ITS WORD ON UPLOADS (guest-requests): the host's switch rides every full answer (`acceptingOf`), and the page
+    // is told each one, so an open camera hears a reopen from the album rather than asking it by itself. An ask for the
+    // word afresh (`askUploadsWord`) sends the next sync with no validator, so the album answers what it says now, and
+    // stands until an answer is in: a request that failed asks again with the next.
+    let afresh = false;
     const tapped: PrimedTransport = {
       ...primed,
       async sync(req) {
-        const answer = await primed.sync(req);
+        const answer = await primed.sync(afresh ? { ...req, etag: null } : req);
+        if (answer.status === 200) afresh = false;
         const developsAt = developsAtOf(answer);
         if (developsAt !== undefined && developsAt !== lastTold) {
           lastTold = developsAt;
           developsAtTold.current?.(developsAt);
         }
+        const accepting = acceptingOf(answer);
+        if (accepting !== undefined) uploadsWordTold.current?.(accepting);
         return answer;
       },
     };
@@ -528,12 +566,21 @@ export function GalleryLiveProvider({
           detail,
         ),
     });
+    // ★ THE SEED'S LINKS ARE HELD AT THE SEED'S ATTRIBUTION (guest-requests). The page minted them after it read the
+    // album's attribution version, so each names its uploader as of `seed.sync.attr`; a store left at 0 dated them 0,
+    // since the asks made as the album mounts (the reel's cover stills, the window's first measure) go out before the
+    // first sync adopts the seed, and on any album whose attribution ever moved (a rename, a confirmation) the first
+    // poll re-asked every link the page had embedded. A teaser's links ride its own answer, so only a full seed says.
+    if (seed?.kind === "full") store.links.setAttr(seed.sync.attr);
     return {
       transport: carrying,
       store,
       // The store's own answer before it has one: what an unread album draws from.
       unread: store.getSnapshot(),
       seeded: seed !== null,
+      askAfresh: () => {
+        afresh = true;
+      },
     };
   });
   // The seed's snapshot, with what waits as the seed's own full answer said it (the store's answer carries it from its
@@ -879,6 +926,12 @@ export function GalleryLiveProvider({
           ownIds.has(m.id) ? { ...m, uploaderName: displayName } : m,
         ),
       );
+    },
+    askUploadsWord() {
+      // Nothing to ask where the album never polls (the demo, a lock): its word stays the page's.
+      if (!liveEnabled) return;
+      askAfresh();
+      void store.sync();
     },
   }));
 

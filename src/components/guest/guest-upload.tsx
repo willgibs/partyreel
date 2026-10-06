@@ -11,14 +11,15 @@ import {
   useState,
 } from "react";
 import type { Ref } from "react";
-import Link from "next/link";
 import { Sparkles } from "lucide-react";
 
 import { ClaimHandlePrompt } from "@/components/guest/claim-handle-prompt";
+import type { UploadsWord } from "@/components/guest/event-experience-open";
 import { addsWaitFor } from "@/components/guest/event-experience-wait";
 import type { FollowMomentHost } from "@/components/guest/follow-moment-card";
 import { UploadFailureSheet } from "@/components/guest/upload/failure-sheet";
 import { UploadIntentSheet } from "@/components/guest/upload/intent-sheet";
+import { ChromeLink } from "@/components/marketing/chrome/chrome-link";
 import { Button } from "@/components/ui/button";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import {
@@ -130,6 +131,8 @@ export function GuestUpload({
   onOwnRemoved,
   onCameraOpenChange,
   uploadsWait,
+  uploadsWord,
+  onAskUploadsWord,
 }: {
   ref?: Ref<GuestUploadHandle>;
   event: GuestEvent;
@@ -195,6 +198,13 @@ export function GuestUpload({
    * `addsWaitFor`) all end with the develop, with no reload. Absent (standalone), the event's own reading at render.
    */
   uploadsWait?: UploadsWait;
+  /**
+   * Whether the album takes uploads, as the page hears it from the album's sync (`useLiveUploadsWord`, guest-requests):
+   * the camera asks a closed album again once it says open, never by itself. Absent, the camera asks on its cadence.
+   */
+  uploadsWord?: UploadsWord;
+  /** Ask the album for its word on uploads afresh (the camera's, over a closed refusal the page's word said was open). */
+  onAskUploadsWord?: () => void;
 }) {
   const items = queue;
   const [addOpen, setAddOpen] = useState(false);
@@ -373,6 +383,9 @@ export function GuestUpload({
               isOwner={isOwner}
               isDemo={isDemo}
               onOwnRemoved={onOwnRemoved}
+              // The album's own word on uploads: a closed album is asked again once it says open, never by itself.
+              uploadsWord={uploadsWord}
+              onAskUploadsWord={onAskUploadsWord}
             />
           </Suspense>
         )
@@ -450,7 +463,11 @@ export function TurnCard() {
         </div>
       </div>
       <Button className="shrink-0" asChild>
-        <Link href="/">Start your own</Link>
+        {/* On intent, never on sight (guest-requests): the card stands in view over her photograph, where a plain
+            link would fetch the home and its sheets for a press only some visitors make (`chrome-link.tsx`). */}
+        <ChromeLink href="/" prefetchOnIntent>
+          Start your own
+        </ChromeLink>
       </Button>
     </div>
   );
