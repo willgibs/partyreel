@@ -976,3 +976,24 @@ develops tomorrow at 6 pm"), which fits a line at 375.
 **BL5. The held door's camera says the shots wait:** "They go in once you're let in" under the name and in Your shots,
 "Waiting to go in" on each shot, "N shots. They go in once you're let in." at the roll's end.
 - *Push back if* the words should say less (or the shots should not show until she is in).
+
+## BM. A guest's night, drawn (guest-moments-r1, on your desk)
+
+Its five asks are on your desk; these are the calls drawn into its options, built and yours to overrule.
+
+**BM1. The reel's take-back asks first:** a press on the reel's newest frame opens a two-key sheet (Take it back /
+Keep it), since a mis-press there must not delete; Your shots keeps its X with no question.
+- *Push back if* the reel's take-back should be one press too.
+
+**BM2. Her own first photo says "Yours is in"** (the arrival light's own name for the sweep), in the `own` option
+recommended.
+- *Push back if* the words should be quieter, or none.
+
+**BM3. `settle` keeps the glow on other people's photos:** the batch lands whole from the first frame, each new one
+still lit.
+- *Push back if* a settled batch should land unlit.
+
+**BM4. The retake ceiling, asked rather than assumed:** production allows three rolls' worth (72 shots at a roll of
+24), not the "up to 3 shots in all" the brief said; `limit` asks it with your flat 3 recommended, a `create_media`
+constant (a migration) for its wiring lane.
+- *Push back if* three rolls' worth should stand without asking.
