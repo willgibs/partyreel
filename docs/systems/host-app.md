@@ -293,9 +293,10 @@ hub and closes back to it.
 - **The hub's album is the paged album, and its numbers are counted**: the page plans the host's first sync (every
   item but the bin, each status in its flags) and mints links for the newest window (`FIRST_WINDOW`,
   `readHostLinksBody`, which also carries each item's like count, a host-only figure); the windowed rows ask for the
-  rest by id. Every number is counted in the version's snapshot (approved plus hidden, and pending), never a list's
-  length, since no list holds the whole album. The `live` slice is Download all's
-  ([uploads-and-r2.md](uploads-and-r2.md)).
+  rest by id, and its link store starts at the seed's attribution (`createHubAlbum`), so the first poll of an album
+  whose attribution moved never re-asks the first window's links. Every number is counted in the version's snapshot
+  (approved plus hidden, and pending), never a list's length, since no list holds the whole album. The `live` slice is
+  Download all's ([uploads-and-r2.md](uploads-and-r2.md)).
 - **The album** (`event-feed/event-gallery.tsx`) carries Add photos, Download all, Select and one View menu, which
   always renders so an empty album still reaches the bin. The bin is the paged album's shape (`lib/event/bin.ts`):
   choosing Deleted reads its list again (`/api/events/<id>/bin`: ids, shapes and countdowns, no links) so what was

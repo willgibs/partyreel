@@ -68,11 +68,27 @@ year of them.
 | **Pro 1 TB**   | $99/mo or $990/yr          | 1 TB    | 500 GB a month      | 299,593 photos or 269 hours of video | unlimited                   |
 
 Each step is a host's next natural use, which is how the pricing page labels it (a plan is never named by its size
-alone, since GB for GB a cloud drive is many times cheaper): the pass is one big event kept a year (a 200-guest
-wedding, twice over), Pro 50 GB a season of parties, Pro 200 GB a planner's year, Pro 1 TB a venue's year, at a price a
-GB that falls gently ($0.18, $0.145, $0.097) and never under the plan's worst month. Every card leads with the events
-it holds (`BIG_PARTY` in `tiers.ts`: 200 guests' 2,000 photos and 100 half-minute clips, about 10 GB of originals) and
-keeps the GB in its row; the pass says "one payment, no subscription", the line its market sells on.
+alone, since GB for GB a cloud drive is many times cheaper): the pass is one big event kept a year (a 200-guest wedding,
+twice over), Pro 50 GB a season of parties, Pro 200 GB a planner's year, Pro 1 TB a venue's year, at a price a GB that
+falls gently ($0.18, $0.145, $0.097) and never under the plan's worst month. Every card leads with the events it holds
+(`BIG_PARTY` in `tiers.ts`: 200 guests' 2,000 photos and 100 half-minute clips, about 10 GB of originals) and keeps the
+GB in its row; the pass says "one payment, no subscription", the line its market sells on.
+
+**What it is priced against** (each rival's own page, read 2026-10-03). Of sixteen products that do what Partyreel does
+(QR uploads, wedding albums, disposable cameras, live walls), fifteen sell one event for one price, and "no
+subscription" is their loudest line; a wedding kept a year with video costs $29 to $99, the median $49
+([GuestPix](https://guestpix.com/weddings-pricing/), [Wedibox](https://www.wedibox.com/pricing),
+[GuestCam](https://guestcam.co/pricing) and [WedUploader](https://weduploader.com/pricing) at $49;
+[WeddingSnap](https://www.weddingsnap.io/pricing), the one that publishes its GB, $39.99 for 50 GB a year). Almost none
+meters storage: they meter uploads (free tiers of 50 to 100), guests (the disposable cameras:
+[POV](https://pov.camera/pricing) asks $34.99 for 100) and time (uploads open a day to a year, albums kept a week to two
+years), and they charge more for video (a $9.99 add-on at [Lense](https://lense.app/pricing) and
+[Scene](https://scenedisposable.com/pricing)); a published renewal is rare (GuestPix's $49 a year). The free floor moved
+with iOS 27: a [temporary shared album](https://support.apple.com/en-us/127875) guests add to on the web at full
+resolution, free for 30 days. GB for GB, cloud storage is 9 to 19 times cheaper than Pro
+([iCloud+](https://support.apple.com/en-us/108047), [Google One](https://one.google.com/about/plans)), and a
+photographer's gallery ([Pixieset](https://pixieset.com/pricing/)) costs more than Pro at small sizes and a third of it
+at 1 TB. What no rival offers together is no guest limit, no upload window and video of any length to 10 GB a file.
 
 The ≈ column is `formatCapacity` in `tiers.ts`, the phrase /pricing, the plan sheet, the help and the blog print; the
 site derives it from the GB and never types it. **It assumes an iPhone at its default camera settings, and every
@@ -160,7 +176,8 @@ hold the model:
    backup holding all of it, plus the live cost of its events. It is provable only once the backup's prune keeps up and the
    live album grows with viewers × time, never uploads × viewers; the levers below buy both.
 3. **Guards are circuit breakers, not budgets.** Every vendor without a cap gets one of ours (`spend-watch`): past 10×
-   the trailing peak it alerts and flips the switch that stops the vector, with its `/admin` card. Growth is never a
+   the trailing peak it alerts, and pauses the switch that stops the vector only where a false alarm costs no guest's
+   moment (an uploads trip only offers its switch on the `/admin/jobs` card; some trips only alert). Growth is never a
    10× day; a looped function is.
 
 | Line | Price |
@@ -177,8 +194,12 @@ hold the model:
 ### The atlas
 
 Each way a host can make us spend, with its price, its class, what bounds it today, its worst for one host and what
-bounds it better. ≈ The operations behind the per-item figures: a call ≈3 ms of CPU, ≈4 ms a database round trip and
-20 ms an Auth one, 2 GB held for the wall time with no sharing, the proxy a second invocation.
+bounds it better. ≈ The operations behind the per-item figures: a call ≈3 ms of CPU, ≈4 ms a database round trip and 20
+ms an Auth one, 2 GB held for the wall time with no sharing, the proxy a second invocation on a page that renders a
+session, never on an API route. The compute model measured the CPU higher (Vercel's average ≈44 ms a call,
+`VERCEL_CPU_SECONDS_PER_CALL` in [systems/admin-observability.md](systems/admin-observability.md); locally a quiet poll
+≈17 to 26 ms and the guest page ≈250 to 420: [systems/architecture.md](systems/architecture.md) "Compute budget"), so
+the CPU in the per-call lines below is low until they are re-run (`usher/kit/cost-model/`).
 
 **(a) Bytes-months, priced by the cap**
 
@@ -186,25 +207,23 @@ bounds it better. ≈ The operations behind the per-item figures: a call ≈3 ms
   (`supabase/migrations/20261003220000_deleted_counts.sql:511`, `capWithWriteHeadroom`, `constants/tiers.ts:402`).
   Worst: 1.1 × the cap, Deleted included.
 - **The copies.** A ≈60 KB preview and a photograph's ≈1 MB phone copy, never metered: ≈30% on a photo's bytes, nearly
-  nothing on a video's. The phone copy fits within 4 MB and half its original (`media/preview-size.ts:92,112-121`);
-  the preview within 2 MB, checked at presign only and at no ratio to its original (`upload/server-pipeline.ts:176-178`,
-  `media/preview-size.ts:21`), which may be one byte (`validation/upload.ts:170,175`). Worst: ≈1.3 × the media for a
-  real host; unbounded for a flood of tiny files, each carrying up to 2 MB unmetered. Better: a preview never outweighs
-  its original (refused at presign; the tile serves the original, which is smaller anyway).
+  nothing on a video's. The phone copy fits within 4 MB and half its original (`media/preview-size.ts:92,112-121`); the
+  preview within 2 MB and its original's declared bytes, checked at presign only (`previewRefusal`,
+  `upload/server-pipeline.ts`, `media/preview-size.ts:21`): past either, the preview alone is refused and its tile
+  serves the original. Worst: ≈1.3 × the media for a real host.
 - **Deleted.** Inside the cap, for 30 days (`supabase/migrations/20261003220000_deleted_counts.sql`: the cap reads
   `host_storage_summary`, her albums and her Deleted), so a restore-and-re-delete cycle stores nothing past it. An
   item leaves early only for good, its object waiting for that night's purge (`leave_deleted`), so a refill day's
   peak holds what left beside what arrived: at 2× a month (Pro 50 GB's allowance), ≈0.07 × the cap averaged. Worst:
   ≈$0.0013 a GB of cap a month. Infrequent Access for the tail would save a third, but its 30-day minimum and $0.01 a GB read back make one
   restore cost more than it saved.
-- **The backup.** Every object a PUT creates, copies included (`workers/backup/src/index.ts:96-107`, no key filter at
-  `:527-535`), into Infrequent Access under a 35-day lock. Accrue-only today: the prune runs dry
-  (`workers/backup/wrangler.jsonc:55`) and, live, deletes at most 500 media a week after scanning 5,000 objects from the
-  head of the listing (`workers/backup/src/prune-strategy.ts:20,27`), so a deleted byte stays at $0.013 a GB-month,
-  copies included, for good. Worst: unbounded (Pro 50 GB re-filled at its 2× a month carries ≈$16 a month of backup a
-  year in). Better: the prune keeps up (a cursor, caps sized to the deletions, `PRUNE_MODE=live`), the invariant's
-  precondition, then the backup holds the live set and 43 days of uploads (the 36-day gate and the weekly cadence);
-  then originals only, once something can remake the copies.
+- **The backup.** Every object a complete lands in `events/`, copies included (`backupOne`,
+  `workers/backup/src/index.ts`; the queue skips any other key), into Infrequent Access under a 35-day lock. Accrue-only
+  today: the prune runs dry (`PRUNE_MODE`, `workers/backup/wrangler.jsonc`), so a deleted byte stays at $0.013 a
+  GB-month, copies included, for good. Worst: unbounded (Pro 50 GB re-filled at its 2× a month carries ≈$16 a month of
+  backup a year in). Better: `PRUNE_MODE=live` (the prune's cursor and its caps sized to the deletions are built), the
+  invariant's precondition, then the backup holds the live set and 43 days of uploads (the 36-day gate and the weekly
+  cadence); then originals only, once something can remake the copies.
 - **Re-uploading (delete and re-upload).** ≈$0.0165 of operations a GiB of photos uploaded (each one three PUTs, two
   HEADs, three backup copies at $10.26 a million, nine Queue operations, four invocations) and $0.0013 a GiB of clips,
   plus 43 days of backup. Bounded by each plan's published uploads allowance, never refunded (`upload_allowance`,
@@ -213,19 +232,19 @@ bounds it better. ≈ The operations behind the per-item figures: a call ≈3 ms
 
 **(b) Per-request constants**
 
-- **An upload.** Two calls a file, one file at a time (`upload/uploader.ts:314,405`), about seven database round trips
-  (`src/app/api/r2/presign-upload/route.ts:24,89`, `src/app/api/r2/complete-upload/route.ts:49,74,95`,
-  `forensics/capture.ts:50,62`), the browser's PUTs straight to R2 (16 MB parts from 100 MB:
-  `media/limits.ts:83-85`) and two HEADs (`upload/server-pipeline.ts:506,586`): ≈$0.056 a thousand photos and $0.040 a
-  thousand clips, the backup included. No limiter sits on presign or complete, and the meter counts bytes, so the
-  number of items is unbounded: ≈$0.06 a thousand tiny files. Better: an hourly upload breaker per account, far past any
-  party (spend-watch's alert first).
-- **An upload never completed.** A presigned PUT lives two hours and is not single-use (`r2/presign.ts:48`), the ledger
-  is written only by `create_media`, and the backup copies the object on its PUT; the orphan sweep reclaims the
-  primary's copy after 24 hours, at most 20 pages a night from the head of the listing
-  (`lifecycle/sweeps/orphans.ts:11-13,44`), so past the first 20,000 keys never. Worst: unbounded, unmetered bytes
-  (≈$0.012 a GB in the backup's 36 days, and the primary's for good). Better: a presign's declared bytes count against
-  the month's uploads (an abandoned one simply counts), and the sweep's cursor.
+- **An upload.** A burst of up to 20 files takes one presign and as few completes as its landing allows, its bytes one
+  file at a time (`upload/burst.ts`), about seven database round trips (`src/app/api/r2/presign-upload/route.ts:24,89`,
+  `src/app/api/r2/complete-upload/route.ts:49,74,95`, `forensics/capture.ts:50,62`), the browser's PUTs straight to R2
+  (16 MB parts from 100 MB: `media/limits.ts:83-85`) and two HEADs (`upload/server-pipeline.ts:506,586`): ≈$0.056 a
+  thousand photos and $0.040 a thousand clips, the backup included. The presign's meter holds an account to 20,000
+  uploads a clock hour, every guest's and her own, failing open (`meter_upload`'s `c_uploads_an_hour`): far past any
+  party, so a flood of tiny files is ≈$0.06 a thousand, ≈$1.20 an hour at the breaker.
+- **An upload never completed.** A presigned PUT lives two hours and is not single-use (`r2/presign.ts`), but a single
+  PUT lands at its key's `staging/` twin, which only a complete copies into `events/`, and a multipart becomes an object
+  only at the complete's assembly; the backup and the orphan sweep (resuming from its cursor) read `events/` alone, and
+  R2's lifecycle rules delete `staging/` a day on and abort an unfinished multipart. Worst: the bytes a sender actually
+  pushes, unmetered: a day at the primary's price in `staging/`, an unfinished multipart's parts until the abort rule;
+  the backup never sees them.
 - **A view, a Save, a zip.** GETs at $0.36 a million, egress free: a tile is one preview GET
   (`src/components/app/media-grid.tsx:18`); the viewer reads its original once, `no-store` (`media/share-save-held.ts`);
   Save mints at most 2,000 links and fetches three at a time (`export/take-home.server.ts:37`,
@@ -238,9 +257,11 @@ bounds it better. ≈ The operations behind the per-item figures: a call ≈3 ms
 - **A page load or a refresh.** `/e/<token>` at full access is ≈18 round trips and ≈150 presigns
   (`src/app/(guest)/e/[token]/page.tsx:299,459,490`): ≈$0.00026 with a first visit's ≈0.85 MB of static assets, $0.00003
   a repeat, plus the guest count's walk below.
-- **A page open indefinitely.** A visible tab polls every 60 s, every 12 s with no socket (`shared/use-live-poll.ts:19-21`),
-  and re-mints up to 600 links an hour after a sync (`album/links.ts:124`, `album/store.ts:302`): ≈$0.15 of polls and
-  $0.04 of re-mints a month, and one connection while visible. Nothing ends it.
+- **A page open indefinitely.** A visible tab polls every 60 s under its socket, every five minutes after ten untouched
+  minutes, and not at all after two untouched hours (the reel's screen, `unattended`, only rests); with no socket, every
+  12 s while the album moves and every minute once it is quiet (`shared/use-live-poll.ts`). It re-mints up to 600 links
+  an hour after a sync (`album/links.ts:124`, `album/store.ts:302`): ≈$0.15 of polls a month at a minute, about a fifth
+  at rest, $0.04 of re-mints, and one connection while visible.
 - **The wall screen and the endless reel.** `?reel=screen` keeps its wake lock for good (`guest/screen-posture.ts:128-132`),
   plays a still every 3 s (`reel/defaults.ts:25`), re-read `no-store` past 48 decoded (`reel/engine/asset-cache.ts:25`,
   `reel/engine/assets.ts:86`), and re-reads every clip window (`reel/engine/video/window-reader.ts:114`) to 200 MiB a
@@ -253,31 +274,31 @@ bounds it better. ≈ The operations behind the per-item figures: a call ≈3 ms
   (`guest/refresh-coalescer.ts`, `ALBUM_BATCH_MS`), her own upload, a host's own write and a tab's return at once; a
   hidden tab leaves the channel and asks nothing until its return's one catch-up (`guest/use-gallery-doorbell.ts`,
   `shared/use-live-poll.ts`); a delta carries its newest 48 items' links (`events/album-wire-links.server.ts`), so a
-  links call is left for windows, the reel tile's stills and re-mints. Calls and messages still grow as uploads × visible
-  tabs, a beat apart. A sync costs ≈$3.50 a million as a 304 and $4 as a delta, each run twice with the proxy
-  (`src/proxy.ts:118,133-134`). Worst: the 2,000-guest wedding, ≈$33 in an evening before `album-calm`, ≈$11 after.
+  links call is left for windows, the reel tile's stills and re-mints. Calls and messages still grow as uploads ×
+  visible tabs, a beat apart. A sync costs ≈$3.50 a million as a 304 and $4 as a delta, on an API route that runs no
+  proxy (`src/proxy.ts`'s matcher). Worst: the 2,000-guest wedding, ≈$33 in an evening before `album-calm`, ≈$11 after.
   Next: one ping a beat or one push per album.
-- **The guest count on every sync.** Every 200 sync, and every page load, walks every guest upload and guest row of
-  its event to print "from M guests" (`src/app/api/album/guest/sync/route.ts:201`,
+- **The guest count on every sync.** Every 200 sync, and every page load, walks every guest upload and guest row of its
+  event to print "from M guests" (`src/app/api/album/guest/sync/route.ts:201`,
   `db/queries/guest-events-admin.ts:229-234`, `db/queries/social.ts:941-989`): ≈96 B a row of JSON, ≈28 gzipped, of
-  database egress past 250 GB at $0.09 a GB, and the database's CPU, ≈5 billion rows read at the wedding. Better: count
-  once per album a beat.
+  database egress past 250 GB at $0.09 a GB, and the database's CPU, ≈0.9 billion rows read at the wedding. Better:
+  count once per album a beat.
 - **Attribution's re-mint.** A rename, a confirmation or a claim after an upload moves the album's attribution
   (`supabase/migrations/20260926100000_album_version.sql:16`) and stales every held link (`album/links.ts:154`): every
-  open tab re-mints up to 600 at its next sync, ≈100 ms of the SDK's presigning a 200 ($20 a million such calls).
-  Better: attribution rides the sync; a lean presigner.
+  open tab re-mints up to 600 at its next sync, the presigning signed by hand (`r2/sigv4.ts`), about a twelfth of the
+  SDK's ≈100 ms a 200. Better: attribution rides the sync.
 - **A guest.** Nothing bounds the guests of an event (`create_guest`,
   `supabase/migrations/20260930140000_one_account_one_ticket.sql:111,273`); the join limiter counts per address and
-  event, 400 a quarter-hour (`security/abuse-rate-limit.ts:59-64`). A confirmed guest is a Supabase user
-  (`src/components/auth/email-sign-in.tsx:290,335`): an MAU at $0.00325 past 100,000 and ≈1.1 code emails at $0.0009
-  past Resend Pro's 50,000, ≈$0.0042 at scale and nothing below it. Linear in guests: 1,000 confirming, $4.24 at
+  event, 3,000 a quarter-hour, sized for the wedding (`security/abuse-rate-limit.ts`). A confirmed guest is a Supabase
+  user (`src/components/auth/email-sign-in.tsx:290,335`): an MAU at $0.00325 past 100,000 and ≈1.1 code emails at
+  $0.0009 past Resend Pro's 50,000, ≈$0.0042 at scale and nothing below it. Linear in guests: 1,000 confirming, $4.24 at
   scale. Better, near 70,000 MAU: confirming a guest without an Auth user.
-- **An event.** Pro keeps unlimited (`constants/tiers.ts:195-199`), and nothing limits creating them
-  (`db/mutations/events.ts:114-118`). The dashboard reads every event (`db/queries/events.ts:92-110`) and presigns up to
-  four stills each (`:203`), and the bell reads them all again when anything waits
-  (`db/queries/notifications.ts:35-37,141-144`): ≈2,000 presigns and ≈0.3 s of CPU a load at 500 events. Worst: O(events)
-  a load; a flood of empty events is database rows. Better: the dashboard pages; an unpublished creation breaker
-  (≈100 a day an account).
+- **An event.** Pro keeps unlimited (`MAX_EVENTS`, `constants/tiers.ts`), and a breaker refuses an account's 101st
+  creation in any 24 hours, a deleted one included (`enforce_event_limit`, 20261003210500). The dashboard reads every
+  event (`db/queries/events.ts:92-110`) and presigns up to four stills each (`:203`), and the bell reads them all again
+  when anything waits (`db/queries/notifications.ts:35-37,141-144`): ≈2,000 presigns and ≈0.3 s of CPU a load at 500
+  events. Worst: O(events) a load; a flood of empty events is at most 100 rows an account a day. Better: the dashboard
+  pages.
 - **A huge album.** The hub reads the whole manifest server-side while its client pages it again
   (`src/app/(app)/dashboard/[eventId]/page.tsx:271`, `event/host-album.server.ts:115-132`), and the storage list's
   overview reads every active media row of the account (`db/queries/storage-list.ts:184-205`): O(items) a load. Better:
@@ -288,37 +309,39 @@ bounds it better. ≈ The operations behind the per-item figures: a call ≈3 ms
   and one a minute a user, the form waiting 60 s (`src/components/auth/email-sign-in.tsx:55`). Worst: the project's
   hourly limit at $0.0009 each, $0.09 an hour today.
 - **Hosting and functions.** No guest byte crosses Vercel (`media-cost-policy.test.ts`); a first visit is ≈0.85 MB of
-  static assets, so Flat Rate's included 1 TB holds ≈1.2M first visits a month. The proxy runs before every page and
-  API call and asks Auth about a signed-in caller (`src/proxy.ts:118`, `supabase/middleware.ts:48`), and a route handler
-  misses React's `cache()`, so a signed-in album request asks Auth three times (`events/album-viewer.server.ts:74,99`).
-  Better: the proxy off the API routes, which verify for themselves; one `getUser()` a request; a lean presigner.
+  static assets, so Flat Rate's included 1 TB holds ≈1.2M first visits a month. The proxy runs only before a page that
+  renders a session and on every path of the admin host, asking Auth about a signed-in caller (`src/proxy.ts`'s matcher,
+  `supabase/middleware.ts`); an API route runs none, and a route handler misses React's `cache()`, so a signed-in album
+  request asks Auth twice (`events/album-viewer.server.ts:74,99`). Better: one `getUser()` a request.
 - **Realtime's connections.** The cycle's peak, $10 a thousand past 500. With the spend cap on, Pro stops at 500
-  connections and 500 messages a second, 10,000 and 2,500 without ([limits](https://supabase.com/docs/guides/realtime/limits));
-  past the first a new socket is refused, past the second the project's sockets are dropped, and an album falls back to
-  its 12 s poll. Better: `album-calm`, since a hidden tab leaves its channel and realtime-js closes a socket left with
-  none.
+  connections and 500 messages a second, 10,000 and 2,500 without
+  ([limits](https://supabase.com/docs/guides/realtime/limits)); past the first a new socket is refused, past the second
+  the project's sockets are dropped, and an album falls back to its 12 s poll. A hidden tab leaves its channel, and
+  supabase-js closes a socket left with none 50 s on (`guest/use-gallery-doorbell.ts`), so only a visible tab holds a
+  connection.
 - **The jobs.** ≈$0 a day: the purge cron, 60 s at most (`vercel.json:5`, `src/app/api/cron/purge/route.ts:85`); the
-  reconcile HEADs the first 5,000 objects daily (`workers/backup/src/index.ts:77`); the prune lists 5,000 weekly; the
-  export heartbeat; the nightly database dump into the backup's `db/` (`.github/workflows/db-backup.yml:35,158`), which
-  nothing prunes, ≈$0.01 a GB-month a night kept.
+  reconcile merges both buckets' listings daily from its cursor, a thousand keys a page
+  (`workers/backup/src/reconcile-run.ts`); the prune walks the backup weekly from its cursor; the export heartbeat; the
+  nightly database dump into the backup's `db/` (`.github/workflows/db-backup.yml:35,158`), which nothing prunes, ≈$0.01
+  a GB-month a night kept.
 - **Observability.** Sentry traces 10% (`observability/sentry.ts:103`) and replays only on an error
   (`src/instrumentation-client.ts:31-32`), its plan dropping what passes the quota; Web Analytics runs on the marketing
   pages only (`src/app/(marketing)/layout.tsx:31`), $3 a 100,000 events past 50,000 on Pro.
 - **Stripe's fee**, on every charge (the table above), and **a Free account**: 100 MB, ≈$0.003 a month with its copies,
   its creation bounded by Auth's limits and its event resting after 180 quiet days (`lifecycle/inactivity.ts:7`).
 
-**(c) Bounds.** Published, each a row of the pricing table with its hover line (Will, 2026-10-03: any limit a host
-could meet): storage, uploads (each plan's own), events, guests (no limit), a file's 10 GB, Deleted's 30 days and that
-it counts in storage, how long each plan keeps an album, Free's photos only and its 180-day rest. The table's fine
-print says the rest in one line, the fair-use line: every plan is for real events, and behind the table we watch only
-for automated abuse, which we may slow or pause, resting on the Terms' "reasonable limits on upload volume, download
+**(c) Bounds.** Published, each a row of the pricing table with its hover line (Will, 2026-10-03: any limit a host could
+meet): storage, uploads (each plan's own), events, guests (no limit), a file's 10 GB, Deleted's 30 days and that it
+counts in storage, how long each plan keeps an album, Free's photos only and its 180-day rest. The table's fine print
+says the rest in one line, the fair-use line: every plan is for real events, and behind the table we watch only for
+automated abuse, which we may slow or pause, resting on the Terms' "reasonable limits on upload volume, download
 bundling and other activity" and their bar on getting around a plan's limits (`constants/legal-terms.tsx:188,193`).
 Unpublished, because no real host meets them: an account's uploads a clock hour (20,000) and its events a day (100)
 (`upload_meter`, 20261003210500), Auth's hourly email limit and spend-watch's 10×, and a preview no heavier than its
-original (still to add); `content-policy.test.ts` fences the word "ingress" and the breakers' numbers. "No guest limit"
+original; `content-policy.test.ts` fences the word "ingress" and the breakers' numbers. "No guest limit"
 (`src/components/marketing/jsonld.tsx:86`, the FAQ, `content/llms.ts:120`) and "unlimited events"
-(`src/components/marketing/sections/pricing/unlock-grid.tsx:53`, `constants/marketing-voice.ts:130`) stay true,
-because a guest is a constant and an event pages.
+(`src/components/marketing/sections/pricing/unlock-grid.tsx:53`, `constants/marketing-voice.ts:130`) stay true, because
+a guest is a constant and an event pages.
 
 ### The worst month
 
@@ -386,18 +409,15 @@ $52.90 against $95.14 (the plans' lines re-run for Ladder A on 2026-10-04, on th
 | --- | --- | --- | --- |
 | Supabase | The [spend cap](https://supabase.com/docs/guides/platform/cost-control), on or off: on, an item past its quota is refused until the next cycle (MAU, Realtime, egress, disk; never compute); no budget and no alert. The Management API reads request counts and metrics, never billable usage, and cannot flip the cap | Cap on; Auth's email limit at 100 an hour | Cap off (Will), `spend-watch` reading our own tables at 10× the trailing peak; Auth's email limit at ≈10× the trailing peak hour and never under the largest door expected (≈2,000 an hour), a runaway's ceiling then ≈$1.80 an hour; compute stepped by hand |
 | Vercel | Hobby's limits are hard, a hit pausing the feature for 30 days. Pro's [Spend Management](https://vercel.com/docs/spend-management): an on-demand budget ($200 for a new team), web, email and SMS notices at 50, 75 and 100%, a webhook, and Pause Production Deployments (every project, minutes late, each resumed by hand) | Hobby | Pro (required for commercial use); Spend Management at ≈10× the trailing month's on-demand, its webhook to `spend-watch`, the pause on as the ceiling |
-| Cloudflare | No cap: [budget alerts](https://developers.cloudflare.com/billing/manage/budget-alerts/) (account-wide, one email a period, informational) and per-product usage notifications on a Pro zone | A $10 budget alert; the Workers' own caps (5,000 reconciled and 500 pruned a run, the export's 300 s of CPU) | Budget alerts at steps ($25, $100, $500); `spend-watch`; the same caps |
+| Cloudflare | No cap: [budget alerts](https://developers.cloudflare.com/billing/manage/budget-alerts/) (account-wide, one email a period, informational) and per-product usage notifications on a Pro zone | A $10 budget alert; the Workers' own budgets (the reconcile's and the prune's deadlines and 95,000 subrequests a run, the prune's 30,000 media, the export's 300 s of CPU) | Budget alerts at steps ($25, $100, $500); `spend-watch`; the same caps |
 | Resend | Free's 3,000 a month and 100 a day refuse past them; Pro's overage only when switched on | Free | Pro, overage on, bounded by Auth's limit and `sendOnce` |
 | Sentry | The plan's quota drops what passes it | Developer (free) | Team, on-demand off |
 
 ### The levers
 
-**The preconditions**, which nobody sees: the prune keeps up (a cursor and caps sized to the deletions, with the
-launch's `PRUNE_MODE=live`: the backup goes from every byte ever uploaded to the live set and 43 days, a re-filled
-Pro 50 GB $14 a month cheaper a year in); a presign's declared bytes count against the month's uploads, and a preview
-is never heavier than its original (the two unmetered holes close); an account's uploads an hour and events a day get
-breakers far past any party. Each is small; rule 2 holds only with
-them.
+**The preconditions**, which nobody sees: the prune keeps up (built; it waits on the launch's `PRUNE_MODE=live`: the
+backup goes from every byte ever uploaded to the live set and 43 days, a re-filled Pro 50 GB $14 a month cheaper a year
+in). Rule 2 holds only with it.
 
 **The win-wins, by saving** (each cuts our cost and is something a guest or a host feels):
 
@@ -408,25 +428,24 @@ them.
    peak; a big party stops machine-gunning tiles.
 2. **The guest count once a beat:** count an album's guests once a beat (a counter beside its version, or a cache keyed
    by it), never by walking every guest upload on every sync and page load. ≈$2.30 of egress and ≈0.9 billion row reads
-   a wedding after `album-calm` (≈5 billion as built), and the database's next step at scale. Small. Big albums open
-   faster.
-3. **The proxy off the API routes, one `getUser()` a request:** half the invocations of every call, and two of a
-   signed-in album request's three Auth round trips. Small, auth-adjacent, so reviewed as such. Every call answers
-   sooner.
+   a wedding (≈5 billion before `album-calm`), and the database's next step at scale. Small. Big albums open faster.
+3. **One `getUser()` a request:** one of a signed-in album request's two Auth round trips (the proxy already skips every
+   API route, half the invocations of every call). Small, auth-adjacent, so reviewed as such. Every call answers sooner.
 4. **One ping a beat, then one push per album:** the trigger rings at most once an album a beat, so Realtime's messages
    go from uploads × listeners to beats × listeners (≈$3.30 a wedding, and clear of 500 a second): small. Then a
    Durable Object per live album pushes the delta over WebSockets (outgoing messages free), ending the per-viewer sync
    and both Realtime ceilings: weeks, and a new moving part. Arrivals land together for everyone.
-5. **A lean presigner:** SigV4 by hand (`node:crypto`, the day's key cached) in ≈4 µs against the SDK's ≈170 µs
-   (measured): a 600-link re-mint from ≈100 ms of CPU to ≈3, a 500-event dashboard from ≈340 ms to ≈9. Medium. Albums
-   and dashboards answer sooner.
+5. **A lean presigner** (built: SigV4 by hand, `r2/sigv4.ts`, the day's key cached): ≈4 µs a link against the SDK's ≈170
+   µs, so a 600-link re-mint costs ≈3 ms of CPU where it cost ≈100, and a 500-event dashboard ≈9 where it cost ≈340.
+   Albums and dashboards answer sooner.
 6. **Attribution rides the sync:** a confirmation sends the changed names, never a re-mint of every open tab's 600
    links. Medium. A confirmed guest's name reaches every album in the same beat.
 7. **The dashboard and the storage list page:** a first page of events, per-event sums in SQL, the hub's Reel card from
    the take's head, so a 5,000-event account costs what a 50-event one does and "unlimited events" stays true by
    engineering. Medium. Big accounts load faster.
-8. **The screen rests:** a visible tab an hour without change backs its poll off to five minutes, the doorbell still
-   ringing at once: ≈$0.15 a screen a month. Small. Nothing on screen changes.
+8. **The screen rests** (built as the poll's rest, `shared/use-live-poll.ts`): a visible tab ten untouched minutes polls
+   every five, the doorbell still ringing at once, and past two untouched hours a page stops asking while the reel's
+   screen only rests. Nothing on screen changes.
 9. **A media domain on Cloudflare**, with the DNS move: an R2 custom domain behind Cache Rules and a WAF HMAC token
    ([Pro](https://www.cloudflare.com/plans/), $25 a month, [unlocks it](https://developers.cloudflare.com/waf/custom-rules/use-cases/configure-token-authentication/);
    the WAF [runs before the cache](https://developers.cloudflare.com/ruleset-engine/reference/phases-list/)) serves tiles

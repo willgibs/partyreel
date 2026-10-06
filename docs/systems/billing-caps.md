@@ -92,7 +92,7 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   `Retry-After` to the hour's end). An account's events created in any 24 hours, 100 (`c_events_a_day`), a deleted one
   included, in `enforce_event_limit` on a creation alone (its undelete trigger is a restore) and after the plan's own
   limit; the create action prints its sentence, never the plan limit's, since a Pro host has no event limit to upgrade
-  past (`mutations/events.ts`). Each constant's WHY sits beside it in 20261003210500.
+  past (`mutations/events.ts`). Each constant's WHY sits beside it in its function's newest migration.
 - **Four counters, deliberately different; never reconcile them.** The cap reads what she stores, Deleted included,
   so a delete frees nothing until the item leaves Deleted for good; the monthly ledger never decrements (it is also
   the delete-and-re-upload churn defense), and nor does a pass's `uploaded_bytes`, its year's twin; `storage_used_bytes`
@@ -305,8 +305,9 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   where the sheet would believe in the entry the replace took and its close would go Back too far.
 - ★ **The account page's Plan card (`#plan`) is billing's one home in the app,** and every fact on it is
   server-derived: the columns only the webhook and the pass recompute write, read through the RLS-scoped profile row.
-  Its only search params are `?reset` and `?welcome` (Stripe's return marker, which opens the receipt and decides no
-  plan); `plan-card.test.ts` pins the read path.
+  Its only search params are `?reset`, `?welcome` (Stripe's return marker, which opens the receipt and decides no
+  plan) and `?email_change` (an email-change link's landing, which picks a line of copy); `plan-card.test.ts` pins the
+  read path.
 - ★ **Checkout's `success_url` comes from an exact-shape allow-list,** never a sanitized input (`return-path.ts`):
   `/dashboard`, `/dashboard/<uuid>` with an optional `room=share|settings`, and `/account`; anything else returns to
   `/dashboard`, so no client value leaves the origin, and Stripe validates none of it. The list is also the set of

@@ -218,7 +218,7 @@ lane waiting out an outage.
   mail goes within fifteen and the hourly heartbeat stays inside /admin/jobs' Overdue line (`sweep-cadence.test.ts`
   holds the clocks to one). Vercel's Usage page after a week of sweeps says which bound is real.
 - Its logs never carry a token, a secret, a lease or a session address (`log-safety.test.ts`). ★ A local walk's
-  `wrangler dev` prints `Error: internal error; reference = …` about 15 s after each remote R2 call (two a call,
+  `wrangler dev` prints `Error: internal error; reference = …` about 15 s after a remote R2 call (up to two a call,
   HEADs included, the fetch context as much as the queue's) and an occasional `Network connection lost.`, nothing
   failing: wrangler's remote-binding proxy closing its idle connections, reproduced with bare `head()`s (the lane's
   2026-10-05 repro). The deployed Worker's logs (`wrangler tail partyreel-drive`) show neither; one there is a finding.
@@ -261,3 +261,40 @@ lane waiting out an outage.
 - **Google's day is counted by the hour** (`cloud_export_sent_hours`), which also carries the breaker's 30 days and the
   spend watch's day, and outlives a disconnect so the breaker cannot be reset by one.
 - **The spend watch reads a day, not an hour,** to ride the watch's `last_day` machinery.
+
+## The next versions (designed, not built)
+
+The ROADMAP's Drive lines point here; nothing in this section exists yet.
+
+- **Live sync, the second version on the same queue,** a fast follow once the one-shot send has proved the machinery
+  on sends she starts and watches. An album's sync would be a job of its own kind that never finishes while it is on:
+  an AFTER trigger on a row becoming visible (inserted approved, let in, developed) appends an item due after a grace
+  window of about 15 minutes, the complete route kicks the Worker in `after()`, and the sweep is the backstop;
+  `create_media*` stay the only writers of `media`, and the lanes, leases, pace, checks and breaker stay as they are.
+  Each of what it opens is a decision of its own:
+  - only approved, visible items after the grace window, skipping anything removed or reported meanwhile, since a live
+    album would otherwise copy a troll's upload into her Google account within seconds, where Google's own abuse
+    scanning acts on her account;
+  - a take-back or a removal reaches the Drive copy: a `trash` act with its own audit, the first time Partyreel would
+    remove something in a user's Drive on its own;
+  - an idle sync holds no lane (it is kicked by an upload only), or every connected album would cost a Queue message
+    every eleven-minute slice for ever;
+  - guests' uploads leaving Partyreel's custody automatically are a new disclosure for the guest-facing privacy text;
+  - its bytes stay bounded, since a sync sends at most what was uploaded and the uploads allowance keeps that under
+    the breaker;
+  - which plans have it: the competitors charge for exactly this, so the lean is paid plans ("Every plan" above is the
+    one-shot send's).
+- **Dropbox next, provider-neutral where it cost nothing.** The tables already say `cloud_` and carry a `provider` (its
+  check knows only `google_drive`), and the Worker's Google calls sit behind one adapter (`driveAdapter`,
+  `workers/drive/src/google-drive.ts`), so a second provider is an adapter and a check value. Dropbox's path is
+  `save_url`: Dropbox fetches a presigned R2 link itself, asynchronously, within 15 minutes, so the lease would carry a
+  presigned GET minted by the app (the Worker holds no R2 key) and the Worker would only poll Dropbox's job. Its app
+  folder (`Apps/Partyreel/`), its own OAuth app and its development cap (500 users, production approval needed within
+  two weeks of reaching 50) are that lane's; an upload session takes at most 150 MiB a request and lasts 7 days.
+- **The other destinations, as read on 2026-10-03.** Google Photos waits: since 31 March 2025 an app sees only what it
+  created, and its 10,000 requests a day are per project, every user's uploads included. OneDrive is possible
+  (`Files.ReadWrite.AppFolder`; ordered chunks under 60 MiB in multiples of 320 KiB; 250 GB a file; no upload from a
+  URL on work or school accounts, where an admin can also block consent; publisher verification is free with a
+  Partner Program account). iCloud is closed to the web (CloudKit JS reaches only an app's own data, PhotoKit only a
+  native app). Full `drive` is never asked: a restricted scope, it needs a yearly CASA assessment (about six weeks and
+  $500 to $4,500 paid to the assessor).
