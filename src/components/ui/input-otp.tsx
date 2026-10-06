@@ -51,8 +51,13 @@ function InputOTPSlot({
     <div
       data-slot="input-otp-slot"
       data-active={isActive}
+      // ★ THE CARET'S SLOT WEARS THE FIELD'S FOCUS (identity r4, focus=halo):
+      // the field's real focus is input-otp's hidden input, so the slot the
+      // next character lands in is pinned with the halo (`data-halo`), which
+      // gathers in again at each slot as the caret moves along.
+      data-halo={isActive ? "" : undefined}
       className={cn(
-        "relative flex size-11 items-center justify-center rounded-lg border border-input bg-transparent text-lg font-medium transition-[color,box-shadow] outline-none data-[active=true]:z-10 data-[active=true]:border-ring data-[active=true]:ring-3 data-[active=true]:ring-ring/50 aria-invalid:border-destructive dark:bg-input/30",
+        "relative flex size-11 items-center justify-center rounded-lg border border-input bg-transparent text-lg font-medium transition-[color] outline-none focus-halo data-[active=true]:z-10 aria-invalid:border-destructive dark:bg-input/30",
         className
       )}
       {...props}

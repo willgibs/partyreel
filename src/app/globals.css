@@ -51,11 +51,12 @@
     • THE ELEVATION CONTRACT: FOUR techniques, one
       per height, never rivals. The STEP (a surface is a shade off its
       ground) is how a card lies flat; the RING (a hairline marks an edge) is
-      left to what the step cannot part (a body panel, the display's edge in
-      the room). The LIFT (--shadow-lift) goes only where one object overlaps
-      another; the LAYER (--shadow-layer) goes under anything the page keeps
-      living behind. A flat surface takes neither shadow, in either mode. One
-      top light source, two sizes, one alpha ramp per ground.
+      left to what the step cannot part (a body panel), and what floats ends
+      in light instead (THE BRIGHT EDGE). The LIFT (--shadow-lift) goes only
+      where one object overlaps another; the LAYER (--shadow-layer) goes under
+      anything the page keeps living behind. A flat surface takes neither
+      shadow, in either mode. One top light source, two sizes, one alpha ramp
+      per ground.
     • TYPE: Urbanist is the heading face via the `font-heading` utility below
       (bold 700 at -3% tracking), ONE weight for every heading, page titles
       and card titles alike; per-setting LABELS stay Inter 500 (FormLabel).
@@ -146,6 +147,14 @@
   --border: oklch(0.14 0.004 286 / 12%);
   --input: oklch(0.14 0.004 286 / 22%);
   --ring: oklch(0.14 0.004 286);
+  /* THE FOCUS HALO'S GROUND (identity r4, focus=halo; the mark itself is THE
+     FOCUS HALO, `focus-halo`, below): the band its line stands over and the
+     bloom round that line, declared on every ground. On paper the band is the
+     brightest white (a card is whiter than the page, so white is never a
+     moat on it) and the bloom an aura of the page's own ink, since light
+     cannot show on white. */
+  --halo-gap: oklch(1 0 0);
+  --halo-bloom: oklch(0.14 0.004 286 / 10%);
   /* The admin chart ramp is still at chroma 0: the palette's paste covers the
      surface and text tokens, and a cast on five chart greys nobody has settled
      on would be a value invented in a wiring round. Deferred, ROADMAP > Design. */
@@ -227,9 +236,8 @@
 
      `--display-cursor` is the outline of the row a pointer or a key holds
      (its wash is `--accent` inside the ground), and `--display-light` the
-     bright edge's light on a layer: nothing draws that edge on a layer yet
-     (the identity board's `edge` ask decides its reach), so the token waits
-     for its reader. */
+     bright edge's light on the screen: every pop-out and toast wears it in
+     place of a hairline (edge=floating, THE BRIGHT EDGE's `lit-display`). */
   --display: oklch(0.165 0.004 286);
   --display-step: oklch(0.235 0.004 286);
   --display-foreground: oklch(0.975 0.002 286);
@@ -384,6 +392,11 @@
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 18%);
   --ring: oklch(0.97 0.002 286);
+  /* The halo's ground in the room: its band is the atom's own --background
+     (`initial` hands the halo its fallback, read where the atom stands), its
+     bloom light. */
+  --halo-gap: initial;
+  --halo-bloom: oklch(1 0 0 / 18%);
 
   /* Charts re-ramp BRIGHTER on near-black (the light ramp disappears). */
   --chart-1: oklch(0.92 0 0);
@@ -511,6 +524,9 @@
   --ring: oklch(0.965 0.0045 286);
   --brand: var(--primary);
   --brand-foreground: var(--primary-foreground);
+  /* The focus halo's ground: the room's, on a leaf that may stand on paper. */
+  --halo-gap: initial;
+  --halo-bloom: oklch(1 0 0 / 18%);
   /* The room's ramp, re-declared like everything else here: on a paper page the
      leaf would otherwise inherit paper's alphas, which are nothing on a slab
      (the footer's photo pile is an overlap, so it is a real reader). */
@@ -564,6 +580,11 @@
   --border: var(--display-edge);
   --input: var(--display-input);
   --ring: var(--display-foreground);
+  /* The focus halo on the screen: its band the screen itself (the atom's own
+     --background, as in the room), its bloom a light one value on both
+     grounds. */
+  --halo-gap: initial;
+  --halo-bloom: oklch(1 0 0 / 15%);
   --brand: var(--primary);
   --brand-foreground: var(--primary-foreground);
   --success: oklch(0.7 0.16 150);
@@ -1169,6 +1190,153 @@
   --tw-prose-td-borders: var(--border);
 }
 
+/* ═══════════ THE FOCUS HALO: `focus-halo` (identity r4, focus=halo) ═══════════
+   Will's pick on his desk 3, in the board's words: "a quiet ring of light
+   round it: a fine line of ink stands 2px off the control over a clear band,
+   in a soft aura (grey on paper, light in the room); it gathers in as it
+   arrives." ONE mark on everything a keyboard reaches (a key, a chip, a
+   segment, a tab, a field, a switch, the shutter, the code's chip and mat, a
+   readout), so it reads as the product's mark and not each control's (his r2
+   note: "some focuses rings, some corners, which is bad"). An atom wears
+   this class and no focus treatment of its own; the board's drawing it
+   carries is `sandbox/identity/sheet/focus.ts`'s HALO.
+
+   ★ IT IS DRAWN IN TAILWIND'S OWN RING SLOT: the band, the line and its bloom
+   all in `--tw-ring-shadow`, composed in the order every shadow utility
+   writes. So an atom keeps its own shadow under it (the white key's layer,
+   the code chip's), a later utility that composes keeps the halo, a bare
+   `box-shadow` on a focused atom deletes it (as it deletes a ring), and a
+   call site that gives an atom a ring of its own (`focus-visible:ring-*`, a
+   variant, emitted after this utility) replaces the halo whole, never leaving
+   its band behind: Create's name on its rule opts out with
+   `focus-visible:ring-0`.
+
+   ★ THE BAND IS PAINTED, NEVER CLEAR: a shadow cannot stand off a box over
+   nothing, so the band takes a colour per ground (`--halo-gap`, declared on
+   every ground above): the brightest white on paper, the atom's own
+   `--background` in the room and on the display, a near-black on a
+   photograph. An atom whose own light stands outside its box (the shutter's
+   ring) sets `--halo-at` to stand beyond it and `--halo-band` to leave that
+   light uncovered (`ui/shutter.css`).
+
+   ★ THE 1.5px LINE IS A SHADOW'S SPREAD: Chrome draws an outline in whole
+   pixels (1.5px drawn as 1px), a spread to the device pixel.
+
+   ★ IT ARRIVES IN ONE BEAT AND NEVER MAKES A KEY WAIT: whole in its first
+   frame, it settles over 140ms on the house's emphasis curve (the band 3.5px
+   to 2px, the bloom 22px to 12px, out of `--halo-t`) and leaves at once. So a
+   focusable atom transitions no `box-shadow`: the arrival is this beat, and a
+   fade would draw two marks at once as a key moves on. Reduced motion plays
+   the beat in the guard's 0.01ms, so the halo is simply there; a working
+   control keeps its own loop (`aria-busy`).
+
+   ★ IN ERROR ITS LINE IS THE DESTRUCTIVE COLOUR, and an atom's resting error
+   ring steps aside while it holds focus (`aria-invalid:not-focus-visible:`
+   in the atoms: as a variant it would replace the halo), so a field in error
+   still shows where the keyboard is.
+
+   `data-halo` pins it on an element that stands for a focus it does not hold
+   (the code field's caret slot, `ui/input-otp.tsx`). Forced colours drop
+   every shadow, so there it is an outline. */
+[data-surface="photo"],
+[data-variant="on-photo"],
+[data-variant="glass"] {
+  /* On a photograph the halo is a white line over a near-black band whatever
+     the page is made of, and the two actions made for a photograph (Button's
+     `on-photo` and `glass`) carry that ground wherever they stand (the
+     camera's own black, a viewer): their ring was white for the same reason.
+     After `.dark`, which a photograph's container also wears. The veil is
+     what the shutter stands its halo over on a photograph. */
+  --halo-gap: oklch(0.13 0.004 286);
+  --halo-bloom: oklch(1 0 0 / 26%);
+  --halo-line: oklch(1 0 0 / 85%);
+  --halo-veil: oklch(0 0 0 / 28%);
+}
+
+@property --halo-t {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+
+@keyframes halo-arrive {
+  from {
+    --halo-t: 0;
+  }
+}
+
+@utility focus-halo {
+  &:is(:focus-visible, [data-halo]) {
+    /* The line's ink, named so an atom that must draw it another way reads
+       the same colour (the shutter's outline, `ui/shutter.css`). */
+    --halo-ink: var(
+      --halo-alert,
+      var(--halo-line, color-mix(in oklab, var(--foreground) 85%, transparent))
+    );
+    outline: none;
+    /* The band (on top), the line round it, the bloom under both: one slot. */
+    --tw-ring-shadow:
+      0 0 0 calc(var(--halo-at, 2px) + (1 - var(--halo-t)) * 1.5px)
+        var(--halo-band, var(--halo-gap, var(--background))),
+      0 0 0 calc(var(--halo-at, 2px) + (2 - var(--halo-t)) * 1.5px)
+        var(--halo-ink),
+      0 -1px calc(12px + (1 - var(--halo-t)) * 10px)
+        calc(var(--halo-at, 2px) + (2 - var(--halo-t)) * 1.5px)
+        var(--halo-bloom);
+    box-shadow:
+      var(--tw-inset-shadow, 0 0 #0000), var(--tw-inset-ring-shadow, 0 0 #0000),
+      var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow),
+      var(--tw-shadow, 0 0 #0000);
+  }
+  &:is(:focus-visible, [data-halo]):not([aria-busy="true"]) {
+    animation: halo-arrive 140ms var(--ease-emphasis);
+  }
+  &[aria-invalid="true"] {
+    --halo-alert: var(--destructive);
+  }
+  @media (forced-colors: active) {
+    &:is(:focus-visible, [data-halo]) {
+      outline: 2px solid CanvasText;
+      outline-offset: 2px;
+    }
+  }
+}
+
+/* ═══════════ THE PRESS: `press-shrink` (identity r4, press=shrink) ═══════════
+   "The control gives under the finger by about two pixels at every size, from
+   a chip to the 44px key, the way a phone's own controls do." A give is a
+   scale, so each size carries its own number in `--press-scale` (0.96 unless
+   it says otherwise): a small round gives more (0.92), a 24 or 28px key, a
+   chip and a segment 0.95, the 44px call to action less (0.98), the shutter
+   0.94, so the give is felt alike on each (`sandbox/identity/sheet/press.ts`'s
+   SHRINK).
+
+   ★ IT LANDS IN THE FRAME THE FINGER DOES AND LETS GO AT THE HOUSE'S SPEED: a
+   transition runs on the state it arrives at, so the held state's duration is
+   0 and the atom's own resting transition (which must name `scale`) is the
+   let-go. The 0 is `!important` because some atoms rest on a transition their
+   own sheet declares outside every layer (`ui/shutter.css`, the camera's),
+   which a utility could never outrank otherwise; the reduced-motion guard's
+   `!important` sits in an earlier layer and still wins, so under reduced
+   motion the let-go lands at once too.
+
+   ★ NEVER WHILE OFF OR WORKING, AND NEVER ON A TRIGGER WHOSE LAYER OPENS ON THE
+   PRESS (`aria-haspopup`): Radix measures the trigger to anchor its menu in
+   that same frame, so a shrunk trigger would hang the menu off a rect a pixel
+   or two short of where the trigger springs back to (Button's own exception
+   before this, kept). */
+@utility press-shrink {
+  &:active:not(
+      :disabled,
+      [data-disabled],
+      [aria-busy="true"],
+      [aria-haspopup]
+    ) {
+    scale: var(--press-scale, 0.96);
+    transition-duration: 0ms !important;
+  }
+}
+
 /* GLOBAL REDUCED-MOTION GUARD. 0.01ms, NEVER 0: radix exit-unmount and the
    lightbox settle wait on transitionend/animationend, and a 0 duration means
    those events never fire (stuck-open overlays). iteration-count 1 stops
@@ -1247,19 +1415,24 @@
    sheet to <head> at runtime, after ours, so its own (0,2,0) rule wins a tie on
    source order; one more attribute wins on weight instead, in any order.
 
-   ★ THE FOCUS RING IS RE-STATED, BECAUSE THIS RULE WOULD OTHERWISE DELETE IT.
+   ★ THE FOCUS MARK IS RE-STATED, BECAUSE THIS RULE WOULD OTHERWISE DELETE IT.
    Sonner draws a focused toast's ring INSIDE the same box-shadow declaration
    (the same trap as `ring-1` on our own surfaces), so a rule that sets only the
-   shadow takes the keyboard's focus mark with it. It is drawn in the house
-   ring colour rather than sonner's 20 percent black, which was never visible
-   in dark. */
+   shadow takes the keyboard's focus mark with it. The mark is the house's
+   halo (`ui/sonner.tsx` dresses the toast and its buttons in `focus-halo`,
+   which fills the ring slots), composed here over the layer shadow, since
+   sonner's own focus rules sit outside every layer and would outrank the
+   utility's: its 20 or 40 percent black was never visible on the display. */
 [data-sonner-toaster] [data-sonner-toast][data-styled="true"] {
   box-shadow: var(--shadow-layer);
 }
 [data-sonner-toaster] [data-sonner-toast][data-styled="true"]:focus-visible {
-  box-shadow:
-    var(--shadow-layer),
-    0 0 0 2px color-mix(in oklab, var(--ring) 50%, transparent);
+  box-shadow: var(--tw-ring-shadow, 0 0 #0000), var(--shadow-layer);
+}
+[data-sonner-toaster]
+  [data-sonner-toast][data-styled="true"]
+  :is([data-button], [data-close-button]):focus-visible {
+  box-shadow: var(--tw-ring-shadow, 0 0 #0000);
 }
 
 /* ═══════════ Reel experience (ratified, R3) ═══════════
@@ -2491,12 +2664,13 @@
    radius also revealed some mismatches here in the preview roundings."
 
    NOT ELEVATION, AND NOT A LAMP: MATERIAL. One pixel of light catching the
-   bevel of a surface that is lit from above, on exactly three kinds of
-   surface: a photograph or a video, a framed screen, and the QR card. It is
-   the FOREGROUND colour at a low alpha, never one of the five lamp hues
-   (those are light in a room, this is the room's own surface), it does not
-   move, and it is absent under everything else. A card, a menu and a button
-   already have their step and their ring; an edge on those is a third outline.
+   bevel of a surface that is lit from above: here, on three kinds of media
+   surface (a photograph or a video, a framed screen, and the QR card), and,
+   since identity r4's edge=floating, on what floats (THE EDGE ON WHAT FLOATS,
+   below). It is the FOREGROUND colour at a low alpha, never one of the five
+   lamp hues (those are light in a room, this is the room's own surface), it
+   does not move, and it is absent under everything else: a card and a button
+   already have their step; an edge on those is a third outline.
 
    ★ THE MISMATCH, AND WHY IT CANNOT COME BACK. The board drew the cue on a bare
    wrapper with a hand-typed radius, and laid it on the PADDING box while it
@@ -2616,6 +2790,191 @@
    take: no edge where colours are forced, and none on a printed sheet. */
 @media (forced-colors: active), print {
   [data-lit]::after {
+    display: none;
+  }
+}
+
+/* ═══ THE EDGE ON WHAT FLOATS (identity r4, edge=floating) ═══
+   Will's pick on his desk 3, in the board's words: "every pop-out takes the
+   edge in place of its hairline, on paper too; in the room every dialog,
+   sheet and panel takes it on its free edge. Cards stay flat." The media's
+   pixel and falloff, in the light of the layer's own ground, worn through
+   the floating-layer contract so every layer of a kind wears it
+   (`ui/floating-layer.ts`): `lit-display` on every quick layer (a menu, a
+   popover, a select, the Add's rows, the palette, a tooltip), the toast
+   beside them, and `lit-work` on every work layer (the popup's shapes, the
+   Dialog, the Sheet). The board's drawing is `sandbox/identity/sheet/edge.ts`.
+
+   ★ IT REPLACES THE HAIRLINE, IT IS NEVER A THIRD OUTLINE: the display wears
+   no ring any more (the contract's `floatingDisplay`), and a toast's border
+   turns clear and takes the light on it.
+
+   ★ THE DISPLAY IS DARK ON BOTH GROUNDS, so a pop-out is lit on paper too, in
+   its ground's own light (`--display-light`: three tenths of white on paper's
+   near-black screen, two fifths on the room's graphite). A work layer is the
+   body's material, light on paper, so it is lit in the room alone (a light
+   surface takes none), at the strength that gives its rim a graphite
+   pop-out's brightness (46 percent of the room's ink: the media's 30 read at a
+   third of a menu's on a dialog's darker surface, the board measured).
+
+   ★ ON PAPER THE SCREEN'S LIGHT STEPS ONE PIXEL IN: a light reads as light only
+   where it is the brightest thing at its edge, and paper is brighter than any
+   light the screen can catch, so on its outer pixel the light read as a grey
+   rim between the page and the screen (measured: 86 between the panel's 14 and
+   the page's 235). A pixel in, with the screen's own edge cutting it from the
+   page, it is a lip of light on the screen's bevel, its corner a pixel
+   tighter so the two stay concentric (`--lit-r`, the layer's corner when it is
+   not the display's 16px: the tooltip's capsule names its own).
+
+   ★ THE LIGHT FALLS ON A FREE EDGE ONLY: what floats free (a menu, a tooltip,
+   a toast, a dialog) is lit all round; what stands on an edge of the screen
+   is lit along the edge it stands free by, a sheet risen from the foot along
+   its top and a desk's panel down its left, from its top; a whole screen (a
+   hand's screen and cover, a full-screen dialog) is the page and takes none,
+   and so does a fixed-side Sheet (every sheet the product opens is the
+   responsive one).
+
+   ★ A LAYER THAT SCROLLS ITSELF CARRIES ITS LIGHT WITH ITS ROWS: the light is a
+   positioned pseudo-element, which scrolls with its host's content, so down a
+   long menu the top light has gone up with the first rows (the panel keeps
+   its step and its shadow). A layer that scrolls an inner body (`PopupBody`)
+   keeps its light whole.
+
+   The toast's light is its `::before`: sonner's own `::after` is its gap's hit
+   area, and its `::before` exists only while a toast is swiped or removed,
+   when the light steps aside. Unlike the media's, a layer's light is
+   generated on paper too (a transparent one on a work layer): a handful of
+   layers is open at once, never an album's hundreds. */
+@layer base {
+  .lit-display,
+  .lit-work {
+    position: relative;
+  }
+}
+
+/* Each host's light and the edges it is lit along, reset on every host (a
+   custom property inherits). */
+.lit-display,
+[data-sonner-toaster] [data-sonner-toast][data-styled="true"] {
+  --lit-light: var(--display-light);
+  --lit-widths: 1px;
+  --lit-spread: 135% 100% at 50% 0%;
+}
+.lit-work {
+  --lit-light: transparent;
+  --lit-widths: 1px;
+  --lit-spread: 135% 100% at 50% 0%;
+  @variant dark {
+    --lit-light: color-mix(in oklab, var(--foreground) 46%, transparent);
+  }
+}
+.lit-work[data-shape="sheet"] {
+  --lit-widths: 1px 0 0;
+}
+.lit-work[data-shape="panel"] {
+  --lit-widths: 0 0 0 1px;
+  --lit-spread: 100% 100% at 0% 0%;
+}
+/* The one responsive Sheet: a sheet in a hand, a panel from 40rem (its own breakpoint). */
+@media (width < 40rem) {
+  .lit-work[data-side="responsive"] {
+    --lit-widths: 1px 0 0;
+  }
+}
+@media (width >= 40rem) {
+  .lit-work[data-side="responsive"] {
+    --lit-widths: 0 0 0 1px;
+    --lit-spread: 100% 100% at 0% 0%;
+  }
+}
+[data-sonner-toaster] [data-sonner-toast][data-styled="true"] {
+  border-color: transparent;
+}
+
+/* Generated where it can be drawn right, as the media's (above). */
+@supports (color: color-mix(in oklab, red, red)) and
+  ((mask-composite: exclude) or (-webkit-mask-composite: xor)) {
+  .lit-display::after,
+  .lit-work:is(
+      [data-shape="dialog"],
+      [data-shape="wide"],
+      [data-shape="sheet"],
+      [data-shape="panel"],
+      [data-side="responsive"]
+    )::after,
+  [data-sonner-toaster]
+    [data-sonner-toast][data-styled="true"]:not(
+      [data-swiping="true"],
+      [data-removed="true"]
+    )::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: solid transparent;
+    border-width: var(--lit-widths);
+    pointer-events: none;
+    z-index: 1;
+    background: radial-gradient(
+        var(--lit-spread),
+        var(--lit-light) 0%,
+        color-mix(in oklab, var(--lit-light) 44%, transparent) 36%,
+        color-mix(in oklab, var(--lit-light) 13%, transparent) 66%,
+        transparent 92%
+      )
+      border-box;
+    -webkit-mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+    mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+    -webkit-mask-clip: padding-box, border-box;
+    mask-clip: padding-box, border-box;
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+  /* On paper the screen's light stands a pixel in, its corner a pixel
+     tighter: the display's inside its outer pixel, the toast's inside the
+     border it cleared. */
+  .lit-display::after {
+    inset: 1px;
+    border-radius: calc(var(--lit-r, var(--radius-float)) - 1px);
+  }
+  [data-sonner-toaster]
+    [data-sonner-toast][data-styled="true"]:not(
+      [data-swiping="true"],
+      [data-removed="true"]
+    )::before {
+    border-radius: calc(var(--border-radius, var(--radius-float)) - 1px);
+  }
+  /* In the room it is the outer pixel itself: the toast's lands on its border. */
+  .lit-display {
+    @variant dark {
+      &::after {
+        inset: 0;
+        border-radius: inherit;
+      }
+    }
+  }
+  [data-sonner-toaster]
+    [data-sonner-toast][data-styled="true"]:not(
+      [data-swiping="true"],
+      [data-removed="true"]
+    ) {
+    @variant dark {
+      &::before {
+        inset: -1px;
+        border-radius: inherit;
+      }
+    }
+  }
+}
+
+@media (forced-colors: active), print {
+  .lit-display::after,
+  .lit-work::after,
+  [data-sonner-toaster]
+    [data-sonner-toast][data-styled="true"]:not(
+      [data-swiping="true"],
+      [data-removed="true"]
+    )::before {
     display: none;
   }
 }

@@ -43,8 +43,14 @@
  */
 export const floatingCorner = "rounded-float"
 
-/** A tooltip's corner: see the corner above. */
-export const floatingTipCorner = "rounded-[calc(var(--radius-float)_-_6px)]"
+/**
+ * A tooltip's corner: see the corner above. Spelled once, as `--lit-r`, the
+ * corner the display's light follows on paper a pixel inside the edge
+ * (globals.css, THE EDGE ON WHAT FLOATS): a corner the light did not know
+ * would leave the light off concentric at it.
+ */
+export const floatingTipCorner =
+  "[--lit-r:calc(var(--radius-float)_-_6px)] rounded-(--lit-r)"
 
 /**
  * THE ROW'S CORNER, DERIVED, NEVER TYPED. A nested corner shares
@@ -81,9 +87,14 @@ export const floatingGutter = 8
  * paper and lit graphite in the room (`.surface-display` in globals.css
  * re-declares every token inside it from the ground's own `--display*` set),
  * parted from the room by its light and its edge.
+ *
+ * ★ ITS EDGE IS LIGHT, NOT A HAIRLINE (identity r4, edge=floating): the screen
+ * wears no ring, and `lit-display` lights its bevel from above, on paper too,
+ * since the display is dark on both grounds (globals.css, THE EDGE ON WHAT
+ * FLOATS). A ring typed back beside it is the third outline that rule refuses.
  */
 export const floatingDisplay =
-  "surface-display bg-popover text-popover-foreground ring-1 ring-border"
+  "surface-display bg-popover text-popover-foreground lit-display"
 
 /** A quick panel: the corner, the display and the light, in one. */
 export const floatingDisplayPanel = `${floatingCorner} ${floatingDisplay} shadow-layer`
@@ -103,9 +114,16 @@ export const floatingSurface =
 /** A body panel: the corner, the material and the light, in one. */
 export const floatingPanel = `${floatingCorner} ${floatingSurface} shadow-layer`
 
-/** A work layer's material and light; its corner is its shape's. */
+/**
+ * A work layer's material and light; its corner is its shape's. `lit-work`
+ * lights its free edge in the room alone (on paper it is a light surface,
+ * which takes none): all round a dialog, along the top of a sheet risen from
+ * the foot, down the left of a desk's panel, and nowhere on a whole screen
+ * (globals.css, THE EDGE ON WHAT FLOATS, reads the shape it stands in). Every
+ * work layer reads this: `PopupContent`, the Dialog and the Sheet.
+ */
 export const floatingWorkSurface =
-  "bg-popover text-popover-foreground shadow-layer"
+  "bg-popover text-popover-foreground shadow-layer lit-work"
 
 /**
  * THE SCRIM UNDER A WORK LAYER (layers=display): the page dimmed by half and

@@ -20,11 +20,12 @@ pages and content are [marketing-content.md](marketing-content.md)'s.
 
 The chrome is a cool grey with no brand hue, so photographs carry the colour and only state and actions are coloured.
 
-Nothing in the component library is protected: it is a working version that still reads as the shadcn foundation at
-the atomic level, and its actions and fields still wear their shadcn build. An identity is the sum of every part read
-together (primitives, materials, type, motion, composition), so a button made different on its own is not one, and
-atoms left at a generator's defaults read as generic however custom the layout above them. The current direction is a
-camera's own instruments, carried by the voice (Type), the display (the floating layer) and status as light (below).
+Nothing in the component library is protected: it is a working version whose actions and fields still wear their shadcn
+forms, though every atom's focus and press and the light on what floats are the house's (below). An identity is the sum
+of every part read together (primitives, materials, type, motion, composition), so a button made different on its own
+is not one, and atoms left at a generator's defaults read as generic however custom the layout above them. The current
+direction is a camera's own instruments, carried by the voice (Type), the display (the floating layer) and status as
+light (below).
 It is pitched at the crowd that actually comes, about 18 at a party to about 50 at a wedding: bespoke and current to
 them, never a developer's tool, and never flattened for the lowest common denominator, since the core path (scan, add,
 view) is plain to anyone already.
@@ -233,6 +234,31 @@ math, twice as round as the surface under it, so the contrast says what is press
   `@theme inline`, so the custom property is emitted only where a source writes `var(--radius-<step>)`; an empty var
   voids its whole `calc()`, and deleting the last spelling empties every reader. Derive from the four real tokens.
 
+## The atoms' focus and press
+
+Every focusable atom wears one focus mark and every action one press, each a utility in globals.css that carries its
+board's words (identity r4: focus=halo, press=shrink): `focus-halo` and `press-shrink`. An atom wears the class and
+spells no focus ring or active scale of its own (`ui/identity-traits.test.ts`, which pins the edge below too).
+
+- **The halo is drawn whole in Tailwind's ring slot** (`--tw-ring-shadow`: a painted band, the ink line, a bloom), so an
+  atom's own shadow stays under it, and a call site that gives an atom a ring of its own (`focus-visible:ring-*`)
+  replaces it whole: a part that is not a field in a box opts out so (Create's name on its rule,
+  `focus-visible:ring-0`).
+- ★ **Its band is painted, so it is a ground's token**: `--halo-gap` and `--halo-bloom` are declared on every ground
+  (paper's white, the atom's own `--background` in the room and on the display), and a photograph's set rides
+  `data-surface="photo"` and Button's `on-photo` and `glass` wherever they stand. A subtree painted dark in literal
+  colours (the camera's black) wears `dark`, or its halo is paper's ink on black.
+- **An atom whose own light stands outside its box** (the shutter's ring) sets `--halo-at` and `--halo-band` to stand
+  beyond it (`ui/shutter.css`); an element that stands for a focus it does not hold (the code field's caret slot) pins
+  the halo with `data-halo`; a resting error ring is `aria-invalid:not-focus-visible:`, since as a variant it would
+  replace a focused field's halo.
+- **A focusable atom transitions no `box-shadow`**: the halo arrives in its own 140ms beat (out of the registered
+  `--halo-t`) and leaves at once, where a fade would show two marks as a key moves on.
+- **The press lands in the frame the finger does and lets go on the atom's own transition**, which must name `scale`
+  (its 0ms is `!important`, to outrank a transition an atom's own sheet declares outside every layer). Each size names
+  its give in `--press-scale`, about two pixels at every size. It never fires on a popup trigger (`aria-haspopup`),
+  whose layer Radix anchors to the trigger in that same frame. The camera's shutter keeps a camera's press.
+
 ## Elevation contract (four heights, one job each)
 
 Four techniques, one job each, the same in both modes: the **step** (a surface a shade off its ground), the **ring**
@@ -240,15 +266,15 @@ Four techniques, one job each, the same in both modes: the **step** (a surface a
 photographs, a card across a chapter cut, a chip on a photograph, the code's white mat) and the **layer**
 (`shadow-layer`, under anything the page lives behind: menus, dialogs, sheets, tooltips, toasts). A card lies flat as
 its tone alone, with no ring and no shadow in either mode; the ring is left to what a step cannot part (a body panel
-such as the marketing nav's, the display's edge in the room).
+such as the marketing nav's), and what floats ends in light instead (the bright edge, below).
 
 - **One light, two sizes, one alpha ramp per ground**, all in globals.css; `.dark` and `.surface-ink` carry a darker
   ramp, since the paper ramp is invisible over the dark room. A call site names a role, never a stock or arbitrary
   Tailwind shadow or an inline `box-shadow`, so a retune reaches it; a lift over a photograph that reads weak in light
   gets a ramp declared on the media ground.
 - **A shadow can delete a ring**: `ring-1` is a box-shadow composed with `--tw-shadow`, so a bare `box-shadow` on a
-  ringed surface deletes its hairline (wear the utility, or re-state the ring first, as the toast does for sonner's
-  focus ring), and an unlayered rule such as marketing.css's outranks every utility whatever the specificity (a shadow
+  ringed surface deletes its hairline (wear the utility, or re-state the ring first, as the toast does for its focus
+  mark), and an unlayered rule such as marketing.css's outranks every utility whatever the specificity (a shadow
   that must beat that sheet is carried inline as the token).
 - **No surface token is translucent**: an alpha reads solid over a page and turns to glass over a photograph, and glass
   is its own material (below). The lines are the exception, because they are never surfaces: paper's `--border` and
@@ -271,6 +297,16 @@ QR card, through `[data-lit]` in globals.css.
   edge at 100% and under half zoom (CSS `zoom: .33`).
 - **Dark grounds only** (`@variant dark`, so nothing is generated on paper, where a gallery holds hundreds of tiles), and
   only under `@supports` for `color-mix` and `mask-composite`: without the mask the gradient veils the photograph.
+- **What floats wears it too, in place of a hairline** (identity r4, edge=floating), through the floating-layer
+  contract: `lit-display` on every quick layer and the toast, on both grounds (the display is dark on paper too) in the
+  ground's `--display-light`; `lit-work` on every work layer, in the room alone, on its free edge (all round a dialog,
+  along a sheet's top, down a desk panel's left; nothing on a whole screen or a fixed-side Sheet). Cards stay flat.
+- ★ **On paper the display's light steps a pixel in**, since on its outer pixel it read as a grey rim against the
+  page, its corner a pixel tighter through `--lit-r`: a layer whose corner is not the display's 16px names it (the
+  tooltip's capsule does), and a call site's own corner on a quick layer leaves the light off concentric.
+- **A layer that scrolls itself carries its light with its content** (the positioned pseudo-element scrolls with the
+  rows), so a long menu scrolled down loses its top light; a layer that scrolls an inner body (`PopupBody`) keeps it.
+  A toast's light is its `::before`, since sonner's `::after` is its gap's hit area.
 
 ## The glass material: Crystal
 
@@ -434,10 +470,12 @@ Transition is its one sanctioned hole ([host-app.md](host-app.md)).
 - **Two materials, by what a layer is for.** A quick layer, what a press opens and the next press closes (a menu and
   its submenu, a select's list, a popover, the Add's rows, the palette, a tooltip, a toast), is the display:
   `floatingDisplayPanel` (`floatingTip` for a tooltip's capsule) on the `.surface-display` ground, the camera's own
-  screen, near-black on paper and lit graphite in the room. A work layer, where a host does something (a dialog, the popup's shapes,
-  the Sheet), is the body's: `floatingWorkSurface` over `floatingScrim`. A body panel that is neither (the marketing
-  nav's, the code card) keeps `floatingPanel`, the ground's popover and its ring. Whatever a quick layer holds reads
-  the screen's tokens and names no colour of its own, which `ui/display.test.ts` holds.
+  screen, near-black on paper and lit graphite in the room, its edge light rather than a ring (the bright edge). A
+  work layer, where a host does something (a dialog, the popup's shapes, the Sheet), is the body's:
+  `floatingWorkSurface`, which `PopupContent`, the Dialog and the Sheet all read, over `floatingScrim`. A body panel
+  that is neither (the marketing nav's, the code card) keeps `floatingPanel`, the ground's popover and its ring.
+  Whatever a quick layer holds reads the screen's tokens and names no colour of its own, which `ui/display.test.ts`
+  holds.
 - **The product has one responsive `Sheet`** (`ui/sheet.tsx`, opted into with `responsive`): a side panel at a desk, a
   bottom sheet in a hand. It emits `data-side="responsive"`, so none of the fixed-side rules can race it, and its
   posture pair lives in `floating-layer.ts`; the guest's door and its held sheets and the upload failure sheet wear it;
@@ -507,7 +545,8 @@ to `[data-mkt]`, a sibling scope.
 - **Every toast is the display, and its state is a light**: a success, a warning or a failure is its glyph lit in the
   state's colour, and a destructive act that succeeded is a success. `ui/sonner.tsx` hands sonner the display's colours
   and runs its dark theme, and globals.css's toast rules say why they sit three attributes deep (sonner appends its
-  sheet after ours at runtime), so a check reads the computed colour, not that the rule loaded.
+  sheet after ours at runtime), so a check reads the computed colour, not that the rule loaded. The toast's edge light
+  and the halo on it and on its buttons are composed there past sonner's own rules for the same reason.
 - The only helpers are `showErrorToast` and `showActionError` (`lib/errors/toast.ts`), and the one Undo,
   `showUndoToast` (`shared/undo-toast.ts`): an act that already landed, named on its surface's one toast, whose Undo
   puts the items back first and then reverses on the server. `vitest.setup.ts` mocks sonner globally for the component

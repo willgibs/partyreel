@@ -793,7 +793,7 @@ export function CameraScreen({
             <button
               type="button"
               onClick={onRetryUnsent}
-              className="cam-hint-action"
+              className="cam-hint-action press-shrink focus-halo"
             >
               <RefreshCw className="size-3.5" aria-hidden />
               {CAMERA_HINT.retry}

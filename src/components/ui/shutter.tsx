@@ -68,9 +68,11 @@ function Shutter({
           ...style,
         } as React.CSSProperties
       }
+      // ★ THE HOUSE'S FOCUS AND PRESS (identity r4): the halo stands beyond the
+      // shutter's own light and the whole control gives under the finger, its
+      // light with it (`shutter.css` names how far, and the give).
       className={cn(
-        "shutter group/shutter relative isolate inline-flex size-16 shrink-0 items-center justify-center rounded-full outline-none",
-        "focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-offset-4 focus-visible:ring-offset-background",
+        "shutter group/shutter relative isolate inline-flex size-16 shrink-0 items-center justify-center rounded-full outline-none focus-halo press-shrink",
         className
       )}
       {...props}
@@ -84,8 +86,8 @@ function Shutter({
         aria-hidden
         className={cn(
           "flex size-full items-center justify-center rounded-full bg-primary text-primary-foreground shadow-layer",
-          "transition-transform duration-150 ease-emphasis group-hover/shutter:scale-[1.03] group-active/shutter:scale-[0.95]",
-          "motion-reduce:transition-none motion-reduce:group-hover/shutter:scale-100 motion-reduce:group-active/shutter:scale-100"
+          "transition-transform duration-150 ease-emphasis group-hover/shutter:scale-[1.03]",
+          "motion-reduce:transition-none motion-reduce:group-hover/shutter:scale-100"
         )}
       >
         {state === "done" ? (

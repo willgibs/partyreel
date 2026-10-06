@@ -239,8 +239,10 @@ function ResponsiveMenu({
               </MenuContext.Provider>
             </div>
             <DialogPrimitive.Close
+              // The house's focus and press (identity r4): a full-width
+              // call's give, the 44px key's.
               className={cn(
-                "flex h-12 shrink-0 items-center justify-center text-base font-medium outline-none transition-transform duration-150 ease-emphasis focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.99] motion-reduce:active:scale-100",
+                "flex h-12 shrink-0 items-center justify-center text-base font-medium outline-none transition-transform duration-150 ease-emphasis focus-halo press-shrink [--press-scale:0.98]",
                 floatingDisplayPanel
               )}
             >
