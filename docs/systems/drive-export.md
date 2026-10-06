@@ -108,9 +108,10 @@ that very write (`CreatedFolder` and the Worker's `CreatedFile` are branded so n
   starts it. ★ **One Partyreel folder a Google account, however often she reconnects:** the folder the app makes
   carries our private mark (`appProperties` `pr_root`, which only Partyreel's client reads), and a press whose
   connection knows no live folder (a Disconnect forgets every id) finds it by that mark (`findRootFolder`: the oldest
-  out of the bin, wherever she moved it), never by its name, which a folder of hers may share; one is made, marked,
-  only when none is out of the bin. Compare-and-set either way, so two presses leave one, the loser undoing only a
-  folder it made (`CreatedFolder`).
+  out of the bin, wherever she moved it; never the folder it has just seen binned or gone, which Google's listing may
+  show a moment longer), never by its name, which a folder of hers may share; one is made, marked, only when none is
+  out of the bin. Compare-and-set either way, so two presses leave one: the loser undoes only a folder it made
+  (`CreatedFolder`), and never the one the winner took (another press may have found it by its mark first).
 - ★ **What a send holds is her Originals zip:** `chosenRows` over what `media_host_all` lets her read (not removed, no
   permanent delete she asked, approved unless she chose Include hidden items). A quiet legal hold is NOT a filter
   (her zip includes it; skipping it would be the one number where a hold shows). Pinned by `drive-snapshot.test.ts`.
@@ -142,12 +143,13 @@ that very write (`CreatedFolder` and the Worker's `CreatedFile` are branded so n
   1, 5, 30 and 60 minutes, and fails for good on its fifth attempt (Retry on the album).
 - ★ **Google's slow down is never a file's failure, and every PUT sends a read of its own** (`sendBytes`): a stream
   goes once, so a PUT Google refused took its body with it (handing it back was a runtime error that spent one of the
-  five attempts). A slow down waits its step (1 to 64 s with jitter, about two minutes for a file's bytes, shared by its
-  PUTs, the status asks after them and a session started over), asks the session where it stands and sends from
-  Google's byte on a fresh R2 read; a session Google let go starts over in a new one, written ahead for a big file.
-  Past the two minutes the file goes back with its attempt not counted (`released`, the lane's `throttled`), a big
-  file's session kept. Only a call that sends no stream (a lookup, a status ask, a session's start) is retried as it
-  stands.
+  five attempts). A slow down waits its step (1 to 64 s with jitter, about two minutes of slow downs in a row: a PUT
+  that lands starts the count again), asks the session where it stands and sends from Google's byte on a fresh R2 read;
+  a session Google let go starts over in a new one, written ahead for a big file. Once slowed, a small file too stops
+  at the slice's end or her Cancel (a retried 128 MiB PUT is minutes). Past the two minutes the file goes back with
+  its attempt not counted (`released`, the lane's `throttled`), a big file's session kept. Only a call that sends no
+  stream (a lookup, a status ask, a session's start) is retried as it stands. A session holding every byte that Google
+  never closes goes again in a new one on a counted attempt (resuming it would ask the same, uncounted, for ever).
 - **The closing check** confirms every sent file by its id, a page of 100 at a time: a missing one goes once more;
   duplicates are counted from one listing of the album's folder, signalled (`drive_transfer`), never deleted (a copy
   she made on purpose carries our properties too). Then `done` ("every one checked") or `partly_done`. ★ Only the

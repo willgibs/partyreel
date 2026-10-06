@@ -18,7 +18,7 @@ import {
   md5OfStream,
 } from "./testing/fake-bucket";
 import { FakeDrive } from "./testing/fake-drive";
-import { sendOne, type TransferContext } from "./transfer";
+import { CHUNK_HEADROOM_MS, sendOne, type TransferContext } from "./transfer";
 
 const MEDIA = "66666666-7777-4888-9999-aaaaaaaaaaaa";
 const JOB = "11111111-2222-4333-8444-555555555555";
@@ -450,5 +450,72 @@ describe("★ Google's 'slow down' on an upload's bytes: every PUT a read of its
     });
     expect(resumed.item.outcome).toBe("sent");
     expect(big.drive.files.size).toBe(1);
+  });
+
+  it("lets a long upload's scattered slow downs pass: the pace counts them in a row, and a chunk that lands starts it again", async () => {
+    const { drive, ctx, item, bytes, progress } = setup({
+      size: 4096 * 10,
+      chunkBytes: 4096,
+    });
+    // One slow down before every chunk after the first: nine in all, never two in a row.
+    const inner = ctx.progress;
+    ctx.progress = async (it, uri, offset) => {
+      await inner(it, uri, offset);
+      if (offset > 0) drive.failures.throttlePuts = 1;
+    };
+    const result = await sendOne(ctx, item);
+    expect(result.item.outcome).toBe("sent");
+    const file = drive.files.get((result.item as { fileId: string }).fileId)!;
+    expect(file.md5).toBe(md5Of(bytes));
+    expect(progress.at(-1)!.offset).toBe(4096 * 9);
+  });
+
+  it("stops a small file at the slice's end, or at her Cancel, once Google has slowed it (a retried PUT is minutes)", async () => {
+    const late = setup({ deadlineMs: 1_000_000 + CHUNK_HEADROOM_MS + 5_000 });
+    late.drive.failures.throttlePuts = 100;
+    expect(await sendOne(late.ctx, late.item)).toEqual({
+      item: { mediaId: MEDIA, outcome: "released" },
+    });
+    // Its session reported as it is given back, so the next lease resumes it.
+    expect(late.progress).toEqual([{ uri: expect.any(String), offset: 0 }]);
+
+    const canceled = setup();
+    let cancel = false;
+    canceled.ctx.stopping = () => cancel;
+    canceled.ctx.sleep = async () => {
+      cancel = true;
+    };
+    canceled.drive.failures.throttlePuts = 100;
+    expect(await sendOne(canceled.ctx, canceled.item)).toEqual({
+      item: { mediaId: MEDIA, outcome: "released" },
+    });
+    // The refused PUT and the session's status ask, and no PUT after her Cancel.
+    expect(canceled.drive.calls.filter((c) => c.method === "PUT")).toHaveLength(
+      2,
+    );
+  });
+});
+
+describe("the ends a file's bytes can meet", () => {
+  it("sends a file of no bytes as one empty PUT, as any whole file", async () => {
+    const { drive, ctx, item } = setup({ size: 0 });
+    const result = await sendOne(ctx, item);
+    expect(result.item.outcome).toBe("sent");
+    const file = drive.files.get((result.item as { fileId: string }).fileId)!;
+    expect(file.size).toBe(0);
+    expect(drive.calls.filter((c) => c.method === "PUT")).toHaveLength(1);
+  });
+
+  it("sends again, in a new session and on a counted attempt, a file whose every byte Google holds but never closes", async () => {
+    const { drive, ctx, item } = setup({ size: 10_000, chunkBytes: 4096 });
+    drive.failures.neverClose = true;
+    const result = await sendOne(ctx, item);
+    expect(result.item).toMatchObject({
+      outcome: "failed",
+      retry: true,
+      reason: expect.stringContaining("never closed"),
+    });
+    // The session is dropped (resuming it would ask the same for ever, each lease uncounted).
+    expect(result.item).not.toMatchObject({ keepSession: true });
   });
 });

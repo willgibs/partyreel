@@ -266,27 +266,27 @@ async function ensureRoot(
 ): Promise<{ id: string; changed: boolean }> {
   const state = known ? await driveFileState(accessToken, known) : null;
   if (known && state && !state.trashed) return { id: known, changed: false };
-  const found = await findRootFolder(accessToken);
-  if (found) {
-    const claim = await claimRoot({
-      connectionId,
-      candidate: found,
-      expected: known,
-    });
-    const id = claim.root ?? found;
-    return { id, changed: id !== known };
+  // Google's listing can trail its files.get by moments: the very folder just found binned or gone is no answer.
+  const listed = await findRootFolder(accessToken);
+  const found = listed !== known ? listed : null;
+  const made: CreatedFolder | null = found
+    ? null
+    : await createFolder(accessToken, {
+        name: DRIVE_ROOT_FOLDER_NAME,
+        root: true,
+      });
+  const candidate = found ?? made!.id;
+  const claim = await claimRoot({ connectionId, candidate, expected: known });
+  if (!claim.won && claim.root === null) {
+    // The connection went while its folder was settled (a Disconnect mid-press): ours undone, the press ends here.
+    if (made) await undoFolder(accessToken, made);
+    throw new Error("drive: the connection went while its folder was made");
   }
-  const made: CreatedFolder = await createFolder(accessToken, {
-    name: DRIVE_ROOT_FOLDER_NAME,
-    root: true,
-  });
-  const claim = await claimRoot({
-    connectionId,
-    candidate: made.id,
-    expected: known,
-  });
-  if (!claim.won) await undoFolder(accessToken, made);
-  const id = claim.root ?? made.id;
+  // ★ A loser undoes the folder it made unless that is the very one the winner took: another press may have found
+  // ours by its mark and claimed it first, and deleting it would take the winner's album folders with it.
+  if (!claim.won && made && claim.root !== made.id)
+    await undoFolder(accessToken, made);
+  const id = claim.root ?? candidate;
   return { id, changed: id !== known };
 }
 

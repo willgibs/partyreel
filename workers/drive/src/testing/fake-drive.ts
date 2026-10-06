@@ -68,6 +68,8 @@ export type FakeDriveFailures = {
   corruptMd5?: string;
   /** Every delete answers 403 with Google's error body (an undo refused). */
   refuseDelete?: boolean;
+  /** Sessions take every byte and never close: the last PUT and every status ask answer 308 with the whole range. */
+  neverClose?: boolean;
 };
 
 const md5 = (bytes: Uint8Array) =>
@@ -304,7 +306,7 @@ export class FakeDrive {
     }
     session.received.push(bytes);
     session.receivedBytes += bytes.length;
-    if (session.receivedBytes < session.total) {
+    if (session.receivedBytes < session.total || this.failures.neverClose) {
       return new Response(null, {
         status: 308,
         headers: { range: `bytes=0-${session.receivedBytes - 1}` },

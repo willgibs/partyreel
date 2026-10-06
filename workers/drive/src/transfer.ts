@@ -199,7 +199,10 @@ type BytesEnd =
  * stands (Google may have kept part of the body, finished the file, or let the session go: its upload guide resumes
  * from its byte, or restarts in a new session) and sends from Google's byte on a fresh R2 read. Up to a chunk the file
  * goes in one PUT, or from Google's byte as one last chunk; a big one goes in chunks, its session written ahead and
- * reported after each, stopping at a boundary when the slice is nearly out or the app said stop.
+ * reported after each. A big file, and a small one once Google has slowed it, stop at a boundary when the slice is
+ * nearly out or the app said stop (a retried 128 MiB PUT is minutes; the Queue's wall clock and her Cancel come
+ * first). The pace counts slow downs in a row: a PUT that lands starts it again, so a long upload's scattered slow
+ * downs never add up to the lane's.
  */
 async function sendBytes(
   ctx: TransferContext,
@@ -209,14 +212,17 @@ async function sendBytes(
   big: boolean,
 ): Promise<BytesEnd> {
   const chunk = ctx.chunkBytes ?? CHUNK_BYTES;
-  const pace = pacer(ctx);
+  let pace = pacer(ctx);
   let uri = start.uri;
   let offset = start.from;
+  let slowed = false;
+  // A file of no bytes is one empty PUT, as any whole file (the loop's own test would never send it).
+  const empty = total === 0;
   // Written ahead: whoever leases this item next resumes this very session.
   if (big && offset === 0) await ctx.progress(item, uri, 0);
-  while (offset < total) {
+  while (offset < total || empty) {
     if (
-      big &&
+      (big || slowed) &&
       (ctx.now() > ctx.deadlineMs - CHUNK_HEADROOM_MS || ctx.stopping?.())
     )
       return { stoppedAt: offset, uri };
@@ -249,6 +255,7 @@ async function sendBytes(
           );
     } catch (e) {
       await pace(e);
+      slowed = true;
       const state = await withRate(
         ctx,
         () => ctx.drive.querySession(uri, ctx.token, total),
@@ -277,6 +284,7 @@ async function sendBytes(
         "upload: no byte of the chunk kept",
       );
     offset = result.next;
+    pace = pacer(ctx);
     if (big) await ctx.progress(item, uri, offset);
   }
   // Every byte went and Google did not close it: ask once where it stands.
@@ -288,6 +296,15 @@ async function sendBytes(
   if ("gone" in state)
     throw new DriveError("server", 404, null, "session gone at its end");
   if (state.done) return { file: state.file };
+  // Every byte held and never closed: resuming would ask the same for ever (each lease uncounted), so the file goes
+  // again in a new session, on a counted attempt.
+  if (state.next >= total)
+    throw new DriveError(
+      "client",
+      308,
+      null,
+      "upload: Google holds every byte and never closed it",
+    );
   return { stoppedAt: state.next, uri };
 }
 

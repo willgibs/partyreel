@@ -270,6 +270,47 @@ describe("a lane's slice", () => {
     expect(h.drive.files.size).toBe(3);
   });
 
+  it("★ a big file Google slowed for good resumes its own session on the slice after, never sending a landed chunk again", async () => {
+    const h = harness({ leases: [] });
+    h.drive.add({ id: "album", size: 0 });
+    h.deps.chunkBytes = 4096;
+    const big = item(9, h.bucket);
+    const bytes = bytesOf(10_000, 9);
+    h.bucket.put(big.key, bytes);
+    const app = new FakeApp([{ ...big, bytes: 10_000 }]);
+    h.deps.app = app;
+    // Google slows every PUT once the first chunk has landed (its progress word is the cue).
+    const report = app.report.bind(app);
+    app.report = async (input) => {
+      if (
+        input.items.some((i) => i.outcome === "progress" && i.offset === 4096)
+      )
+        h.drive.failures.throttlePuts = 1000;
+      return report(input);
+    };
+    expect(await runSlice(h.deps, message)).toBe("throttled");
+    const kept = app.items.get(big.mediaId)!;
+    expect(kept).toMatchObject({ status: "pending", attempts: 0 });
+    expect(kept.session).toMatchObject({ offset: 4096 });
+
+    h.drive.failures.throttlePuts = 0;
+    app.report = report;
+    const readsBefore = h.bucket.readLog.length;
+    expect(await runSlice(h.deps, message)).toBe("idle");
+    expect(app.items.get(big.mediaId)).toMatchObject({
+      status: "sent",
+      attempts: 1,
+    });
+    // One session all along, and the slice after read only from Google's byte on.
+    expect(h.drive.sessions.size).toBe(1);
+    expect(h.bucket.readLog.slice(readsBefore)).toEqual([
+      { offset: 4096, length: 4096 },
+      { offset: 8192, length: 1808 },
+    ]);
+    const file = [...h.drive.files.values()].find((f) => f.id !== "album")!;
+    expect(file.size).toBe(10_000);
+  });
+
   it("gives the batch back when a lease's token does not open (a secret that drifted)", async () => {
     const h = harness({
       leases: [

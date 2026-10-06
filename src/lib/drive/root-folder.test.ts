@@ -78,6 +78,8 @@ class FolderDrive {
   deleted: string[] = [];
   /** Lists answer 500 (Google's own trouble). */
   failLists = false;
+  /** Ids Google's listing still answers first though files.get no longer has them (its index trails by moments). */
+  ghosts: string[] = [];
   private made = 0;
 
   add(folder: Partial<Folder> & { id: string; createdAt: number }): Folder {
@@ -127,8 +129,9 @@ class FolderDrive {
       if (url.searchParams.get("orderBy") === "createdTime")
         list.sort((a, b) => a.createdAt - b.createdAt);
       const pageSize = Number(url.searchParams.get("pageSize") ?? "100");
+      const ids = [...this.ghosts, ...list.map((f) => f.id)];
       return json({
-        files: list.slice(0, pageSize).map((f) => ({ id: f.id })),
+        files: ids.slice(0, pageSize).map((id) => ({ id })),
       });
     }
     if (url.pathname === "/drive/v3/files" && method === "POST") {
@@ -382,6 +385,49 @@ describe("★ the Partyreel folder, one a Google account", () => {
     expect(drive.creates()[1]).toEqual(
       expect.objectContaining({ parents: ["the-winners"] }),
     );
+  });
+
+  it("★ a loser never undoes the folder it made when the winner took that very one (found by its mark first)", async () => {
+    // The other press listed our new folder by its mark and claimed it before this press's own claim landed.
+    claimRoot.mockImplementationOnce(async () => {
+      connectionRoot = "made-1";
+      return { root: "made-1", won: false };
+    });
+    const { folderId } = await makeSendFolders({
+      jobId: JOB,
+      facts: facts(),
+      accessToken: "access",
+    });
+    expect(drive.deleted).toEqual([]);
+    expect(drive.folders.has("made-1")).toBe(true);
+    expect(drive.folders.get(folderId)!.parents).toEqual(["made-1"]);
+  });
+
+  it("never takes back the very folder it just found binned or gone, while Google's listing still shows it", async () => {
+    drive.ghosts = ["gone-root"];
+    connectionRoot = "gone-root";
+    await makeSendFolders({
+      jobId: JOB,
+      facts: facts({ rootFolderId: "gone-root", folderId: "album" }),
+      accessToken: "access",
+    });
+    expect(claimRoot).toHaveBeenCalledWith({
+      connectionId: CONNECTION,
+      candidate: "made-1",
+      expected: "gone-root",
+    });
+    expect(drive.folders.get("made-1")).toMatchObject({
+      appProperties: { ...MARK },
+    });
+  });
+
+  it("a connection gone while its folder was made (a Disconnect mid-press) undoes that folder and ends the press", async () => {
+    claimRoot.mockImplementationOnce(async () => ({ root: null, won: false }));
+    await expect(
+      makeSendFolders({ jobId: JOB, facts: facts(), accessToken: "access" }),
+    ).rejects.toThrow(/connection went/);
+    expect(drive.deleted).toEqual(["made-1"]);
+    expect(markReady).not.toHaveBeenCalled();
   });
 
   it("a lookup Google cannot answer fails the press (pressed again it finds it), never making a second folder", async () => {
