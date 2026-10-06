@@ -6,7 +6,7 @@
  * that took the PAGE's own entry would land Back on the page before it, so each "plain push" is as much a pin as the
  * replace is. The whole walk, with a real sheet and a real Back, is `pricing-sheet.back.test.tsx`'s.
  */
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { leaveForStripe, PLACE_SHAPES } from "@/components/app/pricing/leave";
 import { POPUP_HISTORY_MARKER } from "@/components/ui/popup-back";
@@ -50,6 +50,20 @@ function sheet(shape: string, state = "open") {
   document.body.append(el);
   return el;
 }
+
+/** The size list a too-small price stacks over the sheet, as the popup draws it. */
+function list(shape: string, state = "open") {
+  const el = document.createElement("div");
+  el.setAttribute("data-slot", "popup-content");
+  el.setAttribute("data-storage-list", "goal");
+  el.setAttribute("data-state", state);
+  el.setAttribute("data-shape", shape);
+  document.body.append(el);
+  return el;
+}
+
+/** A Back on its way, landed (jsdom's traversal takes two timers). */
+const landed = () => new Promise((resolve) => setTimeout(resolve, 40));
 
 beforeEach(() => {
   watchNavigation();
@@ -198,5 +212,71 @@ describe("★ a page the browser keeps for Back is started clean", () => {
     expect(log).toEqual(Array(3).fill(`replace ${STRIPE}`));
     pageshow(true);
     expect(log.filter((line) => line === "reload")).toHaveLength(1);
+  });
+});
+
+/**
+ * ★ TWO PLACES ARE TWO ENTRIES (crumbs-83; the ROADMAP's "the storage list's goal strip ... leaves for Stripe ... over the
+ * list's own history entry (and the plan sheet's, when opened from it)"). The size list a too-small price opens stacks
+ * over the sheet, each a place over an entry of its own. A replace takes one, and left the sheet's under Stripe's page;
+ * so the way out steps Back over both, to the page's own entry, and pushes Stripe's page from there.
+ */
+describe("★ the size list stacked over the sheet (crumbs-83)", () => {
+  /** The page's own entry, then the sheet's and the list's over it, where the window stands. */
+  function stacked() {
+    window.history.pushState({ [POPUP_HISTORY_MARKER]: "prPopup-sheet" }, "");
+    window.history.pushState({ [POPUP_HISTORY_MARKER]: "prPopup-list" }, "");
+    sheet("cover");
+    list("screen");
+  }
+  const markerHere = () =>
+    (window.history.state as Record<string, unknown> | null)?.[
+      POPUP_HISTORY_MARKER
+    ];
+
+  it("★ steps Back over both entries, then pushes Stripe's page from the page's own", async () => {
+    stacked();
+    const go = vi.spyOn(window.history, "go");
+    leaveForStripe(STRIPE);
+    expect(go).toHaveBeenCalledWith(-2);
+    // Nothing leaves before that Back has landed: a navigation would cancel it.
+    expect(log).toEqual([]);
+    await landed();
+    expect(log).toEqual([`assign ${STRIPE}`]);
+    // Pushed from the page's own entry, so the sheet's and the list's are gone from under Stripe's page.
+    expect(markerHere()).toBeUndefined();
+    go.mockRestore();
+  });
+
+  it("asks for one reload if the page ever comes back from the cache, its places believing in entries it took", async () => {
+    stacked();
+    leaveForStripe(STRIPE);
+    await landed();
+    pageshow(true);
+    expect(log).toEqual([`assign ${STRIPE}`, "reload"]);
+  });
+
+  it("goes Back once only, however many times it was pressed while that Back was on its way", async () => {
+    stacked();
+    const go = vi.spyOn(window.history, "go");
+    leaveForStripe(STRIPE);
+    leaveForStripe(STRIPE);
+    expect(go).toHaveBeenCalledTimes(1);
+    await landed();
+    expect(log).toEqual([`assign ${STRIPE}`]);
+    go.mockRestore();
+  });
+
+  it("replaces the list's entry when the list is the one place up", () => {
+    list("screen");
+    leaveForStripe(STRIPE);
+    expect(log).toEqual([`replace ${STRIPE}`]);
+  });
+
+  it("★ pushes at a desk, where the list is a panel and the sheet a dialog, neither holding an entry", () => {
+    sheet("wide");
+    list("panel");
+    leaveForStripe(STRIPE);
+    expect(log).toEqual([`assign ${STRIPE}`]);
   });
 });

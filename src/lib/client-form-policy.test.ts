@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import ts from "typescript";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 /**
  * A `<form>` NEVER SUBMITS ITSELF INTO THE ADDRESS (crumbs-20: the ROADMAP's forms line, from
@@ -139,6 +139,17 @@ describe("the scan sees what it should", () => {
     ]);
   });
 });
+
+/**
+ * ★ THE TREE SCAN HAS A BUDGET OF ITS OWN (crumbs-83, the Orchestrator's gate 29). It reads and parses every file under
+ * `src` (about 1,600, through the TypeScript parser), CPU work that grows with the tree: under a second alone, 2.7 s beside
+ * the other policy scans (measured), and the history scan's 5.4 s in gate 29 past vitest's 5 s default for a test that
+ * waits on nothing, with another lane's build on the machine. Every test here gets the budget. A budget, not a timing
+ * claim: a scan that finds an offender still fails at once on its own assertion, and one that hangs fails at the budget
+ * (`no-em-dash-policy.test.ts`'s note: the first scan given one).
+ */
+const SCAN_BUDGET_MS = 60_000;
+vi.setConfig({ testTimeout: SCAN_BUDGET_MS });
 
 describe("no form pressed before hydration sends its fields into the address", () => {
   const files = filesUnder("src");

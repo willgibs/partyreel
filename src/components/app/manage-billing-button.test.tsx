@@ -7,7 +7,7 @@
  * to /help). The button presses the surface's doors (`pricing/pricing-doors.tsx`), the real ones
  * here: its route, and the error sentence a host reads when billing will not open.
  */
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -56,8 +56,14 @@ beforeEach(() => {
     },
   });
 });
+/** The page coming back from the browser's back/forward cache, as the browser tells it. */
+function pageshow(persisted: boolean) {
+  window.dispatchEvent(Object.assign(new Event("pageshow"), { persisted }));
+}
 afterEach(() => {
   vi.unstubAllGlobals();
+  // A press that left holds every door until the page comes back (`leave.ts`): this page always does, for the next test.
+  pageshow(true);
 });
 
 async function press() {
@@ -121,5 +127,28 @@ describe("Manage billing, when billing will not open", () => {
         description: "Please try again.",
       }),
     );
+  });
+});
+
+/**
+ * ★ PRESSED UNTIL THE PAGE HAS GONE (crumbs-83): the portal's address assigned is a page still standing while Stripe
+ * answers, and the old button came back at once, so a second tap opened a second portal session. It holds until the page
+ * hides, and a page the browser brings back from its cache lets it go (`leave.ts`).
+ */
+describe("★ Manage billing, pressed until the page has gone (crumbs-83)", () => {
+  it("★ stays Opening… and pressed once the portal's address is assigned, and lets go when the page comes back", async () => {
+    status = 200;
+    await press();
+    await waitFor(() =>
+      expect(assigned).toBe("https://billing.stripe.test/p/x"),
+    );
+    const button = screen.getByRole("button", { name: "Opening…" });
+    expect(button).toBeDisabled();
+    await userEvent.click(button);
+    expect(vi.mocked(fetch)).toHaveBeenCalledTimes(1);
+    act(() => pageshow(true));
+    expect(
+      screen.getByRole("button", { name: "Manage billing" }),
+    ).toBeEnabled();
   });
 });

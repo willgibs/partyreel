@@ -177,13 +177,25 @@ const COLUMN_FLOOR = 220;
  * (`lib/history-entry.ts`, its header): opening from a tile PUSHES an entry at
  * `?photo=<id>` carrying `PHOTO_ENTRY_KEY`, a walk moves the address inside that
  * one entry, and closing (the X, a tap on blank space, a pull down, Escape)
- * goes Back over it, so nothing dead is left to press through. A photograph
- * opened from its address (a shared link, a reload, a refresh) has no entry of
- * ours beneath it: its close replaces the address in place and lands in the
- * album, never off the page. The phone's own Back drops the photograph back
- * into its tile as the X does, or closes it at once where the browser already
- * drew its own transition (`hasUAVisualTransition`, a swipe back's snapshot);
- * Forward onto the entry opens the photograph again.
+ * goes Back over it, so nothing dead is left to press through. The phone's own
+ * Back drops the photograph back into its tile as the X does, or closes it at
+ * once where the browser already drew its own transition
+ * (`hasUAVisualTransition`, a swipe back's snapshot); Forward onto the entry
+ * opens the photograph again.
+ *
+ * ★ A PHOTOGRAPH OPENED FROM ITS ADDRESS STANDS ON AN ENTRY OF ITS OWN TOO
+ * (crumbs-83; Will's call, his to overrule). A shared link (or a bell's, or any
+ * link that names `?photo=`) opened the viewer with no entry of ours beneath it,
+ * so the phone's Back left the album with the photograph open, while its close
+ * cleared the address in place and landed in the album. Now the opening writes
+ * the album's entry beneath it: the address it landed on becomes the album's
+ * (`?photo=` cleared, in place) and the photograph's is pushed over it with the
+ * viewer's marker, as a tile's open does. So Back closes the photograph first,
+ * onto the album, and the next Back leaves; the close goes Back over that entry
+ * the same way. Only for an entry nothing of ours stands on: one that already
+ * carries the viewer's marker is its own (a reload of a photograph opened here,
+ * a Back onto it from another page), and one carrying a popup's is a reload's
+ * dead entry the sweep steps over onto the viewer's own (`stepOverDeadEntries`).
  *
  * ★ ONE GRID CLAIMS IT. A page can mount two grids (the profile's uploads and
  * likes; the host's album beside its bin), and a photograph in both must open
@@ -213,6 +225,16 @@ function photoHref(id: string | null): string {
 function standsOnAPopup(): boolean {
   const state = window.history.state as Record<string, unknown> | null;
   return state?.[POPUP_HISTORY_MARKER] !== undefined;
+}
+
+/**
+ * Whether the entry the window stands on is nobody's of ours: neither the viewer's own (a reload, a Back from
+ * another page) nor a popup's (a reload's dead one, which the sweep steps over onto the viewer's). A photograph
+ * opened from its address on such an entry writes the album's entry beneath it (the address's note).
+ */
+function standsOnNoEntryOfOurs(): boolean {
+  const state = window.history.state as Record<string, unknown> | null;
+  return state?.[PHOTO_ENTRY_KEY] === undefined && !standsOnAPopup();
 }
 
 /** Whether the browser already drew its own transition for this traversal (a swipe back's snapshot). */
@@ -756,8 +778,9 @@ export function MasonryColumns<T extends GridMedia>(props: {
 
   // The address, read once on mount (see the address's note). Async on purpose: a
   // frame lets the page settle and a door open first, and a door that is
-  // open is waited out. A photograph opened here stands on no entry of ours, so
-  // its close clears the address in place and lands in the album.
+  // open is waited out. ★ A photograph opened here on an entry nothing of ours
+  // stands on (a shared link) writes the album's entry beneath its own (the
+  // address's note), so Back and its close both land in the album.
   // ★ A RELOAD WITH A POPUP OPEN OVER THE VIEWER (the credit's look, a question)
   // left the window on the popup's dead entry, over the viewer's own (back-layers;
   // crumbs-47): stepped over first (`stepOverDeadEntries`), so the reopened viewer
@@ -792,6 +815,12 @@ export function MasonryColumns<T extends GridMedia>(props: {
         return;
       }
       addressClaim = claimId;
+      // The album's entry under the photograph's, the address it landed on cleared in place and the photograph's
+      // pushed over it, as a tile's open pushes it (the address's note; Will's call, his to overrule).
+      if (standsOnNoEntryOfOurs()) {
+        entry.replace(photoHref(null));
+        entry.push(photoHref(id));
+      }
       shownRef.current = id;
       poppedRef.current = false;
       setOpenId(id);
@@ -805,7 +834,7 @@ export function MasonryColumns<T extends GridMedia>(props: {
       observer?.disconnect();
       if (addressClaim === claimId) addressClaim = null;
     };
-  }, [photoAddress, claimId, returnTo]);
+  }, [photoAddress, claimId, returnTo, entry]);
 
   /* ★ THE PHONE'S BACK, AND FORWARD (the address's note). A traversal that leaves the viewer's photograph
      closes the viewer as its own X does (or at once where the browser drew its own transition), with the

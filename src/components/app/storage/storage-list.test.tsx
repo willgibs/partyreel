@@ -39,6 +39,8 @@ vi.mock("@/components/app/export/use-export-download", () => ({
   useExportDownload: () => ({ startDownload, fetchSummary: vi.fn() }),
 }));
 
+import { PricingDoorsProvider } from "@/components/app/pricing/pricing-doors";
+
 import { StorageList, type StorageGoal } from "./storage-list";
 import { StorageSourceProvider, type StorageSource } from "./storage-source";
 
@@ -162,6 +164,28 @@ async function answerConfirm(label: string) {
   await userEvent.click(within(confirm).getByRole("button", { name: label }));
 }
 
+/**
+ * ★ THE LIST'S FIRST RENDER GETS A LOADED MACHINE'S TIME (crumbs-83, gate 24). The body is `storage-list.tsx`'s lazy
+ * chunk, so the first test of a run transforms and imports it inside its first wait; on a quiet machine that is well
+ * under `waitFor`'s default second, but with another lane's build holding nine cores the first test timed out on a list
+ * that renders fine. Whichever test runs first pays it (`-t` can make any one first), so every test's first wait is
+ * this one, and each test is given room past it. A budget, not a timing claim: a list that never renders still fails,
+ * only later.
+ */
+const FIRST_RENDER = { timeout: 10_000 };
+vi.setConfig({ testTimeout: 20_000 });
+
+/** Every item of the first read, listed: the list has rendered. */
+const firstRows = (dialog: HTMLElement) =>
+  waitFor(() => expect(rowIds(dialog)).toHaveLength(3), FIRST_RENDER);
+
+/** The goal strip, drawn over the first read: the list has rendered. */
+const firstStrip = (dialog: HTMLElement) =>
+  waitFor(
+    () => expect(dialog.querySelector("[data-storage-goal]")).toBeTruthy(),
+    FIRST_RENDER,
+  );
+
 beforeEach(() => {
   setReducedMotion(true);
   push.mockReset();
@@ -176,7 +200,7 @@ describe("what she stores, largest first", () => {
   it("opens on every event's items, largest first, with a chip per event", async () => {
     const source = fakeSource();
     const dialog = open(source);
-    await waitFor(() => expect(rowIds(dialog)).toHaveLength(3));
+    await firstRows(dialog);
     expect(rowIds(dialog)).toEqual([BIG.id, MID.id, SMALL.id]);
     expect(source.read).toHaveBeenCalledWith({ withOverview: true });
     const chips = dialog.querySelectorAll("[data-storage-chip]");
@@ -190,7 +214,7 @@ describe("what she stores, largest first", () => {
   it("shows one event under its chip, read the first time it is chosen", async () => {
     const source = fakeSource();
     const dialog = open(source);
-    await waitFor(() => expect(rowIds(dialog)).toHaveLength(3));
+    await firstRows(dialog);
     await userEvent.click(
       dialog.querySelector(`[data-storage-chip="${PARTY}"]`) as HTMLElement,
     );
@@ -205,7 +229,7 @@ describe("Delete for good", () => {
   it("asks first, then deletes a selection grouped by event, leading with the result", async () => {
     const source = fakeSource();
     const dialog = open(source);
-    await waitFor(() => expect(rowIds(dialog)).toHaveLength(3));
+    await firstRows(dialog);
     await userEvent.click(checkboxFor(dialog, BIG));
     await userEvent.click(checkboxFor(dialog, MID));
     await userEvent.click(
@@ -227,7 +251,7 @@ describe("Delete for good", () => {
   it("deletes nothing when she cancels", async () => {
     const source = fakeSource();
     const dialog = open(source);
-    await waitFor(() => expect(rowIds(dialog)).toHaveLength(3));
+    await firstRows(dialog);
     await userEvent.click(checkboxFor(dialog, SMALL));
     await userEvent.click(
       within(dialog).getByRole("button", { name: "Delete for good" }),
@@ -248,7 +272,7 @@ describe("Delete for good", () => {
       })),
     });
     const dialog = open(source);
-    await waitFor(() => expect(rowIds(dialog)).toHaveLength(3));
+    await firstRows(dialog);
     await userEvent.click(checkboxFor(dialog, SMALL));
     await userEvent.click(
       within(dialog).getByRole("button", { name: "Delete for good" }),
@@ -264,7 +288,7 @@ describe("Delete for good", () => {
     // re-read while it is open could put the row back and unmount the list under her.
     const changed = vi.fn();
     const dialog = open(fakeSource(), null, changed);
-    await waitFor(() => expect(rowIds(dialog)).toHaveLength(3));
+    await firstRows(dialog);
     await userEvent.click(checkboxFor(dialog, SMALL));
     await userEvent.click(
       within(dialog).getByRole("button", { name: "Delete for good" }),
@@ -290,7 +314,7 @@ describe("Deleted, first", () => {
   it("names what Deleted holds and empties it, once she confirms", async () => {
     const source = fakeSource();
     const dialog = open(source);
-    await waitFor(() => expect(rowIds(dialog)).toHaveLength(3));
+    await firstRows(dialog);
     const deleted = dialog.querySelector(
       "[data-storage-deleted]",
     ) as HTMLElement;
@@ -314,7 +338,7 @@ describe("Deleted, first", () => {
     const dialog = open(
       fakeSource({ read: vi.fn(async () => firstAnswer(undefined, 0)) }),
     );
-    await waitFor(() => expect(rowIds(dialog)).toHaveLength(3));
+    await firstRows(dialog);
     expect(dialog.querySelector("[data-storage-deleted]")).toBeNull();
   });
 
@@ -327,7 +351,7 @@ describe("Deleted, first", () => {
       })),
     });
     const dialog = open(source);
-    await waitFor(() => expect(rowIds(dialog)).toHaveLength(3));
+    await firstRows(dialog);
     const deleted = dialog.querySelector(
       "[data-storage-deleted]",
     ) as HTMLElement;
@@ -353,7 +377,7 @@ describe("Deleted, first", () => {
       })),
     });
     const dialog = open(source);
-    await waitFor(() => expect(rowIds(dialog)).toHaveLength(3));
+    await firstRows(dialog);
     const deleted = dialog.querySelector(
       "[data-storage-deleted]",
     ) as HTMLElement;
@@ -378,9 +402,7 @@ describe("Deleted, first", () => {
       kind: "fit",
       capBytes: 60 * GIGABYTE,
     });
-    await waitFor(() =>
-      expect(dialog.querySelector("[data-storage-goal]")).toBeTruthy(),
-    );
+    await firstStrip(dialog);
     const strip = dialog.querySelector("[data-storage-goal]") as HTMLElement;
     expect(strip.getAttribute("data-state")).toBe("counting");
     const deleted = dialog.querySelector(
@@ -398,7 +420,7 @@ describe("download hands off to the export", () => {
   it("starts one event's selection at once, and asks which when it spans two", async () => {
     const source = fakeSource();
     const dialog = open(source);
-    await waitFor(() => expect(rowIds(dialog)).toHaveLength(3));
+    await firstRows(dialog);
     await userEvent.click(checkboxFor(dialog, BIG));
     await userEvent.click(
       within(dialog).getByRole("button", { name: "Download" }),
@@ -435,9 +457,16 @@ describe("the goal strip", () => {
     returnTo: "/account",
   };
 
-  it("counts down, asks once, deletes what is only selected, then asks the change-plan route", async () => {
+  /* RESHAPED ON PURPOSE (crumbs-83; scar kept: it counts down, asks once, deletes first, then asks the route). It ended in
+     `window.location.assign`, which left for Stripe past the pricing doors' way out: on a phone, over the list's own
+     history entry and the plan's under it. The strip leaves by the doors' `leave` now (`leave.ts` decides the history,
+     and `pricing-sheet.back.test.tsx` walks the phone's Backs home); this pins that it takes no other way. */
+  it("counts down, asks once, deletes what is only selected, then asks the change-plan route, and leaves by the doors' way out", async () => {
     const assign = vi.fn();
     vi.stubGlobal("location", { ...window.location, assign });
+    const leave = vi.fn((url: string) => {
+      order.push(`leave ${url}`);
+    });
     const order: string[] = [];
     const source = fakeSource({
       deleteForGood: vi.fn(async () => {
@@ -449,10 +478,28 @@ describe("the goal strip", () => {
         return { kind: "redirect" as const, url: "https://stripe.test/c" };
       }),
     });
-    const dialog = open(source, goal);
-    await waitFor(() =>
-      expect(dialog.querySelector("[data-storage-goal]")).toBeTruthy(),
+    render(
+      <PricingDoorsProvider
+        doors={{
+          readFacts: async () => null,
+          startCheckout: vi.fn(),
+          openPortal: vi.fn(),
+          changePlan: vi.fn(),
+          leave,
+        }}
+      >
+        <StorageSourceProvider source={source}>
+          <StorageList
+            back="Your plan"
+            goal={goal}
+            open
+            onOpenChange={() => {}}
+          />
+        </StorageSourceProvider>
+      </PricingDoorsProvider>,
     );
+    const dialog = screen.getByRole("dialog");
+    await firstStrip(dialog);
     const strip = dialog.querySelector("[data-storage-goal]") as HTMLElement;
     expect(strip.getAttribute("data-state")).toBe("counting");
     // Nothing to press until enough is freed.
@@ -466,10 +513,12 @@ describe("the goal strip", () => {
     await answerConfirm("Delete and switch");
 
     await waitFor(() =>
-      expect(assign).toHaveBeenCalledWith("https://stripe.test/c"),
+      expect(leave).toHaveBeenCalledWith("https://stripe.test/c"),
     );
-    expect(order).toEqual(["delete", "switch"]);
+    expect(order).toEqual(["delete", "switch", "leave https://stripe.test/c"]);
     expect(source.switchPlan).toHaveBeenCalledWith("pro_50", "/account");
+    // The old strip's own way out, past the doors.
+    expect(assign).not.toHaveBeenCalled();
     vi.unstubAllGlobals();
   });
 
@@ -489,7 +538,7 @@ describe("the goal strip", () => {
       })),
     });
     const dialog = open(source, goal);
-    await waitFor(() => expect(rowIds(dialog)).toHaveLength(3));
+    await firstRows(dialog);
     await userEvent.click(checkboxFor(dialog, BIG));
     await userEvent.click(checkboxFor(dialog, MID));
     const strip = dialog.querySelector("[data-storage-goal]") as HTMLElement;
@@ -512,7 +561,7 @@ describe("the goal strip", () => {
         switchPlan: vi.fn(async () => ({ kind: "signin" as const })),
       });
       const dialog = open(source, goal);
-      await waitFor(() => expect(rowIds(dialog)).toHaveLength(3));
+      await firstRows(dialog);
       await userEvent.click(checkboxFor(dialog, BIG));
       await userEvent.click(checkboxFor(dialog, MID));
       const strip = dialog.querySelector("[data-storage-goal]") as HTMLElement;
@@ -528,7 +577,7 @@ describe("the goal strip", () => {
 
   it("offers no switch while her subscription cannot change here", async () => {
     const dialog = open(fakeSource(), { ...goal, canSwitch: false });
-    await waitFor(() => expect(rowIds(dialog)).toHaveLength(3));
+    await firstRows(dialog);
     await userEvent.click(checkboxFor(dialog, BIG));
     await userEvent.click(checkboxFor(dialog, MID));
     const strip = dialog.querySelector("[data-storage-goal]") as HTMLElement;
@@ -550,9 +599,7 @@ describe("her own plan's goal", () => {
   it("★ counts down to her own cap and says where she stands, with nothing to switch", async () => {
     const source = fakeSource();
     const dialog = open(source, fit);
-    await waitFor(() =>
-      expect(dialog.querySelector("[data-storage-goal]")).toBeTruthy(),
-    );
+    await firstStrip(dialog);
     const strip = dialog.querySelector("[data-storage-goal]") as HTMLElement;
     expect(strip.getAttribute("data-state")).toBe("counting");
     expect(strip.textContent).toContain("10.9 GB");
@@ -579,7 +626,7 @@ describe("her own plan's goal", () => {
 
   it("keeps Deleted's own note: her plan holds her events and Deleted together", async () => {
     const dialog = open(fakeSource(), fit);
-    await waitFor(() => expect(rowIds(dialog)).toHaveLength(3));
+    await firstRows(dialog);
     expect(
       dialog
         .querySelector("[data-storage-note]")

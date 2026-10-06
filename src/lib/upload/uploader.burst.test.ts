@@ -384,6 +384,41 @@ describe("★ a file refused never stops its siblings", () => {
     });
     expect(completes()[0]!.body.files).toHaveLength(2);
   });
+
+  /* ★ A REFUSAL THE UPLOADER MAKES ITSELF CARRIES ITS CODE (crumbs-83; red-team 54's LOW). A wrong type and a file over the
+     ceiling never reach a request, and refused with no code they read to every surface as a failure worth another go:
+     the failure sheet offered a Retry whose press refused the same file at once. They are tagged where they are decided,
+     with the codes the server says for the same refusals. The old uploader answered both with no `code`. */
+  it("★ refused on the phone: a wrong type and a file over the ceiling answer the server's codes, and their siblings land", async () => {
+    const notes = new File([new Uint8Array(4)], "notes.txt", {
+      type: "text/plain",
+    });
+    // A photograph, so its measure is the stood-in image's (this harness draws no <video>).
+    const huge = new File([new Uint8Array(4)], "huge.jpg", {
+      type: "image/jpeg",
+    });
+    Object.defineProperty(huge, "size", { value: 11 * 1024 ** 3 });
+    const { out } = await send([photo(1000), notes, huge, photo(1001)]);
+    expect(out[1]).toEqual({
+      ok: false,
+      code: "unsupported_type",
+      message: "That file type isn't supported.",
+    });
+    expect(out[2]).toEqual({
+      ok: false,
+      code: "too_large",
+      message: "This file is larger than the 10 GB maximum.",
+    });
+    expect(out[1]).not.toHaveProperty("cause");
+    expect(out[2]).not.toHaveProperty("cause");
+    // Neither reached a request: the siblings alone were presigned, sent and recorded.
+    expect(out.filter((o) => o.ok)).toHaveLength(2);
+    expect(presigns().flatMap((c) => c.body.files)).toHaveLength(2);
+    expect(log.filter((l) => l.startsWith("put"))).toEqual([
+      "put f1000",
+      "put f1001",
+    ]);
+  });
 });
 
 describe("★ a refusal of who is sending is every unasked file's, never asked again", () => {

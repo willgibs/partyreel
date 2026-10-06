@@ -38,6 +38,7 @@ import {
   POPUP_HISTORY_MARKER,
   stepOverDeadEntries,
 } from "@/components/ui/popup-back";
+import { stepOutThenLeave } from "@/components/ui/popup-back-way-out";
 
 import { setViewportWidth } from "../../../vitest.setup";
 
@@ -559,5 +560,218 @@ describe("a reload's dead entry (back-layers)", () => {
     await settled();
     expect(back).not.toHaveBeenCalled();
     expect(marker()).toBe(mine);
+  });
+});
+
+/**
+ * ★ AN ENTRY WHOSE POPUP HAS GONE IS STEPPED OVER WHEN A PRESS LANDS ON IT (crumbs-83, the three ROADMAP lines back-layers
+ * left). A popup whose act navigates (a server action's redirect, `router.push`) goes with its page, and its entry stayed
+ * under the next page: Back from there landed on a same-address entry with nothing open, one dead Back. And Forward onto a
+ * closed popup's entry read as a Back off the top entry, so it closed the popup open beneath it and stood on a dead entry.
+ * The navigation is Next's own commit here (`nextPushes`: the HistoryUpdater's push of the next page, with Next's state),
+ * the old page and its popups going with it, as they do in the app.
+ */
+describe("an entry whose popup has gone (crumbs-83)", () => {
+  /** Long enough for a tick, a traversal (jsdom's takes two timers) and the step after it. */
+  const landed = () =>
+    act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 60));
+    });
+  const isOpen = (name: string) =>
+    document.querySelector(`[data-slot="popup-content"][data-name="${name}"]`) !== null;
+  // A layer under a modal one is hidden from the reader, never from the press.
+  const press = (name: string) =>
+    fireEvent.click(screen.getByRole("button", { name, hidden: true }));
+  const here = () => window.location.pathname;
+  /** Next's commit of the page an act went on to: a push with its own state, which its patch lets through. */
+  const nextPushes = (url: string) =>
+    window.history.pushState(
+      { __NA: true, __PRIVATE_NEXTJS_INTERNALS_TREE: { tree: url } },
+      "",
+      url,
+    );
+
+  /** A page with a place on it and a question over the place; either's act can go on to the next page. */
+  function Site() {
+    const [page, setPage] = useState<"page" | "next">("page");
+    const [place, setPlace] = useState(false);
+    const [asked, setAsked] = useState(false);
+    const goOn = () => {
+      nextPushes("/next");
+      setPage("next");
+    };
+    return (
+      <NextRouterStandIn>
+        {page === "next" ? (
+          <p>The next page</p>
+        ) : (
+          <>
+            {/* Opened by a press after the page has mounted, as a person opens it (Next's patch is in by then). */}
+            <button type="button" onClick={() => setPlace(true)}>
+              Open
+            </button>
+            <Popup open={place} onOpenChange={setPlace}>
+              <PopupContent kind="list" data-name="place" aria-describedby={undefined}>
+                <PopupHeader title="Place" back="Page" />
+                <PopupBody>
+                  <button type="button" onClick={goOn}>
+                    Go on
+                  </button>
+                  <button type="button" onClick={() => setAsked(true)}>
+                    Ask
+                  </button>
+                </PopupBody>
+              </PopupContent>
+            </Popup>
+            <Popup open={asked} onOpenChange={setAsked}>
+              <PopupContent kind="confirm" data-name="question" aria-describedby={undefined}>
+                <PopupHeader title="Sure?" />
+                <PopupFooter>
+                  <button type="button" onClick={() => setAsked(false)}>
+                    Go back
+                  </button>
+                  <button type="button" onClick={goOn}>
+                    Do it
+                  </button>
+                </PopupFooter>
+              </PopupContent>
+            </Popup>
+          </>
+        )}
+      </NextRouterStandIn>
+    );
+  }
+
+  beforeEach(landed);
+
+  it("★ a place whose act goes on to another page: one Back from there returns to the page beneath, and Forward goes on again", async () => {
+    next.land("/dashboard");
+    render(<Site />);
+    await landed();
+    press("Open");
+    await landed();
+    expect(marker()).toBeTruthy();
+    press("Go on");
+    await landed();
+    expect(here()).toBe("/next");
+
+    const back = vi.spyOn(window.history, "back");
+    act(() => window.history.back());
+    await landed();
+    await landed();
+    // The old code stood here on the place's entry: the page with nothing open, and the next Back the same page again.
+    expect(here()).toBe("/dashboard");
+    expect(marker()).toBeUndefined();
+    expect(back).toHaveBeenCalledTimes(2);
+
+    // A Forward from the page beneath lands on that entry from below, and goes on to the page above it.
+    act(() => window.history.forward());
+    await landed();
+    await landed();
+    expect(here()).toBe("/next");
+    expect(next.reloads).toBe(0);
+  });
+
+  it("★ a question over a place whose act goes on: one Back steps over both entries, to the page beneath", async () => {
+    next.land("/dashboard");
+    render(<Site />);
+    await landed();
+    press("Open");
+    await landed();
+    press("Ask");
+    await landed();
+    expect(isOpen("question")).toBe(true);
+    press("Do it");
+    await landed();
+    await landed();
+    expect(here()).toBe("/next");
+
+    const back = vi.spyOn(window.history, "back");
+    act(() => window.history.back());
+    await landed();
+    await landed();
+    await landed();
+    expect(here()).toBe("/dashboard");
+    expect(marker()).toBeUndefined();
+    // The person's press, and one step over each entry its popups left.
+    expect(back).toHaveBeenCalledTimes(3);
+    expect(next.reloads).toBe(0);
+  });
+
+  it("★ Forward onto a closed popup's entry leaves the popup beneath it open: the Forward is undone", async () => {
+    next.land("/dashboard");
+    render(<Site />);
+    await landed();
+    press("Open");
+    await landed();
+    const placeEntry = marker();
+    press("Ask");
+    await landed();
+    expect(marker()).not.toBe(placeEntry);
+
+    // The phone's Back closes the question, and the window stands on the place's entry.
+    act(() => window.history.back());
+    await landed();
+    expect(isOpen("question")).toBe(false);
+    expect(marker()).toBe(placeEntry);
+
+    act(() => window.history.forward());
+    await landed();
+    await landed();
+    // The old code read the landing as a Back off the place's entry, and closed the place.
+    expect(isOpen("place")).toBe(true);
+    expect(isOpen("question")).toBe(false);
+    expect(marker()).toBe(placeEntry);
+
+    // And the place's Back is still one press away.
+    act(() => window.history.back());
+    await landed();
+    expect(isOpen("place")).toBe(false);
+    expect(marker()).toBeUndefined();
+  });
+
+  it("Forward onto a closed place's entry over the bare page is undone too: nothing opens, and the page's entry stands", async () => {
+    next.land("/dashboard");
+    render(<Site />);
+    await landed();
+    press("Open");
+    await landed();
+    act(() => window.history.back());
+    await landed();
+    expect(isOpen("place")).toBe(false);
+    expect(marker()).toBeUndefined();
+
+    act(() => window.history.forward());
+    await landed();
+    await landed();
+    // The old code stood on the closed place's entry, so the next Back landed on the same page again.
+    expect(marker()).toBeUndefined();
+    expect(isOpen("place")).toBe(false);
+  });
+
+  it("★ the way out's own Back over the entries closes nothing, and forgets each one it steps over", async () => {
+    next.land("/dashboard");
+    render(<Site />);
+    await landed();
+    press("Open");
+    await landed();
+    press("Ask");
+    await landed();
+    const leave = vi.fn();
+    act(() => stepOutThenLeave(2, leave));
+    await landed();
+    await landed();
+    expect(leave).toHaveBeenCalledTimes(1);
+    expect(marker()).toBeUndefined();
+    // Both stand drawn as the page leaves: the strip's "Opening…" is still on screen.
+    expect(isOpen("place")).toBe(true);
+    expect(isOpen("question")).toBe(true);
+
+    // Nothing of theirs is left to take back: a page that never left closes them with no Back at all.
+    const back = vi.spyOn(window.history, "back");
+    press("Go back");
+    await landed();
+    expect(isOpen("question")).toBe(false);
+    expect(back).not.toHaveBeenCalled();
   });
 });

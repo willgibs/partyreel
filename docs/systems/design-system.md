@@ -500,7 +500,11 @@ Transition is its one sanctioned hole ([host-app.md](host-app.md)).
   order, one landing at a time, a person's Back pops only the top one, and a push waits for a Back of ours still on
   its way; a reload's dead entry (a marker this page life never wrote) is stepped over as the first popup hook or the
   album mounts. A link inside a place replaces the place's entry as it navigates, so Back from the next page lands on
-  the page beneath, never on a same-URL entry with nothing open.
+  the page beneath, never on a same-URL entry with nothing open; and an entry whose popup has gone another way is
+  stepped over when a press lands on it, the way the press was going: one a person's Back (or ours) left above the
+  window only a Forward reaches, and it is undone, the popup beneath untouched; one left under a page the popup's act
+  went on to (`router.push`, a server action's redirect) is gone over Back to the page beneath, or Forward again. The
+  way out for Stripe's page goes Back over the places' entries without closing them (`ui/popup-back-way-out.ts`).
 - **Focus** lands on the popup itself in a hand, never its first field (which would raise the keyboard into a surface
   still arriving), and where the row's `deskFocus` says at a desk; a popup with no trigger of its own gives focus back
   to the control that opened it, inside the layer still open behind it when it was stacked over one, and a menu or a

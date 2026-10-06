@@ -3,7 +3,7 @@
 import "./doorway.css";
 
 import { useRef, type CSSProperties } from "react";
-import { ImagePlus } from "lucide-react";
+import { Camera, ImagePlus } from "lucide-react";
 
 import { PickPreview } from "@/components/guest/upload/pick-preview";
 import { usePickUrls } from "@/components/guest/upload/use-pick-urls";
@@ -32,6 +32,14 @@ import { cn } from "@/lib/utils";
  * ★ ONE INPUT, IN THE PAGE, CLICKED INSIDE THE TAP (the intent sheet's own rule): Safari opens a picker
  * only inside the gesture that asked for it, and an input that unmounts before its picker answers never
  * fires `change`. Her album's picker on a phone offers its camera too, so the door asks one question.
+ *
+ * ★ ON AN ALBUM WHOSE HOST CHOSE THE CAMERA, WHAT WAITS IS TAKEN WITH THE ALBUM'S CAMERA, NEVER THE LIBRARY
+ * (crumbs-83, as the door's own step since crumbs-76). The picker offered her photo library here too, so a
+ * library photo could wait for a roll the camera exists to keep to what was taken in the moment. With
+ * `camera`, there is no picker of any kind: one primary opens the album's camera (the door holds it,
+ * `entry-modal.tsx`), its shots join the page's queue and wait there like a choice, and Take another
+ * opens it again. Those shots live in the tab alone (the device keeps a choice, `wait-picks-store.ts`, never
+ * the camera's shots), so the door says to keep it open.
  */
 
 /** One held choice: the queue's own item (its file, its kind, how far it has gone). */
@@ -65,6 +73,7 @@ export function WaitPicks({
   onPick,
   kept = null,
   acceptsVideo = true,
+  camera = null,
 }: {
   picks: readonly WaitPick[];
   /** Her choice, held for the door (it replaces the last one: a Change is a new choice). */
@@ -73,29 +82,38 @@ export function WaitPicks({
   kept?: boolean | null;
   /** Whether this album takes a video from a guest: the picker offers only what it takes. */
   acceptsVideo?: boolean;
+  /**
+   * The album's host chose the camera: what waits is taken with it, so the chooser offers that and no picker
+   * (`onOpen` opens the album's camera, which the door holds). Absent on a free-upload album.
+   */
+  camera?: { onOpen: () => void } | null;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const choose = () => inputRef.current?.click();
+  const choose = camera ? camera.onOpen : () => inputRef.current?.click();
   const chosen = picks.length > 0;
+  // The camera's shots live in the tab alone; a choice says so only where the device could not keep it.
+  const tabOnly = camera !== null || kept === false;
 
   return (
     <div
       data-door-picks={chosen ? "ready" : "empty"}
       className="flex w-full flex-col items-center"
     >
-      <input
-        ref={inputRef}
-        type="file"
-        accept={acceptsVideo ? "image/*,video/*" : "image/*"}
-        multiple
-        hidden
-        onChange={(e) => {
-          const files = Array.from(e.currentTarget.files ?? []);
-          // Reset, so choosing the same photographs again still answers.
-          e.currentTarget.value = "";
-          if (files.length > 0) onPick?.(files);
-        }}
-      />
+      {camera ? null : (
+        <input
+          ref={inputRef}
+          type="file"
+          accept={acceptsVideo ? "image/*,video/*" : "image/*"}
+          multiple
+          hidden
+          onChange={(e) => {
+            const files = Array.from(e.currentTarget.files ?? []);
+            // Reset, so choosing the same photographs again still answers.
+            e.currentTarget.value = "";
+            if (files.length > 0) onPick?.(files);
+          }}
+        />
+      )}
       {chosen ? (
         <>
           <PickRow picks={picks} />
@@ -109,12 +127,12 @@ export function WaitPicks({
               onClick={choose}
               className="font-medium underline decoration-border underline-offset-4 transition-colors duration-150 ease-emphasis hover:decoration-foreground"
             >
-              Change
+              {camera ? "Take another" : "Change"}
             </button>
           </p>
           <p className="mt-1 text-sm text-balance text-muted-foreground">
             They go in the moment you&rsquo;re let in.
-            {kept === false && " Keep this tab open."}
+            {tabOnly && " Keep this tab open."}
           </p>
         </>
       ) : (
@@ -126,8 +144,17 @@ export function WaitPicks({
             className="w-full"
             onClick={choose}
           >
-            <ImagePlus />
-            {"Choose what you’ll add"}
+            {camera ? (
+              <>
+                <Camera />
+                Take a photo
+              </>
+            ) : (
+              <>
+                <ImagePlus />
+                {"Choose what you’ll add"}
+              </>
+            )}
           </Button>
           <p className="mt-2.5 text-sm text-pretty text-muted-foreground">
             Nothing is sent until you&rsquo;re let in.
