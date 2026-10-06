@@ -23,12 +23,12 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 ## In flight
 
-Round 15 resumed at 15:55Z on 2026-10-06 on a new seat, the willg97 seat's cloud credit spent: a claude.ai cloud
-session on hi@willgibs.com's account (`session_01D1RcsL5Ejp5qbbtv1T7oUq`, environment "Default"), on Will's $250 cloud
-credit at full pace until he pauses for a desk round. Milestone 37 is live (`b67cdc1f2`); `launch-prep` holds milestone
-38's work, whole since drive-crumbs merged at gate 47 (each lane's summary is its merge commit). Every lane is a cloud
-session of its own (the runbook's "Cut a lane", step 4); none can message back, so a `send_later` check-in about every
-40 minutes reads them (their status, pushed heads and cost) while any runs.
+Round 15 resumed at 15:55Z on 2026-10-06 on a new seat, the willg97 seat's cloud credit spent: a claude.ai cloud session
+on hi@willgibs.com's account (`session_01D1RcsL5Ejp5qbbtv1T7oUq`, environment "Default"), on Will's $250 cloud credit at
+full pace until he pauses for a desk round. Milestone 38 is live (`90ab891c2`, 21:37Z), and `launch-prep` is `main`
+there; the second wave, all handed off, integrates on top (each lane's summary is its merge commit). Every lane is a
+cloud session of its own (the runbook's "Cut a lane", step 4); none can message back, so a `send_later` check-in about
+every 40 minutes reads them (their status, pushed heads and cost) while any runs.
 
 | lane | what | state | model | session |
 | --- | --- | --- | --- | --- |
@@ -70,29 +70,41 @@ and another account's sessions.
 
 ## Next, in order
 
-1. **Milestone 38 on Will's yes.** Red-team 56b walked `28ac0f813` (20:02Z): no HIGH or MEDIUM, eight walks PASS, two
-   LOWs, three NITs and one unexplained cookie loss (ROADMAP's Immediate, for the crumbs lane cut after the second wave
-   merges); its burst walk's read-back holds 92 rows, each once. On his yes: the `FULL=1` gate here (gate 51 runs ahead
-   on the record's tip), `pnpm compute:model`, merge to `main`, tag, push (production deploys from the push); then the
-   Drive and backup Workers (`wrangler`: Will's Mac, or a Cloudflare token in the environment) and `DRIVE_WORKER_URL`
-   and `BACKUP_WORKER_URL` on Vercel; Drive's live walk (P3's Google consent, Will's hand: drive-crumbs' Handoff lists
-   what to press). The Advisor wants 38 soon: milestone 37's build re-grants a Pro credit past a day (TEST money).
-2. **Lanes run:** desk 7's two boards merge as they hand off (dev-only); the second wave (marketing-crumbs, upload-sums,
-   crumbs-86) and halo-last integrate after milestone 38's merge, so what ships is what red-team 56b walked;
-   upload-sums' migration goes through the Advisor, then its drift read, RED, GREEN and apply here. A `send_later`
-   check-in about every 40 minutes reads them.
-3. **The alias serves `bbfcc544`** (19:45Z, deployed once on Will's word, 18:29Z): his desk review is at
+1. **Milestone 38 is live** (`90ab891c2`, 21:37Z; partyreel.com's alias record on `dpl_4AbVgjyu9UECuHcFVd2SuBEcpHQt`,
+   the admin's on `dpl_H4Err88MLcTj1u8gyBnPdkSDsg3E`). Two things finish it: **its tag**, which this seat's git access
+   refuses (HTTP 403 on a tag push, a policy, never routed around): from Will's Mac or a local seat, `git fetch origin
+   && git tag -a milestone-38 90ab891c2 -m "milestone-38: the album at one moment for every guest, capture time kept,
+   the house set and the halo, the hub's doors and Back, money and the meter as one truth, Drive whole" && git push
+   origin milestone-38`; and **the Workers**: Drive's and the backup's (restore and reconcile) deploy with `wrangler`
+   once a seat holds `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` (Will's, in the environment: a new container
+   reads them), then `DRIVE_WORKER_URL` and `BACKUP_WORKER_URL` on Vercel; Drive's live walk is Will's hand (P3's Google
+   consent; drive-crumbs' Handoff lists what to press).
+2. **The second wave integrates** on top of 38, one lane at a time (each handed off): crumbs-86 (`3f459b91b`), halo-last
+   (`3075d32d5`), marketing-crumbs (`adaa07645`), then upload-sums (`96f3e80ba`), whose migration the Advisor read:
+   APPLY after this seat's own RED then GREEN, on three conditions (its scratch notes are lost with this container, so
+   here whole): a pre-check for transactions open past 30 s before `apply_migration` (its backfill's SHARE ROW EXCLUSIVE
+   lock queues every media writer behind one); the Q1 signal lane (a `storage_sums` sweep paging `storage_sums_drift` on
+   the purge cron, its /admin/jobs entry closing ERROR on drift, a Rebuild control calling `rebuild_storage_sums`, and
+   `remove_my_upload`'s already-removed arm taking her profiles row first) cut and merged in the same milestone; two doc
+   lines (database-security.md's lock order names the one new deadlock, a guest's withdrawal of a block-removed upload
+   against the host's Restore or Let back in, 40P01 then a retry; advisors 26 -> 27 for `host_storage_sums`). Live it
+   replays exactly: the six names absent, `host_storage_summary` at 30b70bbe84e35dfc0662eda92ab7fa5c, the proof's step 5
+   reading five hosts at parity. Each lane's merge retires its lines from the ROADMAP's Landing.
+3. **The ROADMAP is five buckets** (3827bb5b7): `record.py` places each line by bucket and area and refuses an Immediate
+   past 40. The next crumbs lane is cut from Immediate (red-team 56b's LOWs and NITs lead it). Two check upgrades wait
+   there, both Will's rising tide (a check that obstructs is upgraded): `pnpm test:rules` in the board lanes' light
+   gate, and `compute:model` holding CPU only on its budget's own machine.
+4. **For the local seat, with a fresh context** (Will, 2026-10-06): his desk review batch (brand r2, event-header r6 and
+   desk 7's four moments boards, all on the alias), committed verbatim to `docs/reviews/` before a word of it is
+   transcribed; then his personal list of 100+ items in batches, each committed verbatim first and slotted into the
+   ROADMAP's buckets and areas with a proposed order of rounds on top; and a lab triage tool (Keep, Later or Drop with a
+   note beside each `[unsure: …]` line and any bucket he asks for, its answers a paste back, as the desk's are).
+5. **The alias serves `bbfcc544`** (19:45Z, deployed once on Will's word): his desk is at
    `https://partyreel-git-launch-prep-partyreel.vercel.app/design/lab?key=fiesta`. No other deploy until he asks.
-4. **Will's desk** holds brand r2's `take` (served at `2634388a8`, unanswered) and, at the next refresh, event-header
-   r6's `card` and `attention` and desk 7's moments boards (host-moments r1, guest-moments r1, account-moments r1 and
-   create-wizard r4 merged): he runs `git pull && S=/tmp zsh usher/kit/desk-refresh.sh <sha>` in his checkout. Desk 6,
-   the brand applied (brand-marks with the status set, which inherits his `attention` pick as its waiting colour;
-   aurora; marketing-themes with N4, N7 and N9; demo-framing r6; presence r1), is cut after his brand r2 pick.
-5. **Compute:** lever 3 and 3b only on Will's X5; `pnpm compute:model` at every milestone.
 6. **★ Vercel's Hobby Active CPU** (about 3.89 of 4 hours over 30 days on 2026-10-06; the peak rolls off in early
    November): nothing runs against the alias or partyreel.com but what Will asks for by name.
-7. **Pacing:** Will's $250 cloud credit on this account, full pace until he pauses for a desk round (a board lane ran
-   $9 to $15, a production lane $6 to $29).
+7. **Pacing:** this cloud seat finishes what is open, with no new tracks (about $68 of Will's cloud credit left at
+   21:15Z); the program then hands to a local Orchestrator on Will's Mac with a fresh weekly limit.
 
 ## Waiting on Will
 
@@ -100,7 +112,7 @@ and another account's sessions.
 - **His desk, on the alias** (`/design/lab?key=fiesta`): brand r2's take, event-header r6 and desk 7 whole.
 - **The calls lab** (`docs/calls.md`): the open questions X1, X2, X3, X5, X6 and X8, then each merge's calls, built and
   his to overrule. He asks direct questions in chat; answer in chat, never only in a file.
-- **Milestone 38** on his yes, after red-team 56b (billing-orphans and drive-crumbs merged).
+- **The `milestone-38` tag** from his Mac (Next 1 has the command), and **the Cloudflare token** for the Workers.
 - **A Cloudflare API token** in the environment (`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`), only if the
   Workers should deploy from the cloud.
 - **The private note** scratch-synthesis wrote for this seat on his Mac (`CLOUD-ORCHESTRATOR-PRIVATE.md`): uploaded

@@ -65,6 +65,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 
 - Docs: a prune pass over `PRICING.md`, `systems/billing-caps.md`, `systems/reel.md` and `PRD.md` by CLAUDE.md's "Keeping the docs healthy" (docs-prune counted about 92 history and restatement lines there on 2026-10-04, never applied) (scratch-synthesis).
 - Upkeep: a contract migration drops `standby_hosts` with its test pins and renames `host_storage_summary.standby_bytes` to `deleted_bytes` (DROP + CREATE) with `readHostStorageSummary`.
+- Cost: `pnpm compute:model` holds CPU against the machine its budget was measured on (`budget.json`'s `measured.cpu`, an M3 Max), so a cloud seat reads over on cold module loads (milestone 38: guest-join-upload 1,606 ms of 1,550, its first complete-upload about 700 ms): on another machine hold calls only and report CPU, and re-measure the budget on the Mac (`--write-budget`).
 
 ### Security and abuse
 
@@ -120,6 +121,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - The lab and the kit: `pnpm compute:model`'s lab-demo scenario reads 182.8 calls and 707 ms of CPU a step against its budget of 9 and 210 (2026-10-05, after desk 3's boards merged): find the frames that call the API (production components fetching live data inside a board) and stub them, or re-baseline the line; the lab is dev-only, so production's cost is untouched, but a slow desk costs Will's sittings.
 - The lab: retire `/design/lab/proposals` and its `status.ts`; the `docs/specs` it renders is gone (a board's argument lives in its `spec.ts`).
 - The lab: the motion playground (`lab/tools/motion/motion-playground.tsx`) still sends the reader to "the rounding board" and names `/design/lab/rounding`, both gone; point them at `/design/library/foundations#radius`.
+- The lab and the kit: a board lane's light gate runs only its own board's tests, so a repo-wide rule caught account-moments r1's hand-written dialog selector a full gate later (gate 48): a `pnpm test:rules` running every test that reads the tree through `src/testing/source-tree.ts`, added to PROGRAM.md's light gate (a check that obstructs is upgraded: Will, 2026-10-06).
 
 ### Code hygiene
 

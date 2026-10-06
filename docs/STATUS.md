@@ -13,16 +13,15 @@ and the launch switches unspent ([`ROADMAP.md`](ROADMAP.md) → Launch). Work ri
 catalog in the lab, Will's verdicts on the desk, then the wiring; partyreel.com changes only at tagged milestone merges.
 Nothing is protected: every page, the host app and the guest pages are open to be reconceived from the ground up.
 
-## The current round: round 15, toward milestone 38
+## The current round: round 15, milestone 38 live
 
-- **Milestone 37 is live** (`b67cdc1f2`, 2026-10-05 16:25Z); the legal text is rewritten once, right before launch.
-- **`launch-prep` holds milestone 38**: the album turning at one moment for every guest (the party's zone), its Sort,
-  Filter and arrivals pill; a photo's capture time kept, never the place or device; Will's house set and working words;
-  the hub's doors as cards; Settings' roll; Back a layer at a time; the dashboard's chooser; the pass credit's integrity
-  and stuck watch; the backup restoring and reconciling again; Drive's fixes and hardening; the lab's frames held still.
-- **Red-team 56** walked it (no HIGH, one MEDIUM, small findings) and crumbs-85 fixed them; billing-orphans (gate 46)
-  and drive-crumbs (gate 47) landed the last of milestone 38's work; red-team 56b re-walked it (no HIGH or MEDIUM).
-  Milestone 38 waits on Will's yes, where Drive's and the backup's Workers deploy (`tracks/orchestrator.md`).
+- **Milestone 38 is live** (`90ab891c2`, 2026-10-06 21:37Z): the album turning at one moment for every guest (the
+  party's zone), its Sort, Filter and arrivals pill; a photo's capture time kept, never the place or device; Will's
+  house set and working words; the hub's doors as cards; Back a layer at a time; the pass credit's integrity and stuck
+  watch; Drive whole. Red-teamed by 56 and 56b (no HIGH or MEDIUM open); the legal text is rewritten once, right before
+  launch.
+- **Next:** the second wave (marketing-crumbs, upload-sums, crumbs-86, halo-last, all handed off) integrates on top;
+  Drive's and the backup's Workers deploy once the Cloudflare token reaches this seat (`tracks/orchestrator.md`).
 - **The Orchestrator sits in a cloud session** on hi@willgibs.com's account (Will's $250 credit), each lane in its own.
 - **Vercel's Hobby Active CPU** reads about 3.89 of 4 hours over 30 days (2026-10-06; the peak rolls off in early
   November): nothing of ours runs on Vercel but what Will asks for by name; desks and red-teams run locally (`CLAUDE.md`).
@@ -36,13 +35,13 @@ five; Create's last steps, four). Desk 6 next.
 
 ## Live state
 
-- **Prod:** partyreel.com is `main` at tag `milestone-37` (`b67cdc1f2`), both projects READY. Its crons: the purge at
-  04:00 UTC and the spend watch at 05:00. Send to Google Drive reads "not set up" there until its Worker deploys with
-  milestone 38 (production holds Drive's four secrets; `DRIVE_WORKER_URL` is set at the deploy).
+- **Prod:** partyreel.com is `main` at milestone 38 (`90ab891c2`), both projects READY; its tag `milestone-38` waits on
+  a push from Will's Mac (this seat's git access refuses tags). Its crons: the purge at 04:00 UTC and the spend watch at
+  05:00. Send to Google Drive reads "not set up" until its Worker deploys (`DRIVE_WORKER_URL` is set at that deploy).
 - **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves `bbfcc544` (2026-10-06 19:45Z), deployed
   once on Will's word for his desk review; no other deploy until he asks. Vercel installs with pnpm 9.14.4.
 - **The shared database** runs every migration through `drive_marks` (2026-10-06), each by protocol (the Advisor read
-  each before its apply, the file's md5 matched), each an expand milestone 37 runs beside; no build of either project
+  each before its apply, the file's md5 matched), each an expand the older build ran beside; no build of either project
   reads a dropped thing. Advisors stand at 26 / 4 / 36 ([`systems/database-security.md`](systems/database-security.md)).
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in
