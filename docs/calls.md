@@ -1067,3 +1067,30 @@ it (a board idea).
 **BQ2. The Take it home figure keeps the old demo's lower-case caption register,** and drops the size's number-pop
 (the facts are the cards' own lines now).
 - *Push back if* the caption should read in the site's sentence case.
+
+## BR. A credit's orphans settled whole, and the change-plan setup watched (billing-orphans)
+
+An orphan's grant is adopted in one transaction, the change-plan configuration is read in the spend watch's daily run,
+and her Plan card says her Pro is on its way while it lands; these calls came with it, built and yours to overrule.
+
+**BR1. Two orphans holding grants for one pass: the older one is the credit.** The younger is released beside its
+grant (the Accounts list's "granted twice", reversed in Stripe), never a "converted none" left reading as a credit; two
+orphans on different passes each convert.
+- *Push back if* the newer checkout should be the credit.
+
+**BR2. A holder that woke after its claim was released keeps its grant on record,** beside the release (granted
+twice), so a grant is never on Stripe and on no record.
+- *Push back if* such a grant should be reversed in Stripe automatically.
+
+**BR3. /admin's band names the job, not the price:** it reads "Spend watch needs a look."; the missing price is named
+in the run's note on /admin/jobs and a line under its readings.
+- *Push back if* the band itself should name the price (a small change).
+
+**BR4. "Your Pro plan is on its way."** While her credited Pro lands, the Plan card says: "Your Event Pass is now
+credit toward it, so this card may still show your old plan for a moment. Pro usually lands within a minute: refresh
+to see it. If it still isn't here in an hour, email help@partyreel.com from this account and we'll finish it for
+you." It shows for up to three days, Stripe's retries.
+- *Push back if* the words or the window should change.
+
+**BR5. A broken change-plan setup mails the ops inbox once a day while it stays broken.**
+- *Push back if* it should mail once, then only ring the bell.

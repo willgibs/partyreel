@@ -88,21 +88,20 @@ semantics live in its doc.
   step), `tier_limits`, `upload_allowance` and `uploads_used` (INVOKER; every other caller is a DEFINER body),
   `uploads_windows` (an INVOKER read behind the admin seam, every listed host's `uploads_used` in one call) and
   `consume_passes_for_pro_credit` (INVOKER, milestone 37's pass-to-Pro conversion, kept until no deployed build names
-  it), the credit's `claim_pass_credit`, `record_pass_credit_grant`, `convert_pass_credit` and `release_pass_credit`
-  and the pass recompute `recompute_pass_entitlement` (INVOKER, the webhook's and the nightly sweep's, each taking her
-  profiles row first),
-  `pass_lapsed` (INVOKER, the operator's `uploads_windows` asks it), the paged album's
-  reader `album_changes_since` (an INVOKER read the Next routes call after their own capability check) and its log's
-  prune `album_prune_tombstones` (DEFINER: the tables grant the service role SELECT only), the develop's
-  `develop_due` and `develop_due_sweep` (DEFINER: they write `sealed_until`, which no role holds;
+  it), the credit's `claim_pass_credit`, `record_pass_credit_grant`, `convert_pass_credit`, `release_pass_credit` and
+  `adopt_pass_credit_orphans` and the pass recompute `recompute_pass_entitlement` (INVOKER, the webhook's and the
+  nightly sweep's, each taking her profiles row first), `pass_lapsed` (INVOKER, the operator's `uploads_windows` asks
+  it), the paged album's reader `album_changes_since` (an INVOKER read the Next routes call after their own capability
+  check) and its log's prune `album_prune_tombstones` (DEFINER: the tables grant the service role SELECT only), the
+  develop's `develop_due` and `develop_due_sweep` (DEFINER: they write `sealed_until`, which no role holds;
   [disposable-mode.md](disposable-mode.md)), `media_like_counts` (an INVOKER read the host's links route and the hub
   page call after their `getEvent` check), the per-event block's reads (`event_ticket_blocked` and
   `event_blocked_guest_ids`, INVOKER; `blocked_events_for`, DEFINER because it reads `auth.users`, which the service
-  role cannot) and its four predicates (INVOKER, run inside the guest paths' DEFINER bodies), the claims'
-  `whose_ticket` (the same shape), Send to Google Drive's `cloud_*` functions (DEFINER, one jsonb each, every Drive
-  write and the Worker's lease and report behind the app's signed routes: [drive-export.md](drive-export.md)), and the
-  trigger functions, whose EXECUTE is revoked from the client roles and
-  which still fire (EXECUTE is checked when a trigger is created, never when it fires).
+  role cannot) and its four predicates (INVOKER, run inside the guest paths' DEFINER bodies), the claims' `whose_ticket`
+  (the same shape), Send to Google Drive's `cloud_*` functions (DEFINER, one jsonb each, every Drive write and the
+  Worker's lease and report behind the app's signed routes: [drive-export.md](drive-export.md)), and the trigger
+  functions, whose EXECUTE is revoked from the client roles and which still fire (EXECUTE is checked when a trigger is
+  created, never when it fires).
 - **The owner's alone** (revoked from the service role too, so no role PostgREST serves can call them): helpers only
   a definer body reads, `event_door_asks` (a set no request can page) and `event_account_ticket` (a whole guest row,
   its ticket in it), Deleted's one definition `host_deleted_media` and the upload's line `host_room_used` (both

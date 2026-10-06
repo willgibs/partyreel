@@ -33,10 +33,9 @@ mid-work.
 
 | lane | what | state | model | session |
 | --- | --- | --- | --- | --- |
-| `billing-orphans` | milestone 38's billing line: an orphan's grant as one SQL function under her profiles lock, the change-plan configuration watched at its source, the Plan card's words while a credited Pro lands; one migration (`20261006120000_billing_orphans.sql`) | HANDED OFF at `4a113e5d4`; its lane check clean; waits on its SQL (Next 1) | Opus | willg97's `session_015JAkfLgeuTsZZMNJXrZVeV` |
-| `drive-crumbs` | Drive whole before it goes live: album folders and files found by their marks after a reconnect, the closing check held at the first unknown, Account's card naming her folder, the palette's jump; one migration (`20261006130000_drive_marks.sql`) | HANDED OFF at `6d1731c27`; its lane check clean; waits on its SQL (Next 1) | Opus | willg97's `session_01AGJfN3zW3BvB8vPM7KSgbL` |
-| `account-moments-r1` | board account-moments r1 (desk 50): I4 Follow and Block staying quiet, I5 a profile before a public page, each built answer drawn beside real alternatives | CUT at `6ccc5b4e`, not spawned: an auto lane spawns only under a session whose record is auto (Waiting on Will) | Opus | (to spawn) |
-| `create-wizard-r4` | board create-wizard r4 (desk 60): the styles' step polished on his round-3 note, F1 what is left as Settings' steps, F2 the develop playing while the event is made | CUT at `6ccc5b4e`, not spawned (as above) | Opus | (to spawn) |
+| `drive-crumbs` | Drive whole before it goes live: album folders and files found by their marks after a reconnect, the closing check held at the first unknown, Account's card naming her folder, the palette's jump; one migration (`20261006130000_drive_marks.sql`) | HELD at `6d1731c27`: its GREEN (17:16Z) fails steps 4 and 6 on `min(uuid)` in `cloud_export_check_page` (Postgres 17 has none), every other step and the bodies' hashes as written; the resume lane (fix it, recompute the hashes, a test that catches it) failed at the environment's setup script (`session_01GSMjCMspQvxVU5WXyYpUjt`, never started): respawn it once the script is fixed | Opus | (to respawn) |
+| `account-moments-r1` | board account-moments r1 (desk 50): I4 Follow and Block staying quiet, I5 a profile before a public page, each built answer drawn beside real alternatives | CUT at `6ccc5b4e`; its session failed at the environment's setup script (`session_01TcMggokjGcvGJ2M2QZ1ndZ`, never started): respawn once the script is fixed | Opus | (to respawn) |
+| `create-wizard-r4` | board create-wizard r4 (desk 60): the styles' step polished on his round-3 note, F1 what is left as Settings' steps, F2 the develop playing while the event is made | CUT at `6ccc5b4e`; its session failed at the setup script (`session_01NckxAHbWNbAf4M9qw6dfW6`): respawn once fixed | Opus | (to respawn) |
 | `redteam-56b` | red-team 56b on the tip after both merges | to respawn once the environment holds the app's variables (Waiting on Will); the willg97 session `session_017cgyXnS3nnK35ifo2L6bEa` ended BLOCKED at 11:22Z, no findings | Opus | (to spawn) |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor") read both of tonight's migrations
@@ -78,19 +77,19 @@ and another account's sessions.
 
 ## Next, in order
 
-1. **Tonight's two migrations, through the scoped connector**, once its tools reach this session (a restart or a new
-   session; its server may carry a new name): the drift read re-run (it matched at 16:25Z: all seven hashes, both new
-   objects absent); billing-orphans' RED (1a true, 1b to 4 false) and GREEN (0 to 5 true); drive-crumbs' GREEN (7/7;
-   its RED passed at 15:35Z). A GREEN failing on a fixture is the fixture's; on an assertion, HOLD and consult the
-   Advisor. Then the applies (`apply_migration`, the whole file from the lane's head, `md5(statements[1])` against
-   `md5sum`), advisors at 26/4/36, and the types once after both.
-2. **Integrate billing-orphans, then drive-crumbs**, each record folding in the Advisor's words: billing-caps' "all or
-   nothing" covers only the orphans that held grants; drive-export's closing check re-asks a non-rate unknown every
-   90 s with no growth (a ROADMAP line for the Worker's cadence); adopt's orphan loop wants `and c.profile_id =
-   p_host_id` (a nit, a ROADMAP line); billing's `orphansDb` seam drops once the types carry the function (a
-   code-hygiene line).
-3. **Spawn desk 7's two boards** (account-moments-r1, create-wizard-r4) the moment this session's record reads auto;
-   they merge as they hand off (dev-only).
+1. **drive-crumbs' SQL after its fix:** billing_orphans is applied (17:19Z as `20261006171905`, md5 verbatim, advisors
+   26/4/36, types `a76ef72`) and merged at gate 46. Drive's resume lane fixes `min(uuid)`; then its GREEN again here
+   (the same script with the fixed file: `begin;` + the file + its uncommented foot + a check of the bodies against the
+   header's applied hashes + `rollback;`), the apply verbatim, the md5, advisors 26/4/36, the types. The scoped
+   connector (`Superbase_Custom`, `skip_elicitations`) runs DELETE and DROP here; a proof's readout bug (a boolean
+   printed with `format('%s')` reads t/f; a step's exception handler swallowing an earlier step's row) is the run's to
+   fix, never an assertion.
+2. **Integrate drive-crumbs** once its migration applies, its record folding in the Advisor's words: drive-export's
+   closing check re-asks a non-rate unknown every 90 s with no growth (a ROADMAP line for the Worker's cadence).
+3. **Respawn the three failed lanes** (desk 7's two boards, drive's resume) the moment Will's setup script is fixed:
+   the image ships `/etc/zsh/zshrc`, so a bare `apt-get install -y zsh` stops at dpkg's conffile prompt and fails the
+   session before Claude Code starts; the fix keeps the old file (`--force-confold`) and makes the Chrome wrapper.
+   Then cut the second wave as Next 5 says (specs in this seat's scratch: marketing-crumbs, upload-sums, crumbs-86).
 4. **Red-team 56b** once the environment holds the app's variables: a fresh cloud session on the tip after both merges
    (crumbs-85's MEDIUM re-walked, the house set, the album's time, billing's "Pro on its way" line at 375 and 1440, the
    upload bursts); its report is its `result` event. Then **milestone 38** on Will's yes: the `FULL=1` gate here,
@@ -118,12 +117,9 @@ and another account's sessions.
 
 ## Waiting on Will
 
-- **This session's mode to Auto** (the app's mode picker): its record says `plan`, so restarts drop the seat into plan
-  mode and no lane spawns in auto.
-- **The scoped Supabase connector** (above): tonight's DELETE and DROP steps wait on it.
-- **The environment's app variables and Setup script** (zsh, the chrome-ns wrapper; `CHROME_PATH` and
-  `NODE_USE_ENV_PROXY=1` among its variables), as on willg97's: red-team 56b, `compute:model` and every lane that walks
-  the app need them. Sentry and Stripe to authorize on this account.
+- **The environment's Setup script** (17:30Z): `apt-get install -y zsh` fails every new session at dpkg's conffile
+  prompt; the two lines given him keep the old file and make the Chrome wrapper. Every lane waits on it. Sentry and
+  Stripe to authorize on this account.
 - **His desk:** brand r2's take; event-header r6 and desk 7 at the next refresh.
 - **The calls lab** (`docs/calls.md`): the open questions X1, X2, X3, X5, X6 and X8, then each merge's calls, built and
   his to overrule. He asks direct questions in chat; answer in chat, never only in a file.

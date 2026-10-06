@@ -171,7 +171,11 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   not list (every Switch to it a 500 the host meets first), so `/admin/accounts` checks on each view that it lists
   every Pro price `tiers.ts` sells (`admin/accounts/portal-check.ts`: the route's own pick, its products read by a
   retrieve with the expand, against the env's ids), naming each one missing; a retired price listed beside them breaks
-  nothing, and a check that could not run (Stripe, a price's unset env) says No reading.
+  nothing, and a check that could not run (Stripe, a price's unset env) says No reading. The spend watch's daily run
+  reads the same check (`jobs/change-plan-watch-run.ts`): a price missing or no configuration tagged holds the run at
+  attention (the bell, the band), mails the ops inbox once a day while it holds and names each price in the run's note
+  and the card's line; a check that could not run fails the run. The TEST configuration is
+  `bpc_1UIhooPtjqmVkBwkcLe9YgYN`.
 - ★ **The prorated pass-to-Pro credit is granted once ever and converts only what it credited**
   (`webhook/pass-credit.ts`, 20261005181000). The checkout stamps the credit with every pass it counted
   (`passCreditMetadata`: `credited_pass_ids`, `_2`... with `credited_pass_count`; the credit covers exactly the passes
@@ -191,19 +195,24 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   orphan (`orphans`: another checkout's lapsed, ungranted, unreleased claim on its passes), and the route looks on
   Stripe's side for every orphan's grant BEFORE it grants (each orphan's checkout read from Stripe for the customer it
   charged and its time on Stripe's clock), since that holder may have died between Stripe's grant and its record: every
-  grant found is its own checkout's (put on record on its claim, converted) and this claim is released, granting
-  nothing; none found, this checkout grants and then releases the orphans. ★ The claim answers its lease's end, and the
-  route never calls Stripe to grant with under three minutes of it left (a caller with no `maxDuration`, a local build's
-  Retry, could otherwise grant past a lease another delivery took over). ★ A claim of this checkout's own
-  still open beside an overlap is settled at that delivery, never left stuck: looked for on Stripe's side, then
-  released for good (`release_pass_credit`, `released_at`; refused for a claim whose passes no other checkout credited,
-  and a pass it named that the other did not stays hers, uncredited, as an overlap always left it), a grant found put
-  on record beside it (two grants for one set of passes: `stripe_pass_credit_overlap_granted`; a released claim's grant
-  is the duplicate, which credits nothing and the operator reverses in Stripe). ★ Each call takes her profiles row
-  first, the capacity bodies' order (an upload's complete holds that row while it counts on her live pass). A credited
-  session naming no pass is a 500, never a guess; a failure while honouring a credit is the `pass_credit` signal's as
-  well as Sentry's. A balance carries from invoice to invoice (Checkout's own first invoice never takes it), where an
-  `amount_off` coupon would silently eat any credit above one invoice's total.
+  grant found is adopted in ONE transaction, `adopt_pass_credit_orphans` (20261006120000): her profiles row first, each
+  orphan's grant on record and converted, oldest first, a younger orphan whose passes are credited by then released
+  beside its grant (granted twice), then this claim released, all or nothing across the orphans whose grants were found;
+  an orphan whose own delivery holds its lease again answers busy, nothing written; none found, this checkout grants and
+  then releases the orphans. ★ The claim answers its lease's end, and the route never calls Stripe to grant with under
+  three minutes of it left (a caller with no `maxDuration`, a local build's Retry, could otherwise grant past a lease
+  another delivery took over). ★ A claim of this checkout's own still open beside an overlap is settled at that
+  delivery, never left stuck: looked for on Stripe's side, then released for good (`release_pass_credit`, `released_at`;
+  refused for a claim whose passes no other checkout credited, and a pass it named that the other did not stays hers,
+  uncredited, as an overlap always left it), a grant found put on record beside it (two grants for one set of passes:
+  `stripe_pass_credit_overlap_granted`; a released claim's grant is the duplicate, which credits nothing and the
+  operator reverses in Stripe). ★ `record_pass_credit_grant` refuses a released claim; a holder that outlived its lease
+  and granted after its release has that grant put on record beside the release (`release_pass_credit`'s replay takes a
+  late grant on a claim released with none: granted twice). ★ Each call takes her profiles row first, the capacity
+  bodies' order (an upload's complete holds that row while it counts on her live pass). A credited session naming no
+  pass is a 500, never a guess; a failure while honouring a credit is the `pass_credit` signal's as well as Sentry's. A
+  balance carries from invoice to invoice (Checkout's own first invoice never takes it), where an `amount_off` coupon
+  would silently eat any credit above one invoice's total.
 - ★ **A stuck credit shows where the operator looks, with its fix beside it.** Stuck is an hour at one step
   (`billing/passes-stuck.ts`, pure, its PostgREST form in `queries/pass-credits.ts` held to it by their test): a claim
   with no grant and no live lease an hour after it was taken, or a grant whose passes never converted an hour after it
@@ -307,7 +316,9 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   server-derived: the columns only the webhook and the pass recompute write, read through the RLS-scoped profile row.
   Its only search params are `?reset`, `?welcome` (Stripe's return marker, which opens the receipt and decides no
   plan) and `?email_change` (an email-change link's landing, which picks a line of copy); `plan-card.test.ts` pins the
-  read path.
+  read path. While her credited Pro lands (her passes converted to credit, no subscription event since, within Stripe's
+  three days of retries: `billing/pro-pending.ts`), the card says her Pro is on its way and to email help@ if it is not
+  there in an hour (`pricing/pro-on-its-way.tsx`).
 - ★ **Checkout's `success_url` comes from an exact-shape allow-list,** never a sanitized input (`return-path.ts`):
   `/dashboard`, `/dashboard/<uuid>` with an optional `room=share|settings`, and `/account`; anything else returns to
   `/dashboard`, so no client value leaves the origin, and Stripe validates none of it. The list is also the set of
