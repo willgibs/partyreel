@@ -6,11 +6,13 @@ Look up the task in hand; each section stands alone. The scripts run from the re
 
 1. `export S=<this session's scratchpad>` (every script requires it and writes its logs there). Read `docs/tracks/orchestrator.md` (in flight,
    next, waiting on Will), then `docs/STATUS.md`. **In a cloud session** (seated there since 2026-10-06): an export lasts
-   one command, so append `S` and `CHROME_PATH` to this session's newest shell snapshot (`~/.claude/shell-snapshots/`;
-   again after a worker restart, and a background command reads none, so set `S` inside it);
+   one command, so append `S`, `CHROME_PATH`, `NODE_USE_ENV_PROXY=1` and `NEXT_PUBLIC_SITE_URL=http://localhost:3000` to
+   this session's newest shell snapshot (`~/.claude/shell-snapshots/`), again after every worker restart (they came
+   hourly on 2026-10-06; the container's disk, scratchpad and wrapper survive one, `uptime` says whether it rebooted),
+   and a background command reads none, so set them inside it;
    `apt-get update && apt-get install -y zsh`; the Chrome wrapper `spawn-prompt-cloud.txt` makes; a gitignored
-   `.env.local` of public values (this container may hold no secret: a lane's session, born after Will's environment
-   change, holds them). The kit needs nothing else there: it sources nvm only where it exists and reads each value from
+   `.env.local` written from the environment by `spawn-prompt-cloud.txt`'s recipe (the environment holds every app value
+   since 2026-10-06; its own `NEXT_PUBLIC_SITE_URL` is production's, so the file and the snapshot override it). The kit needs nothing else there: it sources nvm only where it exists and reads each value from
    `.env.local` or the environment (`kit-env.sh`, `kit-env.mjs`). A full `pnpm test` takes about 8.5 minutes on its 4
    cores.
 2. `git status --short` (empty), the root on `launch-prep` (a fresh session can open on `main`, and `merge-lane.sh`
@@ -141,9 +143,16 @@ answer changes a call, the record says so, and a disagreement on a one-way door 
    `scripts/build-lock.sh`. The model is your call on every spawn: Opus for
    big, ambiguous, multi-file work, Sonnet for fast, direct UI work.
    **From a cloud seat**, each lane is a cloud session of its own (`create_session`: `source_url` the repo,
-   `source_revision` `launch-prep`, `outcome_branch` `lp/<track>`, tags `partyreel-lane` and
-   `config:auto-create-pr:off`, the model, and `spawn-prompt-cloud.txt` filled: `{track}`, and `{public_env}` from this
-   seat's `.env.local`); its session id is its In-flight row's agent. A lane cannot message back, so its pushed head
+   `source_revision` `launch-prep`, `outcome_branch` `lp/<track>`, the tag `partyreel-lane`, `permission_mode` `auto` (a
+   child is born in `default` otherwise), the model, and `spawn-prompt-cloud.txt` filled: `{track}`, and `{public_env}`
+   from this seat's `.env.local`); its session id is its In-flight row's agent. The server writes
+   `config:auto-create-pr:draft` and no tag changes it after, so every check-in lists open PRs (none opened in a night of
+   eleven lanes). A lane's permission check may refuse a boot step (the Chrome wrapper, `.env.local`, a `useradd`):
+   never worked around, by the lane or from this seat (this seat's own check names that an auto-mode bypass); the
+   environment's Setup script is where the wrapper belongs. A lane's final report is its `result` event (`list_events`
+   with `kinds: ["result"]`) and its cost `get_session`'s `usage.cost_usd`: a board lane ran $9 to $15, a production
+   lane $6 to $29. A probe on a small model needs its who and why, or it reads a bare list of commands as an
+   injection. A lane cannot message back, so its pushed head
    (`git ls-remote origin lp/<track>`) and its last events (`list_events`) are how it reports, with a `send_later`
    check-in while lanes run; its own container sets no limit on how many run, only the integrations' pace does.
 
@@ -163,7 +172,8 @@ Read the Handoff, the lane check and the captures, never the whole diff.
 4. With a clean tree (the kit refuses a dirty one, so commit record edits first; the day's first integration runs
    `zsh usher/kit/negative.sh` before it), run
    `S=$S zsh usher/kit/integrate.sh <track> <sha> <board|none> $S/msg-<track>.txt > $S/integrate-<track>.log` in the
-   background: the `--no-ff` merge with the manifest deleted, then the gate on what the lane never gated (its `SCOPE`
+   background (with the longest limit, 7200000 ms: a full gate with the lab's demo passes 30 minutes, and gate 42 died
+   at a 30-minute one; commit nothing to the tree until it ends, since its lab steps scope from `HEAD`): the `--no-ff` merge with the manifest deleted, then the gate on what the lane never gated (its `SCOPE`
    and `LAB` lines say which; `FULL=1` in front forces everything, for a lane whose own gate is in doubt). Read `INTEGRATE DONE green merged=<m> gate=<N>`,
    and `<n> checks, 0 failing` when the lab ran, before anything depends on them, and every result from its own exit
    code, never through a pipe to `grep`. A `PREMISE` line names a board whose open asks describe a path the merge
@@ -193,7 +203,9 @@ went in verbatim),
 additive-only while an open lane's code still calls what a contract migration would drop, and a
 destructive one only on Will's yes; then `get_advisors` (the accepted set: `docs/systems/database-security.md`),
 regenerate `src/lib/db/types.ts`, and commit both. A migration that replaces a function starts from its newest
-definition in `supabase/migrations/`.
+definition in `supabase/migrations/`. ★ From a cloud seat the Supabase connector asks its own confirm for any
+`DELETE` or `DROP`, even inside a rolled-back proof, and that confirm expires in 60 s (the call reads "timed out after
+60s"); `SELECT`, `INSERT`, `UPDATE` and `CREATE` pass without one. Run such calls with Will watching the session.
 
 **A change touching more than one open lane** is yours alone, announced in `orchestrator.md` first.
 
