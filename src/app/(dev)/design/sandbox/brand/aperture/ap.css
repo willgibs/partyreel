@@ -1,0 +1,155 @@
+/* APERTURE'S SHEET: the pieces of the room a paper page holds (the puck, the
+   plate, the rebate, the capsule) and the light inside them. Every selector is
+   `.ap-…`, every keyframe `ap-…`. The light in them is the shared sheet's own
+   (`ag.css`); this sheet only builds the dark it lives in.
+
+   ★ A FORM'S BOX IS ITS SUBJECT'S: `.ap-holder` is the subject's own box and
+   `.ap-behind` the piece of the room that extends past it, absolutely, so a
+   slide lays every take out the same way. */
+
+.ap-holder {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+  isolation: isolate;
+}
+
+/* The piece of the room behind a subject: it clips whatever light it holds. */
+.ap-behind {
+  position: absolute;
+  z-index: 0;
+  display: block;
+  overflow: hidden;
+  isolation: isolate;
+  pointer-events: none;
+}
+
+/* Something centred in a piece of the room (the ring in its puck). */
+.ap-centre {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The plate's light: the subject's own light, blurred, inside the plate. */
+.ap-plate-light {
+  position: absolute;
+  inset: var(--ap-in);
+  border-radius: var(--ap-radius);
+  background: var(--ap-conic);
+  filter: blur(var(--ap-blur));
+  opacity: 0.92;
+}
+
+/* The plate's core: the subject's light at its hottest, right at its edge. */
+.ap-plate-core {
+  position: absolute;
+  inset: var(--ap-core-in);
+  border-radius: var(--ap-radius);
+  background: var(--ap-core);
+  filter: blur(var(--ap-core-blur));
+  opacity: 0.95;
+}
+
+/* The seed in its dark well: a lamp, the orb defined, its glow round it. */
+.ap-seed {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+/* A round lamp whatever the well's shape: sized by the well's height. */
+.ap-seed-lamp {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  height: 42%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+}
+.ap-seed-glow {
+  position: absolute;
+  inset: -90%;
+  border-radius: 9999px;
+}
+.ap-seed-orb {
+  position: absolute;
+  inset: 0;
+}
+
+.ap-subject {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+}
+
+/* The rebate: a strip of the room under a print's edge, the Seam inside it and
+   the event's credits printed on it (the film's own black). */
+.ap-rebate {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  overflow: hidden;
+  background: linear-gradient(180deg, #121215 0%, #0b0b0d 100%);
+  border-radius: 0 0 2px 2px;
+}
+.ap-credits {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 7px;
+  display: flex;
+  gap: 8px;
+  overflow: hidden;
+  color: rgb(245 245 246 / 0.86);
+  font:
+    600 9.5px/12px var(--font-sans),
+    ui-sans-serif,
+    sans-serif;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ap-credit {
+  display: inline-flex;
+  gap: 8px;
+}
+.ap-credit-sep {
+  opacity: 0.5;
+}
+
+/* The capsule: a receipt's chips on paper, held in a sliver of the room. */
+.ap-capsule {
+  padding: 6px;
+  border-radius: 6px;
+  background: #111114;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ap-holder[data-ignite] .ap-plate-light {
+    animation: ap-ignite 1400ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+}
+
+@keyframes ap-ignite {
+  0% {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  28% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.92;
+    transform: scale(1);
+  }
+}
+
+@media (forced-colors: active) {
+  .ap-plate-light {
+    display: none;
+  }
+}

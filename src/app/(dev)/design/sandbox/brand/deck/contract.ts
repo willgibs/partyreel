@@ -55,9 +55,11 @@ export type Vision = {
   readonly phoneHeight?: Partial<Record<SlideId, number>>;
   /**
    * Each slide's ground, so the deck's running head is drawn in ink that
-   * reads on it: "dark" (the default) draws it light, "light" draws it dark.
+   * reads on it: "dark" (the default) draws it light, "light" draws it dark,
+   * and "split" (the room on the left, paper on the right) draws its name
+   * light and its place dark.
    */
-  readonly tone?: Partial<Record<SlideId, "dark" | "light">>;
+  readonly tone?: Partial<Record<SlideId, "dark" | "light" | "split">>;
   /**
    * Class names worn by every slide's root: a vision's `next/font` variables
    * (`face.variable`), so its faces reach every frame it draws in.

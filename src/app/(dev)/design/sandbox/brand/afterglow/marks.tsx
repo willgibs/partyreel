@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, useId, useMemo } from "react";
+import { type CSSProperties, type ReactNode, useId, useMemo } from "react";
 
 import { fitChroma, hex } from "@/lib/avatar/gradient";
 import {
@@ -9,26 +9,21 @@ import {
   WORDMARK_VIEWBOX,
 } from "@/lib/brand/wordmark";
 
-import { ICON_LIGHT, LAMPS, type Light, REGISTER } from "./system";
+import { DUSK, type Light } from "./system";
+import type { Appearance } from "./take";
 
 /**
- * AFTERGLOW'S MARKS.
+ * AFTERGLOW'S MARKS, SHARED BY EVERY TAKE.
  *
- * ★ THE WORDMARK IS WILL'S v1, UNTOUCHED: his path from the one home
- * (`src/lib/brand/wordmark.ts`), never retyped. It is the one mark that never
- * glows: ink on paper, paper in the room. What it already has is the system's
- * own: the letters run joined (r, t and y share one bar at the x-height, the
- * second r runs into e), and its cuts (the P's foot, the tops of t and l) lean
- * on one 14° angle against a 12° slant.
+ * ★ THE WORDMARK IS WILL'S v1, UNTOUCHED (round one's carried call, standing):
+ * his path from the one home (`src/lib/brand/wordmark.ts`), never retyped. It
+ * is the one mark that never glows: ink on paper, paper in the room.
  *
- * ★ THE ICON IS THE RING: the shutter, a dark disc in a ring of light. The
- * object a guest presses to add a photograph is the brand on a home screen.
- * It is lit as an object is, by one warm key at the top-left (`keyColour`):
- * amber where the light falls, coral and rose as the ring turns away, spent to
- * a near-dark violet in its shadow, the corona on the lit side only, on a
- * matte disc. An event's own ring keeps its photographs' hues. Drawn as
- * pure shapes and gradients, with optics per size: the 29 px cut drops the
- * corona and the bevel and thickens the band so it still reads as a ring.
+ * ★ THE ICON IS THE RING: the shutter, a dark disc in a ring of light, lit as
+ * an object is by one warm key at the top-left: the house sky (`DUSK`), amber
+ * where the light falls, coral and rose as the ring turns away, spent to
+ * violet in its shadow. The machinery here draws it at any size with optics per
+ * size; each take decides what the icon is on paper (`Take.light.AppIcon`).
  */
 
 /* ── the wordmark ─────────────────────────────────────────────────────────── */
@@ -71,22 +66,19 @@ export const WORDMARK_GEOMETRY = {
   xHeight: 14.22,
   capTop: 2.03,
   descender: 64,
-  /** The l's stem: its slant, read off the path (12°). */
   slant: { from: [307.3, 0], to: [299.0, 39.4], deg: 12 },
-  /** The three cuts on one angle (14°): the P's foot, the t's top, the l's top. */
   cuts: [
     { from: [0, 50.79], to: [14.04, 47.33] },
     { from: [127.15, 7.42], to: [140.87, 4.03] },
     { from: [293.59, 3.39], to: [307.3, 0] },
   ],
-  /** The one bar r, t and y share at the x-height. */
   bar: { x0: 94.85, x1: 187.67, y: 14.22 },
 } as const;
 
-/* ── the light, as solid wedges (an SVG has no conic gradient) ────────────── */
+/* ── the light as solid wedges (an SVG has no conic gradient) ─────────────── */
 
-type Lab = [number, number, number];
-const toLab = (l: number, c: number, h: number): Lab => {
+export type Lab = [number, number, number];
+export const toLab = (l: number, c: number, h: number): Lab => {
   const r = (h * Math.PI) / 180;
   return [l, c * Math.cos(r), c * Math.sin(r)];
 };
@@ -100,21 +92,6 @@ const hueLerp = (a: number, b: number, t: number) => {
   return (a + d * t + 360) % 360;
 };
 
-type Appearance = "room" | "paper" | "tinted";
-
-/** A lamp's colour for the icon: the house five at their hand-tuned registers. */
-function lampLch(h: number, appearance: Appearance) {
-  const house = LAMPS.find((x) => Math.abs(x.h - h) < 0.5);
-  let l = house?.l ?? REGISTER.room.l;
-  let c = house?.c ?? REGISTER.room.c;
-  if (appearance === "paper") {
-    l = Math.min(0.9, l + 0.06);
-    c = c * 0.92;
-  }
-  if (appearance === "tinted") c = 0;
-  return { l, c, h };
-}
-
 /** The tile each appearance mixes its shadow side toward. */
 const TILE_MIX: Record<Appearance, Lab> = {
   room: toLab(0.16, 0.004, 286),
@@ -122,17 +99,73 @@ const TILE_MIX: Record<Appearance, Lab> = {
   tinted: toLab(0.16, 0, 286),
 };
 
+/** Where the key light sits (CSS conic degrees): the top-left. */
+export const KEY = 315;
+
 /**
- * The colour of the ring at one angle (CSS conic degrees: 0 at the top,
- * clockwise): its lamps at the centres of their arcs, smoothly interpolated,
- * then dimmed toward the tile away from the light at the top-left.
+ * THE MARK'S ONE KEY LIGHT: the house sky at one angle round the ring, falling
+ * from the key at the top-left to `floor` in the shadow at the bottom-right.
+ * `mix` is the tile the shadow side falls toward.
  */
-function ringColour(
+export function keyColour(
   deg: number,
-  light: Light,
-  from: number,
   appearance: Appearance,
   floor: number,
+  exponent = 1.7,
+  mix?: Lab,
+): string {
+  const d = Math.abs(((((deg - KEY) % 360) + 540) % 360) - 180);
+  const t = d / 180;
+  let i = 0;
+  while (i < DUSK.length - 2 && t > DUSK[i + 1].t) i++;
+  const A = DUSK[i];
+  const B = DUSK[i + 1];
+  const u = Math.min(1, Math.max(0, (t - A.t) / (B.t - A.t)));
+  const s = u * u * (3 - 2 * u);
+  const l = A.l + (B.l - A.l) * s;
+  let c = A.c + (B.c - A.c) * s;
+  if (appearance === "tinted") c = 0;
+  const lamp = toLab(l, c, hueLerp(A.h, B.h, s));
+  const k =
+    floor +
+    (1 - floor) * Math.pow((Math.cos((d * Math.PI) / 180) + 1) / 2, exponent);
+  const tile = mix ?? TILE_MIX[appearance];
+  const mixed: Lab = [
+    tile[0] + (lamp[0] - tile[0]) * k,
+    tile[1] + (lamp[1] - tile[1]) * k,
+    tile[2] + (lamp[2] - tile[2]) * k,
+  ];
+  return hex(fitChroma(fromLab(mixed)));
+}
+
+/**
+ * The key light as LIGHT alone, for a glow or a corona: the lamp's own colour
+ * with an alpha that falls with the key, so where the light is spent the layer
+ * is transparent rather than a grey ring.
+ */
+export function keyGlow(
+  deg: number,
+  appearance: Appearance,
+  exponent = 3,
+): { fill: string; opacity: number } {
+  const d = Math.abs(((((deg - KEY) % 360) + 540) % 360) - 180);
+  const lit = keyColour(KEY, appearance, 1);
+  const hue = keyColour(deg, appearance, 1);
+  const k = Math.pow((Math.cos((d * Math.PI) / 180) + 1) / 2, exponent);
+  return { fill: d < 90 ? hue : lit, opacity: Math.round(k * 1000) / 1000 };
+}
+
+/**
+ * The colour of a ring given its own light (an event's) at one angle: its
+ * lamps at the centres of their arcs, smoothly interpolated, dimmed toward the
+ * tile away from the key.
+ */
+export function lightColour(
+  deg: number,
+  light: Light,
+  appearance: Appearance,
+  floor: number,
+  from = 290,
 ): string {
   const total = light.reduce((s, x) => s + x.w, 0);
   const centres: number[] = [];
@@ -149,7 +182,11 @@ function ringColour(
   let a: number;
   let b: number;
   let t: number;
-  if (am < centres[0]) {
+  if (n === 1) {
+    a = 0;
+    b = 0;
+    t = 0;
+  } else if (am < centres[0]) {
     a = n - 1;
     b = 0;
     t = (am + 360 - centres[n - 1]) / (centres[0] + 360 - centres[n - 1]);
@@ -163,14 +200,18 @@ function ringColour(
     t = (am - centres[i]) / (centres[i + 1] - centres[i]);
   }
   const s = t * t * (3 - 2 * t);
-  const A = lampLch(light[a].h, appearance);
-  const B = lampLch(light[b].h, appearance);
+  const lc = (h: number, dl = 0) => ({
+    l: Math.min(0.9, 0.74 + dl),
+    c: appearance === "tinted" ? 0 : 0.15,
+    h,
+  });
+  const A = lc(light[a].h, light[a].dl);
+  const B = lc(light[b].h, light[b].dl);
   const lamp = toLab(
     A.l + (B.l - A.l) * s,
     A.c + (B.c - A.c) * s,
     hueLerp(A.h, B.h, s),
   );
-  // Lit from the top-left (330°), falling to `floor` on the far side.
   const k =
     floor +
     (1 - floor) *
@@ -184,78 +225,8 @@ function ringColour(
   return hex(fitChroma(fromLab(mixed)));
 }
 
-/**
- * THE MARK'S ONE KEY LIGHT (the creative director's pass): the house ring as
- * a spectrum loop, evenly bright all round, recalled Siri's glow and a story
- * ring and contradicted the deck's own "lit from the top-left like every light
- * in the product". So the mark is lit as an object is: one warm source at the
- * top-left (CSS conic 315°), amber where it falls, turning coral and rose as
- * the ring curves away, and spent to a near-dark violet in the shadow at the
- * bottom-right. The corona follows the same falloff, so it glows only on the
- * lit side. `floor` is how much of the ring still reads in the shadow: near
- * nothing at a desk, more at 29 px, where the ring must stay a ring.
- */
-const KEY = 315;
-const KEY_PATH = [
-  { t: 0, l: 0.86, c: 0.15, h: 78 },
-  { t: 0.3, l: 0.76, c: 0.17, h: 34 },
-  { t: 0.55, l: 0.64, c: 0.16, h: 8 },
-  { t: 1, l: 0.5, c: 0.13, h: 300 },
-] as const;
-function keyColour(
-  deg: number,
-  appearance: Appearance,
-  floor: number,
-  exponent = 1.7,
-): string {
-  const d = Math.abs(((((deg - KEY) % 360) + 540) % 360) - 180);
-  const t = d / 180;
-  let i = 0;
-  while (i < KEY_PATH.length - 2 && t > KEY_PATH[i + 1].t) i++;
-  const A = KEY_PATH[i];
-  const B = KEY_PATH[i + 1];
-  const u = Math.min(1, Math.max(0, (t - A.t) / (B.t - A.t)));
-  const s = u * u * (3 - 2 * u);
-  let l = A.l + (B.l - A.l) * s;
-  let c = A.c + (B.c - A.c) * s;
-  if (appearance === "paper") {
-    l = Math.min(0.9, l + 0.04);
-    c *= 0.92;
-  }
-  if (appearance === "tinted") c = 0;
-  const lamp = toLab(l, c, hueLerp(A.h, B.h, s));
-  const k =
-    floor +
-    (1 - floor) * Math.pow((Math.cos((d * Math.PI) / 180) + 1) / 2, exponent);
-  const tile = TILE_MIX[appearance];
-  const mixed: Lab = [
-    tile[0] + (lamp[0] - tile[0]) * k,
-    tile[1] + (lamp[1] - tile[1]) * k,
-    tile[2] + (lamp[2] - tile[2]) * k,
-  ];
-  return hex(fitChroma(fromLab(mixed)));
-}
-
-/**
- * The key light as LIGHT alone, for the glow and the corona: the lamp's own
- * colour with an alpha that falls with the key, so where the light is spent the
- * layer is transparent rather than a tile-grey ring (mixing a glow toward one
- * tile colour drew a pale halo over the darker foot of the tile's gradient).
- */
-function keyGlow(
-  deg: number,
-  appearance: Appearance,
-  exponent = 3,
-): { fill: string; opacity: number } {
-  const d = Math.abs(((((deg - KEY) % 360) + 540) % 360) - 180);
-  const lit = keyColour(KEY, appearance, 1);
-  const hue = keyColour(deg, appearance, 1);
-  const k = Math.pow((Math.cos((d * Math.PI) / 180) + 1) / 2, exponent);
-  return { fill: d < 90 ? hue : lit, opacity: Math.round(k * 1000) / 1000 };
-}
-
 /** An annulus cut into `n` solid wedges, each its own colour. */
-function wedges(
+export function wedges(
   cx: number,
   r0: number,
   r1: number,
@@ -280,10 +251,8 @@ function wedges(
   return out;
 }
 
-/* ── the icon ─────────────────────────────────────────────────────────────── */
-
 /** The iOS-style continuous corner: a superellipse (n = 5) in a 1024 box. */
-const SQUIRCLE = (() => {
+export const SQUIRCLE = (() => {
   const S = 1024;
   const r = S / 2;
   const pts: string[] = [];
@@ -298,7 +267,8 @@ const SQUIRCLE = (() => {
   return `M${pts.join("L")}Z`;
 })();
 
-type Optics = {
+export type Optics = {
+  cut: "full" | "mid" | "small";
   rDisc: number;
   gap: number;
   band: number;
@@ -312,7 +282,7 @@ type Optics = {
 };
 
 /** The icon's optics by drawn size: full at 120 and up, then simplified. */
-export function iconOptics(size: number): Optics & { cut: string } {
+export function iconOptics(size: number): Optics {
   if (size >= 120)
     return {
       cut: "full",
@@ -324,7 +294,7 @@ export function iconOptics(size: number): Optics & { cut: string } {
       corona: 0.075,
       coronaOp: 0.6,
       bevel: true,
-      floor: 0.42,
+      floor: 0.07,
       n: 240,
     };
   if (size >= 48)
@@ -338,7 +308,7 @@ export function iconOptics(size: number): Optics & { cut: string } {
       corona: 0.08,
       coronaOp: 0.5,
       bevel: false,
-      floor: 0.5,
+      floor: 0.13,
       n: 120,
     };
   return {
@@ -351,48 +321,60 @@ export function iconOptics(size: number): Optics & { cut: string } {
     corona: 0,
     coronaOp: 0,
     bevel: false,
-    floor: 0.6,
+    floor: 0.3,
     n: 90,
   };
 }
 
-/** How much of the keyed ring still reads in its shadow, by cut. */
-const KEY_FLOOR: Record<string, number> = { full: 0.07, mid: 0.13, small: 0.3 };
-
-const TILE: Record<Appearance, [string, string]> = {
+/** A tile's two stops and a disc's two stops, per appearance (round one's). */
+export const TILE: Record<Appearance, [string, string]> = {
   room: ["#1b1b20", "#0b0b0d"],
   paper: ["#fafafa", "#e9e9ec"],
   tinted: ["#1a1a1a", "#0a0a0a"],
 };
-// A matte disc: a breath lighter where the key falls, never a gloss.
-const DISC: Record<Appearance, [string, string]> = {
+export const DISC: Record<Appearance, [string, string]> = {
   room: ["#17171b", "#09090b"],
   paper: ["#26262b", "#101012"],
   tinted: ["#171717", "#090909"],
 };
 
-/** Where the ring's first lamp starts, so amber sits under the light. */
-const ICON_FROM = 290;
-
 /**
- * THE APP ICON, at any size, in three appearances: `room` (the icon),
- * `tinted` (the system's monochrome cut, light as luminance only) and `paper`
- * (for a light print). `optics` overrides the size's own cut, for a slide that
- * shows a small cut enlarged.
+ * THE RING ICON, the shared drawing every take's icon starts from: a tile
+ * (squircle), the corona and the glow on the key's side, the sharp band, the
+ * matte disc. A take passes `tile` and `disc` to restage it, `under` and
+ * `over` to draw on it, `glow` false for a printed form, and `light` for an
+ * event's own icon.
  */
-export function AppIcon({
+export function RingIcon({
   size = 180,
   appearance = "room",
-  light = ICON_LIGHT,
+  light,
   optics,
+  tile,
+  disc,
+  glow = true,
+  ring,
+  under,
+  over,
   className,
   style,
   read,
 }: {
   size?: number;
   appearance?: Appearance;
+  /** An event's own light; absent, the house sky keyed from the top-left. */
   light?: Light;
   optics?: number;
+  tile?: [string, string];
+  disc?: [string, string];
+  /** False draws no corona and no glow: the band alone, as a print. */
+  glow?: boolean;
+  /** A band colour by angle, replacing the key (a printed ink). */
+  ring?: (deg: number) => string;
+  /** Drawn on the tile under the ring (in the 1024 box). */
+  under?: ReactNode;
+  /** Drawn over everything (in the 1024 box). */
+  over?: ReactNode;
   className?: string;
   style?: CSSProperties;
   read?: string;
@@ -406,21 +388,21 @@ export function AppIcon({
     const rD = o.rDisc * S;
     const r0 = rD + o.gap * S;
     const r1 = r0 + o.band * S;
-    // The house mark is keyed from the top-left (`keyColour`); a ring given
-    // its own light (an event's) keeps the light's own hues round the loop.
-    const keyed = light === ICON_LIGHT;
     const sharp = (deg: number) =>
-      keyed
-        ? keyColour(deg, appearance, KEY_FLOOR[o.cut] ?? 0.08)
-        : ringColour(deg, light, ICON_FROM, appearance, o.floor);
+      ring
+        ? ring(deg)
+        : light
+          ? lightColour(deg, light, appearance, Math.max(0.42, o.floor))
+          : keyColour(deg, appearance, o.floor);
     const soft = (deg: number) =>
-      keyed
-        ? keyGlow(deg, appearance)
-        : ringColour(deg, light, ICON_FROM, appearance, o.floor * 0.6);
+      light
+        ? lightColour(deg, light, appearance, Math.max(0.25, o.floor * 0.6))
+        : keyGlow(deg, appearance);
     return {
       rD,
-      corona: o.coronaOp ? wedges(c, rD, r1 + o.band * S * 4, 48, soft) : [],
-      glow: wedges(c, r0, r1 + o.band * S * 0.5, 64, soft),
+      corona:
+        glow && o.coronaOp ? wedges(c, rD, r1 + o.band * S * 4, 48, soft) : [],
+      glow: glow ? wedges(c, r0, r1 + o.band * S * 0.5, 64, soft) : [],
       ring: wedges(c, r0, r1, o.n, sharp),
     };
   }, [
@@ -430,12 +412,13 @@ export function AppIcon({
     o.n,
     o.floor,
     o.coronaOp,
-    o.cut,
     light,
     appearance,
+    glow,
+    ring,
   ]);
-  const [t0, t1] = TILE[appearance];
-  const [d0, d1] = DISC[appearance];
+  const [t0, t1] = tile ?? TILE[appearance];
+  const [d0, d1] = disc ?? DISC[appearance];
   return (
     <svg
       role="img"
@@ -473,6 +456,7 @@ export function AppIcon({
       </defs>
       <g clipPath={`url(#${id}c)`}>
         <rect width="1024" height="1024" fill={`url(#${id}t)`} />
+        {under}
         {art.corona.length ? (
           <g filter={`url(#${id}k)`} opacity={o.coronaOp}>
             {art.corona.map((w, i) => (
@@ -480,11 +464,13 @@ export function AppIcon({
             ))}
           </g>
         ) : null}
-        <g filter={`url(#${id}g)`} opacity={o.glow}>
-          {art.glow.map((w, i) => (
-            <path key={i} d={w.d} fill={w.fill} fillOpacity={w.opacity} />
-          ))}
-        </g>
+        {art.glow.length ? (
+          <g filter={`url(#${id}g)`} opacity={o.glow}>
+            {art.glow.map((w, i) => (
+              <path key={i} d={w.d} fill={w.fill} fillOpacity={w.opacity} />
+            ))}
+          </g>
+        ) : null}
         {art.ring.map((w, i) => (
           <path key={i} d={w.d} fill={w.fill} fillOpacity={w.opacity} />
         ))}
@@ -499,34 +485,35 @@ export function AppIcon({
             strokeWidth="4"
           />
         ) : null}
+        {over}
       </g>
     </svg>
   );
 }
 
-/* ── the symbol: the Ring with no tile ────────────────────────────────────── */
-
 /**
- * THE RING AS A SYMBOL, standing on a page's own ground (the lockup, a page's
- * foot): the same disc and light with no tile. `size` is the ring's outer
- * diameter; the glow spills past it into the margin the box keeps for it.
+ * THE RING AS A SYMBOL with no tile (a lockup, a page's foot): the same disc
+ * and keyed light, its glow spilling into the margin the box keeps for it.
+ * `size` is the ring's outer diameter; `ring` replaces the band's colour (a
+ * printed ink) and `glow` false draws no glow at all.
  */
-export function RingMark({
+export function RingSymbol({
   size = 64,
-  ground = "room",
-  light = ICON_LIGHT,
+  appearance = "room",
+  glow = true,
+  ring,
   className,
   style,
 }: {
   size?: number;
-  ground?: "room" | "paper";
-  light?: Light;
+  appearance?: Appearance;
+  glow?: boolean;
+  ring?: (deg: number) => string;
   className?: string;
   style?: CSSProperties;
 }) {
   const raw = useId();
   const id = `agr${raw.replace(/[^a-zA-Z0-9]/g, "")}`;
-  const appearance: Appearance = ground === "paper" ? "paper" : "room";
   const small = size < 40;
   const art = useMemo(() => {
     const c = 512;
@@ -535,26 +522,16 @@ export function RingMark({
     const gap = small ? 26 : 22;
     const r0 = r1 - band;
     const rD = r0 - gap;
-    const keyed = light === ICON_LIGHT;
-    const sharp = (deg: number) =>
-      keyed
-        ? keyColour(deg, appearance, small ? 0.3 : 0.1)
-        : ringColour(deg, light, ICON_FROM, appearance, small ? 0.6 : 0.42);
-    const soft = (deg: number) =>
-      keyed
-        ? keyGlow(deg, appearance)
-        : ringColour(deg, light, ICON_FROM, appearance, 0.3);
     return {
       rD,
-      glow: wedges(c, r0 - 10, r1 + 26, 64, soft),
-      ring: wedges(c, r0, r1, small ? 90 : 200, sharp),
+      glow: wedges(c, r0 - 10, r1 + 26, 64, (deg) => keyGlow(deg, appearance)),
+      ring: wedges(c, r0, r1, small ? 90 : 200, (deg) =>
+        ring ? ring(deg) : keyColour(deg, appearance, small ? 0.3 : 0.1),
+      ),
     };
-  }, [small, light, appearance]);
+  }, [small, appearance, ring]);
   const box = size * 1.6;
-  // On a page's own ground the disc must read as a face, not a hole: a step
-  // lighter than the room, lit along its top edge (a hole in a ring of light
-  // is a letter O at small sizes).
-  const [d0, d1] = ground === "paper" ? DISC.paper : ["#232328", "#0d0d10"];
+  const [d0, d1] = appearance === "paper" ? DISC.paper : ["#232328", "#0d0d10"];
   return (
     <svg
       aria-hidden
@@ -584,11 +561,16 @@ export function RingMark({
           <stop offset="0.55" stopColor="#fff" stopOpacity="0" />
         </linearGradient>
       </defs>
-      <g filter={`url(#${id}g)`} opacity={ground === "paper" ? 0.7 : 0.85}>
-        {art.glow.map((w, i) => (
-          <path key={i} d={w.d} fill={w.fill} fillOpacity={w.opacity} />
-        ))}
-      </g>
+      {glow ? (
+        <g
+          filter={`url(#${id}g)`}
+          opacity={appearance === "paper" ? 0.7 : 0.85}
+        >
+          {art.glow.map((w, i) => (
+            <path key={i} d={w.d} fill={w.fill} fillOpacity={w.opacity} />
+          ))}
+        </g>
+      ) : null}
       {art.ring.map((w, i) => (
         <path key={i} d={w.d} fill={w.fill} fillOpacity={w.opacity} />
       ))}
@@ -602,47 +584,5 @@ export function RingMark({
         strokeWidth={small ? 14 : 8}
       />
     </svg>
-  );
-}
-
-/* ── the lockup ───────────────────────────────────────────────────────────── */
-
-/**
- * THE LOCKUP: the Ring and the wordmark on one line, the symbol's centre on
- * the wordmark's x-height band, a gap of a third of the wordmark's height.
- * The wordmark takes the ground's ink; the light stays the symbol's.
- */
-export function Lockup({
-  height = 40,
-  ground = "room",
-  className,
-  style,
-  read,
-}: {
-  /** The wordmark's height (px); the symbol and the gap follow it. */
-  height?: number;
-  ground?: "room" | "paper";
-  className?: string;
-  style?: CSSProperties;
-  read?: string;
-}) {
-  const ring = Math.round(height * 0.98);
-  return (
-    <span
-      className={className}
-      data-bd-read={read}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: Math.round(height * 0.36),
-        ...style,
-      }}
-    >
-      <RingMark size={ring} ground={ground} />
-      <Wordmark
-        height={height}
-        color={ground === "paper" ? "#141416" : "#f4f4f5"}
-      />
-    </span>
   );
 }
