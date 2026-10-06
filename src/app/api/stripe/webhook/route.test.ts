@@ -67,6 +67,8 @@ const stripe = vi.hoisted(() => ({
   listFails: false,
   /** Every grant put on record: the session and its transaction. */
   recorded: [] as [string, string][],
+  /** Checkout sessions as Stripe retrieves them (an orphan's customer and time); any other is cus_1's at T0 + 11. */
+  checkouts: {} as Record<string, { customer: string; created: number }>,
 }));
 
 const DAY_MS = 86_400_000;
@@ -80,6 +82,19 @@ vi.mock("@/lib/stripe/client", () => ({
         stripe.listed.push(params);
         if (stripe.fails) throw new Error("Stripe is unreachable");
         return { data: stripe.subscriptions, has_more: false };
+      },
+    },
+    checkout: {
+      sessions: {
+        retrieve: async (id: string) => {
+          stripe.steps.push("session");
+          const held = stripe.checkouts[id];
+          return {
+            id,
+            customer: held?.customer ?? "cus_1",
+            created: held?.created ?? 1_790_000_011,
+          };
+        },
       },
     },
     customers: {
@@ -170,6 +185,8 @@ const ledger = vi.hoisted(() => ({
   failNext: { record: 0, convert: 0 },
   /** Sessions whose release fails (a lock timeout), each once. */
   releaseFails: new Set<string>(),
+  /** The lease's end the next claim answers (ISO), when a case shortens it; otherwise ten minutes of real time. */
+  claimedUntil: null as string | null,
 }));
 const LEASE_MS = 10 * 60_000;
 
@@ -239,9 +256,12 @@ vi.mock("@/lib/db/mutations/event-passes", () => ({
       )
       .sort(([, a], [, b]) => a.createdAt - b.createdAt)
       .map(([session, other]) => ({ session, claimedAt: other.createdAt }));
+    // The lease's end on the route's own clock (it compares with Date.now()): ten minutes, unless a case shortens it.
+    const claimedUntil =
+      ledger.claimedUntil ?? new Date(Date.now() + LEASE_MS).toISOString();
     if (claim) {
       claim.leaseUntil = stripe.now + LEASE_MS;
-      return { state: "claimed", resumed: true, orphans };
+      return { state: "claimed", resumed: true, orphans, claimedUntil };
     }
     ledger.claims.set(input.sessionId, {
       host: input.hostId,
@@ -253,7 +273,7 @@ vi.mock("@/lib/db/mutations/event-passes", () => ({
       released: false,
       createdAt: Math.floor(stripe.now / 1000),
     });
-    return { state: "claimed", resumed: false, orphans };
+    return { state: "claimed", resumed: false, orphans, claimedUntil };
   },
   recordPassCreditGrant: async (
     sessionId: string,
@@ -516,10 +536,12 @@ beforeEach(() => {
   stripe.steps = [];
   stripe.listFails = false;
   stripe.recorded = [];
+  stripe.checkouts = {};
   ledger.passes = new Map();
   ledger.claims = new Map();
   ledger.failNext = { record: 0, convert: 0 };
   ledger.releaseFails = new Set();
+  ledger.claimedUntil = null;
 });
 
 /** A subscription as Stripe lists it: its status, its one item's price, and when it began. */
@@ -1462,8 +1484,10 @@ describe("the pass-to-Pro credit when a holder dies (credit-watch)", () => {
       txn: null,
       leaseUntil: null,
     });
+    // Tab 1's checkout read from Stripe (the customer it charged, its time), then one listing.
     expect(stripe.steps).toEqual([
       "claim",
+      "session",
       "list",
       "record",
       "convert",
@@ -1472,7 +1496,7 @@ describe("the pass-to-Pro credit when a holder dies (credit-watch)", () => {
     expect(captureWarning).toHaveBeenCalledWith(
       "billing",
       "stripe_pass_credit_overlap",
-      expect.objectContaining({ sessionId: TAB_2, creditedBy: TAB_1 }),
+      expect.objectContaining({ sessionId: TAB_2, creditedBy: [TAB_1] }),
     );
     // Tab 1's own retry now finds its grant on record and converts nothing more.
     stripe.steps = [];
@@ -1495,6 +1519,7 @@ describe("the pass-to-Pro credit when a holder dies (credit-watch)", () => {
     expect(stripe.balances).toHaveLength(1);
     expect(stripe.steps).toEqual([
       "claim",
+      "session",
       "list",
       "balance",
       "record",
@@ -1550,6 +1575,99 @@ describe("the pass-to-Pro credit when a holder dies (credit-watch)", () => {
         creditedBy: TAB_2,
       }),
     );
+  });
+
+  it("★ every orphan's lost grant is adopted, not only the first: each on record on its own claim and converted, this claim released", async () => {
+    seed(passHolder());
+    seedPasses(PASS_A, PASS_B, PASS_LATER);
+    // Tab 1 named A, tab 3 named the later pass: each holder granted and died before its record. Tab 2 names A and it.
+    ledger.claims.set(TAB_1, {
+      host: "host-1",
+      credit: 900,
+      ids: [PASS_A],
+      leaseUntil: stripe.now - 120_000,
+      txn: null,
+      converted: 0,
+      released: false,
+      createdAt: T0 + 11,
+    });
+    ledger.claims.set("cs_pro_credit_3", {
+      host: "host-1",
+      credit: 950,
+      ids: [PASS_LATER],
+      leaseUntil: stripe.now - 60_000,
+      txn: null,
+      converted: 0,
+      released: false,
+      createdAt: T0 + 31,
+    });
+    stripe.checkouts["cs_pro_credit_3"] = {
+      customer: "cus_1",
+      created: T0 + 30,
+    };
+    stripe.transactions.unshift(
+      {
+        id: "cbtxn_tab1_lost",
+        customer: "cus_1",
+        amount: -900,
+        created: T0 + 12,
+        metadata: { pass_credit_session: TAB_1 },
+      },
+      {
+        id: "cbtxn_tab3_lost",
+        customer: "cus_1",
+        amount: -950,
+        created: T0 + 32,
+        metadata: { pass_credit_session: "cs_pro_credit_3" },
+      },
+    );
+    const response = await deliver(
+      creditedProCheckoutEvent(T0 + 20, {
+        sessionId: TAB_2,
+        passIds: [PASS_A, PASS_LATER],
+      }),
+    );
+    expect(response.status).toBe(200);
+    expect(stripe.balances).toEqual([]);
+    expect(stripe.recorded).toEqual([
+      [TAB_1, "cbtxn_tab1_lost"],
+      ["cs_pro_credit_3", "cbtxn_tab3_lost"],
+    ]);
+    expect([consumed(PASS_A), consumed(PASS_LATER)]).toEqual([true, true]);
+    expect(ledger.claims.get(TAB_2)?.released).toBe(true);
+  });
+
+  it("★ an orphan's grant on another customer (two first checkouts each made one) is found on that customer's own listing", async () => {
+    seed(passHolder());
+    seedPasses(PASS_A, PASS_B);
+    claimOf(TAB_1, { leaseUntil: stripe.now - 60_000 });
+    stripe.checkouts[TAB_1] = { customer: "cus_other", created: T0 + 9 };
+    stripe.transactions.unshift({
+      id: "cbtxn_tab1_lost",
+      customer: "cus_other",
+      amount: -1850,
+      created: T0 + 12,
+      metadata: { pass_credit_session: TAB_1 },
+    });
+    const response = await deliver(
+      creditedProCheckoutEvent(T0 + 20, { sessionId: TAB_2 }),
+    );
+    expect(response.status).toBe(200);
+    expect(stripe.balances).toEqual([]);
+    expect(stripe.recorded).toEqual([[TAB_1, "cbtxn_tab1_lost"]]);
+    expect(ledger.claims.get(TAB_2)?.released).toBe(true);
+  });
+
+  it("★ never grants past its lease: with too little of it left, nothing goes to Stripe and the delivery is a retry", async () => {
+    seed(passHolder());
+    seedPasses(PASS_A, PASS_B);
+    // A caller that sat between its claim and its grant (a local build, a laptop that slept): a minute of lease left.
+    ledger.claimedUntil = new Date(Date.now() + 60_000).toISOString();
+    const response = await deliver(creditedProCheckoutEvent(T0 + 10));
+    expect(response.status).toBe(500);
+    expect(stripe.balances).toEqual([]);
+    expect([consumed(PASS_A), consumed(PASS_B)]).toEqual([false, false]);
+    expect(recordSignalFailure).toHaveBeenCalledTimes(1);
   });
 
   it("an orphan that cannot be settled is warned, never a failed delivery: the credit already landed", async () => {

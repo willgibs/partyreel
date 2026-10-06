@@ -96,9 +96,10 @@ export function creditOfSession(
 }
 
 /**
- * The credit's balance transactions Stripe holds for these checkouts (grants whose records were lost), by session,
- * from one listing of the customer's transactions since `since` (unix seconds: no grant for any of them is older). The
- * first found for a session is its grant: a key holds its parameters, so a session's own grants repeat one id.
+ * The credit's balance transactions Stripe holds for these checkouts of one customer (grants whose records were lost),
+ * by session, from one listing of that customer's transactions since `since` (unix seconds on Stripe's clock: a
+ * checkout's `created`, so no grant for it is older). The first found for a session is its grant: a key holds its
+ * parameters, so a session's own grants repeat one id.
  */
 async function findGrants(
   customerId: string,
@@ -130,6 +131,58 @@ async function findGrant(input: PassCreditInput): Promise<string | null> {
     input.sessionCreated,
   );
   return found.get(input.sessionId) ?? null;
+}
+
+/**
+ * How much of a claim's lease must be left to grant: the grant (Stripe's timeout is 80 s) and its record must land
+ * before the lease ends, or another delivery may take the claim over and grant too.
+ */
+const GRANT_LEASE_MARGIN_MS = 3 * 60_000;
+
+/**
+ * ★ EVERY LOST GRANT THESE PASSES MAY ALREADY HOLD, before this checkout grants: its own when it took over a lapsed
+ * lease, and each orphan's. An orphan's checkout is read from Stripe for the customer it charged and its time on
+ * Stripe's clock, since its grant went to ITS customer (two first checkouts can each make one) and the database's
+ * clock is not Stripe's; then one listing a customer. Any failed read throws: a retry looks again, and nothing is
+ * granted on a guess.
+ */
+async function findLostGrants(
+  input: PassCreditInput,
+  resumed: boolean,
+  orphans: readonly ClaimOrphan[],
+): Promise<Map<string, string>> {
+  const byCustomer = new Map<string, { sessions: string[]; since: number }>();
+  const add = (customerId: string, session: string, since: number) => {
+    const entry = byCustomer.get(customerId);
+    if (entry) {
+      entry.sessions.push(session);
+      entry.since = Math.min(entry.since, since);
+    } else {
+      byCustomer.set(customerId, { sessions: [session], since });
+    }
+  };
+  if (resumed) add(input.customerId, input.sessionId, input.sessionCreated);
+  for (const orphan of orphans) {
+    const session = await getStripe().checkout.sessions.retrieve(
+      orphan.session,
+    );
+    const customerId =
+      typeof session.customer === "string"
+        ? session.customer
+        : (session.customer?.id ?? input.customerId);
+    add(customerId, orphan.session, session.created);
+  }
+  const found = new Map<string, string>();
+  for (const [customerId, { sessions, since }] of byCustomer) {
+    for (const [session, transaction] of await findGrants(
+      customerId,
+      sessions,
+      since,
+    )) {
+      found.set(session, transaction);
+    }
+  }
+  return found;
 }
 
 async function grant(input: PassCreditInput): Promise<string> {
@@ -176,8 +229,12 @@ export async function honorPassCredit(
       // record beside it, two grants for one set of passes that only the operator can settle by reversing one.
       if (claim.unsettled) {
         const lost = await findGrant(input);
-        await releasePassCredit(input.sessionId, input.userId, lost);
-        if (lost) {
+        const settled = await releasePassCredit(
+          input.sessionId,
+          input.userId,
+          lost,
+        );
+        if (lost && settled === "released_granted") {
           captureWarning("billing", "stripe_pass_credit_overlap_granted", {
             sessionId: input.sessionId,
             customerId: input.customerId,
@@ -198,39 +255,45 @@ export async function honorPassCredit(
       // ★ LOOK BEFORE GRANTING, for every grant Stripe may hold with no record: this checkout's own when it took over
       // a lapsed lease, and each orphan's (another checkout's claim on these passes whose holder died with no grant on
       // record: waiting on its lease rather than refusing gave this retry the time to claim past it).
-      const found = await findGrants(
-        input.customerId,
-        [
-          ...(claim.resumed ? [input.sessionId] : []),
-          ...claim.orphans.map((orphan) => orphan.session),
-        ],
-        Math.min(
-          input.sessionCreated,
-          ...claim.orphans.map((orphan) => orphan.claimedAt),
-        ),
-      );
+      const found = await findLostGrants(input, claim.resumed, claim.orphans);
       const own = found.get(input.sessionId) ?? null;
-      const overtaken = own
-        ? null
-        : (claim.orphans.find((orphan) => found.has(orphan.session)) ?? null);
-      if (overtaken) {
-        // ★ Another checkout's dead holder granted these passes and lost its record: the grant is that checkout's,
-        // put on record on its claim and converted, and this checkout's claim is released, granting nothing.
-        await recordPassCreditGrant(
-          overtaken.session,
-          input.userId,
-          found.get(overtaken.session)!,
-        );
-        await convertPassCredit(overtaken.session, input.userId);
+      const adopted = own
+        ? []
+        : claim.orphans.filter((orphan) => found.has(orphan.session));
+      if (adopted.length > 0) {
+        // ★ Other checkouts' dead holders granted these passes and lost their records: each grant is its own
+        // checkout's, put on record on its claim and converted (a later one whose passes an earlier one already
+        // converted converts none, which the Accounts list says is Stripe's to settle), and this checkout's claim is
+        // released, granting nothing.
+        for (const orphan of adopted) {
+          await recordPassCreditGrant(
+            orphan.session,
+            input.userId,
+            found.get(orphan.session)!,
+          );
+          await convertPassCredit(orphan.session, input.userId);
+        }
         await releasePassCredit(input.sessionId, input.userId, null);
         captureWarning("billing", "stripe_pass_credit_overlap", {
           sessionId: input.sessionId,
           customerId: input.customerId,
           creditCents: input.creditCents,
           passes: input.passIds.length,
-          creditedBy: overtaken.session,
+          creditedBy: adopted.map((orphan) => orphan.session),
         });
         return "overlap";
+      }
+      // ★ NEVER GRANT PAST THE LEASE: a caller with no maxDuration (a local build's Retry, a laptop that slept) could
+      // be past it, where another delivery may have taken the claim over and granted. Stop short of Stripe instead:
+      // the failure is a retry, and the retry claims again.
+      if (
+        !own &&
+        claim.claimedUntil !== null &&
+        Date.now() > Date.parse(claim.claimedUntil) - GRANT_LEASE_MARGIN_MS
+      ) {
+        throw new Error(
+          "the claim's lease ran short before its grant; nothing was granted, so a retry claims again",
+        );
       }
       const transaction = own ?? (await grant(input));
       const recorded = await recordPassCreditGrant(
@@ -275,8 +338,13 @@ async function settleOrphans(
   for (const orphan of orphans) {
     const lost = found.get(orphan.session) ?? null;
     try {
-      await releasePassCredit(orphan.session, input.userId, lost);
-      if (lost) {
+      const settled = await releasePassCredit(
+        orphan.session,
+        input.userId,
+        lost,
+      );
+      // Said only when the grant went on record beside the release (a replay may find one released without it).
+      if (lost && settled === "released_granted") {
         captureWarning("billing", "stripe_pass_credit_overlap_granted", {
           sessionId: orphan.session,
           customerId: input.customerId,

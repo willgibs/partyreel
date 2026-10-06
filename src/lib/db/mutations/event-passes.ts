@@ -84,7 +84,13 @@ export type PassCreditClaim =
    * This delivery holds the claim; `resumed` when it took over a lapsed one, so look on Stripe's side first, for this
    * checkout's grant and for every orphan's (the claims it was taken past) before granting.
    */
-  | { state: "claimed"; resumed: boolean; orphans: ClaimOrphan[] }
+  | {
+      state: "claimed";
+      resumed: boolean;
+      orphans: ClaimOrphan[];
+      /** The lease's end (ISO), never granted past; null from a function that does not say it. */
+      claimedUntil: string | null;
+    }
   /** The grant is on record: never grant again, whenever the retry comes. */
   | { state: "granted"; balanceTransactionId: string }
   /**
@@ -103,9 +109,10 @@ export type PassCreditClaim =
 
 /**
  * Read `claim_pass_credit`'s answer, or throw: an answer it does not know is a broken call, never a guess. A key the
- * function answers only since credit-watch (`held_by`, `unsettled`, `orphans`) reads absent as the one meaning it had
- * before (busy was always this checkout's own lease; an overlap left nothing of its own to settle; a claim named no
- * orphan), so the route reads both definitions alike; a value it never gives is a broken call like any other.
+ * function answers only since credit-watch (`held_by`, `unsettled`, `orphans`, `claimed_until`) reads absent as the
+ * one meaning it had before (busy was always this checkout's own lease; an overlap left nothing of its own to settle;
+ * a claim named no orphan and no lease end), so the route reads both definitions alike; a value it never gives is a
+ * broken call like any other.
  */
 export function parseClaim(data: unknown): PassCreditClaim {
   const answer = (typeof data === "object" && data !== null ? data : {}) as {
@@ -116,12 +123,29 @@ export function parseClaim(data: unknown): PassCreditClaim {
     held_by?: unknown;
     unsettled?: unknown;
     orphans?: unknown;
+    claimed_until?: unknown;
   };
   switch (answer.state) {
     case "claimed": {
       const orphans = parseOrphans(answer.orphans);
-      if (typeof answer.resumed === "boolean" && orphans !== null) {
-        return { state: "claimed", resumed: answer.resumed, orphans };
+      const until = answer.claimed_until;
+      const claimedUntil =
+        until === undefined
+          ? null
+          : typeof until === "string" && Number.isFinite(Date.parse(until))
+            ? until
+            : undefined;
+      if (
+        typeof answer.resumed === "boolean" &&
+        orphans !== null &&
+        claimedUntil !== undefined
+      ) {
+        return {
+          state: "claimed",
+          resumed: answer.resumed,
+          orphans,
+          claimedUntil,
+        };
       }
       break;
     }

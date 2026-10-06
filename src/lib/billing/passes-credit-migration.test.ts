@@ -264,12 +264,12 @@ describe("4. the claim", () => {
     );
     expect(lease).toBeLessThan(orphans);
     expect(orphans).toBeLessThan(at(body, "insert into public.pass_credits"));
-    // Both ways a claim is taken answer them.
+    // Both ways a claim is taken answer them, and the lease's end the route never grants past.
     expect(body).toContain(
-      "return jsonb_build_object('state', 'claimed', 'resumed', true, 'orphans', v_orphans);",
+      "return jsonb_build_object('state', 'claimed', 'resumed', true, 'orphans', v_orphans, 'claimed_until', now() + c_lease);",
     );
     expect(body).toContain(
-      "return jsonb_build_object('state', 'claimed', 'resumed', false, 'orphans', v_orphans);",
+      "return jsonb_build_object('state', 'claimed', 'resumed', false, 'orphans', v_orphans, 'claimed_until', now() + c_lease);",
     );
   });
 

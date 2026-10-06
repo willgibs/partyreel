@@ -189,9 +189,12 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   holder can die, and the tab told overlap for good while the first tab's retries ran out left neither checkout
   granted; the retry meets that claim's grant (overlap) or its lapse. ★ A claim taken past such a lapse names it an
   orphan (`orphans`: another checkout's lapsed, ungranted, unreleased claim on its passes), and the route looks on
-  Stripe's side for every orphan's grant BEFORE it grants, since that holder may have died between Stripe's grant and
-  its record: a grant found is that checkout's (put on record on its claim, converted) and this claim is released,
-  granting nothing; none found, this checkout grants and then releases the orphans. ★ A claim of this checkout's own
+  Stripe's side for every orphan's grant BEFORE it grants (each orphan's checkout read from Stripe for the customer it
+  charged and its time on Stripe's clock), since that holder may have died between Stripe's grant and its record: every
+  grant found is its own checkout's (put on record on its claim, converted) and this claim is released, granting
+  nothing; none found, this checkout grants and then releases the orphans. ★ The claim answers its lease's end, and the
+  route never calls Stripe to grant with under three minutes of it left (a caller with no `maxDuration`, a local build's
+  Retry, could otherwise grant past a lease another delivery took over). ★ A claim of this checkout's own
   still open beside an overlap is settled at that delivery, never left stuck: looked for on Stripe's side, then
   released for good (`release_pass_credit`, `released_at`; refused for a claim whose passes no other checkout credited,
   and a pass it named that the other did not stays hers, uncredited, as an overlap always left it), a grant found put
