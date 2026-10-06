@@ -33,13 +33,13 @@ mid-work.
 
 | lane | what | state | model | session |
 | --- | --- | --- | --- | --- |
-| `drive-crumbs` | Drive whole before it goes live: album folders and files found by their marks after a reconnect, the closing check held at the first unknown, Account's card naming her folder, the palette's jump; one migration (`20261006130000_drive_marks.sql`) | HELD at `6d1731c27`: its GREEN (17:16Z) fails steps 4 and 6 on `min(uuid)` in `cloud_export_check_page` (Postgres 17 has none), every other step and the bodies' hashes as written; the resume lane (fix it, recompute the hashes, a test that catches it) failed at the environment's setup script (`session_01GSMjCMspQvxVU5WXyYpUjt`, never started): respawn it once the script is fixed | Opus | (to respawn) |
-| `account-moments-r1` | board account-moments r1 (desk 50): I4 Follow and Block staying quiet, I5 a profile before a public page, each built answer drawn beside real alternatives | CUT at `6ccc5b4e`; its session failed at the environment's setup script (`session_01TcMggokjGcvGJ2M2QZ1ndZ`, never started): respawn once the script is fixed | Opus | (to respawn) |
-| `create-wizard-r4` | board create-wizard r4 (desk 60): the styles' step polished on his round-3 note, F1 what is left as Settings' steps, F2 the develop playing while the event is made | CUT at `6ccc5b4e`; its session failed at the setup script (`session_01NckxAHbWNbAf4M9qw6dfW6`): respawn once fixed | Opus | (to respawn) |
+| `drive-crumbs` | Drive whole before it goes live: album folders and files found by their marks after a reconnect, the closing check held at the first unknown, Account's card naming her folder, the palette's jump; one migration (`20261006130000_drive_marks.sql`) | HELD at `6d1731c27`: its GREEN (17:16Z) fails steps 4 and 6 on `min(uuid)` in `cloud_export_check_page` (Postgres 17 has none), every other step and the bodies' hashes as written; RESUMED 17:46Z on its branch to fix it, recompute the hashes and add a test that catches it | Opus | `session_011oKYfqoZxoTPc71sCzwfK4` |
+| `account-moments-r1` | board account-moments r1 (desk 50): I4 Follow and Block staying quiet, I5 a profile before a public page, each built answer drawn beside real alternatives | RUNNING since 17:45Z (cut at `6ccc5b4e`) | Opus | `session_01NRUnVBvmM6AN8RZvcVryuV` |
+| `create-wizard-r4` | board create-wizard r4 (desk 60): the styles' step polished on his round-3 note, F1 what is left as Settings' steps, F2 the develop playing while the event is made | RUNNING since 17:46Z (cut at `6ccc5b4e`) | Opus | `session_01P6nE262dMp6APASC6qYNgs` |
 | `redteam-56b` | red-team 56b on the tip after both merges | to respawn once the environment holds the app's variables (Waiting on Will); the willg97 session `session_017cgyXnS3nnK35ifo2L6bEa` ended BLOCKED at 11:22Z, no findings | Opus | (to spawn) |
-| `marketing-crumbs` | nine marketing lines: today's product in the site's words and pictures, the postmark, the cinema 404, the demo modal on the popup, three wells | CUT at `567e8710`, not spawned (the setup script); integrates after milestone 38 | Opus | (to spawn) |
-| `upload-sums` | per-event byte sums in SQL (PRICING.md's lever 7): an upload's three reads and the size list stop walking every item; one migration (`20261006180000_upload_sums.sql`) through the Advisor | CUT at `567e8710`, not spawned (the setup script); integrates after milestone 38 | Opus | (to spawn) |
-| `crumbs-86` | ten small things: the 404s' one noindex, the host's capture clock, See it as a guest's zone and words, Create's seeding, billing's seam, two Library specimens, lifecycle comments, Blocked's address; no migration | CUT at `567e8710`, not spawned (the setup script); integrates after milestone 38 | Opus | (to spawn) |
+| `marketing-crumbs` | nine marketing lines: today's product in the site's words and pictures, the postmark, the cinema 404, the demo modal on the popup, three wells | RUNNING since 17:48Z (cut at `567e8710`); integrates after milestone 38 | Opus | `session_01YKZtbayaXAkLj5ZQSZabgU` |
+| `upload-sums` | per-event byte sums in SQL (PRICING.md's lever 7): an upload's three reads and the size list stop walking every item; one migration (`20261006180000_upload_sums.sql`) through the Advisor | RUNNING since 17:48Z (cut at `567e8710`); integrates after milestone 38 | Opus | `session_01XwyY3CKaLeoiXrtikFMvXb` |
+| `crumbs-86` | ten small things: the 404s' one noindex, the host's capture clock, See it as a guest's zone and words, Create's seeding, billing's seam, two Library specimens, lifecycle comments, Blocked's address; no migration | RUNNING since 17:48Z (cut at `567e8710`); integrates after milestone 38 | Opus | `session_01NdLRsbCC4Nknxu3h5cbE8f` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor") read both of tonight's migrations
 (2026-10-06): APPLY each, after its drift read and its proof's GREEN; its caveats are under Next. A successor respawns
@@ -89,10 +89,10 @@ and another account's sessions.
    fix, never an assertion.
 2. **Integrate drive-crumbs** once its migration applies, its record folding in the Advisor's words: drive-export's
    closing check re-asks a non-rate unknown every 90 s with no growth (a ROADMAP line for the Worker's cadence).
-3. **Respawn the three failed lanes** (desk 7's two boards, drive's resume) the moment Will's setup script is fixed:
-   the image ships `/etc/zsh/zshrc`, so a bare `apt-get install -y zsh` stops at dpkg's conffile prompt and fails the
-   session before Claude Code starts; the fix keeps the old file (`--force-confold`) and makes the Chrome wrapper.
-   Then cut the second wave as Next 5 says (specs in this seat's scratch: marketing-crumbs, upload-sums, crumbs-86).
+3. **Six lanes run** (since 17:45Z, Will's setup script fixed): desk 7's two boards merge as they hand off (dev-only);
+   drive's resume first among the production lanes (its fix, then its SQL, then its merge, then red-team 56b); the
+   second wave (marketing-crumbs, upload-sums, crumbs-86) and halo-last (cut once drive merges, its spec in this seat's
+   scratch) integrate after milestone 38. A `send_later` check-in about every 40 minutes reads them.
 4. **Red-team 56b** once the environment holds the app's variables: a fresh cloud session on the tip after both merges
    (crumbs-85's MEDIUM re-walked, the house set, the album's time, billing's "Pro on its way" line at 375 and 1440, the
    upload bursts); its report is its `result` event. Then **milestone 38** on Will's yes: the `FULL=1` gate here,
@@ -120,9 +120,8 @@ and another account's sessions.
 
 ## Waiting on Will
 
-- **The environment's Setup script** (17:30Z): `apt-get install -y zsh` fails every new session at dpkg's conffile
-  prompt; the two lines given him keep the old file and make the Chrome wrapper. Every lane waits on it. Sentry and
-  Stripe to authorize on this account.
+- Sentry and Stripe to authorize on this account (the environment's setup script is fixed since 17:45Z: it keeps the
+  image's zshrc and makes the Chrome wrapper).
 - **His desk:** brand r2's take; event-header r6 and desk 7 at the next refresh.
 - **The calls lab** (`docs/calls.md`): the open questions X1, X2, X3, X5, X6 and X8, then each merge's calls, built and
   his to overrule. He asks direct questions in chat; answer in chat, never only in a file.

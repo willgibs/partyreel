@@ -510,6 +510,7 @@ export type Database = {
           created_at: string
           done_mailed_at: string | null
           event_id: string | null
+          folder_found: boolean
           folder_id: string | null
           folder_url: string | null
           id: string
@@ -545,6 +546,7 @@ export type Database = {
           created_at?: string
           done_mailed_at?: string | null
           event_id?: string | null
+          folder_found?: boolean
           folder_id?: string | null
           folder_url?: string | null
           id?: string
@@ -580,6 +582,7 @@ export type Database = {
           created_at?: string
           done_mailed_at?: string | null
           event_id?: string | null
+          folder_found?: boolean
           folder_id?: string | null
           folder_url?: string | null
           id?: string
@@ -2194,7 +2197,7 @@ export type Database = {
         Returns: Json
       }
       cloud_export_ready: {
-        Args: { p_folder_id: string; p_job: string }
+        Args: { p_folder_id: string; p_found?: boolean; p_job: string }
         Returns: Json
       }
       cloud_export_refolder: {
