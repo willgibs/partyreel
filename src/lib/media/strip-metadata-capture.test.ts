@@ -850,6 +850,72 @@ describe("MOV and MP4: every shape the time comes in", () => {
   });
 });
 
+/** Every header clock in a movie (mvhd, tkhd, mdhd: creation, then modification, version 0), as epoch ms. */
+function movieClocks(b: Uint8Array): number[] {
+  const out: number[] = [];
+  for (const type of ["mvhd", "tkhd", "mdhd"]) {
+    const i = indexOf(b, type) + 4;
+    for (const at of [i + 4, i + 8]) {
+      out.push((u32(b, at, false) - 2082844800) * 1000);
+    }
+  }
+  return out;
+}
+/** A version 0 header of `type` whose creation and modification times are `c` and `m` (Mac seconds). */
+const header0 = (type: string, c: number, m: number, rest: number) =>
+  box(type, [0, 0, 0, 0, ...be32(c), ...be32(m), ...Array(rest).fill(0)]);
+
+describe("MOV and MP4: every header clock says when it was taken, and nothing else", () => {
+  const strip = (b: Uint8Array) => stripMetadataBytes(b, "video/mp4");
+  const TAKEN = "2026-10-04T01:14:05Z";
+  const EXPORTED = MAC("2026-10-05T09:00:00Z");
+  const trak = box("trak", [
+    ...header0("tkhd", EXPORTED, EXPORTED, 72),
+    ...box("mdia", header0("mdhd", EXPORTED, EXPORTED, 12)),
+  ]);
+
+  it("★ the track's and the media's headers lose the export's write time (red-team 56's NIT)", async () => {
+    const res = await strip(
+      mp4(
+        header0("mvhd", EXPORTED, EXPORTED, 88),
+        trak,
+        qtMeta([["com.apple.quicktime.creationdate", TAKEN]]),
+      ),
+    );
+    expect(res.captured).toEqual({ kind: "instant", ms: at(TAKEN) });
+    expect(movieClocks(res.data)).toEqual(Array(6).fill(at(TAKEN)));
+    // A second strip finds them saying it already.
+    expect((await strip(res.data)).changed).toBe(false);
+  });
+
+  it("★ with the movie header alone, its creation time is the one every clock says (its later write time gone)", async () => {
+    const taken = MAC(TAKEN);
+    const res = await strip(mp4(header0("mvhd", taken, taken + 30, 88), trak));
+    expect(movieClocks(res.data)).toEqual(Array(6).fill(at(TAKEN)));
+  });
+
+  it("a movie that names no time keeps none: every clock reads never set", async () => {
+    const res = await strip(mp4(header0("mvhd", 0, EXPORTED, 88), trak));
+    expect(res.captured).toBeUndefined();
+    expect(movieClocks(res.data).map((ms) => ms / 1000 + 2082844800)).toEqual(
+      Array(6).fill(0),
+    );
+  });
+
+  it("★ the iPhone's own export: its track headers say the take, never the export", async () => {
+    const res = await stripMetadataBytes(
+      fixture("avfoundation-capture.mov"),
+      "video/quicktime",
+    );
+    const t = indexOf(res.data, "tkhd") + 4;
+    const v1 = res.data[t] === 1;
+    const created = v1
+      ? u32(res.data, t + 4, false) * 0x100000000 + u32(res.data, t + 8, false)
+      : u32(res.data, t + 4, false);
+    expect((created - 2082844800) * 1000).toBe(at(TAKEN));
+  });
+});
+
 // ---------------------------------------------------------------------------
 // WebM
 // ---------------------------------------------------------------------------

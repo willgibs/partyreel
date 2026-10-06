@@ -11,7 +11,7 @@
  * Pure and isomorphic, in the product's pinned language (`en-US`), like `develop-words.ts`.
  */
 import { zonePlace } from "@/lib/event/zone";
-import { wallTimeIn } from "@/lib/shared/album-order";
+import { wallTimeIn } from "@/lib/event/wall-time";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -106,7 +106,7 @@ export function toZoneInput(iso: string, zone: string): string {
  * The instant a wall clock names on the party's clock (a `datetime-local` value, `YYYY-MM-DDTHH:mm`, its seconds kept
  * where it carries them), or null for a value that is no whole time (blank, half filled, an hour past 23). A wall time a
  * clock change skips lands within its hour, as the turn's own does (`wallTimeIn`). The one reading of a bare wall clock
- * in a zone: a zoneless Exif clock read in the party's zone would be this call (capture-time's Deferred line).
+ * in a zone: a zoneless Exif clock is read in the party's zone by this call (`wallInPartyZone`, a guest's complete).
  */
 export function fromZoneInput(typed: string, zone: string): Date | null {
   const m = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?$/.exec(
@@ -119,4 +119,30 @@ export function fromZoneInput(typed: string, zone: string): Date | null {
   if (hour > 23 || minute > 59 || second > 59) return null;
   const at = wallTimeIn(m[1]!, hour, zone) + minute * 60_000 + second * 1_000;
   return Number.isFinite(at) ? new Date(at) : null;
+}
+
+/**
+ * "Sun, Oct 4 at 9 am in Bali, 6 pm yours": a time in BOTH clocks, for a guest whose zone is not the party's (crumbs-85):
+ * the party's wall clock with its day and its place (`zoneWhen`), then her own clock, its weekday named where her day is
+ * not the party's ("Sat 6 pm yours"). A phrase after a verb, as `developsWhen` is ("Develops …", "until they develop …").
+ */
+export function bothClocksWhen(
+  iso: string,
+  zone: string,
+  mine: string,
+): string {
+  const at = readable(iso);
+  if (!at) return "";
+  const party = zoneWhen(iso, zone);
+  const p = wallParts(at, zone);
+  const m = wallParts(at, mine);
+  const half = m.hour < 12 ? "am" : "pm";
+  const h = m.hour % 12 === 0 ? 12 : m.hour % 12;
+  const clock =
+    m.minute === 0 ? `${h} ${half}` : `${h}:${pad(m.minute)} ${half}`;
+  const sameDay = p.year === m.year && p.month === m.month && p.day === m.day;
+  const day = sameDay
+    ? ""
+    : `${new Intl.DateTimeFormat("en-US", { timeZone: mine, weekday: "short" }).format(at)} `;
+  return `${party}, ${day}${clock} yours`;
 }

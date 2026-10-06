@@ -34,30 +34,46 @@ export const WAIT_TITLE = TRACKER_WORDS.waiting;
 /** What a wait waits for: the host letting each in (a Review album), or a develop time ahead. */
 export type WaitClock =
   | { kind: "held"; hostName: string | null }
-  | { kind: "develop"; developsAt: string };
+  | {
+      kind: "develop";
+      developsAt: string;
+      /** The party's zone (`events.time_zone`), for a far party's two clocks (`developsWhen`); absent: her own. */
+      zone?: string | null;
+    };
 
 /** The page's live reading (`uploadsWait`) as a clock: the develop while it is ahead, else approval, else none. */
 export function waitWords(
   wait: { waits: boolean; developsAt: string | null },
   hostName: string | null,
+  zone: string | null = null,
 ): WaitClock | null {
-  if (wait.developsAt) return { kind: "develop", developsAt: wait.developsAt };
+  if (wait.developsAt)
+    return zone
+      ? { kind: "develop", developsAt: wait.developsAt, zone }
+      : { kind: "develop", developsAt: wait.developsAt };
   if (wait.waits) return { kind: "held", hostName };
   return null;
 }
 
 const hostOf = (name: string | null) => name?.trim() || "the host";
 
-/** The develop time from now, or nothing before hydration (`nowMs: null`) or for a time it cannot read. */
-const when = (developsAt: string, nowMs: number | null) =>
+/**
+ * The develop time from now, or nothing before hydration (`nowMs: null`) or for a time it cannot read; a far party's in
+ * both clocks (`developsWhen`, the clock's `zone`).
+ */
+const when = (
+  developsAt: string,
+  nowMs: number | null,
+  zone?: string | null,
+) =>
   nowMs === null || !Number.isFinite(Date.parse(developsAt))
     ? null
-    : developsWhen(developsAt, nowMs);
+    : developsWhen(developsAt, nowMs, zone);
 
 /** The sheet's clock: "As Maya lets them in", or "All at once at 9 am". */
 export function waitClockLine(clock: WaitClock, nowMs: number | null): string {
   if (clock.kind === "held") return `As ${hostOf(clock.hostName)} lets them in`;
-  const at = when(clock.developsAt, nowMs);
+  const at = when(clock.developsAt, nowMs, clock.zone);
   return at ? `All at once ${at}` : "All at once";
 }
 
@@ -87,7 +103,7 @@ export function countdownWords(
 export function waitRule(clock: WaitClock, nowMs: number | null): string {
   if (clock.kind === "held")
     return `Uploads develop as ${hostOf(clock.hostName)} lets each one in.`;
-  const at = when(clock.developsAt, nowMs);
+  const at = when(clock.developsAt, nowMs, clock.zone);
   return at
     ? `Uploads develop all at once ${at}.`
     : "Uploads develop all at once.";
@@ -108,7 +124,7 @@ export function keepWaitLine(input: {
   if (input.clock.kind === "held") {
     return `${input.subject} ${verb} as ${hostOf(input.clock.hostName)} lets ${input.one ? "it" : "them"} in.`;
   }
-  const at = when(input.clock.developsAt, input.nowMs);
+  const at = when(input.clock.developsAt, input.nowMs, input.clock.zone);
   return `${input.subject} ${verb} with everyone's${at ? ` ${at}` : ""}.`;
 }
 

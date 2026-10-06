@@ -36,6 +36,7 @@ import { removeOwnShot } from "@/components/guest/camera/remove-shot";
 import { useBlobUrls } from "@/components/guest/camera/use-blob-urls";
 import { YourShots, type ShotTile } from "@/components/guest/camera/your-shots";
 import type { UploadsWord } from "@/components/guest/event-experience-open";
+import { usePartyZone } from "@/components/guest/party-zone";
 import { useBackCloses } from "@/components/ui/popup-back";
 import { usePortalContainer } from "@/components/ui/portal-container";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
@@ -63,6 +64,8 @@ import {
   reelCaption,
   reelLabel,
   revealFor,
+  type CameraReveal,
+  rollCount,
   rollDoneLine,
   yourShotsLine,
 } from "@/lib/guest/camera/words";
@@ -126,6 +129,7 @@ export function AlbumCamera({
   onOwnRemoved,
   uploadsWord,
   onAskUploadsWord,
+  heldAtDoor = false,
 }: {
   open: boolean;
   /**
@@ -136,6 +140,12 @@ export function AlbumCamera({
   uploadsWord?: UploadsWord;
   /** Ask the album for its word afresh (its next sync carries no validator): a closed refusal over a word that said open. */
   onAskUploadsWord?: () => void;
+  /**
+   * ★ THE HELD DOOR HOLDS HER SHOTS (crumbs-85): opened from the held door's wait, what she takes waits in the page's
+   * queue until the host lets her in, so the camera says so (`reveal` "door": "They go in once you're let in") and draws
+   * none of them sending; "Every shot goes straight in" over shots going nowhere was the door's own red-team NIT.
+   */
+  heldAtDoor?: boolean;
   /** When Add opened it (its own press): the clock its words start from. */
   openedAt: number;
   onOpenChange: (open: boolean) => void;
@@ -154,6 +164,8 @@ export function AlbumCamera({
   onOwnRemoved?: (mediaId: string, remaining: number) => void;
 }) {
   const [sessionToken] = useStoredSession(qrToken);
+  // The party's zone, for a far party's develop time in both clocks (`party-zone.tsx`).
+  const partyZone = usePartyZone();
   const [shots, setShots] = useState<readonly CameraShot[]>([]);
   const [frozen, setFrozen] = useState<ReadonlyMap<string, HTMLCanvasElement>>(
     () => new Map(),
@@ -178,7 +190,7 @@ export function AlbumCamera({
     return () => window.clearInterval(timer);
   }, [open]);
   const now = Math.max(openedAt, tick);
-  const reveal = revealFor(event, now);
+  const reveal: CameraReveal = heldAtDoor ? "door" : revealFor(event, now);
   const developsAt = event.develops_at ?? null;
 
   /* ── her shots, where each stands, and her roll ───────────────────────────────────────────── */
@@ -528,7 +540,9 @@ export function AlbumCamera({
         mediaId: state.mediaId,
         queueId: state.queueId,
         kind: shot.kind,
-        status: state.status,
+        // At the held door a shot in the page's queue is waiting for the let-in, never sending.
+        status:
+          heldAtDoor && state.status === "sending" ? "door" : state.status,
         src: thumbUrls.get(shot.key),
         seconds: shot.seconds,
         removable:
@@ -551,7 +565,7 @@ export function AlbumCamera({
       });
     }
     return out;
-  }, [states, own, thumbUrls, gone]);
+  }, [states, own, thumbUrls, gone, heldAtDoor]);
 
   const latestTiles = useRef(tiles);
   useEffect(() => {
@@ -605,7 +619,13 @@ export function AlbumCamera({
   const frame = host ? counted.length + 1 : guest.frame;
   const doneLine = guest.ceilingReached
     ? ROLL_RETAKES_SPENT_MESSAGE
-    : rollDoneLine({ cap, reveal, developsAt, nowMs: now });
+    : rollDoneLine({
+        held: Math.max(guest.held, cap),
+        reveal,
+        developsAt,
+        nowMs: now,
+        zone: partyZone,
+      });
 
   return (
     <DialogPrimitive.Root
@@ -660,9 +680,10 @@ export function AlbumCamera({
               caption={reelCaption({
                 frame,
                 cap,
+                held: guest.held,
                 done,
                 host,
-                sending,
+                sending: heldAtDoor ? 0 : sending,
               })}
               cap={cap}
               used={used}
@@ -671,7 +692,7 @@ export function AlbumCamera({
                 takenAt: shot.takenAt,
                 kind: shot.kind,
                 seconds: shot.seconds,
-                sending: inFlight(state),
+                sending: inFlight(state) && !heldAtDoor,
               }))}
               frozen={frozen}
               just={just}
@@ -692,7 +713,7 @@ export function AlbumCamera({
               blocked={blocked}
               done={done}
               doneLine={doneLine}
-              freeAFrame={!guest.ceilingReached}
+              freeAFrame={guest.removalFrees}
               reelLabel={reelLabel(used, host)}
               hidden={view === "shots"}
               shutterRef={shutterRef}
@@ -707,10 +728,17 @@ export function AlbumCamera({
               <YourShots
                 headingRef={shotsBackRef}
                 tiles={tiles}
-                line={yourShotsLine({ reveal, developsAt, nowMs: now })}
-                count={host ? `${counted.length} taken` : `${used} of ${cap}`}
+                line={yourShotsLine({
+                  reveal,
+                  developsAt,
+                  nowMs: now,
+                  zone: partyZone,
+                })}
+                count={
+                  host ? `${counted.length} taken` : rollCount(guest.held, cap)
+                }
                 removing={removing}
-                canFreeFrames={!host && !guest.ceilingReached}
+                canFreeFrames={!host && guest.removalFrees}
                 onRemove={(id) => void remove(id)}
                 onRetry={(queueId) => {
                   const at = Date.now();

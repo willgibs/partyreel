@@ -4,8 +4,9 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
+import { browserZone } from "@/lib/event/zone";
 import { ROLL_MAX, ROLL_MIN, rollSpentMessage } from "@/lib/disposable/roll";
 
 import { reelCells } from "./reel";
@@ -20,6 +21,7 @@ import {
   reelCaption,
   reelLabel,
   revealFor,
+  rollCount,
   rollDoneLine,
   unsentLine,
   yourShotsLine,
@@ -187,7 +189,7 @@ describe("the lines", () => {
   it("ends the roll with when it comes back", () => {
     expect(
       rollDoneLine({
-        cap: 24,
+        held: 24,
         reveal: "develop",
         developsAt: NINE_AM,
         nowMs: PARTY,
@@ -195,12 +197,57 @@ describe("the lines", () => {
     ).toBe(
       "24 shots, developing with everyone’s. They’re back tomorrow at 9 am.",
     );
-    expect(rollDoneLine({ cap: 24, reveal: "approve", developsAt: null })).toBe(
-      "24 shots, waiting for the host.",
-    );
-    expect(rollDoneLine({ cap: 1, reveal: "live", developsAt: null })).toBe(
+    expect(
+      rollDoneLine({ held: 24, reveal: "approve", developsAt: null }),
+    ).toBe("24 shots, waiting for the host.");
+    expect(rollDoneLine({ held: 1, reveal: "live", developsAt: null })).toBe(
       "1 shot, all in the album.",
     );
+    // ★ A roll the host made smaller after she shot (red-team 56's LOW): her two shots are two, never "1 shot".
+    expect(rollDoneLine({ held: 2, reveal: "live", developsAt: null })).toBe(
+      "2 shots, all in the album.",
+    );
+  });
+
+  it("★ at the held door says her shots go in once she is let in, never straight in (crumbs-85)", () => {
+    const base = { developsAt: null, recording: false, done: false };
+    expect(cameraSubLine({ ...base, reveal: "door" })).toBe(
+      "They go in once you’re let in",
+    );
+    expect(yourShotsLine({ reveal: "door", developsAt: null })).toBe(
+      "They go in once you’re let in.",
+    );
+    expect(rollDoneLine({ held: 3, reveal: "door", developsAt: null })).toBe(
+      "3 shots. They go in once you’re let in.",
+    );
+  });
+
+  it("★ a far party's develop time is said in both clocks; a party in her own zone, or none, in hers (crumbs-85)", () => {
+    const zone = vi.spyOn(browserZone, "zoneName");
+    try {
+      zone.mockReturnValue("America/Los_Angeles");
+      const at = "2026-10-04T01:00:00.000Z";
+      expect(
+        developsWhen(at, Date.parse(at) - 3_600_000, "Asia/Makassar"),
+      ).toBe("Sun, Oct 4 at 9 am in Makassar, Sat 6 pm yours");
+      expect(
+        cameraSubLine({
+          reveal: "develop",
+          developsAt: at,
+          recording: false,
+          done: false,
+          zone: "Asia/Makassar",
+        }),
+      ).toBe("Develops Sun, Oct 4 at 9 am in Makassar, Sat 6 pm yours");
+      // Her own zone, or no zone at all: her own clock, as always.
+      const near = developsWhen(at, Date.parse(at) - 3_600_000);
+      expect(
+        developsWhen(at, Date.parse(at) - 3_600_000, "America/Los_Angeles"),
+      ).toBe(near);
+      expect(near).not.toMatch(/yours/);
+    } finally {
+      zone.mockRestore();
+    }
   });
 
   it("says what her shots are waiting for", () => {
@@ -216,6 +263,12 @@ describe("the lines", () => {
       "Frame 9 of 24 · sending 2",
     );
     expect(reelCaption({ ...base, frame: 24, done: true })).toBe("24 of 24");
+    // ★ Two shots under a roll of 1 (red-team 56's LOW): what she holds, never "1 of 1" beside two shots.
+    expect(
+      reelCaption({ ...base, cap: 1, held: 2, frame: 1, done: true }),
+    ).toBe("2 on a roll of 1");
+    expect(rollCount(1, 1)).toBe("1 of 1");
+    expect(rollCount(6, 24)).toBe("6 of 24");
     expect(reelCaption({ ...base, frame: 4, host: true })).toBe(
       "No roll for the host",
     );
@@ -260,10 +313,10 @@ describe("the camera at any roll a host may name", () => {
       );
     }
     expect(
-      rollDoneLine({ cap: ROLL_MIN, reveal: "live", developsAt: null }),
+      rollDoneLine({ held: ROLL_MIN, reveal: "live", developsAt: null }),
     ).toBe("1 shot, all in the album.");
     expect(
-      rollDoneLine({ cap: ROLL_MAX, reveal: "live", developsAt: null }),
+      rollDoneLine({ held: ROLL_MAX, reveal: "live", developsAt: null }),
     ).toBe("99 shots, all in the album.");
     expect(
       rollView({ server: null, rollSize: ROLL_MAX, pending: ROLL_MAX }).refusal,

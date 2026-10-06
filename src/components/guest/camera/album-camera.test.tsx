@@ -108,6 +108,7 @@ function Page({
   answerRetries = false,
   word,
   onAskWord,
+  heldAtDoor,
 }: {
   onAdd?: (files: File[], extra?: FileExtra) => void;
   initialQueue?: QueueItem[];
@@ -123,6 +124,8 @@ function Page({
   word?: boolean;
   /** The camera asked the album for its word afresh. */
   onAskWord?: () => void;
+  /** Opened from the held door's wait: her shots wait in the page's queue for the let-in. */
+  heldAtDoor?: boolean;
 }) {
   const [open, setOpen] = useState(true);
   const [queue, setQueue] = useState<QueueItem[]>(initialQueue);
@@ -186,6 +189,7 @@ function Page({
         }}
         isDemo={false}
         isOwner={isOwner}
+        heldAtDoor={heldAtDoor}
       />
       <button type="button" onClick={() => setQueue([])}>
         Dismiss them
@@ -380,6 +384,24 @@ describe("the album's camera", () => {
     expect(screen.getByText("Shot 7 taken.")).toBeInTheDocument();
     expect(screen.getByText("17")).toBeInTheDocument();
     expect(screen.getByText("Frame 8 of 24 · sending 1")).toBeInTheDocument();
+  });
+
+  /* ★ THE HELD DOOR HOLDS HER SHOTS (crumbs-85): opened from the held door's wait, the camera said "Every shot goes
+     straight in" and drew its shots sending while they waited in the page's queue for the let-in. */
+  it("★ at the held door says her shots go in once she is let in, and draws none of them sending", async () => {
+    render(<Page heldAtDoor />);
+    await opened();
+    expect(
+      screen.getByText("They go in once you’re let in"),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Every shot goes straight in")).toBeNull();
+    expect(screen.queryByText(/^Develops/)).toBeNull();
+    await screen.findByText("Frame 7 of 24");
+    await act(async () => press());
+    // Taken, and waiting: no "sending" in the caption, no sending dot on the reel.
+    expect(await screen.findByText("Frame 8 of 24")).toBeInTheDocument();
+    expect(screen.queryByText(/sending/)).toBeNull();
+    expect(document.querySelector("[data-sending]")).toBeNull();
   });
 
   it("★ ends the roll in its own words, with her shots one tap away and the shutter gone", async () => {

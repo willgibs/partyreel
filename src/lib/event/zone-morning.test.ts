@@ -1,5 +1,5 @@
 /**
- * THE PARTY'S MORNING AFTER (`zone-morning.ts`): the album turns at 9 am the morning after the party's LAST day in the
+ * THE PARTY'S MORNING AFTER (album-order's `guestAlbumOrder` and `zone-morning.ts`'s develop): the album turns at 9 am the morning after the party's LAST day in the
  * party's own zone, one instant whoever reads it; a develop time wins; and the develop's default is that same morning.
  *
  * ★ Each case reads the party's zone and never a reader's: nothing here takes one, which is the lane's whole promise
@@ -9,18 +9,14 @@
 import { describe, expect, it } from "vitest";
 
 import { defaultDevelopAt } from "@/lib/disposable/reveal";
-import {
-  albumOpening,
-  developDefaultIn,
-  developToKeep,
-  openingTurnAt,
-} from "@/lib/event/zone-morning";
+import { developDefaultIn, developToKeep } from "@/lib/event/zone-morning";
+import { guestAlbumOrder, openingTurnAt } from "@/lib/shared/album-order";
 
 const at = (iso: string) => Date.parse(iso);
 
-describe("albumOpening: the turn, read once in the party's zone", () => {
+describe("guestAlbumOrder: the turn, read once in the party's zone", () => {
   it("★ a party in Auckland turns at 9 am the morning after, in Auckland, for everyone", () => {
-    const opening = albumOpening({
+    const opening = guestAlbumOrder({
       facts: { eventDate: "2026-10-03" },
       zone: "Pacific/Auckland",
       chosen: null,
@@ -33,7 +29,7 @@ describe("albumOpening: the turn, read once in the party's zone", () => {
 
   it("a range turns the morning after its LAST day", () => {
     expect(
-      albumOpening({
+      guestAlbumOrder({
         facts: { eventDate: "2026-10-02", eventEndDate: "2026-10-04" },
         zone: "America/Mexico_City",
         chosen: null,
@@ -43,7 +39,8 @@ describe("albumOpening: the turn, read once in the party's zone", () => {
 
   it("★ both clock changes in the party's zone: the morning after is 9 am by its own wall clock", () => {
     const turn = (eventDate: string, zone: string) =>
-      albumOpening({ facts: { eventDate }, zone, chosen: null }).morningAfter;
+      guestAlbumOrder({ facts: { eventDate }, zone, chosen: null })
+        .morningAfter;
     // Los Angeles: falls back on 1 November 2026, springs forward on 14 March 2027.
     expect(turn("2026-10-31", "America/Los_Angeles")).toBe(
       at("2026-11-01T17:00:00Z"),
@@ -63,8 +60,11 @@ describe("albumOpening: the turn, read once in the party's zone", () => {
   it("a party with no zone, or one the runtime cannot read, turns in the one fallback (UTC)", () => {
     for (const zone of [null, "Mars/Olympus", "+13:00"]) {
       expect(
-        albumOpening({ facts: { eventDate: "2026-10-03" }, zone, chosen: null })
-          .morningAfter,
+        guestAlbumOrder({
+          facts: { eventDate: "2026-10-03" },
+          zone,
+          chosen: null,
+        }).morningAfter,
         String(zone),
       ).toBe(at("2026-10-04T09:00:00Z"));
     }
@@ -74,7 +74,7 @@ describe("albumOpening: the turn, read once in the party's zone", () => {
     const facts = { eventDate: "2026-10-03" };
     const zone = "Pacific/Auckland";
     expect(
-      albumOpening({
+      guestAlbumOrder({
         facts,
         zone,
         chosen: null,
@@ -82,7 +82,7 @@ describe("albumOpening: the turn, read once in the party's zone", () => {
       }).own,
     ).toBe("newest");
     expect(
-      albumOpening({
+      guestAlbumOrder({
         facts,
         zone,
         chosen: null,
@@ -91,7 +91,7 @@ describe("albumOpening: the turn, read once in the party's zone", () => {
     ).toBe("oldest");
     // Her choice rides beside it, untouched.
     expect(
-      albumOpening({
+      guestAlbumOrder({
         facts,
         zone,
         chosen: "newest",
@@ -105,7 +105,7 @@ describe("albumOpening: the turn, read once in the party's zone", () => {
       eventDate: "2026-10-03",
       developsAt: "2026-10-05T18:00:00.000Z",
     };
-    const after = albumOpening({
+    const after = guestAlbumOrder({
       facts,
       zone: "Pacific/Auckland",
       chosen: null,
@@ -115,7 +115,7 @@ describe("albumOpening: the turn, read once in the party's zone", () => {
     expect(after.own).toBe("newest");
     expect(after.morningAfter).toBe(at("2026-10-03T20:00:00Z"));
     expect(
-      albumOpening({
+      guestAlbumOrder({
         facts,
         zone: "Pacific/Auckland",
         chosen: null,
@@ -125,14 +125,14 @@ describe("albumOpening: the turn, read once in the party's zone", () => {
   });
 
   it("an undated album and the demo never turn", () => {
-    const undated = albumOpening({
+    const undated = guestAlbumOrder({
       facts: { eventDate: null },
       zone: "Pacific/Auckland",
       chosen: null,
     });
     expect(undated.morningAfter).toBeNull();
     expect(undated.own).toBe("newest");
-    const demo = albumOpening({
+    const demo = guestAlbumOrder({
       facts: { eventDate: "2026-10-03" },
       zone: "Pacific/Auckland",
       chosen: null,
@@ -169,7 +169,7 @@ describe("developDefaultIn: the develop's 9 am is the party's", () => {
     });
     expect(develop.toISOString()).toBe("2026-10-11T20:00:00.000Z"); // Monday 9:00 NZDT
     expect(develop.getTime()).toBe(
-      albumOpening({ facts, zone, chosen: null }).morningAfter,
+      guestAlbumOrder({ facts, zone, chosen: null }).morningAfter,
     );
   });
 

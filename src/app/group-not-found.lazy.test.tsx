@@ -114,10 +114,8 @@ describe("the cinema group's 404", () => {
   it("is a reference until its chunk lands, then the centred words and no chrome of its own", async () => {
     const { default: CinemaNotFound, metadata } =
       await import("./(marketing)/(cinema)/not-found");
-    expect(metadata).toMatchObject({
-      title: "Page not found",
-      robots: { index: false, follow: false },
-    });
+    // Next's own noindex is the 404's one robots meta (red-team 56's NIT): the cinema's says none beside it.
+    expect(metadata).toEqual({ title: "Page not found" });
     const { container } = render(<CinemaNotFound />);
     expect(screen.queryByRole("heading", { level: 1 })).toBeNull();
 

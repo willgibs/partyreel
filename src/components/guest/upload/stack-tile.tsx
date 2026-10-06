@@ -39,7 +39,7 @@
  * finishes uploading, so this box wears the bright edge the landed tile wears
  * (`lit-edge-contract.test.ts` holds the closed list).
  */
-import type { CSSProperties } from "react";
+import type { CSSProperties, Ref } from "react";
 import { X } from "lucide-react";
 
 import { PickPreview } from "@/components/guest/upload/pick-preview";
@@ -68,7 +68,7 @@ import { cn } from "@/lib/utils";
  * own halo (`glass-mark-lit`), which costs nothing over a dark photograph and is
  * the belt over a bright one.
  */
-const READING_PANE = { "--glass-tint": "0.34" } as CSSProperties;
+export const READING_PANE = { "--glass-tint": "0.34" } as CSSProperties;
 
 /** The album tile's box, worn by what stands at the album's head. */
 const TILE_BOX =
@@ -80,6 +80,7 @@ export function UploadStackTile({
   progress,
   remaining,
   onStop,
+  ref,
 }: {
   /** The file actually in the air (the queue runs one at a time). */
   file: File;
@@ -91,9 +92,12 @@ export function UploadStackTile({
   remaining: number;
   /** Her x on this file: ask whether to stop it. Absent where it can no longer be stopped, and then no x is drawn. */
   onStop?: () => void;
+  /** The stack's own box, for whoever watches whether she can see it (`gallery-rows.tsx`'s stand-in). */
+  ref?: Ref<HTMLDivElement>;
 }) {
   return (
     <div
+      ref={ref}
       data-upload-stack
       className="relative mb-[var(--gap-gallery)] w-full pt-1.5 pr-1.5"
     >

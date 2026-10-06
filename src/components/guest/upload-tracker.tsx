@@ -19,6 +19,7 @@ import {
 import { removeMyUploadGuestAction } from "@/app/(guest)/e/[token]/actions";
 import { addsWaitFor } from "@/components/guest/event-experience-wait";
 import { useGalleryLive } from "@/components/guest/gallery-live";
+import { usePartyZone } from "@/components/guest/party-zone";
 import { PickPreview } from "@/components/guest/upload/pick-preview";
 import { Button } from "@/components/ui/button";
 import {
@@ -355,7 +356,8 @@ export function UploadTracker({
   // The album's one rule, in the wait's own words (`model=time`: "Uploads develop all at once at 9 am" or "as Maya lets
   // each one in"), the time said in her own clock once hydrated (the list opens only after it anyway).
   const nowMs = useWaitClock();
-  const clock = waitWords({ waits, developsAt }, hostName);
+  const zone = usePartyZone();
+  const clock = waitWords({ waits, developsAt }, hostName, zone);
   const rule = clock ? waitRule(clock, nowMs) : null;
   const rows = useMemo(
     () =>

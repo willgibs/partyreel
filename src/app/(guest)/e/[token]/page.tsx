@@ -63,10 +63,10 @@ import { uploadsWait } from "@/lib/guest/upload-tracker";
 import { welcomeSeenIn } from "@/lib/guest/use-welcome-seen-cookie";
 import { PHOTO_PARAM, readPhotoParam } from "@/lib/media/share-save";
 import { presignDownload } from "@/lib/r2/presign";
-import { albumOpening } from "@/lib/event/zone-morning";
 import { readPartyZone } from "@/lib/event/zone.server";
 import {
   ALBUM_SORT_COOKIE,
+  guestAlbumOrder,
   readChosenSort,
   shownSort,
 } from "@/lib/shared/album-order";
@@ -372,9 +372,10 @@ export default async function GuestEventPage({
   // at 9 am the morning after in the party's own zone, one moment for every reader, so the one read it
   // costs runs beside the door's and the gate's below, never after them. Only a dated album turns, and a
   // date here is one this request may see (a gate's anon read blanks it), so nothing else asks. It never
-  // rejects: a failed read is the fallback, reported (`zone.server.ts`).
+  // rejects: a failed read is the fallback, reported (`zone.server.ts`). ★ And an album with a develop time asks it
+  // too (crumbs-85): a far party's guest reads its develop time in both clocks, which names the party's place.
   const partyZone =
-    !isDemo && event.event_date
+    !isDemo && (event.event_date || event.develops_at)
       ? readPartyZone(event.id)
       : Promise.resolve<string | null>(null);
 
@@ -470,9 +471,11 @@ export default async function GuestEventPage({
   const rhythmSeed = randomInt(1_000_000);
   // ★ AND THE ORDER IT OPENS IN (album-order, event-zone): the turn read in the PARTY's zone, one
   // moment for every reader wherever they are, handed to the page as that instant and never as a zone
-  // (`albumOpening`), and her remembered order on this album (`pr_album_sort`). Behind a gate nothing
+  // (`guestAlbumOrder`), and her remembered order on this album (`pr_album_sort`). Behind a gate nothing
   // says when the party was (the shell blanks its days below), so neither does the order.
-  const albumOrder = albumOpening({
+  // The party's zone for words (a far party's develop time in both clocks), never behind a lock.
+  const zoneForWords = access === "none" ? null : await partyZone;
+  const albumOrder = guestAlbumOrder({
     facts:
       access === "none"
         ? { eventDate: null }
@@ -770,6 +773,9 @@ export default async function GuestEventPage({
         doorPhase={doorPhase}
         uploadsWait={waits}
         albumOrder={albumOrder}
+        // The party's zone, for words only (a far party's develop time in both clocks, `party-zone.tsx`): never behind
+        // a lock, where the shell names nothing of where or when the party is.
+        partyZone={zoneForWords}
       />
       {/* ★ WHAT THIS PHONE'S CLAIM WOULD NOT TAKE IN SILENCE (shared-claims): a ticket typed under a
           name at odds with the account, asked about once the door and its sheets are down

@@ -20,12 +20,15 @@
  * Pure and isomorphic.
  */
 import type { WaitingMinute } from "@/lib/disposable/facts";
+import { farZone } from "@/lib/event/zone";
+import { zoneWhen } from "@/lib/event/zone-words";
 import {
   ENTRY_HIDDEN,
   ENTRY_PENDING,
   type ManifestEntry,
   timestampToMicros,
 } from "@/lib/events/album-wire";
+import { developsWhen } from "@/lib/guest/camera/words";
 
 /** The event's develop facts, as the hub's page reads them off the row (`HostEvent`) and the rows beside it. */
 export type HubDevelopFacts = {
@@ -36,6 +39,11 @@ export type HubDevelopFacts = {
    * switch put in the roll (`host-cover.server.ts` reads them with the page). Absent reads as none.
    */
   joined?: readonly string[];
+  /**
+   * The party's zone (`events.time_zone`), for words only: where it is not her own, the develop time is said on the
+   * party's clock with its place named, as Settings says it (`zoneWhen`, red-team 56's NIT). Absent: her own clock.
+   */
+  time_zone?: string | null;
 };
 
 /** Whether the hub's album is covered: a develop time still ahead (of `nowMs`, now unless told). */
@@ -107,4 +115,18 @@ export function coverWaitingOf(
     .sort((a, b) => a[0] - b[0])
     .map(([at, n]) => [at, n] as const);
   return { count: ids.length, minutes, ids };
+}
+
+/**
+ * WHEN HER ALBUM DEVELOPS, AS HER HUB SAYS IT: her own clock ("tomorrow at 9 am"), or, for a party far from home, the
+ * party's with its place named ("Sun, Oct 4 at 9 am in Makassar"), as Settings says it (`zoneWhen`, red-team 56's NIT).
+ * A browser's answer (`farZone`), so said once hydrated, as the clock already is.
+ */
+export function hubDevelopWhen(
+  developsAt: string,
+  nowMs: number,
+  zone: string | null | undefined,
+): string {
+  const far = farZone(zone);
+  return far ? zoneWhen(developsAt, far) : developsWhen(developsAt, nowMs);
 }

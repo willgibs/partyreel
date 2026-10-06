@@ -23,9 +23,10 @@ import { CinemaNotFoundLazy } from "@/app/not-found.lazy";
 // client boundary every 404 shares; `not-found.test.ts` walks this file's eager
 // imports and refuses a component, a client island or a stylesheet among them. What only a
 // Server Component can hold stays here: the metadata.
+// ★ NO ROBOTS OF ITS OWN (red-team 56's NIT): Next writes `<meta name="robots" content="noindex">` into every 404
+// itself, and a second meta beside it said the same twice. One is enough.
 export const metadata: Metadata = {
   title: "Page not found",
-  robots: { index: false, follow: false },
 };
 
 export default function CinemaNotFoundPage() {

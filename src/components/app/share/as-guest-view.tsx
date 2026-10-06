@@ -40,7 +40,7 @@ import { Button } from "@/components/ui/button";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import { useWaitClock } from "@/lib/disposable/use-wait-clock";
 import { coverEyebrow, waitWords } from "@/lib/disposable/wait-words";
-import type { AlbumOpening } from "@/lib/event/zone-morning";
+import type { GuestAlbumOrder } from "@/lib/shared/album-order";
 import { addWords } from "@/lib/guest/camera/words";
 import { useDoorHues } from "@/lib/guest/door-light";
 import { uploadsWait } from "@/lib/guest/upload-tracker";
@@ -107,7 +107,7 @@ export function AsGuestView({
   joinUrl: string;
   galleryPromise: Promise<GalleryPayload>;
   /** The order a guest's album opens in (`readAsGuest`'s, the guest page's own answer); absent, newest first. */
-  albumOrder?: AlbumOpening;
+  albumOrder?: GuestAlbumOrder;
   stats: { approvedTotal: number; guestCount: number };
   host: { avatarUrl: string | null; seed: string | null } | null;
   guests: GuestListItem[];
@@ -180,7 +180,7 @@ function AlbumAsGuest({
   event: AsGuestEvent;
   joinUrl: string;
   galleryPromise: Promise<GalleryPayload>;
-  albumOrder: AlbumOpening | undefined;
+  albumOrder: GuestAlbumOrder | undefined;
   stats: { approvedTotal: number; guestCount: number };
   host: { avatarUrl: string | null; seed: string | null } | null;
   guests: GuestListItem[];

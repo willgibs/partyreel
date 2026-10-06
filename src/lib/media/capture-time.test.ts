@@ -11,6 +11,10 @@ import {
   CAPTURE_TIME_FLOOR_MS,
   captureClaim,
   captureInstant,
+  captureWall,
+  readCaptureWall,
+  takenAtClaim,
+  wallInPartyZone,
 } from "./capture-time";
 
 const at = (iso: string) => Date.parse(iso);
@@ -172,5 +176,84 @@ describe("the server's word on a claim (the bounds' one home)", () => {
     ]) {
       expect(acceptCaptureTime(bad, now), JSON.stringify(bad)).toBeNull();
     }
+  });
+});
+
+describe("★ a zoneless wall clock, carried as it is and read in the party's zone (crumbs-85)", () => {
+  const NOW = at("2026-10-05T12:00:00Z");
+
+  it("carries only a wall clock that names no zone, as `YYYY-MM-DDTHH:mm:ss`", () => {
+    expect(
+      captureWall({ kind: "wall", wall: "2026:10:03 21:14:05", offset: null }),
+    ).toBe("2026-10-03T21:14:05");
+    expect(
+      captureWall({
+        kind: "wall",
+        wall: "2026:10:03 21:14:05",
+        offset: "+02:00",
+      }),
+    ).toBeUndefined();
+    expect(captureWall({ kind: "instant", ms: NOW })).toBeUndefined();
+    expect(captureWall(null)).toBeUndefined();
+    expect(
+      captureWall({ kind: "wall", wall: "0026:10:03 21:14:05", offset: null }),
+    ).toBeUndefined();
+  });
+
+  it("reads a carried clock in its one shape, and anything else as none", () => {
+    expect(readCaptureWall("2026-10-03T21:14:05")).toBe("2026-10-03T21:14:05");
+    for (const bad of [
+      "2026-10-03T21:14",
+      "2026-10-03T21:14:05Z",
+      "2026:10:03 21:14:05",
+      7,
+      null,
+      undefined,
+    ]) {
+      expect(readCaptureWall(bad), String(bad)).toBeNull();
+    }
+  });
+
+  it("★ reads it on the party's clock, DST-safe, and keeps the claim where it cannot", () => {
+    const claim = "2026-10-03T20:14:05.000Z";
+    expect(
+      wallInPartyZone("2026-10-03T21:14:05", "Asia/Makassar", claim, NOW),
+    ).toBe("2026-10-03T13:14:05.000Z");
+    // Los Angeles falls back on 1 November 2026: the same wall clock either side reads its own offset.
+    expect(
+      wallInPartyZone(
+        "2026-10-31T21:00:00",
+        "America/Los_Angeles",
+        null,
+        at("2026-11-05T00:00:00Z"),
+      ),
+    ).toBe("2026-11-01T04:00:00.000Z");
+    expect(
+      wallInPartyZone(
+        "2026-11-01T21:00:00",
+        "America/Los_Angeles",
+        null,
+        at("2026-11-05T00:00:00Z"),
+      ),
+    ).toBe("2026-11-02T05:00:00.000Z");
+    // No zone, an unreadable one, no wall clock, or a reading past the bounds: the claim stands.
+    expect(wallInPartyZone("2026-10-03T21:14:05", null, claim, NOW)).toBe(
+      claim,
+    );
+    expect(
+      wallInPartyZone("2026-10-03T21:14:05", "Mars/Olympus", claim, NOW),
+    ).toBe(claim);
+    expect(wallInPartyZone(null, "Asia/Makassar", claim, NOW)).toBe(claim);
+    expect(
+      wallInPartyZone("2027-01-01T00:00:00", "Asia/Makassar", claim, NOW),
+    ).toBe(claim);
+  });
+
+  it("claims a camera's own time as the instant it names, and none for no time", () => {
+    expect(takenAtClaim(at("2026-10-04T02:30:00Z"))).toBe(
+      "2026-10-04T02:30:00.000Z",
+    );
+    expect(takenAtClaim(undefined)).toBeUndefined();
+    expect(takenAtClaim(Number.NaN)).toBeUndefined();
   });
 });

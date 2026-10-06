@@ -315,6 +315,7 @@ export default async function EventDetailPage({
     develops_at: event.develops_at,
     sealed_from: event.sealed_from,
     joined,
+    time_zone: event.time_zone,
   };
 
   const isModerationOn = event.moderation_mode === "hold_for_approval";

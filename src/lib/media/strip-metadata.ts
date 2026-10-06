@@ -1303,8 +1303,9 @@ const XMP_UUID = [0xbe, 0x7a, 0xcf, 0xcb, 0x97, 0xa9, 0x42, 0xe8, 0x9c, 0x71, 0x
 //  - "xml ": raw XMP box.
 // Blanking the WHOLE box (vs surgically editing children) is deliberate: udta internals
 // vary wildly across muxers and a parse slip inside would risk the file; a zeroed 'free'
-// box is always valid. mvhd/tkhd/mdhd creation TIMES are left alone (design call - they
-// are low-sensitivity and live inside offset-critical FullBoxes).
+// box is always valid. mvhd/tkhd/mdhd creation and modification TIMES are rewritten in place
+// to the capture time alone (`stampMovieClocks`), never removed: they live inside
+// offset-critical FullBoxes, and a fixed-width field rewritten moves nothing.
 const ISOBMFF_BLANK_TYPES = new Set(["udta", "meta", "xml "]);
 
 // moov is "small" (index tables); anything bigger than this is not a file we understand.
@@ -1458,14 +1459,13 @@ function* blankMoov(
   const moov = read.slice(); // own copy to patch
   let changed = blankMetadataChildren(moov, h.headerLen, h.boxSize, 0);
   if (changed === null) return "malformed";
-  // ★ THE QUICKTIME DATE GOES WITH ITS METADATA BOX (the location, make and model share it), SO THE MOVIE HEADER KEEPS
-  // IT (Q4): an iPhone's own export writes the header at the moment it exported (AVFoundation does: measured), so a
-  // downloaded clip would read as made the day it was uploaded. One field rewritten in place, its width unchanged, and
-  // nothing points at a header's value; a second strip finds the header already saying it.
+  // ★ THE QUICKTIME DATE GOES WITH ITS METADATA BOX (the location, make and model share it), SO THE HEADERS KEEP IT
+  // (Q4): an iPhone's own export writes them at the moment it exported (AVFoundation does: measured), so a downloaded
+  // clip would read as made the day it was uploaded. Every header clock says the capture time, and only it
+  // (`stampMovieClocks`).
+  const ms = found.captured?.kind === "instant" ? found.captured.ms : null;
   if (
-    found.quicktime !== null &&
-    found.header &&
-    setHeaderTime(moov, found.header, found.quicktime)
+    quietly(() => stampMovieClocks(moov, h.headerLen, h.boxSize, ms)) === true
   ) {
     changed = true;
   }
@@ -1478,33 +1478,71 @@ function* blankMoov(
 /** The movie header's creation-time field: where it sits in its moov, its width (version 0 or 1), its value. */
 type HeaderTime = { at: number; width: 4 | 8; ms: number | null };
 
-/** Write `ms` (whole seconds) into the movie header's creation time; false when it says that already or cannot. */
-function setHeaderTime(
+/**
+ * EVERY CLOCK A MOVIE'S HEADERS KEEP SAYS WHEN IT WAS TAKEN, AND NOTHING ELSE (capture-time's rule, red-team 56's NIT):
+ * the movie header (`mvhd`), each track's (`tkhd`) and each track's media header (`mdhd`) each carry a creation and a
+ * modification time, and an export writes them all at the moment it exported (AVFoundation does: measured on the
+ * stored MOV, whose track header kept the export's write time after the movie header was rewritten). Each of the six
+ * is set to the capture instant, or to zero (never set) where the movie names none, in place, its width unchanged:
+ * nothing points at a header's value, so no offset moves, and a second strip finds them already saying it. A header
+ * this cannot read (a version past 1) is left alone, as is a 32-bit one that cannot hold the instant.
+ */
+function stampMovieClocks(
   moov: Uint8Array,
-  field: HeaderTime,
-  ms: number,
+  start: number,
+  end: number,
+  ms: number | null,
 ): boolean {
-  const seconds = Math.floor(ms / 1000) + MAC_EPOCH_OFFSET_S;
-  if (seconds <= 0 || (field.width === 4 && seconds > 0xffffffff)) return false;
-  if (
-    field.ms !== null &&
-    Math.floor(field.ms / 1000) === seconds - MAC_EPOCH_OFFSET_S
-  ) {
-    return false;
-  }
-  const high = Math.floor(seconds / 0x100000000);
-  const low = seconds % 0x100000000;
-  const put32 = (at: number, v: number) => {
-    moov[at] = (v >>> 24) & 0xff;
-    moov[at + 1] = (v >>> 16) & 0xff;
-    moov[at + 2] = (v >>> 8) & 0xff;
-    moov[at + 3] = v & 0xff;
+  const seconds = ms === null ? 0 : Math.floor(ms / 1000) + MAC_EPOCH_OFFSET_S;
+  if (seconds < 0) return false;
+  let changed = false;
+  const stamp = (body: number, boxEnd: number) => {
+    const version = moov[body];
+    const width = version === 0 ? 4 : version === 1 ? 8 : 0;
+    if (!width || body + 4 + 2 * width > boxEnd) return;
+    if (width === 4 && seconds > 0xffffffff) return;
+    for (const at of [body + 4, body + 4 + width]) {
+      const now = width === 8 ? u64be(moov, at) : u32be(moov, at);
+      if (now === seconds) continue;
+      if (width === 8) {
+        put32(moov, at, Math.floor(seconds / 0x100000000));
+        put32(moov, at + 4, seconds % 0x100000000);
+      } else put32(moov, at, seconds);
+      changed = true;
+    }
   };
-  if (field.width === 8) {
-    put32(field.at, high);
-    put32(field.at + 4, low);
-  } else put32(field.at, low);
-  return true;
+  // The moov's children (mvhd, each trak), a trak's (tkhd, mdia), an mdia's (mdhd): the three places a clock sits.
+  const walk = (from: number, to: number, depth: number) => {
+    for (let p = from; p < to; ) {
+      const h = parseBoxHeader(moov, p, to);
+      if (!h) return;
+      const body = p + h.headerLen;
+      const boxEnd = p + h.boxSize;
+      if (
+        (depth === 0 && h.type === "mvhd") ||
+        (depth === 1 && h.type === "tkhd") ||
+        (depth === 2 && h.type === "mdhd")
+      ) {
+        stamp(body, boxEnd);
+      } else if (
+        (depth === 0 && h.type === "trak") ||
+        (depth === 1 && h.type === "mdia")
+      ) {
+        walk(body, boxEnd, depth + 1);
+      }
+      p = boxEnd;
+    }
+  };
+  walk(start, end, 0);
+  return changed;
+}
+
+/** A big-endian 32-bit value written at `at`. */
+function put32(b: Uint8Array, at: number, v: number): void {
+  b[at] = (v >>> 24) & 0xff;
+  b[at + 1] = (v >>> 16) & 0xff;
+  b[at + 2] = (v >>> 8) & 0xff;
+  b[at + 3] = v & 0xff;
 }
 
 // The movie header counts seconds from 1904-01-01 UTC; the epoch is 2,082,844,800 seconds later.

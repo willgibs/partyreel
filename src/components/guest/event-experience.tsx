@@ -94,11 +94,12 @@ import {
 import type { GalleryAccess, GalleryGate } from "@/lib/events/gallery-access";
 import { formatCount } from "@/lib/format/count";
 import { useInViewSentinel } from "@/lib/shared/use-in-view-sentinel";
-import type { AlbumOpening } from "@/lib/event/zone-morning";
 import { DEFAULT_ROW_STEP, type RowStep } from "@/lib/shared/album-rows";
 import { developMs } from "@/lib/disposable/contact-sheet-develop";
 import { useWaitClock } from "@/lib/disposable/use-wait-clock";
 import { coverEyebrow, waitWords } from "@/lib/disposable/wait-words";
+import type { GuestAlbumOrder } from "@/lib/shared/album-order";
+import { PartyZoneContext } from "@/components/guest/party-zone";
 import { addWords } from "@/lib/guest/camera/words";
 import { claimLeftForAnotherAddress } from "@/lib/guest/claim-uploads";
 import {
@@ -180,7 +181,21 @@ const deliveringPicks = new Set<string>();
 // upload slot render immediately; the presign-heavy gallery streams in behind
 // <Suspense> as LiveGallery (which owns all gallery state + the doorbell/poll
 // machine). Only rendered when the event is public (the server gates that).
-export function EventExperience({
+/**
+ * THE PAGE, with the party's zone handed to everything below that says a develop time (`party-zone.tsx`, crumbs-85): a far
+ * party's guest reads it in both clocks.
+ */
+export function EventExperience(
+  props: Parameters<typeof EventExperienceBody>[0],
+) {
+  return (
+    <PartyZoneContext value={props.partyZone ?? null}>
+      <EventExperienceBody {...props} />
+    </PartyZoneContext>
+  );
+}
+
+function EventExperienceBody({
   event,
   qrToken,
   joinUrl,
@@ -210,6 +225,7 @@ export function EventExperience({
   doorPhase,
   uploadsWait,
   albumOrder,
+  partyZone = null,
 }: {
   event: GuestEvent;
   qrToken: string;
@@ -320,13 +336,18 @@ export function EventExperience({
    */
   uploadsWait: UploadsWait;
   /**
-   * ★ THE ALBUM'S ORDER AT THE FIRST PAINT (album-order, `albumOpening`): the album's own order at the render, her
+   * ★ THE ALBUM'S ORDER AT THE FIRST PAINT (album-order, `guestAlbumOrder`): the album's own order at the render, her
    * remembered choice, and the instant the party's morning after begins (event-zone: read in the party's zone on the
    * server, one moment for every reader), decided by the page's server so the seed links what the first paint draws
    * and the hydration lays the same rows. The page keeps it live from here (`useGuestAlbumOrder`). Absent (a stand-in
    * page), the album stays newest first.
    */
-  albumOrder?: AlbumOpening;
+  albumOrder?: GuestAlbumOrder;
+  /**
+   * The party's zone (`events.time_zone`) for words only: a develop time is said in both clocks where the guest's zone is
+   * not the party's (`developsWhen`). Null where the page names none (a lock, the demo): her own clock.
+   */
+  partyZone?: string | null;
 }) {
   const router = useRouter();
   // ONE resolution of the step for both boxes the album occupies: the skeleton
@@ -714,9 +735,11 @@ export function EventExperience({
     reading: liveWait,
     onSynced: onDevelopsAtChange,
     developsAt: liveDevelopsAt,
+    turnDevelopsAt,
   } = useLiveUploadsWait({
     initial: uploadsWait,
     moderationMode: event.moderation_mode,
+    pageDevelopsAt: event.develops_at ?? null,
   });
   const addsWait = addsWaitFor({ uploadsWait: liveWait, isOwner, isDemo });
   /* ★ WHETHER THE ALBUM TAKES UPLOADS, AS THE PAGE HEARS IT (`useLiveUploadsWord`, guest-requests): the server's reading
@@ -730,15 +753,15 @@ export function EventExperience({
   const albumOrderNow = useGuestAlbumOrder({
     eventId: event.id,
     initial: albumOrder,
-    developsAt: liveDevelopsAt ?? event.develops_at ?? null,
+    developsAt: turnDevelopsAt,
     isDemo,
   });
   /* ★ THE WAIT, ONE QUESTION OF TIME (the-wait r1, Will's `model=time`): the album's live reading as a clock, the host's
      approval or a develop time ahead, so the album's contact sheet, her tracker and the slot all say one wait,
      "Developing", told apart by its clock alone ("As Maya lets them in", "All at once at 9 am"). */
   const waitClock = useMemo(
-    () => waitWords(liveWait, event.host_display_name ?? null),
-    [liveWait, event.host_display_name],
+    () => waitWords(liveWait, event.host_display_name ?? null, partyZone),
+    [liveWait, event.host_display_name, partyZone],
   );
   /* ★ THE PRESET NAMED ON THE COVER (Will's `name=disposable`): "Disposable · develops at 9 am" over the event's name on
      an album with its camera and a develop time, "developed" the morning after; the time in her own clock, so only once
@@ -1360,6 +1383,11 @@ export function EventExperience({
         // through the page's own removal, as the slot's camera does.
         camera={cameraAlbum ? { rollSize: event.roll_size ?? null } : null}
         onCameraOpenChange={setCameraOpen}
+        // ★ AND THE ALBUM'S WORD ON UPLOADS, as the slot's camera has it (guest-requests' Deferred line): a closed album is
+        // asked again on its word that it opened, never on a clock. Only where the album's sync polls (never the demo,
+        // never behind a lock: no word would come), else the camera keeps its calm cadence.
+        uploadsWord={!isDemo && access !== "none" ? uploadsWord : undefined}
+        onAskUploadsWord={askUploadsWord}
         removedIds={removedIds}
         onOwnRemoved={handleOwnRemoved}
         capBytes={hostCap}
@@ -1778,8 +1806,7 @@ export function EventExperience({
                             order={albumOrderNow}
                             develop={{
                               eventId: event.id,
-                              developsAt:
-                                liveDevelopsAt ?? event.develops_at ?? null,
+                              developsAt: turnDevelopsAt,
                               seed: galleryPromise,
                               arrivedThroughDoor:
                                 arrival.face !== null || arrival.scrim,

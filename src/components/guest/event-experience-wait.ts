@@ -18,8 +18,11 @@ import { NOTHING_WAITS, type UploadsWait } from "@/lib/guest/upload-tracker";
 /** A timer's longest delay (about 24.8 days): a develop further ahead is waited out in steps. */
 const LONGEST_DELAY_MS = 2 ** 31 - 1;
 
-/** The album's develop time as the page holds it, and whether it is still ahead (read off the clock, never a render). */
-type Develop = { at: string | null; ahead: boolean };
+/**
+ * The album's develop time as the page holds it, whether it is still ahead (read off the clock, never a render), and
+ * whether the album's sync has spoken of it since the page's server read it (`heard`).
+ */
+type Develop = { at: string | null; ahead: boolean; heard: boolean };
 
 /** Whether `at` is still ahead of this device's clock (read when a word lands or a timer fires, never in a render). */
 function aheadNow(at: string | null): boolean {
@@ -31,9 +34,12 @@ function aheadNow(at: string | null): boolean {
 export function useLiveUploadsWait({
   initial,
   moderationMode,
+  pageDevelopsAt = null,
 }: {
   /** The page's server reading (`uploadsWait`, at render): its develop time is set only while ahead. */
   initial: UploadsWait;
+  /** The page's event's own develop time at render (`events.develops_at`), ahead OR reached, or null for none. */
+  pageDevelopsAt?: string | null;
   /** The page's event's `moderation_mode`: approve-each keeps hers waiting, whatever the develop says. */
   moderationMode: string;
 }): {
@@ -45,24 +51,39 @@ export function useLiveUploadsWait({
    * event's name says "develops" or "developed" by it (`coverEyebrow`), where `reading` keeps only a time still ahead.
    */
   developsAt: string | null;
+  /**
+   * ★ THE DEVELOP TIME THE ALBUM TURNS AT, AS THE PAGE KNOWS IT: the sync's word once it has spoken, a time taken away
+   * included (null: no develop, and the turn is the party's morning after again), else the page's own at render, ahead
+   * or reached. `developsAt` alone answered null both before the sync spoke (a reached develop the server's reading
+   * leaves out) and for one taken away, so a page fell back to the render's time and kept obeying a develop the host
+   * had removed until she reloaded (event-zone's Deferred line).
+   */
+  turnDevelopsAt: string | null;
 } {
   const [develop, setDevelop] = useState<Develop>(() => ({
     at: initial.developsAt,
     ahead: initial.developsAt !== null,
+    heard: false,
   }));
   // A fresh server reading (the page rendered again: a refresh) is the newest word (the adjust-state-during-render
   // pattern, so no frame says the old one).
   const [seen, setSeen] = useState(initial.developsAt);
   if (initial.developsAt !== seen) {
     setSeen(initial.developsAt);
-    setDevelop({ at: initial.developsAt, ahead: initial.developsAt !== null });
+    setDevelop({
+      at: initial.developsAt,
+      ahead: initial.developsAt !== null,
+      heard: false,
+    });
   }
 
   // The sync's word, with the clock read as it lands: a develop already reached never reads as ahead, even for a frame.
   const onSynced = useCallback((at: string | null) => {
     setDevelop((prev) => {
       const ahead = aheadNow(at);
-      return prev.at === at && prev.ahead === ahead ? prev : { at, ahead };
+      return prev.at === at && prev.ahead === ahead && prev.heard
+        ? prev
+        : { at, ahead, heard: true };
     });
   }, []);
 
@@ -78,7 +99,7 @@ export function useLiveUploadsWait({
           prev.at !== at
             ? prev
             : Date.now() >= due
-              ? { at, ahead: false }
+              ? { ...prev, ahead: false }
               : { ...prev },
         ),
       Math.min(Math.max(0, due - Date.now()), LONGEST_DELAY_MS),
@@ -96,7 +117,14 @@ export function useLiveUploadsWait({
           : NOTHING_WAITS,
     [develop.ahead, develop.at, held],
   );
-  return { reading, onSynced, developsAt: develop.at };
+  return {
+    reading,
+    onSynced,
+    developsAt: develop.at,
+    turnDevelopsAt: develop.heard
+      ? develop.at
+      : (develop.at ?? pageDevelopsAt ?? null),
+  };
 }
 
 /**

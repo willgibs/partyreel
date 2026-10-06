@@ -31,7 +31,7 @@ export type ShotTile = {
   mediaId?: string;
   queueId?: string;
   kind: "photo" | "video";
-  status: "taking" | "sending" | "in" | "sealed" | "held" | "failed";
+  status: "taking" | "sending" | "door" | "in" | "sealed" | "held" | "failed";
   /** Her picture of it: this visit's frozen frame, or the server's picture for her alone. */
   src?: string;
   /** The server's picture is the video itself (no preview was made): drawn as its first frame. */

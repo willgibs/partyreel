@@ -3,20 +3,23 @@
  * guests see, from her own manifest: what waits counted and placed by minute as her guests' sheet places it, and her
  * hub's photographs held to what her guests can see.
  */
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   coverWaitingOf,
   entryWaits,
   hubCovered,
   waitsOf,
+  hubDevelopWhen,
 } from "@/lib/disposable/host-cover";
+import { browserZone } from "@/lib/event/zone";
 import {
   ENTRY_HIDDEN,
   ENTRY_PENDING,
   ENTRY_REEL,
   type ManifestEntry,
 } from "@/lib/events/album-wire";
+import { developsWhen } from "@/lib/guest/camera/words";
 
 const MIN_US = 60_000_000;
 const T0 = 1_790_000_000_000_000 - (1_790_000_000_000_000 % MIN_US);
@@ -168,5 +171,30 @@ describe("★ a switched album: held photos that joined the roll wait by their s
     const plain = waitsOf({ sealed_from: SEALED_FROM });
     expect(plain(heldThenJoined[2]!)).toBe(false);
     expect(waitsOf(null)(entry("x", T0))).toBe(true);
+  });
+});
+
+/**
+ * ★ THE HUB NAMES A FAR PARTY'S PLACE, AS SETTINGS DOES (red-team 56's NIT): the cover's "until it develops tomorrow at
+ * 9 am" read her own clock beside Settings' "in Makassar".
+ */
+describe("hubDevelopWhen", () => {
+  it("says a far party's time on its clock with its place, and a party in her own zone in hers", () => {
+    const zone = vi
+      .spyOn(browserZone, "zoneName")
+      .mockReturnValue("America/Los_Angeles");
+    try {
+      const at = "2026-10-04T01:00:00.000Z";
+      const now = Date.parse(at) - 3_600_000;
+      expect(hubDevelopWhen(at, now, "Asia/Makassar")).toBe(
+        "Sun, Oct 4 at 9 am in Makassar",
+      );
+      expect(hubDevelopWhen(at, now, "America/Los_Angeles")).toBe(
+        developsWhen(at, now),
+      );
+      expect(hubDevelopWhen(at, now, null)).toBe(developsWhen(at, now));
+    } finally {
+      zone.mockRestore();
+    }
   });
 });

@@ -100,11 +100,7 @@ import { readStoredSession } from "@/lib/guest/use-stored-session";
 import type { QueueItem, QueueProgress } from "@/lib/guest/use-upload-queue";
 import { captureError, captureWarning } from "@/lib/observability/sentry";
 import type { LiveMediaItem } from "@/lib/reel/live/items";
-import {
-  carriesCaptureTimes,
-  happenedAt,
-  inOrder,
-} from "@/lib/shared/album-order";
+import { nightKeys, inOrder } from "@/lib/shared/album-order";
 import { useLivePoll } from "@/lib/shared/use-live-poll";
 
 /** A screen at the party (`?reel=screen`) is watched untouched: its album's net rests but never stops. */
@@ -1032,8 +1028,10 @@ export function GalleryLiveProvider({
   // arrival's own order, the list reversed (exact, the server's ties included).
   const shownEntries = shown.entries;
   const itemsInOrder = useMemo(() => {
-    if (!carriesCaptureTimes(shownEntries)) return turnByArrival;
-    const when = new Map(shownEntries.map((e) => [entryId(e), happenedAt(e)]));
+    // Where each sits: when it happened, a time far outside the night seated at its end (`nightKeys`).
+    const keyOf = nightKeys(shownEntries);
+    if (!keyOf) return turnByArrival;
+    const when = new Map(shownEntries.map((e) => [entryId(e), keyOf(e)]));
     return (list: readonly GalleryItem[]) =>
       inOrder(list, (item) => when.get(item.id));
   }, [shownEntries]);
