@@ -4,8 +4,8 @@
  * paused connection costs nothing); only Google's "slow down" and an app that cannot answer re-queue, each delayed; a
  * stop mid-batch ends the lane within its next report, a big file's at its next chunk; a slice's end sends the lane to
  * the back of the queue. ★ And against a model of the app's own transitions (`testing/fake-app.ts`): a batch's end is
- * one word, and the closing check really runs before a send is done (the walk's first send said "every one checked"
- * of a check that never ran).
+ * one word, the closing check really runs before a send is done (the walk's first send said "every one checked" of a
+ * check that never ran), and a "slow down" on a file's bytes costs the file none of its five attempts.
  */
 import { describe, expect, it } from "vitest";
 
@@ -25,7 +25,12 @@ import type {
   ReportItem,
 } from "./protocol";
 import { FakeApp } from "./testing/fake-app";
-import { FakeBucket, bytesOf, md5OfStream } from "./testing/fake-bucket";
+import {
+  FakeBucket,
+  bytesOf,
+  fixedLengthOf,
+  md5OfStream,
+} from "./testing/fake-bucket";
 import { FakeDrive } from "./testing/fake-drive";
 
 const SECRET = "drive-vector-secret";
@@ -96,7 +101,7 @@ function harness(script: Scripted) {
     requeue: async (_m: LaneMessage, delay?: number) => {
       requeued.push({ delay });
     },
-    fixedLength: (s) => s,
+    fixedLength: fixedLengthOf,
     md5Of: md5OfStream,
     now: () => clock,
     sleep: async (ms) => {
@@ -234,6 +239,35 @@ describe("a lane's slice", () => {
       done: true,
     });
     expect(h.requeued).toEqual([{ delay: 120 }]);
+  });
+
+  it("★ a 'slow down' on a file's bytes is Google's pacing, never the file's failure: given back with its attempt not counted, then sent", async () => {
+    const h = harness({ leases: [] });
+    h.drive.add({ id: "album", size: 0 });
+    const items = [item(1, h.bucket), item(2, h.bucket)];
+    const app = new FakeApp(items);
+    h.deps.app = app;
+    h.drive.failures.throttlePuts = 1000;
+    expect(await runSlice(h.deps, message)).toBe("throttled");
+    expect(h.requeued).toEqual([{ delay: 120 }]);
+    for (const i of items)
+      expect(app.items.get(i.mediaId)).toMatchObject({
+        status: "pending",
+        attempts: 0,
+      });
+    const said = app.said.flatMap((w) => (w.kind === "report" ? w.items : []));
+    expect(said.some((w) => w.outcome === "failed")).toBe(false);
+
+    // Google lets up: the slice the queue brings back sends both, each on its first counted attempt, and checks them.
+    h.drive.failures.throttlePuts = 0;
+    expect(await runSlice(h.deps, message)).toBe("idle");
+    for (const i of items)
+      expect(app.items.get(i.mediaId)).toMatchObject({
+        status: "sent",
+        attempts: 1,
+      });
+    expect(app.status).toBe("done");
+    expect(h.drive.files.size).toBe(3);
   });
 
   it("gives the batch back when a lease's token does not open (a secret that drifted)", async () => {

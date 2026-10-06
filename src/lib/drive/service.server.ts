@@ -22,6 +22,7 @@ import {
 import {
   createFolder,
   driveFileState,
+  findRootFolder,
   refreshAccess,
   undoFolder,
   type CreatedFolder,
@@ -209,9 +210,9 @@ export async function accessFromLease(
 
 /**
  * THE FOLDERS A SEND LANDS IN, MADE AT THE PRESS: the Partyreel folder (asked again each press: she may have moved it
- * to her bin), then the album's (kept for its next send; a new one if hers went to the bin or is gone), and the send
- * starts (`markReady`). Two presses at once leave one Partyreel folder: the root is compare-and-set, and the loser
- * undoes its own empty folder by the id Google just returned.
+ * to her bin; found by our mark after a reconnect: `ensureRoot`), then the album's (kept for its next send; a new one
+ * if hers went to the bin or is gone), and the send starts (`markReady`). Two presses at once leave one Partyreel
+ * folder: the root is compare-and-set, and the loser undoes its own empty folder by the id Google just returned.
  */
 export async function makeSendFolders(input: {
   jobId: string;
@@ -252,8 +253,11 @@ export async function makeSendFolders(input: {
 }
 
 /**
- * THE PARTYREEL FOLDER, THERE AND OUT OF THE BIN: asked again (she may have binned or deleted it), made again when it
- * is not, compare-and-set, the loser undoing its own empty folder.
+ * THE PARTYREEL FOLDER, THERE AND OUT OF THE BIN: the connection's own, asked again (she may have binned or deleted
+ * it); else ★ ONE A GOOGLE ACCOUNT, however often she reconnects: the folder the app made before, found by our mark
+ * (`findRootFolder`: a Disconnect forgets every id, so a same-account reconnect knows none, and a second "Partyreel"
+ * folder would leave her albums split between two); else a new one, marked. Compare-and-set either way: the loser
+ * takes the winner's, undoing only a folder it made itself (one it found is never touched: `CreatedFolder` only).
  */
 async function ensureRoot(
   accessToken: string,
@@ -262,9 +266,19 @@ async function ensureRoot(
 ): Promise<{ id: string; changed: boolean }> {
   const state = known ? await driveFileState(accessToken, known) : null;
   if (known && state && !state.trashed) return { id: known, changed: false };
+  const found = await findRootFolder(accessToken);
+  if (found) {
+    const claim = await claimRoot({
+      connectionId,
+      candidate: found,
+      expected: known,
+    });
+    const id = claim.root ?? found;
+    return { id, changed: id !== known };
+  }
   const made: CreatedFolder = await createFolder(accessToken, {
     name: DRIVE_ROOT_FOLDER_NAME,
-    colored: true,
+    root: true,
   });
   const claim = await claimRoot({
     connectionId,

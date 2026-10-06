@@ -7,6 +7,10 @@
  * settle, kept to show what the walk found). The rolled-back checks at the migrations' feet prove the SQL itself; this
  * proves the Worker drives it to a check that really runs.
  *
+ * ★ A file's attempts are counted as `cloud_export_report` counts them: a lease adds one, a file given back
+ * (`released`, or left in a batch's closing word) takes it away again, a failure worth another try keeps it, and the
+ * fifth fails the file for good. So a lane test can say what a "slow down" costs a file: nothing.
+ *
  * Every lease answers the protocol's pinned lease token and seal (`protocol.test.ts`), so the lane opens each; the model
  * keeps which lease that token means now (one lane runs at a time here).
  */
@@ -29,7 +33,12 @@ type ItemState = {
   fileId: string | null;
   md5: string | null;
   confirmedAt: number | null;
+  /** Its leases that counted (the database's `attempts`): the fifth failure fails it for good. */
+  attempts: number;
 };
+
+/** The attempt that fails a file for good (`cloud_export_report`: a retry only while attempts < 5). */
+const LAST_ATTEMPT = 5;
 
 export type ModelStatus =
   | "sending"
@@ -66,6 +75,7 @@ export class FakeApp implements AppClient {
         fileId: null,
         md5: null,
         confirmedAt: null,
+        attempts: 0,
       });
   }
 
@@ -143,7 +153,10 @@ export class FakeApp implements AppClient {
       this.settle();
       return { state: "idle" };
     }
-    for (const s of batch) s.status = "leased";
+    for (const s of batch) {
+      s.status = "leased";
+      s.attempts++;
+    }
     this.current = { kind: "send", live: true };
     this.seq++;
     return {
@@ -177,16 +190,22 @@ export class FakeApp implements AppClient {
         s.fileId = r.fileId;
         s.md5 = r.md5 ?? null;
         this.itemsSent++;
-      } else if (r.outcome === "released") s.status = "pending";
-      else if (r.outcome === "skipped") s.status = "skipped";
+      } else if (r.outcome === "released") {
+        s.status = "pending";
+        s.attempts = Math.max(s.attempts - 1, 0);
+      } else if (r.outcome === "skipped") s.status = "skipped";
       else if (r.outcome === "failed") {
-        s.status = r.retry ? "pending" : "failed";
-        if (!r.retry) this.itemsFailed++;
+        const again = r.retry && s.attempts < LAST_ATTEMPT;
+        s.status = again ? "pending" : "failed";
+        if (!again) this.itemsFailed++;
       }
     }
     if (input.done) {
       for (const s of this.items.values())
-        if (s.status === "leased") s.status = "pending";
+        if (s.status === "leased") {
+          s.status = "pending";
+          s.attempts = Math.max(s.attempts - 1, 0);
+        }
       this.current.live = false;
     }
     const status = this.settle();
@@ -214,8 +233,10 @@ export class FakeApp implements AppClient {
       if (last === null || r.mediaId > last) last = r.mediaId;
       if (r.state === "ok") s.confirmedAt = ++this.tick;
       else if (r.state !== "unknown") {
+        // Sent again from a clean count, as `cloud_export_check_page` does.
         s.status = "pending";
         s.fileId = null;
+        s.attempts = 0;
         this.itemsSent--;
       }
     }
