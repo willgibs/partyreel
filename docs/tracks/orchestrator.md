@@ -56,6 +56,8 @@ Lanes merged before milestone 37 left this table: their summaries are their merg
 | `guest-requests` | three requests a guest's page never needed: the demo's links prefetch on intent (108 requests to 86), the first poll stops re-asking the seed's links (8 links calls to 2), the camera hears a reopen from the sync (12 presigns to 1); no migration | MERGED at `1cdbcaed5` (gate 34 green); its proposed doc lines (guest-flow.md, disposable-mode.md, host-app.md) for scratch-synthesis to place; for the desk: delete its two probe events through Settings (`efdaa41e-6434-45d0-8061-d3be396833ca`, `08fccfb6-3636-4a3a-bf09-ee6338d89c51`) and read the host hub on the Scale probe (one sync, no `/media` call); pruned | Opus, 3136 | `aab13c406e12ae1dd` |
 | `redteam-56` | the walk before milestone 38, local on the desk build (`2c7423ca4`): every merge since milestone 37 (album order and its pill, capture time end to end with its fixtures, event zone's one instant from two zones, the identity traits, the hub's doors, Settings, Back and keys, the dashboard's chooser), regressions | RUNNING (brief `../partyreel-wt/_scratch/redteam-56/brief.md`, ledger beside it) | Opus, Will's Chrome + its own headless | `a0ca0d2feb415d060` |
 | `crumbs-84` | cleanup whose time had come: event-zone's typed seams retired, the host-dashboard board retired with `seasonsOf` and kin, the dead `refreshHubReelAction` deleted, the Reel card's words in `room-card.ts`, the Library's sticky-band specimen | MERGED at `3bc74d23d` (gate 33 green); the host-dashboard ledger deleted at the record; pruned | Sonnet, 3133 | `a066d475f32c874e8` |
+| `scratch-synthesis` | Will's ask: everything a future Orchestrator needs from `../partyreel-wt/_scratch/` into the repo (the calls lab as `docs/calls.md`, the kit's tools, the Drive note's next versions, the remaining desks), one private doc outside the repo (`/Users/gibby/local/ai/partyreel-wt/CLOUD-ORCHESTRATOR-PRIVATE.md`, never a secret's value) for Will to hand the cloud Orchestrator; guest-requests' and crumbs-84's leftover lines | RUNNING (cut at `613ad790`) | Opus, 3131 | `a513c0e15d4ee9ca1` |
+| `test-slim` | Will's ask: a leaner, faster suite with no weaker guarantees (about 13,190 tests today): duplicates folded into tables, whole-tree scans shared, copy pins pointed at their homes, coverage held per directory, and a rule that keeps it lean (CI now runs only on main and opt-in pushes, `70c374381`) | RUNNING (cut at `613ad790`; the design-gate claims lent to it) | Opus, 3132 | `a33effa6a33104bf0` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a22be0c2878d7ab19`, this session, spawned
 for Q31 (billing-locks' migration against the live schema and milestone 36's callers). Its model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`.
@@ -110,9 +112,10 @@ Round 15, on Will's desk answers of 2026-10-04 and his brand note; the approved 
    this machine: the desk is local); the desk pass,
    refresh the desk, tell him. **Desk 6** = the brand applied (after brand r2's pick); **desk 7** = the moments boards
    (host-, guest-, account-moments, create-wizard r4; after identity r5's set pick).
-4. **Lanes running** (two agents, winding down; weekly 94% at 03:44Z 2026-10-06): guest-requests (Opus, 3136,
-   migration `20261006030000_sync_accepting.sql` for the Advisor before its apply) and red-team 56 (Opus, on the desk
-   build). Merged tonight: lab-kit-2 (gate 30), crumbs-83 (31), brand-r2 (32), crumbs-84 (33).
+4. **Lanes running** (three agents; weekly 94%): red-team 56 (Opus, on the desk build) and, on Will's word before the
+   handoff (2026-10-06), scratch-synthesis and test-slim (their rows above). Merged tonight: lab-kit-2 (gate 30),
+   crumbs-83 (31), brand-r2 (32), crumbs-84 (33), guest-requests (34, no migration). CI now runs only on `main`, pull
+   requests, manual runs and `[ci]` opt-ins (`70c374381`): every launch-prep merge is gated locally first.
    Their rows above carry each agent id; a successor on another session respawns a lane from its transcript
    (`~/.claude/projects/-Users-gibby-local-ai-partyreel/f2c62c71-9c33-49f4-9fd5-d48376be9824/subagents/agent-<id>.jsonl`,
    local) or, from the cloud, from its pushed branch and manifest alone. Each lane's migration goes through the Advisor (`a22be0c2878d7ab19`, this session) before the apply.
