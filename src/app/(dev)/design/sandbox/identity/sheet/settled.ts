@@ -81,7 +81,10 @@ const HALO = `
 .surface-display { --fo-bloom: oklch(1 0 0 / 15%); }
 ${PHOTO} { --fo-gap: oklch(0.13 0.004 286); --fo-veil: oklch(0 0 0 / 28%); --fo-bloom: oklch(1 0 0 / 26%); }
 ${FOCUSED} { outline: none; --i-focus: ${halo(LINE)}; }
-${GROUPED} { z-index: 1; }
+/* In a track, the same halo with its clear band at 1px, so its line stays inside the track's 3px padding
+   rather than crossing the track's own edge (the fresh-eyes pass: the focused tab's line stood past its
+   track). Over its neighbours, it draws on top. */
+${GROUPED} { z-index: 1; --i-focus: ${halo(LINE, "1px")}; }
 ${ERRED} { --i-focus: ${halo("var(--destructive)")}; }
 ${SHUTTER}${FOCUS} {
   outline: 2px solid ${LINE}; outline-offset: ${settle("7px", "8.5px")};

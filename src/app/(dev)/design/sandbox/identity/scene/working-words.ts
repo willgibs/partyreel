@@ -3,14 +3,13 @@
 import { useEffect } from "react";
 
 /**
- * THE WORDS A KEY SAYS WHILE IT WORKS, AND ITS TIME, SHOWN WHERE THE WORKING
- * STATE SAYS THEM (the loading ask's `words` and `time`). A screen marks a
- * working key with the words it would say (`busy(el, words)`,
- * `data-working`), as a wired key renders its own, and this hands the key
- * those words in place of its resting ones; with `time`, past two seconds of
- * work it also adds the wait as a readout after them ("Saving 0:04"), and a
- * field checking adds it to its status slot. The arc alone keeps the key's
- * own words.
+ * THE WORDS A KEY SAYS WHILE IT WORKS, SHOWN WHERE THE WORKING STATE SAYS THEM
+ * (the loading ask's `words` and `still`). A screen marks a working key with
+ * the words it would say (`busy(el, words)`, `data-working`), as a wired key
+ * renders its own, and this hands the key those words in place of its resting
+ * ones; with `still`, past four seconds of work they turn to "Still saving",
+ * and a field checking says "Still checking" in its status slot. The arc alone
+ * keeps the key's own words.
  *
  * ★ THE DRAWING'S, NEVER THE SHEET'S: CSS cannot change a key's words, and a
  * wired key says them in its own render (production's own keys already say
@@ -18,60 +17,57 @@ import { useEffect } from "react";
  * screen's script runs after the page has settled) is handed its words too.
  */
 
-/** How long a key works before it shows its time: a quick save never does. */
-const TIME_AFTER_MS = 2000;
+/** How long a key works before its words say it is still at it: a quick save never does. */
+const STILL_AFTER_MS = 4000;
 
-const clock = (ms: number) => {
-  const s = Math.floor(ms / 1000);
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
-};
+/** "Saving" as the second word of "Still saving". */
+const still = (words: string) =>
+  `Still ${words.charAt(0).toLowerCase()}${words.slice(1)}`;
 
-export function useWorkingWords(mode: "arc" | "words" | "time") {
+/** A key's own words: its last text with any letters in it. */
+function wordsOf(key: HTMLElement): Text | null {
+  const walker = document.createTreeWalker(key, NodeFilter.SHOW_TEXT);
+  let last: Text | null = null;
+  for (let n = walker.nextNode(); n; n = walker.nextNode())
+    if (n.textContent?.trim()) last = n as Text;
+  return last;
+}
+
+export function useWorkingWords(mode: "arc" | "words" | "still") {
   useEffect(() => {
     if (mode === "arc") return;
     const started = new WeakMap<Element, number>();
+    const ran = (el: Element) => {
+      if (!started.has(el)) started.set(el, Date.now());
+      return Date.now() - (started.get(el) ?? Date.now());
+    };
     const swap = () => {
       document
         .querySelectorAll<HTMLElement>('[aria-busy="true"][data-working]')
         .forEach((key) => {
-          if (!started.has(key)) started.set(key, Date.now());
-          const words = key.getAttribute("data-working");
-          if (!words || key.getAttribute("data-working-shown") === words)
-            return;
-          // The key's own words: its last text with any letters in it, outside a readout.
-          const walker = document.createTreeWalker(key, NodeFilter.SHOW_TEXT);
-          let last: Text | null = null;
-          for (let n = walker.nextNode(); n; n = walker.nextNode())
-            if (
-              n.textContent?.trim() &&
-              !n.parentElement?.closest("[data-working-time]")
-            )
-              last = n as Text;
-          if (!last) return;
-          const lead = last.textContent?.match(/^\s*/)?.[0] ?? "";
-          last.textContent = `${lead}${words}`;
+          const base = key.getAttribute("data-working");
+          if (!base) return;
+          const words =
+            mode === "still" && ran(key) >= STILL_AFTER_MS ? still(base) : base;
+          if (key.getAttribute("data-working-shown") === words) return;
+          const text = wordsOf(key);
+          if (!text) return;
+          const lead = text.textContent?.match(/^\s*/)?.[0] ?? "";
+          text.textContent = `${lead}${words}`;
           key.setAttribute("data-working-shown", words);
         });
-      if (mode !== "time") return;
+      if (mode !== "still") return;
       document
         .querySelectorAll<HTMLElement>(
-          '[aria-busy="true"][data-working], [data-slot="input"][aria-busy="true"] ~ [data-slot="field-status"]',
+          '[data-slot="input"][aria-busy="true"] ~ [data-slot="field-status"]',
         )
-        .forEach((el) => {
-          if (!started.has(el)) started.set(el, Date.now());
-          const ran = Date.now() - (started.get(el) ?? Date.now());
-          let readout = el.querySelector<HTMLElement>(
-            ":scope > [data-working-time]",
-          );
-          if (ran < TIME_AFTER_MS) return;
-          if (!readout) {
-            readout = document.createElement("span");
-            readout.setAttribute("data-working-time", "");
-            readout.setAttribute("aria-hidden", "true");
-            el.append(readout);
-          }
-          const text = clock(ran);
-          if (readout.textContent !== text) readout.textContent = text;
+        .forEach((slot) => {
+          if (ran(slot) < STILL_AFTER_MS) return;
+          if (slot.querySelector("[data-working-still]")) return;
+          const said = document.createElement("span");
+          said.setAttribute("data-working-still", "");
+          said.textContent = "Still checking";
+          slot.prepend(said);
         });
     };
     swap();

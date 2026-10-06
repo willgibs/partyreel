@@ -52,11 +52,11 @@ import {
  */
 const TOKENS = `
 :root, .surface-paper { --ink-lift: oklch(1 0 0); --ink-lift-by: 12%; }
-.dark, .surface-display { --ink-lift: oklch(0 0 0); --ink-lift-by: 7%; }
+.dark, .surface-display { --ink-lift: oklch(0 0 0); --ink-lift-by: 4%; }
 :where(${ATOMS}, ${CHIPS}, ${SEGMENTS}, ${TABS}, ${SLIDER}, ${THUMB}, [data-slot="slider-track"]) {
   --ink: var(--primary); --ink-fg: var(--primary-foreground);
-  /* Ink under a pointer: a step toward the page's light on paper, a breath darker in the room, never
-     the grey a white key mixed with the room's black turned to (it read as held off). */
+  /* Ink under a pointer: a step toward the page's light on paper, a breath darker in the room (4%:
+     at 7% and more a white key read as grey, held off). */
   --ink-up: color-mix(in oklab, var(--ink), var(--ink-lift) var(--ink-lift-by));
   --tone-1: color-mix(in oklab, var(--foreground) 4%, transparent);
   --tone-2: color-mix(in oklab, var(--foreground) 7%, transparent);

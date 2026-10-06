@@ -127,7 +127,7 @@ const PREVIEWS: PreviewsFor<typeof IDENTITY> = {
   "set.tone": (s) => set("tone", s),
   "loading.arc": (s) => working("arc", s),
   "loading.words": (s) => working("words", s),
-  "loading.time": (s) => working("time", s),
+  "loading.still": (s) => working("still", s),
 };
 
 export function IdentityBoard() {

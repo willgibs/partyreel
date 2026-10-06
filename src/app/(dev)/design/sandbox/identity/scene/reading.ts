@@ -4,7 +4,7 @@ import { type MomentId, READING_MESSAGE, type ViewId } from "../model";
  * WHAT A FRAME SAYS UNDER ITSELF, READ OFF ITS OWN DOCUMENT.
  *
  * An option's words claim things a reader can check ("a well", "a key",
- * "a tone", "a halo", "an arc", "keeping time"), so each caption is the
+ * "a tone", "a halo", "an arc", "still at it"), so each caption is the
  * computed style of the parts those words are about, never the words
  * themselves. If a caption and an option's words disagree, the caption is the
  * truth. (A step hides the captions from the reviewer; `lab:demo --verbose`
@@ -148,13 +148,13 @@ function working(el: Element | null): string {
   const said = el.getAttribute("data-working-shown")
     ? "its working words"
     : "its own words";
-  const time = el.querySelector("[data-working-time]") ? ", keeping time" : "";
+  const still = /^Still /.test(words ?? "") ? ", still at it" : "";
   if (
     before.content === "none" ||
     !/conic-gradient/.test(before.backgroundImage)
   )
     return "not drawn";
-  return `an arc runs round, ${px(before.width)}px, saying "${words}" (${said}${time})`;
+  return `an arc runs round, ${px(before.width)}px, saying "${words}" (${said}${still})`;
 }
 
 const ROOM = '[data-ground="room"]';

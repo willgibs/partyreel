@@ -76,13 +76,13 @@ export const ALBUM: readonly { src: string; ratio: number; pos?: string }[] = [
   { src: PHOTO.confetti, ratio: 1.5 },
 ];
 
-/** Account and billing: Maya on an Event Pass, a third of its 75 GB used. */
+/** Account and billing: Maya on an Event Pass, a third of its 25 GB used (the pass's own size, `tiers.ts`). */
 export const ACCOUNT = {
   email: "maya@example.com",
   displayName: HOST,
   plan: "Event Pass",
-  usedBytes: 24.6 * 1024 ** 3,
-  capBytes: 75 * 1024 ** 3,
+  usedBytes: 8.2 * 1024 ** 3,
+  capBytes: 25 * 1024 ** 3,
   expires: "2 October 2027",
   events: { used: 1, of: 1 },
   following: ["Sam Reyes", "Ines Duarte"],

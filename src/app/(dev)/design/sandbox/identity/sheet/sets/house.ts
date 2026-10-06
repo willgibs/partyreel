@@ -1,5 +1,6 @@
 import { LIGHT_ON } from "../settled";
 import {
+  btn,
   CARD_ON,
   CHECK,
   CHECKED,
@@ -31,10 +32,11 @@ import { KEY_TOKENS, TONE_BUTTONS } from "./tone";
  *  - A FIELD IS A PLACE, so it is the well, and nothing else is (keys and
  *    wells' own, exactly: his favourite part of that foundation, a field
  *    never mistaken for a key).
- *  - WHAT YOU PRESS IS A WORD, so it is flat: ink and tone's keys, exactly,
- *    and the tracks and cards a choice stands in are flat tones too (his
- *    shrink is the press a flat key wants, and Afterglow's own decks draw
- *    every key flat). Its depth is the press itself.
+ *  - WHAT YOU PRESS IS A WORD, so it is flat: ink and tone's keys, but for
+ *    the outline tier, a clear key with keys' own hairline (two flat tones
+ *    made outline and secondary one key), and the tracks and cards a choice
+ *    stands in are flat tones (his shrink is the press a flat key wants, and
+ *    Afterglow's own decks draw every key flat). Its depth is the press.
  *  - WHAT IS CHOSEN FLOATS: the chosen segment, tab, chip and card, each an
  *    object standing over its track. The edge's own rule (r4, edge=floating)
  *    at the atom's scale: on paper the lighter surface he leans to, on the
@@ -57,8 +59,9 @@ const TOKENS = `
   --hs-float: oklch(1 0 0); --hs-float-line: oklch(0.14 0.004 286 / 9%);
   --hs-lift-near: oklch(0 0 0 / 8%); --hs-lift-far: oklch(0 0 0 / 14%);
   --hs-light: oklch(1 0 0 / 0%); --hs-thumb: oklch(1 0 0); --hs-seam: oklch(0.14 0.004 286 / 9%);
-  --hs-ring: color-mix(in oklab, var(--foreground) 28%, transparent);
-  --hs-ring-up: color-mix(in oklab, var(--foreground) 45%, transparent);
+  --hs-ring: color-mix(in oklab, var(--foreground) 46%, transparent);
+  --hs-ring-up: color-mix(in oklab, var(--foreground) 62%, transparent);
+  --hs-outline: oklch(0.14 0.004 286 / 15%); --hs-outline-up: oklch(0.14 0.004 286 / 24%);
 }
 .dark {
   --hs-track: color-mix(in oklab, var(--foreground) 7%, transparent);
@@ -66,11 +69,12 @@ const TOKENS = `
   --hs-card-up: color-mix(in oklab, var(--foreground) 6.5%, var(--card));
   --hs-off: color-mix(in oklab, var(--foreground) 16%, transparent);
   --hs-off-up: color-mix(in oklab, var(--foreground) 22%, transparent);
-  --hs-float: var(--display); --hs-float-line: oklch(0 0 0 / 0%);
+  --hs-float: color-mix(in oklab, var(--display), oklch(1 0 0) 6%); --hs-float-line: oklch(0 0 0 / 0%);
   --hs-lift-near: oklch(0 0 0 / 50%); --hs-lift-far: oklch(0 0 0 / 55%);
-  --hs-light: var(--display-light); --hs-thumb: oklch(0.96 0.002 286); --hs-seam: oklch(0 0 0 / 25%);
-  --hs-ring: color-mix(in oklab, var(--foreground) 32%, transparent);
-  --hs-ring-up: color-mix(in oklab, var(--foreground) 50%, transparent);
+  --hs-light: var(--display-light); --hs-thumb: oklch(0.96 0.002 286); --hs-seam: oklch(0 0 0 / 35%);
+  --hs-ring: color-mix(in oklab, var(--foreground) 38%, transparent);
+  --hs-ring-up: color-mix(in oklab, var(--foreground) 55%, transparent);
+  --hs-outline: oklch(1 0 0 / 15%); --hs-outline-up: oklch(1 0 0 / 24%);
 }
 .surface-display {
   --hs-track: color-mix(in oklab, var(--foreground) 9%, transparent);
@@ -80,9 +84,10 @@ const TOKENS = `
   --hs-off-up: color-mix(in oklab, var(--foreground) 24%, transparent);
   --hs-float: var(--display-step); --hs-float-line: oklch(0 0 0 / 0%);
   --hs-lift-near: oklch(0 0 0 / 40%); --hs-lift-far: oklch(0 0 0 / 45%);
-  --hs-light: var(--display-light); --hs-thumb: oklch(0.96 0.002 286); --hs-seam: oklch(0 0 0 / 25%);
-  --hs-ring: color-mix(in oklab, var(--foreground) 34%, transparent);
-  --hs-ring-up: color-mix(in oklab, var(--foreground) 52%, transparent);
+  --hs-light: var(--display-light); --hs-thumb: oklch(0.96 0.002 286); --hs-seam: oklch(0 0 0 / 35%);
+  --hs-ring: color-mix(in oklab, var(--foreground) 40%, transparent);
+  --hs-ring-up: color-mix(in oklab, var(--foreground) 56%, transparent);
+  --hs-outline: oklch(1 0 0 / 16%); --hs-outline-up: oklch(1 0 0 / 26%);
 }
 `;
 
@@ -124,6 +129,12 @@ ${RADIO_CARD}${HOVER} { background: var(--hs-card-up) !important; }
 /* Afloat, a card stands over the rest: what stands on it reads its face. */
 ${RADIO_CARD}${CARD_ON} { background: var(--hs-float) !important; --background: var(--hs-float); --i-sel: ${CARD_LIFT(true)}; }
 ${RADIO_CARD}${CARD_ON}::after { ${LIT} }
+
+/* The outline tier keeps keys' hairline, drawn inside a clear key (the second pass: two flat tones made
+   outline and secondary one key, so the family had three tiers): ink, a tone, a line, clear. */
+${btn("outline")} { background: transparent; color: var(--foreground); --i-body: inset 0 0 0 1px var(--hs-outline); }
+${btn("outline")}${HOVER}${LIVE} { background: var(--tone-1); --i-body: inset 0 0 0 1px var(--hs-outline-up); }
+${btn("outline")}[aria-invalid="true"] { --i-body: inset 0 0 0 1.5px var(--destructive); }
 
 /* A chip that is on floats as the chosen segment does: one language for what is chosen. */
 ${CHIP}${ON} { background: var(--hs-float); color: var(--foreground); --i-body: ${LIFT(true)}; }

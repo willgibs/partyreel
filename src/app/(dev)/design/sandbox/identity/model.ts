@@ -38,13 +38,15 @@ export type SetId = (typeof SET_IDS)[number];
 /**
  * WHAT A KEY SHOWS WHILE IT WORKS, at three densities: his arc, refined (that
  * it works); the arc and the words saying what it does (what); and those words
- * keeping time in the camera's own readout as the wait runs on (how long).
+ * staying with her as a wait runs long, "Still saving" past four seconds (that
+ * it has not stuck).
  *
- * ★ A BEAM ROUND ITS EDGE AND THE KEY HELD DOWN WERE DRAWN AND CUT (the
- * fresh-eyes pass: stopped, the beam read as a smear or as the halo; a held
- * ink key cannot go darker, and two pixels of shrink vanish in a still).
+ * ★ THREE WERE DRAWN AND CUT (the fresh-eyes passes): a beam round its edge
+ * (stopped, it read as a smear or as the halo), the key held down (a held ink
+ * key cannot go darker, and two pixels of shrink vanish in a still), and a
+ * clock of the wait ("Saving 0:05" measured our slowness, not her progress).
  */
-export const LOADING_IDS = ["arc", "words", "time"] as const;
+export const LOADING_IDS = ["arc", "words", "still"] as const;
 export type LoadingId = (typeof LOADING_IDS)[number];
 
 /** The whole of what a frame wears. */

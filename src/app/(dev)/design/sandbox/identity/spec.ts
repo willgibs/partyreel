@@ -153,11 +153,6 @@ export const IDENTITY = defineExploration({
         "A third of a ring turning round a faint whole ring, in a working key's icon place beside its words.",
     },
     {
-      term: "readout",
-      means:
-        "The camera's voice for a figure: small, tabular, as a camera prints its count or its timer.",
-    },
-    {
       term: "Afterglow",
       means:
         "The brand vision you picked: all colour is light from the photographs, one light a screen.",
@@ -226,11 +221,11 @@ export const IDENTITY = defineExploration({
           id: "house",
           label: "The house mix: sunk, flat, afloat",
           means:
-            "A field is a well; every key, track and card is a flat tone; what is chosen floats: white on its lift on paper, graphite lit in the room.",
+            "A field is a well; keys lie flat (ink, a tone, a clear key with keys' hairline); what is chosen floats: white on its lift on paper, graphite lit in the room.",
           gains:
             "Each depth says one part's job, and its keys lie flat as Afterglow draws them.",
           costs:
-            "A flat key is quieter beside a well; borrow keys' hairline if one reads soft.",
+            "Three constructions to hold in step; it borrows keys' hairline for its quiet key.",
         },
         {
           id: "tone",
@@ -285,14 +280,14 @@ export const IDENTITY = defineExploration({
             "Words to write for every key, and a key grows a little while it says them.",
         },
         {
-          id: "time",
-          label: "The words keep time: Saving 0:04",
+          id: "still",
+          label: "The words stay with her: Still saving",
           means:
-            "The arc and the working words, and past two seconds the wait as a readout after them, in the figures a camera prints.",
+            "The arc and the working words, and past four seconds they say it is still at it (Still saving, Still unlocking); a field says Still checking.",
           gains:
-            "Says what and how long, so a slow wait on party wifi reads alive, never stuck.",
+            "A slow wait on party wifi reads alive, never stuck, and no clock counts it.",
           costs:
-            "The most to read on a key, and a counting clock can make a wait feel longer.",
+            "Two sets of words to write for every key, and a long wait is named aloud.",
         },
       ],
       recommended: "words",

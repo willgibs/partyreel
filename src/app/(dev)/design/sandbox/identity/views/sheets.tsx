@@ -137,8 +137,12 @@ function StateGrid({ rows, w }: { rows: GridRow[]; w: Width }) {
   if (w === 1440)
     return (
       <div
-        className="grid items-center gap-x-2 gap-y-3"
-        style={{ gridTemplateColumns: "64px repeat(7, minmax(0, 1fr))" }}
+        // The working column is the widest (its arc beside the words), so it takes a little more room.
+        className="grid items-center gap-x-3 gap-y-3"
+        style={{
+          gridTemplateColumns:
+            "64px repeat(5, minmax(0, 1fr)) minmax(0, 1.35fr) minmax(0, 1fr)",
+        }}
       >
         <span />
         {STATES.map((s) => (

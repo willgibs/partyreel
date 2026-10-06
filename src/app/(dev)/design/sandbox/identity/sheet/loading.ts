@@ -13,16 +13,16 @@ import { BTN, BUSY, ICON } from "./states";
  * sets while it works.
  *
  * ★ THREE DENSITIES OF ONE ARC: that it works (the arc), what it is doing (the
- * arc and its working words), and how long it has been at it (those words
- * keeping time). The arc is the same in all three, so the choice is how much a
- * waiting key says, never how it spins.
+ * arc and its working words), and that a long wait has not stuck (those words
+ * turning to "Still saving" past four seconds). The arc is the same in all
+ * three, so the choice is how much a waiting key says, never how it spins.
  *
  * ★ EVERY OPTION KEEPS ITS WORDS IN VIEW (r4's direction: a wait that hides
  * what is working reads as broken on party wifi), and every one draws inside
  * the key, so nothing it does reaches the band the halo stands in round it.
  * The words are the scene's to change (a wired key renders its own;
  * `scene/working-words.ts` hands a key the words it carries in
- * `data-working`, and its time).
+ * `data-working`, and turns them to "Still ..." as a wait runs long).
  *
  * ★ STILL, EACH STILL SAYS "WORKING". Under reduced motion every loop plays
  * once and rests on its base style (globals.css's guard, and `.identity-still`
@@ -83,22 +83,16 @@ ${STATUS}::after { ${arcBody("14px")} }
 `;
 
 /**
- * KEEPING TIME, IN THE CAMERA'S VOICE: past two seconds a working key adds its
- * wait as a readout after its words ("Saving 0:04"), the label step's tabular
- * figures a camera prints (design-system.md: "a readout is the camera's
- * voice"), a step quieter than the words; a field checking prints it before
- * its arc. A quick save never shows it.
+ * STILL WITH HER: past four seconds a field checking what was typed says so in
+ * its status slot, beside its arc ("Still checking"), in the caption's size
+ * and its muted ink; a key's own words turn on the key itself.
  */
-const TIME = `
-[data-working-time] {
-  font-size: 11px; line-height: 1; letter-spacing: 0.04em; font-variant-numeric: tabular-nums;
-  font-weight: 600; opacity: 0.62; margin-inline-start: 2px;
-}
-[data-slot="field-status"] [data-working-time] { margin-inline-start: 0; opacity: 0.8; }
+const STILL = `
+[data-working-still] { font-size: 12px; line-height: 1; white-space: nowrap; }
 `;
 
 export const LOADING_CSS: Record<LoadingId, string> = {
   arc: BASE,
   words: BASE,
-  time: BASE + TIME,
+  still: BASE + STILL,
 };
