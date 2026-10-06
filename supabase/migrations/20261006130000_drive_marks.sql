@@ -39,14 +39,19 @@
 --
 -- THE PROTOCOL (database-security.md, "Workflow"): the drift read first, each body this file restates hashed live as
 -- md5(btrim(regexp_replace(prosrc, '\s+', ' ', 'g'))) against its newest repo definition:
---   cloud_export_ready       (20261005120000_cloud_export)
+--   cloud_export_ready       998368c3d63a02382117a077f8f70668  (20261005120000_cloud_export)
 --   cloud_export_lease       c92cf0439d5b687adb6ca61da496c0aa  (20261005200000_capture_time, its "applied" hash)
---   cloud_export_check_page  (20261005120000_cloud_export)
--- and `cloud_exports.folder_found` absent. ★ NOT YET RUN: this lane had no SQL access (the Orchestrator's word); the
+--   cloud_export_check_page  0172036645d31e4eefe10c8f5218a58b  (20261005120000_cloud_export)
+-- (hashed from the repo's files the same way; the lease's equals the hash capture-time recorded live) and
+-- `cloud_exports.folder_found` absent. ★ NOT YET RUN: this lane had no SQL access (the Orchestrator's word); the
 -- drift read and the rolled-back proof at the foot are written ready to run, with the result each must show. Then
 -- apply verbatim; get_advisors (EXPECTED DELTA: none: no function added, every grant restated as it stands); then
 -- regenerate src/lib/db/types.ts (`cloud_exports.folder_found`, `p_found`), which drops the lane's one typed seam
 -- (`markReady` in src/lib/db/queries/drive.ts: its argument folds back into the call).
+-- Applied, the three bodies hash as:
+--   cloud_export_ready       6985048e26eb27dd57dbf255ce76a708
+--   cloud_export_lease       7436838d4523f8cfc443f920f7dee196
+--   cloud_export_check_page  097f3c3a59180379753d302dbc555b35
 -- =============================================================================================
 
 -- =============================================================================================
@@ -550,3 +555,139 @@ $$;
 
 revoke all on function public.cloud_export_check_page(uuid, jsonb, integer, text) from public, anon, authenticated;
 grant execute on function public.cloud_export_check_page(uuid, jsonb, integer, text) to service_role;
+
+-- =============================================================================================
+-- THE ROLLED-BACK PROOF (database-security.md, "An unapplied migration is proved on the live schema"): ★ NOT YET RUN
+-- (this lane had no SQL access). One execute_sql call: `begin;` + this file's statements + the block below +
+-- `rollback;`. It makes its own host (an auth user, so handle_new_user makes her profile), an album with two approved
+-- photos, and a connection holding a live access token, then walks a send through the real functions: the press, the
+-- found folder, the lease, a held check page (with the check's own slow down), an hour of pages answered nothing, and
+-- the page that closes it. Each step traps its own failure into the temp `proof` table; the final select is the answer.
+-- The RED run is the same call without this file's statements: steps 1 to 6 fail on what they lack (no column, no
+-- p_found, no folder_found key, `unknown` read as missing), step 7 on the old signature still standing.
+--
+-- EXPECTED: GREEN 7/7, and nothing persisted after (no fixture user or album; `folder_found` absent until applied).
+-- =============================================================================================
+-- create temp table proof (n serial, step text, ok boolean, detail text);
+-- create temp table fx (k text primary key, id uuid, txt text);
+-- create function pg_temp.fx(p_k text) returns uuid language sql as $f$ select id from fx where k = p_k $f$;
+-- create function pg_temp.say(p_step text, p_ok boolean, p_detail text) returns void language sql as
+--   $f$ insert into proof (step, ok, detail) values (p_step, p_ok, p_detail) $f$;
+-- set constraints all immediate;
+--
+-- -- 0. Fixtures: a host, her album, two approved photos (ids ordered: lo < hi), her connection (a token good an hour).
+-- do $$
+-- declare h uuid := gen_random_uuid(); e uuid; c uuid;
+--   lo uuid := '00000000-0000-4000-8000-00000000d001'; hi uuid := '00000000-0000-4000-8000-00000000d002';
+-- begin
+--   insert into auth.users (id, aud, role, email, email_confirmed_at)
+--   values (h, 'authenticated', 'authenticated', 'drive-marks-' || h || '@example.com', now());
+--   insert into public.events (host_id, name) values (h, 'Drive marks proof') returning id into e;
+--   insert into public.media (id, event_id, type, status, file_size_bytes, original_key)
+--   values (lo, e, 'photo', 'approved', 1000, 'events/' || e || '/photo/' || lo || '/original.jpg'),
+--          (hi, e, 'photo', 'approved', 2000, 'events/' || e || '/photo/' || hi || '/original.jpg');
+--   insert into public.cloud_connections (user_id, account_sub, refresh_ct, access_ct, access_expires_at)
+--   values (h, 'sub-' || h, 'v1.k.iv.refresh', 'v1.k.iv.access', now() + interval '1 hour') returning id into c;
+--   insert into fx values ('host', h, null), ('event', e, null), ('conn', c, null), ('lo', lo, null), ('hi', hi, null);
+--   perform pg_temp.say('0 fixtures', true, null);
+-- exception when others then perform pg_temp.say('0 fixtures', false, sqlstate || ' ' || sqlerrm);
+-- end $$;
+--
+-- -- 1. The column: false by default, and no client reads it.
+-- do $$ begin
+--   perform pg_temp.say('1 column',
+--     exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'cloud_exports'
+--              and column_name = 'folder_found' and column_default = 'false' and is_nullable = 'NO')
+--     and not has_column_privilege('authenticated', 'public.cloud_exports', 'folder_found', 'select'), null);
+-- exception when others then perform pg_temp.say('1 column', false, sqlstate || ' ' || sqlerrm);
+-- end $$;
+--
+-- -- 2. The press, its folder found: the send says so.
+-- do $$ declare r jsonb; j uuid; begin
+--   r := public.cloud_export_create(pg_temp.fx('host'), pg_temp.fx('event'), false, 'UTC');
+--   j := (r ->> 'job_id')::uuid;
+--   insert into fx values ('job', j, null);
+--   r := public.cloud_export_ready(p_job => j, p_folder_id => 'found-folder', p_found => true);
+--   perform pg_temp.say('2 ready found', (r ->> 'ok')::boolean
+--     and (select folder_found and status = 'sending' from public.cloud_exports where id = j), r::text);
+-- exception when others then perform pg_temp.say('2 ready found', false, sqlstate || ' ' || sqlerrm);
+-- end $$;
+--
+-- -- 3. Its lease carries it.
+-- do $$ declare r jsonb; begin
+--   r := public.cloud_export_lease(pg_temp.fx('conn'));
+--   perform pg_temp.say('3 lease folder_found', r ->> 'state' = 'work' and (r ->> 'folder_found')::boolean
+--     and jsonb_array_length(r -> 'items') = 2, left(r::text, 300));
+-- exception when others then perform pg_temp.say('3 lease folder_found', false, sqlstate || ' ' || sqlerrm);
+-- end $$;
+--
+-- -- 4. Both sent; the check's first page: lo unknown, hi ok, and Google's slow down. The walk holds below lo (the
+-- --    cursor stays null), hi is confirmed, the page's lease is kept a minute, the connection slows, still checking.
+-- do $$ declare r jsonb; t uuid; j uuid := pg_temp.fx('job'); begin
+--   update public.cloud_export_items set status = 'sent', drive_file_id = 'file-' || media_id, lease_token = null,
+--          leased_until = null, sent_at = now() where job_id = j;
+--   update public.cloud_export_leases set leased_until = now() - interval '1 second' where job_id = j;
+--   update public.cloud_exports set status = 'checking', check_after = null, items_sent = 2 where id = j;
+--   r := public.cloud_export_lease(pg_temp.fx('conn'));
+--   t := (r ->> 'lease')::uuid;
+--   r := public.cloud_export_check_page(t, jsonb_build_array(
+--          jsonb_build_object('media_id', pg_temp.fx('lo'), 'state', 'unknown'),
+--          jsonb_build_object('media_id', pg_temp.fx('hi'), 'state', 'ok')), null, 'throttled');
+--   perform pg_temp.say('4 held at the first unknown',
+--     r ->> 'status' = 'checking' and (r ->> 'held')::boolean
+--     and (select check_after is null and items_sent = 2 from public.cloud_exports where id = j)
+--     and (select status = 'sent' and confirmed_at is null from public.cloud_export_items
+--           where job_id = j and media_id = pg_temp.fx('lo'))
+--     and (select confirmed_at is not null from public.cloud_export_items where job_id = j and media_id = pg_temp.fx('hi'))
+--     and (select leased_until > now() + interval '50 seconds' from public.cloud_export_leases where token = t)
+--     and (select throttled_until > now() and concurrency = 2 from public.cloud_connections where id = pg_temp.fx('conn')),
+--     r::text);
+-- exception when others then perform pg_temp.say('4 held at the first unknown', false, sqlstate || ' ' || sqlerrm);
+-- end $$;
+--
+-- -- 5. While the page is held, a lease skips its check (idle: nothing else to do).
+-- do $$ declare r jsonb; begin
+--   update public.cloud_connections set throttled_until = null where id = pg_temp.fx('conn');
+--   r := public.cloud_export_lease(pg_temp.fx('conn'));
+--   perform pg_temp.say('5 held page skipped', r ->> 'state' = 'idle', r::text);
+-- exception when others then perform pg_temp.say('5 held page skipped', false, sqlstate || ' ' || sqlerrm);
+-- end $$;
+--
+-- -- 6. An hour on, a page Google answered nothing of: no progress, stuck for /admin; then the page that answers both
+-- --    closes it done, the stuck mark cleared.
+-- do $$ declare r jsonb; t uuid; j uuid := pg_temp.fx('job'); v_stuck boolean; begin
+--   update public.cloud_export_leases set leased_until = now() - interval '1 second' where job_id = j;
+--   update public.cloud_exports set last_progress_at = now() - interval '2 hours' where id = j;
+--   r := public.cloud_export_lease(pg_temp.fx('conn'));
+--   t := (r ->> 'lease')::uuid;
+--   r := public.cloud_export_check_page(t, jsonb_build_array(
+--          jsonb_build_object('media_id', pg_temp.fx('lo'), 'state', 'unknown'),
+--          jsonb_build_object('media_id', pg_temp.fx('hi'), 'state', 'unknown')), null, null);
+--   select stuck_since is not null and last_progress_at < now() - interval '1 hour' and check_after is null
+--     into v_stuck from public.cloud_exports where id = j;
+--   update public.cloud_export_leases set leased_until = now() - interval '1 second' where job_id = j;
+--   r := public.cloud_export_lease(pg_temp.fx('conn'));
+--   t := (r ->> 'lease')::uuid;
+--   r := public.cloud_export_check_page(t, jsonb_build_array(
+--          jsonb_build_object('media_id', pg_temp.fx('lo'), 'state', 'ok'),
+--          jsonb_build_object('media_id', pg_temp.fx('hi'), 'state', 'ok')), null, null);
+--   perform pg_temp.say('6 stuck, then done', v_stuck and r ->> 'status' = 'done'
+--     and (select stuck_since is null and status = 'done' from public.cloud_exports where id = j), r::text);
+-- exception when others then perform pg_temp.say('6 stuck, then done', false, sqlstate || ' ' || sqlerrm);
+-- end $$;
+--
+-- -- 7. The grants: the old signature gone, the new one the service role's alone, the other two as they stood.
+-- do $$ begin
+--   perform pg_temp.say('7 grants',
+--     to_regprocedure('public.cloud_export_ready(uuid,text)') is null
+--     and has_function_privilege('service_role', 'public.cloud_export_ready(uuid,text,boolean)', 'execute')
+--     and not has_function_privilege('anon', 'public.cloud_export_ready(uuid,text,boolean)', 'execute')
+--     and not has_function_privilege('authenticated', 'public.cloud_export_ready(uuid,text,boolean)', 'execute')
+--     and not has_function_privilege('authenticated', 'public.cloud_export_lease(uuid)', 'execute')
+--     and not has_function_privilege('authenticated', 'public.cloud_export_check_page(uuid,jsonb,integer,text)', 'execute')
+--     and has_function_privilege('service_role', 'public.cloud_export_check_page(uuid,jsonb,integer,text)', 'execute'),
+--     null);
+-- exception when others then perform pg_temp.say('7 grants', false, sqlstate || ' ' || sqlerrm);
+-- end $$;
+--
+-- select n, step, ok, detail from proof order by n;
