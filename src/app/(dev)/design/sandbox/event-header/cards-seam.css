@@ -1,173 +1,115 @@
 /* SEAM'S OWN SHEET (`cards-seam.tsx`): where the cover's photograph ends, the
-   light born there, and the quiet cards that catch it. The shapes are
+   light born there, and the quiet cards standing across it. The shapes are
    `card-kit.css`'s; the light's colours arrive as the band's properties
-   (`--eh-seam-glow`, `--eh-seam-line`, `--eh-seam-edge`, `light.ts`).
+   (`--eh-seam-core`, `--eh-seam-gold`, `--eh-seam-fall`, `light.ts`).
 
    ★ EVERY CLASS AND KEYFRAME CARRIES THIS TAKE'S PREFIX (`eh-seam-`), every
-   rule its look (`[data-look="seam"]`): all four takes' sheets load into
-   every frame.
-   ★ THE LIGHT IS AFTERGLOW'S SEAM, ITS FORM CARRIED FROM BRAND R1
-   (`ag.css`): the band's colour pooled along the edge in three soft
-   ellipses with a hot core at the edge and a short fall, and the source line,
-   the edge itself lit, fading at its two ends. It rests still. */
+   rule its look (`[data-look="seam"]`): every take's sheet loads into every
+   frame.
+   ★ THE LIGHT IS AFTERGLOW'S SEAM, TIGHTENED FOR A ROW (brand r1's form, a
+   source line and a fall, its fall cut short by the fresh-eyes pass: born
+   bright at the edge and spent within a dozen pixels in the room and four
+   on paper). It rests still: the light answers events and never loops. */
 
 /* ══ WHERE THE PHOTOGRAPH ENDS ═════════════════════════════════════════════ */
 
-/* The cover's photograph ends 6px above the cards' tops on a short, soft cut
-   (never a long dissolve: light is born at a crisp edge), the page under it. */
+/* On a crisp edge, on both grounds (light is born at a crisp edge, and a
+   dissolve on paper passes through grey), a third of the way down the cards. */
 [data-eh-seam="seam"].eh-seam-fade {
   background: linear-gradient(
     to bottom,
     transparent 0,
-    color-mix(in oklab, var(--eh-page) 70%, transparent) 2px,
-    var(--eh-page) 4px,
+    var(--eh-page) 1.5px,
     var(--eh-page) 100%
   );
 }
 
 /* ══ THE LIGHT ═════════════════════════════════════════════════════════════ */
 
-/* On the band's ground, under the cards, from the lit edge down: its box is
-   its reach, spent before the album's words begin. */
+/* On the band's ground under the cards, its top on the photograph's edge (a
+   third of the first card down: `--eh-seam-at`), the whole width of the row,
+   fading at its two ends so it never stops on a cut. It shows between the
+   cards and past the row's ends; the cards cover the rest. */
 .eh-seam-under {
+  --eh-seam-at: 24px;
   position: absolute;
-  inset: -8px 0 auto 0;
+  inset: calc(var(--eh-seam-at) - 1px) 0 auto 0;
   z-index: -1;
-  height: 64px;
-  overflow: hidden;
+  display: flex;
+  height: 16px;
+  flex-direction: column;
   pointer-events: none;
-}
-[data-stuck] > .eh-seam-under {
-  display: none;
-}
-/* ★ A HOT CORE AND A SHORT FALL (Afterglow's own correction): a long dim
-   tail of warm light over the room reads as brown, so the light is spent
-   within a card's height and seen in its gaps, its brightest at the edge. */
-.eh-seam-glow {
-  position: absolute;
-  inset: 0 -14%;
-  background: var(--eh-seam-glow);
-  opacity: 0.95;
-  -webkit-mask-image:
-    radial-gradient(
-      ellipse 62% 100% at 22% 0%,
-      rgb(0 0 0 / 0.9) 0%,
-      rgb(0 0 0 / 0.34) 18%,
-      rgb(0 0 0 / 0.07) 50%,
-      transparent 82%
-    ),
-    radial-gradient(
-      ellipse 58% 92% at 50% 0%,
-      rgb(0 0 0 / 0.85) 0%,
-      rgb(0 0 0 / 0.32) 18%,
-      rgb(0 0 0 / 0.07) 50%,
-      transparent 82%
-    ),
-    radial-gradient(
-      ellipse 62% 100% at 78% 0%,
-      rgb(0 0 0 / 0.9) 0%,
-      rgb(0 0 0 / 0.34) 18%,
-      rgb(0 0 0 / 0.07) 50%,
-      transparent 82%
-    );
-  mask-image:
-    radial-gradient(
-      ellipse 62% 100% at 22% 0%,
-      rgb(0 0 0 / 0.9) 0%,
-      rgb(0 0 0 / 0.34) 18%,
-      rgb(0 0 0 / 0.07) 50%,
-      transparent 82%
-    ),
-    radial-gradient(
-      ellipse 58% 92% at 50% 0%,
-      rgb(0 0 0 / 0.85) 0%,
-      rgb(0 0 0 / 0.32) 18%,
-      rgb(0 0 0 / 0.07) 50%,
-      transparent 82%
-    ),
-    radial-gradient(
-      ellipse 62% 100% at 78% 0%,
-      rgb(0 0 0 / 0.9) 0%,
-      rgb(0 0 0 / 0.34) 18%,
-      rgb(0 0 0 / 0.07) 50%,
-      transparent 82%
-    );
-}
-/* The source line: the edge itself, lit (1px in the room, 1.5 on paper). */
-.eh-seam-line {
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 1px;
-  background: var(--eh-seam-line);
   -webkit-mask-image: linear-gradient(
     90deg,
     transparent 0%,
-    #000 14%,
-    #000 86%,
+    #000 9%,
+    #000 91%,
     transparent 100%
   );
   mask-image: linear-gradient(
     90deg,
     transparent 0%,
-    #000 14%,
-    #000 86%,
+    #000 9%,
+    #000 91%,
     transparent 100%
   );
 }
+@container eh-row (640px <= width < 1088px) {
+  .eh-seam-under {
+    --eh-seam-at: 36px;
+  }
+}
+@container eh-row (width < 640px) {
+  .eh-seam-under {
+    --eh-seam-at: 20px;
+  }
+}
+[data-stuck] > .eh-seam-under {
+  display: none;
+}
+/* The source line: one pixel, the edge itself lit. */
+.eh-seam-core {
+  flex: none;
+  height: 1px;
+  background: var(--eh-seam-core);
+}
+/* The lamp itself, just under it. */
+.eh-seam-gold {
+  flex: none;
+  height: 2px;
+  background: var(--eh-seam-gold);
+}
+/* The fall: from under a quarter of the lamp's strength to nothing, short. */
+.eh-seam-fall {
+  flex: none;
+  height: 12px;
+  background: var(--eh-seam-fall);
+  opacity: 0.22;
+  -webkit-mask-image: linear-gradient(#000, transparent);
+  mask-image: linear-gradient(#000, transparent);
+}
 
-/* PAPER: a third of the reach, a fall spent within it, a crisper line. */
-[data-eh-ground="paper"] .eh-seam-under {
-  height: 52px;
-}
-[data-eh-ground="paper"] .eh-seam-glow {
-  opacity: 1;
-  -webkit-mask-image:
-    radial-gradient(
-      ellipse 36% 100% at 20% 0%,
-      #000 0%,
-      rgb(0 0 0 / 0.45) 26%,
-      transparent 100%
-    ),
-    radial-gradient(
-      ellipse 34% 92% at 50% 0%,
-      #000 0%,
-      rgb(0 0 0 / 0.42) 26%,
-      transparent 100%
-    ),
-    radial-gradient(
-      ellipse 36% 100% at 80% 0%,
-      #000 0%,
-      rgb(0 0 0 / 0.45) 26%,
-      transparent 100%
-    );
-  mask-image:
-    radial-gradient(
-      ellipse 36% 100% at 20% 0%,
-      #000 0%,
-      rgb(0 0 0 / 0.45) 26%,
-      transparent 100%
-    ),
-    radial-gradient(
-      ellipse 34% 92% at 50% 0%,
-      #000 0%,
-      rgb(0 0 0 / 0.42) 26%,
-      transparent 100%
-    ),
-    radial-gradient(
-      ellipse 36% 100% at 80% 0%,
-      #000 0%,
-      rgb(0 0 0 / 0.45) 26%,
-      transparent 100%
-    );
-}
-[data-eh-ground="paper"] .eh-seam-line {
+/* PAPER: a thin opaque line, a pixel and a half of the saturated source and a
+   pixel of glow, then four pixels of fall: sun through a door's gap on a
+   white wall, never a wash. */
+[data-eh-ground="paper"] .eh-seam-core {
   height: 1.5px;
+}
+[data-eh-ground="paper"] .eh-seam-gold {
+  height: 1px;
+}
+[data-eh-ground="paper"] .eh-seam-fall {
+  height: 4px;
+  opacity: 0.4;
 }
 
 /* ══ THE CARDS ═════════════════════════════════════════════════════════════ */
 
 /* Quiet: the room's card tone with a hairline, paper's white card with its
-   lift; nothing on them is lit but the edge that faces the light. */
+   lift; nothing on them is lit. */
+[data-look="seam"] {
+  --eh-pill-face: var(--card);
+}
 [data-look="seam"] .eh-ck-skin {
   border-radius: 12px;
   background-color: var(--card);
@@ -180,59 +122,32 @@
 [data-look="seam"][data-stuck] .eh-ck-skin {
   border-radius: 999px;
 }
-
-/* In the room the light lies on a card's top a little way, spent within a
-   finger's width: the doors stand in the album's light. */
-[data-eh-ground="room"] [data-look="seam"]:not([data-stuck]) .eh-ck-skin {
-  background-image: linear-gradient(
-    color-mix(in oklab, var(--eh-seam-edge) 13%, transparent),
-    transparent 26px
-  );
+[data-look="seam"] .eh-ck-code [data-slot="code-chip"] {
+  box-shadow:
+    inset 0 0 0 1px var(--border),
+    0 6px 16px -10px oklch(0 0 0 / 0.5);
 }
-/* And its top catches the light: one pixel of it along the top,
-   brightest at the middle and falling away down the sides (the bright edge's
-   own falloff, `[data-lit]`), in the light's own colour. Only at rest, under
-   the lit edge; never on paper, where a coloured edge on a white card is a
-   painted border. */
-[data-eh-ground="room"] [data-look="seam"]:not([data-stuck]) .eh-ck-skin::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  border: 1px solid transparent;
-  background: radial-gradient(
-      140% 100% at 50% 0%,
-      color-mix(in oklab, var(--eh-seam-edge) 70%, transparent) 0%,
-      color-mix(in oklab, var(--eh-seam-edge) 24%, transparent) 34%,
-      transparent 70%
-    )
-    border-box;
-  -webkit-mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0);
-  mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0);
-  -webkit-mask-clip: padding-box, border-box;
-  mask-clip: padding-box, border-box;
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
+[data-eh-ground="paper"] [data-look="seam"] .eh-ck-code [data-slot="code-chip"] {
+  box-shadow: inset 0 0 0 1px var(--border), var(--shadow-lift);
 }
 
-/* The reel's own violet, on its glyph alone (one colour per action). */
+/* The glyph in the ink on its disc. */
+[data-look="seam"] .eh-ck-glyph {
+  color: var(--foreground);
+}
 [data-look="seam"] .eh-ck-disc {
   background-color: var(--secondary);
 }
 [data-eh-ground="room"] [data-look="seam"] .eh-ck-disc {
   background-color: var(--accent);
 }
-[data-look="seam"] .eh-ck-glyph[data-reel] {
-  color: var(--reel);
-}
-[data-look="seam"] .eh-ck-glyph[data-reel] > .eh-ck-disc {
-  background-color: color-mix(in oklab, var(--reel) 15%, var(--card));
-}
 
 /* ══ UNDER THE POINTER, PRESSED ════════════════════════════════════════════ */
 
 @media (hover: hover) {
+  [data-eh-ground="room"] [data-look="seam"] .eh-ck-door:hover {
+    --eh-pill-face: var(--secondary);
+  }
   [data-eh-ground="room"] [data-look="seam"] .eh-ck-door:hover > .eh-ck-skin {
     background-color: var(--secondary);
   }

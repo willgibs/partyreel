@@ -30,33 +30,31 @@
 }
 .eh-ck-band[data-stuck] {
   padding-top: 8px;
-  padding-bottom: 20px;
+  padding-bottom: 8px;
 }
 @container eh-row (width < 640px) {
   .eh-ck-band {
     padding: 0 12px 6px;
   }
   .eh-ck-band[data-stuck] {
-    padding: 6px 12px 16px;
+    padding: 6px 12px;
   }
 }
 
-/* Stuck, the band's ground holds solid behind the pills and fades into the
-   album just past their feet, rather than ending on a line or letting the
-   photographs show through behind the words: a layer of its own, so the fold
-   can bring it up under the pills. */
+/* ★ STUCK, THE BAND IS THE BAR'S OWN SECOND ROW: the app bar's material (its
+   ground at 80% over a blur of what passes under it) with a hairline at its
+   foot, tight to the pills, rather than a veil fading over the album's first
+   row (fresh eyes: on paper that fade laid a white fog over the photographs).
+   A layer of its own, there from the fold's first frame. */
 .eh-ck-veil {
   display: none;
   position: absolute;
-  inset: 0 0 -14px 0;
+  inset: 0;
   z-index: -1;
-  background: linear-gradient(
-    to bottom,
-    var(--background) 0%,
-    var(--background) 64%,
-    color-mix(in oklab, var(--background) 72%, transparent) 82%,
-    transparent 100%
-  );
+  background-color: color-mix(in oklab, var(--background) 82%, transparent);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  backdrop-filter: blur(16px) saturate(1.2);
+  box-shadow: inset 0 -1px 0 var(--border);
   pointer-events: none;
 }
 [data-stuck] > .eh-ck-veil {
@@ -89,6 +87,25 @@
 @container eh-row (width < 1088px) {
   .eh-ck-lead [data-band-lead] > span {
     display: none;
+  }
+}
+/* ★ THE CODE IN THE BAND IS A PILL OF THE BAND'S OWN MATERIAL, its glyph in
+   the ink (fresh eyes: production's white chip was the brightest thing in the
+   room's band after the photographs). At that size it is a button that opens
+   the code, never a code that scans, so it needs no white plate; the cover's
+   code keeps its plate. Each take gives it its pill's face. */
+.eh-ck-code [data-slot="code-chip"] {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background-color: var(--card);
+  color: var(--foreground);
+  box-shadow: var(--eh-pill-shadow, var(--shadow-lift));
+}
+@container eh-row (width < 640px) {
+  .eh-ck-code [data-slot="code-chip"] {
+    width: 44px;
+    height: 44px;
   }
 }
 
@@ -279,6 +296,12 @@
   font-weight: 500;
   color: var(--foreground);
 }
+/* A live state: Afterglow's status, the standby point and its word. */
+.eh-ck-line[data-status] {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 .eh-ck-word {
   display: none;
   font-size: 0.75rem;
@@ -287,28 +310,26 @@
   white-space: nowrap;
 }
 
-/* The count: the standby point, then its number in the camera's readout
-   (Inter's semibold tabular figures), large enough to read across a room. */
+/* The count: the number alone at the card's end in the camera's readout
+   (Inter's tabular figures, a medium weight), large enough to read across a
+   room; its state is the point beside the line's word. */
 .eh-ck-count {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 .eh-ck-num {
   font-family: var(--font-sans), ui-sans-serif, sans-serif;
-  font-size: 24px;
-  font-weight: 600;
+  font-size: 22px;
+  font-weight: 500;
   line-height: 1;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
   font-variant-numeric: tabular-nums;
   color: var(--foreground);
 }
 @container eh-row (width < 1088px) {
-  .eh-ck-count {
-    gap: 6px;
-  }
   .eh-ck-num {
-    font-size: 21px;
+    font-size: 20px;
   }
 }
 
@@ -318,12 +339,28 @@
 .eh-ck-point {
   display: block;
   flex-shrink: 0;
-  width: 9px;
-  height: 9px;
+  width: 8px;
+  height: 8px;
   border-radius: 999px;
   color: var(--foreground);
   background-image: linear-gradient(90deg, currentColor 50%, transparent 50%);
   box-shadow: inset 0 0 0 1.5px currentColor;
+}
+/* The band's point on the glyph's shoulder, where a badge would sit, cut out
+   of the pill by a ring of its face; only stuck (a card says it in its line). */
+.eh-ck-shoulder {
+  display: none;
+  position: absolute;
+  top: -3px;
+  right: -4px;
+  width: 8px;
+  height: 8px;
+  box-shadow:
+    inset 0 0 0 1.5px currentColor,
+    0 0 0 2px var(--eh-pill-face, var(--card));
+}
+[data-stuck] .eh-ck-shoulder {
+  display: block;
 }
 
 /* The camera's readout: what a camera prints (a state, a count, a value). */
@@ -395,16 +432,7 @@
 [data-stuck] .eh-ck-num {
   font-size: 13px;
 }
-@container eh-row (width < 640px) {
-  .eh-ck-point {
-    width: 8px;
-    height: 8px;
-  }
-}
-[data-stuck] .eh-ck-point {
-  width: 7px;
-  height: 7px;
-}
+
 /* Steps left in a pill: a plain number in the quiet ink, never a status. */
 .eh-ck-count[data-count="left"] .eh-ck-num {
   color: var(--muted-foreground);

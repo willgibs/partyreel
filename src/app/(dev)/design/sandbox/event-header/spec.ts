@@ -8,12 +8,15 @@ import { type Control, defineExploration } from "@/components/lab/exploration";
  * but run another exploration to see what some of your ideas of polish look
  * like". So one decision: which polish the cards take.
  *
- * ★ ONE DECISION, FOUR TAKES, EACH ONE DESIGNER'S BEST IDEA (never a
- * caricature drawn to stand apart; overlap is welcome): `keys`, `glass`,
- * `seam` and `points`, each whole in its own file on one row and fold
- * (`card-kit.tsx`). Each answers every axis the brief named: what a card holds
- * and how its count reads, light and depth at rest and when something waits,
- * the fold into pills and back, a phone's reach, a tablet, reduced motion.
+ * ★ ONE DECISION, THREE TAKES, EACH ONE DESIGNER'S BEST IDEA (never a
+ * caricature drawn to stand apart; overlap is welcome): `keys`, `seam` and
+ * `points`, each whole in its own file on one row and fold (`card-kit.tsx`).
+ * Each answers every axis the brief named: what a card holds and how its
+ * count reads, light and depth at rest and when something waits, the fold
+ * into pills and back, a phone's reach, a tablet, reduced motion. A fourth,
+ * glass, was drawn and cut at the fresh-eyes pass: over the cover's scrim its
+ * frost cannot show, so in the room it landed on the keys' answer, and on
+ * paper it read as a dark slab (two takes on one answer are a finding).
  *
  * ★ IN AFTERGLOW'S LANGUAGE (Will's desk-4 pick, relayed mid-round): a
  * waiting count is the standby point and its word, half lit in the ground's
@@ -86,7 +89,7 @@ export const EVENT_HEADER = defineExploration({
     n: 5,
     date: "2026-10-05",
     changed:
-      "Round five: four polished takes on the cards you picked, each one designer's best idea in Afterglow's language: the house's keys, glass over the photograph, the cover's own light on the doors, and each state on its glyph. Both grounds side by side, and a tablet.",
+      "Round five: three polished takes on the cards you picked, each one designer's best idea in Afterglow's language: the house's keys, the cover's own light between the doors, and each count on its glyph. Both grounds side by side, and a tablet.",
   },
   history: [
     {
@@ -118,7 +121,7 @@ export const EVENT_HEADER = defineExploration({
     "Round five, on the hub as built: the cover, its strip, the code, the album and every room are production's; only the cards are redrawn, in Afterglow's grammar. Each take is drawn in the room and on paper side by side, both live; every caption is read off its frame.",
   opening: {
     about:
-      "Round five of the hub's doors: the cards over the seam you picked, polished four ways in Afterglow's language, each a whole take you could ship.",
+      "Round five of the hub's doors: the cards over the seam you picked, polished three ways in Afterglow's language, each a whole take you could ship.",
     settled: [
       "The doors are the cards over the seam, your round-four pick, being wired now: every take here is a polish of them.",
       "Afterglow is the brand (desk 4): a waiting count is its standby point and word, with no hue; colour is only the screen's one light.",
@@ -169,7 +172,7 @@ export const EVENT_HEADER = defineExploration({
     {
       term: "badge",
       means:
-        "A count on a glyph's corner, the way an app's icon carries its unread number.",
+        "A count on a glyph's corner, the way an app's icon carries its unread number: here in ink, never a hue.",
     },
     {
       term: "tile",
@@ -182,9 +185,24 @@ export const EVENT_HEADER = defineExploration({
       id: "band-ends",
       question: "Where does everything stand in the band once the cards fold?",
       taken:
-        "The cover's face at its left end, the code at its right end where the cover's code stood, the doors gathered in its middle.",
+        "The cover's face at its left end, the code (a pill like the doors) at its right end where the cover's code stood, the doors in its middle.",
       overrule:
-        "Round four's band: the doors packed after the face, the code following the last door.",
+        "Round four's band: the doors packed after the face, the white code chip following the last door.",
+    },
+    {
+      id: "band-ground",
+      question: "What does the band stand on once the cards fold?",
+      taken:
+        "The app bar's own material, its ground over a blur and a hairline, tight to the pills: the bar's second row.",
+      overrule:
+        "Round four's veil: the page's ground fading into the album under the pills.",
+    },
+    {
+      id: "reel-ink",
+      question: "Does the reel's glyph keep its violet?",
+      taken:
+        "No: every glyph is ink, the reel's too, since Afterglow paints no hue on a control.",
+      overrule: "The reel keeps production's violet, on its glyph alone.",
     },
     {
       id: "standby-still",
@@ -234,48 +252,38 @@ export const EVENT_HEADER = defineExploration({
           id: "keys",
           label: "Keys: the house's own keys",
           means:
-            "Each card a key, as every button now is: lit from above, its glyph sunk in a well, its count a standby point and number; an open room's key stays down.",
+            "Each card a key, as every button now is: lit from above, its glyph sunk in a well, a waiting door its point, word and number; an open room's key stays down.",
           gains:
             "Of a piece with every button in the product, and achromatic, so paper holds as well as the room.",
           costs:
-            "No light of the brand's on the doors: the most product of the four, the least Afterglow.",
-        },
-        {
-          id: "glass",
-          label: "Glass: the photograph runs on behind",
-          means:
-            "Each card the house glass on the cover's photograph, which softens behind the row; stuck, the five merge into one glass capsule.",
-          gains:
-            "Your two favourites in one: the cards at rest, the glass capsule under the bar.",
-          costs:
-            "A phone's cover grows to hold the grid; glass reads quieter than a key, and dark on paper.",
+            "No light of the brand's on the doors: the most product of the three, the least Afterglow.",
         },
         {
           id: "seam",
-          label: "Seam: the cover's own light on the doors",
+          label: "Seam: the cover's own light between the doors",
           means:
-            "Afterglow's Seam as the hub's one light: the cover's photograph ends on an edge lit in its own colour, falling through the gaps; each card catches it.",
+            "Afterglow's Seam as the hub's one light: the photograph ends on an edge lit in its own colour, and the cards stand across it, the light showing between them.",
           gains:
-            "The brand made real on her busiest screen: the event's own light, and only there.",
+            "The brand made real on her busiest screen: the event's own light, crisp on paper too.",
           costs:
-            "The light lives under the cover, so the band is plain; on paper it is one thin line.",
+            "The light belongs to the cover: stuck, the band is plain, and it needs a sampler built.",
         },
         {
           id: "points",
-          label: "Points: each state rides its glyph",
+          label: "Points: each count rides its glyph",
           means:
-            "The standby point where a badge would sit, on the glyph, its word the line: '8 WAITING'. On a phone one row of five, a tab bar at the foot once stuck.",
+            "The count a badge in ink on the glyph's shoulder, the state its line, '◐ WAITING'. On a phone one row of five, then a tab bar at the foot.",
           gains:
             "The calmest cards, the album highest on a phone, and stuck doors under her thumb.",
           costs:
-            "A count in words never reads across a room as a number does; the tab bar covers the album's foot.",
+            "A badge is smaller than a card's number; the phone's tab bar covers the album's foot.",
         },
       ],
       recommended: "seam",
       because:
-        "Afterglow's own light on her most-pressed doors, sampled from her photographs: quiet cards, one delight, as convincing on paper as in the room.",
+        "Afterglow's own light on her most-pressed doors, crisp on paper too; borrow Points' phone, one row and the tab bar under her thumb.",
       overrule:
-        "If the doors should be the product's hardware, keys; if your glass capsule must stay, glass.",
+        "If the doors should be the product's hardware, keys; if the count belongs on the glyph, points.",
       configs: [SCREEN, MOMENT, SCROLL],
     },
   ],

@@ -97,7 +97,6 @@ function DoorsStrip({ s, doors }: { s: BoardState; doors: DoorsId }) {
 
 const PREVIEWS: PreviewsFor<typeof EVENT_HEADER> = {
   "cards.keys": (s) => <DoorsStrip s={s} doors="keys" />,
-  "cards.glass": (s) => <DoorsStrip s={s} doors="glass" />,
   "cards.seam": (s) => <DoorsStrip s={s} doors="seam" />,
   "cards.points": (s) => <DoorsStrip s={s} doors="points" />,
 };

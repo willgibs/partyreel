@@ -35,9 +35,9 @@ import {
  * WHAT EVERY TAKE ON THE CARDS SHARES (round five): the row over the seam,
  * its footprint and its band, the pieces a door is drawn from, and the fold
  * that carries the five cards into their pills under the bar and back. Each
- * take (`cards-keys.tsx`, `cards-glass.tsx`, `cards-badges.tsx`,
- * `cards-lit.tsx`) draws its own door from these pieces and dresses them in
- * its own sheet, so the four differ by their idea and never by their plumbing.
+ * take (`cards-keys.tsx`, `cards-seam.tsx`, `cards-points.tsx`) draws its own
+ * door from these pieces and dresses them in its own sheet, so the takes
+ * differ by their idea and never by their plumbing.
  *
  * ★ THE ROW IS A CONTAINER (`eh-row`), AND EVERY SHAPE IS READ OFF ITS WIDTH,
  * never off the Screen knob, so a take holds at every width a host can hold,
@@ -52,7 +52,7 @@ import {
  * Review, the door pressed most tonight, folds straight up.
  */
 
-export type Look = "keys" | "glass" | "seam" | "points";
+export type Look = "keys" | "seam" | "points";
 
 /** The fold is occasional (once a pass of the bar), so it is quick: under 300ms. */
 const FOLD_MS = 260;
@@ -137,7 +137,12 @@ export function Skin({ className }: { className?: string }) {
   );
 }
 
-/** The glyph in its disc; `children` stands on the disc (a take's badge). */
+/**
+ * The glyph in its disc; `children` stands on the disc's shoulder (a take's
+ * badge, or the band's point). ★ EVERY GLYPH IS INK, THE REEL'S INCLUDED
+ * (Afterglow: no hue is painted on a control; production's reel violet was
+ * the hub's one painted colour), a call carried in every take.
+ */
 export function Glyph({
   room,
   children,
@@ -147,11 +152,7 @@ export function Glyph({
 }) {
   const Icon = ROOM_ICON[room];
   return (
-    <span
-      aria-hidden
-      data-reel={room === "reel" ? "" : undefined}
-      className="eh-ck-glyph"
-    >
+    <span aria-hidden className="eh-ck-glyph">
       <span data-fold="disc" className="eh-ck-disc" />
       <span data-fold="glyph" className="eh-ck-mark">
         <Icon />
@@ -169,14 +170,17 @@ export function Words({
   room,
   line,
   strong,
-  readout = false,
+  status = false,
 }: {
   room: RoomId;
   line: string;
-  /** The line reads in the ink: a count hers to act on, paused uploads, a take's waiting words. */
+  /** The line reads in the ink: a count hers to act on, paused uploads. */
   strong?: boolean;
-  /** The line printed in the camera's readout (spaced capitals), as a status's word is. */
-  readout?: boolean;
+  /**
+   * The line is a live state: Afterglow's status, the standby point and its
+   * word ("◐ waiting"), the word in the ground's own ink.
+   */
+  status?: boolean;
 }) {
   return (
     <span aria-hidden className="eh-ck-text">
@@ -186,9 +190,11 @@ export function Words({
       </span>
       <span
         data-fold="text"
-        data-strong={strong ? "" : undefined}
-        className={cn("eh-ck-line", readout && "eh-ck-readout")}
+        data-strong={strong || status ? "" : undefined}
+        data-status={status ? "" : undefined}
+        className="eh-ck-line"
       >
+        {status ? <StandbyPoint /> : null}
         {line}
       </span>
     </span>
@@ -227,26 +233,26 @@ export function StandbyPoint({ className }: { className?: string }) {
 }
 
 /**
- * A DOOR'S COUNT AT ITS END, IN AFTERGLOW'S GRAMMAR: a waiting count is the
- * standby point and its number, printed in the camera's readout (Inter's
- * tabular figures, never the display face: what a camera prints); Settings'
- * steps left are a plain number for a pill too small for its words (plain,
- * never a status: the call G4), and paused uploads the code's own pause once
- * the cover's code has gone.
+ * The band's point: a pill has no line for the point to stand beside, so
+ * stuck it rides the glyph's shoulder, where a badge would (shown only stuck).
  */
-export function Count({
-  face,
-  point = true,
-}: {
-  face: DoorFace;
-  /** The standby point beside the number (a take that sets the point on the glyph says false). */
-  point?: boolean;
-}) {
+export function ShoulderPoint() {
+  return <StandbyPoint className="eh-ck-shoulder" />;
+}
+
+/**
+ * A DOOR'S COUNT AT ITS END, IN AFTERGLOW'S GRAMMAR: the number alone, printed
+ * in the camera's readout (Inter's tabular figures, never the display face:
+ * what a camera prints), its state said by the point beside the line's word;
+ * Settings' steps left are a plain number for a pill too small for its words
+ * (plain, never a status: the call G4), and paused uploads the code's own
+ * pause once the cover's code has gone.
+ */
+export function Count({ face }: { face: DoorFace }) {
   const waits = waitsOf(face);
   if (waits)
     return (
       <span aria-hidden data-count="waits" className="eh-ck-count">
-        {point ? <StandbyPoint /> : null}
         <span data-fold="num" className="eh-ck-num">
           {formatCount(waits)}
         </span>
@@ -297,7 +303,7 @@ export type FoldPace = {
  * ★ CALLED ABOVE `useRestHeight`, AND THAT ORDER IS THE FOOTPRINT RULE: layout
  * effects run in call order, so the band is already in its new form when the
  * footprint reads its rest, and everything that moves is a transform, an
- * opacity or an absolutely placed box (a skin, glass's capsule). The band's
+ * opacity or an absolutely placed box (a skin). The band's
  * own height never animates, so the footprint can never follow a fold half
  * done (the loop `event-cards-row.tsx` describes).
  *
@@ -378,11 +384,10 @@ export function useFold(
       const kind = p.dataset.fold;
       const arrives = a.box.width === 0;
       const delay = turn(p);
-      if (kind === "veil") {
-        // The band's ground comes up under the pills rather than cutting the cover's foot off.
-        if (arrives) fly(p, [{ opacity: 0 }, { opacity: 1 }]);
-        return;
-      }
+      // ★ The band's ground is there from the fold's first frame (fresh eyes: a
+      // ground that faded in let the album's own words print through the gaps
+      // and under the face as it arrived); everything else moves over it.
+      if (kind === "veil") return;
       if (kind === "lead" || kind === "code") {
         // The cover's face slides in at the band's head; the code arrives once the doors
         // nearest it have passed the place it stands.
@@ -447,7 +452,7 @@ export function useFold(
       }
       const dx = a.box.left - b.box.left;
       const dy = a.box.top - b.box.top;
-      if (kind === "skin" || kind === "capsule") {
+      if (kind === "skin") {
         // The surface's own box travels, so its corner and its shadow never stretch;
         // a surface that is lit in one form and clear in the other fades on the way.
         const fade =
@@ -474,11 +479,11 @@ export function useFold(
               ...fade[1],
             },
           ],
-          { delay: kind === "capsule" ? 0 : delay },
+          { delay },
         );
         return;
       }
-      // A glyph, its disc, a light, a badge or a numeral: carried and scaled whole, never stretched.
+      // A glyph, its disc, a point, a badge or a numeral: carried and scaled whole, never stretched.
       const s =
         kind === "num"
           ? a.box.height / b.box.height
@@ -532,11 +537,9 @@ export function CardRow({
   rise,
   Door,
   pace,
-  inDoors,
   sticks = true,
   markAt = "top",
   className,
-  bandClass,
   bandStyle,
   underlay,
 }: DoorDraw & {
@@ -547,8 +550,6 @@ export function CardRow({
   rise: number;
   Door: (p: DoorProps) => ReactNode;
   pace?: FoldPace;
-  /** What stands among the doors under them (glass's capsule). */
-  inDoors?: ReactNode;
   sticks?: boolean;
   /**
    * Where `mark` reads the row: its top (a row that sticks at the bar) or its
@@ -556,8 +557,6 @@ export function CardRow({
    */
   markAt?: "top" | "bottom";
   className?: string;
-  /** The band's own class: glass wears the room's tokens on both grounds (`dark`). */
-  bandClass?: string;
   /** The band's own properties (the seam take's light, as custom properties). */
   bandStyle?: CSSProperties;
   /** What lies on the band's ground under the doors (the seam take's light). */
@@ -588,7 +587,7 @@ export function CardRow({
         data-eh-band=""
         data-look={look}
         data-screen={screen}
-        className={cn("eh-ck-band pointer-events-auto", bandClass)}
+        className="eh-ck-band pointer-events-auto"
         style={bandStyle}
       >
         <span aria-hidden data-fold="veil" className="eh-ck-veil" />
@@ -603,7 +602,6 @@ export function CardRow({
             aria-label="This event"
             className="eh-ck-doors"
           >
-            {inDoors}
             {ROOM_ORDER.map((room, i) => (
               <Door
                 key={room}

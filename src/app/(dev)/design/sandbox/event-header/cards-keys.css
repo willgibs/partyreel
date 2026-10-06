@@ -2,45 +2,37 @@
    each door at rest and stuck. The shapes are `card-kit.css`'s.
 
    ★ EVERY CLASS AND KEYFRAME CARRIES THIS TAKE'S PREFIX (`eh-keys-`), every
-   rule its look (`[data-look="keys"]`): all four takes' sheets load into
-   every frame.
-   ★ THE KEY IS IDENTITY'S, ITS NUMBERS CARRIED HERE (keys and wells, r3):
-   a face a step up from what it stands on, a light along its top, a shade
+   rule its look (`[data-look="keys"]`): every take's sheet loads into every
+   frame.
+   ★ THE KEY IS IDENTITY'S (keys and wells, r3), made to show at 1x (fresh
+   eyes: at the bevel's quiet numbers the keys read as plain cards): a face
+   lit from above (a ramp of light down it), a light along its top, a shade
    along its foot and the pixel it stands proud by; a well sunk into the body
    with its top edge in shade and a lip of light at its foot. Declared on both
    grounds, since a value resolves where it is declared. */
 
 /* ══ THE SEAM ══════════════════════════════════════════════════════════════ */
 
-/* The photograph dissolves into the page on an eased ramp (half a cosine), so
-   neither the fade's start nor the cover's own foot reads as a line. */
+/* In the room the photograph's foot is already dark (the cover's own scrim),
+   so it dissolves into the room behind the keys' lower two thirds. */
 [data-eh-seam="keys"].eh-seam-fade {
   background: linear-gradient(
     to bottom,
     transparent 0%,
-    color-mix(in oklab, var(--eh-page) 2.4%, transparent) 10%,
-    color-mix(in oklab, var(--eh-page) 9.5%, transparent) 20%,
-    color-mix(in oklab, var(--eh-page) 20.6%, transparent) 30%,
-    color-mix(in oklab, var(--eh-page) 34.5%, transparent) 40%,
-    color-mix(in oklab, var(--eh-page) 50%, transparent) 50%,
-    color-mix(in oklab, var(--eh-page) 65.5%, transparent) 60%,
-    color-mix(in oklab, var(--eh-page) 79.4%, transparent) 70%,
-    color-mix(in oklab, var(--eh-page) 90.5%, transparent) 80%,
-    color-mix(in oklab, var(--eh-page) 97.6%, transparent) 90%,
+    color-mix(in oklab, var(--eh-page) 40%, transparent) 30%,
+    color-mix(in oklab, var(--eh-page) 85%, transparent) 70%,
     var(--eh-page) 100%
   );
 }
-/* In the room the photograph's foot is already dark (the cover's own scrim),
-   so it holds to the keys' tops and dissolves only behind them. */
-[data-eh-ground="room"] [data-eh-seam="keys"].eh-seam-fade {
+/* ★ ON PAPER THE PHOTOGRAPH ENDS ON A CRISP EDGE a third of the way down the
+   keys, never a dissolve: a dark photograph fading into white passes through
+   grey, and grey haze behind the keys is "washed out". The keys cover the
+   edge; it shows only between them. */
+[data-eh-ground="paper"] [data-eh-seam="keys"].eh-seam-fade {
   background: linear-gradient(
     to bottom,
-    transparent 0%,
-    transparent 44%,
-    color-mix(in oklab, var(--eh-page) 9.5%, transparent) 55%,
-    color-mix(in oklab, var(--eh-page) 34.5%, transparent) 66%,
-    color-mix(in oklab, var(--eh-page) 65.5%, transparent) 77%,
-    color-mix(in oklab, var(--eh-page) 90.5%, transparent) 88%,
+    transparent 0,
+    var(--eh-page) 1.5px,
     var(--eh-page) 100%
   );
 }
@@ -48,48 +40,65 @@
 /* ══ THE KEY ═══════════════════════════════════════════════════════════════ */
 
 [data-look="keys"] {
-  --eh-key-face: oklch(0.993 0.001 286);
+  --eh-key-face: oklch(1 0 0);
+  --eh-key-foot: oklch(0.968 0.002 286);
   --eh-key-face-up: oklch(1 0 0);
-  --eh-key-hi: oklch(1 0 0 / 85%);
-  --eh-key-lo: oklch(0 0 0 / 9%);
-  --eh-key-drop: oklch(0 0 0 / 14%);
-  --eh-key-ramp: oklch(1 0 0 / 0%);
-  --eh-well: oklch(0.948 0.003 286);
+  --eh-key-hi: oklch(1 0 0 / 90%);
+  --eh-key-lo: oklch(0 0 0 / 10%);
+  --eh-key-line: oklch(0.14 0.004 286 / 8%);
+  --eh-key-drop:
+    0 1px 1px oklch(0 0 0 / 10%), 0 2px 4px -1px oklch(0 0 0 / 8%);
+  --eh-well: oklch(0.945 0.003 286);
   --eh-well-top: oklch(0 0 0 / 22%);
   --eh-well-fade: oklch(0 0 0 / 6%);
-  --eh-well-lip: oklch(1 0 0 / 80%);
+  --eh-well-lip: oklch(1 0 0 / 85%);
   --eh-well-rim: oklch(0 0 0 / 7%);
+  --eh-key-down: oklch(0.95 0.002 286);
+  --eh-pill-face: var(--eh-key-face);
 }
 [data-eh-ground="room"] [data-look="keys"] {
-  --eh-key-face: oklch(0.205 0.004 286);
-  --eh-key-face-up: oklch(0.245 0.004 286);
-  --eh-key-hi: oklch(1 0 0 / 14%);
-  --eh-key-lo: oklch(0 0 0 / 45%);
-  --eh-key-drop: oklch(0 0 0 / 55%);
-  --eh-key-ramp: oklch(1 0 0 / 4.5%);
-  --eh-well: oklch(0.12 0.003 286);
-  --eh-well-top: oklch(0 0 0 / 60%);
-  --eh-well-fade: oklch(0 0 0 / 45%);
-  --eh-well-lip: oklch(1 0 0 / 9%);
+  --eh-key-face: oklch(0.225 0.004 286);
+  --eh-key-foot: oklch(0.18 0.004 286);
+  --eh-key-face-up: oklch(0.255 0.004 286);
+  --eh-key-hi: oklch(1 0 0 / 12%);
+  --eh-key-lo: oklch(0 0 0 / 40%);
+  --eh-key-line: oklch(1 0 0 / 5%);
+  --eh-key-drop: 0 1px 0 oklch(0 0 0 / 55%), 0 6px 14px -6px oklch(0 0 0 / 70%);
+  --eh-well: oklch(0.115 0.003 286);
+  --eh-well-top: oklch(0 0 0 / 65%);
+  --eh-well-fade: oklch(0 0 0 / 50%);
+  --eh-well-lip: oklch(1 0 0 / 10%);
   --eh-well-rim: oklch(1 0 0 / 4%);
+  --eh-key-down: oklch(0.145 0.004 286);
 }
 
-/* The face, lit from above: a ramp of light down its top on the room's dark
-   key, its bevel, the pixel it stands proud by and the lift it overlaps the
-   cover on. */
+/* The face: a ramp of light from its top, its bevel (a light along the top,
+   a shade along the foot), a hairline round it, and the pixel it stands
+   proud by. Paper's is a contact shadow only: a key, never a floating card. */
 [data-look="keys"] .eh-ck-skin {
+  border-radius: 12px;
   background-color: var(--eh-key-face);
-  background-image: linear-gradient(var(--eh-key-ramp), transparent 72%);
+  background-image: linear-gradient(var(--eh-key-face), var(--eh-key-foot));
   --eh-skin-shadow:
     inset 0 1px 0 var(--eh-key-hi), inset 0 -1px 0 var(--eh-key-lo),
-    0 1px 0 0 var(--eh-key-drop), var(--shadow-lift);
-  border-radius: 12px;
+    0 0 0 1px var(--eh-key-line), var(--eh-key-drop);
 }
 [data-look="keys"][data-stuck] .eh-ck-skin {
   border-radius: 999px;
 }
+[data-look="keys"] .eh-ck-code [data-slot="code-chip"] {
+  background-image: linear-gradient(var(--eh-key-face), var(--eh-key-foot));
+  box-shadow:
+    inset 0 1px 0 var(--eh-key-hi),
+    inset 0 -1px 0 var(--eh-key-lo),
+    0 0 0 1px var(--eh-key-line),
+    var(--eh-key-drop);
+}
 
-/* The glyph sunk in its well, a key's engraved mark. */
+/* The glyph sunk in its well, a key's engraved mark, in the ink. */
+[data-look="keys"] .eh-ck-glyph {
+  color: var(--foreground);
+}
 [data-look="keys"] .eh-ck-disc {
   background-color: var(--eh-well);
   box-shadow:
@@ -98,34 +107,19 @@
     inset 0 -1px 0 0 var(--eh-well-lip),
     inset 0 0 0 1px var(--eh-well-rim);
 }
-/* The reel's own violet, on its glyph and its well alone (one colour per
-   action, never a state). */
-[data-look="keys"] .eh-ck-glyph[data-reel] {
-  color: var(--reel);
-}
-[data-look="keys"] .eh-ck-glyph[data-reel] > .eh-ck-disc {
-  background-color: color-mix(in oklab, var(--reel) 14%, var(--eh-well));
-}
-
-/* The readout: the numeral in the ink, its light beside it. */
-[data-look="keys"] .eh-ck-num {
-  color: var(--foreground);
-}
 
 /* ══ UNDER THE POINTER ═════════════════════════════════════════════════════ */
 
 @media (hover: hover) {
   /* The key brightens a step under the pointer, its top catching more light. */
   [data-look="keys"] .eh-ck-door:hover > .eh-ck-skin {
-    background-color: var(--eh-key-face-up);
+    background-image: linear-gradient(
+      var(--eh-key-face-up),
+      var(--eh-key-face)
+    );
   }
   [data-eh-ground="room"] [data-look="keys"] .eh-ck-door:hover > .eh-ck-skin {
-    --eh-key-hi: oklch(1 0 0 / 20%);
-  }
-}
-@media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  [data-look="keys"] .eh-ck-skin {
-    transition: background-color 160ms var(--ease-emphasis);
+    --eh-key-hi: oklch(1 0 0 / 18%);
   }
 }
 
@@ -134,12 +128,6 @@
    of light catches its foot (the bevel turned over: a key become a well), so
    which room is open reads in the material itself, never a ring of paint.
    Drawn on the face, so it travels with the fold. */
-[data-look="keys"] {
-  --eh-key-down: oklch(0.955 0.002 286);
-}
-[data-eh-ground="room"] [data-look="keys"] {
-  --eh-key-down: oklch(0.15 0.004 286);
-}
 [data-look="keys"] .eh-ck-door[aria-pressed="true"] > .eh-ck-skin {
   background-color: var(--eh-key-down);
   background-image: none;

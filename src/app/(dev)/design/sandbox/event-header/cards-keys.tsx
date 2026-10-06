@@ -9,6 +9,7 @@ import {
   DoorButton,
   Glyph,
   PillWord,
+  ShoulderPoint,
   Skin,
   waitsOf,
   wordOf,
@@ -22,22 +23,28 @@ import type { ScreenId } from "./scene";
  * button in the product is a key now (identity: keys and wells, the shrink and
  * the halo), so the five doors are drawn as five of them: a face lit from
  * above, machined at its edges, standing a pixel proud, its glyph sunk in a
- * well, its count the camera's readout beside a status light. Round four's
- * cards, made of the product's own material rather than a card of their own.
+ * well, its count the camera's readout. Round four's cards, made of the
+ * product's own material rather than a card of their own.
  *
- * ★ A WAITING COUNT IS A NUMERAL AND A LIGHT, NOTHING MORE: the key's face
- * never takes the waiting colour, so the light is the only hue on the row
- * (the reel's violet marks the reel itself, never a state).
+ * ★ ACHROMATIC, SO PAPER HOLDS AS WELL AS THE ROOM: no light of the brand's
+ * stands on the doors (the cover keeps it), a waiting door is its standby
+ * point and word and its number, and the material says the rest: an open
+ * room's key stays latched down (`cards-keys.css`).
  *
  * ★ THE FOLD GATHERS TO THE MIDDLE, Review first and the row's ends last, a
  * beat apart (`cascade`), so the five read as one gesture into the band.
  */
 
-/** How far the cards rise into the cover and how far it dissolves under them: about half a card. */
+/**
+ * How far the keys rise into the cover, and how far its photograph runs
+ * under them: the photograph ends a third of the way down the first key (on
+ * paper on a crisp edge: a long dissolve there was grey haze behind the
+ * keys' tops), so the keys stand across the seam.
+ */
 const SEAM: Record<ScreenId, { rise: number; fade: number }> = {
-  "375": { rise: 52, fade: 84 },
-  "820": { rise: 48, fade: 84 },
-  "1440": { rise: 40, fade: 72 },
+  "375": { rise: 52, fade: 32 },
+  "820": { rise: 48, fade: 12 },
+  "1440": { rise: 40, fade: 16 },
 };
 
 function Key({ room, i, face, selected, onOpen }: DoorProps) {
@@ -52,11 +59,12 @@ function Key({ room, i, face, selected, onOpen }: DoorProps) {
       className="eh-keys-key"
     >
       <Skin />
-      <Glyph room={room} />
+      <Glyph room={room}>{waits ? <ShoulderPoint /> : null}</Glyph>
       <Words
         room={room}
         line={waits ? wordOf(face.value) : face.value}
         strong={face.strong || face.paused}
+        status={Boolean(waits)}
       />
       <PillWord room={room} />
       <Count face={face} />

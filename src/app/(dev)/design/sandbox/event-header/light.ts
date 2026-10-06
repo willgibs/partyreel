@@ -62,16 +62,6 @@ const INTENSITY: Record<string, number> = {
   "reception-table": 0.12,
 };
 
-/**
- * Before the first photograph the cover is production's house light (its two
- * pools, coral at 25° and a step toward amber at 55°, `event-experience-head.css`),
- * so its seam is lit by that same warmth, the two merged: the light under a
- * cover is the light in it. (Afterglow would give an empty album its seed's
- * hue; production's cover does not draw the seed yet.) ★ NEVER THE CORAL
- * ALONE: on paper's register it lands a step from Afterglow's Fault red.
- */
-const HOUSE = { h: 40, c: 0.15 } as const;
-
 const hueGap = (a: number, b: number) => {
   const d = Math.abs(a - b) % 360;
   return Math.min(d, 360 - d);
@@ -85,10 +75,16 @@ const mixHue = (a: number, b: number, t: number) => {
 const chromaOf = (id: string) =>
   Math.min(0.15, Math.max(0.07, (INTENSITY[id] ?? 0.1) * 1.15));
 
-/** The cover's one lamp: the strongest hue of its photographs merged within 20°, at their strongest intensity. */
-export function lightOfCover(c: Case): { h: number; c: number } {
+/**
+ * The cover's one lamp: the strongest hue of its photographs merged within
+ * 20°, at their strongest intensity. ★ NO PHOTOGRAPH, NO COLOUR: before the
+ * first photograph there is nothing to sample (production's cover shows its
+ * house light, which is the house's, not the album's), so the edge waits
+ * unlit, in the ground's own ink, the way Afterglow's waiting has no hue.
+ */
+export function lightOfCover(c: Case): { h: number; c: number } | null {
   const ids = c.stills.map((s) => s.id).filter((id) => SAMPLED[id]);
-  if (ids.length === 0) return HOUSE;
+  if (ids.length === 0) return null;
   const merged: { h: number; w: number }[] = [];
   for (const id of ids)
     for (const lamp of SAMPLED[id]) {
@@ -111,7 +107,6 @@ export function lightOfCover(c: Case): { h: number; c: number } {
  */
 const REGISTER = {
   room: { l: 0.82, lift: 0.07, c: 0.15, boost: 1.05 },
-  roomLine: { l: 0.92, lift: 0.02, c: 0.13, boost: 1 },
   paper: { l: 0.9, lift: 0.03, c: 0.16, boost: 1.6 },
   paperLine: { l: 0.78, lift: 0.06, c: 0.17, boost: 1.6 },
 } as const;
@@ -126,37 +121,87 @@ const unOlive = (h: number) => (h > 92 && h < 128 ? (h < 110 ? 80 : 138) : h);
 /** A light is never drawn under the chroma that reads as light (never a grey stain). */
 const CHROMA_FLOOR = 0.13;
 
+/**
+ * A lamp's colour in a register, gamut-fitted. ★ A THIN LINE IS CAPPED
+ * BELOW AFTERGLOW'S WASH FLOOR (`cap`): the floor keeps a broad glow from
+ * reading as a grey stain, but a line a pixel or two thick at that chroma
+ * read as a painted stripe (fresh eyes: a dance floor's cover would draw a
+ * teal one), so a line's chroma stops at the cap.
+ */
 function toneOf(
   h: number,
   c: number,
   register: keyof typeof REGISTER,
   dl = 0,
+  cap = 1,
 ): string {
   const r = REGISTER[register];
   const hue = unOlive(h);
   const l = Math.min(0.95, r.l + r.lift * yellowness(hue) + dl);
-  return css(
-    fitChroma({ l, c: Math.min(r.c, Math.max(CHROMA_FLOOR, c * r.boost)), h: hue }),
-  );
+  const chroma = Math.min(cap, r.c, Math.max(CHROMA_FLOOR, c * r.boost));
+  return css(fitChroma({ l, c: chroma, h: hue }));
 }
 
 /** The lamp at three depths across the row, left to right (a hashvatar's own richness). */
-function band(light: { h: number; c: number }, register: keyof typeof REGISTER) {
+function band(
+  light: { h: number; c: number },
+  register: keyof typeof REGISTER,
+  cap = 1,
+) {
   const stops = [
-    `${toneOf(light.h, light.c, register, 0.07)} 17%`,
-    `${toneOf(light.h, light.c, register)} 54%`,
-    `${toneOf((light.h + 348) % 360, light.c, register, -0.07)} 87%`,
+    `${toneOf(light.h, light.c, register, 0.07, cap)} 17%`,
+    `${toneOf(light.h, light.c, register, 0, cap)} 54%`,
+    `${toneOf((light.h + 348) % 360, light.c, register, -0.07, cap)} 87%`,
   ];
   return `linear-gradient(in oklab 90deg, ${stops.join(", ")})`;
 }
 
-/** What the seam take hands its sheet: the glow's band, the source line's band, and the edge a card catches. */
+/** A hue moved `by` degrees toward `to` (the short way round). */
+const toward = (h: number, to: number, by: number) => {
+  const d = ((to - h + 540) % 360) - 180;
+  return (h + Math.sign(d) * Math.min(by, Math.abs(d)) + 360) % 360;
+};
+
+/**
+ * WHAT THE SEAM TAKE HANDS ITS SHEET, per ground: the source line (`core`),
+ * the light just under it (`gold`) and its short fall (`fall`).
+ *
+ * ★ IN THE ROOM A HOT CORE AND A SHORT FALL: a pixel of near-white light
+ * tinted by the lamp, two of the lamp itself, and a fall spent within a
+ * dozen pixels (a long dim tail of warm light reads as brown on the room).
+ * ★ ON PAPER A THIN OPAQUE LINE: the source line in paper's register (the
+ * saturated, darker gold that reads on white), a pixel of glow under it and a
+ * fall of four, the hue nudged ten degrees toward yellow (a translucent
+ * orange on white turns peach).
+ */
 export function seamVars(c: Case, ground: Ground): Record<string, string> {
   const light = lightOfCover(c);
   const paper = ground === "paper";
+  if (!light)
+    return paper
+      ? {
+          "--eh-seam-core": "oklch(0.14 0.004 286 / 26%)",
+          "--eh-seam-gold": "transparent",
+          "--eh-seam-fall": "transparent",
+        }
+      : {
+          "--eh-seam-core": "oklch(1 0 0 / 30%)",
+          "--eh-seam-gold": "oklch(1 0 0 / 10%)",
+          "--eh-seam-fall": "transparent",
+        };
+  if (paper) {
+    const h = toward(light.h, 95, 10);
+    const lamp = { h, c: light.c };
+    return {
+      "--eh-seam-core": band(lamp, "paperLine", 0.15),
+      "--eh-seam-gold": band(lamp, "paper", 0.12),
+      "--eh-seam-fall": band(lamp, "paper", 0.12),
+    };
+  }
+  const core = css(fitChroma({ l: 0.95, c: 0.045, h: unOlive(light.h) }));
   return {
-    "--eh-seam-glow": band(light, paper ? "paper" : "room"),
-    "--eh-seam-line": band(light, paper ? "paperLine" : "roomLine"),
-    "--eh-seam-edge": toneOf(light.h, light.c, paper ? "paperLine" : "roomLine"),
+    "--eh-seam-core": `linear-gradient(${core}, ${core})`,
+    "--eh-seam-gold": band(light, "room", 0.12),
+    "--eh-seam-fall": band(light, "room", 0.12),
   };
 }

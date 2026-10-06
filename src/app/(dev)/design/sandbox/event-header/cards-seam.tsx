@@ -11,6 +11,7 @@ import {
   DoorButton,
   Glyph,
   PillWord,
+  ShoulderPoint,
   Skin,
   waitsOf,
   wordOf,
@@ -21,31 +22,32 @@ import { seamVars } from "./light";
 import type { ScreenId } from "./scene";
 
 /**
- * SEAM: THE COVER'S OWN LIGHT FALLS ON THE DOORS (round five's third take, in
+ * SEAM: THE COVER'S OWN LIGHT, BETWEEN THE DOORS (round five's second take, in
  * Afterglow's language). Afterglow allows one light a screen, drawn as a Ring,
  * a Seam or a Bloom, and the Seam is "light born where a photograph ends and
  * the ground begins": on the hub that is exactly where the cards stand. So the
- * cover's photograph ends on a lit edge in its own colour (`light.ts`, sampled
- * from the cover's stills), the light falls a short way down onto the page
- * through the gaps between the cards, and each card's top catches it. The
- * cards themselves stay quiet: the light is the delight, and it is the
- * album's own.
+ * cover's photograph ends on a crisp edge lit in its own colour (`light.ts`,
+ * sampled from the cover's stills), and the cards stand across that edge, a
+ * third of the way down them: they cover the seam (his round-two ask, "cards
+ * covering seams"), and the light shows only between them and past the row's
+ * ends, "the way sun through a door's gap lies on a white wall". The cards
+ * themselves stay quiet: the light is the delight, and it is the album's own.
  *
  * ★ THE ONE LIGHT ON THE FIRST SCREEN: nothing else on it glows (the code
- * keeps its white mat, a waiting count is a point and its word), and stuck,
- * once the cover has gone, the light goes with it: the band is quiet.
- *
- * ★ ON PAPER, AFTERGLOW'S PAPER REGISTER: a crisp source line where the light
- * enters, brighter and more chromatic, a third of the room's reach, "the way
- * sun through a door's gap lies on a white wall"; the white cards stay paper
- * (a coloured edge on a white card is a painted border, never light).
+ * keeps its white plate, a waiting count is a point and its word), and stuck,
+ * once the cover has gone, the light goes with it. Before the first
+ * photograph there is no colour: the edge waits unlit, in the ground's ink.
  */
 
-/** The cards stand a hair under the lit edge; the photograph ends 8px above their tops. */
+/**
+ * The cards rise about half a card into the cover and its photograph ends a
+ * third of the way down the first card (`fade` = `rise` less that third: 24px
+ * at a desk, 36 on a tablet's tile, 20 in a hand), where the light is born.
+ */
 const SEAM: Record<ScreenId, { rise: number; fade: number }> = {
-  "375": { rise: 52, fade: 60 },
-  "820": { rise: 48, fade: 56 },
-  "1440": { rise: 40, fade: 48 },
+  "375": { rise: 52, fade: 32 },
+  "820": { rise: 48, fade: 12 },
+  "1440": { rise: 40, fade: 16 },
 };
 
 function Door({ room, i, face, selected, onOpen }: DoorProps) {
@@ -60,11 +62,12 @@ function Door({ room, i, face, selected, onOpen }: DoorProps) {
       className="eh-seam-door"
     >
       <Skin />
-      <Glyph room={room} />
+      <Glyph room={room}>{waits ? <ShoulderPoint /> : null}</Glyph>
       <Words
         room={room}
         line={waits ? wordOf(face.value) : face.value}
         strong={face.strong || face.paused}
+        status={Boolean(waits)}
       />
       <PillWord room={room} />
       <Count face={face} />
@@ -73,7 +76,7 @@ function Door({ room, i, face, selected, onOpen }: DoorProps) {
 }
 
 export const SEAM_TAKE: DoorOption = {
-  // The cover's foot is the strip alone: the cards hang under its lit edge.
+  // The cover's foot is the strip alone: the cards stand across its lit edge.
   CoverFoot: ({ fact }) => fact,
   Page: (p) => (
     <CardRow
@@ -85,8 +88,9 @@ export const SEAM_TAKE: DoorOption = {
       bandStyle={seamVars(p.c, p.ground) as CSSProperties}
       underlay={
         <span aria-hidden className="eh-seam-under">
-          <span className="eh-seam-glow" />
-          <span className="eh-seam-line" />
+          <span className="eh-seam-core" />
+          <span className="eh-seam-gold" />
+          <span className="eh-seam-fall" />
         </span>
       }
     />
