@@ -17,6 +17,10 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Admin: the change-plan configuration check rings no bell; read it in the spend watch's daily run and raise at its source (it is read live on each /admin/accounts view today) (credit-watch).
+- Pricing (milestone 38): adopt an orphan's grant (record, convert, this claim's release) as one SQL function under her profiles lock, so a failure between them never leaves the orphan granted and unconverted until a retry or the operator's Retry; flag two orphans both holding grants, and have `record_pass_credit_grant` refuse a released claim (the Advisor's Q38 and credit-watch's second red-team pass).
+- Library: draw the Accounts' billing checks and the account page's credits card on the compositions page, the portal's one automated eye (AAL2 keeps `lab:smoke` off /admin) (credit-watch).
+- Billing: the host's own words for Pro pending: her Plan card reads a lapsed pass while her credited Pro plan lands (seconds, or longer when its event is delayed); a line that her Pro is on its way, and what to do if it never lands (credit-watch).
 - Dashboard: retire the host-dashboard board (its picks are built: chooser = words, details = built), deleting `sandbox/host-dashboard/` and its `docs/reviews/` ledger, then `seasonsOf`, `HomeView.events.seasons` and `src/lib/dashboard/seasons.ts`, which only its drawings composed (crumbs-82).
 - Design: a press on the stage's chooser moves the old lead into This week or the list with no sign of where it went; a short shared-element move would say it (crumbs-82).
 - Code hygiene: her stage's rule and her Display share one jsonb (`profiles.events_display`), each written read-then-write, so two devices writing within a round trip keep the later write whole; a jsonb-merge RPC or the rule's own column if that ever matters (crumbs-82).

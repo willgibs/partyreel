@@ -88,8 +88,9 @@ semantics live in its doc.
   step), `tier_limits`, `upload_allowance` and `uploads_used` (INVOKER; every other caller is a DEFINER body),
   `uploads_windows` (an INVOKER read behind the admin seam, every listed host's `uploads_used` in one call) and
   `consume_passes_for_pro_credit` (INVOKER, milestone 37's pass-to-Pro conversion, kept until no deployed build names
-  it), the credit's `claim_pass_credit`, `record_pass_credit_grant` and `convert_pass_credit` and the pass recompute
-  `recompute_pass_entitlement` (INVOKER, the webhook's and the nightly sweep's, each taking her profiles row first),
+  it), the credit's `claim_pass_credit`, `record_pass_credit_grant`, `convert_pass_credit` and `release_pass_credit`
+  and the pass recompute `recompute_pass_entitlement` (INVOKER, the webhook's and the nightly sweep's, each taking her
+  profiles row first),
   `pass_lapsed` (INVOKER, the operator's `uploads_windows` asks it), the paged album's
   reader `album_changes_since` (an INVOKER read the Next routes call after their own capability check) and its log's
   prune `album_prune_tombstones` (DEFINER: the tables grant the service role SELECT only), the develop's
