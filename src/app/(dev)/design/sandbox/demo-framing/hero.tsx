@@ -644,7 +644,7 @@ export function HeroStage({
               href="/demo"
               aria-label="Open the live demo"
               data-df-door=""
-              className="block rounded-[28px] outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-4 focus-visible:ring-offset-background active:scale-[0.99]"
+              className="block focus-halo rounded-[28px] outline-none active:scale-[0.99]"
               style={{ transition: "scale 150ms var(--ease-emphasis)" }}
               {...lift}
             >

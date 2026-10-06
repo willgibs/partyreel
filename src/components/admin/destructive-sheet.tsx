@@ -88,6 +88,11 @@ export type DestructiveSheetProps = {
   lede: string;
   /** The confirm button's words. A verb, never "OK". */
   verb: string;
+  /**
+   * What the confirm says while the act runs ("Deleting", "Removing"), under the working arc: the
+   * key stays busy and focusable, never off (Button's `working`). "Working" when not given.
+   */
+  working?: string;
   /** Everything this act reaches, one line each. Never empty. With an `option`, it may read the option's state. */
   touches: string[] | ((optionOn: boolean) => string[]);
   /**
@@ -148,6 +153,7 @@ function ConfirmBody({
   title,
   lede,
   verb,
+  working = "Working",
   touches,
   severity,
   confirmText,
@@ -296,9 +302,11 @@ function ConfirmBody({
           type="button"
           variant={severity === "permanent" ? "destructive" : "default"}
           onClick={confirm}
-          disabled={!matched || noteMissing || pending}
+          working={pending}
+          workingLabel={working}
+          disabled={!matched || noteMissing}
         >
-          {pending ? "Working" : verb}
+          {verb}
         </Button>
       </PopupFooter>
     </>
@@ -338,7 +346,13 @@ export function GuardedSwitch({
   /** What is true right now, in a line, given the state. */
   description: string;
   ariaLabel: string;
-  sheet: { title: string; lede: string; verb: string; touches: string[] };
+  sheet: {
+    title: string;
+    lede: string;
+    verb: string;
+    working?: string;
+    touches: string[];
+  };
   onToggle: (next: boolean) => Promise<ActionResult>;
   onMessage: string;
   offMessage: string;
@@ -380,6 +394,7 @@ export function GuardedSwitch({
         title={sheet.title}
         lede={sheet.lede}
         verb={sheet.verb}
+        working={sheet.working}
         touches={sheet.touches}
         severity="reversible"
         successMessage={offMessage}

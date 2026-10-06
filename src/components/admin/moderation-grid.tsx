@@ -109,7 +109,8 @@ function ModerationTile({
           type="button"
           onClick={(e) => onOpen(index, e.currentTarget.closest("li"))}
           aria-label={item.type === "photo" ? "View photo" : "Play video"}
-          className="size-full cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-inset"
+          data-surface="photo"
+          className="size-full focus-halo cursor-pointer outline-none halo-inset"
         >
           <MediaTile item={item} />
         </button>
@@ -128,7 +129,7 @@ function ModerationTile({
             type="button"
             variant="secondary"
             size="icon-sm"
-            disabled={isPending}
+            working={isPending}
             aria-label="Restore"
             title="Restore"
             onClick={() =>
@@ -162,6 +163,7 @@ function ModerationTile({
               title={`Remove this ${item.type}?`}
               lede={`It leaves the album and the host's Deleted now; you can restore it here for ${RECENTLY_DELETED_WINDOW_DAYS} days.`}
               verb="Remove"
+              working="Removing"
               touches={operatorRemovalTouches({
                 kind: item.type,
                 eventName: item.eventName,

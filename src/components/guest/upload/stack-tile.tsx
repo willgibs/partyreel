@@ -159,11 +159,12 @@ export function UploadStackTile({
         <button
           type="button"
           data-stop-upload
+          data-surface="photo"
           onClick={onStop}
           style={READING_PANE}
           className={cn(
             GLASS_MARK,
-            "absolute top-0 right-0 flex size-6 items-center justify-center rounded-full text-white transition-transform duration-150 ease-emphasis outline-none before:absolute before:-inset-2.5 before:content-[''] focus-visible:ring-2 focus-visible:ring-white/70 active:scale-[0.88] motion-reduce:active:scale-100",
+            "absolute top-0 right-0 flex size-6 focus-halo items-center justify-center rounded-full text-white transition-transform duration-150 ease-emphasis outline-none before:absolute before:-inset-2.5 before:content-[''] active:scale-[0.88] motion-reduce:active:scale-100",
           )}
         >
           <X

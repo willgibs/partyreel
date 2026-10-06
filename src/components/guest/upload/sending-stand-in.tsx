@@ -93,10 +93,11 @@ export function SendingStandIn({
           <button
             type="button"
             data-stop-upload
+            data-surface="photo"
             onClick={onStop}
             className={cn(
               GLASS_MARK,
-              "relative flex size-8 shrink-0 items-center justify-center rounded-full text-white transition-transform duration-150 ease-emphasis outline-none before:absolute before:-inset-1.5 before:content-[''] focus-visible:ring-2 focus-visible:ring-white/70 active:scale-[0.88] motion-reduce:active:scale-100",
+              "relative flex size-8 shrink-0 focus-halo items-center justify-center rounded-full text-white transition-transform duration-150 ease-emphasis outline-none before:absolute before:-inset-1.5 before:content-[''] active:scale-[0.88] motion-reduce:active:scale-100",
             )}
           >
             <X

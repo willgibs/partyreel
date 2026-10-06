@@ -25,7 +25,7 @@ export function AdminNav() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="group inline-flex items-center gap-2 rounded-md border bg-background px-3 py-1.5 text-sm font-medium transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 data-[state=open]:bg-muted">
+      <DropdownMenuTrigger className="group inline-flex focus-halo items-center gap-2 rounded-md border bg-background px-3 py-1.5 text-sm font-medium transition-colors outline-none hover:bg-muted data-[state=open]:bg-muted">
         <ActiveIcon className="size-4 text-muted-foreground" />
         {active.label}
         <ChevronDown className="size-3.5 text-muted-foreground transition-transform duration-150 group-data-[state=open]:rotate-180" />

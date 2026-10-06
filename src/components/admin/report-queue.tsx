@@ -889,6 +889,8 @@ export function verdictSheet(entry: ReviewEntry): {
   title: string;
   lede: string;
   verb: string;
+  /** The confirm's words while it runs (the sheet's `working`). */
+  working: string;
   touches: string[];
   done: string;
 } {
@@ -908,6 +910,7 @@ export function verdictSheet(entry: ReviewEntry): {
       title: "Close this report as Actioned?",
       lede: `The ${noun} is already deleted; the report closes as Actioned.`,
       verb: "Action",
+      working: "Actioning",
       touches: [closes],
       done: "Report actioned.",
     };
@@ -918,6 +921,7 @@ export function verdictSheet(entry: ReviewEntry): {
       title: "Action this report?",
       lede: "The report closes as Actioned; nothing else changes.",
       verb: "Action",
+      working: "Actioning",
       touches: [closes, "The album itself is unchanged: act on it from Albums"],
       done: "Report actioned.",
     };
@@ -928,6 +932,7 @@ export function verdictSheet(entry: ReviewEntry): {
       title: "Close this report as Actioned?",
       lede: `The ${kind} is already taken down; the report closes as Actioned.`,
       verb: "Action",
+      working: "Actioning",
       touches: [
         closes,
         `The ${kind} stays down: restore it from Albums if it should come back`,
@@ -943,6 +948,7 @@ export function verdictSheet(entry: ReviewEntry): {
       ? "It leaves the album and the host's Deleted now, and the report closes as Actioned."
       : "It is already out of the album; this takes it out of the host's Deleted too, and the report closes as Actioned.",
     verb: "Remove",
+    working: "Removing",
     touches: [
       ...operatorRemovalTouches({
         kind,
@@ -1040,7 +1046,9 @@ function DeskVerbs({
             type="button"
             variant="outline"
             size="sm"
-            disabled={pending || busy}
+            working={busy}
+            workingLabel="Opening the hold"
+            disabled={pending}
             onClick={openHold}
           >
             <ShieldAlert />
@@ -1087,6 +1095,7 @@ function DeskVerbs({
         title={verdict.title}
         lede={verdict.lede}
         verb={verdict.verb}
+        working={verdict.working}
         touches={verdict.touches}
         severity="reversible"
         note={{
@@ -1106,6 +1115,7 @@ function DeskVerbs({
           title={`Hold and preserve this ${scope.kind}?`}
           lede="It stays out of every purge until the hold is released from Forensics, and this report stays open."
           verb="Set hold and preserve"
+          working="Holding"
           touches={(takeDown) => holdTouches(scope, { takeDown })}
           severity="reversible"
           option={{
@@ -1136,6 +1146,7 @@ function DeskVerbs({
           title="Ask the reporter for proof?"
           lede="One mail, in your words, to the address she confirmed as she reported."
           verb="Send the question"
+          working="Sending"
           touches={[
             "One mail to the address she confirmed; this portal never shows it",
             "Her answer lands on this report, beside its photo",
@@ -1161,6 +1172,8 @@ function DeskVerbs({
 function PhoneActs({ entry }: { entry: ReviewEntry }) {
   const w = useContext(WritesContext);
   const [pending, startTransition] = useTransition();
+  // Which act is working, so that key says what it does while the other waits off.
+  const [acting, setActing] = useState<"down" | "hold" | null>(null);
   if (entry.subject !== "item" || !entry.media) {
     return (
       <p data-report-phone-acts className="text-caption text-muted-foreground">
@@ -1173,6 +1186,7 @@ function PhoneActs({ entry }: { entry: ReviewEntry }) {
   const down = entry.media.standing === "operator";
 
   function takeItDown() {
+    setActing("down");
     startTransition(async () => {
       const result = await w.takeDown(entry.reportId);
       if (!result.ok) {
@@ -1192,6 +1206,7 @@ function PhoneActs({ entry }: { entry: ReviewEntry }) {
   }
 
   function hold() {
+    setActing("hold");
     startTransition(async () => {
       const result = await w.hold(entry.reportId, null, true);
       if (!result.ok) {
@@ -1210,7 +1225,9 @@ function PhoneActs({ entry }: { entry: ReviewEntry }) {
         type="button"
         variant="destructive"
         className="w-full"
-        disabled={pending || down}
+        working={pending && acting === "down"}
+        workingLabel="Taking it down"
+        disabled={down || (pending && acting !== "down")}
         onClick={takeItDown}
       >
         {down ? "Taken down" : PHONE_TAKE_DOWN}
@@ -1220,7 +1237,9 @@ function PhoneActs({ entry }: { entry: ReviewEntry }) {
           type="button"
           variant="outline"
           className="w-full"
-          disabled={pending}
+          working={pending && acting === "hold"}
+          workingLabel="Holding"
+          disabled={pending && acting !== "hold"}
           onClick={hold}
         >
           <ShieldAlert />

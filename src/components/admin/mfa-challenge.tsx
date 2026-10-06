@@ -18,7 +18,7 @@ export function MfaChallenge() {
   const [busy, setBusy] = useState(false);
 
   async function verify() {
-    if (code.length !== 6) return;
+    if (code.length !== 6 || busy) return;
     setBusy(true);
     try {
       const list = await supabase.auth.mfa.listFactors();
@@ -68,10 +68,12 @@ export function MfaChallenge() {
       />
       <Button
         className="w-full"
-        disabled={busy || code.length !== 6}
+        working={busy}
+        workingLabel="Verifying"
+        disabled={code.length !== 6}
         onClick={verify}
       >
-        {busy ? "Verifying..." : "Verify"}
+        Verify
       </Button>
     </div>
   );

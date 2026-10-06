@@ -135,7 +135,7 @@ function Tree({
             onChange={(e) => setQuery(e.target.value)}
             placeholder={`Filter ${areaLabel}`}
             aria-label={`Filter ${areaLabel}`}
-            className="h-8 w-full rounded-md border border-border bg-card pr-2 pl-8 text-[13px] outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+            className="h-8 w-full focus-halo rounded-md border border-border bg-card pr-2 pl-8 text-[13px] outline-none placeholder:text-muted-foreground"
           />
         </div>
       </div>
@@ -356,7 +356,7 @@ function EditorRoot() {
             onKeyDown={(e) => e.key === "Enter" && setOpen(false)}
             placeholder="/Users/you/partyreel"
             spellCheck={false}
-            className="mt-1 h-7 w-full rounded-md border border-border bg-card px-2 text-[11px] text-foreground outline-none placeholder:text-muted-foreground/70 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+            className="mt-1 h-7 w-full focus-halo rounded-md border border-border bg-card px-2 text-[11px] text-foreground outline-none placeholder:text-muted-foreground/70"
           />
         </label>
       ) : (

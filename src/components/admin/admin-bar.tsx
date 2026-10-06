@@ -167,7 +167,7 @@ export function AdminBar({
               aria-label="Operator menu"
               className={cn(
                 "flex size-7 items-center justify-center rounded-full bg-muted text-caption font-medium transition-colors outline-none",
-                "hover:bg-muted/70 focus-visible:ring-3 focus-visible:ring-ring/50 data-[state=open]:bg-muted/70",
+                "focus-halo hover:bg-muted/70 data-[state=open]:bg-muted/70",
               )}
             >
               {initial}

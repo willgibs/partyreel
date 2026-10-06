@@ -52,7 +52,7 @@ export function FileDropzone({
         handleFiles(e.dataTransfer.files);
       }}
       className={cn(
-        "flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-muted/40 px-6 py-10 text-center transition-[transform,border-color,background-color] duration-150 ease-emphasis outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-[0.99]",
+        "flex w-full focus-halo cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-muted/40 px-6 py-10 text-center transition-[transform,border-color,background-color] duration-150 ease-emphasis outline-none active:scale-[0.99]",
         dragging && "border-primary bg-primary/5",
         disabled && "pointer-events-none opacity-50",
       )}

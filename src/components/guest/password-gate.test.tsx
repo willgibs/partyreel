@@ -89,6 +89,40 @@ describe("PasswordGate", { timeout: 20_000 }, () => {
     expect(vi.mocked(global.fetch)).toHaveBeenCalledTimes(1);
   });
 
+  it('★ a pending unlock works, never goes off: "Unlocking" under the arc, its focus kept, a second press swallowed', async () => {
+    // Button's `working` (identity r5, loading=words): the key turns to what it does and stays busy and
+    // focusable, where a disabled key dropped the keyboard's place and said "Unlocking…" in a grey nobody reads.
+    let answer!: (res: Response) => void;
+    vi.mocked(global.fetch).mockReturnValue(
+      new Promise<Response>((resolve) => (answer = resolve)),
+    );
+    renderGate(vi.fn());
+    fireEvent.change(screen.getByLabelText("Event password"), {
+      target: { value: "right-password" },
+    });
+    const key = screen.getByRole("button", { name: "Unlock" });
+    key.focus();
+    fireEvent.click(key);
+    await waitFor(
+      () => expect(key).toHaveAttribute("aria-busy", "true"),
+      UNDER_LOAD,
+    );
+    expect(key).toHaveAccessibleName("Unlocking");
+    expect(key.querySelector(".working-arc")).not.toBeNull();
+    expect(key).not.toBeDisabled();
+    expect(document.activeElement).toBe(key);
+    // The press and the Enter key alike: one ask while one is out.
+    fireEvent.click(key);
+    fireEvent.submit(key.closest("form")!);
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    await act(async () => answer({ ok: false } as Response));
+    await waitFor(
+      () => expect(key).not.toHaveAttribute("aria-busy"),
+      UNDER_LOAD,
+    );
+    expect(key).toHaveAccessibleName("Unlock");
+  });
+
   it("the in-place morph: the gate stays planted and the button turns into the beat", async () => {
     vi.mocked(global.fetch).mockResolvedValue({ ok: true } as Response);
     renderGate(vi.fn());

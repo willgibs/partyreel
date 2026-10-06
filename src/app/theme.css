@@ -41,6 +41,10 @@
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
+  /* The warning's WORDS read their own token (globals.css, THE WARNING'S WORDS): the amber is a light
+     on paper, 1.75:1 as text. Tailwind reads `--text-color-*` before `--color-*` for `text-*` alone,
+     so a fill, a border and a glyph keep the amber. */
+  --text-color-warning: var(--warning-ink);
   --color-warning-foreground: var(--warning-foreground);
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);

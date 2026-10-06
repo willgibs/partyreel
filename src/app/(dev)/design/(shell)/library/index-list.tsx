@@ -71,7 +71,7 @@ export function LibraryIndex({ rows }: { rows: LibraryRow[] }) {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by name, file, or what it is for"
             aria-label="Search the catalog"
-            className="h-10 w-full rounded-lg border border-border bg-card pr-3 pl-9 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring/40"
+            className="h-10 w-full focus-halo rounded-lg border border-border bg-card pr-3 pl-9 text-sm outline-none placeholder:text-muted-foreground"
           />
         </div>
         <p className="mt-1.5 text-[11px] text-muted-foreground tabular-nums">

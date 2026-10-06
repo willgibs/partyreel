@@ -63,7 +63,7 @@ export function AdminRail({
       <button
         type="button"
         onClick={onOpenPalette}
-        className="flex items-center gap-2 rounded-md border bg-background px-2.5 py-1.5 text-working text-muted-foreground transition-colors duration-150 outline-none hover:border-foreground/25 hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+        className="flex focus-halo items-center gap-2 rounded-md border bg-background px-2.5 py-1.5 text-working text-muted-foreground transition-colors duration-150 outline-none hover:border-foreground/25 hover:text-foreground"
       >
         <Search aria-hidden className="size-3.5" />
         <span className="flex-1 text-left">Search or jump to</span>
@@ -89,7 +89,7 @@ export function AdminRail({
                 aria-current={current ? "page" : undefined}
                 className={cn(
                   "flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-working transition-colors duration-150 outline-none",
-                  "focus-visible:ring-3 focus-visible:ring-ring/50",
+                  "focus-halo",
                   current
                     ? "bg-muted font-medium text-foreground"
                     : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
