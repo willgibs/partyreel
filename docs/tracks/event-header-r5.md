@@ -1,6 +1,6 @@
 ---
 track: event-header-r5
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "e123a6a9"            # the launch-prep SHA the branch was cut from
 board: event-header
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -73,19 +73,53 @@ working.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
-
-## Where I am
-
-- Done: the fresh-eyes pass applied (glass cut; the point beside its word and on the band's glyph; the band the bar's
-  own material; the code a pill; the reel ink; the seam rebuilt across the cards; points' ink badges and crisp paper
-  edges); light gate green on the revision. Next: the Handoff.
+- **Commits, pushed on `lp/event-header-r5`:** WIP `c6e1aabbd` (four takes), `c68b505b6` (the fresh-eyes pass
+  applied, three takes), `730437f42` (the reduced fold's ground), the sync `2df95ffc1` (merge of launch-prep at
+  `e10377e49`: event-header-wiring into my read `event-hub-head.tsx`, identity-wiring's halo and shrink), `0644b7153`
+  (the band's code chip composes with production's halo), then this manifest. launch-prep moved after the sync
+  (`94dd62e41`: records, crumbs-82, credit-watch); none touches my folder or reads, and it merges cleanly, so no second
+  sync.
+- **Gates on the synced tree, sha `0644b7153`, each its own exit code** (a board's light gate, PROGRAM's "speed over
+  proof"; logs in `../partyreel-wt/_scratch/event-header-r5/g2-*.log`): `pnpm typecheck` 0; `pnpm lint` 0;
+  `vitest run src/app/(dev)/design/ src/components/lab/ src/app/keyframe-uniqueness.test.ts
+  src/lib/track-manifests.test.ts` 0 (757 passed); `pnpm lab:smoke --base http://localhost:3135` 0 (20 checks, the
+  board's reading 881 of 1200 words); `pnpm lab:demo --board event-header --base http://localhost:3135` 0 (1 step,
+  3 options of 2 frames, the stage moving up to 5.89%; at 1440 it starts 0.30 down, at 375 0.35). No full test run and
+  no production build (a board ships no production byte).
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = 25 paths under
+  `src/app/(dev)/design/sandbox/event-header/` (round four's `cards.*`, `glass.*`, `windows.*` deleted) + this file.
+  No exceptions.
+- **Items:**
+  - The board at round five (`spec.ts`): one ask, `cards`, three takes: `keys` (`cards-keys.*`), `seam`
+    (`cards-seam.*`, recommended, borrowing `points`' phone), `points` (`cards-points.*`); round four in history; six
+    carried calls.
+  - One row and fold for every take (`card-kit.tsx`, `card-kit.css`): the footprint, the band (the face left, the code a
+    pill right, the doors centred, the bar's own material from the fold's first frame), the FLIP fold with a cascade
+    from Review out, reduced motion's dissolve, the identity halo and shrink drawn on the doors, and every shape read off
+    the row's width (a container query: a phone's grid under 640, tiles to 1088, the desk's cards past it).
+  - Afterglow's grammar on every take: a waiting door's standby point beside its word, its number alone in the
+    readout's figures, the point on the glyph's shoulder in the band; every glyph ink (the reel's too).
+  - `light.ts`: the cover's light in Afterglow's registers, brand r1's sampled values carried (one lamp, three depths,
+    capped for a line; no photograph, no colour).
+  - Frames: both grounds side by side in every take, both live; a tablet screen (820 by 1180) on the Screen knob; the
+    Ground knob retired for Scroll (first screen, or both scrolled into the album). `scene.tsx`, `head.tsx`, `hub.tsx`
+    and `album.tsx` take the tablet.
+  - Glass drawn whole (Crystal panes on the photograph, one capsule stuck) and cut at the fresh-eyes pass: Q2.
+- **Captures for the desk** (kept, the lane's scratch): `../partyreel-wt/_scratch/event-header-r5/shots/pack/`
+  (`r-*` the final takes: bands, phones, tablets, moments) and `shots/q-zoom.png` (the seam's light at 2x).
+- **Assets requested from Will:** none.
+- **Board ideas:**
+  - The voice: "Guests" beside "As a guest" invites a mis-tap ("Preview"?), "Guests · 34 guests" says its noun twice,
+    and "1 left" and "You let in" read unclear out of context (the fresh-eyes pass).
+  - Seam needs a real per-photo light sampler in production (Afterglow's own listed cost), the brand round's or the
+    seam's wiring's; the cover's stills dissolve, and the light reads them as one lamp.
+  - Points' foot tab bar wants a walk in iOS Safari against its collapsing bottom toolbar before any wiring.
+  - For Keys to read as the house's material, the album's own toolbar chips beside the doors need the same key face.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none.
+- **Calls his to overrule** (each a carried call on the board): `band-ends` (the code a pill at the right end, the
+  doors centred), `band-ground` (the bar's own material), `standby-still` (the point holds still on the hub),
+  `reel-ink` (every glyph ink), `tablet-tiles` (tiles from 640 to 1088), `reduced-fold` (a dissolve, never a snap),
+  `settings-paused` (G4: Paused, plain); and three takes rather than four (Q2).
+- **Look at first:** `seam` tonight at 1440, the room beside paper (the light between the doors); then press
+  `points` at 375 and scroll (one row, then the foot bar); then `keys`, press Guests in Try it (an open room's key stays
+  down).
