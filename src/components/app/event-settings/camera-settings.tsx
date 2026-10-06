@@ -85,7 +85,7 @@ import { cn } from "@/lib/utils";
  * blank until hydration, since the server cannot know what "9 am" means to her. ★ A PARTY FAR FROM HOME (event-zone):
  * where the party's zone is not hers (`farZone`), every time here is the party's clock and names its place ("Develops
  * Sat, Oct 3, 9:00 AM in Mexico City"), the field takes the party's clock too, and a default develop is the party's 9 am
- * (`developToKeep`), so what she reads is the morning her guests will live.
+ * (`patchForStyle`'s and `developToKeep`'s `zone`), so what she reads is the morning her guests will live.
  */
 
 export type CaptureAndRevealValue = {
@@ -330,19 +330,13 @@ export function AlbumStyles({
   const choose = (to: AlbumStyle) => {
     setPending(null);
     if (to === style) return;
-    // ★ THE PARTY'S 9 AM (event-zone): a time still ahead is kept, else the party's own morning after is the one handed
-    // in to keep, since `patchForStyle`'s own offer reads the browser's zone (`developToKeep`).
-    const patch = patchForStyle(
-      to,
-      {
-        ...value,
-        developsAt: developToKeep(value.developsAt, hostPartyZone(partyZone), {
-          eventDate,
-          eventEndDate,
-        }),
-      },
-      { eventDate, eventEndDate },
-    );
+    // ★ THE PARTY'S 9 AM (event-zone): a time still ahead is kept, else `patchForStyle` offers the party's own morning
+    // after, read in the zone it is handed.
+    const patch = patchForStyle(to, value, {
+      eventDate,
+      eventEndDate,
+      zone: hostPartyZone(partyZone),
+    });
     const consequence = styleSwitchConsequence({
       from: value,
       to: patch,

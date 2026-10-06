@@ -49,7 +49,8 @@
     "button": [
       "<Row>\n  <Button>\n    <ImageUp /> Add photos\n  </Button>\n  <Button variant=\"outline\">\n    <Share2 /> Share\n  </Button>\n</Row>",
       "<OnAPhoto>\n  <div className=\"flex items-center gap-2\">\n    <Button variant=\"on-photo\" size=\"cta\">\n      <ImageUp /> Add photos\n    </Button>\n    <Button\n      variant=\"glass\"\n      size=\"icon-cta\"\n      aria-label=\"Watch the highlight reel\"\n    >\n      <Play className=\"fill-current\" />\n    </Button>\n    <Button variant=\"glass\" size=\"icon-cta\" aria-label=\"Invite\">\n      <QrCode />\n    </Button>\n  </div>\n</OnAPhoto>",
-      "<Row>\n  <Button disabled>Default</Button>\n  <Button variant=\"outline\" disabled>\n    Outline\n  </Button>\n</Row>"
+      "<Row>\n  <Button disabled>Default</Button>\n  <Button variant=\"outline\" disabled>\n    Outline\n  </Button>\n</Row>",
+      "<Row>\n  <Button working workingLabel=\"Saving\">\n    Save\n  </Button>\n  <Button variant=\"outline\" working workingLabel=\"Saving\">\n    Save\n  </Button>\n</Row>"
     ],
     "badge": [
       "<Row>\n  <Badge variant=\"live\">Live</Badge>\n  <Badge variant=\"success\">Approved</Badge>\n  <Badge variant=\"warning\">12 waiting</Badge>\n  <Badge variant=\"destructive\">Over cap</Badge>\n  <Badge variant=\"secondary\">Draft</Badge>\n  <Badge variant=\"outline\">Private</Badge>\n</Row>"

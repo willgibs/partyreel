@@ -12,8 +12,9 @@
  *     plan); for Free it is null and the code falls back to the tier default below
  *     via `defaultCapForTier`. So Pro's "storage selector" is just different caps
  *     under `tier="pro"`.
- *   • Events PERSIST until the host deletes them — there is deliberately NO event
- *     end date. If an event could be "ended" while keeping its media, a user could
+ *   • Events PERSIST until the host deletes them — an event deliberately NEVER
+ *     EXPIRES (its dates, Settings' end date among them, only say when the party
+ *     happens). If an event could be "ended" while keeping its media, a user could
  *     fill → end → create-new → repeat for unlimited free storage. `MAX_EVENTS`
  *     counts events that EXIST (deleted_at IS NULL); deleting one is the only way to
  *     free a slot.

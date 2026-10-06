@@ -9,7 +9,9 @@ import {
   getHostAvatarSeed,
 } from "@/lib/db/queries/guest-events-admin";
 import { getEventGuestList } from "@/lib/db/queries/social";
+import { albumWaits } from "@/lib/disposable/waiting.server";
 import { pageDoor } from "@/lib/events/closed-door.server";
+import { uploadsWait } from "@/lib/guest/upload-tracker";
 import {
   resolveGalleryDecision,
   type GalleryDecision,
@@ -69,6 +71,17 @@ export type AsGuestRead = {
   guests: GuestListItem[];
   /** Only me: nobody but her gets in, so every guest meets the shut door. */
   shut: boolean;
+  /**
+   * Whether anything waits in an album still empty to the eye (`albumWaits`), known before the first paint as the guest
+   * page knows it, so the cover's Add says a newcomer's words from the first byte, never "the first photo" over shots
+   * that wait.
+   */
+  waitingOnArrival: boolean;
+  /**
+   * The party's zone (`events.time_zone`) for words only, as the guest page hands its own (`PartyZoneContext`): a far
+   * party's develop time is said in both clocks. Null where it has none, and every time is then her own clock.
+   */
+  partyZone: string | null;
 };
 
 /**
@@ -149,6 +162,17 @@ export async function readAsGuest(
   ]);
   const { cards, unverified } = splitGuestList(entries);
   const guests = [...(await withAvatarUrls(cards)), ...unverified];
+  // ★ ANYTHING WAITING IN AN ALBUM STILL EMPTY TO THE EYE, ASKED AS THE GUEST PAGE ASKS IT (crumbs-43's
+  // `waitingOnArrival`, crumbs-86): only where it decides the Add's words (full access, uploads open, an album whose
+  // uploads wait, nothing visible yet), so the first byte already says what the live source would say a moment later.
+  const waitingOnArrival =
+    !shut &&
+    decision.access === "full" &&
+    event.accepting_uploads &&
+    uploadsWait(event).waits &&
+    stats.approvedTotal === 0
+      ? await albumWaits(event.id)
+      : false;
 
   return {
     // ★ THE PASS NEVER LEAVES THE SERVER (the guest page's own rule): it is the proof the album's reads ask for,
@@ -163,5 +187,8 @@ export async function readAsGuest(
       : null,
     guests,
     shut,
+    waitingOnArrival,
+    // Her row's own zone, read through RLS above; a lock hides nothing from her, and Only me shows no time at all.
+    partyZone: shut ? null : (hosted.time_zone ?? null),
   };
 }

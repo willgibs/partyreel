@@ -81,6 +81,8 @@ export default async function AsGuestPage({ params, searchParams }: PageProps) {
       host={read.host}
       guests={read.guests}
       shut={read.shut}
+      waitingOnArrival={read.waitingOnArrival}
+      partyZone={read.partyZone}
       initialRowStep={rowStep}
       firstPaintWidth={albumWidth}
       rhythmSeed={rhythmSeed}

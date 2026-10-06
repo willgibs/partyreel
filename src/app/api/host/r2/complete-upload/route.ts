@@ -2,9 +2,12 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { createMediaAsHost } from "@/lib/db/mutations/host-media";
+import { readPartyZone } from "@/lib/event/zone.server";
+import { wallInPartyZone } from "@/lib/media/capture-time";
 import { createClient } from "@/lib/supabase/server";
 import {
   completeCaptureTime,
+  completeCaptureWall,
   runCompletePipeline,
   type CompleteStrategy,
 } from "@/lib/upload/server-pipeline";
@@ -16,13 +19,16 @@ import { hostCompleteUploadSchema } from "@/lib/validation/upload";
  * lane's client add is its one caller), so the live reel never plays a reel it made; absent is the
  * column's default (true), which is every photo and video a host uploads. `captured_at` is the
  * guest's own field (Will's X7: held to its bounds as it is parsed, none leaves the arrival to
- * stand). Extended here, as the guest route extends its own, rather than in the shared validation
- * module. Not a trust boundary: the worst a forged `false` does is keep the host's own upload out of
- * their own reel, and a forged time inside the bounds reorders only her own album.
+ * stand), and `captured_wall` the guest's too: a zoneless Exif clock, read in the PARTY's zone
+ * (crumbs-86), so the host's own camera files sit where her guests' do. Extended here, as the guest
+ * route extends its own, rather than in the shared validation module. Not a trust boundary: the
+ * worst a forged `false` does is keep the host's own upload out of their own reel, and a forged time
+ * inside the bounds reorders only her own album.
  */
 const hostCompleteSchema = hostCompleteUploadSchema.extend({
   reel_eligible: z.boolean().optional(),
   captured_at: completeCaptureTime,
+  captured_wall: completeCaptureWall,
 });
 
 // Host twin of /api/r2/complete-upload, a thin strategy over the shared
@@ -36,7 +42,25 @@ function hostCompleteStrategy(
   return {
     schema: hostCompleteSchema,
     captureLabel: "create_media_as_host",
-    createRecord(parsed, kind, realSize, phone) {
+    async createRecord(parsed, kind, realSize, phone, burst) {
+      // ★ A ZONELESS WALL CLOCK IS READ IN THE PARTY'S ZONE, as the guest's complete reads it: one primary-key read of
+      // `events.time_zone`, once a burst and only for a file that carries such a clock. The id is the body's, not yet
+      // proven hers, and that is safe: the zone never leaves the server and only places this row, which
+      // `create_media_as_host` refuses (not_owner) unless the event is hers. A failed read is no zone, and the
+      // browser's reading stands.
+      let capturedAt = parsed.captured_at ?? null;
+      if (parsed.captured_wall) {
+        const eventId = parsed.event_id;
+        const zone = await burst.memo(`zone:${eventId}`, () =>
+          readPartyZone(eventId),
+        );
+        capturedAt = wallInPartyZone(
+          parsed.captured_wall,
+          zone,
+          capturedAt,
+          Date.now(),
+        );
+      }
       return createMediaAsHost({
         hostId,
         eventId: parsed.event_id,
@@ -54,7 +78,7 @@ function hostCompleteStrategy(
         // Only a clip says anything here; every other upload leaves the column's default.
         reelEligible: parsed.reel_eligible,
         // Inside its bounds, or none (the arrival stands).
-        capturedAt: parsed.captured_at,
+        capturedAt,
       });
     },
     errorStatus(code) {

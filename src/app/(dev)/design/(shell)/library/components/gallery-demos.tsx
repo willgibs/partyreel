@@ -928,6 +928,20 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
           </Row>
         ),
       },
+      {
+        label: "Working",
+        hint: "busy, never off: it keeps its face and its focus, the arc and its words in place of its own",
+        node: (
+          <Row>
+            <Button working workingLabel="Saving">
+              Save
+            </Button>
+            <Button variant="outline" working workingLabel="Saving">
+              Save
+            </Button>
+          </Row>
+        ),
+      },
     ],
   },
   {
@@ -1967,7 +1981,7 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
     lede: "Two components in one file, drawn side by side. `Tooltip` labels a control whose own name is its label: a cursor's hover and a key's focus open it, and a tap never does (its arrow would land under the finger and take the click). `TapTooltip` is for a control whose words are the thing asked for, a glyph with no label beside it or a table row's fine print: a tap toggles the words, a cursor's hover opens them and its click keeps them open, a key toggles them.",
     specimens: [
       {
-        // No local TooltipProvider: the root one (providers.tsx, delay 200 /
+        // No local TooltipProvider: the root one (providers.tsx, delay 0 /
         // skip 300) is in scope here, so this is the REAL shipped timing.
         label: "Tooltip",
         hint: "the root provider's delay, not a local one; a tap on its face opens nothing",
