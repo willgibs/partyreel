@@ -15,6 +15,7 @@ import type { DoorDraw, DoorOption } from "./door-kit";
 import { FactsStrip } from "./facts";
 import { EVENT, whenOf } from "./fixtures";
 import type { Case } from "./fixtures";
+import { isPhone } from "./scene";
 
 /**
  * HER COVER: production's own frame and ground (`EventHead side="hub"`, the
@@ -124,8 +125,10 @@ export function HubHead({
   mark: RefObject<HTMLDivElement | null>;
 }) {
   const { c, screen } = d;
-  const desk = screen === "1440";
+  // The cover's own steps change at `sm` (production's `h-[20.5rem] sm:h-[25rem]`): a tablet takes a desk's.
+  const desk = !isPhone(screen);
   const seam = door.seam[screen];
+
   const fact = <FactsStrip c={c} narrow={!desk} />;
   // Where the doors rise into the cover, its words clear them and stand on the photograph above.
   const pad = seam.rise > 0 ? seam.rise + (desk ? 22 : 16) : desk ? 28 : 16;
