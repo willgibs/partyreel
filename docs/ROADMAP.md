@@ -14,18 +14,11 @@ becomes real when a plan picks it up. The don't-revert layer is [`systems/`](sys
 moves to Upcoming before another lands. Within a bucket the areas run foundation upward, from the platform and its data
 to the surfaces built on them. A line marked `[unsure: …]` is real but its want is Will's to confirm.
 
-## Landing (done on a handed-off lane; each line retires at its merge)
-
-### Uploads, media and exports
-
-- Uploads: keep per-event byte sums in SQL (PRICING.md's lever "The dashboard and the storage list page"), so an upload's three reads of the host's bytes through `host_storage_summary` (the context, `meter_upload`, then `create_media*` under her lock) and the size list's per-event totals (`readStorageEvents`, `db/queries/storage-list.ts`) stop walking every item.
-
 ## Immediate
 
 ### Platform, data and cost
 
 - Docs: a prune pass over `PRICING.md`, `systems/billing-caps.md`, `systems/reel.md` and `PRD.md` by CLAUDE.md's "Keeping the docs healthy" (docs-prune counted about 92 history and restatement lines there on 2026-10-04, never applied) (scratch-synthesis).
-- Upkeep: a contract migration drops `standby_hosts` with its test pins and renames `host_storage_summary.standby_bytes` to `deleted_bytes` (DROP + CREATE) with `readHostStorageSummary`.
 - Cost: `pnpm compute:model` holds CPU against the machine its budget was measured on (`budget.json`'s `measured.cpu`, an M3 Max), so a cloud seat reads over on cold module loads (milestone 38: guest-join-upload 1,606 ms of 1,550, its first complete-upload about 700 ms): on another machine hold calls only and report CPU, and re-measure the budget on the Mac (`--write-budget`).
 
 ### Security and abuse
@@ -66,6 +59,10 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Host: `guest/file-dropzone.tsx` is rendered only by the host's manual add (`app/host-upload.tsx`), and its "Tap to choose, or drag them here" is half wrong on a phone; move it to the host's side and word it for the device in hand.
 - Host: pin See it as a guest's two new facts in its own tests (`as-guest.server.test.ts`: `waitingOnArrival` asked only under the guest page's guard, `partyZone` null when shut; `as-guest-view.test.tsx`: `waitingOnArrival` holds the Add off "the first photo", and the sheet says the party's clock) (crumbs-86).
 
+### Admin and operations
+
+- Jobs: the storage sums' nightly signal, the Advisor's condition for milestone 39 (upload-sums' Q1): a sub-sweep on the purge cron (`lifecycle/sweeps/storage-sums.ts`) paging `storage_sums_drift` under its deadline, a `storage_sums` entry in `admin/jobs/catalog.ts` whose run closes ERROR on any drifted host (the hosts and both figures in `counts`, never a mend), a Rebuild control on its card (AAL2, the drifted host named) calling `rebuild_storage_sums`, and `remove_my_upload`'s already-removed arm taking her profiles row first (the one deadlock the sums' trigger opens, against a Restore or Let back in).
+
 ### Design system and accessibility
 
 - Design: Settings' date range at a phone: its two rows share no gutter (the end indented by "to", the × outside).
@@ -92,8 +89,8 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Code hygiene: `device-tickets.test.tsx` still pins the welcome by the legacy `pr_welcome_<qr>` localStorage key; read `document.cookie` as `foreign-ticket.test.tsx` does, then drop `use-welcome-seen.ts`'s legacy put-down (`LEGACY_PREFIX`, its `localStorage` removals) and its pins in `use-welcome-seen.test.tsx`.
 - Code hygiene: `EventCard`'s dashboard-only props (`qrSlot`, `pendingCount`, `itemsLabel`, `living`, the trash variant) and `event-card-qr.tsx` have no production caller; remove them with their Library specimens (`library/compositions/gallery-demos.tsx`).
 - Code hygiene: drop `resolveRowStep`'s legacy pixel-width mapping (`LEGACY_WIDTH_STEP`, `lib/shared/tile-size-cookie.ts`); nothing writes a width any more and only test devices hold one.
-- Code hygiene: drop drive-crumbs' `markReady` cast (`src/lib/db/queries/drive.ts`) now that `src/lib/db/types.ts` carries `cloud_export_ready`'s `p_found` (drive-crumbs).
 - Code hygiene: five stale comments: `zone-morning.ts`'s head about the seeding (both callers retired it), `server-pipeline.ts:544`'s "The host's route takes none" of `captured_wall`, and `zone.server.ts`'s head "for a guest's render" (the host's complete reads it too, by the body's id) (crumbs-86); the Library's `pricing-demos.tsx` above `stripeAnswers` ("Starting…", "Opening…") and `pricing/leave.ts`'s "the button's "Starting…"", the key saying "Opening billing" now (halo-last).
+- Code hygiene: drop the typed seams the regenerated types made needless, drive-crumbs' `markReady` cast (`src/lib/db/queries/drive.ts`, `cloud_export_ready`'s `p_found`) and upload-sums' `sumsDb` (`src/lib/db/queries/storage-list.ts`, `event_storage_sums`); and `row-cap-sql.test.ts`'s `SINGLE_ROW` reason for `host_storage_summary`, which still says "host_active_bytes beside two SUMs over host_deleted_media" (now her sums, her deleted events' rows and the aged removals, no GROUP BY).
 
 ## Upcoming
 
@@ -114,6 +111,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
   - Replay a dead letter from `/admin/jobs`: the backup's dead-letter queue has no consumer (`workers/backup/wrangler.jsonc`), and adding one changes delivery semantics.
   - Legal-hold evidence under `preservation/` has no backup copy (the Worker copies `events/` only, `MEDIA_PREFIX`); decide whether a year of held evidence needs a second one.
 - Vercel / Next.js optimization: one `getUser()` a request: a route handler misses React's `cache()`, so a signed-in album request asks Auth twice (`events/album-viewer.server.ts:74,99`; PRICING.md lever 3).
+- Upkeep: a contract migration drops `standby_hosts` with its test pins and renames `host_storage_summary.standby_bytes` to `deleted_bytes` (DROP + CREATE) with `readHostStorageSummary`.
 
 ### Security and abuse
 

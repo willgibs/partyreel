@@ -1203,3 +1203,23 @@ reader who will type it on another device still sees it.
 **BX6. The event pages' table and tent cards print the readable address under the code,** as the product's print stock
 does; the badge and the sleeve stay without one (not stock).
 - *Push back if* those two should carry it too.
+
+## BY. What a host stores, summed by the database (upload-sums)
+
+Her storage is summed per event and per host as it changes, so an upload's three reads and the size list stop walking
+every item; these are the calls built into it, yours to overrule.
+
+**BY1. The sums are kept by one trigger on every media write,** never by each writing function, so no writer can forget
+one (about 0.3 ms a statement).
+- *Push back if* the writers should keep the sums themselves.
+
+**BY2. Drift is a signal, never a quiet mend:** the nightly check (its own lane next) closes ERROR on any host whose sums
+and walk disagree, and an operator's Rebuild on its card is the fix.
+- *Push back if* the night should mend what it finds on its own.
+
+**BY3. Empty Deleted keeps its 2,000-item batch** (1.5 s now, inside the 8 s limit).
+- *Push back if* the batch should shrink for headroom.
+
+**BY4. A restore that bypasses triggers is a written warning, nothing built:** a partial restore of media rows runs the
+Rebuild for each host it touched.
+- *Push back if* a guard should refuse such a restore.

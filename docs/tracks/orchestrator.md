@@ -32,7 +32,6 @@ every 40 minutes reads them (their status, pushed heads and cost) while any runs
 
 | lane | what | state | model | session |
 | --- | --- | --- | --- | --- |
-| `upload-sums` | per-event byte sums in SQL (PRICING.md's lever 7): an upload's three reads and the size list stop walking every item; one migration (`20261006180000_upload_sums.sql`) through the Advisor | HANDED OFF at `96f3e80ba`; integrates after milestone 38, its migration through the Advisor and its proofs here | Opus | `session_01XwyY3CKaLeoiXrtikFMvXb` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor") read billing_orphans and drive_marks, both
 applied (2026-10-06); its caveats are ROADMAP lines. A successor respawns it from `usher/kit/advisor-prompt.txt` for the
