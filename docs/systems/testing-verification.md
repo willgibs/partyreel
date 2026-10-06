@@ -73,6 +73,14 @@ The local-first-then-live policy, the gate's steps, the account chooser and the 
 
 ## When a browser check disagrees
 
+- **Distrust a CDP verdict on the heavy host pages:** a programmatic click can miss React's delegated events and fiber
+  inspection can misread hydration; retry once or twice, then use a light probe page or Will's browser.
+- **The Chrome extension's `file_upload` takes only files from a folder Will connected to the session;** without one,
+  hand him the native picker, or script an R2 PUT plus `create_media_as_host` (real objects, a real ledger). The host's
+  file input mounts only after "Add photos" opens the panel.
+- **A risky change ships in separately verifiable increments,** never one bundled commit (a bundle once hid a hydration
+  regression).
+
 ★ **The Browser pane and the Chrome MCP's tab usually run hidden (`document.hidden`), and a hidden document behaves
 differently, not only looks different.** Rendering is suspended between tool calls, so:
 - rAF never runs (a canvas screenshots frozen; a frame sampler counts zero), and CSS transitions never progress (a
