@@ -20,19 +20,6 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 
 - Uploads: keep per-event byte sums in SQL (PRICING.md's lever "The dashboard and the storage list page"), so an upload's three reads of the host's bytes through `host_storage_summary` (the context, `meter_upload`, then `create_media*` under her lock) and the size list's per-event totals (`readStorageEvents`, `db/queries/storage-list.ts`) stop walking every item.
 
-### Design system and accessibility
-
-- Design: `ContactReceipt`'s `Postmark` (`src/app/(marketing)/(cinema)/contact/contact-receipt.tsx`) is inked `text-foreground/75` with `mix-blend-multiply`, which draws nothing over the cinema room's dark card (computed in the frame: opacity 1, multiply, oklab 0.97), so the postmark is invisible on /contact; ink it for the dark.
-
-### Marketing and content
-
-- Marketing (copy): `features/album/album-copy.ts`'s "Take all of it" body still says "everything, photos, or videos" (the retired menu's chips) over a plate that now draws Select, then Save; and the how-it-works keep step's body (`constants/how-it-works.ts`) says only "the whole album as a single zip", where the host's panel offers Phone size too (retired-mocks).
-- Help: a `<DemoDoor>` in `mdx/spec-help.tsx`, so `try-the-live-demo` carries a real demo door and not the address.
-- Marketing: the how-it-works pictures and the album-fill grid draw the green landed check the product replaced with a pass of light (`shared/arrival.css`), and the curation mock (`bulk-tools.tsx`) floats its select bar off the header's row.
-- Marketing: the cinema 404 (`(cinema)/not-found.tsx`) never draws, since every cinema slug route sets `dynamicParams = false` and an unknown slug gets the root's screen; retire it, or give the root's screen the cinema skin, for one 404.
-- Marketing: /contact still lists the help center's quick questions as chips under its search field; drop them, since the palette's Suggested list already drops from that field, as it does on /help (`(cinema)/contact/page.tsx`).
-- Marketing: the demo modal (`system/demo-modal/demo-modal.tsx`) still draws a bare Dialog; move it onto the code card's `share` kind (`ui/popup.tsx`) and out of `popup-kinds.test.ts`'s `LEFT_ALONE`.
-
 ## Immediate
 
 ### Platform, data and cost
@@ -279,6 +266,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Code hygiene: `masonry.tsx`'s masonry mode (`distributeColumns`, `placeColumns`, the CSS-columns pre-measure box) has no product caller, since every album is `rows`; retire it with its side of the `/design/album-scale` harness.
 - Code hygiene: `DemoTicket` (`marketing/system/demo-ticket.tsx`) exists only for its Library specimen, which could draw it in the lab, and `components/lab/scene.tsx`'s header still lists twelve retired boards.
 - Code hygiene: rename what is named for a surface it no longer is: `DestructiveSheet`, `GuardedSwitch`'s `sheet`, `PricingSheet`, `QrDesignerDialog`, `UploadIntentSheet`, `EventShareSheet`, `EventSettingsSheet`, and a test name in `create-flow.test.tsx`.
+- Code hygiene: `MarketingNotFound`'s `strip` prop has one caller left, which passes `false`, so its strip branch can go (the help palette and the 500 screen import `MissingFrameStrip` themselves) (marketing-crumbs).
 
 ## Before launch
 

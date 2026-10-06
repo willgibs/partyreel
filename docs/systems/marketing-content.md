@@ -319,11 +319,11 @@ nothing, under the logo-only bar; an unknown `/u/` handle has its own screen tha
 - **`global-not-found` is no substitute in Next 16.2.6**: experimental, it serves only unmatched URLs (a thrown
   `notFound()` with no nearer boundary, the lab's or the print sheet's, would draw Next's bare default), needs its own
   copy of the document shell, and sits on every route's root layer, so its client JS still loads everywhere.
-- **The marketing group's boundary is `(cinema)`'s, rendering only the centred content** (copy in
-  `marketing-not-found.tsx`): the chrome lives in the `(cinema)` layout, so with no nearer boundary the root not-found
-  would render inside a layout that already drew a header and footer, and the chrome would double-stack; a
-  `(marketing)`-level boundary would render skinless. It stays although no `[slug]` sits in `(cinema)`, since a static
-  page can call `notFound()` too.
+- **The site's one 404 is the root's** (the paper and the trail; marketing-crumbs retired the cinema group's own, which
+  never drew: every cinema slug is routing's 404, `dynamicParams = false`). A `notFound()` a marketing page throws
+  falls to the root's boundary, which sits inside the root layout alone (a segment's boundary wraps its children, the
+  group's layout among them), so the group's chrome gives way to the screen's own and nothing doubles. No `not-found`
+  stands under `(marketing)` (`marketing-dynamic-params-policy.test.ts`).
 - **The root 404's links prefetch nothing on sight** (`QuietChromePrefetch` around its screen, every link drawn through
   `ChromeLink`): standing outside `(marketing)`, it holds none of the sheets its links' routes need, and a prefetched
   payload makes React preload each sheet it names, never drawn. A press still navigates in place and fetches then.

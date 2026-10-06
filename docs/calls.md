@@ -1174,3 +1174,32 @@ into them, yours to overrule.
 **BW1. The checkout key says "Opening billing" while it works,** the brief's word, on every press of it: a new plan's
 Checkout and an existing plan's change (Stripe's confirm page) alike.
 - *Push back if* a plan change should say its own word.
+
+## BX. The site brought to today's product (marketing-crumbs)
+
+Nine marketing lines closed in one pass, from the site's words and pictures to the cinema's 404; these are the calls
+built into them, yours to overrule.
+
+**BX1. The cinema's own 404 is retired, not re-skinned:** every cinema slug is routing's 404, so its screen never drew,
+and the root's paper-and-trail 404 is the site's one.
+- *Push back if* the cinema should keep a 404 of its own.
+
+**BX2. The select bar's mock sits in the album's header row on the home too,** as the app's does now (one component
+for /features/curation and the home).
+- *Push back if* the home should keep its floating pill.
+
+**BX3. The nav's demo frame grew to fill its pane** (140 by 168, its corner code 56px), centred in the whole pane.
+- *Push back if* the old smaller frame was right.
+
+**BX4. Two lines of copy:** the album's "Take all of it" reads "Select it all, then Save: light copies to Photos, or
+every original as a zip.", and how-it-works' keep step "…or take the whole album: the originals to keep for good, or a
+phone-size set to post tonight."
+- *Push back if* either should say it another way.
+
+**BX5. The help article's demo door keeps the address as its words** (partyreel.com/demo is the door itself), so a
+reader who will type it on another device still sees it.
+- *Push back if* the door should be a plain button.
+
+**BX6. The event pages' table and tent cards print the readable address under the code,** as the product's print stock
+does; the badge and the sleeve stay without one (not stock).
+- *Push back if* those two should carry it too.
