@@ -18,7 +18,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { mustQuery } from "@/lib/db/must-query";
-import { inChunks, readAllPages, type PageResult } from "@/lib/db/read-all";
+import { inChunks, readAllPages } from "@/lib/db/read-all";
 import type { Database, Tables } from "@/lib/db/types";
 import {
   RECENTLY_DELETED_WINDOW_DAYS,
@@ -135,10 +135,7 @@ export async function readEventMedia(
       else if (slice === "album") q = q.in("status", ["approved", "hidden"]);
       else q = q.neq("status", "removed");
       if (after) q = q.or(newestFirstAfter("created_at", after));
-      // ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE (migration 20261005200000): the list names `captured_at`, which
-      // the generated row does not hold yet, and a typed select naming a column it does not know types every row as an
-      // error; the row is `MediaRow` either way. A cast and nothing at run time; drop it with the regeneration.
-      return q as unknown as PromiseLike<PageResult<MediaRow>>;
+      return q;
     },
     (m) => ({ at: m.created_at, id: m.id }),
   );
@@ -201,8 +198,7 @@ export async function readRecentlyDeletedMedia(
         .order("id", { ascending: false })
         .limit(limit);
       if (after) q = q.or(newestFirstAfter("removed_at", after));
-      // ★ THE TYPED SEAM, as `readEventMedia`'s (migration 20261005200000).
-      return q as unknown as PromiseLike<PageResult<MediaRow>>;
+      return q;
     },
     // Never null in this read: the window filter above keeps no row without a `removed_at`.
     (m) => ({ at: m.removed_at ?? "", id: m.id }),

@@ -20,9 +20,9 @@ import {
 } from "@/lib/db/queries/guest-events";
 import type { AlbumKeyRow } from "@/lib/db/queries/album-guest";
 import { readAlbumAttribution } from "@/lib/db/queries/album-state";
-import { inChunks, readAllPages, type PageResult } from "@/lib/db/read-all";
+import { inChunks, readAllPages } from "@/lib/db/read-all";
 import { mustQuery } from "@/lib/db/must-query";
-import type { Database, Tables } from "@/lib/db/types";
+import type { Database } from "@/lib/db/types";
 import type { ManifestPage } from "@/lib/events/album-sync";
 import {
   microsToTimestamp,
@@ -34,25 +34,6 @@ import { withUploaderFaces } from "@/lib/media/uploader-faces";
 import type { UploaderIdentity } from "@/lib/media/uploader-identity";
 
 type Client = SupabaseClient<Database>;
-
-/**
- * A host manifest row: its entry's columns and status, the capture time with them (Will's X7). ★ THE TYPED SEAM, UNTIL
- * THE TYPES REGENERATE (migration 20261005200000), as `album-guest.ts`'s manifest row: the generated media row does
- * not hold `captured_at` yet, so the page states its row (a cast, nothing at run time); with the regeneration it
- * can go.
- */
-type HostManifestRow = Pick<
-  Tables<"media">,
-  | "id"
-  | "type"
-  | "width"
-  | "height"
-  | "duration_seconds"
-  | "preview_key"
-  | "reel_eligible"
-  | "created_at"
-  | "status"
-> & { captured_at: string | null };
 
 /** Up to `budget` of the host's album (every status but removed) after `after`, and the next cursor. */
 export async function readHostManifestPage(
@@ -75,7 +56,7 @@ export async function readHostManifestPage(
         .order("id", { ascending: false })
         .limit(limit);
       if (cursor) q = q.or(olderThan(cursor));
-      return q as unknown as PromiseLike<PageResult<HostManifestRow>>;
+      return q;
     },
     albumCursorOf,
     {

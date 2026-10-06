@@ -538,12 +538,10 @@ export async function createMedia(input: {
   // be called directly via PostgREST with a spoofed size — the complete-upload route HEADs R2 for the real
   // size and calls here via the admin client. The session_token in the body remains the guest capability.
   const supabase = createAdminClient();
-  // The phone copy's two arguments are left out of the body when there is no copy (create_media refuses one alone).
-  // ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `p_captured_at` arrives with migration 20261005200000, so the
-  // arguments are built beside the call (an argument the generated Args do not name yet is then an extra field, which
-  // TypeScript allows off a literal); fold them back into the call once it knows it. Absent (no capture time), it is
-  // left out of the body and its default applies, so an upload without one resolves the same function either way.
-  const args = {
+  // The phone copy's two arguments are left out of the body when there is no copy (create_media refuses one alone),
+  // and so is the capture time when the upload kept none: its default applies, so an upload without one resolves the
+  // same function either way.
+  const { data, error } = await supabase.rpc("create_media", {
     p_session_token: input.sessionToken,
     p_media_id: input.mediaId,
     p_type: input.type,
@@ -557,8 +555,7 @@ export async function createMedia(input: {
     p_phone_key: input.phoneKey ?? undefined,
     p_phone_bytes: input.phoneBytes ?? undefined,
     p_captured_at: input.capturedAt ?? undefined,
-  };
-  const { data, error } = await supabase.rpc("create_media", args);
+  });
 
   if (error) {
     // Retry idempotency: a duplicate media_id means create_media already ran for

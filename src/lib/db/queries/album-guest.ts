@@ -33,9 +33,8 @@ import {
   readGuestAlbumChanges,
   type AlbumVersions,
 } from "@/lib/db/queries/album-state";
-import { inChunks, readAllPages, type PageResult } from "@/lib/db/read-all";
+import { inChunks, readAllPages } from "@/lib/db/read-all";
 import { mustQuery } from "@/lib/db/must-query";
-import type { Tables } from "@/lib/db/types";
 import {
   planAlbumSync,
   type ManifestPage,
@@ -145,24 +144,6 @@ export async function readGuestManifestPage(
   return manifestPage(event.id, after, budget);
 }
 
-/**
- * A manifest row: its entry's columns (`toManifestEntry`), the capture time with them (Will's X7). ★ THE TYPED SEAM,
- * UNTIL THE TYPES REGENERATE (migration 20261005200000): a typed select naming `captured_at`, which the generated media
- * row does not hold yet, types every row as an error, so the page states its row (a cast, nothing at run time); with
- * the regeneration it is the generated row's own `Pick`, and the cast can go.
- */
-type ManifestRow = Pick<
-  Tables<"media">,
-  | "id"
-  | "type"
-  | "width"
-  | "height"
-  | "duration_seconds"
-  | "preview_key"
-  | "reel_eligible"
-  | "created_at"
-> & { captured_at: string | null };
-
 /** A manifest page's read, behind a gate its callers already asked. */
 async function manifestPage(
   eventId: string,
@@ -189,7 +170,7 @@ async function manifestPage(
         .order("id", { ascending: false })
         .limit(limit);
       if (cursor) q = q.or(olderThan(cursor));
-      return q as unknown as PromiseLike<PageResult<ManifestRow>>;
+      return q;
     },
     albumCursorOf,
     {
