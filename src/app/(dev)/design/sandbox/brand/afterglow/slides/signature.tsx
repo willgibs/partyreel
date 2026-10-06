@@ -77,7 +77,8 @@ function SeamPanel({ ground, w, h }: { ground: Ground; w: number; h: number }) {
   const take = useTake();
   const t = inkOf(take, ground);
   const { Seam } = take.light;
-  const bg = ground === "room" ? groundOf(take, "room").hex : cardOf(take, "paper").hex;
+  const bg =
+    ground === "room" ? groundOf(take, "room").hex : cardOf(take, "paper").hex;
   const cover = Math.round(h * 0.46);
   return (
     <div
@@ -90,7 +91,10 @@ function SeamPanel({ ground, w, h }: { ground: Ground; w: number; h: number }) {
         style={{ width: w, height: cover, borderRadius: 0 }}
         focus="50% 62%"
       />
-      <div className="absolute inset-x-0" style={{ top: cover, height: h - cover }}>
+      <div
+        className="absolute inset-x-0"
+        style={{ top: cover, height: h - cover }}
+      >
         <Seam
           source={{ photo: "reception-table", edge: "bottom" }}
           ground={ground}
@@ -101,7 +105,10 @@ function SeamPanel({ ground, w, h }: { ground: Ground; w: number; h: number }) {
         <div className="absolute" style={{ left: 20, bottom: 14 }}>
           <p
             className="ag-subtitle"
-            style={{ fontSize: Math.round(Math.min(w, 420) * 0.052), color: t.fg }}
+            style={{
+              fontSize: Math.round(Math.min(w, 420) * 0.052),
+              color: t.fg,
+            }}
           >
             {PARTY.name}
           </p>
@@ -113,11 +120,20 @@ function SeamPanel({ ground, w, h }: { ground: Ground; w: number; h: number }) {
 }
 
 /** The Bloom: behind the one live subject, here the reel as it plays. */
-function BloomPanel({ ground, w, h }: { ground: Ground; w: number; h: number }) {
+function BloomPanel({
+  ground,
+  w,
+  h,
+}: {
+  ground: Ground;
+  w: number;
+  h: number;
+}) {
   const take = useTake();
   const t = inkOf(take, ground);
   const { ReelBloom } = take.light;
-  const bg = ground === "room" ? groundOf(take, "room").hex : cardOf(take, "paper").hex;
+  const bg =
+    ground === "room" ? groundOf(take, "room").hex : cardOf(take, "paper").hex;
   // A paper form may reach past its subject (a take's mount, its shadow), so
   // the reel leaves it room: the contract's margin, an eighth of the subject.
   const rw = Math.round(Math.min(w * 0.56, h * 0.95));
@@ -140,12 +156,18 @@ function BloomPanel({ ground, w, h }: { ground: Ground; w: number; h: number }) 
         radius={2}
         style={{ width: rw, height: rh }}
       />
-      <Readout style={{ color: t.faint }}>The reel, lit by the shot it shows</Readout>
+      <Readout style={{ color: t.faint }}>
+        The reel, lit by the shot it shows
+      </Readout>
     </div>
   );
 }
 
-const FORM_NAMES = { ring: "The Ring", seam: "The Seam", bloom: "The Bloom" } as const;
+const FORM_NAMES = {
+  ring: "The Ring",
+  seam: "The Seam",
+  bloom: "The Bloom",
+} as const;
 
 function Band({
   ground,
@@ -199,7 +221,12 @@ export function SignatureSlide({ screen }: SlideProps) {
           style={{ top: split, background: groundOf(take, "paper").hex }}
         />
         <div className="absolute" style={{ left: m.pad, top: m.top - 6 }}>
-          <Heading ground="room" kicker="The signature" title="Three forms, one light." size={40} />
+          <Heading
+            ground="room"
+            kicker="The signature"
+            title="Three forms, one light."
+            size={40}
+          />
         </div>
         <p
           className="ag-body absolute"
@@ -213,16 +240,31 @@ export function SignatureSlide({ screen }: SlideProps) {
             textWrap: "pretty",
           }}
         >
-          Born from the photographs, at an edge. Never on them and never behind words; one to a screen, still until something happens.
+          Born from the photographs, at an edge. Never on them and never behind
+          words; one to a screen, still until something happens.
         </p>
         <div className="absolute" style={{ left: m.pad, top: 186 }}>
-          <Band ground="room" w={pw} h={186} gap={gap} captionW={pw} stack={false} />
+          <Band
+            ground="room"
+            w={pw}
+            h={186}
+            gap={gap}
+            captionW={pw}
+            stack={false}
+          />
         </div>
         <div className="absolute" style={{ left: m.pad, top: split + 28 }}>
           <Label ground="paper">On paper · {take.name}</Label>
         </div>
         <div className="absolute" style={{ left: m.pad, top: split + 60 }}>
-          <Band ground="paper" w={pw} h={186} gap={gap} captionW={pw} stack={false} />
+          <Band
+            ground="paper"
+            w={pw}
+            h={186}
+            gap={gap}
+            captionW={pw}
+            stack={false}
+          />
         </div>
         <p
           className="ag-caption absolute"
@@ -233,7 +275,8 @@ export function SignatureSlide({ screen }: SlideProps) {
             color: inkOf(take, "paper").faint,
           }}
         >
-          Never: over a photograph · behind words · on a control&apos;s fill · a wash across a page · two in one view.
+          Never: over a photograph · behind words · on a control&apos;s fill · a
+          wash across a page · two in one view.
         </p>
       </SlideRoot>
     );
@@ -248,7 +291,10 @@ export function SignatureSlide({ screen }: SlideProps) {
         className="absolute inset-x-0 bottom-0"
         style={{ top: split, background: groundOf(take, "paper").hex }}
       />
-      <div className="absolute" style={{ left: m.pad, top: m.top, width: m.inner }}>
+      <div
+        className="absolute"
+        style={{ left: m.pad, top: m.top, width: m.inner }}
+      >
         <Heading
           ground="room"
           kicker="The signature"

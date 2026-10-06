@@ -791,7 +791,11 @@ export function RoomWallSeam({
     )
     .join(", ");
   return (
-    <div aria-hidden className="ag-wallseam" style={{ height: reach, ...style }}>
+    <div
+      aria-hidden
+      className="ag-wallseam"
+      style={{ height: reach, ...style }}
+    >
       <div
         className="ag-wallseam-light"
         style={{

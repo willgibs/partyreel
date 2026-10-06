@@ -277,22 +277,22 @@ export function VoiceSlide({ screen }: SlideProps) {
         <div style={{ marginTop: 8 }}>
           <Ladder w={m.inner} desk={false} />
         </div>
-        <Label ground="paper" style={{ marginTop: 48 }}>
+        <Label ground="paper" style={{ marginTop: 40 }}>
           Imagery
         </Label>
         <div style={{ marginTop: 16 }}>
-          <Imagery w={m.inner} cols={2} aspect={0.75} />
+          <Imagery w={m.inner} cols={2} aspect={0.7} />
         </div>
-        <Label ground="paper" style={{ marginTop: 52 }}>
+        <Label ground="paper" style={{ marginTop: 44 }}>
           Motion
         </Label>
-        <div style={{ marginTop: 4 }}>
-          <TakeMotion w={m.inner} size={176} stack />
+        <div style={{ marginTop: 2 }}>
+          <TakeMotion w={m.inner} size={168} stack />
         </div>
-        <div style={{ marginTop: 34 }}>
+        <div style={{ marginTop: 28 }}>
           <Scale w={m.inner} narrow />
         </div>
-        <p className="ag-caption" style={{ color: t.faint, marginTop: 14 }}>
+        <p className="ag-caption" style={{ color: t.faint, marginTop: 10 }}>
           Reduced motion: lit and still. Nothing is lost.
         </p>
       </div>

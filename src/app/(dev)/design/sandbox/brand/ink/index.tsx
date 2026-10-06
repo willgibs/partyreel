@@ -11,10 +11,11 @@ import { INK_LIGHT, STOCK } from "./light";
  * Its one construction: every album keeps ONE colour, the strongest light in
  * its photographs, read at depths the way the hashvatar is. In the room that
  * colour is emitted, a glow; on paper it is printed, at full strength and in
- * small exact amounts (a rule, a band, a fine screen of dots, the album's
- * name), the way a press has always drawn light. Never the pale middle, which
- * is where round one washed out. Its paper is an uncoated warm stock, the
- * paper ink is printed on (Contact Sheet's touch).
+ * small exact amounts (a rule, a band, a fine screen of dots, the event's
+ * credits), the way a press has always drawn light. Never the pale middle,
+ * which is where round one washed out. Its paper is an uncoated warm stock,
+ * the paper ink is printed on (Contact Sheet's touch), and a page prints in
+ * two inks: its black and the album's colour.
  */
 
 export const INK: Take = {
@@ -31,19 +32,19 @@ export const INK: Take = {
     argument:
       "Every album keeps one colour, the strongest light in its photographs. In the room it is emitted and glows; on paper it is printed, full strength and small, the way a press has always drawn light. Never a pale tint of itself.",
     rule: {
-      may: "As print only: a rule where media ends, the shutter's band, a fine screen behind the one subject.",
+      may: "As print only: a rule where media ends, the shutter's band, a fine screen round the one subject.",
       becomes:
         "Ink: the album's one colour at full strength, crisp, in small exact amounts.",
       carries:
-        "The print itself: a rule, a band, a screen of dots, the album's own name.",
+        "The print itself: a rule, a band, a screen of dots, the event's credits.",
       never:
         "A blur or a tint on paper: nothing on the page is paler than its ink.",
     },
     icon: "The shutter: a dark disc in a ring of light, keyed from the top-left. Printed, the ring becomes one band of ink, a seal you could press into card.",
     iconPaper:
-      "On paper the icon prints: the ink disc and its band, no glow, nothing pale.",
+      "On paper the icon prints: the ink disc and one band of the house's coral-amber, no glow.",
     colourPaper:
-      "On paper a source prints as its one colour, deep and solid, in small amounts.",
+      "On paper a source prints as one ink at full strength; its depths are screens of that ink, never a paler one.",
     forms: {
       ring: {
         room: "Round what adds a photograph, and the icon, in the album's one colour. It fills as photographs send.",
@@ -62,7 +63,7 @@ export const INK: Take = {
       },
     },
     seedPaper:
-      "Before the first photograph the album's ink is its seed's: the event prints in its own colour.",
+      "Before the first photograph the ink is the seed's: its light printed in from one corner, the rest of the cover left paper.",
     motion:
       "Light, when something happens; print never moves: a rule draws in once, a band fills as files send.",
     rhythm:
@@ -78,7 +79,7 @@ export const INK: Take = {
         "The Pro plan's photographs print their one colour: a fine screen round them, a rule at the foot. Nothing on the page is pale.",
       hub: "On a light hub the code prints in the event's ink: the seed's colour, before the first photograph.",
       share:
-        "The table card is printed in one ink, the album's own, the way wedding stationery is: the name, the rule, the screen.",
+        "The table card is printed the way stationery is: black type, and the code in a fine screen of the event's one ink.",
       home: "At 60 px the Ring keeps its light on a home screen; printed on a card, it keeps its one ink.",
     },
   },

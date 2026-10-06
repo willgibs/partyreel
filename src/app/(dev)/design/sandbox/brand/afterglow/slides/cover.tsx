@@ -35,6 +35,9 @@ export function CoverSlide({ screen }: SlideProps) {
     const ph = 400;
     const px = cut - pw / 2;
     const py = 268;
+    // Above the photograph's margin: a take's light may reach an eighth of
+    // the subject past it (the contract), so the labels clear that.
+    const labelY = py - Math.round(pw / 8) - 30;
     // The photograph's light, drawn twice round the one photograph and
     // clipped at the cut: the room's form on the left, paper's on the right.
     const lit = (ground: "room" | "paper") => (
@@ -48,7 +51,10 @@ export function CoverSlide({ screen }: SlideProps) {
               : `inset(0 0 0 ${cut}px)`,
         }}
       >
-        <div className="absolute" style={{ left: px, top: py, width: pw, height: ph }}>
+        <div
+          className="absolute"
+          style={{ left: px, top: py, width: pw, height: ph }}
+        >
           <Bloom source={source} ground={ground} size={pw} radius={2}>
             <div style={{ width: pw, height: ph }} />
           </Bloom>
@@ -109,13 +115,13 @@ export function CoverSlide({ screen }: SlideProps) {
         </p>
         <Readout
           className="absolute"
-          style={{ right: m.w - cut + 24, top: py - 34, color: room.faint }}
+          style={{ right: m.w - cut + 24, top: labelY, color: room.faint }}
         >
           In the room
         </Readout>
         <Readout
           className="absolute"
-          style={{ left: cut + 24, top: py - 34, color: paper.faint }}
+          style={{ left: cut + 24, top: labelY, color: paper.faint }}
         >
           On paper
         </Readout>
@@ -161,7 +167,10 @@ export function CoverSlide({ screen }: SlideProps) {
             : `inset(${cut}px 0 0 0)`,
       }}
     >
-      <div className="absolute" style={{ left: px, top: py, width: pw, height: ph }}>
+      <div
+        className="absolute"
+        style={{ left: px, top: py, width: pw, height: ph }}
+      >
         <Bloom source={source} ground={ground} size={pw} radius={2}>
           <div style={{ width: pw, height: ph }} />
         </Bloom>
@@ -179,7 +188,13 @@ export function CoverSlide({ screen }: SlideProps) {
       <LitPhoto
         id={PHOTO}
         ground="room"
-        style={{ position: "absolute", left: px, top: py, width: pw, height: ph }}
+        style={{
+          position: "absolute",
+          left: px,
+          top: py,
+          width: pw,
+          height: ph,
+        }}
       />
       <Readout
         className="absolute"
@@ -190,7 +205,12 @@ export function CoverSlide({ screen }: SlideProps) {
       <h1
         className="ag-display absolute"
         data-bd-read="the take's name"
-        style={{ left: m.pad - 3, top: m.top + 24, fontSize: 72, color: room.fg }}
+        style={{
+          left: m.pad - 3,
+          top: m.top + 24,
+          fontSize: 72,
+          color: room.fg,
+        }}
       >
         {take.name}
       </h1>
@@ -217,13 +237,21 @@ export function CoverSlide({ screen }: SlideProps) {
       </span>
       <Readout
         className="absolute"
-        style={{ left: m.pad, top: py - 30, color: room.faint }}
+        style={{
+          left: m.pad,
+          top: py - Math.round(pw / 8) - 26,
+          color: room.faint,
+        }}
       >
         In the room
       </Readout>
       <Readout
         className="absolute"
-        style={{ left: m.pad, top: py + ph + 56, color: paper.faint }}
+        style={{
+          left: m.pad,
+          top: py + ph + Math.round(pw / 8) + 26,
+          color: paper.faint,
+        }}
       >
         On paper
       </Readout>
@@ -231,7 +259,7 @@ export function CoverSlide({ screen }: SlideProps) {
         className="ag-body absolute"
         style={{
           left: m.pad,
-          top: py + ph + 84,
+          top: py + ph + Math.round(pw / 8) + 54,
           width: m.inner,
           fontSize: 15,
           color: paper.muted,

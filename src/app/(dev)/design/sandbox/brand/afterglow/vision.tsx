@@ -4,7 +4,12 @@ import "./ag.css";
 
 import type { ReactNode } from "react";
 
-import { SLIDES, type SlideId, type SlideProps, type Vision } from "../deck/contract";
+import {
+  SLIDES,
+  type SlideId,
+  type SlideProps,
+  type Vision,
+} from "../deck/contract";
 import { AtmosphereSlide } from "./slides/atmosphere";
 import { ColorSlide } from "./slides/color";
 import { CoverSlide } from "./slides/cover";

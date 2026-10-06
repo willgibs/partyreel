@@ -166,6 +166,9 @@ const SHARE_ROW: readonly RowSpec[] = [
   ],
 ];
 
+/** A Seam's box, opaque at its edge and spent by its foot. */
+const SPENT = "linear-gradient(to bottom, #000 0%, #000 45%, transparent 100%)";
+
 /** The link's card, 1200 by 630, once the album has filled, in the room. */
 function ShareCard() {
   const take = useTake();
@@ -186,9 +189,18 @@ function ShareCard() {
       <div className="absolute inset-x-0 top-0" style={{ height: wall.height }}>
         <Wall tiles={wall.tiles} />
       </div>
+      {/* ★ The Seam is spent before the name, whatever a take's light does
+          past its reach: its lower half fades to nothing, so no take's light
+          can end in a hard line at the foot of its box. Where a take's light
+          is already spent there (Aperture, Ink), this changes nothing. */}
       <div
         className="absolute inset-x-0"
-        style={{ top: wall.height, height: reach }}
+        style={{
+          top: wall.height,
+          height: reach,
+          WebkitMaskImage: SPENT,
+          maskImage: SPENT,
+        }}
       >
         <WallSeam tiles={wall.bottom} width={1200} ground="room" reach={reach} />
       </div>
@@ -364,7 +376,7 @@ export function ShareSlide({ screen }: SlideProps) {
   }
 
   // The phone: the card as wide as the scene allows, the table above it.
-  const sceneH = 800;
+  const sceneH = 848;
   const card = Math.round(((m.inner - 24) * CARD.h) / CARD.w);
   return (
     <SlideRoot screen={screen} ground={ground}>

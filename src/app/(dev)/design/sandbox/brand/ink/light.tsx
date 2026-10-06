@@ -90,6 +90,9 @@ export const STOCK: Paper = {
   faint: tone(0.6, 0.012, 72),
 };
 
+/** The die-cut edge of a sheet of stock laid on stock (a tile, a cover): a hairline. */
+const KEYLINE = tone(0.84, 0.01, 76);
+
 /**
  * The press's lightness for a printed hue, before the contrast check: blues
  * and violets run deepest (they stay vivid there), ambers highest (deeper,
@@ -155,13 +158,22 @@ export function INK_PRINT(h: number, c = 0.13): Tone {
   return ink;
 }
 
+/**
+ * ★ THE HOUSE PRINTS AT ITS SKY'S WARMER SIDE. Its key (coral, h 34) printed
+ * at an ink's depth is a brick red too near Fault's red, and the brand's own
+ * mark must never read as a failure; so the house prints at h 42, a deep
+ * coral-amber still inside its own sky (amber at the lit edge, then coral).
+ */
+const HOUSE_PRINT_HUE = 42;
+
 /** A source's one ink: its key, printed. */
 export function inkOf(source: Source): Tone {
+  if ("house" in source) return INK_PRINT(HOUSE_PRINT_HUE, 0.15);
   const k = keyOf(source);
   return INK_PRINT(k.h, k.c);
 }
 
-/** The house's ink: the dusk key printed, a deep coral. */
+/** The house's ink: the dusk key printed, a deep coral-amber. */
 export const HOUSE_INK = inkOf({ house: true });
 
 /** A source's one light in the room: its key at three depths, never a second hue. */
@@ -194,10 +206,15 @@ function outside(x: number, y: number, w: number, h: number, r: number) {
   );
 }
 
-/** What a screen prints: a frame round a subject, or a pool from a lit point. */
+/**
+ * What a screen prints: a frame round a subject; light poured in from one
+ * point of a box (`x`, `y` as fractions of it, `reach` as a fraction of its
+ * width); or a flat tint, a press's even screen.
+ */
 type Shape =
   | { kind: "frame"; radius: number; reach: number; gap: number }
-  | { kind: "pool"; x: number; y: number };
+  | { kind: "pour"; x: number; y: number; reach: number }
+  | { kind: "flat"; cover: number };
 
 /**
  * The screen's peak coverage, the share of paper the dots at the subject's
@@ -225,14 +242,16 @@ function coverage(shape: Shape, w: number, h: number, rows: number) {
       return peak * (1 - d / reach) ** 2;
     };
   }
-  // The seed's light, printed from where the hashvatar keeps its light: a
-  // pool of ink dense enough to read as solid there, spent across the cover.
-  const lx = shape.x * w;
-  const ly = shape.y * h;
+  if (shape.kind === "flat") return () => shape.cover;
+  // Light poured in from one point, by the frame's own law (the radius falls
+  // in a straight line), densest where it enters and spent well inside the
+  // box, so most of it stays paper.
+  const ox = shape.x * w;
+  const oy = shape.y * h;
+  const reach = shape.reach * w;
   return (x: number, y: number) => {
-    const dx = (x - lx) / w;
-    const dy = (y - ly) / (h * 1.25);
-    return 0.62 * Math.exp(-(dx * dx + dy * dy) / 0.2);
+    const d = Math.hypot(x - ox, (y - oy) * 1.15);
+    return d > reach ? 0 : 0.62 * (1 - d / reach) ** 2;
   };
 }
 
@@ -243,8 +262,8 @@ function coverage(shape: Shape, w: number, h: number, rows: number) {
  * shrunk into a browser), so every dot rasterises alike and the screen keeps
  * its fine, even pitch at every size it is shown, instead of melting into a
  * tint. A dot's AREA is the coverage, so the tone is true; below the smallest
- * dot the press can hold, the dots drop out in an ordered pattern rather than
- * fading, so the screen dissolves at its edge instead of ending on a line.
+ * dot the press can hold, dots drop out (`grain`) rather than fade, so the
+ * screen dissolves at its edge instead of ending on a line.
  */
 function paint(
   cv: HTMLCanvasElement,
@@ -257,7 +276,9 @@ function paint(
   const h = host.offsetHeight;
   if (!w || !h) return;
   const shown = host.getBoundingClientRect().width / w || 1;
-  const dpr = window.devicePixelRatio || 1;
+  // The frame's own window: a slide is portalled into a frame, and the lab's
+  // zoom reaches only the frame's device pixel ratio, never the page's.
+  const dpr = (cv.ownerDocument.defaultView ?? window).devicePixelRatio || 1;
   const W = w + 2 * out;
   const H = h + 2 * out;
   const dev = Math.min(shown * dpr, 4096 / Math.max(W, H));
@@ -284,9 +305,10 @@ function paint(
       let r = pitch * Math.sqrt(c / Math.PI);
       if (r < least) {
         // The smallest dot the press holds, kept as often as the tone asks
-        // (so the area stays true), and none where it would only be dust.
+        // (so the area stays true), and none below 40%: a wider dissolve
+        // reads as dust, not as the screen's edge.
         const keep = (r * r) / (least * least);
-        if (keep < 0.15 || grain(m, k) >= keep) continue;
+        if (keep < 0.4 || grain(m, k) >= keep) continue;
         r = least;
       }
       ctx.moveTo(X + r, Y);
@@ -297,8 +319,13 @@ function paint(
 
 /**
  * A SCREEN behind its parent (the subject's box), `out` px past it on every
- * side. Drawn on the client, once and again only when the box resizes: it is
- * print, so it never moves on its own.
+ * side. Drawn on the client, once and again only when the box resizes or the
+ * device pixel ratio changes: it is print, so it never moves on its own.
+ *
+ * ★ THE LAB'S ZOOM ARRIVES AS A NEW PIXEL RATIO, NEVER AS A RESIZE. The stage
+ * fits a frame with CSS `zoom`, which changes the frame's `devicePixelRatio`
+ * (2 becomes 1.2) and fires no resize, so the screen repaints on the ratio's
+ * own media query; missed, its dots are resampled into a tint under the print.
  */
 function Screen({
   ink,
@@ -321,11 +348,27 @@ function Screen({
     const host = cv?.parentElement;
     if (!cv || !host) return;
     const s = JSON.parse(spec) as Shape;
+    // The frame's own window watches the frame's own elements (the lab's rule).
+    const win = cv.ownerDocument.defaultView ?? window;
     const draw = () => paint(cv, host, out, ink, s);
     draw();
-    const ro = new ResizeObserver(draw);
+    const ro = new win.ResizeObserver(draw);
     ro.observe(host);
-    return () => ro.disconnect();
+    let ratio: MediaQueryList | null = null;
+    const watch = () => {
+      ratio?.removeEventListener("change", changed);
+      ratio = win.matchMedia(`(resolution: ${win.devicePixelRatio}dppx)`);
+      ratio.addEventListener("change", changed);
+    };
+    const changed = () => {
+      draw();
+      watch();
+    };
+    watch();
+    return () => {
+      ro.disconnect();
+      ratio?.removeEventListener("change", changed);
+    };
   }, [ink, out, spec]);
   return (
     <canvas
@@ -347,7 +390,7 @@ function Screen({
  * How far a subject's screen may reach: the contract's eighth. Its visible
  * dots are spent by about a ninth; the last eighth is where they dissolve.
  */
-const reachOf = (size: number) => Math.round(Math.max(18, size / 8));
+const reachOf = (size: number) => Math.round(Math.max(12, size / 8));
 
 /** The hairline of paper between a subject and its screen. */
 const gapOf = (size: number) => (size >= 240 ? 2 : 1.5);
@@ -428,7 +471,14 @@ function PrintedRing({
           <>
             {/* Sending: the band's track a printed hairline, the run filling
                 round it in the full band, never a faded band. */}
-            <circle cx={c} cy={c} r={rb} fill="none" stroke={ink} strokeWidth={1} />
+            <circle
+              cx={c}
+              cy={c}
+              r={rb}
+              fill="none"
+              stroke={ink}
+              strokeWidth={1}
+            />
             <circle
               cx={c}
               cy={c}
@@ -762,18 +812,31 @@ function SeedCover({ seed, ground, children, className, style }: SeedProps) {
         {children}
       </RoomSeed>
     );
-  // Printed, not lit: the seed's ink laid down as a screen from where the
-  // hashvatar keeps its light, solid there and spent across the cover.
+  // Printed, not lit: the seed's ink poured in from the corner nearest where
+  // the hashvatar keeps its light, near solid there and spent by the middle
+  // of the cover, so the cover stays mostly paper and the first photograph
+  // is still the bigger thing. A full field of dots reads as a texture fill.
+  // The cover is a sheet of the lighter stock with a die-cut hairline, so it
+  // reads as the place the photographs will go, as the room's card does.
   const o = orbFor(seed);
   return (
-    <div data-bd-seed={seed} className={cn("ik-seed", className)} style={style}>
+    <div
+      data-bd-seed={seed}
+      className={cn("ik-seed", className)}
+      style={{
+        background: STOCK.card.hex,
+        boxShadow: `inset 0 0 0 1px ${KEYLINE.hex}`,
+        ...style,
+      }}
+    >
       <Screen
         ink={inkOf({ seed }).hex}
         out={0}
         shape={{
-          kind: "pool",
-          x: (o.light.x + 8) / 100,
-          y: (o.light.y + 10) / 100,
+          kind: "pour",
+          x: (o.light.x * 0.4) / 100,
+          y: (o.light.y * 0.3) / 100,
+          reach: 0.62,
         }}
       />
       {children}
@@ -821,9 +884,10 @@ function Seal({
 }
 
 /**
- * The icon printed: a stock tile, the ink disc and one band in the house ink,
- * no glow. The band is a third heavier than the room's sharp band, since in
- * print it carries the light alone.
+ * The icon printed: a stock tile cut to the squircle (its edge a hairline),
+ * the ink disc and one band in the house ink, no glow. The band keeps the
+ * room's sharp band's weight, a tenth heavier, since in print it carries the
+ * light alone; at a small cut the optics thicken it as they do in the room.
  */
 function PrintedIcon({
   size,
@@ -838,11 +902,13 @@ function PrintedIcon({
   className?: string;
   style?: CSSProperties;
 }) {
+  const raw = useId();
+  const id = `ik${raw.replace(/[^a-zA-Z0-9]/g, "")}i`;
   const o = iconOptics(optics ?? size);
   const px = 1024 / size;
   const rD = o.rDisc * 1024;
   const gap = Math.max(o.gap * 1024, 1.5 * px);
-  const band = Math.max(o.band * 1024 * 1.35, 2.5 * px);
+  const band = Math.max(o.band * 1024 * 1.1, 2.5 * px);
   return (
     <svg
       role="img"
@@ -854,7 +920,20 @@ function PrintedIcon({
       style={{ display: "block", flexShrink: 0, ...style }}
       data-bd-read={read}
     >
-      <path d={SQUIRCLE} fill={STOCK.card.hex} />
+      <defs>
+        <clipPath id={id}>
+          <path d={SQUIRCLE} />
+        </clipPath>
+      </defs>
+      {/* The keyline is stroked twice its width and clipped, so the whole
+          hairline falls inside the cut. */}
+      <path
+        d={SQUIRCLE}
+        fill={STOCK.card.hex}
+        stroke={KEYLINE.hex}
+        strokeWidth={2 * px}
+        clipPath={`url(#${id})`}
+      />
       <circle
         cx={512}
         cy={512}
@@ -917,29 +996,6 @@ function Mark({ size = 40, ground, className, style }: SymbolProps) {
 
 /* ── the receipt: one ink, its depths as a press shows them ────────────────── */
 
-/** A uniform screen of one ink (a tint as a press makes one: dots, never a fade). */
-function Tint({ ink, cover, pitch }: { ink: string; cover: number; pitch: number }) {
-  const raw = useId();
-  const id = `ik${raw.replace(/[^a-zA-Z0-9]/g, "")}t`;
-  const r = pitch * Math.sqrt(cover / Math.PI);
-  return (
-    <svg aria-hidden width="100%" height="100%" style={{ display: "block" }}>
-      <defs>
-        <pattern
-          id={id}
-          width={pitch}
-          height={pitch}
-          patternUnits="userSpaceOnUse"
-          patternTransform="rotate(45)"
-        >
-          <circle cx={pitch / 2} cy={pitch / 2} r={r} fill={ink} />
-        </pattern>
-      </defs>
-      <rect width="100%" height="100%" fill={`url(#${id})`} />
-    </svg>
-  );
-}
-
 function Receipt({
   source,
   ground,
@@ -954,17 +1010,21 @@ function Receipt({
         <LightChips light={roomLight(source)} height={height} />
       </div>
     );
-  // A press's colour bar for the one ink: solid, then two of its screens.
+  // A press's colour bar for the one ink: the solid, then two of its screens
+  // on the same device-true lattice as the Bloom's, so its depths are dots
+  // of the full ink (the room's three depths, as print makes them).
   const ink = inkOf(source).hex;
-  const pitch = Math.max(2.4, Math.min(3.6, height * 0.36));
   return (
-    <div className={cn("ik-bar", className)} style={{ width, height, ...style }}>
-      <span style={{ flexGrow: 5, background: ink }} />
-      <span style={{ flexGrow: 3 }}>
-        <Tint ink={ink} cover={0.5} pitch={pitch} />
+    <div
+      className={cn("ik-bar", className)}
+      style={{ width, height, ...style }}
+    >
+      <span style={{ flex: "6 1 0", background: ink }} />
+      <span style={{ flex: "3 1 0" }}>
+        <Screen ink={ink} out={0} shape={{ kind: "flat", cover: 0.5 }} />
       </span>
-      <span style={{ flexGrow: 2 }}>
-        <Tint ink={ink} cover={0.22} pitch={pitch} />
+      <span style={{ flex: "2 1 0" }}>
+        <Screen ink={ink} out={0} shape={{ kind: "flat", cover: 0.24 }} />
       </span>
     </div>
   );

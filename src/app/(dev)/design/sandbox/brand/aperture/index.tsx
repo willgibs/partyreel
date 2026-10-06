@@ -37,7 +37,8 @@ export const APERTURE: Take = {
         "Nothing new: the room's own light at the room's own strength, in its own dark.",
       carries:
         "The piece of the room it travels in: a puck, a plate, a rebate or the slab.",
-      never: "On the paper itself: no glow, tint or wash ever touches the page.",
+      never:
+        "On the paper itself: no glow, tint or wash ever touches the page.",
     },
     icon: "The shutter: a dark disc in a ring of light, lit by one warm key from the top-left. It is a piece of the room wherever it goes, so its light never changes.",
     iconPaper:

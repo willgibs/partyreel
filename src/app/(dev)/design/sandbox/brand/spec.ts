@@ -150,7 +150,8 @@ export const BRAND = defineExploration({
     {
       id: "take",
       label: "Which Afterglow",
-      question: "Which Afterglow should every brand board after this one grow from?",
+      question:
+        "Which Afterglow should every brand board after this one grow from?",
       where: ["Shared", "The brand", "Every surface"],
       when: "Before the brand marks, the signature across app and marketing, the page themes, demo framing and presence are drawn.",
       matters:

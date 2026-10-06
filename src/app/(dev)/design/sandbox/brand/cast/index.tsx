@@ -48,25 +48,25 @@ export const CAST: Take = {
       becomes:
         "A coloured shadow: the photograph's own colours, darker than the page, densest at its edge.",
       carries:
-        "The lit thing itself: a photograph, the shutter, the one subject card.",
+        "The lit thing itself: a photograph, the shutter, the code on its plate.",
       never:
         "Above or behind words, or loose on the page: light only falls from something.",
     },
     icon: "The shutter: a dark disc in a ring of light, lit from the top-left. On a light ground its light falls past it, the ring's own colours as a shadow.",
     iconPaper:
-      "On paper the icon's ring casts its warm light down and to the right.",
+      "Printed, the ring is a deep gold arc turning to plum, and its warm light falls down and to the right.",
     colourPaper:
-      "On paper a source falls as a coloured shadow, in its photograph's own colours.",
+      "On paper each source falls as a coloured shadow: the photograph's own colours, the seed's, the sky's.",
     forms: {
       ring: {
         room: "Round what adds a photograph, and the icon: the album's own colours, filling as photographs send.",
         paper:
-          "The ring's light falls below it as a coloured shadow, the album's own colours.",
+          "Its light falls past the face, down and to the right: the album's own colours, as a shadow.",
       },
       seam: {
         room: "Where the media ends: the picture's own colours, glowing out of its edge.",
         paper:
-          "The photographs' colours fall from their edge onto the page, dense and short.",
+          "The photograph's colours fall from its edge onto the page, dense and short.",
       },
       bloom: {
         room: "Behind the one live subject: its own frames, blurred, the light the picture gives.",
@@ -75,24 +75,24 @@ export const CAST: Take = {
       },
     },
     seedPaper:
-      "Before the first photograph the seed's own orb casts its colour on the page.",
+      "Before the first photograph the seed is an orb in the empty cover, casting its colour down and to the right.",
     motion:
       "Light, when something happens: a shadow settles once as a photograph lands; nothing loops.",
     rhythm:
-      "Paper pages are lit from the top-left like everything in the product. Their one subject casts its colour; the foot is paper, the page's photographs falling into it.",
+      "Paper pages are lit from the top-left like everything in the product. Their one subject casts its colour; the rest of the page, the foot too, stays white, because light only falls from something.",
     roundOne: "Round one on paper: the room's light, paled, reads as a stain.",
     thisTake:
       "Cast on paper: the light falls as colour, darker than the page, never paler.",
     notes: {
       hero: "The reel's own frames, blurred, glow round it: the light is the picture, amber for the stage and blue for the floor.",
       darkPage:
-        "Under the album the photographs' own colours fall from their edge, each where it is.",
+        "Under the album each photograph's own colours glow out of its edge, where it is.",
       lightPage:
         "The Pro plan's photographs cast their colours onto the card, down and to the right; the page round them stays white.",
-      hub: "Before the first photograph the code casts the seed's colour; the Add casts its ring's.",
+      hub: "Before the first photograph the light is the seed's: on her desk the code casts it onto the page; on her phone the Add glows with it as photos send.",
       share:
         "The table card's code casts the seed's colour onto the card, like light through coloured glass.",
-      home: "On a light home screen the Ring's light falls past its tile; on a dark one it glows round it.",
+      home: "On a home screen the Ring glows round its dark tile, day or night; printed on a card, its warm light falls past it.",
     },
   },
 };

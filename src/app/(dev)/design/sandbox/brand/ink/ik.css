@@ -61,7 +61,10 @@
   padding-inline: var(--ik-inset, 20px);
   overflow: hidden;
   color: var(--ik-ink);
-  font: 600 10px/12px var(--font-sans), ui-sans-serif, sans-serif;
+  font:
+    600 10px/12px var(--font-sans),
+    ui-sans-serif,
+    sans-serif;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   font-variant-numeric: tabular-nums;
@@ -116,9 +119,11 @@
   gap: 2px;
 }
 .ik-bar > span {
+  position: relative;
   display: block;
   min-width: 6px;
   overflow: hidden;
+  isolation: isolate;
 }
 
 @media (prefers-reduced-motion: no-preference) {

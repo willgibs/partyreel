@@ -531,8 +531,7 @@ export function RingSymbol({
     };
   }, [small, appearance, ring]);
   const box = size * 1.6;
-  const [d0, d1] =
-    appearance === "paper" ? DISC.paper : ["#232328", "#0d0d10"];
+  const [d0, d1] = appearance === "paper" ? DISC.paper : ["#232328", "#0d0d10"];
   return (
     <svg
       aria-hidden

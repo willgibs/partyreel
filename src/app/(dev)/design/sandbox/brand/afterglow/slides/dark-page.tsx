@@ -2,7 +2,7 @@
 
 import type { SlideProps } from "../../deck/contract";
 import { PARTY, type PhotoId } from "../../deck/media";
-import { Btn, SiteFooter, SiteNav, StatusLight, Wall } from "../kit";
+import { SiteFooter, SiteNav, StatusLight, Wall } from "../kit";
 import { SlideRoot } from "../root";
 import { Readout, ROOM, type RowSpec, wallOf } from "../system";
 import { useInk, useTake } from "../take";
@@ -196,21 +196,43 @@ function AlbumDesk() {
   );
 }
 
-/** The whole page on a phone, drawn at 375 wide: opener, a quiet section, the foot. */
-const PHONE_PAGE = 1668;
-const PHONE_FOOT = 1368;
+/**
+ * THE WHOLE PAGE ON A PHONE, drawn at 375 wide: the opener, the wall and its
+ * Seam, a quiet section, the foot. Each section's top is set from the measured
+ * height of the one above it.
+ *
+ * ★ THE OPENER CARRIES NO BUTTONS, as the desk's does not: the phone's nav
+ * already holds "Start free", and the room they would take is the air the
+ * wall, the quiet section and the foot need inside the phone slide.
+ */
+const PHONE = {
+  /** The wall: 22 px under the opener's last line. */
+  wall: 362,
+  /** The Seam's reach under the wall's bottom row. */
+  reach: 88,
+  /**
+   * The quiet section: 56 px under the event's line, so that at the foot's
+   * scroll (the desk slide's phone) the line sits wholly under the status
+   * bar rather than peeking out below it.
+   */
+  quiet: 976,
+  /** The foot: 44 px under the last claim. */
+  foot: 1354,
+  /** The page's end: the foot's 301 px of words and a home indicator's 29. */
+  page: 1684,
+} as const;
 
 function AlbumPhone() {
   const take = useTake();
   const t = useInk("room");
   const { WallSeam } = take.light;
   const wall = wallOf(PHONE_ROWS, 375, 4);
-  const top = 416;
-  const reach = 84;
+  const { reach } = PHONE;
+  const top = PHONE.wall;
   return (
     <div
       className="absolute inset-x-0 top-0 overflow-hidden"
-      style={{ height: PHONE_PAGE, background: ROOM.room.hex, color: t.fg }}
+      style={{ height: PHONE.page, background: ROOM.room.hex, color: t.fg }}
     >
       <SiteNav ground="room" screen="phone" active="Features" />
       <div className="absolute" style={{ left: 20, right: 20, top: 134 }}>
@@ -218,7 +240,12 @@ function AlbumPhone() {
         <h1
           className="ag-title"
           aria-label={H1}
-          style={{ fontSize: 35, marginTop: 12, color: t.fg }}
+          style={{
+            fontSize: 35,
+            marginTop: 12,
+            color: t.fg,
+            textWrap: "balance",
+          }}
         >
           {H1}
         </h1>
@@ -234,14 +261,6 @@ function AlbumPhone() {
         >
           {SUB}
         </p>
-        <div className="flex" style={{ gap: 10, marginTop: 22 }}>
-          <Btn ground="room" size="md">
-            Start free
-          </Btn>
-          <Btn ground="room" kind="secondary" size="md">
-            See how it works
-          </Btn>
-        </div>
       </div>
       <div className="absolute inset-x-0" style={{ top, height: wall.height }}>
         <Wall tiles={wall.tiles} />
@@ -259,7 +278,10 @@ function AlbumPhone() {
         <AlbumLine desk={false} />
       </div>
       {/* A quiet section: no light, the room and its words. */}
-      <div className="absolute" style={{ left: 20, right: 20, top: 1000 }}>
+      <div
+        className="absolute"
+        style={{ left: 20, right: 20, top: PHONE.quiet }}
+      >
         <Readout style={{ color: t.faint }}>Full quality</Readout>
         <h2
           className="ag-title"
@@ -285,8 +307,8 @@ function AlbumPhone() {
         page="room"
         screen="phone"
         source={{ photos: ALBUM }}
-        height={PHONE_PAGE - PHONE_FOOT}
-        style={{ top: PHONE_FOOT }}
+        height={PHONE.page - PHONE.foot}
+        style={{ top: PHONE.foot }}
       />
     </div>
   );
@@ -302,7 +324,7 @@ export function DarkPageSlide({ screen }: SlideProps) {
       <SlideRoot screen={screen} ground="room">
         <PhoneStage
           ground="room"
-          pageH={PHONE_PAGE}
+          pageH={PHONE.page}
           page={<AlbumPhone />}
           label={LABEL}
           note={note}
@@ -320,8 +342,8 @@ export function DarkPageSlide({ screen }: SlideProps) {
         url="partyreel.com/features/album"
         page={<AlbumDesk />}
         phone={<AlbumPhone />}
-        phonePage={PHONE_PAGE}
-        phoneScroll={PHONE_PAGE - 812}
+        phonePage={PHONE.page}
+        phoneScroll={PHONE.page - 812}
         phoneCaption="A scroll later: its foot, 375 wide"
         label={LABEL}
         note={note}
