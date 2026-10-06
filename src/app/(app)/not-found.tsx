@@ -16,7 +16,11 @@ import { appNotFoundMetadata } from "./not-found.metadata";
 // `app/not-found.lazy.tsx`, the one client boundary every 404 shares; `not-found.test.ts` walks this file's eager imports and
 // refuses a component, a client island or a stylesheet among them. What only a Server Component can hold
 // stays here: the metadata, whose words live in `not-found.metadata.ts` so the pages can read them too.
-export const metadata: Metadata = appNotFoundMetadata;
+// ★ NO ROBOTS OF ITS OWN (crumbs-86, as the root's and the cinema's): a thrown `notFound()` is a 404, or a stream Next
+// marks itself, and Next writes the one `<meta name="robots" content="noindex">` into both; a second beside it said the
+// same twice. The page that draws this screen itself at 200 keeps the robots in `not-found.metadata.ts`, since no status
+// of its own marks it; the boundary takes only its words.
+export const metadata: Metadata = { title: appNotFoundMetadata.title };
 
 export default function AppNotFound() {
   return <AppNotFoundLazy />;

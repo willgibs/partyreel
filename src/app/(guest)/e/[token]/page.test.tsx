@@ -121,7 +121,8 @@ describe("a guest link that names nothing", () => {
       searchParams: Promise.resolve({}),
     });
     expect(metadata).toBe(notFoundMetadata);
-    expect(boundaryMetadata).toBe(notFoundMetadata);
+    // The boundary takes the words alone: a thrown notFound() carries Next's one noindex (crumbs-86).
+    expect(boundaryMetadata).toEqual({ title: notFoundMetadata.title });
     expect(metadata.title).toBe("Event not found");
     expect(metadata.robots).toEqual({ index: false, follow: false });
   });
