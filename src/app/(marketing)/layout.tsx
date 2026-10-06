@@ -13,8 +13,8 @@ import { WebAnalytics } from "@/components/marketing/system/web-analytics";
 // layout (Track B theme posture; a light body is a PaperChapter inside it, and
 // the (paper) group retired when /contact took that shape) so the skin owns its
 // wrapper — which also means anything rendered at THIS level (error.tsx) has NO
-// header/footer; the group-owned not-found.tsx file exists for exactly that
-// reason. See architecture.md for the route-group domain split.
+// header/footer. The site's one 404 is the root's, which brings its own chrome.
+// See architecture.md for the route-group domain split.
 export default function MarketingLayout({
   children,
 }: {

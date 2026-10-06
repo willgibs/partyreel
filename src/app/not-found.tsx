@@ -6,8 +6,8 @@ import { AdminNotFoundScreenLazy, SiteNotFoundLazy } from "./not-found.lazy";
 
 // Root catch-all 404 for UNMATCHED URLs (and any notFound() with no nearer boundary: the lab's pages and the
 // print sheet have none). A notFound() thrown INSIDE a route group is caught by that group's own not-found.tsx
-// — (marketing)/(cinema), (guest)/e and /u, (app), admin — so this file's chrome never doubles a group
-// layout's. Next returns a 404 status and injects noindex.
+// — (guest)/e and /u, (app), admin — so this file's chrome never doubles a group layout's. The marketing site
+// has no group 404 of its own: this one is drawn outside its layout, chrome and all. Next returns a 404 status and injects noindex.
 //
 // ★ THIS FILE DRAWS NOTHING ITSELF, AND MUST STAY THAT WAY (perf-404). Next renders a root not-found into
 // EVERY route's payload, whether or not the route 404s, so anything drawn here is paid for by every page:

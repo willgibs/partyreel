@@ -2,6 +2,7 @@ import { Check, ChevronLeft, Clapperboard, ListChecks, X } from "lucide-react";
 import Image from "next/image";
 
 import { ctaCorner } from "@/components/ui/button";
+import { ArrivalLight } from "@/components/marketing/sections/shared/arrival-light";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { QR_PRESETS, QR_STYLE_KEYS } from "@/lib/constants/qr-presets";
 import { LIVE_REEL_MINIMUM } from "@/lib/events/gallery-reel";
@@ -235,9 +236,9 @@ const ALBUM_IDS = [
 
 /**
  * The album mid-evening, in a browser: the event's one permanent link in the
- * address bar, and two tiles wearing a just-landed check, which pictures an
- * upload arriving (the product marks one with a pass of light and a rim,
- * shared/arrival.css). The count line is the app's own shape, from
+ * address bar, and the two newest tiles taking turns wearing the album's own
+ * arrival light (`ArrivalLight`, shared/arrival.css: the rim that fades when a
+ * guest's photograph appears). The count line is the app's own shape, from
  * event-experience.tsx.
  *
  * ★ NO "LIVE" CHIP. The shipped album has no Live badge anywhere: liveness is
@@ -263,9 +264,7 @@ export function FillPicture() {
           {ALBUM_IDS.map((id, i) => (
             <Tile key={id} id={id} sizes="110px">
               {i < 2 && (
-                <span className="absolute top-1 right-1 flex size-4 items-center justify-center rounded-full bg-success text-white">
-                  <Check className="size-2.5" strokeWidth={3} />
-                </span>
+                <ArrivalLight kind="arrived" every={4800} offset={i * 2400} />
               )}
             </Tile>
           ))}

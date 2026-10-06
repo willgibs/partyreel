@@ -113,6 +113,27 @@ function ScanLine({
   );
 }
 
+/**
+ * THE ADDRESS UNDER THE CODE, as the product's own print stock prints it (`app/print/print-stock.tsx`: the code, the
+ * line, then the readable link in a quieter grey), so a card on the table carries a way in for a guest whose camera
+ * will not read it: the code's own value in words, the host and never the scheme. The two cards a host actually prints
+ * (the table card, the tent card) wear it; a badge and a sleeve are not stock.
+ */
+const CODE_WORDS = `${new URL(SITE_URL).host}/demo`;
+
+function AddressLine({ className }: { className?: string }) {
+  return (
+    <span
+      className={cn(
+        "-mt-1 block w-full text-center text-[10px] leading-tight wrap-anywhere text-muted-foreground/80",
+        className,
+      )}
+    >
+      {CODE_WORDS}
+    </span>
+  );
+}
+
 /* ── the shared physical vocabulary ──────────────────────────────────────── */
 
 /**
@@ -241,6 +262,7 @@ function AlbumObject({ stills }: { stills: readonly string[] }) {
           <div className="flex w-[168px] -rotate-[4deg] flex-col items-center gap-2.5 rounded-xl border bg-card p-3.5 shadow-lift ring-1 ring-foreground/5 sm:w-[186px] sm:p-4">
             <DemoCode size={104} />
             <ScanLine>Scan to add your photos</ScanLine>
+            <AddressLine />
           </div>
         </div>
       )}
@@ -289,6 +311,7 @@ function PrintsObject({ stills }: { stills: readonly string[] }) {
           <div className="flex w-[140px] rotate-[2deg] flex-col items-center gap-2 rounded-xl border bg-card p-3 shadow-lift ring-1 ring-foreground/10 sm:w-[156px] sm:gap-2.5 sm:p-3.5">
             <DemoCode size={88} />
             <ScanLine className="text-caption">Scan to add yours</ScanLine>
+            <AddressLine />
           </div>
         </div>
       )}

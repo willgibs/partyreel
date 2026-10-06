@@ -1,9 +1,10 @@
 "use client";
 
-import { Check, Maximize2, Play } from "lucide-react";
+import { Maximize2, Play } from "lucide-react";
 import Image from "next/image";
 import type { CSSProperties } from "react";
 
+import { ArrivalLight } from "@/components/marketing/sections/shared/arrival-light";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { useFlip } from "@/lib/shared/use-flip";
 import { useEnteredFrame } from "@/lib/shared/use-entered-frame";
@@ -15,9 +16,10 @@ import type { AlbumFillView, AlbumTile } from "./use-album-fill";
  * THE FILLING ALBUM'S GRID: explicit columns, newest at the top, older tiles
  * sliding DOWN as a new one lands. This quotes the guest album's arrival
  * grammar as a picture (the real marks are src/components/shared/album-tile.tsx
- * and arrival.css): the green check on the tile that just landed, the thin
- * progress strip on an in-flight upload, the small corner play badge on a
- * video, the live count line above.
+ * and arrival.css): the album's own arrival light on the tile that just landed
+ * (`ArrivalLight`, the rim that fades, since the grid's one stage watches
+ * other people's uploads arrive), the thin progress strip on an in-flight
+ * upload, the small corner play badge on a video, the live count line above.
  *
  * ★ TWO ELEMENTS PER TILE, AND THE SPLIT IS LOAD-BEARING. The OUTER wrapper is
  * what useFlip registers and moves: it carries NO transform, transition or
@@ -86,20 +88,6 @@ function PeekMark({ on }: { on: boolean }) {
       className="pointer-events-none absolute top-1.5 left-1.5 flex size-4 items-center justify-center rounded-full bg-black/55 text-white opacity-0 transition-opacity duration-300 ease-emphasis data-[on=true]:opacity-100 motion-reduce:transition-none sm:size-5"
     >
       <Maximize2 className="size-2 sm:size-2.5" strokeWidth={2.5} />
-    </span>
-  );
-}
-
-function CheckBadge() {
-  const on = useEnteredFrame(false);
-  return (
-    <span
-      aria-hidden
-      data-mkt-toast
-      data-on={on ? "true" : "false"}
-      className="pointer-events-none absolute top-1.5 right-1.5 flex size-4.5 items-center justify-center rounded-full bg-success text-success-foreground"
-    >
-      <Check className="size-3" strokeWidth={3} />
     </span>
   );
 }
@@ -192,7 +180,7 @@ function AlbumTileView({
           </span>
         )}
         {tile.status === "uploading" && <ProgressStrip ms={stripMs} />}
-        {tile.check && <CheckBadge />}
+        {tile.check && <ArrivalLight kind="arrived" />}
         {peek && <PeekMark on={marked} />}
       </div>
     </div>

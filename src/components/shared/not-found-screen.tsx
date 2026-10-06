@@ -56,8 +56,8 @@ const TITLE_STEP = {
 } as const;
 
 // Shared "dead end" hero for the failure pages (Will, `grammar=shared`,
-// 2026-09-19: one primitive, per-surface words): the site's 404 and the cinema
-// group's (through MarketingNotFound), the host app's, the operations portal's
+// 2026-09-19: one primitive, per-surface words): the site's 404 (through
+// MarketingNotFound), the host app's, the operations portal's
 // and a guest profile's, the admin host's refused path (through
 // AdminNotFoundScreen), the renewal's two dead ends, and every render crash
 // (through RouteError and MarketingRouteError). The guest link's two dead ends,

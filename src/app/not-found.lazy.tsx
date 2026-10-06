@@ -54,13 +54,6 @@ export const ProfileNotFoundLazy = dynamic(() =>
   ),
 );
 
-/** The cinema group's 404 (a bad `/help/<slug>`, `/blog/<slug>` and the like): the words, in the layout's chrome. */
-export const CinemaNotFoundLazy = dynamic(() =>
-  import("./(marketing)/(cinema)/not-found.screen").then(
-    (m) => m.CinemaNotFoundScreen,
-  ),
-);
-
 /** The host app's 404 (a missing or not-yours event), inside AppShell. */
 export const AppNotFoundLazy = dynamic(() =>
   import("./(app)/not-found.screen").then((m) => m.AppNotFoundScreen),

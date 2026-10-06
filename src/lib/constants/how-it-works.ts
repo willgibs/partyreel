@@ -98,7 +98,7 @@ const HOST_STEPS: readonly LoopStep[] = [
   {
     id: "keep",
     title: "Take it all home",
-    body: "Everything comes back out at the size it went in. Save one favorite on the spot, or download the whole album as a single zip, photos and video together.",
+    body: "Everything comes back out at the size it went in. Save one favorite on the spot, or take the whole album: the originals to keep for good, or a phone-size set to post tonight.",
     href: "/features/sharing",
     linkLabel: "Sharing and downloads",
   },
