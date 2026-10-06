@@ -72,13 +72,16 @@ import { useContext, useState } from "react";
  *   - RELOADS: (a page pushed to `?room=a`, then) a refresh followed by a write to `?room=b` in the refresh's first
  *     tens of milliseconds, until its reducer has resolved (0 to 40 ms on crumbs-24's bare page, 0 to 100 ms on
  *     `/pricing` for crumbs-22: it grows with the page); on a deep-linked entry after one earlier native write to
- *     `?photo=1`, a refresh then a write to `?photo=2`.
+ *     `?photo=1`, a refresh then a write to `?photo=2`. A deep link's photograph makes two such writes as it opens
+ *     (crumbs-83: the album's address in place, then its own entry pushed), in the page's first frame, where a tile's
+ *     open makes one; nothing known refreshes the router in that frame.
  *   - DROPS THE REFRESH (no reload, its data never lands): a write after that, up to about 120 ms on the bare page.
  *   - NEVER: the write BEFORE the refresh (the same tick or not); a write once the refresh's reducer has resolved
- *     (its data then lands after the write); a write back to the address the page was rendered at (a viewer's close
- *     on a fresh deep link); a second refresh once the first has committed; `history.back()`; a `pushState` with no
- *     address (a phone popup's entry); `router.push` and `router.replace` (Next's own navigations, which also discard
- *     the pending refresh but load what they name); an entry Next pushed itself, before any native write.
+ *     (its data then lands after the write); a write back to the address the page was rendered at (the viewer's
+ *     in-place close, where it stands on no entry of its own); a second refresh once the first has committed;
+ *     `history.back()`; a `pushState` with no address (a phone popup's entry); `router.push` and `router.replace`
+ *     (Next's own navigations, which also discard the pending refresh but load what they name); an entry Next pushed
+ *     itself, before any native write.
  *   - ★ A SERVER ACTION THAT REVALIDATES IS NOT A REFRESH: a write anywhere in its round trip discards it and Next
  *     re-fetches once it answers (`needsRefresh`), so its data still lands and nothing reloads (8 delays of 8, 0 to
  *     500 ms). That re-fetch is a refresh, though: a SECOND write inside it (within about 40 ms of the action's

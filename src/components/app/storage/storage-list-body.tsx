@@ -12,6 +12,8 @@ import {
 } from "@/components/app/event-feed/bulk-bar";
 import { useExportDownload } from "@/components/app/export/use-export-download";
 import { announceChangePlanError } from "@/components/app/pricing/change-plan-request";
+import { useLeaveHold } from "@/components/app/pricing/leave";
+import { usePricingDoors } from "@/components/app/pricing/pricing-doors";
 import { Button } from "@/components/ui/button";
 import {
   Popup,
@@ -108,8 +110,15 @@ export function StorageListBody({
   const source = useStorageSource();
   const router = useRouter();
   const { startDownload } = useExportDownload();
+  // ★ THE STRIP LEAVES BY THE PRICING DOORS' OWN WAY OUT (crumbs-83): it is the one that knows a phone's places hold
+  // history entries of their own (this list's, and the plan's it stacks over), and that keeps the press pressed until
+  // the page has gone (`leave.ts`); a plain `location.assign` left over both entries, two dead Backs home from Stripe.
+  const { leave } = usePricingDoors();
+  const { held, took } = useLeaveHold();
   const [state, dispatch] = useReducer(listReducer, FIRST_READ);
-  const [phase, setPhase] = useState<GoalPhase>("idle");
+  const [stage, setStage] = useState<GoalPhase>("idle");
+  // Opening until the page has gone (or comes back from the browser's cache): the way out's hold.
+  const phase: GoalPhase = held ? "opening" : stage;
   const [downloadAsk, setDownloadAsk] = useState(false);
   const [ask, setAsk] = useState<Ask | null>(null);
   const [attempt, setAttempt] = useState(0);
@@ -259,18 +268,21 @@ export function StorageListBody({
     // Her own plan's goal has nothing to switch to, so its strip carries no button.
     if (!goal || goal.kind === "fit") return;
     if (pending.length > 0) {
-      setPhase("deleting");
+      setStage("deleting");
       const done = await deleteForGood(pending);
       if (!done) {
-        setPhase("idle");
+        setStage("idle");
         return;
       }
     }
-    setPhase("opening");
+    setStage("opening");
     const outcome = await source.switchPlan(goal.target.id, goal.returnTo);
     switch (outcome.kind) {
       case "redirect":
-        window.location.assign(outcome.url);
+        // The way out holds the strip at Opening… from here (`phase`), and lets go if the page comes back.
+        leave(outcome.url);
+        took();
+        setStage("idle");
         return;
       case "signin":
         router.push(loginPath(window.location.pathname));
@@ -280,11 +292,11 @@ export function StorageListBody({
         // server's figure and the strip says what is left.
         dispatch({ type: "rebase", storedBytes: outcome.refusal.storedBytes });
         toast(outcome.refusal.message);
-        setPhase("idle");
+        setStage("idle");
         return;
       case "error":
         announceChangePlanError(outcome, toast);
-        setPhase("idle");
+        setStage("idle");
     }
   }
 

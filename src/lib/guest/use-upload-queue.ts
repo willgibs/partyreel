@@ -51,7 +51,6 @@ import { SESSION_OTHER_ACCOUNT } from "@/lib/guest/session-owner";
 import { dropGuestTicket } from "@/lib/guest/use-stored-session";
 import { useHealLostAnswers } from "@/lib/guest/use-upload-queue.heal";
 import { HOST_CLIP_ENDPOINTS } from "@/lib/reel/clip-add";
-import { classifyMime, validateUpload } from "@/lib/media/validators";
 import { takeBurst } from "@/lib/upload/burst";
 import type { StopResult } from "@/lib/upload/stop-upload";
 import {
@@ -105,25 +104,6 @@ type UploadRoute = Pick<
   "endpoints" | "identity"
 >;
 
-/**
- * ★ A REFUSAL OF THE FILE ITSELF THAT THE UPLOADER MADE ON THE PHONE CARRIES NO CODE (red-team 54's LOW). A wrong type
- * ("That file type isn't supported.") and a file over the ceiling ("This file is larger than the 10 GB maximum.") are
- * refused before any request, so unlike the server's they have no `code`, and a refusal with none reads as a transport
- * failure worth another go: the failure sheet offered Retry and Retry all, and a press sent nothing, since the same check
- * refused the same file again at once. Asked of the file again here, with the very validators the uploader asks
- * (`media/validators`, never a rule of its own), a refusal no code speaks for is told as the code the refusal ladder
- * already knows for it, so no surface offers a Retry that cannot pass (`classifyRefusal`: "choose"). A file that passes is
- * none of this: its code-less failure is the line's or the server's, and keeps its Retry.
- */
-export function localRefusalCode(
-  file: Pick<File, "type" | "size">,
-): "unsupported_type" | "too_large" | undefined {
-  if (!classifyMime(file.type)) return "unsupported_type";
-  return validateUpload({ mime: file.type, sizeBytes: file.size }).ok
-    ? undefined
-    : "too_large";
-}
-
 /** The three refusals that are the session's, never the file's (the note above): read once a burst is over. */
 const isSessionRefusal = (outcome: UploadOutcome) =>
   !outcome.ok &&
@@ -153,12 +133,13 @@ export type QueueItem = {
   mediaId?: string;
   error?: string;
   /**
-   * THE SERVER'S OWN REFUSAL CODE, kept beside its sentence. The album's failure sheet needs only
-   * the words, but the door's upload step has no exit, so what a guest can DO about a refusal has
-   * to be derivable: `uploads_closed` and `cap_reached` open the album (the fail-open),
-   * `invalid_session` goes back to the name, and only the rest may offer a Retry. Absent for a
-   * transport failure, which `classifyRefusal` reads as "worth another go"; a local refusal of the file
-   * itself is told as the code the ladder knows for it (`localRefusalCode`), so it never is.
+   * THE REFUSAL'S OWN CODE, kept beside its sentence: the server's, or the uploader's for a file it refused
+   * itself before any request (a wrong type, a file over its ceiling: `uploader.ts`'s `prepare` tags them at
+   * the source). The album's failure sheet needs only the words, but the door's upload step has no exit,
+   * so what a guest can DO about a refusal has to be derivable: `uploads_closed` and `cap_reached` open the
+   * album (the fail-open), `invalid_session` goes back to the name, and only the rest may offer a Retry.
+   * Absent for a transport failure, which `classifyRefusal` reads as "worth another go". The queue carries
+   * the code it is told and never makes one up.
    */
   errorCode?: string;
   /**
@@ -887,10 +868,8 @@ export function useUploadQueue({
             status: "error",
             progress: 0,
             error: outcome.message,
-            // The server's own code where it spoke; else, for a refusal that was not the line's, the file's own (above).
-            errorCode:
-              outcome.code ??
-              (outcome.cause ? undefined : localRefusalCode(it.file)),
+            // The refusal's own code, the server's or the uploader's for a file it refused itself (`errorCode`).
+            errorCode: outcome.code,
             cause: outcome.cause,
           });
         };

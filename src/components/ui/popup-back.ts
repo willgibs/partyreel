@@ -3,6 +3,7 @@
 import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime"
 import { useContext, useEffect, useRef } from "react"
 
+import { steppingOut } from "@/components/ui/popup-back-way-out"
 import { useOwnedEntry, type OwnedEntry } from "@/lib/history-entry"
 
 /**
@@ -58,6 +59,28 @@ import { useOwnedEntry, type OwnedEntry } from "@/lib/history-entry"
  * life never wrote is gone Back over, a landing at a time, until the window
  * stands on a live one (the same address, so nothing moves; the reopened viewer
  * then stands on its own entry and takes it up).
+ *
+ * ★ AN ENTRY WHOSE POPUP HAS GONE IS STEPPED OVER WHEN A PRESS LANDS ON IT, THE
+ * WAY THE PRESS WAS GOING (crumbs-83). Two kinds stay behind with this page
+ * life's own marker on them (`spent`):
+ *   - OVER the window: the entry a person's Back popped, or a Back of ours took
+ *     back. Only a Forward lands there again, and it read as a Back off the top
+ *     entry, so Forward onto a closed popup's entry closed the popup open beneath
+ *     it, and stood on a dead entry besides. The popup is gone and cannot come
+ *     back, so that Forward is undone: one step Back, the popup beneath untouched.
+ *   - UNDER a page the window went on to: a popup whose act navigates (a server
+ *     action's redirect, `router.push`) goes with its page and its entry stays
+ *     under the next one, so Back from there landed on a same-address entry with
+ *     nothing open, one dead Back. Landed on from the page above, the step goes on
+ *     Back to the page beneath; landed on from that page (a Forward after it), on
+ *     Forward to the page above.
+ * Our own step that lands on another such entry goes on the same way. The
+ * reload's dead entries above are the earlier page life's; these are this one's.
+ *
+ * ★ THE WAY OUT FOR STRIPE'S PAGE GOES BACK OVER THESE ENTRIES WITHOUT CLOSING
+ * ANYTHING (`popup-back-way-out.ts`, for `app/pricing/leave.ts`): a landing it
+ * brings forgets every entry the window left, and every popup stays drawn as the
+ * page leaves.
  *
  * ★ WHOSE THE ENTRY IS LIVES IN `lib/history-entry.ts`, which every place that
  * pushes an entry stands on (its header says what Next does to one: the marker
@@ -128,6 +151,8 @@ const TRAVEL_FLOOR_MS = 1000
 
 type Held = {
   entry: OwnedEntry
+  /** Its marker, which its entry keeps once the popup has gone (`spent`). */
+  id: string
   /** Its popup went another way than Back: the entry is to be taken back, in the stack's order. */
   closing: boolean
   /** A person's Back popped it: nothing is left to take back. */
@@ -136,12 +161,34 @@ type Held = {
   popped: () => void
 }
 
+/**
+ * Where an entry stands whose popup has gone and whose marker this page life wrote (the head's note): OVER the
+ * window (popped by a person's Back, or taken back by ours), or UNDER a page the window went on to, with the side
+ * the window was last on.
+ */
+type Spent = { at: "over" } | { at: "under"; windowAbove: boolean }
+
+/** How many spent entries are remembered: an older one is far past any press a person makes in one visit. */
+const SPENT_KEPT = 100
+
+/** The spent entries by their markers, oldest first. */
+const spent = new Map<string, Spent>()
+
+function spend(id: string, fate: Spent) {
+  if (!id) return
+  spent.delete(id)
+  spent.set(id, fate)
+  if (spent.size > SPENT_KEPT) spent.delete(spent.keys().next().value!)
+}
+
 /** The entries this page's popups pushed that still stand in its history, oldest first. */
 const stack: Held[] = []
 /** Every marker this page life wrote: one it never wrote is a popup a reload forgot. */
 const written = new Set<string>()
-/** A Back this module asked for, until a `popstate` says it landed. */
+/** A Back this module asked for (or a Forward over a spent entry), until a `popstate` says it landed. */
 let travelling = false
+/** Which way that step goes: a step that lands on another spent entry goes on the same way. */
+let travelForward = false
 let travelFloor = 0
 /** Pushes waiting for that Back to land. */
 const waiting: (() => void)[] = []
@@ -158,6 +205,12 @@ function onDeadEntry(): boolean {
   return typeof seen === "string" && !written.has(seen)
 }
 
+/** The window stands on an entry whose popup has gone (the head's note), or on none such. */
+function spentHere(): Spent | undefined {
+  const seen = markerHere()
+  return typeof seen === "string" ? spent.get(seen) : undefined
+}
+
 function listen() {
   if (listening) return
   listening = true
@@ -165,13 +218,35 @@ function listen() {
 }
 
 function onPopState() {
+  // ★ THE WAY OUT'S OWN TRAVERSAL (the head's note): every entry the window left is forgotten, and nothing closes.
+  if (steppingOut()) {
+    while (stack.length > 0) {
+      const top = stack[stack.length - 1]
+      if (top.entry.stands()) break
+      stack.pop()
+      top.gone = true
+      top.entry.forget()
+    }
+    return
+  }
+  const fate = spentHere()
   if (travelling) {
     endTravel()
-    // A reload's sweep goes on while the window still stands on a dead entry.
+    // A step of ours goes on, the way it was going, while the window stands on an entry no open popup holds: one
+    // whose popup has gone, or a reload's dead one.
+    if (fate) {
+      stepOver(fate, fate.at === "under" && travelForward)
+      return
+    }
     if (onDeadEntry()) {
       travel(() => window.history.back())
       return
     }
+  } else if (fate) {
+    // ★ A person's press landed on an entry whose popup has gone (the head's note): it is stepped over, and no
+    // popup open beneath it is touched. Over the window, it was a Forward: undone. Under a page, the way it came.
+    stepOver(fate, fate.at === "under" && !fate.windowAbove)
+    return
   } else {
     // A person's press: it popped the top entry, if the window has left it, and nothing under it.
     const top = stack[stack.length - 1]
@@ -179,20 +254,31 @@ function onPopState() {
       stack.pop()
       top.gone = true
       top.entry.forget()
+      spend(top.id, { at: "over" })
       if (!top.closing) top.popped()
     }
   }
   settle()
 }
 
-function travel(back: () => void) {
+/** One step over a spent entry: Forward toward the page over it, or Back. */
+function stepOver(fate: Spent, forward: boolean) {
+  if (fate.at === "under") fate.windowAbove = forward
+  travel(
+    forward ? () => window.history.forward() : () => window.history.back(),
+    forward,
+  )
+}
+
+function travel(step: () => void, forward = false) {
   travelling = true
+  travelForward = forward
   window.clearTimeout(travelFloor)
   travelFloor = window.setTimeout(() => {
     endTravel()
     settle()
   }, TRAVEL_FLOOR_MS)
-  back()
+  step()
 }
 
 function endTravel() {
@@ -212,9 +298,14 @@ function settle() {
     if (!top.closing) break
     stack.pop()
     if (top.entry.isOurs()) {
+      // Its Back leaves the entry over the window, where only a Forward lands on it again.
+      spend(top.id, { at: "over" })
       travel(() => top.entry.back())
       return
     }
+    // ★ The page it was open over went on (a link, `router.push`, a server action's redirect) or something else
+    // pushed over it: its entry stays under that one, and a Back from there lands on it (the head's note).
+    spend(top.id, { at: "under", windowAbove: true })
     top.entry.forget()
   }
   if (waiting.length > 0) window.setTimeout(pushWaiting, 0)
@@ -292,10 +383,12 @@ export function useBackCloses(
       if (holdsIfRef.current && !holdsIfRef.current()) return
       cancelPush = whenSettled(() => {
         entry.push()
-        const id = markerHere()
-        if (typeof id === "string") written.add(id)
+        const seen = markerHere()
+        const id = typeof seen === "string" ? seen : ""
+        if (id) written.add(id)
         const held: Held = {
           entry,
+          id,
           closing: false,
           gone: false,
           popped: () => closeRef.current(),

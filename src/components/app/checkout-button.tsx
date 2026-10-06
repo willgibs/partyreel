@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { announceChangePlanError } from "@/components/app/pricing/change-plan-request";
+import { useLeaveHold } from "@/components/app/pricing/leave";
 import {
   usePricingDoors,
   usePricingRouter,
@@ -74,6 +75,14 @@ export function CheckoutButton({
   const router = usePricingRouter();
   const { startCheckout, changePlan, leave } = usePricingDoors();
   const [isPending, startTransition] = useTransition();
+  // ★ PRESSED UNTIL THE PAGE HAS GONE (`leave.ts`'s hold): Stripe's address assigned is a page still standing while
+  // Stripe answers, and a second tap there opened a second session.
+  const { away, held, took } = useLeaveHold();
+  /** The way out, and this door's hold on it. */
+  function leaveNow(url: string) {
+    leave(url);
+    took();
+  }
   // The sentence's hold before Stripe's page (below): a timer she can stop, by Stay here or by leaving the page.
   const [holding, setHolding] = useState(false);
   const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -132,11 +141,13 @@ export function CheckoutButton({
         });
         holdTimer.current = setTimeout(() => {
           holdTimer.current = null;
-          leave(url);
+          // The reading's hold hands over to the way out's, which lets go if the page comes back (this one never did).
+          leaveNow(url);
+          setHolding(false);
         }, NOTICE_HOLD_MS);
         return;
       }
-      leave(outcome.url);
+      leaveNow(outcome.url);
       return;
     }
     if (outcome.kind === "signin") {
@@ -155,7 +166,7 @@ export function CheckoutButton({
       const outcome = await startCheckout(planId, { renewal, next });
       switch (outcome.kind) {
         case "redirect":
-          leave(outcome.url);
+          leaveNow(outcome.url);
           return;
         case "signin":
           router.push(loginPath(window.location.pathname));
@@ -183,8 +194,12 @@ export function CheckoutButton({
   }
 
   return (
-    <Button onClick={press} disabled={isPending || holding} {...buttonProps}>
-      {isPending || holding ? "Starting…" : children}
+    <Button
+      onClick={press}
+      disabled={isPending || holding || away}
+      {...buttonProps}
+    >
+      {isPending || holding || held ? "Starting…" : children}
     </Button>
   );
 }

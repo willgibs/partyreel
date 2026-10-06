@@ -699,9 +699,9 @@ describe("the open photograph rides the address", () => {
  * (pushState and popstate) instead of leaving the album; `?photo=` rides replaceState today"). The viewer joins the
  * one rule the hub's sheets, a phone's popups and the reel share for which history entry is ours
  * (`lib/history-entry.ts`): a tap pushes ONE entry at the photograph's address, a walk moves inside it, every close
- * goes Back over it, the phone's own Back closes the viewer, Forward opens it again, and a photograph opened from its
- * address (a shared link, a reload) has no entry of ours beneath it, so its close clears the address in place and
- * lands in the album.
+ * goes Back over it, the phone's own Back closes the viewer, and Forward opens it again. And since crumbs-83 (Will's
+ * call, his to overrule) a photograph opened from its address (a shared link) writes the album's entry under its own,
+ * so the phone's Back closes it onto the album as well, where it used to leave the album with the photograph open.
  */
 describe("the phone's Back closes the photograph", () => {
   const TooltipWrap = ({ children }: { children: React.ReactNode }) => (
@@ -776,23 +776,93 @@ describe("the phone's Back closes the photograph", () => {
     }
   });
 
-  it("a shared link's photograph closes in place, onto the album, never off the page", async () => {
+  /* ★ A SHARED LINK'S PHOTOGRAPH STANDS ON AN ENTRY OF ITS OWN OVER THE ALBUM'S (crumbs-83; Will's call, his to
+     overrule). It opened with no entry of ours beneath it, so the phone's Back left the album with the photograph open
+     (the old code stood on the one entry the link made); its close cleared the address in place. The album's entry is
+     written under the photograph's as it opens, so Back closes the photograph onto the album, and the next Back leaves. */
+  it("★ a shared link's photograph: the phone's Back closes it onto the album, and the next Back leaves", async () => {
+    window.history.replaceState(null, "", "/e/tok?photo=b");
+    const before = window.history.length;
+    render(<MasonryColumns items={items} />, { wrapper: TooltipWrap });
+    await frame();
+    expect(screen.getByRole("dialog", { name: "Video 2 of 2" })).toBeTruthy();
+    // The album's own entry, the address it landed on cleared in place, and the photograph's pushed over it.
+    expect(window.history.length).toBe(before + 1);
+    expect(marker()).toBeDefined();
+    expect(here()).toBe("/e/tok?photo=b");
+
+    await traverse(() => window.history.back());
+    expect(viewer()).toBeNull();
+    expect(here()).toBe("/e/tok");
+    expect(marker()).toBeUndefined();
+  });
+
+  /* RESHAPED ON PURPOSE (crumbs-83; scar kept: a shared link's photograph closes onto the album, never off the page).
+     Its close replaced the address in place, since no entry of ours stood under it; one does now, so the close goes
+     Back over the photograph's entry like a tile's, and lands on the album's. */
+  it("a shared link's photograph closes onto the album, never off the page", async () => {
     window.history.replaceState(null, "", "/e/tok?photo=b");
     const back = vi.spyOn(window.history, "back");
     try {
       render(<MasonryColumns items={items} />, { wrapper: TooltipWrap });
       await frame();
       expect(screen.getByRole("dialog", { name: "Video 2 of 2" })).toBeTruthy();
-      const before = window.history.length;
-      fireEvent.click(screen.getByRole("button", { name: "Close" }));
-      await frame();
-      expect(back).not.toHaveBeenCalled();
+      await traverse(() =>
+        fireEvent.click(screen.getByRole("button", { name: "Close" })),
+      );
+      expect(back).toHaveBeenCalledTimes(1);
       expect(viewer()).toBeNull();
       expect(here()).toBe("/e/tok");
-      expect(window.history.length).toBe(before);
+      expect(marker()).toBeUndefined();
     } finally {
       back.mockRestore();
     }
+  });
+
+  it("under Next's patch: a shared link's album entry carries Next's own state, the router hears each address, and nothing reloads", async () => {
+    window.history.replaceState(null, "", "/");
+    const next = installNextHistory();
+    try {
+      next.land("/e/tok?photo=b");
+      render(
+        <NextRouterStandIn>
+          <TooltipProvider>
+            <MasonryColumns items={items} />
+          </TooltipProvider>
+        </NextRouterStandIn>,
+      );
+      await frame();
+      expect(screen.getByRole("dialog", { name: "Video 2 of 2" })).toBeTruthy();
+      expect(next.href).toBe("/e/tok?photo=b");
+
+      await traverse(() => window.history.back());
+      expect(viewer()).toBeNull();
+      expect(next.href).toBe("/e/tok");
+      // The album's entry is Next's: a Back onto an entry without its state is a reload in the real router.
+      expect((window.history.state as Record<string, unknown>).__NA).toBe(true);
+      expect(next.reloads).toBe(0);
+    } finally {
+      next.uninstall();
+    }
+  });
+
+  it("a photograph reopened by a reload on its own entry writes no second one under it", async () => {
+    // What a reload of a photograph opened here leaves: the album's entry, and the viewer's over it with its marker.
+    window.history.replaceState(null, "", "/e/tok");
+    window.history.pushState(
+      { prPhoto: "prPhoto-before-the-reload" },
+      "",
+      "/e/tok?photo=b",
+    );
+    const before = window.history.length;
+    render(<MasonryColumns items={items} />, { wrapper: TooltipWrap });
+    await frame();
+    expect(screen.getByRole("dialog", { name: "Video 2 of 2" })).toBeTruthy();
+    expect(window.history.length).toBe(before);
+
+    await traverse(() => window.history.back());
+    expect(viewer()).toBeNull();
+    expect(here()).toBe("/e/tok");
   });
 
   /* Under Next's own patch (`@/lib/test-utils/next-history`): the router hears the photograph's address (the host's

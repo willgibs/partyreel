@@ -130,8 +130,10 @@ export type UploadOutcome =
       sealed?: boolean;
     }
   // `code` is the SERVER's own refusal code when the refusal came from one of
-  // the two routes (absent for a local validation or a transport failure),
-  // passed through verbatim from presign OR complete, since either can refuse.
+  // the two routes, passed through verbatim from presign OR complete, since
+  // either can refuse; or this module's own for a file it refused itself before
+  // any request (`prepare`: `unsupported_type`, `too_large`, the codes the server
+  // says for the same refusals); absent for a transport failure.
   // The guest queue reads exactly two of them by name, both the SESSION's
   // rather than the file's: `verification_required` (a host who turns Require
   // verified emails ON mid-party invalidates every name-only session mid-run)
@@ -1154,7 +1156,16 @@ async function runBurst(
   }
 }
 
-/** A file made ready to send (the steps before any request), or the outcome that ends it here. */
+/**
+ * A file made ready to send (the steps before any request), or the outcome that ends it here.
+ *
+ * ★ A REFUSAL OF THE FILE ITSELF CARRIES ITS CODE FROM HERE (crumbs-83; red-team 54's LOW, first answered downstream).
+ * A wrong type and a file over its ceiling are refused before any request, and a refusal with no `code` reads to every
+ * surface as a transport failure worth another go: the failure sheet offered a Retry whose press refused the same file
+ * at once. Each is tagged where it is decided, with the code the server says for the same refusal (`errors/codes.ts`),
+ * so the refusal ladder (`classifyRefusal`) reads it as a file to choose again for whoever reads the outcome: the
+ * guest's queue, the host's rows, the camera. The queue's copy that asked the file again (`localRefusalCode`) went.
+ */
 async function prepare(
   one: BurstFile,
 ): Promise<
@@ -1166,7 +1177,11 @@ async function prepare(
     if (!kind) {
       return {
         ok: false,
-        outcome: { ok: false, message: "That file type isn't supported." },
+        outcome: {
+          ok: false,
+          code: "unsupported_type",
+          message: "That file type isn't supported.",
+        },
       };
     }
     // 0. Strip identifying metadata (EXIF GPS/device tags, XMP, MP4/MOV udta location, the
@@ -1196,7 +1211,11 @@ async function prepare(
       sizeBytes: file.size,
     });
     if (!localCheck.ok) {
-      return { ok: false, outcome: { ok: false, message: localCheck.reason } };
+      // Its type passed above (the strip keeps it), so what the validator refuses here is the size.
+      return {
+        ok: false,
+        outcome: { ok: false, code: "too_large", message: localCheck.reason },
+      };
     }
 
     // 0b. Generate a small WebP preview in the browser from the STRIPPED file (best-effort; null on

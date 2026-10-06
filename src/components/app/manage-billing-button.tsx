@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import { toast } from "sonner";
 
+import { useLeaveHold } from "@/components/app/pricing/leave";
 import {
   usePricingDoors,
   usePricingRouter,
@@ -23,6 +24,9 @@ import { loginPath } from "@/lib/auth/return-path";
 // Rest props pass through to the Button (like CheckoutButton's) so the pricing sheet
 // can give a Pro host a full-width portal door without a second component; the default
 // outline/sm pair is what every shipped call site already renders.
+//
+// ★ PRESSED UNTIL THE PAGE HAS GONE (`leave.ts`'s hold): the portal's address assigned
+// is a page still standing while Stripe answers, and a second tap opened a second session.
 export function ManageBillingButton({
   ...buttonProps
 }: Omit<
@@ -32,6 +36,7 @@ export function ManageBillingButton({
   const router = usePricingRouter();
   const { openPortal, leave } = usePricingDoors();
   const [isPending, startTransition] = useTransition();
+  const { away, held, took } = useLeaveHold();
 
   function open() {
     startTransition(async () => {
@@ -39,6 +44,7 @@ export function ManageBillingButton({
       switch (outcome.kind) {
         case "redirect":
           leave(outcome.url);
+          took();
           return;
         case "signin":
           router.push(loginPath(window.location.pathname));
@@ -57,9 +63,9 @@ export function ManageBillingButton({
       size="sm"
       {...buttonProps}
       onClick={open}
-      disabled={isPending}
+      disabled={isPending || away}
     >
-      {isPending ? "Opening…" : "Manage billing"}
+      {isPending || held ? "Opening…" : "Manage billing"}
     </Button>
   );
 }

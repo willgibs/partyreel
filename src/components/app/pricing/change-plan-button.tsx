@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { toast } from "sonner";
 
 import { announceChangePlanError } from "@/components/app/pricing/change-plan-request";
+import { useLeaveHold } from "@/components/app/pricing/leave";
 import {
   usePricingDoors,
   usePricingRouter,
@@ -25,7 +26,8 @@ import type { ProPlanId } from "@/lib/validation/checkout";
  *
  * Its route, its way out and its router are the surface's doors (`pricing-doors.tsx`): the real ones by default, a
  * specimen's own where pressing Switch must not reach Stripe. Every caller, `RefusalFace`'s included, is door-aware
- * without a prop.
+ * without a prop. ★ Pressed until the page has gone (`leave.ts`'s hold): Stripe's address assigned is a page still
+ * standing while Stripe answers, and a second tap there opened a second session.
  */
 export function ChangePlanButton({
   planId,
@@ -45,6 +47,7 @@ export function ChangePlanButton({
   const router = usePricingRouter();
   const { changePlan, leave } = usePricingDoors();
   const [isPending, startTransition] = useTransition();
+  const { away, held, took } = useLeaveHold();
 
   function change() {
     startTransition(async () => {
@@ -52,6 +55,7 @@ export function ChangePlanButton({
       switch (outcome.kind) {
         case "redirect":
           leave(outcome.url);
+          took();
           return;
         case "signin":
           router.push(loginPath(window.location.pathname));
@@ -71,8 +75,8 @@ export function ChangePlanButton({
   }
 
   return (
-    <Button onClick={change} disabled={isPending} {...buttonProps}>
-      {isPending ? "Opening…" : children}
+    <Button onClick={change} disabled={isPending || away} {...buttonProps}>
+      {isPending || held ? "Opening…" : children}
     </Button>
   );
 }
