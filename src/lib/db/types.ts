@@ -837,6 +837,7 @@ export type Database = {
           roll_size: number | null
           sealed_from: string | null
           show_reel: boolean
+          time_zone: string | null
           updated_at: string
           visibility: Database["public"]["Enums"]["event_visibility"]
         }
@@ -870,6 +871,7 @@ export type Database = {
           roll_size?: number | null
           sealed_from?: string | null
           show_reel?: boolean
+          time_zone?: string | null
           updated_at?: string
           visibility?: Database["public"]["Enums"]["event_visibility"]
         }
@@ -903,6 +905,7 @@ export type Database = {
           roll_size?: number | null
           sealed_from?: string | null
           show_reel?: boolean
+          time_zone?: string | null
           updated_at?: string
           visibility?: Database["public"]["Enums"]["event_visibility"]
         }

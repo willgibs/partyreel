@@ -193,8 +193,8 @@ function readableZone(zone: string): boolean {
  *   - a dated one at 9 am in `zone` the morning after its LAST day (a weekend wedding turns on Monday morning);
  *   - an undated one never: it stays newest first, since nothing says when its party ended.
  *
- * ★ `zone` IS THE READER'S, until the event keeps its own (ROADMAP's develop-zone line): the page's server reads it
- * from the request and hands the browser the same one, so the first paint and the hydration agree.
+ * ★ `zone` IS THE PARTY'S (`events.time_zone`, read on the page's server: `albumOpening`), so every reader meets one
+ * moment; the browser is handed the instant, never the zone.
  */
 export function albumTurnAt(
   facts: AlbumTurnFacts,
@@ -289,7 +289,7 @@ export function rememberChosenSort(
 
 /** The order a guest album opens in, as the page decides it for the first paint and hands it on. */
 export type GuestAlbumOrder = {
-  /** The zone the turn's 9 am was read in (the reader's), for the browser to keep reading it in. */
+  /** The zone the turn's 9 am was read in (the party's): a server-side input, never handed to the browser. */
   zone: string;
   /** The album's own order at the render: the browser starts from it, so the hydration agrees. */
   own: AlbumSort;
