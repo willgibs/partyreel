@@ -1,0 +1,5 @@
+/* The frame she is on holds the finder's picture in miniature (production's
+   holds the live stream; a lab frame never opens a camera). */
+.hm-cam .cam-reel-live {
+  background: var(--hm-finder) center / cover no-repeat;
+}
