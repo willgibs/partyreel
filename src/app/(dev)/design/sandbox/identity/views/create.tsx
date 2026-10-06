@@ -6,25 +6,22 @@ import { CreateEventWizard } from "@/components/app/create-event-wizard";
 import { EVENT, NAME } from "../fixtures";
 
 import { useInUse } from "./in-use";
-import { busy, byText, pin } from "./pins";
-import type { ScreenProps } from "./screen-props";
+import { busy, byText } from "./pins";
 import { typeInto } from "./type-into";
 
 /**
- * CREATE'S STEPS: production's Create, the dark room of its own (create-wizard
- * r1 and r2, dark in both themes), with its Server Action handed a stand-in
- * that answers after a real round trip and makes nothing, as the wizard's own
- * `create` prop allows a specimen to.
- *
- * Caught in the trait's moment: the name typed and Continue held down (a
- * press) or reached by the keyboard (a focus); the code's look chosen (a
- * selection, the four swatches) with Create event at the foot (a button) or
- * working (loading); the name typed, at rest, for the rest.
+ * CREATE'S FOOT, WORKING: production's Create, the dark room of its own
+ * (create-wizard r1 to r3, dark in both themes), walked the real way to its
+ * last step (her name typed, Continue, the album's style, Continue) and caught
+ * as its foot's one key works: Create event, the wizard's one real wait
+ * (Continue moves on at once, so a working Continue would be a picture of a
+ * wait that never happens). Its Server Action is handed a stand-in that
+ * answers after a round trip and makes nothing, as the wizard's own `create`
+ * prop allows a specimen to.
  *
  * ★ THE NAME IS NOT A FIELD IN A BOX (create-wizard's `asks=one`: "One field on
  * a rule, never in a box"), so the scene hands it no field atom
- * (`scene/adopt.ts`): the field trait is judged on the other screens, and
- * Create carries the key at its foot, its close and its swatches.
+ * (`scene/adopt.ts`): Create carries the key at its foot, in the room.
  */
 
 /** The stand-in Create: a round trip's wait, then Maya's event, made nowhere. */
@@ -45,47 +42,26 @@ const createNowhere: typeof createEventInWizard = (input) =>
     ),
   );
 
-const nameField = () =>
-  document.querySelector<HTMLInputElement>("[data-room-name-input]");
 const foot = (words: string) => byText<HTMLButtonElement>("button", words);
 
-/** Her name typed, as she types it. */
-const NAMED: readonly (readonly [number, () => void])[] = [
+/** Her name typed, then on through the style to the look, and Create event working. */
+const TO_THE_FOOT: readonly (readonly [number, () => void])[] = [
   [
     700,
     () => {
-      const field = nameField();
+      const field = document.querySelector<HTMLInputElement>(
+        "[data-room-name-input]",
+      );
       if (field) typeInto(field, NAME);
     },
   ],
-];
-
-/** On to the look: the name typed and Continue pressed for real. */
-const TO_LOOK: readonly (readonly [number, () => void])[] = [
-  ...NAMED,
   [1000, () => foot("Continue")?.click()],
+  [1700, () => foot("Continue")?.click()],
+  [2500, () => busy(foot("Create event"), "Creating your event")],
 ];
 
-function createScript(
-  moment: ScreenProps["moment"],
-): readonly (readonly [number, () => void])[] {
-  switch (moment) {
-    case "press":
-      return [...NAMED, [1100, () => pin(foot("Continue"), "press")]];
-    case "focus":
-      return [...NAMED, [1100, () => pin(foot("Continue"), "focus")]];
-    case "selected":
-    case "button":
-      return TO_LOOK;
-    case "loading":
-      return [...TO_LOOK, [1900, () => busy(foot("Create event"))]];
-    default:
-      return NAMED;
-  }
-}
-
-export function CreateScreen({ moment }: ScreenProps) {
-  useInUse(createScript(moment));
+export function CreateScreen() {
+  useInUse(TO_THE_FOOT);
   return (
     <CreateEventWizard
       siteUrl="https://partyreel.com"

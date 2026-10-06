@@ -39,8 +39,6 @@ const LEFT_ALONE: Record<string, string> = {
   "src/components/app/avatar-cropper.tsx": "the photo cropper (`left-alone`)",
   "src/components/app/pricing/welcome-to-pro.tsx": "Welcome to Pro (`left-alone`)",
   "src/components/shared/media-lightbox.tsx": "the viewer (`left-alone`)",
-  "src/components/shared/media-lightbox-parts/actions.tsx":
-    "the viewer's own questions, already the Dialog's confirm shape (`left-alone`: the viewer)",
   "src/components/marketing/system/demo-modal/demo-modal.tsx":
     "the demo's own code card on the marketing site, its kind (`share`) named in its comment; moving it onto the card is marketing's line",
 }

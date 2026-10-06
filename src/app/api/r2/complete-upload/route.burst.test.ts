@@ -432,3 +432,29 @@ describe("a burst the route cannot read is refused whole", () => {
     expect(createMedia).not.toHaveBeenCalled();
   });
 });
+
+describe("★ a burst's files each carry their own capture time (capture-time, Will's X7)", () => {
+  it("one in the bounds is recorded, one lying is dropped, one with none says none, and all three land", async () => {
+    vi.useFakeTimers({
+      now: new Date("2026-10-05T12:00:00Z"),
+      toFake: ["Date"],
+    });
+    try {
+      const { files } = await completeBurst([
+        landed(IDS[0], { captured_at: "2026-10-04T01:14:05.000Z" }),
+        landed(IDS[1], { captured_at: "2031-01-01T00:00:00.000Z" }),
+        landed(IDS[2]),
+      ]);
+      expect(files.every((f) => f.ok)).toBe(true);
+      expect(
+        createMedia.mock.calls.map(([a]) => [a.mediaId, a.capturedAt]),
+      ).toEqual([
+        [IDS[0], "2026-10-04T01:14:05.000Z"],
+        [IDS[1], null],
+        [IDS[2], null],
+      ]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});

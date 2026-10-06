@@ -13,6 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { serverNow } from "@/lib/admin/pending";
 import { requireAdmin } from "@/lib/auth/admin-context";
 import {
   getAccountDetail,
@@ -20,6 +21,7 @@ import {
   readAccountUploads,
   type Reading,
 } from "@/lib/db/queries/accounts";
+import { readAccountPassCredits } from "@/lib/db/queries/pass-credits";
 import { getAccountDeletionState } from "@/lib/lifecycle/account-deletion";
 import { nextPurgeWindow } from "@/lib/lifecycle/purge-time";
 import { formatAdminDate, formatAdminTimestamp } from "@/lib/format/admin-time";
@@ -30,6 +32,14 @@ import { isUuidShape } from "@/lib/validation/uuid-shape";
 import { PageHeading } from "@/components/shared/page-heading";
 import { capLabel } from "../cap";
 import {
+  creditBadge,
+  creditDollars,
+  creditNeedsALook,
+  creditRetryable,
+  creditSentence,
+  creditState,
+} from "../credits";
+import {
   hourLabel,
   hourState,
   lapsedBadge,
@@ -39,6 +49,7 @@ import {
   usedOfLabel,
   windowLabel,
 } from "../uploads";
+import { CreditRetryControl } from "./credit-retry-control";
 import {
   CancelDeletionControl,
   DeleteAccountControl,
@@ -124,13 +135,20 @@ export default async function AdminAccountDetailPage({
   if (!account) return <AdminNotFoundPageScreen />;
   // Her uploads are read beside the deletion state, each its own read: one that fails says No reading and never
   // fails the page, so the operator who came to read something else (the delete below) still has it.
-  const [deletion, uploads, hour] = await Promise.all([
+  const [deletion, uploads, hour, credits] = await Promise.all([
     getAccountDeletionState(id),
     readAccountUploads(account.profile),
     readAccountHourUploads(id),
+    readAccountPassCredits(id),
   ]);
   // Said once to Sentry (the read swallows its failure into No reading, so nothing else would), with the first reason.
   const unread = [uploads.used, hour].flatMap((r) => (r.ok ? [] : [r.message]));
+  if (!credits.ok) {
+    captureWarning("admin", "account: credits read failed", {
+      user_id: id,
+      message: credits.message,
+    });
+  }
   if (unread.length > 0) {
     captureWarning("admin", "account: uploads read failed", {
       user_id: id,
@@ -205,6 +223,64 @@ export default async function AdminAccountDetailPage({
           </Row>
         </CardContent>
       </Card>
+
+      {/* ★ Her pass-to-Pro credits (credit-watch): what became of each credited Pro checkout of hers, a stuck one with
+          its Retry, which runs the webhook's own path for it. Drawn only when she has one, or when the read failed:
+          most accounts never start Pro holding a pass. */}
+      {!credits.ok || credits.value.length > 0 ? (
+        <Card id="credits">
+          <CardHeader>
+            <CardTitle>Pass-to-Pro credits</CardTitle>
+            <CardDescription>
+              Her passes&apos; unused value, granted as Stripe balance when she
+              started Pro.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4 text-sm">
+            {credits.ok ? (
+              credits.value.map((credit) => {
+                const state = creditState(credit, serverNow());
+                const badge = creditBadge(state);
+                return (
+                  <div key={credit.stripe_session_id} className="space-y-1.5">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="font-medium tabular-nums">
+                        {creditDollars(credit.credit_cents)}
+                      </span>
+                      {badge ? <Badge variant="warning">{badge}</Badge> : null}
+                    </div>
+                    <p
+                      className={
+                        creditNeedsALook(state)
+                          ? undefined
+                          : "text-muted-foreground"
+                      }
+                    >
+                      {creditSentence(credit, serverNow())}
+                    </p>
+                    <code className="block w-fit rounded bg-muted px-1.5 py-0.5 font-sans text-xs break-all select-all">
+                      {credit.stripe_session_id}
+                    </code>
+                    {creditRetryable(state) ? (
+                      <div className="pt-1">
+                        <CreditRetryControl
+                          userId={profile.id}
+                          sessionId={credit.stripe_session_id}
+                          passCount={credit.pass_ids.length}
+                        />
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })
+            ) : (
+              <Row label="Credits">
+                <NoReading reading={credits} />
+              </Row>
+            )}
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card>
         <CardHeader>

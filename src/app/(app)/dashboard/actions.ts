@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { resolveDisplay, storedDisplay } from "@/lib/dashboard/display";
+import { leadFrom, RULES, withLead } from "@/lib/dashboard/lead";
 import { OPEN_STAMP_FRESH_MS } from "@/lib/dashboard/opened";
 import {
   clearEventPassword,
@@ -17,6 +18,9 @@ import {
 import { approveAllPending } from "@/lib/db/mutations/media";
 import { removeMyUpload } from "@/lib/db/mutations/my-uploads";
 import { setEventSocialSettings } from "@/lib/db/mutations/social";
+import { getEvent } from "@/lib/db/queries/events";
+import { getEventGuests } from "@/lib/db/queries/social";
+import { guestCount } from "@/lib/events/event-guests";
 import { captureError } from "@/lib/observability/sentry";
 import { getRequestAuth } from "@/lib/supabase/request-auth";
 import { isUuidShape } from "@/lib/validation/uuid-shape";
@@ -238,6 +242,8 @@ export async function removeMyUploadAction(
   return { ok: true };
 }
 
+const KEEP_FAILED = "Couldn't keep that for your account. Please try again.";
+
 /**
  * HER CHOICES FOR YOUR EVENTS, KEPT ON HER ACCOUNT (host-dashboard r3, `events=menu` and the board's carried
  * `kept`: "so her phone opens the way her laptop left it"): the Display menu's layout, order, filters, groups and
@@ -250,6 +256,11 @@ export async function removeMyUploadAction(
  * `storedDisplay` keeps only what differs from the defaults, so the column stays small and a default changed later
  * reaches everyone who never chose. The database holds its own envelope (an object, 512 bytes) beneath this.
  *
+ * ★ HER STAGE'S RULE RIDES IN THE SAME COLUMN AND IS NEVER THE MENU'S TO WRITE (host-dashboard r4): the payload holds
+ * the menu's choices and nothing of the rule, so a write that replaced the column whole would take her rule with it.
+ * It reads the rule she keeps first and writes it back beside the menu's choices (`setLeadRuleAction` is its one
+ * writer), so a layout chosen a moment after a rule can never undo it.
+ *
  * ★ IT REVALIDATES NOTHING. The list laid itself out the instant she pressed; a refresh of the whole dashboard (every
  * event's covers presigned again) for a layout she already sees would be the lag the page leaves behind.
  */
@@ -258,18 +269,98 @@ export async function setEventsDisplayAction(
 ): Promise<{ ok: true } | { ok: false; message: string }> {
   const { supabase, user } = await getRequestAuth();
   if (!user) return { ok: false, message: "Sign in and try again." };
+  const kept = await supabase
+    .from("profiles")
+    .select("events_display")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (kept.error) {
+    captureError("account", kept.error, { seam: "events_display" });
+    return { ok: false, message: KEEP_FAILED };
+  }
   const { error } = await supabase
     .from("profiles")
-    .update({ events_display: storedDisplay(resolveDisplay(raw)) })
+    .update({
+      events_display: withLead(
+        storedDisplay(resolveDisplay(raw)),
+        leadFrom(kept.data?.events_display),
+      ),
+    })
     .eq("id", user.id);
   if (error) {
     captureError("account", error, { seam: "events_display" });
-    return {
-      ok: false,
-      message: "Couldn't keep that for your account. Please try again.",
-    };
+    return { ok: false, message: KEEP_FAILED };
   }
   return { ok: true };
+}
+
+/**
+ * HER STAGE'S RULE, KEPT ON HER ACCOUNT (host-dashboard r4, `chooser=words`): which of the four rules (`lead.ts`)
+ * decides what leads her stage when no party is on its day. Written beside her Display's choices in her own profile row
+ * (`profiles.events_display`, sparse: the default is no key), so her phone leads the way her laptop left it, and
+ * nothing here can reach anyone else's row.
+ *
+ * ★ A PUBLIC ENDPOINT, SO THE VALUE IS THE CALLER'S WORD: only one of the four rules is a rule, and anything else is
+ * refused before a read or a write (a forged value is never narrowed to the default, which would reset her choice). The
+ * menu's keys are read back through the same narrowing the page reads them with, so a stranger a hand wrote there is
+ * dropped as it is rewritten, never carried.
+ *
+ * ★ IT REVALIDATES NOTHING: the stage moved the instant she pressed, from what the page already holds (`leading.ts`).
+ */
+export async function setLeadRuleAction(
+  raw: unknown,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const rule = RULES.find((r) => r === raw);
+  if (!rule) return { ok: false, message: "That isn't a way to lead." };
+  const { supabase, user } = await getRequestAuth();
+  if (!user) return { ok: false, message: "Sign in and try again." };
+  const kept = await supabase
+    .from("profiles")
+    .select("events_display")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (kept.error) {
+    captureError("account", kept.error, { seam: "lead_rule" });
+    return { ok: false, message: KEEP_FAILED };
+  }
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      events_display: withLead(
+        storedDisplay(resolveDisplay(kept.data?.events_display)),
+        rule,
+      ),
+    })
+    .eq("id", user.id);
+  if (error) {
+    captureError("account", error, { seam: "lead_rule" });
+    return { ok: false, message: KEEP_FAILED };
+  }
+  return { ok: true };
+}
+
+/**
+ * WHO CAME, FOR A STAGE A RULE JUST MOVED (host-dashboard r4): the page reads the guest count of the stage it draws and of
+ * no other (the reads go only where the page will speak), so an event a press leads with arrives without one, and asks
+ * for it here, once, as the stage turns back. A number the page did not read is never guessed.
+ *
+ * ★ A PUBLIC ENDPOINT, SO THE ID IS THE CALLER'S WORD: `getEvent` proves it is the signed-in host's own live event
+ * (RLS, `events_host_all`; a malformed id is never read) before the guests are read on the service role, which no RLS
+ * stands behind. Anyone else gets null, the same answer as an event that is gone. A failed read says so where failures
+ * are read and costs the stage one number, never the stage.
+ */
+export async function readStageGuestsAction(
+  eventId: unknown,
+): Promise<number | null> {
+  if (typeof eventId !== "string") return null;
+  try {
+    const event = await getEvent(eventId);
+    if (!event) return null;
+    return guestCount(await getEventGuests(event.id));
+  } catch (error) {
+    captureError("db", error, { seam: "dashboard_stage_guests" });
+    return null;
+  }
 }
 
 /**

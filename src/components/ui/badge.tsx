@@ -19,8 +19,9 @@ import { cn } from "@/lib/utils"
 // "the live mark breathes"). Reduced motion stands it still and lit, the
 // global guard in globals.css. On a photograph the word takes a soft shadow so
 // it reads over a bright sky (`data-surface="photo"`, the contract's hook).
+// A badge that is a link wears the house's focus mark (identity r4, `focus-halo`).
 const badgeVariants = cva(
-  "group/badge inline-flex h-5 w-fit shrink-0 items-center justify-center gap-1.5 rounded-sm text-label font-semibold whitespace-nowrap text-foreground uppercase tabular-nums transition-colors outline-none [--dot:var(--foreground)] before:size-[7px] before:shrink-0 before:rounded-full before:bg-(--dot) before:content-[''] focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:[--dot:var(--destructive)] in-data-[surface=photo]:[text-shadow:0_1px_6px_oklch(0_0_0/60%)] [&>svg]:pointer-events-none [&>svg]:size-3!",
+  "group/badge inline-flex h-5 w-fit shrink-0 items-center justify-center gap-1.5 rounded-sm text-label font-semibold whitespace-nowrap text-foreground uppercase tabular-nums transition-colors outline-none [--dot:var(--foreground)] before:size-[7px] before:shrink-0 before:rounded-full before:bg-(--dot) before:content-[''] focus-halo aria-invalid:[--dot:var(--destructive)] in-data-[surface=photo]:[text-shadow:0_1px_6px_oklch(0_0_0/60%)] [&>svg]:pointer-events-none [&>svg]:size-3!",
   {
     variants: {
       variant: {

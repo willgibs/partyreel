@@ -5,13 +5,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { GridMedia } from "@/components/app/media-grid";
 import {
   albumCount,
-  buildGuestViewGroups,
   LiveGallery,
   type GalleryPayload,
   type LiveGalleryHandle,
 } from "@/components/guest/live-gallery";
 import { guestSelect } from "@/components/guest/live-gallery-select";
-import type { ViewMenuGroup } from "@/components/shared/view-menu";
 import type {
   AlbumLinkTuple,
   GuestWhoTuple,
@@ -24,8 +22,8 @@ import { setViewportWidth } from "../../../vitest.setup";
 
 /**
  * THE GUEST ALBUM'S VIEW (live-gallery.tsx) ON THE PAGED ALBUM: the rows it hands the grid, the View
- * menu (the density slider and Yours), the teaser's count, the rename patch, the stricter-drift
- * guard, this visit's own adds and removals, and the header's exact, live count.
+ * menu (Size, Sort and Filter), the album's order and her lens, the teaser's count, the rename patch,
+ * the stricter-drift guard, this visit's own adds and removals, and the header's exact, live count.
  *
  * Two seams are stubbed, on purpose. The doorbell (a real Realtime channel) is captured so a test can
  * ring it (`poll()`: one `store.sync()`); the rows (`GalleryRows`: their own measurement, window and
@@ -272,6 +270,8 @@ async function poll() {
 
 type RowsProps = {
   items: GridMedia[];
+  anchor?: "start" | "end";
+  lens?: string;
   pending?: { queueId: string; status: string }[];
   step: RowStep;
   canDelete?: (item: GridMedia) => boolean;
@@ -311,79 +311,120 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("buildGuestViewGroups: the guest album's View menu, as arithmetic", () => {
-  function base(
-    overrides: Partial<Parameters<typeof buildGuestViewGroups>[0]> = {},
-  ) {
+// The View menu's groups as arithmetic moved with their builder to `gallery-view.test.ts` (album-order).
+
+/**
+ * THE ALBUM'S ORDER AND HER LENS (album-order, customize r1's `order=turns`): the page hands the view its order (the
+ * turn, or her choice) and this view turns the live source's newest-first list into it, laying the rows from the end
+ * the order grows at; her lens (Photos, Videos, Yours) is this visit's, live only with something to show. Each fails on
+ * the old view, which handed the rows the manifest's own order from its end, whatever the album was.
+ */
+describe("LiveGallery: the album's order and her lens", () => {
+  const order = (sort: "newest" | "oldest", choose = vi.fn()) => ({
+    sort,
+    choose,
+  });
+  /** A video's manifest entry (flags: reel-eligible and a video), at the fixture's own clock. */
+  const video = (id: string): ManifestEntry => {
+    const [, w, h, , t] = entry(id);
+    return [id, w, h, 4 | 1, t, 3.5];
+  };
+  function seedOf(list: ManifestEntry[]): GalleryPayload {
+    const seed = fullSeed({ entries: [] });
+    if (seed.kind !== "full") throw new Error("expected a full seed");
     return {
-      step: 1 as RowStep,
-      setStep: vi.fn(),
-      boxWidth: null as number | null,
-      showingMine: false,
-      setShowingMine: vi.fn(),
-      ownedCount: 0,
-      ...overrides,
+      ...seed,
+      sync: { ...seed.sync, entries: list, total: list.length },
+      links: { ...seed.links, links: list.map((e) => linkOf(e[0])) },
     };
   }
-  const radio = (g: unknown) => g as ViewMenuGroup;
 
-  it("is the density slider alone when the guest owns nothing on the album", () => {
-    const groups = buildGuestViewGroups(base());
-    expect(groups.map((g) => g.id)).toEqual(["size"]);
-    expect(groups[0]).toMatchObject({
-      kind: "density",
-      label: "Size",
-      value: 1,
-    });
-  });
-
-  it("adds Showing once the guest owns something, the count inside Yours' own label", () => {
-    const groups = buildGuestViewGroups(base({ ownedCount: 3 }));
-    expect(groups.map((g) => g.id)).toEqual(["size", "showing"]);
-    expect(radio(groups[1]).options).toEqual([
-      { value: "all", label: "Everyone's" },
-      { value: "mine", label: "Yours (3)" },
-    ]);
-  });
-
-  it("Showing's value follows the live intent, never a stale snapshot", () => {
-    const on = buildGuestViewGroups(base({ ownedCount: 2, showingMine: true }));
-    expect(radio(on[1]).value).toBe("mine");
-    const off = buildGuestViewGroups(
-      base({ ownedCount: 2, showingMine: false }),
+  it("★ an album in order hands the rows the night in order, laid from its start", async () => {
+    await mount(
+      { order: order("oldest") },
+      fullSeed({ entries: ["m1", "m2", "m3"] }),
     );
-    expect(radio(off[1]).value).toBe("all");
+    expect(shownIds()).toEqual(["m3", "m2", "m1"]);
+    expect(lastRows().anchor).toBe("start");
   });
 
-  it("routes Showing's onChange to setShowingMine as a boolean, never the raw string", () => {
-    const setShowingMine = vi.fn();
-    const [, showing] = buildGuestViewGroups(
-      base({ ownedCount: 1, setShowingMine }),
+  it("newest first is the live feed: the manifest's own order, laid from its end", async () => {
+    await mount(
+      { order: order("newest") },
+      fullSeed({ entries: ["m1", "m2", "m3"] }),
     );
-    radio(showing).onChange("mine");
-    expect(setShowingMine).toHaveBeenCalledWith(true);
-    radio(showing).onChange("all");
-    expect(setShowingMine).toHaveBeenCalledWith(false);
+    expect(shownIds()).toEqual(["m1", "m2", "m3"]);
+    expect(lastRows().anchor).toBe("end");
   });
 
-  it("speaks in photographs a row once the album has laid its rows, and in plain names before", () => {
-    const [cold] = buildGuestViewGroups(base());
-    expect("perRow" in cold && cold.perRow).toBeFalsy();
-    const [laid] = buildGuestViewGroups(base({ boxWidth: 1400 }));
-    expect(laid.kind).toBe("density");
-    if (laid.kind !== "density") return;
-    // A desk: 3, 5 or 8 a row (album-rows.ts' ROW_CLASSES).
-    expect([0, 1, 2].map((s) => laid.perRow?.(s as RowStep))).toEqual([
-      3, 5, 8,
-    ]);
+  it("an arrival in an album in order lands at its end: the night in order only ever grows there", async () => {
+    await mount(
+      { order: order("oldest") },
+      fullSeed({ entries: ["m1", "m2"] }),
+    );
+    // m4 is newer than everything (the fixture's clock): a later arrival.
+    answerSync(delta(["m4"], [], 3));
+    await poll();
+    expect(shownIds()).toEqual(["m2", "m1", "m4"]);
   });
 
-  it("routes the slider's pick to setStep as the step itself", () => {
-    const setStep = vi.fn();
-    const [size] = buildGuestViewGroups(base({ setStep }));
-    if (size.kind !== "density") throw new Error("expected the density group");
-    size.onChange(2);
-    expect(setStep).toHaveBeenCalledWith(2);
+  it("Sort stands in the View menu, the album's order checked, and her pick goes to the page", async () => {
+    const choose = vi.fn();
+    await mount({ order: order("oldest", choose) });
+    openViewMenu();
+    expect(
+      screen
+        .getByRole("menuitemradio", { name: "Oldest first" })
+        .getAttribute("aria-checked"),
+    ).toBe("true");
+    fireEvent.click(
+      screen.getByRole("menuitemradio", { name: "Newest first" }),
+    );
+    expect(choose).toHaveBeenCalledWith("newest");
+  });
+
+  it("an album the page handed no order runs newest first and offers no Sort", async () => {
+    await mount({}, fullSeed({ entries: ["m1", "m2"] }));
+    expect(shownIds()).toEqual(["m1", "m2"]);
+    openViewMenu();
+    expect(screen.queryByRole("group", { name: "Sort" })).toBeNull();
+  });
+
+  it("a teaser's nine never turn", async () => {
+    await mount(
+      { order: order("oldest") },
+      teaserSeed({ items: ["m1", "m2"], teaserTotal: 2, approvedTotal: 9 }),
+    );
+    expect(shownIds()).toEqual(["m1", "m2"]);
+    expect(lastRows().anchor).toBe("end");
+  });
+
+  it("Videos shows the videos in the album's order, says so over them, tells the rows its lens, and Show all leaves it", async () => {
+    await mount(
+      { order: order("oldest") },
+      seedOf([video("m1"), entry("m2"), video("m3")]),
+    );
+    openViewMenu();
+    fireEvent.click(screen.getByRole("menuitemradio", { name: "Videos" }));
+    expect(shownIds()).toEqual(["m3", "m1"]);
+    expect(lastRows().lens).toBe("videos");
+    expect(screen.getByText("Showing videos")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Show all" }));
+    expect(shownIds()).toEqual(["m3", "m2", "m1"]);
+    expect(lastRows().lens).toBe("all");
+  });
+
+  it("a lens left with nothing to show falls back to All, never an empty album", async () => {
+    await mount({}, seedOf([video("m1"), entry("m2"), entry("m3")]));
+    openViewMenu();
+    fireEvent.click(screen.getByRole("menuitemradio", { name: "Videos" }));
+    expect(shownIds()).toEqual(["m1"]);
+    // The album's one video leaves (a host's hide): Videos has nothing to show, and the album is whole again.
+    answerSync(delta([], ["m1"], 2));
+    await poll();
+    expect(shownIds()).toEqual(["m2", "m3"]);
+    expect(lastRows().lens).toBe("all");
+    expect(screen.queryByText("Showing videos")).toBeNull();
   });
 });
 
@@ -409,18 +450,19 @@ describe("LiveGallery: the step's cookie reaches the rows", () => {
   });
 });
 
-describe("LiveGallery: the Showing group's own gate", () => {
-  it("omits Showing when the guest owns nothing on the album", async () => {
+// Reshaped by album-order: Showing (Everyone's / Yours) became Filter (All / Photos / Videos / Yours), its gate kept.
+describe("LiveGallery: the Filter group's own gate", () => {
+  it("omits Filter when the guest owns nothing on an album of one kind", async () => {
     await mount({ canDeleteIds: [] });
     openViewMenu();
     expect(screen.getByRole("group", { name: "Size" })).toBeTruthy();
-    expect(screen.queryByRole("group", { name: "Showing" })).toBeNull();
+    expect(screen.queryByRole("group", { name: "Filter" })).toBeNull();
   });
 
-  it("adds Showing, with the owned count in Yours, once something is theirs", async () => {
+  it("adds Filter, with the owned count in Yours, once something is theirs", async () => {
     await mount({ canDeleteIds: ["m1"] });
     openViewMenu();
-    expect(screen.getByRole("group", { name: "Showing" })).toBeTruthy();
+    expect(screen.getByRole("group", { name: "Filter" })).toBeTruthy();
     expect(
       screen.getByRole("menuitemradio", { name: "Yours (1)" }),
     ).toBeTruthy();
@@ -677,7 +719,7 @@ describe("LiveGallery: a visit's own adds and removals, on either identity", () 
     expect(props.canDelete?.({ id: "m9" } as GridMedia)).toBe(true);
     expect(props.canDelete?.({ id: "m2" } as GridMedia)).toBe(false);
 
-    // No mark rides the tile any more (`mine=none`): View's Showing, not a tap
+    // No mark rides the tile any more (`mine=none`): View's Filter, not a tap
     // on the tile, is how she finds it.
     openViewMenu();
     fireEvent.click(screen.getByRole("menuitemradio", { name: "Yours (1)" }));

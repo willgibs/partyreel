@@ -37,6 +37,28 @@ describe("owedWords", () => {
     );
   });
 
+  it("★ names the pass-to-Pro credits stuck, the hour, since when, and the Retry that fixes them (credit-watch)", () => {
+    expect(
+      owedWords("pass_credit", {
+        ok24h: 0,
+        failed24h: 0,
+        owed: 2,
+        owedSinceMs: Date.parse("2026-10-05T08:00:00.000Z"),
+      }),
+    ).toEqual({
+      term: "Stuck",
+      line: "2 pass-to-Pro credits stuck past an hour, the oldest since Oct 5, 2026, 08:00 UTC: a claim never granted, or a grant whose passes never converted. Stripe may still retry; Retry on the account's page runs the same path now. Each is listed on /admin/accounts.",
+    });
+    expect(
+      owedWords("pass_credit", { ok24h: 4, failed24h: 0, owed: 1 })?.line,
+    ).toBe(
+      "1 pass-to-Pro credit stuck past an hour: a claim never granted, or a grant whose passes never converted. Stripe may still retry; Retry on the account's page runs the same path now. Each is listed on /admin/accounts.",
+    );
+    expect(
+      owedWords("pass_credit", { ok24h: 4, failed24h: 0, owed: 0 }),
+    ).toBeNull();
+  });
+
   it("★ names the downloads with no end, the grace, and where each row is", () => {
     expect(
       owedWords("export_delivery", { ok24h: 5, failed24h: 0, owed: 1 }),

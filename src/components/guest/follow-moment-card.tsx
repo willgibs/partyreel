@@ -188,7 +188,6 @@ export function FollowMomentCard({
           </Link>
           <FollowButton
             profileId={host.id}
-            slug={host.slug}
             initialFollowing={host.following ?? false}
             quiet
           />

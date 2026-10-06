@@ -5,6 +5,7 @@ import { AppDesignIsland } from "@/components/dev/app-design-island";
 import { MfaChallenge } from "@/components/admin/mfa-challenge";
 import { MfaEnroll } from "@/components/admin/mfa-enroll";
 import { Logo } from "@/components/shared/logo";
+import { SITE_NAME } from "@/lib/constants/site";
 import { requireAdmin } from "@/lib/auth/admin-context";
 import { readPendingWork } from "@/lib/admin/pending";
 import { PageHeading } from "@/components/shared/page-heading";
@@ -17,7 +18,8 @@ export const dynamic = "force-dynamic";
 
 const PORTAL = "Partyreel Ops";
 
-export const metadata: Metadata = {
+/** What an operator's pages wear: every page's own title takes the portal's suffix, the home reads Operations. */
+const PORTAL_HEAD: Metadata = {
   // ★ ABSOLUTE, NOT A DEFAULT (crumbs-40, build 35's red-team): a segment's own title is templated by its
   // parent's, so a `default` here read "Operations · Partyreel" (the root's "%s · Partyreel") on /admin
   // and on any portal page without a title of its own, where every other read "<X> · Partyreel Ops".
@@ -25,6 +27,41 @@ export const metadata: Metadata = {
   // Defense in depth alongside robots.ts — the portal must never be indexed.
   robots: { index: false, follow: false },
 };
+
+/**
+ * WHAT A VISITOR WHO IS NOT AN OPERATOR READS IN THE TAB: the title of a URL that does not exist, whatever page they
+ * asked for (crumbs-82; the re-walk's finding). The gate 404s a non-admin from inside this LAYOUT, so the root's 404
+ * draws the body, but a layout's metadata is resolved beside its gate and never learns of it: the tab read
+ * "Page not found · Partyreel Ops" in the server's HTML, and once the page's own metadata streamed in, "Jobs ·
+ * Partyreel Ops", which named the portal and the page, and told `/admin/jobs` (a page) from `/admin/nope` (nothing):
+ * the one thing the 404 exists to keep from a stranger (`requireAdmin`: "a logged-in non-admin can't even confirm the
+ * route").
+ *
+ * ★ THE TEMPLATE HAS NO `%s` ON PURPOSE. A page's title only ever reaches the tab through its parents' template, so a
+ * template with nowhere to put it turns every portal page's own title, and the 404's, into this one line, the one an
+ * unmatched URL wears (`portal-title.test.ts` holds the two to the byte).
+ */
+const LOST = `Page not found · ${SITE_NAME}`;
+const NOT_AN_OPERATOR_HEAD: Metadata = {
+  title: { absolute: LOST, template: LOST },
+  // The portal's own head carries this on every response, a stranger's 404 included.
+  robots: { index: false, follow: false },
+};
+
+// ★ THE HEAD ASKS THE GATE, AND SWALLOWS ITS ANSWER: `requireAdmin` throws Next's own 404 for a non-admin or a wrong
+// host and its redirect for a signed-out one, and the layout below throws them for real. Here each only means "not an
+// operator", so the tab says the 404's words. The gate is read once a request (`readGate`'s `cache()`), so this costs
+// the portal nothing. ★ IT FAILS CLOSED, LIKE THE GATE (`readGate`'s deliberate swallow): any other error (the database
+// that cannot answer) is no operator's head either, so the tab says nothing of the portal; the layout below meets the same
+// error for real and the page is the error boundary's.
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    await requireAdmin();
+    return PORTAL_HEAD;
+  } catch {
+    return NOT_AN_OPERATOR_HEAD;
+  }
+}
 
 export default async function AdminLayout({
   children,

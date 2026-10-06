@@ -168,7 +168,7 @@ export function YourShots({
                   {tile.removable && tile.mediaId && (
                     <button
                       type="button"
-                      className="cam-shot-remove"
+                      className="cam-shot-remove press-shrink focus-halo"
                       disabled={state === "working"}
                       onClick={() => onRemove(tile.mediaId as string)}
                       aria-label={
@@ -189,7 +189,7 @@ export function YourShots({
                     tile.queueId && (
                       <button
                         type="button"
-                        className="cam-shot-remove"
+                        className="cam-shot-remove press-shrink focus-halo"
                         onClick={() => onRetry(tile.queueId as string)}
                         aria-label="Send this shot again"
                       >

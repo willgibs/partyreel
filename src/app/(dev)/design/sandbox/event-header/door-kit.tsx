@@ -26,9 +26,10 @@ import type { Ground, ScreenId } from "./scene";
 
 /**
  * WHAT EVERY DOOR OPTION SHARES: the rooms, their faces, and the one contract
- * a door draws itself through, so each of the three lives whole in its own
- * file (`glass.tsx`, `cards.tsx`, `windows.tsx`) and the hub composes whichever
- * the board asks for (`doors.tsx`).
+ * a door draws itself through, so each take on the cards lives whole in its
+ * own file (`cards-keys.tsx`, `cards-seam.tsx`, `cards-points.tsx`, on
+ * `card-kit.tsx`'s row and fold) and the hub composes whichever the board
+ * asks for (`doors.tsx`).
  *
  * The row is production's order (`EVENT_ROOMS`: the reel, Guests, Review,
  * Settings) with See it as a guest last, the payoff at the row's end

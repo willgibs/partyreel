@@ -257,8 +257,12 @@ export function DriveSendSteps({
               Disconnect any time in Account. What we sent stays in your Drive.
             </PromiseLine>
           </ul>
+          {/* ★ THE BOX IS NAMED BEFORE GOOGLE SHOWS IT (crumbs-82; the Drive re-walk's finding): Google lists Drive's
+              permission as a checkbox, unticked, so a first Continue came back as `needs_permission` (the app recovers in
+              place, `returnWords`), and "allow this" said nothing of a box to tick. The words are the recovery's own. */}
           <p className="text-xs text-pretty text-muted-foreground">
-            Google asks you to choose an account and to allow this next.
+            Google asks you to choose an account, then to tick the box that lets
+            Partyreel add files.
           </p>
         </PopupBody>
         <PopupFooter>

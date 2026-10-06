@@ -4,6 +4,7 @@
  * but never said how it ended, each failed nothing inside the window, which is how they stayed off every console; the
  * card says what is owed, since when, and what happens next. Pure, so the page and its test read the same words.
  */
+import { PASS_CREDIT_STUCK_AFTER_MS } from "@/lib/billing/passes-stuck";
 import { NOTICE_RETRY_DAYS } from "@/lib/email/send-kinds";
 import { formatAdminTimestamp } from "@/lib/format/admin-time";
 import { formatCount } from "@/lib/format/count";
@@ -56,6 +57,20 @@ export function owedWords(
           `${formatCount(owed)} ${one ? "send" : "sends"} to Google Drive with work left and no progress for an hour. ` +
           "The sweep kicks each every fifteen minutes; past that, the Worker or its queue is down. Each is on /admin/exports, with Cancel.",
       };
+    case "pass_credit": {
+      const since =
+        signal?.owedSinceMs != null
+          ? `, the oldest since ${formatAdminTimestamp(signal.owedSinceMs)}`
+          : "";
+      const hours = PASS_CREDIT_STUCK_AFTER_MS / HOUR_MS;
+      return {
+        term: "Stuck",
+        line:
+          `${formatCount(owed)} pass-to-Pro ${one ? "credit" : "credits"} stuck past ${hours === 1 ? "an hour" : `${hours} hours`}${since}: ` +
+          "a claim never granted, or a grant whose passes never converted. Stripe may still retry; Retry on the account's page " +
+          "runs the same path now. Each is listed on /admin/accounts.",
+      };
+    }
     default:
       return null;
   }

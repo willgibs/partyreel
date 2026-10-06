@@ -1,5 +1,7 @@
 "use client";
 
+import "./event-hub-head-seam.css";
+
 import { useEffect, useMemo, useSyncExternalStore } from "react";
 import { Eye, Users } from "lucide-react";
 
@@ -153,6 +155,11 @@ export function HubHeadStills({
  * and reaches up to the app's bar, taking back the main's 32px (`toBar`), unless something stands above
  * it in the page (Checkout's receipt). The event's name is the page's h1, on the cover's step; the code
  * beside it is a sibling BUTTON, never a child of the heading.
+ *
+ * ★ ITS FOOT IS A SEAM (`event-header` r4, Will's cards over the seam): the photograph dissolves into the page and the
+ * doors' cards stand across it (`event-cards-row.tsx`). The cover and the row read one set of numbers
+ * (`event-hub-head-seam.css`: `--hub-rise`, how far the cards stand up into the photograph, which the foot's own padding
+ * clears, and `--hub-fade`), so the strip stands above the cards at every width.
  */
 export function HubCover({
   name,
@@ -196,61 +203,71 @@ export function HubCover({
   toBar?: boolean;
 }) {
   return (
-    <EventHead
-      side="hub"
-      className={cn("-mx-3 sm:-mx-5", toBar && "-mt-8")}
-      ground={<HubHeadStills served={stills} develop={develop ?? null} />}
-    >
-      <PublishDevelop develop={develop} />
-      <div className="flex flex-col gap-3.5 px-3 pb-4 sm:gap-5 sm:px-5 sm:pb-7">
-        <div className="flex items-end gap-4 sm:gap-8">
-          <div className="min-w-0 flex-1 space-y-2">
-            <PageHeading className="text-section text-balance text-white sm:text-chapter">
-              {name}
-            </PageHeading>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/85">
-              {date && (
-                <span>
-                  <RangeText text={formatEventDate(date, endDate)} />
-                </span>
-              )}
-              <GlyphCount
-                icon={<Users />}
-                count={counts.guests}
-                label={
-                  counts.guests === 1
-                    ? "1 guest"
-                    : `${formatCount(counts.guests)} guests`
-                }
-              />
-              <GlyphCount
-                icon={<Eye />}
-                count={counts.views}
-                label={
-                  counts.views === 1
-                    ? "1 view"
-                    : `${formatCount(counts.views)} views`
-                }
-              />
-              {/* ★ THE LIVE MARK (`first=live`, Will 2026-09-21): nothing until the Realtime channel is
+    // ★ THE COVER'S SEAM (`event-header` r4, Will's cards over the seam): its photograph dissolves into the page at its foot
+    // and the doors' cards stand across that seam (`event-cards-row.tsx`, which rises into the cover by the same `--hub-rise`
+    // this wrapper wears, `event-hub-head-seam.css`). The wrapper is the page's own ground, OUTSIDE the cover, which is always
+    // the room: the fade is the page's colour, so it must be read here and not inside the head. It bleeds and reaches the bar
+    // as the head did.
+    <div className={cn("hub-seam relative -mx-3 sm:-mx-5", toBar && "-mt-8")}>
+      {/* ★ THE COVER GROWS RATHER THAN CLIP a long name: the foot's clearance for the cards (`--hub-rise`) takes room the name
+          used to have, so the head's fixed height is now its floor. */}
+      <EventHead
+        side="hub"
+        className="h-auto min-h-[20.5rem] sm:h-auto sm:min-h-[25rem]"
+        ground={<HubHeadStills served={stills} develop={develop ?? null} />}
+      >
+        <PublishDevelop develop={develop} />
+        <div className="hub-cover-foot flex flex-col gap-3.5 px-3 sm:gap-5 sm:px-5">
+          <div className="flex items-end gap-4 sm:gap-8">
+            <div className="min-w-0 flex-1 space-y-2">
+              <PageHeading className="text-section text-balance text-white sm:text-chapter">
+                {name}
+              </PageHeading>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/85">
+                {date && (
+                  <span>
+                    <RangeText text={formatEventDate(date, endDate)} />
+                  </span>
+                )}
+                <GlyphCount
+                  icon={<Users />}
+                  count={counts.guests}
+                  label={
+                    counts.guests === 1
+                      ? "1 guest"
+                      : `${formatCount(counts.guests)} guests`
+                  }
+                />
+                <GlyphCount
+                  icon={<Eye />}
+                  count={counts.views}
+                  label={
+                    counts.views === 1
+                      ? "1 view"
+                      : `${formatCount(counts.views)} views`
+                  }
+                />
+                {/* ★ THE LIVE MARK (`first=live`, Will 2026-09-21): nothing until the Realtime channel is
                   actually subscribed, since "Live" over a dead socket is worse than no mark. */}
-              <EventLive />
+                <EventLive />
+              </div>
+              <EventLinkRow prettyUrl={prettyUrl} permanentUrl={eventLink} />
             </div>
-            <EventLinkRow prettyUrl={prettyUrl} permanentUrl={eventLink} />
+            <EventCodeDoor
+              eventName={name}
+              joinUrl={eventLink}
+              qrStyle={code.qrStyle}
+              door={code.door}
+              acceptingUploads={code.acceptingUploads}
+              waiting={code.waiting}
+            />
           </div>
-          <EventCodeDoor
-            eventName={name}
-            joinUrl={eventLink}
-            qrStyle={code.qrStyle}
-            door={code.door}
-            acceptingUploads={code.acceptingUploads}
-            waiting={code.waiting}
-          />
+          {/* The album's count, live off the album's store (the page is never refreshed to move it). */}
+          <HubFactsStrip served={counts.album} arrivals={arrivals} />
         </div>
-        {/* The album's count, live off the album's store (the page is never refreshed to move it). */}
-        <HubFactsStrip served={counts.album} arrivals={arrivals} />
-      </div>
-    </EventHead>
+      </EventHead>
+      <div aria-hidden data-hub-fade="" className="hub-cover-fade" />
+    </div>
   );
 }
 

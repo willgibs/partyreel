@@ -20,6 +20,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
  * album's name AND its host, and the page passes on only what each door showed.
  */
 vi.mock("server-only", () => ({}));
+// The party's zone (event-zone) is the page's one read beside the door's; none here, so the one fallback.
+vi.mock("@/lib/event/zone.server", () => ({ readPartyZone: async () => null }));
 vi.mock("next/headers", () => ({
   headers: async () => new Headers({ "user-agent": "test" }),
   cookies: async () => ({ get: () => undefined }),

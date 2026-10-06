@@ -4,6 +4,8 @@ import type { GuestListItem } from "@/components/social/guest-list";
 import type { RowRhythm } from "@/components/shared/album-window-plan";
 import { getEvent } from "@/lib/db/queries/events";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
+import { zoneOfRow } from "@/lib/event/zone";
+import { albumOpening, type AlbumOpening } from "@/lib/event/zone-morning";
 import {
   getGalleryStats,
   getHostAvatarSeed,
@@ -16,6 +18,7 @@ import {
 } from "@/lib/events/gallery-access";
 import { streamGallerySeed } from "@/lib/events/gallery-access.server";
 import type { GallerySeed } from "@/lib/events/gallery-seed";
+import { shownSort } from "@/lib/shared/album-order";
 import type { RowStep } from "@/lib/shared/album-rows";
 import { getSiteUrl } from "@/lib/site-url";
 import { splitGuestList, withAvatarUrls } from "@/lib/social/cards";
@@ -49,8 +52,13 @@ export type AsGuestRead = {
   event: GuestEvent;
   /** The permanent link (the code, Invite, the reel's plate). */
   joinUrl: string;
-  /** The album's first paint, streamed: the guests' own seed. */
+  /** The album's first paint, streamed: the guests' own seed, laid in the order a guest's album opens in. */
   galleryPromise: Promise<GallerySeed>;
+  /**
+   * The order a guest's album opens in (album-order, event-zone): the guest page's own answer, its turn read in the
+   * party's zone and handed on as an instant, so the view lays the album as a guest who never chose meets it.
+   */
+  albumOrder: AlbumOpening;
   /** The cover's counts, as a guest's are counted (the album's approved total, THE ONE COUNT of guests). */
   stats: { approvedTotal: number; guestCount: number };
   /** The byline's face, as the guest page resolves it (never the host's raw id). */
@@ -105,9 +113,25 @@ export async function readAsGuest(
   // ★ ONLY ME SHUTS EVERYONE BUT HER: no guest is let in to read, so a guest's view is the shut door.
   const shut = event.door === "private";
   const decision = letInGuestDecision(event);
+  // ★ THE ORDER A GUEST'S ALBUM OPENS IN (album-order, event-zone; the ROADMAP's "hands LiveGallery no order"): the
+  // guest page's own answer, its turn at 9 am the morning after in the party's zone (her row's own, read through RLS
+  // above), so after the turn she sees the night in order as every guest does. Nobody here chose an order, so the
+  // turn's own is the one shown, and the seed links the first paint of it.
+  const albumOrder = albumOpening({
+    facts: {
+      eventDate: event.event_date,
+      eventEndDate: event.event_end_date ?? null,
+      developsAt: event.develops_at ?? null,
+    },
+    zone: zoneOfRow(hosted),
+    chosen: null,
+  });
   const galleryPromise = shut
     ? Promise.resolve<GallerySeed>({ kind: "locked" })
-    : streamGallerySeed(event, decision, firstPaint);
+    : streamGallerySeed(event, decision, {
+        ...firstPaint,
+        sort: shownSort(albumOrder),
+      });
 
   const [stats, hostAvatar, entries] = await Promise.all([
     shut
@@ -130,6 +154,7 @@ export async function readAsGuest(
     event: { ...event, doorPass: null },
     joinUrl,
     galleryPromise,
+    albumOrder,
     stats,
     host: hostAvatar
       ? { avatarUrl: hostAvatar.avatarUrl, seed: hostAvatar.seed }

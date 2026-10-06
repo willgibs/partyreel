@@ -13,6 +13,7 @@
  *   pnpm lab:demo --base ... --reach-limit 0.4   # a stricter reach (the stage's top, of a screen)
  *   pnpm lab:demo --base ... --state screen=phone # every step pressed wearing a knob (repeatable)
  *   pnpm lab:demo --base ... --width 375         # the sitting at a phone's width
+ *   pnpm lab:demo --base ... --chrome-port 9511  # pin Chrome's DevTools port (default: Chrome's own free one)
  *
  * ★ IT PRESSES WHAT THE CHANGE REACHED (the lab revamp, 2026-09-29): the boards
  * `scripts/lab-scope.mjs` finds in this tree's change (its own folder, its
@@ -135,9 +136,11 @@ import {
   existsSync,
   mkdtempSync,
   mkdirSync,
+  readFileSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
+import { createConnection } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { inflateSync } from "node:zlib";
@@ -373,14 +376,63 @@ function differ(a, b) {
   return (n / px) * 100;
 }
 
+/** Whether anything is listening on a local port: a connection that completes, or one that never answers, is a yes. */
+function answers(onPort) {
+  return new Promise((resolve) => {
+    const socket = createConnection({ port: onPort, host: "127.0.0.1" });
+    socket.setTimeout(800);
+    socket.once("connect", () => {
+      socket.destroy();
+      resolve(true);
+    });
+    socket.once("timeout", () => {
+      socket.destroy();
+      resolve(true);
+    });
+    // Refused: nothing is there.
+    socket.once("error", () => resolve(false));
+  });
+}
+
 // ── Chrome, over its DevTools protocol
-const port = 9400 + (process.pid % 500);
+/**
+ * ★ THE DEBUGGING PORT IS CHROME'S OWN, NEVER A GUESS (lab-kit-2, after
+ * brand-r1's `shoot.mjs`). It was `9400 + pid % 500`, taken without a look, so
+ * on a busy machine a run could land on a port another lane's headless Chrome
+ * already held: this run's Chrome could not bind it, `connect()` found the
+ * OTHER lane's page there and drove it (brand-r1 did, once). Now Chrome is
+ * asked for any free port (`0`) and this run reads the one it opened off the
+ * profile directory it alone owns (`DevToolsActivePort`), so it can only ever
+ * reach a Chrome it started. `--chrome-port <n>` pins one, and a pinned port
+ * something already answers on is refused here, before a profile or a process
+ * exists; taken in the instant after this check, Chrome could not bind it and
+ * would write no file, so the run fails rather than attach to a stranger.
+ */
+const pinned = opt("--chrome-port", "");
+if (pinned) {
+  const wanted = Number(pinned);
+  if (!Number.isInteger(wanted) || wanted < 1024 || wanted > 65535) {
+    console.error(
+      `lab:demo: --chrome-port takes a port from 1024 to 65535, and "${pinned}" is not one.`,
+    );
+    process.exit(2);
+  }
+  if (await answers(wanted)) {
+    console.error(
+      `lab:demo: port ${wanted} already has something on it (another lane's Chrome, likely).\n` +
+        "  Pick another --chrome-port, or leave it off and Chrome picks a free one.",
+    );
+    process.exit(3);
+  }
+}
+/** The port this run's own Chrome opened: null until it has written it. */
+let port = null;
 const profile = mkdtempSync(join(tmpdir(), "lab-demo-"));
 const chrome = spawn(
   CHROME,
   [
     "--headless=new",
-    `--remote-debugging-port=${port}`,
+    `--remote-debugging-port=${pinned || 0}`,
     `--user-data-dir=${profile}`,
     "--hide-scrollbars",
     "--no-first-run",
@@ -502,8 +554,31 @@ function listen(ws) {
   };
 }
 
+/** The port Chrome wrote into this run's own profile (line one of `DevToolsActivePort`), once it has. */
+function openedPort() {
+  try {
+    const first = readFileSync(join(profile, "DevToolsActivePort"), "utf8")
+      .split("\n")[0]
+      .trim();
+    const n = Number(first);
+    return Number.isInteger(n) && n > 0 ? n : null;
+  } catch {
+    return null;
+  }
+}
+
 async function connect() {
   for (let i = 0; i < 80; i++) {
+    // A Chrome that is gone will never open a port: say so now, not after the wait.
+    if (chrome.exitCode !== null || chrome.signalCode !== null)
+      throw new Error(
+        `Chrome exited (${chrome.exitCode ?? chrome.signalCode}) before it opened its debugging port`,
+      );
+    port ??= openedPort();
+    if (port === null) {
+      await sleep(150);
+      continue;
+    }
     try {
       const list = await (
         await fetch(`http://127.0.0.1:${port}/json/list`)

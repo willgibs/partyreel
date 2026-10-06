@@ -10,27 +10,27 @@ import { EntryShell } from "@/components/guest/entry-shell";
 import { PasswordGate } from "@/components/guest/password-gate";
 import { Button } from "@/components/ui/button";
 
-import { DATE, EVENT, NAME } from "../fixtures";
+import { DATE, EVENT, NAME, STILLS } from "../fixtures";
 
-import { STILLS } from "./add";
 import { useInUse } from "./in-use";
 import { busy, byText, pin } from "./pins";
 import type { ScreenProps } from "./screen-props";
 import { typeInto } from "./type-into";
 
 /**
- * THE GUEST'S DOOR, IN USE: Ines scans the code at the wedding, and the
- * album is private, so the door asks for its password; she has typed it and
- * the Unlock waits under her thumb, is held down, or works on it (the trait's
- * moment); for the edge the door's held sheet stands untouched.
+ * THE GUEST'S DOOR, WITH HER PASSWORD TYPED: Ines scans the code at the
+ * wedding, the album is private, so the door asks for its password; she has
+ * typed it, the field in focus and Unlock under her thumb, or (working)
+ * Unlock checks it.
  *
- * ★ PRODUCTION'S DOOR: the album's cover behind (`AlbumCover`), the door's own
- * sheet over it (`EntryShell`, held, as a gate holds it) and the password
- * step inside it (`PasswordGate`), so every system is judged on the one form
- * every guest at a private album meets. ★ NOTHING IS SENT: the step only
- * posts on a submit, and nothing here submits (the scene refuses every form's
- * submit too).
+ * ★ PRODUCTION'S DOOR: the album's cover behind (`AlbumCover`, the white Add
+ * and the glass rounds standing on its photograph), the door's own sheet over
+ * it (`EntryShell`, held, as a gate holds it) and the password step inside it
+ * (`PasswordGate`), so every set is judged on the one form every guest at a
+ * private album meets. ★ NOTHING IS SENT: the step only posts on a submit, and
+ * nothing here submits (the scene refuses every form's submit too).
  */
+
 /** The password typed, as she types it. */
 const typed = () => {
   const field = document.querySelector<HTMLInputElement>(
@@ -41,29 +41,15 @@ const typed = () => {
 };
 const unlock = () => byText<HTMLButtonElement>("button", "Unlock");
 
-/** Each trait's moment at the door: typed in, held down, working, or at rest typed. */
 function doorScript(
   moment: ScreenProps["moment"],
 ): readonly (readonly [number, () => void])[] {
-  switch (moment) {
-    case "field":
-    case "focus":
-      return [[900, () => pin(typed(), "focus")]];
-    case "press":
-      return [
-        [900, typed],
-        [1150, () => pin(unlock(), "press")],
-      ];
-    case "loading":
-      return [
-        [900, typed],
-        [1150, () => busy(unlock())],
-      ];
-    case "edge":
-      return [];
-    default:
-      return [[900, typed]];
-  }
+  if (moment === "working")
+    return [
+      [900, typed],
+      [1150, () => busy(unlock(), "Unlocking")],
+    ];
+  return [[900, () => pin(typed(), "focus")]];
 }
 
 export function GuestGateScreen({ moment }: ScreenProps) {

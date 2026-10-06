@@ -288,11 +288,14 @@ describe("3. develop is a write, a save rewrites in the same save, and nothing s
     );
   });
 
-  it("★ the event's own stamps: the roll follows the capture, Develop now is the database's clock, the period stamps itself", () => {
+  // ★ RESHAPED ON PURPOSE (settings-wiring, 20261005190000; scar kept: a camera always carries a roll, 24 unless named;
+  // reason dropped: free uploads cleared it, so the camera turned off and on came back at 24, not at her roll).
+  it("★ the event's own stamps: a camera carries a roll (free uploads keep hers), Develop now is the database's clock, the period stamps itself", () => {
     const stamp = code("events_reveal_stamp");
     expect(stamp).toContain(
-      "if new.capture = 'camera' then new.roll_size := coalesce(new.roll_size, 24); else new.roll_size := null; end if;",
+      "if new.capture = 'camera' then new.roll_size := coalesce(new.roll_size, 24); end if;",
     );
+    expect(stamp).not.toContain("new.roll_size := null");
     expect(stamp).toContain(
       "and new.develops_at < now() + interval '1 minute' then new.develops_at := now(); end if;",
     );
@@ -304,18 +307,38 @@ describe("3. develop is a write, a save rewrites in the same save, and nothing s
     );
   });
 
-  it("the CHECKs: a capture by name, a roll with the camera and only it, at most 24, a finite develop, a camera's period", () => {
+  // ★ RESHAPED ON PURPOSE (settings-wiring, 20261005190000; scar kept: a camera always has its roll, bounded, and the
+  // foundation's other CHECKs stand; reason dropped: a roll only with the camera and at most 24). The roll's two are read
+  // latest-wins across the set: a later file drops and re-adds them, so the foundation's own text no longer says them.
+  it("the CHECKs: a capture by name, a camera's roll from 1 to 99, a finite develop, a camera's period", () => {
     const sql = fileSql();
     for (const check of [
       "add constraint events_capture_known check (capture in ('upload', 'camera'))",
-      "add constraint events_roll_size_follows_capture check ((capture = 'camera') = (roll_size is not null))",
-      "add constraint events_roll_size_range check (roll_size between 1 and 24)",
       "add constraint events_develops_at_finite check (develops_at is null or isfinite(develops_at))",
       "add constraint events_camera_has_period check (capture <> 'camera' or sealed_from is not null)",
       "add constraint media_sealed_until_finite check (sealed_until is null or isfinite(sealed_until))",
     ]) {
       expect(sql).toContain(check);
     }
+    // The roll's, as the set leaves them: the last add of each name wins, and the two-way tie is dropped after its add.
+    const all = everything();
+    const lastAdd = (name: string) => {
+      const at = all.lastIndexOf(`add constraint ${name} check`);
+      return at === -1
+        ? null
+        : all.slice(at, all.indexOf(")", all.indexOf("check (", at) + 7) + 1);
+    };
+    expect(lastAdd("events_roll_size_range")).toBe(
+      "add constraint events_roll_size_range check (roll_size between 1 and 99)",
+    );
+    expect(
+      all.lastIndexOf("drop constraint events_roll_size_follows_capture"),
+    ).toBeGreaterThan(
+      all.lastIndexOf("add constraint events_roll_size_follows_capture check"),
+    );
+    expect(all).toContain(
+      "add constraint events_camera_has_roll check (capture <> 'camera' or roll_size is not null)",
+    );
     // A text under a CHECK, never an enum value a transaction cannot use.
     expect(sql).toContain("add column capture text not null default 'upload'");
     expect(sql).not.toMatch(/create type public\.\w+ as enum/);

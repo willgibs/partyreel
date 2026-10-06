@@ -12,7 +12,7 @@ import "server-only";
 
 import { mustCount, mustQuery } from "@/lib/db/must-query";
 import type { AlbumPreview } from "@/lib/drive/press";
-import { sentTotalsOf, type SentTotals } from "@/lib/drive/sent-totals";
+import type { SentRow } from "@/lib/drive/sent-totals";
 import { inChunks, readAllPages } from "@/lib/db/read-all";
 import type { Database, Json } from "@/lib/db/types";
 import { isSealed } from "@/lib/disposable/seal";
@@ -583,6 +583,8 @@ export type RawLeaseItem = {
   bytes: number;
   type: "photo" | "video";
   createdAt: string;
+  /** When it was taken, where the upload kept it (20261005200000): what its name and date say first. */
+  capturedAt: string | null;
   name: string | null;
   attempts: number;
   sessionUri: string | null;
@@ -634,6 +636,7 @@ export async function leaseWork(connectionId: string): Promise<RawLease> {
         bytes: num(i.bytes) ?? 0,
         type: str(i.type) === "video" ? "video" : "photo",
         createdAt: str(i.created_at) ?? "",
+        capturedAt: str(i.captured_at),
         name: str(i.name),
         attempts: num(i.attempts) ?? 1,
         sessionUri: str(i.session_uri),
@@ -1057,18 +1060,23 @@ export async function readLanding(
 }
 
 /**
- * What her Account card says it has sent: the albums that reached her Drive, the bytes (each file once: `sentTotalsOf`),
- * and the last one's day, over every send that ended, read whole (keyset on id: a planner's thousand sends never cut
- * short at PostgREST's 1,000).
+ * What her Account card folds into "Sent": every send of hers that ended having landed something, each with the
+ * instant it was made (so the card can tell the connection she has now from the ones before it: `sentHistoryOf`),
+ * read whole (keyset on id: a planner's thousand sends never cut short at PostgREST's 1,000). Her own session reads
+ * them (RLS, the progress columns). The folding is the card's, and pure.
  */
-export async function readMySentTotals(): Promise<SentTotals> {
+export async function readMySentRows(): Promise<
+  (SentRow & { createdAt: string })[]
+> {
   const supabase = await createClient();
   const { rows } = await readAllPages(
     "drive: her sent totals",
     (after: string | null, limit) => {
       let q = supabase
         .from("cloud_exports")
-        .select("id, event_id, album_name, bytes_sent, closed_at, items_sent")
+        .select(
+          "id, event_id, album_name, bytes_sent, closed_at, items_sent, created_at",
+        )
         .in("status", ["done", "partly_done", "canceled", "stopped"])
         .gt("items_sent", 0)
         .order("id", { ascending: true })
@@ -1078,15 +1086,14 @@ export async function readMySentTotals(): Promise<SentTotals> {
     },
     (row) => str(row.id) ?? "",
   );
-  return sentTotalsOf(
-    rows.map((r) => ({
-      eventId: str(r.event_id),
-      albumName: str(r.album_name) ?? "",
-      bytesSent: num(r.bytes_sent) ?? 0,
-      itemsSent: num(r.items_sent) ?? 0,
-      closedAt: str(r.closed_at),
-    })),
-  );
+  return rows.map((r) => ({
+    eventId: str(r.event_id),
+    albumName: str(r.album_name) ?? "",
+    bytesSent: num(r.bytes_sent) ?? 0,
+    itemsSent: num(r.items_sent) ?? 0,
+    closedAt: str(r.closed_at),
+    createdAt: str(r.created_at) ?? "",
+  }));
 }
 
 /** One page of a send's items in a state she may ask about (what failed, what was skipped), keyset on media id. */

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { X } from "lucide-react";
 
 import { useFinishedFields } from "@/components/app/event-settings/camera-settings-finish";
+import { PartyZoneLine } from "@/components/app/event-settings/party-zone";
 import {
   SettingsCard,
   SwitchSetting,
@@ -378,6 +379,8 @@ function EventDatesField() {
       <p id={lineId} className="text-caption text-pretty text-muted-foreground">
         For your reference only: events never expire.
       </p>
+      {/* The party's own zone, captured and never asked: one quiet choice for a party far from home (event-zone). */}
+      <PartyZoneLine />
       <p
         id={errorId}
         aria-live="polite"

@@ -112,7 +112,7 @@ shapes.
   never stays in the guest queue (`stop`), so the sheet has nothing of it to draw.
 - **The size is the R2 HEAD's** at complete, never the client's claim ([database-security.md](database-security.md));
   `duration_seconds`, `width` and `height` stay client-supplied and non-authoritative, the byte cap being the cost
-  boundary.
+  boundary, and so does `captured_at`, held to its bounds (the EXIF strip, below).
 - ★ **No upload can exceed its declared size.** Presigned PUT and UploadPart URLs bind Content-Length (each part's
   exact size), so R2 rejects an over-stuffed body, AND complete sums the real parts (`ListParts`) and aborts rather than
   assembles over the ceiling. Without both, a small declaration and a few hundred over-stuffed parts complete into a
@@ -162,6 +162,20 @@ it.
 - **Every accepted format is stripped; only JPEG, PNG and WebP shrink.** The rest are blanked in place at their exact
   length, because offsets elsewhere in the file point at their bytes. Rendering data stays: orientation, the color
   profile, an HDR gain map and the XMP that describes it.
+- ★ **The capture time stays, never the place or the device** (Will, 2026-10-05: "Yes, keep the capture time, never the
+  place or device"). Each walk reads when the original says it was taken before it rewrites a byte (`captured`: a
+  JPEG's or a HEIC's `DateTimeOriginal` with its `OffsetTimeOriginal`, a movie's QuickTime creation date else its
+  header's, a WebM's `DateUTC`; a PNG's and a WebP's are never read), and the stored file keeps it, so a download and a
+  Save into Photos land on the right day: the minimal Exif is the orientation, `ExifVersion` and `DateTimeOriginal`, its
+  wall clock alone and only in the standard's shape (a free-text field never survives as a date; the zone is read for
+  the instant and never kept, since some zones are one country's alone), and an MPF secondary keeps its orientation
+  alone; a movie whose QuickTime date goes with its metadata box has its header's creation time set to it
+  (an iPhone's export stamps the header with the moment it exported, measured on AVFoundation). The complete carries it
+  as a claim (`captured_at`, never at presign), held on the server to 1990 and now plus a day (`media/capture-time.ts`,
+  the bounds' one home: outside them, or malformed, it is none and the arrival stands, and it never refuses the file),
+  into `media.captured_at` in `create_media*`'s own write. A wall clock with no zone is read in the uploader's browser
+  zone. The album's wire carries it (`entryCaptureTime`, a manifest entry's seventh element) and a Drive copy is named
+  by it ([drive-export.md](drive-export.md)).
 - **It fails open:** input it cannot walk end to end, or cannot rewrite without touching a byte something else points
   at, uploads untouched with `stripped: false` (the header lists the cases), because a corrupted upload is worse than
   the leak. `/privacy`'s metadata section and the help article on it describe this, so they change with it.

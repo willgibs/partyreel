@@ -272,7 +272,17 @@ export async function buildNav(): Promise<Nav> {
             },
           ],
         },
-        { id: "tools", label: "Tools", items: TOOLS },
+        // ★ THE SECTION CARRIES THE INDEX AS ITS `href`, the only link there is
+        // to it. A section's href is what the breadcrumbs put between the area
+        // and an item, so every tool's page links back to the index and
+        // `lab:smoke`'s crawl (which follows hrefs) visits it; with none, the
+        // index was reached by its URL alone and never crawled.
+        {
+          id: "tools",
+          label: "Tools",
+          href: "/design/lab/tools",
+          items: TOOLS,
+        },
       ],
     },
   ];

@@ -5,90 +5,80 @@ import type { Control } from "@/components/lab/exploration";
  * declare them without importing React into a module the registry hands to a
  * server page.
  *
- * ★ A TRAIT OPENS WHERE IT LIVES (Will, r2: "including a couple in UI
- * examples to get a feel for both in use"; r4's brief: every trait on real
- * screens, never specimens alone). Show's first place is each trait's own
- * screen, caught in its moment (a field typed in on Settings' dates, a key
- * held down at Create's foot, the door's Unlock working); the five real
- * screens and the two sheets of every state are one press away, each caught
- * in the same trait's moment.
+ * ★ A SET OPENS ON A COMPOSITE OF REAL SCREENS (the r5 brief: "Each option's
+ * first frame is a composite real screen; its specimen sheet is one press
+ * away"). No one real screen holds every family: Settings' door holds a field
+ * typed in, the ink key and the quietest Cancel, the segments and radio cards
+ * that are chosen; Account's billing row the quiet keys, a field with Save
+ * off. So the composite is the two side by side at a phone, a ground's pair
+ * together (at a desk, Settings over the hub). The other real screens and the
+ * two sheets of every state are one press away.
  *
- * ★ PAPER AND THE ROOM SIDE BY SIDE, AT A PHONE, BY DEFAULT. A step draws the
- * whole option on the first screen: two phones stand at the same scale one
- * does (the stage is as tall as a phone allows, and two are narrower than the
- * room), so both grounds cost nothing; a laptop is one press away, one ground
- * at a time unless both are asked for.
+ * ★ PAPER AND THE ROOM SIDE BY SIDE, AT A PHONE, BY DEFAULT. Two phones stand
+ * at the scale one does, so both grounds cost nothing; a laptop is one press
+ * away, both grounds side by side unless one is asked for.
  */
 export const SHOW: Control = {
   id: "show",
   label: "Show",
   options: [
-    { id: "home", label: "Its own screen" },
-    { id: "settings", label: "Settings" },
-    { id: "create", label: "Create" },
-    { id: "add", label: "The Add" },
-    { id: "door", label: "The door" },
+    { id: "door", label: "Settings' door and Account" },
+    { id: "dates", label: "Settings' dates" },
     { id: "account", label: "Account" },
+    { id: "create", label: "Create" },
+    { id: "gate", label: "The guest's door" },
+    { id: "album", label: "The album" },
+    { id: "rows", label: "Settings' first page" },
     { id: "actions", label: "Every action" },
     { id: "fields", label: "Every field" },
   ],
-  default: "home",
+  default: "door",
 };
 
 export const SHOW_IDS = [
-  "home",
-  "settings",
-  "create",
-  "add",
   "door",
+  "dates",
   "account",
+  "create",
+  "gate",
+  "album",
+  "rows",
   "actions",
   "fields",
 ] as const;
 export type ShowId = (typeof SHOW_IDS)[number];
 export const showOf = (v: unknown): ShowId =>
-  (SHOW_IDS as readonly unknown[]).includes(v) ? (v as ShowId) : "home";
+  (SHOW_IDS as readonly unknown[]).includes(v) ? (v as ShowId) : "door";
 
 /**
- * THE EDGE'S NINE SCREENS (Will, r3: "Could you give me more real UI to see
- * examples of each? The host menu gives me exactly one instance"): every
- * place a layer stands over the page, each drawn on paper and in the room;
- * and a tenth, a new host's dashboard, where the carried call `hand-cards`
- * (A4) is seen (its teaser is lit in no option).
+ * WHERE A KEY IS SEEN WORKING (the loading ask): first the three it works on
+ * side by side (a primary, a quiet key, a field checking what was typed),
+ * each moving beside its still as reduced motion leaves it; then the real
+ * screens where a wait happens, each caught working.
  */
-export const LIT: Control = {
-  id: "lit",
-  label: "Lit",
+export const WHERE: Control = {
+  id: "where",
+  label: "Where",
   options: [
-    { id: "dashboard", label: "The dashboard's Display" },
-    { id: "settings", label: "Settings over the hub" },
-    { id: "add", label: "The guest's Add" },
-    { id: "confirm", label: "A delete confirm" },
-    { id: "toasts", label: "Toasts over the album" },
-    { id: "door", label: "The door's held sheet" },
-    { id: "style", label: "The reel's Style menu" },
-    { id: "menu", label: "The account menu" },
-    { id: "tooltip", label: "A tooltip" },
-    { id: "start", label: "A new host's dashboard" },
+    { id: "working", label: "All three, moving and still" },
+    { id: "create", label: "Create's Continue" },
+    { id: "gate", label: "The guest's Unlock" },
+    { id: "account", label: "Account's Save" },
+    { id: "door", label: "Settings' password" },
   ],
-  default: "dashboard",
+  default: "working",
 };
 
-export const LIT_IDS = [
-  "dashboard",
-  "settings",
-  "add",
-  "confirm",
-  "toasts",
+export const WHERE_IDS = [
+  "working",
+  "create",
+  "gate",
+  "account",
   "door",
-  "style",
-  "menu",
-  "tooltip",
-  "start",
 ] as const;
-export type LitId = (typeof LIT_IDS)[number];
-export const litOf = (v: unknown): LitId =>
-  (LIT_IDS as readonly unknown[]).includes(v) ? (v as LitId) : "dashboard";
+export type WhereId = (typeof WHERE_IDS)[number];
+export const whereOf = (v: unknown): WhereId =>
+  (WHERE_IDS as readonly unknown[]).includes(v) ? (v as WhereId) : "working";
 
 export const SCREEN: Control = {
   id: "screen",

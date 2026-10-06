@@ -13,20 +13,23 @@ import {
 } from "@/lib/security/abuse-rate-limit-store";
 import { clientIp } from "@/lib/security/unlock-rate-limit";
 import {
+  completeCaptureTime,
   runCompletePipeline,
   type CompleteStrategy,
 } from "@/lib/upload/server-pipeline";
 import { completeUploadSchema } from "@/lib/validation/upload";
 
 /**
- * THE GUEST COMPLETION'S SHAPE: the shared schema, plus the live reel's one field. `reel_eligible`
- * is false only for a clip the on-device creator adds to the album (`addClipToAlbum`), so the live
- * reel never plays a reel; absent is the column's default (true). Extended here rather than in the
- * shared validation module, so the host's completion shape is untouched until its own route passes
- * the field.
+ * THE GUEST COMPLETION'S SHAPE: the shared schema, plus the live reel's one field and the capture
+ * time. `reel_eligible` is false only for a clip the on-device creator adds to the album
+ * (`addClipToAlbum`), so the live reel never plays a reel; absent is the column's default (true).
+ * `captured_at` is when the original says it was taken (Will's X7), held to its bounds as it is
+ * parsed (`completeCaptureTime`): none, or one outside them, leaves the arrival to stand. Extended
+ * here rather than in the shared validation module, as the host's route extends its own.
  */
 const guestCompleteSchema = completeUploadSchema.extend({
   reel_eligible: z.boolean().optional(),
+  captured_at: completeCaptureTime,
 });
 
 /**
@@ -155,6 +158,8 @@ const guestCompleteStrategy: CompleteStrategy<typeof guestCompleteSchema> = {
       phoneBytes: phone?.bytes ?? null,
       // Only a clip says anything here; every other upload leaves the column's default.
       reelEligible: parsed.reel_eligible,
+      // Inside its bounds, or none (the arrival stands).
+      capturedAt: parsed.captured_at,
     });
     /* ★ THE FLIP IS A COOKIE AND THEN A REFRESH. On an event requiring an upload to view, THIS is
        the write that opens the album, and the client calls `router.refresh()` the moment it lands:

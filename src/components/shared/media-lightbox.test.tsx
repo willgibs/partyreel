@@ -330,6 +330,39 @@ describe("MediaLightbox: chrome contracts", () => {
     expect(onIndexChange).not.toHaveBeenCalled();
   });
 
+  /* ★ KEYS ACT ON THE TOP LAYER (back-layers; crumbs-47): the listener is the window's, so an arrow pressed inside a
+     confirm opened over the viewer stepped the photograph behind it (`ownsKeys` knew a slider, a menu and a field,
+     never a dialog). A key is the viewer's only from the viewer itself, or from no layer at all. */
+  it("★ an arrow pressed inside a confirm over the viewer steps nothing behind it", () => {
+    const { onIndexChange } = mount(PHOTOS, 1, { onDeleteCurrent: vi.fn() });
+    fireEvent.click(screen.getByRole("button", { name: "Delete" }));
+    const dialog = screen.getByRole("alertdialog", {
+      name: /delete this upload/i,
+    });
+    fireEvent.keyDown(dialog, { key: "ArrowRight" });
+    fireEvent.keyDown(within(dialog).getByRole("button", { name: "Cancel" }), {
+      key: "ArrowLeft",
+    });
+    expect(onIndexChange).not.toHaveBeenCalled();
+    // The viewer's own keys come back with the confirm gone.
+    fireEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
+    fireEvent.keyDown(content(), { key: "ArrowRight" });
+    expect(onIndexChange).toHaveBeenCalledWith(2);
+  });
+
+  it("a layer UNDER the viewer never takes its keys (a viewer opened from inside a panel)", () => {
+    const panel = document.createElement("div");
+    panel.setAttribute("role", "dialog");
+    document.body.append(panel);
+    try {
+      const { onIndexChange } = mount();
+      fireEvent.keyDown(content(), { key: "ArrowRight" });
+      expect(onIndexChange).toHaveBeenCalledWith(2);
+    } finally {
+      panel.remove();
+    }
+  });
+
   it("a CENTER tap on the letterbox closes; the click trailing a drag does NOT", () => {
     const { onClose } = mount();
     const centerSlot = track().children[1] as HTMLElement;

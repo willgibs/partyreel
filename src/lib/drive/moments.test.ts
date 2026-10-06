@@ -55,13 +55,10 @@ const EVERY: SendView[] = [
   ].map((pauseReason) => send({ status: "paused", pauseReason })),
   send({ status: "done", itemsSent: 312 }),
   send({ status: "partly_done", itemsSent: 309, itemsFailed: 3 }),
-  ...[
-    "canceled",
-    "operator",
-    "disconnected",
-    "account_changed",
-    "album_deleted",
-  ].map((stopReason) => send({ status: "canceled", stopReason })),
+  // A Disconnect's and another account's cancels are an earlier connection's: no place draws them (this-connection.ts).
+  ...["canceled", "operator", "album_deleted"].map((stopReason) =>
+    send({ status: "canceled", stopReason }),
+  ),
   send({ status: "stopped", stopReason: "expired" }),
   send({ status: "stopped", stopReason: "failed_to_start", itemsSent: 0 }),
   send({ status: "canceled", stopReason: "canceled", landing: true }),
@@ -80,6 +77,16 @@ describe("every moment", () => {
       expect(m.facts, label).toBeTruthy();
       expect(m.acts.filter((a) => a.lead).length, label).toBeLessThanOrEqual(1);
     }
+  });
+
+  it("says who stopped a canceled send, and a stop with no words of its own never says she canceled it", () => {
+    const title = (stopReason: string | null) =>
+      momentOf(send({ status: "canceled", stopReason }), NOW, "UTC").title;
+    expect(title("canceled")).toBe("You canceled this send");
+    expect(title(null)).toBe("You canceled this send");
+    expect(title("operator")).toBe("We stopped this send");
+    for (const earlier of ["disconnected", "account_changed", "unheard_of"])
+      expect(title(earlier), earlier).toBe("This send stopped");
   });
 
   it("★ never suggests deleting what was sent, or freeing space here (an off-ramp, never a one-click exit)", () => {

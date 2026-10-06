@@ -28,8 +28,10 @@
  * app has, the backup restore's Restore now, goes to the Worker's own door instead (restore-now.ts).
  *
  * WHAT IT RAISES, where each report lands (the Worker reaches neither Sentry nor the mail): a dead letter
- * or a deep queue (a warning), a held prune (a warning and the ops mail), and the backup's lone copies
- * (`primary_missing`, from the prune's run or the restore's pass: a warning and the ops mail, once a day).
+ * or a deep queue (a warning), a held prune (a warning and the ops mail), the backup's lone copies
+ * (`primary_missing`, from the prune's run, the reconcile's or the restore's pass: a warning and the ops
+ * mail, once a day), and a backup reconcile that stopped early, failed or found copies that differ (a
+ * warning and the ops mail, once a day).
  */
 import { z } from "zod";
 
@@ -39,9 +41,11 @@ import {
   DEPTH_COUNT_KEYS,
   JOBS,
   QUEUE_BACKLOG_ATTENTION,
+  STOPPED_EARLY_KEY,
   jobById,
 } from "@/app/admin/jobs/catalog";
 import { readPruneHoldReleasedAtMs } from "@/app/admin/jobs/prune-hold";
+import { RECONCILE_KEYS } from "@/app/admin/jobs/reconcile-view";
 import { ADMIN_HOST } from "@/lib/auth/admin-host";
 import { SITE_URL, SUPPORT_EMAIL } from "@/lib/constants/site";
 import { constantTimeEquals } from "@/lib/crypto/constant-time";
@@ -57,6 +61,7 @@ import { assertPruneApiEnv, serverEnv } from "@/lib/env";
 import { captureError, captureWarning } from "@/lib/observability/sentry";
 
 import { loneCopiesEmail } from "./lone-copies-mail";
+import { reconcileTroubleEmail } from "./reconcile-mail";
 
 // The service-role admin client requires the Node runtime; never edge.
 export const runtime = "nodejs";
@@ -193,6 +198,61 @@ async function alertOnLoneCopies(
     });
   } catch (e) {
     captureError("cron", e, { job, phase: "lone_alert" });
+  }
+}
+
+/** The media backup's backstop, whose every report that did not end clean is raised where it lands. */
+const RECONCILE_JOB = "backup_reconcile";
+
+/**
+ * A RECONCILE THAT DID NOT END CLEAN, RAISED WHERE ITS REPORT LANDS (backup-reconcile), as the lone copies raise theirs:
+ * the Worker reaches neither Sentry nor the mail, and a run that stopped early (`stopped_early`), failed (a copy, a
+ * question it could not ask, a doubt about a listing) or found a key whose two copies differ (`mismatched`, never
+ * overwritten) leaves media with no faithful backup copy until a pass ends clean. A Sentry warning on every such
+ * report, and the ops mail at most once a day (deduplicated on the run's day), so one that stands is mailed each day.
+ * Numbers only, and the run's own note. A mail that fails never costs the run its row. A run the platform cut off
+ * reports nothing at all: that is the missed-run scan's to catch (Overdue).
+ */
+async function alertOnReconcile(
+  job: string,
+  startedAtMs: number,
+  status: "ok" | "error" | "skipped",
+  counts: Record<string, number | string | boolean> | undefined,
+  note: string | undefined,
+): Promise<void> {
+  if (job !== RECONCILE_JOB) return;
+  const raw = counts?.[RECONCILE_KEYS.mismatched];
+  const mismatched = typeof raw === "number" && Number.isFinite(raw) ? raw : 0;
+  const trouble = {
+    failed: status === "error",
+    stoppedEarly: counts?.[STOPPED_EARLY_KEY] === true,
+    mismatched,
+  };
+  if (!trouble.failed && !trouble.stoppedEarly && trouble.mismatched <= 0) {
+    return;
+  }
+  captureWarning("cron", "backup_reconcile_unfinished", {
+    job,
+    failed: trouble.failed,
+    stopped_early: trouble.stoppedEarly,
+    mismatched: trouble.mismatched,
+  });
+  try {
+    const mail = reconcileTroubleEmail({
+      trouble,
+      runNote: note ?? null,
+      jobsUrl: jobsUrlFor(RECONCILE_JOB),
+    });
+    await sendOnce({
+      kind: "prune_breaker",
+      dedupeKey: `reconcile:${new Date(startedAtMs).toISOString().slice(0, 10)}`,
+      to: serverEnv.CONTACT_NOTIFY_EMAIL ?? SUPPORT_EMAIL,
+      subject: mail.subject,
+      html: mail.html,
+      text: mail.text,
+    });
+  } catch (e) {
+    captureError("cron", e, { job, phase: "reconcile_alert" });
   }
 }
 
@@ -347,6 +407,13 @@ export async function POST(request: Request): Promise<Response> {
   alertOnDepths(job, body.counts);
   await alertOnHold(job, body.startedAtMs, body.counts, body.note);
   await alertOnLoneCopies(job, body.startedAtMs, body.counts, body.note);
+  await alertOnReconcile(
+    job,
+    body.startedAtMs,
+    body.status,
+    body.counts,
+    body.note,
+  );
 
   const done = await finishJobRun(
     { runId: body.runId, startedAtMs: body.startedAtMs, heartbeatError: null },

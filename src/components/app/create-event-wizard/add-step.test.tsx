@@ -21,6 +21,9 @@ import {
   styleLine,
   STYLE_NAMES,
 } from "@/lib/disposable/album-style";
+import { ROLL_SHOTS } from "@/lib/disposable/roll";
+import { browserZone, deviceZone } from "@/lib/event/zone";
+import { developDefaultIn } from "@/lib/event/zone-morning";
 
 import { setReducedMotion } from "../../../../vitest.setup";
 import { type AddChoice, AddStep, useAddChoice } from "./add-step";
@@ -91,6 +94,7 @@ async function arrow(
 
 afterEach(() => {
   vi.useRealTimers();
+  vi.restoreAllMocks();
 });
 
 describe("the three cards: Settings' own words", () => {
@@ -208,6 +212,93 @@ describe("the develop time stands directly under the Disposable card", () => {
     expect(screen.getByLabelText("Develop time")).toHaveValue(
       "2026-10-17T11:30",
     );
+  });
+});
+
+/**
+ * ★ THE ROLL UNDER THE DISPOSABLE PICK (customize r1's `roll=both`): film's three and Other's stepper, Settings' own
+ * control, opening and shutting with the develop time; the card's line and its picture say her count; her pick is kept
+ * across a style switch and rides the create with the Disposable alone.
+ */
+describe("the roll stands under the develop time, in the Disposable's slot", () => {
+  const slot = () =>
+    document.querySelector<HTMLElement>("[data-develop-slot]")!;
+  const rollGroup = () =>
+    within(slot()).getByRole("radiogroup", { name: "Shots each" });
+
+  it("★ is in the slot, out of reach until the Disposable is picked, and offers film's three and Other", async () => {
+    render(<Harness />);
+    expect(slot().querySelector("[data-roll-control]")).not.toBeNull();
+    // Hidden with its slot: no reader meets it, and the album style group still holds its three.
+    expect(
+      within(slot()).queryByRole("radiogroup", { name: "Shots each" }),
+    ).toBeNull();
+    await userEvent.click(style(/^disposable\./i));
+    expect(
+      within(rollGroup())
+        .getAllByRole("radio")
+        .map((r) => r.getAttribute("aria-label")),
+    ).toEqual([
+      "12 shots",
+      "24 shots",
+      "36 shots",
+      "Another number of shots, 1 to 99",
+    ]);
+    expect(
+      within(rollGroup()).getByRole("radio", { name: "24 shots" }),
+    ).toHaveAttribute("aria-checked", "true");
+  });
+
+  it("★ a box is her roll: the Disposable card's line and its arriving camera say it, and the create carries it", async () => {
+    let latest!: AddChoice;
+    render(<Harness onChoice={(c) => (latest = c)} />);
+    await userEvent.click(style(/^disposable\./i));
+    await userEvent.click(
+      within(rollGroup()).getByRole("radio", { name: "36 shots" }),
+    );
+    expect(latest.roll).toBe(36);
+    expect(style(/^disposable\./i)).toHaveAccessibleName(
+      `${STYLE_NAMES.disposable}. ${styleLine("disposable", { rollSize: 36 })}`,
+    );
+    expect(latest.fields().roll_size).toBe(36);
+    // Kept while she moves between the styles, and never sent with one that has no camera.
+    await userEvent.click(style(/^live\./i));
+    expect(latest.fields().roll_size).toBeNull();
+    await userEvent.click(style(/^disposable\./i));
+    expect(
+      within(rollGroup()).getByRole("radio", { name: "36 shots" }),
+    ).toHaveAttribute("aria-checked", "true");
+    expect(latest.fields().roll_size).toBe(36);
+  });
+
+  it("★ Other opens the stepper under the boxes, minus at one end and plus at the other, any count to 99", async () => {
+    let latest!: AddChoice;
+    render(<Harness onChoice={(c) => (latest = c)} />);
+    await userEvent.click(style(/^disposable\./i));
+    expect(slot().querySelector("[data-roll-stepper]")).toBeNull();
+    await userEvent.click(
+      within(rollGroup()).getByRole("radio", { name: /another number/i }),
+    );
+    const stepper = slot().querySelector<HTMLElement>("[data-roll-stepper]")!;
+    const [fewer, count, more] = [...stepper.children] as HTMLElement[];
+    expect(fewer).toHaveAccessibleName("Fewer shots");
+    expect(count).toHaveAttribute("role", "spinbutton");
+    expect(more).toHaveAccessibleName("More shots");
+    // A press steps once; the count's keys move by one, by ten and to either end.
+    fireEvent.click(more!);
+    expect(latest.roll).toBe(25);
+    fireEvent.keyDown(count!, { key: "PageUp" });
+    expect(latest.roll).toBe(35);
+    fireEvent.keyDown(count!, { key: "End" });
+    expect(latest.roll).toBe(99);
+    expect(more).toBeDisabled();
+    fireEvent.keyDown(count!, { key: "ArrowUp" });
+    expect(latest.roll).toBe(99);
+    fireEvent.keyDown(count!, { key: "Home" });
+    expect(latest.roll).toBe(1);
+    expect(fewer).toBeDisabled();
+    expect(count).toHaveAttribute("aria-valuetext", "1 shot each");
+    expect(latest.fields().roll_size).toBe(1);
   });
 });
 
@@ -359,16 +450,47 @@ describe("useAddChoice: a style is one choice of three columns", () => {
       [/^disposable\./i, "disposable"],
     ] as const) {
       fireEvent.click(style(name));
-      expect(choice().fields()).toEqual(
-        createFieldsOf(
+      // Her roll untouched is the usual, riding with the Disposable alone (`createFieldsOf`); her own zone rides every
+      // style (event-zone: the party's from birth), and the Disposable's 9 am is read in it, here the browser's own.
+      const zone = deviceZone();
+      expect(choice().fields()).toEqual({
+        ...createFieldsOf(
           patchForStyle(
             to,
             { capture: "upload", review: false, developsAt: null },
             { eventDate: null },
           ),
+          ROLL_SHOTS,
         ),
-      );
+        ...(zone ? { captured_zone: zone } : {}),
+      });
     }
+  });
+
+  it("★ carries her own zone, captured and never asked, and offers the Disposable's 9 am in that zone", () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-10-05T22:00:00Z"));
+    // Her browser names Auckland: already the 6th there, so 9 am tomorrow is the 7th's, in Auckland.
+    vi.spyOn(browserZone, "zoneName").mockReturnValue("Pacific/Auckland");
+    const choice = mount();
+    for (const name of [/^live\./i, /^review\./i]) {
+      fireEvent.click(style(name));
+      expect(choice().fields().captured_zone).toBe("Pacific/Auckland");
+    }
+    fireEvent.click(style(/^disposable\./i));
+    const fields = choice().fields();
+    expect(fields.captured_zone).toBe("Pacific/Auckland");
+    expect(fields.develops_at).toBe(
+      developDefaultIn("Pacific/Auckland", { eventDate: null }).toISOString(),
+    );
+    expect(fields.develops_at).toBe("2026-10-06T20:00:00.000Z");
+  });
+
+  it("names no zone where her browser names none it can read (the party then turns in the one fallback)", () => {
+    vi.spyOn(browserZone, "zoneName").mockReturnValue("Etc/Unknown");
+    const choice = mount();
+    fireEvent.click(style(/^disposable\./i));
+    expect("captured_zone" in choice().fields()).toBe(false);
   });
 
   it("★ never lets approval stand with a develop time, whatever the order she moved in", () => {

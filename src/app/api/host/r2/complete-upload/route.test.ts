@@ -116,3 +116,37 @@ describe("the host's completion and the live reel", () => {
     expect(createMediaAsHost).not.toHaveBeenCalled();
   });
 });
+
+describe("★ the capture time a host's complete claims (capture-time, Will's X7)", () => {
+  const recorded = () =>
+    (createMediaAsHost.mock.calls.at(-1) as [Record<string, unknown>])[0]
+      .capturedAt;
+
+  it("records one inside the bounds and drops a lie or a malformed claim, the upload landing either way", async () => {
+    vi.useFakeTimers({
+      now: new Date("2026-10-05T12:00:00Z"),
+      toFake: ["Date"],
+    });
+    try {
+      expect(
+        (await complete({ captured_at: "2026-10-04T01:14:05.000Z" })).status,
+      ).toBe(200);
+      expect(recorded()).toBe("2026-10-04T01:14:05.000Z");
+      for (const lie of [
+        "2026-10-07T00:00:00.000Z",
+        "1971-01-01T00:00:00.000Z",
+        42,
+        "now",
+      ]) {
+        expect((await complete({ captured_at: lie })).status, String(lie)).toBe(
+          200,
+        );
+        expect(recorded(), String(lie)).toBeNull();
+      }
+      expect((await complete()).status).toBe(200);
+      expect(recorded()).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});

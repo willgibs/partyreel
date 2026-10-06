@@ -88,8 +88,9 @@ semantics live in its doc.
   step), `tier_limits`, `upload_allowance` and `uploads_used` (INVOKER; every other caller is a DEFINER body),
   `uploads_windows` (an INVOKER read behind the admin seam, every listed host's `uploads_used` in one call) and
   `consume_passes_for_pro_credit` (INVOKER, milestone 37's pass-to-Pro conversion, kept until no deployed build names
-  it), the credit's `claim_pass_credit`, `record_pass_credit_grant` and `convert_pass_credit` and the pass recompute
-  `recompute_pass_entitlement` (INVOKER, the webhook's and the nightly sweep's, each taking her profiles row first),
+  it), the credit's `claim_pass_credit`, `record_pass_credit_grant`, `convert_pass_credit` and `release_pass_credit`
+  and the pass recompute `recompute_pass_entitlement` (INVOKER, the webhook's and the nightly sweep's, each taking her
+  profiles row first),
   `pass_lapsed` (INVOKER, the operator's `uploads_windows` asks it), the paged album's
   reader `album_changes_since` (an INVOKER read the Next routes call after their own capability check) and its log's
   prune `album_prune_tombstones` (DEFINER: the tables grant the service role SELECT only), the develop's
@@ -190,8 +191,9 @@ Gotchas). A new table starts with no client grant, so its migration grants exact
   and `enforce_event_limit` (the tier's `MAX_EVENTS`, or `event_slots` when set; raises 23514). A column the host
   writes straight through PostgREST carries the app's own bound, since her session passes no schema:
   `events_name_len` and `events_description_len` mirror `validation/event.ts` under a parity guard, and
-  `events_qr_style_len` is an envelope, never the preset list, so a new preset needs no migration. A paid gate on an
-  event setting lives inside its setter RPC ([billing-caps.md](billing-caps.md)).
+  `events_qr_style_len` is an envelope, never the preset list, so a new preset needs no migration, as is
+  `events_time_zone_shape` (the app reads a zone with its own `Intl`). A paid gate on an event setting lives inside
+  its setter RPC ([billing-caps.md](billing-caps.md)).
 - ★ **Every capacity decision locks the host's `profiles` row `for update` first.** The cap, uploads and event-slot
   checks are check-then-act over aggregates no row lock can hold, so two concurrent uploads, restores or creates
   would each read N-1 and both admit. `create_media`, `create_media_as_host`, `restore_media`, `restore_event` and
@@ -337,4 +339,6 @@ across the files (a body is its last definition; grants and policies replay stat
   which is how a check gets an unconfirmed account.
 - **An unapplied migration is proved on the live schema inside `begin; … rollback;` in ONE `execute_sql` call:** the
   call returns the LAST row-returning statement's result even after the rollback, so a temp `proof` table carries
-  every step to a final `select`, and each `DO` block traps its own failure (an error would skip the rollback).
+  every step to a final `select`, and each `DO` block traps its own failure (an error would skip the rollback). That
+  a deployed build's call still resolves to a changed signature is proved with no fixtures: call it the old way with
+  arguments its body refuses first (an unknown session, a foreign event) and read the refusal's words.

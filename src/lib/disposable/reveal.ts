@@ -10,8 +10,9 @@
  * set a 'develop' time guests can see"). Develop now writes now: the database stores anything within a minute of its
  * own clock as its own now, so a caller's clock never decides.
  *
- * Pure and isomorphic: the host's control computes its default in the host's own time zone, in her browser, which is
- * the only place that knows what "9 am" means to her party.
+ * Pure and isomorphic. `defaultDevelopAt` reads the browser's own zone; the host's controls offer the party's 9 am
+ * instead (`developToKeep`, `lib/event/zone-morning.ts`: the event keeps its own zone), and this one only where no zone
+ * can be named.
  */
 
 import { lastDayOf } from "@/lib/events/dates";

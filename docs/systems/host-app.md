@@ -24,11 +24,18 @@ its gate (below); `allow_videos` is the Videos switch, binding guests only, as `
 (the host's own are exempt); `qr_style` is plain text, app-validated, so presets grow without a migration.
 
 - **The sole create path is `/dashboard/new`** (`create-event-wizard.tsx`, its screens in `create-event-wizard/`): the
-  name, the code's look, then the beat. It creates once, at commit (an abandoned Create leaves no row), through the
-  non-redirecting `createEventInWizard`, which returns the id and token so the beat can draw the real code. Only the
-  name is required; everything else is edited in Settings (below). The look step's codes are samples and say so on
-  the code: they encode `previewJoinUrl`'s stand-in link, as long as a real one so the look is true, and it names
-  nobody's album, so a test-scan meets a 404.
+  name, the album's style (a Disposable's develop time and roll under its pick), the code's look, then the beat. It
+  creates once, at commit (an abandoned Create leaves no row), through the non-redirecting `createEventInWizard`, which
+  returns the id and token so the beat can draw the real code. Only the name is required; everything else is edited in
+  Settings (below). The look step's codes are samples and say so on the code: they encode `previewJoinUrl`'s stand-in
+  link, as long as a real one so the look is true, and it names nobody's album, so a test-scan meets a 404.
+- ★ **The party keeps its own time zone, captured, never asked** (`events.time_zone`, `lib/event/zone.ts`): Create sends
+  her browser's zone (`captured_zone`, every style), and the server stores it only where its runtime reads it (an
+  unreadable one is stored as none and reported, never a refused Create); a Settings save of a time (the dates, the
+  develop) carries hers to an event with none, written only under `time_zone is null`, so a date saved from anywhere
+  never moves a party's zone. Only her chosen city moves it (`time_zone`, refused in words if unreadable). Its album's
+  turn and its develop's 9 am read it ([guest-flow.md](guest-flow.md), [disposable-mode.md](disposable-mode.md)); a
+  host who never travels never sees it.
 - **The room is `fixed` over the (app) shell, whose bar steps aside in CSS** (`data-app-room` on the room, read by the
   header's `group-has-[[data-app-room]]/shell:hidden`, since a page cannot hand its layout a prop), so nothing of the
   app waits in the tab order behind Create.
@@ -145,9 +152,15 @@ hub and closes back to it.
 - **The head is the guests' cover, hers** (`event-feed/event-hub-head.tsx`'s `HubCover` in the album's own frame,
   `EventHead`, [guest-flow.md](guest-flow.md)): the album's photographs under the name, the date, her guests and views
   and the Live mark, the link, and the code on its mat (`ui/code-mat.tsx`) in the cover's corner, so she sees her party
-  as her guests do. Its photographs are the guests' cover's rule (`event-hub-head-stills.ts`, pure, read on both
-  sides): the reel's opening stills while it plays (`readHubReel`'s), else the newest a guest can see (approved, never
-  hidden, held or a clip), so a still she hides, removes or sends back leaves it the moment the album's store has it.
+  as her guests do. Its photographs are the guests' cover's rule (`event-hub-head-stills.ts`, pure, read on both sides):
+  the reel's opening stills while it plays (`readHubReel`'s), else the newest a guest can see (approved, never hidden,
+  held or a clip), so a still she hides, removes or sends back leaves it the moment the album's store has it. ★ **Its
+  foot is a seam** (`event-hub-head-seam.css`): the photograph dissolves into the page and the cards row stands across
+  it. The cover and the row read one set of numbers (`--hub-rise`, how far the cards stand up into the photograph, which
+  the foot's own padding clears, and `--hub-fade`) at the three widths the hub meets, since they are siblings in the
+  hub's `space-y-6` (whose 24px the row takes back as `--hub-gap`) and cannot read each other's box. The fade is the
+  page's own colour, read outside the cover (always the room), and the cover grows (`min-h`) rather than clips a long
+  name.
 - **The album's facts are the strip along the cover's foot** (`event-hub-head-strip.tsx`, its maths in
   `event-hub-head-strip-marks.ts`): a mark a photograph in the album's own order, so no shape of event leans on a
   timeline. It reads the page's store: its marks are what the hub's album holds (approved and hidden, never Review's) on
@@ -164,14 +177,22 @@ hub and closes back to it.
   pressing the code opens the card and asking what a corner means must not, and it sits outside the mat, so nothing
   lands on the modules; the tooltip primitive refuses a tap on purpose, so the mark opens its own words on a tap.
 - **The cards row** (Highlight reel, Guests, Review, Settings, then See it as a guest, `AS_GUEST_DOOR`, which is never
-  one of `EVENT_ROOMS`, so every drawing that maps the four rooms keeps drawing four) is a group of links, never tabs,
-  since nothing switches a panel in place: each door is the room's real address (`roomHref`), its ordinary press
-  opening the room in place and a modified click a tab of its own. A room's code is a chunk of its own, asked for on
-  intent with what the room shows first (`share/room-chunks.ts`), so a panel opens on its room. The row is sticky and
-  condenses in place, because a remount would drop the code chip's `view-transition-name` mid-morph, and it condenses
-  inside the resting row's footprint (`useStuckBand`), because a band that moved the album let scroll anchoring flip
-  it across the threshold and back for ever. Stuck, it carries the code as a chip (`ui/code-chip.tsx`) while the
-  head's code is off screen.
+  one of `EVENT_ROOMS`, so every drawing that maps the four rooms keeps drawing four) is cards over the seam
+  (event-header r4): one door element (`room-card-door.tsx`) that is a card at rest and a pill under the bar, the same
+  DOM in both. It is a group of links, never tabs, since nothing switches a panel in place: each door is the room's real
+  address (`roomHref`), its ordinary press opening the room in place and a modified click a tab of its own; a room's
+  code is a chunk of its own, asked for on intent with what the room shows first (`share/room-chunks.ts`). ★ Every door
+  is in sight at every width, so the row never scrolls sideways: a hand's two by two with See it as a guest the width
+  under it, a tablet's five tiles from 640px, a desk's five cards from 1100px, and stuck, pills of a glyph and its count
+  under 800px (sized for a 320px phone) and a glyph, its word and its count from it, all CSS (`room-card.css`) so the
+  server's paint is right at every width. Each door's words are `room-card.ts`'s (`reviewCardFace`, `guestsCardFace`,
+  `settingsCardFace`), the page's first paint and the row's live counts alike, and a count from 1,000 reads `1.2K` on
+  the door and whole in its name. ★ The row condenses in place (a remount would drop the code chip's
+  `view-transition-name` mid-morph), written as one `data-stuck` by the fold (`event-cards-row-fold.ts`: FLIP between
+  two reads, so a fold reversed mid-flight starts from where each piece is; reduced motion and a first report below the
+  bar flip at once), and inside the resting row's footprint (`useStuckBand`), because a band that moved the album let
+  scroll anchoring flip it across the threshold and back for ever. Stuck, it carries the cover's face (and from 1100px
+  its name) and, while the head's code is off screen, the code as a chip (`ui/code-chip.tsx`).
 - **Every room is a place over the hub, one way in and out**: Review, Guests and Settings stand in one panel
   (`share/room-panel.tsx` for the first two, Settings' own kind and head), the share kit, See it as a guest in a phone
   over the dimmed hub (below), and the Highlight reel is a door: the guests' own view at `?reel` ([reel.md](reel.md)),
@@ -204,15 +225,17 @@ hub and closes back to it.
   and the custom link). Every door to it reads Invite (`share/invite-button.tsx`): the head's code, the sticky band's
   chip, the checklist's code row, Settings' last step and the dashboard card's QR chip. The code is drawn in this one
   sharing surface, so a fix to it lands everywhere.
-- **Settings is five steps** (`event-settings/`): Who can get in, What guests can add, The highlight reel and The
-  event, each row one sentence (`settingsSentence`, the one home) whose underlined words are live controls
-  (`SettingWord`) and whose row opens its own page, then the code. The rows tick once ready, by the checklist's own
-  function (`settingsReadiness`: the server's facts, the album's live counts over them, Settings' optimistic values
-  over both, so a step ticks the moment its choice is made). Every control saves itself (no form, no Save):
-  `SettingsProvider` lays an optimistic overlay over the server row, a key dropped once the row catches up, with a
-  sequence per key so a late answer never undoes a newer choice (a save that throws, a dropped connection, settles as a
-  refusal does: put back, freed, said, and `run` never rejects); a text field saves when it is left. `/settings`
-  survives as a redirect, because it is a published URL.
+- **Settings is five steps** (`event-settings/`): Who can get in, What guests can add, The highlight reel and The event,
+  each row one sentence (`settingsSentence`, the one home) whose underlined words are live controls (`SettingWord`) and
+  whose row opens its own page, then the code. The sentence is the overview and each page the whole control (customize
+  r1's `home=words`): a word swaps a choice in place, and an answer only its page can take (a password to set, a roll's
+  Another number) opens that page, the roll's at its stepper in focus (`SettingsState.opening`). The rows tick once
+  ready, by the checklist's own function (`settingsReadiness`: the server's facts, the album's live counts over them,
+  Settings' optimistic values over both, so a step ticks the moment its choice is made). Every control saves itself (no
+  form, no Save): `SettingsProvider` lays an optimistic overlay over the server row, a key dropped once the row catches
+  up, with a sequence per key so a late answer never undoes a newer choice (a save that throws, a dropped connection,
+  settles as a refusal does: put back, freed, said, and `run` never rejects); a text field saves when it is left.
+  `/settings` survives as a redirect, because it is a published URL.
 - ★ **A date field saves once she has finished it, never on its change**: Chrome's date input fires a complete date on
   every keystroke that makes one (a year typed digit by digit passes 0002, 0020 and 0202 on its way to 2027), so a
   keyboard's edit waits to be left or Entered, a picker's choice saves a beat after the last, the panel's close saves a
@@ -220,6 +243,13 @@ hub and closes back to it.
   or a half-filled date never saves, said under the field in words (`event-page.tsx`'s `EventDatesField`; its tests type
   keystroke by keystroke in Chrome's own order). The develop time is finished the same way, by the one hook the two
   share (`useFinishedFields`, `camera-settings-finish.ts`; [disposable-mode.md](disposable-mode.md) for what it writes).
+- **A party far from home is one quiet choice under the dates** (`event-settings/party-zone.tsx`, never in Create):
+  where the party's zone is hers the row asks "Party in another time zone?" and names none; elsewhere it says whose
+  clock ("On Mexico City time · 4:12 PM there now", Change). The choice is a form popup that opens on her own zone and a
+  search finding a city, a country or a destination (`zone-places.ts`: each zone said as its city, the other names
+  matched by the zone they resolve to, since a browser lists ICU's legacy spellings), each row its city, its clock
+  there and the name it answered by; a pick is the one save of the zone. Her browser's answers, so drawn once
+  hydrated.
 - **A setting with no effect right now stays in view** as one quiet line under the switch that governs it
   (`ui/dormant.tsx`, `inert` while asleep), and a change that affects people already in says so in its own place
   before it happens (`ui/consequence-line.tsx`).
@@ -271,7 +301,8 @@ hub and closes back to it.
   choosing Deleted reads its list again (`/api/events/<id>/bin`: ids, shapes and countdowns, no links) so what was
   just deleted is there, its rows mint links per window (`bin/media`) and re-mint them while it is open, and bin items
   never count in the album. Restore (at once) and Delete permanently (behind a confirm) are one `useBinActions` for the
-  tile's pane and the viewer.
+  tile's pane and the viewer. An arrival out of her sight wears the album's pill under the stuck band
+  (`event-gallery-news.ts`; [guest-flow.md](guest-flow.md)'s arrival grammar).
 - **The View menu** (`shared/view-menu.tsx`) holds Tile size (the rows' density steps, also a pinch, ctrl and the
   wheel, kept in the per-device `pr_tile_size` cookie the hub paints with, since localStorage would repaint after
   hydration), Sort (Newest or Oldest first, reset each visit) and Filter (All, Deleted).
@@ -301,7 +332,9 @@ phone over the dimmed hub at a desk, the whole screen in a hand, closing onto th
   reads nothing.
 - ★ **A look, never a door** (`share/as-guest-view.tsx`): the guest page's own pieces in its order, the whole of it
   `inert`, so nothing pressed there writes as a guest, and none of the guest page's hands mounted (the door, the
-  upload queue, the keep, the claims, the tracker, the reel's controller).
+  upload queue, the keep, the claims, the tracker, the reel's controller). Its album opens in the order every guest
+  meets (`readAsGuest`'s `albumOrder`, the turn read in the party's zone and handed on as an instant), and Sort answers
+  nothing there, since a choice would write a guest's remembered order on her own device.
 
 ## The door, the host's side
 
@@ -319,13 +352,16 @@ so the profile's visitor-facing "Private" never collides. The six-door menu is `
   declined newcomer waits through a Public trip for Let back in rather than walking into an album its host never let
   her into; a password ends every ask (`events_door_to_password`, [guest-flow.md](guest-flow.md)), so those asks leave
   At the door, the dashboard and the bell.
-- ★ **The Guests room is one read, after `getEvent` has proved the host** (`guests/room.server.ts`: the door's lists
-  are the service role's, and a confirmed guest's address re-proves inside its own read). The hub's render reads it
-  whenever the address names the room, and the room's own ask (`readGuestsRoomAction`) when a card opens it in place;
-  the panel draws the newer of the two, and a read that fails says so with Try again, never an empty room. ★ A sealed
-  album's list is empty while its roll is shot (a guest joins it at the develop), so the read carries `waiting`, the
-  shots the seal holds, and the room says "N shots are developing" in the list's place, never "Nobody has added photos
-  yet" (a room holding a roll is not empty: Invite stays its quiet action).
+- ★ **The Guests room is one read, after `getEvent` has proved the host** (`guests/room.server.ts`: the door's lists are
+  the service role's, and a confirmed guest's address re-proves inside its own read). The hub's render reads it whenever
+  the address names the room, and the room's own ask (`readGuestsRoomAction`) when a card opens it in place; the panel
+  draws the newer of the two, and a read that fails says so with Try again, never an empty room. ★ A sealed album's list
+  is empty while its roll is shot (a guest joins it at the develop), so the read carries `waiting`, the shots the seal
+  holds, and the room says "N shots are developing" in the list's place, never "Nobody has added photos yet" (a room
+  holding a roll is not empty: Invite stays its quiet action). The hub's Guests card says the same (`guestsCardFace`:
+  who waits at the door first, then "N shots developing" while the list is empty only for the seal, else the guests),
+  from `countWaitingGuestShots`, which the hub reads only while a develop time is ahead (`hubCovered`), after
+  `getEvent`, and never worth the page (a failed read leaves the guests' count, captured).
 - **The Guests room's At the door** heads it: Let in (`let_in_at_door`) opens her door on every device, and her held
   door opens by itself at its next check-in. ★ Decline is a block (the account where there is one, else the row), with
   Undo on its toast and Let back in under Blocked, so a declined newcomer meets the one shut screen and cannot keep
@@ -424,11 +460,12 @@ so the profile's visitor-facing "Private" never collides. The six-door menu is `
 
 ## The highlight reel, the host's side
 
-The Reel card, the band's reel step, the old route's redirect, Settings' Highlight reel section and the card's door
-into the guests' album at `?reel` are [reel.md](reel.md)'s, with the rest of the reel and the clip. What the hub owes
-it: the card rides the cards row (the Highlight reel is a door, never a room), its threshold reads the album's
-manifest (`isPlayableEntry`), and its stills are the reel's take, planned on the server (`readHubReel`) on her own scope
-and asked again when its state moves. ★ **The card is hers before the develop** (Will's Q5): it draws her photographs,
-sealed shots included, says guests get it later, and a press plays her own reel over the hub (`event-feed/hub-reel.tsx`,
-mounted inside the album's store: a reel outside it never finds its manifest), while the head, its band and the album's
-cover stay her guests' view; after the develop a press opens the guests' view.
+The Reel card, the band's reel step, the old route's redirect, Settings' Highlight reel section and the card's door into
+the guests' album at `?reel` are [reel.md](reel.md)'s, with the rest of the reel and the clip. What the hub owes it: the
+card rides the cards row (the Highlight reel is a door, never a room), its threshold reads the album's manifest
+(`isPlayableEntry`), and it is a plain card among the doors: its state and count follow the album live and Settings'
+switch wins (it holds no face of its own), and it draws no stills (the reel's take, planned on the server by
+`readHubReel` on her own scope, is the cover's and Settings' alone). ★ **The card is hers before the develop** (Will's
+Q5): it says guests get it later, and a press plays her own reel over the hub (`event-feed/hub-reel.tsx`, mounted inside
+the album's store: a reel outside it never finds its manifest), while the head, its band and the album's cover stay her
+guests' view; after the develop a press opens the guests' view.

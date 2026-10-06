@@ -16,8 +16,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
  */
 vi.mock("server-only", () => ({}));
 const jar = vi.hoisted(() => ({ cookies: new Map<string, string>() }));
+/** What the request carries beside its agent: Vercel's guess at the READER's zone, which the album's turn never reads. */
+const reader = vi.hoisted(() => ({ headers: {} as Record<string, string> }));
 vi.mock("next/headers", () => ({
-  headers: async () => new Headers({ "user-agent": "test" }),
+  headers: async () => new Headers({ "user-agent": "test", ...reader.headers }),
   cookies: async () => ({
     get: (name: string) =>
       jar.cookies.has(name) ? { value: jar.cookies.get(name)! } : undefined,
@@ -33,7 +35,7 @@ const EVENT = vi.hoisted(() => ({
   qr_token: "0123456789abcdef0123456789abcdef",
   name: "Maya & Jay",
   description: "The barn, then the lake.",
-  event_date: "2026-09-12",
+  event_date: "2026-09-12" as string | null,
   custom_slug: null,
   visibility: "open" as string,
   accepting_uploads: true,
@@ -49,6 +51,12 @@ const door = vi.hoisted(() => ({
 vi.mock("@/lib/events/closed-door.server", () => ({
   pageDoor: async () => ({ event: EVENT, decision: door.decision }),
 }));
+/** The party's own zone as `events.time_zone` holds it (event-zone), read once a render on the service role. */
+const party = vi.hoisted(() => ({ zone: null as string | null }));
+const zoneRead = vi.hoisted(() =>
+  vi.fn(async (_eventId: string) => party.zone),
+);
+vi.mock("@/lib/event/zone.server", () => ({ readPartyZone: zoneRead }));
 vi.mock("@/lib/demo", () => ({
   isDemoToken: () => false,
   DEMO_EVENT_URL: null,
@@ -189,6 +197,9 @@ const handedHeader = (): Record<string, unknown> | null => seen.header;
 beforeEach(() => {
   vi.clearAllMocks();
   jar.cookies.clear();
+  reader.headers = {};
+  party.zone = null;
+  EVENT.event_date = "2026-09-12";
   ticket.value = null;
   auth.user = null;
   owner.is = false;
@@ -328,5 +339,82 @@ describe("★ an album with a develop time ahead: what she adds waits", () => {
     const { experience } = await meet({ kind: "through", admitted: false });
     expect(experience?.uploadsWait).toEqual({ waits: false, developsAt: null });
     expect(waitingAsk).not.toHaveBeenCalled();
+  });
+});
+
+/* ★ ONE MOMENT FOR EVERY GUEST (event-zone; Will, 2026-10-05: "It feels unfair to unlock the album at different times for
+   certain guests based on geographical location"). The album turns at 9 am the morning after in the PARTY's zone, read
+   once by the page's server and handed to the browser as that instant: a reader's zone (Vercel's header, the old
+   input) moves nothing, and no zone reaches the browser. Red on the old page, which read the turn in the reader's zone
+   and handed the browser that zone. */
+describe("★ one moment for every guest: the album turns in the party's own zone", () => {
+  // A Saturday party in Auckland, on 12 September 2026: 9 am NZST (UTC+12) on Sunday the 13th.
+  const AUCKLAND_MORNING = Date.parse("2026-09-12T21:00:00Z");
+
+  it("★ a party in Auckland, read from Los Angeles and from London: one instant, 9 am the morning after in Auckland", async () => {
+    party.zone = "Pacific/Auckland";
+    const handed: unknown[] = [];
+    for (const zone of ["America/Los_Angeles", "Europe/London", null]) {
+      reader.headers = zone ? { "x-vercel-ip-timezone": zone } : {};
+      const { experience } = await meet({ kind: "through", admitted: false });
+      handed.push(experience?.albumOrder);
+      cleanup();
+    }
+    expect(handed).toEqual([
+      { morningAfter: AUCKLAND_MORNING, own: "oldest", chosen: null },
+      { morningAfter: AUCKLAND_MORNING, own: "oldest", chosen: null },
+      { morningAfter: AUCKLAND_MORNING, own: "oldest", chosen: null },
+    ]);
+    expect(zoneRead).toHaveBeenCalledWith(EVENT.id);
+  });
+
+  it("★ the browser is handed the instant, never a zone: neither the party's nor the reader's rides the page", async () => {
+    party.zone = "Pacific/Auckland";
+    reader.headers = { "x-vercel-ip-timezone": "America/Los_Angeles" };
+    const { experience } = await meet({ kind: "through", admitted: false });
+    const handed = JSON.stringify(experience);
+    expect(handed).not.toContain("Pacific/Auckland");
+    expect(handed).not.toContain("America/Los_Angeles");
+    expect(Object.keys(experience?.albumOrder as object).sort()).toEqual([
+      "chosen",
+      "morningAfter",
+      "own",
+    ]);
+  });
+
+  it("a row with no zone, or one the runtime cannot read, turns in the one fallback (UTC), still one moment", async () => {
+    for (const zone of [null, "Mars/Olympus"]) {
+      party.zone = zone;
+      reader.headers = { "x-vercel-ip-timezone": "Asia/Tokyo" };
+      const { experience } = await meet({ kind: "through", admitted: false });
+      expect(
+        (experience?.albumOrder as { morningAfter: number }).morningAfter,
+        String(zone),
+      ).toBe(Date.parse("2026-09-13T09:00:00Z"));
+      cleanup();
+    }
+  });
+
+  it("an undated album asks no zone and never turns; behind a gate the order knows no days", async () => {
+    EVENT.event_date = null;
+    const undated = await meet({ kind: "through", admitted: false });
+    expect(zoneRead).not.toHaveBeenCalled();
+    expect(undated.experience?.albumOrder).toEqual({
+      morningAfter: null,
+      own: "newest",
+      chosen: null,
+    });
+    cleanup();
+    EVENT.event_date = "2026-09-12";
+    party.zone = "Pacific/Auckland";
+    const gated = await meet(
+      { kind: "through", admitted: false },
+      { visibility: "password", access: "none", gate: "password" },
+    );
+    expect(gated.experience?.albumOrder).toEqual({
+      morningAfter: null,
+      own: "newest",
+      chosen: null,
+    });
   });
 });

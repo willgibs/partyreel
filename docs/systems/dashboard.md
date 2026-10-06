@@ -4,11 +4,12 @@ Open this before you change `/dashboard`: its stage, the week, her events (the D
 storage ring or the claims review. Creating an event, the event page, moderation and the Guest cards (the events an account added to) are
 [host-app.md](host-app.md)'s; the bell's words are [notifications-analytics-growth.md](notifications-analytics-growth.md)'s.
 
-`/dashboard` is today's page: the viewer's own day in its head, the party of the moment on a stage of its own
-photographs, this week's other parties each with its one step, then the events she opened lately and all her events,
-laid out her way. Every rule is pure under `lib/dashboard/` (`when.ts`, `attention.ts`, `moment.ts`, `stage.ts`,
-`display.ts`, `opened.ts`, composed by `home-view.ts`; each file's header holds its rule), the page only reads, and the
-composition is `components/app/dashboard/home.tsx`.
+`/dashboard` is today's page: the viewer's own day in its head, the event her rule leads with (the party of the moment
+unless she chose another) on a stage of its own photographs, this week's other parties each with its one step, then the
+events she opened lately and all her events, laid out her way. Every rule is pure under `lib/dashboard/` (`when.ts`,
+`attention.ts`, `moment.ts`, `lead.ts`, `stage.ts`, `display.ts`, `opened.ts`, composed by `home-view.ts`; each file's
+header holds its rule), the page only reads, and the composition is `components/app/dashboard/home.tsx`, under the head
+`home-body.tsx` (a client component, below).
 
 - ★ **"Today" is the viewer's calendar day, never the server's:** Vercel runs on UTC, so from evening on west of UTC the
   server's today is already tomorrow. The page reads the viewer's zone from `x-vercel-ip-timezone` (validated, else
@@ -18,9 +19,29 @@ composition is `components/app/dashboard/home.tsx`.
   calendar day of its newest approved upload** (`when.ts`); an undated empty album has no day and waits under Coming
   up. The inferred day places an event but never dates it, since the host never set it: `whenOf` reads the host's
   dates only ("No date"), the stage never says "tonight" of an undated album, and the week holds dated parties only.
-- **The stage** leads with `momentEvent` (`moment.ts`): the event on its day, else the nearest within a month either
-  way, else on a quiet day the newest made. Before its day it shows the code and readiness's essentials, on its day
-  the live wall, after it the album and its numbers ("in the album", never "photos", since the count includes video).
+- **The stage** leads with her rule's event (`lead.ts`): a party on its day always, else Newest (the default, and
+  `momentEvent`, `moment.ts`: the nearest within a month either way, else the newest made), Upcoming (the soonest dated
+  party ahead), Last opened (`events.host_opened_at`) or Latest photos (the album photographs last landed in); a rule
+  that finds nothing of its kind leads with her newest and says so. Before its day it shows the code and readiness's
+  essentials, on its day the live wall, after it the album and its numbers ("in the album", never "photos", since the
+  count includes video).
+  - ★ **Its first words are the control** (`stage-lead.tsx`, host-dashboard r4 `chooser=words`): where she has a choice
+    (`hasChoice`: more than one event and none on its day) the line says why the event leads ("Your newest", "In 18
+    days", "Latest photos") in place of the phase word, and pressing it turns the stage into the four rules, each the
+    event it would lead with and the fact that picked it, the picture showing the one under the pointer or the focus.
+    The words are the server's (`lead-words.ts` through `leading.ts`), so a row cannot say what choosing it does not
+    lead with; an undated album led by its photographs says "Photos yesterday", never a day she did not set. The stage
+    gives it three slots (`eyebrow`, `className`, `plateCaption`) and is otherwise the stage it was.
+  - ★ **A press moves the stage, the week and her events in the same frame and refreshes nothing:** the page sends
+    `leading` (each rule's event and words, the stage of each other event a rule would lead with, the drawn lead's own
+    row and week card, the week's order), `home-body.tsx` recomposes with `pageAround`, held by test to the page
+    `buildHomeView` draws for the same rule (every drawn rule against every pressed one), and the Recent row follows.
+    The rule is kept after, in a transition (`setLeadRuleAction`; a failure toasts and leaves her choice on screen, and
+    pressing that rule again writes again: `unsaved`), and a tab remembers it by account for Back (`remembered`, as her
+    layout does, and never aged: another device's later choice shows after a reload). Until she presses one in a tab the
+    page follows the rule the server drew for. An event a press leads with arrives without its guest count (the page reads
+    the stage's own alone) and asks `readStageGuestsAction` once, after its day. Her events' order is total over distinct
+    rows (`display.ts`: ties fall to the newest made, then the id), so a recomposed list and the server's agree in order.
   - **With no photograph yet it is lit by the event's own lamp** (`stage-lit.tsx`): one of the five `--lamp-*`, picked
     by its id and never changing (`lampOf`), only ever as light in a gradient (the set is not in `@theme`), fuller from
     the week before its first day through its last (`lampNear`), the code on its plate (the code card, 176 px) and
@@ -44,9 +65,10 @@ composition is `components/app/dashboard/home.tsx`.
 - **This week** is every other party within seven days of its nearest day, either way, each with its item or its quiet
   line; a queue on a party further off waits on its tile's mark and in the bell.
 - **The reads go only where the page will speak** (`dashboard/page.tsx`, each round bounded: `READY_READS`,
-  `DAY_READS`): readiness's reads for the week's parties and a stage before their day, the day's counts for events on
-  their day, the wall and the guest count for the stage alone. A rule never guesses an unread fact: an event with no
-  readiness read says no setup step.
+  `DAY_READS`, `ALTERNATE_READS`): readiness's reads for the week's parties and a stage before their day (and, only
+  where she has a choice, for the at most three events her other rules would lead with, beside that bound), the day's
+  counts for events on their day, the wall and the guest count for the stage alone. A rule never guesses an unread fact:
+  an event with no readiness read says no setup step.
 - **Her events are one collection she shapes** (`events-section.tsx`, rules in `display.ts`): "Your events N" (hosted
   and added to, the stage's own event drawn once above it, the bin never counted), a search from nine, and one Display
   menu: the layout (gallery, table, list), the order and its direction, what shows (whose, when, a year), the groups
@@ -56,7 +78,11 @@ composition is `components/app/dashboard/home.tsx`.
   - ★ **Her choices are kept on her account** (`profiles.events_display`, sparse: only what differs from the defaults,
     narrowed on every read by `resolveDisplay`, never trusted; the column's CHECK is an envelope, not the key list).
     `setEventsDisplayAction` writes her own row and revalidates nothing; the page resolves them before the first byte.
-    Recent's fold is kept with them but is never a menu choice (no badge, no Reset).
+    Recent's fold is kept with them but is never a menu choice (no badge, no Reset). ★ So is her stage's rule, under the
+    key `lead` (only when it is not Newest): the menu's write reads it back and keeps it, and `setLeadRuleAction`, which
+    refuses anything but the four rules, is its one writer. Both are read-then-write on one jsonb (Next runs a tab's
+    actions in turn), so two devices writing within a round trip keep the later write whole: a lost update can only
+    drop one choice.
   - ★ **Back restores the page from the client's router cache, drawn from before her last choice** (read in a browser:
     the same render stamp, the layout reset), so the section remembers the tab's last choice, and a search for ten
     minutes, by account (`remembered`): the server's copy alone would revert a layout she chose the moment she pressed

@@ -13,36 +13,39 @@ import {
 import { OptionFrames } from "./frames";
 import {
   groundsOf,
-  type LitId,
-  litOf,
   screenOf,
   type ShowId,
   showOf,
+  type WhereId,
+  whereOf,
 } from "./knobs";
 import {
   type AskId,
   choiceOf,
   type GroundId,
-  type MomentId,
-  type Trait,
+  type LoadingId,
+  type SetId,
   type ViewId,
 } from "./model";
 import { IDENTITY } from "./spec";
 
 /**
- * THE PREVIEWS: every option is one stylesheet over production (the whole
- * mix, `sheet/index.ts`), drawn on real screens caught in the moment its trait
- * is judged in, at a phone or a laptop, on paper beside the room.
+ * THE PREVIEWS: every option is one stylesheet over production (a set whole,
+ * `sheet/sets/`, under his three picks), drawn on real screens at a phone or a
+ * laptop, on paper beside the room.
  *
- * ★ EACH STEP WEARS THE PICKS BEFORE IT (Will's configurator, made of the
- * kit's own walk): a preview is a function of the board's state, and the step
- * hands it every answer already decided, this sitting's over the ledger's, so
- * the button is judged on the field he picked; an ask not yet answered wears
- * its recommendation (`choiceOf`). Any step can be gone back to, and the
- * paste reads `field=well; button=key; ...`.
+ * ★ A SET OPENS ON ITS COMPOSITE: Settings' door, every family on one real
+ * screen; the other screens and the sheets of every state are on Show. In the
+ * set's frames a working key runs the arc, the stand-in (working is its own
+ * ask).
+ *
+ * ★ WORKING IS DRAWN WEARING THE SET: the loading step reads the board's
+ * state, so it wears the set already picked this sitting (or the
+ * recommendation, until one is), and its frames are the three it works on,
+ * moving beside their still, then the real screens where a wait happens.
  */
 
-/** An option's name off the spec, cut at its colon ("A well"). */
+/** An option's name off the spec, cut at its colon ("Keys and wells"). */
 const NAME = (ask: AskId, option: string): string => {
   const found = IDENTITY.asks
     .find((a) => a.id === ask)
@@ -50,64 +53,19 @@ const NAME = (ask: AskId, option: string): string => {
   return (found ? optionLabel(found) : option).split(":")[0];
 };
 
-/** Where each trait is used most: its own screen, caught in its moment. */
-const HOME: Record<Trait, ViewId> = {
-  field: "settings",
-  button: "account",
-  focus: "door",
-  selected: "settings",
-  press: "create",
-  loading: "door",
-  toggles: "account",
-};
-
-/** The edge's places, as the views that draw them. */
-const LIT_VIEW: Record<LitId, ViewId> = {
-  dashboard: "dashboard",
-  settings: "settings",
-  add: "add",
-  confirm: "confirm",
-  toasts: "toasts",
-  door: "door",
-  style: "style",
-  menu: "menu",
-  tooltip: "tooltip",
-  start: "start",
-};
-
 /** What each place is called in a frame's title. */
-function what(view: ViewId, moment: MomentId): string {
-  switch (view) {
-    case "settings":
-      return moment === "field" ? "Settings' dates" : "Settings' door";
-    case "create":
-      return "Create's steps, in the room in both themes";
-    case "add":
-      return "the guest's Add";
-    case "door":
-      return "the guest's door";
-    case "account":
-      return "Account";
-    case "menu":
-      return "the account menu";
-    case "dashboard":
-      return "the dashboard's Display";
-    case "confirm":
-      return "a delete confirm";
-    case "toasts":
-      return "toasts over the album";
-    case "style":
-      return "the reel's Style menu";
-    case "tooltip":
-      return "a tooltip";
-    case "start":
-      return "a new host's dashboard, its teaser (A4)";
-    case "actions":
-      return "every action";
-    case "fields":
-      return "every field and toggle";
-  }
-}
+const WHAT: Record<ViewId, string> = {
+  door: "Settings' door",
+  dates: "Settings' dates",
+  account: "Account's billing row",
+  create: "Create's foot, Create event working, the room in both themes",
+  gate: "the guest's door, her password typed",
+  album: "the album's toolbar, its View menu open",
+  rows: "Settings' first page",
+  working: "a primary, a quiet key and a field, working",
+  actions: "every action",
+  fields: "every field and toggle",
+};
 
 const GROUNDS: Record<"both" | GroundId, readonly GroundId[]> = {
   both: ["paper", "room"],
@@ -115,82 +73,61 @@ const GROUNDS: Record<"both" | GroundId, readonly GroundId[]> = {
   room: ["room"],
 };
 
-/** A trait's option, on the place Show holds (its own screen by default). */
-function trait(ask: Trait, option: string, s: BoardState): ReactNode {
-  const choice = choiceOf({ ...s, [ask]: option });
-  const show: ShowId = showOf(s.show);
-  const view: ViewId = show === "home" ? HOME[ask] : show;
+/**
+ * The views Show holds: the composite is Settings' door beside Account's
+ * billing row at a phone (no one real screen holds every family: the door
+ * holds the field, the chosen and the ink key, Account the quiet keys), and
+ * Settings over the hub at a desk, where two laptops a ground would be too
+ * small to judge.
+ */
+function shown(view: ShowId, w: 1440 | 375) {
+  if (view === "door" && w === 375)
+    return [
+      { view: "door" as const, what: WHAT.door },
+      { view: "account" as const, what: WHAT.account },
+    ];
+  return [{ view, what: WHAT[view] }];
+}
+
+/** A set's option, on the place Show holds (the composite by default). */
+function set(id: SetId, s: BoardState): ReactNode {
+  const view: ShowId = showOf(s.show);
+  const w = screenOf(s.screen);
   return (
     <OptionFrames
-      choice={choice}
-      view={view}
-      moment={ask}
-      what={what(view, ask)}
-      w={screenOf(s.screen)}
+      // The arc is working's stand-in while working is asked on its own.
+      choice={{ set: id, loading: "arc" }}
+      views={shown(view, w)}
+      moment={view === "create" ? "working" : "use"}
+      w={w}
       grounds={GROUNDS[groundsOf(s.ground)]}
-      name={NAME(ask, option)}
-      // A press is a move: a still shows it only beside the key at rest.
-      beside={
-        ask === "press"
-          ? { moment: "rest", words: "at rest", held: "held down" }
-          : undefined
-      }
+      name={NAME("set", id)}
     />
   );
 }
 
-/**
- * The edge's option, on the place Lit holds, always on paper and in the room
- * (the question is what a dark surface does on each). A tooltip is a desk's
- * alone (a tap opens none), and Settings in a hand is a whole screen with no
- * layer to light, so both are drawn at a laptop whatever the width.
- */
-const DESK_ONLY: readonly LitId[] = ["tooltip", "settings"];
-function edge(option: string, s: BoardState): ReactNode {
-  const choice = choiceOf({ ...s, edge: option });
-  const place = litOf(s.lit);
-  const view = LIT_VIEW[place];
+/** A working state's option, on the place Where holds, wearing the set. */
+function working(id: LoadingId, s: BoardState): ReactNode {
+  const view: WhereId = whereOf(s.where);
   return (
     <OptionFrames
-      choice={choice}
-      view={view}
-      moment="edge"
-      what={what(view, "edge")}
-      w={DESK_ONLY.includes(place) ? 1440 : screenOf(s.screen)}
-      grounds={GROUNDS.both}
-      name={NAME("edge", option)}
+      choice={{ set: choiceOf(s).set, loading: id }}
+      views={[{ view, what: WHAT[view] }]}
+      moment="working"
+      w={screenOf(s.screen)}
+      grounds={GROUNDS[groundsOf(s.ground)]}
+      name={NAME("loading", id)}
     />
   );
 }
 
 const PREVIEWS: PreviewsFor<typeof IDENTITY> = {
-  "field.well": (s) => trait("field", "well", s),
-  "field.ring": (s) => trait("field", "ring", s),
-  "field.tone": (s) => trait("field", "tone", s),
-  "button.key": (s) => trait("button", "key", s),
-  "button.pill": (s) => trait("button", "pill", s),
-  "button.ink": (s) => trait("button", "ink", s),
-  "focus.halo": (s) => trait("focus", "halo", s),
-  "focus.lit": (s) => trait("focus", "lit", s),
-  "focus.outline": (s) => trait("focus", "outline", s),
-  "focus.cursor": (s) => trait("focus", "cursor", s),
-  "focus.corners": (s) => trait("focus", "corners", s),
-  "selected.raised": (s) => trait("selected", "raised", s),
-  "selected.lighter": (s) => trait("selected", "lighter", s),
-  "selected.ink": (s) => trait("selected", "ink", s),
-  "selected.frame": (s) => trait("selected", "frame", s),
-  "press.sink": (s) => trait("press", "sink", s),
-  "press.shrink": (s) => trait("press", "shrink", s),
-  "press.blink": (s) => trait("press", "blink", s),
-  "loading.dots": (s) => trait("loading", "dots", s),
-  "loading.arc": (s) => trait("loading", "arc", s),
-  "loading.track": (s) => trait("loading", "track", s),
-  "toggles.wells": (s) => trait("toggles", "wells", s),
-  "toggles.circles": (s) => trait("toggles", "circles", s),
-  "toggles.tone": (s) => trait("toggles", "tone", s),
-  "edge.media": (s) => edge("media", s),
-  "edge.floating": (s) => edge("floating", s),
-  "edge.every": (s) => edge("every", s),
+  "set.keys": (s) => set("keys", s),
+  "set.house": (s) => set("house", s),
+  "set.tone": (s) => set("tone", s),
+  "loading.arc": (s) => working("arc", s),
+  "loading.words": (s) => working("words", s),
+  "loading.still": (s) => working("still", s),
 };
 
 export function IdentityBoard() {

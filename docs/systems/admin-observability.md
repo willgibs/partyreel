@@ -314,7 +314,9 @@ reader sees the same thank-you either way and nothing else would ever show it. A
 `/admin/accounts` and an account's page are read-only (billing changes go through Stripe: the webhook is the sole writer
 of tier and cap), and they say what the product enforces on an upload, so "why was this host refused" needs no SQL. The
 reads are `lib/db/queries/accounts.ts`; the words are `app/admin/accounts/uploads.ts`, shared by the list and the page so
-a row and its card never disagree.
+a row and its card never disagree. The list also carries two billing checks, the pass-to-Pro credits stuck past their
+hour or waiting on Stripe and Stripe's change-plan configuration against every Pro price, and an account's page her
+credits, a stuck one with its Retry, which runs the webhook's own credit path ([billing-caps.md](billing-caps.md)).
 - ★ **A host's uploads are `uploads_used` asked with HER OWN tier,** as `create_media*` and `meter_upload` ask it (this
   calendar month's ledger for Free and Pro, her live passes' own year for a pass holder), against `uploadAllowance` (the
   one home, tiers.ts). `readHostMonthUploads` asks as `pro` on purpose, for the plan sheet's "what a switch to Pro is

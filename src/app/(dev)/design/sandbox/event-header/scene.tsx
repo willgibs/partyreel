@@ -16,8 +16,9 @@ import { type BoardState, Fit, Frame, Measured } from "@/components/lab";
  * ★ A REAL VIEWPORT, NEVER A STYLED DIV (the kit's `vw-in-a-narrow-div`
  * trap): the hub is the app's wide page, a cover on the ladder's `vw` clamps
  * and a row that changes shape at `sm`, all of which read the frame's width
- * only inside a same-origin frame at its true size. 1440 is her laptop; 375
- * the phone in her hand at the party.
+ * only inside a same-origin frame at its true size. 1440 is her laptop; 820
+ * a tablet held upright (the hub's middle widths, 640 to 1088, every card
+ * drawn there as a tile); 375 the phone in her hand at the party.
  *
  * ★ A FACTS FRAME IS THE FIRST SCREEN'S TOP ONLY (the bar, the cover and the
  * doors' row), since everything under it is the album as built in every
@@ -41,6 +42,7 @@ import { type BoardState, Fit, Frame, Measured } from "@/components/lab";
 
 export const SCREENS = {
   "375": { w: 375, h: 812, name: "a phone" },
+  "820": { w: 820, h: 1180, name: "a tablet" },
   "1440": { w: 1440, h: 900, name: "a laptop" },
 } as const;
 
@@ -51,7 +53,10 @@ export type Ground = "paper" | "room";
 
 /** The Screen knob: her laptop first. */
 export const screenOf = (s: BoardState): ScreenId =>
-  s.screen === "375" ? "375" : "1440";
+  s.screen === "375" ? "375" : s.screen === "820" ? "820" : "1440";
+
+/** A phone's screen (under `sm`), where the hub draws its narrow head and rows. */
+export const isPhone = (screen: ScreenId) => screen === "375";
 
 /** The gap between two frames of a row, in the lab's own pixels. */
 const GAP = 24;
@@ -156,9 +161,10 @@ function useOnPhone(): boolean {
 
 /**
  * AN OPTION'S FRAMES: laptops wrapping (the step's stage lays them out as the
- * rows that draw them largest), phones side by side in one fitted canvas (one
- * scale, one baseline), and phones stacked when the lab itself is read on a
- * phone. `lede` is the one line above the frames saying what they hold.
+ * rows that draw them largest), phones and tablets side by side in one fitted
+ * canvas (one scale, one baseline: both stand upright), and stacked when the
+ * lab itself is read on a phone. `lede` is the one line above the frames
+ * saying what they hold.
  */
 export function Strip({
   screen,
@@ -200,7 +206,7 @@ export function Strip({
       </div>
     );
   }
-  const w = frames.length * SCREENS["375"].w + (frames.length - 1) * GAP;
+  const w = frames.length * SCREENS[screen].w + (frames.length - 1) * GAP;
   return (
     <div data-eh-row className="flex flex-col gap-3">
       {head}
@@ -210,7 +216,7 @@ export function Strip({
             <Scene
               key={f.id}
               id={f.id}
-              screen="375"
+              screen={screen}
               h={h}
               title={f.title}
               measure={f.measure}

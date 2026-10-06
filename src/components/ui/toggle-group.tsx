@@ -25,9 +25,14 @@ import { cn } from "@/lib/utils"
  * text-xs = 12). The step NAMES do not exist yet — Tailwind v4 emits no utility
  * for an undeclared `--text-working`, so the element would silently inherit and
  * nothing in the gate would see it.
+ *
+ * ★ A CHIP AND A SEGMENT WEAR THE HOUSE'S FOCUS AND PRESS (identity r4:
+ * focus=halo, press=shrink; globals.css's `focus-halo` and `press-shrink`),
+ * a chip's give 0.95 like a small key's. They name their transitions (scale for
+ * the press's let-go, never `box-shadow`: the halo arrives in its own beat).
  */
 const toggleVariants = cva(
-  "group/toggle inline-flex items-center justify-center gap-1 rounded-lg text-sm font-medium whitespace-nowrap transition-all outline-none hover:bg-muted hover:text-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-pressed:bg-muted data-[state=on]:bg-muted [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/toggle inline-flex items-center justify-center gap-1 rounded-lg text-sm font-medium whitespace-nowrap transition-[color,background-color,border-color,scale] duration-150 ease-emphasis outline-none hover:bg-muted hover:text-foreground focus-halo press-shrink [--press-scale:0.95] disabled:pointer-events-none disabled:opacity-50 aria-pressed:bg-muted data-[state=on]:bg-muted [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {

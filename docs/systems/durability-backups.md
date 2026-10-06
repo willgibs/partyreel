@@ -71,7 +71,8 @@ guards are layered (`workers/backup/src/prune-run.ts`, a pure engine under test)
   second in the note, each item's keys named in the run's log ("held by the backup alone", Workers Logs, the first 200
   items a run), and raised where the report lands (`/api/internal/job-run`: the `backup_primary_missing` warning and
   the ops mail, at most once a day) beside its card on `/admin/jobs` (a failure at any count, the bell). It sees only
-  keys past the 36-day gate. The restore below copies them back.
+  keys past the 36-day gate; the daily reconcile judges the younger ones (below), and each walk settles only its own
+  side of the gate in the table. The restore below copies them back.
 - **An app-side breaker** (`evaluatePrune`): an empty `media` table beside candidates deletes nothing and alerts. The
   orphan sweep's fractional cap is deliberately absent: the gone fraction is legitimately large after a clear-out.
 - **The hold is the clamp, sized to the deletions:** a run whose backlog passes ten times the usual (the median of its
@@ -100,6 +101,37 @@ guards are layered (`workers/backup/src/prune-run.ts`, a pure engine under test)
   which reads attention with a counted `remaining`. A ledger it cannot read makes the run dry and saves nothing; one
   that reads back damaged falls back to the head, the floor and no hold, the safe direction each.
 
+### The reconcile
+
+The daily backstop (`workers/backup/src/reconcile-run.ts`, a pure engine under test, wired in `index.ts`) walks the
+primary's and the backup's listings side by side, a thousand keys a page each, so a run costs two listings a thousand
+keys, never a request an object (the old HEAD per object took 715 s over 3,419 objects, and the next day's run was cut
+off by the platform at 15 minutes, its card Overdue).
+- **It compares by key, size and checksum:** a key the backup lacks is copied (`backupOne`, three in flight); a
+  checksum counts only when both sides are a single upload's MD5, since the backup copies a large object in its own
+  32 MiB parts, so the same bytes carry different multipart etags (R2's upload docs, "ETags", read 2026-10-05).
+- ★ **A key whose two copies differ is said, never overwritten** (`mismatched`, and `breaker_tripped`: Needs a look):
+  keys are written once, so either the primary was rewritten in place (the 2026-07-03 EXIF backfill left two) or one
+  copy is damaged, and only a person can say which is good: delete the backup's copy once its lock has passed and the
+  next run copies the primary's, or copy the backup's back.
+- **It carries on:** no page or copy starts past 11 minutes, a multipart copy starts no part past 12.5 (it aborts,
+  deferred to the next run, which starts with it), its subrequests stay under 95,000, and a run that stops keeps a
+  cursor in `PruneState` (`reconcile-ledger.ts`) at the first thing it did not finish. A copy deferred though it began
+  with the whole run ahead of it can fit no run: said (`too_large`, an error) and remembered, so later passes say it
+  without spending a run on it again. A pass that spans runs reads Needs a look; one run that settles nothing fails.
+- ★ **The young lone copies are its to judge:** a key the backup holds and the primary lacks, taken inside the prune's
+  36-day gate, is asked of the app (`named`), and the named ones go into the lone copies' table on its young side (by
+  `uploaded_ms`), so neither judge's walk drops the other's keys, and one that ages past the gate between walks is
+  held until the prune's walk judges it. New ones ask for a restore pass at once. An app that cannot answer leaves the
+  table as it was past where judging stopped, and the run errs; its report carries the table's whole count, as the
+  prune's and the restore's do.
+- **A doubt copies and judges nothing:** an empty primary beside a full backup (a wiped bucket or a listing fault) or a
+  listing that does not move forward.
+- **A run that does not end clean says so where its report lands** (`/api/internal/job-run`): stopped early, failed,
+  or copies that differ raise the `backup_reconcile_unfinished` warning and the ops mail, at most once a day. Its card
+  reads its pass, its last whole pass and what waits on a person (`src/app/admin/jobs/reconcile-view.ts`); a run the
+  platform cuts reports nothing, which the missed-run scan reads as Overdue.
+
 ### The restore
 
 The backup's lone copies, copied back into the primary on their own (`workers/backup/src/restore-run.ts`, a pure
@@ -116,8 +148,8 @@ engine under test, wired in `restore-pass.ts`): a pass takes each key in the lon
   ships `dryrun`. Switching it on is no launch switch: it writes only objects a live row names, into places nothing
   is stored. It fails closed on an unreachable app, since it writes only what the app names.
 - **A pass is `PruneState`'s alarm,** so it has an invocation and a 15-minute budget of its own whoever asked: the
-  daily cron (asked first, apart from the reconcile, which the platform cuts off at 15 minutes), each prune's end, and
-  Restore now. A request never starts a second pass beside one in flight and is never lost: one that comes while a
+  daily cron (asked first, apart from the reconcile, so a reconcile that fails never takes the day's restore with it),
+  a reconcile that found lone copies new to the table, each prune's end, and Restore now. A request never starts a second pass beside one in flight and is never lost: one that comes while a
   pass runs queues the next (`restore-schedule.ts`). A pass judges at most 2,000 keys and starts no copy past 12
   minutes; what it leaves is counted (`remaining`) and the next pass carries on.
 - **Restore now is the one start the app has for a Cloudflare job:** the restore card's control, behind AAL2, POSTs
@@ -158,8 +190,10 @@ is under way.
   is two heartbeat calls to the app; each key at most four R2 calls inside Cloudflare and a confirm call a thousand. Its deadline bounds a run to what two list calls a
   thousand keys can reach in 12 minutes (millions at a Worker's R2 latency); past that a pass spans runs, deleted bytes
   outlive the 43 days, and the card reads `stopped_early` every week: the cue for a daily cadence (a catalog change).
-- **The reconcile restarts at the head every run:** it examines at most `RECONCILE_MAX_PER_RUN` (5,000) objects from
-  the start of the listing, so past it the tail is never examined (its "next run continues" log line is false; a
-  capped run reports `capped: true`); its cursor is on the ROADMAP. The orphan sweep resumes where it stopped
-  ([lifecycle-recovery.md](lifecycle-recovery.md)), 20 pages a night, so an orphan waits at most one cycle (the
-  bucket's objects over 20,000 a night).
+- **The reconcile's cost shape is the prune's:** two listings a thousand keys a day (Class A, cents a month at 100,000
+  objects) and a copy only for what the queue missed. A pass fits one run far past 100,000 objects (about 210 listings,
+  a minute; the live dry run of 2026-10-05 read 5,862 keys in 16 subrequests, 12 s over the internet), so the cursor
+  is for a backlog of copies or a bucket far past that. ★ A copy is one invocation's: a video whose multipart copy
+  outruns 10 minutes is `too_large` on every pass and a copy by hand (the queue's own copy has the same 15 minutes).
+  The orphan sweep resumes where it stopped ([lifecycle-recovery.md](lifecycle-recovery.md)), 20 pages a night, so an
+  orphan waits at most one cycle (the bucket's objects over 20,000 a night).

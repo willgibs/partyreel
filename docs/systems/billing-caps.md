@@ -167,7 +167,11 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   value: listed once per warm instance and cached; with none tagged the route fails CLOSED (503 and a Sentry
   capture), never falling back to the default configuration; a stale id is forgotten and looked up once more. The
   general portal keeps the card, the invoices and cancelling, with its plan switching OFF: its quantity stepper has no
-  maximum and could bill two or three times for one cap.
+  maximum and could bill two or three times for one cap. ★ Stripe refuses a switch to a price the configuration does
+  not list (every Switch to it a 500 the host meets first), so `/admin/accounts` checks on each view that it lists
+  every Pro price `tiers.ts` sells (`admin/accounts/portal-check.ts`: the route's own pick, its products read by a
+  retrieve with the expand, against the env's ids), naming each one missing; a retired price listed beside them breaks
+  nothing, and a check that could not run (Stripe, a price's unset env) says No reading.
 - ★ **The prorated pass-to-Pro credit is granted once ever and converts only what it credited**
   (`webhook/pass-credit.ts`, 20261005181000). The checkout stamps the credit with every pass it counted
   (`passCreditMetadata`: `credited_pass_ids`, `_2`... with `credited_pass_count`; the credit covers exactly the passes
@@ -179,12 +183,37 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   lapsed claim with no grant on record finds a grant lost mid-call on Stripe's side before granting, and puts it on
   record (`record_pass_credit_grant`); (3) converts exactly the passes the claim names (`convert_pass_credit`), never
   one bought after the checkout, and clears `tier_expires_at` and `event_slots` only when it converted any. ★ A pass is
-  credited once ever: a claim whose passes were converted, or are named by another checkout's claim that granted or
-  holds its lease (two Checkout tabs), answers overlap, grants nothing and raises `stripe_pass_credit_overlap`. ★ Each
-  call takes her profiles row first, the capacity bodies' order (an upload's complete holds that row while it counts on
-  her live pass). A credited session naming no pass is a 500, never a guess. A balance carries from invoice to invoice
-  (Checkout's own first invoice never takes it), where an `amount_off` coupon would silently eat any credit above one
-  invoice's total.
+  credited once ever: a claim whose passes were converted, or are named by another checkout's claim that GRANTED and
+  was not released (two Checkout tabs), answers overlap, grants nothing and raises `stripe_pass_credit_overlap`.
+  ★ Another checkout's claim that only holds its lease answers busy (20261005201000, `held_by`), never overlap: its
+  holder can die, and the tab told overlap for good while the first tab's retries ran out left neither checkout
+  granted; the retry meets that claim's grant (overlap) or its lapse. ★ A claim taken past such a lapse names it an
+  orphan (`orphans`: another checkout's lapsed, ungranted, unreleased claim on its passes), and the route looks on
+  Stripe's side for every orphan's grant BEFORE it grants (each orphan's checkout read from Stripe for the customer it
+  charged and its time on Stripe's clock), since that holder may have died between Stripe's grant and its record: every
+  grant found is its own checkout's (put on record on its claim, converted) and this claim is released, granting
+  nothing; none found, this checkout grants and then releases the orphans. ★ The claim answers its lease's end, and the
+  route never calls Stripe to grant with under three minutes of it left (a caller with no `maxDuration`, a local build's
+  Retry, could otherwise grant past a lease another delivery took over). ★ A claim of this checkout's own
+  still open beside an overlap is settled at that delivery, never left stuck: looked for on Stripe's side, then
+  released for good (`release_pass_credit`, `released_at`; refused for a claim whose passes no other checkout credited,
+  and a pass it named that the other did not stays hers, uncredited, as an overlap always left it), a grant found put
+  on record beside it (two grants for one set of passes: `stripe_pass_credit_overlap_granted`; a released claim's grant
+  is the duplicate, which credits nothing and the operator reverses in Stripe). ★ Each call takes her profiles row
+  first, the capacity bodies' order (an upload's complete holds that row while it counts on her live pass). A credited
+  session naming no pass is a 500, never a guess; a failure while honouring a credit is the `pass_credit` signal's as
+  well as Sentry's. A balance carries from invoice to invoice (Checkout's own first invoice never takes it), where an
+  `amount_off` coupon would silently eat any credit above one invoice's total.
+- ★ **A stuck credit shows where the operator looks, with its fix beside it.** Stuck is an hour at one step
+  (`billing/passes-stuck.ts`, pure, its PostgREST form in `queries/pass-credits.ts` held to it by their test): a claim
+  with no grant and no live lease an hour after it was taken, or a grant whose passes never converted an hour after it
+  landed; a released claim never is. `/admin/accounts` lists every stuck one with its account (oldest owing first,
+  counted past what it lists) and, for a month, every one only Stripe can settle (granted twice, or a conversion of
+  none: `settleKind`, since nothing records the reversal it never counts as owed), the account's page says what became
+  of each of her credits with Retry beside a stuck one (`retryPassCreditAsOperatorAction`, AAL2, audited in Sentry: the
+  session retrieved from Stripe and run through the webhook's own path, so the claim makes it the same once-ever path
+  whichever runs first), and `/admin/jobs` carries the `pass_credit` signal: credits converted in the day (a conversion
+  of none is no credit honoured), failures honouring one, stuck ones owed (Needs a look).
 - **A subscription write nulls `event_slots` and `tier_expires_at` every time:** nothing banks behind Pro, and a stale
   stacked-pass slot count would cap a Pro host inside `enforce_event_limit`'s coalesce. The downgrade path then runs
   `recomputePassEntitlement`, so a live uncredited pass resurfaces instead of evaporating.
@@ -204,10 +233,17 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
 - **The Stripe webhook, with the pass recompute (`recompute_pass_entitlement` through `recomputePassEntitlement`,
   which the webhook and the cron's `sweepExpiredPasses` call), is the SOLE writer** of `tier`, `storage_cap_bytes`,
   `stripe_subscription_id`, `event_slots` and `tier_expires_at`, always through the admin client (the credit's clear of
-  the last two through `convert_pass_credit`, the service role's alone). ★ The recompute is ONE statement under her
+  the last two through `convert_pass_credit`, the service role's alone, which the operator's Retry of a stuck credit
+  reaches only through the webhook's own path). ★ The recompute is ONE statement under her
   profiles lock, deriving the four from her unconsumed windows: read in one request and written in another, a
-  conversion landing between them had its cleared chain put back until the subscription event came. Checkout only persists `stripe_customer_id`
-  and stamps credit metadata. None of these columns is client-writable ([database-security.md](database-security.md)).
+  conversion landing between them had its cleared chain put back until the subscription event came. ★ It writes
+  nothing for a profile with no live window whose pass became Pro credit within the hour while it still had time
+  (`skipped_pro_pending`, real time, never the sweep's instant): her credited checkout's subscription event is seconds
+  behind its conversion, and writing then moved her to Free for them; past the hour the ledger decides again. The
+  nightly `expired_passes` reads the `event_pass` labels and the owners of a pass live or ahead, never the owner of
+  expired passes alone (they stay unconsumed for good, so every past holder was recomputed every night); the label
+  carries the one recompute an expiry needs. Checkout only persists `stripe_customer_id` and stamps credit metadata.
+  None of these columns is client-writable ([database-security.md](database-security.md)).
 - **Every entitlement write asserts exactly one matched row** (`applyEntitlement`) and throws otherwise, so a paid but
   unprovisioned host becomes a 5xx and a Stripe retry, never a silent 200. Nothing reconciles Stripe against
   `profiles` after the retry window: the assertion and its Sentry capture are the reconciliation.

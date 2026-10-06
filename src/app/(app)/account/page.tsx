@@ -74,6 +74,7 @@ import { withAvatarUrls, type ProfileCardItem } from "@/lib/social/cards";
 import { getAvatarUrl } from "@/lib/supabase/avatar-storage";
 import { seedFor } from "@/lib/avatar/seed";
 import { getSiteUrl } from "@/lib/site-url";
+import { SetCrumbs } from "@/components/shared/crumbs";
 import { PageHeading } from "@/components/shared/page-heading";
 
 export const metadata: Metadata = { title: "Account" };
@@ -229,6 +230,15 @@ export default async function AccountPage({
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
+      {/* THE TRAIL IS ONE STEP (crumbs-82): Account sits one level under the dashboard, and the bar walks back to it. A
+          route that sets none draws none (crumbs.tsx), so before this the bar read empty here while /account/profile,
+          one step deeper, read Partyreel > Account > Your page. */}
+      <SetCrumbs
+        trail={[
+          { label: "Partyreel", href: "/dashboard" },
+          { label: "Account" },
+        ]}
+      />
       {welcome === WELCOME_VALUE && (
         <WelcomeToPro
           // The webhook is the sole writer of profiles.tier and Stripe can land

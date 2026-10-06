@@ -837,6 +837,7 @@ export type Database = {
           roll_size: number | null
           sealed_from: string | null
           show_reel: boolean
+          time_zone: string | null
           updated_at: string
           visibility: Database["public"]["Enums"]["event_visibility"]
         }
@@ -870,6 +871,7 @@ export type Database = {
           roll_size?: number | null
           sealed_from?: string | null
           show_reel?: boolean
+          time_zone?: string | null
           updated_at?: string
           visibility?: Database["public"]["Enums"]["event_visibility"]
         }
@@ -903,6 +905,7 @@ export type Database = {
           roll_size?: number | null
           sealed_from?: string | null
           show_reel?: boolean
+          time_zone?: string | null
           updated_at?: string
           visibility?: Database["public"]["Enums"]["event_visibility"]
         }
@@ -1195,6 +1198,7 @@ export type Database = {
       }
       media: {
         Row: {
+          captured_at: string | null
           created_at: string
           duration_seconds: number | null
           event_id: string
@@ -1226,6 +1230,7 @@ export type Database = {
           width: number | null
         }
         Insert: {
+          captured_at?: string | null
           created_at?: string
           duration_seconds?: number | null
           event_id: string
@@ -1257,6 +1262,7 @@ export type Database = {
           width?: number | null
         }
         Update: {
+          captured_at?: string | null
           created_at?: string
           duration_seconds?: number | null
           event_id?: string
@@ -1471,6 +1477,7 @@ export type Database = {
           granted_at: string | null
           pass_ids: string[]
           profile_id: string
+          released_at: string | null
           stripe_session_id: string
         }
         Insert: {
@@ -1483,6 +1490,7 @@ export type Database = {
           granted_at?: string | null
           pass_ids: string[]
           profile_id: string
+          released_at?: string | null
           stripe_session_id: string
         }
         Update: {
@@ -1495,6 +1503,7 @@ export type Database = {
           granted_at?: string | null
           pass_ids?: string[]
           profile_id?: string
+          released_at?: string | null
           stripe_session_id?: string
         }
         Relationships: [
@@ -2214,6 +2223,7 @@ export type Database = {
       }
       create_media: {
         Args: {
+          p_captured_at?: string
           p_duration_seconds?: number
           p_file_size_bytes: number
           p_height?: number
@@ -2231,6 +2241,7 @@ export type Database = {
       }
       create_media_as_host: {
         Args: {
+          p_captured_at?: string
           p_duration_seconds?: number
           p_event_id: string
           p_file_size_bytes: number
@@ -2614,6 +2625,14 @@ export type Database = {
       record_pass_credit_grant: {
         Args: {
           p_balance_transaction_id: string
+          p_host_id: string
+          p_session_id: string
+        }
+        Returns: string
+      }
+      release_pass_credit: {
+        Args: {
+          p_balance_transaction_id?: string
           p_host_id: string
           p_session_id: string
         }

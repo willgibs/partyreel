@@ -5,16 +5,17 @@
  *   My Drive / Partyreel / Maya & Jay · 12 Sep 2026 / 2026-09-12 21.14.05 · Priya.jpg
  *
  * The album's folder says its name and its day (two albums of one name stay apart; an undated album is its name
- * alone); a file says the moment it reached the album, in her own zone (her browser's at the press), then who sent it
- * as the album credits them (a guest's name, or hers; no name, no credit), then the original's own extension. A
- * second file in the same second from the same person takes " (2)": that ordinal is assigned in SQL at the lease,
- * against the names already kept for the album's folder (`cloud_export_name_items`), under the connection's lock, so
- * two lanes never pick one name; `driveFileName` here is its mirror, pinned to the SQL by a test.
+ * alone); a file says the moment it was taken (or, where the upload kept no capture time, the moment it reached the
+ * album), in her own zone (her browser's at the press), then who sent it as the album credits them (a guest's name, or
+ * hers; no name, no credit), then the original's own extension. A second file in the same second from the same person
+ * takes " (2)": that ordinal is assigned in SQL at the lease, against the names already kept for the album's folder
+ * (`cloud_export_name_items`), under the connection's lock, so two lanes never pick one name; `driveFileName` here is
+ * its mirror, pinned to the SQL by a test.
  *
- * ★ ONE FUNCTION TAKES A CAPTURE TIME WHEN ONE IS KNOWN. The app keeps none today (the browser strips everything but
- * orientation before upload and `media` holds only `created_at`), so a batch sent the morning after sorts by when it
- * arrived; the moment a capture time is kept (a separate decision, Will's), it is passed here and every name, every
- * description and Drive's own `modifiedTime` follow it at once.
+ * ★ ONE FUNCTION TAKES THE CAPTURE TIME (`driveMoment`, Will's X7: a photograph keeps when it was taken). The upload
+ * reads it from the original before the strip and the server keeps it in `media.captured_at`, which the lease carries
+ * (`cloud_export_lease`), so every name, every description and Drive's own `modifiedTime` say when it was taken, and a
+ * batch sent the morning after sorts as the night happened; an upload that kept none says when it arrived.
  *
  * ★ NEVER AN ADDRESS, NEVER A MARK. A name is what the album shows beside the photograph (`resolveUploaderIdentity`),
  * cleaned for a file system (a name holding "/" or ":" would break when she downloads the folder), never an email

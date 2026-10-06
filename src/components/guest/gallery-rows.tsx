@@ -30,14 +30,27 @@
  * ★ AN ARRIVAL LANDS COMPLETE, OR NOT UNTIL IT CAN (crumbs-23, `use-arrival-gate.ts`): a live arrival is
  * held out of the rows until its link has landed and its photograph is decoded, then pushed in as a
  * photograph the browser already holds; the glow is written here, when it lands.
+ *
+ * ★ AND ONE SHE CANNOT SEE IS SAID (album-order): the same arrivals tell the rows what is news
+ * (`AlbumNews`), so one landing out of sight (the head of a newest-first album while she reads deep, the
+ * end of one in order) wears the rows' one pill rather than moving anything she is looking at. Her own
+ * landing is not among them: it sweeps.
+ *
+ * ★ THE ALBUM'S ORDER IS THE PAGE'S (`anchor`): newest first lays from the end, the growing head on top;
+ * the night in order lays from the start, so an arrival lands at the end, and the head's stack follows the
+ * growing end there.
  */
-import { useEffect, type Ref } from "react";
+import { useEffect, useMemo, type Ref } from "react";
 import { Download } from "lucide-react";
 
 import { exportToasts } from "@/components/app/export/export-toast";
 import type { GridMedia } from "@/components/app/media-grid";
 import { UploadStackTile } from "@/components/guest/upload/stack-tile";
 import { useLikeAction } from "@/components/likes/like-button";
+import {
+  AlbumNewsContext,
+  type AlbumNews,
+} from "@/components/shared/album-window-news";
 import {
   MasonryColumns,
   type AlbumHandle,
@@ -49,7 +62,7 @@ import {
   useQueueProgress,
   type QueueProgress,
 } from "@/lib/guest/use-upload-queue";
-import type { RowStep } from "@/lib/shared/album-rows";
+import type { RowAnchor, RowStep } from "@/lib/shared/album-rows";
 import { askToStop, withdrawStopQuestion } from "@/lib/upload/stop-upload";
 
 /**
@@ -131,6 +144,8 @@ export function GalleryRows({
   onNeedLinks,
   landedIds,
   selection,
+  anchor = "end",
+  lens,
 }: {
   items: GridMedia[];
   /** This device's files in flight, drawn FIRST, at the head. */
@@ -168,11 +183,20 @@ export function GalleryRows({
   landedIds?: ReadonlySet<string>;
   /** Select mode (take-home r1, `guest=select`): every tile a toggle wearing the selection's marks. */
   selection?: TileSelection;
+  /** The fixed end (`RowAnchor`): "end" for newest first, "start" for the night in order. */
+  anchor?: RowAnchor;
+  /** Her lens on the album (its filter): what a new lens reveals is no arrival. */
+  lens?: string;
 }) {
   const likeAction = useLikeAction();
   // ★ AN ARRIVAL LANDS COMPLETE OR NOT UNTIL IT CAN (crumbs-23): the rows lay what is in the album, less
   // the arrivals still waiting for their photograph, and the glow is lit as each one lands.
   const gate = useArrivalGate(items, arrivals, onNeedLinks);
+  // What the rows judge as news: the same arrivals, through the same lens (one object while neither moves).
+  const news = useMemo<AlbumNews>(
+    () => ({ arrivals: arrivals ?? NO_ARRIVALS, lens }),
+    [arrivals, lens],
+  );
 
   // A guest's desk row: like, and save the original once its link has landed. No moderation, ever:
   // this is somebody else's party. A phone sees neither (the grid never renders the pane below
@@ -198,38 +222,43 @@ export function GalleryRows({
   const lead = pending.find((p) => p.status === "uploading") ?? pending[0];
 
   return (
-    <MasonryColumns
-      layout="rows"
-      items={gate.items}
-      stagger
-      rowStep={step}
-      onRowStepChange={onStepChange}
-      rowRhythm="double"
-      rhythmSeed={seed}
-      firstPaintWidth={firstPaintWidth}
-      onBoxWidth={onBoxWidth}
-      onWindowChange={onWindowChange}
-      onViewerNeedLinks={onViewerNeedLinks}
-      albumRef={albumRef}
-      shareUrl={shareUrl}
-      onDeleteItem={onDeleteItem}
-      canDelete={canDelete}
-      arrivedIds={gate.glow}
-      landedIds={landedIds}
-      selection={selection}
-      tileActions={tileActions}
-      prefix={
-        <>
-          {lead && (
-            <LiveStackTile
-              key={lead.queueId}
-              lead={lead}
-              remaining={pending.length}
-              progress={progress}
-            />
-          )}
-        </>
-      }
-    />
+    <AlbumNewsContext value={news}>
+      <MasonryColumns
+        layout="rows"
+        items={gate.items}
+        stagger
+        rowStep={step}
+        onRowStepChange={onStepChange}
+        rowAnchor={anchor}
+        rowRhythm="double"
+        rhythmSeed={seed}
+        firstPaintWidth={firstPaintWidth}
+        onBoxWidth={onBoxWidth}
+        onWindowChange={onWindowChange}
+        onViewerNeedLinks={onViewerNeedLinks}
+        albumRef={albumRef}
+        shareUrl={shareUrl}
+        onDeleteItem={onDeleteItem}
+        canDelete={canDelete}
+        arrivedIds={gate.glow}
+        landedIds={landedIds}
+        selection={selection}
+        tileActions={tileActions}
+        prefix={
+          <>
+            {lead && (
+              <LiveStackTile
+                key={lead.queueId}
+                lead={lead}
+                remaining={pending.length}
+                progress={progress}
+              />
+            )}
+          </>
+        }
+      />
+    </AlbumNewsContext>
   );
 }
+
+const NO_ARRIVALS: readonly string[] = [];

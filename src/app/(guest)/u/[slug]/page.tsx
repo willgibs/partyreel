@@ -244,7 +244,6 @@ export default async function PublicProfilePage({ params }: PageProps) {
               {showFollow && (
                 <FollowButton
                   profileId={profile.id}
-                  slug={profile.slug}
                   initialFollowing={following}
                 />
               )}

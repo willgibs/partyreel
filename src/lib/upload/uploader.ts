@@ -62,6 +62,7 @@
  * (`WALK_COPY.dropped` and `droppedDetail`), the camera's hint says this very string, and
  * `uploader.transport.test.ts` holds the three to one wording.
  */
+import { captureClaim } from "@/lib/media/capture-time";
 import { stripFileMetadata } from "@/lib/media/strip-metadata";
 import { classifyMime, validateUpload } from "@/lib/media/validators";
 import {
@@ -595,6 +596,8 @@ type Prepared = {
   measured: Measured;
   preview: { blob: Blob } | null;
   phone: { blob: Blob } | null;
+  /** When the original says it was taken (the strip read it before rewriting a byte), as the complete's claim. */
+  capturedAt?: string;
 };
 
 /** Where a file of the burst stands. `settled` once its outcome is out. */
@@ -930,6 +933,9 @@ async function runBurst(
         phone_key: landed.phoneKey,
         // Only a clip says anything (the live reel never plays a reel); every other entry is unchanged.
         ...(files[i].reelEligible === false ? { reel_eligible: false } : {}),
+        // When it was taken, where the original said (Will's X7): a claim the server holds to its bounds. A kept
+        // complete carries it again as it was first asked.
+        ...(p.capturedAt ? { captured_at: p.capturedAt } : {}),
         upload_id: put.strategy === "multipart" ? put.upload_id : null,
         parts: landed.parts,
       },
@@ -1170,8 +1176,11 @@ async function prepare(
     //    -> presign -> PUT) sees. Lossless byte-level surgery, never a pixel re-encode;
     //    orientation survives in every format. Best-effort like generatePreview: input the
     //    parsers cannot walk (truncated, malformed) comes back stripped:false with the
-    //    ORIGINAL - a failed strip never blocks a guest.
+    //    ORIGINAL - a failed strip never blocks a guest. ★ The capture time is read in the
+    //    same walk, from the original before a byte is rewritten (Will's X7), and kept in the
+    //    stored file's minimal Exif too.
     const cleaned = await stripFileMetadata(picked);
+    const capturedAt = captureClaim(cleaned.captured);
     const file =
       cleaned.blob === picked
         ? picked
@@ -1202,7 +1211,10 @@ async function prepare(
     //    after the preview so one photograph is decoded at a time. Best-effort the same way: null for a clip
     //    (videos stay as taken), for a photograph already phone size, or for a copy past its caps.
     const phone = await generatePhoneCopy(file, kind, measured);
-    return { ok: true, prepared: { file, kind, measured, preview, phone } };
+    return {
+      ok: true,
+      prepared: { file, kind, measured, preview, phone, capturedAt },
+    };
   } catch (e) {
     console.error("uploadBurst: unexpected failure preparing a file", e);
     return { ok: false, outcome: { ok: false, message: SOMETHING_WRONG } };

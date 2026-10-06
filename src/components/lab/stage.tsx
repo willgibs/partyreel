@@ -30,9 +30,11 @@ import { type LabFit, useFitPref } from "./lab-prefs";
  *  - ink: the footer's leaf set (`.surface-ink`);
  *  - app-dark / app-light: the app's own two themes, no marketing token block.
  *
- * Loops pause on a hidden TAB only, through `data-paused` (the lab never
- * pauses on scroll: side-by-side comparison wants everything running);
- * production wiring is useAmbientPause.
+ * A stage's loops pause on a hidden TAB only, through `data-paused` (the lab
+ * never pauses on scroll: side-by-side comparison wants everything running);
+ * production wiring is useAmbientPause. (A step's hidden OPTION is paused on
+ * its own view the same way, `step.tsx`, and a `Frame` inside it carries the
+ * mark into its document, `frame-pause.ts`.)
  *
  * ★ A Tailwind breakpoint prefix inside a stage reads the REAL browser
  * viewport, not the canvas (`zoom` scales layout, never media queries), so

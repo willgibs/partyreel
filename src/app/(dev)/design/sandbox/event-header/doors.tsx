@@ -1,25 +1,26 @@
 "use client";
 
-import { CARDS } from "./cards";
+import { KEYS } from "./cards-keys";
+import { POINTS } from "./cards-points";
+import { SEAM_TAKE } from "./cards-seam";
 import type { DoorOption } from "./door-kit";
-import { GLASS } from "./glass";
-import { WINDOWS } from "./windows";
 
 /**
- * THE THREE DOORS INTO HER ROOMS, ROUND FOUR: round three's three, each
- * refined to its best version in its own file through one contract
- * (`door-kit.tsx`'s `DoorOption`), so the hub draws whichever the board asks
- * for and a door is whole wherever it is read.
+ * THE THREE TAKES ON THE CARDS, ROUND FIVE: round four's cards over the seam
+ * (his pick), each polished to one designer's best idea in its own file
+ * through one contract (`door-kit.tsx`'s `DoorOption`) on one row and fold
+ * (`card-kit.tsx`), every one speaking Afterglow's language (his desk-4 pick:
+ * a state is a point and its word, colour only the screen's one light).
  *
- *  - `glass` (`glass.tsx`): every door in one glass capsule on the cover;
- *  - `cards` (`cards.tsx`): cards standing over the cover's seam;
- *  - `windows` (`windows.tsx`): a small quiet picture of each room.
+ *  - `keys` (`cards-keys.tsx`): the house's own keys, lit from above;
+ *  - `seam` (`cards-seam.tsx`): the cover's own light falling on the doors;
+ *  - `points` (`cards-points.tsx`): each state on its glyph, a phone's tab bar.
  */
 
-export type DoorsId = "glass" | "cards" | "windows";
+export type DoorsId = "keys" | "seam" | "points";
 
 export const DOORS: Record<DoorsId, DoorOption> = {
-  glass: GLASS,
-  cards: CARDS,
-  windows: WINDOWS,
+  keys: KEYS,
+  seam: SEAM_TAKE,
+  points: POINTS,
 };

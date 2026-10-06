@@ -34,6 +34,7 @@ import {
   type JobSignal,
 } from "@/app/admin/jobs/catalog";
 import { mustCount, mustQuery } from "@/lib/db/must-query";
+import { readPassCreditSignal } from "@/lib/db/queries/pass-credits";
 import type { Json, Database } from "@/lib/db/types";
 import { cursorFrom } from "@/lib/jobs/sweep-tally";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -401,8 +402,9 @@ export async function readSweepCursor(
 export type JobSignals = Partial<Record<JobId, JobSignal>>;
 
 /**
- * The 24h windows for the five signal jobs, as ten head-counts in parallel, and what two of them still OWE
- * (crumbs-75): the one-time notices kept for a retry, and the downloads with no end.
+ * The 24h windows for the signal jobs, as head-counts in parallel, and what they still OWE (crumbs-75): the one-time
+ * notices kept for a retry, the downloads with no end, the Drive sends stuck, and the pass-to-Pro credits stuck
+ * (credit-watch, whose own halves are `readPassCreditSignal`'s, beside the one rule it reads them by).
  *
  * A QUERY, not a stored daily aggregate, and the cost is why: every one of these is a bounded
  * count over a table that is either tiny by construction (`action_attempts` and `unlock_attempts`
@@ -455,6 +457,8 @@ export async function getJobSignals(nowMs = Date.now()): Promise<JobSignals> {
     driveFilesSent,
     driveFailures,
     driveStuck,
+    credits,
+    creditFailures,
   ] = await Promise.all([
     mustCount(
       db
@@ -503,9 +507,7 @@ export async function getJobSignals(nowMs = Date.now()): Promise<JobSignals> {
     // The one-time notices kept for a retry (`sendOnce`): each one a host not yet told what happened to her event
     // or her plan, however long ago its send failed.
     mustCount(
-      db
-        .from("notice_retries")
-        .select("*", { count: "exact", head: true }),
+      db.from("notice_retries").select("*", { count: "exact", head: true }),
       "admin/jobs: one-time notices kept for a retry",
     ),
     mustQuery(
@@ -553,6 +555,9 @@ export async function getJobSignals(nowMs = Date.now()): Promise<JobSignals> {
         .not("stuck_since", "is", null),
       "admin/jobs: Drive sends stuck",
     ),
+    // The pass-to-Pro credit (credit-watch): the credits converted in the day, and every one stuck past its hour.
+    readPassCreditSignal(nowMs, sinceIso),
+    failuresOf("pass_credit"),
   ]);
 
   const oldestFailedAt = (oldestNotice as { first_failed_at?: string } | null)
@@ -576,6 +581,12 @@ export async function getJobSignals(nowMs = Date.now()): Promise<JobSignals> {
       ok24h: driveFilesSent,
       failed24h: driveFailures,
       owed: driveStuck,
+    },
+    pass_credit: {
+      ok24h: credits.ok24h,
+      failed24h: creditFailures,
+      owed: credits.owed,
+      owedSinceMs: credits.owedSinceMs,
     },
   };
 }

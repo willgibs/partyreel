@@ -11,6 +11,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * full access. What is pinned is the card `EventExperience` is handed.
  */
 vi.mock("server-only", () => ({}));
+// The party's zone (event-zone) is the page's one read beside the door's; none here, so the one fallback.
+vi.mock("@/lib/event/zone.server", () => ({ readPartyZone: async () => null }));
 // Her waiting uploads on an empty held album: the page's one read for it (crumbs-43), stood in for here.
 vi.mock("@/lib/disposable/waiting.server", () => ({
   albumWaits: async () => false,

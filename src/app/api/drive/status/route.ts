@@ -1,9 +1,8 @@
 /**
  * WHERE HER SENDS STAND (`GET /api/drive/status`; drive-export.md, "What her page reads"): her connection and every
  * send that matters now (unfinished, closed in the last day, or a stop whose flag is still due), in one answer the
- * album's strip, the dashboard's lights, Take it home, Account and the app-wide flag all read. Polled every 3 seconds
- * while a send she can see is moving, 15 when nothing moved, and not at all when nothing is unfinished
- * (`use-drive-status.ts`).
+ * album's strip, the dashboard's lights, Take it home, Account and the app-wide flag all read. Polled only while
+ * something is unfinished, at the beat `use-drive-status.ts` keeps.
  *
  * `getUser()`; her sends through her own session (RLS, the progress columns); her connection on the service role,
  * keyed on that id (the table is deny-all). `private, no-store`: it is hers alone.

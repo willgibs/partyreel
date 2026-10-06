@@ -741,11 +741,11 @@ describe("the backup's lone copies (crumbs-75)", () => {
       reading: readDepth(def(), sources),
     });
 
-  it("is a reading of the prune's runs and the restore's passes, beside the dead letters, with nothing to pause or run", () => {
+  it("is a reading of the prune's runs, the restore's passes and the reconcile's runs, beside the dead letters, with nothing to pause or run", () => {
     expect(def()).toMatchObject({
       kind: "derived",
       host: "cloudflare_worker",
-      readFrom: ["backup_prune", "backup_restore"],
+      readFrom: ["backup_prune", "backup_restore", "backup_reconcile"],
       flagKey: null,
       canRunNow: false,
     });
@@ -768,17 +768,41 @@ describe("the backup's lone copies (crumbs-75)", () => {
     // An aborted run (a doubt) carries no count: no reading.
     expect(verdict([at({ scanned: 12, deleted: 0 })])).toBe("never");
     expect(verdict([at({ primary_missing: 0 }, "missed")])).toBe("missed");
-    // The reconcile's runs never carry it.
+    // A job outside the reading's sources never counts, whatever its run says (the reconcile was one until
+    // backup-reconcile gave it the young lone copies to judge).
     expect(
       readDepth(def(), [
         {
-          job: "backup_reconcile",
+          job: "db_backup",
           counts: { primary_missing: 5 },
           startedAtMs: NOW,
           health: "ok",
         },
       ]),
     ).toBeNull();
+  });
+
+  it("★ reads the reconcile's run, which judges the keys younger than the prune's gate, freshest first", () => {
+    const reconciled = (counts: unknown, ago: number): DepthSource => ({
+      job: "backup_reconcile",
+      counts,
+      startedAtMs: NOW - ago,
+      health: "ok",
+    });
+    // Monday's prune found none past its gate; today's reconcile found a young one: a failure, the day it is found.
+    expect(
+      verdict([
+        { ...at({ primary_missing: 0 }), startedAtMs: NOW - 3 * DAY },
+        reconciled({ primary_missing: 1, lone_found: 1 }, 3_600_000),
+      ]),
+    ).toBe("failed");
+    // A reconcile that could not reach its table reports no count: the prune's reading stands.
+    expect(
+      verdict([
+        { ...at({ primary_missing: 0 }), startedAtMs: NOW - 3 * DAY },
+        reconciled({ lone_found: 1 }, 3_600_000),
+      ]),
+    ).toBe("ok");
   });
 
   it("★ reads the restore's pass after the prune that found them, freshest first: copied back, it reads healthy at once", () => {
@@ -857,6 +881,19 @@ describe("the Download all Worker (export-ends)", () => {
         `"crons":\\s*\\[\\s*"${beat.cron!.replace(/\*/g, "\\*")}"\\s*\\]`,
       ),
     );
+  });
+
+  it("counts the pass-to-Pro credits as a signal: no switch, no clock, no Run now (credit-watch)", () => {
+    expect(defOf("pass_credit")).toMatchObject({
+      kind: "signal",
+      host: "app",
+      flagKey: null,
+      cron: null,
+      expectedEveryMs: 0,
+      canRunNow: false,
+    });
+    // Its stuck credits are owed work: Needs a look, never calm, and a failure outranks them.
+    expect(signalHealth({ ok24h: 0, failed24h: 0, owed: 1 })).toBe("attention");
   });
 
   it("counts the downloads as a signal: no switch, no clock", () => {

@@ -15,6 +15,9 @@ import {
  * total her plan's cap holds, her window's uploads against the plan's allowance, and the hour against the breaker. A
  * failed read says No reading and why, never a zero, and never takes the page (the delete below it is still there).
  * The real page, its reads stubbed beneath it.
+ *
+ * ★ AND HER PASS-TO-PRO CREDITS (credit-watch): what became of each credited Pro checkout of hers, a stuck one with
+ * its Retry and only a stuck one; drawn only when she has one or the read failed (No reading, never none).
  */
 
 const HOST = "22222222-2222-4222-8222-222222222222";
@@ -32,6 +35,8 @@ const state = vi.hoisted(() => ({
   warnings: [] as unknown[][],
   aal: "aal2",
   reads: 0,
+  /** Her credits' reading (credit-watch). */
+  credits: { ok: true, value: [] } as unknown,
 }));
 
 vi.mock("server-only", () => ({}));
@@ -57,6 +62,23 @@ vi.mock("@/app/admin/not-found.screen", () => ({
 vi.mock("./delete-account-control", () => ({
   DeleteAccountControl: () => <button type="button">Delete account</button>,
   CancelDeletionControl: () => null,
+}));
+vi.mock("./credit-retry-control", () => ({
+  CreditRetryControl: ({ sessionId }: { sessionId: string }) => (
+    <button type="button" data-session={sessionId}>
+      Retry the credit
+    </button>
+  ),
+}));
+vi.mock("@/lib/db/queries/pass-credits", () => ({
+  readAccountPassCredits: async () => {
+    state.reads += 1;
+    return state.credits;
+  },
+}));
+// The page's one clock read, fixed so each credit's state is judged at a known instant.
+vi.mock("@/lib/admin/pending", () => ({
+  serverNow: () => Date.parse("2026-10-05T12:00:00.000Z"),
 }));
 vi.mock("@/lib/db/queries/accounts", () => ({
   getAccountDetail: async () => {
@@ -150,6 +172,7 @@ beforeEach(() => {
   state.warnings = [];
   state.aal = "aal2";
   state.reads = 0;
+  state.credits = { ok: true, value: [] };
   account({});
 });
 
@@ -377,5 +400,91 @@ describe("the portal's gate and the page's id", () => {
     );
     expect(screen.getByText("Not found")).toBeInTheDocument();
     expect(state.reads).toBe(0);
+  });
+});
+
+describe("her pass-to-Pro credits (credit-watch)", () => {
+  function credit(name: string, over: Record<string, unknown>) {
+    return {
+      stripe_session_id: `cs_test_${name}`,
+      profile_id: HOST,
+      credit_cents: 1850,
+      pass_ids: [
+        "00000000-0000-4000-8000-00000000000a",
+        "00000000-0000-4000-8000-00000000000b",
+      ],
+      claimed_until: null,
+      balance_transaction_id: null,
+      granted_at: null,
+      converted_at: null,
+      converted_count: null,
+      released_at: null,
+      created_at: "2026-10-05T11:30:00.000Z",
+      ...over,
+    };
+  }
+
+  it("draws no card for an account that never had one", async () => {
+    await draw();
+    expect(screen.queryByText("Pass-to-Pro credits")).toBeNull();
+  });
+
+  it("★ says what became of each, with Retry beside a stuck one and only a stuck one", async () => {
+    state.credits = {
+      ok: true,
+      value: [
+        credit("stuck", {
+          created_at: "2026-10-05T10:00:00.000Z",
+          claimed_until: "2026-10-05T10:10:00.000Z",
+        }),
+        credit("done", {
+          created_at: "2026-10-04T09:00:00.000Z",
+          balance_transaction_id: "cbtxn_1",
+          granted_at: "2026-10-04T09:00:00.000Z",
+          converted_at: "2026-10-04T09:00:01.000Z",
+          converted_count: 2,
+        }),
+        credit("released", {
+          created_at: "2026-10-03T09:00:00.000Z",
+          released_at: "2026-10-03T10:00:00.000Z",
+        }),
+      ],
+    };
+    await draw();
+    const credits = within(card("Pass-to-Pro credits"));
+    expect(credits.getByText("Stuck")).toBeTruthy();
+    expect(
+      credits.getByText(
+        "Claimed Oct 5, 2026, 10:00 UTC for $18.50 over 2 passes, never granted: its delivery died and no retry has finished it. Retry runs it now.",
+      ),
+    ).toBeTruthy();
+    expect(
+      credits.getByText(/2 passes became credit Oct 4, 2026, 09:00 UTC\.$/),
+    ).toBeTruthy();
+    expect(
+      credits.getByText(/^Not credited: another checkout of hers/),
+    ).toBeTruthy();
+    // Retry beside the stuck one alone, naming its checkout.
+    const retries = credits.getAllByRole("button", {
+      name: "Retry the credit",
+    });
+    expect(retries).toHaveLength(1);
+    expect(retries[0]!.getAttribute("data-session")).toBe("cs_test_stuck");
+    // Each claim names its checkout, for the operator's look in Stripe.
+    expect(credits.getByText("cs_test_done")).toBeTruthy();
+  });
+
+  it("★ a failed read says No reading and why, tells Sentry, and leaves the rest of the page", async () => {
+    state.credits = { ok: false, message: "admin/accounts: her credits: boom" };
+    await draw();
+    const credits = within(card("Pass-to-Pro credits"));
+    expect(credits.getByText("No reading")).toBeTruthy();
+    expect(credits.getByText("admin/accounts: her credits: boom")).toBeTruthy();
+    expect(state.warnings).toContainEqual([
+      "admin",
+      "account: credits read failed",
+      { user_id: HOST, message: "admin/accounts: her credits: boom" },
+    ]);
+    expect(screen.getByRole("button", { name: "Delete account" })).toBeTruthy();
   });
 });
