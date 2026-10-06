@@ -36,7 +36,7 @@ check-in about every 40 minutes reads them (their status, pushed heads and cost)
 | `a11y-halo` | the halo and the working words at the 27 files identity-r5-wiring could not own (the guest's pages, the hub, /admin, the create step, the menus, the lab's own five; pricing's and Drive's wait for their lanes), and `--faint` and paper's warning text lifted to 4.5:1 | RUNNING (cut at `462cea3f`) | Opus | `session_01PEB31d9qJAC99XBwktcpDY` |
 | `host-moments-r1` | board host-moments r1 (desk 40): B1 a password added, Q6 a develop time added mid-party, B2 the door's decline and block, L3 over her plan with a goal, each built answer drawn beside real alternatives | RUNNING (cut at `462cea3f`) | Opus | `session_01LTciadsfNCGdfN4DK1rYF7` |
 | `guest-moments-r1` | board guest-moments r1 (desk 45): C7 a first photo's glow, D3 taking a shot back, Q3 a batch of others' photos landing, G6 the reel opening | RUNNING (cut at `462cea3f`) | Opus | `session_01RxBppeLymQLuF5HFzzZzcM` |
-| `redteam-56b` | red-team 56b on its own build of `c5b16be7` at :3000: crumbs-85's MEDIUM re-walked, its LOW and NITs, the album's time, the house set and working words, regressions; never commits; its report is its last message | RUNNING | Opus | `session_017cgyXnS3nnK35ifo2L6bEa` |
+| `redteam-56b` | red-team 56b on its own build of `c5b16be7` at :3000 | BLOCKED, ended 11:22Z (about $1.20): its permission check refused `.env.local`, the `--no-sandbox` Chrome wrapper and a `useradd` for a sandboxed Chrome (tried before the correction; reported), so only the 404s' one noindex was walked (PASS) and every browser walk reads NOT DRIVEN; no findings, nothing created. It waits on Will's browser call (Waiting on Will), then a fresh session | Opus | `session_017cgyXnS3nnK35ifo2L6bEa` |
 | `uploads-bursts` | the upload queue's two throughput lines: a dropped burst's Retry all re-queued as one burst, the next burst started once the last one's bytes are up | RUNNING (cut at `e74f8e07`) | Opus | `session_01XYnfk95UWgKLYDRLebNNxH` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor") read both of tonight's migrations
@@ -111,11 +111,12 @@ local agents' transcripts.
   growth (a ROADMAP line for the Worker's cadence); adopt's orphan loop wants `and c.profile_id = p_host_id` (a nit).
 - **The calls lab** (`docs/calls.md`): the open questions X1, X2, X3, X5, X6 and X8, then each merge's calls, built and
   his to overrule. He asks direct questions in chat; answer in chat, never only in a file.
-- **Milestone 38** on his yes, after billing-orphans, drive-crumbs and red-team 56b.
+- **Milestone 38** on his yes, after billing-orphans, drive-crumbs and red-team 56b (blocked on the browser call).
 - **A browser in a cloud lane:** headless Chrome as root needs `--no-sandbox`, and a lane's own permission check
   sometimes refuses the spawn prompt's wrapper for it (red-team 56b at 11:11Z, crumbs-85's first boot; event-header-r6
-  and lab-kit-3 ran theirs). A refused step is never worked around: its walk reads NOT DRIVEN. His call: a permission
-  rule in the environment's settings that allows it, or browser walks stay on his Mac's desk.
+  and lab-kit-3 ran theirs). A refused step is never worked around, by the lane or from this seat: its walk reads NOT
+  DRIVEN. ★ Red-team 56b, and so milestone 38, waits on it. His call: a permission rule in the environment's settings
+  allowing Chromium with `--no-sandbox` (then a fresh red-team session), or red-team 56b on his Mac's desk.
 - **A Cloudflare API token** in the environment (`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`), only if the
   Workers should deploy from the cloud.
 - **The private note** scratch-synthesis wrote for this seat on his Mac (`CLOUD-ORCHESTRATOR-PRIVATE.md`): uploaded
