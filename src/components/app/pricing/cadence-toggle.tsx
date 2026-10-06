@@ -63,7 +63,7 @@ export function CadenceToggle({
               data-cadence={option.id}
               onClick={() => onChange(option.id)}
               className={cn(
-                "relative z-10 inline-flex h-8 items-center justify-center rounded-md px-3.5 text-sm font-medium transition-colors duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+                "relative z-10 inline-flex h-8 items-center justify-center rounded-md px-3.5 text-sm font-medium transition-colors duration-150 ease-emphasis outline-none focus-halo",
                 on
                   ? "text-foreground"
                   : "text-muted-foreground hover:text-foreground",

@@ -196,10 +196,12 @@ export function CheckoutButton({
   return (
     <Button
       onClick={press}
-      disabled={isPending || holding || away}
+      working={isPending || holding || held}
+      workingLabel="Opening billing"
+      disabled={away}
       {...buttonProps}
     >
-      {isPending || holding || held ? "Starting…" : children}
+      {children}
     </Button>
   );
 }

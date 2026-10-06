@@ -222,7 +222,7 @@ describe("a switch below this month's uploads says so before it leaves", () => {
     );
     // Still here, and saying it is working: she has not had a moment to read it yet.
     expect(assigned).toBe(null);
-    expect(screen.getByRole("button")).toBeDisabled();
+    expect(screen.getByRole("button")).toHaveAttribute("aria-busy", "true");
     await vi.advanceTimersByTimeAsync(5_000);
     await waitFor(() => expect(assigned).toBe(URL));
     // Words, never an error: the webhook allows the switch.
@@ -416,12 +416,12 @@ describe("★ pressed until the page has gone (crumbs-83)", () => {
   });
   const checkouts = () => calls.filter((c) => c.url === "/api/stripe/checkout");
 
-  it("★ stays Starting… and pressed once Stripe's address is assigned: a second tap opens no second session", async () => {
+  it("★ stays Opening billing and busy once Stripe's address is assigned: a second tap opens no second session", async () => {
     await press();
     await waitFor(() => expect(assigned).toBe(STRIPE));
     // The old button came back here, "Get Pro" and enabled, while Stripe's page was still on its way.
-    const button = screen.getByRole("button", { name: "Starting…" });
-    expect(button).toBeDisabled();
+    const button = screen.getByRole("button", { name: "Opening billing" });
+    expect(button).toHaveAttribute("aria-busy", "true");
     await userEvent.click(button);
     expect(checkouts()).toHaveLength(1);
   });
@@ -430,7 +430,7 @@ describe("★ pressed until the page has gone (crumbs-83)", () => {
     await press();
     await waitFor(() => expect(assigned).toBe(STRIPE));
     act(() => pageshow(false));
-    expect(screen.getByRole("button", { name: "Starting…" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Opening billing" })).toHaveAttribute("aria-busy", "true");
     act(() => pageshow(true));
     expect(screen.getByRole("button", { name: "Get Pro" })).toBeEnabled();
   });
@@ -455,7 +455,7 @@ describe("★ pressed until the page has gone (crumbs-83)", () => {
       await press();
       await waitFor(() => expect(assigned).toBe(STRIPE));
       await vi.advanceTimersByTimeAsync(HOLD_FLOOR_MS - 1_000);
-      expect(screen.getByRole("button", { name: "Starting…" })).toBeDisabled();
+      expect(screen.getByRole("button", { name: "Opening billing" })).toHaveAttribute("aria-busy", "true");
       await vi.advanceTimersByTimeAsync(2_000);
       await waitFor(() =>
         expect(screen.getByRole("button", { name: "Get Pro" })).toBeEnabled(),
