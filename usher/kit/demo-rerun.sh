@@ -19,7 +19,7 @@ for j in $(seq 1 120); do curl -s -o /dev/null -w '%{http_code}' "http://localho
 curl -s -o /dev/null "http://localhost:$PORT/design/lab/$BOARD?key=$DESIGN_PREVIEW_KEY"; echo "warmed $BOARD"
 RC=1
 for a in $(seq 1 $N); do
-  perl -e 'alarm 420; exec @ARGV' pnpm -s lab:demo --board "$BOARD" --base http://localhost:$PORT 2>&1 | tee "$S/demo-rerun-$BOARD-$a.log" | tail -6; RC=${pipestatus[1]}; echo "EXIT[lab:demo $BOARD attempt $a]=$RC"
+  perl -e 'alarm 420; exec @ARGV' node scripts/lab-demo.mjs --board "$BOARD" --base http://localhost:$PORT 2>&1 | tee "$S/demo-rerun-$BOARD-$a.log" | tail -6; RC=${pipestatus[1]}; echo "EXIT[lab:demo $BOARD attempt $a]=$RC"
   [ "$RC" = 0 ] && break
 done
 lsof -ti tcp:$PORT | xargs -r kill 2>/dev/null; kit_free_port $PORT

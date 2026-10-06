@@ -103,7 +103,11 @@ else
       # warm re-run): one retry on the warm server; both logs kept; the exit is the last attempt's.
       t=$SECONDS; DEMO=1
       for a in 1 2; do
-        perl -e 'alarm 900; exec @ARGV' pnpm -s lab:demo "${DEMOARGS[@]}" --base http://localhost:$PORT > "$S/gate$N-demo-$a.log" 2>&1; DEMO=$?
+        # ★ The alarm reaches node only when node is exec'd: through pnpm's shim it never fired (2026-10-06, an
+        # alarmed `pnpm` ran its child past the alarm and exited 0; gates 51 and 54 ran the whole lab's 24 steps in
+        # 1,073 s and 1,025 s under a 900 s one), so a hung DevTools reply hung the gate. 2,400 s holds twice the whole
+        # lab on a 4-core cloud seat; the kit's other demo callers exec node the same way.
+        perl -e 'alarm 2400; exec @ARGV' node scripts/lab-demo.mjs "${DEMOARGS[@]}" --base http://localhost:$PORT > "$S/gate$N-demo-$a.log" 2>&1; DEMO=$?
         tail -14 "$S/gate$N-demo-$a.log"; [ "$DEMO" = 0 ] && break; echo "lab:demo attempt $a red; retrying warm"
       done
       cp "$S/gate$N-demo-$a.log" "$S/gate$N-demo.log"

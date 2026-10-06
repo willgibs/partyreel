@@ -75,12 +75,10 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 
 ### The lab and the kit
 
-- The lab and the kit: `lab:demo --all` pressed 15 steps in 759 s of its 900 s alarm (gate 43, the motion pass on every step); one more board's steps cross it, so the gate's alarm, or the demo's pace, wants to scale with the desk (Orchestrator).
 - The lab and the kit: `pnpm compute:model` has not run end to end on Linux (its fixtures now come from `$PARTYREEL_TEST_MEDIA` or `media-gen.mjs`, and `--event-name` is new); milestone 38's run is its first (lab-kit-3).
 - The lab and the kit: `pnpm compute:model`'s lab-demo scenario reads 182.8 calls and 707 ms of CPU a step against its budget of 9 and 210 (2026-10-05, after desk 3's boards merged): find the frames that call the API (production components fetching live data inside a board) and stub them, or re-baseline the line; the lab is dev-only, so production's cost is untouched, but a slow desk costs Will's sittings.
 - The lab: retire `/design/lab/proposals` and its `status.ts`; the `docs/specs` it renders is gone (a board's argument lives in its `spec.ts`).
 - The lab: the motion playground (`lab/tools/motion/motion-playground.tsx`) still sends the reader to "the rounding board" and names `/design/lab/rounding`, both gone; point them at `/design/library/foundations#radius`.
-- The lab and the kit: a board lane's light gate runs only its own board's tests, so a repo-wide rule caught account-moments r1's hand-written dialog selector a full gate later (gate 48): a `pnpm test:rules` running every test that reads the tree through `src/testing/source-tree.ts`, added to PROGRAM.md's light gate (a check that obstructs is upgraded: Will, 2026-10-06).
 
 ### Code hygiene
 

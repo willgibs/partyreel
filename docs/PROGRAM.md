@@ -78,7 +78,8 @@ have to click through the options to learn what he is being asked, nor read a sc
 
 **Speed over proof in exploration** (Will, 2026-10-04: four rounds in the time of one beats one perfect round). A board
 is dev-only (its folder never ships; the lab is a 404 in production), so its lane spends its hours on the question and
-its options, never on proving them. Its handoff gate is the light one: typecheck, lint, the board's own tests,
+its options, never on proving them. Its handoff gate is the light one: typecheck, lint, the board's own tests, `pnpm
+test:rules` (every repo-wide rule: the tests that read the tree through `src/testing/source-tree.ts`, about 50 s),
 `lab:smoke` and `lab:demo --board <id>` (every option renders, fits the lab and differs, at a desk and a phone). There
 is no full test run, no production build and no multi-theme capture round unless the question is about a theme; the
 Orchestrator's merge gate is the one full check. The helpers per option and the fresh-eyes pass stay: they are the
