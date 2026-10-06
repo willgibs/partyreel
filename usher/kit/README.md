@@ -5,7 +5,12 @@ Look up the task in hand; each section stands alone. The scripts run from the re
 ## Seat in (every session start, compaction or restart)
 
 1. `export S=<this session's scratchpad>` (every script requires it and writes its logs there). Read `docs/tracks/orchestrator.md` (in flight,
-   next, waiting on Will), then `docs/STATUS.md`.
+   next, waiting on Will), then `docs/STATUS.md`. **In a cloud session** (seated there since 2026-10-06): an export lasts
+   one command, so append `S` and `CHROME_PATH` to this session's shell snapshot (`~/.claude/shell-snapshots/`);
+   `apt-get install -y zsh`; a no-op `~/.nvm/nvm.sh` (`nvm() { :; }`: the kit sources nvm under `set -e`); the Chrome
+   wrapper `spawn-prompt-cloud.txt` makes; a gitignored `.env.local` of public values (this container may hold no
+   secret: a lane's session, born after Will's environment change, holds them). A full `pnpm test` takes about 8.5
+   minutes on its 4 cores.
 2. `git status --short` (empty), the root on `launch-prep` (a fresh session can open on `main`, and `merge-lane.sh`
    refuses any other branch), `git worktree list`, the ports 3130 to 3139, `memory_pressure`; kill by port a dev
    server whose lane is gone.
@@ -38,9 +43,9 @@ the lines he holds stay his. Nothing here or anywhere lives only in an agent's m
   hi@willgibs.com Tuesday 5pm ET; plus cloud credit), so lanes run to the machine's measured memory. Near a week's
   end he may call a wind-down: no new lane, the running ones finish, and the pickup's handoff block stays current into
   the auto-kill at 100%, so the next account's Orchestrator, or one he seats in the cloud, picks up cleanly. Cloud
-  lanes come first where they fit (no secrets, no local desk) while cloud credit lasts; from a desktop session the
-  Agent tool's remote flag runs on the Mac, so the routes are a claude.ai routine (a saved item: his yes first) or a
-  cloud-seated Orchestrator.
+  lanes come first while cloud credit lasts: from a cloud seat, each lane is a cloud session of its own ("Cut a
+  lane", step 4); from a desktop session the Agent tool's remote flag runs on the Mac, so the route there is a
+  claude.ai routine (a saved item: his yes first).
 - **His browser and accounts:** never click Copy or "Copy so far" in the built-in browser (a stray paste reads as a real
   answer); his Supabase dashboard is read-only to agents; Moltbook runs only on his word (`usher/moltbook/README.md`).
 - **The tools' reach:** the Cloudflare MCP cannot mint R2 tokens or set bucket CORS, and the Vercel MCP never sets env
@@ -53,7 +58,9 @@ the lines he holds stay his. Nothing here or anywhere lives only in an agent's m
 After a restart, a kill, a usage limit or plan mode (which pauses every running lane), message each lane that was
 mid-work by SendMessage to its agent id; its transcript survives, so it keeps its context. Say what died, what is on
 disk (its branch head, uncommitted files), that a stale `.next/dev/lock` may be deleted, and to continue from its
-commits to its own handoff. An agent id lives only in the session that spawned it: when the Orchestrator's own session
+commits to its own handoff. A cloud lane is its own session: `send_message` to its session id says the same, and a
+session that is gone is respawned on its pushed branch from `spawn-prompt-cloud.txt` plus what remains. An agent id
+lives only in the session that spawned it: when the Orchestrator's own session
 is gone (another account, a closed session), respawn the lane on its worktree from `spawn-prompt.txt` plus what its
 predecessor did, what remains and what it measured, read from its transcript
 (`~/.claude/projects/<project>/<old session>/subagents/agent-<id>.jsonl`), so nothing is redone. Never integrate a
@@ -131,6 +138,12 @@ answer changes a call, the record says so, and a disagreement on a one-way door 
    current for the auto-kill at 100%), their production builds taking turns through
    `scripts/build-lock.sh`. The model is your call on every spawn: Opus for
    big, ambiguous, multi-file work, Sonnet for fast, direct UI work.
+   **From a cloud seat**, each lane is a cloud session of its own (`create_session`: `source_url` the repo,
+   `source_revision` `launch-prep`, `outcome_branch` `lp/<track>`, tags `partyreel-lane` and
+   `config:auto-create-pr:off`, the model, and `spawn-prompt-cloud.txt` filled: `{track}`, and `{public_env}` from this
+   seat's `.env.local`); its session id is its In-flight row's agent. A lane cannot message back, so its pushed head
+   (`git ls-remote origin lp/<track>`) and its last events (`list_events`) are how it reports, with a `send_later`
+   check-in while lanes run; its own container sets no limit on how many run, only the integrations' pace does.
 
 ## Integrate a handoff (one lane on the tree at a time)
 
