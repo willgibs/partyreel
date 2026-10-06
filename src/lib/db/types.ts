@@ -1474,6 +1474,7 @@ export type Database = {
           granted_at: string | null
           pass_ids: string[]
           profile_id: string
+          released_at: string | null
           stripe_session_id: string
         }
         Insert: {
@@ -1486,6 +1487,7 @@ export type Database = {
           granted_at?: string | null
           pass_ids: string[]
           profile_id: string
+          released_at?: string | null
           stripe_session_id: string
         }
         Update: {
@@ -1498,6 +1500,7 @@ export type Database = {
           granted_at?: string | null
           pass_ids?: string[]
           profile_id?: string
+          released_at?: string | null
           stripe_session_id?: string
         }
         Relationships: [
@@ -2619,6 +2622,14 @@ export type Database = {
       record_pass_credit_grant: {
         Args: {
           p_balance_transaction_id: string
+          p_host_id: string
+          p_session_id: string
+        }
+        Returns: string
+      }
+      release_pass_credit: {
+        Args: {
+          p_balance_transaction_id?: string
           p_host_id: string
           p_session_id: string
         }

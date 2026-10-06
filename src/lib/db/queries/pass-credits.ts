@@ -24,19 +24,11 @@ import {
   type SettleKind,
   type StuckKind,
 } from "@/lib/billing/passes-stuck";
-import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
+import type { PostgrestError } from "@supabase/supabase-js";
 
 import { mustCount, mustQuery, QueryFailedError } from "@/lib/db/must-query";
 import type { Reading } from "@/lib/db/queries/accounts";
 import { createAdminClient } from "@/lib/supabase/admin";
-
-/**
- * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `pass_credits.released_at` arrives with migration 20261005201000, so
- * these reads go through this untyped client (drop the cast then; `creditDb` in mutations/event-passes.ts is its twin).
- */
-function creditDb(): SupabaseClient {
-  return createAdminClient() as unknown as SupabaseClient;
-}
 
 /** A claim as the operator reads it: the table's columns (`pass_credits`, 20261005181000 and 20261005201000). */
 export type PassCreditRow = CreditClaimState & {
@@ -169,7 +161,7 @@ export async function readStuckPassCredits(
   nowMs: number = Date.now(),
 ): Promise<Reading<{ total: number; rows: StuckCredit[] }>> {
   try {
-    const db = creditDb();
+    const db = createAdminClient();
     const halves = await Promise.all(
       STUCK_KINDS.map(async (kind) => {
         const { rows, total } = await pageAndCount(
@@ -190,7 +182,7 @@ export async function readStuckPassCredits(
         return {
           count: total,
           // The embed is to-one (her profile, by the claim's own foreign key), which PostgREST answers as an object;
-          // the untyped seam's parser cannot see the key and guesses a list.
+          // the select is built from `COLUMNS` at run time, so the typed parser cannot see it, and the row is stated.
           rows: ((rows ?? []) as unknown as StuckRead[]).map(
             ({ profiles, ...claim }): StuckCredit => ({
               ...claim,
@@ -240,7 +232,7 @@ export async function readCreditsToSettle(
   nowMs: number = Date.now(),
 ): Promise<Reading<{ total: number; rows: SettleCredit[] }>> {
   try {
-    const db = creditDb();
+    const db = createAdminClient();
     const halves = await Promise.all(
       SETTLE_KINDS.map(async (kind) => {
         const { rows, total } = await pageAndCount(
@@ -298,7 +290,7 @@ export async function readAccountPassCredits(
 ): Promise<Reading<PassCreditRow[]>> {
   try {
     const rows = await mustQuery(
-      creditDb()
+      createAdminClient()
         .from("pass_credits")
         .select(COLUMNS)
         .eq("profile_id", hostId)
@@ -317,7 +309,7 @@ export async function readPassCredit(
   sessionId: string,
 ): Promise<PassCreditRow | null> {
   const row = await mustQuery(
-    creditDb()
+    createAdminClient()
       .from("pass_credits")
       .select(COLUMNS)
       .eq("stripe_session_id", sessionId)
@@ -337,7 +329,7 @@ export async function readPassCreditSignal(
   nowMs: number,
   sinceIso: string,
 ): Promise<{ ok24h: number; owed: number; owedSinceMs: number | null }> {
-  const db = creditDb();
+  const db = createAdminClient();
   const [honoured, ...halves] = await Promise.all([
     // Honoured: converted in the window, at least one pass of it (a conversion of none met passes credited already).
     mustCount(

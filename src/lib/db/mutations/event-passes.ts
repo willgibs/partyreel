@@ -26,17 +26,7 @@
  */
 import "server-only";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-
 import { createAdminClient } from "@/lib/supabase/admin";
-
-/**
- * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `release_pass_credit` arrives with migration 20261005201000, so its
- * call goes through this untyped client (drop the cast then, as billing-integrity's was).
- */
-function creditDb(db: ReturnType<typeof createAdminClient>) {
-  return db as unknown as SupabaseClient;
-}
 
 const UNIQUE_VIOLATION = "23505";
 
@@ -298,7 +288,7 @@ export async function releasePassCredit(
   hostId: string,
   balanceTransactionId: string | null,
 ): Promise<PassCreditRelease> {
-  const { data, error } = await creditDb(createAdminClient()).rpc(
+  const { data, error } = await createAdminClient().rpc(
     "release_pass_credit",
     {
       p_session_id: sessionId,
