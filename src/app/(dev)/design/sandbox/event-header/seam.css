@@ -1,0 +1,232 @@
+/* THE SEAM'S SHEET (`seam.tsx`): Afterglow's Seam in the room, quoted from
+   `brand/afterglow/ag.css` (`.ag-seam-light`, `.ag-seam-line`), and brand r2's
+   three paper forms (Aperture's rebate, Ink's rule and credits, Cast's band).
+
+   ★ EVERY CLASS AND KEYFRAME CARRIES THE BOARD'S PREFIX (`eh-seam-`):
+   keyframe names are document-global (`keyframe-uniqueness.test.ts`).
+   ★ THE LIGHT RESTS STILL: the only movement is the cover's own crossfade
+   (production's `head-crossfade`, on the cover's clock) and its arrival, both
+   behind `no-preference`; reduced motion holds the first still's light. */
+
+.eh-seam {
+  position: relative;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* ══ IN THE ROOM ══════════════════════════════════════════════════════════ */
+
+.eh-seam-room,
+.eh-seam-rebate {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* One still's light, on the cover's clock. */
+.eh-seam-slot {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+.eh-seam-slot[data-rest] {
+  opacity: 1;
+}
+
+/* The light: the edge's colours pooled in three soft ellipses at a fifth, the
+   middle and four fifths of the width, a hot core at the edge and a short
+   fall, so it reads as light gathering where it enters, never a wash. */
+.eh-seam-light {
+  position: absolute;
+  inset: 0 -14%;
+  opacity: 0.95;
+  -webkit-mask-image:
+    radial-gradient(
+      ellipse 62% 100% at 22% 0%,
+      rgb(0 0 0 / 0.86) 0%,
+      rgb(0 0 0 / 0.4) 22%,
+      rgb(0 0 0 / 0.1) 58%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 58% 92% at 50% 0%,
+      rgb(0 0 0 / 0.8) 0%,
+      rgb(0 0 0 / 0.38) 22%,
+      rgb(0 0 0 / 0.1) 58%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 62% 100% at 78% 0%,
+      rgb(0 0 0 / 0.86) 0%,
+      rgb(0 0 0 / 0.4) 22%,
+      rgb(0 0 0 / 0.1) 58%,
+      transparent 100%
+    );
+  mask-image:
+    radial-gradient(
+      ellipse 62% 100% at 22% 0%,
+      rgb(0 0 0 / 0.86) 0%,
+      rgb(0 0 0 / 0.4) 22%,
+      rgb(0 0 0 / 0.1) 58%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 58% 92% at 50% 0%,
+      rgb(0 0 0 / 0.8) 0%,
+      rgb(0 0 0 / 0.38) 22%,
+      rgb(0 0 0 / 0.1) 58%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 62% 100% at 78% 0%,
+      rgb(0 0 0 / 0.86) 0%,
+      rgb(0 0 0 / 0.4) 22%,
+      rgb(0 0 0 / 0.1) 58%,
+      transparent 100%
+    );
+}
+
+/* The source line: the edge itself, lit, faded at both ends. */
+.eh-seam-line {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1.5px;
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    #000 14%,
+    #000 86%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    #000 14%,
+    #000 86%,
+    transparent 100%
+  );
+}
+
+/* ══ ON PAPER: APERTURE, A STRIP OF THE ROOM UNDER THE PRINT ══════════════ */
+
+.eh-seam-rebate {
+  background: linear-gradient(180deg, #121215 0%, #0b0b0d 100%);
+}
+
+/* ══ ON PAPER: INK, A PRINTED RULE AND THE CREDITS ════════════════════════ */
+
+.eh-seam-ink {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  color: var(--eh-ink);
+}
+.eh-seam-rule {
+  display: block;
+  flex: none;
+  height: var(--eh-rule, 2px);
+  background: var(--eh-ink);
+}
+.eh-seam-credits {
+  display: flex;
+  gap: 9px;
+  margin-block: 9px;
+  padding-inline: 20px;
+  overflow: hidden;
+  font:
+    600 10px/12px var(--font-sans),
+    ui-sans-serif,
+    sans-serif;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+[data-screen="375"] .eh-seam-credits {
+  padding-inline: 12px;
+}
+.eh-seam-credit {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+
+/* ══ ON PAPER: CAST, A HARD BAND OF THE EDGE'S COLOUR ═════════════════════ */
+
+/* Full at the edge, holding a few px, then spent fast; multiplied onto the
+   page, a coloured shadow darker than the paper, never a pale stain. */
+.eh-seam-cast {
+  position: absolute;
+  inset: 0;
+}
+.eh-seam-cast .eh-seam-slot {
+  mix-blend-mode: multiply;
+}
+.eh-seam-band {
+  position: absolute;
+  inset: 0;
+  opacity: 0.94;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0,
+    #000 30%,
+    rgb(0 0 0 / 0.62) 55%,
+    rgb(0 0 0 / 0.24) 80%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0,
+    #000 30%,
+    rgb(0 0 0 / 0.62) 55%,
+    rgb(0 0 0 / 0.24) 80%,
+    transparent 100%
+  );
+}
+.eh-seam-cast > .eh-seam-band {
+  mix-blend-mode: multiply;
+}
+
+/* ══ THE COVER'S OWN SCRIM ════════════════════════════════════════════════ */
+
+/* The board's cover draws its own scrim (`CoverScrim`), so production's is
+   set aside in these frames alone. */
+[data-eh-head] .head-scrim {
+  display: none;
+}
+.eh-cover-scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* ══ MOTION: THE COVER'S CLOCK, AND ITS ARRIVAL ═══════════════════════════ */
+
+@media (prefers-reduced-motion: no-preference) {
+  .eh-seam-slot[data-cycle] {
+    animation-name: head-crossfade;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-duration: calc(var(--head-hold) * 6 * 1s);
+    animation-delay: calc(var(--head-delay) * 1s);
+  }
+  .eh-seam-room,
+  .eh-seam-rebate,
+  .eh-seam-cast {
+    animation: eh-seam-in 1200ms var(--ease-emphasis) both;
+  }
+}
+
+@keyframes eh-seam-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Forced colours: the light is decoration; the cards and words carry it. */
+@media (forced-colors: active) {
+  .eh-seam {
+    display: none;
+  }
+}
