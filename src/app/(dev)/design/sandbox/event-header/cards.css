@@ -142,7 +142,7 @@
 }
 /* Stuck, the glyph is a pill's 16px: the badge rides it smaller, the word
    standing clear of it. */
-[data-stuck] .eh-r6-door {
+.eh-ck-band[data-stuck] .eh-r6-door {
   gap: 13px;
 }
 [data-stuck] .eh-badge {
@@ -247,7 +247,7 @@
 [data-stuck] .eh-num-mark {
   display: none;
 }
-[data-stuck] .eh-r6-door:has([data-numeral]) {
+.eh-ck-band[data-stuck] .eh-r6-door:has([data-numeral]) {
   gap: 7px;
 }
 
