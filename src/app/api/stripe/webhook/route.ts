@@ -1,6 +1,6 @@
 import type Stripe from "stripe";
 
-import { creditedPassIds, passWindowForPurchase } from "@/lib/billing/passes";
+import { passWindowForPurchase } from "@/lib/billing/passes";
 import {
   insertPassPurchase,
   recomputePassEntitlement,
@@ -11,17 +11,17 @@ import { planForPriceId } from "@/lib/stripe/plans";
 import {
   deliveryCreatedAt,
   eventPassSession,
-  proCreditSession,
   resolveSubscriptionUpdate,
   subscriptionQuantityWarning,
   successorSubscription,
 } from "@/lib/stripe/provision";
 import { assertStripeEnv } from "@/lib/env";
 import type { TablesUpdate } from "@/lib/db/types";
+import { recordSignalFailure } from "@/lib/jobs/failure-log";
 import { captureError, captureWarning } from "@/lib/observability/sentry";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-import { honorPassCredit } from "./pass-credit";
+import { creditBusy, creditOfSession, honorPassCredit } from "./pass-credit";
 
 // Stripe webhook = the SINGLE source of truth for a host's tier. CRITICAL: read the
 // RAW body (req.text(), NOT req.json()) before constructEvent — JSON-parsing mutates
@@ -215,6 +215,10 @@ export async function POST(request: Request) {
 
   const admin = createAdminClient();
   const createdAt = deliveryCreatedAt(event);
+  // A credited checkout's delivery that fails honouring its credit fails as the `pass_credit` signal's (/admin/jobs)
+  // as well as Sentry's: a credit whose every delivery fails (a function missing, a lock that never frees) shows on the
+  // console the day it starts, before an hour of it reads stuck.
+  let credited = false;
 
   try {
     if (event.type === "checkout.session.completed") {
@@ -274,22 +278,24 @@ export async function POST(request: Request) {
       // exactly the passes the session names converted, never one bought since. A credit that names no pass is a
       // checkout this code cannot hold to its promise: a 500, never a guess at which passes it meant.
       const session = event.data.object as Stripe.Checkout.Session;
-      const credit = proCreditSession(event);
+      const credit = creditOfSession(session);
       if (credit) {
-        const passIds = creditedPassIds(session.metadata);
-        if (!passIds) {
+        credited = true;
+        if (credit === "names_no_pass") {
           throw new Error("a credited checkout names no pass it credited");
         }
-        const outcome = await honorPassCredit({
-          ...credit,
-          passIds,
-          sessionCreated: session.created,
-        });
-        if (outcome === "busy") {
-          // Another delivery of this checkout holds the claim (the two TEST endpoints both receive every event):
-          // not done here, so not a 200. Stripe retries this one, which then finds the grant on record.
+        const outcome = await honorPassCredit(credit);
+        // The credit is done with: a failure from here on (the customer binding) is the delivery's, not the credit's.
+        credited = false;
+        if (creditBusy(outcome)) {
+          // A live lease holds the claim, so this delivery is not done and is not a 200: Stripe retries it. Another
+          // delivery of this checkout (the two TEST endpoints both receive every event), whose grant the retry finds
+          // on record; or another checkout's claim on these passes (two Checkout tabs), whose grant the retry meets
+          // as overlap, or whose lapse (its holder died) lets the retry claim and grant.
           return new Response(
-            "Another delivery is honoring this checkout's pass credit; retry later.",
+            outcome === "busy_another_checkout"
+              ? "Another checkout's pass credit holds these passes; retry later."
+              : "Another delivery is honoring this checkout's pass credit; retry later.",
             { status: 409 },
           );
         }
@@ -445,7 +451,18 @@ export async function POST(request: Request) {
     // 5xx so STRIPE RETRIES. Every throw above lands on a host who is not getting what they paid
     // for, which must never resolve as a silent 200.
     const err = error instanceof Error ? error : new Error(String(error));
-    captureError("billing", err, { eventType: event.type });
+    if (credited) {
+      // Sentry every time, and the signal's failure row (throttled): the credit's card reads failed.
+      await recordSignalFailure({
+        job: "pass_credit",
+        area: "billing",
+        operation: "pass-to-Pro credit delivery",
+        error: err,
+        extra: { eventType: event.type },
+      });
+    } else {
+      captureError("billing", err, { eventType: event.type });
+    }
     return new Response(`Provisioning failed: ${err.message}`, { status: 500 });
   }
 

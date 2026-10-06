@@ -883,6 +883,19 @@ describe("the Download all Worker (export-ends)", () => {
     );
   });
 
+  it("counts the pass-to-Pro credits as a signal: no switch, no clock, no Run now (credit-watch)", () => {
+    expect(defOf("pass_credit")).toMatchObject({
+      kind: "signal",
+      host: "app",
+      flagKey: null,
+      cron: null,
+      expectedEveryMs: 0,
+      canRunNow: false,
+    });
+    // Its stuck credits are owed work: Needs a look, never calm, and a failure outranks them.
+    expect(signalHealth({ ok24h: 0, failed24h: 0, owed: 1 })).toBe("attention");
+  });
+
   it("counts the downloads as a signal: no switch, no clock", () => {
     expect(defOf("export_delivery")).toMatchObject({
       kind: "signal",
