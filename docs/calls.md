@@ -997,3 +997,18 @@ still lit.
 24), not the "up to 3 shots in all" the brief said; `limit` asks it with your flat 3 recommended, a `create_media`
 constant (a migration) for its wiring lane.
 - *Push back if* three rolls' worth should stand without asking.
+
+## BN. A host's party, drawn (host-moments-r1, on your desk)
+
+Its seven asks are on your desk; these are the calls drawn into them, built and yours to overrule.
+
+**BN1. Two of its options would change the database if you pick them,** and each ask says so in its costs: `tell`'s
+"carry on" (a guest's roll keeps counting through a develop time added mid-party: `create_media` would count from
+`sealed_from`) and `let-back`'s "straight" (lifting a decline lets the newcomer in: `let_back_in` would admit a
+waiting ask). Recommended: "straight" yes, the outcome its words promise; "carry on" no (a consequence line, fresh
+rolls said first).
+- *Push back if* either recommendation should flip.
+
+**BN2. `decline` keeps today's answer as its recommendation:** Decline is a block, the one ask where production's
+built answer stands as recommended.
+- *Push back if* a decline should be a no for now, or her choice each time.
