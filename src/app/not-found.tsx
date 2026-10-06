@@ -16,9 +16,10 @@ import { AdminNotFoundScreenLazy, SiteNotFoundLazy } from "./not-found.lazy";
 // hold (the metadata, the viewport, the surface) and renders one reference into `not-found.lazy.tsx`, the
 // one client boundary each surface's screen loads through (`not-found.test.ts` walks this file's eager
 // imports and refuses a component, a client island or a stylesheet among them).
+// ★ NO ROBOTS OF ITS OWN (red-team 56's NIT): Next writes `<meta name="robots" content="noindex">` into every 404
+// itself, and a second meta beside it said the same twice. One is enough.
 export const metadata: Metadata = {
   title: "Page not found",
-  robots: { index: false, follow: false },
 };
 
 // Forced-light boundary → pin the light themeColor (verified rendered in the

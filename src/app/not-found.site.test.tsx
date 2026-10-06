@@ -98,10 +98,9 @@ describe("the root 404", () => {
   });
 
   it("is titled Page not found, which every unknown marketing slug lands on", () => {
-    expect(metadata).toMatchObject({
-      title: "Page not found",
-      robots: { index: false, follow: false },
-    });
+    // ★ RESHAPED ON PURPOSE (red-team 56's NIT; scar kept: the 404 is never indexed; reason dropped: it said so itself,
+    // beside the noindex Next writes into every 404, two robots metas): Next's noindex is the one.
+    expect(metadata).toEqual({ title: "Page not found" });
   });
 });
 
