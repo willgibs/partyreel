@@ -7,7 +7,7 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/app/pricing/pro-price-list.tsx
   - src/components/app/pricing/lock-chip.tsx
   - src/components/app/pricing/cadence-toggle.tsx
-  - src/components/app/pricing/checkout-button.tsx
+  - src/components/app/checkout-button.tsx
   - src/components/app/pricing/checkout-button.test.tsx
   - src/components/app/drive/album-picker.tsx
   - src/components/app/drive/send-steps.tsx
