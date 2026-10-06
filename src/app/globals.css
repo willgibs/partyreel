@@ -1414,7 +1414,8 @@
         calc(var(--halo-at, 2px) + (1 - var(--halo-t)) * 1.5px)
         var(--halo-band, var(--halo-gap, var(--background))),
       var(--halo-in,) 0 0 0
-        calc(var(--halo-at, 2px) + (2 - var(--halo-t)) * 1.5px) var(--halo-ink),
+        calc(var(--halo-at, 2px) + (2 - var(--halo-t)) * 1.5px)
+        var(--halo-ink),
       var(--halo-in,) 0 -1px calc(12px + (1 - var(--halo-t)) * 10px)
         calc(var(--halo-at, 2px) + (2 - var(--halo-t)) * 1.5px)
         var(--halo-bloom);
@@ -1423,10 +1424,7 @@
       var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow),
       var(--tw-shadow, 0 0 #0000);
   }
-  &:is(:focus-visible, [data-halo]):not(
-      [aria-busy="true"],
-      [data-quiet-focus]
-    ) {
+  &:is(:focus-visible, [data-halo]):not([aria-busy="true"], [data-quiet-focus]) {
     animation: halo-arrive 140ms var(--ease-emphasis);
   }
   &[aria-invalid="true"] {
@@ -1480,6 +1478,7 @@
     transition-duration: 0ms !important;
   }
 }
+
 
 /* ═══════════ THE HOUSE SET: `field-well`, `afloat`, `toggle-thumb` (identity r5, set=house) ═══════════
    The constructions of THE HOUSE SET'S GROUNDS (their values, above), one
@@ -1578,8 +1577,7 @@
   background-color: var(--thumb);
   /* Its seam keeps a white thumb whole on an inked track; its lift stands it over the track. */
   box-shadow:
-    0 0 0 1px var(--thumb-seam),
-    0 1px 2px 0 var(--afloat-near),
+    0 0 0 1px var(--thumb-seam), 0 1px 2px 0 var(--afloat-near),
     0 3px 8px -1px var(--afloat-far);
 }
 
