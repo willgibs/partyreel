@@ -2,6 +2,7 @@
 
 import { Check } from "lucide-react";
 
+import { MODAL_ROLES } from "@/components/ui/layer-is-up";
 import { ProfileActionsMenu } from "@/components/social/profile-actions-menu";
 import {
   BlockConfirm,
@@ -19,6 +20,9 @@ import { Mark } from "./scene";
  * flips exactly as it does on the page; what an option adds is its one line or
  * its toast, nothing else.
  */
+
+/** The ask, found by the roles the house's one layer home names (`layer-is-up.ts`), never spelled here. */
+const ASK = MODAL_ROLES.map((r) => `[role="${r}"]`).join(", ");
 
 export type FollowWay = "today" | "line" | "toast";
 export type BlockWay = "today" | "line" | "toast";
@@ -110,7 +114,7 @@ export function BlockAsk() {
         person={JORDAN.name}
         onConfirm={() => {}}
       />
-      <Mark at='[role="alertdialog"], [role="dialog"]' as="the ask" />
+      <Mark at={ASK} as="the ask" />
     </GuestPage>
   );
 }
