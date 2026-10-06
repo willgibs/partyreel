@@ -61,3 +61,12 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am
+
+- Surveyed: every `_scratch/` folder (verdicts drafted; two helpers' triage and the docs-prune stale check read).
+- Private doc: started at `/Users/gibby/local/ai/partyreel-wt/CLOUD-ORCHESTRATOR-PRIVATE.md` (sections 1 and 2 written;
+  3 in progress).
+- Next, each committed and pushed as it lands: `docs/calls.md`; the kit (desk refresh, red-team brief and tools, the
+  cost model, the runbook's lines and pointers); the system docs (Drive's next versions, guest-requests' lines,
+  docs-prune's stale lines); PRICING and PRD; then Questions, Deferred, the Handoff and the light gate.
