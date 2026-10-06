@@ -27,7 +27,9 @@
  * nothing here: the wire stays `(t, id)`, and a view that reads the night in order reads it
  * (`entryCaptureTime`). The contract's version does not move for it: no row carries a capture time
  * before the build that writes one, so no validator can stand for a manifest missing one it should
- * hold, and an older client reads the first six elements as it always did.
+ * hold. A duration is read wherever an entry ends (`entryDuration`); a host's tab from the build
+ * before read one only from a six-element entry, so left open across the deploy it shows a timed
+ * video without its length until it reloads, and nothing else changes for it.
  *
  * ★ ENTRIES ARE WRITE-ONCE PER ID. Geometry, type, the preview and `reel_eligible` are written once
  * at `create_media*`; only the status moves. So a guest's entry never changes while it is in the

@@ -166,9 +166,10 @@ it.
   place or device"). Each walk reads when the original says it was taken before it rewrites a byte (`captured`: a
   JPEG's or a HEIC's `DateTimeOriginal` with its `OffsetTimeOriginal`, a movie's QuickTime creation date else its
   header's, a WebM's `DateUTC`; a PNG's and a WebP's are never read), and the stored file keeps it, so a download and a
-  Save into Photos land on the right day: the minimal Exif is the orientation, `ExifVersion`, `DateTimeOriginal` and its
-  zone, only in the standard's shapes (a free-text field never survives as a date), and an MPF secondary keeps its
-  orientation alone; a movie whose QuickTime date goes with its metadata box has its header's creation time set to it
+  Save into Photos land on the right day: the minimal Exif is the orientation, `ExifVersion` and `DateTimeOriginal`, its
+  wall clock alone and only in the standard's shape (a free-text field never survives as a date; the zone is read for
+  the instant and never kept, since some zones are one country's alone), and an MPF secondary keeps its orientation
+  alone; a movie whose QuickTime date goes with its metadata box has its header's creation time set to it
   (an iPhone's export stamps the header with the moment it exported, measured on AVFoundation). The complete carries it
   as a claim (`captured_at`, never at presign), held on the server to 1990 and now plus a day (`media/capture-time.ts`,
   the bounds' one home: outside them, or malformed, it is none and the arrival stands, and it never refuses the file),

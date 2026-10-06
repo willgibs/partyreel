@@ -16,8 +16,8 @@
  * `DateTimeOriginal` with its `OffsetTimeOriginal`, an MP4's or a MOV's QuickTime creation date or movie-header
  * creation time, a WebM's `DateUTC`. What the instant is (a zone for a bare wall clock) and whether the server takes it
  * are `capture-time.ts`'s. The stored file keeps it too, so a download and a Save into Photos land on the right day: a
- * JPEG's and a HEIC's minimal Exif carry `DateTimeOriginal` and `OffsetTimeOriginal` beside the orientation, a video's
- * movie header was never touched, and a WebM's Info stays whole.
+ * JPEG's and a HEIC's minimal Exif carry `DateTimeOriginal` beside the orientation (the wall clock: its zone is read and
+ * never kept, `minimalTiff`), a movie's header says it, and a WebM's Info stays whole.
  *
  * Per-format policy (see each function for the WHY of every keep/drop):
  *   JPEG  - drop APP1 (Exif/XMP), APP13 (IPTC/Photoshop), COM, vendor APPn; keep APP0
@@ -535,14 +535,19 @@ function quietly<T>(read: () => T): T | null {
  * Orientation (26 bytes), or an empty IFD0 (14 bytes) when there is none. No sub-IFDs, no
  * GPS, no maker notes, no thumbnail. With a capture time (Will, 2026-10-05: keep it, never
  * the place or the device), IFD0 also points at an Exif IFD holding exactly `ExifVersion`
- * ("0232", so a reader takes the block as Exif), `DateTimeOriginal` and, when the camera
- * wrote one, `OffsetTimeOriginal`: 108 bytes at the most, every value word-aligned.
+ * ("0232", so a reader takes the block as Exif) and `DateTimeOriginal`: 88 bytes at the
+ * most, every value word-aligned.
+ *
+ * ★ THE ZONE IS READ, NEVER KEPT. `OffsetTimeOriginal` is how the claim knows the instant
+ * (read from the original, `tiffCaptureTime`), but in the stored file it would say roughly
+ * where: some offsets are one country's alone (Nepal's +05:45, Iran's +03:30). The bare
+ * wall clock still shows the day and the hour it was taken, wherever the file is opened.
  */
 function minimalTiff(
   orientation: number | null,
-  time: ExifTime | null = null,
+  wall: string | null = null,
 ): Uint8Array {
-  if (time) return minimalTiffWithTime(orientation, time);
+  if (wall) return minimalTiffWithTime(orientation, wall);
   if (orientation === null) {
     // prettier-ignore
     return new Uint8Array([
@@ -564,19 +569,18 @@ function minimalTiff(
 /**
  * `minimalTiff` with a capture time. Laid out, little-endian: the header; IFD0 (the Orientation when there is one,
  * then the Exif IFD pointer; tags ascending, as TIFF requires); the Exif IFD (`ExifVersion` inline, then
- * `DateTimeOriginal` and `OffsetTimeOriginal` by offset, their 20 and 7 bytes being past an entry's four); then the
- * two values, the zone padded to an even length. Same input, same bytes, so a second strip is a no-op.
+ * `DateTimeOriginal` by offset, its 20 bytes being past an entry's four); then the value. Same input, same bytes, so a
+ * second strip is a no-op.
  */
 function minimalTiffWithTime(
   orientation: number | null,
-  time: ExifTime,
+  wall: string,
 ): Uint8Array {
   const ifd0Count = orientation === null ? 1 : 2;
   const exifIfd = 8 + 2 + 12 * ifd0Count + 4;
-  const exifCount = time.offset === null ? 2 : 3;
+  const exifCount = 2;
   const wallAt = exifIfd + 2 + 12 * exifCount + 4;
-  const offsetAt = wallAt + 20;
-  const out = new Uint8Array(time.offset === null ? offsetAt : offsetAt + 8);
+  const out = new Uint8Array(wallAt + 20);
   const w16 = (o: number, v: number) => {
     out[o] = v & 0xff;
     out[o + 1] = (v >>> 8) & 0xff;
@@ -610,32 +614,26 @@ function minimalTiffWithTime(
   p += 12;
   entry(p, TAG_DATETIME_ORIGINAL, 2, 20); // ASCII, 19 characters and the NUL
   w32(p + 8, wallAt);
-  p += 12;
-  if (time.offset !== null) {
-    entry(p, TAG_OFFSET_TIME_ORIGINAL, 2, 7); // ASCII, 6 characters and the NUL
-    w32(p + 8, offsetAt);
-  }
-  out.set(asciiBytes(time.wall), wallAt);
-  if (time.offset !== null) out.set(asciiBytes(time.offset), offsetAt);
+  out.set(asciiBytes(wall), wallAt);
   return out;
 }
 
 /**
  * Overwrite an Exif block IN PLACE: `prefix` (whatever must lead it, e.g. "Exif\0\0"),
- * then a minimal TIFF keeping only the original's orientation and capture time, then zeros
- * to the original length - the GPS, device, serial and maker-note bytes are gone, the length
- * (which something else points past) is not. A block too small for the time keeps the
- * orientation alone; one that cannot even hold that is zeroed.
+ * then a minimal TIFF keeping only the original's orientation and capture time (its wall
+ * clock), then zeros to the original length - the GPS, device, serial and maker-note bytes
+ * are gone, the length (which something else points past) is not. A block too small for the
+ * time keeps the orientation alone; one that cannot even hold that is zeroed.
  */
 function blankExifBlock(
   length: number,
   prefix: readonly number[],
   orientation: number | null,
-  time: ExifTime | null = null,
+  wall: string | null = null,
 ): Uint8Array {
   const out = new Uint8Array(length);
   for (const tiff of [
-    minimalTiff(orientation, time),
+    minimalTiff(orientation, wall),
     minimalTiff(orientation),
     minimalTiff(null),
   ]) {
@@ -722,13 +720,13 @@ const MPF_FOURCC = [0x4d, 0x50, 0x46, 0x00];
 /**
  * Build the minimal replacement APP1 Exif: FFE1, its length (covering the length bytes themselves), "Exif\0\0", then
  * the minimal TIFF (`minimalTiff`): the Orientation alone is 36 bytes in all, as it always was, and the capture time
- * beside it at most 118.
+ * beside it at most 98.
  */
 function minimalExifSegment(
   orientation: number | null,
-  time: ExifTime | null,
+  wall: string | null,
 ): Uint8Array {
-  const tiff = minimalTiff(orientation, time);
+  const tiff = minimalTiff(orientation, wall);
   const length = 2 + EXIF_HEADER.length + tiff.length;
   return Uint8Array.from([
     0xff,
@@ -826,7 +824,11 @@ function stripJpeg(bytes: Uint8Array): StripBytesResult {
   // time. With neither, emitting no Exif at all is byte-cheaper and equally correct.
   const kept = orientation !== null && orientation !== 1 ? orientation : null;
   if ((kept !== null || time) && exifInsertIndex >= 0) {
-    parts.splice(exifInsertIndex, 0, minimalExifSegment(kept, time));
+    parts.splice(
+      exifInsertIndex,
+      0,
+      minimalExifSegment(kept, time?.wall ?? null),
+    );
   }
   // The capture time is the original's word whatever happens to the strip below.
   const captured = wallStamp(time);
@@ -2194,7 +2196,7 @@ function* planHeifItems(
         data.length,
         EXIF_ITEM_PREFIX,
         tiff ? tiffOrientation(tiff) : null,
-        time,
+        time?.wall ?? null,
       );
     } else {
       const xmpGps = XMP_GPS_NEEDLES.some((n) => findBytes(data, n));

@@ -10,7 +10,9 @@
  *  - THE WORD, on the server (`acceptCaptureTime`): the client's word is a claim. One after the server's now plus a
  *    day, or before 1990, is dropped and the arrival stands (Q2), as is one that is no instant at all; a capture time
  *    is a nicety, so it never refuses an upload. Inside the bounds it is the uploader's word: a lie there reads like a
- *    truth, so the bounds stop the absurd (an album's head or foot held for ever by 1970 or 2099), never a near one.
+ *    truth, so the bounds stop the absurd (1970, 2099), never a near one, and a claim from 1990 on can still lead the
+ *    night in order. Keeping a time outside the album's own days at its edge is that view's to decide, never these
+ *    bounds': a vacation album made afterwards and a throwback both carry true times outside them.
  *
  * Pure and isomorphic: the uploader, the complete routes and the tests import it.
  */

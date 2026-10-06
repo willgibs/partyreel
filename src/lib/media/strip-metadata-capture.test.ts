@@ -7,7 +7,8 @@
  *  - imageio-capture.jpg / .heic: Apple's ImageIO, orientation 6, the time three ways (DateTimeOriginal 21:14:05 with
  *    OffsetTimeOriginal -04:00 and sub-seconds 123, DateTimeDigitized 21:14:06, the TIFF modify time 21:20:00), GPS,
  *    make, model, software, lens and body serial. ImageIO itself reads back, after the strip, the orientation,
- *    ExifVersion, DateTimeOriginal and OffsetTimeOriginal and nothing else, with identical pixels (the lane's Handoff).
+ *    ExifVersion and DateTimeOriginal and nothing else (the zone read for the instant, never kept), with identical
+ *    pixels (the lane's Handoff).
  *  - avfoundation-capture.mov: Apple's AVFoundation, an iPhone's shape: moov-level QuickTime metadata (the creation date
  *    2026-10-03T21:14:05-0400, location, make, model, software) and a movie header AVFoundation stamped with the moment
  *    it WROTE the file (measured: the write time, not the capture).
@@ -271,20 +272,22 @@ describe("JPEG: an ImageIO photograph's capture time", () => {
     });
   });
 
-  it("★ keeps exactly the orientation, ExifVersion, DateTimeOriginal and OffsetTimeOriginal: never the place or the device", async () => {
+  it("★ keeps exactly the orientation, ExifVersion and DateTimeOriginal: never the place, the zone or the device", async () => {
     const res = await stripMetadataBytes(input, "image/jpeg");
     expect(kept(res.data)).toEqual({
       le: true,
       ifd0: [0x0112, 0x8769],
-      exif: [0x9000, 0x9003, 0x9011],
+      exif: [0x9000, 0x9003],
       orientation: 6,
       wall: "2026:10:03 21:14:05",
-      offset: "-04:00",
+      offset: null,
       version: "0232",
     });
     expect(hasGpsMetadata(res.data, "image/jpeg")).toBe(false);
-    // Not the device, not the other two times, not the sub-second.
+    // Not the zone (read for the instant, never kept: some zones are one country's alone), not the device, not the
+    // other two times, not the sub-second.
     for (const n of [
+      "-04:00",
       "iPhone 15 Pro",
       "SERIAL-PARTYREEL-TEST",
       "Apple",
@@ -294,9 +297,9 @@ describe("JPEG: an ImageIO photograph's capture time", () => {
     ]) {
       expect(indexOf(res.data, n), n).toBe(-1);
     }
-    // One APP1, 118 bytes from its marker: the most the minimal Exif ever is.
+    // One APP1, 98 bytes from its marker: the most the minimal Exif ever is.
     const app1 = indexOf(res.data, [0xff, 0xe1]);
-    expect((res.data[app1 + 2] << 8) | res.data[app1 + 3]).toBe(116);
+    expect((res.data[app1 + 2] << 8) | res.data[app1 + 3]).toBe(96);
     expect(indexOf(res.data, [0xff, 0xe1], app1 + 2)).toBe(-1);
   });
 
@@ -309,7 +312,12 @@ describe("JPEG: an ImageIO photograph's capture time", () => {
     );
     const twice = await stripMetadataBytes(once.data, "image/jpeg");
     expect(twice.changed).toBe(false);
-    expect(twice.captured).toEqual(once.captured);
+    // The stored file says the wall clock alone.
+    expect(twice.captured).toEqual({
+      kind: "wall",
+      wall: "2026:10:03 21:14:05",
+      offset: null,
+    });
   });
 
   it("says the same from a File (the browser's path)", async () => {
@@ -367,23 +375,35 @@ describe("JPEG: only a real time is ever copied", () => {
   const strip = async (t: number[] | null) =>
     stripMetadataBytes(jpegWith(t), "image/jpeg");
 
-  it("★ copies a time and its zone, and drops the device beside them in the same IFD", async () => {
+  it("★ copies the time, reads its zone for the instant without keeping it, and drops the device beside them", async () => {
     const res = await strip(
       tiff(
         [ORIENT(8), MAKE, MODEL],
-        [DTO("2026:10:03 21:14:05"), OTO("+02:00"), SUBSEC, SERIAL, LENS],
+        [DTO("2026:10:03 21:14:05"), OTO("+05:45"), SUBSEC, SERIAL, LENS],
       ),
     );
+    expect(res.captured).toEqual({
+      kind: "wall",
+      wall: "2026:10:03 21:14:05",
+      offset: "+05:45",
+    });
     expect(kept(res.data)).toEqual({
       le: true,
       ifd0: [0x0112, 0x8769],
-      exif: [0x9000, 0x9003, 0x9011],
+      exif: [0x9000, 0x9003],
       orientation: 8,
       wall: "2026:10:03 21:14:05",
-      offset: "+02:00",
+      offset: null,
       version: "0232",
     });
-    for (const n of ["Yolophone", "Yolo 12", "SN-00042", "Yolo wide"]) {
+    // Nepal's zone, one country's alone, never reaches the stored file; nor does the device.
+    for (const n of [
+      "+05:45",
+      "Yolophone",
+      "Yolo 12",
+      "SN-00042",
+      "Yolo wide",
+    ]) {
       expect(indexOf(res.data, n), n).toBe(-1);
     }
   });
@@ -445,7 +465,8 @@ describe("JPEG: only a real time is ever copied", () => {
     expect(kept(res.data)).toMatchObject({
       le: true,
       orientation: 3,
-      offset: "-07:00",
+      wall: "2026:10:03 21:14:05",
+      offset: null,
     });
   });
 
@@ -475,7 +496,7 @@ describe("JPEG: only a real time is ever copied", () => {
       const once = await strip(t);
       const twice = await stripMetadataBytes(once.data, "image/jpeg");
       expect(twice.changed).toBe(false);
-      expect(twice.captured).toEqual(once.captured);
+      expect(twice.captured).toMatchObject({ wall: "2026:10:03 21:14:05" });
     }
   });
 });
@@ -526,7 +547,7 @@ describe("PNG and WebP: never read (screenshots and web images; their Exif goes 
 describe("HEIC: an ImageIO photograph's capture time", () => {
   const input = fixture("imageio-capture.heic");
 
-  it("★ reads the time with its zone, keeps it in the Exif item, and moves nothing", async () => {
+  it("★ reads the time with its zone, keeps its wall clock in the Exif item (never the zone), and moves nothing", async () => {
     const res = await stripMetadataBytes(input, "image/heic");
     expect(res.stripped).toBe(true);
     expect(res.data.length).toBe(input.length);
@@ -536,7 +557,7 @@ describe("HEIC: an ImageIO photograph's capture time", () => {
       offset: "-04:00",
     });
     expect(count(res.data, "2026:10:03 21:14:05")).toBe(1);
-    expect(indexOf(res.data, "-04:00")).toBeGreaterThan(-1);
+    expect(indexOf(res.data, "-04:00")).toBe(-1);
     expect(indexOf(res.data, "0232")).toBeGreaterThan(-1);
     expect(hasGpsMetadata(res.data, "image/heic")).toBe(false);
     for (const n of [
@@ -554,7 +575,11 @@ describe("HEIC: an ImageIO photograph's capture time", () => {
     const once = await stripMetadataBytes(input, "image/heic");
     const twice = await stripMetadataBytes(once.data, "image/heic");
     expect(twice.changed).toBe(false);
-    expect(twice.captured).toEqual(once.captured);
+    expect(twice.captured).toEqual({
+      kind: "wall",
+      wall: "2026:10:03 21:14:05",
+      offset: null,
+    });
     const viaFile = await stripFileMetadata(
       asFile(input, "IMG_0002.HEIC", "image/heic"),
     );

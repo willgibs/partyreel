@@ -65,11 +65,13 @@ working.
   bounds stop only the absurd (an album's head or foot held for ever by 1970 or 2099). Pinning a time outside the
   album's own days to its edge would be album-order's presentation (a board idea below).
 - **Q3 What the stored photograph keeps.** Will's word: the capture time, never the place or the device. Recommended,
-  built: the minimal Exif a JPEG and a HEIC keep is the orientation (as before), `DateTimeOriginal`,
-  `OffsetTimeOriginal` when the camera wrote one, and `ExifVersion` (so a reader takes the block as Exif); never the
-  sub-second, the modify or digitize times, GPS, make, model, lens or serial. The zone offset rides with the time: it
-  names a band of the globe, never a place, and it is what lets Photos put the photo on the right day. An MPF
-  secondary image (a gain map, a large thumbnail) keeps orientation only, as before.
+  built: the minimal Exif a JPEG and a HEIC keep is the orientation (as before), `DateTimeOriginal` (the wall clock)
+  and `ExifVersion` (so a reader takes the block as Exif); never the sub-second, the modify or digitize times, GPS,
+  make, model, lens or serial, and never the zone: `OffsetTimeOriginal` is read so the claim knows the instant, but in
+  the file it would say roughly where (some offsets are one country's alone: Nepal's +05:45, Iran's +03:30; the
+  fresh-eyes review's catch), and the bare wall clock still shows the day and hour it was taken wherever it is opened.
+  An MPF secondary image (a gain map, a large thumbnail) keeps orientation only, as before. Overrule to keep the zone
+  in the file (one line in `minimalTiff`).
 - **Q4 A video's time.** Recommended, built: QuickTime's `com.apple.quicktime.creationdate` where a file carries it
   (an iPhone's: the capture's start, with its zone), else the movie header's creation time (`mvhd`, UTC; zero means
   none); a WebM's `DateUTC`; nothing else is read. The Apple key still goes with the metadata box it lives in (beside
@@ -79,8 +81,10 @@ working.
   is untouched, as before.
 - **Q5 The wire.** Recommended, built: a seventh element on a manifest entry, the capture time in microseconds like
   `t` (a video's duration, or null, before it); the contract's version stays `a1`, since no row carries a capture time
-  before the build that writes one, so no validator can answer 304 for a manifest that lacks one it should hold; an
-  older tab ignores the element. Measured bytes in the Handoff.
+  before the build that writes one, so no validator can answer 304 for a manifest that lacks one it should hold. A host
+  tab from the build before, left open across the deploy, shows a timed video without its length until it reloads (it
+  read a duration only from a six-element entry); bumping the version to force reloads costs every open album a full
+  manifest for that. Measured bytes in the Handoff.
 - **Q6 The reads that feed the wire sit outside the owns.** The manifest's two reads (`album-guest.ts`,
   `album-host.ts`), the delta's parser (`album-sync.ts`), the host's column list (`media.ts`'s `MEDIA_HOST_COLUMNS`,
   pinned to her SELECT grant), the lease's mapper (`queries/drive.ts`), the hub's duration read (`hub-album.ts`, which
