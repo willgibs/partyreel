@@ -71,8 +71,8 @@ project and its env; the backup Worker and Action secrets; the prune crons and `
 
 ## Waiting on Will
 
-- His desk (brand r2's take; event-header r6 at the next refresh); milestone 38's yes after its last lanes and
-  red-team 56b; the calls lab's open questions (X1 the develop time, X2 a Vercel token for the limits watch, X3 a
+- His desk (brand r2's take; event-header r6 at the next refresh); a browser for cloud walks (red-team 56b waits on
+  it); milestone 38's yes after its last lanes and red-team 56b; the calls lab's open questions (X1 the develop time, X2 a Vercel token for the limits watch, X3 a
   Cloudflare analytics token, X5 the CDN-cached album, X6 the operator's uploads credit, X8 the policy tests' style
   picks) and the calls built for him to overrule; a Cloudflare token in the cloud environment if the Workers should
   deploy from there; the two backup copies with old EXIF to delete and the six retired Stripe price names to drop;
