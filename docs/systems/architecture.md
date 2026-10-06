@@ -88,8 +88,11 @@ multiplied by every lit phone in the room.
   ≈2.4M. Three fifths are lit albums answering other guests' uploads (a burst of ten costs every lit album ≈10 calls,
   one a sync), a fifth uploads (≈4.6 calls a photo); a guest's join is ≈5 calls and a returning load 3. A lit album's
   net is one call a poll, ≈19 in its first lit hour and none after two untouched ones. The guest page is the dearest
-  call (≈250 to 420 ms of local CPU over a 1,000-photo album); a quiet poll is ≈17 to 26 ms (more when it opens a
-  fresh connection after a rest).
+  call (≈250 to 420 ms of local CPU over a 1,000-photo album); a quiet poll is ≈17 to 26 ms (more when it opens a fresh
+  connection after a rest).
+- **The guest API stays on Vercel until about 1,000 events a month** (the compute model's lever 6): a Worker would take
+  most of what a wedding still spends (Workers Paid is $5 a month for 10M requests and 30M CPU-ms), but it re-homes the
+  capability and RLS checks in a second runtime, weeks of work and hard to undo.
 
 ## Host-page hydration
 
