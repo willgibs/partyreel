@@ -370,7 +370,7 @@ describe("the album's one rule: said before anything waits, then the sheet's clo
 /* ★ THE CLOCK NEVER BREAKS INSIDE A PHRASE (crumbs-61, red-team 48's NIT). At a phone's 375 with tomorrow's clock the footer
    wrapped "Yours · 3" over two lines and "All at once tomorrow at 9 am · in 17 h 5 min" mid-phrase ("in 17 h 5" over
    "min"); the desk's side column broke "in 16 h" from "16 min" the same way. jsdom lays nothing out, so what is pinned is
-   the mechanism the capture proves at 375 (`_scratch/crumbs-61/cap-4-*.jpg`): her count is one unbreakable run, the
+   the mechanism a capture at 375 proved: her count is one unbreakable run, the
    clock's two phrases are unbreakable runs, the footer lets the clock take a row of its own, and the narrow side column
    stacks the phrases as two lines. */
 describe("★ the sheet's clock breaks at its phrases, never inside one", () => {
@@ -446,7 +446,9 @@ describe("★ the sheet's clock breaks at its phrases, never inside one", () => 
       ),
     ).toEqual(["All at once tomorrow at 9 am", "in 17 h 5 min"]);
     // The words still read as one sentence to anything that reads the text.
-    expect(clock.textContent).toBe("All at once tomorrow at 9 am in 17 h 5 min");
+    expect(clock.textContent).toBe(
+      "All at once tomorrow at 9 am in 17 h 5 min",
+    );
   });
 
   it("what a screen reader hears is the sheet's own sentence, the dot kept, once", () => {
