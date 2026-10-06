@@ -1,6 +1,6 @@
 ---
 track: credit-watch
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "0ff67f0a"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -43,45 +43,115 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **A claim another checkout's credit overtook: settled, or left to read stuck?** Recommended and built: settled for
+  good (`released_at`, `release_pass_credit`), its dead holder's lost grant looked for on Stripe's side first and put
+  on record beside it when found ("granted twice", a duplicate that credits nothing and is reversed in Stripe). Beyond
+  the five items: without it the watch's only false alarm reads stuck forever and hides a double grant. Overrule:
+  drop the column and the function, and such claims read stuck.
+- **★ The busy rule's own double grant (the red-team's HIGH): closed at its source, or undo the rule?** Answering
+  another checkout's lease `busy` lets that checkout's retry claim past a lease that lapsed and grant, while the dead
+  holder may have granted on Stripe with its record lost. Recommended and built: the claim names the `orphans` it is
+  taken past and the route looks for every orphan's grant (each orphan's checkout read from Stripe for its customer and
+  its time) before granting, adopting what it finds; and it never calls Stripe with under three minutes of lease
+  left. Overrule (the red-team's other option): overlap again against a live lease, item 1 undone, the stuck first
+  tab left to the operator's Retry.
+- **How long before a credit reads stuck?** Recommended and built: an hour at either step (claimed with no grant and
+  no live lease; granted and never converted). The manifest named the hour for the first; a grant converts
+  milliseconds after it lands, so the same hour bounds the second.
+- **The fix beside a stuck credit: an /admin control, or Stripe's event resend?** Recommended and built: Retry on her
+  account's page (`retryPassCreditAsOperatorAction`, AAL2, audited in Sentry): the session read from Stripe and run
+  through the webhook's own path, so the claim keeps it once ever whichever runs first (CLAUDE.md: every operator fix
+  ships its control). Overrule: the page only says it, and the operator resends the event from Stripe.
+- **Where the change-plan configuration check lives.** Recommended and built: on /admin/accounts, read live on each
+  view and streamed (Stripe's half second never holds the list; it says "Asking Stripe…"), quiet when whole, naming
+  each missing price, No reading when it could not run. It rings no bell (a daily run is Deferred). Overrule: a daily
+  job instead.
+- **Credits only Stripe can settle (two credits for one set of passes).** Recommended and built: listed on the
+  Accounts check for 30 days after they happen, never counted as owed (nothing records the reversal), beside the
+  existing Sentry warning.
+- **The recompute's seconds.** Recommended and built: `skipped_pro_pending`, its own answer (the sweep tallies
+  `pro_pending`), the hour in real time, never the sweep's instant; only with no live window and a pass converted to
+  Pro credit while it still had time.
+- **The `pass_credit` signal's three numbers.** Recommended and built: honoured = credits converted in the day that
+  converted any pass; failed = failures while honouring a credit (`recordSignalFailure`, throttled, beside Sentry); owed
+  = stuck credits (Needs a look).
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/billing-caps.md`: the credit bullet (the lease rule, the orphans, the settled overlap, a released
+  grant no credit, the lease's end never granted past); a new bullet, a stuck credit with its fix beside it (the hour,
+  the list, the 30 days of credits to settle in Stripe, Retry, the signal); the change-plan configuration check; in "The
+  webhook", the recompute's Pro-pending skip and `expired_passes`' live-or-ahead candidates.
+- `docs/systems/admin-observability.md` (an exception, below): one sentence in Accounts pointing at the billing checks
+  and the credits card.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: Admin: the change-plan configuration check rings no bell; read it in the spend watch's daily run and raise at
+  its source (it is read live on each /admin/accounts view today; credit-watch).
+- Now: Pricing: harden the credit's orphan path: adopting an orphan's grant (record, convert, this claim's release) as
+  one transaction, so a failure between them never leaves the orphan granted and unconverted until its own retry or the
+  operator's Retry, and `record_pass_credit_grant` refusing a released claim (unreachable today); the stuck watch
+  covers both (credit-watch's second red-team pass).
+- Now: Library: draw the Accounts' billing checks and the account page's credits card on the compositions page, the
+  portal's one automated eye (AAL2 keeps `lab:smoke` off /admin; credit-watch).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
-
-## Where I am
-
-- Done and pushed: `42f3ac00d` (the five items: the claim's busy rule and settled overlap, the stuck credits on
-  /admin/accounts with Retry and the `pass_credit` signal, the recompute's Pro-pending skip, the sweep's live-or-ahead
-  candidates, the change-plan configuration check), `e13380c01` (billing-caps.md, one pointer line in
-  admin-observability.md), `927db4ce3` (the configuration check streams; each stuck half one request). Gates green on
-  `927db4ce3`: typecheck, lint, test (1014 files, 12,575 tests); lab:smoke 149/0 on `42f3ac00d`; the rolled-back proof
-  RED 0/5, GREEN 5/5 and the pre-flight's five lock races on the SQL as of `42f3ac00d`.
-- Mid-flight (on disk, uncommitted): a fresh-eyes red-team found a HIGH: the busy rule widens a double grant when a dead
-  holder's grant reached Stripe but its record was lost (the other tab's retry claims past the lapsed lease and grants
-  without looking). Fixing at the source: the claim names the orphans it is taken past (other checkouts' lapsed,
-  ungranted, unreleased claims on its passes) and the route looks on Stripe's side for their grants before granting
-  (found: record and convert that checkout's, release this one; none: grant, then release the orphans). The migration
-  is edited for it (orphans; released grants kept out of the overlap; the release's lease refusal dropped).
-- Next: the TS for the orphans (`parseClaim`, `honorPassCredit`, a `findGrants` over several sessions), the webhook and
-  SQL-facts tests, the MEDIUM (credited-twice claims on the Accounts check, 30 days), the LOWs (the delivery's credited
-  flag cleared after the credit, honoured excludes a conversion of none, the released words, the header's
-  before-apply line), then the rolled-back proof and pre-flight again (new hashes), the whole gate, and this manifest's
-  Questions, Deferred and Handoff.
+- **Commits, pushed:** work `42f3ac00d` (the five items), `e13380c01` (the docs), `927db4ce3` (the configuration line
+  streams; one request a stuck half), `a90f6f7fe` (the first red-team pass), `678eb2415` (the second), with
+  `0c5d48527` the checkpoint for the 5-hour cut; sync `4eb161d88` (a merge of launch-prep: database-security.md, a
+  read, gained one line on proving a changed signature, no fact this lane leans on; `git merge-tree` was clean). The
+  head is the manifest's commit in the chat line.
+- **Gates on the synced tree `4eb161d88`, each its own exit code:** `pnpm typecheck` 0; `pnpm lint` 0; `pnpm test` 0
+  (1,027 files, 12,824 tests); `zsh scripts/build-lock.sh pnpm build` 0; `pnpm lab:smoke --base http://localhost:3138`
+  0 (165 checks, 0 failing). Logs: `../partyreel-wt/_scratch/credit-watch/{lint-sync,test-sync,build-sync,lab-smoke-sync}.log`.
+- **The SQL, proved:** `supabase/migrations/20261005201000_credit_watch.sql`'s foot: the drift read clean (claim
+  `afa5c7af…`, recompute `906c4891…`, the column and the function absent); the rolled-back proof RED 0/5 (the hole
+  itself: tab 2 answered `overlap` against a live lease; the seconds: the pending host moved to Free) and GREEN 5/5 on
+  the last revision (bodies `608bb620…`, `daf8070c…`, `9c55581c…`), nothing persisted; the pre-flight on a throwaway
+  Postgres 17 cluster applies it verbatim, the two restated bodies' diffs exactly their blocks, ACLs the service role's,
+  five two-session lock runs serialized with no deadlock (★ the conversion of her last live pass holding her row, the
+  recompute waits and answers `skipped_pro_pending`).
+- **Old-code proofs:** the new webhook and sweep cases on the pre-lane `route.ts`, `pass-credit.ts` and `passes.ts`:
+  12 fail (the lease rule's 409, the settled overlap, the signal's failure, the live-or-ahead candidates);
+  `passes-credit-migration.test.ts`' new facts fail on billing-integrity's bodies; the double-grant case fails on the
+  pre-fix credit path (a second balance granted).
+- **Live, local:** the configuration check through the real module against Stripe TEST (`livemode` false): whole (the
+  tagged `bpc_1UIhoo…` lists all six), `missing` naming pro_50 when its env points at a retired price, `unread` naming
+  pro_1tb_yr when its env is unset (`_scratch/credit-watch/portal-check-live.txt`), about 0.4 to 0.8 s a check; the
+  stuck filters' and the page-and-count grammar against the real PostgREST: 200s, and `released_at`'s 400 before the
+  apply (`postgrest-live.txt`); the admin pages compile (signed out, the portal's 404).
+- **Red-team:** two fresh-eyes passes on the money path; the first's HIGH (the busy rule's double grant), MEDIUM
+  (credits to settle unseen) and LOWs, and the second's LOWs (every orphan adopted, its customer and Stripe's clock,
+  the lease's end, the warning on what was recorded) are built; the second's MEDIUM (a failure mid-adoption) and one
+  unreachable LOW are Deferred.
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = the owned paths and this file, with these
+  exceptions: the `pass_credit` signal's homes, which the goal names and no open lane owns
+  (`src/app/admin/jobs/{catalog,catalog.test,owed-words,owed-words.test}.ts`, `src/app/admin/jobs/page.tsx`'s label,
+  `src/lib/db/queries/jobs.ts` and `jobs.test.ts`'s fixtures); a new reads file for the claims, since `src/lib/db/*` is
+  all DB access (`src/lib/db/queries/pass-credits.ts` and its test); the owned mutation's own test
+  (`src/lib/db/mutations/event-passes.test.ts`); three mocks in `src/app/admin/record-not-found.test.tsx` for the account
+  page's new server-only imports; one pointer sentence in `docs/systems/admin-observability.md`.
+- **Items:** (1) a leased claim never refuses for good: another checkout's live lease is `busy` (409 in its own words),
+  overlap only against a converted pass or an unreleased grant, the orphans looked for before any grant; (2) a stuck
+  credit shows on /admin/accounts (with its account) and the account's page (with Retry), and as the `pass_credit`
+  signal on /admin/jobs; credits only Stripe can settle are listed for 30 days; (3) the recompute answers
+  `skipped_pro_pending` inside the hour after a credited conversion; (4) `expired_passes` reads only owners of a pass
+  live or ahead, plus the labels; (5) /admin/accounts checks the tagged change-plan configuration against the six Pro
+  prices, streamed.
+- **Assets requested from Will:** none.
+- **Board ideas:** the host's own words for Pro pending: today her Plan card reads a lapsed pass while her credited
+  Pro plan lands (seconds, or longer when its event is delayed); a line that her Pro is on its way, and what to do if
+  it never lands.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** apply `20261005201000_credit_watch.sql` with this
+  lane's merge, before launch-prep's next build (its header's protocol; `get_advisors` unchanged, 26 / 4 / 36), since
+  this build's operator reads select `released_at` and the route calls `release_pass_credit`; then regenerate
+  `src/lib/db/types.ts`, which drops the two typed seams (`creditDb` in `src/lib/db/mutations/event-passes.ts` and in
+  `src/lib/db/queries/pass-credits.ts`). database-security.md (a read of mine): its service-role-only list gains
+  `release_pass_credit` beside the credit's three. No Worker, Vercel, Stripe or env change.
+- **Calls his to overrule:** the settled overlap; the orphans over undoing the busy rule; the hour at both steps; Retry
+  as the fix; the configuration check on Accounts with no bell; 30 days of credits to settle; `skipped_pro_pending` as
+  its own answer; the signal's three numbers (each a Question above).
+- **Look at first:** the Accounts list's two billing checks and an account's credits card at AAL2 on Will's desk (port
+  3000) after the apply: no automated eye reaches /admin (`lab:smoke` stops at the portal; RTL renders each state).
