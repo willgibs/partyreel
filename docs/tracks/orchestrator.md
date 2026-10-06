@@ -112,6 +112,10 @@ local agents' transcripts.
 - **The calls lab** (`docs/calls.md`): the open questions X1, X2, X3, X5, X6 and X8, then each merge's calls, built and
   his to overrule. He asks direct questions in chat; answer in chat, never only in a file.
 - **Milestone 38** on his yes, after billing-orphans, drive-crumbs and red-team 56b.
+- **A browser in a cloud lane:** headless Chrome as root needs `--no-sandbox`, and a lane's own permission check
+  sometimes refuses the spawn prompt's wrapper for it (red-team 56b at 11:11Z, crumbs-85's first boot; event-header-r6
+  and lab-kit-3 ran theirs). A refused step is never worked around: its walk reads NOT DRIVEN. His call: a permission
+  rule in the environment's settings that allows it, or browser walks stay on his Mac's desk.
 - **A Cloudflare API token** in the environment (`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`), only if the
   Workers should deploy from the cloud.
 - **The private note** scratch-synthesis wrote for this seat on his Mac (`CLOUD-ORCHESTRATOR-PRIVATE.md`): uploaded
