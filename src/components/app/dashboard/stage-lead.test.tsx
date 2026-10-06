@@ -217,13 +217,18 @@ describe("choosing", () => {
     expect(band().closest("[inert]")).toBeNull();
   });
 
-  it("turns back with nothing changed when the rule she presses is the one she keeps", async () => {
+  it("★ says the press of the rule she keeps too, and turns back: whether it owes a write is the page's to decide", async () => {
+    // RESHAPED ON PURPOSE (crumbs-82's review): it once said nothing for the kept rule, so after a refused keep, whose toast
+    // says "try again", pressing the same row again was a no-op. The page now owns "nothing changed, nothing owed".
     const user = userEvent.setup();
     const { onRule } = lead();
     await user.click(phrase());
     await user.click(named("Your newest"));
-    expect(onRule).not.toHaveBeenCalled();
+    expect(onRule).toHaveBeenCalledTimes(1);
+    expect(onRule).toHaveBeenCalledWith("newest");
     expect(screen.queryByRole("menu")).toBeNull();
+    // Nothing moved: it is the same event, so the stage does not arrive afresh.
+    expect(band().classList.contains("sl-swap")).toBe(false);
   });
 
   it("keeps the rule for Enter and Space on a row, as a press does", async () => {

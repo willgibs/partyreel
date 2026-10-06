@@ -36,9 +36,12 @@ header holds its rule), the page only reads, and the composition is `components/
     `leading` (each rule's event and words, the stage of each other event a rule would lead with, the drawn lead's own
     row and week card, the week's order), `home-body.tsx` recomposes with `pageAround`, held by test to the page
     `buildHomeView` draws for the same rule (every drawn rule against every pressed one), and the Recent row follows.
-    The rule is kept after, in a transition (`setLeadRuleAction`; a failure toasts and leaves her choice on screen), and
-    a tab remembers it by account for Back (`remembered`, as her layout does). An event a press leads with arrives
-    without its guest count (the page reads the stage's own alone) and asks `readStageGuestsAction` once, after its day.
+    The rule is kept after, in a transition (`setLeadRuleAction`; a failure toasts and leaves her choice on screen, and
+    pressing that rule again writes again: `unsaved`), and a tab remembers it by account for Back (`remembered`, as her
+    layout does, and never aged: another device's later choice shows after a reload). Until she presses one in a tab the
+    page follows the rule the server drew for. An event a press leads with arrives without its guest count (the page reads
+    the stage's own alone) and asks `readStageGuestsAction` once, after its day. Her events' order is total over distinct
+    rows (`display.ts`: ties fall to the newest made, then the id), so a recomposed list and the server's agree in order.
   - **With no photograph yet it is lit by the event's own lamp** (`stage-lit.tsx`): one of the five `--lamp-*`, picked
     by its id and never changing (`lampOf`), only ever as light in a gradient (the set is not in `@theme`), fuller from
     the week before its first day through its last (`lampNear`), the code on its plate (the code card, 176 px) and
@@ -77,7 +80,9 @@ header holds its rule), the page only reads, and the composition is `components/
     `setEventsDisplayAction` writes her own row and revalidates nothing; the page resolves them before the first byte.
     Recent's fold is kept with them but is never a menu choice (no badge, no Reset). ★ So is her stage's rule, under the
     key `lead` (only when it is not Newest): the menu's write reads it back and keeps it, and `setLeadRuleAction`, which
-    refuses anything but the four rules, is its one writer.
+    refuses anything but the four rules, is its one writer. Both are read-then-write on one jsonb (Next runs a tab's
+    actions in turn), so two devices writing within a round trip keep the later write whole: a lost update can only
+    drop one choice.
   - ★ **Back restores the page from the client's router cache, drawn from before her last choice** (read in a browser:
     the same render stamp, the layout reset), so the section remembers the tab's last choice, and a search for ten
     minutes, by account (`remembered`): the server's copy alone would revert a layout she chose the moment she pressed

@@ -88,6 +88,8 @@ export function HomeBody({
   // followed, never held to the rule this component first met.
   const [chosen, setChosen] = useState<RuleId | null>(() => recall(owner));
   const rule = chosen ?? leading?.rule ?? DEFAULT_RULE;
+  // Her last press was refused by the account: what is on screen is not kept, so pressing it again is a retry.
+  const [unsaved, setUnsaved] = useState(false);
   const [guestsOf, setGuestsOf] = useState<Record<string, number>>({});
 
   const around = useMemo(
@@ -128,15 +130,22 @@ export function HomeBody({
       });
   }, [askFor]);
 
-  /** Moves the stage at once, and keeps the rule for her account beside it. */
+  /**
+   * Moves the stage at once, and keeps the rule for her account beside it. ★ A REFUSED KEEP CAN BE TRIED AGAIN: the toast
+   * says "try again" and what she chose stays on screen, so pressing that same rule again must write again; it writes
+   * nothing only while nothing is owed (the rule she keeps, saved).
+   */
   function keep(next: RuleId) {
+    if (next === rule && !unsaved) return;
     setChosen(next);
     remembered = { owner, rule: next };
     startTransition(async () => {
       try {
         const answer = await setLeadRuleAction(next);
+        setUnsaved(!answer.ok);
         if (!answer.ok) toast.error(answer.message, { id: "lead-rule" });
       } catch {
+        setUnsaved(true);
         toast.error("Couldn't keep that for your account. Please try again.", {
           id: "lead-rule",
         });

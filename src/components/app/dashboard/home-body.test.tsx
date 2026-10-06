@@ -340,6 +340,48 @@ describe("keeping the rule for her account", () => {
     expect(stage()).toBe("The Okafor wedding");
   });
 
+  it("★ lets her try again: pressing the rule that was refused writes again, and a kept one writes nothing", async () => {
+    const user = userEvent.setup();
+    actions.setLeadRuleAction.mockResolvedValueOnce({
+      ok: false,
+      message: "Couldn't keep that for your account. Please try again.",
+    });
+    page();
+    await chooseRule(user, "opened");
+    await waitFor(() => expect(toast.error).toHaveBeenCalledTimes(1));
+    expect(actions.setLeadRuleAction).toHaveBeenCalledTimes(1);
+    expect(stage()).toBe("The Okafor wedding");
+    // The toast said to try again: the same row pressed again is that, though it is the rule on screen.
+    await chooseRule(user, "opened");
+    await waitFor(() =>
+      expect(actions.setLeadRuleAction).toHaveBeenCalledTimes(2),
+    );
+    expect(actions.setLeadRuleAction).toHaveBeenLastCalledWith("opened");
+    // It landed: the rule is kept, so pressing it once more owes nothing.
+    await chooseRule(user, "opened");
+    expect(actions.setLeadRuleAction).toHaveBeenCalledTimes(2);
+    expect(toast.error).toHaveBeenCalledTimes(1);
+  });
+
+  it("owes the account the last press only: a refused rule she then replaced is not retried", async () => {
+    const user = userEvent.setup();
+    actions.setLeadRuleAction.mockResolvedValueOnce({
+      ok: false,
+      message: "no",
+    });
+    page();
+    await chooseRule(user, "opened");
+    await waitFor(() => expect(toast.error).toHaveBeenCalledTimes(1));
+    await chooseRule(user, "photos");
+    await waitFor(() =>
+      expect(actions.setLeadRuleAction).toHaveBeenCalledTimes(2),
+    );
+    expect(actions.setLeadRuleAction).toHaveBeenLastCalledWith("photos");
+    // Photos landed, so it is kept and nothing is owed any more.
+    await chooseRule(user, "photos");
+    expect(actions.setLeadRuleAction).toHaveBeenCalledTimes(2);
+  });
+
   it("says a dropped line in the same words", async () => {
     const user = userEvent.setup();
     actions.setLeadRuleAction.mockRejectedValue(new Error("network"));

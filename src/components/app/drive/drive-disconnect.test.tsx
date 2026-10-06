@@ -4,6 +4,9 @@
  * surface whose promise is that Partyreel deletes nothing of hers (PRICING.md: "Export is an off-ramp, never a one-click
  * exit"). The key is forgotten, in the confirm and in the warning a Disconnect Google did not confirm leaves behind.
  */
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -75,5 +78,32 @@ describe("what Disconnect says after", () => {
     const [title] = toast.warning.mock.calls[0]!;
     expect(title).toBe("Partyreel forgot its key to your Drive.");
     expect(title).not.toMatch(/delet/i);
+  });
+});
+
+/**
+ * ★ AND NO OTHER DRIVE SURFACE SAYS IT (the review's sibling): the operator's Disconnect for an account's recovery, on
+ * `/admin/exports`, said "Partyreel deletes its key to the Drive ... exactly as her own Disconnect does" long after her own
+ * confirm stopped saying it. The words are read off the sources of the host's Drive surfaces and the operator's.
+ */
+describe("what a Drive surface says of the key", () => {
+  const roots = ["src/components/app/drive", "src/app/admin/exports"];
+  const sources = roots.flatMap((dir) =>
+    readdirSync(join(process.cwd(), dir))
+      .filter((f) => /\.tsx?$/.test(f) && !/\.test\.tsx?$/.test(f))
+      .map((f) => join(dir, f)),
+  );
+
+  it("never says Partyreel deletes it, in a word a person reads", () => {
+    expect(sources.length).toBeGreaterThan(5);
+    const offenders = sources.filter((file) => {
+      // Comments say why the word went; only what is drawn counts (a string or a line of JSX text).
+      const drawn = readFileSync(join(process.cwd(), file), "utf8")
+        .split("\n")
+        .filter((line) => !/^\s*(\/\/|\*|\/\*)/.test(line))
+        .join("\n");
+      return /\bdeleted? its key\b|\bdeletes its key\b/i.test(drawn);
+    });
+    expect(offenders).toEqual([]);
   });
 });

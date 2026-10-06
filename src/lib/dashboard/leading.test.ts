@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { arrange, DISPLAY_DEFAULT, recentRowsOf, SORTS } from "./display";
 import type { GuestEventCardData } from "./guest-events";
 import {
   buildHomeView,
@@ -201,6 +202,62 @@ describe("★ the page around a lead is the page the server would draw", () => {
       view.stage,
     );
   });
+});
+
+describe("★ her events lay out as the server lays them out, in order and not only as a set", () => {
+  // Four events named alike, one of them opened last (so Last opened leads with it), beside Lena's week: the drawn lead's
+  // row joins the list last on a press, and equal names or counts must not order differently there than from the server.
+  const STANDUPS = [0, 1, 2, 3].map((i) =>
+    hostedEvent({
+      id: `standup-${i}`,
+      name: "Weekly standup",
+      createdAt: `2026-10-0${i + 1}T09:00:00Z`,
+      openedAt: i === 3 ? "2026-11-10T09:00:00Z" : null,
+      approved: 12,
+    }),
+  );
+  // Newest made first, as `listEvents` hands the page its events: the order the server's own list keeps among equals.
+  const HOSTED = [...LENA, ...STANDUPS]
+    .map((e) =>
+      e.id === "wedding" ? { ...e, openedAt: "2026-11-09T08:00:00Z" } : e,
+    )
+    .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+
+  const laid = (
+    rows: Parameters<typeof arrange>[0],
+    sort: string,
+    desc: boolean,
+  ) =>
+    arrange(
+      rows,
+      { ...DISPLAY_DEFAULT, sort: sort as never, desc },
+      TODAY,
+    ).flatMap((g) => g.rows.map((r) => `${r.kind}-${r.id}`));
+
+  for (const drawn of RULES) {
+    for (const pressed of RULES) {
+      it(`drawn for ${drawn}, then ${pressed} pressed, under every order`, () => {
+        const drawnInput = input(drawn, HOSTED);
+        const view = buildHomeView(drawnInput);
+        const leading = leadingOf(drawnInput, view)!;
+        const around = pageAround(drawnOf(view), leading, pressed);
+        const server = buildHomeView(input(pressed, HOSTED));
+        for (const { id: sort } of SORTS)
+          for (const desc of [true, false])
+            expect(laid(around.rows, sort, desc), `${sort} ${desc}`).toEqual(
+              laid(server.events.rows, sort, desc),
+            );
+        // And the Recent row she is shown under it.
+        const above = (week: { id: string }[]) =>
+          new Set(week.map((c) => c.id));
+        expect(
+          recentRowsOf(around.rows, above(around.week)).map((r) => r.id),
+        ).toEqual(
+          recentRowsOf(server.events.rows, above(server.week)).map((r) => r.id),
+        );
+      });
+    }
+  }
 });
 
 describe("where she has no choice", () => {

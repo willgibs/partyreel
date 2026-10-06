@@ -193,7 +193,10 @@ export function StageLead({
   choices: Record<RuleId, LeadChoice>;
   /** The stage of any event a rule leads with, for the picture a row shows. */
   stageOf: (eventId: string) => StageView;
-  /** Choosing a rule: the stage follows at once, and her account keeps it. */
+  /**
+   * A row pressed, the kept rule's included: the stage follows at once and her account keeps it, where there is anything
+   * to keep (`home-body.tsx` decides).
+   */
   onRule: (rule: RuleId) => void;
 }) {
   const [turned, setTurned] = useState(false);
@@ -239,11 +242,11 @@ export function StageLead({
     setTurned(false);
   }, []);
 
+  // ★ A PRESS IS ALWAYS SAID, EVEN OF THE RULE SHE KEEPS: whether it owes the account a write is the page's to decide (a
+  // press that changes nothing owes none, and a press that follows a refused write is her trying again).
   const choose = (r: RuleId) => {
-    if (r !== rule) {
-      if (choices[r].eventId !== shown.event.id) setMoved(true);
-      onRule(r);
-    }
+    if (r !== rule && choices[r].eventId !== shown.event.id) setMoved(true);
+    onRule(r);
     close(true);
   };
 

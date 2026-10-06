@@ -14,7 +14,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { SendView } from "@/lib/drive/moments";
 
-const { FAST_MS, SLOW_MS, resetDriveStatus, useDriveStatus } =
+const { FAST_MS, FRESH_MS, SLOW_MS, resetDriveStatus, useDriveStatus } =
   await import("./use-drive-status");
 
 const canceled = (itemsSent: number, landing: boolean): SendView => ({
@@ -107,12 +107,23 @@ describe("a stopped send still landing", () => {
   });
 });
 
-const working = (status: SendView["status"], itemsSent: number): SendView => ({
-  ...canceled(itemsSent, false),
-  status,
-  stopReason: null,
-  closedAt: null,
-});
+/** A send at work that last reported `ageMs` ago, by the clock the page is running on (fake timers: set before this is called). */
+const working = (
+  status: SendView["status"],
+  itemsSent: number,
+  ageMs = 4_000,
+): SendView => {
+  const at = new Date(Date.now() - ageMs).toISOString();
+  return {
+    ...canceled(itemsSent, false),
+    status,
+    stopReason: null,
+    closedAt: null,
+    createdAt: at,
+    startedAt: at,
+    lastProgressAt: at,
+  };
+};
 
 describe("a send at work", () => {
   it.each(["sending", "checking"] as const)(
@@ -137,6 +148,51 @@ describe("a send at work", () => {
       unmount();
     },
   );
+
+  it("★ slows to the slow beat once it has said nothing for a minute: dead lanes are not worth three reads every three seconds", async () => {
+    vi.useFakeTimers();
+    // Sending, and last heard from two minutes ago: the same answer every time.
+    const fetchMock = answers(working("sending", 10, FRESH_MS * 2));
+    const { unmount } = renderHook(() => useDriveStatus());
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    // The first answer counts as news; the second moves nothing, and the beat after it is the slow one.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(FAST_MS);
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(FAST_MS * 3);
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(SLOW_MS);
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    unmount();
+  });
+
+  it("keeps the fast beat for a send that has just started and has not reported yet", async () => {
+    vi.useFakeTimers();
+    const fresh = {
+      ...working("preparing", 0, 1_000),
+      lastProgressAt: null,
+    };
+    const fetchMock = answers(fresh);
+    const { unmount } = renderHook(() => useDriveStatus());
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    for (let beat = 2; beat <= 4; beat++) {
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(FAST_MS);
+      });
+      expect(fetchMock, `the poll on beat ${beat}`).toHaveBeenCalledTimes(beat);
+    }
+    unmount();
+  });
 
   it("waits on the slow beat while it is only paused: nothing there moves", async () => {
     vi.useFakeTimers();

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { Metadata } from "next";
 import { resolveTitle } from "next/dist/lib/metadata/resolvers/resolve-title";
+import { notFound, redirect } from "next/navigation";
 
 /**
  * ★ THE PORTAL'S TITLES WEAR THE PORTAL'S SUFFIX, ITS HOME INCLUDED (crumbs-40, build 35's red-team). Every portal
@@ -45,19 +46,30 @@ vi.mock("@/lib/auth/admin-context", () => ({ requireAdmin: vi.fn() }));
 vi.mock("@/lib/admin/pending", () => ({ readPendingWork: vi.fn() }));
 
 const root = (await import("@/app/layout")).metadata;
-const notFound = (await import("@/app/not-found")).metadata;
-const { generateMetadata } = await import("./layout");
+const lost = (await import("@/app/not-found")).metadata;
+const { default: AdminLayout, generateMetadata } = await import("./layout");
 const { requireAdmin } = await import("@/lib/auth/admin-context");
 
-/** The portal's head as the gate answers for this visitor: an operator's, or whatever the gate throws for anyone else. */
-async function headFor(answer: "operator" | "not-found" | "signed-out") {
-  const gate = vi.mocked(requireAdmin);
-  if (answer === "operator") gate.mockResolvedValue({} as never);
-  // Next's own control-flow errors: a thrown 404 for a non-admin or a wrong host, a redirect for a signed-out one.
-  else
-    gate.mockRejectedValue(
-      new Error(answer === "not-found" ? "NEXT_NOT_FOUND" : "NEXT_REDIRECT"),
-    );
+type Answer = "operator" | "not-found" | "signed-out" | "broken";
+
+/**
+ * What the gate does for this visitor, as `requireAdmin` does it: an operator passes, a non-admin or a wrong host gets
+ * Next's own 404, a signed-out one Next's own redirect (the real signals, thrown by the real `notFound()` and
+ * `redirect()`), and a gate that cannot read (the database down) throws a plain error.
+ */
+function gate(answer: Answer) {
+  const mock = vi.mocked(requireAdmin);
+  if (answer === "operator") mock.mockResolvedValue({} as never);
+  else if (answer === "not-found")
+    mock.mockImplementation(async () => notFound());
+  else if (answer === "signed-out")
+    mock.mockImplementation(async () => redirect("/login"));
+  else mock.mockRejectedValue(new Error("supabase is down"));
+}
+
+/** The portal's head as the gate answers for this visitor. */
+async function headFor(answer: Answer) {
+  gate(answer);
   return generateMetadata();
 }
 
@@ -99,14 +111,16 @@ describe("the operations portal's titles", () => {
 
 describe("a visitor who is not an operator, on a portal page", () => {
   // What an unmatched URL (`/admin/nope`, `/nope`) reads: the root's own 404 under the root's template.
-  const unmatched = resolve(root.title, notFound.title);
+  const unmatched = resolve(root.title, lost.title);
 
   it("★ reads the title of a URL that does not exist, never the portal's or the page's", async () => {
     expect(unmatched).toBe("Page not found · Partyreel");
-    for (const answer of ["not-found", "signed-out"] as const) {
+    // A non-admin, a wrong host and a signed-out visitor, by the gate's own signals; and a gate that cannot read at all
+    // (it fails closed, as the gate does).
+    for (const answer of ["not-found", "signed-out", "broken"] as const) {
       const head = await headFor(answer);
       // The server's HTML: the portal's head, then the 404 boundary's own title.
-      expect(resolve(root.title, head.title, notFound.title), answer).toBe(
+      expect(resolve(root.title, head.title, lost.title), answer).toBe(
         unmatched,
       );
       // And once the page's own metadata streams in after hydration: any page's, named or not.
@@ -119,11 +133,50 @@ describe("a visitor who is not an operator, on a portal page", () => {
     }
   });
 
+  it("is still kept out of every index, as the portal's own head keeps every response", async () => {
+    for (const answer of ["not-found", "signed-out", "broken"] as const)
+      expect((await headFor(answer)).robots, answer).toEqual({
+        index: false,
+        follow: false,
+      });
+  });
+
   it("an operator's pages still name the portal and the page", async () => {
     const head = await headFor("operator");
     expect(resolve(root.title, head.title, "Jobs")).toBe(
       "Jobs · Partyreel Ops",
     );
     expect(head.robots).toEqual({ index: false, follow: false });
+  });
+});
+
+/**
+ * ★ THE LAYOUT STILL TURNS A STRANGER AWAY, FOR REAL: the head swallows the gate's signals, so nothing may swallow them
+ * in the body. A non-admin's 404 and a signed-out visitor's redirect reach Next untouched (its own digests), and a gate
+ * that cannot read is the error boundary's.
+ */
+describe("the portal's layout, whatever its head says", () => {
+  const meet = async (answer: Answer) => {
+    gate(answer);
+    try {
+      await AdminLayout({ children: null });
+    } catch (error) {
+      return error as { digest?: string; message?: string };
+    }
+    return null;
+  };
+
+  it("★ throws the 404 for a non-admin and a wrong host", async () => {
+    expect((await meet("not-found"))?.digest).toMatch(
+      /^NEXT_HTTP_ERROR_FALLBACK;404/,
+    );
+  });
+
+  it("★ throws the redirect to sign-in for a signed-out visitor", async () => {
+    expect((await meet("signed-out"))?.digest).toMatch(/^NEXT_REDIRECT;/);
+  });
+
+  it("throws the gate's own failure rather than draw a portal", async () => {
+    expect((await meet("broken"))?.message).toBe("supabase is down");
   });
 });

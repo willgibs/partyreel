@@ -5,10 +5,12 @@
  * dashboard's lights, Take it home, Account's card and the app-wide flag all read this one store, so a page polls
  * `GET /api/drive/status` once however many places show a send.
  *
- * ★ IT POLLS ONLY WHILE SOMETHING MOVES: every 3 seconds while a send is sending or checking and the page is looked at,
- * never slower (crumbs-82: the lanes report every 10 seconds, so a poll between two reports finds nothing new, and a
- * slower beat after it drew the strip in coarse steps, a timed report never showing), 15 for a send that waits (paused)
- * or whose stopped files have stopped landing, and not at all when nothing is unfinished (a press asks again at once:
+ * ★ IT POLLS ONLY WHILE SOMETHING MOVES: every 3 seconds while a send is at work (preparing, sending or checking, and it
+ * has reported within the last minute) and the page is looked at, never slower (crumbs-82: the lanes report every 10
+ * seconds, so a poll between two reports finds nothing new, and a slower beat after it drew the strip in coarse steps, a
+ * timed report never showing); 15 for a send that waits (paused), whose stopped files have stopped landing, or that has
+ * said nothing for a minute (dead lanes: a faster beat could show nothing, and the page would pay three reads every
+ * three seconds until she closed it); and not at all when nothing is unfinished (a press asks again at once:
  * `refreshDriveStatus`). A hidden tab stops; coming back to it asks at once. Nothing runs in the browser but this
  * reading: the send itself goes on with every tab shut.
  *
@@ -27,6 +29,8 @@ import { onThisConnection } from "./this-connection";
 
 export const FAST_MS = 3_000;
 export const SLOW_MS = 15_000;
+/** A send that has reported within this long is at work: the lanes report every 10 seconds. */
+export const FRESH_MS = 60_000;
 
 type Snapshot = { status: DriveStatus | null; loaded: boolean };
 
@@ -42,16 +46,26 @@ function emit(next: Snapshot) {
   for (const l of listeners) l();
 }
 
-/** Whether a send is doing its work now: the lanes report every 10 seconds, so its numbers move every few polls. */
-function running(status: DriveStatus | null): boolean {
-  return Boolean(
-    status?.sends.some(
-      (s) =>
-        s.status === "sending" ||
-        s.status === "preparing" ||
-        s.status === "checking",
-    ),
-  );
+/**
+ * Whether a send is at work now: running, and heard from within `FRESH_MS` (by the answer's own clock, never this
+ * browser's), so its numbers move every few polls. A stamp that cannot be read keeps the beat: a send she can see is never
+ * slowed by a bad one.
+ */
+function atWork(status: DriveStatus | null): boolean {
+  if (!status) return false;
+  const now = Date.parse(status.now);
+  return status.sends.some((s) => {
+    if (
+      s.status !== "sending" &&
+      s.status !== "preparing" &&
+      s.status !== "checking"
+    )
+      return false;
+    const heard = Date.parse(s.lastProgressAt ?? s.startedAt ?? s.createdAt);
+    return (
+      !Number.isFinite(now) || !Number.isFinite(heard) || now - heard < FRESH_MS
+    );
+  });
 }
 
 /**
@@ -115,9 +129,9 @@ async function poll(): Promise<void> {
       lastSignature = sig;
       emit({ status, loaded: true });
       // ★ A SEND AT WORK KEEPS THE FAST BEAT WHETHER OR NOT THIS ANSWER MOVED: an unchanged answer is the gap between
-      // two of its lanes' reports, never a send gone still. Only a stopped send's landing files, which end by
-      // themselves, slow down once they stop moving.
-      if (running(status)) schedule(FAST_MS);
+      // two of its lanes' reports, never a send gone still. A send that has said nothing for a minute, and a stopped
+      // send's landing files once they stop moving, slow down.
+      if (atWork(status)) schedule(FAST_MS);
       else if (moving(status)) schedule(changed ? FAST_MS : SLOW_MS);
       else if (unfinished(status)) schedule(SLOW_MS);
     } catch {

@@ -44,12 +44,16 @@ const PORTAL_HEAD: Metadata = {
 const LOST = `Page not found · ${SITE_NAME}`;
 const NOT_AN_OPERATOR_HEAD: Metadata = {
   title: { absolute: LOST, template: LOST },
+  // The portal's own head carries this on every response, a stranger's 404 included.
+  robots: { index: false, follow: false },
 };
 
 // ★ THE HEAD ASKS THE GATE, AND SWALLOWS ITS ANSWER: `requireAdmin` throws Next's own 404 for a non-admin or a wrong
 // host and its redirect for a signed-out one, and the layout below throws them for real. Here each only means "not an
 // operator", so the tab says the 404's words. The gate is read once a request (`readGate`'s `cache()`), so this costs
-// the portal nothing.
+// the portal nothing. ★ IT FAILS CLOSED, LIKE THE GATE (`readGate`'s deliberate swallow): any other error (the database
+// that cannot answer) is no operator's head either, so the tab says nothing of the portal; the layout below meets the same
+// error for real and the page is the error boundary's.
 export async function generateMetadata(): Promise<Metadata> {
   try {
     await requireAdmin();
