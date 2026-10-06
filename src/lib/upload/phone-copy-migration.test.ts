@@ -102,11 +102,13 @@ describe("1. the columns, and what a row may hold in them", () => {
 });
 
 describe("2. the writers record it in the same insert, after their own check", () => {
+  // ★ Reshaped by capture-time (20261005200000; scar kept: the pair defaulted, after every earlier argument, so a caller
+  // without them lands on the defaults): the capture time joins after them, defaulted too.
   it.each(WRITERS)(
-    "%s takes the pair last, both defaulted, so a caller without them lands on the defaults",
+    "%s takes the pair after the reel's flag, both defaulted, so a caller without them lands on the defaults",
     (name) => {
       expect(latest(name).body).toContain(
-        "p_reel_eligible boolean default true, p_phone_key text default null, p_phone_bytes bigint default null ) returns jsonb language plpgsql security definer set search_path = ''",
+        "p_reel_eligible boolean default true, p_phone_key text default null, p_phone_bytes bigint default null, p_captured_at timestamptz default null ) returns jsonb language plpgsql security definer set search_path = ''",
       );
     },
   );
@@ -138,13 +140,15 @@ describe("2. the writers record it in the same insert, after their own check", (
     expect(Number(m![1]) * 1024 * 1024).toBe(MAX_PHONE_BYTES);
   });
 
-  it.each(WRITERS)("%s writes the pair in its one insert, last", (name) => {
+  // ★ Reshaped by capture-time (20261005200000; scar kept: the pair in the one insert, beside the seal): the capture
+  // time after it.
+  it.each(WRITERS)("%s writes the pair in its one insert", (name) => {
     const body = latest(name).body;
     expect(body).toContain(
-      "status, reel_eligible, sealed_until, phone_key, phone_bytes ) values (",
+      "status, reel_eligible, sealed_until, phone_key, phone_bytes, captured_at ) values (",
     );
     expect(body).toContain(
-      "coalesce(p_reel_eligible, true), v_sealed_until, p_phone_key, p_phone_bytes );",
+      "coalesce(p_reel_eligible, true), v_sealed_until, p_phone_key, p_phone_bytes, p_captured_at );",
     );
     expect(body.match(/insert into public\.media \(/g)).toHaveLength(1);
   });
@@ -231,20 +235,24 @@ describe("4. who may call them", () => {
       );
       // ★ Reshaped by trash-in-storage (20261003220000; scar kept: the file that wins restates the grants). A later
       // file may replace the body in place (`create or replace`, this signature untouched); it restates them too.
+      // ★ And by capture-time (20261005200000; same scar): the winner's signature ends in the capture time's argument.
       const winner = latest(name).file;
       expect(winner >= FILE, `${name} wins in ${winner}`).toBe(true);
       const winning = files().find((f) => f.file === winner)!.sql;
+      const now = `${after}, timestamptz`;
       expect(winning).toContain(
-        `revoke execute on function public.${name}(${after}) from public, anon, authenticated;`,
+        `revoke execute on function public.${name}(${now}) from public, anon, authenticated;`,
       );
       expect(winning).toContain(
-        `grant execute on function public.${name}(${after}) to service_role;`,
+        `grant execute on function public.${name}(${now}) to service_role;`,
       );
-      expect(everything()).not.toMatch(
-        new RegExp(
-          `grant execute on function public\\.${name}\\(${after.replace(/[()[\].]/g, "\\$&")}\\) to [^;]*\\b(?:anon|authenticated|public)\\b`,
-        ),
-      );
+      for (const signature of [after, now]) {
+        expect(everything()).not.toMatch(
+          new RegExp(
+            `grant execute on function public\\.${name}\\(${signature.replace(/[()[\].]/g, "\\$&")}\\) to [^;]*\\b(?:anon|authenticated|public)\\b`,
+          ),
+        );
+      }
     }
   });
 });

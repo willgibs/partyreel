@@ -2,7 +2,9 @@ import {
   hostEvent,
   NO_COUNTS,
 } from "@/components/app/event-settings/testing/host-event";
+import type { HeadStill } from "@/components/guest/event-experience-head";
 import type { DoorCounts } from "@/lib/db/queries/event-doors";
+import type { ReadyFacts } from "@/lib/events/readiness";
 import { marketingImage } from "@/lib/constants/marketing-media";
 
 /**
@@ -74,14 +76,43 @@ export const ALBUM: readonly { src: string; ratio: number; pos?: string }[] = [
   { src: PHOTO.confetti, ratio: 1.5 },
 ];
 
-/** Account and billing: Maya on an Event Pass, a third of its 75 GB used. */
+/** Account and billing: Maya on an Event Pass, a third of its 25 GB used (the pass's own size, `tiers.ts`). */
 export const ACCOUNT = {
   email: "maya@example.com",
   displayName: HOST,
   plan: "Event Pass",
-  usedBytes: 24.6 * 1024 ** 3,
-  capBytes: 75 * 1024 ** 3,
+  usedBytes: 8.2 * 1024 ** 3,
+  capBytes: 25 * 1024 ** 3,
   expires: "2 October 2027",
   events: { used: 1, of: 1 },
   following: ["Sam Reyes", "Ines Duarte"],
 } as const;
+
+/** The cover's stills: the reel's opening, three of the bootstrap stills. */
+export const STILLS: HeadStill[] = [PHOTO.toast, PHOTO.hall, PHOTO.golden].map(
+  (tile, i) => ({ id: `identity-still-${i}`, tile }),
+);
+
+/**
+ * THE WEDDING'S READINESS, as the hub reads it for Settings' first page: a
+ * password at the door, 31 in, the album full, its date and note written, and
+ * the code never opened, so the rail is ticked but for its last step, which
+ * carries its two keys (Invite, the ink key, and Print, a quiet one).
+ */
+export const READY: ReadyFacts = {
+  door: "password",
+  hasPassword: true,
+  guestsIn: 31,
+  invited: 0,
+  acceptingUploads: true,
+  approved: 214,
+  playable: 214,
+  showReel: true,
+  liveReelEnabled: true,
+  eventDate: DATE,
+  eventEndDate: END_DATE,
+  description:
+    "Everything from tonight, in one place. Add what you take, whenever you get to it.",
+  opened: 0,
+  storagePct: 33,
+};

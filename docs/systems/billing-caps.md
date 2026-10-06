@@ -251,13 +251,22 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   never a permission. The receipt's `applied` is `tier !== "free"` read at render, never the URL marker: Stripe redirects the instant
   payment succeeds, routinely a second or two before the webhook, so the modal re-reads a bounded number of times.
   Every price on the surface comes from `tiers.ts`.
-- **The surface's presses and its read are `PricingDoors`** (`components/app/pricing/pricing-doors.tsx`): the Checkout and
-  billing-portal buttons the sheet draws, change-plan, the plan-facts read and the router the receipt and the switch use,
-  as one context value whose default is production's own. Only the Library hands in others (`PricingDoorsProvider`;
+- **The surface's presses and its read are `PricingDoors`** (`components/app/pricing/pricing-doors.tsx`): Checkout, the
+  billing portal and change-plan (each route's one client, answering outcomes), the way out (`leave`), the plan-facts
+  read and the router the receipt and the switch use, as one context value whose default is production's own. The buttons
+  (`CheckoutButton`, `ManageBillingButton`, `ChangePlanButton`) are the app's one set and press whatever the doors name,
+  so a specimen swaps a verb, never a button. Only the Library hands in others (`PricingDoorsProvider`;
   `pricing-doors.test.tsx` pins both halves and fails on any other importer), so the sheet, the lock chip and the receipt
   are drawn there with Stripe out of reach. The type is named in full (a door added to it fails every stand-in at compile
-  time), and the two buttons that live outside `pricing/` (`CheckoutButton`, `ManageBillingButton`) still fetch inline,
-  which is why they are swapped as components while change-plan and the read are swapped as verbs.
+  time).
+- ★ **Leaving for Stripe takes a phone sheet's own history entry with it** (`pricing/leave.ts`, the doors' `leave`). On a
+  phone the sheet holds one same-URL entry so Back closes it, and a plain `href` pushed Stripe on top of that entry: Back
+  from Stripe landed on the page and the next press on the same address again. The way out REPLACES the entry while the
+  sheet is open as a place (read off its content's `data-pricing-sheet` and `data-shape`, never the popup's history
+  marker, which a router commit strips, as a list stacked over the sheet does with each deletion), so one Back returns to
+  the page. A button on a page and the sheet at a desk still push: replacing an entry that is not the sheet's would land
+  Back on the page before it. A replace asks for one reload if the browser restores the page from its back/forward cache,
+  where the sheet would believe in the entry the replace took and its close would go Back too far.
 - ★ **The account page's Plan card (`#plan`) is billing's one home in the app,** and every fact on it is
   server-derived: the columns only the webhook and the pass recompute write, read through the RLS-scoped profile row.
   Its only search params are `?reset` and `?welcome` (Stripe's return marker, which opens the receipt and decides no

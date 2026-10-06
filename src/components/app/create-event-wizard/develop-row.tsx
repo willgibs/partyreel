@@ -1,6 +1,6 @@
 "use client";
 
-import { useId } from "react";
+import { type ReactNode, useId } from "react";
 import { ChevronDown, Clock } from "lucide-react";
 
 import {
@@ -49,7 +49,8 @@ function wordsFor(iso: string, now: number): string {
  * party further off is a pick away, here or later in Settings (a stored time never follows the event's date).
  *
  * ★ IT OPENS WITH ITS CARD AND SHUTS WITH IT, in place (a row of height that eases), kept in the DOM, inert and
- * hidden while shut, so its place never moves the card above it and nothing of it waits in the tab order.
+ * hidden while shut, so its place never moves the card above it and nothing of it waits in the tab order. What else
+ * stands under the pick (`after`: its roll, customize r1's `roll=both`) opens and shuts inside the same slot.
  */
 export function DevelopRow({
   open,
@@ -58,6 +59,7 @@ export function DevelopRow({
   refusal,
   onDraft,
   onFinish,
+  after,
   className,
 }: {
   /** The Disposable card is picked: the row is there. */
@@ -70,6 +72,8 @@ export function DevelopRow({
   refusal: string | null;
   onDraft: (value: string) => void;
   onFinish: () => void;
+  /** What else stands under the Disposable's pick, opening and shutting with the row (its roll). */
+  after?: ReactNode;
   className?: string;
 }) {
   const fieldId = useId();
@@ -175,6 +179,7 @@ export function DevelopRow({
         >
           {refusal ?? ""}
         </p>
+        {after}
       </div>
     </div>
   );

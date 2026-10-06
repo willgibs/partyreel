@@ -316,9 +316,10 @@ export async function makeNewAlbumFolder(input: {
 // ── A lease's items ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * WHAT A LANE GETS FOR EACH ORIGINAL: its name (made now for one not yet named: when it arrived, then who, by the one
- * naming function; the " (2)" kept by the SQL), its description, Drive's `modifiedTime`, its type, and any session or
- * earlier file to resume from.
+ * WHAT A LANE GETS FOR EACH ORIGINAL: its name (made now for one not yet named: when it was taken where the upload
+ * kept that, else when it arrived, then who, by the one naming function; the " (2)" kept by the SQL), its
+ * description, Drive's `modifiedTime`, its type, and any session or earlier file to resume from. The capture time
+ * rides the lease (`cloud_export_lease`, 20261005200000), so naming asks nothing more.
  */
 export async function leaseItemsFor(input: {
   lease: string;
@@ -340,7 +341,7 @@ export async function leaseItemsFor(input: {
             mediaId: i.mediaId,
             stem: driveFileStem({
               arrivedAt: i.createdAt,
-              capturedAt: null,
+              capturedAt: i.capturedAt,
               tz: input.tz,
               who: senders.get(i.mediaId),
             }),
@@ -363,12 +364,12 @@ export async function leaseItemsFor(input: {
           who: senders.get(i.mediaId),
           albumName: input.albumName,
           arrivedAt: i.createdAt,
-          capturedAt: null,
+          capturedAt: i.capturedAt,
           tz: input.tz,
         }),
         modifiedTime: driveModifiedTime({
           arrivedAt: i.createdAt,
-          capturedAt: null,
+          capturedAt: i.capturedAt,
         }),
         attempts: i.attempts,
         priorFileId: i.priorFileId,
@@ -384,7 +385,7 @@ export async function leaseItemsFor(input: {
 
 /**
  * WAKE THE WORKER FOR A CONNECTION: as many lanes as are missing (at most once a minute), as a signed POST to its
- * `/kick`. Best-effort by design: a kick that does not land is the sweep's to make within five minutes, so a failure
+ * `/kick`. Best-effort by design: a kick that does not land is the sweep's to make within fifteen minutes, so a failure
  * is a warning, never a refusal of her press.
  */
 export async function kickConnection(connectionId: string): Promise<number> {

@@ -6,6 +6,14 @@
  * left, Add photos, and on a moderated event the approval rule), never an empty reel; from two
  * the card is a link into the view the guests watch; switched off it opens Settings, where the
  * switch lives. Copy is precedent, not contract, except the count, which is the point.
+ *
+ * ★ RESHAPED ON PURPOSE (event-header r4's cards over the seam, Will's pick): the card is a plain card among the doors, so
+ * the living stills behind the live card, the one photograph under the counting card's overlay, the pips and the pill's
+ * `sr-only` line are gone with the picture they belonged to, and with them the card's ask of the server for the reel's own
+ * take as the album moved (nothing on the card draws it). What those pins guarded and still holds: the card never says
+ * "live for guests" over an album whose guests see nothing yet (and her own reel plays over her hub meanwhile), the pill
+ * keeps its words for a reader (now the door's accessible name, which carries its line in both forms), and Settings' switch
+ * wins over whatever the album's count says.
  */
 import {
   act,
@@ -24,7 +32,12 @@ import {
 } from "@/lib/events/album-wire";
 
 import { HostAlbumProvider } from "./host-album";
-import { ReelCard, useLiveReel, type ReelCardData } from "./reel-card";
+import {
+  ReelCard,
+  reelCardFace,
+  useLiveReel,
+  type ReelCardData,
+} from "./reel-card";
 
 const openAdd = vi.fn();
 const openSheet = vi.fn();
@@ -47,11 +60,10 @@ vi.mock("@/components/guest/reel/live-reel-view", () => {
 const warmHub = vi.hoisted(() => vi.fn());
 vi.mock("./hub-reel-view", () => ({ warmHubReelView: () => warmHub() }));
 
-// The live card's one server read, and the album store's live channel.
-const refreshHubReelAction = vi.fn();
-vi.mock("@/app/(app)/dashboard/[eventId]/actions", () => ({
-  refreshHubReelAction: (...a: unknown[]) => refreshHubReelAction(...a),
-}));
+// The hub's server actions, which the album's store (not the card) holds: none of them is asked here.
+vi.mock("@/app/(app)/dashboard/[eventId]/actions", () => ({}));
+
+// The album store's live channel.
 vi.mock("@/lib/guest/use-gallery-doorbell", () => ({
   useGalleryDoorbell: () => ({ live: false }),
 }));
@@ -73,28 +85,16 @@ vi.mock("@/lib/album/transport", () => ({
   }),
 }));
 
-// jsdom has no IntersectionObserver; the living card's clock asks one whether it is on screen.
-class NoopObserver {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-  takeRecords() {
-    return [];
-  }
-}
-
 beforeEach(() => {
   openAdd.mockReset();
   openSheet.mockReset();
   warmHub.mockReset();
-  vi.stubGlobal("IntersectionObserver", NoopObserver);
 });
 
 const base: ReelCardData = {
   state: "counting",
   have: 0,
   of: 2,
-  stills: [],
   viewHref: "/e/token123?reel",
   moderated: false,
   pending: 0,
@@ -110,32 +110,93 @@ async function openGuidance() {
   return document.querySelector("[data-reel-guidance]") as HTMLElement;
 }
 
-describe("before two, the card is guidance", () => {
-  it("says how far off the reel is, at none and at one", () => {
-    const { unmount } = render(
-      <ReelCard eventId="e1" reel={base} stuck={false} />,
-    );
-    expect(screen.getByRole("button")).toHaveTextContent("Starts at 2 photos");
-    expect(document.querySelector("[data-reel-pips='0/2']")).not.toBeNull();
-    unmount();
+describe("the card's words, one pure function of the reel's state", () => {
+  it("counts to two, then says it is live, and says Off when it is off", () => {
+    expect(reelCardFace("counting", 0, 2, false)).toBe("Starts at 2 photos");
+    expect(reelCardFace("counting", 1, 2, false)).toBe("1 more photo");
+    expect(reelCardFace("live", 2, 2, false)).toBe("Live for guests");
+    expect(reelCardFace("off", 2, 2, false)).toBe("Off");
+  });
 
+  it("★ never says it is live for guests while the develop is ahead: guests get it later", () => {
+    // Red-team 43's NIT: on a sealed album every guest's reel is empty until the develop.
+    expect(reelCardFace("live", 2, 2, true)).toBe("Guests get it later");
+    // And a counting or switched-off card has nothing to add about the develop.
+    expect(reelCardFace("counting", 1, 2, true)).toBe("1 more photo");
+    expect(reelCardFace("off", 2, 2, true)).toBe("Off");
+  });
+});
+
+describe("a door among the doors", () => {
+  it("★ names itself with its line in every face, so a reader hears the reel once, in either form of the row", () => {
+    // The pill once hid its line from a reader (red-team 53's LOW): the name, not a piece inside, carries it now.
+    const { unmount } = render(
+      <ReelCard eventId="e1" reel={{ ...base, state: "live", have: 2 }} />,
+    );
+    expect(
+      screen.getByRole("link", { name: "Highlight reel: Live for guests" }),
+    ).toBeInTheDocument();
+    unmount();
+    const { unmount: second } = render(
+      <ReelCard eventId="e1" reel={{ ...base, state: "off" }} />,
+    );
+    expect(
+      screen.getByRole("link", { name: "Highlight reel: Off" }),
+    ).toBeInTheDocument();
+    second();
+    render(<ReelCard eventId="e1" reel={{ ...base, have: 1 }} />);
+    expect(
+      screen.getByRole("button", { name: "Highlight reel: 1 more photo" }),
+    ).toBeInTheDocument();
+  });
+
+  it("wears the row's door hooks, and its violet glyph is its one mark of its own", () => {
+    render(
+      <ReelCard eventId="e1" reel={{ ...base, state: "live", have: 2 }} />,
+    );
+    const door = screen.getByRole("link");
+    expect(door).toHaveAttribute("data-hub-door", "reel");
+    expect(door).toHaveClass("hub-door");
+    expect(door.querySelector(".hub-door-reel")).not.toBeNull();
+    // Both forms' pieces are in the one element: the fold carries them (`event-cards-row-fold.ts`).
+    for (const piece of ["skin", "disc", "glyph", "title", "text", "word"]) {
+      expect(
+        door.querySelector(`[data-fold="${piece}"]`),
+        piece,
+      ).not.toBeNull();
+    }
+  });
+
+  it("draws no picture: the reel's stills, where a fixture still hands them, are read by nobody", () => {
     render(
       <ReelCard
         eventId="e1"
-        reel={{ ...base, have: 1, stills: ["preview-1"] }}
-        stuck={false}
+        reel={{
+          ...base,
+          state: "live",
+          have: 2,
+          stills: ["s1", "s2"],
+          stillIds: ["a", "b"],
+        }}
       />,
     );
+    expect(document.querySelector("img")).toBeNull();
+    expect(document.querySelector("[data-living]")).toBeNull();
+  });
+});
+
+describe("before two, the card is guidance", () => {
+  it("says how far off the reel is, at none and at one", () => {
+    const { unmount } = render(<ReelCard eventId="e1" reel={base} />);
+    expect(screen.getByRole("button")).toHaveTextContent("Starts at 2 photos");
+    unmount();
+
+    render(<ReelCard eventId="e1" reel={{ ...base, have: 1 }} />);
     expect(screen.getByRole("button")).toHaveTextContent("1 more photo");
-    // The one photo it has sits under the card's overlay.
-    expect(document.querySelector("img")?.getAttribute("src")).toBe(
-      "preview-1",
-    );
-    expect(document.querySelector("[data-reel-pips='1/2']")).not.toBeNull();
   });
 
   it("opens guidance with Add photos, which opens the album's upload panel", async () => {
-    render(<ReelCard eventId="e1" reel={{ ...base, have: 1 }} stuck={false} />);
+    render(<ReelCard eventId="e1" reel={{ ...base, have: 1 }} />);
     const guidance = await openGuidance();
     expect(guidance).toHaveTextContent(
       "1 more photo starts your highlight reel",
@@ -153,7 +214,7 @@ describe("before two, the card is guidance", () => {
   // which scrolled the card into view and cut the smooth scroll toward the panel short (the dropzone stopped 9 to
   // 21 px under a 375x667 fold). Focus still goes home; only never by a focus that moves the page.
   it("★ Add photos takes focus home to the card without moving the page, so the scroll to the panel lands", async () => {
-    render(<ReelCard eventId="e1" reel={{ ...base, have: 1 }} stuck={false} />);
+    render(<ReelCard eventId="e1" reel={{ ...base, have: 1 }} />);
     await openGuidance();
     const card = screen.getByRole("button", { name: /highlight reel/i });
     const focus = vi.spyOn(card, "focus");
@@ -168,7 +229,7 @@ describe("before two, the card is guidance", () => {
   });
 
   it("any other close hands focus back to the card as it always did", async () => {
-    render(<ReelCard eventId="e1" reel={{ ...base, have: 1 }} stuck={false} />);
+    render(<ReelCard eventId="e1" reel={{ ...base, have: 1 }} />);
     // Add photos once, so a close that follows can never inherit its unscrolled return.
     await openGuidance();
     fireEvent.click(screen.getByRole("button", { name: /add photos/i }));
@@ -190,11 +251,7 @@ describe("before two, the card is guidance", () => {
 
   it("on a moderated event, says guests' photos count once approved, and points at the queue", async () => {
     render(
-      <ReelCard
-        eventId="e1"
-        reel={{ ...base, moderated: true, pending: 3 }}
-        stuck={false}
-      />,
+      <ReelCard eventId="e1" reel={{ ...base, moderated: true, pending: 3 }} />,
     );
     const guidance = await openGuidance();
     expect(guidance).toHaveTextContent(/count once you approve them/i);
@@ -208,11 +265,7 @@ describe("before two, the card is guidance", () => {
 
   it("points at no queue that is not there", async () => {
     render(
-      <ReelCard
-        eventId="e1"
-        reel={{ ...base, moderated: true, pending: 0 }}
-        stuck={false}
-      />,
+      <ReelCard eventId="e1" reel={{ ...base, moderated: true, pending: 0 }} />,
     );
     await openGuidance();
     expect(screen.queryByRole("link", { name: /in review/i })).toBeNull();
@@ -220,38 +273,13 @@ describe("before two, the card is guidance", () => {
 });
 
 describe("from two, the card is the door to the view", () => {
-  it("links into the view the guests watch, over the reel's own stills", () => {
+  it("links into the view the guests watch", () => {
     render(
-      <ReelCard
-        eventId="e1"
-        reel={{
-          ...base,
-          state: "live",
-          have: 2,
-          stills: ["s1", "s2", "s3", "s4"],
-        }}
-        stuck={false}
-      />,
+      <ReelCard eventId="e1" reel={{ ...base, state: "live", have: 2 }} />,
     );
     const link = screen.getByRole("link");
     expect(link).toHaveAttribute("href", "/e/token123?reel");
     expect(link).toHaveTextContent("Highlight reel");
-    expect(document.querySelector("[data-living='4']")).not.toBeNull();
-  });
-
-  it("condenses to a plain pill when stuck to the bar, the living stills set aside", () => {
-    render(
-      <ReelCard
-        eventId="e1"
-        reel={{ ...base, state: "live", have: 2, stills: ["s1", "s2"] }}
-        stuck
-      />,
-    );
-    expect(screen.getByRole("link")).toHaveAttribute(
-      "href",
-      "/e/token123?reel",
-    );
-    expect(document.querySelector("[data-living]")).toBeNull();
   });
 });
 
@@ -262,11 +290,7 @@ describe("from two, the card is the door to the view", () => {
  */
 describe("the live card's press", () => {
   const liveCard = (
-    <ReelCard
-      eventId="e1"
-      reel={{ ...base, state: "live", have: 2, stills: ["s1", "s2"] }}
-      stuck={false}
-    />
+    <ReelCard eventId="e1" reel={{ ...base, state: "live", have: 2 }} />
   );
   // jsdom has no navigation: the browser's own is what a click on a link leaves standing.
   const stopNavigation = (e: Event) => e.preventDefault();
@@ -311,14 +335,7 @@ describe("the live card on an album that develops later", () => {
   const liveCard = (developsAt?: string | null) => (
     <ReelCard
       eventId="e1"
-      reel={{
-        ...base,
-        state: "live",
-        have: 2,
-        stills: ["s1", "s2"],
-        developsAt,
-      }}
-      stuck={false}
+      reel={{ ...base, state: "live", have: 2, developsAt }}
     />
   );
   const ahead = (ms: number) => new Date(Date.now() + ms).toISOString();
@@ -341,48 +358,37 @@ describe("the live card on an album that develops later", () => {
     expect(link).toHaveAttribute("data-reel-plays", "hub");
   });
 
-  // ★ RED-TEAM 53's LOW (crumbs-65): "at 375 the Reel card hides 'Guests get it later'". Measured in a 375 viewport the
-  // line is whole at rest (100px of 149), and the one state that hid it was the pill the row condenses to when it sticks
-  // to the bar, where it was `display: none` for everyone, a reader included. A jsdom has no layout, so what is held is
-  // that the pill keeps the words (`sr-only`: out of the way, still said) and never removes them from the page.
+  // ★ RED-TEAM 53's LOW (crumbs-65): "at 375 the Reel card hides 'Guests get it later'". The one state that hid it was the
+  // pill the row condenses to when it sticks to the bar, where the line was `display: none` for everyone, a reader
+  // included. The door's name carries its line in every form of the row now, so a reader of the pill hears it whole.
   it.each([
     [
       "live, before the develop",
       () => ({
         state: "live" as const,
         have: 2,
-        stills: ["s1"],
         developsAt: ahead(3_600_000),
       }),
-      "Guests get it later",
+      "Highlight reel: Guests get it later",
     ],
     [
       "live, with no develop ahead",
-      () => ({ state: "live" as const, have: 2, stills: ["s1"] }),
-      "Live for guests",
+      () => ({ state: "live" as const, have: 2 }),
+      "Highlight reel: Live for guests",
     ],
-    ["switched off", () => ({ state: "off" as const }), "Off"],
+    ["switched off", () => ({ state: "off" as const }), "Highlight reel: Off"],
     [
       "counting",
       () => ({ state: "counting" as const, have: 1 }),
-      "1 more photo",
+      "Highlight reel: 1 more photo",
     ],
   ])(
-    "★ stuck to the bar, the %s pill keeps its words for a reader, never display:none",
-    (_name, over, words) => {
-      render(<ReelCard eventId="e1" reel={{ ...base, ...over() }} stuck />);
-      const said = screen.getByText(words);
-      expect(said.className).toContain("sr-only");
-      expect(said.className).not.toMatch(/(^|\s)hidden(\s|$)/);
+    "★ the %s door's name says its line, whichever form the row is in",
+    (_name, over, name) => {
+      render(<ReelCard eventId="e1" reel={{ ...base, ...over() }} />);
+      expect(screen.getByLabelText(name)).toBeInTheDocument();
     },
   );
-
-  it("at rest the same words are drawn under the label", () => {
-    render(liveCard(ahead(3_600_000)));
-    const said = screen.getByText("Guests get it later");
-    expect(said.className).not.toContain("sr-only");
-    expect(said.className).toContain("truncate");
-  });
 
   it("says what it always has, and opens the guests' view, with no develop time or one reached", () => {
     const { unmount } = render(liveCard(null));
@@ -470,111 +476,9 @@ describe("the live card on an album that develops later", () => {
   });
 });
 
-/**
- * ★ HER REEL IS HERS FROM THE FIRST PHOTOGRAPH (Will's Q5, 2026-10-04). The reel's take is planned on the host's own
- * scope, which sees every photograph she has (she is exempt from the seal), and the card draws it: while the develop is
- * ahead the live card dissolves through her photographs and the counting card shows the one it has. ★ RESHAPED ON
- * PURPOSE: this pinned the opposite (crumbs-59, red-team 47's NIT: "the hub's Highlight reel card dissolves through the
- * SEALED shots while the album below is covered and the head is bare, the one picture of what waits that needs no
- * Look"), when the card was to wear her guests' view with the head, its band and the album's cover. The scar is kept
- * where it still holds: those three still stand on what her guests can see, and only this card is hers.
- */
-describe("the card on an album that develops later is hers", () => {
-  const ahead = (ms: number) => new Date(Date.now() + ms).toISOString();
-
-  it("★ draws her photographs on the live card while a develop time is ahead", () => {
-    render(
-      <ReelCard
-        eventId="e1"
-        reel={{
-          ...base,
-          state: "live",
-          have: 2,
-          stills: ["s1", "s2", "s3"],
-          developsAt: ahead(3_600_000),
-        }}
-        stuck={false}
-      />,
-    );
-    expect(document.querySelector("[data-living='3']")).not.toBeNull();
-    expect(screen.getByRole("link")).toHaveTextContent("Guests get it later");
-  });
-
-  it("shows the one photograph on the counting card too, and counts to two as ever", () => {
-    render(
-      <ReelCard
-        eventId="e1"
-        reel={{
-          ...base,
-          have: 1,
-          stills: ["her-1"],
-          developsAt: ahead(3_600_000),
-        }}
-        stuck={false}
-      />,
-    );
-    expect(document.querySelector("img")?.getAttribute("src")).toBe("her-1");
-    expect(screen.getByRole("button")).toHaveTextContent("1 more photo");
-    expect(document.querySelector("[data-reel-pips='1/2']")).not.toBeNull();
-  });
-
-  it("keeps her stills through the develop: they never come or go with the time", () => {
-    vi.useFakeTimers();
-    try {
-      render(
-        <ReelCard
-          eventId="e1"
-          reel={{
-            ...base,
-            state: "live",
-            have: 2,
-            stills: ["s1", "s2"],
-            developsAt: ahead(90_000),
-          }}
-          stuck={false}
-        />,
-      );
-      expect(document.querySelector("[data-living='2']")).not.toBeNull();
-      act(() => {
-        vi.advanceTimersByTime(91_000);
-      });
-      expect(document.querySelector("[data-living='2']")).not.toBeNull();
-    } finally {
-      vi.useRealTimers();
-    }
-  });
-
-  it("draws its stills with no develop time, or one already reached, as it always has", () => {
-    const live = (developsAt?: string | null): ReelCardData => ({
-      ...base,
-      state: "live",
-      have: 2,
-      stills: ["s1", "s2"],
-      developsAt,
-    });
-    for (const developsAt of [null, undefined, ahead(-60_000)]) {
-      const { unmount } = render(
-        <ReelCard eventId="e1" reel={live(developsAt)} stuck={false} />,
-      );
-      expect(document.querySelector("[data-living='2']")).not.toBeNull();
-      unmount();
-    }
-    render(
-      <ReelCard
-        eventId="e1"
-        reel={{ ...base, have: 1, stills: ["s1"], developsAt: ahead(-60_000) }}
-        stuck={false}
-      />,
-    );
-    expect(document.querySelector("img")?.getAttribute("src")).toBe("s1");
-  });
-});
-
 describe("switched off, the card opens Settings", () => {
   it("carries the real Settings URL and opens the sheet on a plain click", () => {
-    render(
-      <ReelCard eventId="e1" reel={{ ...base, state: "off" }} stuck={false} />,
-    );
+    render(<ReelCard eventId="e1" reel={{ ...base, state: "off" }} />);
     const link = screen.getByRole("link");
     expect(link).toHaveAttribute("href", "/dashboard/e1?room=settings");
     expect(link).toHaveTextContent("Off");
@@ -583,9 +487,7 @@ describe("switched off, the card opens Settings", () => {
   });
 
   it("lets a modified click be a real navigation", () => {
-    render(
-      <ReelCard eventId="e1" reel={{ ...base, state: "off" }} stuck={false} />,
-    );
+    render(<ReelCard eventId="e1" reel={{ ...base, state: "off" }} />);
     // The browser's own navigation is what a modified click leaves standing; jsdom has none.
     const stopNavigation = (e: Event) => e.preventDefault();
     document.addEventListener("click", stopNavigation);
@@ -597,9 +499,8 @@ describe("switched off, the card opens Settings", () => {
 
 /**
  * THE CARD FOLLOWS THE ALBUM (album-host-wiring: the hub is never refreshed to show an arrival).
- * The second playable photograph arrives as a delta on the album's store, the card flips to live on
- * it with the pips full and no stills that belong to the state it left, and asks once for the reel's
- * own take, which then dissolves behind it.
+ * The second playable photograph arrives as a delta on the album's store and the card flips to live on it, with the
+ * count full; and Settings' switch, which re-renders the page with a new face, wins over what the album says.
  */
 describe("the live card", () => {
   const id = (n: number) =>
@@ -634,95 +535,48 @@ describe("the live card", () => {
       likes: {},
     },
   };
-  const served: ReelCardData = {
-    ...base,
-    state: "counting",
-    have: 1,
-    stills: ["still-1"],
-    stillIds: [id(1)],
-  };
+  const served: ReelCardData = { ...base, state: "counting", have: 1 };
 
   function Probe({ face = served }: { face?: ReelCardData }) {
-    const reel = useLiveReel("e1", face);
+    const reel = useLiveReel(face);
     return (
       <span data-testid="card">
-        {reel.state}:{reel.have}:{reel.stills.join(",")}
+        {reel.state}:{reel.have}
       </span>
     );
   }
 
-  it("flips to live on the second photograph's delta, then wears the reel's own take", async () => {
+  const delta = (n: number): HostSyncBody => ({
+    kind: "delta",
+    v: 2,
+    attr: 0,
+    upsert: [entry(n)],
+    remove: [],
+    ok: true,
+    counts: { album: 2, pending: 0 },
+  });
+
+  it("flips to live on the second photograph's delta, with nothing asked of the server", async () => {
     polls.length = 0;
     // The page's catch-up poll brings the second photograph.
-    polls.push(() => ({
-      kind: "delta",
-      v: 2,
-      attr: 0,
-      upsert: [entry(2)],
-      remove: [],
-      ok: true,
-      counts: { album: 2, pending: 0 },
-    }));
-    let answer: (v: unknown) => void = () => {};
-    refreshHubReelAction.mockReturnValue(
-      new Promise((resolve) => {
-        answer = resolve;
-      }),
-    );
-
+    polls.push(() => delta(2));
     render(
       <HostAlbumProvider seed={seed} qrToken="qr">
         <Probe />
       </HostAlbumProvider>,
     );
-    expect(screen.getByTestId("card")).toHaveTextContent("counting:1:still-1");
-
+    expect(screen.getByTestId("card")).toHaveTextContent("counting:1");
     await waitFor(() =>
-      expect(screen.getByTestId("card")).toHaveTextContent("live:2:"),
+      expect(screen.getByTestId("card")).toHaveTextContent("live:2"),
     );
-    expect(screen.getByTestId("card").textContent).toBe("live:2:");
-    expect(refreshHubReelAction).toHaveBeenCalledTimes(1);
-    expect(refreshHubReelAction).toHaveBeenCalledWith("e1");
-
-    await act(async () => {
-      answer({
-        ok: true,
-        reel: {
-          state: "live",
-          have: 2,
-          stills: ["take-2", "take-1"],
-          stillIds: [id(2), id(1)],
-        },
-      });
-    });
-    expect(screen.getByTestId("card").textContent).toBe("live:2:take-2,take-1");
-    expect(refreshHubReelAction).toHaveBeenCalledTimes(1);
   });
 
-  // ★ THE PAGE'S FACE WINS WHEN IT CHANGES. Settings' switch saves and re-renders the page, which
-  // hands the card a new face: a card that went live on the album's own count must then say Off (it
-  // kept "live" until a reload, the scar), and switched back on it wears the take the page just read.
-  it("says Off the moment the page's face does, and wears the page's take when switched back on", async () => {
-    refreshHubReelAction.mockReset();
+  // ★ THE PAGE'S FACE WINS WHEN IT CHANGES. Settings' switch saves and re-renders the page, which hands the card a new
+  // face: a card that went live on the album's own count must then say Off (it kept "live" until a reload, the scar), and
+  // switched back on it says what the album says. The card holds no face of its own to go stale.
+  it("says Off the moment the page's face does, and what the album says when switched back on", async () => {
     polls.length = 0;
-    polls.push(() => ({
-      kind: "delta",
-      v: 2,
-      attr: 0,
-      upsert: [entry(2)],
-      remove: [],
-      ok: true,
-      counts: { album: 2, pending: 0 },
-    }));
-    refreshHubReelAction.mockResolvedValue({
-      ok: true,
-      reel: {
-        state: "live",
-        have: 2,
-        stills: ["take-2", "take-1"],
-        stillIds: [id(2), id(1)],
-      },
-    });
+    polls.push(() => delta(2));
 
     const { rerender } = render(
       <HostAlbumProvider seed={seed} qrToken="qr">
@@ -730,34 +584,28 @@ describe("the live card", () => {
       </HostAlbumProvider>,
     );
     await waitFor(() =>
-      expect(screen.getByTestId("card").textContent).toBe(
-        "live:2:take-2,take-1",
-      ),
+      expect(screen.getByTestId("card")).toHaveTextContent("live:2"),
     );
 
     // Switched off in Settings: the page renders again with the switch's word.
     rerender(
       <HostAlbumProvider seed={seed} qrToken="qr">
-        <Probe face={{ ...base, state: "off", have: 2, stillIds: [] }} />
+        <Probe face={{ ...base, state: "off", have: 2 }} />
       </HostAlbumProvider>,
     );
-    expect(screen.getByTestId("card").textContent).toBe("off:2:");
+    expect(screen.getByTestId("card")).toHaveTextContent("off:2");
 
-    // Switched back on: the page's own take, adopted as it is, with nothing asked again.
+    // Switched back on: the album's own count again.
     rerender(
       <HostAlbumProvider seed={seed} qrToken="qr">
-        <Probe
-          face={{
-            ...base,
-            state: "live",
-            have: 2,
-            stills: ["page-2", "page-1"],
-            stillIds: [id(2), id(1)],
-          }}
-        />
+        <Probe face={{ ...base, state: "live", have: 2 }} />
       </HostAlbumProvider>,
     );
-    expect(screen.getByTestId("card").textContent).toBe("live:2:page-2,page-1");
-    expect(refreshHubReelAction).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("card")).toHaveTextContent("live:2");
+  });
+
+  it("is the page's own face where there is no album store to read", () => {
+    render(<Probe face={{ ...base, state: "live", have: 2 }} />);
+    expect(screen.getByTestId("card")).toHaveTextContent("live:2");
   });
 });

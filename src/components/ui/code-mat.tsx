@@ -20,7 +20,9 @@ import { cn } from "@/lib/utils"
  * ★ A CARD OF WHITE (identity r2, layers=display): the mat wears the flat card's softer corner (`2xl`)
  * and the LIFT, the small shadow of one object standing on another, rather than a layer's.
  *
- * Press feedback is the house's 150ms scale on the strong curve, held still under reduced motion.
+ * Its focus and press are the house's (identity r4: `focus-halo`, `press-shrink`), the press a large
+ * card's give (0.98), landing at once and letting go on the 150ms below; the hover's grow is held
+ * still under reduced motion.
  */
 function CodeMat({
   className,
@@ -38,9 +40,9 @@ function CodeMat({
       data-dimmed={dimmed ? "" : undefined}
       className={cn(
         "group/code-mat relative block shrink-0 rounded-2xl bg-white p-2 text-neutral-950 shadow-lift outline-none",
-        "transition-transform duration-150 ease-emphasis hover:scale-[1.02] active:scale-[0.98]",
-        "focus-visible:ring-3 focus-visible:ring-ring/50",
-        "motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
+        "transition-transform duration-150 ease-emphasis hover:scale-[1.02]",
+        "focus-halo press-shrink [--press-scale:0.98]",
+        "motion-reduce:transition-none motion-reduce:hover:scale-100",
         className
       )}
       {...props}

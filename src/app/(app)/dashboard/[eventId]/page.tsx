@@ -15,7 +15,11 @@ import {
   newestCoverStills,
   reelCoverStills,
 } from "@/components/app/event-feed/event-hub-head-stills";
-import { reviewCardFace } from "@/components/app/event-feed/room-card";
+import {
+  guestsCardFace,
+  reviewCardFace,
+  settingsCardFace,
+} from "@/components/app/event-feed/room-card";
 import { EventGallery } from "@/components/app/event-feed/event-gallery";
 import { HostAlbumProvider } from "@/components/app/event-feed/host-album";
 import { EventUploads } from "@/components/app/event-uploads";
@@ -47,15 +51,15 @@ import { getEvent } from "@/lib/db/queries/events";
 import { getLiveReelServerFacts } from "@/lib/db/queries/guest-events-admin";
 import { getProfile } from "@/lib/db/queries/profile";
 import {
+  countWaitingGuestShots,
   getEventGuests,
   getEventSocialSettings,
   getMyProfileSlug,
 } from "@/lib/db/queries/social";
 import { getHostStorageSummary } from "@/lib/db/queries/storage";
-import type { HubDevelopFacts } from "@/lib/disposable/host-cover";
+import { hubCovered, type HubDevelopFacts } from "@/lib/disposable/host-cover";
 import { readJoinedIds } from "@/lib/disposable/host-cover.server";
 import { guestCount } from "@/lib/events/event-guests";
-import { formatCount } from "@/lib/format/count";
 import {
   dealVisitSeed,
   planHubManifest,
@@ -214,6 +218,7 @@ export default async function EventDetailPage({
     storage,
     guestsRoom,
     joined,
+    waitingShots,
   ] = await Promise.all([
     planHubManifest(supabase, event.id),
     getLinkStats(event.id),
@@ -252,6 +257,20 @@ export default async function EventDetailPage({
     // photographs a switch to a develop time put in the roll (created before the period) are read off the rows, only
     // while a develop time is ahead, and ride with the develop facts. A failed read answers none, captured.
     readJoinedIds(supabase, event),
+    // ★ WHAT A SEALED ROLL HOLDS FOR HER GUESTS, said on the Guests card (crumbs-81): their list is empty until the develop, and
+    // the card read "0 guests" over a party that had filled it. Asked only while a develop time is ahead (an album holding
+    // nothing back has no sealed shot to count, so the probe is never made for the live ones), after `getEvent` has proved
+    // the host (the admin client behind it), and ★ A CARD'S LINE IS NEVER WORTH THE PAGE: a failed read leaves the card to say
+    // its guests as the list counts them, and says so where failures are read.
+    hubCovered({
+      develops_at: event.develops_at,
+      sealed_from: event.sealed_from,
+    })
+      ? countWaitingGuestShots(event.id).catch((error: unknown) => {
+          captureError("db", error, { seam: "hub_guests_card_shots" });
+          return 0;
+        })
+      : Promise.resolve(0),
   ]);
   // The first window's links and the Reel card, in parallel: both read off the
   // manifest, neither off the other. The card reads the whole album's flags (its
@@ -354,6 +373,8 @@ export default async function EventDetailPage({
   const over = checklistOver(event.event_date, today, event.event_end_date);
   const guestNeeds = over ? 0 : stepsLeft(readyFacts);
 
+  // ★ THE DOORS' FACES ARE WORDED IN `room-card.ts`, the one place every drawing of the row reads them, so the page's first paint
+  // and the row's live counts can never say a door two ways.
   const cards = [
     {
       id: "review" as const,
@@ -362,38 +383,38 @@ export default async function EventDetailPage({
     },
     {
       id: "guests" as const,
-      // The guest list is always on (Will, event-safety `room=always`), so the
-      // room behind this card always lists them, and the card says how many.
-      // ★ AND WHO WAITS AT THE DOOR (event-settings r1, `queue=room`): while a
-      // newcomer waits for the host, the card says so in the needs-action colour,
-      // as Review's does for held uploads, since letting her in is done there.
-      ...(doorCounts.waiting > 0
-        ? {
-            value: `${formatCount(doorCounts.waiting)} waiting`,
-            amber: true,
-            count: doorCounts.waiting,
-          }
-        : {
-            value: `${formatCount(guestsCount)} ${guestsCount === 1 ? "guest" : "guests"}`,
-          }),
+      // The guest list is always on (Will, event-safety `room=always`), so the room behind this card always lists them, and the
+      // card says how many. ★ AND WHO WAITS AT THE DOOR (event-settings r1, `queue=room`): while a newcomer waits for the
+      // host, the card says so in the needs-action light, as Review's does for held uploads, since letting her in is done
+      // there. ★ AND A SEALED ROLL (crumbs-81): while the list is empty only because the album has not developed, the card
+      // says its shots are developing, as the room does.
+      ...guestsCardFace({
+        waiting: doorCounts.waiting,
+        guests: guestsCount,
+        shots: waitingShots,
+      }),
     },
     {
       id: "settings" as const,
-      // ★ WHAT A GUEST STILL NEEDS, COUNTED, while Settings' steps are not all ticked (event-ready: the
-      // steps live in Settings, so its card says how many are left); then the door, in the one function
-      // that words it everywhere (Public, Private and its gate, Only me).
-      ...(guestNeeds > 0
-        ? { value: `${formatCount(guestNeeds)} left`, strong: true }
-        : { value: doorLabel(event.door) }),
+      // ★ WHAT A GUEST STILL NEEDS, COUNTED, while Settings' steps are not all ticked (event-ready: the steps live in
+      // Settings, so its card says how many are left); then uploads paused in their own word (event-header r4's call G4,
+      // the code's corner keeping its pause); then the door, in the one function that words it everywhere (Public, Private
+      // and its gate, Only me).
+      ...settingsCardFace({
+        left: guestNeeds,
+        accepting: event.accepting_uploads,
+        door: event.door,
+      }),
     },
   ];
 
-  // THE HIGHLIGHT REEL'S CARD (`reel-host`, `progress=card`): it counts to two
-  // off the album's manifest, then opens the view the guests watch. The owner
-  // passes every gate at `/e/<token>?reel`. On the client its state and pips
-  // follow the album live, and it asks for new stills when they change.
+  // THE HIGHLIGHT REEL'S CARD (`reel-host`, `progress=card`): it counts to two off the album's manifest, then opens the view
+  // the guests watch. The owner passes every gate at `/e/<token>?reel`. On the client its state follows the album live. It is
+  // a plain card among the doors (event-header r4), so it is handed no stills: the reel's take is the cover's and Settings',
+  // read below.
   const reel = {
-    ...reelFace,
+    state: reelFace.state,
+    have: reelFace.have,
     of: REEL_MINIMUM,
     viewHref: `/e/${event.qr_token}?reel`,
     moderated: isModerationOn,

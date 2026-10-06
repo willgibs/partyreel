@@ -12,6 +12,7 @@ import "server-only";
 
 import { mustCount, mustQuery } from "@/lib/db/must-query";
 import type { AlbumPreview } from "@/lib/drive/press";
+import { sentTotalsOf, type SentTotals } from "@/lib/drive/sent-totals";
 import { inChunks, readAllPages } from "@/lib/db/read-all";
 import type { Database, Json } from "@/lib/db/types";
 import { isSealed } from "@/lib/disposable/seal";
@@ -306,17 +307,29 @@ export async function lanesToKick(connectionId: string): Promise<number> {
   return num(r.lanes) ?? 0;
 }
 
-export async function recordLaneFailed(
-  connectionId: string,
-  error: string,
-): Promise<{ failures: number; paused: number; userId: string | null }> {
+/**
+ * A lane that died, counted once a Queue message (`repeat`: this message was counted already, so a word said again
+ * adds nothing).
+ */
+export async function recordLaneFailed(input: {
+  connectionId: string;
+  messageId: string;
+  error: string;
+}): Promise<{
+  failures: number;
+  paused: number;
+  repeat: boolean;
+  userId: string | null;
+}> {
   const r = await rpc("cloud_connection_lane_failed", {
-    p_connection: connectionId,
-    p_error: error.slice(0, 500),
+    p_connection: input.connectionId,
+    p_error: input.error.slice(0, 500),
+    p_message: input.messageId,
   });
   return {
     failures: num(r.failures) ?? 0,
     paused: num(r.paused) ?? 0,
+    repeat: bool(r.repeat),
     userId: str(r.user_id),
   };
 }
@@ -335,9 +348,7 @@ export async function operatorOnConnection(
 }
 
 /** The ciphertexts and the account they are bound to (the tokens' associated data), for the one opener. */
-export async function readTokenRow(
-  connectionId: string,
-): Promise<{
+export async function readTokenRow(connectionId: string): Promise<{
   userId: string;
   refreshCt: string | null;
   accessCt: string | null;
@@ -529,9 +540,7 @@ export async function actOnSend(input: {
 }
 
 /** An album's name and dates now, for a folder made after the press ("Send to a new folder"). */
-export async function readAlbumNaming(
-  eventId: string,
-): Promise<{
+export async function readAlbumNaming(eventId: string): Promise<{
   name: string;
   eventDate: string | null;
   eventEndDate: string | null;
@@ -574,6 +583,8 @@ export type RawLeaseItem = {
   bytes: number;
   type: "photo" | "video";
   createdAt: string;
+  /** When it was taken, where the upload kept it (20261005200000): what its name and date say first. */
+  capturedAt: string | null;
   name: string | null;
   attempts: number;
   sessionUri: string | null;
@@ -625,6 +636,7 @@ export async function leaseWork(connectionId: string): Promise<RawLease> {
         bytes: num(i.bytes) ?? 0,
         type: str(i.type) === "video" ? "video" : "photo",
         createdAt: str(i.created_at) ?? "",
+        capturedAt: str(i.captured_at),
         name: str(i.name),
         attempts: num(i.attempts) ?? 1,
         sessionUri: str(i.session_uri),
@@ -1013,14 +1025,46 @@ export async function readMySend(jobId: string): Promise<SendRow | null> {
 }
 
 /**
- * What her Account card says it has sent: the albums that reached her Drive, the bytes, and the last one's day, read
- * whole (keyset on id: a planner's thousand sends never cut short at PostgREST's 1,000).
+ * Of these sends (her own, stopped a moment ago: the status route passes only ids her session read), the ones a lane
+ * still holds files of under a live lease: what was already on its way at her Cancel is still landing, so their numbers
+ * still move. The items are deny-all, so the service role reads them, keyed on her ids, and answers ids alone.
  */
-export async function readMySentTotals(): Promise<{
-  albums: number;
-  bytes: number;
-  lastAt: string | null;
-}> {
+export async function readLanding(
+  jobIds: readonly string[],
+  nowMs: number = Date.now(),
+): Promise<Set<string>> {
+  if (jobIds.length === 0) return new Set();
+  const rows = await inChunks(
+    "drive: sends still landing",
+    jobIds,
+    async (chunk) => {
+      const page = await mustQuery(
+        admin()
+          .from("cloud_export_items")
+          .select("job_id")
+          .in("job_id", chunk)
+          .eq("status", "leased")
+          .gt("leased_until", new Date(nowMs).toISOString())
+          // A connection holds at most three lanes of ten: far under a page.
+          .limit(1000),
+        "drive: sends still landing",
+      );
+      return Array.isArray(page) ? page : [];
+    },
+  );
+  return new Set(
+    rows
+      .map((r) => str(obj(r).job_id))
+      .filter((id): id is string => Boolean(id)),
+  );
+}
+
+/**
+ * What her Account card says it has sent: the albums that reached her Drive, the bytes (each file once: `sentTotalsOf`),
+ * and the last one's day, over every send that ended, read whole (keyset on id: a planner's thousand sends never cut
+ * short at PostgREST's 1,000).
+ */
+export async function readMySentTotals(): Promise<SentTotals> {
   const supabase = await createClient();
   const { rows } = await readAllPages(
     "drive: her sent totals",
@@ -1028,7 +1072,7 @@ export async function readMySentTotals(): Promise<{
       let q = supabase
         .from("cloud_exports")
         .select("id, event_id, album_name, bytes_sent, closed_at, items_sent")
-        .in("status", ["done", "partly_done"])
+        .in("status", ["done", "partly_done", "canceled", "stopped"])
         .gt("items_sent", 0)
         .order("id", { ascending: true })
         .limit(limit);
@@ -1037,19 +1081,15 @@ export async function readMySentTotals(): Promise<{
     },
     (row) => str(row.id) ?? "",
   );
-  // An album sent twice is one album; one purged since keeps its line by its name.
-  const albums = new Set(
-    rows.map((r) => str(r.event_id) ?? `name:${str(r.album_name)}`),
+  return sentTotalsOf(
+    rows.map((r) => ({
+      eventId: str(r.event_id),
+      albumName: str(r.album_name) ?? "",
+      bytesSent: num(r.bytes_sent) ?? 0,
+      itemsSent: num(r.items_sent) ?? 0,
+      closedAt: str(r.closed_at),
+    })),
   );
-  const last = rows.reduce<string | null>((latest, r) => {
-    const at = str(r.closed_at);
-    return at && (!latest || at > latest) ? at : latest;
-  }, null);
-  return {
-    albums: albums.size,
-    bytes: rows.reduce((n, r) => n + (num(r.bytes_sent) ?? 0), 0),
-    lastAt: last,
-  };
 }
 
 /** One page of a send's items in a state she may ask about (what failed, what was skipped), keyset on media id. */

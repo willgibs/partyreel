@@ -114,12 +114,15 @@ export async function createMediaAsHost(input: {
    * the album, so the reel never plays itself. Omitted, the RPC's default (true) applies.
    */
   reelEligible?: boolean;
+  /** When the original says it was taken (Will's X7), already held to its bounds by the route; null for none. */
+  capturedAt?: string | null;
 }): Promise<CreateHostMediaResult> {
   // Server-mediated (H1): create_media_as_host is service-role-only now, so it can't be called directly via
   // PostgREST with a spoofed size. The admin client has no auth.uid(), so we pass the route's
   // getUser()-verified host id as the trusted p_host_id (the RPC's ownership join uses it).
   const supabase = createAdminClient();
-  // The phone copy's two arguments are left out of the body when there is no copy (the RPC refuses one alone).
+  // The phone copy's two arguments are left out of the body when there is no copy (the RPC refuses one alone), and so
+  // is the capture time when the upload kept none, so its default applies.
   const { data, error } = await supabase.rpc("create_media_as_host", {
     p_host_id: input.hostId,
     p_event_id: input.eventId,
@@ -134,6 +137,7 @@ export async function createMediaAsHost(input: {
     p_reel_eligible: input.reelEligible ?? undefined,
     p_phone_key: input.phoneKey ?? undefined,
     p_phone_bytes: input.phoneBytes ?? undefined,
+    p_captured_at: input.capturedAt ?? undefined,
   });
 
   if (error) {

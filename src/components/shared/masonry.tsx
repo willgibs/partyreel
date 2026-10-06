@@ -88,7 +88,10 @@ import {
   preloadMediaLightbox,
 } from "@/components/shared/media-lightbox.lazy";
 import { layerIsUp } from "@/components/ui/layer-is-up";
-import { POPUP_HISTORY_MARKER } from "@/components/ui/popup-back";
+import {
+  POPUP_HISTORY_MARKER,
+  stepOverDeadEntries,
+} from "@/components/ui/popup-back";
 import { useOwnedEntry } from "@/lib/history-entry";
 import { readPhotoParam, withPhotoParam } from "@/lib/media/share-save";
 import { tileAspect } from "@/lib/media/tile-aspect";
@@ -202,11 +205,10 @@ function photoHref(id: string | null): string {
 }
 
 /**
- * Whether the window stands on another place's entry (a popup that is a place
- * in a hand, over the viewer: the credit's look, a sheet, `isPlaceShape` in
- * `ui/popup-kinds.ts`; a question, a confirm or the report form, holds none):
- * the viewer's own entry is the one beneath it, and its marker is not this
- * entry's to write.
+ * Whether the window stands on a popup's entry over the viewer (a place in a
+ * hand, the credit's look; and since back-layers a question over the viewer, its
+ * Delete, its Remove, the report form: `ui/popup-back.ts`): the viewer's own
+ * entry is the one beneath it, and its marker is not this entry's to write.
  */
 function standsOnAPopup(): boolean {
   const state = window.history.state as Record<string, unknown> | null;
@@ -689,6 +691,8 @@ export function MasonryColumns<T extends GridMedia>(props: {
   const shownRef = useRef<string | null>(null);
   /* The phone's Back took the viewer's entry: the close it asked for has nothing left to undo. */
   const poppedRef = useRef(false);
+  /* The viewer went while a popup's entry stood over its own: its Back waits for that one to go (`leaveEntry`). */
+  const leaveAfterPopupRef = useRef(false);
   /* A close asked of the viewer from outside (the phone's Back): it leaves the way its own X does. */
   const [closeAsk, setCloseAsk] = useState<ViewerCloseRequest | null>(null);
   const claimId = useId();
@@ -700,12 +704,25 @@ export function MasonryColumns<T extends GridMedia>(props: {
     [claimId],
   );
 
-  /** The viewer is gone: its entry goes Back when it is ours, and a photograph's own address is cleared in place. */
-  const leaveEntry = () => {
+  /**
+   * The viewer is gone: its entry goes Back when it is ours, and a photograph's own address is cleared in place.
+   *
+   * ★ NOT WHILE A POPUP'S ENTRY STANDS OVER IT (back-layers). A question over the viewer holds an entry of its
+   * own (`ui/popup-back.ts`), and its act closes the viewer with it (Delete, Remove, Delete permanently): a Back
+   * taken now would pop the QUESTION's entry and land on the viewer's, one short, where the popstate below would
+   * read a photograph's address with no viewer as a Forward and open it again. The question takes its own entry
+   * back a tick later, and when that Back lands on the viewer's entry this one goes (`onPop`).
+   */
+  const leaveEntry = useCallback(() => {
+    if (standsOnAPopup()) {
+      leaveAfterPopupRef.current = true;
+      return;
+    }
+    leaveAfterPopupRef.current = false;
     if (entry.isOurs()) entry.close(photoHref(null));
     else if (readPhotoParam(window.location.search) !== null)
       entry.replace(photoHref(null));
-  };
+  }, [entry]);
 
   const openItem = (id: string, tile: Element | null) => {
     setOpenId(id);
@@ -716,6 +733,7 @@ export function MasonryColumns<T extends GridMedia>(props: {
     );
     shownRef.current = id;
     poppedRef.current = false;
+    leaveAfterPopupRef.current = false;
     if (!photoAddress) return;
     stopStep();
     addressClaim = claimId;
@@ -740,8 +758,14 @@ export function MasonryColumns<T extends GridMedia>(props: {
   // frame lets the page settle and a door open first, and a door that is
   // open is waited out. A photograph opened here stands on no entry of ours, so
   // its close clears the address in place and lands in the album.
+  // ★ A RELOAD WITH A POPUP OPEN OVER THE VIEWER (the credit's look, a question)
+  // left the window on the popup's dead entry, over the viewer's own (back-layers;
+  // crumbs-47): stepped over first (`stepOverDeadEntries`), so the reopened viewer
+  // stands on its own entry and takes it up (`keep`, and `isOurs` reads it), its
+  // close and the phone's Back go Back over it, and its walk writes the address.
   useEffect(() => {
     if (!photoAddress) return;
+    stepOverDeadEntries();
     const id = readPhotoParam(window.location.search);
     if (!id) return;
     let observer: MutationObserver | null = null;
@@ -789,13 +813,23 @@ export function MasonryColumns<T extends GridMedia>(props: {
      viewer's entry) opens it where it stands, fading in, in the grid that last held one. A popup over the
      viewer going Back over its own entry lands on the same photograph and moves nothing. ★ NOT ONE
      PHOTOGRAPH BEHIND, EITHER, WHILE A STEP'S ADDRESS WRITE IS STILL WAITING (crumbs-47): a step waits out a
-     popup before it writes (`addressAfterStep`), and an arrow key behind the look's scrim steps the viewer,
-     which re-keys the credit and takes the look away with its entry, so that Back lands on the viewer's own
-     entry still naming the photograph just left. The viewer has not been left (a Back that leaves it lands
-     off every photograph, `id` null): the write is on its way. */
+     popup before it writes (`addressAfterStep`), so a step taken as a popup opened leaves the viewer's own
+     entry naming the photograph just left until the popup goes. The viewer has not been left (a Back that
+     leaves it lands off every photograph, `id` null): the write is on its way. ★ AND A VIEWER THAT WENT UNDER
+     A POPUP'S ENTRY GOES BACK WHEN THAT ENTRY HAS (`leaveEntry`): the landing on its own entry is its close's,
+     never a Forward. */
   useEffect(() => {
     if (!photoAddress) return;
     const onPop = (event: PopStateEvent) => {
+      if (leaveAfterPopupRef.current) {
+        // A stack of popups goes one landing at a time: the viewer's turn comes when none stands over it.
+        if (standsOnAPopup()) return;
+        if (shownRef.current === null) {
+          leaveEntry();
+          return;
+        }
+        leaveAfterPopupRef.current = false;
+      }
       const id = readPhotoParam(window.location.search);
       const shown = shownRef.current;
       if (shown !== null) {
@@ -820,7 +854,7 @@ export function MasonryColumns<T extends GridMedia>(props: {
     };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
-  }, [photoAddress, entry, claimId, returnTo, stopStep]);
+  }, [photoAddress, entry, claimId, returnTo, stopStep, leaveEntry]);
 
   // The open photograph vanished under the viewer (removed, hidden, filtered
   // away): the lightbox reads the lost index as closed, and the id goes with it,
@@ -916,7 +950,13 @@ export function MasonryColumns<T extends GridMedia>(props: {
       io.observe(el);
       return () => {
         io.unobserve(el);
-        abortUnfinishedImages(el);
+        // ★ A REHEARSAL IS NOT A LEAVING. In development React runs every ref's cleanup once and
+        // attaches it again (Strict Mode) with the tile still on the page; stripping its source then
+        // left the tile blank for good, since React never rewrites an attribute it did not change. So
+        // the abort waits for the commit to finish and runs only for a tile that left the document.
+        queueMicrotask(() => {
+          if (!el.isConnected) abortUnfinishedImages(el);
+        });
       };
     };
   });

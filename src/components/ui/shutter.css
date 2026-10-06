@@ -21,7 +21,16 @@
 
    ★ THE REST STATE IS THE DEFAULT (bible 5): nothing here moves unless motion
    is welcome. Reduced motion keeps the ring, the fill and the count, and drops
-   the glow's breath, the glide and the press's scale. */
+   the glow's breath and the glide; the press still gives, at once.
+
+   ★ THE HOUSE'S FOCUS AND PRESS, AT THE SHUTTER'S MEASURE (identity r4;
+   globals.css's `focus-halo` and `press-shrink`). Its light stands 2 to 5px
+   outside its box, so its halo stands beyond the light, at 7px, over no band
+   of its own (a photograph's veil keeps it read on a bright sky), and the
+   whole control gives 0.94, its light with it, a round's give. The glow is
+   painted over anything the shutter's own box draws, the halo's shadow line
+   included, so here the line is an outline, painted over the glow: 2px, the
+   whole pixels Chrome draws an outline in, in the halo's own ink. */
 
 @property --shutter-p {
   syntax: "<number>";
@@ -30,6 +39,9 @@
 }
 
 .shutter {
+  --halo-at: 7px;
+  --halo-band: var(--halo-veil, transparent);
+  --press-scale: 0.94;
   /* The light's register on paper: a lit colour, never a neon. */
   --shutter-l: 0.8;
   --shutter-c: 0.13;
@@ -45,6 +57,10 @@
 .dark .shutter {
   --shutter-l: 0.74;
   --shutter-c: 0.15;
+}
+.shutter:focus-visible {
+  outline: 2px solid var(--halo-ink);
+  outline-offset: calc(var(--halo-at) + (1 - var(--halo-t)) * 1.5px);
 }
 
 /* The ring's band: 3px, outside the face, which it never covers. */
@@ -124,8 +140,12 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
+  /* The press's let-go rides here beside the glide (the press itself lands at
+     once: `press-shrink`). */
   .shutter {
-    transition: --shutter-p 420ms var(--ease-emphasis);
+    transition:
+      --shutter-p 420ms var(--ease-emphasis),
+      scale 150ms var(--ease-emphasis);
   }
   .shutter-track,
   .shutter-fill,

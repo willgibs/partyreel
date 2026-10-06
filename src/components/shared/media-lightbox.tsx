@@ -19,6 +19,7 @@ import { ChevronLeft, ChevronRight, Loader2, X } from "lucide-react";
 import type { GridMedia } from "@/components/app/media-grid";
 import { ActionTooltip } from "@/components/shared/action-tooltip";
 import { Dialog, DialogPortal } from "@/components/ui/dialog";
+import { insideAnotherLayer } from "@/components/ui/layer-is-up";
 import { GLASS, GLASS_BEHIND, GLASS_MARK, GLASS_MARK_LIT } from "@/lib/glass";
 import { DeleteConsequence } from "@/lib/guest/delete-consequence";
 import { videoPosterSrc } from "@/lib/media/poster";
@@ -242,6 +243,9 @@ function ownsKeys(target: EventTarget | null) {
     "[role='slider'], [role='menu'], [role='menuitem'], input, textarea, select, [contenteditable='true']",
   );
 }
+
+/** The viewer's own layer, which is never "another" one over it. */
+const VIEWER_LAYER = "[data-lightbox-content]";
 
 /**
  * The ids within `reach` of `index` that have no link yet, NEAREST FIRST (the
@@ -1053,11 +1057,20 @@ export function MediaLightbox({
 
   // ← / → step through the set while open, instantly (a keyboard step is never
   // animated); Space plays or pauses a clip. Escape comes from radix.
+  //
+  // ★ KEYS ACT ON THE TOP LAYER (back-layers; crumbs-47 found the arrows stepping
+  // the photograph behind the credit's look and behind a confirm, whose re-keyed
+  // credit then took the look away). The listener is the window's, so a key
+  // pressed inside a layer opened over the viewer reached it too: `ownsKeys`
+  // knows a slider, a menu and a field, never a dialog. A key from inside another
+  // layer is that layer's (`insideAnotherLayer`: the layer holding the focus, so a
+  // panel the viewer was opened from never silences it).
   useEffect(() => {
     if (index === null) return;
     const i = index; // narrowed capture for the listener closure
     function onKey(e: KeyboardEvent) {
       if (e.defaultPrevented || ownsKeys(e.target)) return;
+      if (insideAnotherLayer(e.target, { except: VIEWER_LAYER })) return;
       if (e.key === "ArrowLeft" && i > 0) onIndexChange(i - 1);
       else if (e.key === "ArrowRight" && i < items.length - 1)
         onIndexChange(i + 1);

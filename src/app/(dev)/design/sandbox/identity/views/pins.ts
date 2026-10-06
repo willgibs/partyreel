@@ -36,9 +36,19 @@ export function pin(
   el.setAttribute("data-demo", state);
 }
 
-/** Marks an action working, as a wired atom does while it waits on the server. */
-export function busy(el: Element | null | undefined): void {
-  el?.setAttribute("aria-busy", "true");
+/**
+ * Marks an action working, as a wired atom does while it waits on the server,
+ * with the words it would say while it works ("Saving", "Unlocking"): the
+ * scene shows them where the working state is the one that says its words
+ * (`scene/working-words.ts`), and every other keeps the key's own.
+ */
+export function busy(
+  el: Element | null | undefined,
+  working?: string,
+): void {
+  if (!el) return;
+  el.setAttribute("aria-busy", "true");
+  if (working) el.setAttribute("data-working", working);
 }
 
 /**

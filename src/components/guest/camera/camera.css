@@ -165,18 +165,28 @@
   padding-top: 14px;
   min-width: 0;
 }
+/* The reel's box keeps the house's halo whole (identity r4, `focus-halo`): its corner is the halo's shape, and it stands
+   6px in from the screen's edges so the halo is never drawn off the glass. The frames' fade is the film's, inside it,
+   since a mask on the button would fade its halo with the frames (the button's own shadow is never clipped by its own
+   overflow). */
 .cam-reel {
   position: relative;
   display: block;
-  width: 100%;
+  width: calc(100% - 12px);
   height: 58px;
+  margin-inline: auto;
   overflow: hidden;
+  border-radius: 12px;
   padding: 0;
   border: 0;
   background: none;
   color: inherit;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+}
+.cam-reel-film {
+  position: absolute;
+  inset: 0;
   -webkit-mask-image: linear-gradient(
     90deg,
     transparent,
@@ -191,11 +201,6 @@
     #000 86%,
     transparent
   );
-}
-.cam-reel:focus-visible {
-  outline: 2px solid rgb(255 255 255 / 0.7);
-  outline-offset: -2px;
-  border-radius: 12px;
 }
 /* The track glides so the frame she is on (`--c`) stands at the reel's centre; each frame stands at its own place on
    the roll (`--n`), a pitch apart. */
@@ -348,7 +353,9 @@
 .cam-hint p {
   text-wrap: balance;
 }
+/* Its focus and press are the house's (`focus-halo`, `press-shrink`): a 24px key's give. */
 .cam-hint-action {
+  --press-scale: 0.95;
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -359,13 +366,9 @@
   color: #fff;
   font-weight: 600;
 }
-.cam-hint-action:focus-visible {
-  outline: 2px solid rgb(255 255 255 / 0.7);
-  outline-offset: 2px;
-}
 
 /* The shutter: a white ring round a white face; held, the face turns the recording red and a red ring fills to the
-   video's length round it. */
+   video's length round it. Its focus is the house's halo (`focus-halo`), round its ring. */
 .cam-shutter {
   grid-area: shutter;
   justify-self: center;
@@ -381,10 +384,6 @@
   cursor: pointer;
   touch-action: none;
   -webkit-tap-highlight-color: transparent;
-}
-.cam-shutter:focus-visible {
-  outline: 2px solid rgb(255 255 255 / 0.85);
-  outline-offset: 5px;
 }
 .cam-shutter:disabled {
   opacity: 0.3;
@@ -497,7 +496,9 @@
 .cam-shot[data-removing="failed"] .cam-shot-words {
   color: #ffb4ad;
 }
+/* Its focus and press are the house's (`focus-halo`, `press-shrink`): a small round's give. */
 .cam-shot-remove {
+  --press-scale: 0.92;
   position: absolute;
   top: 6px;
   right: 6px;
@@ -515,10 +516,6 @@
   content: "";
   position: absolute;
   inset: -8px;
-}
-.cam-shot-remove:focus-visible {
-  outline: 2px solid rgb(255 255 255 / 0.8);
-  outline-offset: 2px;
 }
 .cam-shot-remove:disabled {
   opacity: 0.5;
@@ -597,6 +594,11 @@
   }
   .cam-shutter-progress {
     transition: stroke-dashoffset 200ms linear;
+  }
+  /* The press's let-go at the house's speed (the press itself lands at once: `press-shrink`). */
+  .cam-hint-action,
+  .cam-shot-remove {
+    transition: scale 150ms var(--ease-emphasis);
   }
 }
 

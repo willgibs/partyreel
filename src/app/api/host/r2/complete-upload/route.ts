@@ -4,21 +4,25 @@ import { z } from "zod";
 import { createMediaAsHost } from "@/lib/db/mutations/host-media";
 import { createClient } from "@/lib/supabase/server";
 import {
+  completeCaptureTime,
   runCompletePipeline,
   type CompleteStrategy,
 } from "@/lib/upload/server-pipeline";
 import { hostCompleteUploadSchema } from "@/lib/validation/upload";
 
 /**
- * THE HOST COMPLETION'S SHAPE: the shared schema, plus the live reel's one field. `reel_eligible`
- * is false only for a clip the host adds to the album from the reel (the clip lane's client add is
- * its one caller), so the live reel never plays a reel it made; absent is the column's default
- * (true), which is every photo and video a host uploads. Extended here, as the guest route extends
- * its own, rather than in the shared validation module. Not a trust boundary: the worst a forged
- * `false` does is keep the host's own upload out of their own reel.
+ * THE HOST COMPLETION'S SHAPE: the shared schema, plus the live reel's one field and the capture
+ * time. `reel_eligible` is false only for a clip the host adds to the album from the reel (the clip
+ * lane's client add is its one caller), so the live reel never plays a reel it made; absent is the
+ * column's default (true), which is every photo and video a host uploads. `captured_at` is the
+ * guest's own field (Will's X7: held to its bounds as it is parsed, none leaves the arrival to
+ * stand). Extended here, as the guest route extends its own, rather than in the shared validation
+ * module. Not a trust boundary: the worst a forged `false` does is keep the host's own upload out of
+ * their own reel, and a forged time inside the bounds reorders only her own album.
  */
 const hostCompleteSchema = hostCompleteUploadSchema.extend({
   reel_eligible: z.boolean().optional(),
+  captured_at: completeCaptureTime,
 });
 
 // Host twin of /api/r2/complete-upload, a thin strategy over the shared
@@ -49,6 +53,8 @@ function hostCompleteStrategy(
         phoneBytes: phone?.bytes ?? null,
         // Only a clip says anything here; every other upload leaves the column's default.
         reelEligible: parsed.reel_eligible,
+        // Inside its bounds, or none (the arrival stands).
+        capturedAt: parsed.captured_at,
       });
     },
     errorStatus(code) {

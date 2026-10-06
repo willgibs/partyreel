@@ -10,17 +10,23 @@
  *
  * ★ A SEND SHE IS WATCHING THAT HAS NOT MOVED IN HALF AN HOUR raises `drive_stalled` (Sentry, once a send an instance):
  * with the Worker down there is no sweep to notice, and her open page is the one place that still can.
+ *
+ * ★ A SEND STOPPED A MOMENT AGO SAYS WHETHER IT IS STILL LANDING (`landing`): files already on their way at her Cancel
+ * land after it, so while a lane holds any its numbers still move and her page keeps listening (the walk's strip froze
+ * at 10 of 60 with 14 in her Drive). Asked only for sends canceled or stopped inside a lease's 15 minutes, so a page
+ * with none asks nothing more.
  */
 import { NextResponse } from "next/server";
 
 import {
   readConnection,
+  readLanding,
   readMySends,
   type SendRow,
 } from "@/lib/db/queries/drive";
 import { driveConfigured } from "@/lib/env";
 import type { SendView } from "@/lib/drive/moments";
-import type { DriveStatus } from "@/lib/drive/status";
+import { mayBeLanding, type DriveStatus } from "@/lib/drive/status";
 import { captureWarning } from "@/lib/observability/sentry";
 import { createClient } from "@/lib/supabase/server";
 
@@ -41,7 +47,7 @@ function flagDue(row: SendRow): boolean {
   );
 }
 
-function viewOf(row: SendRow): SendView {
+function viewOf(row: SendRow, landing: ReadonlySet<string>): SendView {
   return {
     id: row.id,
     eventId: row.eventId,
@@ -64,6 +70,7 @@ function viewOf(row: SendRow): SendView {
     lastProgressAt: row.lastProgressAt,
     closedAt: row.closedAt,
     flagDue: flagDue(row),
+    landing: landing.has(row.id),
   };
 }
 
@@ -83,7 +90,11 @@ export async function GET() {
     readConnection(user.id),
     readMySends(nowMs),
   ]);
-  const sends = rows.map(viewOf);
+  const landing = await readLanding(
+    rows.filter((r) => mayBeLanding(r, nowMs)).map((r) => r.id),
+    nowMs,
+  );
+  const sends = rows.map((r) => viewOf(r, landing));
 
   for (const s of sends) {
     const moved = Date.parse(s.lastProgressAt ?? s.startedAt ?? s.createdAt);

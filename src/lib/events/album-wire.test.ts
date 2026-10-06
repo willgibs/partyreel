@@ -8,6 +8,9 @@ import {
   ENTRY_PREVIEW,
   ENTRY_REEL,
   ENTRY_VIDEO,
+  entryCaptureTime,
+  entryDuration,
+  entryTime,
   isAlbumId,
   isAlbumVersion,
   isApprovedEntry,
@@ -145,6 +148,78 @@ describe("a manifest entry", () => {
     expect(
       isApprovedEntry(toManifestEntry({ ...base, status: "approved" }, "host")),
     ).toBe(true);
+  });
+});
+
+describe("★ a manifest entry's capture time (capture-time, Will's X7)", () => {
+  const base = {
+    id: "0f000000-0000-4000-8000-000000000002",
+    type: "photo" as const,
+    width: 4032,
+    height: 3024,
+    duration_seconds: null,
+    has_preview: true,
+    reel_eligible: true,
+    created_at: "2026-10-04T09:30:00.123456+00:00",
+  };
+  const TAKEN = 1791076445000000; // 2026-10-04T01:14:05Z
+
+  it("rides as a seventh element in microseconds like `t`, the duration's slot null before it for a photograph", () => {
+    const e = toManifestEntry(
+      { ...base, captured_at: "2026-10-04T01:14:05+00:00" },
+      "album",
+    );
+    expect(e).toEqual([
+      base.id,
+      4032,
+      3024,
+      ENTRY_PREVIEW | ENTRY_REEL,
+      1791106200123456,
+      null,
+      TAKEN,
+    ]);
+    expect(entryCaptureTime(e)).toBe(TAKEN);
+    expect(entryTime(e)).toBe(1791106200123456);
+    expect(entryDuration(e)).toBeNull();
+  });
+
+  it("keeps a video's duration where it always was, and reads it from either length", () => {
+    const video = { ...base, type: "video" as const, duration_seconds: 7.25 };
+    const timed = toManifestEntry({ ...video, captured_at: TAKEN }, "album");
+    expect(timed).toEqual([
+      base.id,
+      4032,
+      3024,
+      ENTRY_VIDEO | ENTRY_PREVIEW | ENTRY_REEL,
+      1791106200123456,
+      7.25,
+      TAKEN,
+    ]);
+    expect(entryDuration(timed)).toBe(7.25);
+    expect(entryDuration(toManifestEntry(video, "album"))).toBe(7.25);
+  });
+
+  it("★ an entry with none is the bytes it always was: no element added, none read", () => {
+    for (const none of [undefined, null]) {
+      const e = toManifestEntry({ ...base, captured_at: none }, "album");
+      expect(e).toHaveLength(5);
+      expect(entryCaptureTime(e)).toBeNull();
+    }
+  });
+
+  it("takes microseconds from SQL and a timestamp from PostgREST alike, and reads one it cannot parse as none, never a throw", () => {
+    expect(toManifestEntry({ ...base, captured_at: TAKEN }, "album")).toEqual(
+      toManifestEntry(
+        { ...base, captured_at: "2026-10-04 01:14:05+00" },
+        "host",
+      ),
+    );
+    expect(
+      toManifestEntry({ ...base, captured_at: "not a time" }, "album"),
+    ).toHaveLength(5);
+    expect(
+      toManifestEntry({ ...base, captured_at: Number.NaN }, "album"),
+    ).toHaveLength(5);
   });
 });
 

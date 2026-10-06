@@ -48,7 +48,6 @@ const quietTrigger = cn(
   linkClass,
   "h-auto rounded-full bg-transparent px-3 py-1.5 font-normal",
   "hover:bg-transparent hover:text-foreground focus:bg-transparent",
-  "focus-visible:ring-2 focus-visible:ring-ring/40",
   "data-open:bg-transparent data-open:text-foreground",
 );
 
