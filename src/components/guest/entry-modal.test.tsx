@@ -1297,9 +1297,33 @@ describe("a camera album's door", () => {
         moderation_mode: "live",
         accepts_video: true,
       });
-      // A guest's camera: it keeps her roll (the host never meets the door).
-      expect(camera.props).toMatchObject({ isDemo: false, isOwner: false });
+      // A guest's camera: it keeps her roll (the host never meets the door), and nothing holds her shots.
+      expect(camera.props).toMatchObject({
+        isDemo: false,
+        isOwner: false,
+        heldAtDoor: false,
+      });
     });
+  });
+
+  /* ★ AND THE ALBUM'S WORD ON UPLOADS, AS THE SLOT'S CAMERA HAS IT (guest-requests' Deferred line, crumbs-85): the door's
+     camera was handed none, so it asked a closed album again on the calm cadence; with the word it asks once the album
+     says it opened, and the page's ask for the word afresh rides with it. */
+  it("★ the door's camera is handed the album's word on uploads and the page's ask for it", async () => {
+    const word = { open: false, heard: 3 };
+    const ask = vi.fn();
+    atTheStep({ uploadsWord: word, onAskUploadsWord: ask });
+    await takeAPhoto();
+    await waitFor(() => {
+      expect(screen.getByTestId("album-camera")).toBeInTheDocument();
+    });
+    const handed = camera.props as unknown as {
+      uploadsWord?: unknown;
+      onAskUploadsWord?: () => void;
+    };
+    expect(handed.uploadsWord).toBe(word);
+    handed.onAskUploadsWord?.();
+    expect(ask).toHaveBeenCalledTimes(1);
   });
 
   it("a shot goes to the page's one queue with what the camera brought of it (a video's first frame)", async () => {
@@ -1350,6 +1374,10 @@ describe("a camera album's door", () => {
     expect(onSend).toHaveBeenCalledTimes(1);
     // A shot joins the queue beside the others; a choice (her Change) would replace them.
     expect(onHold).not.toHaveBeenCalled();
+    // ★ And the camera is told the door holds them (crumbs-85): it says they go in once she is let in.
+    expect(
+      (camera.props as unknown as { heldAtDoor?: boolean }).heldAtDoor,
+    ).toBe(true);
   });
 
   it("★ the failure view takes another photograph, never 'chooses' one, and clears what failed", () => {

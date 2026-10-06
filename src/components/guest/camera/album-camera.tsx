@@ -63,6 +63,7 @@ import {
   reelCaption,
   reelLabel,
   revealFor,
+  type CameraReveal,
   rollCount,
   rollDoneLine,
   yourShotsLine,
@@ -127,6 +128,7 @@ export function AlbumCamera({
   onOwnRemoved,
   uploadsWord,
   onAskUploadsWord,
+  heldAtDoor = false,
 }: {
   open: boolean;
   /**
@@ -137,6 +139,12 @@ export function AlbumCamera({
   uploadsWord?: UploadsWord;
   /** Ask the album for its word afresh (its next sync carries no validator): a closed refusal over a word that said open. */
   onAskUploadsWord?: () => void;
+  /**
+   * ★ THE HELD DOOR HOLDS HER SHOTS (crumbs-85): opened from the held door's wait, what she takes waits in the page's
+   * queue until the host lets her in, so the camera says so (`reveal` "door": "They go in once you're let in") and draws
+   * none of them sending; "Every shot goes straight in" over shots going nowhere was the door's own red-team NIT.
+   */
+  heldAtDoor?: boolean;
   /** When Add opened it (its own press): the clock its words start from. */
   openedAt: number;
   onOpenChange: (open: boolean) => void;
@@ -179,7 +187,7 @@ export function AlbumCamera({
     return () => window.clearInterval(timer);
   }, [open]);
   const now = Math.max(openedAt, tick);
-  const reveal = revealFor(event, now);
+  const reveal: CameraReveal = heldAtDoor ? "door" : revealFor(event, now);
   const developsAt = event.develops_at ?? null;
 
   /* ── her shots, where each stands, and her roll ───────────────────────────────────────────── */
@@ -529,7 +537,9 @@ export function AlbumCamera({
         mediaId: state.mediaId,
         queueId: state.queueId,
         kind: shot.kind,
-        status: state.status,
+        // At the held door a shot in the page's queue is waiting for the let-in, never sending.
+        status:
+          heldAtDoor && state.status === "sending" ? "door" : state.status,
         src: thumbUrls.get(shot.key),
         seconds: shot.seconds,
         removable:
@@ -552,7 +562,7 @@ export function AlbumCamera({
       });
     }
     return out;
-  }, [states, own, thumbUrls, gone]);
+  }, [states, own, thumbUrls, gone, heldAtDoor]);
 
   const latestTiles = useRef(tiles);
   useEffect(() => {
@@ -669,7 +679,7 @@ export function AlbumCamera({
                 held: guest.held,
                 done,
                 host,
-                sending,
+                sending: heldAtDoor ? 0 : sending,
               })}
               cap={cap}
               used={used}
@@ -678,7 +688,7 @@ export function AlbumCamera({
                 takenAt: shot.takenAt,
                 kind: shot.kind,
                 seconds: shot.seconds,
-                sending: inFlight(state),
+                sending: inFlight(state) && !heldAtDoor,
               }))}
               frozen={frozen}
               just={just}

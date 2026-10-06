@@ -22,7 +22,15 @@ import {
   TRACKER_WORDS,
 } from "@/lib/guest/upload-tracker";
 
-export type CameraReveal = "develop" | "approve" | "live";
+/**
+ * Which album the camera shoots for: a develop time ahead, the host's approval, straight in, or, at the held door, none
+ * yet (`door`: her shots wait in the page's queue until the host lets her in, crumbs-85; never derived from the event,
+ * `revealFor`, only said by the door that holds them).
+ */
+export type CameraReveal = "develop" | "approve" | "live" | "door";
+
+/** What the held door's camera says of her shots: they wait for the let-in, never "straight in" (red-team's crumbs). */
+export const DOOR_HOLDS = "They go in once you’re let in";
 
 /** Which album the camera shoots for, now: a develop time ahead, the host's approval, or straight in. */
 export function revealFor(
@@ -92,6 +100,7 @@ export function cameraSubLine(input: {
   if (input.reveal === "develop" && input.developsAt) {
     return `Develops ${developsWhen(input.developsAt, input.nowMs)}`;
   }
+  if (input.reveal === "door") return DOOR_HOLDS;
   return input.reveal === "approve"
     ? "The host approves each shot"
     : "Every shot goes straight in";
@@ -167,6 +176,7 @@ export function rollDoneLine(input: {
   if (input.reveal === "develop" && input.developsAt) {
     return `${shots}, developing with everyone’s. They’re back ${developsWhen(input.developsAt, input.nowMs)}.`;
   }
+  if (input.reveal === "door") return `${shots}. ${DOOR_HOLDS}.`;
   return input.reveal === "approve"
     ? `${shots}, waiting for the host.`
     : `${shots}, all in the album.`;
@@ -193,6 +203,7 @@ export function yourShotsLine(input: {
   if (input.reveal === "develop" && input.developsAt) {
     return `Only you can see these until they develop ${developsWhen(input.developsAt, input.nowMs)}.`;
   }
+  if (input.reveal === "door") return `${DOOR_HOLDS}.`;
   return input.reveal === "approve"
     ? "Each one waits for the host before it joins the album."
     : "They’re in the album as you take them.";
@@ -208,6 +219,8 @@ export const SHOT_WORDS = {
   in: TRACKER_WORDS.approved,
   sealed: TRACKER_SEALED_WORDS,
   held: TRACKER_WORDS.waiting,
+  /** Taken at the held door, waiting in the page's queue for the let-in: nothing of it is sending. */
+  door: "Waiting to go in",
   failed: "Didn’t send",
   removing: "Removing…",
   removeFailed: "Couldn’t remove it",

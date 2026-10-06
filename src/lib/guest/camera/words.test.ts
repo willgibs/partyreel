@@ -208,6 +208,19 @@ describe("the lines", () => {
     );
   });
 
+  it("★ at the held door says her shots go in once she is let in, never straight in (crumbs-85)", () => {
+    const base = { developsAt: null, recording: false, done: false };
+    expect(cameraSubLine({ ...base, reveal: "door" })).toBe(
+      "They go in once you’re let in",
+    );
+    expect(yourShotsLine({ reveal: "door", developsAt: null })).toBe(
+      "They go in once you’re let in.",
+    );
+    expect(rollDoneLine({ held: 3, reveal: "door", developsAt: null })).toBe(
+      "3 shots. They go in once you’re let in.",
+    );
+  });
+
   it("says what her shots are waiting for", () => {
     expect(
       yourShotsLine({ reveal: "develop", developsAt: NINE_AM, nowMs: PARTY }),

@@ -1362,6 +1362,11 @@ export function EventExperience({
         // through the page's own removal, as the slot's camera does.
         camera={cameraAlbum ? { rollSize: event.roll_size ?? null } : null}
         onCameraOpenChange={setCameraOpen}
+        // ★ AND THE ALBUM'S WORD ON UPLOADS, as the slot's camera has it (guest-requests' Deferred line): a closed album is
+        // asked again on its word that it opened, never on a clock. Only where the album's sync polls (never the demo,
+        // never behind a lock: no word would come), else the camera keeps its calm cadence.
+        uploadsWord={!isDemo && access !== "none" ? uploadsWord : undefined}
+        onAskUploadsWord={askUploadsWord}
         removedIds={removedIds}
         onOwnRemoved={handleOwnRemoved}
         capBytes={hostCap}
