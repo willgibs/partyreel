@@ -6,7 +6,7 @@ Look up the task in hand; each section stands alone. The scripts run from the re
 
 1. `export S=<this session's scratchpad>` (every script requires it and writes its logs there). Read `docs/tracks/orchestrator.md` (in flight,
    next, waiting on Will), then `docs/STATUS.md`. **In a cloud session** (seated there since 2026-10-06): an export lasts
-   one command, so append `S` and `CHROME_PATH` to this session's shell snapshot (`~/.claude/shell-snapshots/`);
+   one command, so append `S` and `CHROME_PATH` to this session's newest shell snapshot (`~/.claude/shell-snapshots/`; again after a worker restart, and a background command reads none, so set `S` inside it);
    `apt-get install -y zsh`; a no-op `~/.nvm/nvm.sh` (`nvm() { :; }`: the kit sources nvm under `set -e`); the Chrome
    wrapper `spawn-prompt-cloud.txt` makes; a gitignored `.env.local` of public values (this container may hold no
    secret: a lane's session, born after Will's environment change, holds them). A full `pnpm test` takes about 8.5
