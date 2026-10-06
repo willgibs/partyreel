@@ -33,7 +33,6 @@ session of its own (the runbook's "Cut a lane", step 4); none can message back, 
 | lane | what | state | model | session |
 | --- | --- | --- | --- | --- |
 | `redteam-56b` | red-team 56b on milestone 38's whole tip: crumbs-85's MEDIUM re-walked, the bursts, the house set and the halo's Tab walk, the album's time, the roll, marketing's pictures, the 404s, the regressions | RUNNING since 19:03Z on `28ac0f813`, its boot reading the environment as it stands (the first session, `session_01KZTtpNFbXk3YiQS79BqG9j`, walked nothing: its permission check refused four boot steps that overrode the environment, until Will set the localhost site URL, `CHROME_PATH` and `NODE_USE_ENV_PROXY` there); its report is its `result` event, its MEDIUM-or-worse lines in its events as it walks | Opus | `session_01Bn45Y2nTKbfTSXZsoCPGMT` |
-| `account-moments-r1` | board account-moments r1 (desk 50): I4 Follow and Block staying quiet, I5 a profile before a public page, each built answer drawn beside real alternatives | BACK WITH ITS LANE (18:58Z): gate 48 red on one test, `layer-is-up.test.tsx` refusing the hand-written dialog selector at `relations.tsx:113` (every other step green); the local merge undone, the lane resumed by message to fix it and hand off again | Opus | `session_01NRUnVBvmM6AN8RZvcVryuV` |
 | `marketing-crumbs` | nine marketing lines: today's product in the site's words and pictures, the postmark, the cinema 404, the demo modal on the popup, three wells | HANDED OFF at `adaa07645` (18:42Z); integrates after milestone 38 | Opus | `session_01YKZtbayaXAkLj5ZQSZabgU` |
 | `upload-sums` | per-event byte sums in SQL (PRICING.md's lever 7): an upload's three reads and the size list stop walking every item; one migration (`20261006180000_upload_sums.sql`) through the Advisor | RUNNING since 17:48Z (cut at `567e8710`); integrates after milestone 38 | Opus | `session_01XwyY3CKaLeoiXrtikFMvXb` |
 | `crumbs-86` | ten small things: the 404s' one noindex, the host's capture clock, See it as a guest's zone and words, Create's seeding, billing's seam, two Library specimens, lifecycle comments, Blocked's address; no migration | RUNNING since 17:48Z (cut at `567e8710`); integrates after milestone 38 | Opus | `session_01NdLRsbCC4Nknxu3h5cbE8f` |
@@ -88,11 +87,10 @@ and another account's sessions.
    last two boards are merged, their record carries `[preview]` and the runbook's "Deploy to the alias" runs once
    (`vercel-usage.mjs` read first, `alias-ensure.mjs`, the prune); Will reviews the desk there.
 4. **Will's desk** holds brand r2's `take` (served at `2634388a8`, unanswered) and, at the next refresh, event-header
-   r6's `card` and `attention` and desk 7's moments boards (host-moments r1, guest-moments r1 and create-wizard r4
-   merged; account-moments r1 when it lands): he runs `git pull && S=/tmp zsh usher/kit/desk-refresh.sh <sha>` in his
-   checkout. Desk 6, the brand applied (brand-marks with the status set, which inherits his `attention` pick as its
-   waiting colour; aurora; marketing-themes with N4, N7 and N9; demo-framing r6; presence r1), is cut after his brand r2
-   pick.
+   r6's `card` and `attention` and desk 7's moments boards (host-moments r1, guest-moments r1, account-moments r1 and
+   create-wizard r4 merged): he runs `git pull && S=/tmp zsh usher/kit/desk-refresh.sh <sha>` in his checkout. Desk 6,
+   the brand applied (brand-marks with the status set, which inherits his `attention` pick as its waiting colour;
+   aurora; marketing-themes with N4, N7 and N9; demo-framing r6; presence r1), is cut after his brand r2 pick.
 5. **Compute:** lever 3 and 3b only on Will's X5; `pnpm compute:model` at every milestone.
 6. **★ Vercel's Hobby Active CPU** (about 3.89 of 4 hours over 30 days on 2026-10-06; the peak rolls off in early
    November): nothing runs against the alias or partyreel.com but what Will asks for by name.

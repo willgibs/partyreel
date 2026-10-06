@@ -1135,3 +1135,21 @@ frame can be seen.
 **BT4. The round's new words stand as drawn** ("When do the photos develop?", "Guests still need your code: print it,
 or share it.", "Couldn't create it yet"); the voice tunes them at wiring.
 - *Push back if* a line reads wrong.
+
+## BU. Her account's quiet moments, drawn (account-moments-r1, on your desk)
+
+Its five asks are on your desk (I4 Follow and Block staying quiet, I5 her page before it's public); these are the
+calls drawn into them, built and yours to overrule.
+
+**BU1. The board stands on Shared,** since a follow, a block and her own page are a guest's and a host's alike.
+- *Push back if* Guest should own them.
+
+**BU2. It opens at 375,** where a guest meets these from her album; 1440 is one press away.
+- *Push back if* it should open at a desk.
+
+**BU3. A refused follow or block is settled and drawn nowhere:** it springs back, the server's words in one toast.
+- *Push back if* refusal should be asked too.
+
+**BU4. The profile setup's three screens are untouched:** I5 stops at the invitation that leads into them, so a pick
+changes /me and the card, never the setup.
+- *Push back if* the setup itself should be redrawn.
