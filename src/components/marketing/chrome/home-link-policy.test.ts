@@ -1,7 +1,6 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { describe, expect, it } from "vitest";
+
+import { entries, read as readFile } from "@/testing/source-tree";
 
 /**
  * THE CHROME DRAWS ITS DOOR TO THE HOME ONCE, THROUGH `HomeLink` (crumbs-50).
@@ -15,17 +14,19 @@ import { describe, expect, it } from "vitest";
  * is not a `HomeLink`. Pinned for non-emptiness: a scan that finds no wordmark is a broken scan, not a clean
  * chrome.
  */
-const DIR = join(process.cwd(), "src/components/marketing/chrome");
+const DIR = "src/components/marketing/chrome";
 
-const FILES = readdirSync(DIR).filter(
-  (name) =>
-    name.endsWith(".tsx") &&
-    !name.endsWith(".test.tsx") &&
-    name !== "chrome-link.tsx",
-);
+const FILES = entries(DIR)
+  .map((entry) => entry.name)
+  .filter(
+    (name) =>
+      name.endsWith(".tsx") &&
+      !name.endsWith(".test.tsx") &&
+      name !== "chrome-link.tsx",
+  );
 
 const read = (name: string) =>
-  readFileSync(join(DIR, name), "utf8").replace(/\{\/\*[\s\S]*?\*\/\}/g, "");
+  readFile(`${DIR}/${name}`).replace(/\{\/\*[\s\S]*?\*\/\}/g, "");
 
 describe("the chrome's door to the home", () => {
   it("finds the wordmarks at all", () => {
