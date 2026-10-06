@@ -122,7 +122,8 @@ local agents' transcripts.
   given him at 15:00Z: the environment's Setup script makes the wrapper (`printf '#!/bin/sh\nexec
   /opt/pw-browsers/chromium --no-sandbox "$@"\n' > /usr/local/bin/chrome-ns && chmod +x /usr/local/bin/chrome-ns`,
   and zsh), its variables set `CHROME_PATH`, `NODE_USE_ENV_PROXY=1` and `NEXT_PUBLIC_SITE_URL=http://localhost:3000`;
-  once set, the spawn prompt's own wrapper step drops.
+  once set, the spawn prompt skips its own wrapper step (it makes one only where none is). Unverified at handoff (a
+  Haiku probe declined to run its checks): the next lane's boot shows it.
 - **A Cloudflare API token** in the environment (`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`), only if the
   Workers should deploy from the cloud.
 - **The private note** scratch-synthesis wrote for this seat on his Mac (`CLOUD-ORCHESTRATOR-PRIVATE.md`): uploaded
