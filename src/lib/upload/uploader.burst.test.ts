@@ -763,3 +763,93 @@ describe("one file's own cancel: a burst of three, the middle one", () => {
     expect(completes()).toHaveLength(0);
   });
 });
+
+/**
+ * ★ BURSTS BACK TO BACK (uploads-bursts): the guest's queue begins its next burst on the last one's bytes
+ * (`onSendDone`) and holds its complete for the last one's answer (`recordAfter`), so the line never idles for a
+ * complete's round trip and the server still meets one sender's completes one after another.
+ */
+describe("★ bursts back to back (uploads-bursts)", () => {
+  const endpoints = { presign: "/p/presign", complete: "/p/complete" };
+
+  it("says its bytes are up once, when the last file has gone up, before its complete answers", async () => {
+    let release!: () => void;
+    completeGate = new Promise<void>((resolve) => (release = resolve));
+    let sendDone = 0;
+    const going = uploadBurst({
+      files: burstOf(3).map((file) => ({ file })),
+      endpoints,
+      identity: { session_token: "t" },
+      onSendDone: () => {
+        sendDone += 1;
+        log.push("bytes up");
+      },
+    });
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(sendDone).toBe(1);
+    expect(log.indexOf("bytes up")).toBeGreaterThan(
+      log.indexOf("landed f1002"),
+    );
+    // The complete is asked, and has not answered.
+    expect(completes()).toHaveLength(1);
+    release();
+    await vi.advanceTimersByTimeAsync(10);
+    expect((await going).every((o) => o.ok)).toBe(true);
+    expect(sendDone).toBe(1);
+  });
+
+  it("★ its presign and bytes go while the last burst is recorded; its complete waits for that answer, even off the screen", async () => {
+    let recorded!: () => void;
+    const last = new Promise<void>((resolve) => (recorded = resolve));
+    const going = uploadBurst({
+      files: burstOf(2).map((file) => ({ file })),
+      endpoints,
+      identity: { session_token: "t" },
+      recordAfter: last,
+    });
+    await vi.advanceTimersByTimeAsync(BURST_RECORD_WAIT_MS + 1_000);
+    expect(log).toContain("landed f1001");
+    expect(completes()).toHaveLength(0);
+    page.turn("hidden");
+    await vi.advanceTimersByTimeAsync(10);
+    expect(completes()).toHaveLength(0);
+    recorded();
+    await vi.advanceTimersByTimeAsync(10);
+    expect(completes().map((c) => c.body.files.length)).toEqual([2]);
+    expect((await going).every((o) => o.ok)).toBe(true);
+  });
+
+  it("★ the next burst's first presign goes before the last complete answers, and the completes stay in order", async () => {
+    let release!: () => void;
+    completeGate = new Promise<void>((resolve) => (release = resolve));
+    let next: Promise<unknown> | null = null;
+    const first = uploadBurst({
+      files: burstOf(2).map((file) => ({ file })),
+      endpoints,
+      identity: { session_token: "t" },
+      onSendDone: () => {
+        next = uploadBurst({
+          files: burstOf(1, 2000).map((file) => ({ file })),
+          endpoints,
+          identity: { session_token: "t" },
+          recordAfter: first,
+        });
+      },
+    });
+    await vi.advanceTimersByTimeAsync(1_000);
+    // The last burst's complete is out, unanswered; the next burst presigned and sent its bytes meanwhile.
+    expect(completes().map((c) => c.body.files.length)).toEqual([2]);
+    expect(presigns().at(-1)!.body.files).toHaveLength(1);
+    expect(log.indexOf("put f2000")).toBeGreaterThan(log.indexOf("complete"));
+    expect(log).toContain("landed f2000");
+    // Its complete waits for the last one's answer: the server never meets the two at once.
+    release();
+    await vi.advanceTimersByTimeAsync(10);
+    expect(completes().map((c) => c.body.files[0]!.media_id)).toEqual([
+      idOf("f1000"),
+      idOf("f2000"),
+    ]);
+    expect((await first).every((o) => o.ok)).toBe(true);
+    expect(await next).toEqual([expect.objectContaining({ ok: true })]);
+  });
+});
