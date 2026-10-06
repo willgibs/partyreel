@@ -196,9 +196,9 @@ describe("the lines", () => {
     ).toBe(
       "24 shots, developing with everyone’s. They’re back tomorrow at 9 am.",
     );
-    expect(rollDoneLine({ held: 24, reveal: "approve", developsAt: null })).toBe(
-      "24 shots, waiting for the host.",
-    );
+    expect(
+      rollDoneLine({ held: 24, reveal: "approve", developsAt: null }),
+    ).toBe("24 shots, waiting for the host.");
     expect(rollDoneLine({ held: 1, reveal: "live", developsAt: null })).toBe(
       "1 shot, all in the album.",
     );

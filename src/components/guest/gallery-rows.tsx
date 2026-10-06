@@ -208,8 +208,7 @@ function useStackSight(onSight: (inView: boolean) => void) {
       ([entry]) => {
         if (entry)
           report.current(
-            entry.isIntersecting &&
-              entry.intersectionRatio >= STACK_SEEN_RATIO,
+            entry.isIntersecting && entry.intersectionRatio >= STACK_SEEN_RATIO,
           );
       },
       { threshold: [0, STACK_SEEN_RATIO] },
