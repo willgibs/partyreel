@@ -3,16 +3,13 @@ track: orchestrator
 status: open
 cut: "94d66338"          # the launch-prep SHA this state was written at
 owns:                    # the standing claims no lane touches
-  - src/app/(dev)/design/rules/bible.ts
-  - src/app/(dev)/design/rules/bible.test.ts
-  - src/lib/design-gate/
-  - src/app/api/design-gate/
   - scripts/vercel-ignore-build.mjs
   - .github/workflows/ci.yml
 reads:
   - CLAUDE.md
   - docs/PROGRAM.md
 announces:
+  - "claims lent to test-slim (2026-10-06): bible.ts, bible.test.ts, src/lib/design-gate/ and src/app/api/design-gate/ leave this owns for test-slim (tests only) and return at its merge"
   - "kit fix at launch-prep (2026-10-04): `integrate.sh` passes the lane's sha whole and `merge-lane.sh` compares heads whole (git's short form grew to 9 characters, so comparing short forms refused every lane); `negative.sh`'s check 2 reworded. A lane editing `usher/kit/` syncs before touching those three."
 ---
 
