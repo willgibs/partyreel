@@ -31,6 +31,7 @@ import {
 import { CheckoutButton } from "@/components/app/checkout-button";
 import { ManageBillingButton } from "@/components/app/manage-billing-button";
 import { PricingSheet } from "@/components/app/pricing/pricing-sheet";
+import { ProOnItsWay } from "@/components/app/pricing/pro-on-its-way";
 import { WELCOME_VALUE } from "@/components/app/pricing/return-path";
 import { WelcomeToPro } from "@/components/app/pricing/welcome-to-pro";
 import { PRO_LINE } from "@/lib/constants/marketing-voice";
@@ -52,6 +53,7 @@ import {
 } from "@/lib/db/mutations/account";
 import { hasPassword } from "@/lib/db/queries/account";
 import { getProfile } from "@/lib/db/queries/profile";
+import { readProPendingSince } from "@/lib/billing/pro-pending-read";
 import { formatBytesUp } from "@/lib/billing/storage-guard";
 import { getHostStorageSummary } from "@/lib/db/queries/storage";
 import {
@@ -227,6 +229,13 @@ export default async function AccountPage({
       ? formatDateInZone(profile.tier_expires_at, viewerZone)
       : null;
   const hasBilling = Boolean(profile.stripe_customer_id);
+  // Her credited Pro still landing (billing-orphans): her passes became credit and her plan is seconds (or a delayed
+  // delivery) behind, so the card says so rather than reading a pass with nothing behind it.
+  const proPending = await readProPendingSince({
+    id: profile.id,
+    tier,
+    stripe_event_created_at: profile.stripe_event_created_at ?? null,
+  });
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -278,6 +287,7 @@ export default async function AccountPage({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {proPending ? <ProOnItsWay /> : null}
           <dl className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1">
               <dt className="text-xs font-medium text-muted-foreground">

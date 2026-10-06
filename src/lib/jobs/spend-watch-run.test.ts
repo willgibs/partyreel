@@ -88,6 +88,19 @@ vi.mock("@/lib/jobs/limits-watch-run", () => ({
     `https://admin.partyreel.com/admin/jobs#${anchor}`,
 }));
 
+// The change-plan configuration rides the run too (billing-orphans); its own rules are tested in
+// change-plan-watch-run.test.ts, so here it is an edge.
+const runChangePlanWatch = vi.fn();
+vi.mock("@/lib/jobs/change-plan-watch-run", () => ({
+  runChangePlanWatch: (...a: unknown[]) => runChangePlanWatch(...a),
+}));
+const wholeChangePlan = {
+  stored: { state: "whole", configuration_id: "bpc_test", sold: 6 },
+  attention: false,
+  failed: false,
+  note: null,
+};
+
 const { runSpendWatch } = await import("@/lib/jobs/spend-watch-run");
 
 // ── fixtures ───────────────────────────────────────────────────────────────────────────────────────
@@ -156,6 +169,7 @@ const quietLimits = {
 beforeEach(() => {
   vi.clearAllMocks();
   runLimitsWatch.mockResolvedValue(quietLimits);
+  runChangePlanWatch.mockResolvedValue(wholeChangePlan);
   getJobFlags.mockResolvedValue({ spend_watch: true, purge_cron: true });
   startJobRun.mockResolvedValue({
     runId: "run-1",
@@ -311,6 +325,67 @@ describe("the plan limits that ride the run", () => {
     const outcome = await runSpendWatch({ trigger: "schedule", now: NOW });
     expect(outcome.tripped).toEqual(["downloads"]);
     expect(pauseSwitch).toHaveBeenCalledWith("export_enabled", NOW);
+  });
+});
+
+describe("the change-plan configuration that rides the run (billing-orphans)", () => {
+  it("keeps its record beside the readings, quiet when it lists every Pro price", async () => {
+    const outcome = await runSpendWatch({ trigger: "schedule", now: NOW });
+    expect(runChangePlanWatch).toHaveBeenCalledWith({ now: NOW });
+    const run = finished();
+    expect(run.counts.change_plan).toEqual(wholeChangePlan.stored);
+    expect(run.status).toBe("ok");
+    expect(run.counts).not.toHaveProperty("breaker_tripped");
+    expect(outcome.changePlan).toBe("whole");
+  });
+
+  it("★ a price missing holds the run at attention (the bell) and its note names the price", async () => {
+    const note =
+      "Change plan in Stripe: the tagged configuration (bpc_test) lacks Pro 50 GB, $90/yr (price_50y), so Stripe refuses a switch to it.";
+    runChangePlanWatch.mockResolvedValue({
+      stored: {
+        state: "missing",
+        configuration_id: "bpc_test",
+        sold: 6,
+        missing: [
+          {
+            plan_id: "pro_50_yr",
+            label: "Pro 50 GB, $90/yr",
+            price_id: "price_50y",
+          },
+        ],
+      },
+      attention: true,
+      failed: false,
+      note,
+    });
+    const outcome = await runSpendWatch({ trigger: "schedule", now: NOW });
+    const run = finished();
+    expect(run.status).toBe("ok");
+    expect(run.counts).toMatchObject({ breaker_tripped: true, tripped: 0 });
+    expect(run.note).toBe(note);
+    expect(outcome.changePlan).toBe("missing");
+  });
+
+  it("★ a check that could not run fails the run, with its words", async () => {
+    runChangePlanWatch.mockResolvedValue({
+      stored: { state: "unread", message: "Stripe timed out" },
+      attention: false,
+      failed: true,
+      note: "Change plan in Stripe: no reading (Stripe timed out).",
+    });
+    const outcome = await runSpendWatch({ trigger: "schedule", now: NOW });
+    expect(outcome.status).toBe("error");
+    expect(finished().note).toBe(
+      "Change plan in Stripe: no reading (Stripe timed out).",
+    );
+    expect(finished().counts).not.toHaveProperty("breaker_tripped");
+  });
+
+  it("is never read while the watch is paused", async () => {
+    getJobFlags.mockResolvedValue({ spend_watch: false, purge_cron: true });
+    await runSpendWatch({ trigger: "schedule", now: NOW });
+    expect(runChangePlanWatch).not.toHaveBeenCalled();
   });
 });
 

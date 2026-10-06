@@ -23,7 +23,9 @@
  * settles). ★ Another checkout's claim that only holds its lease answers busy (credit-watch): a lease is never a
  * refusal, since its holder can die, and the tab told overlap for good while the first tab's retries ran out left
  * neither checkout granted. ★ And a claim taken past such a lease once it lapsed names that claim as an orphan, whose
- * grant (its holder may have died after Stripe and before the record) is looked for before this one grants. This
+ * grant (its holder may have died after Stripe and before the record) is looked for before this one grants; a grant
+ * found is adopted in ONE transaction (billing-orphans: on record, converted, this claim released), two orphans granted
+ * for one pass leaving the younger released beside its grant (granted twice). This
  * checkout's own claim, left open by a holder that died, is settled at its overlap: looked for on Stripe's side, then
  * released, its lost grant on record beside it when there was one.
  *
@@ -35,8 +37,10 @@ import "server-only";
 import type Stripe from "stripe";
 
 import {
+  adoptPassCreditOrphans,
   claimPassCredit,
   convertPassCredit,
+  PassCreditReleasedError,
   recordPassCreditGrant,
   releasePassCredit,
   type ClaimOrphan,
@@ -262,24 +266,40 @@ export async function honorPassCredit(
         : claim.orphans.filter((orphan) => found.has(orphan.session));
       if (adopted.length > 0) {
         // ★ Other checkouts' dead holders granted these passes and lost their records: each grant is its own
-        // checkout's, put on record on its claim and converted (a later one whose passes an earlier one already
-        // converted converts none, which the Accounts list says is Stripe's to settle), and this checkout's claim is
-        // released, granting nothing.
-        for (const orphan of adopted) {
-          await recordPassCreditGrant(
-            orphan.session,
-            input.userId,
-            found.get(orphan.session)!,
-          );
-          await convertPassCredit(orphan.session, input.userId);
+        // checkout's, put on record on its claim and converted, and this checkout's claim is released, granting
+        // nothing, all in ONE transaction (billing-orphans): three calls left an orphan granted and unconverted when a
+        // failure fell between them. Two orphans holding grants for one pass: the older is the credit, the younger is
+        // released beside its grant (granted twice), which the operator reverses in Stripe.
+        const adoption = await adoptPassCreditOrphans(
+          input.sessionId,
+          input.userId,
+          adopted.map((orphan) => ({
+            session: orphan.session,
+            balanceTransactionId: found.get(orphan.session)!,
+          })),
+        );
+        // An orphan's own delivery came back and holds its lease again: nothing was written; the retry meets its
+        // grant or its lapse.
+        if (adoption.state === "busy") return "busy_another_checkout";
+        for (const orphan of adoption.orphans) {
+          if (orphan.grantedTwice) {
+            captureWarning("billing", "stripe_pass_credit_overlap_granted", {
+              sessionId: orphan.session,
+              customerId: input.customerId,
+              alsoGranted: orphan.balanceTransactionId,
+              creditedBy: adoption.orphans.find((o) => !o.grantedTwice)
+                ?.session,
+            });
+          }
         }
-        await releasePassCredit(input.sessionId, input.userId, null);
         captureWarning("billing", "stripe_pass_credit_overlap", {
           sessionId: input.sessionId,
           customerId: input.customerId,
           creditCents: input.creditCents,
           passes: input.passIds.length,
-          creditedBy: adopted.map((orphan) => orphan.session),
+          creditedBy: adoption.orphans
+            .filter((orphan) => !orphan.grantedTwice)
+            .map((orphan) => orphan.session),
         });
         return "overlap";
       }
@@ -296,11 +316,26 @@ export async function honorPassCredit(
         );
       }
       const transaction = own ?? (await grant(input));
-      const recorded = await recordPassCreditGrant(
-        input.sessionId,
-        input.userId,
-        transaction,
-      );
+      let recorded: string;
+      try {
+        recorded = await recordPassCreditGrant(
+          input.sessionId,
+          input.userId,
+          transaction,
+        );
+      } catch (error) {
+        if (!(error instanceof PassCreditReleasedError)) throw error;
+        // ★ This holder outlived its lease: another checkout credited its passes and released this claim, and then
+        // this grant landed. It is no credit: on record beside the release (granted twice), the operator's to reverse.
+        await releasePassCredit(input.sessionId, input.userId, transaction);
+        captureWarning("billing", "stripe_pass_credit_overlap_granted", {
+          sessionId: input.sessionId,
+          customerId: input.customerId,
+          creditCents: input.creditCents,
+          alsoGranted: transaction,
+        });
+        return "overlap";
+      }
       // Two grants for one checkout (two deliveries past each other's lease): both bill against one credit, which only
       // the operator can settle, by reversing one in Stripe.
       if (recorded !== transaction) {

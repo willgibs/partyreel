@@ -38,10 +38,12 @@ const CREDIT = [
   "record_pass_credit_grant",
   "convert_pass_credit",
 ] as const;
+const ORPHANS = "20261006120000_billing_orphans.sql";
 const ALL = [
   ...CREDIT,
   "recompute_pass_entitlement",
   "release_pass_credit",
+  "adopt_pass_credit_orphans",
 ] as const;
 
 /** A function's executable body, from its `as $$` on. */
@@ -133,6 +135,7 @@ describe("2. shapes and grants", () => {
       convert_pass_credit: "text, uuid",
       recompute_pass_entitlement: "uuid, timestamptz",
       release_pass_credit: "text, uuid, text",
+      adopt_pass_credit_orphans: "text, uuid, text[], text[]",
     };
     for (const name of ALL) {
       const sql = liveFileCode(name);
@@ -425,12 +428,12 @@ describe("8. the release (credit-watch)", () => {
       body,
       "if not exists (select 1 from public.event_passes q where q.id = any(v_claim.pass_ids) and q.consumed_at is not null) and not exists ( select 1 from public.pass_credits c where c.profile_id = p_host_id and c.stripe_session_id <> p_session_id and c.pass_ids && v_claim.pass_ids and c.granted_at is not null and c.released_at is null) then raise exception 'This checkout''s passes are not another checkout''s to credit: it is still owed.'",
     );
-    expect(owed).toBeLessThan(at(body, "update public.pass_credits"));
+    expect(owed).toBeLessThan(body.lastIndexOf("update public.pass_credits"));
   });
 
   it("★ never a granted claim (it converts), refused before the write; a leased one is its own holder's to release", () => {
     const body = release();
-    const write = at(body, "update public.pass_credits");
+    const write = body.lastIndexOf("update public.pass_credits");
     expect(
       at(
         body,
@@ -440,11 +443,13 @@ describe("8. the release (credit-watch)", () => {
     // Reshaped on purpose (credit-watch's red-team): it refused a claim a delivery held; its own holder now releases
     // itself once an orphan's lost grant credited its passes, and every other caller meets busy at the claim first.
     expect(body).not.toContain("held by a delivery");
-    // A replay answers what is on record, before any refusal.
+    // A replay answers what is on record, before any refusal. Reshaped on purpose (billing-orphans): it answered the
+    // record whatever it named; a grant named on a claim released with none now goes on record beside the release (the
+    // woken holder's, which the record refuses), so that grant is never lost from the record.
     expect(
       at(
         body,
-        "if v_claim.released_at is not null then return case when v_claim.granted_at is null then 'released' else 'released_granted' end; end if;",
+        "if v_claim.released_at is not null then if v_claim.granted_at is null and p_balance_transaction_id is not null then update public.pass_credits set balance_transaction_id = p_balance_transaction_id, granted_at = now() where stripe_session_id = p_session_id; return 'released_granted'; end if; return case when v_claim.granted_at is null then 'released' else 'released_granted' end; end if;",
       ),
     ).toBeLessThan(at(body, "if v_claim.granted_at is not null then raise"));
   });
@@ -454,8 +459,102 @@ describe("8. the release (credit-watch)", () => {
     expect(body).toContain(
       "update public.pass_credits set released_at = now(), claimed_until = null, balance_transaction_id = p_balance_transaction_id, granted_at = case when p_balance_transaction_id is null then null else now() end where stripe_session_id = p_session_id;",
     );
+    // Two writes, both its own claim's: the late grant's beside a release, and the release.
     expect(
       body.match(/\b(?:update|insert into|delete from) public\.\w+/g),
-    ).toEqual(["update public.pass_credits"]);
+    ).toEqual(["update public.pass_credits", "update public.pass_credits"]);
+    for (const m of body.matchAll(/update public\.pass_credits[^;]*;/g)) {
+      expect(m[0]).toContain("where stripe_session_id = p_session_id;");
+    }
+  });
+});
+
+describe("9. the orphans (billing-orphans)", () => {
+  const adopt = () => bodyOf("adopt_pass_credit_orphans");
+
+  it("★ the record refuses a released claim, after the claim is read and before anything is answered or written", () => {
+    const body = bodyOf("record_pass_credit_grant");
+    expect(liveFunction("record_pass_credit_grant").file).toBe(ORPHANS);
+    const refuse = at(
+      body,
+      "if v_claim.released_at is not null then raise exception 'This checkout''s credit is released: its grant goes on record beside the release.' using errcode = 'object_not_in_prerequisite_state';",
+    );
+    expect(refuse).toBeGreaterThan(at(body, "for update;"));
+    expect(refuse).toBeLessThan(
+      at(body, "if v_claim.granted_at is not null then return"),
+    );
+    expect(refuse).toBeLessThan(at(body, "update public.pass_credits"));
+  });
+
+  it("★ adopts in ONE transaction by composing the three settled calls, never a copy of their bodies", () => {
+    const body = adopt();
+    // Her row first (section 3 holds it as the first table), then the orphans, then this claim's release last.
+    const record = at(body, "v_recorded := public.record_pass_credit_grant(");
+    const convert = at(body, "v_converted := public.convert_pass_credit(");
+    const twice = at(
+      body,
+      "perform public.release_pass_credit(v_orphan.stripe_session_id, p_host_id, v_txn);",
+    );
+    const own = at(
+      body,
+      "perform public.release_pass_credit(p_session_id, p_host_id);",
+    );
+    expect(record).toBeLessThan(convert);
+    expect(Math.max(record, convert, twice)).toBeLessThan(own);
+    // It writes nothing itself: every write is one of the three functions', which keep their own refusals.
+    expect(
+      body.match(/\b(?:update|insert into|delete from) public\.\w+/g),
+    ).toBeNull();
+    // No exception handler: a failure anywhere undoes all of it.
+    expect(body).not.toMatch(/\bexception when\b/);
+  });
+
+  it("★ reads every orphan and refuses before any write: hers, on a pass this claim names, unsettled; a live lease is busy", () => {
+    const body = adopt();
+    const firstWrite = at(
+      body,
+      "v_recorded := public.record_pass_credit_grant(",
+    );
+    for (const needle of [
+      "if v_orphan.profile_id <> p_host_id or not (v_orphan.pass_ids && v_claim.pass_ids) then raise exception",
+      "if v_orphan.granted_at is not null or v_orphan.released_at is not null then raise exception",
+      "if v_found <> cardinality(p_orphan_sessions) then raise exception",
+      "if v_held_until is not null then return jsonb_build_object('state', 'busy',",
+      "if v_claim.released_at is not null then raise exception",
+      "if v_claim.granted_at is not null then raise exception",
+    ]) {
+      expect(at(body, needle), needle).toBeLessThan(firstWrite);
+    }
+  });
+
+  it("★ oldest first, and an orphan whose passes are credited by then is released beside its grant (granted twice), never converted for none", () => {
+    const body = adopt();
+    expect(
+      body.match(/order by c\.created_at, c\.stripe_session_id/g),
+    ).toHaveLength(2);
+    const credited = at(
+      body,
+      "if exists (select 1 from public.event_passes q where q.id = any(v_orphan.pass_ids) and q.profile_id = p_host_id and q.consumed_at is not null) then perform public.release_pass_credit(v_orphan.stripe_session_id, p_host_id, v_txn);",
+    );
+    expect(credited).toBeLessThan(
+      at(body, "v_recorded := public.record_pass_credit_grant("),
+    );
+    expect(body).toContain("'granted_twice', true");
+    expect(body).toContain("'granted_twice', false");
+  });
+
+  it("the route adopts through the one call, and a released record goes beside the release", () => {
+    const credit = readFileSync(
+      join(process.cwd(), "src/app/api/stripe/webhook/pass-credit.ts"),
+      "utf8",
+    );
+    const adopted = credit.slice(at(credit, "if (adopted.length > 0) {"));
+    const block = adopted.slice(0, adopted.indexOf('return "overlap";'));
+    expect(block).toContain("await adoptPassCreditOrphans(");
+    expect(block).not.toContain("await recordPassCreditGrant(");
+    expect(block).not.toContain("await convertPassCredit(");
+    expect(credit).toContain(
+      "if (!(error instanceof PassCreditReleasedError)) throw error;",
+    );
   });
 });

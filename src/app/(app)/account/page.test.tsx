@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { CrumbsBar, CrumbsProvider } from "@/components/shared/crumbs";
@@ -123,6 +123,12 @@ vi.mock("@/components/app/pricing/welcome-to-pro", () => ({
   WelcomeToPro: part,
 }));
 
+// Her credited Pro on its way (billing-orphans): the read is the rule's (`pro-pending.test.ts`), an edge here.
+const proPending = vi.hoisted(() => ({ since: null as string | null }));
+vi.mock("@/lib/billing/pro-pending-read", () => ({
+  readProPendingSince: async () => proPending.since,
+}));
+
 const { default: AccountPage } = await import("./page");
 
 async function drawn() {
@@ -150,5 +156,21 @@ describe("Account in the bar", () => {
     // The last step is where she is: marked as the current page and never a link to itself.
     expect(within(steps[1]!).queryByRole("link")).toBeNull();
     expect(steps[1]!.querySelector("[aria-current='page']")).not.toBeNull();
+  });
+});
+
+describe("the Plan card while her credited Pro lands (billing-orphans)", () => {
+  it("★ says her Pro is on its way, and what to do if it never lands, only while it is", async () => {
+    proPending.since = "2026-10-06T05:00:00.000Z";
+    await drawn();
+    const line = screen.getByRole("status");
+    expect(line).toHaveTextContent("Your Pro plan is on its way.");
+    expect(
+      within(line).getByRole("link", { name: "help@partyreel.com" }),
+    ).toHaveAttribute("href", "mailto:help@partyreel.com");
+    cleanup();
+    proPending.since = null;
+    await drawn();
+    expect(screen.queryByText("Your Pro plan is on its way.")).toBeNull();
   });
 });

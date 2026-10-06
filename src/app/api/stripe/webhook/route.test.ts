@@ -189,169 +189,269 @@ const ledger = vi.hoisted(() => ({
   claimedUntil: null as string | null,
 }));
 const LEASE_MS = 10 * 60_000;
-
-vi.mock("@/lib/db/mutations/event-passes", () => ({
-  insertPassPurchase: vi.fn(async () => {}),
-  recomputePassEntitlement: (profileId: string) =>
-    recomputePassEntitlement(profileId),
-  claimPassCredit: async (input: {
-    sessionId: string;
-    hostId: string;
-    creditCents: number;
-    passIds: string[];
-  }) => {
-    stripe.steps.push("claim");
-    if (!db.fake?.tables.profiles.some((p) => p.id === input.hostId)) {
-      return { state: "no_host" };
-    }
-    const ids = [...new Set(input.passIds)].sort();
-    const claim = ledger.claims.get(input.sessionId);
-    if (claim) {
-      if (
-        claim.host !== input.hostId ||
-        claim.credit !== input.creditCents ||
-        claim.ids.join() !== ids.join()
-      ) {
-        throw new Error(
-          "claim_pass_credit: This checkout's credit disagrees with its claim.",
-        );
+/** The wrapper's refusal of a record on a released claim (billing-orphans), the real class's stand-in. */
+const released = vi.hoisted(
+  () =>
+    class PassCreditReleasedError extends Error {
+      constructor(message: string) {
+        super(message);
+        this.name = "PassCreditReleasedError";
       }
-      if (claim.released) return { state: "overlap", unsettled: false };
-      if (claim.txn)
-        return { state: "granted", balanceTransactionId: claim.txn };
-      if (claim.leaseUntil !== null && claim.leaseUntil > stripe.now) {
+    },
+);
+
+vi.mock("@/lib/db/mutations/event-passes", () => {
+  const api = {
+    insertPassPurchase: vi.fn(async () => {}),
+    recomputePassEntitlement: (profileId: string) =>
+      recomputePassEntitlement(profileId),
+    claimPassCredit: async (input: {
+      sessionId: string;
+      hostId: string;
+      creditCents: number;
+      passIds: string[];
+    }) => {
+      stripe.steps.push("claim");
+      if (!db.fake?.tables.profiles.some((p) => p.id === input.hostId)) {
+        return { state: "no_host" };
+      }
+      const ids = [...new Set(input.passIds)].sort();
+      const claim = ledger.claims.get(input.sessionId);
+      if (claim) {
+        if (
+          claim.host !== input.hostId ||
+          claim.credit !== input.creditCents ||
+          claim.ids.join() !== ids.join()
+        ) {
+          throw new Error(
+            "claim_pass_credit: This checkout's credit disagrees with its claim.",
+          );
+        }
+        if (claim.released) return { state: "overlap", unsettled: false };
+        if (claim.txn)
+          return { state: "granted", balanceTransactionId: claim.txn };
+        if (claim.leaseUntil !== null && claim.leaseUntil > stripe.now) {
+          return {
+            state: "busy",
+            heldBy: "this_checkout",
+            retryAfterSec: Math.ceil((claim.leaseUntil - stripe.now) / 1000),
+          };
+        }
+      }
+      const others = [...ledger.claims].filter(
+        ([session, other]) =>
+          session !== input.sessionId &&
+          other.host === input.hostId &&
+          other.ids.some((id) => ids.includes(id)),
+      );
+      const settled =
+        ids.some((id) => ledger.passes.get(id)?.consumed) ||
+        others.some(([, other]) => other.txn !== null && !other.released);
+      if (settled) return { state: "overlap", unsettled: claim !== undefined };
+      const leases = others
+        .map(([, other]) => other.leaseUntil)
+        .filter(
+          (until): until is number => until !== null && until > stripe.now,
+        );
+      if (leases.length > 0) {
         return {
           state: "busy",
-          heldBy: "this_checkout",
-          retryAfterSec: Math.ceil((claim.leaseUntil - stripe.now) / 1000),
+          heldBy: "another_checkout",
+          retryAfterSec: Math.ceil((Math.max(...leases) - stripe.now) / 1000),
         };
       }
-    }
-    const others = [...ledger.claims].filter(
-      ([session, other]) =>
-        session !== input.sessionId &&
-        other.host === input.hostId &&
-        other.ids.some((id) => ids.includes(id)),
-    );
-    const settled =
-      ids.some((id) => ledger.passes.get(id)?.consumed) ||
-      others.some(([, other]) => other.txn !== null && !other.released);
-    if (settled) return { state: "overlap", unsettled: claim !== undefined };
-    const leases = others
-      .map(([, other]) => other.leaseUntil)
-      .filter((until): until is number => until !== null && until > stripe.now);
-    if (leases.length > 0) {
-      return {
-        state: "busy",
-        heldBy: "another_checkout",
-        retryAfterSec: Math.ceil((Math.max(...leases) - stripe.now) / 1000),
-      };
-    }
-    const orphans = others
-      .filter(
-        ([, other]) =>
-          other.txn === null &&
-          !other.released &&
-          (other.leaseUntil === null || other.leaseUntil <= stripe.now),
-      )
-      .sort(([, a], [, b]) => a.createdAt - b.createdAt)
-      .map(([session, other]) => ({ session, claimedAt: other.createdAt }));
-    // The lease's end on the route's own clock (it compares with Date.now()): ten minutes, unless a case shortens it.
-    const claimedUntil =
-      ledger.claimedUntil ?? new Date(Date.now() + LEASE_MS).toISOString();
-    if (claim) {
-      claim.leaseUntil = stripe.now + LEASE_MS;
-      return { state: "claimed", resumed: true, orphans, claimedUntil };
-    }
-    ledger.claims.set(input.sessionId, {
-      host: input.hostId,
-      credit: input.creditCents,
-      ids,
-      leaseUntil: stripe.now + LEASE_MS,
-      txn: null,
-      converted: 0,
-      released: false,
-      createdAt: Math.floor(stripe.now / 1000),
-    });
-    return { state: "claimed", resumed: false, orphans, claimedUntil };
-  },
-  recordPassCreditGrant: async (
-    sessionId: string,
-    _hostId: string,
-    txn: string,
-  ) => {
-    stripe.steps.push("record");
-    if (ledger.failNext.record > 0) {
-      ledger.failNext.record -= 1;
-      throw new Error("record_pass_credit_grant: connection reset");
-    }
-    const claim = ledger.claims.get(sessionId);
-    if (!claim) throw new Error("record_pass_credit_grant: no claim");
-    if (claim.txn) return claim.txn;
-    stripe.recorded.push([sessionId, txn]);
-    claim.txn = txn;
-    claim.leaseUntil = null;
-    return txn;
-  },
-  convertPassCredit: async (sessionId: string) => {
-    stripe.steps.push("convert");
-    if (ledger.failNext.convert > 0) {
-      ledger.failNext.convert -= 1;
-      throw new Error(
-        "convert_pass_credit: canceling statement due to lock timeout",
-      );
-    }
-    const claim = ledger.claims.get(sessionId);
-    if (!claim?.txn) throw new Error("convert_pass_credit: not granted yet");
-    // pass_credits_released_unconverted: a released claim's conversion is a check violation, never a conversion.
-    if (claim.released) {
-      throw new Error(
-        "convert_pass_credit: violates pass_credits_released_unconverted",
-      );
-    }
-    let converted = 0;
-    for (const id of claim.ids) {
-      const pass = ledger.passes.get(id);
-      if (pass && !pass.consumed) {
-        pass.consumed = true;
-        converted += 1;
+      const orphans = others
+        .filter(
+          ([, other]) =>
+            other.txn === null &&
+            !other.released &&
+            (other.leaseUntil === null || other.leaseUntil <= stripe.now),
+        )
+        .sort(([, a], [, b]) => a.createdAt - b.createdAt)
+        .map(([session, other]) => ({ session, claimedAt: other.createdAt }));
+      // The lease's end on the route's own clock (it compares with Date.now()): ten minutes, unless a case shortens it.
+      const claimedUntil =
+        ledger.claimedUntil ?? new Date(Date.now() + LEASE_MS).toISOString();
+      if (claim) {
+        claim.leaseUntil = stripe.now + LEASE_MS;
+        return { state: "claimed", resumed: true, orphans, claimedUntil };
       }
-    }
-    claim.converted += converted;
-    return converted;
-  },
-  releasePassCredit: async (
-    sessionId: string,
-    _hostId: string,
-    txn: string | null,
-  ) => {
-    stripe.steps.push("release");
-    if (ledger.releaseFails.delete(sessionId)) {
-      throw new Error(
-        "release_pass_credit: canceling statement due to lock timeout",
-      );
-    }
-    const claim = ledger.claims.get(sessionId);
-    if (!claim) throw new Error("release_pass_credit: no claim");
-    if (claim.released) return claim.txn ? "released_granted" : "released";
-    if (claim.txn) throw new Error("release_pass_credit: granted: it converts");
-    const overtaken =
-      claim.ids.some((id) => ledger.passes.get(id)?.consumed) ||
-      [...ledger.claims].some(
-        ([session, other]) =>
-          session !== sessionId &&
-          other.host === claim.host &&
-          other.txn !== null &&
-          !other.released &&
-          other.ids.some((id) => claim.ids.includes(id)),
-      );
-    if (!overtaken) throw new Error("release_pass_credit: it is still owed");
-    claim.released = true;
-    claim.leaseUntil = null;
-    claim.txn = txn;
-    return txn ? "released_granted" : "released";
-  },
-}));
+      ledger.claims.set(input.sessionId, {
+        host: input.hostId,
+        credit: input.creditCents,
+        ids,
+        leaseUntil: stripe.now + LEASE_MS,
+        txn: null,
+        converted: 0,
+        released: false,
+        createdAt: Math.floor(stripe.now / 1000),
+      });
+      return { state: "claimed", resumed: false, orphans, claimedUntil };
+    },
+    recordPassCreditGrant: async (
+      sessionId: string,
+      _hostId: string,
+      txn: string,
+    ) => {
+      stripe.steps.push("record");
+      if (ledger.failNext.record > 0) {
+        ledger.failNext.record -= 1;
+        throw new Error("record_pass_credit_grant: connection reset");
+      }
+      const claim = ledger.claims.get(sessionId);
+      if (!claim) throw new Error("record_pass_credit_grant: no claim");
+      if (claim.released) {
+        throw new released(
+          "record_pass_credit_grant: This checkout's credit is released: its grant goes on record beside the release.",
+        );
+      }
+      if (claim.txn) return claim.txn;
+      stripe.recorded.push([sessionId, txn]);
+      claim.txn = txn;
+      claim.leaseUntil = null;
+      return txn;
+    },
+    convertPassCredit: async (sessionId: string) => {
+      stripe.steps.push("convert");
+      if (ledger.failNext.convert > 0) {
+        ledger.failNext.convert -= 1;
+        throw new Error(
+          "convert_pass_credit: canceling statement due to lock timeout",
+        );
+      }
+      const claim = ledger.claims.get(sessionId);
+      if (!claim?.txn) throw new Error("convert_pass_credit: not granted yet");
+      // pass_credits_released_unconverted: a released claim's conversion is a check violation, never a conversion.
+      if (claim.released) {
+        throw new Error(
+          "convert_pass_credit: violates pass_credits_released_unconverted",
+        );
+      }
+      let converted = 0;
+      for (const id of claim.ids) {
+        const pass = ledger.passes.get(id);
+        if (pass && !pass.consumed) {
+          pass.consumed = true;
+          converted += 1;
+        }
+      }
+      claim.converted += converted;
+      return converted;
+    },
+    releasePassCredit: async (
+      sessionId: string,
+      _hostId: string,
+      txn: string | null,
+    ) => {
+      stripe.steps.push("release");
+      if (ledger.releaseFails.delete(sessionId)) {
+        throw new Error(
+          "release_pass_credit: canceling statement due to lock timeout",
+        );
+      }
+      const claim = ledger.claims.get(sessionId);
+      if (!claim) throw new Error("release_pass_credit: no claim");
+      if (claim.released) {
+        // A late grant goes on record beside a release with none (billing-orphans).
+        if (!claim.txn && txn) {
+          claim.txn = txn;
+          return "released_granted";
+        }
+        return claim.txn ? "released_granted" : "released";
+      }
+      if (claim.txn)
+        throw new Error("release_pass_credit: granted: it converts");
+      const overtaken =
+        claim.ids.some((id) => ledger.passes.get(id)?.consumed) ||
+        [...ledger.claims].some(
+          ([session, other]) =>
+            session !== sessionId &&
+            other.host === claim.host &&
+            other.txn !== null &&
+            !other.released &&
+            other.ids.some((id) => claim.ids.includes(id)),
+        );
+      if (!overtaken) throw new Error("release_pass_credit: it is still owed");
+      claim.released = true;
+      claim.leaseUntil = null;
+      claim.txn = txn;
+      return txn ? "released_granted" : "released";
+    },
+  };
+  return {
+    ...api,
+    PassCreditReleasedError: released,
+    /**
+     * `adopt_pass_credit_orphans` (billing-orphans): ONE transaction, so a failure anywhere inside puts the ledger back
+     * as it was. Its inner steps are its own, said as one step ("adopt").
+     */
+    adoptPassCreditOrphans: async (
+      sessionId: string,
+      hostId: string,
+      grants: { session: string; balanceTransactionId: string }[],
+    ) => {
+      stripe.steps.push("adopt");
+      const mark = stripe.steps.length;
+      const claims = structuredClone([...ledger.claims]);
+      const passes = structuredClone([...ledger.passes]);
+      const recorded = [...stripe.recorded];
+      try {
+        const ordered = grants
+          .map((g) => ({ ...g, claim: ledger.claims.get(g.session)! }))
+          .sort((a, b) => a.claim.createdAt - b.claim.createdAt);
+        const leases = ordered
+          .map((o) => o.claim.leaseUntil)
+          .filter((u): u is number => u !== null && u > stripe.now);
+        if (leases.length > 0) {
+          return {
+            state: "busy",
+            retryAfterSec: Math.ceil((Math.max(...leases) - stripe.now) / 1000),
+          };
+        }
+        const orphans = [];
+        for (const o of ordered) {
+          if (o.claim.ids.some((id) => ledger.passes.get(id)?.consumed)) {
+            await api.releasePassCredit(
+              o.session,
+              hostId,
+              o.balanceTransactionId,
+            );
+            orphans.push({
+              session: o.session,
+              balanceTransactionId: o.balanceTransactionId,
+              converted: 0,
+              grantedTwice: true,
+            });
+          } else {
+            const txn = await api.recordPassCreditGrant(
+              o.session,
+              hostId,
+              o.balanceTransactionId,
+            );
+            const converted = await api.convertPassCredit(o.session);
+            orphans.push({
+              session: o.session,
+              balanceTransactionId: txn,
+              converted,
+              grantedTwice: false,
+            });
+          }
+        }
+        await api.releasePassCredit(sessionId, hostId, null);
+        return { state: "adopted", orphans };
+      } catch (error) {
+        ledger.claims.clear();
+        for (const [k, v] of claims) ledger.claims.set(k, v);
+        ledger.passes.clear();
+        for (const [k, v] of passes) ledger.passes.set(k, v);
+        stripe.recorded.splice(0, stripe.recorded.length, ...recorded);
+        throw error;
+      } finally {
+        stripe.steps.length = mark;
+      }
+    },
+  };
+});
 vi.mock("@/lib/db/queries/event-passes", () => ({
   getLivePasses: vi.fn(async () => []),
 }));
@@ -1485,14 +1585,9 @@ describe("the pass-to-Pro credit when a holder dies (credit-watch)", () => {
       leaseUntil: null,
     });
     // Tab 1's checkout read from Stripe (the customer it charged, its time), then one listing.
-    expect(stripe.steps).toEqual([
-      "claim",
-      "session",
-      "list",
-      "record",
-      "convert",
-      "release",
-    ]);
+    // Reshaped on purpose (billing-orphans): the record, the conversion and this claim's release were three calls, and
+    // a failure between them left tab 1 granted and unconverted; now they are one transaction, one step.
+    expect(stripe.steps).toEqual(["claim", "session", "list", "adopt"]);
     expect(captureWarning).toHaveBeenCalledWith(
       "billing",
       "stripe_pass_credit_overlap",
@@ -1656,6 +1751,170 @@ describe("the pass-to-Pro credit when a holder dies (credit-watch)", () => {
     expect(stripe.balances).toEqual([]);
     expect(stripe.recorded).toEqual([[TAB_1, "cbtxn_tab1_lost"]]);
     expect(ledger.claims.get(TAB_2)?.released).toBe(true);
+  });
+
+  it("★ the adoption is one transaction (billing-orphans): a failure inside it leaves the orphan ungranted and unconverted and this claim leased, never half-done; the retry adopts it whole", async () => {
+    seed(passHolder());
+    seedPasses(PASS_A, PASS_B);
+    claimOf(TAB_1, { leaseUntil: stripe.now - 60_000, createdAt: T0 + 11 });
+    stripe.transactions.unshift({
+      id: "cbtxn_tab1_lost",
+      customer: "cus_1",
+      amount: -1850,
+      created: T0 + 12,
+      metadata: { pass_credit_session: TAB_1 },
+    });
+    // The old three calls, failing at the conversion, left tab 1 granted and unconverted until a retry came.
+    ledger.failNext.convert = 1;
+    const failed = await deliver(
+      creditedProCheckoutEvent(T0 + 20, { sessionId: TAB_2 }),
+    );
+    expect(failed.status).toBe(500);
+    expect(ledger.claims.get(TAB_1)).toMatchObject({
+      txn: null,
+      converted: 0,
+      released: false,
+    });
+    expect([consumed(PASS_A), consumed(PASS_B)]).toEqual([false, false]);
+    expect(ledger.claims.get(TAB_2)).toMatchObject({ released: false });
+    expect(stripe.recorded).toEqual([]);
+    expect(stripe.balances).toEqual([]);
+    // Stripe's retry, past this claim's own lease: the whole adoption lands.
+    stripe.now += LEASE_MS + 1000;
+    stripe.steps = [];
+    const retried = await deliver(
+      creditedProCheckoutEvent(T0 + 20, { sessionId: TAB_2 }),
+    );
+    expect(retried.status).toBe(200);
+    expect(stripe.steps).toEqual(["claim", "session", "list", "adopt"]);
+    expect(ledger.claims.get(TAB_1)).toMatchObject({
+      txn: "cbtxn_tab1_lost",
+      converted: 2,
+    });
+    expect(ledger.claims.get(TAB_2)).toMatchObject({ released: true });
+    expect(stripe.balances).toEqual([]);
+  });
+
+  it("★ two orphans both holding grants for the same passes (billing-orphans): the older is the credit, the younger released beside its grant and said as granted twice", async () => {
+    seed(passHolder());
+    seedPasses(PASS_A, PASS_B);
+    claimOf(TAB_1, { leaseUntil: stripe.now - 120_000, createdAt: T0 + 11 });
+    claimOf("cs_pro_credit_3", {
+      leaseUntil: stripe.now - 60_000,
+      createdAt: T0 + 31,
+    });
+    stripe.checkouts["cs_pro_credit_3"] = {
+      customer: "cus_1",
+      created: T0 + 30,
+    };
+    stripe.transactions.unshift(
+      {
+        id: "cbtxn_tab1_lost",
+        customer: "cus_1",
+        amount: -1850,
+        created: T0 + 12,
+        metadata: { pass_credit_session: TAB_1 },
+      },
+      {
+        id: "cbtxn_tab3_lost",
+        customer: "cus_1",
+        amount: -1850,
+        created: T0 + 32,
+        metadata: { pass_credit_session: "cs_pro_credit_3" },
+      },
+    );
+    const response = await deliver(
+      creditedProCheckoutEvent(T0 + 20, { sessionId: TAB_2 }),
+    );
+    expect(response.status).toBe(200);
+    expect(stripe.balances).toEqual([]);
+    expect(ledger.claims.get(TAB_1)).toMatchObject({
+      txn: "cbtxn_tab1_lost",
+      converted: 2,
+      released: false,
+    });
+    // Never a conversion of none left reading as a credit: released, its grant beside it, for the operator to reverse.
+    expect(ledger.claims.get("cs_pro_credit_3")).toMatchObject({
+      txn: "cbtxn_tab3_lost",
+      converted: 0,
+      released: true,
+    });
+    expect(ledger.claims.get(TAB_2)).toMatchObject({ released: true });
+    expect(captureWarning).toHaveBeenCalledWith(
+      "billing",
+      "stripe_pass_credit_overlap_granted",
+      expect.objectContaining({
+        sessionId: "cs_pro_credit_3",
+        alsoGranted: "cbtxn_tab3_lost",
+        creditedBy: TAB_1,
+      }),
+    );
+    expect(captureWarning).toHaveBeenCalledWith(
+      "billing",
+      "stripe_pass_credit_overlap",
+      expect.objectContaining({ sessionId: TAB_2, creditedBy: [TAB_1] }),
+    );
+  });
+
+  it("an orphan whose own delivery holds its lease again by the adoption is busy (a 409 Stripe retries): nothing written", async () => {
+    seed(passHolder());
+    seedPasses(PASS_A, PASS_B);
+    claimOf(TAB_1, { leaseUntil: stripe.now - 60_000, createdAt: T0 + 11 });
+    // Tab 1's retry takes its claim back while this delivery reads tab 1's checkout from Stripe.
+    Object.defineProperty(stripe.checkouts, TAB_1, {
+      configurable: true,
+      enumerable: true,
+      get() {
+        ledger.claims.get(TAB_1)!.leaseUntil = stripe.now + 5 * 60_000;
+        return { customer: "cus_1", created: T0 + 9 };
+      },
+    });
+    stripe.transactions.unshift({
+      id: "cbtxn_tab1_lost",
+      customer: "cus_1",
+      amount: -1850,
+      created: T0 + 12,
+      metadata: { pass_credit_session: TAB_1 },
+    });
+    const response = await deliver(
+      creditedProCheckoutEvent(T0 + 20, { sessionId: TAB_2 }),
+    );
+    expect(response.status).toBe(409);
+    expect(ledger.claims.get(TAB_1)).toMatchObject({ txn: null, converted: 0 });
+    expect([consumed(PASS_A), consumed(PASS_B)]).toEqual([false, false]);
+    expect(stripe.balances).toEqual([]);
+  });
+
+  it("★ a holder that outlived its lease and granted after its claim was released (billing-orphans): the record refuses it, and its grant goes on record beside the release, said as granted twice", async () => {
+    seed(passHolder());
+    seedPasses(PASS_A, PASS_B);
+    // Tab 1 claims and is about to grant; meanwhile (it slept past its lease) tab 2 credited the passes and released it.
+    const original = stripe.balances.push.bind(stripe.balances);
+    stripe.balances.push = (...items: unknown[][]) => {
+      claimOf(TAB_2, { txn: "cbtxn_tab2" });
+      ledger.passes.set(PASS_A, { host: "host-1", consumed: true });
+      ledger.passes.set(PASS_B, { host: "host-1", consumed: true });
+      const claim = ledger.claims.get(TAB_1)!;
+      claim.released = true;
+      claim.leaseUntil = null;
+      return original(...items);
+    };
+    const response = await deliver(
+      creditedProCheckoutEvent(T0 + 10, { sessionId: TAB_1 }),
+    );
+    expect(response.status).toBe(200);
+    expect(stripe.balances).toHaveLength(1);
+    expect(ledger.claims.get(TAB_1)).toMatchObject({
+      released: true,
+      txn: "cbtxn_1",
+      converted: 0,
+    });
+    expect(captureWarning).toHaveBeenCalledWith(
+      "billing",
+      "stripe_pass_credit_overlap_granted",
+      expect.objectContaining({ sessionId: TAB_1, alsoGranted: "cbtxn_1" }),
+    );
+    expect(recordSignalFailure).not.toHaveBeenCalled();
   });
 
   it("★ never grants past its lease: with too little of it left, nothing goes to Stripe and the delivery is a retry", async () => {
