@@ -110,3 +110,13 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am
+
+- Done: the work (`b7e73797f`, `0b9a2f40f`, pushed); the gate on `0b9a2f40f`: typecheck 0, lint 0, test 0 (1,020
+  files, 12,708 tests; a first run's four tree-scan timeouts under a load of 26 passed alone and on the rerun), build
+  0, `lab:smoke --base http://localhost:3131` 0 (190 checks); the migration's rolled-back proof on the live schema (RED
+  0/8, GREEN 8/8, nothing persisted); the browser walk (the real uploader in a headless Chrome of my own over seven real
+  files, a lying one and a zoneless one among them; logs in `_scratch/capture-time/walk*`).
+- Next: a fresh-eyes review of the diff (the first was cut off by the account's limit), then the Handoff.
+- Mid-flight: nothing on disk; the temporary walk page is gone and nothing listens on 3131.
