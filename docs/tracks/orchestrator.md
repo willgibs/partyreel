@@ -55,6 +55,8 @@ Lanes merged before milestone 37 left this table: their summaries are their merg
 | `event-zone` | Will's ask: one moment for every guest: the party keeps its own zone (`events.time_zone`, migration `20261005220000_event_zone.sql`, the Advisor first), the album's turn computed once on the server, the develop's 9 am in it, See it as a guest in the guests' order, a far-from-home choice in Settings (a call) | RUNNING (cut at `8bb4e103`) | Opus, 3133 | `a284a0c6386c75127` |
 | `drive-hardening` | Drive's last correctness before it goes live at milestone 38: a throttled PUT retries with a body it can still send (and the Worker's other retries audited), one Partyreel folder per Google account however often she reconnects | RUNNING (cut at `b4e4c064`) | Opus, 3131 | `a90977222aba5ae37` |
 | `crumbs-83` | eight bugs a person can hit: Back under a deep-linked photograph (Will's call, recommended built), a popup whose act navigates, Forward onto a closed popup, Stripe's doors tapped twice and the storage strip's leave, the door's wait chooser on a camera album, the uploader's refusal codes, the Guests card counting only guests' shots; and gate 24's load flake | RUNNING (cut at `b4e4c064`) | Opus, 3132 | `a600e6b129f3e96f6` |
+| `lab-kit-2` | the lab's four notes: a hidden option's loops pause inside frames (a bridge in `Frame`), lab runs refuse a DevTools port that answers, the tools index linked and crawled, a frame takes its pane's theme | RUNNING (cut at `e7ac98fe`) | Sonnet, 3134 | `ac1bd614d4150badf` |
+| `guest-requests` | three requests a guest's page never needed: the demo's links prefetch on intent, the first poll stops re-asking the seed's links, the camera learns a closed album from the sync (migration `20261006030000_sync_accepting.sql`, the Advisor first) | RUNNING (cut at `e7ac98fe`) | Opus, 3136 | `aab13c406e12ae1dd` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a22be0c2878d7ab19`, this session, spawned
 for Q31 (billing-locks' migration against the live schema and milestone 36's callers). Its model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`.
@@ -106,8 +108,8 @@ Round 15, on Will's desk answers of 2026-10-04 and his brand note; the approved 
 3. **Desk 5 = identity r5 (merged, gate 24) + event-header r5 + brand r2** (running): integrate each at its handoff, the desk pass,
    refresh the desk, tell him. **Desk 6** = the brand applied (after brand r2's pick); **desk 7** = the moments boards
    (host-, guest-, account-moments, create-wizard r4; after identity r5's set pick).
-4. **Lanes running** (five agents): event-header-r5, brand-r2, event-zone, drive-hardening, crumbs-83 (their rows
-   above). Queued: red-team 56 (Opus) when event-zone lands. Each lane's migration goes through the Advisor (`a22be0c2878d7ab19`, this session) before the apply.
+4. **Lanes running** (seven agents; memory 80% free at five): event-header-r5, brand-r2, event-zone, drive-hardening,
+   crumbs-83, lab-kit-2, guest-requests (their rows above). Queued: red-team 56 (Opus) when event-zone lands. Each lane's migration goes through the Advisor (`a22be0c2878d7ab19`, this session) before the apply.
 5. **The calls lab:** runs to AX (AF to AX added today; AF4 and AJ3 retired as built); X7 answered and routed
    (capture-time); album-order's calls next (AY), then each merge's.
 6. **Compute:** lever 3 and 3b (the CDN-cached album version) only on Will's X5; the guest page's next CPU levers
