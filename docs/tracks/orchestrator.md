@@ -108,12 +108,17 @@ Round 15, on Will's desk answers of 2026-10-04 and his brand note; the approved 
    `partyreel-backup` deploys at 38 too (the reconcile's listing merge, RESTORE_MODE dryrun; then `BACKUP_WORKER_URL`
    on partyreel-admin). The Advisor wants 38 soon: milestone 37's build re-grants a Pro credit past a day (TEST money).
 3. **Desk 5 ANSWERED** (2026-10-06, transcribed `3983158d8`): identity r5 **set = house, loading = words**; event-header
-   r5 **cards = ?** with Will's note. Brand r2 (desk 5's place) is still drawing: integrate it at its handoff and serve
-   it at the next desk refresh (after red-team 56's walk); the desk pass,
+   r5 **cards = ?** with Will's note. Brand r2 MERGED (gate 32; one ask, `take`: Aperture recommended, Ink, Cast): serve
+   it at the next desk refresh, after red-team 56's walk (`zsh ../partyreel-wt/_scratch/desk/desk-refresh.sh <sha>`, on
+   this machine: the desk is local); the desk pass,
    refresh the desk, tell him. **Desk 6** = the brand applied (after brand r2's pick); **desk 7** = the moments boards
    (host-, guest-, account-moments, create-wizard r4; after identity r5's set pick).
-4. **Lanes running** (six agents): brand-r2, crumbs-83, lab-kit-2, guest-requests, crumbs-84, red-team 56 (their rows
-   above; drive-hardening merged, gate 29). Queued: none. Each lane's migration goes through the Advisor (`a22be0c2878d7ab19`, this session) before the apply.
+4. **Lanes running** (three agents, winding down; weekly 94% at 03:44Z 2026-10-06): guest-requests (Opus, 3136,
+   migration `20261006030000_sync_accepting.sql` for the Advisor before its apply), crumbs-84 (Sonnet, 3133), red-team 56
+   (Opus, on the desk build). Merged tonight: crumbs-83 (gate 31) and brand-r2 (gate 32) after lab-kit-2 (gate 30).
+   Their rows above carry each agent id; a successor on another session respawns a lane from its transcript
+   (`~/.claude/projects/-Users-gibby-local-ai-partyreel/f2c62c71-9c33-49f4-9fd5-d48376be9824/subagents/agent-<id>.jsonl`,
+   local) or, from the cloud, from its pushed branch and manifest alone. Each lane's migration goes through the Advisor (`a22be0c2878d7ab19`, this session) before the apply.
 5. **The calls lab:** runs to AX (AF to AX added today; AF4 and AJ3 retired as built); X7 answered and routed
    (capture-time); album-order's calls next (AY), then each merge's.
 6. **Compute:** lever 3 and 3b (the CDN-cached album version) only on Will's X5; the guest page's next CPU levers
