@@ -58,6 +58,7 @@ Lanes merged before milestone 37 left this table: their summaries are their merg
 | `lab-kit-2` | the lab's four notes: a hidden option's loops pause inside frames (a bridge in `Frame`), lab runs refuse a DevTools port that answers, the tools index linked and crawled, a frame takes its pane's theme | RUNNING (cut at `e7ac98fe`) | Sonnet, 3134 | `ac1bd614d4150badf` |
 | `guest-requests` | three requests a guest's page never needed: the demo's links prefetch on intent, the first poll stops re-asking the seed's links, the camera learns a closed album from the sync (migration `20261006030000_sync_accepting.sql`, the Advisor first) | RUNNING (cut at `e7ac98fe`) | Opus, 3136 | `aab13c406e12ae1dd` |
 | `redteam-56` | the walk before milestone 38, local on the desk build (`2c7423ca4`): every merge since milestone 37 (album order and its pill, capture time end to end with its fixtures, event zone's one instant from two zones, the identity traits, the hub's doors, Settings, Back and keys, the dashboard's chooser), regressions | RUNNING (brief `../partyreel-wt/_scratch/redteam-56/brief.md`, ledger beside it) | Opus, Will's Chrome + its own headless | `a0ca0d2feb415d060` |
+| `crumbs-84` | cleanup whose time has come: event-zone's typed seams retired, the host-dashboard board retired (its ledger the Orchestrator's to delete at the record) with `seasonsOf` and kin, the dead `refreshHubReelAction` (a public endpoint) deleted, the Reel card's words in `room-card.ts`, the Library's sticky-band specimen frame | RUNNING (cut at `9a8d9540`) | Sonnet, 3133 | `a066d475f32c874e8` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a22be0c2878d7ab19`, this session, spawned
 for Q31 (billing-locks' migration against the live schema and milestone 36's callers). Its model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`.
@@ -112,8 +113,8 @@ Round 15, on Will's desk answers of 2026-10-04 and his brand note; the approved 
    server); integrate it at its handoff, the desk pass,
    refresh the desk, tell him. **Desk 6** = the brand applied (after brand r2's pick); **desk 7** = the moments boards
    (host-, guest-, account-moments, create-wizard r4; after identity r5's set pick).
-4. **Lanes running** (six agents): brand-r2, drive-hardening, crumbs-83, lab-kit-2, guest-requests, red-team 56 (their
-   rows above). Queued: none. Each lane's migration goes through the Advisor (`a22be0c2878d7ab19`, this session) before the apply.
+4. **Lanes running** (six agents): brand-r2, crumbs-83, lab-kit-2, guest-requests, crumbs-84, red-team 56 (their rows
+   above; drive-hardening merged, gate 29). Queued: none. Each lane's migration goes through the Advisor (`a22be0c2878d7ab19`, this session) before the apply.
 5. **The calls lab:** runs to AX (AF to AX added today; AF4 and AJ3 retired as built); X7 answered and routed
    (capture-time); album-order's calls next (AY), then each merge's.
 6. **Compute:** lever 3 and 3b (the CDN-cached album version) only on Will's X5; the guest page's next CPU levers
