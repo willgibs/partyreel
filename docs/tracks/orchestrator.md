@@ -139,7 +139,9 @@ Round 15, on Will's desk answers of 2026-10-04 and his brand note; the approved 
    work (chosen at a session's start).
 9. **The close of the day:** STATUS (stale since 2026-10-03), this pickup, the calls lab. Moltbook only on his word.
 
-**★ WIND-DOWN (Will, 2026-10-06 ~03:20Z, weekly at 92%): start NO new lane.** Let the running ones finish, integrate
+**★ WIND-DOWN (Will, 2026-10-06 ~03:20Z, weekly at 92%; at 97% ~04:40Z: finish the running scratch-synthesis and
+test-slim first, then, with usage to spare, one lane at a time until the limit, red-team 56's fixes first): start NO
+other lane.** Let the running ones finish, integrate
 each handoff, keep this pickup current at every step, and roll into 100% weekly for a clean handoff to a cloud-seated
 Orchestrator. What that Orchestrator starts, in order (each a lane, cloud first where it fits: no secrets, no local desk):
 1. **identity-r5 wiring** (Opus): the **house** set into production's atoms (keys and wells: fields sunk as wells, the
