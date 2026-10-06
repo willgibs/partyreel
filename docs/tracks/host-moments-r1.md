@@ -1,6 +1,6 @@
 ---
 track: host-moments-r1
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "462cea3f"            # the launch-prep SHA the branch was cut from
 board: host-moments
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -44,7 +44,11 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- Two candidates need a database change if Will picks them (each ask says so in its costs): `tell=choose` (a guest's roll
+  carries on through a develop time added mid-party: `create_media`'s roll would stop counting from `sealed_from`) and
+  `let-back=straight` (lifting a decline lets the newcomer in: `let_back_in` would admit a waiting ask). Recommended:
+  `straight` yes (the outcome the words promise), `choose` no (`line`, fresh rolls said first). Their wiring lane writes
+  the migration.
 
 ## System-doc edits (in place, owned facts only)
 
@@ -52,17 +56,43 @@ working.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Lab: a `Graft`/`Press`/`Reveal` trio (draw a candidate's one piece into production's own page; press a production
+  control until it took) lives in this board's `scene.tsx`; worth lifting into the kit if a second board wants it.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- Work commit `b5a06e25` (the board, one folder), pushed. No sync: launch-prep moved only by a record commit
+  (`699757a8`), and none of my `reads` changed since the cut (`git diff 462cea3f origin/launch-prep -- <reads>` empty).
+- Light gate on `b5a06e25`, each on its own exit code: `pnpm typecheck` 0; `pnpm eslint <board folder>` 0 (no warnings);
+  `vitest run sandbox/registry.test.ts src/components/lab` 18 files, 199 tests passed; `pnpm lab:smoke --base
+  http://localhost:3131` 9 checks, 0 failing (board 562 words of 1200); `pnpm lab:demo --board host-moments` 7 steps,
+  0 failing, and again with `--state screen=375`, 7 steps, 0 failing (every option renders, fits and differs).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `src/app/(dev)/design/sandbox/host-moments/*` (11
+  files) + this file. No exceptions.
+- The items: seven asks, three options each, production's built answer drawn as `today` on every one but `decline`
+  (where today IS the recommendation, `block`):
+  - `password` (B1): today's waiting line + inside note / both groups said at the field (rec) / each group pictured.
+  - `tell` (Q6): today saves silently / a consequence line, then save (rec) / fresh rolls or carry on.
+  - `fresh-roll` (Q6, guests, `after: tell`, phone tiles): today the count jumps / one line under the shutter / a
+    "A fresh roll" panel over the picture in the roll-done panel's shape (rec).
+  - `decline` (B2): Decline is a block (today, rec) / a no for now (he can ask once more) / she chooses Not now or Block.
+  - `let-back` (B2, `after: decline`): today's confirm says it / each row says where they land / Let back in lets a
+    declined newcomer straight in (rec).
+  - `banner` (L3): today's sentence with two links / the number and one key, Free 5.3 GB (rec) / what the deadline
+    would take, named, the list opening with the sweep's 3 videos picked.
+  - `goal` (L3): today's countdown strip / her plan's line drawn on what she stores (rec) / what the deadline would take.
+- How it is drawn: every frame is production's own component over inert writes (`DoorPage` under `SettingsProvider`,
+  `AddsPage`, `AtTheDoor`, `BlockedSection` with its real Let back in confirm pressed open, `GuestList`, `ShutDoor`,
+  `HomeHead` + `StorageMeter` + `GraceBanner`, the real `StorageList` over an inert `StorageSourceProvider`, the camera
+  sheet's own `CameraReel`/`CameraShutter`/words); a candidate hides production's one piece by CSS in its own frame
+  and grafts its own in that place (`scene.tsx`). Toasts are quoted (sonner's store is page-global). Captions are read
+  off each frame (`data-hm-read`).
+- Assets requested from Will: none.
+- Board ideas: the Guests room's At the door line "Decline blocks them" would need its words to follow whatever
+  `decline` picks; and Blocked's address column truncates a short address to "r." at 1440 in the room panel (production,
+  `blocked-section.tsx`'s `truncate` beside the since-line), a small fix for a crumbs lane.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none for the board; two picks would need one (Questions).
+- Calls his to overrule: the recommendations above (`both`, `line`, `panel`, `block`, `straight`, `number`, `line`).
+- Look at first: `let-back` (the one where today's outcome, back at the door, is not what the act's name promises),
+  then `tell` + `fresh-roll` together.
+- Test data left behind: none (nothing here writes; no live account touched).
