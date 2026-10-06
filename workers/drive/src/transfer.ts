@@ -11,7 +11,8 @@
  *     after its week, started over.
  *  5. Up to 128 MiB: one PUT of the whole object, streamed (nothing buffers; a Worker has 128 MB). Past it: chunks of
  *     128 MiB, each a ranged R2 read, the session reported BEFORE its first byte (write-ahead), so whoever leases the
- *     item next resumes the same session; a slice nearly out stops at a chunk boundary and releases the item.
+ *     item next resumes the same session; a slice nearly out, or a stop the app said (her Cancel, a pause), stops at a
+ *     chunk boundary and releases the item.
  *  6. Checked as it lands: Drive's size and MD5 against ours (R2's, or one computed natively over a second read where R2
  *     kept none, a multipart clip). A mismatch undoes the file this upload just made (the one deletion this Worker can
  *     make, `CreatedFile` only) and the item goes again.
@@ -72,6 +73,8 @@ export type TransferContext = {
   random(): number;
   /** The chunk size (CHUNK_BYTES; a test's own smaller one, a multiple of 256 KiB all the same). */
   chunkBytes?: number;
+  /** The app said stop (her Cancel, a pause, the switch): a big file stops at its next chunk boundary, session kept. */
+  stopping?(): boolean;
 };
 
 export type TransferResult = { item: ReportItem; finding?: Finding };
@@ -127,7 +130,7 @@ async function withRate<T>(
   }
 }
 
-/** Upload chunks from `from` to the end, or stop at a boundary when the slice is nearly out. */
+/** Upload chunks from `from` to the end, or stop at a boundary when the slice is nearly out or the app said stop. */
 async function sendChunks(
   ctx: TransferContext,
   item: LeaseItem,
@@ -137,7 +140,7 @@ async function sendChunks(
 ): Promise<{ file: CreatedFile } | { stoppedAt: number }> {
   let offset = from;
   while (offset < total) {
-    if (ctx.now() > ctx.deadlineMs - CHUNK_HEADROOM_MS)
+    if (ctx.now() > ctx.deadlineMs - CHUNK_HEADROOM_MS || ctx.stopping?.())
       return { stoppedAt: offset };
     const length = Math.min(ctx.chunkBytes ?? CHUNK_BYTES, total - offset);
     const body = await ctx.bucket.read(item.key, { offset, length });

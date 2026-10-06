@@ -1,0 +1,83 @@
+/* THE SEAM: where the hub's cover meets the page under it, and the one stylesheet the cover (`event-hub-head.tsx`) and the
+   cards row (`event-cards-row.tsx`) both read, so the cover's foot clears exactly what the cards cover (event-header r4's
+   cards over the seam, Will's pick: "the cover dissolves into the page and five cards stand across the seam").
+
+   ★ ONE SET OF NUMBERS, READ BY BOTH. `.hub-seam` is worn by the cover's wrapper and by the row's footprint, each of which
+   reads the same two properties at the same widths: `--hub-rise`, how far the cards stand up into the photograph (the
+   cover's words clear it), and `--hub-fade`, how far the photograph dissolves into the page. They are siblings in the
+   hub's `space-y-6`, so neither can read the other's box; the shared widths are the only thing both can agree on.
+   ★ THE WIDTHS ARE THE DOORS' (`room-card.css`): a hand's grid first, a tablet's tiles from 640px, a desk's cards from
+   1100px. The cover's own height steps at 640px as it always has (`EventHead`).
+   ★ NOTHING MOVES HERE: the rest state is the whole of it (bible 5). */
+
+.hub-seam {
+  /* The gap the hub's `space-y-6` leaves between its blocks (page.tsx's root): the row takes it back, and the rise besides. */
+  --hub-gap: 24px;
+  /* A hand's grid: its first row stands on the photograph and the seam runs under it. */
+  --hub-rise: 52px;
+  --hub-fade: 84px;
+}
+@media (min-width: 40rem) {
+  .hub-seam {
+    /* A tablet's tiles: about half a tile stands on the photograph. */
+    --hub-rise: 44px;
+    --hub-fade: 80px;
+  }
+}
+@media (min-width: 68.75rem) {
+  .hub-seam {
+    /* A desk's cards: about half a card, so the seam runs through the row. */
+    --hub-rise: 40px;
+    --hub-fade: 72px;
+  }
+}
+
+/* The cover's words clear what the cards cover: the strip stands above the rise, never behind a card. */
+.hub-cover-foot {
+  padding-bottom: calc(var(--hub-rise) + 16px);
+}
+@media (min-width: 40rem) {
+  .hub-cover-foot {
+    padding-bottom: calc(var(--hub-rise) + 22px);
+  }
+}
+
+/* The photograph dissolves into the page on an eased ramp (half a cosine), so neither the fade's start nor the cover's own
+   foot reads as a line. It runs under the cards and just above them, never behind the strip, whose white marks need the
+   photograph's dark foot on paper. It is the page's own colour (`--background`, read OUTSIDE the cover, which is always the
+   room), so the seam fades into the right ground in both themes. */
+.hub-cover-fade {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: var(--hub-fade);
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    color-mix(in oklab, var(--background) 2.4%, transparent) 10%,
+    color-mix(in oklab, var(--background) 9.5%, transparent) 20%,
+    color-mix(in oklab, var(--background) 20.6%, transparent) 30%,
+    color-mix(in oklab, var(--background) 34.5%, transparent) 40%,
+    color-mix(in oklab, var(--background) 50%, transparent) 50%,
+    color-mix(in oklab, var(--background) 65.5%, transparent) 60%,
+    color-mix(in oklab, var(--background) 79.4%, transparent) 70%,
+    color-mix(in oklab, var(--background) 90.5%, transparent) 80%,
+    color-mix(in oklab, var(--background) 97.6%, transparent) 90%,
+    var(--background) 100%
+  );
+}
+/* In the room the photograph's foot is already dark (the cover's own scrim), so it holds to the cards' tops and dissolves
+   only behind them: the cards overlap the photograph itself, and the gaps between them show it go. */
+.dark .hub-cover-fade {
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 44%,
+    color-mix(in oklab, var(--background) 9.5%, transparent) 55%,
+    color-mix(in oklab, var(--background) 34.5%, transparent) 66%,
+    color-mix(in oklab, var(--background) 65.5%, transparent) 77%,
+    color-mix(in oklab, var(--background) 90.5%, transparent) 88%,
+    var(--background) 100%
+  );
+}

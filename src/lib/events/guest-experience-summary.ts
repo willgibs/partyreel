@@ -1,6 +1,6 @@
 import type { Capture } from "@/lib/disposable/facts";
 import type { DevelopState } from "@/lib/disposable/reveal";
-import { ROLL_SHOTS } from "@/lib/disposable/roll";
+import { ROLL_SHOTS, rollShots } from "@/lib/disposable/roll";
 import type { Door } from "@/lib/event/door/door";
 import { spokenRange } from "@/lib/utils";
 
@@ -32,6 +32,7 @@ export type SentenceWord =
   | "email"
   | "photo"
   | "uploads"
+  | "roll"
   | "review"
   | "reel"
   | "look"
@@ -161,16 +162,17 @@ function addsSentence(f: SettingsFacts): SentencePart[] {
     return [word("Paused", "uploads"), prose(". Guests can still look.")];
   }
   const what = word(f.videos ? "Photos and videos" : "Photos", "uploads");
-  // ★ THE CAMERA says its roll after what guests add; the three-way "when everyone sees" follows. The review word
+  // ★ THE CAMERA says its roll after what guests add, the roll a live word of its own (customize r1's `home=words`: a
+  // quick swap of film's three here, any count on its page); the three-way "when everyone sees" follows. The review word
   // stays a live word only where it says the whole answer: with a develop time set, the page owns the answer (its
   // time is no word a sentence can pick), so it is said as prose.
   const camera = f.develop?.capture === "camera";
   const lead: SentencePart[] = camera
     ? [
         what,
-        prose(
-          ` on the album's camera, ${f.develop?.rollSize ?? ROLL_SHOTS} shots each, `,
-        ),
+        prose(" on the album's camera, "),
+        word(rollShots(f.develop?.rollSize ?? ROLL_SHOTS), "roll"),
+        prose(" each, "),
       ]
     : [what, prose(", ")];
   const state = f.develop?.state ?? "none";

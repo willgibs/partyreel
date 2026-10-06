@@ -80,7 +80,6 @@ export const EVENT_HEADER = defineExploration({
     "src/components/app/event-feed/event-cards-row.tsx",
     "src/components/app/event-feed/room-card.ts",
     "src/components/app/event-feed/reel-card.tsx",
-    "src/components/app/event-feed/edge-fade-scroller.tsx",
   ],
   round: {
     n: 4,

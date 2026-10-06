@@ -48,6 +48,7 @@ import {
   type HostWhoTuple,
   type ManifestEntry,
 } from "@/lib/events/album-wire";
+import { entriesInOrder, type AlbumSort } from "@/lib/shared/album-order";
 
 /** What the hub page hands its album: the first sync's answer, its validator, the first window's links. */
 export type HubAlbumSeed = {
@@ -65,8 +66,8 @@ export type HubAlbumSeed = {
  */
 export const FIRST_WINDOW = 96;
 
-/** The view's order: the album's own (newest first), or the host's "Oldest first". */
-export type HubSort = "newest" | "oldest";
+/** The view's order: the album's own (newest first), or the host's "Oldest first" (album-order's two). */
+export type HubSort = AlbumSort;
 
 /** Whether an entry is in the hub's album: approved or hidden (held items live in Review). */
 export function isHubEntry(e: ManifestEntry): boolean {
@@ -76,15 +77,16 @@ export function isHubEntry(e: ManifestEntry): boolean {
 /**
  * THE HUB'S LIST, IN THE VIEW'S ORDER. The host manifest is the host's whole album (held items
  * too, one manifest for the hub and Review), newest first; the hub shows approved and hidden.
- * "Oldest first" is the same list reversed, laid out from its start (`rowAnchor="start"`), so an
- * arrival lands at its end.
+ * "Oldest first" is the night in order, the guests' own (`entriesInOrder`: by when each happened,
+ * its capture time where it carries one, else its arrival, which is the list reversed), laid out from
+ * its start (`rowAnchor="start"`), so an arrival lands at its end.
  */
 export function hubEntries(
   entries: readonly ManifestEntry[],
   sort: HubSort,
 ): ManifestEntry[] {
   const list = entries.filter(isHubEntry);
-  return sort === "oldest" ? list.reverse() : list;
+  return sort === "oldest" ? entriesInOrder(list) : list;
 }
 
 /** The first window's ids: the newest hub items, which the first paint draws. */

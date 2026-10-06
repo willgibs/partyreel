@@ -10,7 +10,11 @@
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createEventSchema, updateEventSchema } from "@/lib/validation/event";
+import {
+  createEventSchema,
+  ROLL_SIZE_MESSAGE,
+  updateEventSchema,
+} from "@/lib/validation/event";
 
 vi.mock("server-only", () => ({}));
 
@@ -189,6 +193,11 @@ describe("updateEvent: the capture and the develop time", () => {
       { moderation_mode: "hold_for_approval", develops_at: null },
     ]);
   });
+
+  it("★ the roll she names patches alone, as Settings' boxes and stepper send it (Will's `roll=both`)", async () => {
+    await updateEvent("event-1", updateEventSchema.parse({ roll_size: 50 }));
+    expect(patches).toEqual([{ roll_size: 50 }]);
+  });
 });
 
 // APPROVAL NEVER STANDS WITH A DEVELOP (the-wait r1, `both=never`; 20261003100000's CHECK): a save asking for both is
@@ -229,11 +238,14 @@ describe("updateEvent: approval never stands with a develop", () => {
     });
   });
 
+  // ★ RESHAPED ON PURPOSE (settings-wiring; scar kept: a CHECK no line reads by name stays the generic sentence, never
+  // a guess; reason dropped: the roll's CHECK was that example, and now a host names her roll, so its refusal is read by
+  // its name in the schema's words, below).
   it("another CHECK's refusal stays the generic sentence (a refusal is read by its name, never guessed)", async () => {
     nextError = {
       code: "23514",
       message:
-        'new row for relation "events" violates check constraint "events_roll_size_range"',
+        'new row for relation "events" violates check constraint "events_max_upload_bytes_range"',
     };
     const result = await updateEvent(
       "event-1",
@@ -244,6 +256,25 @@ describe("updateEvent: approval never stands with a develop", () => {
       code: "unknown",
       message: "Couldn't save your changes. Please try again.",
     });
+  });
+
+  it("★ the roll's CHECK reads by its name in the schema's words, on a save and at birth (never the plan's limit)", async () => {
+    const roll =
+      'new row for relation "events" violates check constraint "events_roll_size_range"';
+    nextError = { code: "23514", message: roll };
+    expect(
+      await updateEvent("event-1", updateEventSchema.parse({ roll_size: 50 })),
+    ).toEqual({ ok: false, code: "unknown", message: ROLL_SIZE_MESSAGE });
+    nextError = { code: "23514", message: roll };
+    expect(
+      await createEvent(
+        createEventSchema.parse({
+          name: "Dinner",
+          capture: "camera",
+          roll_size: 50,
+        }),
+      ),
+    ).toEqual({ ok: false, code: "unknown", message: ROLL_SIZE_MESSAGE });
   });
 });
 
@@ -393,7 +424,10 @@ describe("createEvent: the album's style at birth", () => {
     ]);
   });
 
-  it("never writes the period or the roll: they are the database's (`events_reveal_stamp`)", async () => {
+  // ★ RESHAPED ON PURPOSE (settings-wiring, Will's `roll=both`; scar kept: the period is never written, it is the
+  // database's; reason dropped: the roll was the database's too). A Disposable is born with the roll she named under
+  // its pick, and one with none named carries null for `events_reveal_stamp` to fill (24).
+  it("never writes the period; writes the roll she named, or none for the database to fill", async () => {
     await createEvent(
       createEventSchema.parse({
         name: "Disposable one",
@@ -401,8 +435,17 @@ describe("createEvent: the album's style at birth", () => {
         develops_at: AT,
       }),
     );
+    await createEvent(
+      createEventSchema.parse({
+        name: "Disposable two",
+        capture: "camera",
+        roll_size: 36,
+        develops_at: AT,
+      }),
+    );
     expect(inserts[0]).not.toHaveProperty("sealed_from");
-    expect(inserts[0]).not.toHaveProperty("roll_size");
+    expect(inserts[0]!.roll_size).toBeNull();
+    expect(inserts[1]!.roll_size).toBe(36);
   });
 
   it("★ refuses approval with a develop time, in words, and inserts nothing (`both=never`, at birth too)", async () => {

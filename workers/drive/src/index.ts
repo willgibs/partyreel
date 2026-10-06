@@ -6,7 +6,7 @@
  *   queue      one lane a message: a slice of sending (`lane.ts`), then ack, or a fresh message for the next slice.
  *              On a lane's last attempt it says so first (`/api/internal/drive/lanefail`), then throws into the
  *              dead-letter queue: its connection pauses itself at three a day, a poison lane never loops.
- *   scheduled  the sweep, every five minutes (`sweep.ts`).
+ *   scheduled  the sweep, every fifteen minutes (`sweep.ts`).
  *
  * It holds no database credential, no refresh token and no key: the app is the oracle. It reads R2 (originals only,
  * never a write) and talks to Google with an hour of `drive.file` access a lease hands it, sealed.
@@ -165,9 +165,16 @@ export default {
           attempt: message.attempts,
           error,
         });
-        // ★ The last attempt says so before it throws, so the app counts the connection's dead lanes.
+        // ★ The last attempt says so before it throws, so the app counts the connection's dead lanes: one count a
+        // message (its id rides the word), so the word said again never adds up to a pause.
         if (message.attempts > MAX_RETRIES)
-          await w.app.laneFail(body.connectionId, error).catch(() => false);
+          await w.app
+            .laneFail({
+              connectionId: body.connectionId,
+              messageId: message.id,
+              error,
+            })
+            .catch(() => false);
         message.retry();
       }
     }

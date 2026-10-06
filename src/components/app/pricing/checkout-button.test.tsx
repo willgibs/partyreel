@@ -331,8 +331,11 @@ describe("the ordinary paths", () => {
  * ★ A SIGNED-OUT PRESS CARRIES ITS OWN PAGE THROUGH THE SIGN-IN (crumbs-20: the ROADMAP's six
  * bare `/login` fallbacks, from `crumbs-11`). A session that lapsed while a host sat on a page comes
  * back to that page after the sign-in, not to the dashboard. The page rides only where it is one a
- * sign-in may return to (`loginPath`, lib/auth/return-path.ts): the public pricing page is not, so
- * its visitor still gets the bare login it always had.
+ * sign-in may return to (`loginPath`, lib/auth/return-path.ts): the app's pages, and, since
+ * pricing-doors, /pricing, the one marketing page on the list, so the visitor who pressed Get Pro
+ * there comes back to the plans she came for instead of an empty dashboard. A page off the list
+ * still gets the bare login it always had (reshaped on purpose: /pricing used to be that page's
+ * example, and the scar moved to /help, which is still not a place a sign-in may return to).
  */
 describe("a signed-out press carries the page it was pressed on", () => {
   it("returns to the host's page after signing in", async () => {
@@ -357,8 +360,31 @@ describe("a signed-out press carries the page it was pressed on", () => {
     );
   });
 
-  it("leaves the public pricing page's visitor on the bare login", async () => {
+  it("★ brings the pricing page's visitor back to the pricing page, not to the dashboard", async () => {
     pathname = "/pricing";
+    replies["/api/stripe/checkout"] = { status: 401, body: {} };
+    await press();
+    await waitFor(() =>
+      expect(push).toHaveBeenCalledWith("/login?next=%2Fpricing"),
+    );
+  });
+
+  it("does the same for a pass pressed on that page, a renewal included", async () => {
+    pathname = "/pricing";
+    replies["/api/stripe/checkout"] = { status: 401, body: {} };
+    render(
+      <CheckoutButton planId="event_pass" renewal>
+        Renew
+      </CheckoutButton>,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Renew" }));
+    await waitFor(() =>
+      expect(push).toHaveBeenCalledWith("/login?next=%2Fpricing"),
+    );
+  });
+
+  it("keeps the bare login on a page no sign-in returns to", async () => {
+    pathname = "/help";
     replies["/api/stripe/checkout"] = { status: 401, body: {} };
     await press();
     await waitFor(() => expect(push).toHaveBeenCalledWith("/login"));

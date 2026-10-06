@@ -237,6 +237,22 @@ const CASES: Case[] = [
       p_finding: "drive_full",
     },
   },
+  {
+    title:
+      "a dying lane names its Queue message, so the count is one a message (20261005180000)",
+    fn: "cloud_connection_lane_failed",
+    call: () =>
+      drive.recordLaneFailed({
+        connectionId: ID,
+        messageId: "0123456789abcdef0123456789abcdef",
+        error: "TypeError: boom",
+      }),
+    wire: {
+      p_connection: ID,
+      p_error: "TypeError: boom",
+      p_message: "0123456789abcdef0123456789abcdef",
+    },
+  },
 ];
 
 describe("what each cloud_* call puts on the wire", () => {

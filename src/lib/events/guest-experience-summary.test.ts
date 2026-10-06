@@ -105,19 +105,26 @@ describe("what guests can add", () => {
     develop: { capture: "camera" as const, rollSize: 24, state: "none" as const, ...over },
   });
 
-  it("the album's camera says its roll, and where the shots go, still a word", () => {
+  // ★ RESHAPED ON PURPOSE (settings-wiring, customize r1's `home=words`; scar kept: the camera says its roll and where
+  // the shots go, in the same words; reason dropped: the roll was prose). The roll is a live word now, a quick swap of
+  // film's three in place, and one shot is said as one.
+  it("the album's camera says its roll, a word, and where the shots go, still a word", () => {
     const parts = say("adds", camera());
     expect(sentenceText(parts)).toBe(
       "Photos on the album's camera, 24 shots each, straight into the album.",
     );
-    expect(words(parts)).toEqual(["uploads", "review"]);
+    expect(words(parts)).toEqual(["uploads", "roll", "review"]);
+    expect(parts.find((p) => p.word === "roll")?.text).toBe("24 shots");
     expect(sentenceText(say("adds", camera({ rollSize: 12 })))).toContain("12 shots each");
+    expect(sentenceText(say("adds", camera({ rollSize: 1 })))).toContain("1 shot each");
+    expect(sentenceText(say("adds", camera({ rollSize: 99 })))).toContain("99 shots each");
   });
 
   it("★ a develop time ahead: hidden until it develops, the review word no longer a word", () => {
     const upload = say("adds", { develop: { capture: "upload", rollSize: null, state: "waiting" } });
     expect(sentenceText(upload)).toBe("Photos, hidden until the album develops.");
     expect(words(upload)).toEqual(["uploads"]);
+    expect(words(say("adds", camera({ state: "waiting" })))).toEqual(["uploads", "roll"]);
     expect(sentenceText(say("adds", { ...camera({ state: "waiting" }), videos: true }))).toBe(
       "Photos and videos on the album's camera, 24 shots each, hidden until the album develops.",
     );
@@ -126,7 +133,7 @@ describe("what guests can add", () => {
     expect(sentenceText(both)).toBe(
       "Photos on the album's camera, 24 shots each, held for your approval and hidden until the album develops.",
     );
-    expect(words(both)).toEqual(["uploads"]);
+    expect(words(both)).toEqual(["uploads", "roll"]);
   });
 
   it("developed: says so, and what new ones do", () => {

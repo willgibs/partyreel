@@ -171,19 +171,20 @@ A host has no reel to create, only a state to read and a few defaults to set.
   old route's redirect all read it, and "can play" is the guest's own `isReelEligible`, so the card flips on the photo
   that makes the guest's play button appear. The dashboard asks the same in SQL (`getReelProgress`: one row per event,
   at most two media embedded).
-- **The Reel card counts to two** ([`event-feed/reel-card.tsx`](../../src/components/app/event-feed/reel-card.tsx)):
-  dashed at none ("Starts at 2 photos"), the one photo under an overlay at one, then the living card ("Live for guests",
-  or "Guests get it later" while the album's develop time is ahead, since no guest sees a photograph before it; the page
-  hands `developsAt`, and the card turns the moment it comes) dissolving through the reel's own take. The take is
-  planned on her own scope, sealed shots included: the card is hers from the first photograph, while the head, its band
-  and the album's cover still wear her guests' view. Before two a press opens guidance (what is left, Add photos, and on
-  a moderated event that a guest's photo counts once approved); from two it opens `/e/<token>?reel`, where the owner
-  passes every gate (a soft navigation, kept one: a plain press asks for the view's lazy chunk at once, so it lands
-  inside the album's server render and the curtain's black is a beat, [guest-flow.md](guest-flow.md)), or, while the
-  develop is ahead, plays her own reel over the hub (next); off, it opens Settings. The dashboard's item for an event
-  on its day says "1 more photo starts the reel" while one short and is gone once it plays; `/dashboard/<id>/reel` is a
-  redirect for old links (once the reel plays: into the view, or into her own reel over the hub while the develop is
-  ahead, as the card does; else the hub).
+- **The Reel card counts to two** ([`event-feed/reel-card.tsx`](../../src/components/app/event-feed/reel-card.tsx)): a
+  plain card among the hub's doors (event-header r4), its violet glyph its one mark: "Starts at 2 photos" at none, "1
+  more photo" at one, then "Live for guests" (or "Guests get it later" while the album's develop time is ahead, since no
+  guest sees a photograph before it; the page hands `developsAt`, and the card turns the moment it comes), one pure
+  function (`reelCardFace`). It draws no stills: its state and count are read live off the album's store (`useLiveReel`,
+  which keeps no face of its own, so Settings' switch always wins). The card is hers from the first photograph (the reel
+  plays on her own scope, sealed shots included), while the head, its band and the album's cover still wear her guests'
+  view. Before two a press opens guidance (what is left, Add photos, and on a moderated event that a guest's photo
+  counts once approved); from two it opens `/e/<token>?reel`, where the owner passes every gate (a soft navigation, kept
+  one: a plain press asks for the view's lazy chunk at once, so it lands inside the album's server render and the
+  curtain's black is a beat, [guest-flow.md](guest-flow.md)), or, while the develop is ahead, plays her own reel over
+  the hub (next); off, it opens Settings. The dashboard's item for an event on its day says "1 more photo starts the
+  reel" while one short and is gone once it plays; `/dashboard/<id>/reel` is a redirect for old links (once the reel
+  plays: into the view, or into her own reel over the hub while the develop is ahead, as the card does; else the hub).
 - ★ **Before the develop she plays her own reel over her own hub** (`event-feed/hub-reel.tsx`, mounted by the hub's
   page inside the album's store): the guests' own view (`LiveReelView`) on `?reel` of the hub's address, fed her
   scope, the hub's manifest with sealed shots included (hidden and held left out), its links by id from the hub store's

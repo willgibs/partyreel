@@ -141,8 +141,9 @@ export const MISSED_GRACE_MULTIPLIER = 1.5;
  * because the Worker writes them and the console reads them back: a string typed twice in two
  * packages is exactly how a health signal quietly stops resolving. `primary_missing` is the count of
  * keys the backup alone holds, the whole backup's (the Worker's lone copies' table): the prune writes
- * it on every run that judged its candidates, zero included (`workers/backup/src/prune-run.ts`), and
- * the restore on every pass (`workers/backup/src/restore-pass.ts`).
+ * it on every run that judged its candidates, zero included (`workers/backup/src/prune-run.ts`), the
+ * daily reconcile on every run that reached its table (`reconcile-run.ts`, which judges the keys
+ * younger than the prune's gate), and the restore on every pass (`workers/backup/src/restore-pass.ts`).
  */
 export const DEPTH_COUNT_KEYS = {
   backup_queue: "queue_backlog",
@@ -204,8 +205,10 @@ export function countsStoppedEarly(counts: unknown): boolean {
  * job, and nothing failed. Read here as `attention`, because a tripped breaker is a person's call to make
  * (a lost media set, or an intentional purge on the wrong path), and a card reading Healthy beside that
  * email was a quiet contradiction. The spend watch is a breaker too and sets the same key while a reading
- * trips or a switch it paused still stands (`runCounts`, src/lib/jobs/spend-watch.ts). The sweep types the
- * key on its tally (`OrphansTally`); the catalog's test pins the two together.
+ * trips or a switch it paused still stands (`runCounts`, src/lib/jobs/spend-watch.ts), and so does the
+ * backup reconcile when a key's two copies differ (it never overwrites the backup: a person decides which
+ * copy is good, workers/backup/src/reconcile-run.ts). The sweep types the key on its tally
+ * (`OrphansTally`); the catalog's test pins the two together.
  */
 export const BREAKER_TRIPPED_KEY = "breaker_tripped";
 
@@ -349,7 +352,7 @@ export const JOBS: JobDef[] = [
     id: "backup_reconcile",
     label: "Backup reconcile",
     description:
-      "The media backup's backstop: copies any event object the real-time queue missed into the locked second bucket. Without it a missed notification is a permanent hole in the backup.",
+      "The media backup's backstop: compares both buckets' listings and copies any event object the real-time queue missed into the locked second bucket, and finds the media files lost from the primary in their first five weeks. Without it a missed notification is a permanent hole in the backup.",
     kind: "scheduled",
     host: "cloudflare_worker",
     cron: "0 5 * * *",
@@ -400,21 +403,22 @@ export const JOBS: JobDef[] = [
     readFrom: ["backup_reconcile", "backup_prune"],
   },
   // The prune's own finding (crumbs-75): the inverse of a dead letter, a primary object gone while its row lives.
-  // The prune finds them and carries them across its pass (the Worker's lone copies' table); the restore copies them
-  // back and reports what it leaves, so the reading is the freshest of the two.
+  // The prune finds those past its gate and the reconcile the younger ones (backup-reconcile), both carried in the
+  // Worker's lone copies' table; the restore copies them back and reports what it leaves, so the reading is the
+  // freshest of the three.
   {
     id: "backup_primary_missing",
     label: "Held by the backup alone",
     description:
-      "Media files whose row still names them while the primary bucket lost the object: the backup is the only copy, and the photo will not open for its host until it is restored. The weekly prune finds them among the backup keys past its 36-day gate and keeps them across its pass, and never deletes one; the backup restore below copies them back.",
+      "Media files whose row still names them while the primary bucket lost the object: the backup is the only copy, and the photo will not open for its host until it is restored. The daily reconcile finds them among the backup keys younger than five weeks and the weekly prune among the older ones, and neither deletes one; the backup restore below copies them back.",
     kind: "derived",
     host: "cloudflare_worker",
     cron: null,
-    cadence: "Read on every prune run and restore pass",
+    cadence: "Read on every reconcile run, prune run and restore pass",
     expectedEveryMs: 0,
     flagKey: null,
     canRunNow: false,
-    readFrom: ["backup_prune", "backup_restore"],
+    readFrom: ["backup_prune", "backup_restore", "backup_reconcile"],
   },
   // The remedy for the card above, a job of its own (durability-restore): a pass is the Worker's Durable Object
   // alarm, asked for by the daily cron (the reconcile's), by each prune's end and by Restore now, so it reports daily.
@@ -458,11 +462,11 @@ export const JOBS: JobDef[] = [
     id: "drive_export",
     label: "Send to Google Drive",
     description:
-      "The Send to Google Drive Worker's sweep, every five minutes: it kicks a send that stopped moving, resumes a pause whose time came, ends what ran too long, and reports its queue. Its heartbeat is written once an hour from the Worker's signed call, so a Worker whose secret drifted reads Overdue.",
+      "The Send to Google Drive Worker's sweep, every fifteen minutes: it kicks a send that stopped moving, resumes a pause whose time came, ends what ran too long, and reports its queue. Its heartbeat is written once an hour from the Worker's signed call, so a Worker whose secret drifted reads Overdue.",
     kind: "scheduled",
     host: "cloudflare_worker",
-    cron: "*/5 * * * *",
-    cadence: "Every 5 minutes (a heartbeat an hour)",
+    cron: "*/15 * * * *",
+    cadence: "Every 15 minutes (a heartbeat an hour)",
     expectedEveryMs: 60 * 60 * 1000,
     flagKey: "drive_export_enabled",
     canRunNow: false,

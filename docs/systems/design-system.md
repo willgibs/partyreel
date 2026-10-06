@@ -355,7 +355,8 @@ production build with `scripts/album-perf.mjs` at `/design/album-scale` (the gri
   arrival or a hide re-solves a pinned window of at most four old rows, and a change outside the rows in view never
   re-lays them (`rowsInView`); and the window pays a change by scrolling exactly as far as the photograph at the view's
   top moved (`overflow-anchor: none`, since the browser cannot anchor through a spacer and Safari has no anchoring),
-  waiting out a touch flick, since a scroll written mid-flick stops it.
+  waiting out a touch flick, since a scroll written mid-flick stops it. What lands out of sight is said by one glass
+  pill (`album-window-news.tsx`).
 - **The rows mount only around the view** (`lib/shared/album-window.ts`), the keyboard's row pinned; a scroll reads the
   view by arithmetic on a cached offset, never a rect, since a rect read mid-frame forces a layout every frame.
 - **An arrival pushes**: the rows write `data-entering` on what their reflow brought in, in the same render (a
@@ -451,12 +452,17 @@ Transition is its one sanctioned hole ([host-app.md](host-app.md)).
 - **A confirm speaks as an `alertdialog`** (`role` is a column of its kind's row, spread only where a row names one,
   never as `role={undefined}`, which would erase Radix's own), so anything asking whether a layer is up asks
   `layerIsUp()` (`ui/layer-is-up.ts`, the one home of the layer roles; `layer-is-up.test.tsx` refuses a hand-written
-  dialog selector), and a test proving a confirm gone asks for `alertdialog`, or it passes for nothing.
+  dialog selector), and a test proving a confirm gone asks for `alertdialog`, or it passes for nothing. A surface that
+  is itself a layer and owns the keys (the viewer's arrows) asks `insideAnotherLayer(target)` instead: the layer the
+  key came from, so a layer stacked over it takes its keys and one under it never does.
 - **In a hand, a screen, a cover or a sheet is a place the phone's Back closes** (`ui/popup-back.ts` on
-  `lib/history-entry.ts`, whose header holds what Next does to an entry), so over the photograph viewer Back peels one
-  layer a press; a dialog is a question and holds no entry, and a page that already routes the place (`routed`,
-  `?room=`) keeps its own. A link inside a place replaces the place's entry as it navigates, so Back from the next
-  page lands on the page beneath, never on a same-URL entry with nothing open.
+  `lib/history-entry.ts`, whose header holds what Next does to an entry), so Back peels one layer a press: a question
+  (a dialog) holds an entry only over another layer (the viewer's Delete, a look's Block screen) and none over the
+  bare page, and a page that already routes the place (`routed`, `?room=`) keeps its own. Entries leave in stack
+  order, one landing at a time, a person's Back pops only the top one, and a push waits for a Back of ours still on
+  its way; a reload's dead entry (a marker this page life never wrote) is stepped over as the first popup hook or the
+  album mounts. A link inside a place replaces the place's entry as it navigates, so Back from the next page lands on
+  the page beneath, never on a same-URL entry with nothing open.
 - **Focus** lands on the popup itself in a hand, never its first field (which would raise the keyboard into a surface
   still arriving), and where the row's `deskFocus` says at a desk; a popup with no trigger of its own gives focus back
   to the control that opened it, inside the layer still open behind it when it was stacked over one, and a menu or a

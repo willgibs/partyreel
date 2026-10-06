@@ -16,7 +16,12 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { albumPath, hasDriveHint } from "@/lib/drive/links";
-import { isUnfinished, momentOf, type SendView } from "@/lib/drive/moments";
+import {
+  checkedAll,
+  isUnfinished,
+  momentOf,
+  type SendView,
+} from "@/lib/drive/moments";
 import type { DriveReturn } from "@/lib/drive/oauth-cookie";
 
 import {
@@ -103,12 +108,9 @@ function DriveFlagListening() {
       const before = previous.current.get(send.id);
       previous.current.set(send.id, send.status);
 
-      // Finished in front of her: said once, never on a later visit (the strip says done for a day).
-      if (
-        before &&
-        isUnfinished({ status: before }) &&
-        send.status === "done"
-      ) {
+      // Finished in front of her: said once, never on a later visit (the strip says done for a day), and only of a send
+      // whose check ran over what it sent ("every one checked" is never said of nothing).
+      if (before && isUnfinished({ status: before }) && checkedAll(send)) {
         toast.success(`${send.albumName} is in your Google Drive`, {
           id: `drive-done-${send.id}`,
           description: "Every one checked against ours.",

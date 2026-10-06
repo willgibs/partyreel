@@ -8,10 +8,9 @@ import {
   type MouseEvent as ReactMouseEvent,
 } from "react";
 import Link from "next/link";
-import { Clapperboard, ImagePlus } from "lucide-react";
+import { ImagePlus } from "lucide-react";
 
 import { useHostAdd } from "@/components/app/host-add-provider";
-import { LivingStills, useLivingClock } from "@/components/app/living-stills";
 import { useEventShare } from "@/components/app/share/event-share-provider";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,7 +19,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { trackAttrs } from "@/lib/analytics/events";
-import { refreshHubReelAction } from "@/app/(app)/dashboard/[eventId]/actions";
 import {
   useHostAlbum,
   useHubCounts,
@@ -28,7 +26,6 @@ import {
 } from "@/components/app/event-feed/host-album";
 import { developState } from "@/lib/disposable/reveal";
 import {
-  isPlayableEntry,
   photosToGo,
   playableCount,
   REEL_MINIMUM,
@@ -37,26 +34,25 @@ import {
 import { roomHref } from "@/lib/event/sections";
 import { formatCount } from "@/lib/format/count";
 import { useReelParam } from "@/lib/guest/reel-url";
-import { cn } from "@/lib/utils";
 
 import { warmHubReelView } from "./hub-reel-view";
-import {
-  ROOM_CARD_BASE,
-  ROOM_CARD_QUIET,
-  ROOM_CARD_VALUE,
-  roomCardSize,
-} from "./room-card";
+import { DoorParts, doorAttrs } from "./room-card-door";
 
 /** What the page hands the Reel card: the reel's state and what it has to show. */
 export type ReelCardData = {
   state: ReelState;
-  /** Items that can play, capped at the minimum: the pips. */
+  /** Items that can play, capped at the minimum. */
   have: number;
   /** The minimum the reel plays from. */
   of: number;
-  /** One still behind a card one photo short; the reel's opening stills once live. */
-  stills: string[];
-  /** Whose stills they are: one that leaves the album sends the card for new ones. */
+  /**
+   * The reel's opening stills, once the card's picture. ★ NOTHING READS THEM ANY MORE: the card is a plain card among the
+   * doors (event-header r4's cards, after Will's round-two note "I don't love filling the highlight reel anymore. we have
+   * images in event head and gallery below, this crowds it too much"), so the page no longer hands them and a fixture that
+   * still does is read by nobody.
+   */
+  stills?: string[];
+  /** The stills' ids, once what asked for new ones when one left the album (retired with them). */
   stillIds?: string[];
   /** The view the guests watch, which the owner opens with every gate passed: `/e/<token>?reel`. */
   viewHref: string;
@@ -73,180 +69,102 @@ export type ReelCardData = {
   developsAt?: string | null;
 };
 
-const LABEL = "Highlight reel";
-
 /**
- * THE CARD FOLLOWS THE ALBUM (the album-host-wiring lane: the hub is never refreshed to show an
- * arrival). Its state and pips are the album's playable count against the minimum, read live off the
- * page's store (`isPlayableEntry`, the guest's own rule on the manifest's flags), so the card flips
- * to live on the very photograph that makes the guest's reel appear. Its stills are the reel's own
- * take, which only the server can plan (who uploaded, how liked) and presign, so when the state moves
- * or a still it shows leaves the album, it asks once for that album version
- * (`refreshHubReelAction`), drawing the new state plainly meanwhile. Off the hub, the page's face.
+ * THE CARD FOLLOWS THE ALBUM (the album-host-wiring lane: the hub is never refreshed to show an arrival). Its state and
+ * count are the album's playable count against the minimum, read live off the page's store (`playableCount`, the guest's own
+ * rule on the manifest's flags), so the card flips to live on the very photograph that makes the guest's reel appear. Off the
+ * hub, the page's face.
  *
- * ★ THE PAGE'S FACE WINS WHEN IT CHANGES. The switch and the platform's lever live in Settings,
- * whose save re-renders the page and hands this a new face: a card that went live here and was then
- * switched off must say Off, and a card switched back on wears the take the page just read. So a new
- * face from the page replaces whatever this card worked out, and "off" is always the page's word.
+ * ★ THE PAGE'S FACE WINS WHEN IT CHANGES, BY HOLDING NO FACE OF ITS OWN. The switch and the platform's lever live in Settings,
+ * whose save re-renders the page and hands this a new face: a card that went live here and was then switched off must say Off,
+ * and a card switched back on says what the album says. So nothing is kept between renders: `off` is always the page's word,
+ * and every other word is read off the page's state and the album's count as they stand. (The card once kept the reel's own
+ * take, its stills, and asked the server for new ones as the album moved; with no picture on the card there is nothing to ask
+ * for.)
  */
-export function useLiveReel(eventId: string, reel: ReelCardData): ReelCardData {
+export function useLiveReel(reel: ReelCardData): ReelCardData {
   const album = useHostAlbum();
   const entries = useHubEntries(album);
   const counts = useHubCounts(album);
-  const [face, setFace] = useState(() => servedFace(reel));
-  // A new face from the page (its object is new only when the page rendered again), adopted during
-  // render: React's own pattern for state that follows a prop.
-  const [served, setServed] = useState(reel);
-  if (served !== reel) {
-    setServed(reel);
-    setFace(servedFace(reel));
-  }
   const playable = useMemo(
     () => (entries ? playableCount(entries, REEL_MINIMUM) : null),
     [entries],
   );
-  const gone = useMemo(() => {
-    if (!entries || face.stillIds.length === 0) return false;
-    const still = new Set(face.stillIds);
-    let found = 0;
-    for (const e of entries)
-      if (still.has(e[0]) && isPlayableEntry(e)) found += 1;
-    return found < still.size;
-  }, [entries, face.stillIds]);
-
   const want: ReelState =
     reel.state === "off"
       ? "off"
       : playable === null
-        ? face.state
+        ? reel.state
         : playable >= REEL_MINIMUM
           ? "live"
           : "counting";
-  const stale = reel.state !== "off" && (want !== face.state || gone);
-
-  // One ask per album the card saw go stale: a late answer that still disagrees waits for the next
-  // change, never loops.
-  const asked = useRef<readonly unknown[] | null>(null);
-  useEffect(() => {
-    if (!stale || !entries || asked.current === entries) return;
-    asked.current = entries;
-    let live = true;
-    void refreshHubReelAction(eventId).then((res) => {
-      if (live && res.ok) setFace(res.reel);
-    });
-    return () => {
-      live = false;
-    };
-  }, [stale, entries, eventId]);
-
   return {
     ...reel,
     state: want,
-    have: playable === null ? face.have : Math.min(playable, REEL_MINIMUM),
-    // Until the new take lands, a card whose state moved is drawn plain rather than on stills
-    // that belong to the state it left.
-    stills: want === face.state && !gone ? face.stills : [],
-    stillIds: face.stillIds,
+    have: playable === null ? reel.have : Math.min(playable, REEL_MINIMUM),
     pending: counts?.pending ?? reel.pending,
   };
 }
 
-/** The part of the page's reel face the card can later work out, or ask for, on its own. */
-function servedFace(reel: ReelCardData) {
-  return {
-    state: reel.state,
-    have: reel.have,
-    stills: reel.stills,
-    stillIds: reel.stillIds ?? [],
-  };
+/**
+ * THE CARD'S LINE, from the reel's state: what the door says under its name. One pure function of (state, have, of,
+ * developing), as `doorLabel` and `reviewCardFace` are for their doors.
+ */
+export function reelCardFace(
+  state: ReelState,
+  have: number,
+  of: number,
+  developing: boolean,
+): string {
+  if (state === "off") return "Off";
+  if (state === "live")
+    // ★ SHORT ON PURPOSE: the card's line is a phone's half width, where "Guests get it at the develop" was cut at every
+    // width; the whole sentence is the card's `title`.
+    return developing ? "Guests get it later" : "Live for guests";
+  if (have === 0) return `Starts at ${of} photos`;
+  const toGo = photosToGo(have);
+  return `${toGo} more ${toGo === 1 ? "photo" : "photos"}`;
 }
 
 /**
- * THE HIGHLIGHT REEL'S CARD (`reel-host`, Will 2026-09-25: `progress=card`, `home=view`).
+ * THE HIGHLIGHT REEL'S CARD (`reel-host`, Will 2026-09-25: `progress=card`, `home=view`), a plain card among the doors
+ * (event-header r4's cards: the reel's own violet on its glyph, and nothing else of its own).
  *
- * The live reel makes itself from the second photo, so the card is its door and its progress at
- * once, and it COUNTS TO TWO:
- *   - none yet: a dashed card, "Starts at 2 photos";
- *   - one: that photo sits under an overlay, "1 more photo";
- *   - two or more: the living card, the reel's own stills dissolving behind it, and a press opens
- *     the view the guests watch (the owner passes every gate there, and the owner's extras ride
- *     inside it), or, while the album's develop time is ahead and the guests' view has no reel,
+ * The live reel makes itself from the second photo, so the card is its door and its progress at once, and it COUNTS TO TWO:
+ *   - none yet: "Starts at 2 photos"; one: "1 more photo", and a press opens guidance;
+ *   - two or more: "Live for guests", and a press opens the view the guests watch (the owner passes every gate there, and
+ *     the owner's extras ride inside it), or, while the album's develop time is ahead and the guests' view has no reel,
  *     plays her own over her hub (`hub-reel.tsx`);
- *   - switched off: a plain card that opens Settings, where the switch lives.
+ *   - switched off: "Off", and a press opens Settings, where the switch lives.
  *
- * ★ BEFORE TWO, A PRESS OPENS GUIDANCE, NEVER AN EMPTY REEL (his note: "If clicked, it should also
- * offer clear guidance on the upload progress still needed"): what is left, Add photos (the
- * album's own upload panel, the fastest way to the second photo), and on a moderated event the
- * one fact a host would otherwise trip on, that a guest's photo counts once it is approved.
+ * ★ BEFORE TWO, A PRESS OPENS GUIDANCE, NEVER AN EMPTY REEL (his note: "If clicked, it should also offer clear guidance on the
+ * upload progress still needed"): what is left, Add photos (the album's own upload panel, the fastest way to the second
+ * photo), and on a moderated event the one fact a host would otherwise trip on, that a guest's photo counts once it is
+ * approved.
  *
- * ★ NOTHING HERE MENTIONS THE QUEUE ON A SCREEN. The Review count lives on the hub, in the bell and
- * in Review (his `review` note: a reel playing to a room stays clean while the host moderates from
- * a phone); the guidance names it only to the host, on the host's own page.
+ * ★ NOTHING HERE MENTIONS THE QUEUE ON A SCREEN. The Review count lives on the hub, in the bell and in Review (his `review`
+ * note: a reel playing to a room stays clean while the host moderates from a phone); the guidance names it only to the host,
+ * on the host's own page.
+ *
+ * ★ HER REEL IS HERS FROM THE FIRST PHOTOGRAPH, DEVELOP OR NONE (Will's Q5, 2026-10-04: "the live reel is the host's to play
+ * from her own event page as soon as she opens it, even while the album develops; guests don't have it until the develop").
+ * The card's state is read on her own scope, which sees every photograph she has (she is exempt from the seal). What changes
+ * while the develop is ahead is what it SAYS (guests get it later) and where a press goes (`LiveCard`): the guests' view has
+ * no reel to open yet, so her own reel plays over her hub. (The card used to draw her photographs; it draws none now, so
+ * nothing on it can show what waits sealed.)
  */
 export function ReelCard({
   eventId,
   reel,
-  stuck,
 }: {
   eventId: string;
   reel: ReelCardData;
-  stuck: boolean;
 }) {
-  // ★ HER REEL IS HERS FROM THE FIRST PHOTOGRAPH, DEVELOP OR NONE (Will's Q5, 2026-10-04: "the live reel is the host's
-  // to play from her own event page as soon as she opens it, even while the album develops; guests don't have it until
-  // the develop"). The card's take is planned on her own scope, which sees every photograph she has (she is exempt from
-  // the seal), so the card draws them and plays them. This reopens crumbs-59 (red-team 47's NIT: a card that drew what
-  // waits while her head wore her guests' view): the head, its band and the album's cover still stand on what her
-  // guests can see, and this card is the one place that is hers. What changes while the develop is ahead is what it
-  // SAYS (guests get it later) and where a press goes (`LiveCard`): the guests' view has no reel to open
-  // yet, so her own reel plays over her hub.
   const developing = useDevelopWait(reel.developsAt ?? null);
   if (reel.state === "live")
-    return (
-      <LiveCard
-        eventId={eventId}
-        reel={reel}
-        developing={developing}
-        stuck={stuck}
-      />
-    );
-  if (reel.state === "off") return <OffCard eventId={eventId} stuck={stuck} />;
-  return <CountingCard eventId={eventId} reel={reel} stuck={stuck} />;
-}
-
-/** The label: a card title at rest, a control label stuck (two roles, two elements, one ladder). */
-function Label({ stuck }: { stuck: boolean }) {
-  return stuck ? (
-    <span className="text-xs font-medium">{LABEL}</span>
-  ) : (
-    <span className="relative font-heading text-card-title">{LABEL}</span>
-  );
-}
-
-/**
- * The card's second line: under the label on a phone's two-line card and in a tile, and, condensed to a pill, kept for a
- * reader and never drawn (`sr-only`). ★ IT USED TO BE `display: none` THERE (red-team 53's LOW: "at 375 the Reel card
- * hides 'Guests get it later'"), which took the state out of the pill for everyone, assistive technology included,
- * and a phone host who pressed it could not tell that her guests do not have this reel yet. The line itself is whole at
- * rest at the widths the card is drawn (measured at 375: "Guests get it later" is 100px of the 149px the line has; it
- * has 122px at 320 and 118px in the tile at its narrowest), so what the pill leaves out is only what a compact control
- * has no room for. (A lab frame is an iframe, whose row the observer reads as stuck until it is scrolled into view:
- * measure a card at a width in a top-level viewport.)
- */
-function valueClass(stuck: boolean, rest: string): string {
-  return stuck
-    ? "sr-only"
-    : cn("relative truncate text-xs", ROOM_CARD_VALUE, rest);
-}
-
-/** The overlay: heavier at the foot where the words sit, so they read over the brightest still. */
-function Overlay() {
-  return (
-    <div
-      aria-hidden
-      className="absolute inset-0 bg-linear-to-t from-black/80 via-black/50 to-black/30"
-    />
-  );
+    return <LiveCard eventId={eventId} reel={reel} developing={developing} />;
+  if (reel.state === "off") return <OffCard eventId={eventId} />;
+  return <CountingCard eventId={eventId} reel={reel} />;
 }
 
 /**
@@ -290,20 +208,16 @@ function LiveCard({
   eventId,
   reel,
   developing,
-  stuck,
 }: {
   eventId: string;
   reel: ReelCardData;
   /** The album's develop time is still ahead (`useDevelopWait`): the card says guests get it later, and plays her own. */
   developing: boolean;
-  stuck: boolean;
 }) {
-  const { ref, at } = useLivingClock<HTMLAnchorElement>(reel.stills.length);
   const { open } = useReelParam();
-  const living = !stuck && reel.stills.length > 0;
+  const value = reelCardFace("live", reel.have, reel.of, developing);
   return (
     <Link
-      ref={ref}
       // ★ BEFORE THE DEVELOP SHE PLAYS HER OWN REEL, ON THIS PAGE (`hub-reel.tsx`). The guests' view is a page of
       // everything guests can see, her own included, so until the develop it has no reel to open; her hub plays hers
       // from her own scope, over itself, and Back returns to it. The address is real (`?reel` on the hub), so a
@@ -321,39 +235,10 @@ function LiveCard({
       }
       data-reel-card="live"
       data-reel-plays={developing ? "hub" : "guests"}
-      className={cn(
-        ROOM_CARD_BASE,
-        roomCardSize(stuck),
-        living
-          ? "relative overflow-hidden border-transparent text-white"
-          : ROOM_CARD_QUIET,
-      )}
+      {...doorAttrs("reel", value)}
       {...trackAttrs("cta_click", { cta: "room-reel", location: "hub-cards" })}
     >
-      {living && (
-        <>
-          <LivingStills stills={reel.stills} at={at} />
-          <Overlay />
-        </>
-      )}
-      <Clapperboard
-        className={cn(
-          "relative size-4 shrink-0",
-          living ? "text-white/85" : "text-muted-foreground",
-        )}
-        aria-hidden
-      />
-      <Label stuck={stuck} />
-      <span
-        className={valueClass(
-          stuck,
-          living ? "text-white/85" : "text-muted-foreground",
-        )}
-      >
-        {/* ★ SHORT ON PURPOSE: the tile's value line is 118px from `sm` to `md` and 134px after, where "Guests get it at
-            the develop" (155px) was cut at every width; the whole sentence is the card's `title`. */}
-        {developing ? "Guests get it later" : "Live for guests"}
-      </span>
+      <DoorParts room="reel" face={{ value }} />
     </Link>
   );
 }
@@ -367,8 +252,9 @@ function playHere(e: ReactMouseEvent, open: (mode: "hand") => void) {
   open("hand");
 }
 
-function OffCard({ eventId, stuck }: { eventId: string; stuck: boolean }) {
+function OffCard({ eventId }: { eventId: string }) {
   const { openSheet } = useEventShare();
+  const value = reelCardFace("off", 0, REEL_MINIMUM, false);
   return (
     <Link
       href={`/dashboard/${eventId}?room=settings`}
@@ -379,18 +265,13 @@ function OffCard({ eventId, stuck }: { eventId: string; stuck: boolean }) {
         e.preventDefault();
         openSheet("settings");
       }}
-      className={cn(ROOM_CARD_BASE, roomCardSize(stuck), ROOM_CARD_QUIET)}
+      {...doorAttrs("reel", value)}
       {...trackAttrs("cta_click", {
         cta: "room-reel-off",
         location: "hub-cards",
       })}
     >
-      <Clapperboard
-        className="size-4 shrink-0 text-muted-foreground"
-        aria-hidden
-      />
-      <Label stuck={stuck} />
-      <span className={valueClass(stuck, "text-muted-foreground")}>Off</span>
+      <DoorParts room="reel" face={{ value }} />
     </Link>
   );
 }
@@ -398,11 +279,9 @@ function OffCard({ eventId, stuck }: { eventId: string; stuck: boolean }) {
 function CountingCard({
   eventId,
   reel,
-  stuck,
 }: {
   eventId: string;
   reel: ReelCardData;
-  stuck: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const add = useHostAdd();
@@ -410,9 +289,8 @@ function CountingCard({
   const trigger = useRef<HTMLButtonElement>(null);
   // Add photos closed the guidance: its focus goes home without moving the page (the content's note).
   const adding = useRef(false);
-  const still = reel.stills[0];
-  const onPhoto = Boolean(still) && !stuck;
   const toGo = photosToGo(reel.have);
+  const value = reelCardFace("counting", reel.have, reel.of, false);
   return (
     <Popover
       open={open}
@@ -427,66 +305,13 @@ function CountingCard({
           type="button"
           data-reel-card="counting"
           data-have={reel.have}
-          className={cn(
-            ROOM_CARD_BASE,
-            roomCardSize(stuck),
-            "relative text-left",
-            stuck
-              ? ROOM_CARD_QUIET
-              : onPhoto
-                ? "overflow-hidden border-transparent text-white"
-                : "border-dashed border-foreground/25 hover:border-foreground/40",
-          )}
+          {...doorAttrs("reel", value)}
           {...trackAttrs("cta_click", {
             cta: "reel-guidance",
             location: "hub-cards",
           })}
         >
-          {onPhoto && (
-            <>
-              {/* eslint-disable-next-line @next/next/no-img-element -- a presigned R2 preview */}
-              <img
-                src={still}
-                alt=""
-                decoding="async"
-                draggable={false}
-                className="absolute inset-0 size-full object-cover"
-              />
-              <div aria-hidden className="absolute inset-0 bg-black/60" />
-            </>
-          )}
-          <Clapperboard
-            className={cn(
-              "relative size-4 shrink-0",
-              onPhoto ? "text-white/85" : "text-muted-foreground",
-            )}
-            aria-hidden
-          />
-          {/* The pips ride the value's line on a phone's two-line card (the
-              first line is full with the label) and the icon's row on a tile.
-              At none, a phone leaves them to the words: "Starts at 2 photos"
-              already says it, and a 320px card has no room for both. */}
-          {!stuck && (
-            <span
-              className={cn(
-                "absolute right-2.5 bottom-4 sm:top-4 sm:right-3 sm:bottom-auto",
-                reel.have === 0 && "max-sm:hidden",
-              )}
-            >
-              <ReelPips have={reel.have} of={reel.of} light={onPhoto} />
-            </span>
-          )}
-          <Label stuck={stuck} />
-          <span
-            className={valueClass(
-              stuck,
-              onPhoto ? "text-white/85" : "text-muted-foreground",
-            )}
-          >
-            {reel.have === 0
-              ? `Starts at ${reel.of} photos`
-              : `${toGo} more ${toGo === 1 ? "photo" : "photos"}`}
-          </span>
+          <DoorParts room="reel" face={{ value }} />
         </button>
       </PopoverTrigger>
       <PopoverContent
@@ -563,43 +388,5 @@ function CountingCard({
         )}
       </PopoverContent>
     </Popover>
-  );
-}
-
-/**
- * The count toward the minimum as pips, filled for each photo there is: a number read in half a
- * glance, never a progress bar pretending a two-step path is long.
- */
-function ReelPips({
-  have,
-  of,
-  light,
-}: {
-  have: number;
-  of: number;
-  light: boolean;
-}) {
-  return (
-    <span
-      data-reel-pips={`${have}/${of}`}
-      className="flex items-center gap-1"
-      aria-hidden
-    >
-      {Array.from({ length: of }, (_, i) => (
-        <span
-          key={i}
-          className={cn(
-            "h-1.5 w-4 rounded-full",
-            light
-              ? i < have
-                ? "bg-white"
-                : "bg-white/30"
-              : i < have
-                ? "bg-foreground"
-                : "bg-foreground/20",
-          )}
-        />
-      ))}
-    </span>
   );
 }

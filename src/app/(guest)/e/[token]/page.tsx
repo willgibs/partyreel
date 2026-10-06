@@ -64,6 +64,17 @@ import { welcomeSeenIn } from "@/lib/guest/use-welcome-seen-cookie";
 import { PHOTO_PARAM, readPhotoParam } from "@/lib/media/share-save";
 import { presignDownload } from "@/lib/r2/presign";
 import {
+  resolveViewerZone,
+  serverZone,
+  VIEWER_ZONE_HEADER,
+} from "@/lib/dashboard/viewer-day";
+import {
+  ALBUM_SORT_COOKIE,
+  guestAlbumOrder,
+  readChosenSort,
+  shownSort,
+} from "@/lib/shared/album-order";
+import {
   resolveRowStep,
   TILE_SIZE_COOKIE,
 } from "@/lib/shared/tile-size-cookie";
@@ -451,6 +462,25 @@ export default async function GuestEventPage({
   const rowStep = resolveRowStep(cookieJar.get(TILE_SIZE_COOKIE)?.value);
   const albumWidth = parseAlbumWidth(cookieJar.get(ALBUM_WIDTH_COOKIE)?.value);
   const rhythmSeed = randomInt(1_000_000);
+  // ★ AND THE ORDER IT OPENS IN (album-order): the turn read in the reader's zone (the request's,
+  // else the server's), and her remembered order on this album (`pr_album_sort`). Behind a gate
+  // nothing says when the party was (the shell blanks its days below), so neither does the order.
+  const albumOrder = guestAlbumOrder({
+    facts:
+      access === "none"
+        ? { eventDate: null }
+        : {
+            eventDate: event.event_date,
+            eventEndDate: event.event_end_date ?? null,
+            developsAt: event.develops_at ?? null,
+          },
+    zone: resolveViewerZone(
+      (await headers()).get(VIEWER_ZONE_HEADER),
+      serverZone(),
+    ),
+    chosen: readChosenSort(cookieJar.get(ALBUM_SORT_COOKIE)?.value, event.id),
+    isDemo,
+  });
   // Deliberately NOT awaited: the album's seed (the manifest and the first
   // paint's links) streams in behind the shell, which paints first; the live
   // gallery resolves it inside its Suspense boundary. ★ Streamed through
@@ -461,6 +491,7 @@ export default async function GuestEventPage({
     rhythm: "double",
     seed: rhythmSeed,
     width: albumWidth,
+    sort: shownSort(albumOrder),
   });
 
   // Header stats: cheap awaited read (numbers only — never identities).
@@ -734,6 +765,7 @@ export default async function GuestEventPage({
         arrival={arrival}
         doorPhase={doorPhase}
         uploadsWait={waits}
+        albumOrder={albumOrder}
       />
       {/* ★ WHAT THIS PHONE'S CLAIM WOULD NOT TAKE IN SILENCE (shared-claims): a ticket typed under a
           name at odds with the account, asked about once the door and its sheets are down

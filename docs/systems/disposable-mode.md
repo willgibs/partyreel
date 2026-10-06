@@ -19,8 +19,12 @@ measurements.
 ## The model: two answers, and a preset
 
 - **How guests add** is `events.capture`: `upload` (free uploads) or `camera` (the album's camera: a roll of
-  `roll_size` shots each, 24 unless a host names fewer, at most 24). A text under a CHECK rather than an enum, so a
+  `roll_size` shots each, 1 to 99, 24 unless a host names another). A text under a CHECK rather than an enum, so a
   third way to add is a constraint swap (an enum value cannot be used in the transaction that adds it).
+- ★ **Her roll outlives the camera** (20261005190000): free uploads keep the last roll she named, so a style switch or
+  the camera off and on comes back to it (the stamp only fills a camera's unnamed roll with 24). A free-upload album's
+  `roll_size` is therefore no sign of a camera: every reader asks `capture` first (the SQL's `v_event.capture =
+  'camera'`, the app's `developFactsOf`), and only Settings reads the kept size (`rollSizeOf`).
 - **When everyone sees what's added** is one three-way answer over two columns: right away (`moderation_mode = live`,
   `develops_at` NULL), once the host approves each (`hold_for_approval`, NULL), or at a develop time (`develops_at`
   set; a time ahead waits, a time reached has developed). `lib/disposable/reveal.ts` reads the pair as one answer.
@@ -181,8 +185,10 @@ phone's camera is let go whenever the page hides or the camera closes (`use-came
 ## The host's control, and her cover
 
 `camera-settings.tsx` asks it as **album styles**, each one save of all three columns (`patchForStyle`) so no
-half-state is ever stored, with the develop time and Develop now in one row where the album has one, and Customize,
-where `CaptureAndReveal` asks the two answers apart. A change that would show waiting photos or release held ones asks
+half-state is ever stored, with the develop time and Develop now in one row where the album has one, Shots each while
+guests add with the camera (`roll-control.tsx`: film's 12, 24 and 36, or Other's stepper to 99; a box saves at once,
+a run of steps once she rests, `RollSetting`; Create's Disposable pick draws the same control), and Customize, where
+`CaptureAndReveal` asks the two answers apart. A change that would show waiting photos or release held ones asks
 before it saves (`ConsequenceLine`, `styleSwitchConsequence`), as a develop time that would develop the album does
 (below).
 
@@ -202,10 +208,10 @@ develops without asking.
 **The host's cover** (`event-hub-head-cover.tsx`, mounted by `event-gallery.tsx`): while a develop time is ahead, her
 hub's album is the contact sheet her guests meet, counted from her own manifest (`lib/disposable/host-cover.ts`), until
 Look lifts it for the visit. Her hub's head and its band wear only what her guests can see meanwhile
-(`useHubCoverStills`), following the develop, never Look; the Reel card is the one place that is hers, drawing and
-playing her own scope with the sealed shots in it ([reel.md](reel.md)). What waits on it is read by the seal, the
-period only its floor: the held photos a switch put in the roll (and a camera's shots between a develop time and its
-restamped period) are sealed yet created before `sealed_from`, so the page reads them off the rows
+(`useHubCoverStills`), following the develop, never Look; the Reel card is the one door that is hers: a press plays her
+own scope over the hub, sealed shots included (the card draws none of them) ([reel.md](reel.md)). What waits on it is
+read by the seal, the period only its floor: the held photos a switch put in the roll (and a camera's shots between a
+develop time and its restamped period) are sealed yet created before `sealed_from`, so the page reads them off the rows
 (`host-cover.server.ts`'s `readJoinedIds`) and hands them down as `joined`; `waitsOf` is the one test the count and the
 head share.
 

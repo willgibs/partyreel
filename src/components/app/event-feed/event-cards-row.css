@@ -1,0 +1,124 @@
+/* THE CARDS ROW'S OWN SHEET (`event-cards-row.tsx`): the footprint's rise into the cover, the band, its veil, the row of
+   doors and what leads and closes it stuck. The doors themselves (the card, the pill, the three widths) are
+   `room-card.css`'s; the seam they stand across is `event-hub-head-seam.css`'s.
+
+   ★ EVERY CLASS CARRIES THE `hub-` PREFIX; THE BAND'S STUCK FORM IS ONE ATTRIBUTE, `data-stuck`, written by the fold
+   (`event-cards-row-fold.ts`) and read here and in `room-card.css`, so the row is the same DOM in both forms.
+   ★ THE REST STATE IS THE DEFAULT (bible 5): nothing here moves; the fold is script, behind `no-preference`. */
+
+/* ══ THE FOOTPRINT ═════════════════════════════════════════════════════════ */
+
+/* Over the seam, the row rises into the cover by `--hub-rise`: the hub's `space-y-6` leaves `--hub-gap` under the cover, so the
+   row's own margin takes that back and the rise besides. An unlayered rule, so it outranks the utility's margin. */
+.hub-row {
+  margin-top: calc(var(--hub-gap) * -1 - var(--hub-rise));
+  /* ★ NOTHING OF THE ROW EVER WIDENS THE PAGE: a phone's pills with every count lit are the widest it gets, and a row that
+     ran past the screen would scroll the whole hub sideways. It clips at its own edges, the window's, instead (`clip`, never
+     `hidden`, which would make the footprint a scroll container and end its stick). */
+  overflow-x: clip;
+}
+
+/* ══ THE BAND ══════════════════════════════════════════════════════════════ */
+
+/* It takes no top padding at rest, so the cards' tops are exactly the rise; the footprint holds its resting height. */
+.hub-band {
+  position: relative;
+  isolation: isolate;
+  padding: 0 12px 6px;
+}
+.hub-band[data-stuck] {
+  padding-top: 8px;
+  padding-bottom: 20px;
+}
+@media (min-width: 40rem) {
+  .hub-band {
+    padding: 0 20px 8px;
+  }
+  .hub-band[data-stuck] {
+    padding-top: 8px;
+    padding-bottom: 20px;
+  }
+}
+
+/* Stuck, the band's ground fades into the album rather than ending on a line: a layer of its own, so the fold can bring it
+   up under the pills. */
+.hub-band-veil {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    to bottom,
+    var(--background) 0%,
+    color-mix(in oklab, var(--background) 92%, transparent) 62%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+[data-stuck] > .hub-band-veil {
+  display: block;
+}
+
+/* ══ THE ROW ═══════════════════════════════════════════════════════════════ */
+
+/* At rest: a hand's two by two with the guest's view the width under it, a tablet's five tiles, a desk's five cards;
+   stuck, one line of pills between the cover's face and the code. The face and the code exist only stuck. */
+.hub-doors {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+@media (min-width: 40rem) {
+  .hub-doors {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+@media (min-width: 68.75rem) {
+  .hub-doors {
+    gap: 12px;
+  }
+}
+.hub-band[data-stuck] > .hub-doors {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+@media (min-width: 50rem) {
+  .hub-band[data-stuck] > .hub-doors {
+    gap: 8px;
+  }
+}
+.hub-lead,
+.hub-code {
+  display: none;
+}
+/* The face is the one piece that yields: pills and the code keep their size, so a crowded line (every count lit on a phone)
+   takes the room back from the face first. */
+[data-stuck] .hub-lead {
+  display: flex;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  padding-right: 4px;
+}
+[data-stuck] .hub-code {
+  display: flex;
+  flex: none;
+  margin-left: 2px;
+}
+/* The event's name is the face's words, from a desk's width: under it the face stands for the event alone. */
+.hub-lead-name {
+  display: none;
+}
+@media (min-width: 68.75rem) {
+  .hub-lead-name {
+    display: inline;
+  }
+}
+/* The narrowest phones keep the room for the pills and the code: five pills, the chip and their gaps are 296px of a
+   320px screen's, so the face (45px with its gap) waits for a 375px one. */
+@media (max-width: 23.375rem) {
+  [data-stuck] .hub-lead {
+    display: none;
+  }
+}
