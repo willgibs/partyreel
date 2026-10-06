@@ -26,7 +26,7 @@ model Will seats (Fable or Opus); nothing here depends on which.
 ## In flight
 
 Round 15 continues (2026-10-05, evening), seated on willg97. Milestone 37 is live (`b67cdc1f2`). Since then
-launch-prep holds twelve merged lanes and three applied migrations (billing_integrity, cloud_export_fixes,
+launch-prep holds thirteen merged lanes (album-order the latest, gate 21) and three applied migrations (billing_integrity, cloud_export_fixes,
 roll_size_range) for milestone 38, plus the Orchestrator's StrictMode tile fix (`d6bfc64a0`). Desks 3 and 4 are
 answered and transcribed; his desk (`localhost:3000`, launch-prep `5104a5d05`) holds no open ask until desk 5 lands.
 Lanes merged before milestone 37 left this table: their summaries are their merge commits (`git log`).
@@ -48,7 +48,7 @@ Lanes merged before milestone 37 left this table: their summaries are their merg
 | `event-header-r5` | board event-header r5 (desk 20, desk 5): 3 or 4 polished takes on the picked cards doors; relayed: Afterglow picked (the doors speak its point-and-word, one light a screen; the cards on paper as convincing as in the room) | RUNNING (cut at `e123a6a9`) | Opus, 3135 | `afb9456e0c2d57b85` |
 | `event-header-wiring` | the hub's doors as picked: the cards over the seam, folding into pills when stuck; the Guests card's developing shots; its doc lines landed by the Orchestrator | MERGED at `3566afe5c` (gate 20 green); host-app.md, reel.md and disposable-mode.md lines landed at the record; its signed-in walk for the desk (each door pressed, the fold at 1440 and 375, a reversal mid-fold, a throttled load); pruned | Sonnet, 3136 | `abfa1873f50527623` |
 | `brand-r2` | board brand r2 (desk 5, desk 5 with identity r5 and event-header r5): ONE ask, 3 or 4 polished takes on Afterglow, above all its light on paper (Will: "tough to nail on anything light. It's washed out easily"); Contact Sheet's and Everyone's ideas mined; the method r1 ran | RUNNING (cut at `87b0bbc7`) | Opus, 3137 | `a40a63a2c6953cbb5` |
-| `capture-time` | Will's X7: a photo keeps the time it was taken, never the place or the device: read before the strip, kept in the file's minimal EXIF, validated on the server, `media.captured_at` (migration `20261005200000_capture_time.sql`, the Advisor first), on the album's wire, naming its Drive copy | RUNNING (cut at `0ff67f0a`) | Opus, 3131 | `a2516557c94207581` |
+| `capture-time` | Will's X7: a photo keeps the time it was taken, never the place or the device: read before the strip, kept in the file's minimal EXIF, validated on the server, `media.captured_at`, on the album's wire, naming its Drive copy | MERGED at `d345640ed` (gate 22 green); migration `capture_time` APPLIED (20261006011725, md5 78b03a23 = the file's; the Advisor's Q37: APPLY; advisors 26/4/36); types regenerated and the seams dropped (`05655ed4f`); for red-team 56: upload `_scratch/capture-time/fixtures/` to a test album on the desk (five at 2026-10-04 01:14:05Z, `imageio-nozone.jpg` at 21:14:05 in the browser's zone, `imageio-lying.jpg` NULL; the videos need a paid host), read back from `media` and the manifest's seventh element; pruned | Opus, 3131 | `a2516557c94207581` |
 | `credit-watch` | the Advisor's Q33 after-steps: a leased claim answers busy, a stuck credit on /admin/accounts, the recompute's seconds, the expired-passes sweep's cost, a change-plan configuration missing a price caught (migration `20261005201000_credit_watch.sql`) | RUNNING (cut at `0ff67f0a`) | Opus, 3138 | `a4aacf9c3fb29b068` |
 | `identity-wiring` | Will's three settled identity traits into production: the halo on every focusable atom, the shrink on every action, the bright edge on everything that floats (one home each; forms untouched: identity r5 asks the set; light: brand r2) | RUNNING (cut at `6a1d56f5`) | Opus, 3136 | `af513bd6bed4eeaef` |
 | `crumbs-82` | host-dashboard r4's chooser = words, `/account`'s trail, FollowButton's slug, the Drive re-walk's small findings (the unticked box named, "deletes" gone, Sent's counts per connection, the strip's beat) and /admin's title on a non-admin 404 | RUNNING (cut at `9d64fe3f`) | Sonnet, 3139 | `a76ed48484e49ddad` |
@@ -66,7 +66,7 @@ Sunday 2026-10-11 13:00Z (hi@willgibs.com resets Tuesday 2026-10-06 21:00Z). If 
 - reads this pickup, then STATUS; recreates the hourly heartbeat only for an unattended run (`CronCreate`, session-only; Will: off while he works
   actively; this session's was deleted 2026-10-05 when he returned);
 - Will's desk: `http://localhost:3000/design/lab?key=fiesta` is served by `pnpm start -p 3000` in
-  `../partyreel-wt/desk` (nohup), pinned at `94d66338` (Drive alone) until he pastes desk 2. A refresh: checkout the
+  `../partyreel-wt/desk` (nohup), pinned at `5104a5d05` (no open ask); the next refresh serves desk 5. A refresh: checkout the
   SHA detached, `pnpm install`, stop port 3000, `rm -rf .next`, build with `NEXT_PUBLIC_SITE_URL=http://localhost:3000`
   through `scripts/build-lock.sh`, `nohup pnpm start -p 3000`, then the `sentry-release` in `/design/lab` names it
   (about a minute; `../partyreel-wt/_scratch/desk/desk-refresh.sh <sha>` does it all; its `.env.local` is a symlink to the root's, so Will's env lands there too);
@@ -118,7 +118,12 @@ Round 15, on Will's desk answers of 2026-10-04 and his brand note; the approved 
 8. **Pacing (Will, 2026-10-05):** weekly usage is no constraint (two Claude accounts, about $500 of cloud usage
    untapped, a third account at worst): the fastest pace I am comfortable with, the machine's memory the limit (eight
    agents at 61 to 68% free). Weekly 59% at 21:32Z (resets 2026-10-11 13:00Z): near 95% the handoff block is current
-   so the other account's Orchestrator takes over.
+   so the other account's Orchestrator takes over. **Cloud first where a lane fits** (Will, 2026-10-05: until
+   willg97's $250 cloud credit is spent; local where it really benefits): in this desktop session the Agent tool's
+   `isolation: "remote"` ran on the Mac (a probe), so the route from here is claude.ai routines (`RemoteTrigger`,
+   run on demand, a cloud session on the GitHub repo pushing its `lp/` branch; it cannot message back), awaiting his yes
+   to create the first; he may seat the Orchestrator in a cloud session once weekly maxes, where cloud subagents may
+   work (chosen at a session's start).
 9. **The close of the day:** STATUS (stale since 2026-10-03), this pickup, the calls lab. Moltbook only on his word.
 
 ## Waiting on Will

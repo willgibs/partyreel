@@ -23,7 +23,11 @@
  */
 import type { ViewMenuGroup } from "@/components/shared/view-menu";
 import { DEFAULT_DEVELOP_HOUR } from "@/lib/disposable/reveal";
-import { entryTime, type ManifestEntry } from "@/lib/events/album-wire";
+import {
+  entryCaptureTime,
+  entryTime,
+  type ManifestEntry,
+} from "@/lib/events/album-wire";
 import { lastDayOf, shiftDay } from "@/lib/events/dates";
 import { yoursView } from "@/lib/guest/yours-filter";
 
@@ -60,15 +64,15 @@ export function sortViewGroup(
 }
 
 /**
- * WHEN AN ENTRY WAS TAKEN, as the wire carries it: null for every entry today.
+ * WHEN AN ENTRY WAS TAKEN, as the wire carries it (`entryCaptureTime`: `media.captured_at`, an entry's seventh
+ * element), or null where the upload kept none.
  *
  * ★ THE ONE PLACE THE CAPTURE TIME IS READ (Will's X7, 2026-10-05: "keep the capture time, never the place or
  * device"). The capture-time lane carries `media.captured_at` on the album's wire; this function is the switch it
- * flips, and nothing that orders an album changes with it. Microseconds, like `t`.
+ * flipped, and nothing that orders an album changed with it. Microseconds, like `t`.
  */
 export function takenAtOf(entry: ManifestEntry): number | null {
-  void entry;
-  return null;
+  return entryCaptureTime(entry);
 }
 
 /**

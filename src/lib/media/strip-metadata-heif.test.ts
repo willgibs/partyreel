@@ -129,6 +129,44 @@ function exifItemOrientation(
   return null;
 }
 
+/**
+ * The capture time in an Exif item's TIFF, read the long way (IFD0's Exif IFD pointer, then that IFD's
+ * DateTimeOriginal, OffsetTimeOriginal and ExifVersion), independently of the module.
+ */
+function exifItemTime(
+  b: Uint8Array,
+  [start]: [number, number],
+): { wall: string | null; offset: string | null; version: string | null } {
+  const tiff = start + 4 + u32(b, start);
+  const le = b[tiff] === 0x49;
+  const r16 = (o: number) => (le ? b[o] | (b[o + 1] << 8) : u16(b, o));
+  const r32 = (o: number) =>
+    le
+      ? (b[o] | (b[o + 1] << 8) | (b[o + 2] << 16) | (b[o + 3] << 24)) >>> 0
+      : u32(b, o);
+  const entry = (ifd: number, tag: number) => {
+    for (let i = 0; i < r16(ifd); i++) {
+      const e = ifd + 2 + i * 12;
+      if (r16(e) === tag) return e;
+    }
+    return -1;
+  };
+  const text = (e: number) => {
+    if (e < 0) return null;
+    const n = r32(e + 4);
+    const at = n <= 4 ? e + 8 : tiff + r32(e + 8);
+    return String.fromCharCode(...b.subarray(at, at + n)).replace(/\0+$/, "");
+  };
+  const pointer = entry(tiff + r32(tiff + 4), 0x8769);
+  if (pointer < 0) return { wall: null, offset: null, version: null };
+  const exifIfd = tiff + r32(pointer + 8);
+  return {
+    wall: text(entry(exifIfd, 0x9003)),
+    offset: text(entry(exifIfd, 0x9011)),
+    version: text(entry(exifIfd, 0x9000)),
+  };
+}
+
 // What the fixtures carry as text (their GPS is binary, in the Exif's GPS IFD, which
 // hasGpsMetadata reads).
 const IDENTITY_NEEDLES = [
@@ -202,8 +240,9 @@ describe("HEIC: an ImageIO file of the iPhone's shape", () => {
     expect(indexOf(out, "HDRGainMapVersion")).toBeGreaterThan(-1);
   });
 
-  it("rebuilds the Exif item as a minimal one that keeps the orientation", async () => {
-    const out = (await stripMetadataBytes(input, "image/heic")).data;
+  it("rebuilds the Exif item as a minimal one that keeps the orientation and the capture time", async () => {
+    const res = await stripMetadataBytes(input, "image/heic");
+    const out = res.data;
     const [s, e] = exif.extents[0];
     expect(Array.from(out.subarray(s, s + 10))).toEqual([
       0,
@@ -215,8 +254,22 @@ describe("HEIC: an ImageIO file of the iPhone's shape", () => {
       0,
     ]);
     expect(exifItemOrientation(out, exif.extents[0])).toBe(6);
-    // Past the 36-byte minimal block, the item is zeros to its original length.
-    expect(out.subarray(s + 36, e).every((x) => x === 0)).toBe(true);
+    // Will's word (2026-10-05): the capture time stays, read back by this file's own oracle, and the strip says it read
+    // it from the original.
+    expect(exifItemTime(out, exif.extents[0])).toEqual({
+      wall: "2026:09:30 18:04:05",
+      offset: null,
+      version: "0232",
+    });
+    expect(res.captured).toEqual({
+      kind: "wall",
+      wall: "2026:09:30 18:04:05",
+      offset: null,
+    });
+    // Past the minimal block (the item's 10-byte prefix, then the orientation, ExifVersion and DateTimeOriginal: 98
+    // bytes; it was 36 while the time went too), the item is zeros to its original length.
+    expect(out.subarray(s + 98, e).every((x) => x === 0)).toBe(true);
+    expect(out.subarray(s + 90, s + 98).some((x) => x !== 0)).toBe(true);
     // The picture's XMP is a valid, empty packet padded with whitespace.
     const [xs, xe] = pictureXmp.extents[0];
     const text = String.fromCharCode(...out.subarray(xs, xe));

@@ -54,6 +54,8 @@ export type AlbumChange = {
   createdAt: number | null;
   /** HOST SCOPE ONLY (the quick-add key); always null in the guest album's scope. */
   guestId: string | null;
+  /** `captured_at` in microseconds (Will's X7); null or absent where the upload kept none, and from a reader before it. */
+  capturedAt?: number | null;
 };
 
 /** What `album_changes_since` answers: one snapshot of the versions, the counts and the changes. */
@@ -119,6 +121,7 @@ export function parseAlbumRead(json: unknown): AlbumRead {
       reelEligible: typeof row[8] === "boolean" ? row[8] : null,
       createdAt: numOrNull(row[9]),
       guestId: typeof row[10] === "string" ? row[10] : null,
+      capturedAt: numOrNull(row[11]),
     };
   });
   return {
@@ -172,6 +175,7 @@ export function changeToEntry(
       has_preview: change.hasPreview,
       reel_eligible: change.reelEligible,
       created_at: change.createdAt,
+      captured_at: change.capturedAt,
       status: change.status ?? undefined,
     },
     scope,

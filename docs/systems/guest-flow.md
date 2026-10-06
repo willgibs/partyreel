@@ -131,7 +131,8 @@ read beside it so its Follow starts on Following; no card means no host row, nev
   customize r1's `order=turns`): newest first while it is on, the night in order from 9 am the morning after its last
   day or from its develop; an undated album and the demo never turn, and a teaser's nine stay newest first. It is
   presentation over the one wire (the manifest and its delta stay `created_at desc`): the view turns the live source's
-  list (`inOrder`) and the rows lay from the end it grows at, so an album in order only grows at its end. In order
+  list (`inOrder`) and the rows lay from the end it grows at, so an album in order grows at its end but for a late
+  upload its capture time lands mid-album (the anchoring holds her place, the arrivals pill points there). In order
   reads `happenedAt`: when each was taken where the wire carries a capture time (`takenAtOf`, the capture-time lane's
   one switch), else when it arrived; newest first is always by arrival, the live feed. ★ The 9 am is the reader's, as
   no event keeps a zone yet: the page's server reads it from the request (`x-vercel-ip-timezone`, else its own) and
