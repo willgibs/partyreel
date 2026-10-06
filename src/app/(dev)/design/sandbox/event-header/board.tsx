@@ -10,9 +10,9 @@ import {
   type PreviewsFor,
 } from "@/components/lab";
 
-import type { DoorsId } from "./doors";
+import type { CardId } from "./cards";
 import { CASES, type Moment } from "./fixtures";
-import { type HubDraw, TryHub } from "./hub";
+import { type HubDraw, type NeedsId, TryHub } from "./hub";
 import {
   type Ground,
   measureDoors,
@@ -22,12 +22,19 @@ import {
   ScrollTo,
   Strip,
 } from "./scene";
+import type { PaperId } from "./seam";
 import { EVENT_HEADER } from "./spec";
 
 /**
- * THE PREVIEWS, AND NOTHING ELSE: every take is Maya's hub as she meets it,
+ * THE PREVIEWS, AND NOTHING ELSE: every option is Maya's hub as she meets it,
  * in real frames at the width the Screen knob names (a laptop, a tablet held
- * upright, a phone), at the moment the Moment knob names (`hub.tsx`).
+ * upright, a phone), at the moment the Moment knob names (`hub.tsx`), its
+ * Seam on paper in the take the Paper knob names (`seam.tsx`).
+ *
+ * ★ THE SECOND ASK IS DRAWN ON THE FIRST'S ANSWER: a colour option reads the
+ * card the board's state wears (his pick once he has made it, the
+ * recommendation until then), and a card option wears the colour the state
+ * holds, so each question is judged in the world the other leaves.
  *
  * ★ BOTH GROUNDS SIDE BY SIDE, EVERY TIME (Will, desk 4, on Afterglow: "very
  * tough to nail on anything light. It's washed out easily"): the room and
@@ -40,12 +47,21 @@ import { EVENT_HEADER } from "./spec";
  */
 
 const momentOf = (s: BoardState): Moment =>
-  s.moment === "before" ? "before" : s.moment === "after" ? "after" : "tonight";
+  s.moment === "before" || s.moment === "after" || s.moment === "peak"
+    ? s.moment
+    : "tonight";
+
+const cardOf = (s: BoardState): CardId =>
+  s.card === "ring" || s.card === "numeral" ? s.card : "shoulder";
+const needsOf = (s: BoardState): NeedsId =>
+  s.attention === "ink" || s.attention === "cue" ? s.attention : "tally";
+const paperOf = (s: BoardState): PaperId =>
+  s.paper === "ink" || s.paper === "cast" ? s.paper : "aperture";
 
 /** An option's own name off the spec, so a row's lede and the step's head agree. */
-const LABEL = (option: string) => {
+const LABEL = (ask: string, option: string) => {
   const found = EVENT_HEADER.asks
-    .find((a) => a.id === "cards")
+    .find((a) => a.id === ask)
     ?.options.find((o) => optionId(o) === option);
   return found ? optionLabel(found) : option;
 };
@@ -60,22 +76,42 @@ const GROUNDS: readonly { ground: Ground; name: string }[] = [
 
 const WHEN: Record<Moment, string> = {
   tonight: "tonight",
+  peak: "tonight at its peak",
   before: "the week before",
   after: "the week after",
 };
 
-function DoorsStrip({ s, doors }: { s: BoardState; doors: DoorsId }) {
+/** One option's two frames: the hub in the room and on paper, both live. */
+function HubStrip({
+  s,
+  card,
+  needs,
+  lede,
+}: {
+  s: BoardState;
+  card: CardId;
+  needs: NeedsId;
+  lede: string;
+}) {
   const screen = screenOf(s);
   const moment = momentOf(s);
+  const paper = paperOf(s);
   const into = s.scroll === "album";
   const measure = measureDoors(SCREENS[screen].h);
   return (
     <Strip
       screen={screen}
-      lede={`${LABEL(doors)}: in the room and on paper, both live (scroll either, press a card).`}
+      lede={`${lede}: in the room and on paper, both live (scroll either, press a card).`}
       frames={GROUNDS.map(({ ground, name }) => {
-        const d: HubDraw = { doors, c: CASES[moment], screen, ground };
-        const key = `eh-${doors}-${ground}-${moment}-${into ? "album" : "rest"}`;
+        const d: HubDraw = {
+          card,
+          needs,
+          paper,
+          c: CASES[moment],
+          screen,
+          ground,
+        };
+        const key = `eh-${card}-${needs}-${paper}-${ground}-${moment}-${into ? "album" : "rest"}`;
         return {
           id: key,
           title: into
@@ -95,10 +131,30 @@ function DoorsStrip({ s, doors }: { s: BoardState; doors: DoorsId }) {
   );
 }
 
+function CardStrip({ s, card }: { s: BoardState; card: CardId }) {
+  return (
+    <HubStrip s={s} card={card} needs={needsOf(s)} lede={LABEL("card", card)} />
+  );
+}
+
+function NeedsStrip({ s, needs }: { s: BoardState; needs: NeedsId }) {
+  return (
+    <HubStrip
+      s={s}
+      card={cardOf(s)}
+      needs={needs}
+      lede={`${LABEL("attention", needs)}, on ${LABEL("card", cardOf(s))}`}
+    />
+  );
+}
+
 const PREVIEWS: PreviewsFor<typeof EVENT_HEADER> = {
-  "cards.keys": (s) => <DoorsStrip s={s} doors="keys" />,
-  "cards.seam": (s) => <DoorsStrip s={s} doors="seam" />,
-  "cards.points": (s) => <DoorsStrip s={s} doors="points" />,
+  "card.shoulder": (s) => <CardStrip s={s} card="shoulder" />,
+  "card.ring": (s) => <CardStrip s={s} card="ring" />,
+  "card.numeral": (s) => <CardStrip s={s} card="numeral" />,
+  "attention.ink": (s) => <NeedsStrip s={s} needs="ink" />,
+  "attention.tally": (s) => <NeedsStrip s={s} needs="tally" />,
+  "attention.cue": (s) => <NeedsStrip s={s} needs="cue" />,
 };
 
 export function EventHeaderBoard() {
