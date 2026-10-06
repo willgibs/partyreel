@@ -89,11 +89,13 @@ else
     case ",$DEMOBOARDS," in *,all,*) DEMOARGS=(--all) ;; *) DEMOARGS=(--board "$DEMOBOARDS") ;; esac
     if [ -z "$DEMOBOARDS" ]; then echo "lab:demo: the merge reached no board, so no step to press"
     else
-      # The demo gets a fresh server on this tree's own cache (gate 39, 2026-10-06: on the cloud seat's 15 GB container
-      # one server compiled the whole lab through lab:smoke --all, grew past 10 GB in lab:demo --all and was OOM-killed
-      # mid-step): the restart drops the crawl's compiled pages from memory, and the cache it keeps was warmed on this
-      # very tree.
+      # The demo gets a fresh server (gate 39, 2026-10-06: on the cloud seat's 15 GB container one server compiled the
+      # whole lab through lab:smoke --all, grew past 10 GB in lab:demo --all and was OOM-killed mid-step), and on an
+      # empty cache: gate 42's restart on the cache its stopped server left sat over seven minutes compiling the Library
+      # and never served it (26 s on an empty one), as gate 39's re-run on a killed server's cache answered 404.
       lsof -ti tcp:$PORT | xargs -r kill 2>/dev/null; kit_free_port $PORT; sleep 1
+      for k in $(seq 1 10); do [ -z "$(kit_port_pids $PORT)" ] && break; sleep 1; done
+      rm -rf .next/dev
       (pnpm dev -p $PORT >>"$S/dev$PORT.log" 2>&1 &)
       for j in $(seq 1 120); do curl -s -o /dev/null -w '%{http_code}' "http://localhost:$PORT/design/library?key=$DESIGN_PREVIEW_KEY" 2>/dev/null | grep -q '^200' && break; sleep 2; done
       echo "dev restarted for the demo: lab ready after ${j}x2s"
