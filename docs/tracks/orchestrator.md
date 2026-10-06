@@ -107,10 +107,9 @@ Round 15, on Will's desk answers of 2026-10-04 and his brand note; the approved 
    `DRIVE_WORKER_URL` (production holds Drive's four secrets but not the URL, so it reads "not set up" until then);
    `partyreel-backup` deploys at 38 too (the reconcile's listing merge, RESTORE_MODE dryrun; then `BACKUP_WORKER_URL`
    on partyreel-admin). The Advisor wants 38 soon: milestone 37's build re-grants a Pro credit past a day (TEST money).
-3. **Desk 5 SERVED** at `2c7423ca4` (2026-10-06 02:33Z): identity r5 (set, loading) and event-header r5 (cards), three
-   asks; the desk pass clean (no two asks one decision; event-zone's PREMISE on event-header's cards re-read: it
-   stands). Brand r2 (desk 5's place) joins at the next refresh, after red-team 56's walk (a rebuild would drop its
-   server); integrate it at its handoff, the desk pass,
+3. **Desk 5 ANSWERED** (2026-10-06, transcribed `3983158d8`): identity r5 **set = house, loading = words**; event-header
+   r5 **cards = ?** with Will's note. Brand r2 (desk 5's place) is still drawing: integrate it at its handoff and serve
+   it at the next desk refresh (after red-team 56's walk); the desk pass,
    refresh the desk, tell him. **Desk 6** = the brand applied (after brand r2's pick); **desk 7** = the moments boards
    (host-, guest-, account-moments, create-wizard r4; after identity r5's set pick).
 4. **Lanes running** (six agents): brand-r2, crumbs-83, lab-kit-2, guest-requests, crumbs-84, red-team 56 (their rows
@@ -135,6 +134,29 @@ Round 15, on Will's desk answers of 2026-10-04 and his brand note; the approved 
    to create the first; he may seat the Orchestrator in a cloud session once weekly maxes, where cloud subagents may
    work (chosen at a session's start).
 9. **The close of the day:** STATUS (stale since 2026-10-03), this pickup, the calls lab. Moltbook only on his word.
+
+**★ WIND-DOWN (Will, 2026-10-06 ~03:20Z, weekly at 92%): start NO new lane.** Let the running ones finish, integrate
+each handoff, keep this pickup current at every step, and roll into 100% weekly for a clean handoff to a cloud-seated
+Orchestrator. What that Orchestrator starts, in order (each a lane, cloud first where it fits: no secrets, no local desk):
+1. **identity-r5 wiring** (Opus): the **house** set into production's atoms (keys and wells: fields sunk as wells, the
+   lighter chosen on both grounds, keys lying flat as Afterglow's decks draw them; production's corner ladder and boxes,
+   one home each) and **working = words** (the arc, then its word: "Saving…", "Still saving" past four seconds; reduced
+   motion still), on every action that waits; the two identity-r5 ROADMAP lines ride it (the door page's non-atom parts
+   in the set's construction; a working key holding its wider width). The board's look-at-first and frames are its
+   spec (`sandbox/identity/`, `docs/reviews/identity.json`).
+2. **event-header r6** (Opus, a board round): FIRST verify and rebuild the Seam against Afterglow's (brand r1's decks;
+   brand r2's retune once picked): Will sees "a streak of horizontal brightness behind the cards, only a few pixels
+   tall" (the lane's Q9 shrank it to a 2 px lamp and a 12 px fall at quarter strength for a row). Then explore with his
+   notes: each card's count rides its glyph as a badge (`points`' idea) so title and count read in one glance, capped
+   "99+" so it never overflows the title; and colour returns for counts that need attention (he notes the QR's code
+   kept its colour while the doors went achromatic, and bland counts get scrolled past unhandled), within Afterglow's
+   one-light rule. His full note: `docs/reviews/event-header.json`.
+3. **Red-team 56's findings** (a crumbs lane), then **milestone 38** on Will's yes (Next 2's deploy steps; drive-hardening's
+   live walk).
+4. Brand r2's integration and the desk refresh (if it hands off after this session), then desk 6 (the brand applied).
+Local-only, so a cloud session cannot reach them: Will's desk (`localhost:3000`), `../partyreel-wt/_scratch/` (specs,
+captures, the calls lab, red-team ledgers) and this machine's agent memory. Everything a successor needs is in this
+file, STATUS, the runbook and the ROADMAP.
 
 ## Waiting on Will
 
