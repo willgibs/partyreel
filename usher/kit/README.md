@@ -111,8 +111,12 @@ answer changes a call, the record says so, and a disagreement on a one-way door 
      returns at the lane's merge.
    - `reads`: paths that exist and stay; never another lane's manifest (it dies at that lane's merge), its board's
      `spec.ts` instead.
-   - `brief`: the task's intent, synthesized (his exact words only where the wording itself is the point). A lab
-     lane's brief stays light on rules, so its creative energy goes to the board.
+   - `brief`: the task's intent, synthesized (his exact words only where the wording itself is the point). It opens
+     with the round's standing direction, one line naming Will's principles a lane meets every day (PRD.md's "Will's
+     product principles" and CLAUDE.md hold each with its reason): never dev-tool-ish; a host of 1 to about 10 events
+     first, scaling to hundreds; delight where it costs nothing in clarity; nothing depends on a timeline; immediate,
+     or a clear state and a way to stop it; no AI managing it; cost designed like the architecture; production the
+     working version. A lab lane's brief stays light on rules, so its creative energy goes to the board.
    - `board` and `desk`: a board lane owns its folder and its place on the desk; `cut-lane.py` adds the folder to its
      `owns`, writes the board's shape into its brief (the toolbox page, `/design/lab/kit`, is the rest), and refuses a
      spec whose `owns` names a shared list.
@@ -120,7 +124,8 @@ answer changes a call, the record says so, and a disagreement on a one-way door 
    `pnpm vitest run src/lib/track-manifests.test.ts`.
 3. Commit the manifests alone; push; add the lane's In-flight row to `orchestrator.md` (its agent id, model and port).
 4. Spawn with the Agent tool: `spawn-prompt.txt` filled (`{track}`, `{port}`, and `{scratch}` the absolute path of
-   `../partyreel-wt/_scratch`, never `$S`: a session's scratchpad dies with it, captures included), one port each from 3131 to
+   `../partyreel-wt/_scratch`, never `$S`: a session's scratchpad dies with it, captures included; the scratch is a
+   lane's working area by design, so what a successor needs goes to the repo at the merge), one port each from 3131 to
    3139, as many lanes as measured memory allows (`memory_pressure` first: six to eight on this 36 GB Mac, at 60% free or
    more; full speed is the default and a 5-hour cut-off is accepted; near the weekly end keep the pickup's handoff block
    current for the auto-kill at 100%), their production builds taking turns through
@@ -254,3 +259,12 @@ a line when a lever lands.
 - `test-delta.sh <base-sha>`: the tests at HEAD against a base by name, for a count that moved with no test file in the
   diff.
 - `moltbook.mjs`: the Moltbook client (`../moltbook/README.md`).
+- `desk-refresh.sh <sha>`: Will's desk (:3000, the `../partyreel-wt/desk` worktree) rebuilt and restarted at a
+  launch-prep sha, ending `DESK READY` once the lab's stamp names it; never while a red-team walks the desk. Local only.
+- `redteam-brief.txt`: a red-team's brief, its walk's specifics in braces (what changed since the last base, the walks
+  in order); the rules and the driving notes are every walk's. Its tools are `redteam/` (a headless Chrome of the
+  walk's own, the driver `drv.mjs` and how to start it in its head, fresh devices with Vercel and partyreel.com blocked,
+  real taps and presses, a guest's join, a send with its in-flight recorder), every record in the walk's `RT_DIR`.
+- `cost-model/`: the dollar model behind PRICING.md's "What it costs us": `node plans.mjs` prints each plan's worst
+  month, the archetypes and the breakeven, `node atlas.mjs` the events' once-costs; a vendor price or a plan changes
+  in `model.mjs` or `plans.mjs` beside PRICING.md's line, in the same edit.
