@@ -37,6 +37,7 @@ check-in about every 40 minutes reads them (their status, pushed heads and cost)
 | `host-moments-r1` | board host-moments r1 (desk 40): B1 a password added, Q6 a develop time added mid-party, B2 the door's decline and block, L3 over her plan with a goal, each built answer drawn beside real alternatives | RUNNING (cut at `462cea3f`) | Opus | `session_01LTciadsfNCGdfN4DK1rYF7` |
 | `guest-moments-r1` | board guest-moments r1 (desk 45): C7 a first photo's glow, D3 taking a shot back, Q3 a batch of others' photos landing, G6 the reel opening | RUNNING (cut at `462cea3f`) | Opus | `session_01RxBppeLymQLuF5HFzzZzcM` |
 | `redteam-56b` | red-team 56b on its own build of `c5b16be7` at :3000: crumbs-85's MEDIUM re-walked, its LOW and NITs, the album's time, the house set and working words, regressions; never commits; its report is its last message | RUNNING | Opus | `session_017cgyXnS3nnK35ifo2L6bEa` |
+| `uploads-bursts` | the upload queue's two throughput lines: a dropped burst's Retry all re-queued as one burst, the next burst started once the last one's bytes are up | RUNNING (cut at `e74f8e07`) | Opus | `session_01XYnfk95UWgKLYDRLebNNxH` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor") read both of tonight's migrations
 (2026-10-06): APPLY each, after its drift read and its proof's GREEN; the hashes and its caveats are under Waiting on
@@ -74,8 +75,9 @@ local agents' transcripts.
    Then desk 6, the brand applied (brand-marks with the status set, which inherits his `attention` pick as its waiting
    colour; aurora; marketing-themes with N4, N7 and N9; demo-framing r6; presence r1), cut after his brand r2 pick; and
    desk 7, the moments boards (host-, guest- and account-moments, create-wizard r4: each a ROADMAP line with its calls),
-   cut now that identity-r5-wiring has merged, so they draw on the house set. Before his next sitting, re-read the
-   brand and event-header boards' open asks against production's `globals.css`, which the house set changed.
+   host- and guest-moments running (In flight), account-moments and create-wizard r4 after them. The PREMISE re-read
+   is done (11:15Z): gate 40 flagged event-header's two asks against crumbs-85's one line in the hub page (the develop
+   facts carry the zone), which moves nothing `card` or `attention` asks; no gate flagged brand's.
 3. **Red-team 56b** (its own cloud session, below: crumbs-85's MEDIUM re-walked, the house set, the album's time; its
    report is its last message, read with `list_events`), then **milestone 38** on
    Will's yes: the `FULL=1` gate here, `pnpm compute:model` (a lane, since it needs the real services), merge to
