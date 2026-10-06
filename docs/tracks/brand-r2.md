@@ -1,6 +1,6 @@
 ---
 track: brand-r2
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "87b0bbc7"            # the launch-prep SHA the branch was cut from
 board: brand
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -43,8 +43,9 @@ working.
 - Do the takes share one composition per slide? **Yes** (built): every slide is one drawing each take fills with its
   constructions (`afterglow/take.tsx`), so pressing between takes compares like with like and they differ only where
   their answers do. Overrule: each take art-directs its own deck.
-- The house light where there is no photograph and no seed? **One dusk sky in every take** (built, a carried call on
-  the board): the five lamps lit as the icon lights them, amber to violet from the top-left, never chips side by side.
+- The house light where there is no photograph and no seed? **The icon's ember in every take** (built, a carried call on
+  the board): the lamps lit as one glow from the top-left, amber to coral, never chips side by side (a first draft's
+  dusk sky to violet read as the Instagram gradient to the creative director).
 - May a take change its paper stock? **Yes** (built, carried): Aperture keeps production's gallery white, Ink a warm
   uncoated stock, Cast a neutral daylight white.
 - Do Contact Sheet and Everyone's Color stay on the board? **No** (built, carried): retired with round one; their
@@ -53,31 +54,80 @@ working.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none: a board ships no production byte; the pick's wiring lane writes `design-system.md`'s light section.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- none
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
-
-## Where I am
-
-- Done: the shared Afterglow r2 system (`afterglow/`: values, the take contract, the kit, marks), three takes wired as
-  the board's one ask (`aperture/`, `ink/`, `cast/`), slides 01 cover and 05 signature (mine); helpers drew 02 to 04
-  (finished), 06 to 08, 09 to 11, 12 to 14 and the Ink and Cast light (each nearly done when the usage limit cut them).
-- Next: re-run each helper's last step, capture all fourteen slides of all three takes at 1440 and 375, the creative
-  director's fresh-eyes pass (`_scratch/brand-r2/cd-brief.md`), one refinement on everything it names, the spec's
-  recommendation from the drawn decks, the light gate, the handoff.
-- Mid-flight: nothing uncommitted beyond this WIP; the dev server listens on 3137.
+- Commits on `lp/brand-r2`, pushed: work b325e22ae, 867c67b98, 61b2c2f24, 90a0a3d87; the sync 787544589 (`git merge
+  origin/launch-prep`: globals.css, design-system.md and the lab kit had moved since the cut; no conflicts); this
+  manifest's commit is the head in the chat line.
+- Gates on the synced tree 787544589, each on its own exit code (logs in `../partyreel-wt/_scratch/brand-r2/gate2-*`):
+  `pnpm typecheck` 0; `pnpm lint "src/app/(dev)/design/sandbox/brand"` 0; the board's tests (`registry.test.ts`,
+  `kit-discipline`, `terms`, `boundary`, `dead-components`) 0, 5 files, 47 tests; `pnpm lab:smoke --base
+  http://localhost:3137` 0, 18 checks, brand 641 words of 1200; `pnpm lab:demo --board brand --base
+  http://localhost:3137` 0, `brand.take ok`, 3 options of 14 frames, the stage moves up to 90.85%, 1440 starts 0.30
+  down with 18 px to the dock, 375 starts 0.35 down with 81 px to the dock. The light gate (a board lane): no full
+  test run, no production build.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = 95 paths under `src/app/(dev)/design/sandbox/brand/`
+  + this file; no exceptions.
+- The one ask, `take`: "Which Afterglow should every brand board after this one grow from?", three takes, each a
+  14-slide deck in round one's order at 1440 and 375: Aperture (recommended), Ink, Cast.
+- One composition per slide, every take: `afterglow/slides/` (14 shared drawings) filled through the take contract
+  `afterglow/take.tsx` (each take's light primitives handed a source and a ground, its paper stock, where its one
+  subject, footer and printed card stand on paper, its type ink `inkFor`, its words); `afterglow/system.tsx` the
+  shared values and room primitives, `afterglow/kit.tsx` the pages' parts, `afterglow/marks.tsx` the v1 wordmark
+  (untouched) and the ring icon.
+- Aperture (`aperture/`): on paper the light never touches the page; it lives inside dark pieces of the room (a flat
+  disc round the Add, a black mount hot at the subject's edge, a black strip with the event's credits under a print,
+  the black footer), as bright as in the room; production's gallery white.
+- Ink (`ink/`): one colour per album, its strongest light; a glow in the room, printed solid on paper (a rule with the
+  credits in the same ink, a band round the Add, a mat behind the one subject, a solid seed disc), names and the Pro
+  price in that ink; a warm uncoated stock.
+- Cast (`cast/`): the light is the photograph itself (an SVG filter: blurred, merged, held at one strength, unOlived);
+  a glow round it in the room, on paper a coloured shadow falling down and right, dense, short and hard-edged, darker
+  than the page; a daylight white.
+- Round two's polish in every take: no spectrum (the house light is the icon's ember), three hues a light at most,
+  fewer and larger lights, one to a screen, Will's v1 wordmark.
+- The method: six helpers (four slide teams, an Ink team, a Cast team), the creative director's fresh-eyes pass on all
+  84 captures (its pick: Aperture), one refinement on everything it named (five fixes per take and the cross-cutting
+  notes: jargon cut from every slide, hard-edged album crops, the dusk sky narrowed to the ember, Ink's halftone
+  replaced by solid ink, Cast's lemon seam made short and dense, the share card's QR removed).
+- Mined from round one: Contact Sheet's film edge (Aperture's credits on its black strip, Ink's credits under its
+  rule), its warm stock (Ink's paper), Everyone's Color's seeded orb (the seed covers); both decks retired.
+- Each take names the touch worth borrowing from a neighbour on its idea slide (02): Aperture from Ink, the printed
+  rule and credits where paper meets a photograph outside a plate; Ink from Aperture, one lit plate for the reel on
+  paper; Cast from Ink, crisp print wherever a cast would smear.
+- Assets requested from Will:
+  - event photographs for the brand decks · 12 to 16 stills, 2400 px on the long edge, a wedding, a birthday and a
+    festival, night and day, shot on guests' phones, JPG · replaces the bootstrap twelve (`MARKETING_IMAGES`, 900 px,
+    soft at deck sizes)
+  - a reception table for the QR card · one still, 2400 px, low angle, shallow focus, warm evening light, JPG ·
+    replaces `reception-table` behind the A6 card on slide 13
+- Board ideas:
+  - The lab kit's whole stage wears a width a fraction short of the row it measured: on this board with the 375 knob
+    at a desk, 14 slides of 374.95 px plus 13 gaps of 32 px need 5665.29 px and `fitStage` (`whole.ts`) wears 5665 px,
+    so the last slide wraps and the stage draws 1018 px into a 567 px room (`pnpm lab:demo --board brand --state
+    screen=375`: CUT and CLIPPED on every option); round the worn width up, or give it a pixel of slack.
+  - A motion capture in the lab (a short loop per option): a light that answers events (the reel's Bloom changing on
+    each cut, a ring filling as files send) is judged still today; every helper asked for it.
+  - Production's footer (`.surface-ink`) already is Aperture's black footer: whichever take wins, lighting the
+    footer's top edge from the page's photographs is the cheapest first wiring.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Calls his to overrule:
+  - The recommendation: Aperture (the creative director picked it too); Ink if paper should feel printed, Cast if the
+    light should land on the page itself.
+  - The house light: the icon's ember, amber to coral, in every take (not round one's five lamps, not a dusk sky).
+  - A paper stock per take: Aperture production's gallery white, Ink a warm uncoated stock, Cast a daylight white.
+  - Ink's halftone dropped for a solid mat at a fourteenth of the subject (the creative director called the dots a
+    gimmick; a tenth read as a frame).
+  - The share card (13) has no code (the card is the link) and stands on each take's subject ground: the room in
+    Aperture, paper in Ink and Cast.
+  - Slide 08 compares round one with each take as a lit card rather than a Seam (in Cast a fall under a cover reads
+    like round one's band at a glance).
+  - Round one's other two decks retired from the board; the v1 wordmark untouched in every take.
+- Look at first: the cover (01), the light page (11) and the signature (05) in each take: the cover is each take's
+  whole argument in one photograph across the cut, and 11 is "light on anything light".
