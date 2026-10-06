@@ -47,7 +47,11 @@ no-op stub (the kit sources nvm under `set -e`); an export lasts one command, so
 shell snapshot (re-append after a worker restart; a background command reads none, so set `S` inside it). A restart
 resumes in the session record's mode, so the mode stays Auto. The lanes' sessions carry the environment's variables
 and an open network. The Vercel connector sees Will's personal team, not P3's (`VERCEL_TOKEN` in the lanes' environment
-serves the kit's REST calls); no Cloudflare token is in the environment.
+serves the kit's REST calls); no Cloudflare token is in the environment. ★ **The Supabase connector's SQL tools
+(`execute_sql`, `apply_migration`) wait on a human approval in Auto mode** (billing-orphans and drive-crumbs each sat
+35 minutes on one, 2026-10-06): a lane never calls them and writes its rolled-back proofs into its Handoff, and the
+Orchestrator runs them, applies a migration and regenerates the types when Will can approve (his morning, or a word
+from him that he is watching).
 
 **Handoff, if this session ends:** the next Orchestrator reads this pickup, then STATUS; finds each lane's session
 (`list_sessions`, titled "partyreel lane: <track>") and resumes one that is mid-work by `send_message` to its id, or
@@ -89,6 +93,8 @@ local agents' transcripts.
 ## Waiting on Will
 
 - **His desk:** brand r2's take; event-header r6 at the next refresh.
+- **The SQL steps of tonight's two migrations** (billing-orphans', drive-crumbs'): their proofs, the applies and the
+  types each need his approval of the Supabase connector's prompt, so they wait for his morning.
 - **The calls lab** (`docs/calls.md`): the open questions X1, X2, X3, X5, X6 and X8, then each merge's calls, built and
   his to overrule. He asks direct questions in chat; answer in chat, never only in a file.
 - **Milestone 38** on his yes, after crumbs-85, billing-orphans, drive-crumbs and red-team 56b.
