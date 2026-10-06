@@ -1,6 +1,6 @@
 ---
 track: account-moments-r1
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "6ccc5b4e"            # the launch-prep SHA the branch was cut from
 board: account-moments
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -41,7 +41,13 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- The board's surface: `account` is not a surface (guest, host, marketing, shared, admin), so it stands on Shared,
+  since these moments are a guest's and a host's alike. Recommended: Shared; overrule if Guest should own them.
+- The Screen knob opens on 375 (a guest meets these on her phone, from the album); 1440 is one press away.
+- A refused flip (springs back, the server's words in one toast) is drawn nowhere and listed as settled in the
+  opening: no option changes it. Overrule if he wants refusal asked too.
+- The wizard (`profile-setup-wizard.tsx`, `handle-field.tsx`) is not redrawn: I5's asks stop at the invitation that
+  leads into it, so a pick changes /me and the card, never the setup's three screens.
 
 ## System-doc edits (in place, owned facts only)
 
@@ -53,13 +59,36 @@ working.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- Work commit `4520dad67`, pushed to `origin/lp/account-moments-r1`; no sync commit: launch-prep moved only by the
+  record commit `8769437f5` (docs/STATUS.md, docs/tracks/orchestrator.md), none of my reads.
+- Gates on `4520dad67` (the light gate), each on its own exit code: `pnpm typecheck` 0; `pnpm lint` 0 (no warning);
+  the board's tests `pnpm vitest run src/app/(dev)/design/sandbox/registry.test.ts` 56/56; `pnpm lab:smoke --base
+  http://localhost:3131` 7 checks, 0 failing (363 words of 1200); `pnpm lab:demo --board account-moments --base
+  http://localhost:3131` 5 steps, 0 failing, every step draws its options at 1440 and 375 (stage moves 21.6% to 100%).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = the ten files under
+  `src/app/(dev)/design/sandbox/account-moments/` + this file; no exception.
+- Measured on screen (Playwright over the dev server, reduced motion emulated): every tile at 375 and 1440, each
+  caption read off its frame (`scene.tsx`'s `data-am-read`) matches its option's words; the one motion (an option's
+  line arriving, `account-moments.css`) is off under reduced motion.
+- The items, five asks, production's answer one option of each (`today`, or `block`'s today):
+  - `follow`: what tells her a follow landed: the button turns (today) / a line under her name, once (rec.) / a toast.
+  - `block`: Jordan's page once she blocks: Follow just goes (today) / a well that says it with Unblock, on every
+    visit (rec.) / a toast with Undo. Its first frame is production's `BlockConfirm`, the same in every option.
+  - `tidy`: a Connections row on unfollow or unblock: leaves at once (today) / stays turned back, one more press
+    undoes it, gone on the next visit (rec.) / leaves with a toast's Undo.
+  - `me-page`: /me before a public page: lists under the invitation (today) / her page, private, the public head
+    marked Only you (rec.) / the public half drawn empty above her lists.
+  - `invite` (after `me-page`, drawn on the page he picked): the standing card (today) / one quiet line, always there
+    (rec.) / the card with Not now, which folds it to the line.
+- Assets requested from Will: none (the marketing stills every board reuses).
+- Board ideas:
+  - The public page's meta row orphans its `·` at 375 when the handle is long (`@jordanpike ·` then `Joined …` on
+    the next line, `u/[slug]/page.tsx`): the separator should travel with what follows it.
+  - A relation's off face for Block is the destructive red button (`relation-toggle.tsx`); any surface that keeps an
+    unblocked row (`tidy=stays`) wears a red Block in a calm list: a quieter off face for a list row is worth a look.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none. A wiring note: `tidy=stays` needs the
+  Connections card to keep the rows it rendered across the Server Function's revalidation (client-held rows), no SQL.
+- Calls his to overrule: the four under Questions (Shared surface, 375 first, refusal settled, the wizard untouched).
+- Look at first: `block` (a standing state rather than a success message is the boldest reading of his "a clear
+  state and a way to stop it"), then `me-page` → `invite`.
+- Test data left: none (no write reached a service; every act in a frame is inert).
