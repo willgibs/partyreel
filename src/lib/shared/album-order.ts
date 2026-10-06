@@ -114,11 +114,49 @@ export function carriesCaptureTimes(
   return false;
 }
 
-/** Manifest entries (newest first) in the night's order: `inOrder` keyed on `happenedAt`, or the reversal. */
+/**
+ * THE NIGHT'S GAP: two photographs whose times sit further apart than this are not one run of the night. Three days
+ * holds a weekend wedding and a long trip's daily rhythm whole, and parts a throwback (months) or a camera a year off.
+ * Microseconds, as the wire's times are.
+ */
+export const NIGHT_GAP_US = 3 * 24 * 60 * 60 * 1_000_000;
+
+/**
+ * WHERE EACH ENTRY SITS IN THE NIGHT IN ORDER (crumbs-85): when it happened (`happenedAt`), except a time far outside
+ * the album's own run of times, which is SEATED AT THE NIGHT'S END EDGE, after everything the night took, in its own
+ * order, rather than leading the night (a throwback, a camera a year off). The night is the run of times that ends at
+ * the newest: walking back from it while no two neighbours are more than `NIGHT_GAP_US` apart. What lies before that
+ * run is seated, but only while it is the smaller part of the album, so an album made after its trip (every capture
+ * days before the uploads) or one of two nights keeps its true order. The wire keeps the true time; this is the order
+ * alone. Derived from the entries alone, so the page's first paint (`album-window-plan.ts`), the guest's live album and
+ * the hub lay the same order. Null where no entry carries a capture time (the order is arrival's own, a reversal).
+ */
+export function nightKeys(
+  entries: readonly ManifestEntry[],
+): ((entry: ManifestEntry) => number) | null {
+  if (!carriesCaptureTimes(entries)) return null;
+  const times = entries.map(happenedAt);
+  const sorted = [...times].sort((a, b) => a - b);
+  let start = sorted.length - 1;
+  while (start > 0 && sorted[start]! - sorted[start - 1]! <= NIGHT_GAP_US) {
+    start -= 1;
+  }
+  const from = sorted[start]!;
+  // Before the night, and the smaller part of the album: else nothing is seated.
+  if (start === 0 || start * 2 >= sorted.length) return happenedAt;
+  const last = sorted[sorted.length - 1]!;
+  return (entry) => {
+    const at = happenedAt(entry);
+    // Past the night's last, in its own order: the night's span is added, never a constant, so two seated stay apart.
+    return at < from ? last + 1 + (at - sorted[0]!) : at;
+  };
+}
+
+/** Manifest entries (newest first) in the night's order: `inOrder` keyed on where each sits (`nightKeys`). */
 export function entriesInOrder(
   entries: readonly ManifestEntry[],
 ): ManifestEntry[] {
-  return inOrder(entries, carriesCaptureTimes(entries) ? happenedAt : null);
+  return inOrder(entries, nightKeys(entries));
 }
 
 /* ───────────────────────────── the turn ──────────────────────────────── */

@@ -14,6 +14,7 @@ import {
   guestAlbumOrder,
   happenedAt,
   inOrder,
+  nightKeys,
   lensAlbum,
   readChosenSort,
   shownSort,
@@ -171,7 +172,8 @@ describe("the first paint's order (the page's)", () => {
 });
 
 /** A manifest entry at arrival `t` (microseconds), newest first as the wire keeps them. */
-const e = (id: string, t: number): ManifestEntry => [id, 640, 480, 4, t];
+const e = (id: string, t: number, c?: number): ManifestEntry =>
+  c === undefined ? [id, 640, 480, 4, t] : [id, 640, 480, 4, t, null, c];
 
 describe("the night in order", () => {
   // Arrival order, newest first, the server's own (t desc, then id desc on a tie).
@@ -242,6 +244,87 @@ describe("the night in order", () => {
     expect(takenAtOf(night[1])).toBeNull();
     expect(happenedAt(night[0])).toBe(at("2026-10-03T21:10:00Z") * 1000);
     expect(entriesInOrder(night).map((x) => x[0])).toEqual(["a", "late", "b"]);
+  });
+
+  /* ★ A TIME FAR OUTSIDE THE NIGHT IS SEATED AT ITS END EDGE (crumbs-85, capture-time's Deferred line): a throwback, or a
+     camera a year off, led the night in order. The wire keeps the true time; the order seats it after the night. */
+  it("★ seats a throwback at the night's end, in its own order, never leading the night", () => {
+    const row = (id: string, created: string, captured: string | null) =>
+      toManifestEntry(
+        {
+          id,
+          type: "photo",
+          width: 640,
+          height: 480,
+          duration_seconds: null,
+          has_preview: true,
+          reel_eligible: true,
+          created_at: created,
+          captured_at: captured,
+        },
+        "album",
+      );
+    const night = [
+      row("c", "2026-10-03T23:00:00.000000+00:00", null),
+      // A camera a year behind, and a throwback from the summer, both shared during the night.
+      row(
+        "year",
+        "2026-10-03T22:30:00.000000+00:00",
+        "2025-10-03T22:29:00+00:00",
+      ),
+      row(
+        "summer",
+        "2026-10-03T22:00:00.000000+00:00",
+        "2026-07-14T12:00:00+00:00",
+      ),
+      row("b", "2026-10-03T21:20:00.000000+00:00", null),
+      row("a", "2026-10-03T21:00:00.000000+00:00", null),
+    ];
+    expect(entriesInOrder(night).map((x) => x[0])).toEqual([
+      "a",
+      "b",
+      "c",
+      "year",
+      "summer",
+    ]);
+    // The wire keeps the true time.
+    expect(takenAtOf(night[2])).toBe(at("2026-07-14T12:00:00Z") * 1000);
+    // And the guest's live album seats it the same way (one key, `nightKeys`).
+    const keyOf = nightKeys(night)!;
+    expect(inOrder(night, keyOf).map((x) => x[0])).toEqual([
+      "a",
+      "b",
+      "c",
+      "year",
+      "summer",
+    ]);
+  });
+
+  it("★ an album made after its trip, or a weekend, keeps its true order: nothing is seated", () => {
+    const DAY = 24 * 60 * 60 * 1_000_000;
+    // Every capture days before the uploads, a day apart: one run, the night whole.
+    const trip = [5, 4, 3, 2, 1].map((d) => e(`d${d}`, 100 * DAY + d, d * DAY));
+    expect(entriesInOrder(trip).map((x) => x[0])).toEqual([
+      "d1",
+      "d2",
+      "d3",
+      "d4",
+      "d5",
+    ]);
+    // Two runs of equal size (two nights a week apart): neither is the smaller part, so both keep their place.
+    const two = [
+      e("n2b", 30 * DAY, 10 * DAY + 2),
+      e("n2a", 30 * DAY - 1, 10 * DAY + 1),
+      e("n1b", 30 * DAY - 2, 1 * DAY + 2),
+      e("n1a", 30 * DAY - 3, 1 * DAY + 1),
+    ];
+    expect(entriesInOrder(two).map((x) => x[0])).toEqual([
+      "n1a",
+      "n1b",
+      "n2a",
+      "n2b",
+    ]);
+    expect(nightKeys([e("x", 1), e("y", 2)])).toBeNull();
   });
 
   it("a tie goes to the earlier arrival, and one the manifest does not hold yet is the newest of all", () => {
