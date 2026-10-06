@@ -12,7 +12,8 @@
  *  5. Up to 128 MiB: one PUT of the whole object, streamed (nothing buffers; a Worker has 128 MB). Past it: chunks of
  *     128 MiB, each a ranged R2 read, the session reported BEFORE its first byte (write-ahead), so whoever leases the
  *     item next resumes the same session; a slice nearly out, or a stop the app said (her Cancel, a pause), stops at a
- *     chunk boundary and releases the item.
+ *     chunk boundary and releases the item. ★ Every PUT sends a read of its own: a "slow down" waits its step, asks
+ *     the session where it stands and sends from Google's byte on a fresh read (`sendBytes`).
  *  6. Checked as it lands: Drive's size and MD5 against ours (R2's, or one computed natively over a second read where R2
  *     kept none, a multipart clip). A mismatch undoes the file this upload just made (the one deletion this Worker can
  *     make, `CreatedFile` only) and the item goes again.
@@ -23,6 +24,7 @@
  */
 import {
   DriveError,
+  type ChunkResult,
   type CreatedFile,
   type DriveAdapter,
   type DriveFile,
@@ -59,7 +61,10 @@ export type TransferContext = {
   folderId: string;
   drive: DriveAdapter;
   bucket: Bucket;
-  /** The stream a body travels as (a FixedLengthStream in the runtime, so Content-Length is exact; identity in tests). */
+  /**
+   * The stream a body travels as: a FixedLengthStream in the runtime, so Content-Length is exact (it locks the stream
+   * it is given: a stream is sent once); the tests' own counts its bytes the same way (`fixedLengthOf`).
+   */
   fixedLength(stream: ReadableStream, length: number): ReadableStream;
   /** MD5 of a stream, natively (crypto.DigestStream in the runtime). */
   md5Of(stream: ReadableStream): Promise<string>;
@@ -110,61 +115,197 @@ function matches(
   return !md5 || !file.md5 || file.md5 === md5;
 }
 
-/** Retry a Google call through "slow down", then give up as `rate` (the lane's slow-down finding). */
+/**
+ * GOOGLE'S PACE: each "slow down" waits the next step of `RATE_BACKOFF_MS` (with jitter); anything else, or a slow down
+ * past the last step, is thrown back (the item's own reason, or the lane's `throttled`, the item given back with its
+ * attempt not counted: Google's pacing is never the file's failure). One pace a lookup; one for a file's bytes, shared
+ * by its PUTs, the status asks after them and a session started over, so the bytes wait about two minutes in all.
+ */
+type Pace = (error: unknown) => Promise<void>;
+
+function pacer(ctx: TransferContext): Pace {
+  let step = 0;
+  return async (error) => {
+    if (
+      !(error instanceof DriveError) ||
+      error.kind !== "rate" ||
+      step >= RATE_BACKOFF_MS.length
+    )
+      throw error;
+    await ctx.sleep(RATE_BACKOFF_MS[step++]! * (0.75 + ctx.random() / 2));
+  };
+}
+
+/**
+ * A Google call that sends no stream (a lookup, a session's status, a session's start, whose JSON goes whole each time)
+ * through "slow down". ★ Never a PUT of bytes: its body is a stream, sent once (`sendBytes` reads it again instead).
+ */
 async function withRate<T>(
   ctx: TransferContext,
   run: () => Promise<T>,
+  pace: Pace = pacer(ctx),
 ): Promise<T> {
-  for (let attempt = 0; ; attempt++) {
+  for (;;) {
     try {
       return await run();
     } catch (e) {
-      if (
-        !(e instanceof DriveError) ||
-        e.kind !== "rate" ||
-        attempt >= RATE_BACKOFF_MS.length
-      )
-        throw e;
-      await ctx.sleep(RATE_BACKOFF_MS[attempt]! * (0.75 + ctx.random() / 2));
+      await pace(e);
     }
   }
 }
 
-/** Upload chunks from `from` to the end, or stop at a boundary when the slice is nearly out or the app said stop. */
-async function sendChunks(
+/** A new session for this item, or null when Google no longer has the album's folder. */
+async function openSession(
   ctx: TransferContext,
   item: LeaseItem,
-  sessionUri: string,
-  from: number,
-  total: number,
-): Promise<{ file: CreatedFile } | { stoppedAt: number }> {
-  let offset = from;
-  while (offset < total) {
-    if (ctx.now() > ctx.deadlineMs - CHUNK_HEADROOM_MS || ctx.stopping?.())
-      return { stoppedAt: offset };
-    const length = Math.min(ctx.chunkBytes ?? CHUNK_BYTES, total - offset);
-    const body = await ctx.bucket.read(item.key, { offset, length });
-    if (!body) throw new MissingObject();
-    const result = await withRate(ctx, () =>
-      ctx.drive.putChunk(
-        sessionUri,
-        ctx.token,
-        ctx.fixedLength(body, length),
-        offset,
-        length,
-        total,
-      ),
+  size: number,
+  pace?: Pace,
+): Promise<string | null> {
+  try {
+    return await withRate(
+      ctx,
+      () =>
+        ctx.drive.startSession(
+          ctx.token,
+          {
+            name: item.name,
+            parentId: ctx.folderId,
+            mimeType: item.contentType,
+            modifiedTime: item.modifiedTime,
+            description: item.description,
+            mediaId: item.mediaId,
+            jobId: ctx.jobId,
+          },
+          size,
+        ),
+      pace,
     );
+  } catch (e) {
+    // ★ A parent Google no longer has is the album's folder gone (deleted, not merely in the bin).
+    if (e instanceof DriveError && e.kind === "not_found") return null;
+    throw e;
+  }
+}
+
+type BytesEnd =
+  | { file: CreatedFile }
+  | { stoppedAt: number; uri: string }
+  | { folderGone: true };
+
+/**
+ * THE BYTES (5), from `from` to the session's end, ★ EVERY PUT ON A READ OF ITS OWN. A stream is sent once: a PUT
+ * Google refused took its body with it, and handing that stream back (as a retry once did) is a runtime error that
+ * spent one of the file's five attempts on Google's pacing. So a "slow down" waits its step, asks the session where it
+ * stands (Google may have kept part of the body, finished the file, or let the session go: its upload guide resumes
+ * from its byte, or restarts in a new session) and sends from Google's byte on a fresh R2 read. Up to a chunk the file
+ * goes in one PUT, or from Google's byte as one last chunk; a big one goes in chunks, its session written ahead and
+ * reported after each. A big file, and a small one once Google has slowed it, stop at a boundary when the slice is
+ * nearly out or the app said stop (a retried 128 MiB PUT is minutes; the Queue's wall clock and her Cancel come
+ * first). The pace counts slow downs in a row: a PUT that lands starts it again, so a long upload's scattered slow
+ * downs never add up to the lane's.
+ */
+async function sendBytes(
+  ctx: TransferContext,
+  item: LeaseItem,
+  start: { uri: string; from: number },
+  total: number,
+  big: boolean,
+): Promise<BytesEnd> {
+  const chunk = ctx.chunkBytes ?? CHUNK_BYTES;
+  let pace = pacer(ctx);
+  let uri = start.uri;
+  let offset = start.from;
+  let slowed = false;
+  // A file of no bytes is one empty PUT, as any whole file (the loop's own test would never send it).
+  const empty = total === 0;
+  // Written ahead: whoever leases this item next resumes this very session.
+  if (big && offset === 0) await ctx.progress(item, uri, 0);
+  while (offset < total || empty) {
+    if (
+      (big || slowed) &&
+      (ctx.now() > ctx.deadlineMs - CHUNK_HEADROOM_MS || ctx.stopping?.())
+    )
+      return { stoppedAt: offset, uri };
+    const whole = offset === 0 && total <= chunk;
+    const length = whole ? total : Math.min(chunk, total - offset);
+    const body = await ctx.bucket.read(
+      item.key,
+      whole ? undefined : { offset, length },
+    );
+    if (!body) throw new MissingObject();
+    let result: ChunkResult;
+    try {
+      result = whole
+        ? {
+            done: true,
+            file: await ctx.drive.putWhole(
+              uri,
+              ctx.token,
+              ctx.fixedLength(body, length),
+              length,
+            ),
+          }
+        : await ctx.drive.putChunk(
+            uri,
+            ctx.token,
+            ctx.fixedLength(body, length),
+            offset,
+            length,
+            total,
+          );
+    } catch (e) {
+      await pace(e);
+      slowed = true;
+      const state = await withRate(
+        ctx,
+        () => ctx.drive.querySession(uri, ctx.token, total),
+        pace,
+      );
+      if ("gone" in state) {
+        const fresh = await openSession(ctx, item, total, pace);
+        if (!fresh) return { folderGone: true };
+        uri = fresh;
+        offset = 0;
+        if (big) await ctx.progress(item, uri, 0);
+      } else if (state.done) {
+        return { file: state.file };
+      } else {
+        offset = state.next;
+      }
+      continue;
+    }
     if (result.done) return { file: result.file };
+    // A 308 that kept nothing of the chunk would send it again for ever: a fault of Google's, retried by the item.
+    if (result.next <= offset)
+      throw new DriveError(
+        "server",
+        308,
+        null,
+        "upload: no byte of the chunk kept",
+      );
     offset = result.next;
-    await ctx.progress(item, sessionUri, offset);
+    pace = pacer(ctx);
+    if (big) await ctx.progress(item, uri, offset);
   }
   // Every byte went and Google did not close it: ask once where it stands.
-  const state = await ctx.drive.querySession(sessionUri, ctx.token, total);
+  const state = await withRate(
+    ctx,
+    () => ctx.drive.querySession(uri, ctx.token, total),
+    pace,
+  );
   if ("gone" in state)
     throw new DriveError("server", 404, null, "session gone at its end");
   if (state.done) return { file: state.file };
-  return { stoppedAt: state.next };
+  // Every byte held and never closed: resuming would ask the same for ever (each lease uncounted), so the file goes
+  // again in a new session, on a counted attempt.
+  if (state.next >= total)
+    throw new DriveError(
+      "client",
+      308,
+      null,
+      "upload: Google holds every byte and never closed it",
+    );
+  return { stoppedAt: state.next, uri };
 }
 
 class MissingObject extends Error {
@@ -249,52 +390,26 @@ export async function sendOne(
     }
     if (!file) {
       if (!sessionUri) {
-        try {
-          sessionUri = await withRate(ctx, () =>
-            ctx.drive.startSession(
-              ctx.token,
-              {
-                name: item.name,
-                parentId: ctx.folderId,
-                mimeType: item.contentType,
-                modifiedTime: item.modifiedTime,
-                description: item.description,
-                mediaId: item.mediaId,
-                jobId: ctx.jobId,
-              },
-              facts.size,
-            ),
-          );
-        } catch (e) {
-          // ★ A parent Google no longer has is the album's folder gone (deleted, not merely in the bin).
-          if (e instanceof DriveError && e.kind === "not_found")
-            return released(item, "folder_gone");
-          throw e;
-        }
+        sessionUri = await openSession(ctx, item, facts.size);
+        if (!sessionUri) return released(item, "folder_gone");
       }
-      if (facts.size <= (ctx.chunkBytes ?? CHUNK_BYTES) && from === 0) {
-        const body = await ctx.bucket.read(item.key);
-        if (!body) throw new MissingObject();
-        const uri = sessionUri;
-        file = await withRate(ctx, () =>
-          ctx.drive.putWhole(
-            uri,
-            ctx.token,
-            ctx.fixedLength(body, facts.size),
-            facts.size,
-          ),
-        );
-      } else {
-        // Written ahead: whoever leases this item next resumes this very session.
-        if (from === 0) await ctx.progress(item, sessionUri, 0);
-        liveSession = sessionUri;
-        const sent = await sendChunks(ctx, item, sessionUri, from, facts.size);
-        if ("stoppedAt" in sent) {
-          await ctx.progress(item, sessionUri, sent.stoppedAt);
-          return released(item);
-        }
-        file = sent.file;
+      // A big file (or one resumed mid-way) goes in chunks, its session written ahead and kept through a failure; a
+      // small one goes whole, and starts over in a new session if it must.
+      const big = facts.size > (ctx.chunkBytes ?? CHUNK_BYTES) || from > 0;
+      if (big) liveSession = sessionUri;
+      const sent = await sendBytes(
+        ctx,
+        item,
+        { uri: sessionUri, from },
+        facts.size,
+        big,
+      );
+      if ("folderGone" in sent) return released(item, "folder_gone");
+      if ("stoppedAt" in sent) {
+        await ctx.progress(item, sent.uri, sent.stoppedAt);
+        return released(item);
       }
+      file = sent.file;
     }
 
     // 6. Checked as it lands.

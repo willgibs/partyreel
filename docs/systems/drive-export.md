@@ -71,11 +71,14 @@ that very write (`CreatedFolder` and the Worker's `CreatedFile` are branded so n
 - **`invalid_grant`** on a refresh wipes the tokens at once (`revoked`), pauses her sends `disconnected` and mails her
   to reconnect; the same `sub` back resumes them. A time-limited grant reads `failing` a day before its end, with the
   same mail.
-- **The `pr_drive` hint cookie** (set at connect and at a press, cleared at Disconnect, readable by the page, worth
-  nothing) is what lets her pages poll `/api/drive/status`: only a host who uses Drive polls, so a hub never spends
-  Vercel CPU asking for nothing (the strip, the tile's light, What's using space's send line and the app-wide flag listen
-  only with it; Your events' list and the press's step read the status once when they open, hint or no, since the press
-  itself needs it). It is a hint, never a gate.
+- **What her page reads:** `GET /api/drive/status`, one poll a page however many places show a send
+  (`use-drive-status.ts`): every 3 seconds while a send is at work (preparing, sending or checking, and reported within
+  a minute: the lanes report every 10), 15 for a paused send, a stopped send's files once they stop landing, or a send
+  silent for a minute, and never while nothing is unfinished or the tab is hidden. **The `pr_drive` hint cookie** (set
+  at connect and at a press, cleared at Disconnect, readable by the page, worth nothing) is what lets a page poll at
+  all: only a host who uses Drive polls, so a hub never spends Vercel CPU asking for nothing (the strip, the tile's
+  light, What's using space's send line and the app-wide flag listen only with it; Your events' list and the press's
+  step read the status once when they open, hint or no, since the press itself needs it). It is a hint, never a gate.
 - ★ **The return from Google (`?drive=`) is taken on the page's first commit and said a beat later** (`drive-flag.tsx`).
   The app-wide flag says it unless a send waiting in this tab left from this page (`DriveIntent.path`: Take it home and
   Your events say it in place, with the final press; a stale intent for another album swallows nothing). A toast sent
@@ -101,8 +104,14 @@ that very write (`CreatedFolder` and the Worker's `CreatedFile` are branded so n
 - **The press** (`POST /api/drive/exports`, one to 50 albums, limiter `drive_send`, her Drive's room asked first):
   `cloud_export_create` snapshots the album in ONE statement, so nothing is read into Vercel and nothing is cut at
   1,000. One unfinished send an album (a unique index): a second press opens the first. The app then makes the folders
-  (the Partyreel folder asked again each press and made again if she binned it, compare-and-set so two presses leave
-  one; the album's folder kept for its next send) and `cloud_export_ready` starts it.
+  (the Partyreel folder asked again each press; the album's folder kept for its next send) and `cloud_export_ready`
+  starts it. ★ **One Partyreel folder a Google account, however often she reconnects:** the folder the app makes
+  carries our private mark (`appProperties` `pr_root`, which only Partyreel's client reads), and a press whose
+  connection knows no live folder (a Disconnect forgets every id) finds it by that mark (`findRootFolder`: the oldest
+  out of the bin, wherever she moved it; never the folder it has just seen binned or gone, which Google's listing may
+  show a moment longer), never by its name, which a folder of hers may share; one is made, marked, only when none is
+  out of the bin. Compare-and-set either way, so two presses leave one: the loser undoes only a folder it made
+  (`CreatedFolder`), and never the one the winner took (another press may have found it by its mark first).
 - ★ **What a send holds is her Originals zip:** `chosenRows` over what `media_host_all` lets her read (not removed, no
   permanent delete she asked, approved unless she chose Include hidden items). A quiet legal hold is NOT a filter
   (her zip includes it; skipping it would be the one number where a hold shows). Pinned by `drive-snapshot.test.ts`.
@@ -110,7 +119,8 @@ that very write (`CreatedFolder` and the Worker's `CreatedFile` are branded so n
   earlier send on this connection left (`prior_file_id`), which the Worker asks Drive for first and records as kept
   when it is still there, whole and out of the bin; a file she deleted in Drive goes again. A re-leased item (a lane
   that died after Google stored it) is found by our `appProperties` (`pr_media`, `pr_job`, no parent clause: she may
-  move anything) and recorded instead of sent.
+  move anything) and recorded instead of sent. An earlier connection's files are forgotten with it, so after a
+  Disconnect sending again sends the album whole, into a new album folder inside the Partyreel folder found by its mark.
 - **Names: when, then who** (`src/lib/export/drive-names.ts`, the one naming function): the moment it was taken (its
   `captured_at`, which the lease carries: [uploads-and-r2.md](uploads-and-r2.md), the EXIF strip) or, for an upload
   that kept none, the moment it reached the album, in her browser's zone at the press, then the album's credit for its
@@ -131,6 +141,15 @@ that very write (`CreatedFolder` and the Worker's `CreatedFile` are branded so n
   trusts our own count. Each lands checked against R2's MD5 (or one the Worker computes over a second read, for a
   multipart clip); a mismatch undoes the file this upload just made and the file goes again. A failure retries after
   1, 5, 30 and 60 minutes, and fails for good on its fifth attempt (Retry on the album).
+- ★ **Google's slow down is never a file's failure, and every PUT sends a read of its own** (`sendBytes`): a stream
+  goes once, so a PUT Google refused took its body with it (handing it back was a runtime error that spent one of the
+  five attempts). A slow down waits its step (1 to 64 s with jitter, about two minutes of slow downs in a row: a PUT
+  that lands starts the count again), asks the session where it stands and sends from Google's byte on a fresh R2 read;
+  a session Google let go starts over in a new one, written ahead for a big file. Once slowed, a small file too stops
+  at the slice's end or her Cancel (a retried 128 MiB PUT is minutes). Past the two minutes the file goes back with
+  its attempt not counted (`released`, the lane's `throttled`), a big file's session kept. Only a call that sends no
+  stream (a lookup, a status ask, a session's start) is retried as it stands. A session holding every byte that Google
+  never closes goes again in a new one on a counted attempt (resuming it would ask the same, uncounted, for ever).
 - **The closing check** confirms every sent file by its id, a page of 100 at a time: a missing one goes once more;
   duplicates are counted from one listing of the album's folder, signalled (`drive_transfer`), never deleted (a copy
   she made on purpose carries our properties too). Then `done` ("every one checked") or `partly_done`. ★ Only the
@@ -140,8 +159,12 @@ that very write (`CreatedFolder` and the Worker's `CreatedFile` are branded so n
 - **What landed is said as it lands:** files already on their way at her Cancel still land, so a canceled or stopped
   send a lane still holds files of (`landing`: items leased under a live lease, asked by the status route for sends
   stopped inside a lease's 15 minutes) says "so far" and keeps her page polling, and offers Send again once they have
-  landed (sooner would send them twice). Account's "Sent" counts each file once: an album's largest ended send
-  (`sent-totals.ts`), never sends added up (a re-send counts the files it kept).
+  landed (sooner would send them twice). Account's "Sent" counts each file of this connection once: an album's largest
+  ended send (`sent-totals.ts`), never sends added up (a re-send counts the files it kept). A send is this connection's
+  when it was made at or after the connection's own row (`components/app/drive/this-connection.ts`: a same-account
+  reconnect keeps its row, a Disconnect or another account's connect starts a new one); the sends before it are one
+  "Earlier" line, still where they went. The status store drops an earlier connection's sends, so no tile, strip, door
+  or flag speaks of them, and their stops have no words of their own (`moments.ts`).
 - **Stops, each its own act in place** (`moments.ts`, the one table every place reads): Drive full (Check again, Get
   more space; its room is asked again every six hours for a week), lost access (Reconnect), the folder in her bin (Check
   again, Send to a new folder), her admin's policy, files that would not go (Retry, See which). A stop that needs her
@@ -180,6 +203,10 @@ lane waiting out an outage.
 - **A poison lane pauses its connection, never loops:** on its last attempt a lane reports itself dead
   (`/api/internal/drive/lanefail`, naming its Queue message: the last twenty counted ride the connection, so a word
   said again counts nothing); three in a day pause the connection's sends (`failing`) until an operator resumes.
+- **Every Google answer is read or canceled** (a 404's error body, a session start's empty one, an undo's; the app's
+  `google.ts` likewise), pinned by the fake Drive, which watches each answer to its end (`unread()`). Cloudflare counts
+  only connections still awaiting their headers against its six (since 2026-04-09), so a check's eight asks at once
+  queue for a moment and never stall; canceling what is never read is its own advice all the same.
 - **The sweep** (`/api/internal/drive/sweep`, every fifteen minutes): kicks a send that stopped moving, resumes
   Google's day, asks a full Drive's room again, ends what ran too long, trips breakers, folds the done mails, and once
   an hour writes the `drive_export` heartbeat with the queue's depths (`drive_queue`, `drive_dead_letters`). ★ Each

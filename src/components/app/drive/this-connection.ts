@@ -2,7 +2,7 @@
  * WHICH OF HER SENDS BELONG TO THE CONNECTION SHE HAS NOW (crumbs-82; the Drive re-walk's finding). Partyreel knows
  * what is in her Drive only through the connection that put it there: a Disconnect, or another Google account's
  * connect, forgets every Google id the connection's sends held (`cloud_connection_forget`), and a connection after it
- * knows nothing of those files (it makes its own Partyreel folder and sends an album whole). So Your events' list, which
+ * knows nothing of those files (it finds the Partyreel folder by mark, sends albums whole). So Your events' list, which
  * the database answers per connection, showed an earlier connection's albums with no state, while Account's Sent and the
  * dashboard's lights, which read every send she ever made, still said "In your Drive" for them.
  *
