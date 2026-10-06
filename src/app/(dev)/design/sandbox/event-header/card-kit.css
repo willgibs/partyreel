@@ -1,7 +1,6 @@
 /* THE CARDS' SHARED SHEET (`card-kit.tsx`): the row's shapes at every width,
    the band, the pills, and the press and the focus every take wears. Each
-   take dresses these in its own sheet (`cards-keys.css`, `cards-glass.css`,
-   `cards-badges.css`, `cards-lit.css`) under its `[data-look]`.
+   take dresses these under its `[data-look]` (`cards.css`).
 
    ★ EVERY CLASS, KEYFRAME AND REGISTERED PROPERTY CARRIES A PREFIX (`eh-ck-`
    here, the take's own in its sheet): every sheet loads into every frame, and
@@ -14,8 +13,9 @@
    in the cascade and would steal the fold's frames.
 
    ★ SHAPES ARE READ OFF THE ROW'S WIDTH (`eh-row`, the hub's full bleed, so
-   the viewport's): a phone's grid under 640, tiles from 640 to 1088, the
-   desk's cards from 1088, where each card is 200px or more. */
+   the viewport's): a phone's one row under 640, tiles from 640 to 1088, the
+   desk's cards from 1088, where each card is 200px or more. The resting
+   heights (72, 108, 76) are `seam.tsx`'s `SEAM_AT`: the cover rises by them. */
 
 /* ══ THE ROW AND ITS BAND ══════════════════════════════════════════════════ */
 
@@ -120,8 +120,7 @@
 
 /* ══ THE DOORS AT REST ═════════════════════════════════════════════════════ */
 
-/* Five across a desk and a tablet; a phone's two by two with the guest's view
-   the width under it. */
+/* Five across, at every width. */
 .eh-ck-doors {
   position: relative;
   display: grid;
@@ -130,21 +129,17 @@
 }
 @container eh-row (width < 640px) {
   .eh-ck-doors {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-  }
-  .eh-ck-door[data-eh-door="guest"] {
-    grid-column: 1 / -1;
+    gap: 6px;
   }
 }
 
-/* A CARD (a desk): the glyph in its disc, the title over its line, a count at
-   its end. */
+/* A CARD (a desk): the glyph in its disc, its count on it, the title over its
+   line beside it, so the two read in one glance. */
 .eh-ck-door {
   position: relative;
   isolation: isolate;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   column-gap: 14px;
   min-width: 0;
@@ -158,14 +153,14 @@
 }
 
 /* A TILE (a tablet): too narrow for a glyph beside "Highlight reel", so the
-   glyph stands over the words, the count in the tile's top corner. */
+   glyph and its count stand over the words. */
 @container eh-row (640px <= width < 1088px) {
   .eh-ck-band:not([data-stuck]) .eh-ck-door {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto auto;
     grid-template-areas:
-      "glyph count"
-      "text text";
+      "glyph"
+      "text";
     align-content: space-between;
     align-items: start;
     height: 108px;
@@ -177,42 +172,35 @@
   .eh-ck-band:not([data-stuck]) .eh-ck-text {
     grid-area: text;
   }
-  .eh-ck-band:not([data-stuck]) .eh-ck-count {
-    grid-area: count;
-  }
 }
 
-/* A HAND'S CARD (a phone): shorter, its glyph smaller; the guest's view the
-   width in one line. */
+/* A HAND'S ONE ROW (a phone): five tiles, each its glyph, the count on it
+   and its short word under, so the cover keeps its words and the album
+   starts high (round five's `points`, carried). */
 @container eh-row (width < 640px) {
-  .eh-ck-door {
-    height: 58px;
-    padding: 0 11px;
-    column-gap: 9px;
+  .eh-ck-band:not([data-stuck]) .eh-ck-door {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    height: 76px;
+    padding: 0 2px;
+    text-align: center;
   }
-  .eh-ck-band:not([data-stuck]) .eh-ck-door[data-eh-door="guest"] {
-    height: 46px;
+  .eh-ck-band:not([data-stuck]) .eh-ck-text {
+    align-items: center;
+    max-width: 100%;
   }
-  .eh-ck-band:not([data-stuck])
-    .eh-ck-door[data-eh-door="guest"]
-    .eh-ck-text {
-    flex-direction: row;
-    align-items: baseline;
-    gap: 8px;
+  .eh-ck-band:not([data-stuck]) .eh-ck-title {
+    font-family: var(--font-sans), ui-sans-serif, sans-serif;
+    font-size: 11.5px;
+    font-weight: 500;
+    line-height: 14px;
+    letter-spacing: 0;
   }
-  /* ★ A HAND'S GRID FOLDS UP UNDER ITSELF: each row stands on the one below,
-     so as the grid gathers into one line the lower cards tuck under the upper
-     ones rather than crossing their faces mid-flight. */
-  .eh-ck-door[data-eh-door="reel"],
-  .eh-ck-door[data-eh-door="guests"] {
-    z-index: 3;
-  }
-  .eh-ck-door[data-eh-door="review"],
-  .eh-ck-door[data-eh-door="settings"] {
-    z-index: 2;
-  }
-  .eh-ck-door[data-eh-door="guest"] {
-    z-index: 1;
+  .eh-ck-band:not([data-stuck]) .eh-ck-line {
+    display: none;
   }
 }
 
@@ -257,13 +245,13 @@
   }
 }
 @container eh-row (width < 640px) {
-  .eh-ck-glyph {
-    width: 28px;
-    height: 28px;
+  .eh-ck-band:not([data-stuck]) .eh-ck-glyph {
+    width: 36px;
+    height: 36px;
   }
-  .eh-ck-mark > svg {
-    width: 15px;
-    height: 15px;
+  .eh-ck-band:not([data-stuck]) .eh-ck-mark > svg {
+    width: 17px;
+    height: 17px;
   }
 }
 
@@ -305,92 +293,12 @@
   font-weight: 500;
   color: var(--foreground);
 }
-/* A live state: Afterglow's status, the standby point and its word. */
-.eh-ck-line[data-status] {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
 .eh-ck-word {
   display: none;
   font-size: 0.75rem;
   line-height: 1rem;
   font-weight: 500;
   white-space: nowrap;
-}
-
-/* The count: the number alone at the card's end in the camera's readout
-   (Inter's tabular figures, a medium weight), large enough to read across a
-   room; its state is the point beside the line's word. */
-.eh-ck-count {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.eh-ck-num {
-  font-family: var(--font-sans), ui-sans-serif, sans-serif;
-  font-size: 22px;
-  font-weight: 500;
-  line-height: 1;
-  letter-spacing: -0.015em;
-  font-variant-numeric: tabular-nums;
-  color: var(--foreground);
-}
-@container eh-row (width < 1088px) {
-  .eh-ck-num {
-    font-size: 20px;
-  }
-}
-
-/* AFTERGLOW'S STANDBY POINT: hard-edged, half-lit in the ground's ink (its
-   left half solid, a 1.5px ring round the whole), no hue, no glow. Painted as
-   an image, so a reader of contrast walks past it to its ground. */
-.eh-ck-point {
-  display: block;
-  flex-shrink: 0;
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  color: var(--foreground);
-  background-image: linear-gradient(90deg, currentColor 50%, transparent 50%);
-  box-shadow: inset 0 0 0 1.5px currentColor;
-}
-/* The band's point on the glyph's shoulder, where a badge would sit, cut out
-   of the pill by a ring of its face; only stuck (a card says it in its line). */
-.eh-ck-shoulder {
-  display: none;
-  position: absolute;
-  top: -3px;
-  right: -4px;
-  width: 8px;
-  height: 8px;
-  box-shadow:
-    inset 0 0 0 1.5px currentColor,
-    0 0 0 2px var(--eh-pill-face, var(--card));
-}
-[data-stuck] .eh-ck-shoulder {
-  display: block;
-}
-
-/* The camera's readout: what a camera prints (a state, a count, a value). */
-.eh-ck-readout {
-  font-family: var(--font-sans), ui-sans-serif, sans-serif;
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 14px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-/* Steps left and paused say so in the line at rest, and only stuck in the count. */
-.eh-ck-count:is([data-count="left"], [data-count="paused"]) {
-  display: none;
-}
-.eh-ck-count[data-count="paused"] > svg {
-  width: 11px;
-  height: 11px;
-  color: var(--muted-foreground);
 }
 
 /* ══ STUCK: A PILL ═════════════════════════════════════════════════════════ */
@@ -434,22 +342,10 @@
 [data-stuck] .eh-ck-word {
   display: inline;
 }
-[data-stuck] .eh-ck-count {
-  display: flex;
-  gap: 5px;
-}
-[data-stuck] .eh-ck-num {
-  font-size: 13px;
-}
-
-/* Steps left in a pill: a plain number in the quiet ink, never a status. */
-.eh-ck-count[data-count="left"] .eh-ck-num {
-  color: var(--muted-foreground);
-}
 
 /* ★ A PHONE'S PILLS ARE SLOTS THE THUMB CAN HIT: the face, five slots sharing
    the width and the code, each slot 44px tall (the platform's own target),
-   its glyph and its count, no word. */
+   its glyph and the count on it, no word. */
 @container eh-row (width < 640px) {
   [data-stuck] > .eh-ck-bar {
     grid-template-columns: auto minmax(0, 1fr) auto;
@@ -468,9 +364,6 @@
   }
   [data-stuck] .eh-ck-word {
     display: none;
-  }
-  [data-stuck] .eh-ck-count {
-    gap: 4px;
   }
 }
 
@@ -493,7 +386,7 @@
   }
   @container eh-row (width < 640px) {
     .eh-ck-door {
-      --eh-press: 0.97;
+      --eh-press: 0.95;
     }
     [data-stuck] .eh-ck-door {
       --eh-press: 0.93;
