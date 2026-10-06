@@ -397,7 +397,7 @@ describe("the heading", () => {
 /**
  * ★ A REFUSAL THAT CANNOT SUCCEED ON RETRY OFFERS NONE, AND SAYS WHAT SHE CAN DO (red-team 54's LOW: "the failure sheet
  * offers Retry and 'Retry both' on the uploader's own refusals (a wrong type, a file over 10 GB), which carry no code, so
- * pressing Retry sends nothing"). The queue tells those refusals as the codes the ladder knows (`localRefusalCode`), the
+ * pressing Retry sends nothing"). The uploader tags those refusals with the codes the ladder knows (`prepare`), the
  * ladder offers no Retry for them (`retryCanPass`), and where nothing listed can be retried the sheet says the way on:
  * another file, in the door's own words (`uploadStepChooseAgain`).
  */

@@ -373,10 +373,50 @@ export async function driveFileState(
     accessToken,
     `${GOOGLE_URLS.files}/${encodeURIComponent(fileId)}?fields=id,trashed&supportsAllDrives=false`,
   );
-  if (res.status === 404) return null;
+  if (res.status === 404) {
+    // Read or canceled, every answer: one left unread holds its socket until it is collected.
+    await res.body?.cancel();
+    return null;
+  }
   if (!res.ok) throw await failure(res, "files.get");
   const body = (await res.json()) as { id?: string; trashed?: boolean };
   return body.id ? { id: body.id, trashed: body.trashed === true } : null;
+}
+
+/**
+ * ★ OUR MARK ON THE PARTYREEL FOLDER, private to Partyreel (`appProperties`: only the client that set it reads it): how
+ * a later connection to the same Google account finds the folder the app made before (a Disconnect forgets every id,
+ * so a reconnect knows none), and never by its name, which a folder of hers may share.
+ */
+export const ROOT_FOLDER_MARK = { key: "pr_root", value: "1" } as const;
+
+/**
+ * THE PARTYREEL FOLDER THE APP MADE BEFORE, by its mark: out of the bin, wherever she moved it (no parent clause), the
+ * oldest when two presses once made two. `drive.file` lists only what Partyreel made, so nothing of hers can answer.
+ * Null when there is none (her first send, or she binned or deleted it: it is made again).
+ */
+export async function findRootFolder(
+  accessToken: string,
+  fetchImpl: Fetch = fetch,
+): Promise<string | null> {
+  const params = new URLSearchParams({
+    q:
+      `appProperties has { key='${ROOT_FOLDER_MARK.key}' and value='${ROOT_FOLDER_MARK.value}' }` +
+      ` and mimeType = '${FOLDER_MIME}' and trashed = false`,
+    fields: "files(id)",
+    orderBy: "createdTime",
+    pageSize: "1",
+    spaces: "drive",
+  });
+  const res = await driveCall(
+    fetchImpl,
+    accessToken,
+    `${GOOGLE_URLS.files}?${params}`,
+  );
+  if (!res.ok) throw await failure(res, "files.list (the Partyreel folder)");
+  const body = (await res.json()) as { files?: { id?: unknown }[] };
+  const id = body.files?.[0]?.id;
+  return typeof id === "string" && id.length > 0 ? id : null;
 }
 
 /**
@@ -390,10 +430,13 @@ export type CreatedFolder = {
   readonly __created: true;
 };
 
-/** Make a folder (under `parentId`, or in My Drive), our colour on the Partyreel folder. */
+/**
+ * Make a folder: an album's under `parentId`, or (`root`) the Partyreel folder itself in My Drive, in our colour and
+ * carrying our mark, so no Partyreel folder is ever made that a later connection could not find again.
+ */
 export async function createFolder(
   accessToken: string,
-  input: { name: string; parentId?: string | null; colored?: boolean },
+  input: { name: string; parentId?: string | null; root?: boolean },
   fetchImpl: Fetch = fetch,
 ): Promise<CreatedFolder> {
   const res = await driveCall(
@@ -407,7 +450,14 @@ export async function createFolder(
         name: input.name,
         mimeType: FOLDER_MIME,
         ...(input.parentId ? { parents: [input.parentId] } : {}),
-        ...(input.colored ? { folderColorRgb: DRIVE_FOLDER_COLOR } : {}),
+        ...(input.root
+          ? {
+              folderColorRgb: DRIVE_FOLDER_COLOR,
+              appProperties: {
+                [ROOT_FOLDER_MARK.key]: ROOT_FOLDER_MARK.value,
+              },
+            }
+          : {}),
       }),
     },
   );
@@ -432,5 +482,7 @@ export async function undoFolder(
     {
       method: "DELETE",
     },
-  ).catch(() => undefined);
+  )
+    .then((res) => res.body?.cancel())
+    .catch(() => undefined);
 }

@@ -98,6 +98,22 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 5,
+      "opened": "2026-10-06",
+      "answers": [
+        {
+          "ask": "cards",
+          "choice": null,
+          "note": "Is seam implemented here correctly? I see a streak of horizontal brightness behind the cards, only a few pixels tall. While you check, a couple additional notes. First, I think I like the card design where we add the count as a badge on the card icons (option 3), so each card's content can be absorbed in one glance (title & count very close, rather than having to look on the left side for the title and the right side for the count separately). Can max at 99+ so it never overflows into card title. Also, I noticed we removed the color here but kept it on the QR - at least for counts that need attention, I think it's helpful to use some sort of color to draw the eye when needed, else it's really easy for the bland counts to be scrolled past and not handled. With all this said, please run a second round of exploration after ensuring the seam is built correctly.",
+          "by": "Will",
+          "at": "2026-10-06T03:15:54Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }

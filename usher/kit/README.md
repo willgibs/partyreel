@@ -14,6 +14,39 @@ Look up the task in hand; each section stands alone. The scripts run from the re
    ancestor (a fresh lane's tip is one until its first commit). A lane that was mid-work: "Resume a lane".
 4. The build the alias serves against the `launch-prep` tip, and the desk (`/design/lab?key=`) for what waits on Will.
 
+## Working with Will
+
+Will owns the product and its money decisions; the Orchestrator runs the program so he is never the bottleneck, while
+the lines he holds stay his. Nothing here or anywhere lives only in an agent's memory (CLAUDE.md).
+- **Chat, plainly.** He reads chat, never plan files or scratch: a question is asked in chat in plain text with its
+  context and links (never only in a widget or a file), reports are brief, and he is never asked what to do next.
+- **Continuous.** Finish a thing and choose the next; his messages and lane handoffs come first. Wakes are his messages
+  and agent notifications: a timed wake only for external state nothing reports, and the hourly heartbeat only for an
+  unattended night, deleted the moment he is back. Questions are banked, never a stall.
+- **Pace the desk, not the plumbing.** New boards wait for his paste on the standing ones (one desk served at a time,
+  the next pre-integrated behind it), since keeping standing asks true while production moves under them is rework;
+  fixes and plumbing off the boards' surfaces run at full speed. His sitting never blocks the Orchestrator: say so.
+- **The calls lab** (`../partyreel-wt/_scratch/calls/calls-lab.md`): lettered sections, each call in plain words (what
+  and why, then "Push back if"), open questions first, so he answers in batches. A call about how something looks or
+  moves is drawn on a board, never asked in text, and an answer leaves the lab once it is routed.
+- **Standing permissions:** push and branch freely; the data architecture is the Orchestrator's to rebuild and optimize,
+  drops included, timed so partyreel.com's live build never reads a dropped thing; a milestone needs his explicit yes; a
+  one-way door goes to him with the Advisor's view beside the Orchestrator's. A classifier refusal, here or in a lane,
+  stops that step and goes to him with the smallest action it needs, never re-run another way.
+- **Pacing and seats:** weekly usage is no constraint (two Claude accounts: willg97@gmail.com resets Sunday 9am ET,
+  hi@willgibs.com Tuesday 5pm ET; plus cloud credit), so lanes run to the machine's measured memory. Near a week's
+  end he may call a wind-down: no new lane, the running ones finish, and the pickup's handoff block stays current into
+  the auto-kill at 100%, so the next account's Orchestrator, or one he seats in the cloud, picks up cleanly. Cloud
+  lanes come first where they fit (no secrets, no local desk) while cloud credit lasts; from a desktop session the
+  Agent tool's remote flag runs on the Mac, so the routes are a claude.ai routine (a saved item: his yes first) or a
+  cloud-seated Orchestrator.
+- **His browser and accounts:** never click Copy or "Copy so far" in the built-in browser (a stray paste reads as a real
+  answer); his Supabase dashboard is read-only to agents; Moltbook runs only on his word (`usher/moltbook/README.md`).
+- **The tools' reach:** the Cloudflare MCP cannot mint R2 tokens or set bucket CORS, and the Vercel MCP never sets env
+  vars or domains (the REST API with `$VERCEL_TOKEN` does): those are his, or the kit's.
+- **The Orchestrator's own budget:** from about 85% of its context window, keep the pickup current after every step and
+  pull no large outputs. Kids are never a target user (a steer for briefs, never copy or a product rule).
+
 ## Resume a lane
 
 After a restart, a kill, a usage limit or plan mode (which pauses every running lane), message each lane that was
@@ -87,8 +120,9 @@ answer changes a call, the record says so, and a disagreement on a one-way door 
 3. Commit the manifests alone; push; add the lane's In-flight row to `orchestrator.md` (its agent id, model and port).
 4. Spawn with the Agent tool: `spawn-prompt.txt` filled (`{track}`, `{port}`, and `{scratch}` the absolute path of
    `../partyreel-wt/_scratch`, never `$S`: a session's scratchpad dies with it, captures included), one port each from 3131 to
-   3139, at most four lanes at once (`memory_pressure` first; full speed is the default and a 5-hour cut-off is accepted, but
-   near 95% of the weekly window (`get_usage`) keep the pickup's handoff block current for the auto-kill at 100%; more run the machine out of memory), their production builds taking turns through
+   3139, as many lanes as measured memory allows (`memory_pressure` first: six to eight on this 36 GB Mac, at 60% free or
+   more; full speed is the default and a 5-hour cut-off is accepted; near the weekly end keep the pickup's handoff block
+   current for the auto-kill at 100%), their production builds taking turns through
    `scripts/build-lock.sh`. The model is your call on every spawn: Opus for
    big, ambiguous, multi-file work, Sonnet for fast, direct UI work.
 

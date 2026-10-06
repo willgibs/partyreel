@@ -431,19 +431,20 @@ function pausedMoment(
   }
 }
 
+/**
+ * The words of a canceled send, by who stopped it. ★ None for a Disconnect's or another account's connect
+ * (`disconnected`, `account_changed`): each ends its sends and starts a new connection row, and every place reads only
+ * the connection she has now (`this-connection.ts` drops the sends made before it), so no place draws those. A reason
+ * with no words of its own says only that the send stopped, never that she canceled it.
+ */
 const CANCELED_TITLES: Record<string, string> = {
   canceled: "You canceled this send",
   operator: "We stopped this send",
-  disconnected: "This send stopped when Google Drive was disconnected",
-  account_changed:
-    "This send stopped when another Google account was connected",
   album_deleted: "This send stopped when the album was deleted",
 };
 
 function canceledTitle(send: SendView): string {
-  return (
-    CANCELED_TITLES[send.stopReason ?? "canceled"] ?? CANCELED_TITLES.canceled!
-  );
+  return CANCELED_TITLES[send.stopReason ?? "canceled"] ?? "This send stopped";
 }
 
 function canceledMoment(

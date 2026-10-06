@@ -11,6 +11,11 @@
  *
  * Errors are classified once (`classify`): Drive full, Google's day, "slow down", a lost grant, her admin's policy, a
  * folder past its 500,000 children, a parent gone, Google's own trouble, or ours.
+ *
+ * ★ EVERY ANSWER IS READ OR CANCELED: one nobody reads (a 404's error body, a session start's empty one, an undo's) is
+ * held until it is collected, while a check runs eight asks at once. Cloudflare counts only the connections still
+ * awaiting their headers against its six (since 2026-04-09), so an unread body no longer stalls the next ask; its own
+ * advice stands all the same: cancel what you will not read (the Workers limits page).
  */
 
 const FILES = "https://www.googleapis.com/drive/v3/files";
@@ -179,7 +184,10 @@ export function driveAdapter(
       `${FILES}/${encodeURIComponent(fileId)}?fields=id,size,md5Checksum,trashed`,
       token,
     );
-    if (res.status === 404) return null;
+    if (res.status === 404) {
+      await res.body?.cancel();
+      return null;
+    }
     if (!res.ok) throw await errorOf(res, "files.get");
     return fileOf(await res.json());
   }
@@ -234,6 +242,8 @@ export function driveAdapter(
         },
       );
       if (!res.ok) throw await errorOf(res, "files.create (resumable)");
+      // The session is the Location header; the body is empty (Google's own words) and never read.
+      await res.body?.cancel();
       const uri = res.headers.get("location");
       if (!uri)
         throw new DriveError(
@@ -391,6 +401,7 @@ export function driveAdapter(
           token,
           { method: "DELETE" },
         );
+        await res.body?.cancel();
         return res.ok || res.status === 404;
       } catch {
         return false;

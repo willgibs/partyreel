@@ -142,7 +142,10 @@ shapes.
   the HEAD size. A host may set a stricter per-event cap (`events.max_upload_bytes`, 25 MiB to 10 GB, or none) that
   binds guests only, read inside the RPC, never from a parameter. The guest page never learns that number
   (`get_event_by_qr_token` does not return it), so the add sheet's terms line states the universal ceiling. Upload
-  presigns live 2 hours, because a multipart upload presigns every part up front.
+  presigns live 2 hours, because a multipart upload presigns every part up front. ★ The browser refuses a file over the
+  ceiling, and a type nobody takes, itself, before any request, and tags each with the code the server says for it
+  (`too_large`, `unsupported_type`: `uploader.ts`'s `prepare`), so every reader of the outcome (the guest queue, the
+  host's rows, the camera) meets the refusal ladder's "choose another", never a Retry that refuses the same file again.
 - **A host upload is `guest_id is null`:** `create_media_as_host` authorizes by the route's `getUser()` id and event
   ownership, counts against the plan like any upload, lands `approved` (the host is the moderator) and ignores
   `accepting_uploads` (the guests' switch).

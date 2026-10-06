@@ -53,10 +53,12 @@ Lanes merged before milestone 37 left this table: their summaries are their merg
 | `identity-wiring` | Will's three settled identity traits into production: the halo on every focusable atom, the shrink on every action, the bright edge on everything that floats (one home each; forms untouched: identity r5 asks the set; light: brand r2) | MERGED at `a53a411b4` (gate 23 green); design-system.md refined in the lane; for the desk: Tab through Account or Settings on paper at 375, a menu on paper and a dialog in the room; pruned | Opus, 3136 | `af513bd6bed4eeaef` |
 | `crumbs-82` | host-dashboard r4's chooser = words, `/account`'s trail, FollowButton's slug, the Drive re-walk's small findings (the unticked box named, "deletes" gone, Sent's counts per connection, the strip's beat) and /admin's title on a non-admin 404 | MERGED at `99332464e` (gate 25 green); its drive-export.md lines and two stale Drive bits handed to drive-hardening (Drive's doc and code are that lane's); the host-dashboard board can retire (a ROADMAP line); for the desk: the chooser on a day with no party live (the desk's server under `TZ=Europe/London`), Disconnect's confirm and Sent's Earlier line with a connection; pruned | Sonnet, 3139 | `a76ed48484e49ddad` |
 | `event-zone` | Will's ask: one moment for every guest: the party keeps its own zone (`events.time_zone`), the album's turn computed once on the server, the develop's 9 am in it, See it as a guest in the guests' order, a far-from-home choice in Settings | MERGED at `586cae5c9` (gate 28 green); migration `event_zone` APPLIED (20261006022141, md5 ceab6bdb = the file's; the Advisor's Q39: APPLY; advisors 26/4/36); types regenerated at `6b2da6239` (its seams retire in a crumbs lane); for red-team 56: Create's zone, a zoneless save filled, a far-from-home choice naming its place, See it as a guest in order, one instant from two zones; pruned | Opus, 3133 | `a284a0c6386c75127` |
-| `drive-hardening` | Drive's last correctness before it goes live at milestone 38: a throttled PUT retries with a body it can still send (and the Worker's other retries audited), one Partyreel folder per Google account however often she reconnects | RUNNING (cut at `b4e4c064`) | Opus, 3131 | `a90977222aba5ae37` |
-| `crumbs-83` | eight bugs a person can hit: Back under a deep-linked photograph (Will's call, recommended built), a popup whose act navigates, Forward onto a closed popup, Stripe's doors tapped twice and the storage strip's leave, the door's wait chooser on a camera album, the uploader's refusal codes, the Guests card counting only guests' shots; and gate 24's load flake | RUNNING (cut at `b4e4c064`) | Opus, 3132 | `a600e6b129f3e96f6` |
-| `lab-kit-2` | the lab's four notes: a hidden option's loops pause inside frames (a bridge in `Frame`), lab runs refuse a DevTools port that answers, the tools index linked and crawled, a frame takes its pane's theme | RUNNING (cut at `e7ac98fe`) | Sonnet, 3134 | `ac1bd614d4150badf` |
+| `drive-hardening` | Drive's last correctness before it goes live: a throttled PUT resends from a read of its own (the Worker's other retries audited, every Google answer read or canceled), one Partyreel folder per Google account by its private mark | MERGED at `b48676d7f` (gate 29 green on its test rerun: the first run timed out `history-state-policy.test.ts` under load, handed to crumbs-83); no migration; its Worker code deploys at milestone 38; milestone 38's live walk (P3's consent): connect, send, count the Partyreel folders; Disconnect, Connect, send again (a new Partyreel folder means a re-granted drive.file cannot list the old grant's folder: back to the Advisor); `wrangler tail` clean; pruned | Opus, 3131 | `a90977222aba5ae37` |
+| `crumbs-83` | eight bugs a person can hit: Back under a deep-linked photograph (Will's call, recommended built), a popup whose act navigates, Forward onto a closed popup, Stripe's doors tapped twice and the storage strip's leave, the door's wait chooser on a camera album, the uploader's refusal codes, the Guests card counting only guests' shots; and the gate's load flakes | MERGED at `e3124e66d` (gate 31 green); its design-system.md and uploads-and-r2.md lines refined in the lane; pruned | Opus, 3132 | `a600e6b129f3e96f6` |
+| `lab-kit-2` | the lab's four notes: a hidden option's loops pause inside frames (a bridge in `Frame`), lab runs refuse a DevTools port that answers, the tools index linked and crawled, a frame takes its pane's theme | MERGED at `7fbe7dd04` (gate 30 green; PREMISE on identity's two asks re-read: only the lab section moved, they stand); its two system docs refined in the lane; pruned | Sonnet, 3134 | `ac1bd614d4150badf` |
 | `guest-requests` | three requests a guest's page never needed: the demo's links prefetch on intent, the first poll stops re-asking the seed's links, the camera learns a closed album from the sync (migration `20261006030000_sync_accepting.sql`, the Advisor first) | RUNNING (cut at `e7ac98fe`) | Opus, 3136 | `aab13c406e12ae1dd` |
+| `redteam-56` | the walk before milestone 38, local on the desk build (`2c7423ca4`): every merge since milestone 37 (album order and its pill, capture time end to end with its fixtures, event zone's one instant from two zones, the identity traits, the hub's doors, Settings, Back and keys, the dashboard's chooser), regressions | RUNNING (brief `../partyreel-wt/_scratch/redteam-56/brief.md`, ledger beside it) | Opus, Will's Chrome + its own headless | `a0ca0d2feb415d060` |
+| `crumbs-84` | cleanup whose time has come: event-zone's typed seams retired, the host-dashboard board retired (its ledger the Orchestrator's to delete at the record) with `seasonsOf` and kin, the dead `refreshHubReelAction` (a public endpoint) deleted, the Reel card's words in `room-card.ts`, the Library's sticky-band specimen frame | RUNNING (cut at `9a8d9540`) | Sonnet, 3133 | `a066d475f32c874e8` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a22be0c2878d7ab19`, this session, spawned
 for Q31 (billing-locks' migration against the live schema and milestone 36's callers). Its model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`.
@@ -96,20 +98,22 @@ Round 15, on Will's desk answers of 2026-10-04 and his brand note; the approved 
    by hand: typecheck, lint, 12,572 tests, the build). Applied: `billing_integrity` (20261005191959),
    `cloud_export_fixes` (20261005193047), `roll_size_range` (20261005205744); advisors 26/4/36; types current
    (`78d1ffd47`, then drive's seam at the drive-fixes record).
-2. **Drive's road to live:** the desk re-walk PASSED (no HIGH or MEDIUM; the local Worker stopped). Next: red-team 56
-   (local, the desk refreshed to the head) once event-zone lands (album-order, capture-time, identity-wiring, crumbs-82 and credit-watch
-   merged, gates 21 to 26; capture-time's fixture upload check rides it; its brief drafted at
-   `../partyreel-wt/_scratch/redteam-56/brief.md`), so one walk covers milestone 38; then and milestone 38 on Will's yes, where Drive's Worker deploys (never
+2. **Drive's road to live:** the desk re-walk PASSED (no HIGH or MEDIUM; the local Worker stopped). Red-team 56 is
+   RUNNING on the desk build `2c7423ca4` (everything merged since milestone 37, gates 11 to 28; three migrations applied
+   today since 37's: capture_time, credit_watch, event_zone; advisors 26/4/36); its findings to a crumbs lane, then
+   milestone 38 on Will's yes; then and milestone 38 on Will's yes, where Drive's Worker deploys (never
    against milestone 37's build: `npm ci`, `wrangler queues create partyreel-drive-dlq --message-retention-period-secs
    1209600`, `wrangler deploy`, `DRIVE_APP_URL` partyreel.com, the cron every fifteen minutes) and Vercel's non-secret
    `DRIVE_WORKER_URL` (production holds Drive's four secrets but not the URL, so it reads "not set up" until then);
    `partyreel-backup` deploys at 38 too (the reconcile's listing merge, RESTORE_MODE dryrun; then `BACKUP_WORKER_URL`
    on partyreel-admin). The Advisor wants 38 soon: milestone 37's build re-grants a Pro credit past a day (TEST money).
-3. **Desk 5 = identity r5 (merged, gate 24) + event-header r5 + brand r2** (running): integrate each at its handoff, the desk pass,
+3. **Desk 5 ANSWERED** (2026-10-06, transcribed `3983158d8`): identity r5 **set = house, loading = words**; event-header
+   r5 **cards = ?** with Will's note. Brand r2 (desk 5's place) is still drawing: integrate it at its handoff and serve
+   it at the next desk refresh (after red-team 56's walk); the desk pass,
    refresh the desk, tell him. **Desk 6** = the brand applied (after brand r2's pick); **desk 7** = the moments boards
    (host-, guest-, account-moments, create-wizard r4; after identity r5's set pick).
-4. **Lanes running** (seven agents; memory 80% free at five): event-header-r5, brand-r2, event-zone, drive-hardening,
-   crumbs-83, lab-kit-2, guest-requests (their rows above). Queued: red-team 56 (Opus) when event-zone lands. Each lane's migration goes through the Advisor (`a22be0c2878d7ab19`, this session) before the apply.
+4. **Lanes running** (six agents): brand-r2, crumbs-83, lab-kit-2, guest-requests, crumbs-84, red-team 56 (their rows
+   above; drive-hardening merged, gate 29). Queued: none. Each lane's migration goes through the Advisor (`a22be0c2878d7ab19`, this session) before the apply.
 5. **The calls lab:** runs to AX (AF to AX added today; AF4 and AJ3 retired as built); X7 answered and routed
    (capture-time); album-order's calls next (AY), then each merge's.
 6. **Compute:** lever 3 and 3b (the CDN-cached album version) only on Will's X5; the guest page's next CPU levers
@@ -130,6 +134,29 @@ Round 15, on Will's desk answers of 2026-10-04 and his brand note; the approved 
    to create the first; he may seat the Orchestrator in a cloud session once weekly maxes, where cloud subagents may
    work (chosen at a session's start).
 9. **The close of the day:** STATUS (stale since 2026-10-03), this pickup, the calls lab. Moltbook only on his word.
+
+**★ WIND-DOWN (Will, 2026-10-06 ~03:20Z, weekly at 92%): start NO new lane.** Let the running ones finish, integrate
+each handoff, keep this pickup current at every step, and roll into 100% weekly for a clean handoff to a cloud-seated
+Orchestrator. What that Orchestrator starts, in order (each a lane, cloud first where it fits: no secrets, no local desk):
+1. **identity-r5 wiring** (Opus): the **house** set into production's atoms (keys and wells: fields sunk as wells, the
+   lighter chosen on both grounds, keys lying flat as Afterglow's decks draw them; production's corner ladder and boxes,
+   one home each) and **working = words** (the arc, then its word: "Saving…", "Still saving" past four seconds; reduced
+   motion still), on every action that waits; the two identity-r5 ROADMAP lines ride it (the door page's non-atom parts
+   in the set's construction; a working key holding its wider width). The board's look-at-first and frames are its
+   spec (`sandbox/identity/`, `docs/reviews/identity.json`).
+2. **event-header r6** (Opus, a board round): FIRST verify and rebuild the Seam against Afterglow's (brand r1's decks;
+   brand r2's retune once picked): Will sees "a streak of horizontal brightness behind the cards, only a few pixels
+   tall" (the lane's Q9 shrank it to a 2 px lamp and a 12 px fall at quarter strength for a row). Then explore with his
+   notes: each card's count rides its glyph as a badge (`points`' idea) so title and count read in one glance, capped
+   "99+" so it never overflows the title; and colour returns for counts that need attention (he notes the QR's code
+   kept its colour while the doors went achromatic, and bland counts get scrolled past unhandled), within Afterglow's
+   one-light rule. His full note: `docs/reviews/event-header.json`.
+3. **Red-team 56's findings** (a crumbs lane), then **milestone 38** on Will's yes (Next 2's deploy steps; drive-hardening's
+   live walk).
+4. Brand r2's integration and the desk refresh (if it hands off after this session), then desk 6 (the brand applied).
+Local-only, so a cloud session cannot reach them: Will's desk (`localhost:3000`), `../partyreel-wt/_scratch/` (specs,
+captures, the calls lab, red-team ledgers) and this machine's agent memory. Everything a successor needs is in this
+file, STATUS, the runbook and the ROADMAP.
 
 ## Waiting on Will
 

@@ -16,7 +16,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   landedAs,
-  localRefusalCode,
   runLandedOf,
   runProgressOf,
   runSentOf,
@@ -1155,10 +1154,13 @@ describe("★ what waits goes as one burst (compute-uploads)", () => {
 });
 
 /**
- * ★ A REFUSAL OF THE FILE ITSELF, MADE ON THE PHONE, IS TOLD AS THE CODE THE LADDER KNOWS (red-team 54's LOW): the
- * uploader refuses a wrong type and a file over the ceiling before any request, so it has no `code`, and the failure
- * sheet offered a Retry whose press sent nothing (the same check refused the same file at once). The queue asks the file
- * again with the uploader's own validators, so no surface offers a Retry that cannot pass.
+ * ★ A REFUSAL OF THE FILE ITSELF CARRIES THE CODE ITS SOURCE GAVE IT (red-team 54's LOW; RESHAPED ON PURPOSE in crumbs-83).
+ * The uploader refuses a wrong type and a file over the ceiling before any request, and with no `code` the failure sheet
+ * offered a Retry whose press sent nothing (the same check refused the same file at once). The scar kept: such a file
+ * reaches every surface with the code the refusal ladder reads as "choose another", so none offers it a Retry. The expired
+ * reason dropped: that the queue asked the file again with the uploader's validators (`localRefusalCode`) because the
+ * uploader said no code; the uploader tags them where it decides them now (`uploader.burst.test.ts` pins that), and the
+ * queue carries whatever code it is told and makes none up.
  */
 describe("a refusal of the file itself that the uploader made locally", () => {
   const file = (name: string, type: string, size?: number) => {
@@ -1167,18 +1169,41 @@ describe("a refusal of the file itself that the uploader made locally", () => {
     return f;
   };
 
-  it("localRefusalCode reads the file the way the uploader does: a type nobody takes, a file over the ceiling, else nothing", () => {
-    expect(localRefusalCode(file("notes.txt", "text/plain"))).toBe(
-      "unsupported_type",
+  it("★ keeps the code the uploader tagged it with, so no surface offers it a Retry", async () => {
+    mockUploadFile.mockImplementation(async ({ file: f }: { file: File }) =>
+      f.type === "text/plain"
+        ? {
+            ok: false,
+            code: "unsupported_type",
+            message: "That file type isn't supported.",
+          }
+        : {
+            ok: false,
+            code: "too_large",
+            message: "This file is larger than the 10 GB maximum.",
+          },
     );
-    expect(localRefusalCode(file("noname", ""))).toBe("unsupported_type");
-    expect(
-      localRefusalCode(file("big.mov", "video/quicktime", 11 * 1024 ** 3)),
-    ).toBe("too_large");
-    expect(localRefusalCode(file("a.jpg", "image/jpeg"))).toBeUndefined();
+    const q = mountQueue({ sessionToken: "ticket-1", isVerified: false });
+    act(() =>
+      q.result.current.addFiles([
+        file("notes.txt", "text/plain"),
+        file("big.mov", "video/quicktime", 11 * 1024 ** 3),
+      ]),
+    );
+    await waitFor(() =>
+      expect(q.items().every((it) => it.status === "error")).toBe(true),
+    );
+    expect(q.items().map((it) => it.errorCode)).toEqual([
+      "unsupported_type",
+      "too_large",
+    ]);
+    expect(q.items().map((it) => it.error)).toEqual([
+      "That file type isn't supported.",
+      "This file is larger than the 10 GB maximum.",
+    ]);
   });
 
-  it("★ is given its code, so no surface offers it a Retry; a file that passes keeps its code-less failure", async () => {
+  it("★ makes no code up: a code-less failure stays one worth another go, whatever the file it was", async () => {
     mockUploadFile.mockResolvedValue({
       ok: false,
       message: "That upload didn't go through. Please try again.",
@@ -1194,10 +1219,10 @@ describe("a refusal of the file itself that the uploader made locally", () => {
     await waitFor(() =>
       expect(q.items().every((it) => it.status === "error")).toBe(true),
     );
-    // The sentences are the uploader's, untouched; only what a surface may do about them has a code now.
+    // The old queue asked the file itself again here and named the first two `unsupported_type` and `too_large`.
     expect(q.items().map((it) => it.errorCode)).toEqual([
-      "unsupported_type",
-      "too_large",
+      undefined,
+      undefined,
       undefined,
     ]);
   });

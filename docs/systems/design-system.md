@@ -500,7 +500,11 @@ Transition is its one sanctioned hole ([host-app.md](host-app.md)).
   order, one landing at a time, a person's Back pops only the top one, and a push waits for a Back of ours still on
   its way; a reload's dead entry (a marker this page life never wrote) is stepped over as the first popup hook or the
   album mounts. A link inside a place replaces the place's entry as it navigates, so Back from the next page lands on
-  the page beneath, never on a same-URL entry with nothing open.
+  the page beneath, never on a same-URL entry with nothing open; and an entry whose popup has gone another way is
+  stepped over when a press lands on it, the way the press was going: one a person's Back (or ours) left above the
+  window only a Forward reaches, and it is undone, the popup beneath untouched; one left under a page the popup's act
+  went on to (`router.push`, a server action's redirect) is gone over Back to the page beneath, or Forward again. The
+  way out for Stripe's page goes Back over the places' entries without closing them (`ui/popup-back-way-out.ts`).
 - **Focus** lands on the popup itself in a hand, never its first field (which would raise the keyboard into a surface
   still arriving), and where the row's `deskFocus` says at a desk; a popup with no trigger of its own gives focus back
   to the control that opened it, inside the layer still open behind it when it was stacked over one, and a menu or a
@@ -637,6 +641,14 @@ board, its own sheet and scenes), found by the registry and the board route and 
   in production, radix's focus trap, and history (a place popup drawn open at a hand's width costs the tab's Back one
   press); and a frame's elements wear the frame's own prototypes, so production's `instanceof HTMLElement` answers false
   there.
+- **A frame takes its pane's theme and its option's pause** (`frame-theme.ts`, `frame-pause.ts`). A portalled scene
+  wears the class of the nearest `.dark` or `.surface-paper` above its frame (the page's with none) and follows it while
+  open, so the Specimen's light and dark split draws it once in each; a routed frame keeps its site's own provider's
+  theme. A frame in a hidden option holds still: the step's `data-paused` on a view cannot reach a document of its own,
+  so `Frame` mirrors it into the one it holds, routed or portalled and on every new document. The root wears
+  `data-lab-paused`, one adopted rule freezes every CSS animation under it, and its video and audio stop (one that starts
+  while hidden is stopped as it starts) and start again only if the frame stopped them. A loop in script is the frame's
+  own and reads that mark; a board needs no bridge of its own.
 - **The Library draws what answers to the screen in a frame pair** (`library/device-frames.tsx`: a laptop's 1440 zoomed
   to the column and a phone's 375 beside it, each a portalled `Frame`), and four things follow that no frame tells you.
   ★ `lab:smoke` reads server HTML and a frame mounts on the client when the reader nears it, so a scene in a frame is
@@ -648,8 +660,7 @@ board, its own sheet and scenes), found by the registry and the board route and 
   `data-keyboard`) and holds them against the hook's own clearing. ★ Next's dev check for a `fill` image told
   `sizes="100vw"` compares its width with the LAB's window, so a full-bleed plate (`PhotoSection`) is drawn in a frame as
   wide as the window (a phone-wide frame in a laptop's window warns; so does a plate in the Library's column), and an
-  image in a frame is never the lab's largest paint (no LCP warning). A frame wears the lab's own theme class, so the
-  Specimen's light and dark split draws its scene twice in one theme; and two popovers drawn open in one jsdom document
+  image in a frame is never the lab's largest paint (no LCP warning). Two popovers drawn open in one jsdom document
   leave neither standing, so a test draws one screen at a time.
 
 ## Gotchas / don't-revert

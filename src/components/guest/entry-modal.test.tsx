@@ -1323,6 +1323,35 @@ describe("a camera album's door", () => {
     ).toBeInTheDocument();
   });
 
+  /* ★ THE HELD DOOR'S WAIT TAKES ITS SHOTS WITH THE ALBUM'S CAMERA TOO (crumbs-83; ROADMAP: "the held door's wait chooser
+     still offers the photo library on a camera album, so a library photo can wait for the roll"). The old wait drew its
+     picker ("Choose what you'll add") on every album. Its shots go to the page's one queue, which holds them for the door. */
+  it("★ the held door's wait offers the album's camera and no library, and its shot waits in the page's queue", async () => {
+    seeWelcome();
+    const onHold = vi.fn();
+    const onSend = vi.fn();
+    const { baseElement } = renderModal({
+      access: "none",
+      gate: "waiting",
+      camera: CAMERA,
+      onHold,
+      onSend,
+    });
+    expect(screen.getByText("Waiting at the door")).toBeInTheDocument();
+    expect(baseElement.querySelector('input[type="file"]')).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Choose what you’ll add" }),
+    ).toBeNull();
+    await takeAPhoto();
+    await waitFor(() =>
+      expect(screen.getByTestId("album-camera")).toBeInTheDocument(),
+    );
+    fireEvent.click(await screen.findByText("Shoot"));
+    expect(onSend).toHaveBeenCalledTimes(1);
+    // A shot joins the queue beside the others; a choice (her Change) would replace them.
+    expect(onHold).not.toHaveBeenCalled();
+  });
+
   it("★ the failure view takes another photograph, never 'chooses' one, and clears what failed", () => {
     const onDismiss = vi.fn();
     atTheStep({

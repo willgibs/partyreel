@@ -1101,7 +1101,9 @@ export const EntryModal = forwardRef<
     .join(",");
   // eslint-disable-next-line react-hooks/exhaustive-deps -- `cameraQueueKey` stands for everything of `queue` it reads
   const cameraQueue = useMemo(() => queue, [cameraQueueKey]);
-  const cameraStepShowing = doorHasCamera && current === "upload" && !holding;
+  // The held door's wait takes its shots with this camera too (crumbs-83), so its code is fetched as that face shows.
+  const cameraStepShowing =
+    doorHasCamera && ((current === "upload" && !holding) || face === "waiting");
   useEffect(() => {
     if (cameraStepShowing) void loadCamera();
   }, [cameraStepShowing]);
@@ -1133,6 +1135,8 @@ export const EntryModal = forwardRef<
 
   // What she chose while she waited: the page's queue, held (and going in once she is let in).
   const heldPicks: WaitPick[] = queue.filter((it) => it.status !== "error");
+  // ★ A camera album's wait takes its shots with the door's own camera, never the library (crumbs-83, `wait-picks.tsx`).
+  const heldCamera = doorHasCamera ? { onOpen: openCamera } : null;
 
   /** The words on the stage, per face (a closed stage keeps its last ones, inert, while it leaves). */
   function stageWords(shown: StageFace): React.ReactNode {
@@ -1207,12 +1211,14 @@ export const EntryModal = forwardRef<
             picks={heldPicks}
             onPick={onHold}
             acceptsVideo={acceptsVideo}
+            camera={heldCamera}
           />
         ) : (
           <WaitingDoor
             hostName={hostName}
             picks={heldPicks}
             acceptsVideo={acceptsVideo}
+            camera={heldCamera}
           />
         );
       case "beat":

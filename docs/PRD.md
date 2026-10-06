@@ -115,3 +115,26 @@ boundary; guests act through capability-token security-definer RPCs. Media is ne
 server is the source of truth for entitlements; the Stripe webhook sets the tier. Media-first, understated UI: neutral
 chrome in light and dark with no accent, so the photographs carry the colour (the action hues aside); the design law
 is the Library's bible. Native mobile apps are a non-goal: guests use the mobile web, which is the whole point.
+
+**Will's product principles**, each a reason and never a law:
+- **Cost is designed like the architecture.** We scale by events, not users (one wedding is a hundred guests at once),
+  so before choosing a path verify where the bytes and requests really bill (Vercel, R2's operations, Supabase,
+  Workers) at the vendors' current prices, and name each option's cost. The win-win, a change that improves the
+  experience and cuts the cost, is prized; a limit that bounds cost is designed as a feature; every free tier is watched
+  before it is hit, the foundation fixed rather than an upgrade bought; no paying host costs more than she pays.
+- **Adapt to every host's workflow, never enforce one:** deep control that stays simple, met where she acts, with an
+  opinionated default a newcomer never has to touch (Linear is the reference).
+- **Permission at the moment of need:** sign-up asks only what sign-in needs; Drive, a device or any later grant is
+  asked at its first use, after our own words say why.
+- **One moment for every guest:** anything an album does at a time (its turn, a develop, a reveal) happens at one
+  instant, the party's; a reader's zone only formats it.
+- **Privacy first on leaving:** a deletion takes what anyone can see at once and the purge follows that night; the short
+  recovery window stays a private failsafe, never advertised; an account held for a report stays blocked; no refund on
+  a cancel.
+- **Images carry no rights machinery:** no credit, source, licence or release questions and no AI label; the one
+  disclosure is a sentence in the Terms.
+- **Help tracks shipped reality; marketing presents the product as complete** (punchy, never pedantic:
+  `systems/marketing-content.md`); the Terms and the Privacy Policy are rewritten once, right before launch, and no
+  milestone waits on them.
+- **A one-way door waits for him:** what defines the product's core output or identity is asked first (build now, or
+  research first); well-bounded infrastructure and features are built without asking.

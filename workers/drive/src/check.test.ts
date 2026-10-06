@@ -1,14 +1,41 @@
 /**
  * THE CLOSING CHECK'S PAGE, AGAINST A FAKE DRIVE: confirmed, missing, binned, not what we sent, a doubt left a doubt,
- * the album's folder in her bin, and duplicates counted (never binned).
+ * the album's folder in her bin, and duplicates counted (never binned). ★ And no answer left open: a page asks eight at
+ * once, and a missing file's 404 is canceled rather than held until it is collected.
  */
 import { describe, expect, it } from "vitest";
 
-import { checkPage } from "./check";
+import { CHECK_CONCURRENCY, checkPage } from "./check";
 import { driveAdapter } from "./google-drive";
 import { FakeDrive } from "./testing/fake-drive";
 
 describe("a closing check's page", () => {
+  it("★ reads or cancels every answer it asks for, a page of missing files' 404s included", async () => {
+    const drive = new FakeDrive();
+    drive.add({ id: "album", size: 0 });
+    const there = drive.add({ size: 7 });
+    const items = Array.from({ length: CHECK_CONCURRENCY * 2 }, (_, i) => ({
+      mediaId: `m${i}`,
+      fileId: i === 0 ? there.id : `deleted-${i}`,
+      bytes: 7,
+      md5: null,
+    }));
+    const out = await checkPage({
+      drive: driveAdapter(drive.fetch),
+      token: "t",
+      folderId: "album",
+      first: true,
+      items,
+    });
+    expect(out.results.filter((r) => r.state === "missing")).toHaveLength(
+      items.length - 1,
+    );
+    expect(drive.answers.filter((a) => a.what.endsWith(" 404")).length).toBe(
+      items.length - 1,
+    );
+    expect(drive.unread()).toEqual([]);
+  });
+
   it("confirms each file by its id, wherever she moved it, and names what is not as it should be", async () => {
     const drive = new FakeDrive();
     const folder = drive.add({ id: "album", size: 0 });

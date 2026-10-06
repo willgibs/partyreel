@@ -63,6 +63,7 @@ export function WaitingStep({
   picks,
   onPick,
   acceptsVideo,
+  camera,
 }: {
   qrToken: string;
   /** This device's ticket for the event, which the check-in carries beside the account. */
@@ -76,6 +77,8 @@ export function WaitingStep({
   picks?: readonly WaitPick[];
   onPick?: (files: File[]) => void;
   acceptsVideo?: boolean;
+  /** A camera album: what waits is taken with its camera (`WaitPicks`). */
+  camera?: { onOpen: () => void } | null;
 }) {
   const [switching, setSwitching] = useState(false);
   // Whether her choice is kept on the device (null until she has chosen, or it came back from there).
@@ -180,6 +183,7 @@ export function WaitingStep({
       onPick={choose}
       kept={kept}
       acceptsVideo={acceptsVideo}
+      camera={camera}
     />
   );
 }
@@ -199,6 +203,7 @@ export function WaitingDoor({
   onPick,
   kept = null,
   acceptsVideo = true,
+  camera = null,
 }: {
   hostName?: string | null;
   switching?: boolean;
@@ -208,6 +213,8 @@ export function WaitingDoor({
   /** Her choice is kept on the device (it outlives the tab), or could not be (it lives in the tab). */
   kept?: boolean | null;
   acceptsVideo?: boolean;
+  /** A camera album: what waits is taken with its camera (`WaitPicks`). */
+  camera?: { onOpen: () => void } | null;
 }) {
   const copy = waitingCopy(hostName);
   return (
@@ -251,6 +258,7 @@ export function WaitingDoor({
           onPick={onPick}
           kept={kept}
           acceptsVideo={acceptsVideo}
+          camera={camera}
         />
       </div>
       <Button

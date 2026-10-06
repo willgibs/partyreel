@@ -15,6 +15,8 @@ import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 
 import { useMountOnApproach } from "./approach";
+import { mirrorPause } from "./frame-pause";
+import { frameClass, subscribeFrameClass } from "./frame-theme";
 import { FrameWindow, SCENE_ATTR } from "./frame-window";
 import { useDesignKey } from "./walk";
 
@@ -32,7 +34,7 @@ import { useDesignKey } from "./walk";
  * entirely. A frame lies about neither. That is what makes it evidence rather
  * than a picture of evidence.
  *
- * Seven things follow, and each one was a bug before it was a rule:
+ * Nine things follow, and each one was a bug before it was a rule:
  *
  * 1. ★ THE CANDIDATE GOES IN AN ADOPTED STYLESHEET, CONSTRUCTED IN THE FRAME'S
  *    OWN REALM. A candidate paste usually rewrites UTILITIES (`@theme inline`
@@ -77,6 +79,15 @@ import { useDesignKey } from "./walk";
  *    and their focus guards stay in the frame, and it carries its own glow
  *    filter host. It mounts once the frame's copied sheets have loaded, so a
  *    layer drawn open measures a styled page (the copy effect).
+ * 8. ★ A PORTALLED SCENE WEARS ITS PANE'S THEME, NOT ONLY THE PAGE'S
+ *    (`frame-theme.ts`): the nearest `.dark` or `.surface-paper` above the
+ *    frame, so the Specimen's light and dark split draws its scene once in
+ *    each. With no pane above it, the page's own class, as ever.
+ * 9. ★ A FRAME IN A HIDDEN OPTION HOLDS STILL (`frame-pause.ts`): the step's
+ *    `data-paused` on a view cannot reach into a document of its own, so the
+ *    frame mirrors it in, for a routed frame and a portalled one alike: its
+ *    CSS loops freeze and its video stops, and start again when the option is
+ *    shown.
  *
  * An outline rather than a border, because a bordered box is border-box here: a
  * 1px frame each side hands the iframe a 1438px viewport while the caption says
@@ -298,13 +309,16 @@ export function Frame({
   const register = lock === undefined ? rowLock : lock;
   const key = useDesignKey();
   const [box, near] = useMountOnApproach();
-  // The parent's theme classes, so a portalled scene lands on the same ground,
-  // and follows it while the frame is open (`subscribeTheme`).
-  const themeClass = useSyncExternalStore(
-    subscribeTheme,
-    () => document.documentElement.className,
-    () => "",
+  // The lab's classes as they reach this frame (`frame-theme.ts`): the page's,
+  // with its theme swapped for the nearest pane's where there is one, so a
+  // portalled scene lands on the ground it stands on, and follows it (the
+  // lab's toggle, a stage changing its ground) while the frame is open.
+  const subscribeClass = useCallback(
+    (notify: () => void) => subscribeFrameClass(box.current, notify),
+    [box],
   );
+  const readClass = useCallback(() => frameClass(box.current), [box]);
+  const themeClass = useSyncExternalStore(subscribeClass, readClass, () => "");
 
   // A gated frame waits for the key; an ungated one never waits. `key` is null
   // on the server AND in open dev, so the readiness test is "the browser has
@@ -410,6 +424,17 @@ export function Frame({
       // Cross-origin or mid-teardown; the next load carries it.
     }
   }, [push, loads, ready]);
+
+  // Landmine 9: a hidden option's frame holds still. The step marks the view
+  // `data-paused`, which only reaches what is in the lab's own document, so
+  // the frame mirrors it into the one it holds (`frame-pause.ts`). It runs
+  // again on every load, which is every new document the frame holds.
+  useEffect(() => {
+    const view = box.current?.closest("[data-lab-view]");
+    const frame = ref.current;
+    if (!ready || !view || !frame) return;
+    return mirrorPause(view, frame);
+  }, [box, ready, loads]);
 
   // A portalled scene has no route, so it needs the parent's stylesheets copied
   // into about:blank or it renders unstyled. Copied once per load, and only what
@@ -517,9 +542,11 @@ export function Frame({
   // ★ AND IT FOLLOWS THE LAB'S TOGGLE (lab-sitting, 2026-10-01, from
   // `claims-r3`'s line): it was copied once per load, so the lab's theme
   // toggle left every open frame in the old theme until a reload. It is
-  // written whenever the parent's class changes, on the frame's <html> and on
-  // the scene's own ground below, before the frame paints (a layer portalled
-  // to the frame's body reads the faces and the theme from its <html>).
+  // written whenever the class changes (`frame-theme.ts`: the page's, with its
+  // theme the pane's where the frame stands in one), on the frame's <html> and
+  // on the scene's own ground below, before the frame paints (a layer
+  // portalled to the frame's body reads the faces and the theme from its
+  // <html>).
   useLayoutEffect(() => {
     if (!doc) return;
     try {
@@ -621,19 +648,6 @@ export function Frame({
 function swallowLink(event: React.MouseEvent) {
   const target = event.target as Element | null;
   if (target?.closest?.("a[href]")) event.preventDefault();
-}
-
-/**
- * The parent's theme, as a store: the lab's toggle writes the class on its
- * <html>, and every open frame hears it.
- */
-function subscribeTheme(notify: () => void): () => void {
-  const observer = new MutationObserver(notify);
-  observer.observe(document.documentElement, {
-    attributes: true,
-    attributeFilter: ["class"],
-  });
-  return () => observer.disconnect();
 }
 
 /* ── A row of frames ───────────────────────────────────────────────────── */

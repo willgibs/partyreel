@@ -1,15 +1,24 @@
 /**
  * ONE ORIGINAL INTO HER DRIVE, AGAINST A FAKE DRIVE AND A FAKE BUCKET: every end section 5 names that a single file can
  * meet, and the two promises that matter most: never a duplicate, and nothing of hers ever deleted (the only deletion
- * is undoing a file this very upload just made).
+ * is undoing a file this very upload just made). ★ And Google's "slow down" on an upload's own bytes (drive-hardening):
+ * the fakes are as strict as the wire (a body is spent by the PUT it rode, every answer must be read or canceled), so
+ * a retry that handed back the stream it spent fails here as the runtime failed it.
  */
+import { createHash } from "node:crypto";
+
 import { describe, expect, it } from "vitest";
 
 import { driveAdapter } from "./google-drive";
 import type { LeaseItem } from "./protocol";
-import { FakeBucket, bytesOf, md5OfStream } from "./testing/fake-bucket";
+import {
+  FakeBucket,
+  bytesOf,
+  fixedLengthOf,
+  md5OfStream,
+} from "./testing/fake-bucket";
 import { FakeDrive } from "./testing/fake-drive";
-import { sendOne, type TransferContext } from "./transfer";
+import { CHUNK_HEADROOM_MS, sendOne, type TransferContext } from "./transfer";
 
 const MEDIA = "66666666-7777-4888-9999-aaaaaaaaaaaa";
 const JOB = "11111111-2222-4333-8444-555555555555";
@@ -36,7 +45,7 @@ function setup(
     folderId: "album-folder",
     drive: driveAdapter(drive.fetch, () => clock),
     bucket,
-    fixedLength: (s) => s,
+    fixedLength: fixedLengthOf,
     md5Of: md5OfStream,
     progress: async (_item, uri, offset) => {
       progress.push({ uri, offset });
@@ -309,5 +318,204 @@ describe("one original into her Drive", () => {
       outcome: "skipped",
       reason: "missing_object",
     });
+  });
+
+  it("★ reads or cancels every answer Google gives: a deleted file's 404, a session's start, a refused undo", async () => {
+    const { drive, ctx, item } = setup();
+    drive.failures.corruptMd5 = "f".repeat(32);
+    drive.failures.refuseDelete = true;
+    const result = await sendOne(ctx, {
+      ...item,
+      priorFileId: "a-file-she-deleted",
+    });
+    expect(result.item).toMatchObject({ outcome: "failed", retry: true });
+    expect(drive.answers.map((a) => a.what)).toEqual([
+      "GET /drive/v3/files/a-file-she-deleted 404",
+      "POST /upload/drive/v3/files 200",
+      "PUT /upload/drive/v3/files 200",
+      expect.stringMatching(/^DELETE \/drive\/v3\/files\/file-\d+ 403$/),
+    ]);
+    expect(drive.unread()).toEqual([]);
+  });
+});
+
+/** The original's own MD5: her Drive holds exactly its bytes, so every range was read where it should have been. */
+const md5Of = (bytes: Uint8Array) =>
+  createHash("md5").update(bytes).digest("hex");
+
+describe("★ Google's 'slow down' on an upload's bytes: every PUT a read of its own", () => {
+  it("sends a small file again on a fresh read after Google slowed its PUT, never the stream that PUT spent", async () => {
+    const { drive, ctx, item, bytes, bucket, slept } = setup();
+    drive.failures.throttlePuts = 2;
+    const result = await sendOne(ctx, item);
+    expect(result.item.outcome).toBe("sent");
+    const file = drive.files.get((result.item as { fileId: string }).fileId)!;
+    expect(file.md5).toBe(md5Of(bytes));
+    expect(drive.files.size).toBe(1);
+    // Three PUTs of the whole object, each its own read, with the session asked where it stands after each refusal.
+    expect(bucket.readLog).toEqual([null, null, null]);
+    expect(slept).toHaveLength(2);
+    expect(
+      drive.calls.filter((c) => c.method === "PUT").map((c) => c.method),
+    ).toHaveLength(5);
+    expect(drive.unread()).toEqual([]);
+  });
+
+  it("asks the session where it stands after a slow down mid-file, and sends from Google's byte on a fresh read", async () => {
+    const { drive, ctx, item, bytes, bucket, progress } = setup({
+      size: 10_000,
+      chunkBytes: 4096,
+    });
+    // The second chunk is refused after Google kept 1,000 of its bytes: the next PUT starts at byte 5,096.
+    const inner = ctx.progress;
+    ctx.progress = async (it, uri, offset) => {
+      await inner(it, uri, offset);
+      if (offset === 4096) {
+        drive.failures.throttlePuts = 1;
+        drive.failures.throttleKeeps = 1000;
+      }
+    };
+    const result = await sendOne(ctx, item);
+    expect(result.item.outcome).toBe("sent");
+    const file = drive.files.get((result.item as { fileId: string }).fileId)!;
+    expect(file.size).toBe(10_000);
+    expect(file.md5).toBe(md5Of(bytes));
+    expect(bucket.readLog).toEqual([
+      { offset: 0, length: 4096 },
+      { offset: 4096, length: 4096 },
+      { offset: 5096, length: 4096 },
+      { offset: 9192, length: 808 },
+    ]);
+    expect(progress.map((p) => p.offset)).toEqual([0, 4096, 9192]);
+  });
+
+  it("starts over in a new session when Google let the slowed one go, written ahead before its first byte", async () => {
+    const { drive, ctx, item, bytes, progress } = setup({
+      size: 10_000,
+      chunkBytes: 4096,
+    });
+    let armed = false;
+    const inner = ctx.progress;
+    ctx.progress = async (it, uri, offset) => {
+      await inner(it, uri, offset);
+      if (offset === 4096 && !armed) {
+        armed = true;
+        drive.failures.throttlePuts = 1;
+        drive.failures.throttleEndsSession = true;
+      }
+    };
+    const result = await sendOne(ctx, item);
+    expect(result.item.outcome).toBe("sent");
+    expect(drive.files.size).toBe(1);
+    const file = drive.files.get((result.item as { fileId: string }).fileId)!;
+    expect(file.md5).toBe(md5Of(bytes));
+    const first = progress[0]!.uri;
+    expect(
+      progress.map((p) => [p.uri === first ? "old" : "new", p.offset]),
+    ).toEqual([
+      ["old", 0],
+      ["old", 4096],
+      ["new", 0],
+      ["new", 4096],
+      ["new", 8192],
+    ]);
+  });
+
+  it("★ gives the file back when the slow down will not let up, never failing it (its attempt not counted)", async () => {
+    const small = setup();
+    small.drive.failures.throttlePuts = 100;
+    expect(await sendOne(small.ctx, small.item)).toEqual({
+      item: { mediaId: MEDIA, outcome: "released" },
+      finding: "throttled",
+    });
+    expect(small.slept).toHaveLength(7);
+
+    // A big file keeps the session written ahead, so the lease after the slow down resumes it rather than starts over.
+    const big = setup({ size: 10_000, chunkBytes: 4096 });
+    const inner = big.ctx.progress;
+    big.ctx.progress = async (it, uri, offset) => {
+      await inner(it, uri, offset);
+      if (offset === 4096) big.drive.failures.throttlePuts = 100;
+    };
+    expect(await sendOne(big.ctx, big.item)).toEqual({
+      item: { mediaId: MEDIA, outcome: "released" },
+      finding: "throttled",
+    });
+    const kept = big.progress.at(-1)!;
+    expect(kept.offset).toBe(4096);
+    big.drive.failures.throttlePuts = 0;
+    const resumed = await sendOne(big.ctx, {
+      ...big.item,
+      session: { uri: kept.uri, offset: kept.offset },
+    });
+    expect(resumed.item.outcome).toBe("sent");
+    expect(big.drive.files.size).toBe(1);
+  });
+
+  it("lets a long upload's scattered slow downs pass: the pace counts them in a row, and a chunk that lands starts it again", async () => {
+    const { drive, ctx, item, bytes, progress } = setup({
+      size: 4096 * 10,
+      chunkBytes: 4096,
+    });
+    // One slow down before every chunk after the first: nine in all, never two in a row.
+    const inner = ctx.progress;
+    ctx.progress = async (it, uri, offset) => {
+      await inner(it, uri, offset);
+      if (offset > 0) drive.failures.throttlePuts = 1;
+    };
+    const result = await sendOne(ctx, item);
+    expect(result.item.outcome).toBe("sent");
+    const file = drive.files.get((result.item as { fileId: string }).fileId)!;
+    expect(file.md5).toBe(md5Of(bytes));
+    expect(progress.at(-1)!.offset).toBe(4096 * 9);
+  });
+
+  it("stops a small file at the slice's end, or at her Cancel, once Google has slowed it (a retried PUT is minutes)", async () => {
+    const late = setup({ deadlineMs: 1_000_000 + CHUNK_HEADROOM_MS + 5_000 });
+    late.drive.failures.throttlePuts = 100;
+    expect(await sendOne(late.ctx, late.item)).toEqual({
+      item: { mediaId: MEDIA, outcome: "released" },
+    });
+    // Its session reported as it is given back, so the next lease resumes it.
+    expect(late.progress).toEqual([{ uri: expect.any(String), offset: 0 }]);
+
+    const canceled = setup();
+    let cancel = false;
+    canceled.ctx.stopping = () => cancel;
+    canceled.ctx.sleep = async () => {
+      cancel = true;
+    };
+    canceled.drive.failures.throttlePuts = 100;
+    expect(await sendOne(canceled.ctx, canceled.item)).toEqual({
+      item: { mediaId: MEDIA, outcome: "released" },
+    });
+    // The refused PUT and the session's status ask, and no PUT after her Cancel.
+    expect(canceled.drive.calls.filter((c) => c.method === "PUT")).toHaveLength(
+      2,
+    );
+  });
+});
+
+describe("the ends a file's bytes can meet", () => {
+  it("sends a file of no bytes as one empty PUT, as any whole file", async () => {
+    const { drive, ctx, item } = setup({ size: 0 });
+    const result = await sendOne(ctx, item);
+    expect(result.item.outcome).toBe("sent");
+    const file = drive.files.get((result.item as { fileId: string }).fileId)!;
+    expect(file.size).toBe(0);
+    expect(drive.calls.filter((c) => c.method === "PUT")).toHaveLength(1);
+  });
+
+  it("sends again, in a new session and on a counted attempt, a file whose every byte Google holds but never closes", async () => {
+    const { drive, ctx, item } = setup({ size: 10_000, chunkBytes: 4096 });
+    drive.failures.neverClose = true;
+    const result = await sendOne(ctx, item);
+    expect(result.item).toMatchObject({
+      outcome: "failed",
+      retry: true,
+      reason: expect.stringContaining("never closed"),
+    });
+    // The session is dropped (resuming it would ask the same for ever, each lease uncounted).
+    expect(result.item).not.toMatchObject({ keepSession: true });
   });
 });

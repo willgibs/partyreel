@@ -1326,13 +1326,16 @@ describe("GuestUpload: a failure the slot never reported is not the next run's (
     expect(screen.getByText("1 of 2 didn't upload")).toBeInTheDocument();
   });
 
-  /* ★ A REFUSAL OF THE FILE ITSELF THAT THE UPLOADER MADE LOCALLY HAS NO RETRY (red-team 54's LOW): the uploader refuses a
-     wrong type before any request and says no code, so the queue read it as a transport failure, and the sheet offered a
-     Retry whose press sent nothing. The queue tells it as the file's own refusal now (`localRefusalCode`). */
+  /* ★ A REFUSAL OF THE FILE ITSELF THAT THE UPLOADER MADE LOCALLY HAS NO RETRY (red-team 54's LOW): the uploader refused a
+     wrong type before any request with no code, so the queue read it as a transport failure, and the sheet offered a
+     Retry whose press sent nothing. RESHAPED ON PURPOSE (crumbs-83): the scar kept is the sheet's (no Retry, the way on
+     said); the expired reason dropped is the queue asking the file again (`localRefusalCode`), since the uploader tags
+     the refusal with its code where it decides it, so the stand-in answers what the uploader answers now. */
   it("★ offers no Retry on a file the uploader refused itself, and says what she can do; a file that was only the line's keeps its Retry", async () => {
     mockUploadFile.mockReset();
     mockUploadFile.mockResolvedValue({
       ok: false,
+      code: "unsupported_type",
       message: "That file type isn't supported.",
     });
     const gated = mountGated();

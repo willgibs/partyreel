@@ -19,6 +19,10 @@ import { useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PricingSheet } from "@/components/app/pricing/pricing-sheet";
+import {
+  StorageSourceProvider,
+  type StorageSource,
+} from "@/components/app/storage/storage-source";
 import { POPUP_HISTORY_MARKER } from "@/components/ui/popup-back";
 import type { PlanFacts } from "@/lib/billing/plan-facts";
 import { GIGABYTE, planById } from "@/lib/constants/tiers";
@@ -32,6 +36,16 @@ import { setViewportWidth } from "../../../../vitest.setup";
 
 const router = { push: vi.fn(), replace: vi.fn(), refresh: vi.fn() };
 vi.mock("next/navigation", () => ({ useRouter: () => router }));
+// The size list a refused price stacks over the sheet reads its own source; the default one imports the Server Functions.
+vi.mock("@/app/(app)/dashboard/storage-actions", () => ({
+  readStorageListAction: vi.fn(),
+  deleteStorageItemsAction: vi.fn(),
+  emptyDeletedAction: vi.fn(),
+  setMakeRoomFromDeletedAction: vi.fn(),
+}));
+vi.mock("@/components/app/export/use-export-download", () => ({
+  useExportDownload: () => ({ startDownload: vi.fn(), fetchSummary: vi.fn() }),
+}));
 
 const STRIPE = "https://checkout.stripe.com/c/pay/cs_test_x";
 /** Where the window is once it has left: the history entries are what is under test, never the address. */
@@ -141,6 +155,11 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  // The way out holds every door until the page comes back from the cache (`leave.ts`): this page always does, so the
+  // next test's doors are free. Before the real location returns, so the reload a replace asked for stays modelled.
+  window.dispatchEvent(
+    Object.assign(new Event("pageshow"), { persisted: true }),
+  );
   next.uninstall();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
@@ -290,4 +309,87 @@ describe("at a desk, where the sheet is a dialog that holds no entry", () => {
     await back();
     expect(window.location.pathname).toBe("/");
   });
+});
+
+/**
+ * ★ THE SIZE LIST STACKED OVER THE SHEET LEAVES WITHOUT EITHER ENTRY BEHIND IT (crumbs-83; the ROADMAP's "the storage
+ * list's goal strip (`window.location.assign`) leaves for Stripe past `PricingDoors`' `leave`, so on a phone it still
+ * leaves over the list's own history entry (and the plan sheet's, when opened from it)"). A Pro host taps a size too small
+ * for what she stores, opens what is using space from its refusal (the list stacks over the plan: two places, two entries
+ * of their own over the page's), has freed enough, and presses the strip's Switch. The old strip pushed Stripe's page over
+ * both entries: two dead Backs on the way home. One Back from Stripe returns to the page, and the next leaves it.
+ */
+describe("on a phone, the size list stacked over the sheet (crumbs-83)", () => {
+  const STACKED_FACTS = facts({
+    tier: "pro",
+    hasBilling: true,
+    capBytes: planById("pro_200").storageBytes,
+    storedBytes: 120 * GIGABYTE,
+    currentPlanId: "pro_200",
+  });
+  /** The list's own source: she stores what Pro 50 GB holds now (freed elsewhere), and the switch answers Stripe's page. */
+  const source: StorageSource = {
+    read: vi.fn(async () => ({
+      ok: true as const,
+      items: [],
+      next: null,
+      overview: { storedBytes: 40 * GIGABYTE, deletedBytes: 0, events: [] },
+    })),
+    deleteForGood: vi.fn(),
+    emptyDeleted: vi.fn(),
+    setMakeRoom: vi.fn(),
+    switchPlan: vi.fn(async () => ({ kind: "redirect" as const, url: STRIPE })),
+  };
+
+  it(
+    "★ the strip's Switch takes both entries with it: one Back from Stripe returns to the page, and the next leaves it",
+    { timeout: 20_000 },
+    async () => {
+      setViewportWidth(375);
+      served = STACKED_FACTS;
+      render(
+        <StorageSourceProvider source={source}>
+          <Host plan={{ tier: "pro", hasBilling: true }} />
+        </StorageSourceProvider>,
+      );
+      await tick();
+      const sheet = screen.getByRole("dialog");
+      const tooSmall = await waitFor(() => {
+        const el = sheet.querySelector('[data-too-small="pro_50"]');
+        expect(el).toBeTruthy();
+        return el as HTMLElement;
+      });
+      await userEvent.click(tooSmall);
+      await userEvent.click(
+        within(sheet).getByRole("button", { name: /what.s using space/i }),
+      );
+      // The list's body is its own chunk, loaded as it first opens: a loaded machine's time for it.
+      const finish = await waitFor(
+        () => {
+          const strip = document.querySelector<HTMLElement>(
+            "[data-storage-goal]",
+          );
+          expect(strip).toBeTruthy();
+          return within(strip!).getByRole("button", {
+            name: /switch to pro 50/i,
+          });
+        },
+        { timeout: 10_000 },
+      );
+      // The premise: the list stands on an entry of its own, over the sheet's.
+      expect(marker()).toBeTruthy();
+      await tick();
+
+      await userEvent.click(finish);
+      await waitFor(() => expect(navigations).toEqual([`assign ${STRIPE}`]));
+      expect(source.switchPlan).toHaveBeenCalledWith("pro_50", "/dashboard");
+      expect(window.location.pathname).toBe(STRIPE_PATH);
+
+      await back();
+      expect(window.location.pathname).toBe("/dashboard");
+      expect(marker()).toBeUndefined();
+      await back();
+      expect(window.location.pathname).toBe("/");
+    },
+  );
 });
