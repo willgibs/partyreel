@@ -268,7 +268,9 @@ a line when a lever lands.
 - `kit-env.sh` and `kit-env.mjs`: what every script shares so it runs alike on the Mac and a cloud seat: the repo from
   the script's own checkout, nvm only where it exists, a value from `.env.local` or else the environment
   (`kit_env NAME`, `envValue(name)`), Chrome from `CHROME_PATH` (`chromePath`) and its DevTools port read from the
-  profile it was started with (`--remote-debugging-port=0`, then `devToolsPort`), never a port from a pid or at random.
+  profile it was started with (`--remote-debugging-port=0`, then `devToolsPort`), never a port from a pid or at random;
+  `kit_port_pids` and `kit_free_port` find a port's listener through `fuser` where `lsof` sees no socket (a cloud
+  container), so a kill by port frees it there too.
 - `page-console.mjs <base> [path]`: one page in headless Chrome, its console errors, the key redacted.
 - `board-card.mjs <board...>|--desk`: one screen per board, in desk order (its place, `lives`, its opening and terms,
   every ask with its context, and the answers of its own round); `desk-sections.mjs`: the served desk per section.
