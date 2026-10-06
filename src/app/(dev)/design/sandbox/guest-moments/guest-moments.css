@@ -1,0 +1,281 @@
+/* ── THE BOARD'S LIGHTS AND LOOPS (guest-moments r1) ──────────────────────────
+   Production's arrival marks (`src/components/shared/arrival.css`) at their
+   own numbers, drawn two ways: a HELD BEAT (`data-gm-mark`) is the light at
+   one instant, fixed, so a still frame shows it whatever the motion setting;
+   a MOVING FRAME (`data-gm-loop`, `data-gm-reel-loop`) replays the moment on a
+   loop with motion allowed. Every loop's resting style is the moment's END,
+   so under reduced motion the moving frame holds its last beat, as
+   production holds still there, and the frame's own pause (`frame-pause.ts`)
+   freezes a hidden option's loops. Opacity, clip-path and translate only. */
+
+/* ── held beats ── */
+
+.gm-tile::after,
+.gm-tile::before {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+}
+
+/* The glow: arrival.css's rim and wash. */
+.gm-tile::after {
+  inset: 0;
+  z-index: 5;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 0 2px rgb(255 255 255 / 0.9),
+    inset 0 0 26px 3px rgb(255 255 255 / 0.38);
+}
+.gm-tile[data-gm-mark="glow"]::after,
+.gm-tile[data-gm-mark="first"]::after {
+  opacity: 1;
+}
+.gm-tile[data-gm-mark="glow-late"]::after {
+  opacity: 0.3;
+}
+
+/* The sweep: arrival.css's tilted band, here mid-pass. */
+.gm-tile::before {
+  top: -20%;
+  bottom: -20%;
+  left: 0;
+  width: 55%;
+  z-index: 4;
+  rotate: 12deg;
+  translate: -60% 0;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgb(255 255 255 / 0.05) 35%,
+    rgb(255 255 255 / 0.34) 50%,
+    rgb(255 255 255 / 0.05) 65%,
+    transparent 100%
+  );
+}
+.gm-tile[data-gm-mark="sweep"]::before {
+  opacity: 1;
+  translate: 60% 0;
+}
+
+/* The push: arrival.css's wipe from the tile's left edge, a third in; and its place before it begins. */
+.gm-tile[data-gm-mark="wipe"] {
+  clip-path: inset(0 66% 0 0);
+}
+.gm-tile[data-gm-mark="empty"] {
+  clip-path: inset(0 100% 0 0);
+}
+
+/* The running line's two held places. */
+.gm-run[data-gm-run="early"] {
+  left: 4%;
+}
+.gm-run[data-gm-run="late"] {
+  left: 52%;
+}
+
+/* ── the moving frames' resting style: the moment's end ── */
+
+.gm-slow,
+.gm-wait-bar,
+.gm-wait-close,
+.gm-pill-row[data-gm-pill-loop],
+.gm-before {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* C7: her own landing's light, replayed every 4 s. */
+  .gm-tile[data-gm-loop="sweep"]::before {
+    opacity: 1;
+    animation: gm-sweep 4s var(--ease-emphasis) infinite;
+  }
+  .gm-tile[data-gm-loop="glow"]::after,
+  .gm-tile[data-gm-loop="first"]::after {
+    animation: gm-glow-4 4s var(--ease-emphasis) infinite;
+  }
+  .gm-tile[data-gm-loop="first"] .gm-word {
+    animation: gm-word 4s var(--ease-emphasis) infinite;
+  }
+
+  /* Q3: the batch, replayed every 6 s. */
+  .gm-tile[data-gm-loop="push"] {
+    animation: gm-push 6s var(--ease-in-out-strong) infinite;
+  }
+  .gm-tile[data-gm-loop="push"]::after {
+    animation: gm-glow-6 6s var(--ease-emphasis) infinite;
+  }
+  .gm-tile[data-gm-loop="push"] .gm-slow {
+    animation: gm-slow 6s linear infinite;
+  }
+  .gm-tile[data-gm-loop="settle"],
+  .gm-tile[data-gm-loop="file"] {
+    animation: gm-stand 6s var(--ease-emphasis) infinite both;
+  }
+  .gm-tile[data-gm-loop="settle"]::after,
+  .gm-tile[data-gm-loop="file"]::after {
+    animation: gm-glow-6 6s var(--ease-emphasis) infinite both;
+  }
+  .gm-tile[data-gm-loop="file"],
+  .gm-tile[data-gm-loop="file"]::after {
+    animation-delay: calc(var(--gm-i, 0) * 160ms);
+  }
+  [data-gm-pill-stage] .gm-pill-row,
+  [data-gm-pill-stage] .gm-before {
+    animation: gm-first-half 6s linear infinite;
+  }
+  [data-gm-pill-stage] .gm-after {
+    animation: gm-second-half 6s linear infinite;
+  }
+
+  /* G6: the opening, replayed every 3 s: the first second is the wait. */
+  [data-gm-reel-loop="black"] .gm-first,
+  [data-gm-reel-loop="mark"] .gm-first,
+  [data-gm-reel-loop] .gm-play-bar {
+    animation: gm-second-two-thirds 3s linear infinite;
+  }
+  [data-gm-reel-loop="still"] .gm-first {
+    animation: gm-drift 3s linear infinite;
+  }
+  [data-gm-reel-loop] .gm-wait-bar,
+  [data-gm-reel-loop] .gm-wait-close {
+    animation: gm-first-third 3s linear infinite;
+  }
+  .gm-run[data-gm-run="loop"] {
+    animation: gm-run 0.9s var(--ease-in-out-strong) infinite;
+  }
+}
+
+@keyframes gm-sweep {
+  0% {
+    translate: -60% 0;
+  }
+  22.5%,
+  100% {
+    translate: 160% 0;
+  }
+}
+/* 2 s of a 4 s loop: up fast, then the long fade (arrival.css's pr-arrival-glow). */
+@keyframes gm-glow-4 {
+  0% {
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes gm-glow-6 {
+  0% {
+    opacity: 0;
+  }
+  3.3% {
+    opacity: 1;
+  }
+  33.3%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes gm-word {
+  0% {
+    opacity: 0;
+  }
+  5%,
+  45% {
+    opacity: 1;
+  }
+  55%,
+  100% {
+    opacity: 0;
+  }
+}
+/* 450 ms of a 6 s loop: the place opens and the photograph is revealed from its left edge. */
+@keyframes gm-push {
+  0% {
+    clip-path: inset(0 100% 0 0);
+  }
+  7.5%,
+  100% {
+    clip-path: inset(0 0 0 0);
+  }
+}
+/* The slow photograph: grey for the gate's 2 s, then its picture. */
+@keyframes gm-slow {
+  0%,
+  33% {
+    opacity: 1;
+  }
+  38%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes gm-stand {
+  0% {
+    opacity: 0;
+  }
+  2%,
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes gm-first-half {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  52%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes gm-second-half {
+  0%,
+  50% {
+    opacity: 0;
+  }
+  52%,
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes gm-first-third {
+  0%,
+  33% {
+    opacity: 1;
+  }
+  34%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes gm-second-two-thirds {
+  0%,
+  33% {
+    opacity: 0;
+  }
+  34%,
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes gm-drift {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.05);
+  }
+}
+@keyframes gm-run {
+  from {
+    left: -40%;
+  }
+  to {
+    left: 100%;
+  }
+}
