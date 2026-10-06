@@ -2,7 +2,8 @@
  * THE SIZE LIST'S READS, ON THE CLAMPING POSTGREST FAKE (read-all.ts): a page is largest first
  * across her live events, pages by `(size, id)` without skipping or repeating a tie, filters to one
  * event, and never reaches another host's media, a removed item or a deleted event; the totals
- * behind the filter are read WHOLE, however far past 1,000 rows an album grows; and each item
+ * behind the filter are her events' sums (`event_storage_sums`, one row an event), never a walk of
+ * her items, read WHOLE however far past 1,000 events an account grows; and each item
  * leaves presigned and credited, the host's own as hers, never with an address.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -69,10 +70,35 @@ function media(
   };
 }
 
-function fakeWith(rows: FakeRow[]) {
+/**
+ * The sums the trigger keeps (20261006180000), as it keeps them: a row per event holding anything live, its live bytes
+ * and items (`status <> 'removed'`), its host's id, whether or not the event is deleted. Its parity with the walk is
+ * the migration's proof; here it is the fixture the read is given.
+ */
+function sumsOf(rows: FakeRow[]): FakeRow[] {
+  const sums = new Map<string, FakeRow>();
+  for (const row of rows) {
+    if (row.status === "removed") continue;
+    const eventId = row.event_id as string;
+    const sum = sums.get(eventId) ?? {
+      event_id: eventId,
+      host_id: EVENTS[eventId].host_id,
+      live_bytes: 0,
+      live_count: 0,
+    };
+    sum.live_bytes =
+      (sum.live_bytes as number) + (row.file_size_bytes as number);
+    sum.live_count = (sum.live_count as number) + 1;
+    sums.set(eventId, sum);
+  }
+  return [...sums.values()];
+}
+
+function fakeWith(rows: FakeRow[], sums: FakeRow[] = sumsOf(rows)) {
   return createFakePostgrest({
     tables: {
       media: rows,
+      event_storage_sums: sums,
       events: [
         { id: WEDDING, name: "Maya & Theo", ...EVENTS[WEDDING] },
         { id: PARTY, name: "Ivy turns one", ...EVENTS[PARTY] },
@@ -157,7 +183,10 @@ describe("a page of what she stores", () => {
 });
 
 describe("the totals behind the filter", () => {
-  it("are read whole past 1,000 rows, heaviest event first", async () => {
+  // ★ RESHAPED ON PURPOSE (upload-sums, 20261006180000; scar kept: exact totals, heaviest event first, nothing clipped
+  // at 1,000). The totals stopped walking every item (2,400 rows here once) and read her events' sums, one row an
+  // event, so "past 1,000 rows" is now past 1,000 EVENTS (below).
+  it("are her events' sums, heaviest event first, never a walk of her items", async () => {
     const rows = [
       ...Array.from({ length: 2_400 }, (_, i) => media(i + 1, WEDDING, 10)),
       ...Array.from({ length: 30 }, (_, i) => media(5_000 + i, PARTY, 1_000)),
@@ -171,8 +200,67 @@ describe("the totals behind the filter", () => {
       { id: PARTY, name: "Ivy turns one", bytes: 30_000, count: 30 },
       { id: WEDDING, name: "Maya & Theo", bytes: 24_000, count: 2_400 },
     ]);
-    // Every page came back whole: nothing was clipped at the platform's 1,000.
+    expect(fake.requests.map((r) => r.name).sort()).toEqual([
+      "event_storage_sums",
+      "events",
+    ]);
     expect(fake.requests.every((r) => !r.failed)).toBe(true);
+  });
+
+  it("are read whole past 1,000 events", async () => {
+    const many = Array.from({ length: 2_500 }, (_, i) => ({
+      id: `30000000-0000-4000-8000-${String(i + 1).padStart(12, "0")}`,
+      name: `Event ${i + 1}`,
+      host_id: HOST,
+      deleted_at: null,
+    }));
+    const fake = createFakePostgrest({
+      tables: {
+        events: many,
+        event_storage_sums: many.map((e, i) => ({
+          event_id: e.id,
+          host_id: HOST,
+          // A bigint may arrive as text.
+          live_bytes: i % 2 === 0 ? i + 1 : String(i + 1),
+          live_count: 1,
+        })),
+      },
+    });
+    const events = await readStorageEvents(asSupabase(fake), HOST);
+    expect(events).toHaveLength(2_500);
+    expect(events[0]).toEqual({
+      id: many[2_499].id,
+      name: "Event 2500",
+      bytes: 2_500,
+      count: 1,
+    });
+    expect(events.reduce((n, e) => n + e.bytes, 0)).toBe((2_500 * 2_501) / 2);
+    expect(fake.requests.every((r) => !r.failed)).toBe(true);
+  });
+
+  it("never lists another host's sum, a deleted event's, one gone, or one holding nothing live", async () => {
+    const fake = fakeWith(
+      [],
+      [
+        { event_id: WEDDING, host_id: HOST, live_bytes: 5, live_count: 1 },
+        { event_id: PARTY, host_id: HOST, live_bytes: 0, live_count: 0 },
+        { event_id: GONE, host_id: HOST, live_bytes: 9, live_count: 3 },
+        { event_id: THEIRS, host_id: OTHER, live_bytes: 9, live_count: 3 },
+        { event_id: idOf(77), host_id: HOST, live_bytes: 9, live_count: 3 },
+      ],
+    );
+    const events = await readStorageEvents(asSupabase(fake), HOST);
+    expect(events).toEqual([
+      { id: WEDDING, name: "Maya & Theo", bytes: 5, count: 1 },
+    ]);
+    // The sums read names her, so RLS is never the only thing standing between her and another host's rows.
+    const read = fake.requests.find((r) => r.name === "event_storage_sums");
+    expect(read?.filters).toEqual(
+      expect.arrayContaining([
+        { column: "host_id", op: "eq", value: HOST },
+        { column: "live_count", op: "gt", value: 0 },
+      ]),
+    );
   });
 
   it("lists an event only while it holds something", async () => {

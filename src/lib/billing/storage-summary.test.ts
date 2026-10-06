@@ -227,6 +227,11 @@ describe("the admin's account view reads the same aggregate", () => {
    is her two lists arm for arm, no row in both). The aggregate stopped spelling its two filters: it calls
    host_active_bytes for the first and sums host_deleted_media for the second, the one definition of Deleted that the
    eviction (`leave_deleted`) drains too, so the arms are read off that function's WHERE.
+   ★ RESHAPED ON PURPOSE (upload-sums, 20261006180000; scar kept: every rule below, unchanged). The aggregate reads
+   per-event and per-host sums the database keeps, so the walk these rules pin moved, verbatim, to
+   `host_storage_walk`, the one definition the sums answer to; that the sums ARE the walk is the migration's
+   rolled-back proof and the reconciliation's (`storage_sums_drift`), and how the aggregate reads them is
+   `db/upload-sums.test.ts`'s.
    ──────────────────────────────────────────────────────────────────────────── */
 describe("host_storage_summary's figures, read off the migrations", () => {
   function newestBody(fn: string): {
@@ -309,6 +314,7 @@ describe("host_storage_summary's figures, read off the migrations", () => {
 
   const active = newestBody("host_active_bytes");
   const deleted = newestBody("host_deleted_media");
+  const walk = newestBody("host_storage_walk");
   const summary = newestBody("host_storage_summary");
 
   /** The window both Deleted lists read (RECENTLY_DELETED_WINDOW_DAYS), as the SQL spells it: from its start on. */
@@ -317,9 +323,7 @@ describe("host_storage_summary's figures, read off the migrations", () => {
 
   it("found all three definitions (a canary for the parser)", () => {
     expect(active.body).toContain("sum(m.file_size_bytes)");
-    expect(summary.body).toContain(
-      "from public.host_deleted_media(p_host_id) d",
-    );
+    expect(walk.body).toContain("from public.host_deleted_media(p_host_id) d");
     expect(deleted.body).toMatch(/^select m\.id, m\.file_size_bytes, /);
   });
 
@@ -332,8 +336,8 @@ describe("host_storage_summary's figures, read off the migrations", () => {
     expect(deleted.body).toMatch(/where e\.host_id = p_host_id and \(/);
   });
 
-  it("★ the aggregate's active figure is host_active_bytes itself, and its Deleted the sum of host_deleted_media", () => {
-    expect(summary.body).toMatch(
+  it("★ the walk's active figure is host_active_bytes itself, and its Deleted the sum of host_deleted_media", () => {
+    expect(walk.body).toMatch(
       /^select public\.host_active_bytes\(p_host_id\), coalesce\(sum\(d\.file_size_bytes\), 0\)::bigint, coalesce\(sum\(d\.file_size_bytes\) filter \(where d\.by_system\), 0\)::bigint from public\.host_deleted_media\(p_host_id\) d$/,
     );
     const where = active.body.match(/where (.+)$/)?.[1];
