@@ -67,9 +67,9 @@ its lane's Handoff (`git show <merge>^2:docs/tracks/<track>.md`).
    the nav's Features pane, /features/curation, a weddings page's table card); crumbs-86's See it as a guest on a far
    party. Then the FULL gate, `pnpm compute:model` on the Mac, and Will's yes.
 3. **The next crumbs lane** comes from Immediate (red-team 56b's LOWs and NITs lead it). The ROADMAP is five buckets
-   (`record.py` places each line and refuses an Immediate past 40); its two check upgrades wait there, both Will's
-   rising tide: `pnpm test:rules` in the board lanes' light gate, and `compute:model` holding CPU only on its budget's
-   machine.
+   (`record.py` places each line and refuses an Immediate past 40); one check upgrade waits there, Will's rising tide:
+   `compute:model` holding CPU only on its budget's machine (only a cloud seat misreads it). `pnpm test:rules` is in the
+   board lanes' light gate, and the demo's alarm now reaches node (`5c323439f`).
 4. **After his desk batch, with a fresh context** (Will, 2026-10-06): his personal list of 100+ items in batches, each
    committed verbatim first and slotted into the ROADMAP's buckets and areas with a proposed order of rounds on top; and
    a lab triage tool (Keep, Later or Drop with a note beside each `[unsure: …]` line and any bucket he asks for, its
