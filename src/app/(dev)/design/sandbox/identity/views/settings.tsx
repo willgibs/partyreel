@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { Dialog as DialogPrimitive } from "radix-ui";
 
 import { DoorPage } from "@/components/app/event-settings/door-page";
 import { EventPage } from "@/components/app/event-settings/event-page";
@@ -146,7 +147,12 @@ function Panel({
           <PopupHeader
             title={SETTINGS_GROUP_TITLES[page]}
             up={{ label: "Settings", onUp: () => {} }}
-          />
+          >
+            {/* A page's head is described by the event's name, out of sight, as production's is. */}
+            <DialogPrimitive.Description className="sr-only">
+              {NAME}
+            </DialogPrimitive.Description>
+          </PopupHeader>
         )}
         <PopupBody className="space-y-6 pb-6" data-settings-page={page}>
           {children}
