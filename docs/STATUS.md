@@ -20,9 +20,9 @@ Nothing is protected: every page, the host app and the guest pages are open to b
   Filter and arrivals pill; a photo's capture time kept, never the place or device; Will's house set and working words;
   the hub's doors as cards; Settings' roll; Back a layer at a time; the dashboard's chooser; the pass credit's integrity
   and stuck watch; the backup restoring and reconciling again; Drive's fixes and hardening; the lab's frames held still.
-- **Red-team 56** walked it (no HIGH, one MEDIUM, small findings): crumbs-85 fixes them while billing-orphans and
-  drive-crumbs land the last of milestone 38's work; then a short re-walk and milestone 38 on Will's yes, where Drive's
-  Worker and the `partyreel-backup` Worker deploy (`tracks/orchestrator.md`, Next).
+- **Red-team 56** walked it (no HIGH, one MEDIUM, small findings) and crumbs-85 fixed them; billing-orphans and
+  drive-crumbs land the last of milestone 38's work once their SQL is approved, red-team 56b re-walks, then milestone 38
+  on Will's yes, where Drive's Worker and the `partyreel-backup` Worker deploy (`tracks/orchestrator.md`, Next).
 - **The Orchestrator sits in a claude.ai cloud session** (2026-10-06); each lane is a cloud session of its own.
 - **Vercel's Hobby Active CPU** reads about 3.89 of 4 hours over 30 days (2026-10-06; the peak rolls off in early
   November): nothing of ours runs on Vercel but what Will asks for by name; desks and red-teams run locally (`CLAUDE.md`).
@@ -47,7 +47,7 @@ own; the cards' badges, then the colour of what needs her). Then desk 6, the bra
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** about 13,170 green. The gate is local to each seat: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
+- **Tests:** about 13,200 green. The gate is local to each seat: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
 - **Jobs:** the daily purge cron (Vercel Hobby fires it between 04:00 and 05:00 UTC; the album-log prune rides it), the
   spend watch daily at 05:00 UTC (hourly at launch), the media-backup Worker and the daily DB-backup Action are live, and
   the export Worker checks itself daily at 05:30 UTC (`/admin/jobs`); the deletion-aware backup prune runs dry

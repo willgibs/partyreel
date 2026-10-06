@@ -155,14 +155,16 @@ phone's camera is let go whenever the page hides or the camera closes (`use-came
   alone: her tracker lists it as developing and removable, and the album's wait counts it
   ([guest-flow.md](guest-flow.md)).
 - **The count is the server's roll** (`roll-view.ts`): `/api/guests/mine` with `statuses` (never `tell`, which would
-  spend her approval news), read only while nothing of hers is in the air, so no shot is counted twice. The host's own
+  spend her approval news), read only while nothing of hers is in the air, so no shot is counted twice. Her live shots
+  count uncapped (`RollView.held`, past the roll only by the server's own count), so the counts say "2 on a roll of 1"
+  and never promise a freed frame where removing one frees none (`removalFrees`). The host's own
   camera keeps no roll (`isOwner`) and asks nothing.
 - **The camera over a refusal of the album** (`album-camera.tsx`): a refusal the host can lift (uploads closed, the
   album full) stops the shutter in the server's words. Closed, it hears the album's own word (`uploadsWord`: the
   sync's `accepting`, each word the page hears counted) and asks again once, on the first word heard after the refusal
   that says open, never by itself; a refusal over a word that said open asks the album afresh (`askUploadsWord`, one
-  sync with no validator, since that word's validator says open too). Full, and closed on the door's camera, which is
-  handed no word, it asks again by itself, calmly: after 10 s, then 20, 40 and every minute, never while the page is
+  sync with no validator, since that word's validator says open too). Full, and closed where no word comes (the door's
+  camera hears the album's word wherever the album's sync polls), it asks again by itself, calmly: after 10 s, then 20, 40 and every minute, never while the page is
   hidden, at once as it comes back (never closer than 10 s to the last ask, so flicking between apps is no presign a
   return) and when the connection does, and only for those two refusals (a lock, a gone event or a ticket that is not
   hers are never asked again). The ask is the shots' own Retry through
@@ -175,7 +177,9 @@ phone's camera is let go whenever the page hides or the camera closes (`use-came
   another photo"). The door holds that camera itself (`AlbumCamera`, its own lazy chunk fetched as the step shows),
   beside the sheet and never inside a step: at A photo first the album's own slot, which carries a camera, is not
   mounted yet (it stands only at `full`), and the step drops the moment her first shot lands while she goes on
-  shooting. The held door's wait chooser (`door/wait-picks.tsx`) still offers the library.
+  shooting. The held door's wait chooser (`door/wait-picks.tsx`) still offers the library. At the held door the
+  camera's reveal is `door` (`heldAtDoor`): its line says "They go in once you're let in", each shot "Waiting to go in",
+  and the roll's end "N shots. They go in once you're let in."
 - The camera's page half is `event-experience.tsx`'s, the door's camera included: while one is open the keep waits
   (`keepDue && !cameraOpen`) and the page holds the album's failure sheet for as long (`onCameraOpenChange`, said by the
   door's camera as by the slot's own; `onUploadStepActive` is the step's alone, since the page folds the queue's live
@@ -199,8 +203,9 @@ before it saves (`ConsequenceLine`, `styleSwitchConsequence`), as a develop time
 9 am the morning after the party's last day (or after today, once that has passed) in the event's own zone
 (`events.time_zone`), so a destination wedding set up from home develops in the party's morning, not hers, and its
 develop and its album's turn are one morning for every guest. Create offers it in the zone it captures (her browser's);
-Settings in the party's stored zone, else hers. `patchForStyle` and `defaultDevelopAt` still read the browser's zone, so
-a caller hands them the party's 9 am as the time to keep. Where the party's zone is not the host's own (`farZone`), the
+Settings in the party's stored zone, else hers. `patchForStyle` and `defaultDevelopAt` take the party's zone themselves
+(`{ zone }`, through `event/wall-time.ts`, the one wall-clock arithmetic the turn shares); `developToKeep` is a thin
+wrapper until Create and Settings drop it. Where the party's zone is not the host's own (`farZone`), the
 develop time is her party's clock throughout Settings: the field takes it both ways (`toZoneInput`/`fromZoneInput`, the
 judge reads it), and every line says its place ("Develops Sun, Oct 4, 9:00 AM in Mexico City", `zone-words.ts`). An
 instant is never moved by a zone: a develop set before she picks another city keeps its moment and is said in the new
@@ -245,7 +250,11 @@ photographs, so both sides count the same ones), so nothing waits to land.
 
 **The wait's clock** (`lib/disposable/use-wait-clock.ts`): every line that says when an album develops is said from now,
 in the reader's own clock and only after hydration (`wait-words.ts`, `lib/guest/camera/words.ts`), and every reader
-decides ahead or reached on `useWaitClock`, one shared store that turns at the develop itself. A reader with a clock of
+decides ahead or reached on `useWaitClock`, one shared store that turns at the develop itself. A far party's develop
+is said in both clocks ("Sun, Oct 4 at 9 am in Bali, Sat 6 pm yours", her weekday only where her day differs:
+`developsWhen(iso, now, zone)`, `bothClocksWhen`), the page handing its zone for words alone (`partyZone`, never behind a
+lock); the cover's eyebrow keeps her own short clock, and the hub names a far party's place as Settings does
+(`hubDevelopWhen`). A reader with a clock of
 its own (a `Date.now()` in a render, an interval of its own) keeps a cover standing after its develop.
 
 ## Verifying it

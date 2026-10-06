@@ -947,3 +947,32 @@ Exif, a short clip with its creation time; never a real photograph.
 **BK3. The lab's demo always walks the motion pass:** every step a second time with motion allowed, so the pause is
 proven on every step and a short loop per option names which options move (the whole desk took about 205 s).
 - *Push back if* the gate should take the loop only when a board asks for it.
+
+## BL. Her send in view, and the album's time whole (crumbs-85)
+
+Red-team 56's findings are fixed and the album's time made whole; these five calls came with them, built and yours to
+overrule.
+
+**BL1. Her stack keeps the slot her photograph lands in** (the album's end, in an album in order), and while that slot
+is out of her sight a glass stand-in (her file's thumb, "N to go" or "Sending", the bar, the x) stands above the
+shutter's band, wherever she is in either order.
+- *Push back if* the stack should move to the album's head in every order (her photograph would then land where she
+  cannot see it).
+
+**BL2. A photograph taken long before the night is seated at the night's end edge** while it is the smaller part of the
+album, "the night" being the run of times ending at the newest, neighbours within three days; an album made after its
+trip keeps its true order.
+- *Push back if* the edge should be the start, or "the night" should come from the event's dated days.
+
+**BL3. A far party's develop time reads in both clocks:** "Sun, Oct 4 at 9 am in Bali, Sat 6 pm yours" (her weekday only
+where her day differs) in every develop sentence, while the cover's eyebrow keeps her own short clock ("Disposable ·
+develops tomorrow at 6 pm"), which fits a line at 375.
+- *Push back if* the eyebrow should name the place too.
+
+**BL4. The party's zone reaches the guest's browser, for words only:** never behind a lock, never for the album's turn
+(still one instant for everyone).
+- *Push back if* the zone should stay on the server and the words come pre-written.
+
+**BL5. The held door's camera says the shots wait:** "They go in once you're let in" under the name and in Your shots,
+"Waiting to go in" on each shot, "N shots. They go in once you're let in." at the roll's end.
+- *Push back if* the words should say less (or the shots should not show until she is in).

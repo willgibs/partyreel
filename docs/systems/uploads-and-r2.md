@@ -172,12 +172,16 @@ it.
   Save into Photos land on the right day: the minimal Exif is the orientation, `ExifVersion` and `DateTimeOriginal`, its
   wall clock alone and only in the standard's shape (a free-text field never survives as a date; the zone is read for
   the instant and never kept, since some zones are one country's alone), and an MPF secondary keeps its orientation
-  alone; a movie whose QuickTime date goes with its metadata box has its header's creation time set to it
-  (an iPhone's export stamps the header with the moment it exported, measured on AVFoundation). The complete carries it
+  alone; every header clock of a movie (mvhd, tkhd, mdhd: creation and modification) is rewritten in place to the
+  capture instant, or zero where it names none (`stampMovieClocks`; an iPhone's export stamps them with the moment it
+  exported, measured on AVFoundation). The complete carries it
   as a claim (`captured_at`, never at presign), held on the server to 1990 and now plus a day (`media/capture-time.ts`,
   the bounds' one home: outside them, or malformed, it is none and the arrival stands, and it never refuses the file),
-  into `media.captured_at` in `create_media*`'s own write. A wall clock with no zone is read in the uploader's browser
-  zone. The album's wire carries it (`entryCaptureTime`, a manifest entry's seventh element) and a Drive copy is named
+  into `media.captured_at` in `create_media*`'s own write. A wall clock with no zone rides the complete as
+  `captured_wall` beside the browser's reading, and the GUEST complete reads it in the party's zone (`wallInPartyZone`:
+  one primary-key read of `events.time_zone` a burst, only when such a clock is carried; the host's route keeps the
+  browser's reading). The album's camera claims its shutter's time (`BurstFile.takenAt`, `FileExtra.takenAt`) where the
+  file states none. The album's wire carries it (`entryCaptureTime`, a manifest entry's seventh element) and a Drive copy is named
   by it ([drive-export.md](drive-export.md)).
 - **It fails open:** input it cannot walk end to end, or cannot rewrite without touching a byte something else points
   at, uploads untouched with `stripped: false` (the header lists the cases), because a corrupted upload is worse than

@@ -25,13 +25,12 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 Round 15 continues (2026-10-06), the Orchestrator seated in a claude.ai cloud session for the first time
 (`session_01CbMRwiSRndG3eAjNpzHAvJ`, willg97's account). Milestone 37 is live (`b67cdc1f2`); `launch-prep` holds
-milestone 38's work (each lane's summary is its merge commit) and red-team 56's findings, which crumbs-85 fixes. Every
+milestone 38's work (each lane's summary is its merge commit), red-team 56's findings fixed by crumbs-85 among it. Every
 lane is a cloud session of its own (the runbook's "Cut a lane", step 4); none can message back, so a `send_later`
 check-in about every 40 minutes reads them (their status, pushed heads and cost) while any runs.
 
 | lane | what | state | model | session |
 | --- | --- | --- | --- | --- |
-| `crumbs-85` | red-team 56's findings (the MEDIUM: a guest's progress and Stop where she sends in an album in order) and the album's time made whole (event-zone's, capture-time's and guest-requests' follow-ups) | HANDED OFF at `98aa5b90`, then synced with identity-r5-wiring (`dc71e57f`) and re-gating there; integrate its head once the session is idle | Opus | `session_017wo11hh57XYRiRaqk7T2dM` |
 | `billing-orphans` | milestone 38's billing line: an orphan's grant as one SQL function under her profiles lock, the change-plan configuration watched at its source, the Plan card's words while a credited Pro lands; one migration (`20261006120000_billing_orphans.sql`) | HANDED OFF at `4a113e5d4`; waits on the morning's SQL (Waiting on Will) | Opus | `session_015JAkfLgeuTsZZMNJXrZVeV` |
 | `drive-crumbs` | Drive whole before it goes live: album folders and files found by their marks after a reconnect, the closing check held at the first unknown, Account's card naming her folder, the palette's jump; one migration (`20261006130000_drive_marks.sql`) | HANDED OFF at `6d1731c27`; waits on the morning's SQL (Waiting on Will) | Opus | `session_01AGJfN3zW3BvB8vPM7KSgbL` |
 
@@ -64,8 +63,8 @@ local agents' transcripts.
 ## Next, in order
 
 1. **Integrate each handoff as it lands**, one at a time, each lane's migration through the Advisor before
-   `apply_migration` (its md5 against the file, advisors at 26/4/36, the types regenerated): crumbs-85 once its synced
-   gate settles, then billing-orphans and drive-crumbs after the morning's SQL.
+   `apply_migration` (its md5 against the file, advisors at 26/4/36, the types regenerated): billing-orphans and
+   drive-crumbs after the morning's SQL, then each lane below as it hands off.
 2. **Will's desk** holds brand r2's `take` (served at `2634388a8`, unanswered) and, at the next refresh, event-header
    r6's `card` and `attention`: he runs `git pull && S=/tmp zsh usher/kit/desk-refresh.sh <sha>` in his checkout.
    Then desk 6, the brand applied (brand-marks with the status set, which inherits his `attention` pick as its waiting
@@ -73,7 +72,8 @@ local agents' transcripts.
    desk 7, the moments boards (host-, guest- and account-moments, create-wizard r4: each a ROADMAP line with its calls),
    cut now that identity-r5-wiring has merged, so they draw on the house set. Before his next sitting, re-read the
    brand and event-header boards' open asks against production's `globals.css`, which the house set changed.
-3. **Red-team 56b** (a lane: crumbs-85's MEDIUM re-walked, the halo sweep, the album's time), then **milestone 38** on
+3. **Red-team 56b** (its own cloud session, below: crumbs-85's MEDIUM re-walked, the house set, the album's time; its
+   report is its last message, read with `list_events`), then **milestone 38** on
    Will's yes: the `FULL=1` gate here, `pnpm compute:model` (a lane, since it needs the real services), merge to
    `main`, tag, push (production deploys from the push); then the Drive and backup Workers (`wrangler`: Will's Mac, or
    a Cloudflare token in the environment) and `DRIVE_WORKER_URL` and `BACKUP_WORKER_URL` on Vercel; drive-hardening's
@@ -105,7 +105,7 @@ local agents' transcripts.
   growth (a ROADMAP line for the Worker's cadence); adopt's orphan loop wants `and c.profile_id = p_host_id` (a nit).
 - **The calls lab** (`docs/calls.md`): the open questions X1, X2, X3, X5, X6 and X8, then each merge's calls, built and
   his to overrule. He asks direct questions in chat; answer in chat, never only in a file.
-- **Milestone 38** on his yes, after crumbs-85, billing-orphans, drive-crumbs and red-team 56b.
+- **Milestone 38** on his yes, after billing-orphans, drive-crumbs and red-team 56b.
 - **A Cloudflare API token** in the environment (`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`), only if the
   Workers should deploy from the cloud.
 - **The private note** scratch-synthesis wrote for this seat on his Mac (`CLOUD-ORCHESTRATOR-PRIVATE.md`): uploaded

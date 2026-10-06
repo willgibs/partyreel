@@ -134,16 +134,21 @@ read beside it so its Follow starts on Following; no card means no host row, nev
   list (`inOrder`) and the rows lay from the end it grows at, so an album in order grows at its end but for a late
   upload its capture time lands mid-album (the anchoring holds her place, the arrivals pill points there). In order
   reads `happenedAt`: when each was taken where the wire carries a capture time (`takenAtOf`, the capture-time lane's
-  one switch), else when it arrived; newest first is always by arrival, the live feed. ★ The turn is one moment for
+  one switch), else when it arrived, and a capture time before the night's own run of times (neighbours within three
+  days, `NIGHT_GAP_US`, ending at the newest) is seated at the night's END edge while it is the smaller part of the album
+  (`nightKeys`, one key for the first paint, the live album and the hub; the wire keeps the true time); newest first is
+  always by arrival, the live feed. ★ The turn is one moment for
   every reader, the party's (Will: "It feels unfair to unlock the album at different times for certain guests based
   on geographical location"): its 9 am is read in the event's own zone (`events.time_zone`,
   [`lib/event/zone.ts`](../../src/lib/event/zone.ts); a row with none, or one the runtime cannot read, turns in UTC,
   the one fallback), never the reader's. The page's server reads the zone on the service role beside the door's read
   (`zone.server.ts`; a failed read is the fallback, reported) and hands the browser the turn as an INSTANT, never a
-  zone (`albumOpening`'s `morningAfter`, `zone-morning.ts`), so no reader's clock, geography or browser's database of
-  zones moves it, and the zone never leaves the server; the seed links the first paint of that order and the hydration
-  lays the same rows; the page then turns it at that instant on the device's clock (`useGuestAlbumOrder`: a timer, a
-  return to the tab, a Develop now: a develop time the page holds still wins).
+  zone (`GuestAlbumOrder`'s `morningAfter`, beside the album's own order and her choice: event-zone's opening folded
+  in), so no reader's clock, geography or browser's database of zones moves it; the zone reaches the browser for words
+  alone (`partyZone`, never behind a lock), never for the turn. The seed links the first paint of that order and the
+  hydration lays the same rows; the page then turns it at that instant on the device's clock (`useGuestAlbumOrder`: a
+  timer, a return to the tab, a Develop now). A develop time wins over the morning after, and the one it turns at is
+  the sync's word once heard, a develop taken away included, else the page's own (`turnDevelopsAt`).
   Behind a gate the order knows no days, as the shell does not. Her Newest or Oldest is remembered per album on the
   device only as a departure from the turn (`pr_album_sort`, which the page reads; choosing the album's own order
   forgets it), her lens for the visit. See it as a guest is handed the same opening (`readAsGuest`), so it lays the
@@ -171,14 +176,18 @@ read beside it so its Follow starts on Following; no card means no host row, nev
     run. A file the browser cannot draw (an iPhone `.mov`, a HEIC outside Safari) is a named stand-in with its size
     ([`upload/pick-preview.tsx`](../../src/components/guest/upload/pick-preview.tsx): `onError` is the only honest
     test); the picks' object URLs have one owner ([`use-pick-urls.ts`](../../src/components/guest/upload/use-pick-urls.ts)).
-  - **The stack's x** (`upload/stack-tile.tsx`, asked through `gallery-rows.tsx`): the stack at the album's head stops
-    the file in the air, one at a time (E6). It asks first on the product's toast ("Stop this upload?", Keep going
+  - **The stack's x** (`upload/stack-tile.tsx`, asked through `gallery-rows.tsx`): ★ the stack keeps the slot her
+    photograph lands in (the album's head, or its end in an album in order), and while that slot is out of her sight a
+    stand-in carries its thumb, its count, its bar and its x in view above the shutter's band
+    ([`upload/sending-stand-in.tsx`](../../src/components/guest/upload/sending-stand-in.tsx), `useStandIn`); either x
+    stops the file in the air, one at a time (E6). It asks first on the product's toast ("Stop this upload?", Keep going
     first), then the queue's `stop` aborts that file alone (each file of a burst carries its own signal: its siblings
     go on and are recorded together) and the toast says "Upload cancelled." with Try again, which puts the same file
     back. A stopped file is no failure: it leaves the queue (the failure sheet, the shutter's ring and her uploads never
     count it) and nothing is recorded or metered. The x is drawn only while the file can still be stopped (going up, or
     not yet begun; gone once its bytes are up and its complete is coming), a question whose file left the stack, or whose
-    x went, is withdrawn (a Stop it offered could only answer too late), and a stop too late to take says nothing (the file lands) and says it at once: with every file of its burst
+    x went, is withdrawn (a Stop it offered could only answer too late; the question is the pick's, never a tile's,
+    `StackQuestion`, so the window unmounting the stack's row withdraws nothing still meant), and a stop too late to take says nothing (the file lands) and says it at once: with every file of its burst
     up (so its complete is asked and an abort would be ignored) the queue answers too late on the press, aborting
     nothing, where an answer that waited for the landing left the question on screen, unchanged, for as long as the
     complete took (seconds, longer for a burst) and read as an unheard press; a file up while a sibling still goes only
