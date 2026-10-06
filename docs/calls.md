@@ -888,3 +888,24 @@ Built so the gate stays fast as the product grows; your four calls, the first tw
 
 **BH4. Vitest's experimental module cache stays off** while it is experimental: it saves only the transform (about 2 s of 80).
 - *Push back if* you want it on anyway.
+
+---
+
+## BI. The hub's cards, the light made right (event-header-r6, on your desk)
+
+Its two asks are on your desk; these are the calls drawn into every option, built and yours to overrule.
+
+**BI1. The cards stand on the cover's foot, and the light falls past them.** The photograph runs on 20 px under the cards (14 at a phone) to its edge, where the Seam starts; the album begins past the light's reach, so nothing you press sits inside it.
+- *Push back if* the cards should sit under the light instead, as a row on the page after the Seam.
+
+**BI2. The light keeps the brand's full reach.** At 1440 the album starts 623 px down in the room (r5: 559) and 539 on paper; a shorter Seam would be the brand's own 104 / 72, never paler.
+- *Push back if* the first screen should show more of the album.
+
+**BI3. At a phone the cards are one row of five tiles** (the glyph, its count, a short word), since the cover's foot cannot hold a two-by-two grid.
+- *Push back if* a phone should keep production's two-by-two grid.
+
+**BI4. 99+ lives in the badge alone.** A screen reader still hears the whole number ("Review: 140 waiting").
+- *Push back if* the cap should show anywhere else.
+
+**BI5. Paper follows brand r2's recommended take (Aperture) until you pick one.** Ink and Cast are on the board's Paper knob, never asked twice.
+- *Push back if* you want paper judged first.
