@@ -27,7 +27,6 @@ import {
 } from "@/lib/disposable/album-style";
 import { ROLL_SHOTS } from "@/lib/disposable/roll";
 import { deviceZone, hostPartyZone } from "@/lib/event/zone";
-import { developToKeep } from "@/lib/event/zone-morning";
 import { cn } from "@/lib/utils";
 
 import { DevelopRow } from "./develop-row";
@@ -52,8 +51,8 @@ import { Night } from "./night";
  *
  * ★ THE PARTY'S ZONE IS HERS, CAPTURED AND NEVER ASKED (event-zone): the create carries her browser's own zone
  * (`fields`' `captured_zone`), the party's from birth, and the 9 am the Disposable offers is read in that same zone
- * (`developToKeep`), so the default develop and the album's turn are one morning for every guest. Create never asks a
- * zone: a party far from home is Settings' quiet choice.
+ * (`patchForStyle`'s `zone`), so the default develop and the album's turn are one morning for every guest. Create never
+ * asks a zone: a party far from home is Settings' quiet choice.
  *
  * ★ AND THE ROLL UNDER IT (customize r1's `roll=both`, and its carried `create`: "never as a question: it stands under the
  * Disposable pick, a press to change, the way the develop time does"): Settings' own control (`roll-control.tsx`), film's
@@ -124,19 +123,13 @@ export function useAddChoice(): AddChoice {
     setDraft(null);
     setRefusal(null);
     if (to === "disposable") {
-      // A time still ahead is kept, else 9 am tomorrow in the zone the create will carry (`developToKeep`).
+      // A time still ahead is kept, else 9 am tomorrow in the zone the create will carry (`hostPartyZone`).
       setDevelopsAt(
         (at) =>
           patchForStyle(
             "disposable",
-            {
-              capture: "upload",
-              review: false,
-              developsAt: developToKeep(at, hostPartyZone(null), {
-                eventDate: null,
-              }),
-            },
-            { eventDate: null },
+            { capture: "upload", review: false, developsAt: at },
+            { eventDate: null, zone: hostPartyZone(null) },
           ).developsAt,
       );
     }
@@ -189,7 +182,7 @@ export function useAddChoice(): AddChoice {
         patchForStyle(
           style,
           { capture: "upload", review: false, developsAt },
-          { eventDate: null },
+          { eventDate: null, zone },
         ),
         roll,
       ),

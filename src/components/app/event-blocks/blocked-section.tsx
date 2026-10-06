@@ -83,19 +83,21 @@ function BlockedRow({
           {who.slice(0, 1).toUpperCase()}
         </AvatarFallback>
       </Avatar>
-      <div className="min-w-0 flex-1">
+      <div className="@container min-w-0 flex-1">
         <p className="flex min-w-0 items-center gap-1.5 text-sm font-medium text-muted-foreground">
           <span className="truncate">{who}</span>
           {!person.verified && <UnverifiedMark name={person.name} />}
         </p>
-        {/* One line at a desk, two in a hand: the address may shorten, "since when" never does. */}
-        <p className="flex min-w-0 flex-wrap text-xs text-muted-foreground sm:flex-nowrap">
+        {/* One line where the row is wide, two where it is narrow: the address may shorten, "since when" never does.
+            ★ THE ROW'S OWN WIDTH, NEVER THE SCREEN'S (crumbs-86): in the Guests room's panel at a desk the screen is
+            wide and the row is not, and a screen's breakpoint left the address "r." beside a whole since-line. */}
+        <p className="flex min-w-0 flex-wrap text-xs text-muted-foreground @sm:flex-nowrap">
           <span className="max-w-full min-w-0 truncate">{parts.who}</span>
-          <span aria-hidden className="hidden px-1 sm:inline">
+          <span aria-hidden className="hidden px-1 @sm:inline">
             ·
           </span>
           <span className="sr-only">, </span>
-          <span className="w-full shrink-0 sm:w-auto">{parts.when}</span>
+          <span className="w-full shrink-0 @sm:w-auto">{parts.when}</span>
         </p>
       </div>
       <Button

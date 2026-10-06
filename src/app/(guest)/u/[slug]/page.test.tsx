@@ -67,7 +67,8 @@ describe("a handle nobody holds", () => {
   it("is titled as the not-found it is, noindex, with the not-found's own metadata", async () => {
     const metadata = await generateMetadata({ params });
     expect(metadata).toBe(notFoundMetadata);
-    expect(boundaryMetadata).toBe(notFoundMetadata);
+    // The boundary takes the words alone: a thrown notFound() carries Next's one noindex (crumbs-86).
+    expect(boundaryMetadata).toEqual({ title: notFoundMetadata.title });
     expect(metadata.title).toBe("Profile not found");
     expect(metadata.robots).toEqual({ index: false, follow: false });
   });

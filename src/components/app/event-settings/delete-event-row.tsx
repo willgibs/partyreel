@@ -22,9 +22,9 @@ import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
  * (`confirm=dialog`, and the carried call `stacked`: a confirmation over a popup is a centred dialog).
  *
  * Soft-delete ONLY: `deleteEventAction` sets `deleted_at`, which frees the host's event slot. There is
- * deliberately NO "end event" path: events have no end date (anti-abuse, see tiers.ts), so deletion is
- * the only lifecycle exit. On success the action redirects to /dashboard (throws NEXT_REDIRECT), so the
- * toast only fires on a real failure.
+ * deliberately NO "end event" path: an event never expires (anti-abuse, see tiers.ts; its end date only
+ * says when the party ends), so deletion is the only lifecycle exit. On success the action redirects to
+ * /dashboard (throws NEXT_REDIRECT), so the toast only fires on a real failure.
  */
 export function DeleteEventRow({
   eventId,

@@ -141,7 +141,7 @@ describe("event-type constants", () => {
 
 /**
  * EVERY LINE THAT SAYS AN EVENT STAYS UP CARRIES THE FREE PLAN'S EXCEPTION (crumbs-34; the help guide's
- * rule 7). Events have no end date, but on Free an event nobody touches for about six months is warned
+ * rule 7). Events never expire, but on Free an event nobody touches for about six months is warned
  * about by email, then moved to Deleted. The pages said "no expiry clock counting down on your wedding
  * memories" and "stays up until you delete it" with no word of it, which a Free host meets as a removal
  * the site never mentioned. The numbers derive from the lifecycle constants, so the line cannot drift.
