@@ -67,3 +67,16 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am
+
+Done and pushed (61d92257e): items 2, 3, 5, the Drive re-walk's findings (item 4) and item 1, the chooser = words, wired
+(three commits: e011b245a, dd583ab25, 61d92257e). Last full run on that tree: typecheck, lint and `pnpm test` (12,786)
+green, `lab:smoke` 176 checks 0 failing; the chooser walked in a browser at 1440, 1024 and 375 on a temporary harness
+page (uncommitted, deleted before the handoff).
+
+Next: a fresh-eyes review of the diff (the helper was cut off by the limit; redo it), the production build through
+`scripts/build-lock.sh`, the red-team of the two new Server Functions' abuse paths, then this manifest's Questions, System-doc
+edits, Deferred and Handoff, and `status: handed-off`.
+
+Mid-flight: nothing uncommitted but `src/app/harness-crumbs82/` (never committed). Nothing listens on 3139.
