@@ -11,7 +11,7 @@ import {
 import type { EventListRow, EventSeason } from "./events-view";
 import type { GuestEventCardData } from "./guest-events";
 import type { HomeContext, HomeEvent } from "./home-event";
-import { momentEvent } from "./moment";
+import { DEFAULT_RULE, leadOf, type RuleId } from "./lead";
 import { seasonsOf } from "./seasons";
 import { dateFace, dayOf, phaseOfEvent, whenOf } from "./when";
 
@@ -21,7 +21,8 @@ import { dateFace, dayOf, phaseOfEvent, whenOf } from "./when";
  * Pure, so the page and its tests compose the same page from the same facts, and nothing about what
  * shows is decided twice.
  *
- *   - THE STAGE leads with the party of the moment (`moment.ts`), lit by its own photographs.
+ *   - THE STAGE leads with the party of the moment (`moment.ts`) or, with no party on its day, the event her rule picks
+ *     (`lead.ts`: Newest, which is the moment, unless she chose another), lit by its own photographs.
  *   - THIS WEEK holds every other party within a week of its date, each with its one step or its quiet
  *     state (`attention.ts`).
  *   - EVERYTHING ELSE is the host's collection (`display.ts`, her Display menu), the stage's own event left
@@ -122,6 +123,10 @@ export type HomeInput = {
     photos: StagePhoto[] | null;
     guests: number | null;
   } | null;
+  /** The rule she keeps for what leads the stage (host-dashboard r4); Newest, the moment, when not said. */
+  rule?: RuleId;
+  /** The viewer's calendar day of an instant (`dayInZone`), for the day an event was made; UTC when not said. */
+  dayOfInstant?: (iso: string) => string;
 };
 
 const shareOf = (e: HostedEvent, siteUrl: string): ShareFacts => ({
@@ -133,28 +138,30 @@ const shareOf = (e: HostedEvent, siteUrl: string): ShareFacts => ({
 const stillsAsPhotos = (e: HostedEvent): StagePhoto[] =>
   e.stills.map((url, i) => ({ id: `${e.id}:${i}`, url }));
 
-export function buildHomeView(input: HomeInput): HomeView {
-  const { ctx, hosted, siteUrl } = input;
-  const moment = momentEvent(hosted, ctx.today);
-  const lead = moment?.event ?? null;
+/**
+ * AN EVENT ON THE STAGE, as the page draws it: its own reads where the page made them (the wall on its day, who came
+ * once it has had a day), else its stills and no guest number (an unread fact is never guessed).
+ */
+export function stageViewOf(
+  e: HostedEvent,
+  siteUrl: string,
+  reads: { photos: StagePhoto[] | null; guests: number | null } | null = null,
+): StageView {
+  return {
+    event: e,
+    photos: reads?.photos ?? stillsAsPhotos(e),
+    guests: reads?.guests ?? null,
+    share: shareOf(e, siteUrl),
+  };
+}
 
-  const stage: StageView | null = lead
-    ? {
-        event: lead,
-        photos:
-          input.stageReads?.id === lead.id && input.stageReads.photos
-            ? input.stageReads.photos
-            : stillsAsPhotos(lead),
-        guests:
-          input.stageReads?.id === lead.id ? input.stageReads.guests : null,
-        share: shareOf(lead, siteUrl),
-      }
-    : null;
-
-  const week = weekEvents(hosted, ctx.today).filter((e) => e.id !== lead?.id);
-  const inWeek = new Set(week.map((e) => e.id));
-
-  const weekCards: WeekCard[] = week.map((e) => ({
+/** A party in the week, as its card draws it. */
+export function weekCardOf(
+  e: HostedEvent,
+  ctx: HomeContext,
+  siteUrl: string,
+): WeekCard {
+  return {
     id: e.id,
     name: e.name,
     href: `/dashboard/${e.id}`,
@@ -165,10 +172,16 @@ export function buildHomeView(input: HomeInput): HomeView {
     item: itemFor(e, ctx),
     quiet: quietLine(e, ctx),
     share: shareOf(e, siteUrl),
-  }));
+  };
+}
 
-  const listed = hosted.filter((e) => e.id !== lead?.id);
-  const hostedRows: EventListRow[] = listed.map((e) => ({
+/** A hosted event as her events list draws it; `inWeek` is whether the week's own card already says its step. */
+export function hostedRowOf(
+  e: HostedEvent,
+  ctx: HomeContext,
+  inWeek: boolean,
+): EventListRow {
+  return {
     id: e.id,
     kind: "hosted",
     name: e.name,
@@ -184,11 +197,40 @@ export function buildHomeView(input: HomeInput): HomeView {
     waiting: e.waiting,
     statusLabel: e.uploadsLabel,
     byline: null,
-    marks: marksOf(e, ctx, inWeek.has(e.id)),
+    marks: marksOf(e, ctx, inWeek),
     day: dayOf(e),
     dated: e.date !== null,
     openedAt: e.openedAt ?? null,
-  }));
+  };
+}
+
+export function buildHomeView(input: HomeInput): HomeView {
+  const { ctx, hosted, siteUrl } = input;
+  const led = leadOf(
+    hosted,
+    ctx.today,
+    input.rule ?? DEFAULT_RULE,
+    input.dayOfInstant,
+  );
+  const lead = led?.event ?? null;
+
+  const stage: StageView | null = lead
+    ? stageViewOf(
+        lead,
+        siteUrl,
+        input.stageReads?.id === lead.id ? input.stageReads : null,
+      )
+    : null;
+
+  const week = weekEvents(hosted, ctx.today).filter((e) => e.id !== lead?.id);
+  const inWeek = new Set(week.map((e) => e.id));
+
+  const weekCards: WeekCard[] = week.map((e) => weekCardOf(e, ctx, siteUrl));
+
+  const listed = hosted.filter((e) => e.id !== lead?.id);
+  const hostedRows: EventListRow[] = listed.map((e) =>
+    hostedRowOf(e, ctx, inWeek.has(e.id)),
+  );
   const seasons = seasonsOf(listed, ctx.today);
 
   const guestRows: EventListRow[] = [...input.guests]

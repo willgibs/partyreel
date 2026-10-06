@@ -244,8 +244,9 @@ describe("her order", () => {
       row({ id: "a", sortDate: "2026-09-01T10:00:00.000Z" }),
       row({ id: "b", sortDate: "2026-09-01T12:00:00+02:00" }),
     ];
-    // 12:00+02:00 is 10:00Z: the same instant, so the tie keeps the incoming order.
+    // 12:00+02:00 is 10:00Z: the same instant, so the tie falls to the ids, in whichever order the rows came.
     expect(ids(sorted(rows, "made", true))).toEqual(["a", "b"]);
+    expect(ids(sorted([...rows].reverse(), "made", true))).toEqual(["a", "b"]);
   });
 
   it("sorts by event date with the undated after the rest, whichever way it runs", () => {
@@ -312,6 +313,54 @@ describe("her order", () => {
       "door",
       "uploads",
       "quiet",
+    ]);
+  });
+
+  it("★ is a total order: equal names, instants and counts fall to the newest made and then the id, whatever order the rows arrive in", () => {
+    // crumbs-82's review: the dashboard recomposes her events around another lead on a press (the drawn lead's row joins the
+    // list last), and four events named alike came out `s2, s1, n0` there and `n0, s2, s1` from the server, because the
+    // name sort had no tie-break (this file's own header promises one).
+    const standups = [
+      row({
+        id: "n0",
+        name: "Weekly standup",
+        sortDate: "2026-10-04T09:00:00.000Z",
+      }),
+      row({
+        id: "s1",
+        name: "Weekly standup",
+        sortDate: "2026-10-01T09:00:00.000Z",
+      }),
+      row({
+        id: "s2",
+        name: "Weekly standup",
+        sortDate: "2026-10-01T09:00:00.000Z",
+      }),
+      row({
+        id: "s3",
+        name: "Weekly standup",
+        sortDate: "2026-10-03T09:00:00.000Z",
+      }),
+    ];
+    const arrivals = [
+      standups,
+      [...standups].reverse(),
+      [standups[2]!, standups[0]!, standups[3]!, standups[1]!],
+    ];
+    for (const sort of SORTS.map((s) => s.id))
+      for (const desc of [true, false]) {
+        const [first, ...rest] = arrivals.map((rows) =>
+          ids(sorted(rows, sort, desc)),
+        );
+        for (const other of rest)
+          expect(other, `${sort} ${desc}`).toEqual(first);
+      }
+    // The newest made leads among equal names, then the lower id among equal instants.
+    expect(ids(sorted(standups, "name", false))).toEqual([
+      "n0",
+      "s3",
+      "s1",
+      "s2",
     ]);
   });
 
@@ -512,6 +561,21 @@ describe("what the section offers", () => {
 });
 
 describe("the Recent row", () => {
+  it("falls to the id between two events opened in the same moment, whatever order they arrive in", () => {
+    const rows = [
+      row({ id: "b", openedAt: "2026-10-01T09:00:00.000Z" }),
+      row({ id: "a", openedAt: "2026-10-01T09:00:00.000Z" }),
+      row({ id: "c", openedAt: "2026-10-01T10:00:00.000Z" }),
+    ];
+    const set = new Set<string>();
+    expect(ids(recentRowsOf(rows, set))).toEqual(["c", "a", "b"]);
+    expect(ids(recentRowsOf([...rows].reverse(), set))).toEqual([
+      "c",
+      "a",
+      "b",
+    ]);
+  });
+
   const rows = [
     row({ id: "stage-adjacent", openedAt: "2026-10-02T09:00:00.000Z" }),
     row({ id: "week", openedAt: "2026-10-02T08:00:00.000Z" }),

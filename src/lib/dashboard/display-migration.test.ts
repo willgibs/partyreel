@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { DISPLAY_DEFAULT, storedDisplay } from "./display";
+import { withLead } from "./lead";
 
 /**
  * THE DISPLAY MIGRATION'S LOAD-BEARING FACTS (host-dashboard r3, `20261004130000_dashboard_display.sql`), pinned the
@@ -52,6 +53,32 @@ describe("the display migration", () => {
       recent: "folded",
     });
     expect(JSON.stringify(everything).length).toBeLessThanOrEqual(512);
+  });
+
+  it("★ holds her stage's rule beside them too, counted as the column counts: the bytes of the jsonb's own text", () => {
+    // The CHECK reads `events_display::text`, which prints a space after every colon and comma (`{"a": 1, "b": 2}`), so a
+    // `JSON.stringify` length undercounts it by two bytes a key: the rule shares the column with the Display's nine keys.
+    const everything = withLead(
+      storedDisplay({
+        layout: "table",
+        sort: "photos",
+        desc: false,
+        lens: "hosting",
+        when: "undated",
+        year: "2023",
+        group: "year",
+        scale: "l",
+        recent: "folded",
+      }),
+      "upcoming",
+    );
+    expect(Object.keys(everything)).toHaveLength(10);
+    const asJsonb = `{${Object.entries(everything)
+      .map(([k, v]) => `${JSON.stringify(k)}: ${JSON.stringify(v)}`)
+      .join(", ")}}`;
+    expect(new TextEncoder().encode(asJsonb).length).toBeLessThanOrEqual(512);
+    // And with room to spare, so a key learned tomorrow does not need a migration either.
+    expect(new TextEncoder().encode(asJsonb).length).toBeLessThanOrEqual(256);
   });
 
   it("gives her opens a nullable finite timestamp on the event", () => {

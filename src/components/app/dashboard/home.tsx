@@ -1,18 +1,12 @@
 import type { ReactNode } from "react";
 
-import { EventsEmptyTeaser } from "@/components/app/dashboard/events-empty-teaser";
-import { EventsSection } from "@/components/app/dashboard/events-section";
+import { HomeBody } from "@/components/app/dashboard/home-body";
 import { HomeHead } from "@/components/app/dashboard/home-head";
 import { HomeShell } from "@/components/app/dashboard/home-shell";
-import { Stage } from "@/components/app/dashboard/stage";
-import { WeekRow } from "@/components/app/dashboard/week-row";
-import {
-  type Display,
-  RECENT_FROM,
-  recentRowsOf,
-} from "@/lib/dashboard/display";
+import type { Display } from "@/lib/dashboard/display";
 import type { HomeContext } from "@/lib/dashboard/home-event";
 import type { HomeView } from "@/lib/dashboard/home-view";
+import { drawnOf, type Leading } from "@/lib/dashboard/leading";
 
 /**
  * THE HOST'S HOME, COMPOSED (host-dashboard r1, Will 2026-10-02): the day and its slim head, the party
@@ -24,13 +18,19 @@ import type { HomeView } from "@/lib/dashboard/home-view";
  * ★ JUST ARRIVED WENT (`arrivals=live`: "Doesn't need its own section for sure"): a party's photographs
  * land on its stage on its own day, and every other day the page is still.
  *
- * ★ EVERYTHING ELSE IS HERS TO SHAPE (host-dashboard r3, `events=menu`): the Recent row over her events,
- * decided here on the server (from seven events, the four she opened last, never the stage's or this week's),
- * and her events through her own Display, kept on her account and resolved before the first byte.
+ * ★ EVERYTHING ELSE IS HERS TO SHAPE (host-dashboard r3, `events=menu`): the Recent row over her events (from seven
+ * events, the four she opened last, never the stage's or this week's), and her events through her own Display, kept on
+ * her account and resolved before the first byte.
+ *
+ * ★ WHAT LEADS THE STAGE IS HERS TOO (host-dashboard r4, `chooser=words`), so everything under the head is composed on
+ * the client (`home-body.tsx`) around whatever her rule leads with: a press of another rule moves the stage, the week and
+ * her events in the same frame, from what this server render sends (`leading`), and the Recent row follows them. This
+ * file keeps what only the server can draw, in its own slot, and the head.
  */
 export function DashboardHome({
   head,
   view,
+  leading = null,
   ctx,
   owner,
   display,
@@ -41,6 +41,8 @@ export function DashboardHome({
 }: {
   head: { day: string; line: string };
   view: HomeView;
+  /** What moving the stage to another rule's event takes, or null where she has no choice (`leadingOf`). */
+  leading?: Leading | null;
   ctx: HomeContext;
   /** Whose home this is (her profile's id), for what the browser remembers of it. */
   owner: string;
@@ -55,14 +57,6 @@ export function DashboardHome({
   /** The claims review's line and the page invite, above the events. */
   notes?: ReactNode;
 }) {
-  const { stage, week, events } = view;
-  // From seven events (hers hosted and added to, the stage's included) the Recent row is worth its place.
-  const total =
-    events.rows.filter((r) => r.kind !== "deleted").length + (stage ? 1 : 0);
-  const recent =
-    total >= RECENT_FROM
-      ? recentRowsOf(events.rows, new Set(week.map((c) => c.id)))
-      : [];
   return (
     // ★ WIDE, LIKE THE ALBUM (his `album-columns` note): `data-app-wide` drops the shell's 1280 cap and
     // takes the album's gutter, and every grid below grows its columns with the window. It is also where an
@@ -71,31 +65,15 @@ export function DashboardHome({
       {top}
       <HomeHead day={head.day} line={head.line} storage={storage} />
       {alert}
-      {stage && (
-        <Stage
-          // A new party of the moment is a new stage: its live state never carries over.
-          key={stage.event.id}
-          event={stage.event}
-          ctx={ctx}
-          guests={stage.guests}
-          photos={stage.photos}
-          share={stage.share}
-          qrToken={stage.event.qrToken}
-        />
-      )}
-      <WeekRow cards={week} />
-      {notes}
-      {view.hasAny ? (
-        <EventsSection
-          rows={events.rows}
-          today={ctx.today}
-          owner={owner}
-          initial={display}
-          recent={recent}
-        />
-      ) : (
-        <EventsEmptyTeaser />
-      )}
+      <HomeBody
+        drawn={drawnOf(view)}
+        hasAny={view.hasAny}
+        ctx={ctx}
+        owner={owner}
+        display={display}
+        leading={leading}
+        notes={notes}
+      />
     </HomeShell>
   );
 }

@@ -606,7 +606,6 @@ function FollowUp({ next }: { next: ClaimedEventNext }) {
       {next.host && (
         <FollowButton
           profileId={next.host.id}
-          slug={next.host.slug}
           initialFollowing={next.host.following}
           quiet
           size="xs"

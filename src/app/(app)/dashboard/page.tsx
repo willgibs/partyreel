@@ -34,9 +34,11 @@ import type { HomeContext } from "@/lib/dashboard/home-event";
 import {
   buildHomeView,
   type DeletedEvent,
+  type HomeInput,
   type HostedEvent,
 } from "@/lib/dashboard/home-view";
-import { momentEvent } from "@/lib/dashboard/moment";
+import { hasChoice, leadFrom, leadOf, leadsOf } from "@/lib/dashboard/lead";
+import { leadingOf } from "@/lib/dashboard/leading";
 import { type StagePhoto, WALL_PHOTOS } from "@/lib/dashboard/stage";
 import {
   calendarDayInZone,
@@ -101,6 +103,13 @@ const HOUR_MS = 60 * 60 * 1000;
  */
 const READY_READS = 12;
 
+/**
+ * A rule's press moves the stage to the event another rule leads with, so those events (at most three besides the
+ * stage's own) are asked readiness's reads too, beside the bound above and never inside it: a planner's week of parties
+ * keeps every read it had.
+ */
+const ALTERNATE_READS = 3;
+
 /** At most this many events on their day are counted for the busier rule and the pulse. */
 const DAY_READS = 6;
 
@@ -120,6 +129,11 @@ function quietly<T>(seam: string, fallback: T) {
  * its one step, then everything else as she shapes it (her Display, kept on her account and read here with her
  * profile). The composition is `components/app/dashboard/home.tsx` and every rule under it is pure and pinned
  * (`lib/dashboard/`); this page reads, in rounds that each ask only what the one before showed the page will say.
+ *
+ * ★ WHAT LEADS THE STAGE IS HER RULE'S (host-dashboard r4, `chooser=words`): Newest, which is the moment above, unless she
+ * chose Upcoming, Last opened or Latest photos (`lead.ts`, kept beside her Display on her account). With no party on
+ * its day and more than one event, the page also sends what moving the stage to another rule's event takes
+ * (`leading.ts`), so her press changes the stage in the same frame and costs the server nothing.
  *
  * ★ THE REASON, IN HIS WORDS: "in 1 event dashboards (which every user will experience creating their
  * first and only event, until adding more), the experience feels much more alive that expecting many
@@ -187,6 +201,11 @@ export default async function DashboardPage({
   );
   const now = new Date().getTime();
   const { today, startOfTodayMs, hour } = calendarDayInZone(now, viewerZone);
+
+  // Her stage's rule, kept beside her Display (`profiles.events_display`, narrowed on every read), and the day an event
+  // was made as the viewer's own calendar day: the rule's facts are hers, never the server's.
+  const rule = leadFrom(profile?.events_display);
+  const madeDay = (iso: string) => dayInZone(Date.parse(iso), viewerZone);
 
   const eventIds = events.map((e) => e.id);
   // The covers and the stills each tile dissolves through, the bin's covers, the counts, how far each
@@ -297,8 +316,10 @@ export default async function DashboardPage({
   const onTheirDay = hosted
     .filter((e) => phaseOfEvent(e, today) === "live")
     .slice(0, DAY_READS);
-  // With nothing on its day, the moment needs no count, so it is known now.
-  const settled = onTheirDay.length === 0 ? momentEvent(hosted, today) : null;
+  // With nothing on its day, the lead needs no count (the busier rule is only for parties on one night), so it is known
+  // now: her rule's event.
+  const settled =
+    onTheirDay.length === 0 ? leadOf(hosted, today, rule, madeDay) : null;
   const readyIds = [
     ...(settled?.phase === "before" ? [settled.event] : []),
     ...weekEvents(hosted, today).filter((e) => daysFrom(today, e.date!) > 0),
@@ -306,6 +327,17 @@ export default async function DashboardPage({
     .map((e) => e.id)
     .filter((id, i, all) => all.indexOf(id) === i)
     .slice(0, READY_READS);
+  // The events her other rules would lead with, before their day, so a press that moves the stage to one draws it whole
+  // (its rail and its ticks), where an unread fact would be no step at all. Only where she has a choice to make.
+  if (hasChoice(hosted, today)) {
+    const alternates = Object.values(leadsOf(hosted, today, madeDay)!)
+      .map((l) => l.event)
+      .filter((e) => phaseOfEvent(e, today) === "before")
+      .map((e) => e.id)
+      .filter((id, i, all) => all.indexOf(id) === i && !readyIds.includes(id))
+      .slice(0, ALTERNATE_READS);
+    readyIds.push(...alternates);
+  }
   const closedIds = readyIds.filter(
     (id) => hosted.find((e) => e.id === id)?.door === "closed",
   );
@@ -389,7 +421,7 @@ export default async function DashboardPage({
   });
 
   // Two or more on one night: the busier leads (the counts above decide), and only then is its stage read.
-  const lead = momentEvent(hosted, today)?.event ?? null;
+  const lead = leadOf(hosted, today, rule, madeDay)?.event ?? null;
   const stageFacts =
     earlyStage && lead && earlyStage.id === lead.id
       ? earlyStage
@@ -410,14 +442,19 @@ export default async function DashboardPage({
     countdown: binCountdownLabel(event.countdownDays),
   }));
 
-  const view = buildHomeView({
+  const homeInput: HomeInput = {
     ctx,
     hosted,
     guests: guestCards,
     deleted,
     siteUrl,
     stageReads: stageFacts,
-  });
+    rule,
+    dayOfInstant: madeDay,
+  };
+  const view = buildHomeView(homeInput);
+  // What a press of another rule takes (null where she has no choice: one event, or a party on its day).
+  const leading = leadingOf(homeInput, view);
 
   // THE PAGE SETUP'S INVITATION (`identity-profile` r1, `prompt=claim`), decided from server facts alone
   // (account/profile/invite.ts). The read of what her page could show runs only when it could still
@@ -456,6 +493,7 @@ export default async function DashboardPage({
     <DashboardHome
       head={{ day: longDate(today), line: `${counted} · ${planName}` }}
       view={view}
+      leading={leading}
       ctx={ctx}
       owner={profile?.id ?? ""}
       display={resolveDisplay(profile?.events_display)}
