@@ -21,8 +21,8 @@ Nothing is protected: every page, the host app and the guest pages are open to b
   the hub's doors as cards; Settings' roll; Back a layer at a time; the dashboard's chooser; the pass credit's integrity
   and stuck watch; the backup restoring and reconciling again; Drive's fixes and hardening; the lab's frames held still.
 - **Red-team 56** walked it (no HIGH, one MEDIUM, small findings) and crumbs-85 fixed them; billing-orphans (gate 46)
-  and drive-crumbs (gate 47) landed the last of milestone 38's work. Red-team 56b re-walks the tip, then milestone 38
-  on Will's yes, where Drive's Worker and the `partyreel-backup` Worker deploy (`tracks/orchestrator.md`, Next).
+  and drive-crumbs (gate 47) landed the last of milestone 38's work; red-team 56b re-walked it (no HIGH or MEDIUM).
+  Milestone 38 waits on Will's yes, where Drive's and the backup's Workers deploy (`tracks/orchestrator.md`).
 - **The Orchestrator sits in a cloud session** on hi@willgibs.com's account (Will's $250 credit), each lane in its own.
 - **Vercel's Hobby Active CPU** reads about 3.89 of 4 hours over 30 days (2026-10-06; the peak rolls off in early
   November): nothing of ours runs on Vercel but what Will asks for by name; desks and red-teams run locally (`CLAUDE.md`).

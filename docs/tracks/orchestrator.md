@@ -32,11 +32,10 @@ session of its own (the runbook's "Cut a lane", step 4); none can message back, 
 
 | lane | what | state | model | session |
 | --- | --- | --- | --- | --- |
-| `redteam-56b` | red-team 56b on milestone 38's whole tip: crumbs-85's MEDIUM re-walked, the bursts, the house set and the halo's Tab walk, the album's time, the roll, marketing's pictures, the 404s, the regressions | RUNNING since 19:03Z on `28ac0f813`, its boot reading the environment as it stands (the first session, `session_01KZTtpNFbXk3YiQS79BqG9j`, walked nothing: its permission check refused four boot steps that overrode the environment, until Will set the localhost site URL, `CHROME_PATH` and `NODE_USE_ENV_PROXY` there); its report is its `result` event, its MEDIUM-or-worse lines in its events as it walks | Opus | `session_01Bn45Y2nTKbfTSXZsoCPGMT` |
 | `marketing-crumbs` | nine marketing lines: today's product in the site's words and pictures, the postmark, the cinema 404, the demo modal on the popup, three wells | HANDED OFF at `adaa07645` (18:42Z); integrates after milestone 38 | Opus | `session_01YKZtbayaXAkLj5ZQSZabgU` |
-| `upload-sums` | per-event byte sums in SQL (PRICING.md's lever 7): an upload's three reads and the size list stop walking every item; one migration (`20261006180000_upload_sums.sql`) through the Advisor | RUNNING since 17:48Z (cut at `567e8710`); integrates after milestone 38 | Opus | `session_01XwyY3CKaLeoiXrtikFMvXb` |
-| `crumbs-86` | ten small things: the 404s' one noindex, the host's capture clock, See it as a guest's zone and words, Create's seeding, billing's seam, two Library specimens, lifecycle comments, Blocked's address; no migration | RUNNING since 17:48Z (cut at `567e8710`); integrates after milestone 38 | Opus | `session_01NdLRsbCC4Nknxu3h5cbE8f` |
-| `halo-last` | the halo and the working words at the four call sites that waited on their lanes: pricing's three focus rings and its "Opening billing", Drive's album picker and its "Starting" | RUNNING since 18:36Z (cut at `28ac0f81`); integrates after milestone 38 | Sonnet | `session_01AP6FaNfAyNyBG8FUkqkX6h` |
+| `upload-sums` | per-event byte sums in SQL (PRICING.md's lever 7): an upload's three reads and the size list stop walking every item; one migration (`20261006180000_upload_sums.sql`) through the Advisor | HANDED OFF at `96f3e80ba`; integrates after milestone 38, its migration through the Advisor and its proofs here | Opus | `session_01XwyY3CKaLeoiXrtikFMvXb` |
+| `crumbs-86` | ten small things: the 404s' one noindex, the host's capture clock, See it as a guest's zone and words, Create's seeding, billing's seam, two Library specimens, lifecycle comments, Blocked's address; no migration | HANDED OFF at `3f459b91b`; integrates after milestone 38 | Opus | `session_01NdLRsbCC4Nknxu3h5cbE8f` |
+| `halo-last` | the halo and the working words at the four call sites that waited on their lanes: pricing's three focus rings and its "Opening billing", Drive's album picker and its "Starting" | HANDED OFF at `3075d32d5`; integrates after milestone 38 | Sonnet | `session_01AP6FaNfAyNyBG8FUkqkX6h` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor") read billing_orphans and drive_marks, both
 applied (2026-10-06); its caveats are ROADMAP lines. A successor respawns it from `usher/kit/advisor-prompt.txt` for the
@@ -71,14 +70,13 @@ and another account's sessions.
 
 ## Next, in order
 
-1. **Red-team 56b** walks `28ac0f813` (In flight); its report is its
-   `result` event, and each MEDIUM-or-worse line shows in its events as it walks. Rows it names for a read-back are
-   read here (SELECT, on Will's Allow). Its findings go to a crumbs lane; with no HIGH, **milestone 38** goes to Will
-   for his yes: the `FULL=1` gate here, `pnpm compute:model` (a lane, since it needs the real services), merge to
-   `main`, tag, push (production deploys from the push); then the Drive and backup Workers (`wrangler`: Will's Mac, or
-   a Cloudflare token in the environment) and `DRIVE_WORKER_URL` and `BACKUP_WORKER_URL` on Vercel; Drive's live walk
-   (P3's Google consent, Will's hand: drive-crumbs' Handoff lists what to press). The Advisor wants 38 soon: milestone
-   37's build re-grants a Pro credit past a day (TEST money).
+1. **Milestone 38 on Will's yes.** Red-team 56b walked `28ac0f813` (20:02Z): no HIGH or MEDIUM, eight walks PASS, two
+   LOWs, three NITs and one unexplained cookie loss (ROADMAP's Now, for the crumbs lane cut after the second wave
+   merges); its burst walk's read-back holds 92 rows, each once. On his yes: the `FULL=1` gate here (gate 51 runs ahead
+   on the record's tip), `pnpm compute:model`, merge to `main`, tag, push (production deploys from the push); then the
+   Drive and backup Workers (`wrangler`: Will's Mac, or a Cloudflare token in the environment) and `DRIVE_WORKER_URL`
+   and `BACKUP_WORKER_URL` on Vercel; Drive's live walk (P3's Google consent, Will's hand: drive-crumbs' Handoff lists
+   what to press). The Advisor wants 38 soon: milestone 37's build re-grants a Pro credit past a day (TEST money).
 2. **Lanes run:** desk 7's two boards merge as they hand off (dev-only); the second wave (marketing-crumbs, upload-sums,
    crumbs-86) and halo-last integrate after milestone 38's merge, so what ships is what red-team 56b walked;
    upload-sums' migration goes through the Advisor, then its drift read, RED, GREEN and apply here. A `send_later`

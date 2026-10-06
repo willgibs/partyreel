@@ -17,6 +17,12 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Settings: the sheet's overflow-hidden box clips the focus halo on the door switches, the Max size select, the Cinematic card and "3 seconds", at 375 and 1440 (`?room=settings&setting=door`) (red-team 56b, LOW).
+- Reel: the live reel's "Hide the controls" takes focus with no visible indicator, and Tab stops moving at "Make your own" (Shift+Tab still moves) (red-team 56b, LOW).
+- Create: at a roll of 1 the Disposable card reads "1 shots each" (red-team 56b, NIT).
+- Routing: an unknown `/e/…` or `/u/…` link answers HTTP 200 with its noindex page rather than a 404 status (red-team 56b, NIT).
+- Uploads: a complete sent the instant a dropped line came back hung about 2 minutes before its retry (red-team 56b, NIT).
+- Auth: around 19:19Z on 2026-10-06 a red-team's host sign-in cookies and two guests' welcome cookies vanished in three browser contexts at once (the guests' httpOnly cookie survived), with no request or action of theirs; once, not seen again in 40 minutes; another session signing willg97 out may explain it (red-team 56b, unexplained).
 - Profile: the public page's meta row orphans its `·` at 375 when the handle is long (`u/[slug]/page.tsx`: `@jordanpike ·`, then `Joined …` on the next line); the separator should travel with what follows it, seen drawing account-moments r1 (account-moments-r1).
 - Drive (next): a check page throttled before its folder's duplicate listing skips the count, and once its cursor has moved no later page counts it (`first` is "cursor null"); count once a walk on the first page that answers (drive-crumbs).
 - Drive: the closing check asks a non-rate `unknown` again every 90 s with no growth for the hour before a send reads Stuck; the Worker's cadence could back off on a repeated unknown (the Advisor; drive-crumbs).
