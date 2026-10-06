@@ -240,3 +240,46 @@ describe("what the judgement mirrors, held to its homes", () => {
     expect(hub).toContain(DEVELOP_NOW_QUESTION);
   });
 });
+
+/* ★ A PARTY FAR FROM HOME (event-zone): the field holds the party's wall clock, so what she finished is read on it, and the
+   same judgement stands (a half-typed year, reach, the past). Every case names its zone: none reads the machine's. */
+describe("judgeDevelopTime on the party's clock (a party far from home)", () => {
+  const MX = "America/Mexico_City";
+  const NOW_UTC = Date.parse("2026-10-02T20:00:00Z");
+
+  it("★ reads what she finished as the party's wall time: 9:00 typed is 9 am in Mexico City", () => {
+    expect(
+      judgeDevelopTime({
+        typed: "2026-10-04T09:00",
+        shown: "",
+        developsAt: null,
+        nowMs: NOW_UTC,
+        zone: MX,
+      }),
+    ).toEqual({ kind: "save", iso: "2026-10-04T15:00:00.000Z" });
+  });
+
+  it("keeps every refusal it had: a half-typed year, a time out of reach, a time passed", () => {
+    const at = (typed: string) =>
+      judgeDevelopTime({
+        typed,
+        shown: "",
+        developsAt: null,
+        nowMs: NOW_UTC,
+        zone: MX,
+      });
+    expect(at("0202-10-04T09:00")).toEqual({
+      kind: "refuse",
+      words: DATE_OUT_OF_RANGE,
+    });
+    expect(at("2028-10-04T09:00")).toEqual({
+      kind: "refuse",
+      words: TIME_OUT_OF_REACH,
+    });
+    // 13:59 in Mexico City is 19:59 UTC: before now, on an album with nothing waiting.
+    expect(at("2026-10-02T13:59")).toEqual({
+      kind: "refuse",
+      words: TIME_HAS_PASSED,
+    });
+  });
+});

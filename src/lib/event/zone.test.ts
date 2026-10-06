@@ -6,7 +6,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  browserZone,
   deviceZone,
+  farZone,
   hostPartyZone,
   PARTY_ZONE_FALLBACK,
   partyZoneOf,
@@ -22,12 +24,9 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-/** This runtime's own zone, as a browser would name it, made to answer `zone` for one case. */
+/** Her browser's own name for its zone, made to answer `zone` for one case. */
 function deviceSays(zone: string | undefined) {
-  vi.spyOn(Intl.DateTimeFormat.prototype, "resolvedOptions").mockReturnValue({
-    ...new Intl.DateTimeFormat("en-US", { timeZone: "UTC" }).resolvedOptions(),
-    timeZone: zone as string,
-  });
+  vi.spyOn(browserZone, "zoneName").mockReturnValue(zone);
 }
 
 describe("readableZone: only a zone this runtime reads, in its own spelling", () => {
@@ -103,6 +102,24 @@ describe("the host's own zone", () => {
     vi.restoreAllMocks();
     deviceSays("Etc/Unknown");
     expect(hostPartyZone(null)).toBeNull();
+  });
+});
+
+describe("farZone: a party far from home, and only then", () => {
+  it("★ names the party's zone where it is not hers, and nothing where it is (a host who never travels never sees a zone)", () => {
+    deviceSays("America/Los_Angeles");
+    expect(farZone("America/Mexico_City")).toBe("America/Mexico_City");
+    expect(farZone("America/Los_Angeles")).toBeNull();
+    // One zone, two spellings: still hers.
+    expect(farZone("US/Pacific")).toBeNull();
+    // No zone, or one the runtime cannot read: hers.
+    expect(farZone(null)).toBeNull();
+    expect(farZone("Mars/Olympus")).toBeNull();
+  });
+
+  it("a browser that names no zone reads every party's zone as far, so the place is always said", () => {
+    deviceSays("Etc/Unknown");
+    expect(farZone("Europe/London")).toBe("Europe/London");
   });
 });
 

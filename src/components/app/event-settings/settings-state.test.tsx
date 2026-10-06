@@ -26,6 +26,7 @@ vi.mock("@/app/(app)/dashboard/[eventId]/actions", () => ({
 }));
 
 const { SettingsProvider, useSettings } = await import("./settings-state");
+const { browserZone } = await import("@/lib/event/zone");
 type Writes = NonNullable<
   React.ComponentProps<typeof SettingsProvider>["writes"]
 >;
@@ -200,12 +201,7 @@ describe("only the newest save of a setting answers for it, a throw included", (
 describe("the party's zone on a save of a time", () => {
   /** Her browser names `zone`, for the save's capture. */
   function deviceSays(zone: string) {
-    vi.spyOn(Intl.DateTimeFormat.prototype, "resolvedOptions").mockReturnValue({
-      ...new Intl.DateTimeFormat("en-US", {
-        timeZone: "UTC",
-      }).resolvedOptions(),
-      timeZone: zone,
-    });
+    vi.spyOn(browserZone, "zoneName").mockReturnValue(zone);
   }
   function mountZoned(timeZone: string | null) {
     const updateEvent = vi.fn().mockResolvedValue({ ok: true });

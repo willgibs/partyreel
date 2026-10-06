@@ -48,8 +48,9 @@ import type { Capture } from "@/lib/disposable/facts";
 import { developState, revealOf, type Reveal } from "@/lib/disposable/reveal";
 import { ROLL_SHOTS } from "@/lib/disposable/roll";
 import { useWaitClock } from "@/lib/disposable/use-wait-clock";
-import { hostPartyZone } from "@/lib/event/zone";
+import { farZone, hostPartyZone } from "@/lib/event/zone";
 import { developToKeep } from "@/lib/event/zone-morning";
+import { toZoneInput, zoneTimeWords, zoneWhen } from "@/lib/event/zone-words";
 import { developsWhen } from "@/lib/guest/camera/words";
 import { useHydrated } from "@/lib/shared/use-hydrated";
 import { cn } from "@/lib/utils";
@@ -81,7 +82,10 @@ import { cn } from "@/lib/utils";
  * (`camera-settings-develop-time.ts`), so the two never say different things.
  *
  * Times are the host's own: the develop time is shown and picked in her browser's zone (`datetime-local`), and stays
- * blank until hydration, since the server cannot know what "9 am" means to her.
+ * blank until hydration, since the server cannot know what "9 am" means to her. ★ A PARTY FAR FROM HOME (event-zone):
+ * where the party's zone is not hers (`farZone`), every time here is the party's clock and names its place ("Develops
+ * Sat, Oct 3, 9:00 AM in Mexico City"), the field takes the party's clock too, and a default develop is the party's 9 am
+ * (`developToKeep`), so what she reads is the morning her guests will live.
  */
 
 export type CaptureAndRevealValue = {
@@ -248,6 +252,8 @@ export function styleConsequenceWords(
   c: StyleConsequence,
   developsAt: string | null,
   nowMs: number | null,
+  /** The party's zone where it is not hers (`farZone`): the when is then its clock, its place named. */
+  far: string | null = null,
 ): { line: string; confirm: string } {
   if (c.kind === "show-waiting") {
     return {
@@ -263,7 +269,9 @@ export function styleConsequenceWords(
     };
   }
   const when =
-    nowMs !== null && developsAt ? ` ${developsWhen(developsAt, nowMs)}` : "";
+    nowMs !== null && developsAt
+      ? ` ${far ? zoneWhen(developsAt, far) : developsWhen(developsAt, nowMs)}`
+      : "";
   return {
     line: `${people(c.count)} under review ${one ? "joins" : "join"} the roll: approved, ${one ? "it develops" : "they develop"} with everyone's${when}, and ${one ? "its guest" : "their guests"} can still take ${one ? "it" : "them"} back before then.`,
     confirm: "Add them to the roll",
@@ -296,11 +304,14 @@ export function AlbumStyles({
   const labelId = useId();
   const style = styleOf(value);
   const [pending, setPending] = useState<PendingStyle | null>(null);
+  // The party's zone where it is not hers: her browser's answer, so only once hydrated (event-zone).
+  const far = hydrated ? farZone(partyZone) : null;
   // ★ THE TIME'S FIELD STATE STANDS HERE, not in the row that comes and goes with the time: a style switch that clears
   // the time removes the row, and what she had typed over it must go with the time, never write itself back at the close.
   const time = useDevelopTime({
     developsAt: value.developsAt,
     hydrated,
+    zone: far,
     onSave: (developsAt) => onSave({ developsAt }),
   });
   /** Every write but the time's own: one that changes when everyone sees makes whatever she was typing moot. */
@@ -349,6 +360,7 @@ export function AlbumStyles({
         pending.consequence,
         pending.patch.developsAt,
         nowMs,
+        far,
       )
     : null;
 
@@ -397,6 +409,7 @@ export function AlbumStyles({
               review={value.review}
               hydrated={hydrated}
               saving={savingReveal}
+              far={far}
             />
           </StackSetting>
         ) : null}
@@ -408,7 +421,7 @@ export function AlbumStyles({
         // Will's `both=never`: a disposable's check is her cover, lifted before it develops; never a queue to clear.
         <SettingsNote>
           <span data-look-note="">
-            {`Before it develops ${developsWhen(value.developsAt, nowMs!)}, look under the cover on your event page to take anything out. Need longer? Move the develop time.`}
+            {`Before it develops ${far ? zoneWhen(value.developsAt, far) : developsWhen(value.developsAt, nowMs!)}, look under the cover on your event page to take anything out. Need longer? Move the develop time.`}
           </span>
         </SettingsNote>
       ) : null}
@@ -572,10 +585,12 @@ export function CaptureAndReveal({
 }) {
   const hydrated = useHydrated();
   const [pending, setPending] = useState<Pending>(null);
+  const far = hydrated ? farZone(partyZone) : null;
   // The develop time standing in this control's own card (`timeElsewhere` leaves it to the page's row, where it is idle).
   const time = useDevelopTime({
     developsAt: value.developsAt,
     hydrated,
+    zone: far,
     onSave: (developsAt) => onSave({ developsAt }),
   });
   const reveal = revealOf(value);
@@ -690,6 +705,7 @@ export function CaptureAndReveal({
                 review={value.review}
                 hydrated={hydrated}
                 saving={savingReveal}
+                far={far}
               />
             ) : null}
           </Choice>
@@ -822,13 +838,21 @@ const TIME_FIELD = ["time"] as const;
 function useDevelopTime({
   developsAt,
   hydrated,
+  zone,
   onSave,
 }: {
   developsAt: string | null;
   hydrated: boolean;
+  /** The party's zone where the field takes its clock (a party far from home), or null for hers. */
+  zone: string | null;
   onSave: (developsAt: string) => void;
 }) {
-  const shown = hydrated && developsAt ? toLocalInput(developsAt) : "";
+  const shown =
+    hydrated && developsAt
+      ? zone
+        ? toZoneInput(developsAt, zone)
+        : toLocalInput(developsAt)
+      : "";
   // What she typed and has not finished: the field shows it, nothing sends it.
   const [draft, setDraft] = useState<string | null>(null);
   // Why what she finished is not saved, said under the field.
@@ -843,6 +867,7 @@ function useDevelopTime({
       shown,
       developsAt,
       nowMs: Date.now(),
+      zone,
     });
     if (verdict.kind === "refuse") {
       // The draft stays in the field, marked, until she types again.
@@ -911,19 +936,27 @@ function DevelopTimeControl({
   review,
   hydrated,
   saving,
+  far,
 }: {
   time: DevelopTimeField;
   developsAt: string | null;
   review: boolean;
   hydrated: boolean;
   saving: boolean;
+  /** The party's zone where it is not hers: the time is its clock, its place named. */
+  far: string | null;
 }) {
   const state = hydrated ? developState(developsAt).kind : "none";
   const fieldId = useId();
   const lineId = `${fieldId}-line`;
   const refusalId = `${fieldId}-refusal`;
-  // Said in her own zone, so only after hydration: the server cannot know what "9 am" means to her.
-  const when = hydrated ? developTimeWords(developsAt) : null;
+  // Said in her own zone, so only after hydration: the server cannot know what "9 am" means to her. A party far from home
+  // says its own clock and names where (event-zone).
+  const when = hydrated
+    ? far
+      ? zoneTimeWords(developsAt, far)
+      : developTimeWords(developsAt)
+    : null;
 
   return (
     <div className="space-y-2">

@@ -10,6 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PICK_SETTLE_MS } from "@/components/app/event-settings/camera-settings-finish";
 import { developTimeWords } from "@/lib/disposable/develop-words";
 import { defaultDevelopAt } from "@/lib/disposable/reveal";
+import { browserZone } from "@/lib/event/zone";
 
 // The bound control's Settings state reaches the server's actions; the mountable one under test takes a save.
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
@@ -880,5 +881,79 @@ describe("the same guard stands where the control carries its own time (Customiz
     leave(field);
     expect(onSave).not.toHaveBeenCalled();
     expect(screen.getByText(DEVELOP_NOW_LINE)).toBeInTheDocument();
+  });
+});
+
+/* ★ A PARTY FAR FROM HOME (event-zone): where the party's zone is not hers, the develop time is the party's clock and names
+   its place, the field takes that clock, and a develop offered is the party's 9 am; where the zones agree, nothing
+   changes. Her browser's zone is named for each case, so none reads the machine's. */
+describe("★ a party far from home: its clock, its place named", () => {
+  const MX = "America/Mexico_City";
+  /** 9:00 on Sunday 4 October in Mexico City (UTC-6): 8:00 in Los Angeles. */
+  const MX_MORNING = "2026-10-04T15:00:00.000Z";
+
+  function hostIn(zone: string) {
+    vi.spyOn(browserZone, "zoneName").mockReturnValue(zone);
+  }
+
+  function mountFar(value: Partial<Value>, partyZone: string | null) {
+    const onSave = vi.fn();
+    render(
+      <CaptureAndReveal
+        value={{ capture: "camera", review: false, developsAt: null, ...value }}
+        rollSize={null}
+        eventDate="2026-10-09"
+        partyZone={partyZone}
+        heldCount={0}
+        savingCapture={false}
+        savingReveal={false}
+        onSave={onSave}
+      />,
+    );
+    return onSave;
+  }
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("★ says the party's clock and where: the line and the field both read 9 am in Mexico City", () => {
+    hostIn("America/Los_Angeles");
+    mountFar({ developsAt: MX_MORNING }, MX);
+    expect(
+      screen.getByText("Develops Sun, Oct 4, 9:00 AM in Mexico City."),
+    ).toBeInTheDocument();
+    expect(developField().value).toBe("2026-10-04T09:00");
+  });
+
+  it("★ a time she types is the party's: 10:30 typed saves 10:30 in Mexico City", () => {
+    hostIn("America/Los_Angeles");
+    const onSave = mountFar({ developsAt: MX_MORNING }, MX);
+    const field = developField();
+    fireEvent.change(field, { target: { value: "2026-10-05T10:30" } });
+    leave(field);
+    expect(onSave).toHaveBeenCalledWith({
+      developsAt: "2026-10-05T16:30:00.000Z",
+    });
+  });
+
+  it("★ a develop offered is the party's 9 am the morning after, the morning its album turns", () => {
+    hostIn("America/Los_Angeles");
+    const onSave = mountFar({ capture: "upload" }, MX);
+    fireEvent.click(radio("At a develop time"));
+    // The party's last day is Friday 9 October: Saturday the 10th, 9:00 in Mexico City.
+    expect(onSave).toHaveBeenCalledWith({
+      review: false,
+      developsAt: "2026-10-10T15:00:00.000Z",
+    });
+  });
+
+  it("a party at home says her own clock, as it always did (no place, no zone)", () => {
+    hostIn(MX);
+    mountFar({ developsAt: MX_MORNING }, MX);
+    expect(
+      screen.getByText(`Develops ${developTimeWords(MX_MORNING)}.`),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/in Mexico City/)).toBeNull();
   });
 });

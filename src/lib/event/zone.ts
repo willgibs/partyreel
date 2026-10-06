@@ -77,13 +77,22 @@ export function sameZone(
 }
 
 /**
+ * Where the browser's own name for its zone is read, the one place (a test names a host's zone by spying on
+ * `zoneName`, since bending `Intl` itself would bend `sameZone`'s own resolution too).
+ */
+export const browserZone = {
+  zoneName: (): string | undefined =>
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
+};
+
+/**
  * THE HOST'S OWN ZONE, as her browser names it, or null where it names none this runtime can read (an old engine, a
  * system zone it reports as "Etc/Unknown"). ★ A BROWSER'S ANSWER ONLY: called on the server it names the server's own
  * zone, so a caller reads it in an event handler or after hydration, never in a render the server also draws.
  */
 export function deviceZone(): string | null {
   try {
-    return readableZone(Intl.DateTimeFormat().resolvedOptions().timeZone);
+    return readableZone(browserZone.zoneName());
   } catch {
     return null;
   }
@@ -99,6 +108,17 @@ export function hostPartyZone(
   stored: string | null | undefined,
 ): string | null {
   return readableZone(stored) ?? deviceZone();
+}
+
+/**
+ * THE PARTY'S ZONE WHERE IT IS NOT THE HOST'S OWN (the far-from-home words, `zone-words.ts`): its readable zone when her
+ * browser names another (or none it can read), else null, and a time on her screens is then her own clock, as it always
+ * was. A browser's answer, like `deviceZone`: read after hydration.
+ */
+export function farZone(stored: string | null | undefined): string | null {
+  const party = readableZone(stored);
+  if (party === null) return null;
+  return sameZone(party, deviceZone()) ? null : party;
 }
 
 /**

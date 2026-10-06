@@ -22,7 +22,7 @@ import {
   STYLE_NAMES,
 } from "@/lib/disposable/album-style";
 import { ROLL_SHOTS } from "@/lib/disposable/roll";
-import { deviceZone } from "@/lib/event/zone";
+import { browserZone, deviceZone } from "@/lib/event/zone";
 import { developDefaultIn } from "@/lib/event/zone-morning";
 
 import { setReducedMotion } from "../../../../vitest.setup";
@@ -471,12 +471,7 @@ describe("useAddChoice: a style is one choice of three columns", () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date("2026-10-05T22:00:00Z"));
     // Her browser names Auckland: already the 6th there, so 9 am tomorrow is the 7th's, in Auckland.
-    vi.spyOn(Intl.DateTimeFormat.prototype, "resolvedOptions").mockReturnValue({
-      ...new Intl.DateTimeFormat("en-US", {
-        timeZone: "UTC",
-      }).resolvedOptions(),
-      timeZone: "Pacific/Auckland",
-    });
+    vi.spyOn(browserZone, "zoneName").mockReturnValue("Pacific/Auckland");
     const choice = mount();
     for (const name of [/^live\./i, /^review\./i]) {
       fireEvent.click(style(name));
@@ -492,12 +487,7 @@ describe("useAddChoice: a style is one choice of three columns", () => {
   });
 
   it("names no zone where her browser names none it can read (the party then turns in the one fallback)", () => {
-    vi.spyOn(Intl.DateTimeFormat.prototype, "resolvedOptions").mockReturnValue({
-      ...new Intl.DateTimeFormat("en-US", {
-        timeZone: "UTC",
-      }).resolvedOptions(),
-      timeZone: "Etc/Unknown",
-    });
+    vi.spyOn(browserZone, "zoneName").mockReturnValue("Etc/Unknown");
     const choice = mount();
     fireEvent.click(style(/^disposable\./i));
     expect("captured_zone" in choice().fields()).toBe(false);
