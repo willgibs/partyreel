@@ -29,6 +29,13 @@ its gate (below); `allow_videos` is the Videos switch, binding guests only, as `
   returns the id and token so the beat can draw the real code. Only the name is required; everything else is edited in
   Settings (below). The look step's codes are samples and say so on the code: they encode `previewJoinUrl`'s stand-in
   link, as long as a real one so the look is true, and it names nobody's album, so a test-scan meets a 404.
+- ★ **The party keeps its own time zone, captured, never asked** (`events.time_zone`, `lib/event/zone.ts`): Create sends
+  her browser's zone (`captured_zone`, every style), and the server stores it only where its runtime reads it (an
+  unreadable one is stored as none and reported, never a refused Create); a Settings save of a time (the dates, the
+  develop) carries hers to an event with none, written only under `time_zone is null`, so a date saved from anywhere
+  never moves a party's zone. Only her chosen city moves it (`time_zone`, refused in words if unreadable). Its album's
+  turn and its develop's 9 am read it ([guest-flow.md](guest-flow.md), [disposable-mode.md](disposable-mode.md)); a
+  host who never travels never sees it.
 - **The room is `fixed` over the (app) shell, whose bar steps aside in CSS** (`data-app-room` on the room, read by the
   header's `group-has-[[data-app-room]]/shell:hidden`, since a page cannot hand its layout a prop), so nothing of the
   app waits in the tab order behind Create.
@@ -236,6 +243,13 @@ hub and closes back to it.
   or a half-filled date never saves, said under the field in words (`event-page.tsx`'s `EventDatesField`; its tests type
   keystroke by keystroke in Chrome's own order). The develop time is finished the same way, by the one hook the two
   share (`useFinishedFields`, `camera-settings-finish.ts`; [disposable-mode.md](disposable-mode.md) for what it writes).
+- **A party far from home is one quiet choice under the dates** (`event-settings/party-zone.tsx`, never in Create):
+  where the party's zone is hers the row asks "Party in another time zone?" and names none; elsewhere it says whose
+  clock ("On Mexico City time · 4:12 PM there now", Change). The choice is a form popup that opens on her own zone and a
+  search finding a city, a country or a destination (`zone-places.ts`: each zone said as its city, the other names
+  matched by the zone they resolve to, since a browser lists ICU's legacy spellings), each row its city, its clock
+  there and the name it answered by; a pick is the one save of the zone. Her browser's answers, so drawn once
+  hydrated.
 - **A setting with no effect right now stays in view** as one quiet line under the switch that governs it
   (`ui/dormant.tsx`, `inert` while asleep), and a change that affects people already in says so in its own place
   before it happens (`ui/consequence-line.tsx`).
@@ -318,7 +332,9 @@ phone over the dimmed hub at a desk, the whole screen in a hand, closing onto th
   reads nothing.
 - ★ **A look, never a door** (`share/as-guest-view.tsx`): the guest page's own pieces in its order, the whole of it
   `inert`, so nothing pressed there writes as a guest, and none of the guest page's hands mounted (the door, the
-  upload queue, the keep, the claims, the tracker, the reel's controller).
+  upload queue, the keep, the claims, the tracker, the reel's controller). Its album opens in the order every guest
+  meets (`readAsGuest`'s `albumOrder`, the turn read in the party's zone and handed on as an instant), and Sort answers
+  nothing there, since a choice would write a guest's remembered order on her own device.
 
 ## The door, the host's side
 
