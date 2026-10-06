@@ -48,11 +48,12 @@ next migration (upload-sums').
   `--force-confold`, and the Chrome wrapper) since 17:45Z: lanes boot, build, sign in and drive Chrome.
 - Seated here: zsh, `node_modules`, the `--no-sandbox` wrapper `/usr/local/bin/chrome-ns` and `.env.local`, written from
   the environment by the spawn prompt's recipe.
-- ★ A worker restart (every 15 to 60 minutes) rebuilds the shell snapshot without the seat's four exports (`S`,
-  `CHROME_PATH`, `NODE_USE_ENV_PROXY`, the site URL's override): re-append them to the newest
-  `~/.claude/shell-snapshots/snapshot-*.sh` at each resume. The disk survives one, but a dev server it killed can leave
-  `.next/dev` half-written, and typecheck then fails inside it: `rm -rf .next/dev`. A background command reads no
-  export, so set them inside it.
+- ★ A worker restart (every 15 to 60 minutes) rebuilds the shell snapshot without the seat's exports: re-append `S` to
+  the newest `~/.claude/shell-snapshots/snapshot-*.sh` at each resume, and the three the environment carries since
+  19:00Z (the localhost site URL, `CHROME_PATH`, `NODE_USE_ENV_PROXY`, Will's) while this container predates them; a
+  lane reads them from the environment. The disk survives a restart, but a dev server it killed can leave `.next/dev`
+  half-written, and typecheck then fails inside it: `rm -rf .next/dev`. A background command reads no export, so set
+  them inside it.
 - The session's mode reads auto (Will's mode picker), so lanes spawn in auto; a child never exceeds its parent's mode.
 - SQL runs through the scoped connector `Superbase_Custom` (the runbook's "Migrations"), each call on Will's Allow.
 - The Vercel connector here sees the P3 team (`team_ht9qAVBQVZf60dpGNJUwmaj5`); Sentry and Stripe wait on their

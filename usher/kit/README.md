@@ -144,17 +144,18 @@ answer changes a call, the record says so, and a disagreement on a one-way door 
    big, ambiguous, multi-file work, Sonnet for fast, direct UI work.
    **From a cloud seat**, each lane is a cloud session of its own (`create_session`: `source_url` the repo,
    `source_revision` `launch-prep`, `outcome_branch` `lp/<track>`, the tag `partyreel-lane`, `permission_mode` `auto` (a
-   child is born in `default` otherwise), the model, and `spawn-prompt-cloud.txt` filled: `{track}`, and `{public_env}`
-   from this seat's `.env.local`); its session id is its In-flight row's agent. The server writes
-   `config:auto-create-pr:draft` and no tag changes it after, so every check-in lists open PRs (none opened in a night of
-   eleven lanes). A lane's permission check may refuse a boot step (the Chrome wrapper, `.env.local`, a `useradd`):
-   never worked around, by the lane or from this seat (this seat's own check names that an auto-mode bypass); the
-   environment's Setup script is where the wrapper belongs. A lane's final report is its `result` event (`list_events`
-   with `kinds: ["result"]`) and its cost `get_session`'s `usage.cost_usd`: a board lane ran $9 to $15, a production
-   lane $6 to $29. A probe on a small model needs its who and why, or it reads a bare list of commands as an
-   injection. A lane cannot message back, so its pushed head
-   (`git ls-remote origin lp/<track>`) and its last events (`list_events`) are how it reports, with a `send_later`
-   check-in while lanes run; its own container sets no limit on how many run, only the integrations' pace does.
+   child is born in `default` otherwise), the model, and `spawn-prompt-cloud.txt` filled: `{track}`); its session id is
+   its In-flight row's agent. The server writes `config:auto-create-pr:draft` and no tag changes it after, so every
+   check-in lists open PRs (none opened in a night of eleven lanes). A lane's permission check may refuse a boot step
+   (the Chrome wrapper, `.env.local`, a `useradd`): never worked around, by the lane or from this seat (this seat's own
+   check names that an auto-mode bypass); the environment's Setup script is where the wrapper belongs, and its variables
+   carry what a boot once overrode (the localhost site URL, `CHROME_PATH`, `NODE_USE_ENV_PROXY`), so no lane writes
+   `.env.local` or a snapshot. A lane's final report is its `result` event (`list_events` with `kinds: ["result"]`) and
+   its cost `get_session`'s `usage.cost_usd`: a board lane ran $9 to $15, a production lane $6 to $29. A probe on a
+   small model needs its who and why, or it reads a bare list of commands as an injection. A lane cannot message back,
+   so its pushed head (`git ls-remote origin lp/<track>`) and its last events (`list_events`) are how it reports, with a
+   `send_later` check-in while lanes run; its own container sets no limit on how many run, only the integrations' pace
+   does.
 
 ## Integrate a handoff (one lane on the tree at a time)
 
