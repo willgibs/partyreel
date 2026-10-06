@@ -117,7 +117,7 @@ const ICON_BUTTON = cn(
   "flex size-7 items-center justify-center rounded-[calc(var(--radius-action)*0.7)] outline-none",
   HAND_TARGET,
   "transition-[color,background-color,transform] duration-150 ease-emphasis",
-  "hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring",
+  "hover:bg-muted focus-halo",
   "active:scale-90! motion-reduce:active:scale-100!",
   "disabled:pointer-events-none disabled:opacity-50",
 );

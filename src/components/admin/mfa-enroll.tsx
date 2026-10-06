@@ -54,7 +54,7 @@ export function MfaEnroll() {
   }
 
   async function verify() {
-    if (!factorId || code.length !== 6) return;
+    if (!factorId || code.length !== 6 || busy) return;
     setBusy(true);
     try {
       const challenge = await supabase.auth.mfa.challenge({ factorId });
@@ -141,10 +141,12 @@ export function MfaEnroll() {
         />
         <Button
           className="w-full"
-          disabled={busy || code.length !== 6}
+          working={busy}
+          workingLabel="Verifying"
+          disabled={code.length !== 6}
           onClick={verify}
         >
-          {busy ? "Verifying..." : "Turn on two-factor"}
+          Turn on two-factor
         </Button>
       </div>
     </div>

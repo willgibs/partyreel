@@ -99,7 +99,7 @@ export function OperatorAlerts({
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label={total > 0 ? `Alerts, ${total} pending` : "Alerts"}
-        className="relative flex size-9 items-center justify-center rounded-full text-muted-foreground outline-none hover:bg-muted hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+        className="relative flex size-9 focus-halo items-center justify-center rounded-full text-muted-foreground outline-none hover:bg-muted hover:text-foreground"
       >
         <Bell className="size-5" />
         {total > 0 && (

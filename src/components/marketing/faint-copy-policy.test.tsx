@@ -6,12 +6,12 @@ import { HowMuchFits } from "@/components/marketing/sections/features/album/how-
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 /**
- * THE FAINT STEP WEARS CAPTIONS, NEVER COPY (mkt-polish, the a11y pass on `--faint`). `--faint` is 3.2:1
- * on the page and 2.9:1 on the mat (globals.css), a caption's grey: a timestamp, a count, an ordinal, a
- * label beside a value. Sentences had drifted onto it (the estimate's basis under the plans and under the
+ * THE FAINT STEP WEARS CAPTIONS, NEVER COPY (mkt-polish, the a11y pass on `--faint`). `--faint` is a
+ * caption's grey (5.0:1 on the page and 4.6:1 on the mat since a11y-halo lifted it to AA, globals.css): a
+ * timestamp, a count, an ordinal, a label beside a value, a step under the words. Sentences had drifted onto it (the estimate's basis under the plans and under the
  * album page's strip, the Event Pass's terms, Free's "No card", the configurator's yearly price and its
  * alternative, the unlock tiles' line on Free), and so had the size slider's only visible label, which
- * the design system already kept off it. Each moved up a step, to `--muted-foreground` (7.0:1 and 6.4:1).
+ * the design system already kept off it. Each moved up a step, to `--muted-foreground` (7.5:1 and 7.0:1).
  *
  * The rule is read off the rendered page, never the copy: a run of four words or more in faint text is a
  * sentence. Captions stay (≤ 3 words: "We recommend", "Storage", "1 GB"), and so does decoration.

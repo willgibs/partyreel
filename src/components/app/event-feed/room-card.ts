@@ -172,7 +172,7 @@ export function settingsCardFace({
  */
 export const ROOM_CARD_BASE = cn(
   "group flex shrink-0 flex-col justify-between rounded-xl border outline-none transition-all duration-200 ease-emphasis",
-  "focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.98] motion-reduce:active:scale-100",
+  "focus-halo active:scale-[0.98] motion-reduce:active:scale-100",
 );
 
 /** The retired tile's quiet border (the help center's picture). */

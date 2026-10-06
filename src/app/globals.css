@@ -129,10 +129,12 @@
      a hint are all dimmer than the second grey, and ~37 places used to fade it
      by hand with an alpha. An alpha composites against WHATEVER IS BEHIND IT,
      so the same line was a different grey on a card than on the page; one token
-     is one grey on all three grounds. Measured on this register: 3.64:1 on the
-     body, 3.87:1 on a card. That is a caption colour - never body copy, never
-     a control's only label, and never stacked with another alpha. */
-  --faint: oklch(0.6 0.006 286);
+     is one grey on all three grounds. A caption is still read, so it clears AA
+     (a11y-halo, from 0.6 at 3.64:1 on the body, 3.39:1 on the mat): 4.95:1 on
+     the body, 5.29:1 on a card, 4.61:1 on the mat (`.surface-mat`, 0.948), a
+     step lighter than --muted-foreground (7.48:1). Still a caption colour -
+     never body copy, never a control's only label, never stacked with an alpha. */
+  --faint: oklch(0.525 0.006 286);
   --accent: oklch(0.912 0.003 286);
   --accent-foreground: oklch(0.14 0.004 286);
   --destructive: oklch(0.56 0.21 27);
@@ -174,6 +176,13 @@
   --success-foreground: oklch(0.99 0 0);
   --warning: oklch(0.8 0.14 80);
   --warning-foreground: oklch(0.25 0.05 70);
+  /* THE WARNING'S WORDS (a11y-halo): the amber is a light, so on paper it is a
+     dot, a fill or a glyph and never a line of text (1.75:1 on the body). Its
+     words (`text-warning` reads this, theme.css's `--text-color-warning`) are
+     the same hue taken down to a bronze: 4.95:1 on the body, 5.3:1 on a card,
+     4.61:1 on the mat. A dark ground reads its own bright amber as words
+     (12.6:1 in the room), so every ground that turns dark restates it. */
+  --warning-ink: oklch(0.53 0.12 70);
   --info: oklch(0.62 0.15 250);
   --info-foreground: oklch(0.99 0 0);
   --like: oklch(0.63 0.21 15);
@@ -242,7 +251,8 @@
   --display-step: oklch(0.235 0.004 286);
   --display-foreground: oklch(0.975 0.002 286);
   --display-muted: oklch(0.72 0.005 286);
-  --display-faint: oklch(0.56 0.005 286);
+  /* The screen's caption grey at AA (a11y-halo, from 0.56): 5.31:1 on it, 4.58:1 on its step. */
+  --display-faint: oklch(0.62 0.005 286);
   --display-edge: oklch(1 0 0 / 11%);
   --display-input: oklch(1 0 0 / 20%);
   --display-cursor: oklch(1 0 0 / 50%);
@@ -382,9 +392,10 @@
   --secondary-foreground: oklch(0.97 0.002 286);
   --muted: oklch(0.125 0.004 286);
   --muted-foreground: oklch(0.71 0.006 286);
-  /* The third text step in the room (see :root). 3.92:1 on the room, 3.72:1 on
-     a card: a caption colour, never body copy. */
-  --faint: oklch(0.53 0.006 286);
+  /* The third text step in the room (see :root), at AA (a11y-halo, from 0.53
+     at 3.92:1): 5.06:1 on the room, 4.8:1 on a card, 4.64:1 on a dialog. A
+     caption colour, never body copy. */
+  --faint: oklch(0.59 0.006 286);
   --accent: oklch(0.245 0.004 286);
   --accent-foreground: oklch(0.97 0.002 286);
   --destructive: oklch(0.68 0.2 24);
@@ -414,6 +425,7 @@
   --success-foreground: oklch(0.13 0 0);
   --warning: oklch(0.84 0.14 82);
   --warning-foreground: oklch(0.25 0.05 70);
+  --warning-ink: oklch(0.84 0.14 82);
   --info: oklch(0.72 0.14 250);
   --info-foreground: oklch(0.13 0 0);
   --like: oklch(0.68 0.2 15);
@@ -442,7 +454,10 @@
   --display-step: oklch(0.355 0.005 286);
   --display-foreground: oklch(0.975 0.002 286);
   --display-muted: oklch(0.77 0.005 286);
-  --display-faint: oklch(0.62 0.005 286);
+  /* At AA on the lit screen (a11y-halo, from 0.62 at 3.88:1): 4.91:1. On its step (a row a pointer
+     holds) 3.88:1: AA there would need 0.722, a hair under --display-muted's 0.77, and the third step
+     would stop being a step. */
+  --display-faint: oklch(0.68 0.005 286);
   --display-edge: oklch(1 0 0 / 12%);
   --display-input: oklch(1 0 0 / 22%);
   --display-cursor: oklch(1 0 0 / 55%);
@@ -478,7 +493,8 @@
   --muted: oklch(0.93 0.003 286);
   --secondary: oklch(0.912 0.003 286);
   --accent: oklch(0.912 0.003 286);
-  --faint: oklch(0.6 0.006 286);
+  /* Paper's caption grey, restated for the block (4.61:1 on the mat, see :root). */
+  --faint: oklch(0.525 0.006 286);
 }
 
 /* `.surface-ink` (the library phase, 2026-09-11): the always-dark slab set in
@@ -516,7 +532,10 @@
   --secondary-foreground: oklch(0.965 0.0045 286);
   --muted: oklch(0.225 0.006 286);
   --muted-foreground: oklch(0.715 0.0105 286);
-  --faint: oklch(0.565 0.0075 286);
+  /* At AA on the slab (a11y-halo, from 0.565): 5.18:1 on it, 4.62:1 on its card. */
+  --faint: oklch(0.615 0.0075 286);
+  /* A dark slab on paper reads the bright amber as words, as the room does (see :root's --warning-ink). */
+  --warning-ink: oklch(0.8 0.14 80);
   --accent: oklch(0.315 0.006 286);
   --accent-foreground: oklch(0.965 0.0045 286);
   --border: oklch(1 0 0 / 12%);
@@ -591,6 +610,7 @@
   --success-foreground: oklch(0.13 0 0);
   --warning: oklch(0.84 0.14 82);
   --warning-foreground: oklch(0.25 0.05 70);
+  --warning-ink: oklch(0.84 0.14 82);
   --info: oklch(0.72 0.14 250);
   --info-foreground: oklch(0.13 0 0);
   color-scheme: dark;

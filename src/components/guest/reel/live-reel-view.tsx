@@ -701,6 +701,7 @@ export function LiveReelView({
             tabIndex={-1}
             aria-describedby={undefined}
             data-live-reel-view={mode}
+            data-surface="photo"
             onOpenAutoFocus={(e) => {
               // Focus lands on the view itself, so Space pauses at once and Tab walks the controls.
               e.preventDefault();
@@ -1342,7 +1343,7 @@ function FillPill({
       className={cn(
         "absolute top-[calc(0.75rem+env(safe-area-inset-top))] left-1/2 z-30 flex h-10 -translate-x-1/2 items-center gap-2 rounded-full px-4 text-working font-medium whitespace-nowrap text-white outline-none",
         "transition-transform duration-150 ease-emphasis active:scale-[0.97] motion-reduce:active:scale-100",
-        "focus-visible:ring-2 focus-visible:ring-white/70",
+        "focus-halo",
         GLASS,
       )}
     >
@@ -1442,7 +1443,7 @@ function ChromeButton({
           className={cn(
             "flex size-10 shrink-0 items-center justify-center rounded-full text-white outline-none",
             "transition-[transform,background-color] duration-150 ease-emphasis active:scale-[0.94] motion-reduce:active:scale-100",
-            "focus-visible:ring-2 focus-visible:ring-white/70",
+            "focus-halo",
             pressed ? "bg-white/18" : KEY_HOVER,
             className ?? GLASS,
           )}
@@ -1492,7 +1493,7 @@ function MenuButton({
                 // showed its fill). The tooltip wraps the menu's trigger on this one button, and radix spreads the
                 // OUTER trigger's props after the inner one's own, so `data-state` here is the tooltip's ("closed")
                 // while the menu stands open; `aria-expanded` is set by the menu alone.
-                "focus-visible:ring-2 focus-visible:ring-white/70 aria-expanded:bg-white/18",
+                "focus-halo aria-expanded:bg-white/18",
                 MENU_KEY_HOVER,
               )}
             >
@@ -1821,7 +1822,7 @@ function ReelDock({
                 className={cn(
                   "flex h-10 items-center justify-center gap-2 rounded-full text-sm font-semibold outline-none",
                   "transition-transform duration-150 ease-emphasis active:scale-[0.98] motion-reduce:active:scale-100",
-                  "focus-visible:ring-2 focus-visible:ring-white/70",
+                  "focus-halo",
                   makeGreyed
                     ? "border border-white/20 text-white/35"
                     : "bg-reel text-white",
@@ -1853,7 +1854,7 @@ function ReelDock({
           aria-label="Show the reel's controls"
           aria-expanded={up}
           inert={up}
-          className="lr-bar-content absolute bottom-0 left-1/2 flex -translate-x-1/2 items-center gap-2.5 px-3.5 outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+          className="lr-bar-content absolute bottom-0 left-1/2 flex -translate-x-1/2 focus-halo items-center gap-2.5 px-3.5 outline-none"
           style={{ width: BAR_W, height: BAR_H, borderRadius: BAR_H / 2 }}
           data-reel-bar
         >

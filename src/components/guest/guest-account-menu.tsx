@@ -64,7 +64,7 @@ export function GuestAccountMenu({
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label="Account menu"
-        className="rounded-full outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+        className="focus-halo rounded-full outline-none"
       >
         <Avatar seed={seed ?? undefined}>
           {/* radix Avatar.Image auto-falls-back to the initial when src is null/fails. */}

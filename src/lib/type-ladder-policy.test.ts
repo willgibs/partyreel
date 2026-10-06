@@ -41,11 +41,13 @@ const theme = read("src/app/theme.css");
 /**
  * Every `--text-<name>` declared in theme.css. The `--` filter drops the
  * companions: `--text-display--line-height` captures as `display--line-height`,
- * and a companion is not a step.
+ * and a companion is not a step. `--text-color-*` is Tailwind's other namespace
+ * under the same prefix, a colour only `text-*` reads (the warning's words,
+ * a11y-halo), never a step.
  */
 const declared = [...theme.matchAll(/^\s*--text-([a-z0-9-]+):\s/gm)]
   .map((m) => m[1])
-  .filter((name) => !name.includes("--"));
+  .filter((name) => !name.includes("--") && !name.startsWith("color-"));
 
 describe("the type steps, radius tokens and shadow tokens", () => {
   it("are the same list theme.css and cn() are working from", () => {

@@ -495,7 +495,7 @@ function ChecklistLine({
         type="button"
         aria-expanded={false}
         onClick={onShow}
-        className="flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-left transition-colors duration-150 outline-none hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring/50 motion-reduce:transition-none"
+        className="flex w-full focus-halo items-center gap-3 rounded-xl px-4 py-2.5 text-left transition-colors duration-150 outline-none hover:bg-muted/40 motion-reduce:transition-none"
       >
         <Ring r={r} />
         <span

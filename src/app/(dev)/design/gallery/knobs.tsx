@@ -200,7 +200,7 @@ function KnobRow({
             value={String(value)}
             onChange={(e) => onChange(e.target.value)}
             aria-label={label}
-            className="h-8 rounded-md border border-border bg-background px-2 text-[12px] outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+            className="h-8 focus-halo rounded-md border border-border bg-background px-2 text-[12px] outline-none"
           >
             {knob.options.map((o) => (
               <option key={o} value={o}>
@@ -284,7 +284,7 @@ function TextKnob({
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="h-8 rounded-md border border-border bg-background px-2 text-[12px] outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+        className="h-8 focus-halo rounded-md border border-border bg-background px-2 text-[12px] outline-none"
       />
     </label>
   );

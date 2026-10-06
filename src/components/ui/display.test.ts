@@ -120,6 +120,25 @@ describe("the recording red", () => {
   })
 })
 
+describe("the warning's words", () => {
+  it("★ are their own token on every ground that declares the amber, and `text-warning` reads them", () => {
+    // The amber is a light: as text on paper it is 1.75:1 (a11y-halo). Its words read `--warning-ink`, a
+    // bronze on paper and the amber itself on a dark ground, so a set that moves the amber without its
+    // words would leave paper's bronze on a near-black screen, or the amber as text on white.
+    const sets = [...globals.matchAll(/\n([^\n{}@]+)\{([^{}]*)\}/g)]
+    const ambers = sets.filter(([, , body]) => declares(body, "--warning"))
+    expect(ambers.length, "no set declares --warning").toBeGreaterThan(2)
+    for (const [, selector, body] of ambers)
+      expect(
+        declares(body, "--warning-ink"),
+        `${selector.trim()} moves --warning without --warning-ink`,
+      ).toBe(true)
+    expect(read("src/app/theme.css")).toMatch(
+      /--text-color-warning:\s*var\(--warning-ink\)/,
+    )
+  })
+})
+
 describe("which layers are the display", () => {
   it("makes the display one material the quick panels and the tooltip share", () => {
     expect(floatingDisplay.split(" ")).toContain("surface-display")

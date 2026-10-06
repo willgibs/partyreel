@@ -33,6 +33,8 @@ export function AnnouncementCompose() {
   });
 
   function onSubmit(values: AnnouncementInput) {
+    // The key works rather than going off (Button's `working`), so a second submit is held here.
+    if (isPending) return;
     startTransition(async () => {
       const result = await publishAnnouncementAction(values);
       if (result.ok) {
@@ -118,8 +120,13 @@ export function AnnouncementCompose() {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={isPending} className="self-start">
-          {isPending ? "Publishing…" : "Publish announcement"}
+        <Button
+          type="submit"
+          working={isPending}
+          workingLabel="Publishing"
+          className="self-start"
+        >
+          Publish announcement
         </Button>
       </ClientForm>
     </Form>

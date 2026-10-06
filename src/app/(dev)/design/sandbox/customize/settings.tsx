@@ -763,7 +763,7 @@ export function ChoiceCard({
           role="radio"
           aria-checked={on}
           onClick={onChoose}
-          className="absolute inset-0 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+          className="absolute inset-0 focus-halo rounded-lg outline-none halo-inset"
         >
           <span className="sr-only">{label}</span>
         </button>

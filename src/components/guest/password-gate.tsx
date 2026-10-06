@@ -149,7 +149,7 @@ export function PasswordGate({
             type="button"
             onClick={() => setShow((s) => !s)}
             aria-label={show ? "Hide password" : "Show password"}
-            className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground transition hover:text-foreground active:scale-90"
+            className="absolute inset-y-0 right-0 flex focus-halo items-center rounded-lg px-3 text-muted-foreground transition outline-none halo-inset hover:text-foreground active:scale-90"
           >
             {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
           </button>
@@ -196,7 +196,12 @@ export function PasswordGate({
                 done && "door-bloom-button disabled:opacity-100",
               )}
               style={done ? litVars : undefined}
-              disabled={pending || done || !password.trim() || cooldownLeft > 0}
+              // ★ WORKING, NEVER OFF (identity r5's `working`): while the unlock is asked the key turns
+              // to "Unlocking" under the arc and keeps its focus, a second press swallowed (and
+              // `onSubmit`'s own guard holds the Enter key). The beat after it is `done`'s, never the arc's.
+              working={pending && !done}
+              workingLabel="Unlocking"
+              disabled={done || !password.trim() || cooldownLeft > 0}
             >
               {done ? (
                 <span
@@ -217,8 +222,6 @@ export function PasswordGate({
                     You&rsquo;re in
                   </span>
                 </span>
-              ) : pending ? (
-                "Unlocking…"
               ) : cooldownLeft > 0 ? (
                 `Wait ${cooldownLeft}s`
               ) : (

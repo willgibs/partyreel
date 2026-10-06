@@ -42,15 +42,16 @@ export function UnlistedAsk({
 }) {
   const router = useRouter();
   const copy = unlistedAskCopy(hostName);
-  const [busy, setBusy] = useState(false);
+  // Which of the two keys is working: each says what it does while the other waits, off.
+  const [busy, setBusy] = useState<"ask" | "switch" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function ask() {
-    setBusy(true);
+    setBusy("ask");
     setError(null);
     const result = await askToJoinEvent({ qrToken });
     if (!result.ok) {
-      setBusy(false);
+      setBusy(null);
       setError(result.refusal.message);
       return;
     }
@@ -70,10 +71,12 @@ export function UnlistedAsk({
         type="button"
         size="cta"
         className="w-full"
-        disabled={busy}
+        working={busy === "ask"}
+        workingLabel="Asking"
+        disabled={busy === "switch"}
         onClick={() => void ask()}
       >
-        {busy ? "Asking…" : copy.primary}
+        {copy.primary}
       </Button>
       {error && (
         <p role="alert" className="text-reading text-destructive">
@@ -84,9 +87,11 @@ export function UnlistedAsk({
         type="button"
         variant="ghost"
         className="w-full text-muted-foreground"
-        disabled={busy}
+        working={busy === "switch"}
+        workingLabel="Signing out"
+        disabled={busy === "ask"}
         onClick={() => {
-          setBusy(true);
+          setBusy("switch");
           void switchEmail();
         }}
       >

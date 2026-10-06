@@ -169,7 +169,7 @@ export function FollowMomentCard({
         >
           <Link
             href={`/u/${host.slug}`}
-            className="flex min-w-0 items-center gap-2.5 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+            className="flex min-w-0 focus-halo items-center gap-2.5 rounded-full outline-none"
           >
             <Avatar seed={host.seed ?? undefined} size="sm">
               <AvatarImage src={host.avatarUrl ?? undefined} alt="" />
@@ -249,6 +249,8 @@ function ToldName({
   }
 
   function save() {
+    // The key works rather than going off (Button's `working`), so the Enter key's second submit is held here.
+    if (saving) return;
     const checked = checkDisplayName(value);
     if (!checked.ok) {
       setRefusal(checked.refusal.message);
@@ -279,7 +281,7 @@ function ToldName({
         <button
           type="button"
           onClick={openEditor}
-          className="font-medium text-foreground underline underline-offset-4 outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+          className="focus-halo font-medium text-foreground underline underline-offset-4 outline-none"
         >
           Change
         </button>
@@ -318,8 +320,14 @@ function ToldName({
           // 16px, so iOS does not zoom the page into the field.
           className="h-9 min-w-0 flex-1 text-base"
         />
-        <Button type="submit" size="lg" disabled={saving || !value.trim()}>
-          {saving ? "Saving…" : "Save"}
+        <Button
+          type="submit"
+          size="lg"
+          working={saving}
+          workingLabel="Saving"
+          disabled={!value.trim()}
+        >
+          Save
         </Button>
         <Button
           type="button"
