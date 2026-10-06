@@ -8,15 +8,26 @@
 --      tab's delivery meets its lease and is told overlap for good, the first's retries run out (three in TEST), and
 --      neither session ever grants. Now another checkout's live lease answers `busy` (`held_by` another_checkout,
 --      non-2xx, so Stripe retries this one), and overlap stands only against what is settled: a converted pass, or
---      another checkout's claim that GRANTED. The retry then finds that grant (overlap) or the lease lapsed with no
---      grant (it claims, and its own grant follows).
---      ★ A claim that lost its passes that way (its own lease lapsed with no grant, then another checkout credited
---      them) would read stuck forever, and its dead holder may have granted on Stripe's side before its record was
---      lost. So its overlap carries `unsettled`: the route looks on Stripe's side for its grant and settles it,
+--      another checkout's claim that GRANTED (and was not released: a released claim's grant is the duplicate its dead
+--      holder made, which the operator reverses). The retry then finds that grant (overlap) or the lease lapsed with
+--      no grant (it claims, and its own grant follows).
+--      ★ THE ORPHANS. A lease that lapses with no grant on record may still hide a grant: its holder died after
+--      Stripe granted and before the record landed. Waiting on that lease rather than refusing gives the other
+--      checkout's retry the time to claim past it, so a fresh claim or a take-over names, beside `claimed`, every
+--      other checkout's claim on its passes that lapsed with no grant and was not released (`orphans`, each with when
+--      it was taken: no grant for it can be older), and the route looks on Stripe's side for their grants BEFORE it
+--      grants: a grant found is that checkout's, put on record on its own claim and converted, and this checkout's
+--      claim is released, granting nothing; none found, this checkout grants and then settles them (their holders are
+--      dead and granted nothing, so their passes are this checkout's credit now).
+--      ★ A claim that lost its passes (its own lease lapsed with no grant, then another checkout credited them) would
+--      read stuck forever, and its dead holder may have granted on Stripe's side too. So its overlap carries
+--      `unsettled`: the route looks on Stripe's side for its grant and settles it,
 --        release_pass_credit(session, host, balance transaction or null): the claim released for good
 --          (`released_at`), with the grant Stripe holds put on record beside it when there is one (two grants for
---          one set of passes, which the operator reverses one of in Stripe). Only a claim whose passes another
---          checkout credited, never one still owed, so a wrong call cannot drop a host's credit.
+--          one set of passes, which the operator reverses in Stripe: the released claim's). Only a claim another
+--          checkout's credit overtook (a pass it names converted, or named by another checkout's unreleased grant),
+--          never one whose passes nobody credited, so a wrong call cannot drop a host's credit; a pass it names that
+--          the other checkout did not stays hers, uncredited, as an overlap always left it.
 --   2. THE RECOMPUTE'S SECONDS. recompute_pass_entitlement landing between a credited checkout's conversion and its
 --      subscription event (seconds, the two events Stripe sends together) found her non-Pro with no live window and
 --      moved her to Free until the subscription event came. Now a profile with no live window whose pass became Pro
@@ -33,11 +44,13 @@
 -- real money): nothing they call. Both deployed builds (partyreel.com's milestone-37, the alias's build 53) predate
 -- billing-integrity: their credit is consume_passes_for_pro_credit and their recompute the TypeScript one, neither of
 -- which this file touches. A build carrying billing-integrity's route without this lane's would read both busy answers
--- as a 409 (its words a delivery's), an unsettled overlap as the 200 it was (that claim left for the operator's
--- Retry), and the recompute's new `skipped_pro_pending` as an answer it never gives (a throw: a 500 Stripe retries, a
--- sweep row counted failed), so no such build deploys: apply this with the lane's merge, before launch-prep's next
--- build. The lane's route calls release_pass_credit by name, and PostgREST answers a function it does not hold with
--- PGRST202 (an unsettled overlap a 500 that Stripe retries until the apply).
+-- as a 409 (its words a delivery's), an unsettled overlap as the 200 it was, the claim's orphans not at all (granting
+-- past them, as it always did), and the recompute's new `skipped_pro_pending` as an answer it never gives (a throw: a
+-- 500 Stripe retries, a sweep row counted failed), so no such build deploys. ★ And this lane's build needs this file
+-- FIRST: its operator reads select `released_at` (PostgREST's 400 without it), so before the apply every read of the
+-- claims fails: the Accounts pages say No reading, every Retry fails, and the `pass_credit` signal's read throws, which
+-- turns the whole health console (the bell and the band on every admin page) into "could not be read". Apply this with
+-- the lane's merge, before launch-prep's next build.
 --
 -- THE PROTOCOL (database-security.md, "Workflow"): the drift read first: each body this file replaces, hashed live as
 -- md5(btrim(regexp_replace(prosrc, '\s+', ' ', 'g'))), must equal its newest repo definition, as it did on 2026-10-05:
@@ -59,15 +72,18 @@ alter table public.pass_credits
   add constraint pass_credits_released_unleased check (released_at is null or claimed_until is null),
   add constraint pass_credits_released_unconverted check (released_at is null or converted_at is null);
 
--- 20261005181000's body verbatim but for three blocks: a released claim answers overlap before anything else is read
--- of it; the once-ever check stands against a converted pass or another checkout's GRANTED claim and says whether
--- this checkout's own claim is still unsettled; and another checkout's live lease answers busy, after it. Same
--- signature, return type, language, volatility, security mode and empty search_path, so create or replace keeps the
--- ACL; the grants are restated as they stand live.
+-- 20261005181000's body verbatim but for four blocks: a released claim answers overlap before anything else is read
+-- of it; the once-ever check stands against a converted pass or another checkout's unreleased GRANTED claim and says
+-- whether this checkout's own claim is still unsettled; another checkout's live lease answers busy, after it; and a
+-- claim names the orphans it was taken past. Same signature, return type, language, volatility, security mode and
+-- empty search_path, so create or replace keeps the ACL; the grants are restated as they stand live.
 --
 -- Answers one jsonb, its `state`:
 --   'claimed'  this delivery holds the claim (`resumed` true when it took over a lease that lapsed with no grant on
 --              record: the route looks on Stripe's side first, by the session in the balance transaction's metadata);
+--              `orphans`, every other checkout's claim on these passes that lapsed with no grant and is not released
+--              (`session`, and `claimed_at` in unix seconds: no grant for it is older), whose grants the route looks
+--              for on Stripe's side before it grants this one;
 --   'granted'  the grant is on record (`balance_transaction_id`): never grant again, whenever the retry comes;
 --   'busy'     a live lease holds it (`retry_after_sec`): this checkout's own, another delivery of it (`held_by`
 --              this_checkout), or another checkout's on a pass it names (`held_by` another_checkout); answer non-2xx,
@@ -95,6 +111,7 @@ declare
   v_claim public.pass_credits;
   v_owned integer;
   v_held_until timestamptz;
+  v_orphans jsonb;
   c_lease constant interval := interval '10 minutes'; -- longer than the webhook can run (its maxDuration, 120 s)
 begin
   if p_session_id is null or btrim(p_session_id) = '' or p_host_id is null
@@ -139,12 +156,13 @@ begin
 
   -- ★ A PASS IS CREDITED ONCE EVER, asked before a first claim and before a lapsed one is taken over: none of its
   -- passes converted already (a conversion follows only a grant on record), and none named by another checkout's claim
-  -- that granted. Only what is settled refuses: a lease below waits instead.
+  -- that granted and was not released (a released claim's grant is a duplicate, reversed in Stripe). Only what is
+  -- settled refuses: a lease below waits instead.
   if exists (select 1 from public.event_passes q where q.id = any(v_ids) and q.consumed_at is not null)
      or exists (
        select 1 from public.pass_credits c
         where c.profile_id = p_host_id and c.stripe_session_id <> p_session_id and c.pass_ids && v_ids
-          and c.granted_at is not null) then
+          and c.granted_at is not null and c.released_at is null) then
     return jsonb_build_object('state', 'overlap', 'unsettled', v_claim.stripe_session_id is not null);
   end if;
 
@@ -161,24 +179,38 @@ begin
       'retry_after_sec', greatest(1, ceil(extract(epoch from (v_held_until - now()))))::integer);
   end if;
 
+  -- ★ THE ORPHANS this claim is taken past: another checkout's claim on these passes whose lease lapsed with no grant
+  -- on record, not released. Its holder is dead (a lease outlasts any delivery) and may have granted on Stripe's side
+  -- before its record was lost, so the route looks for those grants before it grants this one.
+  select coalesce(jsonb_agg(jsonb_build_object('session', c.stripe_session_id,
+                                               'claimed_at', floor(extract(epoch from c.created_at))::bigint)
+                            order by c.created_at), '[]'::jsonb)
+    into v_orphans
+    from public.pass_credits c
+   where c.profile_id = p_host_id and c.stripe_session_id <> p_session_id and c.pass_ids && v_ids
+     and c.granted_at is null and c.released_at is null
+     and (c.claimed_until is null or c.claimed_until <= now());
+
   if v_claim.stripe_session_id is not null then
     update public.pass_credits set claimed_until = now() + c_lease where stripe_session_id = p_session_id;
-    return jsonb_build_object('state', 'claimed', 'resumed', true);
+    return jsonb_build_object('state', 'claimed', 'resumed', true, 'orphans', v_orphans);
   end if;
   insert into public.pass_credits (stripe_session_id, profile_id, credit_cents, pass_ids, claimed_until)
   values (p_session_id, p_host_id, p_credit_cents, v_ids, now() + c_lease);
-  return jsonb_build_object('state', 'claimed', 'resumed', false);
+  return jsonb_build_object('state', 'claimed', 'resumed', false, 'orphans', v_orphans);
 end;
 $$;
 
 revoke all on function public.claim_pass_credit(text, uuid, integer, uuid[]) from public, anon, authenticated;
 grant execute on function public.claim_pass_credit(text, uuid, integer, uuid[]) to service_role;
 
--- The settlement of a claim that lost its passes, after the route looked on Stripe's side for its grant: released for
--- good, with that grant on record beside it when Stripe holds one. Answers 'released', or 'released_granted' when it
--- recorded a grant; a replay answers what is on record. Refused in words: a claim granted (it converts), one a
--- delivery holds right now, and one whose passes no other checkout credited (it is still owed: releasing it would
--- drop her credit).
+-- The settlement of a claim another checkout's credit overtook, after the route looked on Stripe's side for its grant:
+-- released for good, with that grant on record beside it when Stripe holds one. Answers 'released', or
+-- 'released_granted' when it recorded a grant; a replay answers what is on record. Refused in words: a claim granted
+-- (it converts), and one whose passes no other checkout credited (a pass it names converted, or named by another
+-- checkout's unreleased grant): releasing that would drop her credit. A leased claim is no refusal: only its own
+-- holder reaches it (another delivery of its checkout, and the operator's Retry, meet busy at the claim), releasing
+-- itself once its look on Stripe's side found an orphan's lost grant for its passes.
 create function public.release_pass_credit(
   p_session_id text,
   p_host_id uuid,
@@ -212,16 +244,13 @@ begin
     raise exception 'This checkout''s credit is granted: it converts, never releases.'
       using errcode = 'object_not_in_prerequisite_state';
   end if;
-  if v_claim.claimed_until > now() then
-    raise exception 'This checkout''s credit is held by a delivery right now.'
-      using errcode = 'object_not_in_prerequisite_state';
-  end if;
-  -- Only what the claim's own overlap answered: a pass it names converted, or named by another checkout's granted claim.
+  -- Only what the claim's own overlap answers: a pass it names converted, or named by another checkout's unreleased
+  -- granted claim.
   if not exists (select 1 from public.event_passes q where q.id = any(v_claim.pass_ids) and q.consumed_at is not null)
      and not exists (
        select 1 from public.pass_credits c
         where c.profile_id = p_host_id and c.stripe_session_id <> p_session_id and c.pass_ids && v_claim.pass_ids
-          and c.granted_at is not null) then
+          and c.granted_at is not null and c.released_at is null) then
     raise exception 'This checkout''s passes are not another checkout''s to credit: it is still owed.'
       using errcode = 'object_not_in_prerequisite_state';
   end if;
@@ -327,10 +356,10 @@ comment on column public.pass_credits.released_at is
   'When this checkout''s claim was released for good because another checkout credited its passes first (the webhook, after looking on Stripe''s side for its own grant). Terminal: never leased, never converted; a grant beside it is one its dead holder made on Stripe''s side (granted twice: the operator reverses one in Stripe).';
 
 comment on function public.claim_pass_credit(text, uuid, integer, uuid[]) is
-  'The pass-to-Pro credit''s claim, taken before the grant and read on every retry (the Stripe webhook and the operator''s Retry, service role only): her profiles row first; answers claimed (resumed when it took over a lapsed lease: look on Stripe''s side first), granted, busy (a live lease holds it, this checkout''s or another checkout''s on a pass it names: retry), overlap (a pass it names was converted, or is named by another checkout''s granted claim: grant nothing; unsettled when this checkout''s own claim is still open: settle it with release_pass_credit) or no_host.';
+  'The pass-to-Pro credit''s claim, taken before the grant and read on every retry (the Stripe webhook and the operator''s Retry, service role only): her profiles row first; answers claimed (resumed when it took over a lapsed lease; with the orphans it was taken past, other checkouts'' lapsed ungranted claims on its passes: look on Stripe''s side for all their grants first), granted, busy (a live lease holds it, this checkout''s or another checkout''s on a pass it names: retry), overlap (a pass it names was converted, or is named by another checkout''s unreleased granted claim: grant nothing; unsettled when this checkout''s own claim is still open: settle it with release_pass_credit) or no_host.';
 
 comment on function public.release_pass_credit(text, uuid, text) is
-  'Settles a pass-to-Pro claim that lost its passes to another checkout''s credit (service role only): her profiles row first; released for good, with the grant Stripe holds for it on record beside it when one is named (granted twice). Refuses a granted claim, a leased one, and one whose passes no other checkout credited.';
+  'Settles a pass-to-Pro claim another checkout''s credit overtook (service role only): her profiles row first; released for good, with the grant Stripe holds for it on record beside it when one is named (granted twice: that grant is the duplicate). Refuses a granted claim and one whose passes no other checkout credited.';
 
 comment on function public.recompute_pass_entitlement(uuid, timestamptz) is
   'Re-derives a non-Pro profile''s four pass-owned fields (tier, storage_cap_bytes, event_slots, tier_expires_at) from her unconsumed passes at an instant, under her profiles row lock (the Stripe webhook and the nightly expired_passes sweep, service role only). Writes nothing for a profile with no live window whose pass became Pro credit within the hour (her Pro plan seconds behind). Answers updated, unchanged, skipped_pro or skipped_pro_pending.';
@@ -346,23 +375,25 @@ comment on function public.recompute_pass_entitlement(uuid, timestamptz) is
 -- never on a parse.
 --
 -- RESULT, 2026-10-05 against the live schema (the drift read above clean first: the two bodies at their hashes, the
--- column and the function absent):
---   RED  0/5: 1 THE HOLE ITSELF: tab 2, meeting tab 1's live lease, answered {"state": "overlap"} (done for good), and
---        tab 1 beside tab 2's lease overlap too; 2 no release_pass_credit, no released_at; 3 THE SECONDS: the recompute
---        moved the pending host to Free ("updated", free); 4 no constraints, no function; 5 the bodies at their old
---        hashes, the release absent.
+-- column and the function absent), re-run on this file's last revision (the orphans, after the lane's red-team):
+--   RED  0/5: 1 THE HOLE ITSELF: tab 2, meeting tab 1's live lease, answered {"state": "overlap"} (done for good), no
+--        orphan named past the lapse, and tab 1 beside tab 2's lease overlap too; 2 no released_at, no
+--        release_pass_credit; 3 THE SECONDS: the recompute moved the pending host to Free ("updated", free); 4 no
+--        constraints, no function; 5 the bodies at their old hashes, the release absent.
 --   GREEN 5/5 on this file (its function bodies verbatim, top-level comments aside), nothing persisted after (no fixture
 --        user, profile or claim; released_at and release_pass_credit absent; the two bodies at their old hashes).
 -- THE PRE-FLIGHT (database-security.md), a throwaway Postgres 17 cluster holding a stand-in of the touched tables (their
 -- column types, defaults and the constraints the bodies lean on), the Supabase roles, the live default privileges,
--- tier_limits' one column and billing-integrity's four bodies at their live hashes: the file applies verbatim;
--- pg_get_functiondef's diff of the two restated bodies is exactly their stated blocks (and the declaration and constant
--- those alone use); their ACLs are unchanged and the release's is the service role's, INVOKER, its search_path empty.
--- Its two-session lock runs, each holder keeping her row 1.5 s: a release holding it, a claim of another checkout waits
--- 1.2 s and then decides; a claim holding it, the release waits and then settles; a conversion holding it, the release
--- waits; ★ the conversion of her last live pass holding it, the recompute waits and then answers skipped_pro_pending,
--- never Free (the seconds, serialized); the recompute holding it first, the conversion waits and then clears the chain
--- the recompute wrote. No deadlock in any run (the server log holds none).
+-- tier_limits' one column and billing-integrity's four bodies at their live hashes: the file applies verbatim, its three
+-- bodies at the GREEN run's hashes; pg_get_functiondef's diff of the two restated bodies is exactly their stated blocks
+-- (and the declarations and constant those alone use); their ACLs are unchanged and the release's is the service
+-- role's, INVOKER, its search_path empty. Its two-session lock runs, each holder keeping her row 1.5 s: a release holding
+-- it, a claim of another checkout waits 1.2 s and then decides; a claim holding it, the release waits and then settles;
+-- a conversion holding it, the release waits; ★ the conversion of her last live pass holding it, the recompute waits and
+-- then answers skipped_pro_pending, never Free (the seconds, serialized); the recompute holding it first, the conversion
+-- waits and then clears the chain the recompute wrote. No deadlock in any run (the server log holds none). The route's
+-- orphan path is these same calls in sequence (a claim, a grant on record, a conversion, a release), each its own
+-- transaction taking her row first, so it adds no lock order.
 -- =============================================================================================
 -- create temp table proof (n serial, step text, ok boolean, detail text);
 -- create temp table fx (k text primary key, id uuid, txt text);
@@ -490,8 +521,9 @@ comment on function public.recompute_pass_entitlement(uuid, timestamptz) is
 --
 -- -- 1. THE HOLE: two tabs credit the same two passes. Tab 1 claims; tab 2, meeting tab 1's live lease, is busy (another
 -- -- checkout's), never overlap for good, and writes no claim. Tab 1's holder dies (its lease lapses with no grant): tab 2's
--- -- retry claims. Tab 1's retry, while tab 2 only holds its lease, is busy in its turn; once tab 2's grant is on record it
--- -- is overlap, and unsettled (its own claim is still open).
+-- -- retry claims, naming tab 1 the orphan it was taken past (whose grant the route looks for first). Tab 1's retry, while
+-- -- tab 2 only holds its lease, is busy in its turn; once tab 2's grant is on record it is overlap, and unsettled (its own
+-- -- claim is still open).
 -- do $$
 -- declare h uuid := pg_temp.fx('tabs'); a uuid; b uuid; c1 jsonb; c2 jsonb; c2row text; c3 jsonb; c4 jsonb; r4 text; c5 jsonb;
 --   c6 jsonb; c6row text; fail text := '';
@@ -518,9 +550,12 @@ comment on function public.recompute_pass_entitlement(uuid, timestamptz) is
 --     fail := fail || ' THE HOLE: tab 2 meeting a live lease answered ' || c2;
 --   end if;
 --   if c2row is distinct from 'no row' then fail := fail || ' tab 2 wrote ' || c2row; end if;
---   if c3->>'state' is distinct from 'claimed' or (c3->>'resumed')::boolean is distinct from false then
---     fail := fail || ' past the lapse ' || c3;
+--   if c3->>'state' is distinct from 'claimed' or (c3->>'resumed')::boolean is distinct from false
+--      or jsonb_array_length(c3->'orphans') is distinct from 1 or c3->'orphans'->0->>'session' is distinct from 'cs_cw_1'
+--      or (c3->'orphans'->0->>'claimed_at')::bigint is distinct from floor(extract(epoch from now()))::bigint then
+--     fail := fail || ' past the lapse, naming tab 1 its orphan ' || c3;
 --   end if;
+--   if c1->'orphans' is distinct from '[]'::jsonb then fail := fail || ' a first claim''s orphans ' || c1; end if;
 --   if c4->>'state' is distinct from 'busy' or c4->>'held_by' is distinct from 'another_checkout' then
 --     fail := fail || ' tab 1 beside tab 2''s lease ' || c4;
 --   end if;
@@ -533,19 +568,20 @@ comment on function public.recompute_pass_entitlement(uuid, timestamptz) is
 --     fail := fail || format(' a first claim after the grant %s (%s);', c6, c6row);
 --   end if;
 --   insert into proof (step, ok, detail) values ('1 a lease is never a refusal', fail = '',
---     coalesce(nullif(fail, ''), format('tab 2 busy (%s), claimed past the lapse; tab 1 busy, then overlap unsettled; a later tab overlap, settled', c2->>'retry_after_sec')));
+--     coalesce(nullif(fail, ''), format('tab 2 busy (%s), claimed past the lapse naming tab 1 its orphan; tab 1 busy, then overlap unsettled; a later tab overlap, settled', c2->>'retry_after_sec')));
 -- exception when others then
 --   insert into proof (step, ok, detail) values ('1 a lease is never a refusal', false, sqlerrm);
 -- end $$;
 --
 -- -- 2. THE RELEASE: tab 1's overtaken claim released (no grant found), a replay answering the same, its next claim a
 -- -- settled overlap; a third tab's lost grant put on record beside its release, its claim a settled overlap ahead of its
--- -- grant, its conversion refused by the table; and every refusal in words: a granted claim, a leased one, one still owed
--- -- (no other checkout credited its passes), an empty grant, no claim at all, a missing argument.
+-- -- grant, its conversion refused by the table; a leased claim released by its own holder once its passes are credited
+-- -- elsewhere; every refusal in words: a granted claim, one still owed (leased or not: no other checkout credited its
+-- -- passes), an empty grant, no claim at all, a missing argument; and a released claim's grant credits nothing.
 -- do $$
 -- declare h uuid := pg_temp.fx('tabs'); o uuid := pg_temp.fx('owed'); a uuid := pg_temp.fx('pass_a'); b uuid := pg_temp.fx('pass_b');
 --   p uuid; r1 text; row1 text; r1b text; c1 jsonb; r3 text; row3 text; c3 jsonb; v3 text; g text; l text; w text; e text;
---   nc text; nh text; fail text := '';
+--   nc text; nh text; r6 text; c8 jsonb; fail text := '';
 -- begin
 --   r1 := pg_temp.release('cs_cw_1', h);
 --   row1 := pg_temp.row_of('cs_cw_1');
@@ -560,7 +596,13 @@ comment on function public.recompute_pass_entitlement(uuid, timestamptz) is
 --   c3 := pg_temp.claim('cs_cw_3', h, 1850, array[a, b]);
 --   v3 := pg_temp.convert('cs_cw_3', h);
 --   g := pg_temp.release('cs_cw_2', h);
---   -- A leased claim, and one still owed, on the third host's own pass (no other checkout credited it).
+--   -- A claim its own holder releases while it holds the lease: its look on Stripe's side found an orphan's lost grant
+--   -- for its passes (here tab 2's grant stands for them), so it grants nothing.
+--   execute 'insert into public.pass_credits (stripe_session_id, profile_id, credit_cents, pass_ids, claimed_until)
+--            values ($1, $2, 1850, $3, now() + interval ''5 minutes'')'
+--     using 'cs_cw_6', h, (select array_agg(x order by x) from unnest(array[a, b]) x);
+--   r6 := pg_temp.release('cs_cw_6', h);
+--   -- A claim leased and one lapsed on the third host's own pass, which no other checkout credited: still owed.
 --   perform pg_temp.reset('owed', 'event_pass', pg_temp.gb(25), now() + interval '355 days', 1);
 --   p := pg_temp.pass('owed', -interval '10 days', interval '355 days');
 --   perform pg_temp.claim('cs_cw_4', o, 900, array[p]);
@@ -571,6 +613,13 @@ comment on function public.recompute_pass_entitlement(uuid, timestamptz) is
 --   e := pg_temp.release('cs_cw_4', o, '  ');
 --   nc := pg_temp.release('cs_cw_none', o);
 --   nh := pg_temp.release(null, o);
+--   -- ★ A released claim's grant (a duplicate the operator reverses) is no credit: a claim beside it on the same pass is
+--   -- claimed, never overlap.
+--   execute 'delete from public.pass_credits where stripe_session_id = $1' using 'cs_cw_4';
+--   execute 'insert into public.pass_credits (stripe_session_id, profile_id, credit_cents, pass_ids, balance_transaction_id,
+--              granted_at, released_at) values ($1, $2, 900, $3, ''cbtxn_cw_dup'', now(), now())'
+--     using 'cs_cw_7', o, array[p];
+--   c8 := pg_temp.claim('cs_cw_8', o, 900, array[p]);
 --   if r1 is distinct from 'released' or row1 is distinct from 'lease none grant false txn none released true converted false'
 --      or r1b is distinct from 'released' then
 --     fail := fail || format(' release %s / %s / %s;', r1, row1, r1b);
@@ -587,13 +636,15 @@ comment on function public.recompute_pass_entitlement(uuid, timestamptz) is
 --   end if;
 --   if v3 not like 'error 23514 %released_unconverted%' then fail := fail || ' convert of a released claim ' || v3; end if;
 --   if g not like 'error 55000 %granted%' then fail := fail || ' granted ' || g; end if;
---   if l not like 'error 55000 %held by a delivery%' then fail := fail || ' leased ' || l; end if;
+--   if r6 is distinct from 'released' then fail := fail || ' its own holder''s release ' || r6; end if;
+--   if l not like 'error 55000 %still owed%' then fail := fail || ' leased, owed ' || l; end if;
 --   if w not like 'error 55000 %still owed%' then fail := fail || ' owed ' || w; end if;
+--   if c8->>'state' is distinct from 'claimed' then fail := fail || ' beside a released grant ' || c8; end if;
 --   if e not like 'error 22023 %' then fail := fail || ' empty grant ' || e; end if;
 --   if nc not like 'error P0002 %' then fail := fail || ' no claim ' || nc; end if;
 --   if nh not like 'error 22023 %' then fail := fail || ' no session ' || nh; end if;
 --   insert into proof (step, ok, detail) values ('2 the release', fail = '',
---     coalesce(nullif(fail, ''), 'released, replayed, settled; a lost grant on record beside it, never converted; granted, leased, owed, empty, none refused'));
+--     coalesce(nullif(fail, ''), 'released, replayed, settled; a lost grant on record beside it, never converted; its own holder''s release; granted, owed, empty, none refused; a released grant no credit'));
 -- exception when others then
 --   insert into proof (step, ok, detail) values ('2 the release', false, sqlerrm);
 -- end $$;
@@ -683,8 +734,8 @@ comment on function public.recompute_pass_entitlement(uuid, timestamptz) is
 -- declare r record; got text; fail text := '';
 -- begin
 --   for r in select * from (values
---       ('claim_pass_credit', 'a0a99a3dc638a9145ea291794c0bb40e'),
---       ('release_pass_credit', 'd0b18cb942c2583a6a6d73658510159a'),
+--       ('claim_pass_credit', '214cd4076f6c0fde56818717f896c411'),
+--       ('release_pass_credit', 'daf8070ceefe570939df3dd5965ecb5d'),
 --       ('recompute_pass_entitlement', '9c55581c219d2b4dc733c7b2027ab89e')
 --     ) v(fn, want)
 --   loop

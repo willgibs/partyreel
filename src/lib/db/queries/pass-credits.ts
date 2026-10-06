@@ -15,9 +15,13 @@ import "server-only";
 
 import {
   PASS_CREDIT_STUCK_AFTER_MS,
+  SETTLE_KINDS,
+  SETTLE_WINDOW_MS,
   STUCK_KINDS,
+  settleSince,
   stuckSince,
   type CreditClaimState,
+  type SettleKind,
   type StuckKind,
 } from "@/lib/billing/passes-stuck";
 import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
@@ -50,6 +54,8 @@ const COLUMNS =
 /** The filters a stuck half applies: any `from("pass_credits")` chain speaks them (PostgREST's builder returns itself). */
 type Filterable<Q> = {
   is(column: string, value: null): Q;
+  eq(column: string, value: number): Q;
+  gt(column: string, value: string): Q;
   lt(column: string, value: string): Q;
   not(column: string, operator: string, value: null): Q;
   or(filters: string): Q;
@@ -79,6 +85,27 @@ export function stuckFilter<Q extends Filterable<Q>>(
         .not("granted_at", "is", null)
         .is("converted_at", null)
         .lt("granted_at", cutoff);
+}
+
+/**
+ * The settle rule's second form (`settleKind`, `billing/passes-stuck.ts`, held to it by their test): a claim released
+ * beside a grant, or a conversion of none, inside the month.
+ */
+export function settleFilter<Q extends Filterable<Q>>(
+  kind: SettleKind,
+  query: Q,
+  nowMs: number,
+): Q {
+  const since = new Date(nowMs - SETTLE_WINDOW_MS).toISOString();
+  return kind === "granted_twice"
+    ? query
+        .not("released_at", "is", null)
+        .not("granted_at", "is", null)
+        .gt("released_at", since)
+    : query
+        .not("converted_at", "is", null)
+        .eq("converted_count", 0)
+        .gt("converted_at", since);
 }
 
 /** The column a stuck half began owing on (`stuckSince`'s), which its reads take oldest first. */
@@ -189,6 +216,76 @@ export async function readStuckPassCredits(
   }
 }
 
+/** A claim only Stripe can settle, on the Accounts list, with the account it is hers. */
+export type SettleCredit = PassCreditRow & {
+  kind: SettleKind;
+  /** When it came to wait on Stripe (`settleSince`). */
+  since: string;
+  email: string | null;
+  displayName: string | null;
+};
+
+/** The column a settle kind came to wait on Stripe at. */
+const SETTLE_COLUMN: Record<SettleKind, "released_at" | "converted_at"> = {
+  granted_twice: "released_at",
+  converted_none: "converted_at",
+};
+
+/**
+ * ★ EVERY CLAIM ONLY STRIPE CAN SETTLE, inside the month, for the Accounts list (credit-watch's red-team): two credits
+ * for one set of passes, newest first, each with the account it is hers, counted past what it lists. Never throws: a
+ * failed read is No reading, never "nothing to settle".
+ */
+export async function readCreditsToSettle(
+  nowMs: number = Date.now(),
+): Promise<Reading<{ total: number; rows: SettleCredit[] }>> {
+  try {
+    const db = creditDb();
+    const halves = await Promise.all(
+      SETTLE_KINDS.map(async (kind) => {
+        const { rows, total } = await pageAndCount(
+          settleFilter(
+            kind,
+            db
+              .from("pass_credits")
+              .select(
+                `${COLUMNS}, profiles!pass_credits_profile_id_fkey(email, display_name)`,
+                { count: "exact" },
+              )
+              .order(SETTLE_COLUMN[kind], { ascending: false })
+              .limit(STUCK_LIST_LIMIT),
+            nowMs,
+          ),
+          `admin/accounts: credits to settle in Stripe (${kind})`,
+        );
+        return {
+          count: total,
+          // The embed is to-one, as the stuck read's.
+          rows: ((rows ?? []) as unknown as StuckRead[]).map(
+            ({ profiles, ...claim }): SettleCredit => ({
+              ...claim,
+              kind,
+              since: settleSince(claim, kind),
+              email: profiles?.email ?? null,
+              displayName: profiles?.display_name ?? null,
+            }),
+          ),
+        };
+      }),
+    );
+    const rows = halves
+      .flatMap((half) => half.rows)
+      .sort((a, b) => Date.parse(b.since) - Date.parse(a.since))
+      .slice(0, STUCK_LIST_LIMIT);
+    return {
+      ok: true,
+      value: { total: halves.reduce((n, half) => n + half.count, 0), rows },
+    };
+  } catch (error) {
+    return failure(error);
+  }
+}
+
 /** How many claims an account's page draws: one a credited Pro checkout of hers, which Checkout opens only while she is not Pro. */
 export const ACCOUNT_CREDITS_LIMIT = 20;
 
@@ -242,11 +339,13 @@ export async function readPassCreditSignal(
 ): Promise<{ ok24h: number; owed: number; owedSinceMs: number | null }> {
   const db = creditDb();
   const [honoured, ...halves] = await Promise.all([
+    // Honoured: converted in the window, at least one pass of it (a conversion of none met passes credited already).
     mustCount(
       db
         .from("pass_credits")
         .select("*", { count: "exact", head: true })
-        .gt("converted_at", sinceIso),
+        .gt("converted_at", sinceIso)
+        .gt("converted_count", 0),
       "admin/jobs: 24h credits honoured",
     ),
     // Each half's count and its oldest in one request: the bell reads this on every admin page view.

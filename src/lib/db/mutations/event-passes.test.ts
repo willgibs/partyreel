@@ -63,7 +63,7 @@ describe("the credit's claim", () => {
         creditCents: 1850,
         passIds: [PASS_A, PASS_B],
       }),
-    ).resolves.toEqual({ state: "claimed", resumed: false });
+    ).resolves.toEqual({ state: "claimed", resumed: false, orphans: [] });
     expect(rpc).toHaveBeenCalledTimes(1);
     expect(rpc).toHaveBeenCalledWith("claim_pass_credit", {
       p_session_id: "cs_1",
@@ -78,6 +78,25 @@ describe("the credit's claim", () => {
     expect(parseClaim({ state: "claimed", resumed: true })).toEqual({
       state: "claimed",
       resumed: true,
+      orphans: [],
+    });
+    // ★ The orphans a claim is taken past (credit-watch): their grants are looked for on Stripe's side first.
+    expect(
+      parseClaim({
+        state: "claimed",
+        resumed: false,
+        orphans: [
+          { session: "cs_dead_1", claimed_at: 1_790_000_011 },
+          { session: "cs_dead_2", claimed_at: 1_790_000_021 },
+        ],
+      }),
+    ).toEqual({
+      state: "claimed",
+      resumed: false,
+      orphans: [
+        { session: "cs_dead_1", claimedAt: 1_790_000_011 },
+        { session: "cs_dead_2", claimedAt: 1_790_000_021 },
+      ],
     });
     expect(
       parseClaim({ state: "granted", balance_transaction_id: "cbtxn_1" }),
@@ -129,7 +148,15 @@ describe("the credit's claim", () => {
       { state: "granted" },
       { state: "granted", balance_transaction_id: "" },
       { state: "maybe" },
-      // A holder or a settlement it never names is no answer either.
+      // A holder, a settlement or an orphan it never names is no answer either.
+      { state: "claimed", resumed: true, orphans: "cs_dead_1" },
+      { state: "claimed", resumed: true, orphans: [{ session: "cs_dead_1" }] },
+      {
+        state: "claimed",
+        resumed: true,
+        orphans: [{ session: "", claimed_at: 1 }],
+      },
+      { state: "claimed", resumed: true, orphans: null },
       { state: "busy", held_by: "somebody" },
       { state: "busy", held_by: null },
       { state: "overlap", unsettled: "yes" },

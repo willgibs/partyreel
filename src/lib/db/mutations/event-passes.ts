@@ -71,10 +71,20 @@ export async function insertPassPurchase(
 /** Whose live lease a busy claim met: another delivery of this checkout, or another checkout's claim on its passes. */
 export type ClaimHolder = "this_checkout" | "another_checkout";
 
+/**
+ * Another checkout's claim on the same passes whose lease lapsed with no grant on record (its holder is dead), not
+ * released: it may have granted on Stripe's side before its record was lost (credit-watch). `claimedAt` is when it was
+ * taken, in unix seconds: no grant for it is older, so the Stripe-side search starts there.
+ */
+export type ClaimOrphan = { session: string; claimedAt: number };
+
 /** What a credit's claim answers (`claim_pass_credit`, read on every delivery before any grant). */
 export type PassCreditClaim =
-  /** This delivery holds the claim; `resumed` when it took over a lapsed one, so look on Stripe's side first. */
-  | { state: "claimed"; resumed: boolean }
+  /**
+   * This delivery holds the claim; `resumed` when it took over a lapsed one, so look on Stripe's side first, for this
+   * checkout's grant and for every orphan's (the claims it was taken past) before granting.
+   */
+  | { state: "claimed"; resumed: boolean; orphans: ClaimOrphan[] }
   /** The grant is on record: never grant again, whenever the retry comes. */
   | { state: "granted"; balanceTransactionId: string }
   /**
@@ -93,9 +103,9 @@ export type PassCreditClaim =
 
 /**
  * Read `claim_pass_credit`'s answer, or throw: an answer it does not know is a broken call, never a guess. A key the
- * function answers only since credit-watch (`held_by`, `unsettled`) reads absent as the one meaning it had before
- * (busy was always this checkout's own lease; an overlap left nothing of its own to settle), so the route reads both
- * definitions alike; a value it never gives is a broken call like any other.
+ * function answers only since credit-watch (`held_by`, `unsettled`, `orphans`) reads absent as the one meaning it had
+ * before (busy was always this checkout's own lease; an overlap left nothing of its own to settle; a claim named no
+ * orphan), so the route reads both definitions alike; a value it never gives is a broken call like any other.
  */
 export function parseClaim(data: unknown): PassCreditClaim {
   const answer = (typeof data === "object" && data !== null ? data : {}) as {
@@ -105,13 +115,16 @@ export function parseClaim(data: unknown): PassCreditClaim {
     retry_after_sec?: unknown;
     held_by?: unknown;
     unsettled?: unknown;
+    orphans?: unknown;
   };
   switch (answer.state) {
-    case "claimed":
-      if (typeof answer.resumed === "boolean") {
-        return { state: "claimed", resumed: answer.resumed };
+    case "claimed": {
+      const orphans = parseOrphans(answer.orphans);
+      if (typeof answer.resumed === "boolean" && orphans !== null) {
+        return { state: "claimed", resumed: answer.resumed, orphans };
       }
       break;
+    }
     case "granted":
       if (
         typeof answer.balance_transaction_id === "string" &&
@@ -151,6 +164,28 @@ export function parseClaim(data: unknown): PassCreditClaim {
       return { state: answer.state };
   }
   throw new Error("claim_pass_credit answered something it never answers");
+}
+
+/** The orphans a claim names, each a session and a time; absent is none; anything else is no answer (null). */
+function parseOrphans(value: unknown): ClaimOrphan[] | null {
+  if (value === undefined) return [];
+  if (!Array.isArray(value)) return null;
+  const orphans: ClaimOrphan[] = [];
+  for (const item of value) {
+    const { session, claimed_at } = (
+      typeof item === "object" && item !== null ? item : {}
+    ) as { session?: unknown; claimed_at?: unknown };
+    if (
+      typeof session !== "string" ||
+      session === "" ||
+      typeof claimed_at !== "number" ||
+      !Number.isFinite(claimed_at)
+    ) {
+      return null;
+    }
+    orphans.push({ session, claimedAt: claimed_at });
+  }
+  return orphans;
 }
 
 /**
@@ -227,12 +262,12 @@ export async function convertPassCredit(
 export type PassCreditRelease = "released" | "released_granted";
 
 /**
- * ★ SETTLE A CLAIM THAT LOST ITS PASSES (credit-watch, 20261005201000): its holder died before its grant was on record,
- * and another checkout then credited the passes it names. Released for good, so it never reads stuck; with the grant
- * Stripe holds for it on record beside it when the caller found one there (two grants for one set of passes, the
- * operator's to reverse one of in Stripe). The SQL refuses a claim still owed (no other checkout credited its passes),
- * one granted and one a delivery holds, so a wrong call cannot drop a host's credit. A failed call throws, so the
- * webhook answers 500 and Stripe retries.
+ * ★ SETTLE A CLAIM ANOTHER CHECKOUT'S CREDIT OVERTOOK (credit-watch, 20261005201000): its holder died before its grant
+ * was on record and another checkout then credited the passes it names, or its own delivery found an orphan's lost
+ * grant for them. Released for good, so it never reads stuck; with the grant Stripe holds for it on record beside it
+ * when the caller found one there (two grants for one set of passes: that one is the duplicate, the operator's to
+ * reverse in Stripe). The SQL refuses a claim granted and one whose passes no other checkout credited, so a wrong call
+ * cannot drop a host's credit. A failed call throws, so the webhook answers 500 and Stripe retries.
  */
 export async function releasePassCredit(
   sessionId: string,

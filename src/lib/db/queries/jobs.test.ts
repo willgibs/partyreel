@@ -535,6 +535,13 @@ describe("getJobSignals", () => {
             converted_at: "2026-10-03T09:00:01.000000+00:00",
             converted_count: 1,
           }),
+          // Converted in the day, but none of its passes (credited already): not a credit honoured.
+          claim({
+            balance_transaction_id: "cbtxn_5",
+            granted_at: "2026-10-05T09:30:00.000000+00:00",
+            converted_at: "2026-10-05T09:30:01.000000+00:00",
+            converted_count: 0,
+          }),
           // Stuck: claimed at 08:00 and never granted, its lease long over.
           claim({
             created_at: "2026-10-05T08:00:00.000000+00:00",

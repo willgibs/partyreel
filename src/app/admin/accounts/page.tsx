@@ -24,7 +24,10 @@ import {
   readAccountsUploads,
   searchAccounts,
 } from "@/lib/db/queries/accounts";
-import { readStuckPassCredits } from "@/lib/db/queries/pass-credits";
+import {
+  readCreditsToSettle,
+  readStuckPassCredits,
+} from "@/lib/db/queries/pass-credits";
 import { formatAdminDate } from "@/lib/format/admin-time";
 import { captureWarning } from "@/lib/observability/sentry";
 import { formatBytes } from "@/lib/utils";
@@ -74,13 +77,19 @@ export default async function AdminAccountsPage({
   // credits stuck past their hour, read with the accounts, and Stripe's change-plan configuration against every Pro
   // price we sell, asked now and NOT awaited (Stripe takes about half a second): its line streams in when it answers.
   const portal = checkedPortal();
-  const [accounts, stuck] = await Promise.all([
+  const [accounts, stuck, settle] = await Promise.all([
     searchAccounts(q),
     readStuckPassCredits(),
+    readCreditsToSettle(),
   ]);
   if (!stuck.ok) {
     captureWarning("admin", "accounts: stuck credits read failed", {
       message: stuck.message,
+    });
+  }
+  if (!settle.ok) {
+    captureWarning("admin", "accounts: credits to settle read failed", {
+      message: settle.message,
     });
   }
   // ★ Every listed account's uploads in ONE read (`uploads_windows`, billing-locks: it was one `uploads_used` call a
@@ -107,7 +116,7 @@ export default async function AdminAccountsPage({
         </p>
       </div>
 
-      <BillingChecks stuck={stuck} portal={portal} />
+      <BillingChecks stuck={stuck} settle={settle} portal={portal} />
 
       {/* Server-rendered GET search (no client JS). */}
       <form method="get" className="flex max-w-md gap-2">

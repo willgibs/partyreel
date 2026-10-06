@@ -215,9 +215,9 @@ export async function POST(request: Request) {
 
   const admin = createAdminClient();
   const createdAt = deliveryCreatedAt(event);
-  // A credited checkout's delivery fails as the `pass_credit` signal's (/admin/jobs) as well as Sentry's: a credit
-  // whose every delivery fails (a function missing, a lock that never frees) shows on the console the day it starts,
-  // before an hour of it reads stuck.
+  // A credited checkout's delivery that fails honouring its credit fails as the `pass_credit` signal's (/admin/jobs)
+  // as well as Sentry's: a credit whose every delivery fails (a function missing, a lock that never frees) shows on the
+  // console the day it starts, before an hour of it reads stuck.
   let credited = false;
 
   try {
@@ -285,6 +285,8 @@ export async function POST(request: Request) {
           throw new Error("a credited checkout names no pass it credited");
         }
         const outcome = await honorPassCredit(credit);
+        // The credit is done with: a failure from here on (the customer binding) is the delivery's, not the credit's.
+        credited = false;
         if (creditBusy(outcome)) {
           // A live lease holds the claim, so this delivery is not done and is not a 200: Stripe retries it. Another
           // delivery of this checkout (the two TEST endpoints both receive every event), whose grant the retry finds

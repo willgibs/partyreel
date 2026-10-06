@@ -68,3 +68,61 @@ export function stuckSince(
     ? claim.granted_at
     : claim.created_at;
 }
+
+/**
+ * ★ WHAT ONLY STRIPE CAN SETTLE (credit-watch's red-team): two credits for one set of passes, which no retry fixes and
+ * the operator settles by reversing one balance transaction in Stripe. Said on the Accounts list for a month after it
+ * happened (a person reverses it in days, and nothing records that they did, so it never counts as owed):
+ *   - granted twice: a claim released with a grant beside it (its dead holder's grant turned up after another
+ *     checkout credited the passes): that grant is the one to reverse;
+ *   - converted none: a granted claim whose conversion found every pass it names credited already (another
+ *     conversion took them, the older build's, which may have granted its own credit).
+ */
+export const SETTLE_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
+
+export type SettleKind = "granted_twice" | "converted_none";
+
+/** Both kinds, in the order the list says them. */
+export const SETTLE_KINDS: readonly SettleKind[] = [
+  "granted_twice",
+  "converted_none",
+];
+
+/** The claim's columns the settle rule reads. */
+export type CreditSettleState = Pick<
+  CreditClaimState,
+  "granted_at" | "converted_at" | "released_at"
+> & { converted_count: number | null };
+
+/** Does this claim wait on Stripe at `nowMs` (inside the month), and how. */
+export function settleKind(
+  claim: CreditSettleState,
+  nowMs: number,
+): SettleKind | null {
+  const since = nowMs - SETTLE_WINDOW_MS;
+  if (
+    claim.released_at !== null &&
+    claim.granted_at !== null &&
+    Date.parse(claim.released_at) > since
+  ) {
+    return "granted_twice";
+  }
+  if (
+    claim.converted_at !== null &&
+    (claim.converted_count ?? 0) === 0 &&
+    Date.parse(claim.converted_at) > since
+  ) {
+    return "converted_none";
+  }
+  return null;
+}
+
+/** When it came to wait on Stripe: its release (granted twice) or its conversion (converted none). */
+export function settleSince(
+  claim: Pick<CreditSettleState, "released_at" | "converted_at">,
+  kind: SettleKind,
+): string {
+  return (
+    (kind === "granted_twice" ? claim.released_at : claim.converted_at) ?? ""
+  );
+}

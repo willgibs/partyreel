@@ -183,28 +183,34 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   lapsed claim with no grant on record finds a grant lost mid-call on Stripe's side before granting, and puts it on
   record (`record_pass_credit_grant`); (3) converts exactly the passes the claim names (`convert_pass_credit`), never
   one bought after the checkout, and clears `tier_expires_at` and `event_slots` only when it converted any. ★ A pass is
-  credited once ever: a claim whose passes were converted, or are named by another checkout's claim that GRANTED (two
-  Checkout tabs), answers overlap, grants nothing and raises `stripe_pass_credit_overlap`. ★ Another checkout's claim
-  that only holds its lease answers busy (20261005201000, `held_by`), never overlap: its holder can die, and the tab
-  told overlap for good while the first tab's retries ran out left neither checkout granted; the retry meets that
-  claim's grant (overlap) or its lapse (it claims). ★ A claim of this checkout's own still open beside an overlap (its
-  holder died, then another checkout credited its passes) is settled at that delivery, never left stuck: looked for on
-  Stripe's side, then released for good (`release_pass_credit`, `released_at`, refused for a claim still owed), a grant
-  found put on record beside it (two grants for one set of passes: `stripe_pass_credit_overlap_granted`, the operator
-  reverses one in Stripe). ★ Each call takes her profiles row first, the capacity bodies' order (an upload's complete
-  holds that row while it counts on her live pass). A credited session naming no pass is a 500, never a guess; a
-  credited delivery's failure is the `pass_credit` signal's as well as Sentry's. A balance carries from invoice to
-  invoice (Checkout's own first invoice never takes it), where an `amount_off` coupon would silently eat any credit
-  above one invoice's total.
+  credited once ever: a claim whose passes were converted, or are named by another checkout's claim that GRANTED and
+  was not released (two Checkout tabs), answers overlap, grants nothing and raises `stripe_pass_credit_overlap`.
+  ★ Another checkout's claim that only holds its lease answers busy (20261005201000, `held_by`), never overlap: its
+  holder can die, and the tab told overlap for good while the first tab's retries ran out left neither checkout
+  granted; the retry meets that claim's grant (overlap) or its lapse. ★ A claim taken past such a lapse names it an
+  orphan (`orphans`: another checkout's lapsed, ungranted, unreleased claim on its passes), and the route looks on
+  Stripe's side for every orphan's grant BEFORE it grants, since that holder may have died between Stripe's grant and
+  its record: a grant found is that checkout's (put on record on its claim, converted) and this claim is released,
+  granting nothing; none found, this checkout grants and then releases the orphans. ★ A claim of this checkout's own
+  still open beside an overlap is settled at that delivery, never left stuck: looked for on Stripe's side, then
+  released for good (`release_pass_credit`, `released_at`; refused for a claim whose passes no other checkout credited,
+  and a pass it named that the other did not stays hers, uncredited, as an overlap always left it), a grant found put
+  on record beside it (two grants for one set of passes: `stripe_pass_credit_overlap_granted`; a released claim's grant
+  is the duplicate, which credits nothing and the operator reverses in Stripe). ★ Each call takes her profiles row
+  first, the capacity bodies' order (an upload's complete holds that row while it counts on her live pass). A credited
+  session naming no pass is a 500, never a guess; a failure while honouring a credit is the `pass_credit` signal's as
+  well as Sentry's. A balance carries from invoice to invoice (Checkout's own first invoice never takes it), where an
+  `amount_off` coupon would silently eat any credit above one invoice's total.
 - ★ **A stuck credit shows where the operator looks, with its fix beside it.** Stuck is an hour at one step
   (`billing/passes-stuck.ts`, pure, its PostgREST form in `queries/pass-credits.ts` held to it by their test): a claim
   with no grant and no live lease an hour after it was taken, or a grant whose passes never converted an hour after it
   landed; a released claim never is. `/admin/accounts` lists every stuck one with its account (oldest owing first,
-  counted past what it lists), the account's page says what became of each of her credits with Retry beside a stuck
-  one (`retryPassCreditAsOperatorAction`, AAL2, audited in Sentry: the session retrieved from Stripe and run through
-  the webhook's own path, so the claim makes it the same once-ever path whichever runs first), and `/admin/jobs`
-  carries the `pass_credit` signal: credits converted in the day, credited deliveries that failed, stuck ones owed
-  (Needs a look).
+  counted past what it lists) and, for a month, every one only Stripe can settle (granted twice, or a conversion of
+  none: `settleKind`, since nothing records the reversal it never counts as owed), the account's page says what became
+  of each of her credits with Retry beside a stuck one (`retryPassCreditAsOperatorAction`, AAL2, audited in Sentry: the
+  session retrieved from Stripe and run through the webhook's own path, so the claim makes it the same once-ever path
+  whichever runs first), and `/admin/jobs` carries the `pass_credit` signal: credits converted in the day (a conversion
+  of none is no credit honoured), failures honouring one, stuck ones owed (Needs a look).
 - **A subscription write nulls `event_slots` and `tier_expires_at` every time:** nothing banks behind Pro, and a stale
   stacked-pass slot count would cap a Pro host inside `enforce_event_limit`'s coalesce. The downgrade path then runs
   `recomputePassEntitlement`, so a live uncredited pass resurfaces instead of evaporating.

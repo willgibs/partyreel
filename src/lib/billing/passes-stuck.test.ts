@@ -8,6 +8,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   PASS_CREDIT_STUCK_AFTER_MS,
+  SETTLE_WINDOW_MS,
+  settleKind,
+  settleSince,
   stuckKind,
   stuckSince,
   type CreditClaimState,
@@ -128,5 +131,52 @@ describe("stuckSince", () => {
     const row = claim({ created_at: ago(90 * MIN), granted_at: ago(80 * MIN) });
     expect(stuckSince(row, "never_granted")).toBe(row.created_at);
     expect(stuckSince(row, "never_converted")).toBe(row.granted_at);
+  });
+});
+
+describe("settleKind (credit-watch's red-team)", () => {
+  const DAY = 24 * 60 * MIN;
+  const base = {
+    granted_at: null,
+    converted_at: null,
+    released_at: null,
+    converted_count: null,
+  };
+
+  it("is a month", () => {
+    expect(SETTLE_WINDOW_MS).toBe(30 * DAY);
+  });
+
+  it("★ a claim released beside a grant is granted twice, for a month after its release", () => {
+    const twice = {
+      ...base,
+      granted_at: ago(2 * DAY),
+      released_at: ago(2 * DAY),
+    };
+    expect(settleKind(twice, NOW)).toBe("granted_twice");
+    expect(settleSince(twice, "granted_twice")).toBe(twice.released_at);
+    expect(
+      settleKind({ ...twice, released_at: ago(31 * DAY) }, NOW),
+    ).toBeNull();
+  });
+
+  it("★ a granted claim whose conversion converted none waits on Stripe too; one that converted any is done", () => {
+    const none = {
+      ...base,
+      granted_at: ago(DAY),
+      converted_at: ago(DAY),
+      converted_count: 0,
+    };
+    expect(settleKind(none, NOW)).toBe("converted_none");
+    expect(settleSince(none, "converted_none")).toBe(none.converted_at);
+    expect(settleKind({ ...none, converted_count: 2 }, NOW)).toBeNull();
+  });
+
+  it("a claim released with no grant, a stuck one and a fresh one wait on nobody in Stripe", () => {
+    expect(settleKind({ ...base, released_at: ago(DAY) }, NOW)).toBeNull();
+    expect(
+      settleKind({ ...base, granted_at: ago(3 * 60 * MIN) }, NOW),
+    ).toBeNull();
+    expect(settleKind(base, NOW)).toBeNull();
   });
 });

@@ -10,7 +10,7 @@
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { stuckKind } from "@/lib/billing/passes-stuck";
+import { settleKind, stuckKind } from "@/lib/billing/passes-stuck";
 import {
   asSupabase,
   createFakePostgrest,
@@ -27,6 +27,7 @@ vi.mock("@/lib/supabase/admin", () => ({
 
 const {
   readAccountPassCredits,
+  readCreditsToSettle,
   readPassCredit,
   readStuckPassCredits,
   STUCK_LIST_LIMIT,
@@ -212,6 +213,90 @@ describe("the stuck rule's two forms", () => {
     expect(read.ok).toBe(false);
     if (read.ok) return;
     expect(read.message).toMatch(/stuck credits/);
+  });
+});
+
+describe("the credits only Stripe can settle, one rule in two forms (credit-watch's red-team)", () => {
+  const DAY = 24 * 60 * MIN;
+
+  function settleEdges(): FakeRow[] {
+    return [
+      claim("twice_recent", {
+        created_at: ago(3 * DAY),
+        claimed_until: null,
+        balance_transaction_id: "cbtxn_t1",
+        granted_at: ago(2 * DAY),
+        released_at: ago(2 * DAY),
+      }),
+      claim("twice_stale", {
+        created_at: ago(40 * DAY),
+        claimed_until: null,
+        balance_transaction_id: "cbtxn_t2",
+        granted_at: ago(31 * DAY),
+        released_at: ago(31 * DAY),
+      }),
+      claim("released_ungranted", {
+        created_at: ago(3 * DAY),
+        claimed_until: null,
+        released_at: ago(2 * DAY),
+      }),
+      claim("converted_none", {
+        created_at: ago(DAY),
+        claimed_until: null,
+        balance_transaction_id: "cbtxn_n",
+        granted_at: ago(DAY),
+        converted_at: ago(DAY),
+        converted_count: 0,
+        profiles: { email: "none@example.com", display_name: "Nona" },
+      }),
+      claim("converted_two", {
+        created_at: ago(DAY),
+        claimed_until: null,
+        balance_transaction_id: "cbtxn_c",
+        granted_at: ago(DAY),
+        converted_at: ago(DAY),
+        converted_count: 2,
+      }),
+      claim("stuck", {
+        created_at: ago(5 * 60 * MIN),
+        claimed_until: ago(4 * 60 * MIN),
+      }),
+    ];
+  }
+
+  it("★ the table's filters find exactly the claims the pure rule says wait on Stripe, newest first, each with its account", async () => {
+    const rows = settleEdges();
+    state.fake = createFakePostgrest({ tables: { pass_credits: rows } });
+    const read = await readCreditsToSettle(NOW);
+    expect(read.ok).toBe(true);
+    if (!read.ok) return;
+    const judged = rows
+      .filter((row) => settleKind(row as never, NOW) !== null)
+      .map((row) => row.stripe_session_id)
+      .sort();
+    expect(judged).toEqual(["cs_test_converted_none", "cs_test_twice_recent"]);
+    expect(read.value.rows.map((row) => row.stripe_session_id).sort()).toEqual(
+      judged,
+    );
+    expect(read.value.total).toBe(2);
+    // Newest first: the conversion of none (a day ago), then the release (two days ago).
+    expect(read.value.rows.map((row) => row.kind)).toEqual([
+      "converted_none",
+      "granted_twice",
+    ]);
+    expect(read.value.rows[0]).toMatchObject({
+      since: ago(DAY),
+      displayName: "Nona",
+      email: "none@example.com",
+    });
+  });
+
+  it("a read that fails is No reading with its words, never nothing to settle", async () => {
+    state.fake = createFakePostgrest({ tables: {} });
+    const read = await readCreditsToSettle(NOW);
+    expect(read).toMatchObject({ ok: false });
+    if (read.ok) return;
+    expect(read.message).toMatch(/settle in Stripe/);
   });
 });
 

@@ -22,8 +22,10 @@
  * nothing converted, and the operator hears of it (the second tab's subscription also bills, which the operator
  * settles). ★ Another checkout's claim that only holds its lease answers busy (credit-watch): a lease is never a
  * refusal, since its holder can die, and the tab told overlap for good while the first tab's retries ran out left
- * neither checkout granted. This checkout's own claim, left open by a holder that died, is settled at its overlap:
- * looked for on Stripe's side, then released, its lost grant on record beside it when there was one.
+ * neither checkout granted. ★ And a claim taken past such a lease once it lapsed names that claim as an orphan, whose
+ * grant (its holder may have died after Stripe and before the record) is looked for before this one grants. This
+ * checkout's own claim, left open by a holder that died, is settled at its overlap: looked for on Stripe's side, then
+ * released, its lost grant on record beside it when there was one.
  *
  * Run by the webhook for each credited checkout and by the operator's Retry on /admin/accounts for one that stuck
  * (`retryPassCreditAsOperatorAction`): the claim makes the two one path, whichever runs first.
@@ -37,6 +39,7 @@ import {
   convertPassCredit,
   recordPassCreditGrant,
   releasePassCredit,
+  type ClaimOrphan,
 } from "@/lib/db/mutations/event-passes";
 import { creditedPassIds } from "@/lib/billing/passes";
 import { captureWarning } from "@/lib/observability/sentry";
@@ -92,18 +95,41 @@ export function creditOfSession(
   return { ...credit, passIds, sessionCreated: session.created };
 }
 
-/** The credit's balance transaction for this session, when Stripe holds one (a grant whose record was lost). */
-async function findGrant(input: PassCreditInput): Promise<string | null> {
+/**
+ * The credit's balance transactions Stripe holds for these checkouts (grants whose records were lost), by session,
+ * from one listing of the customer's transactions since `since` (unix seconds: no grant for any of them is older). The
+ * first found for a session is its grant: a key holds its parameters, so a session's own grants repeat one id.
+ */
+async function findGrants(
+  customerId: string,
+  sessions: readonly string[],
+  since: number,
+): Promise<Map<string, string>> {
+  const wanted = new Set(sessions);
+  const found = new Map<string, string>();
+  if (wanted.size === 0) return found;
   const transactions = getStripe().customers.listBalanceTransactions(
-    input.customerId,
-    { created: { gte: input.sessionCreated }, limit: 100 },
+    customerId,
+    { created: { gte: since }, limit: 100 },
   );
   for await (const transaction of transactions) {
-    if (transaction.metadata?.[PASS_CREDIT_SESSION_KEY] === input.sessionId) {
-      return transaction.id;
+    const session = transaction.metadata?.[PASS_CREDIT_SESSION_KEY];
+    if (session && wanted.has(session) && !found.has(session)) {
+      found.set(session, transaction.id);
+      if (found.size === wanted.size) break;
     }
   }
-  return null;
+  return found;
+}
+
+/** This checkout's own grant on Stripe's side, when its record was lost. */
+async function findGrant(input: PassCreditInput): Promise<string | null> {
+  const found = await findGrants(
+    input.customerId,
+    [input.sessionId],
+    input.sessionCreated,
+  );
+  return found.get(input.sessionId) ?? null;
 }
 
 async function grant(input: PassCreditInput): Promise<string> {
@@ -169,8 +195,44 @@ export async function honorPassCredit(
       return "overlap";
     }
     case "claimed": {
-      const found = claim.resumed ? await findGrant(input) : null;
-      const transaction = found ?? (await grant(input));
+      // ★ LOOK BEFORE GRANTING, for every grant Stripe may hold with no record: this checkout's own when it took over
+      // a lapsed lease, and each orphan's (another checkout's claim on these passes whose holder died with no grant on
+      // record: waiting on its lease rather than refusing gave this retry the time to claim past it).
+      const found = await findGrants(
+        input.customerId,
+        [
+          ...(claim.resumed ? [input.sessionId] : []),
+          ...claim.orphans.map((orphan) => orphan.session),
+        ],
+        Math.min(
+          input.sessionCreated,
+          ...claim.orphans.map((orphan) => orphan.claimedAt),
+        ),
+      );
+      const own = found.get(input.sessionId) ?? null;
+      const overtaken = own
+        ? null
+        : (claim.orphans.find((orphan) => found.has(orphan.session)) ?? null);
+      if (overtaken) {
+        // ★ Another checkout's dead holder granted these passes and lost its record: the grant is that checkout's,
+        // put on record on its claim and converted, and this checkout's claim is released, granting nothing.
+        await recordPassCreditGrant(
+          overtaken.session,
+          input.userId,
+          found.get(overtaken.session)!,
+        );
+        await convertPassCredit(overtaken.session, input.userId);
+        await releasePassCredit(input.sessionId, input.userId, null);
+        captureWarning("billing", "stripe_pass_credit_overlap", {
+          sessionId: input.sessionId,
+          customerId: input.customerId,
+          creditCents: input.creditCents,
+          passes: input.passIds.length,
+          creditedBy: overtaken.session,
+        });
+        return "overlap";
+      }
+      const transaction = own ?? (await grant(input));
       const recorded = await recordPassCreditGrant(
         input.sessionId,
         input.userId,
@@ -186,7 +248,9 @@ export async function honorPassCredit(
           alsoGranted: transaction,
         });
       }
-      break;
+      await convertPassCredit(input.sessionId, input.userId);
+      await settleOrphans(input, claim.orphans, found);
+      return "converted";
     }
     case "granted":
       break;
@@ -194,4 +258,39 @@ export async function honorPassCredit(
 
   await convertPassCredit(input.sessionId, input.userId);
   return "converted";
+}
+
+/**
+ * ★ THE ORPHANS, SETTLED once this checkout's credit has landed: their holders are dead and their passes are this
+ * checkout's credit now, so each is released, never left to read stuck; one whose grant Stripe holds after all (a
+ * double grant from before this look) goes on record beside its release, said as granted twice. Housekeeping after the
+ * credit: a failure is warned, never a failed delivery (a retry meets the grant on record and never comes back here;
+ * a claim left unsettled shows as stuck, with its Retry).
+ */
+async function settleOrphans(
+  input: PassCreditInput,
+  orphans: readonly ClaimOrphan[],
+  found: ReadonlyMap<string, string>,
+): Promise<void> {
+  for (const orphan of orphans) {
+    const lost = found.get(orphan.session) ?? null;
+    try {
+      await releasePassCredit(orphan.session, input.userId, lost);
+      if (lost) {
+        captureWarning("billing", "stripe_pass_credit_overlap_granted", {
+          sessionId: orphan.session,
+          customerId: input.customerId,
+          alsoGranted: lost,
+          creditedBy: input.sessionId,
+        });
+      }
+    } catch (error) {
+      captureWarning("billing", "stripe_pass_credit_orphan_unsettled", {
+        sessionId: orphan.session,
+        customerId: input.customerId,
+        creditedBy: input.sessionId,
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
 }

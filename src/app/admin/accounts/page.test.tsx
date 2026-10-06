@@ -38,6 +38,7 @@ const gate = vi.hoisted(() => ({ aal: "aal2", reads: 0, uploadsCalls: 0 }));
 /** The two billing checks' answers (credit-watch): the stuck credits' reading and the configuration's check. */
 const checks = vi.hoisted(() => ({
   stuck: { ok: true, value: { total: 0, rows: [] } } as unknown,
+  settle: { ok: true, value: { total: 0, rows: [] } } as unknown,
   portal: { state: "whole", configurationId: "bpc_tagged", sold: 6 } as unknown,
 }));
 
@@ -88,6 +89,10 @@ vi.mock("@/lib/db/queries/pass-credits", () => ({
     gate.reads += 1;
     return checks.stuck;
   },
+  readCreditsToSettle: async () => {
+    gate.reads += 1;
+    return checks.settle;
+  },
 }));
 vi.mock("./portal-check", () => ({
   checkChangePlanConfiguration: async () => {
@@ -137,6 +142,7 @@ beforeEach(() => {
   gate.reads = 0;
   gate.uploadsCalls = 0;
   checks.stuck = { ok: true, value: { total: 0, rows: [] } };
+  checks.settle = { ok: true, value: { total: 0, rows: [] } };
   checks.portal = { state: "whole", configurationId: "bpc_tagged", sold: 6 };
 });
 
@@ -421,12 +427,18 @@ describe("the billing checks (credit-watch)", () => {
   it("★ a check that could not run says No reading, tells Sentry, and the list still draws", async () => {
     accounts.rows = [row({ display_name: "Still Listed" })];
     checks.stuck = { ok: false, message: "stuck credits: boom" };
+    checks.settle = { ok: false, message: "credits to settle: boom" };
     checks.portal = { state: "unread", message: "Stripe is unreachable" };
     await drawSettled();
-    expect(screen.getAllByText("No reading")).toHaveLength(2);
+    expect(screen.getAllByText("No reading")).toHaveLength(3);
     expect(screen.getByText("Still Listed")).toBeTruthy();
     // Each told once, in whichever order its read came back (the configuration's streams beside the list's).
-    expect(sentry.warnings).toHaveLength(2);
+    expect(sentry.warnings).toHaveLength(3);
+    expect(sentry.warnings).toContainEqual([
+      "admin",
+      "accounts: credits to settle read failed",
+      { message: "credits to settle: boom" },
+    ]);
     expect(sentry.warnings).toContainEqual([
       "admin",
       "accounts: stuck credits read failed",

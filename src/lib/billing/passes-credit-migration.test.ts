@@ -10,14 +10,16 @@
  *   3. ★ her profiles row first in each, the one lock order (database-security.md), before anything else is read;
  *   4. ★ the claim: a released claim answers overlap before anything, a grant on record answers granted forever, a live
  *      lease answers busy, a pass is credited once ever and refused only by what is settled (another checkout's mere
- *      lease is busy, after it), and the lease outlasts any delivery the webhook can run;
+ *      lease is busy, after it; a released claim's grant is no credit), a claim names the orphans it is taken past,
+ *      and the lease outlasts any delivery the webhook can run;
  *   5. ★ the conversion: exactly the claim's passes, only after the grant, the chain cleared only when it converted;
  *   6. the recompute: never a Pro profile, nor one whose Pro plan is seconds behind her credited checkout (real time),
  *      the four fields from her unconsumed windows at one instant, one pass's room from tier_limits (tiers.ts' own
  *      number), written in the same transaction as the lock;
  *   7. the route calls the three in order, settles an unsettled overlap with the release, and the old one-arg
  *      conversion nowhere;
- *   8. ★ the release: only a claim another checkout's credit overtook, never one still owed, granted or leased.
+ *   8. ★ the release: only a claim another checkout's credit overtook, never one still owed or granted; a leased one is
+ *      its own holder's to release (the claim answers every other caller busy).
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -201,11 +203,12 @@ describe("4. the claim", () => {
   // Reshaped on purpose (credit-watch): the scar it keeps is "a pass is credited once ever" (a converted pass, or one
   // another checkout's claim GRANTED, is overlap, asked before any claim is written); the reason it dropped is "or
   // holds its lease", which refused for good a checkout whose rival's holder could still die and never grant.
-  it("★ a pass is credited once ever: converted already, or another checkout's granted claim, is overlap, saying whether its own claim is unsettled", () => {
+  it("★ a pass is credited once ever: converted already, or another checkout's unreleased granted claim, is overlap, saying whether its own claim is unsettled", () => {
     const body = claim();
+    // A released claim's grant is the duplicate its dead holder made, which the operator reverses: never a credit.
     const overlap = at(
       body,
-      "if exists (select 1 from public.event_passes q where q.id = any(v_ids) and q.consumed_at is not null) or exists ( select 1 from public.pass_credits c where c.profile_id = p_host_id and c.stripe_session_id <> p_session_id and c.pass_ids && v_ids and c.granted_at is not null) then return jsonb_build_object('state', 'overlap', 'unsettled', v_claim.stripe_session_id is not null); end if;",
+      "if exists (select 1 from public.event_passes q where q.id = any(v_ids) and q.consumed_at is not null) or exists ( select 1 from public.pass_credits c where c.profile_id = p_host_id and c.stripe_session_id <> p_session_id and c.pass_ids && v_ids and c.granted_at is not null and c.released_at is null) then return jsonb_build_object('state', 'overlap', 'unsettled', v_claim.stripe_session_id is not null); end if;",
     );
     // ★ Never a lease: the once-ever check names no claimed_until at all.
     expect(body.slice(overlap, body.indexOf("end if;", overlap))).not.toContain(
@@ -246,6 +249,27 @@ describe("4. the claim", () => {
     // This checkout's own live lease says which it is, too.
     expect(body).toContain(
       "if v_claim.claimed_until > now() then return jsonb_build_object('state', 'busy', 'held_by', 'this_checkout',",
+    );
+  });
+
+  it("★ names the orphans it is taken past, after the lease answered busy and before the claim is written: their grants are looked for first (credit-watch)", () => {
+    const body = claim();
+    const lease = at(
+      body,
+      "return jsonb_build_object('state', 'busy', 'held_by', 'another_checkout',",
+    );
+    const orphans = at(
+      body,
+      "select coalesce(jsonb_agg(jsonb_build_object('session', c.stripe_session_id, 'claimed_at', floor(extract(epoch from c.created_at))::bigint) order by c.created_at), '[]'::jsonb) into v_orphans from public.pass_credits c where c.profile_id = p_host_id and c.stripe_session_id <> p_session_id and c.pass_ids && v_ids and c.granted_at is null and c.released_at is null and (c.claimed_until is null or c.claimed_until <= now());",
+    );
+    expect(lease).toBeLessThan(orphans);
+    expect(orphans).toBeLessThan(at(body, "insert into public.pass_credits"));
+    // Both ways a claim is taken answer them.
+    expect(body).toContain(
+      "return jsonb_build_object('state', 'claimed', 'resumed', true, 'orphans', v_orphans);",
+    );
+    expect(body).toContain(
+      "return jsonb_build_object('state', 'claimed', 'resumed', false, 'orphans', v_orphans);",
     );
   });
 
@@ -395,16 +419,16 @@ describe("7. the calls", () => {
 describe("8. the release (credit-watch)", () => {
   const release = () => bodyOf("release_pass_credit");
 
-  it("★ releases only a claim another checkout's credit overtook: a converted pass, or another checkout's granted claim", () => {
+  it("★ releases only a claim another checkout's credit overtook: a converted pass, or another checkout's unreleased granted claim", () => {
     const body = release();
     const owed = at(
       body,
-      "if not exists (select 1 from public.event_passes q where q.id = any(v_claim.pass_ids) and q.consumed_at is not null) and not exists ( select 1 from public.pass_credits c where c.profile_id = p_host_id and c.stripe_session_id <> p_session_id and c.pass_ids && v_claim.pass_ids and c.granted_at is not null) then raise exception 'This checkout''s passes are not another checkout''s to credit: it is still owed.'",
+      "if not exists (select 1 from public.event_passes q where q.id = any(v_claim.pass_ids) and q.consumed_at is not null) and not exists ( select 1 from public.pass_credits c where c.profile_id = p_host_id and c.stripe_session_id <> p_session_id and c.pass_ids && v_claim.pass_ids and c.granted_at is not null and c.released_at is null) then raise exception 'This checkout''s passes are not another checkout''s to credit: it is still owed.'",
     );
     expect(owed).toBeLessThan(at(body, "update public.pass_credits"));
   });
 
-  it("★ never a granted claim (it converts) nor one a delivery holds right now, refused before the write", () => {
+  it("★ never a granted claim (it converts), refused before the write; a leased one is its own holder's to release", () => {
     const body = release();
     const write = at(body, "update public.pass_credits");
     expect(
@@ -413,12 +437,9 @@ describe("8. the release (credit-watch)", () => {
         "if v_claim.granted_at is not null then raise exception 'This checkout''s credit is granted: it converts, never releases.'",
       ),
     ).toBeLessThan(write);
-    expect(
-      at(
-        body,
-        "if v_claim.claimed_until > now() then raise exception 'This checkout''s credit is held by a delivery right now.'",
-      ),
-    ).toBeLessThan(write);
+    // Reshaped on purpose (credit-watch's red-team): it refused a claim a delivery held; its own holder now releases
+    // itself once an orphan's lost grant credited its passes, and every other caller meets busy at the claim first.
+    expect(body).not.toContain("held by a delivery");
     // A replay answers what is on record, before any refusal.
     expect(
       at(

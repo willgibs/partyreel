@@ -15,6 +15,7 @@ import {
   creditRetryable,
   creditSentence,
   creditState,
+  settleLine,
   stuckLine,
   type CreditState,
 } from "./credits";
@@ -175,7 +176,7 @@ describe("the words", () => {
         NOW,
       ),
     ).toBe(
-      "Not credited: another checkout of hers credited its 1 pass first (released Oct 5, 2026, 08:00 UTC). Nothing is owed.",
+      "Not credited: another checkout of hers credited these passes first (released Oct 5, 2026, 08:00 UTC). A pass this one named that the other did not stays hers, uncredited.",
     );
     expect(
       creditSentence(
@@ -188,6 +189,15 @@ describe("the words", () => {
       ),
     ).toMatch(
       /two credits for one set of passes\. Reverse one grant in Stripe\.$/,
+    );
+  });
+
+  it("the list's settle line says which and since when", () => {
+    expect(settleLine("granted_twice", "2026-10-05T10:00:00.000Z")).toBe(
+      "Granted twice, found Oct 5, 2026, 10:00 UTC",
+    );
+    expect(settleLine("converted_none", "2026-10-05T10:00:00.000Z")).toBe(
+      "Converted none, Oct 5, 2026, 10:00 UTC",
     );
   });
 

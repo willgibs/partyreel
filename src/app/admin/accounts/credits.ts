@@ -1,4 +1,8 @@
-import { stuckKind, type StuckKind } from "@/lib/billing/passes-stuck";
+import {
+  stuckKind,
+  type SettleKind,
+  type StuckKind,
+} from "@/lib/billing/passes-stuck";
 import type { PassCreditRow } from "@/lib/db/queries/pass-credits";
 import { formatAdminTimestamp } from "@/lib/format/admin-time";
 import { formatCount } from "@/lib/format/count";
@@ -117,7 +121,7 @@ export function creditSentence(row: PassCreditRow, nowMs: number): string {
     case "waiting":
       return `Claimed ${at(row.created_at)} for ${credit} over ${named}; its delivery stopped, and Stripe's retry finishes it.`;
     case "released":
-      return `Not credited: another checkout of hers credited its ${named} first (released ${at(row.released_at)}). Nothing is owed.`;
+      return `Not credited: another checkout of hers credited these passes first (released ${at(row.released_at)}). A pass this one named that the other did not stays hers, uncredited.`;
     case "granted_twice":
       return `Another checkout of hers credited its ${named} first, and this one's ${credit} grant landed on Stripe too (found ${at(row.released_at)}): two credits for one set of passes. Reverse one grant in Stripe.`;
   }
@@ -128,4 +132,11 @@ export function stuckLine(kind: StuckKind, since: string): string {
   return kind === "never_granted"
     ? `Never granted, claimed ${formatAdminTimestamp(since)}`
     : `Never converted, granted ${formatAdminTimestamp(since)}`;
+}
+
+/** A credit only Stripe can settle, on the Accounts list: which, and since when. */
+export function settleLine(kind: SettleKind, since: string): string {
+  return kind === "granted_twice"
+    ? `Granted twice, found ${formatAdminTimestamp(since)}`
+    : `Converted none, ${formatAdminTimestamp(since)}`;
 }

@@ -1,7 +1,7 @@
 import { act, render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import type { StuckCredit } from "@/lib/db/queries/pass-credits";
+import type { SettleCredit, StuckCredit } from "@/lib/db/queries/pass-credits";
 
 import { BillingChecks } from "./billing-checks";
 import type { PortalCheck } from "./portal-check";
@@ -18,6 +18,8 @@ const WHOLE: Promise<PortalCheck> = Promise.resolve({
   configurationId: "bpc_tagged",
   sold: 6,
 });
+/** Nothing only Stripe can settle (the reading came back empty). */
+const NONE_TO_SETTLE = { ok: true as const, value: { total: 0, rows: [] } };
 /** A check whose answer has come back. */
 const answered = (check: PortalCheck) => Promise.resolve(check);
 
@@ -48,6 +50,7 @@ describe("the stuck credits", () => {
   it("say none stuck, quietly, when the reading found none", () => {
     render(
       <BillingChecks
+        settle={NONE_TO_SETTLE}
         stuck={{ ok: true, value: { total: 0, rows: [] } }}
         portal={WHOLE}
       />,
@@ -60,6 +63,7 @@ describe("the stuck credits", () => {
   it("★ list each stuck credit with its account linked to her page's credits, why and since when, and count the rest", () => {
     render(
       <BillingChecks
+        settle={NONE_TO_SETTLE}
         stuck={{
           ok: true,
           value: {
@@ -109,6 +113,7 @@ describe("the stuck credits", () => {
   it("★ say No reading, with why, when the read failed: never none stuck", () => {
     render(
       <BillingChecks
+        settle={NONE_TO_SETTLE}
         stuck={{
           ok: false,
           message: "admin/accounts: stuck credits (never_granted): boom",
@@ -129,14 +134,20 @@ describe("the change-plan configuration", () => {
   /** Draw the checks and let the configuration's answer stream in (React settles a suspended `use` inside `act`). */
   async function drawAnswered(portal: Promise<PortalCheck>) {
     await act(async () => {
-      render(<BillingChecks stuck={OK} portal={portal} />);
+      render(
+        <BillingChecks stuck={OK} settle={NONE_TO_SETTLE} portal={portal} />,
+      );
     });
     return section("Change plan in Stripe");
   }
 
   it("★ says it is asking Stripe until Stripe answers, and the stuck credits draw meanwhile", () => {
     render(
-      <BillingChecks stuck={OK} portal={new Promise<PortalCheck>(() => {})} />,
+      <BillingChecks
+        stuck={OK}
+        settle={NONE_TO_SETTLE}
+        portal={new Promise<PortalCheck>(() => {})}
+      />,
     );
     expect(
       within(section("Change plan in Stripe")).getByRole("status").textContent,
@@ -192,5 +203,82 @@ describe("the change-plan configuration", () => {
     expect(within(change).getByText("No reading")).toBeTruthy();
     expect(within(change).getByText("Stripe is unreachable")).toBeTruthy();
     expect(within(change).queryByText(/Lists all/)).toBeNull();
+  });
+});
+
+describe("the credits only Stripe can settle (credit-watch's red-team)", () => {
+  const OK = { ok: true as const, value: { total: 0, rows: [] } };
+  function settle(over: Partial<SettleCredit>): SettleCredit {
+    return {
+      ...stuck({}),
+      released_at: "2026-10-04T09:00:00.000Z",
+      granted_at: "2026-10-04T09:00:00.000Z",
+      balance_transaction_id: "cbtxn_lost",
+      kind: "granted_twice",
+      since: "2026-10-04T09:00:00.000Z",
+      ...over,
+    } as SettleCredit;
+  }
+
+  it("say nothing when there is none: the stuck credits' line stands alone", () => {
+    render(<BillingChecks stuck={OK} settle={NONE_TO_SETTLE} portal={WHOLE} />);
+    expect(screen.queryByText("To settle in Stripe")).toBeNull();
+  });
+
+  it("★ list each with its account and what to do in Stripe, beside a calm stuck line", () => {
+    render(
+      <BillingChecks
+        stuck={OK}
+        settle={{
+          ok: true,
+          value: {
+            total: 2,
+            rows: [
+              settle({}),
+              settle({
+                stripe_session_id: "cs_test_none",
+                kind: "converted_none",
+                since: "2026-10-03T09:00:00.000Z",
+                displayName: "Nona",
+              }),
+            ],
+          },
+        }}
+        portal={WHOLE}
+      />,
+    );
+    const credits = section("Pass-to-Pro credits");
+    expect(within(credits).getByText("None stuck")).toBeTruthy();
+    expect(within(credits).getByText("2 to settle")).toBeTruthy();
+    expect(
+      within(credits).getByText(
+        "$18.50 · Granted twice, found Oct 4, 2026, 09:00 UTC",
+      ),
+    ).toBeTruthy();
+    expect(
+      within(credits).getByText(
+        "$18.50 · Converted none, Oct 3, 2026, 09:00 UTC",
+      ),
+    ).toBeTruthy();
+    expect(within(credits).getByRole("link", { name: "Nona" })).toBeTruthy();
+    expect(
+      within(credits).getByText(/reverse one balance transaction in Stripe/),
+    ).toBeTruthy();
+  });
+
+  it("★ say No reading, with why, when the read failed: never a silence that reads as none", () => {
+    render(
+      <BillingChecks
+        stuck={OK}
+        settle={{ ok: false, message: "credits to settle in Stripe: boom" }}
+        portal={WHOLE}
+      />,
+    );
+    const credits = section("Pass-to-Pro credits");
+    expect(within(credits).getByText("To settle in Stripe")).toBeTruthy();
+    expect(within(credits).getByText("No reading")).toBeTruthy();
+    expect(
+      within(credits).getByText("credits to settle in Stripe: boom"),
+    ).toBeTruthy();
   });
 });
