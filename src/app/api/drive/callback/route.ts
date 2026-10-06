@@ -33,7 +33,7 @@ import {
 } from "@/lib/drive/oauth-cookie";
 import { DRIVE_HINT_COOKIE, DRIVE_HINT_MAX_AGE_S } from "@/lib/drive/links";
 import { notifyConnected } from "@/lib/drive/mail.server";
-import { tokenKeys } from "@/lib/drive/service.server";
+import { adoptRootFolder, tokenKeys } from "@/lib/drive/service.server";
 import { openToken, sealToken } from "@/lib/drive/tokens.server";
 import { recordRoom, upsertConnection } from "@/lib/db/queries/drive";
 import { assertDriveEnv, assertUnlockEnv, driveConfigured } from "@/lib/env";
@@ -172,6 +172,9 @@ export async function GET(request: NextRequest) {
   }
 
   const connectionId = outcome.connectionId;
+  // ★ Her Partyreel folder, found by its mark before she lands (drive-crumbs): the card she lands on names it now, not
+  // at her next send. One list call, a second at most; best-effort (the press finds it as ever).
+  await adoptRootFolder(connectionId, granted.accessToken);
   const oldRefresh =
     outcome.outcome === "other"
       ? openToken(outcome.oldRefreshCt, { ...ctx, purpose: "refresh" }, keys)

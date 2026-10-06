@@ -53,7 +53,9 @@ that very write (`CreatedFolder` and the Worker's `CreatedFile` are branded so n
   the sign-in return shapes); the callback refuses, and clears the cookie, unless the cookie's signature and state hold
   AND the signed-in account is the one it names, so an attacker's code can never connect the attacker's Drive to a
   victim's account. Then: no `drive.file` in the grant (she unticked it) is `needs_permission` and the half-grant is
-  revoked; no refresh token, or an ID token not naming our client, Google and the future, is refused.
+  revoked; no refresh token, or an ID token not naming our client, Google and the future, is refused. The callback
+  adopts her Partyreel folder by its mark before she lands (`adoptRootFolder`: one `files.list`, compare-and-set against
+  none, nothing made, best-effort), so Account's card names it at a reconnect.
 - **Identity is `sub`, never the address;** "connected as" prints the address only when Google verified it.
 - ★ **A same-account reconnect never revokes the token it replaces;** a different account's does. Google's revoke
   removes the whole grant (its docs: "invalidating the permissions previously granted"), and the new token rides that
@@ -111,7 +113,10 @@ that very write (`CreatedFolder` and the Worker's `CreatedFile` are branded so n
   out of the bin, wherever she moved it; never the folder it has just seen binned or gone, which Google's listing may
   show a moment longer), never by its name, which a folder of hers may share; one is made, marked, only when none is
   out of the bin. Compare-and-set either way, so two presses leave one: the loser undoes only a folder it made
-  (`CreatedFolder`), and never the one the winner took (another press may have found it by its mark first).
+  (`CreatedFolder`), and never the one the winner took (another press may have found it by its mark first). Album
+  folders carry our mark too (`pr_event`, the album's id): a press that knows no live album folder finds it by that mark
+  (`findAlbumFolder`: out of the bin, oldest, no parent clause), and the send records `folder_found` (20261006130000),
+  which its lease carries as each item's `lookUp`.
 - ★ **What a send holds is her Originals zip:** `chosenRows` over what `media_host_all` lets her read (not removed, no
   permanent delete she asked, approved unless she chose Include hidden items). A quiet legal hold is NOT a filter
   (her zip includes it; skipping it would be the one number where a hold shows). Pinned by `drive-snapshot.test.ts`.
@@ -119,8 +124,9 @@ that very write (`CreatedFolder` and the Worker's `CreatedFile` are branded so n
   earlier send on this connection left (`prior_file_id`), which the Worker asks Drive for first and records as kept
   when it is still there, whole and out of the bin; a file she deleted in Drive goes again. A re-leased item (a lane
   that died after Google stored it) is found by our `appProperties` (`pr_media`, `pr_job`, no parent clause: she may
-  move anything) and recorded instead of sent. An earlier connection's files are forgotten with it, so after a
-  Disconnect sending again sends the album whole, into a new album folder inside the Partyreel folder found by its mark.
+  move anything) and recorded instead of sent. After a Disconnect (which forgets every id) the press finds the album's
+  folder by its mark and the Worker looks each file up by `pr_media` first, keeping it when it is there and whole, so a
+  re-send adds only what is missing; an album folder in her bin is made again, marked.
 - **Names: when, then who** (`src/lib/export/drive-names.ts`, the one naming function): the moment it was taken (its
   `captured_at`, which the lease carries: [uploads-and-r2.md](uploads-and-r2.md), the EXIF strip) or, for an upload
   that kept none, the moment it reached the album, in her browser's zone at the press, then the album's credit for its
@@ -155,7 +161,10 @@ that very write (`CreatedFolder` and the Worker's `CreatedFile` are branded so n
   she made on purpose carries our properties too). Then `done` ("every one checked") or `partly_done`. ★ Only the
   check closes a checking send (`cloud_export_settle`: its walk through, no sent file past its cursor), so "every one
   checked" follows a check that ran (the walk's first send was closed by a report with none run); a send that sent
-  nothing had nothing to check and never says it (`checkedAll`).
+  nothing had nothing to check and never says it (`checkedAll`). ★ A slow down on a check's asks is paced (one pace a
+  page, `RATE_BACKOFF_MS`), and past it the page ends `throttled` (the connection slows); an `unknown` holds the cursor
+  at the first unanswered file (the page's lease kept a minute, the lane back in 90 s), and an hour of pages answering
+  nothing marks the send stuck for /admin. A non-rate unknown is asked again every 90 s with no growth until then.
 - **What landed is said as it lands:** files already on their way at her Cancel still land, so a canceled or stopped
   send a lane still holds files of (`landing`: items leased under a live lease, asked by the status route for sends
   stopped inside a lease's 15 minutes) says "so far" and keeps her page polling, and offers Send again once they have
@@ -236,7 +245,7 @@ lane waiting out an outage.
 
 - **The switch** `drive_export_enabled` (off: no send starts, every lease answers `paused`, nothing is lost); its card
   carries the four readings and the Google client's idle clock (Google deletes a client unused for six months:
-  attention past 150 days).
+  attention past 150 days). The command palette's "Pause or resume Send to Google Drive" lands here (`#drive`).
 - **Every send still going and the week's that ended short,** each with Resume (any pause), Retry failed and Cancel.
 - **The connections that need someone** (dying lanes, a standing breaker, an operator's pause, a lost grant) and any
   account's connection found by address, each with Pause (the whole connection, a reason kept), Resume, Lift breaker

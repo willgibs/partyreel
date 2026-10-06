@@ -203,9 +203,13 @@ went in verbatim),
 additive-only while an open lane's code still calls what a contract migration would drop, and a
 destructive one only on Will's yes; then `get_advisors` (the accepted set: `docs/systems/database-security.md`),
 regenerate `src/lib/db/types.ts`, and commit both. A migration that replaces a function starts from its newest
-definition in `supabase/migrations/`. ★ From a cloud seat the Supabase connector asks its own confirm for any
-`DELETE` or `DROP`, even inside a rolled-back proof, and that confirm expires in 60 s (the call reads "timed out after
-60s"); `SELECT`, `INSERT`, `UPDATE` and `CREATE` pass without one. Run such calls with Will watching the session.
+definition in `supabase/migrations/`. ★ From a cloud seat the stock Supabase connector asks its own confirm (an MCP
+elicitation) before any `DELETE` or `DROP`, as a statement or inside a function body, even in a rolled-back proof; no
+claude.ai client renders it, so the call reads "timed out after 60s" and nothing runs. The seat's SQL goes through a
+custom connector at
+`https://mcp.supabase.com/mcp?project_ref=ddafaemglzmuekbtjwzn&skip_elicitations=execute_sql,apply_migration`
+(Supabase's documented setting, added by Will in claude.ai's Connectors), and never rewords a `DELETE` or `DROP` past
+the detector. Every SQL call still waits on Will's Allow, so run them with him watching the session.
 
 **A change touching more than one open lane** is yours alone, announced in `orchestrator.md` first.
 

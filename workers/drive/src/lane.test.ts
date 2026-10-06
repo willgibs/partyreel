@@ -10,11 +10,13 @@
 import { describe, expect, it } from "vitest";
 
 import type { AppClient, ReportAnswer, Unreachable } from "./app-client";
-import { driveAdapter } from "./google-drive";
+import { DriveError, driveAdapter } from "./google-drive";
 import {
+  CHECK_HELD_DELAY_S,
   REPORT_EVERY_MS,
   runSlice,
   SLICE_MS,
+  THROTTLE_DELAY_S,
   type LaneDeps,
   type LaneMessage,
 } from "./lane";
@@ -54,6 +56,7 @@ function item(n: number, bucket: FakeBucket): LeaseItem {
     modifiedTime: "2026-09-12T20:14:05.000Z",
     attempts: 1,
     priorFileId: null,
+    lookUp: false,
     session: null,
   };
 }
@@ -347,6 +350,73 @@ describe("a lane's slice", () => {
         duplicates: 0,
       },
     ]);
+  });
+
+  // ★ drive-crumbs: a page Google did not answer for in full is held by the app; the lane comes back to ask again.
+  it("★ a check page left held comes back a beat later rather than ending idle", async () => {
+    const h = harness({ leases: [] });
+    h.drive.add({ id: "album", size: 0 });
+    const file = h.drive.add({ size: 5 });
+    const adapter = h.deps.drive;
+    h.deps.drive = {
+      ...adapter,
+      getFile: async (t, id) =>
+        id === file.id
+          ? Promise.reject(new Error("reset"))
+          : adapter.getFile(t, id),
+    };
+    let asked = 0;
+    h.deps.app.lease = async () =>
+      asked++ === 0
+        ? {
+            state: "check",
+            lease: LEASE,
+            until: "x",
+            jobId: "job",
+            folderId: "album",
+            first: false,
+            token: SEALED,
+            items: [{ mediaId: "m1", fileId: file.id, bytes: 5, md5: null }],
+          }
+        : { state: "idle" };
+    expect(await runSlice(h.deps, message)).toBe("held");
+    expect(h.checks[0]!.results).toEqual([{ mediaId: "m1", state: "unknown" }]);
+    expect(h.requeued).toEqual([{ delay: CHECK_HELD_DELAY_S }]);
+  });
+
+  it("★ a check slowed past its pace tells the app (the connection slows) and comes back after the throttle", async () => {
+    const h = harness({ leases: [] });
+    h.drive.add({ id: "album", size: 0 });
+    const file = h.drive.add({ size: 5 });
+    const adapter = h.deps.drive;
+    h.deps.drive = {
+      ...adapter,
+      getFile: async (t, id) =>
+        id === file.id
+          ? Promise.reject(
+              new DriveError("rate", 429, "rateLimitExceeded", "slow down"),
+            )
+          : adapter.getFile(t, id),
+    };
+    h.deps.app.lease = async () => ({
+      state: "check",
+      lease: LEASE,
+      until: "x",
+      jobId: "job",
+      folderId: "album",
+      first: false,
+      token: SEALED,
+      items: [{ mediaId: "m1", fileId: file.id, bytes: 5, md5: null }],
+    });
+    expect(await runSlice(h.deps, message)).toBe("throttled");
+    expect(h.checks).toEqual([
+      {
+        lease: LEASE,
+        results: [{ mediaId: "m1", state: "unknown" }],
+        finding: "throttled",
+      },
+    ]);
+    expect(h.requeued).toEqual([{ delay: THROTTLE_DELAY_S }]);
   });
 
   it("★ says a batch's last file in its closing word, never in a timed word just before it", async () => {

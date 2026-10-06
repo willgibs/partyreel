@@ -1094,3 +1094,23 @@ you." It shows for up to three days, Stripe's retries.
 
 **BR5. A broken change-plan setup mails the ops inbox once a day while it stays broken.**
 - *Push back if* it should mail once, then only ring the bell.
+
+## BS. Drive whole before it goes live (drive-crumbs)
+
+A re-send after a reconnect adds only what is missing, "every one checked" means every one answered, and Account's
+card names her folder as soon as she reconnects; these calls came with it, built and yours to overrule.
+
+**BS1. An album's folder is found by its mark wherever she moved it** (the oldest out of the bin), as the Partyreel
+folder is; a second folder of the same name was the bug.
+- *Push back if* a moved folder should be left alone and a new one made.
+
+**BS2. A file found by its mark is kept wherever it is in her Drive,** not only inside the album's folder.
+- *Push back if* only files still in the album's folder should count.
+
+**BS3. A check Google won't answer keeps the send "Checking".** An hour of pages answering nothing marks it Stuck on
+/admin (Cancel there), and 14 days expire it as before, rather than closing "every one checked" over a doubt.
+- *Push back if* it should close after a few tries with a line naming the files it couldn't confirm.
+
+**BS4. Connecting asks Google once for her Partyreel folder before she lands** (one quick lookup, 10 s at most), so
+Account's card names it at once.
+- *Push back if* the card should fill in a moment later instead.
