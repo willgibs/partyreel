@@ -192,7 +192,8 @@ Gotchas). A new table starts with no client grant, so its migration grants exact
   writes straight through PostgREST carries the app's own bound, since her session passes no schema:
   `events_name_len` and `events_description_len` mirror `validation/event.ts` under a parity guard, and
   `events_qr_style_len` is an envelope, never the preset list, so a new preset needs no migration, as is
-  `events_time_zone_shape` (the app reads a zone with its own `Intl`). A paid gate on an event setting lives inside its setter RPC ([billing-caps.md](billing-caps.md)).
+  `events_time_zone_shape` (the app reads a zone with its own `Intl`). A paid gate on an event setting lives inside
+  its setter RPC ([billing-caps.md](billing-caps.md)).
 - ★ **Every capacity decision locks the host's `profiles` row `for update` first.** The cap, uploads and event-slot
   checks are check-then-act over aggregates no row lock can hold, so two concurrent uploads, restores or creates
   would each read N-1 and both admit. `create_media`, `create_media_as_host`, `restore_media`, `restore_event` and
