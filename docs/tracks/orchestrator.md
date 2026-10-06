@@ -113,9 +113,9 @@ Round 15, on Will's desk answers of 2026-10-04 and his brand note; the approved 
    this machine: the desk is local); the desk pass,
    refresh the desk, tell him. **Desk 6** = the brand applied (after brand r2's pick); **desk 7** = the moments boards
    (host-, guest-, account-moments, create-wizard r4; after identity r5's set pick).
-4. **Lanes running** (three agents, winding down; weekly 94% at 03:44Z 2026-10-06): guest-requests (Opus, 3136,
-   migration `20261006030000_sync_accepting.sql` for the Advisor before its apply), crumbs-84 (Sonnet, 3133), red-team 56
-   (Opus, on the desk build). Merged tonight: crumbs-83 (gate 31) and brand-r2 (gate 32) after lab-kit-2 (gate 30).
+4. **Lanes running** (two agents, winding down; weekly 94% at 03:44Z 2026-10-06): guest-requests (Opus, 3136,
+   migration `20261006030000_sync_accepting.sql` for the Advisor before its apply) and red-team 56 (Opus, on the desk
+   build). Merged tonight: lab-kit-2 (gate 30), crumbs-83 (31), brand-r2 (32), crumbs-84 (33).
    Their rows above carry each agent id; a successor on another session respawns a lane from its transcript
    (`~/.claude/projects/-Users-gibby-local-ai-partyreel/f2c62c71-9c33-49f4-9fd5-d48376be9824/subagents/agent-<id>.jsonl`,
    local) or, from the cloud, from its pushed branch and manifest alone. Each lane's migration goes through the Advisor (`a22be0c2878d7ab19`, this session) before the apply.
