@@ -33,6 +33,8 @@ const NEVER_OWNED = [
   "docs/tracks/",
   // The review ledgers: the Orchestrator writes them from Will's verdicts.
   "docs/reviews/",
+  // The calls lab: Will's review queue, written by the Orchestrator at each record.
+  "docs/calls.md",
 ];
 
 type Manifest = {

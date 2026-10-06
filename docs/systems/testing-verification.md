@@ -41,6 +41,19 @@ The local-first-then-live policy, the gate's steps, the account chooser and the 
   and strips its `Set-Cookie` ([guest-flow.md](guest-flow.md)), so check a header with no validator first.
 - **The Vercel Toolbar** overlaps the UI only for a logged-in team member, never a guest or curl: not a layout bug.
 
+## What a new test must earn
+
+So the suite stays lean round over round (test-slim, 2026-10-06): a behaviour is pinned once, at the layer that owns
+it: a validator's rule in its own unit test, not again in the route and the component that call it, and a component
+test asserts what the component does (attributes, callbacks, payloads), never the output of a pure function it could
+import and call. The inputs of one rule are one table (`it.each`), never copies of one `it`. Copy is asserted against
+its home (import the constant or the copy function), so a voice round changes words without touching tests; a string
+is typed out only where its exact wording is the guarantee. A test that reads the repository as data lists through
+`@/testing/source-tree` (`walk-policy.test.ts` refuses its own `readdirSync`) and parses only the files a token filter
+keeps. The cost is per file, not per test (a jsdom window and the RTL setup for each `.test.tsx`, about a second of a
+core inside a full run, against 14 s for all 9,500 tests that run under 10 ms each), so a `.test.tsx` earns its file
+by rendering, and a Server Component's test is a node `.test.ts`.
+
 ## Test accounts and fixtures
 
 - **Accounts:** `willg97@gmail.com` the host on Pro, `partyr33l@gmail.com` the operator (TOTP MFA),

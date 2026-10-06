@@ -3,13 +3,16 @@ track: orchestrator
 status: open
 cut: "94d66338"          # the launch-prep SHA this state was written at
 owns:                    # the standing claims no lane touches
+  - src/app/(dev)/design/rules/bible.ts
+  - src/app/(dev)/design/rules/bible.test.ts
+  - src/lib/design-gate/
+  - src/app/api/design-gate/
   - scripts/vercel-ignore-build.mjs
   - .github/workflows/ci.yml
 reads:
   - CLAUDE.md
   - docs/PROGRAM.md
 announces:
-  - "claims lent to test-slim (2026-10-06): bible.ts, bible.test.ts, src/lib/design-gate/ and src/app/api/design-gate/ leave this owns for test-slim (tests only) and return at its merge"
   - "kit fix at launch-prep (2026-10-04): `integrate.sh` passes the lane's sha whole and `merge-lane.sh` compares heads whole (git's short form grew to 9 characters, so comparing short forms refused every lane); `negative.sh`'s check 2 reworded. A lane editing `usher/kit/` syncs before touching those three."
 ---
 
@@ -57,7 +60,7 @@ Lanes merged before milestone 37 left this table: their summaries are their merg
 | `redteam-56` | the walk before milestone 38, local on the desk build (`2c7423ca4`): every merge since milestone 37 | DONE: PASS on album order and its pill, one instant from two zones, capture time end to end (the SQL, the manifest's seventh element, a download keeping only the time), the hub's doors, Settings, Back and keys, the dashboard's chooser, regressions; PARTIAL on identity (the halo missing on many controls); no HIGH; 1 MEDIUM, 2 LOW and NITs (Next 3); NOT DRIVEN the full-account refusal, the credit and a checkout, Drive, the Workers, the admin portal, a real phone; its RT56 events moved to Deleted; ledger `../partyreel-wt/_scratch/redteam-56/ledger.txt` | Opus, Will's Chrome + its own headless | `a0ca0d2feb415d060` |
 | `crumbs-84` | cleanup whose time had come: event-zone's typed seams retired, the host-dashboard board retired with `seasonsOf` and kin, the dead `refreshHubReelAction` deleted, the Reel card's words in `room-card.ts`, the Library's sticky-band specimen | MERGED at `3bc74d23d` (gate 33 green); the host-dashboard ledger deleted at the record; pruned | Sonnet, 3133 | `a066d475f32c874e8` |
 | `scratch-synthesis` | Will's ask: everything a future Orchestrator needs from the Mac's `_scratch/` in the repo (the calls lab as `docs/calls.md`, the kit's tools, Drive's next versions, the desks ahead), one private note on Will's Mac for the cloud seat | MERGED at `cc7c966f` (gate 35 green, the cloud seat's first); its proposed pickup, STATUS, ROADMAP and CLAUDE.md lines landed at the record; its calls are the lab's BG; pruned | Opus (the Mac, gone) | (local) |
-| `test-slim` | Will's ask: a leaner, faster suite with no weaker guarantees (about 13,190 tests today): duplicates folded into tables, whole-tree scans shared, copy pins pointed at their homes, coverage held per directory, and a rule that keeps it lean (CI now runs only on main and opt-in pushes, `70c374381`) | RUNNING (cut at `613ad790`; the design-gate claims lent to it) | Opus, 3132 | `a33effa6a33104bf0` |
+| `test-slim` | Will's ask: a leaner, faster suite with no weaker guarantee: one walk of the tree for every test that reads the repository, the whole-tree policies token-filtered, a guard, seven tests to node | MERGED at `280eda3a` (gate 36 green); its rule placed in `testing-verification.md` ("What a new test must earn"); its Questions built by the Orchestrator after the merge (`pool: "threads"`, the coverage provider); its calls are the lab's BH; pruned | Opus (the Mac, gone) | (local) |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a22be0c2878d7ab19`, this session, spawned
 for Q31 (billing-locks' migration against the live schema and milestone 36's callers). Its model of the pricing rules is `../partyreel-wt/_scratch/pricing/q15-advisor.md`.

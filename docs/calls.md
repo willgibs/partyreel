@@ -870,3 +870,21 @@ Built so a cloud-seated Orchestrator sees what the Mac's saw; these are the lane
 
 **BG6. PRD names three of your standing principles in words from the round's brief.** Delight where it costs nothing in clarity; nothing depends on a timeline; immediate, or a clear state and a way to stop it.
 - *Push back if* any of the three isn't how you'd say it.
+
+---
+
+## BH. A leaner suite (test-slim)
+
+Built so the gate stays fast as the product grows; your four calls, the first two built right after the merge.
+
+**BH1. The suite runs its files in threads, not forks.** About 9% off a full run (63 s against 69 s on the Mac, every test green in each measured run), and the merge gate gains first.
+- *Push back if* a flake shows up that forks would not have had (the gate would show it first).
+
+**BH2. A coverage command any lane can run.** `pnpm test:coverage` (the v8 provider, a devDependency) gives lines, branches and functions per directory, so a lane that deletes a test proves it lost nothing in one command.
+- *Push back if* you'd rather not carry the dependency.
+
+**BH3. Isolation stays on.** Turning it off would halve a run (31.6 s against 85 s), but 51 files leak a mock or module state into the next; a lane makes them hermetic first (a ROADMAP line).
+- *Push back if* the speed is worth chasing now.
+
+**BH4. Vitest's experimental module cache stays off** while it is experimental: it saves only the transform (about 2 s of 80).
+- *Push back if* you want it on anyway.
