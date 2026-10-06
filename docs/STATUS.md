@@ -29,10 +29,10 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 
 ## The desk
 
-Desk 5 is answered (identity r5: the house set and working words; event-header r5: no pick, with his note). Will's
-desk (`localhost:3000/design/lab?key=fiesta`; he refreshes it: `git pull && S=/tmp zsh usher/kit/desk-refresh.sh <sha>`)
-holds brand r2's take (Afterglow's light on paper) and, at the next refresh, event-header r6 (the cards' badges, then
-the colour of what needs her) and desk 7's moments (a host's party, seven asks; a guest's night, five). Desk 6 next.
+Will's desk (`localhost:3000/design/lab?key=fiesta`; he refreshes it: `git pull && S=/tmp zsh usher/kit/desk-refresh.sh
+<sha>`) holds brand r2's take (Afterglow's light on paper) and, at the next refresh, event-header r6 (the cards' badges,
+then the colour of what needs her) and desk 7's moments (a host's party, seven asks; a guest's night, five; Create's
+last steps, four). Desk 6 next.
 
 ## Live state
 

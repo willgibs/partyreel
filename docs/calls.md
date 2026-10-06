@@ -1114,3 +1114,24 @@ folder is; a second folder of the same name was the bug.
 **BS4. Connecting asks Google once for her Partyreel folder before she lands** (one quick lookup, 10 s at most), so
 Account's card names it at once.
 - *Push back if* the card should fill in a moment later instead.
+
+## BT. Create's last steps, drawn (create-wizard-r4, on your desk)
+
+Its four asks are on your desk (the styles' step on your round-3 note, F1 what is left, F2 the wait and a failure);
+these are the calls drawn into them, built and yours to overrule.
+
+**BT1. F2 is two asks:** what stands while the event is made (`wait`), then where a failure lands (`failed`), drawn
+in the wait you pick.
+- *Push back if* each option should be a wait and a failure together.
+
+**BT2. The styles' step recommends `focused`** (the three cards, then the develop time on a screen of its own) over
+production's step, which already answers your note (the time under its card, in view at 375).
+- *Push back if* one more screen for a Disposable host costs more than it gives.
+
+**BT3. Try it runs slow and recovers:** its slow line shows at 2.6 s and a retry succeeds, so every wait and failure
+frame can be seen.
+- *Push back if* Try it should fail for good, or be quick.
+
+**BT4. The round's new words stand as drawn** ("When do the photos develop?", "Guests still need your code: print it,
+or share it.", "Couldn't create it yet"); the voice tunes them at wiring.
+- *Push back if* a line reads wrong.
