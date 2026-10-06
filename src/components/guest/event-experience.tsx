@@ -93,7 +93,7 @@ import {
 import type { GalleryAccess, GalleryGate } from "@/lib/events/gallery-access";
 import { formatCount } from "@/lib/format/count";
 import { useInViewSentinel } from "@/lib/shared/use-in-view-sentinel";
-import type { GuestAlbumOrder } from "@/lib/shared/album-order";
+import type { AlbumOpening } from "@/lib/event/zone-morning";
 import { DEFAULT_ROW_STEP, type RowStep } from "@/lib/shared/album-rows";
 import { developMs } from "@/lib/disposable/contact-sheet-develop";
 import { useWaitClock } from "@/lib/disposable/use-wait-clock";
@@ -319,12 +319,13 @@ export function EventExperience({
    */
   uploadsWait: UploadsWait;
   /**
-   * ★ THE ALBUM'S ORDER AT THE FIRST PAINT (album-order, `guestAlbumOrder`): the album's own order at the render (the
-   * turn read in the reader's zone, which rides along) and her remembered choice, decided by the page's server so the
-   * seed links what the first paint draws and the hydration lays the same rows. The page keeps it live from here
-   * (`useGuestAlbumOrder`). Absent (a stand-in page), the album stays newest first.
+   * ★ THE ALBUM'S ORDER AT THE FIRST PAINT (album-order, `albumOpening`): the album's own order at the render, her
+   * remembered choice, and the instant the party's morning after begins (event-zone: read in the party's zone on the
+   * server, one moment for every reader), decided by the page's server so the seed links what the first paint draws
+   * and the hydration lays the same rows. The page keeps it live from here (`useGuestAlbumOrder`). Absent (a stand-in
+   * page), the album stays newest first.
    */
-  albumOrder?: GuestAlbumOrder;
+  albumOrder?: AlbumOpening;
 }) {
   const router = useRouter();
   // ONE resolution of the step for both boxes the album occupies: the skeleton
@@ -722,11 +723,7 @@ export function EventExperience({
   const albumOrderNow = useGuestAlbumOrder({
     eventId: event.id,
     initial: albumOrder,
-    facts: {
-      eventDate: event.event_date,
-      eventEndDate: event.event_end_date ?? null,
-      developsAt: liveDevelopsAt ?? event.develops_at ?? null,
-    },
+    developsAt: liveDevelopsAt ?? event.develops_at ?? null,
     isDemo,
   });
   /* ★ THE WAIT, ONE QUESTION OF TIME (the-wait r1, Will's `model=time`): the album's live reading as a clock, the host's

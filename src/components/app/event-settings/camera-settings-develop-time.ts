@@ -18,6 +18,7 @@
  * Pure and node-safe, like `lib/disposable/reveal.ts` it reads.
  */
 import { developState, developTimeWithinReach } from "@/lib/disposable/reveal";
+import { fromZoneInput } from "@/lib/event/zone-words";
 import { isSaneDay } from "@/lib/events/dates";
 import { DATE_OUT_OF_RANGE } from "@/lib/validation/event";
 
@@ -57,15 +58,20 @@ export type DevelopTimeVerdict =
   | { kind: "save"; iso: string };
 
 export function judgeDevelopTime(input: {
-  /** What the field holds: `YYYY-MM-DDTHH:mm` in her own zone, or "" when it is blank or half filled. */
+  /** What the field holds: `YYYY-MM-DDTHH:mm` in her own zone (or `zone`'s), or "" when it is blank or half filled. */
   typed: string;
   /** The saved time as the field shows it (`""` before there is one). */
   shown: string;
   /** The saved develop time (ISO): whether the album still waits decides what a past time means. */
   developsAt: string | null;
   nowMs: number;
+  /**
+   * The party's zone where the field holds the party's wall clock (event-zone: a party far from home), or null/absent
+   * for her own clock, as it always was.
+   */
+  zone?: string | null;
 }): DevelopTimeVerdict {
-  const { typed, shown, developsAt, nowMs } = input;
+  const { typed, shown, developsAt, nowMs, zone } = input;
   if (typed === shown) return { kind: "same" };
   if (!typed) return { kind: "refuse", words: TIME_UNFINISHED };
 
@@ -74,8 +80,8 @@ export function judgeDevelopTime(input: {
   const [day] = typed.split("T");
   if (!isSaneDay(day)) return { kind: "refuse", words: DATE_OUT_OF_RANGE };
 
-  const at = new Date(typed);
-  if (!Number.isFinite(at.getTime())) {
+  const at = zone ? fromZoneInput(typed, zone) : new Date(typed);
+  if (!at || !Number.isFinite(at.getTime())) {
     return { kind: "refuse", words: TIME_OUT_OF_REACH };
   }
   const iso = at.toISOString();

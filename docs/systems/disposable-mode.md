@@ -192,6 +192,17 @@ a run of steps once she rests, `RollSetting`; Create's Disposable pick draws the
 before it saves (`ConsequenceLine`, `styleSwitchConsequence`), as a develop time that would develop the album does
 (below).
 
+★ **The default develop is the party's 9 am, the morning its album turns** (`developToKeep`, `lib/event/zone-morning.ts`):
+9 am the morning after the party's last day (or after today, once that has passed) in the event's own zone
+(`events.time_zone`), so a destination wedding set up from home develops in the party's morning, not hers, and its
+develop and its album's turn are one morning for every guest. Create offers it in the zone it captures (her browser's);
+Settings in the party's stored zone, else hers. `patchForStyle` and `defaultDevelopAt` still read the browser's zone, so
+a caller hands them the party's 9 am as the time to keep. Where the party's zone is not the host's own (`farZone`), the
+develop time is her party's clock throughout Settings: the field takes it both ways (`toZoneInput`/`fromZoneInput`, the
+judge reads it), and every line says its place ("Develops Sun, Oct 4, 9:00 AM in Mexico City", `zone-words.ts`). An
+instant is never moved by a zone: a develop set before she picks another city keeps its moment and is said in the new
+one's clock.
+
 ★ **The develop time is sent only when it is plainly meant** (`DevelopTimeControl`, judged by
 `camera-settings-develop-time.ts`), because a save of a time at or before the database's now is Develop now (above),
 and a year left half typed is such a time (Chrome fires a whole value at each digit as 2027 is typed into a year: 0002,

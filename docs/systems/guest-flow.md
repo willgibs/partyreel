@@ -134,13 +134,20 @@ read beside it so its Follow starts on Following; no card means no host row, nev
   list (`inOrder`) and the rows lay from the end it grows at, so an album in order grows at its end but for a late
   upload its capture time lands mid-album (the anchoring holds her place, the arrivals pill points there). In order
   reads `happenedAt`: when each was taken where the wire carries a capture time (`takenAtOf`, the capture-time lane's
-  one switch), else when it arrived; newest first is always by arrival, the live feed. ★ The 9 am is the reader's, as
-  no event keeps a zone yet: the page's server reads it from the request (`x-vercel-ip-timezone`, else its own) and
-  hands the browser that zone with the order it decided (`guestAlbumOrder`), so the seed links the first paint of that
-  order and the hydration lays the same rows; the page then turns it on the device's clock (`useGuestAlbumOrder`: a
-  timer, a return to the tab, a Develop now). Behind a gate the order knows no days, as the shell does not. Her Newest
-  or Oldest is remembered per album on the device only as a departure from the turn (`pr_album_sort`, which the page
-  reads; choosing the album's own order forgets it), her lens for the visit.
+  one switch), else when it arrived; newest first is always by arrival, the live feed. ★ The turn is one moment for
+  every reader, the party's (Will: "It feels unfair to unlock the album at different times for certain guests based
+  on geographical location"): its 9 am is read in the event's own zone (`events.time_zone`,
+  [`lib/event/zone.ts`](../../src/lib/event/zone.ts); a row with none, or one the runtime cannot read, turns in UTC,
+  the one fallback), never the reader's. The page's server reads the zone on the service role beside the door's read
+  (`zone.server.ts`; a failed read is the fallback, reported) and hands the browser the turn as an INSTANT, never a
+  zone (`albumOpening`'s `morningAfter`, `zone-morning.ts`), so no reader's clock, geography or browser's database of
+  zones moves it, and the zone never leaves the server; the seed links the first paint of that order and the hydration
+  lays the same rows; the page then turns it at that instant on the device's clock (`useGuestAlbumOrder`: a timer, a
+  return to the tab, a Develop now: a develop time the page holds still wins).
+  Behind a gate the order knows no days, as the shell does not. Her Newest or Oldest is remembered per album on the
+  device only as a departure from the turn (`pr_album_sort`, which the page reads; choosing the album's own order
+  forgets it), her lens for the visit. See it as a guest is handed the same opening (`readAsGuest`), so it lays the
+  album as a guest who never chose meets it.
   The page root is two boxes ([`event-experience.tsx`](../../src/components/guest/event-experience.tsx)): `COLUMN`,
   the reading measure, and `BLEED`, the gutter alone. The album alone takes `BLEED` and the cover runs the window's
   width; everything else the page says keeps `COLUMN`.

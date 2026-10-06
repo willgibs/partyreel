@@ -12,6 +12,7 @@ import {
   reelDefaultsInputSchema,
   ROLL_SIZE_MESSAGE,
   updateEventSchema,
+  ZONE_UNREADABLE,
 } from "@/lib/validation/event";
 
 function parse(slug: string) {
@@ -508,5 +509,59 @@ describe("the event's dates: a first day and an optional last", () => {
         event_end_date: "soon",
       }).success,
     ).toBe(false);
+  });
+});
+
+/* THE PARTY'S OWN ZONE (event-zone): two keys, two promises. Her captured zone never refuses a save (Create must never be
+   stranded on a step with no words), and a chosen city the server cannot read is refused in words. */
+describe("the party's zone: captured, never asked; chosen, or refused", () => {
+  it("a create carries her captured zone as she sent it, trimmed; it never takes a chosen one", () => {
+    const r = createEventSchema.parse({
+      name: "Maya's 30th",
+      captured_zone: " Pacific/Auckland ",
+      time_zone: "Europe/London",
+    });
+    expect(r.captured_zone).toBe("Pacific/Auckland");
+    expect(r).not.toHaveProperty("time_zone");
+  });
+
+  it("★ a captured zone outside the column's envelope is dropped, never a refusal (a create still parses)", () => {
+    for (const captured_zone of [
+      "+05:30",
+      "America/New York",
+      "x".repeat(65),
+      42,
+      "",
+    ]) {
+      const r = createEventSchema.safeParse({
+        name: "Maya's 30th",
+        captured_zone,
+      });
+      expect(r.success, String(captured_zone)).toBe(true);
+      if (r.success)
+        expect(r.data.captured_zone, String(captured_zone)).toBeUndefined();
+    }
+    // One inside the envelope passes here: the write asks the runtime (`storedZone`), and says a refusal.
+    expect(
+      createEventSchema.parse({ name: "x", captured_zone: "Etc/Unknown" })
+        .captured_zone,
+    ).toBe("Etc/Unknown");
+  });
+
+  it("★ a chosen city is a zone this runtime reads, or refused in words", () => {
+    expect(
+      updateEventSchema.parse({ time_zone: "America/Mexico_City" }).time_zone,
+    ).toBe("America/Mexico_City");
+    for (const time_zone of ["Etc/Unknown", "Mars/Olympus", "+05:30", ""]) {
+      const r = updateEventSchema.safeParse({ time_zone });
+      expect(r.success, time_zone).toBe(false);
+      if (!r.success) expect(r.error.issues[0]?.message).toBe(ZONE_UNREADABLE);
+    }
+  });
+
+  it("an update names a zone only where the save sent one", () => {
+    expect(updateEventSchema.parse({ event_date: "2026-10-10" })).toEqual({
+      event_date: "2026-10-10",
+    });
   });
 });

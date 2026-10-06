@@ -16,7 +16,9 @@ import {
   APPROVAL_NEVER_WITH_A_DEVELOP_CHECK,
   approvalWithADevelop,
 } from "@/lib/disposable/album-style";
+import { readableZone, withZone, zoneOfRow } from "@/lib/event/zone";
 import { endToStore } from "@/lib/events/dates";
+import { captureError, captureWarning } from "@/lib/observability/sentry";
 import { createClient } from "@/lib/supabase/server";
 import {
   type CreateEventValues,
@@ -114,6 +116,30 @@ function breakerRefusal(error: { code?: string; message?: string }): boolean {
   );
 }
 
+/**
+ * ★ THE HOST'S OWN ZONE, AS IT IS STORED (event-zone): what her browser named, where this runtime can read it, as given;
+ * else none, and said, since a browser naming a zone this server's database of zones lacks is a signal, never a
+ * silence. The party then turns in the one fallback (`partyZoneOf`) until she picks its city in Settings.
+ */
+function storedZone(
+  captured: string | undefined,
+  seam: "create" | "update",
+): string | null {
+  if (captured === undefined) return null;
+  const zone = readableZone(captured);
+  if (zone === null) {
+    captureWarning(
+      "other",
+      "event-zone: a host's zone the server cannot read",
+      {
+        seam,
+        zone: captured,
+      },
+    );
+  }
+  return zone;
+}
+
 export async function createEvent(
   values: CreateEventValues,
 ): Promise<MutationResult<EventRow>> {
@@ -162,7 +188,9 @@ export async function createEvent(
 
   const { data, error } = await supabase
     .from("events")
-    .insert(insert)
+    // ★ THE PARTY'S OWN ZONE FROM BIRTH (event-zone): her browser's, captured and never asked, so the album's turn and
+    // the develop's 9 am are the party's morning for every guest. None where it named none this runtime reads.
+    .insert(withZone(insert, storedZone(values.captured_zone, "create")))
     .select("*")
     .single();
 
@@ -306,10 +334,11 @@ export async function updateEvent(
   if (values.capture !== undefined) patch.capture = values.capture;
   if (values.roll_size !== undefined) patch.roll_size = values.roll_size;
   if (values.develops_at !== undefined) patch.develops_at = values.develops_at;
-
   const { data, error } = await supabase
     .from("events")
-    .update(patch)
+    // ★ THE PARTY'S CITY, CHOSEN (event-zone, Settings' far-from-home choice): the one write that moves the party's
+    // zone, a zone the schema read. The zone captured beside a save of a time never rides the patch (below).
+    .update(withZone(patch, values.time_zone))
     .eq("id", id)
     .is("deleted_at", null)
     .select("*")
@@ -324,6 +353,31 @@ export async function updateEvent(
       code: "unknown",
       message: "Couldn't save your changes. Please try again.",
     };
+  }
+  // ★ THE ZONE CAPTURED WITH A SAVE OF A TIME IS WRITTEN ONLY WHERE THE ROW HAS NONE (event-zone): an event from before
+  // the column takes her zone with its next dates; one that has a zone keeps it, whatever zone she saves from, so a date
+  // edit never moves the party's zone (only the chosen city does). Asked of the row the save just answered, so a row
+  // with a zone costs nothing more, and written under `time_zone is null`, so a choice landing meanwhile is never
+  // overwritten. Her save already landed, so a fill that fails is reported, never her refusal.
+  if (
+    values.time_zone === undefined &&
+    values.captured_zone !== undefined &&
+    zoneOfRow(data) === null
+  ) {
+    const zone = storedZone(values.captured_zone, "update");
+    if (zone !== null) {
+      const { error: fillError } = await supabase
+        .from("events")
+        .update(withZone<TablesUpdate<"events">>({}, zone))
+        .eq("id", id)
+        .is("deleted_at", null)
+        .is("time_zone", null);
+      if (fillError) {
+        captureError("db", fillError, { seam: "event_zone_fill", eventId: id });
+      } else {
+        return { ok: true, data: withZone(data, zone) };
+      }
+    }
   }
   return { ok: true, data };
 }

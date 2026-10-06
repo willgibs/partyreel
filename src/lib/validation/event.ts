@@ -44,6 +44,7 @@ import {
   developTimeWithinReach,
 } from "@/lib/disposable/reveal";
 import { ROLL_MAX, ROLL_MIN } from "@/lib/disposable/roll";
+import { readableZone, ZONE_MAX_LENGTH, ZONE_PATTERN } from "@/lib/event/zone";
 import {
   FIRST_EVENT_YEAR,
   isSaneDay,
@@ -203,6 +204,37 @@ const developFields = {
     .nullable(),
 };
 
+// THE PARTY'S OWN ZONE (event-zone, 20261005220000; `lib/event/zone.ts`): the album turns at 9 am the morning after in
+// it, and a develop defaults to the same 9 am, one moment for every guest wherever she reads. Two keys, two promises:
+
+/** What a chosen city the server cannot read meets (a crafted request, a list from a browser that knows a newer zone). */
+export const ZONE_UNREADABLE = "Pick the party's city from the list.";
+
+const zoneFields = {
+  /**
+   * ★ THE HOST'S OWN ZONE, CAPTURED, NEVER ASKED: her browser's zone, sent with a create and with a Settings save of a
+   * time, written at birth and otherwise only where the row has none (`updateEvent`), so a date edit never moves the
+   * party's zone. Never a refusal here: a value outside the column's envelope (a crafted request: a real browser always
+   * names one inside it) is dropped (`catch`), so it can never strand Create on a step with no words; one inside it
+   * that this runtime cannot read is dropped by the write, which says so (`storedZone`).
+   */
+  captured_zone: z
+    .string()
+    .trim()
+    .max(ZONE_MAX_LENGTH)
+    .regex(new RegExp(ZONE_PATTERN))
+    .optional()
+    .catch(undefined),
+  /**
+   * ★ THE PARTY'S CITY, CHOSEN (Settings' far-from-home choice, update-only: never asked in Create): the one write that
+   * moves the party's zone, a zone this runtime reads (`readableZone`) or refused in words. Stored as given.
+   */
+  time_zone: z
+    .string()
+    .trim()
+    .refine((zone) => readableZone(zone) !== null, ZONE_UNREADABLE),
+};
+
 /**
  * A CREATE: the fields, with the defaults a new event needs (each mirrors its column default), so
  * a create that names only the event lands every setting a host who never touched one gets.
@@ -221,6 +253,8 @@ export const createEventSchema = z
     capture: developFields.capture.default("upload"),
     roll_size: developFields.roll_size.nullable().default(null),
     develops_at: developFields.develops_at.default(null),
+    // Her own zone, captured with the create (the party's from birth); the chosen city is Settings' alone.
+    captured_zone: zoneFields.captured_zone,
   })
   .superRefine(datesInOrder);
 
@@ -258,7 +292,13 @@ const videoFields = {
  * that one field.
  */
 export const updateEventSchema = z
-  .object({ ...eventFields, ...reelFields, ...videoFields, ...developFields })
+  .object({
+    ...eventFields,
+    ...reelFields,
+    ...videoFields,
+    ...developFields,
+    ...zoneFields,
+  })
   .partial()
   .superRefine(datesInOrder);
 

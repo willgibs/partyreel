@@ -22,6 +22,8 @@ import {
   STYLE_NAMES,
 } from "@/lib/disposable/album-style";
 import { ROLL_SHOTS } from "@/lib/disposable/roll";
+import { browserZone, deviceZone } from "@/lib/event/zone";
+import { developDefaultIn } from "@/lib/event/zone-morning";
 
 import { setReducedMotion } from "../../../../vitest.setup";
 import { type AddChoice, AddStep, useAddChoice } from "./add-step";
@@ -92,6 +94,7 @@ async function arrow(
 
 afterEach(() => {
   vi.useRealTimers();
+  vi.restoreAllMocks();
 });
 
 describe("the three cards: Settings' own words", () => {
@@ -447,9 +450,11 @@ describe("useAddChoice: a style is one choice of three columns", () => {
       [/^disposable\./i, "disposable"],
     ] as const) {
       fireEvent.click(style(name));
-      // Her roll untouched is the usual, riding with the Disposable alone (`createFieldsOf`).
-      expect(choice().fields()).toEqual(
-        createFieldsOf(
+      // Her roll untouched is the usual, riding with the Disposable alone (`createFieldsOf`); her own zone rides every
+      // style (event-zone: the party's from birth), and the Disposable's 9 am is read in it, here the browser's own.
+      const zone = deviceZone();
+      expect(choice().fields()).toEqual({
+        ...createFieldsOf(
           patchForStyle(
             to,
             { capture: "upload", review: false, developsAt: null },
@@ -457,8 +462,35 @@ describe("useAddChoice: a style is one choice of three columns", () => {
           ),
           ROLL_SHOTS,
         ),
-      );
+        ...(zone ? { captured_zone: zone } : {}),
+      });
     }
+  });
+
+  it("★ carries her own zone, captured and never asked, and offers the Disposable's 9 am in that zone", () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-10-05T22:00:00Z"));
+    // Her browser names Auckland: already the 6th there, so 9 am tomorrow is the 7th's, in Auckland.
+    vi.spyOn(browserZone, "zoneName").mockReturnValue("Pacific/Auckland");
+    const choice = mount();
+    for (const name of [/^live\./i, /^review\./i]) {
+      fireEvent.click(style(name));
+      expect(choice().fields().captured_zone).toBe("Pacific/Auckland");
+    }
+    fireEvent.click(style(/^disposable\./i));
+    const fields = choice().fields();
+    expect(fields.captured_zone).toBe("Pacific/Auckland");
+    expect(fields.develops_at).toBe(
+      developDefaultIn("Pacific/Auckland", { eventDate: null }).toISOString(),
+    );
+    expect(fields.develops_at).toBe("2026-10-06T20:00:00.000Z");
+  });
+
+  it("names no zone where her browser names none it can read (the party then turns in the one fallback)", () => {
+    vi.spyOn(browserZone, "zoneName").mockReturnValue("Etc/Unknown");
+    const choice = mount();
+    fireEvent.click(style(/^disposable\./i));
+    expect("captured_zone" in choice().fields()).toBe(false);
   });
 
   it("★ never lets approval stand with a develop time, whatever the order she moved in", () => {

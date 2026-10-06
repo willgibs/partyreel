@@ -63,14 +63,10 @@ import { uploadsWait } from "@/lib/guest/upload-tracker";
 import { welcomeSeenIn } from "@/lib/guest/use-welcome-seen-cookie";
 import { PHOTO_PARAM, readPhotoParam } from "@/lib/media/share-save";
 import { presignDownload } from "@/lib/r2/presign";
-import {
-  resolveViewerZone,
-  serverZone,
-  VIEWER_ZONE_HEADER,
-} from "@/lib/dashboard/viewer-day";
+import { albumOpening } from "@/lib/event/zone-morning";
+import { readPartyZone } from "@/lib/event/zone.server";
 import {
   ALBUM_SORT_COOKIE,
-  guestAlbumOrder,
   readChosenSort,
   shownSort,
 } from "@/lib/shared/album-order";
@@ -372,6 +368,16 @@ export default async function GuestEventPage({
     );
   }
 
+  // ★ THE PARTY'S ZONE, ASKED NOW AND AWAITED WHERE THE ORDER IS DECIDED (event-zone): the album turns
+  // at 9 am the morning after in the party's own zone, one moment for every reader, so the one read it
+  // costs runs beside the door's and the gate's below, never after them. Only a dated album turns, and a
+  // date here is one this request may see (a gate's anon read blanks it), so nothing else asks. It never
+  // rejects: a failed read is the fallback, reported (`zone.server.ts`).
+  const partyZone =
+    !isDemo && event.event_date
+      ? readPartyZone(event.id)
+      : Promise.resolve<string | null>(null);
+
   // ★ THE DOOR'S OWN ANSWER, where it holds the request (the held door, the ask, a newcomer's email
   // step), with nothing real behind it; otherwise the album's own gates decide below. `admitted` is
   // the door's word that this request is already past it, which passes the password without it.
@@ -462,10 +468,11 @@ export default async function GuestEventPage({
   const rowStep = resolveRowStep(cookieJar.get(TILE_SIZE_COOKIE)?.value);
   const albumWidth = parseAlbumWidth(cookieJar.get(ALBUM_WIDTH_COOKIE)?.value);
   const rhythmSeed = randomInt(1_000_000);
-  // ★ AND THE ORDER IT OPENS IN (album-order): the turn read in the reader's zone (the request's,
-  // else the server's), and her remembered order on this album (`pr_album_sort`). Behind a gate
-  // nothing says when the party was (the shell blanks its days below), so neither does the order.
-  const albumOrder = guestAlbumOrder({
+  // ★ AND THE ORDER IT OPENS IN (album-order, event-zone): the turn read in the PARTY's zone, one
+  // moment for every reader wherever they are, handed to the page as that instant and never as a zone
+  // (`albumOpening`), and her remembered order on this album (`pr_album_sort`). Behind a gate nothing
+  // says when the party was (the shell blanks its days below), so neither does the order.
+  const albumOrder = albumOpening({
     facts:
       access === "none"
         ? { eventDate: null }
@@ -474,10 +481,7 @@ export default async function GuestEventPage({
             eventEndDate: event.event_end_date ?? null,
             developsAt: event.develops_at ?? null,
           },
-    zone: resolveViewerZone(
-      (await headers()).get(VIEWER_ZONE_HEADER),
-      serverZone(),
-    ),
+    zone: await partyZone,
     chosen: readChosenSort(cookieJar.get(ALBUM_SORT_COOKIE)?.value, event.id),
     isDemo,
   });

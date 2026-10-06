@@ -69,6 +69,7 @@ vi.mock("@/lib/db/queries/event-card", () => ({ getEventCardName }));
 // The page's own reads, stubbed: generateMetadata is asked, never the page it renders.
 vi.mock("@/lib/db/queries/guest-events", () => ({ getEventByQrToken }));
 vi.mock("@/lib/events/closed-door.server", () => ({ pageDoor }));
+vi.mock("@/lib/event/zone.server", () => ({ readPartyZone: async () => null }));
 vi.mock("@/lib/db/queries/guest-events-admin", () => ({
   getGalleryStats: vi.fn(),
   getHostAvatarSeed: vi.fn(),

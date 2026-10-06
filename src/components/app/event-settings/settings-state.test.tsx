@@ -9,7 +9,7 @@
  */
 import { act, renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const { toast } = vi.hoisted(() => ({
   toast: { success: vi.fn(), error: vi.fn() },
@@ -26,6 +26,7 @@ vi.mock("@/app/(app)/dashboard/[eventId]/actions", () => ({
 }));
 
 const { SettingsProvider, useSettings } = await import("./settings-state");
+const { browserZone } = await import("@/lib/event/zone");
 type Writes = NonNullable<
   React.ComponentProps<typeof SettingsProvider>["writes"]
 >;
@@ -191,5 +192,100 @@ describe("only the newest save of a setting answers for it, a throw included", (
     });
     expect(settings.current.values.name).toBe("Maya's 32nd");
     expect(settings.current.saving("name")).toBe(false);
+  });
+});
+
+/* ★ THE PARTY'S ZONE RIDES ONLY WHERE IT IS MISSING (event-zone): a save of a time on an event from before the column
+   carries her own zone, for the server to write where the row still has none; on a party that has a zone, a date saved
+   from anywhere carries none, so a date edit never moves the party's zone. Only the chosen city does. */
+describe("the party's zone on a save of a time", () => {
+  /** Her browser names `zone`, for the save's capture. */
+  function deviceSays(zone: string) {
+    vi.spyOn(browserZone, "zoneName").mockReturnValue(zone);
+  }
+  function mountZoned(timeZone: string | null) {
+    const updateEvent = vi.fn().mockResolvedValue({ ok: true });
+    const event = hostEvent({ time_zone: timeZone });
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <SettingsProvider
+        event={event}
+        tier="pro"
+        counts={NO_COUNTS}
+        pendingCount={0}
+        social={null}
+        reelSample={null}
+        writes={{ updateEvent } as unknown as Writes}
+      >
+        {children}
+      </SettingsProvider>
+    );
+    return {
+      settings: renderHook(() => useSettings(), { wrapper }).result,
+      updateEvent,
+    };
+  }
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("reads the party's stored zone into the values (null for an event from before the column)", () => {
+    expect(
+      mountZoned("Pacific/Auckland").settings.current.values.timeZone,
+    ).toBe("Pacific/Auckland");
+    expect(mountZoned(null).settings.current.values.timeZone).toBeNull();
+  });
+
+  it("★ an event with no zone takes hers with a save of its dates, or of its develop time", async () => {
+    deviceSays("Europe/London");
+    const { settings, updateEvent } = mountZoned(null);
+    await act(async () => {
+      await settings.current.saveEvent({ eventDate: "2026-10-10" });
+    });
+    expect(updateEvent).toHaveBeenLastCalledWith(hostEvent().id, {
+      event_date: "2026-10-10",
+      captured_zone: "Europe/London",
+    });
+    await act(async () => {
+      await settings.current.saveEvent({
+        developsAt: "2026-10-11T08:00:00.000Z",
+      });
+    });
+    expect(updateEvent).toHaveBeenLastCalledWith(hostEvent().id, {
+      develops_at: "2026-10-11T08:00:00.000Z",
+      captured_zone: "Europe/London",
+    });
+  });
+
+  it("★ a party with a zone: a date saved from another zone carries none", async () => {
+    deviceSays("Europe/London");
+    const { settings, updateEvent } = mountZoned("Pacific/Auckland");
+    await act(async () => {
+      await settings.current.saveEvent({
+        eventDate: "2026-10-10",
+        eventEndDate: "2026-10-12",
+      });
+    });
+    expect(updateEvent).toHaveBeenCalledWith(hostEvent().id, {
+      event_date: "2026-10-10",
+      event_end_date: "2026-10-12",
+    });
+  });
+
+  it("a save of anything else carries no zone, and the chosen city is the save that names one", async () => {
+    deviceSays("Europe/London");
+    const { settings, updateEvent } = mountZoned(null);
+    await act(async () => {
+      await settings.current.saveEvent({ name: "Maya's 31st" });
+    });
+    expect(updateEvent).toHaveBeenLastCalledWith(hostEvent().id, {
+      name: "Maya's 31st",
+    });
+    await act(async () => {
+      await settings.current.saveEvent({ timeZone: "America/Mexico_City" });
+    });
+    expect(updateEvent).toHaveBeenLastCalledWith(hostEvent().id, {
+      time_zone: "America/Mexico_City",
+    });
   });
 });
