@@ -18,46 +18,21 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 
 ### Uploads, media and exports
 
-- Uploads: the host's complete route (`api/host/r2/complete-upload`) does not read `captured_wall`, so a host's own zoneless Exif clock stays read in her browser's zone; extend its schema as the guest's (crumbs-85).
 - Uploads: keep per-event byte sums in SQL (PRICING.md's lever "The dashboard and the storage list page"), so an upload's three reads of the host's bytes through `host_storage_summary` (the context, `meter_upload`, then `create_media*` under her lock) and the size list's per-event totals (`readStorageEvents`, `db/queries/storage-list.ts`) stop walking every item.
-
-### The guest's album
-
-- Guests: See it as a guest says develop times in the host's own clock: its page (`(as-guest)/.../as-guest/page.tsx`) could hand `AsGuestView` the party's zone for words, as the guest page does (crumbs-85).
-- Guests: the guest link's own 404 (`(guest)/e/[token]/not-found.tsx`) and the other groups' 404s still set their own robots metadata; the root's and the cinema's dropped theirs for Next's one noindex (crumbs-85).
-
-### The host app
-
-- Host: Blocked's address column truncates a short address to "r." at 1440 in the Guests room's panel (`blocked-section.tsx`'s `truncate` beside the since-line), seen drawing host-moments r1 (host-moments-r1).
-- Host: Create's add step and Settings' camera still seed `patchForStyle` with `developToKeep`; `patchForStyle` now takes `{ zone: hostPartyZone(...) }` itself, so each drops the seeding when its files next move (crumbs-85).
-- Host: See it as a guest says "the first photo" until its live source reports what waits; `readAsGuest` (`as-guest.server.ts`) can ask `albumWaits` as the guest page does and hand `waitingOnArrival` to `AsGuestView`, so its first byte says the Add's words.
 
 ### Design system and accessibility
 
 - Design: the halo and the working words at the four call sites that waited on their lanes: pricing's three `focus-visible:ring` lines (`src/components/app/pricing/`, its key "Opening billing" in `checkout-button.tsx`) and Drive's album picker (`src/components/app/drive/`, its send steps' "Starting") (a11y-halo).
 - Design: `ContactReceipt`'s `Postmark` (`src/app/(marketing)/(cinema)/contact/contact-receipt.tsx`) is inked `text-foreground/75` with `mix-blend-multiply`, which draws nothing over the cinema room's dark card (computed in the frame: opacity 1, multiply, oklab 0.97), so the postmark is invisible on /contact; ink it for the dark.
-- UI: the Library's tooltip specimen (`library/components/gallery-demos.tsx`, its comment above "Tooltip") says the root provider's delay is 200 ms; it is 0.
-- Design: the help center's pictured menus (`help/step-screens/desk-screens.tsx`) draw the body's `floatingPanel`; draw them on `floatingDisplayPanel`, the display the real menus wear.
 
 ### Marketing and content
 
 - Marketing (copy): `features/album/album-copy.ts`'s "Take all of it" body still says "everything, photos, or videos" (the retired menu's chips) over a plate that now draws Select, then Save; and the how-it-works keep step's body (`constants/how-it-works.ts`) says only "the whole album as a single zip", where the host's panel offers Phone size too (retired-mocks).
-- Help: `help/step-screens/desk-screens.tsx`'s `ReelCardPicture` still draws the retired tile and the living reel card (`mock-parity.test.ts` and `step-screens.test.ts` pin its "Live for guests" against `room-card.ts`, while the picture still types the line; redrawn, it takes `reelCardFace`); redraw it as the cards' reel card once the polish pick lands, then drop `ROOM_CARD_BASE` and `ROOM_CARD_QUIET` from `room-card.ts` (kept only for it) (event-header-wiring).
 - Help: a `<DemoDoor>` in `mdx/spec-help.tsx`, so `try-the-live-demo` carries a real demo door and not the address.
 - Marketing: the how-it-works pictures and the album-fill grid draw the green landed check the product replaced with a pass of light (`shared/arrival.css`), and the curation mock (`bulk-tools.tsx`) floats its select bar off the header's row.
 - Marketing: the cinema 404 (`(cinema)/not-found.tsx`) never draws, since every cinema slug route sets `dynamicParams = false` and an unknown slug gets the root's screen; retire it, or give the root's screen the cinema skin, for one 404.
 - Marketing: /contact still lists the help center's quick questions as chips under its search field; drop them, since the palette's Suggested list already drops from that field, as it does on /help (`(cinema)/contact/page.tsx`).
 - Marketing: the demo modal (`system/demo-modal/demo-modal.tsx`) still draws a bare Dialog; move it onto the code card's `share` kind (`ui/popup.tsx`) and out of `popup-kinds.test.ts`'s `LEFT_ALONE`.
-
-### The lab and the kit
-
-- Library: the Button page shows no working specimen (`(shell)/library/components/gallery-demos.tsx`): add one beside Disabled (`working` with `workingLabel="Saving"`) (identity-r5-wiring).
-
-### Code hygiene
-
-- Code hygiene: drop drive-crumbs' `markReady` cast (`src/lib/db/queries/drive.ts`) now that `src/lib/db/types.ts` carries `cloud_export_ready`'s `p_found` (drive-crumbs).
-- Code hygiene: drop billing-orphans' `orphansDb` seam (`src/lib/db/mutations/event-passes.ts`) now that `src/lib/db/types.ts` carries `adopt_pass_credit_orphans` (billing-orphans).
-- Code hygiene: comments in `constants/tiers.ts` (the anti-abuse why), `event-settings/delete-event-row.tsx`, `constants/events.test.ts`, `content/blog-keep-lines.test.ts` and `app/group-not-found.lazy.test.tsx` still say events have "no end date" in the lifecycle sense; say "never expires", since Settings' end date only says when.
 
 ## Immediate
 
@@ -103,6 +78,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Host: the host's view-as-guest cover (`as-guest-view.tsx`) never names its kinds, where the guest's first paint now does (crumbs-74).
 - Host: the dashboard's stage wall shows a disposable album's sealed photographs (`getStagePhotos` in `lib/db/queries/dashboard.ts`) while the hub covers them until the develop; hold the wall to what guests see (`hubCovered`, `host-cover.ts`).
 - Host: `guest/file-dropzone.tsx` is rendered only by the host's manual add (`app/host-upload.tsx`), and its "Tap to choose, or drag them here" is half wrong on a phone; move it to the host's side and word it for the device in hand.
+- Host: pin See it as a guest's two new facts in its own tests (`as-guest.server.test.ts`: `waitingOnArrival` asked only under the guest page's guard, `partyZone` null when shut; `as-guest-view.test.tsx`: `waitingOnArrival` holds the Add off "the first photo", and the sheet says the party's clock) (crumbs-86).
 
 ### Design system and accessibility
 
@@ -130,6 +106,8 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Code hygiene: `device-tickets.test.tsx` still pins the welcome by the legacy `pr_welcome_<qr>` localStorage key; read `document.cookie` as `foreign-ticket.test.tsx` does, then drop `use-welcome-seen.ts`'s legacy put-down (`LEGACY_PREFIX`, its `localStorage` removals) and its pins in `use-welcome-seen.test.tsx`.
 - Code hygiene: `EventCard`'s dashboard-only props (`qrSlot`, `pendingCount`, `itemsLabel`, `living`, the trash variant) and `event-card-qr.tsx` have no production caller; remove them with their Library specimens (`library/compositions/gallery-demos.tsx`).
 - Code hygiene: drop `resolveRowStep`'s legacy pixel-width mapping (`LEGACY_WIDTH_STEP`, `lib/shared/tile-size-cookie.ts`); nothing writes a width any more and only test devices hold one.
+- Code hygiene: drop drive-crumbs' `markReady` cast (`src/lib/db/queries/drive.ts`) now that `src/lib/db/types.ts` carries `cloud_export_ready`'s `p_found` (drive-crumbs).
+- Code hygiene: three comments crumbs-86 made stale: `zone-morning.ts`'s head about the seeding (both callers retired it), `server-pipeline.ts:544`'s "The host's route takes none" of `captured_wall`, and `zone.server.ts`'s head "for a guest's render" (the host's complete reads it too, by the body's id) (crumbs-86).
 
 ## Upcoming
 
@@ -195,6 +173,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Guest: the last-removal line reads the album's fullness once, at render (`albumFull`, `e/[token]/page.tsx`), so an album that fills or frees mid-visit keeps the old line until a refresh; the poll could carry it at one gate read per poll.
 - Guest: the door (`guest/door/`, `entry-modal.tsx`) and the report dialog (`guest/report-dialog.tsx`) carry no link to `/help`; the album reaches it through the guest's menu and the upload sheets.
 - Guest, the demo: the guest export (`api/export/guest/route.ts`) and the per-tile Save and Share serve the demo album in full with no server-side demo check (the UI only hides them); decide whether the demo's token carries a read-only claim.
+- Guests: the cover's eyebrow ("Disposable · develops Thursday at 2 AM", `coverEyebrow`) says only the reader's clock where the sheet under it says both; a far party's wants the party's clock too, on the guest page and See it as a guest (crumbs-86).
 
 ### Accounts and profiles
 
@@ -251,6 +230,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Design system: the sortable grid's pick-up shadow is a hand-typed `box-shadow` set from JS during a drag (`lib/shared/use-sortable-grid.ts`); read `var(--shadow-layer)`.
 - Design system: 120 `text-[10px]` sites (78 outside the lab) spell the micro size by hand; move them onto the `text-micro` token (`app/theme.css`), which also carries its own line height and tracking.
 - Design system: about 30 `bg-muted/N` set-apart grounds in marketing (`git grep 'bg-muted/' src/components/marketing 'src/app/(marketing)'`) become sections wearing `.surface-mat`, which `globals.css` declares and nothing wears yet.
+- Design: the help center's pictured menus (`help/step-screens/desk-screens.tsx`) draw the body's `floatingPanel`; draw them on `floatingDisplayPanel`, the display the real menus wear.
 
 ### Marketing and content
 
@@ -265,6 +245,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Feature pages: `/features/album`'s h1 (`constants/feature-pages.ts`) is the one of six that wraps to three lines at 1440 (44 characters at 80 px in `max-w-3xl`); a shorter, punchier line fixes it.
 - The reel's contained player on a landscape phone `[eng]`: 812x375 draws it 325 wide and scrolling (`sections/shared/reel-player.tsx`); a posture that fills the glass, once the films land.
 - The support-automation arc: as-you-type answers on /contact: the page already ships the help search index (the palette's), so the subject and message could rank help articles live beside a topic's fixed links, with no model and no new service, before the help chat exists.
+- Help: `help/step-screens/desk-screens.tsx`'s `ReelCardPicture` still draws the retired tile and the living reel card (`mock-parity.test.ts` and `step-screens.test.ts` pin its "Live for guests" against `room-card.ts`, while the picture still types the line; redrawn, it takes `reelCardFace`); redraw it as the cards' reel card once the polish pick lands, then drop `ROOM_CARD_BASE` and `ROOM_CARD_QUIET` from `room-card.ts` (kept only for it) (event-header-wiring).
 
 ### The lab and the kit
 

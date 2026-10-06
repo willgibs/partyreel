@@ -1153,3 +1153,15 @@ calls drawn into them, built and yours to overrule.
 **BU4. The profile setup's three screens are untouched:** I5 stops at the invitation that leads into them, so a pick
 changes /me and the card, never the setup.
 - *Push back if* the setup itself should be redrawn.
+
+## BV. Ten small things, made right (crumbs-86)
+
+Ten small fixes from the 404s to the host's capture clock; these are the calls built into them, yours to overrule.
+
+**BV1. Blocked's address goes to one line once its row is 24rem wide** (the row's own width, never the screen's), so a
+short address shows whole wherever the panel sits.
+- *Push back if* it should stay on two lines.
+
+**BV2. Create hands its style step the party's time zone too,** so a far party's Disposable proposes 9 am where the
+party is; a time already passed is refused before it could matter.
+- *Push back if* Create should propose times in your own clock.

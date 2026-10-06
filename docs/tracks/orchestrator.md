@@ -34,7 +34,6 @@ every 40 minutes reads them (their status, pushed heads and cost) while any runs
 | --- | --- | --- | --- | --- |
 | `marketing-crumbs` | nine marketing lines: today's product in the site's words and pictures, the postmark, the cinema 404, the demo modal on the popup, three wells | HANDED OFF at `adaa07645` (18:42Z); integrates after milestone 38 | Opus | `session_01YKZtbayaXAkLj5ZQSZabgU` |
 | `upload-sums` | per-event byte sums in SQL (PRICING.md's lever 7): an upload's three reads and the size list stop walking every item; one migration (`20261006180000_upload_sums.sql`) through the Advisor | HANDED OFF at `96f3e80ba`; integrates after milestone 38, its migration through the Advisor and its proofs here | Opus | `session_01XwyY3CKaLeoiXrtikFMvXb` |
-| `crumbs-86` | ten small things: the 404s' one noindex, the host's capture clock, See it as a guest's zone and words, Create's seeding, billing's seam, two Library specimens, lifecycle comments, Blocked's address; no migration | HANDED OFF at `3f459b91b`; integrates after milestone 38 | Opus | `session_01NdLRsbCC4Nknxu3h5cbE8f` |
 | `halo-last` | the halo and the working words at the four call sites that waited on their lanes: pricing's three focus rings and its "Opening billing", Drive's album picker and its "Starting" | HANDED OFF at `3075d32d5`; integrates after milestone 38 | Sonnet | `session_01AP6FaNfAyNyBG8FUkqkX6h` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor") read billing_orphans and drive_marks, both
