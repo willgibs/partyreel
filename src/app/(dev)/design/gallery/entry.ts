@@ -87,6 +87,12 @@ export type SpecimenDef = {
   skin?: SpecimenSkin;
   /** Extra classes on the frame's content well. */
   contentClassName?: string;
+  /**
+   * What sticks in this specimen sticks to the PAGE, as it does in the app (a band under the bar, a head that
+   * follows). The frame clips with `overflow: clip`, which is no scroll container, where its `hidden` is one that never
+   * scrolls: a `position: sticky` inside that has nothing to stick to, so its band rides away with the page.
+   */
+  sticks?: boolean;
 };
 
 export type GalleryEntry = {

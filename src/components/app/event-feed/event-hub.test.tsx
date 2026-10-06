@@ -24,9 +24,7 @@ vi.mock("@/components/app/event-feed/host-album", () => ({
   useHubCounts: () => null,
   useHubEntries: () => null,
 }));
-vi.mock("@/app/(app)/dashboard/[eventId]/actions", () => ({
-  refreshHubReelAction: vi.fn(),
-}));
+vi.mock("@/app/(app)/dashboard/[eventId]/actions", () => ({}));
 
 /**
  * THE HUB'S ROW OF DOORS AND THE ALBUM UNDER IT (Will's `event=hub`,

@@ -125,8 +125,8 @@ const QUOTES: { file: string; words: string[] }[] = [
     ],
   },
   {
-    // The event page's living reel card (desk `reel-card`).
-    file: "src/components/app/event-feed/reel-card.tsx",
+    // The event page's living reel card (desk `reel-card`), whose words are the doors' own (`reelCardFace`).
+    file: "src/components/app/event-feed/room-card.ts",
     words: ["Live for guests"],
   },
   {

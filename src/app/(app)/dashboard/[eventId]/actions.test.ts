@@ -20,7 +20,6 @@ let restored: { ok: true; data: { id: string; status?: string } } = {
 const revalidated: string[] = [];
 let signedIn = true;
 const getEvent = vi.fn();
-const readHubReel = vi.fn();
 
 vi.mock("server-only", () => ({}));
 vi.mock("next/cache", () => ({
@@ -62,20 +61,6 @@ vi.mock("@/lib/db/queries/events", () => ({
 const setEventDoor = vi.fn();
 vi.mock("@/lib/db/mutations/event-doors", () => ({
   setEventDoor: (...a: unknown[]) => setEventDoor(...a),
-}));
-vi.mock("@/lib/db/queries/album-host", () => ({
-  readHostManifestPage: async () => ({ entries: [], next: null }),
-}));
-vi.mock("@/lib/db/queries/guest-events-admin", () => ({
-  getLiveReelServerFacts: async () => ({ liveReelEnabled: true }),
-}));
-vi.mock("@/lib/event/host-album.server", () => ({
-  readRestOfManifest: async (
-    _s: unknown,
-    _e: string,
-    first: { entries: unknown[] },
-  ) => first.entries,
-  readHubReel: (...a: unknown[]) => readHubReel(...a),
 }));
 vi.mock("@/lib/observability/sentry", () => ({
   captureError: () => {},
@@ -123,14 +108,7 @@ beforeEach(() => {
   signedIn = true;
   getEvent.mockResolvedValue({
     id: "e0000000-0000-4000-8000-000000000001",
-    show_reel: true,
     moderation_mode: "hold_for_approval",
-  });
-  readHubReel.mockResolvedValue({
-    state: "live",
-    have: 2,
-    stills: ["https://r2.test/a?sig"],
-    stillIds: ["a"],
   });
 });
 
@@ -235,34 +213,6 @@ describe("returnToReviewAction", () => {
       await actions.returnToReviewAction("not-an-id", ids(1), "approved"),
     ).toMatchObject({ ok: false, code: "validation" });
     expect(calls).toHaveLength(0);
-  });
-});
-
-describe("refreshHubReelAction", () => {
-  const EVENT = "e0000000-0000-4000-8000-000000000001";
-
-  it("answers the owner the card read off the album", async () => {
-    expect(await actions.refreshHubReelAction(EVENT)).toEqual({
-      ok: true,
-      reel: {
-        state: "live",
-        have: 2,
-        stills: ["https://r2.test/a?sig"],
-        stillIds: ["a"],
-      },
-    });
-  });
-
-  it("refuses a malformed id, no session and anyone's event but the caller's, with no hint", async () => {
-    expect(await actions.refreshHubReelAction("not-an-id")).toEqual({
-      ok: false,
-    });
-    signedIn = false;
-    expect(await actions.refreshHubReelAction(EVENT)).toEqual({ ok: false });
-    signedIn = true;
-    getEvent.mockResolvedValue(null);
-    expect(await actions.refreshHubReelAction(EVENT)).toEqual({ ok: false });
-    expect(readHubReel).not.toHaveBeenCalled();
   });
 });
 

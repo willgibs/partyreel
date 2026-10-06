@@ -41,6 +41,7 @@ export function Specimen({
   bleed,
   skin = "lab",
   contentClassName,
+  sticks,
   code,
   children,
 }: {
@@ -49,6 +50,8 @@ export function Specimen({
   bleed?: boolean;
   skin?: SpecimenSkin;
   contentClassName?: string;
+  /** What sticks inside sticks to the page, not to this frame (`SpecimenDef.sticks`). */
+  sticks?: boolean;
   /** The specimen's JSX, from specimen-code.ts; omit it and there are no tabs. */
   code?: string;
   children: React.ReactNode;
@@ -136,7 +139,23 @@ export function Specimen({
     // `relative`: the specimen is the containing block of its own `sr-only` labels (absolutely
     // positioned), so its `overflow-hidden` clips them; without it they sit wherever the header's
     // line ended and widen the whole document.
-    <div className="group/specimen relative overflow-hidden rounded-xl border border-border bg-card">
+    //
+    // ★ A SPECIMEN THAT STICKS CLIPS WITH `clip`, NEVER `hidden` (`sticks`): `hidden` makes this frame a scroll
+    // container that never scrolls, so a `position: sticky` inside it sticks to nothing and rides away with the page,
+    // where `clip` clips the same box and the same corners and is no scroll container, so the band sticks to the
+    // window as it does in the app. An inline style, because no utility can say it here: the lab's own utilities sit in
+    // a sub-layer that production's root `overflow-hidden` outranks (measured: the class stayed `hidden`), and design.css
+    // notes the build's CSS pipeline drops a bare `clip`. A browser that does not know `clip` ignores it and keeps the
+    // class's `hidden`. `min-w-0` goes with it: a scroll container's automatic minimum width is 0 and a clip's is its
+    // content's, so without it a wide specimen would stretch this frame (a grid item) past its column and the page with
+    // it.
+    <div
+      className={cn(
+        "group/specimen relative overflow-hidden rounded-xl border border-border bg-card",
+        sticks && "min-w-0",
+      )}
+      style={sticks ? { overflow: "clip" } : undefined}
+    >
       {code ? (
         <Tabs
           value={showing}

@@ -60,7 +60,6 @@ describe("one event", () => {
     expect(view.events.rows.map((r) => [r.kind, r.id])).toEqual([
       ["guest", "g1"],
     ]);
-    expect(view.events.seasons.map((s) => s.id)).toEqual(["guest"]);
   });
 
   it("shares the stage's code by its permanent link", () => {
@@ -161,13 +160,7 @@ describe("a planner's week", () => {
     expect(view.events.rows.map((r) => r.id)).not.toContain("tonight");
   });
 
-  it("groups everything else by when, the bin out of every group", () => {
-    expect(view.events.seasons.map((s) => [s.label, s.ids])).toEqual([
-      ["Coming up", ["tomorrow", "sunday"]],
-      ["Just past", ["last-week"]],
-      ["Earlier in 2026", ["june"]],
-      ["2025", ["old-queue"]],
-    ]);
+  it("carries the bin's event as a row of its own, its countdown on it", () => {
     const bin = view.events.rows.find((r) => r.kind === "deleted");
     expect(bin).toMatchObject({
       id: "d1",
@@ -245,7 +238,7 @@ describe("an account with no hosted event", () => {
         guest({ eventId: "newer", lastUploadAt: "2026-09-01T00:00:00Z" }),
       ],
     });
-    expect(view.events.seasons[0]?.ids).toEqual(["newer", "older"]);
+    expect(view.events.rows.map((r) => r.id)).toEqual(["newer", "older"]);
   });
 });
 

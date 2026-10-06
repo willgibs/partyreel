@@ -97,8 +97,6 @@ header holds its rule), the page only reads, and the composition is `components/
     the same action, on mount), so a deep link (the bell, an email) counts: ★ one Server Function call a hub visit,
     never a poll (the minute's filter spares the write, not the call), so a press from here asks twice, the second
     finding no row to move.
-  - The groups by when (`seasonsOf`, `HomeView.events.seasons`) are still composed because the host-dashboard board's
-    drawings read them; the section does not.
 - **A tile** (`event-tile.tsx`) is the dashboard's own atom; `EventCard` draws a profile's public cards. Every range's
   dash is `dashRange`'s (`lib/utils.ts`, shared with `formatEventDate`), and the tiles take turns dissolving to their
   next still (`cover-cycle.tsx`).

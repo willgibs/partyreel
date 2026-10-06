@@ -1,8 +1,8 @@
 /**
  * THE DOORS' WORDS: what each door into her rooms says, worded in ONE place so the page's first paint, the row's live
  * counts and every drawing of the row can never word a door two ways. Server-safe on purpose (no "use client"): the hub's
- * page builds each face from this and hands it to the row, and `reviewCardFace` is read by the Library, the identity
- * board and the help center's tests besides.
+ * page builds each face from this and hands it to the row, and `reviewCardFace` and `reelCardFace` are read by the
+ * Library, the event-header and identity boards and the help center's and the marketing mocks' tests besides.
  *
  * The doors themselves (the card at rest, the pill under the bar) are `room-card-door.tsx`'s; the row is
  * `event-cards-row.tsx`'s.
@@ -13,6 +13,7 @@
  * paused upload door says Paused, the uploads' own word (`uploadsLabel`), never Closed, which is a door's.
  */
 import type { Door } from "@/lib/event/door/door";
+import { photosToGo, type ReelState } from "@/lib/event/reel-progress";
 import {
   AS_GUEST_DOOR,
   EVENT_ROOMS,
@@ -64,6 +65,26 @@ export type RoomFace = {
 export function countWord(value: string, count: number): string {
   const lead = formatCount(count);
   return value.startsWith(lead) ? value.slice(lead.length).trimStart() : value;
+}
+
+/**
+ * THE REEL CARD'S LINE, from the reel's state: what the door says under its name. One pure function of (state, have, of,
+ * developing), as `doorLabel` and `reviewCardFace` are for their doors.
+ */
+export function reelCardFace(
+  state: ReelState,
+  have: number,
+  of: number,
+  developing: boolean,
+): string {
+  if (state === "off") return "Off";
+  if (state === "live")
+    // ★ SHORT ON PURPOSE: the card's line is a phone's half width, where "Guests get it at the develop" was cut at every
+    // width; the whole sentence is the card's `title`.
+    return developing ? "Guests get it later" : "Live for guests";
+  if (have === 0) return `Starts at ${of} photos`;
+  const toGo = photosToGo(have);
+  return `${toGo} more ${toGo === 1 ? "photo" : "photos"}`;
 }
 
 /**

@@ -50,9 +50,7 @@ vi.mock("@/components/app/event-feed/host-album", () => ({
   useHubCounts: () => null,
   useHubEntries: () => null,
 }));
-vi.mock("@/app/(app)/dashboard/[eventId]/actions", () => ({
-  refreshHubReelAction: vi.fn(),
-}));
+vi.mock("@/app/(app)/dashboard/[eventId]/actions", () => ({}));
 
 const { EventCardsRow } = await import("./event-cards-row");
 

@@ -339,7 +339,7 @@ const ENTRIES: ParityEntry[] = [
     label: "how-it-works host reel step, the hub card's live line",
     marketingFile:
       "src/components/marketing/sections/how-it-works/host-pictures.tsx",
-    appFile: "src/components/app/event-feed/reel-card.tsx",
+    appFile: "src/components/app/event-feed/room-card.ts",
     literal: "Live for guests",
   },
   {

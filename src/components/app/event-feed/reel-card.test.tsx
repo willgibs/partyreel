@@ -32,12 +32,7 @@ import {
 } from "@/lib/events/album-wire";
 
 import { HostAlbumProvider } from "./host-album";
-import {
-  ReelCard,
-  reelCardFace,
-  useLiveReel,
-  type ReelCardData,
-} from "./reel-card";
+import { ReelCard, useLiveReel, type ReelCardData } from "./reel-card";
 
 const openAdd = vi.fn();
 const openSheet = vi.fn();
@@ -109,23 +104,6 @@ async function openGuidance() {
   );
   return document.querySelector("[data-reel-guidance]") as HTMLElement;
 }
-
-describe("the card's words, one pure function of the reel's state", () => {
-  it("counts to two, then says it is live, and says Off when it is off", () => {
-    expect(reelCardFace("counting", 0, 2, false)).toBe("Starts at 2 photos");
-    expect(reelCardFace("counting", 1, 2, false)).toBe("1 more photo");
-    expect(reelCardFace("live", 2, 2, false)).toBe("Live for guests");
-    expect(reelCardFace("off", 2, 2, false)).toBe("Off");
-  });
-
-  it("★ never says it is live for guests while the develop is ahead: guests get it later", () => {
-    // Red-team 43's NIT: on a sealed album every guest's reel is empty until the develop.
-    expect(reelCardFace("live", 2, 2, true)).toBe("Guests get it later");
-    // And a counting or switched-off card has nothing to add about the develop.
-    expect(reelCardFace("counting", 1, 2, true)).toBe("1 more photo");
-    expect(reelCardFace("off", 2, 2, true)).toBe("Off");
-  });
-});
 
 describe("a door among the doors", () => {
   it("★ names itself with its line in every face, so a reader hears the reel once, in either form of the row", () => {

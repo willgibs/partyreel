@@ -75,3 +75,36 @@ describe("Specimen's head", () => {
     expect(root.querySelector(".sr-only")).not.toBeNull();
   });
 });
+
+/**
+ * A SPECIMEN THAT STICKS STICKS TO THE PAGE (crumbs-84; the hub's "Scrolled into the album" band never stuck).
+ *
+ * The frame clips with `overflow: hidden`, which makes it a scroll container that never scrolls, so a `position: sticky`
+ * inside it has nothing to stick to and rides away with the page. A specimen that declares `sticks` is clipped with
+ * `clip` instead (the same box, the same corners, no scroll container), and takes `min-w-0` with it, since a clip's
+ * automatic minimum width is its content's where a scroll container's is 0, and a wide specimen would otherwise stretch
+ * the frame past its column and the page with it (measured at 375: 396px wide). jsdom has no layout, so the contract
+ * is pinned here and the band's own `top` is read in a browser.
+ */
+describe("Specimen's frame, where something in it sticks", () => {
+  it("★ clips with `clip` only when its specimen sticks, and keeps `hidden` and `relative` beneath it", () => {
+    const { container } = render(
+      <>
+        <Specimen label="Plain">
+          <p>the plain specimen</p>
+        </Specimen>
+        <Specimen label="Sticks" sticks>
+          <p>the sticky specimen</p>
+        </Specimen>
+      </>,
+    );
+    const [plain, sticks] = [
+      ...container.querySelectorAll<HTMLElement>(".group\\/specimen"),
+    ];
+    expect(plain!.style.overflow).toBe("");
+    expect(plain).not.toHaveClass("min-w-0");
+    // `hidden` stays for a browser that does not know `clip`, and `relative` for the labels it must hold.
+    expect(sticks).toHaveClass("relative", "overflow-hidden", "min-w-0");
+    expect(sticks!.style.overflow).toBe("clip");
+  });
+});

@@ -245,7 +245,7 @@ export function yearsOf(
 function passesWhen(r: EventListRow, when: WhenFilter, today: string): boolean {
   if (when === "any") return true;
   if (when === "undated") return r.kind === "hosted" && !r.dated;
-  // An undated, empty album has no day at all and waits with what is coming (`seasons.ts`' old rule, kept).
+  // An undated, empty album has no day at all and waits with what is coming.
   if (when === "upcoming") return r.day === null || daysFrom(today, r.day) >= 0;
   return r.day !== null && daysFrom(today, r.day) < 0;
 }

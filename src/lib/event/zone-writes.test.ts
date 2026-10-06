@@ -1,8 +1,8 @@
 /**
  * THE PARTY'S ZONE, AS THE HOST'S WRITES STORE IT (`createEvent`, `updateEvent`; event-zone): captured at birth, written
  * where a row has none with her next save of a time, and moved only by her chosen city. A recording fake stands in for
- * the query builder, because the write is the contract and no type-check verifies it (the column is a seam until the
- * types regenerate).
+ * the query builder, because the write is the contract (which column rides which write, and when) and no type-check
+ * verifies that.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -21,8 +21,8 @@ type Call = {
   filters: [string, string, unknown][];
 };
 const calls: Call[] = [];
-/** The row the save's own write answers with: a test hands one with or without a zone. */
-let row: Record<string, unknown> = { id: "event-1" };
+/** The row the save's own write answers with: a test hands one with a zone or none (`select("*")` answers a column with no value as null). */
+let row: Record<string, unknown> = { id: "event-1", time_zone: null };
 /** What the fill (a write awaited with no `single`) answers. */
 let fillError: { code: string; message: string } | null = null;
 
@@ -72,7 +72,7 @@ const { createEvent, updateEvent } = await import("@/lib/db/mutations/events");
 
 beforeEach(() => {
   calls.length = 0;
-  row = { id: "event-1" };
+  row = { id: "event-1", time_zone: null };
   fillError = null;
   sentry.captureError.mockClear();
   sentry.captureWarning.mockClear();
@@ -185,7 +185,10 @@ describe("updateEvent: a date edit never moves the party's zone; only the chosen
   });
 
   it("a fill that fails is reported, and never refuses the save that already landed", async () => {
-    fillError = { code: "42703", message: 'column "time_zone" does not exist' };
+    fillError = {
+      code: "57014",
+      message: "canceling statement due to statement timeout",
+    };
     const result = await updateEvent(
       "event-1",
       updateEventSchema.parse({
