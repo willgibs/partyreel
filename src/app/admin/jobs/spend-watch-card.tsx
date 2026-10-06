@@ -26,6 +26,11 @@ import {
   type SwitchStates,
 } from "@/lib/jobs/spend-watch";
 
+import {
+  changePlanNote,
+  type StoredChangePlan,
+} from "@/lib/jobs/change-plan-watch";
+
 import { AttentionLine } from "./attention-line";
 import {
   WatchSwitch,
@@ -47,6 +52,8 @@ export type LatestWatchRun = {
   run: StoredRun;
   startedAt: string;
   status: string;
+  /** The change-plan configuration as that run read it (billing-orphans); absent or null from a run before it. */
+  changePlan?: StoredChangePlan | null;
 };
 
 /** The two switches whose home is this card, in the operator's words. */
@@ -229,6 +236,37 @@ function ReadingsTable({ latest }: { latest: LatestWatchRun }) {
   );
 }
 
+/**
+ * THE CHANGE-PLAN CONFIGURATION'S LINE (billing-orphans): quiet when it lists every Pro price we sell, the band's voice
+ * naming each one missing (or the tag missing), the failure's when the check could not run. The same words as the run's
+ * note (`changePlanNote`), so the card and the line above it never disagree.
+ */
+export function ChangePlanLine({ stored }: { stored: StoredChangePlan }) {
+  const note = changePlanNote(stored);
+  if (stored.state === "whole") {
+    return (
+      <p data-line="change-plan" className="text-caption text-muted-foreground">
+        {`Change plan in Stripe lists all ${stored.sold} Pro prices (${stored.configuration_id}).`}
+      </p>
+    );
+  }
+  if (stored.state === "unread") {
+    return (
+      <p
+        data-line="change-plan"
+        className="rounded-md bg-destructive/6 px-2.5 py-2 text-caption break-words text-destructive"
+      >
+        {note}
+      </p>
+    );
+  }
+  return (
+    <div data-line="change-plan">
+      <AttentionLine>{note}</AttentionLine>
+    </div>
+  );
+}
+
 /** The readings of the watch's last run that took them, or what stands in their place. */
 export function SpendWatchReadings({
   latest,
@@ -256,7 +294,12 @@ export function SpendWatchReadings({
           The readings could not be read: {unreadable}
         </p>
       ) : latest ? (
-        <ReadingsTable latest={latest} />
+        <>
+          <ReadingsTable latest={latest} />
+          {latest.changePlan ? (
+            <ChangePlanLine stored={latest.changePlan} />
+          ) : null}
+        </>
       ) : (
         <p className="text-sm text-muted-foreground">
           No readings yet: the watch has not run. Run it now, or wait for its

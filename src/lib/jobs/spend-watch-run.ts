@@ -14,6 +14,11 @@
  * and both exist, so the slow climb toward a vendor's plan limit is read here beside the runaway guard. It never
  * pauses anything and never stops the readings above: a read of it that FAILED fails the run (the card says which),
  * and a meter past CRITICAL holds the run at attention (the bell), like a trip.
+ *
+ * THE CHANGE-PLAN CONFIGURATION RIDES IT TOO (`change-plan-watch-run.ts`, billing-orphans): Stripe refuses a Pro switch
+ * to a price the tagged configuration does not list, so a configuration lacking one holds the run at attention (the
+ * bell, the band), mails the ops inbox and names each missing price in the run's note; a check that could not run fails
+ * the run.
  */
 import "server-only";
 
@@ -31,6 +36,11 @@ import type { Json } from "@/lib/db/types";
 import { sendOnce } from "@/lib/email/send";
 import { spendWatchEmail } from "@/lib/email/templates";
 import { serverEnv } from "@/lib/env";
+import {
+  parseStoredChangePlan,
+  type StoredChangePlan,
+} from "@/lib/jobs/change-plan-watch";
+import { runChangePlanWatch } from "@/lib/jobs/change-plan-watch-run";
 import type { MeterId } from "@/lib/jobs/limits-watch-limits";
 import { adminJobsUrl, runLimitsWatch } from "@/lib/jobs/limits-watch-run";
 import {
@@ -107,6 +117,8 @@ export async function readLatestWatchRun(): Promise<{
   run: StoredRun;
   startedAt: string;
   status: string;
+  /** The change-plan configuration as that run read it; null from a run before it was read there, or unreadable. */
+  changePlan: StoredChangePlan | null;
 } | null> {
   const row = await mustQuery(
     createAdminClient()
@@ -121,7 +133,15 @@ export async function readLatestWatchRun(): Promise<{
   );
   if (!row) return null;
   const run = parseStoredRun(row.counts, Date.parse(row.started_at));
-  return run ? { run, startedAt: row.started_at, status: row.status } : null;
+  const counts = row.counts as { change_plan?: unknown } | null;
+  return run
+    ? {
+        run,
+        startedAt: row.started_at,
+        status: row.status,
+        changePlan: parseStoredChangePlan(counts?.change_plan),
+      }
+    : null;
 }
 
 /** Read the counters in one call. A failed call is every DB reading missing, with the database's own words. */
@@ -267,6 +287,8 @@ export type WatchOutcome = {
   note: string | null;
   /** The plan limits this run measured (`limits-watch-run.ts`); absent on a skipped run, which read nothing. */
   limits?: { warn: MeterId[]; critical: MeterId[]; failed: MeterId[] };
+  /** The change-plan configuration's state as this run read it; absent on a skipped run. */
+  changePlan?: StoredChangePlan["state"];
 };
 
 /** The run's one line on the card: what tripped and what was done, then what could not be read. */
@@ -411,6 +433,9 @@ export async function runSpendWatch(opts: {
   // throws, never pauses anything, and never touches the spend watch's own verdicts above.
   const limits = await runLimitsWatch({ admin, now });
 
+  // 5c. The change-plan configuration: every Pro price we sell listed where Stripe confirms a switch. Never throws.
+  const changePlan = await runChangePlanWatch({ now });
+
   // 6. Tell.
   const tripped = verdicts.filter((v) => v.state === "tripped");
   if (tripped.length > 0) {
@@ -431,7 +456,8 @@ export async function runSpendWatch(opts: {
     failed.length > 0 ||
     !historyRead ||
     limits.failed.length > 0 ||
-    limits.problem
+    limits.problem ||
+    changePlan.failed
       ? "error"
       : "ok";
   const uploadsPaused = switches?.uploads_enabled?.enabled === false;
@@ -440,6 +466,7 @@ export async function runSpendWatch(opts: {
       "Guest uploads are paused: every guest is refused until a person turns them back on.",
     );
   }
+  if (changePlan.note) extra.push(changePlan.note);
   extra.push(...limits.notes);
   const note = noteFor({
     verdicts,
@@ -463,8 +490,12 @@ export async function runSpendWatch(opts: {
     ...runRecord,
     // The plan limits' record, which the next run reads its told levels and a gauge's climb from.
     ...(limits.stored ? { limits: limits.stored } : {}),
-    // A meter past CRITICAL waits on a person while nothing failed: the run reads as attention, like a trip.
-    ...(limits.critical.length > 0 ? { breaker_tripped: true } : {}),
+    change_plan: changePlan.stored,
+    // A meter past CRITICAL, or a Pro price Stripe refuses a switch to, waits on a person while nothing failed: the run
+    // reads as attention, like a trip.
+    ...(limits.critical.length > 0 || changePlan.attention
+      ? { breaker_tripped: true }
+      : {}),
   };
   const done = await finishJobRun(run, {
     status,
@@ -485,5 +516,6 @@ export async function runSpendWatch(opts: {
       critical: limits.critical,
       failed: limits.failed,
     },
+    changePlan: changePlan.stored.state,
   };
 }
