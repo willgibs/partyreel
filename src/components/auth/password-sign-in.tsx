@@ -160,7 +160,7 @@ export function SignIn({
         </div>
         <Button
           type="submit"
-          className={`w-full active:scale-[0.99] motion-reduce:active:scale-100 ${buttonClassName ?? ""}`}
+          className={`w-full ${buttonClassName ?? ""}`}
           working={pending}
           workingLabel="Signing in"
         >
@@ -274,7 +274,7 @@ export function SetInitialPassword({
       </div>
       <Button
         type="submit"
-        className="w-full active:scale-[0.99] motion-reduce:active:scale-100"
+        className="w-full"
         working={pending}
         workingLabel="Saving"
       >

@@ -181,9 +181,8 @@ export function PasskeysCard() {
           variant="outline"
           disabled={!supported}
           onClick={() => void add()}
-          className="active:scale-[0.99] motion-reduce:active:scale-100"
           working={busy}
-          workingLabel="Working"
+          workingLabel="Adding a passkey"
         >
           <Fingerprint /> Add a passkey
         </Button>

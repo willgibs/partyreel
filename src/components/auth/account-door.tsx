@@ -399,7 +399,7 @@ export function AccountDoor({
       type="button"
       variant={variant}
       className={cn(
-        "w-full active:scale-[0.99] motion-reduce:active:scale-100",
+        "w-full",
         buttonClassName,
       )}
       onClick={() => void signInWithGoogle(loginHint)}
@@ -526,7 +526,7 @@ export function AccountDoor({
               type="button"
               size="lg"
               className={cn(
-                "w-full active:scale-[0.99] motion-reduce:active:scale-100",
+                "w-full",
                 buttonClassName,
               )}
               onClick={() => void signInWithPasskey()}
@@ -690,7 +690,7 @@ function ExistingAccount({
       <Button
         type="button"
         size="lg"
-        className="w-full active:scale-[0.99] motion-reduce:active:scale-100"
+        className="w-full"
         onClick={onContinue}
         disabled={leaving}
       >
@@ -736,7 +736,7 @@ function PasskeyOffer({
       <Button
         type="button"
         size="lg"
-        className="w-full active:scale-[0.99] motion-reduce:active:scale-100"
+        className="w-full"
         onClick={() => {
           setSaving(true);
           void onSave();

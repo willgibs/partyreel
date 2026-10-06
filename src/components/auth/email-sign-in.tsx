@@ -588,7 +588,7 @@ export function EmailSignIn({
             // the HTML a cold phone paints and gone the moment the handler exists.
             aria-disabled={hydrated ? undefined : true}
             className={cn(
-              "relative w-full active:scale-[0.99] motion-reduce:active:scale-100",
+              "relative w-full",
               !hydrated && "cursor-progress",
               buttonClassName,
             )}
