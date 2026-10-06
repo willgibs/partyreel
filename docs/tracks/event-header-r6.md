@@ -1,6 +1,6 @@
 ---
 track: event-header-r6
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "b5042226"            # the launch-prep SHA the branch was cut from
 board: event-header
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -48,25 +48,81 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- Where the cards stand now the light must fall past them: built ON the cover's foot (the photograph runs 20px on under
+  them, 14 in a hand, to its edge; the Seam falls from there; the album starts past its reach). The alternative is the
+  cards under the light, a row in the page after the Seam. Drawn as the carried call `cards-on-cover`.
+- The Seam's reach costs first-screen height: at 1440 the album starts 623px down in the room (r5: 559) and 539 on paper
+  (Aperture). Recommended: keep the brand's reach (its kit: "a seam drawn faint reads as smoke", "quieter is shorter,
+  never paler"); a shorter one is the brand's 104/72 and still never paler.
+- A hand's cards: built as one row of five tiles, glyph, count on it and short word (r5 `points`, carried call
+  `hand-row`), since the cover cannot hold production's two-by-two grid on its foot.
+- `99+` lives in the badge alone (`capCount`, `card-kit.tsx`); the accessible name keeps the whole number ("Review: 140
+  waiting"). Carried call `cap-home`.
+- The board's cover draws its own scrim (`CoverScrim`, `seam.tsx`), lifting at the foot so the Seam's source is seen;
+  production's `.head-scrim` is set aside in the board's frames only. Wiring the pick means retuning production's scrim
+  at the cut, which also serves the guest's cover.
+- Paper's take is a knob (Aperture default, Ink, Cast), never asked: brand r2's `take` stays Will's open ask there.
+- Recommended answers to the two asks: `card=shoulder` (his badge, only where it matters) then `attention=tally` (the
+  palette's own recording red, a step deeper in the room so a white numeral holds 4.5:1; no new hue).
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none (the manifest lists no system doc; the board is its folder)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Design lab: the Seam's edge sampler as production code (each still's bottom edge read at upload, at the cover's crop
+  per width, stored with the still), once his pick is wired; the board's runtime read (`edge.ts`) is its reference.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- Commits: work `c296c100` (the Seam, the two asks, r5's takes deleted), fix `b766e1e2` (a pill's badge clear of its
+  word), and this manifest commit; launch-prep moved only by two `[skip ci]` kit records (`608908a4`, `3ac35c76`), so
+  no sync.
+- Gates on `b766e1e2`, each its own exit code: `pnpm typecheck` 0; `pnpm lint` 0; the board's tests
+  (`vitest run "src/app/(dev)" src/components/lab`) 0, 747 passed; `pnpm lab:smoke --base http://localhost:3131` 0, 4
+  checks, 0 failing, the reading 1094 of 1200 words; `pnpm lab:demo --board event-header --base http://localhost:3131`
+  0, 2 steps 0 failing at 1440 and 375 (reduced motion emulated). Light gate (PROGRAM.md); no build, no full test run.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `src/app/(dev)/design/sandbox/event-header/*` (owned)
+  + this file. No exceptions.
+- Supabase, Stripe, R2, Vercel: none touched. Test data left: none.
+- The Seam, corrected (`seam.tsx`, `seam.css`, `light.ts`, `edge.ts`), drawn under every option; the board's About says
+  what changed, one line each (`spec.ts` `opening.settled`, the "Seam, corrected" lines):
+  - reach 120 / 104 / 72px at full strength (desk, tablet, hand), Afterglow's `RoomSeam` quoted (`ag.css`'s three pools
+    at 22/50/78% and the 1.5px source line faded at both ends), vs r5's 12px fall at 22%;
+  - the edge's own colours: `edge.ts` reads each still's last 4% of rows at the cover's real crop, six segments,
+    chroma-weighted 15° buckets (production's `srgbToOklch`), at most three hue families (brand r2's polish). Checked:
+    the toast's edge reads `51 140 51 51 51 51` against the brand's hand-sampled `EDGE` `50 141 52 69 51 40`. One light
+    layer per still on the cover's own crossfade clock (`head-crossfade`, 6 × 4.6s); reduced motion holds the first;
+  - the cards stand on the cover's foot, the light falls past them (nothing pressed in it); the captions read "5 doors
+    on the cover's foot, 20px of photograph under them … the Seam reaching 120px under the cover's edge";
+  - the cover's own scrim lifts at its foot (0.22 at the cut vs production's 0.8), so the source shows;
+  - on paper no light laid on paper: Aperture's rebate (36px, 30 in a hand) with the light inside, Ink's rule
+    (width/300, ≥2px) and credits in the cover's printed key (house ink before the first photograph), Cast's hard 12/8px
+    band multiplied; the Paper knob;
+  - the fold cannot flash it: the Seam is a page element under the cover, never in the band (captured mid-fold at 40,
+    90, 140, 200, 500ms: continuous).
+  - Proved on screen against the brand's own slides (the brand board's `05 The signature`, both grounds, and `10 A dark
+    page`) at 1440, 820 and 375, room and paper, at rest, scrolled and mid-fold, at 1x and 2x (local captures; nothing
+    committed).
+- Ask 1, `card` (recommended `shoulder`): `shoulder` (badge on the glyph's shoulder only where a count needs her),
+  `ring` (a ring of the token round the glyph, the count a tab at its foot), `numeral` (the count on a lit disc in the
+  glyph's place, the glyph on its shoulder). Settings' steps left and paused stay production's words in the line at rest
+  and ride the pill's glyph as a quiet badge (G4). New Moment `peak` (140 in Review, 12 at the door) shows the cap.
+- Ask 2, `attention` (`after: card`, recommended `tally`): one status token (`--eh-needs`, `--eh-needs-on`,
+  `cards.css`) worn by the badges, the numeral's disc, the ring and the code's corner (`[data-code-mark]:has(> span)`
+  overrides production's `bg-warning` in the board's frames). Options: `ink` (hueless, the brand's own answer), `tally`
+  (the palette's red), `cue` (a new blue). Numerals measured ≥4.5:1 white on tally/cue fills, both grounds.
+- Carried (no ask): `facesOf` (`door-kit.tsx`) reads `guestsCardFace`, `reviewCardFace`, `settingsCardFace` and
+  `reelCardFace` from `room-card.ts`. R5's `keys`, `seam`, `points` files and `doors.tsx` deleted.
+- Assets requested from Will: none.
+- Board ideas: the doors' words for the voice (`marketing-voice.ts`): "As a guest" beside "Guests" invites a mis-tap
+  ("Preview"?), "Guests · 31 guests" says its noun twice, "1 left" and "You let in" read unclear out of context, "0
+  guests" before anyone is in; brand-marks (desk 6, not cut) inherits his `attention` pick as its waiting colour; Ink's
+  credits repeat the strip's counts, so a wiring of Ink might let the strip be the credits.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Calls his to overrule: the cards on the cover's foot (`cards-on-cover`); one row in a hand (`hand-row`); 99+ in the
+  badge alone (`cap-home`); the brand's full reach over first-screen height; Aperture as the paper default; `shoulder`
+  then `tally` recommended.
+- Look at first: `/design/lab/event-header?key=…` at 1440, room frame, scrolled slowly through the fold (the Seam's
+  light and its source at the cover's foot), then Moment "peak" with `card=numeral`, then `screen=375`.
