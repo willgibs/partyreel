@@ -1,10 +1,10 @@
 #!/bin/zsh
 # capture-all.sh <dir> [port]: every board on the desk, in desk order, through one dev server; the pictures for a review sheet.
 # Its default port is capture.sh's (3140, outside the gate's and the lanes'), since it too kills what holds it.
-source ~/.nvm/nvm.sh >/dev/null 2>&1; nvm use >/dev/null 2>&1
 KIT="$(cd "$(dirname "$0")" && pwd)"; cd "$KIT/../.."
+source "$KIT/kit-env.sh"
 DIR="$1"; PORT="${2:-3140}"
-export DESIGN_PREVIEW_KEY="$(grep '^DESIGN_PREVIEW_KEY=' .env.local | cut -d= -f2- | tr -d '"')"
+export DESIGN_PREVIEW_KEY="$(kit_env DESIGN_PREVIEW_KEY)"
 # The desk's own order: every folder under sandbox/ with a spec, by its desk place (board-card reads the specs).
 BOARDS=$(node "$KIT/board-card.mjs" --desk 2>/dev/null | awk '{print $2}')
 [ -n "$BOARDS" ] || { echo "capture-all: board-card found no board"; exit 1; }

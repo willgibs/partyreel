@@ -32,7 +32,10 @@ The local-first-then-live policy, the gate's steps, the account chooser and the 
   `NEXT_PUBLIC_SITE_URL=http://localhost:3000` (sign-in prefers that variable over the page's origin, and Supabase
   allows `http://localhost:3000/**`): Google's chooser returns there. Will's desk is the same build in
   `../partyreel-wt/desk` (a detached worktree at launch-prep; refresh it by checking out, building and restarting
-  `pnpm start -p 3000`).
+  `pnpm start -p 3000`). A cloud walk, with no chooser to press, signs a test host in on its own headless Chrome:
+  `usher/kit/redteam/signin.mjs <email> http://localhost:3000 <device>` mints a magic link with the service key (no
+  mail is sent), verifies its token into the app's own SSR cookies and sets them on that device; it serves the two
+  test hosts alone and refuses the operator, whose session stands behind her second factor.
 - **Confirming a deploy is READY at a SHA:** `GET https://api.vercel.com/v6/deployments?projectId=…&teamId=…&limit=12`
   with `$VERCEL_TOKEN` (the ids are in `usher/kit/vercel-lib.mjs`; `&target=production` for production), match
   `meta.githubCommitSha` and wait for `READY`; `/v3/deployments/<uid>/events` is the build log, the Ignored Build
@@ -67,7 +70,8 @@ by rendering, and a Server Component's test is a node `.test.ts`.
   two and hi@willgibs.com's none, so walk the hide from hi@willgibs.com on one of willg97's albums (it never hides on
   the reporter's own).
 - **Seed through real uploads, never raw rows:** a `media` row with no R2 object renders broken and poisons later
-  checks. The media fixtures are at `/Users/gibby/local/ai/partyreel-test-media`; `scripts/seed-demo-event.mjs`
+  checks. Test media comes from `usher/kit/media-gen.mjs` (a phone's photographs with a capture time, a short video,
+  unique bytes every run; the capture-time edge cases are `src/lib/media/strip-metadata-fixtures/`); `scripts/seed-demo-event.mjs`
   drives the real write path from Node (its header gives the flags; a run replaces the event's media). The demo
   event's own reseed is the Orchestrator's, since partyreel.com and the alias share it.
 - **The scale probe, for anything that can outgrow 1,000 rows:** the event "Scale probe"

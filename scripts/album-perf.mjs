@@ -95,6 +95,8 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
+import { devToolsPort } from "../usher/kit/kit-env.mjs";
+
 const argv = process.argv.slice(2);
 const opt = (name, fallback) =>
   argv.includes(name) ? (argv[argv.indexOf(name) + 1] ?? fallback) : fallback;
@@ -237,13 +239,14 @@ if (!existsSync(CHROME)) {
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ── Chrome, over its DevTools protocol (lab-demo.mjs's pattern: Node's own WebSocket, no dependency)
-const port = 9900 + (process.pid % 90);
 const profile = mkdtempSync(join(tmpdir(), "album-perf-"));
 const chrome = spawn(
   CHROME,
   [
     ...(headed ? [] : ["--headless=new"]),
-    `--remote-debugging-port=${port}`,
+    // Port 0: Chrome binds a free one and writes it in this profile alone (lab-demo's way), so a run can never
+    // attach to another lane's Chrome, where a port from the pid could land on one.
+    "--remote-debugging-port=0",
     `--user-data-dir=${profile}`,
     "--no-first-run",
     "--no-default-browser-check",
@@ -275,7 +278,10 @@ function send(ws, method, params = {}) {
     ws.send(JSON.stringify({ id, method, params }));
   });
 }
+/** This run's own Chrome's port, read from its profile once Chrome has written it. */
+let port = null;
 async function connect() {
+  port ??= await devToolsPort(profile, chrome);
   for (let i = 0; i < 80; i++) {
     try {
       const list = await (

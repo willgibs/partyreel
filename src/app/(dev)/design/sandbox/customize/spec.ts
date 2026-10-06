@@ -18,10 +18,10 @@ import { SCREEN } from "./knobs";
  * The audit's other top cases (what guests take home) are drawn inside the
  * pattern's frames, so he judges the pattern on real choices.
  *
- * ★ THE NOTES BEHIND IT live in the lane's scratch, never here: Linear's
- * lessons as principles (`_scratch/customize/linear.md`) and every assumption
- * classified and ranked (`_scratch/customize/audit.md`). The board quotes
- * neither.
+ * ★ THE PRINCIPLE BEHIND IT is PRD.md's "Adapt to every host's workflow,
+ * never enforce one" (Will's product principles), and the audit's ranked cases
+ * no board drew wait as the ROADMAP's customize line (Host: the preferences
+ * customize r1's audit ranked). The board quotes neither.
  *
  * ★ PRODUCTION DRAWS EVERY FRAME. Settings is production's (the provider, the
  * album styles, the furniture, the live words), its writes inert; Create is
@@ -218,14 +218,16 @@ export const CUSTOMIZE = defineExploration({
             "Settings' first screen says each choice in its sentence, every live word a choice made in place, its page holding the same choice whole.",
           gains:
             "The whole party read in five sentences, every choice one press away.",
-          costs: "Longer sentences, and a word is a quieter control than a row.",
+          costs:
+            "Longer sentences, and a word is a quieter control than a row.",
         },
         {
           id: "rows",
           label: "A row each, on its page",
           means:
             "The first screen stays as it is; each choice is a row on its page: What guests can add, and a new page, The album.",
-          gains: "One familiar place for each, the way every settings page works.",
+          gains:
+            "One familiar place for each, the way every settings page works.",
           costs: "Found only by opening the page it is on.",
         },
         {
@@ -304,7 +306,8 @@ export const CUSTOMIZE = defineExploration({
       recommended: "offer",
       because:
         "It asks nothing of a newcomer and meets a repeat host the moment she changes something; her usual then stands in one list to read or undo.",
-      overrule: "If hosts mostly repeat whole parties, Start like a past party.",
+      overrule:
+        "If hosts mostly repeat whole parties, Start like a past party.",
       configs: [SCREEN],
     },
 
@@ -352,7 +355,8 @@ export const CUSTOMIZE = defineExploration({
       today: "newest",
       because:
         "The party wants what just landed and the morning after wants the story; turning at the party's own end gives each its order with nothing to set.",
-      overrule: "If guests mostly come back during the party, newest first stays.",
+      overrule:
+        "If guests mostly come back during the party, newest first stays.",
       configs: [SCREEN],
     },
   ],

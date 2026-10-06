@@ -15,8 +15,8 @@ N="$1"; BOARD="$2"
 : "${S:?set S to this session's scratchpad (every kit script writes its logs there)}"
 KIT="$(cd "$(dirname "$0")" && pwd)"; cd "$KIT/../.."
 PORT="${GATE_PORT:-3130}"
-source ~/.nvm/nvm.sh >/dev/null 2>&1; nvm use >/dev/null 2>&1
-export DESIGN_PREVIEW_KEY="$(grep '^DESIGN_PREVIEW_KEY=' .env.local | cut -d= -f2- | tr -d '"')"
+source "$KIT/kit-env.sh"
+export DESIGN_PREVIEW_KEY="$(kit_env DESIGN_PREVIEW_KEY)"
 echo "GATE$N on $(git rev-parse --short HEAD) $(date -u)"
 # the contention nobody's manifest names (siliconsadie, m/builds, 2026-09-20): the load beside the exit codes, so a
 # timed-out step can be read against what the machine was doing (gate 62's two timeouts sat under a load of seven).
