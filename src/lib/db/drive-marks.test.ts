@@ -16,6 +16,7 @@ import {
   liveFunction,
   liveFunctions,
   MIGRATIONS_DIR,
+  readMigrations,
 } from "@/lib/db/testing/migrations";
 
 const FILE = "20261006130000_drive_marks.sql";
@@ -98,7 +99,9 @@ describe("★ every one checked means every one answered", () => {
   const body = () => liveFunction("cloud_export_check_page").code;
 
   it("holds the cursor below the first unknown", () => {
-    expect(body()).toMatch(/where r ->> 'state' = 'unknown'/);
+    expect(body()).toMatch(
+      /select i\.media_id into v_hold[\s\S]*?where r ->> 'state' = 'unknown'\s+order by i\.media_id\s+limit 1;/,
+    );
     expect(body()).toMatch(
       /\(v_hold is null or v_item\.media_id < v_hold\) and \(v_last is null or v_item\.media_id > v_last\)/,
     );
@@ -122,5 +125,21 @@ describe("★ every one checked means every one answered", () => {
   it("takes the check's own slow down as the connection's, and never reopens a send it paused", () => {
     expect(body()).toMatch(/if p_finding = 'throttled' then/);
     expect(body()).toMatch(/if v_status = 'checking' then/);
+  });
+});
+
+describe("★ no min() or max() over a uuid", () => {
+  // Postgres has neither aggregate for uuid: the first hold, `min(i.media_id)`, failed every closing check page with
+  // 42883 in the rolled-back proof. The schema names its uuids `id` and `*_id`, so an aggregate over such a column is
+  // the trap (an ordered select with `limit 1` reads the same).
+  it("in any migration", () => {
+    const found = readMigrations().flatMap(({ file, sql: text }) =>
+      [
+        ...executableSql(text, file).matchAll(
+          /\b(?:min|max)\(\s*(?:\w+\.)?(?:id|\w+_id)\s*\)/gi,
+        ),
+      ].map((m) => `${file}: ${m[0]}`),
+    );
+    expect(found).toEqual([]);
   });
 });

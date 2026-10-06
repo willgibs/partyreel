@@ -51,7 +51,7 @@
 -- Applied, the three bodies hash as:
 --   cloud_export_ready       6985048e26eb27dd57dbf255ce76a708
 --   cloud_export_lease       7436838d4523f8cfc443f920f7dee196
---   cloud_export_check_page  097f3c3a59180379753d302dbc555b35
+--   cloud_export_check_page  c1a74f6c28bb8d5d8d9677f0eaf13cac
 -- =============================================================================================
 
 -- =============================================================================================
@@ -429,12 +429,15 @@ begin
   -- ★ THE HOLD (drive-crumbs): the first file Google did not answer for (`unknown`: a slow down past its pace, its own
   -- trouble) is where the cursor stops, so "every one checked" follows an answer for every one. What was answered past
   -- it is kept (a confirmation, or a file gone back to be sent again) and the held one is asked again on the next page.
-  select min(i.media_id) into v_hold
+  -- Ordered and limited, never min(): Postgres has no min() or max() over uuid (42883).
+  select i.media_id into v_hold
     from jsonb_array_elements(coalesce(p_results, '[]'::jsonb)) r
     join public.cloud_export_items i
       on i.job_id = v_job.id and i.media_id = (r ->> 'media_id')::uuid and i.status = 'sent'
          and (v_job.check_after is null or i.media_id > v_job.check_after)
-   where r ->> 'state' = 'unknown';
+   where r ->> 'state' = 'unknown'
+   order by i.media_id
+   limit 1;
 
   -- Google's slow down on the check's own asks paces the whole connection, as a send's does (`cloud_export_report`).
   if p_finding = 'throttled' then
