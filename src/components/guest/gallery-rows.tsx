@@ -233,17 +233,24 @@ const STAND_IN_DELAY_MS = 250;
  * an engine with no observer judges nothing and draws no stand-in.
  */
 function useStandIn(active: boolean) {
-  const [seen, setSeen] = useState(
-    () => typeof IntersectionObserver === "undefined",
-  );
-  // Each loss of sight is its own count, and the beat's timer answers for the loss it began on, so a stack seen again
-  // (or a pick ended: its box going reports a loss) never lets an older timer draw the stand-in.
-  const [lost, setLost] = useState(0);
+  // ★ ONE LOSS OF SIGHT IS ONE COUNT, however often it is reported: the stack remounts as each file of a pick lands, and
+  // each remount reports out of sight again, so a count bumped on every report would restart the beat with every
+  // landing, and a pick of small files landing faster than the beat would never draw the stand-in. Only a change from
+  // seen to unseen counts, and the beat's timer answers for the loss it began on, so a stack seen again never lets an
+  // older timer draw it.
+  const [sight, setSight] = useState(() => ({
+    seen: typeof IntersectionObserver === "undefined",
+    lost: 0,
+  }));
   const [fired, setFired] = useState(-1);
   const onSight = useCallback((inView: boolean) => {
-    setSeen(inView);
-    if (!inView) setLost((n) => n + 1);
+    setSight((prev) =>
+      prev.seen === inView
+        ? prev
+        : { seen: inView, lost: inView ? prev.lost : prev.lost + 1 },
+    );
   }, []);
+  const { seen, lost } = sight;
   useEffect(() => {
     if (!active || seen) return;
     const t = setTimeout(() => setFired(lost), STAND_IN_DELAY_MS);

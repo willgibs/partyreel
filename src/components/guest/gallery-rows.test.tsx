@@ -543,6 +543,24 @@ describe("GalleryRows: the stack out of her sight stands in view", () => {
     expect(standIn()?.textContent).toContain("Sending");
   });
 
+  it("★ a stack that keeps remounting out of sight faster than the beat (small files landing) still stands in", () => {
+    render(
+      <GalleryRows
+        {...REST}
+        items={SEED}
+        anchor="start"
+        pending={[pending("r1", "uploading", 10), pending("r2", "queued")]}
+        progress={store(10)}
+      />,
+    );
+    // Out of sight, then reported out of sight again every 200 ms as the slot remounts.
+    for (let i = 0; i < 4; i += 1) {
+      act(() => sight.at(-1)!(false));
+      act(() => vi.advanceTimersByTime(200));
+    }
+    expect(standIn()).not.toBeNull();
+  });
+
   it("goes with the pick", () => {
     const view = render(
       <GalleryRows
