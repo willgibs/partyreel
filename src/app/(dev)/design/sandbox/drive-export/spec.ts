@@ -9,11 +9,10 @@ import { SCREEN } from "./knobs";
  * Drive and we can basically swallow WedUploader/WeddingQR/PixBearer's entire
  * feature set ... that's a hilariously great win ... let's ensure this is fully
  * planned and reviewed, then do it. lab exploration first to nail UI." The
- * architecture is the design note beside the research
- * (`_scratch/drive-export/design.md`: `drive.file` only, a Worker streaming R2
- * into Google's resumable uploads, every file checked against our MD5, every
- * failure a named state with one act); this board draws every moment a host
- * meets it, so the wiring lane builds his picks on that note.
+ * architecture is `docs/systems/drive-export.md` (`drive.file` only, a Worker
+ * streaming R2 into Google's resumable uploads, every file checked against our
+ * MD5, every failure a named state with one act); this board draws every
+ * moment a host meets it.
  *
  * ★ EVERY FRAME IS PRODUCTION'S LOOK AS WIRED (identity's voice=camera,
  * layers=display, status=lights): the real `Popup` in its `plan` kind for

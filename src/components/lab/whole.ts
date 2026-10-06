@@ -52,6 +52,18 @@ export type Trial = { width: number; views: readonly ViewTrial[] };
 const TIE = 0.004;
 
 /**
+ * ★ A ROW IS LAID OUT WITH TWO PIXELS TO SPARE (lab-kit-3, from brand-r2's
+ * line). The widths are whole pixels and a row's need is not: `offsetWidth`
+ * rounds the widest layout down (14 slides at 374.95 px and 13 gaps need
+ * 5665.29 px, and it answers 5665), and a frame's sub-pixel width moves with
+ * the zoom it is laid out under, so a row measured whole under one zoom wrapped
+ * its last slide under the next (`lab:demo --board brand --state screen=375`:
+ * CUT and CLIPPED at 1440). Every width tried and worn carries this slack; it
+ * costs a scale of 2 in thousands.
+ */
+const SLACK = 2;
+
+/**
  * The zoom a trial is drawn at: the largest that fits every option in its room,
  * never above 1:1 (a small drawing is shown at its true size, not blown up).
  */
@@ -227,11 +239,13 @@ export function fitStage(
 
   // The room each option has. Side by side, a column and the height under its
   // label; flipped, the whole box.
+  // The width is less the SLACK every layout carries, so a drawing scaled to
+  // its room still fits it with the slack on (at a scale of 1:1 or under).
   const rooms: Size[] = all.map(({ view, wrap }) => {
-    if (!side) return { w: boxW, h: boxH };
+    if (!side) return { w: boxW - SLACK, h: boxH };
     const head =
       wrap.getBoundingClientRect().top - view.getBoundingClientRect().top;
-    return { w: view.clientWidth, h: Math.max(8, boxH - head) };
+    return { w: view.clientWidth - SLACK, h: Math.max(8, boxH - head) };
   });
 
   for (const { wrap } of all) reflow(wrap);
@@ -248,7 +262,7 @@ export function fitStage(
   hi = Math.max(lo, hi);
 
   const trial = (width: number): Trial => {
-    for (const { wrap } of all) wrap.style.width = `${width}px`;
+    for (const { wrap } of all) wrap.style.width = `${width + SLACK}px`;
     return {
       width,
       views: all.map(({ wrap }, i) => ({
@@ -292,7 +306,7 @@ export function fitStage(
     last && last.width === best.width && Math.abs(last.k - k) < 0.002;
   const wear = kept ? last : { width: best.width, k };
   for (const { wrap } of all) {
-    wrap.style.width = `${wear.width}px`;
+    wrap.style.width = `${wear.width + SLACK}px`;
     wrap.style.setProperty("--lab-k", String(wear.k));
     wrap.style.zoom = String(wear.k);
   }

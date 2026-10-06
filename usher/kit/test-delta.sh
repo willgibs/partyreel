@@ -6,10 +6,10 @@
 # with node_modules linked in, and prints the sorted difference. Read-only for the repo; the worktree
 # is removed on exit.
 set -u
-BASE="$1"; R="/Users/gibby/local/ai/partyreel"; T="${TMPDIR:-/tmp}/test-delta-$$"
+BASE="${1:-}"; R="$(git -C "$(dirname "$0")" rev-parse --show-toplevel)"; T="${TMPDIR:-/tmp}/test-delta-$$"
 [ -n "$BASE" ] || { echo "usage: test-delta.sh <base-sha>"; exit 1; }
 cd "$R" || exit 1
-source "$HOME/.nvm/nvm.sh" >/dev/null 2>&1; nvm use 22.21.1 >/dev/null 2>&1
+source usher/kit/kit-env.sh
 cleanup() { rm -f "$T/wt/node_modules" "$T/wt/.env.local"; git worktree remove --force "$T/wt" >/dev/null 2>&1; rm -rf "$T"; }
 trap cleanup EXIT
 mkdir -p "$T"

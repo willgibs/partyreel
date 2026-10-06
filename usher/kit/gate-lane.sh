@@ -15,8 +15,8 @@ N="$1"; BOARD="$2"
 : "${S:?set S to this session's scratchpad (every kit script writes its logs there)}"
 KIT="$(cd "$(dirname "$0")" && pwd)"; cd "$KIT/../.."
 PORT="${GATE_PORT:-3130}"
-source ~/.nvm/nvm.sh >/dev/null 2>&1; nvm use >/dev/null 2>&1
-export DESIGN_PREVIEW_KEY="$(grep '^DESIGN_PREVIEW_KEY=' .env.local | cut -d= -f2- | tr -d '"')"
+source "$KIT/kit-env.sh"
+export DESIGN_PREVIEW_KEY="$(kit_env DESIGN_PREVIEW_KEY)"
 echo "GATE$N on $(git rev-parse --short HEAD) $(date -u)"
 # the contention nobody's manifest names (siliconsadie, m/builds, 2026-09-20): the load beside the exit codes, so a
 # timed-out step can be read against what the machine was doing (gate 62's two timeouts sat under a load of seven).
@@ -67,7 +67,7 @@ else
     *) echo "LAB on: the lane brings what the lab renders, $(first "$LABS")" ;;
   esac
   if [ -n "$LABS" ]; then
-    lsof -ti tcp:$PORT | xargs -r kill 2>/dev/null; sleep 1
+    lsof -ti tcp:$PORT | xargs -r kill 2>/dev/null; kit_free_port $PORT; sleep 1
     # The server starts on an empty dev cache, whichever way the merge was made: one warmed on another tree can hand a
     # frame a stale chunk that reloads it for ever (gate 123: a MERGE RED resolved by hand never reaches merge-lane.sh's
     # clear, so event-ready ran on gate 122's cache and every lab:demo step read "(reading 'dock')"; green on an empty
@@ -105,7 +105,7 @@ else
       elif [ "$FROZE" -gt 0 ]; then echo "HARNESS unproven: no step moved in this run; read $S/gate$N-demo.log per step before calling a FROZEN the board's"; fi
       echo "EXIT[lab:demo $DEMOBOARDS]=$DEMO ($(( SECONDS - t ))s)"; [ "$DEMO" = 0 ] || RED=$(( RED + 1 ))
     fi
-    lsof -ti tcp:$PORT | xargs -r kill 2>/dev/null
+    lsof -ti tcp:$PORT | xargs -r kill 2>/dev/null; kit_free_port $PORT
   fi
 fi
 echo "GATE$N DONE $(date -u) (${SECONDS}s) red steps: $RED"

@@ -13,20 +13,20 @@ ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 DESK="${DESK:-$(git -C "$ROOT" worktree list --porcelain | awk '/^worktree .*\/desk$/ { print $2; exit }')}"
 [[ -n "$DESK" && -d "$DESK" ]] || { echo "NO DESK WORKTREE (git worktree list has no .../desk)"; exit 1; }
 LOG="$DESK/../desk-server.log"
-KEY="$(grep '^DESIGN_PREVIEW_KEY=' "$ROOT/.env.local" | cut -d= -f2- | tr -d '"')"
+KEY="$(cd "$ROOT" && source usher/kit/kit-env.sh && kit_env DESIGN_PREVIEW_KEY)"
 cd "$DESK" || exit 1
 echo "[$(date -u +%H:%M:%SZ)] fetch + checkout $SHA in $DESK"
 git fetch origin --quiet && git checkout --quiet --detach "$SHA" || { echo "CHECKOUT FAILED"; exit 1; }
 echo "[$(date -u +%H:%M:%SZ)] install"
-source ~/.nvm/nvm.sh >/dev/null 2>&1; nvm use >/dev/null 2>&1
+source "$ROOT/usher/kit/kit-env.sh"
 pnpm install --frozen-lockfile --prefer-offline > "$S/desk-install.log" 2>&1 || { echo "INSTALL FAILED ($S/desk-install.log)"; exit 1; }
 echo "[$(date -u +%H:%M:%SZ)] stopping port 3000"
 # The server and the pnpm that started it: kill both, by the port, never by a process name (other lanes run next too).
-for pid in $(lsof -ti tcp:3000 -sTCP:LISTEN); do
+for pid in $(kit_port_pids 3000); do
   ppid=$(ps -o ppid= -p $pid | tr -d ' ')
   kill $pid; [[ -n "$ppid" && "$ppid" != "1" ]] && kill $ppid 2>/dev/null
 done
-for i in {1..20}; do lsof -ti tcp:3000 -sTCP:LISTEN >/dev/null || break; sleep 0.5; done
+for i in {1..20}; do [ -n "$(kit_port_pids 3000)" ] || break; sleep 0.5; done
 echo "[$(date -u +%H:%M:%SZ)] build"
 rm -rf .next
 NEXT_PUBLIC_SITE_URL=http://localhost:3000 zsh scripts/build-lock.sh pnpm build > "$S/desk-build.log" 2>&1

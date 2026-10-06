@@ -4,21 +4,28 @@
 // eval}, {attach: targetId, key}, {sessions: true} or {key, events: true, since, filter, urlFilter, limit}.
 //
 // The walk's own folder is RT_DIR (the red-team's scratch folder, never the repo): the driver's events, `newctx.mjs`'s
-// ctx.json and downloads, and `send.mjs`'s records all land there. A walk:
-//   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --remote-debugging-port=$CDP_PORT \
+// ctx.json and downloads, and `send.mjs`'s records all land there. A walk, alike on the Mac and a cloud seat (Linux,
+// root: CHROME_PATH is the --no-sandbox wrapper spawn-prompt-cloud.txt makes):
+//   node usher/kit/media-gen.mjs "$RT_DIR/media"   the walk's own photographs, a video and the fake camera's party-cam.y4m
+//   "${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}" --headless=new --remote-debugging-port=0 \
 //     --user-data-dir="$RT_DIR/profile" --use-fake-ui-for-media-stream --use-fake-device-for-media-stream \
 //     --use-file-for-fake-video-capture="$RT_DIR/media/party-cam.y4m" about:blank > "$RT_DIR/chrome.log" 2>&1 &
 //   RT_DIR=... node drv.mjs &                    then, per device:
 //   RT_DIR=... node newctx.mjs G1 375            a fresh context and page under the key G1 (a phone's width)
 //   node h.mjs nav G1 http://localhost:3000/e/<qr>; node h.mjs text G1; node join.mjs G1 <qr> "RT Guest"
-// CDP_PORT defaults to 9995: pick a free one (`lsof -i :9995`), since another lane's Chrome may hold it, and close your
-// Chrome when the walk ends. The fake camera's .y4m comes from a party photograph (ffmpeg is on the machine).
+//   node signin.mjs willg97@gmail.com http://localhost:3000 H1 --open /dashboard   a test host's session in H1
+// join.mjs takes the "Continue as guest" door, so its album lets guests in on a typed name (Settings > Who can get in);
+// the default asks for a confirmed email, whose code no walk types. Chrome picks its own free port (port 0) and writes
+// it into a FRESH profile's DevToolsActivePort, which the driver reads, so it can only reach this walk's Chrome;
+// CDP_PORT pins one instead (`lsof -i :<port>` first: another lane's Chrome may hold it). DRV (default 9996) is the
+// driver's own port: give each concurrent walk its own. Close your Chrome when the walk ends.
 import http from "node:http";
 import { appendFileSync } from "node:fs";
 import { rtDir } from "./lib.mjs";
+import { devToolsPort } from "../kit-env.mjs";
 const LOG = `${rtDir()}/drv-events.jsonl`;
 const LOGRE = /^(Network\.(requestWillBeSent|responseReceived|loadingFinished|loadingFailed|webSocket\w+)|Page\.(lifecycleEvent|frameNavigated)|Target\.(targetCreated|targetDestroyed|targetInfoChanged))$/;
-const PORT = +(process.env.CDP_PORT || 9995);
+const PORT = process.env.CDP_PORT ? +process.env.CDP_PORT : await devToolsPort(`${rtDir()}/profile`, null, 30_000);
 const DRV = +(process.env.DRV || 9996);
 const ver = await (await fetch(`http://127.0.0.1:${PORT}/json/version`)).json();
 const ws = new WebSocket(ver.webSocketDebuggerUrl);

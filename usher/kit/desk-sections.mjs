@@ -1,6 +1,6 @@
-// desk-sections.mjs: the alias's desk, per section (the key from .env.local, never on a command line).
-import fs from "node:fs";
-const KEY = fs.readFileSync("/Users/gibby/local/ai/partyreel/.env.local", "utf8").match(/^DESIGN_PREVIEW_KEY=(.*)$/m)[1].trim().replace(/^["']|["']$/g, "");
+// desk-sections.mjs: the alias's desk, per section (the key from .env.local or the environment, never on a command line).
+import { envValue } from "./kit-env.mjs";
+const KEY = envValue("DESIGN_PREVIEW_KEY");
 const html = await (await fetch(`https://partyreel-git-launch-prep-partyreel.vercel.app/design/lab?key=${KEY}`, { headers: { "Cache-Control": "no-cache" } })).text();
 console.log("page serves", (html.match(/sentry-release=([0-9a-f]{8})/) || [])[1]);
 const heads = ["Waiting on you", "Every standing board", "What you said at your last sitting"];

@@ -65,9 +65,16 @@ describe("the width a drawing is laid out at", () => {
  * A stand-in for a browser's layout: four phone frames (375 by 850, a 24px
  * gap) in a column that, once it is a row that wraps, holds as many a line as
  * the width allows. jsdom lays nothing out, so the drawing's box answers
- * `offsetWidth` and `offsetHeight` from the width it was last set to.
+ * `offsetWidth` and `offsetHeight` from the width it was last set to, and
+ * rounds its widths as a browser's `offsetWidth` does (a frame may be a
+ * fraction of a pixel narrower than its whole-pixel name, as brand's slides
+ * are: 374.95 px).
  */
-function stageOf(frames = 4, box = { w: 1400, h: 560 }) {
+function stageOf(
+  frames = 4,
+  box = { w: 1400, h: 560 },
+  { W, GAP, H } = { W: 375, GAP: 24, H: 850 },
+) {
   const stage = document.createElement("div");
   Object.defineProperty(stage, "clientWidth", { get: () => box.w });
   Object.defineProperty(stage, "clientHeight", { get: () => box.h });
@@ -89,9 +96,6 @@ function stageOf(frames = 4, box = { w: 1400, h: 560 }) {
   wrap.append(column);
   view.append(wrap);
   stage.append(view);
-  const W = 375;
-  const GAP = 24;
-  const H = 850;
   const width = () => {
     const w = wrap.style.width;
     if (w === "min-content") return W;
@@ -102,7 +106,9 @@ function stageOf(frames = 4, box = { w: 1400, h: 560 }) {
     column.hasAttribute("data-lab-reflow")
       ? Math.max(1, Math.floor((width() + GAP) / (W + GAP)))
       : 1;
-  Object.defineProperty(wrap, "offsetWidth", { get: width });
+  Object.defineProperty(wrap, "offsetWidth", {
+    get: () => Math.round(width()),
+  });
   Object.defineProperty(wrap, "offsetHeight", {
     get: () => {
       const rows = Math.ceil(frames / perRow());
@@ -119,8 +125,10 @@ describe("fitting a stage whole", () => {
     // The column became a row that wraps, the lede a line of its own.
     expect(column.getAttribute("data-lab-reflow")).toBe("column");
     expect(lede.hasAttribute("data-lab-line")).toBe(true);
-    // Four in a row (1572 wide, 890 tall) beats every narrower shape.
-    expect(fitted.width).toBeGreaterThanOrEqual(1572);
+    // Four in a row (1572 wide, 890 tall) beats every narrower shape. Read on
+    // the width WORN, which carries the layout's slack (lab-kit-3): pulled in
+    // to its own edge, the width tried can now be that much under the row.
+    expect(Number.parseFloat(wrap.style.width)).toBeGreaterThanOrEqual(1572);
     expect(fitted.k).toBeCloseTo(560 / 890, 2);
     expect(wrap.style.zoom).toBe(String(fitted.k));
   });
@@ -132,6 +140,26 @@ describe("fitting a stage whole", () => {
     // to two a row (0.26 by height).
     expect(fitted.k).toBeGreaterThan(0.25);
     expect(fitted.width).toBeLessThan(2 * 375 + 24 + 375);
+  });
+
+  it("★ keeps a row whole that needs a fraction more than its whole pixels (brand at the 375 knob)", () => {
+    // Fourteen slides at 374.95 px and thirteen 32 px gaps need 5665.3 px, and
+    // the widest layout answers 5665: worn at exactly that, the last slide
+    // wrapped under the dock (lab:demo, CUT and CLIPPED at 1440).
+    const { stage, wrap } = stageOf(
+      14,
+      { w: 1408, h: 150 },
+      { W: 374.95, GAP: 32, H: 850 },
+    );
+    const fitted = fitStage(stage, { side: false })!;
+    expect(wrap.offsetHeight).toBe(40 + 850);
+    expect(Number.parseFloat(wrap.style.width)).toBeGreaterThanOrEqual(
+      14 * 374.95 + 13 * 32,
+    );
+    // The slack is in the scale too: the row, slack and all, fits its room.
+    expect(Number.parseFloat(wrap.style.width) * fitted.k).toBeLessThanOrEqual(
+      1408,
+    );
   });
 
   it("writes nothing on a re-fit that finds the same answer", () => {

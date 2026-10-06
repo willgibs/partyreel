@@ -1,5 +1,5 @@
-import fs from "node:fs";
 import { call, sleep, err, APP, ADMIN } from "./vercel-lib.mjs";
+import { envValue } from "./kit-env.mjs";
 // SHA=<short> FULL=<full> node usher/kit/alias-ensure.mjs
 // Since 2026-09-20 no push to launch-prep creates a Vercel deployment (vercel.json's git.deploymentEnabled), so
 // this script IS the deployment: one per project (partyreel, partyreel-admin) for the record commit, created by
@@ -18,8 +18,7 @@ if (!SHORT || !FULL) { console.error("SHA=<short> FULL=<full> are required"); pr
   process.stdout.write(r.stdout ?? "");
   if (r.status === 3 && process.env.VERCEL_OK !== "1") { console.error("alias-ensure refuses: past the Vercel line (VERCEL_OK=1 on Will's word)"); process.exit(2); }
 }
-const envFile = fs.readFileSync("/Users/gibby/local/ai/partyreel/.env.local", "utf8");
-const KEY = envFile.match(/^DESIGN_PREVIEW_KEY=(.*)$/m)[1].trim().replace(/^["']|["']$/g, "");
+const KEY = envValue("DESIGN_PREVIEW_KEY");
 const TARGETS = [
   { label: "app", id: APP, name: "partyreel", alias: "partyreel-git-launch-prep-partyreel.vercel.app" },
   { label: "admin", id: ADMIN, name: "partyreel-admin", alias: "partyreel-admin-git-launch-prep-partyreel.vercel.app" },

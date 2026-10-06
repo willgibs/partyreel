@@ -61,6 +61,17 @@ echo msg > "$T/msg13.txt"; BEFORE="$(git status --short)"; S="$T" KIT_BRANCH=zz-
 # 14. the Vercel guard stands in front of every remote lab run and every deploy (2026-10-04: Hobby's Active CPU, whose
 #     break pauses every function): both lab scripts and alias-ensure.mjs call it, and a local base never spends a read
 grep -q 'guardRemoteBase(base, "lab:demo")' scripts/lab-demo.mjs && grep -q 'guardRemoteBase(base, "lab:smoke")' scripts/lab-smoke.mjs && grep -q 'vercel-usage.mjs' "$KIT/alias-ensure.mjs" && node -e 'import("./scripts/vercel-guard.mjs").then(m=>{m.guardRemoteBase("http://localhost:3131","x");m.guardRemoteBase("http://127.0.0.1:3999","x");console.log("local-ok")})' 2>&1 | grep -qx "local-ok" && ok "the Vercel guard fronts remote lab runs and deploys, and lets a local base through unread" || bad "the Vercel guard is missing from a lab script or alias-ensure, or it reads on a local base"
+# 15. the kit runs on a machine with no nvm (a cloud seat, 2026-10-06: a bare `source ~/.nvm/nvm.sh` under `set -e` killed
+#     every merge before it started): with HOME holding no nvm, merge-lane.sh still reaches its own branch refusal
+mkdir -p "$T/nohome"; S="$T" HOME="$T/nohome" KIT_BRANCH=zz-not-this-branch zsh "$KIT/merge-lane.sh" no-such-lane deadbeef "$T/msg13.txt" > "$T/nonvm.out" 2>&1
+grep -q "not zz-not-this-branch" "$T/nonvm.out" && ! grep -q "STEP FAILED" "$T/nonvm.out" && ok "merge-lane.sh runs on a machine with no nvm" || bad "merge-lane.sh died on a machine with no nvm"
+# 16. signin.mjs mints a session for the two test hosts alone: the operator (her portal stands behind a second factor), a
+#     stranger and a remote base are refused (exit 3) before any key is read or any call is made, and nothing is printed
+#     but the refusal
+SI="$KIT/redteam/signin.mjs"; env -u SUPABASE_SECRET_KEY node "$SI" partyr33l@gmail.com http://localhost:3000 X > "$T/si1.out" 2>&1; S1=$?
+node "$SI" stranger@example.com http://localhost:3000 X > "$T/si2.out" 2>&1; S2=$?; node "$SI" PARTYR33L@Gmail.com http://localhost:3000 X > "$T/si3.out" 2>&1; S3=$?
+node "$SI" willg97@gmail.com https://partyreel.com X > "$T/si4.out" 2>&1; S4=$?
+[ $S1 = 3 ] && [ $S2 = 3 ] && [ $S3 = 3 ] && [ $S4 = 3 ] && grep -q "operator" "$T/si1.out" && grep -q "not a test host" "$T/si2.out" && grep -q "operator" "$T/si3.out" && grep -q "not a local server" "$T/si4.out" && ok "signin.mjs refuses the operator, a stranger and a remote base" || bad "signin.mjs minted, or tried to mint, a session it must refuse"
 # the costs the refusals were written for, re-read from the system as it is now (a report, never a refusal; cost-readings.mjs)
 node "$KIT/cost-readings.mjs" 2>&1 | cut -c1-400 || echo "cost readings: the script failed (read it before the next integration)"
 node "$KIT/vercel-usage.mjs" 2>&1 | cut -c1-400

@@ -4,7 +4,7 @@ set -e
 TRACK="$1"; HSHA="$2"; MSG="$3"
 KIT="$(cd "$(dirname "$0")" && pwd)"; cd "$KIT/../.."
 trap 'echo "STEP FAILED"; exit 1' ERR
-source ~/.nvm/nvm.sh >/dev/null 2>&1; nvm use >/dev/null 2>&1
+source "$KIT/kit-env.sh"
 : "${S:?set S to this session's scratchpad}"
 [ -n "$TRACK" ] && [ -n "$HSHA" ] && [ -f "$MSG" ] || { echo "usage: merge-lane.sh <track> <sha> <msgfile>"; exit 1; }
 # ★ A LANE MERGES INTO launch-prep ALONE: `main` moves only at a milestone, and the desktop app can open a fresh session

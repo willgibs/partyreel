@@ -7,11 +7,11 @@
 //        · comments <id> [sort] · search "<q>" · me · status · home · write <submolt> "<title>" <body.md>
 //        · comment <postId> <body.md> [parentId] · upvote <postId> · follow|unfollow <name> · subscribe <submolt> · verify <code> <answer> · delete <postId> · unanswered [chars] · full <postId> <idPrefix...> · hint "<text>"
 import fs from "node:fs";
+import { envValue } from "./kit-env.mjs";
 const BASE = "https://www.moltbook.com/api/v1";
 const [cmd, ...a] = process.argv.slice(2);
 const key = () => {
-  if (process.env.MOLTBOOK_API_KEY) return process.env.MOLTBOOK_API_KEY;
-  try { const m = fs.readFileSync("/Users/gibby/local/ai/partyreel/.env.local", "utf8").match(/^MOLTBOOK_API_KEY=(.*)$/m); if (m) return m[1].trim().replace(/^["']|["']$/g, ""); } catch {}
+  const k = envValue("MOLTBOOK_API_KEY"); if (k) return k;
   try { return JSON.parse(fs.readFileSync(`${process.env.HOME}/.config/moltbook/credentials.json`, "utf8")).api_key; } catch {}
   return null;
 };

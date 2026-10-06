@@ -6,14 +6,16 @@ Look up the task in hand; each section stands alone. The scripts run from the re
 
 1. `export S=<this session's scratchpad>` (every script requires it and writes its logs there). Read `docs/tracks/orchestrator.md` (in flight,
    next, waiting on Will), then `docs/STATUS.md`. **In a cloud session** (seated there since 2026-10-06): an export lasts
-   one command, so append `S` and `CHROME_PATH` to this session's newest shell snapshot (`~/.claude/shell-snapshots/`; again after a worker restart, and a background command reads none, so set `S` inside it);
-   `apt-get install -y zsh`; a no-op `~/.nvm/nvm.sh` (`nvm() { :; }`: the kit sources nvm under `set -e`); the Chrome
-   wrapper `spawn-prompt-cloud.txt` makes; a gitignored `.env.local` of public values (this container may hold no
-   secret: a lane's session, born after Will's environment change, holds them). A full `pnpm test` takes about 8.5
-   minutes on its 4 cores.
+   one command, so append `S` and `CHROME_PATH` to this session's newest shell snapshot (`~/.claude/shell-snapshots/`;
+   again after a worker restart, and a background command reads none, so set `S` inside it);
+   `apt-get update && apt-get install -y zsh`; the Chrome wrapper `spawn-prompt-cloud.txt` makes; a gitignored
+   `.env.local` of public values (this container may hold no secret: a lane's session, born after Will's environment
+   change, holds them). The kit needs nothing else there: it sources nvm only where it exists and reads each value from
+   `.env.local` or the environment (`kit-env.sh`, `kit-env.mjs`). A full `pnpm test` takes about 8.5 minutes on its 4
+   cores.
 2. `git status --short` (empty), the root on `launch-prep` (a fresh session can open on `main`, and `merge-lane.sh`
-   refuses any other branch), `git worktree list`, the ports 3130 to 3139, `memory_pressure`; kill by port a dev
-   server whose lane is gone.
+   refuses any other branch), `git worktree list`, the ports 3130 to 3139, the memory (`memory_pressure` on the Mac,
+   `free -g` on Linux); kill by port a dev server whose lane is gone.
 3. The lanes: a `handed-off` manifest in `docs/tracks/` waits to be integrated; `git branch -r --list 'origin/lp/*'`
    finds a branch without one. A lane is integrated when its manifest is gone from HEAD, not merely when its tip is an
    ancestor (a fresh lane's tip is one until its first commit). A lane that was mid-work: "Resume a lane".
@@ -133,8 +135,8 @@ answer changes a call, the record says so, and a disagreement on a one-way door 
 4. Spawn with the Agent tool: `spawn-prompt.txt` filled (`{track}`, `{port}`, and `{scratch}` the absolute path of
    `../partyreel-wt/_scratch`, never `$S`: a session's scratchpad dies with it, captures included; the scratch is a
    lane's working area by design, so what a successor needs goes to the repo at the merge), one port each from 3131 to
-   3139, as many lanes as measured memory allows (`memory_pressure` first: six to eight on this 36 GB Mac, at 60% free or
-   more; full speed is the default and a 5-hour cut-off is accepted; near the weekly end keep the pickup's handoff block
+   3139, as many lanes as measured memory allows (`memory_pressure` first, `free -g` on Linux: six to eight on the
+   36 GB Mac, at 60% free or more; full speed is the default and a 5-hour cut-off is accepted; near the weekly end keep the pickup's handoff block
    current for the auto-kill at 100%), their production builds taking turns through
    `scripts/build-lock.sh`. The model is your call on every spawn: Opus for
    big, ambiguous, multi-file work, Sonnet for fast, direct UI work.
@@ -186,7 +188,8 @@ Read the Handoff, the lane check and the captures, never the whole diff.
 
 **Migrations** are global state (one Supabase behind prod and every preview): a lane writes the SQL file; you apply it
 (`apply_migration`, the whole file, trailing newline included: `md5(statements[1])` in
-`supabase_migrations.schema_migrations` then equals the file's `md5 -q`, the proof it went in verbatim),
+`supabase_migrations.schema_migrations` then equals the file's `md5 -q` on the Mac, `md5sum` on Linux, the proof it
+went in verbatim),
 additive-only while an open lane's code still calls what a contract migration would drop, and a
 destructive one only on Will's yes; then `get_advisors` (the accepted set: `docs/systems/database-security.md`),
 regenerate `src/lib/db/types.ts`, and commit both. A migration that replaces a function starts from its newest
@@ -262,6 +265,12 @@ a line when a lever lands.
 - `negative.sh`: every refusal fed its known-bad input, after any kit change and before a day's first integration
   (`cost-readings.mjs` re-reads the cost each refusal was written for).
 - `alias-ensure.mjs` (with `vercel-lib.mjs`): the alias deployment; `DRY=1` reports without creating.
+- `kit-env.sh` and `kit-env.mjs`: what every script shares so it runs alike on the Mac and a cloud seat: the repo from
+  the script's own checkout, nvm only where it exists, a value from `.env.local` or else the environment
+  (`kit_env NAME`, `envValue(name)`), Chrome from `CHROME_PATH` (`chromePath`) and its DevTools port read from the
+  profile it was started with (`--remote-debugging-port=0`, then `devToolsPort`), never a port from a pid or at random;
+  `kit_port_pids` and `kit_free_port` find a port's listener through `fuser` where `lsof` sees no socket (a cloud
+  container), so a kill by port frees it there too.
 - `page-console.mjs <base> [path]`: one page in headless Chrome, its console errors, the key redacted.
 - `board-card.mjs <board...>|--desk`: one screen per board, in desk order (its place, `lives`, its opening and terms,
   every ask with its context, and the answers of its own round); `desk-sections.mjs`: the served desk per section.
@@ -274,6 +283,13 @@ a line when a lever lands.
 - `moltbook.mjs`: the Moltbook client (`../moltbook/README.md`).
 - `desk-refresh.sh <sha>`: Will's desk (:3000, the `../partyreel-wt/desk` worktree) rebuilt and restarted at a
   launch-prep sha, ending `DESK READY` once the lab's stamp names it; never while a red-team walks the desk. Local only.
+- `media-gen.mjs [dir]`: test media with no Mac (ffmpeg alone): a phone's photographs with their capture time in the
+  minimal Exif, a short video, the red-team's fake camera and `compute:model`'s six shapes, unique bytes every run
+  (`$PARTYREEL_TEST_MEDIA`, else `<tmp>/partyreel-test-media`); `--capture-fixtures` regenerates the capture-time walk's
+  `imageio-nozone.jpg` and `imageio-lying.jpg` in `src/lib/media/strip-metadata-fixtures/`.
+- `redteam/signin.mjs <email> <base> <key> [--open <path>]`: a test host's session (willg97, hi@willgibs) in a walk's
+  own headless Chrome on a local build, minted with the service key and never mailed; the operator, a stranger and a
+  remote base are refused (`negative.sh`). The cloud seat's sign-in; on the Mac, Will's Chrome and the chooser.
 - `redteam-brief.txt`: a red-team's brief, its walk's specifics in braces (what changed since the last base, the walks
   in order); the rules and the driving notes are every walk's. Its tools are `redteam/` (a headless Chrome of the
   walk's own, the driver `drv.mjs` and how to start it in its head, fresh devices with Vercel and partyreel.com blocked,

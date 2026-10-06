@@ -1,14 +1,14 @@
 #!/bin/zsh
 # capture-all.sh <dir> [port]: every board on the desk, in desk order, through one dev server; the pictures for a review sheet.
 # Its default port is capture.sh's (3140, outside the gate's and the lanes'), since it too kills what holds it.
-source ~/.nvm/nvm.sh >/dev/null 2>&1; nvm use >/dev/null 2>&1
 KIT="$(cd "$(dirname "$0")" && pwd)"; cd "$KIT/../.."
+source "$KIT/kit-env.sh"
 DIR="$1"; PORT="${2:-3140}"
-export DESIGN_PREVIEW_KEY="$(grep '^DESIGN_PREVIEW_KEY=' .env.local | cut -d= -f2- | tr -d '"')"
+export DESIGN_PREVIEW_KEY="$(kit_env DESIGN_PREVIEW_KEY)"
 # The desk's own order: every folder under sandbox/ with a spec, by its desk place (board-card reads the specs).
 BOARDS=$(node "$KIT/board-card.mjs" --desk 2>/dev/null | awk '{print $2}')
 [ -n "$BOARDS" ] || { echo "capture-all: board-card found no board"; exit 1; }
-lsof -ti tcp:$PORT | xargs -r kill 2>/dev/null; sleep 1
+lsof -ti tcp:$PORT | xargs -r kill 2>/dev/null; kit_free_port $PORT; sleep 1
 # The server starts on an empty dev cache, as the gate's does (gate 123: a cache warmed on another tree can hand a frame
 # a stale chunk that reloads it for ever), unless another dev server runs from this tree (the gate's, on 3130, shares
 # it): src/lib/gate-dev-cache-policy.test.ts holds this line between the stop and the start.
@@ -21,5 +21,5 @@ for b in ${(f)BOARDS}; do
   curl -s -o /dev/null "http://localhost:$PORT/design/lab/$b?key=$DESIGN_PREVIEW_KEY"
   perl -e 'alarm 900; exec @ARGV' pnpm -s lab:demo --board "$b" --base http://localhost:$PORT --save-shots "$DIR" 2>&1 | grep -E "steps, " | sed "s/^/$b: /"
 done
-lsof -ti tcp:$PORT | xargs -r kill 2>/dev/null
+lsof -ti tcp:$PORT | xargs -r kill 2>/dev/null; kit_free_port $PORT
 echo "CAPTURE-ALL DONE: $(ls "$DIR" 2>/dev/null | wc -l | tr -d ' ') pictures in $DIR"
