@@ -130,8 +130,8 @@
      by hand with an alpha. An alpha composites against WHATEVER IS BEHIND IT,
      so the same line was a different grey on a card than on the page; one token
      is one grey on all three grounds. A caption is still read, so it clears AA
-     (a11y-halo, from 0.6 at 3.64:1 on the body, 3.39:1 on the mat): 5.03:1 on
-     the body, 5.35:1 on a card, 4.68:1 on the mat (`.surface-mat`, 0.948), a
+     (a11y-halo, from 0.6 at 3.64:1 on the body, 3.39:1 on the mat): 4.95:1 on
+     the body, 5.29:1 on a card, 4.61:1 on the mat (`.surface-mat`, 0.948), a
      step lighter than --muted-foreground (7.48:1). Still a caption colour -
      never body copy, never a control's only label, never stacked with an alpha. */
   --faint: oklch(0.525 0.006 286);
@@ -179,9 +179,9 @@
   /* THE WARNING'S WORDS (a11y-halo): the amber is a light, so on paper it is a
      dot, a fill or a glyph and never a line of text (1.75:1 on the body). Its
      words (`text-warning` reads this, theme.css's `--text-color-warning`) are
-     the same hue taken down to a bronze: 4.99:1 on the body, 5.31:1 on a card,
-     4.65:1 on the mat. A dark ground reads its own bright amber as words
-     (11.9:1 in the room), so every ground that turns dark restates it. */
+     the same hue taken down to a bronze: 4.95:1 on the body, 5.3:1 on a card,
+     4.61:1 on the mat. A dark ground reads its own bright amber as words
+     (12.6:1 in the room), so every ground that turns dark restates it. */
   --warning-ink: oklch(0.53 0.12 70);
   --info: oklch(0.62 0.15 250);
   --info-foreground: oklch(0.99 0 0);
@@ -251,7 +251,7 @@
   --display-step: oklch(0.235 0.004 286);
   --display-foreground: oklch(0.975 0.002 286);
   --display-muted: oklch(0.72 0.005 286);
-  /* The screen's caption grey at AA (a11y-halo, from 0.56): 5.29:1 on it, 4.58:1 on its step. */
+  /* The screen's caption grey at AA (a11y-halo, from 0.56): 5.31:1 on it, 4.58:1 on its step. */
   --display-faint: oklch(0.62 0.005 286);
   --display-edge: oklch(1 0 0 / 11%);
   --display-input: oklch(1 0 0 / 20%);
@@ -393,7 +393,7 @@
   --muted: oklch(0.125 0.004 286);
   --muted-foreground: oklch(0.71 0.006 286);
   /* The third text step in the room (see :root), at AA (a11y-halo, from 0.53
-     at 3.92:1): 5.04:1 on the room, 4.78:1 on a card, 4.61:1 on a dialog. A
+     at 3.92:1): 5.06:1 on the room, 4.8:1 on a card, 4.64:1 on a dialog. A
      caption colour, never body copy. */
   --faint: oklch(0.59 0.006 286);
   --accent: oklch(0.245 0.004 286);
@@ -454,8 +454,8 @@
   --display-step: oklch(0.355 0.005 286);
   --display-foreground: oklch(0.975 0.002 286);
   --display-muted: oklch(0.77 0.005 286);
-  /* At AA on the lit screen (a11y-halo, from 0.62 at 3.88:1): 4.9:1. On its step (a row a pointer
-     holds) 3.85:1: AA there would need 0.722, a hair under --display-muted's 0.77, and the third step
+  /* At AA on the lit screen (a11y-halo, from 0.62 at 3.88:1): 4.91:1. On its step (a row a pointer
+     holds) 3.88:1: AA there would need 0.722, a hair under --display-muted's 0.77, and the third step
      would stop being a step. */
   --display-faint: oklch(0.68 0.005 286);
   --display-edge: oklch(1 0 0 / 12%);
@@ -493,7 +493,7 @@
   --muted: oklch(0.93 0.003 286);
   --secondary: oklch(0.912 0.003 286);
   --accent: oklch(0.912 0.003 286);
-  /* Paper's caption grey, restated for the block (4.68:1 on the mat, see :root). */
+  /* Paper's caption grey, restated for the block (4.61:1 on the mat, see :root). */
   --faint: oklch(0.525 0.006 286);
 }
 
@@ -532,7 +532,7 @@
   --secondary-foreground: oklch(0.965 0.0045 286);
   --muted: oklch(0.225 0.006 286);
   --muted-foreground: oklch(0.715 0.0105 286);
-  /* At AA on the slab (a11y-halo, from 0.565): 5.18:1 on it, 4.6:1 on its card. */
+  /* At AA on the slab (a11y-halo, from 0.565): 5.18:1 on it, 4.62:1 on its card. */
   --faint: oklch(0.615 0.0075 286);
   /* A dark slab on paper reads the bright amber as words, as the room does (see :root's --warning-ink). */
   --warning-ink: oklch(0.8 0.14 80);
