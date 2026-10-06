@@ -60,3 +60,20 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am
+
+- Done (WIP commit): the three traits wired, one home each. `focus-halo` and `press-shrink` are `@utility`s in
+  globals.css (the halo's band/bloom tokens on every ground, the photo set keyed on `data-surface="photo"` and the
+  `on-photo`/`glass` variants); every atom in `src/components/ui/` wears them (Button per-size `--press-scale`,
+  toggles, tabs, fields, switch, shutter, code chip/mat, badge, glyph count, OTP slot via `data-halo`, nav trigger
+  and link, the Add's Cancel, sonner's toast and buttons). The edge: `lit-display` on `floatingDisplay` (ring gone),
+  `lit-work` on `floatingWorkSurface` (popup, Dialog, Sheet now read it), the toast's `::before`, all in globals.css's
+  THE EDGE ON WHAT FLOATS. The camera is `dark` and wears the halo; its reel's mask moved to `.cam-reel-film`.
+  `src/components/ui/identity-traits.test.ts` pins all three (24 tests, all fail on the old code). Verified in my own
+  headless Chrome on 3136: halo on 8 atom kinds at 1440/375 in both grounds, press gives per size at 0ms and lets go at
+  150ms, the edge on menus/popover/tooltip/select/toast/popup shapes (paper step 1px in, room outer pixel).
+- Next: the door's responsive sheet walk (the demo album opened no sheet; find a door state), the camera walk, the
+  gate (typecheck, lint, full test, build, lab:smoke, PREMISE lines), design-system.md's facts, the Handoff.
+- One exception outside `owns`: `src/components/marketing/chrome/marketing-nav.tsx`, one line dropped (the quiet
+  trigger's own `focus-visible:ring-2`), so the nav's triggers wear the halo like its links.

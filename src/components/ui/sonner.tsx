@@ -121,8 +121,14 @@ const Toaster = ({ ...props }: ToasterProps) => {
         toastOptions={{
           classNames: {
             // The display's ground, so a toast's parts (its glyph's state
-            // colour, its Undo's ink) read the screen's tokens.
-            toast: "cn-toast surface-display",
+            // colour, its Undo's ink) read the screen's tokens. The toast and
+            // its buttons wear the house's focus mark (identity r4,
+            // `focus-halo`), which globals.css composes past sonner's own
+            // focus rules; its light edge is globals.css's too.
+            toast: "cn-toast surface-display focus-halo",
+            actionButton: "focus-halo",
+            cancelButton: "focus-halo",
+            closeButton: "focus-halo",
           },
         }}
         {...props}

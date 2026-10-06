@@ -12,6 +12,7 @@ import {
   floatingEdgeEntrance,
   floatingEdgeEntranceResponsive,
   floatingScrim,
+  floatingWorkSurface,
 } from "@/components/ui/floating-layer"
 import { XIcon } from "lucide-react"
 
@@ -140,11 +141,13 @@ function SheetContent({
         data-side={responsive ? "responsive" : side}
         className={cn(
           // A sheet is a LAYER (the page keeps living behind it), so it wears
-          // shadow-layer in both modes (globals.css). A fixed side has no
-          // corner: it is anchored to an edge and its own edge is the
-          // viewport's; the responsive sheet takes a work layer's corner on
-          // its one free edge (`floatingEdgeEntranceResponsive`).
-          "fixed z-50 flex flex-col gap-4 bg-popover bg-clip-padding text-sm text-popover-foreground shadow-layer transition data-[side=bottom]:inset-x-0 data-[side=bottom]:bottom-0 data-[side=bottom]:h-auto data-[side=bottom]:border-t data-[side=left]:inset-y-0 data-[side=left]:left-0 data-[side=left]:h-full data-[side=left]:w-3/4 data-[side=left]:border-r data-[side=right]:inset-y-0 data-[side=right]:right-0 data-[side=right]:h-full data-[side=right]:w-3/4 data-[side=right]:border-l data-[side=top]:inset-x-0 data-[side=top]:top-0 data-[side=top]:h-auto data-[side=top]:border-b data-[side=left]:sm:max-w-sm data-[side=right]:sm:max-w-sm",
+          // a work layer's material (`floatingWorkSurface`: the popover's ink,
+          // shadow-layer in both modes, its free edge lit in the room). A
+          // fixed side has no corner: it is anchored to an edge and its own
+          // edge is the viewport's; the responsive sheet takes a work layer's
+          // corner on its one free edge (`floatingEdgeEntranceResponsive`).
+          floatingWorkSurface,
+          "fixed z-50 flex flex-col gap-4 bg-clip-padding text-sm transition data-[side=bottom]:inset-x-0 data-[side=bottom]:bottom-0 data-[side=bottom]:h-auto data-[side=bottom]:border-t data-[side=left]:inset-y-0 data-[side=left]:left-0 data-[side=left]:h-full data-[side=left]:w-3/4 data-[side=left]:border-r data-[side=right]:inset-y-0 data-[side=right]:right-0 data-[side=right]:h-full data-[side=right]:w-3/4 data-[side=right]:border-l data-[side=top]:inset-x-0 data-[side=top]:top-0 data-[side=top]:h-auto data-[side=top]:border-b data-[side=left]:sm:max-w-sm data-[side=right]:sm:max-w-sm",
           floatingEdgeEntrance,
           responsive && floatingEdgeEntranceResponsive,
           // Rare, and the distance IS the affordance: this came from over

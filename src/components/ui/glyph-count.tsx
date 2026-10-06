@@ -58,7 +58,8 @@ function GlyphCount({
         aria-label={label}
         className={cn(
           "relative inline-flex shrink-0 items-center gap-1.5 rounded-full tabular-nums outline-none",
-          "focus-visible:outline-[1.5px] focus-visible:outline-offset-2 focus-visible:outline-foreground focus-visible:outline-solid",
+          // The house's focus mark (identity r4), the readout's as every atom's.
+          "focus-halo",
           // A finger's target past the glyph, without growing the line it sits in.
           "before:absolute before:-inset-x-1.5 before:-inset-y-2 before:content-['']",
           className
